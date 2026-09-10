@@ -1,5 +1,4 @@
 import logging
-import re
 from datetime import datetime
 from typing import List, Optional, cast
 from uuid import UUID
@@ -10,7 +9,6 @@ from referentiel.value_objects.category import Category
 from referentiel.value_objects.contract_type import ContractKind, ContractType
 from referentiel.value_objects.country import Country
 from referentiel.value_objects.department import Department
-from referentiel.value_objects.diploma import Diploma
 from referentiel.value_objects.experience_level import ExperienceLevel
 from referentiel.value_objects.language import Language
 from referentiel.value_objects.language_level import LanguageLevel
@@ -22,7 +20,15 @@ from referentiel.value_objects.verse import Verse
 
 from domain.entities.offer import Offer
 from domain.entities.raw_offer import RawOffer
-from infrastructure.external_gateways.dtos.talentsoft_dtos import TalentsoftDetailOffer
+from domain.repositories.sources_repository import ISourcesRepository
+from infrastructure.external_gateways.dtos.talentsoft_dtos import (
+    TalentsoftDetailOffer,
+    TalentsoftLanguage,
+)
+from infrastructure.gateways.transcoding import (
+    SourceTranscoder,
+    load_transcoders_by_slug,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -39,29 +45,52 @@ _TALENTSOFT_TO_AREA: dict[str, GeographicalArea] = {
 
 
 class OffersCleaner:
+    def __init__(
+        self,
+        sources_repository: ISourcesRepository,
+        transcoders_by_slug: Optional[dict[str, SourceTranscoder]] = None,
+    ) -> None:
+        self._sources_repository = sources_repository
+        self._transcoders_by_slug = (
+            transcoders_by_slug
+            if transcoders_by_slug is not None
+            else load_transcoders_by_slug()
+        )
+
     def clean(self, raw_offer: RawOffer) -> Offer:
         if not raw_offer.data:
             raise ValueError(f"RawOffer {raw_offer.reference} has no data to clean")
         if not raw_offer.source_id:
             raise ValueError(f"RawOffer {raw_offer.reference} has no source_id")
 
+        transcoder = self._resolve_transcoder(raw_offer.source_id)
         talentsoft_offer = TalentsoftDetailOffer.model_validate(raw_offer.data)
-        return self._map_talentsoft_to_offer(talentsoft_offer, raw_offer)
+        return self._map_talentsoft_to_offer(talentsoft_offer, raw_offer, transcoder)
+
+    def _resolve_transcoder(self, source_id: str) -> Optional[SourceTranscoder]:
+        source = self._sources_repository.get_by_source_id(UUID(source_id))
+        if source is None:
+            return None
+        return self._transcoders_by_slug.get(source.slug)
 
     def _map_talentsoft_to_offer(
-        self, talentsoft_offer: TalentsoftDetailOffer, raw_offer: RawOffer
+        self,
+        talentsoft_offer: TalentsoftDetailOffer,
+        raw_offer: RawOffer,
+        transcoder: Optional[SourceTranscoder],
     ) -> Offer:
         ts_verse = (
             talentsoft_offer.salaryRange.clientCode
             if talentsoft_offer.salaryRange
             else "UNK"
         )
-        verse = self._map_verse(ts_verse, talentsoft_offer.reference)
+        verse = self._map_verse(ts_verse, talentsoft_offer.reference, transcoder)
 
         contract_type = self._map_contract_type(
             talentsoft_offer.contractType.clientCode
             if talentsoft_offer.contractType
-            else None
+            else None,
+            transcoder,
         )
 
         contract_kind = self._map_contract_kind(
@@ -80,6 +109,7 @@ class OffersCleaner:
             talentsoft_offer.region,
             talentsoft_offer.department,
             coordinates,
+            transcoder,
         )
 
         offer_url = self._parse_url(talentsoft_offer.offerUrl)
@@ -101,34 +131,35 @@ class OffersCleaner:
             if talentsoft_offer.customFields
             and talentsoft_offer.customFields.description
             and talentsoft_offer.customFields.description.customCodeTable1
-            else None
+            else None,
+            transcoder,
         )
 
         family_code_value = None
         if talentsoft_offer.offerFamilyCategory:
-            family_code_value = talentsoft_offer.offerFamilyCategory.clientCode
+            family_code_value = self._map_family_code(
+                talentsoft_offer.offerFamilyCategory.clientCode, transcoder
+            )
 
         education_level = (
-            self._map_education_level(talentsoft_offer.educationLevel.clientCode)
+            self._map_education_level(
+                talentsoft_offer.educationLevel.clientCode, transcoder
+            )
             if talentsoft_offer.educationLevel
             else None
         )
 
         experience = (
-            self._map_experience(talentsoft_offer.experienceLevel.clientCode)
+            self._map_experience(
+                talentsoft_offer.experienceLevel.clientCode, transcoder
+            )
             if talentsoft_offer.experienceLevel
             else None
         )
 
         specialisations = [s.clientCode for s in talentsoft_offer.specialisations]
 
-        languages = [
-            Language(
-                iso_code=lang.languageName.clientCode,
-                language_level=LanguageLevel(lang.languageLevel.clientCode),
-            )
-            for lang in talentsoft_offer.languages
-        ]
+        languages = self._map_languages(talentsoft_offer.languages, transcoder)
 
         diploma = (
             talentsoft_offer.diploma.clientCode if talentsoft_offer.diploma else None
@@ -139,7 +170,8 @@ class OffersCleaner:
             if talentsoft_offer.customFields
             and talentsoft_offer.customFields.offerCustomBlock1
             and talentsoft_offer.customFields.offerCustomBlock1.customCodeTable2
-            else None
+            else None,
+            transcoder,
         )
 
         management = self._map_management(
@@ -147,7 +179,8 @@ class OffersCleaner:
             if talentsoft_offer.customFields
             and talentsoft_offer.customFields.offerCustomBlock1
             and talentsoft_offer.customFields.offerCustomBlock1.customCodeTable1
-            else None
+            else None,
+            transcoder,
         )
 
         return Offer(
@@ -180,9 +213,18 @@ class OffersCleaner:
             management=management,
         )
 
-    def _map_verse(self, verse_str: Optional[str], reference: str) -> Optional[Verse]:
+    def _map_verse(
+        self,
+        verse_str: Optional[str],
+        reference: str,
+        transcoder: Optional[SourceTranscoder] = None,
+    ) -> Optional[Verse]:
         if not verse_str:
             return None
+
+        if transcoder:
+            verse_str = transcoder.translate("verses", verse_str) or verse_str
+
         verse_upper = verse_str.upper()
         if "FPT" in verse_upper:
             return Verse.FPT
@@ -192,42 +234,25 @@ class OffersCleaner:
             return Verse.FPE
         return None
 
-    _ARS_CONTRACT_TYPE_MAPPING: dict[str, ContractType] = {
-        "ACCOMP": ContractType.CONTRACTUELS,
-        "ACCOMPCDI": ContractType.TITULAIRE_CONTRACTUEL,
-        "APP7": ContractType.CONTRACTUELS,
-        "APPCDD": ContractType.CONTRACTUELS,
-        "APPREN": ContractType.CONTRACTUELS,
-        "AUTCDD": ContractType.CONTRACTUELS,
-        "CCNCDINE": ContractType.TITULAIRE_CONTRACTUEL,
-        "CDI": ContractType.TITULAIRE_CONTRACTUEL,
-        "CES": ContractType.CONTRACTUELS,
-        "CONTRCDD": ContractType.CONTRACTUELS,
-        "CUICDD": ContractType.CONTRACTUELS,
-        "GRH": ContractType.CONTRACTUELS,
-        "PROCDD": ContractType.CONTRACTUELS,
-        "REMPLA": ContractType.CONTRACTUELS,
-        "RENOIRH": ContractType.CONTRACTUELS,
-        "STA": ContractType.CONTRACTUELS,
-        "STAGE": ContractType.CONTRACTUELS,
-        "SURCHA": ContractType.CONTRACTUELS,
-        "TC01": ContractType.CONTRACTUELS,
-        "TC02": ContractType.TITULAIRE_CONTRACTUEL,
-        "TITULAIRE FONCTION PUBLIQUE": ContractType.TITULAIRE_CONTRACTUEL,
-        "TITULAIRE FONCTION PUBLIQUE / UCANSS": ContractType.TITULAIRE_CONTRACTUEL,
-        "TITULAIRE UCANSS": ContractType.CONTRACTUELS,
-    }
-
     def _map_contract_type(
-        self, contract_type_str: Optional[str]
+        self,
+        contract_type_str: Optional[str],
+        transcoder: Optional[SourceTranscoder],
     ) -> Optional[ContractType]:
         if not contract_type_str:
             return None
 
         contract_upper = contract_type_str.upper()
 
-        if contract_upper in self._ARS_CONTRACT_TYPE_MAPPING:
-            return self._ARS_CONTRACT_TYPE_MAPPING[contract_upper]
+        if transcoder:
+            csplab_code = transcoder.translate("types_de_contrat", contract_upper)
+            if csplab_code is not None:
+                if csplab_code not in ContractType.values:
+                    raise ValueError(
+                        f"types_de_contrat maps {contract_upper!r} to unknown "
+                        f"ContractType {csplab_code!r}"
+                    )
+                return ContractType(csplab_code)
 
         if "TITULAIRE" in contract_upper:
             return ContractType.TITULAIRE_CONTRACTUEL
@@ -261,9 +286,16 @@ class OffersCleaner:
         "reponse_non": WorkingPlace.SUR_SITE,
     }
 
-    def _map_working_place(self, client_code: Optional[str]) -> WorkingPlace:
+    def _map_working_place(
+        self,
+        client_code: Optional[str],
+        transcoder: Optional[SourceTranscoder] = None,
+    ) -> WorkingPlace:
         if not client_code:
             return WorkingPlace.NON_DEFINI
+
+        if transcoder:
+            client_code = transcoder.translate("oui_non", client_code) or client_code
 
         return self._WORKING_PLACE_MAPPING.get(
             client_code.lower(), WorkingPlace.NON_DEFINI
@@ -274,9 +306,16 @@ class OffersCleaner:
         "reponse_oui": Management.AVEC,
     }
 
-    def _map_management(self, client_code: Optional[str]) -> Optional[Management]:
+    def _map_management(
+        self,
+        client_code: Optional[str],
+        transcoder: Optional[SourceTranscoder] = None,
+    ) -> Optional[Management]:
         if not client_code:
             return None
+
+        if transcoder:
+            client_code = transcoder.translate("oui_non", client_code) or client_code
 
         return self._MANAGEMENT_MAPPING.get(client_code.lower())
 
@@ -307,6 +346,7 @@ class OffersCleaner:
         regions: List,
         departments: List,
         coordinates: tuple[Optional[float], Optional[float]] = (None, None),
+        transcoder: Optional[SourceTranscoder] = None,
     ) -> Optional[Localisation]:
         latitude, longitude = coordinates
         area_code = areas[0].clientCode if areas else None
@@ -316,6 +356,14 @@ class OffersCleaner:
 
         if not country_code or not region_code or not department_code or not area_code:
             return None
+
+        if transcoder:
+            area_code = transcoder.translate("zones_geo", area_code) or area_code
+            country_code = transcoder.translate("pays", country_code) or country_code
+            region_code = transcoder.translate("regions", region_code) or region_code
+            department_code = (
+                transcoder.translate("departements", department_code) or department_code
+            )
 
         area = _TALENTSOFT_TO_AREA.get(area_code)
         if area is None:
@@ -351,6 +399,50 @@ class OffersCleaner:
             )
             return None
 
+    def _map_languages(
+        self,
+        languages: List[TalentsoftLanguage],
+        transcoder: Optional[SourceTranscoder],
+    ) -> List[Language]:
+        result = []
+        for lang in languages:
+            language_level = self._map_language_level(
+                lang.languageLevel.clientCode, transcoder
+            )
+            if language_level is None:
+                continue
+            result.append(
+                Language(
+                    iso_code=lang.languageName.clientCode,
+                    language_level=language_level,
+                )
+            )
+        return result
+
+    def _map_language_level(
+        self, client_code: str, transcoder: Optional[SourceTranscoder]
+    ) -> Optional[LanguageLevel]:
+        if transcoder:
+            translated_code = transcoder.translate("niveaux_de_langue", client_code)
+            if translated_code is not None:
+                if translated_code not in LanguageLevel.values:
+                    raise ValueError(
+                        f"niveaux_de_langue maps {client_code!r} to unknown "
+                        f"LanguageLevel {translated_code!r}"
+                    )
+                return LanguageLevel(translated_code)
+
+        if client_code not in LanguageLevel.values:
+            return None
+        return LanguageLevel(client_code)
+
+    def _map_family_code(
+        self, client_code: str, transcoder: Optional[SourceTranscoder]
+    ) -> str:
+        if transcoder:
+            return transcoder.translate("metiers", client_code) or client_code
+        return client_code
+
     def _parse_url(self, url_str: str) -> Optional[HttpUrl]:
         try:
             return HttpUrl(url_str)
@@ -378,16 +470,22 @@ class OffersCleaner:
         except (ValueError, TypeError, AttributeError):
             return None
 
-    def _map_experience(self, client_code: str) -> Optional[ExperienceLevel]:
-        mapping: dict[str, Optional[ExperienceLevel]] = {
-            "_TS_CO_ExperienceLevel_Nonrenseign": None,
-            "_TS_CO_ExperienceLevel_3ansouplus": ExperienceLevel.CONFIRME,
-            "_TS_CO_ExperienceLevel_6ansouplus": ExperienceLevel.EXPERT,
-            "debutant": ExperienceLevel.DEBUTANT,
-            "confirme": ExperienceLevel.CONFIRME,
-            "expert": ExperienceLevel.EXPERT,
-        }
-        return mapping[client_code]
+    def _map_experience(
+        self, client_code: str, transcoder: Optional[SourceTranscoder]
+    ) -> Optional[ExperienceLevel]:
+        if not transcoder:
+            return None
+
+        csplab_code = transcoder.translate("niveaux_d_experience", client_code)
+        if not csplab_code:
+            return None
+
+        if csplab_code not in ExperienceLevel.values:
+            raise ValueError(
+                f"niveaux_d_experience maps {client_code!r} to unknown "
+                f"ExperienceLevel {csplab_code!r}"
+            )
+        return ExperienceLevel(csplab_code)
 
     _EDUCATION_LEVEL_MAPPING: dict[str, int] = {
         "A": 1,
@@ -400,31 +498,34 @@ class OffersCleaner:
         "H": 8,
     }
 
-    # ARS has a different pattern for education levels.
-    # NIV_DIPL(\d) can be mapped to just the digit, except for a few
-    # special cases for which we configure overrides.
-    _NIV_DIPL_PATTERN = re.compile(r"NIV_DIPL(\d)")
-    _NIV_DIPL_LEVEL_OVERRIDES: dict[int, int] = {
-        6: 6,
-        7: 6,
-        8: 7,
-        9: 8,
-    }
-
-    def _map_education_level(self, client_code: str) -> Optional[int]:
+    def _map_education_level(
+        self, client_code: str, transcoder: Optional[SourceTranscoder]
+    ) -> Optional[int]:
         if client_code in self._EDUCATION_LEVEL_MAPPING:
             return self._EDUCATION_LEVEL_MAPPING[client_code]
 
-        match = self._NIV_DIPL_PATTERN.fullmatch(client_code)
-        if match:
-            level = int(match.group(1))
-            level = self._NIV_DIPL_LEVEL_OVERRIDES.get(level, level)
-            if Diploma.MIN_DIPLOMA_LEVEL <= level <= Diploma.MAX_DIPLOMA_LEVEL:
-                return level
+        if transcoder:
+            csplab_code = transcoder.translate("niveaux_de_diplome", client_code)
+            if csplab_code is not None:
+                if csplab_code not in self._EDUCATION_LEVEL_MAPPING:
+                    raise ValueError(
+                        f"niveaux_de_diplome maps {client_code!r} to unknown "
+                        f"education level {csplab_code!r}"
+                    )
+                return self._EDUCATION_LEVEL_MAPPING[csplab_code]
 
         return None
 
-    def _parse_category(self, category_code: Optional[str]) -> Optional[Category]:
+    def _parse_category(
+        self,
+        category_code: Optional[str],
+        transcoder: Optional[SourceTranscoder] = None,
+    ) -> Optional[Category]:
+        if transcoder and category_code:
+            category_code = (
+                transcoder.translate("categories", category_code) or category_code
+            )
+
         if category_code in ["CAT-AEF", "CAT-ESD", "CAT-ES"]:
             return Category.APLUS
         elif category_code == "CAT-A":
