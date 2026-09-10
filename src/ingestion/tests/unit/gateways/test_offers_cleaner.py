@@ -720,14 +720,29 @@ def test_clean_raises_when_niveaux_de_diplome_csv_maps_to_unknown_code(
 def test_clean_maps_specialisations(cleaner):
     raw_offer = _make_raw_offer(
         specialisations=[
-            TalentsoftCodedObjectFactory.build(clientCode="SPEC_A"),
-            TalentsoftCodedObjectFactory.build(clientCode="SPEC_B"),
+            TalentsoftCodedObjectFactory.build(clientCode="_TS_CO_Specialisation_1"),
+            TalentsoftCodedObjectFactory.build(clientCode="_TS_CO_Specialisation_2"),
         ]
     )
 
     offer = cleaner.clean(raw_offer)
 
-    assert offer.specialisations == ["SPEC_A", "SPEC_B"]
+    assert offer.specialisations == [
+        "Formations générales",
+        "Spécialités pluriscientifiques",
+    ]
+
+
+def test_clean_skips_specialisation_with_unmapped_code(cleaner):
+    raw_offer = _make_raw_offer(
+        specialisations=[
+            TalentsoftCodedObjectFactory.build(clientCode="UNKNOWN_CODE"),
+        ]
+    )
+
+    offer = cleaner.clean(raw_offer)
+
+    assert offer.specialisations == []
 
 
 def test_clean_returns_empty_specialisations_when_absent(cleaner):
@@ -736,6 +751,43 @@ def test_clean_returns_empty_specialisations_when_absent(cleaner):
     offer = cleaner.clean(raw_offer)
 
     assert offer.specialisations == []
+
+
+def test_clean_translates_specialisations_via_source_transcoder(sources_repository):
+    cleaner = OffersCleaner(
+        sources_repository=sources_repository,
+        transcoders_by_slug={
+            "ars": SourceTranscoder(
+                tables={"specialisations": {"RAW_SPEC": "_TS_CO_Specialisation_1"}}
+            )
+        },
+    )
+    raw_offer = _make_raw_offer(
+        specialisations=[TalentsoftCodedObjectFactory.build(clientCode="RAW_SPEC")]
+    )
+
+    offer = cleaner.clean(raw_offer)
+
+    assert offer.specialisations == ["Formations générales"]
+
+
+def test_clean_raises_when_specialisations_csv_maps_to_unknown_code(
+    sources_repository,
+):
+    cleaner = OffersCleaner(
+        sources_repository=sources_repository,
+        transcoders_by_slug={
+            "ars": SourceTranscoder(
+                tables={"specialisations": {"RAW_SPEC": "NOT_A_REAL_SPECIALISATION"}}
+            )
+        },
+    )
+    raw_offer = _make_raw_offer(
+        specialisations=[TalentsoftCodedObjectFactory.build(clientCode="RAW_SPEC")]
+    )
+
+    with pytest.raises(ValueError, match="NOT_A_REAL_SPECIALISATION"):
+        cleaner.clean(raw_offer)
 
 
 def test_clean_maps_diploma(cleaner):
