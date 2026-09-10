@@ -25,6 +25,11 @@ def _assert_no_violations(axe_results) -> None:
 
 
 @pytest.mark.accessibility
+@pytest.mark.skip(
+    reason="Candidate CV flow deactivated and redirected to "
+    "choisirleservicepublic.gouv.fr (#1402) — re-enable once the flow is "
+    "restored, or remove alongside the view code if it never comes back."
+)
 class TestCandidateFlowAccessibility:
     def test_upload_page_has_no_axe_violations(
         self, page: Page, live_server, db
