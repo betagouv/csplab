@@ -27,6 +27,7 @@ import riCloseLine from '@iconify-icons/ri/close-line'
 import riCompass3Line from '@iconify-icons/ri/compass-3-line'
 import riDashboardLine from '@iconify-icons/ri/dashboard-line'
 import riDeleteBinLine from '@iconify-icons/ri/delete-bin-line'
+import riDoorOpenLine from '@iconify-icons/ri/door-open-line'
 import riDraggable from '@iconify-icons/ri/draggable'
 import riEditLine from '@iconify-icons/ri/edit-line'
 import riErrorWarningFill from '@iconify-icons/ri/error-warning-fill'
@@ -70,6 +71,7 @@ import riPriceTag3Line from '@iconify-icons/ri/price-tag-3-line'
 import riRefreshLine from '@iconify-icons/ri/refresh-line'
 import riRestartLine from '@iconify-icons/ri/restart-line'
 import riSearchLine from '@iconify-icons/ri/search-line'
+import riSendPlane2Line from '@iconify-icons/ri/send-plane-2-line'
 import riSettings3Line from '@iconify-icons/ri/settings-3-line'
 import riShieldUserLine from '@iconify-icons/ri/shield-user-line'
 import riSpamFill from '@iconify-icons/ri/spam-fill'
@@ -108,6 +110,7 @@ addIcon('ri:close-line', riCloseLine)
 addIcon('ri:compass-3-line', riCompass3Line)
 addIcon('ri:dashboard-line', riDashboardLine)
 addIcon('ri:delete-bin-line', riDeleteBinLine)
+addIcon('ri:door-open-line', riDoorOpenLine)
 addIcon('ri:draggable', riDraggable)
 addIcon('ri:edit-line', riEditLine)
 addIcon('ri:error-warning-fill', riErrorWarningFill)
@@ -151,6 +154,7 @@ addIcon('ri:price-tag-3-line', riPriceTag3Line)
 addIcon('ri:refresh-line', riRefreshLine)
 addIcon('ri:restart-line', riRestartLine)
 addIcon('ri:search-line', riSearchLine)
+addIcon('ri:send-plane-2-line', riSendPlane2Line)
 addIcon('ri:settings-3-line', riSettings3Line)
 addIcon('ri:shield-user-line', riShieldUserLine)
 addIcon('ri:spam-fill', riSpamFill)

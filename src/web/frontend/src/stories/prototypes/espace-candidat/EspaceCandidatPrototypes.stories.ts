@@ -2,6 +2,7 @@ import type { StoryObj } from '@storybook/vue3-vite'
 import CandidatureAvecCompte from './variants/candidature/CandidatureAvecCompte.vue'
 import CandidatureAvecCv from './variants/candidature/CandidatureAvecCv.vue'
 import CandidatureFormulaire from './variants/candidature/CandidatureFormulaire.vue'
+import EspaceCandidatConnecte from './variants/espace/EspaceCandidatConnecte.vue'
 import PageOffre from './variants/offre/PageOffre.vue'
 import SuccesAvecCompte from './variants/succes/SuccesAvecCompte.vue'
 import SuccesSansCompte from './variants/succes/SuccesSansCompte.vue'
@@ -77,5 +78,15 @@ export const SuccesAvecCompteStory: Story = {
   render: () => ({
     components: { SuccesAvecCompte },
     template: '<SuccesAvecCompte />',
+  }),
+}
+
+// --- Espace candidat connecté ---
+
+export const EspaceConnecte: Story = {
+  name: 'Espace connecté/Parcours complet',
+  render: () => ({
+    components: { EspaceCandidatConnecte },
+    template: '<EspaceCandidatConnecte />',
   }),
 }

@@ -1,5 +1,9 @@
 // Domaine autonome du prototype : ne dépend pas des types API générés (@/types/api),
 // qui modélisent le côté recruteur. Le candidat a son propre vocabulaire.
+//
+// Les collections mutées par les interactions (marquer un message lu, déposer un document…)
+// sont enveloppées dans `reactive()` pour que ces mutations restent traçables par Vue.
+import { reactive } from 'vue'
 
 export type TypeContrat = 'Titulaire (mutation, détachement)' | 'Contractuel CDD' | 'Contractuel CDI'
 
@@ -105,7 +109,7 @@ export interface Candidature {
   delaiIndicatif: string | null
 }
 
-export const candidatures: Candidature[] = [
+export const candidatures = reactive<Candidature[]>([
   {
     id: 'cand-innovation-numerique',
     poste: 'Chargé·e de mission innovation numérique',
@@ -170,9 +174,9 @@ export const candidatures: Candidature[] = [
     prochaineDate: null,
     delaiIndicatif: 'Réponse attendue sous 15 jours environ',
   },
-]
+])
 
-export const actionsRequises: ActionRequise[] = [
+export const actionsRequises = reactive<ActionRequise[]>([
   {
     id: 'a1',
     candidatureId: 'cand-chef-projet-si',
@@ -194,7 +198,7 @@ export const actionsRequises: ActionRequise[] = [
     label: 'Confirmer un entretien — Chargé·e de mission innovation numérique',
     cta: 'Confirmer',
   },
-]
+])
 
 // --- Conversations ---
 
@@ -215,7 +219,7 @@ export interface Conversation {
   messages: Message[]
 }
 
-export const conversations: Conversation[] = [
+export const conversations = reactive<Conversation[]>([
   {
     id: 'conv-chef-projet-si',
     candidatureId: 'cand-chef-projet-si',
@@ -274,7 +278,7 @@ export const conversations: Conversation[] = [
       },
     ],
   },
-]
+])
 
 // --- Documents ---
 
@@ -291,7 +295,7 @@ export interface DocumentDemande {
   visiblePar: string
 }
 
-export const documents: DocumentDemande[] = [
+export const documents = reactive<DocumentDemande[]>([
   {
     id: 'd1',
     candidatureId: 'cand-rh',
@@ -322,8 +326,25 @@ export const documents: DocumentDemande[] = [
     etape: 'Présélection',
     visiblePar: 'L\'équipe de recrutement du Conseil départemental du Rhône',
   },
-]
+])
 
 export function candidatureParId(id: string): Candidature | undefined {
   return candidatures.find(c => c.id === id)
+}
+
+export function etapeActuelle(candidature: Candidature): EtapeTimeline | undefined {
+  return candidature.etapes.find(e => e.statut === 'en_cours')
+    ?? [...candidature.etapes].reverse().find(e => e.statut === 'fait')
+}
+
+export function documentsParCandidature(candidatureId: string): DocumentDemande[] {
+  return documents.filter(d => d.candidatureId === candidatureId)
+}
+
+export function conversationParCandidature(candidatureId: string): Conversation | undefined {
+  return conversations.find(c => c.candidatureId === candidatureId)
+}
+
+export function nombreMessagesNonLus(conversation: Conversation): number {
+  return conversation.messages.filter(m => !m.lu && m.auteur === 'recruteur').length
 }
