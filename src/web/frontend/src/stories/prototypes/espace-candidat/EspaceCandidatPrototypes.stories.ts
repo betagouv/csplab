@@ -4,6 +4,7 @@ import CandidatureAvecCv from './variants/candidature/CandidatureAvecCv.vue'
 import CandidatureFormulaire from './variants/candidature/CandidatureFormulaire.vue'
 import EspaceCandidatConnecte from './variants/espace/EspaceCandidatConnecte.vue'
 import PageOffre from './variants/offre/PageOffre.vue'
+import ParcoursComplet from './variants/parcours-complet/ParcoursComplet.vue'
 import SuccesAvecCompte from './variants/succes/SuccesAvecCompte.vue'
 import SuccesSansCompte from './variants/succes/SuccesSansCompte.vue'
 
@@ -27,7 +28,18 @@ const meta = {
 export default meta
 type Story = StoryObj
 
-// --- Page offre ---
+// --- Scénario principal : le parcours complet, cliquable de bout en bout ---
+// (offre → choix du mode → candidature → succès, dans une seule story)
+
+export const ParcoursPrincipal: Story = {
+  name: '0. Scénario principal (cliquable de bout en bout)',
+  render: () => ({
+    components: { ParcoursComplet },
+    template: '<ParcoursComplet />',
+  }),
+}
+
+// --- Page offre (isolée, pour comparer) ---
 
 export const Offre: Story = {
   name: 'Offre/Page offre',
@@ -84,7 +96,7 @@ export const SuccesAvecCompteStory: Story = {
 // --- Espace candidat connecté ---
 
 export const EspaceConnecte: Story = {
-  name: 'Espace connecté/Parcours complet',
+  name: 'Espace connecté/Accueil, messages, documents',
   render: () => ({
     components: { EspaceCandidatConnecte },
     template: '<EspaceCandidatConnecte />',

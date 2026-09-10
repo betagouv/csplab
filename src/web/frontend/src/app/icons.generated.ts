@@ -36,6 +36,7 @@ import riExpandUpDownLine from '@iconify-icons/ri/expand-up-down-line'
 import riExternalLinkLine from '@iconify-icons/ri/external-link-line'
 import riEyeLine from '@iconify-icons/ri/eye-line'
 import riFileCopyLine from '@iconify-icons/ri/file-copy-line'
+import riFileList3Line from '@iconify-icons/ri/file-list-3-line'
 import riFileTextLine from '@iconify-icons/ri/file-text-line'
 import riFileUploadLine from '@iconify-icons/ri/file-upload-line'
 import riFilter3Line from '@iconify-icons/ri/filter-3-line'
@@ -119,6 +120,7 @@ addIcon('ri:expand-up-down-line', riExpandUpDownLine)
 addIcon('ri:external-link-line', riExternalLinkLine)
 addIcon('ri:eye-line', riEyeLine)
 addIcon('ri:file-copy-line', riFileCopyLine)
+addIcon('ri:file-list-3-line', riFileList3Line)
 addIcon('ri:file-text-line', riFileTextLine)
 addIcon('ri:file-upload-line', riFileUploadLine)
 addIcon('ri:filter-3-line', riFilter3Line)
