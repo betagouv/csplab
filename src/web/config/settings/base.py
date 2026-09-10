@@ -125,6 +125,7 @@ MIDDLEWARE = [
     "django.contrib.redirects.middleware.RedirectFallbackMiddleware",
     "presentation.middleware.api_request_logger.ApiRequestLoggerMiddleware",
     "presentation.middleware.rate_limit_headers.RateLimitHeadersMiddleware",
+    "presentation.middleware.candidate_redirect.CandidateRedirectMiddleware",
 ]
 
 ROOT_URLCONF = "config.urls"
