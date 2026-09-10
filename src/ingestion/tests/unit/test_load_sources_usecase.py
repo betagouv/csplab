@@ -1,33 +1,16 @@
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-from faker import Faker
-from referentiel.entities.source import Source
-from referentiel.value_objects.source_type import SourceType
 
 from application.usecases.load_sources import LoadSourcesUsecase
 from domain.gateways.sources_gateway import ISourcesGateway
 from domain.repositories.sources_repository import ISourcesRepository
-
-fake = Faker()
-
-
-def _make_source(**kwargs) -> Source:
-    defaults = {
-        "source_id": "aaaa-bbbb",
-        "slug": "source-slug",
-        "type": SourceType.TALENTSOFT,
-        "client_id_back": "client-back-1",
-        "client_id_front": "client-front-1",
-        "base_url_front": fake.url(),
-        "base_url_back": fake.url(),
-    }
-    return Source(**{**defaults, **kwargs})
+from tests.factories.domain_factories import SourceFactory
 
 
 @pytest.mark.asyncio
 async def test_execute_loads_sources_into_repository():
-    source = _make_source()
+    source = SourceFactory.build(source_id="aaaa-bbbb", slug="source-slug")
     mock_gateway = MagicMock(spec=ISourcesGateway)
     mock_gateway.fetch_sources = AsyncMock(return_value=[source])
     mock_repository = MagicMock(spec=ISourcesRepository)

@@ -8,8 +8,6 @@ from faker import Faker
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from pytest_httpx import HTTPXMock
-from referentiel.entities.source import Source
-from referentiel.value_objects.source_type import SourceType
 from sqlalchemy import text
 from sqlmodel import Session
 
@@ -41,6 +39,7 @@ from tests.conftest import (
     WEB_BASE_URL,
     talentsoft_credentials_env,
 )
+from tests.factories.domain_factories import SourceFactory
 
 fake = Faker()
 _logger = logging.getLogger(__name__)
@@ -155,10 +154,9 @@ def talentsoft_client(monkeypatch) -> TestClient:
     # Pre-populate the sources registry (the lifespan doesn't run in test mode)
     app.state.container.sources_repository().load(
         [
-            Source(
+            SourceFactory.build(
                 source_id=SOURCE_ID,
                 slug="talentsoft-source",
-                type=SourceType.TALENTSOFT,
                 client_id_front=TALENTSOFT_FRONT_CLIENT_ID,
                 client_id_back=TALENTSOFT_BACK_CLIENT_ID,
                 base_url_front=fake.url(),

@@ -11,10 +11,9 @@ from faker import Faker
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from httpx import Response
-from referentiel.entities.source import Source
-from referentiel.value_objects.source_type import SourceType
 
 from domain.value_objects.talentsoft_credential import TalentsoftCredential
+from tests.factories.domain_factories import SourceFactory
 
 # --- Constants ---
 
@@ -124,10 +123,9 @@ def populate_sources_repository(app: FastAPI) -> None:
     fake = Faker()
     app.state.container.sources_repository().load(
         [
-            Source(
+            SourceFactory.build(
                 source_id=SOURCE_ID,
                 slug="talentsoft-source",
-                type=SourceType.TALENTSOFT,
                 client_id_front=TALENTSOFT_FRONT_CLIENT_ID,
                 client_id_back=TALENTSOFT_BACK_CLIENT_ID,
                 base_url_front=fake.url(),

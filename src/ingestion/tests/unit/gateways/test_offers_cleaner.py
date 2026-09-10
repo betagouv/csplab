@@ -3,14 +3,12 @@ from uuid import UUID
 
 import pytest
 from pydantic import ValidationError
-from referentiel.entities.source import Source
 from referentiel.value_objects.category import Category
 from referentiel.value_objects.contract_type import ContractKind, ContractType
 from referentiel.value_objects.experience_level import ExperienceLevel
 from referentiel.value_objects.language import Language
 from referentiel.value_objects.language_level import LanguageLevel
 from referentiel.value_objects.offer_conditions import Management, WorkingPlace
-from referentiel.value_objects.source_type import SourceType
 from referentiel.value_objects.verse import Verse
 
 from domain.entities.raw_offer import RawOffer
@@ -22,6 +20,7 @@ from infrastructure.external_gateways.dtos.talentsoft_dtos import (
 from infrastructure.gateways.offers_cleaner import OffersCleaner
 from infrastructure.gateways.transcoding import SourceTranscoder
 from infrastructure.sources_repository import SourcesRepository
+from tests.factories.domain_factories import SourceFactory
 from tests.factories.talentsoft_factories import (
     TalentsoftCodedObjectFactory,
     TalentsoftCustomCodeTableFactory,
@@ -43,19 +42,17 @@ def sources_repository() -> SourcesRepository:
     repository = SourcesRepository()
     repository.load(
         [
-            Source(
+            SourceFactory.build(
                 source_id=UUID(SOURCE_ID),
                 slug="ars",
-                type=SourceType.TALENTSOFT,
                 client_id_front="ars-front",
                 client_id_back="ars-back",
                 base_url_front="https://ars.example.com",
                 base_url_back="https://ars.example.com",
             ),
-            Source(
+            SourceFactory.build(
                 source_id=UUID(OTHER_SOURCE_ID),
                 slug="talentsoft-main",
-                type=SourceType.TALENTSOFT,
                 client_id_front="main-front",
                 client_id_back="main-back",
                 base_url_front="https://main.example.com",
