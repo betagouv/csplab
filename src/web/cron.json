@@ -1,7 +1,7 @@
 {
   "jobs": [
     {
-      "command": "0 5 * * * bash bin/backup-db-to-scaleway.sh",
+      "command": "0 5 * * * bash ../../bin/backup-db-to-scaleway.sh web",
       "size": "S"
     }
   ]
