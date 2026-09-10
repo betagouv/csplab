@@ -39,10 +39,12 @@ import riFileCopyLine from '@iconify-icons/ri/file-copy-line'
 import riFileListLine from '@iconify-icons/ri/file-list-line'
 import riFilter3Line from '@iconify-icons/ri/filter-3-line'
 import riFilterLine from '@iconify-icons/ri/filter-line'
+import riFilterOffLine from '@iconify-icons/ri/filter-off-line'
 import riFlashlightFill from '@iconify-icons/ri/flashlight-fill'
 import riFullscreenLine from '@iconify-icons/ri/fullscreen-line'
 import riGovernmentLine from '@iconify-icons/ri/government-line'
 import riGroupLine from '@iconify-icons/ri/group-line'
+import riHashtag from '@iconify-icons/ri/hashtag'
 import riHistoryLine from '@iconify-icons/ri/history-line'
 import riHomeLine from '@iconify-icons/ri/home-line'
 import riInbox2Line from '@iconify-icons/ri/inbox-2-line'
@@ -53,11 +55,13 @@ import riLayoutGridLine from '@iconify-icons/ri/layout-grid-line'
 import riLightbulbLine from '@iconify-icons/ri/lightbulb-line'
 import riLink from '@iconify-icons/ri/link'
 import riListCheck from '@iconify-icons/ri/list-check'
+import riListOrdered from '@iconify-icons/ri/list-ordered'
 import riListUnordered from '@iconify-icons/ri/list-unordered'
 import riLockLine from '@iconify-icons/ri/lock-line'
 import riLockUnlockLine from '@iconify-icons/ri/lock-unlock-line'
 import riLogoutBoxRLine from '@iconify-icons/ri/logout-box-r-line'
 import riMailLine from '@iconify-icons/ri/mail-line'
+import riMailSendLine from '@iconify-icons/ri/mail-send-line'
 import riMapPin2Line from '@iconify-icons/ri/map-pin-2-line'
 import riMenuLine from '@iconify-icons/ri/menu-line'
 import riMoonLine from '@iconify-icons/ri/moon-line'
@@ -77,8 +81,11 @@ import riSpamFill from '@iconify-icons/ri/spam-fill'
 import riStickyNoteLine from '@iconify-icons/ri/sticky-note-line'
 import riSunLine from '@iconify-icons/ri/sun-line'
 import riTableLine from '@iconify-icons/ri/table-line'
+import riTeamLine from '@iconify-icons/ri/team-line'
 import riUserAddLine from '@iconify-icons/ri/user-add-line'
 import riUserLine from '@iconify-icons/ri/user-line'
+import riUserSettingsLine from '@iconify-icons/ri/user-settings-line'
+import riUserStarLine from '@iconify-icons/ri/user-star-line'
 import riUserUnfollowLine from '@iconify-icons/ri/user-unfollow-line'
 import { addIcon } from '@iconify/vue'
 
@@ -121,10 +128,12 @@ addIcon('ri:file-copy-line', riFileCopyLine)
 addIcon('ri:file-list-line', riFileListLine)
 addIcon('ri:filter-3-line', riFilter3Line)
 addIcon('ri:filter-line', riFilterLine)
+addIcon('ri:filter-off-line', riFilterOffLine)
 addIcon('ri:flashlight-fill', riFlashlightFill)
 addIcon('ri:fullscreen-line', riFullscreenLine)
 addIcon('ri:government-line', riGovernmentLine)
 addIcon('ri:group-line', riGroupLine)
+addIcon('ri:hashtag', riHashtag)
 addIcon('ri:history-line', riHistoryLine)
 addIcon('ri:home-line', riHomeLine)
 addIcon('ri:inbox-2-line', riInbox2Line)
@@ -135,11 +144,13 @@ addIcon('ri:layout-grid-line', riLayoutGridLine)
 addIcon('ri:lightbulb-line', riLightbulbLine)
 addIcon('ri:link', riLink)
 addIcon('ri:list-check', riListCheck)
+addIcon('ri:list-ordered', riListOrdered)
 addIcon('ri:list-unordered', riListUnordered)
 addIcon('ri:lock-line', riLockLine)
 addIcon('ri:lock-unlock-line', riLockUnlockLine)
 addIcon('ri:logout-box-r-line', riLogoutBoxRLine)
 addIcon('ri:mail-line', riMailLine)
+addIcon('ri:mail-send-line', riMailSendLine)
 addIcon('ri:map-pin-2-line', riMapPin2Line)
 addIcon('ri:menu-line', riMenuLine)
 addIcon('ri:moon-line', riMoonLine)
@@ -159,6 +170,9 @@ addIcon('ri:spam-fill', riSpamFill)
 addIcon('ri:sticky-note-line', riStickyNoteLine)
 addIcon('ri:sun-line', riSunLine)
 addIcon('ri:table-line', riTableLine)
+addIcon('ri:team-line', riTeamLine)
 addIcon('ri:user-add-line', riUserAddLine)
 addIcon('ri:user-line', riUserLine)
+addIcon('ri:user-settings-line', riUserSettingsLine)
+addIcon('ri:user-star-line', riUserStarLine)
 addIcon('ri:user-unfollow-line', riUserUnfollowLine)
