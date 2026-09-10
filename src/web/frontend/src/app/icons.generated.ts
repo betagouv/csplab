@@ -17,6 +17,7 @@ import riArrowUpLine from '@iconify-icons/ri/arrow-up-line'
 import riArrowUpSLine from '@iconify-icons/ri/arrow-up-s-line'
 import riBookmarkLine from '@iconify-icons/ri/bookmark-line'
 import riBriefcaseLine from '@iconify-icons/ri/briefcase-line'
+import riCalendarCheckLine from '@iconify-icons/ri/calendar-check-line'
 import riCalendarLine from '@iconify-icons/ri/calendar-line'
 import riCheckLine from '@iconify-icons/ri/check-line'
 import riCheckboxCircleFill from '@iconify-icons/ri/checkbox-circle-fill'
@@ -34,6 +35,8 @@ import riExpandUpDownLine from '@iconify-icons/ri/expand-up-down-line'
 import riExternalLinkLine from '@iconify-icons/ri/external-link-line'
 import riEyeLine from '@iconify-icons/ri/eye-line'
 import riFileCopyLine from '@iconify-icons/ri/file-copy-line'
+import riFileTextLine from '@iconify-icons/ri/file-text-line'
+import riFileUploadLine from '@iconify-icons/ri/file-upload-line'
 import riFilter3Line from '@iconify-icons/ri/filter-3-line'
 import riFilterLine from '@iconify-icons/ri/filter-line'
 import riFlashlightFill from '@iconify-icons/ri/flashlight-fill'
@@ -49,10 +52,14 @@ import riLightbulbLine from '@iconify-icons/ri/lightbulb-line'
 import riListCheck from '@iconify-icons/ri/list-check'
 import riListUnordered from '@iconify-icons/ri/list-unordered'
 import riLockLine from '@iconify-icons/ri/lock-line'
+import riLogoutBoxLine from '@iconify-icons/ri/logout-box-line'
 import riLogoutBoxRLine from '@iconify-icons/ri/logout-box-r-line'
 import riMailLine from '@iconify-icons/ri/mail-line'
 import riMapPin2Line from '@iconify-icons/ri/map-pin-2-line'
+import riMapPinLine from '@iconify-icons/ri/map-pin-line'
 import riMenuLine from '@iconify-icons/ri/menu-line'
+import riMessage3Line from '@iconify-icons/ri/message-3-line'
+import riMoneyEuroCircleLine from '@iconify-icons/ri/money-euro-circle-line'
 import riMoonLine from '@iconify-icons/ri/moon-line'
 import riMore2Fill from '@iconify-icons/ri/more-2-fill'
 import riMore2Line from '@iconify-icons/ri/more-2-line'
@@ -68,6 +75,7 @@ import riShieldUserLine from '@iconify-icons/ri/shield-user-line'
 import riSpamFill from '@iconify-icons/ri/spam-fill'
 import riSunLine from '@iconify-icons/ri/sun-line'
 import riTableLine from '@iconify-icons/ri/table-line'
+import riUploadCloud2Line from '@iconify-icons/ri/upload-cloud-2-line'
 import riUserAddLine from '@iconify-icons/ri/user-add-line'
 import riUserLine from '@iconify-icons/ri/user-line'
 import riUserUnfollowLine from '@iconify-icons/ri/user-unfollow-line'
@@ -90,6 +98,7 @@ addIcon('ri:arrow-up-line', riArrowUpLine)
 addIcon('ri:arrow-up-s-line', riArrowUpSLine)
 addIcon('ri:bookmark-line', riBookmarkLine)
 addIcon('ri:briefcase-line', riBriefcaseLine)
+addIcon('ri:calendar-check-line', riCalendarCheckLine)
 addIcon('ri:calendar-line', riCalendarLine)
 addIcon('ri:check-line', riCheckLine)
 addIcon('ri:checkbox-circle-fill', riCheckboxCircleFill)
@@ -107,6 +116,8 @@ addIcon('ri:expand-up-down-line', riExpandUpDownLine)
 addIcon('ri:external-link-line', riExternalLinkLine)
 addIcon('ri:eye-line', riEyeLine)
 addIcon('ri:file-copy-line', riFileCopyLine)
+addIcon('ri:file-text-line', riFileTextLine)
+addIcon('ri:file-upload-line', riFileUploadLine)
 addIcon('ri:filter-3-line', riFilter3Line)
 addIcon('ri:filter-line', riFilterLine)
 addIcon('ri:flashlight-fill', riFlashlightFill)
@@ -122,10 +133,14 @@ addIcon('ri:lightbulb-line', riLightbulbLine)
 addIcon('ri:list-check', riListCheck)
 addIcon('ri:list-unordered', riListUnordered)
 addIcon('ri:lock-line', riLockLine)
+addIcon('ri:logout-box-line', riLogoutBoxLine)
 addIcon('ri:logout-box-r-line', riLogoutBoxRLine)
 addIcon('ri:mail-line', riMailLine)
 addIcon('ri:map-pin-2-line', riMapPin2Line)
+addIcon('ri:map-pin-line', riMapPinLine)
 addIcon('ri:menu-line', riMenuLine)
+addIcon('ri:message-3-line', riMessage3Line)
+addIcon('ri:money-euro-circle-line', riMoneyEuroCircleLine)
 addIcon('ri:moon-line', riMoonLine)
 addIcon('ri:more-2-fill', riMore2Fill)
 addIcon('ri:more-2-line', riMore2Line)
@@ -141,6 +156,7 @@ addIcon('ri:shield-user-line', riShieldUserLine)
 addIcon('ri:spam-fill', riSpamFill)
 addIcon('ri:sun-line', riSunLine)
 addIcon('ri:table-line', riTableLine)
+addIcon('ri:upload-cloud-2-line', riUploadCloud2Line)
 addIcon('ri:user-add-line', riUserAddLine)
 addIcon('ri:user-line', riUserLine)
 addIcon('ri:user-unfollow-line', riUserUnfollowLine)
