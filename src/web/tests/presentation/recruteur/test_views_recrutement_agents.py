@@ -413,11 +413,12 @@ class TestRecrutementAgentsViewPut:
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
-    def test_returns_200_with_valid_payload(self, authenticated_client):
+    def test_returns_200_with_revocation_date(self, authenticated_client):
         agent_id = uuid4()
         payload = {
             "agent_id": str(agent_id),
             "recrutement_role": AgentRecrutementRole.RECRUTEUR.value,
+            "date_revocation_recrutement": datetime.now(),
         }
 
         response = authenticated_client.put(
@@ -425,38 +426,164 @@ class TestRecrutementAgentsViewPut:
         )
 
         assert response.status_code == status.HTTP_200_OK
-        datas = response.json()
-        assert datas["agent_id"] == str(agent_id)
-        assert datas["recrutement_role"] == AgentRecrutementRole.RECRUTEUR.value
-
-    @pytest.mark.parametrize(
-        "date_revocation_recrutement",
-        [None, datetime.now()],
-        ids=[
-            "with_null_date_revocation_recrutement",
-            "with_date_revocation_recrutement",
-        ],
-    )
-    def test_returns_200_with_revocation_date(
-        self, authenticated_client, date_revocation_recrutement
-    ):
-        agent_id = uuid4()
-        payload = {
-            "agent_id": str(agent_id),
-            "recrutement_role": AgentRecrutementRole.RECRUTEUR.value,
-            "date_revocation_recrutement": date_revocation_recrutement,
-        }
-
-        response = authenticated_client.put(
-            _url(uuid4(), uuid4()), payload, format="json"
-        )
-
-        assert response.status_code == status.HTTP_200_OK
-
         body = response.json()
         assert body["agent_id"] == str(agent_id)
         assert body["recrutement_role"] == AgentRecrutementRole.RECRUTEUR.value
-        if date_revocation_recrutement:
-            assert body["date_revocation_recrutement"] is not None
+        assert body["date_revocation_recrutement"] is not None
+
+    def test_responsable_updates_agent_role(self, authenticated_client, test_user):
+        _, organisme = create_organisme_with_agent(
+            role=AgentOrganismeRole.RESPONSABLE, utilisateur=test_user
+        )
+        membre = OrganismeAgentDjangoFactory(
+            organisme=organisme, role=AgentOrganismeRole.MEMBRE.value
+        ).agent
+        recrutement = RecrutementDjangoFactory(organisme=organisme)
+        RecrutementAgentDjangoFactory(
+            recrutement=recrutement,
+            agent=membre,
+            role=AgentRecrutementRole.CONTRIBUTEUR.value,
+        )
+        payload = {
+            "agent_id": str(membre.utilisateur_id),
+            "recrutement_role": AgentRecrutementRole.RECRUTEUR.value,
+        }
+
+        response = authenticated_client.put(
+            _url(organisme.id, recrutement.pk), payload
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        body = response.json()
+        assert body["agent_id"] == str(membre.utilisateur_id)
+        assert body["recrutement_role"] == AgentRecrutementRole.RECRUTEUR.value
+        assert (
+            RecrutementAgentModel.objects.get(
+                recrutement=recrutement, agent=membre
+            ).role
+            == AgentRecrutementRole.RECRUTEUR.value
+        )
+
+    def test_staff_can_update_agent_without_organisme_role(self, api_client):
+        staff_user = UtilisateurDjangoFactory(is_staff=True)
+        refresh = RefreshToken.for_user(staff_user)
+        api_client.credentials(HTTP_AUTHORIZATION=f"Bearer {refresh.access_token}")
+        organisme = OrganismeDjangoFactory()
+        membre = OrganismeAgentDjangoFactory(
+            organisme=organisme, role=AgentOrganismeRole.MEMBRE.value
+        ).agent
+        recrutement = RecrutementDjangoFactory(organisme=organisme)
+        RecrutementAgentDjangoFactory(
+            recrutement=recrutement,
+            agent=membre,
+            role=AgentRecrutementRole.CONTRIBUTEUR.value,
+        )
+        payload = {
+            "agent_id": str(membre.utilisateur_id),
+            "recrutement_role": AgentRecrutementRole.RECRUTEUR.value,
+        }
+
+        response = api_client.put(_url(organisme.id, recrutement.pk), payload)
+
+        assert response.status_code == status.HTTP_200_OK
+
+    @pytest.mark.parametrize(
+        "role",
+        [AgentOrganismeRole.MEMBRE, None],
+        ids=["membre_role", "no_organisme_role"],
+    )
+    def test_is_forbidden_for(self, authenticated_client, test_user, role):
+        if role is None:
+            organisme = OrganismeDjangoFactory()
         else:
-            assert body["date_revocation_recrutement"] is None
+            _, organisme = create_organisme_with_agent(role=role, utilisateur=test_user)
+        membre = OrganismeAgentDjangoFactory(
+            organisme=organisme, role=AgentOrganismeRole.MEMBRE.value
+        ).agent
+        recrutement = RecrutementDjangoFactory(organisme=organisme)
+        RecrutementAgentDjangoFactory(
+            recrutement=recrutement,
+            agent=membre,
+            role=AgentRecrutementRole.CONTRIBUTEUR.value,
+        )
+        payload = {
+            "agent_id": str(membre.utilisateur_id),
+            "recrutement_role": AgentRecrutementRole.RECRUTEUR.value,
+        }
+
+        response = authenticated_client.put(
+            _url(organisme.id, recrutement.pk), payload
+        )
+
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    @pytest.mark.parametrize(
+        "build_ids",
+        [
+            _unknown_organisme_ids,
+            _unknown_recrutement_ids,
+            _recrutement_from_another_organisme_ids,
+        ],
+        ids=[
+            "unknown_organisme",
+            "unknown_recrutement",
+            "recrutement_from_another_organisme",
+        ],
+    )
+    def test_returns_404_for_organisme_or_recrutement(
+        self, authenticated_client, test_user, build_ids
+    ):
+        _, organisme = create_organisme_with_agent(
+            role=AgentOrganismeRole.RESPONSABLE, utilisateur=test_user
+        )
+        organisme_uuid, recrutement_uuid = build_ids(organisme)
+        payload = {
+            "agent_id": str(uuid4()),
+            "recrutement_role": AgentRecrutementRole.RECRUTEUR.value,
+        }
+
+        response = authenticated_client.put(
+            _url(organisme_uuid, recrutement_uuid), payload
+        )
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    def test_returns_404_when_agent_to_update_is_not_attached_to_organisme(
+        self, authenticated_client, test_user
+    ):
+        _, organisme = create_organisme_with_agent(
+            role=AgentOrganismeRole.RESPONSABLE, utilisateur=test_user
+        )
+        bare_agent = AgentDjangoFactory()
+        recrutement = RecrutementDjangoFactory(organisme=organisme)
+        payload = {
+            "agent_id": str(bare_agent.utilisateur_id),
+            "recrutement_role": AgentRecrutementRole.RECRUTEUR.value,
+        }
+
+        response = authenticated_client.put(
+            _url(organisme.id, recrutement.pk), payload
+        )
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    def test_returns_404_when_agent_is_not_member_of_recrutement(
+        self, authenticated_client, test_user
+    ):
+        _, organisme = create_organisme_with_agent(
+            role=AgentOrganismeRole.RESPONSABLE, utilisateur=test_user
+        )
+        membre = OrganismeAgentDjangoFactory(
+            organisme=organisme, role=AgentOrganismeRole.MEMBRE.value
+        ).agent
+        recrutement = RecrutementDjangoFactory(organisme=organisme)
+        payload = {
+            "agent_id": str(membre.utilisateur_id),
+            "recrutement_role": AgentRecrutementRole.RECRUTEUR.value,
+        }
+
+        response = authenticated_client.put(
+            _url(organisme.id, recrutement.pk), payload
+        )
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND
