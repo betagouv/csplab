@@ -449,9 +449,7 @@ class TestRecrutementAgentsViewPut:
             "recrutement_role": AgentRecrutementRole.RECRUTEUR.value,
         }
 
-        response = authenticated_client.put(
-            _url(organisme.id, recrutement.pk), payload
-        )
+        response = authenticated_client.put(_url(organisme.id, recrutement.pk), payload)
 
         assert response.status_code == status.HTTP_200_OK
         body = response.json()
@@ -511,9 +509,7 @@ class TestRecrutementAgentsViewPut:
             "recrutement_role": AgentRecrutementRole.RECRUTEUR.value,
         }
 
-        response = authenticated_client.put(
-            _url(organisme.id, recrutement.pk), payload
-        )
+        response = authenticated_client.put(_url(organisme.id, recrutement.pk), payload)
 
         assert response.status_code == status.HTTP_403_FORBIDDEN
 
@@ -561,9 +557,7 @@ class TestRecrutementAgentsViewPut:
             "recrutement_role": AgentRecrutementRole.RECRUTEUR.value,
         }
 
-        response = authenticated_client.put(
-            _url(organisme.id, recrutement.pk), payload
-        )
+        response = authenticated_client.put(_url(organisme.id, recrutement.pk), payload)
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
@@ -582,8 +576,6 @@ class TestRecrutementAgentsViewPut:
             "recrutement_role": AgentRecrutementRole.RECRUTEUR.value,
         }
 
-        response = authenticated_client.put(
-            _url(organisme.id, recrutement.pk), payload
-        )
+        response = authenticated_client.put(_url(organisme.id, recrutement.pk), payload)
 
         assert response.status_code == status.HTTP_404_NOT_FOUND

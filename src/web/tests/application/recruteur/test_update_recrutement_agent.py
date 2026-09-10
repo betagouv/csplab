@@ -228,7 +228,7 @@ def test_rolls_back_role_update_when_audit_log_write_fails(db, monkeypatch):
         raise RuntimeError("audit log write failed")
 
     monkeypatch.setattr(
-        "application.recruteur.services.update_recrutement_agent.AuditLogWriter.log_action",  # noqa: E501
+        "application.recruteur.services.update_recrutement_agent.AuditLogWriter.log_action",
         _raise,
     )
 
