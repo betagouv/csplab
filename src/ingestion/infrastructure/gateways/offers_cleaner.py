@@ -22,6 +22,7 @@ from domain.entities.offer import Offer
 from domain.entities.raw_offer import RawOffer
 from domain.repositories.sources_repository import ISourcesRepository
 from infrastructure.external_gateways.dtos.talentsoft_dtos import (
+    TalentsoftCodedObject,
     TalentsoftDetailOffer,
     TalentsoftLanguage,
 )
@@ -31,6 +32,200 @@ from infrastructure.gateways.transcoding import (
 )
 
 logger = logging.getLogger(__name__)
+
+_TALENTSOFT_TO_SPECIALISATIONS: dict[str, str] = {
+    "_TS_CO_Specialisation_1": "Formations générales",
+    "_TS_CO_Specialisation_2": "Spécialités pluriscientifiques",
+    "_TS_CO_Specialisation_3": "Physique-chimie",
+    "_TS_CO_Specialisation_4": "Chimie-biologie, biochimie",
+    "_TS_CO_Specialisation_5": "Sciences naturelles (biologie-géologie)",
+    "_TS_CO_Specialisation_7": "Physique",
+    "_TS_CO_Specialisation_9": "Sciences de la Terre",
+    "_TS_CO_Specialisation_10": "Sciences de la vie",
+    "_TS_CO_Specialisation_11": (
+        "Sciences humaines et droit- Spécialités pluridisciplinaires"
+    ),
+    "_TS_CO_Specialisation_12": "Géographie",
+    "_TS_CO_Specialisation_13": "Economie",
+    "_TS_CO_Specialisation_14": (
+        "Sciences humaines & droit- Sciences (y compris démographie, anthropologie"
+    ),
+    "_TS_CO_Specialisation_15": "Psychologie",
+    "_TS_CO_Specialisation_16": "Linguistique",
+    "_TS_CO_Specialisation_17": "Histoire",
+    "_TS_CO_Specialisation_18": "Philosophie, éthique et théologie",
+    "_TS_CO_Specialisation_19": "Droit, sciences politiques",
+    "_TS_CO_Specialisation_20": (
+        "Spécialités littéraires et artistiques plurivalentes"
+    ),
+    "_TS_CO_Specialisation_21": "Français, littérature et civilisation française",
+    "_TS_CO_Specialisation_22": "Arts plastiques",
+    "_TS_CO_Specialisation_23": "Musique, arts du spectacle",
+    "_TS_CO_Specialisation_24": (
+        "Autres disciplines artistiques et spécialités artistiques plurivalentes"
+    ),
+    "_TS_CO_Specialisation_25": "Langues et civilisations anciennes",
+    "_TS_CO_Specialisation_26": (
+        "Langues vivantes, civilisations étrangères et régionales"
+    ),
+    "_TS_CO_Specialisation_27": (
+        "Technologies industrielles fondamentales (génie industriel et procédés "
+        "de transformation, spécialités à dominante fonctionnelle)"
+    ),
+    "_TS_CO_Specialisation_28": (
+        "Technologies de commandes des transformations industrielles "
+        "(automatismes et robotique industriels, informatique industrielle)"
+    ),
+    "_TS_CO_Specialisation_29": (
+        "Spécialités plurivalentes de l'agronomie et de l'agriculture"
+    ),
+    "_TS_CO_Specialisation_30": (
+        "Productions végétales, cultures spécialisées et protection des cultures "
+        "(horticulture, viticulture, arboriculture fruitière...)"
+    ),
+    "_TS_CO_Specialisation_31": (
+        "Productions animales, élevage spécialisé, aquaculture, soins aux "
+        "animaux (y compris vétérinaire)"
+    ),
+    "_TS_CO_Specialisation_32": "Forêts, espaces naturels, faune sauvage, pêche",
+    "_TS_CO_Specialisation_33": (
+        "Aménagement paysager (parcs, jardins, espaces verts, terrains de sport)"
+    ),
+    "_TS_CO_Specialisation_34": (
+        "Production-Transformation : Spécialités pluritechnologiques des "
+        "transformations"
+    ),
+    "_TS_CO_Specialisation_35": (
+        "Production-Transformation : Agro-alimentaire, alimentation, cuisine"
+    ),
+    "_TS_CO_Specialisation_36": (
+        "Production-Transformation : Transformations chimiques et apparentées "
+        "(y compris industrie pharmaceutique)"
+    ),
+    "_TS_CO_Specialisation_37": (
+        "Production-Transformation : Métallurgie (y compris sidérurgie, "
+        "fonderie, non-ferreux)"
+    ),
+    "_TS_CO_Specialisation_38": (
+        "Production-Transformation : Matériaux de construction, verre, céramique"
+    ),
+    "_TS_CO_Specialisation_39": (
+        "Production-Transformation : Plasturgie, matériaux composites"
+    ),
+    "_TS_CO_Specialisation_40": "Production-Transformation : Papier, carton",
+    "_TS_CO_Specialisation_41": (
+        "Production-Transformation : Energie, génie climatique (y compris "
+        "énergie nucléaire, thermique, hydraulique ; utilités ; froid, "
+        "climatisation, chauffage)"
+    ),
+    "_TS_CO_Specialisation_42": (
+        "Spécialités pluritechnologiques. Génie civil, construction, bois"
+    ),
+    "_TS_CO_Specialisation_43": "Mines et carrières, génie civil, topographie",
+    "_TS_CO_Specialisation_44": "Bâtiment : construction et couverture",
+    "_TS_CO_Specialisation_45": "Bâtiment : finitions",
+    "_TS_CO_Specialisation_46": "Travail du bois et de l'ameublement",
+    "_TS_CO_Specialisation_47": "Matériaux souples-Spécialités pluritechnologique",
+    "_TS_CO_Specialisation_48": "Textile",
+    "_TS_CO_Specialisation_49": "Habillement (y compris mode, couture)",
+    "_TS_CO_Specialisation_50": "Cuirs et peaux",
+    "_TS_CO_Specialisation_51": (
+        "Spécialités pluritechnologiques Mécanique-électricité (y compris "
+        "maintenance mécano-électrique)"
+    ),
+    "_TS_CO_Specialisation_52": "Mécanique générale et de précision, usinage",
+    "_TS_CO_Specialisation_53": "Moteurs et mécanique auto",
+    "_TS_CO_Specialisation_54": "Mécanique aéronautique et spatiale",
+    "_TS_CO_Specialisation_55": (
+        "Structures métalliques (y compris soudure, carrosserie, coque de "
+        "bateau, cellule d'avion)"
+    ),
+    "_TS_CO_Specialisation_56": (
+        "Electricité, électronique (non compris automatismes, productique)"
+    ),
+    "_TS_CO_Specialisation_57": "Spécialités plurivalentes des services",
+    "_TS_CO_Specialisation_58": (
+        "Spécialités plurivalentes des échanges et de la gestion (y compris "
+        "administration générale des entreprises et des collectivités)"
+    ),
+    "_TS_CO_Specialisation_59": "Transport, manutention, magasinage",
+    "_TS_CO_Specialisation_60": "Commerce, vente",
+    "_TS_CO_Specialisation_61": "Finance, banques, assurances",
+    "_TS_CO_Specialisation_62": "Comptabilité, gestion",
+    "_TS_CO_Specialisation_63": (
+        "Ressources humaines, gestion du personnel, gestion de l'emploi"
+    ),
+    "_TS_CO_Specialisation_64": "Spécialités plurivalentes de la communication",
+    "_TS_CO_Specialisation_65": (
+        "Journalisme et communication (y compris communication graphique et publicité)"
+    ),
+    "_TS_CO_Specialisation_66": "Techniques de l'imprimerie et de l'édition",
+    "_TS_CO_Specialisation_67": (
+        "Techniques de l'image et du son, métiers connexes du spectacle"
+    ),
+    "_TS_CO_Specialisation_68": "Secrétariat, bureautique",
+    "_TS_CO_Specialisation_69": (
+        "Documentation, bibliothèques, administration des données"
+    ),
+    "_TS_CO_Specialisation_70": (
+        "Informatique, traitement de l'information, réseau de transmission des données"
+    ),
+    "_TS_CO_Specialisation_71": "Spécialités plurivalentes sanitaires et sociales",
+    "_TS_CO_Specialisation_72": "Santé",
+    "_TS_CO_Specialisation_73": "Travail social",
+    "_TS_CO_Specialisation_74": "Enseignement formation",
+    "_TS_CO_Specialisation_75": "Accueil, hôtellerie, tourisme",
+    "_TS_CO_Specialisation_76": "Animation culturelle, sportive et de loisirs",
+    "_TS_CO_Specialisation_77": (
+        "Coiffure, esthétique et autres spécialités des services aux personnes"
+    ),
+    "_TS_CO_Specialisation_78": ("Services à la collectivité -sécialités plurivalente"),
+    "_TS_CO_Specialisation_79": ("Aménagement du territoire, développement, urbanisme"),
+    "_TS_CO_Specialisation_80": "Protection et développement du patrimoine",
+    "_TS_CO_Specialisation_81": (
+        "Nettoyage, assainissement, protection de l'environnement"
+    ),
+    "_TS_CO_Specialisation_82": (
+        "Sécurité des biens et des personnes, police, surveillance (y compris "
+        "hygiène et sécurité)"
+    ),
+    "_TS_CO_Specialisation_83": (
+        "Services à la collectivité : Application des droits et statuts des personnes"
+    ),
+    "_TS_CO_Specialisation_84": "Services à la collectivité : Spécialités militaires",
+    "_TS_CO_Specialisation_85": (
+        "Développement personnel : Spécialités concernant plusieurs capacités"
+    ),
+    "_TS_CO_Specialisation_86": (
+        "Développement personnel : Pratiques sportives (y compris arts martiaux)"
+    ),
+    "_TS_CO_Specialisation_87": (
+        "Développement personnel : Développement des capacités mentales et "
+        "apprentissage de base"
+    ),
+    "_TS_CO_Specialisation_88": (
+        "Développement personnel : Développement des capacités "
+        "comportementales et relationnelles"
+    ),
+    "_TS_CO_Specialisation_89": (
+        "Développement personnel : Développement des capacités individuelles "
+        "d'organisation"
+    ),
+    "_TS_CO_Specialisation_90": (
+        "Développement personnel : Développement des capacités d'orientation, "
+        "d'insertion ou de réinsertion sociales et professionnelles"
+    ),
+    "_TS_CO_Specialisation_91": (
+        "Développement personnel : Jeux et activités spécifiques de loisirs"
+    ),
+    "_TS_CO_Specialisation_92": (
+        "Développement personnel : Economie et activités domestiques"
+    ),
+    "_TS_CO_Specialisation_93": (
+        "Développement personnel : Vie familiale, vie sociale et autres "
+        "formations au développement personnel"
+    ),
+}
 
 _TALENTSOFT_TO_AREA: dict[str, GeographicalArea] = {
     "_TS_CO_GeographicalArea_Afrique": GeographicalArea.AFRIQUE,
@@ -157,7 +352,9 @@ class OffersCleaner:
             else None
         )
 
-        specialisations = [s.clientCode for s in talentsoft_offer.specialisations]
+        specialisations = self._map_specialisations(
+            talentsoft_offer.specialisations, transcoder
+        )
 
         languages = self._map_languages(talentsoft_offer.languages, transcoder)
 
@@ -398,6 +595,38 @@ class OffersCleaner:
                 e,
             )
             return None
+
+    def _map_specialisations(
+        self,
+        specialisations: List[TalentsoftCodedObject],
+        transcoder: Optional[SourceTranscoder],
+    ) -> List[str]:
+        result = []
+        for specialisation in specialisations:
+            label = self._map_specialisation_label(
+                specialisation.clientCode, transcoder
+            )
+            if label is not None:
+                result.append(label)
+        return result
+
+    def _map_specialisation_label(
+        self, client_code: str, transcoder: Optional[SourceTranscoder]
+    ) -> Optional[str]:
+        if client_code in _TALENTSOFT_TO_SPECIALISATIONS:
+            return _TALENTSOFT_TO_SPECIALISATIONS[client_code]
+
+        if transcoder:
+            csplab_code = transcoder.translate("specialisations", client_code)
+            if csplab_code is not None:
+                if csplab_code not in _TALENTSOFT_TO_SPECIALISATIONS:
+                    raise ValueError(
+                        f"specialisations maps {client_code!r} to unknown "
+                        f"specialisation {csplab_code!r}"
+                    )
+                return _TALENTSOFT_TO_SPECIALISATIONS[csplab_code]
+
+        return None
 
     def _map_languages(
         self,
