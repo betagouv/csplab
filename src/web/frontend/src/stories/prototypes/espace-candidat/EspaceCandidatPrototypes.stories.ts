@@ -1,5 +1,10 @@
 import type { StoryObj } from '@storybook/vue3-vite'
+import CandidatureAvecCompte from './variants/candidature/CandidatureAvecCompte.vue'
+import CandidatureAvecCv from './variants/candidature/CandidatureAvecCv.vue'
+import CandidatureFormulaire from './variants/candidature/CandidatureFormulaire.vue'
 import PageOffre from './variants/offre/PageOffre.vue'
+import SuccesAvecCompte from './variants/succes/SuccesAvecCompte.vue'
+import SuccesSansCompte from './variants/succes/SuccesSansCompte.vue'
 
 // Une story par écran/variante, groupées par notion via le « / » Storybook.
 // Prototype isolé : pas d'API, pas de router — données mock dans data/candidatMock.ts.
@@ -28,5 +33,49 @@ export const Offre: Story = {
   render: () => ({
     components: { PageOffre },
     template: '<PageOffre />',
+  }),
+}
+
+// --- Parcours de candidature ---
+
+export const CandidatureCv: Story = {
+  name: 'Candidature/Avec un CV',
+  render: () => ({
+    components: { CandidatureAvecCv },
+    template: '<CandidatureAvecCv />',
+  }),
+}
+
+export const CandidatureCompte: Story = {
+  name: 'Candidature/Avec un compte',
+  render: () => ({
+    components: { CandidatureAvecCompte },
+    template: '<CandidatureAvecCompte />',
+  }),
+}
+
+export const CandidatureFormulaireStory: Story = {
+  name: 'Candidature/Avec un formulaire',
+  render: () => ({
+    components: { CandidatureFormulaire },
+    template: '<CandidatureFormulaire />',
+  }),
+}
+
+// --- Écran de succès ---
+
+export const SuccesSansCompteStory: Story = {
+  name: 'Succès/Sans compte',
+  render: () => ({
+    components: { SuccesSansCompte },
+    template: '<SuccesSansCompte />',
+  }),
+}
+
+export const SuccesAvecCompteStory: Story = {
+  name: 'Succès/Avec compte',
+  render: () => ({
+    components: { SuccesAvecCompte },
+    template: '<SuccesAvecCompte />',
   }),
 }

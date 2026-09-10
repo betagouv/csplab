@@ -11,11 +11,13 @@ withDefaults(defineProps<{
   userName?: string
   currentPage?: CandidatePage
   unreadCount?: number
+  showAccountHint?: boolean
 }>(), {
   variant: 'public',
   userName: 'Camille Rousseau',
   currentPage: 'accueil',
   unreadCount: 0,
+  showAccountHint: true,
 })
 
 defineEmits<{
@@ -95,7 +97,7 @@ defineEmits<{
         </template>
       </CspDropdownMenu>
       <span
-        v-else
+        v-else-if="showAccountHint"
         class="candidate-header__hint"
       >
         Pas besoin de compte pour candidater
