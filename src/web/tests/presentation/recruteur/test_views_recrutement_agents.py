@@ -10,8 +10,12 @@ from domain.recruteur.value_objects.roles import (
     AgentOrganismeRole,
     AgentRecrutementRole,
 )
+from infrastructure.django_apps.recruteur.models.recrutement import (
+    RecrutementAgentModel,
+)
 from infrastructure.factories.identite.agent_django_factory import AgentDjangoFactory
 from infrastructure.factories.identite.organisme_django_factory import (
+    OrganismeAgentDjangoFactory,
     OrganismeDjangoFactory,
     create_organisme_with_agent,
 )
@@ -206,25 +210,169 @@ class TestRecrutementAgentsViewPost:
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
     def test_returns_201_with_recrutement_agent_shape_for_valid_payload(
-        self, authenticated_client
+        self, authenticated_client, test_user
     ):
-        agent_id = uuid4()
+        _, organisme = create_organisme_with_agent(
+            role=AgentOrganismeRole.RESPONSABLE, utilisateur=test_user
+        )
+        membre = OrganismeAgentDjangoFactory(
+            organisme=organisme, role=AgentOrganismeRole.MEMBRE.value
+        ).agent
+        recrutement = RecrutementDjangoFactory(organisme=organisme)
         payload = {
-            "agent_id": str(agent_id),
+            "agent_id": str(membre.utilisateur_id),
             "recrutement_role": AgentRecrutementRole.RECRUTEUR.value,
         }
 
-        response = authenticated_client.post(_url(uuid4(), uuid4()), payload)
+        response = authenticated_client.post(
+            _url(organisme.id, recrutement.pk), payload
+        )
 
         assert response.status_code == status.HTTP_201_CREATED
         assert response.json() == {
-            "agent_id": str(agent_id),
-            "nom": "Nom",
-            "prenom": "Prenom",
-            "poste": "Poste",
-            "email": "prenom.nom@test.com",
+            "agent_id": str(membre.utilisateur_id),
+            "nom": membre.utilisateur.last_name,
+            "prenom": membre.utilisateur.first_name,
+            "poste": membre.intitule_poste,
+            "email": membre.utilisateur.email,
             "recrutement_role": AgentRecrutementRole.RECRUTEUR.value,
         }
+        assert RecrutementAgentModel.objects.filter(
+            recrutement=recrutement, agent=membre
+        ).exists()
+
+    def test_staff_can_add_agent_without_organisme_role(self, api_client):
+        staff_user = UtilisateurDjangoFactory(is_staff=True)
+        refresh = RefreshToken.for_user(staff_user)
+        api_client.credentials(HTTP_AUTHORIZATION=f"Bearer {refresh.access_token}")
+        organisme = OrganismeDjangoFactory()
+        membre = OrganismeAgentDjangoFactory(
+            organisme=organisme, role=AgentOrganismeRole.MEMBRE.value
+        ).agent
+        recrutement = RecrutementDjangoFactory(organisme=organisme)
+        payload = {
+            "agent_id": str(membre.utilisateur_id),
+            "recrutement_role": AgentRecrutementRole.CONTRIBUTEUR.value,
+        }
+
+        response = api_client.post(_url(organisme.id, recrutement.pk), payload)
+
+        assert response.status_code == status.HTTP_201_CREATED
+
+    @pytest.mark.parametrize(
+        "role",
+        [AgentOrganismeRole.MEMBRE, None],
+        ids=["membre_role", "no_organisme_role"],
+    )
+    def test_is_forbidden_for(self, authenticated_client, test_user, role):
+        if role is None:
+            organisme = OrganismeDjangoFactory()
+        else:
+            _, organisme = create_organisme_with_agent(role=role, utilisateur=test_user)
+        membre = OrganismeAgentDjangoFactory(
+            organisme=organisme, role=AgentOrganismeRole.MEMBRE.value
+        ).agent
+        recrutement = RecrutementDjangoFactory(organisme=organisme)
+        payload = {
+            "agent_id": str(membre.utilisateur_id),
+            "recrutement_role": AgentRecrutementRole.CONTRIBUTEUR.value,
+        }
+
+        response = authenticated_client.post(
+            _url(organisme.id, recrutement.pk), payload
+        )
+
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    @pytest.mark.parametrize(
+        "build_ids",
+        [
+            _unknown_organisme_ids,
+            _unknown_recrutement_ids,
+            _recrutement_from_another_organisme_ids,
+        ],
+        ids=[
+            "unknown_organisme",
+            "unknown_recrutement",
+            "recrutement_from_another_organisme",
+        ],
+    )
+    def test_returns_404_for_organisme_or_recrutement(
+        self, authenticated_client, test_user, build_ids
+    ):
+        _, organisme = create_organisme_with_agent(
+            role=AgentOrganismeRole.RESPONSABLE, utilisateur=test_user
+        )
+        organisme_uuid, recrutement_uuid = build_ids(organisme)
+        payload = {
+            "agent_id": str(uuid4()),
+            "recrutement_role": AgentRecrutementRole.CONTRIBUTEUR.value,
+        }
+
+        response = authenticated_client.post(
+            _url(organisme_uuid, recrutement_uuid), payload
+        )
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    def test_returns_404_when_agent_to_add_does_not_exist(
+        self, authenticated_client, test_user
+    ):
+        _, organisme = create_organisme_with_agent(
+            role=AgentOrganismeRole.RESPONSABLE, utilisateur=test_user
+        )
+        recrutement = RecrutementDjangoFactory(organisme=organisme)
+        payload = {
+            "agent_id": str(uuid4()),
+            "recrutement_role": AgentRecrutementRole.CONTRIBUTEUR.value,
+        }
+
+        response = authenticated_client.post(
+            _url(organisme.id, recrutement.pk), payload
+        )
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    def test_returns_404_when_agent_to_add_is_not_attached_to_organisme(
+        self, authenticated_client, test_user
+    ):
+        _, organisme = create_organisme_with_agent(
+            role=AgentOrganismeRole.RESPONSABLE, utilisateur=test_user
+        )
+        bare_agent = AgentDjangoFactory()
+        recrutement = RecrutementDjangoFactory(organisme=organisme)
+        payload = {
+            "agent_id": str(bare_agent.utilisateur_id),
+            "recrutement_role": AgentRecrutementRole.CONTRIBUTEUR.value,
+        }
+
+        response = authenticated_client.post(
+            _url(organisme.id, recrutement.pk), payload
+        )
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    def test_returns_409_when_agent_already_member_of_recrutement(
+        self, authenticated_client, test_user
+    ):
+        _, organisme = create_organisme_with_agent(
+            role=AgentOrganismeRole.RESPONSABLE, utilisateur=test_user
+        )
+        recrutement = RecrutementDjangoFactory(organisme=organisme)
+        deja_membre = RecrutementAgentModel.objects.get(recrutement=recrutement).agent
+        OrganismeAgentDjangoFactory(
+            organisme=organisme, agent=deja_membre, role=AgentOrganismeRole.MEMBRE.value
+        )
+        payload = {
+            "agent_id": str(deja_membre.utilisateur_id),
+            "recrutement_role": AgentRecrutementRole.CONTRIBUTEUR.value,
+        }
+
+        response = authenticated_client.post(
+            _url(organisme.id, recrutement.pk), payload
+        )
+
+        assert response.status_code == status.HTTP_409_CONFLICT
 
 
 class TestRecrutementAgentsViewPut:
