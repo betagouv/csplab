@@ -21,3 +21,4 @@ class OrganismeAction(Enum):
     REVOKE_ORGANISME_AGENT = "revoke_organisme_agent"
     CREATE_AGENT = "create_agent"
     LIST_RECRUTEMENT_AGENTS = "list_recrutement_agents"
+    ADD_RECRUTEMENT_AGENT = "add_recrutement_agent"
