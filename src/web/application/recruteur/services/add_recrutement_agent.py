@@ -2,6 +2,7 @@ from uuid import UUID, uuid4
 
 from ddd.entity import Entity
 from django.db import transaction
+from django.db import IntegrityError, transaction
 
 from application.recruteur.context_services.recrutement_agent_context_service import (
     RecrutementAgentContextService,
