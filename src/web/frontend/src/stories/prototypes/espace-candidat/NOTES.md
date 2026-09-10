@@ -23,6 +23,17 @@ Aucun composant `Csp*` existant ne couvrait ces besoins. Fragments montés dans 
 - **`CandidateHeader.vue`** — en-tête public/connecté, volontairement différent de
   `CspAppShell` (pas de sidebar) : l'espace candidat doit se sentir plus léger qu'un outil
   interne. Décision UX, pas une lacune du DS.
+- **`CandidatureStepper.vue` + `CandidatureFlowShell.vue`** — le shell factorise l'en-tête, le
+  stepper et les boutons Retour/Continuer communs aux 3 parcours de candidature.
+- **`CandidatureCard.vue`** — carte de candidature du tableau de bord (poste, organisme, badge de
+  phase, résumé d'étapes, prochaine échéance). Combine `EtapesResume` et `CspBadge`.
+
+## Note technique
+
+Les données mock mutées par l'interaction (messages lus, document déposé, action traitée) sont
+enveloppées dans `reactive()` (`data/candidatMock.ts`) — un tableau JS "plat" ne déclenche pas
+les recomputations Vue quand on mute ses éléments. Sans ça, le badge de messages non lus et le
+statut des documents ne se mettaient pas à jour après une action candidat.
 
 ## Décisions UX prises pendant le prototypage
 
