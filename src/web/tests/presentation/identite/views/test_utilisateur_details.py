@@ -73,41 +73,6 @@ def test_returned_payload(mock_container, authenticated_client, test_user):
     }
 
 
-def test_returned_payload_from_db(authenticated_client, test_user):
-    agent = AgentDjangoFactory(utilisateur=test_user)
-    organisme = OrganismeDjangoFactory()
-    OrganismeAgentDjangoFactory(
-        organisme=organisme, agent=agent, role=AgentOrganismeRole.MEMBRE.value
-    )
-
-    response = authenticated_client.get(URL)
-
-    assert response.status_code == status.HTTP_200_OK
-    assert response.json() == {
-        "email": test_user.email,
-        "prenom": test_user.first_name,
-        "nom": test_user.last_name,
-        "is_staff": test_user.is_staff,
-        "organisme_roles": [
-            {
-                "organisme_uuid": str(organisme.id),
-                "nom": organisme.nom,
-                "role": AgentOrganismeRole.MEMBRE.value,
-            }
-        ],
-    }
-
-
-def test_returned_payload_for_staff_user(authenticated_client, test_user):
-    test_user.is_staff = True
-    test_user.save()
-
-    response = authenticated_client.get(URL)
-
-    assert response.status_code == status.HTTP_200_OK
-    assert response.json()["is_staff"] is True
-
-
 @pytest.mark.parametrize(
     "exception,status_code",
     [
@@ -128,3 +93,38 @@ def test_returns_500_on_error(
     response = authenticated_client.get(URL)
 
     assert response.status_code == status_code
+
+
+class TestUtilisateurDetailsViewDbVerified:
+    def test_get_returns_persisted_utilisateur(self, authenticated_client, test_user):
+        agent = AgentDjangoFactory(utilisateur=test_user)
+        organisme = OrganismeDjangoFactory()
+        OrganismeAgentDjangoFactory(
+            organisme=organisme, agent=agent, role=AgentOrganismeRole.MEMBRE.value
+        )
+
+        response = authenticated_client.get(URL)
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json() == {
+            "email": test_user.email,
+            "prenom": test_user.first_name,
+            "nom": test_user.last_name,
+            "is_staff": test_user.is_staff,
+            "organisme_roles": [
+                {
+                    "organisme_uuid": str(organisme.id),
+                    "nom": organisme.nom,
+                    "role": AgentOrganismeRole.MEMBRE.value,
+                }
+            ],
+        }
+
+    def test_get_returns_persisted_staff_flag(self, authenticated_client, test_user):
+        test_user.is_staff = True
+        test_user.save()
+
+        response = authenticated_client.get(URL)
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json()["is_staff"] is True

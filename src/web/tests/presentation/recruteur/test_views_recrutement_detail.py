@@ -25,8 +25,22 @@ from domain.recruteur.errors.recrutement_errors import (
     RecrutementEtapeInexistante,
     RecrutementInexistant,
 )
+from domain.recruteur.value_objects.roles import AgentOrganismeRole
+from infrastructure.django_apps.recruteur.models.etape import EtapeModel
+from infrastructure.factories.candidate.candidature_django_factory import (
+    CandidatureDjangoFactory,
+)
+from infrastructure.factories.identite.organisme_django_factory import (
+    create_organisme_with_agent,
+)
 from infrastructure.factories.recruteur.candidature_recruteur_factory import (
     CandidatureRecruteurFactory,
+)
+from infrastructure.factories.recruteur.recrutement_django_factory import (
+    RecrutementDjangoFactory,
+)
+from infrastructure.factories.referentiel.offer_django_factory import (
+    OfferDjangoFactory,
 )
 
 fake = Faker()
@@ -146,6 +160,14 @@ UNKNOWN_RECRUTEMENT_DETAIL_URL = reverse(
         "organisme_uuid": ORGANISME_UUID,
         "recrutement_uuid": UNKNOWN_RECRUTEMENT_UUID,
     },
+)
+
+NOMBRE_REQUETES_LISTE_ATTENDU = (
+    2  # authentication (view + RateLimitHeadersMiddleware)
+    + 1  # organisme
+    + 1  # agent's role
+    + 1  # recrutement belongs to organisme (exists check)
+    + 2  # pagination: count + page
 )
 
 
@@ -548,3 +570,124 @@ class TestRecrutementCandidaturesEtapeView:
         )
         assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
         assert response.json() == {"error": "Unexpected error"}
+
+
+class TestRecrutementDetailViewDbVerified:
+    def test_returns_persisted_detail(self, authenticated_client, test_user):
+        _, organisme = create_organisme_with_agent(
+            role=AgentOrganismeRole.RESPONSABLE,
+            utilisateur=test_user,
+            id=UUID(ORGANISME_UUID),
+        )
+        offer = OfferDjangoFactory(
+            id=UUID(RECRUTEMENT_UUID), archived_at=None, category="A"
+        )
+        recrutement = RecrutementDjangoFactory(organisme=organisme, offre=offer)
+
+        response = authenticated_client.get(RECRUTEMENT_DETAIL_URL)
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["offer_id"] == str(offer.id)
+        assert data["intitule"] == offer.title
+        assert data["archive"] is False
+        assert data["categorie_offre"] == offer.category
+        assert data["organisme_recruteur"] == {
+            "nom": organisme.nom,
+            "siret": organisme.siret,
+        }
+        assert len(data["etapes"]) == len(recrutement.ordre_etapes)
+
+
+class TestRecrutementKanbanViewDbVerified:
+    def test_returns_persisted_kanban(self, authenticated_client, test_user):
+        _, organisme = create_organisme_with_agent(
+            role=AgentOrganismeRole.RESPONSABLE,
+            utilisateur=test_user,
+            id=UUID(ORGANISME_UUID),
+        )
+        offer = OfferDjangoFactory(id=UUID(RECRUTEMENT_UUID))
+        recrutement = RecrutementDjangoFactory(organisme=organisme, offre=offer)
+
+        response = authenticated_client.get(RECRUTEMENT_KANBAN_URL)
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["offer_id"] == str(recrutement.offre_id)
+        assert len(data["etapes"]) == len(recrutement.ordre_etapes)
+        assert data["etapes"][0]["candidatures"] == []
+
+
+class TestRecrutementListeViewDbVerified:
+    def test_returns_persisted_candidatures(self, authenticated_client, test_user):
+        _, organisme = create_organisme_with_agent(
+            role=AgentOrganismeRole.RESPONSABLE,
+            utilisateur=test_user,
+            id=UUID(ORGANISME_UUID),
+        )
+        offer = OfferDjangoFactory(id=UUID(RECRUTEMENT_UUID))
+        recrutement = RecrutementDjangoFactory(organisme=organisme, offre=offer)
+        etape = EtapeModel.objects.filter(recrutement=recrutement).first()
+        candidature = CandidatureDjangoFactory(etape=etape)
+
+        response = authenticated_client.get(RECRUTEMENT_LISTE_URL)
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["count"] == 1
+        result = data["results"][0]
+        assert result["uuid"] == str(candidature.id)
+        assert result["candidat"]["nom"] == candidature.candidat.utilisateur.last_name
+        assert result["candidat"]["prenom"] == (
+            candidature.candidat.utilisateur.first_name
+        )
+        assert result["etape"]["etape_uuid"] == str(etape.id)
+        assert result["etape"]["nom"] == etape.nom
+
+    def test_does_not_trigger_n_plus_one_queries(
+        self, authenticated_client, test_user, django_assert_num_queries
+    ):
+        _, organisme = create_organisme_with_agent(
+            role=AgentOrganismeRole.RESPONSABLE,
+            utilisateur=test_user,
+            id=UUID(ORGANISME_UUID),
+        )
+        offer = OfferDjangoFactory(id=UUID(RECRUTEMENT_UUID))
+        recrutement = RecrutementDjangoFactory(organisme=organisme, offre=offer)
+        etape = EtapeModel.objects.filter(recrutement=recrutement).first()
+        CandidatureDjangoFactory.create_batch(5, etape=etape)
+
+        with django_assert_num_queries(NOMBRE_REQUETES_LISTE_ATTENDU):
+            response = authenticated_client.get(RECRUTEMENT_LISTE_URL)
+
+        assert response.status_code == status.HTTP_200_OK
+
+
+class TestRecrutementCandidaturesEtapeViewDbVerified:
+    def test_moves_candidature_and_persists_it(self, authenticated_client, test_user):
+        _, organisme = create_organisme_with_agent(
+            role=AgentOrganismeRole.RESPONSABLE,
+            utilisateur=test_user,
+            id=UUID(ORGANISME_UUID),
+        )
+        offer = OfferDjangoFactory(id=UUID(RECRUTEMENT_UUID))
+        recrutement = RecrutementDjangoFactory(organisme=organisme, offre=offer)
+        origine, cible = list(EtapeModel.objects.filter(recrutement=recrutement))[:2]
+        candidature = CandidatureDjangoFactory(etape=origine)
+
+        response = authenticated_client.patch(
+            RECRUTEMENT_CANDIDATURES_ETAPE_URL,
+            data={
+                "etape_cible_uuid": str(cible.id),
+                "candidatures": [{"candidature_uuid": str(candidature.id)}],
+            },
+            format="json",
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["reussites"] == [str(candidature.id)]
+        assert data["echecs"] == []
+
+        candidature.refresh_from_db()
+        assert str(candidature.etape_id) == str(cible.id)

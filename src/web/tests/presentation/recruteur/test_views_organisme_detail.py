@@ -6,6 +6,7 @@ import pytest
 from django.urls import reverse
 from faker import Faker
 from rest_framework import status
+from rest_framework_simplejwt.tokens import RefreshToken
 
 from domain.commons.errors.organisme_errors import OrganismeNexistePas
 from domain.identite.errors.organisme_permission_errors import (
@@ -19,7 +20,14 @@ from domain.recruteur.errors.organisme_recruteur_errors import (
 from domain.recruteur.value_objects.categorie_etapes_recrutement import (
     CategorieEtapeRecrutement,
 )
+from infrastructure.django_apps.recruteur.models.organisme import OrganismeModel
+from infrastructure.factories.identite.organisme_django_factory import (
+    OrganismeDjangoFactory,
+)
 from infrastructure.factories.identite.organisme_factory import OrganismeFactory
+from infrastructure.factories.identite.utilisateur_django_factory import (
+    UtilisateurDjangoFactory,
+)
 from infrastructure.factories.recruteur.organisme_factory import (
     OrganismeRecruteurFactory,
 )
@@ -76,6 +84,14 @@ def identite_container():
         instance = MagicMock()
         mock.return_value = instance
         yield instance
+
+
+@pytest.fixture
+def staff_client(api_client):
+    staff_user = UtilisateurDjangoFactory(is_staff=True)
+    refresh = RefreshToken.for_user(staff_user)
+    api_client.credentials(HTTP_AUTHORIZATION=f"Bearer {refresh.access_token}")
+    return api_client
 
 
 class TestOrganismeDetailView:
@@ -492,3 +508,76 @@ class TestPutEtapesRecrutementOrganismeView:
 
         command = mock_usecase.execute.call_args.args[0]
         assert command.utilisateur.is_staff is True
+
+
+class TestOrganismeDetailViewDbVerified:
+    def test_get_returns_persisted_organisme(self, staff_client):
+        organisme = OrganismeDjangoFactory(id=UUID(ORGANISME_UUID), gestion_ats=True)
+
+        response = staff_client.get(ORGANISME_URL)
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["organisme_uuid"] == ORGANISME_UUID
+        assert data["nom"] == organisme.nom
+        assert data["versant"] == organisme.versant
+        assert data["siret"] == organisme.siret
+        assert data["gestion_ats"] == organisme.gestion_ats
+
+    def test_put_updates_and_persists_the_organisme(self, staff_client):
+        OrganismeDjangoFactory(id=UUID(ORGANISME_UUID), gestion_ats=False)
+        nouveau_nom = fake.name()
+        body = {"nom": nouveau_nom, "gestion_ats": True, "versant": "FPT"}
+
+        response = staff_client.put(ORGANISME_URL, body)
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json()["nom"] == nouveau_nom
+        assert response.json()["gestion_ats"] is True
+
+        organisme = OrganismeModel.objects.get(id=UUID(ORGANISME_UUID))
+        assert organisme.nom == nouveau_nom
+        assert organisme.gestion_ats is True
+        assert organisme.versant == "FPT"
+
+
+class TestEtapesRecrutementOrganismeViewDbVerified:
+    def test_get_returns_persisted_etapes(self, staff_client):
+        OrganismeDjangoFactory(id=UUID(ORGANISME_UUID))
+
+        response = staff_client.get(ETAPES_URL)
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json() == []
+
+    def test_put_persists_the_etapes(self, staff_client):
+        OrganismeDjangoFactory(id=UUID(ORGANISME_UUID))
+
+        response = staff_client.put(ETAPES_URL, VALID_ETAPES_PAYLOAD, format="json")
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert [{"nom": e["nom"], "categorie": e["categorie"]} for e in data] == [
+            {"nom": e["nom"], "categorie": e["categorie"]} for e in VALID_ETAPES_PAYLOAD
+        ]
+
+        organisme = OrganismeModel.objects.get(id=UUID(ORGANISME_UUID))
+        assert [e["nom"] for e in organisme.etapes] == [
+            e["nom"] for e in VALID_ETAPES_PAYLOAD
+        ]
+
+
+class TestInitEtapesRecrutementOrganismeViewDbVerified:
+    def test_post_initializes_and_persists_default_etapes(self, staff_client):
+        OrganismeDjangoFactory(id=UUID(ORGANISME_UUID))
+
+        response = staff_client.post(INIT_ETAPES_URL)
+
+        assert response.status_code == status.HTTP_201_CREATED
+        data = response.json()
+        assert len(data) > 0
+        assert data[0]["categorie"] == "ENTREE"
+
+        organisme = OrganismeModel.objects.get(id=UUID(ORGANISME_UUID))
+        assert organisme.etapes
+        assert len(organisme.etapes) == len(data)

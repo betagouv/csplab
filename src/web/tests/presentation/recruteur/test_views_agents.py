@@ -13,7 +13,12 @@ from domain.identite.errors.organisme_permission_errors import (
     AccesOrganismeRefuse,
     OperationOrganismeRefusee,
 )
+from domain.recruteur.value_objects.roles import AgentOrganismeRole
+from infrastructure.django_apps.users.models import UserModel
 from infrastructure.factories.identite.agent_factory import AgentFactory
+from infrastructure.factories.identite.organisme_django_factory import (
+    create_organisme_with_agent,
+)
 
 fake = Faker("fr_FR")
 
@@ -121,3 +126,27 @@ class TestAgentsView:
             assert response.json() == expected_body
         else:
             assert response.json() == {"error": str(exception)}
+
+
+class TestAgentsViewDbVerified:
+    def test_creates_and_persists_the_agent(self, authenticated_client, test_user):
+        _, organisme = create_organisme_with_agent(
+            role=AgentOrganismeRole.RESPONSABLE,
+            utilisateur=test_user,
+        )
+        email = fake.email()
+        body = {
+            "email": email,
+            "organisme_id": str(organisme.id),
+        }
+
+        response = authenticated_client.post(AGENTS_URL, body)
+
+        assert response.status_code == status.HTTP_201_CREATED
+        data = response.json()
+        assert data["email"] == email
+        for k in ["nom", "prenom", "intitule_poste"]:
+            assert k in data.keys()
+
+        created_user = UserModel.objects.get(email=email)
+        assert data["agent_id"] == str(created_user.username)

@@ -16,6 +16,9 @@ from domain.ingestion.exceptions.source_authorization_error import (
 from infrastructure.factories.ingestion.source_django_factory import (
     SourceDjangoFactory,
 )
+from infrastructure.factories.referentiel.offer_django_factory import (
+    OfferDjangoFactory,
+)
 
 API_KEY = "test-ingestion-api-key"
 REFERENCE = "12345"
@@ -102,3 +105,21 @@ class TestArchiveOffersView:
         use_case.execute.assert_called_once_with(
             ArchiveOfferByReferenceInput(reference=REFERENCE, source_id=SOURCE_ID)
         )
+
+
+class TestArchiveOffersViewDbVerified:
+    @pytest.fixture(autouse=True)
+    def mock_container(self):
+        return None
+
+    def test_archives_the_persisted_offer(
+        self, authenticated_client_with_source, source
+    ):
+        offer = OfferDjangoFactory(source=source, reference=REFERENCE, archived_at=None)
+
+        response = authenticated_client_with_source.post(URL, VALID_BODY, format="json")
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data == {"status": "ok"}
+        offer.refresh_from_db()
+        assert offer.archived_at is not None

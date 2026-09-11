@@ -8,6 +8,7 @@ from pydantic import ValidationError
 from referentiel.value_objects.siret import SIRET
 from referentiel.value_objects.verse import Verse
 from rest_framework import status
+from rest_framework_simplejwt.tokens import RefreshToken
 
 from application.identite.services.organisme_query_service_interface import (
     OrganismeReadModel,
@@ -19,7 +20,14 @@ from domain.identite.errors.organisme_errors import OrganismeSiretExisteDeja
 from domain.identite.errors.organisme_permission_errors import (
     OperationOrganismeRefusee,
 )
+from infrastructure.django_apps.recruteur.models.organisme import OrganismeModel
+from infrastructure.factories.identite.organisme_django_factory import (
+    OrganismeDjangoFactory,
+)
 from infrastructure.factories.identite.organisme_factory import OrganismeFactory
+from infrastructure.factories.identite.utilisateur_django_factory import (
+    UtilisateurDjangoFactory,
+)
 from infrastructure.factories.seed_recruteur_datas import _ORGANISME_UUID
 from tests.utils.dates import datetime_to_drf_representation, datetime_to_str
 
@@ -209,3 +217,50 @@ class TestOrganismesView:
 
         assert response.status_code == expected_status
         assert response.json() == expected_body
+
+
+class TestOrganismesViewDbVerified:
+    @pytest.fixture
+    def staff_client(self, api_client):
+        staff_user = UtilisateurDjangoFactory(is_staff=True)
+        refresh = RefreshToken.for_user(staff_user)
+        api_client.credentials(HTTP_AUTHORIZATION=f"Bearer {refresh.access_token}")
+        return api_client
+
+    def test_get_returns_persisted_organismes(self, staff_client):
+        organisme = OrganismeDjangoFactory(gestion_ats=True)
+
+        response = staff_client.get(ORGANISME_URL)
+
+        assert response.status_code == status.HTTP_200_OK
+        matching = next(
+            o for o in response.json() if o["organisme_uuid"] == str(organisme.id)
+        )
+        assert matching["nom"] == organisme.nom
+        assert matching["versant"] == organisme.versant
+        assert matching["siret"] == organisme.siret
+        assert matching["gestion_ats"] == organisme.gestion_ats
+        assert matching["nombre_agents"] == 0
+        assert matching["nombre_offres_publiees"] == 0
+
+    def test_post_creates_and_persists_the_organisme(self, staff_client):
+        siret_code = fake.siret().replace(" ", "")
+        body = {
+            "nom": fake.company(),
+            "siret": siret_code,
+            "versant": Verse.FPE.value,
+            "gestion_ats": True,
+        }
+
+        response = staff_client.post(ORGANISME_URL, body)
+
+        assert response.status_code == status.HTTP_201_CREATED
+        data = response.json()
+        assert data["nom"] == body["nom"]
+        assert data["siret"] == siret_code
+        assert data["versant"] == Verse.FPE.value
+        assert data["gestion_ats"] is True
+
+        organisme = OrganismeModel.objects.get(siret=siret_code)
+        assert str(organisme.id) == data["organisme_uuid"]
+        assert organisme.nom == body["nom"]
