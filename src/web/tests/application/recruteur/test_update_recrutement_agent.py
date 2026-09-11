@@ -1,6 +1,7 @@
 from uuid import uuid4
 
 import pytest
+from django.utils import timezone
 
 from application.recruteur.services.update_recrutement_agent import (
     update_recrutement_agent,
@@ -206,6 +207,31 @@ def test_raises_when_agent_is_not_member_of_recrutement(db):
             recrutement_id=recrutement.pk,
             agent_id=membre.utilisateur_id,
             role=AgentRecrutementRole.CONTRIBUTEUR.value,
+            utilisateur=_utilisateur(responsable.utilisateur_id),
+        )
+
+
+def test_raises_when_agent_is_revoked_from_recrutement(db):
+    responsable, organisme = create_organisme_with_agent(
+        role=AgentOrganismeRole.RESPONSABLE
+    )
+    membre = OrganismeAgentDjangoFactory(
+        organisme=organisme, role=AgentOrganismeRole.MEMBRE.value
+    ).agent
+    recrutement = RecrutementDjangoFactory(organisme=organisme)
+    RecrutementAgentDjangoFactory(
+        recrutement=recrutement,
+        agent=membre,
+        role=AgentRecrutementRole.CONTRIBUTEUR.value,
+        date_revocation=timezone.now(),
+    )
+
+    with pytest.raises(AgentNonMembreRecrutement):
+        update_recrutement_agent(
+            organisme_id=organisme.id,
+            recrutement_id=recrutement.pk,
+            agent_id=membre.utilisateur_id,
+            role=AgentRecrutementRole.RECRUTEUR.value,
             utilisateur=_utilisateur(responsable.utilisateur_id),
         )
 
