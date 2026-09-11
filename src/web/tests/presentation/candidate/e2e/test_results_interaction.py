@@ -42,6 +42,11 @@ def fake_execute_filter_by_category_and_versant(
 
 
 @pytest.mark.e2e
+@pytest.mark.skip(
+    reason="Candidate CV flow deactivated and redirected to "
+    "choisirleservicepublic.gouv.fr (#1402) — re-enable once the flow is "
+    "restored, or remove alongside the view code if it never comes back."
+)
 class TestResultsDrawer:
     @patch(
         "application.candidate.usecases.match_cv_to_opportunities."
@@ -145,6 +150,11 @@ class TestResultsDrawer:
 
 
 @pytest.mark.e2e
+@pytest.mark.skip(
+    reason="Candidate CV flow deactivated and redirected to "
+    "choisirleservicepublic.gouv.fr (#1402) — re-enable once the flow is "
+    "restored, or remove alongside the view code if it never comes back."
+)
 class TestResultsPersistence:
     @patch(
         "application.candidate.usecases.match_cv_to_opportunities."
@@ -179,6 +189,11 @@ class TestResultsPersistence:
 
 
 @pytest.mark.e2e
+@pytest.mark.skip(
+    reason="Candidate CV flow deactivated and redirected to "
+    "choisirleservicepublic.gouv.fr (#1402) — re-enable once the flow is "
+    "restored, or remove alongside the view code if it never comes back."
+)
 class TestResultsFilters:
     @patch(
         "application.candidate.usecases.match_cv_to_opportunities."
@@ -314,6 +329,11 @@ class TestResultsFilters:
 
 
 @pytest.mark.e2e
+@pytest.mark.skip(
+    reason="Candidate CV flow deactivated and redirected to "
+    "choisirleservicepublic.gouv.fr (#1402) — re-enable once the flow is "
+    "restored, or remove alongside the view code if it never comes back."
+)
 class TestResultsPagination:
     @patch(
         "application.candidate.usecases.match_cv_to_opportunities."

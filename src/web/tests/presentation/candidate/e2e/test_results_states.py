@@ -10,6 +10,11 @@ from infrastructure.factories.candidate.cv_metadata_factory import CVMetadataFac
 
 
 @pytest.mark.e2e
+@pytest.mark.skip(
+    reason="Candidate CV flow deactivated and redirected to "
+    "choisirleservicepublic.gouv.fr (#1402) — re-enable once the flow is "
+    "restored, or remove alongside the view code if it never comes back."
+)
 class TestResultsEmptyAndFailedStates:
     @patch(
         "application.candidate.usecases.match_cv_to_opportunities."

@@ -11,6 +11,11 @@ from infrastructure.factories.referentiel.offer_factory import OfferFactory
 
 
 @pytest.mark.e2e
+@pytest.mark.skip(
+    reason="Candidate CV flow deactivated and redirected to "
+    "choisirleservicepublic.gouv.fr (#1402) — re-enable once the flow is "
+    "restored, or remove alongside the view code if it never comes back."
+)
 class TestCVUploadFlow:
     @patch(
         "application.candidate.usecases.match_cv_to_opportunities."
