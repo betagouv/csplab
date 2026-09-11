@@ -16,39 +16,27 @@ name = "cz_customize"
 version = "0.1.0"
 
 [tool.commitizen.customize]
-message_template = "{{change_type}}({{scope}}{% if layer %}-{{layer}}{% endif %}) {{subject}}{% if body %}\n\n{{body}}{% endif %}{% if footer %}\n\n{{footer}}{% endif %}"
-example = "✨(candidate-infrastructure) add support for HTTP basic auth or ✨(candidate) add new feature"
-schema = "<emoji>(<scope>[-layer]) <subject>"
-schema_pattern = "^(🎨|⚡️|🔥|🐛|🚑️|✨|📝|🚀|💎|🎉|✅|🔒️|🚧|💚|⬇️|⬆️|👷|♻️|🔧|🏗️|🤸|🧩|🖼️)\\([a-z0-9:-]+\\) [A-zÀ-ú:-].{1,75}$"
+message_template = "{{change_type}}({{scope}}{% if layer %}-{{layer}}{% endif %}): {{subject}}{% if body %}\n\n{{body}}{% endif %}{% if footer %}\n\n{{footer}}{% endif %}"
+example = "feat(candidate-infrastructure): ajoute le support de l'authentification HTTP basic ou feat(candidate): ajoute une nouvelle fonctionnalité"
+schema = "<type>(<scope>[-layer]): <subject>"
+schema_pattern = "^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)\\([a-z0-9:-]+\\): [A-zÀ-ú].{1,75}$"
 
 [[tool.commitizen.customize.questions]]
 type = "list"
 name = "change_type"
 message = "Select the type of change:"
 choices = [
-    {value = "✨", name = "✨ introduce new features"},
-    {value = "🐛", name = "🐛 fix a bug"},
-    {value = "📝", name = "📝 add/update documentation"},
-    {value = "🎨", name = "🎨 improve structure / format of the code"},
-    {value = "♻️", name = "♻️ refactor code"},
-    {value = "⚡️", name = "⚡️ improve performance"},
-    {value = "✅", name = "✅ add/update/pass tests"},
-    {value = "🔧", name = "🔧 add/update configuration files"},
-    {value = "🚀", name = "🚀 deploy stuff"},
-    {value = "🔥", name = "🔥 remove code or files"},
-    {value = "🚧", name = "🚧 work in progress"},
-    {value = "💚", name = "💚 fix CI build"},
-    {value = "⬆️", name = "⬆️ upgrade dependencies"},
-    {value = "⬇️", name = "⬇️ downgrade dependencies"},
-    {value = "🎉", name = "🎉 begin a project"},
-    {value = "🚑️", name = "🚑️ critical hotfix"},
-    {value = "🔒️", name = "🔒️ fix security or privacy issues"},
-    {value = "🏗️", name = "🏗️ make architectural changes"},
-    {value = "👷", name = "👷 add/update CI build system"},
-    {value = "💎", name = "💎 add/update the UI and style files"},
-    {value = "🤸", name = "🤸 add/update a11y stuffs"},
-    {value = "🧩", name = "🧩 add/update templates"},
-    {value = "🖼️", name = "🖼️ add/update assets"}
+    {value = "feat", name = "feat: introduce new features"},
+    {value = "fix", name = "fix: fix a bug"},
+    {value = "docs", name = "docs: add/update documentation"},
+    {value = "style", name = "style: improve structure / format of the code"},
+    {value = "refactor", name = "refactor: refactor code"},
+    {value = "perf", name = "perf: improve performance"},
+    {value = "test", name = "test: add/update/pass tests"},
+    {value = "build", name = "build: add/update build system or dependencies"},
+    {value = "ci", name = "ci: add/update CI build system"},
+    {value = "chore", name = "chore: miscellaneous changes (config, assets, WIP...)"},
+    {value = "revert", name = "revert: revert a previous commit"}
 ]
 
 [[tool.commitizen.customize.questions]]

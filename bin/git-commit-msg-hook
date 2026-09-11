@@ -6,13 +6,13 @@ set -eo pipefail
 MESSAGE=$(cat "$1")
 
 # commit message schema regex
-SCHEMA_REGEX="^(fixup!\s*)?(🎨|⚡️|🔥|🐛|🚑️|✨|📝|🚀|💄|💎|🎉|✅|🔒️|🔐|🔖|🚨|🚧|💚|⬇️|⬆️|📌|👷|📈|♻️|➕|➖|🔧|🔨|🌐|✏️|💩|⏪️|🔀|📦️|👽️|🚚|📄|💥|🍱|♿️|💡|🍻|💬|🗃️|🔊|🔇|👥|🚸|🏗️|📱|🤡|🥚|🙈|📸|⚗️|🔍️|🏷️|🌱|🚩|🥅|💫|🗑️|🛂|🩹|🧐|⚰️|🧪|👔|🩺|🧱|🧑‍💻|💸|🧵|🦺|✈️|💎|🤸|🧩|🖼️)\\([a-z0-9:-]+\\) [a-z].{1,50}"
+SCHEMA_REGEX="^(fixup!\s*)?(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)\\([a-z0-9:-]+\\): [A-zÀ-ú].{1,75}"
 
 # validate commit message schema
 if ! echo "$MESSAGE" | grep -qE "$SCHEMA_REGEX"; then
     echo "❌ Invalid commit message!"
-    echo "Required format: <emoji>(<scope>) <subject>"
-    echo "Example: ✨(auth) add support for HTTP basic auth"
+    echo "Required format: <type>(<scope>[-layer]): <subject>"
+    echo "Example: feat(auth): ajoute le support de l'authentification HTTP basic"
     echo "Use 'bin/cz commit' for more assistance (requires that commitzen is installed on your system)"
     exit 1
 fi

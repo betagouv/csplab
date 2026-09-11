@@ -2,7 +2,7 @@ name: PR Fields Check
 
 on:
   pull_request:
-    types: [opened, synchronize, reopened, edited, ready_for_review, labeled, unlabeled]
+    types: [opened, synchronize, reopened, edited, ready_for_review]
   merge_group:
 
 permissions:
@@ -18,12 +18,8 @@ jobs:
         with:
           github-token: ${{ secrets.GH_TOKEN || github.token }}
           script: |
-            const validLabels = new Set([
-              'breaking', 'added', 'modified', 'removed', 'bugfix', 'dependencies', 'documentation', 'pending-release'
-            ]);
-
             const { owner, repo } = context.repo;
-            let prNumber, labels;
+            let prNumber;
 
             if (context.eventName === 'merge_group') {
               // head_ref looks like refs/heads/gh-readonly-queue/main/pr-123-<sha>
@@ -33,19 +29,8 @@ jobs:
                 return;
               }
               prNumber = Number(match[1]);
-              const { data: pr } = await github.rest.pulls.get({ owner, repo, pull_number: prNumber });
-              labels = pr.labels.map(l => l.name);
             } else {
               prNumber = context.payload.pull_request.number;
-              labels = context.payload.pull_request.labels.map(l => l.name);
-            }
-
-            const matching = labels.filter(l => validLabels.has(l));
-            if (matching.length !== 1) {
-              core.setFailed(
-                `This pull request must have exactly one changelog label (${[...validLabels].join(', ')}). Found: ${matching.length === 0 ? 'none' : matching.join(', ')}.`
-              );
-              return;
             }
 
             const query = `
@@ -87,47 +72,63 @@ jobs:
               }
             `;
 
-            const result = await github.graphql(query, { owner, repo, number: prNumber });
-            const pr = result.repository.pullRequest;
+            const requiredFields = ['Importance', 'Size', 'Iteration', 'Epic'];
+            const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 
-            const linkedIssuesCount = pr.closingIssuesReferences.totalCount;
-            const projectItems = pr.projectItems.nodes;
+            // Filling in the "Development"/"Projects" fields on a freshly opened PR
+            // is a manual step that happens right after opening it, but doesn't fire
+            // any pull_request event itself — so retry for a bit before failing, to
+            // avoid a spurious red check on a PR whose fields are set moments later.
+            const maxAttempts = 5;
+            const delayMs = 30_000;
+            let lastErrors = [];
 
-            const hasDevelopment = linkedIssuesCount > 0;
-            const hasProjects = projectItems.length > 0;
+            for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+              const result = await github.graphql(query, { owner, repo, number: prNumber });
+              const pr = result.repository.pullRequest;
 
-            if (!hasDevelopment && !hasProjects) {
-              core.setFailed(
-                'This pull request must have either the "Development" field (a linked issue) or be added to a "Projects" board.'
-              );
-              return;
-            }
+              const linkedIssuesCount = pr.closingIssuesReferences.totalCount;
+              const projectItems = pr.projectItems.nodes;
 
-            if (hasProjects) {
-              const requiredFields = ['Importance', 'Size', 'Iteration', 'Epic'];
-              const errors = [];
+              const hasDevelopment = linkedIssuesCount > 0;
+              const hasProjects = projectItems.length > 0;
 
-              for (const item of projectItems) {
-                const filledFields = new Set();
+              lastErrors = [];
 
-                for (const fieldValue of item.fieldValues.nodes) {
-                  const fieldName = fieldValue.field?.name;
-                  if (!fieldName) continue;
-                  const value = fieldValue.name ?? fieldValue.title ?? fieldValue.text ?? fieldValue.number;
-                  if (value !== null && value !== undefined) {
-                    filledFields.add(fieldName);
+              if (!hasDevelopment && !hasProjects) {
+                lastErrors.push(
+                  'This pull request must have either the "Development" field (a linked issue) or be added to a "Projects" board.'
+                );
+              } else if (hasProjects) {
+                for (const item of projectItems) {
+                  const filledFields = new Set();
+
+                  for (const fieldValue of item.fieldValues.nodes) {
+                    const fieldName = fieldValue.field?.name;
+                    if (!fieldName) continue;
+                    const value = fieldValue.name ?? fieldValue.title ?? fieldValue.text ?? fieldValue.number;
+                    if (value !== null && value !== undefined) {
+                      filledFields.add(fieldName);
+                    }
+                  }
+
+                  const missingFields = requiredFields.filter(f => !filledFields.has(f));
+                  if (missingFields.length > 0) {
+                    lastErrors.push(
+                      `Project "${item.project.title}" is missing required fields: ${missingFields.join(', ')}.`
+                    );
                   }
                 }
-
-                const missingFields = requiredFields.filter(f => !filledFields.has(f));
-                if (missingFields.length > 0) {
-                  errors.push(
-                    `Project "${item.project.title}" is missing required fields: ${missingFields.join(', ')}.`
-                  );
-                }
               }
 
-              if (errors.length > 0) {
-                core.setFailed(errors.join('\n'));
+              if (lastErrors.length === 0) {
+                return;
+              }
+
+              if (attempt < maxAttempts) {
+                core.info(`Attempt ${attempt}/${maxAttempts} failed, retrying in ${delayMs / 1000}s: ${lastErrors.join(' | ')}`);
+                await sleep(delayMs);
               }
             }
+
+            core.setFailed(lastErrors.join('\n'));
