@@ -63,6 +63,7 @@ class RecrutementAgentModel(BaseDatedModel):
         choices=[(r.value, r.value) for r in AgentRecrutementRole],
         default=AgentRecrutementRole.CONTRIBUTEUR.value,
     )
+    date_revocation = models.DateTimeField(null=True, blank=True)
 
     objects = RecrutementAgentQuerySet.as_manager()
 
