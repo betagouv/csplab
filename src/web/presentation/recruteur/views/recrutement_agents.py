@@ -12,6 +12,9 @@ from application.recruteur.services.add_recrutement_agent import add_recrutement
 from application.recruteur.services.list_recrutement_agents import (
     list_recrutement_agents,
 )
+from application.recruteur.services.revoke_recrutement_agent import (
+    revoke_recrutement_agent,
+)
 from application.recruteur.services.update_recrutement_agent import (
     update_recrutement_agent,
 )
@@ -111,7 +114,12 @@ class RecrutementAgentsView(ListAPIView):
             )
         data = serializer.validated_data
         if data.get("date_revocation_recrutement"):
-            # revoke agent
+            revoke_recrutement_agent(
+                organisme_id=organisme_uuid,
+                recrutement_id=recrutement_uuid,
+                agent_id=data["agent_id"],
+                utilisateur=UtilisateurMapper().to_domain(request),
+            )
             return Response(
                 RecrutementAgentRoleSerializer(data).data,
                 status=status.HTTP_200_OK,
