@@ -3,39 +3,48 @@
 set -euo pipefail
 
 # ---------------------------------------------------------------------------
-# backup-db-to-scaleway.sh — Fetch the latest Scalingo backup of the
-# csplab-web PostgreSQL database and archive it to Scaleway Object Storage.
+# backup-db-to-scaleway.sh <service> — Fetch the latest Scalingo backup of a
+# csplab-{service} PostgreSQL database and archive it to Scaleway Object
+# Storage. Shared by every service's cron job (see each service's cron.json).
 #
 # Required env vars (fetched from Scaleway Secret Manager under
-# /web/{SCALEWAY_ENV} when SCALEWAY_ENV is set):
+# /{service}/{SCALEWAY_ENV} when SCALEWAY_ENV is set):
 #   DB_BACKUP_SCALINGO_API_TOKEN            Scalingo API token
-#   DB_BACKUP_SCALINGO_POSTGRESQL_ADDON_ID  UUID of the PostgreSQL addon (scalingo --app csplab-web addons)
+#   DB_BACKUP_SCALINGO_POSTGRESQL_ADDON_ID  UUID of the PostgreSQL addon (scalingo --app csplab-{service} addons)
 #   DB_BACKUP_SCW_ACCESS_KEY_ID             Scaleway access key
 #   DB_BACKUP_SCW_SECRET_ACCESS_KEY         Scaleway secret key
 #   DB_BACKUP_SCW_BUCKET                    Target bucket name
 #
 # Optional env vars:
-#   DB_BACKUP_SCALINGO_APP   Scalingo app name (default: csplab-web)
+#   DB_BACKUP_SCALINGO_APP   Scalingo app name (default: csplab-{service})
 #   DB_BACKUP_SCW_REGION     Scaleway region (default: fr-par)
 #   DB_BACKUP_SCW_ENDPOINT   Scaleway S3 endpoint (default: https://s3.${DB_BACKUP_SCW_REGION}.scw.cloud)
 #
 # Requires the `scalingo` and `aws` CLIs to be installed and authenticated.
 # ---------------------------------------------------------------------------
 
-# No-op unless SCALEWAY_ENV is set (same pattern as bin/inject_scaleway_env.sh):
-# pulls every secret under /web/{SCALEWAY_ENV} and exports it, so these
-# DB_BACKUP_-scoped credentials live in Secret Manager alongside the rest of
-# the web app's config instead of being set by hand.
+SERVICE="${1:?usage: backup-db-to-scaleway.sh <service>}"
+
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+
+# No-op unless SCALEWAY_ENV is set (same pattern as each service's
+# bin/inject_scaleway_env.sh): pulls every secret under /{service}/{SCALEWAY_ENV}
+# and exports it, so these DB_BACKUP_-scoped credentials live in Secret
+# Manager alongside the rest of the service's config instead of being set by hand.
 if [ -n "${SCALEWAY_ENV:-}" ]; then
   if [ "$SCALEWAY_ENV" = "prod" ] && [ -z "${SCALINGO_APPLICATION_ID:-}" ]; then
     echo "SCALEWAY_ENV=prod is only allowed on Scalingo (SCALINGO_APPLICATION_ID not set)" >&2
     exit 1
   fi
-  scaleway_env="$(python -m scaleway_secrets.fetch web)"
+  if command -v uv >/dev/null 2>&1; then
+    scaleway_env="$(uv run -q --project "$ROOT_DIR/libs/scaleway_secrets" python -m scaleway_secrets.fetch "$SERVICE")"
+  else
+    scaleway_env="$(python -m scaleway_secrets.fetch "$SERVICE")"
+  fi
   eval "$scaleway_env"
 fi
 
-SCALINGO_APP="${DB_BACKUP_SCALINGO_APP:-csplab-web}"
+SCALINGO_APP="${DB_BACKUP_SCALINGO_APP:-csplab-$SERVICE}"
 SCW_REGION="${DB_BACKUP_SCW_REGION:-fr-par}"
 SCW_ENDPOINT="${DB_BACKUP_SCW_ENDPOINT:-https://s3.${SCW_REGION}.scw.cloud}"
 
@@ -90,7 +99,7 @@ if [[ -z "$BACKUP" ]]; then
   exit 1
 fi
 
-DEST="s3://${DB_BACKUP_SCW_BUCKET}/csplab-web/$(date +%Y/%m)/$(basename "$BACKUP")"
+DEST="s3://${DB_BACKUP_SCW_BUCKET}/${SCALINGO_APP}/$(date +%Y/%m)/$(basename "$BACKUP")"
 
 echo "🚀 Uploading $(basename "$BACKUP") to ${DEST}…"
 AWS_ACCESS_KEY_ID="$DB_BACKUP_SCW_ACCESS_KEY_ID" \

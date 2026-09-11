@@ -7,6 +7,10 @@
     {
       "command": "0 6 * * 1 bash -c 'source bin/inject_scaleway_env.sh && bin/organismes_pipeline.py'",
       "size": "XL"
+    },
+    {
+      "command": "30 5 * * * bash ../../bin/backup-db-to-scaleway.sh ingestion",
+      "size": "S"
     }
   ]
 }
