@@ -201,6 +201,11 @@ const activeTab = useRouteTab(CANDIDATURES_TAB_ROUTE_NAMES, 'candidatures')
           Activités et tâches (à venir)
         </div>
       </template>
+      <template #tab-equipe>
+        <div class="candidatures-view__placeholder">
+          Équipe de recrutement (à venir)
+        </div>
+      </template>
     </CspPageContainer>
   </template>
 </template>

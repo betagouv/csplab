@@ -19,6 +19,7 @@ describe('organisme scoped routes', () => {
     [`/organismes/${ORGANISME_UUID}/recrutements/${RECRUTEMENT_UUID}`, 'recrutement-candidatures-kanban'],
     [`/organismes/${ORGANISME_UUID}/recrutements/${RECRUTEMENT_UUID}/liste`, 'recrutement-candidatures'],
     [`/organismes/${ORGANISME_UUID}/recrutements/${RECRUTEMENT_UUID}/activites`, 'recrutement-activites'],
+    [`/organismes/${ORGANISME_UUID}/recrutements/${RECRUTEMENT_UUID}/equipe`, 'recrutement-equipe'],
     [`/organismes/${ORGANISME_UUID}/recrutements/${RECRUTEMENT_UUID}/etapes-recrutement`, 'recrutement-etapes-recrutement'],
   ])('%s resolves to %s', (path, name) => {
     expect(resolve(path).name).toBe(name)
@@ -49,6 +50,7 @@ describe('tab switching keeps the route params', () => {
   it.each([
     'recrutement-activites',
     'recrutement-candidatures',
+    'recrutement-equipe',
   ])('inherits both params when switching to %s', async (name) => {
     const router = createRouter({ history: createMemoryHistory(), routes })
     await router.push(`/organismes/${ORGANISME_UUID}/recrutements/${RECRUTEMENT_UUID}`)
