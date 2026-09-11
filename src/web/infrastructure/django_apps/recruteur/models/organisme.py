@@ -39,6 +39,11 @@ class OrganismeModel(BaseDatedModel):
         return str(self.id)
 
 
+class OrganismeAgentQuerySet(models.QuerySet):
+    def active(self) -> "OrganismeAgentQuerySet":
+        return self.filter(date_revocation__isnull=True)
+
+
 class OrganismeAgentModel(BaseDatedModel):
     organisme = models.ForeignKey(
         OrganismeModel,
@@ -53,6 +58,8 @@ class OrganismeAgentModel(BaseDatedModel):
         default=AgentOrganismeRole.MEMBRE.value,
     )
     date_revocation = models.DateTimeField(null=True, blank=True)
+
+    objects = OrganismeAgentQuerySet.as_manager()
 
     class Meta:
         db_table = "organisme_agent"
