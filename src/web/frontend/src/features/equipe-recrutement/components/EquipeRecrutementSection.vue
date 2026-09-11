@@ -1,8 +1,13 @@
 <script setup lang="ts">
+import { computed, ref, watch } from 'vue'
 import CspAsyncSection from '@/components/base/CspAsyncSection/CspAsyncSection.vue'
 import CspDataTable from '@/components/base/CspDataTable/CspDataTable.vue'
+import CspInput from '@/components/base/CspInput/CspInput.vue'
 import CspSkeletonTable from '@/components/base/CspSkeleton/CspSkeletonTable.vue'
+import CspTableToolbar from '@/components/base/CspTableToolbar/CspTableToolbar.vue'
 import { useMinimumPending } from '@/composables/async/useMinimumPending'
+import { useTextSearch } from '@/composables/data/useTextSearch'
+import { pluralize } from '@/utils/format'
 import { EQUIPE_RECRUTEMENT_COLUMNS } from '../columns'
 import { useEquipeRecrutement } from '../composables/useEquipeRecrutement'
 
@@ -16,6 +21,23 @@ const PAGE_SIZE = 8
 const { membres, pending, error } = useEquipeRecrutement(props.organismeUuid, props.recrutementUuid)
 
 const showSkeleton = useMinimumPending(pending)
+
+const page = ref(1)
+
+const { search, filtered } = useTextSearch(membres, membre => [
+  `${membre.prenom} ${membre.nom}`,
+  `${membre.nom} ${membre.prenom}`,
+  membre.email,
+])
+
+watch(filtered, () => {
+  page.value = 1
+})
+
+const countLabel = computed(() => {
+  const count = filtered.value.length
+  return `${count} ${pluralize(count, 'membre')}`
+})
 </script>
 
 <template>
@@ -44,8 +66,18 @@ const showSkeleton = useMinimumPending(pending)
         />
       </template>
 
+      <CspTableToolbar :count="countLabel">
+        <CspInput
+          v-model="search"
+          type="search"
+          aria-label="Rechercher un membre, un courriel"
+          placeholder="Rechercher un membre, un courriel"
+          class="equipe-recrutement-section__search"
+        />
+      </CspTableToolbar>
       <CspDataTable
-        :rows="membres"
+        v-model:page="page"
+        :rows="filtered"
         :columns="EQUIPE_RECRUTEMENT_COLUMNS"
         :row-key="row => row.agent_id"
         caption="Équipe de recrutement"
@@ -54,7 +86,12 @@ const showSkeleton = useMinimumPending(pending)
         <template #empty>
           <div class="equipe-recrutement-section__empty">
             <p class="equipe-recrutement-section__empty-title">
-              Aucun membre rattaché à ce recrutement.
+              <template v-if="search">
+                Aucun membre ne correspond à votre recherche.
+              </template>
+              <template v-else>
+                Aucun membre rattaché à ce recrutement.
+              </template>
             </p>
           </div>
         </template>
@@ -79,6 +116,10 @@ const showSkeleton = useMinimumPending(pending)
   color: var(--text-mention-grey);
   font-size: 0.875rem;
   max-width: 65ch;
+}
+
+.equipe-recrutement-section__search {
+  min-width: 20rem;
 }
 
 .equipe-recrutement-section__empty {
