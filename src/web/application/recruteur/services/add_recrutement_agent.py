@@ -1,7 +1,7 @@
 from uuid import UUID, uuid4
 
 from ddd.entity import Entity
-from django.db import IntegrityError, transaction
+from django.db import transaction
 
 from domain.commons.services.audit_log_writer import AuditLogWriter
 from domain.identite.entities.utilisateurs import Utilisateur
@@ -71,21 +71,27 @@ def add_recrutement_agent(
     if not agent_rattache_a_organisme:
         raise AgentNonRattache(organisme_id, agent_id)
 
-    try:
-        with transaction.atomic():
-            recrutement_agent = RecrutementAgentModel.objects.create(
-                id=uuid4(),
-                recrutement_id=recrutement_id,
-                agent_id=agent_id,
-                role=role,
-            )
-            AuditLogWriter(repository=PostgresAuditLogRepository()).log_action(
-                utilisateur_id=utilisateur.entity_id,
-                entity=Entity(entity_id=agent_id),
-                ressource_kind="RecrutementAgent",
-                event_name="AgentRecrutementAjoute",
-            )
-    except IntegrityError as error:
-        raise AgentDejaMembreRecrutement(recrutement_id, agent_id) from error
+    if RecrutementAgentModel.objects.filter(
+        recrutement_id=recrutement_id,
+        agent_id=agent_id,  # type: ignore[misc]
+        date_revocation__isnull=True,
+    ).exists():
+        raise AgentDejaMembreRecrutement(recrutement_id, agent_id)
+
+    with transaction.atomic():
+        recrutement_agent, created = RecrutementAgentModel.objects.update_or_create(
+            recrutement_id=recrutement_id,
+            agent_id=agent_id,  # type: ignore[misc]
+            defaults={"role": role, "date_revocation": None},
+            create_defaults={"id": uuid4(), "role": role},
+        )
+        AuditLogWriter(repository=PostgresAuditLogRepository()).log_action(
+            utilisateur_id=utilisateur.entity_id,
+            entity=Entity(entity_id=agent_id),
+            ressource_kind="RecrutementAgent",
+            event_name=(
+                "AgentRecrutementAjoute" if created else "AgentRecrutementReintegre"
+            ),
+        )
 
     return recrutement_agent

@@ -1,6 +1,7 @@
 from uuid import uuid4
 
 import pytest
+from django.utils import timezone
 
 from application.recruteur.services.add_recrutement_agent import add_recrutement_agent
 from domain.commons.errors.organisme_errors import OrganismeNexistePas
@@ -24,6 +25,7 @@ from infrastructure.factories.identite.organisme_django_factory import (
 )
 from infrastructure.factories.identite.utilisateur_factory import UtilisateurFactory
 from infrastructure.factories.recruteur.recrutement_django_factory import (
+    RecrutementAgentDjangoFactory,
     RecrutementDjangoFactory,
 )
 from infrastructure.repositories.commons.postgres_audit_log_repository import (
@@ -235,3 +237,77 @@ def test_raises_when_agent_already_member_of_recrutement(db):
             role=AgentRecrutementRole.CONTRIBUTEUR.value,
             utilisateur=_utilisateur(responsable.utilisateur_id),
         )
+
+
+def test_reintegrates_previously_revoked_agent(db):
+    responsable, organisme = create_organisme_with_agent(
+        role=AgentOrganismeRole.RESPONSABLE
+    )
+    membre = OrganismeAgentDjangoFactory(
+        organisme=organisme, role=AgentOrganismeRole.MEMBRE.value
+    ).agent
+    recrutement = RecrutementDjangoFactory(organisme=organisme)
+    revoked = RecrutementAgentDjangoFactory(
+        recrutement=recrutement,
+        agent=membre,
+        role=AgentRecrutementRole.CONTRIBUTEUR.value,
+        date_revocation=timezone.now(),
+    )
+
+    recrutement_agent = add_recrutement_agent(
+        organisme_id=organisme.id,
+        recrutement_id=recrutement.pk,
+        agent_id=membre.utilisateur_id,
+        role=AgentRecrutementRole.RECRUTEUR.value,
+        utilisateur=_utilisateur(responsable.utilisateur_id),
+    )
+
+    assert recrutement_agent.id == revoked.id
+    assert recrutement_agent.role == AgentRecrutementRole.RECRUTEUR.value
+    assert recrutement_agent.date_revocation is None
+
+    logs = PostgresAuditLogRepository().get_logs_for_ressource(
+        "RecrutementAgent", membre.utilisateur_id
+    )
+    assert len(logs) == 1
+    assert logs[0].event_name == "AgentRecrutementReintegre"
+
+
+def test_rolls_back_reintegration_when_audit_log_write_fails(db, monkeypatch):
+    responsable, organisme = create_organisme_with_agent(
+        role=AgentOrganismeRole.RESPONSABLE
+    )
+    membre = OrganismeAgentDjangoFactory(
+        organisme=organisme, role=AgentOrganismeRole.MEMBRE.value
+    ).agent
+    recrutement = RecrutementDjangoFactory(organisme=organisme)
+    RecrutementAgentDjangoFactory(
+        recrutement=recrutement,
+        agent=membre,
+        role=AgentRecrutementRole.CONTRIBUTEUR.value,
+        date_revocation=timezone.now(),
+    )
+
+    def _raise(*args, **kwargs):
+        raise RuntimeError("audit log write failed")
+
+    monkeypatch.setattr(
+        "application.recruteur.services.add_recrutement_agent.AuditLogWriter.log_action",
+        _raise,
+    )
+
+    with pytest.raises(RuntimeError):
+        add_recrutement_agent(
+            organisme_id=organisme.id,
+            recrutement_id=recrutement.pk,
+            agent_id=membre.utilisateur_id,
+            role=AgentRecrutementRole.RECRUTEUR.value,
+            utilisateur=_utilisateur(responsable.utilisateur_id),
+        )
+
+    assert (
+        RecrutementAgentModel.objects.get(
+            recrutement_id=recrutement.pk, agent_id=membre.utilisateur_id
+        ).date_revocation
+        is not None
+    )
