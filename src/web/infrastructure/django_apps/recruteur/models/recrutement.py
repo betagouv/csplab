@@ -45,7 +45,7 @@ class RecrutementAgentQuerySet(models.QuerySet):
     def by_recrutement(self, recrutement_id) -> "RecrutementAgentQuerySet":
         return (
             self.select_related("agent__utilisateur")
-            .filter(recrutement_id=recrutement_id)
+            .filter(recrutement_id=recrutement_id, date_revocation__isnull=True)
             .order_by("created_at")
         )
 

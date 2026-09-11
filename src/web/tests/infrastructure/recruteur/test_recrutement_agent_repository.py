@@ -1,4 +1,5 @@
 import pytest
+from django.utils import timezone
 
 from domain.recruteur.value_objects.roles import AgentRecrutementRole
 from infrastructure.factories.identite.agent_django_factory import (
@@ -37,5 +38,19 @@ def test_get_role_returns_none_when_no_liaison(db, repository):
     role = repository.get_role(
         recrutement_id=recrutement.offre_id, agent_id=agent.utilisateur_id
     )
+
+    assert role is None
+
+
+def test_get_role_returns_none_when_agent_is_revoked(db, repository):
+    agent = AgentDjangoFactory()
+    agent_id = agent.utilisateur_id
+    recrutement = RecrutementDjangoFactory(
+        agent_link__agent=agent,
+        agent_link__role=AgentRecrutementRole.RECRUTEUR.value,
+        agent_link__date_revocation=timezone.now(),
+    )
+
+    role = repository.get_role(recrutement_id=recrutement.offre_id, agent_id=agent_id)
 
     assert role is None
