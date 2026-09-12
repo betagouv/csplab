@@ -92,7 +92,7 @@ class TestProconnectLogoutView:
         response = client.post(reverse("identite:logout"))
 
         assert response.status_code == status.HTTP_302_FOUND
-        assert response.url == reverse("pages:home")
+        assert response.url == reverse("identite:login")
         assert "_auth_user_id" not in client.session
 
     def test_redirects_to_proconnect_end_session_when_oidc_session(
@@ -109,4 +109,8 @@ class TestProconnectLogoutView:
         expected_logout_url = f"{settings.PROCONNECT_BASE_URL}{END_SESSION_ENDPOINT}"
         assert response.url.startswith(expected_logout_url)
         assert "id_token_hint=fake-id-token" in response.url
+        assert (
+            "post_logout_redirect_uri=http%3A%2F%2Ftestserver%2Futilisateur%2Fconnexion"
+            in response.url
+        )
         assert "_auth_user_id" not in client.session
