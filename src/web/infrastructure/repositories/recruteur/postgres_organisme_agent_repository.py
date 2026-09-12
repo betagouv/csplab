@@ -15,18 +15,6 @@ from infrastructure.django_apps.recruteur.models.organisme import OrganismeAgent
 
 
 class PostgresOrganismeAgentRepository(IOrganismeAgentRepository):
-    def get_role(
-        self, *, organisme_id: UUID, agent_id: UUID
-    ) -> AgentOrganismeRole | None:
-        try:
-            liaison = OrganismeAgentModel.objects.get(
-                organisme_id=organisme_id,
-                agent_id=agent_id,  # type: ignore[misc]
-            )
-        except OrganismeAgentModel.DoesNotExist:
-            return None
-        return AgentOrganismeRole(liaison.role)
-
     def attach(
         self, *, organisme_id: UUID, agent_id: UUID, role: AgentOrganismeRole
     ) -> None:
