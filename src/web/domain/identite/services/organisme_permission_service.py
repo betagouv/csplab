@@ -49,6 +49,7 @@ _AUTORISE_POUR_STAFF: frozenset[OrganismeAction] = frozenset(
         OrganismeAction.LIST_RECRUTEMENT_AGENTS,
         OrganismeAction.ADD_RECRUTEMENT_AGENT,
         OrganismeAction.UPDATE_RECRUTEMENT_AGENT,
+        OrganismeAction.REVOKE_RECRUTEMENT_AGENT,
     }
 )
 
@@ -90,6 +91,9 @@ _ROLES_REQUIS: dict[OrganismeAction, frozenset[AgentOrganismeRole]] = {
     ),
     OrganismeAction.ADD_RECRUTEMENT_AGENT: frozenset({AgentOrganismeRole.RESPONSABLE}),
     OrganismeAction.UPDATE_RECRUTEMENT_AGENT: frozenset(
+        {AgentOrganismeRole.RESPONSABLE}
+    ),
+    OrganismeAction.REVOKE_RECRUTEMENT_AGENT: frozenset(
         {AgentOrganismeRole.RESPONSABLE}
     ),
 }

@@ -415,23 +415,208 @@ class TestRecrutementAgentsViewPut:
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
-    def test_returns_200_with_revocation_date(self, authenticated_client):
-        agent_id = uuid4()
+    def test_responsable_revokes_agent(self, authenticated_client, test_user):
+        _, organisme = create_organisme_with_agent(
+            role=AgentOrganismeRole.RESPONSABLE, utilisateur=test_user
+        )
+        membre = OrganismeAgentDjangoFactory(
+            organisme=organisme, role=AgentOrganismeRole.MEMBRE.value
+        ).agent
+        recrutement = RecrutementDjangoFactory(organisme=organisme)
+        RecrutementAgentDjangoFactory(
+            recrutement=recrutement,
+            agent=membre,
+            role=AgentRecrutementRole.CONTRIBUTEUR.value,
+        )
         payload = {
-            "agent_id": str(agent_id),
-            "recrutement_role": AgentRecrutementRole.RECRUTEUR.value,
+            "agent_id": str(membre.utilisateur_id),
+            "recrutement_role": AgentRecrutementRole.CONTRIBUTEUR.value,
             "date_revocation_recrutement": datetime.now(),
         }
 
         response = authenticated_client.put(
-            _url(uuid4(), uuid4()), payload, format="json"
+            _url(organisme.id, recrutement.pk), payload, format="json"
         )
 
         assert response.status_code == status.HTTP_200_OK
         body = response.json()
-        assert body["agent_id"] == str(agent_id)
-        assert body["recrutement_role"] == AgentRecrutementRole.RECRUTEUR.value
-        assert body["date_revocation_recrutement"] is not None
+        assert body["agent_id"] == str(membre.utilisateur_id)
+        assert (
+            RecrutementAgentModel.objects.get(
+                recrutement=recrutement, agent=membre
+            ).date_revocation
+            is not None
+        )
+
+    def test_staff_can_revoke_agent_without_organisme_role(self, api_client):
+        staff_user = UtilisateurDjangoFactory(is_staff=True)
+        refresh = RefreshToken.for_user(staff_user)
+        api_client.credentials(HTTP_AUTHORIZATION=f"Bearer {refresh.access_token}")
+        organisme = OrganismeDjangoFactory()
+        membre = OrganismeAgentDjangoFactory(
+            organisme=organisme, role=AgentOrganismeRole.MEMBRE.value
+        ).agent
+        recrutement = RecrutementDjangoFactory(organisme=organisme)
+        RecrutementAgentDjangoFactory(
+            recrutement=recrutement,
+            agent=membre,
+            role=AgentRecrutementRole.CONTRIBUTEUR.value,
+        )
+        payload = {
+            "agent_id": str(membre.utilisateur_id),
+            "recrutement_role": AgentRecrutementRole.CONTRIBUTEUR.value,
+            "date_revocation_recrutement": datetime.now(),
+        }
+
+        response = api_client.put(
+            _url(organisme.id, recrutement.pk), payload, format="json"
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+
+    @pytest.mark.parametrize(
+        "role",
+        [AgentOrganismeRole.MEMBRE, None],
+        ids=["membre_role", "no_organisme_role"],
+    )
+    def test_is_forbidden_to_revoke_for(self, authenticated_client, test_user, role):
+        if role is None:
+            organisme = OrganismeDjangoFactory()
+        else:
+            _, organisme = create_organisme_with_agent(role=role, utilisateur=test_user)
+        membre = OrganismeAgentDjangoFactory(
+            organisme=organisme, role=AgentOrganismeRole.MEMBRE.value
+        ).agent
+        recrutement = RecrutementDjangoFactory(organisme=organisme)
+        RecrutementAgentDjangoFactory(
+            recrutement=recrutement,
+            agent=membre,
+            role=AgentRecrutementRole.CONTRIBUTEUR.value,
+        )
+        payload = {
+            "agent_id": str(membre.utilisateur_id),
+            "recrutement_role": AgentRecrutementRole.CONTRIBUTEUR.value,
+            "date_revocation_recrutement": datetime.now(),
+        }
+
+        response = authenticated_client.put(
+            _url(organisme.id, recrutement.pk), payload, format="json"
+        )
+
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    @pytest.mark.parametrize(
+        "build_ids",
+        [
+            _unknown_organisme_ids,
+            _unknown_recrutement_ids,
+            _recrutement_from_another_organisme_ids,
+        ],
+        ids=[
+            "unknown_organisme",
+            "unknown_recrutement",
+            "recrutement_from_another_organisme",
+        ],
+    )
+    def test_returns_404_to_revoke_for_organisme_or_recrutement(
+        self, authenticated_client, test_user, build_ids
+    ):
+        _, organisme = create_organisme_with_agent(
+            role=AgentOrganismeRole.RESPONSABLE, utilisateur=test_user
+        )
+        organisme_uuid, recrutement_uuid = build_ids(organisme)
+        payload = {
+            "agent_id": str(uuid4()),
+            "recrutement_role": AgentRecrutementRole.CONTRIBUTEUR.value,
+            "date_revocation_recrutement": datetime.now(),
+        }
+
+        response = authenticated_client.put(
+            _url(organisme_uuid, recrutement_uuid), payload, format="json"
+        )
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    def test_returns_404_when_agent_to_revoke_is_not_attached_to_organisme(
+        self, authenticated_client, test_user
+    ):
+        _, organisme = create_organisme_with_agent(
+            role=AgentOrganismeRole.RESPONSABLE, utilisateur=test_user
+        )
+        bare_agent = AgentDjangoFactory()
+        recrutement = RecrutementDjangoFactory(organisme=organisme)
+        payload = {
+            "agent_id": str(bare_agent.utilisateur_id),
+            "recrutement_role": AgentRecrutementRole.CONTRIBUTEUR.value,
+            "date_revocation_recrutement": datetime.now(),
+        }
+
+        response = authenticated_client.put(
+            _url(organisme.id, recrutement.pk), payload, format="json"
+        )
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    def test_returns_404_when_agent_to_revoke_is_not_member_of_recrutement(
+        self, authenticated_client, test_user
+    ):
+        _, organisme = create_organisme_with_agent(
+            role=AgentOrganismeRole.RESPONSABLE, utilisateur=test_user
+        )
+        membre = OrganismeAgentDjangoFactory(
+            organisme=organisme, role=AgentOrganismeRole.MEMBRE.value
+        ).agent
+        recrutement = RecrutementDjangoFactory(organisme=organisme)
+        payload = {
+            "agent_id": str(membre.utilisateur_id),
+            "recrutement_role": AgentRecrutementRole.CONTRIBUTEUR.value,
+            "date_revocation_recrutement": datetime.now(),
+        }
+
+        response = authenticated_client.put(
+            _url(organisme.id, recrutement.pk), payload, format="json"
+        )
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    def test_revoked_agent_does_not_appear_in_recrutement_agents_list(
+        self, authenticated_client, test_user
+    ):
+        _, organisme = create_organisme_with_agent(
+            role=AgentOrganismeRole.RESPONSABLE, utilisateur=test_user
+        )
+        revoked_membre = OrganismeAgentDjangoFactory(
+            organisme=organisme, role=AgentOrganismeRole.MEMBRE.value
+        ).agent
+        active_membre = OrganismeAgentDjangoFactory(
+            organisme=organisme, role=AgentOrganismeRole.MEMBRE.value
+        ).agent
+        recrutement = RecrutementDjangoFactory(
+            organisme=organisme,
+            agent_link__agent=active_membre,
+            agent_link__role=AgentRecrutementRole.CONTRIBUTEUR.value,
+        )
+        RecrutementAgentDjangoFactory(
+            recrutement=recrutement,
+            agent=revoked_membre,
+            role=AgentRecrutementRole.CONTRIBUTEUR.value,
+        )
+        payload = {
+            "agent_id": str(revoked_membre.utilisateur_id),
+            "recrutement_role": AgentRecrutementRole.CONTRIBUTEUR.value,
+            "date_revocation_recrutement": datetime.now(),
+        }
+
+        revoke_response = authenticated_client.put(
+            _url(organisme.id, recrutement.pk), payload, format="json"
+        )
+        assert revoke_response.status_code == status.HTTP_200_OK
+
+        list_response = authenticated_client.get(_url(organisme.id, recrutement.pk))
+
+        agent_ids = {r["agent_id"] for r in list_response.json()["results"]}
+        assert str(revoked_membre.utilisateur_id) not in agent_ids
+        assert str(active_membre.utilisateur_id) in agent_ids
 
     def test_responsable_updates_agent_role(self, authenticated_client, test_user):
         _, organisme = create_organisme_with_agent(

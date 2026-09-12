@@ -17,6 +17,7 @@ class PostgresRecrutementAgentRepository(IRecrutementAgentRepository):
             liaison = RecrutementAgentModel.objects.get(
                 recrutement_id=recrutement_id,
                 agent_id=agent_id,  # type: ignore[misc]
+                date_revocation__isnull=True,
             )
         except RecrutementAgentModel.DoesNotExist:
             return None

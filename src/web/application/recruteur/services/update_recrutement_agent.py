@@ -68,6 +68,7 @@ def update_recrutement_agent(
         recrutement_agent = RecrutementAgentModel.objects.get(
             recrutement_id=recrutement_id,
             agent_id=agent_id,  # type: ignore[misc]
+            date_revocation__isnull=True,
         )
     except RecrutementAgentModel.DoesNotExist as error:
         raise AgentNonMembreRecrutement(recrutement_id, agent_id) from error
