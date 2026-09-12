@@ -12,9 +12,6 @@ from application.recruteur.usecases.changer_etape_candidatures import (
 from domain.commons.errors.organisme_errors import OrganismeNexistePas
 from domain.commons.services.audit_log_writer import AuditLogWriter
 from domain.identite.errors.organisme_permission_errors import AccesRecrutementRefuse
-from domain.identite.services.organisme_permission_service import (
-    OrganismePermissionService,
-)
 from domain.recruteur.errors.recrutement_errors import (
     RecrutementCandidatureInexistante,
     RecrutementEtapeInexistante,
@@ -83,11 +80,14 @@ def candidature_recruteur_repository_fixture(
     return repo
 
 
-@pytest.fixture(name="permission_service")
-def permission_service_fixture():
-    service = Mock(spec=OrganismePermissionService)
-    service.est_autorise.return_value = AgentRecrutementRole.RESPONSABLE
-    return service
+@pytest.fixture(name="can_execute")
+def can_execute_fixture(monkeypatch):
+    mock = Mock(return_value=AgentRecrutementRole.RESPONSABLE)
+    monkeypatch.setattr(
+        "application.recruteur.usecases.changer_etape_candidatures.can_execute",
+        mock,
+    )
+    return mock
 
 
 @pytest.fixture(name="unit_of_work")
@@ -101,13 +101,12 @@ def unit_of_work_fixture():
 def usecase_fixture(
     recrutement_repository,
     candidature_recruteur_repository,
-    permission_service,
+    can_execute,
     unit_of_work,
 ):
     return ChangerEtapeCandidaturesUsecase(
         candidature_recruteur_repository=candidature_recruteur_repository,
         recrutement_repository=recrutement_repository,
-        permission_service=permission_service,
         audit_log_writer=Mock(spec=AuditLogWriter),
         unit_of_work=unit_of_work,
     )
@@ -165,11 +164,9 @@ class TestChangerEtapeCandidaturesUsecase:
             )
 
     def test_raises_when_unauthorized(
-        self, permission_service, recrutement, candidatures_recruteur, usecase
+        self, can_execute, recrutement, candidatures_recruteur, usecase
     ):
-        permission_service.est_autorise.side_effect = AccesRecrutementRefuse(
-            recrutement.entity_id
-        )
+        can_execute.side_effect = AccesRecrutementRefuse(recrutement.entity_id)
 
         with pytest.raises(
             AccesRecrutementRefuse,
@@ -186,12 +183,10 @@ class TestChangerEtapeCandidaturesUsecase:
             )
 
     def test_raises_when_recrutement_id_does_not_belong_to_organisme(
-        self, recrutement, candidatures_recruteur, permission_service, usecase
+        self, recrutement, candidatures_recruteur, can_execute, usecase
     ):
         organisme_id = uuid4()
-        permission_service.est_autorise.side_effect = OrganismeNexistePas(
-            str(organisme_id)
-        )
+        can_execute.side_effect = OrganismeNexistePas(str(organisme_id))
         with pytest.raises(
             OrganismeNexistePas,
             match=(f"Organisme introuvable : {organisme_id}"),

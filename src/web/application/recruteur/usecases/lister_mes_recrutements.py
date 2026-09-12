@@ -5,15 +5,15 @@ from ddd.page_interface import IPage
 from ddd.services.logger_interface import ILogger
 from ddd.usecase_interface import IUsecase
 
+from application.identite.context_services.organisme_permission_service import (
+    can_execute,
+)
 from application.recruteur.services.recrutement_query_service_interface import (
     IRecrutementQueryService,
     RecrutementActifsReadModel,
     RecrutementArchivesReadModel,
 )
 from domain.identite.entities.utilisateurs import Utilisateur
-from domain.identite.services.organisme_permission_service import (
-    OrganismePermissionService,
-)
 from domain.identite.value_objects.organisme_action import OrganismeAction
 from domain.recruteur.value_objects.roles import AgentOrganismeRole
 from domain.recruteur.value_objects.statut_recrutement import StatutRecrutement
@@ -35,12 +35,10 @@ class ListerMesRecrutementsUsecase(
     def __init__(
         self,
         recrutement_query_service: IRecrutementQueryService,
-        organisme_permission_service: OrganismePermissionService,
         logger: ILogger,
     ):
         self.logger = logger
         self.recrutement_query_service = recrutement_query_service
-        self.organisme_permission_service = organisme_permission_service
 
     def execute(
         self, query: ListerMesRecrutementsQuery
@@ -49,7 +47,7 @@ class ListerMesRecrutementsUsecase(
             f"List mes recrutements pour l'organisme_id={query.organisme_id}",
         )
 
-        role = self.organisme_permission_service.est_autorise(
+        role = can_execute(
             action=OrganismeAction.LISTER_MES_RECRUTEMENTS,
             organisme_id=query.organisme_id,
             utilisateur=query.utilisateur,

@@ -17,20 +17,19 @@ from domain.identite.errors.organisme_permission_errors import (
 from domain.identite.repositories.organisme_repository_interface import (
     IOrganismeRepository,
 )
-from domain.identite.services.organisme_permission_service import (
-    OrganismePermissionService,
-)
 from domain.identite.value_objects.organisme_action import OrganismeAction
 from domain.recruteur.value_objects.roles import AgentRecrutementRole
 from infrastructure.factories.identite.utilisateur_factory import UtilisateurFactory
 from tests.utils.interface_aware_mock import create_interface_aware_mock
 
 
-@pytest.fixture(name="permission_service")
-def permission_service_fixture():
-    service = Mock(spec=OrganismePermissionService)
-    service.est_autorise.return_value = AgentRecrutementRole.RESPONSABLE
-    return service
+@pytest.fixture(name="can_execute")
+def can_execute_fixture(monkeypatch):
+    mock = Mock(return_value=AgentRecrutementRole.RESPONSABLE)
+    monkeypatch.setattr(
+        "application.identite.usecases.create_organisme.can_execute", mock
+    )
+    return mock
 
 
 @pytest.fixture(name="organisme_repository")
@@ -47,18 +46,17 @@ def audit_log_writer_fixture():
 
 @pytest.fixture(name="usecase")
 def usecase_fixture(
-    permission_service,
+    can_execute,
     organisme_repository,
     audit_log_writer,
 ):
     return CreateOrganismeUsecase(
         organisme_repository=organisme_repository,
-        permission_service=permission_service,
         audit_log_writer=audit_log_writer,
     )
 
 
-def test_create_organisme_success(permission_service, audit_log_writer, usecase):
+def test_create_organisme_success(can_execute, audit_log_writer, usecase):
     utilisateur = UtilisateurFactory.create_entity(is_staff=True)
     command = CreateOrganismeCommand(
         name="Commune de Paris",
@@ -70,7 +68,7 @@ def test_create_organisme_success(permission_service, audit_log_writer, usecase)
     )
 
     organisme = usecase.execute(command=command)
-    permission_service.est_autorise.assert_called_once_with(
+    can_execute.assert_called_once_with(
         action=OrganismeAction.CREER_ORGANISME,
         utilisateur=utilisateur,
     )
@@ -85,7 +83,7 @@ def test_create_organisme_success(permission_service, audit_log_writer, usecase)
     assert organisme.versant == Verse.FPT
 
 
-def test_create_organisme_refuse_non_staff(permission_service, usecase):
+def test_create_organisme_refuse_non_staff(can_execute, usecase):
     command = CreateOrganismeCommand(
         name="Commune de Paris",
         verse=Verse.FPT,
@@ -94,7 +92,7 @@ def test_create_organisme_refuse_non_staff(permission_service, usecase):
         parent_id=None,
         utilisateur=UtilisateurFactory.create_entity(is_staff=False),
     )
-    permission_service.est_autorise.side_effect = OperationOrganismeRefusee()
+    can_execute.side_effect = OperationOrganismeRefusee()
 
     with pytest.raises(OperationOrganismeRefusee):
         usecase.execute(command=command)

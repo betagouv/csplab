@@ -14,9 +14,6 @@ from domain.identite.repositories.agent_repository_interface import IAgentReposi
 from domain.identite.repositories.utilisateur_repository_interface import (
     IUtilisateurRepository,
 )
-from domain.identite.services.organisme_permission_service import (
-    OrganismePermissionService,
-)
 from domain.identite.value_objects.organisme_action import OrganismeAction
 from domain.recruteur.value_objects.roles import AgentOrganismeRole
 from infrastructure.factories.identite.utilisateur_factory import UtilisateurFactory
@@ -24,11 +21,11 @@ from infrastructure.factories.identite.utilisateur_factory import UtilisateurFac
 fake = Faker()
 
 
-@pytest.fixture(name="permission_service")
-def permission_service_fixture():
-    service = Mock(spec=OrganismePermissionService)
-    service.est_autorise.return_value = AgentOrganismeRole.RESPONSABLE
-    return service
+@pytest.fixture(name="can_execute")
+def can_execute_fixture(monkeypatch):
+    mock = Mock(return_value=AgentOrganismeRole.RESPONSABLE)
+    monkeypatch.setattr("application.identite.usecases.create_agent.can_execute", mock)
+    return mock
 
 
 @pytest.fixture(name="agent_repository")
@@ -46,11 +43,10 @@ def utilisateur_repository_fixture():
 
 
 @pytest.fixture(name="usecase")
-def usecase_fixture(permission_service, agent_repository, utilisateur_repository):
+def usecase_fixture(can_execute, agent_repository, utilisateur_repository):
     return CreateAgentUsecase(
         agent_repository=agent_repository,
         utilisateur_repository=utilisateur_repository,
-        permission_service=permission_service,
     )
 
 
@@ -62,12 +58,12 @@ def _input() -> CreateAgentInput:
     )
 
 
-def test_create_agent_checks_permission(permission_service, usecase):
+def test_create_agent_checks_permission(can_execute, usecase):
     input_data = _input()
 
     usecase.execute(input_data)
 
-    permission_service.est_autorise.assert_called_once_with(
+    can_execute.assert_called_once_with(
         action=OrganismeAction.CREATE_AGENT,
         utilisateur=input_data.utilisateur,
         organisme_id=input_data.organisme_id,
@@ -78,9 +74,9 @@ def test_create_agent_checks_permission(permission_service, usecase):
     "exception", [AccesOrganismeRefuse(uuid4()), OrganismeNexistePas(str(uuid4()))]
 )
 def test_create_agent_propagates_permission_errors(
-    permission_service, agent_repository, usecase, exception
+    can_execute, agent_repository, usecase, exception
 ):
-    permission_service.est_autorise.side_effect = exception
+    can_execute.side_effect = exception
 
     with pytest.raises(type(exception)):
         usecase.execute(_input())

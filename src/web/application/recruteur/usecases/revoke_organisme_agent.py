@@ -6,6 +6,9 @@ from uuid import UUID
 from ddd.entity import Entity
 from ddd.usecase_interface import IUsecase
 
+from application.identite.context_services.organisme_permission_service import (
+    can_execute,
+)
 from application.recruteur.dtos.agent_organisme_read_models import (
     AgentOrganismeReadModel,
 )
@@ -14,9 +17,6 @@ from application.recruteur.services.organisme_agent_query_service_interface impo
 )
 from domain.commons.services.audit_log_writer import AuditLogWriter
 from domain.identite.entities.utilisateurs import Utilisateur
-from domain.identite.services.organisme_permission_service import (
-    OrganismePermissionService,
-)
 from domain.identite.value_objects.organisme_action import OrganismeAction
 from domain.recruteur.repositories.organisme_agent_repository_interface import (
     IOrganismeAgentRepository,
@@ -37,16 +37,14 @@ class RevokeOrganismeAgentUsecase(
         self,
         organisme_agent_repository: IOrganismeAgentRepository,
         organisme_agent_query_service: IOrganismeAgentQueryService,
-        organisme_permission_service: OrganismePermissionService,
         audit_log_writer: AuditLogWriter,
     ):
         self.organisme_agent_repository = organisme_agent_repository
         self.organisme_agent_query_service = organisme_agent_query_service
-        self.organisme_permission_service = organisme_permission_service
         self.audit_log_writer = audit_log_writer
 
     def execute(self, command: RevokeOrganismeAgentCommand) -> AgentOrganismeReadModel:
-        self.organisme_permission_service.est_autorise(
+        can_execute(
             action=OrganismeAction.REVOKE_ORGANISME_AGENT,
             organisme_id=command.organisme_id,
             utilisateur=command.utilisateur,

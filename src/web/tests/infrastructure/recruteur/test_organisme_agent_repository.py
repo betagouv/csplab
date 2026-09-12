@@ -38,39 +38,6 @@ def repository_fixture(
     return recruteur_integration_container.postgres_organisme_agent_repository()
 
 
-def test_get_role_returns_responsable(db, repository):
-    agent, organisme_model = create_organisme_with_agent(
-        role=AgentOrganismeRole.RESPONSABLE
-    )
-
-    role = repository.get_role(
-        organisme_id=organisme_model.id, agent_id=agent.utilisateur_id
-    )
-
-    assert role == AgentOrganismeRole.RESPONSABLE
-
-
-def test_get_role_returns_membre(db, repository):
-    agent, organisme_model = create_organisme_with_agent(role=AgentOrganismeRole.MEMBRE)
-
-    role = repository.get_role(
-        organisme_id=organisme_model.id, agent_id=agent.utilisateur_id
-    )
-
-    assert role == AgentOrganismeRole.MEMBRE
-
-
-def test_get_role_returns_none_when_no_liaison(db, repository):
-    organisme_model = OrganismeDjangoFactory()
-    agent = AgentDjangoFactory()
-
-    role = repository.get_role(
-        organisme_id=organisme_model.id, agent_id=agent.utilisateur_id
-    )
-
-    assert role is None
-
-
 def test_attach_persists_liaison(db, repository):
     organisme_model = OrganismeDjangoFactory()
     agent = AgentDjangoFactory()

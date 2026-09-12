@@ -13,9 +13,6 @@ from application.recruteur.usecases.lister_mes_recrutements import (
     ListerMesRecrutementsUsecase,
 )
 from domain.identite.errors.organisme_permission_errors import AccesOrganismeRefuse
-from domain.identite.services.organisme_permission_service import (
-    OrganismePermissionService,
-)
 from domain.recruteur.value_objects.roles import AgentOrganismeRole
 from domain.recruteur.value_objects.statut_recrutement import StatutRecrutement
 from infrastructure.factories.identite.utilisateur_factory import UtilisateurFactory
@@ -30,18 +27,19 @@ def service_fixture() -> IRecrutementQueryService:
     )
 
 
-@pytest.fixture(name="organisme_permission_service")
-def organisme_permission_service_fixture():
-    service = MagicMock(spec=OrganismePermissionService)
-    service.est_autorise.return_value = AgentOrganismeRole.RESPONSABLE
-    return service
+@pytest.fixture(name="can_execute")
+def can_execute_fixture(monkeypatch):
+    mock = MagicMock(return_value=AgentOrganismeRole.RESPONSABLE)
+    monkeypatch.setattr(
+        "application.recruteur.usecases.lister_mes_recrutements.can_execute", mock
+    )
+    return mock
 
 
 @pytest.fixture(name="usecase")
-def usecase_fixture(service, organisme_permission_service):
+def usecase_fixture(service, can_execute):
     return ListerMesRecrutementsUsecase(
         recrutement_query_service=service,
-        organisme_permission_service=organisme_permission_service,
         logger=MagicMock(),
     )
 
@@ -86,13 +84,11 @@ class TestListerMesRecrutements:
         service.get_archives_by_organisme.assert_called_once_with(organisme_id, None)
 
     def test_lister_mes_recrutements_actifs_filtre_par_agent_quand_membre(
-        self, service, organisme_permission_service, usecase
+        self, service, can_execute, usecase
     ):
         organisme_id = uuid4()
         utilisateur_id = uuid4()
-        organisme_permission_service.est_autorise.return_value = (
-            AgentOrganismeRole.MEMBRE
-        )
+        can_execute.return_value = AgentOrganismeRole.MEMBRE
         recrutements_actifs = [RecrutementFactory.create_actif_read_model()]
         service.get_actifs_by_organisme = MagicMock(return_value=recrutements_actifs)
 
@@ -110,13 +106,11 @@ class TestListerMesRecrutements:
         )
 
     def test_lister_mes_recrutements_archives_filtre_par_agent_quand_membre(
-        self, service, organisme_permission_service, usecase
+        self, service, can_execute, usecase
     ):
         organisme_id = uuid4()
         utilisateur_id = uuid4()
-        organisme_permission_service.est_autorise.return_value = (
-            AgentOrganismeRole.MEMBRE
-        )
+        can_execute.return_value = AgentOrganismeRole.MEMBRE
         recrutements_archives = [RecrutementFactory.create_archive_read_model()]
         service.get_archives_by_organisme = MagicMock(
             return_value=recrutements_archives
@@ -135,11 +129,9 @@ class TestListerMesRecrutements:
             organisme_id, utilisateur_id
         )
 
-    def test_raises_when_not_responsable(self, organisme_permission_service, usecase):
+    def test_raises_when_not_responsable(self, can_execute, usecase):
         organisme_id = uuid4()
-        organisme_permission_service.est_autorise.side_effect = AccesOrganismeRefuse(
-            organisme_id
-        )
+        can_execute.side_effect = AccesOrganismeRefuse(organisme_id)
 
         with pytest.raises(AccesOrganismeRefuse):
             usecase.execute(

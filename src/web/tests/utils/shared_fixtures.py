@@ -68,9 +68,6 @@ from domain.identite.repositories.organisme_repository_interface import (
 from domain.identite.repositories.utilisateur_repository_interface import (
     IUtilisateurRepository,
 )
-from domain.identite.services.organisme_permission_service import (
-    OrganismePermissionService,
-)
 from domain.ingestion.entities.document import DocumentType
 from domain.ingestion.exceptions.document_error import UnsupportedDocumentTypeError
 from domain.ingestion.repositories.document_repository_interface import (
@@ -84,14 +81,8 @@ from domain.ingestion.repositories.user_source_repository_interface import (
     IUserSourceRepository,
 )
 from domain.ingestion.repositories.vector_repository_interface import IVectorRepository
-from domain.recruteur.repositories.organisme_agent_repository_interface import (
-    IOrganismeAgentRepository,
-)
 from domain.recruteur.repositories.organisme_repository_interface import (
     IOrganismeRecruteurRepository,
-)
-from domain.recruteur.repositories.recrutement_agent_repository_interface import (
-    IRecrutementAgentRepository,
 )
 from infrastructure.di.ingestion.ingestion_container import IngestionContainer
 from infrastructure.di.shared.shared_container import SharedContainer
@@ -488,15 +479,9 @@ def create_agent_usecase():
     utilisateur_repository = cast(
         IUtilisateurRepository, create_interface_aware_mock(IUtilisateurRepository)
     )
-    permission_service = OrganismePermissionService(
-        organisme_recruteur_repository=Mock(spec=IOrganismeRecruteurRepository),
-        organisme_agent_repository=Mock(spec=IOrganismeAgentRepository),
-        recrutement_agent_repository=Mock(spec=IRecrutementAgentRepository),
-    )
     return CreateAgentUsecase(
         agent_repository=agent_repository,
         utilisateur_repository=utilisateur_repository,
-        permission_service=permission_service,
     )
 
 
@@ -505,14 +490,8 @@ def create_organisme_usecase():
     organisme_repository = cast(
         IOrganismeRepository, create_interface_aware_mock(IOrganismeRepository)
     )
-    permission_service = OrganismePermissionService(
-        organisme_recruteur_repository=Mock(spec=IOrganismeRecruteurRepository),
-        organisme_agent_repository=Mock(spec=IOrganismeAgentRepository),
-        recrutement_agent_repository=Mock(spec=IRecrutementAgentRepository),
-    )
     return CreateOrganismeUsecase(
         organisme_repository=organisme_repository,
-        permission_service=permission_service,
     )
 
 
@@ -520,7 +499,6 @@ def create_organisme_usecase():
 def get_organisme_usecase():
     return GetOrganismeUsecase(
         organisme_repository=Mock(spec=IOrganismeRepository),
-        permission_service=MagicMock(spec=OrganismePermissionService),
     )
 
 
@@ -532,7 +510,6 @@ def get_organisme_recruteur_usecase():
     )
     return GetOrganismeRecruteurUsecase(
         organisme_recruteur_repository=organisme_recruteur_repository,
-        organisme_permission_service=MagicMock(spec=OrganismePermissionService),
     )
 
 
@@ -544,7 +521,6 @@ def initialize_organisme_steps_usecase():
     )
     return InitializeOrganismeStepsUsecase(
         organisme_recruteur_repository=repository,
-        organisme_permission_service=MagicMock(spec=OrganismePermissionService),
     )
 
 
@@ -573,5 +549,4 @@ def update_organisme_steps_usecase():
     return UpdateOrganismeStepsUsecase(
         organisme_recruteur_repository=organisme_recruteur_repo,
         audit_log_writer=MagicMock(spec=AuditLogWriter),
-        organisme_permission_service=MagicMock(spec=OrganismePermissionService),
     )
