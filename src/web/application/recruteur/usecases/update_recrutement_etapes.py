@@ -58,6 +58,9 @@ class UpdateRecrutementEtapesUsecase(
                     recrutement_id=recrutement.entity_id, etape_id=config.etape_uuid
                 )
 
+        # Perf: can_execute() re-checks organisme/recrutement existence already
+        # proven by the repository fetches above — dedupe when this usecase
+        # migrates to ADR-009.
         can_execute(
             action=OrganismeAction.UPDATE_RECRUTEMENT_ETAPES,
             organisme_id=command.organisme_id,

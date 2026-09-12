@@ -36,6 +36,9 @@ class GetRecrutementEtapesUsecase(
                 query.organisme_id, query.recrutement_id
             )
 
+        # Perf: can_execute() re-checks organisme/recrutement existence already
+        # proven by the repository fetches above — dedupe when this usecase
+        # migrates to ADR-009.
         can_execute(
             action=OrganismeAction.GET_RECRUTEMENT_ETAPES,
             organisme_id=query.organisme_id,

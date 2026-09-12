@@ -58,6 +58,9 @@ class ChangerEtapeCandidaturesUsecase(
                 command.candidatures
             )
 
+            # Perf: can_execute() re-checks organisme/recrutement existence already
+            # proven by the repository fetch above — dedupe when this usecase
+            # migrates to ADR-009.
             can_execute(
                 action=OrganismeAction.CHANGER_ETAPE_CANDIDATURES,
                 organisme_id=command.organisme_id,

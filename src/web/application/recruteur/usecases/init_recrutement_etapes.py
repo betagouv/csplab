@@ -41,6 +41,9 @@ class InitRecrutementEtapesUsecase(
                 command.organisme_id, command.recrutement_id
             )
 
+        # Perf: can_execute() re-checks organisme/recrutement existence already
+        # proven by the repository fetches above — dedupe when this usecase
+        # migrates to ADR-009.
         can_execute(
             action=OrganismeAction.INIT_RECRUTEMENT_ETAPES,
             organisme_id=command.organisme_id,
