@@ -16,9 +16,6 @@ from domain.identite.errors.organisme_permission_errors import (
 from domain.identite.repositories.organisme_repository_interface import (
     IOrganismeRepository,
 )
-from domain.identite.services.organisme_permission_service import (
-    OrganismePermissionService,
-)
 from domain.identite.value_objects.organisme_action import OrganismeAction
 from domain.recruteur.value_objects.roles import AgentRecrutementRole
 from infrastructure.factories.identite.organisme_factory import OrganismeFactory
@@ -26,11 +23,13 @@ from infrastructure.factories.identite.utilisateur_factory import UtilisateurFac
 from tests.utils.interface_aware_mock import create_interface_aware_mock
 
 
-@pytest.fixture(name="permission_service")
-def permission_service_fixture():
-    service = Mock(spec=OrganismePermissionService)
-    service.est_autorise.return_value = AgentRecrutementRole.RESPONSABLE
-    return service
+@pytest.fixture(name="can_execute")
+def can_execute_fixture(monkeypatch):
+    mock = Mock(return_value=AgentRecrutementRole.RESPONSABLE)
+    monkeypatch.setattr(
+        "application.identite.usecases.update_organisme.can_execute", mock
+    )
+    return mock
 
 
 @pytest.fixture(name="organisme")
@@ -53,20 +52,17 @@ def audit_log_writer_fixture():
 
 @pytest.fixture(name="usecase")
 def usecase_fixture(
-    permission_service,
+    can_execute,
     organisme_repository,
     audit_log_writer,
 ):
     return UpdateOrganismeUsecase(
         organisme_repository=organisme_repository,
-        permission_service=permission_service,
         audit_log_writer=audit_log_writer,
     )
 
 
-def test_update_organisme_success(
-    permission_service, audit_log_writer, organisme, usecase
-):
+def test_update_organisme_success(can_execute, audit_log_writer, organisme, usecase):
     utilisateur = UtilisateurFactory.create_entity(is_staff=True)
     command = UpdateOrganismeCommand(
         organisme_id=organisme.entity_id,
@@ -77,7 +73,7 @@ def test_update_organisme_success(
     )
 
     result = usecase.execute(command)
-    permission_service.est_autorise.assert_called_once_with(
+    can_execute.assert_called_once_with(
         action=OrganismeAction.MODIFIER_ORGANISME,
         utilisateur=utilisateur,
     )
@@ -94,7 +90,7 @@ def test_update_organisme_success(
     assert result.gestion_ats == command.managed_ats
 
 
-def test_update_organisme_refuse_non_staff(permission_service, organisme, usecase):
+def test_update_organisme_refuse_non_staff(can_execute, organisme, usecase):
     command = UpdateOrganismeCommand(
         organisme_id=organisme.entity_id,
         name="Commune de Paris",
@@ -102,7 +98,7 @@ def test_update_organisme_refuse_non_staff(permission_service, organisme, usecas
         managed_ats=True,
         utilisateur=UtilisateurFactory.create_entity(is_staff=False),
     )
-    permission_service.est_autorise.side_effect = OperationOrganismeRefusee()
+    can_execute.side_effect = OperationOrganismeRefusee()
 
     with pytest.raises(OperationOrganismeRefusee):
         usecase.execute(command=command)
