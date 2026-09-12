@@ -8,14 +8,18 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
 
+from application.recruteur.services.add_recrutement_agent import add_recrutement_agent
 from application.recruteur.services.list_recrutement_agents import (
     list_recrutement_agents,
 )
 from domain.commons.errors.organisme_errors import OrganismeNexistePas
+from domain.identite.errors.agent_errors import ProfilAgentNexistePas
 from domain.identite.errors.organisme_permission_errors import (
     AccesOrganismeRefuse,
     OperationOrganismeRefusee,
 )
+from domain.recruteur.errors.organisme_agent_errors import AgentNonRattache
+from domain.recruteur.errors.recrutement_agent_errors import AgentDejaMembreRecrutement
 from domain.recruteur.errors.recrutement_errors import RecrutementInexistant
 from presentation.api.serializers import GenericErrorSerializer, generic_response_format
 from presentation.recruteur.mappers import UtilisateurMapper
@@ -42,6 +46,9 @@ from presentation.recruteur.serializers import (
             **generic_response_format,
             201: RecrutementAgentSerializer,
             400: GenericErrorSerializer,
+            403: GenericErrorSerializer,
+            404: GenericErrorSerializer,
+            409: GenericErrorSerializer,
         },
     ),
     put=extend_schema(
@@ -75,15 +82,15 @@ class RecrutementAgentsView(ListAPIView):
                 GenericErrorSerializer({"error": str(serializer.errors)}).data,
                 status=status.HTTP_400_BAD_REQUEST,
             )
+        recrutement_agent = add_recrutement_agent(
+            organisme_id=organisme_uuid,
+            recrutement_id=recrutement_uuid,
+            agent_id=serializer.validated_data["agent_id"],
+            role=serializer.validated_data["recrutement_role"],
+            utilisateur=UtilisateurMapper().to_domain(request),
+        )
         return Response(
-            {
-                "agent_id": serializer.validated_data["agent_id"],
-                "nom": "Nom",
-                "prenom": "Prenom",
-                "poste": "Poste",
-                "email": "prenom.nom@test.com",
-                "recrutement_role": serializer.validated_data["recrutement_role"],
-            },
+            RecrutementAgentSerializer(recrutement_agent).data,
             status=status.HTTP_201_CREATED,
         )
 
@@ -115,10 +122,23 @@ class RecrutementAgentsView(ListAPIView):
                 GenericErrorSerializer({"error": str(exc)}).data,
                 status=status.HTTP_403_FORBIDDEN,
             )
-        if isinstance(exc, (OrganismeNexistePas, RecrutementInexistant)):
+        if isinstance(
+            exc,
+            (
+                OrganismeNexistePas,
+                RecrutementInexistant,
+                ProfilAgentNexistePas,
+                AgentNonRattache,
+            ),
+        ):
             return Response(
                 GenericErrorSerializer({"error": str(exc)}).data,
                 status=status.HTTP_404_NOT_FOUND,
+            )
+        if isinstance(exc, AgentDejaMembreRecrutement):
+            return Response(
+                GenericErrorSerializer({"error": str(exc)}).data,
+                status=status.HTTP_409_CONFLICT,
             )
         if isinstance(exc, (exceptions.APIException, Http404)):
             return super().handle_exception(exc)

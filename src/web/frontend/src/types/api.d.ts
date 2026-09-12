@@ -3441,6 +3441,17 @@ export interface operations {
                     "application/json": components["schemas"]["GenericError"];
                 };
             };
+            409: {
+                headers: {
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GenericError"];
+                };
+            };
             /** @description Nombre maximal d'appels autorisés dépassé. */
             429: {
                 headers: {
