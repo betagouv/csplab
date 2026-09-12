@@ -12,6 +12,9 @@ from application.recruteur.services.add_recrutement_agent import add_recrutement
 from application.recruteur.services.list_recrutement_agents import (
     list_recrutement_agents,
 )
+from application.recruteur.services.update_recrutement_agent import (
+    update_recrutement_agent,
+)
 from domain.commons.errors.organisme_errors import OrganismeNexistePas
 from domain.identite.errors.agent_errors import ProfilAgentNexistePas
 from domain.identite.errors.organisme_permission_errors import (
@@ -19,7 +22,10 @@ from domain.identite.errors.organisme_permission_errors import (
     OperationOrganismeRefusee,
 )
 from domain.recruteur.errors.organisme_agent_errors import AgentNonRattache
-from domain.recruteur.errors.recrutement_agent_errors import AgentDejaMembreRecrutement
+from domain.recruteur.errors.recrutement_agent_errors import (
+    AgentDejaMembreRecrutement,
+    AgentNonMembreRecrutement,
+)
 from domain.recruteur.errors.recrutement_errors import RecrutementInexistant
 from presentation.api.serializers import GenericErrorSerializer, generic_response_format
 from presentation.recruteur.mappers import UtilisateurMapper
@@ -107,12 +113,18 @@ class RecrutementAgentsView(ListAPIView):
         if data.get("date_revocation_recrutement"):
             # revoke agent
             return Response(
-                RecrutementAgentRoleSerializer(serializer.validated_data).data,
+                RecrutementAgentRoleSerializer(data).data,
                 status=status.HTTP_200_OK,
             )
-        # update agent's role
+        update_recrutement_agent(
+            organisme_id=organisme_uuid,
+            recrutement_id=recrutement_uuid,
+            agent_id=data["agent_id"],
+            role=data["recrutement_role"],
+            utilisateur=UtilisateurMapper().to_domain(request),
+        )
         return Response(
-            RecrutementAgentRoleSerializer(serializer.validated_data).data,
+            RecrutementAgentRoleSerializer(data).data,
             status=status.HTTP_200_OK,
         )
 
@@ -129,6 +141,7 @@ class RecrutementAgentsView(ListAPIView):
                 RecrutementInexistant,
                 ProfilAgentNexistePas,
                 AgentNonRattache,
+                AgentNonMembreRecrutement,
             ),
         ):
             return Response(
