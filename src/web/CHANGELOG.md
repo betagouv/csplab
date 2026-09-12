@@ -4,7 +4,100 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.1.16] - 2026-08-28
+## [0.1.17] - 2026-09-12
+
+### <!-- 0 --> Breaking Changes
+
+- ✨(ingestion) fetch secrets from Scaleway Secret Manager ([#1280](https://github.com/betagouv/csplab/pull/1280))
+- ✨(ocr) fetch secrets from Scaleway Secret Manager ([#1301](https://github.com/betagouv/csplab/pull/1301))
+- ✨(web) fetch secrets from Scaleway Secret Manager ([#1302](https://github.com/betagouv/csplab/pull/1302))
+- ♻️(web) move the frontend to src/web/frontend ([#1344](https://github.com/betagouv/csplab/pull/1344))
+- ♻️(web) merge the frontend package into csplab-web ([#1346](https://github.com/betagouv/csplab/pull/1346))
+- 🔥(candidate) Désactivation du parcours candidat ([#1404](https://github.com/betagouv/csplab/pull/1404))
+
+### <!-- 1 --> Added
+
+- ✨(recruteur) Ajout du usecase d'ajout d'un membre dans un organisme ([#1264](https://github.com/betagouv/csplab/pull/1264))
+- ✨(recruteur) Ajout du usecase de mise à jour du rôle d'un membre dans un organisme ([#1269](https://github.com/betagouv/csplab/pull/1269))
+- ✨(recruteur) Ajout du usecase de revocation du rôle d'un membre dans un organisme ([#1273](https://github.com/betagouv/csplab/pull/1273))
+- ✨(recruteur) update step config in recruitment ([#1259](https://github.com/betagouv/csplab/pull/1259))
+- ✨(identite) create organisme ([#1283](https://github.com/betagouv/csplab/pull/1283))
+- ✨(recruteur) get recruitment steps ([#1274](https://github.com/betagouv/csplab/pull/1274))
+- ✨(ingestion) ajoute le référentiel GIPCDG pour l'import des organismes ([#1224](https://github.com/betagouv/csplab/pull/1224))
+- ✨(recruteur) update organisme ([#1290](https://github.com/betagouv/csplab/pull/1290))
+- ✨(recruteur) get organismes list ([#1291](https://github.com/betagouv/csplab/pull/1291))
+- ✨(ingestion) importe les organismes de la DILA pour le versant FPE ([#1262](https://github.com/betagouv/csplab/pull/1262))
+- ✨(web-ingestion) add organismes/creer_modifier upsert endpoint ([#1249](https://github.com/betagouv/csplab/pull/1249))
+- ✨(recruteur) implement interface organisme detail ([#1255](https://github.com/betagouv/csplab/pull/1255))
+- ⚡️(recruteur) add AuditLogWriter log action calls to the organisme member attach/update/revoke usecases ([#1309](https://github.com/betagouv/csplab/pull/1309))
+- ✨(ingestion) expose les endpoints fake-ts dans le schéma OpenAPI et Redoc ([#1306](https://github.com/betagouv/csplab/pull/1306))
+- ✨(recruteur) implement usecase organisme detail  ([#1256](https://github.com/betagouv/csplab/pull/1256))
+- ✨(ats-presentation) wire organisme detail endpoint ([#1279](https://github.com/betagouv/csplab/pull/1279))
+- ♻️(ingestion) utilise datetime pour date_creation et date_derniere_activite des organismes ([#1311](https://github.com/betagouv/csplab/pull/1311))
+- ✨(ingestion) cibler un référentiel pour le pipeline organismes et ajoute un bin ([#1310](https://github.com/betagouv/csplab/pull/1310))
+- ✨(ats-presentation) add a member to an organisme ([#1316](https://github.com/betagouv/csplab/pull/1316))
+- ✨(infrastructure) update seeds ([#1315](https://github.com/betagouv/csplab/pull/1315))
+- ✨(presentation) navigation by roles ([#1321](https://github.com/betagouv/csplab/pull/1321))
+- ✨(recruteur) endpoint de creation d'un agent ([#1318](https://github.com/betagouv/csplab/pull/1318))
+- ✨(recruteur) endpoint de recherche d'un agent à partir de son email ([#1322](https://github.com/betagouv/csplab/pull/1322))
+- 📝(docs) propose moving the frontend out of the presentation layer (ADR 010) ([#1341](https://github.com/betagouv/csplab/pull/1341))
+- ✨(presentation) switch organisme ([#1339](https://github.com/betagouv/csplab/pull/1339))
+- ✨(infrastructure) add seeds for organisms switch ([#1377](https://github.com/betagouv/csplab/pull/1377))
+- ✨(ingestion) expose les référentiels fake-ts via /referentials/{type} ([#1379](https://github.com/betagouv/csplab/pull/1379))
+- ✨(recruteur) Affichage des membres d'un recrutement - back + interface ([#1383](https://github.com/betagouv/csplab/pull/1383))
+- ♻️(web) génère les 2 schémas OpenAPI dans web:schema ([#1388](https://github.com/betagouv/csplab/pull/1388))
+- ✨(recruteur) search and attach a known member ([#1391](https://github.com/betagouv/csplab/pull/1391))
+- ✨(recruteur) create and add user to organisme ([#1395](https://github.com/betagouv/csplab/pull/1395))
+- 🔧(tooling) generate ts related internal schema when running web:schema ([#1398](https://github.com/betagouv/csplab/pull/1398))
+- ✨(ingestion) ajoute les référentiels ARS extraits du tableur ([#1399](https://github.com/betagouv/csplab/pull/1399))
+- ✨(recruteur-interface) Ajouter un agent à l'équipe de recrutement ([#1385](https://github.com/betagouv/csplab/pull/1385))
+- ✨(recruteur-interface) modifier le rôle d'un agent dans l'équipe de recrutement ([#1389](https://github.com/betagouv/csplab/pull/1389))
+- ✨(recruteur-interface) revoke agent's role on a recrutement ([#1392](https://github.com/betagouv/csplab/pull/1392))
+- ✨(ingestion) transcode les codes TalentSoft par Source via des tables CSV ([#1403](https://github.com/betagouv/csplab/pull/1403))
+- 📝(doc) document env var and Scaleway secrets management ([#1410](https://github.com/betagouv/csplab/pull/1410))
+- ✨(ingestion) mappe les spécialisations TalentSoft vers criteres.specialisations ([#1411](https://github.com/betagouv/csplab/pull/1411))
+- ♻️(ingestion) dérive REQUIRED_TABLES des appels transcoder.translate ([#1414](https://github.com/betagouv/csplab/pull/1414))
+- ♻️(tooling) mutualiser le backup DB Scaleway entre web et ingestion ([#1407](https://github.com/betagouv/csplab/pull/1407))
+- ✨(recruteur-back) Ajouter un agent à l'équipe de recrutement ([#1409](https://github.com/betagouv/csplab/pull/1409))
+- ✨(recruteur-back) Modifier le role d'un agent dans l'équipe de recrutement ([#1412](https://github.com/betagouv/csplab/pull/1412))
+- ✨(recruteur-back) Revoquer le role d'un agent dans l'équipe de recrutement ([#1416](https://github.com/betagouv/csplab/pull/1416))
+
+### <!-- 2 --> Modified
+
+- ✨(ats-presentation) improve tab management and behaviour ([#1293](https://github.com/betagouv/csplab/pull/1293))
+- ♻️(ats-presentation) setup automatic icon registry ([#1294](https://github.com/betagouv/csplab/pull/1294))
+- 💎(ats-presentation) improve table based pages styling ([#1292](https://github.com/betagouv/csplab/pull/1292))
+- 🎨(recruteur) raise error loudly when agent_id not found ([#1312](https://github.com/betagouv/csplab/pull/1312))
+- ♻️(tooling) inject scaleway secrets from the mise env ([#1317](https://github.com/betagouv/csplab/pull/1317))
+- ♻️(referentiel) convertir les enums en TextChoices Django like ([#1314](https://github.com/betagouv/csplab/pull/1314))
+- 💎(ats-presentation) tab icons, toolbar and segmented control on the candidatures views ([#1331](https://github.com/betagouv/csplab/pull/1331))
+- 🔧(tooling) mise config and drop direnv ([#1332](https://github.com/betagouv/csplab/pull/1332))
+- 🐛(web-test) fix jsonschema RefResolver deprecation ([#1342](https://github.com/betagouv/csplab/pull/1342))
+- ✨(recruteur) reattach revoked agent to an organisme ([#1343](https://github.com/betagouv/csplab/pull/1343))
+- ✨(presentation) Refactor routing to be organisme-scoped ([#1338](https://github.com/betagouv/csplab/pull/1338))
+- 🔧(tooling) let a dev proxy set hosts and ports ([#1354](https://github.com/betagouv/csplab/pull/1354))
+- ♻️(commons) ADR-009 : ajout de factory boy et application au contexte commons ([#1362](https://github.com/betagouv/csplab/pull/1362))
+- ♻️(commons) ADR-009 : factory application au contexte ingestion ([#1363](https://github.com/betagouv/csplab/pull/1363))
+- ♻️(commons) ADR-009 : factory application au contexte referentiel ([#1364](https://github.com/betagouv/csplab/pull/1364))
+- ♻️(commons) ADR-009 : factory application au contexte identite ([#1365](https://github.com/betagouv/csplab/pull/1365))
+- ♻️(recruteur) replace RecrutementFactory.create_model with RecrutementDjangoFactory in tests ([#1366](https://github.com/betagouv/csplab/pull/1366))
+- ♻️(commons) ADR-009 : factory application au contexte candidature ([#1371](https://github.com/betagouv/csplab/pull/1371))
+- ♻️(api) factorise les headers X-RateLimit-* en components OpenAPI ([#1387](https://github.com/betagouv/csplab/pull/1387))
+- ✨(recruteur) drop agent identity fields ([#1393](https://github.com/betagouv/csplab/pull/1393))
+- ♻️(tooling) reuse the front types task in web:schema ([#1401](https://github.com/betagouv/csplab/pull/1401))
+- ♻️(recruteur) ADR-009, utiliser les factory Django dans le seed recruteur ([#1400](https://github.com/betagouv/csplab/pull/1400))
+- ♻️(presentation) ADR-009: securiser la suite de test  ([#1396](https://github.com/betagouv/csplab/pull/1396))
+
+### <!-- 4 --> Fixed
+
+- 🐛(ingestion) fix test_schema_path_visibility ([#1355](https://github.com/betagouv/csplab/pull/1355))
+- ⚡️(ingestion) reduce peak memory in the organismes pipeline ([#1369](https://github.com/betagouv/csplab/pull/1369))
+- 🐛(ingestion) met à jour upsert_at lors de la publication des organismes ([#1370](https://github.com/betagouv/csplab/pull/1370))
+- 🐛(ingestion) injecte l'env Scaleway dans les jobs cron ([#1378](https://github.com/betagouv/csplab/pull/1378))
+- 🐛(tooling) corrige le listing vide des secrets Scaleway ([#1397](https://github.com/betagouv/csplab/pull/1397))
+- 🔧(tooling) set factory-boy as default deps, not dev deps ([#1417](https://github.com/betagouv/csplab/pull/1417))
+
+## [0.1.16] - 2026-09-01
 
 ### <!-- 0 --> Breaking Changes
 
@@ -34,6 +127,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - ✨(ats-presentation) add the organismes member management tab ([#1254](https://github.com/betagouv/csplab/pull/1254))
 - 🐛(ingestion) ne garder qu'une seule structure FINESS par SIRET ([#1258](https://github.com/betagouv/csplab/pull/1258))
 - 🚧(identite) proconnect authent ([#1072](https://github.com/betagouv/csplab/pull/1072))
+- ✨(recruteur) Ajout du usecase de liste des agents d'un organisme ([#1240](https://github.com/betagouv/csplab/pull/1240))
 
 ### <!-- 2 --> Modified
 
