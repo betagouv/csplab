@@ -2,9 +2,11 @@ from uuid import UUID
 
 from django.db.models import QuerySet
 
+from application.identite.context_services.organisme_permission_service import (
+    can_execute,
+)
 from application.recruteur.context_services.recrutement_agent_context_service import (
     RecrutementAgentContextService,
-    can_execute,
 )
 from domain.identite.entities.utilisateurs import Utilisateur
 from domain.identite.value_objects.organisme_action import OrganismeAction

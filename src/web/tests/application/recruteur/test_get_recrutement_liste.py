@@ -17,9 +17,6 @@ from application.recruteur.usecases.get_recrutement_liste import (
     GetRecrutementListeUsecase,
 )
 from domain.identite.errors.organisme_permission_errors import AccesOrganismeRefuse
-from domain.identite.services.organisme_permission_service import (
-    OrganismePermissionService,
-)
 from domain.identite.value_objects.organisme_action import OrganismeAction
 from domain.recruteur.value_objects.roles import AgentOrganismeRole
 from infrastructure.factories.identite.utilisateur_factory import UtilisateurFactory
@@ -35,9 +32,13 @@ def _candidature_liste_read_model() -> CandidatureListeReadModel:
     )
 
 
-@pytest.fixture(name="organisme_permission_service")
-def organisme_permission_service_fixture():
-    return MagicMock(spec=OrganismePermissionService)
+@pytest.fixture(name="can_execute")
+def can_execute_fixture(monkeypatch):
+    mock = MagicMock()
+    monkeypatch.setattr(
+        "application.recruteur.usecases.get_recrutement_liste.can_execute", mock
+    )
+    return mock
 
 
 @pytest.fixture(name="recrutement_query_service")
@@ -46,9 +47,8 @@ def recrutement_query_service_fixture():
 
 
 @pytest.fixture(name="usecase")
-def usecase_fixture(organisme_permission_service, recrutement_query_service):
+def usecase_fixture(can_execute, recrutement_query_service):
     return GetRecrutementListeUsecase(
-        organisme_permission_service=organisme_permission_service,
         recrutement_query_service=recrutement_query_service,
     )
 
@@ -63,12 +63,12 @@ class TestGetRecrutementListe:
     )
     def test_returns_detail_when_authorized(
         self,
-        organisme_permission_service,
+        can_execute,
         recrutement_query_service,
         usecase,
         role,
     ):
-        organisme_permission_service.est_autorise.return_value = role
+        can_execute.return_value = role
         organisme_id = uuid4()
         recrutement_id = uuid4()
         candidatures = [_candidature_liste_read_model()]
@@ -86,7 +86,7 @@ class TestGetRecrutementListe:
         )
 
         assert result == candidatures
-        organisme_permission_service.est_autorise.assert_called_once_with(
+        can_execute.assert_called_once_with(
             action=OrganismeAction.VOIR_DETAIL_RECRUTEMENT,
             organisme_id=organisme_id,
             utilisateur=utilisateur,
@@ -98,13 +98,11 @@ class TestGetRecrutementListe:
 
     def test_returns_none_for_unknown_recrutement(
         self,
-        organisme_permission_service,
+        can_execute,
         recrutement_query_service,
         usecase,
     ):
-        organisme_permission_service.est_autorise.return_value = (
-            AgentOrganismeRole.RESPONSABLE
-        )
+        can_execute.return_value = AgentOrganismeRole.RESPONSABLE
         organisme_id = uuid4()
         recrutement_query_service.get_candidatures_by_recrutement.return_value = None
 
@@ -118,11 +116,9 @@ class TestGetRecrutementListe:
 
         assert result is None
 
-    def test_raises_when_not_authorized(self, organisme_permission_service, usecase):
+    def test_raises_when_not_authorized(self, can_execute, usecase):
         organisme_id = uuid4()
-        organisme_permission_service.est_autorise.side_effect = AccesOrganismeRefuse(
-            organisme_id
-        )
+        can_execute.side_effect = AccesOrganismeRefuse(organisme_id)
 
         with pytest.raises(AccesOrganismeRefuse):
             usecase.execute(

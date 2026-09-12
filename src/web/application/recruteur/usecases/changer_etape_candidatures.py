@@ -6,14 +6,13 @@ from ddd.unit_of_work import IUnitOfWork
 from ddd.usecase_interface import IUsecase
 from referentiel.types import IBatchUpdate
 
+from application.identite.context_services.organisme_permission_service import (
+    can_execute,
+)
 from domain.commons.services.audit_log_writer import AuditLogWriter
 from domain.identite.entities.utilisateurs import Utilisateur
-from domain.identite.services.organisme_permission_service import (
-    OrganismePermissionService,
-)
 from domain.identite.value_objects.organisme_action import OrganismeAction
 from domain.recruteur.entities.candidature_recruteur import CandidatureRecruteur
-from domain.recruteur.entities.recrutement import Recrutement
 from domain.recruteur.errors.recrutement_errors import RecrutementError
 from domain.recruteur.repositories.candidature_recruteur_repository_interface import (
     ICandidatureRecruteurRepository,
@@ -40,38 +39,32 @@ class ChangerEtapeCandidaturesUsecase(
 ):
     def __init__(
         self,
-        permission_service: OrganismePermissionService,
         recrutement_repository: IRecrutementRepository,
         candidature_recruteur_repository: ICandidatureRecruteurRepository,
         audit_log_writer: AuditLogWriter,
         unit_of_work: IUnitOfWork,
     ):
-        self.permission_service = permission_service
         self.recrutement_repository = recrutement_repository
         self.candidature_recruteur_repository = candidature_recruteur_repository
         self.audit_log_writer = audit_log_writer
         self.unit_of_work = unit_of_work
 
-    def can_execute(
-        self, command: ChangerEtapeCandidaturesCommand
-    ) -> tuple[Recrutement, List[CandidatureRecruteur]]:
-        recrutement = self.recrutement_repository.get_by_id(command.recrutement_id)
-        candidatures_recruteur = self.candidature_recruteur_repository.get_by_ids(
-            command.candidatures
-        )
-        self.permission_service.est_autorise(
-            action=OrganismeAction.CHANGER_ETAPE_CANDIDATURES,
-            organisme_id=command.organisme_id,
-            utilisateur=command.utilisateur,
-            recrutement_id=command.recrutement_id,
-        )
-        return recrutement, candidatures_recruteur
-
     def execute(
         self, command: ChangerEtapeCandidaturesCommand
     ) -> IBatchUpdate[CandidatureRecruteur, RecrutementError]:
         with self.unit_of_work.atomic():
-            recrutement, candidatures_recruteur = self.can_execute(command)
+            recrutement = self.recrutement_repository.get_by_id(command.recrutement_id)
+            candidatures_recruteur = self.candidature_recruteur_repository.get_by_ids(
+                command.candidatures
+            )
+
+            can_execute(
+                action=OrganismeAction.CHANGER_ETAPE_CANDIDATURES,
+                organisme_id=command.organisme_id,
+                utilisateur=command.utilisateur,
+                recrutement_id=command.recrutement_id,
+            )
+
             recrutement_modifie: IBatchUpdate[
                 CandidatureRecruteur, RecrutementError
             ] = recrutement.changer_etapes_candidatures(

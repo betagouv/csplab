@@ -12,9 +12,6 @@ from application.recruteur.usecases.get_recrutement_etapes import (
 )
 from domain.commons.errors.organisme_errors import OrganismeNexistePas
 from domain.identite.errors.organisme_permission_errors import AccesOrganismeRefuse
-from domain.identite.services.organisme_permission_service import (
-    OrganismePermissionService,
-)
 from domain.identite.value_objects.organisme_action import OrganismeAction
 from domain.recruteur.repositories.organisme_repository_interface import (
     IOrganismeRecruteurRepository,
@@ -47,11 +44,14 @@ def recrutement_fixture(organisme_recruteur):
     return recrutement
 
 
-@pytest.fixture(name="permission_service")
-def permission_service_fixture():
-    service = Mock(spec=OrganismePermissionService)
-    service.est_autorise.return_value = AgentRecrutementRole.RESPONSABLE
-    return service
+@pytest.fixture(name="can_execute")
+def can_execute_fixture(monkeypatch):
+    mock = Mock(return_value=AgentRecrutementRole.RESPONSABLE)
+    monkeypatch.setattr(
+        "application.recruteur.usecases.get_recrutement_etapes.can_execute",
+        mock,
+    )
+    return mock
 
 
 @pytest.fixture(name="recrutement_repository")
@@ -70,12 +70,11 @@ def organisme_recruteur_repository_fixture(organisme_recruteur):
 
 @pytest.fixture(name="usecase")
 def usecase_fixture(
-    permission_service,
+    can_execute,
     recrutement_repository,
     organisme_recruteur_repository,
 ):
     return GetRecrutementEtapesUsecase(
-        permission_service=permission_service,
         recrutement_repository=recrutement_repository,
         organisme_recruteur_repository=organisme_recruteur_repository,
     )
@@ -83,7 +82,7 @@ def usecase_fixture(
 
 class TestGetRecrutementEtapesUsecase:
     def test_returns_pipeline(
-        self, permission_service, organisme_recruteur, recrutement, usecase
+        self, can_execute, organisme_recruteur, recrutement, usecase
     ):
 
         utilisateur = UtilisateurFactory.create_entity()
@@ -97,7 +96,7 @@ class TestGetRecrutementEtapesUsecase:
             )
         )
 
-        permission_service.est_autorise.assert_called_once_with(
+        can_execute.assert_called_once_with(
             action=OrganismeAction.GET_RECRUTEMENT_ETAPES,
             organisme_id=organisme_id,
             utilisateur=utilisateur,
@@ -147,11 +146,9 @@ class TestGetRecrutementEtapesUsecase:
             )
 
     def test_raises_when_not_authorized(
-        self, permission_service, organisme_recruteur, recrutement, usecase
+        self, can_execute, organisme_recruteur, recrutement, usecase
     ):
-        permission_service.est_autorise.side_effect = AccesOrganismeRefuse(
-            organisme_recruteur.entity_id
-        )
+        can_execute.side_effect = AccesOrganismeRefuse(organisme_recruteur.entity_id)
 
         with pytest.raises(AccesOrganismeRefuse):
             usecase.execute(

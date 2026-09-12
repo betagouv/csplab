@@ -4,9 +4,11 @@ from ddd.entity import Entity
 from django.db import transaction
 from django.db import IntegrityError, transaction
 
+from application.identite.context_services.organisme_permission_service import (
+    can_execute,
+)
 from application.recruteur.context_services.recrutement_agent_context_service import (
     RecrutementAgentContextService,
-    can_execute,
 )
 from domain.commons.services.audit_log_writer import AuditLogWriter
 from domain.identite.entities.utilisateurs import Utilisateur

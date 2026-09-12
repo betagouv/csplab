@@ -1,3 +1,5 @@
+from unittest.mock import MagicMock
+
 import pytest
 
 from application.recruteur.usecases.get_organisme_recruteur import (
@@ -28,7 +30,36 @@ from infrastructure.factories.recruteur.organisme_factory import (
 )
 
 
-def test_get_organisme_steps(get_organisme_recruteur_usecase):
+@pytest.fixture(name="can_execute_get_organisme_recruteur")
+def can_execute_get_organisme_recruteur_fixture(monkeypatch):
+    mock = MagicMock()
+    monkeypatch.setattr(
+        "application.recruteur.usecases.get_organisme_recruteur.can_execute", mock
+    )
+    return mock
+
+
+@pytest.fixture(name="can_execute_initialize_organisme_steps")
+def can_execute_initialize_organisme_steps_fixture(monkeypatch):
+    mock = MagicMock()
+    monkeypatch.setattr(
+        "application.recruteur.usecases.initialize_organisme_steps.can_execute", mock
+    )
+    return mock
+
+
+@pytest.fixture(name="can_execute_update_organisme_steps")
+def can_execute_update_organisme_steps_fixture(monkeypatch):
+    mock = MagicMock()
+    monkeypatch.setattr(
+        "application.recruteur.usecases.update_organisme_steps.can_execute", mock
+    )
+    return mock
+
+
+def test_get_organisme_steps(
+    can_execute_get_organisme_recruteur, get_organisme_recruteur_usecase
+):
     organisme_before = OrganismeRecruteurFactory.create_entity()
     get_organisme_recruteur_usecase.organisme_recruteur_repository.save(
         organisme_before
@@ -46,7 +77,9 @@ def test_get_organisme_steps(get_organisme_recruteur_usecase):
     assert organisme.entity_id == organisme_before.entity_id
 
 
-def test_initialize_organisme_steps(initialize_organisme_steps_usecase):
+def test_initialize_organisme_steps(
+    can_execute_initialize_organisme_steps, initialize_organisme_steps_usecase
+):
     organisme_before = OrganismeRecruteurFactory.create_entity()
     initialize_organisme_steps_usecase.organisme_recruteur_repository.save(
         organisme_before
@@ -67,7 +100,9 @@ def test_initialize_organisme_steps(initialize_organisme_steps_usecase):
 NUMBER_CHANGES = 7
 
 
-def test_update_organisme_steps(update_organisme_steps_usecase):
+def test_update_organisme_steps(
+    can_execute_update_organisme_steps, update_organisme_steps_usecase
+):
     etapes = EtapeRecrutementFactory.create_entity_batch()
     organisme_before = OrganismeRecruteurFactory.create_entity(etapes=etapes)
     update_organisme_steps_usecase.organisme_recruteur_repository.save(organisme_before)
@@ -95,14 +130,14 @@ def test_update_organisme_steps(update_organisme_steps_usecase):
 
 
 def test_get_organisme_steps_raises_when_not_responsable(
+    can_execute_get_organisme_recruteur,
     get_organisme_recruteur_usecase,
 ):
     organisme_before = OrganismeRecruteurFactory.create_entity()
     get_organisme_recruteur_usecase.organisme_recruteur_repository.save(
         organisme_before
     )
-    permission_service = get_organisme_recruteur_usecase.organisme_permission_service
-    permission_service.est_autorise.side_effect = AccesOrganismeRefuse(
+    can_execute_get_organisme_recruteur.side_effect = AccesOrganismeRefuse(
         organisme_before.entity_id
     )
 
@@ -116,14 +151,14 @@ def test_get_organisme_steps_raises_when_not_responsable(
 
 
 def test_initialize_organisme_steps_raises_when_not_responsable(
+    can_execute_initialize_organisme_steps,
     initialize_organisme_steps_usecase,
 ):
     organisme_before = OrganismeRecruteurFactory.create_entity()
     initialize_organisme_steps_usecase.organisme_recruteur_repository.save(
         organisme_before
     )
-    permission_service = initialize_organisme_steps_usecase.organisme_permission_service
-    permission_service.est_autorise.side_effect = AccesOrganismeRefuse(
+    can_execute_initialize_organisme_steps.side_effect = AccesOrganismeRefuse(
         organisme_before.entity_id
     )
 
@@ -137,13 +172,13 @@ def test_initialize_organisme_steps_raises_when_not_responsable(
 
 
 def test_update_organisme_steps_raises_when_not_responsable(
+    can_execute_update_organisme_steps,
     update_organisme_steps_usecase,
 ):
     etapes = EtapeRecrutementFactory.create_entity_batch()
     organisme_before = OrganismeRecruteurFactory.create_entity(etapes=etapes)
     update_organisme_steps_usecase.organisme_recruteur_repository.save(organisme_before)
-    permission_service = update_organisme_steps_usecase.organisme_permission_service
-    permission_service.est_autorise.side_effect = AccesOrganismeRefuse(
+    can_execute_update_organisme_steps.side_effect = AccesOrganismeRefuse(
         organisme_before.entity_id
     )
 
