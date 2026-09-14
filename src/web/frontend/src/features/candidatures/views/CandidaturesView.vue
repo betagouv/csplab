@@ -16,6 +16,7 @@ import { useMinimumPending } from '@/composables/async/useMinimumPending'
 import { tabItems } from '@/composables/navigation/tabs'
 import { useRouteTab } from '@/composables/navigation/useRouteTab'
 import { useDisclosure } from '@/composables/ui/useDisclosure'
+import EquipeRecrutementSection from '@/features/equipe-recrutement/components/EquipeRecrutementSection.vue'
 import { recrutementsListLocation } from '@/features/recrutements/routes'
 import ForbiddenView from '@/views/ForbiddenView.vue'
 import CandidaturesFiltersDrawer from '../components/CandidaturesFiltersDrawer.vue'
@@ -200,6 +201,12 @@ const activeTab = useRouteTab(CANDIDATURES_TAB_ROUTE_NAMES, 'candidatures')
         <div class="candidatures-view__placeholder">
           Activités et tâches (à venir)
         </div>
+      </template>
+      <template #tab-equipe>
+        <EquipeRecrutementSection
+          :organisme-uuid="organismeUuid"
+          :recrutement-uuid="recrutementUuid"
+        />
       </template>
     </CspPageContainer>
   </template>

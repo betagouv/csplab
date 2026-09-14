@@ -7,6 +7,7 @@ import { CANDIDATURE_TAB_LABELS } from './constants/candidature'
 export const CANDIDATURES_TAB_ROUTE_NAMES = {
   'candidatures': 'recrutement-candidatures-kanban',
   'activites-et-taches': 'recrutement-activites',
+  'equipe': 'recrutement-equipe',
 } as const satisfies Record<CandidatureTabKey, string>
 
 const tabMeta = tabMetaFor(CANDIDATURE_TAB_LABELS)
@@ -19,6 +20,12 @@ export const candidaturesRoutes: RouteRecordRaw[] = [
     name: CANDIDATURES_TAB_ROUTE_NAMES['activites-et-taches'],
     component: () => import('./views/CandidaturesView.vue'),
     meta: tabMeta('activites-et-taches'),
+  },
+  {
+    path: `${RECRUTEMENT_PATH}/equipe`,
+    name: CANDIDATURES_TAB_ROUTE_NAMES.equipe,
+    component: () => import('./views/CandidaturesView.vue'),
+    meta: tabMeta('equipe'),
   },
   {
     path: RECRUTEMENT_PATH,
