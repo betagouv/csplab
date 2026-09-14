@@ -14,4 +14,5 @@ class CandidatureRecruteurMapper(
             recrutement_id=model.etape.recrutement.offre_id,
             etape_id=model.etape_id,
             derniere_activite_le=model.updated_by_recruteur or model.updated_at,
+            motif_refus=model.motif_refus,
         )

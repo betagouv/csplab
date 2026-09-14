@@ -1,6 +1,7 @@
 from django.db import models
 
 from domain.candidate.value_objects.statut_candidature import StatutCandidature
+from infrastructure.django_apps.recruteur.enums.motif_refus import MotifRefus
 from infrastructure.django_apps.recruteur.models.etape import EtapeModel
 from infrastructure.django_apps.users.fields import candidat_fk
 from infrastructure.django_apps.utils.models import BaseDatedModel
@@ -16,6 +17,12 @@ class CandidatureModel(BaseDatedModel):
     updated_by_candidate = models.DateTimeField(null=True, blank=True)
     updated_by_recruteur = models.DateTimeField(null=True, blank=True)
     documents = models.JSONField(null=True, blank=True)
+    motif_refus = models.CharField(
+        max_length=50,
+        choices=MotifRefus.choices,
+        null=True,
+        blank=True,
+    )
     etape = models.ForeignKey(
         EtapeModel,
         on_delete=models.PROTECT,
