@@ -34,7 +34,6 @@ from infrastructure.factories.recruteur.recrutement_django_factory import (
 
 pytestmark = pytest.mark.django_db
 
-# TODO: add test for CHANGER_ETAPE_CANDIDATURES
 
 STAFF_SEULEMENT_SANS_ORGANISME_ACTIONS = [
     OrganismeAction.CREER_ORGANISME,
@@ -74,6 +73,7 @@ SUPERVISEUR_OU_AGENT_AVEC_RESPONSABLE_ACTIONS = [
     OrganismeAction.INIT_RECRUTEMENT_ETAPES,
 ]
 
+# TODO: add test for CHANGER_ETAPE_CANDIDATURES
 SUPERVISEUR_OU_AGENT_AVEC_RESPONSABLE_OU_RECRUTEUR_ACTIONS = [
     OrganismeAction.CHANGER_ETAPE_CANDIDATURES,
 ]
@@ -175,8 +175,7 @@ class TestSuperviseurEtStaffActions:
             )
 
     def test_revoked_agent_is_still_allowed(self, action: OrganismeAction) -> None:
-        # Documents current behavior: unlike the recrutement-agent lookup, the
-        # organisme-agent role lookup does not filter out revoked agents.
+        # TODO:filter out revoked agent in organisme-agent role lookup
         organisme = OrganismeDjangoFactory()
         agent = OrganismeAgentDjangoFactory(
             organisme=organisme,
