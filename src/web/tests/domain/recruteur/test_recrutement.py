@@ -1,9 +1,14 @@
 from datetime import datetime, timezone
 from uuid import uuid4
 
+import pytest
 import time_machine
 
+from domain.recruteur.errors.recrutement_errors import MotifRefusRequis
 from domain.recruteur.value_objects.statut_recrutement import StatutRecrutement
+from infrastructure.factories.recruteur.candidature_recruteur_factory import (
+    CandidatureRecruteurFactory,
+)
 from infrastructure.factories.recruteur.etapes_recrutement_factory import (
     EtapeRecrutementFactory,
 )
@@ -63,3 +68,51 @@ def test_recrutement_termine() -> None:
     assert recrutement.agents == agents
     assert recrutement.candidat_recrute_id == candidat_recrute_id
     assert recrutement.derniere_activite_le == _FROZEN_TS
+
+
+def test_changer_etapes_candidatures_vers_refus_sans_motif() -> None:
+    etapes = EtapeRecrutementFactory.create_entity_batch()
+    recrutement = RecrutementFactory.create_entity(etapes=etapes)
+    etape_refus = etapes[-2]
+    candidatures = CandidatureRecruteurFactory.create_entity_batch(
+        2, recrutement_id=recrutement.entity_id
+    )
+
+    with pytest.raises(MotifRefusRequis):
+        recrutement.changer_etapes_candidatures(
+            candidatures=candidatures, etape_cible_id=etape_refus.entity_id
+        )
+
+
+def test_changer_etapes_candidatures_vers_refus_avec_motif() -> None:
+    etapes = EtapeRecrutementFactory.create_entity_batch()
+    recrutement = RecrutementFactory.create_entity(etapes=etapes)
+    etape_refus = etapes[-2]
+    candidatures = CandidatureRecruteurFactory.create_entity_batch(
+        2, recrutement_id=recrutement.entity_id
+    )
+
+    resultat = recrutement.changer_etapes_candidatures(
+        candidatures=candidatures,
+        etape_cible_id=etape_refus.entity_id,
+        motif_refus="autre",
+    )
+
+    assert resultat["successes"] == candidatures
+    assert resultat["failures"] == []
+
+
+def test_changer_etapes_candidatures_vers_etape_non_refus_sans_motif() -> None:
+    etapes = EtapeRecrutementFactory.create_entity_batch()
+    recrutement = RecrutementFactory.create_entity(etapes=etapes)
+    etape_non_refus = etapes[1]
+    candidatures = CandidatureRecruteurFactory.create_entity_batch(
+        2, recrutement_id=recrutement.entity_id
+    )
+
+    resultat = recrutement.changer_etapes_candidatures(
+        candidatures=candidatures, etape_cible_id=etape_non_refus.entity_id
+    )
+
+    assert resultat["successes"] == candidatures
+    assert resultat["failures"] == []

@@ -31,6 +31,14 @@ class CandidatureInexistante(RecrutementError):
         super().__init__((f"Candidature {candidature_id} inexistante"))
 
 
+class MotifRefusRequis(RecrutementError):
+    def __init__(self, etape_id: UUID):
+        super().__init__(
+            f"Un motif de refus est requis pour déplacer une candidature "
+            f"vers l'étape {etape_id}"
+        )
+
+
 class SupressionEtapeImpossible(RecrutementError):
     def __init__(self, etape_id: UUID, nombre_candidatures: int):
         super().__init__(
