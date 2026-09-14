@@ -1,13 +1,13 @@
 from ddd.usecase_interface import IUsecase
 
+from application.identite.context_services.organisme_permission_service import (
+    OrganismePermissionService,
+)
 from application.recruteur.dtos.recrutement_request import RecrutementRequest
 from application.recruteur.errors.application_errors_recruteur import (
     OrganismeRecrutementIncoherents,
 )
 from domain.commons.services.audit_log_writer import AuditLogWriter
-from domain.identite.services.organisme_permission_service import (
-    OrganismePermissionService,
-)
 from domain.identite.value_objects.organisme_action import OrganismeAction
 from domain.recruteur.entities.etape_recrutement import EtapeRecrutement
 from domain.recruteur.entities.organisme_recruteur import OrganismeRecruteur
@@ -46,7 +46,7 @@ class InitRecrutementEtapesUsecase(
             raise OrganismeRecrutementIncoherents(
                 command.organisme_id, command.recrutement_id
             )
-        self.permission_service.est_autorise(
+        self.permission_service.can_execute(
             action=OrganismeAction.INIT_RECRUTEMENT_ETAPES,
             organisme_id=command.organisme_id,
             recrutement_id=command.recrutement_id,

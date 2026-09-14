@@ -4,6 +4,9 @@ from uuid import uuid4
 
 import pytest
 
+from application.identite.context_services.organisme_permission_service import (
+    OrganismePermissionService,
+)
 from application.recruteur.dtos.recrutement_read_models import (
     EtapeDto,
     LocalisationDto,
@@ -18,9 +21,6 @@ from application.recruteur.usecases.get_recrutement_detail import (
     GetRecrutementDetailUsecase,
 )
 from domain.identite.errors.organisme_permission_errors import AccesOrganismeRefuse
-from domain.identite.services.organisme_permission_service import (
-    OrganismePermissionService,
-)
 from domain.identite.value_objects.organisme_action import OrganismeAction
 from domain.recruteur.value_objects.roles import AgentOrganismeRole
 from infrastructure.factories.identite.utilisateur_factory import UtilisateurFactory
@@ -82,7 +82,7 @@ class TestGetRecrutementDetail:
         usecase,
         role,
     ):
-        organisme_permission_service.est_autorise.return_value = role
+        organisme_permission_service.can_execute.return_value = role
         organisme_id = uuid4()
         recrutement_id = uuid4()
         read_model = _recrutement_detail_read_model()
@@ -98,7 +98,7 @@ class TestGetRecrutementDetail:
         )
 
         assert result == read_model
-        organisme_permission_service.est_autorise.assert_called_once_with(
+        organisme_permission_service.can_execute.assert_called_once_with(
             action=OrganismeAction.VOIR_DETAIL_RECRUTEMENT,
             organisme_id=organisme_id,
             utilisateur=utilisateur,
@@ -114,7 +114,7 @@ class TestGetRecrutementDetail:
         recrutement_query_service,
         usecase,
     ):
-        organisme_permission_service.est_autorise.return_value = (
+        organisme_permission_service.can_execute.return_value = (
             AgentOrganismeRole.RESPONSABLE
         )
         recrutement_query_service.get_detail_by_recrutement.return_value = None
@@ -131,7 +131,7 @@ class TestGetRecrutementDetail:
 
     def test_raises_when_not_authorized(self, organisme_permission_service, usecase):
         organisme_id = uuid4()
-        organisme_permission_service.est_autorise.side_effect = AccesOrganismeRefuse(
+        organisme_permission_service.can_execute.side_effect = AccesOrganismeRefuse(
             organisme_id
         )
 

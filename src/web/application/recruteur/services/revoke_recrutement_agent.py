@@ -4,29 +4,20 @@ from ddd.entity import Entity
 from django.db import transaction
 from django.utils import timezone
 
+from application.identite.context_services.organisme_permission_service import (
+    OrganismePermissionService,
+)
 from application.recruteur.context_services.recrutement_agent_service import (
     RecrutementAgentService,
 )
 from domain.commons.services.audit_log_writer import AuditLogWriter
 from domain.identite.entities.utilisateurs import Utilisateur
-from domain.identite.services.organisme_permission_service import (
-    OrganismePermissionService,
-)
 from domain.identite.value_objects.organisme_action import OrganismeAction
 from infrastructure.django_apps.recruteur.models.recrutement import (
     RecrutementAgentModel,
 )
 from infrastructure.repositories.commons.postgres_audit_log_repository import (
     PostgresAuditLogRepository,
-)
-from infrastructure.repositories.recruteur.postgres_organisme_agent_repository import (
-    PostgresOrganismeAgentRepository,
-)
-from infrastructure.repositories.recruteur.postgres_organisme_repository import (
-    PostgresOrganismeRecruteurRepository,
-)
-from infrastructure.repositories.recruteur.postgres_recrutement_agent_repository import (  # noqa: E501
-    PostgresRecrutementAgentRepository,
 )
 
 
@@ -37,13 +28,8 @@ def revoke_recrutement_agent(
     agent_id: UUID,
     utilisateur: Utilisateur,
 ) -> RecrutementAgentModel:
-    # TODO : to refactor in ADR-009 style once OrganismePermissionService is migrated
-    organisme_permission_service = OrganismePermissionService(
-        organisme_recruteur_repository=PostgresOrganismeRecruteurRepository(),
-        organisme_agent_repository=PostgresOrganismeAgentRepository(),
-        recrutement_agent_repository=PostgresRecrutementAgentRepository(),
-    )
-    organisme_permission_service.est_autorise(
+    # TODO : to refactor in ADR-009 style
+    OrganismePermissionService().can_execute(
         action=OrganismeAction.REVOKE_RECRUTEMENT_AGENT,
         utilisateur=utilisateur,
         organisme_id=organisme_id,

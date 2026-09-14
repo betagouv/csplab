@@ -102,7 +102,7 @@ def test_get_organisme_steps_raises_when_not_responsable(
         organisme_before
     )
     permission_service = get_organisme_recruteur_usecase.organisme_permission_service
-    permission_service.est_autorise.side_effect = AccesOrganismeRefuse(
+    permission_service.can_execute.side_effect = AccesOrganismeRefuse(
         organisme_before.entity_id
     )
 
@@ -123,7 +123,7 @@ def test_initialize_organisme_steps_raises_when_not_responsable(
         organisme_before
     )
     permission_service = initialize_organisme_steps_usecase.organisme_permission_service
-    permission_service.est_autorise.side_effect = AccesOrganismeRefuse(
+    permission_service.can_execute.side_effect = AccesOrganismeRefuse(
         organisme_before.entity_id
     )
 
@@ -143,7 +143,7 @@ def test_update_organisme_steps_raises_when_not_responsable(
     organisme_before = OrganismeRecruteurFactory.create_entity(etapes=etapes)
     update_organisme_steps_usecase.organisme_recruteur_repository.save(organisme_before)
     permission_service = update_organisme_steps_usecase.organisme_permission_service
-    permission_service.est_autorise.side_effect = AccesOrganismeRefuse(
+    permission_service.can_execute.side_effect = AccesOrganismeRefuse(
         organisme_before.entity_id
     )
 

@@ -1,5 +1,8 @@
 from dependency_injector import containers, providers
 
+from application.identite.context_services.organisme_permission_service import (
+    OrganismePermissionService,
+)
 from application.recruteur.usecases.attach_organisme_agent import (
     AttachOrganismeAgentUsecase,
 )
@@ -52,9 +55,6 @@ from application.recruteur.usecases.update_recrutement_etapes import (
     UpdateRecrutementEtapesUsecase,
 )
 from domain.commons.services.audit_log_writer import AuditLogWriter
-from domain.identite.services.organisme_permission_service import (
-    OrganismePermissionService,
-)
 from infrastructure.mappers.candidature_recruteur_mapper import (
     CandidatureRecruteurMapper,
 )
@@ -121,12 +121,7 @@ class RecruteurContainer(containers.DeclarativeContainer):
     postgres_recrutement_agent_repository = providers.Singleton(
         PostgresRecrutementAgentRepository
     )
-    organisme_permission_service = providers.Factory(
-        OrganismePermissionService,
-        organisme_recruteur_repository=postgres_organisme_recruteur_repository,
-        organisme_agent_repository=postgres_organisme_agent_repository,
-        recrutement_agent_repository=postgres_recrutement_agent_repository,
-    )
+    organisme_permission_service = providers.Factory(OrganismePermissionService)
     recrutement_mapper = providers.Factory(RecrutementMapper)
     postgres_recrutement_query_service = providers.Singleton(
         PostgresRecrutementQueryService

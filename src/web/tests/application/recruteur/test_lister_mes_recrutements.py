@@ -5,6 +5,9 @@ from uuid import uuid4
 
 import pytest
 
+from application.identite.context_services.organisme_permission_service import (
+    OrganismePermissionService,
+)
 from application.recruteur.services.recrutement_query_service_interface import (
     IRecrutementQueryService,
 )
@@ -13,9 +16,6 @@ from application.recruteur.usecases.lister_mes_recrutements import (
     ListerMesRecrutementsUsecase,
 )
 from domain.identite.errors.organisme_permission_errors import AccesOrganismeRefuse
-from domain.identite.services.organisme_permission_service import (
-    OrganismePermissionService,
-)
 from domain.recruteur.value_objects.roles import AgentOrganismeRole
 from domain.recruteur.value_objects.statut_recrutement import StatutRecrutement
 from infrastructure.factories.identite.utilisateur_factory import UtilisateurFactory
@@ -33,7 +33,7 @@ def service_fixture() -> IRecrutementQueryService:
 @pytest.fixture(name="organisme_permission_service")
 def organisme_permission_service_fixture():
     service = MagicMock(spec=OrganismePermissionService)
-    service.est_autorise.return_value = AgentOrganismeRole.RESPONSABLE
+    service.can_execute.return_value = AgentOrganismeRole.RESPONSABLE
     return service
 
 
@@ -90,7 +90,7 @@ class TestListerMesRecrutements:
     ):
         organisme_id = uuid4()
         utilisateur_id = uuid4()
-        organisme_permission_service.est_autorise.return_value = (
+        organisme_permission_service.can_execute.return_value = (
             AgentOrganismeRole.MEMBRE
         )
         recrutements_actifs = [RecrutementFactory.create_actif_read_model()]
@@ -114,7 +114,7 @@ class TestListerMesRecrutements:
     ):
         organisme_id = uuid4()
         utilisateur_id = uuid4()
-        organisme_permission_service.est_autorise.return_value = (
+        organisme_permission_service.can_execute.return_value = (
             AgentOrganismeRole.MEMBRE
         )
         recrutements_archives = [RecrutementFactory.create_archive_read_model()]
@@ -137,7 +137,7 @@ class TestListerMesRecrutements:
 
     def test_raises_when_not_responsable(self, organisme_permission_service, usecase):
         organisme_id = uuid4()
-        organisme_permission_service.est_autorise.side_effect = AccesOrganismeRefuse(
+        organisme_permission_service.can_execute.side_effect = AccesOrganismeRefuse(
             organisme_id
         )
 

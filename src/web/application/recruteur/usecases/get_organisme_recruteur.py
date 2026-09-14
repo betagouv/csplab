@@ -3,10 +3,10 @@ from uuid import UUID
 
 from ddd.usecase_interface import IUsecase
 
-from domain.identite.entities.utilisateurs import Utilisateur
-from domain.identite.services.organisme_permission_service import (
+from application.identite.context_services.organisme_permission_service import (
     OrganismePermissionService,
 )
+from domain.identite.entities.utilisateurs import Utilisateur
 from domain.identite.value_objects.organisme_action import OrganismeAction
 from domain.recruteur.entities.organisme_recruteur import OrganismeRecruteur
 from domain.recruteur.repositories.organisme_repository_interface import (
@@ -32,7 +32,7 @@ class GetOrganismeRecruteurUsecase(
         self.organisme_permission_service = organisme_permission_service
 
     def execute(self, command: GetOrganismeRecruteurQuery) -> OrganismeRecruteur:
-        self.organisme_permission_service.est_autorise(
+        self.organisme_permission_service.can_execute(
             action=OrganismeAction.GET_ORGANISME,
             organisme_id=command.organisme_id,
             utilisateur=command.utilisateur,

@@ -3,15 +3,15 @@ from typing import List
 
 from ddd.usecase_interface import IUsecase
 
+from application.identite.context_services.organisme_permission_service import (
+    OrganismePermissionService,
+)
 from application.recruteur.dtos.recrutement_request import RecrutementRequest
 from application.recruteur.errors.application_errors_recruteur import (
     OrganismeRecrutementIncoherents,
     RecrutementEtapeIncoherents,
 )
 from domain.commons.services.audit_log_writer import AuditLogWriter
-from domain.identite.services.organisme_permission_service import (
-    OrganismePermissionService,
-)
 from domain.identite.value_objects.organisme_action import OrganismeAction
 from domain.recruteur.entities.etape_recrutement import EtapeRecrutement
 from domain.recruteur.entities.recrutement import Recrutement
@@ -59,7 +59,7 @@ class UpdateRecrutementEtapesUsecase(
                     recrutement_id=recrutement.entity_id, etape_id=config.etape_uuid
                 )
 
-        self.permission_service.est_autorise(
+        self.permission_service.can_execute(
             action=OrganismeAction.UPDATE_RECRUTEMENT_ETAPES,
             organisme_id=command.organisme_id,
             recrutement_id=command.recrutement_id,
