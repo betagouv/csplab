@@ -4360,12 +4360,12 @@ components:
       - nom
     RoleEnum:
       enum:
-      - responsable
-      - membre
+      - superviseur
+      - agent
       type: string
       description: |-
-        * `responsable` - responsable
-        * `membre` - membre
+        * `superviseur` - superviseur
+        * `agent` - agent
     SetAgentRoleOnOrganisme:
       type: object
       properties:
