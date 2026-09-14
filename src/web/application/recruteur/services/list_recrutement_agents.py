@@ -2,15 +2,16 @@ from uuid import UUID
 
 from django.db.models import QuerySet
 
+from application.recruteur.context_services.recrutement_agent_service import (
+    RecrutementAgentService,
+)
 from domain.identite.entities.utilisateurs import Utilisateur
 from domain.identite.services.organisme_permission_service import (
     OrganismePermissionService,
 )
 from domain.identite.value_objects.organisme_action import OrganismeAction
-from domain.recruteur.errors.recrutement_errors import RecrutementInexistant
 from infrastructure.django_apps.recruteur.models.recrutement import (
     RecrutementAgentModel,
-    RecrutementModel,
 )
 from infrastructure.repositories.recruteur.postgres_organisme_agent_repository import (
     PostgresOrganismeAgentRepository,
@@ -38,9 +39,9 @@ def list_recrutement_agents(
         organisme_id=organisme_id,
     )
 
-    if not RecrutementModel.objects.filter(
-        pk=recrutement_id, organisme_id=organisme_id
-    ).exists():
-        raise RecrutementInexistant(recrutement_id)
+    contexte = RecrutementAgentService(
+        organisme_id=organisme_id, recrutement_id=recrutement_id
+    )
+    contexte.check_recrutement_belongs_to_organisme()
 
     return RecrutementAgentModel.objects.by_recrutement(recrutement_id)

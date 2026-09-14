@@ -7,6 +7,13 @@ from infrastructure.django_apps.users.fields import agent_fk
 from infrastructure.django_apps.utils.models import BaseDatedModel
 
 
+class RecrutementQuerySet(models.QuerySet):
+    def by_organisme_and_recrutement(
+        self, organisme_id, recrutement_id
+    ) -> "RecrutementQuerySet":
+        return self.filter(organisme_id=organisme_id, pk=recrutement_id)
+
+
 class RecrutementModel(models.Model):
     offre = models.OneToOneField(
         OfferModel,
@@ -32,6 +39,8 @@ class RecrutementModel(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    objects = RecrutementQuerySet.as_manager()
+
     class Meta:
         db_table = "recrutement"
         verbose_name = "Recrutement"
@@ -42,11 +51,23 @@ class RecrutementModel(models.Model):
 
 
 class RecrutementAgentQuerySet(models.QuerySet):
+    def active(self) -> "RecrutementAgentQuerySet":
+        return self.filter(date_revocation__isnull=True)
+
     def by_recrutement(self, recrutement_id) -> "RecrutementAgentQuerySet":
         return (
             self.select_related("agent__utilisateur")
-            .filter(recrutement_id=recrutement_id, date_revocation__isnull=True)
+            .active()
+            .filter(recrutement_id=recrutement_id)
             .order_by("created_at")
+        )
+
+    def by_recrutement_and_agent(
+        self, recrutement_id, agent_id
+    ) -> "RecrutementAgentQuerySet":
+        return self.active().filter(
+            recrutement_id=recrutement_id,
+            agent_id=agent_id,
         )
 
 
