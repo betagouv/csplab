@@ -3,6 +3,9 @@ from uuid import UUID, uuid4
 from ddd.entity import Entity
 from django.db import transaction
 
+from application.recruteur.context_services.recrutement_agent_service import (
+    RecrutementAgentService,
+)
 from domain.commons.services.audit_log_writer import AuditLogWriter
 from domain.identite.entities.utilisateurs import Utilisateur
 from domain.identite.errors.agent_errors import ProfilAgentNexistePas
@@ -10,13 +13,8 @@ from domain.identite.services.organisme_permission_service import (
     OrganismePermissionService,
 )
 from domain.identite.value_objects.organisme_action import OrganismeAction
-from domain.recruteur.errors.organisme_agent_errors import AgentNonRattache
-from domain.recruteur.errors.recrutement_agent_errors import AgentDejaMembreRecrutement
-from domain.recruteur.errors.recrutement_errors import RecrutementInexistant
-from infrastructure.django_apps.recruteur.models.organisme import OrganismeAgentModel
 from infrastructure.django_apps.recruteur.models.recrutement import (
     RecrutementAgentModel,
-    RecrutementModel,
 )
 from infrastructure.django_apps.users.models import ProfilAgentModel
 from infrastructure.repositories.commons.postgres_audit_log_repository import (
@@ -58,25 +56,12 @@ def add_recrutement_agent(
     ).exists():
         raise ProfilAgentNexistePas(agent_id)
 
-    if not RecrutementModel.objects.filter(
-        pk=recrutement_id, organisme_id=organisme_id
-    ).exists():
-        raise RecrutementInexistant(recrutement_id)
-
-    agent_rattache_a_organisme = OrganismeAgentModel.objects.filter(
-        organisme_id=organisme_id,
-        agent_id=agent_id,  # type: ignore[misc]
-        date_revocation__isnull=True,
-    ).exists()
-    if not agent_rattache_a_organisme:
-        raise AgentNonRattache(organisme_id, agent_id)
-
-    if RecrutementAgentModel.objects.filter(
-        recrutement_id=recrutement_id,
-        agent_id=agent_id,  # type: ignore[misc]
-        date_revocation__isnull=True,
-    ).exists():
-        raise AgentDejaMembreRecrutement(recrutement_id, agent_id)
+    contexte = RecrutementAgentService(
+        organisme_id=organisme_id, recrutement_id=recrutement_id
+    )
+    contexte.check_recrutement_belongs_to_organisme()
+    contexte.check_agent_attached_to_organisme(agent_id)
+    contexte.check_agent_not_active_member(agent_id)
 
     with transaction.atomic():
         recrutement_agent, created = RecrutementAgentModel.objects.update_or_create(
