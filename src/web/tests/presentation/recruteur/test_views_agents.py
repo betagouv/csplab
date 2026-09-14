@@ -131,7 +131,7 @@ class TestAgentsView:
 class TestAgentsViewDbVerified:
     def test_creates_and_persists_the_agent(self, authenticated_client, test_user):
         _, organisme = create_organisme_with_agent(
-            role=AgentOrganismeRole.RESPONSABLE,
+            role=AgentOrganismeRole.SUPERVISEUR,
             utilisateur=test_user,
         )
         email = fake.email()

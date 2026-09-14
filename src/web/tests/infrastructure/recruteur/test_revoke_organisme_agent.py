@@ -41,11 +41,11 @@ def usecase_fixture(
 
 def test_responsable_revokes_agent(db, usecase, recruteur_integration_container):
     responsable, organisme = create_organisme_with_agent(
-        role=AgentOrganismeRole.RESPONSABLE
+        role=AgentOrganismeRole.SUPERVISEUR
     )
     autre_agent = OrganismeAgentDjangoFactory(
         organisme=organisme,
-        role=AgentOrganismeRole.MEMBRE.value,
+        role=AgentOrganismeRole.AGENT.value,
     ).agent
 
     agent_organisme = usecase.execute(
@@ -78,10 +78,10 @@ def test_responsable_revokes_agent(db, usecase, recruteur_integration_container)
 
 
 def test_staff_bypasses_role_check(db, usecase):
-    _, organisme = create_organisme_with_agent(role=AgentOrganismeRole.MEMBRE)
+    _, organisme = create_organisme_with_agent(role=AgentOrganismeRole.AGENT)
     autre_agent = OrganismeAgentDjangoFactory(
         organisme=organisme,
-        role=AgentOrganismeRole.MEMBRE.value,
+        role=AgentOrganismeRole.AGENT.value,
     ).agent
 
     agent_organisme = usecase.execute(
@@ -98,10 +98,10 @@ def test_staff_bypasses_role_check(db, usecase):
 
 
 def test_membre_is_denied(db, usecase, recruteur_integration_container):
-    membre, organisme = create_organisme_with_agent(role=AgentOrganismeRole.MEMBRE)
+    membre, organisme = create_organisme_with_agent(role=AgentOrganismeRole.AGENT)
     autre_agent = OrganismeAgentDjangoFactory(
         organisme=organisme,
-        role=AgentOrganismeRole.MEMBRE.value,
+        role=AgentOrganismeRole.AGENT.value,
     ).agent
 
     with pytest.raises(AccesOrganismeRefuse):
@@ -132,7 +132,7 @@ def test_membre_is_denied(db, usecase, recruteur_integration_container):
 
 def test_raises_when_agent_not_attached(db, usecase):
     responsable, organisme = create_organisme_with_agent(
-        role=AgentOrganismeRole.RESPONSABLE
+        role=AgentOrganismeRole.SUPERVISEUR
     )
     bare_agent = AgentDjangoFactory()
 

@@ -29,13 +29,13 @@ class TestOrganismeAgentsView:
 
     def test_list_agents_from_real_db(self, authenticated_client, test_user):
         _, organisme = create_organisme_with_agent(
-            role=AgentOrganismeRole.RESPONSABLE,
+            role=AgentOrganismeRole.SUPERVISEUR,
             utilisateur=test_user,
             intitule_poste="Chargée de recrutement",
         )
         autre_agent = OrganismeAgentDjangoFactory(
             organisme=organisme,
-            role=AgentOrganismeRole.MEMBRE.value,
+            role=AgentOrganismeRole.AGENT.value,
             agent__intitule_poste="Recruteur",
         ).agent
         url = reverse(
@@ -58,7 +58,7 @@ class TestOrganismeAgentsView:
             "prenom": test_user.first_name,
             "email": test_user.email,
             "poste": test_user.profil_agent.intitule_poste,
-            "role": AgentOrganismeRole.RESPONSABLE.value,
+            "role": AgentOrganismeRole.SUPERVISEUR.value,
             "date_derniere_activite": None,
             "date_creation_compte": test_user.date_joined.isoformat().replace(
                 "+00:00", "Z"
@@ -67,18 +67,18 @@ class TestOrganismeAgentsView:
         }
         assert (
             data[str(autre_agent.utilisateur_id)]["role"]
-            == AgentOrganismeRole.MEMBRE.value
+            == AgentOrganismeRole.AGENT.value
         )
         assert data[str(autre_agent.utilisateur_id)]["poste"] == "Recruteur"
 
     def test_list_agents_excludes_revoked_agent(self, authenticated_client, test_user):
         _, organisme = create_organisme_with_agent(
-            role=AgentOrganismeRole.RESPONSABLE,
+            role=AgentOrganismeRole.SUPERVISEUR,
             utilisateur=test_user,
         )
         autre_agent = OrganismeAgentDjangoFactory(
             organisme=organisme,
-            role=AgentOrganismeRole.MEMBRE.value,
+            role=AgentOrganismeRole.AGENT.value,
         ).agent
         OrganismeAgentModel.objects.filter(
             organisme_id=organisme.id, agent_id=autre_agent.utilisateur_id
@@ -101,7 +101,7 @@ class TestOrganismeAgentsView:
 
     def test_attach_agent_persists_to_db(self, authenticated_client, test_user):
         _, organisme = create_organisme_with_agent(
-            role=AgentOrganismeRole.RESPONSABLE,
+            role=AgentOrganismeRole.SUPERVISEUR,
             utilisateur=test_user,
         )
         bare_agent = AgentDjangoFactory()
@@ -114,7 +114,7 @@ class TestOrganismeAgentsView:
             url,
             data={
                 "agent_id": str(bare_agent.utilisateur_id),
-                "role": AgentOrganismeRole.MEMBRE.value,
+                "role": AgentOrganismeRole.AGENT.value,
             },
             format="json",
         )
@@ -127,7 +127,7 @@ class TestOrganismeAgentsView:
         assert data["prenom"] == bare_agent.utilisateur.first_name
         assert data["email"] == bare_agent.utilisateur.email
         assert data["poste"] == bare_agent.intitule_poste
-        assert data["role"] == AgentOrganismeRole.MEMBRE.value
+        assert data["role"] == AgentOrganismeRole.AGENT.value
         assert OrganismeAgentModel.objects.filter(
             organisme_id=organisme.id,
             agent_id=bare_agent.utilisateur_id,
@@ -135,7 +135,7 @@ class TestOrganismeAgentsView:
 
     def test_attach_agent_forbidden_for_membre(self, authenticated_client, test_user):
         _, organisme = create_organisme_with_agent(
-            role=AgentOrganismeRole.MEMBRE,
+            role=AgentOrganismeRole.AGENT,
             utilisateur=test_user,
         )
         bare_agent = AgentDjangoFactory()
@@ -148,7 +148,7 @@ class TestOrganismeAgentsView:
             url,
             data={
                 "agent_id": str(bare_agent.utilisateur_id),
-                "role": AgentOrganismeRole.MEMBRE.value,
+                "role": AgentOrganismeRole.AGENT.value,
             },
             format="json",
         )
@@ -159,12 +159,12 @@ class TestOrganismeAgentsView:
         self, authenticated_client, test_user
     ):
         _, organisme = create_organisme_with_agent(
-            role=AgentOrganismeRole.RESPONSABLE,
+            role=AgentOrganismeRole.SUPERVISEUR,
             utilisateur=test_user,
         )
         autre_agent = OrganismeAgentDjangoFactory(
             organisme=organisme,
-            role=AgentOrganismeRole.MEMBRE.value,
+            role=AgentOrganismeRole.AGENT.value,
         ).agent
         url = reverse(
             "recruteur:organisme-parametres-agents",
@@ -175,7 +175,7 @@ class TestOrganismeAgentsView:
             url,
             data={
                 "agent_id": str(autre_agent.utilisateur_id),
-                "role": AgentOrganismeRole.RESPONSABLE.value,
+                "role": AgentOrganismeRole.SUPERVISEUR.value,
             },
             format="json",
         )
@@ -200,7 +200,7 @@ class TestOrganismeAgentsView:
     def test_set_agent_role_requires_agent_id(self, authenticated_client):
         response = authenticated_client.post(
             AGENTS_URL,
-            data={"role": AgentOrganismeRole.MEMBRE.value},
+            data={"role": AgentOrganismeRole.AGENT.value},
             format="json",
         )
 
@@ -213,12 +213,12 @@ class TestOrganismeAgentsView:
 
     def test_update_agent(self, authenticated_client, test_user):
         _, organisme = create_organisme_with_agent(
-            role=AgentOrganismeRole.RESPONSABLE,
+            role=AgentOrganismeRole.SUPERVISEUR,
             utilisateur=test_user,
         )
         autre_agent = OrganismeAgentDjangoFactory(
             organisme=organisme,
-            role=AgentOrganismeRole.MEMBRE.value,
+            role=AgentOrganismeRole.AGENT.value,
             agent__intitule_poste="Recruteur",
         ).agent
         url = reverse(
@@ -230,7 +230,7 @@ class TestOrganismeAgentsView:
             url,
             data={
                 "agent_id": str(autre_agent.utilisateur_id),
-                "role": AgentOrganismeRole.RESPONSABLE.value,
+                "role": AgentOrganismeRole.SUPERVISEUR.value,
             },
             format="json",
         )
@@ -238,22 +238,22 @@ class TestOrganismeAgentsView:
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
         assert data["agent_id"] == str(autre_agent.utilisateur_id)
-        assert data["role"] == AgentOrganismeRole.RESPONSABLE.value
+        assert data["role"] == AgentOrganismeRole.SUPERVISEUR.value
         assert (
             OrganismeAgentModel.objects.get(
                 organisme_id=organisme.id, agent_id=autre_agent.utilisateur_id
             ).role
-            == AgentOrganismeRole.RESPONSABLE.value
+            == AgentOrganismeRole.SUPERVISEUR.value
         )
 
     def test_update_agent_forbidden_for_membre(self, authenticated_client, test_user):
         _, organisme = create_organisme_with_agent(
-            role=AgentOrganismeRole.MEMBRE,
+            role=AgentOrganismeRole.AGENT,
             utilisateur=test_user,
         )
         autre_agent = OrganismeAgentDjangoFactory(
             organisme=organisme,
-            role=AgentOrganismeRole.MEMBRE.value,
+            role=AgentOrganismeRole.AGENT.value,
         ).agent
         url = reverse(
             "recruteur:organisme-parametres-agents",
@@ -264,7 +264,7 @@ class TestOrganismeAgentsView:
             url,
             data={
                 "agent_id": str(autre_agent.utilisateur_id),
-                "role": AgentOrganismeRole.RESPONSABLE.value,
+                "role": AgentOrganismeRole.SUPERVISEUR.value,
             },
             format="json",
         )
@@ -275,7 +275,7 @@ class TestOrganismeAgentsView:
         self, authenticated_client, test_user
     ):
         _, organisme = create_organisme_with_agent(
-            role=AgentOrganismeRole.RESPONSABLE,
+            role=AgentOrganismeRole.SUPERVISEUR,
             utilisateur=test_user,
         )
         bare_agent = AgentDjangoFactory()
@@ -288,7 +288,7 @@ class TestOrganismeAgentsView:
             url,
             data={
                 "agent_id": str(bare_agent.utilisateur_id),
-                "role": AgentOrganismeRole.RESPONSABLE.value,
+                "role": AgentOrganismeRole.SUPERVISEUR.value,
             },
             format="json",
         )
@@ -307,7 +307,7 @@ class TestOrganismeAgentsView:
     def test_update_agent_requires_agent_id(self, authenticated_client):
         response = authenticated_client.put(
             AGENTS_URL,
-            data={"role": AgentOrganismeRole.MEMBRE.value},
+            data={"role": AgentOrganismeRole.AGENT.value},
             format="json",
         )
 
@@ -326,12 +326,12 @@ class TestOrganismeAgentsView:
         self, authenticated_client, test_user
     ):
         _, organisme = create_organisme_with_agent(
-            role=AgentOrganismeRole.RESPONSABLE,
+            role=AgentOrganismeRole.SUPERVISEUR,
             utilisateur=test_user,
         )
         autre_agent = OrganismeAgentDjangoFactory(
             organisme=organisme,
-            role=AgentOrganismeRole.MEMBRE.value,
+            role=AgentOrganismeRole.AGENT.value,
         ).agent
         url = reverse(
             "recruteur:organisme-parametres-agents",
@@ -342,7 +342,7 @@ class TestOrganismeAgentsView:
             url,
             data={
                 "agent_id": str(autre_agent.utilisateur_id),
-                "role": AgentOrganismeRole.RESPONSABLE.value,
+                "role": AgentOrganismeRole.SUPERVISEUR.value,
             },
             format="json",
         )
@@ -358,12 +358,12 @@ class TestOrganismeAgentsView:
 
     def test_revoke_agent(self, authenticated_client, test_user):
         _, organisme = create_organisme_with_agent(
-            role=AgentOrganismeRole.RESPONSABLE,
+            role=AgentOrganismeRole.SUPERVISEUR,
             utilisateur=test_user,
         )
         autre_agent = OrganismeAgentDjangoFactory(
             organisme=organisme,
-            role=AgentOrganismeRole.MEMBRE.value,
+            role=AgentOrganismeRole.AGENT.value,
         ).agent
         url = reverse(
             "recruteur:organisme-parametres-agents",
@@ -374,7 +374,7 @@ class TestOrganismeAgentsView:
             url,
             data={
                 "agent_id": str(autre_agent.utilisateur_id),
-                "role": AgentOrganismeRole.MEMBRE.value,
+                "role": AgentOrganismeRole.AGENT.value,
                 "date_revocation": datetime.now(),
             },
             format="json",
@@ -391,12 +391,12 @@ class TestOrganismeAgentsView:
 
     def test_revoke_agent_forbidden_for_membre(self, authenticated_client, test_user):
         _, organisme = create_organisme_with_agent(
-            role=AgentOrganismeRole.MEMBRE,
+            role=AgentOrganismeRole.AGENT,
             utilisateur=test_user,
         )
         autre_agent = OrganismeAgentDjangoFactory(
             organisme=organisme,
-            role=AgentOrganismeRole.MEMBRE.value,
+            role=AgentOrganismeRole.AGENT.value,
         ).agent
         url = reverse(
             "recruteur:organisme-parametres-agents",
@@ -407,7 +407,7 @@ class TestOrganismeAgentsView:
             url,
             data={
                 "agent_id": str(autre_agent.utilisateur_id),
-                "role": AgentOrganismeRole.MEMBRE.value,
+                "role": AgentOrganismeRole.AGENT.value,
                 "date_revocation": datetime.now(),
             },
             format="json",
@@ -419,7 +419,7 @@ class TestOrganismeAgentsView:
         self, authenticated_client, test_user
     ):
         _, organisme = create_organisme_with_agent(
-            role=AgentOrganismeRole.RESPONSABLE,
+            role=AgentOrganismeRole.SUPERVISEUR,
             utilisateur=test_user,
         )
         bare_agent = AgentDjangoFactory()
@@ -432,7 +432,7 @@ class TestOrganismeAgentsView:
             url,
             data={
                 "agent_id": str(bare_agent.utilisateur_id),
-                "role": AgentOrganismeRole.MEMBRE.value,
+                "role": AgentOrganismeRole.AGENT.value,
                 "date_revocation": datetime.now(),
             },
             format="json",

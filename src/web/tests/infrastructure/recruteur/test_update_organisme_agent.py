@@ -41,18 +41,18 @@ def usecase_fixture(
 
 def test_responsable_updates_agent_role(db, usecase, recruteur_integration_container):
     responsable, organisme = create_organisme_with_agent(
-        role=AgentOrganismeRole.RESPONSABLE
+        role=AgentOrganismeRole.SUPERVISEUR
     )
     autre_agent = OrganismeAgentDjangoFactory(
         organisme=organisme,
-        role=AgentOrganismeRole.MEMBRE.value,
+        role=AgentOrganismeRole.AGENT.value,
     ).agent
 
     agent_organisme = usecase.execute(
         UpdateOrganismeAgentCommand(
             organisme_id=organisme.id,
             agent_id=autre_agent.utilisateur_id,
-            role=AgentOrganismeRole.RESPONSABLE,
+            role=AgentOrganismeRole.SUPERVISEUR,
             utilisateur=UtilisateurFactory.create_entity(
                 entity_id=responsable.utilisateur_id, is_staff=False
             ),
@@ -60,11 +60,11 @@ def test_responsable_updates_agent_role(db, usecase, recruteur_integration_conta
     )
 
     assert agent_organisme.entity_id == autre_agent.utilisateur_id
-    assert agent_organisme.role == AgentOrganismeRole.RESPONSABLE.value
+    assert agent_organisme.role == AgentOrganismeRole.SUPERVISEUR.value
     liaison = OrganismeAgentModel.objects.get(
         organisme_id=organisme.id, agent_id=autre_agent.utilisateur_id
     )
-    assert liaison.role == AgentOrganismeRole.RESPONSABLE.value
+    assert liaison.role == AgentOrganismeRole.SUPERVISEUR.value
 
     audit_log_repository = (
         recruteur_integration_container.postgres_audit_log_repository()
@@ -79,31 +79,31 @@ def test_responsable_updates_agent_role(db, usecase, recruteur_integration_conta
 
 
 def test_staff_bypasses_role_check(db, usecase):
-    _, organisme = create_organisme_with_agent(role=AgentOrganismeRole.MEMBRE)
+    _, organisme = create_organisme_with_agent(role=AgentOrganismeRole.AGENT)
     autre_agent = OrganismeAgentDjangoFactory(
         organisme=organisme,
-        role=AgentOrganismeRole.MEMBRE.value,
+        role=AgentOrganismeRole.AGENT.value,
     ).agent
 
     agent_organisme = usecase.execute(
         UpdateOrganismeAgentCommand(
             organisme_id=organisme.id,
             agent_id=autre_agent.utilisateur_id,
-            role=AgentOrganismeRole.RESPONSABLE,
+            role=AgentOrganismeRole.SUPERVISEUR,
             utilisateur=UtilisateurFactory.create_entity(
                 entity_id=uuid4(), is_staff=True
             ),
         )
     )
 
-    assert agent_organisme.role == AgentOrganismeRole.RESPONSABLE.value
+    assert agent_organisme.role == AgentOrganismeRole.SUPERVISEUR.value
 
 
 def test_membre_is_denied(db, usecase, recruteur_integration_container):
-    membre, organisme = create_organisme_with_agent(role=AgentOrganismeRole.MEMBRE)
+    membre, organisme = create_organisme_with_agent(role=AgentOrganismeRole.AGENT)
     autre_agent = OrganismeAgentDjangoFactory(
         organisme=organisme,
-        role=AgentOrganismeRole.MEMBRE.value,
+        role=AgentOrganismeRole.AGENT.value,
     ).agent
 
     with pytest.raises(AccesOrganismeRefuse):
@@ -111,7 +111,7 @@ def test_membre_is_denied(db, usecase, recruteur_integration_container):
             UpdateOrganismeAgentCommand(
                 organisme_id=organisme.id,
                 agent_id=autre_agent.utilisateur_id,
-                role=AgentOrganismeRole.RESPONSABLE,
+                role=AgentOrganismeRole.SUPERVISEUR,
                 utilisateur=UtilisateurFactory.create_entity(
                     entity_id=membre.utilisateur_id, is_staff=False
                 ),
@@ -121,7 +121,7 @@ def test_membre_is_denied(db, usecase, recruteur_integration_container):
     liaison = OrganismeAgentModel.objects.get(
         organisme_id=organisme.id, agent_id=autre_agent.utilisateur_id
     )
-    assert liaison.role == AgentOrganismeRole.MEMBRE.value
+    assert liaison.role == AgentOrganismeRole.AGENT.value
     audit_log_repository = (
         recruteur_integration_container.postgres_audit_log_repository()
     )
@@ -135,7 +135,7 @@ def test_membre_is_denied(db, usecase, recruteur_integration_container):
 
 def test_raises_when_agent_not_attached(db, usecase):
     responsable, organisme = create_organisme_with_agent(
-        role=AgentOrganismeRole.RESPONSABLE
+        role=AgentOrganismeRole.SUPERVISEUR
     )
     bare_agent = AgentDjangoFactory()
 
@@ -144,7 +144,7 @@ def test_raises_when_agent_not_attached(db, usecase):
             UpdateOrganismeAgentCommand(
                 organisme_id=organisme.id,
                 agent_id=bare_agent.utilisateur_id,
-                role=AgentOrganismeRole.RESPONSABLE,
+                role=AgentOrganismeRole.SUPERVISEUR,
                 utilisateur=UtilisateurFactory.create_entity(
                     entity_id=responsable.utilisateur_id, is_staff=False
                 ),
@@ -160,7 +160,7 @@ def test_raises_when_organisme_does_not_exist(db, usecase):
             UpdateOrganismeAgentCommand(
                 organisme_id=uuid4(),
                 agent_id=bare_agent.utilisateur_id,
-                role=AgentOrganismeRole.MEMBRE,
+                role=AgentOrganismeRole.AGENT,
                 utilisateur=UtilisateurFactory.create_entity(
                     entity_id=uuid4(), is_staff=False
                 ),

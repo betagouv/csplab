@@ -2,8 +2,8 @@ from enum import Enum
 
 
 class AgentOrganismeRole(Enum):
-    RESPONSABLE = "responsable"
-    MEMBRE = "membre"
+    SUPERVISEUR = "responsable"
+    AGENT = "membre"
 
 
 class AgentRecrutementRole(Enum):

@@ -100,7 +100,7 @@ class TestUtilisateurDetailsViewDbVerified:
         agent = AgentDjangoFactory(utilisateur=test_user)
         organisme = OrganismeDjangoFactory()
         OrganismeAgentDjangoFactory(
-            organisme=organisme, agent=agent, role=AgentOrganismeRole.MEMBRE.value
+            organisme=organisme, agent=agent, role=AgentOrganismeRole.AGENT.value
         )
 
         response = authenticated_client.get(URL)
@@ -115,7 +115,7 @@ class TestUtilisateurDetailsViewDbVerified:
                 {
                     "organisme_uuid": str(organisme.id),
                     "nom": organisme.nom,
-                    "role": AgentOrganismeRole.MEMBRE.value,
+                    "role": AgentOrganismeRole.AGENT.value,
                 }
             ],
         }

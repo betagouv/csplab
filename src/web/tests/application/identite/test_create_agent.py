@@ -27,7 +27,7 @@ fake = Faker()
 @pytest.fixture(name="permission_service")
 def permission_service_fixture():
     service = Mock(spec=OrganismePermissionService)
-    service.can_execute.return_value = AgentOrganismeRole.RESPONSABLE
+    service.can_execute.return_value = AgentOrganismeRole.SUPERVISEUR
     return service
 
 

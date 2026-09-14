@@ -40,10 +40,10 @@ def _utilisateur(entity_id, *, is_staff=False):
 
 def test_responsable_updates_agent_role(db):
     responsable, organisme = create_organisme_with_agent(
-        role=AgentOrganismeRole.RESPONSABLE
+        role=AgentOrganismeRole.SUPERVISEUR
     )
     membre = OrganismeAgentDjangoFactory(
-        organisme=organisme, role=AgentOrganismeRole.MEMBRE.value
+        organisme=organisme, role=AgentOrganismeRole.AGENT.value
     ).agent
     recrutement = RecrutementDjangoFactory(organisme=organisme)
     RecrutementAgentDjangoFactory(
@@ -79,7 +79,7 @@ def test_responsable_updates_agent_role(db):
 def test_staff_bypasses_role_check(db):
     organisme = OrganismeDjangoFactory()
     membre = OrganismeAgentDjangoFactory(
-        organisme=organisme, role=AgentOrganismeRole.MEMBRE.value
+        organisme=organisme, role=AgentOrganismeRole.AGENT.value
     ).agent
     recrutement = RecrutementDjangoFactory(organisme=organisme)
     RecrutementAgentDjangoFactory(
@@ -100,7 +100,7 @@ def test_staff_bypasses_role_check(db):
 
 
 @pytest.mark.parametrize(
-    "role", [AgentOrganismeRole.MEMBRE, None], ids=["membre_role", "no_organisme_role"]
+    "role", [AgentOrganismeRole.AGENT, None], ids=["membre_role", "no_organisme_role"]
 )
 def test_denied_when_demandeur_is_not_responsable(db, role):
     if role is None:
@@ -110,7 +110,7 @@ def test_denied_when_demandeur_is_not_responsable(db, role):
         demandeur, organisme = create_organisme_with_agent(role=role)
         demandeur_id = demandeur.utilisateur_id
     membre = OrganismeAgentDjangoFactory(
-        organisme=organisme, role=AgentOrganismeRole.MEMBRE.value
+        organisme=organisme, role=AgentOrganismeRole.AGENT.value
     ).agent
     recrutement = RecrutementDjangoFactory(organisme=organisme)
     RecrutementAgentDjangoFactory(
@@ -157,10 +157,10 @@ def test_raises_when_organisme_does_not_exist(db):
 
 def test_raises_when_recrutement_does_not_belong_to_organisme(db):
     responsable, organisme = create_organisme_with_agent(
-        role=AgentOrganismeRole.RESPONSABLE
+        role=AgentOrganismeRole.SUPERVISEUR
     )
     membre = OrganismeAgentDjangoFactory(
-        organisme=organisme, role=AgentOrganismeRole.MEMBRE.value
+        organisme=organisme, role=AgentOrganismeRole.AGENT.value
     ).agent
     autre_organisme = OrganismeDjangoFactory()
     recrutement = RecrutementDjangoFactory(organisme=autre_organisme)
@@ -177,7 +177,7 @@ def test_raises_when_recrutement_does_not_belong_to_organisme(db):
 
 def test_raises_when_agent_to_update_is_not_attached_to_organisme(db):
     responsable, organisme = create_organisme_with_agent(
-        role=AgentOrganismeRole.RESPONSABLE
+        role=AgentOrganismeRole.SUPERVISEUR
     )
     bare_agent = AgentDjangoFactory()
     recrutement = RecrutementDjangoFactory(organisme=organisme)
@@ -194,10 +194,10 @@ def test_raises_when_agent_to_update_is_not_attached_to_organisme(db):
 
 def test_raises_when_agent_is_not_member_of_recrutement(db):
     responsable, organisme = create_organisme_with_agent(
-        role=AgentOrganismeRole.RESPONSABLE
+        role=AgentOrganismeRole.SUPERVISEUR
     )
     membre = OrganismeAgentDjangoFactory(
-        organisme=organisme, role=AgentOrganismeRole.MEMBRE.value
+        organisme=organisme, role=AgentOrganismeRole.AGENT.value
     ).agent
     recrutement = RecrutementDjangoFactory(organisme=organisme)
 
@@ -213,10 +213,10 @@ def test_raises_when_agent_is_not_member_of_recrutement(db):
 
 def test_raises_when_agent_is_revoked_from_recrutement(db):
     responsable, organisme = create_organisme_with_agent(
-        role=AgentOrganismeRole.RESPONSABLE
+        role=AgentOrganismeRole.SUPERVISEUR
     )
     membre = OrganismeAgentDjangoFactory(
-        organisme=organisme, role=AgentOrganismeRole.MEMBRE.value
+        organisme=organisme, role=AgentOrganismeRole.AGENT.value
     ).agent
     recrutement = RecrutementDjangoFactory(organisme=organisme)
     RecrutementAgentDjangoFactory(
@@ -238,10 +238,10 @@ def test_raises_when_agent_is_revoked_from_recrutement(db):
 
 def test_rolls_back_role_update_when_audit_log_write_fails(db, monkeypatch):
     responsable, organisme = create_organisme_with_agent(
-        role=AgentOrganismeRole.RESPONSABLE
+        role=AgentOrganismeRole.SUPERVISEUR
     )
     membre = OrganismeAgentDjangoFactory(
-        organisme=organisme, role=AgentOrganismeRole.MEMBRE.value
+        organisme=organisme, role=AgentOrganismeRole.AGENT.value
     ).agent
     recrutement = RecrutementDjangoFactory(organisme=organisme)
     RecrutementAgentDjangoFactory(

@@ -65,9 +65,9 @@ class TestUpdateRecrutementEtapes:
     @pytest.mark.parametrize(
         "kwargs",
         [
-            {"organisme_role": AgentOrganismeRole.RESPONSABLE},
+            {"organisme_role": AgentOrganismeRole.SUPERVISEUR},
             {
-                "organisme_role": AgentOrganismeRole.MEMBRE,
+                "organisme_role": AgentOrganismeRole.AGENT,
                 "agent_role": AgentRecrutementRole.RESPONSABLE,
             },
         ],
@@ -196,7 +196,7 @@ class TestUpdateRecrutementEtapes:
     ):
         other_organisme = OrganismeDjangoFactory(id=uuid4())
         etapes = EtapeRecrutementFactory.create_entity_batch()
-        agent, organisme = create_organisme_with_agent(role=AgentOrganismeRole.MEMBRE)
+        agent, organisme = create_organisme_with_agent(role=AgentOrganismeRole.AGENT)
         utilisateur = UtilisateurFactory.create_entity(
             entity_id=agent.utilisateur.username
         )
@@ -221,7 +221,7 @@ class TestUpdateRecrutementEtapes:
         self, db, recruteur_integration_container
     ):
         etapes = EtapeRecrutementFactory.create_entity_batch()
-        agent, organisme = create_organisme_with_agent(role=AgentOrganismeRole.MEMBRE)
+        agent, organisme = create_organisme_with_agent(role=AgentOrganismeRole.AGENT)
         utilisateur = UtilisateurFactory.create_entity(
             entity_id=agent.utilisateur.username
         )
@@ -277,7 +277,7 @@ class TestUpdateRecrutementEtapes:
     ):
         etapes = EtapeRecrutementFactory.create_entity_batch()
         agent, organisme = create_organisme_with_agent(
-            role=AgentOrganismeRole.MEMBRE, etapes=etapes
+            role=AgentOrganismeRole.AGENT, etapes=etapes
         )
         recrutement_model = RecrutementDjangoFactory(
             organisme=organisme,

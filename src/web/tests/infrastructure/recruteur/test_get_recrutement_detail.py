@@ -44,10 +44,10 @@ class TestGetRecrutementDetail:
         ("role", "assign_agent_to_recrutement", "offre_archivee"),
         [
             pytest.param(
-                AgentOrganismeRole.RESPONSABLE, False, False, id="responsable"
+                AgentOrganismeRole.SUPERVISEUR, False, False, id="responsable"
             ),
             pytest.param(
-                AgentOrganismeRole.MEMBRE, True, True, id="membre_assigned_archive"
+                AgentOrganismeRole.AGENT, True, True, id="membre_assigned_archive"
             ),
         ],
     )
@@ -80,7 +80,7 @@ class TestGetRecrutementDetail:
         assert result.etapes[-1].categorie == "ACCEPTE"
 
     def test_forbidden_when_membre_not_assigned_to_recrutement(self, usecase):
-        agent, organisme = create_organisme_with_agent(role=AgentOrganismeRole.MEMBRE)
+        agent, organisme = create_organisme_with_agent(role=AgentOrganismeRole.AGENT)
         recrutement = RecrutementDjangoFactory(organisme=organisme)
 
         with pytest.raises(AccesRecrutementRefuse):
@@ -112,7 +112,7 @@ class TestGetRecrutementDetail:
 
     def test_returns_none_for_unknown_recrutement(self, usecase):
         agent, organisme = create_organisme_with_agent(
-            role=AgentOrganismeRole.RESPONSABLE
+            role=AgentOrganismeRole.SUPERVISEUR
         )
 
         result = usecase.execute(
@@ -129,7 +129,7 @@ class TestGetRecrutementDetail:
 
     def test_returns_none_when_recrutement_belongs_to_another_organisme(self, usecase):
         agent, organisme = create_organisme_with_agent(
-            role=AgentOrganismeRole.RESPONSABLE
+            role=AgentOrganismeRole.SUPERVISEUR
         )
         autre_organisme = OrganismeDjangoFactory()
         recrutement = RecrutementDjangoFactory(organisme=autre_organisme)

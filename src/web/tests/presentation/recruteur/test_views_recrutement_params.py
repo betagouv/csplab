@@ -332,7 +332,7 @@ class TestInitRecrutementEtapeView:
 class TestRecrutementEtapeViewDbVerified:
     def test_returns_persisted_etapes(self, authenticated_client, test_user):
         _, organisme = create_organisme_with_agent(
-            role=AgentOrganismeRole.RESPONSABLE,
+            role=AgentOrganismeRole.SUPERVISEUR,
             utilisateur=test_user,
             id=UUID(ORGANISME_UUID),
         )
@@ -349,7 +349,7 @@ class TestRecrutementEtapeViewDbVerified:
 
     def test_patch_persists_the_etapes(self, authenticated_client, test_user):
         _, organisme = create_organisme_with_agent(
-            role=AgentOrganismeRole.RESPONSABLE,
+            role=AgentOrganismeRole.SUPERVISEUR,
             utilisateur=test_user,
             id=UUID(ORGANISME_UUID),
         )
@@ -383,7 +383,7 @@ class TestInitRecrutementEtapeViewDbVerified:
         self, authenticated_client, test_user
     ):
         _, organisme = create_organisme_with_agent(
-            role=AgentOrganismeRole.RESPONSABLE,
+            role=AgentOrganismeRole.SUPERVISEUR,
             utilisateur=test_user,
             id=UUID(ORGANISME_UUID),
             etapes=EtapeRecrutementFactory.create_entity_batch(),

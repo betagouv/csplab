@@ -42,9 +42,9 @@ class TestGetRecrutementEtapes:
     @pytest.mark.parametrize(
         "kwargs",
         [
-            {"organisme_role": AgentOrganismeRole.RESPONSABLE},
+            {"organisme_role": AgentOrganismeRole.SUPERVISEUR},
             {
-                "organisme_role": AgentOrganismeRole.MEMBRE,
+                "organisme_role": AgentOrganismeRole.AGENT,
                 "agent_role": AgentRecrutementRole.RESPONSABLE,
             },
         ],
