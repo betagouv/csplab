@@ -59,6 +59,9 @@ class AttachOrganismeAgentUsecase(
         if not self.agent_repository.exists(command.agent_id):
             raise ProfilAgentNexistePas(command.agent_id)
 
+        # TODO : duplicate query — near-identical OrganismeAgentModel lookup already
+        # done inside OrganismePermissionService.can_execute() above (the role
+        # lookup); dedupe when refactoring to ADR-009
         agent_is_revoked = self.organisme_agent_repository.is_revoked(
             organisme_id=command.organisme_id, agent_id=command.agent_id
         )
@@ -80,6 +83,9 @@ class AttachOrganismeAgentUsecase(
             ressource_kind="AgentOrganisme",
             event_name="AgentOrganismeRoleAttache",
         )
+        # TODO : duplicate query — this is the third OrganismeAgentModel touch for this
+        # (organisme_id, agent_id) pair in this request (permission check, is_revoked
+        # check, and this read-model rebuild); dedupe when refactoring to ADR-009
         agent_organisme = self.organisme_agent_query_service.get_one(
             organisme_id=command.organisme_id, agent_id=command.agent_id
         )

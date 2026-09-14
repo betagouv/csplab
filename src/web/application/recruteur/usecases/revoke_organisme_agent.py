@@ -62,6 +62,9 @@ class RevokeOrganismeAgentUsecase(
             ressource_kind="AgentOrganisme",
             event_name="AgentOrganismeRoleRevoque",
         )
+        # TODO : duplicate query — re-reads OrganismeAgentModel after the blind
+        # revoke(...) write above, on top of the role lookup already done inside
+        # OrganismePermissionService.can_execute(); dedupe when refactoring to ADR-009
         agent_organisme = self.organisme_agent_query_service.get_one(
             organisme_id=command.organisme_id, agent_id=command.agent_id
         )

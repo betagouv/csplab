@@ -32,6 +32,9 @@ class GetRecrutementEtapesUsecase(
         self.recrutement_repository = recrutement_repository
 
     def can_execute(self, query: RecrutementRequest) -> Recrutement:
+        # TODO : duplicate query — also done in OrganismePermissionService.can_execute()
+        # (Organisme existence check); result is discarded here, dedupe when refactoring
+        # to ADR-009
         self.organisme_recruteur_repository.get_by_id(query.organisme_id)
         recrutement = self.recrutement_repository.get_by_id(query.recrutement_id)
         if query.organisme_id != recrutement.organisme_id:

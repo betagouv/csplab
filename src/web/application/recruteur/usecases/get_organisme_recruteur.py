@@ -37,4 +37,6 @@ class GetOrganismeRecruteurUsecase(
             organisme_id=command.organisme_id,
             utilisateur=command.utilisateur,
         )
+        # TODO : duplicate query — also done in OrganismePermissionService.can_execute()
+        # (Organisme existence check), dedupe when refactoring to ADR-009
         return self.organisme_recruteur_repository.get_by_id(command.organisme_id)

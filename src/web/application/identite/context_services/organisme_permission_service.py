@@ -141,6 +141,9 @@ class OrganismePermissionService:
         if utilisateur.is_staff and action in _ACTIONS_SANS_ORGANISME:
             return None
 
+        # TODO : duplicate query — callers passing organisme_id typically also fetch the
+        # full Organisme/OrganismeRecruteur row via their repository right around this
+        # call (application/*/usecases/*.py); dedupe when refactoring to ADR-009
         if organisme_id and not OrganismeModel.objects.filter(id=organisme_id).exists():
             raise OrganismeNexistePas(str(organisme_id))
 
@@ -150,6 +153,10 @@ class OrganismePermissionService:
         if action not in _ROLES_REQUIS:
             raise OperationOrganismeRefusee()
 
+        # TODO : duplicate query — agent-attach/update/revoke usecases run
+        # near-identical OrganismeAgentModel lookups for the *target* agent right next
+        # to this call (application/recruteur/usecases/{attach,update,revoke}
+        # _organisme_agent.py); dedupe when refactoring to ADR-009
         liaison = OrganismeAgentModel.objects.filter(
             organisme_id=organisme_id, agent_id=utilisateur.entity_id
         ).first()
@@ -164,6 +171,10 @@ class OrganismePermissionService:
             if recrutement_id is None:
                 raise AccesRecrutementInconnu()
 
+            # TODO : duplicate query — overlaps the
+            # recrutement_repository.get_by_id(...) call usecases already made just
+            # above (application/recruteur/usecases/{get,init,update}
+            # _recrutement_etapes.py); dedupe when refactoring to ADR-009
             recrutement_liaison = (
                 RecrutementAgentModel.objects.by_recrutement_and_agent(
                     recrutement_id, utilisateur.entity_id

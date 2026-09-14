@@ -39,6 +39,9 @@ def revoke_recrutement_agent(
         organisme_id=organisme_id, recrutement_id=recrutement_id
     )
     contexte.check_recrutement_belongs_to_organisme()
+    # TODO : duplicate query — same OrganismeAgentModel table already queried inside
+    # OrganismePermissionService.can_execute() above (for the acting utilisateur rather
+    # than this target agent_id); dedupe when refactoring to ADR-009
     contexte.check_agent_attached_to_organisme(agent_id)
     recrutement_agent = contexte.get_active_member(agent_id)
 
