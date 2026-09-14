@@ -14,6 +14,7 @@ from application.identite.usecases.get_organisme import (
 from application.identite.usecases.update_organisme import (
     UpdateOrganismeCommand,
 )
+from application.recruteur.services.list_motifs_refus import list_motifs_refus
 from application.recruteur.usecases.get_organisme_recruteur import (
     GetOrganismeRecruteurQuery,
 )
@@ -48,6 +49,7 @@ from presentation.recruteur.mappers import (
 )
 from presentation.recruteur.serializers import (
     EtapeRecrutementSerializer,
+    MotifRefusSerializer,
     OrganismeDetailSerializer,
     UpdateEtapeRecrutementSerializer,
     UpdateOrganismeSerializer,
@@ -229,6 +231,40 @@ class EtapesRecrutementOrganismeView(APIView):
             return Response(out_serializer.data)
         except ConfigurationEtapesInvalide as e:
             return Response({"error": e.raison}, status=status.HTTP_400_BAD_REQUEST)
+        except AccesOrganismeRefuse:
+            return Response({"detail": "Forbidden."}, status=status.HTTP_403_FORBIDDEN)
+        except OrganismeNexistePas:
+            return Response(
+                {"organisme_uuid": "Not found."}, status=status.HTTP_404_NOT_FOUND
+            )
+        except Exception:
+            serializer = GenericErrorSerializer({"error": "Unexpected error"})
+            return Response(
+                serializer.data, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+
+@extend_schema_view(
+    get=extend_schema(
+        summary="Liste des motifs de refus d'une candidature",
+        tags=["recruteur"],
+        responses={
+            **generic_response_format,
+            200: MotifRefusSerializer(many=True),
+        },
+    ),
+)
+class MotifsRefusOrganismeView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request: Request, organisme_uuid: UUID) -> Response:
+        try:
+            motifs = list_motifs_refus(
+                organisme_id=organisme_uuid,
+                utilisateur=UtilisateurMapper().to_domain(request),
+            )
+            data = [{"value": m.value, "label": m.label} for m in motifs]
+            return Response(MotifRefusSerializer(data, many=True).data)
         except AccesOrganismeRefuse:
             return Response({"detail": "Forbidden."}, status=status.HTTP_403_FORBIDDEN)
         except OrganismeNexistePas:

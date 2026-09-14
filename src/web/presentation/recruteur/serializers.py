@@ -60,6 +60,11 @@ class UpdateEtapeRecrutementSerializer(EtapeRecrutementSerializer):
     etape_uuid = serializers.UUIDField(required=False)
 
 
+class MotifRefusSerializer(serializers.Serializer):
+    value = serializers.CharField()
+    label = serializers.CharField()
+
+
 class ResponsableSerializer(serializers.Serializer):
     nom = serializers.CharField()
 
