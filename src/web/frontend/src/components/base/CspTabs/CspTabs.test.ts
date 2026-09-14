@@ -1,4 +1,4 @@
-import { mount } from '@vue/test-utils'
+import { render, within } from '@testing-library/vue'
 import { describe, expect, it } from 'vitest'
 import { defineComponent, h } from 'vue'
 import CspTabs from './CspTabs.vue'
@@ -18,47 +18,35 @@ const TABS = [
   { value: 'b', label: 'Onglet B' },
 ]
 
-describe('cspTabs: monolithic usage', () => {
-  it('renders the tab list and forwards the active panel slot', () => {
-    const wrapper = mount(CspTabs, {
+describe('cspTabs', () => {
+  it('renders one tab per item and the active panel', () => {
+    const { getAllByRole, getByRole } = render(CspTabs, {
       props: { tabs: TABS, defaultValue: 'a' },
-      slots: {
-        a: () => 'Contenu A',
-        b: () => 'Contenu B',
-      },
+      slots: { a: () => 'Contenu A', b: () => 'Contenu B' },
       global,
     })
 
-    const triggers = wrapper.findAll('.csp-tabs__trigger')
-    expect(triggers).toHaveLength(2)
-    expect(triggers[0].text()).toBe('Onglet A')
-    expect(wrapper.text()).toContain('Contenu A')
+    expect(getAllByRole('tab').map(tab => tab.textContent?.trim())).toEqual(['Onglet A', 'Onglet B'])
+    expect(getByRole('tabpanel')).toHaveTextContent('Contenu A')
   })
-})
 
-describe('cspTabs: composed usage (list and panels in separate regions)', () => {
-  it('shares active state between a detached list and panels', () => {
-    const wrapper = mount(
+  it('shares the active tab between a detached list and panels', () => {
+    const { container } = render(
       defineComponent({
-        components: { CspTabs, CspTabsList, CspTabsPanels },
         setup() {
           return () =>
             h(CspTabs, { defaultValue: 'a' }, () => [
               h('header', [h(CspTabsList, { tabs: TABS })]),
-              h('main', [
-                h(CspTabsPanels, { tabs: TABS }, {
-                  a: () => 'Contenu A',
-                  b: () => 'Contenu B',
-                }),
-              ]),
+              h('main', [h(CspTabsPanels, { tabs: TABS }, { a: () => 'Contenu A', b: () => 'Contenu B' })]),
             ])
         },
       }),
       { global },
     )
 
-    expect(wrapper.find('header .csp-tabs__list').exists()).toBe(true)
-    expect(wrapper.find('main .csp-tabs__panels').exists()).toBe(true)
-    expect(wrapper.text()).toContain('Contenu A')
+    const header = within(container.querySelector('header')!)
+    const main = within(container.querySelector('main')!)
+    expect(header.getByRole('tab', { name: 'Onglet A', selected: true })).toBeInTheDocument()
+    expect(main.getByRole('tabpanel')).toHaveTextContent('Contenu A')
   })
 })
