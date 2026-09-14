@@ -5,6 +5,9 @@ import pytest
 from referentiel.events.organisme_events import OrganismeModifie
 from referentiel.value_objects.verse import Verse
 
+from application.identite.context_services.organisme_permission_service import (
+    OrganismePermissionService,
+)
 from application.identite.usecases.update_organisme import (
     UpdateOrganismeCommand,
     UpdateOrganismeUsecase,
@@ -16,9 +19,6 @@ from domain.identite.errors.organisme_permission_errors import (
 from domain.identite.repositories.organisme_repository_interface import (
     IOrganismeRepository,
 )
-from domain.identite.services.organisme_permission_service import (
-    OrganismePermissionService,
-)
 from domain.identite.value_objects.organisme_action import OrganismeAction
 from domain.recruteur.value_objects.roles import AgentRecrutementRole
 from infrastructure.factories.identite.organisme_factory import OrganismeFactory
@@ -29,7 +29,7 @@ from tests.utils.interface_aware_mock import create_interface_aware_mock
 @pytest.fixture(name="permission_service")
 def permission_service_fixture():
     service = Mock(spec=OrganismePermissionService)
-    service.est_autorise.return_value = AgentRecrutementRole.RESPONSABLE
+    service.can_execute.return_value = AgentRecrutementRole.RESPONSABLE
     return service
 
 
@@ -77,7 +77,7 @@ def test_update_organisme_success(
     )
 
     result = usecase.execute(command)
-    permission_service.est_autorise.assert_called_once_with(
+    permission_service.can_execute.assert_called_once_with(
         action=OrganismeAction.MODIFIER_ORGANISME,
         utilisateur=utilisateur,
     )
@@ -102,7 +102,7 @@ def test_update_organisme_refuse_non_staff(permission_service, organisme, usecas
         managed_ats=True,
         utilisateur=UtilisateurFactory.create_entity(is_staff=False),
     )
-    permission_service.est_autorise.side_effect = OperationOrganismeRefusee()
+    permission_service.can_execute.side_effect = OperationOrganismeRefusee()
 
     with pytest.raises(OperationOrganismeRefusee):
         usecase.execute(command=command)
