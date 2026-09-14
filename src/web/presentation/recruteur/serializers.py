@@ -10,6 +10,7 @@ from domain.recruteur.value_objects.roles import (
     AgentOrganismeRole,
     AgentRecrutementRole,
 )
+from infrastructure.django_apps.recruteur.enums.motif_refus import MotifRefus
 from infrastructure.django_apps.recruteur.models.recrutement import (
     RecrutementAgentModel,
 )
@@ -303,6 +304,7 @@ class CandidatureAChangerSerializer(serializers.Serializer):
 class ChangerEtapeCandidaturesSerializer(serializers.Serializer):
     etape_cible_uuid = serializers.UUIDField()
     candidatures = CandidatureAChangerSerializer(many=True)
+    motif_refus = serializers.ChoiceField(choices=MotifRefus.choices, required=False)
 
 
 class CandidatureEchecSerializer(serializers.Serializer):

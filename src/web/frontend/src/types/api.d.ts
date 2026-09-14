@@ -636,6 +636,18 @@ export interface components {
             value: string;
             label: string;
         };
+        /**
+         * @description * `corps_grade_non_eligible` - Corps ou grade non éligible
+         *     * `condition_mobilite_non_remplie` - Condition de mobilité non remplie
+         *     * `candidat_non_fonctionnaire` - Candidat non fonctionnaire
+         *     * `experience_insuffisante` - Expérience insuffisante
+         *     * `competences_techniques_insuffisantes` - Compétences techniques insuffisantes
+         *     * `niveau_qualification_insuffisant` - Niveau de qualification insuffisant
+         *     * `disponibilite` - Disponibilité
+         *     * `autre` - Autre
+         * @enum {string}
+         */
+        MotifRefusEnum: "corps_grade_non_eligible" | "condition_mobilite_non_remplie" | "candidat_non_fonctionnaire" | "experience_insuffisante" | "competences_techniques_insuffisantes" | "niveau_qualification_insuffisant" | "disponibilite" | "autre";
         Note: {
             /** Format: uuid */
             entity_id: string;
@@ -762,6 +774,7 @@ export interface components {
             /** Format: uuid */
             etape_cible_uuid?: string;
             candidatures?: components["schemas"]["CandidatureAChanger"][];
+            motif_refus?: components["schemas"]["MotifRefusEnum"];
         };
         PatchedEditerNote: {
             message?: string;
