@@ -100,6 +100,7 @@ def test_changer_etapes_candidatures_vers_refus_avec_motif() -> None:
 
     assert resultat["successes"] == candidatures
     assert resultat["failures"] == []
+    assert all(c.motif_refus == "autre" for c in resultat["successes"])
 
 
 def test_changer_etapes_candidatures_vers_etape_non_refus_sans_motif() -> None:
@@ -116,3 +117,4 @@ def test_changer_etapes_candidatures_vers_etape_non_refus_sans_motif() -> None:
 
     assert resultat["successes"] == candidatures
     assert resultat["failures"] == []
+    assert all(c.motif_refus is None for c in resultat["successes"])
