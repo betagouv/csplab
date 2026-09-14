@@ -39,7 +39,7 @@ postprocessors = [
 [git]
 # Parse commits according to the conventional commits specification.
 # See https://www.conventionalcommits.org
-conventional_commits = false
+conventional_commits = true
 # Exclude commits that do not match the conventional commits specification.
 filter_unconventional = false
 # Require all commits to be conventional.
@@ -57,11 +57,27 @@ commit_preprocessors = [
     #{ pattern = '.*', replace_command = 'typos --write-changes -' },
 ]
 # Prevent commits that are breaking from being excluded by commit parsers.
-protect_breaking_commits = false
+protect_breaking_commits = true
 # An array of regex based parsers for extracting data from the commit message.
 # Assigns commits to groups.
 # Optionally sets the commit's scope and can decide to exclude commits from further processing.
+#
+# NOTE: the `<!-- N -->` prefix in each group name is the sort key used by the
+# changelog template. It must be IDENTICAL for the new (type-based) and legacy
+# (label-based) parser matching the same logical category, otherwise the two
+# would render as separate, duplicate sections instead of merging into one.
 commit_parsers = [
+  # New scheme (conventional commits, no PR labels): matched first.
+  { message = "^.+!:", group = "<!-- 0 --> Breaking Changes" },
+  { body = ".*BREAKING CHANGE", group = "<!-- 0 --> Breaking Changes" },
+  { message = "^feat", group = "<!-- 1 --> Added" },
+  { message = "^refactor", group = "<!-- 2 --> Modified" },
+  { message = "^perf", group = "<!-- 2 --> Modified" },
+  { message = "^fix", group = "<!-- 4 --> Fixed" },
+  { message = "^docs", group = "<!-- 5 --> Documentation" },
+  { message = "^style|^test|^build|^ci|^chore|^revert", skip = true },
+  # Legacy scheme (Gitmoji + PR labels): fallback for commits made before the switch,
+  # so regenerating the full changelog doesn't drop pre-migration history.
   { field = "github.pr_labels", pattern = "breaking", group = "<!-- 0 --> Breaking Changes" },
   { field = "github.pr_labels", pattern = "added", group = "<!-- 1 --> Added" },
   { field = "github.pr_labels", pattern = "modified", group = "<!-- 2 --> Modified" },
