@@ -58,16 +58,16 @@ bin/cz commit
 
 ### Format des messages de commit
 
-Les messages de commit doivent respecter le format gitmoji configuré :
+Les commits et les titres de PR suivent le format [Conventional Commits](https://www.conventionalcommits.org/), en français :
 
 ```
-<emoji>(<scope>) <subject>
-<body>
-<footer>
+<type>(<scope>[-layer]): <subject>
 ```
+
+Types autorisés : `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore`, `revert`. Le scope est généralement le service ou la fonctionnalité concernée ; le suffixe `-layer` (optionnel) précise la couche DDD (`domain`, `usecase`, `infrastructure`, `presentation`).
 
 **Exemples :**
 
-- `✨(auth) add support for HTTP basic auth`
-- `🐛(api) fix user authentication bug`
-- `📝(docs) update installation guide`
+- `feat(candidate-infrastructure): ajoute le support de l'authentification HTTP basic`
+- `fix(api): corrige un bug d'authentification`
+- `docs(readme): met à jour le guide d'installation`
