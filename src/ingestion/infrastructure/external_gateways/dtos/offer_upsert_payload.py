@@ -5,7 +5,6 @@ from typing import Optional
 
 from pydantic import BaseModel, HttpUrl, model_serializer
 from referentiel.value_objects.language import Language
-from referentiel.value_objects.offer_conditions import WorkingTime
 
 from domain.entities.offer import Offer
 
@@ -171,7 +170,7 @@ class OfferUpsertPayload(BaseModel):
             or offer.languages
             else None,
             conditions=ConditionsPayload(
-                temps_travail=WorkingTime.NON_DEFINI.name,
+                temps_travail=offer.working_time.name,
                 lieu_de_travail=offer.working_place.name,
                 management=offer.management.name if offer.management else None,
             ),

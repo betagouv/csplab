@@ -14,7 +14,11 @@ from referentiel.value_objects.language import Language
 from referentiel.value_objects.language_level import LanguageLevel
 from referentiel.value_objects.limit_date import LimitDate
 from referentiel.value_objects.localisation import Localisation
-from referentiel.value_objects.offer_conditions import Management, WorkingPlace
+from referentiel.value_objects.offer_conditions import (
+    Management,
+    WorkingPlace,
+    WorkingTime,
+)
 from referentiel.value_objects.region import Region
 from referentiel.value_objects.verse import Verse
 
@@ -380,6 +384,15 @@ class OffersCleaner:
             transcoder,
         )
 
+        working_time = self._map_working_time(
+            talentsoft_offer.customFields.description.customCodeTable3.clientCode
+            if talentsoft_offer.customFields
+            and talentsoft_offer.customFields.description
+            and talentsoft_offer.customFields.description.customCodeTable3
+            else None,
+            transcoder,
+        )
+
         return Offer(
             reference=raw_offer.reference,
             source_id=UUID(cast(str, raw_offer.source_id)),
@@ -407,6 +420,7 @@ class OffersCleaner:
             specialisations=specialisations,
             family_code=family_code_value,
             working_place=working_place,
+            working_time=working_time,
             management=management,
         )
 
@@ -496,6 +510,26 @@ class OffersCleaner:
 
         return self._WORKING_PLACE_MAPPING.get(
             client_code.lower(), WorkingPlace.NON_DEFINI
+        )
+
+    _WORKING_TIME_MAPPING: dict[str, WorkingTime] = {
+        "reponse_oui": WorkingTime.TEMPS_PLEIN,
+        "reponse_non": WorkingTime.TEMPS_PARTIEL,
+    }
+
+    def _map_working_time(
+        self,
+        client_code: Optional[str],
+        transcoder: Optional[SourceTranscoder] = None,
+    ) -> WorkingTime:
+        if not client_code:
+            return WorkingTime.NON_DEFINI
+
+        if transcoder:
+            client_code = transcoder.translate("oui_non", client_code) or client_code
+
+        return self._WORKING_TIME_MAPPING.get(
+            client_code.lower(), WorkingTime.NON_DEFINI
         )
 
     _MANAGEMENT_MAPPING: dict[str, Management] = {

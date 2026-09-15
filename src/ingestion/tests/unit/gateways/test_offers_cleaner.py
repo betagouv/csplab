@@ -8,7 +8,11 @@ from referentiel.value_objects.contract_type import ContractKind, ContractType
 from referentiel.value_objects.experience_level import ExperienceLevel
 from referentiel.value_objects.language import Language
 from referentiel.value_objects.language_level import LanguageLevel
-from referentiel.value_objects.offer_conditions import Management, WorkingPlace
+from referentiel.value_objects.offer_conditions import (
+    Management,
+    WorkingPlace,
+    WorkingTime,
+)
 from referentiel.value_objects.verse import Verse
 
 from domain.entities.raw_offer import RawOffer
@@ -515,6 +519,34 @@ def test_clean_maps_working_place(cleaner, working_place_code, expected):
     offer = cleaner.clean(raw_offer)
 
     assert offer.working_place == expected
+
+
+@pytest.mark.parametrize(
+    "working_time_code, expected",
+    [
+        ("reponse_oui", WorkingTime.TEMPS_PLEIN),
+        ("reponse_non", WorkingTime.TEMPS_PARTIEL),
+        ("UNKNOWN_CODE", WorkingTime.NON_DEFINI),
+        (None, WorkingTime.NON_DEFINI),
+    ],
+)
+def test_clean_maps_working_time(cleaner, working_time_code, expected):
+    offer_dto_kwargs = {
+        "customFields": TalentsoftCustomFieldsFactory.build(
+            description=TalentsoftDescriptionCustomFieldsFactory.build(
+                customCodeTable3=TalentsoftCustomCodeTableFactory.build(
+                    clientCode=working_time_code
+                )
+                if working_time_code
+                else None
+            )
+        )
+    }
+    raw_offer = _make_raw_offer(**offer_dto_kwargs)
+
+    offer = cleaner.clean(raw_offer)
+
+    assert offer.working_time == expected
 
 
 @pytest.mark.parametrize(
