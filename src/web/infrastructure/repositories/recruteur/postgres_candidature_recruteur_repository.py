@@ -53,6 +53,7 @@ class PostgresCandidatureRecrutementRepository(ICandidatureRecruteurRepository):
             try:
                 CandidatureModel.objects.filter(id=candidature.entity_id).update(
                     etape_id=candidature.etape_id,
+                    motif_refus=candidature.motif_refus,
                     updated_by_recruteur=candidature.derniere_activite_le,
                 )
                 successes.append(candidature)

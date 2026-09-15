@@ -93,7 +93,9 @@ class Recrutement(OrganismeRecruteur):
                     )
                 )
             else:
-                candidature.changer_etape(etape_id=etape_cible_id)
+                candidature.changer_etape(
+                    etape_id=etape_cible_id, motif_refus=motif_refus
+                )
                 for event in candidature.collect_events():
                     self.add_event(event)
                 successes.append(candidature)

@@ -12,6 +12,7 @@ class CandidatureRecruteurFactory:
         candidat_id: UUID | None = None,
         recrutement_id: UUID | None = None,
         etape_id: UUID | None = None,
+        motif_refus: str | None = None,
     ) -> CandidatureRecruteur:
         return CandidatureRecruteur.build(
             entity_id=entity_id or uuid4(),
@@ -19,6 +20,7 @@ class CandidatureRecruteurFactory:
             recrutement_id=recrutement_id or uuid4(),
             etape_id=etape_id or uuid4(),
             derniere_activite_le=derniere_activite_le or datetime.now(tz=timezone.utc),
+            motif_refus=motif_refus,
         )
 
     @staticmethod

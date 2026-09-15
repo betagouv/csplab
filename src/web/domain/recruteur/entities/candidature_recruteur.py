@@ -21,6 +21,7 @@ class CandidatureRecruteur(AggregateRoot):
     _recrutement_id: UUID
     _etape_id: UUID
     _derniere_activite_le: datetime
+    _motif_refus: str | None = None
 
     @classmethod
     def build(
@@ -30,6 +31,7 @@ class CandidatureRecruteur(AggregateRoot):
         recrutement_id: UUID,
         etape_id: UUID,
         derniere_activite_le: datetime,
+        motif_refus: str | None = None,
     ) -> "CandidatureRecruteur":
         return cls(
             entity_id=entity_id,
@@ -37,6 +39,7 @@ class CandidatureRecruteur(AggregateRoot):
             _recrutement_id=recrutement_id,
             _etape_id=etape_id,
             _derniere_activite_le=derniere_activite_le,
+            _motif_refus=motif_refus,
         )
 
     @mutate(CandidatureRecue)
@@ -46,8 +49,9 @@ class CandidatureRecruteur(AggregateRoot):
         self._derniere_activite_le = datetime.now(tz=timezone.utc)
 
     @mutate(CandidatureEtapeModifiee)
-    def changer_etape(self, etape_id: UUID) -> None:
+    def changer_etape(self, etape_id: UUID, motif_refus: str | None = None) -> None:
         self._etape_id = etape_id
+        self._motif_refus = motif_refus
         self._derniere_activite_le = datetime.now(tz=timezone.utc)
 
     @property
@@ -61,6 +65,10 @@ class CandidatureRecruteur(AggregateRoot):
     @property
     def etape_id(self) -> UUID:
         return self._etape_id
+
+    @property
+    def motif_refus(self) -> str | None:
+        return self._motif_refus
 
     @property
     def derniere_activite_le(self) -> datetime:
