@@ -3375,6 +3375,94 @@ paths:
               $ref: '#/components/headers/X-RateLimit-Remaining'
             X-RateLimit-Reset:
               $ref: '#/components/headers/X-RateLimit-Reset'
+  /api/v1/organismes:
+    put:
+      operationId: v1_organismes_update
+      description: Supprimer (soft-delete), entre 1 et 100 organismes à la fois, via
+        un payload JSON. La suppression se base sur le couple (référentiel, external_id).
+      summary: Supprimer des organismes
+      tags:
+      - organismes
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SupprimerOrganismesRequest'
+        required: true
+      security:
+      - ApiKeyAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SupprimerOrganismesResponse'
+          description: ''
+          headers:
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+          description: ''
+          headers:
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+          description: ''
+          headers:
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
+        '500':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+          description: ''
+          headers:
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
+        '429':
+          description: Nombre maximal d'appels autorisés dépassé.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
+                    example: Request was throttled. Expected available in 42 seconds.
+          headers:
+            Retry-After:
+              $ref: '#/components/headers/Retry-After'
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
   /api/v1/organismes/creer_modifier:
     post:
       operationId: v1_organismes_creer_modifier_create
@@ -4783,6 +4871,18 @@ components:
       - url_candidature
       - url_offre
       - vacance_poste
+    OrganismeDeleteInput:
+      type: object
+      properties:
+        referentiel:
+          type: string
+          maxLength: 50
+        external_id:
+          type: string
+          maxLength: 50
+      required:
+      - external_id
+      - referentiel
     OrganismeInput:
       type: object
       properties:
@@ -5086,6 +5186,30 @@ components:
         * `94` - 94
         * `DOM` - DOM
         * `TOM` - TOM
+    SupprimerOrganismesRequest:
+      type: object
+      properties:
+        organismes:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrganismeDeleteInput'
+          maxItems: 100
+          minItems: 1
+      required:
+      - organismes
+    SupprimerOrganismesResponse:
+      type: object
+      properties:
+        deleted:
+          type: integer
+        not_found:
+          type: array
+          items:
+            type: object
+            additionalProperties: {}
+      required:
+      - deleted
+      - not_found
     TempsTravailEnum:
       enum:
       - NON_DEFINI

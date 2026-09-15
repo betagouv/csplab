@@ -1,9 +1,25 @@
 from django.db import models
+from django.db.models import Q
 from referentiel.value_objects.verse import Verse
 
 from domain.recruteur.value_objects.roles import AgentOrganismeRole
 from infrastructure.django_apps.users.fields import agent_fk
 from infrastructure.django_apps.utils.models import BaseDatedModel
+
+
+class OrganismeQuerySet(models.QuerySet):
+    def not_supprimes(self) -> "OrganismeQuerySet":
+        return self.filter(supprime_le__isnull=True)
+
+    def by_referentiel_and_external_id_pairs(
+        self, pairs: list[tuple[str, str]]
+    ) -> "OrganismeQuerySet":
+        if not pairs:
+            return self.none()
+        query = Q()
+        for referentiel, external_id in pairs:
+            query |= Q(referentiel=referentiel, external_id=external_id)
+        return self.filter(query)
 
 
 class OrganismeModel(BaseDatedModel):
@@ -21,6 +37,7 @@ class OrganismeModel(BaseDatedModel):
     date_derniere_activite = models.DateTimeField(null=True, blank=True)
     parent_id = models.UUIDField(null=True, blank=True)
     localisation = models.JSONField(null=True, blank=True)
+    supprime_le = models.DateTimeField(null=True, blank=True, db_index=True)
     etapes = models.JSONField(
         null=True,
         blank=True,
@@ -29,6 +46,8 @@ class OrganismeModel(BaseDatedModel):
             "Each item: {'entity_id': str, 'categorie': str, 'nom': str}"
         ),
     )
+
+    objects = OrganismeQuerySet.as_manager()
 
     class Meta:
         db_table = "organisme"

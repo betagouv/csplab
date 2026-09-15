@@ -937,3 +937,21 @@ class UpsertOrganismesResponseSerializer(serializers.Serializer):
     created = serializers.IntegerField()
     updated = serializers.IntegerField()
     errors = serializers.ListField(child=serializers.DictField())
+
+
+class OrganismeDeleteInputSerializer(serializers.Serializer):
+    referentiel = serializers.CharField(max_length=50)
+    external_id = serializers.CharField(max_length=50)
+
+
+class SupprimerOrganismesRequestSerializer(serializers.Serializer):
+    organismes = serializers.ListField(
+        child=OrganismeDeleteInputSerializer(),
+        min_length=1,
+        max_length=100,
+    )
+
+
+class SupprimerOrganismesResponseSerializer(serializers.Serializer):
+    deleted = serializers.IntegerField()
+    not_found = serializers.ListField(child=serializers.DictField())
