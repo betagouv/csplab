@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.1.17] - 2026-09-15
+## [0.2.0] - 2026-09-15
 
 ### <!-- 0 --> Breaking Changes
 
@@ -63,6 +63,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - ✨(recruteur-back) Revoquer le role d'un agent dans l'équipe de recrutement ([#1416](https://github.com/betagouv/csplab/pull/1416))
 - ✨(ats) Affiche le tableau des membres d'un recrutement ([#1420](https://github.com/betagouv/csplab/pull/1420))
 - ♻️(recruteur) mutualisation de la gestion du rôle d'un agent dans un recrutement ([#1419](https://github.com/betagouv/csplab/pull/1419))
+- Ajoute un membre à l'équipe de recrutement ([#1437](https://github.com/betagouv/csplab/pull/1437))
+- Ajoute le temps de travail dans OffersCleaner ([#1436](https://github.com/betagouv/csplab/pull/1436))
+- Ajoute la suppression des organismes ([#1386](https://github.com/betagouv/csplab/pull/1386))
 
 ### <!-- 2 --> Modified
 
@@ -92,6 +95,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Migre vers Conventional Commits ([#1415](https://github.com/betagouv/csplab/pull/1415))
 - Adaptation du service de gestion des permissions ADR-009 ([#1427](https://github.com/betagouv/csplab/pull/1427))
 - Renommage des rôles dans l'organisme ([#1428](https://github.com/betagouv/csplab/pull/1428))
+- ✨(identite) redirect user to the login page after logout ([#1384](https://github.com/betagouv/csplab/pull/1384))
 
 ### <!-- 4 --> Fixed
 
@@ -102,6 +106,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - 🐛(tooling) corrige le listing vide des secrets Scaleway ([#1397](https://github.com/betagouv/csplab/pull/1397))
 - 🔧(tooling) set factory-boy as default deps, not dev deps ([#1417](https://github.com/betagouv/csplab/pull/1417))
 - Corrige le déploiement Scalingo du backup DB ([#1434](https://github.com/betagouv/csplab/pull/1434))
+- Corrige le regex du hook commit-msg pour la portabilité ([#1435](https://github.com/betagouv/csplab/pull/1435))
 
 ## [0.1.16] - 2026-09-01
 
