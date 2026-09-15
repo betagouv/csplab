@@ -643,7 +643,7 @@ export interface components {
             /** Format: uuid */
             organisme_uuid: string;
             nom: string;
-            role: string;
+            role: components["schemas"]["RoleEnum"];
         };
         OrganismesList: {
             /** Format: uuid */

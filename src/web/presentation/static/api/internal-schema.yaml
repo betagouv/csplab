@@ -3987,7 +3987,7 @@ components:
         nom:
           type: string
         role:
-          type: string
+          $ref: '#/components/schemas/RoleEnum'
       required:
       - nom
       - organisme_uuid

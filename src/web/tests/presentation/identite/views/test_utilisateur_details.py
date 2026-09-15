@@ -44,7 +44,9 @@ def test_authentified_access(authenticated_client):
 
 def test_returned_payload(mock_container, authenticated_client, test_user):
     organisme_role = OrganismeRole(
-        organisme_uuid=uuid4(), nom="Organisme de test", role="responsable"
+        organisme_uuid=uuid4(),
+        nom="Organisme de test",
+        role=AgentOrganismeRole.AGENT.value,
     )
     entity = UtilisateurFactory.create_entity(organismes=[organisme_role])
 
