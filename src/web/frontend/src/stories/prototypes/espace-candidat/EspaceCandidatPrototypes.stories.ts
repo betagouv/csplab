@@ -2,8 +2,10 @@ import type { StoryObj } from '@storybook/vue3-vite'
 import CandidatureAvecCompte from './variants/candidature/CandidatureAvecCompte.vue'
 import CandidatureAvecCv from './variants/candidature/CandidatureAvecCv.vue'
 import CandidatureFormulaire from './variants/candidature/CandidatureFormulaire.vue'
+import CandidatureUnique from './variants/candidature-unique/CandidatureUnique.vue'
 import EspaceCandidatConnecte from './variants/espace/EspaceCandidatConnecte.vue'
 import PageOffre from './variants/offre/PageOffre.vue'
+import ParcoursCandidatureUnique from './variants/parcours-complet/ParcoursCandidatureUnique.vue'
 import ParcoursComplet from './variants/parcours-complet/ParcoursComplet.vue'
 import SuccesAvecCompte from './variants/succes/SuccesAvecCompte.vue'
 import SuccesSansCompte from './variants/succes/SuccesSansCompte.vue'
@@ -29,10 +31,17 @@ export default meta
 type Story = StoryObj
 
 // --- Scénario principal : le parcours complet, cliquable de bout en bout ---
-// (offre → choix du mode → candidature → succès, dans une seule story)
 
 export const ParcoursPrincipal: Story = {
-  name: '0. Scénario principal (cliquable de bout en bout)',
+  name: '0. Scénario principal — modalité unique (cliquable de bout en bout)',
+  render: () => ({
+    components: { ParcoursCandidatureUnique },
+    template: '<ParcoursCandidatureUnique />',
+  }),
+}
+
+export const ParcoursAvecChoix: Story = {
+  name: '0bis. Variante — avec choix du mode de candidature',
   render: () => ({
     components: { ParcoursComplet },
     template: '<ParcoursComplet />',
@@ -72,6 +81,14 @@ export const CandidatureFormulaireStory: Story = {
   render: () => ({
     components: { CandidatureFormulaire },
     template: '<CandidatureFormulaire />',
+  }),
+}
+
+export const CandidatureUniqueStory: Story = {
+  name: 'Candidature/Modalité unique (formulaire + pop-in de succès)',
+  render: () => ({
+    components: { CandidatureUnique },
+    template: '<CandidatureUnique />',
   }),
 }
 
