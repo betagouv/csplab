@@ -79,7 +79,7 @@ class TestRecrutementAgentsView:
 
     @pytest.mark.parametrize(
         "role",
-        [AgentOrganismeRole.MEMBRE, None],
+        [AgentOrganismeRole.AGENT, None],
         ids=["membre_role", "no_organisme_role"],
     )
     def test_is_forbidden_for(self, authenticated_client, test_user, role):
@@ -108,7 +108,7 @@ class TestRecrutementAgentsView:
     )
     def test_returns_404_for(self, authenticated_client, test_user, build_ids):
         _, organisme = create_organisme_with_agent(
-            role=AgentOrganismeRole.RESPONSABLE,
+            role=AgentOrganismeRole.SUPERVISEUR,
             utilisateur=test_user,
         )
         organisme_uuid, recrutement_uuid = build_ids(organisme)
@@ -123,7 +123,7 @@ class TestRecrutementAgentsViewDbVerified:
         self, authenticated_client, test_user
     ):
         _, organisme = create_organisme_with_agent(
-            role=AgentOrganismeRole.RESPONSABLE,
+            role=AgentOrganismeRole.SUPERVISEUR,
             utilisateur=test_user,
         )
         membre = AgentDjangoFactory()
@@ -153,7 +153,7 @@ class TestRecrutementAgentsViewDbVerified:
         self, authenticated_client, test_user
     ):
         _, organisme = create_organisme_with_agent(
-            role=AgentOrganismeRole.RESPONSABLE,
+            role=AgentOrganismeRole.SUPERVISEUR,
             utilisateur=test_user,
         )
         recrutement = RecrutementDjangoFactory(organisme=organisme)
@@ -174,7 +174,7 @@ class TestRecrutementAgentsViewDbVerified:
         self, authenticated_client, test_user, django_assert_num_queries
     ):
         _, organisme = create_organisme_with_agent(
-            role=AgentOrganismeRole.RESPONSABLE,
+            role=AgentOrganismeRole.SUPERVISEUR,
             utilisateur=test_user,
         )
         recrutement = RecrutementDjangoFactory(organisme=organisme)
@@ -215,10 +215,10 @@ class TestRecrutementAgentsViewPost:
         self, authenticated_client, test_user
     ):
         _, organisme = create_organisme_with_agent(
-            role=AgentOrganismeRole.RESPONSABLE, utilisateur=test_user
+            role=AgentOrganismeRole.SUPERVISEUR, utilisateur=test_user
         )
         membre = OrganismeAgentDjangoFactory(
-            organisme=organisme, role=AgentOrganismeRole.MEMBRE.value
+            organisme=organisme, role=AgentOrganismeRole.AGENT.value
         ).agent
         recrutement = RecrutementDjangoFactory(organisme=organisme)
         payload = {
@@ -249,7 +249,7 @@ class TestRecrutementAgentsViewPost:
         api_client.credentials(HTTP_AUTHORIZATION=f"Bearer {refresh.access_token}")
         organisme = OrganismeDjangoFactory()
         membre = OrganismeAgentDjangoFactory(
-            organisme=organisme, role=AgentOrganismeRole.MEMBRE.value
+            organisme=organisme, role=AgentOrganismeRole.AGENT.value
         ).agent
         recrutement = RecrutementDjangoFactory(organisme=organisme)
         payload = {
@@ -263,7 +263,7 @@ class TestRecrutementAgentsViewPost:
 
     @pytest.mark.parametrize(
         "role",
-        [AgentOrganismeRole.MEMBRE, None],
+        [AgentOrganismeRole.AGENT, None],
         ids=["membre_role", "no_organisme_role"],
     )
     def test_is_forbidden_for(self, authenticated_client, test_user, role):
@@ -272,7 +272,7 @@ class TestRecrutementAgentsViewPost:
         else:
             _, organisme = create_organisme_with_agent(role=role, utilisateur=test_user)
         membre = OrganismeAgentDjangoFactory(
-            organisme=organisme, role=AgentOrganismeRole.MEMBRE.value
+            organisme=organisme, role=AgentOrganismeRole.AGENT.value
         ).agent
         recrutement = RecrutementDjangoFactory(organisme=organisme)
         payload = {
@@ -303,7 +303,7 @@ class TestRecrutementAgentsViewPost:
         self, authenticated_client, test_user, build_ids
     ):
         _, organisme = create_organisme_with_agent(
-            role=AgentOrganismeRole.RESPONSABLE, utilisateur=test_user
+            role=AgentOrganismeRole.SUPERVISEUR, utilisateur=test_user
         )
         organisme_uuid, recrutement_uuid = build_ids(organisme)
         payload = {
@@ -321,7 +321,7 @@ class TestRecrutementAgentsViewPost:
         self, authenticated_client, test_user
     ):
         _, organisme = create_organisme_with_agent(
-            role=AgentOrganismeRole.RESPONSABLE, utilisateur=test_user
+            role=AgentOrganismeRole.SUPERVISEUR, utilisateur=test_user
         )
         recrutement = RecrutementDjangoFactory(organisme=organisme)
         payload = {
@@ -339,7 +339,7 @@ class TestRecrutementAgentsViewPost:
         self, authenticated_client, test_user
     ):
         _, organisme = create_organisme_with_agent(
-            role=AgentOrganismeRole.RESPONSABLE, utilisateur=test_user
+            role=AgentOrganismeRole.SUPERVISEUR, utilisateur=test_user
         )
         bare_agent = AgentDjangoFactory()
         recrutement = RecrutementDjangoFactory(organisme=organisme)
@@ -358,12 +358,12 @@ class TestRecrutementAgentsViewPost:
         self, authenticated_client, test_user
     ):
         _, organisme = create_organisme_with_agent(
-            role=AgentOrganismeRole.RESPONSABLE, utilisateur=test_user
+            role=AgentOrganismeRole.SUPERVISEUR, utilisateur=test_user
         )
         recrutement = RecrutementDjangoFactory(organisme=organisme)
         deja_membre = RecrutementAgentModel.objects.get(recrutement=recrutement).agent
         OrganismeAgentDjangoFactory(
-            organisme=organisme, agent=deja_membre, role=AgentOrganismeRole.MEMBRE.value
+            organisme=organisme, agent=deja_membre, role=AgentOrganismeRole.AGENT.value
         )
         payload = {
             "agent_id": str(deja_membre.utilisateur_id),
@@ -417,10 +417,10 @@ class TestRecrutementAgentsViewPut:
 
     def test_responsable_revokes_agent(self, authenticated_client, test_user):
         _, organisme = create_organisme_with_agent(
-            role=AgentOrganismeRole.RESPONSABLE, utilisateur=test_user
+            role=AgentOrganismeRole.SUPERVISEUR, utilisateur=test_user
         )
         membre = OrganismeAgentDjangoFactory(
-            organisme=organisme, role=AgentOrganismeRole.MEMBRE.value
+            organisme=organisme, role=AgentOrganismeRole.AGENT.value
         ).agent
         recrutement = RecrutementDjangoFactory(organisme=organisme)
         RecrutementAgentDjangoFactory(
@@ -454,7 +454,7 @@ class TestRecrutementAgentsViewPut:
         api_client.credentials(HTTP_AUTHORIZATION=f"Bearer {refresh.access_token}")
         organisme = OrganismeDjangoFactory()
         membre = OrganismeAgentDjangoFactory(
-            organisme=organisme, role=AgentOrganismeRole.MEMBRE.value
+            organisme=organisme, role=AgentOrganismeRole.AGENT.value
         ).agent
         recrutement = RecrutementDjangoFactory(organisme=organisme)
         RecrutementAgentDjangoFactory(
@@ -476,7 +476,7 @@ class TestRecrutementAgentsViewPut:
 
     @pytest.mark.parametrize(
         "role",
-        [AgentOrganismeRole.MEMBRE, None],
+        [AgentOrganismeRole.AGENT, None],
         ids=["membre_role", "no_organisme_role"],
     )
     def test_is_forbidden_to_revoke_for(self, authenticated_client, test_user, role):
@@ -485,7 +485,7 @@ class TestRecrutementAgentsViewPut:
         else:
             _, organisme = create_organisme_with_agent(role=role, utilisateur=test_user)
         membre = OrganismeAgentDjangoFactory(
-            organisme=organisme, role=AgentOrganismeRole.MEMBRE.value
+            organisme=organisme, role=AgentOrganismeRole.AGENT.value
         ).agent
         recrutement = RecrutementDjangoFactory(organisme=organisme)
         RecrutementAgentDjangoFactory(
@@ -522,7 +522,7 @@ class TestRecrutementAgentsViewPut:
         self, authenticated_client, test_user, build_ids
     ):
         _, organisme = create_organisme_with_agent(
-            role=AgentOrganismeRole.RESPONSABLE, utilisateur=test_user
+            role=AgentOrganismeRole.SUPERVISEUR, utilisateur=test_user
         )
         organisme_uuid, recrutement_uuid = build_ids(organisme)
         payload = {
@@ -541,7 +541,7 @@ class TestRecrutementAgentsViewPut:
         self, authenticated_client, test_user
     ):
         _, organisme = create_organisme_with_agent(
-            role=AgentOrganismeRole.RESPONSABLE, utilisateur=test_user
+            role=AgentOrganismeRole.SUPERVISEUR, utilisateur=test_user
         )
         bare_agent = AgentDjangoFactory()
         recrutement = RecrutementDjangoFactory(organisme=organisme)
@@ -561,10 +561,10 @@ class TestRecrutementAgentsViewPut:
         self, authenticated_client, test_user
     ):
         _, organisme = create_organisme_with_agent(
-            role=AgentOrganismeRole.RESPONSABLE, utilisateur=test_user
+            role=AgentOrganismeRole.SUPERVISEUR, utilisateur=test_user
         )
         membre = OrganismeAgentDjangoFactory(
-            organisme=organisme, role=AgentOrganismeRole.MEMBRE.value
+            organisme=organisme, role=AgentOrganismeRole.AGENT.value
         ).agent
         recrutement = RecrutementDjangoFactory(organisme=organisme)
         payload = {
@@ -583,13 +583,13 @@ class TestRecrutementAgentsViewPut:
         self, authenticated_client, test_user
     ):
         _, organisme = create_organisme_with_agent(
-            role=AgentOrganismeRole.RESPONSABLE, utilisateur=test_user
+            role=AgentOrganismeRole.SUPERVISEUR, utilisateur=test_user
         )
         revoked_membre = OrganismeAgentDjangoFactory(
-            organisme=organisme, role=AgentOrganismeRole.MEMBRE.value
+            organisme=organisme, role=AgentOrganismeRole.AGENT.value
         ).agent
         active_membre = OrganismeAgentDjangoFactory(
-            organisme=organisme, role=AgentOrganismeRole.MEMBRE.value
+            organisme=organisme, role=AgentOrganismeRole.AGENT.value
         ).agent
         recrutement = RecrutementDjangoFactory(
             organisme=organisme,
@@ -620,10 +620,10 @@ class TestRecrutementAgentsViewPut:
 
     def test_responsable_updates_agent_role(self, authenticated_client, test_user):
         _, organisme = create_organisme_with_agent(
-            role=AgentOrganismeRole.RESPONSABLE, utilisateur=test_user
+            role=AgentOrganismeRole.SUPERVISEUR, utilisateur=test_user
         )
         membre = OrganismeAgentDjangoFactory(
-            organisme=organisme, role=AgentOrganismeRole.MEMBRE.value
+            organisme=organisme, role=AgentOrganismeRole.AGENT.value
         ).agent
         recrutement = RecrutementDjangoFactory(organisme=organisme)
         RecrutementAgentDjangoFactory(
@@ -655,7 +655,7 @@ class TestRecrutementAgentsViewPut:
         api_client.credentials(HTTP_AUTHORIZATION=f"Bearer {refresh.access_token}")
         organisme = OrganismeDjangoFactory()
         membre = OrganismeAgentDjangoFactory(
-            organisme=organisme, role=AgentOrganismeRole.MEMBRE.value
+            organisme=organisme, role=AgentOrganismeRole.AGENT.value
         ).agent
         recrutement = RecrutementDjangoFactory(organisme=organisme)
         RecrutementAgentDjangoFactory(
@@ -674,7 +674,7 @@ class TestRecrutementAgentsViewPut:
 
     @pytest.mark.parametrize(
         "role",
-        [AgentOrganismeRole.MEMBRE, None],
+        [AgentOrganismeRole.AGENT, None],
         ids=["membre_role", "no_organisme_role"],
     )
     def test_is_forbidden_for(self, authenticated_client, test_user, role):
@@ -683,7 +683,7 @@ class TestRecrutementAgentsViewPut:
         else:
             _, organisme = create_organisme_with_agent(role=role, utilisateur=test_user)
         membre = OrganismeAgentDjangoFactory(
-            organisme=organisme, role=AgentOrganismeRole.MEMBRE.value
+            organisme=organisme, role=AgentOrganismeRole.AGENT.value
         ).agent
         recrutement = RecrutementDjangoFactory(organisme=organisme)
         RecrutementAgentDjangoFactory(
@@ -717,7 +717,7 @@ class TestRecrutementAgentsViewPut:
         self, authenticated_client, test_user, build_ids
     ):
         _, organisme = create_organisme_with_agent(
-            role=AgentOrganismeRole.RESPONSABLE, utilisateur=test_user
+            role=AgentOrganismeRole.SUPERVISEUR, utilisateur=test_user
         )
         organisme_uuid, recrutement_uuid = build_ids(organisme)
         payload = {
@@ -735,7 +735,7 @@ class TestRecrutementAgentsViewPut:
         self, authenticated_client, test_user
     ):
         _, organisme = create_organisme_with_agent(
-            role=AgentOrganismeRole.RESPONSABLE, utilisateur=test_user
+            role=AgentOrganismeRole.SUPERVISEUR, utilisateur=test_user
         )
         bare_agent = AgentDjangoFactory()
         recrutement = RecrutementDjangoFactory(organisme=organisme)
@@ -752,10 +752,10 @@ class TestRecrutementAgentsViewPut:
         self, authenticated_client, test_user
     ):
         _, organisme = create_organisme_with_agent(
-            role=AgentOrganismeRole.RESPONSABLE, utilisateur=test_user
+            role=AgentOrganismeRole.SUPERVISEUR, utilisateur=test_user
         )
         membre = OrganismeAgentDjangoFactory(
-            organisme=organisme, role=AgentOrganismeRole.MEMBRE.value
+            organisme=organisme, role=AgentOrganismeRole.AGENT.value
         ).agent
         recrutement = RecrutementDjangoFactory(organisme=organisme)
         payload = {

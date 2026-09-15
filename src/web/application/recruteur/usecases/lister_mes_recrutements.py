@@ -57,7 +57,7 @@ class ListerMesRecrutementsUsecase(
 
         agent_id_filtre = (
             None
-            if role == AgentOrganismeRole.RESPONSABLE
+            if role == AgentOrganismeRole.SUPERVISEUR
             else query.utilisateur.entity_id
         )
 

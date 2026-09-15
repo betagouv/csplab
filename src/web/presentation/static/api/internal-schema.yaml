@@ -3987,7 +3987,7 @@ components:
         nom:
           type: string
         role:
-          type: string
+          $ref: '#/components/schemas/RoleEnum'
       required:
       - nom
       - organisme_uuid
@@ -4360,12 +4360,12 @@ components:
       - nom
     RoleEnum:
       enum:
-      - responsable
-      - membre
+      - superviseur
+      - agent
       type: string
       description: |-
-        * `responsable` - responsable
-        * `membre` - membre
+        * `superviseur` - superviseur
+        * `agent` - agent
     SetAgentRoleOnOrganisme:
       type: object
       properties:

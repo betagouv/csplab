@@ -262,7 +262,7 @@ class TestRecrutementsArchivesView:
 class TestRecrutementsActifsViewDbVerified:
     def test_returns_persisted_actifs(self, authenticated_client, test_user):
         _, organisme = create_organisme_with_agent(
-            role=AgentOrganismeRole.RESPONSABLE,
+            role=AgentOrganismeRole.SUPERVISEUR,
             utilisateur=test_user,
             id=UUID(ORGANISME_UUID),
         )
@@ -295,7 +295,7 @@ class TestRecrutementsActifsViewDbVerified:
         self, authenticated_client, test_user, django_assert_num_queries
     ):
         _, organisme = create_organisme_with_agent(
-            role=AgentOrganismeRole.RESPONSABLE,
+            role=AgentOrganismeRole.SUPERVISEUR,
             utilisateur=test_user,
             id=UUID(ORGANISME_UUID),
         )
@@ -310,7 +310,7 @@ class TestRecrutementsActifsViewDbVerified:
 class TestRecrutementsArchivesViewDbVerified:
     def test_returns_persisted_archives(self, authenticated_client, test_user):
         _, organisme = create_organisme_with_agent(
-            role=AgentOrganismeRole.RESPONSABLE,
+            role=AgentOrganismeRole.SUPERVISEUR,
             utilisateur=test_user,
             id=UUID(ORGANISME_UUID),
         )
@@ -345,7 +345,7 @@ class TestRecrutementsArchivesViewDbVerified:
         self, authenticated_client, test_user, django_assert_num_queries
     ):
         _, organisme = create_organisme_with_agent(
-            role=AgentOrganismeRole.RESPONSABLE,
+            role=AgentOrganismeRole.SUPERVISEUR,
             utilisateur=test_user,
             id=UUID(ORGANISME_UUID),
         )

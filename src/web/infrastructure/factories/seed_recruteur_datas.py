@@ -341,11 +341,11 @@ def seed_recruteur_datas(force: bool = False) -> dict:
         # d'éprouver la bascule d'organisme et l'apparition des pages de paramètres.
         # David ne l'est d'aucun, pour éprouver la navigation vide et le refus d'accès.
         _ATTACHEMENTS = [
-            (_ORGANISME_UUID, "Marie", AgentOrganismeRole.RESPONSABLE),
-            (_ORGANISME_UUID, "Paul", AgentOrganismeRole.MEMBRE),
-            (_ORGANISME_UUID, "Claire", AgentOrganismeRole.MEMBRE),
-            (_ORGANISME_UUID, "Marc", AgentOrganismeRole.MEMBRE),
-            (_BRIANCON_UUID, "Marc", AgentOrganismeRole.RESPONSABLE),
+            (_ORGANISME_UUID, "Marie", AgentOrganismeRole.SUPERVISEUR),
+            (_ORGANISME_UUID, "Paul", AgentOrganismeRole.AGENT),
+            (_ORGANISME_UUID, "Claire", AgentOrganismeRole.AGENT),
+            (_ORGANISME_UUID, "Marc", AgentOrganismeRole.AGENT),
+            (_BRIANCON_UUID, "Marc", AgentOrganismeRole.SUPERVISEUR),
         ]
         for organisme_uuid, agent_prenom, role in _ATTACHEMENTS:
             OrganismeAgentDjangoFactory(

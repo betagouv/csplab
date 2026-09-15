@@ -28,12 +28,12 @@ const open = defineModel<boolean>('open', { required: true })
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@.]+(?:\.[^\s@.]+)+$/
 
 const ROLE_OPTIONS: CspRadioGroupOption[] = [
-  { value: 'membre', label: ROLE_LABELS.membre },
-  { value: 'responsable', label: ROLE_LABELS.responsable },
+  { value: 'agent', label: ROLE_LABELS.agent },
+  { value: 'superviseur', label: ROLE_LABELS.superviseur },
 ]
 
 const email = ref('')
-const role = ref<Role>('membre')
+const role = ref<Role>('agent')
 const error = ref('')
 
 const isFound = computed(() => props.status === 'found')
@@ -55,7 +55,7 @@ const submitDisabled = computed(() => props.searching || props.submitting)
 watch(open, (isOpen) => {
   if (!isOpen) {
     email.value = ''
-    role.value = 'membre'
+    role.value = 'agent'
     error.value = ''
   }
 })

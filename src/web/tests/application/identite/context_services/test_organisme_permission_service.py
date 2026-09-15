@@ -34,7 +34,6 @@ from infrastructure.factories.recruteur.recrutement_django_factory import (
 
 pytestmark = pytest.mark.django_db
 
-# TODO: add test for CHANGER_ETAPE_CANDIDATURES
 
 STAFF_SEULEMENT_SANS_ORGANISME_ACTIONS = [
     OrganismeAction.CREER_ORGANISME,
@@ -74,6 +73,7 @@ SUPERVISEUR_OU_AGENT_AVEC_RESPONSABLE_ACTIONS = [
     OrganismeAction.INIT_RECRUTEMENT_ETAPES,
 ]
 
+# TODO: add test for CHANGER_ETAPE_CANDIDATURES
 SUPERVISEUR_OU_AGENT_AVEC_RESPONSABLE_OU_RECRUTEUR_ACTIONS = [
     OrganismeAction.CHANGER_ETAPE_CANDIDATURES,
 ]
@@ -97,19 +97,19 @@ def _attach_recrutement_role(
 
 
 class TestActionsIntegrity:
-    def test_toute_action_membre_est_classee(self) -> None:
+    def test_every_agent_action_is_classified(self) -> None:
         actions_membre = frozenset(
             action
             for action, roles in _ROLES_REQUIS.items()
-            if AgentOrganismeRole.MEMBRE in roles
+            if AgentOrganismeRole.AGENT in roles
         )
 
         assert actions_membre <= (
             _ROLES_RECRUTEMENT_REQUIS.keys() | _SANS_ROLE_RECRUTEMENT_REQUIS
         )
 
-    def test_toutes_les_actions_sont_couvertes_une_seule_fois(self) -> None:
-        cas = [
+    def test_all_actions_are_covered_only_once(self) -> None:
+        cases = [
             STAFF_SEULEMENT_SANS_ORGANISME_ACTIONS,
             STAFF_SEULEMENT_AVEC_ORGANISME_ACTIONS,
             SUPERVISEUR_ET_STAFF_ACTIONS,
@@ -118,19 +118,19 @@ class TestActionsIntegrity:
             SUPERVISEUR_OU_AGENT_AVEC_RESPONSABLE_ACTIONS,
             SUPERVISEUR_OU_AGENT_AVEC_RESPONSABLE_OU_RECRUTEUR_ACTIONS,
         ]
-        actions_classees = [action for liste in cas for action in liste]
+        actions = [action for liste in cases for action in liste]
 
-        assert len(actions_classees) == len(OrganismeAction)
-        assert set(actions_classees) == set(OrganismeAction)
+        assert len(actions) == len(OrganismeAction)
+        assert set(actions) == set(OrganismeAction)
 
 
 @pytest.mark.parametrize("action", SUPERVISEUR_ET_STAFF_ACTIONS)
 class TestSuperviseurEtStaffActions:
-    def test_responsable_actions_allow_responsable(
+    def test_superviseur_actions_allowed_superviseur_role(
         self, action: OrganismeAction
     ) -> None:
         agent, organisme = create_organisme_with_agent(
-            role=AgentOrganismeRole.RESPONSABLE
+            role=AgentOrganismeRole.SUPERVISEUR
         )
 
         result = OrganismePermissionService().can_execute(
@@ -139,7 +139,7 @@ class TestSuperviseurEtStaffActions:
             utilisateur=_utilisateur(agent.utilisateur_id),
         )
 
-        assert result == AgentOrganismeRole.RESPONSABLE
+        assert result == AgentOrganismeRole.SUPERVISEUR
 
     def test_staff_bypasses_role_check(self, action: OrganismeAction) -> None:
         organisme = OrganismeDjangoFactory()
@@ -154,10 +154,10 @@ class TestSuperviseurEtStaffActions:
 
     @pytest.mark.parametrize(
         "role",
-        [AgentOrganismeRole.MEMBRE, None],
+        [AgentOrganismeRole.AGENT, None],
         ids=["membre_role", "no_organisme_role"],
     )
-    def test_responsable_actions_reject_non_responsable(
+    def test_supreviseur_actions_reject_non_superviseur_role(
         self, action: OrganismeAction, role: AgentOrganismeRole | None
     ) -> None:
         if role is None:
@@ -175,12 +175,11 @@ class TestSuperviseurEtStaffActions:
             )
 
     def test_revoked_agent_is_still_allowed(self, action: OrganismeAction) -> None:
-        # Documents current behavior: unlike the recrutement-agent lookup, the
-        # organisme-agent role lookup does not filter out revoked agents.
+        # TODO:filter out revoked agent in organisme-agent role lookup
         organisme = OrganismeDjangoFactory()
         agent = OrganismeAgentDjangoFactory(
             organisme=organisme,
-            role=AgentOrganismeRole.RESPONSABLE.value,
+            role=AgentOrganismeRole.SUPERVISEUR.value,
             date_revocation=timezone.now(),
         ).agent
 
@@ -190,15 +189,15 @@ class TestSuperviseurEtStaffActions:
             utilisateur=_utilisateur(agent.utilisateur_id),  # type: ignore[attr-defined]
         )
 
-        assert result == AgentOrganismeRole.RESPONSABLE
+        assert result == AgentOrganismeRole.SUPERVISEUR
 
 
 @pytest.mark.parametrize("action", SUPERVISEUR_OU_AGENT_SANS_RECRUTEMENT_ACTIONS)
 class TestSuperviseurOuAgentSansRecrutementActions:
     @pytest.mark.parametrize(
-        "role", [AgentOrganismeRole.RESPONSABLE, AgentOrganismeRole.MEMBRE]
+        "role", [AgentOrganismeRole.SUPERVISEUR, AgentOrganismeRole.AGENT]
     )
-    def test_allow_responsable_and_membre(
+    def test_allow_superviseur_and_agent(
         self, action: OrganismeAction, role: AgentOrganismeRole
     ) -> None:
         agent, organisme = create_organisme_with_agent(role=role)
@@ -228,10 +227,10 @@ class TestSuperviseurOuAgentSansRecrutementActions:
 @pytest.mark.parametrize("action", SUPERVISEUR_OU_AGENT_AVEC_RECRUTEMENT_ACTIONS)
 class TestSuperviseurOuAgentAvecRecrutementActions:
     @pytest.mark.parametrize("recrutement_role", list(AgentRecrutementRole))
-    def test_membre_with_recrutement_role_is_allowed(
+    def test_agent_with_recrutement_role_is_allowed(
         self, action: OrganismeAction, recrutement_role: AgentRecrutementRole
     ) -> None:
-        agent, organisme = create_organisme_with_agent(role=AgentOrganismeRole.MEMBRE)
+        agent, organisme = create_organisme_with_agent(role=AgentOrganismeRole.AGENT)
         recrutement = _attach_recrutement_role(organisme, agent, recrutement_role)
 
         result = OrganismePermissionService().can_execute(
@@ -241,13 +240,13 @@ class TestSuperviseurOuAgentAvecRecrutementActions:
             recrutement_id=recrutement.pk,
         )
 
-        assert result == AgentOrganismeRole.MEMBRE
+        assert result == AgentOrganismeRole.AGENT
 
-    def test_responsable_bypasses_recrutement_check(
+    def test_superviseur_bypasses_recrutement_check(
         self, action: OrganismeAction
     ) -> None:
         agent, organisme = create_organisme_with_agent(
-            role=AgentOrganismeRole.RESPONSABLE
+            role=AgentOrganismeRole.SUPERVISEUR
         )
 
         result = OrganismePermissionService().can_execute(
@@ -257,12 +256,12 @@ class TestSuperviseurOuAgentAvecRecrutementActions:
             recrutement_id=uuid4(),
         )
 
-        assert result == AgentOrganismeRole.RESPONSABLE
+        assert result == AgentOrganismeRole.SUPERVISEUR
 
-    def test_membre_without_recrutement_role_is_denied(
+    def test_agent_without_recrutement_role_is_denied(
         self, action: OrganismeAction
     ) -> None:
-        agent, organisme = create_organisme_with_agent(role=AgentOrganismeRole.MEMBRE)
+        agent, organisme = create_organisme_with_agent(role=AgentOrganismeRole.AGENT)
 
         with pytest.raises(AccesRecrutementRefuse):
             OrganismePermissionService().can_execute(
@@ -273,7 +272,7 @@ class TestSuperviseurOuAgentAvecRecrutementActions:
             )
 
     def test_unprovided_recrutement_id_is_denied(self, action: OrganismeAction) -> None:
-        agent, organisme = create_organisme_with_agent(role=AgentOrganismeRole.MEMBRE)
+        agent, organisme = create_organisme_with_agent(role=AgentOrganismeRole.AGENT)
 
         with pytest.raises(AccesRecrutementInconnu):
             OrganismePermissionService().can_execute(
@@ -283,7 +282,7 @@ class TestSuperviseurOuAgentAvecRecrutementActions:
             )
 
     def test_staff_without_role_is_denied(self, action: OrganismeAction) -> None:
-        agent, organisme = create_organisme_with_agent(role=AgentOrganismeRole.MEMBRE)
+        agent, organisme = create_organisme_with_agent(role=AgentOrganismeRole.AGENT)
 
         with pytest.raises(AccesRecrutementRefuse):
             OrganismePermissionService().can_execute(
@@ -293,10 +292,10 @@ class TestSuperviseurOuAgentAvecRecrutementActions:
                 recrutement_id=uuid4(),
             )
 
-    def test_membre_with_revoked_recrutement_role_is_denied(
+    def test_agent_with_revoked_recrutement_role_is_denied(
         self, action: OrganismeAction
     ) -> None:
-        agent, organisme = create_organisme_with_agent(role=AgentOrganismeRole.MEMBRE)
+        agent, organisme = create_organisme_with_agent(role=AgentOrganismeRole.AGENT)
         recrutement = _attach_recrutement_role(
             organisme, agent, AgentRecrutementRole.RESPONSABLE, revoked=True
         )
@@ -312,11 +311,11 @@ class TestSuperviseurOuAgentAvecRecrutementActions:
 
 @pytest.mark.parametrize("action", SUPERVISEUR_OU_AGENT_AVEC_RESPONSABLE_ACTIONS)
 class TestSuperviseurOuAgentAvecResponsableActions:
-    def test_organisme_responsable_bypasses_recrutement_check(
+    def test_superviseur_bypasses_recrutement_check(
         self, action: OrganismeAction
     ) -> None:
         agent, organisme = create_organisme_with_agent(
-            role=AgentOrganismeRole.RESPONSABLE
+            role=AgentOrganismeRole.SUPERVISEUR
         )
 
         result = OrganismePermissionService().can_execute(
@@ -326,12 +325,12 @@ class TestSuperviseurOuAgentAvecResponsableActions:
             recrutement_id=uuid4(),
         )
 
-        assert result == AgentOrganismeRole.RESPONSABLE
+        assert result == AgentOrganismeRole.SUPERVISEUR
 
-    def test_membre_with_recrutement_responsable_is_allowed(
+    def test_agent_with_responsable_role_is_allowed(
         self, action: OrganismeAction
     ) -> None:
-        agent, organisme = create_organisme_with_agent(role=AgentOrganismeRole.MEMBRE)
+        agent, organisme = create_organisme_with_agent(role=AgentOrganismeRole.AGENT)
         recrutement = _attach_recrutement_role(
             organisme, agent, AgentRecrutementRole.RESPONSABLE
         )
@@ -343,16 +342,16 @@ class TestSuperviseurOuAgentAvecResponsableActions:
             recrutement_id=recrutement.pk,
         )
 
-        assert result == AgentOrganismeRole.MEMBRE
+        assert result == AgentOrganismeRole.AGENT
 
     @pytest.mark.parametrize(
         "recrutement_role",
         [AgentRecrutementRole.RECRUTEUR, AgentRecrutementRole.CONTRIBUTEUR, None],
     )
-    def test_membre_without_recrutement_responsable_is_denied(
+    def test_agent_without_responsable_role_is_denied(
         self, action: OrganismeAction, recrutement_role: AgentRecrutementRole | None
     ) -> None:
-        agent, organisme = create_organisme_with_agent(role=AgentOrganismeRole.MEMBRE)
+        agent, organisme = create_organisme_with_agent(role=AgentOrganismeRole.AGENT)
         if recrutement_role is None:
             recrutement_id = uuid4()
         else:
@@ -369,7 +368,7 @@ class TestSuperviseurOuAgentAvecResponsableActions:
             )
 
     def test_unprovided_recrutement_id_is_denied(self, action: OrganismeAction) -> None:
-        agent, organisme = create_organisme_with_agent(role=AgentOrganismeRole.MEMBRE)
+        agent, organisme = create_organisme_with_agent(role=AgentOrganismeRole.AGENT)
 
         with pytest.raises(AccesRecrutementInconnu):
             OrganismePermissionService().can_execute(
@@ -391,10 +390,10 @@ class TestSuperviseurOuAgentAvecResponsableActions:
                 recrutement_id=uuid4(),
             )
 
-    def test_membre_with_revoked_recrutement_responsable_is_denied(
+    def test_agent_with_revoked_responsable_role_is_denied(
         self, action: OrganismeAction
     ) -> None:
-        agent, organisme = create_organisme_with_agent(role=AgentOrganismeRole.MEMBRE)
+        agent, organisme = create_organisme_with_agent(role=AgentOrganismeRole.AGENT)
         recrutement = _attach_recrutement_role(
             organisme, agent, AgentRecrutementRole.RESPONSABLE, revoked=True
         )
@@ -412,11 +411,11 @@ class TestSuperviseurOuAgentAvecResponsableActions:
     "action", SUPERVISEUR_OU_AGENT_AVEC_RESPONSABLE_OU_RECRUTEUR_ACTIONS
 )
 class TestSuperviseurOuAgentAvecResponsableOuRecruteurActions:
-    def test_organisme_responsable_bypasses_recrutement_check(
+    def test_superviseur_bypasses_recrutement_check(
         self, action: OrganismeAction
     ) -> None:
         agent, organisme = create_organisme_with_agent(
-            role=AgentOrganismeRole.RESPONSABLE
+            role=AgentOrganismeRole.SUPERVISEUR
         )
 
         result = OrganismePermissionService().can_execute(
@@ -426,16 +425,16 @@ class TestSuperviseurOuAgentAvecResponsableOuRecruteurActions:
             recrutement_id=uuid4(),
         )
 
-        assert result == AgentOrganismeRole.RESPONSABLE
+        assert result == AgentOrganismeRole.SUPERVISEUR
 
     @pytest.mark.parametrize(
         "recrutement_role",
         [AgentRecrutementRole.RESPONSABLE, AgentRecrutementRole.RECRUTEUR],
     )
-    def test_membre_with_recrutement_responsable_or_recruteur_is_allowed(
+    def test_agent_with_responsable_or_recruteur_role_is_allowed(
         self, action: OrganismeAction, recrutement_role: AgentRecrutementRole
     ) -> None:
-        agent, organisme = create_organisme_with_agent(role=AgentOrganismeRole.MEMBRE)
+        agent, organisme = create_organisme_with_agent(role=AgentOrganismeRole.AGENT)
         recrutement = _attach_recrutement_role(organisme, agent, recrutement_role)
 
         result = OrganismePermissionService().can_execute(
@@ -445,15 +444,15 @@ class TestSuperviseurOuAgentAvecResponsableOuRecruteurActions:
             recrutement_id=recrutement.pk,
         )
 
-        assert result == AgentOrganismeRole.MEMBRE
+        assert result == AgentOrganismeRole.AGENT
 
     @pytest.mark.parametrize(
         "recrutement_role", [AgentRecrutementRole.CONTRIBUTEUR, None]
     )
-    def test_membre_without_recrutement_responsable_or_recruteur_is_denied(
+    def test_agent_without_responsable_or_recruteur_role_is_denied(
         self, action: OrganismeAction, recrutement_role: AgentRecrutementRole | None
     ) -> None:
-        agent, organisme = create_organisme_with_agent(role=AgentOrganismeRole.MEMBRE)
+        agent, organisme = create_organisme_with_agent(role=AgentOrganismeRole.AGENT)
         if recrutement_role is None:
             recrutement_id = uuid4()
         else:
@@ -470,7 +469,7 @@ class TestSuperviseurOuAgentAvecResponsableOuRecruteurActions:
             )
 
     def test_unprovided_recrutement_id_is_denied(self, action: OrganismeAction) -> None:
-        agent, organisme = create_organisme_with_agent(role=AgentOrganismeRole.MEMBRE)
+        agent, organisme = create_organisme_with_agent(role=AgentOrganismeRole.AGENT)
 
         with pytest.raises(AccesRecrutementInconnu):
             OrganismePermissionService().can_execute(
@@ -492,10 +491,10 @@ class TestSuperviseurOuAgentAvecResponsableOuRecruteurActions:
                 recrutement_id=uuid4(),
             )
 
-    def test_membre_with_revoked_recrutement_recruteur_is_denied(
+    def test_agent_with_revoked_recruteur_role_is_denied(
         self, action: OrganismeAction
     ) -> None:
-        agent, organisme = create_organisme_with_agent(role=AgentOrganismeRole.MEMBRE)
+        agent, organisme = create_organisme_with_agent(role=AgentOrganismeRole.AGENT)
         recrutement = _attach_recrutement_role(
             organisme, agent, AgentRecrutementRole.RECRUTEUR, revoked=True
         )
@@ -555,9 +554,7 @@ class TestStaffSeulementAvecOrganismeActions:
 
         assert result is None
 
-    def test_non_staff_est_refuse_apres_verification_existence(
-        self, action: OrganismeAction
-    ) -> None:
+    def test_non_staff_is_denied(self, action: OrganismeAction) -> None:
         organisme = OrganismeDjangoFactory()
 
         with pytest.raises(OperationOrganismeRefusee):
@@ -567,7 +564,7 @@ class TestStaffSeulementAvecOrganismeActions:
                 utilisateur=_utilisateur(uuid4()),
             )
 
-    def test_organisme_inexistant_est_priorise_sur_le_statut_staff(
+    def test_organisme_check_runs_before_staff_check(
         self, action: OrganismeAction
     ) -> None:
         organisme_id = uuid4()

@@ -63,7 +63,7 @@ class OrganismeAgentModel(BaseDatedModel):
     role = models.CharField(
         max_length=20,
         choices=[(r.value, r.value) for r in AgentOrganismeRole],
-        default=AgentOrganismeRole.MEMBRE.value,
+        default=AgentOrganismeRole.AGENT.value,
     )
     date_revocation = models.DateTimeField(null=True, blank=True)
 

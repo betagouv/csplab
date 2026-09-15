@@ -71,8 +71,8 @@ class TestGetRecrutementKanban:
     @pytest.mark.parametrize(
         "role",
         [
-            pytest.param(AgentOrganismeRole.RESPONSABLE, id="responsable"),
-            pytest.param(AgentOrganismeRole.MEMBRE, id="membre"),
+            pytest.param(AgentOrganismeRole.SUPERVISEUR, id="responsable"),
+            pytest.param(AgentOrganismeRole.AGENT, id="membre"),
         ],
     )
     def test_returns_detail_when_authorized(
@@ -115,7 +115,7 @@ class TestGetRecrutementKanban:
         usecase,
     ):
         organisme_permission_service.can_execute.return_value = (
-            AgentOrganismeRole.RESPONSABLE
+            AgentOrganismeRole.SUPERVISEUR
         )
         organisme_id = uuid4()
         recrutement_query_service.get_kanban_by_recrutement.return_value = None

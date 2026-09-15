@@ -575,7 +575,7 @@ class TestRecrutementCandidaturesEtapeView:
 class TestRecrutementDetailViewDbVerified:
     def test_returns_persisted_detail(self, authenticated_client, test_user):
         _, organisme = create_organisme_with_agent(
-            role=AgentOrganismeRole.RESPONSABLE,
+            role=AgentOrganismeRole.SUPERVISEUR,
             utilisateur=test_user,
             id=UUID(ORGANISME_UUID),
         )
@@ -602,7 +602,7 @@ class TestRecrutementDetailViewDbVerified:
 class TestRecrutementKanbanViewDbVerified:
     def test_returns_persisted_kanban(self, authenticated_client, test_user):
         _, organisme = create_organisme_with_agent(
-            role=AgentOrganismeRole.RESPONSABLE,
+            role=AgentOrganismeRole.SUPERVISEUR,
             utilisateur=test_user,
             id=UUID(ORGANISME_UUID),
         )
@@ -621,7 +621,7 @@ class TestRecrutementKanbanViewDbVerified:
 class TestRecrutementListeViewDbVerified:
     def test_returns_persisted_candidatures(self, authenticated_client, test_user):
         _, organisme = create_organisme_with_agent(
-            role=AgentOrganismeRole.RESPONSABLE,
+            role=AgentOrganismeRole.SUPERVISEUR,
             utilisateur=test_user,
             id=UUID(ORGANISME_UUID),
         )
@@ -648,7 +648,7 @@ class TestRecrutementListeViewDbVerified:
         self, authenticated_client, test_user, django_assert_num_queries
     ):
         _, organisme = create_organisme_with_agent(
-            role=AgentOrganismeRole.RESPONSABLE,
+            role=AgentOrganismeRole.SUPERVISEUR,
             utilisateur=test_user,
             id=UUID(ORGANISME_UUID),
         )
@@ -666,7 +666,7 @@ class TestRecrutementListeViewDbVerified:
 class TestRecrutementCandidaturesEtapeViewDbVerified:
     def test_moves_candidature_and_persists_it(self, authenticated_client, test_user):
         _, organisme = create_organisme_with_agent(
-            role=AgentOrganismeRole.RESPONSABLE,
+            role=AgentOrganismeRole.SUPERVISEUR,
             utilisateur=test_user,
             id=UUID(ORGANISME_UUID),
         )

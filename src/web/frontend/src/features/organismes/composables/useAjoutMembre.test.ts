@@ -97,13 +97,13 @@ describe('useAjoutMembre', () => {
     await flush()
 
     await search(AGENT.email)
-    await add('membre')
+    await add('agent')
     await flush()
 
     expect(mockCreateAgent).not.toHaveBeenCalled()
     expect(mockSetAgentRole).toHaveBeenCalledWith(ORGANISME_UUID, {
       agent_id: AGENT.agent_id,
-      role: 'membre',
+      role: 'agent',
     })
     expect(mockGetOrganismeAgents).toHaveBeenCalledTimes(2)
   })
@@ -116,7 +116,7 @@ describe('useAjoutMembre', () => {
     await flush()
 
     await search('nouvelle.agente@example.gouv.fr')
-    await add('responsable')
+    await add('superviseur')
 
     expect(mockCreateAgent).toHaveBeenCalledWith({
       email: 'nouvelle.agente@example.gouv.fr',
@@ -124,7 +124,7 @@ describe('useAjoutMembre', () => {
     })
     expect(mockSetAgentRole).toHaveBeenCalledWith(ORGANISME_UUID, {
       agent_id: AGENT.agent_id,
-      role: 'responsable',
+      role: 'superviseur',
     })
   })
 
@@ -136,8 +136,8 @@ describe('useAjoutMembre', () => {
     await flush()
 
     await search('nouvelle.agente@example.gouv.fr')
-    await expect(add('membre')).rejects.toThrow('boom')
-    await add('membre')
+    await expect(add('agent')).rejects.toThrow('boom')
+    await add('agent')
 
     expect(mockCreateAgent).toHaveBeenCalledTimes(1)
     expect(mockSetAgentRole).toHaveBeenCalledTimes(2)
@@ -151,6 +151,6 @@ describe('useAjoutMembre', () => {
 
     await search(AGENT.email)
 
-    await expect(add('membre')).rejects.toThrow('boom')
+    await expect(add('agent')).rejects.toThrow('boom')
   })
 })

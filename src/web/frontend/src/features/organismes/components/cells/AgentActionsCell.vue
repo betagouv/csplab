@@ -17,16 +17,16 @@ const { requestRoleChange, requestRevocation } = useAgentActions()
 const sections = computed(() => [
   {
     items: [
-      props.row.role === 'responsable'
+      props.row.role === 'superviseur'
         ? {
             label: 'Passer membre',
             icon: 'ri:user-line',
-            onSelect: () => requestRoleChange(props.row, 'membre' as const),
+            onSelect: () => requestRoleChange(props.row, 'agent' as const),
           }
         : {
             label: 'Passer responsable',
             icon: 'ri:shield-user-line',
-            onSelect: () => requestRoleChange(props.row, 'responsable' as const),
+            onSelect: () => requestRoleChange(props.row, 'superviseur' as const),
           },
     ],
   },

@@ -121,7 +121,7 @@ class OrganismeFactory:
                 id=uuid4(),
                 organisme_id=model.id,
                 agent_id=agent_id,
-                role=(role or AgentOrganismeRole.MEMBRE).value,
+                role=(role or AgentOrganismeRole.AGENT).value,
             ).save()
         return model
 
@@ -157,7 +157,7 @@ class OrganismeFactory:
             id=uuid4(),
             organisme_id=organisme_id,
             agent_id=agent.utilisateur_id,
-            role=(role or AgentOrganismeRole.MEMBRE).value,
+            role=(role or AgentOrganismeRole.AGENT).value,
         ).save()
         return agent
 

@@ -1,4 +1,4 @@
-import type { Utilisateur } from '@/api/utilisateur'
+import type { OrganismeRole, Utilisateur } from '@/api/utilisateur'
 import { PiniaColada } from '@pinia/colada'
 import { mount } from '@vue/test-utils'
 import { createPinia } from 'pinia'
@@ -17,8 +17,8 @@ const MTE = 'a1a1a1a1-a1a1-a1a1-a1a1-a1a1a1a1a1a1'
 const BRIANCON = 'b2b2b2b2-b2b2-b2b2-b2b2-b2b2b2b2b2b2'
 const INCONNU = 'c3c3c3c3-c3c3-c3c3-c3c3-c3c3c3c3c3c3'
 
-const ROLE_MTE = { organisme_uuid: MTE, nom: 'Ministère de la Transition Écologique', role: 'responsable' }
-const ROLE_BRIANCON = { organisme_uuid: BRIANCON, nom: 'Commune de Briançon', role: 'membre' }
+const ROLE_MTE: OrganismeRole = { organisme_uuid: MTE, nom: 'Ministère de la Transition Écologique', role: 'superviseur' }
+const ROLE_BRIANCON: OrganismeRole = { organisme_uuid: BRIANCON, nom: 'Commune de Briançon', role: 'agent' }
 
 function makeUser(
   organismeRoles: Utilisateur['organisme_roles'],

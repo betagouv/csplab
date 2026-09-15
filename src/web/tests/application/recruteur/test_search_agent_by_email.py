@@ -20,7 +20,7 @@ from infrastructure.mappers.utilisateur_mapper import UtilisateurMapper
 
 def test_responsable_finds_agent_by_email(db):
     responsable, organisme = create_organisme_with_agent(
-        role=AgentOrganismeRole.RESPONSABLE
+        role=AgentOrganismeRole.SUPERVISEUR
     )
     autre_agent = AgentDjangoFactory()
 
@@ -36,7 +36,7 @@ def test_responsable_finds_agent_by_email(db):
 
 def test_responsable_gets_none_for_unknown_email(db):
     responsable, organisme = create_organisme_with_agent(
-        role=AgentOrganismeRole.RESPONSABLE
+        role=AgentOrganismeRole.SUPERVISEUR
     )
 
     result = search_agent_by_email(
@@ -49,7 +49,7 @@ def test_responsable_gets_none_for_unknown_email(db):
 
 
 def test_membre_is_denied(db):
-    membre, organisme = create_organisme_with_agent(role=AgentOrganismeRole.MEMBRE)
+    membre, organisme = create_organisme_with_agent(role=AgentOrganismeRole.AGENT)
     autre_agent = AgentDjangoFactory()
 
     with pytest.raises(AccesOrganismeRefuse):

@@ -50,8 +50,8 @@ class TestGetRecrutementListeRbac:
     @pytest.mark.parametrize(
         ("role", "assign_agent_to_recrutement"),
         [
-            pytest.param(AgentOrganismeRole.RESPONSABLE, False, id="responsable"),
-            pytest.param(AgentOrganismeRole.MEMBRE, True, id="membre_assigned"),
+            pytest.param(AgentOrganismeRole.SUPERVISEUR, False, id="responsable"),
+            pytest.param(AgentOrganismeRole.AGENT, True, id="membre_assigned"),
         ],
     )
     def test_authorized(self, usecase, role, assign_agent_to_recrutement):
@@ -86,7 +86,7 @@ class TestGetRecrutementListeRbac:
         assert item.etape.categorie == "ENTREE"
 
     def test_forbidden_when_membre_not_assigned_to_recrutement(self, usecase):
-        agent, organisme = create_organisme_with_agent(role=AgentOrganismeRole.MEMBRE)
+        agent, organisme = create_organisme_with_agent(role=AgentOrganismeRole.AGENT)
         recrutement = RecrutementDjangoFactory(organisme=organisme)
 
         with pytest.raises(AccesRecrutementRefuse):
@@ -118,7 +118,7 @@ class TestGetRecrutementListeRbac:
 
     def test_returns_none_for_unknown_recrutement(self, usecase):
         agent, organisme = create_organisme_with_agent(
-            role=AgentOrganismeRole.RESPONSABLE
+            role=AgentOrganismeRole.SUPERVISEUR
         )
 
         result = usecase.execute(
@@ -135,7 +135,7 @@ class TestGetRecrutementListeRbac:
 
     def test_returns_none_when_recrutement_belongs_to_another_organisme(self, usecase):
         agent, organisme = create_organisme_with_agent(
-            role=AgentOrganismeRole.RESPONSABLE
+            role=AgentOrganismeRole.SUPERVISEUR
         )
         autre_organisme = OrganismeDjangoFactory()
         recrutement = RecrutementDjangoFactory(organisme=autre_organisme)

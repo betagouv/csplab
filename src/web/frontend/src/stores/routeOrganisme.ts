@@ -22,7 +22,7 @@ export function useRouteOrganisme() {
   )
 
   const canManageOrganisme = computed(() =>
-    Boolean(user.value?.is_staff) || organisme.value?.role === 'responsable',
+    Boolean(user.value?.is_staff) || organisme.value?.role === 'superviseur',
   )
 
   return {

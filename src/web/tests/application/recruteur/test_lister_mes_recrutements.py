@@ -33,7 +33,7 @@ def service_fixture() -> IRecrutementQueryService:
 @pytest.fixture(name="organisme_permission_service")
 def organisme_permission_service_fixture():
     service = MagicMock(spec=OrganismePermissionService)
-    service.can_execute.return_value = AgentOrganismeRole.RESPONSABLE
+    service.can_execute.return_value = AgentOrganismeRole.SUPERVISEUR
     return service
 
 
@@ -90,9 +90,7 @@ class TestListerMesRecrutements:
     ):
         organisme_id = uuid4()
         utilisateur_id = uuid4()
-        organisme_permission_service.can_execute.return_value = (
-            AgentOrganismeRole.MEMBRE
-        )
+        organisme_permission_service.can_execute.return_value = AgentOrganismeRole.AGENT
         recrutements_actifs = [RecrutementFactory.create_actif_read_model()]
         service.get_actifs_by_organisme = MagicMock(return_value=recrutements_actifs)
 
@@ -114,9 +112,7 @@ class TestListerMesRecrutements:
     ):
         organisme_id = uuid4()
         utilisateur_id = uuid4()
-        organisme_permission_service.can_execute.return_value = (
-            AgentOrganismeRole.MEMBRE
-        )
+        organisme_permission_service.can_execute.return_value = AgentOrganismeRole.AGENT
         recrutements_archives = [RecrutementFactory.create_archive_read_model()]
         service.get_archives_by_organisme = MagicMock(
             return_value=recrutements_archives

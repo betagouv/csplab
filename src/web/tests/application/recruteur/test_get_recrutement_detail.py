@@ -71,8 +71,8 @@ class TestGetRecrutementDetail:
     @pytest.mark.parametrize(
         "role",
         [
-            pytest.param(AgentOrganismeRole.RESPONSABLE, id="responsable"),
-            pytest.param(AgentOrganismeRole.MEMBRE, id="membre"),
+            pytest.param(AgentOrganismeRole.SUPERVISEUR, id="responsable"),
+            pytest.param(AgentOrganismeRole.AGENT, id="agent"),
         ],
     )
     def test_returns_detail_when_authorized(
@@ -115,7 +115,7 @@ class TestGetRecrutementDetail:
         usecase,
     ):
         organisme_permission_service.can_execute.return_value = (
-            AgentOrganismeRole.RESPONSABLE
+            AgentOrganismeRole.SUPERVISEUR
         )
         recrutement_query_service.get_detail_by_recrutement.return_value = None
 

@@ -26,7 +26,7 @@ def test_list_organisme_agents_returns_agents_for_responsable(
     db, recruteur_integration_container
 ):
     agent, organisme_model = create_organisme_with_agent(
-        role=AgentOrganismeRole.RESPONSABLE
+        role=AgentOrganismeRole.SUPERVISEUR
     )
     utilisateur = UtilisateurMapper().to_domain(agent.utilisateur)
     usecase = recruteur_integration_container.list_organisme_agents_usecase()
@@ -45,11 +45,11 @@ def test_list_organisme_agents_returns_agents_for_responsable(
     assert agent_organisme.prenom == agent.utilisateur.first_name
     assert agent_organisme.email == agent.utilisateur.email
     assert agent_organisme.poste == agent.intitule_poste
-    assert agent_organisme.role == AgentOrganismeRole.RESPONSABLE.value
+    assert agent_organisme.role == AgentOrganismeRole.SUPERVISEUR.value
 
 
 def test_list_organisme_agents_raises_when_membre(db, recruteur_integration_container):
-    agent, organisme_model = create_organisme_with_agent(role=AgentOrganismeRole.MEMBRE)
+    agent, organisme_model = create_organisme_with_agent(role=AgentOrganismeRole.AGENT)
     utilisateur = UtilisateurMapper().to_domain(agent.utilisateur)
     usecase = recruteur_integration_container.list_organisme_agents_usecase()
 

@@ -1,4 +1,4 @@
-import type { Versant } from '../types'
+import type { Role, Versant } from '../types'
 
 export const VERSANT_LABELS: Record<Versant, string> = {
   FPE: 'Fonction Publique d\'État',
@@ -8,10 +8,10 @@ export const VERSANT_LABELS: Record<Versant, string> = {
 
 export const SIRET_LENGTH = 14
 
-export const ROLE_LABELS = {
-  responsable: 'Responsable',
-  membre: 'Membre',
-} as const
+export const ROLE_LABELS: Record<Role, string> = {
+  superviseur: 'Responsable',
+  agent: 'Membre',
+}
 
 export const ORGANISME_TAB_LABELS = {
   membres: 'Membres',

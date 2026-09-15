@@ -58,7 +58,7 @@ def usecase_fixture(recruteur_integration_container):
 class TestListerMesRecrutements:
     def _create_agent_responsable(self):
         agent, organisme = create_organisme_with_agent(
-            role=AgentOrganismeRole.RESPONSABLE
+            role=AgentOrganismeRole.SUPERVISEUR
         )
         return agent, organisme
 
@@ -220,7 +220,7 @@ class TestListerMesRecrutementsRbac:
 
     def test_responsable_organisme(self, usecase, statut):
         agent, organisme = create_organisme_with_agent(
-            role=AgentOrganismeRole.RESPONSABLE
+            role=AgentOrganismeRole.SUPERVISEUR
         )
         (
             recrutement_in_org,
@@ -240,7 +240,7 @@ class TestListerMesRecrutementsRbac:
             assert recrutement not in results._qs
 
     def test_membre_organisme(self, usecase, statut):
-        agent, organisme = create_organisme_with_agent(role=AgentOrganismeRole.MEMBRE)
+        agent, organisme = create_organisme_with_agent(role=AgentOrganismeRole.AGENT)
         (
             recrutement_in_org,
             recrutement_in_org_with_role,

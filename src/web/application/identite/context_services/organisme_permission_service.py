@@ -56,44 +56,44 @@ _AUTORISE_POUR_STAFF: frozenset[OrganismeAction] = frozenset(
 # Authorisations niveau Organisme
 # -------------------------------------
 _ROLES_REQUIS: dict[OrganismeAction, frozenset[AgentOrganismeRole]] = {
-    OrganismeAction.GET_ORGANISME: frozenset({AgentOrganismeRole.RESPONSABLE}),
+    OrganismeAction.GET_ORGANISME: frozenset({AgentOrganismeRole.SUPERVISEUR}),
     OrganismeAction.INITIALIZE_ORGANISME_STEPS: frozenset(
-        {AgentOrganismeRole.RESPONSABLE}
+        {AgentOrganismeRole.SUPERVISEUR}
     ),
-    OrganismeAction.UPDATE_ORGANISME_STEPS: frozenset({AgentOrganismeRole.RESPONSABLE}),
+    OrganismeAction.UPDATE_ORGANISME_STEPS: frozenset({AgentOrganismeRole.SUPERVISEUR}),
     OrganismeAction.LISTER_MES_RECRUTEMENTS: frozenset(
-        {AgentOrganismeRole.RESPONSABLE, AgentOrganismeRole.MEMBRE}
+        {AgentOrganismeRole.SUPERVISEUR, AgentOrganismeRole.AGENT}
     ),
     OrganismeAction.VOIR_DETAIL_RECRUTEMENT: frozenset(
-        {AgentOrganismeRole.RESPONSABLE, AgentOrganismeRole.MEMBRE}
+        {AgentOrganismeRole.SUPERVISEUR, AgentOrganismeRole.AGENT}
     ),
     OrganismeAction.GET_RECRUTEMENT_ETAPES: frozenset(
-        {AgentOrganismeRole.RESPONSABLE, AgentOrganismeRole.MEMBRE}
+        {AgentOrganismeRole.SUPERVISEUR, AgentOrganismeRole.AGENT}
     ),
     OrganismeAction.UPDATE_RECRUTEMENT_ETAPES: frozenset(
-        {AgentOrganismeRole.RESPONSABLE, AgentOrganismeRole.MEMBRE}
+        {AgentOrganismeRole.SUPERVISEUR, AgentOrganismeRole.AGENT}
     ),
     OrganismeAction.INIT_RECRUTEMENT_ETAPES: frozenset(
-        {AgentOrganismeRole.RESPONSABLE, AgentOrganismeRole.MEMBRE}
+        {AgentOrganismeRole.SUPERVISEUR, AgentOrganismeRole.AGENT}
     ),
     OrganismeAction.CHANGER_ETAPE_CANDIDATURES: frozenset(
-        {AgentOrganismeRole.RESPONSABLE, AgentOrganismeRole.MEMBRE}
+        {AgentOrganismeRole.SUPERVISEUR, AgentOrganismeRole.AGENT}
     ),
-    OrganismeAction.LIST_ORGANISME_AGENTS: frozenset({AgentOrganismeRole.RESPONSABLE}),
-    OrganismeAction.SEARCH_AGENT: frozenset({AgentOrganismeRole.RESPONSABLE}),
-    OrganismeAction.ATTACH_ORGANISME_AGENT: frozenset({AgentOrganismeRole.RESPONSABLE}),
-    OrganismeAction.UPDATE_ORGANISME_AGENT: frozenset({AgentOrganismeRole.RESPONSABLE}),
-    OrganismeAction.REVOKE_ORGANISME_AGENT: frozenset({AgentOrganismeRole.RESPONSABLE}),
-    OrganismeAction.CREATE_AGENT: frozenset({AgentOrganismeRole.RESPONSABLE}),
+    OrganismeAction.LIST_ORGANISME_AGENTS: frozenset({AgentOrganismeRole.SUPERVISEUR}),
+    OrganismeAction.SEARCH_AGENT: frozenset({AgentOrganismeRole.SUPERVISEUR}),
+    OrganismeAction.ATTACH_ORGANISME_AGENT: frozenset({AgentOrganismeRole.SUPERVISEUR}),
+    OrganismeAction.UPDATE_ORGANISME_AGENT: frozenset({AgentOrganismeRole.SUPERVISEUR}),
+    OrganismeAction.REVOKE_ORGANISME_AGENT: frozenset({AgentOrganismeRole.SUPERVISEUR}),
+    OrganismeAction.CREATE_AGENT: frozenset({AgentOrganismeRole.SUPERVISEUR}),
     OrganismeAction.LIST_RECRUTEMENT_AGENTS: frozenset(
-        {AgentOrganismeRole.RESPONSABLE}
+        {AgentOrganismeRole.SUPERVISEUR}
     ),
-    OrganismeAction.ADD_RECRUTEMENT_AGENT: frozenset({AgentOrganismeRole.RESPONSABLE}),
+    OrganismeAction.ADD_RECRUTEMENT_AGENT: frozenset({AgentOrganismeRole.SUPERVISEUR}),
     OrganismeAction.UPDATE_RECRUTEMENT_AGENT: frozenset(
-        {AgentOrganismeRole.RESPONSABLE}
+        {AgentOrganismeRole.SUPERVISEUR}
     ),
     OrganismeAction.REVOKE_RECRUTEMENT_AGENT: frozenset(
-        {AgentOrganismeRole.RESPONSABLE}
+        {AgentOrganismeRole.SUPERVISEUR}
     ),
 }
 
@@ -165,7 +165,7 @@ class OrganismePermissionService:
             raise AccesOrganismeRefuse(cast(UUID, organisme_id))
 
         if (
-            role == AgentOrganismeRole.MEMBRE
+            role == AgentOrganismeRole.AGENT
             and action not in _SANS_ROLE_RECRUTEMENT_REQUIS
         ):
             if recrutement_id is None:

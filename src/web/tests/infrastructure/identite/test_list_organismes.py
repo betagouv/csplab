@@ -58,7 +58,7 @@ def test_list_organismes(db, organismes, identite_integration_container):
 
 def test_list_organismes_with_counts(db, identite_integration_container):
     _, organisme_with_agents = create_organisme_with_agent(
-        role=AgentOrganismeRole.MEMBRE,
+        role=AgentOrganismeRole.AGENT,
     )
     organisme_with_recruitments = OrganismeDjangoFactory()
     RecrutementDjangoFactory(organisme=organisme_with_recruitments)

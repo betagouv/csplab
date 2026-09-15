@@ -27,7 +27,7 @@ class TestAgentRechercheView:
 
     def test_unknown_email_returns_404(self, authenticated_client, test_user):
         _, organisme = create_organisme_with_agent(
-            role=AgentOrganismeRole.RESPONSABLE,
+            role=AgentOrganismeRole.SUPERVISEUR,
             utilisateur=test_user,
         )
         url = reverse(
@@ -54,7 +54,7 @@ class TestAgentRechercheView:
 
     def test_membre_is_forbidden(self, authenticated_client, test_user):
         _, organisme = create_organisme_with_agent(
-            role=AgentOrganismeRole.MEMBRE,
+            role=AgentOrganismeRole.AGENT,
             utilisateur=test_user,
         )
         url = reverse(
@@ -68,7 +68,7 @@ class TestAgentRechercheView:
 
     def test_missing_email_returns_400(self, authenticated_client, test_user):
         _, organisme = create_organisme_with_agent(
-            role=AgentOrganismeRole.RESPONSABLE,
+            role=AgentOrganismeRole.SUPERVISEUR,
             utilisateur=test_user,
         )
         url = reverse(
@@ -82,7 +82,7 @@ class TestAgentRechercheView:
 
     def test_invalid_email_returns_400(self, authenticated_client, test_user):
         _, organisme = create_organisme_with_agent(
-            role=AgentOrganismeRole.RESPONSABLE,
+            role=AgentOrganismeRole.SUPERVISEUR,
             utilisateur=test_user,
         )
         url = reverse(
@@ -98,7 +98,7 @@ class TestAgentRechercheView:
 class TestAgentRechercheViewDbVerified:
     def test_get_returns_persisted_agent(self, authenticated_client, test_user):
         _, organisme = create_organisme_with_agent(
-            role=AgentOrganismeRole.RESPONSABLE,
+            role=AgentOrganismeRole.SUPERVISEUR,
             utilisateur=test_user,
         )
         autre_agent = AgentDjangoFactory()

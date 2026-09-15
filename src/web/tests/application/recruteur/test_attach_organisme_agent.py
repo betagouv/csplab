@@ -44,7 +44,7 @@ def usecase_fixture(
 
 def test_responsable_attaches_bare_agent(db, usecase, recruteur_integration_container):
     responsable, organisme = create_organisme_with_agent(
-        role=AgentOrganismeRole.RESPONSABLE
+        role=AgentOrganismeRole.SUPERVISEUR
     )
     bare_agent = AgentDjangoFactory()
 
@@ -52,7 +52,7 @@ def test_responsable_attaches_bare_agent(db, usecase, recruteur_integration_cont
         AttachOrganismeAgentCommand(
             organisme_id=organisme.id,
             agent_id=bare_agent.utilisateur_id,
-            role=AgentOrganismeRole.MEMBRE,
+            role=AgentOrganismeRole.AGENT,
             utilisateur=UtilisateurFactory.create_entity(
                 entity_id=responsable.utilisateur_id, is_staff=False
             ),
@@ -65,7 +65,7 @@ def test_responsable_attaches_bare_agent(db, usecase, recruteur_integration_cont
     assert agent_organisme.prenom == bare_agent.utilisateur.first_name
     assert agent_organisme.email == bare_agent.utilisateur.email
     assert agent_organisme.poste == bare_agent.intitule_poste
-    assert agent_organisme.role == AgentOrganismeRole.MEMBRE.value
+    assert agent_organisme.role == AgentOrganismeRole.AGENT.value
     assert OrganismeAgentModel.objects.filter(
         organisme_id=organisme.id, agent_id=bare_agent.utilisateur_id
     ).exists()
@@ -90,21 +90,21 @@ def test_staff_bypasses_role_check(db, usecase):
         AttachOrganismeAgentCommand(
             organisme_id=organisme.id,
             agent_id=bare_agent.utilisateur_id,
-            role=AgentOrganismeRole.RESPONSABLE,
+            role=AgentOrganismeRole.SUPERVISEUR,
             utilisateur=UtilisateurFactory.create_entity(
                 entity_id=uuid4(), is_staff=True
             ),
         )
     )
 
-    assert agent_organisme.role == AgentOrganismeRole.RESPONSABLE.value
+    assert agent_organisme.role == AgentOrganismeRole.SUPERVISEUR.value
     assert OrganismeAgentModel.objects.filter(
         organisme_id=organisme.id, agent_id=bare_agent.utilisateur_id
     ).exists()
 
 
 def test_membre_is_denied(db, usecase, recruteur_integration_container):
-    membre, organisme = create_organisme_with_agent(role=AgentOrganismeRole.MEMBRE)
+    membre, organisme = create_organisme_with_agent(role=AgentOrganismeRole.AGENT)
     bare_agent = AgentDjangoFactory()
 
     with pytest.raises(AccesOrganismeRefuse):
@@ -112,7 +112,7 @@ def test_membre_is_denied(db, usecase, recruteur_integration_container):
             AttachOrganismeAgentCommand(
                 organisme_id=organisme.id,
                 agent_id=bare_agent.utilisateur_id,
-                role=AgentOrganismeRole.MEMBRE,
+                role=AgentOrganismeRole.AGENT,
                 utilisateur=UtilisateurFactory.create_entity(
                     entity_id=membre.utilisateur_id, is_staff=False
                 ),
@@ -135,11 +135,11 @@ def test_membre_is_denied(db, usecase, recruteur_integration_container):
 
 def test_raises_when_agent_already_attached(db, usecase):
     responsable, organisme = create_organisme_with_agent(
-        role=AgentOrganismeRole.RESPONSABLE
+        role=AgentOrganismeRole.SUPERVISEUR
     )
     autre_agent = OrganismeAgentDjangoFactory(
         organisme=organisme,
-        role=AgentOrganismeRole.MEMBRE.value,
+        role=AgentOrganismeRole.AGENT.value,
     ).agent
 
     with pytest.raises(AgentDejaRattache):
@@ -147,7 +147,7 @@ def test_raises_when_agent_already_attached(db, usecase):
             AttachOrganismeAgentCommand(
                 organisme_id=organisme.id,
                 agent_id=autre_agent.utilisateur_id,
-                role=AgentOrganismeRole.RESPONSABLE,
+                role=AgentOrganismeRole.SUPERVISEUR,
                 utilisateur=UtilisateurFactory.create_entity(
                     entity_id=responsable.utilisateur_id, is_staff=False
                 ),
@@ -159,11 +159,11 @@ def test_responsable_reattaches_previously_revoked_agent(
     db, usecase, recruteur_integration_container
 ):
     responsable, organisme = create_organisme_with_agent(
-        role=AgentOrganismeRole.RESPONSABLE
+        role=AgentOrganismeRole.SUPERVISEUR
     )
     revoked_agent = OrganismeAgentDjangoFactory(
         organisme=organisme,
-        role=AgentOrganismeRole.MEMBRE.value,
+        role=AgentOrganismeRole.AGENT.value,
     ).agent
     OrganismeAgentModel.objects.filter(
         organisme_id=organisme.id, agent_id=revoked_agent.utilisateur_id
@@ -173,19 +173,19 @@ def test_responsable_reattaches_previously_revoked_agent(
         AttachOrganismeAgentCommand(
             organisme_id=organisme.id,
             agent_id=revoked_agent.utilisateur_id,
-            role=AgentOrganismeRole.RESPONSABLE,
+            role=AgentOrganismeRole.SUPERVISEUR,
             utilisateur=UtilisateurFactory.create_entity(
                 entity_id=responsable.utilisateur_id, is_staff=False
             ),
         )
     )
 
-    assert agent_organisme.role == AgentOrganismeRole.RESPONSABLE.value
+    assert agent_organisme.role == AgentOrganismeRole.SUPERVISEUR.value
     assert agent_organisme.date_revocation is None
     liaison = OrganismeAgentModel.objects.get(
         organisme_id=organisme.id, agent_id=revoked_agent.utilisateur_id
     )
-    assert liaison.role == AgentOrganismeRole.RESPONSABLE.value
+    assert liaison.role == AgentOrganismeRole.SUPERVISEUR.value
     assert liaison.date_revocation is None
 
     audit_log_repository = (
@@ -200,7 +200,7 @@ def test_responsable_reattaches_previously_revoked_agent(
 
 def test_raises_when_agent_does_not_exist(db, usecase):
     responsable, organisme = create_organisme_with_agent(
-        role=AgentOrganismeRole.RESPONSABLE
+        role=AgentOrganismeRole.SUPERVISEUR
     )
 
     with pytest.raises(ProfilAgentNexistePas):
@@ -208,7 +208,7 @@ def test_raises_when_agent_does_not_exist(db, usecase):
             AttachOrganismeAgentCommand(
                 organisme_id=organisme.id,
                 agent_id=uuid4(),
-                role=AgentOrganismeRole.MEMBRE,
+                role=AgentOrganismeRole.AGENT,
                 utilisateur=UtilisateurFactory.create_entity(
                     entity_id=responsable.utilisateur_id, is_staff=False
                 ),
@@ -224,7 +224,7 @@ def test_raises_when_organisme_does_not_exist(db, usecase):
             AttachOrganismeAgentCommand(
                 organisme_id=uuid4(),
                 agent_id=bare_agent.utilisateur_id,
-                role=AgentOrganismeRole.MEMBRE,
+                role=AgentOrganismeRole.AGENT,
                 utilisateur=UtilisateurFactory.create_entity(
                     entity_id=uuid4(), is_staff=False
                 ),

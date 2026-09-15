@@ -40,24 +40,24 @@ def repository_fixture(
 
 def test_get_role_returns_responsable(db, repository):
     agent, organisme_model = create_organisme_with_agent(
-        role=AgentOrganismeRole.RESPONSABLE
+        role=AgentOrganismeRole.SUPERVISEUR
     )
 
     role = repository.get_role(
         organisme_id=organisme_model.id, agent_id=agent.utilisateur_id
     )
 
-    assert role == AgentOrganismeRole.RESPONSABLE
+    assert role == AgentOrganismeRole.SUPERVISEUR
 
 
 def test_get_role_returns_membre(db, repository):
-    agent, organisme_model = create_organisme_with_agent(role=AgentOrganismeRole.MEMBRE)
+    agent, organisme_model = create_organisme_with_agent(role=AgentOrganismeRole.AGENT)
 
     role = repository.get_role(
         organisme_id=organisme_model.id, agent_id=agent.utilisateur_id
     )
 
-    assert role == AgentOrganismeRole.MEMBRE
+    assert role == AgentOrganismeRole.AGENT
 
 
 def test_get_role_returns_none_when_no_liaison(db, repository):
@@ -78,23 +78,23 @@ def test_attach_persists_liaison(db, repository):
     repository.attach(
         organisme_id=organisme_model.id,
         agent_id=agent.utilisateur_id,
-        role=AgentOrganismeRole.MEMBRE,
+        role=AgentOrganismeRole.AGENT,
     )
 
     liaison = OrganismeAgentModel.objects.get(
         organisme_id=organisme_model.id, agent_id=agent.utilisateur_id
     )
-    assert liaison.role == AgentOrganismeRole.MEMBRE.value
+    assert liaison.role == AgentOrganismeRole.AGENT.value
 
 
 def test_attach_raises_when_already_attached(db, repository):
-    agent, organisme_model = create_organisme_with_agent(role=AgentOrganismeRole.MEMBRE)
+    agent, organisme_model = create_organisme_with_agent(role=AgentOrganismeRole.AGENT)
 
     with pytest.raises(AgentDejaRattache):
         repository.attach(
             organisme_id=organisme_model.id,
             agent_id=agent.utilisateur_id,
-            role=AgentOrganismeRole.RESPONSABLE,
+            role=AgentOrganismeRole.SUPERVISEUR,
         )
 
 
@@ -111,7 +111,7 @@ def test_is_revoked_returns_none_when_no_liaison(db, repository):
 
 
 def test_is_revoked_returns_false_when_active(db, repository):
-    agent, organisme_model = create_organisme_with_agent(role=AgentOrganismeRole.MEMBRE)
+    agent, organisme_model = create_organisme_with_agent(role=AgentOrganismeRole.AGENT)
 
     assert (
         repository.is_revoked(
@@ -122,7 +122,7 @@ def test_is_revoked_returns_false_when_active(db, repository):
 
 
 def test_is_revoked_returns_true_when_revoked(db, repository):
-    agent, organisme_model = create_organisme_with_agent(role=AgentOrganismeRole.MEMBRE)
+    agent, organisme_model = create_organisme_with_agent(role=AgentOrganismeRole.AGENT)
     repository.revoke(
         organisme_id=organisme_model.id,
         agent_id=agent.utilisateur_id,
@@ -138,7 +138,7 @@ def test_is_revoked_returns_true_when_revoked(db, repository):
 
 
 def test_reattach_persists_role_and_clears_date_revocation(db, repository):
-    agent, organisme_model = create_organisme_with_agent(role=AgentOrganismeRole.MEMBRE)
+    agent, organisme_model = create_organisme_with_agent(role=AgentOrganismeRole.AGENT)
     repository.revoke(
         organisme_id=organisme_model.id,
         agent_id=agent.utilisateur_id,
@@ -148,13 +148,13 @@ def test_reattach_persists_role_and_clears_date_revocation(db, repository):
     repository.reattach(
         organisme_id=organisme_model.id,
         agent_id=agent.utilisateur_id,
-        role=AgentOrganismeRole.RESPONSABLE,
+        role=AgentOrganismeRole.SUPERVISEUR,
     )
 
     liaison = OrganismeAgentModel.objects.get(
         organisme_id=organisme_model.id, agent_id=agent.utilisateur_id
     )
-    assert liaison.role == AgentOrganismeRole.RESPONSABLE.value
+    assert liaison.role == AgentOrganismeRole.SUPERVISEUR.value
     assert liaison.date_revocation is None
 
 
@@ -166,23 +166,23 @@ def test_reattach_raises_when_no_liaison(db, repository):
         repository.reattach(
             organisme_id=organisme_model.id,
             agent_id=agent.utilisateur_id,
-            role=AgentOrganismeRole.RESPONSABLE,
+            role=AgentOrganismeRole.SUPERVISEUR,
         )
 
 
 def test_update_role_persists_change(db, repository):
-    agent, organisme_model = create_organisme_with_agent(role=AgentOrganismeRole.MEMBRE)
+    agent, organisme_model = create_organisme_with_agent(role=AgentOrganismeRole.AGENT)
 
     repository.update_role(
         organisme_id=organisme_model.id,
         agent_id=agent.utilisateur_id,
-        role=AgentOrganismeRole.RESPONSABLE,
+        role=AgentOrganismeRole.SUPERVISEUR,
     )
 
     liaison = OrganismeAgentModel.objects.get(
         organisme_id=organisme_model.id, agent_id=agent.utilisateur_id
     )
-    assert liaison.role == AgentOrganismeRole.RESPONSABLE.value
+    assert liaison.role == AgentOrganismeRole.SUPERVISEUR.value
 
 
 def test_update_role_raises_when_no_liaison(db, repository):
@@ -193,12 +193,12 @@ def test_update_role_raises_when_no_liaison(db, repository):
         repository.update_role(
             organisme_id=organisme_model.id,
             agent_id=agent.utilisateur_id,
-            role=AgentOrganismeRole.RESPONSABLE,
+            role=AgentOrganismeRole.SUPERVISEUR,
         )
 
 
 def test_revoke_persists_date_revocation(db, repository):
-    agent, organisme_model = create_organisme_with_agent(role=AgentOrganismeRole.MEMBRE)
+    agent, organisme_model = create_organisme_with_agent(role=AgentOrganismeRole.AGENT)
     date_revocation = datetime.now(UTC)
 
     repository.revoke(

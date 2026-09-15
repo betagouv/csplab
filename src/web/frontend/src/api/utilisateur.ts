@@ -3,6 +3,8 @@ import { api, readCsrfCookie } from '@/api/client'
 
 export type Utilisateur = components['schemas']['Utilisateur']
 
+export type OrganismeRole = components['schemas']['OrganismeRole']
+
 export async function getMe(): Promise<Utilisateur> {
   const { data } = await api.GET('/utilisateur/me')
   return data!

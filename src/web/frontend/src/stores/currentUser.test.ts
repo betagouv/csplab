@@ -1,3 +1,4 @@
+import type { Utilisateur } from '@/api/utilisateur'
 import { PiniaColada } from '@pinia/colada'
 import { mount } from '@vue/test-utils'
 import { createPinia } from 'pinia'
@@ -33,12 +34,12 @@ describe('useCurrentUser', () => {
   })
 
   it('fetches user and exposes reactive state', async () => {
-    const userData = {
+    const userData: Utilisateur = {
       email: 'test@example.com',
       prenom: 'Jean',
       nom: 'Dupont',
       is_staff: false,
-      organisme_roles: [{ organisme_uuid: 'a1a1a1a1-a1a1-a1a1-a1a1-a1a1a1a1a1a1', nom: 'Ministère de la Transition Écologique', role: 'responsable' }],
+      organisme_roles: [{ organisme_uuid: 'a1a1a1a1-a1a1-a1a1-a1a1-a1a1a1a1a1a1', nom: 'Ministère de la Transition Écologique', role: 'superviseur' }],
     }
     vi.mocked(getMe).mockResolvedValue(userData)
 

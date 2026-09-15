@@ -1,10 +1,14 @@
 from rest_framework import serializers
 
+from domain.recruteur.value_objects.roles import AgentOrganismeRole
+
 
 class OrganismeRoleSerializer(serializers.Serializer):
     organisme_uuid = serializers.UUIDField()
     nom = serializers.CharField()
-    role = serializers.CharField()
+    role = serializers.ChoiceField(
+        choices=[(r.value, r.value) for r in AgentOrganismeRole]
+    )
 
 
 class UtilisateurSerializer(serializers.Serializer):

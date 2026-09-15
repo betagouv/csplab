@@ -643,7 +643,7 @@ export interface components {
             /** Format: uuid */
             organisme_uuid: string;
             nom: string;
-            role: string;
+            role: components["schemas"]["RoleEnum"];
         };
         OrganismesList: {
             /** Format: uuid */
@@ -822,11 +822,11 @@ export interface components {
             nom: string;
         };
         /**
-         * @description * `responsable` - responsable
-         *     * `membre` - membre
+         * @description * `superviseur` - superviseur
+         *     * `agent` - agent
          * @enum {string}
          */
-        RoleEnum: "responsable" | "membre";
+        RoleEnum: "superviseur" | "agent";
         SetAgentRoleOnOrganisme: {
             /** Format: uuid */
             agent_id: string;

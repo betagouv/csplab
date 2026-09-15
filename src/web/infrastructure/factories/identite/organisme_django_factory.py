@@ -52,7 +52,7 @@ class OrganismeAgentDjangoFactory(DjangoModelFactory):
     id = factory.LazyFunction(uuid4)
     organisme = factory.SubFactory(OrganismeDjangoFactory)
     agent = factory.SubFactory(AgentDjangoFactory)
-    role = AgentOrganismeRole.MEMBRE.value
+    role = AgentOrganismeRole.AGENT.value
 
 
 def create_organisme_with_agent(
@@ -76,7 +76,7 @@ def create_organisme_with_agent(
 
     organisme = OrganismeDjangoFactory(
         with_agent=True,
-        agent_liaison__role=(role or AgentOrganismeRole.MEMBRE).value,
+        agent_liaison__role=(role or AgentOrganismeRole.AGENT).value,
         **agent_overrides,
         **organisme_kwargs,
     )

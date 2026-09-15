@@ -37,7 +37,7 @@ const MOCK_USER: Utilisateur = {
   prenom: 'Marie',
   nom: 'Dupont',
   is_staff: false,
-  organisme_roles: [{ organisme_uuid: ORGANISME_UUID, nom: 'Mairie de Paris', role: 'AGENT' }],
+  organisme_roles: [{ organisme_uuid: ORGANISME_UUID, nom: 'Mairie de Paris', role: 'agent' }],
 }
 const ETAPE_RECEPTION = 'cccccccc-0001-0001-0001-000000000001'
 const ETAPE_PRESELECTION = 'cccccccc-0001-0001-0001-000000000002'
