@@ -13,7 +13,7 @@ const props = defineProps<{
   row: MembreEquipe
 }>()
 
-const { requestRevocation, requestRoleChange } = useMembreEquipeActions()
+const { revocation, roleChange } = useMembreEquipeActions()
 
 const ROLE_ICONS: Record<RecrutementRole, string> = {
   responsable: 'ri:shield-user-line',
@@ -33,7 +33,7 @@ const sections = computed(() => [
     items: rolesProposes.value.map(role => ({
       label: `Passer ${RECRUTEMENT_ROLE_LABELS[role].toLowerCase()}`,
       icon: ROLE_ICONS[role],
-      onSelect: () => requestRoleChange(props.row, role),
+      onSelect: () => roleChange.request({ membre: props.row, role }),
     })),
   },
   {
@@ -42,7 +42,7 @@ const sections = computed(() => [
         label: 'Retirer de l\'équipe',
         icon: 'ri:user-unfollow-line',
         destructive: true,
-        onSelect: () => requestRevocation(props.row),
+        onSelect: () => revocation.request(props.row),
       },
     ],
   },
