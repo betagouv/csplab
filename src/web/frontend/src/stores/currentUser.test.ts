@@ -1,3 +1,4 @@
+import type { Utilisateur } from '@/api/utilisateur'
 import { PiniaColada } from '@pinia/colada'
 import { mount } from '@vue/test-utils'
 import { createPinia } from 'pinia'
@@ -33,7 +34,7 @@ describe('useCurrentUser', () => {
   })
 
   it('fetches user and exposes reactive state', async () => {
-    const userData = {
+    const userData: Utilisateur = {
       email: 'test@example.com',
       prenom: 'Jean',
       nom: 'Dupont',
