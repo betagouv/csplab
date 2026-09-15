@@ -1,6 +1,7 @@
 from uuid import uuid4
 
 import pytest
+from django.utils import timezone
 
 from application.recruteur.services.set_recrutements_responsable import (
     set_recrutements_responsable,
@@ -9,6 +10,7 @@ from domain.commons.errors.organisme_errors import OrganismeNexistePas
 from domain.identite.errors.agent_errors import ProfilAgentNexistePas
 from domain.identite.errors.organisme_permission_errors import AccesOrganismeRefuse
 from domain.recruteur.value_objects.roles import AgentOrganismeRole
+from infrastructure.django_apps.recruteur.models.organisme import OrganismeAgentModel
 from infrastructure.factories.identite.agent_django_factory import AgentDjangoFactory
 from infrastructure.factories.identite.organisme_django_factory import (
     OrganismeAgentDjangoFactory,
@@ -147,6 +149,37 @@ def test_does_not_raise_when_agent_has_profile_but_is_not_attached_to_organisme(
     )
 
     assert resultats["reussites"] == [recrutement.pk]
+    organisme_agent = OrganismeAgentModel.objects.get(
+        organisme_id=organisme.id, agent_id=bare_agent.utilisateur_id
+    )
+    assert organisme_agent.role == AgentOrganismeRole.AGENT.value
+    assert organisme_agent.date_revocation is None
+
+
+def test_reattaches_agent_previously_revoked_from_organisme(db):
+    responsable, organisme = create_organisme_with_agent(
+        role=AgentOrganismeRole.SUPERVISEUR
+    )
+    membre = OrganismeAgentDjangoFactory(
+        organisme=organisme,
+        role=AgentOrganismeRole.SUPERVISEUR.value,
+        date_revocation=timezone.now(),
+    ).agent
+    recrutement = RecrutementDjangoFactory(organisme=organisme)
+
+    resultats = set_recrutements_responsable(
+        organisme_id=organisme.id,
+        recrutement_ids=[recrutement.pk],
+        agent_id=membre.utilisateur_id,
+        utilisateur=_utilisateur(responsable.utilisateur_id),
+    )
+
+    assert resultats["reussites"] == [recrutement.pk]
+    organisme_agent = OrganismeAgentModel.objects.get(
+        organisme_id=organisme.id, agent_id=membre.utilisateur_id
+    )
+    assert organisme_agent.role == AgentOrganismeRole.AGENT.value
+    assert organisme_agent.date_revocation is None
 
 
 @pytest.mark.parametrize(
