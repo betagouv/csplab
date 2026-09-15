@@ -5,6 +5,7 @@ from referentiel.value_objects.category import Category
 from referentiel.value_objects.contract_type import ContractType
 from referentiel.value_objects.experience_level import ExperienceLevel
 from referentiel.value_objects.offer_conditions import Management, WorkingPlace
+from referentiel.value_objects.radius import Radius
 from referentiel.value_objects.verse import Verse
 from rest_framework import status
 
@@ -28,6 +29,7 @@ from tests.utils.openapi_test_utils import assert_matches_openapi_schema
         ("contract_type", ContractType),
         ("offer_family_category", Category),
         ("experience_level", ExperienceLevel),
+        ("radius", Radius),
     ],
 )
 def test_returns_all_enum_members(authenticated_client, referential_type, enum_cls):

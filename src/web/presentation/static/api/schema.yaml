@@ -1204,6 +1204,7 @@ paths:
           - experience_level
           - management
           - offer_family_category
+          - radius
           - region
           - verse
           - working_place
