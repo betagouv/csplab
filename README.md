@@ -61,10 +61,10 @@ bin/cz commit
 Les commits et les titres de PR suivent le format [Conventional Commits](https://www.conventionalcommits.org/), en français :
 
 ```
-<type>(<scope>[-layer]): <subject>
+<type>(<scope>): <subject>
 ```
 
-Types autorisés : `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore`, `revert`. Le scope est généralement le service ou la fonctionnalité concernée ; le suffixe `-layer` (optionnel) précise la couche DDD (`domain`, `usecase`, `infrastructure`, `presentation`).
+Types autorisés : `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore`, `revert`. Le scope est généralement le service ou la fonctionnalité concernée.
 
 **Exemples :**
 
