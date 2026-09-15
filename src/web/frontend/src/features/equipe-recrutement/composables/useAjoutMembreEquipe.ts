@@ -1,4 +1,4 @@
-import type { AjoutMembrePayload } from '../types'
+import type { MembreEquipePayload } from '../types'
 import { useMutation, useQuery, useQueryCache } from '@pinia/colada'
 import { computed } from 'vue'
 import { organismeAgentsQuery } from '@/features/organismes/queries'
@@ -17,7 +17,7 @@ export function useAjoutMembreEquipe(organismeUuid: string, recrutementUuid: str
   })
 
   const addMutation = useMutation({
-    mutation: (payload: AjoutMembrePayload) =>
+    mutation: (payload: MembreEquipePayload) =>
       addMembreEquipe(organismeUuid, recrutementUuid, payload),
     onSettled: () => queryCache.invalidateQueries({
       key: EQUIPE_RECRUTEMENT_QUERY_KEYS.byRecrutement(organismeUuid, recrutementUuid),

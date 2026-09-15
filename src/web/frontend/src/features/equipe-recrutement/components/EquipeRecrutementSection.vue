@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { AjoutMembrePayload } from '../types'
+import type { MembreEquipePayload } from '../types'
 import { computed, ref, watch } from 'vue'
 import { HttpError } from '@/api/errors'
 import CspAsyncSection from '@/components/base/CspAsyncSection/CspAsyncSection.vue'
@@ -47,7 +47,7 @@ function ajoutErrorTitle(submitError: unknown): string {
   return 'L\'ajout du membre a échoué'
 }
 
-async function handleAdd(payload: AjoutMembrePayload) {
+async function handleAdd(payload: MembreEquipePayload) {
   try {
     const membre = await add(payload)
     addToast({

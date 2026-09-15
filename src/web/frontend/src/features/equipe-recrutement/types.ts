@@ -4,4 +4,4 @@ export type MembreEquipe = components['schemas']['RecrutementAgent']
 
 export type RecrutementRole = components['schemas']['RecrutementRoleEnum']
 
-export type AjoutMembrePayload = components['schemas']['RecrutementAgentRole']
+export type MembreEquipePayload = components['schemas']['RecrutementAgentRole']
