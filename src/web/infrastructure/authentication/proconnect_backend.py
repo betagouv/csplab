@@ -14,7 +14,9 @@ from infrastructure.mappers.utilisateur_mapper import UtilisateurMapper
 
 
 def build_proconnect_logout_url(request, id_token: str) -> str:
-    post_logout_redirect_uri = request.build_absolute_uri(reverse("pages:home"))
+    post_logout_redirect_uri = request.build_absolute_uri(
+        reverse(settings.LOGOUT_REDIRECT_URL)
+    )
     params = {
         "id_token_hint": id_token,
         "post_logout_redirect_uri": post_logout_redirect_uri,

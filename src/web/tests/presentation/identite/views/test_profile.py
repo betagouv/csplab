@@ -30,6 +30,6 @@ def test_logout_view(db, client, test_user):
 
     response = client.post(reverse("identite:logout"))
     assert response.status_code == status.HTTP_302_FOUND
-    assert response.url == reverse("pages:home")
+    assert response.url == reverse("identite:login")
     assert "_auth_user_id" not in client.session
     assert response.wsgi_request.user.is_authenticated is False
