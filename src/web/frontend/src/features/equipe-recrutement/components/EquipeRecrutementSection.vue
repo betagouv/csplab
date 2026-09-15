@@ -1,15 +1,23 @@
 <script setup lang="ts">
+import type { AjoutMembrePayload } from '../types'
 import { computed, ref, watch } from 'vue'
+import { HttpError } from '@/api/errors'
 import CspAsyncSection from '@/components/base/CspAsyncSection/CspAsyncSection.vue'
+import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspDataTable from '@/components/base/CspDataTable/CspDataTable.vue'
 import CspInput from '@/components/base/CspInput/CspInput.vue'
 import CspSkeletonTable from '@/components/base/CspSkeleton/CspSkeletonTable.vue'
 import CspTableToolbar from '@/components/base/CspTableToolbar/CspTableToolbar.vue'
 import { useMinimumPending } from '@/composables/async/useMinimumPending'
 import { useTextSearch } from '@/composables/data/useTextSearch'
+import { useToast } from '@/composables/ui/useToast'
+import { formatAgentName } from '@/features/organismes/format'
+import { useRouteOrganisme } from '@/stores/routeOrganisme'
 import { pluralize } from '@/utils/format'
 import { EQUIPE_RECRUTEMENT_COLUMNS } from '../columns'
+import { useAjoutMembreEquipe } from '../composables/useAjoutMembreEquipe'
 import { useEquipeRecrutement } from '../composables/useEquipeRecrutement'
+import AjoutMembreEquipeDrawer from './AjoutMembreEquipeDrawer.vue'
 
 const props = defineProps<{
   organismeUuid: string
@@ -19,10 +27,40 @@ const props = defineProps<{
 const PAGE_SIZE = 8
 
 const { membres, pending, error } = useEquipeRecrutement(props.organismeUuid, props.recrutementUuid)
+const { agentsDisponibles, pendingAgents, add, submitting } = useAjoutMembreEquipe(
+  props.organismeUuid,
+  props.recrutementUuid,
+)
+const { canManageOrganisme } = useRouteOrganisme()
+const { addToast } = useToast()
 
 const showSkeleton = useMinimumPending(pending)
 
 const page = ref(1)
+const ajoutDrawerOpen = ref(false)
+
+function ajoutErrorTitle(submitError: unknown): string {
+  if (submitError instanceof HttpError && submitError.status === 409)
+    return 'Cet agent fait déjà partie de l\'équipe'
+  if (submitError instanceof HttpError && submitError.status === 404)
+    return 'Cet agent n\'est plus rattaché à l\'organisme'
+  return 'L\'ajout du membre a échoué'
+}
+
+async function handleAdd(payload: AjoutMembrePayload) {
+  try {
+    const membre = await add(payload)
+    addToast({
+      variant: 'success',
+      title: 'Membre ajouté',
+      description: `${formatAgentName(membre)} a rejoint l'équipe de recrutement.`,
+    })
+    ajoutDrawerOpen.value = false
+  }
+  catch (submitError) {
+    addToast({ variant: 'error', title: ajoutErrorTitle(submitError) })
+  }
+}
 
 const { search, filtered } = useTextSearch(membres, membre => [
   `${membre.prenom} ${membre.nom}`,
@@ -74,6 +112,13 @@ const countLabel = computed(() => {
           placeholder="Rechercher un membre, un courriel"
           class="equipe-recrutement-section__search"
         />
+        <CspButton
+          v-if="canManageOrganisme"
+          label="Ajouter un membre"
+          icon="ri:user-add-line"
+          is-icon-left
+          @click="ajoutDrawerOpen = true"
+        />
       </CspTableToolbar>
       <CspDataTable
         v-model:page="page"
@@ -97,6 +142,14 @@ const countLabel = computed(() => {
         </template>
       </CspDataTable>
     </CspAsyncSection>
+
+    <AjoutMembreEquipeDrawer
+      v-model:open="ajoutDrawerOpen"
+      :agents="agentsDisponibles"
+      :pending-agents="pendingAgents"
+      :submitting="submitting"
+      @add="handleAdd"
+    />
   </section>
 </template>
 

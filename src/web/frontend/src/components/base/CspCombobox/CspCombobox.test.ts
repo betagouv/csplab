@@ -50,6 +50,27 @@ describe('cspCombobox', () => {
     wrapper.unmount()
   })
 
+  it('opens the full list as soon as the input takes focus', async () => {
+    const wrapper = mountCombobox()
+    await wrapper.find('input').trigger('focus')
+    await nextTick()
+
+    expect(document.querySelectorAll('[role="option"]')).toHaveLength(OPTIONS.length)
+    wrapper.unmount()
+  })
+
+  it('shows the label of the selected option in the input, not its value', async () => {
+    const wrapper = mountCombobox()
+    await openList(wrapper)
+    document.querySelector<HTMLElement>('[role="option"]')!.click()
+    await nextTick()
+    await nextTick()
+
+    expect(wrapper.find('input').element.value).toBe('Premier élément')
+    expect(wrapper.emitted('update:modelValue')).toEqual([['one']])
+    wrapper.unmount()
+  })
+
   it('renders the action option last and emits action on select', async () => {
     const wrapper = mountCombobox({ actionLabel: 'Créer un nouvel élément' })
     await openList(wrapper)
