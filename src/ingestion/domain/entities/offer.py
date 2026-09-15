@@ -10,7 +10,11 @@ from referentiel.value_objects.experience_level import ExperienceLevel
 from referentiel.value_objects.language import Language
 from referentiel.value_objects.limit_date import LimitDate
 from referentiel.value_objects.localisation import Localisation
-from referentiel.value_objects.offer_conditions import Management, WorkingPlace
+from referentiel.value_objects.offer_conditions import (
+    Management,
+    WorkingPlace,
+    WorkingTime,
+)
 from referentiel.value_objects.verse import Verse
 
 
@@ -40,5 +44,6 @@ class Offer:
     specialisations: list[str] = field(default_factory=list)
     family_code: Optional[str] = None
     working_place: WorkingPlace = WorkingPlace.NON_DEFINI
+    working_time: WorkingTime = WorkingTime.NON_DEFINI
     management: Optional[Management] = None
     id: UUID = field(default_factory=uuid4)
