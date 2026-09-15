@@ -18,6 +18,7 @@ import { EQUIPE_RECRUTEMENT_ACTIONS_COLUMN, EQUIPE_RECRUTEMENT_COLUMNS } from '.
 import { useAjoutMembreEquipe } from '../composables/useAjoutMembreEquipe'
 import { useEquipeRecrutement } from '../composables/useEquipeRecrutement'
 import { useMembreEquipeActions } from '../composables/useMembreEquipeActions'
+import { RECRUTEMENT_ROLE_LABELS } from '../constants/equipe-recrutement'
 import { formatMembreLabel } from '../format'
 import AjoutMembreEquipeDrawer from './AjoutMembreEquipeDrawer.vue'
 
@@ -28,7 +29,7 @@ const props = defineProps<{
 
 const PAGE_SIZE = 8
 
-const { membres, pending, error, revoke, revoking } = useEquipeRecrutement(
+const { membres, pending, error, revoke, revoking, changeRole } = useEquipeRecrutement(
   props.organismeUuid,
   props.recrutementUuid,
 )
@@ -36,7 +37,7 @@ const { agentsDisponibles, pendingAgents, add, submitting } = useAjoutMembreEqui
   props.organismeUuid,
   props.recrutementUuid,
 )
-const { revocationMembre, clearRevocation } = useMembreEquipeActions()
+const { revocationMembre, clearRevocation, roleChange, clearRoleChange } = useMembreEquipeActions()
 const { canManageOrganisme } = useRouteOrganisme()
 const { addToast } = useToast()
 
@@ -74,6 +75,24 @@ async function handleAdd(payload: MembreEquipePayload) {
     addToast({ variant: 'error', title: ajoutErrorTitle(submitError) })
   }
 }
+
+watch(roleChange, async (change) => {
+  if (!change)
+    return
+  const { membre, role } = change
+  clearRoleChange()
+  try {
+    await changeRole({ membre, role })
+    addToast({
+      variant: 'success',
+      title: 'Rôle modifié',
+      description: `${formatMembreLabel(membre)} est maintenant ${RECRUTEMENT_ROLE_LABELS[role].toLowerCase()} sur ce recrutement.`,
+    })
+  }
+  catch {
+    addToast({ variant: 'error', title: 'La modification du rôle a échoué' })
+  }
+})
 
 watch(revocationMembre, (membre) => {
   if (membre)

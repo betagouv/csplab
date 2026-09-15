@@ -7,11 +7,11 @@ import { defineComponent, h, nextTick } from 'vue'
 import { useEquipeRecrutement } from './useEquipeRecrutement'
 
 const mockGetEquipeRecrutement = vi.fn()
-const mockRevokeMembreEquipe = vi.fn()
+const mockUpdateMembreEquipe = vi.fn()
 
 vi.mock('../api', () => ({
   getEquipeRecrutement: (...args: unknown[]) => mockGetEquipeRecrutement(...args),
-  revokeMembreEquipe: (...args: unknown[]) => mockRevokeMembreEquipe(...args),
+  updateMembreEquipe: (...args: unknown[]) => mockUpdateMembreEquipe(...args),
 }))
 
 const ORGANISME_UUID = '11111111-1111-1111-1111-111111111111'
@@ -77,7 +77,7 @@ describe('useEquipeRecrutement', () => {
 
     await result.revoke(MEMBRES[0])
 
-    expect(mockRevokeMembreEquipe).toHaveBeenCalledWith(ORGANISME_UUID, RECRUTEMENT_UUID, {
+    expect(mockUpdateMembreEquipe).toHaveBeenCalledWith(ORGANISME_UUID, RECRUTEMENT_UUID, {
       agent_id: MEMBRES[0].agent_id,
       recrutement_role: MEMBRES[0].recrutement_role,
       date_revocation_recrutement: expect.any(String),
@@ -90,6 +90,29 @@ describe('useEquipeRecrutement', () => {
     expect(mockGetEquipeRecrutement).toHaveBeenCalledTimes(1)
 
     await result.revoke(MEMBRES[0])
+    await flush()
+
+    expect(mockGetEquipeRecrutement).toHaveBeenCalledTimes(2)
+  })
+
+  it('changes the role of a member without revoking them', async () => {
+    const { result } = mountEquipe()
+    await flush()
+
+    await result.changeRole({ membre: MEMBRES[0], role: 'contributeur' })
+
+    expect(mockUpdateMembreEquipe).toHaveBeenCalledWith(ORGANISME_UUID, RECRUTEMENT_UUID, {
+      agent_id: MEMBRES[0].agent_id,
+      recrutement_role: 'contributeur',
+    })
+  })
+
+  it('refreshes the team once a role has changed', async () => {
+    const { result } = mountEquipe()
+    await flush()
+    expect(mockGetEquipeRecrutement).toHaveBeenCalledTimes(1)
+
+    await result.changeRole({ membre: MEMBRES[0], role: 'contributeur' })
     await flush()
 
     expect(mockGetEquipeRecrutement).toHaveBeenCalledTimes(2)

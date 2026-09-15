@@ -39,7 +39,7 @@ export async function addMembreEquipe(
   return data!
 }
 
-export async function revokeMembreEquipe(
+export async function updateMembreEquipe(
   organismeUuid: string,
   recrutementUuid: string,
   payload: MembreEquipePayload,

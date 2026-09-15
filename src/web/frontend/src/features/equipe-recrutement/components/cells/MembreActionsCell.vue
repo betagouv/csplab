@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import type { MembreEquipe } from '../../types'
+import type { MembreEquipe, RecrutementRole } from '../../types'
 import { computed } from 'vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspDropdownMenu from '@/components/base/CspDropdownMenu/CspDropdownMenu.vue'
 import { useMembreEquipeActions } from '../../composables/useMembreEquipeActions'
+import { RECRUTEMENT_ROLE_LABELS } from '../../constants/equipe-recrutement'
 import { formatMembreLabel } from '../../format'
 
 defineOptions({ inheritAttrs: false })
@@ -12,11 +13,29 @@ const props = defineProps<{
   row: MembreEquipe
 }>()
 
-const { requestRevocation } = useMembreEquipeActions()
+const { requestRevocation, requestRoleChange } = useMembreEquipeActions()
+
+const ROLE_ICONS: Record<RecrutementRole, string> = {
+  responsable: 'ri:shield-user-line',
+  recruteur: 'ri:user-star-line',
+  contributeur: 'ri:user-line',
+}
 
 const membreLabel = computed(() => formatMembreLabel(props.row))
 
+const rolesProposes = computed(() =>
+  (Object.keys(RECRUTEMENT_ROLE_LABELS) as RecrutementRole[])
+    .filter(role => role !== props.row.recrutement_role),
+)
+
 const sections = computed(() => [
+  {
+    items: rolesProposes.value.map(role => ({
+      label: `Passer ${RECRUTEMENT_ROLE_LABELS[role].toLowerCase()}`,
+      icon: ROLE_ICONS[role],
+      onSelect: () => requestRoleChange(props.row, role),
+    })),
+  },
   {
     items: [
       {
