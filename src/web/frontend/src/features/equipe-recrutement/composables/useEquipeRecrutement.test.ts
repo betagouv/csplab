@@ -7,9 +7,11 @@ import { defineComponent, h, nextTick } from 'vue'
 import { useEquipeRecrutement } from './useEquipeRecrutement'
 
 const mockGetEquipeRecrutement = vi.fn()
+const mockRevokeMembreEquipe = vi.fn()
 
 vi.mock('../api', () => ({
   getEquipeRecrutement: (...args: unknown[]) => mockGetEquipeRecrutement(...args),
+  revokeMembreEquipe: (...args: unknown[]) => mockRevokeMembreEquipe(...args),
 }))
 
 const ORGANISME_UUID = '11111111-1111-1111-1111-111111111111'
@@ -67,6 +69,30 @@ describe('useEquipeRecrutement', () => {
   it('exposes an empty team while the members are loading', () => {
     const { result } = mountEquipe()
     expect(result.membres.value).toEqual([])
+  })
+
+  it('revokes a member with their current role and a revocation date', async () => {
+    const { result } = mountEquipe()
+    await flush()
+
+    await result.revoke(MEMBRES[0])
+
+    expect(mockRevokeMembreEquipe).toHaveBeenCalledWith(ORGANISME_UUID, RECRUTEMENT_UUID, {
+      agent_id: MEMBRES[0].agent_id,
+      recrutement_role: MEMBRES[0].recrutement_role,
+      date_revocation_recrutement: expect.any(String),
+    })
+  })
+
+  it('refreshes the team once a member has been revoked', async () => {
+    const { result } = mountEquipe()
+    await flush()
+    expect(mockGetEquipeRecrutement).toHaveBeenCalledTimes(1)
+
+    await result.revoke(MEMBRES[0])
+    await flush()
+
+    expect(mockGetEquipeRecrutement).toHaveBeenCalledTimes(2)
   })
 
   it('does not share the cache between two recrutements', async () => {
