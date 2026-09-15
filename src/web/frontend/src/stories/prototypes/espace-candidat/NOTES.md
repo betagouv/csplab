@@ -42,9 +42,27 @@ statut des documents ne se mettaient pas à jour après une action candidat.
   session à la demande d'Alice, à retraiter plus tard si besoin.
 - Les 3 parcours de candidature (CV / Compte / Formulaire) partagent le même `CandidatureStepper`
   pour rester comparables.
+- **Pivot** : Alice a ensuite demandé une piste alternative avec une modalité unique de
+  candidature (`variants/candidature-unique/CandidatureUnique.vue`) : un seul formulaire en
+  4 étapes (informations, pièces jointes CV + lettre de motivation facultative, questions,
+  récapitulatif), confirmation en pop-in plutôt qu'en écran plein. Les deux approches
+  coexistent comme stories comparables (« 0. Scénario principal » = modalité unique,
+  « 0bis. Variante » = choix entre 3 modes) — à trancher avec l'équipe.
+- Le pop-in de succès réutilise directement `CspDialog` du design system, sans aucun
+  composant supplémentaire à créer — bon signal que le DS couvre déjà ce besoin.
+
+## Limite connue du prototype
+
+Storybook isole chaque écran dans sa propre story : sans montage explicite d'un composant
+« parcours » (comme `ParcoursComplet.vue` / `ParcoursCandidatureUnique.vue`), cliquer sur un
+CTA ne mène nulle part. Les stories `0.` et `0bis.` existent précisément pour offrir un
+parcours cliquable de bout en bout ; les autres stories restent des écrans isolés, utiles
+pour comparer des variantes mais pas pour tester un enchaînement.
 
 ## Suite proposée
 
 - Décision d'équipe sur la promotion des composants ci-dessus dans `components/base/`.
 - Si le sujet "site partenaire" revient, prévoir une session dédiée à l'ambiguïté du CTA
   "Postuler" (interne vs externe).
+- Trancher entre les deux approches de candidature (modalité unique vs choix entre 3 modes)
+  avant d'aller plus loin sur ce point précis.
