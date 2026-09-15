@@ -11,7 +11,7 @@ SCHEMA_REGEX="^(fixup!\s*)?(feat|fix|docs|style|refactor|perf|test|build|ci|chor
 # validate commit message schema
 if ! echo "$MESSAGE" | grep -qE "$SCHEMA_REGEX"; then
     echo "❌ Invalid commit message!"
-    echo "Required format: <type>(<scope>[-layer]): <subject>"
+    echo "Required format: <type>(<scope>): <subject>"
     echo "Example: feat(auth): ajoute le support de l'authentification HTTP basic"
     echo "Use 'bin/cz commit' for more assistance (requires that commitzen is installed on your system)"
     exit 1
