@@ -20,9 +20,12 @@ from domain.recruteur.errors.organisme_recruteur_errors import (
 from domain.recruteur.value_objects.categorie_etapes_recrutement import (
     CategorieEtapeRecrutement,
 )
+from domain.recruteur.value_objects.roles import AgentOrganismeRole
+from infrastructure.django_apps.recruteur.enums.motif_refus import MotifRefus
 from infrastructure.django_apps.recruteur.models.organisme import OrganismeModel
 from infrastructure.factories.identite.organisme_django_factory import (
     OrganismeDjangoFactory,
+    create_organisme_with_agent,
 )
 from infrastructure.factories.identite.organisme_factory import OrganismeFactory
 from infrastructure.factories.identite.utilisateur_django_factory import (
@@ -44,6 +47,10 @@ ETAPES_URL = reverse(
 )
 INIT_ETAPES_URL = reverse(
     "recruteur:organisme-parametres-etapes-init",
+    kwargs={"organisme_uuid": ORGANISME_UUID},
+)
+MOTIFS_REFUS_URL = reverse(
+    "recruteur:organisme-parametres-motifs-refus",
     kwargs={"organisme_uuid": ORGANISME_UUID},
 )
 
@@ -565,6 +572,45 @@ class TestEtapesRecrutementOrganismeViewDbVerified:
         assert [e["nom"] for e in organisme.etapes] == [
             e["nom"] for e in VALID_ETAPES_PAYLOAD
         ]
+
+
+class TestMotifsRefusOrganismeView:
+    def test_anonymous_access_is_unauthorized(self, api_client):
+        response = api_client.get(MOTIFS_REFUS_URL)
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+    def test_authenticated_non_agent_is_forbidden(self, authenticated_client):
+        OrganismeDjangoFactory(id=UUID(ORGANISME_UUID))
+
+        response = authenticated_client.get(MOTIFS_REFUS_URL)
+
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    def test_unknown_organisme_returns_404(self, staff_client):
+        response = staff_client.get(MOTIFS_REFUS_URL)
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    def test_agent_gets_full_motifs_list(self, authenticated_client, test_user):
+        create_organisme_with_agent(
+            role=AgentOrganismeRole.AGENT,
+            utilisateur=test_user,
+            id=UUID(ORGANISME_UUID),
+        )
+
+        response = authenticated_client.get(MOTIFS_REFUS_URL)
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json() == [
+            {"value": motif.value, "label": motif.label} for motif in MotifRefus
+        ]
+
+    def test_staff_without_role_is_forbidden(self, staff_client):
+        OrganismeDjangoFactory(id=UUID(ORGANISME_UUID))
+
+        response = staff_client.get(MOTIFS_REFUS_URL)
+
+        assert response.status_code == status.HTTP_403_FORBIDDEN
 
 
 class TestInitEtapesRecrutementOrganismeViewDbVerified:

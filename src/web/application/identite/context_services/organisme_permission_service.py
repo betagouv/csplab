@@ -99,6 +99,9 @@ _ROLES_REQUIS: dict[OrganismeAction, frozenset[AgentOrganismeRole]] = {
     OrganismeAction.SET_RECRUTEMENTS_RESPONSABLE: frozenset(
         {AgentOrganismeRole.SUPERVISEUR}
     ),
+    OrganismeAction.GET_MOTIFS_REFUS: frozenset(
+        {AgentOrganismeRole.SUPERVISEUR, AgentOrganismeRole.AGENT}
+    ),
 }
 
 # -------------------------------------
@@ -106,7 +109,7 @@ _ROLES_REQUIS: dict[OrganismeAction, frozenset[AgentOrganismeRole]] = {
 # -------------------------------------
 # Actions pour lesquelles un MEMBRE n'a besoin d'aucun rôle sur le recrutement
 _SANS_ROLE_RECRUTEMENT_REQUIS: frozenset[OrganismeAction] = frozenset(
-    {OrganismeAction.LISTER_MES_RECRUTEMENTS}
+    {OrganismeAction.LISTER_MES_RECRUTEMENTS, OrganismeAction.GET_MOTIFS_REFUS}
 )
 
 # Actions pour lesquelles un MEMBRE doit avoir un rôle sur le recrutement
