@@ -38,7 +38,7 @@ describe('useCurrentUser', () => {
       prenom: 'Jean',
       nom: 'Dupont',
       is_staff: false,
-      organisme_roles: [{ organisme_uuid: 'a1a1a1a1-a1a1-a1a1-a1a1-a1a1a1a1a1a1', nom: 'Ministère de la Transition Écologique', role: 'responsable' }],
+      organisme_roles: [{ organisme_uuid: 'a1a1a1a1-a1a1-a1a1-a1a1-a1a1a1a1a1a1', nom: 'Ministère de la Transition Écologique', role: 'superviseur' }],
     }
     vi.mocked(getMe).mockResolvedValue(userData)
 

@@ -25,7 +25,7 @@ const AGENTS: AgentOrganisme[] = [
     prenom: 'Jeanne',
     email: 'jeanne.dupont@example.gouv.fr',
     poste: 'Responsable recrutement',
-    role: 'responsable',
+    role: 'superviseur',
     date_derniere_activite: '2026-08-18T00:00:00Z',
     date_creation_compte: '2026-01-10T00:00:00Z',
   },
@@ -66,16 +66,16 @@ describe('useOrganismeAgents', () => {
   })
 
   it('updates an agent and refetches the list', async () => {
-    mockUpdateOrganismeAgent.mockResolvedValue({ ...AGENTS[0], role: 'membre' })
+    mockUpdateOrganismeAgent.mockResolvedValue({ ...AGENTS[0], role: 'agent' })
     const { updateAgent } = mountAgents()
     await flush()
 
-    await updateAgent({ agent_id: AGENTS[0].agent_id, role: 'membre' })
+    await updateAgent({ agent_id: AGENTS[0].agent_id, role: 'agent' })
     await flush()
 
     expect(mockUpdateOrganismeAgent).toHaveBeenCalledWith(ORGANISME_UUID, {
       agent_id: AGENTS[0].agent_id,
-      role: 'membre',
+      role: 'agent',
     })
     expect(mockGetOrganismeAgents).toHaveBeenCalledTimes(2)
   })
@@ -86,7 +86,7 @@ describe('useOrganismeAgents', () => {
     await flush()
 
     await expect(
-      updateAgent({ agent_id: AGENTS[0].agent_id, role: 'membre' }),
+      updateAgent({ agent_id: AGENTS[0].agent_id, role: 'agent' }),
     ).rejects.toThrow('boom')
   })
 })

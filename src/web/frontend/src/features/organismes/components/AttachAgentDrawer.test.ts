@@ -83,18 +83,18 @@ describe('attachAgentDrawer', () => {
     submitButton().click()
     await nextTick()
 
-    expect(wrapper.emitted('add')).toEqual([['membre']])
+    expect(wrapper.emitted('add')).toEqual([['agent']])
     wrapper.unmount()
   })
 
   it('attaches the agent with the selected role', async () => {
     const wrapper = mountDrawer({ status: 'found', agent: AGENT })
     await nextTick()
-    await pickRole('responsable')
+    await pickRole('superviseur')
     submitButton().click()
     await nextTick()
 
-    expect(wrapper.emitted('add')).toEqual([['responsable']])
+    expect(wrapper.emitted('add')).toEqual([['superviseur']])
     wrapper.unmount()
   })
 
@@ -107,7 +107,7 @@ describe('attachAgentDrawer', () => {
     submitButton().click()
     await nextTick()
 
-    expect(wrapper.emitted('add')).toEqual([['membre']])
+    expect(wrapper.emitted('add')).toEqual([['agent']])
     wrapper.unmount()
   })
 
