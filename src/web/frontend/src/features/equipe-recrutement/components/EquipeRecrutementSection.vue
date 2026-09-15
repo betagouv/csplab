@@ -5,18 +5,20 @@ import { HttpError } from '@/api/errors'
 import CspAsyncSection from '@/components/base/CspAsyncSection/CspAsyncSection.vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspDataTable from '@/components/base/CspDataTable/CspDataTable.vue'
+import CspDialog from '@/components/base/CspDialog/CspDialog.vue'
 import CspInput from '@/components/base/CspInput/CspInput.vue'
 import CspSkeletonTable from '@/components/base/CspSkeleton/CspSkeletonTable.vue'
 import CspTableToolbar from '@/components/base/CspTableToolbar/CspTableToolbar.vue'
 import { useMinimumPending } from '@/composables/async/useMinimumPending'
 import { useTextSearch } from '@/composables/data/useTextSearch'
 import { useToast } from '@/composables/ui/useToast'
-import { formatAgentName } from '@/features/organismes/format'
 import { useRouteOrganisme } from '@/stores/routeOrganisme'
 import { pluralize } from '@/utils/format'
-import { EQUIPE_RECRUTEMENT_COLUMNS } from '../columns'
+import { EQUIPE_RECRUTEMENT_ACTIONS_COLUMN, EQUIPE_RECRUTEMENT_COLUMNS } from '../columns'
 import { useAjoutMembreEquipe } from '../composables/useAjoutMembreEquipe'
 import { useEquipeRecrutement } from '../composables/useEquipeRecrutement'
+import { useMembreEquipeActions } from '../composables/useMembreEquipeActions'
+import { formatMembreLabel } from '../format'
 import AjoutMembreEquipeDrawer from './AjoutMembreEquipeDrawer.vue'
 
 const props = defineProps<{
@@ -26,11 +28,15 @@ const props = defineProps<{
 
 const PAGE_SIZE = 8
 
-const { membres, pending, error } = useEquipeRecrutement(props.organismeUuid, props.recrutementUuid)
+const { membres, pending, error, revoke, revoking } = useEquipeRecrutement(
+  props.organismeUuid,
+  props.recrutementUuid,
+)
 const { agentsDisponibles, pendingAgents, add, submitting } = useAjoutMembreEquipe(
   props.organismeUuid,
   props.recrutementUuid,
 )
+const { revocationMembre, clearRevocation } = useMembreEquipeActions()
 const { canManageOrganisme } = useRouteOrganisme()
 const { addToast } = useToast()
 
@@ -38,6 +44,13 @@ const showSkeleton = useMinimumPending(pending)
 
 const page = ref(1)
 const ajoutDrawerOpen = ref(false)
+const revocationDialogOpen = ref(false)
+
+const columns = computed(() =>
+  canManageOrganisme.value
+    ? [...EQUIPE_RECRUTEMENT_COLUMNS, EQUIPE_RECRUTEMENT_ACTIONS_COLUMN]
+    : EQUIPE_RECRUTEMENT_COLUMNS,
+)
 
 function ajoutErrorTitle(submitError: unknown): string {
   if (submitError instanceof HttpError && submitError.status === 409)
@@ -53,12 +66,43 @@ async function handleAdd(payload: MembreEquipePayload) {
     addToast({
       variant: 'success',
       title: 'Membre ajouté',
-      description: `${formatAgentName(membre)} a rejoint l'équipe de recrutement.`,
+      description: `${formatMembreLabel(membre)} a rejoint l'équipe de recrutement.`,
     })
     ajoutDrawerOpen.value = false
   }
   catch (submitError) {
     addToast({ variant: 'error', title: ajoutErrorTitle(submitError) })
+  }
+}
+
+watch(revocationMembre, (membre) => {
+  if (membre)
+    revocationDialogOpen.value = true
+})
+
+watch(revocationDialogOpen, (isOpen) => {
+  if (!isOpen)
+    clearRevocation()
+})
+
+async function handleRevocation(): Promise<void> {
+  if (!revocationMembre.value)
+    return
+  const membre = revocationMembre.value
+  try {
+    await revoke(membre)
+    addToast({
+      variant: 'success',
+      title: 'Membre retiré',
+      description: `${formatMembreLabel(membre)} ne fait plus partie de l'équipe de recrutement.`,
+    })
+    revocationDialogOpen.value = false
+  }
+  catch (revocationError) {
+    const title = revocationError instanceof HttpError && revocationError.status === 404
+      ? 'Cet agent ne fait plus partie de l\'équipe'
+      : 'Le retrait du membre a échoué'
+    addToast({ variant: 'error', title })
   }
 }
 
@@ -99,7 +143,7 @@ const countLabel = computed(() => {
       <template #skeleton>
         <CspSkeletonTable
           :rows="PAGE_SIZE"
-          :columns="EQUIPE_RECRUTEMENT_COLUMNS.length"
+          :columns="columns.length"
           with-footer
         />
       </template>
@@ -123,7 +167,7 @@ const countLabel = computed(() => {
       <CspDataTable
         v-model:page="page"
         :rows="filtered"
-        :columns="EQUIPE_RECRUTEMENT_COLUMNS"
+        :columns="columns"
         :row-key="row => row.agent_id"
         caption="Équipe de recrutement"
         :page-size="PAGE_SIZE"
@@ -150,6 +194,33 @@ const countLabel = computed(() => {
       :submitting="submitting"
       @add="handleAdd"
     />
+
+    <CspDialog
+      v-model:open="revocationDialogOpen"
+      title="Retirer de l’équipe"
+      size="sm"
+    >
+      <template v-if="revocationMembre">
+        {{ formatMembreLabel(revocationMembre) }} perdra l'accès aux candidatures de ce
+        recrutement. Son compte reste rattaché à l'organisme et pourra être réintégré à
+        l'équipe plus tard.
+      </template>
+
+      <template #footer>
+        <div class="equipe-recrutement-section__dialog-actions">
+          <CspButton
+            label="Annuler"
+            variant="secondary"
+            @click="revocationDialogOpen = false"
+          />
+          <CspButton
+            label="Retirer de l’équipe"
+            :disabled="revoking"
+            @click="handleRevocation"
+          />
+        </div>
+      </template>
+    </CspDialog>
   </section>
 </template>
 
@@ -185,5 +256,11 @@ const countLabel = computed(() => {
 
 .equipe-recrutement-section__empty-title {
   margin: 0;
+}
+
+.equipe-recrutement-section__dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--csp-space-3);
 }
 </style>
