@@ -53,6 +53,12 @@ const open = defineModel<boolean>('open', { default: false })
 
 const hintId = computed(() => `${props.id}-hint`)
 
+function displayValue(value: unknown): string {
+  if (value == null)
+    return ''
+  return props.options.find(option => option.value === value)?.label ?? searchTerm.value
+}
+
 const statusMessage = computed(() => {
   if (!open.value || props.pending)
     return ''
@@ -70,6 +76,8 @@ const announcedStatus = useDebounce(statusMessage, 1000)
     v-model="model"
     v-model:open="open"
     ignore-filter
+    open-on-focus
+    open-on-click
     class="csp-combobox"
   >
     <label
@@ -99,6 +107,7 @@ const announcedStatus = useDebounce(statusMessage, 1000)
         :placeholder="placeholder"
         :aria-describedby="hint ? hintId : undefined"
         autocomplete="off"
+        :display-value="displayValue"
       />
     </ComboboxAnchor>
 

@@ -47,7 +47,7 @@ function agentOrganisme(agentId: string, nom: string): AgentOrganisme {
     prenom: 'Jeanne',
     email: `${nom.toLowerCase()}@example.gouv.fr`,
     poste: 'Chargée de recrutement',
-    role: 'membre',
+    role: 'agent',
     date_derniere_activite: null,
     date_creation_compte: '2026-01-01T00:00:00Z',
   }

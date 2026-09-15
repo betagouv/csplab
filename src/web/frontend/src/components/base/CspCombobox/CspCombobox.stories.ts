@@ -21,7 +21,7 @@ const meta = {
     },
     docs: {
       description: {
-        component: 'Champ de recherche avec autocomplétion, construit sur la primitive `reka-ui` Combobox (pattern ARIA combobox : focus conservé dans le champ, navigation par `aria-activedescendant`, annonce du nombre de résultats via une région de statut). Le filtrage est à la charge de l\'appelant (`searchTerm` en v-model). Une option d\'action facultative (`actionLabel`) s\'affiche en fin de liste et émet `action` sans sélectionner de valeur.',
+        component: 'Champ de recherche avec autocomplétion, construit sur la primitive `reka-ui` Combobox (pattern ARIA combobox : focus conservé dans le champ, navigation par `aria-activedescendant`, annonce du nombre de résultats via une région de statut). La liste s\'ouvre dès la prise de focus, sans attendre de saisie. Le filtrage est à la charge de l\'appelant (`searchTerm` en v-model). Une option d\'action facultative (`actionLabel`) s\'affiche en fin de liste et émet `action` sans sélectionner de valeur.',
       },
     },
   },
