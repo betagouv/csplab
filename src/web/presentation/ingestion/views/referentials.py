@@ -5,6 +5,7 @@ from referentiel.value_objects.category import Category
 from referentiel.value_objects.contract_type import ContractType
 from referentiel.value_objects.experience_level import ExperienceLevel
 from referentiel.value_objects.offer_conditions import Management, WorkingPlace
+from referentiel.value_objects.radius import Radius
 from referentiel.value_objects.verse import Verse
 from rest_framework import status
 from rest_framework.response import Response
@@ -38,6 +39,7 @@ REFERENTIAL_TYPES = {
     "experience_level": lambda: _enum_items(ExperienceLevel),
     "management": lambda: _enum_items(Management),
     "offer_family_category": lambda: _enum_items(Category),
+    "radius": lambda: _enum_items(Radius),
     "region": lambda: _code_names_items(REGION_NAMES),
     "verse": lambda: _enum_items(Verse),
     "working_place": lambda: _enum_items(WorkingPlace),
