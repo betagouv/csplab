@@ -19,6 +19,7 @@ from presentation.recruteur.views.organismes import (
 )
 from presentation.recruteur.views.recrutement_agents import (
     RecrutementAgentsView,
+    RecrutementsResponsableView,
 )
 from presentation.recruteur.views.recrutement_detail import (
     RecrutementCandidaturesEtapeView,
@@ -82,6 +83,11 @@ urlpatterns = [
         "organismes/<uuid:organisme_uuid>/recrutements-archives",
         RecrutementsArchivesView.as_view(),
         name="organisme-recrutements-archives",
+    ),
+    path(
+        "organismes/<uuid:organisme_uuid>/recrutements/responsable",
+        RecrutementsResponsableView.as_view(),
+        name="organisme-recrutements-responsable",
     ),
     path(
         "organismes/<uuid:organisme_uuid>/recrutements/<uuid:recrutement_uuid>",

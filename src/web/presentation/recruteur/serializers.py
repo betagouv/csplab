@@ -239,6 +239,23 @@ class RecrutementAgentRoleSerializer(serializers.Serializer):
     )
 
 
+class SetRecrutementsResponsableSerializer(serializers.Serializer):
+    recrutement_ids = serializers.ListField(
+        child=serializers.UUIDField(), allow_empty=False
+    )
+    agent_id = serializers.UUIDField()
+
+
+class RecrutementEchecSerializer(serializers.Serializer):
+    recrutement_uuid = serializers.UUIDField()
+    raison = serializers.CharField()
+
+
+class SetRecrutementsResponsableResultatSerializer(serializers.Serializer):
+    reussites = serializers.ListField(child=serializers.UUIDField())
+    echecs = RecrutementEchecSerializer(many=True)
+
+
 # ---------------------------------------------------------------------------
 # Serializers pour les notes attachées à une candidature
 # ---------------------------------------------------------------------------

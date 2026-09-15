@@ -7,6 +7,7 @@ from rest_framework.generics import ListAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from application.recruteur.services.add_recrutement_agent import add_recrutement_agent
 from application.recruteur.services.list_recrutement_agents import (
@@ -14,6 +15,9 @@ from application.recruteur.services.list_recrutement_agents import (
 )
 from application.recruteur.services.revoke_recrutement_agent import (
     revoke_recrutement_agent,
+)
+from application.recruteur.services.set_recrutements_responsable import (
+    set_recrutements_responsable,
 )
 from application.recruteur.services.update_recrutement_agent import (
     update_recrutement_agent,
@@ -35,6 +39,8 @@ from presentation.recruteur.mappers import UtilisateurMapper
 from presentation.recruteur.serializers import (
     RecrutementAgentRoleSerializer,
     RecrutementAgentSerializer,
+    SetRecrutementsResponsableResultatSerializer,
+    SetRecrutementsResponsableSerializer,
 )
 
 
@@ -160,6 +166,78 @@ class RecrutementAgentsView(ListAPIView):
             return Response(
                 GenericErrorSerializer({"error": str(exc)}).data,
                 status=status.HTTP_409_CONFLICT,
+            )
+        if isinstance(exc, (exceptions.APIException, Http404)):
+            return super().handle_exception(exc)
+        return Response(
+            GenericErrorSerializer({"error": "Unexpected error"}).data,
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )
+
+
+@extend_schema_view(
+    put=extend_schema(
+        summary="Définir un agent comme Responsable pour plusieurs recrutements",
+        tags=["recruteur"],
+        request=SetRecrutementsResponsableSerializer,
+        responses={
+            **generic_response_format,
+            200: SetRecrutementsResponsableResultatSerializer,
+            400: GenericErrorSerializer,
+            403: GenericErrorSerializer,
+            404: GenericErrorSerializer,
+        },
+    ),
+)
+class RecrutementsResponsableView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def put(self, request: Request, organisme_uuid: UUID) -> Response:
+        serializer = SetRecrutementsResponsableSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(
+                GenericErrorSerializer({"error": str(serializer.errors)}).data,
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        data = serializer.validated_data
+        resultat = set_recrutements_responsable(
+            organisme_id=organisme_uuid,
+            recrutement_ids=data["recrutement_ids"],
+            agent_id=data["agent_id"],
+            utilisateur=UtilisateurMapper().to_domain(request),
+        )
+        return Response(
+            SetRecrutementsResponsableResultatSerializer(
+                {
+                    "reussites": resultat["reussites"],
+                    "echecs": [
+                        {
+                            "recrutement_uuid": echec["recrutement_id"],
+                            "raison": echec["raison"],
+                        }
+                        for echec in resultat["echecs"]
+                    ],
+                }
+            ).data,
+            status=status.HTTP_200_OK,
+        )
+
+    def handle_exception(self, exc: Exception) -> Response:
+        if isinstance(exc, (AccesOrganismeRefuse, OperationOrganismeRefusee)):
+            return Response(
+                GenericErrorSerializer({"error": str(exc)}).data,
+                status=status.HTTP_403_FORBIDDEN,
+            )
+        if isinstance(
+            exc,
+            (
+                OrganismeNexistePas,
+                ProfilAgentNexistePas,
+            ),
+        ):
+            return Response(
+                GenericErrorSerializer({"error": str(exc)}).data,
+                status=status.HTTP_404_NOT_FOUND,
             )
         if isinstance(exc, (exceptions.APIException, Http404)):
             return super().handle_exception(exc)
