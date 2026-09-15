@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] - 2026-09-15
+
+### <!-- 1 --> Added
+
+- Interface, assigner un responsable sur plusieurs recrutements d'un organisme ([#1438](https://github.com/betagouv/csplab/pull/1438))
+- Supprimer un membre de l'équipe de recrutement ([#1445](https://github.com/betagouv/csplab/pull/1445))
+- Ajoute l'enum Radius ([#1449](https://github.com/betagouv/csplab/pull/1449))
+
 ## [0.2.0] - 2026-09-15
 
 ### <!-- 0 --> Breaking Changes
