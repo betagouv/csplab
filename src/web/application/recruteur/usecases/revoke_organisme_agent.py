@@ -6,6 +6,9 @@ from uuid import UUID
 from ddd.entity import Entity
 from ddd.usecase_interface import IUsecase
 
+from application.identite.context_services.organisme_permission_service import (
+    OrganismePermissionService,
+)
 from application.recruteur.dtos.agent_organisme_read_models import (
     AgentOrganismeReadModel,
 )
@@ -14,9 +17,6 @@ from application.recruteur.services.organisme_agent_query_service_interface impo
 )
 from domain.commons.services.audit_log_writer import AuditLogWriter
 from domain.identite.entities.utilisateurs import Utilisateur
-from domain.identite.services.organisme_permission_service import (
-    OrganismePermissionService,
-)
 from domain.identite.value_objects.organisme_action import OrganismeAction
 from domain.recruteur.repositories.organisme_agent_repository_interface import (
     IOrganismeAgentRepository,
@@ -46,7 +46,7 @@ class RevokeOrganismeAgentUsecase(
         self.audit_log_writer = audit_log_writer
 
     def execute(self, command: RevokeOrganismeAgentCommand) -> AgentOrganismeReadModel:
-        self.organisme_permission_service.est_autorise(
+        self.organisme_permission_service.can_execute(
             action=OrganismeAction.REVOKE_ORGANISME_AGENT,
             organisme_id=command.organisme_id,
             utilisateur=command.utilisateur,
@@ -62,6 +62,9 @@ class RevokeOrganismeAgentUsecase(
             ressource_kind="AgentOrganisme",
             event_name="AgentOrganismeRoleRevoque",
         )
+        # TODO : duplicate query — re-reads OrganismeAgentModel after the blind
+        # revoke(...) write above, on top of the role lookup already done inside
+        # OrganismePermissionService.can_execute(); dedupe when refactoring to ADR-009
         agent_organisme = self.organisme_agent_query_service.get_one(
             organisme_id=command.organisme_id, agent_id=command.agent_id
         )

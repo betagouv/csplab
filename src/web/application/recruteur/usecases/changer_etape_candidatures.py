@@ -6,11 +6,11 @@ from ddd.unit_of_work import IUnitOfWork
 from ddd.usecase_interface import IUsecase
 from referentiel.types import IBatchUpdate
 
-from domain.commons.services.audit_log_writer import AuditLogWriter
-from domain.identite.entities.utilisateurs import Utilisateur
-from domain.identite.services.organisme_permission_service import (
+from application.identite.context_services.organisme_permission_service import (
     OrganismePermissionService,
 )
+from domain.commons.services.audit_log_writer import AuditLogWriter
+from domain.identite.entities.utilisateurs import Utilisateur
 from domain.identite.value_objects.organisme_action import OrganismeAction
 from domain.recruteur.entities.candidature_recruteur import CandidatureRecruteur
 from domain.recruteur.entities.recrutement import Recrutement
@@ -59,7 +59,7 @@ class ChangerEtapeCandidaturesUsecase(
         candidatures_recruteur = self.candidature_recruteur_repository.get_by_ids(
             command.candidatures
         )
-        self.permission_service.est_autorise(
+        self.permission_service.can_execute(
             action=OrganismeAction.CHANGER_ETAPE_CANDIDATURES,
             organisme_id=command.organisme_id,
             utilisateur=command.utilisateur,

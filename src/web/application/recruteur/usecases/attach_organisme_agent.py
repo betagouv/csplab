@@ -5,6 +5,9 @@ from uuid import UUID
 from ddd.entity import Entity
 from ddd.usecase_interface import IUsecase
 
+from application.identite.context_services.organisme_permission_service import (
+    OrganismePermissionService,
+)
 from application.recruteur.dtos.agent_organisme_read_models import (
     AgentOrganismeReadModel,
 )
@@ -15,9 +18,6 @@ from domain.commons.services.audit_log_writer import AuditLogWriter
 from domain.identite.entities.utilisateurs import Utilisateur
 from domain.identite.errors.agent_errors import ProfilAgentNexistePas
 from domain.identite.repositories.agent_repository_interface import IAgentRepository
-from domain.identite.services.organisme_permission_service import (
-    OrganismePermissionService,
-)
 from domain.identite.value_objects.organisme_action import OrganismeAction
 from domain.recruteur.repositories.organisme_agent_repository_interface import (
     IOrganismeAgentRepository,
@@ -51,7 +51,7 @@ class AttachOrganismeAgentUsecase(
         self.audit_log_writer = audit_log_writer
 
     def execute(self, command: AttachOrganismeAgentCommand) -> AgentOrganismeReadModel:
-        self.organisme_permission_service.est_autorise(
+        self.organisme_permission_service.can_execute(
             action=OrganismeAction.ATTACH_ORGANISME_AGENT,
             organisme_id=command.organisme_id,
             utilisateur=command.utilisateur,
@@ -59,6 +59,9 @@ class AttachOrganismeAgentUsecase(
         if not self.agent_repository.exists(command.agent_id):
             raise ProfilAgentNexistePas(command.agent_id)
 
+        # TODO : duplicate query — near-identical OrganismeAgentModel lookup already
+        # done inside OrganismePermissionService.can_execute() above (the role
+        # lookup); dedupe when refactoring to ADR-009
         agent_is_revoked = self.organisme_agent_repository.is_revoked(
             organisme_id=command.organisme_id, agent_id=command.agent_id
         )
@@ -80,6 +83,9 @@ class AttachOrganismeAgentUsecase(
             ressource_kind="AgentOrganisme",
             event_name="AgentOrganismeRoleAttache",
         )
+        # TODO : duplicate query — this is the third OrganismeAgentModel touch for this
+        # (organisme_id, agent_id) pair in this request (permission check, is_revoked
+        # check, and this read-model rebuild); dedupe when refactoring to ADR-009
         agent_organisme = self.organisme_agent_query_service.get_one(
             organisme_id=command.organisme_id, agent_id=command.agent_id
         )

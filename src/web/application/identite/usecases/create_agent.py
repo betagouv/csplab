@@ -3,6 +3,9 @@ from uuid import UUID
 
 from pydantic import EmailStr
 
+from application.identite.context_services.organisme_permission_service import (
+    OrganismePermissionService,
+)
 from domain.identite.entities.agent import Agent
 from domain.identite.entities.utilisateurs import Utilisateur
 from domain.identite.errors.agent_errors import ProfilAgentExisteDeja
@@ -10,9 +13,6 @@ from domain.identite.errors.identite_errors import UtilisateurNexistePas
 from domain.identite.repositories.agent_repository_interface import IAgentRepository
 from domain.identite.repositories.utilisateur_repository_interface import (
     IUtilisateurRepository,
-)
-from domain.identite.services.organisme_permission_service import (
-    OrganismePermissionService,
 )
 from domain.identite.value_objects.organisme_action import OrganismeAction
 
@@ -36,7 +36,7 @@ class CreateAgentUsecase:
         self.permission_service = permission_service
 
     def can_execute(self, input_data: CreateAgentInput) -> None:
-        self.permission_service.est_autorise(
+        self.permission_service.can_execute(
             action=OrganismeAction.CREATE_AGENT,
             utilisateur=input_data.utilisateur,
             organisme_id=input_data.organisme_id,

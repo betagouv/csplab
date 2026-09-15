@@ -2,15 +2,15 @@ from dataclasses import dataclass
 
 from ddd.usecase_interface import IUsecase
 
+from application.identite.context_services.organisme_permission_service import (
+    OrganismePermissionService,
+)
 from application.recruteur.dtos.recrutement_read_models import (
     RecrutementKanbanReadModel,
 )
 from application.recruteur.dtos.recrutement_request import RecrutementRequest
 from application.recruteur.services.recrutement_query_service_interface import (
     IRecrutementQueryService,
-)
-from domain.identite.services.organisme_permission_service import (
-    OrganismePermissionService,
 )
 from domain.identite.value_objects.organisme_action import OrganismeAction
 
@@ -34,7 +34,7 @@ class GetRecrutementKanbanUsecase(
     def execute(
         self, query: GetRecrutementKanbanQuery
     ) -> RecrutementKanbanReadModel | None:
-        self.organisme_permission_service.est_autorise(
+        self.organisme_permission_service.can_execute(
             action=OrganismeAction.VOIR_DETAIL_RECRUTEMENT,
             organisme_id=query.organisme_id,
             recrutement_id=query.recrutement_id,

@@ -5,6 +5,9 @@ from uuid import uuid4
 import pytest
 from ddd.unit_of_work import IUnitOfWork
 
+from application.identite.context_services.organisme_permission_service import (
+    OrganismePermissionService,
+)
 from application.recruteur.usecases.changer_etape_candidatures import (
     ChangerEtapeCandidaturesCommand,
     ChangerEtapeCandidaturesUsecase,
@@ -12,9 +15,6 @@ from application.recruteur.usecases.changer_etape_candidatures import (
 from domain.commons.errors.organisme_errors import OrganismeNexistePas
 from domain.commons.services.audit_log_writer import AuditLogWriter
 from domain.identite.errors.organisme_permission_errors import AccesRecrutementRefuse
-from domain.identite.services.organisme_permission_service import (
-    OrganismePermissionService,
-)
 from domain.recruteur.errors.recrutement_errors import (
     RecrutementCandidatureInexistante,
     RecrutementEtapeInexistante,
@@ -86,7 +86,7 @@ def candidature_recruteur_repository_fixture(
 @pytest.fixture(name="permission_service")
 def permission_service_fixture():
     service = Mock(spec=OrganismePermissionService)
-    service.est_autorise.return_value = AgentRecrutementRole.RESPONSABLE
+    service.can_execute.return_value = AgentRecrutementRole.RESPONSABLE
     return service
 
 
@@ -167,7 +167,7 @@ class TestChangerEtapeCandidaturesUsecase:
     def test_raises_when_unauthorized(
         self, permission_service, recrutement, candidatures_recruteur, usecase
     ):
-        permission_service.est_autorise.side_effect = AccesRecrutementRefuse(
+        permission_service.can_execute.side_effect = AccesRecrutementRefuse(
             recrutement.entity_id
         )
 
@@ -189,7 +189,7 @@ class TestChangerEtapeCandidaturesUsecase:
         self, recrutement, candidatures_recruteur, permission_service, usecase
     ):
         organisme_id = uuid4()
-        permission_service.est_autorise.side_effect = OrganismeNexistePas(
+        permission_service.can_execute.side_effect = OrganismeNexistePas(
             str(organisme_id)
         )
         with pytest.raises(

@@ -3,6 +3,9 @@ from unittest.mock import Mock
 
 import pytest
 
+from application.identite.context_services.organisme_permission_service import (
+    OrganismePermissionService,
+)
 from application.identite.services.organisme_query_service_interface import (
     IOrganismeQueryService,
     OrganismeReadModel,
@@ -14,9 +17,6 @@ from application.identite.usecases.list_organismes import (
 from domain.identite.errors.organisme_permission_errors import (
     OperationOrganismeRefusee,
 )
-from domain.identite.services.organisme_permission_service import (
-    OrganismePermissionService,
-)
 from domain.identite.value_objects.organisme_action import OrganismeAction
 from domain.recruteur.value_objects.roles import AgentRecrutementRole
 from infrastructure.factories.identite.organisme_factory import OrganismeFactory
@@ -26,7 +26,7 @@ from infrastructure.factories.identite.utilisateur_factory import UtilisateurFac
 @pytest.fixture(name="permission_service")
 def permission_service_fixture():
     service = Mock(spec=OrganismePermissionService)
-    service.est_autorise.return_value = AgentRecrutementRole.RESPONSABLE
+    service.can_execute.return_value = AgentRecrutementRole.RESPONSABLE
     return service
 
 
@@ -78,7 +78,7 @@ def test_list_organismes_success(permission_service, organisme_read_models, usec
     )
 
     result = usecase.execute(command)
-    permission_service.est_autorise.assert_called_once_with(
+    permission_service.can_execute.assert_called_once_with(
         action=OrganismeAction.LISTER_ORGANISMES,
         utilisateur=utilisateur,
     )
@@ -90,7 +90,7 @@ def test_list_organisme_refuse_non_staff(permission_service, usecase):
     command = ListOrganismesCommand(
         utilisateur=UtilisateurFactory.create_entity(is_staff=False),
     )
-    permission_service.est_autorise.side_effect = OperationOrganismeRefusee()
+    permission_service.can_execute.side_effect = OperationOrganismeRefusee()
 
     with pytest.raises(OperationOrganismeRefusee):
         usecase.execute(command=command)

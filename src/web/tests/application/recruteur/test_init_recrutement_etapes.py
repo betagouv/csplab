@@ -3,6 +3,9 @@ from uuid import uuid4
 
 import pytest
 
+from application.identite.context_services.organisme_permission_service import (
+    OrganismePermissionService,
+)
 from application.recruteur.dtos.recrutement_request import RecrutementRequest
 from application.recruteur.errors.application_errors_recruteur import (
     OrganismeRecrutementIncoherents,
@@ -13,9 +16,6 @@ from application.recruteur.usecases.init_recrutement_etapes import (
 from domain.commons.errors.organisme_errors import OrganismeNexistePas
 from domain.commons.services.audit_log_writer import AuditLogWriter
 from domain.identite.errors.organisme_permission_errors import AccesOrganismeRefuse
-from domain.identite.services.organisme_permission_service import (
-    OrganismePermissionService,
-)
 from domain.identite.value_objects.organisme_action import OrganismeAction
 from domain.recruteur.errors.recrutement_errors import SupressionEtapeImpossible
 from domain.recruteur.events.etape_events import EtapeAjoutee, EtapeSupprimee
@@ -56,7 +56,7 @@ def recrutement_fixture(organisme_recruteur):
 @pytest.fixture(name="permission_service")
 def permission_service_fixture():
     service = Mock(spec=OrganismePermissionService)
-    service.est_autorise.return_value = AgentRecrutementRole.RESPONSABLE
+    service.can_execute.return_value = AgentRecrutementRole.RESPONSABLE
     return service
 
 
@@ -123,7 +123,7 @@ class TestInitRecrutementEtapesUsecase:
             "Refus",
             "Recrutement",
         ]
-        permission_service.est_autorise.assert_called_once_with(
+        permission_service.can_execute.assert_called_once_with(
             action=OrganismeAction.INIT_RECRUTEMENT_ETAPES,
             organisme_id=organisme_id,
             utilisateur=utilisateur,
@@ -174,7 +174,7 @@ class TestInitRecrutementEtapesUsecase:
     def test_raises_when_not_authorized(
         self, permission_service, organisme_recruteur, recrutement, usecase
     ):
-        permission_service.est_autorise.side_effect = AccesOrganismeRefuse(
+        permission_service.can_execute.side_effect = AccesOrganismeRefuse(
             organisme_recruteur.entity_id
         )
 

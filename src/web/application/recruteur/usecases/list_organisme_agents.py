@@ -3,6 +3,9 @@ from uuid import UUID
 
 from ddd.usecase_interface import IUsecase
 
+from application.identite.context_services.organisme_permission_service import (
+    OrganismePermissionService,
+)
 from application.recruteur.dtos.agent_organisme_read_models import (
     AgentOrganismeReadModel,
 )
@@ -10,9 +13,6 @@ from application.recruteur.services.organisme_agent_query_service_interface impo
     IOrganismeAgentQueryService,
 )
 from domain.identite.entities.utilisateurs import Utilisateur
-from domain.identite.services.organisme_permission_service import (
-    OrganismePermissionService,
-)
 from domain.identite.value_objects.organisme_action import OrganismeAction
 
 
@@ -36,7 +36,7 @@ class ListOrganismeAgentsUsecase(
     def execute(
         self, command: ListOrganismeAgentsQuery
     ) -> list[AgentOrganismeReadModel]:
-        self.organisme_permission_service.est_autorise(
+        self.organisme_permission_service.can_execute(
             action=OrganismeAction.LIST_ORGANISME_AGENTS,
             organisme_id=command.organisme_id,
             utilisateur=command.utilisateur,

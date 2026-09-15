@@ -21,7 +21,7 @@ class TestGetOrganismeUsecase:
         )
 
         assert resultat is organisme
-        get_organisme_usecase.permission_service.est_autorise.assert_called_once_with(
+        get_organisme_usecase.permission_service.can_execute.assert_called_once_with(
             action=OrganismeAction.GET_ORGANISME,
             organisme_id=organisme_id,
             utilisateur=utilisateur,
@@ -29,7 +29,7 @@ class TestGetOrganismeUsecase:
 
     def test_raises_when_not_authorized(self, get_organisme_usecase):
         organisme_id = uuid4()
-        get_organisme_usecase.permission_service.est_autorise.side_effect = (
+        get_organisme_usecase.permission_service.can_execute.side_effect = (
             AccesOrganismeRefuse(organisme_id)
         )
 

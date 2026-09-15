@@ -1,6 +1,7 @@
 from typing import cast
 from uuid import UUID
 
+from domain.commons.errors.organisme_errors import OrganismeNexistePas
 from domain.identite.entities.utilisateurs import Utilisateur
 from domain.identite.errors.organisme_permission_errors import (
     AccesOrganismeRefuse,
@@ -9,18 +10,16 @@ from domain.identite.errors.organisme_permission_errors import (
     OperationOrganismeRefusee,
 )
 from domain.identite.value_objects.organisme_action import OrganismeAction
-from domain.recruteur.repositories.organisme_agent_repository_interface import (
-    IOrganismeAgentRepository,
-)
-from domain.recruteur.repositories.organisme_repository_interface import (
-    IOrganismeRecruteurRepository,
-)
-from domain.recruteur.repositories.recrutement_agent_repository_interface import (
-    IRecrutementAgentRepository,
-)
 from domain.recruteur.value_objects.roles import (
     AgentOrganismeRole,
     AgentRecrutementRole,
+)
+from infrastructure.django_apps.recruteur.models.organisme import (
+    OrganismeAgentModel,
+    OrganismeModel,
+)
+from infrastructure.django_apps.recruteur.models.recrutement import (
+    RecrutementAgentModel,
 )
 
 # Actions sans organisme existant : seul le statut staff autorise l'opération
@@ -131,17 +130,7 @@ _ROLES_RECRUTEMENT_REQUIS: dict[OrganismeAction, frozenset[AgentRecrutementRole]
 
 
 class OrganismePermissionService:
-    def __init__(
-        self,
-        organisme_recruteur_repository: IOrganismeRecruteurRepository,
-        organisme_agent_repository: IOrganismeAgentRepository,
-        recrutement_agent_repository: IRecrutementAgentRepository,
-    ) -> None:
-        self._organisme_recruteur_repository = organisme_recruteur_repository
-        self._organisme_agent_repository = organisme_agent_repository
-        self._recrutement_agent_repository = recrutement_agent_repository
-
-    def est_autorise(
+    def can_execute(
         self,
         *,
         action: OrganismeAction,
@@ -152,8 +141,11 @@ class OrganismePermissionService:
         if utilisateur.is_staff and action in _ACTIONS_SANS_ORGANISME:
             return None
 
-        if organisme_id:
-            self._organisme_recruteur_repository.get_by_id(organisme_id)
+        # TODO : duplicate query — callers passing organisme_id typically also fetch the
+        # full Organisme/OrganismeRecruteur row via their repository right around this
+        # call (application/*/usecases/*.py); dedupe when refactoring to ADR-009
+        if organisme_id and not OrganismeModel.objects.filter(id=organisme_id).exists():
+            raise OrganismeNexistePas(str(organisme_id))
 
         if utilisateur.is_staff and action in _AUTORISE_POUR_STAFF:
             return None
@@ -161,11 +153,15 @@ class OrganismePermissionService:
         if action not in _ROLES_REQUIS:
             raise OperationOrganismeRefusee()
 
-        roles_requis = _ROLES_REQUIS[action]
-        role = self._organisme_agent_repository.get_role(
-            organisme_id=cast(UUID, organisme_id), agent_id=utilisateur.entity_id
-        )
-        if role not in roles_requis:
+        # TODO : duplicate query — agent-attach/update/revoke usecases run
+        # near-identical OrganismeAgentModel lookups for the *target* agent right next
+        # to this call (application/recruteur/usecases/{attach,update,revoke}
+        # _organisme_agent.py); dedupe when refactoring to ADR-009
+        liaison = OrganismeAgentModel.objects.filter(
+            organisme_id=organisme_id, agent_id=utilisateur.entity_id
+        ).first()
+        role = AgentOrganismeRole(liaison.role) if liaison else None
+        if role not in _ROLES_REQUIS[action]:
             raise AccesOrganismeRefuse(cast(UUID, organisme_id))
 
         if (
@@ -175,8 +171,19 @@ class OrganismePermissionService:
             if recrutement_id is None:
                 raise AccesRecrutementInconnu()
 
-            recrutement_role = self._recrutement_agent_repository.get_role(
-                recrutement_id=recrutement_id, agent_id=utilisateur.entity_id
+            # TODO : duplicate query — overlaps the
+            # recrutement_repository.get_by_id(...) call usecases already made just
+            # above (application/recruteur/usecases/{get,init,update}
+            # _recrutement_etapes.py); dedupe when refactoring to ADR-009
+            recrutement_liaison = (
+                RecrutementAgentModel.objects.by_recrutement_and_agent(
+                    recrutement_id, utilisateur.entity_id
+                ).first()
+            )
+            recrutement_role = (
+                AgentRecrutementRole(recrutement_liaison.role)
+                if recrutement_liaison
+                else None
             )
             if recrutement_role not in _ROLES_RECRUTEMENT_REQUIS[action]:
                 raise AccesRecrutementRefuse(recrutement_id)

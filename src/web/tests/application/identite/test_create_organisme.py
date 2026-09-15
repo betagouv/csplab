@@ -6,6 +6,9 @@ from referentiel.events.organisme_events import OrganismeCree
 from referentiel.value_objects.siret import SIRET
 from referentiel.value_objects.verse import Verse
 
+from application.identite.context_services.organisme_permission_service import (
+    OrganismePermissionService,
+)
 from application.identite.usecases.create_organisme import (
     CreateOrganismeCommand,
     CreateOrganismeUsecase,
@@ -17,9 +20,6 @@ from domain.identite.errors.organisme_permission_errors import (
 from domain.identite.repositories.organisme_repository_interface import (
     IOrganismeRepository,
 )
-from domain.identite.services.organisme_permission_service import (
-    OrganismePermissionService,
-)
 from domain.identite.value_objects.organisme_action import OrganismeAction
 from domain.recruteur.value_objects.roles import AgentRecrutementRole
 from infrastructure.factories.identite.utilisateur_factory import UtilisateurFactory
@@ -29,7 +29,7 @@ from tests.utils.interface_aware_mock import create_interface_aware_mock
 @pytest.fixture(name="permission_service")
 def permission_service_fixture():
     service = Mock(spec=OrganismePermissionService)
-    service.est_autorise.return_value = AgentRecrutementRole.RESPONSABLE
+    service.can_execute.return_value = AgentRecrutementRole.RESPONSABLE
     return service
 
 
@@ -70,7 +70,7 @@ def test_create_organisme_success(permission_service, audit_log_writer, usecase)
     )
 
     organisme = usecase.execute(command=command)
-    permission_service.est_autorise.assert_called_once_with(
+    permission_service.can_execute.assert_called_once_with(
         action=OrganismeAction.CREER_ORGANISME,
         utilisateur=utilisateur,
     )
@@ -94,7 +94,7 @@ def test_create_organisme_refuse_non_staff(permission_service, usecase):
         parent_id=None,
         utilisateur=UtilisateurFactory.create_entity(is_staff=False),
     )
-    permission_service.est_autorise.side_effect = OperationOrganismeRefusee()
+    permission_service.can_execute.side_effect = OperationOrganismeRefusee()
 
     with pytest.raises(OperationOrganismeRefusee):
         usecase.execute(command=command)

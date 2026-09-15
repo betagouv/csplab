@@ -3,6 +3,9 @@ from typing import List
 
 from ddd.usecase_interface import IUsecase
 
+from application.identite.context_services.organisme_permission_service import (
+    OrganismePermissionService,
+)
 from application.identite.dtos.organisme_read_models import (
     OrganismeReadModel,
 )
@@ -10,9 +13,6 @@ from application.identite.services.organisme_query_service_interface import (
     IOrganismeQueryService,
 )
 from domain.identite.entities.utilisateurs import Utilisateur
-from domain.identite.services.organisme_permission_service import (
-    OrganismePermissionService,
-)
 from domain.identite.value_objects.organisme_action import OrganismeAction
 
 
@@ -31,7 +31,7 @@ class ListOrganismesUsecase(IUsecase[ListOrganismesCommand, List[OrganismeReadMo
         self.permission_service = permission_service
 
     def can_execute(self, command: ListOrganismesCommand) -> None:
-        self.permission_service.est_autorise(
+        self.permission_service.can_execute(
             action=OrganismeAction.LISTER_ORGANISMES,
             utilisateur=command.utilisateur,
         )

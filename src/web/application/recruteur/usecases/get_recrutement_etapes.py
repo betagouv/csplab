@@ -1,11 +1,11 @@
 from ddd.usecase_interface import IUsecase
 
+from application.identite.context_services.organisme_permission_service import (
+    OrganismePermissionService,
+)
 from application.recruteur.dtos.recrutement_request import RecrutementRequest
 from application.recruteur.errors.application_errors_recruteur import (
     OrganismeRecrutementIncoherents,
-)
-from domain.identite.services.organisme_permission_service import (
-    OrganismePermissionService,
 )
 from domain.identite.value_objects.organisme_action import OrganismeAction
 from domain.recruteur.entities.etape_recrutement import EtapeRecrutement
@@ -32,6 +32,9 @@ class GetRecrutementEtapesUsecase(
         self.recrutement_repository = recrutement_repository
 
     def can_execute(self, query: RecrutementRequest) -> Recrutement:
+        # TODO : duplicate query — also done in OrganismePermissionService.can_execute()
+        # (Organisme existence check); result is discarded here, dedupe when refactoring
+        # to ADR-009
         self.organisme_recruteur_repository.get_by_id(query.organisme_id)
         recrutement = self.recrutement_repository.get_by_id(query.recrutement_id)
         if query.organisme_id != recrutement.organisme_id:
@@ -39,7 +42,7 @@ class GetRecrutementEtapesUsecase(
                 query.organisme_id, query.recrutement_id
             )
 
-        self.permission_service.est_autorise(
+        self.permission_service.can_execute(
             action=OrganismeAction.GET_RECRUTEMENT_ETAPES,
             organisme_id=query.organisme_id,
             recrutement_id=query.recrutement_id,
