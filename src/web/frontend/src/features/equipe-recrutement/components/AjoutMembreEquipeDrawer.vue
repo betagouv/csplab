@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { AjoutMembrePayload, RecrutementRole } from '../types'
+import type { MembreEquipePayload, RecrutementRole } from '../types'
 import type { CspComboboxOption } from '@/components/base/CspCombobox/CspCombobox.vue'
 import type { CspRadioGroupOption } from '@/components/base/CspRadioGroup/CspRadioGroup.vue'
 import type { AgentOrganisme } from '@/features/organismes/types'
@@ -19,7 +19,7 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  add: [payload: AjoutMembrePayload]
+  add: [payload: MembreEquipePayload]
 }>()
 
 const open = defineModel<boolean>('open', { required: true })

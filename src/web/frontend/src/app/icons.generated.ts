@@ -71,6 +71,7 @@ import riTableLine from '@iconify-icons/ri/table-line'
 import riTeamLine from '@iconify-icons/ri/team-line'
 import riUserAddLine from '@iconify-icons/ri/user-add-line'
 import riUserLine from '@iconify-icons/ri/user-line'
+import riUserStarLine from '@iconify-icons/ri/user-star-line'
 import riUserUnfollowLine from '@iconify-icons/ri/user-unfollow-line'
 import { addIcon } from '@iconify/vue'
 
@@ -145,4 +146,5 @@ addIcon('ri:table-line', riTableLine)
 addIcon('ri:team-line', riTeamLine)
 addIcon('ri:user-add-line', riUserAddLine)
 addIcon('ri:user-line', riUserLine)
+addIcon('ri:user-star-line', riUserStarLine)
 addIcon('ri:user-unfollow-line', riUserUnfollowLine)

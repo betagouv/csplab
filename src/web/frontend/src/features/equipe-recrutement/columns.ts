@@ -1,6 +1,7 @@
 import type { MembreEquipe } from './types'
 import type { CspColumnDef } from '@/components/base/CspDataTable/table'
 import AgentNomCell from '@/features/organismes/components/cells/AgentNomCell.vue'
+import MembreActionsCell from './components/cells/MembreActionsCell.vue'
 import { formatMembreNameAlphabetical, formatRecrutementRole } from './format'
 
 export const EQUIPE_RECRUTEMENT_COLUMNS: CspColumnDef<MembreEquipe>[] = [
@@ -9,3 +10,11 @@ export const EQUIPE_RECRUTEMENT_COLUMNS: CspColumnDef<MembreEquipe>[] = [
   { id: 'poste', header: 'Poste', accessor: row => row.poste },
   { id: 'email', header: 'Courriel', accessor: row => row.email },
 ]
+
+export const EQUIPE_RECRUTEMENT_ACTIONS_COLUMN: CspColumnDef<MembreEquipe> = {
+  id: 'actions',
+  header: '',
+  align: 'end',
+  width: '3.5rem',
+  cellComponent: MembreActionsCell,
+}
