@@ -9,8 +9,14 @@ from application.recruteur.services.set_recrutements_responsable import (
 from domain.commons.errors.organisme_errors import OrganismeNexistePas
 from domain.identite.errors.agent_errors import ProfilAgentNexistePas
 from domain.identite.errors.organisme_permission_errors import AccesOrganismeRefuse
-from domain.recruteur.value_objects.roles import AgentOrganismeRole
+from domain.recruteur.value_objects.roles import (
+    AgentOrganismeRole,
+    AgentRecrutementRole,
+)
 from infrastructure.django_apps.recruteur.models.organisme import OrganismeAgentModel
+from infrastructure.django_apps.recruteur.models.recrutement import (
+    RecrutementAgentModel,
+)
 from infrastructure.factories.identite.agent_django_factory import AgentDjangoFactory
 from infrastructure.factories.identite.organisme_django_factory import (
     OrganismeAgentDjangoFactory,
@@ -19,7 +25,11 @@ from infrastructure.factories.identite.organisme_django_factory import (
 )
 from infrastructure.factories.identite.utilisateur_factory import UtilisateurFactory
 from infrastructure.factories.recruteur.recrutement_django_factory import (
+    RecrutementAgentDjangoFactory,
     RecrutementDjangoFactory,
+)
+from infrastructure.repositories.commons.postgres_audit_log_repository import (
+    PostgresAuditLogRepository,
 )
 
 
@@ -45,6 +55,18 @@ def test_returns_reussite_for_each_recrutement_belonging_to_organisme(db):
 
     assert resultats["reussites"] == [r.pk for r in recrutements]
     assert resultats["echecs"] == []
+    for recrutement in recrutements:
+        recrutement_agent = RecrutementAgentModel.objects.get(
+            recrutement_id=recrutement.pk, agent_id=membre.utilisateur_id
+        )
+        assert recrutement_agent.role == AgentRecrutementRole.RESPONSABLE.value
+        assert recrutement_agent.date_revocation is None
+        logs = PostgresAuditLogRepository().get_logs_for_ressource(
+            "RecrutementAgent", recrutement.pk
+        )
+        assert len(logs) == 1
+        assert logs[0].event_name == "AgentRecrutementAjoute"
+        assert logs[0].utilisateur_id == responsable.utilisateur_id
 
 
 def test_staff_bypasses_role_check(db):
@@ -182,6 +204,109 @@ def test_reattaches_agent_previously_revoked_from_organisme(db):
     assert organisme_agent.date_revocation is None
 
 
+def test_upgrades_existing_membership_to_responsable(db):
+    responsable, organisme = create_organisme_with_agent(
+        role=AgentOrganismeRole.SUPERVISEUR
+    )
+    membre = OrganismeAgentDjangoFactory(
+        organisme=organisme, role=AgentOrganismeRole.AGENT.value
+    ).agent
+    recrutement = RecrutementDjangoFactory(organisme=organisme)
+    existant = RecrutementAgentDjangoFactory(
+        recrutement=recrutement,
+        agent=membre,
+        role=AgentRecrutementRole.CONTRIBUTEUR.value,
+    )
+
+    resultats = set_recrutements_responsable(
+        organisme_id=organisme.id,
+        recrutement_ids=[recrutement.pk],
+        agent_id=membre.utilisateur_id,
+        utilisateur=_utilisateur(responsable.utilisateur_id),
+    )
+
+    assert resultats["reussites"] == [recrutement.pk]
+    recrutement_agent = RecrutementAgentModel.objects.get(
+        recrutement_id=recrutement.pk, agent_id=membre.utilisateur_id
+    )
+    assert recrutement_agent.id == existant.id
+    assert recrutement_agent.role == AgentRecrutementRole.RESPONSABLE.value
+    logs = PostgresAuditLogRepository().get_logs_for_ressource(
+        "RecrutementAgent", recrutement.pk
+    )
+    assert len(logs) == 1
+    assert logs[0].event_name == "AgentRecrutementModifie"
+
+
+def test_reintegrates_agent_previously_revoked_from_recrutement(db):
+    responsable, organisme = create_organisme_with_agent(
+        role=AgentOrganismeRole.SUPERVISEUR
+    )
+    membre = OrganismeAgentDjangoFactory(
+        organisme=organisme, role=AgentOrganismeRole.AGENT.value
+    ).agent
+    recrutement = RecrutementDjangoFactory(organisme=organisme)
+    RecrutementAgentDjangoFactory(
+        recrutement=recrutement,
+        agent=membre,
+        role=AgentRecrutementRole.CONTRIBUTEUR.value,
+        date_revocation=timezone.now(),
+    )
+
+    resultats = set_recrutements_responsable(
+        organisme_id=organisme.id,
+        recrutement_ids=[recrutement.pk],
+        agent_id=membre.utilisateur_id,
+        utilisateur=_utilisateur(responsable.utilisateur_id),
+    )
+
+    assert resultats["reussites"] == [recrutement.pk]
+    recrutement_agent = RecrutementAgentModel.objects.get(
+        recrutement_id=recrutement.pk, agent_id=membre.utilisateur_id
+    )
+    assert recrutement_agent.role == AgentRecrutementRole.RESPONSABLE.value
+    assert recrutement_agent.date_revocation is None
+
+
+def test_allows_multiple_responsables_on_same_recrutement(db):
+    responsable, organisme = create_organisme_with_agent(
+        role=AgentOrganismeRole.SUPERVISEUR
+    )
+    membre = OrganismeAgentDjangoFactory(
+        organisme=organisme, role=AgentOrganismeRole.AGENT.value
+    ).agent
+    recrutement = RecrutementDjangoFactory(organisme=organisme)
+    autre_membre = OrganismeAgentDjangoFactory(
+        organisme=organisme, role=AgentOrganismeRole.AGENT.value
+    ).agent
+    RecrutementAgentDjangoFactory(
+        recrutement=recrutement,
+        agent=autre_membre,
+        role=AgentRecrutementRole.RESPONSABLE.value,
+    )
+
+    resultats = set_recrutements_responsable(
+        organisme_id=organisme.id,
+        recrutement_ids=[recrutement.pk],
+        agent_id=membre.utilisateur_id,
+        utilisateur=_utilisateur(responsable.utilisateur_id),
+    )
+
+    assert resultats["reussites"] == [recrutement.pk]
+    assert (
+        RecrutementAgentModel.objects.get(
+            recrutement_id=recrutement.pk, agent_id=membre.utilisateur_id
+        ).role
+        == AgentRecrutementRole.RESPONSABLE.value
+    )
+    assert (
+        RecrutementAgentModel.objects.get(
+            recrutement_id=recrutement.pk, agent_id=autre_membre.utilisateur_id
+        ).role
+        == AgentRecrutementRole.RESPONSABLE.value
+    )
+
+
 @pytest.mark.parametrize(
     "position", ["first", "last"], ids=["invalid_first", "invalid_last"]
 )
@@ -207,22 +332,12 @@ def test_reports_echec_for_recrutement_belonging_to_another_organisme(db, positi
     assert resultats["reussites"] == [valide.pk]
     assert [echec["recrutement_id"] for echec in resultats["echecs"]] == [invalide.pk]
     assert resultats["echecs"][0]["raison"]
-
-
-def test_dedupes_repeated_recrutement_ids(db):
-    responsable, organisme = create_organisme_with_agent(
-        role=AgentOrganismeRole.SUPERVISEUR
+    assert not RecrutementAgentModel.objects.filter(
+        recrutement_id=invalide.pk, agent_id=membre.utilisateur_id
+    ).exists()
+    assert (
+        PostgresAuditLogRepository().get_logs_for_ressource(
+            "RecrutementAgent", invalide.pk
+        )
+        == []
     )
-    membre = OrganismeAgentDjangoFactory(
-        organisme=organisme, role=AgentOrganismeRole.AGENT.value
-    ).agent
-    recrutement = RecrutementDjangoFactory(organisme=organisme)
-
-    resultats = set_recrutements_responsable(
-        organisme_id=organisme.id,
-        recrutement_ids=[recrutement.pk, recrutement.pk],
-        agent_id=membre.utilisateur_id,
-        utilisateur=_utilisateur(responsable.utilisateur_id),
-    )
-
-    assert resultats["reussites"] == [recrutement.pk]
