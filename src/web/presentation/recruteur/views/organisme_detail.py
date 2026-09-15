@@ -265,12 +265,12 @@ class MotifsRefusOrganismeView(APIView):
             )
             data = [{"value": m.value, "label": m.label} for m in motifs]
             return Response(MotifRefusSerializer(data, many=True).data)
-        except AccesOrganismeRefuse:
-            return Response({"detail": "Forbidden."}, status=status.HTTP_403_FORBIDDEN)
-        except OrganismeNexistePas:
-            return Response(
-                {"organisme_uuid": "Not found."}, status=status.HTTP_404_NOT_FOUND
-            )
+        except AccesOrganismeRefuse as e:
+            serializer = GenericErrorSerializer({"error": str(e)})
+            return Response(serializer.data, status=status.HTTP_403_FORBIDDEN)
+        except OrganismeNexistePas as e:
+            serializer = GenericErrorSerializer({"error": str(e)})
+            return Response(serializer.data, status=status.HTTP_404_NOT_FOUND)
         except Exception:
             serializer = GenericErrorSerializer({"error": "Unexpected error"})
             return Response(
