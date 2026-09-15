@@ -41,12 +41,12 @@ jobs:
           add-paths: |
             src/web/CHANGELOG.md
           base: main
-          commit-message: "📝(release) update CHANGELOG.md for ${{ steps.git_cliff_full.outputs.version }}"
+          commit-message: "chore(release): update CHANGELOG.md for ${{ steps.git_cliff_full.outputs.version }}"
           signoff: true
           sign-commits: true
           branch: chore/next-release-changelog
           delete-branch: true
-          title: "📝(release) update CHANGELOG.md for ${{ steps.git_cliff_full.outputs.version }}"
+          title: "chore(release): update CHANGELOG.md for ${{ steps.git_cliff_full.outputs.version }}"
           body: ${{ steps.git_cliff_latest.outputs.content }}
           labels: |
             pending-release
