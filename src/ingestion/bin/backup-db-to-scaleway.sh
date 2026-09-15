@@ -25,7 +25,7 @@ set -euo pipefail
 
 SERVICE="${1:?usage: backup-db-to-scaleway.sh <service>}"
 
-ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+LIB_DIR="$(dirname "${BASH_SOURCE[0]}")/../../../libs/scaleway_secrets"
 
 # No-op unless SCALEWAY_ENV is set (same pattern as each service's
 # bin/inject_scaleway_env.sh): pulls every secret under /{service}/{SCALEWAY_ENV}
@@ -37,7 +37,7 @@ if [ -n "${SCALEWAY_ENV:-}" ]; then
     exit 1
   fi
   if command -v uv >/dev/null 2>&1; then
-    scaleway_env="$(uv run -q --project "$ROOT_DIR/libs/scaleway_secrets" python -m scaleway_secrets.fetch "$SERVICE")"
+    scaleway_env="$(uv run -q --project "$LIB_DIR" python -m scaleway_secrets.fetch "$SERVICE")"
   else
     scaleway_env="$(python -m scaleway_secrets.fetch "$SERVICE")"
   fi

@@ -9,7 +9,7 @@
       "size": "XL"
     },
     {
-      "command": "30 5 * * * bash ../../bin/backup-db-to-scaleway.sh ingestion",
+      "command": "30 5 * * * bash bin/backup-db-to-scaleway.sh ingestion",
       "size": "S"
     }
   ]
