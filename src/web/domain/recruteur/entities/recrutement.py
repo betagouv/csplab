@@ -12,6 +12,7 @@ from domain.recruteur.entities.organisme_recruteur import (
     OrganismeRecruteur,
 )
 from domain.recruteur.errors.recrutement_errors import (
+    MotifRefusRequis,
     RecrutementCandidatureInexistante,
     RecrutementEtapeInexistante,
 )
@@ -19,6 +20,9 @@ from domain.recruteur.events.recrutement_events import (
     EtapeCandidaturesChangees,
     RecrutementEtapesMisesAJour,
     RecrutementEtapesReinitialisees,
+)
+from domain.recruteur.value_objects.categorie_etapes_recrutement import (
+    CategorieEtapeRecrutement,
 )
 from domain.recruteur.value_objects.etape_data import EtapeData
 from domain.recruteur.value_objects.statut_recrutement import StatutRecrutement
@@ -61,12 +65,21 @@ class Recrutement(OrganismeRecruteur):
 
     @mutate(EtapeCandidaturesChangees)
     def changer_etapes_candidatures(
-        self, candidatures: List[CandidatureRecruteur], etape_cible_id: UUID
+        self,
+        candidatures: List[CandidatureRecruteur],
+        etape_cible_id: UUID,
+        motif_refus: str | None = None,
     ) -> IBatchUpdate[CandidatureRecruteur, RecrutementCandidatureInexistante]:
-        if etape_cible_id not in [etape.entity_id for etape in self._etapes]:
+        etape_cible = next(
+            (etape for etape in self._etapes if etape.entity_id == etape_cible_id),
+            None,
+        )
+        if etape_cible is None:
             raise RecrutementEtapeInexistante(
                 etape_id=etape_cible_id, recrutement_id=self.entity_id
             )
+        if etape_cible.categorie == CategorieEtapeRecrutement.REFUS and not motif_refus:
+            raise MotifRefusRequis(etape_id=etape_cible_id)
         successes: List[CandidatureRecruteur] = []
         failures: List[tuple[UUID, RecrutementCandidatureInexistante]] = []
         for candidature in candidatures:

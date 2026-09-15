@@ -22,6 +22,7 @@ from domain.commons.errors.organisme_errors import OrganismeNexistePas
 from domain.identite.errors.organisme_permission_errors import AccesOrganismeRefuse
 from domain.recruteur.errors.recrutement_errors import (
     CandidatureInexistante,
+    MotifRefusRequis,
     RecrutementEtapeInexistante,
     RecrutementInexistant,
 )
@@ -570,6 +571,34 @@ class TestRecrutementCandidaturesEtapeView:
         )
         assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
         assert response.json() == {"error": "Unexpected error"}
+
+    def test_rejects_unknown_motif_refus(self, authenticated_client):
+        response = authenticated_client.patch(
+            RECRUTEMENT_CANDIDATURES_ETAPE_URL,
+            data={
+                "etape_cible_uuid": fake.uuid4(),
+                "candidatures": [],
+                "motif_refus": "not_a_real_motif",
+            },
+            format="json",
+        )
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    def test_returns_400_when_motif_refus_required(
+        self, container, authenticated_client
+    ):
+        mock_usecase = container.changer_etape_candidatures_usecase.return_value
+        uuid = fake.uuid4()
+        mock_usecase.execute.side_effect = MotifRefusRequis(uuid)
+
+        response = authenticated_client.patch(
+            RECRUTEMENT_CANDIDATURES_ETAPE_URL,
+            data={"etape_cible_uuid": fake.uuid4(), "candidatures": []},
+            format="json",
+        )
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert response.json() == {"error": MotifRefusRequis(uuid).message}
 
 
 class TestRecrutementDetailViewDbVerified:
