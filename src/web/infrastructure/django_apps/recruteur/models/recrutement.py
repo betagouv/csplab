@@ -13,6 +13,11 @@ class RecrutementQuerySet(models.QuerySet):
     ) -> "RecrutementQuerySet":
         return self.filter(organisme_id=organisme_id, pk=recrutement_id)
 
+    def by_organisme_and_recrutements(
+        self, organisme_id, recrutement_ids
+    ) -> "RecrutementQuerySet":
+        return self.filter(organisme_id=organisme_id, pk__in=recrutement_ids)
+
 
 class RecrutementModel(models.Model):
     offre = models.OneToOneField(
