@@ -12,6 +12,7 @@ from presentation.recruteur.views.organisme_agents import (
 from presentation.recruteur.views.organisme_detail import (
     EtapesRecrutementOrganismeView,
     InitEtapesRecrutementOrganismeView,
+    MotifsRefusOrganismeView,
     OrganismeDetailView,
 )
 from presentation.recruteur.views.organismes import (
@@ -68,6 +69,11 @@ urlpatterns = [
         "organismes/<uuid:organisme_uuid>/parametres/agents",
         OrganismeAgentsView.as_view(),
         name="organisme-parametres-agents",
+    ),
+    path(
+        "organismes/<uuid:organisme_uuid>/parametres/motifs-refus",
+        MotifsRefusOrganismeView.as_view(),
+        name="organisme-parametres-motifs-refus",
     ),
     path(
         "organismes/<uuid:organisme_uuid>/parametres/agents/recherche",
