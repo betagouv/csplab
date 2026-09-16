@@ -13,3 +13,4 @@ class CandidatureRecue(DomainEvent):
 @dataclass(frozen=True)
 class CandidatureEtapeModifiee(DomainEvent):
     etape_id: UUID
+    motif_refus: str | None = None

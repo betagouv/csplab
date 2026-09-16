@@ -116,6 +116,45 @@ class TestChangerEtapeCandidaturesUsecase:
 
         assert resultat["failures"] == []
 
+    def test_persists_motif_refus(
+        self,
+        usecase,
+    ):
+        agent, organisme = create_organisme_with_agent(
+            role=AgentOrganismeRole.SUPERVISEUR
+        )
+        agent_id = agent.utilisateur_id
+        recrutement = RecrutementDjangoFactory(
+            organisme=organisme,
+            agent_link__agent=agent,
+            agent_link__role=AgentRecrutementRole.RESPONSABLE.value,
+        )
+        etape_entree = EtapeModel.objects.get(
+            recrutement_id=recrutement.offre_id,
+            categorie=CategorieEtapeRecrutement.ENTREE.value,
+        )
+        etape_refus = EtapeModel.objects.get(
+            recrutement_id=recrutement.offre_id,
+            categorie=CategorieEtapeRecrutement.REFUS.value,
+        )
+        candidatures = CandidatureDjangoFactory.create_batch(2, etape=etape_entree)
+
+        command = ChangerEtapeCandidaturesCommand(
+            organisme_id=recrutement.organisme_id,
+            recrutement_id=recrutement.offre_id,
+            utilisateur=UtilisateurFactory.create_entity(entity_id=agent_id),
+            etape_cible_id=etape_refus.id,
+            candidatures=[candidature.id for candidature in candidatures],
+            motif_refus="autre",
+        )
+
+        resultat = usecase.execute(command)
+
+        assert resultat["failures"] == []
+        for candidature in candidatures:
+            candidature.refresh_from_db()
+            assert candidature.motif_refus == "autre"
+
     def test_unauthorized(
         self,
         usecase,
