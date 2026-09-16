@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import UTC, datetime
 from uuid import uuid4
 
 import pytest
@@ -431,7 +431,7 @@ class TestRecrutementAgentsViewPut:
         payload = {
             "agent_id": str(membre.utilisateur_id),
             "recrutement_role": AgentRecrutementRole.CONTRIBUTEUR.value,
-            "date_revocation_recrutement": datetime.now(),
+            "date_revocation_recrutement": datetime.now(UTC),
         }
 
         response = authenticated_client.put(
@@ -465,7 +465,7 @@ class TestRecrutementAgentsViewPut:
         payload = {
             "agent_id": str(membre.utilisateur_id),
             "recrutement_role": AgentRecrutementRole.CONTRIBUTEUR.value,
-            "date_revocation_recrutement": datetime.now(),
+            "date_revocation_recrutement": datetime.now(UTC),
         }
 
         response = api_client.put(
@@ -496,7 +496,7 @@ class TestRecrutementAgentsViewPut:
         payload = {
             "agent_id": str(membre.utilisateur_id),
             "recrutement_role": AgentRecrutementRole.CONTRIBUTEUR.value,
-            "date_revocation_recrutement": datetime.now(),
+            "date_revocation_recrutement": datetime.now(UTC),
         }
 
         response = authenticated_client.put(
@@ -528,7 +528,7 @@ class TestRecrutementAgentsViewPut:
         payload = {
             "agent_id": str(uuid4()),
             "recrutement_role": AgentRecrutementRole.CONTRIBUTEUR.value,
-            "date_revocation_recrutement": datetime.now(),
+            "date_revocation_recrutement": datetime.now(UTC),
         }
 
         response = authenticated_client.put(
@@ -548,7 +548,7 @@ class TestRecrutementAgentsViewPut:
         payload = {
             "agent_id": str(bare_agent.utilisateur_id),
             "recrutement_role": AgentRecrutementRole.CONTRIBUTEUR.value,
-            "date_revocation_recrutement": datetime.now(),
+            "date_revocation_recrutement": datetime.now(UTC),
         }
 
         response = authenticated_client.put(
@@ -570,7 +570,7 @@ class TestRecrutementAgentsViewPut:
         payload = {
             "agent_id": str(membre.utilisateur_id),
             "recrutement_role": AgentRecrutementRole.CONTRIBUTEUR.value,
-            "date_revocation_recrutement": datetime.now(),
+            "date_revocation_recrutement": datetime.now(UTC),
         }
 
         response = authenticated_client.put(
@@ -604,7 +604,7 @@ class TestRecrutementAgentsViewPut:
         payload = {
             "agent_id": str(revoked_membre.utilisateur_id),
             "recrutement_role": AgentRecrutementRole.CONTRIBUTEUR.value,
-            "date_revocation_recrutement": datetime.now(),
+            "date_revocation_recrutement": datetime.now(UTC),
         }
 
         revoke_response = authenticated_client.put(

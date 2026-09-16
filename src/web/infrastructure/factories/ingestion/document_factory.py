@@ -5,6 +5,7 @@ from django.utils import timezone
 
 from domain.ingestion.entities.document import Document, DocumentType
 from infrastructure.django_apps.ingestion.models.raw_document import RawDocument
+from infrastructure.factories.datetime_utils import as_aware
 from infrastructure.factories.ingestion.ingres_corps_factories import (
     IngresCorpsDocumentFactory,
 )
@@ -36,7 +37,7 @@ class DocumentFactory:
                 external_id = f"concours_{concours_dto.nor}"
         else:
             if external_id is None:
-                timestamp = datetime.now().timestamp()
+                timestamp = timezone.now().timestamp()
                 external_id = f"test_{document_type.value.lower()}_{timestamp}"
             raw_data = {
                 "id": external_id,
@@ -62,17 +63,17 @@ class DocumentFactory:
             )
 
         if external_id is None:
-            timestamp = datetime.now().timestamp()
+            timestamp = timezone.now().timestamp()
             external_id = f"test_{document_type.value.lower()}_{timestamp}"
 
         if processed_at:
-            processed_at = timezone.make_aware(processed_at)
+            processed_at = as_aware(processed_at)
 
         return Document(
             external_id=external_id,
             raw_data=raw_data,
             type=document_type,
-            created_at=timezone.make_aware(datetime.now()),
+            created_at=timezone.now(),
             processing=processing,
             processed_at=processed_at,
         )
@@ -105,7 +106,7 @@ class DocumentFactory:
     ) -> RawDocument:
         if external_id is None:
             external_id = (
-                f"test_{document_type.value.lower()}_{datetime.now().timestamp()}"
+                f"test_{document_type.value.lower()}_{timezone.now().timestamp()}"
             )
         if raw_data is None:
             raw_data = {
@@ -115,13 +116,13 @@ class DocumentFactory:
             }
 
         if processed_at:
-            processed_at = timezone.make_aware(processed_at)
+            processed_at = as_aware(processed_at)
 
         document_entity = Document(
             external_id=external_id,
             raw_data=raw_data,
             type=document_type,
-            created_at=timezone.make_aware(datetime.now()),
+            created_at=timezone.now(),
             processing=processing,
             processed_at=processed_at,
         )
@@ -132,7 +133,7 @@ class DocumentFactory:
 
             if updated_at:
                 RawDocument.objects.filter(id=raw_document.id).update(
-                    updated_at=timezone.make_aware(updated_at)
+                    updated_at=as_aware(updated_at)
                 )
                 raw_document.refresh_from_db()
 

@@ -35,7 +35,7 @@ from infrastructure.repositories.shared.postgres_offers_repository import (
 )
 
 fake = Faker()
-NOW = datetime.now()
+NOW = datetime.now(timezone.utc)
 DAY_AGO = NOW - relativedelta(days=1)
 
 _mapper = OfferMapper()
@@ -148,8 +148,8 @@ class TestUpsertBatch:
             country="FRA",
             region="28",
             department="14",
-            publication_date=datetime(2025, 5, 17),
-            beginning_date=datetime(2025, 6, 17),
+            publication_date=datetime(2025, 5, 17, tzinfo=timezone.utc),
+            beginning_date=datetime(2025, 6, 17, tzinfo=timezone.utc),
         )
         now = datetime.now(timezone.utc)
         entity = _mapper.to_domain(offer)

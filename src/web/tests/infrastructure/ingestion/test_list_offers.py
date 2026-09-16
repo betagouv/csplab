@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import UTC, datetime
 from unittest.mock import MagicMock
 
 import pytest
@@ -22,10 +22,10 @@ from infrastructure.factories.referentiel.offer_django_factory import (
 def offers_fixture(db):
     return {
         "archived_expected": OfferDjangoFactory(
-            external_id="test-expected-archived", archived_at=datetime.now()
+            external_id="test-expected-archived", archived_at=datetime.now(UTC)
         ),
         "archived_other": OfferDjangoFactory(
-            external_id="test-other-archived", archived_at=datetime.now()
+            external_id="test-other-archived", archived_at=datetime.now(UTC)
         ),
         "active_expected": OfferDjangoFactory(external_id="test-expected-active"),
         "active_other": OfferDjangoFactory(external_id="test-other-active"),

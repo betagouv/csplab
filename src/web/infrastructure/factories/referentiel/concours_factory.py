@@ -4,7 +4,6 @@ from datetime import datetime
 from typing import List, Optional
 from uuid import uuid4
 
-from django.utils import timezone
 from faker import Faker
 from faker.providers import BaseProvider
 from referentiel.entities.concours import Concours
@@ -14,6 +13,7 @@ from referentiel.value_objects.ministry import Ministry
 from referentiel.value_objects.nor import NOR
 
 from infrastructure.django_apps.referentiel.models.concours import ConcoursModel
+from infrastructure.factories.datetime_utils import as_aware
 
 
 class NorProvider(BaseProvider):
@@ -115,9 +115,9 @@ class ConcoursFactory:
         )
 
         if processed_at:
-            processed_at = timezone.make_aware(processed_at)
+            processed_at = as_aware(processed_at)
         if archived_at:
-            archived_at = timezone.make_aware(archived_at)
+            archived_at = as_aware(archived_at)
 
         return Concours(
             id=uuid4(),
@@ -183,10 +183,10 @@ class ConcoursFactory:
             open_position_number = 10
 
         if processed_at:
-            processed_at = timezone.make_aware(processed_at)
+            processed_at = as_aware(processed_at)
 
         if archived_at:
-            archived_at = timezone.make_aware(archived_at)
+            archived_at = as_aware(archived_at)
 
         concours = ConcoursModel(
             id=uuid4(),
@@ -208,7 +208,7 @@ class ConcoursFactory:
 
         if updated_at:
             ConcoursModel.objects.filter(id=concours.id).update(
-                updated_at=timezone.make_aware(updated_at)
+                updated_at=as_aware(updated_at)
             )
             concours.refresh_from_db()
 

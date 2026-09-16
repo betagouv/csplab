@@ -34,7 +34,7 @@ def permission_service_fixture():
 def organisme_read_models_fixture():
     organismes = OrganismeFactory.create_entity_batch(
         gestion_ats=True,
-        date_creation=datetime(2025, 10, 1),
+        date_creation=datetime(2025, 10, 1, tzinfo=timezone.utc),
         date_derniere_activite=datetime.now(timezone.utc),
     )
     return [

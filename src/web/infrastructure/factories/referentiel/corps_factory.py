@@ -2,7 +2,6 @@ import random
 from datetime import datetime
 from typing import List, Optional
 
-from django.utils import timezone
 from faker import Faker
 from referentiel.entities.corps import Corps
 from referentiel.value_objects.access_modality import AccessModality
@@ -11,6 +10,7 @@ from referentiel.value_objects.label import Label
 from referentiel.value_objects.ministry import Ministry
 
 from infrastructure.django_apps.referentiel.models.corps import CorpsModel
+from infrastructure.factories.datetime_utils import as_aware
 
 fake = Faker()
 
@@ -49,10 +49,10 @@ class CorpsFactory:
             access_modalities = []
 
         if processed_at:
-            processed_at = timezone.make_aware(processed_at)
+            processed_at = as_aware(processed_at)
 
         if archived_at:
-            archived_at = timezone.make_aware(archived_at)
+            archived_at = as_aware(archived_at)
 
         return Corps(
             code=code,
@@ -108,10 +108,10 @@ class CorpsFactory:
             access_modalities = []
 
         if processed_at:
-            processed_at = timezone.make_aware(processed_at)
+            processed_at = as_aware(processed_at)
 
         if archived_at:
-            archived_at = timezone.make_aware(archived_at)
+            archived_at = as_aware(archived_at)
 
         entity = Corps(
             code=code,
@@ -132,7 +132,7 @@ class CorpsFactory:
 
         if updated_at:
             CorpsModel.objects.filter(id=corps.id).update(
-                updated_at=timezone.make_aware(updated_at)
+                updated_at=as_aware(updated_at)
             )
             corps.refresh_from_db()
 

@@ -114,7 +114,9 @@ class RecrutementFactory:
         persist_etapes: bool = True,
     ) -> RecrutementModel:
         if offre_id is None:
-            archived_at = datetime(2024, 1, 1) if offre_archivee else None
+            archived_at = (
+                datetime(2024, 1, 1, tzinfo=timezone.utc) if offre_archivee else None
+            )
             offre_id = OfferFactory.create_model(archived_at=archived_at).id
         if agent_id is None:
             agent_id = AgentFactory.create_model().utilisateur_id

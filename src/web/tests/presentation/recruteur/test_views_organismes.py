@@ -71,7 +71,7 @@ class TestOrganismesView:
         mock_usecase = MagicMock()
         organismes = OrganismeFactory.create_entity_batch(
             gestion_ats=True,
-            date_creation=datetime(2025, 10, 1),
+            date_creation=datetime(2025, 10, 1, tzinfo=timezone.utc),
             date_derniere_activite=datetime.now(timezone.utc),
         )
         expected_result = [

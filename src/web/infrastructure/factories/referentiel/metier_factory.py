@@ -2,13 +2,13 @@ from datetime import datetime
 from typing import List, Optional
 from uuid import UUID, uuid4
 
-from django.utils import timezone
 from faker import Faker
 from polyfactory.factories import DataclassFactory
 from referentiel.entities.metier import Metier
 from referentiel.value_objects.verse import Verse
 
 from infrastructure.django_apps.referentiel.models.metier import MetierModel
+from infrastructure.factories.datetime_utils import as_aware
 from infrastructure.mappers.metier_mapper import MetierMapper
 
 fake = Faker()
@@ -125,7 +125,7 @@ class MetierFactory(DataclassFactory[Metier]):
 
         if updated_at is not None:
             MetierModel.objects.filter(pk=metier_model.pk).update(
-                updated_at=timezone.make_aware(updated_at)
+                updated_at=as_aware(updated_at)
             )
             metier_model.refresh_from_db()
 

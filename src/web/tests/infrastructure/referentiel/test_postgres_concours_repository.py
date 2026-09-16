@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import UTC, datetime
 
 import pytest
 from dateutil.relativedelta import relativedelta
@@ -15,7 +15,7 @@ from infrastructure.repositories.shared.postgres_concours_repository import (
 )
 
 fake = Faker()
-NOW = datetime.now()
+NOW = datetime.now(UTC)
 DAY_AGO = NOW - relativedelta(days=1)
 
 

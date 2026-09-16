@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import UTC, datetime
 from unittest.mock import MagicMock
 from uuid import UUID, uuid4
 
@@ -113,7 +113,7 @@ class TestGetById:
     def test_get_by_id_does_not_return_soft_deleted_note(
         self, repository, existing_note_model
     ):
-        existing_note_model.supprimee_le = datetime.now()
+        existing_note_model.supprimee_le = datetime.now(UTC)
         existing_note_model.save()
 
         with pytest.raises(NoteIntrouvable):

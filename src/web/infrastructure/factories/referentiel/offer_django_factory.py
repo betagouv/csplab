@@ -2,13 +2,13 @@ from datetime import UTC, datetime
 from uuid import uuid4
 
 import factory
-from django.utils import timezone
 from factory.django import DjangoModelFactory
 from referentiel.value_objects.area import GeographicalArea
 from referentiel.value_objects.category import Category
 from referentiel.value_objects.verse import Verse
 
 from infrastructure.django_apps.referentiel.models.offer import OfferModel
+from infrastructure.factories.datetime_utils import as_aware
 from infrastructure.factories.ingestion.source_django_factory import (
     SourceDjangoFactory,
 )
@@ -43,7 +43,5 @@ class OfferDjangoFactory(DjangoModelFactory):
     def updated_at(self, create, extracted, **kwargs):
         if not create or extracted is None:
             return
-        OfferModel.objects.filter(id=self.id).update(
-            updated_at=timezone.make_aware(extracted)
-        )
+        OfferModel.objects.filter(id=self.id).update(updated_at=as_aware(extracted))
         self.refresh_from_db()
