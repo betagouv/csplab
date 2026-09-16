@@ -247,6 +247,15 @@ run = [
   "python config/setup-qdrant.py --collection-name fonction_publique_test",
 ]
 
+[tasks."s3:init"]
+alias = "web:s3:init"
+description = "Create the S3 bucket(s) when missing"
+depends = ["install:py", "//:services:rustfs"]
+run = [
+  "python config/setup-s3.py",
+  "python config/setup-s3.py --bucket-name csplab-candidature-documents-test",
+]
+
 [tasks.superuser]
 alias = "web:superuser"
 description = "Create the Django superuser when missing"

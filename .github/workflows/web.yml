@@ -100,6 +100,16 @@ jobs:
         image: redis
         ports:
           - 6379:6379
+      rustfs:
+        image: rustfs/rustfs:latest
+        env:
+          RUSTFS_ACCESS_KEY: rustfsadmin
+          RUSTFS_SECRET_KEY: rustfsadmin
+          RUSTFS_ADDRESS: 0.0.0.0:9000
+          RUSTFS_CONSOLE_ADDRESS: 0.0.0.0:9001
+        ports:
+          - 9000:9000
+          - 9001:9001
     steps:
       - uses: actions/checkout@v6
       - uses: ./.github/actions/setup-mise
@@ -118,6 +128,8 @@ jobs:
           done
       - name: Setup Qdrant collections
         run: mise run web:qdrant:init
+      - name: Setup S3 bucket
+        run: mise run web:s3:init
       - name: Test with pytest
         run: mise run web:test
       - name: Get Playwright version
