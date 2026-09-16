@@ -181,6 +181,9 @@ class TestOrganismeAgentsView:
         )
 
         assert response.status_code == status.HTTP_409_CONFLICT
+        assert response.json() == {
+            "error": "agent_id: Agent already attached to this organisme."
+        }
 
     def test_attach_agent_unknown_agent_create_agent_too(
         self, authenticated_client, test_user

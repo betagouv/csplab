@@ -192,10 +192,14 @@ class EtapesRecrutementOrganismeView(APIView):
             serializer = EtapeRecrutementSerializer(data, many=True)
             return Response(serializer.data)
         except AccesOrganismeRefuse:
-            return Response({"detail": "Forbidden."}, status=status.HTTP_403_FORBIDDEN)
+            return Response(
+                GenericErrorSerializer({"error": "Forbidden."}).data,
+                status=status.HTTP_403_FORBIDDEN,
+            )
         except OrganismeNexistePas:
             return Response(
-                {"organisme_uuid": "Not found."}, status=status.HTTP_404_NOT_FOUND
+                GenericErrorSerializer({"error": "organisme_uuid: Not found."}).data,
+                status=status.HTTP_404_NOT_FOUND,
             )
         except Exception:
             serializer = GenericErrorSerializer({"error": "Unexpected error"})
@@ -232,10 +236,14 @@ class EtapesRecrutementOrganismeView(APIView):
         except ConfigurationEtapesInvalide as e:
             return Response({"error": e.raison}, status=status.HTTP_400_BAD_REQUEST)
         except AccesOrganismeRefuse:
-            return Response({"detail": "Forbidden."}, status=status.HTTP_403_FORBIDDEN)
+            return Response(
+                GenericErrorSerializer({"error": "Forbidden."}).data,
+                status=status.HTTP_403_FORBIDDEN,
+            )
         except OrganismeNexistePas:
             return Response(
-                {"organisme_uuid": "Not found."}, status=status.HTTP_404_NOT_FOUND
+                GenericErrorSerializer({"error": "organisme_uuid: Not found."}).data,
+                status=status.HTTP_404_NOT_FOUND,
             )
         except Exception:
             serializer = GenericErrorSerializer({"error": "Unexpected error"})
@@ -308,10 +316,14 @@ class InitEtapesRecrutementOrganismeView(APIView):
             serializer = EtapeRecrutementSerializer(data, many=True)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         except AccesOrganismeRefuse:
-            return Response({"detail": "Forbidden."}, status=status.HTTP_403_FORBIDDEN)
+            return Response(
+                GenericErrorSerializer({"error": "Forbidden."}).data,
+                status=status.HTTP_403_FORBIDDEN,
+            )
         except OrganismeNexistePas:
             return Response(
-                {"organisme_uuid": "Not found."}, status=status.HTTP_404_NOT_FOUND
+                GenericErrorSerializer({"error": "organisme_uuid: Not found."}).data,
+                status=status.HTTP_404_NOT_FOUND,
             )
         except Exception:
             serializer = GenericErrorSerializer({"error": "Unexpected error"})
