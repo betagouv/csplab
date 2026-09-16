@@ -105,7 +105,8 @@ class TestDocumentView:
         )
 
         assert response.status_code == status.HTTP_200_OK
-        assert response.content == b"%PDF-1.4\n%test"
+        # FileResponse is a StreamingHttpResponse
+        assert b"".join(response.streaming_content) == b"%PDF-1.4\n%test"
         assert response["Content-Type"] == "application/pdf"
         assert "test.pdf" in response["Content-Disposition"]
 
