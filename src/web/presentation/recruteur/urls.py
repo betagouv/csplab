@@ -2,6 +2,7 @@ from django.urls import path
 
 from presentation.recruteur.views.agent_search import AgentRechercheView
 from presentation.recruteur.views.agents import AgentsView
+from presentation.recruteur.views.candidature_detail import CandidatureDetailView
 from presentation.recruteur.views.candidature_logs import CandidatureLogsView
 from presentation.recruteur.views.notes import (
     CandidatureNoteDetailView,
@@ -115,6 +116,11 @@ urlpatterns = [
         "organismes/<uuid:organisme_uuid>/recrutements/<uuid:recrutement_uuid>/candidatures/etape",
         RecrutementCandidaturesEtapeView.as_view(),
         name="organisme-recrutement-candidatures-etape",
+    ),
+    path(
+        "organismes/<uuid:organisme_uuid>/recrutements/<uuid:recrutement_uuid>/candidatures/<uuid:candidature_uuid>",
+        CandidatureDetailView.as_view(),
+        name="organisme-recrutement-candidature-detail",
     ),
     path(
         "organismes/<uuid:organisme_uuid>/recrutements/<uuid:recrutement_uuid>/etapes",
