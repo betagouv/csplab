@@ -10,6 +10,7 @@ from domain.recruteur.value_objects.roles import (
     AgentOrganismeRole,
     AgentRecrutementRole,
 )
+from infrastructure.django_apps.commons.models import AuditLogModel
 from infrastructure.django_apps.recruteur.enums.motif_refus import MotifRefus
 from infrastructure.django_apps.recruteur.models.note import NoteModel
 from infrastructure.django_apps.recruteur.models.recrutement import (
@@ -334,3 +335,23 @@ class CandidatureEchecSerializer(serializers.Serializer):
 class ChangerEtapeResultatSerializer(serializers.Serializer):
     reussites = serializers.ListField(child=serializers.UUIDField())
     echecs = CandidatureEchecSerializer(many=True)
+
+
+# ---------------------------------------------------------------------------
+# Serializer pour le journal d'activité d'une candidature
+# ---------------------------------------------------------------------------
+
+
+class AuditLogSerializer(serializers.ModelSerializer):
+    utilisateur_prenom = serializers.CharField()
+    utilisateur_nom = serializers.CharField()
+
+    class Meta:
+        model = AuditLogModel
+        fields = [
+            "utilisateur_id",
+            "utilisateur_prenom",
+            "utilisateur_nom",
+            "occurred_at",
+            "event_name",
+        ]
