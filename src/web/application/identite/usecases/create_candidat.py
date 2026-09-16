@@ -12,7 +12,7 @@ from domain.identite.repositories.candidat_repository_interface import (
 from domain.identite.repositories.utilisateur_repository_interface import (
     IUtilisateurRepository,
 )
-from domain.identite.value_objects.email import normaliser_email
+from domain.identite.value_objects.email import normalize_email
 
 
 @dataclass
@@ -33,7 +33,7 @@ class CreateCandidatUsecase:
         self.utilisateur_repository = utilisateur_repository
 
     def execute(self, input_data: CreateCandidatInput) -> Candidat:
-        email = normaliser_email(input_data.email)
+        email = normalize_email(input_data.email)
 
         existing = self.candidat_repository.get_by_email(email)
         if existing is not None:

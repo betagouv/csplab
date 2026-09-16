@@ -15,18 +15,18 @@ from infrastructure.repositories.identite.postgres_utilisateur_repository import
     PostgresUtilisateurRepository,
 )
 
-MIXTE = "  Jean.DUPONT@GOUV.FR  "
-ATTENDU = "jean.dupont@gouv.fr"
+MIXED_CASE = "  Jean.DUPONT@GOUV.FR  "
+EXPECTED = "jean.dupont@gouv.fr"
 
 
 class TestUserModelSave:
-    def test_met_l_email_en_minuscules(self, db):
-        user = UserModel.objects.create(username=uuid4(), email=MIXTE)
+    def test_lowercases_the_email(self, db):
+        user = UserModel.objects.create(username=uuid4(), email=MIXED_CASE)
 
         user.refresh_from_db()
-        assert user.email == ATTENDU
+        assert user.email == EXPECTED
 
-    def test_normalise_aussi_a_la_mise_a_jour(self, db):
+    def test_lowercases_on_update_too(self, db):
         user = UtilisateurDjangoFactory(email="initial@gouv.fr")
 
         user.email = "AUTRE@Gouv.FR"
@@ -35,47 +35,47 @@ class TestUserModelSave:
         user.refresh_from_db()
         assert user.email == "autre@gouv.fr"
 
-    def test_le_doublon_de_casse_est_refuse(self, db):
-        UtilisateurDjangoFactory(email=ATTENDU)
+    def test_rejects_a_case_variant_duplicate(self, db):
+        UtilisateurDjangoFactory(email=EXPECTED)
 
-        # unique=True est sensible a la casse, mais save() ayant normalise, les
-        # deux valeurs se rejoignent et le doublon est bloque.
         with pytest.raises(IntegrityError), transaction.atomic():
-            UserModel.objects.create(username=uuid4(), email=MIXTE)
+            UserModel.objects.create(username=uuid4(), email=MIXED_CASE)
 
 
-class TestRechercheParEmail:
+class TestSearchByEmail:
     @pytest.fixture(name="agent")
     def agent_fixture(self, db):
-        return AgentDjangoFactory(utilisateur__email=ATTENDU)
+        return AgentDjangoFactory(utilisateur__email=EXPECTED)
 
-    def test_par_email_trouve_quelle_que_soit_la_casse(self, agent):
-        assert ProfilAgentModel.objects.par_email(MIXTE).first() == agent
+    def test_par_email_finds_whatever_the_case(self, agent):
+        assert ProfilAgentModel.objects.par_email(MIXED_CASE).first() == agent
 
-    def test_repository_agent_trouve_quelle_que_soit_la_casse(self, agent):
-        assert PostgresAgentRepository().get_by_email(MIXTE) is not None
+    def test_agent_repository_finds_whatever_the_case(self, agent):
+        assert PostgresAgentRepository().get_by_email(MIXED_CASE) is not None
 
-    def test_repository_utilisateur_trouve_quelle_que_soit_la_casse(self, agent):
-        utilisateur = PostgresUtilisateurRepository().get_by_email(MIXTE)
+    def test_utilisateur_repository_finds_whatever_the_case(self, agent):
+        utilisateur = PostgresUtilisateurRepository().get_by_email(MIXED_CASE)
 
-        assert utilisateur.email == ATTENDU
+        assert utilisateur.email == EXPECTED
 
 
-class TestContrainteUniqueInsensibleALaCasse:
-    def test_bloque_un_doublon_ecrit_sans_passer_par_save(self, db):
-        UtilisateurDjangoFactory(email=ATTENDU)
-        autre = UtilisateurDjangoFactory(email="autre@gouv.fr")
+class TestLowercaseCheckConstraint:
+    def test_rejects_a_write_that_bypasses_save(self, db):
+        user = UtilisateurDjangoFactory(email="autre@gouv.fr")
 
-        # update() court-circuite save(), donc la normalisation applicative. Si
-        # le test passe, c'est la base qui refuse, pas le code Python.
         with pytest.raises(IntegrityError), transaction.atomic():
-            UserModel.objects.filter(pk=autre.pk).update(email="JEAN.DUPONT@GOUV.FR")
+            UserModel.objects.filter(pk=user.pk).update(email="AUTRE@GOUV.FR")
 
-    def test_laisse_passer_deux_emails_reellement_differents(self, db):
-        UtilisateurDjangoFactory(email=ATTENDU)
-        autre = UtilisateurDjangoFactory(email="autre@gouv.fr")
+    def test_rejects_a_padded_write_that_bypasses_save(self, db):
+        user = UtilisateurDjangoFactory(email="autre@gouv.fr")
 
-        UserModel.objects.filter(pk=autre.pk).update(email="AUTRE.ADRESSE@GOUV.FR")
+        with pytest.raises(IntegrityError), transaction.atomic():
+            UserModel.objects.filter(pk=user.pk).update(email="  autre@gouv.fr  ")
 
-        autre.refresh_from_db()
-        assert autre.email == "AUTRE.ADRESSE@GOUV.FR"
+    def test_accepts_a_lowercase_write_that_bypasses_save(self, db):
+        user = UtilisateurDjangoFactory(email="autre@gouv.fr")
+
+        UserModel.objects.filter(pk=user.pk).update(email="nouvelle.adresse@gouv.fr")
+
+        user.refresh_from_db()
+        assert user.email == "nouvelle.adresse@gouv.fr"

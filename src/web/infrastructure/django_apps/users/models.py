@@ -1,11 +1,12 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
-from django.db.models.functions import Lower
+from django.db.models import Q
+from django.db.models.functions import Lower, Trim
 
 from domain.identite.entities.agent import Agent
 from domain.identite.entities.candidat import Candidat
 from domain.identite.entities.utilisateurs import Utilisateur
-from domain.identite.value_objects.email import normaliser_email
+from domain.identite.value_objects.email import normalize_email
 
 
 class UserModel(AbstractUser):
@@ -31,19 +32,16 @@ class UserModel(AbstractUser):
         verbose_name = "User"
         verbose_name_plural = "Users"
         constraints = [
-            # unique=True sur le champ reste sensible a la casse : il ne suffit
-            # pas. Cette contrainte est le seul verrou qui rende le doublon de
-            # casse impossible, y compris pour un ecrit qui contourne save().
-            models.UniqueConstraint(
-                Lower("email"),
-                name="users_email_lower_unique",
+            models.CheckConstraint(
+                condition=Q(email=Trim(Lower("email"))),
+                name="users_email_is_lowercase",
             )
         ]
 
     def save(self, *args, **kwargs):
-        # Django expose bien un crochet pour cela, AbstractUser.clean(), mais il
-        # n'est declenche que par full_clean(), que save() n'appelle jamais.
-        self.email = normaliser_email(self.email)
+        # Django has a hook for this, AbstractUser.clean(), but it only runs on
+        # full_clean(), which save() never calls.
+        self.email = normalize_email(self.email)
         return super().save(*args, **kwargs)
 
     def __str__(self):
@@ -90,7 +88,7 @@ class ProfilCandidatModel(models.Model):
 class ProfilAgentQuerySet(models.QuerySet):
     def par_email(self, email: str) -> "ProfilAgentQuerySet":
         return self.select_related("utilisateur").filter(
-            utilisateur__email=normaliser_email(email)
+            utilisateur__email=normalize_email(email)
         )
 
 

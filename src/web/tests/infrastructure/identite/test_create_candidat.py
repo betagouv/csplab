@@ -26,7 +26,7 @@ def identite_integration_container_fixture(db):
     return container
 
 
-def test_create_candidat_normalise_l_email(identite_integration_container):
+def test_create_candidat_normalizes_the_email(identite_integration_container):
     input_data = CreateCandidatInput(
         email="  Marie.MARTIN@GOUV.FR  ",
         prenom=fake.first_name(),
