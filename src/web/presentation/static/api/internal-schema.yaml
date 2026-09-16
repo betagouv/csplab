@@ -2243,6 +2243,119 @@ paths:
               $ref: '#/components/headers/X-RateLimit-Remaining'
             X-RateLimit-Reset:
               $ref: '#/components/headers/X-RateLimit-Reset'
+  /recruteur/organismes/{organisme_uuid}/recrutements/{recrutement_uuid}/candidatures/{candidature_uuid}:
+    get:
+      operationId: recruteur_organismes_recrutements_candidatures_retrieve
+      summary: Détail d'une candidature (stub)
+      parameters:
+      - in: path
+        name: candidature_uuid
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: organisme_uuid
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: recrutement_uuid
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - recruteur
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenError'
+          description: ''
+          headers:
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+          description: ''
+          headers:
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+          description: ''
+          headers:
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
+        '500':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+          description: ''
+          headers:
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CandidatureDetail'
+          description: ''
+          headers:
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
+        '429':
+          description: Nombre maximal d'appels autorisés dépassé.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
+                    example: Request was throttled. Expected available in 42 seconds.
+          headers:
+            Retry-After:
+              $ref: '#/components/headers/Retry-After'
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
   /recruteur/organismes/{organisme_uuid}/recrutements/{recrutement_uuid}/candidatures/etape:
     patch:
       operationId: recruteur_organismes_recrutements_candidatures_etape_partial_update
@@ -3659,6 +3772,24 @@ components:
       - nom
       - prenom
       - uuid
+    CandidatDetail:
+      type: object
+      properties:
+        uuid:
+          type: string
+          format: uuid
+        prenom:
+          type: string
+        nom:
+          type: string
+        email:
+          type: string
+          format: email
+      required:
+      - email
+      - nom
+      - prenom
+      - uuid
     Candidature:
       type: object
       properties:
@@ -3686,6 +3817,51 @@ components:
           format: uuid
       required:
       - candidature_uuid
+    CandidatureDetail:
+      type: object
+      properties:
+        candidature_uuid:
+          type: string
+          format: uuid
+        candidat:
+          $ref: '#/components/schemas/CandidatDetail'
+        recrutement_intitule:
+          type: string
+        etapes:
+          type: array
+          items:
+            $ref: '#/components/schemas/EtapeCandidatureDetail'
+        etape_actuelle:
+          $ref: '#/components/schemas/EtapeCandidatureDetail'
+        date_candidature:
+          type: string
+          format: date-time
+        date_derniere_maj_candidat:
+          type: string
+          format: date-time
+          nullable: true
+        date_derniere_maj_recruteur:
+          type: string
+          format: date-time
+          nullable: true
+        cv_url:
+          type: string
+        navigation_candidature_uuids:
+          type: array
+          items:
+            type: string
+            format: uuid
+      required:
+      - candidat
+      - candidature_uuid
+      - cv_url
+      - date_candidature
+      - date_derniere_maj_candidat
+      - date_derniere_maj_recruteur
+      - etape_actuelle
+      - etapes
+      - navigation_candidature_uuids
+      - recrutement_intitule
     CandidatureEchec:
       type: object
       properties:
@@ -4031,6 +4207,17 @@ components:
         * `988` - 988
         * `SPM` - SPM
         * `WLF` - WLF
+    EtapeCandidatureDetail:
+      type: object
+      properties:
+        etape_uuid:
+          type: string
+          format: uuid
+        nom:
+          type: string
+      required:
+      - etape_uuid
+      - nom
     EtapeRecrutement:
       type: object
       properties:
