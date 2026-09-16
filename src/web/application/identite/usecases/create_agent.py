@@ -14,6 +14,7 @@ from domain.identite.repositories.agent_repository_interface import IAgentReposi
 from domain.identite.repositories.utilisateur_repository_interface import (
     IUtilisateurRepository,
 )
+from domain.identite.value_objects.email import normaliser_email
 from domain.identite.value_objects.organisme_action import OrganismeAction
 
 
@@ -45,21 +46,21 @@ class CreateAgentUsecase:
     def execute(self, input_data: CreateAgentInput) -> Agent:
         self.can_execute(input_data)
 
-        existing = self.agent_repository.get_by_email(input_data.email)
+        email = normaliser_email(input_data.email)
+
+        existing = self.agent_repository.get_by_email(email)
         if existing is not None:
-            raise ProfilAgentExisteDeja(input_data.email)
+            raise ProfilAgentExisteDeja(email)
 
         try:
-            agent_utilisateur = self.utilisateur_repository.get_by_email(
-                input_data.email
-            )
+            agent_utilisateur = self.utilisateur_repository.get_by_email(email)
         except UtilisateurNexistePas:
             agent_utilisateur = self.utilisateur_repository.create(
-                Utilisateur(email=input_data.email)
+                Utilisateur(email=email)
             )
 
         agent = Agent.create(
-            email=input_data.email,
+            email=email,
             user_id=agent_utilisateur.entity_id,
         )
 

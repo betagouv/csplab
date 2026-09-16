@@ -6,6 +6,7 @@ from domain.identite.exceptions.candidat_errors import CandidatInexistant
 from domain.identite.repositories.candidat_repository_interface import (
     ICandidatRepository,
 )
+from domain.identite.value_objects.email import normaliser_email
 from infrastructure.django_apps.users.models import ProfilCandidatModel
 
 
@@ -22,7 +23,7 @@ class PostgresCandidatRepository(ICandidatRepository):
     def get_by_email(self, email: str) -> Candidat | None:
         try:
             profil = ProfilCandidatModel.objects.select_related("utilisateur").get(
-                utilisateur__email=email
+                utilisateur__email=normaliser_email(email)
             )
             return profil.to_entity()
         except ProfilCandidatModel.DoesNotExist:

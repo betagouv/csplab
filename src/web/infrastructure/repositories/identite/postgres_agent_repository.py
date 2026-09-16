@@ -3,6 +3,7 @@ from uuid import UUID
 from domain.identite.entities.agent import Agent
 from domain.identite.entities.utilisateurs import Utilisateur
 from domain.identite.repositories.agent_repository_interface import IAgentRepository
+from domain.identite.value_objects.email import normaliser_email
 from infrastructure.django_apps.users.models import ProfilAgentModel
 
 
@@ -10,7 +11,7 @@ class PostgresAgentRepository(IAgentRepository):
     def get_by_email(self, email: str) -> Agent | None:
         try:
             profil = ProfilAgentModel.objects.select_related("utilisateur").get(
-                utilisateur__email=email
+                utilisateur__email=normaliser_email(email)
             )
             return profil.to_entity()
         except ProfilAgentModel.DoesNotExist:

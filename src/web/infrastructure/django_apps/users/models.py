@@ -1,9 +1,11 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.db.models.functions import Lower
 
 from domain.identite.entities.agent import Agent
 from domain.identite.entities.candidat import Candidat
 from domain.identite.entities.utilisateurs import Utilisateur
+from domain.identite.value_objects.email import normaliser_email
 
 
 class UserModel(AbstractUser):
@@ -28,6 +30,21 @@ class UserModel(AbstractUser):
     class Meta:
         verbose_name = "User"
         verbose_name_plural = "Users"
+        constraints = [
+            # unique=True sur le champ reste sensible a la casse : il ne suffit
+            # pas. Cette contrainte est le seul verrou qui rende le doublon de
+            # casse impossible, y compris pour un ecrit qui contourne save().
+            models.UniqueConstraint(
+                Lower("email"),
+                name="users_email_lower_unique",
+            )
+        ]
+
+    def save(self, *args, **kwargs):
+        # Django expose bien un crochet pour cela, AbstractUser.clean(), mais il
+        # n'est declenche que par full_clean(), que save() n'appelle jamais.
+        self.email = normaliser_email(self.email)
+        return super().save(*args, **kwargs)
 
     def __str__(self):
         return self.email
@@ -72,7 +89,9 @@ class ProfilCandidatModel(models.Model):
 
 class ProfilAgentQuerySet(models.QuerySet):
     def par_email(self, email: str) -> "ProfilAgentQuerySet":
-        return self.select_related("utilisateur").filter(utilisateur__email=email)
+        return self.select_related("utilisateur").filter(
+            utilisateur__email=normaliser_email(email)
+        )
 
 
 class ProfilAgentModel(models.Model):

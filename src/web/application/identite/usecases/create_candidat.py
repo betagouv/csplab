@@ -12,6 +12,7 @@ from domain.identite.repositories.candidat_repository_interface import (
 from domain.identite.repositories.utilisateur_repository_interface import (
     IUtilisateurRepository,
 )
+from domain.identite.value_objects.email import normaliser_email
 
 
 @dataclass
@@ -32,23 +33,25 @@ class CreateCandidatUsecase:
         self.utilisateur_repository = utilisateur_repository
 
     def execute(self, input_data: CreateCandidatInput) -> Candidat:
-        existing = self.candidat_repository.get_by_email(input_data.email)
+        email = normaliser_email(input_data.email)
+
+        existing = self.candidat_repository.get_by_email(email)
         if existing is not None:
-            raise ProfilCandidatExisteDeja(input_data.email)
+            raise ProfilCandidatExisteDeja(email)
 
         try:
-            utilisateur = self.utilisateur_repository.get_by_email(input_data.email)
+            utilisateur = self.utilisateur_repository.get_by_email(email)
         except UtilisateurNexistePas:
             utilisateur = self.utilisateur_repository.create(
                 Utilisateur(
-                    email=input_data.email,
+                    email=email,
                     prenom=input_data.prenom,
                     nom=input_data.nom,
                 )
             )
 
         candidat = Candidat.create(
-            email=input_data.email,
+            email=email,
             prenom=input_data.prenom,
             nom=input_data.nom,
             resume=input_data.resume,
