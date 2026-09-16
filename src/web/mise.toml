@@ -105,10 +105,9 @@ mise run '//src/web:seed'
 [tasks.emulate-prod]
 alias = "web:emulate-prod"
 description = "Emulate production: frontend build + collectstatic + runserver :8001"
-depends = ["install:py", "install:js"]
+depends = ["install:py", "//src/web/frontend:build", "//:services:postgres"]
 env = { DJANGO_SETTINGS_MODULE = "config.settings.base", WEB_ALLOWED_HOSTS = "localhost,127.0.0.1" }
 run = [
-  "vite build --mode production",
   "python manage.py collectstatic --noinput --clear",
   "python manage.py runserver 8001 --noreload",
 ]
