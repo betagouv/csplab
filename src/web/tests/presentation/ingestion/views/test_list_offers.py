@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import UTC, datetime
 from unittest.mock import MagicMock, patch
 from urllib.parse import parse_qs, urlparse
 
@@ -97,7 +97,7 @@ def test_call_without_arg(mock_offers_container, authenticated_client):
     first_offer = OfferFactory.create_entity(
         contract_type=ContractType.TERRITORIAL,
         offer_url=fake.url(),
-        archived_at=datetime.now(),
+        archived_at=datetime.now(UTC),
     )
     second_offer = OfferFactory.create_entity()
     offers = [first_offer, second_offer]

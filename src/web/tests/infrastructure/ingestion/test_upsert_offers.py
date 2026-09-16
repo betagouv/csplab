@@ -77,9 +77,9 @@ def test_upsert_offers_unarchives_offer_and_makes_it_eligible_for_reindexing(
     ingestion_container,
 ):
     archived_offer = OfferDjangoFactory(
-        archived_at=datetime.now(),
-        processed_at=datetime.now() - relativedelta(days=1),
-        updated_at=datetime.now() - relativedelta(days=1),
+        archived_at=datetime.now(timezone.utc),
+        processed_at=datetime.now(timezone.utc) - relativedelta(days=1),
+        updated_at=datetime.now(timezone.utc) - relativedelta(days=1),
     )
     assert archived_offer.archived_at is not None
 

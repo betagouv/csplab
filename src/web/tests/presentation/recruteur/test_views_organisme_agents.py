@@ -1,4 +1,3 @@
-from datetime import datetime
 from uuid import uuid4
 
 from django.urls import reverse
@@ -375,7 +374,7 @@ class TestOrganismeAgentsView:
             data={
                 "agent_id": str(autre_agent.utilisateur_id),
                 "role": AgentOrganismeRole.AGENT.value,
-                "date_revocation": datetime.now(),
+                "date_revocation": timezone.now(),
             },
             format="json",
         )
@@ -408,7 +407,7 @@ class TestOrganismeAgentsView:
             data={
                 "agent_id": str(autre_agent.utilisateur_id),
                 "role": AgentOrganismeRole.AGENT.value,
-                "date_revocation": datetime.now(),
+                "date_revocation": timezone.now(),
             },
             format="json",
         )
@@ -433,7 +432,7 @@ class TestOrganismeAgentsView:
             data={
                 "agent_id": str(bare_agent.utilisateur_id),
                 "role": AgentOrganismeRole.AGENT.value,
-                "date_revocation": datetime.now(),
+                "date_revocation": timezone.now(),
             },
             format="json",
         )

@@ -1,6 +1,6 @@
 import random
 import string
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 
 from faker import Faker
 from polyfactory import Use
@@ -51,8 +51,8 @@ def generate_nor():
 
 
 def generate_date_epreuve():
-    start_date = datetime.now() + timedelta(days=30)
-    end_date = datetime.now() + timedelta(days=365)
+    start_date = datetime.now(UTC) + timedelta(days=30)
+    end_date = datetime.now(UTC) + timedelta(days=365)
     random_date = fake.date_between(start_date=start_date, end_date=end_date)
     return random_date.strftime("%d/%m/%Y")
 

@@ -1,10 +1,10 @@
 from uuid import uuid4
 
 import factory
-from django.utils import timezone
 from factory.django import DjangoModelFactory
 
 from infrastructure.django_apps.referentiel.models.metier import MetierModel
+from infrastructure.factories.datetime_utils import as_aware
 
 
 class MetierDjangoFactory(DjangoModelFactory):
@@ -31,7 +31,5 @@ class MetierDjangoFactory(DjangoModelFactory):
     def updated_at(self, create, extracted, **kwargs):
         if not create or extracted is None:
             return
-        MetierModel.objects.filter(pk=self.pk).update(
-            updated_at=timezone.make_aware(extracted)
-        )
+        MetierModel.objects.filter(pk=self.pk).update(updated_at=as_aware(extracted))
         self.refresh_from_db()

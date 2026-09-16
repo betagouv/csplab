@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import UTC, datetime
 
 import pytest
 from dateutil.relativedelta import relativedelta
@@ -13,7 +13,7 @@ from infrastructure.repositories.shared.postgres_corps_repository import (
     PostgresCorpsRepository,
 )
 
-NOW = datetime.now()
+NOW = datetime.now(UTC)
 DAY_AGO = NOW - relativedelta(days=1)
 
 

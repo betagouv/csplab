@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import UTC, datetime
 from uuid import uuid4
 
 import factory
@@ -35,7 +35,7 @@ class RecrutementDjangoFactory(DjangoModelFactory):
     class Params:
         offre_archivee = factory.Trait(
             offre=factory.SubFactory(
-                OfferDjangoFactory, archived_at=datetime(2024, 1, 1)
+                OfferDjangoFactory, archived_at=datetime(2024, 1, 1, tzinfo=UTC)
             )
         )
 

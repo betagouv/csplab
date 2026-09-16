@@ -6,6 +6,7 @@ from factory.django import DjangoModelFactory
 
 from domain.ingestion.entities.document import DocumentType
 from infrastructure.django_apps.ingestion.models.raw_document import RawDocument
+from infrastructure.factories.datetime_utils import as_aware
 
 
 class DocumentDjangoFactory(DjangoModelFactory):
@@ -32,7 +33,5 @@ class DocumentDjangoFactory(DjangoModelFactory):
     def updated_at(self, create, extracted, **kwargs):
         if not create or extracted is None:
             return
-        RawDocument.objects.filter(id=self.id).update(
-            updated_at=timezone.make_aware(extracted)
-        )
+        RawDocument.objects.filter(id=self.id).update(updated_at=as_aware(extracted))
         self.refresh_from_db()

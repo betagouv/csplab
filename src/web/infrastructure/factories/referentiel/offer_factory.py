@@ -2,7 +2,6 @@ from datetime import UTC, datetime
 from typing import List, Optional
 from uuid import UUID, uuid4
 
-from django.utils import timezone
 from pydantic import HttpUrl
 from referentiel.entities.offer import Offer
 from referentiel.value_objects.area import GeographicalArea
@@ -18,6 +17,7 @@ from referentiel.value_objects.verse import Verse
 
 from infrastructure.django_apps.ingestion.models.source import SourceModel
 from infrastructure.django_apps.referentiel.models.offer import OfferModel
+from infrastructure.factories.datetime_utils import as_aware
 from infrastructure.factories.ingestion.source_factory import SourceFactory
 from infrastructure.mappers.offer_mapper import OfferMapper
 
@@ -49,7 +49,7 @@ class OfferFactory:
         conditions: dict | None = None,
     ) -> Offer:
         if archived_at:
-            archived_at = timezone.make_aware(archived_at)
+            archived_at = as_aware(archived_at)
 
         if localisation is None:
             localisation = Localisation(
@@ -111,7 +111,7 @@ class OfferFactory:
         conditions: Optional[dict] = None,
     ) -> OfferModel:
         if processed_at:
-            processed_at = timezone.make_aware(processed_at)
+            processed_at = as_aware(processed_at)
 
         if source_id is None:
             source_id = SourceFactory.create_model().source_id
@@ -148,7 +148,7 @@ class OfferFactory:
 
         if updated_at:
             OfferModel.objects.filter(id=offer.id).update(
-                updated_at=timezone.make_aware(updated_at)
+                updated_at=as_aware(updated_at)
             )
             offer_model.refresh_from_db()
 

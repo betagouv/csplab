@@ -1,12 +1,12 @@
 from uuid import uuid4
 
 import factory
-from django.utils import timezone
 from factory.django import DjangoModelFactory
 from referentiel.value_objects.category import Category
 from referentiel.value_objects.ministry import Ministry
 
 from infrastructure.django_apps.referentiel.models.concours import ConcoursModel
+from infrastructure.factories.datetime_utils import as_aware
 from infrastructure.factories.referentiel.concours_factory import NorProvider
 
 factory.Faker.add_provider(NorProvider)
@@ -35,7 +35,5 @@ class ConcoursDjangoFactory(DjangoModelFactory):
     def updated_at(self, create, extracted, **kwargs):
         if not create or extracted is None:
             return
-        ConcoursModel.objects.filter(id=self.id).update(
-            updated_at=timezone.make_aware(extracted)
-        )
+        ConcoursModel.objects.filter(id=self.id).update(updated_at=as_aware(extracted))
         self.refresh_from_db()
