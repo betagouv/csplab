@@ -23,3 +23,4 @@ class RecrutementEtapesMisesAJour(DomainEvent):
 class EtapeCandidaturesChangees(DomainEvent):
     candidatures: List[CandidatureRecruteur]
     etape_cible_id: UUID
+    motif_refus: str | None = None

@@ -25,6 +25,7 @@ from domain.identite.errors.organisme_permission_errors import (
 )
 from domain.recruteur.errors.recrutement_errors import (
     CandidatureInexistante,
+    MotifRefusRequis,
     RecrutementEtapeInexistante,
     RecrutementInexistant,
 )
@@ -229,6 +230,7 @@ class RecrutementCandidaturesEtapeView(APIView):
                     recrutement_id=recrutement_uuid,
                     etape_cible_id=data["etape_cible_uuid"],
                     candidatures=[c["candidature_uuid"] for c in data["candidatures"]],
+                    motif_refus=data.get("motif_refus"),
                     utilisateur=self.user_mapper.to_domain(request),
                 )
             )
@@ -250,7 +252,7 @@ class RecrutementCandidaturesEtapeView(APIView):
         ) as e:
             serializer = GenericErrorSerializer({"error": str(e)})
             return Response(serializer.data, status=status.HTTP_404_NOT_FOUND)
-        except RecrutementEtapeInexistante as e:
+        except (RecrutementEtapeInexistante, MotifRefusRequis) as e:
             serializer = GenericErrorSerializer({"error": str(e)})
             return Response(serializer.data, status=status.HTTP_400_BAD_REQUEST)
         except Exception:

@@ -30,6 +30,7 @@ class ChangerEtapeCandidaturesCommand:
     utilisateur: Utilisateur
     etape_cible_id: UUID
     candidatures: List[UUID]
+    motif_refus: str | None = None
 
 
 class ChangerEtapeCandidaturesUsecase(
@@ -77,6 +78,7 @@ class ChangerEtapeCandidaturesUsecase(
             ] = recrutement.changer_etapes_candidatures(
                 candidatures=candidatures_recruteur,
                 etape_cible_id=command.etape_cible_id,
+                motif_refus=command.motif_refus,
             )
 
             candidatures_traitees: IBatchUpdate[

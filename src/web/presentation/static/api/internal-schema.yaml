@@ -4121,6 +4121,26 @@ components:
       required:
       - label
       - value
+    MotifRefusEnum:
+      enum:
+      - corps_grade_non_eligible
+      - condition_mobilite_non_remplie
+      - candidat_non_fonctionnaire
+      - experience_insuffisante
+      - competences_techniques_insuffisantes
+      - niveau_qualification_insuffisant
+      - disponibilite
+      - autre
+      type: string
+      description: |-
+        * `corps_grade_non_eligible` - Corps ou grade non éligible
+        * `condition_mobilite_non_remplie` - Condition de mobilité non remplie
+        * `candidat_non_fonctionnaire` - Candidat non fonctionnaire
+        * `experience_insuffisante` - Expérience insuffisante
+        * `competences_techniques_insuffisantes` - Compétences techniques insuffisantes
+        * `niveau_qualification_insuffisant` - Niveau de qualification insuffisant
+        * `disponibilite` - Disponibilité
+        * `autre` - Autre
     Note:
       type: object
       properties:
@@ -4373,6 +4393,8 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/CandidatureAChanger'
+        motif_refus:
+          $ref: '#/components/schemas/MotifRefusEnum'
     PatchedEditerNote:
       type: object
       properties:

@@ -16,6 +16,7 @@ from domain.commons.errors.organisme_errors import OrganismeNexistePas
 from domain.commons.services.audit_log_writer import AuditLogWriter
 from domain.identite.errors.organisme_permission_errors import AccesRecrutementRefuse
 from domain.recruteur.errors.recrutement_errors import (
+    MotifRefusRequis,
     RecrutementCandidatureInexistante,
     RecrutementEtapeInexistante,
     RecrutementInexistant,
@@ -225,6 +226,40 @@ class TestChangerEtapeCandidaturesUsecase:
                     candidatures=[c.entity_id for c in candidatures_recruteur],
                 )
             )
+
+    def test_raises_when_moving_to_refus_etape_without_motif(
+        self, recrutement, candidatures_recruteur, usecase
+    ):
+        etape_refus_id = recrutement.etapes[-2].entity_id
+
+        with pytest.raises(MotifRefusRequis):
+            usecase.execute(
+                ChangerEtapeCandidaturesCommand(
+                    organisme_id=recrutement.organisme_id,
+                    recrutement_id=recrutement.entity_id,
+                    utilisateur=UtilisateurFactory.create_entity(),
+                    etape_cible_id=etape_refus_id,
+                    candidatures=[c.entity_id for c in candidatures_recruteur],
+                )
+            )
+
+    def test_moves_to_refus_etape_with_motif(
+        self, recrutement, candidatures_recruteur, usecase
+    ):
+        etape_refus_id = recrutement.etapes[-2].entity_id
+
+        resultat = usecase.execute(
+            ChangerEtapeCandidaturesCommand(
+                organisme_id=recrutement.organisme_id,
+                recrutement_id=recrutement.entity_id,
+                utilisateur=UtilisateurFactory.create_entity(),
+                etape_cible_id=etape_refus_id,
+                candidatures=[c.entity_id for c in candidatures_recruteur],
+                motif_refus="autre",
+            )
+        )
+
+        assert resultat["failures"] == []
 
     def test_return_results_with_domain_errors(
         self, recrutement, candidature_recruteur_repository, usecase
