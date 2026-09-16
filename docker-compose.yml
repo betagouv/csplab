@@ -45,6 +45,8 @@ services:
     image: redis
     container_name: csp_redis
     restart: unless-stopped
+    # settings/test.py alloue une base Redis par worker pytest-xdist ; 16 ne suffisent plus
+    command: ["redis-server", "--databases", "64"]
     env_file:
       - env.d/redis
     ports:
