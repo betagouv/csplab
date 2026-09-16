@@ -238,7 +238,7 @@ class TestRecrutementDetailView:
 
         response = authenticated_client.get(UNKNOWN_RECRUTEMENT_DETAIL_URL)
         assert response.status_code == status.HTTP_404_NOT_FOUND
-        assert response.json() == {"detail": "Not found."}
+        assert response.json() == {"error": "Not found."}
 
     def test_returns_403_when_not_authorized(self, container, authenticated_client):
         container.get_recrutement_detail_usecase.return_value.execute.side_effect = (
@@ -247,7 +247,7 @@ class TestRecrutementDetailView:
 
         response = authenticated_client.get(RECRUTEMENT_DETAIL_URL)
         assert response.status_code == status.HTTP_403_FORBIDDEN
-        assert response.json() == {"detail": "Forbidden."}
+        assert response.json() == {"error": "Forbidden."}
 
     def test_returns_404_for_unknown_organisme(self, container, authenticated_client):
         container.get_recrutement_detail_usecase.return_value.execute.side_effect = (
@@ -256,7 +256,7 @@ class TestRecrutementDetailView:
 
         response = authenticated_client.get(RECRUTEMENT_DETAIL_URL)
         assert response.status_code == status.HTTP_404_NOT_FOUND
-        assert response.json() == {"detail": "Not found."}
+        assert response.json() == {"error": "Not found."}
 
     def test_returns_500_on_unexpected_error(self, container, authenticated_client):
         container.get_recrutement_detail_usecase.return_value.execute.side_effect = (
@@ -325,7 +325,7 @@ class TestRecrutementKanbanView:
 
         response = authenticated_client.get(UNKNOWN_RECRUTEMENT_KANBAN_URL)
         assert response.status_code == status.HTTP_404_NOT_FOUND
-        assert response.json() == {"detail": "Not found."}
+        assert response.json() == {"error": "Not found."}
 
     def test_returns_403_when_not_authorized(self, container, authenticated_client):
         container.get_recrutement_kanban_usecase.return_value.execute.side_effect = (
@@ -334,7 +334,7 @@ class TestRecrutementKanbanView:
 
         response = authenticated_client.get(RECRUTEMENT_KANBAN_URL)
         assert response.status_code == status.HTTP_403_FORBIDDEN
-        assert response.json() == {"detail": "Forbidden."}
+        assert response.json() == {"error": "Forbidden."}
 
     def test_returns_404_for_unknown_organisme(self, container, authenticated_client):
         container.get_recrutement_kanban_usecase.return_value.execute.side_effect = (
@@ -343,7 +343,7 @@ class TestRecrutementKanbanView:
 
         response = authenticated_client.get(RECRUTEMENT_KANBAN_URL)
         assert response.status_code == status.HTTP_404_NOT_FOUND
-        assert response.json() == {"detail": "Not found."}
+        assert response.json() == {"error": "Not found."}
 
     def test_returns_500_on_unexpected_error(self, container, authenticated_client):
         container.get_recrutement_kanban_usecase.return_value.execute.side_effect = (
@@ -433,7 +433,7 @@ class TestRecrutementListeView:
 
         response = authenticated_client.get(UNKNOWN_RECRUTEMENT_LISTE_URL)
         assert response.status_code == status.HTTP_404_NOT_FOUND
-        assert response.json() == {"detail": "Not found."}
+        assert response.json() == {"error": "Not found."}
 
     def test_returns_403_when_not_authorized(self, container, authenticated_client):
         container.get_recrutement_liste_usecase.return_value.execute.side_effect = (
@@ -442,7 +442,7 @@ class TestRecrutementListeView:
 
         response = authenticated_client.get(RECRUTEMENT_LISTE_URL)
         assert response.status_code == status.HTTP_403_FORBIDDEN
-        assert response.json() == {"detail": "Forbidden."}
+        assert response.json() == {"error": "Forbidden."}
 
     def test_returns_404_for_unknown_organisme(self, container, authenticated_client):
         container.get_recrutement_liste_usecase.return_value.execute.side_effect = (
@@ -451,7 +451,7 @@ class TestRecrutementListeView:
 
         response = authenticated_client.get(RECRUTEMENT_LISTE_URL)
         assert response.status_code == status.HTTP_404_NOT_FOUND
-        assert response.json() == {"detail": "Not found."}
+        assert response.json() == {"error": "Not found."}
 
     def test_returns_500_on_unexpected_error(self, container, authenticated_client):
         container.get_recrutement_liste_usecase.return_value.execute.side_effect = (

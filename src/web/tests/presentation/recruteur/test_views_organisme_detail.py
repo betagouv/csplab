@@ -243,12 +243,12 @@ class TestEtapesRecrutementOrganismeView:
             (
                 OrganismeNexistePas("not found"),
                 status.HTTP_404_NOT_FOUND,
-                {"organisme_uuid": "Not found."},
+                {"error": "organisme_uuid: Not found."},
             ),
             (
                 AccesOrganismeRefuse(UUID(fake.uuid4())),
                 status.HTTP_403_FORBIDDEN,
-                {"detail": "Forbidden."},
+                {"error": "Forbidden."},
             ),
         ],
     )
@@ -308,12 +308,12 @@ class TestInitEtapesRecrutementOrganismeView:
             (
                 OrganismeNexistePas("not found"),
                 status.HTTP_404_NOT_FOUND,
-                {"organisme_uuid": "Not found."},
+                {"error": "organisme_uuid: Not found."},
             ),
             (
                 AccesOrganismeRefuse(UUID(fake.uuid4())),
                 status.HTTP_403_FORBIDDEN,
-                {"detail": "Forbidden."},
+                {"error": "Forbidden."},
             ),
             (
                 Exception("unexpected"),
@@ -468,12 +468,12 @@ class TestPutEtapesRecrutementOrganismeView:
             (
                 OrganismeNexistePas("not found"),
                 status.HTTP_404_NOT_FOUND,
-                {"organisme_uuid": "Not found."},
+                {"error": "organisme_uuid: Not found."},
             ),
             (
                 AccesOrganismeRefuse(UUID(fake.uuid4())),
                 status.HTTP_403_FORBIDDEN,
-                {"detail": "Forbidden."},
+                {"error": "Forbidden."},
             ),
             (
                 Exception("unexpected"),

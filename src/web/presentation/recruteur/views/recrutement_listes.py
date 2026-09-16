@@ -64,9 +64,15 @@ class RecrutementsActifsView(APIView):
                 RecrutementsActifsSerializer(items, many=True).data
             )
         except AccesOrganismeRefuse:
-            return Response({"detail": "Forbidden."}, status=status.HTTP_403_FORBIDDEN)
+            return Response(
+                GenericErrorSerializer({"error": "Forbidden."}).data,
+                status=status.HTTP_403_FORBIDDEN,
+            )
         except OrganismeNexistePas:
-            return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                GenericErrorSerializer({"error": "Not found."}).data,
+                status=status.HTTP_404_NOT_FOUND,
+            )
         except Exception:
             serializer = GenericErrorSerializer({"error": "Unexpected error"})
             return Response(
@@ -118,9 +124,15 @@ class RecrutementsArchivesView(APIView):
             )
 
         except AccesOrganismeRefuse:
-            return Response({"detail": "Forbidden."}, status=status.HTTP_403_FORBIDDEN)
+            return Response(
+                GenericErrorSerializer({"error": "Forbidden."}).data,
+                status=status.HTTP_403_FORBIDDEN,
+            )
         except OrganismeNexistePas:
-            return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                GenericErrorSerializer({"error": "Not found."}).data,
+                status=status.HTTP_404_NOT_FOUND,
+            )
         except Exception:
             serializer = GenericErrorSerializer({"error": "Unexpected error"})
             return Response(

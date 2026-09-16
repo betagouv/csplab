@@ -115,6 +115,7 @@ class ProfileView(LoginRequiredMixin, TemplateView):
         200: UtilisateurSerializer,
         400: GenericErrorSerializer,
         401: TokenErrorSerializer,
+        404: GenericErrorSerializer,
         500: GenericErrorSerializer,
     },
 )
@@ -134,7 +135,10 @@ class UtilisateurDetailsView(APIView):
             utilisateur = usecase.execute(username)
             return Response(UtilisateurSerializer(utilisateur).data)
         except UtilisateurNexistePas:
-            return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                GenericErrorSerializer({"error": "Not found."}).data,
+                status=status.HTTP_404_NOT_FOUND,
+            )
         except Exception as e:
             self.logger.error("Unexpected error in UserInfoView: %s", str(e))
             serializer = GenericErrorSerializer({"error": "Unexpected error"})
