@@ -4,6 +4,7 @@ import { routes } from './index'
 
 const ORGANISME_UUID = '00000000-0000-0000-0000-000000000000'
 const RECRUTEMENT_UUID = 'aaaaaaaa-0001-0001-0001-000000000001'
+const CANDIDATURE_UUID = 'dddddddd-0001-0001-0001-000000000001'
 
 function resolve(path: string) {
   return createRouter({ history: createMemoryHistory(), routes }).resolve(path)
@@ -18,6 +19,7 @@ describe('organisme scoped routes', () => {
     [`/organismes/${ORGANISME_UUID}/recrutements/archives`, 'recrutements-archives'],
     [`/organismes/${ORGANISME_UUID}/recrutements/${RECRUTEMENT_UUID}`, 'recrutement-candidatures-kanban'],
     [`/organismes/${ORGANISME_UUID}/recrutements/${RECRUTEMENT_UUID}/liste`, 'recrutement-candidatures'],
+    [`/organismes/${ORGANISME_UUID}/recrutements/${RECRUTEMENT_UUID}/candidatures/${CANDIDATURE_UUID}`, 'recrutement-candidature'],
     [`/organismes/${ORGANISME_UUID}/recrutements/${RECRUTEMENT_UUID}/activites`, 'recrutement-activites'],
     [`/organismes/${ORGANISME_UUID}/recrutements/${RECRUTEMENT_UUID}/equipe`, 'recrutement-equipe'],
     [`/organismes/${ORGANISME_UUID}/recrutements/${RECRUTEMENT_UUID}/etapes-recrutement`, 'recrutement-etapes-recrutement'],
@@ -29,6 +31,12 @@ describe('organisme scoped routes', () => {
     expect(resolve(`/organismes/${ORGANISME_UUID}/recrutements`).meta.tab).toBe('actifs')
     expect(resolve(`/organismes/${ORGANISME_UUID}/recrutements/archives`).meta.tab)
       .toBe('archives')
+  })
+
+  it('renders the candidature panel inside the kanban route', () => {
+    const route = resolve(`/organismes/${ORGANISME_UUID}/recrutements/${RECRUTEMENT_UUID}/candidatures/${CANDIDATURE_UUID}`)
+    expect(route.matched.map(record => record.name)).toContain('recrutement-candidatures-kanban')
+    expect(route.params.candidatureUuid).toBe(CANDIDATURE_UUID)
   })
 
   it('exposes both uuids on a recrutement page', () => {

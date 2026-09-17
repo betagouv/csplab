@@ -4,6 +4,8 @@ import { tabMetaFor } from '@/composables/navigation/tabs'
 import { ORGANISME_PATH_PREFIX, UUID_ROUTE_PARAM } from '@/router/params'
 import { CANDIDATURE_TAB_LABELS } from './constants/candidature'
 
+export const CANDIDATURE_ROUTE_NAME = 'recrutement-candidature'
+
 export const CANDIDATURES_TAB_ROUTE_NAMES = {
   'candidatures': 'recrutement-candidatures-kanban',
   'activites-et-taches': 'recrutement-activites',
@@ -36,6 +38,13 @@ export const candidaturesRoutes: RouteRecordRaw[] = [
         path: '',
         name: 'recrutement-candidatures-kanban',
         component: () => import('./views/CandidaturesKanbanView.vue'),
+        children: [
+          {
+            path: `candidatures/:candidatureUuid${UUID_ROUTE_PARAM}`,
+            name: CANDIDATURE_ROUTE_NAME,
+            component: () => import('./views/CandidaturePanelView.vue'),
+          },
+        ],
       },
       {
         path: 'liste',
