@@ -238,6 +238,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/recruteur/organismes/{organisme_uuid}/recrutements/{recrutement_uuid}/candidatures/{candidature_uuid}/documents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Lister les documents d'une candidature */
+        get: operations["recruteur_organismes_recrutements_candidatures_documents_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/recruteur/organismes/{organisme_uuid}/recrutements/{recrutement_uuid}/candidatures/{candidature_uuid}/documents/{document_uuid}": {
         parameters: {
             query?: never;
@@ -622,6 +639,20 @@ export interface components {
          * @enum {string}
          */
         DepartementEnum: "01" | "02" | "03" | "04" | "05" | "06" | "07" | 8 | 9 | "10" | "11" | "12" | "13" | "14" | "15" | "16" | "17" | "18" | "19" | "21" | "22" | "23" | "24" | "25" | "26" | "27" | "28" | "29" | "2A" | "2B" | "30" | "31" | "32" | "33" | "34" | "35" | "36" | "37" | "38" | "39" | "40" | "41" | "42" | "43" | "44" | "45" | "46" | "47" | "48" | "49" | "50" | "51" | "52" | "53" | "54" | "55" | "56" | "57" | "58" | "59" | "60" | "61" | "62" | "63" | "64" | "65" | "66" | "67" | "68" | "69" | "70" | "71" | "72" | "73" | "74" | "75" | "76" | "77" | "78" | "79" | "80" | "81" | "82" | "83" | "84" | "85" | "86" | "87" | "88" | "89" | "90" | "91" | "92" | "93" | "94" | "95" | "971" | "972" | "973" | "974" | "975" | "976" | "986" | "987" | "988" | "SPM" | "WLF";
+        DocumentListe: {
+            /** Format: uuid */
+            document_id: string;
+            type_document: components["schemas"]["TypeDocumentEnum"];
+            nom_original: string;
+            content_type: string;
+            taille: number;
+            /** Format: uuid */
+            depose_par_id: string;
+            depose_par_nom: string;
+            depose_par_prenom: string;
+            /** Format: date-time */
+            depose_le: string;
+        };
         EtapeRecrutement: {
             /** Format: uuid */
             etape_uuid: string;
@@ -741,6 +772,21 @@ export interface components {
              */
             previous?: string | null;
             results: components["schemas"]["CandidatureListe"][];
+        };
+        PaginatedDocumentListeList: {
+            /** @example 123 */
+            count: number;
+            /**
+             * Format: uri
+             * @example http://api.example.org/accounts/?page=4
+             */
+            next?: string | null;
+            /**
+             * Format: uri
+             * @example http://api.example.org/accounts/?page=2
+             */
+            previous?: string | null;
+            results: components["schemas"]["DocumentListe"][];
         };
         PaginatedRecrutementAgentList: {
             /** @example 123 */
@@ -931,6 +977,14 @@ export interface components {
          * @enum {string}
          */
         TypeContratEnum: "TITULAIRE_CONTRACTUEL" | "CONTRACTUELS" | "TERRITORIAL";
+        /**
+         * @description * `cv` - CV
+         *     * `lettre_motivation` - Lettre de motivation
+         *     * `piece_justificative` - Pièce justificative
+         *     * `autre` - Autre
+         * @enum {string}
+         */
+        TypeDocumentEnum: "cv" | "lettre_motivation" | "piece_justificative" | "autre";
         UpdateAgentOrganisme: {
             /** Format: uuid */
             agent_id: string;
@@ -2731,6 +2785,97 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["RecrutementDetail"];
+                };
+            };
+            401: {
+                headers: {
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TokenError"];
+                };
+            };
+            403: {
+                headers: {
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GenericError"];
+                };
+            };
+            404: {
+                headers: {
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GenericError"];
+                };
+            };
+            /** @description Nombre maximal d'appels autorisés dépassé. */
+            429: {
+                headers: {
+                    "Retry-After": components["headers"]["Retry-After"];
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Request was throttled. Expected available in 42 seconds. */
+                        detail?: string;
+                    };
+                };
+            };
+            500: {
+                headers: {
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GenericError"];
+                };
+            };
+        };
+    };
+    recruteur_organismes_recrutements_candidatures_documents_list: {
+        parameters: {
+            query?: {
+                /** @description Nombre de résultats à retourner par page. */
+                limit?: number;
+                /** @description Un numéro de page de l'ensemble des résultats. */
+                page?: number;
+            };
+            header?: never;
+            path: {
+                candidature_uuid: string;
+                organisme_uuid: string;
+                recrutement_uuid: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaginatedDocumentListeList"];
                 };
             };
             401: {

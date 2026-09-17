@@ -10,6 +10,7 @@ from domain.recruteur.value_objects.roles import (
     AgentOrganismeRole,
     AgentRecrutementRole,
 )
+from infrastructure.django_apps.candidate.models.document import DocumentModel
 from infrastructure.django_apps.recruteur.enums.motif_refus import MotifRefus
 from infrastructure.django_apps.recruteur.models.recrutement import (
     RecrutementAgentModel,
@@ -260,6 +261,33 @@ class RecrutementEchecSerializer(serializers.Serializer):
 class SetRecrutementsResponsableResultatSerializer(serializers.Serializer):
     reussites = serializers.ListField(child=serializers.UUIDField())
     echecs = RecrutementEchecSerializer(many=True)
+
+
+# ---------------------------------------------------------------------------
+# Serializer pour les documents attachés à une candidature
+# ---------------------------------------------------------------------------
+
+
+class DocumentListeSerializer(serializers.ModelSerializer):
+    document_id = serializers.UUIDField(source="id")
+    depose_par_id = serializers.UUIDField()
+    depose_par_nom = serializers.CharField(source="depose_par.last_name")
+    depose_par_prenom = serializers.CharField(source="depose_par.first_name")
+    depose_le = serializers.DateTimeField(source="created_at")
+
+    class Meta:
+        model = DocumentModel
+        fields = [
+            "document_id",
+            "type_document",
+            "nom_original",
+            "content_type",
+            "taille",
+            "depose_par_id",
+            "depose_par_nom",
+            "depose_par_prenom",
+            "depose_le",
+        ]
 
 
 # ---------------------------------------------------------------------------

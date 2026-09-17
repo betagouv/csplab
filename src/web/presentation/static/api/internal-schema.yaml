@@ -2243,6 +2243,131 @@ paths:
               $ref: '#/components/headers/X-RateLimit-Remaining'
             X-RateLimit-Reset:
               $ref: '#/components/headers/X-RateLimit-Reset'
+  /recruteur/organismes/{organisme_uuid}/recrutements/{recrutement_uuid}/candidatures/{candidature_uuid}/documents:
+    get:
+      operationId: recruteur_organismes_recrutements_candidatures_documents_list
+      summary: Lister les documents d'une candidature
+      parameters:
+      - in: path
+        name: candidature_uuid
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - name: limit
+        required: false
+        in: query
+        description: Nombre de résultats à retourner par page.
+        schema:
+          type: integer
+      - in: path
+        name: organisme_uuid
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - name: page
+        required: false
+        in: query
+        description: Un numéro de page de l'ensemble des résultats.
+        schema:
+          type: integer
+      - in: path
+        name: recrutement_uuid
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - recruteur
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenError'
+          description: ''
+          headers:
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+          description: ''
+          headers:
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+          description: ''
+          headers:
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
+        '500':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+          description: ''
+          headers:
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedDocumentListeList'
+          description: ''
+          headers:
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
+        '429':
+          description: Nombre maximal d'appels autorisés dépassé.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
+                    example: Request was throttled. Expected available in 42 seconds.
+          headers:
+            Retry-After:
+              $ref: '#/components/headers/Retry-After'
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
   /recruteur/organismes/{organisme_uuid}/recrutements/{recrutement_uuid}/candidatures/{candidature_uuid}/documents/{document_uuid}:
     get:
       operationId: recruteur_organismes_recrutements_candidatures_documents_retrieve
@@ -4151,6 +4276,44 @@ components:
         * `988` - 988
         * `SPM` - SPM
         * `WLF` - WLF
+    DocumentListe:
+      type: object
+      properties:
+        document_id:
+          type: string
+          format: uuid
+        type_document:
+          $ref: '#/components/schemas/TypeDocumentEnum'
+        nom_original:
+          type: string
+          maxLength: 255
+        content_type:
+          type: string
+          maxLength: 100
+        taille:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+        depose_par_id:
+          type: string
+          format: uuid
+        depose_par_nom:
+          type: string
+        depose_par_prenom:
+          type: string
+        depose_le:
+          type: string
+          format: date-time
+      required:
+      - content_type
+      - depose_le
+      - depose_par_id
+      - depose_par_nom
+      - depose_par_prenom
+      - document_id
+      - nom_original
+      - taille
+      - type_document
     EtapeRecrutement:
       type: object
       properties:
@@ -4434,6 +4597,29 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/CandidatureListe'
+    PaginatedDocumentListeList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/DocumentListe'
     PaginatedRecrutementAgentList:
       type: object
       required:
@@ -4836,6 +5022,18 @@ components:
         * `TITULAIRE_CONTRACTUEL` - TITULAIRE_CONTRACTUEL
         * `CONTRACTUELS` - CONTRACTUELS
         * `TERRITORIAL` - TERRITORIAL
+    TypeDocumentEnum:
+      enum:
+      - cv
+      - lettre_motivation
+      - piece_justificative
+      - autre
+      type: string
+      description: |-
+        * `cv` - CV
+        * `lettre_motivation` - Lettre de motivation
+        * `piece_justificative` - Pièce justificative
+        * `autre` - Autre
     UpdateAgentOrganisme:
       type: object
       properties:
