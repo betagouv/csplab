@@ -315,3 +315,33 @@ class CandidatureEchecSerializer(serializers.Serializer):
 class ChangerEtapeResultatSerializer(serializers.Serializer):
     reussites = serializers.ListField(child=serializers.UUIDField())
     echecs = CandidatureEchecSerializer(many=True)
+
+
+# ---------------------------------------------------------------------------
+# Serializers pour le détail d'une candidature (stub)
+# ---------------------------------------------------------------------------
+
+
+class EtapeCandidatureDetailSerializer(serializers.Serializer):
+    etape_id = serializers.UUIDField()
+    nom = serializers.CharField()
+
+
+class CandidatDetailSerializer(serializers.Serializer):
+    id = serializers.UUIDField()
+    prenom = serializers.CharField()
+    nom = serializers.CharField()
+    email = serializers.EmailField()
+
+
+class CandidatureDetailSerializer(serializers.Serializer):
+    candidature_id = serializers.UUIDField()
+    candidat = CandidatDetailSerializer()
+    recrutement_intitule = serializers.CharField()
+    etapes = EtapeCandidatureDetailSerializer(many=True)
+    etape_actuelle = EtapeCandidatureDetailSerializer()
+    date_candidature = serializers.DateTimeField()
+    date_derniere_maj_candidat = serializers.DateTimeField(allow_null=True)
+    date_derniere_maj_recruteur = serializers.DateTimeField(allow_null=True)
+    document_id = serializers.UUIDField()
+    navigation_candidature_ids = serializers.ListField(child=serializers.UUIDField())
