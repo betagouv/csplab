@@ -3775,7 +3775,7 @@ components:
     CandidatDetail:
       type: object
       properties:
-        uuid:
+        id:
           type: string
           format: uuid
         prenom:
@@ -3787,9 +3787,9 @@ components:
           format: email
       required:
       - email
+      - id
       - nom
       - prenom
-      - uuid
     Candidature:
       type: object
       properties:
@@ -3820,7 +3820,7 @@ components:
     CandidatureDetail:
       type: object
       properties:
-        candidature_uuid:
+        candidature_id:
           type: string
           format: uuid
         candidat:
@@ -3844,23 +3844,24 @@ components:
           type: string
           format: date-time
           nullable: true
-        cv_url:
+        document_id:
           type: string
-        navigation_candidature_uuids:
+          format: uuid
+        navigation_candidature_ids:
           type: array
           items:
             type: string
             format: uuid
       required:
       - candidat
-      - candidature_uuid
-      - cv_url
+      - candidature_id
       - date_candidature
       - date_derniere_maj_candidat
       - date_derniere_maj_recruteur
+      - document_id
       - etape_actuelle
       - etapes
-      - navigation_candidature_uuids
+      - navigation_candidature_ids
       - recrutement_intitule
     CandidatureEchec:
       type: object
@@ -4210,13 +4211,13 @@ components:
     EtapeCandidatureDetail:
       type: object
       properties:
-        etape_uuid:
+        etape_id:
           type: string
           format: uuid
         nom:
           type: string
       required:
-      - etape_uuid
+      - etape_id
       - nom
     EtapeRecrutement:
       type: object

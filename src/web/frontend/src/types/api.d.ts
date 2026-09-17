@@ -444,7 +444,7 @@ export interface components {
         };
         CandidatDetail: {
             /** Format: uuid */
-            uuid: string;
+            id: string;
             prenom: string;
             nom: string;
             /** Format: email */
@@ -465,7 +465,7 @@ export interface components {
         };
         CandidatureDetail: {
             /** Format: uuid */
-            candidature_uuid: string;
+            candidature_id: string;
             candidat: components["schemas"]["CandidatDetail"];
             recrutement_intitule: string;
             etapes: components["schemas"]["EtapeCandidatureDetail"][];
@@ -476,8 +476,9 @@ export interface components {
             date_derniere_maj_candidat: string | null;
             /** Format: date-time */
             date_derniere_maj_recruteur: string | null;
-            cv_url: string;
-            navigation_candidature_uuids: string[];
+            /** Format: uuid */
+            document_id: string;
+            navigation_candidature_ids: string[];
         };
         CandidatureEchec: {
             /** Format: uuid */
@@ -648,7 +649,7 @@ export interface components {
         DepartementEnum: "01" | "02" | "03" | "04" | "05" | "06" | "07" | 8 | 9 | "10" | "11" | "12" | "13" | "14" | "15" | "16" | "17" | "18" | "19" | "21" | "22" | "23" | "24" | "25" | "26" | "27" | "28" | "29" | "2A" | "2B" | "30" | "31" | "32" | "33" | "34" | "35" | "36" | "37" | "38" | "39" | "40" | "41" | "42" | "43" | "44" | "45" | "46" | "47" | "48" | "49" | "50" | "51" | "52" | "53" | "54" | "55" | "56" | "57" | "58" | "59" | "60" | "61" | "62" | "63" | "64" | "65" | "66" | "67" | "68" | "69" | "70" | "71" | "72" | "73" | "74" | "75" | "76" | "77" | "78" | "79" | "80" | "81" | "82" | "83" | "84" | "85" | "86" | "87" | "88" | "89" | "90" | "91" | "92" | "93" | "94" | "95" | "971" | "972" | "973" | "974" | "975" | "976" | "986" | "987" | "988" | "SPM" | "WLF";
         EtapeCandidatureDetail: {
             /** Format: uuid */
-            etape_uuid: string;
+            etape_id: string;
             nom: string;
         };
         EtapeRecrutement: {
