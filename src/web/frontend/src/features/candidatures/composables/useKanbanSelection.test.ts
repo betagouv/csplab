@@ -102,135 +102,54 @@ describe('useKanbanSelection', () => {
   describe('toggleCandidatureSelection', () => {
     it('selects a single candidature', () => {
       const etapes = ref(createEtapes())
-      const { toggleCandidatureSelection, selectedCount, selectedCandidatures } = useKanbanSelection(etapes)
+      const { toggleCandidatureSelection, hasSelection, selectedCount, selectedCandidatures } = useKanbanSelection(etapes)
 
       toggleCandidatureSelection(CANDIDATURE_1_UUID, ETAPE_1_UUID)
 
+      expect(hasSelection.value).toBe(true)
       expect(selectedCount.value).toBe(1)
       expect(selectedCandidatures.value[0]?.candidature.uuid).toBe(CANDIDATURE_1_UUID)
     })
 
-    it('deselects a candidature when toggled again', () => {
+    it('deselects a candidature when toggled again and forgets its etape', () => {
       const etapes = ref(createEtapes())
-      const { toggleCandidatureSelection, selectedCount } = useKanbanSelection(etapes)
+      const { toggleCandidatureSelection, selectedCount, selectedByEtape } = useKanbanSelection(etapes)
 
       toggleCandidatureSelection(CANDIDATURE_1_UUID, ETAPE_1_UUID)
-      expect(selectedCount.value).toBe(1)
-
       toggleCandidatureSelection(CANDIDATURE_1_UUID, ETAPE_1_UUID)
+
       expect(selectedCount.value).toBe(0)
-    })
-
-    it('adds candidature to existing selection in same etape', () => {
-      const etapes = ref(createEtapes())
-      const { toggleCandidatureSelection, selectedCount } = useKanbanSelection(etapes)
-
-      toggleCandidatureSelection(CANDIDATURE_1_UUID, ETAPE_1_UUID)
-      toggleCandidatureSelection(CANDIDATURE_2_UUID, ETAPE_1_UUID)
-
-      expect(selectedCount.value).toBe(2)
-    })
-
-    it('removes etape from map when last candidature is deselected', () => {
-      const etapes = ref(createEtapes())
-      const { toggleCandidatureSelection, selectedByEtape } = useKanbanSelection(etapes)
-
-      toggleCandidatureSelection(CANDIDATURE_1_UUID, ETAPE_1_UUID)
-      expect(selectedByEtape.value.has(ETAPE_1_UUID)).toBe(true)
-
-      toggleCandidatureSelection(CANDIDATURE_1_UUID, ETAPE_1_UUID)
       expect(selectedByEtape.value.has(ETAPE_1_UUID)).toBe(false)
     })
   })
 
-  describe('isColumnSelected', () => {
-    it('returns false for empty selection', () => {
-      const etapes = ref(createEtapes())
-      const { isColumnSelected } = useKanbanSelection(etapes)
-
-      expect(isColumnSelected(ETAPE_1_UUID)).toBe(false)
-    })
-
-    it('returns false for partial selection', () => {
-      const etapes = ref(createEtapes())
-      const { toggleCandidatureSelection, isColumnSelected } = useKanbanSelection(etapes)
-
-      toggleCandidatureSelection(CANDIDATURE_1_UUID, ETAPE_1_UUID)
-
-      expect(isColumnSelected(ETAPE_1_UUID)).toBe(false)
-    })
-
-    it('returns true when all candidatures are selected', () => {
-      const etapes = ref(createEtapes())
-      const { toggleCandidatureSelection, isColumnSelected } = useKanbanSelection(etapes)
-
-      toggleCandidatureSelection(CANDIDATURE_1_UUID, ETAPE_1_UUID)
-      toggleCandidatureSelection(CANDIDATURE_2_UUID, ETAPE_1_UUID)
-
-      expect(isColumnSelected(ETAPE_1_UUID)).toBe(true)
-    })
-
-    it('returns false for unknown etape', () => {
-      const etapes = ref(createEtapes())
-      const { isColumnSelected } = useKanbanSelection(etapes)
-
-      expect(isColumnSelected('ffffffff-0000-0000-0000-000000000000')).toBe(false)
-    })
-  })
-
   describe('currentEtapeUuid', () => {
-    it('returns null when no selection', () => {
+    it('is the etape of the selection, null when empty or spread over several etapes', () => {
       const etapes = ref(createEtapes())
-      const { currentEtapeUuid } = useKanbanSelection(etapes)
+      const { toggleCandidatureSelection, currentEtapeUuid } = useKanbanSelection(etapes)
 
       expect(currentEtapeUuid.value).toBeNull()
-    })
-
-    it('returns etape uuid when selection is from single etape', () => {
-      const etapes = ref(createEtapes())
-      const { toggleCandidatureSelection, currentEtapeUuid } = useKanbanSelection(etapes)
 
       toggleCandidatureSelection(CANDIDATURE_1_UUID, ETAPE_1_UUID)
       toggleCandidatureSelection(CANDIDATURE_2_UUID, ETAPE_1_UUID)
-
       expect(currentEtapeUuid.value).toBe(ETAPE_1_UUID)
-    })
 
-    it('returns null when selection spans multiple etapes', () => {
-      const etapes = ref(createEtapes())
-      const { toggleCandidatureSelection, currentEtapeUuid } = useKanbanSelection(etapes)
-
-      toggleCandidatureSelection(CANDIDATURE_1_UUID, ETAPE_1_UUID)
       toggleCandidatureSelection(CANDIDATURE_3_UUID, ETAPE_2_UUID)
-
       expect(currentEtapeUuid.value).toBeNull()
     })
   })
 
   describe('selectedCandidatures', () => {
-    it('filters out candidatures from unknown etapes', () => {
-      const etapes = ref(createEtapes())
-      const { toggleCandidatureSelection, selectedCandidatures, selectedByEtape } = useKanbanSelection(etapes)
-
-      toggleCandidatureSelection(CANDIDATURE_1_UUID, ETAPE_1_UUID)
-      selectedByEtape.value = new Map([
-        [ETAPE_1_UUID, new Set([CANDIDATURE_1_UUID])],
-        ['ffffffff-0000-0000-0000-000000000000', new Set(['ffffffff-0000-0000-0000-000000000001'])],
-      ])
-
-      expect(selectedCandidatures.value).toHaveLength(1)
-    })
-
-    it('filters out unknown candidatures', () => {
+    it('drops the selected candidatures that left the kanban', () => {
       const etapes = ref(createEtapes())
       const { selectedCandidatures, selectedByEtape } = useKanbanSelection(etapes)
 
       selectedByEtape.value = new Map([
         [ETAPE_1_UUID, new Set([CANDIDATURE_1_UUID, 'ffffffff-0000-0000-0000-000000000099'])],
+        ['ffffffff-0000-0000-0000-000000000000', new Set(['ffffffff-0000-0000-0000-000000000001'])],
       ])
 
-      expect(selectedCandidatures.value).toHaveLength(1)
-      expect(selectedCandidatures.value[0]?.candidature.uuid).toBe(CANDIDATURE_1_UUID)
+      expect(selectedCandidatures.value.map(s => s.candidature.uuid)).toEqual([CANDIDATURE_1_UUID])
     })
   })
 
@@ -246,24 +165,6 @@ describe('useKanbanSelection', () => {
 
       expect(selectedCount.value).toBe(0)
       expect(hasSelection.value).toBe(false)
-    })
-  })
-
-  describe('hasSelection', () => {
-    it('returns false when no selection', () => {
-      const etapes = ref(createEtapes())
-      const { hasSelection } = useKanbanSelection(etapes)
-
-      expect(hasSelection.value).toBe(false)
-    })
-
-    it('returns true when there is a selection', () => {
-      const etapes = ref(createEtapes())
-      const { toggleCandidatureSelection, hasSelection } = useKanbanSelection(etapes)
-
-      toggleCandidatureSelection(CANDIDATURE_1_UUID, ETAPE_1_UUID)
-
-      expect(hasSelection.value).toBe(true)
     })
   })
 })

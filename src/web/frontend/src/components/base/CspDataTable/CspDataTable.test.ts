@@ -172,24 +172,17 @@ describe('cspDataTable: selection modes', () => {
     expect(emitted().toggleRow?.[0]).toEqual(['1'])
   })
 
-  it('none mode: clicking a row never toggles', async () => {
+  it('none modes: a row click neither toggles nor activates', async () => {
     const user = setupUser()
-    const { bodyRows, cellsOf, emitted } = renderTable({ selectionMode: 'none', selectedIds: new Set<string>() })
+    const { bodyRows, cellsOf, emitted } = renderTable({ selectionMode: 'none', activationMode: 'none', selectedIds: new Set<string>() })
 
     await user.click(cellsOf(bodyRows()[0]!)[0]!)
     expect(emitted().toggleRow).toBeUndefined()
+    expect(emitted().activate).toBeUndefined()
   })
 })
 
 describe('cspDataTable: activation', () => {
-  it('none mode: clicking a row never activates', async () => {
-    const user = setupUser()
-    const { bodyRows, cellsOf, emitted } = renderTable({ activationMode: 'none' })
-
-    await user.click(cellsOf(bodyRows()[0]!)[0]!)
-    expect(emitted().activate).toBeUndefined()
-  })
-
   it('row mode: clicking anywhere on the row activates with its id', async () => {
     const user = setupUser()
     const { bodyRows, cellsOf, emitted } = renderTable({ activationMode: 'row' })

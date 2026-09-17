@@ -362,74 +362,16 @@ describe('useCandidatures', () => {
       expect(targetEtape?.candidatures).toHaveLength(3)
     })
 
-    it('ignores batch move when target column is unknown', async () => {
+    it('leaves the kanban untouched when the batch names unknown columns or candidatures, or the target column itself', async () => {
       const { context } = await mountCandidatures()
 
       await vi.waitFor(() => expect(context.pendingKanban.value).toBe(false))
-
       const etapesBefore = structuredClone(context.candidatureKanban.value)
 
-      const candidaturesByEtape = new Map([
-        [ETAPE_RECEPTION, ['dddddddd-0001-0001-0001-000000000001']],
-      ])
-
-      context.moveCandidaturesBatch({ candidaturesByEtape, targetColumnId: 'unknown-target' })
-
-      expect(context.candidatureKanban.value).toEqual(etapesBefore)
-    })
-
-    it('ignores batch move when source column is unknown', async () => {
-      const { context } = await mountCandidatures()
-
-      await vi.waitFor(() => expect(context.pendingKanban.value).toBe(false))
-
-      const etapesBefore = structuredClone(context.candidatureKanban.value)
-
-      const candidaturesByEtape = new Map([
-        ['unknown-source', ['dddddddd-0001-0001-0001-000000000001']],
-      ])
-
-      context.moveCandidaturesBatch({
-        candidaturesByEtape,
-        targetColumnId: ETAPE_PRESELECTION,
-      })
-
-      expect(context.candidatureKanban.value).toEqual(etapesBefore)
-    })
-
-    it('ignores candidatures from same column as target in batch move', async () => {
-      const { context } = await mountCandidatures()
-
-      await vi.waitFor(() => expect(context.pendingKanban.value).toBe(false))
-
-      const targetColumnId = ETAPE_PRESELECTION
-
-      const candidaturesByEtape = new Map([
-        [targetColumnId, ['dddddddd-0001-0001-0001-000000000005']],
-      ])
-
-      const etapesBefore = structuredClone(context.candidatureKanban.value)
-
-      context.moveCandidaturesBatch({ candidaturesByEtape, targetColumnId })
-
-      expect(context.candidatureKanban.value).toEqual(etapesBefore)
-    })
-
-    it('ignores unknown candidatures in batch move', async () => {
-      const { context } = await mountCandidatures()
-
-      await vi.waitFor(() => expect(context.pendingKanban.value).toBe(false))
-
-      const sourceColumnId = ETAPE_RECEPTION
-      const targetColumnId = ETAPE_PRESELECTION
-
-      const candidaturesByEtape = new Map([
-        [sourceColumnId, ['unknown-card-1', 'unknown-card-2']],
-      ])
-
-      const etapesBefore = structuredClone(context.candidatureKanban.value)
-
-      context.moveCandidaturesBatch({ candidaturesByEtape, targetColumnId })
+      context.moveCandidaturesBatch({ candidaturesByEtape: new Map([[ETAPE_RECEPTION, [CANDIDATURE_ALICE]]]), targetColumnId: 'unknown-target' })
+      context.moveCandidaturesBatch({ candidaturesByEtape: new Map([['unknown-source', [CANDIDATURE_ALICE]]]), targetColumnId: ETAPE_PRESELECTION })
+      context.moveCandidaturesBatch({ candidaturesByEtape: new Map([[ETAPE_RECEPTION, ['unknown-card']]]), targetColumnId: ETAPE_PRESELECTION })
+      context.moveCandidaturesBatch({ candidaturesByEtape: new Map([[ETAPE_PRESELECTION, ['dddddddd-0001-0001-0001-000000000005']]]), targetColumnId: ETAPE_PRESELECTION })
 
       expect(context.candidatureKanban.value).toEqual(etapesBefore)
     })
