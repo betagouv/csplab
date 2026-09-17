@@ -1,11 +1,12 @@
 import type { ComputedRef, InjectionKey, Ref } from 'vue'
 import { computed, inject, onMounted, onUnmounted, provide, ref, watch } from 'vue'
+import { below } from '@/styles/breakpoints'
+import { useMediaQuery } from './useMediaQuery'
 
 export const SIDEBAR_STORAGE_KEY = 'csp_sidebar_state'
 export const SIDEBAR_KEYBOARD_SHORTCUT = 'b'
 export const SIDEBAR_WIDTH = '15rem'
 export const SIDEBAR_WIDTH_COLLAPSED = '4rem'
-export const SIDEBAR_BREAKPOINT = 768
 
 export interface SidebarContext {
   state: ComputedRef<'expanded' | 'collapsed'>
@@ -19,27 +20,6 @@ export interface SidebarContext {
 
 export const SIDEBAR_INJECTION_KEY = Symbol('sidebar') as InjectionKey<SidebarContext>
 
-function useMediaQuery(breakpoint: number) {
-  const matches = ref(false)
-
-  function updateMatch() {
-    if (typeof window !== 'undefined') {
-      matches.value = window.innerWidth <= breakpoint
-    }
-  }
-
-  onMounted(() => {
-    updateMatch()
-    window.addEventListener('resize', updateMatch)
-  })
-
-  onUnmounted(() => {
-    window.removeEventListener('resize', updateMatch)
-  })
-
-  return matches
-}
-
 export function provideSidebar(options: {
   defaultExpanded?: boolean
   persistState?: boolean
@@ -52,7 +32,7 @@ export function provideSidebar(options: {
     : defaultExpanded
 
   const isExpanded = ref(initialExpanded)
-  const isMobile = useMediaQuery(SIDEBAR_BREAKPOINT)
+  const isMobile = useMediaQuery(below('md'))
   const isMobileOpen = ref(false)
 
   const state = computed<'expanded' | 'collapsed'>(() =>

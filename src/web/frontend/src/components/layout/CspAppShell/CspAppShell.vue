@@ -79,6 +79,8 @@ function isItemActive(item: NavItem): boolean {
 </template>
 
 <style scoped lang="scss">
+@use '@/styles/breakpoints' as bp;
+
 .csp-app-shell {
   display: flex;
   min-height: 100vh;
@@ -91,7 +93,7 @@ function isItemActive(item: NavItem): boolean {
   background: var(--background-alt-grey);
   border-right: 1px solid var(--border-default-grey);
 
-  @media (width <= 768px) {
+  @include bp.below(bp.$md) {
     display: none;
   }
 }
@@ -112,7 +114,7 @@ function isItemActive(item: NavItem): boolean {
   background: var(--background-default-grey);
   border-bottom: 1px solid var(--border-default-grey);
 
-  @media (width <= 768px) {
+  @include bp.below(bp.$md) {
     display: flex;
   }
 }

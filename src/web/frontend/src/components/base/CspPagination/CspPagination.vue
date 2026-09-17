@@ -130,6 +130,8 @@ const page = defineModel<number>('page', { required: true })
 </template>
 
 <style scoped lang="scss">
+@use '@/styles/breakpoints' as bp;
+
 .csp-pagination {
   display: flex;
   align-items: center;
@@ -215,7 +217,7 @@ const page = defineModel<number>('page', { required: true })
   display: none;
 }
 
-@media (width >= 62em) {
+@include bp.from(bp.$lg) {
   .csp-pagination__label--lg {
     display: inline;
   }
