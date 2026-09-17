@@ -1,15 +1,23 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import { pluralize } from '@/utils/format'
 
-withDefaults(defineProps<{
+const props = withDefaults(defineProps<{
   count?: string
   selectionCount?: number
+  selectionLabel?: string
   bordered?: boolean
 }>(), {
   count: undefined,
   selectionCount: 0,
+  selectionLabel: undefined,
   bordered: true,
 })
+
+const selectionCountLabel = computed(
+  () => props.selectionLabel
+    ?? `${props.selectionCount} ${pluralize(props.selectionCount, 'sélectionné')}`,
+)
 </script>
 
 <template>
@@ -22,7 +30,7 @@ withDefaults(defineProps<{
   >
     <template v-if="selectionCount > 0">
       <p class="csp-table-toolbar__count">
-        {{ selectionCount }} {{ pluralize(selectionCount, 'sélectionné') }}
+        {{ selectionCountLabel }}
       </p>
       <div class="csp-table-toolbar__actions">
         <slot name="selection-actions" />
