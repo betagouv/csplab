@@ -11,5 +11,8 @@ const etape = ref<'offre' | 'candidature'>('offre')
     v-if="etape === 'offre'"
     @postuler="etape = 'candidature'"
   />
-  <CandidatureSansCompteMobile v-else />
+  <CandidatureSansCompteMobile
+    v-else
+    @terminer="etape = 'offre'"
+  />
 </template>

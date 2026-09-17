@@ -1,36 +1,31 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
-import { actionsRequises, conversations, nombreMessagesNonLus } from '../../data/candidatMock'
+import { actionsRequises, conversationParCandidature } from '../../data/candidatMock'
 import MobileTopBar from '../../shared/mobile/MobileTopBar.vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
-import CspIcon from '@/components/base/CspIcon/CspIcon.vue'
 import CspTextarea from '@/components/base/CspTextarea/CspTextarea.vue'
 
 const props = defineProps<{
-  initialConversationId?: string | null
+  candidatureId: string
 }>()
 
-const selectedId = ref<string | null>(props.initialConversationId ?? null)
+defineEmits<{
+  retour: []
+}>()
 
-watch(() => props.initialConversationId, (id) => {
-  if (id) {
-    selectedId.value = id
-  }
-})
+const conversation = computed(() => conversationParCandidature(props.candidatureId))
 
-watch(selectedId, (id) => {
-  const conv = conversations.find(c => c.id === id)
+watch(conversation, (conv) => {
   conv?.messages.forEach((m) => { m.lu = true })
 }, { immediate: true })
 
-const selected = computed(() => conversations.find(c => c.id === selectedId.value) ?? null)
 const brouillon = ref('')
 
 function envoyerReponse() {
-  if (!selected.value || !brouillon.value.trim()) {
+  if (!conversation.value || !brouillon.value.trim()) {
     return
   }
-  selected.value.messages.push({
+  conversation.value.messages.push({
     id: `m-${Date.now()}`,
     auteur: 'candidat',
     texte: brouillon.value.trim(),
@@ -39,8 +34,7 @@ function envoyerReponse() {
   })
   brouillon.value = ''
 
-  const candidatureId = selected.value.candidatureId
-  const index = actionsRequises.findIndex(a => a.candidatureId === candidatureId && a.type === 'message')
+  const index = actionsRequises.findIndex(a => a.candidatureId === props.candidatureId && a.type === 'message')
   if (index !== -1) {
     actionsRequises.splice(index, 1)
   }
@@ -49,21 +43,21 @@ function envoyerReponse() {
 
 <template>
   <div
-    v-if="selected"
+    v-if="conversation"
     class="thread"
   >
     <MobileTopBar
-      :title="selected.poste"
+      :title="conversation.poste"
       show-back
-      @back="selectedId = null"
+      @back="$emit('retour')"
     />
 
     <div class="thread__messages">
       <p class="thread__recruteur">
-        Recruteur : {{ selected.recruteurNom }}
+        Recruteur : {{ conversation.recruteurNom }}
       </p>
       <div
-        v-for="message in selected.messages"
+        v-for="message in conversation.messages"
         :key="message.id"
         class="thread__message"
         :class="`thread__message--${message.auteur}`"
@@ -93,134 +87,13 @@ function envoyerReponse() {
       />
     </div>
   </div>
-
-  <div
-    v-else
-    class="liste"
-  >
-    <MobileTopBar title="Messages" />
-
-    <ul class="liste__items">
-      <li
-        v-for="conversation in conversations"
-        :key="conversation.id"
-      >
-        <button
-          type="button"
-          class="liste__item"
-          @click="selectedId = conversation.id"
-        >
-          <span
-            v-if="nombreMessagesNonLus(conversation) > 0"
-            class="liste__unread-dot"
-            aria-label="Message non lu"
-          />
-          <span class="liste__item-body">
-            <span
-              class="liste__item-poste"
-              :class="{ 'liste__item-poste--unread': nombreMessagesNonLus(conversation) > 0 }"
-            >
-              {{ conversation.poste }}
-            </span>
-            <span class="liste__item-organisme">{{ conversation.organisme }}</span>
-            <span class="liste__item-preview">{{ conversation.messages.at(-1)?.texte }}</span>
-          </span>
-          <CspIcon
-            name="ri:arrow-right-s-line"
-            :size="20"
-            class="liste__item-chevron"
-          />
-        </button>
-      </li>
-    </ul>
-  </div>
 </template>
 
 <style scoped lang="scss">
-.liste,
 .thread {
   display: flex;
   flex-direction: column;
   min-height: 100%;
-}
-
-.liste__items {
-  list-style: none;
-  margin: 0;
-  padding: var(--csp-space-2);
-  display: flex;
-  flex-direction: column;
-  gap: var(--csp-space-1);
-}
-
-.liste__item {
-  position: relative;
-  display: flex;
-  align-items: flex-start;
-  gap: var(--csp-space-2);
-  width: 100%;
-  text-align: left;
-  border: none;
-  background: none;
-  cursor: pointer;
-  padding: var(--csp-space-3);
-  border-radius: 0.5rem;
-  font: inherit;
-  min-height: 3.5rem;
-
-  &:active {
-    background-color: var(--background-alt-grey);
-  }
-}
-
-.liste__unread-dot {
-  flex-shrink: 0;
-  width: 0.5rem;
-  height: 0.5rem;
-  border-radius: 50%;
-  background-color: var(--background-action-high-blue-france);
-  margin-top: 0.375rem;
-}
-
-.liste__item-body {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  padding-right: var(--csp-space-6);
-}
-
-.liste__item-poste {
-  font-size: 0.9375rem;
-  font-weight: 500;
-  color: var(--text-default-grey);
-
-  &--unread {
-    font-weight: 700;
-    color: var(--text-title-grey);
-  }
-}
-
-.liste__item-organisme {
-  font-size: 0.8125rem;
-  color: var(--text-mention-grey);
-}
-
-.liste__item-preview {
-  margin-top: 0.125rem;
-  font-size: 0.8125rem;
-  color: var(--text-mention-grey);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.liste__item-chevron {
-  position: absolute;
-  right: var(--csp-space-3);
-  top: 50%;
-  transform: translateY(-50%);
-  color: var(--text-mention-grey);
 }
 
 .thread__messages {

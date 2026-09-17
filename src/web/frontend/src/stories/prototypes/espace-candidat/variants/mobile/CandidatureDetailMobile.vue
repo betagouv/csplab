@@ -11,7 +11,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   retour: []
-  voirConversation: [id: string]
+  voirConversation: [candidatureId: string]
   voirDocuments: [candidatureId: string]
 }>()
 
@@ -59,7 +59,7 @@ const documentsAFournir = computed(() => documents.value.filter(d => d.statut ==
         <button
           type="button"
           class="detail__card"
-          @click="emit('voirConversation', conversation.id)"
+          @click="emit('voirConversation', candidature.id)"
         >
           <span class="detail__card-icon">
             <CspIcon

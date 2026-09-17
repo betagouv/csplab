@@ -4,16 +4,32 @@ import { actionsRequises, candidatures } from '../../data/candidatMock'
 import ActionRequiseCard from '../../shared/ActionRequiseCard.vue'
 import CandidatureCard from '../../shared/CandidatureCard.vue'
 import MobileTopBar from '../../shared/mobile/MobileTopBar.vue'
+import CspAvatar from '@/components/base/CspAvatar/CspAvatar.vue'
 
 defineEmits<{
   ouvrirCandidature: [id: string]
+  ouvrirProfil: []
   agir: [action: ActionRequise]
 }>()
 </script>
 
 <template>
   <div class="accueil">
-    <MobileTopBar title="Mes candidatures" />
+    <MobileTopBar title="Mes candidatures">
+      <template #end>
+        <button
+          type="button"
+          class="accueil__profil"
+          aria-label="Mon profil"
+          @click="$emit('ouvrirProfil')"
+        >
+          <CspAvatar
+            name="Camille Rousseau"
+            size="sm"
+          />
+        </button>
+      </template>
+    </MobileTopBar>
 
     <div class="accueil__content">
       <section
@@ -81,5 +97,14 @@ defineEmits<{
   display: flex;
   flex-direction: column;
   gap: var(--csp-space-3);
+}
+
+.accueil__profil {
+  display: flex;
+  border: none;
+  background: none;
+  cursor: pointer;
+  padding: 0;
+  border-radius: 50%;
 }
 </style>

@@ -67,7 +67,7 @@ defineEmits<{
         class="succes__continuer"
         @click="$emit('close')"
       >
-        Continuer sans créer de compte
+        Terminer et retourner sur l'offre
       </button>
     </div>
   </CspDialog>

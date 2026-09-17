@@ -1,115 +1,79 @@
 <script setup lang="ts">
 import type { ActionRequise } from '../../data/candidatMock'
-import type { OngletCandidat } from '../../shared/mobile/MobileTabBar.vue'
 import { computed, ref } from 'vue'
-import { conversationParCandidature, conversations, nombreMessagesNonLus } from '../../data/candidatMock'
 import AccueilCandidaturesMobile from './AccueilCandidaturesMobile.vue'
 import CandidatureDetailMobile from './CandidatureDetailMobile.vue'
 import ConversationsMobile from './ConversationsMobile.vue'
 import DocumentsMobile from './DocumentsMobile.vue'
-import MobileTabBar from '../../shared/mobile/MobileTabBar.vue'
-import CspAvatar from '@/components/base/CspAvatar/CspAvatar.vue'
-import CspButton from '@/components/base/CspButton/CspButton.vue'
+import ProfilMobile from './ProfilMobile.vue'
 
-const onglet = ref<OngletCandidat>('candidatures')
-const candidatureOuverteId = ref<string | null>(null)
-const conversationCibleeId = ref<string | null>(null)
-const candidatureDocumentsCibleeId = ref<string | null>(null)
+// Mes candidatures est l'unique point d'entrée : messages et documents ne sont accessibles
+// qu'en contexte, depuis une candidature précise. Navigation en pile (retour = dépiler) plutôt
+// qu'un jeu d'onglets, pour refléter cette hiérarchie à un seul niveau d'entrée.
+type Ecran =
+  | { nom: 'accueil' }
+  | { nom: 'detail', candidatureId: string }
+  | { nom: 'conversation', candidatureId: string }
+  | { nom: 'documents', candidatureId: string }
+  | { nom: 'profil' }
 
-const messagesNonLus = computed(() =>
-  conversations.reduce((total, conv) => total + nombreMessagesNonLus(conv), 0),
-)
+const pile = ref<Ecran[]>([{ nom: 'accueil' }])
+const ecran = computed(() => pile.value[pile.value.length - 1])
 
-function changerOnglet(cible: OngletCandidat) {
-  onglet.value = cible
-  candidatureOuverteId.value = null
-  conversationCibleeId.value = null
-  candidatureDocumentsCibleeId.value = null
+function naviguer(cible: Ecran) {
+  pile.value.push(cible)
 }
 
-function ouvrirCandidature(id: string) {
-  candidatureOuverteId.value = id
-}
-
-function voirConversation(id: string) {
-  conversationCibleeId.value = id
-  onglet.value = 'messages'
-}
-
-function voirDocuments(candidatureId: string) {
-  candidatureDocumentsCibleeId.value = candidatureId
-  onglet.value = 'documents'
+function retour() {
+  if (pile.value.length > 1) {
+    pile.value.pop()
+  }
 }
 
 function agirSurAction(action: ActionRequise) {
   if (action.type === 'message') {
-    const conversation = conversationParCandidature(action.candidatureId)
-    if (conversation) {
-      voirConversation(conversation.id)
-      return
-    }
-  }
-  if (action.type === 'document') {
-    voirDocuments(action.candidatureId)
+    naviguer({ nom: 'conversation', candidatureId: action.candidatureId })
     return
   }
-  ouvrirCandidature(action.candidatureId)
+  if (action.type === 'document') {
+    naviguer({ nom: 'documents', candidatureId: action.candidatureId })
+    return
+  }
+  naviguer({ nom: 'detail', candidatureId: action.candidatureId })
 }
-
-const montrerTabBar = computed(() => !(onglet.value === 'candidatures' && candidatureOuverteId.value))
 </script>
 
 <template>
   <div class="espace">
     <div class="espace__ecran">
-      <CandidatureDetailMobile
-        v-if="onglet === 'candidatures' && candidatureOuverteId"
-        :candidature-id="candidatureOuverteId"
-        @retour="candidatureOuverteId = null"
-        @voir-conversation="voirConversation"
-        @voir-documents="voirDocuments"
-      />
       <AccueilCandidaturesMobile
-        v-else-if="onglet === 'candidatures'"
-        @ouvrir-candidature="ouvrirCandidature"
+        v-if="ecran.nom === 'accueil'"
+        @ouvrir-candidature="(id) => naviguer({ nom: 'detail', candidatureId: id })"
+        @ouvrir-profil="naviguer({ nom: 'profil' })"
         @agir="agirSurAction"
       />
+      <CandidatureDetailMobile
+        v-else-if="ecran.nom === 'detail'"
+        :candidature-id="ecran.candidatureId"
+        @retour="retour"
+        @voir-conversation="(id) => naviguer({ nom: 'conversation', candidatureId: id })"
+        @voir-documents="(id) => naviguer({ nom: 'documents', candidatureId: id })"
+      />
       <ConversationsMobile
-        v-else-if="onglet === 'messages'"
-        :initial-conversation-id="conversationCibleeId"
+        v-else-if="ecran.nom === 'conversation'"
+        :candidature-id="ecran.candidatureId"
+        @retour="retour"
       />
       <DocumentsMobile
-        v-else-if="onglet === 'documents'"
-        :initial-candidature-id="candidatureDocumentsCibleeId"
+        v-else-if="ecran.nom === 'documents'"
+        :candidature-id="ecran.candidatureId"
+        @retour="retour"
       />
-      <div
-        v-else-if="onglet === 'profil'"
-        class="profil"
-      >
-        <CspAvatar
-          name="Camille Rousseau"
-          size="lg"
-        />
-        <p class="profil__nom">
-          Camille Rousseau
-        </p>
-        <p class="profil__email">
-          camille.rousseau@example.com
-        </p>
-        <CspButton
-          variant="secondary"
-          label="Se déconnecter"
-          icon="ri:logout-box-line"
-        />
-      </div>
+      <ProfilMobile
+        v-else-if="ecran.nom === 'profil'"
+        @retour="retour"
+      />
     </div>
-
-    <MobileTabBar
-      v-if="montrerTabBar"
-      :actif="onglet"
-      :messages-non-lus="messagesNonLus"
-      @changer="changerOnglet"
-    />
   </div>
 </template>
 
@@ -124,28 +88,6 @@ const montrerTabBar = computed(() => !(onglet.value === 'candidatures' && candid
 .espace__ecran {
   flex: 1;
   overflow-y: auto;
-}
-
-.profil {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--csp-space-2);
-  padding: var(--csp-space-8) var(--csp-space-4);
-  text-align: center;
-}
-
-.profil__nom {
-  margin: var(--csp-space-2) 0 0;
-  font-size: 1.0625rem;
-  font-weight: 700;
-  color: var(--text-title-grey);
-}
-
-.profil__email {
-  margin: 0 0 var(--csp-space-4);
-  font-size: 0.875rem;
-  color: var(--text-mention-grey);
 }
 
 @media (min-width: 40rem) {

@@ -8,6 +8,10 @@ import MobileFlowShell from '../../shared/mobile/MobileFlowShell.vue'
 import PopinSuccesMobile from './PopinSuccesMobile.vue'
 import CspInput from '@/components/base/CspInput/CspInput.vue'
 
+defineEmits<{
+  terminer: []
+}>()
+
 const offre = offrePrincipale
 const steps = ['Mes coordonnées', 'CV et lettre', 'Questions', 'Récapitulatif']
 const currentIndex = ref(0)
@@ -186,7 +190,7 @@ function modifier(index: number) {
   <PopinSuccesMobile
     :open="succesOuvert"
     :offre="offre"
-    @close="succesOuvert = false"
+    @close="$emit('terminer')"
   />
 </template>
 

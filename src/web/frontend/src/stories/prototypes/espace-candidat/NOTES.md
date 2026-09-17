@@ -24,8 +24,6 @@ mais n'est plus le fil actif.
 - **`MobileFileField.vue`** — zone de dépôt de fichier pensée tactile (gros bouton "Ajouter un
   fichier", puis "Remplacer"/"Supprimer" explicites). Remplace `FileDropzone` (pensé souris/
   drag-and-drop) pour ce parcours.
-- **`MobileTabBar.vue`** — barre d'onglets basse (Candidatures/Messages/Documents/Profil) pour
-  l'espace connecté, remplace la nav horizontale de `CandidateHeader`.
 - **`ConfettiBurst.vue`** — petit effet confettis CSS (pas de librairie ajoutée) pour la pop-in
   de succès festive. Respecte `prefers-reduced-motion`.
 - **`FranceConnectButton.vue`** — approximation du bouton FranceConnect (le vrai composant/la
@@ -33,8 +31,24 @@ mais n'est plus le fil actif.
   À remplacer par le composant officiel si un jour disponible.
 
 Manques DS confirmés par cette refonte : toujours pas de `CspStepper`/`CspTimeline` génériques,
-et maintenant aussi pas de pattern "barre d'onglets basse" ni de composant d'upload de fichier
-dans `components/base/`.
+ni de composant d'upload de fichier dans `components/base/`.
+
+### Correction de navigation (retour d'Alice après premier test)
+
+Première version de l'espace connecté : barre d'onglets basse à 4 entrées (Candidatures /
+Messages / Documents / Profil). Retour d'Alice : il n'y a qu'une seule vraie clé d'entrée,
+« Mes candidatures » — Messages et Documents ne sont pas des sections globales, ce sont des
+informations *associées à une candidature précise*. Corrigé :
+
+- Plus de barre d'onglets. Navigation en pile (accueil → détail → conversation/documents,
+  retour = dépiler), une icône profil dans l'en-tête de l'accueil plutôt qu'un 4ᵉ onglet.
+- `ConversationsMobile.vue` et `DocumentsMobile.vue` ne montrent plus une liste globale
+  ("toutes mes conversations/documents") : ils prennent un `candidatureId` obligatoire et
+  n'affichent que ce qui concerne cette candidature. Ce sont maintenant des écrans qu'on
+  atteint uniquement depuis la fiche d'une candidature (ou un raccourci direct depuis une
+  action à effectuer, qui cible aussi une candidature précise).
+- Le pop-in de succès du parcours 1 dit maintenant « Terminer et retourner sur l'offre »
+  (au lieu de « Continuer sans créer de compte ») et ramène effectivement à l'écran offre.
 
 ### Décision technique importante : container queries, pas media queries, pour les cartes réutilisées
 
