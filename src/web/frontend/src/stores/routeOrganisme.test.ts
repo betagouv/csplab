@@ -1,4 +1,3 @@
-import type { OrganismeRole, Utilisateur } from '@/api/utilisateur'
 import { PiniaColada } from '@pinia/colada'
 import { mount } from '@vue/test-utils'
 import { createPinia } from 'pinia'
@@ -7,31 +6,12 @@ import { defineComponent, h } from 'vue'
 import { createMemoryHistory, createRouter } from 'vue-router'
 import { getMe } from '@/api/utilisateur'
 import { routes } from '@/router'
+import { BRIANCON_UUID as BRIANCON, ORGANISME_INCONNU_UUID as INCONNU, makeUser, MTE_UUID as MTE, ROLE_BRIANCON, ROLE_MTE } from '@/test/fixtures/utilisateur'
 import { useRouteOrganisme } from './routeOrganisme'
 
 vi.mock('@/api/utilisateur', () => ({
   getMe: vi.fn(),
 }))
-
-const MTE = 'a1a1a1a1-a1a1-a1a1-a1a1-a1a1a1a1a1a1'
-const BRIANCON = 'b2b2b2b2-b2b2-b2b2-b2b2-b2b2b2b2b2b2'
-const INCONNU = 'c3c3c3c3-c3c3-c3c3-c3c3-c3c3c3c3c3c3'
-
-const ROLE_MTE: OrganismeRole = { organisme_uuid: MTE, nom: 'Ministère de la Transition Écologique', role: 'superviseur' }
-const ROLE_BRIANCON: OrganismeRole = { organisme_uuid: BRIANCON, nom: 'Commune de Briançon', role: 'agent' }
-
-function makeUser(
-  organismeRoles: Utilisateur['organisme_roles'],
-  isStaff = false,
-): Utilisateur {
-  return {
-    email: 'marie.dupont@example.gouv.fr',
-    prenom: 'Marie',
-    nom: 'Dupont',
-    is_staff: isStaff,
-    organisme_roles: organismeRoles,
-  }
-}
 
 async function mountAt(path: string) {
   const router = createRouter({ history: createMemoryHistory(), routes })

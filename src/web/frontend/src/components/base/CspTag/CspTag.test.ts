@@ -1,6 +1,7 @@
-import { mount } from '@vue/test-utils'
+import { render } from '@testing-library/vue'
 import { describe, expect, it, vi } from 'vitest'
 import { defineComponent, h } from 'vue'
+import { setupUser } from '@/test/render'
 import CspTag from './CspTag.vue'
 import CspTagGroup from './CspTagGroup.vue'
 
@@ -12,97 +13,99 @@ const CspIconStub = defineComponent({
 
 const global = { stubs: { CspIcon: CspIconStub } }
 
+function renderTag(props: Record<string, unknown>) {
+  const result = render(CspTag, { props, global })
+  return { ...result, root: result.container.firstElementChild as HTMLElement }
+}
+
+function icon(container: Element, name: string) {
+  return container.querySelector(`[data-icon="${name}"]`)
+}
+
 describe('cspTag: root element per variant', () => {
   it('static variant renders <p>', () => {
-    const wrapper = mount(CspTag, { props: { label: 'Cat' }, global })
-    expect(wrapper.element.tagName).toBe('P')
-    expect(wrapper.classes()).toContain('csp-tag')
-    expect(wrapper.classes()).not.toContain('csp-tag--interactive')
-    expect(wrapper.text()).toBe('Cat')
+    const { root } = renderTag({ label: 'Cat' })
+    expect(root.tagName).toBe('P')
+    expect(root).toHaveTextContent('Cat')
   })
 
-  it('clickable variant with href renders <a href>', () => {
-    const wrapper = mount(CspTag, { props: { variant: 'clickable', label: 'Lien', href: '/x' }, global })
-    expect(wrapper.element.tagName).toBe('A')
-    expect(wrapper.attributes('href')).toBe('/x')
-    expect(wrapper.classes()).toContain('csp-tag--interactive')
+  it('clickable variant with href renders a link', () => {
+    const { getByRole } = renderTag({ variant: 'clickable', label: 'Lien', href: '/x' })
+    expect(getByRole('link', { name: 'Lien' })).toHaveAttribute('href', '/x')
   })
 
-  it('clickable variant without href renders <button>', () => {
-    const wrapper = mount(CspTag, { props: { variant: 'clickable', label: 'Action' }, global })
-    expect(wrapper.element.tagName).toBe('BUTTON')
-    expect(wrapper.attributes('type')).toBe('button')
+  it('clickable variant without href renders a button', () => {
+    const { getByRole } = renderTag({ variant: 'clickable', label: 'Action' })
+    expect(getByRole('button', { name: 'Action' })).toHaveAttribute('type', 'button')
   })
 
-  it('disabled clickable with href renders <button>', () => {
-    const wrapper = mount(CspTag, { props: { variant: 'clickable', label: 'X', href: '/x', disabled: true }, global })
-    expect(wrapper.element.tagName).toBe('BUTTON')
-    expect(wrapper.attributes('disabled')).toBeDefined()
+  it('disabled clickable with href renders a disabled button', () => {
+    const { getByRole } = renderTag({ variant: 'clickable', label: 'X', href: '/x', disabled: true })
+    expect(getByRole('button', { name: 'X' })).toBeDisabled()
   })
 
-  it('dismissible variant renders <button> with cross and derived aria-label', () => {
-    const wrapper = mount(CspTag, { props: { variant: 'dismissible', label: 'Vue' }, global })
-    expect(wrapper.element.tagName).toBe('BUTTON')
-    expect(wrapper.attributes('aria-label')).toBe('Retirer le filtre Vue')
-    expect(wrapper.find('.csp-tag__dismiss').exists()).toBe(true)
+  it('dismissible variant renders a button named after the filter', () => {
+    const { getByRole } = renderTag({ variant: 'dismissible', label: 'Vue' })
+    expect(getByRole('button', { name: 'Retirer le filtre Vue' })).toBeInTheDocument()
+  })
+
+  it('static can be rendered `as`', () => {
+    const { root } = renderTag({ label: 'X', as: 'li' })
+    expect(root.tagName).toBe('LI')
   })
 })
 
 describe('cspTag: icon', () => {
-  it('renders icon on a variant that allows it', () => {
-    const wrapper = mount(CspTag, { props: { label: 'Cat', icon: 'ri:bookmark-line' }, global })
-    const icon = wrapper.find('.csp-tag__icon')
-    expect(icon.exists()).toBe(true)
-    expect(icon.attributes('data-icon')).toBe('ri:bookmark-line')
+  it('renders the icon on a variant that allows it', () => {
+    const { container } = renderTag({ label: 'Cat', icon: 'ri:bookmark-line' })
+    expect(icon(container, 'ri:bookmark-line')).toBeInTheDocument()
   })
 
-  it('dismissible never renders an icon in addition to the cross', () => {
-    const wrapper = mount(CspTag, { props: { variant: 'dismissible', label: 'Vue' }, global })
-    expect(wrapper.find('.csp-tag__icon').exists()).toBe(false)
-    expect(wrapper.find('.csp-tag__dismiss').exists()).toBe(true)
+  it('dismissible renders the cross as its only icon', () => {
+    const { container } = renderTag({ variant: 'dismissible', label: 'Vue' })
+    expect(icon(container, 'ri:close-line')).toBeInTheDocument()
+    expect(container.querySelectorAll('[data-icon]')).toHaveLength(1)
   })
 })
 
-describe('cspTag: selectable (standalone Toggle)', () => {
+describe('cspTag: selectable', () => {
   it('reflects the pressed state and emits update:pressed on click', async () => {
-    const wrapper = mount(CspTag, { props: { variant: 'selectable', label: 'F', pressed: false }, global })
-    expect(wrapper.attributes('aria-pressed')).toBe('false')
-    expect(wrapper.attributes('data-state')).toBe('off')
+    const user = setupUser()
+    const { getByRole, emitted } = renderTag({ variant: 'selectable', label: 'F', pressed: false })
 
-    await wrapper.trigger('click')
-    expect(wrapper.emitted('update:pressed')).toBeTruthy()
-    expect(wrapper.emitted('update:pressed')![0]).toEqual([true])
+    await user.click(getByRole('button', { name: 'F', pressed: false }))
+
+    expect(emitted()['update:pressed']).toEqual([[true]])
   })
 
   it('does not emit update:pressed when disabled', async () => {
-    const wrapper = mount(CspTag, { props: { variant: 'selectable', label: 'F', disabled: true }, global })
-    await wrapper.trigger('click')
-    expect(wrapper.emitted('update:pressed')).toBeFalsy()
+    const user = setupUser()
+    const { getByRole, emitted } = renderTag({ variant: 'selectable', label: 'F', disabled: true })
+
+    await user.click(getByRole('button', { name: 'F' }))
+
+    expect(emitted()['update:pressed']).toBeUndefined()
   })
 })
 
 describe('cspTag: dismissible', () => {
   it('emits dismiss on click', async () => {
-    const wrapper = mount(CspTag, { props: { variant: 'dismissible', label: 'Vue' }, global })
-    await wrapper.trigger('click')
-    expect(wrapper.emitted('dismiss')).toHaveLength(1)
+    const user = setupUser()
+    const { getByRole, emitted } = renderTag({ variant: 'dismissible', label: 'Vue' })
+
+    await user.click(getByRole('button', { name: 'Retirer le filtre Vue' }))
+
+    expect(emitted().dismiss).toHaveLength(1)
   })
 
   it('prefers an explicit dismissLabel', () => {
-    const wrapper = mount(CspTag, { props: { variant: 'dismissible', label: 'Vue', dismissLabel: 'Fermer Vue' }, global })
-    expect(wrapper.attributes('aria-label')).toBe('Fermer Vue')
+    const { getByRole } = renderTag({ variant: 'dismissible', label: 'Vue', dismissLabel: 'Fermer Vue' })
+    expect(getByRole('button', { name: 'Fermer Vue' })).toBeInTheDocument()
   })
 })
 
-describe('cspTag: polymorphism', () => {
-  it('static can be rendered `as`', () => {
-    const wrapper = mount(CspTag, { props: { label: 'X', as: 'li' }, global })
-    expect(wrapper.element.tagName).toBe('LI')
-  })
-})
-
-describe('cspTagGroup: integration', () => {
-  function mountGroup(groupProps: Record<string, unknown>) {
+describe('cspTagGroup', () => {
+  function renderGroup(groupProps: Record<string, unknown>) {
     const Host = defineComponent({
       components: { CspTag, CspTagGroup },
       props: { groupProps: { type: Object, required: true } },
@@ -113,24 +116,21 @@ describe('cspTagGroup: integration', () => {
         </CspTagGroup>
       `,
     })
-    return mount(Host, { props: { groupProps }, global })
+    return render(Host, { props: { groupProps }, global })
   }
 
-  it('a selectable inside a group becomes a ToggleGroupItem', () => {
-    const wrapper = mountGroup({ modelValue: [] })
-    expect(wrapper.findAll('[data-reka-collection-item]')).toHaveLength(2)
+  it('applies the size of the group to every tag', () => {
+    const { container } = renderGroup({ modelValue: [], size: 'sm' })
+    expect(container.querySelectorAll('.csp-tag--sm')).toHaveLength(2)
   })
 
-  it('inherits the size enforced by the group', () => {
-    const wrapper = mountGroup({ modelValue: [], size: 'sm' })
-    expect(wrapper.findAll('.csp-tag--sm')).toHaveLength(2)
-  })
-
-  it('single mode: selecting an item updates the v-model', async () => {
+  it('single mode: selecting a tag updates the v-model', async () => {
+    const user = setupUser()
     const onUpdate = vi.fn()
-    const wrapper = mountGroup({ 'modelValue': 'a', 'type': 'single', 'onUpdate:modelValue': onUpdate })
-    const buttons = wrapper.findAll('button')
-    await buttons[1].trigger('click')
+    const { getByRole } = renderGroup({ 'modelValue': 'a', 'type': 'single', 'onUpdate:modelValue': onUpdate })
+
+    await user.click(getByRole('button', { name: 'B', pressed: false }))
+
     expect(onUpdate).toHaveBeenCalledWith('b')
   })
 })

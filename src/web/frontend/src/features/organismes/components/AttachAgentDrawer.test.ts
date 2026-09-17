@@ -1,132 +1,112 @@
-import type { AgentRecherche } from '../types'
-import { mount } from '@vue/test-utils'
+import { fireEvent, render, screen } from '@testing-library/vue'
 import { describe, expect, it } from 'vitest'
-import { nextTick } from 'vue'
+import { defineComponent, h, nextTick, ref } from 'vue'
+import { AGENT_RECHERCHE } from '@/test/fixtures/organismes'
+import { setupUser } from '@/test/render'
 import AttachAgentDrawer from './AttachAgentDrawer.vue'
 
-const AGENT: AgentRecherche = {
-  agent_id: 'aaaaaaaa-0001-0001-0001-000000000001',
-  email: 'jeanne.dupont@example.gouv.fr',
-  prenom: 'Jeanne',
-  nom: 'Dupont',
-  intitule_poste: 'Responsable recrutement',
-}
+type DrawerInstance = InstanceType<typeof AttachAgentDrawer>
 
-function mountDrawer(props: Record<string, unknown> = {}) {
-  return mount(AttachAgentDrawer, {
-    props: {
-      open: true,
-      status: 'idle',
-      agent: null,
-      ...props,
+async function renderDrawer(props: Record<string, unknown> = {}) {
+  const drawer = ref<DrawerInstance | null>(null)
+  const Host = defineComponent({
+    emits: ['search', 'add', 'reset'],
+    setup(_, { emit }) {
+      return () => h(AttachAgentDrawer, {
+        ref: drawer,
+        open: true,
+        status: 'idle',
+        agent: null,
+        onSearch: (email: string) => emit('search', email),
+        onAdd: (role: string) => emit('add', role),
+        onReset: () => emit('reset'),
+        ...props,
+      })
     },
-    attachTo: document.body,
   })
-}
-
-function submitButton() {
-  return document.querySelector<HTMLButtonElement>('button[type="submit"]')!
-}
-
-async function fillEmail(value: string) {
-  const input = document.querySelector<HTMLInputElement>('input[name="email"]')!
-  input.value = value
-  input.dispatchEvent(new Event('input'))
+  const result = render(Host)
   await nextTick()
+  return { ...result, drawer }
 }
 
-async function pickRole(value: string) {
-  const radio = document.querySelector<HTMLElement>(`button[value="${value}"], [role="radio"][value="${value}"]`)
-  radio?.click()
-  await nextTick()
+function emailInput() {
+  return screen.getByRole('textbox', { name: 'Adresse électronique de l\'agent' })
 }
 
 describe('attachAgentDrawer', () => {
   it('rejects an invalid email without emitting a search', async () => {
-    const wrapper = mountDrawer()
-    await nextTick()
-    await fillEmail('jeanne.dupont')
-    submitButton().click()
-    await nextTick()
+    const user = setupUser()
+    const { emitted } = await renderDrawer()
 
-    expect(wrapper.emitted('search')).toBeUndefined()
-    expect(document.body.textContent).toContain('Renseignez une adresse électronique valide.')
-    wrapper.unmount()
+    await user.type(emailInput(), 'jeanne.dupont')
+    await user.click(screen.getByRole('button', { name: 'Rechercher' }))
+
+    expect(emitted().search).toBeUndefined()
+    expect(screen.getByText('Renseignez une adresse électronique valide.')).toBeInTheDocument()
   })
 
   it('emits the trimmed email on search', async () => {
-    const wrapper = mountDrawer()
-    await nextTick()
-    await fillEmail('  jeanne.dupont@example.gouv.fr  ')
-    submitButton().click()
-    await nextTick()
+    const user = setupUser()
+    const { emitted } = await renderDrawer()
 
-    expect(wrapper.emitted('search')).toEqual([['jeanne.dupont@example.gouv.fr']])
-    wrapper.unmount()
+    await user.type(emailInput(), '  jeanne.dupont@example.gouv.fr  ')
+    await user.click(screen.getByRole('button', { name: 'Rechercher' }))
+
+    expect(emitted().search).toEqual([['jeanne.dupont@example.gouv.fr']])
   })
 
   it('shows the matching agent without any editable identity field', async () => {
-    const wrapper = mountDrawer({ status: 'found', agent: AGENT })
-    await nextTick()
+    await renderDrawer({ status: 'found', agent: AGENT_RECHERCHE })
 
-    expect(document.body.textContent).toContain('Jeanne Dupont')
-    expect(document.body.textContent).toContain('Responsable recrutement')
-    expect(document.body.textContent).toContain('jeanne.dupont@example.gouv.fr')
-    expect(document.querySelector('input[name="nom"]')).toBeNull()
-    expect(document.querySelector('input[name="prenom"]')).toBeNull()
-    wrapper.unmount()
+    const dialog = screen.getByRole('dialog')
+    expect(dialog).toHaveTextContent('Jeanne Dupont')
+    expect(dialog).toHaveTextContent('Responsable recrutement')
+    expect(dialog).toHaveTextContent('jeanne.dupont@example.gouv.fr')
+    expect(screen.queryByRole('textbox', { name: /nom|prénom/i })).not.toBeInTheDocument()
   })
 
   it('attaches the agent as membre by default', async () => {
-    const wrapper = mountDrawer({ status: 'found', agent: AGENT })
-    await nextTick()
-    submitButton().click()
-    await nextTick()
+    const user = setupUser()
+    const { emitted } = await renderDrawer({ status: 'found', agent: AGENT_RECHERCHE })
 
-    expect(wrapper.emitted('add')).toEqual([['agent']])
-    wrapper.unmount()
+    await user.click(screen.getByRole('button', { name: 'Ajouter le membre' }))
+
+    expect(emitted().add).toEqual([['agent']])
   })
 
   it('attaches the agent with the selected role', async () => {
-    const wrapper = mountDrawer({ status: 'found', agent: AGENT })
-    await nextTick()
-    await pickRole('superviseur')
-    submitButton().click()
-    await nextTick()
+    const user = setupUser()
+    const { emitted } = await renderDrawer({ status: 'found', agent: AGENT_RECHERCHE })
 
-    expect(wrapper.emitted('add')).toEqual([['superviseur']])
-    wrapper.unmount()
+    await user.click(screen.getByRole('radio', { name: 'Responsable' }))
+    await user.click(screen.getByRole('button', { name: 'Ajouter le membre' }))
+
+    expect(emitted().add).toEqual([['superviseur']])
   })
 
   it('creates and adds the member when no account matches', async () => {
-    const wrapper = mountDrawer({ status: 'not-found' })
-    await nextTick()
+    const user = setupUser()
+    const { emitted } = await renderDrawer({ status: 'not-found' })
 
-    expect(document.body.textContent).toContain('Aucun compte ne correspond à cette adresse.')
-    expect(submitButton().disabled).toBe(false)
-    submitButton().click()
-    await nextTick()
+    expect(screen.getByRole('dialog')).toHaveTextContent('Aucun compte ne correspond à cette adresse.')
+    await user.click(screen.getByRole('button', { name: 'Créer et ajouter' }))
 
-    expect(wrapper.emitted('add')).toEqual([['agent']])
-    wrapper.unmount()
+    expect(emitted().add).toEqual([['agent']])
   })
 
   it('asks for a reset when the email changes after a search', async () => {
-    const wrapper = mountDrawer({ status: 'found', agent: AGENT })
-    await nextTick()
-    await fillEmail('autre.agent@example.gouv.fr')
+    const { emitted } = await renderDrawer({ status: 'found', agent: AGENT_RECHERCHE })
 
-    expect(wrapper.emitted('reset')).toHaveLength(1)
-    wrapper.unmount()
+    await fireEvent.update(emailInput(), 'autre.agent@example.gouv.fr')
+
+    expect(emitted().reset).toHaveLength(1)
   })
 
   it('surfaces a conflict on the email field', async () => {
-    const wrapper = mountDrawer({ status: 'found', agent: AGENT })
-    await nextTick()
-    wrapper.vm.setEmailError('Cet agent est déjà rattaché à l\'organisme.')
-    await nextTick()
+    const { drawer } = await renderDrawer({ status: 'found', agent: AGENT_RECHERCHE })
 
-    expect(document.body.textContent).toContain('Cet agent est déjà rattaché')
-    wrapper.unmount()
+    drawer.value!.setEmailError('Cet agent est déjà rattaché à l\'organisme.')
+
+    expect(await screen.findByText('Cet agent est déjà rattaché à l\'organisme.')).toBeInTheDocument()
   })
 })

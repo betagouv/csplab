@@ -1,165 +1,141 @@
-import type { OrganismesList } from '../types'
-import { mount } from '@vue/test-utils'
+import { render, screen } from '@testing-library/vue'
 import { describe, expect, it } from 'vitest'
-import { nextTick } from 'vue'
+import { defineComponent, h, nextTick, ref } from 'vue'
+import { ORGANISME } from '@/test/fixtures/organismes'
+import { setupUser } from '@/test/render'
 import OrganismeFormDrawer from './OrganismeFormDrawer.vue'
 
-const ORGANISME: OrganismesList = {
-  organisme_uuid: '11111111-1111-1111-1111-111111111111',
-  nom: 'Organisme 1',
-  siret: '11004601800021',
-  versant: 'FPT',
-  gestionnaire: null,
-  gestion_ats: false,
-  date_derniere_activite: '2026-08-01T00:00:00Z',
-  date_creation: '2026-01-01T00:00:00Z',
-  nombre_agents: 10,
-  nombre_offres_publiees: 5,
-}
+type DrawerInstance = InstanceType<typeof OrganismeFormDrawer>
 
-function mountDrawer(organisme: OrganismesList | null = null) {
-  return mount(OrganismeFormDrawer, {
-    props: {
-      open: true,
-      organisme,
+async function renderDrawer(organisme: typeof ORGANISME | null = null) {
+  const drawer = ref<DrawerInstance | null>(null)
+  const Host = defineComponent({
+    emits: ['create', 'update'],
+    setup(_, { emit }) {
+      return () => h(OrganismeFormDrawer, {
+        ref: drawer,
+        open: true,
+        organisme,
+        onCreate: (payload: unknown) => emit('create', payload),
+        onUpdate: (payload: unknown) => emit('update', payload),
+      })
     },
-    attachTo: document.body,
   })
-}
-
-function submitButton() {
-  return document.querySelector<HTMLButtonElement>('button[type="submit"]')!
-}
-
-async function fill(selector: string, value: string) {
-  const input = document.querySelector<HTMLInputElement>(selector)!
-  input.value = value
-  input.dispatchEvent(new Event('input'))
+  const result = render(Host)
   await nextTick()
+  return { ...result, drawer }
 }
 
-async function pickVersant(value: string) {
-  const radio = document.querySelector<HTMLElement>(`button[value="${value}"], [role="radio"][value="${value}"]`)
-  radio?.click()
-  await nextTick()
+function nomInput() {
+  return screen.getByRole('textbox', { name: 'Nom de l\'organisme' })
+}
+
+function siretInput() {
+  return screen.getByRole('textbox', { name: 'SIRET de l\'organisme' })
+}
+
+function createButton() {
+  return screen.getByRole('button', { name: 'Créer l\'organisme' })
+}
+
+async function fillCreation(user: ReturnType<typeof setupUser>, siret: string) {
+  await user.type(nomInput(), 'Nouvel organisme')
+  await user.click(siretInput())
+  await user.paste(siret)
+  await user.click(screen.getByRole('radio', { name: 'Fonction Publique Territoriale' }))
 }
 
 describe('organismeFormDrawer', () => {
   it('keeps the submit button disabled until required fields are filled', async () => {
-    const wrapper = mountDrawer()
-    await nextTick()
-    expect(submitButton().disabled).toBe(true)
+    const user = setupUser()
+    await renderDrawer()
+    expect(createButton()).toBeDisabled()
 
-    await fill('input[name="nom"]', 'Nouvel organisme')
-    await fill('input[name="siret"]', '123')
-    expect(submitButton().disabled).toBe(true)
+    await user.type(nomInput(), 'Nouvel organisme')
+    await user.type(siretInput(), '123')
+    expect(createButton()).toBeDisabled()
 
-    await pickVersant('FPE')
-    expect(submitButton().disabled).toBe(false)
-    wrapper.unmount()
+    await user.click(screen.getByRole('radio', { name: 'Fonction Publique d\'État' }))
+    expect(createButton()).toBeEnabled()
   })
 
   it('surfaces a length error on submit without emitting', async () => {
-    const wrapper = mountDrawer()
-    await nextTick()
-    await fill('input[name="nom"]', 'Nouvel organisme')
-    await fill('input[name="siret"]', '123')
-    await pickVersant('FPE')
-    submitButton().click()
-    await nextTick()
+    const user = setupUser()
+    const { emitted } = await renderDrawer()
 
-    expect(wrapper.emitted('create')).toBeUndefined()
-    expect(document.body.textContent).toContain('Le SIRET doit comporter 14 chiffres.')
-    wrapper.unmount()
+    await fillCreation(user, '123')
+    await user.click(createButton())
+
+    expect(emitted().create).toBeUndefined()
+    expect(screen.getByText('Le SIRET doit comporter 14 chiffres.')).toBeInTheDocument()
   })
 
   it('strips non digit characters from a pasted siret', async () => {
-    const wrapper = mountDrawer()
-    await nextTick()
-    await fill('input[name="nom"]', 'Nouvel organisme')
-    await fill('input[name="siret"]', '110 046 018 00021')
-    await pickVersant('FPT')
-    await nextTick()
-    submitButton().click()
-    await nextTick()
+    const user = setupUser()
+    const { emitted } = await renderDrawer()
 
-    const emitted = wrapper.emitted('create')
-    expect(emitted).toHaveLength(1)
-    expect((emitted![0][0] as { siret: string }).siret).toBe('11004601800021')
-    wrapper.unmount()
+    await fillCreation(user, '110 046 018 00021')
+    await user.click(createButton())
+
+    const [payload] = emitted().create![0] as [{ siret: string }]
+    expect(payload.siret).toBe('11004601800021')
   })
 
   it('emits the payload on create', async () => {
-    const wrapper = mountDrawer()
-    await nextTick()
-    await fill('input[name="nom"]', 'Nouvel organisme')
-    await fill('input[name="siret"]', '11004601800021')
-    await pickVersant('FPT')
-    submitButton().click()
-    await nextTick()
+    const user = setupUser()
+    const { emitted } = await renderDrawer()
 
-    const emitted = wrapper.emitted('create')
-    expect(emitted).toHaveLength(1)
-    expect(emitted![0][0]).toEqual({
+    await fillCreation(user, '11004601800021')
+    await user.click(createButton())
+
+    expect(emitted().create).toEqual([[{
       nom: 'Nouvel organisme',
       siret: '11004601800021',
       versant: 'FPT',
       gestion_ats: true,
-    })
-    wrapper.unmount()
+    }]])
   })
 
   it('rejects an invalid checksum on submit without emitting', async () => {
-    const wrapper = mountDrawer()
-    await nextTick()
-    await fill('input[name="nom"]', 'Nouvel organisme')
-    await fill('input[name="siret"]', '12345671234567')
-    await pickVersant('FPT')
-    submitButton().click()
-    await nextTick()
+    const user = setupUser()
+    const { emitted } = await renderDrawer()
 
-    expect(wrapper.emitted('create')).toBeUndefined()
-    expect(document.body.textContent).toContain(
-      'Ce SIRET n\'est pas valide, vérifiez votre saisie.',
-    )
-    wrapper.unmount()
+    await fillCreation(user, '12345671234567')
+    await user.click(createButton())
+
+    expect(emitted().create).toBeUndefined()
+    expect(screen.getByText('Ce SIRET n\'est pas valide, vérifiez votre saisie.')).toBeInTheDocument()
   })
 
   it('prefills the form and locks the siret in edition', async () => {
-    const wrapper = mountDrawer(ORGANISME)
-    await nextTick()
+    await renderDrawer(ORGANISME)
 
-    const siret = document.querySelector<HTMLInputElement>('input[name="siret"]')!
-    expect(siret.value).toBe(ORGANISME.siret)
-    expect(siret.disabled).toBe(true)
-    expect(document.querySelector<HTMLInputElement>('input[name="nom"]')!.value).toBe(ORGANISME.nom)
-    expect(document.body.textContent).toContain('Modifier l\'organisme')
-    wrapper.unmount()
+    expect(screen.getByRole('heading', { name: 'Modifier l\'organisme' })).toBeInTheDocument()
+    expect(siretInput()).toHaveValue(ORGANISME.siret)
+    expect(siretInput()).toBeDisabled()
+    expect(nomInput()).toHaveValue(ORGANISME.nom)
   })
 
   it('emits the payload without the siret on update', async () => {
-    const wrapper = mountDrawer(ORGANISME)
-    await nextTick()
-    await fill('input[name="nom"]', 'Organisme renommé')
-    submitButton().click()
-    await nextTick()
+    const user = setupUser()
+    const { emitted } = await renderDrawer(ORGANISME)
 
-    const emitted = wrapper.emitted('update')
-    expect(emitted).toHaveLength(1)
-    expect(emitted![0][0]).toEqual({
+    await user.clear(nomInput())
+    await user.type(nomInput(), 'Organisme renommé')
+    await user.click(screen.getByRole('button', { name: 'Enregistrer les modifications' }))
+
+    expect(emitted().update).toEqual([[{
       nom: 'Organisme renommé',
       versant: 'FPT',
       gestion_ats: false,
-    })
-    wrapper.unmount()
+    }]])
   })
 
   it('surfaces a siret conflict on the siret field', async () => {
-    const wrapper = mountDrawer()
-    await nextTick()
-    wrapper.vm.setSiretError('Ce SIRET est déjà utilisé par un autre organisme')
-    await nextTick()
-    expect(document.body.textContent).toContain('Ce SIRET est déjà utilisé')
-    wrapper.unmount()
+    const { drawer } = await renderDrawer()
+
+    drawer.value!.setSiretError('Ce SIRET est déjà utilisé par un autre organisme')
+
+    expect(await screen.findByText('Ce SIRET est déjà utilisé par un autre organisme')).toBeInTheDocument()
   })
 })
