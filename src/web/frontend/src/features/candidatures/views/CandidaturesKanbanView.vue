@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { EtapeRecrutementDetailedCandidatures } from '../types'
-import type { KanbanDropEvent } from '@/composables/dnd/useKanbanDnd'
 import { computed, ref, toRef } from 'vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspDialog from '@/components/base/CspDialog/CspDialog.vue'
@@ -13,6 +12,7 @@ import ChangerEtapeDrawer from '../components/ChangerEtapeDrawer.vue'
 import SelectionActionBar from '../components/SelectionActionBar.vue'
 import { useCandidatures } from '../composables/useCandidatures'
 import { useKanbanSelection } from '../composables/useKanbanSelection'
+import { useRefusCandidature } from '../composables/useRefusCandidature'
 
 const {
   recrutementUuid,
@@ -41,22 +41,9 @@ const {
 
 const boardId = computed(() => `kanban-${recrutementUuid.value}`)
 const isDrawerOpen = ref(false)
-const isRefusDialogOpen = ref(false)
 const drawerInitialEtapeUuid = ref<string | null>(null)
-const pendingMove = ref<KanbanDropEvent | null>(null)
 
-const refusEtapeUuid = computed(() => {
-  return recrutementEtapes.value.find(e => e.categorie === 'REFUS')?.etape_uuid ?? null
-})
-
-const pendingCandidature = computed(() => {
-  const move = pendingMove.value
-  if (!move)
-    return null
-
-  const etape = candidatureKanban.value.find(e => e.etape_uuid === move.sourceColumnId)
-  return etape?.candidatures.find(c => c.uuid === move.cardId) ?? null
-})
+const refus = useRefusCandidature({ recrutementEtapes, candidatureKanban, moveCandidature })
 
 const sourceEtape = computed(() => {
   if (!currentEtapeUuid.value)
@@ -70,20 +57,6 @@ const selectedCandidatureUuids = computed(() => {
   return selectedByEtape.value.get(currentEtapeUuid.value) ?? new Set<string>()
 })
 
-function handleMove(event: KanbanDropEvent) {
-  if (event.sourceColumnId !== event.targetColumnId && event.targetColumnId === refusEtapeUuid.value) {
-    pendingMove.value = event
-    isRefusDialogOpen.value = true
-    return
-  }
-
-  moveCandidature({
-    sourceColumnId: event.sourceColumnId,
-    targetColumnId: event.targetColumnId,
-    cardId: event.cardId,
-  })
-}
-
 function handleToggleColumnSelection(etape: EtapeRecrutementDetailedCandidatures): void {
   toggleColumnSelection(etape)
 }
@@ -94,27 +67,8 @@ function handleOpenChangerEtape(): void {
 }
 
 function handleRefuser(): void {
-  drawerInitialEtapeUuid.value = refusEtapeUuid.value
+  drawerInitialEtapeUuid.value = refus.refusEtapeUuid.value
   isDrawerOpen.value = true
-}
-
-function handleConfirmRefus(): void {
-  if (!pendingMove.value)
-    return
-
-  moveCandidature({
-    sourceColumnId: pendingMove.value.sourceColumnId,
-    targetColumnId: pendingMove.value.targetColumnId,
-    cardId: pendingMove.value.cardId,
-  })
-
-  pendingMove.value = null
-  isRefusDialogOpen.value = false
-}
-
-function handleCancelRefus(): void {
-  pendingMove.value = null
-  isRefusDialogOpen.value = false
 }
 
 function handleConfirmBatchMove(targetEtapeUuid: string): void {
@@ -144,17 +98,6 @@ function handleToggleCandidature(candidatureUuid: string, etapeUuid: string): vo
 const countLabel = computed(() => {
   const count = filteredEtapes.value.reduce((sum, etape) => sum + etape.candidatures.length, 0)
   return `${count} ${pluralize(count, 'candidature')}`
-})
-
-const refusDescription = computed(() => {
-  const candidature = pendingCandidature.value
-  const candidatLabel = candidature
-    ? `${candidature.candidat.prenom} ${candidature.candidat.nom}`
-    : 'ce candidat'
-
-  return `Vous êtes sur le point de refuser la candidature de ${candidatLabel}. `
-    + `Cette action n'est pas définitive, néanmoins le candidat sera informé du changement `
-    + `de statut de sa candidature.`
 })
 </script>
 
@@ -193,7 +136,7 @@ const refusDescription = computed(() => {
       :etapes="filteredEtapes"
       :board-id="boardId"
       :is-column-selected="isColumnSelected"
-      @move="handleMove"
+      @move="refus.handleMove"
       @toggle-column-selection="handleToggleColumnSelection"
     />
 
@@ -209,24 +152,24 @@ const refusDescription = computed(() => {
     />
 
     <CspDialog
-      :open="isRefusDialogOpen"
+      :open="refus.isDialogOpen.value"
       size="sm"
       title="Refus de candidature"
-      @update:open="(open) => { if (!open) handleCancelRefus() }"
+      @update:open="(open) => { if (!open) refus.cancel() }"
     >
-      {{ refusDescription }}
+      {{ refus.description.value }}
 
       <template #footer>
         <div class="refus-dialog__footer">
           <CspButton
             label="Annuler"
             variant="secondary"
-            @click="handleCancelRefus"
+            @click="refus.cancel"
           />
           <CspButton
             label="Valider"
             variant="primary"
-            @click="handleConfirmRefus"
+            @click="refus.confirm"
           />
         </div>
       </template>
