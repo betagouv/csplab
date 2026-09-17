@@ -5,7 +5,6 @@ from uuid import UUID
 
 from django.db import transaction
 from django.utils import timezone
-from factory.django import Password
 from referentiel.value_objects.category import Category
 from referentiel.value_objects.verse import Verse
 
@@ -331,7 +330,7 @@ def seed_recruteur_datas(force: bool = False) -> dict:
                 utilisateur__first_name=spec["prenom"],
                 utilisateur__last_name=spec["nom"],
                 utilisateur__email=spec["email"],
-                utilisateur__password=Password(seed_password),
+                utilisateur__password=seed_password,
             )
             for spec in _AGENTS_SPECS
         }
@@ -358,7 +357,7 @@ def seed_recruteur_datas(force: bool = False) -> dict:
         # Administrateur (staff, hors organisme)                         #
         # -------------------------------------------------------------- #
         admin = UtilisateurDjangoFactory(
-            password=Password(seed_password),
+            password=seed_password,
             is_staff=True,
             first_name=_ADMIN_SPEC["prenom"],
             last_name=_ADMIN_SPEC["nom"],
@@ -392,7 +391,7 @@ def seed_recruteur_datas(force: bool = False) -> dict:
                 utilisateur__first_name=spec["prenom"],
                 utilisateur__last_name=spec["nom"],
                 utilisateur__email=spec["email"],
-                utilisateur__password=Password(seed_password),
+                utilisateur__password=seed_password,
             )
             for spec in _CANDIDATS_SPECS
         ]
