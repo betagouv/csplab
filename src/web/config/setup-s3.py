@@ -62,7 +62,7 @@ def create_bucket_if_missing(s3, bucket_name: str) -> None:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Create the S3 bucket if missing")
+    parser = argparse.ArgumentParser(description="Crée le bucket S3 s'il n'existe pas")
     parser.add_argument(
         "--bucket-name",
         default=os.getenv(
