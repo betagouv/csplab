@@ -45,6 +45,11 @@ env = environ.Env(
     WEB_REDIS_DB=(str, "0"),
     WEB_REDIS_CACHE_DB=(str, "2"),
     WEB_ROBOTS_INDEXING=(bool, True),
+    WEB_S3_ENDPOINT_URL=(str, "http://localhost:9000"),
+    WEB_S3_REGION_NAME=(str, "us-east-1"),
+    WEB_S3_ACCESS_KEY_ID=(str, "rustfsadmin"),
+    WEB_S3_SECRET_ACCESS_KEY=(str, "rustfsadmin"),
+    WEB_S3_CANDIDATURE_DOCUMENTS_BUCKET_NAME=(str, "csplab-candidature-documents-dev"),
 )
 env.prefix = "WEB_"
 
@@ -208,6 +213,21 @@ VITE_DEV_ORIGIN = env.str("VITE_DEV_ORIGIN", default="http://localhost:5173")
 STORAGES = {
     "staticfiles": {
         "BACKEND": "config.storages.ViteCompressedManifestStaticFilesStorage",
+    },
+    "candidature_documents": {
+        "BACKEND": "storages.backends.s3.S3Storage",
+        "OPTIONS": {
+            "bucket_name": env.str("S3_CANDIDATURE_DOCUMENTS_BUCKET_NAME"),
+            "endpoint_url": env.str("S3_ENDPOINT_URL"),
+            "region_name": env.str("S3_REGION_NAME"),
+            "access_key": env.str("S3_ACCESS_KEY_ID"),
+            "secret_key": env.str("S3_SECRET_ACCESS_KEY"),
+            "default_acl": "private",
+            "querystring_auth": False,
+            "file_overwrite": False,
+            "signature_version": "s3v4",
+            "addressing_style": "path",
+        },
     },
 }
 

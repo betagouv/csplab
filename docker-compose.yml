@@ -52,10 +52,32 @@ services:
     ports:
       - "127.0.0.1:${REDIS_PORT:-6379}:6379"
 
+  rustfs:
+    image: rustfs/rustfs:latest
+    container_name: csp_rustfs
+    env_file:
+      - env.d/rustfs
+    environment:
+      - RUSTFS_ADDRESS=0.0.0.0:9000
+      - RUSTFS_CONSOLE_ADDRESS=0.0.0.0:9001
+      - RUSTFS_CONSOLE_ENABLE=true
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - rustfs_data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
 volumes:
   postgres_data:
     driver: local
   qdrant_data:
+    driver: local
+  rustfs_data:
     driver: local
 
 configs:

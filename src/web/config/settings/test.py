@@ -18,6 +18,21 @@ STORAGES = {
     "staticfiles": {
         "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
     },
+    "candidature_documents": {
+        "BACKEND": "storages.backends.s3.S3Storage",
+        "OPTIONS": {
+            "bucket_name": "csplab-candidature-documents-test",
+            "endpoint_url": "http://localhost:9000",
+            "region_name": "us-east-1",
+            "access_key": "rustfsadmin",
+            "secret_key": "rustfsadmin",
+            "default_acl": "private",
+            "querystring_auth": False,
+            "file_overwrite": False,
+            "signature_version": "s3v4",
+            "addressing_style": "path",
+        },
+    },
 }
 
 HUEY["immediate"] = True  # noqa: F405, run synchronously

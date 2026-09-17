@@ -105,14 +105,19 @@ description = "Start qdrant (vector search)"
 depends = ["docker:up"]
 run = "docker compose up -d --wait --remove-orphans qdrant"
 
+[tasks."services:rustfs"]
+description = "Start RustFS (S3-compatible object storage)"
+depends = ["docker:up"]
+run = "set -a && . env.d/rustfs && docker compose up -d --wait --remove-orphans rustfs"
+
 [tasks.services]
 description = "Start all docker services"
-depends = ["services:postgres", "services:redis", "services:qdrant"]
+depends = ["services:postgres", "services:redis", "services:qdrant", "services:rustfs"]
 
 [tasks.setup]
 description = "Create missing env files from the examples (never overwrites)"
 run = """
-for f in web ocr notebook ingestion postgresql redis; do cp -n env.d/$f-example env.d/$f || true; done
+for f in web ocr notebook ingestion postgresql redis rustfs; do cp -n env.d/$f-example env.d/$f || true; done
 echo "Env files in place (existing files untouched)."
 """
 
@@ -138,6 +143,7 @@ depends = [
   "services",
   "install",
   "//src/web:qdrant:init",
+  "//src/web:s3:init",
   "//src/web:superuser",
   "//src/web:install:playwright",
   "//src/ingestion:migrate",

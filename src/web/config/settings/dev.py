@@ -42,6 +42,21 @@ STORAGES = {
     "staticfiles": {
         "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
     },
+    "candidature_documents": {
+        "BACKEND": "storages.backends.s3.S3Storage",
+        "OPTIONS": {
+            "bucket_name": env.str("S3_CANDIDATURE_DOCUMENTS_BUCKET_NAME"),  # noqa: F405
+            "endpoint_url": env.str("S3_ENDPOINT_URL"),  # noqa: F405
+            "region_name": env.str("S3_REGION_NAME"),  # noqa: F405
+            "access_key": env.str("S3_ACCESS_KEY_ID"),  # noqa: F405
+            "secret_key": env.str("S3_SECRET_ACCESS_KEY"),  # noqa: F405
+            "default_acl": "private",
+            "querystring_auth": False,
+            "file_overwrite": False,
+            "signature_version": "s3v4",
+            "addressing_style": "path",
+        },
+    },
 }
 
 SENTRY_DNS = "example.com"
