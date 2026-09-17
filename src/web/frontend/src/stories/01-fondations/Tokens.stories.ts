@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/vue3-vite'
+import { BREAKPOINTS } from '@/styles/breakpoints'
 import { dsfrTokens } from './colors'
 
 const meta = {
@@ -246,6 +247,38 @@ export const Ombres: Story = {
           </div>
         </section>
       </div>
+    `,
+  }),
+}
+
+export const PointsDeRupture: Story = {
+  name: 'Points de rupture',
+  render: () => ({
+    setup: () => ({ breakpoints: Object.entries(BREAKPOINTS) }),
+    template: `
+      <section>
+        <h3 class="text-2xl font-bold mb-2">Points de rupture</h3>
+        <p class="mb-4 text-sm text-(--text-mention-grey)">
+          Une seule échelle, alignée sur le DSFR, partagée par les styles SCSS (<code>@/styles/breakpoints</code>, mixins <code>from</code> et <code>below</code>),
+          les composables (<code>useMediaQuery</code>) et les styles du parcours candidat.
+        </p>
+        <table class="text-sm">
+          <thead>
+            <tr>
+              <th class="text-left pr-8 pb-2">Nom</th>
+              <th class="text-left pr-8 pb-2">Valeur</th>
+              <th class="text-left pb-2">Pixels à 16px</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="[name, value] in breakpoints" :key="name">
+              <td class="pr-8 py-1"><code>{{ name }}</code></td>
+              <td class="pr-8 py-1"><code>{{ value }}</code></td>
+              <td class="py-1">{{ parseFloat(value) * 16 }} px</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
     `,
   }),
 }

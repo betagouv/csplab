@@ -1,0 +1,23 @@
+$sm: 36em;
+$md: 48em;
+$lg: 62em;
+$xl: 78em;
+
+$breakpoints: (
+  'sm': $sm,
+  'md': $md,
+  'lg': $lg,
+  'xl': $xl,
+);
+
+@mixin from($breakpoint) {
+  @media (width >= $breakpoint) {
+    @content;
+  }
+}
+
+@mixin below($breakpoint) {
+  @media (width < $breakpoint) {
+    @content;
+  }
+}

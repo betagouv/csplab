@@ -134,6 +134,8 @@ const hasFooter = computed(() => Boolean(slots.footer))
 </template>
 
 <style scoped lang="scss">
+@use '@/styles/breakpoints' as bp;
+
 .csp-drawer__overlay {
   position: fixed;
   inset: 0;
@@ -192,17 +194,19 @@ const hasFooter = computed(() => Boolean(slots.footer))
   --base-drawer-width: 100vw;
 }
 
-@media (width <= 36em) {
+@include bp.below(bp.$sm) {
   .csp-drawer {
     --base-drawer-width: 100vw;
   }
 }
 
-@media (36em < width <= 48em) {
-  .csp-drawer--lg,
-  .csp-drawer--xl,
-  .csp-drawer--full {
-    --base-drawer-width: 80vw;
+@include bp.from(bp.$sm) {
+  @include bp.below(bp.$md) {
+    .csp-drawer--lg,
+    .csp-drawer--xl,
+    .csp-drawer--full {
+      --base-drawer-width: 80vw;
+    }
   }
 }
 

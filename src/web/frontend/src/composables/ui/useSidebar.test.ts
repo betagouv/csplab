@@ -2,19 +2,24 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createApp, defineComponent, h, nextTick } from 'vue'
 import {
   provideSidebar,
-  SIDEBAR_BREAKPOINT,
   SIDEBAR_KEYBOARD_SHORTCUT,
   SIDEBAR_STORAGE_KEY,
   useSidebar,
 } from './useSidebar'
 
+const MOBILE_WIDTH = 767
+const DESKTOP_WIDTH = 1024
+
+const listeners = new Set<() => void>()
+const mediaQueryMock = {
+  matches: false,
+  addEventListener: (_: string, listener: () => void) => listeners.add(listener),
+  removeEventListener: (_: string, listener: () => void) => listeners.delete(listener),
+}
+
 function setViewportWidth(width: number) {
-  Object.defineProperty(window, 'innerWidth', {
-    configurable: true,
-    writable: true,
-    value: width,
-  })
-  window.dispatchEvent(new Event('resize'))
+  mediaQueryMock.matches = width < 768
+  listeners.forEach(listener => listener())
 }
 
 function mountSidebar(options: Parameters<typeof provideSidebar>[0] = {}) {
@@ -90,7 +95,9 @@ describe('useSidebar', () => {
   beforeEach(() => {
     localStorageMock = createLocalStorageMock()
     vi.stubGlobal('localStorage', localStorageMock)
-    setViewportWidth(SIDEBAR_BREAKPOINT + 100)
+    mediaQueryMock.matches = false
+    vi.stubGlobal('matchMedia', () => mediaQueryMock)
+    setViewportWidth(DESKTOP_WIDTH)
   })
 
   afterEach(() => {
@@ -169,7 +176,7 @@ describe('useSidebar', () => {
   })
 
   it('toggles mobile drawer on small viewports', async () => {
-    setViewportWidth(SIDEBAR_BREAKPOINT)
+    setViewportWidth(MOBILE_WIDTH)
 
     const mounted = mountSidebar()
     unmount = mounted.unmount
@@ -186,7 +193,7 @@ describe('useSidebar', () => {
   })
 
   it('closes mobile drawer when viewport becomes desktop', async () => {
-    setViewportWidth(SIDEBAR_BREAKPOINT)
+    setViewportWidth(MOBILE_WIDTH)
 
     const mounted = mountSidebar()
     unmount = mounted.unmount
@@ -195,7 +202,7 @@ describe('useSidebar', () => {
     mounted.context.setMobileOpen(true)
     expect(mounted.context.isMobileOpen.value).toBe(true)
 
-    setViewportWidth(SIDEBAR_BREAKPOINT + 100)
+    setViewportWidth(DESKTOP_WIDTH)
     await nextTick()
 
     expect(mounted.context.isMobile.value).toBe(false)

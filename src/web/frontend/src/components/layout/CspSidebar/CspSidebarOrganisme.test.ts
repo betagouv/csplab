@@ -74,6 +74,7 @@ describe('cspSidebarOrganisme', () => {
   beforeEach(() => {
     vi.mocked(getMe).mockReset()
     vi.stubGlobal('localStorage', createLocalStorageMock())
+    vi.stubGlobal('matchMedia', () => ({ matches: false, addEventListener: () => {}, removeEventListener: () => {} }))
   })
 
   afterEach(() => {

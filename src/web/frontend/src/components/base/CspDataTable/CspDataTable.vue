@@ -415,6 +415,8 @@ function onActivate(id: string): void {
 </template>
 
 <style scoped lang="scss">
+@use '@/styles/breakpoints' as bp;
+
 .csp-table-wrapper {
   width: 100%;
   border: 1px solid var(--border-default-grey);
@@ -597,7 +599,7 @@ function onActivate(id: string): void {
   flex-direction: column;
   gap: 0.75rem;
 
-  @media (min-width: 768px) {
+  @include bp.from(bp.$md) {
     flex-direction: row;
     align-items: center;
     justify-content: space-between;
