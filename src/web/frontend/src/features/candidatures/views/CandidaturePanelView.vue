@@ -15,7 +15,9 @@ import { useMinimumPending } from '@/composables/async/useMinimumPending'
 import { tabItems } from '@/composables/navigation/tabs'
 import { useReturnTo } from '@/composables/navigation/useReturnTo'
 import { useRouteTab } from '@/composables/navigation/useRouteTab'
-import { formatDateLong, formatElapsedDays } from '@/utils/date'
+import { formatElapsedDays } from '@/utils/date'
+import CandidatureCv from '../components/CandidatureCv.vue'
+import CandidatureDocuments from '../components/CandidatureDocuments.vue'
 import ChangerEtapePopover from '../components/ChangerEtapePopover.vue'
 import RefusCandidatureDialog from '../components/RefusCandidatureDialog.vue'
 import { useCandidatureNavigation } from '../composables/useCandidatureNavigation'
@@ -51,6 +53,12 @@ watch(candidatureUuid, () => {
 
 const TABS = tabItems(CANDIDATURE_PANEL_TAB_LABELS, CANDIDATURE_PANEL_TAB_ICONS)
 const activeTab = useRouteTab(CANDIDATURE_PANEL_TAB_ROUTE_NAMES, 'candidature')
+
+const candidatureParams = computed(() => ({
+  organismeUuid: route.params.organismeUuid as string,
+  recrutementUuid: route.params.recrutementUuid as string,
+  candidatureUuid: route.params.candidatureUuid as string,
+}))
 
 const close = useReturnTo(() => ({
   name: 'recrutement-candidatures-kanban',
@@ -159,15 +167,19 @@ function handleUpdateOpen(open: boolean): void {
             >
               <template #candidature>
                 <div class="candidature-panel__tab">
-                  <dl
+                  <CandidatureCv
                     v-if="candidature"
-                    class="candidature-panel__summary"
-                  >
-                    <dt>Candidat</dt>
-                    <dd>{{ title }}</dd>
-                    <dt>Candidature déposée le</dt>
-                    <dd>{{ formatDateLong(candidature.date_soumission) }}</dd>
-                  </dl>
+                    :candidature="candidatureParams"
+                    :candidat-nom="title"
+                  />
+                </div>
+              </template>
+              <template #documents>
+                <div class="candidature-panel__tab">
+                  <CandidatureDocuments
+                    v-if="candidature"
+                    :candidature="candidatureParams"
+                  />
                 </div>
               </template>
             </CspTabsPanels>
@@ -290,21 +302,6 @@ function handleUpdateOpen(open: boolean): void {
   flex: 1;
   flex-direction: column;
   padding: var(--csp-page-content-padding-block) var(--csp-page-container-padding-inline);
-}
-
-.candidature-panel__summary {
-  display: grid;
-  grid-template-columns: max-content 1fr;
-  gap: var(--csp-space-2) var(--csp-space-4);
-  margin: 0;
-
-  dt {
-    color: var(--text-mention-grey);
-  }
-
-  dd {
-    margin: 0;
-  }
 }
 
 .candidature-panel__aside {

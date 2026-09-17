@@ -19,3 +19,13 @@ export type ChangerEtapeResultat = components['schemas']['ChangerEtapeResultat']
 export type MotifRefus = components['schemas']['MotifRefusEnum']
 
 export type MotifRefusOption = components['schemas']['MotifRefus'] & { value: MotifRefus }
+
+export type DocumentListe = components['schemas']['DocumentListe']
+
+export type PaginatedDocumentListeList = components['schemas']['PaginatedDocumentListeList']
+
+export interface CandidatureParams {
+  organismeUuid: string
+  recrutementUuid: string
+  candidatureUuid: string
+}

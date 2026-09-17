@@ -27,6 +27,7 @@ import riCloseLine from '@iconify-icons/ri/close-line'
 import riCompass3Line from '@iconify-icons/ri/compass-3-line'
 import riDashboardLine from '@iconify-icons/ri/dashboard-line'
 import riDeleteBinLine from '@iconify-icons/ri/delete-bin-line'
+import riDownloadLine from '@iconify-icons/ri/download-line'
 import riDraggable from '@iconify-icons/ri/draggable'
 import riEditLine from '@iconify-icons/ri/edit-line'
 import riErrorWarningFill from '@iconify-icons/ri/error-warning-fill'
@@ -35,9 +36,11 @@ import riExpandUpDownLine from '@iconify-icons/ri/expand-up-down-line'
 import riExternalLinkLine from '@iconify-icons/ri/external-link-line'
 import riEyeLine from '@iconify-icons/ri/eye-line'
 import riFileCopyLine from '@iconify-icons/ri/file-copy-line'
+import riFileListLine from '@iconify-icons/ri/file-list-line'
 import riFilter3Line from '@iconify-icons/ri/filter-3-line'
 import riFilterLine from '@iconify-icons/ri/filter-line'
 import riFlashlightFill from '@iconify-icons/ri/flashlight-fill'
+import riFullscreenLine from '@iconify-icons/ri/fullscreen-line'
 import riGovernmentLine from '@iconify-icons/ri/government-line'
 import riGroupLine from '@iconify-icons/ri/group-line'
 import riHomeLine from '@iconify-icons/ri/home-line'
@@ -103,6 +106,7 @@ addIcon('ri:close-line', riCloseLine)
 addIcon('ri:compass-3-line', riCompass3Line)
 addIcon('ri:dashboard-line', riDashboardLine)
 addIcon('ri:delete-bin-line', riDeleteBinLine)
+addIcon('ri:download-line', riDownloadLine)
 addIcon('ri:draggable', riDraggable)
 addIcon('ri:edit-line', riEditLine)
 addIcon('ri:error-warning-fill', riErrorWarningFill)
@@ -111,9 +115,11 @@ addIcon('ri:expand-up-down-line', riExpandUpDownLine)
 addIcon('ri:external-link-line', riExternalLinkLine)
 addIcon('ri:eye-line', riEyeLine)
 addIcon('ri:file-copy-line', riFileCopyLine)
+addIcon('ri:file-list-line', riFileListLine)
 addIcon('ri:filter-3-line', riFilter3Line)
 addIcon('ri:filter-line', riFilterLine)
 addIcon('ri:flashlight-fill', riFlashlightFill)
+addIcon('ri:fullscreen-line', riFullscreenLine)
 addIcon('ri:government-line', riGovernmentLine)
 addIcon('ri:group-line', riGroupLine)
 addIcon('ri:home-line', riHomeLine)
