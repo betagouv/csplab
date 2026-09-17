@@ -79,7 +79,7 @@ export const Couleurs: Story = {
                   :style="{ color: 'var(--' + t + ')' }">
                   Lorem ipsum
                 </p>
-                <p class="text-[var(--text-mention-grey)]">
+                <p class="text-(--text-mention-grey)">
                   {{ t }}
                 </p>
               </template>
@@ -88,7 +88,7 @@ export const Couleurs: Story = {
                   class="border-2 p-2"
                   :style="{ borderColor: 'var(--' + t + ')' }"
                   >
-                  <p class="text-[var(--text-mention-grey)]">
+                  <p class="text-(--text-mention-grey)">
                     {{ t }}
                   </p>
                 </div>
@@ -107,7 +107,7 @@ export const Couleurs: Story = {
                       :style="{ background: 'var(--' + tok + ')' }"
                     />
                   </div>
-                  <div class="text-[var(--text-mention-grey)]">
+                  <div class="text-(--text-mention-grey)">
                     <p>
                       {{ t }}
                     </p>
@@ -145,9 +145,9 @@ export const Espacements: Story = {
               :key="t"
               class="flex items-center gap-4"
             >
-              <code class="w-52 text-xs text-[var(--text-mention-grey)]">{{ t }}</code>
+              <code class="w-52 text-xs text-(--text-mention-grey)">{{ t }}</code>
               <div
-                class="h-5 bg-[var(--background-action-high-blue-france)] rounded-sm"
+                class="h-5 bg-(--background-action-high-blue-france) rounded-sm"
                 :style="{ width: 'var(' + t + ')' }"
               />
             </div>
@@ -169,15 +169,15 @@ export const Typographie: Story = {
             <div
               v-for="t in fontSizes"
               :key="t.token"
-              class="flex items-baseline gap-4 border-b border-[var(--border-default-grey)] pb-2"
+              class="flex items-baseline gap-4 border-b border-(--border-default-grey) pb-2"
             >
               <span
-                class="min-w-[280px] text-[var(--text-title-grey)]"
+                class="min-w-70 text-(--text-title-grey)"
                 :style="{ fontSize: 'var(' + t.token + ')' }"
               >
                 {{ t.label }}
               </span>
-              <code class="text-xs text-[var(--text-mention-grey)]">{{ t.token }}</code>
+              <code class="text-xs text-(--text-mention-grey)">{{ t.token }}</code>
             </div>
           </div>
         </section>
@@ -188,15 +188,15 @@ export const Typographie: Story = {
             <div
               v-for="t in fontWeights"
               :key="t.token"
-              class="flex items-baseline gap-4 border-b border-[var(--border-default-grey)] pb-2"
+              class="flex items-baseline gap-4 border-b border-(--border-default-grey) pb-2"
             >
               <span
-                class="min-w-[280px] text-[var(--text-title-grey)] text-md"
+                class="min-w-70 text-(--text-title-grey) text-md"
                 :style="{ fontWeight: 'var(' + t.token + ')' }"
               >
                 {{ t.label }}
               </span>
-              <code class="text-xs text-[var(--text-mention-grey)]">{{ t.token }}</code>
+              <code class="text-xs text-(--text-mention-grey)">{{ t.token }}</code>
             </div>
           </div>
         </section>
@@ -207,15 +207,15 @@ export const Typographie: Story = {
             <div
               v-for="t in lineHeights"
               :key="t.token"
-              class="flex items-start gap-4 border-b border-[var(--border-default-grey)] pb-2"
+              class="flex items-start gap-4 border-b border-(--border-default-grey) pb-2"
             >
               <p
-                class="min-w-[280px] text-[var(--text-title-grey)] text-sm m-0"
+                class="min-w-70 text-(--text-title-grey) text-sm m-0"
                 :style="{ lineHeight: 'var(' + t.token + ')' }"
               >
                 {{ t.label }}<br>Texte exemple sur deux lignes<br>pour visualiser l'interligne
               </p>
-              <code class="text-xs text-[var(--text-mention-grey)]">{{ t.token }}</code>
+              <code class="text-xs text-(--text-mention-grey)">{{ t.token }}</code>
             </div>
           </div>
         </section>
@@ -231,17 +231,17 @@ export const Ombres: Story = {
       <div class="flex flex-col gap-12">
         <section>
           <h3 class="text-2xl font-bold mb-4">Ombres</h3>
-          <div class="flex gap-8 border p-8 bg-[var(--background-alt-grey)]">
+          <div class="flex gap-8 border p-8 bg-(--background-alt-grey)">
             <div
               v-for="t in tokens"
               :key="t"
               class="text-center"
             >
               <div
-                class="w-40 h-[100px] bg-[var(--background-default-grey)] rounded-[var(--csp-radius-md)] mb-3"
+                class="w-40 h-25 bg-(--background-default-grey) rounded-(--csp-radius-md) mb-3"
                 :style="{ boxShadow: 'var(' + t + ')' }"
               />
-              <code class="text-xs text-[var(--text-mention-grey)]">{{ t }}</code>
+              <code class="text-xs text-(--text-mention-grey)">{{ t }}</code>
             </div>
           </div>
         </section>
