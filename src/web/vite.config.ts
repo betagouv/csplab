@@ -63,12 +63,14 @@ export default defineConfig(({ command }) => ({
     testTimeout: 10_000,
     coverage: {
       provider: 'v8',
-      include: ['src/utils/**', 'src/api/**', 'src/stores/**', 'src/composables/**', 'src/features/**/composables/**'],
+      include: ['src/utils/**', 'src/api/**', 'src/stores/**', 'src/composables/**', 'src/features/**/composables/**', 'src/components/base/**', 'src/features/**/components/**'],
       exclude: ['**/*.stories.ts', 'src/composables/dnd/**', 'src/test/**'],
       thresholds: {
         'src/utils/**': { statements: 80, branches: 80, functions: 80, lines: 80 },
         'src/composables/**': { statements: 80, branches: 80, functions: 80, lines: 80 },
         'src/features/**/composables/**': { statements: 80, branches: 80, functions: 80, lines: 80 },
+        'src/components/base/**': { statements: 55, lines: 55 },
+        'src/features/**/components/**': { statements: 40, lines: 40 },
       },
     },
   },
