@@ -7,6 +7,12 @@ export interface ReponsesQualification {
   permisB: string
 }
 
+withDefaults(defineProps<{
+  showIntro?: boolean
+}>(), {
+  showIntro: true,
+})
+
 const model = defineModel<ReponsesQualification>({
   default: () => ({ titulaireFp: '', disponibleSeptembre: '', permisB: '' }),
 })
@@ -19,7 +25,10 @@ const ouiNon = [
 
 <template>
   <div class="questions">
-    <p class="questions__intro">
+    <p
+      v-if="showIntro"
+      class="questions__intro"
+    >
       Quelques questions courtes, propres à cette offre. Cela ne prend qu'une minute.
     </p>
 

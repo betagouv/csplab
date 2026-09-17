@@ -3,6 +3,62 @@
 Sujet : expérience candidat (découverte d'offre → candidature → suivi), pensée à part de l'ATS
 recruteur — pas une simple vue "candidat" du même outil.
 
+## Refonte mobile-first (17 septembre 2026)
+
+Refonte structurelle demandée par Alice : mobile-first, deux parcours strictement indépendants
+(candidater sans compte / suivre avec un compte facultatif). Vit dans une nouvelle story
+Storybook **`Prototypes/Espace candidat mobile`** (fichier
+`EspaceCandidatMobilePrototypes.stories.ts`), avec ses propres composants dans
+`variants/mobile/` et `shared/mobile/`. L'itération desktop précédente est conservée telle
+quelle sous **`Prototypes/Espace candidat (desktop, itération précédente)`** pour comparaison,
+mais n'est plus le fil actif.
+
+### Nouveaux composants mobiles (candidats à l'intégration DS)
+
+- **`MobileTopBar.vue`** — en-tête compact avec flèche retour, remplace `CandidateHeader` dans
+  les écrans en pile (offre, candidature, détail).
+- **`MobileStepProgress.vue`** — « Étape 2 sur 4 — CV et lettre » + barre de progression fine.
+  Remplace le stepper à cercles numérotés (`CandidatureStepper`), illisible sous ~400px.
+- **`MobileFlowShell.vue`** — assemble top bar + progression + contenu scrollable + CTA sticky
+  plein écran en bas. Remplace `CandidatureFlowShell` pour le parcours sans compte.
+- **`MobileFileField.vue`** — zone de dépôt de fichier pensée tactile (gros bouton "Ajouter un
+  fichier", puis "Remplacer"/"Supprimer" explicites). Remplace `FileDropzone` (pensé souris/
+  drag-and-drop) pour ce parcours.
+- **`MobileTabBar.vue`** — barre d'onglets basse (Candidatures/Messages/Documents/Profil) pour
+  l'espace connecté, remplace la nav horizontale de `CandidateHeader`.
+- **`ConfettiBurst.vue`** — petit effet confettis CSS (pas de librairie ajoutée) pour la pop-in
+  de succès festive. Respecte `prefers-reduced-motion`.
+- **`FranceConnectButton.vue`** — approximation du bouton FranceConnect (le vrai composant/la
+  vraie charte n'existent pas dans ce DS ni ailleurs dans le repo — recherché, rien trouvé).
+  À remplacer par le composant officiel si un jour disponible.
+
+Manques DS confirmés par cette refonte : toujours pas de `CspStepper`/`CspTimeline` génériques,
+et maintenant aussi pas de pattern "barre d'onglets basse" ni de composant d'upload de fichier
+dans `components/base/`.
+
+### Décision technique importante : container queries, pas media queries, pour les cartes réutilisées
+
+`ActionRequiseCard.vue` (bouton qui débordait sur mobile) utilise maintenant
+`container-type: inline-size` + `@container` plutôt que `@media (min-width: …)`. Raison : cette
+carte est réutilisée à l'intérieur d'un conteneur de largeur fixe (colonne mobile de ~390px,
+y compris quand elle est affichée sur un écran desktop large). Une media query réagit à la
+largeur de la *fenêtre*, pas à celle du conteneur parent — elle se serait déclenchée à tort sur
+grand écran alors que la carte reste étroite. Réflexe à garder pour tout composant partagé
+entre un contexte pleine largeur et un contexte colonne étroite.
+
+### Données
+
+Les 4 candidatures mock couvrent exactement les 4 états demandés : envoyée sans action
+(Instructeur·rice, Préfecture de la Gironde), entretien proposé avec action (Chargé·e de
+mission innovation numérique — qui porte aussi la seule demande de document du prototype),
+message non lu avec action (Chef·fe de projet SI), en cours d'étude sans action (Responsable
+RH). Un « document à fournir » n'est volontairement pas remonté séparément comme action tant
+qu'une candidature porte déjà une action prioritaire (éviter 2 pastilles concurrentes sur la
+même carte) — reste visible et actionnable dès qu'on ouvre l'onglet Documents.
+
+Une offre externe (`offreExterne`, Conseil régional de Bretagne) a été ajoutée pour tester le
+cas "redirection vers un site partenaire" du CTA de la page offre.
+
 ## Composants créés pour ce prototype (candidats à l'intégration)
 
 Aucun composant `Csp*` existant ne couvrait ces besoins. Fragments montés dans `shared/`,

@@ -38,6 +38,7 @@ const iconByType: Record<ActionRequise['type'], string> = {
       variant="secondary"
       size="sm"
       :label="action.cta"
+      class="action-card__cta"
       @click="$emit('agir', action)"
     />
   </div>
@@ -45,13 +46,34 @@ const iconByType: Record<ActionRequise['type'], string> = {
 
 <style scoped lang="scss">
 .action-card {
+  container: action-card / inline-size;
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: var(--csp-space-3);
+  gap: var(--csp-space-2) var(--csp-space-3);
   padding: var(--csp-space-3) var(--csp-space-4);
   border-radius: 0.25rem;
   background-color: var(--background-alt-yellow-tournesol);
   box-shadow: inset 0 0 0 1px var(--border-plain-yellow-tournesol);
+}
+
+.action-card__cta {
+  flex-shrink: 0;
+  width: 100%;
+  justify-content: center;
+}
+
+// Requête de conteneur (pas de media query) : cette carte peut se retrouver dans une
+// colonne étroite (mobile) ou large (sidebar desktop) indépendamment de la largeur de
+// la fenêtre — c'est sa propre largeur qui doit décider de l'empilement.
+@container action-card (min-width: 26rem) {
+  .action-card {
+    flex-wrap: nowrap;
+  }
+
+  .action-card__cta {
+    width: auto;
+  }
 }
 
 .action-card__icon {

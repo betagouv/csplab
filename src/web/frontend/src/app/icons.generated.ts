@@ -42,6 +42,7 @@ import riFileUploadLine from '@iconify-icons/ri/file-upload-line'
 import riFilter3Line from '@iconify-icons/ri/filter-3-line'
 import riFilterLine from '@iconify-icons/ri/filter-line'
 import riFlashlightFill from '@iconify-icons/ri/flashlight-fill'
+import riFolderLine from '@iconify-icons/ri/folder-line'
 import riGovernmentLine from '@iconify-icons/ri/government-line'
 import riGroupLine from '@iconify-icons/ri/group-line'
 import riHomeLine from '@iconify-icons/ri/home-line'
@@ -78,6 +79,7 @@ import riShieldUserLine from '@iconify-icons/ri/shield-user-line'
 import riSpamFill from '@iconify-icons/ri/spam-fill'
 import riSunLine from '@iconify-icons/ri/sun-line'
 import riTableLine from '@iconify-icons/ri/table-line'
+import riUpload2Line from '@iconify-icons/ri/upload-2-line'
 import riUploadCloud2Line from '@iconify-icons/ri/upload-cloud-2-line'
 import riUserAddLine from '@iconify-icons/ri/user-add-line'
 import riUserLine from '@iconify-icons/ri/user-line'
@@ -126,6 +128,7 @@ addIcon('ri:file-upload-line', riFileUploadLine)
 addIcon('ri:filter-3-line', riFilter3Line)
 addIcon('ri:filter-line', riFilterLine)
 addIcon('ri:flashlight-fill', riFlashlightFill)
+addIcon('ri:folder-line', riFolderLine)
 addIcon('ri:government-line', riGovernmentLine)
 addIcon('ri:group-line', riGroupLine)
 addIcon('ri:home-line', riHomeLine)
@@ -162,6 +165,7 @@ addIcon('ri:shield-user-line', riShieldUserLine)
 addIcon('ri:spam-fill', riSpamFill)
 addIcon('ri:sun-line', riSunLine)
 addIcon('ri:table-line', riTableLine)
+addIcon('ri:upload-2-line', riUpload2Line)
 addIcon('ri:upload-cloud-2-line', riUploadCloud2Line)
 addIcon('ri:user-add-line', riUserAddLine)
 addIcon('ri:user-line', riUserLine)

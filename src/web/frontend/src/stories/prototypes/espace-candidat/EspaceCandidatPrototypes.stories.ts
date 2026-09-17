@@ -12,16 +12,17 @@ import SuccesSansCompte from './variants/succes/SuccesSansCompte.vue'
 
 // Une story par écran/variante, groupées par notion via le « / » Storybook.
 // Prototype isolé : pas d'API, pas de router — données mock dans data/candidatMock.ts.
+// Itération desktop, conservée pour comparaison — la refonte mobile-first en cours vit dans
+// « Prototypes/Espace candidat mobile ».
 const meta = {
-  title: 'Prototypes/Espace candidat',
+  title: 'Prototypes/Espace candidat (desktop, itération précédente)',
   parameters: {
     layout: 'fullscreen',
     docs: {
       description: {
         component:
-          'Parcours candidat côté fonction publique : découverte d\'une offre, candidature '
-          + '(avec ou sans compte), confirmation, puis suivi dans un espace connecté. Pensé à '
-          + 'part de l\'ATS recruteur, autour des besoins du candidat.',
+          'Itération desktop précédente, conservée pour comparaison. Voir « Prototypes/Espace '
+          + 'candidat mobile » pour la refonte mobile-first en cours.',
       },
     },
   },

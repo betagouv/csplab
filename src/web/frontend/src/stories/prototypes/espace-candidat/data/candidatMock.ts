@@ -32,6 +32,8 @@ export interface Offre {
   profilRecherche: string[]
   informationsPratiques: InformationPratique[]
   etapesProcessus: string[]
+  modeCandidature: 'interne' | 'externe'
+  partenaireNom?: string
 }
 
 export const offrePrincipale: Offre = {
@@ -75,6 +77,42 @@ export const offrePrincipale: Offre = {
     'Entretien avec l\'équipe (1h)',
     'Décision',
   ],
+  modeCandidature: 'interne',
+}
+
+export const offreExterne: Offre = {
+  id: 'offre-si-conseil-regional',
+  intitule: 'Administrateur·rice systèmes et réseaux',
+  organisme: 'Conseil régional de Bretagne',
+  localisation: 'Rennes',
+  typeContrat: 'Titulaire (mutation, détachement)',
+  remunerationMin: 32000,
+  remunerationMax: 40000,
+  remunerationDetail: 'Selon grille indiciaire de la fonction publique territoriale',
+  statut: 'ouverte',
+  dateLimiteCandidature: '30 septembre 2026',
+  reference: 'CRB-2026-0087',
+  description: 'La direction des systèmes d\'information recherche un·e administrateur·rice pour '
+    + 'assurer l\'exploitation et la sécurité de l\'infrastructure serveurs et réseaux de la collectivité.',
+  missions: [
+    'Administrer les serveurs, le réseau et les sauvegardes',
+    'Assurer la sécurité du système d\'information',
+    'Accompagner les agents dans l\'usage des outils numériques',
+  ],
+  profilRecherche: [
+    'Formation en systèmes et réseaux ou expérience équivalente',
+    'Connaissance des environnements Linux et Windows Server',
+  ],
+  informationsPratiques: [
+    { label: 'Prise de poste', valeur: '1er novembre 2026' },
+    { label: 'Temps de travail', valeur: 'Temps plein' },
+  ],
+  etapesProcessus: [
+    'Étude du dossier',
+    'Entretien avec le service',
+  ],
+  modeCandidature: 'externe',
+  partenaireNom: 'PlaceEmploiPublic',
 }
 
 // --- Candidatures (espace connecté) ---
@@ -133,12 +171,12 @@ export const candidatures = reactive<Candidature[]>([
     dateEnvoi: '3 septembre 2026',
     etapes: [
       { id: 'e1', label: 'Candidature envoyée', statut: 'fait', date: '3 septembre' },
-      { id: 'e2', label: 'Candidature étudiée', statut: 'fait', date: '5 septembre' },
-      { id: 'e3', label: 'Présélection', statut: 'en_cours' },
+      { id: 'e2', label: 'Candidature étudiée', statut: 'en_cours', date: '5 septembre' },
+      { id: 'e3', label: 'Présélection', statut: 'a_venir' },
       { id: 'e4', label: 'Entretien', statut: 'a_venir' },
       { id: 'e5', label: 'Décision', statut: 'a_venir' },
     ],
-    prochaineEtapeLabel: 'Un document est nécessaire pour poursuivre l\'examen de votre dossier',
+    prochaineEtapeLabel: 'Votre candidature est en cours d\'étude par le recruteur',
     prochaineDate: null,
     delaiIndicatif: 'Réponse attendue sous 10 jours environ',
   },
@@ -162,15 +200,15 @@ export const candidatures = reactive<Candidature[]>([
     id: 'cand-instructeur',
     poste: 'Instructeur·rice administratif·ve',
     organisme: 'Préfecture de la Gironde',
-    dateEnvoi: '8 septembre 2026',
+    dateEnvoi: '16 septembre 2026',
     etapes: [
-      { id: 'e1', label: 'Candidature envoyée', statut: 'fait', date: '8 septembre' },
-      { id: 'e2', label: 'Candidature étudiée', statut: 'en_cours' },
+      { id: 'e1', label: 'Candidature envoyée', statut: 'fait', date: '16 septembre' },
+      { id: 'e2', label: 'Candidature étudiée', statut: 'a_venir' },
       { id: 'e3', label: 'Présélection', statut: 'a_venir' },
       { id: 'e4', label: 'Entretien', statut: 'a_venir' },
       { id: 'e5', label: 'Décision', statut: 'a_venir' },
     ],
-    prochaineEtapeLabel: 'Votre candidature est en cours d\'étude',
+    prochaineEtapeLabel: 'Votre candidature va être étudiée prochainement',
     prochaineDate: null,
     delaiIndicatif: 'Réponse attendue sous 15 jours environ',
   },
@@ -186,9 +224,9 @@ export const actionsRequises = reactive<ActionRequise[]>([
   },
   {
     id: 'a2',
-    candidatureId: 'cand-rh',
+    candidatureId: 'cand-innovation-numerique',
     type: 'document',
-    label: 'Déposer un document — Responsable ressources humaines',
+    label: 'Déposer un document — Chargé·e de mission innovation numérique',
     cta: 'Ajouter le document',
   },
   {
@@ -271,8 +309,8 @@ export const conversations = reactive<Conversation[]>([
       {
         id: 'm1',
         auteur: 'recruteur',
-        texte: 'Bonjour, votre dossier avance bien. Il nous manque une pièce justificative pour poursuivre — '
-          + 'vous la trouverez dans l\'onglet Documents de votre candidature.',
+        texte: 'Bonjour, nous avons bien reçu votre candidature et l\'étudions actuellement. '
+          + 'Nous revenons vers vous très prochainement.',
         date: '5 septembre, 16h45',
         lu: true,
       },
@@ -318,13 +356,63 @@ export const documents = reactive<DocumentDemande[]>([
   },
   {
     id: 'd3',
-    candidatureId: 'cand-rh',
+    candidatureId: 'cand-innovation-numerique',
     nom: 'Justificatif de titularisation',
     statut: 'a_fournir',
     obligatoire: true,
     raison: 'Nécessaire pour vérifier votre éligibilité au poste avant l\'entretien',
     etape: 'Présélection',
-    visiblePar: 'L\'équipe de recrutement du Conseil départemental du Rhône',
+    visiblePar: 'L\'équipe de recrutement du Ministère de la Transformation et de la Fonction Publiques',
+  },
+  {
+    id: 'd4',
+    candidatureId: 'cand-innovation-numerique',
+    nom: 'CV',
+    statut: 'fourni',
+    obligatoire: true,
+    raison: 'Déposé lors de l\'envoi de votre candidature',
+    etape: 'Candidature',
+    visiblePar: 'L\'équipe de recrutement du Ministère de la Transformation et de la Fonction Publiques',
+  },
+  {
+    id: 'd5',
+    candidatureId: 'cand-innovation-numerique',
+    nom: 'Lettre de motivation',
+    statut: 'fourni',
+    obligatoire: false,
+    raison: 'Déposée lors de l\'envoi de votre candidature',
+    etape: 'Candidature',
+    visiblePar: 'L\'équipe de recrutement du Ministère de la Transformation et de la Fonction Publiques',
+  },
+  {
+    id: 'd6',
+    candidatureId: 'cand-chef-projet-si',
+    nom: 'CV',
+    statut: 'fourni',
+    obligatoire: true,
+    raison: 'Déposé lors de l\'envoi de votre candidature',
+    etape: 'Candidature',
+    visiblePar: 'L\'équipe de recrutement de la Direction interministérielle du numérique',
+  },
+  {
+    id: 'd7',
+    candidatureId: 'cand-chef-projet-si',
+    nom: 'Lettre de motivation',
+    statut: 'fourni',
+    obligatoire: false,
+    raison: 'Déposée lors de l\'envoi de votre candidature',
+    etape: 'Candidature',
+    visiblePar: 'L\'équipe de recrutement de la Direction interministérielle du numérique',
+  },
+  {
+    id: 'd8',
+    candidatureId: 'cand-instructeur',
+    nom: 'CV',
+    statut: 'fourni',
+    obligatoire: true,
+    raison: 'Déposé lors de l\'envoi de votre candidature',
+    etape: 'Candidature',
+    visiblePar: 'L\'équipe de recrutement de la Préfecture de la Gironde',
   },
 ])
 
