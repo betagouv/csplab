@@ -2,6 +2,7 @@ from django.contrib import admin
 
 from infrastructure.django_apps.candidate.models.candidature import CandidatureModel
 from infrastructure.django_apps.candidate.models.cv_metadata import CVMetadataModel
+from infrastructure.django_apps.candidate.models.document import DocumentModel
 from infrastructure.django_apps.utils.admin import ReadOnlyAdminMixin
 
 
@@ -27,3 +28,10 @@ class CandidatureAdmin(ReadOnlyAdminMixin, admin.ModelAdmin):
         "candidat__utilisateur__first_name",
         "candidat__utilisateur__last_name",
     )
+
+
+@admin.register(DocumentModel)
+class DocumentAdmin(ReadOnlyAdminMixin, admin.ModelAdmin):
+    list_display = ("candidature", "type_document", "depose_par", "created_at")
+    list_filter = ("type_document", "created_at")
+    search_fields = ("candidature__id", "nom_original")
