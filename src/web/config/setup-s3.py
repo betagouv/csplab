@@ -65,12 +65,14 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Crée le bucket S3 s'il n'existe pas")
     parser.add_argument(
         "--bucket-name",
-        default=os.getenv(
-            "WEB_S3_CANDIDATURE_DOCUMENTS_BUCKET_NAME",
-            "csplab-candidature-documents-dev",
-        ),
+        default=os.getenv("WEB_S3_CANDIDATURE_DOCUMENTS_BUCKET_NAME"),
     )
     args = parser.parse_args()
+    if not args.bucket_name:
+        parser.error(
+            "--bucket-name est requis (ou définissez "
+            "WEB_S3_CANDIDATURE_DOCUMENTS_BUCKET_NAME)"
+        )
 
     s3 = client()
     if not wait_for_s3(s3):

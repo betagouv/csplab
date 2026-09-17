@@ -252,7 +252,7 @@ alias = "web:s3:init"
 description = "Create the S3 bucket(s) when missing"
 depends = ["install:py", "//:services:rustfs"]
 run = [
-  "python config/setup-s3.py",
+  "python config/setup-s3.py --bucket-name csplab-candidature-documents-dev",
   "python config/setup-s3.py --bucket-name csplab-candidature-documents-test",
 ]
 
