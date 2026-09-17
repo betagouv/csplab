@@ -70,6 +70,7 @@ SUPERVISEUR_OU_AGENT_AVEC_RECRUTEMENT_ACTIONS = [
     OrganismeAction.VOIR_DETAIL_RECRUTEMENT,
     OrganismeAction.GET_CANDIDATURE_DETAIL,
     OrganismeAction.READ_DOCUMENT,
+    OrganismeAction.LIST_DOCUMENTS,
     OrganismeAction.LIST_NOTES,
     OrganismeAction.CREATE_NOTE,
     OrganismeAction.UPDATE_NOTE,
