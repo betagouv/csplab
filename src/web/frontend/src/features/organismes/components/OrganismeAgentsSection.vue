@@ -14,7 +14,7 @@ import { useTextSearch } from '@/composables/data/useTextSearch'
 import { useToast } from '@/composables/ui/useToast'
 import { pluralize } from '@/utils/format'
 import { ORGANISME_AGENTS_COLUMNS } from '../columns'
-import { useAgentActions } from '../composables/useAgentActions'
+import { provideAgentActions } from '../composables/useAgentActions'
 import { useAjoutMembre } from '../composables/useAjoutMembre'
 import { useOrganismeAgents } from '../composables/useOrganismeAgents'
 import { ROLE_LABELS } from '../constants/organisme'
@@ -29,7 +29,8 @@ const PAGE_SIZE = 8
 
 const { agents, pending, error, updateAgent, updatingAgent } = useOrganismeAgents(props.organismeUuid)
 const { status, foundAgent, searching, search: searchAgent, add, submitting, reset } = useAjoutMembre(props.organismeUuid)
-const { roleChange, clearRoleChange, revocationAgent, clearRevocation } = useAgentActions()
+const { roleChange, revocation } = provideAgentActions()
+const revocationAgent = revocation.value
 const { addToast } = useToast()
 
 const showSkeleton = useMinimumPending(pending)
@@ -89,11 +90,11 @@ const countLabel = computed(() => {
   return `${count} ${pluralize(count, 'membre')}`
 })
 
-watch(roleChange, async (change) => {
+watch(roleChange.value, async (change) => {
   if (!change)
     return
   const { agent, role } = change
-  clearRoleChange()
+  roleChange.clear()
   try {
     await updateAgent({ agent_id: agent.agent_id, role })
     addToast({
@@ -114,7 +115,7 @@ watch(revocationAgent, (agent) => {
 
 watch(revocationDialogOpen, (isOpen) => {
   if (!isOpen)
-    clearRevocation()
+    revocation.clear()
 })
 
 async function handleRevocation(): Promise<void> {

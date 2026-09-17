@@ -12,7 +12,7 @@ const props = defineProps<{
   row: AgentOrganisme
 }>()
 
-const { requestRoleChange, requestRevocation } = useAgentActions()
+const { roleChange, revocation } = useAgentActions()
 
 const sections = computed(() => [
   {
@@ -21,12 +21,12 @@ const sections = computed(() => [
         ? {
             label: 'Passer membre',
             icon: 'ri:user-line',
-            onSelect: () => requestRoleChange(props.row, 'agent' as const),
+            onSelect: () => roleChange.request({ agent: props.row, role: 'agent' }),
           }
         : {
             label: 'Passer responsable',
             icon: 'ri:shield-user-line',
-            onSelect: () => requestRoleChange(props.row, 'superviseur' as const),
+            onSelect: () => roleChange.request({ agent: props.row, role: 'superviseur' }),
           },
     ],
   },
@@ -36,7 +36,7 @@ const sections = computed(() => [
         label: 'Révoquer',
         icon: 'ri:user-unfollow-line',
         destructive: true,
-        onSelect: () => requestRevocation(props.row),
+        onSelect: () => revocation.request(props.row),
       },
     ],
   },

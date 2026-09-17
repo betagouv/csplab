@@ -10,13 +10,13 @@ const props = defineProps<{
   row: OrganismesList
 }>()
 
-const { openEdition } = useOrganismeEdition()
+const edition = useOrganismeEdition()
 
 const sections = [{
   items: [{
     label: 'Modifier l’organisme',
     icon: 'ri:pencil-line',
-    onSelect: () => openEdition(props.row),
+    onSelect: () => edition.request(props.row),
   }],
 }]
 </script>

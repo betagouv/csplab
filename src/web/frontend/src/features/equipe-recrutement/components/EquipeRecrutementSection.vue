@@ -17,7 +17,7 @@ import { pluralize } from '@/utils/format'
 import { EQUIPE_RECRUTEMENT_ACTIONS_COLUMN, EQUIPE_RECRUTEMENT_COLUMNS } from '../columns'
 import { useAjoutMembreEquipe } from '../composables/useAjoutMembreEquipe'
 import { useEquipeRecrutement } from '../composables/useEquipeRecrutement'
-import { useMembreEquipeActions } from '../composables/useMembreEquipeActions'
+import { provideMembreEquipeActions } from '../composables/useMembreEquipeActions'
 import { RECRUTEMENT_ROLE_LABELS } from '../constants/equipe-recrutement'
 import { formatMembreLabel } from '../format'
 import AjoutMembreEquipeDrawer from './AjoutMembreEquipeDrawer.vue'
@@ -37,7 +37,8 @@ const { agentsDisponibles, pendingAgents, add, submitting } = useAjoutMembreEqui
   props.organismeUuid,
   props.recrutementUuid,
 )
-const { revocationMembre, clearRevocation, roleChange, clearRoleChange } = useMembreEquipeActions()
+const { revocation, roleChange } = provideMembreEquipeActions()
+const revocationMembre = revocation.value
 const { canManageOrganisme } = useRouteOrganisme()
 const { addToast } = useToast()
 
@@ -76,11 +77,11 @@ async function handleAdd(payload: MembreEquipePayload) {
   }
 }
 
-watch(roleChange, async (change) => {
+watch(roleChange.value, async (change) => {
   if (!change)
     return
   const { membre, role } = change
-  clearRoleChange()
+  roleChange.clear()
   try {
     await changeRole({ membre, role })
     addToast({
@@ -101,7 +102,7 @@ watch(revocationMembre, (membre) => {
 
 watch(revocationDialogOpen, (isOpen) => {
   if (!isOpen)
-    clearRevocation()
+    revocation.clear()
 })
 
 async function handleRevocation(): Promise<void> {
