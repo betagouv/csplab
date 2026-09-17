@@ -79,8 +79,6 @@ def set_recrutements_responsable(
                 event_name="AgentOrganismeRoleAttache",
             )
 
-        # ids = list(dict.fromkeys(recrutement_ids))
-
         existing_recrutement_ids = set(
             RecrutementModel.objects.by_organisme_and_recrutements(
                 organisme_id, recrutement_ids
