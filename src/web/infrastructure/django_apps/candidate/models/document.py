@@ -25,6 +25,18 @@ class DocumentQuerySet(models.QuerySet):
             pk=document_id,
         )
 
+    def by_recrutement_and_candidature(
+        self, recrutement_id, candidature_id
+    ) -> "DocumentQuerySet":
+        return (
+            self.select_related("depose_par")
+            .filter(
+                candidature_id=candidature_id,
+                candidature__etape__recrutement_id=recrutement_id,
+            )
+            .order_by("-created_at")
+        )
+
 
 class DocumentModel(BaseDatedModel):
     candidature = models.ForeignKey(
