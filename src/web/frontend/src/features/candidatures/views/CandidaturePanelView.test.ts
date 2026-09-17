@@ -78,6 +78,14 @@ describe('candidaturePanelView', () => {
     expect(panel.getByRole('heading', { name: 'Alice Dupont' })).toBeInTheDocument()
   })
 
+  it('opens on the candidature tab, with the follow-up column beside it', async () => {
+    const { router, panel } = await renderPanel([`${KANBAN_PATH}/candidatures/${CANDIDATURE_ALICE}`])
+
+    expect(await panel.findByRole('tab', { name: 'Candidature', selected: true })).toBeInTheDocument()
+    expect(router.currentRoute.value.meta.tab).toBe('candidature')
+    expect(panel.getByRole('complementary', { name: 'Suivi de la candidature' })).toHaveTextContent('Activités, tags et note')
+  })
+
   it('shows an empty state for a candidature absent from the kanban', async () => {
     const { panel } = await renderPanel([`${KANBAN_PATH}/candidatures/${CANDIDATURE_INCONNUE}`])
 
