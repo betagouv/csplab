@@ -75,6 +75,11 @@ class RecrutementAgentQuerySet(models.QuerySet):
             agent_id=agent_id,
         )
 
+    def get_all_by_agent_and_recrutements(
+        self, agent_id, recrutement_ids
+    ) -> "RecrutementAgentQuerySet":
+        return self.filter(agent_id=agent_id, recrutement_id__in=recrutement_ids)
+
 
 class RecrutementAgentModel(BaseDatedModel):
     recrutement = models.ForeignKey(
