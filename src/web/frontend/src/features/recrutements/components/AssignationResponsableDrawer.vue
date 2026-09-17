@@ -1,49 +1,66 @@
 <script setup lang="ts">
+import type { ResponsableSearchStatus } from '../composables/useAssignationResponsable'
 import type { RecrutementsActifs } from '../types'
-import type { CspComboboxOption } from '@/components/base/CspCombobox/CspCombobox.vue'
-import type { AgentOrganisme } from '@/features/organismes/types'
+import type { AgentRecherche } from '@/features/organismes/types'
 import { computed, ref, watch } from 'vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
-import CspCombobox from '@/components/base/CspCombobox/CspCombobox.vue'
 import CspDrawer from '@/components/base/CspDrawer/CspDrawer.vue'
+import CspInput from '@/components/base/CspInput/CspInput.vue'
 import CspTag from '@/components/base/CspTag/CspTag.vue'
-import { useTextSearch } from '@/composables/data/useTextSearch'
+import { formatAgentName } from '@/features/organismes/format'
 import { pluralize } from '@/utils/format'
 
 const props = defineProps<{
   recrutements: RecrutementsActifs[]
-  agents: AgentOrganisme[]
-  pendingAgents?: boolean
+  status: ResponsableSearchStatus
+  agent?: AgentRecherche | null
+  searching?: boolean
   submitting?: boolean
 }>()
 
 const emit = defineEmits<{
   remove: [offerId: string]
-  assign: [agentId: string]
+  search: [email: string]
+  assign: []
+  reset: []
 }>()
 
 const open = defineModel<boolean>('open', { required: true })
 
-const selectedAgentId = ref<string | null>(null)
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@.]+(?:\.[^\s@.]+)+$/
 
-const { search, filtered } = useTextSearch(() => props.agents, agent => [agent.email])
+const email = ref('')
+const error = ref('')
 
-const options = computed<CspComboboxOption[]>(() => filtered.value.map(agent => ({
-  value: agent.agent_id,
-  label: agent.email,
-})))
+const isFound = computed(() => props.status === 'found')
+
+const isSearched = computed(() => props.status !== 'idle')
+
+const submitLabel = computed(() => {
+  if (isFound.value) {
+    return 'Assigner un responsable'
+  }
+  return isSearched.value ? 'Créer et assigner' : 'Rechercher'
+})
+
+const submitDisabled = computed(() => props.searching || props.submitting)
 
 const offresLabel = computed(() => {
   const count = props.recrutements.length
   return `${count} ${pluralize(count, 'offre sélectionnée', 'offres sélectionnées')}`
 })
 
-const submitDisabled = computed(() => !selectedAgentId.value || props.submitting)
-
 watch(open, (isOpen) => {
   if (!isOpen) {
-    selectedAgentId.value = null
-    search.value = ''
+    email.value = ''
+    error.value = ''
+  }
+})
+
+watch(email, () => {
+  error.value = ''
+  if (props.status !== 'idle') {
+    emit('reset')
   }
 })
 
@@ -54,10 +71,17 @@ watch(() => props.recrutements.length, (count) => {
 })
 
 function handleSubmit(): void {
-  if (!selectedAgentId.value) {
+  if (isSearched.value) {
+    emit('assign')
     return
   }
-  emit('assign', selectedAgentId.value)
+  const value = email.value.trim()
+  if (!EMAIL_PATTERN.test(value)) {
+    error.value = 'Renseignez une adresse électronique valide.'
+    return
+  }
+  error.value = ''
+  emit('search', value)
 }
 </script>
 
@@ -76,6 +100,9 @@ function handleSubmit(): void {
         <p class="assignation-responsable-drawer__count">
           {{ offresLabel }}
         </p>
+        <p class="assignation-responsable-drawer__lead">
+          Le responsable sélectionné sera affecté à l'ensemble des offres sélectionnées.
+        </p>
         <ul class="assignation-responsable-drawer__tags">
           <li
             v-for="recrutement in recrutements"
@@ -91,17 +118,39 @@ function handleSubmit(): void {
         </ul>
       </section>
 
-      <CspCombobox
-        v-model="selectedAgentId"
-        v-model:search-term="search"
-        :options="options"
-        label="Responsable à assigner"
-        hint="Seuls les membres de l'organisme peuvent être assignés."
-        placeholder="Rechercher un courriel"
-        name="agent"
-        :pending="pendingAgents"
-        empty-label="Aucun courriel disponible ne correspond à votre recherche"
+      <CspInput
+        v-model="email"
+        label="Responsable"
+        name="email"
+        type="email"
+        placeholder="prenom.nom@exemple.gouv.fr"
+        autocomplete="off"
+        :error="Boolean(error)"
+        :error-message="error"
       />
+
+      <div
+        v-if="isFound && agent"
+        class="assignation-responsable-drawer__agent"
+      >
+        <p class="assignation-responsable-drawer__agent-name">
+          {{ formatAgentName(agent) || agent.email }}
+        </p>
+        <p class="assignation-responsable-drawer__agent-detail">
+          {{ agent.intitule_poste }}
+        </p>
+        <p class="assignation-responsable-drawer__agent-detail">
+          {{ agent.email }}
+        </p>
+      </div>
+
+      <p
+        v-else-if="status === 'not-found'"
+        class="assignation-responsable-drawer__hint"
+      >
+        Aucun compte ne correspond à cette adresse. Un compte sera créé, la personne
+        complétera son profil à sa première connexion.
+      </p>
 
       <div class="assignation-responsable-drawer__actions">
         <CspButton
@@ -112,9 +161,7 @@ function handleSubmit(): void {
         />
         <CspButton
           type="submit"
-          label="Assigner un responsable"
-          icon="ri:user-star-line"
-          is-icon-left
+          :label="submitLabel"
           :disabled="submitDisabled"
         />
       </div>
@@ -130,9 +177,21 @@ function handleSubmit(): void {
 }
 
 .assignation-responsable-drawer__count {
-  margin: 0 0 var(--csp-space-3);
+  margin: 0;
   font-size: 0.9375rem;
   color: var(--text-mention-grey);
+}
+
+.assignation-responsable-drawer__lead {
+  margin: var(--csp-space-1) 0 var(--csp-space-3);
+  color: var(--text-mention-grey);
+  font-size: 0.875rem;
+}
+
+.assignation-responsable-drawer__hint {
+  margin: 0;
+  color: var(--text-mention-grey);
+  font-size: 0.875rem;
 }
 
 .assignation-responsable-drawer__tags {
@@ -142,6 +201,26 @@ function handleSubmit(): void {
   margin: 0;
   padding: 0;
   list-style: none;
+}
+
+.assignation-responsable-drawer__agent {
+  display: flex;
+  flex-direction: column;
+  gap: var(--csp-space-1);
+  padding: var(--csp-space-4);
+  border: 1px solid var(--border-default-grey);
+  border-radius: 0.25rem;
+}
+
+.assignation-responsable-drawer__agent-name {
+  margin: 0;
+  font-weight: 600;
+}
+
+.assignation-responsable-drawer__agent-detail {
+  margin: 0;
+  color: var(--text-mention-grey);
+  font-size: 0.875rem;
 }
 
 .assignation-responsable-drawer__actions {

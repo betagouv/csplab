@@ -1,26 +1,19 @@
-import type { AgentOrganisme } from '@/features/organismes/types'
+import type { AgentRecherche } from '@/features/organismes/types'
 import { mount } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
 import { nextTick } from 'vue'
-import CspCombobox from '@/components/base/CspCombobox/CspCombobox.vue'
 import { RECRUTEMENTS_ACTIFS } from '../mock'
 import AssignationResponsableDrawer from './AssignationResponsableDrawer.vue'
 
-const AGENT_ID = 'bbbbbbbb-0001-0001-0001-000000000001'
+const EMAIL = 'jeanne.dupont@example.gouv.fr'
 
-const AGENTS: AgentOrganisme[] = [
-  {
-    agent_id: AGENT_ID,
-    organisme_id: '11111111-1111-1111-1111-111111111111',
-    nom: 'Dupont',
-    prenom: 'Jeanne',
-    email: 'jeanne.dupont@example.gouv.fr',
-    poste: 'Chargée de recrutement',
-    role: 'agent',
-    date_derniere_activite: null,
-    date_creation_compte: '2026-01-01T00:00:00Z',
-  },
-]
+const AGENT: AgentRecherche = {
+  agent_id: 'bbbbbbbb-0001-0001-0001-000000000001',
+  email: EMAIL,
+  prenom: 'Jeanne',
+  nom: 'Dupont',
+  intitule_poste: 'Chargée de recrutement',
+}
 
 const RECRUTEMENTS = RECRUTEMENTS_ACTIFS.slice(0, 2)
 
@@ -29,7 +22,7 @@ function mountDrawer(props: Record<string, unknown> = {}) {
     props: {
       open: true,
       recrutements: RECRUTEMENTS,
-      agents: AGENTS,
+      status: 'idle',
       ...props,
     },
     attachTo: document.body,
@@ -44,20 +37,71 @@ function dismissButtons() {
   return [...document.querySelectorAll<HTMLButtonElement>('.csp-tag--dismissible')]
 }
 
-async function pickAgent(wrapper: ReturnType<typeof mountDrawer>, agentId: string) {
-  wrapper.findComponent(CspCombobox).vm.$emit('update:modelValue', agentId)
+async function typeEmail(value: string) {
+  const input = document.querySelector<HTMLInputElement>('input[name="email"]')!
+  input.value = value
+  input.dispatchEvent(new Event('input'))
   await nextTick()
 }
 
 describe('assignationResponsableDrawer', () => {
-  it('assigns the selected agent to the selected offers', async () => {
+  it('searches the typed email', async () => {
     const wrapper = mountDrawer()
     await nextTick()
-    await pickAgent(wrapper, AGENT_ID)
+    await typeEmail(EMAIL)
+
+    expect(submitButton().textContent).toContain('Rechercher')
     submitButton().click()
     await nextTick()
 
-    expect(wrapper.emitted('assign')).toEqual([[AGENT_ID]])
+    expect(wrapper.emitted('search')).toEqual([[EMAIL]])
+    wrapper.unmount()
+  })
+
+  it('refuses to search an invalid email', async () => {
+    const wrapper = mountDrawer()
+    await nextTick()
+    await typeEmail('jeanne.dupont')
+    submitButton().click()
+    await nextTick()
+
+    expect(wrapper.emitted('search')).toBeUndefined()
+    expect(document.body.textContent).toContain('Renseignez une adresse électronique valide.')
+    wrapper.unmount()
+  })
+
+  it('assigns the agent found for that email', async () => {
+    const wrapper = mountDrawer({ status: 'found', agent: AGENT })
+    await nextTick()
+
+    expect(document.body.textContent).toContain('Jeanne Dupont')
+    expect(submitButton().textContent).toContain('Assigner un responsable')
+    submitButton().click()
+    await nextTick()
+
+    expect(wrapper.emitted('assign')).toEqual([[]])
+    wrapper.unmount()
+  })
+
+  it('announces the account creation when no agent matches the email', async () => {
+    const wrapper = mountDrawer({ status: 'not-found' })
+    await nextTick()
+
+    expect(document.body.textContent).toContain('Un compte sera créé')
+    expect(submitButton().textContent).toContain('Créer et assigner')
+    submitButton().click()
+    await nextTick()
+
+    expect(wrapper.emitted('assign')).toEqual([[]])
+    wrapper.unmount()
+  })
+
+  it('drops the search result as soon as the email is edited', async () => {
+    const wrapper = mountDrawer({ status: 'found', agent: AGENT })
+    await nextTick()
+    await typeEmail('autre.personne@example.gouv.fr')
+
+    expect(wrapper.emitted('reset')).toHaveLength(1)
     wrapper.unmount()
   })
 
@@ -79,18 +123,6 @@ describe('assignationResponsableDrawer', () => {
     await nextTick()
 
     expect(wrapper.emitted('remove')).toEqual([[RECRUTEMENTS[1].offer_id]])
-    wrapper.unmount()
-  })
-
-  it('does not assign anybody while no agent is selected', async () => {
-    const wrapper = mountDrawer()
-    await nextTick()
-
-    expect(submitButton().disabled).toBe(true)
-    submitButton().click()
-    await nextTick()
-
-    expect(wrapper.emitted('assign')).toBeUndefined()
     wrapper.unmount()
   })
 

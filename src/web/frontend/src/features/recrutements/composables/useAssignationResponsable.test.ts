@@ -1,4 +1,4 @@
-import type { AgentOrganisme } from '@/features/organismes/types'
+import type { AgentRecherche } from '@/features/organismes/types'
 import { PiniaColada, useQuery } from '@pinia/colada'
 import { mount } from '@vue/test-utils'
 import { createPinia } from 'pinia'
@@ -10,7 +10,8 @@ import { useAssignationResponsable } from './useAssignationResponsable'
 
 const mockGetRecrutementsActifs = vi.fn()
 const mockSetRecrutementsResponsable = vi.fn()
-const mockGetOrganismeAgents = vi.fn()
+const mockSearchAgentByEmail = vi.fn()
+const mockCreateAgent = vi.fn()
 
 vi.mock('../api', () => ({
   getRecrutementDetail: vi.fn(),
@@ -22,25 +23,23 @@ vi.mock('../api', () => ({
 vi.mock('@/features/organismes/api', () => ({
   getOrganismesList: vi.fn(),
   getOrganismeDetail: vi.fn(),
-  getOrganismeAgents: (...args: unknown[]) => mockGetOrganismeAgents(...args),
+  getOrganismeAgents: vi.fn(),
+  searchAgentByEmail: (...args: unknown[]) => mockSearchAgentByEmail(...args),
+  createAgent: (...args: unknown[]) => mockCreateAgent(...args),
 }))
 
 const ORGANISME_UUID = '11111111-1111-1111-1111-111111111111'
 const AGENT_ID = 'bbbbbbbb-0001-0001-0001-000000000001'
+const NOUVEL_AGENT_ID = 'bbbbbbbb-0002-0002-0002-000000000002'
+const EMAIL = 'jeanne.dupont@example.gouv.fr'
 
-const AGENTS: AgentOrganisme[] = [
-  {
-    agent_id: AGENT_ID,
-    organisme_id: ORGANISME_UUID,
-    nom: 'Dupont',
-    prenom: 'Jeanne',
-    email: 'jeanne.dupont@example.gouv.fr',
-    poste: 'Chargée de recrutement',
-    role: 'agent',
-    date_derniere_activite: null,
-    date_creation_compte: '2026-01-01T00:00:00Z',
-  },
-]
+const AGENT: AgentRecherche = {
+  agent_id: AGENT_ID,
+  email: EMAIL,
+  prenom: 'Jeanne',
+  nom: 'Dupont',
+  intitule_poste: 'Chargée de recrutement',
+}
 
 async function flush() {
   await new Promise(resolve => setTimeout(resolve, 0))
@@ -66,19 +65,23 @@ function mountAssignation() {
 describe('useAssignationResponsable', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    mockGetOrganismeAgents.mockResolvedValue(AGENTS)
     mockGetRecrutementsActifs.mockResolvedValue({ results: RECRUTEMENTS_ACTIFS })
+    mockSearchAgentByEmail.mockResolvedValue(AGENT)
+    mockCreateAgent.mockResolvedValue({ ...AGENT, agent_id: NOUVEL_AGENT_ID, prenom: '', nom: '' })
     mockSetRecrutementsResponsable.mockResolvedValue({ reussites: ['rec-1'], echecs: [] })
   })
 
-  it('refreshes the active recrutements once a responsable has been assigned', async () => {
+  it('refreshes the active recrutements once the found agent has been assigned', async () => {
     const result = mountAssignation()
     await flush()
     expect(mockGetRecrutementsActifs).toHaveBeenCalledTimes(1)
 
-    await result.assigner({ recrutement_ids: ['rec-1'], agent_id: AGENT_ID })
+    await result.search(EMAIL)
+    await result.assigner(['rec-1'])
     await flush()
 
+    expect(result.status.value).toBe('found')
+    expect(mockCreateAgent).not.toHaveBeenCalled()
     expect(mockSetRecrutementsResponsable).toHaveBeenCalledWith(ORGANISME_UUID, {
       recrutement_ids: ['rec-1'],
       agent_id: AGENT_ID,
@@ -86,13 +89,42 @@ describe('useAssignationResponsable', () => {
     expect(mockGetRecrutementsActifs).toHaveBeenCalledTimes(2)
   })
 
+  it('creates the account before assigning when no agent matches the email', async () => {
+    mockSearchAgentByEmail.mockResolvedValue(null)
+    const result = mountAssignation()
+    await flush()
+
+    expect(await result.search(EMAIL)).toBe('not-found')
+
+    await result.assigner(['rec-1'])
+
+    expect(mockCreateAgent).toHaveBeenCalledWith({
+      email: EMAIL,
+      organisme_id: ORGANISME_UUID,
+    })
+    expect(mockSetRecrutementsResponsable).toHaveBeenCalledWith(ORGANISME_UUID, {
+      recrutement_ids: ['rec-1'],
+      agent_id: NOUVEL_AGENT_ID,
+    })
+  })
+
+  it('does not assign anybody when the account creation fails', async () => {
+    mockSearchAgentByEmail.mockResolvedValue(null)
+    mockCreateAgent.mockRejectedValue(new Error('500'))
+    const result = mountAssignation()
+    await flush()
+    await result.search(EMAIL)
+
+    await expect(result.assigner(['rec-1'])).rejects.toThrow('500')
+    expect(mockSetRecrutementsResponsable).not.toHaveBeenCalled()
+  })
+
   it('rejects so that the caller can report the failure', async () => {
     mockSetRecrutementsResponsable.mockRejectedValue(new Error('403'))
     const result = mountAssignation()
     await flush()
+    await result.search(EMAIL)
 
-    await expect(
-      result.assigner({ recrutement_ids: ['rec-1'], agent_id: AGENT_ID }),
-    ).rejects.toThrow('403')
+    await expect(result.assigner(['rec-1'])).rejects.toThrow('403')
   })
 })

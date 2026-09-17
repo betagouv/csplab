@@ -1,8 +1,11 @@
 <script setup lang="ts">
+import type { AssignationResponsableResultat } from '../types'
 import type { CspBreadcrumbItem } from '@/components/base/CspBreadcrumb/CspBreadcrumb.vue'
+import type { ToastOptions } from '@/composables/ui/useToast'
+import type { AgentRecherche } from '@/features/organismes/types'
 import { computed, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { isHttpStatus } from '@/api/errors'
+import { HttpError, isHttpStatus } from '@/api/errors'
 import CspAsyncSection from '@/components/base/CspAsyncSection/CspAsyncSection.vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspDataTable from '@/components/base/CspDataTable/CspDataTable.vue'
@@ -14,13 +17,20 @@ import CspTableToolbar from '@/components/base/CspTableToolbar/CspTableToolbar.v
 import CspPageContainer from '@/components/layout/CspPageContainer/CspPageContainer.vue'
 import CspPageHeader from '@/components/layout/CspPageHeader/CspPageHeader.vue'
 import { useMinimumPending } from '@/composables/async/useMinimumPending'
+import { useTableSelection } from '@/composables/data/useTableSelection'
 import { tabItems } from '@/composables/navigation/tabs'
 import { useRouteTab } from '@/composables/navigation/useRouteTab'
 import { useDisclosure } from '@/composables/ui/useDisclosure'
+import { useToast } from '@/composables/ui/useToast'
+import { formatAgentName } from '@/features/organismes/format'
+import { useRouteOrganisme } from '@/stores/routeOrganisme'
+import { pluralize } from '@/utils/format'
 import ForbiddenView from '@/views/ForbiddenView.vue'
 import { RECRUTEMENTS_ACTIFS_COLUMNS, RECRUTEMENTS_ARCHIVES_COLUMNS } from '../columns'
+import AssignationResponsableDrawer from '../components/AssignationResponsableDrawer.vue'
 import RecrutementsActifsFiltersDrawer from '../components/RecrutementsActifsFiltersDrawer.vue'
 import RecrutementsArchivesFiltersDrawer from '../components/RecrutementsArchivesFiltersDrawer.vue'
+import { useAssignationResponsable } from '../composables/useAssignationResponsable'
 
 import { useRecrutements } from '../composables/useRecrutements'
 import { useRecrutementsFilters } from '../composables/useRecrutementsFilters'
@@ -69,6 +79,81 @@ const archivesFilters = useRecrutementsFilters(computed(() => recrutementsData.a
 
 const actifsFiltersDrawer = useDisclosure()
 const archivesFiltersDrawer = useDisclosure()
+
+const { canManageOrganisme } = useRouteOrganisme()
+const { addToast } = useToast()
+
+const selection = useTableSelection(actifsFilters.filtered, row => row.offer_id)
+const assignationDrawer = useDisclosure()
+const {
+  status: responsableStatus,
+  foundAgent,
+  searching,
+  search: searchResponsable,
+  assigner,
+  submitting,
+  reset: resetResponsable,
+} = useAssignationResponsable(organismeUuid)
+
+const selectionLabel = computed(() => {
+  const count = selection.count.value
+  return `${count} ${pluralize(count, 'offre sélectionnée', 'offres sélectionnées')}`
+})
+
+function assignationToast(
+  resultat: AssignationResponsableResultat,
+  agent: AgentRecherche | null,
+): ToastOptions {
+  const nom = agent ? formatAgentName(agent) || agent.email : 'Le membre choisi'
+  const reussites = resultat.reussites.length
+  const assignees = `${nom} est responsable de ${reussites} ${pluralize(reussites, 'offre')}`
+
+  if (resultat.echecs.length === 0) {
+    return {
+      variant: 'success',
+      title: 'Responsable assigné',
+      description: `${assignees}.`,
+    }
+  }
+  const echecs = resultat.echecs.length
+  return {
+    variant: 'warning',
+    title: 'Assignation partielle',
+    description: `${assignees}, ${echecs} ${pluralize(echecs, 'offre ignorée', 'offres ignorées')}.`,
+  }
+}
+
+function assignationErrorTitle(assignationError: unknown): string {
+  if (assignationError instanceof HttpError && assignationError.status === 403)
+    return 'Vous n\'avez pas les droits pour assigner un responsable'
+  if (assignationError instanceof HttpError && assignationError.status === 404)
+    return 'Ce membre n\'est plus rattaché à l\'organisme'
+  return 'L\'assignation du responsable a échoué'
+}
+
+async function handleSearchResponsable(email: string) {
+  try {
+    await searchResponsable(email)
+  }
+  catch {
+    addToast({ variant: 'error', title: 'La recherche a échoué' })
+  }
+}
+
+async function handleAssign() {
+  const recrutementIds = selection.selected.value.map(row => row.offer_id)
+
+  try {
+    const resultat = await assigner(recrutementIds)
+    const agent = foundAgent.value
+    assignationDrawer.close()
+    selection.clear()
+    addToast(assignationToast(resultat, agent))
+  }
+  catch (assignationError) {
+    addToast({ variant: 'error', title: assignationErrorTitle(assignationError) })
+  }
+}
 
 function openActifsFilters() {
   actifsFilters.syncDraft()
@@ -139,7 +224,17 @@ const archivesCountLabel = computed(() => {
         v-if="!recrutementsError"
         #tab-actifs
       >
-        <CspTableToolbar :bordered="false">
+        <CspTableToolbar
+          :bordered="false"
+          :selection-count="selection.count.value"
+          :selection-label="selectionLabel"
+        >
+          <template #selection-actions>
+            <CspButton
+              label="Assigner un responsable"
+              @click="assignationDrawer.open()"
+            />
+          </template>
           <template #status>
             <CspSkeleton
               v-if="showActifsSkeleton"
@@ -176,6 +271,18 @@ const archivesCountLabel = computed(() => {
           @apply="applyActifsFilters"
           @reset="actifsFilters.reset()"
         />
+        <AssignationResponsableDrawer
+          v-model:open="assignationDrawer.isOpen.value"
+          :recrutements="selection.selected.value"
+          :status="responsableStatus"
+          :agent="foundAgent"
+          :searching="searching"
+          :submitting="submitting"
+          @remove="selection.toggle"
+          @search="handleSearchResponsable"
+          @assign="handleAssign"
+          @reset="resetResponsable"
+        />
         <CspAsyncSection
           :pending="showActifsSkeleton"
           loading-label="Chargement des recrutements en cours"
@@ -183,7 +290,7 @@ const archivesCountLabel = computed(() => {
           <template #skeleton>
             <CspSkeletonTable
               :rows="PAGE_SIZE"
-              :columns="6"
+              :columns="canManageOrganisme ? 7 : 6"
               with-footer
             />
           </template>
@@ -192,11 +299,16 @@ const archivesCountLabel = computed(() => {
             :rows="actifsFilters.filtered.value"
             :columns="RECRUTEMENTS_ACTIFS_COLUMNS"
             :row-key="row => row.offer_id"
+            :selection-mode="canManageOrganisme ? 'checkbox' : 'none'"
+            :selected-ids="selection.selectedIds.value"
+            :selection-label="row => `Sélectionner ${row.intitule}`"
             activation-mode="cell"
             caption="Recrutements en cours"
             empty-label="Aucun recrutement en cours"
             :page-size="PAGE_SIZE"
             @activate="openOffre"
+            @toggle-row="selection.toggle"
+            @toggle-all="selection.toggleVisible"
           >
             <template #header-candidatures="{ label }">
               <div class="mes-recrutement-view__candidatures-head">
