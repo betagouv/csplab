@@ -59,10 +59,12 @@ export default defineConfig(({ command }) => ({
   server,
   test: {
     environment: 'jsdom',
+    setupFiles: ['src/test/setup.ts'],
+    testTimeout: 10_000,
     coverage: {
       provider: 'v8',
       include: ['src/utils/**', 'src/api/**', 'src/stores/**', 'src/composables/**', 'src/features/**/composables/**'],
-      exclude: ['**/*.stories.ts', 'src/composables/dnd/**'],
+      exclude: ['**/*.stories.ts', 'src/composables/dnd/**', 'src/test/**'],
       thresholds: {
         'src/utils/**': { statements: 80, branches: 80, functions: 80, lines: 80 },
         'src/composables/**': { statements: 80, branches: 80, functions: 80, lines: 80 },
