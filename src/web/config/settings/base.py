@@ -243,10 +243,6 @@ SECURITY_CONTACT_EMAIL = "ops.csplab@beta.gouv.fr"
 # Maximum CV size in cv upload flow
 CV_MAX_SIZE_MB = 5
 
-# Maximum candidature document size and accepted content types
-DOCUMENT_MAX_SIZE_MB = 5
-DOCUMENT_ALLOWED_CONTENT_TYPES = {"application/pdf"}
-
 # Polling interval for CV processing status (in seconds)
 CV_PROCESSING_POLL_INTERVAL = 2
 
