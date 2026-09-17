@@ -1,9 +1,12 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.db.models import Q
+from django.db.models.functions import Lower, Trim
 
 from domain.identite.entities.agent import Agent
 from domain.identite.entities.candidat import Candidat
 from domain.identite.entities.utilisateurs import Utilisateur
+from domain.identite.value_objects.email import normalize_email
 
 
 class UserModel(AbstractUser):
@@ -28,6 +31,18 @@ class UserModel(AbstractUser):
     class Meta:
         verbose_name = "User"
         verbose_name_plural = "Users"
+        constraints = [
+            models.CheckConstraint(
+                condition=Q(email=Trim(Lower("email"))),
+                name="users_email_is_lowercase",
+            )
+        ]
+
+    def save(self, *args, **kwargs):
+        # Django has a hook for this, AbstractUser.clean(), but it only runs on
+        # full_clean(), which save() never calls.
+        self.email = normalize_email(self.email)
+        return super().save(*args, **kwargs)
 
     def __str__(self):
         return self.email
@@ -72,7 +87,9 @@ class ProfilCandidatModel(models.Model):
 
 class ProfilAgentQuerySet(models.QuerySet):
     def par_email(self, email: str) -> "ProfilAgentQuerySet":
-        return self.select_related("utilisateur").filter(utilisateur__email=email)
+        return self.select_related("utilisateur").filter(
+            utilisateur__email=normalize_email(email)
+        )
 
 
 class ProfilAgentModel(models.Model):

@@ -6,6 +6,7 @@ from domain.identite.errors.identite_errors import (
 from domain.identite.repositories.utilisateur_repository_interface import (
     IUtilisateurRepository,
 )
+from domain.identite.value_objects.email import normalize_email
 from domain.identite.value_objects.organisme_role import OrganismeRole
 from infrastructure.django_apps.recruteur.models.organisme import OrganismeAgentModel
 from infrastructure.django_apps.users.models import UserModel
@@ -43,7 +44,9 @@ class PostgresUtilisateurRepository(IUtilisateurRepository):
 
     def get_by_email(self, email: str) -> Utilisateur:
         try:
-            return self._mapper.to_domain(UserModel.objects.get(email=email))
+            return self._mapper.to_domain(
+                UserModel.objects.get(email=normalize_email(email))
+            )
         except UserModel.DoesNotExist as e:
             raise UtilisateurNexistePas(email) from e
 

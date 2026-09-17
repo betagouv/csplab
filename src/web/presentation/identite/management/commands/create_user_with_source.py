@@ -9,6 +9,7 @@ from django.db import transaction
 from referentiel.value_objects.source_type import SourceType
 
 from config.logger_names import LoggerName
+from domain.identite.value_objects.email import normalize_email
 from infrastructure.django_apps.ingestion.models.source import SourceModel
 from infrastructure.django_apps.users.models import UserModel
 
@@ -60,6 +61,7 @@ class Command(BaseCommand):
             except ValidationError:
                 self.logger.warning("Email invalide, réessayez.")
                 continue
+            email = normalize_email(email)
             if UserModel.objects.filter(email=email).exists():
                 self.logger.warning("Un utilisateur avec cet email existe déjà.")
                 continue

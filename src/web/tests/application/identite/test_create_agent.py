@@ -86,3 +86,20 @@ def test_create_agent_propagates_permission_errors(
         usecase.execute(_input())
 
     agent_repository.get_by_email.assert_not_called()
+
+
+def test_create_agent_normalizes_the_email(
+    agent_repository, utilisateur_repository, usecase
+):
+    input_data = CreateAgentInput(
+        email="  Jean.DUPONT@GOUV.FR  ",
+        organisme_id=uuid4(),
+        utilisateur=UtilisateurFactory.create_entity(),
+    )
+
+    usecase.execute(input_data)
+
+    agent_repository.get_by_email.assert_called_once_with("jean.dupont@gouv.fr")
+    utilisateur_repository.get_by_email.assert_called_once_with("jean.dupont@gouv.fr")
+    _, agent = agent_repository.create.call_args.args
+    assert agent.email == "jean.dupont@gouv.fr"
