@@ -14,6 +14,7 @@ from referentiel.value_objects.siret import SIRET
 from referentiel.value_objects.verse import Verse
 
 from domain.entities.raw_organisme import RawOrganisme
+from domain.gateways.siret_lookup_gateway import ISiretLookupGateway
 from domain.value_objects.organisme_referentiel import OrganismeReferentiel
 from infrastructure.gateways.lambert93 import lambert93_to_wgs84
 
@@ -73,8 +74,13 @@ class Nom(BaseModel):
 
 
 class OrganismesCleaner:
-    def __init__(self, categories_csv_path: Path = _CATEGORIES_CSV) -> None:
+    def __init__(
+        self,
+        categories_csv_path: Path = _CATEGORIES_CSV,
+        siret_lookup_gateway: Optional[ISiretLookupGateway] = None,
+    ) -> None:
         self._allowed_categories = _load_allowed_categories(categories_csv_path)
+        self._siret_lookup_gateway = siret_lookup_gateway
 
     def clean(self, raw_organisme: RawOrganisme) -> Optional[Organisme]:
         if raw_organisme.referentiel == OrganismeReferentiel.FINESS:
@@ -185,7 +191,10 @@ class OrganismesCleaner:
 
         data = raw_organisme.data
         nom = Nom(value=data.get("nom") or "")
-        siret = SIRET(code=data.get("siret") or "")
+        siret_code = self._resolve_dila_siret(
+            data.get("siret") or "", nom.value, raw_organisme.external_id
+        )
+        siret = SIRET(code=siret_code)
         localisation = self._map_localisation_dila(data, raw_organisme.external_id)
 
         parent_external_id = data.get("parent_id") or None
@@ -204,6 +213,11 @@ class OrganismesCleaner:
             millesime=raw_organisme.millesime,
             date_creation=_parse_iso_date(data.get("date_creation_datetime")),
         )
+
+    def _resolve_dila_siret(self, siret_code: str, nom: str, external_id: str) -> str:
+        if siret_code or self._siret_lookup_gateway is None:
+            return siret_code
+        return self._siret_lookup_gateway.find_siret(nom, external_id) or ""
 
     def _map_localisation_dila(
         self, data: dict[str, Any], external_id: str

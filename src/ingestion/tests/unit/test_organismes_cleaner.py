@@ -543,3 +543,62 @@ def test_dila_date_creation_is_none_when_unparseable(cleaner: OrganismesCleaner)
 
     assert organisme is not None
     assert organisme.date_creation is None
+
+
+class _FakeSiretLookupGateway:
+    def __init__(self, siret: str | None) -> None:
+        self.siret = siret
+        self.calls: list[tuple[str, str]] = []
+
+    def find_siret(self, nom: str, external_id: str) -> str | None:
+        self.calls.append((nom, external_id))
+        return self.siret
+
+
+def test_dila_looks_up_siret_when_missing(categories_csv: Path):
+    gateway = _FakeSiretLookupGateway(siret=DILA_SIRET_VALUE)
+    cleaner = OrganismesCleaner(
+        categories_csv_path=categories_csv, siret_lookup_gateway=gateway
+    )
+    raw_organisme = _raw_organisme_dila(_dila_service(siret=None))
+
+    organisme = cleaner.clean(raw_organisme)
+
+    assert organisme is not None
+    assert organisme.siret == SIRET(code=DILA_SIRET_VALUE)
+    assert gateway.calls == [("Ministère de l'Intérieur", "dila-1")]
+
+
+def test_dila_does_not_look_up_siret_when_present(categories_csv: Path):
+    decoy_siret_from_gateway = "35600000000048"
+    gateway = _FakeSiretLookupGateway(siret=decoy_siret_from_gateway)
+    cleaner = OrganismesCleaner(
+        categories_csv_path=categories_csv, siret_lookup_gateway=gateway
+    )
+    raw_organisme = _raw_organisme_dila(_dila_service(siret=DILA_SIRET_VALUE))
+
+    organisme = cleaner.clean(raw_organisme)
+
+    assert organisme is not None
+    assert organisme.siret == SIRET(code=DILA_SIRET_VALUE)
+    assert gateway.calls == [], "the gateway must not be called when SIRET is present"
+
+
+def test_dila_raises_when_lookup_finds_nothing(categories_csv: Path):
+    gateway = _FakeSiretLookupGateway(siret=None)
+    cleaner = OrganismesCleaner(
+        categories_csv_path=categories_csv, siret_lookup_gateway=gateway
+    )
+    raw_organisme = _raw_organisme_dila(_dila_service(siret=None))
+
+    with pytest.raises(ValidationError):
+        cleaner.clean(raw_organisme)
+
+
+def test_dila_raises_when_missing_siret_and_no_lookup_gateway(
+    cleaner: OrganismesCleaner,
+):
+    raw_organisme = _raw_organisme_dila(_dila_service(siret=None))
+
+    with pytest.raises(ValidationError):
+        cleaner.clean(raw_organisme)

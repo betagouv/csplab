@@ -44,6 +44,9 @@ from infrastructure.external_gateways.finess_organisme_gateway import (
 from infrastructure.external_gateways.gipcdg_organisme_gateway import (
     GipcdgOrganismeGateway,
 )
+from infrastructure.external_gateways.recherche_entreprises_gateway import (
+    RechercheEntreprisesGateway,
+)
 from infrastructure.external_gateways.talentsoft_client import (
     TalentsoftConfig,
     TalentsoftFrontClient,
@@ -60,7 +63,7 @@ from infrastructure.external_gateways.web_publish_organismes_gateway import (
 )
 from infrastructure.external_gateways.web_sources_gateway import WebSourcesGateway
 from infrastructure.gateways.offers_cleaner import OffersCleaner
-from infrastructure.gateways.organismes_cleaner import OrganismesCleaner
+from infrastructure.gateways.organismes_cleaner import _DATA_DIR, OrganismesCleaner
 from infrastructure.raw_offer_repository import RawOfferRepository
 from infrastructure.raw_organisme_repository import RawOrganismeRepository
 from infrastructure.sources_repository import SourcesRepository
@@ -95,6 +98,9 @@ def _make_db_engine(database_url: str | None) -> Engine:
     if not database_url:
         raise ValueError("DATABASE_URL is required")
     return make_engine(database_url)
+
+
+_DILA_SIRET_CACHE_CSV = _DATA_DIR / "dila_siret_cache.csv"
 
 
 class Container(containers.DeclarativeContainer):
@@ -181,8 +187,16 @@ class Container(containers.DeclarativeContainer):
         )
     )
 
+    siret_lookup_gateway = providers.Singleton(
+        RechercheEntreprisesGateway,
+        cache_path=_DILA_SIRET_CACHE_CSV,
+        search_url=config.recherche_entreprises_api_url,
+        max_calls_per_second=config.recherche_entreprises_rate_limit_per_second,
+    )
+
     organismes_cleaner: providers.Provider[IOrganismesCleaner] = providers.Singleton(
-        OrganismesCleaner
+        OrganismesCleaner,
+        siret_lookup_gateway=siret_lookup_gateway,
     )
 
     clean_raw_organismes_usecase: providers.Provider[CleanRawOrganismesUsecase] = (
@@ -327,6 +341,12 @@ def create_container() -> Container:
         str(settings.gipcdg_collectivites_api_url)
     )
     container.config.dila_export_url.from_value(str(settings.dila_export_url))
+    container.config.recherche_entreprises_api_url.from_value(
+        str(settings.recherche_entreprises_api_url)
+    )
+    container.config.recherche_entreprises_rate_limit_per_second.from_value(
+        settings.recherche_entreprises_rate_limit_per_second
+    )
 
     _logger = logging.getLogger(__name__)
     register_talentsoft_front_clients(
