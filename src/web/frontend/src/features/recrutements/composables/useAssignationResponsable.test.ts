@@ -119,6 +119,43 @@ describe('useAssignationResponsable', () => {
     expect(mockSetRecrutementsResponsable).not.toHaveBeenCalled()
   })
 
+  it('refuses to assign when no responsable has been searched for', async () => {
+    const result = mountAssignation()
+    await flush()
+
+    await expect(result.assigner(['rec-1'])).rejects.toThrow('Aucun responsable à assigner.')
+    expect(mockSetRecrutementsResponsable).not.toHaveBeenCalled()
+  })
+
+  it('stays submitting from the account creation until the assignation is done', async () => {
+    mockSearchAgentByEmail.mockResolvedValue(null)
+    let acheverCreation!: (agent: unknown) => void
+    let acheverAssignation!: (resultat: unknown) => void
+    mockCreateAgent.mockReturnValue(new Promise((resolve) => {
+      acheverCreation = resolve
+    }))
+    mockSetRecrutementsResponsable.mockReturnValue(new Promise((resolve) => {
+      acheverAssignation = resolve
+    }))
+
+    const result = mountAssignation()
+    await flush()
+    await result.search(EMAIL)
+
+    const enCours = result.assigner(['rec-1'])
+    await flush()
+    expect(result.submitting.value).toBe(true)
+
+    acheverCreation({ ...AGENT, agent_id: NOUVEL_AGENT_ID })
+    await flush()
+    expect(result.submitting.value).toBe(true)
+
+    acheverAssignation({ reussites: ['rec-1'], echecs: [] })
+    await enCours
+    await flush()
+    expect(result.submitting.value).toBe(false)
+  })
+
   it('rejects so that the caller can report the failure', async () => {
     mockSetRecrutementsResponsable.mockRejectedValue(new Error('403'))
     const result = mountAssignation()
