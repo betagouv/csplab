@@ -390,3 +390,80 @@ async def test_mark_as_upserted_batch_with_empty_list_is_noop(
 
     saved = _fetch(db_engine, REFERENTIEL, EXTERNAL_ID)
     assert saved.upsert_at is None
+
+
+@pytest.mark.asyncio
+async def test_mark_dila_siret_found_batch_sets_siret_and_timestamp(
+    raw_organisme_repository, db_engine
+):
+    organisme = RawOrganisme(
+        referentiel=REFERENTIEL, millesime="2026-08-19", external_id=EXTERNAL_ID
+    )
+    await raw_organisme_repository.upsert_batch([organisme])
+    found_at = datetime.now(tz=timezone.utc)
+
+    await raw_organisme_repository.mark_dila_siret_found_batch(
+        [(organisme.id, "26060047300342", found_at)]
+    )
+
+    saved = _fetch(db_engine, REFERENTIEL, EXTERNAL_ID)
+    assert saved.dila_siret_found == "26060047300342"
+    assert saved.dila_siret_found_at is not None
+
+
+@pytest.mark.asyncio
+async def test_mark_dila_siret_found_batch_can_cache_an_empty_result(
+    raw_organisme_repository, db_engine
+):
+    organisme = RawOrganisme(
+        referentiel=REFERENTIEL, millesime="2026-08-19", external_id=EXTERNAL_ID
+    )
+    await raw_organisme_repository.upsert_batch([organisme])
+    found_at = datetime.now(tz=timezone.utc)
+
+    await raw_organisme_repository.mark_dila_siret_found_batch(
+        [(organisme.id, "", found_at)]
+    )
+
+    saved = _fetch(db_engine, REFERENTIEL, EXTERNAL_ID)
+    assert saved.dila_siret_found == ""
+    assert saved.dila_siret_found_at is not None
+
+
+@pytest.mark.asyncio
+async def test_mark_dila_siret_found_batch_with_empty_list_is_noop(
+    raw_organisme_repository, db_engine
+):
+    organisme = RawOrganisme(
+        referentiel=REFERENTIEL, millesime="2026-08-19", external_id=EXTERNAL_ID
+    )
+    await raw_organisme_repository.upsert_batch([organisme])
+
+    await raw_organisme_repository.mark_dila_siret_found_batch([])
+
+    saved = _fetch(db_engine, REFERENTIEL, EXTERNAL_ID)
+    assert saved.dila_siret_found is None
+
+
+@pytest.mark.asyncio
+async def test_upsert_batch_preserves_dila_siret_found_on_conflict(
+    raw_organisme_repository, db_engine
+):
+    organisme = RawOrganisme(
+        referentiel=REFERENTIEL, millesime="2026-08-18", external_id=EXTERNAL_ID
+    )
+    await raw_organisme_repository.upsert_batch([organisme])
+    await raw_organisme_repository.mark_dila_siret_found_batch(
+        [(organisme.id, "26060047300342", datetime.now(tz=timezone.utc))]
+    )
+
+    await raw_organisme_repository.upsert_batch(
+        [
+            RawOrganisme(
+                referentiel=REFERENTIEL, millesime="2026-08-19", external_id=EXTERNAL_ID
+            )
+        ]
+    )
+
+    saved = _fetch(db_engine, REFERENTIEL, EXTERNAL_ID)
+    assert saved.dila_siret_found == "26060047300342"

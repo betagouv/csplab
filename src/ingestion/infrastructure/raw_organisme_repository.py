@@ -1,5 +1,6 @@
 import asyncio
 from datetime import datetime
+from typing import Optional
 from uuid import UUID
 
 from sqlalchemy import Engine, delete, or_, tuple_, update
@@ -117,4 +118,23 @@ class RawOrganismeRepository(IRawOrganismeRepository):
                 )
                 .values(upsert_at=upsert_at)
             )
+            session.commit()
+
+    async def mark_dila_siret_found_batch(
+        self, updates: list[tuple[UUID, Optional[str], datetime]]
+    ) -> None:
+        if not updates:
+            return
+        await asyncio.to_thread(self._mark_dila_siret_found_batch_sync, updates)
+
+    def _mark_dila_siret_found_batch_sync(
+        self, updates: list[tuple[UUID, Optional[str], datetime]]
+    ) -> None:
+        with Session(self._engine) as session:
+            for organisme_id, siret, found_at in updates:
+                session.execute(
+                    update(RawOrganismeModel)
+                    .where(col(RawOrganismeModel.id) == organisme_id)
+                    .values(dila_siret_found=siret, dila_siret_found_at=found_at)
+                )
             session.commit()

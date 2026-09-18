@@ -78,7 +78,6 @@ scripts/*.csv
 
 # Data
 *.csv
-!src/ingestion/data/dila_siret_cache.csv
 
 # Database dumps
 dumps/*.tar.gz

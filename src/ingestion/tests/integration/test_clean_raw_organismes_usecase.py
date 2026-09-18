@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta, timezone
 from unittest.mock import MagicMock
 
 import pytest
@@ -17,6 +18,7 @@ pytestmark = pytest.mark.usefixtures("clean_db")
 
 REFERENTIEL = "FINESS"
 ALLOWED_CATEGORIE = "101"
+DILA_SIRET_LOOKUP_MAX_AGE_DAYS = 30
 DISALLOWED_CATEGORIE = "999"
 
 
@@ -75,7 +77,9 @@ def _fetch_all(db_engine) -> list[RawOrganismeModel]:
 
 @pytest.fixture
 def cleaner() -> OrganismesCleaner:
-    return OrganismesCleaner()
+    return OrganismesCleaner(
+        dila_siret_lookup_max_age_days=DILA_SIRET_LOOKUP_MAX_AGE_DAYS
+    )
 
 
 @pytest.fixture
@@ -160,7 +164,9 @@ async def test_cleaner_error_is_skipped_but_still_marked_cleaned(
 ):
     raw_batch = _raw_organismes(2)
     await raw_organisme_repository.upsert_batch(raw_batch)
-    real_cleaner = OrganismesCleaner()
+    real_cleaner = OrganismesCleaner(
+        dila_siret_lookup_max_age_days=DILA_SIRET_LOOKUP_MAX_AGE_DAYS
+    )
     mock_cleaner = MagicMock(spec=IOrganismesCleaner)
 
     def _clean_side_effect(raw_organisme):
@@ -178,3 +184,144 @@ async def test_cleaner_error_is_skipped_but_still_marked_cleaned(
 
     assert len(result) == 1
     assert all(row.cleaned_at is not None for row in _fetch_all(db_engine))
+
+
+DILA_REFERENTIEL = "DILA"
+DILA_SIRET_VALUE = "26060047300342"
+
+
+class _FakeSiretLookupGateway:
+    def __init__(self, siret: str | None) -> None:
+        self.siret = siret
+        self.calls: list[str] = []
+
+    def find_siret(self, nom: str) -> str | None:
+        self.calls.append(nom)
+        return self.siret
+
+
+def _raw_organisme_dila(external_id: str, *, siret: str | None = None) -> RawOrganisme:
+    return RawOrganisme(
+        referentiel=DILA_REFERENTIEL,
+        millesime="2026-08-26",
+        external_id=external_id,
+        data={
+            "nom": f"Ministère {external_id}",
+            "siret": siret,
+            "code_insee_commune": None,
+            "adresse": None,
+            "date_creation_datetime": None,
+            "parent_id": None,
+        },
+    )
+
+
+def _fetch_dila(db_engine, external_id: str) -> RawOrganismeModel:
+    with Session(db_engine) as session:
+        row = session.exec(
+            select(RawOrganismeModel).where(
+                RawOrganismeModel.referentiel == DILA_REFERENTIEL,
+                RawOrganismeModel.external_id == external_id,
+            )
+        ).first()
+        assert row is not None
+        return row
+
+
+@pytest.mark.asyncio
+async def test_looks_up_and_persists_missing_dila_siret(
+    raw_organisme_repository, db_engine
+):
+    await raw_organisme_repository.upsert_batch([_raw_organisme_dila("dila-1")])
+    gateway = _FakeSiretLookupGateway(siret=DILA_SIRET_VALUE)
+    usecase = CleanRawOrganismesUsecase(
+        organismes_cleaner=OrganismesCleaner(
+            dila_siret_lookup_max_age_days=DILA_SIRET_LOOKUP_MAX_AGE_DAYS
+        ),
+        raw_organisme_repository=raw_organisme_repository,
+        siret_lookup_gateway=gateway,
+    )
+
+    result = await usecase.execute(DILA_REFERENTIEL)
+
+    assert len(result) == 1
+    assert result[0].siret.code == DILA_SIRET_VALUE
+    assert gateway.calls == ["Ministère dila-1"]
+    saved = _fetch_dila(db_engine, "dila-1")
+    assert saved.dila_siret_found == DILA_SIRET_VALUE
+    assert saved.dila_siret_found_at is not None
+
+
+@pytest.mark.asyncio
+async def test_does_not_look_up_dila_siret_again_once_cached(
+    raw_organisme_repository, db_engine
+):
+    await raw_organisme_repository.upsert_batch([_raw_organisme_dila("dila-1")])
+    gateway = _FakeSiretLookupGateway(siret=DILA_SIRET_VALUE)
+    usecase = CleanRawOrganismesUsecase(
+        organismes_cleaner=OrganismesCleaner(
+            dila_siret_lookup_max_age_days=DILA_SIRET_LOOKUP_MAX_AGE_DAYS
+        ),
+        raw_organisme_repository=raw_organisme_repository,
+        siret_lookup_gateway=gateway,
+    )
+    await usecase.execute(DILA_REFERENTIEL)
+
+    # A re-import without any change resets cleaned_at, but must not
+    # re-trigger a lookup since dila_siret_found is preserved across upserts.
+    await raw_organisme_repository.upsert_batch([_raw_organisme_dila("dila-1")])
+    await usecase.execute(DILA_REFERENTIEL)
+
+    assert gateway.calls == ["Ministère dila-1"]
+
+
+@pytest.mark.asyncio
+async def test_looks_up_dila_siret_again_once_cache_is_older_than_max_age(
+    raw_organisme_repository, db_engine
+):
+    raw_organisme = _raw_organisme_dila("dila-1")
+    await raw_organisme_repository.upsert_batch([raw_organisme])
+    stale_found_at = datetime.now(tz=timezone.utc) - timedelta(days=31)
+    await raw_organisme_repository.mark_dila_siret_found_batch(
+        [(raw_organisme.id, "35600000000048", stale_found_at)]
+    )
+    gateway = _FakeSiretLookupGateway(siret=DILA_SIRET_VALUE)
+    usecase = CleanRawOrganismesUsecase(
+        organismes_cleaner=OrganismesCleaner(
+            dila_siret_lookup_max_age_days=DILA_SIRET_LOOKUP_MAX_AGE_DAYS
+        ),
+        raw_organisme_repository=raw_organisme_repository,
+        siret_lookup_gateway=gateway,
+    )
+
+    result = await usecase.execute(DILA_REFERENTIEL)
+
+    assert len(result) == 1
+    assert result[0].siret.code == DILA_SIRET_VALUE
+    assert gateway.calls == ["Ministère dila-1"]
+    saved = _fetch_dila(db_engine, "dila-1")
+    assert saved.dila_siret_found == DILA_SIRET_VALUE
+    assert saved.dila_siret_found_at.replace(tzinfo=timezone.utc) > stale_found_at
+
+
+@pytest.mark.asyncio
+async def test_does_not_look_up_dila_siret_when_present_in_data(
+    raw_organisme_repository,
+):
+    await raw_organisme_repository.upsert_batch(
+        [_raw_organisme_dila("dila-1", siret=DILA_SIRET_VALUE)]
+    )
+    gateway = _FakeSiretLookupGateway(siret="35600000000048")
+    usecase = CleanRawOrganismesUsecase(
+        organismes_cleaner=OrganismesCleaner(
+            dila_siret_lookup_max_age_days=DILA_SIRET_LOOKUP_MAX_AGE_DAYS
+        ),
+        raw_organisme_repository=raw_organisme_repository,
+        siret_lookup_gateway=gateway,
+    )
+
+    result = await usecase.execute(DILA_REFERENTIEL)
+
+    assert len(result) == 1
+    assert result[0].siret.code == DILA_SIRET_VALUE
+    assert gateway.calls == []

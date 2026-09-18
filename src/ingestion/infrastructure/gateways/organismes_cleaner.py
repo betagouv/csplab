@@ -1,7 +1,7 @@
 import csv
 import json
 import logging
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Iterable, Optional
 from uuid import UUID, uuid4, uuid5
@@ -14,7 +14,6 @@ from referentiel.value_objects.siret import SIRET
 from referentiel.value_objects.verse import Verse
 
 from domain.entities.raw_organisme import RawOrganisme
-from domain.gateways.siret_lookup_gateway import ISiretLookupGateway
 from domain.value_objects.organisme_referentiel import OrganismeReferentiel
 from infrastructure.gateways.lambert93 import lambert93_to_wgs84
 
@@ -76,11 +75,12 @@ class Nom(BaseModel):
 class OrganismesCleaner:
     def __init__(
         self,
+        *,
         categories_csv_path: Path = _CATEGORIES_CSV,
-        siret_lookup_gateway: Optional[ISiretLookupGateway] = None,
+        dila_siret_lookup_max_age_days: int,
     ) -> None:
         self._allowed_categories = _load_allowed_categories(categories_csv_path)
-        self._siret_lookup_gateway = siret_lookup_gateway
+        self._dila_siret_lookup_max_age = timedelta(days=dila_siret_lookup_max_age_days)
 
     def clean(self, raw_organisme: RawOrganisme) -> Optional[Organisme]:
         if raw_organisme.referentiel == OrganismeReferentiel.FINESS:
@@ -191,9 +191,7 @@ class OrganismesCleaner:
 
         data = raw_organisme.data
         nom = Nom(value=data.get("nom") or "")
-        siret_code = self._resolve_dila_siret(
-            data.get("siret") or "", nom.value, raw_organisme.external_id
-        )
+        siret_code = data.get("siret") or raw_organisme.dila_siret_found or ""
         siret = SIRET(code=siret_code)
         localisation = self._map_localisation_dila(data, raw_organisme.external_id)
 
@@ -214,10 +212,30 @@ class OrganismesCleaner:
             date_creation=_parse_iso_date(data.get("date_creation_datetime")),
         )
 
-    def _resolve_dila_siret(self, siret_code: str, nom: str, external_id: str) -> str:
-        if siret_code or self._siret_lookup_gateway is None:
-            return siret_code
-        return self._siret_lookup_gateway.find_siret(nom, external_id) or ""
+    def nom_for_dila_siret_lookup(self, raw_organisme: RawOrganisme) -> Optional[str]:
+        """Nom to use for an external SIRET lookup, if this raw organisme has
+        a missing SIRET and no lookup has been cached for it yet; otherwise
+        None.
+        """
+        if raw_organisme.referentiel != OrganismeReferentiel.DILA:
+            return None
+        if not raw_organisme.data:
+            return None
+        if raw_organisme.data.get("siret"):
+            return None
+        if self._has_fresh_dila_siret_lookup(raw_organisme):
+            return None
+        nom = (raw_organisme.data.get("nom") or "").strip()
+        return nom or None
+
+    def _has_fresh_dila_siret_lookup(self, raw_organisme: RawOrganisme) -> bool:
+        found_at = raw_organisme.dila_siret_found_at
+        if raw_organisme.dila_siret_found is None or found_at is None:
+            return False
+        if found_at.tzinfo is None:
+            found_at = found_at.replace(tzinfo=timezone.utc)
+        max_age_ago = datetime.now(timezone.utc) - self._dila_siret_lookup_max_age
+        return found_at >= max_age_ago
 
     def _map_localisation_dila(
         self, data: dict[str, Any], external_id: str

@@ -14,4 +14,6 @@ class RawOrganisme:
     loaded_at: Optional[datetime] = None
     cleaned_at: Optional[datetime] = None
     upsert_at: Optional[datetime] = None
+    dila_siret_found: Optional[str] = None
+    dila_siret_found_at: Optional[datetime] = None
     id: UUID = field(default_factory=uuid4)
