@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import type { Candidature } from '../types'
-import { computed } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspDrawer from '@/components/base/CspDrawer/CspDrawer.vue'
 import CspEmptyState from '@/components/base/CspEmptyState/CspEmptyState.vue'
 import CspErrorState from '@/components/base/CspErrorState/CspErrorState.vue'
+import CspSequenceNav from '@/components/base/CspSequenceNav/CspSequenceNav.vue'
 import CspSkeleton from '@/components/base/CspSkeleton/CspSkeleton.vue'
 import CspTabs from '@/components/base/CspTabs/CspTabs.vue'
 import CspTabsList from '@/components/base/CspTabs/CspTabsList.vue'
@@ -15,6 +16,7 @@ import { tabItems } from '@/composables/navigation/tabs'
 import { useReturnTo } from '@/composables/navigation/useReturnTo'
 import { useRouteTab } from '@/composables/navigation/useRouteTab'
 import { formatDateLong, formatElapsedDays } from '@/utils/date'
+import { useCandidatureNavigation } from '../composables/useCandidatureNavigation'
 import { useCandidatures } from '../composables/useCandidatures'
 import { CANDIDATURE_PANEL_TAB_ICONS, CANDIDATURE_PANEL_TAB_LABELS } from '../constants/candidature'
 import { CANDIDATURE_PANEL_TAB_ROUTE_NAMES } from '../routes'
@@ -24,7 +26,8 @@ const route = useRoute()
 
 const { findCandidature, pendingKanban, error } = useCandidatures()
 
-const candidature = computed<Candidature | null>(() => findCandidature(route.params.candidatureUuid as string))
+const candidatureUuid = computed(() => route.params.candidatureUuid as string)
+const candidature = computed<Candidature | null>(() => findCandidature(candidatureUuid.value))
 
 const showSkeleton = useMinimumPending(computed(() => pendingKanban.value && !candidature.value))
 const loadFailed = computed(() => !pendingKanban.value && Boolean(error.value))
@@ -34,6 +37,14 @@ const title = computed(() => candidature.value ? formatCandidatNom(candidature.v
 const description = computed(() =>
   candidature.value ? `Candidature ${formatElapsedDays(candidature.value.date_soumission)}` : null,
 )
+
+const { position, etape, goPrevious, goNext } = useCandidatureNavigation(candidatureUuid)
+
+const scrollArea = ref<HTMLElement | null>(null)
+watch(candidatureUuid, () => {
+  if (scrollArea.value)
+    scrollArea.value.scrollTop = 0
+})
 
 const TABS = tabItems(CANDIDATURE_PANEL_TAB_LABELS, CANDIDATURE_PANEL_TAB_ICONS)
 const activeTab = useRouteTab(CANDIDATURE_PANEL_TAB_ROUTE_NAMES, 'candidature')
@@ -120,7 +131,10 @@ function handleUpdateOpen(open: boolean): void {
         class="candidature-panel__tabs"
       >
         <CspTabsList :tabs="TABS" />
-        <div class="candidature-panel__scroll">
+        <div
+          ref="scrollArea"
+          class="candidature-panel__scroll"
+        >
           <div class="candidature-panel__layout">
             <CspTabsPanels
               :tabs="TABS"
@@ -153,6 +167,26 @@ function handleUpdateOpen(open: boolean): void {
         </div>
       </CspTabs>
     </div>
+
+    <template
+      v-if="!loadFailed && !isNotFound"
+      #footer
+    >
+      <CspSequenceNav
+        :position="position ? position.index + 1 : null"
+        :total="position?.total ?? 0"
+        item-label="Candidature"
+        label="Navigation entre les candidatures de l'étape"
+        :previous-disabled="!position?.previousUuid"
+        :next-disabled="!position?.nextUuid"
+        @previous="goPrevious"
+        @next="goNext"
+      >
+        <template v-if="etape">
+          Étape : {{ etape.nom }}
+        </template>
+      </CspSequenceNav>
+    </template>
   </CspDrawer>
 </template>
 
@@ -185,6 +219,10 @@ function handleUpdateOpen(open: boolean): void {
   .candidature-panel__tabs .csp-tabs__list {
     padding-inline: calc(var(--csp-page-container-padding-inline) - 1rem);
     border-bottom: 1px solid var(--border-default-grey);
+  }
+
+  .csp-drawer__footer {
+    padding: var(--csp-space-3) var(--csp-page-container-padding-inline);
   }
 
   .candidature-panel__tabs .csp-tabs__trigger {
