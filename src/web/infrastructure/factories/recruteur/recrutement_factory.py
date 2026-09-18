@@ -2,10 +2,10 @@ from datetime import datetime, timezone
 from uuid import UUID, uuid4
 
 from application.recruteur.dtos.recrutement_read_models import (
-    AgentDto,
     CandidaturesCompteurDto,
     RecrutementActifsReadModel,
     RecrutementArchivesReadModel,
+    ResponsableDto,
 )
 from domain.recruteur.entities.etape_recrutement import EtapeRecrutement
 from domain.recruteur.entities.recrutement import Recrutement
@@ -64,7 +64,7 @@ class RecrutementFactory:
         reference_csp: str | None = None,
         type_contrat: str | None = None,
         date_publication: datetime | None = None,
-        agents: list[AgentDto] | None = None,
+        responsables: list[ResponsableDto] | None = None,
         candidatures: CandidaturesCompteurDto | None = None,
     ) -> RecrutementActifsReadModel:
         return RecrutementActifsReadModel(
@@ -73,7 +73,7 @@ class RecrutementFactory:
             reference_csp=reference_csp or "",
             type_contrat=type_contrat or "TITULAIRE_CONTRACTUEL",
             date_publication=date_publication or datetime.now(tz=timezone.utc),
-            agents=agents or [AgentDto(nom="Dupont")],
+            responsables=responsables or [ResponsableDto(nom="Dupont")],
             derniere_activite=derniere_activite or datetime.now(tz=timezone.utc),
             candidatures=candidatures
             or CandidaturesCompteurDto(total=0, a_traiter=0, en_cours=0),
@@ -86,7 +86,7 @@ class RecrutementFactory:
         reference_csp: str | None = None,
         type_contrat: str | None = None,
         date_archivage: datetime | None = None,
-        agents: list[AgentDto] | None = None,
+        responsables: list[ResponsableDto] | None = None,
         finalise: bool = False,
         recrute: str | None = None,
     ) -> RecrutementArchivesReadModel:
@@ -96,7 +96,7 @@ class RecrutementFactory:
             reference_csp=reference_csp or "",
             type_contrat=type_contrat or "TITULAIRE_CONTRACTUEL",
             date_archivage=date_archivage or datetime.now(tz=timezone.utc),
-            agents=agents or [AgentDto(nom="Dupont")],
+            responsables=responsables or [ResponsableDto(nom="Dupont")],
             finalise=finalise,
             recrute=recrute,
         )

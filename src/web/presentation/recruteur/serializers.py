@@ -84,7 +84,7 @@ class RecrutementsSerializer(serializers.Serializer):
         choices=[(c.name, c.value) for c in ContractType],
         allow_null=True,
     )
-    responsables = ResponsableSerializer(many=True, source="agents")
+    responsables = ResponsableSerializer(many=True)
 
 
 class RecrutementsActifsSerializer(RecrutementsSerializer):
