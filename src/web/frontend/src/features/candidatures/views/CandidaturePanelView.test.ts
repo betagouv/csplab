@@ -1,13 +1,13 @@
 import type { RecrutementDetailKanban } from '../types'
 import type { RecrutementDetail } from '@/features/recrutements/types'
 import { PiniaColada } from '@pinia/colada'
-import { flushPromises, mount } from '@vue/test-utils'
+import { render, screen, within } from '@testing-library/vue'
 import { createPinia } from 'pinia'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { defineComponent, h } from 'vue'
-import { createRouter, createWebHistory, RouterView } from 'vue-router'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { createRouter, createWebHistory } from 'vue-router'
 import { getRecrutementDetail } from '@/features/recrutements/api'
 import { routes } from '@/router'
+import { setupUser } from '@/test/render'
 import { getRecrutementKanban } from '../api'
 import CandidaturePanelView from './CandidaturePanelView.vue'
 
@@ -47,25 +47,22 @@ const MOCK_KANBAN: RecrutementDetailKanban = {
   ],
 }
 
-async function mountPanel(paths: string[]) {
+// Web history: closing the panel depends on the browser history state.
+async function renderPanel(paths: string[]) {
   window.history.replaceState(null, '', '/')
   const router = createRouter({ history: createWebHistory(), routes })
   await router.replace(paths[0]!)
   for (const path of paths.slice(1))
     await router.push(path)
 
-  const wrapper = mount(defineComponent({
-    setup: () => () => h(CandidaturePanelView),
-  }), {
-    attachTo: document.body,
-    global: { plugins: [createPinia(), PiniaColada, router], stubs: { RouterView } },
+  render(CandidaturePanelView, {
+    global: { plugins: [createPinia(), PiniaColada, router] },
   })
-  await flushPromises()
-  return { wrapper, router }
+  return { router, panel: within(await screen.findByRole('dialog')) }
 }
 
-function panelText(): string {
-  return document.querySelector('[role="dialog"]')?.textContent ?? ''
+function closeButton() {
+  return screen.getByRole('button', { name: 'Fermer la candidature et revenir au kanban' })
 }
 
 describe('candidaturePanelView', () => {
@@ -74,42 +71,35 @@ describe('candidaturePanelView', () => {
     vi.mocked(getRecrutementDetail).mockResolvedValue({ etapes: [] } as unknown as RecrutementDetail)
   })
 
-  afterEach(() => {
-    document.body.innerHTML = ''
-  })
-
   it('shows the candidat name and submission date from the kanban data', async () => {
-    const { wrapper } = await mountPanel([`${KANBAN_PATH}/candidatures/${CANDIDATURE_ALICE}`])
+    const { panel } = await renderPanel([`${KANBAN_PATH}/candidatures/${CANDIDATURE_ALICE}`])
 
-    await vi.waitFor(() => expect(panelText()).toContain('Alice Dupont'))
-    expect(panelText()).toMatch(/Candidature il y a \d+ jours/)
-    wrapper.unmount()
+    expect(await panel.findByText(/Candidature il y a \d+ jours/)).toBeInTheDocument()
+    expect(panel.getByRole('heading', { name: 'Alice Dupont' })).toBeInTheDocument()
   })
 
   it('shows an empty state for a candidature absent from the kanban', async () => {
-    const { wrapper } = await mountPanel([`${KANBAN_PATH}/candidatures/${CANDIDATURE_INCONNUE}`])
+    const { panel } = await renderPanel([`${KANBAN_PATH}/candidatures/${CANDIDATURE_INCONNUE}`])
 
-    await vi.waitFor(() => expect(panelText()).toContain('Candidature introuvable'))
-    wrapper.unmount()
+    expect(await panel.findByText('Candidature introuvable')).toBeInTheDocument()
   })
 
   it('goes back to the kanban when opened from it', async () => {
-    const { wrapper, router } = await mountPanel([KANBAN_PATH, `${KANBAN_PATH}/candidatures/${CANDIDATURE_ALICE}`])
+    const user = setupUser()
+    const { router } = await renderPanel([KANBAN_PATH, `${KANBAN_PATH}/candidatures/${CANDIDATURE_ALICE}`])
     const back = vi.spyOn(router, 'back')
 
-    document.querySelector<HTMLButtonElement>('button[aria-label="Fermer la candidature et revenir au kanban"]')!.click()
+    await user.click(closeButton())
 
     expect(back).toHaveBeenCalled()
-    wrapper.unmount()
   })
 
   it('replaces the address with the kanban when opened directly', async () => {
-    const { wrapper, router } = await mountPanel([`${KANBAN_PATH}/candidatures/${CANDIDATURE_ALICE}`])
+    const user = setupUser()
+    const { router } = await renderPanel([`${KANBAN_PATH}/candidatures/${CANDIDATURE_ALICE}`])
 
-    document.querySelector<HTMLButtonElement>('button[aria-label="Fermer la candidature et revenir au kanban"]')!.click()
-    await flushPromises()
+    await user.click(closeButton())
 
-    expect(router.currentRoute.value.name).toBe('recrutement-candidatures-kanban')
-    wrapper.unmount()
+    await vi.waitFor(() => expect(router.currentRoute.value.name).toBe('recrutement-candidatures-kanban'))
   })
 })
