@@ -24,6 +24,7 @@ vi.mock('@/features/recrutements/api', () => ({
 const ORGANISME_UUID = '00000000-0000-0000-0000-000000000000'
 const RECRUTEMENT_UUID = 'aaaaaaaa-0001-0001-0001-000000000001'
 const CANDIDATURE_ALICE = 'dddddddd-0001-0001-0001-000000000001'
+const CANDIDATURE_BRUNO = 'dddddddd-0001-0001-0001-000000000002'
 const CANDIDATURE_INCONNUE = 'dddddddd-0001-0001-0001-000000000099'
 
 const KANBAN_PATH = `/organismes/${ORGANISME_UUID}/recrutements/${RECRUTEMENT_UUID}`
@@ -41,6 +42,12 @@ const MOCK_KANBAN: RecrutementDetailKanban = {
           date_soumission: '2025-06-10T09:15:00Z',
           date_derniere_activite: '2025-06-11T10:00:00Z',
           candidat: { uuid: 'eeeeeeee-0001-0001-0001-000000000001', nom: 'Dupont', prenom: 'Alice' },
+        },
+        {
+          uuid: CANDIDATURE_BRUNO,
+          date_soumission: '2025-06-12T09:15:00Z',
+          date_derniere_activite: '2025-06-12T10:00:00Z',
+          candidat: { uuid: 'eeeeeeee-0001-0001-0001-000000000002', nom: 'Martin', prenom: 'Bruno' },
         },
       ],
     },
@@ -84,6 +91,22 @@ describe('candidaturePanelView', () => {
     expect(await panel.findByRole('tab', { name: 'Candidature', selected: true })).toBeInTheDocument()
     expect(router.currentRoute.value.meta.tab).toBe('candidature')
     expect(panel.getByRole('complementary', { name: 'Suivi de la candidature' })).toHaveTextContent('Activités, tags et note')
+  })
+
+  it('moves to the next candidature of the column from the bottom bar', async () => {
+    const user = setupUser()
+    const { router } = await renderPanel([`${KANBAN_PATH}/candidatures/${CANDIDATURE_ALICE}`])
+    const navigation = within(await screen.findByRole('navigation', { name: 'Navigation entre les candidatures de l\'étape' }))
+
+    expect(navigation.getByText('Candidature 1 sur 2')).toBeInTheDocument()
+    expect(navigation.getByText('Étape : Réception des candidatures')).toBeInTheDocument()
+    expect(navigation.getByRole('button', { name: 'Précédent' })).toBeDisabled()
+
+    await user.click(navigation.getByRole('button', { name: 'Suivant' }))
+
+    await vi.waitFor(() => expect(router.currentRoute.value.params.candidatureUuid).toBe(CANDIDATURE_BRUNO))
+    expect(await navigation.findByText('Candidature 2 sur 2')).toBeInTheDocument()
+    expect(navigation.getByRole('button', { name: 'Suivant' })).toBeDisabled()
   })
 
   it('shows an empty state for a candidature absent from the kanban', async () => {
