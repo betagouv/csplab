@@ -4,6 +4,29 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] - 2026-09-18
+
+### <!-- 1 --> Added
+
+- Interface, assigner un responsable sur plusieurs recrutements d'un organisme ([#1438](https://github.com/betagouv/csplab/pull/1438))
+- Supprimer un membre de l'équipe de recrutement ([#1445](https://github.com/betagouv/csplab/pull/1445))
+- Ajoute l'enum Radius ([#1449](https://github.com/betagouv/csplab/pull/1449))
+- Motifs refus candidature ([#1430](https://github.com/betagouv/csplab/pull/1430))
+- Interface, enregistrer le motif de refus d'une ou plusieurs candidatures ([#1431](https://github.com/betagouv/csplab/pull/1431))
+- Persister le motif de refus d'une ou plusieurs candidatures en db ([#1432](https://github.com/betagouv/csplab/pull/1432))
+- Enregistre le nom et le prénom issus de ProConnect ([#1451](https://github.com/betagouv/csplab/pull/1451))
+- Back, assigner un responsable sur plusieurs recrutements d'un organisme ([#1452](https://github.com/betagouv/csplab/pull/1452))
+- Add document model, its FileField wire to S3 storage and its enum ([#1473](https://github.com/betagouv/csplab/pull/1473))
+- Assigner un responsable recrutement en lot ([#1483](https://github.com/betagouv/csplab/pull/1483))
+
+### <!-- 4 --> Fixed
+
+- Répare la tâche mise web:emulate-prod ([#1457](https://github.com/betagouv/csplab/pull/1457))
+- Augmente le nombre de bases redis pour pytest-xdist ([#1448](https://github.com/betagouv/csplab/pull/1448))
+- Remove "vous n'avez pas de compte" link ([#1454](https://github.com/betagouv/csplab/pull/1454))
+- Enregistre et recherche les emails en minuscules ([#1471](https://github.com/betagouv/csplab/pull/1471))
+- Corrige le mot de passe des comptes du seed ([#1465](https://github.com/betagouv/csplab/pull/1465))
+
 ## [0.2.0] - 2026-09-15
 
 ### <!-- 0 --> Breaking Changes
