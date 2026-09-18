@@ -1,4 +1,6 @@
 import type {
+  AssignationResponsablePayload,
+  AssignationResponsableResultat,
   PaginatedRecrutementsActifsResponse,
   PaginatedRecrutementsArchivesResponse,
   RecrutementDetail,
@@ -33,6 +35,17 @@ export async function getRecrutementsActifs(organismeUuid: string): Promise<Pagi
 export async function getRecrutementsArchives(organismeUuid: string): Promise<PaginatedRecrutementsArchivesResponse> {
   const { data } = await api.GET('/recruteur/organismes/{organisme_uuid}/recrutements-archives', {
     params: { path: { organisme_uuid: organismeUuid } },
+  })
+  return data!
+}
+
+export async function setRecrutementsResponsable(
+  organismeUuid: string,
+  payload: AssignationResponsablePayload,
+): Promise<AssignationResponsableResultat> {
+  const { data } = await api.PUT('/recruteur/organismes/{organisme_uuid}/recrutements/responsable', {
+    params: { path: { organisme_uuid: organismeUuid } },
+    body: payload,
   })
   return data!
 }

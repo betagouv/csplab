@@ -27,6 +27,11 @@ const meta = {
       description: 'Nombre d\'éléments sélectionnés ; au-dessus de zéro, la barre passe en mode sélection.',
       table: { type: { summary: 'number' }, defaultValue: { summary: '0' } },
     },
+    selectionLabel: {
+      control: { type: 'text' },
+      description: 'Libellé du compteur de sélection ; par défaut « N sélectionné(s) ».',
+      table: { type: { summary: 'string' } },
+    },
     bordered: {
       control: { type: 'boolean' },
       description: 'Bordure haute de séparation ; à désactiver quand la barre suit immédiatement une autre bordure (p. ex. la barre d\'onglets).',
@@ -73,6 +78,25 @@ export const ModeSelection: Story = {
         <template #selection-actions>
           <CspButton label="Exporter" variant="secondary" />
           <CspButton label="Supprimer" variant="secondary" icon="ri:delete-bin-line" is-icon-left />
+        </template>
+      </CspTableToolbar>
+    `,
+  }),
+}
+
+export const ModeSelectionLibelleDedie: Story = {
+  args: {
+    count: '12 offres',
+    selectionCount: 3,
+    selectionLabel: '3 offres sélectionnées',
+  },
+  render: args => ({
+    components: { CspTableToolbar, CspButton },
+    setup: () => ({ args }),
+    template: `
+      <CspTableToolbar v-bind="args">
+        <template #selection-actions>
+          <CspButton label="Assigner un responsable" />
         </template>
       </CspTableToolbar>
     `,
