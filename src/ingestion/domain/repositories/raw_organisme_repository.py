@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Protocol
+from typing import Optional, Protocol
 from uuid import UUID
 
 from domain.entities.raw_organisme import RawOrganisme
@@ -18,4 +18,7 @@ class IRawOrganismeRepository(Protocol):
     ) -> None: ...
     async def mark_as_upserted_batch(
         self, referentiel_external_ids: list[tuple[str, str]], upsert_at: datetime
+    ) -> None: ...
+    async def mark_dila_siret_found_batch(
+        self, updates: list[tuple[UUID, Optional[str], datetime]]
     ) -> None: ...

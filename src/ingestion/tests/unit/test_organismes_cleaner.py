@@ -1,5 +1,5 @@
 import csv
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 import pytest
@@ -11,6 +11,7 @@ from domain.entities.raw_organisme import RawOrganisme
 from infrastructure.gateways.organismes_cleaner import OrganismesCleaner
 
 SIRET_VALUE = "26060047300342"
+DILA_SIRET_LOOKUP_MAX_AGE_DAYS = 30
 
 
 def _ege(
@@ -69,7 +70,10 @@ def categories_csv(tmp_path: Path) -> Path:
 
 @pytest.fixture
 def cleaner(categories_csv: Path) -> OrganismesCleaner:
-    return OrganismesCleaner(categories_csv_path=categories_csv)
+    return OrganismesCleaner(
+        categories_csv_path=categories_csv,
+        dila_siret_lookup_max_age_days=DILA_SIRET_LOOKUP_MAX_AGE_DAYS,
+    )
 
 
 def test_cleans_valid_raw_organisme(cleaner: OrganismesCleaner):
@@ -543,3 +547,122 @@ def test_dila_date_creation_is_none_when_unparseable(cleaner: OrganismesCleaner)
 
     assert organisme is not None
     assert organisme.date_creation is None
+
+
+def test_dila_uses_cached_siret_when_missing_from_data(cleaner: OrganismesCleaner):
+    raw_organisme = _raw_organisme_dila(_dila_service(siret=None))
+    raw_organisme.dila_siret_found = DILA_SIRET_VALUE
+
+    organisme = cleaner.clean(raw_organisme)
+
+    assert organisme is not None
+    assert organisme.siret == SIRET(code=DILA_SIRET_VALUE)
+
+
+def test_dila_ignores_cached_siret_when_data_has_one(cleaner: OrganismesCleaner):
+    cached_decoy = "35600000000048"
+    raw_organisme = _raw_organisme_dila(_dila_service(siret=DILA_SIRET_VALUE))
+    raw_organisme.dila_siret_found = cached_decoy
+
+    organisme = cleaner.clean(raw_organisme)
+
+    assert organisme is not None
+    assert organisme.siret == SIRET(code=DILA_SIRET_VALUE)
+
+
+def test_dila_raises_when_missing_siret_and_no_cached_lookup(
+    cleaner: OrganismesCleaner,
+):
+    raw_organisme = _raw_organisme_dila(_dila_service(siret=None))
+
+    with pytest.raises(ValidationError):
+        cleaner.clean(raw_organisme)
+
+
+def test_dila_raises_when_cached_lookup_found_nothing(cleaner: OrganismesCleaner):
+    raw_organisme = _raw_organisme_dila(_dila_service(siret=None))
+    raw_organisme.dila_siret_found = ""
+
+    with pytest.raises(ValidationError):
+        cleaner.clean(raw_organisme)
+
+
+def _dila_with_cached_lookup(
+    *,
+    found: str | None = None,
+    found_at: datetime | None = None,
+    siret: str | None = None,
+) -> RawOrganisme:
+    raw_organisme = _raw_organisme_dila(_dila_service(siret=siret))
+    raw_organisme.dila_siret_found = found
+    raw_organisme.dila_siret_found_at = found_at
+    return raw_organisme
+
+
+DILA_NOM = "Ministère de l'Intérieur"
+
+
+@pytest.mark.parametrize(
+    "raw_organisme,expected",
+    [
+        pytest.param(
+            _dila_with_cached_lookup(), DILA_NOM, id="siret_missing_and_uncached"
+        ),
+        pytest.param(
+            _dila_with_cached_lookup(siret=DILA_SIRET_VALUE),
+            None,
+            id="siret_present",
+        ),
+        pytest.param(
+            _dila_with_cached_lookup(found="", found_at=datetime.now(timezone.utc)),
+            None,
+            id="recently_cached",
+        ),
+        pytest.param(
+            _dila_with_cached_lookup(
+                found="", found_at=datetime.now(timezone.utc) - timedelta(days=31)
+            ),
+            DILA_NOM,
+            id="cache_older_than_max_age",
+        ),
+        pytest.param(
+            _dila_with_cached_lookup(
+                found="",
+                found_at=datetime.now(timezone.utc)
+                - timedelta(days=30)
+                + timedelta(minutes=1),
+            ),
+            None,
+            id="cache_just_under_max_age",
+        ),
+        pytest.param(
+            _dila_with_cached_lookup(found=""),
+            DILA_NOM,
+            id="cached_without_timestamp",
+        ),
+        pytest.param(_raw_organisme(_ege()), None, id="other_referentiel"),
+        pytest.param(_raw_organisme_dila(None), None, id="no_data"),
+        pytest.param(
+            _raw_organisme_dila(_dila_service(siret=None, nom="   ")),
+            None,
+            id="nom_blank",
+        ),
+    ],
+)
+def test_nom_for_dila_siret_lookup(
+    cleaner: OrganismesCleaner,
+    raw_organisme: RawOrganisme,
+    expected: str | None,
+):
+    assert cleaner.nom_for_dila_siret_lookup(raw_organisme) == expected
+
+
+def test_nom_for_dila_siret_lookup_respects_configured_max_age(categories_csv: Path):
+    cleaner = OrganismesCleaner(
+        categories_csv_path=categories_csv, dila_siret_lookup_max_age_days=7
+    )
+    raw_organisme = _dila_with_cached_lookup(
+        found="", found_at=datetime.now(timezone.utc) - timedelta(days=8)
+    )
+
+    assert cleaner.nom_for_dila_siret_lookup(raw_organisme) == DILA_NOM
