@@ -193,6 +193,30 @@ class TestListerMesRecrutements:
             self._nom_complet(responsable)
         ]
 
+    def test_lister_actifs_replie_sur_le_courriel_du_responsable_sans_identite(
+        self, usecase
+    ):
+        agent, organisme = self._create_agent_responsable()
+        sans_identite = AgentDjangoFactory(
+            utilisateur__first_name="",
+            utilisateur__last_name="",
+        )
+        recrutement = RecrutementDjangoFactory(
+            organisme=organisme,
+            agent_link__agent=sans_identite,
+            agent_link__role=AgentRecrutementRole.RESPONSABLE.value,
+        )
+        assert recrutement.agents_liaisons.count() == 1
+
+        result = self._lister_recrutements(
+            usecase, organisme, agent.utilisateur_id, StatutRecrutement.ACTIF
+        )
+
+        items = list(result.slice(0, 10))
+        assert [membre.nom for membre in items[0].responsables] == [
+            sans_identite.utilisateur.email
+        ]
+
     def test_lister_actifs_sans_candidature_derniere_activite_repli_sur_publication(
         self, usecase
     ):

@@ -34,6 +34,12 @@ from infrastructure.django_apps.recruteur.models.recrutement import (
 from infrastructure.mappers.queryset_page import QuerySetPage
 
 
+def _nom_affichable(utilisateur) -> str:
+    return (
+        f"{utilisateur.first_name} {utilisateur.last_name}"
+    ).strip() or utilisateur.email
+
+
 class PostgresRecrutementQueryService(IRecrutementQueryService):
     def get_actifs_by_organisme(
         self, organisme_id: UUID, agent_id: UUID | None = None
@@ -76,12 +82,7 @@ class PostgresRecrutementQueryService(IRecrutementQueryService):
 
         def _mapper(model: RecrutementModel) -> RecrutementActifsReadModel:
             responsables = [
-                ResponsableDto(
-                    nom=(
-                        f"{liaison.agent.utilisateur.first_name} "
-                        f"{liaison.agent.utilisateur.last_name}"
-                    ).strip()
-                )
+                ResponsableDto(nom=_nom_affichable(liaison.agent.utilisateur))
                 for liaison in model.agents_liaisons.all()  # type: ignore[attr-defined]
             ]
             return RecrutementActifsReadModel(
@@ -147,12 +148,7 @@ class PostgresRecrutementQueryService(IRecrutementQueryService):
 
         def _mapper(model: RecrutementModel) -> RecrutementArchivesReadModel:
             responsables = [
-                ResponsableDto(
-                    nom=(
-                        f"{liaison.agent.utilisateur.first_name} "
-                        f"{liaison.agent.utilisateur.last_name}"
-                    ).strip()
-                )
+                ResponsableDto(nom=_nom_affichable(liaison.agent.utilisateur))
                 for liaison in model.agents_liaisons.all()  # type: ignore[attr-defined]
             ]
             finalise = cast(int, model.nb_candidatures_acceptees) > 0  # type: ignore[attr-defined]
