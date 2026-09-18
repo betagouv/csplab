@@ -34,6 +34,7 @@ from infrastructure.factories.recruteur.etapes_recrutement_factory import (
     EtapeRecrutementFactory,
 )
 from infrastructure.factories.recruteur.recrutement_django_factory import (
+    RecrutementAgentDjangoFactory,
     RecrutementDjangoFactory,
 )
 from infrastructure.factories.referentiel.offer_django_factory import (
@@ -77,6 +78,7 @@ class TestListerMesRecrutements:
         recrutement_actif = RecrutementDjangoFactory(
             organisme=organisme,
             agent_link__agent=agent,
+            agent_link__role=AgentRecrutementRole.RESPONSABLE.value,
             etapes=EtapeRecrutementFactory.create_entity_batch(),
         )
         RecrutementDjangoFactory(
@@ -103,8 +105,8 @@ class TestListerMesRecrutements:
         items = list(result.slice(0, 10))
         assert len(items) == 1
         assert items[0].offer_id == recrutement_actif.offre_id
-        assert len(items[0].agents) == 1
-        assert items[0].agents[0].nom != ""
+        assert len(items[0].responsables) == 1
+        assert items[0].responsables[0].nom != ""
         assert items[0].candidatures.total == 2  # noqa
         assert items[0].candidatures.a_traiter == 1
         assert items[0].candidatures.en_cours == 1
@@ -134,6 +136,86 @@ class TestListerMesRecrutements:
         assert items[0].finalise is True
         assert items[0].recrute is not None
         assert items[0].recrute != ""
+
+    def _nom_complet(self, agent):
+        return (f"{agent.utilisateur.first_name} {agent.utilisateur.last_name}").strip()
+
+    def test_lister_actifs_ne_retient_que_les_responsables_actifs(self, usecase):
+        agent, organisme = self._create_agent_responsable()
+        recrutement = RecrutementDjangoFactory(
+            organisme=organisme,
+            agent_link__role=AgentRecrutementRole.RESPONSABLE.value,
+        )
+        responsable = recrutement.agents_liaisons.get().agent
+        RecrutementAgentDjangoFactory(
+            recrutement=recrutement,
+            role=AgentRecrutementRole.CONTRIBUTEUR.value,
+        )
+        RecrutementAgentDjangoFactory(
+            recrutement=recrutement,
+            role=AgentRecrutementRole.RESPONSABLE.value,
+            date_revocation=datetime(2026, 1, 1, tzinfo=UTC),
+        )
+
+        result = self._lister_recrutements(
+            usecase, organisme, agent.utilisateur_id, StatutRecrutement.ACTIF
+        )
+
+        items = list(result.slice(0, 10))
+        assert [membre.nom for membre in items[0].responsables] == [
+            self._nom_complet(responsable)
+        ]
+
+    def test_lister_archives_ne_retient_que_les_responsables_actifs(self, usecase):
+        agent, organisme = self._create_agent_responsable()
+        recrutement = RecrutementDjangoFactory(
+            offre_archivee=True,
+            organisme=organisme,
+            agent_link__role=AgentRecrutementRole.RESPONSABLE.value,
+        )
+        responsable = recrutement.agents_liaisons.get().agent
+        RecrutementAgentDjangoFactory(
+            recrutement=recrutement,
+            role=AgentRecrutementRole.CONTRIBUTEUR.value,
+        )
+        RecrutementAgentDjangoFactory(
+            recrutement=recrutement,
+            role=AgentRecrutementRole.RESPONSABLE.value,
+            date_revocation=datetime(2026, 1, 1, tzinfo=UTC),
+        )
+
+        result = self._lister_recrutements(
+            usecase, organisme, agent.utilisateur_id, StatutRecrutement.ARCHIVE
+        )
+
+        items = list(result.slice(0, 10))
+        assert [membre.nom for membre in items[0].responsables] == [
+            self._nom_complet(responsable)
+        ]
+
+    def test_lister_actifs_replie_sur_le_courriel_du_responsable_sans_identite(
+        self, usecase
+    ):
+        agent, organisme = self._create_agent_responsable()
+        sans_identite = AgentDjangoFactory(
+            utilisateur__first_name="",
+            utilisateur__last_name="",
+        )
+        recrutement = RecrutementDjangoFactory(
+            organisme=organisme,
+            agent_link__agent=sans_identite,
+            agent_link__role=AgentRecrutementRole.RESPONSABLE.value,
+        )
+        assert recrutement.agents_liaisons.count() == 1
+
+        result = self._lister_recrutements(
+            usecase, organisme, agent.utilisateur_id, StatutRecrutement.ACTIF
+        )
+
+        items = list(result.slice(0, 10))
+        assert [membre.nom for membre in items[0].responsables] == [
+            sans_identite.utilisateur.email
+        ]
 
     def test_lister_actifs_sans_candidature_derniere_activite_repli_sur_publication(
         self, usecase

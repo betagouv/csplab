@@ -9,12 +9,15 @@ from referentiel.value_objects.contract_type import ContractType
 from rest_framework import status
 
 from application.recruteur.dtos.recrutement_read_models import (
-    AgentDto,
     CandidaturesCompteurDto,
+    ResponsableDto,
 )
 from domain.commons.errors.organisme_errors import OrganismeNexistePas
 from domain.identite.errors.organisme_permission_errors import AccesOrganismeRefuse
-from domain.recruteur.value_objects.roles import AgentOrganismeRole
+from domain.recruteur.value_objects.roles import (
+    AgentOrganismeRole,
+    AgentRecrutementRole,
+)
 from infrastructure.factories.identite.organisme_django_factory import (
     create_organisme_with_agent,
 )
@@ -110,7 +113,7 @@ class TestRecrutementsActifsView:
                 intitule="Chargé de mission numérique",
                 reference_csp="REF-2025-001",
                 type_contrat="TITULAIRE_CONTRACTUEL",
-                agents=[AgentDto(nom="Marie Dupont")],
+                responsables=[ResponsableDto(nom="Marie Dupont")],
             )
         ]
 
@@ -199,7 +202,7 @@ class TestRecrutementsArchivesView:
                 intitule="Directeur des systèmes d'information",
                 reference_csp="REF-2024-A01",
                 type_contrat="TITULAIRE_CONTRACTUEL",
-                agents=[AgentDto(nom="Marie Dupont")],
+                responsables=[ResponsableDto(nom="Marie Dupont")],
                 finalise=True,
                 recrute="Sophie Leblanc",
             )
@@ -269,7 +272,11 @@ class TestRecrutementsActifsViewDbVerified:
         offer = OfferDjangoFactory(
             archived_at=None, contract_type=ContractType.TERRITORIAL.value
         )
-        recrutement = RecrutementDjangoFactory(organisme=organisme, offre=offer)
+        recrutement = RecrutementDjangoFactory(
+            organisme=organisme,
+            offre=offer,
+            agent_link__role=AgentRecrutementRole.RESPONSABLE.value,
+        )
         membre = recrutement.agents_liaisons.get().agent
 
         response = authenticated_client.get(RECRUTEMENTS_ACTIFS_URL)
@@ -318,7 +325,11 @@ class TestRecrutementsArchivesViewDbVerified:
             archived_at=datetime(2025, 6, 1, tzinfo=timezone.utc),
             contract_type=ContractType.TERRITORIAL.value,
         )
-        recrutement = RecrutementDjangoFactory(organisme=organisme, offre=offer)
+        recrutement = RecrutementDjangoFactory(
+            organisme=organisme,
+            offre=offer,
+            agent_link__role=AgentRecrutementRole.RESPONSABLE.value,
+        )
         membre = recrutement.agents_liaisons.get().agent
 
         response = authenticated_client.get(RECRUTEMENTS_ARCHIVES_URL)
