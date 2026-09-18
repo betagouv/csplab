@@ -51,7 +51,7 @@ class PostgresRecrutementQueryService(IRecrutementQueryService):
             .prefetch_related(
                 Prefetch(
                     "agents_liaisons",
-                    queryset=RecrutementAgentModel.objects.select_related(
+                    queryset=RecrutementAgentModel.objects.responsables().select_related(
                         "agent__utilisateur"
                     ),
                 )
@@ -118,7 +118,7 @@ class PostgresRecrutementQueryService(IRecrutementQueryService):
             .prefetch_related(
                 Prefetch(
                     "agents_liaisons",
-                    queryset=RecrutementAgentModel.objects.select_related(
+                    queryset=RecrutementAgentModel.objects.responsables().select_related(
                         "agent__utilisateur"
                     ),
                 ),

@@ -59,6 +59,13 @@ class RecrutementAgentQuerySet(models.QuerySet):
     def active(self) -> "RecrutementAgentQuerySet":
         return self.filter(date_revocation__isnull=True)
 
+    def responsables(self) -> "RecrutementAgentQuerySet":
+        return (
+            self.active()
+            .filter(role=AgentRecrutementRole.RESPONSABLE.value)
+            .order_by("created_at")
+        )
+
     def by_recrutement(self, recrutement_id) -> "RecrutementAgentQuerySet":
         return (
             self.select_related("agent__utilisateur")
