@@ -89,10 +89,14 @@ class OrganismeAgentsView(APIView):
             )
             return Response(AgentOrganismeSerializer(agents, many=True).data)
         except (AccesOrganismeRefuse, OperationOrganismeRefusee):
-            return Response({"detail": "Forbidden."}, status=status.HTTP_403_FORBIDDEN)
+            return Response(
+                GenericErrorSerializer({"error": "Forbidden."}).data,
+                status=status.HTTP_403_FORBIDDEN,
+            )
         except OrganismeNexistePas:
             return Response(
-                {"organisme_uuid": "Not found."}, status=status.HTTP_404_NOT_FOUND
+                GenericErrorSerializer({"error": "organisme_uuid: Not found."}).data,
+                status=status.HTTP_404_NOT_FOUND,
             )
         except Exception:
             return Response(
@@ -121,15 +125,23 @@ class OrganismeAgentsView(APIView):
                 status=status.HTTP_201_CREATED,
             )
         except (AccesOrganismeRefuse, OperationOrganismeRefusee):
-            return Response({"detail": "Forbidden."}, status=status.HTTP_403_FORBIDDEN)
+            return Response(
+                GenericErrorSerializer({"error": "Forbidden."}).data,
+                status=status.HTTP_403_FORBIDDEN,
+            )
         except (OrganismeNexistePas, ProfilAgentNexistePas) as error:
             field = (
                 "organisme_id" if isinstance(error, OrganismeNexistePas) else "agent_id"
             )
-            return Response({field: "Not found."}, status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                GenericErrorSerializer({"error": f"{field}: Not found."}).data,
+                status=status.HTTP_404_NOT_FOUND,
+            )
         except AgentDejaRattache:
             return Response(
-                {"agent_id": "Agent already attached to this organisme."},
+                GenericErrorSerializer(
+                    {"error": "agent_id: Agent already attached to this organisme."}
+                ).data,
                 status=status.HTTP_409_CONFLICT,
             )
         except Exception:
@@ -166,10 +178,14 @@ class OrganismeAgentsView(APIView):
                 )
             return Response(AgentOrganismeSerializer(agent_organisme).data)
         except (AccesOrganismeRefuse, OperationOrganismeRefusee):
-            return Response({"detail": "Forbidden."}, status=status.HTTP_403_FORBIDDEN)
+            return Response(
+                GenericErrorSerializer({"error": "Forbidden."}).data,
+                status=status.HTTP_403_FORBIDDEN,
+            )
         except (OrganismeNexistePas, AgentNonRattache):
             return Response(
-                {"agent_id": "Not found."}, status=status.HTTP_404_NOT_FOUND
+                GenericErrorSerializer({"error": "agent_id: Not found."}).data,
+                status=status.HTTP_404_NOT_FOUND,
             )
         except Exception:
             return Response(
