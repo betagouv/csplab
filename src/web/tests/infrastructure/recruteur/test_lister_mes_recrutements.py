@@ -105,8 +105,8 @@ class TestListerMesRecrutements:
         items = list(result.slice(0, 10))
         assert len(items) == 1
         assert items[0].offer_id == recrutement_actif.offre_id
-        assert len(items[0].agents) == 1
-        assert items[0].agents[0].nom != ""
+        assert len(items[0].responsables) == 1
+        assert items[0].responsables[0].nom != ""
         assert items[0].candidatures.total == 2  # noqa
         assert items[0].candidatures.a_traiter == 1
         assert items[0].candidatures.en_cours == 1
@@ -162,7 +162,7 @@ class TestListerMesRecrutements:
         )
 
         items = list(result.slice(0, 10))
-        assert [membre.nom for membre in items[0].agents] == [
+        assert [membre.nom for membre in items[0].responsables] == [
             self._nom_complet(responsable)
         ]
 
@@ -189,7 +189,7 @@ class TestListerMesRecrutements:
         )
 
         items = list(result.slice(0, 10))
-        assert [membre.nom for membre in items[0].agents] == [
+        assert [membre.nom for membre in items[0].responsables] == [
             self._nom_complet(responsable)
         ]
 

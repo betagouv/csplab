@@ -9,8 +9,8 @@ from referentiel.value_objects.contract_type import ContractType
 from rest_framework import status
 
 from application.recruteur.dtos.recrutement_read_models import (
-    AgentDto,
     CandidaturesCompteurDto,
+    ResponsableDto,
 )
 from domain.commons.errors.organisme_errors import OrganismeNexistePas
 from domain.identite.errors.organisme_permission_errors import AccesOrganismeRefuse
@@ -113,7 +113,7 @@ class TestRecrutementsActifsView:
                 intitule="Chargé de mission numérique",
                 reference_csp="REF-2025-001",
                 type_contrat="TITULAIRE_CONTRACTUEL",
-                agents=[AgentDto(nom="Marie Dupont")],
+                responsables=[ResponsableDto(nom="Marie Dupont")],
             )
         ]
 
@@ -202,7 +202,7 @@ class TestRecrutementsArchivesView:
                 intitule="Directeur des systèmes d'information",
                 reference_csp="REF-2024-A01",
                 type_contrat="TITULAIRE_CONTRACTUEL",
-                agents=[AgentDto(nom="Marie Dupont")],
+                responsables=[ResponsableDto(nom="Marie Dupont")],
                 finalise=True,
                 recrute="Sophie Leblanc",
             )
