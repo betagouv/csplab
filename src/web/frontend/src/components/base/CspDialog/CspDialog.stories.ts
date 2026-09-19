@@ -107,13 +107,13 @@ const meta = {
     },
     closeLabel: {
       control: { type: 'text' },
-      description: 'Label accessible du bouton de fermeture.',
+      description: 'Libellé accessible du bouton de fermeture.',
       table: {
         type: {
           summary: 'string',
         },
         defaultValue: {
-          summary: 'Close',
+          summary: 'Fermer',
         },
       },
     },

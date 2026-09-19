@@ -40,7 +40,7 @@ const props = withDefaults(defineProps<CspDrawerProps>(), {
   side: 'right',
   size: 'md',
   showClose: true,
-  closeLabel: 'Close',
+  closeLabel: 'Fermer',
 })
 
 const emit = defineEmits<{
