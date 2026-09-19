@@ -21,6 +21,7 @@ const meta = {
         'variant',
         'showIcon',
         'actionLabel',
+        'actionIcon',
         'actionAltText',
         'showClose',
         'closeLabel',
@@ -89,6 +90,13 @@ const meta = {
     actionLabel: {
       control: { type: 'text' },
       description: 'Label du bouton d\'action.',
+      table: {
+        type: { summary: 'string | null' },
+      },
+    },
+    actionIcon: {
+      control: { type: 'text' },
+      description: 'Icône affichée devant le libellé de l\'action.',
       table: {
         type: { summary: 'string | null' },
       },
