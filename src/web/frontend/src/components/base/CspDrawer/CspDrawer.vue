@@ -113,6 +113,13 @@ const hasFooter = computed(() => Boolean(slots.footer))
             </DialogDescription>
           </div>
 
+          <div
+            v-if="$slots.end"
+            class="csp-drawer__end"
+          >
+            <slot name="end" />
+          </div>
+
           <DialogClose
             v-if="showClose"
             as-child
@@ -230,6 +237,14 @@ const hasFooter = computed(() => Boolean(slots.footer))
 .csp-drawer__start {
   display: flex;
   flex-shrink: 0;
+  margin-block: calc(-1 * var(--csp-space-1));
+}
+
+.csp-drawer__end {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: var(--csp-space-2);
   margin-block: calc(-1 * var(--csp-space-1));
 }
 
