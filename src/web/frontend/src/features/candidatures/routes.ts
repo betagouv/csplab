@@ -1,10 +1,14 @@
 import type { RouteRecordRaw } from 'vue-router'
-import type { CandidatureTabKey } from './constants/candidature'
+import type { CandidaturePanelTabKey, CandidatureTabKey } from './constants/candidature'
 import { tabMetaFor } from '@/composables/navigation/tabs'
 import { ORGANISME_PATH_PREFIX, UUID_ROUTE_PARAM } from '@/router/params'
-import { CANDIDATURE_TAB_LABELS } from './constants/candidature'
+import { CANDIDATURE_PANEL_TAB_LABELS, CANDIDATURE_TAB_LABELS } from './constants/candidature'
 
 export const CANDIDATURE_ROUTE_NAME = 'recrutement-candidature'
+
+export const CANDIDATURE_PANEL_TAB_ROUTE_NAMES = {
+  candidature: CANDIDATURE_ROUTE_NAME,
+} as const satisfies Record<CandidaturePanelTabKey, string>
 
 export const CANDIDATURES_TAB_ROUTE_NAMES = {
   'candidatures': 'recrutement-candidatures-kanban',
@@ -13,6 +17,7 @@ export const CANDIDATURES_TAB_ROUTE_NAMES = {
 } as const satisfies Record<CandidatureTabKey, string>
 
 const tabMeta = tabMetaFor(CANDIDATURE_TAB_LABELS)
+const panelTabMeta = tabMetaFor(CANDIDATURE_PANEL_TAB_LABELS)
 
 const RECRUTEMENT_PATH = `${ORGANISME_PATH_PREFIX}/recrutements/:recrutementUuid${UUID_ROUTE_PARAM}`
 
@@ -41,8 +46,9 @@ export const candidaturesRoutes: RouteRecordRaw[] = [
         children: [
           {
             path: `candidatures/:candidatureUuid${UUID_ROUTE_PARAM}`,
-            name: CANDIDATURE_ROUTE_NAME,
+            name: CANDIDATURE_PANEL_TAB_ROUTE_NAMES.candidature,
             component: () => import('./views/CandidaturePanelView.vue'),
+            meta: panelTabMeta('candidature'),
           },
         ],
       },
