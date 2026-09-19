@@ -358,3 +358,34 @@ export const WithStart: Story = {
     `,
   }),
 }
+
+export const WithEnd: Story = {
+  name: 'Avec des actions en fin d’en-tête',
+  render: args => ({
+    components: { CspDrawer, CspButton },
+    setup() {
+      return { args }
+    },
+    template: `
+      <CspDrawer v-bind="args">
+        <template #trigger>
+          <CspButton
+            label="Ouvrir le tiroir"
+            variant="primary"
+          />
+        </template>
+
+        <template #end>
+          <CspButton
+            label="Action principale"
+            size="sm"
+          />
+        </template>
+
+        <p class="text-sm">
+          Le slot end place des actions à droite du titre, avant le bouton de fermeture.
+        </p>
+      </CspDrawer>
+    `,
+  }),
+}
