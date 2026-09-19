@@ -10,7 +10,7 @@ import CspAsyncSection from '@/components/base/CspAsyncSection/CspAsyncSection.v
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspDataTable from '@/components/base/CspDataTable/CspDataTable.vue'
 import CspErrorState from '@/components/base/CspErrorState/CspErrorState.vue'
-import CspInput from '@/components/base/CspInput/CspInput.vue'
+import CspSearchBar from '@/components/base/CspSearchBar/CspSearchBar.vue'
 import CspSkeleton from '@/components/base/CspSkeleton/CspSkeleton.vue'
 import CspSkeletonTable from '@/components/base/CspSkeleton/CspSkeletonTable.vue'
 import CspTableToolbar from '@/components/base/CspTableToolbar/CspTableToolbar.vue'
@@ -248,10 +248,11 @@ const archivesCountLabel = computed(() => {
               {{ actifsCountLabel }}
             </p>
           </template>
-          <CspInput
+          <CspSearchBar
             v-model="actifsFilters.search.value"
-            type="search"
-            aria-label="Rechercher un recrutement"
+            mode="live"
+            label="Rechercher un recrutement"
+            hide-label
             placeholder="Rechercher une offre, une référence,…"
             class="mes-recrutement-view__search"
           />
@@ -339,10 +340,11 @@ const archivesCountLabel = computed(() => {
               {{ archivesCountLabel }}
             </p>
           </template>
-          <CspInput
+          <CspSearchBar
             v-model="archivesFilters.search.value"
-            type="search"
-            aria-label="Rechercher un recrutement"
+            mode="live"
+            label="Rechercher un recrutement"
+            hide-label
             placeholder="Rechercher une offre, une référence,…"
             class="mes-recrutement-view__search"
           />

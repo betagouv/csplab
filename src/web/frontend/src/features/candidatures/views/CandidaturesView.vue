@@ -7,8 +7,8 @@ import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspDropdownMenu from '@/components/base/CspDropdownMenu/CspDropdownMenu.vue'
 import CspEmptyState from '@/components/base/CspEmptyState/CspEmptyState.vue'
 import CspErrorState from '@/components/base/CspErrorState/CspErrorState.vue'
-import CspInput from '@/components/base/CspInput/CspInput.vue'
 import CspMetaList from '@/components/base/CspMeta/CspMetaList.vue'
+import CspSearchBar from '@/components/base/CspSearchBar/CspSearchBar.vue'
 import CspTableToolbar from '@/components/base/CspTableToolbar/CspTableToolbar.vue'
 import CspPageContainer from '@/components/layout/CspPageContainer/CspPageContainer.vue'
 import CspPageHeader from '@/components/layout/CspPageHeader/CspPageHeader.vue'
@@ -170,13 +170,14 @@ const activeTab = useRouteTab(CANDIDATURES_TAB_ROUTE_NAMES, 'candidatures')
                 :current="currentView"
               />
             </template>
-            <CspInput
+            <CspSearchBar
               v-model="search"
-              type="search"
-              aria-label="Rechercher un candidat"
+              mode="live"
+              label="Rechercher un candidat"
+              hide-label
               placeholder="Rechercher un candidat…"
               class="candidatures-view__search"
-              @keydown.enter="filters.flushSearch()"
+              @search="filters.flushSearch()"
             />
             <CspButton
               :label="activeFiltersCount ? `Filtres (${activeFiltersCount})` : 'Filtres'"

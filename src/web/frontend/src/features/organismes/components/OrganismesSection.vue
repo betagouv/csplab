@@ -5,7 +5,7 @@ import { ValidationError } from '@/api/errors'
 import CspAsyncSection from '@/components/base/CspAsyncSection/CspAsyncSection.vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspDataTable from '@/components/base/CspDataTable/CspDataTable.vue'
-import CspInput from '@/components/base/CspInput/CspInput.vue'
+import CspSearchBar from '@/components/base/CspSearchBar/CspSearchBar.vue'
 import CspSkeletonTable from '@/components/base/CspSkeleton/CspSkeletonTable.vue'
 import CspTableToolbar from '@/components/base/CspTableToolbar/CspTableToolbar.vue'
 import { useMinimumPending } from '@/composables/async/useMinimumPending'
@@ -112,10 +112,11 @@ async function handleUpdate(payload: UpdateOrganismePayload): Promise<void> {
       </template>
 
       <CspTableToolbar :count="countLabel">
-        <CspInput
+        <CspSearchBar
           v-model="search"
-          type="search"
-          aria-label="Rechercher un organisme, un siret"
+          mode="live"
+          label="Rechercher un organisme, un siret"
+          hide-label
           placeholder="Rechercher un organisme, un siret"
           class="organismes-section__search"
         />
