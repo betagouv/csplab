@@ -31,6 +31,9 @@ const config: StorybookConfig = {
       },
     },
   ],
+  features: {
+    changeDetection: true,
+  },
   viteFinal: async (config) => {
     config.base = process.env.STORYBOOK_BASE_URL ?? '/'
     return config
