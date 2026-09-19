@@ -32,7 +32,7 @@ export const useCandidatures = defineQuery(() => {
     return typeof param === 'string' && param !== '' ? param : null
   })
 
-  const isKanbanRoute = computed(() => route.name === 'recrutement-candidatures-kanban')
+  const isKanbanRoute = computed(() => route.matched.some(record => record.name === 'recrutement-candidatures-kanban'))
   const isListeRoute = computed(() => route.name === 'recrutement-candidatures')
 
   const queryCache = useQueryCache()
@@ -97,6 +97,15 @@ export const useCandidatures = defineQuery(() => {
   const error = computed<unknown>(() =>
     detail.error.value ?? kanban.error.value ?? liste.error.value,
   )
+
+  function findCandidature(uuid: string): Candidature | null {
+    for (const etape of candidatureKanban.value) {
+      const found = etape.candidatures.find(c => c.uuid === uuid)
+      if (found)
+        return found
+    }
+    return null
+  }
 
   const totalCount = computed(() =>
     candidatureKanban.value.reduce((sum, etape) => sum + etape.candidatures.length, 0),
@@ -258,6 +267,7 @@ export const useCandidatures = defineQuery(() => {
     recrutementUuid,
     recrutementDetail,
     intitule,
+    findCandidature,
     candidatureListe,
     candidatureKanban,
     recrutementEtapes,

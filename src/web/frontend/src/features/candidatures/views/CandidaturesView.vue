@@ -93,7 +93,7 @@ const isNotFound = computed(() =>
 )
 
 const currentView = computed(() => {
-  return route.name === 'recrutement-candidatures-kanban' ? 'kanban' : 'liste'
+  return route.matched.some(record => record.name === 'recrutement-candidatures-kanban') ? 'kanban' : 'liste'
 })
 
 const headerMenuSections = [{

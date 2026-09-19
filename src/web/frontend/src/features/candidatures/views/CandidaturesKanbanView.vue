@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import type { EtapeRecrutementDetailedCandidatures } from '../types'
 import type { KanbanDropEvent } from '@/composables/dnd/useKanbanDnd'
-import { computed, ref, toRef } from 'vue'
+import { computed, nextTick, ref, toRef, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspDialog from '@/components/base/CspDialog/CspDialog.vue'
 import CspSkeleton from '@/components/base/CspSkeleton/CspSkeleton.vue'
@@ -25,6 +26,15 @@ const {
 } = useCandidatures()
 
 const { filteredEtapes } = filters
+
+const route = useRoute()
+
+watch(() => route.params.candidatureUuid, async (current, previous) => {
+  if (current || typeof previous !== 'string')
+    return
+  await nextTick()
+  document.querySelector<HTMLElement>(`[data-candidature-uuid="${previous}"] a`)?.focus()
+})
 
 const showSkeleton = useMinimumPending(pendingKanban)
 
@@ -232,6 +242,8 @@ const refusDescription = computed(() => {
       </template>
     </CspDialog>
   </div>
+
+  <router-view />
 </template>
 
 <style scoped lang="scss">
