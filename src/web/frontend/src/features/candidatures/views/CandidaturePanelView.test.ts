@@ -5,10 +5,11 @@ import { render, screen, within } from '@testing-library/vue'
 import { createPinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createRouter, createWebHistory } from 'vue-router'
+import { useToast } from '@/composables/ui/useToast'
 import { getRecrutementDetail } from '@/features/recrutements/api'
 import { routes } from '@/router'
 import { setupUser } from '@/test/render'
-import { getRecrutementKanban } from '../api'
+import { getRecrutementKanban, patchEtapeCandidatures } from '../api'
 import CandidaturePanelView from './CandidaturePanelView.vue'
 
 vi.mock('../api', () => ({
@@ -26,6 +27,9 @@ const RECRUTEMENT_UUID = 'aaaaaaaa-0001-0001-0001-000000000001'
 const CANDIDATURE_ALICE = 'dddddddd-0001-0001-0001-000000000001'
 const CANDIDATURE_BRUNO = 'dddddddd-0001-0001-0001-000000000002'
 const CANDIDATURE_INCONNUE = 'dddddddd-0001-0001-0001-000000000099'
+
+const ETAPE_ENTRETIEN = 'cccccccc-0001-0001-0001-000000000002'
+const ETAPE_REFUS = 'cccccccc-0001-0001-0001-000000000003'
 
 const KANBAN_PATH = `/organismes/${ORGANISME_UUID}/recrutements/${RECRUTEMENT_UUID}`
 
@@ -51,6 +55,18 @@ const MOCK_KANBAN: RecrutementDetailKanban = {
         },
       ],
     },
+    {
+      etape_uuid: ETAPE_ENTRETIEN,
+      nom: 'Entretien',
+      categorie: 'EN_COURS',
+      candidatures: [],
+    },
+    {
+      etape_uuid: ETAPE_REFUS,
+      nom: 'Refus',
+      categorie: 'REFUS',
+      candidatures: [],
+    },
   ],
 }
 
@@ -74,8 +90,12 @@ function closeButton() {
 
 describe('candidaturePanelView', () => {
   beforeEach(() => {
+    vi.clearAllMocks()
     vi.mocked(getRecrutementKanban).mockResolvedValue(MOCK_KANBAN)
-    vi.mocked(getRecrutementDetail).mockResolvedValue({ etapes: [] } as unknown as RecrutementDetail)
+    vi.mocked(getRecrutementDetail).mockResolvedValue({
+      etapes: MOCK_KANBAN.etapes.map(({ etape_uuid, nom, categorie }) => ({ etape_uuid, nom, categorie })),
+    } as unknown as RecrutementDetail)
+    vi.mocked(patchEtapeCandidatures).mockResolvedValue({ reussites: [CANDIDATURE_ALICE], echecs: [] })
   })
 
   it('shows the candidat name and submission date from the kanban data', async () => {
@@ -107,6 +127,56 @@ describe('candidaturePanelView', () => {
     await vi.waitFor(() => expect(router.currentRoute.value.params.candidatureUuid).toBe(CANDIDATURE_BRUNO))
     expect(await navigation.findByText('Candidature 2 sur 2')).toBeInTheDocument()
     expect(navigation.getByRole('button', { name: 'Suivant' })).toBeDisabled()
+  })
+
+  it('moves the candidature to another stage and opens the next one of its column', async () => {
+    const user = setupUser()
+    const { router } = await renderPanel([`${KANBAN_PATH}/candidatures/${CANDIDATURE_ALICE}`])
+
+    await user.click(await screen.findByRole('button', { name: 'Changer d\'étape' }))
+    expect(await screen.findByRole('radio', { name: 'Réception des candidatures (étape actuelle)' })).toBeDisabled()
+    await user.click(screen.getByRole('radio', { name: 'Entretien' }))
+    await user.click(screen.getByRole('button', { name: 'Valider' }))
+
+    await vi.waitFor(() => expect(router.currentRoute.value.params.candidatureUuid).toBe(CANDIDATURE_BRUNO))
+    expect(patchEtapeCandidatures).toHaveBeenCalledWith(ORGANISME_UUID, RECRUTEMENT_UUID, ETAPE_ENTRETIEN, [CANDIDATURE_ALICE])
+  })
+
+  it('confirms the move with a toast that reopens the moved candidature', async () => {
+    const user = setupUser()
+    const { router } = await renderPanel([`${KANBAN_PATH}/candidatures/${CANDIDATURE_ALICE}`])
+
+    await user.click(await screen.findByRole('button', { name: 'Changer d\'étape' }))
+    await user.click(await screen.findByRole('radio', { name: 'Entretien' }))
+    await user.click(screen.getByRole('button', { name: 'Valider' }))
+    await vi.waitFor(() => expect(router.currentRoute.value.params.candidatureUuid).toBe(CANDIDATURE_BRUNO))
+
+    const toast = useToast().toasts.value.at(-1)
+    expect(toast?.title).toBe('Alice Dupont est passé à l\'étape Entretien')
+    expect(toast?.duration).toBe(10_000)
+
+    toast?.action?.onSelect()
+
+    await vi.waitFor(() => expect(router.currentRoute.value.params.candidatureUuid).toBe(CANDIDATURE_ALICE))
+    const navigation = within(screen.getByRole('navigation', { name: 'Navigation entre les candidatures de l\'étape' }))
+    expect(await navigation.findByText('Étape : Entretien')).toBeInTheDocument()
+  })
+
+  it('asks for confirmation before refusing the candidature', async () => {
+    const user = setupUser()
+    const { router } = await renderPanel([`${KANBAN_PATH}/candidatures/${CANDIDATURE_ALICE}`])
+
+    await user.click(await screen.findByRole('button', { name: 'Changer d\'étape' }))
+    await user.click(await screen.findByRole('radio', { name: 'Refus' }))
+    await user.click(screen.getByRole('button', { name: 'Valider' }))
+
+    const dialog = within(await screen.findByRole('dialog', { name: 'Refus de candidature' }))
+    expect(patchEtapeCandidatures).not.toHaveBeenCalled()
+
+    await user.click(dialog.getByRole('button', { name: 'Valider' }))
+
+    await vi.waitFor(() => expect(router.currentRoute.value.params.candidatureUuid).toBe(CANDIDATURE_BRUNO))
+    expect(patchEtapeCandidatures).toHaveBeenCalledWith(ORGANISME_UUID, RECRUTEMENT_UUID, ETAPE_REFUS, [CANDIDATURE_ALICE])
   })
 
   it('shows an empty state for a candidature absent from the kanban', async () => {
