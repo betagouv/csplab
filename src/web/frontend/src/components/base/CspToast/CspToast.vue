@@ -19,6 +19,7 @@ export interface CspToastProps {
   variant?: 'default' | 'info' | 'success' | 'warning' | 'error'
   showIcon?: boolean
   actionLabel?: string | null
+  actionIcon?: string | null
   actionAltText?: string
   showClose?: boolean
   closeLabel?: string
@@ -37,6 +38,7 @@ const props = withDefaults(defineProps<CspToastProps>(), {
   variant: 'default',
   showIcon: true,
   actionLabel: null,
+  actionIcon: null,
   actionAltText: 'Exécuter l\'action',
   showClose: true,
   closeLabel: 'Fermer la notification',
@@ -112,12 +114,7 @@ const resolvedIcon = computed(() => iconByVariant[props.variant])
         >
           <slot />
         </div>
-      </div>
 
-      <div
-        v-if="hasAction || showClose"
-        class="csp-toast__actions"
-      >
         <ToastAction
           v-if="hasAction"
           as-child
@@ -125,26 +122,33 @@ const resolvedIcon = computed(() => iconByVariant[props.variant])
           @click="emit('action')"
         >
           <slot name="action">
-            <CspButton
-              variant="tertiary-no-outline"
-              size="sm"
-              :label="actionLabel!"
-            />
+            <button
+              type="button"
+              class="csp-toast__action"
+            >
+              <CspIcon
+                v-if="actionIcon"
+                :name="actionIcon"
+                class="csp-toast__action-icon"
+              />
+              <span class="csp-toast__action-label">{{ actionLabel }}</span>
+            </button>
           </slot>
         </ToastAction>
-
-        <ToastClose
-          v-if="showClose"
-          as-child
-        >
-          <CspButton
-            variant="tertiary-no-outline"
-            size="sm"
-            icon="ri:close-line"
-            :aria-label="closeLabel"
-          />
-        </ToastClose>
       </div>
+
+      <ToastClose
+        v-if="showClose"
+        as-child
+      >
+        <CspButton
+          class="csp-toast__close"
+          variant="tertiary-no-outline"
+          size="sm"
+          icon="ri:close-line"
+          :aria-label="closeLabel"
+        />
+      </ToastClose>
     </div>
   </ToastRoot>
 </template>
@@ -225,10 +229,39 @@ const resolvedIcon = computed(() => iconByVariant[props.variant])
   color: var(--csp-toast-text);
 }
 
-.csp-toast__actions {
-  display: flex;
+.csp-toast__action {
+  display: inline-flex;
   align-items: center;
-  gap: var(--csp-space-2);
+  gap: var(--csp-space-1);
+  align-self: flex-start;
+  margin-top: var(--csp-space-1);
+  padding: 0;
+  font: inherit;
+  font-size: 0.875rem;
+  line-height: 1.45;
+  color: var(--text-action-high-blue-france);
+  background: none;
+  border: 0;
+  cursor: pointer;
+
+  &:hover .csp-toast__action-label {
+    text-decoration-thickness: 2px;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--csp-focus-ring-color);
+    outline-offset: 2px;
+  }
+}
+
+.csp-toast__action-label {
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+.csp-toast__close {
+  flex: 0 0 auto;
+  margin: calc(var(--csp-space-1) * -1) calc(var(--csp-space-2) * -1) 0 0;
 }
 
 .csp-toast--info {
