@@ -3,14 +3,13 @@ import type { EtapeRecrutementDetailedCandidatures } from '../types'
 import type { KanbanDropEvent } from '@/composables/dnd/useKanbanDnd'
 import { computed, nextTick, ref, toRef, watch } from 'vue'
 import { useRoute } from 'vue-router'
-import CspButton from '@/components/base/CspButton/CspButton.vue'
-import CspDialog from '@/components/base/CspDialog/CspDialog.vue'
 import CspSkeleton from '@/components/base/CspSkeleton/CspSkeleton.vue'
 import CspSkeletonKanban from '@/components/base/CspSkeleton/CspSkeletonKanban.vue'
 import { useMinimumPending } from '@/composables/async/useMinimumPending'
 import { pluralize } from '@/utils/format'
 import CandidaturesKanbanBoard from '../components/CandidaturesKanbanBoard.vue'
 import ChangerEtapeDrawer from '../components/ChangerEtapeDrawer.vue'
+import RefusCandidatureDialog from '../components/RefusCandidatureDialog.vue'
 import SelectionActionBar from '../components/SelectionActionBar.vue'
 import { useCandidatures } from '../composables/useCandidatures'
 import { useKanbanSelection } from '../composables/useKanbanSelection'
@@ -155,17 +154,6 @@ const countLabel = computed(() => {
   const count = filteredEtapes.value.reduce((sum, etape) => sum + etape.candidatures.length, 0)
   return `${count} ${pluralize(count, 'candidature')}`
 })
-
-const refusDescription = computed(() => {
-  const candidature = pendingCandidature.value
-  const candidatLabel = candidature
-    ? `${candidature.candidat.prenom} ${candidature.candidat.nom}`
-    : 'ce candidat'
-
-  return `Vous êtes sur le point de refuser la candidature de ${candidatLabel}. `
-    + `Cette action n'est pas définitive, néanmoins le candidat sera informé du changement `
-    + `de statut de sa candidature.`
-})
 </script>
 
 <template>
@@ -218,29 +206,12 @@ const refusDescription = computed(() => {
       @toggle-candidature="handleToggleCandidature"
     />
 
-    <CspDialog
+    <RefusCandidatureDialog
       :open="isRefusDialogOpen"
-      size="sm"
-      title="Refus de candidature"
-      @update:open="(open) => { if (!open) handleCancelRefus() }"
-    >
-      {{ refusDescription }}
-
-      <template #footer>
-        <div class="refus-dialog__footer">
-          <CspButton
-            label="Annuler"
-            variant="secondary"
-            @click="handleCancelRefus"
-          />
-          <CspButton
-            label="Valider"
-            variant="primary"
-            @click="handleConfirmRefus"
-          />
-        </div>
-      </template>
-    </CspDialog>
+      :candidat="pendingCandidature?.candidat ?? null"
+      @confirm="handleConfirmRefus"
+      @cancel="handleCancelRefus"
+    />
   </div>
 
   <router-view />
@@ -262,10 +233,5 @@ const refusDescription = computed(() => {
 
 .candidatures-kanban-content__count-skeleton {
   margin: var(--csp-space-1) 0 calc(var(--csp-space-4) + 0.15rem);
-}
-
-.refus-dialog__footer {
-  display: flex;
-  gap: var(--csp-space-3);
 }
 </style>
