@@ -26,3 +26,4 @@ class OrganismeAction(Enum):
     REVOKE_RECRUTEMENT_AGENT = "revoke_recrutement_agent"
     SET_RECRUTEMENTS_RESPONSABLE = "set_recrutements_responsable"
     GET_MOTIFS_REFUS = "get_motifs_refus"
+    READ_DOCUMENT = "read_document"
