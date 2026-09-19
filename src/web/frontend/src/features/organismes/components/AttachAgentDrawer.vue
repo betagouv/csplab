@@ -5,8 +5,8 @@ import type { CspRadioGroupOption } from '@/components/base/CspRadioGroup/CspRad
 import { computed, ref, watch } from 'vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspDrawer from '@/components/base/CspDrawer/CspDrawer.vue'
-import CspInput from '@/components/base/CspInput/CspInput.vue'
 import CspRadioGroup from '@/components/base/CspRadioGroup/CspRadioGroup.vue'
+import CspSearchBar from '@/components/base/CspSearchBar/CspSearchBar.vue'
 import { ROLE_LABELS } from '../constants/organisme'
 import { formatAgentName } from '../format'
 
@@ -40,17 +40,7 @@ const isFound = computed(() => props.status === 'found')
 
 const isSearched = computed(() => props.status !== 'idle')
 
-const submitLabel = computed(() => {
-  if (isFound.value)
-    return 'Ajouter le membre'
-  return isSearched.value ? 'Créer et ajouter' : 'Rechercher'
-})
-
-const submitIcon = computed(() =>
-  isSearched.value ? 'ri:user-add-line' : 'ri:search-line',
-)
-
-const submitDisabled = computed(() => props.searching || props.submitting)
+const submitLabel = computed(() => isFound.value ? 'Ajouter le membre' : 'Créer et ajouter')
 
 watch(open, (isOpen) => {
   if (!isOpen) {
@@ -66,18 +56,18 @@ watch(email, () => {
     emit('reset')
 })
 
-function handleSubmit(): void {
-  if (isSearched.value) {
-    emit('add', role.value)
-    return
-  }
-  const value = email.value.trim()
+function handleSearch(value: string): void {
   if (!EMAIL_PATTERN.test(value)) {
     error.value = 'Renseignez une adresse électronique valide.'
     return
   }
   error.value = ''
   emit('search', value)
+}
+
+function handleSubmit(): void {
+  if (isSearched.value)
+    emit('add', role.value)
 }
 
 function setEmailError(message: string): void {
@@ -98,15 +88,16 @@ defineExpose({ setEmailError })
       novalidate
       @submit.prevent="handleSubmit"
     >
-      <CspInput
+      <CspSearchBar
         v-model="email"
         label="Adresse électronique de l'agent"
+        hint="Saisissez l'adresse complète du compte de l'agent."
         name="email"
-        type="email"
         placeholder="prenom.nom@exemple.gouv.fr"
-        autocomplete="off"
+        :disabled="searching"
         :error="Boolean(error)"
         :error-message="error"
+        @search="handleSearch"
       />
 
       <div
@@ -148,11 +139,12 @@ defineExpose({ setEmailError })
           @click="open = false"
         />
         <CspButton
+          v-if="isSearched"
           type="submit"
           :label="submitLabel"
-          :icon="submitIcon"
+          icon="ri:user-add-line"
           is-icon-left
-          :disabled="submitDisabled"
+          :disabled="submitting"
         />
       </div>
     </form>
