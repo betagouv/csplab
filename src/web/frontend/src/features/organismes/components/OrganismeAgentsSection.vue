@@ -6,7 +6,7 @@ import CspAsyncSection from '@/components/base/CspAsyncSection/CspAsyncSection.v
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspDataTable from '@/components/base/CspDataTable/CspDataTable.vue'
 import CspDialog from '@/components/base/CspDialog/CspDialog.vue'
-import CspInput from '@/components/base/CspInput/CspInput.vue'
+import CspSearchBar from '@/components/base/CspSearchBar/CspSearchBar.vue'
 import CspSkeletonTable from '@/components/base/CspSkeleton/CspSkeletonTable.vue'
 import CspTableToolbar from '@/components/base/CspTableToolbar/CspTableToolbar.vue'
 import { useMinimumPending } from '@/composables/async/useMinimumPending'
@@ -167,10 +167,11 @@ async function handleRevocation(): Promise<void> {
       </template>
 
       <CspTableToolbar :count="countLabel">
-        <CspInput
+        <CspSearchBar
           v-model="search"
-          type="search"
-          aria-label="Rechercher un membre, un courriel"
+          mode="live"
+          label="Rechercher un membre, un courriel"
+          hide-label
           placeholder="Rechercher un membre, un courriel"
           class="organisme-agents-section__search"
         />
