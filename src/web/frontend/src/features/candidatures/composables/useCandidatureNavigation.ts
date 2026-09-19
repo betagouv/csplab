@@ -14,7 +14,8 @@ export function useCandidatureNavigation(candidatureUuid: MaybeRefOrGetter<strin
   const etape = computed(() => findEtapeOfCandidature(candidatureKanban.value, toValue(candidatureUuid)))
 
   function navigateTo(uuid: string): void {
-    void router.replace({ name: CANDIDATURE_ROUTE_NAME, params: { ...route.params, candidatureUuid: uuid } })
+    const navigate = route.params.candidatureUuid ? router.replace : router.push
+    void navigate({ name: CANDIDATURE_ROUTE_NAME, params: { ...route.params, candidatureUuid: uuid } })
   }
 
   function goPrevious(): void {
@@ -27,5 +28,5 @@ export function useCandidatureNavigation(candidatureUuid: MaybeRefOrGetter<strin
       navigateTo(position.value.nextUuid)
   }
 
-  return { position, etape, goPrevious, goNext }
+  return { position, etape, navigateTo, goPrevious, goNext }
 }
