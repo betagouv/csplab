@@ -17,6 +17,10 @@ const { toasts, dismissToast } = useToast()
       :title="toast.title ?? null"
       :description="toast.description ?? null"
       :duration="toast.duration"
+      :action-label="toast.action?.label ?? null"
+      :action-icon="toast.action?.icon ?? null"
+      :action-alt-text="toast.action?.label"
+      @action="toast.action?.onSelect()"
       @update:open="(value) => !value && dismissToast(toast.id)"
     />
   </CspToastProvider>
