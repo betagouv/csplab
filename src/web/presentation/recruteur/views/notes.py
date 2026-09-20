@@ -7,12 +7,10 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from application.recruteur.services.creer_note import creer_note
-from application.recruteur.services.editer_note import editer_note
-from application.recruteur.services.lister_notes_candidature import (
-    lister_notes_candidature,
-)
-from application.recruteur.services.supprimer_note import supprimer_note
+from application.recruteur.services.create_note import create_note
+from application.recruteur.services.delete_note import delete_note
+from application.recruteur.services.list_notes import list_notes
+from application.recruteur.services.update_note import update_note
 from domain.identite.errors.agent_errors import ProfilAgentNexistePas
 from domain.recruteur.errors.note_errors import NoteIntrouvable
 from domain.recruteur.errors.recrutement_errors import CandidatureInexistante
@@ -55,7 +53,7 @@ class CandidatureNotesView(APIView):
         # TODO RBAC : l'utilisateur a t il le droit de consulter la liste
         # des notes de cette candidature
         try:
-            notes = lister_notes_candidature(candidature_id=candidature_uuid)
+            notes = list_notes(candidature_id=candidature_uuid)
             serializer = NoteSerializer(notes, many=True)
             return Response(serializer.data)
         except Exception:
@@ -70,7 +68,7 @@ class CandidatureNotesView(APIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            note = creer_note(
+            note = create_note(
                 candidature_id=candidature_uuid,
                 publie_par_id=request.user.username,
                 message=serializer.validated_data["message"],
@@ -126,7 +124,7 @@ class CandidatureNoteDetailView(APIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            note = editer_note(
+            note = update_note(
                 note_id=note_uuid,
                 message=serializer.validated_data["message"],
                 utilisateur_id=request.user.username,
@@ -144,7 +142,7 @@ class CandidatureNoteDetailView(APIView):
         self, request: Request, candidature_uuid: UUID, note_uuid: UUID
     ) -> Response:
         try:
-            supprimer_note(
+            delete_note(
                 note_id=note_uuid,
                 utilisateur_id=request.user.username,
             )
