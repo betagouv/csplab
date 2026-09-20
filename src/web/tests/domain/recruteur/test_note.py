@@ -13,24 +13,6 @@ from domain.recruteur.events.note_events import (
 _FROZEN_TS = datetime.now(tz=timezone.utc)
 
 
-@time_machine.travel(_FROZEN_TS, tick=False)
-def test_create_emits_note_ajoutee() -> None:
-    candidature_id = uuid4()
-    publie_par_id = uuid4()
-
-    note = Note.create(
-        candidature_id=candidature_id,
-        publie_par_id=publie_par_id,
-        message="première note",
-    )
-
-    events = note.collect_events()
-    assert len(events) == 1
-    assert isinstance(events[0], NoteAjoutee)
-    assert events[0].candidature_id == candidature_id
-    assert events[0].publie_par_id == publie_par_id
-    assert events[0].message == "première note"
-    assert events[0].occurred_at == _FROZEN_TS
 
 
 @time_machine.travel(_FROZEN_TS, tick=False)
