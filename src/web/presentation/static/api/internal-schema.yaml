@@ -215,13 +215,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreerNote'
+              $ref: '#/components/schemas/CreateNote'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/CreerNote'
+              $ref: '#/components/schemas/CreateNote'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/CreerNote'
+              $ref: '#/components/schemas/CreateNote'
         required: true
       security:
       - jwtAuth: []
@@ -334,13 +334,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PatchedEditerNote'
+              $ref: '#/components/schemas/PatchedUpdateNote'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/PatchedEditerNote'
+              $ref: '#/components/schemas/PatchedUpdateNote'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/PatchedEditerNote'
+              $ref: '#/components/schemas/PatchedUpdateNote'
       security:
       - jwtAuth: []
       - cookieAuth: []
@@ -3788,6 +3788,13 @@ components:
       required:
       - email
       - organisme_id
+    CreateNote:
+      type: object
+      properties:
+        message:
+          type: string
+      required:
+      - message
     CreateOrganisme:
       type: object
       properties:
@@ -3806,13 +3813,6 @@ components:
       - nom
       - siret
       - versant
-    CreerNote:
-      type: object
-      properties:
-        message:
-          type: string
-      required:
-      - message
     DepartementEnum:
       enum:
       - '01'
@@ -4395,7 +4395,7 @@ components:
             $ref: '#/components/schemas/CandidatureAChanger'
         motif_refus:
           $ref: '#/components/schemas/MotifRefusEnum'
-    PatchedEditerNote:
+    PatchedUpdateNote:
       type: object
       properties:
         message:

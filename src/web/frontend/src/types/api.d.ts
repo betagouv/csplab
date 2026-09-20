@@ -485,14 +485,14 @@ export interface components {
             /** Format: uuid */
             organisme_id: string;
         };
+        CreateNote: {
+            message: string;
+        };
         CreateOrganisme: {
             nom: string;
             siret: string;
             versant: components["schemas"]["VersantEnum"];
             gestion_ats: boolean;
-        };
-        CreerNote: {
-            message: string;
         };
         /**
          * @description * `01` - 01
@@ -776,7 +776,7 @@ export interface components {
             candidatures?: components["schemas"]["CandidatureAChanger"][];
             motif_refus?: components["schemas"]["MotifRefusEnum"];
         };
-        PatchedEditerNote: {
+        PatchedUpdateNote: {
             message?: string;
         };
         RecrutementAgent: {
@@ -1148,9 +1148,9 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["CreerNote"];
-                "application/x-www-form-urlencoded": components["schemas"]["CreerNote"];
-                "multipart/form-data": components["schemas"]["CreerNote"];
+                "application/json": components["schemas"]["CreateNote"];
+                "application/x-www-form-urlencoded": components["schemas"]["CreateNote"];
+                "multipart/form-data": components["schemas"]["CreateNote"];
             };
         };
         responses: {
@@ -1312,9 +1312,9 @@ export interface operations {
         };
         requestBody?: {
             content: {
-                "application/json": components["schemas"]["PatchedEditerNote"];
-                "application/x-www-form-urlencoded": components["schemas"]["PatchedEditerNote"];
-                "multipart/form-data": components["schemas"]["PatchedEditerNote"];
+                "application/json": components["schemas"]["PatchedUpdateNote"];
+                "application/x-www-form-urlencoded": components["schemas"]["PatchedUpdateNote"];
+                "multipart/form-data": components["schemas"]["PatchedUpdateNote"];
             };
         };
         responses: {

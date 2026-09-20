@@ -16,10 +16,10 @@ from domain.recruteur.errors.note_errors import NoteIntrouvable
 from domain.recruteur.errors.recrutement_errors import CandidatureInexistante
 from presentation.api.serializers import GenericErrorSerializer, TokenErrorSerializer
 from presentation.recruteur.serializers import (
-    CreerNoteSerializer,
-    EditerNoteSerializer,
+    CreateNoteSerializer,
     NoteDetailSerializer,
     NoteSerializer,
+    UpdateNoteSerializer,
 )
 
 
@@ -36,7 +36,7 @@ from presentation.recruteur.serializers import (
     post=extend_schema(
         summary="Ajouter une note à une candidature",
         tags=["recruteur"],
-        request=CreerNoteSerializer,
+        request=CreateNoteSerializer,
         responses={
             201: NoteDetailSerializer,
             400: GenericErrorSerializer,
@@ -63,7 +63,7 @@ class CandidatureNotesView(APIView):
             )
 
     def post(self, request: Request, candidature_uuid: UUID) -> Response:
-        serializer = CreerNoteSerializer(data=request.data)
+        serializer = CreateNoteSerializer(data=request.data)
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -94,7 +94,7 @@ class CandidatureNotesView(APIView):
     patch=extend_schema(
         summary="Modifier une note d'une candidature",
         tags=["recruteur"],
-        request=EditerNoteSerializer,
+        request=UpdateNoteSerializer,
         responses={
             200: NoteDetailSerializer,
             400: GenericErrorSerializer,
@@ -119,7 +119,7 @@ class CandidatureNoteDetailView(APIView):
     def patch(
         self, request: Request, candidature_uuid: UUID, note_uuid: UUID
     ) -> Response:
-        serializer = EditerNoteSerializer(data=request.data)
+        serializer = UpdateNoteSerializer(data=request.data)
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
