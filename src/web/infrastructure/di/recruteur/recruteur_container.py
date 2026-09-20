@@ -139,11 +139,6 @@ class RecruteurContainer(containers.DeclarativeContainer):
 
     postgres_agent_repository = providers.Singleton(PostgresAgentRepository)
 
-    lister_notes_candidature_usecase = providers.Factory(
-        ListerNotesCandidatureUsecase,
-        note_query_service=postgres_note_query_service,
-    )
-
     get_organisme_recruteur_usecase = providers.Factory(
         GetOrganismeRecruteurUsecase,
         organisme_recruteur_repository=postgres_organisme_recruteur_repository,

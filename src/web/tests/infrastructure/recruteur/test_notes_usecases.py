@@ -42,14 +42,3 @@ def recruteur_integration_container_fixture(db):
 
 
 
-class TestListerNotesCandidature:
-    def test_lister_notes_candidature(self, db, recruteur_integration_container):
-        note_model = NoteDjangoFactory()
-        usecase = recruteur_integration_container.lister_notes_candidature_usecase()
-
-        notes = usecase.execute(
-            ListerNotesCandidatureQuery(candidature_id=note_model.candidature_id)
-        )
-
-        assert len(notes) == 1
-        assert notes[0].message == note_model.message

@@ -146,3 +146,45 @@ class TestSupprimerNote:
         with pytest.raises(NoteIntrouvable):
             supprimer_note(note_id=note.id, utilisateur_id=note.publie_par_id)
 
+
+class TestListerNotesCandidature:
+    def test_returns_notes_newest_first(self, db):
+        candidature = CandidatureDjangoFactory()
+        older = NoteDjangoFactory(candidature=candidature)
+        newer = NoteDjangoFactory(candidature=candidature)
+        NoteModel.objects.filter(pk=older.pk).update(
+            created_at=timezone.now() - timedelta(days=1)
+        )
+
+        notes = lister_notes_candidature(candidature_id=candidature.id)
+
+        assert [note.pk for note in notes] == [newer.pk, older.pk]
+
+    def test_ignores_soft_deleted_notes(self, db):
+        candidature = CandidatureDjangoFactory()
+        kept = NoteDjangoFactory(candidature=candidature)
+        NoteDjangoFactory(candidature=candidature, supprimee_le=timezone.now())
+
+        notes = lister_notes_candidature(candidature_id=candidature.id)
+
+        assert [note.pk for note in notes] == [kept.pk]
+
+    def test_ignores_other_candidatures(self, db):
+        candidature = CandidatureDjangoFactory()
+        NoteDjangoFactory()
+
+        notes = lister_notes_candidature(candidature_id=candidature.id)
+
+        assert list(notes) == []
+
+    def test_loads_author_without_extra_queries(self, db, django_assert_num_queries):
+        candidature = CandidatureDjangoFactory()
+        notes = NoteDjangoFactory.create_batch(3, candidature=candidature)
+
+        with django_assert_num_queries(1):
+            author_ids = [
+                note.publie_par.utilisateur.pk
+                for note in lister_notes_candidature(candidature_id=candidature.id)
+            ]
+
+        assert len(author_ids) == len(notes)
