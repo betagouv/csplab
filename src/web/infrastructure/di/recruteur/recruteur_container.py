@@ -144,12 +144,6 @@ class RecruteurContainer(containers.DeclarativeContainer):
         note_query_service=postgres_note_query_service,
     )
 
-    supprimer_note_usecase = providers.Factory(
-        SupprimerNoteUsecase,
-        note_repository=postgres_note_repository,
-        audit_log_writer=audit_log_writer,
-    )
-
     get_organisme_recruteur_usecase = providers.Factory(
         GetOrganismeRecruteurUsecase,
         organisme_recruteur_repository=postgres_organisme_recruteur_repository,

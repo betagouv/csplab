@@ -114,3 +114,35 @@ class TestEditerNote:
         with pytest.raises(NoteIntrouvable):
             editer_note(note_id=note.id, message="x", utilisateur_id=note.publie_par_id)
 
+
+class TestSupprimerNote:
+    def test_supprimer_note_soft_deletes_and_logs(self, db):
+        note = NoteDjangoFactory()
+
+        supprimer_note(note_id=note.id, utilisateur_id=note.publie_par_id)
+
+        assert NoteModel.objects.get(pk=note.id).supprimee_le is not None
+        (log,) = _logs(note.id)
+        assert log.event_name == "NoteSupprimee"
+
+    def test_supprimer_note_unknown_note(self, db):
+        with pytest.raises(NoteIntrouvable):
+            supprimer_note(note_id=uuid4(), utilisateur_id=uuid4())
+
+    def test_supprimer_note_of_another_author_is_not_found(self, db):
+        note = NoteDjangoFactory()
+        other_agent = AgentDjangoFactory()
+
+        with pytest.raises(NoteIntrouvable):
+            supprimer_note(note_id=note.id, utilisateur_id=other_agent.utilisateur_id)
+
+        assert NoteModel.objects.get(pk=note.id).supprimee_le is None
+        assert not _logs(note.id)
+
+    def test_supprimer_note_twice_is_not_found(self, db):
+        note = NoteDjangoFactory()
+        supprimer_note(note_id=note.id, utilisateur_id=note.publie_par_id)
+
+        with pytest.raises(NoteIntrouvable):
+            supprimer_note(note_id=note.id, utilisateur_id=note.publie_par_id)
+

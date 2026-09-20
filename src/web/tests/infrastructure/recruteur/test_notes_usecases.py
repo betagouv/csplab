@@ -41,67 +41,6 @@ def recruteur_integration_container_fixture(db):
 
 
 
-class TestSupprimerNote:
-    def test_supprimer_note(self, db, recruteur_integration_container):
-        note_model = NoteDjangoFactory()
-        usecase = recruteur_integration_container.supprimer_note_usecase()
-
-        usecase.execute(
-            command=SupprimerNoteCommand(
-                note_id=note_model.id,
-                supprime_par_id=note_model.publie_par_id,
-            )
-        )
-
-        note_model.refresh_from_db()
-        assert note_model.supprimee_le is not None
-
-    def test_supprimer_note_raises_note_introuvable(
-        self, db, recruteur_integration_container
-    ):
-        usecase = recruteur_integration_container.supprimer_note_usecase()
-
-        with pytest.raises(NoteIntrouvable):
-            usecase.execute(
-                command=SupprimerNoteCommand(
-                    note_id=uuid4(),
-                    supprime_par_id=uuid4(),
-                )
-            )
-
-    def test_supprimer_note_raises_note_introuvable_when_not_author(
-        self, db, recruteur_integration_container
-    ):
-        note_model = NoteDjangoFactory()
-        usecase = recruteur_integration_container.supprimer_note_usecase()
-
-        with pytest.raises(NoteIntrouvable):
-            usecase.execute(
-                command=SupprimerNoteCommand(
-                    note_id=note_model.id,
-                    supprime_par_id=uuid4(),
-                )
-            )
-
-    def test_supprimer_note_receives_repository_unhandled_error(
-        self, db, recruteur_integration_container
-    ):
-        note_model = NoteDjangoFactory()
-        note_repository = MagicMock(spec=INoteRepository)
-        note_repository.get_by_id = MagicMock(side_effect=Exception("db error"))
-        recruteur_integration_container.postgres_note_repository.override(
-            note_repository
-        )
-        usecase = recruteur_integration_container.supprimer_note_usecase()
-
-        with pytest.raises(Exception, match="db error"):
-            usecase.execute(
-                command=SupprimerNoteCommand(
-                    note_id=note_model.id,
-                    supprime_par_id=note_model.publie_par_id,
-                )
-            )
-
 
 class TestListerNotesCandidature:
     def test_lister_notes_candidature(self, db, recruteur_integration_container):
