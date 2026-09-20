@@ -15,18 +15,6 @@ _FROZEN_TS = datetime.now(tz=timezone.utc)
 
 
 
-@time_machine.travel(_FROZEN_TS, tick=False)
-def test_modifier_message_emits_note_editee() -> None:
-    note = Note.create(candidature_id=uuid4(), publie_par_id=uuid4(), message="avant")
-    note.collect_events()
-
-    note.modifier(message="après")
-
-    events = note.collect_events()
-    assert len(events) == 1
-    assert isinstance(events[0], NoteEditee)
-    assert note.message == "après"
-    assert events[0].occurred_at == _FROZEN_TS
 
 
 @time_machine.travel(_FROZEN_TS, tick=False)

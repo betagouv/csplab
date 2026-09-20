@@ -53,46 +53,6 @@ def audit_log_writer_fixture() -> MagicMock:
     return MagicMock(spec=AuditLogWriter)
 
 
-class TestEditerNote:
-    def test_editer_note_persists_and_drain_events(self, repository, audit_log_writer):
-        usecase = EditerNoteUsecase(
-            note_repository=repository, audit_log_writer=audit_log_writer
-        )
-        note = NoteFactory.create_entity()
-        repository.get_by_id = MagicMock(return_value=note)
-
-        edited = usecase.execute(
-            EditerNoteCommand(
-                note_id=note.entity_id,
-                message=fake.sentence(),
-                mis_a_jour_par_id=note.publie_par_id,
-            )
-        )
-
-        audit_log_writer.drain_events.assert_called_once_with(
-            utilisateur_id=note.publie_par_id, aggregate=edited
-        )
-
-    def test_editer_note_receives_error_from_repository(
-        self, repository, audit_log_writer
-    ):
-        repository.get_by_id = MagicMock(side_effect=Exception("db error"))
-        usecase = EditerNoteUsecase(
-            note_repository=repository, audit_log_writer=audit_log_writer
-        )
-
-        with pytest.raises(Exception, match="db error"):
-            usecase.execute(
-                EditerNoteCommand(
-                    note_id=uuid4(),
-                    message=fake.sentence(),
-                    mis_a_jour_par_id=uuid4(),
-                )
-            )
-
-        audit_log_writer.drain_events.assert_not_called()
-
-
 class TestSupprimerNote:
     def test_supprimer_note_persists_and_drain_events(
         self, repository, audit_log_writer

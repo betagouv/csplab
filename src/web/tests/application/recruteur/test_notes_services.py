@@ -73,3 +73,44 @@ class TestCreerNote:
             )
 
         assert not NoteModel.objects.exists()
+
+
+class TestEditerNote:
+    def test_editer_note_persists_and_logs(self, db):
+        note = NoteDjangoFactory(message="avant")
+
+        edited = editer_note(
+            note_id=note.id,
+            message="après",
+            utilisateur_id=note.publie_par_id,
+        )
+
+        assert edited.message == "après"
+        assert NoteModel.objects.get(pk=note.id).message == "après"
+        (log,) = _logs(note.id)
+        assert log.event_name == "NoteEditee"
+
+    def test_editer_note_unknown_note(self, db):
+        with pytest.raises(NoteIntrouvable):
+            editer_note(note_id=uuid4(), message="x", utilisateur_id=uuid4())
+
+    def test_editer_note_of_another_author_is_not_found(self, db):
+        note = NoteDjangoFactory(message="avant")
+        other_agent = AgentDjangoFactory()
+
+        with pytest.raises(NoteIntrouvable):
+            editer_note(
+                note_id=note.id,
+                message="après",
+                utilisateur_id=other_agent.utilisateur_id,
+            )
+
+        assert NoteModel.objects.get(pk=note.id).message == "avant"
+        assert not _logs(note.id)
+
+    def test_editer_note_soft_deleted_is_not_found(self, db):
+        note = NoteDjangoFactory(supprimee_le=timezone.now())
+
+        with pytest.raises(NoteIntrouvable):
+            editer_note(note_id=note.id, message="x", utilisateur_id=note.publie_par_id)
+

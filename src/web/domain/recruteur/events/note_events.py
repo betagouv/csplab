@@ -4,10 +4,5 @@ from ddd.domain_event import DomainEvent
 
 
 @dataclass(frozen=True)
-class NoteEditee(DomainEvent):
-    message: str
-
-
-@dataclass(frozen=True)
 class NoteSupprimee(DomainEvent):
     pass
