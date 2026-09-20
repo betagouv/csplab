@@ -11,6 +11,7 @@ from domain.recruteur.value_objects.roles import (
     AgentRecrutementRole,
 )
 from infrastructure.django_apps.recruteur.enums.motif_refus import MotifRefus
+from infrastructure.django_apps.recruteur.models.note import NoteModel
 from infrastructure.django_apps.recruteur.models.recrutement import (
     RecrutementAgentModel,
 )
@@ -267,21 +268,39 @@ class SetRecrutementsResponsableResultatSerializer(serializers.Serializer):
 # ---------------------------------------------------------------------------
 
 
-class NoteSerializer(serializers.Serializer):
-    entity_id = serializers.UUIDField()
+class NoteSerializer(serializers.ModelSerializer):
+    entity_id = serializers.UUIDField(source="id")
     candidature_id = serializers.UUIDField()
     message = serializers.CharField()
     publie_par_id = serializers.UUIDField()
-    publie_par_prenom = serializers.CharField()
-    publie_par_nom = serializers.CharField()
-    publie_le = serializers.DateTimeField()
+    publie_par_prenom = serializers.CharField(
+        source="publie_par.utilisateur.first_name"
+    )
+    publie_par_nom = serializers.CharField(source="publie_par.utilisateur.last_name")
+    publie_le = serializers.DateTimeField(source="created_at")
+
+    class Meta:
+        model = NoteModel
+        fields = [
+            "entity_id",
+            "candidature_id",
+            "message",
+            "publie_par_id",
+            "publie_par_prenom",
+            "publie_par_nom",
+            "publie_le",
+        ]
 
 
-class NoteDetailSerializer(serializers.Serializer):
-    entity_id = serializers.UUIDField()
+class NoteDetailSerializer(serializers.ModelSerializer):
+    entity_id = serializers.UUIDField(source="id")
     candidature_id = serializers.UUIDField()
     message = serializers.CharField()
     publie_par_id = serializers.UUIDField()
+
+    class Meta:
+        model = NoteModel
+        fields = ["entity_id", "candidature_id", "message", "publie_par_id"]
 
 
 class CreerNoteSerializer(serializers.Serializer):

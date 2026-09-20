@@ -7,16 +7,15 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from application.recruteur.usecases.creer_note import CreerNoteCommand
-from application.recruteur.usecases.editer_note import EditerNoteCommand
-from application.recruteur.usecases.lister_notes_candidature import (
-    ListerNotesCandidatureQuery,
+from application.recruteur.services.creer_note import creer_note
+from application.recruteur.services.editer_note import editer_note
+from application.recruteur.services.lister_notes_candidature import (
+    lister_notes_candidature,
 )
-from application.recruteur.usecases.supprimer_note import SupprimerNoteCommand
+from application.recruteur.services.supprimer_note import supprimer_note
 from domain.identite.errors.agent_errors import ProfilAgentNexistePas
 from domain.recruteur.errors.note_errors import NoteIntrouvable
 from domain.recruteur.errors.recrutement_errors import CandidatureInexistante
-from infrastructure.di.recruteur.recruteur_factory import recruteur_container
 from presentation.api.serializers import GenericErrorSerializer, TokenErrorSerializer
 from presentation.recruteur.serializers import (
     CreerNoteSerializer,
@@ -52,18 +51,11 @@ from presentation.recruteur.serializers import (
 class CandidatureNotesView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.container = recruteur_container()
-
     def get(self, request: Request, candidature_uuid: UUID) -> Response:
         # TODO RBAC : l'utilisateur a t il le droit de consulter la liste
         # des notes de cette candidature
         try:
-            usecase = self.container.lister_notes_candidature_usecase()
-            notes = usecase.execute(
-                ListerNotesCandidatureQuery(candidature_id=candidature_uuid)
-            )
+            notes = lister_notes_candidature(candidature_id=candidature_uuid)
             serializer = NoteSerializer(notes, many=True)
             return Response(serializer.data)
         except Exception:
@@ -78,13 +70,10 @@ class CandidatureNotesView(APIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            usecase = self.container.creer_note_usecase()
-            note = usecase.execute(
-                CreerNoteCommand(
-                    candidature_id=candidature_uuid,
-                    publie_par_id=request.user.username,
-                    message=serializer.validated_data["message"],
-                )
+            note = creer_note(
+                candidature_id=candidature_uuid,
+                publie_par_id=request.user.username,
+                message=serializer.validated_data["message"],
             )
             return Response(
                 NoteDetailSerializer(note).data,
@@ -129,10 +118,6 @@ class CandidatureNotesView(APIView):
 class CandidatureNoteDetailView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.container = recruteur_container()
-
     def patch(
         self, request: Request, candidature_uuid: UUID, note_uuid: UUID
     ) -> Response:
@@ -141,13 +126,10 @@ class CandidatureNoteDetailView(APIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            usecase = self.container.editer_note_usecase()
-            note = usecase.execute(
-                EditerNoteCommand(
-                    note_id=note_uuid,
-                    message=serializer.validated_data["message"],
-                    mis_a_jour_par_id=request.user.username,
-                )
+            note = editer_note(
+                note_id=note_uuid,
+                message=serializer.validated_data["message"],
+                utilisateur_id=request.user.username,
             )
             return Response(NoteDetailSerializer(note).data)
         except NoteIntrouvable:
@@ -162,12 +144,9 @@ class CandidatureNoteDetailView(APIView):
         self, request: Request, candidature_uuid: UUID, note_uuid: UUID
     ) -> Response:
         try:
-            usecase = self.container.supprimer_note_usecase()
-            usecase.execute(
-                SupprimerNoteCommand(
-                    note_id=note_uuid,
-                    supprime_par_id=request.user.username,
-                )
+            supprimer_note(
+                note_id=note_uuid,
+                utilisateur_id=request.user.username,
             )
             return Response(status=status.HTTP_204_NO_CONTENT)
         except NoteIntrouvable:
