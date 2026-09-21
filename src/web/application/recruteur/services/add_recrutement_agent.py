@@ -6,17 +6,19 @@ from django.db import transaction
 from application.identite.context_services.organisme_permission_service import (
     OrganismePermissionService,
 )
+from application.recruteur.context_services.organisme_agent_service import (
+    attach_agent_to_organisme,
+    get_profil_agent,
+)
 from application.recruteur.context_services.recrutement_agent_service import (
     RecrutementAgentService,
 )
 from domain.commons.services.audit_log_writer import AuditLogWriter
 from domain.identite.entities.utilisateurs import Utilisateur
-from domain.identite.errors.agent_errors import ProfilAgentNexistePas
 from domain.identite.value_objects.organisme_action import OrganismeAction
 from infrastructure.django_apps.recruteur.models.recrutement import (
     RecrutementAgentModel,
 )
-from infrastructure.django_apps.users.models import ProfilAgentModel
 from infrastructure.repositories.commons.postgres_audit_log_repository import (
     PostgresAuditLogRepository,
 )
@@ -37,25 +39,21 @@ def add_recrutement_agent(
         organisme_id=organisme_id,
     )
 
-    if not ProfilAgentModel.objects.filter(
-        utilisateur_id=agent_id  # type: ignore[misc]
-    ).exists():
-        raise ProfilAgentNexistePas(agent_id)
+    agent = get_profil_agent(agent_id)
 
     contexte = RecrutementAgentService(
         organisme_id=organisme_id, recrutement_id=recrutement_id
     )
     contexte.check_recrutement_belongs_to_organisme()
-    # TODO : duplicate query — same OrganismeAgentModel table already queried inside
-    # OrganismePermissionService.can_execute() above (for the acting utilisateur rather
-    # than this target agent_id); dedupe when refactoring to ADR-009
-    contexte.check_agent_attached_to_organisme(agent_id)
     contexte.check_agent_not_active_member(agent_id)
 
     with transaction.atomic():
+        attach_agent_to_organisme(
+            organisme_id=organisme_id, agent=agent, utilisateur=utilisateur
+        )
         recrutement_agent, created = RecrutementAgentModel.objects.update_or_create(
             recrutement_id=recrutement_id,
-            agent_id=agent_id,  # type: ignore[misc]
+            agent=agent,
             defaults={"role": role, "date_revocation": None},
             create_defaults={"id": uuid4(), "role": role},
         )
