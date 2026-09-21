@@ -183,6 +183,18 @@ describe('useCandidatures', () => {
       expect(context.totalCount.value).toBe(3)
     })
 
+    it('loads the kanban behind an opened candidature', async () => {
+      const { context } = await mountCandidatures(
+        undefined,
+        `/organismes/${ORGANISME_UUID}/recrutements/${RECRUTEMENT_UUID}/candidatures/${CANDIDATURE_ALICE}`,
+      )
+
+      await vi.waitFor(() => expect(context.pendingKanban.value).toBe(false))
+
+      expect(getRecrutementKanban).toHaveBeenCalledWith(ORGANISME_UUID, RECRUTEMENT_UUID)
+      expect(context.totalCount.value).toBe(3)
+    })
+
     it('exposes error on api failure', async () => {
       vi.mocked(getRecrutementKanban).mockRejectedValue(new Error('API error'))
 

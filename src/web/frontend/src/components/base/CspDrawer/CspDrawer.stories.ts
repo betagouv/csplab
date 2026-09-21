@@ -320,3 +320,41 @@ export const Sizes: Story = {
     `,
   }),
 }
+
+export const WithStart: Story = {
+  name: 'Avec une action en tête',
+  args: {
+    showClose: false,
+  },
+  render: args => ({
+    components: { CspDrawer, CspButton, DialogClose },
+    setup() {
+      return { args }
+    },
+    template: `
+      <CspDrawer v-bind="args">
+        <template #trigger>
+          <CspButton
+            label="Ouvrir le tiroir"
+            variant="primary"
+          />
+        </template>
+
+        <template #start>
+          <DialogClose as-child>
+            <CspButton
+              variant="tertiary-no-outline"
+              size="sm"
+              icon="ri:arrow-left-line"
+              aria-label="Revenir"
+            />
+          </DialogClose>
+        </template>
+
+        <p class="text-sm">
+          Le slot start place une action avant le titre, par exemple un retour qui remplace le bouton de fermeture.
+        </p>
+      </CspDrawer>
+    `,
+  }),
+}

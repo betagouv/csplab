@@ -1,11 +1,1 @@
-$sm: 36em;
-$md: 48em;
-$lg: 62em;
-$xl: 78em;
-
-$breakpoints: (
-  'sm': $sm,
-  'md': $md,
-  'lg': $lg,
-  'xl': $xl,
-);
+@forward '../../../../../frontend/src/styles/breakpoints' show $sm, $md, $lg, $xl, $breakpoints;

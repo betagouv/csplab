@@ -51,6 +51,7 @@ const attrs = useAttrs()
 const slots = useSlots()
 
 const hasTrigger = computed(() => Boolean(slots.trigger))
+const hasStart = computed(() => Boolean(slots.start))
 const hasTitle = computed(() => Boolean(slots.title) || Boolean(props.title))
 const hasDescription = computed(() => Boolean(slots.description) || Boolean(props.description))
 const hasFooter = computed(() => Boolean(slots.footer))
@@ -85,6 +86,13 @@ const hasFooter = computed(() => Boolean(slots.footer))
         ]"
       >
         <header class="csp-drawer__header">
+          <div
+            v-if="hasStart"
+            class="csp-drawer__start"
+          >
+            <slot name="start" />
+          </div>
+
           <div class="csp-drawer__heading">
             <DialogTitle
               v-if="hasTitle"
@@ -134,6 +142,8 @@ const hasFooter = computed(() => Boolean(slots.footer))
 </template>
 
 <style scoped lang="scss">
+@use '@/styles/breakpoints' as bp;
+
 .csp-drawer__overlay {
   position: fixed;
   inset: 0;
@@ -192,17 +202,19 @@ const hasFooter = computed(() => Boolean(slots.footer))
   --base-drawer-width: 100vw;
 }
 
-@media (width <= 36em) {
+@include bp.below(bp.$sm) {
   .csp-drawer {
     --base-drawer-width: 100vw;
   }
 }
 
-@media (36em < width <= 48em) {
-  .csp-drawer--lg,
-  .csp-drawer--xl,
-  .csp-drawer--full {
-    --base-drawer-width: 80vw;
+@include bp.from(bp.$sm) {
+  @include bp.below(bp.$md) {
+    .csp-drawer--lg,
+    .csp-drawer--xl,
+    .csp-drawer--full {
+      --base-drawer-width: 80vw;
+    }
   }
 }
 
@@ -215,8 +227,15 @@ const hasFooter = computed(() => Boolean(slots.footer))
   border-bottom: 1px solid var(--border-default-grey);
 }
 
+.csp-drawer__start {
+  display: flex;
+  flex-shrink: 0;
+  margin-block: calc(-1 * var(--csp-space-1));
+}
+
 .csp-drawer__heading {
   display: flex;
+  flex: 1;
   flex-direction: column;
   gap: var(--csp-space-1);
   min-width: 0;

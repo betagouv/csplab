@@ -29,7 +29,7 @@ function createGalleryRender(demos: PaginationDemo[]) {
           :key="demo.name"
           class="flex flex-col gap-2"
         >
-          <p class="text-sm text-[var(--text-mention-grey)]">{{ demo.name }}</p>
+          <p class="text-sm text-(--text-mention-grey)">{{ demo.name }}</p>
           <CspPagination
             v-model:page="demo.page"
             :page-count="demo.pageCount"
