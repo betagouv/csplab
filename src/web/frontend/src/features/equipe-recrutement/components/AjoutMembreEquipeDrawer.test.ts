@@ -1,31 +1,22 @@
-import type { AgentOrganisme } from '@/features/organismes/types'
+import type { AgentRecherche } from '@/features/organismes/types'
 import { mount } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
 import { nextTick } from 'vue'
-import CspCombobox from '@/components/base/CspCombobox/CspCombobox.vue'
 import AjoutMembreEquipeDrawer from './AjoutMembreEquipeDrawer.vue'
 
-const AGENT_ID = 'bbbbbbbb-0001-0001-0001-000000000001'
-
-const AGENTS: AgentOrganisme[] = [
-  {
-    agent_id: AGENT_ID,
-    organisme_id: '11111111-1111-1111-1111-111111111111',
-    nom: 'Dupont',
-    prenom: 'Jeanne',
-    email: 'jeanne.dupont@example.gouv.fr',
-    poste: 'Chargée de recrutement',
-    role: 'agent',
-    date_derniere_activite: null,
-    date_creation_compte: '2026-01-01T00:00:00Z',
-  },
-]
+const AGENT: AgentRecherche = {
+  agent_id: 'bbbbbbbb-0001-0001-0001-000000000001',
+  email: 'jeanne.dupont@example.gouv.fr',
+  prenom: 'Jeanne',
+  nom: 'Dupont',
+  intitule_poste: 'Chargée de recrutement',
+}
 
 function mountDrawer(props: Record<string, unknown> = {}) {
   return mount(AjoutMembreEquipeDrawer, {
     props: {
       open: true,
-      agents: AGENTS,
+      status: 'idle',
       ...props,
     },
     attachTo: document.body,
@@ -33,12 +24,7 @@ function mountDrawer(props: Record<string, unknown> = {}) {
 }
 
 function submitButton() {
-  return document.querySelector<HTMLButtonElement>('button[type="submit"]')!
-}
-
-async function pickAgent(wrapper: ReturnType<typeof mountDrawer>, agentId: string) {
-  wrapper.findComponent(CspCombobox).vm.$emit('update:modelValue', agentId)
-  await nextTick()
+  return document.querySelector<HTMLButtonElement>('button[type="submit"]')
 }
 
 async function pickRole(value: string) {
@@ -47,62 +33,45 @@ async function pickRole(value: string) {
 }
 
 describe('ajoutMembreEquipeDrawer', () => {
-  it('adds the selected agent as contributeur by default', async () => {
+  it('offers no role and no submission before the search has answered', async () => {
     const wrapper = mountDrawer()
     await nextTick()
-    await pickAgent(wrapper, AGENT_ID)
-    submitButton().click()
-    await nextTick()
 
-    expect(wrapper.emitted('add')).toEqual([[
-      { agent_id: AGENT_ID, recrutement_role: 'contributeur' },
-    ]])
+    expect(submitButton()).toBeNull()
+    expect(document.querySelector('[role="radiogroup"]')).toBeNull()
     wrapper.unmount()
   })
 
-  it('adds the selected agent with the chosen role', async () => {
-    const wrapper = mountDrawer()
+  it('adds the found agent as contributeur by default', async () => {
+    const wrapper = mountDrawer({ status: 'found', agent: AGENT })
     await nextTick()
-    await pickAgent(wrapper, AGENT_ID)
+
+    expect(document.body.textContent).toContain('Jeanne Dupont')
+    expect(submitButton()!.textContent).toContain('Ajouter le membre')
+    submitButton()!.click()
+    await nextTick()
+
+    expect(wrapper.emitted('add')).toEqual([['contributeur']])
+    wrapper.unmount()
+  })
+
+  it('adds the found agent with the chosen role', async () => {
+    const wrapper = mountDrawer({ status: 'found', agent: AGENT })
+    await nextTick()
     await pickRole('responsable')
-    submitButton().click()
+    submitButton()!.click()
     await nextTick()
 
-    expect(wrapper.emitted('add')).toEqual([[
-      { agent_id: AGENT_ID, recrutement_role: 'responsable' },
-    ]])
+    expect(wrapper.emitted('add')).toEqual([['responsable']])
     wrapper.unmount()
   })
 
-  it('lists the selectable agents by their email', async () => {
-    const wrapper = mountDrawer()
+  it('announces the account creation when no agent matches the email', async () => {
+    const wrapper = mountDrawer({ status: 'not-found' })
     await nextTick()
 
-    expect(wrapper.findComponent(CspCombobox).props('options')).toEqual([
-      { value: AGENT_ID, label: AGENTS[0].email },
-    ])
-    wrapper.unmount()
-  })
-
-  it('does not add anybody while no agent is selected', async () => {
-    const wrapper = mountDrawer()
-    await nextTick()
-
-    expect(submitButton().disabled).toBe(true)
-    submitButton().click()
-    await nextTick()
-
-    expect(wrapper.emitted('add')).toBeUndefined()
-    wrapper.unmount()
-  })
-
-  it('explains the dead end when every member is already in the team', async () => {
-    const wrapper = mountDrawer({ agents: [] })
-    await nextTick()
-
-    expect(document.body.textContent).toContain(
-      'Tous les membres de l\'organisme font déjà partie de cette équipe.',
-    )
+    expect(document.body.textContent).toContain('Un compte sera créé')
+    expect(submitButton()!.textContent).toContain('Créer et ajouter')
     wrapper.unmount()
   })
 })
