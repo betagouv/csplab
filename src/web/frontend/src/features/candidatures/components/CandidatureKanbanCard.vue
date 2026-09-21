@@ -92,9 +92,10 @@ const { isDragging } = useDraggableKanbanCard({
   --csp-card-bg: var(--background-alt-grey);
 }
 
-.candidature-kanban-card:focus-within {
+/* inset: the scrolling column clips an outline drawn outside the card */
+.candidature-kanban-card:has(.candidature-kanban-card__link:focus-visible) {
   outline: 2px solid var(--csp-focus-ring-color);
-  outline-offset: 2px;
+  outline-offset: -2px;
 }
 
 .candidature-kanban-card--current {
