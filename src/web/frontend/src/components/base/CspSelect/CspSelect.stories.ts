@@ -88,6 +88,21 @@ const meta = {
         type: { summary: 'string' },
       },
     },
+    hint: {
+      control: { type: 'text' },
+      description: 'Aide affichée sous le libellé, reliée au sélecteur par `aria-describedby`.',
+      table: {
+        type: { summary: 'string' },
+      },
+    },
+    required: {
+      control: { type: 'boolean' },
+      description: 'Annonce le sélecteur comme obligatoire aux technologies d\'assistance.',
+      table: {
+        type: { summary: 'boolean' },
+        defaultValue: { summary: 'false' },
+      },
+    },
     class: { control: false, table: { disable: true } },
     style: { control: false, table: { disable: true } },
     key: { control: false, table: { disable: true } },
@@ -171,6 +186,16 @@ export const States: Story = {
         <div>
           <p class="text-xs mb-4 text-text-mention-grey">Désactivé</p>
           <CspSelect label="Libellé sélecteur" :options="options" placeholder="Désactivé" :disabled="true" />
+        </div>
+        <div>
+          <p class="text-xs mb-4 text-text-mention-grey">Obligatoire, avec aide</p>
+          <CspSelect
+            label="Libellé sélecteur"
+            hint="Texte d'aide du sélecteur."
+            :options="options"
+            :required="true"
+            placeholder="Sélectionner…"
+          />
         </div>
         <div>
           <p class="text-xs mb-4 text-text-mention-grey">Erreur</p>

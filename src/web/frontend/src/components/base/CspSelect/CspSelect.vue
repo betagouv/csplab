@@ -12,7 +12,7 @@ import {
   SelectValue,
   SelectViewport,
 } from 'reka-ui'
-import { useId } from 'vue'
+import { computed, useId } from 'vue'
 import CspIcon from '@/components/base/CspIcon/CspIcon.vue'
 
 export interface CspSelectOption {
@@ -21,7 +21,7 @@ export interface CspSelectOption {
   disabled?: boolean
 }
 
-withDefaults(defineProps<{
+const props = withDefaults(defineProps<{
   options: {
     value: string
     label: string
@@ -34,13 +34,19 @@ withDefaults(defineProps<{
   errorMessage?: string
   id?: string
   label?: string
+  hint?: string
+  required?: boolean
 }>(), {
   placeholder: 'Sélectionner…',
   size: 'md',
   disabled: false,
   error: false,
   id: () => useId(),
+  hint: undefined,
+  required: false,
 })
+
+const hintId = computed(() => `${props.id}-hint`)
 
 const model = defineModel<string>()
 </script>
@@ -57,10 +63,18 @@ const model = defineModel<string>()
     >
       {{ label }}
     </label>
+    <p
+      v-if="hint"
+      :id="hintId"
+      class="csp-select-group__hint"
+    >
+      {{ hint }}
+    </p>
 
     <SelectRoot
       v-model="model"
       :disabled="disabled"
+      :required="required"
     >
       <SelectTrigger
         :id="id"
@@ -70,6 +84,7 @@ const model = defineModel<string>()
           { 'csp-select--error': error },
         ]"
         :aria-invalid="error || undefined"
+        :aria-describedby="hint ? hintId : undefined"
       >
         <SelectValue :placeholder="placeholder" />
         <CspIcon
@@ -205,6 +220,12 @@ const model = defineModel<string>()
   font-size: 0.875rem;
   font-weight: 600;
   color: var(--text-default-grey);
+}
+
+.csp-select-group__hint {
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--text-mention-grey);
 }
 
 .csp-select-group--error {
