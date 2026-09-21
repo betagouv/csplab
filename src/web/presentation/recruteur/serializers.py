@@ -303,11 +303,11 @@ class NoteDetailSerializer(serializers.ModelSerializer):
         fields = ["entity_id", "candidature_id", "message", "publie_par_id"]
 
 
-class CreerNoteSerializer(serializers.Serializer):
+class CreateNoteSerializer(serializers.Serializer):
     message = serializers.CharField()
 
 
-class EditerNoteSerializer(serializers.Serializer):
+class UpdateNoteSerializer(serializers.Serializer):
     message = serializers.CharField()
 
 

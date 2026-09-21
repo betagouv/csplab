@@ -11,7 +11,7 @@ from infrastructure.repositories.commons.postgres_audit_log_repository import (
 )
 
 
-def editer_note(*, note_id: UUID, message: str, utilisateur_id: UUID) -> NoteModel:
+def update_note(*, note_id: UUID, message: str, utilisateur_id: UUID) -> NoteModel:
     # TODO : refactor with upcoming RBAC
     try:
         note = NoteModel.objects.active().by_author(utilisateur_id).get(pk=note_id)

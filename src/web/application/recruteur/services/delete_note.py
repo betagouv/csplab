@@ -12,7 +12,7 @@ from infrastructure.repositories.commons.postgres_audit_log_repository import (
 )
 
 
-def supprimer_note(*, note_id: UUID, utilisateur_id: UUID) -> None:
+def delete_note(*, note_id: UUID, utilisateur_id: UUID) -> None:
     try:
         note = NoteModel.objects.active().by_author(utilisateur_id).get(pk=note_id)
     except NoteModel.DoesNotExist as error:

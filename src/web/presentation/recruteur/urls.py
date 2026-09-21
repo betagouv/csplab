@@ -131,12 +131,12 @@ urlpatterns = [
         name="organisme-recrutement-parametres-agents",
     ),
     path(
-        "candidatures/<uuid:candidature_uuid>/notes",
+        "organismes/<uuid:organisme_uuid>/recrutements/<uuid:recrutement_uuid>/candidatures/<uuid:candidature_uuid>/notes",
         CandidatureNotesView.as_view(),
         name="candidature-notes",
     ),
     path(
-        "candidatures/<uuid:candidature_uuid>/notes/<uuid:note_uuid>",
+        "organismes/<uuid:organisme_uuid>/recrutements/<uuid:recrutement_uuid>/candidatures/<uuid:candidature_uuid>/notes/<uuid:note_uuid>",
         CandidatureNoteDetailView.as_view(),
         name="candidature-note-detail",
     ),

@@ -14,7 +14,9 @@ from infrastructure.repositories.commons.postgres_audit_log_repository import (
 )
 
 
-def creer_note(*, candidature_id: UUID, publie_par_id: UUID, message: str) -> NoteModel:
+def create_note(
+    *, candidature_id: UUID, publie_par_id: UUID, message: str
+) -> NoteModel:
     if not CandidatureModel.objects.filter(pk=candidature_id).exists():
         raise CandidatureInexistante(candidature_id)
     if not ProfilAgentModel.objects.filter(

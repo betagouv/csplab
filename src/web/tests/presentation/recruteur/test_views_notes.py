@@ -20,12 +20,20 @@ NOTE_UUID = str(fake.uuid4())
 
 NOTES_URL = reverse(
     "recruteur:candidature-notes",
-    kwargs={"candidature_uuid": CANDIDATURE_UUID},
+    kwargs={
+        "organisme_uuid": str(fake.uuid4()),
+        "recrutement_uuid": str(fake.uuid4()),
+        "candidature_uuid": CANDIDATURE_UUID,
+    },
 )
 NOTE_DETAIL_URL = reverse(
     "recruteur:candidature-note-detail",
-    # TODO supprimer candidature_id
-    kwargs={"candidature_uuid": CANDIDATURE_UUID, "note_uuid": NOTE_UUID},
+    kwargs={
+        "organisme_uuid": str(fake.uuid4()),
+        "recrutement_uuid": str(fake.uuid4()),
+        "candidature_uuid": CANDIDATURE_UUID,
+        "note_uuid": NOTE_UUID,
+    },
 )
 
 
