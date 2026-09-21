@@ -49,7 +49,13 @@ from presentation.recruteur.serializers import (
 class CandidatureNotesView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get(self, request: Request, candidature_uuid: UUID) -> Response:
+    def get(
+        self,
+        request: Request,
+        organisme_uuid: UUID,
+        recrutement_uuid: UUID,
+        candidature_uuid: UUID,
+    ) -> Response:
         # TODO RBAC : l'utilisateur a t il le droit de consulter la liste
         # des notes de cette candidature
         try:
@@ -62,7 +68,13 @@ class CandidatureNotesView(APIView):
                 serializer.data, status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
-    def post(self, request: Request, candidature_uuid: UUID) -> Response:
+    def post(
+        self,
+        request: Request,
+        organisme_uuid: UUID,
+        recrutement_uuid: UUID,
+        candidature_uuid: UUID,
+    ) -> Response:
         serializer = CreateNoteSerializer(data=request.data)
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -117,7 +129,12 @@ class CandidatureNoteDetailView(APIView):
     permission_classes = [IsAuthenticated]
 
     def patch(
-        self, request: Request, candidature_uuid: UUID, note_uuid: UUID
+        self,
+        request: Request,
+        organisme_uuid: UUID,
+        recrutement_uuid: UUID,
+        candidature_uuid: UUID,
+        note_uuid: UUID,
     ) -> Response:
         serializer = UpdateNoteSerializer(data=request.data)
         if not serializer.is_valid():
@@ -139,7 +156,12 @@ class CandidatureNoteDetailView(APIView):
             )
 
     def delete(
-        self, request: Request, candidature_uuid: UUID, note_uuid: UUID
+        self,
+        request: Request,
+        organisme_uuid: UUID,
+        recrutement_uuid: UUID,
+        candidature_uuid: UUID,
+        note_uuid: UUID,
     ) -> Response:
         try:
             delete_note(
