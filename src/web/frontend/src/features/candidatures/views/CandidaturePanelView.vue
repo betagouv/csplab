@@ -16,8 +16,11 @@ import { tabItems } from '@/composables/navigation/tabs'
 import { useReturnTo } from '@/composables/navigation/useReturnTo'
 import { useRouteTab } from '@/composables/navigation/useRouteTab'
 import { formatDateLong, formatElapsedDays } from '@/utils/date'
+import ChangerEtapePopover from '../components/ChangerEtapePopover.vue'
+import RefusCandidatureDialog from '../components/RefusCandidatureDialog.vue'
 import { useCandidatureNavigation } from '../composables/useCandidatureNavigation'
 import { useCandidatures } from '../composables/useCandidatures'
+import { useEtapeChange } from '../composables/useEtapeChange'
 import { CANDIDATURE_PANEL_TAB_ICONS, CANDIDATURE_PANEL_TAB_LABELS } from '../constants/candidature'
 import { CANDIDATURE_PANEL_TAB_ROUTE_NAMES } from '../routes'
 import { formatCandidatNom } from '../utils/candidat'
@@ -54,6 +57,8 @@ const close = useReturnTo(() => ({
   params: { organismeUuid: route.params.organismeUuid, recrutementUuid: route.params.recrutementUuid },
 }))
 
+const etapeChange = useEtapeChange(candidatureUuid, close)
+
 function handleUpdateOpen(open: boolean): void {
   if (!open)
     close()
@@ -77,6 +82,17 @@ function handleUpdateOpen(open: boolean): void {
         icon="ri:arrow-left-line"
         aria-label="Fermer la candidature et revenir au kanban"
         @click="close"
+      />
+    </template>
+
+    <template
+      v-if="candidature && etape"
+      #end
+    >
+      <ChangerEtapePopover
+        :etapes="etapeChange.etapes.value"
+        :current-etape-uuid="etape.etape_uuid"
+        @confirm="etapeChange.request"
       />
     </template>
 
@@ -188,6 +204,13 @@ function handleUpdateOpen(open: boolean): void {
       </CspSequenceNav>
     </template>
   </CspDrawer>
+
+  <RefusCandidatureDialog
+    :open="etapeChange.isRefusPending.value"
+    :candidat="candidature?.candidat ?? null"
+    @confirm="etapeChange.confirmRefus"
+    @cancel="etapeChange.cancelRefus"
+  />
 </template>
 
 <style lang="scss">

@@ -2,11 +2,18 @@ import { readonly, ref } from 'vue'
 
 export type ToastVariant = 'default' | 'info' | 'success' | 'warning' | 'error'
 
+export interface ToastAction {
+  label: string
+  icon?: string
+  onSelect: () => void
+}
+
 export interface ToastOptions {
   variant?: ToastVariant
   title?: string
   description?: string
   duration?: number
+  action?: ToastAction
 }
 
 export interface ToastItem extends ToastOptions {
