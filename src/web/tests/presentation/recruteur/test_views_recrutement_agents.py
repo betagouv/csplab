@@ -10,6 +10,7 @@ from domain.recruteur.value_objects.roles import (
     AgentOrganismeRole,
     AgentRecrutementRole,
 )
+from infrastructure.django_apps.recruteur.models.organisme import OrganismeAgentModel
 from infrastructure.django_apps.recruteur.models.recrutement import (
     RecrutementAgentModel,
 )
@@ -335,7 +336,7 @@ class TestRecrutementAgentsViewPost:
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
-    def test_returns_404_when_agent_to_add_is_not_attached_to_organisme(
+    def test_attaches_agent_to_organisme_when_not_attached(
         self, authenticated_client, test_user
     ):
         _, organisme = create_organisme_with_agent(
@@ -352,7 +353,14 @@ class TestRecrutementAgentsViewPost:
             _url(organisme.id, recrutement.pk), payload
         )
 
-        assert response.status_code == status.HTTP_404_NOT_FOUND
+        assert response.status_code == status.HTTP_201_CREATED
+        assert (
+            OrganismeAgentModel.objects.get(organisme=organisme, agent=bare_agent).role
+            == AgentOrganismeRole.AGENT.value
+        )
+        assert RecrutementAgentModel.objects.filter(
+            recrutement=recrutement, agent=bare_agent
+        ).exists()
 
     def test_returns_409_when_agent_already_member_of_recrutement(
         self, authenticated_client, test_user
