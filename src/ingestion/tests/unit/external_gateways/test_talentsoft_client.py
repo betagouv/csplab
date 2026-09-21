@@ -13,6 +13,8 @@ from tests.unit.external_gateways.utils import (
     cached_token,
     detail_offer_response,
     mocked_response,
+    organisation_detail_response,
+    organisations_referentiel_response,
 )
 
 fake = Faker()
@@ -299,3 +301,110 @@ class TestGetDetailOffer:
 
             assert exc_info.value.api_name == "Talentsoft Front API"
             assert mock_get.call_count == talentsoft_client.max_retries + 1
+
+
+class TestGetOrganisationsReferentiel:
+    @pytest.mark.asyncio
+    async def test_returns_coded_objects(self, talentsoft_client):
+        talentsoft_client.cached_token = cached_token()
+        response_data = organisations_referentiel_response(count=3)
+        mock_response = mocked_response(return_value=response_data)
+
+        with patch.object(talentsoft_client, "get", new_callable=AsyncMock) as mock_get:
+            mock_get.return_value = mock_response
+
+            result = await talentsoft_client.get_organisations_referentiel()
+
+        assert len(result) == 3
+        assert {item.code for item in result} == {
+            item["code"] for item in response_data["data"]
+        }
+        params = mock_get.call_args.kwargs["params"]
+        assert params == {"filter": "active", "count": 10000}
+
+    @pytest.mark.asyncio
+    async def test_raises_when_more_results_than_fetched(self, talentsoft_client):
+        talentsoft_client.cached_token = cached_token()
+        response_data = organisations_referentiel_response(count=3, has_more=True)
+        mock_response = mocked_response(return_value=response_data)
+
+        with patch.object(talentsoft_client, "get", new_callable=AsyncMock) as mock_get:
+            mock_get.return_value = mock_response
+
+            with pytest.raises(
+                ExternalApiError, match="more results than the requested count"
+            ) as exc_info:
+                await talentsoft_client.get_organisations_referentiel()
+
+        assert exc_info.value.api_name == "Talentsoft Front API"
+
+    @pytest.mark.asyncio
+    async def test_raises_on_malformed_response(self, talentsoft_client):
+        talentsoft_client.cached_token = cached_token()
+        mock_response = mocked_response(return_value={"invalid": "response"})
+
+        with patch.object(talentsoft_client, "get", new_callable=AsyncMock) as mock_get:
+            mock_get.return_value = mock_response
+
+            with pytest.raises(ExternalApiError, match="Invalid response structure"):
+                await talentsoft_client.get_organisations_referentiel()
+
+
+class TestGetOrganisationDetail:
+    @pytest.mark.asyncio
+    async def test_returns_organisation(self, talentsoft_client):
+        talentsoft_client.cached_token = cached_token()
+        response_data = organisation_detail_response(entityCode="12903")
+        mock_response = mocked_response(return_value=response_data)
+
+        with patch.object(talentsoft_client, "get", new_callable=AsyncMock) as mock_get:
+            mock_get.return_value = mock_response
+
+            organisation = await talentsoft_client.get_organisation_detail(12903)
+
+        assert organisation.entityCode == "12903"
+
+    @pytest.mark.asyncio
+    async def test_raises_when_not_found(self, talentsoft_client):
+        talentsoft_client.cached_token = cached_token()
+        mock_response = mocked_response(status_code=404)
+
+        with patch.object(talentsoft_client, "get", new_callable=AsyncMock) as mock_get:
+            mock_get.return_value = mock_response
+
+            with pytest.raises(
+                ExternalApiError, match="Organisation not found for code"
+            ) as exc_info:
+                await talentsoft_client.get_organisation_detail(12903)
+
+        assert exc_info.value.api_name == "Talentsoft Front API"
+
+    @pytest.mark.asyncio
+    async def test_raises_after_max_retries_attempts(self, talentsoft_client):
+        talentsoft_client.cached_token = cached_token()
+        failed_response = mocked_response(status_code=500)
+        failed_response.raise_for_status.side_effect = Exception(
+            "500 Internal Server Error"
+        )
+
+        with patch.object(talentsoft_client, "get", new_callable=AsyncMock) as mock_get:
+            mock_get.return_value = failed_response
+
+            with pytest.raises(
+                ExternalApiError, match="Request failed after retries"
+            ) as exc_info:
+                await talentsoft_client.get_organisation_detail(12903)
+
+        assert exc_info.value.api_name == "Talentsoft Front API"
+        assert mock_get.call_count == talentsoft_client.max_retries + 1
+
+    @pytest.mark.asyncio
+    async def test_raises_on_malformed_response(self, talentsoft_client):
+        talentsoft_client.cached_token = cached_token()
+        mock_response = mocked_response(return_value={"invalid": "response"})
+
+        with patch.object(talentsoft_client, "get", new_callable=AsyncMock) as mock_get:
+            mock_get.return_value = mock_response
+
+            with pytest.raises(ExternalApiError, match="Invalid response structure"):
+                await talentsoft_client.get_organisation_detail(12903)

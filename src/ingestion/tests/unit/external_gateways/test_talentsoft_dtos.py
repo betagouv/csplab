@@ -4,8 +4,15 @@ from time import time
 import pytest
 from faker import Faker
 
-from infrastructure.external_gateways.dtos.talentsoft_dtos import CachedToken
-from tests.factories.talentsoft_factories import TalentsoftOfferFactory
+from infrastructure.external_gateways.dtos.talentsoft_dtos import (
+    CachedToken,
+    TalentsoftOrganisationPayload,
+)
+from tests.factories.talentsoft_factories import (
+    TalentsoftCodedObjectFactory,
+    TalentsoftOfferFactory,
+    TalentsoftOrganisationFactory,
+)
 
 fake = Faker()
 
@@ -34,3 +41,34 @@ def test_modification_date_defaults_to_now_when_null():
     )
     after = datetime.now(timezone.utc)
     assert before <= modification_date <= after
+
+
+def test_organisation_payload_merges_referentiel_and_detail():
+    referentiel = TalentsoftCodedObjectFactory.build(
+        code=12903, parentCode=12899, hasChildren=True
+    )
+    detail = TalentsoftOrganisationFactory.build()
+
+    payload = TalentsoftOrganisationPayload.from_referentiel_and_detail(
+        referentiel, detail
+    )
+
+    assert payload.code == 12903
+    assert payload.parentCode == 12899
+    assert payload.hasChildren is True
+    assert payload.entityCode == detail.entityCode
+    assert payload.name == detail.name
+
+
+def test_organisation_payload_defaults_when_no_parent():
+    referentiel = TalentsoftCodedObjectFactory.build(
+        code=1, parentCode=None, hasChildren=False
+    )
+    detail = TalentsoftOrganisationFactory.build()
+
+    payload = TalentsoftOrganisationPayload.from_referentiel_and_detail(
+        referentiel, detail
+    )
+
+    assert payload.parentCode is None
+    assert payload.hasChildren is False

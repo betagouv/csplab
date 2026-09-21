@@ -14,6 +14,9 @@ from application.usecases.clean_raw_organismes import CleanRawOrganismesUsecase
 from application.usecases.import_offers import ImportOffersUsecase
 from application.usecases.import_organismes import ImportOrganismesUsecase
 from application.usecases.load_sources import LoadSourcesUsecase
+from application.usecases.prepare_talentsoft_organisations import (
+    PrepareTalentsoftOrganisationsUsecase,
+)
 from application.usecases.publish_offer import PublishOfferUsecase
 from application.usecases.publish_organismes import PublishOrganismesUsecase
 from application.usecases.save_raw_offer import SaveRawOfferUsecase
@@ -313,6 +316,14 @@ class Container(containers.DeclarativeContainer):
         talentsoft_client_repository=talentsoft_client_repository,
         webhook_repository=webhook_repository,
         dispatch_process_webhook=dispatch_save_raw_offer_webhook,
+    )
+
+    prepare_talentsoft_organisations_usecase: providers.Provider[
+        PrepareTalentsoftOrganisationsUsecase
+    ] = providers.Factory(
+        PrepareTalentsoftOrganisationsUsecase,
+        sources_repository=sources_repository,
+        talentsoft_client_repository=talentsoft_client_repository,
     )
 
 
