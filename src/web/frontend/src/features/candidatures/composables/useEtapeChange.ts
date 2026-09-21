@@ -16,7 +16,7 @@ export function useEtapeChange(candidatureUuid: Ref<string>, leavePanel: () => v
   const pendingRefusEtapeUuid = ref<string | null>(null)
   const isRefusPending = computed(() => pendingRefusEtapeUuid.value !== null)
 
-  function confirm(targetEtapeUuid: string): void {
+  async function confirm(targetEtapeUuid: string): Promise<void> {
     const candidature = findCandidature(candidatureUuid.value)
     const target = recrutementEtapes.value.find(candidate => candidate.etape_uuid === targetEtapeUuid)
     if (!etape.value || !candidature || !target)
@@ -25,11 +25,19 @@ export function useEtapeChange(candidatureUuid: Ref<string>, leavePanel: () => v
     const movedUuid = candidatureUuid.value
     const nextUuid = position.value?.nextUuid ?? null
 
-    moveCandidature({
+    const moved = moveCandidature({
       sourceColumnId: etape.value.etape_uuid,
       targetColumnId: targetEtapeUuid,
       cardId: movedUuid,
     })
+
+    if (nextUuid)
+      navigateTo(nextUuid)
+    else
+      leavePanel()
+
+    if (!await moved)
+      return
 
     if (lastToastId !== null)
       dismissToast(lastToastId)
@@ -39,11 +47,6 @@ export function useEtapeChange(candidatureUuid: Ref<string>, leavePanel: () => v
       duration: TOAST_DURATION,
       action: { label: 'Revenir à cette candidature', icon: 'ri:arrow-go-back-line', onSelect: () => navigateTo(movedUuid) },
     })
-
-    if (nextUuid)
-      navigateTo(nextUuid)
-    else
-      leavePanel()
   }
 
   function request(targetEtapeUuid: string): void {
@@ -51,14 +54,14 @@ export function useEtapeChange(candidatureUuid: Ref<string>, leavePanel: () => v
     if (target?.categorie === 'REFUS')
       pendingRefusEtapeUuid.value = targetEtapeUuid
     else
-      confirm(targetEtapeUuid)
+      void confirm(targetEtapeUuid)
   }
 
   function confirmRefus(): void {
     const targetEtapeUuid = pendingRefusEtapeUuid.value
     pendingRefusEtapeUuid.value = null
     if (targetEtapeUuid)
-      confirm(targetEtapeUuid)
+      void confirm(targetEtapeUuid)
   }
 
   function cancelRefus(): void {

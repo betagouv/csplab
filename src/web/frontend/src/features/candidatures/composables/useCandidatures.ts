@@ -124,7 +124,7 @@ export const useCandidatures = defineQuery(() => {
     targetColumnId: string,
     candidatureUuids: string[],
     previousData: RecrutementDetailKanban,
-  ): Promise<void> {
+  ): Promise<boolean> {
     const key = kanbanQueryKey()
     try {
       const resultat = await patchEtapeCandidatures(organismeUuid.value!, recrutementUuid.value!, {
@@ -138,6 +138,7 @@ export const useCandidatures = defineQuery(() => {
           title: 'Certaines candidatures n\'ont pas changé d\'étape',
         })
       }
+      return resultat.echecs.length === 0
     }
     catch {
       queryCache.setQueryData(key, previousData)
@@ -146,28 +147,29 @@ export const useCandidatures = defineQuery(() => {
         title: 'Le changement d\'étape a échoué',
         description: 'Vos candidatures sont restées à leur étape actuelle.',
       })
+      return false
     }
   }
 
-  function moveCandidature(params: MoveCandidatureParams): void {
+  async function moveCandidature(params: MoveCandidatureParams): Promise<boolean> {
     const { sourceColumnId, targetColumnId, cardId } = params
 
     if (sourceColumnId === targetColumnId)
-      return
+      return false
 
     const kanbanData = kanban.data.value
     if (!kanbanData)
-      return
+      return false
 
     const sourceEtape = kanbanData.etapes.find(e => e.etape_uuid === sourceColumnId)
     const targetEtape = kanbanData.etapes.find(e => e.etape_uuid === targetColumnId)
 
     if (!sourceEtape || !targetEtape)
-      return
+      return false
 
     const candidatureIndex = sourceEtape.candidatures.findIndex(c => c.uuid === cardId)
     if (candidatureIndex === -1)
-      return
+      return false
 
     const candidature = sourceEtape.candidatures[candidatureIndex] as Candidature
 
@@ -188,7 +190,7 @@ export const useCandidatures = defineQuery(() => {
     })
 
     queryCache.setQueryData(kanbanQueryKey(), { ...kanbanData, etapes: newEtapes })
-    void persistEtapeChange(targetColumnId, [cardId], kanbanData)
+    return persistEtapeChange(targetColumnId, [cardId], kanbanData)
   }
 
   function moveCandidaturesBatch(params: MoveCandidaturesBatchParams): void {
