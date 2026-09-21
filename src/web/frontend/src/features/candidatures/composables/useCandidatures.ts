@@ -127,12 +127,10 @@ export const useCandidatures = defineQuery(() => {
   ): Promise<void> {
     const key = kanbanQueryKey()
     try {
-      const resultat = await patchEtapeCandidatures(
-        organismeUuid.value!,
-        recrutementUuid.value!,
-        targetColumnId,
+      const resultat = await patchEtapeCandidatures(organismeUuid.value!, recrutementUuid.value!, {
+        etapeCibleUuid: targetColumnId,
         candidatureUuids,
-      )
+      })
       if (resultat.echecs.length > 0) {
         await queryCache.invalidateQueries({ key })
         addToast({

@@ -100,7 +100,10 @@ describe('candidaturePanelView', () => {
     await user.click(screen.getByRole('button', { name: 'Valider' }))
 
     await vi.waitFor(() => expect(router.currentRoute.value.params.candidatureUuid).toBe(CANDIDATURE_BRUNO))
-    expect(patchEtapeCandidatures).toHaveBeenCalledWith(ORGANISME_UUID, RECRUTEMENT_UUID, ETAPE_ENTRETIEN, [CANDIDATURE_ALICE])
+    expect(patchEtapeCandidatures).toHaveBeenCalledWith(ORGANISME_UUID, RECRUTEMENT_UUID, {
+      etapeCibleUuid: ETAPE_ENTRETIEN,
+      candidatureUuids: [CANDIDATURE_ALICE],
+    })
   })
 
   it('confirms the move with a toast that reopens the moved candidature', async () => {
@@ -137,7 +140,10 @@ describe('candidaturePanelView', () => {
     await user.click(dialog.getByRole('button', { name: 'Valider' }))
 
     await vi.waitFor(() => expect(router.currentRoute.value.params.candidatureUuid).toBe(CANDIDATURE_BRUNO))
-    expect(patchEtapeCandidatures).toHaveBeenCalledWith(ORGANISME_UUID, RECRUTEMENT_UUID, ETAPE_REFUS, [CANDIDATURE_ALICE])
+    expect(patchEtapeCandidatures).toHaveBeenCalledWith(ORGANISME_UUID, RECRUTEMENT_UUID, {
+      etapeCibleUuid: ETAPE_REFUS,
+      candidatureUuids: [CANDIDATURE_ALICE],
+    })
   })
 
   it('shows an empty state for a candidature absent from the kanban', async () => {
