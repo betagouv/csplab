@@ -8,21 +8,19 @@ from django.utils import timezone
 from application.identite.context_services.organisme_permission_service import (
     OrganismePermissionService,
 )
+from application.recruteur.context_services.organisme_agent_service import (
+    attach_agent_to_organisme,
+    get_profil_agent,
+)
 from domain.commons.services.audit_log_writer import AuditLogWriter
 from domain.identite.entities.utilisateurs import Utilisateur
-from domain.identite.errors.agent_errors import ProfilAgentNexistePas
 from domain.identite.value_objects.organisme_action import OrganismeAction
 from domain.recruteur.errors.recrutement_errors import RecrutementInexistant
-from domain.recruteur.value_objects.roles import (
-    AgentOrganismeRole,
-    AgentRecrutementRole,
-)
-from infrastructure.django_apps.recruteur.models.organisme import OrganismeAgentModel
+from domain.recruteur.value_objects.roles import AgentRecrutementRole
 from infrastructure.django_apps.recruteur.models.recrutement import (
     RecrutementAgentModel,
     RecrutementModel,
 )
-from infrastructure.django_apps.users.models import ProfilAgentModel
 from infrastructure.repositories.commons.postgres_audit_log_repository import (
     PostgresAuditLogRepository,
 )
@@ -52,32 +50,12 @@ def set_recrutements_responsable(
     )
 
     with transaction.atomic():
-        if not OrganismeAgentModel.objects.by_organisme_and_agent(
-            organisme_id, agent_id
-        ).exists():
-            if not ProfilAgentModel.objects.filter(
-                utilisateur_id=agent_id  # type: ignore[misc]
-            ).exists():
-                raise ProfilAgentNexistePas(agent_id)
-
-            OrganismeAgentModel.objects.update_or_create(
-                organisme_id=organisme_id,
-                agent_id=agent_id,  # type: ignore[misc]
-                defaults={
-                    "role": AgentOrganismeRole.AGENT.value,
-                    "date_revocation": None,
-                },
-                create_defaults={
-                    "id": uuid4(),
-                    "role": AgentOrganismeRole.AGENT.value,
-                },
-            )
-            AuditLogWriter(repository=PostgresAuditLogRepository()).log_action(
-                utilisateur_id=utilisateur.entity_id,
-                entity=Entity(entity_id=agent_id),
-                ressource_kind="AgentOrganisme",
-                event_name="AgentOrganismeRoleAttache",
-            )
+        agent = get_profil_agent(agent_id)
+        attach_agent_to_organisme(
+            organisme_id=organisme_id,
+            agent=agent,
+            utilisateur=utilisateur,
+        )
 
         existing_recrutement_ids = set(
             RecrutementModel.objects.by_organisme_and_recrutements(
