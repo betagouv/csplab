@@ -15,18 +15,20 @@ import {
   ETAPE_REFUS,
   KANBAN,
   KANBAN_PATH,
+  MOTIFS_REFUS,
   ORGANISME_UUID,
   RECRUTEMENT_DETAIL,
   RECRUTEMENT_UUID,
 } from '@/test/fixtures/candidatures'
 import { setupUser } from '@/test/render'
-import { getRecrutementKanban, patchEtapeCandidatures } from '../api'
+import { getMotifsRefus, getRecrutementKanban, patchEtapeCandidatures } from '../api'
 import CandidaturePanelView from './CandidaturePanelView.vue'
 
 vi.mock('../api', () => ({
   getRecrutementKanban: vi.fn(),
   getCandidatureListe: vi.fn(),
   patchEtapeCandidatures: vi.fn(),
+  getMotifsRefus: vi.fn(),
 }))
 
 vi.mock('@/features/recrutements/api', () => ({
@@ -61,6 +63,7 @@ describe('candidaturePanelView', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     vi.mocked(getRecrutementKanban).mockResolvedValue(KANBAN)
+    vi.mocked(getMotifsRefus).mockResolvedValue(MOTIFS_REFUS)
     vi.mocked(getRecrutementDetail).mockResolvedValue(RECRUTEMENT_DETAIL)
     vi.mocked(patchEtapeCandidatures).mockResolvedValue({ reussites: [CANDIDATURE_ALICE], echecs: [] })
   })
@@ -144,13 +147,17 @@ describe('candidaturePanelView', () => {
 
     const dialog = within(await screen.findByRole('dialog', { name: 'Refus de candidature' }))
     expect(patchEtapeCandidatures).not.toHaveBeenCalled()
+    expect(dialog.getByRole('button', { name: 'Valider le refus' })).toBeDisabled()
 
-    await user.click(dialog.getByRole('button', { name: 'Valider' }))
+    await user.click(dialog.getByRole('combobox', { name: 'Motif de refus' }))
+    await user.click(await screen.findByRole('option', { name: 'Expérience insuffisante' }))
+    await user.click(dialog.getByRole('button', { name: 'Valider le refus' }))
 
     await vi.waitFor(() => expect(router.currentRoute.value.params.candidatureUuid).toBe(CANDIDATURE_BRUNO))
     expect(patchEtapeCandidatures).toHaveBeenCalledWith(ORGANISME_UUID, RECRUTEMENT_UUID, {
       etapeCibleUuid: ETAPE_REFUS,
       candidatureUuids: [CANDIDATURE_ALICE],
+      motifRefus: 'experience_insuffisante',
     })
   })
 

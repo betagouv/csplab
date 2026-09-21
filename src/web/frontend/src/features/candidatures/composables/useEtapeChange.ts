@@ -1,9 +1,10 @@
 import type { Ref } from 'vue'
-import { computed, ref } from 'vue'
+import type { MotifRefus } from '../types'
 import { useToast } from '@/composables/ui/useToast'
 import { formatCandidatNom } from '../utils/candidat'
 import { useCandidatureNavigation } from './useCandidatureNavigation'
 import { useCandidatures } from './useCandidatures'
+import { useRefusCandidature } from './useRefusCandidature'
 
 const TOAST_DURATION = 10_000
 
@@ -11,12 +12,11 @@ export function useEtapeChange(candidatureUuid: Ref<string>, leavePanel: () => v
   const { moveCandidature, recrutementEtapes, findCandidature } = useCandidatures()
   const { position, etape, navigateTo } = useCandidatureNavigation(candidatureUuid)
   const { addToast, dismissToast } = useToast()
+  const refus = useRefusCandidature()
 
   let lastToastId: number | null = null
-  const pendingRefusEtapeUuid = ref<string | null>(null)
-  const isRefusPending = computed(() => pendingRefusEtapeUuid.value !== null)
 
-  async function confirm(targetEtapeUuid: string): Promise<void> {
+  async function confirm(targetEtapeUuid: string, motifRefus?: MotifRefus): Promise<void> {
     const candidature = findCandidature(candidatureUuid.value)
     const target = recrutementEtapes.value.find(candidate => candidate.etape_uuid === targetEtapeUuid)
     if (!etape.value || !candidature || !target)
@@ -29,6 +29,7 @@ export function useEtapeChange(candidatureUuid: Ref<string>, leavePanel: () => v
       sourceColumnId: etape.value.etape_uuid,
       targetColumnId: targetEtapeUuid,
       cardId: movedUuid,
+      motifRefus,
     })
 
     if (nextUuid)
@@ -50,23 +51,13 @@ export function useEtapeChange(candidatureUuid: Ref<string>, leavePanel: () => v
   }
 
   function request(targetEtapeUuid: string): void {
+    const candidature = findCandidature(candidatureUuid.value)
     const target = recrutementEtapes.value.find(candidate => candidate.etape_uuid === targetEtapeUuid)
-    if (target?.categorie === 'REFUS')
-      pendingRefusEtapeUuid.value = targetEtapeUuid
+    if (target?.categorie === 'REFUS' && candidature)
+      refus.request([candidature.candidat], motifRefus => void confirm(targetEtapeUuid, motifRefus))
     else
       void confirm(targetEtapeUuid)
   }
 
-  function confirmRefus(): void {
-    const targetEtapeUuid = pendingRefusEtapeUuid.value
-    pendingRefusEtapeUuid.value = null
-    if (targetEtapeUuid)
-      void confirm(targetEtapeUuid)
-  }
-
-  function cancelRefus(): void {
-    pendingRefusEtapeUuid.value = null
-  }
-
-  return { etapes: recrutementEtapes, request, isRefusPending, confirmRefus, cancelRefus }
+  return { etapes: recrutementEtapes, request, refus }
 }

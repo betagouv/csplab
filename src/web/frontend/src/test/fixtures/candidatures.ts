@@ -1,4 +1,4 @@
-import type { Candidat, RecrutementDetailKanban } from '@/features/candidatures/types'
+import type { Candidat, MotifRefusOption, RecrutementDetailKanban } from '@/features/candidatures/types'
 import type { RecrutementDetail } from '@/features/recrutements/types'
 
 export const ORGANISME_UUID = '00000000-0000-0000-0000-000000000000'
@@ -50,3 +50,9 @@ export const RECRUTEMENT_DETAIL = {
   categorie_offre: 'A',
   etapes: KANBAN.etapes.map(({ etape_uuid, nom, categorie }) => ({ etape_uuid, nom, categorie })),
 } as unknown as RecrutementDetail
+
+export const MOTIFS_REFUS: MotifRefusOption[] = [
+  { value: 'experience_insuffisante', label: 'Expérience insuffisante' },
+  { value: 'disponibilite', label: 'Disponibilité' },
+  { value: 'autre', label: 'Autre' },
+]
