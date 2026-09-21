@@ -9,8 +9,6 @@ from application.recruteur.usecases.attach_organisme_agent import (
 from application.recruteur.usecases.changer_etape_candidatures import (
     ChangerEtapeCandidaturesUsecase,
 )
-from application.recruteur.usecases.creer_note import CreerNoteUsecase
-from application.recruteur.usecases.editer_note import EditerNoteUsecase
 from application.recruteur.usecases.get_organisme_recruteur import (
     GetOrganismeRecruteurUsecase,
 )
@@ -38,13 +36,9 @@ from application.recruteur.usecases.list_organisme_agents import (
 from application.recruteur.usecases.lister_mes_recrutements import (
     ListerMesRecrutementsUsecase,
 )
-from application.recruteur.usecases.lister_notes_candidature import (
-    ListerNotesCandidatureUsecase,
-)
 from application.recruteur.usecases.revoke_organisme_agent import (
     RevokeOrganismeAgentUsecase,
 )
-from application.recruteur.usecases.supprimer_note import SupprimerNoteUsecase
 from application.recruteur.usecases.update_organisme_agent import (
     UpdateOrganismeAgentUsecase,
 )
@@ -70,12 +64,6 @@ from infrastructure.repositories.identite.postgres_agent_repository import (
 )
 from infrastructure.repositories.recruteur import (
     postgres_candidature_recruteur_repository,
-)
-from infrastructure.repositories.recruteur.postgres_note_query_service import (
-    PostgresNoteQueryService,
-)
-from infrastructure.repositories.recruteur.postgres_note_repository import (
-    PostgresNoteRepository,
 )
 from infrastructure.repositories.recruteur.postgres_organisme_agent_query_service import (  # noqa: E501
     PostgresOrganismeAgentQueryService,
@@ -129,8 +117,6 @@ class RecruteurContainer(containers.DeclarativeContainer):
     postgres_recrutement_repository = providers.Singleton(
         PostgresRecrutementRepository, mapper=recrutement_mapper
     )
-    postgres_note_repository = providers.Singleton(PostgresNoteRepository)
-    postgres_note_query_service = providers.Singleton(PostgresNoteQueryService)
 
     candidature_recruteur_mapper = providers.Factory(CandidatureRecruteurMapper)
     postgres_candidature_repository = providers.Singleton(
@@ -139,31 +125,6 @@ class RecruteurContainer(containers.DeclarativeContainer):
     )
 
     postgres_agent_repository = providers.Singleton(PostgresAgentRepository)
-
-    creer_note_usecase = providers.Factory(
-        CreerNoteUsecase,
-        note_repository=postgres_note_repository,
-        candidature_repository=postgres_candidature_repository,
-        agent_repository=postgres_agent_repository,
-        audit_log_writer=audit_log_writer,
-    )
-
-    lister_notes_candidature_usecase = providers.Factory(
-        ListerNotesCandidatureUsecase,
-        note_query_service=postgres_note_query_service,
-    )
-
-    editer_note_usecase = providers.Factory(
-        EditerNoteUsecase,
-        note_repository=postgres_note_repository,
-        audit_log_writer=audit_log_writer,
-    )
-
-    supprimer_note_usecase = providers.Factory(
-        SupprimerNoteUsecase,
-        note_repository=postgres_note_repository,
-        audit_log_writer=audit_log_writer,
-    )
 
     get_organisme_recruteur_usecase = providers.Factory(
         GetOrganismeRecruteurUsecase,

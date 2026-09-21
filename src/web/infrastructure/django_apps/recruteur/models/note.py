@@ -5,6 +5,22 @@ from infrastructure.django_apps.users.fields import agent_fk
 from infrastructure.django_apps.utils.models import BaseDatedModel
 
 
+class NoteQuerySet(models.QuerySet):
+    def active(self) -> "NoteQuerySet":
+        return self.filter(supprimee_le__isnull=True)
+
+    def by_candidature(self, candidature_id) -> "NoteQuerySet":
+        return (
+            self.select_related("publie_par__utilisateur")
+            .active()
+            .filter(candidature_id=candidature_id)
+            .order_by("-created_at")
+        )
+
+    def by_author(self, agent_id) -> "NoteQuerySet":
+        return self.filter(publie_par_id=agent_id)
+
+
 class NoteModel(BaseDatedModel):
     candidature = models.ForeignKey(
         CandidatureModel,
@@ -15,6 +31,8 @@ class NoteModel(BaseDatedModel):
     message = models.TextField()
     publie_par = agent_fk(related_name="notes_publiees")
     supprimee_le = models.DateTimeField(null=True, blank=True)
+
+    objects = NoteQuerySet.as_manager()
 
     class Meta:
         db_table = "note"
