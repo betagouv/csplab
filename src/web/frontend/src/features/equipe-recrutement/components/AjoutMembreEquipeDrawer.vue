@@ -1,25 +1,26 @@
 <script setup lang="ts">
-import type { MembreEquipePayload, RecrutementRole } from '../types'
-import type { CspComboboxOption } from '@/components/base/CspCombobox/CspCombobox.vue'
+import type { RecrutementRole } from '../types'
 import type { CspRadioGroupOption } from '@/components/base/CspRadioGroup/CspRadioGroup.vue'
-import type { AgentOrganisme } from '@/features/organismes/types'
+import type { AgentSearchStatus } from '@/features/organismes/composables/useAgentParEmail'
+import type { AgentRecherche } from '@/features/organismes/types'
 import { computed, ref, watch } from 'vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
-import CspCallout from '@/components/base/CspCallout/CspCallout.vue'
-import CspCombobox from '@/components/base/CspCombobox/CspCombobox.vue'
 import CspDrawer from '@/components/base/CspDrawer/CspDrawer.vue'
 import CspRadioGroup from '@/components/base/CspRadioGroup/CspRadioGroup.vue'
-import { useTextSearch } from '@/composables/data/useTextSearch'
+import AgentRechercheForm from '@/features/organismes/components/AgentRechercheForm.vue'
 import { RECRUTEMENT_ROLE_LABELS } from '../constants/equipe-recrutement'
 
 const props = defineProps<{
-  agents: AgentOrganisme[]
-  pendingAgents?: boolean
+  status: AgentSearchStatus
+  agent?: AgentRecherche | null
+  searching?: boolean
   submitting?: boolean
 }>()
 
 const emit = defineEmits<{
-  add: [payload: MembreEquipePayload]
+  search: [email: string]
+  add: [role: RecrutementRole]
+  reset: []
 }>()
 
 const open = defineModel<boolean>('open', { required: true })
@@ -30,38 +31,39 @@ const ROLE_OPTIONS: CspRadioGroupOption[] = (
   Object.keys(RECRUTEMENT_ROLE_LABELS) as RecrutementRole[]
 ).map(role => ({ value: role, label: RECRUTEMENT_ROLE_LABELS[role] }))
 
-const selectedAgentId = ref<string | null>(null)
+const email = ref('')
 const role = ref<RecrutementRole>(DEFAULT_ROLE)
+const error = ref('')
 
-const { search, filtered } = useTextSearch(() => props.agents, agent => [agent.email])
+const isFound = computed(() => props.status === 'found')
 
-const options = computed<CspComboboxOption[]>(() => filtered.value.map(agent => ({
-  value: agent.agent_id,
-  label: agent.email,
-})))
+const isSearched = computed(() => props.status !== 'idle')
 
-const aucunAgentDisponible = computed(
-  () => !props.pendingAgents && props.agents.length === 0,
-)
-
-const submitDisabled = computed(() => !selectedAgentId.value || props.submitting)
+const submitLabel = computed(() => isFound.value ? 'Ajouter le membre' : 'Créer et ajouter')
 
 watch(open, (isOpen) => {
   if (!isOpen) {
-    selectedAgentId.value = null
+    email.value = ''
     role.value = DEFAULT_ROLE
-    search.value = ''
+    error.value = ''
   }
 })
 
-function handleSubmit(): void {
-  if (!selectedAgentId.value)
-    return
-  emit('add', {
-    agent_id: selectedAgentId.value,
-    recrutement_role: role.value,
-  })
+function handleReset(): void {
+  error.value = ''
+  emit('reset')
 }
+
+function handleSubmit(): void {
+  if (isSearched.value)
+    emit('add', role.value)
+}
+
+function setEmailError(message: string): void {
+  error.value = message
+}
+
+defineExpose({ setEmailError })
 </script>
 
 <template>
@@ -75,26 +77,18 @@ function handleSubmit(): void {
       novalidate
       @submit.prevent="handleSubmit"
     >
-      <CspCombobox
-        v-model="selectedAgentId"
-        v-model:search-term="search"
-        :options="options"
-        label="Membre de l'organisme"
-        hint="Seuls les membres de l'organisme peuvent rejoindre l'équipe de recrutement."
-        placeholder="Rechercher un courriel"
-        name="agent"
-        :pending="pendingAgents"
-        empty-label="Aucun courriel disponible ne correspond à votre recherche"
-      />
-
-      <CspCallout
-        v-if="aucunAgentDisponible"
-        variant="info"
-        title="Aucun membre disponible"
-        description="Tous les membres de l'organisme font déjà partie de cette équipe. Rattachez d'abord la personne à l'organisme pour pouvoir l'ajouter ici."
+      <AgentRechercheForm
+        v-model="email"
+        :status="status"
+        :agent="agent"
+        :searching="searching"
+        :error-message="error"
+        @search="emit('search', $event)"
+        @reset="handleReset"
       />
 
       <CspRadioGroup
+        v-if="isSearched"
         v-model="role"
         label="Rôle dans le recrutement"
         name="recrutement_role"
@@ -109,11 +103,12 @@ function handleSubmit(): void {
           @click="open = false"
         />
         <CspButton
+          v-if="isSearched"
           type="submit"
-          label="Ajouter le membre"
+          :label="submitLabel"
           icon="ri:user-add-line"
           is-icon-left
-          :disabled="submitDisabled"
+          :disabled="submitting"
         />
       </div>
     </form>

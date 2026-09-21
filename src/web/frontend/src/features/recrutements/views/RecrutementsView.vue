@@ -90,7 +90,7 @@ const {
   foundAgent,
   searching,
   search: searchResponsable,
-  assigner,
+  assign,
   submitting,
   reset: resetResponsable,
 } = useAssignationResponsable(organismeUuid)
@@ -144,7 +144,7 @@ async function handleAssign() {
   const recrutementIds = selection.selected.value.map(row => row.offer_id)
 
   try {
-    const resultat = await assigner(recrutementIds)
+    const resultat = await assign(recrutementIds)
     const agent = foundAgent.value
     assignationDrawer.close()
     selection.clear()

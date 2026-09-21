@@ -1,14 +1,13 @@
 <script setup lang="ts">
-import type { AgentSearchStatus } from '../composables/useAjoutMembre'
+import type { AgentSearchStatus } from '../composables/useAgentParEmail'
 import type { AgentRecherche, Role } from '../types'
 import type { CspRadioGroupOption } from '@/components/base/CspRadioGroup/CspRadioGroup.vue'
 import { computed, ref, watch } from 'vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspDrawer from '@/components/base/CspDrawer/CspDrawer.vue'
 import CspRadioGroup from '@/components/base/CspRadioGroup/CspRadioGroup.vue'
-import CspSearchBar from '@/components/base/CspSearchBar/CspSearchBar.vue'
 import { ROLE_LABELS } from '../constants/organisme'
-import { formatAgentName } from '../format'
+import AgentRechercheForm from './AgentRechercheForm.vue'
 
 const props = defineProps<{
   status: AgentSearchStatus
@@ -24,8 +23,6 @@ const emit = defineEmits<{
 }>()
 
 const open = defineModel<boolean>('open', { required: true })
-
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@.]+(?:\.[^\s@.]+)+$/
 
 const ROLE_OPTIONS: CspRadioGroupOption[] = [
   { value: 'agent', label: ROLE_LABELS.agent },
@@ -50,19 +47,9 @@ watch(open, (isOpen) => {
   }
 })
 
-watch(email, () => {
+function handleReset(): void {
   error.value = ''
-  if (props.status !== 'idle')
-    emit('reset')
-})
-
-function handleSearch(value: string): void {
-  if (!EMAIL_PATTERN.test(value)) {
-    error.value = 'Renseignez une adresse électronique valide.'
-    return
-  }
-  error.value = ''
-  emit('search', value)
+  emit('reset')
 }
 
 function handleSubmit(): void {
@@ -88,40 +75,15 @@ defineExpose({ setEmailError })
       novalidate
       @submit.prevent="handleSubmit"
     >
-      <CspSearchBar
+      <AgentRechercheForm
         v-model="email"
-        label="Adresse électronique de l'agent"
-        hint="Saisissez l'adresse complète du compte de l'agent."
-        name="email"
-        placeholder="prenom.nom@exemple.gouv.fr"
-        :disabled="searching"
-        :error="Boolean(error)"
+        :status="status"
+        :agent="agent"
+        :searching="searching"
         :error-message="error"
-        @search="handleSearch"
+        @search="emit('search', $event)"
+        @reset="handleReset"
       />
-
-      <div
-        v-if="isFound && agent"
-        class="attach-agent-drawer__agent"
-      >
-        <p class="attach-agent-drawer__agent-name">
-          {{ formatAgentName(agent) }}
-        </p>
-        <p class="attach-agent-drawer__agent-detail">
-          {{ agent.intitule_poste }}
-        </p>
-        <p class="attach-agent-drawer__agent-detail">
-          {{ agent.email }}
-        </p>
-      </div>
-
-      <p
-        v-else-if="status === 'not-found'"
-        class="attach-agent-drawer__hint"
-      >
-        Aucun compte ne correspond à cette adresse. Un compte sera créé, la personne
-        complétera son profil à sa première connexion.
-      </p>
 
       <CspRadioGroup
         v-if="isSearched"
@@ -156,32 +118,6 @@ defineExpose({ setEmailError })
   display: flex;
   flex-direction: column;
   gap: var(--csp-space-5);
-}
-
-.attach-agent-drawer__agent {
-  display: flex;
-  flex-direction: column;
-  gap: var(--csp-space-1);
-  padding: var(--csp-space-4);
-  border: 1px solid var(--border-default-grey);
-  border-radius: 0.25rem;
-}
-
-.attach-agent-drawer__agent-name {
-  margin: 0;
-  font-weight: 600;
-}
-
-.attach-agent-drawer__agent-detail {
-  margin: 0;
-  color: var(--text-mention-grey);
-  font-size: 0.875rem;
-}
-
-.attach-agent-drawer__hint {
-  margin: 0;
-  color: var(--text-mention-grey);
-  font-size: 0.875rem;
 }
 
 .attach-agent-drawer__actions {

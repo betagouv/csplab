@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type { MembreEquipePayload } from '../types'
-import { computed, ref, watch } from 'vue'
+import type { RecrutementRole } from '../types'
+import { computed, ref, useTemplateRef, watch } from 'vue'
 import { HttpError } from '@/api/errors'
 import CspAsyncSection from '@/components/base/CspAsyncSection/CspAsyncSection.vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
@@ -33,10 +33,15 @@ const { membres, pending, error, revoke, revoking, changeRole } = useEquipeRecru
   props.organismeUuid,
   props.recrutementUuid,
 )
-const { agentsDisponibles, pendingAgents, add, submitting } = useAjoutMembreEquipe(
-  props.organismeUuid,
-  props.recrutementUuid,
-)
+const {
+  status: agentStatus,
+  foundAgent,
+  searching,
+  search: searchAgent,
+  add,
+  submitting,
+  reset: resetAgent,
+} = useAjoutMembreEquipe(props.organismeUuid, props.recrutementUuid)
 const { revocationMembre, clearRevocation, roleChange, clearRoleChange } = useMembreEquipeActions()
 const { canManageOrganisme } = useRouteOrganisme()
 const { addToast } = useToast()
@@ -45,6 +50,7 @@ const showSkeleton = useMinimumPending(pending)
 
 const page = ref(1)
 const ajoutDrawerOpen = ref(false)
+const ajoutDrawer = useTemplateRef('ajoutDrawer')
 const revocationDialogOpen = ref(false)
 
 const columns = computed(() =>
@@ -53,17 +59,18 @@ const columns = computed(() =>
     : EQUIPE_RECRUTEMENT_COLUMNS,
 )
 
-function ajoutErrorTitle(submitError: unknown): string {
-  if (submitError instanceof HttpError && submitError.status === 409)
-    return 'Cet agent fait déjà partie de l\'équipe'
-  if (submitError instanceof HttpError && submitError.status === 404)
-    return 'Cet agent n\'est plus rattaché à l\'organisme'
-  return 'L\'ajout du membre a échoué'
+async function handleSearchAgent(email: string) {
+  try {
+    await searchAgent(email)
+  }
+  catch {
+    addToast({ variant: 'error', title: 'La recherche a échoué' })
+  }
 }
 
-async function handleAdd(payload: MembreEquipePayload) {
+async function handleAdd(role: RecrutementRole) {
   try {
-    const membre = await add(payload)
+    const membre = await add(role)
     addToast({
       variant: 'success',
       title: 'Membre ajouté',
@@ -72,7 +79,11 @@ async function handleAdd(payload: MembreEquipePayload) {
     ajoutDrawerOpen.value = false
   }
   catch (submitError) {
-    addToast({ variant: 'error', title: ajoutErrorTitle(submitError) })
+    if (submitError instanceof HttpError && submitError.status === 409) {
+      ajoutDrawer.value?.setEmailError('Cette personne fait déjà partie de l\'équipe.')
+      return
+    }
+    addToast({ variant: 'error', title: 'L\'ajout du membre a échoué' })
   }
 }
 
@@ -208,11 +219,15 @@ const countLabel = computed(() => {
     </CspAsyncSection>
 
     <AjoutMembreEquipeDrawer
+      ref="ajoutDrawer"
       v-model:open="ajoutDrawerOpen"
-      :agents="agentsDisponibles"
-      :pending-agents="pendingAgents"
+      :status="agentStatus"
+      :agent="foundAgent"
+      :searching="searching"
       :submitting="submitting"
+      @search="handleSearchAgent"
       @add="handleAdd"
+      @reset="resetAgent"
     />
 
     <CspDialog

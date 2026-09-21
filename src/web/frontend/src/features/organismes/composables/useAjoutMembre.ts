@@ -1,68 +1,32 @@
-import type { Agent, AgentRecherche, CreateAgentPayload, Role, SetAgentRolePayload } from '../types'
+import type { MaybeRefOrGetter } from 'vue'
+import type { Role, SetAgentRolePayload } from '../types'
 import { useMutation, useQueryCache } from '@pinia/colada'
-import { computed, ref } from 'vue'
-import { createAgent, searchAgentByEmail, setAgentRole } from '../api'
+import { computed, toValue } from 'vue'
+import { setAgentRole } from '../api'
 import { ORGANISMES_QUERY_KEYS } from '../queries'
+import { useAgentParEmail } from './useAgentParEmail'
 
-export type AgentSearchStatus = 'idle' | 'found' | 'not-found'
+export type { AgentSearchStatus } from './useAgentParEmail'
 
-export function useAjoutMembre(organismeUuid: string) {
+export function useAjoutMembre(organismeUuid: MaybeRefOrGetter<string>) {
   const queryCache = useQueryCache()
 
-  const status = ref<AgentSearchStatus>('idle')
-  const foundAgent = ref<AgentRecherche | null>(null)
-  const searchedEmail = ref('')
-  const searching = ref(false)
-
-  function reset(): void {
-    status.value = 'idle'
-    foundAgent.value = null
-    searchedEmail.value = ''
-  }
-
-  async function search(email: string): Promise<AgentSearchStatus> {
-    reset()
-    searching.value = true
-    try {
-      const agent = await searchAgentByEmail(organismeUuid, email)
-      foundAgent.value = agent
-      searchedEmail.value = email
-      status.value = agent ? 'found' : 'not-found'
-      return status.value
-    }
-    finally {
-      searching.value = false
-    }
-  }
-
-  const createMutation = useMutation({
-    mutation: (payload: CreateAgentPayload) => createAgent(payload),
-  })
+  const { status, foundAgent, searching, creating, search, resolve, reset }
+    = useAgentParEmail(organismeUuid)
 
   const attachMutation = useMutation({
-    mutation: (payload: SetAgentRolePayload) => setAgentRole(organismeUuid, payload),
+    mutation: (payload: SetAgentRolePayload) =>
+      setAgentRole(toValue(organismeUuid), payload),
     onSettled: () => queryCache.invalidateQueries({ key: ORGANISMES_QUERY_KEYS.root }),
   })
 
-  async function create(): Promise<Agent> {
-    const agent = await createMutation.mutateAsync({
-      email: searchedEmail.value,
-      organisme_id: organismeUuid,
-    })
-    foundAgent.value = agent
-    status.value = 'found'
-    return agent
-  }
-
   async function add(role: Role) {
-    const agent = status.value === 'not-found' ? await create() : foundAgent.value
-    if (!agent)
-      throw new Error('Aucun agent à ajouter.')
+    const agent = await resolve()
     return attachMutation.mutateAsync({ agent_id: agent.agent_id, role })
   }
 
   const submitting = computed(
-    () => createMutation.isLoading.value || attachMutation.isLoading.value,
+    () => creating.value || attachMutation.isLoading.value,
   )
 
   return {

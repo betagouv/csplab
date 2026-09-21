@@ -1,15 +1,16 @@
-import type { MembreEquipe } from '../types'
-import type { AgentOrganisme } from '@/features/organismes/types'
-import { PiniaColada } from '@pinia/colada'
+import type { AgentRecherche } from '@/features/organismes/types'
+import { PiniaColada, useQuery } from '@pinia/colada'
 import { mount } from '@vue/test-utils'
 import { createPinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { defineComponent, h, nextTick } from 'vue'
+import { equipeRecrutementQuery } from '../queries'
 import { useAjoutMembreEquipe } from './useAjoutMembreEquipe'
 
 const mockGetEquipeRecrutement = vi.fn()
 const mockAddMembreEquipe = vi.fn()
-const mockGetOrganismeAgents = vi.fn()
+const mockSearchAgentByEmail = vi.fn()
+const mockCreateAgent = vi.fn()
 
 vi.mock('../api', () => ({
   getEquipeRecrutement: (...args: unknown[]) => mockGetEquipeRecrutement(...args),
@@ -19,38 +20,23 @@ vi.mock('../api', () => ({
 vi.mock('@/features/organismes/api', () => ({
   getOrganismesList: vi.fn(),
   getOrganismeDetail: vi.fn(),
-  getOrganismeAgents: (...args: unknown[]) => mockGetOrganismeAgents(...args),
+  getOrganismeAgents: vi.fn(),
+  searchAgentByEmail: (...args: unknown[]) => mockSearchAgentByEmail(...args),
+  createAgent: (...args: unknown[]) => mockCreateAgent(...args),
 }))
 
 const ORGANISME_UUID = '11111111-1111-1111-1111-111111111111'
 const RECRUTEMENT_UUID = 'aaaaaaaa-0001-0001-0001-000000000001'
+const AGENT_ID = 'bbbbbbbb-0001-0001-0001-000000000001'
+const NOUVEL_AGENT_ID = 'bbbbbbbb-0002-0002-0002-000000000002'
+const EMAIL_INCONNU = 'nouvelle.agente@example.gouv.fr'
 
-const MEMBRE_ID = 'bbbbbbbb-0001-0001-0001-000000000001'
-const NON_MEMBRE_ID = 'bbbbbbbb-0002-0002-0002-000000000002'
-
-const MEMBRES: MembreEquipe[] = [
-  {
-    agent_id: MEMBRE_ID,
-    nom: 'Dupont',
-    prenom: 'Jeanne',
-    poste: 'Responsable recrutement',
-    email: 'jeanne.dupont@example.gouv.fr',
-    recrutement_role: 'responsable',
-  },
-]
-
-function agentOrganisme(agentId: string, nom: string): AgentOrganisme {
-  return {
-    agent_id: agentId,
-    organisme_id: ORGANISME_UUID,
-    nom,
-    prenom: 'Jeanne',
-    email: `${nom.toLowerCase()}@example.gouv.fr`,
-    poste: 'Chargée de recrutement',
-    role: 'agent',
-    date_derniere_activite: null,
-    date_creation_compte: '2026-01-01T00:00:00Z',
-  }
+const AGENT: AgentRecherche = {
+  agent_id: AGENT_ID,
+  email: 'jeanne.dupont@example.gouv.fr',
+  prenom: 'Jeanne',
+  nom: 'Dupont',
+  intitule_poste: 'Chargée de recrutement',
 }
 
 async function flush() {
@@ -63,6 +49,10 @@ function mountAjoutMembre() {
   mount(defineComponent({
     setup() {
       result = useAjoutMembreEquipe(ORGANISME_UUID, RECRUTEMENT_UUID)
+      useQuery(() => equipeRecrutementQuery({
+        organismeUuid: ORGANISME_UUID,
+        recrutementUuid: RECRUTEMENT_UUID,
+      }))
       return () => h('div')
     },
   }), {
@@ -76,34 +66,44 @@ function mountAjoutMembre() {
 describe('useAjoutMembreEquipe', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    mockGetEquipeRecrutement.mockResolvedValue(MEMBRES)
-    mockGetOrganismeAgents.mockResolvedValue([
-      agentOrganisme(MEMBRE_ID, 'Dupont'),
-      agentOrganisme(NON_MEMBRE_ID, 'Martin'),
-    ])
+    mockGetEquipeRecrutement.mockResolvedValue([])
+    mockAddMembreEquipe.mockResolvedValue({})
+    mockSearchAgentByEmail.mockResolvedValue(AGENT)
+    mockCreateAgent.mockResolvedValue({ ...AGENT, agent_id: NOUVEL_AGENT_ID })
   })
 
-  it('excludes the agents already in the team from the selectable agents', async () => {
-    const result = mountAjoutMembre()
-    await flush()
-
-    expect(result.agentsDisponibles.value.map(agent => agent.agent_id)).toEqual([
-      NON_MEMBRE_ID,
-    ])
-  })
-
-  it('refreshes the team once a member has been added', async () => {
+  it('adds the found agent then refreshes the team', async () => {
     const result = mountAjoutMembre()
     await flush()
     expect(mockGetEquipeRecrutement).toHaveBeenCalledTimes(1)
 
-    await result.add({ agent_id: NON_MEMBRE_ID, recrutement_role: 'recruteur' })
+    await result.search(AGENT.email)
+    await result.add('recruteur')
     await flush()
 
+    expect(mockCreateAgent).not.toHaveBeenCalled()
     expect(mockAddMembreEquipe).toHaveBeenCalledWith(ORGANISME_UUID, RECRUTEMENT_UUID, {
-      agent_id: NON_MEMBRE_ID,
+      agent_id: AGENT_ID,
       recrutement_role: 'recruteur',
     })
     expect(mockGetEquipeRecrutement).toHaveBeenCalledTimes(2)
+  })
+
+  it('creates the account before adding when no agent matches the email', async () => {
+    mockSearchAgentByEmail.mockResolvedValue(null)
+    const result = mountAjoutMembre()
+    await flush()
+
+    await result.search(EMAIL_INCONNU)
+    await result.add('contributeur')
+
+    expect(mockCreateAgent).toHaveBeenCalledWith({
+      email: EMAIL_INCONNU,
+      organisme_id: ORGANISME_UUID,
+    })
+    expect(mockAddMembreEquipe).toHaveBeenCalledWith(ORGANISME_UUID, RECRUTEMENT_UUID, {
+      agent_id: NOUVEL_AGENT_ID,
+      recrutement_role: 'contributeur',
+    })
   })
 })
