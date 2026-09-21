@@ -5,7 +5,6 @@ from uuid import UUID
 from django.db.models import Count, Max, Prefetch, Q
 
 from application.recruteur.dtos.recrutement_read_models import (
-    AgentDto,
     CandidatDto,
     CandidatureKanbanDto,
     CandidatureListeReadModel,
@@ -18,6 +17,7 @@ from application.recruteur.dtos.recrutement_read_models import (
     RecrutementArchivesReadModel,
     RecrutementDetailReadModel,
     RecrutementKanbanReadModel,
+    ResponsableDto,
 )
 from application.recruteur.services.recrutement_query_service_interface import (
     IRecrutementQueryService,
@@ -51,7 +51,7 @@ class PostgresRecrutementQueryService(IRecrutementQueryService):
             .prefetch_related(
                 Prefetch(
                     "agents_liaisons",
-                    queryset=RecrutementAgentModel.objects.select_related(
+                    queryset=RecrutementAgentModel.objects.responsables().select_related(
                         "agent__utilisateur"
                     ),
                 )
@@ -75,12 +75,10 @@ class PostgresRecrutementQueryService(IRecrutementQueryService):
         )
 
         def _mapper(model: RecrutementModel) -> RecrutementActifsReadModel:
-            agents = [
-                AgentDto(
-                    nom=(
-                        f"{liaison.agent.utilisateur.first_name} "
-                        f"{liaison.agent.utilisateur.last_name}"
-                    ).strip()
+            responsables = [
+                ResponsableDto(
+                    nom=liaison.agent.utilisateur.get_full_name()
+                    or liaison.agent.utilisateur.email
                 )
                 for liaison in model.agents_liaisons.all()  # type: ignore[attr-defined]
             ]
@@ -90,7 +88,7 @@ class PostgresRecrutementQueryService(IRecrutementQueryService):
                 reference_csp=model.offre.code_emploi_csp or "",
                 type_contrat=model.offre.contract_type or "",
                 date_publication=model.offre.publication_date,
-                agents=agents,
+                responsables=responsables,
                 derniere_activite=model.derniere_activite  # type: ignore[attr-defined]
                 or model.offre.publication_date,
                 candidatures=CandidaturesCompteurDto(
@@ -118,7 +116,7 @@ class PostgresRecrutementQueryService(IRecrutementQueryService):
             .prefetch_related(
                 Prefetch(
                     "agents_liaisons",
-                    queryset=RecrutementAgentModel.objects.select_related(
+                    queryset=RecrutementAgentModel.objects.responsables().select_related(
                         "agent__utilisateur"
                     ),
                 ),
@@ -146,12 +144,10 @@ class PostgresRecrutementQueryService(IRecrutementQueryService):
         )
 
         def _mapper(model: RecrutementModel) -> RecrutementArchivesReadModel:
-            agents = [
-                AgentDto(
-                    nom=(
-                        f"{liaison.agent.utilisateur.first_name} "
-                        f"{liaison.agent.utilisateur.last_name}"
-                    ).strip()
+            responsables = [
+                ResponsableDto(
+                    nom=liaison.agent.utilisateur.get_full_name()
+                    or liaison.agent.utilisateur.email
                 )
                 for liaison in model.agents_liaisons.all()  # type: ignore[attr-defined]
             ]
@@ -173,7 +169,7 @@ class PostgresRecrutementQueryService(IRecrutementQueryService):
                 reference_csp=model.offre.code_emploi_csp or "",
                 type_contrat=model.offre.contract_type or "",
                 date_archivage=cast(datetime, model.offre.archived_at),
-                agents=agents,
+                responsables=responsables,
                 finalise=finalise,
                 recrute=recrute,
             )
