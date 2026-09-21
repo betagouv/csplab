@@ -21,6 +21,10 @@ branch, keeping `deploy_type: branch-preview`. The run summary prints the URL.
 A branch preview stays up until its branch is deleted; merges to `main` and other
 previews never remove it.
 
+## Review comment on a pull request
+
+The PR preview job posts one comment, updated on every push, that links the preview and lists the stories the PR touches: new titles, titles whose stories file or a sibling file changed (with a link to the same story on `main`), removed titles, and the changed files under `frontend/src/` that no story covers. `.github/scripts/storybook-review-comment.mjs` computes it from the built `index.json`, the published `storybook/main/index.json` and the PR file list; run it locally with the same environment variables to preview a comment.
+
 ## Why isolated folders
 
 `JamesIves/github-pages-deploy-action` cleans with `rsync --delete` scoped to its

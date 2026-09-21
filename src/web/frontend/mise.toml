@@ -67,7 +67,7 @@ alias = [
 ]
 description = "Frontend Storybook (HOST and PORT override the 6006 default)"
 depends = [ "//src/web:install:js" ]
-run = "pnpm exec storybook dev -p \"${PORT:-6006}\" ${HOST:+--host \"$HOST\"}"
+run = "pnpm exec storybook dev -c frontend/.storybook -p \"${PORT:-6006}\" ${HOST:+--host \"$HOST\"}"
 
 [tasks."storybook:build"]
 alias = [
