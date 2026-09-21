@@ -1,5 +1,3 @@
-import type { RecrutementDetailKanban } from '../types'
-import type { RecrutementDetail } from '@/features/recrutements/types'
 import { PiniaColada } from '@pinia/colada'
 import { render, screen, within } from '@testing-library/vue'
 import { createPinia } from 'pinia'
@@ -8,6 +6,17 @@ import { createRouter, createWebHistory } from 'vue-router'
 import { useToast } from '@/composables/ui/useToast'
 import { getRecrutementDetail } from '@/features/recrutements/api'
 import { routes } from '@/router'
+import {
+  CANDIDATURE_ALICE,
+  CANDIDATURE_BRUNO,
+  ETAPE_ENTRETIEN,
+  ETAPE_REFUS,
+  KANBAN,
+  KANBAN_PATH,
+  ORGANISME_UUID,
+  RECRUTEMENT_DETAIL,
+  RECRUTEMENT_UUID,
+} from '@/test/fixtures/candidatures'
 import { setupUser } from '@/test/render'
 import { getRecrutementKanban, patchEtapeCandidatures } from '../api'
 import CandidaturePanelView from './CandidaturePanelView.vue'
@@ -22,53 +31,7 @@ vi.mock('@/features/recrutements/api', () => ({
   getRecrutementDetail: vi.fn(),
 }))
 
-const ORGANISME_UUID = '00000000-0000-0000-0000-000000000000'
-const RECRUTEMENT_UUID = 'aaaaaaaa-0001-0001-0001-000000000001'
-const CANDIDATURE_ALICE = 'dddddddd-0001-0001-0001-000000000001'
-const CANDIDATURE_BRUNO = 'dddddddd-0001-0001-0001-000000000002'
 const CANDIDATURE_INCONNUE = 'dddddddd-0001-0001-0001-000000000099'
-
-const ETAPE_ENTRETIEN = 'cccccccc-0001-0001-0001-000000000002'
-const ETAPE_REFUS = 'cccccccc-0001-0001-0001-000000000003'
-
-const KANBAN_PATH = `/organismes/${ORGANISME_UUID}/recrutements/${RECRUTEMENT_UUID}`
-
-const MOCK_KANBAN: RecrutementDetailKanban = {
-  offer_id: RECRUTEMENT_UUID,
-  etapes: [
-    {
-      etape_uuid: 'cccccccc-0001-0001-0001-000000000001',
-      nom: 'Réception des candidatures',
-      categorie: 'ENTREE',
-      candidatures: [
-        {
-          uuid: CANDIDATURE_ALICE,
-          date_soumission: '2025-06-10T09:15:00Z',
-          date_derniere_activite: '2025-06-11T10:00:00Z',
-          candidat: { uuid: 'eeeeeeee-0001-0001-0001-000000000001', nom: 'Dupont', prenom: 'Alice' },
-        },
-        {
-          uuid: CANDIDATURE_BRUNO,
-          date_soumission: '2025-06-12T09:15:00Z',
-          date_derniere_activite: '2025-06-12T10:00:00Z',
-          candidat: { uuid: 'eeeeeeee-0001-0001-0001-000000000002', nom: 'Martin', prenom: 'Bruno' },
-        },
-      ],
-    },
-    {
-      etape_uuid: ETAPE_ENTRETIEN,
-      nom: 'Entretien',
-      categorie: 'EN_COURS',
-      candidatures: [],
-    },
-    {
-      etape_uuid: ETAPE_REFUS,
-      nom: 'Refus',
-      categorie: 'REFUS',
-      candidatures: [],
-    },
-  ],
-}
 
 // Web history: closing the panel depends on the browser history state.
 async function renderPanel(paths: string[]) {
@@ -91,10 +54,8 @@ function closeButton() {
 describe('candidaturePanelView', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    vi.mocked(getRecrutementKanban).mockResolvedValue(MOCK_KANBAN)
-    vi.mocked(getRecrutementDetail).mockResolvedValue({
-      etapes: MOCK_KANBAN.etapes.map(({ etape_uuid, nom, categorie }) => ({ etape_uuid, nom, categorie })),
-    } as unknown as RecrutementDetail)
+    vi.mocked(getRecrutementKanban).mockResolvedValue(KANBAN)
+    vi.mocked(getRecrutementDetail).mockResolvedValue(RECRUTEMENT_DETAIL)
     vi.mocked(patchEtapeCandidatures).mockResolvedValue({ reussites: [CANDIDATURE_ALICE], echecs: [] })
   })
 
