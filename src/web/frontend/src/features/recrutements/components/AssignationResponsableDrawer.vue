@@ -5,9 +5,8 @@ import type { AgentRecherche } from '@/features/organismes/types'
 import { computed, ref, watch } from 'vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspDrawer from '@/components/base/CspDrawer/CspDrawer.vue'
-import CspInput from '@/components/base/CspInput/CspInput.vue'
 import CspTag from '@/components/base/CspTag/CspTag.vue'
-import { formatAgentName } from '@/features/organismes/format'
+import AgentRechercheForm from '@/features/organismes/components/AgentRechercheForm.vue'
 import { pluralize } from '@/utils/format'
 
 const props = defineProps<{
@@ -27,23 +26,15 @@ const emit = defineEmits<{
 
 const open = defineModel<boolean>('open', { required: true })
 
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@.]+(?:\.[^\s@.]+)+$/
-
 const email = ref('')
-const error = ref('')
 
 const isFound = computed(() => props.status === 'found')
 
 const isSearched = computed(() => props.status !== 'idle')
 
-const submitLabel = computed(() => {
-  if (isFound.value) {
-    return 'Assigner un responsable'
-  }
-  return isSearched.value ? 'Créer et assigner' : 'Rechercher'
-})
-
-const submitDisabled = computed(() => props.searching || props.submitting)
+const submitLabel = computed(() =>
+  isFound.value ? 'Assigner un responsable' : 'Créer et assigner',
+)
 
 const offresLabel = computed(() => {
   const count = props.recrutements.length
@@ -53,14 +44,6 @@ const offresLabel = computed(() => {
 watch(open, (isOpen) => {
   if (!isOpen) {
     email.value = ''
-    error.value = ''
-  }
-})
-
-watch(email, () => {
-  error.value = ''
-  if (props.status !== 'idle') {
-    emit('reset')
   }
 })
 
@@ -73,15 +56,7 @@ watch(() => props.recrutements.length, (count) => {
 function handleSubmit(): void {
   if (isSearched.value) {
     emit('assign')
-    return
   }
-  const value = email.value.trim()
-  if (!EMAIL_PATTERN.test(value)) {
-    error.value = 'Renseignez une adresse électronique valide.'
-    return
-  }
-  error.value = ''
-  emit('search', value)
 }
 </script>
 
@@ -118,39 +93,15 @@ function handleSubmit(): void {
         </ul>
       </section>
 
-      <CspInput
+      <AgentRechercheForm
         v-model="email"
         label="Responsable"
-        name="email"
-        type="email"
-        placeholder="prenom.nom@exemple.gouv.fr"
-        autocomplete="off"
-        :error="Boolean(error)"
-        :error-message="error"
+        :status="status"
+        :agent="agent"
+        :searching="searching"
+        @search="emit('search', $event)"
+        @reset="emit('reset')"
       />
-
-      <div
-        v-if="isFound && agent"
-        class="assignation-responsable-drawer__agent"
-      >
-        <p class="assignation-responsable-drawer__agent-name">
-          {{ formatAgentName(agent) || agent.email }}
-        </p>
-        <p class="assignation-responsable-drawer__agent-detail">
-          {{ agent.intitule_poste }}
-        </p>
-        <p class="assignation-responsable-drawer__agent-detail">
-          {{ agent.email }}
-        </p>
-      </div>
-
-      <p
-        v-else-if="status === 'not-found'"
-        class="assignation-responsable-drawer__hint"
-      >
-        Aucun compte ne correspond à cette adresse. Un compte sera créé, la personne
-        complétera son profil à sa première connexion.
-      </p>
 
       <div class="assignation-responsable-drawer__actions">
         <CspButton
@@ -160,9 +111,10 @@ function handleSubmit(): void {
           @click="open = false"
         />
         <CspButton
+          v-if="isSearched"
           type="submit"
           :label="submitLabel"
-          :disabled="submitDisabled"
+          :disabled="submitting"
         />
       </div>
     </form>
@@ -188,12 +140,6 @@ function handleSubmit(): void {
   font-size: 0.875rem;
 }
 
-.assignation-responsable-drawer__hint {
-  margin: 0;
-  color: var(--text-mention-grey);
-  font-size: 0.875rem;
-}
-
 .assignation-responsable-drawer__tags {
   display: flex;
   flex-wrap: wrap;
@@ -201,26 +147,6 @@ function handleSubmit(): void {
   margin: 0;
   padding: 0;
   list-style: none;
-}
-
-.assignation-responsable-drawer__agent {
-  display: flex;
-  flex-direction: column;
-  gap: var(--csp-space-1);
-  padding: var(--csp-space-4);
-  border: 1px solid var(--border-default-grey);
-  border-radius: 0.25rem;
-}
-
-.assignation-responsable-drawer__agent-name {
-  margin: 0;
-  font-weight: 600;
-}
-
-.assignation-responsable-drawer__agent-detail {
-  margin: 0;
-  color: var(--text-mention-grey);
-  font-size: 0.875rem;
 }
 
 .assignation-responsable-drawer__actions {

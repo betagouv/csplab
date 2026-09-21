@@ -37,39 +37,7 @@ function dismissButtons() {
   return [...document.querySelectorAll<HTMLButtonElement>('.csp-tag--dismissible')]
 }
 
-async function typeEmail(value: string) {
-  const input = document.querySelector<HTMLInputElement>('input[name="email"]')!
-  input.value = value
-  input.dispatchEvent(new Event('input'))
-  await nextTick()
-}
-
 describe('assignationResponsableDrawer', () => {
-  it('searches the typed email', async () => {
-    const wrapper = mountDrawer()
-    await nextTick()
-    await typeEmail(EMAIL)
-
-    expect(submitButton().textContent).toContain('Rechercher')
-    submitButton().click()
-    await nextTick()
-
-    expect(wrapper.emitted('search')).toEqual([[EMAIL]])
-    wrapper.unmount()
-  })
-
-  it('refuses to search an invalid email', async () => {
-    const wrapper = mountDrawer()
-    await nextTick()
-    await typeEmail('jeanne.dupont')
-    submitButton().click()
-    await nextTick()
-
-    expect(wrapper.emitted('search')).toBeUndefined()
-    expect(document.body.textContent).toContain('Renseignez une adresse électronique valide.')
-    wrapper.unmount()
-  })
-
   it('assigns the agent found for that email', async () => {
     const wrapper = mountDrawer({ status: 'found', agent: AGENT })
     await nextTick()
@@ -93,15 +61,6 @@ describe('assignationResponsableDrawer', () => {
     await nextTick()
 
     expect(wrapper.emitted('assign')).toEqual([[]])
-    wrapper.unmount()
-  })
-
-  it('drops the search result as soon as the email is edited', async () => {
-    const wrapper = mountDrawer({ status: 'found', agent: AGENT })
-    await nextTick()
-    await typeEmail('autre.personne@example.gouv.fr')
-
-    expect(wrapper.emitted('reset')).toHaveLength(1)
     wrapper.unmount()
   })
 
