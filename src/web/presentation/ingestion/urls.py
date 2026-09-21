@@ -13,6 +13,9 @@ from presentation.ingestion.views.organismes import (
     OrganismesUpsertView,
 )
 from presentation.ingestion.views.sources import SourcesListView
+from presentation.ingestion.views.talentsoft_organismes import (
+    TalentsoftOrganismesUpsertView,
+)
 
 app_name = "ingestion"
 
@@ -38,4 +41,9 @@ urlpatterns = [
         name="organismes_delete",
     ),
     path("metiers", MetiersListView.as_view(), name="metiers_list"),
+    path(
+        "talentsoft_organisme/creer_modifier",
+        TalentsoftOrganismesUpsertView.as_view(),
+        name="talentsoft_organismes_upsert",
+    ),
 ]

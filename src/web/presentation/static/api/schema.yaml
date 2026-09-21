@@ -3552,6 +3552,95 @@ paths:
               $ref: '#/components/headers/X-RateLimit-Remaining'
             X-RateLimit-Reset:
               $ref: '#/components/headers/X-RateLimit-Reset'
+  /api/v1/talentsoft_organisme/creer_modifier:
+    post:
+      operationId: v1_talentsoft_organisme_creer_modifier_create
+      description: Créer ou mettre à jour, entre 1 et 100 organismes Talentsoft à
+        la fois, via un payload JSON. L'upsert se base sur le code de l'entité Talentsoft
+        (`entity_code`).
+      summary: Ajouter/mettre à jour des organismes Talentsoft
+      tags:
+      - talentsoft_organisme
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpsertTalentsoftOrganismesRequest'
+        required: true
+      security:
+      - ApiKeyAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UpsertTalentsoftOrganismesResponse'
+          description: ''
+          headers:
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+          description: ''
+          headers:
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+          description: ''
+          headers:
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
+        '500':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+          description: ''
+          headers:
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
+        '429':
+          description: Nombre maximal d'appels autorisés dépassé.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
+                    example: Request was throttled. Expected available in 42 seconds.
+          headers:
+            Retry-After:
+              $ref: '#/components/headers/Retry-After'
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
 components:
   schemas:
     ArchiveOffer401Error:
@@ -5211,6 +5300,79 @@ components:
       required:
       - deleted
       - not_found
+    TalentsoftOrganismeUpsertInput:
+      type: object
+      properties:
+        organisme_id:
+          type: string
+          format: uuid
+        entity_code:
+          type: string
+          maxLength: 50
+        parent_code:
+          type: integer
+          nullable: true
+        has_children:
+          type: boolean
+          default: false
+        name:
+          type: string
+          maxLength: 255
+        description:
+          type: string
+          nullable: true
+        url:
+          nullable: true
+          oneOf:
+          - type: string
+            format: uri
+            maxLength: 500
+          - type: string
+            maxLength: 0
+        phone_number:
+          type: string
+          nullable: true
+          maxLength: 50
+        post_code:
+          type: string
+          nullable: true
+          maxLength: 20
+        latitude:
+          type: number
+          format: double
+          nullable: true
+        longitude:
+          type: number
+          format: double
+          nullable: true
+        parent_name:
+          type: string
+          nullable: true
+          maxLength: 255
+        logo_url:
+          nullable: true
+          oneOf:
+          - type: string
+            format: uri
+            maxLength: 500
+          - type: string
+            maxLength: 0
+        max_delay_for_consent:
+          type: integer
+          nullable: true
+        retention_period:
+          type: integer
+          nullable: true
+        general_conditions:
+          type: string
+          nullable: true
+        personal_data_consent:
+          type: string
+          nullable: true
+      required:
+      - entity_code
+      - name
+      - organisme_id
     TempsTravailEnum:
       enum:
       - NON_DEFINI
@@ -5375,6 +5537,38 @@ components:
             type: object
             additionalProperties: {}
           description: Organismes rejetés avec le détail de l'erreur
+      required:
+      - created
+      - errors
+      - updated
+    UpsertTalentsoftOrganismesRequest:
+      type: object
+      properties:
+        talentsoft_organismes:
+          type: array
+          items:
+            $ref: '#/components/schemas/TalentsoftOrganismeUpsertInput'
+          description: 'Liste d''organismes Talentsoft à créer ou mettre à jour (min:
+            1, max: 100)'
+          maxItems: 100
+          minItems: 1
+      required:
+      - talentsoft_organismes
+    UpsertTalentsoftOrganismesResponse:
+      type: object
+      properties:
+        created:
+          type: integer
+          description: Nombre d'organismes Talentsoft créés
+        updated:
+          type: integer
+          description: Nombre d'organismes Talentsoft mis à jour
+        errors:
+          type: array
+          items:
+            type: object
+            additionalProperties: {}
+          description: Organismes Talentsoft rejetés avec le détail de l'erreur
       required:
       - created
       - errors
