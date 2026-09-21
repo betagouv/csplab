@@ -38,7 +38,7 @@ const props = withDefaults(defineProps<CspDialogProps>(), {
   ariaLabel: undefined,
   size: 'md',
   showClose: true,
-  closeLabel: 'Close',
+  closeLabel: 'Fermer',
 })
 
 const emit = defineEmits<{
