@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type { ResponsableSearchStatus } from '../composables/useAssignationResponsable'
 import type { RecrutementsActifs } from '../types'
+import type { AgentSearchStatus } from '@/features/organismes/composables/useAgentParEmail'
 import type { AgentRecherche } from '@/features/organismes/types'
 import { computed, ref, watch } from 'vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
@@ -12,7 +12,7 @@ import { pluralize } from '@/utils/format'
 
 const props = defineProps<{
   recrutements: RecrutementsActifs[]
-  status: ResponsableSearchStatus
+  status: AgentSearchStatus
   agent?: AgentRecherche | null
   searching?: boolean
   submitting?: boolean

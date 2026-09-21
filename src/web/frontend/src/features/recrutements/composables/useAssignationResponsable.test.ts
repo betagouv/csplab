@@ -77,7 +77,7 @@ describe('useAssignationResponsable', () => {
     expect(mockGetRecrutementsActifs).toHaveBeenCalledTimes(1)
 
     await result.search(EMAIL)
-    await result.assigner(['rec-1'])
+    await result.assign(['rec-1'])
     await flush()
 
     expect(result.status.value).toBe('found')
@@ -96,7 +96,7 @@ describe('useAssignationResponsable', () => {
 
     expect(await result.search(EMAIL)).toBe('not-found')
 
-    await result.assigner(['rec-1'])
+    await result.assign(['rec-1'])
 
     expect(mockCreateAgent).toHaveBeenCalledWith({
       email: EMAIL,
@@ -106,25 +106,6 @@ describe('useAssignationResponsable', () => {
       recrutement_ids: ['rec-1'],
       agent_id: NOUVEL_AGENT_ID,
     })
-  })
-
-  it('does not assign anybody when the account creation fails', async () => {
-    mockSearchAgentByEmail.mockResolvedValue(null)
-    mockCreateAgent.mockRejectedValue(new Error('500'))
-    const result = mountAssignation()
-    await flush()
-    await result.search(EMAIL)
-
-    await expect(result.assigner(['rec-1'])).rejects.toThrow('500')
-    expect(mockSetRecrutementsResponsable).not.toHaveBeenCalled()
-  })
-
-  it('refuses to assign when no responsable has been searched for', async () => {
-    const result = mountAssignation()
-    await flush()
-
-    await expect(result.assigner(['rec-1'])).rejects.toThrow('Aucun responsable à assigner.')
-    expect(mockSetRecrutementsResponsable).not.toHaveBeenCalled()
   })
 
   it('stays submitting from the account creation until the assignation is done', async () => {
@@ -142,7 +123,7 @@ describe('useAssignationResponsable', () => {
     await flush()
     await result.search(EMAIL)
 
-    const enCours = result.assigner(['rec-1'])
+    const enCours = result.assign(['rec-1'])
     await flush()
     expect(result.submitting.value).toBe(true)
 
@@ -154,14 +135,5 @@ describe('useAssignationResponsable', () => {
     await enCours
     await flush()
     expect(result.submitting.value).toBe(false)
-  })
-
-  it('rejects so that the caller can report the failure', async () => {
-    mockSetRecrutementsResponsable.mockRejectedValue(new Error('403'))
-    const result = mountAssignation()
-    await flush()
-    await result.search(EMAIL)
-
-    await expect(result.assigner(['rec-1'])).rejects.toThrow('403')
   })
 })

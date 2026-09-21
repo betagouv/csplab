@@ -90,7 +90,7 @@ const {
   foundAgent,
   searching,
   search: searchResponsable,
-  assigner,
+  assign,
   submitting,
   reset: resetResponsable,
 } = useAssignationResponsable(organismeUuid)
@@ -125,7 +125,7 @@ function assignationToast(
 
 function assignationErrorTitle(assignationError: unknown): string {
   if (assignationError instanceof HttpError && assignationError.status === 403)
-    return 'Vous n\'avez pas les droits pour assigner un responsable'
+    return 'Vous n\'avez pas les droits pour assign un responsable'
   if (assignationError instanceof HttpError && assignationError.status === 404)
     return 'Ce membre n\'est plus rattaché à l\'organisme'
   return 'L\'assignation du responsable a échoué'
@@ -144,7 +144,7 @@ async function handleAssign() {
   const recrutementIds = selection.selected.value.map(row => row.offer_id)
 
   try {
-    const resultat = await assigner(recrutementIds)
+    const resultat = await assign(recrutementIds)
     const agent = foundAgent.value
     assignationDrawer.close()
     selection.clear()

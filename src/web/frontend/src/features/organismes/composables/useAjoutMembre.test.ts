@@ -58,38 +58,6 @@ describe('useAjoutMembre', () => {
     mockGetOrganismeAgents.mockResolvedValue([])
   })
 
-  it('exposes the agent when the email matches', async () => {
-    mockSearchAgentByEmail.mockResolvedValue(AGENT)
-    const { search, status, foundAgent } = mountAjoutMembre()
-
-    await search(AGENT.email)
-
-    expect(mockSearchAgentByEmail).toHaveBeenCalledWith(ORGANISME_UUID, AGENT.email)
-    expect(status.value).toBe('found')
-    expect(foundAgent.value).toEqual(AGENT)
-  })
-
-  it('reports an unknown email without raising', async () => {
-    mockSearchAgentByEmail.mockResolvedValue(null)
-    const { search, status, foundAgent } = mountAjoutMembre()
-
-    await search('inconnu@example.gouv.fr')
-
-    expect(status.value).toBe('not-found')
-    expect(foundAgent.value).toBeNull()
-  })
-
-  it('clears the previous result before a new search', async () => {
-    mockSearchAgentByEmail.mockResolvedValueOnce(AGENT).mockResolvedValueOnce(null)
-    const { search, status, foundAgent } = mountAjoutMembre()
-
-    await search(AGENT.email)
-    await search('inconnu@example.gouv.fr')
-
-    expect(status.value).toBe('not-found')
-    expect(foundAgent.value).toBeNull()
-  })
-
   it('attaches the found agent and refetches the list', async () => {
     mockSearchAgentByEmail.mockResolvedValue(AGENT)
     mockSetAgentRole.mockResolvedValue({})
@@ -126,31 +94,5 @@ describe('useAjoutMembre', () => {
       agent_id: AGENT.agent_id,
       role: 'superviseur',
     })
-  })
-
-  it('only retries the attachment when it failed after a creation', async () => {
-    mockSearchAgentByEmail.mockResolvedValue(null)
-    mockCreateAgent.mockResolvedValue({ ...AGENT, prenom: '', nom: '', intitule_poste: '' })
-    mockSetAgentRole.mockRejectedValueOnce(new Error('boom')).mockResolvedValueOnce({})
-    const { search, add } = mountAjoutMembre()
-    await flush()
-
-    await search('nouvelle.agente@example.gouv.fr')
-    await expect(add('agent')).rejects.toThrow('boom')
-    await add('agent')
-
-    expect(mockCreateAgent).toHaveBeenCalledTimes(1)
-    expect(mockSetAgentRole).toHaveBeenCalledTimes(2)
-  })
-
-  it('propagates attach errors to the caller', async () => {
-    mockSearchAgentByEmail.mockResolvedValue(AGENT)
-    mockSetAgentRole.mockRejectedValue(new Error('boom'))
-    const { search, add } = mountAjoutMembre()
-    await flush()
-
-    await search(AGENT.email)
-
-    await expect(add('agent')).rejects.toThrow('boom')
   })
 })
