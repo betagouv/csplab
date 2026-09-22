@@ -44,6 +44,9 @@ from infrastructure.external_gateways.finess_organisme_gateway import (
 from infrastructure.external_gateways.gipcdg_organisme_gateway import (
     GipcdgOrganismeGateway,
 )
+from infrastructure.external_gateways.recherche_entreprises_gateway import (
+    RechercheEntreprisesGateway,
+)
 from infrastructure.external_gateways.talentsoft_client import (
     TalentsoftConfig,
     TalentsoftFrontClient,
@@ -181,8 +184,15 @@ class Container(containers.DeclarativeContainer):
         )
     )
 
+    siret_lookup_gateway = providers.Singleton(
+        RechercheEntreprisesGateway,
+        search_url=config.recherche_entreprises_api_url,
+        max_calls_per_second=config.recherche_entreprises_rate_limit_per_second,
+    )
+
     organismes_cleaner: providers.Provider[IOrganismesCleaner] = providers.Singleton(
-        OrganismesCleaner
+        OrganismesCleaner,
+        dila_siret_lookup_max_age_days=config.dila_siret_lookup_max_age_days,
     )
 
     clean_raw_organismes_usecase: providers.Provider[CleanRawOrganismesUsecase] = (
@@ -190,6 +200,7 @@ class Container(containers.DeclarativeContainer):
             CleanRawOrganismesUsecase,
             organismes_cleaner=organismes_cleaner,
             raw_organisme_repository=raw_organisme_repository,
+            siret_lookup_gateway=siret_lookup_gateway,
         )
     )
 
@@ -327,6 +338,15 @@ def create_container() -> Container:
         str(settings.gipcdg_collectivites_api_url)
     )
     container.config.dila_export_url.from_value(str(settings.dila_export_url))
+    container.config.recherche_entreprises_api_url.from_value(
+        str(settings.recherche_entreprises_api_url)
+    )
+    container.config.recherche_entreprises_rate_limit_per_second.from_value(
+        settings.recherche_entreprises_rate_limit_per_second
+    )
+    container.config.dila_siret_lookup_max_age_days.from_value(
+        settings.dila_siret_lookup_max_age_days
+    )
 
     _logger = logging.getLogger(__name__)
     register_talentsoft_front_clients(

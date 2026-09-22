@@ -32,6 +32,10 @@ class RawOrganismeModel(SQLModel, table=True):  # type: ignore[call-arg]
     loaded_at: Optional[datetime] = None
     cleaned_at: Optional[datetime] = None
     upsert_at: Optional[datetime] = None
+    dila_siret_found: Optional[str] = Field(
+        default=None, sa_column=Column(String(14), nullable=True)
+    )
+    dila_siret_found_at: Optional[datetime] = None
 
     def to_entity(self) -> RawOrganisme:
         return RawOrganisme(
@@ -44,6 +48,8 @@ class RawOrganismeModel(SQLModel, table=True):  # type: ignore[call-arg]
             loaded_at=self.loaded_at,
             cleaned_at=self.cleaned_at,
             upsert_at=self.upsert_at,
+            dila_siret_found=self.dila_siret_found,
+            dila_siret_found_at=self.dila_siret_found_at,
         )
 
     @staticmethod
@@ -58,4 +64,6 @@ class RawOrganismeModel(SQLModel, table=True):  # type: ignore[call-arg]
             "loaded_at": organisme.loaded_at,
             "cleaned_at": organisme.cleaned_at,
             "upsert_at": organisme.upsert_at,
+            "dila_siret_found": organisme.dila_siret_found,
+            "dila_siret_found_at": organisme.dila_siret_found_at,
         }

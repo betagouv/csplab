@@ -32,6 +32,16 @@ class Settings(BaseSettings):
         "api-lannuaire-administration/exports/csv"
     )
 
+    # https://recherche-entreprises.api.gouv.fr/docs/ - used to find a DILA
+    # organisme's SIRET when it is missing from the DILA export.
+    recherche_entreprises_api_url: HttpUrl = HttpUrl(
+        "https://recherche-entreprises.api.gouv.fr/search"
+    )
+    recherche_entreprises_rate_limit_per_second: float = 7.0
+    # Beyond this age, a cached DILA SIRET lookup is retried via the
+    # Recherche Entreprises API instead of being reused as-is.
+    dila_siret_lookup_max_age_days: int = 30
+
     web_base_url: str | None = None
     web_api_key: str | None = None
 
