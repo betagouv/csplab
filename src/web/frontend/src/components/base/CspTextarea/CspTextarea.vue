@@ -58,18 +58,24 @@ const attrs = useAttrs()
       :rows="props.rows"
       :disabled="props.disabled"
       :aria-invalid="error || undefined"
+      :aria-describedby="`${id}-messages`"
     />
-    <p
-      v-if="error && errorMessage"
-      class="csp-textarea-group__error"
-      role="alert"
+    <div
+      :id="`${id}-messages`"
+      class="csp-textarea-group__messages"
+      aria-live="polite"
     >
-      <CspIcon
-        name="ri:error-warning-fill"
-        :size="14"
-      />
-      {{ errorMessage }}
-    </p>
+      <p
+        v-if="error && errorMessage"
+        class="csp-textarea-group__error"
+      >
+        <CspIcon
+          name="ri:error-warning-fill"
+          :size="14"
+        />
+        {{ errorMessage }}
+      </p>
+    </div>
   </div>
 </template>
 
@@ -140,10 +146,10 @@ const attrs = useAttrs()
 .csp-textarea-group {
   display: flex;
   flex-direction: column;
-  gap: 0.375rem;
 }
 
 .csp-textarea-group__label {
+  margin-bottom: 0.375rem;
   font-size: 0.875rem;
   font-weight: 600;
   color: var(--text-default-grey);
@@ -156,6 +162,10 @@ const attrs = useAttrs()
   .csp-textarea-group__label {
     color: var(--text-default-error);
   }
+}
+
+.csp-textarea-group__messages:not(:empty) {
+  margin-top: 0.375rem;
 }
 
 .csp-textarea-group__error {
