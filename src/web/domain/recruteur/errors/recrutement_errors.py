@@ -38,6 +38,14 @@ class RecrutementDocumentInexistant(RecrutementError):
         )
 
 
+class RecrutementDocumentTypeNonAutorise(RecrutementError):
+    def __init__(self, document_id: UUID, content_type: str):
+        super().__init__(
+            f"Le document {document_id} a un type de contenu non autorisé: "
+            f"{content_type}"
+        )
+
+
 class MotifRefusRequis(RecrutementError):
     def __init__(self, etape_id: UUID):
         super().__init__(
