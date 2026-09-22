@@ -129,7 +129,7 @@ class TestDocumentView:
             _url(organisme.id, recrutement.pk, candidature.pk, document.pk)
         )
 
-        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert response.status_code == status.HTTP_404_NOT_FOUND
 
     @pytest.mark.parametrize(
         "build_ids",
