@@ -5,13 +5,13 @@ from uuid import UUID, uuid4
 
 @dataclass(frozen=True, kw_only=True)
 class EtapeDetailStub:
-    etape_id: UUID
+    etape_uuid: UUID
     nom: str
 
 
 @dataclass(frozen=True, kw_only=True)
 class CandidatDetailStub:
-    id: UUID
+    uuid: UUID
     prenom: str
     nom: str
     email: str
@@ -19,7 +19,7 @@ class CandidatDetailStub:
 
 @dataclass(frozen=True, kw_only=True)
 class CandidatureDetailStub:
-    candidature_id: UUID
+    uuid: UUID
     candidat: CandidatDetailStub
     recrutement_intitule: str
     etapes: list[EtapeDetailStub]
@@ -27,8 +27,8 @@ class CandidatureDetailStub:
     date_candidature: datetime
     date_derniere_maj_candidat: datetime | None
     date_derniere_maj_recruteur: datetime | None
-    document_id: UUID
-    navigation_candidature_ids: list[UUID]
+    document_uuid: UUID
+    navigation_candidature_uuids: list[UUID]
 
 
 # TODO(#1440 suite) : remplacer par une vraie requête + les gardes organisme/
@@ -37,14 +37,14 @@ def get_candidature_detail_stub(
     *, organisme_id: UUID, recrutement_id: UUID, candidature_id: UUID
 ) -> CandidatureDetailStub:
     etapes = [
-        EtapeDetailStub(etape_id=uuid4(), nom="Candidatures reçues"),
-        EtapeDetailStub(etape_id=uuid4(), nom="Entretien"),
-        EtapeDetailStub(etape_id=uuid4(), nom="Décision"),
+        EtapeDetailStub(etape_uuid=uuid4(), nom="Candidatures reçues"),
+        EtapeDetailStub(etape_uuid=uuid4(), nom="Entretien"),
+        EtapeDetailStub(etape_uuid=uuid4(), nom="Décision"),
     ]
     return CandidatureDetailStub(
-        candidature_id=candidature_id,
+        uuid=candidature_id,
         candidat=CandidatDetailStub(
-            id=uuid4(),
+            uuid=uuid4(),
             prenom="Jean",
             nom="Dupont",
             email="jean.dupont@example.com",
@@ -55,6 +55,6 @@ def get_candidature_detail_stub(
         date_candidature=datetime(2026, 8, 1, tzinfo=timezone.utc),
         date_derniere_maj_candidat=datetime(2026, 8, 3, tzinfo=timezone.utc),
         date_derniere_maj_recruteur=datetime(2026, 8, 5, tzinfo=timezone.utc),
-        document_id=uuid4(),
-        navigation_candidature_ids=[uuid4(), candidature_id, uuid4()],
+        document_uuid=uuid4(),
+        navigation_candidature_uuids=[uuid4(), candidature_id, uuid4()],
     )

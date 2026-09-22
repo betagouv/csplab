@@ -27,16 +27,16 @@ class TestCandidatureDetailView:
 
         assert response.status_code == status.HTTP_200_OK
         data = response.data
-        assert data["candidature_id"] == CANDIDATURE_UUID
-        assert set(data["candidat"].keys()) == {"id", "prenom", "nom", "email"}
+        assert data["uuid"] == CANDIDATURE_UUID
+        assert set(data["candidat"].keys()) == {"uuid", "prenom", "nom", "email"}
         assert data["recrutement_intitule"]
         assert len(data["etapes"]) >= 1
-        assert set(data["etape_actuelle"].keys()) == {"etape_id", "nom"}
+        assert set(data["etape_actuelle"].keys()) == {"etape_uuid", "nom"}
         assert data["etape_actuelle"] in data["etapes"]
         assert data["date_candidature"] is not None
-        assert data["document_id"]
+        assert data["document_uuid"]
 
     def test_navigation_includes_current_candidature(self, authenticated_client):
         response = authenticated_client.get(CANDIDATURE_DETAIL_URL)
 
-        assert CANDIDATURE_UUID in response.data["navigation_candidature_ids"]
+        assert CANDIDATURE_UUID in response.data["navigation_candidature_uuids"]
