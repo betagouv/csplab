@@ -34,7 +34,7 @@ from presentation.recruteur.mappers import UtilisateurMapper
         **generic_response_format,
         **{
             (200, content_type): OpenApiTypes.BINARY
-            for content_type in settings.ALLOWED_DOCUMENT_CONTENT_TYPES
+            for content_type in sorted(settings.ALLOWED_DOCUMENT_CONTENT_TYPES)
         },
         415: GenericErrorSerializer,
     },
