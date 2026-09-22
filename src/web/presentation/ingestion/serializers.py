@@ -955,3 +955,68 @@ class SupprimerOrganismesRequestSerializer(serializers.Serializer):
 class SupprimerOrganismesResponseSerializer(serializers.Serializer):
     deleted = serializers.IntegerField()
     not_found = serializers.ListField(child=serializers.DictField())
+
+
+class TalentsoftOrganismeUpsertInputSerializer(serializers.Serializer):
+    organisme_id = serializers.UUIDField()
+    entity_code = serializers.CharField(max_length=50)
+    parent_code = serializers.CharField(
+        required=False, allow_null=True, allow_blank=True, max_length=50
+    )
+    has_children = serializers.BooleanField(required=False, default=False)
+    name = serializers.CharField(max_length=255)
+    description = serializers.CharField(
+        required=False, allow_null=True, allow_blank=True
+    )
+    url = serializers.URLField(
+        required=False, allow_null=True, allow_blank=True, max_length=500
+    )
+    phone_number = serializers.CharField(
+        required=False, allow_null=True, allow_blank=True, max_length=50
+    )
+    post_code = serializers.CharField(
+        required=False, allow_null=True, allow_blank=True, max_length=20
+    )
+    latitude = serializers.FloatField(required=False, allow_null=True)
+    longitude = serializers.FloatField(required=False, allow_null=True)
+    parent_name = serializers.CharField(
+        required=False, allow_null=True, allow_blank=True, max_length=255
+    )
+    logo_url = serializers.URLField(
+        required=False, allow_null=True, allow_blank=True, max_length=500
+    )
+    max_delay_for_consent = serializers.IntegerField(required=False, allow_null=True)
+    retention_period = serializers.IntegerField(required=False, allow_null=True)
+    general_conditions = serializers.CharField(
+        required=False, allow_null=True, allow_blank=True
+    )
+    personal_data_consent = serializers.CharField(
+        required=False, allow_null=True, allow_blank=True
+    )
+
+
+@extend_schema_field(TalentsoftOrganismeUpsertInputSerializer(many=True))
+class _TalentsoftOrganismeListField(serializers.ListField):
+    pass
+
+
+class UpsertTalentsoftOrganismesRequestSerializer(serializers.Serializer):
+    talentsoft_organismes = _TalentsoftOrganismeListField(
+        child=serializers.DictField(),
+        min_length=1,
+        max_length=100,
+        help_text=(
+            "Liste d'organismes Talentsoft à créer ou mettre à jour (min: 1, max: 100)."
+        ),
+    )
+
+
+class UpsertTalentsoftOrganismesResponseSerializer(serializers.Serializer):
+    created = serializers.IntegerField(help_text="Nombre d'organismes Talentsoft créés")
+    updated = serializers.IntegerField(
+        help_text="Nombre d'organismes Talentsoft mis à jour"
+    )
+    errors = serializers.ListField(
+        child=serializers.DictField(),
+        help_text="Organismes Talentsoft rejetés avec le détail de l'erreur",
+    )

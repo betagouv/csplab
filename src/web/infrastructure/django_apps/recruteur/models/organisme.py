@@ -11,6 +11,9 @@ class OrganismeQuerySet(models.QuerySet):
     def not_supprimes(self) -> "OrganismeQuerySet":
         return self.filter(supprime_le__isnull=True)
 
+    def by_organisme_ids(self, organisme_ids) -> "OrganismeQuerySet":
+        return self.filter(pk__in=organisme_ids)
+
     def by_referentiel_and_external_id_pairs(
         self, pairs: list[tuple[str, str]]
     ) -> "OrganismeQuerySet":

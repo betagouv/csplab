@@ -8,6 +8,9 @@ from infrastructure.django_apps.ingestion.models.api_log_daily_aggregation impor
 )
 from infrastructure.django_apps.ingestion.models.raw_document import RawDocument
 from infrastructure.django_apps.ingestion.models.source import SourceModel
+from infrastructure.django_apps.ingestion.models.talentsoft_organisme import (
+    TalentsoftOrganismeModel,
+)
 from infrastructure.django_apps.utils.admin import ReadOnlyAdminMixin
 
 
@@ -84,3 +87,10 @@ class RawDocumentAdmin(ReadOnlyAdminMixin, admin.ModelAdmin):
         ("error_msg", admin.EmptyFieldListFilter),
     )
     search_fields = ("external_id", "raw_data", "error_msg")
+
+
+@admin.register(TalentsoftOrganismeModel)
+class TalentsoftOrganismeAdmin(ReadOnlyAdminMixin, admin.ModelAdmin):
+    list_display = ("entity_code", "name", "organisme", "updated_at")
+    list_filter = ("has_children",)
+    search_fields = ("entity_code", "name", "organisme__nom")
