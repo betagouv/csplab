@@ -272,12 +272,20 @@ class TestCreateNote:
 
 class TestUpdateNote:
     def test_update_note_persists_and_logs(self, db):
-        note = NoteDjangoFactory(message="avant")
+        agent, organisme, recrutement, candidature = (
+            create_recrutement_and_candidature_for_agent()
+        )
+        note = NoteDjangoFactory(
+            candidature=candidature, publie_par=agent, message="avant"
+        )
 
         edited = update_note(
+            organisme_id=organisme.id,
+            recrutement_id=recrutement.pk,
+            candidature_id=candidature.id,
             note_id=note.id,
             message="après",
-            utilisateur_id=note.publie_par_id,
+            utilisateur=_utilisateur(agent.utilisateur_id),
         )
 
         assert edited.message == "après"
@@ -286,28 +294,127 @@ class TestUpdateNote:
         assert log.event_name == "NoteEditee"
 
     def test_update_note_unknown_note(self, db):
-        with pytest.raises(NoteIntrouvable):
-            update_note(note_id=uuid4(), message="x", utilisateur_id=uuid4())
-
-    def test_update_note_of_another_author_is_not_found(self, db):
-        note = NoteDjangoFactory(message="avant")
-        other_agent = AgentDjangoFactory()
+        agent, organisme, recrutement, candidature = (
+            create_recrutement_and_candidature_for_agent()
+        )
 
         with pytest.raises(NoteIntrouvable):
             update_note(
+                organisme_id=organisme.id,
+                recrutement_id=recrutement.pk,
+                candidature_id=candidature.id,
+                note_id=uuid4(),
+                message="x",
+                utilisateur=_utilisateur(agent.utilisateur_id),
+            )
+
+    def test_update_note_of_another_author_is_not_found(self, db):
+        agent, organisme, recrutement, candidature = (
+            create_recrutement_and_candidature_for_agent()
+        )
+        note = NoteDjangoFactory(candidature=candidature, message="avant")
+
+        with pytest.raises(NoteIntrouvable):
+            update_note(
+                organisme_id=organisme.id,
+                recrutement_id=recrutement.pk,
+                candidature_id=candidature.id,
                 note_id=note.id,
                 message="après",
-                utilisateur_id=other_agent.utilisateur_id,
+                utilisateur=_utilisateur(agent.utilisateur_id),
+            )
+
+        assert NoteModel.objects.get(pk=note.id).message == "avant"
+        assert not _logs(note.id)
+
+    def test_update_note_of_another_candidature_is_not_found(self, db):
+        agent, organisme, recrutement, candidature = (
+            create_recrutement_and_candidature_for_agent()
+        )
+        note = NoteDjangoFactory(publie_par=agent, message="avant")
+
+        with pytest.raises(NoteIntrouvable):
+            update_note(
+                organisme_id=organisme.id,
+                recrutement_id=recrutement.pk,
+                candidature_id=candidature.id,
+                note_id=note.id,
+                message="après",
+                utilisateur=_utilisateur(agent.utilisateur_id),
             )
 
         assert NoteModel.objects.get(pk=note.id).message == "avant"
         assert not _logs(note.id)
 
     def test_update_note_soft_deleted_is_not_found(self, db):
-        note = NoteDjangoFactory(supprimee_le=timezone.now())
+        agent, organisme, recrutement, candidature = (
+            create_recrutement_and_candidature_for_agent()
+        )
+        note = NoteDjangoFactory(
+            candidature=candidature, publie_par=agent, supprimee_le=timezone.now()
+        )
 
         with pytest.raises(NoteIntrouvable):
-            update_note(note_id=note.id, message="x", utilisateur_id=note.publie_par_id)
+            update_note(
+                organisme_id=organisme.id,
+                recrutement_id=recrutement.pk,
+                candidature_id=candidature.id,
+                note_id=note.id,
+                message="x",
+                utilisateur=_utilisateur(agent.utilisateur_id),
+            )
+
+    def test_denied_without_organisme_role(self, db):
+        agent, organisme, recrutement, candidature = (
+            create_recrutement_and_candidature_for_agent()
+        )
+        note = NoteDjangoFactory(candidature=candidature, publie_par=agent)
+
+        with pytest.raises(AccesOrganismeRefuse):
+            update_note(
+                organisme_id=organisme.id,
+                recrutement_id=recrutement.pk,
+                candidature_id=candidature.id,
+                note_id=note.id,
+                message="x",
+                utilisateur=_utilisateur(uuid4()),
+            )
+
+        assert NoteModel.objects.get(pk=note.id).message == note.message
+
+    def test_recrutement_not_in_organisme(self, db):
+        agent, organisme, _recrutement, candidature = (
+            create_recrutement_and_candidature_for_agent()
+        )
+        other_recrutement = RecrutementDjangoFactory()
+        note = NoteDjangoFactory(candidature=candidature, publie_par=agent)
+
+        with pytest.raises(RecrutementInexistant):
+            update_note(
+                organisme_id=organisme.id,
+                recrutement_id=other_recrutement.pk,
+                candidature_id=candidature.id,
+                note_id=note.id,
+                message="x",
+                utilisateur=_utilisateur(agent.utilisateur_id),
+            )
+
+    def test_candidature_not_in_recrutement(self, db):
+        agent, organisme, recrutement, _candidature = (
+            create_recrutement_and_candidature_for_agent()
+        )
+        other_candidature = CandidatureDjangoFactory()
+        note = NoteDjangoFactory(candidature=other_candidature, publie_par=agent)
+
+        with pytest.raises(RecrutementCandidatureInexistante):
+            update_note(
+                organisme_id=organisme.id,
+                recrutement_id=recrutement.pk,
+                candidature_id=other_candidature.id,
+                note_id=note.id,
+                message="x",
+                utilisateur=_utilisateur(agent.utilisateur_id),
+            )
 
 
 class TestDeleteNote:
