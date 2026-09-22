@@ -1,134 +1,75 @@
-import type { OrganismeRole, Utilisateur } from '@/api/utilisateur'
-import { PiniaColada } from '@pinia/colada'
-import { mount } from '@vue/test-utils'
-import { createPinia } from 'pinia'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { screen } from '@testing-library/vue'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { defineComponent, h } from 'vue'
-import { createMemoryHistory, createRouter } from 'vue-router'
 import { getMe } from '@/api/utilisateur'
 import { provideSidebar } from '@/composables/ui/useSidebar'
-import { routes } from '@/router'
+import { createLocalStorageMock } from '@/test/browser'
+import { BRIANCON_UUID, makeUser, MTE_UUID, ROLE_BRIANCON, ROLE_MTE } from '@/test/fixtures/utilisateur'
+import { renderWithApp, setupUser } from '@/test/render'
 import CspSidebarOrganisme from './CspSidebarOrganisme.vue'
 
 vi.mock('@/api/utilisateur', () => ({
   getMe: vi.fn(),
 }))
 
-function createLocalStorageMock() {
-  const storage = new Map<string, string>()
+const Host = defineComponent({
+  setup() {
+    provideSidebar({ persistState: false })
+    return () => h(CspSidebarOrganisme)
+  },
+})
 
-  return {
-    getItem: (key: string) => storage.get(key) ?? null,
-    setItem: (key: string, value: string) => storage.set(key, value),
-    removeItem: (key: string) => storage.delete(key),
-    clear: () => storage.clear(),
-  }
-}
-
-const MTE = 'a1a1a1a1-a1a1-a1a1-a1a1-a1a1a1a1a1a1'
-const BRIANCON = 'b2b2b2b2-b2b2-b2b2-b2b2-b2b2b2b2b2b2'
-
-const ROLE_MTE: OrganismeRole = { organisme_uuid: MTE, nom: 'Ministère de la Transition Écologique', role: 'superviseur' }
-const ROLE_BRIANCON: OrganismeRole = { organisme_uuid: BRIANCON, nom: 'Commune de Briançon', role: 'agent' }
-
-function makeUser(organismeRoles: Utilisateur['organisme_roles'], isStaff = false): Utilisateur {
-  return {
-    email: 'marie.dupont@example.gouv.fr',
-    prenom: 'Marie',
-    nom: 'Dupont',
-    is_staff: isStaff,
-    organisme_roles: organismeRoles,
-  }
-}
-
-async function mountAt(path: string) {
-  const router = createRouter({ history: createMemoryHistory(), routes })
-  await router.push(path)
-
-  const Wrapper = defineComponent({
-    setup() {
-      provideSidebar({ persistState: false })
-      return () => h(CspSidebarOrganisme)
-    },
-  })
-
-  mount(Wrapper, {
-    attachTo: document.body,
-    global: {
-      plugins: [createPinia(), PiniaColada, router],
-    },
-  })
-
-  return router
-}
-
-function trigger() {
-  return document.querySelector<HTMLButtonElement>('.csp-sidebar-organisme')
-}
-
-function menuItems() {
-  return [...document.querySelectorAll<HTMLElement>('.csp-dropdown__item')]
+function trigger(nom: string) {
+  return screen.findByRole('button', { name: `Organisme : ${nom}. Changer d'organisme` })
 }
 
 describe('cspSidebarOrganisme', () => {
   beforeEach(() => {
     vi.mocked(getMe).mockReset()
     vi.stubGlobal('localStorage', createLocalStorageMock())
-    vi.stubGlobal('matchMedia', () => ({ matches: false, addEventListener: () => {}, removeEventListener: () => {} }))
-  })
-
-  afterEach(() => {
-    vi.unstubAllGlobals()
-    document.body.innerHTML = ''
   })
 
   it('renders nothing for a staff user without any organisme', async () => {
     vi.mocked(getMe).mockResolvedValue(makeUser([], true))
 
-    await mountAt('/organismes')
+    renderWithApp(Host, { route: '/organismes' })
     await vi.waitFor(() => expect(getMe).toHaveBeenCalled())
 
-    expect(trigger()).toBeNull()
+    expect(screen.queryByRole('button', { name: /Changer d'organisme/ })).not.toBeInTheDocument()
   })
 
   it('shows the organisme carried by the url', async () => {
     vi.mocked(getMe).mockResolvedValue(makeUser([ROLE_MTE, ROLE_BRIANCON]))
 
-    await mountAt(`/organismes/${BRIANCON}/recrutements`)
+    await renderWithApp(Host, { route: `/organismes/${BRIANCON_UUID}/recrutements` })
 
-    await vi.waitFor(() =>
-      expect(trigger()?.textContent).toContain('Commune de Briançon'),
-    )
+    expect(await trigger(ROLE_BRIANCON.nom)).toHaveTextContent(ROLE_BRIANCON.nom)
   })
 
   it('navigates to the recrutements of the picked organisme', async () => {
     vi.mocked(getMe).mockResolvedValue(makeUser([ROLE_MTE, ROLE_BRIANCON]))
+    const user = setupUser()
 
-    const router = await mountAt(`/organismes/${MTE}/recrutements`)
-    await vi.waitFor(() => expect(trigger()).not.toBeNull())
+    const { router } = await renderWithApp(Host, { route: `/organismes/${MTE_UUID}/recrutements` })
 
-    trigger()!.click()
-    await vi.waitFor(() => expect(menuItems()).toHaveLength(2))
-
-    menuItems()[1]!.click()
+    await user.click(await trigger(ROLE_MTE.nom))
+    await user.click(await screen.findByRole('menuitem', { name: ROLE_BRIANCON.nom }))
 
     await vi.waitFor(() =>
-      expect(router.currentRoute.value.path).toBe(`/organismes/${BRIANCON}/recrutements`),
+      expect(router.currentRoute.value.path).toBe(`/organismes/${BRIANCON_UUID}/recrutements`),
     )
   })
 
   it('leaves the route untouched when picking the current organisme', async () => {
     vi.mocked(getMe).mockResolvedValue(makeUser([ROLE_MTE, ROLE_BRIANCON]))
+    const user = setupUser()
 
-    const router = await mountAt(`/organismes/${MTE}/recrutements/archives`)
-    await vi.waitFor(() => expect(trigger()).not.toBeNull())
+    const { router } = await renderWithApp(Host, { route: `/organismes/${MTE_UUID}/recrutements/archives` })
 
-    trigger()!.click()
-    await vi.waitFor(() => expect(menuItems()).toHaveLength(2))
+    await user.click(await trigger(ROLE_MTE.nom))
+    await user.click(await screen.findByRole('menuitem', { name: ROLE_MTE.nom }))
 
-    menuItems()[0]!.click()
-    await vi.waitFor(() => expect(menuItems()).toHaveLength(0))
-
-    expect(router.currentRoute.value.path).toBe(`/organismes/${MTE}/recrutements/archives`)
+    await vi.waitFor(() => expect(screen.queryByRole('menuitem')).not.toBeInTheDocument())
+    expect(router.currentRoute.value.path).toBe(`/organismes/${MTE_UUID}/recrutements/archives`)
   })
 })

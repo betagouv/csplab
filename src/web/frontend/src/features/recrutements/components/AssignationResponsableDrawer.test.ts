@@ -1,96 +1,68 @@
-import type { AgentRecherche } from '@/features/organismes/types'
-import { mount } from '@vue/test-utils'
+import { render, screen } from '@testing-library/vue'
 import { describe, expect, it } from 'vitest'
-import { nextTick } from 'vue'
+import { AGENT_RECHERCHE } from '@/test/fixtures/organismes'
+import { setupUser } from '@/test/render'
 import { RECRUTEMENTS_ACTIFS } from '../mock'
 import AssignationResponsableDrawer from './AssignationResponsableDrawer.vue'
 
-const EMAIL = 'jeanne.dupont@example.gouv.fr'
-
-const AGENT: AgentRecherche = {
-  agent_id: 'bbbbbbbb-0001-0001-0001-000000000001',
-  email: EMAIL,
-  prenom: 'Jeanne',
-  nom: 'Dupont',
-  intitule_poste: 'Chargée de recrutement',
-}
-
 const RECRUTEMENTS = RECRUTEMENTS_ACTIFS.slice(0, 2)
 
-function mountDrawer(props: Record<string, unknown> = {}) {
-  return mount(AssignationResponsableDrawer, {
-    props: {
-      open: true,
-      recrutements: RECRUTEMENTS,
-      status: 'idle',
-      ...props,
-    },
-    attachTo: document.body,
+function renderDrawer(props: Record<string, unknown> = {}) {
+  return render(AssignationResponsableDrawer, {
+    props: { open: true, recrutements: RECRUTEMENTS, status: 'idle', ...props },
   })
 }
 
-function submitButton() {
-  return document.querySelector<HTMLButtonElement>('button[type="submit"]')!
-}
-
-function dismissButtons() {
-  return [...document.querySelectorAll<HTMLButtonElement>('.csp-tag--dismissible')]
+function dismissButton(intitule: string) {
+  return screen.getByRole('button', { name: `Retirer ${intitule} de la sélection` })
 }
 
 describe('assignationResponsableDrawer', () => {
   it('assigns the agent found for that email', async () => {
-    const wrapper = mountDrawer({ status: 'found', agent: AGENT })
-    await nextTick()
+    const user = setupUser()
+    const { emitted } = renderDrawer({ status: 'found', agent: AGENT_RECHERCHE })
 
-    expect(document.body.textContent).toContain('Jeanne Dupont')
-    expect(submitButton().textContent).toContain('Assigner un responsable')
-    submitButton().click()
-    await nextTick()
+    expect(await screen.findByText('Jeanne Dupont')).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Assigner un responsable' }))
 
-    expect(wrapper.emitted('assign')).toEqual([[]])
-    wrapper.unmount()
+    expect(emitted('assign')).toEqual([[]])
   })
 
   it('announces the account creation when no agent matches the email', async () => {
-    const wrapper = mountDrawer({ status: 'not-found' })
-    await nextTick()
+    const user = setupUser()
+    const { emitted } = renderDrawer({ status: 'not-found' })
 
-    expect(document.body.textContent).toContain('Un compte sera créé')
-    expect(submitButton().textContent).toContain('Créer et assigner')
-    submitButton().click()
-    await nextTick()
+    expect(await screen.findByText(/Un compte sera créé/)).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Créer et assigner' }))
 
-    expect(wrapper.emitted('assign')).toEqual([[]])
-    wrapper.unmount()
+    expect(emitted('assign')).toEqual([[]])
   })
 
   it('shows one dismissible tag per selected offer', async () => {
-    const wrapper = mountDrawer()
-    await nextTick()
+    renderDrawer()
 
-    expect(dismissButtons().map(button => button.textContent?.trim())).toEqual(
-      RECRUTEMENTS.map(recrutement => recrutement.intitule),
-    )
-    expect(document.body.textContent).toContain('2 offres sélectionnées')
-    wrapper.unmount()
+    await screen.findByRole('dialog')
+    for (const recrutement of RECRUTEMENTS)
+      expect(dismissButton(recrutement.intitule)).toBeInTheDocument()
+    expect(screen.getByText('2 offres sélectionnées')).toBeInTheDocument()
   })
 
   it('asks to remove the offer whose tag is dismissed', async () => {
-    const wrapper = mountDrawer()
-    await nextTick()
-    dismissButtons()[1].click()
-    await nextTick()
+    const user = setupUser()
+    const { emitted } = renderDrawer()
 
-    expect(wrapper.emitted('remove')).toEqual([[RECRUTEMENTS[1].offer_id]])
-    wrapper.unmount()
+    await screen.findByRole('dialog')
+    await user.click(dismissButton(RECRUTEMENTS[1].intitule))
+
+    expect(emitted('remove')).toEqual([[RECRUTEMENTS[1].offer_id]])
   })
 
   it('closes itself once every offer has been removed', async () => {
-    const wrapper = mountDrawer()
-    await nextTick()
-    await wrapper.setProps({ recrutements: [] })
+    const { emitted, rerender } = renderDrawer()
 
-    expect(wrapper.emitted('update:open')).toEqual([[false]])
-    wrapper.unmount()
+    await screen.findByRole('dialog')
+    await rerender({ recrutements: [] })
+
+    expect(emitted('update:open')).toEqual([[false]])
   })
 })
