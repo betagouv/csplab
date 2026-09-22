@@ -43,7 +43,6 @@ const {
   reset: resetAgent,
 } = useAjoutMembreEquipe(props.organismeUuid, props.recrutementUuid)
 const { revocation, roleChange } = provideMembreEquipeActions()
-const revocationMembre = revocation.value
 const { canManageOrganisme } = useRouteOrganisme()
 const { addToast } = useToast()
 
@@ -88,7 +87,7 @@ async function handleAdd(role: RecrutementRole) {
   }
 }
 
-watch(roleChange.value, async (change) => {
+watch(() => roleChange.requested, async (change) => {
   if (!change)
     return
   const { membre, role } = change
@@ -106,7 +105,7 @@ watch(roleChange.value, async (change) => {
   }
 })
 
-watch(revocationMembre, (membre) => {
+watch(() => revocation.requested, (membre) => {
   if (membre)
     revocationDialogOpen.value = true
 })
@@ -117,9 +116,9 @@ watch(revocationDialogOpen, (isOpen) => {
 })
 
 async function handleRevocation(): Promise<void> {
-  if (!revocationMembre.value)
+  if (!revocation.requested)
     return
-  const membre = revocationMembre.value
+  const membre = revocation.requested
   try {
     await revoke(membre)
     addToast({
@@ -236,8 +235,8 @@ const countLabel = computed(() => {
       title="Retirer de l’équipe"
       size="sm"
     >
-      <template v-if="revocationMembre">
-        {{ formatMembreLabel(revocationMembre) }} perdra l'accès aux candidatures de ce
+      <template v-if="revocation.requested">
+        {{ formatMembreLabel(revocation.requested) }} perdra l'accès aux candidatures de ce
         recrutement. Son compte reste rattaché à l'organisme et pourra être réintégré à
         l'équipe plus tard.
       </template>

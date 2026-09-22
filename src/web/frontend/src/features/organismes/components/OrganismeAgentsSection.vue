@@ -30,7 +30,6 @@ const PAGE_SIZE = 8
 const { agents, pending, error, updateAgent, updatingAgent } = useOrganismeAgents(props.organismeUuid)
 const { status, foundAgent, searching, search: searchAgent, add, submitting, reset } = useAjoutMembre(props.organismeUuid)
 const { roleChange, revocation } = provideAgentActions()
-const revocationAgent = revocation.value
 const { addToast } = useToast()
 
 const showSkeleton = useMinimumPending(pending)
@@ -90,7 +89,7 @@ const countLabel = computed(() => {
   return `${count} ${pluralize(count, 'membre')}`
 })
 
-watch(roleChange.value, async (change) => {
+watch(() => roleChange.requested, async (change) => {
   if (!change)
     return
   const { agent, role } = change
@@ -108,7 +107,7 @@ watch(roleChange.value, async (change) => {
   }
 })
 
-watch(revocationAgent, (agent) => {
+watch(() => revocation.requested, (agent) => {
   if (agent)
     revocationDialogOpen.value = true
 })
@@ -119,9 +118,9 @@ watch(revocationDialogOpen, (isOpen) => {
 })
 
 async function handleRevocation(): Promise<void> {
-  if (!revocationAgent.value)
+  if (!revocation.requested)
     return
-  const agent = revocationAgent.value
+  const agent = revocation.requested
   try {
     await updateAgent({
       agent_id: agent.agent_id,
@@ -225,8 +224,8 @@ async function handleRevocation(): Promise<void> {
       title="Révoquer les accès"
       size="sm"
     >
-      <template v-if="revocationAgent">
-        {{ formatAgentName(revocationAgent) }} sera retiré de cet organisme et perdra
+      <template v-if="revocation.requested">
+        {{ formatAgentName(revocation.requested) }} sera retiré de cet organisme et perdra
         immédiatement l'accès à ses recrutements. Son compte restera actif et pourra
         être rattaché à nouveau ultérieurement.
       </template>

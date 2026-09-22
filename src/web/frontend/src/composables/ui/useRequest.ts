@@ -2,21 +2,23 @@ import type { Ref } from 'vue'
 import { ref } from 'vue'
 
 export interface Request<T> {
-  value: Ref<T | null>
+  readonly requested: T | null
   request: (value: T) => void
   clear: () => void
 }
 
 export function createRequest<T>(): Request<T> {
-  const value = ref<T | null>(null) as Ref<T | null>
+  const requested = ref<T | null>(null) as Ref<T | null>
 
   return {
-    value,
-    request: (requested: T) => {
-      value.value = requested
+    get requested() {
+      return requested.value
+    },
+    request: (value: T) => {
+      requested.value = value
     },
     clear: () => {
-      value.value = null
+      requested.value = null
     },
   }
 }
