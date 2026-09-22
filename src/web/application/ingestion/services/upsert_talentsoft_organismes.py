@@ -28,10 +28,11 @@ UPDATE_FIELDS = [
 
 
 def _error(item: dict, message: str) -> dict:
+    organisme_id = item["organisme_id"]
     return {
         "talentsoft_organisme": {
             "entity_code": item["entity_code"],
-            "organisme_id": str(item["organisme_id"]),
+            "organisme_id": str(organisme_id) if organisme_id else None,
         },
         "error": message,
     }
@@ -40,7 +41,9 @@ def _error(item: dict, message: str) -> dict:
 def upsert_talentsoft_organismes(items: list[dict]) -> dict:
     errors: list[dict] = []
 
-    organisme_ids = {item["organisme_id"] for item in items}
+    organisme_ids = {
+        item["organisme_id"] for item in items if item["organisme_id"] is not None
+    }
     existing_organisme_ids = set(
         OrganismeModel.objects.by_organisme_ids(organisme_ids).values_list(
             "id", flat=True
@@ -49,7 +52,8 @@ def upsert_talentsoft_organismes(items: list[dict]) -> dict:
 
     candidates = []
     for item in items:
-        if item["organisme_id"] not in existing_organisme_ids:
+        organisme_id = item["organisme_id"]
+        if organisme_id is not None and organisme_id not in existing_organisme_ids:
             errors.append(_error(item, "Organisme introuvable."))
             continue
         candidates.append(item)

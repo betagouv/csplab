@@ -22,6 +22,8 @@ class TalentsoftOrganismeModel(BaseDatedModel):
         on_delete=models.DO_NOTHING,
         db_column="organisme_id",
         related_name="talentsoft_organismes",
+        null=True,
+        blank=True,
     )
     parent_code = models.CharField(max_length=50, null=True, blank=True)
     has_children = models.BooleanField(default=False)

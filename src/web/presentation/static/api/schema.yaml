@@ -5306,6 +5306,7 @@ components:
         organisme_id:
           type: string
           format: uuid
+          nullable: true
         entity_code:
           type: string
           maxLength: 50
@@ -5373,7 +5374,6 @@ components:
       required:
       - entity_code
       - name
-      - organisme_id
     TempsTravailEnum:
       enum:
       - NON_DEFINI
