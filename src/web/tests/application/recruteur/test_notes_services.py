@@ -9,15 +9,35 @@ from application.recruteur.services.create_note import create_note
 from application.recruteur.services.delete_note import delete_note
 from application.recruteur.services.list_notes import list_notes
 from application.recruteur.services.update_note import update_note
+from domain.identite.errors.organisme_permission_errors import (
+    AccesOrganismeRefuse,
+    AccesRecrutementRefuse,
+)
 from domain.identite.errors.agent_errors import ProfilAgentNexistePas
 from domain.recruteur.errors.note_errors import NoteIntrouvable
+from domain.recruteur.errors.recrutement_errors import (
+    RecrutementCandidatureInexistante,
+    RecrutementInexistant,
+)
+from domain.recruteur.value_objects.roles import (
+    AgentOrganismeRole,
+    AgentRecrutementRole,
+)
 from domain.recruteur.errors.recrutement_errors import CandidatureInexistante
 from infrastructure.django_apps.recruteur.models.note import NoteModel
 from infrastructure.factories.candidate.candidature_django_factory import (
     CandidatureDjangoFactory,
+    create_recrutement_and_candidature_for_agent,
 )
+from infrastructure.factories.identite.organisme_django_factory import (
+    create_organisme_with_agent,
+)
+from infrastructure.factories.identite.utilisateur_factory import UtilisateurFactory
 from infrastructure.factories.identite.agent_django_factory import AgentDjangoFactory
 from infrastructure.factories.recruteur.note_django_factory import NoteDjangoFactory
+from infrastructure.factories.recruteur.recrutement_django_factory import (
+    RecrutementDjangoFactory,
+)
 from infrastructure.repositories.commons.postgres_audit_log_repository import (
     PostgresAuditLogRepository,
 )
@@ -25,9 +45,155 @@ from infrastructure.repositories.commons.postgres_audit_log_repository import (
 fake = Faker("fr_FR")
 
 
+def _utilisateur(entity_id, *, is_staff=False):
+    return UtilisateurFactory.create_entity(entity_id=entity_id, is_staff=is_staff)
+
+
 def _logs(note_id):
     return PostgresAuditLogRepository().get_logs_for_ressource("Note", note_id)
 
+
+class TestListNotes:
+    def test_returns_notes_newest_first(self, db):
+        agent, organisme, recrutement, candidature = (
+            create_recrutement_and_candidature_for_agent()
+        )
+        older = NoteDjangoFactory(candidature=candidature)
+        newer = NoteDjangoFactory(candidature=candidature)
+        NoteModel.objects.filter(pk=older.pk).update(
+            created_at=timezone.now() - timedelta(days=1)
+        )
+
+        notes = list_notes(
+            organisme_id=organisme.id,
+            recrutement_id=recrutement.pk,
+            candidature_id=candidature.id,
+            utilisateur=_utilisateur(agent.utilisateur_id),
+        )
+
+        assert [note.pk for note in notes] == [newer.pk, older.pk]
+
+    def test_ignores_soft_deleted_notes(self, db):
+        agent, organisme, recrutement, candidature = (
+            create_recrutement_and_candidature_for_agent()
+        )
+        kept = NoteDjangoFactory(candidature=candidature)
+        NoteDjangoFactory(candidature=candidature, supprimee_le=timezone.now())
+
+        notes = list_notes(
+            organisme_id=organisme.id,
+            recrutement_id=recrutement.pk,
+            candidature_id=candidature.id,
+            utilisateur=_utilisateur(agent.utilisateur_id),
+        )
+
+        assert [note.pk for note in notes] == [kept.pk]
+
+    def test_ignores_other_candidatures(self, db):
+        agent, organisme, recrutement, candidature = (
+            create_recrutement_and_candidature_for_agent()
+        )
+        NoteDjangoFactory()
+
+        notes = list_notes(
+            organisme_id=organisme.id,
+            recrutement_id=recrutement.pk,
+            candidature_id=candidature.id,
+            utilisateur=_utilisateur(agent.utilisateur_id),
+        )
+
+        assert list(notes) == []
+
+    def test_loads_author_without_extra_queries(self, db, django_assert_num_queries):
+        agent, organisme, recrutement, candidature = (
+            create_recrutement_and_candidature_for_agent()
+        )
+        notes = NoteDjangoFactory.create_batch(3, candidature=candidature)
+
+        result = list_notes(
+            organisme_id=organisme.id,
+            recrutement_id=recrutement.pk,
+            candidature_id=candidature.id,
+            utilisateur=_utilisateur(agent.utilisateur_id),
+        )
+
+        with django_assert_num_queries(1):
+            author_ids = [note.publie_par.utilisateur.pk for note in result]
+
+        assert len(author_ids) == len(notes)
+
+    def test_denied_without_organisme_role(self, db):
+        _, organisme, recrutement, candidature = (
+            create_recrutement_and_candidature_for_agent()
+        )
+
+        with pytest.raises(AccesOrganismeRefuse):
+            list_notes(
+                organisme_id=organisme.id,
+                recrutement_id=recrutement.pk,
+                candidature_id=candidature.id,
+                utilisateur=_utilisateur(uuid4()),
+            )
+
+    def test_denied_when_agent_role_not_attached_to_recrutement(self, db):
+        membre, organisme = create_organisme_with_agent(role=AgentOrganismeRole.AGENT)
+        recrutement = RecrutementDjangoFactory(organisme=organisme)
+        candidature = CandidatureDjangoFactory(etape__recrutement=recrutement)
+
+        with pytest.raises(AccesRecrutementRefuse):
+            list_notes(
+                organisme_id=organisme.id,
+                recrutement_id=recrutement.pk,
+                candidature_id=candidature.id,
+                utilisateur=_utilisateur(membre.utilisateur_id),
+            )
+
+    def test_allowed_for_agent_role_attached_as_contributeur(self, db):
+        membre, organisme = create_organisme_with_agent(role=AgentOrganismeRole.AGENT)
+        recrutement = RecrutementDjangoFactory(
+            organisme=organisme,
+            agent_link__agent=membre,
+            agent_link__role=AgentRecrutementRole.CONTRIBUTEUR.value,
+        )
+        candidature = CandidatureDjangoFactory(etape__recrutement=recrutement)
+        note = NoteDjangoFactory(candidature=candidature)
+
+        notes = list_notes(
+            organisme_id=organisme.id,
+            recrutement_id=recrutement.pk,
+            candidature_id=candidature.id,
+            utilisateur=_utilisateur(membre.utilisateur_id),
+        )
+
+        assert [n.pk for n in notes] == [note.pk]
+
+    def test_recrutement_not_in_organisme(self, db):
+        agent, organisme, _recrutement, candidature = (
+            create_recrutement_and_candidature_for_agent()
+        )
+        other_recrutement = RecrutementDjangoFactory()
+
+        with pytest.raises(RecrutementInexistant):
+            list_notes(
+                organisme_id=organisme.id,
+                recrutement_id=other_recrutement.pk,
+                candidature_id=candidature.id,
+                utilisateur=_utilisateur(agent.utilisateur_id),
+            )
+
+    def test_candidature_not_in_recrutement(self, db):
+        agent, organisme, recrutement, _candidature = (
+            create_recrutement_and_candidature_for_agent()
+        )
+        other_candidature = CandidatureDjangoFactory()
+
+        with pytest.raises(RecrutementCandidatureInexistante):
+            list_notes(
+                organisme_id=organisme.id,
+                recrutement_id=recrutement.pk,
+                candidature_id=other_candidature.id,
+                utilisateur=_utilisateur(agent.utilisateur_id),
+            )
 
 class TestCreateNote:
     def test_create_note_persists_and_logs(self, db):
