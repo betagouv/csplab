@@ -15,7 +15,7 @@ describe('refusCandidatureDialog', () => {
     expect(dialog).toHaveTextContent('Vous êtes sur le point de refuser la candidature de Alice Dupont.')
     expect(screen.getByRole('button', { name: 'Valider le refus' })).toBeDisabled()
 
-    await user.click(screen.getByRole('combobox', { name: 'Motif de refus' }))
+    await user.click(screen.getByRole('combobox', { name: /Motif de refus/ }))
     await user.click(await screen.findByRole('option', { name: 'Disponibilité' }))
     await user.click(screen.getByRole('button', { name: 'Valider le refus' }))
 
@@ -41,7 +41,8 @@ describe('refusCandidatureDialog', () => {
       props: { open: true, candidats: [CANDIDAT_ALICE], motifs: [], motifsUnavailable: true },
     })
 
-    expect(await screen.findByRole('alert')).toHaveTextContent('Les motifs de refus n\'ont pas pu être chargés.')
+    const select = await screen.findByRole('combobox', { name: /Motif de refus/ })
+    expect(select).toHaveAccessibleDescription('Les motifs de refus n\'ont pas pu être chargés.')
     expect(screen.getByRole('button', { name: 'Valider le refus' })).toBeDisabled()
   })
 })

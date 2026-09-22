@@ -8,12 +8,17 @@ const OPTIONS = [
 ]
 
 describe('cspSelect', () => {
-  it('describes the select with its hint and announces it as required', () => {
+  it('names the select with its hint and announces it as required', () => {
     render(CspSelect, { props: { options: OPTIONS, label: 'Libellé', hint: 'Texte d\'aide', required: true } })
 
-    const select = screen.getByRole('combobox', { name: 'Libellé' })
+    const select = screen.getByRole('combobox', { name: 'Libellé Texte d\'aide' })
 
-    expect(select).toHaveAccessibleDescription('Texte d\'aide')
     expect(select).toBeRequired()
+  })
+
+  it('describes the select with its error message', () => {
+    render(CspSelect, { props: { options: OPTIONS, label: 'Libellé', error: true, errorMessage: 'Message d\'erreur' } })
+
+    expect(screen.getByRole('combobox')).toHaveAccessibleDescription('Message d\'erreur')
   })
 })
