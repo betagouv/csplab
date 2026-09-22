@@ -7,8 +7,10 @@ from httpx import Response
 
 from infrastructure.external_gateways.dtos.talentsoft_dtos import CachedToken
 from tests.factories.talentsoft_factories import (
+    TalentsoftCodedObjectFactory,
     TalentsoftDetailOfferFactory,
     TalentsoftOfferFactory,
+    TalentsoftOrganisationFactory,
 )
 
 fake = Faker()
@@ -46,6 +48,35 @@ def detail_offer_response(reference: Optional[str] = None) -> Dict[str, Any]:
     offer = TalentsoftDetailOfferFactory.build()
     data = offer.model_dump()
     data["reference"] = reference if reference is not None else fake.uuid4()
+    return data
+
+
+def organisations_referentiel_response(
+    count: int = 2, has_more: bool = False, items: List[Any] | None = None
+) -> Dict[str, Any]:
+    if not items:
+        items = [
+            TalentsoftCodedObjectFactory.build(type="organisation").model_dump()
+            for _ in range(count)
+        ]
+
+    return {
+        "data": items,
+        "_pagination": {
+            "start": 1,
+            "count": len(items),
+            "total": len(items) + (10 if has_more else 0),
+            "resultsPerPage": len(items),
+            "hasMore": has_more,
+            "lastPage": 1 if not has_more else 2,
+        },
+    }
+
+
+def organisation_detail_response(entityCode: Optional[str] = None) -> Dict[str, Any]:
+    organisation = TalentsoftOrganisationFactory.build()
+    data = organisation.model_dump()
+    data["entityCode"] = entityCode if entityCode is not None else fake.numerify("###")
     return data
 
 

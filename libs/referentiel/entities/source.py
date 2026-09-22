@@ -30,3 +30,6 @@ class Source(IEntity):
                 ]
             ):
                 raise MissingTalentsoftFieldsError()
+
+    def is_dgafp(self, dgafp_source_id: UUID) -> bool:
+        return self.source_id == dgafp_source_id

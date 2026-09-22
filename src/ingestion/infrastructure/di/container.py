@@ -14,6 +14,9 @@ from application.usecases.clean_raw_organismes import CleanRawOrganismesUsecase
 from application.usecases.import_offers import ImportOffersUsecase
 from application.usecases.import_organismes import ImportOrganismesUsecase
 from application.usecases.load_sources import LoadSourcesUsecase
+from application.usecases.prepare_talentsoft_organisations import (
+    PrepareTalentsoftOrganisationsUsecase,
+)
 from application.usecases.publish_offer import PublishOfferUsecase
 from application.usecases.publish_organismes import PublishOrganismesUsecase
 from application.usecases.save_raw_offer import SaveRawOfferUsecase
@@ -315,6 +318,15 @@ class Container(containers.DeclarativeContainer):
         dispatch_process_webhook=dispatch_save_raw_offer_webhook,
     )
 
+    prepare_talentsoft_organisations_usecase: providers.Provider[
+        PrepareTalentsoftOrganisationsUsecase
+    ] = providers.Factory(
+        PrepareTalentsoftOrganisationsUsecase,
+        sources_repository=sources_repository,
+        talentsoft_client_repository=talentsoft_client_repository,
+        dgafp_source_id=config.talentsoft_dgafp_source_id,
+    )
+
 
 def import_organismes_usecase_for(
     container: Container, referentiel: OrganismeReferentiel
@@ -346,6 +358,9 @@ def create_container() -> Container:
     )
     container.config.dila_siret_lookup_max_age_days.from_value(
         settings.dila_siret_lookup_max_age_days
+    )
+    container.config.talentsoft_dgafp_source_id.from_value(
+        settings.talentsoft_dgafp_source_id
     )
 
     _logger = logging.getLogger(__name__)

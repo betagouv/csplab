@@ -12,9 +12,12 @@ from domain.gateways.offers_gateway import IOffersGateway
 from infrastructure.exceptions.exceptions import ExternalApiError
 from infrastructure.external_gateways.dtos.talentsoft_dtos import (
     CachedToken,
+    TalentsoftCodedObject,
     TalentsoftDetailOffer,
     TalentsoftOffer,
     TalentsoftOffersResponse,
+    TalentsoftOrganisation,
+    TalentsoftOrganisationsReferentielResponse,
     TalentsoftTokenResponse,
 )
 from infrastructure.gateways.async_http_client import AsyncHttpClient
@@ -22,6 +25,8 @@ from infrastructure.gateways.async_http_client import AsyncHttpClient
 TOKEN_ENDPOINT = "/api/token"  # noqa
 OFFERS_ENDPOINT = "/api/v2/offersummaries"
 DETAIL_OFFER_ENDPOINT = "/api/v2/offers/getoffer"
+ORGANISATION_REFERENTIEL_ENDPOINT = "/api/v2/referential/organisation"
+ORGANISATION_DETAIL_ENDPOINT = "/api/v2/organisation"
 
 
 @dataclass
@@ -220,3 +225,54 @@ class TalentsoftFrontClient(BaseTalentsoftClient, IOffersGateway):
             ) from e
 
         return RawOffer(reference=reference, data=talentsoft_offer.model_dump())
+
+    async def get_organisations_referentiel(
+        self, count: int = 10_000
+    ) -> List[TalentsoftCodedObject]:
+        url = f"{self.base_url}{ORGANISATION_REFERENTIEL_ENDPOINT}"
+        params: Dict[str, int | str] = {"filter": "active", "count": count}
+
+        response = await self._make_authenticated_request(url, params)
+
+        try:
+            typed_response = TalentsoftOrganisationsReferentielResponse.model_validate(
+                response.json()
+            )
+        except ValidationError as e:
+            raise ExternalApiError(
+                f"Invalid response structure: {e}", api_name=self.api_name
+            ) from e
+
+        if typed_response.pagination and typed_response.pagination.hasMore:
+            raise ExternalApiError(
+                message=(
+                    f"Talentsoft organisations referentiel has more results than "
+                    f"the requested count={count} "
+                    f"(total={typed_response.pagination.total}); "
+                    "some organisations were not fetched"
+                ),
+                api_name=self.api_name,
+            )
+
+        return typed_response.data
+
+    async def get_organisation_detail(self, code: int) -> TalentsoftOrganisation:
+        url = f"{self.base_url}{ORGANISATION_DETAIL_ENDPOINT}/{code}"
+        params: Dict[str, int | str] = {}
+
+        try:
+            response = await self._make_authenticated_request(url, params)
+        except ExternalApiError as e:
+            if e.status_code == HTTPStatus.NOT_FOUND:
+                raise ExternalApiError(
+                    message=f"Organisation not found for code: {code}",
+                    api_name=self.api_name,
+                ) from e
+            raise
+
+        try:
+            return TalentsoftOrganisation.model_validate(response.json())
+        except ValidationError as e:
+            raise ExternalApiError(
+                f"Invalid response structure: {e}", api_name=self.api_name
+            ) from e

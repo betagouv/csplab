@@ -110,6 +110,13 @@ class TalentsoftOffersResponse(BaseModel):
     pagination: TalentsoftPagination = Field(alias="_pagination")
 
 
+class TalentsoftOrganisationsReferentielResponse(BaseModel):
+    data: List[TalentsoftCodedObject]
+    pagination: Optional[TalentsoftPagination] = Field(
+        default=None, alias="_pagination"
+    )
+
+
 class TalentsoftGeolocation(BaseModel):
     latitude: float
     longitude: float
@@ -129,6 +136,25 @@ class TalentsoftOrganisation(BaseModel):
     retentionPeriod: Optional[int] = None
     generalConditions: Optional[str] = None
     personalDataConsent: Optional[str] = None
+
+
+class TalentsoftOrganisationPayload(TalentsoftOrganisation):
+    code: int
+    parentCode: Optional[int] = None
+    hasChildren: bool = False
+
+    @classmethod
+    def from_referentiel_and_detail(
+        cls,
+        referentiel: TalentsoftCodedObject,
+        detail: TalentsoftOrganisation,
+    ) -> TalentsoftOrganisationPayload:
+        return cls(
+            code=referentiel.code,
+            parentCode=referentiel.parentCode,
+            hasChildren=referentiel.hasChildren,
+            **detail.model_dump(),
+        )
 
 
 class TalentsoftOperationalManager(BaseModel):

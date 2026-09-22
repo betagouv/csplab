@@ -1,4 +1,5 @@
 import os
+from uuid import UUID
 
 from pydantic import HttpUrl
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -19,6 +20,9 @@ class Settings(BaseSettings):
     # "front" credentials get an active TalentsoftFrontClient registered; "back"
     # credentials are only used to verify webhook signatures.
     talentsoft_credentials: list[TalentsoftCredential] = []
+    # Source ID for the DGAFP Talentsoft instance, used to guard imports that
+    # must only ever run against that source (e.g. organisations import).
+    talentsoft_dgafp_source_id: UUID | None = None
 
     gipcdg_api_key: str | None = None
     # https://emploi-territorial.fr/api
