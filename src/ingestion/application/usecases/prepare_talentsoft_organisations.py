@@ -1,8 +1,5 @@
 import logging
-from dataclasses import dataclass
 from uuid import UUID
-
-from ddd.async_usecase_interface import IAsyncUsecase
 
 from application.usecases._talentsoft_source import resolve_source_and_client
 from domain.repositories.sources_repository import ISourcesRepository
@@ -17,32 +14,31 @@ logger = logging.getLogger(__name__)
 BATCH_SIZE = 100
 
 
-@dataclass(frozen=True)
-class PrepareTalentsoftOrganisationsCommand:
-    source_id: UUID
-
-
-class PrepareTalentsoftOrganisationsUsecase(
-    IAsyncUsecase[
-        PrepareTalentsoftOrganisationsCommand, list[list[TalentsoftOrganisationPayload]]
-    ]
-):
+class PrepareTalentsoftOrganisationsUsecase:
     def __init__(
         self,
         sources_repository: ISourcesRepository,
         talentsoft_client_repository: TalentsoftClientRepository,
+        dgafp_source_id: UUID | None,
     ) -> None:
         self._sources_repository = sources_repository
         self._talentsoft_client_repository = talentsoft_client_repository
+        self._dgafp_source_id = dgafp_source_id
 
-    async def execute(
-        self, command: PrepareTalentsoftOrganisationsCommand
-    ) -> list[list[TalentsoftOrganisationPayload]]:
-        _, client = resolve_source_and_client(
-            command.source_id,
+    async def execute(self) -> list[list[TalentsoftOrganisationPayload]]:
+        if self._dgafp_source_id is None:
+            raise ValueError("TALENTSOFT_DGAFP_SOURCE_ID is not configured")
+
+        source, client = resolve_source_and_client(
+            self._dgafp_source_id,
             self._sources_repository,
             self._talentsoft_client_repository,
         )
+
+        if not source.is_dgafp(self._dgafp_source_id):
+            raise ValueError(
+                f"Source {self._dgafp_source_id} is not the DGAFP Talentsoft source"
+            )
 
         referentiel = await client.get_organisations_referentiel()
 
@@ -69,7 +65,7 @@ class PrepareTalentsoftOrganisationsUsecase(
             "Prepared %d Talentsoft organisations in %d batches for source %s",
             len(payloads),
             len(batches),
-            command.source_id,
+            self._dgafp_source_id,
         )
 
         return batches

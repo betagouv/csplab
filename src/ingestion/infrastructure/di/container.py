@@ -324,6 +324,7 @@ class Container(containers.DeclarativeContainer):
         PrepareTalentsoftOrganisationsUsecase,
         sources_repository=sources_repository,
         talentsoft_client_repository=talentsoft_client_repository,
+        dgafp_source_id=config.talentsoft_dgafp_source_id,
     )
 
 
@@ -357,6 +358,9 @@ def create_container() -> Container:
     )
     container.config.dila_siret_lookup_max_age_days.from_value(
         settings.dila_siret_lookup_max_age_days
+    )
+    container.config.talentsoft_dgafp_source_id.from_value(
+        settings.talentsoft_dgafp_source_id
     )
 
     _logger = logging.getLogger(__name__)

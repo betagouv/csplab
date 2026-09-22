@@ -1,33 +1,20 @@
 #!/usr/bin/env python
-import argparse
 import asyncio
 import logging
-from uuid import UUID
 
-from application.usecases.prepare_talentsoft_organisations import (
-    PrepareTalentsoftOrganisationsCommand,
-)
 from infrastructure.di.container import create_container
 
 logging.basicConfig(level=logging.INFO)
 
 
-async def _run(source_id: UUID) -> None:
+async def _run() -> None:
     container = create_container()
     await container.load_sources_usecase().execute()
-    await container.prepare_talentsoft_organisations_usecase().execute(
-        PrepareTalentsoftOrganisationsCommand(source_id=source_id)
-    )
+    await container.prepare_talentsoft_organisations_usecase().execute()
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument(
-        "--source-id", required=True, type=UUID, help="UUID de la source à traiter"
-    )
-    args = parser.parse_args()
-
-    asyncio.run(_run(args.source_id))
+    asyncio.run(_run())
 
 
 if __name__ == "__main__":
