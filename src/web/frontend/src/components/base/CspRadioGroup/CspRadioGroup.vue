@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { CspRadioSize } from '@/components/base/CspRadio/CspRadio.vue'
 import { RadioGroupRoot } from 'reka-ui'
+import { useId } from 'vue'
 import CspIcon from '@/components/base/CspIcon/CspIcon.vue'
 import CspRadio from '@/components/base/CspRadio/CspRadio.vue'
 
@@ -29,6 +30,8 @@ withDefaults(defineProps<CspRadioGroupProps>(), {
   errorMessage: undefined,
 })
 
+const messagesId = useId()
+
 const model = defineModel<string>({ required: true })
 
 function updateModel(val: unknown): void {
@@ -39,6 +42,7 @@ function updateModel(val: unknown): void {
 
 <template>
   <RadioGroupRoot
+    :aria-describedby="messagesId"
     :model-value="model"
     as="fieldset"
     class="csp-radio-group"
@@ -67,17 +71,22 @@ function updateModel(val: unknown): void {
       />
     </div>
 
-    <p
-      v-if="error && errorMessage"
-      class="csp-radio-group__error"
-      role="alert"
+    <div
+      :id="messagesId"
+      class="csp-radio-group__messages"
+      aria-live="polite"
     >
-      <CspIcon
-        name="ri:error-warning-fill"
-        :size="14"
-      />
-      {{ errorMessage }}
-    </p>
+      <p
+        v-if="error && errorMessage"
+        class="csp-radio-group__error"
+      >
+        <CspIcon
+          name="ri:error-warning-fill"
+          :size="14"
+        />
+        {{ errorMessage }}
+      </p>
+    </div>
   </RadioGroupRoot>
 </template>
 

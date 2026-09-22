@@ -51,8 +51,6 @@ const model = defineModel<string | null>({ default: null })
 const searchTerm = defineModel<string>('searchTerm', { default: '' })
 const open = defineModel<boolean>('open', { default: false })
 
-const hintId = computed(() => `${props.id}-hint`)
-
 function displayValue(value: unknown): string {
   if (value == null)
     return ''
@@ -85,14 +83,13 @@ const announcedStatus = useDebounce(statusMessage, 1000)
       :for="id"
     >
       {{ label }}
+      <span
+        v-if="hint"
+        class="csp-combobox__hint"
+      >
+        {{ hint }}
+      </span>
     </label>
-    <p
-      v-if="hint"
-      :id="hintId"
-      class="csp-combobox__hint"
-    >
-      {{ hint }}
-    </p>
 
     <ComboboxAnchor class="csp-combobox__anchor">
       <CspIcon
@@ -105,7 +102,6 @@ const announcedStatus = useDebounce(statusMessage, 1000)
         class="csp-combobox__input"
         :name="name"
         :placeholder="placeholder"
-        :aria-describedby="hint ? hintId : undefined"
         autocomplete="off"
         :display-value="displayValue"
       />
@@ -180,14 +176,17 @@ const announcedStatus = useDebounce(statusMessage, 1000)
 }
 
 .csp-combobox__label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
   font-size: 0.875rem;
   font-weight: 600;
   color: var(--text-default-grey);
 }
 
 .csp-combobox__hint {
-  margin: 0;
   font-size: 0.75rem;
+  font-weight: 400;
   color: var(--text-mention-grey);
 }
 

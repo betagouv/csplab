@@ -12,7 +12,7 @@ import {
   SelectValue,
   SelectViewport,
 } from 'reka-ui'
-import { computed, useId } from 'vue'
+import { useId } from 'vue'
 import CspIcon from '@/components/base/CspIcon/CspIcon.vue'
 
 export interface CspSelectOption {
@@ -21,7 +21,7 @@ export interface CspSelectOption {
   disabled?: boolean
 }
 
-const props = withDefaults(defineProps<{
+withDefaults(defineProps<{
   options: {
     value: string
     label: string
@@ -33,7 +33,7 @@ const props = withDefaults(defineProps<{
   error?: boolean
   errorMessage?: string
   id?: string
-  label?: string
+  label: string
   hint?: string
   required?: boolean
 }>(), {
@@ -46,8 +46,6 @@ const props = withDefaults(defineProps<{
   required: false,
 })
 
-const hintId = computed(() => `${props.id}-hint`)
-
 const model = defineModel<string>()
 </script>
 
@@ -57,19 +55,17 @@ const model = defineModel<string>()
     :class="{ 'csp-select-group--error': error }"
   >
     <label
-      v-if="label"
       class="csp-select-group__label"
       :for="id"
     >
       {{ label }}
+      <span
+        v-if="hint"
+        class="csp-select-group__hint"
+      >
+        {{ hint }}
+      </span>
     </label>
-    <p
-      v-if="hint"
-      :id="hintId"
-      class="csp-select-group__hint"
-    >
-      {{ hint }}
-    </p>
 
     <SelectRoot
       v-model="model"
@@ -84,7 +80,7 @@ const model = defineModel<string>()
           { 'csp-select--error': error },
         ]"
         :aria-invalid="error || undefined"
-        :aria-describedby="hint ? hintId : undefined"
+        :aria-describedby="`${id}-messages`"
       >
         <SelectValue :placeholder="placeholder" />
         <CspIcon
@@ -125,17 +121,22 @@ const model = defineModel<string>()
       </SelectPortal>
     </SelectRoot>
 
-    <p
-      v-if="error && errorMessage"
-      class="csp-select-group__error"
-      role="alert"
+    <div
+      :id="`${id}-messages`"
+      class="csp-select-group__messages"
+      aria-live="polite"
     >
-      <CspIcon
-        name="ri:error-warning-fill"
-        :size="14"
-      />
-      {{ errorMessage }}
-    </p>
+      <p
+        v-if="error && errorMessage"
+        class="csp-select-group__error"
+      >
+        <CspIcon
+          name="ri:error-warning-fill"
+          :size="14"
+        />
+        {{ errorMessage }}
+      </p>
+    </div>
   </div>
 </template>
 
@@ -213,18 +214,21 @@ const model = defineModel<string>()
 .csp-select-group {
   display: flex;
   flex-direction: column;
-  gap: 0.375rem;
 }
 
 .csp-select-group__label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  margin-bottom: 0.375rem;
   font-size: 0.875rem;
   font-weight: 600;
   color: var(--text-default-grey);
 }
 
 .csp-select-group__hint {
-  margin: 0;
   font-size: 0.75rem;
+  font-weight: 400;
   color: var(--text-mention-grey);
 }
 
@@ -235,6 +239,10 @@ const model = defineModel<string>()
   .csp-select-group__label {
     color: var(--text-default-error);
   }
+}
+
+.csp-select-group__messages:not(:empty) {
+  margin-top: 0.375rem;
 }
 
 .csp-select-group__error {

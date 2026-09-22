@@ -149,7 +149,7 @@ describe('candidaturePanelView', () => {
     expect(patchEtapeCandidatures).not.toHaveBeenCalled()
     expect(dialog.getByRole('button', { name: 'Valider le refus' })).toBeDisabled()
 
-    await user.click(dialog.getByRole('combobox', { name: 'Motif de refus' }))
+    await user.click(dialog.getByRole('combobox', { name: /Motif de refus/ }))
     await user.click(await screen.findByRole('option', { name: 'Expérience insuffisante' }))
     await user.click(dialog.getByRole('button', { name: 'Valider le refus' }))
 

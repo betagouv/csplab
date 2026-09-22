@@ -123,7 +123,6 @@ function submit() {
 .csp-search-bar {
   display: flex;
   flex-direction: column;
-  gap: 0.375rem;
   min-width: 0;
 }
 
@@ -131,6 +130,7 @@ function submit() {
   display: flex;
   flex-direction: column;
   gap: 0.125rem;
+  margin-bottom: 0.375rem;
   font-size: 0.875rem;
   font-weight: 600;
   color: var(--text-default-grey);
@@ -220,8 +220,8 @@ function submit() {
   border-radius: 0 0.25rem 0.25rem 0;
 }
 
-.csp-search-bar__messages:empty {
-  display: none;
+.csp-search-bar__messages:not(:empty) {
+  margin-top: 0.375rem;
 }
 
 .csp-search-bar__error {

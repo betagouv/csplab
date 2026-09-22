@@ -58,6 +58,7 @@ const inputAttrs = computed(() => {
       :placeholder="placeholder"
       :disabled="disabled"
       :aria-invalid="error || undefined"
+      :aria-describedby="`${id}-messages`"
       class="csp-input"
       :class="[
         `csp-input--${size}`,
@@ -66,17 +67,22 @@ const inputAttrs = computed(() => {
         },
       ]"
     >
-    <p
-      v-if="error && errorMessage"
-      class="csp-input-group__error"
-      role="alert"
+    <div
+      :id="`${id}-messages`"
+      class="csp-input-group__messages"
+      aria-live="polite"
     >
-      <CspIcon
-        name="ri:error-warning-fill"
-        :size="14"
-      />
-      {{ errorMessage }}
-    </p>
+      <p
+        v-if="error && errorMessage"
+        class="csp-input-group__error"
+      >
+        <CspIcon
+          name="ri:error-warning-fill"
+          :size="14"
+        />
+        {{ errorMessage }}
+      </p>
+    </div>
   </div>
 </template>
 
@@ -143,10 +149,10 @@ const inputAttrs = computed(() => {
 .csp-input-group {
   display: flex;
   flex-direction: column;
-  gap: 0.375rem;
 }
 
 .csp-input-group__label {
+  margin-bottom: 0.375rem;
   font-size: 0.875rem;
   font-weight: 600;
   color: var(--text-default-grey);
@@ -159,6 +165,10 @@ const inputAttrs = computed(() => {
   .csp-input-group__label {
     color: var(--text-default-error);
   }
+}
+
+.csp-input-group__messages:not(:empty) {
+  margin-top: 0.375rem;
 }
 
 .csp-input-group__error {

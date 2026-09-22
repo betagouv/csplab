@@ -90,7 +90,7 @@ const meta = {
     },
     hint: {
       control: { type: 'text' },
-      description: 'Aide affichée sous le libellé, reliée au sélecteur par `aria-describedby`.',
+      description: 'Aide affichée sous le libellé, dont elle fait partie et qui la porte dans le nom accessible.',
       table: {
         type: { summary: 'string' },
       },

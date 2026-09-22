@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { CheckboxGroupRoot } from 'reka-ui'
+import { useId } from 'vue'
 import CspCheckbox from '@/components/base/CspCheckbox/CspCheckbox.vue'
 import CspIcon from '@/components/base/CspIcon/CspIcon.vue'
 
@@ -25,6 +26,8 @@ withDefaults(defineProps<CspCheckboxGroupProps>(), {
   error: false,
 })
 
+const messagesId = useId()
+
 const model = defineModel<string[]>({ required: true })
 
 function updateModel(val: unknown[]): void {
@@ -36,6 +39,7 @@ function updateModel(val: unknown[]): void {
 
 <template>
   <CheckboxGroupRoot
+    :aria-describedby="messagesId"
     :model-value="model"
     as="fieldset"
     class="csp-checkbox-group"
@@ -66,17 +70,22 @@ function updateModel(val: unknown[]): void {
       />
     </div>
 
-    <p
-      v-if="error && errorMessage"
-      class="csp-checkbox-group__error"
-      role="alert"
+    <div
+      :id="messagesId"
+      class="csp-checkbox-group__messages"
+      aria-live="polite"
     >
-      <CspIcon
-        name="ri:error-warning-fill"
-        :size="14"
-      />
-      {{ errorMessage }}
-    </p>
+      <p
+        v-if="error && errorMessage"
+        class="csp-checkbox-group__error"
+      >
+        <CspIcon
+          name="ri:error-warning-fill"
+          :size="14"
+        />
+        {{ errorMessage }}
+      </p>
+    </div>
   </CheckboxGroupRoot>
 </template>
 

@@ -38,7 +38,7 @@ const meta = {
     },
     hint: {
       control: { type: 'text' },
-      description: 'Texte d\'aide sous le libellé, relié au champ par `aria-describedby`.',
+      description: 'Texte d\'aide sous le libellé, dont il fait partie et qui le porte dans le nom accessible.',
       table: { type: { summary: 'string' } },
     },
     actionLabel: {

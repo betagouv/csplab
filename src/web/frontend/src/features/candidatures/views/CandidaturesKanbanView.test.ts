@@ -55,7 +55,7 @@ describe('candidaturesKanbanView', () => {
     expect(dialog.getByText(/Vous êtes sur le point de refuser 2 candidatures/)).toBeInTheDocument()
     expect(patchEtapeCandidatures).not.toHaveBeenCalled()
 
-    await user.click(dialog.getByRole('combobox', { name: 'Motif de refus' }))
+    await user.click(dialog.getByRole('combobox', { name: /Motif de refus/ }))
     await user.click(await screen.findByRole('option', { name: 'Autre' }))
     await user.click(dialog.getByRole('button', { name: 'Valider le refus' }))
 
