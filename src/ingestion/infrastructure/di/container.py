@@ -19,6 +19,9 @@ from application.usecases.prepare_talentsoft_organisations import (
 )
 from application.usecases.publish_offer import PublishOfferUsecase
 from application.usecases.publish_organismes import PublishOrganismesUsecase
+from application.usecases.publish_talentsoft_organisations import (
+    PublishTalentsoftOrganisationsUsecase,
+)
 from application.usecases.save_raw_offer import SaveRawOfferUsecase
 from application.usecases.save_webhook import SaveWebhookUsecase
 from domain.gateways.archive_gateway import IArchiveGateway
@@ -27,6 +30,9 @@ from domain.gateways.organisme_gateway import IOrganismeGateway
 from domain.gateways.organismes_cleaner import IOrganismesCleaner
 from domain.gateways.publish_offer_gateway import IPublishOfferGateway
 from domain.gateways.publish_organismes_gateway import IPublishOrganismesGateway
+from domain.gateways.publish_talentsoft_organismes_gateway import (
+    IPublishTalentsoftOrganismesGateway,
+)
 from domain.gateways.sources_gateway import ISourcesGateway
 from domain.repositories.raw_offer_repository import IRawOfferRepository
 from domain.repositories.raw_organisme_repository import IRawOrganismeRepository
@@ -63,6 +69,9 @@ from infrastructure.external_gateways.web_publish_offer_gateway import (
 )
 from infrastructure.external_gateways.web_publish_organismes_gateway import (
     WebPublishOrganismesGateway,
+)
+from infrastructure.external_gateways.web_publish_talentsoft_organismes_gateway import (
+    WebPublishTalentsoftOrganismesGateway,
 )
 from infrastructure.external_gateways.web_sources_gateway import WebSourcesGateway
 from infrastructure.gateways.offers_cleaner import OffersCleaner
@@ -325,6 +334,21 @@ class Container(containers.DeclarativeContainer):
         sources_repository=sources_repository,
         talentsoft_client_repository=talentsoft_client_repository,
         dgafp_source_id=config.talentsoft_dgafp_source_id,
+    )
+
+    publish_talentsoft_organismes_gateway: providers.Provider[
+        IPublishTalentsoftOrganismesGateway
+    ] = providers.Factory(
+        WebPublishTalentsoftOrganismesGateway,
+        client=http_client,
+        credentials=web_gateway_credentials,
+    )
+
+    publish_talentsoft_organisations_usecase: providers.Provider[
+        PublishTalentsoftOrganisationsUsecase
+    ] = providers.Factory(
+        PublishTalentsoftOrganisationsUsecase,
+        publish_talentsoft_organismes_gateway=publish_talentsoft_organismes_gateway,
     )
 
 
