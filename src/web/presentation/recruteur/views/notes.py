@@ -90,7 +90,10 @@ class CandidatureNotesView(APIView):
                 status=status.HTTP_201_CREATED,
             )
         except CandidatureInexistante:
-            return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                GenericErrorSerializer({"error": "Not found."}).data,
+                status=status.HTTP_404_NOT_FOUND,
+            )
         except ProfilAgentNexistePas:
             return Response(
                 {"detail": "Invalid author."}, status=status.HTTP_400_BAD_REQUEST
@@ -148,7 +151,10 @@ class CandidatureNoteDetailView(APIView):
             )
             return Response(NoteDetailSerializer(note).data)
         except NoteIntrouvable:
-            return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                GenericErrorSerializer({"error": "Not found."}).data,
+                status=status.HTTP_404_NOT_FOUND,
+            )
         except Exception:
             serializer = GenericErrorSerializer({"error": "Unexpected error"})
             return Response(
@@ -170,7 +176,10 @@ class CandidatureNoteDetailView(APIView):
             )
             return Response(status=status.HTTP_204_NO_CONTENT)
         except NoteIntrouvable:
-            return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                GenericErrorSerializer({"error": "Not found."}).data,
+                status=status.HTTP_404_NOT_FOUND,
+            )
         except Exception:
             error_serializer = GenericErrorSerializer({"error": "Unexpected error"})
             return Response(

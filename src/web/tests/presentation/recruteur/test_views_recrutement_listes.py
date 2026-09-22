@@ -138,7 +138,7 @@ class TestRecrutementsActifsView:
 
         response = authenticated_client.get(RECRUTEMENTS_ACTIFS_URL)
         assert response.status_code == status.HTTP_404_NOT_FOUND
-        assert response.json() == {"detail": "Not found."}
+        assert response.json() == {"error": "Not found."}
 
     @patch("presentation.recruteur.views.recrutement_listes.recruteur_container")
     def test_returns_403_when_not_responsable(
@@ -153,7 +153,7 @@ class TestRecrutementsActifsView:
 
         response = authenticated_client.get(RECRUTEMENTS_ACTIFS_URL)
         assert response.status_code == status.HTTP_403_FORBIDDEN
-        assert response.json() == {"detail": "Forbidden."}
+        assert response.json() == {"error": "Forbidden."}
 
     @patch("presentation.recruteur.views.recrutement_listes.recruteur_container")
     def test_returns_500_on_unexpected_error(
@@ -229,7 +229,7 @@ class TestRecrutementsArchivesView:
 
         response = authenticated_client.get(RECRUTEMENTS_ARCHIVES_URL)
         assert response.status_code == status.HTTP_404_NOT_FOUND
-        assert response.json() == {"detail": "Not found."}
+        assert response.json() == {"error": "Not found."}
 
     @patch("presentation.recruteur.views.recrutement_listes.recruteur_container")
     def test_returns_403_when_not_responsable(
@@ -244,7 +244,7 @@ class TestRecrutementsArchivesView:
 
         response = authenticated_client.get(RECRUTEMENTS_ARCHIVES_URL)
         assert response.status_code == status.HTTP_403_FORBIDDEN
-        assert response.json() == {"detail": "Forbidden."}
+        assert response.json() == {"error": "Forbidden."}
 
     @patch("presentation.recruteur.views.recrutement_listes.recruteur_container")
     def test_returns_500_on_unexpected_error(
