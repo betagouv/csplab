@@ -16,7 +16,14 @@ def document_upload_to(instance: "DocumentModel", filename: str) -> str:
 
 
 class DocumentQuerySet(models.QuerySet):
-    pass
+    def by_recrutement_candidature_and_document(
+        self, recrutement_id, candidature_id, document_id
+    ) -> "DocumentQuerySet":
+        return self.filter(
+            candidature_id=candidature_id,
+            candidature__etape__recrutement_id=recrutement_id,
+            pk=document_id,
+        )
 
 
 class DocumentModel(BaseDatedModel):

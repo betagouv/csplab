@@ -19,6 +19,7 @@ dependencies = [
     "drf-spectacular>=0.29.0",
     "factory-boy>=3.3.3",
     "faker>=40.31.0,<41.0.0",
+    "filetype>=1.2.0,<2.0.0",
     "gunicorn>=23.0.0,<24.0.0",
     "huey>=2.6.0",
     "pelage>=0.6.0,<1.0.0",
