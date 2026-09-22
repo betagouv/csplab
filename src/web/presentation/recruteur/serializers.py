@@ -391,3 +391,18 @@ class AuditLogSerializer(serializers.ModelSerializer):
             "occurred_at",
             "event_name",
         ]
+
+
+# ---------------------------------------------------------------------------
+# Serializer pour les conversations d'une candidature (stub)
+# ---------------------------------------------------------------------------
+
+
+class ConversationSerializer(serializers.Serializer):
+    uuid = serializers.UUIDField()
+    objet = serializers.CharField()
+    creator = serializers.CharField()
+    created_at = serializers.DateTimeField()
+    last_message_content = serializers.CharField(max_length=300)
+    last_message_author = serializers.CharField()
+    last_message_created_at = serializers.DateTimeField()
