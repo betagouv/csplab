@@ -5,7 +5,11 @@ from domain.recruteur.errors.recrutement_agent_errors import (
     AgentDejaMembreRecrutement,
     AgentNonMembreRecrutement,
 )
-from domain.recruteur.errors.recrutement_errors import RecrutementInexistant
+from domain.recruteur.errors.recrutement_errors import (
+    RecrutementDocumentInexistant,
+    RecrutementInexistant,
+)
+from infrastructure.django_apps.candidate.models.document import DocumentModel
 from infrastructure.django_apps.recruteur.models.organisme import OrganismeAgentModel
 from infrastructure.django_apps.recruteur.models.recrutement import (
     RecrutementAgentModel,
@@ -23,6 +27,14 @@ class RecrutementAgentService:
             self.organisme_id, self.recrutement_id
         ).exists():
             raise RecrutementInexistant(self.recrutement_id)
+
+    def check_document_belongs_to_recrutement(
+        self, candidature_id: UUID, document_id: UUID
+    ) -> None:
+        if not DocumentModel.objects.by_recrutement_candidature_and_document(
+            self.recrutement_id, candidature_id, document_id
+        ).exists():
+            raise RecrutementDocumentInexistant(document_id)
 
     def check_agent_attached_to_organisme(self, agent_id: UUID) -> None:
         if not OrganismeAgentModel.objects.by_organisme_and_agent(
