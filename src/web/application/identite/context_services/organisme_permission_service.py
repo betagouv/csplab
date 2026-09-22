@@ -102,12 +102,6 @@ _ROLES_REQUIS: dict[OrganismeAction, frozenset[AgentOrganismeRole]] = {
     OrganismeAction.GET_MOTIFS_REFUS: frozenset(
         {AgentOrganismeRole.SUPERVISEUR, AgentOrganismeRole.AGENT}
     ),
-    OrganismeAction.GET_MOTIFS_REFUS: frozenset(
-        {AgentOrganismeRole.SUPERVISEUR, AgentOrganismeRole.AGENT}
-    ),
-    OrganismeAction.GET_MOTIFS_REFUS: frozenset(
-        {AgentOrganismeRole.SUPERVISEUR, AgentOrganismeRole.AGENT}
-    ),
     OrganismeAction.READ_DOCUMENT: frozenset(
         {AgentOrganismeRole.SUPERVISEUR, AgentOrganismeRole.AGENT}
     ),
