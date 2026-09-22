@@ -5310,8 +5310,9 @@ components:
           type: string
           maxLength: 50
         parent_code:
-          type: integer
+          type: string
           nullable: true
+          maxLength: 50
         has_children:
           type: boolean
           default: false
@@ -5549,7 +5550,7 @@ components:
           items:
             $ref: '#/components/schemas/TalentsoftOrganismeUpsertInput'
           description: 'Liste d''organismes Talentsoft à créer ou mettre à jour (min:
-            1, max: 100)'
+            1, max: 100).'
           maxItems: 100
           minItems: 1
       required:

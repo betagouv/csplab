@@ -23,7 +23,7 @@ class TalentsoftOrganismeModel(BaseDatedModel):
         db_column="organisme_id",
         related_name="talentsoft_organismes",
     )
-    parent_code = models.IntegerField(null=True, blank=True)
+    parent_code = models.CharField(max_length=50, null=True, blank=True)
     has_children = models.BooleanField(default=False)
     name = models.CharField(max_length=255)
     description = models.TextField(null=True, blank=True)

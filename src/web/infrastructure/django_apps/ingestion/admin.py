@@ -90,8 +90,7 @@ class RawDocumentAdmin(ReadOnlyAdminMixin, admin.ModelAdmin):
 
 
 @admin.register(TalentsoftOrganismeModel)
-class TalentsoftOrganismeAdmin(admin.ModelAdmin):
+class TalentsoftOrganismeAdmin(ReadOnlyAdminMixin, admin.ModelAdmin):
     list_display = ("entity_code", "name", "organisme", "updated_at")
     list_filter = ("has_children",)
     search_fields = ("entity_code", "name", "organisme__nom")
-    readonly_fields = ("id",)

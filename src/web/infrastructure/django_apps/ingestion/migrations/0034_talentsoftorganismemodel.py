@@ -20,7 +20,7 @@ class Migration(migrations.Migration):
                 ('updated_at', models.DateTimeField(auto_now=True)),
                 ('id', models.UUIDField(default=uuid.uuid4, primary_key=True, serialize=False)),
                 ('entity_code', models.CharField(max_length=50, unique=True)),
-                ('parent_code', models.IntegerField(blank=True, null=True)),
+                ('parent_code', models.CharField(blank=True, max_length=50, null=True)),
                 ('has_children', models.BooleanField(default=False)),
                 ('name', models.CharField(max_length=255)),
                 ('description', models.TextField(blank=True, null=True)),

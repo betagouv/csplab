@@ -1,13 +1,13 @@
 import logging
 
-from drf_spectacular.utils import extend_schema, inline_serializer
-from rest_framework import serializers, status
+from drf_spectacular.utils import extend_schema
+from rest_framework import status
 from rest_framework.parsers import JSONParser
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from application.ingestion.usecases.upsert_talentsoft_organismes import (
-    UpsertTalentsoftOrganismesUsecase,
+from application.ingestion.services.upsert_talentsoft_organismes import (
+    upsert_talentsoft_organismes,
 )
 from config.logger_names import LoggerName
 from infrastructure.authentication.api_key_authentication import (
@@ -17,6 +17,7 @@ from presentation.api.serializers import GenericErrorSerializer
 from presentation.ingestion.serializers import (
     TalentsoftOrganismeUpsertInputSerializer,
     UpsertTalentsoftOrganismesRequestSerializer,
+    UpsertTalentsoftOrganismesResponseSerializer,
 )
 
 logger = logging.getLogger(LoggerName.INGESTION.value)
@@ -32,38 +33,9 @@ UPSERT_TALENTSOFT_ORGANISMES_DESCRIPTION = (
     summary="Ajouter/mettre à jour des organismes Talentsoft",
     description=UPSERT_TALENTSOFT_ORGANISMES_DESCRIPTION,
     tags=["talentsoft_organisme"],
-    request=inline_serializer(
-        name="UpsertTalentsoftOrganismesRequest",
-        fields={
-            "talentsoft_organismes": serializers.ListField(
-                child=TalentsoftOrganismeUpsertInputSerializer(),
-                min_length=1,
-                max_length=100,
-                help_text=(
-                    "Liste d'organismes Talentsoft à créer ou mettre à jour "
-                    "(min: 1, max: 100)"
-                ),
-            ),
-        },
-    ),
+    request=UpsertTalentsoftOrganismesRequestSerializer,
     responses={
-        201: inline_serializer(
-            name="UpsertTalentsoftOrganismesResponse",
-            fields={
-                "created": serializers.IntegerField(
-                    help_text="Nombre d'organismes Talentsoft créés"
-                ),
-                "updated": serializers.IntegerField(
-                    help_text="Nombre d'organismes Talentsoft mis à jour"
-                ),
-                "errors": serializers.ListField(
-                    help_text=(
-                        "Organismes Talentsoft rejetés avec le détail de l'erreur"
-                    ),
-                    child=serializers.DictField(),
-                ),
-            },
-        ),
+        201: UpsertTalentsoftOrganismesResponseSerializer,
         400: GenericErrorSerializer,
         401: GenericErrorSerializer,
         500: GenericErrorSerializer,
@@ -102,8 +74,7 @@ class TalentsoftOrganismesUpsertView(APIView):
             valid_items.append(item_serializer.validated_data)
 
         try:
-            usecase = UpsertTalentsoftOrganismesUsecase()
-            result = usecase.execute(valid_items)
+            result = upsert_talentsoft_organismes(valid_items)
             result["errors"].extend(errors)
             return Response(result, status=status.HTTP_201_CREATED)
         except Exception as e:

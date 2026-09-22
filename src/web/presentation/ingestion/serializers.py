@@ -960,7 +960,9 @@ class SupprimerOrganismesResponseSerializer(serializers.Serializer):
 class TalentsoftOrganismeUpsertInputSerializer(serializers.Serializer):
     organisme_id = serializers.UUIDField()
     entity_code = serializers.CharField(max_length=50)
-    parent_code = serializers.IntegerField(required=False, allow_null=True)
+    parent_code = serializers.CharField(
+        required=False, allow_null=True, allow_blank=True, max_length=50
+    )
     has_children = serializers.BooleanField(required=False, default=False)
     name = serializers.CharField(max_length=255)
     description = serializers.CharField(
@@ -993,15 +995,28 @@ class TalentsoftOrganismeUpsertInputSerializer(serializers.Serializer):
     )
 
 
+@extend_schema_field(TalentsoftOrganismeUpsertInputSerializer(many=True))
+class _TalentsoftOrganismeListField(serializers.ListField):
+    pass
+
+
 class UpsertTalentsoftOrganismesRequestSerializer(serializers.Serializer):
-    talentsoft_organismes = serializers.ListField(
+    talentsoft_organismes = _TalentsoftOrganismeListField(
         child=serializers.DictField(),
         min_length=1,
         max_length=100,
+        help_text=(
+            "Liste d'organismes Talentsoft à créer ou mettre à jour (min: 1, max: 100)."
+        ),
     )
 
 
 class UpsertTalentsoftOrganismesResponseSerializer(serializers.Serializer):
-    created = serializers.IntegerField()
-    updated = serializers.IntegerField()
-    errors = serializers.ListField(child=serializers.DictField())
+    created = serializers.IntegerField(help_text="Nombre d'organismes Talentsoft créés")
+    updated = serializers.IntegerField(
+        help_text="Nombre d'organismes Talentsoft mis à jour"
+    )
+    errors = serializers.ListField(
+        child=serializers.DictField(),
+        help_text="Organismes Talentsoft rejetés avec le détail de l'erreur",
+    )
