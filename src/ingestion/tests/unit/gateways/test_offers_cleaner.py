@@ -993,7 +993,7 @@ def test_clean_maps_coordinates_from_offer_geolocation(cleaner):
         geolocation=TalentsoftGeolocationFactory.build(latitude=48.85, longitude=2.35),
         latitude=None,
         longitude=None,
-        organisation=None,
+        organisation=TalentsoftOrganisationFactory.build(geolocation=None),
     )
 
     offer = cleaner.clean(raw_offer)
@@ -1009,7 +1009,7 @@ def test_clean_maps_coordinates_from_flat_fields_when_geolocation_absent(cleaner
         geolocation=None,
         latitude=45.75,
         longitude=4.85,
-        organisation=None,
+        organisation=TalentsoftOrganisationFactory.build(geolocation=None),
     )
 
     offer = cleaner.clean(raw_offer)
@@ -1025,7 +1025,7 @@ def test_clean_prefers_offer_geolocation_over_flat_fields(cleaner):
         geolocation=TalentsoftGeolocationFactory.build(latitude=48.85, longitude=2.35),
         latitude=45.75,
         longitude=4.85,
-        organisation=None,
+        organisation=TalentsoftOrganisationFactory.build(geolocation=None),
     )
 
     offer = cleaner.clean(raw_offer)
@@ -1108,3 +1108,20 @@ def test_clean_returns_none_localisation_on_invalid_region_code(cleaner):
     offer = cleaner.clean(raw_offer)
 
     assert offer.localisation is None
+
+
+def test_clean_maps_talentsoft_organisme_entity_code_from_organisation(cleaner):
+    raw_offer = _make_raw_offer(
+        organisation=TalentsoftOrganisationFactory.build(entityCode="12345"),
+    )
+
+    offer = cleaner.clean(raw_offer)
+
+    assert offer.talentsoft_organisme_entity_code == "12345"
+
+
+def test_clean_raises_when_no_organisation(cleaner):
+    raw_offer = _make_raw_offer(organisation=None)
+
+    with pytest.raises(ValueError, match="has no organisation"):
+        cleaner.clean(raw_offer)

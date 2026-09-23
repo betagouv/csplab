@@ -29,6 +29,7 @@ from infrastructure.external_gateways.dtos.talentsoft_dtos import (
     TalentsoftCodedObject,
     TalentsoftDetailOffer,
     TalentsoftLanguage,
+    TalentsoftOrganisation,
 )
 from infrastructure.gateways.transcoding import (
     SourceTranscoder,
@@ -264,6 +265,11 @@ class OffersCleaner:
 
         transcoder = self._resolve_transcoder(raw_offer.source_id)
         talentsoft_offer = TalentsoftDetailOffer.model_validate(raw_offer.data)
+        if talentsoft_offer.organisation is None:
+            raise ValueError(
+                f"RawOffer {raw_offer.reference} has no organisation, cannot resolve "
+                "talentsoft_organisme_entity_code"
+            )
         return self._map_talentsoft_to_offer(talentsoft_offer, raw_offer, transcoder)
 
     def _resolve_transcoder(self, source_id: str) -> Optional[SourceTranscoder]:
@@ -422,6 +428,9 @@ class OffersCleaner:
             working_place=working_place,
             working_time=working_time,
             management=management,
+            talentsoft_organisme_entity_code=cast(
+                TalentsoftOrganisation, talentsoft_offer.organisation
+            ).entityCode,
         )
 
     def _map_verse(
