@@ -132,6 +132,7 @@ class PostgresOffersRepository(IIngestionOffersRepository):
                                 "criteria",
                                 "conditions",
                                 "contacts",
+                                "talentsoft_organisme_entity_code",
                             ],
                         )
 

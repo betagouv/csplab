@@ -82,6 +82,7 @@ class OfferMapper(
             criteria=OfferCriteria.from_dict(model.criteria),
             conditions=model.conditions,
             contacts=model.contacts,
+            talentsoft_organisme_entity_code=model.talentsoft_organisme_entity_code_id,
         )
 
     def from_domain(self, entity: Offer) -> OfferModel:
@@ -150,4 +151,5 @@ class OfferMapper(
             criteria=entity.criteria.to_dict() if entity.criteria else None,
             conditions=entity.conditions,
             contacts=entity.contacts,
+            talentsoft_organisme_entity_code_id=entity.talentsoft_organisme_entity_code,
         )

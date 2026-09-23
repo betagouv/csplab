@@ -5,6 +5,9 @@ from referentiel.value_objects.contract_type import ContractType
 from referentiel.value_objects.verse import Verse
 
 from infrastructure.django_apps.ingestion.models.source import SourceModel
+from infrastructure.django_apps.ingestion.models.talentsoft_organisme import (
+    TalentsoftOrganismeModel,
+)
 from infrastructure.django_apps.utils.models import BaseDatedModel
 
 
@@ -43,6 +46,14 @@ class OfferModel(BaseDatedModel):
         to_field="source_id",
         on_delete=models.PROTECT,
         related_name="offers",
+    )
+    talentsoft_organisme_entity_code = models.ForeignKey(
+        TalentsoftOrganismeModel,
+        to_field="entity_code",
+        on_delete=models.PROTECT,
+        related_name="offers",
+        null=True,
+        blank=True,
     )
 
     # Localisation fields stored separately

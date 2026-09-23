@@ -42,6 +42,7 @@ class Offer(IEntity):
     criteria: Optional[OfferCriteria] = None
     conditions: Optional[dict] = None
     contacts: Optional[list[dict]] = None
+    talentsoft_organisme_entity_code: Optional[str] = None
     source_id: UUID = field(default_factory=uuid4)
     processing: bool = False
     processed_at: Optional[datetime] = None
