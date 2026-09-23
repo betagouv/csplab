@@ -36,3 +36,12 @@ class EtapeModel(BaseDatedModel):
 
     def __str__(self) -> str:
         return str(self.recrutement)
+
+
+def etapes_ordonnees(recrutement: RecrutementModel) -> list[EtapeModel]:
+    etapes_by_id = {str(etape.id): etape for etape in recrutement.etapes.all()}
+    return [
+        etapes_by_id[etape_id]
+        for etape_id in recrutement.ordre_etapes
+        if etape_id in etapes_by_id
+    ]

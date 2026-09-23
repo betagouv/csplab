@@ -13,6 +13,14 @@ class CandidatureQuerySet(models.QuerySet):
     ) -> "CandidatureQuerySet":
         return self.filter(etape__recrutement_id=recrutement_id, pk=candidature_id)
 
+    def by_etape(self, etape_id) -> "CandidatureQuerySet":
+        return self.filter(etape_id=etape_id).order_by("created_at")
+
+    def with_detail(self) -> "CandidatureQuerySet":
+        return self.select_related(
+            "candidat__utilisateur", "etape__recrutement__offre"
+        ).prefetch_related("etape__recrutement__etapes")
+
 
 class CandidatureModel(BaseDatedModel):
     candidat = candidat_fk(related_name="candidatures")

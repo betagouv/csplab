@@ -1,60 +1,70 @@
-from dataclasses import dataclass
-from datetime import datetime, timezone
-from uuid import UUID, uuid4
+from typing import NamedTuple
+from uuid import UUID
+
+from application.identite.context_services.organisme_permission_service import (
+    OrganismePermissionService,
+)
+from application.recruteur.context_services.recrutement_agent_service import (
+    RecrutementAgentService,
+)
+from domain.identite.entities.utilisateurs import Utilisateur
+from domain.identite.value_objects.organisme_action import OrganismeAction
+from domain.recruteur.errors.recrutement_errors import (
+    RecrutementCandidatureInexistante,
+)
+from infrastructure.django_apps.candidate.models.candidature import CandidatureModel
+from infrastructure.django_apps.candidate.models.document import DocumentModel
+from infrastructure.django_apps.recruteur.models.etape import (
+    EtapeModel,
+    etapes_ordonnees,
+)
 
 
-@dataclass(frozen=True, kw_only=True)
-class EtapeDetailStub:
-    etape_uuid: UUID
-    nom: str
-
-
-@dataclass(frozen=True, kw_only=True)
-class CandidatDetailStub:
-    uuid: UUID
-    prenom: str
-    nom: str
-    email: str
-
-
-@dataclass(frozen=True, kw_only=True)
-class CandidatureDetailStub:
-    uuid: UUID
-    candidat: CandidatDetailStub
-    recrutement_intitule: str
-    etapes: list[EtapeDetailStub]
-    etape_actuelle: EtapeDetailStub
-    date_candidature: datetime
-    date_derniere_maj_candidat: datetime | None
-    date_derniere_maj_recruteur: datetime | None
-    document_uuid: UUID
+class CandidatureDetail(NamedTuple):
+    candidature: CandidatureModel
+    etapes: list[EtapeModel]
+    document_uuid: UUID | None
     navigation_candidature_uuids: list[UUID]
 
 
-# TODO(#1440 suite) : remplacer par une vraie requête + les gardes organisme/
-# recrutement/rôle une fois le frontend câblé sur la forme de ce payload.
-def get_candidature_detail_stub(
-    *, organisme_id: UUID, recrutement_id: UUID, candidature_id: UUID
-) -> CandidatureDetailStub:
-    etapes = [
-        EtapeDetailStub(etape_uuid=uuid4(), nom="Candidatures reçues"),
-        EtapeDetailStub(etape_uuid=uuid4(), nom="Entretien"),
-        EtapeDetailStub(etape_uuid=uuid4(), nom="Décision"),
-    ]
-    return CandidatureDetailStub(
-        uuid=candidature_id,
-        candidat=CandidatDetailStub(
-            uuid=uuid4(),
-            prenom="Jean",
-            nom="Dupont",
-            email="jean.dupont@example.com",
+def get_candidature_detail(
+    *,
+    organisme_id: UUID,
+    recrutement_id: UUID,
+    candidature_id: UUID,
+    utilisateur: Utilisateur,
+) -> CandidatureDetail:
+    OrganismePermissionService().can_execute(
+        action=OrganismeAction.GET_CANDIDATURE_DETAIL,
+        utilisateur=utilisateur,
+        organisme_id=organisme_id,
+        recrutement_id=recrutement_id,
+    )
+    contexte = RecrutementAgentService(
+        organisme_id=organisme_id, recrutement_id=recrutement_id
+    )
+    contexte.check_recrutement_belongs_to_organisme()
+
+    try:
+        candidature = (
+            CandidatureModel.objects.by_recrutement_and_candidature(
+                recrutement_id, candidature_id
+            )
+            .with_detail()
+            .get()
+        )
+    except CandidatureModel.DoesNotExist as error:
+        raise RecrutementCandidatureInexistante(candidature_id) from error
+
+    return CandidatureDetail(
+        candidature=candidature,
+        etapes=etapes_ordonnees(candidature.etape.recrutement),
+        document_uuid=DocumentModel.objects.cvs_of(candidature.id)
+        .values_list("id", flat=True)
+        .first(),
+        navigation_candidature_uuids=list(
+            CandidatureModel.objects.by_etape(candidature.etape_id).values_list(
+                "id", flat=True
+            )
         ),
-        recrutement_intitule="Chargé de recrutement",
-        etapes=etapes,
-        etape_actuelle=etapes[1],
-        date_candidature=datetime(2026, 8, 1, tzinfo=timezone.utc),
-        date_derniere_maj_candidat=datetime(2026, 8, 3, tzinfo=timezone.utc),
-        date_derniere_maj_recruteur=datetime(2026, 8, 5, tzinfo=timezone.utc),
-        document_uuid=uuid4(),
-        navigation_candidature_uuids=[uuid4(), candidature_id, uuid4()],
     )

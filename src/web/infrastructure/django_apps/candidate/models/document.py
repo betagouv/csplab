@@ -25,6 +25,11 @@ class DocumentQuerySet(models.QuerySet):
             pk=document_id,
         )
 
+    def cvs_of(self, candidature_id) -> "DocumentQuerySet":
+        return self.filter(
+            candidature_id=candidature_id, type_document=TypeDocument.CV
+        ).order_by("-created_at")
+
 
 class DocumentModel(BaseDatedModel):
     candidature = models.ForeignKey(
