@@ -17,7 +17,7 @@ class IdentificationPayload(BaseModel):
 class OrganisationPayload(BaseModel):
     nom: str
     siret: str = ""
-    dgafp_entity_code: str = ""
+    talentsoft_organisme_entity_code: str = ""
 
 
 class ProfessionPayload(BaseModel):
@@ -141,7 +141,7 @@ class OfferUpsertPayload(BaseModel):
             titre_long=offer.title,
             organisation=OrganisationPayload(
                 nom=offer.organization,
-                dgafp_entity_code=offer.talentsoft_organisme_entity_code,
+                talentsoft_organisme_entity_code=offer.talentsoft_organisme_entity_code,
             ),
             url_offre=offer.offer_url,
             url_candidature=offer.application_url,

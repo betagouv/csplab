@@ -130,7 +130,7 @@ async def test_publish_serializes_minimal_offer(gateway, httpx_mock: HTTPXMock):
     assert offer["titre_long"] == "Software Engineer"
     assert offer["organisation"]["nom"] == "City Hall"
     assert offer["organisation"]["siret"] == ""
-    assert offer["organisation"]["dgafp_entity_code"] == "12345"
+    assert offer["organisation"]["talentsoft_organisme_entity_code"] == "12345"
     assert offer["url_offre"] is None
     assert offer["url_candidature"] is None
     assert offer["profession"]["referentiel"] == "RMFPv2"
