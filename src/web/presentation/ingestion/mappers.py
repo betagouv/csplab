@@ -86,6 +86,10 @@ class OfferInputMapper(IToDomainMapper[dict, Offer]):
             criteria=OfferCriteria.from_dict(data.get("criteres")),
             conditions=conditions,
             contacts=list(data["contacts"]) if data.get("contacts") else None,
+            talentsoft_organisme_entity_code=data["organisation"].get(
+                "dgafp_entity_code"
+            )
+            or None,
         )
 
 

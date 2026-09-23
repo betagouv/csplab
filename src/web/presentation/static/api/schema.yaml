@@ -4981,6 +4981,10 @@ components:
         siret:
           type: string
           maxLength: 14
+        dgafp_entity_code:
+          type: string
+          nullable: true
+          maxLength: 50
       required:
       - nom
       - siret

@@ -729,6 +729,9 @@ class IdentityInputSerializer(serializers.Serializer):
 
 class OrganismeInputSerializer(OrganismeSerializer):
     siret = serializers.CharField(max_length=14, allow_blank=True)
+    dgafp_entity_code = serializers.CharField(
+        max_length=50, required=False, allow_null=True, allow_blank=True
+    )
 
 
 class ProfessionInputSerializer(serializers.Serializer):
