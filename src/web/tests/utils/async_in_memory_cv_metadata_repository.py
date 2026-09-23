@@ -8,7 +8,7 @@ from domain.candidate.repositories.async_cv_metadata_repository_interface import
 
 
 class AsyncInMemoryCVMetadataRepository(IAsyncCVMetadataRepository):
-    def __init__(self):
+    def __init__(self) -> None:
         self._storage: Dict[UUID, CVMetadata] = {}
 
     async def save(self, cv_metadata: CVMetadata) -> CVMetadata:
@@ -21,5 +21,5 @@ class AsyncInMemoryCVMetadataRepository(IAsyncCVMetadataRepository):
     def count(self) -> int:
         return len(self._storage)
 
-    def clear(self):
+    def clear(self) -> None:
         self._storage.clear()
