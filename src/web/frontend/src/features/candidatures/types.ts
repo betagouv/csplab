@@ -32,6 +32,10 @@ export type DocumentListe = components['schemas']['DocumentListe']
 
 export type PaginatedDocumentListeList = components['schemas']['PaginatedDocumentListeList']
 
+export type Note = components['schemas']['Note']
+
+export type PaginatedNoteList = components['schemas']['PaginatedNoteList']
+
 export interface CandidatureParams {
   organismeUuid: string
   recrutementUuid: string

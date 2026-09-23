@@ -74,6 +74,7 @@ import riSearchLine from '@iconify-icons/ri/search-line'
 import riSettings3Line from '@iconify-icons/ri/settings-3-line'
 import riShieldUserLine from '@iconify-icons/ri/shield-user-line'
 import riSpamFill from '@iconify-icons/ri/spam-fill'
+import riStickyNoteLine from '@iconify-icons/ri/sticky-note-line'
 import riSunLine from '@iconify-icons/ri/sun-line'
 import riTableLine from '@iconify-icons/ri/table-line'
 import riTeamLine from '@iconify-icons/ri/team-line'
@@ -157,6 +158,7 @@ addIcon('ri:search-line', riSearchLine)
 addIcon('ri:settings-3-line', riSettings3Line)
 addIcon('ri:shield-user-line', riShieldUserLine)
 addIcon('ri:spam-fill', riSpamFill)
+addIcon('ri:sticky-note-line', riStickyNoteLine)
 addIcon('ri:sun-line', riSunLine)
 addIcon('ri:table-line', riTableLine)
 addIcon('ri:team-line', riTeamLine)
