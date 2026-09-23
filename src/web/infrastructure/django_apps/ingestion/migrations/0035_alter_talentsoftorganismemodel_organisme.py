@@ -15,6 +15,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='talentsoftorganismemodel',
             name='organisme',
-            field=models.ForeignKey(blank=True, db_column='organisme_id', null=True, on_delete=django.db.models.deletion.DO_NOTHING, related_name='talentsoft_organismes', to='recruteur.organismemodel'),
+            field=models.ForeignKey(blank=True, db_column='organisme_id', null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='talentsoft_organismes', to='recruteur.organismemodel'),
         ),
     ]
