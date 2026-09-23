@@ -1863,7 +1863,7 @@ paths:
   /recruteur/organismes/{organisme_uuid}/recrutements/{recrutement_uuid}/candidatures/{candidature_uuid}:
     get:
       operationId: recruteur_organismes_recrutements_candidatures_retrieve
-      summary: Détail d'une candidature (stub)
+      summary: Détail d'une candidature
       parameters:
       - in: path
         name: candidature_uuid
@@ -4265,6 +4265,7 @@ components:
         document_uuid:
           type: string
           format: uuid
+          nullable: true
         navigation_candidature_uuids:
           type: array
           items:
