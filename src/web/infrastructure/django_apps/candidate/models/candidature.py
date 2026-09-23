@@ -7,6 +7,13 @@ from infrastructure.django_apps.users.fields import candidat_fk
 from infrastructure.django_apps.utils.models import BaseDatedModel
 
 
+class CandidatureQuerySet(models.QuerySet):
+    def by_recrutement_and_candidature(
+        self, recrutement_id, candidature_id
+    ) -> "CandidatureQuerySet":
+        return self.filter(etape__recrutement_id=recrutement_id, pk=candidature_id)
+
+
 class CandidatureModel(BaseDatedModel):
     candidat = candidat_fk(related_name="candidatures")
     statut = models.CharField(
@@ -33,6 +40,8 @@ class CandidatureModel(BaseDatedModel):
             "du recrutement correspondant à l'offre)."
         ),
     )
+
+    objects = CandidatureQuerySet.as_manager()
 
     class Meta:
         db_table = "candidature"

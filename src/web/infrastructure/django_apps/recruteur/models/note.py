@@ -17,8 +17,15 @@ class NoteQuerySet(models.QuerySet):
             .order_by("-created_at")
         )
 
-    def by_author(self, agent_id) -> "NoteQuerySet":
-        return self.filter(publie_par_id=agent_id)
+    def by_candidature_and_author(self, candidature_id, agent_id) -> "NoteQuerySet":
+        return self.by_candidature(candidature_id).filter(publie_par_id=agent_id)
+
+    def by_candidature_author_and_id(
+        self, candidature_id, agent_id, note_id
+    ) -> "NoteQuerySet":
+        return self.by_candidature_and_author(candidature_id, agent_id).filter(
+            pk=note_id
+        )
 
 
 class NoteModel(BaseDatedModel):
