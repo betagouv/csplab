@@ -87,7 +87,7 @@ class OfferInputMapper(IToDomainMapper[dict, Offer]):
             conditions=conditions,
             contacts=list(data["contacts"]) if data.get("contacts") else None,
             talentsoft_organisme_entity_code=data["organisation"].get(
-                "dgafp_entity_code"
+                "talentsoft_organisme_entity_code"
             )
             or None,
         )

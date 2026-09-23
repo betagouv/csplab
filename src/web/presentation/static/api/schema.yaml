@@ -4981,9 +4981,10 @@ components:
         siret:
           type: string
           maxLength: 14
-        dgafp_entity_code:
+        talentsoft_organisme_entity_code:
           type: string
           nullable: true
+          description: Ne doit être renseigné que par le service ingestion de CSPLab.
           maxLength: 50
       required:
       - nom

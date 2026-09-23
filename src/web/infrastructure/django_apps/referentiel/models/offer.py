@@ -50,7 +50,7 @@ class OfferModel(BaseDatedModel):
     talentsoft_organisme_entity_code = models.ForeignKey(
         TalentsoftOrganismeModel,
         to_field="entity_code",
-        on_delete=models.SET_NULL,
+        on_delete=models.PROTECT,
         related_name="offers",
         null=True,
         blank=True,
