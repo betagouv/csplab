@@ -16,23 +16,25 @@ def _make_jwt(user_id: int) -> str:
 
 
 @pytest.fixture
-def rf():
+def rf() -> RequestFactory:
     return RequestFactory()
 
 
 @pytest.fixture
-def mock_repository():
+def mock_repository() -> MagicMock:
     return MagicMock()
 
 
 @pytest.fixture
-def mock_response():
+def mock_response() -> MagicMock:
     response = MagicMock()
     response.status_code = 200
     return response
 
 
-def make_middleware(mock_response, mock_repository):
+def make_middleware(
+    mock_response: MagicMock, mock_repository: MagicMock
+) -> tuple[ApiRequestLoggerMiddleware, MagicMock]:
     get_response = MagicMock(return_value=mock_response)
     middleware = ApiRequestLoggerMiddleware(
         get_response=get_response, repository=mock_repository
@@ -41,7 +43,9 @@ def make_middleware(mock_response, mock_repository):
 
 
 class TestApiRequestLoggerMiddleware:
-    def test_logs_api_request_with_jwt_token(self, rf, mock_repository, mock_response):
+    def test_logs_api_request_with_jwt_token(
+        self, rf: RequestFactory, mock_repository: MagicMock, mock_response: MagicMock
+    ) -> None:
         middleware, _ = make_middleware(mock_response, mock_repository)
         token = _make_jwt(user_id=42)
         request = rf.get("/api/v1/offres/", HTTP_AUTHORIZATION=f"Bearer {token}")
@@ -55,8 +59,8 @@ class TestApiRequestLoggerMiddleware:
         assert saved.token_type == "jwt"  # noqa: S105
 
     def test_logs_none_for_jwt_with_wrong_number_of_parts(
-        self, rf, mock_repository, mock_response
-    ):
+        self, rf: RequestFactory, mock_repository: MagicMock, mock_response: MagicMock
+    ) -> None:
         middleware, _ = make_middleware(mock_response, mock_repository)
         request = rf.get("/api/v1/offres/", HTTP_AUTHORIZATION="Bearer onlytwoparts.xx")
 
@@ -67,8 +71,8 @@ class TestApiRequestLoggerMiddleware:
         assert saved.token_type == "jwt"  # noqa: S105
 
     def test_logs_none_for_jwt_with_corrupt_payload(
-        self, rf, mock_repository, mock_response
-    ):
+        self, rf: RequestFactory, mock_repository: MagicMock, mock_response: MagicMock
+    ) -> None:
         middleware, _ = make_middleware(mock_response, mock_repository)
         request = rf.get(
             "/api/v1/offres/", HTTP_AUTHORIZATION="Bearer header.!!!invalid!!!.sig"
@@ -80,7 +84,9 @@ class TestApiRequestLoggerMiddleware:
         assert saved.auth_token is None
         assert saved.token_type == "jwt"  # noqa: S105
 
-    def test_logs_api_request_with_api_key(self, rf, mock_repository, mock_response):
+    def test_logs_api_request_with_api_key(
+        self, rf: RequestFactory, mock_repository: MagicMock, mock_response: MagicMock
+    ) -> None:
         middleware, _ = make_middleware(mock_response, mock_repository)
         request = rf.get("/api/v1/offres/", HTTP_AUTHORIZATION="Api-Key secret-key")
 
@@ -91,7 +97,9 @@ class TestApiRequestLoggerMiddleware:
         assert saved.auth_token == hashlib.sha256(b"secret-key").hexdigest()
         assert saved.token_type == "api_key"  # noqa: S105
 
-    def test_logs_api_request_without_token(self, rf, mock_repository, mock_response):
+    def test_logs_api_request_without_token(
+        self, rf: RequestFactory, mock_repository: MagicMock, mock_response: MagicMock
+    ) -> None:
         middleware, _ = make_middleware(mock_response, mock_repository)
         request = rf.get("/api/v1/offres/")
 
@@ -102,7 +110,9 @@ class TestApiRequestLoggerMiddleware:
         assert saved.auth_token is None
         assert saved.token_type is None
 
-    def test_does_not_log_non_api_requests(self, rf, mock_repository, mock_response):
+    def test_does_not_log_non_api_requests(
+        self, rf: RequestFactory, mock_repository: MagicMock, mock_response: MagicMock
+    ) -> None:
         middleware, _ = make_middleware(mock_response, mock_repository)
         request = rf.get("/candidate/upload/")
 
@@ -110,7 +120,9 @@ class TestApiRequestLoggerMiddleware:
 
         mock_repository.save.assert_not_called()
 
-    def test_does_not_log_admin_requests(self, rf, mock_repository, mock_response):
+    def test_does_not_log_admin_requests(
+        self, rf: RequestFactory, mock_repository: MagicMock, mock_response: MagicMock
+    ) -> None:
         middleware, _ = make_middleware(mock_response, mock_repository)
         request = rf.get("/admin/login/")
 
@@ -118,7 +130,9 @@ class TestApiRequestLoggerMiddleware:
 
         mock_repository.save.assert_not_called()
 
-    def test_captures_ip_from_remote_addr(self, rf, mock_repository, mock_response):
+    def test_captures_ip_from_remote_addr(
+        self, rf: RequestFactory, mock_repository: MagicMock, mock_response: MagicMock
+    ) -> None:
         middleware, _ = make_middleware(mock_response, mock_repository)
         request = rf.get("/api/health/", REMOTE_ADDR="192.168.1.10")
 
@@ -127,7 +141,9 @@ class TestApiRequestLoggerMiddleware:
         saved: ApiLog = mock_repository.save.call_args[0][0]
         assert saved.ip_address == "192.168.1.10"
 
-    def test_captures_ip_from_x_forwarded_for(self, rf, mock_repository, mock_response):
+    def test_captures_ip_from_x_forwarded_for(
+        self, rf: RequestFactory, mock_repository: MagicMock, mock_response: MagicMock
+    ) -> None:
         middleware, _ = make_middleware(mock_response, mock_repository)
         request = rf.get(
             "/api/health/",
@@ -140,7 +156,9 @@ class TestApiRequestLoggerMiddleware:
         saved: ApiLog = mock_repository.save.call_args[0][0]
         assert saved.ip_address == "10.0.0.1"
 
-    def test_captures_request_path(self, rf, mock_repository, mock_response):
+    def test_captures_request_path(
+        self, rf: RequestFactory, mock_repository: MagicMock, mock_response: MagicMock
+    ) -> None:
         middleware, _ = make_middleware(mock_response, mock_repository)
         request = rf.get("/api/token/")
 
@@ -149,7 +167,9 @@ class TestApiRequestLoggerMiddleware:
         saved: ApiLog = mock_repository.save.call_args[0][0]
         assert saved.path == "/api/token/"
 
-    def test_captures_request_method(self, rf, mock_repository, mock_response):
+    def test_captures_request_method(
+        self, rf: RequestFactory, mock_repository: MagicMock, mock_response: MagicMock
+    ) -> None:
         middleware, _ = make_middleware(mock_response, mock_repository)
         request = rf.post("/api/v1/offres/creer_modifier/")
 
@@ -158,7 +178,9 @@ class TestApiRequestLoggerMiddleware:
         saved: ApiLog = mock_repository.save.call_args[0][0]
         assert saved.method == "POST"
 
-    def test_captures_status_code(self, rf, mock_repository, mock_response):
+    def test_captures_status_code(
+        self, rf: RequestFactory, mock_repository: MagicMock, mock_response: MagicMock
+    ) -> None:
         mock_response.status_code = 401
         middleware, _ = make_middleware(mock_response, mock_repository)
         request = rf.get("/api/v1/offres/")
@@ -169,8 +191,8 @@ class TestApiRequestLoggerMiddleware:
         assert saved.status_code == 401  # noqa: PLR2004
 
     def test_passes_through_response_unchanged(
-        self, rf, mock_repository, mock_response
-    ):
+        self, rf: RequestFactory, mock_repository: MagicMock, mock_response: MagicMock
+    ) -> None:
         middleware, get_response = make_middleware(mock_response, mock_repository)
         request = rf.get("/api/v1/offres/")
 
