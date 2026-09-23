@@ -91,7 +91,10 @@ class TestUpdateRecrutementEtapes:
             etapes=etapes,
             **({"agent_link__role": agent_role.value} if agent_role else {}),
         )
-        e0, e1, e2, _, e4, e5 = recrutement_model.etapes.all()  # type: ignore[attr-defined]
+        e0, e1, e2, _, e4, e5 = sorted(
+            recrutement_model.etapes.all(),  # type: ignore[attr-defined]
+            key=lambda e: recrutement_model.ordre_etapes.index(str(e.id)),
+        )
 
         for e in [e0, e1, e2, e4, e5]:  # type: ignore[attr-defined]
             CandidatureDjangoFactory(etape=e)
