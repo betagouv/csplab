@@ -52,6 +52,7 @@ MINIMAL_OFFER = Offer(
     end_publication_date=None,
     beginning_date=None,
     family_code="INF001",
+    talentsoft_organisme_entity_code="12345",
 )
 
 FULL_OFFER = Offer(
@@ -77,6 +78,7 @@ FULL_OFFER = Offer(
     end_publication_date=None,
     beginning_date=LimitDate(value=datetime(2024, 6, 1, tzinfo=timezone.utc)),
     family_code="MED001",
+    talentsoft_organisme_entity_code="67890",
 )
 
 
@@ -128,6 +130,7 @@ async def test_publish_serializes_minimal_offer(gateway, httpx_mock: HTTPXMock):
     assert offer["titre_long"] == "Software Engineer"
     assert offer["organisation"]["nom"] == "City Hall"
     assert offer["organisation"]["siret"] == ""
+    assert offer["organisation"]["talentsoft_organisme_entity_code"] == "12345"
     assert offer["url_offre"] is None
     assert offer["url_candidature"] is None
     assert offer["profession"]["referentiel"] == "RMFPv2"

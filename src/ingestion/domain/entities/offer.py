@@ -46,4 +46,5 @@ class Offer:
     working_place: WorkingPlace = WorkingPlace.NON_DEFINI
     working_time: WorkingTime = WorkingTime.NON_DEFINI
     management: Optional[Management] = None
+    talentsoft_organisme_entity_code: str = ""
     id: UUID = field(default_factory=uuid4)
