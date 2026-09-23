@@ -96,6 +96,37 @@ def test_creates_talentsoft_organisme(api_key_client):
     assert talentsoft_organisme.latitude == pytest.approx(48.8566)
 
 
+def test_creates_talentsoft_organisme_with_null_organisme_id(api_key_client):
+    payload = TalentsoftOrganismeUpsertPayloadFactory(organisme_id=None)
+
+    response = api_key_client.post(
+        URL,
+        data={"talentsoft_organismes": [payload]},
+        content_type="application/json",
+    )
+
+    assert response.status_code == status.HTTP_201_CREATED
+    assert response.json() == {"created": 1, "updated": 0, "errors": []}
+    talentsoft_organisme = TalentsoftOrganismeModel.objects.get(entity_code="ENT-1")
+    assert talentsoft_organisme.organisme_id is None
+
+
+def test_creates_talentsoft_organisme_without_organisme_id_field(api_key_client):
+    payload = TalentsoftOrganismeUpsertPayloadFactory()
+    assert "organisme_id" not in payload
+
+    response = api_key_client.post(
+        URL,
+        data={"talentsoft_organismes": [payload]},
+        content_type="application/json",
+    )
+
+    assert response.status_code == status.HTTP_201_CREATED
+    assert response.json() == {"created": 1, "updated": 0, "errors": []}
+    talentsoft_organisme = TalentsoftOrganismeModel.objects.get(entity_code="ENT-1")
+    assert talentsoft_organisme.organisme_id is None
+
+
 def test_updates_existing_talentsoft_organisme(api_key_client):
     organisme = OrganismeDjangoFactory()
     payload = TalentsoftOrganismeUpsertPayloadFactory(organisme_id=str(organisme.id))
