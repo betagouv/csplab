@@ -101,6 +101,8 @@ class FinessOrganismeGateway(IOrganismeGateway):
 
     @staticmethod
     def _extract_organismes(pmej: dict) -> Iterator[OrganismeData]:
+        infos_pmej = pmej.get("informationsGeneralesPMEJ") or {}
+        statut_juridique = infos_pmej.get("statutJuridique")
         for ege in pmej.get("ege") or []:
             infos = ege.get("informationsGeneralesEGE") or {}
             numero_finess = infos.get("numFinessEge")
@@ -109,5 +111,7 @@ class FinessOrganismeGateway(IOrganismeGateway):
             yield OrganismeData(
                 referentiel=OrganismeReferentiel.FINESS,
                 external_id=str(numero_finess),
-                data=ege,
+                # statutJuridique est porté par le PMEJ, pas par l'EGE : on le
+                # reporte sur chaque EGE pour permettre le filtrage en aval.
+                data={**ege, "statutJuridique": statut_juridique},
             )

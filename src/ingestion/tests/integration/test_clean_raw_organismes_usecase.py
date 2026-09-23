@@ -28,10 +28,14 @@ def _siret_for(external_id: str) -> str:
     return f"356000000{int(external_id):05d}"
 
 
+ALLOWED_STATUT_JURIDIQUE = "13"  # Etablissement Public Communal d'Hospitalisation
+
+
 def _ege(*, categorie: str = ALLOWED_CATEGORIE, external_id: str) -> dict:
     return {
         "etatObjet": "A",
         "categorieentiteGeographiqueExercice": categorie,
+        "statutJuridique": ALLOWED_STATUT_JURIDIQUE,
         "informationsGeneralesEGE": {
             "nomEgeLong": f"ORGANISME {external_id}",
             "siret": _siret_for(external_id),

@@ -22,6 +22,9 @@ logger = logging.getLogger(__name__)
 _DATA_DIR = Path(__file__).resolve().parent.parent.parent / "data"
 # From https://smt.esante.gouv.fr/fhir/CodeSystem/tre-r397-categorie-entite-geographique-exercice
 _CATEGORIES_CSV = _DATA_DIR / "categories_entite_geographique_exercice.csv"
+# Codes "publics" (famille 1xxx) de
+# https://smt.esante.gouv.fr/fhir/CodeSystem/tre-r400-finess-statut-juridique
+_STATUTS_JURIDIQUES_PUBLICS_CSV = _DATA_DIR / "statuts_juridiques_publics.csv"
 
 _MAX_LONGITUDE_DEGREES = 180
 _MAX_LATITUDE_DEGREES = 90
@@ -54,7 +57,7 @@ def _parse_iso_date(value: Any) -> Optional[datetime]:
         return None
 
 
-def _load_allowed_categories(csv_path: Path) -> set[str]:
+def _load_allowed_codes(csv_path: Path) -> set[str]:
     with csv_path.open(encoding="utf-8") as f:
         reader = csv.DictReader(f, delimiter=";")
         return {row["code"].strip() for row in reader if row.get("code")}
@@ -77,9 +80,13 @@ class OrganismesCleaner:
         self,
         *,
         categories_csv_path: Path = _CATEGORIES_CSV,
+        statuts_juridiques_publics_csv_path: Path = _STATUTS_JURIDIQUES_PUBLICS_CSV,
         dila_siret_lookup_max_age_days: int,
     ) -> None:
-        self._allowed_categories = _load_allowed_categories(categories_csv_path)
+        self._allowed_categories = _load_allowed_codes(categories_csv_path)
+        self._allowed_statuts_juridiques = _load_allowed_codes(
+            statuts_juridiques_publics_csv_path
+        )
         self._dila_siret_lookup_max_age = timedelta(days=dila_siret_lookup_max_age_days)
 
     def clean(self, raw_organisme: RawOrganisme) -> Optional[Organisme]:
@@ -144,6 +151,10 @@ class OrganismesCleaner:
 
         categorie = data.get("categorieentiteGeographiqueExercice")
         if categorie not in self._allowed_categories:
+            return None
+
+        statut_juridique = data.get("statutJuridique")
+        if statut_juridique not in self._allowed_statuts_juridiques:
             return None
 
         nom = Nom(value=infos.get("nomEgeLong") or infos.get("nomEgeCourt") or "")
