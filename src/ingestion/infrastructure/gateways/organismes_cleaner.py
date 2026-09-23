@@ -119,7 +119,11 @@ class OrganismesCleaner:
             return False
         ege_id = infos.get("egeId")
         roles_ege = data.get("roleEge") or []
-        return any(role.get("idEgePorteuse") == ege_id for role in roles_ege)
+        # Un établissement autonome sans rattachement n'a aucune entrée dans
+        # roleEge : il n'est ni porteuse ni rattaché, donc il doit être
+        # conservé. Seule une entrée où il apparaît comme idEgeNonPorteuse
+        # l'exclut (il est alors rattaché à une autre entité porteuse).
+        return not any(role.get("idEgeNonPorteuse") == ege_id for role in roles_ege)
 
     @staticmethod
     def _external_id_key(organisme: Organisme) -> tuple[int, int | str]:

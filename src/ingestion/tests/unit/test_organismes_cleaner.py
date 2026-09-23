@@ -24,7 +24,7 @@ def _ege(
     coordonnee_y: str | None = "43.697073",
     etat_objet: str = "A",
     ege_id: str = "50477",
-    role_ege_porteuse: str | None = "50477",
+    role_ege: list[dict] | None = None,
 ) -> dict:
     return {
         "etatObjet": etat_objet,
@@ -34,7 +34,7 @@ def _ege(
             "siret": siret,
             "egeId": ege_id,
         },
-        "roleEge": [{"idEgePorteuse": role_ege_porteuse}],
+        "roleEge": role_ege if role_ege is not None else [],
         "adresse": [
             {
                 "cogCommune": cog_commune,
@@ -119,10 +119,36 @@ def test_filters_out_non_active_etat_objet(cleaner: OrganismesCleaner):
     assert cleaner.clean(raw_organisme) is None
 
 
-def test_filters_out_when_not_porteuse(cleaner: OrganismesCleaner):
-    raw_organisme = _raw_organisme(_ege(ege_id="50477", role_ege_porteuse="99999"))
+def test_filters_out_when_attached_to_another_porteuse(cleaner: OrganismesCleaner):
+    raw_organisme = _raw_organisme(
+        _ege(
+            ege_id="50477",
+            role_ege=[{"idEgePorteuse": "99999", "idEgeNonPorteuse": "50477"}],
+        )
+    )
 
     assert cleaner.clean(raw_organisme) is None
+
+
+def test_cleans_porteuse_with_rattachements(cleaner: OrganismesCleaner):
+    raw_organisme = _raw_organisme(
+        _ege(
+            ege_id="50477",
+            role_ege=[{"idEgePorteuse": "50477", "idEgeNonPorteuse": "50478"}],
+        )
+    )
+
+    organisme = cleaner.clean(raw_organisme)
+
+    assert organisme is not None
+
+
+def test_cleans_standalone_organisme_without_role_ege(cleaner: OrganismesCleaner):
+    raw_organisme = _raw_organisme(_ege(ege_id="50477", role_ege=[]))
+
+    organisme = cleaner.clean(raw_organisme)
+
+    assert organisme is not None
 
 
 def test_returns_none_when_no_data(cleaner: OrganismesCleaner):
@@ -204,12 +230,8 @@ def test_coordinates_are_converted_from_lambert93(cleaner: OrganismesCleaner):
 
 
 def test_dedupe_by_siret_keeps_smallest_external_id(cleaner: OrganismesCleaner):
-    smaller = cleaner.clean(
-        _raw_organisme(_ege(ege_id="1", role_ege_porteuse="1"), external_id="123456789")
-    )
-    bigger = cleaner.clean(
-        _raw_organisme(_ege(ege_id="2", role_ege_porteuse="2"), external_id="987654321")
-    )
+    smaller = cleaner.clean(_raw_organisme(_ege(ege_id="1"), external_id="123456789"))
+    bigger = cleaner.clean(_raw_organisme(_ege(ege_id="2"), external_id="987654321"))
     assert smaller is not None
     assert bigger is not None
 
@@ -220,12 +242,10 @@ def test_dedupe_by_siret_keeps_smallest_external_id(cleaner: OrganismesCleaner):
 
 def test_dedupe_by_siret_keeps_distinct_sirets(cleaner: OrganismesCleaner):
     other_siret = "35600000000048"
-    first = cleaner.clean(
-        _raw_organisme(_ege(ege_id="1", role_ege_porteuse="1"), external_id="123456789")
-    )
+    first = cleaner.clean(_raw_organisme(_ege(ege_id="1"), external_id="123456789"))
     second = cleaner.clean(
         _raw_organisme(
-            _ege(ege_id="2", role_ege_porteuse="2", siret=other_siret),
+            _ege(ege_id="2", siret=other_siret),
             external_id="987654321",
         )
     )
