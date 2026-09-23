@@ -1,7 +1,12 @@
 import secrets
 
+import filetype
 from django.contrib.auth import authenticate
 
+from domain.candidate.value_objects.statut_candidature import StatutCandidature
+from infrastructure.django_apps.candidate.enums.type_document import TypeDocument
+from infrastructure.django_apps.candidate.models.candidature import CandidatureModel
+from infrastructure.django_apps.candidate.models.document import DocumentModel
 from infrastructure.factories.seed_recruteur_datas import (
     _ADMIN_SPEC,
     _AGENTS_SPECS,
@@ -35,3 +40,17 @@ class TestSeedRecruteurDatas:
             username=_AGENTS_SPECS[0]["email"], password=context["seed_password"]
         )
         assert user is not None
+
+    def test_submitted_candidatures_carry_a_pdf_cv_and_survive_a_reseed(self, db):
+        seed_recruteur_datas()
+        seed_recruteur_datas(force=True)
+
+        soumises = CandidatureModel.objects.filter(
+            statut=StatutCandidature.SOUMISE.value
+        )
+        cvs = DocumentModel.objects.filter(type_document=TypeDocument.CV.value)
+        assert set(cvs.values_list("candidature_id", flat=True)) == set(
+            soumises.values_list("id", flat=True)
+        )
+        with cvs.first().fichier.open("rb") as fichier:  # type: ignore[union-attr]
+            assert filetype.guess(fichier.read(262)).mime == "application/pdf"
