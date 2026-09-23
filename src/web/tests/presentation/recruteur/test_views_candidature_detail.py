@@ -19,6 +19,18 @@ from infrastructure.factories.recruteur.recrutement_django_factory import (
     RecrutementDjangoFactory,
 )
 
+NOMBRE_CANDIDATURES_ETAPE = 5
+NOMBRE_REQUETES_ATTENDU = (
+    2  # authentication (view + RateLimitHeadersMiddleware)
+    + 1  # organisme
+    + 1  # agent's role
+    + 1  # recrutement belongs to organisme (exists check)
+    + 1  # candidature + candidat, utilisateur, etape, recrutement, offre
+    + 1  # prefetch recrutement etapes
+    + 1  # latest CV
+    + 1  # navigation within the etape
+)
+
 
 def _detail_url(organisme_id, recrutement_id, candidature_id) -> str:
     return reverse(
@@ -124,3 +136,26 @@ class TestCandidatureDetailView:
         assert data["date_derniere_maj_candidat"] is None
         assert data["document_uuid"] == str(cv.id)
         assert data["navigation_candidature_uuids"] == [str(candidature.id)]
+
+    def test_does_not_trigger_n_plus_one_queries(
+        self, authenticated_client, test_user, django_assert_num_queries
+    ):
+        _, organisme, recrutement, _candidature = (
+            create_recrutement_and_candidature_for_agent(utilisateur=test_user)
+        )
+        etape = recrutement.etapes.get(id=recrutement.ordre_etapes[0])
+        candidature, *_ = CandidatureDjangoFactory.create_batch(
+            NOMBRE_CANDIDATURES_ETAPE, etape=etape
+        )
+        DocumentDjangoFactory.create_batch(3, candidature=candidature)
+
+        with django_assert_num_queries(NOMBRE_REQUETES_ATTENDU):
+            response = authenticated_client.get(
+                _detail_url(organisme.id, recrutement.pk, candidature.id)
+            )
+
+        assert response.status_code == status.HTTP_200_OK
+        assert len(response.json()["etapes"]) == len(recrutement.ordre_etapes)
+        assert len(response.json()["navigation_candidature_uuids"]) == (
+            NOMBRE_CANDIDATURES_ETAPE
+        )
