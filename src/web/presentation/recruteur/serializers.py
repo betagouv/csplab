@@ -338,32 +338,38 @@ class ChangerEtapeResultatSerializer(serializers.Serializer):
 
 
 # ---------------------------------------------------------------------------
-# Serializers pour le détail d'une candidature (stub)
+# Serializers pour le détail d'une candidature
 # ---------------------------------------------------------------------------
 
 
 class EtapeCandidatureDetailSerializer(serializers.Serializer):
-    etape_uuid = serializers.UUIDField()
+    etape_uuid = serializers.UUIDField(source="id")
     nom = serializers.CharField()
 
 
 class CandidatDetailSerializer(serializers.Serializer):
-    uuid = serializers.UUIDField()
-    prenom = serializers.CharField()
-    nom = serializers.CharField()
-    email = serializers.EmailField()
+    uuid = serializers.UUIDField(source="candidat_id")
+    prenom = serializers.CharField(source="candidat.utilisateur.first_name")
+    nom = serializers.CharField(source="candidat.utilisateur.last_name")
+    email = serializers.EmailField(source="candidat.utilisateur.email")
 
 
 class CandidatureDetailSerializer(serializers.Serializer):
-    uuid = serializers.UUIDField()
-    candidat = CandidatDetailSerializer()
-    recrutement_intitule = serializers.CharField()
+    uuid = serializers.UUIDField(source="candidature.id")
+    candidat = CandidatDetailSerializer(source="candidature")
+    recrutement_intitule = serializers.CharField(
+        source="candidature.etape.recrutement.offre.title"
+    )
     etapes = EtapeCandidatureDetailSerializer(many=True)
-    etape_actuelle = EtapeCandidatureDetailSerializer()
-    date_candidature = serializers.DateTimeField()
-    date_derniere_maj_candidat = serializers.DateTimeField(allow_null=True)
-    date_derniere_maj_recruteur = serializers.DateTimeField(allow_null=True)
-    document_uuid = serializers.UUIDField()
+    etape_actuelle = EtapeCandidatureDetailSerializer(source="candidature.etape")
+    date_candidature = serializers.DateTimeField(source="candidature.created_at")
+    date_derniere_maj_candidat = serializers.DateTimeField(
+        source="candidature.updated_by_candidate", allow_null=True
+    )
+    date_derniere_maj_recruteur = serializers.DateTimeField(
+        source="candidature.updated_by_recruteur", allow_null=True
+    )
+    document_uuid = serializers.UUIDField(allow_null=True)
     navigation_candidature_uuids = serializers.ListField(child=serializers.UUIDField())
 
 
