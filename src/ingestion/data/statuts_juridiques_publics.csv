@@ -1,0 +1,30 @@
+code;libelle
+01;Etat
+02;Département
+03;Commune
+04;Région
+05;Territoire d'Outre Mer
+06;Autre Collectivité Territoriale
+07;Métropole ou pôle métropolitain
+08;Centre Intercommunal d'Action Sociale
+10;Etablissement Public National d'Hospitalisation
+11;Etablissement Public Départemental d'Hospitalisation
+12;Etablissement Public Interdépartemental d'Hospitalisation
+13;Etablissement Public Communal d'Hospitalisation
+14;Etablissement Public Intercommunal d'Hospitalisation
+15;Etablissement Public Régional d'Hospitalisation
+16;Syndicat Inter Hospitalier
+17;Centre Communal d'Action Sociale
+18;Etablissement Social et Médico-Social National
+19;Etablissement Social et Médico-Social Départemental
+20;Etablissement Social et Médico-Social Interdépartemental
+21;Etablissement Social et Médico-Social Communal
+22;Etablissement Social et Médico-Social Intercommunal
+23;Etablissement Social et Médico-Social Régional
+24;Office Public d'H.L.M.
+25;Caisse des Ecoles
+26;Autre Etablissement Public à Caractère Administratif
+27;Etablissement Public à Caractère Industriel ou Commercial
+28;Groupement d'Intérêt Public (G.I.P.)
+29;Groupement de Coopération Sanitaire public
+30;Groupement de Coopération Sociale ou Médico-Sociale public

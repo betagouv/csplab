@@ -136,6 +136,35 @@ class TestStreamOrganismes:
             results[0].data["informationsGeneralesEGE"]["nomEgeLong"] == "Hôpital Test"
         )
 
+    def test_propagates_statut_juridique_from_pmej_to_each_ege(
+        self, gateway, httpx_mock: HTTPXMock
+    ):
+        content = _gzipped_structures(
+            [
+                {
+                    "informationsGeneralesPMEJ": {"statutJuridique": "13"},
+                    "ege": [_ege("123456789"), _ege("987654321")],
+                }
+            ]
+        )
+        httpx_mock.add_response(method="GET", url="https://x/daily", content=content)
+        resource = _resource("https://x/daily")
+
+        results = list(gateway.stream_organismes(resource))
+
+        assert all(r.data["statutJuridique"] == "13" for r in results)
+
+    def test_statut_juridique_is_none_when_pmej_has_none(
+        self, gateway, httpx_mock: HTTPXMock
+    ):
+        content = _gzipped_structures([{"ege": [_ege("123456789")]}])
+        httpx_mock.add_response(method="GET", url="https://x/daily", content=content)
+        resource = _resource("https://x/daily")
+
+        results = list(gateway.stream_organismes(resource))
+
+        assert results[0].data["statutJuridique"] is None
+
     def test_raises_on_http_error(self, gateway, httpx_mock: HTTPXMock):
         httpx_mock.add_response(method="GET", url="https://x/daily", status_code=500)
         resource = _resource("https://x/daily")

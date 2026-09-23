@@ -25,10 +25,12 @@ def _ege(
     etat_objet: str = "A",
     ege_id: str = "50477",
     role_ege: list[dict] | None = None,
+    statut_juridique: str | None = "13",
 ) -> dict:
     return {
         "etatObjet": etat_objet,
         "categorieentiteGeographiqueExercice": categorie,
+        "statutJuridique": statut_juridique,
         "informationsGeneralesEGE": {
             "nomEgeLong": nom,
             "siret": siret,
@@ -69,9 +71,22 @@ def categories_csv(tmp_path: Path) -> Path:
 
 
 @pytest.fixture
-def cleaner(categories_csv: Path) -> OrganismesCleaner:
+def statuts_juridiques_publics_csv(tmp_path: Path) -> Path:
+    csv_path = tmp_path / "statuts_juridiques_publics.csv"
+    with csv_path.open("w", newline="", encoding="utf-8") as f:
+        writer = csv.writer(f, delimiter=";")
+        writer.writerow(["code", "libelle"])
+        writer.writerow(["13", "Etablissement Public Communal d'Hospitalisation"])
+    return csv_path
+
+
+@pytest.fixture
+def cleaner(
+    categories_csv: Path, statuts_juridiques_publics_csv: Path
+) -> OrganismesCleaner:
     return OrganismesCleaner(
         categories_csv_path=categories_csv,
+        statuts_juridiques_publics_csv_path=statuts_juridiques_publics_csv,
         dila_siret_lookup_max_age_days=DILA_SIRET_LOOKUP_MAX_AGE_DAYS,
     )
 
@@ -111,6 +126,28 @@ def test_filters_out_disallowed_categorie(cleaner: OrganismesCleaner):
     raw_organisme = _raw_organisme(_ege(categorie="999"))
 
     assert cleaner.clean(raw_organisme) is None
+
+
+def test_filters_out_private_statut_juridique(cleaner: OrganismesCleaner):
+    raw_organisme = _raw_organisme(
+        _ege(statut_juridique="60")  # Association Loi 1901 non R.U.P.
+    )
+
+    assert cleaner.clean(raw_organisme) is None
+
+
+def test_filters_out_missing_statut_juridique(cleaner: OrganismesCleaner):
+    raw_organisme = _raw_organisme(_ege(statut_juridique=None))
+
+    assert cleaner.clean(raw_organisme) is None
+
+
+def test_keeps_public_statut_juridique(cleaner: OrganismesCleaner):
+    raw_organisme = _raw_organisme(_ege(statut_juridique="13"))
+
+    organisme = cleaner.clean(raw_organisme)
+
+    assert organisme is not None
 
 
 def test_filters_out_non_active_etat_objet(cleaner: OrganismesCleaner):
