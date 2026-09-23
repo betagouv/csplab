@@ -123,6 +123,9 @@ _ROLES_REQUIS: dict[OrganismeAction, frozenset[AgentOrganismeRole]] = {
     OrganismeAction.LIST_CONVERSATIONS: frozenset(
         {AgentOrganismeRole.SUPERVISEUR, AgentOrganismeRole.AGENT}
     ),
+    OrganismeAction.READ_CONVERSATION: frozenset(
+        {AgentOrganismeRole.SUPERVISEUR, AgentOrganismeRole.AGENT}
+    ),
 }
 
 # -------------------------------------
@@ -197,6 +200,13 @@ _ROLES_RECRUTEMENT_REQUIS: dict[OrganismeAction, frozenset[AgentRecrutementRole]
         }
     ),
     OrganismeAction.LIST_CONVERSATIONS: frozenset(
+        {
+            AgentRecrutementRole.RESPONSABLE,
+            AgentRecrutementRole.RECRUTEUR,
+            AgentRecrutementRole.CONTRIBUTEUR,
+        }
+    ),
+    OrganismeAction.READ_CONVERSATION: frozenset(
         {
             AgentRecrutementRole.RESPONSABLE,
             AgentRecrutementRole.RECRUTEUR,
