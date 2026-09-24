@@ -457,3 +457,54 @@ class ConversationMessageSerializer(serializers.Serializer):
     documents = ConversationDocumentSerializer(
         many=True, max_length=settings.MESSAGE_MAX_DOCUMENTS
     )
+
+
+# ---------------------------------------------------------------------------
+# Serializer pour la création d'une conversation (stub)
+# ---------------------------------------------------------------------------
+
+# Signature binaire attendue en tête de fichier, par content type autorisé
+SIGNATURES_DOCUMENT = {
+    "application/pdf": b"%PDF-",
+    "image/png": b"\x89PNG\r\n\x1a\n",
+    "image/jpeg": b"\xff\xd8\xff",
+}
+
+
+class CreateConversationSerializer(serializers.Serializer):
+    objet = serializers.CharField(max_length=settings.CONVERSATION_OBJET_MAX_LENGTH)
+    content = serializers.CharField(
+        max_length=settings.MESSAGE_CONTENT_MAX_LENGTH, trim_whitespace=False
+    )
+    documents = serializers.ListField(
+        child=serializers.FileField(),
+        max_length=settings.MESSAGE_MAX_DOCUMENTS,
+        required=False,
+        default=list,
+    )
+
+    def validate_documents(self, documents):
+        max_size_mb = settings.MESSAGE_DOCUMENT_MAX_SIZE_MB
+        for document in documents:
+            if document.size > max_size_mb * 1024 * 1024:
+                raise serializers.ValidationError(
+                    f"Le fichier {document.name} dépasse la taille maximale "
+                    f"de {max_size_mb} Mo."
+                )
+            signature = SIGNATURES_DOCUMENT.get(document.content_type)
+            if (
+                document.content_type not in settings.ALLOWED_DOCUMENT_CONTENT_TYPES
+                or signature is None
+            ):
+                raise serializers.ValidationError(
+                    f"Format non supporté pour {document.name}. "
+                    "Formats acceptés : PDF, PNG, JPEG."
+                )
+            document.seek(0)
+            entete = document.read(len(signature))
+            document.seek(0)
+            if entete != signature:
+                raise serializers.ValidationError(
+                    f"Le contenu de {document.name} ne correspond pas à son format."
+                )
+        return documents
