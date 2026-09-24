@@ -209,7 +209,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Détail d'une candidature (stub) */
+        /** Détail d'une candidature */
         get: operations["recruteur_organismes_recrutements_candidatures_retrieve"];
         put?: never;
         post?: never;
@@ -520,7 +520,7 @@ export interface components {
             /** Format: date-time */
             date_derniere_maj_recruteur: string | null;
             /** Format: uuid */
-            document_uuid: string;
+            document_uuid: string | null;
             navigation_candidature_uuids: string[];
         };
         CandidatureEchec: {
