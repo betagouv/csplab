@@ -5,8 +5,6 @@ from faker import Faker
 from referentiel.entities.source import Source
 from referentiel.value_objects.source_type import SourceType
 
-from infrastructure.django_apps.ingestion.models.source import SourceModel
-
 fake = Faker()
 
 
@@ -30,10 +28,3 @@ class SourceFactory:
             base_url_front=base_url_front or fake.url(),
             base_url_back=base_url_back or fake.url(),
         )
-
-    @staticmethod
-    def create_model(**kwargs) -> SourceModel:
-        entity = SourceFactory.create_entity(**kwargs)
-        model = SourceModel.from_entity(entity)
-        model.save()
-        return model

@@ -1,5 +1,4 @@
 from datetime import UTC, datetime
-from typing import List, Optional
 from uuid import UUID, uuid4
 
 from pydantic import HttpUrl
@@ -11,14 +10,10 @@ from referentiel.value_objects.country import Country
 from referentiel.value_objects.department import Department
 from referentiel.value_objects.limit_date import LimitDate
 from referentiel.value_objects.localisation import Localisation
-from referentiel.value_objects.offer_criteria import OfferCriteria
 from referentiel.value_objects.region import Region
 from referentiel.value_objects.verse import Verse
 
-from infrastructure.django_apps.ingestion.models.source import SourceModel
-from infrastructure.django_apps.referentiel.models.offer import OfferModel
 from infrastructure.factories.datetime_utils import as_aware
-from infrastructure.factories.ingestion.source_factory import SourceFactory
 from infrastructure.mappers.offer_mapper import OfferMapper
 
 _mapper = OfferMapper()
@@ -83,80 +78,3 @@ class OfferFactory:
             criteria=criteria,
             conditions=conditions,
         )
-
-    @staticmethod
-    def create_model(
-        reference: Optional[str] = None,
-        external_id: Optional[str] = None,
-        title: Optional[str] = None,
-        profile: Optional[str] = None,
-        mission: Optional[str] = None,
-        organization: Optional[str] = None,
-        verse: Optional[Verse] = None,
-        category: Optional[Category] = None,
-        contract_type: Optional[ContractType] = None,
-        offer_url: Optional[HttpUrl] = None,
-        publication_date: Optional[datetime] = None,
-        beginning_date: Optional[LimitDate] = None,
-        localisation: Optional[Localisation] = None,
-        family_code: Optional[str] = None,
-        job_family_referential: Optional[str] = None,
-        functional_area_code: Optional[str] = None,
-        source_id: Optional[UUID] = None,
-        updated_at: Optional[datetime] = None,
-        processing: bool = False,
-        processed_at: Optional[datetime] = None,
-        archived_at: Optional[datetime] = None,
-        criteria: Optional[OfferCriteria] = None,
-        conditions: Optional[dict] = None,
-    ) -> OfferModel:
-        if processed_at:
-            processed_at = as_aware(processed_at)
-
-        if source_id is None:
-            source_id = SourceFactory.create_model().source_id
-        elif not SourceModel.objects.filter(source_id=source_id).exists():
-            SourceFactory.create_model(source_id=source_id)
-
-        offer = OfferFactory.create_entity(
-            reference=reference,
-            external_id=external_id,
-            verse=verse,
-            title=title,
-            profile=profile,
-            mission=mission,
-            category=category,
-            contract_type=contract_type,
-            organization=organization,
-            offer_url=offer_url,
-            localisation=localisation,
-            family_code=family_code,
-            job_family_referential=job_family_referential,
-            functional_area_code=functional_area_code,
-            source_id=source_id,
-            publication_date=publication_date,
-            beginning_date=beginning_date,
-            archived_at=archived_at,
-            criteria=criteria,
-            conditions=conditions,
-        )
-
-        offer_model = _mapper.from_domain(offer)
-        offer_model.processing = processing
-        offer_model.processed_at = processed_at
-        offer_model.save()
-
-        if updated_at:
-            OfferModel.objects.filter(id=offer.id).update(
-                updated_at=as_aware(updated_at)
-            )
-            offer_model.refresh_from_db()
-
-        return offer_model
-
-    @staticmethod
-    def create_model_batch(
-        size: int,
-        **kwargs,
-    ) -> List[OfferModel]:
-        return [OfferFactory.create_model(**kwargs) for _ in range(size)]
