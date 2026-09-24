@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import type { Offre } from '../../data/candidatMock'
-import { offrePrincipale } from '../../data/candidatMock'
 import CspBadge from '@/components/base/CspBadge/CspBadge.vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspIcon from '@/components/base/CspIcon/CspIcon.vue'
+import { offrePrincipale } from '../../data/candidatMock'
 
 const props = withDefaults(defineProps<{
   offre?: Offre
@@ -346,7 +346,9 @@ const estExterne = props.offre.modeCandidature === 'externe'
   bottom: 0;
   padding: var(--csp-space-3) var(--csp-space-4) max(var(--csp-space-3), env(safe-area-inset-bottom));
   background-color: var(--background-default-grey);
-  box-shadow: inset 0 1px 0 var(--border-default-grey), 0 -2px 8px rgb(0 0 0 / 6%);
+  box-shadow:
+    inset 0 1px 0 var(--border-default-grey),
+    0 -2px 8px rgb(0 0 0 / 6%);
 }
 
 .offre__cta-hint {

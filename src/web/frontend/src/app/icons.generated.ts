@@ -6,6 +6,7 @@ import riAlertLine from '@iconify-icons/ri/alert-line'
 import riArchiveLine from '@iconify-icons/ri/archive-line'
 import riArrowDownLine from '@iconify-icons/ri/arrow-down-line'
 import riArrowDownSLine from '@iconify-icons/ri/arrow-down-s-line'
+import riArrowGoBackLine from '@iconify-icons/ri/arrow-go-back-line'
 import riArrowLeftDoubleLine from '@iconify-icons/ri/arrow-left-double-line'
 import riArrowLeftLine from '@iconify-icons/ri/arrow-left-line'
 import riArrowLeftRightLine from '@iconify-icons/ri/arrow-left-right-line'
@@ -15,10 +16,12 @@ import riArrowRightLine from '@iconify-icons/ri/arrow-right-line'
 import riArrowRightSLine from '@iconify-icons/ri/arrow-right-s-line'
 import riArrowUpLine from '@iconify-icons/ri/arrow-up-line'
 import riArrowUpSLine from '@iconify-icons/ri/arrow-up-s-line'
+import riAttachment2 from '@iconify-icons/ri/attachment-2'
 import riBookmarkLine from '@iconify-icons/ri/bookmark-line'
 import riBriefcaseLine from '@iconify-icons/ri/briefcase-line'
 import riCalendarCheckLine from '@iconify-icons/ri/calendar-check-line'
 import riCalendarLine from '@iconify-icons/ri/calendar-line'
+import riCameraLine from '@iconify-icons/ri/camera-line'
 import riCheckLine from '@iconify-icons/ri/check-line'
 import riCheckboxCircleFill from '@iconify-icons/ri/checkbox-circle-fill'
 import riCheckboxCircleLine from '@iconify-icons/ri/checkbox-circle-line'
@@ -42,10 +45,11 @@ import riFileUploadLine from '@iconify-icons/ri/file-upload-line'
 import riFilter3Line from '@iconify-icons/ri/filter-3-line'
 import riFilterLine from '@iconify-icons/ri/filter-line'
 import riFlashlightFill from '@iconify-icons/ri/flashlight-fill'
-import riFolderLine from '@iconify-icons/ri/folder-line'
+import riFolderOpenLine from '@iconify-icons/ri/folder-open-line'
 import riGovernmentLine from '@iconify-icons/ri/government-line'
 import riGroupLine from '@iconify-icons/ri/group-line'
 import riHomeLine from '@iconify-icons/ri/home-line'
+import riImageLine from '@iconify-icons/ri/image-line'
 import riInbox2Line from '@iconify-icons/ri/inbox-2-line'
 import riInformationFill from '@iconify-icons/ri/information-fill'
 import riInformationLine from '@iconify-icons/ri/information-line'
@@ -92,6 +96,7 @@ addIcon('ri:alert-line', riAlertLine)
 addIcon('ri:archive-line', riArchiveLine)
 addIcon('ri:arrow-down-line', riArrowDownLine)
 addIcon('ri:arrow-down-s-line', riArrowDownSLine)
+addIcon('ri:arrow-go-back-line', riArrowGoBackLine)
 addIcon('ri:arrow-left-double-line', riArrowLeftDoubleLine)
 addIcon('ri:arrow-left-line', riArrowLeftLine)
 addIcon('ri:arrow-left-right-line', riArrowLeftRightLine)
@@ -101,10 +106,12 @@ addIcon('ri:arrow-right-line', riArrowRightLine)
 addIcon('ri:arrow-right-s-line', riArrowRightSLine)
 addIcon('ri:arrow-up-line', riArrowUpLine)
 addIcon('ri:arrow-up-s-line', riArrowUpSLine)
+addIcon('ri:attachment-2', riAttachment2)
 addIcon('ri:bookmark-line', riBookmarkLine)
 addIcon('ri:briefcase-line', riBriefcaseLine)
 addIcon('ri:calendar-check-line', riCalendarCheckLine)
 addIcon('ri:calendar-line', riCalendarLine)
+addIcon('ri:camera-line', riCameraLine)
 addIcon('ri:check-line', riCheckLine)
 addIcon('ri:checkbox-circle-fill', riCheckboxCircleFill)
 addIcon('ri:checkbox-circle-line', riCheckboxCircleLine)
@@ -128,10 +135,11 @@ addIcon('ri:file-upload-line', riFileUploadLine)
 addIcon('ri:filter-3-line', riFilter3Line)
 addIcon('ri:filter-line', riFilterLine)
 addIcon('ri:flashlight-fill', riFlashlightFill)
-addIcon('ri:folder-line', riFolderLine)
+addIcon('ri:folder-open-line', riFolderOpenLine)
 addIcon('ri:government-line', riGovernmentLine)
 addIcon('ri:group-line', riGroupLine)
 addIcon('ri:home-line', riHomeLine)
+addIcon('ri:image-line', riImageLine)
 addIcon('ri:inbox-2-line', riInbox2Line)
 addIcon('ri:information-fill', riInformationFill)
 addIcon('ri:information-line', riInformationLine)

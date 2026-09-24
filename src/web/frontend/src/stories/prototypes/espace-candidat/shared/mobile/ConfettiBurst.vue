@@ -38,10 +38,10 @@ const confettis = computed<Confetti[]>(() => Array.from({ length: 24 }, (_, i) =
       class="confetti__piece"
       :class="`confetti__piece--${c.forme}`"
       :style="{
-        left: c.left,
-        animationDelay: c.delay,
-        animationDuration: c.duration,
-        backgroundColor: c.couleur,
+        'left': c.left,
+        'animationDelay': c.delay,
+        'animationDuration': c.duration,
+        'backgroundColor': c.couleur,
         '--rotate': c.rotate,
       }"
     />

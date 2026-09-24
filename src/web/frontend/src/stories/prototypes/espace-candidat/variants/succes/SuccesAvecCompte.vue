@@ -1,14 +1,14 @@
 <script setup lang="ts">
-import { offrePrincipale } from '../../data/candidatMock'
-import CandidateHeader from '../../shared/CandidateHeader.vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspIcon from '@/components/base/CspIcon/CspIcon.vue'
-
-const offre = offrePrincipale
+import { offrePrincipale } from '../../data/candidatMock'
+import CandidateHeader from '../../shared/CandidateHeader.vue'
 
 defineEmits<{
   allerVersEspace: []
 }>()
+
+const offre = offrePrincipale
 </script>
 
 <template>

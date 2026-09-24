@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { candidatureParId, conversationParCandidature, documentsParCandidature, nombreMessagesNonLus } from '../../data/candidatMock'
-import EtapesTimeline from '../../shared/EtapesTimeline.vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspCard from '@/components/base/CspCard/CspCard.vue'
 import CspIcon from '@/components/base/CspIcon/CspIcon.vue'
+import { candidatureParId, conversationParCandidature, documentsParCandidature, nombreMessagesNonLus } from '../../data/candidatMock'
+import EtapesTimeline from '../../shared/EtapesTimeline.vue'
 
 const props = defineProps<{
   candidatureId: string

@@ -1,27 +1,76 @@
 <script setup lang="ts">
-import type { ActionRequise } from '../../data/candidatMock'
+import type { JeuDonnees, Utilisateur } from '../../data/espaceMock'
 import { computed, ref } from 'vue'
-import AccueilCandidaturesMobile from './AccueilCandidaturesMobile.vue'
+import { creerEspace, provideEspace } from '../../data/useEspace'
+import EspaceHeader from '../../shared/mobile/EspaceHeader.vue'
 import CandidatureDetailMobile from './CandidatureDetailMobile.vue'
-import ConversationsMobile from './ConversationsMobile.vue'
-import DocumentsMobile from './DocumentsMobile.vue'
-import ProfilMobile from './ProfilMobile.vue'
+import CompteMobile from './CompteMobile.vue'
+import ConversationMobile from './ConversationMobile.vue'
+import MesCandidaturesMobile from './MesCandidaturesMobile.vue'
 
-// Mes candidatures est l'unique point d'entrée : messages et documents ne sont accessibles
-// qu'en contexte, depuis une candidature précise. Navigation en pile (retour = dépiler) plutôt
-// qu'un jeu d'onglets, pour refléter cette hiérarchie à un seul niveau d'entrée.
-type Ecran =
-  | { nom: 'accueil' }
-  | { nom: 'detail', candidatureId: string }
-  | { nom: 'conversation', candidatureId: string }
-  | { nom: 'documents', candidatureId: string }
-  | { nom: 'profil' }
+// Écran d'arrivée optionnel : sert aux stories isolées et au lien « nouveau message » d'un courriel.
+export interface CibleEspace {
+  ecran: 'liste' | 'detail' | 'conversation' | 'compte'
+  candidatureId?: string
+  conversationId?: string
+}
 
-const pile = ref<Ecran[]>([{ nom: 'accueil' }])
+const props = withDefaults(defineProps<{
+  jeu?: JeuDonnees
+  methode?: Utilisateur['methode']
+  simulerEchecEnvoi?: boolean
+  cible?: CibleEspace
+}>(), {
+  jeu: 'complet',
+  methode: 'formulaire',
+  simulerEchecEnvoi: false,
+  cible: undefined,
+})
+
+defineEmits<{
+  deconnexion: []
+}>()
+
+const espace = creerEspace({
+  jeu: props.jeu,
+  methode: props.methode,
+  simulerEchecEnvoi: props.simulerEchecEnvoi,
+})
+provideEspace(espace)
+
+// Navigation en pile : « Mes candidatures » est l'unique point d'entrée ; détail, conversation et
+// compte s'empilent dessus, retour = dépiler.
+type Ecran
+  = | { nom: 'liste' }
+    | { nom: 'detail', candidatureId: string }
+    | { nom: 'conversation', candidatureId: string, conversationId: string }
+    | { nom: 'compte' }
+
+function pileInitiale(): Ecran[] {
+  const pile: Ecran[] = [{ nom: 'liste' }]
+  const { cible } = props
+  if (!cible || cible.ecran === 'liste') {
+    return pile
+  }
+  if (cible.ecran === 'compte') {
+    return [...pile, { nom: 'compte' }]
+  }
+  if (cible.candidatureId) {
+    pile.push({ nom: 'detail', candidatureId: cible.candidatureId })
+    if (cible.ecran === 'conversation' && cible.conversationId) {
+      pile.push({ nom: 'conversation', candidatureId: cible.candidatureId, conversationId: cible.conversationId })
+    }
+  }
+  return pile
+}
+
+const pile = ref<Ecran[]>(pileInitiale())
 const ecran = computed(() => pile.value[pile.value.length - 1])
+const confirmation = ref<string | null>(null)
 
-function naviguer(cible: Ecran) {
-  pile.value.push(cible)
+function naviguer(cibleEcran: Ecran) {
+  confirmation.value = null
+  pile.value.push(cibleEcran)
 }
 
 function retour() {
@@ -30,50 +79,67 @@ function retour() {
   }
 }
 
-function agirSurAction(action: ActionRequise) {
-  if (action.type === 'message') {
-    naviguer({ nom: 'conversation', candidatureId: action.candidatureId })
-    return
+function versLaListe() {
+  confirmation.value = null
+  pile.value = [{ nom: 'liste' }]
+}
+
+function surRetrait() {
+  pile.value = [{ nom: 'liste' }]
+  confirmation.value = 'Votre candidature a été retirée. Elle figure désormais dans « Terminées ».'
+}
+
+function ouvrirConversation(conversationId: string) {
+  const courant = ecran.value
+  if (courant.nom === 'detail') {
+    naviguer({ nom: 'conversation', candidatureId: courant.candidatureId, conversationId })
   }
-  if (action.type === 'document') {
-    naviguer({ nom: 'documents', candidatureId: action.candidatureId })
-    return
+}
+
+function ouvrirCompte() {
+  if (ecran.value.nom !== 'compte') {
+    naviguer({ nom: 'compte' })
   }
-  naviguer({ nom: 'detail', candidatureId: action.candidatureId })
 }
 </script>
 
 <template>
   <div class="espace">
-    <div class="espace__ecran">
-      <AccueilCandidaturesMobile
-        v-if="ecran.nom === 'accueil'"
-        @ouvrir-candidature="(id) => naviguer({ nom: 'detail', candidatureId: id })"
-        @ouvrir-profil="naviguer({ nom: 'profil' })"
-        @agir="agirSurAction"
+    <EspaceHeader
+      :non-lus="espace.nonLusTotal.value"
+      :nom-complet="`${espace.utilisateur.prenom} ${espace.utilisateur.nom}`"
+      @accueil="versLaListe"
+      @non-lus="versLaListe"
+      @compte="ouvrirCompte"
+    />
+
+    <main class="espace__ecran">
+      <MesCandidaturesMobile
+        v-if="ecran.nom === 'liste'"
+        :confirmation="confirmation"
+        @ouvrir="(id) => naviguer({ nom: 'detail', candidatureId: id })"
       />
       <CandidatureDetailMobile
         v-else-if="ecran.nom === 'detail'"
+        :key="ecran.candidatureId"
         :candidature-id="ecran.candidatureId"
         @retour="retour"
-        @voir-conversation="(id) => naviguer({ nom: 'conversation', candidatureId: id })"
-        @voir-documents="(id) => naviguer({ nom: 'documents', candidatureId: id })"
+        @ouvrir-conversation="ouvrirConversation"
+        @retiree="surRetrait"
       />
-      <ConversationsMobile
+      <ConversationMobile
         v-else-if="ecran.nom === 'conversation'"
+        :key="ecran.conversationId"
         :candidature-id="ecran.candidatureId"
+        :conversation-id="ecran.conversationId"
         @retour="retour"
       />
-      <DocumentsMobile
-        v-else-if="ecran.nom === 'documents'"
-        :candidature-id="ecran.candidatureId"
+      <CompteMobile
+        v-else-if="ecran.nom === 'compte'"
         @retour="retour"
+        @deconnexion="$emit('deconnexion')"
       />
-      <ProfilMobile
-        v-else-if="ecran.nom === 'profil'"
-        @retour="retour"
-      />
-    </div>
+    </main>
   </div>
 </template>
 
@@ -87,12 +153,13 @@ function agirSurAction(action: ActionRequise) {
 
 .espace__ecran {
   flex: 1;
-  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
 }
 
 @media (min-width: 40rem) {
   .espace {
-    max-width: 28rem;
+    max-width: 26rem;
     margin: 0 auto;
     box-shadow: inset 0 0 0 1px var(--border-default-grey);
   }

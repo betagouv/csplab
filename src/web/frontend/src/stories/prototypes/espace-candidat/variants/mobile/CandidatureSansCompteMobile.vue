@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import type { ReponsesQualification } from '../../shared/QuestionsQualification.vue'
 import { computed, reactive, ref } from 'vue'
+import CspInput from '@/components/base/CspInput/CspInput.vue'
 import { offrePrincipale } from '../../data/candidatMock'
-import QuestionsQualification from '../../shared/QuestionsQualification.vue'
 import MobileFileField from '../../shared/mobile/MobileFileField.vue'
 import MobileFlowShell from '../../shared/mobile/MobileFlowShell.vue'
+import QuestionsQualification from '../../shared/QuestionsQualification.vue'
 import PopinSuccesMobile from './PopinSuccesMobile.vue'
-import CspInput from '@/components/base/CspInput/CspInput.vue'
 
 defineEmits<{
   terminer: []

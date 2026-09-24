@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import type { Offre } from '../../data/candidatMock'
-import ConfettiBurst from '../../shared/mobile/ConfettiBurst.vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspDialog from '@/components/base/CspDialog/CspDialog.vue'
 import CspIcon from '@/components/base/CspIcon/CspIcon.vue'
+import ConfettiBurst from '../../shared/mobile/ConfettiBurst.vue'
 
 defineProps<{
   open: boolean

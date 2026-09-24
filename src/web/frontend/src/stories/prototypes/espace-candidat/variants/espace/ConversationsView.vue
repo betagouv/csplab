@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
-import { actionsRequises, conversations, nombreMessagesNonLus } from '../../data/candidatMock'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspTextarea from '@/components/base/CspTextarea/CspTextarea.vue'
+import { actionsRequises, conversations, nombreMessagesNonLus } from '../../data/candidatMock'
 
 const props = defineProps<{
   initialConversationId?: string | null
@@ -18,7 +18,9 @@ watch(() => props.initialConversationId, (id) => {
 
 watch(selectedId, (id) => {
   const conv = conversations.find(c => c.id === id)
-  conv?.messages.forEach((m) => { m.lu = true })
+  conv?.messages.forEach((m) => {
+    m.lu = true
+  })
 }, { immediate: true })
 
 const selected = computed(() => conversations.find(c => c.id === selectedId.value) ?? null)

@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import type { Candidature } from '../data/candidatMock'
 import { computed } from 'vue'
-import { etapeActuelle } from '../data/candidatMock'
-import EtapesResume from './EtapesResume.vue'
 import CspBadge from '@/components/base/CspBadge/CspBadge.vue'
 import CspIcon from '@/components/base/CspIcon/CspIcon.vue'
+import { etapeActuelle } from '../data/candidatMock'
+import EtapesResume from './EtapesResume.vue'
 
 const props = defineProps<{
   candidature: Candidature

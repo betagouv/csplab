@@ -1,7 +1,7 @@
 <script setup lang="ts">
+import CspButton from '@/components/base/CspButton/CspButton.vue'
 import MobileStepProgress from './MobileStepProgress.vue'
 import MobileTopBar from './MobileTopBar.vue'
-import CspButton from '@/components/base/CspButton/CspButton.vue'
 
 withDefaults(defineProps<{
   title?: string
@@ -73,7 +73,9 @@ defineEmits<{
   bottom: 0;
   padding: var(--csp-space-3) var(--csp-space-4) max(var(--csp-space-3), env(safe-area-inset-bottom));
   background-color: var(--background-default-grey);
-  box-shadow: inset 0 1px 0 var(--border-default-grey), 0 -2px 8px rgb(0 0 0 / 6%);
+  box-shadow:
+    inset 0 1px 0 var(--border-default-grey),
+    0 -2px 8px rgb(0 0 0 / 6%);
 }
 
 .mobile-flow__cta-button {

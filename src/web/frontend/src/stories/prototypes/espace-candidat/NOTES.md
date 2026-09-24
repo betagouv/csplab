@@ -3,6 +3,65 @@
 Sujet : expérience candidat (découverte d'offre → candidature → suivi), pensée à part de l'ATS
 recruteur — pas une simple vue "candidat" du même outil.
 
+## Espace connecté refondu sur la spec « strict nécessaire » (24 septembre 2026)
+
+L'espace connecté du parcours 2 est reconstruit à partir de la spec produit fournie par Alice
+(objectifs candidat, accès, liste, détail, conversation, statuts, retrait, compte). Le parcours 1
+(candidater sans compte) est inchangé. Les écrans précédents de l'espace connecté (actions à
+effectuer, timeline d'étapes, onglet Documents, pastilles d'action) sont supprimés : la spec les
+exclut volontairement (« strict nécessaire », le statut candidat ne révèle pas les étapes internes).
+
+### Ce qui est implémenté (stories `Prototypes/Espace candidat mobile`)
+
+- **0B** connexion → espace → déconnexion ; **0C** lien « nouveau message » d'un courriel :
+  connexion puis arrivée directe dans la conversation (pile [liste, détail, conversation]).
+- Connexion : FranceConnect (bouton mis en avant) ou email + mot de passe ; « Mot de passe
+  oublié ? » (envoi d'un lien par courriel, confirmation neutre) ; déconnexion qui mentionne
+  aussi FranceConnect quand la session en venait.
+- En-tête permanent : logo, pastille des non lus (total des messages non lus), compte. Pas de
+  barre de navigation basse.
+- Mes candidatures : « En cours » puis « Terminées » repliée ; tri par dernière activité ;
+  carte = intitulé, organisme, statut, non lus, dernière activité ; états vides.
+- Détail : page unique, dans l'ordre de la spec ; « L'offre » et « Pièces déposées » repliées.
+- Conversation : fil ancien → récent, défilement auto, réponse fixée en bas, « Joindre » (photo /
+  photothèque / fichiers via de vrais `<input type=file>`, `capture` pour l'appareil photo),
+  plusieurs pièces avec aperçu et suppression, formats PDF/DOC/DOCX/ODT/JPG/PNG, échec d'envoi
+  avec conservation du contenu et « Réessayer ».
+- Retrait : lien réservé aux candidatures en cours, panneau du bas, « Cette action est
+  définitive. », motif facultatif ; statut → Retirée, bascule en Terminées, événement au journal
+  (`journal` dans l'état, non affiché : c'est côté ATS).
+- Mon compte : nom/prénom verrouillés si FranceConnect, mail toujours verrouillé, téléphone
+  modifiable, mot de passe modifiable uniquement pour un compte « formulaire ».
+
+Contrôles Storybook sur 0B et les écrans isolés : jeu de données (complet / sans terminées /
+vide), mode de connexion, « simuler un échec d'envoi » (première tentative seulement).
+
+### Nouveaux composants (manques du DS)
+
+- **`MobileBottomSheet.vue`** — panneau modal qui monte du bas. Ni `CspDialog` (centré) ni
+  `CspDrawer` (gauche/droite) n'ont d'ancre basse. Construit sur Reka Dialog avec les mêmes
+  tokens ; piste d'intégration : ajouter `side="bottom"` à `CspDrawer`.
+- `EspaceHeader`, `CandidatureListCard`, `StatutCandidatBadge` (badge = `CspBadge`, mêmes
+  sémantiques que la doctrine du pipeline recruteur), `RetourLien`.
+
+### Points de la spec à trancher / incohérences relevées
+
+- **Ouvrir une conversation côté candidat** (marqué « à trancher ») : non implémenté, le
+  prototype ne permet que de répondre aux fils ouverts par l'équipe.
+- **« Retirée » vs « Désistement »** : la table des statuts dit « Désistement », la section
+  retrait dit « Retirée ». Le prototype affiche « Retirée » (phrase : « Vous avez retiré cette
+  candidature. »).
+- **« Offre close » vs « Offre archivée »** : idem, « Offre close » retenu.
+- **« Retenue » classée dans Terminées** (spec section 2) alors qu'elle dit « L'équipe vous
+  contactera » : une candidature retenue avec message non lu apparaît donc dans Terminées.
+- **Liens de création d'espace** : la spec d'accès ne prévoit que la connexion ; le lien
+  « Créer mon espace candidat » de la page connexion a été retiré (il reste dans le pop-in de
+  succès du parcours 1, non relié à un écran). À confirmer.
+- « L'offre, repliée : lieu, type de contrat, catégorie, puis la description » : interprété
+  comme un pli fermé qui, ouvert, montre les trois faits puis la description.
+- Repostuler après un retrait, et le comportement côté ATS du retrait : « à creuser », non traité.
+- Les pièces jointes n'ont ni limite de taille ni antivirus dans le prototype.
+
 ## Refonte mobile-first (17 septembre 2026)
 
 Refonte structurelle demandée par Alice : mobile-first, deux parcours strictement indépendants
@@ -33,7 +92,7 @@ mais n'est plus le fil actif.
 Manques DS confirmés par cette refonte : toujours pas de `CspStepper`/`CspTimeline` génériques,
 ni de composant d'upload de fichier dans `components/base/`.
 
-### Correction de navigation (retour d'Alice après premier test)
+### Correction de navigation (retour d'Alice après premier test — écrans depuis remplacés, voir la section du 24 septembre)
 
 Première version de l'espace connecté : barre d'onglets basse à 4 entrées (Candidatures /
 Messages / Documents / Profil). Retour d'Alice : il n'y a qu'une seule vraie clé d'entrée,

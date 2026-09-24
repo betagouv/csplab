@@ -1,7 +1,7 @@
 <script setup lang="ts">
+import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CandidateHeader from './CandidateHeader.vue'
 import CandidatureStepper from './CandidatureStepper.vue'
-import CspButton from '@/components/base/CspButton/CspButton.vue'
 
 withDefaults(defineProps<{
   steps: string[]

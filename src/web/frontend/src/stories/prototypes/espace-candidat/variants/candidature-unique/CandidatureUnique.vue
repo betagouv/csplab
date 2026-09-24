@@ -1,14 +1,14 @@
 <script setup lang="ts">
 import type { ReponsesQualification } from '../../shared/QuestionsQualification.vue'
 import { computed, reactive, ref } from 'vue'
-import { offrePrincipale } from '../../data/candidatMock'
-import CandidatureFlowShell from '../../shared/CandidatureFlowShell.vue'
-import FileDropzone from '../../shared/FileDropzone.vue'
-import QuestionsQualification from '../../shared/QuestionsQualification.vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspDialog from '@/components/base/CspDialog/CspDialog.vue'
 import CspIcon from '@/components/base/CspIcon/CspIcon.vue'
 import CspInput from '@/components/base/CspInput/CspInput.vue'
+import { offrePrincipale } from '../../data/candidatMock'
+import CandidatureFlowShell from '../../shared/CandidatureFlowShell.vue'
+import FileDropzone from '../../shared/FileDropzone.vue'
+import QuestionsQualification from '../../shared/QuestionsQualification.vue'
 
 const offre = offrePrincipale
 const steps = ['Informations', 'Pièces jointes', 'Questions', 'Récapitulatif']

@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import type { ReponsesQualification } from '../../shared/QuestionsQualification.vue'
 import { computed, reactive, ref } from 'vue'
+import CspInput from '@/components/base/CspInput/CspInput.vue'
+import CspSelect from '@/components/base/CspSelect/CspSelect.vue'
+import CspTextarea from '@/components/base/CspTextarea/CspTextarea.vue'
 import { offrePrincipale } from '../../data/candidatMock'
 import CandidatureFlowShell from '../../shared/CandidatureFlowShell.vue'
 import QuestionsQualification from '../../shared/QuestionsQualification.vue'
 import SuccesSansCompte from '../succes/SuccesSansCompte.vue'
-import CspInput from '@/components/base/CspInput/CspInput.vue'
-import CspSelect from '@/components/base/CspSelect/CspSelect.vue'
-import CspTextarea from '@/components/base/CspTextarea/CspTextarea.vue'
 
 const offre = offrePrincipale
 const steps = ['Formulaire', 'Questions', 'Récapitulatif', 'Envoyée']

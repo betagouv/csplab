@@ -1,16 +1,16 @@
 <script setup lang="ts">
+import CspIcon from '@/components/base/CspIcon/CspIcon.vue'
 import { offrePrincipale } from '../data/candidatMock'
 import CandidateHeader from './CandidateHeader.vue'
-import CspIcon from '@/components/base/CspIcon/CspIcon.vue'
 
 export type ModeCandidature = 'cv' | 'compte' | 'formulaire'
-
-const offre = offrePrincipale
 
 defineEmits<{
   choisir: [mode: ModeCandidature]
   retour: []
 }>()
+
+const offre = offrePrincipale
 
 const options: { mode: ModeCandidature, icon: string, titre: string, description: string, duree: string }[] = [
   {

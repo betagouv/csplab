@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { actionsRequises, candidatureParId, documents } from '../../data/candidatMock'
 import CspBadge from '@/components/base/CspBadge/CspBadge.vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspIcon from '@/components/base/CspIcon/CspIcon.vue'
+import { actionsRequises, candidatureParId, documents } from '../../data/candidatMock'
 
 const props = defineProps<{
   initialCandidatureId?: string | null

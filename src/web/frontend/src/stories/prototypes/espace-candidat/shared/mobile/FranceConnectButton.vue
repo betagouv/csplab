@@ -10,7 +10,10 @@ defineEmits<{
     class="fc-button"
     @click="$emit('click')"
   >
-    <span class="fc-button__logo" aria-hidden="true">FC</span>
+    <span
+      class="fc-button__logo"
+      aria-hidden="true"
+    >FC</span>
     <span class="fc-button__label">S'identifier avec FranceConnect</span>
   </button>
 </template>
