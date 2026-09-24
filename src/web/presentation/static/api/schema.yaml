@@ -5316,8 +5316,7 @@ components:
           type: string
           maxLength: 50
         code:
-          type: string
-          maxLength: 50
+          type: integer
         parent_code:
           type: string
           nullable: true

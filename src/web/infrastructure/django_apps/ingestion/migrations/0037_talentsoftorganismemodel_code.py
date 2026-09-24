@@ -10,7 +10,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="talentsoftorganismemodel",
             name="code",
-            field=models.CharField(max_length=50, unique=True),
+            field=models.IntegerField(unique=True),
             preserve_default=False,
         ),
     ]
