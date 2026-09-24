@@ -1,8 +1,10 @@
 import os
 import secrets
 from datetime import UTC, datetime
+from pathlib import Path
 from uuid import UUID
 
+from django.core.files.base import ContentFile
 from django.db import transaction
 from django.utils import timezone
 from referentiel.value_objects.category import Category
@@ -16,7 +18,9 @@ from domain.recruteur.value_objects.roles import (
     AgentOrganismeRole,
     AgentRecrutementRole,
 )
+from infrastructure.django_apps.candidate.enums.type_document import TypeDocument
 from infrastructure.django_apps.candidate.models.candidature import CandidatureModel
+from infrastructure.django_apps.candidate.models.document import DocumentModel
 from infrastructure.django_apps.recruteur.models.organisme import (
     OrganismeAgentModel,
     OrganismeModel,
@@ -33,6 +37,9 @@ from infrastructure.django_apps.users.models import (
 )
 from infrastructure.factories.candidate.candidature_django_factory import (
     CandidatureDjangoFactory,
+)
+from infrastructure.factories.candidate.document_django_factory import (
+    DocumentDjangoFactory,
 )
 from infrastructure.factories.identite.agent_django_factory import AgentDjangoFactory
 from infrastructure.factories.identite.candidat_django_factory import (
@@ -250,12 +257,30 @@ _OFFRES_BRIANCON_SPECS = [
 ]
 
 
+_SEED_CV = Path(__file__).parent / "seed_documents" / "cv.pdf"
+
+
+def _seed_cv(candidature: CandidatureModel, utilisateur: UserModel) -> None:
+    contenu = _SEED_CV.read_bytes()
+    nom_original = f"CV {utilisateur.get_full_name()}.pdf"
+    DocumentDjangoFactory(
+        candidature=candidature,
+        type_document=TypeDocument.CV.value,
+        fichier=ContentFile(contenu, name=nom_original),
+        nom_original=nom_original,
+        content_type="application/pdf",
+        taille=len(contenu),
+        depose_par=utilisateur,
+    )
+
+
 def _delete_seed_data() -> None:
     seed_usernames = list(
         UserModel.objects.filter(email__in=_ALL_SEED_EMAILS).values_list(
             "username", flat=True
         )
     )
+    DocumentModel.objects.filter(candidature__candidat_id__in=seed_usernames).delete()
     CandidatureModel.objects.filter(candidat_id__in=seed_usernames).delete()
 
     seed_offer_specs = (
@@ -486,11 +511,13 @@ def seed_recruteur_datas(force: bool = False) -> dict:
             etape = recrutement.etapes.get(  # type: ignore[attr-defined]
                 categorie=CategorieEtapeRecrutement.ENTREE.value
             )
-            CandidatureDjangoFactory(
+            candidature = CandidatureDjangoFactory(
                 candidat=candidat_model,
                 etape=etape,
                 statut=statut.value,
             )
+            if statut == StatutCandidature.SOUMISE:
+                _seed_cv(candidature, candidat_model.utilisateur)  # type: ignore[arg-type]
 
         return {
             "status": "seeded",

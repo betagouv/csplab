@@ -29,6 +29,8 @@ vi.mock('../api', () => ({
   getCandidatureListe: vi.fn(),
   patchEtapeCandidatures: vi.fn(),
   getMotifsRefus: vi.fn(),
+  getCandidatureDocuments: vi.fn(() => new Promise(() => {})),
+  candidatureDocumentUrl: vi.fn(),
 }))
 
 vi.mock('@/features/recrutements/api', () => ({
@@ -175,6 +177,13 @@ describe('candidaturePanelView', () => {
 
     expect(await screen.findByText(message)).toBeInTheDocument()
     expect(screen.queryByText(/est passé à l'étape/)).not.toBeInTheDocument()
+  })
+
+  it('opens the documents tab from its own address', async () => {
+    const { router, panel } = await renderPanel([`${KANBAN_PATH}/candidatures/${CANDIDATURE_ALICE}/documents`])
+
+    expect(await panel.findByRole('tab', { name: 'Documents', selected: true })).toBeInTheDocument()
+    expect(router.currentRoute.value.params.candidatureUuid).toBe(CANDIDATURE_ALICE)
   })
 
   it('shows an empty state for a candidature absent from the kanban', async () => {

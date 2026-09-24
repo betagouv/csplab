@@ -2,6 +2,8 @@ from uuid import UUID
 
 from django.conf import settings
 from django.http import FileResponse, Http404
+from django.utils.decorators import method_decorator
+from django.views.decorators.clickjacking import xframe_options_sameorigin
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema
 from rest_framework import exceptions, status
@@ -47,6 +49,7 @@ from presentation.recruteur.serializers import DocumentListeSerializer
 class DocumentView(APIView):
     permission_classes = [IsAuthenticated]
 
+    @method_decorator(xframe_options_sameorigin)
     def get(
         self,
         request: Request,

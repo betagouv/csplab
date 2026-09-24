@@ -1,4 +1,4 @@
-import type { Candidat, MotifRefusOption, RecrutementDetailKanban } from '@/features/candidatures/types'
+import type { Candidat, CandidatureParams, MotifRefusOption, RecrutementDetailKanban } from '@/features/candidatures/types'
 import type { RecrutementDetail } from '@/features/recrutements/types'
 
 export const ORGANISME_UUID = '00000000-0000-0000-0000-000000000000'
@@ -11,6 +11,12 @@ export const ETAPE_REFUS = 'cccccccc-0001-0001-0001-000000000003'
 
 export const CANDIDATURE_ALICE = 'dddddddd-0001-0001-0001-000000000001'
 export const CANDIDATURE_BRUNO = 'dddddddd-0001-0001-0001-000000000002'
+
+export const CANDIDATURE_PARAMS: CandidatureParams = {
+  organismeUuid: ORGANISME_UUID,
+  recrutementUuid: RECRUTEMENT_UUID,
+  candidatureUuid: CANDIDATURE_ALICE,
+}
 
 export const CANDIDAT_ALICE: Candidat = { uuid: 'eeeeeeee-0001-0001-0001-000000000001', nom: 'Dupont', prenom: 'Alice' }
 export const CANDIDAT_BRUNO: Candidat = { uuid: 'eeeeeeee-0001-0001-0001-000000000002', nom: 'Martin', prenom: 'Bruno' }

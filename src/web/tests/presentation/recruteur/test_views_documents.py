@@ -142,6 +142,7 @@ class TestDocumentView:
         assert b"".join(response.streaming_content) == b"%PDF-1.4\n%test"
         assert response["Content-Type"] == "application/pdf"
         assert response["Content-Disposition"] == 'inline; filename="test.pdf"'
+        assert response["X-Frame-Options"] == "SAMEORIGIN"
 
     @pytest.mark.parametrize(
         "role", [AgentOrganismeRole.AGENT, None], ids=["no_recrutement_role", "no_role"]
