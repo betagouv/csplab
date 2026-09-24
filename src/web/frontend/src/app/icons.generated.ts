@@ -19,6 +19,8 @@ import riArrowUpSLine from '@iconify-icons/ri/arrow-up-s-line'
 import riBookmarkLine from '@iconify-icons/ri/bookmark-line'
 import riBriefcaseLine from '@iconify-icons/ri/briefcase-line'
 import riCalendarLine from '@iconify-icons/ri/calendar-line'
+import riChat3Line from '@iconify-icons/ri/chat-3-line'
+import riChatNewLine from '@iconify-icons/ri/chat-new-line'
 import riCheckLine from '@iconify-icons/ri/check-line'
 import riCheckboxCircleFill from '@iconify-icons/ri/checkbox-circle-fill'
 import riCheckboxCircleLine from '@iconify-icons/ri/checkbox-circle-line'
@@ -99,6 +101,8 @@ addIcon('ri:arrow-up-s-line', riArrowUpSLine)
 addIcon('ri:bookmark-line', riBookmarkLine)
 addIcon('ri:briefcase-line', riBriefcaseLine)
 addIcon('ri:calendar-line', riCalendarLine)
+addIcon('ri:chat-3-line', riChat3Line)
+addIcon('ri:chat-new-line', riChatNewLine)
 addIcon('ri:check-line', riCheckLine)
 addIcon('ri:checkbox-circle-fill', riCheckboxCircleFill)
 addIcon('ri:checkbox-circle-line', riCheckboxCircleLine)

@@ -6,6 +6,7 @@ import { defineComponent, h } from 'vue'
 import { createRouter, createWebHistory } from 'vue-router'
 import CspToaster from '@/components/base/CspToast/CspToaster.vue'
 import { useToast } from '@/composables/ui/useToast'
+import { getConversations } from '@/features/messages/api'
 import { getRecrutementDetail } from '@/features/recrutements/api'
 import { routes } from '@/router'
 import {
@@ -35,6 +36,10 @@ vi.mock('../api', () => ({
 
 vi.mock('@/features/recrutements/api', () => ({
   getRecrutementDetail: vi.fn(),
+}))
+
+vi.mock('@/features/messages/api', () => ({
+  getConversations: vi.fn(),
 }))
 
 const CANDIDATURE_INCONNUE = 'dddddddd-0001-0001-0001-000000000099'
@@ -68,6 +73,7 @@ describe('candidaturePanelView', () => {
     vi.mocked(getMotifsRefus).mockResolvedValue(MOTIFS_REFUS)
     vi.mocked(getRecrutementDetail).mockResolvedValue(RECRUTEMENT_DETAIL)
     vi.mocked(patchEtapeCandidatures).mockResolvedValue({ reussites: [CANDIDATURE_ALICE], echecs: [] })
+    vi.mocked(getConversations).mockResolvedValue({ count: 0, next: null, previous: null, results: [] })
   })
 
   afterEach(() => {

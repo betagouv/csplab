@@ -16,6 +16,7 @@ import { useMinimumPending } from '@/composables/async/useMinimumPending'
 import { tabItems } from '@/composables/navigation/tabs'
 import { useReturnTo } from '@/composables/navigation/useReturnTo'
 import { useRouteTab } from '@/composables/navigation/useRouteTab'
+import MessagesSection from '@/features/messages/components/MessagesSection.vue'
 import { formatElapsedDays } from '@/utils/date'
 import CandidatureCv from '../components/CandidatureCv.vue'
 import CandidatureDocuments from '../components/CandidatureDocuments.vue'
@@ -190,9 +191,11 @@ function handleUpdateOpen(open: boolean): void {
 
               <template #messages>
                 <div class="candidature-panel__tab">
-                  <p class="candidature-panel__placeholder">
-                    Conversations (à venir)
-                  </p>
+                  <MessagesSection
+                    :organisme-uuid="route.params.organismeUuid as string"
+                    :recrutement-uuid="route.params.recrutementUuid as string"
+                    :candidature-uuid="candidatureUuid"
+                  />
                 </div>
               </template>
             </CspTabsPanels>
