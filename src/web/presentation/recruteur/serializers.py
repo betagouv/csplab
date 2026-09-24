@@ -1,9 +1,9 @@
+from django.conf import settings
 from referentiel.value_objects.category import Category
 from referentiel.value_objects.contract_type import ContractType
 from referentiel.value_objects.verse import Verse
 from rest_framework import serializers
 
-from application.recruteur.services.read_conversation import MAX_DOCUMENTS_PAR_MESSAGE
 from domain.recruteur.value_objects.categorie_etapes_recrutement import (
     CategorieEtapeRecrutement,
 )
@@ -455,5 +455,5 @@ class ConversationMessageSerializer(serializers.Serializer):
     author = serializers.CharField()
     created_at = serializers.DateTimeField()
     documents = ConversationDocumentSerializer(
-        many=True, max_length=MAX_DOCUMENTS_PAR_MESSAGE
+        many=True, max_length=settings.MESSAGE_MAX_DOCUMENTS
     )

@@ -1,13 +1,11 @@
 from uuid import uuid4
 
 import pytest
+from django.conf import settings
 from django.urls import reverse
 from rest_framework import status
 
-from application.recruteur.services.list_conversations import (
-    _CONVERSATIONS,
-    LAST_MESSAGE_CONTENT_MAX_LENGTH,
-)
+from application.recruteur.services.list_conversations import _CONVERSATIONS
 from domain.recruteur.value_objects.roles import (
     AgentOrganismeRole,
     AgentRecrutementRole,
@@ -128,7 +126,8 @@ class TestCandidatureConversationsView:
         dates = [result["last_message_created_at"] for result in results]
         assert dates == sorted(dates, reverse=True)
         assert all(
-            len(result["last_message_content"]) <= LAST_MESSAGE_CONTENT_MAX_LENGTH
+            len(result["last_message_content"])
+            <= settings.CONVERSATION_LAST_MESSAGE_CONTENT_MAX_LENGTH
             for result in results
         )
 
