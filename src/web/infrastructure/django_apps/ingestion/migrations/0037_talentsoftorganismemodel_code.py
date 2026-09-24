@@ -13,4 +13,9 @@ class Migration(migrations.Migration):
             field=models.IntegerField(unique=True),
             preserve_default=False,
         ),
+        migrations.AlterField(
+            model_name="talentsoftorganismemodel",
+            name="parent_code",
+            field=models.IntegerField(blank=True, null=True),
+        ),
     ]

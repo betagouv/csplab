@@ -14,7 +14,7 @@ class TalentsoftOrganismeUpsertPayload(BaseModel):
     organisme_id: Optional[UUID] = None
     entity_code: str
     code: int
-    parent_code: Optional[str] = None
+    parent_code: Optional[int] = None
     has_children: bool = False
     name: str
     description: Optional[str] = None
@@ -37,11 +37,7 @@ class TalentsoftOrganismeUpsertPayload(BaseModel):
         return cls(
             entity_code=organisation.entityCode,
             code=organisation.code,
-            parent_code=(
-                str(organisation.parentCode)
-                if organisation.parentCode is not None
-                else None
-            ),
+            parent_code=organisation.parentCode,
             has_children=organisation.hasChildren,
             name=organisation.name,
             description=organisation.description,

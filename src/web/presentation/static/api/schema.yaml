@@ -5318,9 +5318,8 @@ components:
         code:
           type: integer
         parent_code:
-          type: string
+          type: integer
           nullable: true
-          maxLength: 50
         has_children:
           type: boolean
           default: false
