@@ -28,6 +28,7 @@ class OrganismeAction(Enum):
     SET_RECRUTEMENTS_RESPONSABLE = "set_recrutements_responsable"
     GET_MOTIFS_REFUS = "get_motifs_refus"
     READ_DOCUMENT = "read_document"
+    LIST_DOCUMENTS = "list_documents"
     LIST_NOTES = "list_notes"
     CREATE_NOTE = "create_note"
     UPDATE_NOTE = "update_note"
