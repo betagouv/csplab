@@ -1,5 +1,5 @@
 import { defineQueryOptions } from '@pinia/colada'
-import { getCandidatureListe, getRecrutementKanban } from './api'
+import { getCandidatureListe, getMotifsRefus, getRecrutementKanban } from './api'
 
 export const CANDIDATURES_QUERY_KEYS = {
   root: ['candidatures'] as const,
@@ -9,6 +9,8 @@ export const CANDIDATURES_QUERY_KEYS = {
     [...CANDIDATURES_QUERY_KEYS.recrutement(organismeUuid, recrutementUuid), 'kanban'] as const,
   liste: (organismeUuid: string, recrutementUuid: string) =>
     [...CANDIDATURES_QUERY_KEYS.recrutement(organismeUuid, recrutementUuid), 'liste'] as const,
+  motifsRefus: (organismeUuid: string) =>
+    [...CANDIDATURES_QUERY_KEYS.root, organismeUuid, 'motifs-refus'] as const,
 }
 
 export interface CandidaturesQueryParams {
@@ -27,5 +29,12 @@ export const candidatureListeQuery = defineQueryOptions(
   ({ organismeUuid, recrutementUuid }: CandidaturesQueryParams) => ({
     key: CANDIDATURES_QUERY_KEYS.liste(organismeUuid, recrutementUuid),
     query: () => getCandidatureListe(organismeUuid, recrutementUuid),
+  }),
+)
+
+export const motifsRefusQuery = defineQueryOptions(
+  ({ organismeUuid }: { organismeUuid: string }) => ({
+    key: CANDIDATURES_QUERY_KEYS.motifsRefus(organismeUuid),
+    query: () => getMotifsRefus(organismeUuid),
   }),
 )

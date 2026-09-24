@@ -237,8 +237,7 @@ describe('useCandidatures', () => {
       await vi.waitFor(() => expect(patchEtapeCandidatures).toHaveBeenCalledWith(
         ORGANISME_UUID,
         RECRUTEMENT_UUID,
-        ETAPE_PRESELECTION,
-        [CANDIDATURE_ALICE],
+        { etapeCibleUuid: ETAPE_PRESELECTION, candidatureUuids: [CANDIDATURE_ALICE] },
       ))
     })
 

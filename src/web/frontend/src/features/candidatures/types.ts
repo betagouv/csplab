@@ -15,3 +15,7 @@ export type CandidatureListe = components['schemas']['CandidatureListe']
 export type EtapeRecrutement = components['schemas']['EtapeRecrutement']
 
 export type ChangerEtapeResultat = components['schemas']['ChangerEtapeResultat']
+
+export type MotifRefus = components['schemas']['MotifRefusEnum']
+
+export type MotifRefusOption = components['schemas']['MotifRefus'] & { value: MotifRefus }

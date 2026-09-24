@@ -1,74 +1,45 @@
-import type { RecrutementDetailKanban } from '../types'
-import type { RecrutementDetail } from '@/features/recrutements/types'
 import { PiniaColada } from '@pinia/colada'
 import { render, screen, within } from '@testing-library/vue'
 import { createPinia } from 'pinia'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { defineComponent, h } from 'vue'
 import { createRouter, createWebHistory } from 'vue-router'
+import CspToaster from '@/components/base/CspToast/CspToaster.vue'
 import { useToast } from '@/composables/ui/useToast'
 import { getRecrutementDetail } from '@/features/recrutements/api'
 import { routes } from '@/router'
+import {
+  CANDIDATURE_ALICE,
+  CANDIDATURE_BRUNO,
+  ETAPE_ENTRETIEN,
+  ETAPE_REFUS,
+  KANBAN,
+  KANBAN_PATH,
+  MOTIFS_REFUS,
+  ORGANISME_UUID,
+  RECRUTEMENT_DETAIL,
+  RECRUTEMENT_UUID,
+} from '@/test/fixtures/candidatures'
 import { setupUser } from '@/test/render'
-import { getRecrutementKanban, patchEtapeCandidatures } from '../api'
+import { getMotifsRefus, getRecrutementKanban, patchEtapeCandidatures } from '../api'
 import CandidaturePanelView from './CandidaturePanelView.vue'
 
 vi.mock('../api', () => ({
   getRecrutementKanban: vi.fn(),
   getCandidatureListe: vi.fn(),
   patchEtapeCandidatures: vi.fn(),
+  getMotifsRefus: vi.fn(),
 }))
 
 vi.mock('@/features/recrutements/api', () => ({
   getRecrutementDetail: vi.fn(),
 }))
 
-const ORGANISME_UUID = '00000000-0000-0000-0000-000000000000'
-const RECRUTEMENT_UUID = 'aaaaaaaa-0001-0001-0001-000000000001'
-const CANDIDATURE_ALICE = 'dddddddd-0001-0001-0001-000000000001'
-const CANDIDATURE_BRUNO = 'dddddddd-0001-0001-0001-000000000002'
 const CANDIDATURE_INCONNUE = 'dddddddd-0001-0001-0001-000000000099'
 
-const ETAPE_ENTRETIEN = 'cccccccc-0001-0001-0001-000000000002'
-const ETAPE_REFUS = 'cccccccc-0001-0001-0001-000000000003'
-
-const KANBAN_PATH = `/organismes/${ORGANISME_UUID}/recrutements/${RECRUTEMENT_UUID}`
-
-const MOCK_KANBAN: RecrutementDetailKanban = {
-  offer_id: RECRUTEMENT_UUID,
-  etapes: [
-    {
-      etape_uuid: 'cccccccc-0001-0001-0001-000000000001',
-      nom: 'Réception des candidatures',
-      categorie: 'ENTREE',
-      candidatures: [
-        {
-          uuid: CANDIDATURE_ALICE,
-          date_soumission: '2025-06-10T09:15:00Z',
-          date_derniere_activite: '2025-06-11T10:00:00Z',
-          candidat: { uuid: 'eeeeeeee-0001-0001-0001-000000000001', nom: 'Dupont', prenom: 'Alice' },
-        },
-        {
-          uuid: CANDIDATURE_BRUNO,
-          date_soumission: '2025-06-12T09:15:00Z',
-          date_derniere_activite: '2025-06-12T10:00:00Z',
-          candidat: { uuid: 'eeeeeeee-0001-0001-0001-000000000002', nom: 'Martin', prenom: 'Bruno' },
-        },
-      ],
-    },
-    {
-      etape_uuid: ETAPE_ENTRETIEN,
-      nom: 'Entretien',
-      categorie: 'EN_COURS',
-      candidatures: [],
-    },
-    {
-      etape_uuid: ETAPE_REFUS,
-      nom: 'Refus',
-      categorie: 'REFUS',
-      candidatures: [],
-    },
-  ],
-}
+const PanelWithToasts = defineComponent({
+  render: () => h(CspToaster, null, { default: () => h(CandidaturePanelView) }),
+})
 
 // Web history: closing the panel depends on the browser history state.
 async function renderPanel(paths: string[]) {
@@ -78,7 +49,7 @@ async function renderPanel(paths: string[]) {
   for (const path of paths.slice(1))
     await router.push(path)
 
-  render(CandidaturePanelView, {
+  render(PanelWithToasts, {
     global: { plugins: [createPinia(), PiniaColada, router] },
   })
   return { router, panel: within(await screen.findByRole('dialog')) }
@@ -91,11 +62,15 @@ function closeButton() {
 describe('candidaturePanelView', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    vi.mocked(getRecrutementKanban).mockResolvedValue(MOCK_KANBAN)
-    vi.mocked(getRecrutementDetail).mockResolvedValue({
-      etapes: MOCK_KANBAN.etapes.map(({ etape_uuid, nom, categorie }) => ({ etape_uuid, nom, categorie })),
-    } as unknown as RecrutementDetail)
+    vi.mocked(getRecrutementKanban).mockResolvedValue(KANBAN)
+    vi.mocked(getMotifsRefus).mockResolvedValue(MOTIFS_REFUS)
+    vi.mocked(getRecrutementDetail).mockResolvedValue(RECRUTEMENT_DETAIL)
     vi.mocked(patchEtapeCandidatures).mockResolvedValue({ reussites: [CANDIDATURE_ALICE], echecs: [] })
+  })
+
+  afterEach(() => {
+    const { toasts, dismissToast } = useToast()
+    toasts.value.forEach(toast => dismissToast(toast.id))
   })
 
   it('shows the candidat name and submission date from the kanban data', async () => {
@@ -139,7 +114,10 @@ describe('candidaturePanelView', () => {
     await user.click(screen.getByRole('button', { name: 'Valider' }))
 
     await vi.waitFor(() => expect(router.currentRoute.value.params.candidatureUuid).toBe(CANDIDATURE_BRUNO))
-    expect(patchEtapeCandidatures).toHaveBeenCalledWith(ORGANISME_UUID, RECRUTEMENT_UUID, ETAPE_ENTRETIEN, [CANDIDATURE_ALICE])
+    expect(patchEtapeCandidatures).toHaveBeenCalledWith(ORGANISME_UUID, RECRUTEMENT_UUID, {
+      etapeCibleUuid: ETAPE_ENTRETIEN,
+      candidatureUuids: [CANDIDATURE_ALICE],
+    })
   })
 
   it('confirms the move with a toast that reopens the moved candidature', async () => {
@@ -151,11 +129,8 @@ describe('candidaturePanelView', () => {
     await user.click(screen.getByRole('button', { name: 'Valider' }))
     await vi.waitFor(() => expect(router.currentRoute.value.params.candidatureUuid).toBe(CANDIDATURE_BRUNO))
 
-    const toast = useToast().toasts.value.at(-1)
-    expect(toast?.title).toBe('Alice Dupont est passé à l\'étape Entretien')
-    expect(toast?.duration).toBe(10_000)
-
-    toast?.action?.onSelect()
+    expect(await screen.findByText('Alice Dupont est passé à l\'étape Entretien')).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Revenir à cette candidature' }))
 
     await vi.waitFor(() => expect(router.currentRoute.value.params.candidatureUuid).toBe(CANDIDATURE_ALICE))
     const navigation = within(screen.getByRole('navigation', { name: 'Navigation entre les candidatures de l\'étape' }))
@@ -172,11 +147,34 @@ describe('candidaturePanelView', () => {
 
     const dialog = within(await screen.findByRole('dialog', { name: 'Refus de candidature' }))
     expect(patchEtapeCandidatures).not.toHaveBeenCalled()
+    expect(dialog.getByRole('button', { name: 'Valider le refus' })).toBeDisabled()
 
-    await user.click(dialog.getByRole('button', { name: 'Valider' }))
+    await user.click(dialog.getByRole('combobox', { name: /Motif de refus/ }))
+    await user.click(await screen.findByRole('option', { name: 'Expérience insuffisante' }))
+    await user.click(dialog.getByRole('button', { name: 'Valider le refus' }))
 
     await vi.waitFor(() => expect(router.currentRoute.value.params.candidatureUuid).toBe(CANDIDATURE_BRUNO))
-    expect(patchEtapeCandidatures).toHaveBeenCalledWith(ORGANISME_UUID, RECRUTEMENT_UUID, ETAPE_REFUS, [CANDIDATURE_ALICE])
+    expect(patchEtapeCandidatures).toHaveBeenCalledWith(ORGANISME_UUID, RECRUTEMENT_UUID, {
+      etapeCibleUuid: ETAPE_REFUS,
+      candidatureUuids: [CANDIDATURE_ALICE],
+      motifRefus: 'experience_insuffisante',
+    })
+  })
+
+  it.each([
+    ['the server rejects the move', () => Promise.reject(new Error('boom')), 'Le changement d\'étape a échoué'],
+    ['the server leaves the candidature at its stage', () => Promise.resolve({ reussites: [], echecs: [{ candidature_uuid: CANDIDATURE_ALICE, raison: 'conflit' }] }), 'Certaines candidatures n\'ont pas changé d\'étape'],
+  ])('does not announce the move when %s', async (_case, response, message) => {
+    const user = setupUser()
+    vi.mocked(patchEtapeCandidatures).mockImplementation(response)
+    await renderPanel([`${KANBAN_PATH}/candidatures/${CANDIDATURE_ALICE}`])
+
+    await user.click(await screen.findByRole('button', { name: 'Changer d\'étape' }))
+    await user.click(await screen.findByRole('radio', { name: 'Entretien' }))
+    await user.click(screen.getByRole('button', { name: 'Valider' }))
+
+    expect(await screen.findByText(message)).toBeInTheDocument()
+    expect(screen.queryByText(/est passé à l'étape/)).not.toBeInTheDocument()
   })
 
   it('shows an empty state for a candidature absent from the kanban', async () => {

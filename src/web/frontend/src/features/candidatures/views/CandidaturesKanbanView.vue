@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { EtapeRecrutementDetailedCandidatures } from '../types'
+import type { EtapeRecrutementDetailedCandidatures, MotifRefus } from '../types'
 import type { KanbanDropEvent } from '@/composables/dnd/useKanbanDnd'
 import { computed, nextTick, ref, toRef, watch } from 'vue'
 import { useRoute } from 'vue-router'
@@ -13,12 +13,14 @@ import RefusCandidatureDialog from '../components/RefusCandidatureDialog.vue'
 import SelectionActionBar from '../components/SelectionActionBar.vue'
 import { useCandidatures } from '../composables/useCandidatures'
 import { useKanbanSelection } from '../composables/useKanbanSelection'
+import { useRefusCandidature } from '../composables/useRefusCandidature'
 
 const {
   recrutementUuid,
   recrutementEtapes,
   candidatureKanban,
   pendingKanban,
+  findCandidature,
   moveCandidature,
   moveCandidaturesBatch,
   filters,
@@ -50,21 +52,11 @@ const {
 
 const boardId = computed(() => `kanban-${recrutementUuid.value}`)
 const isDrawerOpen = ref(false)
-const isRefusDialogOpen = ref(false)
 const drawerInitialEtapeUuid = ref<string | null>(null)
-const pendingMove = ref<KanbanDropEvent | null>(null)
+const refus = useRefusCandidature()
 
 const refusEtapeUuid = computed(() => {
   return recrutementEtapes.value.find(e => e.categorie === 'REFUS')?.etape_uuid ?? null
-})
-
-const pendingCandidature = computed(() => {
-  const move = pendingMove.value
-  if (!move)
-    return null
-
-  const etape = candidatureKanban.value.find(e => e.etape_uuid === move.sourceColumnId)
-  return etape?.candidatures.find(c => c.uuid === move.cardId) ?? null
 })
 
 const sourceEtape = computed(() => {
@@ -73,6 +65,12 @@ const sourceEtape = computed(() => {
   return candidatureKanban.value.find(e => e.etape_uuid === currentEtapeUuid.value) ?? null
 })
 
+const selectedCandidats = computed(() =>
+  [...selectedByEtape.value.values()]
+    .flatMap(uuids => [...uuids])
+    .flatMap(uuid => findCandidature(uuid)?.candidat ?? []),
+)
+
 const selectedCandidatureUuids = computed(() => {
   if (!currentEtapeUuid.value)
     return new Set<string>()
@@ -80,17 +78,13 @@ const selectedCandidatureUuids = computed(() => {
 })
 
 function handleMove(event: KanbanDropEvent) {
-  if (event.sourceColumnId !== event.targetColumnId && event.targetColumnId === refusEtapeUuid.value) {
-    pendingMove.value = event
-    isRefusDialogOpen.value = true
+  const candidature = findCandidature(event.cardId)
+  if (candidature && event.sourceColumnId !== event.targetColumnId && event.targetColumnId === refusEtapeUuid.value) {
+    refus.request([candidature.candidat], motifRefus => void moveCandidature({ ...event, motifRefus }))
     return
   }
 
-  moveCandidature({
-    sourceColumnId: event.sourceColumnId,
-    targetColumnId: event.targetColumnId,
-    cardId: event.cardId,
-  })
+  void moveCandidature(event)
 }
 
 function handleToggleColumnSelection(etape: EtapeRecrutementDetailedCandidatures): void {
@@ -107,26 +101,14 @@ function handleRefuser(): void {
   isDrawerOpen.value = true
 }
 
-function handleConfirmRefus(): void {
-  if (!pendingMove.value)
-    return
-
-  moveCandidature({
-    sourceColumnId: pendingMove.value.sourceColumnId,
-    targetColumnId: pendingMove.value.targetColumnId,
-    cardId: pendingMove.value.cardId,
-  })
-
-  pendingMove.value = null
-  isRefusDialogOpen.value = false
-}
-
-function handleCancelRefus(): void {
-  pendingMove.value = null
-  isRefusDialogOpen.value = false
-}
-
 function handleConfirmBatchMove(targetEtapeUuid: string): void {
+  if (targetEtapeUuid === refusEtapeUuid.value)
+    refus.request(selectedCandidats.value, motifRefus => applyBatchMove(targetEtapeUuid, motifRefus))
+  else
+    applyBatchMove(targetEtapeUuid)
+}
+
+function applyBatchMove(targetEtapeUuid: string, motifRefus?: MotifRefus): void {
   const candidaturesByEtape = new Map<string, string[]>()
 
   for (const [etapeUuid, uuids] of selectedByEtape.value) {
@@ -136,6 +118,7 @@ function handleConfirmBatchMove(targetEtapeUuid: string): void {
   moveCandidaturesBatch({
     candidaturesByEtape,
     targetColumnId: targetEtapeUuid,
+    motifRefus,
   })
 
   clearSelection()
@@ -196,7 +179,7 @@ const countLabel = computed(() => {
     />
 
     <ChangerEtapeDrawer
-      :open="isDrawerOpen"
+      :open="isDrawerOpen && !refus.isOpen.value"
       :source-etape="sourceEtape"
       :selected-candidature-uuids="selectedCandidatureUuids"
       :etapes="recrutementEtapes"
@@ -207,10 +190,12 @@ const countLabel = computed(() => {
     />
 
     <RefusCandidatureDialog
-      :open="isRefusDialogOpen"
-      :candidat="pendingCandidature?.candidat ?? null"
-      @confirm="handleConfirmRefus"
-      @cancel="handleCancelRefus"
+      :open="refus.isOpen.value"
+      :candidats="refus.candidats.value"
+      :motifs="refus.motifs.value"
+      :motifs-unavailable="refus.motifsUnavailable.value"
+      @confirm="refus.confirm"
+      @cancel="refus.cancel"
     />
   </div>
 

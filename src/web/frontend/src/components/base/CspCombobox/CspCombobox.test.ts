@@ -12,7 +12,7 @@ function renderCombobox(props: Record<string, unknown> = {}) {
   const result = render(CspCombobox, {
     props: { options: OPTIONS, label: 'Rechercher un élément', ...props },
   })
-  return { ...result, input: result.getByRole('combobox', { name: 'Rechercher un élément' }) }
+  return { ...result, input: result.getByRole('combobox', { name: /Rechercher un élément/ }) }
 }
 
 async function openList(user: ReturnType<typeof setupUser>, input: HTMLElement) {
@@ -26,9 +26,9 @@ describe('cspCombobox', () => {
     vi.useRealTimers()
   })
 
-  it('links the hint to the input', () => {
+  it('names the input with its hint', () => {
     const { input } = renderCombobox({ hint: 'Recherchez par nom' })
-    expect(input).toHaveAccessibleDescription('Recherchez par nom')
+    expect(input).toHaveAccessibleName('Rechercher un élément Recherchez par nom')
   })
 
   it('renders options with their description when open', async () => {

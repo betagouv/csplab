@@ -1,4 +1,4 @@
-import type { Candidature, RecrutementDetailKanban } from '../types'
+import type { Candidature, MotifRefus, RecrutementDetailKanban } from '../types'
 import type { RecrutementDetail } from '@/features/recrutements/types'
 import { defineQuery, useQuery, useQueryCache } from '@pinia/colada'
 import { computed, watch } from 'vue'
@@ -13,11 +13,13 @@ export interface MoveCandidatureParams {
   sourceColumnId: string
   targetColumnId: string
   cardId: string
+  motifRefus?: MotifRefus
 }
 
 export interface MoveCandidaturesBatchParams {
   candidaturesByEtape: Map<string, string[]>
   targetColumnId: string
+  motifRefus?: MotifRefus
 }
 
 export const useCandidatures = defineQuery(() => {
@@ -124,15 +126,15 @@ export const useCandidatures = defineQuery(() => {
     targetColumnId: string,
     candidatureUuids: string[],
     previousData: RecrutementDetailKanban,
-  ): Promise<void> {
+    motifRefus?: MotifRefus,
+  ): Promise<boolean> {
     const key = kanbanQueryKey()
     try {
-      const resultat = await patchEtapeCandidatures(
-        organismeUuid.value!,
-        recrutementUuid.value!,
-        targetColumnId,
+      const resultat = await patchEtapeCandidatures(organismeUuid.value!, recrutementUuid.value!, {
+        etapeCibleUuid: targetColumnId,
         candidatureUuids,
-      )
+        motifRefus,
+      })
       if (resultat.echecs.length > 0) {
         await queryCache.invalidateQueries({ key })
         addToast({
@@ -140,6 +142,7 @@ export const useCandidatures = defineQuery(() => {
           title: 'Certaines candidatures n\'ont pas changé d\'étape',
         })
       }
+      return resultat.echecs.length === 0
     }
     catch {
       queryCache.setQueryData(key, previousData)
@@ -148,28 +151,29 @@ export const useCandidatures = defineQuery(() => {
         title: 'Le changement d\'étape a échoué',
         description: 'Vos candidatures sont restées à leur étape actuelle.',
       })
+      return false
     }
   }
 
-  function moveCandidature(params: MoveCandidatureParams): void {
-    const { sourceColumnId, targetColumnId, cardId } = params
+  async function moveCandidature(params: MoveCandidatureParams): Promise<boolean> {
+    const { sourceColumnId, targetColumnId, cardId, motifRefus } = params
 
     if (sourceColumnId === targetColumnId)
-      return
+      return false
 
     const kanbanData = kanban.data.value
     if (!kanbanData)
-      return
+      return false
 
     const sourceEtape = kanbanData.etapes.find(e => e.etape_uuid === sourceColumnId)
     const targetEtape = kanbanData.etapes.find(e => e.etape_uuid === targetColumnId)
 
     if (!sourceEtape || !targetEtape)
-      return
+      return false
 
     const candidatureIndex = sourceEtape.candidatures.findIndex(c => c.uuid === cardId)
     if (candidatureIndex === -1)
-      return
+      return false
 
     const candidature = sourceEtape.candidatures[candidatureIndex] as Candidature
 
@@ -190,11 +194,11 @@ export const useCandidatures = defineQuery(() => {
     })
 
     queryCache.setQueryData(kanbanQueryKey(), { ...kanbanData, etapes: newEtapes })
-    void persistEtapeChange(targetColumnId, [cardId], kanbanData)
+    return persistEtapeChange(targetColumnId, [cardId], kanbanData, motifRefus)
   }
 
   function moveCandidaturesBatch(params: MoveCandidaturesBatchParams): void {
-    const { candidaturesByEtape, targetColumnId } = params
+    const { candidaturesByEtape, targetColumnId, motifRefus } = params
 
     const kanbanData = kanban.data.value
     if (!kanbanData)
@@ -250,6 +254,7 @@ export const useCandidatures = defineQuery(() => {
       targetColumnId,
       candidaturesToMove.map(c => c.uuid),
       kanbanData,
+      motifRefus,
     )
   }
 
@@ -264,6 +269,7 @@ export const useCandidatures = defineQuery(() => {
   })
 
   return {
+    organismeUuid,
     recrutementUuid,
     recrutementDetail,
     intitule,

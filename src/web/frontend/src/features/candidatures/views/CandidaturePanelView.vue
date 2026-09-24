@@ -206,10 +206,12 @@ function handleUpdateOpen(open: boolean): void {
   </CspDrawer>
 
   <RefusCandidatureDialog
-    :open="etapeChange.isRefusPending.value"
-    :candidat="candidature?.candidat ?? null"
-    @confirm="etapeChange.confirmRefus"
-    @cancel="etapeChange.cancelRefus"
+    :open="etapeChange.refus.isOpen.value"
+    :candidats="etapeChange.refus.candidats.value"
+    :motifs="etapeChange.refus.motifs.value"
+    :motifs-unavailable="etapeChange.refus.motifsUnavailable.value"
+    @confirm="etapeChange.refus.confirm"
+    @cancel="etapeChange.refus.cancel"
   />
 </template>
 
