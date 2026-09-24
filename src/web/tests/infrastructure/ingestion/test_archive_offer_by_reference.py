@@ -11,7 +11,9 @@ from application.ingestion.interfaces.archive_offer_by_reference_input import (
 from config.app_config import AppConfig
 from infrastructure.di.ingestion.ingestion_container import IngestionContainer
 from infrastructure.di.shared.shared_container import SharedContainer
-from infrastructure.factories.referentiel.offer_factory import OfferFactory
+from infrastructure.factories.referentiel.offer_django_factory import (
+    OfferDjangoFactory,
+)
 from infrastructure.gateways.shared.logger import LoggerService
 from infrastructure.mappers.offer_mapper import OfferMapper
 from infrastructure.repositories.shared.postgres_offers_repository import (
@@ -57,7 +59,7 @@ def use_case(db, vector_repository):
 
 class TestArchiveOfferByReferenceUsecase:
     def test_archives_offer_by_reference(self, db, use_case, offers_repository):
-        OfferFactory.create_model(reference=REFERENCE, source_id=SOURCE_ID)
+        OfferDjangoFactory(reference=REFERENCE, source__source_id=SOURCE_ID)
         use_case.execute(
             ArchiveOfferByReferenceInput(reference=REFERENCE, source_id=SOURCE_ID)
         )
@@ -66,7 +68,7 @@ class TestArchiveOfferByReferenceUsecase:
 
     def test_deletes_vectors_for_offer(self, db, use_case, vector_repository):
         offer = _mapper.to_domain(
-            OfferFactory.create_model(reference=REFERENCE, source_id=SOURCE_ID)
+            OfferDjangoFactory(reference=REFERENCE, source__source_id=SOURCE_ID)
         )
         use_case.execute(
             ArchiveOfferByReferenceInput(reference=REFERENCE, source_id=SOURCE_ID)
