@@ -1,4 +1,4 @@
-import type { RouteRecordRaw } from 'vue-router'
+import type { RouteRecordNameGeneric, RouteRecordRaw } from 'vue-router'
 import type { CandidaturePanelTabKey, CandidatureTabKey } from './constants/candidature'
 import { tabMetaFor } from '@/composables/navigation/tabs'
 import { ORGANISME_PATH_PREFIX, UUID_ROUTE_PARAM } from '@/router/params'
@@ -9,7 +9,14 @@ export const CANDIDATURE_ROUTE_NAME = 'recrutement-candidature'
 export const CANDIDATURE_PANEL_TAB_ROUTE_NAMES = {
   candidature: CANDIDATURE_ROUTE_NAME,
   documents: 'recrutement-candidature-documents',
+  messages: 'recrutement-candidature-messages',
 } as const satisfies Record<CandidaturePanelTabKey, string>
+
+const PANEL_ROUTE_NAMES = new Set<string>(Object.values(CANDIDATURE_PANEL_TAB_ROUTE_NAMES))
+
+export function isCandidaturePanelRoute(name: RouteRecordNameGeneric): boolean {
+  return typeof name === 'string' && PANEL_ROUTE_NAMES.has(name)
+}
 
 export const CANDIDATURES_TAB_ROUTE_NAMES = {
   'candidatures': 'recrutement-candidatures-kanban',
@@ -21,6 +28,7 @@ const tabMeta = tabMetaFor(CANDIDATURE_TAB_LABELS)
 const panelTabMeta = tabMetaFor(CANDIDATURE_PANEL_TAB_LABELS)
 
 const RECRUTEMENT_PATH = `${ORGANISME_PATH_PREFIX}/recrutements/:recrutementUuid${UUID_ROUTE_PARAM}`
+const CANDIDATURE_PANEL_PATH = `candidatures/:candidatureUuid${UUID_ROUTE_PARAM}`
 
 export const candidaturesRoutes: RouteRecordRaw[] = [
   {
@@ -46,16 +54,22 @@ export const candidaturesRoutes: RouteRecordRaw[] = [
         component: () => import('./views/CandidaturesKanbanView.vue'),
         children: [
           {
-            path: `candidatures/:candidatureUuid${UUID_ROUTE_PARAM}`,
+            path: CANDIDATURE_PANEL_PATH,
             name: CANDIDATURE_PANEL_TAB_ROUTE_NAMES.candidature,
             component: () => import('./views/CandidaturePanelView.vue'),
             meta: panelTabMeta('candidature'),
           },
           {
-            path: `candidatures/:candidatureUuid${UUID_ROUTE_PARAM}/documents`,
+            path: `${CANDIDATURE_PANEL_PATH}/documents`,
             name: CANDIDATURE_PANEL_TAB_ROUTE_NAMES.documents,
             component: () => import('./views/CandidaturePanelView.vue'),
             meta: panelTabMeta('documents'),
+          },
+          {
+            path: `${CANDIDATURE_PANEL_PATH}/messages`,
+            name: CANDIDATURE_PANEL_TAB_ROUTE_NAMES.messages,
+            component: () => import('./views/CandidaturePanelView.vue'),
+            meta: panelTabMeta('messages'),
           },
         ],
       },

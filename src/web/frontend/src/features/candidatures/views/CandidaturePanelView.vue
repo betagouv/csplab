@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { CandidaturePanelTabKey } from '../constants/candidature'
 import type { Candidature } from '../types'
 import { computed, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
@@ -52,7 +53,8 @@ watch(candidatureUuid, () => {
 })
 
 const TABS = tabItems(CANDIDATURE_PANEL_TAB_LABELS, CANDIDATURE_PANEL_TAB_ICONS)
-const activeTab = useRouteTab(CANDIDATURE_PANEL_TAB_ROUTE_NAMES, 'candidature')
+const activeTab = useRouteTab<CandidaturePanelTabKey>(CANDIDATURE_PANEL_TAB_ROUTE_NAMES, 'candidature')
+const showAside = computed(() => activeTab.value !== 'messages')
 
 const candidatureParams = computed(() => ({
   organismeUuid: route.params.organismeUuid as string,
@@ -159,7 +161,10 @@ function handleUpdateOpen(open: boolean): void {
           ref="scrollArea"
           class="candidature-panel__scroll"
         >
-          <div class="candidature-panel__layout">
+          <div
+            class="candidature-panel__layout"
+            :class="{ 'candidature-panel__layout--full': !showAside }"
+          >
             <CspTabsPanels
               :tabs="TABS"
               fill
@@ -182,8 +187,17 @@ function handleUpdateOpen(open: boolean): void {
                   />
                 </div>
               </template>
+
+              <template #messages>
+                <div class="candidature-panel__tab">
+                  <p class="candidature-panel__placeholder">
+                    Conversations (à venir)
+                  </p>
+                </div>
+              </template>
             </CspTabsPanels>
             <aside
+              v-if="showAside"
               class="candidature-panel__aside"
               aria-label="Suivi de la candidature"
             >
@@ -291,6 +305,10 @@ function handleUpdateOpen(open: boolean): void {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 20rem;
   min-height: 100%;
+}
+
+.candidature-panel__layout--full {
+  grid-template-columns: minmax(0, 1fr);
 }
 
 .candidature-panel__main {
