@@ -12,7 +12,12 @@ export const CANDIDATURE_PANEL_TAB_ROUTE_NAMES = {
   messages: 'recrutement-candidature-messages',
 } as const satisfies Record<CandidaturePanelTabKey, string>
 
-const PANEL_ROUTE_NAMES = new Set<string>(Object.values(CANDIDATURE_PANEL_TAB_ROUTE_NAMES))
+export const CANDIDATURE_CONVERSATION_ROUTE_NAME = 'recrutement-candidature-conversation'
+
+const PANEL_ROUTE_NAMES = new Set<string>([
+  ...Object.values(CANDIDATURE_PANEL_TAB_ROUTE_NAMES),
+  CANDIDATURE_CONVERSATION_ROUTE_NAME,
+])
 
 export function isCandidaturePanelRoute(name: RouteRecordNameGeneric): boolean {
   return typeof name === 'string' && PANEL_ROUTE_NAMES.has(name)
@@ -68,6 +73,12 @@ export const candidaturesRoutes: RouteRecordRaw[] = [
           {
             path: `${CANDIDATURE_PANEL_PATH}/messages`,
             name: CANDIDATURE_PANEL_TAB_ROUTE_NAMES.messages,
+            component: () => import('./views/CandidaturePanelView.vue'),
+            meta: panelTabMeta('messages'),
+          },
+          {
+            path: `${CANDIDATURE_PANEL_PATH}/messages/:conversationUuid${UUID_ROUTE_PARAM}`,
+            name: CANDIDATURE_CONVERSATION_ROUTE_NAME,
             component: () => import('./views/CandidaturePanelView.vue'),
             meta: panelTabMeta('messages'),
           },
