@@ -19,7 +19,7 @@ pytestmark = pytest.mark.django_db
 
 class TalentsoftOrganismeUpsertPayloadFactory(factory.DictFactory):
     entity_code = "ENT-1"
-    code = factory.Sequence(lambda n: 7060 + n)
+    code = factory.Sequence(lambda n: n + 1)
     parent_code = None
     has_children = False
     name = "Commune de Paris"
@@ -273,8 +273,8 @@ def test_duplicate_entity_code_in_same_batch_is_rejected(api_key_client):
 
 
 def test_duplicate_code_in_same_batch_is_rejected(api_key_client):
-    first = TalentsoftOrganismeUpsertPayloadFactory(entity_code="ENT-A", code=7060)
-    second = TalentsoftOrganismeUpsertPayloadFactory(entity_code="ENT-B", code=7060)
+    first = TalentsoftOrganismeUpsertPayloadFactory(entity_code="ENT-A", code=1)
+    second = TalentsoftOrganismeUpsertPayloadFactory(entity_code="ENT-B", code=1)
 
     response = api_key_client.post(
         URL,
