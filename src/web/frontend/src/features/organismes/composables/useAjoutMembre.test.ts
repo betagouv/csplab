@@ -1,9 +1,9 @@
-import type { AgentRecherche } from '../types'
 import { PiniaColada } from '@pinia/colada'
 import { mount } from '@vue/test-utils'
 import { createPinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { defineComponent, h, nextTick } from 'vue'
+import { AGENT_RECHERCHE } from '@/test/fixtures/organismes'
 import { useAjoutMembre } from './useAjoutMembre'
 import { useOrganismeAgents } from './useOrganismeAgents'
 
@@ -22,14 +22,6 @@ vi.mock('../api', () => ({
 }))
 
 const ORGANISME_UUID = '11111111-1111-1111-1111-111111111111'
-
-const AGENT: AgentRecherche = {
-  agent_id: 'aaaaaaaa-0001-0001-0001-000000000001',
-  email: 'jeanne.dupont@example.gouv.fr',
-  prenom: 'Jeanne',
-  nom: 'Dupont',
-  intitule_poste: 'Responsable recrutement',
-}
 
 async function flush() {
   await new Promise(resolve => setTimeout(resolve, 0))
@@ -59,18 +51,18 @@ describe('useAjoutMembre', () => {
   })
 
   it('attaches the found agent and refetches the list', async () => {
-    mockSearchAgentByEmail.mockResolvedValue(AGENT)
+    mockSearchAgentByEmail.mockResolvedValue(AGENT_RECHERCHE)
     mockSetAgentRole.mockResolvedValue({})
     const { search, add } = mountAjoutMembre()
     await flush()
 
-    await search(AGENT.email)
+    await search(AGENT_RECHERCHE.email)
     await add('agent')
     await flush()
 
     expect(mockCreateAgent).not.toHaveBeenCalled()
     expect(mockSetAgentRole).toHaveBeenCalledWith(ORGANISME_UUID, {
-      agent_id: AGENT.agent_id,
+      agent_id: AGENT_RECHERCHE.agent_id,
       role: 'agent',
     })
     expect(mockGetOrganismeAgents).toHaveBeenCalledTimes(2)
@@ -78,7 +70,7 @@ describe('useAjoutMembre', () => {
 
   it('creates the agent then attaches it when no account matches', async () => {
     mockSearchAgentByEmail.mockResolvedValue(null)
-    mockCreateAgent.mockResolvedValue({ ...AGENT, prenom: '', nom: '', intitule_poste: '' })
+    mockCreateAgent.mockResolvedValue({ ...AGENT_RECHERCHE, prenom: '', nom: '', intitule_poste: '' })
     mockSetAgentRole.mockResolvedValue({})
     const { search, add } = mountAjoutMembre()
     await flush()
@@ -91,7 +83,7 @@ describe('useAjoutMembre', () => {
       organisme_id: ORGANISME_UUID,
     })
     expect(mockSetAgentRole).toHaveBeenCalledWith(ORGANISME_UUID, {
-      agent_id: AGENT.agent_id,
+      agent_id: AGENT_RECHERCHE.agent_id,
       role: 'superviseur',
     })
   })

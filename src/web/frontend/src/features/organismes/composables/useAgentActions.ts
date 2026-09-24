@@ -1,32 +1,28 @@
+import type { InjectionKey } from 'vue'
 import type { AgentOrganisme, Role } from '../types'
-import { ref } from 'vue'
+import type { Request } from '@/composables/ui/useRequest'
+import { inject, provide } from 'vue'
+import { createRequest } from '@/composables/ui/useRequest'
 
-const roleChange = ref<{ agent: AgentOrganisme, role: Role } | null>(null)
-const revocationAgent = ref<AgentOrganisme | null>(null)
-
-function requestRoleChange(agent: AgentOrganisme, role: Role): void {
-  roleChange.value = { agent, role }
+export interface AgentActions {
+  roleChange: Request<{ agent: AgentOrganisme, role: Role }>
+  revocation: Request<AgentOrganisme>
 }
 
-function clearRoleChange(): void {
-  roleChange.value = null
-}
+const KEY: InjectionKey<AgentActions> = Symbol('agent-actions')
 
-function requestRevocation(agent: AgentOrganisme): void {
-  revocationAgent.value = agent
-}
-
-function clearRevocation(): void {
-  revocationAgent.value = null
-}
-
-export function useAgentActions() {
-  return {
-    roleChange,
-    requestRoleChange,
-    clearRoleChange,
-    revocationAgent,
-    requestRevocation,
-    clearRevocation,
+export function provideAgentActions(): AgentActions {
+  const actions: AgentActions = {
+    roleChange: createRequest(),
+    revocation: createRequest(),
   }
+  provide(KEY, actions)
+  return actions
+}
+
+export function useAgentActions(): AgentActions {
+  const actions = inject(KEY)
+  if (!actions)
+    throw new Error('useAgentActions must be used within provideAgentActions')
+  return actions
 }

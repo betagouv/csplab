@@ -1,77 +1,48 @@
-import type { AgentRecherche } from '@/features/organismes/types'
-import { mount } from '@vue/test-utils'
+import { render, screen } from '@testing-library/vue'
 import { describe, expect, it } from 'vitest'
-import { nextTick } from 'vue'
+import { AGENT_RECHERCHE } from '@/test/fixtures/organismes'
+import { setupUser } from '@/test/render'
 import AjoutMembreEquipeDrawer from './AjoutMembreEquipeDrawer.vue'
 
-const AGENT: AgentRecherche = {
-  agent_id: 'bbbbbbbb-0001-0001-0001-000000000001',
-  email: 'jeanne.dupont@example.gouv.fr',
-  prenom: 'Jeanne',
-  nom: 'Dupont',
-  intitule_poste: 'Chargée de recrutement',
-}
-
-function mountDrawer(props: Record<string, unknown> = {}) {
-  return mount(AjoutMembreEquipeDrawer, {
-    props: {
-      open: true,
-      status: 'idle',
-      ...props,
-    },
-    attachTo: document.body,
+function renderDrawer(props: Record<string, unknown> = {}) {
+  return render(AjoutMembreEquipeDrawer, {
+    props: { open: true, status: 'idle', ...props },
   })
-}
-
-function submitButton() {
-  return document.querySelector<HTMLButtonElement>('button[type="submit"]')
-}
-
-async function pickRole(value: string) {
-  document.querySelector<HTMLElement>(`[role="radio"][value="${value}"]`)?.click()
-  await nextTick()
 }
 
 describe('ajoutMembreEquipeDrawer', () => {
   it('offers no role and no submission before the search has answered', async () => {
-    const wrapper = mountDrawer()
-    await nextTick()
+    renderDrawer()
 
-    expect(submitButton()).toBeNull()
-    expect(document.querySelector('[role="radiogroup"]')).toBeNull()
-    wrapper.unmount()
+    await screen.findByRole('dialog', { name: 'Ajouter un membre' })
+    expect(screen.queryByRole('radiogroup')).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /Ajouter le membre|Créer et ajouter/ })).not.toBeInTheDocument()
   })
 
   it('adds the found agent as contributeur by default', async () => {
-    const wrapper = mountDrawer({ status: 'found', agent: AGENT })
-    await nextTick()
+    const user = setupUser()
+    const { emitted } = renderDrawer({ status: 'found', agent: AGENT_RECHERCHE })
 
-    expect(document.body.textContent).toContain('Jeanne Dupont')
-    expect(submitButton()!.textContent).toContain('Ajouter le membre')
-    submitButton()!.click()
-    await nextTick()
+    expect(await screen.findByText('Jeanne Dupont')).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Ajouter le membre' }))
 
-    expect(wrapper.emitted('add')).toEqual([['contributeur']])
-    wrapper.unmount()
+    expect(emitted('add')).toEqual([['contributeur']])
   })
 
   it('adds the found agent with the chosen role', async () => {
-    const wrapper = mountDrawer({ status: 'found', agent: AGENT })
-    await nextTick()
-    await pickRole('responsable')
-    submitButton()!.click()
-    await nextTick()
+    const user = setupUser()
+    const { emitted } = renderDrawer({ status: 'found', agent: AGENT_RECHERCHE })
 
-    expect(wrapper.emitted('add')).toEqual([['responsable']])
-    wrapper.unmount()
+    await user.click(await screen.findByRole('radio', { name: 'Responsable' }))
+    await user.click(screen.getByRole('button', { name: 'Ajouter le membre' }))
+
+    expect(emitted('add')).toEqual([['responsable']])
   })
 
   it('announces the account creation when no agent matches the email', async () => {
-    const wrapper = mountDrawer({ status: 'not-found' })
-    await nextTick()
+    renderDrawer({ status: 'not-found' })
 
-    expect(document.body.textContent).toContain('Un compte sera créé')
-    expect(submitButton()!.textContent).toContain('Créer et ajouter')
-    wrapper.unmount()
+    expect(await screen.findByText(/Un compte sera créé/)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Créer et ajouter' })).toBeInTheDocument()
   })
 })

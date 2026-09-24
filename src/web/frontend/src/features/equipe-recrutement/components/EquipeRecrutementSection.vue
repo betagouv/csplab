@@ -17,7 +17,7 @@ import { pluralize } from '@/utils/format'
 import { EQUIPE_RECRUTEMENT_ACTIONS_COLUMN, EQUIPE_RECRUTEMENT_COLUMNS } from '../columns'
 import { useAjoutMembreEquipe } from '../composables/useAjoutMembreEquipe'
 import { useEquipeRecrutement } from '../composables/useEquipeRecrutement'
-import { useMembreEquipeActions } from '../composables/useMembreEquipeActions'
+import { provideMembreEquipeActions } from '../composables/useMembreEquipeActions'
 import { RECRUTEMENT_ROLE_LABELS } from '../constants/equipe-recrutement'
 import { formatMembreLabel } from '../format'
 import AjoutMembreEquipeDrawer from './AjoutMembreEquipeDrawer.vue'
@@ -42,7 +42,7 @@ const {
   submitting,
   reset: resetAgent,
 } = useAjoutMembreEquipe(props.organismeUuid, props.recrutementUuid)
-const { revocationMembre, clearRevocation, roleChange, clearRoleChange } = useMembreEquipeActions()
+const { revocation, roleChange } = provideMembreEquipeActions()
 const { canManageOrganisme } = useRouteOrganisme()
 const { addToast } = useToast()
 
@@ -87,11 +87,11 @@ async function handleAdd(role: RecrutementRole) {
   }
 }
 
-watch(roleChange, async (change) => {
+watch(() => roleChange.requested, async (change) => {
   if (!change)
     return
   const { membre, role } = change
-  clearRoleChange()
+  roleChange.clear()
   try {
     await changeRole({ membre, role })
     addToast({
@@ -105,20 +105,20 @@ watch(roleChange, async (change) => {
   }
 })
 
-watch(revocationMembre, (membre) => {
+watch(() => revocation.requested, (membre) => {
   if (membre)
     revocationDialogOpen.value = true
 })
 
 watch(revocationDialogOpen, (isOpen) => {
   if (!isOpen)
-    clearRevocation()
+    revocation.clear()
 })
 
 async function handleRevocation(): Promise<void> {
-  if (!revocationMembre.value)
+  if (!revocation.requested)
     return
-  const membre = revocationMembre.value
+  const membre = revocation.requested
   try {
     await revoke(membre)
     addToast({
@@ -235,8 +235,8 @@ const countLabel = computed(() => {
       title="Retirer de l’équipe"
       size="sm"
     >
-      <template v-if="revocationMembre">
-        {{ formatMembreLabel(revocationMembre) }} perdra l'accès aux candidatures de ce
+      <template v-if="revocation.requested">
+        {{ formatMembreLabel(revocation.requested) }} perdra l'accès aux candidatures de ce
         recrutement. Son compte reste rattaché à l'organisme et pourra être réintégré à
         l'équipe plus tard.
       </template>

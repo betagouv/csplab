@@ -13,14 +13,14 @@ import { useTextSearch } from '@/composables/data/useTextSearch'
 import { useToast } from '@/composables/ui/useToast'
 import { pluralize } from '@/utils/format'
 import { ORGANISMES_LIST_COLUMNS } from '../columns'
-import { useOrganismeEdition } from '../composables/useOrganismeEdition'
+import { provideOrganismeEdition } from '../composables/useOrganismeEdition'
 import { useOrganismes } from '../composables/useOrganismes'
 import OrganismeFormDrawer from './OrganismeFormDrawer.vue'
 
 const PAGE_SIZE = 8
 
 const { organismesList, pending, error, create, creating, update, updating } = useOrganismes()
-const { editedOrganisme, closeEdition } = useOrganismeEdition()
+const edition = provideOrganismeEdition()
 
 const showSkeleton = useMinimumPending(pending)
 
@@ -28,11 +28,11 @@ const page = ref(1)
 const creationOpen = ref(false)
 
 const drawerOpen = computed({
-  get: () => creationOpen.value || editedOrganisme.value !== null,
+  get: () => creationOpen.value || edition.requested !== null,
   set: (value) => {
     if (!value) {
       creationOpen.value = false
-      closeEdition()
+      edition.clear()
     }
   },
 })
@@ -72,10 +72,10 @@ async function handleCreate(payload: CreateOrganismePayload): Promise<void> {
 }
 
 async function handleUpdate(payload: UpdateOrganismePayload): Promise<void> {
-  if (!editedOrganisme.value)
+  if (!edition.requested)
     return
   try {
-    await update({ organismeUuid: editedOrganisme.value.organisme_uuid, payload })
+    await update({ organismeUuid: edition.requested.organisme_uuid, payload })
     addToast({ variant: 'success', title: 'Organisme modifié' })
     drawerOpen.value = false
   }
@@ -141,7 +141,7 @@ async function handleUpdate(payload: UpdateOrganismePayload): Promise<void> {
     <OrganismeFormDrawer
       ref="formDrawer"
       v-model:open="drawerOpen"
-      :organisme="editedOrganisme"
+      :organisme="edition.requested"
       :saving="saving"
       @create="handleCreate"
       @update="handleUpdate"

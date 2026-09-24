@@ -1,20 +1,20 @@
+import type { InjectionKey } from 'vue'
 import type { OrganismesList } from '../types'
-import { ref } from 'vue'
+import type { Request } from '@/composables/ui/useRequest'
+import { inject, provide } from 'vue'
+import { createRequest } from '@/composables/ui/useRequest'
 
-const editedOrganisme = ref<OrganismesList | null>(null)
+const KEY: InjectionKey<Request<OrganismesList>> = Symbol('organisme-edition')
 
-function openEdition(organisme: OrganismesList): void {
-  editedOrganisme.value = organisme
+export function provideOrganismeEdition(): Request<OrganismesList> {
+  const edition = createRequest<OrganismesList>()
+  provide(KEY, edition)
+  return edition
 }
 
-function closeEdition(): void {
-  editedOrganisme.value = null
-}
-
-export function useOrganismeEdition() {
-  return {
-    editedOrganisme,
-    openEdition,
-    closeEdition,
-  }
+export function useOrganismeEdition(): Request<OrganismesList> {
+  const edition = inject(KEY)
+  if (!edition)
+    throw new Error('useOrganismeEdition must be used within provideOrganismeEdition')
+  return edition
 }

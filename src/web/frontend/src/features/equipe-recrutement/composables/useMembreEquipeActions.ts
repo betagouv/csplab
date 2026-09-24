@@ -1,32 +1,28 @@
+import type { InjectionKey } from 'vue'
 import type { MembreEquipe, RecrutementRole } from '../types'
-import { ref } from 'vue'
+import type { Request } from '@/composables/ui/useRequest'
+import { inject, provide } from 'vue'
+import { createRequest } from '@/composables/ui/useRequest'
 
-const revocationMembre = ref<MembreEquipe | null>(null)
-const roleChange = ref<{ membre: MembreEquipe, role: RecrutementRole } | null>(null)
-
-function requestRevocation(membre: MembreEquipe): void {
-  revocationMembre.value = membre
+export interface MembreEquipeActions {
+  revocation: Request<MembreEquipe>
+  roleChange: Request<{ membre: MembreEquipe, role: RecrutementRole }>
 }
 
-function clearRevocation(): void {
-  revocationMembre.value = null
-}
+const KEY: InjectionKey<MembreEquipeActions> = Symbol('membre-equipe-actions')
 
-function requestRoleChange(membre: MembreEquipe, role: RecrutementRole): void {
-  roleChange.value = { membre, role }
-}
-
-function clearRoleChange(): void {
-  roleChange.value = null
-}
-
-export function useMembreEquipeActions() {
-  return {
-    revocationMembre,
-    requestRevocation,
-    clearRevocation,
-    roleChange,
-    requestRoleChange,
-    clearRoleChange,
+export function provideMembreEquipeActions(): MembreEquipeActions {
+  const actions: MembreEquipeActions = {
+    revocation: createRequest(),
+    roleChange: createRequest(),
   }
+  provide(KEY, actions)
+  return actions
+}
+
+export function useMembreEquipeActions(): MembreEquipeActions {
+  const actions = inject(KEY)
+  if (!actions)
+    throw new Error('useMembreEquipeActions must be used within provideMembreEquipeActions')
+  return actions
 }

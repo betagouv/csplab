@@ -1,17 +1,9 @@
-import type { AgentRecherche } from '../types'
 import { fireEvent, render, screen } from '@testing-library/vue'
 import { describe, expect, it } from 'vitest'
 import { defineComponent, h, nextTick, ref } from 'vue'
+import { AGENT_RECHERCHE } from '@/test/fixtures/organismes'
 import { setupUser } from '@/test/render'
 import AttachAgentDrawer from './AttachAgentDrawer.vue'
-
-const AGENT_RECHERCHE: AgentRecherche = {
-  agent_id: 'aaaaaaaa-0001-0001-0001-000000000001',
-  email: 'jeanne.dupont@example.gouv.fr',
-  prenom: 'Jeanne',
-  nom: 'Dupont',
-  intitule_poste: 'Responsable recrutement',
-}
 
 type DrawerInstance = InstanceType<typeof AttachAgentDrawer>
 
