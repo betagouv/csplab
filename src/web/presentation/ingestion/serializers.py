@@ -526,11 +526,11 @@ class OfferDetailQuerySerializer(serializers.Serializer):
 
 
 class FakeTsCodedObjectSerializer(serializers.Serializer):
-    code = serializers.CharField(allow_null=True)
+    code = serializers.IntegerField(allow_null=True)
     clientCode = serializers.CharField()
     label = serializers.CharField()
     active = serializers.BooleanField()
-    parentCode = serializers.CharField(allow_null=True)
+    parentCode = serializers.IntegerField(allow_null=True)
     type = serializers.CharField()
     parentType = serializers.CharField(allow_blank=True)
     hasChildren = serializers.BooleanField()

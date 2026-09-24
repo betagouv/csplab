@@ -1204,6 +1204,7 @@ paths:
           - experience_level
           - management
           - offer_family_category
+          - organisation
           - radius
           - region
           - verse
@@ -4071,7 +4072,7 @@ components:
       type: object
       properties:
         code:
-          type: string
+          type: integer
           nullable: true
         clientCode:
           type: string
@@ -4080,7 +4081,7 @@ components:
         active:
           type: boolean
         parentCode:
-          type: string
+          type: integer
           nullable: true
         type:
           type: string

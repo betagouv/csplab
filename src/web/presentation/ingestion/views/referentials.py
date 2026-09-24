@@ -12,6 +12,9 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
+from infrastructure.django_apps.ingestion.models.talentsoft_organisme import (
+    TalentsoftOrganismeModel,
+)
 from presentation.api.serializers import GenericErrorSerializer
 from presentation.ingestion.serializers import (
     COUNTRY_NAMES,
@@ -22,12 +25,30 @@ from presentation.ingestion.serializers import (
 )
 
 
+def _coded_item(client_code, label):
+    return {"clientCode": client_code, "label": label}
+
+
 def _enum_items(enum_cls):
-    return [(member.name, member.label) for member in enum_cls]
+    return [_coded_item(member.name, member.label) for member in enum_cls]
 
 
 def _code_names_items(names):
-    return sorted(names.items())
+    return [_coded_item(code, name) for code, name in sorted(names.items())]
+
+
+def _organisation_items():
+    return [
+        {
+            "code": organisme.code,
+            "clientCode": organisme.entity_code,
+            "label": organisme.name,
+            "parentCode": organisme.parent_code,
+            "parentType": "organisation" if organisme.parent_code else "",
+            "hasChildren": organisme.has_children,
+        }
+        for organisme in TalentsoftOrganismeModel.objects.order_by("entity_code")
+    ]
 
 
 REFERENTIAL_TYPES = {
@@ -39,6 +60,7 @@ REFERENTIAL_TYPES = {
     "experience_level": lambda: _enum_items(ExperienceLevel),
     "management": lambda: _enum_items(Management),
     "offer_family_category": lambda: _enum_items(Category),
+    "organisation": _organisation_items,
     "radius": lambda: _enum_items(Radius),
     "region": lambda: _code_names_items(REGION_NAMES),
     "verse": lambda: _enum_items(Verse),
@@ -81,15 +103,14 @@ class ReferentialListView(APIView):
         data = [
             {
                 "code": None,
-                "clientCode": client_code,
-                "label": label,
                 "active": True,
                 "parentCode": None,
                 "type": referential_type,
                 "parentType": "",
                 "hasChildren": False,
+                **item,
             }
-            for client_code, label in build_items()
+            for item in build_items()
         ]
 
         return Response(self.serializer_class(data, many=True).data)

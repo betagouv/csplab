@@ -9,6 +9,9 @@ from referentiel.value_objects.radius import Radius
 from referentiel.value_objects.verse import Verse
 from rest_framework import status
 
+from infrastructure.django_apps.ingestion.models.talentsoft_organisme import (
+    TalentsoftOrganismeModel,
+)
 from presentation.ingestion.serializers import (
     COUNTRY_NAMES,
     DEPARTMENT_NAMES,
@@ -73,6 +76,46 @@ def test_returns_all_code_names(authenticated_client, referential_type, names):
     assert {item["label"] for item in data} == set(names.values())
     assert all(item["type"] == referential_type for item in data)
     assert all(item["active"] is True for item in data)
+
+
+@pytest.mark.django_db
+def test_returns_all_talentsoft_organismes(authenticated_client):
+    TalentsoftOrganismeModel.objects.create(
+        entity_code="ENT-1", code=1, name="Ministère", has_children=True
+    )
+    TalentsoftOrganismeModel.objects.create(
+        entity_code="ENT-2", code=2, name="Direction", parent_code=1
+    )
+    url = reverse(
+        "ingestion_fake_ts:referentials_list",
+        kwargs={"referential_type": "organisation"},
+    )
+
+    response = authenticated_client.get(url)
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json() == [
+        {
+            "code": 1,
+            "clientCode": "ENT-1",
+            "label": "Ministère",
+            "active": True,
+            "parentCode": None,
+            "type": "organisation",
+            "parentType": "",
+            "hasChildren": True,
+        },
+        {
+            "code": 2,
+            "clientCode": "ENT-2",
+            "label": "Direction",
+            "active": True,
+            "parentCode": 1,
+            "type": "organisation",
+            "parentType": "organisation",
+            "hasChildren": False,
+        },
+    ]
 
 
 def test_unauthenticated_access(api_client):
