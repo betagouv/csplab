@@ -26,13 +26,30 @@ const OPENING_TARGETS = {
   'demande': '.slot-request',
 }
 
+const root = ref<HTMLElement | null>(null)
+
+function scrollContainerOf(element: HTMLElement): HTMLElement | null {
+  let parent = element.parentElement
+  while (parent) {
+    if (/auto|scroll/.test(getComputedStyle(parent).overflowY))
+      return parent
+    parent = parent.parentElement
+  }
+  return null
+}
+
 onMounted(() => {
   if (props.ouverture === 'haut')
     return
   const selector = OPENING_TARGETS[props.ouverture]
   setTimeout(() => {
-    const target = document.querySelector(selector)
-    if (target)
+    const target = root.value?.querySelector(selector)
+    const container = root.value ? scrollContainerOf(root.value) : null
+    if (!target)
+      return
+    if (container)
+      container.scrollTop += target.getBoundingClientRect().top - container.getBoundingClientRect().top - 16
+    else
       window.scrollTo({ top: target.getBoundingClientRect().top + window.scrollY - 16 })
   }, 100)
 })
@@ -56,7 +73,10 @@ function open(id: string): void {
 </script>
 
 <template>
-  <div class="candidate-space">
+  <div
+    ref="root"
+    class="candidate-space"
+  >
     <header class="candidate-space__header">
       <div class="candidate-space__header-inner">
         <p class="candidate-space__logo">

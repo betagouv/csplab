@@ -59,7 +59,7 @@ for (const column of props.columns) {
   display: flex;
   gap: var(--csp-space-6);
   align-items: flex-start;
-  padding: var(--csp-space-6);
+  padding: var(--csp-space-4) var(--csp-space-6);
   overflow-x: auto;
   background: var(--background-alt-grey);
 }

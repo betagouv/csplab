@@ -6,6 +6,7 @@ import { DEFAULT_ARGS, SETTINGS_ARG_TYPES } from './shared/settings'
 type Args = SettingsArgs & {
   pointDeVue: 'jean-marc' | 'karim'
   largeur: 'livree' | 'maquette'
+  conversation: 'entretien' | 'pieces'
 }
 
 const meta = {
@@ -30,6 +31,12 @@ const meta = {
       options: ['jean-marc', 'karim'],
       labels: { 'jean-marc': 'Jean-Marc Chateau, auteur de messages', 'karim': 'Karim Benali, découvre la conversation' },
     },
+    conversation: {
+      name: 'Conversation ouverte',
+      control: { type: 'inline-radio' },
+      options: ['entretien', 'pieces'],
+      labels: { entretien: 'Organisation de l’entretien', pieces: 'Pièces complémentaires' },
+    },
     largeur: {
       name: 'Largeur du panneau',
       control: { type: 'inline-radio' },
@@ -41,11 +48,12 @@ const meta = {
     ...DEFAULT_ARGS,
     pointDeVue: 'jean-marc',
     largeur: 'livree',
+    conversation: 'entretien',
   },
   render: args => ({
     components: { RecruiterPanel },
     setup: () => ({ args }),
-    template: '<RecruiterPanel :settings-args="args" :point-de-vue="args.pointDeVue" :largeur="args.largeur" scenario="principal" />',
+    template: '<RecruiterPanel :settings-args="args" :point-de-vue="args.pointDeVue" :largeur="args.largeur" :conversation-id="args.conversation" scenario="principal" />',
   }),
 } satisfies Meta<Args>
 
@@ -63,4 +71,24 @@ export const Pile: Story = {
 
 export const Correspondance: Story = {
   args: { presentation: 'correspondance', reglages: 'differe' },
+}
+
+export const BullesPieces: Story = {
+  name: 'Bulles, sur Pièces complémentaires',
+  args: { presentation: 'bulles', reglages: 'immediat', conversation: 'pieces' },
+  render: args => ({
+    components: { RecruiterPanel },
+    setup: () => ({ args }),
+    template: '<RecruiterPanel :settings-args="args" :point-de-vue="args.pointDeVue" :largeur="args.largeur" :conversation-id="args.conversation" :previous-peek="120" scenario="principal" />',
+  }),
+}
+
+export const PilePieces: Story = {
+  name: 'Pile de messages, sur Pièces complémentaires',
+  args: { presentation: 'pile', reglages: 'immediat', conversation: 'pieces' },
+}
+
+export const CorrespondancePieces: Story = {
+  name: 'Correspondance, sur Pièces complémentaires',
+  args: { presentation: 'correspondance', reglages: 'differe', conversation: 'pieces' },
 }

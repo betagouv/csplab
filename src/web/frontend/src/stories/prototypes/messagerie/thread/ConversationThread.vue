@@ -12,7 +12,7 @@ import ThreadBubbles from './ThreadBubbles.vue'
 import ThreadLetters from './ThreadLetters.vue'
 import ThreadPile from './ThreadPile.vue'
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   conversation: Conversation
   messages: Message[]
   viewerId: PersonId
@@ -20,7 +20,10 @@ const props = defineProps<{
   settings: Settings
   now: Date
   waiting: Waiting | null
-}>()
+  previousPeek?: number
+}>(), {
+  previousPeek: 0,
+})
 
 const emit = defineEmits<{
   send: [text: string]
@@ -73,7 +76,14 @@ async function scrollToNewest(): Promise<void> {
   const element = scroller.value
   if (!element)
     return
-  element.scrollTop = props.settings.order === 'chronologique' ? element.scrollHeight : 0
+  if (props.settings.order !== 'chronologique') {
+    element.scrollTop = 0
+    return
+  }
+  const newest = element.querySelector<HTMLElement>(':scope > ol > li:last-child')
+  element.scrollTop = props.previousPeek && newest
+    ? newest.offsetTop - props.previousPeek
+    : element.scrollHeight
 }
 
 onMounted(scrollToNewest)

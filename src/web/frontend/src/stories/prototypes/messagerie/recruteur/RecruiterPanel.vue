@@ -22,9 +22,13 @@ const props = defineProps<{
   pointDeVue: Extract<PersonId, 'jean-marc' | 'karim'>
   largeur: 'livree' | 'maquette'
   scenario: ScenarioKey
+  conversationId?: string
+  previousPeek?: number
 }>()
 
 const messagerie = useMessagerie(props.scenario)
+if (props.conversationId)
+  messagerie.selectedId.value = props.conversationId
 const view = useMessagesView(messagerie, () => props.pointDeVue)
 const settings = computed(() => resolveSettings(props.settingsArgs, 'recruteur'))
 const tab = ref('messages')
@@ -40,6 +44,7 @@ const submitted = formatRelative(CANDIDATURE.soumiseLe, messagerie.clock.value)
     class="recruiter-panel"
     :class="`recruiter-panel--${largeur}`"
     @interact-outside="(event: Event) => event.preventDefault()"
+    @open-auto-focus="(event: Event) => event.preventDefault()"
   >
     <template #start>
       <CspButton
@@ -102,6 +107,7 @@ const submitted = formatRelative(CANDIDATURE.soumiseLe, messagerie.clock.value)
                   :settings="settings"
                   :now="messagerie.clock.value"
                   :waiting="view.currentWaiting.value"
+                  :previous-peek="previousPeek"
                   @send="view.send"
                   @choose="view.choose"
                   @mark-unread="view.markUnread"

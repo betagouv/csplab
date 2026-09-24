@@ -16,8 +16,8 @@ const LABELS: Record<Presentation, string> = {
   correspondance: 'Correspondance',
 }
 
-const TWO_COLUMNS_HEIGHT = '30.5rem'
-const THREE_COLUMNS_HEIGHT = '40rem'
+const TWO_COLUMNS_HEIGHT = '26rem'
+const THREE_COLUMNS_HEIGHT = '38rem'
 
 function column(label: string, viewerId: ColumnSpec['viewerId'], args: SettingsArgs, options: Pick<ColumnSpec, 'scenario' | 'conversationId'> = { scenario: 'principal' }): ColumnSpec {
   return { label, viewerId, settings: resolveSettings(args, 'recruteur'), ...options }

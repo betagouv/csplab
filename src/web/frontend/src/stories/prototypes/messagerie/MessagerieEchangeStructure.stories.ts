@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/vue3-vite'
 import type { SettingsArgs } from './shared/settings'
 import CandidateSpace from './candidat/CandidateSpace.vue'
+import PhoneFrame from './candidat/PhoneFrame.vue'
 import RecruiterPanel from './recruteur/RecruiterPanel.vue'
 import { DEFAULT_ARGS, SETTINGS_ARG_TYPES } from './shared/settings'
 
@@ -39,6 +40,15 @@ export const CandidateDemande: Story = {
     components: { CandidateSpace },
     setup: () => ({ args }),
     template: '<CandidateSpace :settings-args="args" scenario="creneau-en-attente" ouverture="demande" />',
+  }),
+}
+
+export const CandidateTelephone: Story = {
+  name: 'Candidate sur téléphone',
+  render: args => ({
+    components: { CandidateSpace, PhoneFrame },
+    setup: () => ({ args }),
+    template: '<PhoneFrame><CandidateSpace :settings-args="args" scenario="creneau-en-attente" ouverture="demande" /></PhoneFrame>',
   }),
 }
 

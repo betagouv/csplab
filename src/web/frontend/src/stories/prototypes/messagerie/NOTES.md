@@ -4,9 +4,9 @@ Prototype Storybook de la messagerie entre l'équipe de recrutement et le candid
 
 ## Stories
 
-- `Prototypes/Messagerie/Recruteur` : bulles, pile de messages, correspondance, dans le panneau aux largeurs réelles.
+- `Prototypes/Messagerie/Recruteur` : bulles, pile de messages, correspondance, dans le panneau aux largeurs réelles. Un contrôle choisit la conversation ouverte ; les variantes « sur Pièces complémentaires » servent aux diapositives de pistes du deck.
 - `Prototypes/Messagerie/Candidate` : les mêmes présentations dans la page de la candidature, sur ordinateur et sur téléphone.
-- `Prototypes/Messagerie/Échange structuré` : la candidate choisit un créneau dans le message ; l'équipe voit le choix attendu puis le créneau retenu.
+- `Prototypes/Messagerie/Échange structuré` : la candidate choisit un créneau dans le message, sur la page ou dans un cadre de téléphone ; l'équipe voit le choix attendu puis le créneau retenu.
 - `Prototypes/Messagerie/Comparaison` : des fils côte à côte, à la largeur du fil dans le panneau livré sur un écran de 1440 px : les trois présentations, le côté des bulles, immédiat ou différé, le choix du créneau vu par l'équipe. Ces stories ont une hauteur fixe et servent au deck Vignettes `messagerie-prototype`.
 
 Les stories candidate « ouverte sur le dernier message » et « ouverte sur la demande » font défiler la page jusqu'au message, comme une arrivée depuis le courriel de notification.
