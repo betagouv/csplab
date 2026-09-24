@@ -5,13 +5,14 @@ from uuid import UUID, uuid5
 from application.identite.context_services.organisme_permission_service import (
     OrganismePermissionService,
 )
+from application.recruteur.context_services.candidature_agent_service import (
+    CandidatureAgentService,
+)
 from application.recruteur.context_services.recrutement_agent_service import (
     RecrutementAgentService,
 )
-from application.recruteur.services.list_conversations import stub_conversations_of
 from domain.identite.entities.utilisateurs import Utilisateur
 from domain.identite.value_objects.organisme_action import OrganismeAction
-from domain.recruteur.errors.recrutement_errors import ConversationInexistante
 from infrastructure.django_apps.candidate.enums.type_document import TypeDocument
 
 PDF = "application/pdf"
@@ -95,13 +96,6 @@ _MESSAGES = [
 ]
 
 
-def _check_conversation_belongs_to_candidature(
-    candidature_id: UUID, conversation_id: UUID
-) -> None:
-    if conversation_id not in stub_conversations_of(candidature_id):
-        raise ConversationInexistante(conversation_id)
-
-
 def read_conversation(
     *,
     organisme_id: UUID,
@@ -120,8 +114,11 @@ def read_conversation(
         organisme_id=organisme_id, recrutement_id=recrutement_id
     )
     service.check_recrutement_belongs_to_organisme()
-    service.check_candidature_belongs_to_recrutement(candidature_id)
-    _check_conversation_belongs_to_candidature(candidature_id, conversation_id)
+    candidature_service = CandidatureAgentService(
+        recrutement_id=recrutement_id, candidature_id=candidature_id
+    )
+    candidature_service.check_candidature_belongs_to_recrutement()
+    candidature_service.check_conversation_belongs_to_candidature(conversation_id)
 
     return sorted(
         (

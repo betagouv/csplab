@@ -5,7 +5,7 @@ from django.conf import settings
 from django.urls import reverse
 from rest_framework import status
 
-from application.recruteur.services.list_conversations import (
+from application.recruteur.services.conversation_stubs import (
     _CONVERSATIONS,
     stub_conversation_id,
 )
@@ -31,6 +31,7 @@ from infrastructure.factories.recruteur.recrutement_django_factory import (
 from presentation.recruteur.views.candidature_conversation_detail import (
     MessagePagination,
 )
+from tests.utils.message_documents import INVALID_DOCUMENTS, valid_documents
 
 OBJET = _CONVERSATIONS[0][0]
 TAILLE_PAGE_LIMITEE = 2
@@ -105,6 +106,24 @@ def _conversation_from_another_candidature(organisme, recrutement, candidature):
         candidature.pk,
         _conversation_of(autre_candidature),
     )
+
+
+NOT_FOUND_CASES = [
+    pytest.param(_unknown_organisme, id="unknown_organisme"),
+    pytest.param(_unknown_recrutement, id="unknown_recrutement"),
+    pytest.param(
+        _recrutement_from_another_organisme, id="recrutement_from_another_organisme"
+    ),
+    pytest.param(
+        _candidature_from_another_recrutement, id="candidature_from_another_recrutement"
+    ),
+    pytest.param(_unknown_candidature, id="unknown_candidature"),
+    pytest.param(_unknown_conversation, id="unknown_conversation"),
+    pytest.param(
+        _conversation_from_another_candidature,
+        id="conversation_from_another_candidature",
+    ),
+]
 
 
 class TestCandidatureConversationDetailView:
@@ -193,27 +212,7 @@ class TestCandidatureConversationDetailView:
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
-    @pytest.mark.parametrize(
-        "build_ids",
-        [
-            _unknown_organisme,
-            _unknown_recrutement,
-            _recrutement_from_another_organisme,
-            _candidature_from_another_recrutement,
-            _unknown_candidature,
-            _unknown_conversation,
-            _conversation_from_another_candidature,
-        ],
-        ids=[
-            "unknown_organisme",
-            "unknown_recrutement",
-            "recrutement_from_another_organisme",
-            "candidature_from_another_recrutement",
-            "unknown_candidature",
-            "unknown_conversation",
-            "conversation_from_another_candidature",
-        ],
-    )
+    @pytest.mark.parametrize("build_ids", NOT_FOUND_CASES)
     def test_returns_404_for(self, authenticated_client, test_user, build_ids):
         _, organisme = create_organisme_with_agent(
             role=AgentOrganismeRole.SUPERVISEUR, utilisateur=test_user
@@ -267,3 +266,149 @@ class TestCandidatureConversationDetailView:
 
     def test_default_page_size_is_20(self):
         assert MessagePagination.page_size == TAILLE_PAGE_PAR_DEFAUT
+
+
+class TestReplyConversation:
+    def _superviseur_conversation(self, test_user):
+        _, organisme = create_organisme_with_agent(
+            role=AgentOrganismeRole.SUPERVISEUR, utilisateur=test_user
+        )
+        recrutement, candidature = _candidature_for(organisme)
+        return _url(
+            organisme.id, recrutement.pk, candidature.pk, _conversation_of(candidature)
+        )
+
+    def test_anonymous_access_is_unauthorized(self, api_client):
+        response = api_client.post(
+            _url(uuid4(), uuid4(), uuid4(), uuid4()),
+            {"content": "Bonjour"},
+            format="multipart",
+        )
+
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+    @pytest.mark.parametrize(
+        "organisme_role,recrutement_role",
+        [
+            (AgentOrganismeRole.SUPERVISEUR, None),
+            (AgentOrganismeRole.AGENT, AgentRecrutementRole.RESPONSABLE),
+            (AgentOrganismeRole.AGENT, AgentRecrutementRole.RECRUTEUR),
+            (AgentOrganismeRole.AGENT, AgentRecrutementRole.CONTRIBUTEUR),
+        ],
+        ids=[
+            "superviseur",
+            "agent_responsable",
+            "agent_recruteur",
+            "agent_contributeur",
+        ],
+    )
+    def test_authorized_agent_replies(
+        self, authenticated_client, test_user, organisme_role, recrutement_role
+    ):
+        _, organisme = create_organisme_with_agent(
+            role=organisme_role, utilisateur=test_user
+        )
+        recrutement, candidature = _candidature_for(organisme)
+        if recrutement_role is not None:
+            RecrutementAgentDjangoFactory(
+                recrutement=recrutement,
+                agent=test_user.profil_agent,
+                role=recrutement_role.value,
+            )
+
+        response = authenticated_client.post(
+            _url(
+                organisme.id,
+                recrutement.pk,
+                candidature.pk,
+                _conversation_of(candidature),
+            ),
+            {"content": "Merci", "documents": valid_documents()},
+            format="multipart",
+        )
+
+        assert response.status_code == status.HTTP_201_CREATED
+        body = response.json()
+        assert body["content"] == "Merci"
+        assert body["author"] == f"{test_user.first_name} {test_user.last_name}"
+        assert [document["nom"] for document in body["documents"]] == [
+            "cv.pdf",
+            "lettre.pdf",
+            "diplome.pdf",
+            "photo.png",
+            "scan.jpg",
+        ]
+
+    def test_content_whitespace_is_preserved(self, authenticated_client, test_user):
+        response = authenticated_client.post(
+            self._superviseur_conversation(test_user),
+            {"content": "    code\n"},
+            format="multipart",
+        )
+
+        assert response.status_code == status.HTTP_201_CREATED
+        assert response.json()["content"] == "    code\n"
+
+    @pytest.mark.parametrize(
+        "payload", [{}, {"content": ""}], ids=["missing_content", "blank_content"]
+    )
+    def test_invalid_content_is_rejected(
+        self, authenticated_client, test_user, payload
+    ):
+        response = authenticated_client.post(
+            self._superviseur_conversation(test_user), payload, format="multipart"
+        )
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert "content" in response.json()
+
+    @pytest.mark.parametrize("build_documents", INVALID_DOCUMENTS)
+    def test_invalid_documents_are_rejected(
+        self, authenticated_client, test_user, build_documents
+    ):
+        response = authenticated_client.post(
+            self._superviseur_conversation(test_user),
+            {"content": "Bonjour", "documents": build_documents()},
+            format="multipart",
+        )
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert "documents" in response.json()
+
+    @pytest.mark.parametrize(
+        "role", [AgentOrganismeRole.AGENT, None], ids=["no_recrutement_role", "no_role"]
+    )
+    def test_is_forbidden_for(self, authenticated_client, test_user, role):
+        if role is None:
+            organisme = OrganismeDjangoFactory()
+        else:
+            _, organisme = create_organisme_with_agent(role=role, utilisateur=test_user)
+        recrutement, candidature = _candidature_for(organisme)
+
+        response = authenticated_client.post(
+            _url(
+                organisme.id,
+                recrutement.pk,
+                candidature.pk,
+                _conversation_of(candidature),
+            ),
+            {"content": "Bonjour"},
+            format="multipart",
+        )
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    @pytest.mark.parametrize("build_ids", NOT_FOUND_CASES)
+    def test_returns_404_for(self, authenticated_client, test_user, build_ids):
+        _, organisme = create_organisme_with_agent(
+            role=AgentOrganismeRole.SUPERVISEUR, utilisateur=test_user
+        )
+        recrutement, candidature = _candidature_for(organisme)
+
+        response = authenticated_client.post(
+            _url(*build_ids(organisme, recrutement, candidature)),
+            {"content": "Bonjour"},
+            format="multipart",
+        )
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND

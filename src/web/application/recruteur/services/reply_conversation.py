@@ -1,6 +1,5 @@
-from uuid import UUID
+from uuid import UUID, uuid5
 
-from django.conf import settings
 from django.core.files.uploadedfile import UploadedFile
 from django.utils import timezone
 
@@ -13,27 +12,39 @@ from application.recruteur.context_services.candidature_agent_service import (
 from application.recruteur.context_services.recrutement_agent_service import (
     RecrutementAgentService,
 )
-from application.recruteur.services.conversation_stubs import (
-    ConversationStub,
-    stub_conversation_id,
+from application.recruteur.services.read_conversation import (
+    DocumentStub,
+    MessageStub,
 )
 from domain.identite.entities.utilisateurs import Utilisateur
 from domain.identite.value_objects.organisme_action import OrganismeAction
+from infrastructure.django_apps.candidate.enums.type_document import TypeDocument
 
 
-def create_conversation(
+def _document_stub(conversation_id: UUID, document: UploadedFile) -> DocumentStub:
+    nom = document.name or ""
+    return DocumentStub(
+        uuid=uuid5(conversation_id, nom),
+        nom=nom,
+        type=TypeDocument.AUTRE,
+        content_type=document.content_type or "",
+        taille=document.size or 0,
+    )
+
+
+def reply_conversation(
     *,
     organisme_id: UUID,
     recrutement_id: UUID,
     candidature_id: UUID,
-    objet: str,
+    conversation_id: UUID,
     content: str,
     documents: list[UploadedFile],
     utilisateur: Utilisateur,
-) -> ConversationStub:
-    """Stub : rien n'est persisté, les documents sont ignorés."""
+) -> MessageStub:
+    """Stub : rien n'est persisté."""
     OrganismePermissionService().can_execute(
-        action=OrganismeAction.CREATE_CONVERSATION,
+        action=OrganismeAction.REPLY_CONVERSATION,
         utilisateur=utilisateur,
         organisme_id=organisme_id,
         recrutement_id=recrutement_id,
@@ -46,17 +57,11 @@ def create_conversation(
         recrutement_id=recrutement_id, candidature_id=candidature_id
     )
     candidature_service.check_candidature_belongs_to_recrutement()
+    candidature_service.check_conversation_belongs_to_candidature(conversation_id)
 
-    auteur = f"{utilisateur.prenom} {utilisateur.nom}".strip()
-    now = timezone.now()
-    return ConversationStub(
-        uuid=stub_conversation_id(candidature_id, objet),
-        objet=objet,
-        creator=auteur,
-        created_at=now,
-        last_message_content=content[
-            : settings.CONVERSATION_LAST_MESSAGE_CONTENT_MAX_LENGTH
-        ],
-        last_message_author=auteur,
-        last_message_created_at=now,
+    return MessageStub(
+        content=content,
+        author=f"{utilisateur.prenom} {utilisateur.nom}".strip(),
+        created_at=timezone.now(),
+        documents=[_document_stub(conversation_id, document) for document in documents],
     )

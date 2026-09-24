@@ -1,20 +1,24 @@
 from uuid import uuid4
 
 import pytest
-from django.conf import settings
 
-from application.recruteur.services.conversation_stubs import stub_conversation_id
-from application.recruteur.services.create_conversation import create_conversation
+from application.recruteur.services.conversation_stubs import (
+    _CONVERSATIONS,
+    stub_conversation_id,
+)
+from application.recruteur.services.reply_conversation import reply_conversation
 from domain.commons.errors.organisme_errors import OrganismeNexistePas
 from domain.identite.errors.organisme_permission_errors import (
     AccesOrganismeRefuse,
     AccesRecrutementRefuse,
 )
 from domain.recruteur.errors.recrutement_errors import (
+    ConversationInexistante,
     RecrutementCandidatureInexistante,
     RecrutementInexistant,
 )
 from domain.recruteur.value_objects.roles import AgentOrganismeRole
+from infrastructure.django_apps.candidate.enums.type_document import TypeDocument
 from infrastructure.factories.candidate.candidature_django_factory import (
     CandidatureDjangoFactory,
 )
@@ -27,9 +31,10 @@ from infrastructure.factories.recruteur.recrutement_django_factory import (
     EtapeDjangoFactory,
     RecrutementDjangoFactory,
 )
+from tests.utils.message_documents import PDF_BYTES, pdf
 
-OBJET = "Convocation à l'entretien"
-CONTENT = "Bonjour, pouvez-vous confirmer votre présence ?"
+OBJET = _CONVERSATIONS[0][0]
+CONTENT = "Merci, je confirme ma présence."
 
 
 def _utilisateur(entity_id, **kwargs):
@@ -44,54 +49,50 @@ def _candidature_for(organisme):
     return recrutement, candidature
 
 
-def _create(organisme_id, recrutement_id, candidature_id, utilisateur, **kwargs):
-    return create_conversation(
+def _conversation_of(candidature):
+    return stub_conversation_id(candidature.pk, OBJET)
+
+
+def _reply(
+    organisme_id,
+    recrutement_id,
+    candidature_id,
+    conversation_id,
+    utilisateur,
+    documents=(),
+):
+    return reply_conversation(
         organisme_id=organisme_id,
         recrutement_id=recrutement_id,
         candidature_id=candidature_id,
-        objet=kwargs.get("objet", OBJET),
-        content=kwargs.get("content", CONTENT),
-        documents=[],
+        conversation_id=conversation_id,
+        content=CONTENT,
+        documents=list(documents),
         utilisateur=utilisateur,
     )
 
 
-@pytest.fixture
-def superviseur_candidature(db):
+def test_authorized_agent_replies_in_the_conversation(db):
     agent, organisme = create_organisme_with_agent(role=AgentOrganismeRole.SUPERVISEUR)
     recrutement, candidature = _candidature_for(organisme)
-    return agent, organisme, recrutement, candidature
-
-
-def test_authorized_agent_creates_a_conversation(superviseur_candidature):
-    agent, organisme, recrutement, candidature = superviseur_candidature
     utilisateur = _utilisateur(agent.utilisateur_id, prenom="Camille", nom="Durand")
 
-    conversation = _create(organisme.id, recrutement.pk, candidature.pk, utilisateur)
-
-    assert conversation.uuid == stub_conversation_id(candidature.pk, OBJET)
-    assert conversation.objet == OBJET
-    assert conversation.creator == "Camille Durand"
-    assert conversation.last_message_author == "Camille Durand"
-    assert conversation.last_message_content == CONTENT
-    assert conversation.created_at == conversation.last_message_created_at
-
-
-def test_last_message_content_is_truncated(superviseur_candidature):
-    agent, organisme, recrutement, candidature = superviseur_candidature
-
-    conversation = _create(
+    message = _reply(
         organisme.id,
         recrutement.pk,
         candidature.pk,
-        _utilisateur(agent.utilisateur_id),
-        content="a" * (settings.CONVERSATION_LAST_MESSAGE_CONTENT_MAX_LENGTH + 1),
+        _conversation_of(candidature),
+        utilisateur,
+        documents=[pdf("convocation.pdf")],
     )
 
-    assert (
-        len(conversation.last_message_content)
-        == settings.CONVERSATION_LAST_MESSAGE_CONTENT_MAX_LENGTH
-    )
+    assert message.content == CONTENT
+    assert message.author == "Camille Durand"
+    [document] = message.documents
+    assert document.nom == "convocation.pdf"
+    assert document.type == TypeDocument.AUTRE
+    assert document.content_type == "application/pdf"
+    assert document.taille == len(PDF_BYTES)
 
 
 def _without_organisme_role():
@@ -100,6 +101,7 @@ def _without_organisme_role():
         recrutement.organisme_id,
         recrutement.pk,
         candidature.pk,
+        _conversation_of(candidature),
         _utilisateur(uuid4()),
     )
 
@@ -111,12 +113,13 @@ def _without_recrutement_role():
         organisme.id,
         recrutement.pk,
         candidature.pk,
+        _conversation_of(candidature),
         _utilisateur(agent.utilisateur_id),
     )
 
 
 def _unknown_organisme():
-    return uuid4(), uuid4(), uuid4(), _utilisateur(uuid4())
+    return uuid4(), uuid4(), uuid4(), uuid4(), _utilisateur(uuid4())
 
 
 def _recrutement_from_another_organisme():
@@ -126,6 +129,7 @@ def _recrutement_from_another_organisme():
         organisme.id,
         other_recrutement.pk,
         other_candidature.pk,
+        _conversation_of(other_candidature),
         _utilisateur(agent.utilisateur_id),
     )
 
@@ -138,6 +142,32 @@ def _candidature_from_another_recrutement():
         organisme.id,
         recrutement.pk,
         other_candidature.pk,
+        _conversation_of(other_candidature),
+        _utilisateur(agent.utilisateur_id),
+    )
+
+
+def _unknown_conversation():
+    agent, organisme = create_organisme_with_agent(role=AgentOrganismeRole.SUPERVISEUR)
+    recrutement, candidature = _candidature_for(organisme)
+    return (
+        organisme.id,
+        recrutement.pk,
+        candidature.pk,
+        uuid4(),
+        _utilisateur(agent.utilisateur_id),
+    )
+
+
+def _conversation_from_another_candidature():
+    agent, organisme = create_organisme_with_agent(role=AgentOrganismeRole.SUPERVISEUR)
+    recrutement, candidature = _candidature_for(organisme)
+    other_candidature = CandidatureDjangoFactory(etape=candidature.etape)
+    return (
+        organisme.id,
+        recrutement.pk,
+        candidature.pk,
+        _conversation_of(other_candidature),
         _utilisateur(agent.utilisateur_id),
     )
 
@@ -150,6 +180,8 @@ def _candidature_from_another_recrutement():
         (_unknown_organisme, OrganismeNexistePas),
         (_recrutement_from_another_organisme, RecrutementInexistant),
         (_candidature_from_another_recrutement, RecrutementCandidatureInexistante),
+        (_unknown_conversation, ConversationInexistante),
+        (_conversation_from_another_candidature, ConversationInexistante),
     ],
     ids=[
         "without_organisme_role",
@@ -157,8 +189,10 @@ def _candidature_from_another_recrutement():
         "unknown_organisme",
         "recrutement_from_another_organisme",
         "candidature_from_another_recrutement",
+        "unknown_conversation",
+        "conversation_from_another_candidature",
     ],
 )
 def test_is_denied(db, build_args, error):
     with pytest.raises(error):
-        _create(*build_args())
+        _reply(*build_args())

@@ -7,6 +7,9 @@ from django.utils import timezone
 from application.identite.context_services.organisme_permission_service import (
     OrganismePermissionService,
 )
+from application.recruteur.context_services.candidature_agent_service import (
+    CandidatureAgentService,
+)
 from application.recruteur.context_services.recrutement_agent_service import (
     RecrutementAgentService,
 )
@@ -38,7 +41,10 @@ def delete_note(
         organisme_id=organisme_id, recrutement_id=recrutement_id
     )
     contexte.check_recrutement_belongs_to_organisme()
-    contexte.check_candidature_belongs_to_recrutement(candidature_id)
+    candidature_service = CandidatureAgentService(
+        recrutement_id=recrutement_id, candidature_id=candidature_id
+    )
+    candidature_service.check_candidature_belongs_to_recrutement()
 
     try:
         note = NoteModel.objects.by_candidature_author_and_id(

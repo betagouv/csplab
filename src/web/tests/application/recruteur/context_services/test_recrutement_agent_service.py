@@ -12,7 +12,6 @@ from domain.recruteur.errors.recrutement_agent_errors import (
     AgentNonMembreRecrutement,
 )
 from domain.recruteur.errors.recrutement_errors import (
-    RecrutementCandidatureInexistante,
     RecrutementDocumentInexistant,
     RecrutementInexistant,
 )
@@ -108,35 +107,6 @@ class TestCheckDocumentBelongsToRecrutement:
             RecrutementAgentService(
                 organisme_id=recrutement.organisme_id, recrutement_id=recrutement.pk
             ).check_document_belongs_to_recrutement(candidature.pk, uuid4())
-
-
-class TestCheckCandidatureBelongsToRecrutement:
-    def test_passes_when_candidature_belongs_to_recrutement(self, db):
-        recrutement = RecrutementDjangoFactory()
-        candidature = CandidatureDjangoFactory(
-            etape=EtapeDjangoFactory(recrutement=recrutement)
-        )
-
-        RecrutementAgentService(
-            organisme_id=recrutement.organisme_id, recrutement_id=recrutement.pk
-        ).check_candidature_belongs_to_recrutement(candidature.pk)
-
-    def test_raises_when_candidature_from_another_recrutement(self, db):
-        recrutement = RecrutementDjangoFactory()
-        other_candidature = CandidatureDjangoFactory()
-
-        with pytest.raises(RecrutementCandidatureInexistante):
-            RecrutementAgentService(
-                organisme_id=recrutement.organisme_id, recrutement_id=recrutement.pk
-            ).check_candidature_belongs_to_recrutement(other_candidature.pk)
-
-    def test_raises_when_candidature_does_not_exist(self, db):
-        recrutement = RecrutementDjangoFactory()
-
-        with pytest.raises(RecrutementCandidatureInexistante):
-            RecrutementAgentService(
-                organisme_id=recrutement.organisme_id, recrutement_id=recrutement.pk
-            ).check_candidature_belongs_to_recrutement(uuid4())
 
 
 class TestCheckAgentAttachedToOrganisme:

@@ -9,11 +9,9 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
 
+from application.recruteur.services.conversation_stubs import ConversationStub
 from application.recruteur.services.create_conversation import create_conversation
-from application.recruteur.services.list_conversations import (
-    ConversationStub,
-    list_conversations,
-)
+from application.recruteur.services.list_conversations import list_conversations
 from domain.commons.errors.organisme_errors import OrganismeNexistePas
 from domain.identite.errors.organisme_permission_errors import (
     AccesOrganismeRefuse,

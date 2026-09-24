@@ -2,11 +2,10 @@ from uuid import uuid4
 
 import pytest
 from django.conf import settings
-from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse
 from rest_framework import status
 
-from application.recruteur.services.list_conversations import _CONVERSATIONS
+from application.recruteur.services.conversation_stubs import _CONVERSATIONS
 from domain.recruteur.value_objects.roles import (
     AgentOrganismeRole,
     AgentRecrutementRole,
@@ -26,13 +25,10 @@ from infrastructure.factories.recruteur.recrutement_django_factory import (
 from presentation.recruteur.views.candidature_conversations import (
     ConversationPagination,
 )
+from tests.utils.message_documents import INVALID_DOCUMENTS, valid_documents
 
 TAILLE_PAGE_LIMITEE = 2
 TAILLE_PAGE_PAR_DEFAUT = 20
-
-PDF_BYTES = b"%PDF-1.4 contenu"
-PNG_BYTES = b"\x89PNG\r\n\x1a\n contenu"
-JPEG_BYTES = b"\xff\xd8\xff contenu"
 
 
 def _url(organisme_uuid, recrutement_uuid, candidature_uuid):
@@ -201,10 +197,6 @@ class TestCandidatureConversationsView:
         assert ConversationPagination.page_size == TAILLE_PAGE_PAR_DEFAUT
 
 
-def _pdf(name="document.pdf", content=PDF_BYTES):
-    return SimpleUploadedFile(name, content, content_type="application/pdf")
-
-
 def _payload(**overrides):
     return {"objet": "Convocation", "content": "Bonjour", **overrides}
 
@@ -265,18 +257,10 @@ class TestCreateConversation:
             role=AgentOrganismeRole.SUPERVISEUR, utilisateur=test_user
         )
         recrutement, candidature = _candidature_for(organisme)
-        documents = [
-            _pdf("cv.pdf"),
-            _pdf("lettre.pdf"),
-            _pdf("diplome.pdf"),
-            SimpleUploadedFile("photo.png", PNG_BYTES, content_type="image/png"),
-            SimpleUploadedFile("scan.jpg", JPEG_BYTES, content_type="image/jpeg"),
-        ]
-        assert len(documents) == settings.MESSAGE_MAX_DOCUMENTS
 
         response = authenticated_client.post(
             _url(organisme.id, recrutement.pk, candidature.pk),
-            _payload(documents=documents),
+            _payload(documents=valid_documents()),
             format="multipart",
         )
 
@@ -304,57 +288,14 @@ class TestCreateConversation:
             ({"objet": "Convocation"}, "content"),
             (_payload(objet=""), "objet"),
             (_payload(objet="a" * 256), "objet"),
-            (
-                _payload(
-                    documents=[
-                        _pdf(f"{i}.pdf")
-                        for i in range(settings.MESSAGE_MAX_DOCUMENTS + 1)
-                    ]
-                ),
-                "documents",
-            ),
-            (
-                _payload(
-                    documents=[
-                        _pdf(
-                            content=PDF_BYTES.ljust(
-                                settings.MESSAGE_DOCUMENT_MAX_SIZE_MB * 1024 * 1024 + 1
-                            )
-                        )
-                    ]
-                ),
-                "documents",
-            ),
-            (
-                _payload(
-                    documents=[
-                        SimpleUploadedFile(
-                            "notes.txt", b"texte", content_type="text/plain"
-                        )
-                    ]
-                ),
-                "documents",
-            ),
-            (
-                _payload(
-                    documents=[
-                        SimpleUploadedFile(
-                            "faux.png", PDF_BYTES, content_type="image/png"
-                        )
-                    ]
-                ),
-                "documents",
-            ),
+            (_payload(content=""), "content"),
         ],
         ids=[
             "missing_objet",
             "missing_content",
             "blank_objet",
             "objet_too_long",
-            "too_many_documents",
-            "document_too_large",
-            "unsupported_type",
-            "spoofed_content_type",
+            "blank_content",
         ],
     )
     def test_invalid_payload_is_rejected(
@@ -373,6 +314,24 @@ class TestCreateConversation:
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert champ in response.json()
+
+    @pytest.mark.parametrize("build_documents", INVALID_DOCUMENTS)
+    def test_invalid_documents_are_rejected(
+        self, authenticated_client, test_user, build_documents
+    ):
+        _, organisme = create_organisme_with_agent(
+            role=AgentOrganismeRole.SUPERVISEUR, utilisateur=test_user
+        )
+        recrutement, candidature = _candidature_for(organisme)
+
+        response = authenticated_client.post(
+            _url(organisme.id, recrutement.pk, candidature.pk),
+            _payload(documents=build_documents()),
+            format="multipart",
+        )
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert "documents" in response.json()
 
     @pytest.mark.parametrize(
         "role", [AgentOrganismeRole.AGENT, None], ids=["no_recrutement_role", "no_role"]
