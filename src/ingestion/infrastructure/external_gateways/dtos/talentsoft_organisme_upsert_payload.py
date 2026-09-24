@@ -13,7 +13,8 @@ from infrastructure.external_gateways.dtos.talentsoft_dtos import (
 class TalentsoftOrganismeUpsertPayload(BaseModel):
     organisme_id: Optional[UUID] = None
     entity_code: str
-    parent_code: Optional[str] = None
+    code: int
+    parent_code: Optional[int] = None
     has_children: bool = False
     name: str
     description: Optional[str] = None
@@ -35,11 +36,8 @@ class TalentsoftOrganismeUpsertPayload(BaseModel):
     ) -> TalentsoftOrganismeUpsertPayload:
         return cls(
             entity_code=organisation.entityCode,
-            parent_code=(
-                str(organisation.parentCode)
-                if organisation.parentCode is not None
-                else None
-            ),
+            code=organisation.code,
+            parent_code=organisation.parentCode,
             has_children=organisation.hasChildren,
             name=organisation.name,
             description=organisation.description,

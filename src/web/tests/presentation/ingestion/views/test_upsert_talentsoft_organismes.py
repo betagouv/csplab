@@ -19,6 +19,7 @@ pytestmark = pytest.mark.django_db
 
 class TalentsoftOrganismeUpsertPayloadFactory(factory.DictFactory):
     entity_code = "ENT-1"
+    code = factory.Sequence(lambda n: n + 1)
     parent_code = None
     has_children = False
     name = "Commune de Paris"
@@ -92,6 +93,7 @@ def test_creates_talentsoft_organisme(api_key_client):
         organisme_id=organisme.id
     )
     assert talentsoft_organisme.entity_code == "ENT-1"
+    assert talentsoft_organisme.code == payload["code"]
     assert talentsoft_organisme.name == "Commune de Paris"
     assert talentsoft_organisme.latitude == pytest.approx(48.8566)
 
@@ -137,6 +139,7 @@ def test_updates_existing_talentsoft_organisme(api_key_client):
     )
 
     payload["name"] = "Commune de Lyon"
+    payload["code"] += 1
     response = api_key_client.post(
         URL,
         data={"talentsoft_organismes": [payload]},
@@ -149,6 +152,7 @@ def test_updates_existing_talentsoft_organisme(api_key_client):
         organisme_id=organisme.id
     )
     assert talentsoft_organisme.name == "Commune de Lyon"
+    assert talentsoft_organisme.code == payload["code"]
 
 
 def test_upsert_matches_by_entity_code_not_organisme_id(api_key_client):
@@ -265,6 +269,43 @@ def test_duplicate_entity_code_in_same_batch_is_rejected(api_key_client):
         ]
         * 2
     )
+    assert not TalentsoftOrganismeModel.objects.exists()
+
+
+def test_duplicate_code_in_same_batch_is_rejected(api_key_client):
+    first = TalentsoftOrganismeUpsertPayloadFactory(entity_code="ENT-A", code=1)
+    second = TalentsoftOrganismeUpsertPayloadFactory(entity_code="ENT-B", code=1)
+
+    response = api_key_client.post(
+        URL,
+        data={"talentsoft_organismes": [first, second]},
+        content_type="application/json",
+    )
+
+    assert response.status_code == status.HTTP_201_CREATED
+    body = response.json()
+    assert body["created"] == 0
+    assert body["updated"] == 0
+    assert [error["error"] for error in body["errors"]] == [
+        "code en doublon dans le lot."
+    ] * 2
+    assert not TalentsoftOrganismeModel.objects.exists()
+
+
+def test_missing_code_is_rejected(api_key_client):
+    payload = TalentsoftOrganismeUpsertPayloadFactory()
+    del payload["code"]
+
+    response = api_key_client.post(
+        URL,
+        data={"talentsoft_organismes": [payload]},
+        content_type="application/json",
+    )
+
+    assert response.status_code == status.HTTP_201_CREATED
+    body = response.json()
+    assert body["created"] == 0
+    assert len(body["errors"]) == 1
     assert not TalentsoftOrganismeModel.objects.exists()
 
 

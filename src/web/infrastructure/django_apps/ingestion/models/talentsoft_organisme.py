@@ -17,6 +17,7 @@ class TalentsoftOrganismeQuerySet(models.QuerySet):
 class TalentsoftOrganismeModel(BaseDatedModel):
     id = models.UUIDField(primary_key=True, default=uuid4)
     entity_code = models.CharField(max_length=50, unique=True)
+    code = models.IntegerField(unique=True)
     organisme = models.ForeignKey(
         OrganismeModel,
         on_delete=models.SET_NULL,
@@ -25,7 +26,7 @@ class TalentsoftOrganismeModel(BaseDatedModel):
         null=True,
         blank=True,
     )
-    parent_code = models.CharField(max_length=50, null=True, blank=True)
+    parent_code = models.IntegerField(null=True, blank=True)
     has_children = models.BooleanField(default=False)
     name = models.CharField(max_length=255)
     description = models.TextField(null=True, blank=True)
