@@ -33,6 +33,6 @@ describe('messagesSection', () => {
     })
 
     expect(await screen.findByText('Impossible de charger les conversations')).toBeInTheDocument()
-    expect(screen.queryByText('Aucune conversation')).not.toBeInTheDocument()
+    expect(screen.queryByText('Aucune conversation pour le moment')).not.toBeInTheDocument()
   })
 })
