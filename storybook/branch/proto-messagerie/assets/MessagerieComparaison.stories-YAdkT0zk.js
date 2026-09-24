@@ -1,0 +1,87 @@
+import{n as e}from"./rolldown-runtime-DkW27tQK.js";import{C as t,Dt as n,H as r,O as i,Ot as a,R as o,S as s,St as c,W as l,_ as u,b as d,c as f,w as p,x as m,z as h}from"./iframe-CEoFHnef.js";import{n as g,t as _}from"./_plugin-vue_export-helper-BqBa3wPr.js";import{a as v,c as y,i as b,l as x,n as S,o as C,r as w,s as T,t as E,u as D}from"./ConversationThread-BMxRHLKI.js";var O,k,A,j;function M(){return(M=e((()=>{f(),w(),S(),O={class:`thread-column`},k={class:`thread-column__label`},A={class:`thread-column__frame`},j=i({__name:`ThreadColumn`,props:{label:{},messagerie:{},viewerId:{},settings:{}},setup(e){let n=e,i=b(n.messagerie,()=>n.viewerId);return(n,o)=>(r(),p(`section`,O,[m(`h2`,k,a(e.label),1),m(`div`,A,[c(i).current.value?(r(),s(E,{key:0,conversation:c(i).current.value,messages:c(i).currentMessages.value,"viewer-id":e.viewerId,viewer:`recruteur`,settings:e.settings,now:e.messagerie.clock.value,waiting:c(i).currentWaiting.value,onSend:c(i).send,onChoose:c(i).choose,onMarkUnread:c(i).markUnread},null,8,[`conversation`,`messages`,`viewer-id`,`settings`,`now`,`waiting`,`onSend`,`onChoose`,`onMarkUnread`])):t(``,!0)])]))}})})))()}var N;function P(){return(P=e((()=>{M(),g(),N=_(j,[[`__scopeId`,`data-v-c2ad2a10`]]),j.__docgenInfo=Object.assign({displayName:j.name??j.__name},{exportName:`default`,displayName:`ThreadColumn`,type:1,props:[{name:`label`,global:!1,description:``,tags:[],required:!0,type:`string`,schema:`string`,declarations:[]},{name:`messagerie`,global:!1,description:``,tags:[],required:!0,type:`{ clock: Ref<Date, Date>; selectedId: Ref<string, string>; summaries: ComputedRef<ConversationSummary[]>; conversations: Reactive<Conversation[]>; messagesOf: (conversationId: string) => Message[]; isUnread: (conversationId: string, viewerId: PersonId) => boolean; markRead: (conversationId: string, viewerId: PersonId) => void; markUnread: (conversationId: string, viewerId: PersonId) => void; waiting: (conversationId: string) => Waiting | null; send: (conversationId: string, authorId: PersonId, text: string) => void; chooseSlot: (messageId: string, slotId: string) => void; }`,schema:{kind:`object`,type:`{ clock: Ref<Date, Date>; selectedId: Ref<string, string>; summaries: ComputedRef<ConversationSummary[]>; conversations: Reactive<Conversation[]>; messagesOf: (conversationId: string) => Message[]; isUnread: (conversationId: string, viewerId: PersonId) => boolean; markRead: (conversationId: string, viewerId: PersonId) => void; markUnread: (conversationId: string, viewerId: PersonId) => void; waiting: (conversationId: string) => Waiting | null; send: (conversationId: string, authorId: PersonId, text: string) => void; chooseSlot: (messageId: string, slotId: string) => void; }`},declarations:[]},{name:`viewerId`,global:!1,description:``,tags:[],required:!0,type:`"jean-marc" | "karim"`,schema:{kind:`enum`,type:`"jean-marc" | "karim"`,schema:[`"jean-marc"`,`"karim"`]},declarations:[]},{name:`settings`,global:!1,description:``,tags:[],required:!0,type:`Settings`,schema:{kind:`object`,type:`Settings`},declarations:[]},{name:`key`,global:!0,description:``,tags:[],required:!1,type:`PropertyKey | undefined`,schema:{kind:`enum`,type:`PropertyKey | undefined`,schema:[`undefined`,`string`,`number`,`symbol`]},declarations:[]},{name:`ref`,global:!0,description:``,tags:[],required:!1,type:`VNodeRef | undefined`,schema:{kind:`enum`,type:`VNodeRef | undefined`,schema:[`undefined`,`string`,`Ref<any, any>`,{kind:`event`,type:`(ref: Element | ComponentPublicInstance<{}, {}, {}, {}, {}, {}, {}, {}, false, ComponentOptionsBase<any, any, any, any, any, any, any, any, any, {}, {}, string, {}, {}, {}, string, ComponentProvideOptions>, ... 4 more ..., any> | null, refs: Record<...>): void`}]},declarations:[]},{name:`ref_for`,global:!0,description:``,tags:[],required:!1,type:`boolean | undefined`,schema:{kind:`enum`,type:`boolean | undefined`,schema:[`undefined`,`false`,`true`]},declarations:[]},{name:`ref_key`,global:!0,description:``,tags:[],required:!1,type:`string | undefined`,schema:{kind:`enum`,type:`string | undefined`,schema:[`undefined`,`string`]},declarations:[]},{name:`onVue:beforeMount`,global:!0,description:``,tags:[],required:!1,type:`VNodeMountHook | VNodeMountHook[] | undefined`,schema:{kind:`enum`,type:`VNodeMountHook | VNodeMountHook[] | undefined`,schema:[`undefined`,{kind:`event`,type:`(vnode: VNode<RendererNode, RendererElement, { [key: string]: any; }>): void`},{kind:`array`,type:`VNodeMountHook[]`}]},declarations:[]},{name:`onVue:mounted`,global:!0,description:``,tags:[],required:!1,type:`VNodeMountHook | VNodeMountHook[] | undefined`,schema:{kind:`enum`,type:`VNodeMountHook | VNodeMountHook[] | undefined`,schema:[`undefined`,{kind:`event`,type:`(vnode: VNode<RendererNode, RendererElement, { [key: string]: any; }>): void`},{kind:`array`,type:`VNodeMountHook[]`}]},declarations:[]},{name:`onVue:beforeUpdate`,global:!0,description:``,tags:[],required:!1,type:`VNodeUpdateHook | VNodeUpdateHook[] | undefined`,schema:{kind:`enum`,type:`VNodeUpdateHook | VNodeUpdateHook[] | undefined`,schema:[`undefined`,{kind:`event`,type:`(vnode: VNode<RendererNode, RendererElement, { [key: string]: any; }>, oldVNode: VNode<RendererNode, RendererElement, { ...; }>): void`},{kind:`array`,type:`VNodeUpdateHook[]`}]},declarations:[]},{name:`onVue:updated`,global:!0,description:``,tags:[],required:!1,type:`VNodeUpdateHook | VNodeUpdateHook[] | undefined`,schema:{kind:`enum`,type:`VNodeUpdateHook | VNodeUpdateHook[] | undefined`,schema:[`undefined`,{kind:`event`,type:`(vnode: VNode<RendererNode, RendererElement, { [key: string]: any; }>, oldVNode: VNode<RendererNode, RendererElement, { ...; }>): void`},{kind:`array`,type:`VNodeUpdateHook[]`}]},declarations:[]},{name:`onVue:beforeUnmount`,global:!0,description:``,tags:[],required:!1,type:`VNodeMountHook | VNodeMountHook[] | undefined`,schema:{kind:`enum`,type:`VNodeMountHook | VNodeMountHook[] | undefined`,schema:[`undefined`,{kind:`event`,type:`(vnode: VNode<RendererNode, RendererElement, { [key: string]: any; }>): void`},{kind:`array`,type:`VNodeMountHook[]`}]},declarations:[]},{name:`onVue:unmounted`,global:!0,description:``,tags:[],required:!1,type:`VNodeMountHook | VNodeMountHook[] | undefined`,schema:{kind:`enum`,type:`VNodeMountHook | VNodeMountHook[] | undefined`,schema:[`undefined`,{kind:`event`,type:`(vnode: VNode<RendererNode, RendererElement, { [key: string]: any; }>): void`},{kind:`array`,type:`VNodeMountHook[]`}]},declarations:[]},{name:`class`,global:!0,description:``,tags:[],required:!1,type:`unknown`,schema:`unknown`,declarations:[]},{name:`style`,global:!0,description:``,tags:[],required:!1,type:`unknown`,schema:`unknown`,declarations:[]}],events:[],slots:[],exposed:[],sourceFiles:`/home/runner/work/csplab/csplab/src/web/frontend/src/stories/prototypes/messagerie/comparaison/ThreadColumn.vue`})})))()}var F;function I(){return(I=e((()=>{f(),v(),P(),F=i({__name:`SideBySide`,props:{columns:{},height:{default:`46rem`}},setup(e){let t=e,i=new Map;function a(e){let t=i.get(e);return t||(t=C(e),i.set(e,t)),t}for(let e of t.columns){let t=a(e.scenario);e.conversationId&&(t.selectedId.value=e.conversationId)}return(t,i)=>(r(),p(`div`,{class:`side-by-side`,style:n({"--thread-column-height":e.height})},[(r(!0),p(u,null,l(e.columns,e=>(r(),s(N,{key:e.label,label:e.label,messagerie:a(e.scenario),"viewer-id":e.viewerId,settings:e.settings},null,8,[`label`,`messagerie`,`viewer-id`,`settings`]))),128))],4))}})})))()}var L;function R(){return(R=e((()=>{I(),g(),L=_(F,[[`__scopeId`,`data-v-371f92d5`]]),F.__docgenInfo=Object.assign({displayName:F.name??F.__name},{exportName:`default`,displayName:`SideBySide`,type:1,props:[{name:`columns`,global:!1,description:``,tags:[],required:!0,type:`ColumnSpec[]`,schema:{kind:`array`,type:`ColumnSpec[]`},declarations:[]},{name:`height`,global:!1,default:`"46rem"`,description:``,tags:[],required:!1,type:`string | undefined`,schema:{kind:`enum`,type:`string | undefined`,schema:[`undefined`,`string`]},declarations:[]},{name:`key`,global:!0,description:``,tags:[],required:!1,type:`PropertyKey | undefined`,schema:{kind:`enum`,type:`PropertyKey | undefined`,schema:[`undefined`,`string`,`number`,`symbol`]},declarations:[]},{name:`ref`,global:!0,description:``,tags:[],required:!1,type:`VNodeRef | undefined`,schema:{kind:`enum`,type:`VNodeRef | undefined`,schema:[`undefined`,`string`,`Ref<any, any>`,{kind:`event`,type:`(ref: Element | ComponentPublicInstance<{}, {}, {}, {}, {}, {}, {}, {}, false, ComponentOptionsBase<any, any, any, any, any, any, any, any, any, {}, {}, string, {}, {}, {}, string, ComponentProvideOptions>, ... 4 more ..., any> | null, refs: Record<...>): void`}]},declarations:[]},{name:`ref_for`,global:!0,description:``,tags:[],required:!1,type:`boolean | undefined`,schema:{kind:`enum`,type:`boolean | undefined`,schema:[`undefined`,`false`,`true`]},declarations:[]},{name:`ref_key`,global:!0,description:``,tags:[],required:!1,type:`string | undefined`,schema:{kind:`enum`,type:`string | undefined`,schema:[`undefined`,`string`]},declarations:[]},{name:`onVue:beforeMount`,global:!0,description:``,tags:[],required:!1,type:`VNodeMountHook | VNodeMountHook[] | undefined`,schema:{kind:`enum`,type:`VNodeMountHook | VNodeMountHook[] | undefined`,schema:[`undefined`,{kind:`event`,type:`(vnode: VNode<RendererNode, RendererElement, { [key: string]: any; }>): void`},{kind:`array`,type:`VNodeMountHook[]`}]},declarations:[]},{name:`onVue:mounted`,global:!0,description:``,tags:[],required:!1,type:`VNodeMountHook | VNodeMountHook[] | undefined`,schema:{kind:`enum`,type:`VNodeMountHook | VNodeMountHook[] | undefined`,schema:[`undefined`,{kind:`event`,type:`(vnode: VNode<RendererNode, RendererElement, { [key: string]: any; }>): void`},{kind:`array`,type:`VNodeMountHook[]`}]},declarations:[]},{name:`onVue:beforeUpdate`,global:!0,description:``,tags:[],required:!1,type:`VNodeUpdateHook | VNodeUpdateHook[] | undefined`,schema:{kind:`enum`,type:`VNodeUpdateHook | VNodeUpdateHook[] | undefined`,schema:[`undefined`,{kind:`event`,type:`(vnode: VNode<RendererNode, RendererElement, { [key: string]: any; }>, oldVNode: VNode<RendererNode, RendererElement, { ...; }>): void`},{kind:`array`,type:`VNodeUpdateHook[]`}]},declarations:[]},{name:`onVue:updated`,global:!0,description:``,tags:[],required:!1,type:`VNodeUpdateHook | VNodeUpdateHook[] | undefined`,schema:{kind:`enum`,type:`VNodeUpdateHook | VNodeUpdateHook[] | undefined`,schema:[`undefined`,{kind:`event`,type:`(vnode: VNode<RendererNode, RendererElement, { [key: string]: any; }>, oldVNode: VNode<RendererNode, RendererElement, { ...; }>): void`},{kind:`array`,type:`VNodeUpdateHook[]`}]},declarations:[]},{name:`onVue:beforeUnmount`,global:!0,description:``,tags:[],required:!1,type:`VNodeMountHook | VNodeMountHook[] | undefined`,schema:{kind:`enum`,type:`VNodeMountHook | VNodeMountHook[] | undefined`,schema:[`undefined`,{kind:`event`,type:`(vnode: VNode<RendererNode, RendererElement, { [key: string]: any; }>): void`},{kind:`array`,type:`VNodeMountHook[]`}]},declarations:[]},{name:`onVue:unmounted`,global:!0,description:``,tags:[],required:!1,type:`VNodeMountHook | VNodeMountHook[] | undefined`,schema:{kind:`enum`,type:`VNodeMountHook | VNodeMountHook[] | undefined`,schema:[`undefined`,{kind:`event`,type:`(vnode: VNode<RendererNode, RendererElement, { [key: string]: any; }>): void`},{kind:`array`,type:`VNodeMountHook[]`}]},declarations:[]},{name:`class`,global:!0,description:``,tags:[],required:!1,type:`unknown`,schema:`unknown`,declarations:[]},{name:`style`,global:!0,description:``,tags:[],required:!1,type:`unknown`,schema:`unknown`,declarations:[]}],events:[],slots:[],exposed:[],sourceFiles:`/home/runner/work/csplab/csplab/src/web/frontend/src/stories/prototypes/messagerie/comparaison/SideBySide.vue`})})))()}function z(e,t,n,r={scenario:`principal`}){return{label:e,viewerId:t,settings:D(n,`recruteur`),...r}}var B,V,H,U,W,G,K,q,J;function Y(){return(Y=e((()=>{f(),R(),x(),B={bulles:`Bulles`,pile:`Pile de messages`,correspondance:`Correspondance`},V=`26rem`,H=`38rem`,U={title:`Prototypes/Messagerie/Comparaison`,parameters:{layout:`fullscreen`,docs:{description:{component:`Des fils côte à côte, sur le même scénario, à la largeur que prend le fil dans le panneau livré sur un écran de 1440 px.`}}},argTypes:{...y,presentation:{table:{disable:!0}},avancement:{table:{disable:!0}},delai:{table:{disable:!0}},pointDeVue:{name:`Point de vue`,control:{type:`inline-radio`},options:[`jean-marc`,`karim`],labels:{"jean-marc":`Jean-Marc Chateau, auteur de messages`,karim:`Karim Benali, découvre la conversation`}}},args:{...T,pointDeVue:`jean-marc`},decorators:[()=>({setup(){h(()=>{document.documentElement.style.overflow=`hidden`}),o(()=>{document.documentElement.style.overflow=``})},template:`<story />`})]},W={name:`Trois présentations, même conversation`,render:e=>({components:{SideBySide:L},setup:()=>({height:H,columns:d(()=>[`bulles`,`pile`,`correspondance`].map(t=>z(B[t],e.pointDeVue,{...e,presentation:t})))}),template:`<SideBySide :columns="columns" :height="height" />`})},G={name:`Côté des bulles`,render:e=>({components:{SideBySide:L},setup:()=>({height:V,columns:d(()=>[z(`Équipe à droite, vu par l’auteur`,`jean-marc`,{...e,presentation:`bulles`,regleDeCote:`equipe`},{scenario:`principal`,conversationId:`pieces`}),z(`Moi à droite, vu par un collègue`,`karim`,{...e,presentation:`bulles`,regleDeCote:`moi`},{scenario:`principal`,conversationId:`pieces`})])}),template:`<SideBySide :columns="columns" :height="height" />`}),args:{reglages:`differe`}},K={name:`Immédiat ou différé`,render:e=>({components:{SideBySide:L},setup:()=>({height:V,columns:d(()=>[z(`Immédiat`,`jean-marc`,{...e,presentation:`bulles`,reglages:`immediat`}),z(`Différé`,`jean-marc`,{...e,presentation:`bulles`,reglages:`differe`})])}),template:`<SideBySide :columns="columns" :height="height" />`})},q={name:`Choix du créneau, vu par l’équipe`,render:e=>({components:{SideBySide:L},setup:()=>({height:V,columns:d(()=>[z(`Choix attendu`,`jean-marc`,{...e,presentation:`correspondance`},{scenario:`creneau-en-attente`}),z(`Créneau retenu`,`jean-marc`,{...e,presentation:`correspondance`},{scenario:`creneau-retenu`})])}),template:`<SideBySide :columns="columns" :height="height" />`})},J=[`TroisPresentations`,`CoteDesBulles`,`ImmediatOuDiffere`,`ChoixDuCreneau`],W.parameters={...W.parameters,docs:{...W.parameters?.docs,source:{originalSource:`{
+  name: 'Trois présentations, même conversation',
+  render: args => ({
+    components: {
+      SideBySide
+    },
+    setup: () => ({
+      height: THREE_COLUMNS_HEIGHT,
+      columns: computed(() => (['bulles', 'pile', 'correspondance'] as const).map(presentation => column(LABELS[presentation], args.pointDeVue, {
+        ...args,
+        presentation
+      })))
+    }),
+    template: '<SideBySide :columns="columns" :height="height" />'
+  })
+}`,...W.parameters?.docs?.source}}},G.parameters={...G.parameters,docs:{...G.parameters?.docs,source:{originalSource:`{
+  name: 'Côté des bulles',
+  render: args => ({
+    components: {
+      SideBySide
+    },
+    setup: () => ({
+      height: TWO_COLUMNS_HEIGHT,
+      columns: computed(() => [column('Équipe à droite, vu par l’auteur', 'jean-marc', {
+        ...args,
+        presentation: 'bulles',
+        regleDeCote: 'equipe'
+      }, {
+        scenario: 'principal',
+        conversationId: 'pieces'
+      }), column('Moi à droite, vu par un collègue', 'karim', {
+        ...args,
+        presentation: 'bulles',
+        regleDeCote: 'moi'
+      }, {
+        scenario: 'principal',
+        conversationId: 'pieces'
+      })])
+    }),
+    template: '<SideBySide :columns="columns" :height="height" />'
+  }),
+  args: {
+    reglages: 'differe'
+  }
+}`,...G.parameters?.docs?.source}}},K.parameters={...K.parameters,docs:{...K.parameters?.docs,source:{originalSource:`{
+  name: 'Immédiat ou différé',
+  render: args => ({
+    components: {
+      SideBySide
+    },
+    setup: () => ({
+      height: TWO_COLUMNS_HEIGHT,
+      columns: computed(() => [column('Immédiat', 'jean-marc', {
+        ...args,
+        presentation: 'bulles',
+        reglages: 'immediat'
+      }), column('Différé', 'jean-marc', {
+        ...args,
+        presentation: 'bulles',
+        reglages: 'differe'
+      })])
+    }),
+    template: '<SideBySide :columns="columns" :height="height" />'
+  })
+}`,...K.parameters?.docs?.source}}},q.parameters={...q.parameters,docs:{...q.parameters?.docs,source:{originalSource:`{
+  name: 'Choix du créneau, vu par l’équipe',
+  render: args => ({
+    components: {
+      SideBySide
+    },
+    setup: () => ({
+      height: TWO_COLUMNS_HEIGHT,
+      columns: computed(() => [column('Choix attendu', 'jean-marc', {
+        ...args,
+        presentation: 'correspondance'
+      }, {
+        scenario: 'creneau-en-attente'
+      }), column('Créneau retenu', 'jean-marc', {
+        ...args,
+        presentation: 'correspondance'
+      }, {
+        scenario: 'creneau-retenu'
+      })])
+    }),
+    template: '<SideBySide :columns="columns" :height="height" />'
+  })
+}`,...q.parameters?.docs?.source}}}})))()}Y();export{q as ChoixDuCreneau,G as CoteDesBulles,K as ImmediatOuDiffere,W as TroisPresentations,J as __namedExportsOrder,U as default};
