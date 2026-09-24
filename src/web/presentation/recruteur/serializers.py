@@ -3,6 +3,7 @@ from referentiel.value_objects.contract_type import ContractType
 from referentiel.value_objects.verse import Verse
 from rest_framework import serializers
 
+from application.recruteur.services.read_conversation import MAX_DOCUMENTS_PAR_MESSAGE
 from domain.recruteur.value_objects.categorie_etapes_recrutement import (
     CategorieEtapeRecrutement,
 )
@@ -10,6 +11,7 @@ from domain.recruteur.value_objects.roles import (
     AgentOrganismeRole,
     AgentRecrutementRole,
 )
+from infrastructure.django_apps.candidate.enums.type_document import TypeDocument
 from infrastructure.django_apps.commons.models import AuditLogModel
 from infrastructure.django_apps.recruteur.enums.motif_refus import MotifRefus
 from infrastructure.django_apps.recruteur.models.note import NoteModel
@@ -406,3 +408,25 @@ class ConversationSerializer(serializers.Serializer):
     last_message_content = serializers.CharField(max_length=300)
     last_message_author = serializers.CharField()
     last_message_created_at = serializers.DateTimeField()
+
+
+# ---------------------------------------------------------------------------
+# Serializers pour le détail d'une conversation (stub)
+# ---------------------------------------------------------------------------
+
+
+class ConversationDocumentSerializer(serializers.Serializer):
+    uuid = serializers.UUIDField()
+    nom = serializers.CharField()
+    type = serializers.ChoiceField(choices=TypeDocument.choices)
+    content_type = serializers.CharField()
+    taille = serializers.IntegerField()
+
+
+class ConversationMessageSerializer(serializers.Serializer):
+    content = serializers.CharField()
+    author = serializers.CharField()
+    created_at = serializers.DateTimeField()
+    documents = ConversationDocumentSerializer(
+        many=True, max_length=MAX_DOCUMENTS_PAR_MESSAGE
+    )

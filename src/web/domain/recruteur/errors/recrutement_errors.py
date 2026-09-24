@@ -19,6 +19,13 @@ class RecrutementCandidatureInexistante(RecrutementError):
         )
 
 
+class ConversationInexistante(RecrutementError):
+    def __init__(self, conversation_id: UUID):
+        super().__init__(
+            f"La conversation {conversation_id} ne correspond pas à cette candidature"
+        )
+
+
 class RecrutementEtapeInexistante(RecrutementError):
     def __init__(self, etape_id: UUID, recrutement_id: UUID):
         super().__init__(
