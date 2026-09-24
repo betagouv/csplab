@@ -9,6 +9,7 @@ from infrastructure.django_apps.recruteur.models.organisme import OrganismeModel
 
 UPDATE_FIELDS = [
     "organisme_id",
+    "code",
     "parent_code",
     "has_children",
     "name",
@@ -59,14 +60,15 @@ def upsert_talentsoft_organismes(items: list[dict]) -> dict:
         candidates.append(item)
 
     entity_code_counts = Counter(item["entity_code"] for item in candidates)
-    duplicate_entity_codes = {
-        entity_code for entity_code, count in entity_code_counts.items() if count > 1
-    }
+    code_counts = Counter(item["code"] for item in candidates)
 
     valid_items = []
     for item in candidates:
-        if item["entity_code"] in duplicate_entity_codes:
+        if entity_code_counts[item["entity_code"]] > 1:
             errors.append(_error(item, "entity_code en doublon dans le lot."))
+            continue
+        if code_counts[item["code"]] > 1:
+            errors.append(_error(item, "code en doublon dans le lot."))
             continue
         valid_items.append(item)
 

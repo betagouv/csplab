@@ -84,6 +84,17 @@ async def test_publish_serializes_geolocation(gateway, httpx_mock: HTTPXMock):
 
 
 @pytest.mark.asyncio
+async def test_publish_serializes_code_as_string(gateway, httpx_mock: HTTPXMock):
+    httpx_mock.add_response(method="POST", url=PUBLISH_URL, status_code=201)
+    organisation = _organisation(code=7060)
+
+    await gateway.publish([organisation])
+
+    body = json.loads(httpx_mock.get_requests()[0].content)
+    assert body["talentsoft_organismes"][0]["code"] == "7060"
+
+
+@pytest.mark.asyncio
 async def test_publish_serializes_parent_code_as_string(gateway, httpx_mock: HTTPXMock):
     httpx_mock.add_response(method="POST", url=PUBLISH_URL, status_code=201)
     organisation = _organisation(parentCode=456)

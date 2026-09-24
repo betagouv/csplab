@@ -967,6 +967,7 @@ class SupprimerOrganismesResponseSerializer(serializers.Serializer):
 class TalentsoftOrganismeUpsertInputSerializer(serializers.Serializer):
     organisme_id = serializers.UUIDField(required=False, allow_null=True, default=None)
     entity_code = serializers.CharField(max_length=50)
+    code = serializers.CharField(max_length=50)
     parent_code = serializers.CharField(
         required=False, allow_null=True, allow_blank=True, max_length=50
     )

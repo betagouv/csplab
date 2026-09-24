@@ -5315,6 +5315,9 @@ components:
         entity_code:
           type: string
           maxLength: 50
+        code:
+          type: string
+          maxLength: 50
         parent_code:
           type: string
           nullable: true
@@ -5377,6 +5380,7 @@ components:
           type: string
           nullable: true
       required:
+      - code
       - entity_code
       - name
     TempsTravailEnum:

@@ -1,0 +1,16 @@
+from django.db import migrations, models
+
+
+class Migration(migrations.Migration):
+    dependencies = [
+        ("ingestion", "0036_purge_talentsoftorganismemodel"),
+    ]
+
+    operations = [
+        migrations.AddField(
+            model_name="talentsoftorganismemodel",
+            name="code",
+            field=models.CharField(max_length=50, unique=True),
+            preserve_default=False,
+        ),
+    ]
