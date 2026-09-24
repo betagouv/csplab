@@ -9,22 +9,10 @@ from application.recruteur.dtos.recrutement_read_models import (
 )
 from domain.recruteur.entities.etape_recrutement import EtapeRecrutement
 from domain.recruteur.entities.recrutement import Recrutement
-from domain.recruteur.value_objects.roles import (
-    AgentOrganismeRole,
-    AgentRecrutementRole,
-)
 from domain.recruteur.value_objects.statut_recrutement import StatutRecrutement
-from infrastructure.django_apps.recruteur.models.etape import EtapeModel
-from infrastructure.django_apps.recruteur.models.recrutement import (
-    RecrutementAgentModel,
-    RecrutementModel,
-)
-from infrastructure.factories.identite.agent_factory import AgentFactory
-from infrastructure.factories.identite.organisme_factory import OrganismeFactory
 from infrastructure.factories.recruteur.etapes_recrutement_factory import (
     EtapeRecrutementFactory,
 )
-from infrastructure.factories.referentiel.offer_factory import OfferFactory
 
 
 class RecrutementFactory:
@@ -100,63 +88,3 @@ class RecrutementFactory:
             finalise=finalise,
             recrute=recrute,
         )
-
-    @staticmethod
-    def create_model(
-        offre_id: UUID | None = None,
-        offre_archivee: bool = False,
-        organisme_id: UUID | None = None,
-        organisme_role: AgentOrganismeRole | None = None,
-        ordre_etapes: list[str] | None = None,
-        agent_id: UUID | None = None,
-        agent_role: AgentRecrutementRole | None = None,
-        etapes: tuple[EtapeRecrutement, ...] | None = None,
-        persist_etapes: bool = True,
-    ) -> RecrutementModel:
-        if offre_id is None:
-            archived_at = (
-                datetime(2024, 1, 1, tzinfo=timezone.utc) if offre_archivee else None
-            )
-            offre_id = OfferFactory.create_model(archived_at=archived_at).id
-        if agent_id is None:
-            agent_id = AgentFactory.create_model().utilisateur_id
-        if organisme_id is None:
-            organisme_id = OrganismeFactory.create_model(
-                agent_id=agent_id, role=organisme_role
-            ).id
-        if etapes is None:
-            etapes = EtapeRecrutementFactory.create_entity_batch()
-        if organisme_id is None:
-            organisme_id = OrganismeFactory.create_model(
-                agent_id=agent_id,
-                role=organisme_role,
-                etapes=etapes,
-            ).id
-
-        recrutement = RecrutementModel(
-            offre_id=offre_id,
-            organisme_id=organisme_id,
-            ordre_etapes=ordre_etapes or [str(etape.entity_id) for etape in etapes],
-        )
-        recrutement.save()
-
-        if persist_etapes:
-            for etape in etapes:
-                EtapeModel(
-                    id=etape.entity_id,
-                    recrutement=recrutement,
-                    categorie=etape.categorie.value,
-                    nom=etape.nom,
-                    ordre_candidatures=[str(c) for c in etape.candidatures]
-                    if etape.candidatures
-                    else None,
-                ).save()
-
-        RecrutementAgentModel(
-            id=uuid4(),
-            recrutement=recrutement,
-            agent_id=str(agent_id),
-            role=(agent_role or AgentRecrutementRole.CONTRIBUTEUR).value,
-        ).save()
-
-        return recrutement

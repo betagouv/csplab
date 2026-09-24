@@ -1,5 +1,5 @@
 from datetime import date
-from typing import Optional, TypedDict
+from typing import TypedDict
 
 from infrastructure.django_apps.ingestion.models.api_log_daily_aggregation import (
     ApiLogDailyAggregationModel,
@@ -15,24 +15,6 @@ class ApiLogDailyAggregationRow(TypedDict):
 
 
 class ApiLogDailyAggregationModelFactory:
-    @staticmethod
-    def create_model(
-        target_date: date = date(2026, 6, 10),
-        method: str = "GET",
-        path: str = "/api/v1/offres/",
-        token_type: Optional[str] = None,
-        count: int = 1,
-    ) -> ApiLogDailyAggregationModel:
-        model = ApiLogDailyAggregationModel(
-            date=target_date,
-            method=method,
-            path=path,
-            token_type=token_type,
-            count=count,
-        )
-        model.save()
-        return model
-
     @staticmethod
     def all_as_dicts() -> list[ApiLogDailyAggregationRow]:
         return [

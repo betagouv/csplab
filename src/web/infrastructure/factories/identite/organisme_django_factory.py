@@ -61,12 +61,8 @@ def create_organisme_with_agent(
     intitule_poste=None,
     **organisme_kwargs,
 ):
-    """Replaces the old OrganismeFactory.create_model_with_agent().
-
-    Built on the `with_agent` trait, but returns (agent, organisme) since
-    every call site needs both. Unlike the old factory, the agent is
-    always linked to the organisme (no silent unlinked-agent case
-    depending on whether role was passed).
+    """Built on the `with_agent` trait, but returns (agent, organisme) since
+    every call site needs both. The agent is always linked to the organisme.
     """
     agent_overrides = {}
     if utilisateur is not None:
