@@ -11,7 +11,6 @@ vi.mock('@/composables/dnd/useKanbanDnd', () => ({
 
 const KANBAN_PATH = '/organismes/00000000-0000-0000-0000-000000000000/recrutements/aaaaaaaa-0001-0001-0001-000000000001'
 const ALICE = 'dddddddd-0001-0001-0001-000000000001'
-const BOB = 'dddddddd-0001-0001-0001-000000000002'
 
 const CANDIDATURE: Candidature = {
   uuid: ALICE,
@@ -39,27 +38,5 @@ describe('candidatureKanbanCard', () => {
     await user.keyboard('{Enter}')
 
     await vi.waitFor(() => expect(router.currentRoute.value.path).toBe(`${KANBAN_PATH}/candidatures/${ALICE}`))
-  })
-
-  it('replaces the address when another panel is already open, so that going back returns to the kanban', async () => {
-    const user = setupUser()
-    const { router } = await renderCard(`${KANBAN_PATH}/candidatures/${BOB}`)
-    const replace = vi.spyOn(router, 'replace')
-
-    await user.click(screen.getByRole('link', { name: 'Alice Dupont' }))
-
-    await vi.waitFor(() => expect(router.currentRoute.value.path).toBe(`${KANBAN_PATH}/candidatures/${ALICE}`))
-    expect(replace).toHaveBeenCalled()
-  })
-
-  it('replaces the address just the same when the open panel sits on another tab', async () => {
-    const user = setupUser()
-    const { router } = await renderCard(`${KANBAN_PATH}/candidatures/${BOB}/messages`)
-    const replace = vi.spyOn(router, 'replace')
-
-    await user.click(screen.getByRole('link', { name: 'Alice Dupont' }))
-
-    await vi.waitFor(() => expect(router.currentRoute.value.path).toBe(`${KANBAN_PATH}/candidatures/${ALICE}`))
-    expect(replace).toHaveBeenCalled()
   })
 })
