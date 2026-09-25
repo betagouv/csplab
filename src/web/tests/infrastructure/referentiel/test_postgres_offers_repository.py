@@ -24,6 +24,9 @@ from infrastructure.django_apps.referentiel.models.offer import OfferModel
 from infrastructure.factories.ingestion.source_django_factory import (
     SourceDjangoFactory,
 )
+from infrastructure.factories.ingestion.talentsoft_organisme_django_factory import (
+    TalentsoftOrganismeDjangoFactory,
+)
 from infrastructure.factories.referentiel.offer_django_factory import (
     OfferDjangoFactory,
 )
@@ -337,45 +340,107 @@ class TestGetFilteredByDomain:
 
 class TestGetFilteredByOrganization:
     def test_filters_offers_by_single_organization(self, db, repository):
-        mairie = OfferDjangoFactory(organization="Mairie de Paris")
-        OfferDjangoFactory(organization="Société Générale")
+        organisme = TalentsoftOrganismeDjangoFactory()
+        offer = OfferDjangoFactory(talentsoft_organisme_entity_code=organisme)
+        OfferDjangoFactory(
+            talentsoft_organisme_entity_code=TalentsoftOrganismeDjangoFactory()
+        )
+        OfferDjangoFactory(talentsoft_organisme_entity_code=None)
 
         page = repository.get_filtered(
             active=True,
             external_id_contains=None,
-            organization=["Mairie de Paris"],
+            organization=[organisme.entity_code],
         )
 
         ids = {offer.id for offer in page.slice(0, 10)}
-        assert ids == {mairie.id}
+        assert ids == {offer.id}
 
     def test_filters_offers_by_multiple_organizations(self, db, repository):
-        mairie = OfferDjangoFactory(organization="Mairie de Paris")
-        societe = OfferDjangoFactory(organization="Société Générale, SA")
-        OfferDjangoFactory(organization="Ministère de la Justice")
+        organisme_a = TalentsoftOrganismeDjangoFactory()
+        organisme_b = TalentsoftOrganismeDjangoFactory()
+        offer_a = OfferDjangoFactory(talentsoft_organisme_entity_code=organisme_a)
+        offer_b = OfferDjangoFactory(talentsoft_organisme_entity_code=organisme_b)
+        OfferDjangoFactory(
+            talentsoft_organisme_entity_code=TalentsoftOrganismeDjangoFactory()
+        )
 
         page = repository.get_filtered(
             active=True,
             external_id_contains=None,
-            organization=["Mairie de Paris", "Société Générale, SA"],
+            organization=[organisme_a.entity_code, organisme_b.entity_code],
         )
 
         ids = {offer.id for offer in page.slice(0, 10)}
-        assert ids == {mairie.id, societe.id}
+        assert ids == {offer_a.id, offer_b.id}
 
-    def test_organization_names_with_commas_are_matched_exactly(self, db, repository):
-        exact_match = OfferDjangoFactory(organization="Société Générale, SA")
-        OfferDjangoFactory(organization="Société Générale")
-        OfferDjangoFactory(organization="SA")
+    def test_includes_offers_of_child_organizations(self, db, repository):
+        parent = TalentsoftOrganismeDjangoFactory(has_children=True)
+        child_b = TalentsoftOrganismeDjangoFactory(parent_code=parent.code)
+        child_c = TalentsoftOrganismeDjangoFactory(parent_code=parent.code)
+        other = TalentsoftOrganismeDjangoFactory()
+        offer_a = OfferDjangoFactory(talentsoft_organisme_entity_code=parent)
+        offer_b = OfferDjangoFactory(talentsoft_organisme_entity_code=child_b)
+        offer_c = OfferDjangoFactory(talentsoft_organisme_entity_code=child_c)
+        OfferDjangoFactory(talentsoft_organisme_entity_code=other)
 
         page = repository.get_filtered(
             active=True,
             external_id_contains=None,
-            organization=["Société Générale, SA"],
+            organization=[parent.entity_code],
         )
 
         ids = {offer.id for offer in page.slice(0, 10)}
-        assert ids == {exact_match.id}
+        assert ids == {offer_a.id, offer_b.id, offer_c.id}
+
+    def test_includes_offers_of_all_descendant_organizations(self, db, repository):
+        parent = TalentsoftOrganismeDjangoFactory(has_children=True)
+        child = TalentsoftOrganismeDjangoFactory(
+            parent_code=parent.code, has_children=True
+        )
+        grandchild = TalentsoftOrganismeDjangoFactory(parent_code=child.code)
+        offer_parent = OfferDjangoFactory(talentsoft_organisme_entity_code=parent)
+        offer_child = OfferDjangoFactory(talentsoft_organisme_entity_code=child)
+        offer_grandchild = OfferDjangoFactory(
+            talentsoft_organisme_entity_code=grandchild
+        )
+
+        page = repository.get_filtered(
+            active=True,
+            external_id_contains=None,
+            organization=[parent.entity_code],
+        )
+
+        ids = {offer.id for offer in page.slice(0, 10)}
+        assert ids == {offer_parent.id, offer_child.id, offer_grandchild.id}
+
+    def test_child_organization_does_not_include_its_parent(self, db, repository):
+        parent = TalentsoftOrganismeDjangoFactory(has_children=True)
+        child = TalentsoftOrganismeDjangoFactory(parent_code=parent.code)
+        OfferDjangoFactory(talentsoft_organisme_entity_code=parent)
+        offer_child = OfferDjangoFactory(talentsoft_organisme_entity_code=child)
+
+        page = repository.get_filtered(
+            active=True,
+            external_id_contains=None,
+            organization=[child.entity_code],
+        )
+
+        ids = {offer.id for offer in page.slice(0, 10)}
+        assert ids == {offer_child.id}
+
+    def test_unknown_organization_returns_no_offers(self, db, repository):
+        OfferDjangoFactory(
+            talentsoft_organisme_entity_code=TalentsoftOrganismeDjangoFactory()
+        )
+
+        page = repository.get_filtered(
+            active=True,
+            external_id_contains=None,
+            organization=["INCONNU"],
+        )
+
+        assert page.count() == 0
 
     def test_no_organization_filter_returns_all_offers(self, db, repository):
         offers = OfferDjangoFactory.create_batch(2)

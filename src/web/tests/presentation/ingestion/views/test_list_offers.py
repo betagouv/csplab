@@ -18,6 +18,9 @@ from referentiel.value_objects.verse import Verse
 from rest_framework import status
 
 from application.ingestion.interfaces.list_offers_input import GetFilteredOffersInput
+from infrastructure.factories.ingestion.talentsoft_organisme_django_factory import (
+    TalentsoftOrganismeDjangoFactory,
+)
 from infrastructure.factories.referentiel.offer_django_factory import (
     OfferDjangoFactory,
 )
@@ -449,13 +452,13 @@ def test_organisme_filter_is_forwarded_to_usecase(
 ):
     _make_paginated_mock(mock_offers_container, num_offers=0, offers_slice=[])
 
-    authenticated_client.get(URL, [("organisme", "Mairie de Paris")])
+    authenticated_client.get(URL, [("organisme", "ORG1")])
 
     mock_offers_container.list_offers_usecase.return_value.execute.assert_called_once_with(
         GetFilteredOffersInput(
             active=True,
             external_id_contains=None,
-            organization=["Mairie de Paris"],
+            organization=["ORG1"],
         )
     )
 
@@ -468,8 +471,8 @@ def test_organisme_filter_with_multiple_values_is_forwarded_to_usecase(
     authenticated_client.get(
         URL,
         [
-            ("organisme", "Mairie de Paris"),
-            ("organisme", "Société Générale, SA"),
+            ("organisme", "ORG1"),
+            ("organisme", "ORG2"),
         ],
     )
 
@@ -477,7 +480,7 @@ def test_organisme_filter_with_multiple_values_is_forwarded_to_usecase(
         GetFilteredOffersInput(
             active=True,
             external_id_contains=None,
-            organization=["Mairie de Paris", "Société Générale, SA"],
+            organization=["ORG1", "ORG2"],
         )
     )
 
@@ -712,6 +715,24 @@ class TestOffersListViewDbVerified:
                 "archived_at": None,
             }
         ]
+
+    def test_organisme_filter_includes_child_organizations(self, authenticated_client):
+        parent = TalentsoftOrganismeDjangoFactory(has_children=True)
+        child_b = TalentsoftOrganismeDjangoFactory(parent_code=parent.code)
+        child_c = TalentsoftOrganismeDjangoFactory(parent_code=parent.code)
+        OfferDjangoFactory(reference="REF-A", talentsoft_organisme_entity_code=parent)
+        OfferDjangoFactory(reference="REF-B", talentsoft_organisme_entity_code=child_b)
+        OfferDjangoFactory(reference="REF-C", talentsoft_organisme_entity_code=child_c)
+        OfferDjangoFactory(
+            reference="REF-AUTRE",
+            talentsoft_organisme_entity_code=TalentsoftOrganismeDjangoFactory(),
+        )
+
+        response = authenticated_client.get(URL, {"organisme": parent.entity_code})
+
+        assert response.status_code == status.HTTP_200_OK
+        references = {offer["reference"] for offer in response.json()["results"]}
+        assert references == {"REF-A", "REF-B", "REF-C"}
 
     def test_does_not_trigger_n_plus_one_queries(
         self, authenticated_client, django_assert_num_queries

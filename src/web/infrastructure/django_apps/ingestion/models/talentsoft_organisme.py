@@ -17,6 +17,15 @@ class TalentsoftOrganismeQuerySet(models.QuerySet):
     def by_entity_code(self, entity_code: str) -> "TalentsoftOrganismeQuerySet":
         return self.filter(entity_code=entity_code)
 
+    def with_descendants_of(self, entity_codes: list) -> "TalentsoftOrganismeQuerySet":
+        codes = set(self.by_entity_codes(entity_codes).values_list("code", flat=True))
+        frontier = codes
+        while frontier:
+            children = self.filter(parent_code__in=frontier)
+            frontier = set(children.values_list("code", flat=True)) - codes
+            codes |= frontier
+        return self.filter(code__in=codes)
+
 
 class TalentsoftOrganismeModel(BaseDatedModel):
     id = models.UUIDField(primary_key=True, default=uuid4)

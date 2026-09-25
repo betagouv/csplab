@@ -280,10 +280,9 @@ class ListOffersFiltersSerializer(serializers.Serializer):
         default=None,
         source="organization",
         help_text=(
-            "Filtre sur l'organisme (nom exact). Répéter le paramètre pour "
-            "filtrer sur plusieurs organismes (ex. "
-            "`?organisme=Foo&organisme=Bar`). Ne pas séparer les valeurs par "
-            "une virgule, le nom d'un organisme pouvant en contenir une."
+            "Filtre sur l'organisme Talentsoft (`entityCode`), en incluant tous "
+            "ses organismes descendants. Répéter le paramètre pour filtrer sur "
+            "plusieurs organismes (ex. `?organisme=ORG1&organisme=ORG2`)."
         ),
     )
     date_publication = serializers.IntegerField(
@@ -434,11 +433,9 @@ class OfferSummariesQuerySerializer(serializers.Serializer):
         required=False,
         default=None,
         help_text=(
-            "Filtre sur l'organisme (nom exact). Répéter le paramètre pour "
-            "filtrer sur plusieurs organismes (ex. "
-            "`?organization=Foo&organization=Bar`). Ne pas séparer les "
-            "valeurs par une virgule, le nom d'un organisme pouvant en "
-            "contenir une."
+            "Filtre sur l'organisme Talentsoft (`entityCode`), en incluant tous "
+            "ses organismes descendants. Répéter le paramètre pour filtrer sur "
+            "plusieurs organismes (ex. `?organization=ORG1&organization=ORG2`)."
         ),
     )
     publicationDate = _AliasedIntegerField(
