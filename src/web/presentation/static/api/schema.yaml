@@ -1205,7 +1205,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/FakeTsOrganisation'
+                $ref: '#/components/schemas/FakeTsTalentsoftOrganisme'
           description: ''
           headers:
             X-RateLimit-Limit:
@@ -4552,6 +4552,63 @@ components:
           allOf:
           - $ref: '#/components/schemas/FakeTsGeolocation'
           nullable: true
+        parentName:
+          type: string
+          nullable: true
+        logoUrl:
+          type: string
+          nullable: true
+        maxDelayForConsent:
+          type: integer
+          nullable: true
+        retentionPeriod:
+          type: integer
+          nullable: true
+        generalConditions:
+          type: string
+          nullable: true
+        personalDataConsent:
+          type: string
+          nullable: true
+      required:
+      - description
+      - entityCode
+      - generalConditions
+      - geolocation
+      - logoUrl
+      - maxDelayForConsent
+      - name
+      - parentName
+      - personalDataConsent
+      - phoneNumber
+      - postCode
+      - retentionPeriod
+      - url
+    FakeTsTalentsoftOrganisme:
+      type: object
+      properties:
+        entityCode:
+          type: string
+        name:
+          type: string
+          maxLength: 255
+        description:
+          type: string
+          nullable: true
+        url:
+          type: string
+          nullable: true
+        phoneNumber:
+          type: string
+          nullable: true
+        postCode:
+          type: string
+          nullable: true
+        geolocation:
+          allOf:
+          - $ref: '#/components/schemas/FakeTsGeolocation'
+          nullable: true
+          readOnly: true
         parentName:
           type: string
           nullable: true

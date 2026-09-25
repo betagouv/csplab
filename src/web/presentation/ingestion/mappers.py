@@ -218,30 +218,6 @@ class OfferSummaryOutputMapper:
         }
 
 
-class TalentsoftOrganisationOutputMapper:
-    def to_dict(self, organisme: TalentsoftOrganisme) -> dict:
-        return {
-            "entityCode": organisme.entity_code,
-            "name": organisme.name,
-            "description": organisme.description,
-            "url": organisme.url,
-            "phoneNumber": organisme.phone_number,
-            "postCode": organisme.post_code,
-            "geolocation": {
-                "latitude": organisme.latitude,
-                "longitude": organisme.longitude,
-            }
-            if organisme.latitude is not None and organisme.longitude is not None
-            else None,
-            "parentName": organisme.parent_name,
-            "logoUrl": organisme.logo_url,
-            "maxDelayForConsent": organisme.max_delay_for_consent,
-            "retentionPeriod": organisme.retention_period,
-            "generalConditions": organisme.general_conditions,
-            "personalDataConsent": organisme.personal_data_consent,
-        }
-
-
 class OfferDetailOutputMapper(OfferSummaryOutputMapper):
     def to_dict(self, offer: Offer) -> dict:
         criteria = offer.criteria
@@ -264,9 +240,7 @@ class OfferDetailOutputMapper(OfferSummaryOutputMapper):
             else None,
             "endPublicationDate": None,
             "isAnonymousOrganisation": False,
-            "organisation": TalentsoftOrganisationOutputMapper().to_dict(
-                offer.talentsoft_organisme
-            )
+            "organisation": self._talentsoft_organisation(offer.talentsoft_organisme)
             if offer.talentsoft_organisme
             else {
                 "entityCode": "",
@@ -314,6 +288,29 @@ class OfferDetailOutputMapper(OfferSummaryOutputMapper):
             "attachedFilesUrls": [],
             "geolocation": geolocation,
             "customFields": None,
+        }
+
+    @staticmethod
+    def _talentsoft_organisation(organisme: TalentsoftOrganisme) -> dict:
+        return {
+            "entityCode": organisme.entity_code,
+            "name": organisme.name,
+            "description": organisme.description,
+            "url": organisme.url,
+            "phoneNumber": organisme.phone_number,
+            "postCode": organisme.post_code,
+            "geolocation": {
+                "latitude": organisme.latitude,
+                "longitude": organisme.longitude,
+            }
+            if organisme.latitude is not None and organisme.longitude is not None
+            else None,
+            "parentName": organisme.parent_name,
+            "logoUrl": organisme.logo_url,
+            "maxDelayForConsent": organisme.max_delay_for_consent,
+            "retentionPeriod": organisme.retention_period,
+            "generalConditions": organisme.general_conditions,
+            "personalDataConsent": organisme.personal_data_consent,
         }
 
     def _language(self, langue: OfferLanguage) -> dict:

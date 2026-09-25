@@ -8,8 +8,7 @@ from infrastructure.django_apps.ingestion.models.talentsoft_organisme import (
     TalentsoftOrganismeModel,
 )
 from presentation.api.serializers import GenericErrorSerializer
-from presentation.ingestion.mappers import TalentsoftOrganisationOutputMapper
-from presentation.ingestion.serializers import FakeTsOrganisationSerializer
+from presentation.ingestion.serializers import FakeTsTalentsoftOrganismeSerializer
 
 
 @extend_schema(
@@ -18,17 +17,13 @@ from presentation.ingestion.serializers import FakeTsOrganisationSerializer
     "l'`entityCode` de l'organisation.",
     tags=["fake-ts"],
     responses={
-        200: FakeTsOrganisationSerializer,
+        200: FakeTsTalentsoftOrganismeSerializer,
         404: GenericErrorSerializer,
     },
 )
 class OrganisationDetailView(APIView):
     authentication_classes = [JWTAuthentication]
-    serializer_class = FakeTsOrganisationSerializer
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.mapper = TalentsoftOrganisationOutputMapper()
+    serializer_class = FakeTsTalentsoftOrganismeSerializer
 
     def get(self, request, entity_code):
         organisme = TalentsoftOrganismeModel.objects.by_entity_code(entity_code).first()
@@ -38,6 +33,4 @@ class OrganisationDetailView(APIView):
             )
             return Response(serializer.data, status=status.HTTP_404_NOT_FOUND)
 
-        return Response(
-            self.serializer_class(self.mapper.to_dict(organisme.to_entity())).data
-        )
+        return Response(self.serializer_class(organisme).data)
