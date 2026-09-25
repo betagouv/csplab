@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { CandidaturePanelTabKey } from '../constants/candidature'
-import type { Candidature } from '../types'
+import { useQueryCache } from '@pinia/colada'
 import { computed, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
@@ -22,30 +22,44 @@ import CandidatureCv from '../components/CandidatureCv.vue'
 import CandidatureDocuments from '../components/CandidatureDocuments.vue'
 import ChangerEtapePopover from '../components/ChangerEtapePopover.vue'
 import RefusCandidatureDialog from '../components/RefusCandidatureDialog.vue'
+import { useCandidatureDetail } from '../composables/useCandidatureDetail'
 import { useCandidatureNavigation } from '../composables/useCandidatureNavigation'
-import { useCandidatures } from '../composables/useCandidatures'
 import { useEtapeChange } from '../composables/useEtapeChange'
 import { CANDIDATURE_PANEL_TAB_ICONS, CANDIDATURE_PANEL_TAB_LABELS } from '../constants/candidature'
+import { candidatureDetailQuery } from '../queries'
 import { CANDIDATURE_PANEL_TAB_ROUTE_NAMES } from '../routes'
 import { formatCandidatNom } from '../utils/candidat'
 
 const route = useRoute()
 
-const { findCandidature, pendingKanban, error } = useCandidatures()
-
 const candidatureUuid = computed(() => route.params.candidatureUuid as string)
-const candidature = computed<Candidature | null>(() => findCandidature(candidatureUuid.value))
+function paramsFor(uuid: string) {
+  return {
+    organismeUuid: route.params.organismeUuid as string,
+    recrutementUuid: route.params.recrutementUuid as string,
+    candidatureUuid: uuid,
+  }
+}
+const candidatureParams = computed(() => paramsFor(candidatureUuid.value))
+const { candidature, pending, error, notFound } = useCandidatureDetail(() => candidatureParams.value)
 
-const showSkeleton = useMinimumPending(computed(() => pendingKanban.value && !candidature.value))
-const loadFailed = computed(() => !pendingKanban.value && Boolean(error.value))
-const isNotFound = computed(() => !pendingKanban.value && !error.value && !candidature.value)
+const showSkeleton = useMinimumPending(pending)
+const loadFailed = computed(() => Boolean(error.value) && !notFound.value)
 
 const title = computed(() => candidature.value ? formatCandidatNom(candidature.value.candidat) : 'Candidature')
 const description = computed(() =>
-  candidature.value ? `Candidature ${formatElapsedDays(candidature.value.date_soumission)}` : null,
+  candidature.value ? `Candidature ${formatElapsedDays(candidature.value.date_candidature)}` : null,
 )
 
 const { position, etape, goPrevious, goNext } = useCandidatureNavigation(candidatureUuid)
+
+const queryCache = useQueryCache()
+watch(position, (current) => {
+  for (const uuid of [current?.previousUuid, current?.nextUuid]) {
+    if (uuid)
+      void queryCache.refresh(queryCache.ensure(candidatureDetailQuery(paramsFor(uuid))))
+  }
+}, { immediate: true })
 
 const scrollArea = ref<HTMLElement | null>(null)
 watch(candidatureUuid, () => {
@@ -56,12 +70,6 @@ watch(candidatureUuid, () => {
 const TABS = tabItems(CANDIDATURE_PANEL_TAB_LABELS, CANDIDATURE_PANEL_TAB_ICONS)
 const activeTab = useRouteTab<CandidaturePanelTabKey>(CANDIDATURE_PANEL_TAB_ROUTE_NAMES, 'candidature')
 const showAside = computed(() => activeTab.value !== 'messages')
-
-const candidatureParams = computed(() => ({
-  organismeUuid: route.params.organismeUuid as string,
-  recrutementUuid: route.params.recrutementUuid as string,
-  candidatureUuid: route.params.candidatureUuid as string,
-}))
 
 const close = useReturnTo(() => ({
   name: 'recrutement-candidatures-kanban',
@@ -133,7 +141,7 @@ function handleUpdateOpen(open: boolean): void {
     </template>
 
     <div
-      v-if="loadFailed || isNotFound"
+      v-if="loadFailed || notFound"
       class="candidature-panel__exception"
     >
       <CspErrorState
@@ -143,8 +151,8 @@ function handleUpdateOpen(open: boolean): void {
       <CspEmptyState
         v-else
         icon="ri:search-line"
-        title="Candidature introuvable"
-        description="Cette candidature n'existe pas ou n'est plus accessible."
+        title="Cette candidature n'est pas accessible."
+        description="Elle n'existe pas ou ne vous est pas accessible. Contactez le responsable de votre organisme si besoin."
       />
     </div>
 
@@ -210,7 +218,7 @@ function handleUpdateOpen(open: boolean): void {
     </div>
 
     <template
-      v-if="!loadFailed && !isNotFound"
+      v-if="!loadFailed && !notFound"
       #footer
     >
       <CspSequenceNav

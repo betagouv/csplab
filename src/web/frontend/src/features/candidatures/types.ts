@@ -8,6 +8,14 @@ export type Candidature = components['schemas']['Candidature']
 
 export type Candidat = components['schemas']['Candidat']
 
+export type CandidatureDetail = components['schemas']['CandidatureDetail']
+
+export interface CandidatureParams {
+  organismeUuid: string
+  recrutementUuid: string
+  candidatureUuid: string
+}
+
 export type PaginatedCandidatureListeList = components['schemas']['PaginatedCandidatureListeList']
 
 export type CandidatureListe = components['schemas']['CandidatureListe']

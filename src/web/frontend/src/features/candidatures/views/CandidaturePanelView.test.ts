@@ -4,6 +4,7 @@ import { createPinia } from 'pinia'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { defineComponent, h } from 'vue'
 import { createRouter, createWebHistory } from 'vue-router'
+import { HttpError } from '@/api/errors'
 import CspToaster from '@/components/base/CspToast/CspToaster.vue'
 import { useToast } from '@/composables/ui/useToast'
 import { getConversations } from '@/features/messages/api'
@@ -12,6 +13,7 @@ import { routes } from '@/router'
 import {
   CANDIDATURE_ALICE,
   CANDIDATURE_BRUNO,
+  candidatureDetail,
   ETAPE_ENTRETIEN,
   ETAPE_REFUS,
   KANBAN,
@@ -22,10 +24,11 @@ import {
   RECRUTEMENT_UUID,
 } from '@/test/fixtures/candidatures'
 import { setupUser } from '@/test/render'
-import { getMotifsRefus, getRecrutementKanban, patchEtapeCandidatures } from '../api'
+import { getCandidatureDetail, getMotifsRefus, getRecrutementKanban, patchEtapeCandidatures } from '../api'
 import CandidaturePanelView from './CandidaturePanelView.vue'
 
 vi.mock('../api', () => ({
+  getCandidatureDetail: vi.fn(),
   getRecrutementKanban: vi.fn(),
   getCandidatureListe: vi.fn(),
   patchEtapeCandidatures: vi.fn(),
@@ -69,6 +72,7 @@ function closeButton() {
 describe('candidaturePanelView', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    vi.mocked(getCandidatureDetail).mockImplementation(async ({ candidatureUuid }) => candidatureDetail(candidatureUuid))
     vi.mocked(getRecrutementKanban).mockResolvedValue(KANBAN)
     vi.mocked(getMotifsRefus).mockResolvedValue(MOTIFS_REFUS)
     vi.mocked(getRecrutementDetail).mockResolvedValue(RECRUTEMENT_DETAIL)
@@ -81,7 +85,7 @@ describe('candidaturePanelView', () => {
     toasts.value.forEach(toast => dismissToast(toast.id))
   })
 
-  it('shows the candidat name and submission date from the kanban data', async () => {
+  it('shows the candidat name and submission date from the candidature detail', async () => {
     const { panel } = await renderPanel([`${KANBAN_PATH}/candidatures/${CANDIDATURE_ALICE}`])
 
     expect(await panel.findByText(/Candidature il y a \d+ jours/)).toBeInTheDocument()
@@ -102,6 +106,7 @@ describe('candidaturePanelView', () => {
     const navigation = within(await screen.findByRole('navigation', { name: 'Navigation entre les candidatures de l\'étape' }))
 
     expect(navigation.getByText('Candidature 1 sur 2')).toBeInTheDocument()
+    expect(getCandidatureDetail).toHaveBeenCalledWith(expect.objectContaining({ candidatureUuid: CANDIDATURE_BRUNO }))
     expect(navigation.getByText('Étape : Réception des candidatures')).toBeInTheDocument()
     expect(navigation.getByRole('button', { name: 'Précédent' })).toBeDisabled()
 
@@ -192,10 +197,13 @@ describe('candidaturePanelView', () => {
     expect(router.currentRoute.value.params.candidatureUuid).toBe(CANDIDATURE_ALICE)
   })
 
-  it('shows an empty state for a candidature absent from the kanban', async () => {
+  it('shows the access message when the candidature detail answers not found', async () => {
+    vi.mocked(getCandidatureDetail).mockRejectedValue(new HttpError(404, 'Not Found'))
     const { panel } = await renderPanel([`${KANBAN_PATH}/candidatures/${CANDIDATURE_INCONNUE}`])
 
-    expect(await panel.findByText('Candidature introuvable')).toBeInTheDocument()
+    expect(await panel.findByText('Cette candidature n\'est pas accessible.')).toBeInTheDocument()
+    expect(panel.getByText('Elle n\'existe pas ou ne vous est pas accessible. Contactez le responsable de votre organisme si besoin.')).toBeInTheDocument()
+    expect(await panel.findByRole('heading', { name: 'Candidature' })).toBeInTheDocument()
   })
 
   it('goes back to the kanban when opened from it', async () => {

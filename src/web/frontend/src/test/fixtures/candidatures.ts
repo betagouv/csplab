@@ -1,4 +1,4 @@
-import type { Candidat, CandidatureParams, MotifRefusOption, RecrutementDetailKanban } from '@/features/candidatures/types'
+import type { Candidat, CandidatureDetail, CandidatureParams, MotifRefusOption, RecrutementDetailKanban } from '@/features/candidatures/types'
 import type { RecrutementDetail } from '@/features/recrutements/types'
 
 export const ORGANISME_UUID = '00000000-0000-0000-0000-000000000000'
@@ -46,6 +46,23 @@ export const KANBAN: RecrutementDetailKanban = {
     { etape_uuid: ETAPE_ENTRETIEN, nom: 'Entretien', categorie: 'EN_COURS', candidatures: [] },
     { etape_uuid: ETAPE_REFUS, nom: 'Refus', categorie: 'REFUS', candidatures: [] },
   ],
+}
+
+export function candidatureDetail(candidatureUuid: string): CandidatureDetail {
+  const etape = KANBAN.etapes.find(({ candidatures }) => candidatures.some(({ uuid }) => uuid === candidatureUuid))!
+  const candidature = etape.candidatures.find(({ uuid }) => uuid === candidatureUuid)!
+  return {
+    uuid: candidatureUuid,
+    candidat: { ...candidature.candidat, email: 'candidat@example.fr' },
+    recrutement_intitule: 'Chargé de mission',
+    etapes: KANBAN.etapes.map(({ etape_uuid, nom }) => ({ etape_uuid, nom })),
+    etape_actuelle: { etape_uuid: etape.etape_uuid, nom: etape.nom },
+    date_candidature: candidature.date_soumission,
+    date_derniere_maj_candidat: null,
+    date_derniere_maj_recruteur: null,
+    document_uuid: null,
+    navigation_candidature_uuids: etape.candidatures.map(({ uuid }) => uuid),
+  }
 }
 
 export const RECRUTEMENT_DETAIL = {
