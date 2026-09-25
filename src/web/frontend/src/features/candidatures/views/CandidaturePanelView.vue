@@ -55,7 +55,8 @@ watch(candidatureUuid, () => {
 
 const TABS = tabItems(CANDIDATURE_PANEL_TAB_LABELS, CANDIDATURE_PANEL_TAB_ICONS)
 const activeTab = useRouteTab<CandidaturePanelTabKey>(CANDIDATURE_PANEL_TAB_ROUTE_NAMES, 'candidature')
-const showAside = computed(() => activeTab.value !== 'messages')
+const isMessagesTab = computed(() => activeTab.value === 'messages')
+const showAside = computed(() => !isMessagesTab.value)
 
 const candidatureParams = computed(() => ({
   organismeUuid: route.params.organismeUuid as string,
@@ -161,10 +162,11 @@ function handleUpdateOpen(open: boolean): void {
         <div
           ref="scrollArea"
           class="candidature-panel__scroll"
+          :class="{ 'candidature-panel__scroll--bounded': isMessagesTab }"
         >
           <div
             class="candidature-panel__layout"
-            :class="{ 'candidature-panel__layout--full': !showAside }"
+            :class="{ 'candidature-panel__layout--full': isMessagesTab }"
           >
             <CspTabsPanels
               :tabs="TABS"
@@ -310,6 +312,16 @@ function handleUpdateOpen(open: boolean): void {
   grid-template-columns: minmax(0, 1fr);
 }
 
+/* bounded: the two message panes scroll on their own instead of growing the panel */
+.candidature-panel__scroll--bounded {
+  overflow: hidden;
+}
+
+.candidature-panel__scroll--bounded .candidature-panel__layout {
+  height: 100%;
+  min-height: 0;
+}
+
 .candidature-panel__main {
   min-width: 0;
 }
@@ -318,6 +330,7 @@ function handleUpdateOpen(open: boolean): void {
   display: flex;
   flex: 1;
   flex-direction: column;
+  min-height: 0;
   padding: var(--csp-page-content-padding-block) var(--csp-page-container-padding-inline);
 }
 
