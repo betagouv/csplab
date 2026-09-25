@@ -15,6 +15,7 @@ export const CANDIDATURE_TAB_ICONS = {
 export const CANDIDATURE_PANEL_TAB_LABELS = {
   candidature: 'Candidature',
   documents: 'Documents',
+  messages: 'Messages',
 } as const
 
 export type CandidaturePanelTabKey = keyof typeof CANDIDATURE_PANEL_TAB_LABELS
@@ -22,6 +23,7 @@ export type CandidaturePanelTabKey = keyof typeof CANDIDATURE_PANEL_TAB_LABELS
 export const CANDIDATURE_PANEL_TAB_ICONS = {
   candidature: 'ri:user-line',
   documents: 'ri:file-list-line',
+  messages: 'ri:question-answer-line',
 } as const satisfies Record<CandidaturePanelTabKey, string>
 
 export const TYPE_DOCUMENT_LABELS = {

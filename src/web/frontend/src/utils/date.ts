@@ -1,5 +1,7 @@
 const PLACEHOLDER = '-'
-const MS_PER_DAY = 1000 * 60 * 60 * 24
+const MS_PER_MINUTE = 1000 * 60
+const MS_PER_HOUR = MS_PER_MINUTE * 60
+const MS_PER_DAY = MS_PER_HOUR * 24
 
 function startOfDay(date: Date): number {
   return new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime()
@@ -14,8 +16,8 @@ function parse(iso: string): Date | null {
   return Number.isNaN(date.getTime()) ? null : date
 }
 
-const autoDay = new Intl.RelativeTimeFormat('fr', { numeric: 'auto' })
-const alwaysDay = new Intl.RelativeTimeFormat('fr', { numeric: 'always' })
+const autoRelative = new Intl.RelativeTimeFormat('fr', { numeric: 'auto' })
+const alwaysRelative = new Intl.RelativeTimeFormat('fr', { numeric: 'always' })
 
 export const shortDate = new Intl.DateTimeFormat('fr-FR', {
   day: '2-digit',
@@ -35,7 +37,32 @@ export function formatElapsedDays(iso: string, now: Date = new Date()): string {
     return PLACEHOLDER
   }
   const days = calendarDaysBetween(date, now)
-  return days <= 0 ? autoDay.format(0, 'day') : alwaysDay.format(-days, 'day')
+  return days <= 0 ? autoRelative.format(0, 'day') : alwaysRelative.format(-days, 'day')
+}
+
+const ELAPSED_DAYS_LIMIT = 7
+
+export function formatElapsedTime(iso: string, now: Date = new Date()): string {
+  const date = parse(iso)
+  if (!date) {
+    return PLACEHOLDER
+  }
+  const elapsed = Math.max(now.getTime() - date.getTime(), 0)
+  if (elapsed < MS_PER_MINUTE) {
+    return 'à l’instant'
+  }
+  if (elapsed < MS_PER_HOUR) {
+    return alwaysRelative.format(-Math.floor(elapsed / MS_PER_MINUTE), 'minute')
+  }
+
+  const days = calendarDaysBetween(date, now)
+  if (days <= 0) {
+    return alwaysRelative.format(-Math.floor(elapsed / MS_PER_HOUR), 'hour')
+  }
+  if (days >= ELAPSED_DAYS_LIMIT) {
+    return shortDate.format(date)
+  }
+  return days === 1 ? autoRelative.format(-1, 'day') : alwaysRelative.format(-days, 'day')
 }
 
 export function formatDateLong(iso: string): string {

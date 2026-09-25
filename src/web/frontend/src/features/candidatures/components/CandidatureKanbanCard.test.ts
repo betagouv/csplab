@@ -51,4 +51,15 @@ describe('candidatureKanbanCard', () => {
     await vi.waitFor(() => expect(router.currentRoute.value.path).toBe(`${KANBAN_PATH}/candidatures/${ALICE}`))
     expect(replace).toHaveBeenCalled()
   })
+
+  it('replaces the address just the same when the open panel sits on another tab', async () => {
+    const user = setupUser()
+    const { router } = await renderCard(`${KANBAN_PATH}/candidatures/${BOB}/messages`)
+    const replace = vi.spyOn(router, 'replace')
+
+    await user.click(screen.getByRole('link', { name: 'Alice Dupont' }))
+
+    await vi.waitFor(() => expect(router.currentRoute.value.path).toBe(`${KANBAN_PATH}/candidatures/${ALICE}`))
+    expect(replace).toHaveBeenCalled()
+  })
 })
