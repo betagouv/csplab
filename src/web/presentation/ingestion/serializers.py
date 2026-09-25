@@ -596,8 +596,9 @@ class FakeTsOrganisationSerializer(serializers.Serializer):
     personalDataConsent = serializers.CharField(allow_null=True)
 
 
-class FakeTsTalentsoftOrganismeSerializer(serializers.ModelSerializer):
+class FakeTsTalentsoftOrganismeSerializer(serializers.Serializer):
     entityCode = serializers.CharField(source="entity_code")
+    name = serializers.CharField()
     description = serializers.CharField(allow_null=True)
     url = serializers.CharField(allow_null=True)
     phoneNumber = serializers.CharField(source="phone_number", allow_null=True)
@@ -617,24 +618,6 @@ class FakeTsTalentsoftOrganismeSerializer(serializers.ModelSerializer):
     personalDataConsent = serializers.CharField(
         source="personal_data_consent", allow_null=True
     )
-
-    class Meta:
-        model = TalentsoftOrganismeModel
-        fields = [
-            "entityCode",
-            "name",
-            "description",
-            "url",
-            "phoneNumber",
-            "postCode",
-            "geolocation",
-            "parentName",
-            "logoUrl",
-            "maxDelayForConsent",
-            "retentionPeriod",
-            "generalConditions",
-            "personalDataConsent",
-        ]
 
     @extend_schema_field(FakeTsGeolocationSerializer(allow_null=True))
     def get_geolocation(self, organisme: TalentsoftOrganismeModel) -> dict | None:
