@@ -1,6 +1,7 @@
 from uuid import uuid4
 
 from django.db import models
+from referentiel.entities.talentsoft_organisme import TalentsoftOrganisme
 
 from infrastructure.django_apps.recruteur.models.organisme import OrganismeModel
 from infrastructure.django_apps.utils.models import BaseDatedModel
@@ -51,3 +52,24 @@ class TalentsoftOrganismeModel(BaseDatedModel):
 
     def __str__(self) -> str:
         return f"{self.entity_code} - {self.name}"
+
+    def to_entity(self) -> TalentsoftOrganisme:
+        return TalentsoftOrganisme(
+            entity_code=self.entity_code,
+            code=self.code,
+            name=self.name,
+            parent_code=self.parent_code,
+            has_children=self.has_children,
+            description=self.description,
+            url=self.url,
+            phone_number=self.phone_number,
+            post_code=self.post_code,
+            latitude=self.latitude,
+            longitude=self.longitude,
+            parent_name=self.parent_name,
+            logo_url=self.logo_url,
+            max_delay_for_consent=self.max_delay_for_consent,
+            retention_period=self.retention_period,
+            general_conditions=self.general_conditions,
+            personal_data_consent=self.personal_data_consent,
+        )

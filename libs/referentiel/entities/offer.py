@@ -6,6 +6,7 @@ from uuid import UUID, uuid4
 from ddd.entity_interface import IEntity
 from pydantic import HttpUrl
 
+from referentiel.entities.talentsoft_organisme import TalentsoftOrganisme
 from referentiel.value_objects.category import Category
 from referentiel.value_objects.contract_type import ContractKind, ContractType
 from referentiel.value_objects.limit_date import LimitDate
@@ -43,6 +44,7 @@ class Offer(IEntity):
     conditions: Optional[dict] = None
     contacts: Optional[list[dict]] = None
     talentsoft_organisme_entity_code: Optional[str] = None
+    talentsoft_organisme: Optional[TalentsoftOrganisme] = None
     source_id: UUID = field(default_factory=uuid4)
     processing: bool = False
     processed_at: Optional[datetime] = None

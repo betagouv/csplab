@@ -587,8 +587,8 @@ class FakeTsOrganisationSerializer(serializers.Serializer):
     geolocation = FakeTsGeolocationSerializer(allow_null=True)
     parentName = serializers.CharField(allow_null=True)
     logoUrl = serializers.CharField(allow_null=True)
-    maxDelayForConsent = serializers.CharField(allow_null=True)
-    retentionPeriod = serializers.CharField(allow_null=True)
+    maxDelayForConsent = serializers.IntegerField(allow_null=True)
+    retentionPeriod = serializers.IntegerField(allow_null=True)
     generalConditions = serializers.CharField(allow_null=True)
     personalDataConsent = serializers.CharField(allow_null=True)
 

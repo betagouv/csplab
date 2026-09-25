@@ -15,6 +15,9 @@ from rest_framework import status
 from application.ingestion.interfaces.get_offer_by_reference_input import (
     GetOfferByReferenceInput,
 )
+from infrastructure.django_apps.ingestion.models.talentsoft_organisme import (
+    TalentsoftOrganismeModel,
+)
 from infrastructure.factories.referentiel.offer_django_factory import (
     OfferDjangoFactory,
 )
@@ -338,6 +341,50 @@ class TestOfferDetailViewDbVerified:
             "attachedFilesUrls": [],
             "geolocation": {"latitude": 48.8566, "longitude": 2.3522},
             "customFields": None,
+        }
+
+    def test_organisation_is_filled_from_talentsoft_organisme(
+        self, authenticated_client
+    ):
+        talentsoft_organisme = TalentsoftOrganismeModel.objects.create(
+            entity_code="ENT-1",
+            code=1,
+            name="Commune de Paris",
+            description="Description de la commune",
+            url="https://paris.fr",
+            phone_number="0102030405",
+            post_code="75001",
+            latitude=48.8566,
+            longitude=2.3522,
+            parent_name="Métropole du Grand Paris",
+            logo_url="https://paris.fr/logo.png",
+            max_delay_for_consent=30,
+            retention_period=24,
+            general_conditions="Conditions générales",
+            personal_data_consent="Consentement",
+        )
+        offer_model = OfferDjangoFactory(
+            reference="REF-TS-1",
+            talentsoft_organisme_entity_code=talentsoft_organisme,
+        )
+
+        response = authenticated_client.get(URL, {"reference": offer_model.reference})
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json()["organisation"] == {
+            "entityCode": "ENT-1",
+            "name": "Commune de Paris",
+            "description": "Description de la commune",
+            "url": "https://paris.fr",
+            "phoneNumber": "0102030405",
+            "postCode": "75001",
+            "geolocation": {"latitude": 48.8566, "longitude": 2.3522},
+            "parentName": "Métropole du Grand Paris",
+            "logoUrl": "https://paris.fr/logo.png",
+            "maxDelayForConsent": 30,
+            "retentionPeriod": 24,
+            "generalConditions": "Conditions générales",
+            "personalDataConsent": "Consentement",
         }
 
 
