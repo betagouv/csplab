@@ -91,12 +91,10 @@ function handleUpdateOpen(open: boolean): void {
 <template>
   <CspDrawer
     :open="true"
-    :modal="false"
     aria-label="Candidature"
     close-label="Fermer la candidature"
     class="candidature-panel"
     @update:open="handleUpdateOpen"
-    @interact-outside="(event: Event) => event.preventDefault()"
   >
     <template
       v-if="candidature && etape"
