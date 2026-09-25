@@ -31,9 +31,7 @@ class OrganisationDetailView(APIView):
         self.mapper = TalentsoftOrganisationOutputMapper()
 
     def get(self, request, entity_code):
-        organisme = TalentsoftOrganismeModel.objects.by_entity_codes(
-            [entity_code]
-        ).first()
+        organisme = TalentsoftOrganismeModel.objects.by_entity_code(entity_code).first()
         if organisme is None:
             serializer = GenericErrorSerializer(
                 {"error": f"Organisation inconnue : {entity_code}."}
