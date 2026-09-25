@@ -15,8 +15,8 @@ from rest_framework import status
 from application.ingestion.interfaces.get_offer_by_reference_input import (
     GetOfferByReferenceInput,
 )
-from infrastructure.django_apps.ingestion.models.talentsoft_organisme import (
-    TalentsoftOrganismeModel,
+from infrastructure.factories.ingestion.talentsoft_organisme_django_factory import (
+    TalentsoftOrganismeDjangoFactory,
 )
 from infrastructure.factories.referentiel.offer_django_factory import (
     OfferDjangoFactory,
@@ -346,7 +346,7 @@ class TestOfferDetailViewDbVerified:
     def test_organisation_is_filled_from_talentsoft_organisme(
         self, authenticated_client
     ):
-        talentsoft_organisme = TalentsoftOrganismeModel.objects.create(
+        talentsoft_organisme = TalentsoftOrganismeDjangoFactory(
             entity_code="ENT-1",
             code=1,
             name="Commune de Paris",

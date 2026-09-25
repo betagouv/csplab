@@ -4,8 +4,8 @@ from referentiel.exceptions.offer_errors import OfferDoesNotExist
 from application.ingestion.interfaces.get_offer_by_reference_input import (
     GetOfferByReferenceInput,
 )
-from infrastructure.django_apps.ingestion.models.talentsoft_organisme import (
-    TalentsoftOrganismeModel,
+from infrastructure.factories.ingestion.talentsoft_organisme_django_factory import (
+    TalentsoftOrganismeDjangoFactory,
 )
 from infrastructure.factories.referentiel.offer_django_factory import (
     OfferDjangoFactory,
@@ -26,7 +26,7 @@ def test_returns_offer_matching_reference(db, ingestion_container):
 def test_loads_talentsoft_organisme_with_offer(
     db, ingestion_container, django_assert_num_queries
 ):
-    talentsoft_organisme = TalentsoftOrganismeModel.objects.create(
+    talentsoft_organisme = TalentsoftOrganismeDjangoFactory(
         entity_code="ENT-1", code=1, name="Commune de Paris", post_code="75001"
     )
     OfferDjangoFactory(
