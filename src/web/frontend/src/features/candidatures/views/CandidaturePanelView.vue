@@ -20,6 +20,8 @@ import MessagesSection from '@/features/messages/components/MessagesSection.vue'
 import { formatElapsedDays } from '@/utils/date'
 import CandidatureCv from '../components/CandidatureCv.vue'
 import CandidatureDocuments from '../components/CandidatureDocuments.vue'
+import CandidatureNoteForm from '../components/CandidatureNoteForm.vue'
+import CandidatureNotes from '../components/CandidatureNotes.vue'
 import ChangerEtapePopover from '../components/ChangerEtapePopover.vue'
 import RefusCandidatureDialog from '../components/RefusCandidatureDialog.vue'
 import { useCandidatureDetail } from '../composables/useCandidatureDetail'
@@ -197,6 +199,15 @@ function handleUpdateOpen(open: boolean): void {
                 </div>
               </template>
 
+              <template #notes>
+                <div class="candidature-panel__tab">
+                  <CandidatureNotes
+                    v-if="candidature"
+                    :candidature="candidatureParams"
+                  />
+                </div>
+              </template>
+
               <template #messages>
                 <div class="candidature-panel__tab">
                   <MessagesSection :candidature="candidatureParams" />
@@ -208,9 +219,10 @@ function handleUpdateOpen(open: boolean): void {
               class="candidature-panel__aside"
               aria-label="Suivi de la candidature"
             >
-              <p class="candidature-panel__placeholder">
-                Activités, tags et note (à venir)
-              </p>
+              <CandidatureNoteForm
+                v-if="candidature"
+                :candidature="candidatureParams"
+              />
             </aside>
           </div>
         </div>
@@ -332,11 +344,6 @@ function handleUpdateOpen(open: boolean): void {
 .candidature-panel__aside {
   padding: var(--csp-page-content-padding-block) var(--csp-page-container-padding-inline);
   border-left: 1px solid var(--border-default-grey);
-}
-
-.candidature-panel__placeholder {
-  margin: 0;
-  color: var(--text-mention-grey);
 }
 
 @container panel (max-width: 64rem) {

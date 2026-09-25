@@ -35,6 +35,8 @@ vi.mock('../api', () => ({
   getMotifsRefus: vi.fn(),
   getCandidatureDocuments: vi.fn(() => new Promise(() => {})),
   candidatureDocumentUrl: vi.fn(),
+  getCandidatureNotes: vi.fn(() => new Promise(() => {})),
+  createCandidatureNote: vi.fn(),
 }))
 
 vi.mock('@/features/recrutements/api', () => ({
@@ -97,7 +99,8 @@ describe('candidaturePanelView', () => {
 
     expect(await panel.findByRole('tab', { name: 'Candidature', selected: true })).toBeInTheDocument()
     expect(router.currentRoute.value.meta.tab).toBe('candidature')
-    expect(panel.getByRole('complementary', { name: 'Suivi de la candidature' })).toHaveTextContent('Activités, tags et note')
+    const suivi = within(panel.getByRole('complementary', { name: 'Suivi de la candidature' }))
+    expect(suivi.getByRole('heading', { name: 'Ajouter une note' })).toBeInTheDocument()
   })
 
   it('moves to the next candidature of the column from the bottom bar', async () => {
@@ -190,10 +193,13 @@ describe('candidaturePanelView', () => {
     expect(screen.queryByText(/est passé à l'étape/)).not.toBeInTheDocument()
   })
 
-  it('opens the documents tab from its own address', async () => {
-    const { router, panel } = await renderPanel([`${KANBAN_PATH}/candidatures/${CANDIDATURE_ALICE}/documents`])
+  it.each([
+    ['documents', 'Documents'],
+    ['notes', 'Notes'],
+  ])('opens the %s tab from its own address', async (segment, label) => {
+    const { router, panel } = await renderPanel([`${KANBAN_PATH}/candidatures/${CANDIDATURE_ALICE}/${segment}`])
 
-    expect(await panel.findByRole('tab', { name: 'Documents', selected: true })).toBeInTheDocument()
+    expect(await panel.findByRole('tab', { name: label, selected: true })).toBeInTheDocument()
     expect(router.currentRoute.value.params.candidatureUuid).toBe(CANDIDATURE_ALICE)
   })
 
