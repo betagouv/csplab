@@ -13,6 +13,7 @@ export interface SidebarContext {
   isExpanded: Ref<boolean>
   isMobile: Ref<boolean>
   isMobileOpen: Ref<boolean>
+  showLabels: ComputedRef<boolean>
   setExpanded: (value: boolean) => void
   setMobileOpen: (value: boolean) => void
   toggle: () => void
@@ -38,6 +39,8 @@ export function provideSidebar(options: {
   const state = computed<'expanded' | 'collapsed'>(() =>
     isExpanded.value ? 'expanded' : 'collapsed',
   )
+
+  const showLabels = computed(() => isExpanded.value || isMobile.value)
 
   function setExpanded(value: boolean) {
     isExpanded.value = value
@@ -88,6 +91,7 @@ export function provideSidebar(options: {
     isExpanded,
     isMobile,
     isMobileOpen,
+    showLabels,
     setExpanded,
     setMobileOpen,
     toggle,

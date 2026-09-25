@@ -50,7 +50,9 @@ function isItemActive(item: NavItem): boolean {
             <CspSidebarLogo />
           </template>
 
-          <CspSidebarOrganisme />
+          <template #context>
+            <CspSidebarOrganisme />
+          </template>
 
           <CspSidebarItem
             v-for="item in navItems"

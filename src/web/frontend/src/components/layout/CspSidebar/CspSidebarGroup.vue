@@ -12,6 +12,10 @@
   flex-direction: column;
   gap: 0.125rem;
   min-width: 0;
+
+  & + & {
+    margin-top: 0.75rem;
+  }
 }
 
 .csp-sidebar-group__items {

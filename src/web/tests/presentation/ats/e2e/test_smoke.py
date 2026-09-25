@@ -19,17 +19,21 @@ class TestAtsSmoke:
         page.get_by_role("button", name="Se connecter").click()
 
         page.goto(f"{live_server.url}/ats/")
-        expect(page.get_by_test_id("sidebar-user-info")).to_have_text(
-            f"{agent_user.first_name} {agent_user.last_name}"
-        )
+        expect(
+            page.get_by_role(
+                "button", name=f"{agent_user.first_name} {agent_user.last_name}"
+            )
+        ).to_be_visible()
 
     def test_session_cookie_authenticates_the_spa(
         self, authenticated_page: Page, live_server, agent_user: UserModel
     ) -> None:
         authenticated_page.goto(f"{live_server.url}/ats/")
-        expect(authenticated_page.get_by_test_id("sidebar-user-info")).to_have_text(
-            f"{agent_user.first_name} {agent_user.last_name}"
-        )
+        expect(
+            authenticated_page.get_by_role(
+                "button", name=f"{agent_user.first_name} {agent_user.last_name}"
+            )
+        ).to_be_visible()
 
     def test_login_form_rejects_bad_credentials(
         self, page: Page, live_server, agent_user: UserModel

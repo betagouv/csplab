@@ -61,6 +61,7 @@
   --csp-page-header-breadcrumb-gap: 1.25rem;
   --csp-page-header-title-height: 2.5rem;
   --csp-page-header-padding-bottom: 1.25rem;
+  --csp-sidebar-padding-inline: 0.25rem;
 }
 
 @media (min-width: 100rem) {
@@ -70,6 +71,7 @@
     --csp-page-header-padding-top: 1.5rem;
     --csp-page-header-breadcrumb-gap: 1.5rem;
     --csp-page-header-padding-bottom: 1.5rem;
+    --csp-sidebar-padding-inline: 0.5rem;
   }
 }
 

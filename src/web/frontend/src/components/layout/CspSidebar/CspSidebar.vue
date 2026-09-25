@@ -49,6 +49,10 @@ const { state, isExpanded, isMobile, isMobileOpen, setMobileOpen, toggle } = use
           />
         </header>
 
+        <div class="csp-sidebar__context">
+          <slot name="context" />
+        </div>
+
         <nav class="csp-sidebar__nav">
           <slot />
         </nav>
@@ -95,8 +99,14 @@ const { state, isExpanded, isMobile, isMobileOpen, setMobileOpen, toggle } = use
       </button>
     </div>
 
-    <div class="csp-sidebar__nav">
-      <slot />
+    <div class="csp-sidebar__content">
+      <div class="csp-sidebar__context">
+        <slot name="context" />
+      </div>
+
+      <div class="csp-sidebar__nav">
+        <slot />
+      </div>
     </div>
 
     <div
@@ -119,20 +129,21 @@ const { state, isExpanded, isMobile, isMobileOpen, setMobileOpen, toggle } = use
 .csp-sidebar {
   --sidebar-inset-x: 0.5rem;
   --sidebar-item-size: 2.5rem;
-  --sidebar-padding-x: 0.5rem;
 
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
   width: var(--sidebar-width-collapsed);
   height: 100%;
-  padding: 0.75rem var(--sidebar-padding-x);
+  padding-top: var(--csp-page-header-padding-top);
+  padding-inline: var(--sidebar-padding-inline);
+  padding-bottom: var(--sidebar-padding-inline);
   background: var(--background-alt-grey);
   overflow: hidden;
 
   &--expanded {
     width: var(--sidebar-width);
-    --sidebar-padding-x: 0.75rem;
+    --sidebar-padding-inline: var(--csp-sidebar-padding-inline);
   }
 
   &--mobile {
@@ -143,7 +154,7 @@ const { state, isExpanded, isMobile, isMobileOpen, setMobileOpen, toggle } = use
     max-width: calc(100vw - 3rem);
     z-index: var(--csp-z-modal);
     box-shadow: var(--csp-shadow-lg);
-    --sidebar-padding-x: 0.75rem;
+    --sidebar-padding-inline: var(--csp-sidebar-padding-inline);
   }
 }
 
@@ -152,9 +163,21 @@ const { state, isExpanded, isMobile, isMobileOpen, setMobileOpen, toggle } = use
   display: flex;
   align-items: center;
   justify-content: space-between;
-  flex-shrink: 0;
-  min-height: 2rem;
-  padding-bottom: 2rem;
+  min-height: var(--csp-page-header-breadcrumb-height);
+  padding-bottom: var(--csp-page-header-breadcrumb-gap);
+}
+
+.csp-sidebar__context {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-block: 0.375rem;
+  border-block: solid 1px var(--border-default-grey);
+
+  .csp-sidebar--expanded &,
+  .csp-sidebar--mobile & {
+    align-items: stretch;
+  }
 }
 
 .csp-sidebar__brand {
@@ -198,16 +221,19 @@ const { state, isExpanded, isMobile, isMobileOpen, setMobileOpen, toggle } = use
   flex-shrink: 0;
 }
 
+.csp-sidebar__content {
+  flex: 1;
+}
+
 .csp-sidebar__nav {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1rem;
-  flex: 1;
+  margin-top: 0.5rem;
+  padding-inline: 0.325rem;
+  gap: 0.5rem;
   min-width: 0;
   min-height: 0;
-  overflow-x: hidden;
-  overflow-y: auto;
 
   .csp-sidebar--expanded &,
   .csp-sidebar--mobile & {
@@ -221,10 +247,10 @@ const { state, isExpanded, isMobile, isMobileOpen, setMobileOpen, toggle } = use
   flex-direction: column;
   align-items: center;
   flex-shrink: 0;
-  width: calc(100% + 2 * var(--sidebar-padding-x));
   margin-top: 0.75rem;
-  margin-inline: calc(-1 * var(--sidebar-padding-x));
-  padding: 0.75rem var(--sidebar-padding-x) 0;
+  margin-inline: calc(-1 * var(--sidebar-padding-inline));
+  padding-top: var(--sidebar-padding-inline);
+  padding-inline: var(--sidebar-padding-inline);
   border-top: 1px solid var(--border-default-grey);
 
   .csp-sidebar--expanded &,
