@@ -312,7 +312,6 @@ function handleUpdateOpen(open: boolean): void {
   grid-template-columns: minmax(0, 1fr);
 }
 
-/* bounded: the two message panes scroll on their own instead of growing the panel */
 .candidature-panel__scroll--bounded {
   overflow: hidden;
 }

@@ -144,6 +144,7 @@ const openConversationUuid = computed(() => route.params.conversationUuid as str
 
 .messages-section__thread:has(.conversation-thread) {
   justify-content: flex-start;
+  overflow: hidden;
 }
 
 .messages-section__header {

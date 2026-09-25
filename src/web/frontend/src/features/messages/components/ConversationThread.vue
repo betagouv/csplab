@@ -5,6 +5,7 @@ import CspSkeleton from '@/components/base/CspSkeleton/CspSkeleton.vue'
 import { useMinimumPending } from '@/composables/async/useMinimumPending'
 import { formatDateTime } from '@/utils/date'
 import { useConversationMessages } from '../composables/useConversationMessages'
+import MessageComposer from './MessageComposer.vue'
 
 const props = defineProps<{
   candidature: CandidatureParams
@@ -22,43 +23,60 @@ const showSkeleton = useMinimumPending(pending)
 </script>
 
 <template>
-  <CspAsyncSection
-    :pending="showSkeleton"
-    :error="error"
-    fill
-    loading-label="Chargement des messages"
-    error-title="Impossible de charger les messages"
-  >
-    <template #skeleton>
-      <div class="conversation-thread__skeleton">
-        <CspSkeleton
-          v-for="row in SKELETON_ROWS"
-          :key="row"
-          height="6rem"
-        />
-      </div>
-    </template>
-
-    <ol class="conversation-thread">
-      <li
-        v-for="message in messages"
-        :key="`${message.author}-${message.created_at}`"
-        class="conversation-thread__message"
-      >
-        <div class="conversation-thread__meta">
-          <span class="conversation-thread__author">{{ message.author }}</span>
-          <span class="conversation-thread__date">le {{ formatDateTime(message.created_at) }}</span>
+  <div class="conversation-thread">
+    <CspAsyncSection
+      :pending="showSkeleton"
+      :error="error"
+      fill
+      loading-label="Chargement des messages"
+      error-title="Impossible de charger les messages"
+      class="conversation-thread__messages"
+    >
+      <template #skeleton>
+        <div class="conversation-thread__skeleton">
+          <CspSkeleton
+            v-for="row in SKELETON_ROWS"
+            :key="row"
+            height="6rem"
+          />
         </div>
-        <p class="conversation-thread__body">
-          {{ message.content }}
-        </p>
-      </li>
-    </ol>
-  </CspAsyncSection>
+      </template>
+
+      <ol class="conversation-thread__list">
+        <li
+          v-for="message in messages"
+          :key="`${message.author}-${message.created_at}`"
+        >
+          <div class="conversation-thread__meta">
+            <span class="conversation-thread__author">{{ message.author }}</span>
+            <span class="conversation-thread__date">le {{ formatDateTime(message.created_at) }}</span>
+          </div>
+          <p class="conversation-thread__body">
+            {{ message.content }}
+          </p>
+        </li>
+      </ol>
+    </CspAsyncSection>
+
+    <MessageComposer />
+  </div>
 </template>
 
 <style scoped lang="scss">
 .conversation-thread {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.conversation-thread__messages {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.conversation-thread__list {
   display: flex;
   flex-direction: column;
   gap: var(--csp-space-5);

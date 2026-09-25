@@ -36,6 +36,7 @@ import riErrorWarningLine from '@iconify-icons/ri/error-warning-line'
 import riExpandUpDownLine from '@iconify-icons/ri/expand-up-down-line'
 import riExternalLinkLine from '@iconify-icons/ri/external-link-line'
 import riEyeLine from '@iconify-icons/ri/eye-line'
+import riFileAddLine from '@iconify-icons/ri/file-add-line'
 import riFileCopyLine from '@iconify-icons/ri/file-copy-line'
 import riFileListLine from '@iconify-icons/ri/file-list-line'
 import riFilter3Line from '@iconify-icons/ri/filter-3-line'
@@ -71,6 +72,7 @@ import riQuestionAnswerLine from '@iconify-icons/ri/question-answer-line'
 import riRefreshLine from '@iconify-icons/ri/refresh-line'
 import riRestartLine from '@iconify-icons/ri/restart-line'
 import riSearchLine from '@iconify-icons/ri/search-line'
+import riSendPlaneFill from '@iconify-icons/ri/send-plane-fill'
 import riSettings3Line from '@iconify-icons/ri/settings-3-line'
 import riShieldUserLine from '@iconify-icons/ri/shield-user-line'
 import riSpamFill from '@iconify-icons/ri/spam-fill'
@@ -119,6 +121,7 @@ addIcon('ri:error-warning-line', riErrorWarningLine)
 addIcon('ri:expand-up-down-line', riExpandUpDownLine)
 addIcon('ri:external-link-line', riExternalLinkLine)
 addIcon('ri:eye-line', riEyeLine)
+addIcon('ri:file-add-line', riFileAddLine)
 addIcon('ri:file-copy-line', riFileCopyLine)
 addIcon('ri:file-list-line', riFileListLine)
 addIcon('ri:filter-3-line', riFilter3Line)
@@ -154,6 +157,7 @@ addIcon('ri:question-answer-line', riQuestionAnswerLine)
 addIcon('ri:refresh-line', riRefreshLine)
 addIcon('ri:restart-line', riRestartLine)
 addIcon('ri:search-line', riSearchLine)
+addIcon('ri:send-plane-fill', riSendPlaneFill)
 addIcon('ri:settings-3-line', riSettings3Line)
 addIcon('ri:shield-user-line', riShieldUserLine)
 addIcon('ri:spam-fill', riSpamFill)
