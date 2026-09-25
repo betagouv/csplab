@@ -6,8 +6,6 @@ import { useCandidatureNavigation } from './useCandidatureNavigation'
 import { useCandidatures } from './useCandidatures'
 import { useRefusCandidature } from './useRefusCandidature'
 
-const TOAST_DURATION = 10_000
-
 export function useEtapeChange(candidatureUuid: Ref<string>, leavePanel: () => void) {
   const { moveCandidature, recrutementEtapes, findCandidature } = useCandidatures()
   const { position, etape, navigateTo } = useCandidatureNavigation(candidatureUuid)
@@ -45,8 +43,6 @@ export function useEtapeChange(candidatureUuid: Ref<string>, leavePanel: () => v
     lastToastId = addToast({
       variant: 'success',
       title: `${formatCandidatNom(candidature.candidat)} est passé à l'étape ${target.nom}`,
-      duration: TOAST_DURATION,
-      action: { label: 'Revenir à cette candidature', icon: 'ri:arrow-go-back-line', onSelect: () => navigateTo(movedUuid) },
     })
   }
 

@@ -2,8 +2,7 @@
 import type { CandidaturePanelTabKey } from '../constants/candidature'
 import { useQueryCache } from '@pinia/colada'
 import { computed, ref, watch } from 'vue'
-import { useRoute } from 'vue-router'
-import CspButton from '@/components/base/CspButton/CspButton.vue'
+import { useRoute, useRouter } from 'vue-router'
 import CspDrawer from '@/components/base/CspDrawer/CspDrawer.vue'
 import CspEmptyState from '@/components/base/CspEmptyState/CspEmptyState.vue'
 import CspErrorState from '@/components/base/CspErrorState/CspErrorState.vue'
@@ -14,7 +13,6 @@ import CspTabsList from '@/components/base/CspTabs/CspTabsList.vue'
 import CspTabsPanels from '@/components/base/CspTabs/CspTabsPanels.vue'
 import { useMinimumPending } from '@/composables/async/useMinimumPending'
 import { tabItems } from '@/composables/navigation/tabs'
-import { useReturnTo } from '@/composables/navigation/useReturnTo'
 import { useRouteTab } from '@/composables/navigation/useRouteTab'
 import MessagesSection from '@/features/messages/components/MessagesSection.vue'
 import { formatElapsedDays } from '@/utils/date'
@@ -33,6 +31,7 @@ import { CANDIDATURE_PANEL_TAB_ROUTE_NAMES } from '../routes'
 import { formatCandidatNom } from '../utils/candidat'
 
 const route = useRoute()
+const router = useRouter()
 
 const candidatureUuid = computed(() => route.params.candidatureUuid as string)
 function paramsFor(uuid: string) {
@@ -74,10 +73,12 @@ const activeTab = useRouteTab<CandidaturePanelTabKey>(CANDIDATURE_PANEL_TAB_ROUT
 const isMessagesTab = computed(() => activeTab.value === 'messages')
 const showAside = computed(() => !isMessagesTab.value)
 
-const close = useReturnTo(() => ({
-  name: 'recrutement-candidatures-kanban',
-  params: { organismeUuid: route.params.organismeUuid, recrutementUuid: route.params.recrutementUuid },
-}))
+function close(): void {
+  void router.push({
+    name: 'recrutement-candidatures-kanban',
+    params: { organismeUuid: route.params.organismeUuid, recrutementUuid: route.params.recrutementUuid },
+  })
+}
 
 const etapeChange = useEtapeChange(candidatureUuid, close)
 
@@ -91,22 +92,12 @@ function handleUpdateOpen(open: boolean): void {
   <CspDrawer
     :open="true"
     :modal="false"
-    :show-close="false"
     aria-label="Candidature"
+    close-label="Fermer la candidature"
     class="candidature-panel"
     @update:open="handleUpdateOpen"
     @interact-outside="(event: Event) => event.preventDefault()"
   >
-    <template #start>
-      <CspButton
-        variant="tertiary-no-outline"
-        size="sm"
-        icon="ri:arrow-left-line"
-        aria-label="Fermer la candidature et revenir au kanban"
-        @click="close"
-      />
-    </template>
-
     <template
       v-if="candidature && etape"
       #end
