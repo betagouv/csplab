@@ -118,10 +118,11 @@ defineEmits<{
 }
 
 .carte__etiquette {
+  margin-top: var(--csp-space-2);
   padding: 0.125rem 0.5rem;
   border-radius: 999px;
-  background-color: var(--background-action-high-blue-france);
-  color: var(--text-inverted-blue-france);
+  background-color: #0063cb;
+  color: #fff;
   font-size: 0.75rem;
   font-weight: 700;
 }

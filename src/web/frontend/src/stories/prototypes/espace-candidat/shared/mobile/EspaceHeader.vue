@@ -2,13 +2,11 @@
 import CspAvatar from '@/components/base/CspAvatar/CspAvatar.vue'
 
 defineProps<{
-  nonLus: number
   nomComplet: string
 }>()
 
 defineEmits<{
   accueil: []
-  nonLus: []
   compte: []
 }>()
 </script>
@@ -26,16 +24,6 @@ defineEmits<{
     </button>
 
     <div class="entete__actions">
-      <button
-        v-if="nonLus > 0"
-        type="button"
-        class="entete__non-lus"
-        :aria-label="`${nonLus} message${nonLus > 1 ? 's' : ''} non lu${nonLus > 1 ? 's' : ''}`"
-        @click="$emit('nonLus')"
-      >
-        <span class="entete__pastille">{{ nonLus }}</span>
-      </button>
-
       <button
         type="button"
         class="entete__compte"
@@ -99,31 +87,6 @@ defineEmits<{
   display: flex;
   align-items: center;
   gap: var(--csp-space-2);
-}
-
-.entete__non-lus {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 2.75rem;
-  min-height: 2.75rem;
-  padding: 0;
-  border: none;
-  background: none;
-  cursor: pointer;
-}
-
-.entete__pastille {
-  min-width: 1.25rem;
-  height: 1.25rem;
-  padding: 0 0.3125rem;
-  border-radius: 999px;
-  background-color: #0063cb;
-  color: #fff;
-  font-size: 0.75rem;
-  font-weight: 700;
-  line-height: 1.25rem;
-  text-align: center;
 }
 
 .entete__compte {

@@ -106,10 +106,8 @@ function ouvrirCompte() {
 <template>
   <div class="espace">
     <EspaceHeader
-      :non-lus="espace.nonLusTotal.value"
       :nom-complet="`${espace.utilisateur.prenom} ${espace.utilisateur.nom}`"
       @accueil="versLaListe"
-      @non-lus="versLaListe"
       @compte="ouvrirCompte"
     />
 

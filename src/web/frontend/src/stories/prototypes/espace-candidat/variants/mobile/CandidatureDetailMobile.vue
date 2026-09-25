@@ -302,11 +302,11 @@ function confirmerRetrait(motif: string | undefined) {
 
 .conv__non-lu {
   align-self: flex-start;
-  margin: 0.125rem 0;
+  margin: var(--csp-space-2) 0;
   padding: 0.0625rem 0.4375rem;
   border-radius: 999px;
-  background-color: var(--background-action-high-blue-france);
-  color: var(--text-inverted-blue-france);
+  background-color: #0063cb;
+  color: #fff;
   font-size: 0.6875rem;
   font-weight: 700;
 }
