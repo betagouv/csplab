@@ -101,13 +101,13 @@ const hasBreadcrumb = computed(() => Boolean(props.breadcrumb?.length))
 }
 
 .csp-page-header__top-row {
-  padding-top: 0.75rem;
-  padding-bottom: 1.25rem;
+  padding-top: var(--csp-page-header-padding-top);
+  padding-bottom: var(--csp-page-header-breadcrumb-gap);
   padding-inline: var(--csp-page-container-padding-inline);
 }
 
 .csp-page-header__breadcrumb-wrapper {
-  min-height: 1.5rem;
+  min-height: var(--csp-page-header-breadcrumb-height);
 }
 
 .csp-page-header__main-row {
@@ -115,7 +115,7 @@ const hasBreadcrumb = computed(() => Boolean(props.breadcrumb?.length))
   align-items: flex-end;
   justify-content: space-between;
   gap: 1rem;
-  padding-bottom: 1.25rem;
+  padding-bottom: var(--csp-page-header-padding-bottom);
   border-bottom: 1px solid var(--border-default-grey);
   padding-inline: var(--csp-page-container-padding-inline);
 }
@@ -140,7 +140,7 @@ const hasBreadcrumb = computed(() => Boolean(props.breadcrumb?.length))
 .csp-page-header__title {
   font-weight: 600;
   font-size: 1.5rem;
-  min-height: 2.5rem;
+  min-height: var(--csp-page-header-title-height);
 }
 
 .csp-page-header__title-skeleton {

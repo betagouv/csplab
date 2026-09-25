@@ -56,6 +56,21 @@
   --csp-page-container-wide-width: 90rem;
   --csp-page-container-large-width: 110rem;
   --csp-page-content-padding-block: 1.5rem;
+  --csp-page-header-padding-top: 0.75rem;
+  --csp-page-header-breadcrumb-height: 1.5rem;
+  --csp-page-header-breadcrumb-gap: 1.25rem;
+  --csp-page-header-title-height: 2.5rem;
+  --csp-page-header-padding-bottom: 1.25rem;
+}
+
+@media (min-width: 100rem) {
+  :root {
+    --csp-page-container-padding-inline: clamp(1.5rem, 1rem + 2.5vw, 4rem);
+    --csp-page-content-padding-block: 2rem;
+    --csp-page-header-padding-top: 1.5rem;
+    --csp-page-header-breadcrumb-gap: 1.5rem;
+    --csp-page-header-padding-bottom: 1.5rem;
+  }
 }
 
 :root[data-fr-theme='dark'] {
