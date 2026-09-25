@@ -14,7 +14,7 @@ import ForbiddenView from '@/views/ForbiddenView.vue'
 import NotFoundView from '@/views/NotFoundView.vue'
 import OrganismeAgentsSection from '../components/OrganismeAgentsSection.vue'
 import { useOrganismeDetail } from '../composables/useOrganismeDetail'
-import { ORGANISME_TAB_LABELS } from '../constants/organisme'
+import { ORGANISME_TAB_ICONS, ORGANISME_TAB_LABELS } from '../constants/organisme'
 import { ORGANISME_TAB_ROUTE_NAMES } from '../routes'
 
 const route = useRoute()
@@ -28,7 +28,7 @@ const breadcrumb: CspBreadcrumbItem[] = [
   { label: 'Paramètres de l\'organisme' },
 ]
 
-const tabs = tabItems(ORGANISME_TAB_LABELS)
+const tabs = tabItems(ORGANISME_TAB_LABELS, ORGANISME_TAB_ICONS)
 
 const activeTab = useRouteTab(ORGANISME_TAB_ROUTE_NAMES, 'membres')
 

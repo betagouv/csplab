@@ -63,6 +63,7 @@ import riPencilLine from '@iconify-icons/ri/pencil-line'
 import riPriceTag3Line from '@iconify-icons/ri/price-tag-3-line'
 import riRefreshLine from '@iconify-icons/ri/refresh-line'
 import riRestartLine from '@iconify-icons/ri/restart-line'
+import riRouteLine from '@iconify-icons/ri/route-line'
 import riSearchLine from '@iconify-icons/ri/search-line'
 import riSettings3Line from '@iconify-icons/ri/settings-3-line'
 import riShieldUserLine from '@iconify-icons/ri/shield-user-line'
@@ -139,6 +140,7 @@ addIcon('ri:pencil-line', riPencilLine)
 addIcon('ri:price-tag-3-line', riPriceTag3Line)
 addIcon('ri:refresh-line', riRefreshLine)
 addIcon('ri:restart-line', riRestartLine)
+addIcon('ri:route-line', riRouteLine)
 addIcon('ri:search-line', riSearchLine)
 addIcon('ri:settings-3-line', riSettings3Line)
 addIcon('ri:shield-user-line', riShieldUserLine)
