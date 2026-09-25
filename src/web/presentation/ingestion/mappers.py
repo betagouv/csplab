@@ -4,6 +4,7 @@ from uuid import UUID
 
 from ddd.mapper_interface import IToDomainMapper
 from referentiel.entities.offer import Offer
+from referentiel.entities.talentsoft_organisme import TalentsoftOrganisme
 from referentiel.value_objects.area import GeographicalArea
 from referentiel.value_objects.category import Category
 from referentiel.value_objects.contract_type import ContractKind, ContractType
@@ -239,7 +240,9 @@ class OfferDetailOutputMapper(OfferSummaryOutputMapper):
             else None,
             "endPublicationDate": None,
             "isAnonymousOrganisation": False,
-            "organisation": {
+            "organisation": self._talentsoft_organisation(offer.talentsoft_organisme)
+            if offer.talentsoft_organisme
+            else {
                 "entityCode": "",
                 "name": offer.organization,
                 "description": offer.employer,
@@ -285,6 +288,29 @@ class OfferDetailOutputMapper(OfferSummaryOutputMapper):
             "attachedFilesUrls": [],
             "geolocation": geolocation,
             "customFields": None,
+        }
+
+    @staticmethod
+    def _talentsoft_organisation(organisme: TalentsoftOrganisme) -> dict:
+        return {
+            "entityCode": organisme.entity_code,
+            "name": organisme.name,
+            "description": organisme.description,
+            "url": organisme.url,
+            "phoneNumber": organisme.phone_number,
+            "postCode": organisme.post_code,
+            "geolocation": {
+                "latitude": organisme.latitude,
+                "longitude": organisme.longitude,
+            }
+            if organisme.latitude is not None and organisme.longitude is not None
+            else None,
+            "parentName": organisme.parent_name,
+            "logoUrl": organisme.logo_url,
+            "maxDelayForConsent": organisme.max_delay_for_consent,
+            "retentionPeriod": organisme.retention_period,
+            "generalConditions": organisme.general_conditions,
+            "personalDataConsent": organisme.personal_data_consent,
         }
 
     def _language(self, langue: OfferLanguage) -> dict:

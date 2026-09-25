@@ -9,8 +9,8 @@ from referentiel.value_objects.radius import Radius
 from referentiel.value_objects.verse import Verse
 from rest_framework import status
 
-from infrastructure.django_apps.ingestion.models.talentsoft_organisme import (
-    TalentsoftOrganismeModel,
+from infrastructure.factories.ingestion.talentsoft_organisme_django_factory import (
+    TalentsoftOrganismeDjangoFactory,
 )
 from presentation.ingestion.serializers import (
     COUNTRY_NAMES,
@@ -80,10 +80,10 @@ def test_returns_all_code_names(authenticated_client, referential_type, names):
 
 @pytest.mark.django_db
 def test_returns_all_talentsoft_organismes(authenticated_client):
-    TalentsoftOrganismeModel.objects.create(
+    TalentsoftOrganismeDjangoFactory(
         entity_code="ENT-1", code=1, name="Ministère", has_children=True
     )
-    TalentsoftOrganismeModel.objects.create(
+    TalentsoftOrganismeDjangoFactory(
         entity_code="ENT-2", code=2, name="Direction", parent_code=1
     )
     url = reverse(

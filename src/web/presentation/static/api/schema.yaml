@@ -4497,10 +4497,10 @@ components:
           type: string
           nullable: true
         maxDelayForConsent:
-          type: string
+          type: integer
           nullable: true
         retentionPeriod:
-          type: string
+          type: integer
           nullable: true
         generalConditions:
           type: string

@@ -171,7 +171,9 @@ class PostgresOffersRepository(IIngestionOffersRepository):
 
     def get_by_reference(self, reference: str) -> Offer:
         try:
-            offer_model = OfferModel.objects.get(reference=reference)
+            offer_model = OfferModel.objects.select_related(
+                "talentsoft_organisme_entity_code"
+            ).get(reference=reference)
         except OfferModel.DoesNotExist as e:
             raise OfferDoesNotExist(reference) from e
         except OfferModel.MultipleObjectsReturned as e:

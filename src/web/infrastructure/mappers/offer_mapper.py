@@ -1,6 +1,9 @@
+from typing import Optional
+
 from ddd.mapper_interface import IFromDomainMapper, IToDomainMapper
 from pydantic import HttpUrl
 from referentiel.entities.offer import Offer
+from referentiel.entities.talentsoft_organisme import TalentsoftOrganisme
 from referentiel.value_objects.area import GeographicalArea
 from referentiel.value_objects.category import Category
 from referentiel.value_objects.contract_type import ContractKind, ContractType
@@ -83,7 +86,15 @@ class OfferMapper(
             conditions=model.conditions,
             contacts=model.contacts,
             talentsoft_organisme_entity_code=model.talentsoft_organisme_entity_code_id,
+            talentsoft_organisme=self._talentsoft_organisme(model),
         )
+
+    @staticmethod
+    def _talentsoft_organisme(model: OfferModel) -> Optional[TalentsoftOrganisme]:
+        if not OfferModel.talentsoft_organisme_entity_code.is_cached(model):
+            return None
+        organisme = model.talentsoft_organisme_entity_code
+        return organisme.to_entity() if organisme else None
 
     def from_domain(self, entity: Offer) -> OfferModel:
         area = None

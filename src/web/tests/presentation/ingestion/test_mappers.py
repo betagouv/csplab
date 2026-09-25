@@ -1,7 +1,9 @@
+from dataclasses import replace
 from datetime import datetime, timezone
 from uuid import uuid4
 
 import pytest
+from referentiel.entities.talentsoft_organisme import TalentsoftOrganisme
 from referentiel.value_objects.diploma import Diploma
 from referentiel.value_objects.experience_level import ExperienceLevel
 from referentiel.value_objects.language_level import LanguageLevel
@@ -248,3 +250,65 @@ class TestOfferDetailOutputMapper:
                 "hasChildren": False,
             },
         ]
+
+    def test_organisation_is_mapped_from_talentsoft_organisme(self):
+        talentsoft_organisme = TalentsoftOrganisme(
+            entity_code="ENT-1",
+            code=1,
+            name="Commune de Paris",
+            description="Description de la commune",
+            url="https://paris.fr",
+            phone_number="0102030405",
+            post_code="75001",
+            latitude=48.8566,
+            longitude=2.3522,
+            parent_name="Métropole du Grand Paris",
+            logo_url="https://paris.fr/logo.png",
+            max_delay_for_consent=30,
+            retention_period=24,
+            general_conditions="Conditions générales",
+            personal_data_consent="Consentement",
+        )
+
+        offer = replace(
+            OfferFactory.create_entity(), talentsoft_organisme=talentsoft_organisme
+        )
+
+        result = OfferDetailOutputMapper().to_dict(offer)
+
+        assert result["organisation"] == {
+            "entityCode": "ENT-1",
+            "name": "Commune de Paris",
+            "description": "Description de la commune",
+            "url": "https://paris.fr",
+            "phoneNumber": "0102030405",
+            "postCode": "75001",
+            "geolocation": {"latitude": 48.8566, "longitude": 2.3522},
+            "parentName": "Métropole du Grand Paris",
+            "logoUrl": "https://paris.fr/logo.png",
+            "maxDelayForConsent": 30,
+            "retentionPeriod": 24,
+            "generalConditions": "Conditions générales",
+            "personalDataConsent": "Consentement",
+        }
+
+    def test_organisation_geolocation_is_none_without_talentsoft_coordinates(self):
+        talentsoft_organisme = TalentsoftOrganisme(
+            entity_code="ENT-1", code=1, name="Commune de Paris"
+        )
+
+        offer = replace(
+            OfferFactory.create_entity(), talentsoft_organisme=talentsoft_organisme
+        )
+
+        result = OfferDetailOutputMapper().to_dict(offer)
+
+        assert result["organisation"]["geolocation"] is None
+
+    def test_organisation_falls_back_to_offer_without_talentsoft_organisme(self):
+        offer = OfferFactory.create_entity()
+
+        result = OfferDetailOutputMapper().to_dict(offer)
+
+        assert result["organisation"]["entityCode"] == ""
+        assert result["organisation"]["name"] == offer.organization
