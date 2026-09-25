@@ -23,6 +23,9 @@ from referentiel.value_objects.region import Region
 from referentiel.value_objects.verse import Verse
 from rest_framework import serializers
 
+from infrastructure.django_apps.ingestion.models.talentsoft_organisme import (
+    TalentsoftOrganismeModel,
+)
 from presentation.api.serializers import GenericErrorSerializer
 from presentation.commons.serializers import LocalisationSerializer, OrganismeSerializer
 from presentation.ingestion.legacy_client_aliases import (
@@ -591,6 +594,53 @@ class FakeTsOrganisationSerializer(serializers.Serializer):
     retentionPeriod = serializers.IntegerField(allow_null=True)
     generalConditions = serializers.CharField(allow_null=True)
     personalDataConsent = serializers.CharField(allow_null=True)
+
+
+class FakeTsTalentsoftOrganismeSerializer(serializers.ModelSerializer):
+    entityCode = serializers.CharField(source="entity_code")
+    description = serializers.CharField(allow_null=True)
+    url = serializers.CharField(allow_null=True)
+    phoneNumber = serializers.CharField(source="phone_number", allow_null=True)
+    postCode = serializers.CharField(source="post_code", allow_null=True)
+    geolocation = serializers.SerializerMethodField()
+    parentName = serializers.CharField(source="parent_name", allow_null=True)
+    logoUrl = serializers.CharField(source="logo_url", allow_null=True)
+    maxDelayForConsent = serializers.IntegerField(
+        source="max_delay_for_consent", allow_null=True
+    )
+    retentionPeriod = serializers.IntegerField(
+        source="retention_period", allow_null=True
+    )
+    generalConditions = serializers.CharField(
+        source="general_conditions", allow_null=True
+    )
+    personalDataConsent = serializers.CharField(
+        source="personal_data_consent", allow_null=True
+    )
+
+    class Meta:
+        model = TalentsoftOrganismeModel
+        fields = [
+            "entityCode",
+            "name",
+            "description",
+            "url",
+            "phoneNumber",
+            "postCode",
+            "geolocation",
+            "parentName",
+            "logoUrl",
+            "maxDelayForConsent",
+            "retentionPeriod",
+            "generalConditions",
+            "personalDataConsent",
+        ]
+
+    @extend_schema_field(FakeTsGeolocationSerializer(allow_null=True))
+    def get_geolocation(self, organisme: TalentsoftOrganismeModel) -> dict | None:
+        if organisme.latitude is None or organisme.longitude is None:
+            return None
+        return {"latitude": organisme.latitude, "longitude": organisme.longitude}
 
 
 class FakeTsLanguageSerializer(serializers.Serializer):
