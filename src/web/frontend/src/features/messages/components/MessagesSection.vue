@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { CandidatureParams } from '@/features/candidatures/types'
 import { computed } from 'vue'
+import { useRoute } from 'vue-router'
 import CspAsyncSection from '@/components/base/CspAsyncSection/CspAsyncSection.vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspEmptyState from '@/components/base/CspEmptyState/CspEmptyState.vue'
@@ -9,6 +10,7 @@ import { useMinimumPending } from '@/composables/async/useMinimumPending'
 import { pluralize } from '@/utils/format'
 import { useConversations } from '../composables/useConversations'
 import ConversationsList from './ConversationsList.vue'
+import ConversationThread from './ConversationThread.vue'
 
 const props = defineProps<{
   candidature: CandidatureParams
@@ -27,6 +29,9 @@ const title = computed(() =>
 )
 
 const isEmpty = computed(() => !showSkeleton.value && !error.value && conversations.value.length === 0)
+
+const route = useRoute()
+const openConversationUuid = computed(() => route.params.conversationUuid as string | undefined)
 </script>
 
 <template>
@@ -97,6 +102,11 @@ const isEmpty = computed(() => !showSkeleton.value && !error.value && conversati
           />
         </template>
       </CspEmptyState>
+      <ConversationThread
+        v-else-if="openConversationUuid"
+        :candidature="candidature"
+        :conversation-uuid="openConversationUuid"
+      />
       <CspEmptyState
         v-else-if="!showSkeleton && !error"
         icon="ri:chat-3-line"
@@ -130,6 +140,11 @@ const isEmpty = computed(() => !showSkeleton.value && !error.value && conversati
 
 .messages-section__thread {
   justify-content: center;
+}
+
+.messages-section__thread:has(.conversation-thread) {
+  justify-content: flex-start;
+  overflow: hidden;
 }
 
 .messages-section__header {
