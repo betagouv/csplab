@@ -4591,7 +4591,6 @@ components:
           type: string
         name:
           type: string
-          maxLength: 255
         description:
           type: string
           nullable: true
