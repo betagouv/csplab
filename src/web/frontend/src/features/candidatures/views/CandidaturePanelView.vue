@@ -191,11 +191,7 @@ function handleUpdateOpen(open: boolean): void {
 
               <template #messages>
                 <div class="candidature-panel__tab">
-                  <MessagesSection
-                    :organisme-uuid="route.params.organismeUuid as string"
-                    :recrutement-uuid="route.params.recrutementUuid as string"
-                    :candidature-uuid="candidatureUuid"
-                  />
+                  <MessagesSection :candidature="candidatureParams" />
                 </div>
               </template>
             </CspTabsPanels>

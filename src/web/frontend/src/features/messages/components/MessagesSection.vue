@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { CandidatureParams } from '@/features/candidatures/types'
 import { computed } from 'vue'
 import CspAsyncSection from '@/components/base/CspAsyncSection/CspAsyncSection.vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
@@ -10,18 +11,12 @@ import { useConversations } from '../composables/useConversations'
 import ConversationsList from './ConversationsList.vue'
 
 const props = defineProps<{
-  organismeUuid: string
-  recrutementUuid: string
-  candidatureUuid: string
+  candidature: CandidatureParams
 }>()
 
 const SKELETON_ROWS = 4
 
-const { conversations, count, pending, error } = useConversations(() => ({
-  organismeUuid: props.organismeUuid,
-  recrutementUuid: props.recrutementUuid,
-  candidatureUuid: props.candidatureUuid,
-}))
+const { conversations, count, pending, error } = useConversations(() => props.candidature)
 
 const showSkeleton = useMinimumPending(pending)
 

@@ -26,9 +26,11 @@ describe('messagesSection', () => {
     await renderWithApp(MessagesSection, {
       route: MESSAGES_PATH,
       props: {
-        organismeUuid: ORGANISME_UUID,
-        recrutementUuid: RECRUTEMENT_UUID,
-        candidatureUuid: CANDIDATURE_ALICE,
+        candidature: {
+          organismeUuid: ORGANISME_UUID,
+          recrutementUuid: RECRUTEMENT_UUID,
+          candidatureUuid: CANDIDATURE_ALICE,
+        },
       },
     })
 
