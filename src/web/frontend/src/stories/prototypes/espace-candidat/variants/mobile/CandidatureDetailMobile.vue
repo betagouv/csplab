@@ -94,13 +94,11 @@ function confirmerRetrait(motif: string | undefined) {
               aria-hidden="true"
             />
             <span class="conv__corps">
-              <span class="conv__sujet">
-                {{ conversation.sujet }}
-                <span
-                  v-if="espace.nonLusConversation(conversation) > 0"
-                  class="conv__non-lu"
-                >Non lu</span>
-              </span>
+              <span class="conv__sujet">{{ conversation.sujet }}</span>
+              <span
+                v-if="espace.nonLusConversation(conversation) > 0"
+                class="conv__non-lu"
+              >Nouveau message</span>
               <span class="conv__apercu">{{ apercu(conversation.id) }}</span>
               <span class="conv__date">
                 {{ formaterDateHeure(conversation.messages.at(-1)!.date) }}
@@ -274,21 +272,14 @@ function confirmerRetrait(motif: string | undefined) {
   font: inherit;
   background-color: var(--background-default-grey);
   box-shadow: inset 0 0 0 1px var(--border-default-grey);
-
-  &--non-lue {
-    background-color: var(--background-alt-blue-france);
-    box-shadow:
-      inset 0 0 0 1px var(--border-action-low-blue-france),
-      inset 4px 0 0 var(--background-action-high-blue-france);
-  }
 }
 
 .conv__point {
   flex-shrink: 0;
-  width: 0.625rem;
-  height: 0.625rem;
+  width: 0.75rem;
+  height: 0.75rem;
   border-radius: 50%;
-  background-color: var(--background-action-high-blue-france);
+  background-color: #0063cb;
 }
 
 .conv__corps {
@@ -300,9 +291,6 @@ function confirmerRetrait(motif: string | undefined) {
 }
 
 .conv__sujet {
-  display: flex;
-  align-items: center;
-  gap: var(--csp-space-2);
   font-size: 0.9375rem;
   font-weight: 600;
   color: var(--text-title-grey);
@@ -313,6 +301,8 @@ function confirmerRetrait(motif: string | undefined) {
 }
 
 .conv__non-lu {
+  align-self: flex-start;
+  margin: 0.125rem 0;
   padding: 0.0625rem 0.4375rem;
   border-radius: 999px;
   background-color: var(--background-action-high-blue-france);

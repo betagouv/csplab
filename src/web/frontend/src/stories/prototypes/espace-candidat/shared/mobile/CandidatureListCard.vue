@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import type { CandidatureEspace } from '../../data/espaceMock'
 import CspIcon from '@/components/base/CspIcon/CspIcon.vue'
-import { formaterActivite } from '../../data/format'
 import StatutCandidatBadge from './StatutCandidatBadge.vue'
 
 defineProps<{
@@ -18,26 +17,28 @@ defineEmits<{
   <button
     type="button"
     class="carte"
-    :class="{ 'carte--non-lus': nonLus > 0 }"
     @click="$emit('ouvrir', candidature.id)"
   >
     <span class="carte__corps">
-      <span class="carte__intitule">{{ candidature.intitule }}</span>
+      <span class="carte__titre">
+        <span
+          v-if="nonLus > 0"
+          class="carte__pastille"
+          role="img"
+          :aria-label="nonLus > 1 ? 'Nouveaux messages' : 'Nouveau message'"
+        />
+        <span class="carte__intitule">{{ candidature.intitule }}</span>
+      </span>
       <span class="carte__organisme">{{ candidature.organisme }}</span>
 
       <span class="carte__statut">
         <StatutCandidatBadge :statut="candidature.statut" />
-        <span
-          v-if="nonLus > 0"
-          class="carte__pastille"
-          :aria-label="`${nonLus} message${nonLus > 1 ? 's' : ''} non lu${nonLus > 1 ? 's' : ''}`"
-        >
-          {{ nonLus }} non lu{{ nonLus > 1 ? 's' : '' }}
-        </span>
       </span>
-
-      <span class="carte__activite">
-        Dernière activité : {{ formaterActivite(candidature.derniereActivite) }}
+      <span
+        v-if="nonLus > 0"
+        class="carte__etiquette"
+      >
+        {{ nonLus > 1 ? 'Nouveaux messages' : 'Nouveau message' }}
       </span>
     </span>
 
@@ -73,12 +74,6 @@ defineEmits<{
     outline: 2px solid var(--csp-focus-ring-color);
     outline-offset: 2px;
   }
-
-  &--non-lus {
-    box-shadow:
-      inset 0 0 0 1px var(--border-action-low-blue-france),
-      inset 4px 0 0 var(--background-action-high-blue-france);
-  }
 }
 
 .carte__corps {
@@ -86,7 +81,23 @@ defineEmits<{
   min-width: 0;
   display: flex;
   flex-direction: column;
+  align-items: flex-start;
   gap: var(--csp-space-1);
+}
+
+.carte__titre {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--csp-space-2);
+}
+
+.carte__pastille {
+  flex-shrink: 0;
+  width: 0.75rem;
+  height: 0.75rem;
+  margin-top: 0.3125rem;
+  border-radius: 50%;
+  background-color: #0063cb;
 }
 
 .carte__intitule {
@@ -103,24 +114,16 @@ defineEmits<{
 
 .carte__statut {
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--csp-space-2);
   margin-top: var(--csp-space-1);
 }
 
-.carte__pastille {
+.carte__etiquette {
   padding: 0.125rem 0.5rem;
   border-radius: 999px;
   background-color: var(--background-action-high-blue-france);
   color: var(--text-inverted-blue-france);
   font-size: 0.75rem;
   font-weight: 700;
-}
-
-.carte__activite {
-  font-size: 0.8125rem;
-  color: var(--text-mention-grey);
 }
 
 .carte__chevron {

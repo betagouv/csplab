@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import CspAvatar from '@/components/base/CspAvatar/CspAvatar.vue'
-import CspIcon from '@/components/base/CspIcon/CspIcon.vue'
 
 defineProps<{
   nonLus: number
@@ -34,10 +33,6 @@ defineEmits<{
         :aria-label="`${nonLus} message${nonLus > 1 ? 's' : ''} non lu${nonLus > 1 ? 's' : ''}`"
         @click="$emit('nonLus')"
       >
-        <CspIcon
-          name="ri:mail-line"
-          :size="20"
-        />
         <span class="entete__pastille">{{ nonLus }}</span>
       </button>
 
@@ -109,13 +104,12 @@ defineEmits<{
 .entete__non-lus {
   display: inline-flex;
   align-items: center;
-  gap: var(--csp-space-1);
+  justify-content: center;
+  min-width: 2.75rem;
   min-height: 2.75rem;
-  padding: 0 var(--csp-space-3);
+  padding: 0;
   border: none;
-  border-radius: 999px;
-  background-color: var(--background-alt-blue-france);
-  color: var(--text-action-high-blue-france);
+  background: none;
   cursor: pointer;
 }
 
@@ -124,8 +118,8 @@ defineEmits<{
   height: 1.25rem;
   padding: 0 0.3125rem;
   border-radius: 999px;
-  background-color: var(--background-action-high-blue-france);
-  color: var(--text-inverted-blue-france);
+  background-color: #0063cb;
+  color: #fff;
   font-size: 0.75rem;
   font-weight: 700;
   line-height: 1.25rem;
