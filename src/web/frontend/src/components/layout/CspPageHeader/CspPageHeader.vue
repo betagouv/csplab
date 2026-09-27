@@ -96,6 +96,8 @@ const hasBreadcrumb = computed(() => Boolean(props.breadcrumb?.length))
 </template>
 
 <style scoped lang="scss">
+@use '@/styles/breakpoints' as bp;
+
 .csp-page-header {
   background: var(--background-default-grey);
 
@@ -131,7 +133,10 @@ const hasBreadcrumb = computed(() => Boolean(props.breadcrumb?.length))
 .csp-page-header__hgroup-wrapper {
   display: flex;
   gap: var(--csp-page-header-back-link-gap);
-  margin-left: calc(calc(var(--csp-page-header-back-link-size) + var(--csp-page-header-back-link-gap)) * -1);
+
+  @include bp.from(bp.$lg) {
+    margin-left: calc(calc(var(--csp-page-header-back-link-size) + var(--csp-page-header-back-link-gap)) * -1);
+  }
 }
 
 .csp-page-header__hgroup {
