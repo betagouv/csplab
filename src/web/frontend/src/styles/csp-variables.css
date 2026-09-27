@@ -72,6 +72,8 @@
 
   @variant xxl {
     --csp-page-container-padding-inline: clamp(1.5rem, 1rem + 2.5vw, 4rem);
+    --csp-page-container-wide-width: 120rem;
+    --csp-page-container-large-width: 140rem;
     --csp-page-content-padding-block: var(--csp-space-8);
     --csp-page-header-padding-top: var(--csp-space-6);
     --csp-page-header-breadcrumb-gap: var(--csp-space-6);
