@@ -1,14 +1,14 @@
 <script setup lang="ts">
 import { useSidebar } from '@/composables/ui/useSidebar'
 
-const { isExpanded, isMobile } = useSidebar()
+const { showLabels } = useSidebar()
 </script>
 
 <template>
   <div class="csp-sidebar-logo">
     <span class="csp-sidebar-logo__title">CSPLab</span>
     <span
-      v-if="isExpanded || isMobile"
+      v-if="showLabels"
       class="csp-sidebar-logo__subtitle"
     >
       ATS

@@ -21,13 +21,13 @@ withDefaults(defineProps<CspSidebarItemProps>(), {
   isActive: false,
 })
 
-const { isExpanded, isMobile } = useSidebar()
+const { showLabels } = useSidebar()
 </script>
 
 <template>
   <CspTooltip
     :content="label"
-    :disabled="isExpanded || isMobile"
+    :disabled="showLabels"
     side="right"
     :side-offset="12"
   >
@@ -38,7 +38,7 @@ const { isExpanded, isMobile } = useSidebar()
       class="csp-sidebar-item"
       :class="{
         'csp-sidebar-item--active': isActive,
-        'csp-sidebar-item--expanded': isExpanded || isMobile,
+        'csp-sidebar-item--expanded': showLabels,
       }"
       :aria-current="isActive ? 'page' : undefined"
     >
@@ -48,7 +48,7 @@ const { isExpanded, isMobile } = useSidebar()
         :size="16"
       />
       <span
-        v-if="isExpanded || isMobile"
+        v-if="showLabels"
         class="csp-sidebar-item__label"
       >
         {{ label }}
