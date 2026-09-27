@@ -3,6 +3,7 @@ export const BREAKPOINTS = {
   md: '48em',
   lg: '62em',
   xl: '78em',
+  xxl: '100em',
 } as const
 
 export type Breakpoint = keyof typeof BREAKPOINTS

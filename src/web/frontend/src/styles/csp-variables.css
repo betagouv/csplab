@@ -69,10 +69,8 @@
 
   /* Sidebar */
   --csp-sidebar-padding: var(--csp-space-1);
-}
 
-@media (min-width: 100rem) {
-  :root {
+  @variant xxl {
     --csp-page-container-padding-inline: clamp(1.5rem, 1rem + 2.5vw, 4rem);
     --csp-page-content-padding-block: var(--csp-space-8);
     --csp-page-header-padding-top: var(--csp-space-6);

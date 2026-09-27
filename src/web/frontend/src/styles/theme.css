@@ -6,4 +6,12 @@
 @theme {
   --color-*: initial;
   --font-sans: var(--csp-font-family);
+
+  /* Same scale as breakpoints.scss and breakpoints.ts */
+  --breakpoint-*: initial;
+  --breakpoint-sm: 36em;
+  --breakpoint-md: 48em;
+  --breakpoint-lg: 62em;
+  --breakpoint-xl: 78em;
+  --breakpoint-xxl: 100em;
 }

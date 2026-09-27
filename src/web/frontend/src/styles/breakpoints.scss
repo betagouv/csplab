@@ -2,12 +2,14 @@ $sm: 36em;
 $md: 48em;
 $lg: 62em;
 $xl: 78em;
+$xxl: 100em;
 
 $breakpoints: (
   'sm': $sm,
   'md': $md,
   'lg': $lg,
   'xl': $xl,
+  'xxl': $xxl,
 );
 
 @mixin from($breakpoint) {
