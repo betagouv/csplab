@@ -125,8 +125,10 @@ const { state, isExpanded, isMobile, isMobileOpen, setMobileOpen, toggle } = use
 }
 
 .csp-sidebar {
-  --sidebar-inset-x: 0.5rem;
   --sidebar-item-size: 2.5rem;
+  --sidebar-item-padding-inline: var(--csp-space-2);
+  --sidebar-leading-size: 2rem;
+  --sidebar-leading-gap: var(--csp-space-2);
 
   box-sizing: border-box;
   display: flex;
@@ -180,8 +182,7 @@ const { state, isExpanded, isMobile, isMobileOpen, setMobileOpen, toggle } = use
 .csp-sidebar__brand {
   flex: 1;
   min-width: 0;
-  padding-left: var(--sidebar-inset-x);
-  padding-right: 0.5rem;
+  padding-inline: var(--sidebar-item-padding-inline);
   overflow: hidden;
 }
 
@@ -209,8 +210,8 @@ const { state, isExpanded, isMobile, isMobileOpen, setMobileOpen, toggle } = use
   }
 
   &:focus-visible {
-    outline: 2px solid var(--csp-focus-ring-color);
-    outline-offset: 2px;
+    outline: var(--focus-ring);
+    outline-offset: var(--csp-focus-ring-offset);
   }
 }
 

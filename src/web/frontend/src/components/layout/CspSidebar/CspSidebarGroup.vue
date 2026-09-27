@@ -14,7 +14,7 @@
   min-width: 0;
 
   & + & {
-    margin-top: 0.75rem;
+    margin-top: var(--csp-space-3);
   }
 }
 

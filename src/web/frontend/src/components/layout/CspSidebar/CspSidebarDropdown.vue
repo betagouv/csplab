@@ -57,10 +57,10 @@ const { showLabels } = useSidebar()
 .csp-sidebar-dropdown-button {
   display: flex;
   align-items: center;
-  padding-block: 0.5rem;
-  padding-inline: 0.5rem;
-  gap: 0.625rem;
+  gap: var(--sidebar-leading-gap);
   min-width: 0;
+  padding-block: var(--csp-space-2);
+  padding-inline: var(--sidebar-item-padding-inline);
   cursor: pointer;
   background-color: var(--background-alt-grey);
 
