@@ -51,29 +51,34 @@
   --csp-z-tooltip: 1150;
   --csp-z-toast: 1200;
 
+  /* Page layout */
   --csp-page-container-padding-inline: clamp(1.5rem, 1rem + 2.5vw, 3rem);
   --csp-page-container-reading-width: 68rem;
   --csp-page-container-wide-width: 90rem;
   --csp-page-container-large-width: 110rem;
-  --csp-page-content-padding-block: 1.5rem;
-  --csp-page-header-padding-top: 0.75rem;
-  --csp-page-header-breadcrumb-height: 1.5rem;
-  --csp-page-header-breadcrumb-gap: 1.25rem;
-  --csp-page-header-title-height: 2.5rem;
-  --csp-page-header-padding-bottom: 1.25rem;
-  --csp-sidebar-padding-inline: 0.25rem;
-  --csp-page-header-subtitle-gap: 0.25rem;
-  --csp-page-header-subtitle-height: 1.5rem;
+  --csp-page-content-padding-block: var(--csp-space-6);
+
+  /* Page header rows, mirrored by the sidebar header */
+  --csp-page-header-padding-top: var(--csp-space-3);
+  --csp-page-header-breadcrumb-height: var(--csp-space-6);
+  --csp-page-header-breadcrumb-gap: var(--csp-space-5);
+  --csp-page-header-title-height: var(--csp-space-10);
+  --csp-page-header-subtitle-gap: var(--csp-space-1);
+  --csp-page-header-subtitle-height: var(--csp-space-6);
+  --csp-page-header-padding-bottom: var(--csp-space-5);
+
+  /* Sidebar */
+  --csp-sidebar-padding: var(--csp-space-1);
 }
 
 @media (min-width: 100rem) {
   :root {
     --csp-page-container-padding-inline: clamp(1.5rem, 1rem + 2.5vw, 4rem);
-    --csp-page-content-padding-block: 2rem;
-    --csp-page-header-padding-top: 1.5rem;
-    --csp-page-header-breadcrumb-gap: 1.5rem;
-    --csp-page-header-padding-bottom: 1.5rem;
-    --csp-sidebar-padding-inline: 0.5rem;
+    --csp-page-content-padding-block: var(--csp-space-8);
+    --csp-page-header-padding-top: var(--csp-space-6);
+    --csp-page-header-breadcrumb-gap: var(--csp-space-6);
+    --csp-page-header-padding-bottom: var(--csp-space-6);
+    --csp-sidebar-padding: var(--csp-space-2);
   }
 }
 

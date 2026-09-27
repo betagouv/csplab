@@ -143,7 +143,7 @@ const { state, isExpanded, isMobile, isMobileOpen, setMobileOpen, toggle } = use
 
   &--expanded {
     width: var(--sidebar-width);
-    --sidebar-padding-inline: var(--csp-sidebar-padding-inline);
+    --sidebar-padding-inline: var(--csp-sidebar-padding);
   }
 
   &--mobile {
@@ -154,7 +154,7 @@ const { state, isExpanded, isMobile, isMobileOpen, setMobileOpen, toggle } = use
     max-width: calc(100vw - 3rem);
     z-index: var(--csp-z-modal);
     box-shadow: var(--csp-shadow-lg);
-    --sidebar-padding-inline: var(--csp-sidebar-padding-inline);
+    --sidebar-padding-inline: var(--csp-sidebar-padding);
   }
 }
 
