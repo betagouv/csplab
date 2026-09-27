@@ -31,6 +31,8 @@ defineProps<{
 .csp-tabs__list {
   display: flex;
   gap: var(--csp-space-1, 0.25rem);
+  overflow-x: auto;
+  scrollbar-width: thin;
 
   &[data-orientation='vertical'] {
     flex-direction: column;
@@ -41,8 +43,10 @@ defineProps<{
 
 .csp-tabs__trigger {
   display: inline-flex;
+  flex-shrink: 0;
   align-items: center;
   justify-content: center;
+  white-space: nowrap;
   gap: 0.5rem;
   padding: 0.75rem 1rem;
   font-size: 0.875rem;
