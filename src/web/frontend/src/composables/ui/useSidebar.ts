@@ -5,7 +5,7 @@ import { useMediaQuery } from './useMediaQuery'
 
 export const SIDEBAR_STORAGE_KEY = 'csp_sidebar_state'
 export const SIDEBAR_KEYBOARD_SHORTCUT = 'b'
-export const SIDEBAR_WIDTH = '15rem'
+export const SIDEBAR_WIDTH = '16rem'
 export const SIDEBAR_WIDTH_COLLAPSED = '4rem'
 
 export interface SidebarContext {
