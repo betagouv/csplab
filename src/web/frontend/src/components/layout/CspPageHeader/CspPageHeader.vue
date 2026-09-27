@@ -152,7 +152,7 @@ const hasBreadcrumb = computed(() => Boolean(props.breadcrumb?.length))
 }
 
 .csp-page-header__title-skeleton {
-  height: 4rem;
+  height: var(--csp-page-header-title-height);
 }
 
 .csp-page-header__subtitle {
