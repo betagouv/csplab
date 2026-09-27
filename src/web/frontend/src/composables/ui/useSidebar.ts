@@ -33,7 +33,7 @@ export function provideSidebar(options: {
     : defaultExpanded
 
   const isExpanded = ref(initialExpanded)
-  const isMobile = useMediaQuery(below('md'))
+  const isMobile = useMediaQuery(below('lg'))
   const isMobileOpen = ref(false)
 
   const state = computed<'expanded' | 'collapsed'>(() =>

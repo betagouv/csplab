@@ -95,7 +95,7 @@ function isItemActive(item: NavItem): boolean {
   background: var(--background-alt-grey);
   border-right: 1px solid var(--border-default-grey);
 
-  @include bp.below(bp.$md) {
+  @include bp.below(bp.$lg) {
     display: none;
   }
 }
@@ -116,7 +116,7 @@ function isItemActive(item: NavItem): boolean {
   background: var(--background-default-grey);
   border-bottom: 1px solid var(--border-default-grey);
 
-  @include bp.below(bp.$md) {
+  @include bp.below(bp.$lg) {
     display: flex;
   }
 }
