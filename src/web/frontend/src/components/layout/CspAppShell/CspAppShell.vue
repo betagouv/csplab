@@ -89,8 +89,11 @@ function isItemActive(item: NavItem): boolean {
 }
 
 .csp-app-shell__sidebar {
+  position: sticky;
+  top: 0;
+  align-self: flex-start;
   flex-shrink: 0;
-  min-height: 100vh;
+  height: 100dvh;
   overflow: hidden;
   background: var(--background-alt-grey);
   border-right: 1px solid var(--border-default-grey);
