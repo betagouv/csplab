@@ -36,3 +36,4 @@ class OrganismeAction(Enum):
     LIST_CONVERSATIONS = "list_conversations"
     READ_CONVERSATION = "read_conversation"
     CREATE_CONVERSATION = "create_conversation"
+    REPLY_CONVERSATION = "reply_conversation"
