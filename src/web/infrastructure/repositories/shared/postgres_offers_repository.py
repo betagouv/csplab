@@ -53,18 +53,18 @@ class PostgresOffersRepository(IIngestionOffersRepository):
             with transaction.atomic():
                 existing_models = list(
                     OfferModel.objects.filter(
-                        external_id__in=[offer.external_id for offer in offers_list]
+                        reference__in={offer.reference for offer in offers_list},
+                        source_id__in={offer.source_id for offer in offers_list},
                     ).select_for_update(of=("self",))
                 )
-
                 existing_models_map = {
-                    model.external_id: model for model in existing_models
+                    (model.reference, model.source_id): model
+                    for model in existing_models
                 }
-                existing_external_ids = set(existing_models_map.keys())
 
                 partitioned: Dict[str, List[Offer]] = {"new": [], "existing": []}
                 for offer in offers_list:
-                    if offer.external_id in existing_external_ids:
+                    if (offer.reference, offer.source_id) in existing_models_map:
                         partitioned["existing"].append(offer)
                     else:
                         partitioned["new"].append(offer)
@@ -73,32 +73,27 @@ class PostgresOffersRepository(IIngestionOffersRepository):
                 updated = 0
 
                 if partitioned["new"]:
-                    new_models = []
-                    for offer in partitioned["new"]:
-                        model = self.mapper.from_domain(offer)
-                        new_models.append(model)
-
                     created_models = OfferModel.objects.bulk_create(
-                        new_models, ignore_conflicts=True
+                        [self.mapper.from_domain(offer) for offer in partitioned["new"]]
                     )
                     created = len(created_models)
 
                 if partitioned["existing"]:
                     models_to_update = []
                     for offer in partitioned["existing"]:
-                        if offer.external_id in existing_models_map:
-                            existing_model = existing_models_map[offer.external_id]
-                            updated_model = self.mapper.from_domain(offer)
-                            updated_model.id = existing_model.id
-                            updated_model.updated_at = timezone.make_aware(
-                                datetime.now()
-                            )
-                            models_to_update.append(updated_model)
+                        existing_model = existing_models_map[
+                            (offer.reference, offer.source_id)
+                        ]
+                        updated_model = self.mapper.from_domain(offer)
+                        updated_model.id = existing_model.id
+                        updated_model.updated_at = timezone.make_aware(datetime.now())
+                        models_to_update.append(updated_model)
 
                     if models_to_update:
                         updated = OfferModel.objects.bulk_update(
                             models_to_update,
                             fields=[
+                                "external_id",
                                 "reference",
                                 "verse",
                                 "title",
