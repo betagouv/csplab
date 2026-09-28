@@ -460,7 +460,7 @@ class ConversationMessageSerializer(serializers.Serializer):
 
 
 # ---------------------------------------------------------------------------
-# Serializer pour la création d'une conversation (stub)
+# Serializers pour la création d'un message ou d'une conversation (stub)
 # ---------------------------------------------------------------------------
 
 # Signature binaire attendue en tête de fichier, par content type autorisé
@@ -471,8 +471,7 @@ SIGNATURES_DOCUMENT = {
 }
 
 
-class CreateConversationSerializer(serializers.Serializer):
-    objet = serializers.CharField(max_length=settings.CONVERSATION_OBJET_MAX_LENGTH)
+class CreateMessageSerializer(serializers.Serializer):
     content = serializers.CharField(
         max_length=settings.MESSAGE_CONTENT_MAX_LENGTH, trim_whitespace=False
     )
@@ -508,3 +507,7 @@ class CreateConversationSerializer(serializers.Serializer):
                     f"Le contenu de {document.name} ne correspond pas à son format."
                 )
         return documents
+
+
+class CreateConversationSerializer(CreateMessageSerializer):
+    objet = serializers.CharField(max_length=settings.CONVERSATION_OBJET_MAX_LENGTH)
