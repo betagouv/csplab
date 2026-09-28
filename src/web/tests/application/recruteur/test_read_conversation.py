@@ -3,7 +3,7 @@ from uuid import uuid4
 import pytest
 from django.conf import settings
 
-from application.recruteur.services.list_conversations import (
+from application.recruteur.services.conversation_stubs import (
     _CONVERSATIONS,
     stub_conversation_id,
 )

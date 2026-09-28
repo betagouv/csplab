@@ -3,8 +3,8 @@ from uuid import uuid4
 import pytest
 from django.conf import settings
 
+from application.recruteur.services.conversation_stubs import stub_conversation_id
 from application.recruteur.services.create_conversation import create_conversation
-from application.recruteur.services.list_conversations import stub_conversation_id
 from domain.commons.errors.organisme_errors import OrganismeNexistePas
 from domain.identite.errors.organisme_permission_errors import (
     AccesOrganismeRefuse,

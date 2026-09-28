@@ -6,7 +6,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse
 from rest_framework import status
 
-from application.recruteur.services.list_conversations import _CONVERSATIONS
+from application.recruteur.services.conversation_stubs import _CONVERSATIONS
 from domain.recruteur.value_objects.roles import (
     AgentOrganismeRole,
     AgentRecrutementRole,

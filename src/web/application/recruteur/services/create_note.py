@@ -6,6 +6,9 @@ from django.db import transaction
 from application.identite.context_services.organisme_permission_service import (
     OrganismePermissionService,
 )
+from application.recruteur.context_services.candidature_agent_service import (
+    CandidatureAgentService,
+)
 from application.recruteur.context_services.recrutement_agent_service import (
     RecrutementAgentService,
 )
@@ -36,7 +39,10 @@ def create_note(
         organisme_id=organisme_id, recrutement_id=recrutement_id
     )
     contexte.check_recrutement_belongs_to_organisme()
-    contexte.check_candidature_belongs_to_recrutement(candidature_id)
+    candidature_service = CandidatureAgentService(
+        recrutement_id=recrutement_id, candidature_id=candidature_id
+    )
+    candidature_service.check_candidature_belongs_to_recrutement()
 
     publie_par_id = utilisateur.entity_id
 

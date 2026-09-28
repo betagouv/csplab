@@ -5,6 +5,9 @@ from django.db.models import QuerySet
 from application.identite.context_services.organisme_permission_service import (
     OrganismePermissionService,
 )
+from application.recruteur.context_services.candidature_agent_service import (
+    CandidatureAgentService,
+)
 from application.recruteur.context_services.recrutement_agent_service import (
     RecrutementAgentService,
 )
@@ -30,7 +33,10 @@ def list_documents(
         organisme_id=organisme_id, recrutement_id=recrutement_id
     )
     service.check_recrutement_belongs_to_organisme()
-    service.check_candidature_belongs_to_recrutement(candidature_id)
+    candidature_service = CandidatureAgentService(
+        recrutement_id=recrutement_id, candidature_id=candidature_id
+    )
+    candidature_service.check_candidature_belongs_to_recrutement()
 
     return DocumentModel.objects.by_recrutement_and_candidature(
         recrutement_id, candidature_id
