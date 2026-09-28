@@ -8,7 +8,6 @@ from application.identite.context_services.organisme_permission_service import (
 from application.recruteur.context_services.recrutement_agent_service import (
     RecrutementAgentService,
 )
-from application.recruteur.services.list_conversations import stub_conversations_of
 from domain.identite.entities.utilisateurs import Utilisateur
 from domain.identite.value_objects.organisme_action import OrganismeAction
 from domain.recruteur.errors.recrutement_errors import ConversationInexistante

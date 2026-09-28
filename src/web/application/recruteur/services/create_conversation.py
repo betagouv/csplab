@@ -10,7 +10,7 @@ from application.identite.context_services.organisme_permission_service import (
 from application.recruteur.context_services.recrutement_agent_service import (
     RecrutementAgentService,
 )
-from application.recruteur.services.list_conversations import (
+from application.recruteur.services.conversation_stubs import (
     ConversationStub,
     stub_conversation_id,
 )

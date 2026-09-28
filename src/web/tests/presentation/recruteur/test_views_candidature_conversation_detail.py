@@ -5,7 +5,7 @@ from django.conf import settings
 from django.urls import reverse
 from rest_framework import status
 
-from application.recruteur.services.list_conversations import (
+from application.recruteur.services.conversation_stubs import (
     _CONVERSATIONS,
     stub_conversation_id,
 )
