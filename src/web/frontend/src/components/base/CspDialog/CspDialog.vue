@@ -135,7 +135,7 @@ const hasFooter = computed(() => Boolean(slots.footer))
   position: fixed;
   inset: 0;
   background-color: var(--csp-overlay-scrim);
-  z-index: var(--csp-z-overlay);
+  z-index: var(--csp-z-modal);
 }
 
 .csp-dialog {
