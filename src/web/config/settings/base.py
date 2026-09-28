@@ -7,6 +7,7 @@ from django.utils.csp import CSP
 from django.utils.translation import gettext_lazy as _
 
 from config.logger_names import LoggerName
+from config.settings._keys import require_min_key_length
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
@@ -380,7 +381,9 @@ SIMPLE_JWT = {
     "USER_ID_FIELD": "username",
     "USER_ID_CLAIM": "username",
     "UPDATE_LAST_LOGIN": True,
+    "SIGNING_KEY": env.str("JWT_SIGNING_KEY"),
 }
+require_min_key_length(SECRET_KEY=SECRET_KEY, JWT_SIGNING_KEY=SIMPLE_JWT["SIGNING_KEY"])
 
 PUBLIC_API_PREFIX = "/api/"
 
