@@ -1,4 +1,4 @@
-import type { RouteRecordNameGeneric, RouteRecordRaw } from 'vue-router'
+import type { RouteRecordRaw } from 'vue-router'
 import type { CandidaturePanelTabKey, CandidatureTabKey } from './constants/candidature'
 import { tabMetaFor } from '@/composables/navigation/tabs'
 import { ORGANISME_PATH_PREFIX, UUID_ROUTE_PARAM } from '@/router/params'
@@ -14,15 +14,6 @@ export const CANDIDATURE_PANEL_TAB_ROUTE_NAMES = {
 } as const satisfies Record<CandidaturePanelTabKey, string>
 
 export const CANDIDATURE_CONVERSATION_ROUTE_NAME = 'recrutement-candidature-conversation'
-
-const PANEL_ROUTE_NAMES = new Set<string>([
-  ...Object.values(CANDIDATURE_PANEL_TAB_ROUTE_NAMES),
-  CANDIDATURE_CONVERSATION_ROUTE_NAME,
-])
-
-export function isCandidaturePanelRoute(name: RouteRecordNameGeneric): boolean {
-  return typeof name === 'string' && PANEL_ROUTE_NAMES.has(name)
-}
 
 export const CANDIDATURES_TAB_ROUTE_NAMES = {
   'candidatures': 'recrutement-candidatures-kanban',

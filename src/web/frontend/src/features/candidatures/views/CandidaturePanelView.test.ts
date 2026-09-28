@@ -68,7 +68,7 @@ async function renderPanel(paths: string[]) {
 }
 
 function closeButton() {
-  return screen.getByRole('button', { name: 'Fermer la candidature et revenir au kanban' })
+  return screen.getByRole('button', { name: 'Fermer la candidature' })
 }
 
 describe('candidaturePanelView', () => {
@@ -136,23 +136,6 @@ describe('candidaturePanelView', () => {
     })
   })
 
-  it('confirms the move with a toast that reopens the moved candidature', async () => {
-    const user = setupUser()
-    const { router } = await renderPanel([`${KANBAN_PATH}/candidatures/${CANDIDATURE_ALICE}`])
-
-    await user.click(await screen.findByRole('button', { name: 'Changer d\'étape' }))
-    await user.click(await screen.findByRole('radio', { name: 'Entretien' }))
-    await user.click(screen.getByRole('button', { name: 'Valider' }))
-    await vi.waitFor(() => expect(router.currentRoute.value.params.candidatureUuid).toBe(CANDIDATURE_BRUNO))
-
-    expect(await screen.findByText('Alice Dupont est passé à l\'étape Entretien')).toBeInTheDocument()
-    await user.click(screen.getByRole('button', { name: 'Revenir à cette candidature' }))
-
-    await vi.waitFor(() => expect(router.currentRoute.value.params.candidatureUuid).toBe(CANDIDATURE_ALICE))
-    const navigation = within(screen.getByRole('navigation', { name: 'Navigation entre les candidatures de l\'étape' }))
-    expect(await navigation.findByText('Étape : Entretien')).toBeInTheDocument()
-  })
-
   it('asks for confirmation before refusing the candidature', async () => {
     const user = setupUser()
     const { router } = await renderPanel([`${KANBAN_PATH}/candidatures/${CANDIDATURE_ALICE}`])
@@ -212,19 +195,13 @@ describe('candidaturePanelView', () => {
     expect(await panel.findByRole('heading', { name: 'Candidature' })).toBeInTheDocument()
   })
 
-  it('goes back to the kanban when opened from it', async () => {
+  it.each([
+    ['opened from the kanban', [KANBAN_PATH, `${KANBAN_PATH}/candidatures/${CANDIDATURE_ALICE}`]],
+    ['opened directly', [`${KANBAN_PATH}/candidatures/${CANDIDATURE_ALICE}`]],
+    ['left on another tab', [KANBAN_PATH, `${KANBAN_PATH}/candidatures/${CANDIDATURE_ALICE}/messages`]],
+  ])('closes to the kanban when %s', async (_, paths) => {
     const user = setupUser()
-    const { router } = await renderPanel([KANBAN_PATH, `${KANBAN_PATH}/candidatures/${CANDIDATURE_ALICE}`])
-    const back = vi.spyOn(router, 'back')
-
-    await user.click(closeButton())
-
-    expect(back).toHaveBeenCalled()
-  })
-
-  it('replaces the address with the kanban when opened directly', async () => {
-    const user = setupUser()
-    const { router } = await renderPanel([`${KANBAN_PATH}/candidatures/${CANDIDATURE_ALICE}`])
+    const { router } = await renderPanel(paths)
 
     await user.click(closeButton())
 

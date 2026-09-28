@@ -6,7 +6,7 @@ import CspCard from '@/components/base/CspCard/CspCard.vue'
 import CspIcon from '@/components/base/CspIcon/CspIcon.vue'
 import { useDraggableKanbanCard } from '@/composables/dnd/useKanbanDnd'
 import { formatElapsedDays } from '@/utils/date'
-import { CANDIDATURE_ROUTE_NAME, isCandidaturePanelRoute } from '../routes'
+import { CANDIDATURE_ROUTE_NAME } from '../routes'
 import { formatCandidatNom } from '../utils/candidat'
 
 const props = defineProps<{
@@ -29,8 +29,6 @@ const panelLocation = computed(() => ({
   name: CANDIDATURE_ROUTE_NAME,
   params: { ...route.params, candidatureUuid: props.candidature.uuid },
 }))
-
-const isPanelOpen = computed(() => isCandidaturePanelRoute(route.name))
 
 const { isDragging } = useDraggableKanbanCard({
   element: cardRef,
@@ -57,7 +55,6 @@ const { isDragging } = useDraggableKanbanCard({
       <!-- draggable="false": the card starts the drag, not the link -->
       <RouterLink
         :to="panelLocation"
-        :replace="isPanelOpen"
         draggable="false"
         class="candidature-kanban-card__link"
       >
