@@ -2,6 +2,8 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from uuid import UUID, uuid5
 
+from django.conf import settings
+
 from application.identite.context_services.organisme_permission_service import (
     OrganismePermissionService,
 )
@@ -10,8 +12,6 @@ from application.recruteur.context_services.recrutement_agent_service import (
 )
 from domain.identite.entities.utilisateurs import Utilisateur
 from domain.identite.value_objects.organisme_action import OrganismeAction
-
-LAST_MESSAGE_CONTENT_MAX_LENGTH = 300
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -72,7 +72,9 @@ def stub_conversations_of(candidature_id: UUID) -> dict[UUID, ConversationStub]:
             objet=objet,
             creator=createur,
             created_at=created_at,
-            last_message_content=contenu[:LAST_MESSAGE_CONTENT_MAX_LENGTH],
+            last_message_content=contenu[
+                : settings.CONVERSATION_LAST_MESSAGE_CONTENT_MAX_LENGTH
+            ],
             last_message_author=auteur,
             last_message_created_at=last_message_created_at,
         )

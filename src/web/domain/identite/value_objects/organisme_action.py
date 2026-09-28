@@ -35,3 +35,4 @@ class OrganismeAction(Enum):
     DELETE_NOTE = "delete_note"
     LIST_CONVERSATIONS = "list_conversations"
     READ_CONVERSATION = "read_conversation"
+    CREATE_CONVERSATION = "create_conversation"

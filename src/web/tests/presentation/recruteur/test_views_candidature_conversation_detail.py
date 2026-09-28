@@ -1,6 +1,7 @@
 from uuid import uuid4
 
 import pytest
+from django.conf import settings
 from django.urls import reverse
 from rest_framework import status
 
@@ -10,7 +11,6 @@ from application.recruteur.services.list_conversations import (
 )
 from application.recruteur.services.read_conversation import (
     _MESSAGES,
-    MAX_DOCUMENTS_PAR_MESSAGE,
 )
 from domain.recruteur.value_objects.roles import (
     AgentOrganismeRole,
@@ -160,7 +160,7 @@ class TestCandidatureConversationDetailView:
         dates = [message["created_at"] for message in results]
         assert dates == sorted(dates)
         assert all(
-            len(message["documents"]) <= MAX_DOCUMENTS_PAR_MESSAGE
+            len(message["documents"]) <= settings.MESSAGE_MAX_DOCUMENTS
             for message in results
         )
         documents = [doc for message in results for doc in message["documents"]]

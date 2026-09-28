@@ -14,8 +14,6 @@ from domain.identite.value_objects.organisme_action import OrganismeAction
 from domain.recruteur.errors.recrutement_errors import ConversationInexistante
 from infrastructure.django_apps.candidate.enums.type_document import TypeDocument
 
-MAX_DOCUMENTS_PAR_MESSAGE = 5
-
 PDF = "application/pdf"
 PNG = "image/png"
 

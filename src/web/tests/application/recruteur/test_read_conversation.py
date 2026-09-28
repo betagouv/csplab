@@ -1,6 +1,7 @@
 from uuid import uuid4
 
 import pytest
+from django.conf import settings
 
 from application.recruteur.services.list_conversations import (
     _CONVERSATIONS,
@@ -8,7 +9,6 @@ from application.recruteur.services.list_conversations import (
 )
 from application.recruteur.services.read_conversation import (
     _MESSAGES,
-    MAX_DOCUMENTS_PAR_MESSAGE,
     read_conversation,
 )
 from domain.commons.errors.organisme_errors import OrganismeNexistePas
@@ -69,10 +69,10 @@ def test_authorized_agent_reads_the_conversation(superviseur_candidature):
     dates = [message.created_at for message in messages]
     assert dates == sorted(dates)
     assert all(
-        len(message.documents) <= MAX_DOCUMENTS_PAR_MESSAGE for message in messages
+        len(message.documents) <= settings.MESSAGE_MAX_DOCUMENTS for message in messages
     )
     assert any(
-        len(message.documents) == MAX_DOCUMENTS_PAR_MESSAGE for message in messages
+        len(message.documents) == settings.MESSAGE_MAX_DOCUMENTS for message in messages
     )
 
 
