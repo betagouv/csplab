@@ -134,7 +134,7 @@ function setHandleRef(element: Element | null) {
   position: relative;
   display: flex;
   align-items: center;
-  gap: var(--csp-space-3);
+  gap: var(--sortable-list-handle-gap);
   list-style: none;
 }
 
@@ -148,7 +148,7 @@ function setHandleRef(element: Element | null) {
   flex-shrink: 0;
   align-items: center;
   justify-content: center;
-  width: 1rem;
+  width: var(--sortable-list-handle-size);
 }
 
 .csp-sortable-list-item__handle {

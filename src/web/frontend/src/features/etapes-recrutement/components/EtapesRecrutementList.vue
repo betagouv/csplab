@@ -233,6 +233,7 @@ function getMenuSections(
           :is-item-draggable="(etape) => !isEtapeLocked(etape)"
           :get-item-variant="(etape) => isEtapeLocked(etape) ? 'alt' : 'default'"
           show-position
+          handle-placement="gutter"
           @reorder="reorderEtapes"
         >
           <template #header>

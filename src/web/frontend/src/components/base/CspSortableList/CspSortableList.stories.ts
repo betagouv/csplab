@@ -66,6 +66,15 @@ const meta = {
         defaultValue: { summary: 'false' },
       },
     },
+    handlePlacement: {
+      control: { type: 'radio' },
+      options: ['inline', 'gutter'],
+      description: 'Place les poignées dans la ligne, ou dans la gouttière de page à partir du palier lg pour aligner les blocs sur le bord du contenu.',
+      table: {
+        type: { summary: '\'inline\' | \'gutter\'' },
+        defaultValue: { summary: '\'inline\'' },
+      },
+    },
     onReorder: {
       action: 'reorder',
       description: 'Émis quand la liste est réordonnée.',
