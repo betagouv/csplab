@@ -16,6 +16,7 @@ export interface CspDrawerProps {
   open?: boolean
   defaultOpen?: boolean
   modal?: boolean
+  overlay?: boolean
   title?: string | null
   description?: string | null
   ariaLabel?: string
@@ -34,6 +35,7 @@ const props = withDefaults(defineProps<CspDrawerProps>(), {
   open: undefined,
   defaultOpen: false,
   modal: true,
+  overlay: true,
   title: null,
   description: null,
   ariaLabel: undefined,
@@ -72,7 +74,10 @@ const hasFooter = computed(() => Boolean(slots.footer))
     </DialogTrigger>
 
     <DialogPortal>
-      <DialogOverlay class="csp-drawer__overlay" />
+      <DialogOverlay
+        v-if="overlay"
+        class="csp-drawer__overlay"
+      />
       <DialogContent
         v-bind="attrs"
         :aria-label="ariaLabel"

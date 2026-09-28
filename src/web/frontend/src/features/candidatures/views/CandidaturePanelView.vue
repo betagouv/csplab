@@ -91,6 +91,7 @@ function handleUpdateOpen(open: boolean): void {
 <template>
   <CspDrawer
     :open="true"
+    :overlay="false"
     aria-label="Candidature"
     close-label="Fermer la candidature"
     class="candidature-panel"

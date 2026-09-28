@@ -12,7 +12,7 @@ const meta = {
   tags: ['autodocs'],
   parameters: {
     controls: {
-      include: ['open', 'defaultOpen', 'modal', 'side', 'size', 'title', 'description', 'ariaLabel', 'showClose', 'closeLabel'],
+      include: ['open', 'defaultOpen', 'modal', 'overlay', 'side', 'size', 'title', 'description', 'ariaLabel', 'showClose', 'closeLabel'],
     },
     docs: {
       description: {
@@ -45,6 +45,18 @@ const meta = {
     modal: {
       control: { type: 'boolean' },
       description: 'Si vrai, capture le focus et désactive les interactions extérieures.',
+      table: {
+        type: {
+          summary: 'boolean',
+        },
+        defaultValue: {
+          summary: 'true',
+        },
+      },
+    },
+    overlay: {
+      control: { type: 'boolean' },
+      description: 'Si faux, n\'affiche pas le fond assombri derrière le tiroir. Utile quand une autre modale peut s\'ouvrir par-dessus.',
       table: {
         type: {
           summary: 'boolean',
@@ -189,6 +201,7 @@ const meta = {
   args: {
     defaultOpen: false,
     modal: true,
+    overlay: true,
     side: 'right',
     size: 'md',
     title: 'Titre du tiroir',
