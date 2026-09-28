@@ -3,7 +3,7 @@ import type { AgentOrganisme, AgentRecherche, OrganismesList } from '@/features/
 export const AGENT_UUID = 'bbbbbbbb-0001-0001-0001-000000000001'
 
 export const AGENT_ORGANISME: AgentOrganisme = {
-  agent_id: AGENT_UUID,
+  uuid: AGENT_UUID,
   organisme_id: '11111111-1111-1111-1111-111111111111',
   nom: 'Dupont',
   prenom: 'Jeanne',
@@ -15,7 +15,7 @@ export const AGENT_ORGANISME: AgentOrganisme = {
 }
 
 export const AGENT_RECHERCHE: AgentRecherche = {
-  agent_id: AGENT_UUID,
+  uuid: AGENT_UUID,
   email: 'jeanne.dupont@example.gouv.fr',
   prenom: 'Jeanne',
   nom: 'Dupont',
@@ -23,7 +23,7 @@ export const AGENT_RECHERCHE: AgentRecherche = {
 }
 
 export const ORGANISME: OrganismesList = {
-  organisme_uuid: '11111111-1111-1111-1111-111111111111',
+  uuid: '11111111-1111-1111-1111-111111111111',
   nom: 'Organisme 1',
   siret: '11004601800021',
   versant: 'FPT',

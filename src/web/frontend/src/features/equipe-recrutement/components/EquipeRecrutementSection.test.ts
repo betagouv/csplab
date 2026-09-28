@@ -27,7 +27,7 @@ vi.mock('@/api/utilisateur', () => ({
   getMe: vi.fn(),
 }))
 
-const NOUVEL_AGENT = { ...AGENT_RECHERCHE, agent_id: 'bbbbbbbb-0002-0002-0002-000000000002', email: 'paul.bernard@example.gouv.fr' }
+const NOUVEL_AGENT = { ...AGENT_RECHERCHE, uuid: 'bbbbbbbb-0002-0002-0002-000000000002', email: 'paul.bernard@example.gouv.fr' }
 
 const Host = defineComponent({
   setup: () => () => h(CspToaster, null, () =>

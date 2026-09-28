@@ -19,8 +19,8 @@ function toUpdatePayload(items: EtapeRecrutement[]): UpdateEtapeRecrutement[] {
       nom: etape.nom,
       categorie: etape.categorie,
     }
-    if (etape.etape_uuid) {
-      payload.etape_uuid = etape.etape_uuid
+    if (etape.uuid) {
+      payload.uuid = etape.uuid
     }
     return payload
   })
@@ -28,7 +28,7 @@ function toUpdatePayload(items: EtapeRecrutement[]): UpdateEtapeRecrutement[] {
 
 function buildNouvelleEtape(nom: string): EtapeRecrutement {
   return {
-    etape_uuid: '',
+    uuid: '',
     nom,
     categorie: 'EN_COURS',
   }
@@ -121,13 +121,13 @@ export function useEtapesRecrutement(params: EtapesRecrutementType) {
 
   async function renameEtape(etapeUuid: string, nouveauNom: string): Promise<void> {
     const updated = etapes.value.map(e =>
-      e.etape_uuid === etapeUuid ? { ...e, nom: nouveauNom } : e,
+      e.uuid === etapeUuid ? { ...e, nom: nouveauNom } : e,
     )
     await saveEtapes(updated)
   }
 
   async function removeEtape(etapeUuid: string): Promise<void> {
-    await saveEtapes(etapes.value.filter(e => e.etape_uuid !== etapeUuid))
+    await saveEtapes(etapes.value.filter(e => e.uuid !== etapeUuid))
   }
 
   async function resetEtapes(): Promise<void> {

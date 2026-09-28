@@ -122,7 +122,7 @@ class TestRecrutementsActifsView:
         data = response.json()
         assert data["count"] == 1
         first = data["results"][0]
-        assert "offer_id" in first
+        assert "uuid" in first
         assert "intitule" in first
         assert "reference_csp" in first
         assert "type_contrat" in first
@@ -213,7 +213,7 @@ class TestRecrutementsArchivesView:
         data = response.json()
         assert data["count"] == 1
         first = data["results"][0]
-        assert "offer_id" in first
+        assert "uuid" in first
         assert "intitule" in first
         assert "reference_csp" in first
         assert "type_contrat" in first
@@ -285,7 +285,7 @@ class TestRecrutementsActifsViewDbVerified:
         data = response.json()
         assert data["count"] == 1
         result = data["results"][0]
-        assert result["offer_id"] == str(offer.id)
+        assert result["uuid"] == str(offer.id)
         assert result["intitule"] == offer.title
         assert result["reference_csp"] == (offer.code_emploi_csp or "")
         assert result["type_contrat"] == offer.contract_type
@@ -338,7 +338,7 @@ class TestRecrutementsArchivesViewDbVerified:
         data = response.json()
         assert data["count"] == 1
         result = data["results"][0]
-        assert result["offer_id"] == str(offer.id)
+        assert result["uuid"] == str(offer.id)
         assert result["intitule"] == offer.title
         assert result["reference_csp"] == (offer.code_emploi_csp or "")
         assert result["type_contrat"] == offer.contract_type

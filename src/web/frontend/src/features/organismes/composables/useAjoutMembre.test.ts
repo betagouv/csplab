@@ -62,7 +62,7 @@ describe('useAjoutMembre', () => {
 
     expect(mockCreateAgent).not.toHaveBeenCalled()
     expect(mockSetAgentRole).toHaveBeenCalledWith(ORGANISME_UUID, {
-      agent_id: AGENT_RECHERCHE.agent_id,
+      agent_id: AGENT_RECHERCHE.uuid,
       role: 'agent',
     })
     expect(mockGetOrganismeAgents).toHaveBeenCalledTimes(2)
@@ -83,7 +83,7 @@ describe('useAjoutMembre', () => {
       organisme_id: ORGANISME_UUID,
     })
     expect(mockSetAgentRole).toHaveBeenCalledWith(ORGANISME_UUID, {
-      agent_id: AGENT_RECHERCHE.agent_id,
+      agent_id: AGENT_RECHERCHE.uuid,
       role: 'superviseur',
     })
   })

@@ -81,13 +81,13 @@ function handleSubmit(): void {
         <ul class="assignation-responsable-drawer__tags">
           <li
             v-for="recrutement in recrutements"
-            :key="recrutement.offer_id"
+            :key="recrutement.uuid"
           >
             <CspTag
               variant="dismissible"
               :label="recrutement.intitule"
               :dismiss-label="`Retirer ${recrutement.intitule} de la sélection`"
-              @dismiss="emit('remove', recrutement.offer_id)"
+              @dismiss="emit('remove', recrutement.uuid)"
             />
           </li>
         </ul>

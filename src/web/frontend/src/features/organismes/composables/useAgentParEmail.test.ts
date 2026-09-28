@@ -22,7 +22,7 @@ const ORGANISME_UUID = '11111111-1111-1111-1111-111111111111'
 const EMAIL_INCONNU = 'nouvelle.agente@example.gouv.fr'
 
 const AGENT: AgentRecherche = {
-  agent_id: 'aaaaaaaa-0001-0001-0001-000000000001',
+  uuid: 'aaaaaaaa-0001-0001-0001-000000000001',
   email: 'jeanne.dupont@example.gouv.fr',
   prenom: 'Jeanne',
   nom: 'Dupont',
@@ -31,7 +31,7 @@ const AGENT: AgentRecherche = {
 
 const AGENT_CREE: AgentRecherche = {
   ...AGENT,
-  agent_id: 'aaaaaaaa-0002-0002-0002-000000000002',
+  uuid: 'aaaaaaaa-0002-0002-0002-000000000002',
   email: EMAIL_INCONNU,
   prenom: '',
   nom: '',

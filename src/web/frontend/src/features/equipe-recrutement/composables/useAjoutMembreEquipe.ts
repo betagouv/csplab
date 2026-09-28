@@ -29,7 +29,7 @@ export function useAjoutMembreEquipe(
   async function add(role: RecrutementRole) {
     const agent = await resolve()
     return addMutation.mutateAsync({
-      agent_id: agent.agent_id,
+      agent_id: agent.uuid,
       recrutement_role: role,
     })
   }

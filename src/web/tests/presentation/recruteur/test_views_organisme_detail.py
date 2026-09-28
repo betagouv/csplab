@@ -65,7 +65,7 @@ VALID_ETAPES_PAYLOAD = [
 def etapes_as_json(etapes: tuple[EtapeRecrutement, ...]) -> list[dict]:
     return [
         {
-            "etape_uuid": str(etape.entity_id),
+            "uuid": str(etape.entity_id),
             "nom": etape.nom,
             "categorie": etape.categorie.name,
         }
@@ -124,7 +124,7 @@ class TestOrganismeDetailView:
         response = authenticated_client.get(ORGANISME_URL)
 
         assert response.status_code == status.HTTP_200_OK
-        assert response.json()["organisme_uuid"] == ORGANISME_UUID
+        assert response.json()["uuid"] == ORGANISME_UUID
         assert response.json()["nom"] == organisme.nom
         assert response.json()["date_creation"] == "2026-01-01T09:00:00Z"
 
@@ -421,13 +421,13 @@ class TestPutEtapesRecrutementOrganismeView:
 
         payload = [
             {
-                "etape_uuid": str(existing_uuid),
+                "uuid": str(existing_uuid),
                 "nom": "Réception",
                 "categorie": "ENTREE",
             },
             {"nom": "Nouvelle étape", "categorie": "EN_COURS"},
             {
-                "etape_uuid": str(other_uuid),
+                "uuid": str(other_uuid),
                 "nom": "Recrutement",
                 "categorie": "ACCEPTE",
             },
@@ -438,9 +438,15 @@ class TestPutEtapesRecrutementOrganismeView:
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
         assert len(data) == len(payload)
-        assert data[0]["etape_uuid"] == str(existing_uuid)
-        assert data[1]["etape_uuid"] == str(new_uuid)
+        assert data[0]["uuid"] == str(existing_uuid)
+        assert data[1]["uuid"] == str(new_uuid)
         assert data[1]["nom"] == "Nouvelle étape"
+        (command,), _ = mock_usecase.execute.call_args
+        assert [e.etape_uuid for e in command.etapes] == [
+            UUID(existing_uuid),
+            None,
+            UUID(other_uuid),
+        ]
 
     def test_put_returns_400_on_invalid_steps(self, container, authenticated_client):
         mock_usecase = MagicMock()
@@ -525,7 +531,7 @@ class TestOrganismeDetailViewDbVerified:
 
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
-        assert data["organisme_uuid"] == ORGANISME_UUID
+        assert data["uuid"] == ORGANISME_UUID
         assert data["nom"] == organisme.nom
         assert data["versant"] == organisme.versant
         assert data["siret"] == organisme.siret

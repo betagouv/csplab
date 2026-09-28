@@ -8,7 +8,7 @@ import {
 
 function makeRow(overrides: Partial<RecrutementBase> = {}): RecrutementBase {
   return {
-    offer_id: 'rec-1',
+    uuid: 'rec-1',
     intitule: 'Chargé·e de mission',
     reference_csp: 'REF-001',
     responsables: [{ nom: 'Camille Durand' }],

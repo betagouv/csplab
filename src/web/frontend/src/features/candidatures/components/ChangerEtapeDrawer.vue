@@ -33,7 +33,7 @@ watch(() => props.open, (isOpen) => {
 const selectedCount = computed(() => props.selectedCandidatureUuids.size)
 
 const canConfirm = computed(() => {
-  return selectedCount.value > 0 && selectedEtapeUuid.value !== '' && props.sourceEtape && selectedEtapeUuid.value !== props.sourceEtape.etape_uuid
+  return selectedCount.value > 0 && selectedEtapeUuid.value !== '' && props.sourceEtape && selectedEtapeUuid.value !== props.sourceEtape.uuid
 })
 
 function handleConfirm(): void {
@@ -54,7 +54,7 @@ const selectedUuidsModel = computed({
       return
 
     const prev = props.selectedCandidatureUuids
-    const etapeUuid = props.sourceEtape.etape_uuid
+    const etapeUuid = props.sourceEtape.uuid
 
     for (const uuid of uuids) {
       if (!prev.has(uuid)) {
@@ -131,23 +131,23 @@ const selectedUuidsModel = computed({
         >
           <label
             v-for="etape in etapes"
-            :key="etape.etape_uuid"
+            :key="etape.uuid"
             class="changer-etape-drawer__radio"
             :class="{
-              'changer-etape-drawer__radio--current': etape.etape_uuid === sourceEtape.etape_uuid,
+              'changer-etape-drawer__radio--current': etape.uuid === sourceEtape.uuid,
             }"
           >
             <RadioGroupItem
               class="changer-etape-drawer__radio-control"
-              :value="etape.etape_uuid"
-              :disabled="etape.etape_uuid === sourceEtape.etape_uuid"
+              :value="etape.uuid"
+              :disabled="etape.uuid === sourceEtape.uuid"
             >
               <RadioGroupIndicator class="changer-etape-drawer__radio-indicator" />
             </RadioGroupItem>
             <span class="changer-etape-drawer__radio-content">
               <span class="changer-etape-drawer__radio-label">{{ etape.nom }}</span>
               <span
-                v-if="etape.etape_uuid === sourceEtape.etape_uuid"
+                v-if="etape.uuid === sourceEtape.uuid"
                 class="changer-etape-drawer__radio-hint"
               >
                 Étape actuelle

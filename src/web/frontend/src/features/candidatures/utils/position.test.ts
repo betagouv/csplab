@@ -4,7 +4,7 @@ import { findCandidaturePosition, findEtapeOfCandidature } from './position'
 
 function etape(etapeUuid: string, candidatureUuids: string[]): EtapeRecrutementDetailedCandidatures {
   return {
-    etape_uuid: etapeUuid,
+    uuid: etapeUuid,
     nom: etapeUuid,
     categorie: 'EN_COURS',
     candidatures: candidatureUuids.map(uuid => ({
@@ -35,7 +35,7 @@ describe('findCandidaturePosition', () => {
 
 describe('findEtapeOfCandidature', () => {
   it('returns the column holding the candidature', () => {
-    expect(findEtapeOfCandidature(ETAPES, 'c')?.etape_uuid).toBe('entretien')
+    expect(findEtapeOfCandidature(ETAPES, 'c')?.uuid).toBe('entretien')
     expect(findEtapeOfCandidature(ETAPES, 'masquee')).toBeNull()
   })
 })

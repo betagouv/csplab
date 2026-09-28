@@ -75,7 +75,7 @@ async function handleUpdate(payload: UpdateOrganismePayload): Promise<void> {
   if (!edition.requested)
     return
   try {
-    await update({ organismeUuid: edition.requested.organisme_uuid, payload })
+    await update({ organismeUuid: edition.requested.uuid, payload })
     addToast({ variant: 'success', title: 'Organisme modifié' })
     drawerOpen.value = false
   }
@@ -121,7 +121,7 @@ async function handleUpdate(payload: UpdateOrganismePayload): Promise<void> {
         v-model:page="page"
         :rows="filtered"
         :columns="ORGANISMES_LIST_COLUMNS"
-        :row-key="row => row.organisme_uuid"
+        :row-key="row => row.uuid"
         caption="Organismes"
         empty-label="Aucun organisme"
         :page-size="PAGE_SIZE"

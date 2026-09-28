@@ -45,13 +45,13 @@ class TestOrganismeAgentsView:
         response = authenticated_client.get(url)
 
         assert response.status_code == status.HTTP_200_OK
-        data = {entry["agent_id"]: entry for entry in response.json()}
+        data = {entry["uuid"]: entry for entry in response.json()}
         assert data.keys() == {
             str(test_user.username),
             str(autre_agent.utilisateur_id),
         }
         assert data[str(test_user.username)] == {
-            "agent_id": str(test_user.username),
+            "uuid": str(test_user.username),
             "organisme_id": str(organisme.id),
             "nom": test_user.last_name,
             "prenom": test_user.first_name,
@@ -90,7 +90,7 @@ class TestOrganismeAgentsView:
         response = authenticated_client.get(url)
 
         assert response.status_code == status.HTTP_200_OK
-        data = {entry["agent_id"]: entry for entry in response.json()}
+        data = {entry["uuid"]: entry for entry in response.json()}
         assert str(autre_agent.utilisateur_id) not in data
 
     def test_anonymous_post_is_unauthorized(self, api_client):
@@ -120,7 +120,7 @@ class TestOrganismeAgentsView:
 
         assert response.status_code == status.HTTP_201_CREATED
         data = response.json()
-        assert data["agent_id"] == str(bare_agent.utilisateur_id)
+        assert data["uuid"] == str(bare_agent.utilisateur_id)
         assert data["organisme_id"] == str(organisme.id)
         assert data["nom"] == bare_agent.utilisateur.last_name
         assert data["prenom"] == bare_agent.utilisateur.first_name
@@ -239,7 +239,7 @@ class TestOrganismeAgentsView:
 
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
-        assert data["agent_id"] == str(autre_agent.utilisateur_id)
+        assert data["uuid"] == str(autre_agent.utilisateur_id)
         assert data["role"] == AgentOrganismeRole.SUPERVISEUR.value
         assert (
             OrganismeAgentModel.objects.get(

@@ -22,7 +22,7 @@ export function useAjoutMembre(organismeUuid: MaybeRefOrGetter<string>) {
 
   async function add(role: Role) {
     const agent = await resolve()
-    return attachMutation.mutateAsync({ agent_id: agent.agent_id, role })
+    return attachMutation.mutateAsync({ agent_id: agent.uuid, role })
   }
 
   const submitting = computed(

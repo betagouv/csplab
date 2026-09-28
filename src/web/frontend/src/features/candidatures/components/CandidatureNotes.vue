@@ -50,7 +50,7 @@ const title = computed(() => `${total.value} ${pluralize(total.value, 'note')}`)
         <ul class="candidature-notes__list">
           <li
             v-for="note in notes"
-            :key="note.entity_id"
+            :key="note.uuid"
             class="candidature-notes__item"
           >
             <p class="candidature-notes__meta">

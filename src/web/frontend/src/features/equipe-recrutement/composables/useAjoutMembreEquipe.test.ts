@@ -32,7 +32,7 @@ const NOUVEL_AGENT_ID = 'bbbbbbbb-0002-0002-0002-000000000002'
 const EMAIL_INCONNU = 'nouvelle.agente@example.gouv.fr'
 
 const AGENT: AgentRecherche = {
-  agent_id: AGENT_ID,
+  uuid: AGENT_ID,
   email: 'jeanne.dupont@example.gouv.fr',
   prenom: 'Jeanne',
   nom: 'Dupont',
@@ -69,7 +69,7 @@ describe('useAjoutMembreEquipe', () => {
     mockGetEquipeRecrutement.mockResolvedValue([])
     mockAddMembreEquipe.mockResolvedValue({})
     mockSearchAgentByEmail.mockResolvedValue(AGENT)
-    mockCreateAgent.mockResolvedValue({ ...AGENT, agent_id: NOUVEL_AGENT_ID })
+    mockCreateAgent.mockResolvedValue({ ...AGENT, uuid: NOUVEL_AGENT_ID })
   })
 
   it('adds the found agent then refreshes the team', async () => {

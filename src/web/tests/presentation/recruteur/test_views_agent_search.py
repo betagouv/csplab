@@ -113,7 +113,7 @@ class TestAgentRechercheViewDbVerified:
 
         assert response.status_code == status.HTTP_200_OK
         assert response.json() == {
-            "agent_id": str(autre_agent.utilisateur_id),
+            "uuid": str(autre_agent.utilisateur_id),
             "email": autre_agent.utilisateur.email,
             "prenom": autre_agent.utilisateur.first_name,
             "nom": autre_agent.utilisateur.last_name,

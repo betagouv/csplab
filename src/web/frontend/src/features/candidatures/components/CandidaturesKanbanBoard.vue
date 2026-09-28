@@ -37,10 +37,10 @@ useKanbanBoardAutoScroll({ element: boardRef })
   >
     <CandidatureKanbanColumn
       v-for="etape in etapes"
-      :key="etape.etape_uuid"
+      :key="etape.uuid"
       :etape="etape"
       :board-id="boardId"
-      :is-selected="isColumnSelected(etape.etape_uuid)"
+      :is-selected="isColumnSelected(etape.uuid)"
       @toggle-selection="emit('toggleColumnSelection', $event)"
     />
   </div>

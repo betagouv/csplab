@@ -61,7 +61,7 @@ describe('organismeAgentsSection', () => {
 
     expect(await screen.findByText('Membre révoqué')).toBeInTheDocument()
     expect(updateAgentRole).toHaveBeenCalledWith(MTE_UUID, expect.objectContaining({
-      agent_id: AGENT_ORGANISME.agent_id,
+      agent_id: AGENT_ORGANISME.uuid,
       date_revocation: expect.any(String),
     }))
   })

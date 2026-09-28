@@ -114,7 +114,7 @@ function handleUpdateOpen(open: boolean): void {
     >
       <ChangerEtapePopover
         :etapes="etapeChange.etapes.value"
-        :current-etape-uuid="etape.etape_uuid"
+        :current-etape-uuid="etape.uuid"
         @confirm="requestEtapeChange"
       />
     </template>

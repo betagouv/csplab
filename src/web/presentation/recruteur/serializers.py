@@ -24,7 +24,7 @@ from presentation.commons.serializers import LocalisationSerializer, OrganismeSe
 
 
 class OrganismeDetailSerializer(serializers.Serializer):
-    organisme_uuid = serializers.UUIDField()
+    uuid = serializers.UUIDField(source="organisme_uuid")
     nom = serializers.CharField()
     versant = serializers.ChoiceField(choices=[c.value for c in Verse])
     siret = serializers.CharField(min_length=14, max_length=14)
@@ -55,7 +55,7 @@ class UpdateOrganismeSerializer(serializers.Serializer):
 
 
 class EtapeRecrutementSerializer(serializers.Serializer):
-    etape_uuid = serializers.UUIDField()
+    uuid = serializers.UUIDField(source="etape_uuid")
     nom = serializers.CharField()
     categorie = serializers.ChoiceField(
         choices=[(c.name, c.value) for c in CategorieEtapeRecrutement]
@@ -63,7 +63,7 @@ class EtapeRecrutementSerializer(serializers.Serializer):
 
 
 class UpdateEtapeRecrutementSerializer(EtapeRecrutementSerializer):
-    etape_uuid = serializers.UUIDField(required=False)
+    uuid = serializers.UUIDField(required=False, source="etape_uuid")
 
 
 class MotifRefusSerializer(serializers.Serializer):
@@ -82,7 +82,7 @@ class CandidaturesActivesSerializer(serializers.Serializer):
 
 
 class RecrutementsSerializer(serializers.Serializer):
-    offer_id = serializers.UUIDField()
+    uuid = serializers.UUIDField(source="offer_id")
     intitule = serializers.CharField()
     reference_csp = serializers.CharField()
     type_contrat = serializers.ChoiceField(
@@ -127,7 +127,7 @@ class EtapeRecrutementDetailedCandidaturesSerializer(EtapeRecrutementSerializer)
 
 
 class RecrutementDetailSerializer(serializers.Serializer):
-    offer_id = serializers.UUIDField()
+    uuid = serializers.UUIDField(source="offer_id")
     intitule = serializers.CharField()
     archive = serializers.BooleanField()
     date_publication = serializers.DateTimeField()
@@ -140,7 +140,7 @@ class RecrutementDetailSerializer(serializers.Serializer):
 
 
 class RecrutementDetailKanbanSerializer(serializers.Serializer):
-    offer_id = serializers.UUIDField()
+    uuid = serializers.UUIDField(source="offer_id")
     etapes = EtapeRecrutementDetailedCandidaturesSerializer(many=True)
 
 
@@ -163,7 +163,7 @@ class CreateAgentSerializer(serializers.Serializer):
 
 
 class AgentSerializer(serializers.Serializer):
-    agent_id = serializers.UUIDField(source="entity_id")
+    uuid = serializers.UUIDField(source="entity_id")
     email = serializers.EmailField()
     prenom = serializers.CharField()
     nom = serializers.CharField()
@@ -176,7 +176,7 @@ class AgentSerializer(serializers.Serializer):
 
 
 class AgentOrganismeSerializer(serializers.Serializer):
-    agent_id = serializers.UUIDField(source="entity_id")
+    uuid = serializers.UUIDField(source="entity_id")
     organisme_id = serializers.UUIDField()
     nom = serializers.CharField()
     prenom = serializers.CharField()
@@ -210,14 +210,14 @@ class RechercheAgentQuerySerializer(serializers.Serializer):
 
 
 class AgentRechercheSerializer(serializers.ModelSerializer):
-    agent_id = serializers.UUIDField(source="utilisateur.username")
+    uuid = serializers.UUIDField(source="utilisateur.username")
     email = serializers.EmailField(source="utilisateur.email")
     prenom = serializers.CharField(source="utilisateur.first_name")
     nom = serializers.CharField(source="utilisateur.last_name")
 
     class Meta:
         model = ProfilAgentModel
-        fields = ["agent_id", "email", "prenom", "nom", "intitule_poste"]
+        fields = ["uuid", "email", "prenom", "nom", "intitule_poste"]
 
 
 # ---------------------------------------------------------------------------
@@ -299,7 +299,7 @@ class DocumentListeSerializer(serializers.ModelSerializer):
 
 
 class NoteSerializer(serializers.ModelSerializer):
-    entity_id = serializers.UUIDField(source="id")
+    uuid = serializers.UUIDField(source="id")
     candidature_id = serializers.UUIDField()
     message = serializers.CharField()
     publie_par_id = serializers.UUIDField()
@@ -312,7 +312,7 @@ class NoteSerializer(serializers.ModelSerializer):
     class Meta:
         model = NoteModel
         fields = [
-            "entity_id",
+            "uuid",
             "candidature_id",
             "message",
             "publie_par_id",
@@ -323,14 +323,14 @@ class NoteSerializer(serializers.ModelSerializer):
 
 
 class NoteDetailSerializer(serializers.ModelSerializer):
-    entity_id = serializers.UUIDField(source="id")
+    uuid = serializers.UUIDField(source="id")
     candidature_id = serializers.UUIDField()
     message = serializers.CharField()
     publie_par_id = serializers.UUIDField()
 
     class Meta:
         model = NoteModel
-        fields = ["entity_id", "candidature_id", "message", "publie_par_id"]
+        fields = ["uuid", "candidature_id", "message", "publie_par_id"]
 
 
 class CreateNoteSerializer(serializers.Serializer):
@@ -372,7 +372,7 @@ class ChangerEtapeResultatSerializer(serializers.Serializer):
 
 
 class EtapeCandidatureDetailSerializer(serializers.Serializer):
-    etape_uuid = serializers.UUIDField(source="id")
+    uuid = serializers.UUIDField(source="id")
     nom = serializers.CharField()
 
 

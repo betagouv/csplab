@@ -58,7 +58,7 @@ class TestAgentsView:
         assert called_input.utilisateur is not None
         assert response.status_code == status.HTTP_201_CREATED
         assert response.json() == {
-            "agent_id": str(agent.entity_id),
+            "uuid": str(agent.entity_id),
             "email": agent.email,
             "prenom": agent.prenom,
             "nom": agent.nom,
@@ -149,4 +149,4 @@ class TestAgentsViewDbVerified:
             assert k in data.keys()
 
         created_user = UserModel.objects.get(email=email)
-        assert data["agent_id"] == str(created_user.username)
+        assert data["uuid"] == str(created_user.username)

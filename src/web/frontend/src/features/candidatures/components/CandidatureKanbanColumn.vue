@@ -25,7 +25,7 @@ const cardsRef = ref<HTMLElement | null>(null)
 const { isDraggedOver } = useDropTargetKanbanColumn({
   element: columnRef,
   boardId: props.boardId,
-  columnId: props.etape.etape_uuid,
+  columnId: props.etape.uuid,
 })
 
 watch(isDraggedOver, async (isOver, wasOver) => {
@@ -83,7 +83,7 @@ function handleCheckboxChange(): void {
         <CandidatureKanbanCard
           :candidature="candidature"
           :board-id="boardId"
-          :column-id="etape.etape_uuid"
+          :column-id="etape.uuid"
           :card-index="index"
         />
       </li>

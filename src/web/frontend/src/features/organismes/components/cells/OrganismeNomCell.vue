@@ -11,7 +11,7 @@ defineProps<{
 <template>
   <RouterLink
     class="organisme-nom-cell"
-    :to="{ name: 'organisme', params: { organismeUuid: row.organisme_uuid } }"
+    :to="{ name: 'organisme', params: { organismeUuid: row.uuid } }"
   >
     {{ row.nom }}
   </RouterLink>

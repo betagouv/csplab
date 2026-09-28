@@ -27,11 +27,11 @@ vi.mock('../api', () => ({
 }))
 
 const DEFAULT_ETAPES: EtapeRecrutement[] = [
-  { etape_uuid: 'aaaa', nom: 'Réception', categorie: 'ENTREE' },
-  { etape_uuid: 'bbbb', nom: 'Présélection', categorie: 'EN_COURS' },
-  { etape_uuid: 'cccc', nom: 'Entretien', categorie: 'EN_COURS' },
-  { etape_uuid: 'dddd', nom: 'Refus', categorie: 'REFUS' },
-  { etape_uuid: 'eeee', nom: 'Recrutement', categorie: 'ACCEPTE' },
+  { uuid: 'aaaa', nom: 'Réception', categorie: 'ENTREE' },
+  { uuid: 'bbbb', nom: 'Présélection', categorie: 'EN_COURS' },
+  { uuid: 'cccc', nom: 'Entretien', categorie: 'EN_COURS' },
+  { uuid: 'dddd', nom: 'Refus', categorie: 'REFUS' },
+  { uuid: 'eeee', nom: 'Recrutement', categorie: 'ACCEPTE' },
 ]
 
 async function mountEtapes(
@@ -73,7 +73,7 @@ describe('useEtapesRecrutement', () => {
     expect(etapes.value).toEqual(DEFAULT_ETAPES)
   })
 
-  it('inserts new etape after the last EN_COURS without etape_uuid', async () => {
+  it('inserts new etape after the last EN_COURS without uuid', async () => {
     const { addEtape } = await mountEtapes()
     await addEtape('Test technique')
 
@@ -88,7 +88,7 @@ describe('useEtapesRecrutement', () => {
   })
 
   it('removes etape by uuid and applies the server response', async () => {
-    const freshEtapes = DEFAULT_ETAPES.filter(e => e.etape_uuid !== 'bbbb')
+    const freshEtapes = DEFAULT_ETAPES.filter(e => e.uuid !== 'bbbb')
     mockUpdateEtapesRecrutement.mockResolvedValue(freshEtapes)
 
     const { etapes, removeEtape } = await mountEtapes()
@@ -96,7 +96,7 @@ describe('useEtapesRecrutement', () => {
 
     expect(etapes.value).toEqual(freshEtapes)
     const payload = lastUpdatePayload()
-    expect(payload.find(p => p.etape_uuid === 'bbbb')).toBeUndefined()
+    expect(payload.find(p => p.uuid === 'bbbb')).toBeUndefined()
   })
 
   it('inserts etape at specific index', async () => {
@@ -113,7 +113,7 @@ describe('useEtapesRecrutement', () => {
     await renameEtape('bbbb', 'Présélection RH')
 
     const payload = lastUpdatePayload()
-    const renamed = payload.find(p => p.etape_uuid === 'bbbb')
+    const renamed = payload.find(p => p.uuid === 'bbbb')
     expect(renamed?.nom).toBe('Présélection RH')
   })
 
@@ -153,7 +153,7 @@ describe('useEtapesRecrutement', () => {
     await reorderEtapes([DEFAULT_ETAPES[0]!, ...reordered])
 
     const payload = lastUpdatePayload()
-    expect(payload.map(p => p.etape_uuid)).toEqual(['aaaa', 'cccc', 'bbbb', 'dddd', 'eeee'])
+    expect(payload.map(p => p.uuid)).toEqual(['aaaa', 'cccc', 'bbbb', 'dddd', 'eeee'])
   })
 
   it('appends a new etape at the end when there is no final etape', async () => {
@@ -197,7 +197,7 @@ describe('useEtapesRecrutement — type offre', () => {
     const [organismeUuid, recrutementUuid, payload] = mockUpdateEtapesOffre.mock.calls[0]!
     expect(organismeUuid).toBe(ORGANISME_UUID)
     expect(recrutementUuid).toBe(RECRUTEMENT_UUID)
-    expect((payload as UpdateEtapeRecrutement[]).find(p => p.etape_uuid === 'bbbb')?.nom)
+    expect((payload as UpdateEtapeRecrutement[]).find(p => p.uuid === 'bbbb')?.nom)
       .toBe('Présélection RH')
     expect(mockUpdateEtapesRecrutement).not.toHaveBeenCalled()
   })

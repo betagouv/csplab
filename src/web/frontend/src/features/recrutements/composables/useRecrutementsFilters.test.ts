@@ -26,7 +26,7 @@ describe('useRecrutementsFilters', () => {
     const { draft, apply, filtered } = useRecrutementsFilters(RECRUTEMENTS_ACTIFS)
     draft.responsable = 'Hugo Bernard'
     apply()
-    expect(filtered.value.map(row => row.offer_id)).toEqual(['rec-3'])
+    expect(filtered.value.map(row => row.uuid)).toEqual(['rec-3'])
   })
 
   it('restores full list on reset', () => {

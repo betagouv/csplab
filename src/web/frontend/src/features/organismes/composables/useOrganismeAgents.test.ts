@@ -19,7 +19,7 @@ const ORGANISME_UUID = '11111111-1111-1111-1111-111111111111'
 
 const AGENTS: AgentOrganisme[] = [
   {
-    agent_id: 'aaaaaaaa-0001-0001-0001-000000000001',
+    uuid: 'aaaaaaaa-0001-0001-0001-000000000001',
     organisme_id: ORGANISME_UUID,
     nom: 'Dupont',
     prenom: 'Jeanne',
@@ -70,11 +70,11 @@ describe('useOrganismeAgents', () => {
     const { updateAgent } = mountAgents()
     await flush()
 
-    await updateAgent({ agent_id: AGENTS[0].agent_id, role: 'agent' })
+    await updateAgent({ agent_id: AGENTS[0].uuid, role: 'agent' })
     await flush()
 
     expect(mockUpdateOrganismeAgent).toHaveBeenCalledWith(ORGANISME_UUID, {
-      agent_id: AGENTS[0].agent_id,
+      agent_id: AGENTS[0].uuid,
       role: 'agent',
     })
     expect(mockGetOrganismeAgents).toHaveBeenCalledTimes(2)
@@ -86,7 +86,7 @@ describe('useOrganismeAgents', () => {
     await flush()
 
     await expect(
-      updateAgent({ agent_id: AGENTS[0].agent_id, role: 'agent' }),
+      updateAgent({ agent_id: AGENTS[0].uuid, role: 'agent' }),
     ).rejects.toThrow('boom')
   })
 })

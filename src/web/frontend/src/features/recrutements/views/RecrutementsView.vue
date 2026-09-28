@@ -86,7 +86,7 @@ const archivesFiltersDrawer = useDisclosure()
 const { canManageOrganisme } = useRouteOrganisme()
 const { addToast } = useToast()
 
-const selection = useTableSelection(actifsFilters.filtered, row => row.offer_id)
+const selection = useTableSelection(actifsFilters.filtered, row => row.uuid)
 const assignationDrawer = useDisclosure()
 const {
   status: responsableStatus,
@@ -144,7 +144,7 @@ async function handleSearchResponsable(email: string) {
 }
 
 async function handleAssign() {
-  const recrutementIds = selection.selected.value.map(row => row.offer_id)
+  const recrutementIds = selection.selected.value.map(row => row.uuid)
 
   try {
     const resultat = await assign(recrutementIds)
@@ -318,7 +318,7 @@ const archivesCountLabel = computed(() => {
               v-model:page="recrutementsActifsPage"
               :rows="actifsFilters.filtered.value"
               :columns="RECRUTEMENTS_ACTIFS_COLUMNS"
-              :row-key="row => row.offer_id"
+              :row-key="row => row.uuid"
               :selection-mode="canManageOrganisme ? 'checkbox' : 'none'"
               :selected-ids="selection.selectedIds.value"
               :selection-label="row => `Sélectionner ${row.intitule}`"
@@ -406,7 +406,7 @@ const archivesCountLabel = computed(() => {
               v-model:page="recrutementsArchivesPage"
               :rows="archivesFilters.filtered.value"
               :columns="RECRUTEMENTS_ARCHIVES_COLUMNS"
-              :row-key="row => row.offer_id"
+              :row-key="row => row.uuid"
               activation-mode="cell"
               caption="Recrutements terminés"
               empty-label="Aucun recrutement terminé"

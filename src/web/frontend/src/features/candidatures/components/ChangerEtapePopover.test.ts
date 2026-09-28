@@ -5,9 +5,9 @@ import { setupUser } from '@/test/render'
 import ChangerEtapePopover from './ChangerEtapePopover.vue'
 
 const ETAPES: EtapeRecrutement[] = [
-  { etape_uuid: 'reception', nom: 'Réception des candidatures', categorie: 'ENTREE' },
-  { etape_uuid: 'entretien', nom: 'Entretien', categorie: 'EN_COURS' },
-  { etape_uuid: 'refus', nom: 'Refus', categorie: 'REFUS' },
+  { uuid: 'reception', nom: 'Réception des candidatures', categorie: 'ENTREE' },
+  { uuid: 'entretien', nom: 'Entretien', categorie: 'EN_COURS' },
+  { uuid: 'refus', nom: 'Refus', categorie: 'REFUS' },
 ]
 
 function renderPopover() {
