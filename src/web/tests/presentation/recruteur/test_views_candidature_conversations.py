@@ -315,6 +315,24 @@ class TestCreateConversation:
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert champ in response.json()
 
+    @pytest.mark.parametrize("build_documents", INVALID_DOCUMENTS)
+    def test_invalid_documents_are_rejected(
+        self, authenticated_client, test_user, build_documents
+    ):
+        _, organisme = create_organisme_with_agent(
+            role=AgentOrganismeRole.SUPERVISEUR, utilisateur=test_user
+        )
+        recrutement, candidature = _candidature_for(organisme)
+
+        response = authenticated_client.post(
+            _url(organisme.id, recrutement.pk, candidature.pk),
+            _payload(documents=build_documents()),
+            format="multipart",
+        )
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert "documents" in response.json()
+
     @pytest.mark.parametrize(
         "role", [AgentOrganismeRole.AGENT, None], ids=["no_recrutement_role", "no_role"]
     )
