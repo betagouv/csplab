@@ -210,14 +210,9 @@ const archivesCountLabel = computed(() => {
   <template v-else>
     <CspPageHeader
       title="Recrutements"
+      subtitle="Retrouvez ici l’ensemble des recrutements en cours et archivés."
       :breadcrumb="BREADCRUMB"
-    >
-      <template #subtitle>
-        <p class="mes-recrutement-view__subtitle">
-          Retrouvez ici l’ensemble des recrutements en cours et archivés.
-        </p>
-      </template>
-    </CspPageHeader>
+    />
     <CspPageContainer
       v-model:active-tab="activeTab"
       class="mes-recrutement-view"
@@ -421,11 +416,6 @@ const archivesCountLabel = computed(() => {
 </template>
 
 <style scoped lang="scss">
-.mes-recrutement-view__subtitle {
-  margin: 0;
-  color: var(--text-mention-grey);
-}
-
 .mes-recrutement-view__count {
   margin: 0;
   font-size: 0.9375rem;

@@ -50,7 +50,9 @@ function isItemActive(item: NavItem): boolean {
             <CspSidebarLogo />
           </template>
 
-          <CspSidebarOrganisme />
+          <template #context>
+            <CspSidebarOrganisme />
+          </template>
 
           <CspSidebarItem
             v-for="item in navItems"
@@ -87,13 +89,16 @@ function isItemActive(item: NavItem): boolean {
 }
 
 .csp-app-shell__sidebar {
+  position: sticky;
+  top: 0;
+  align-self: flex-start;
   flex-shrink: 0;
-  min-height: 100vh;
+  height: 100dvh;
   overflow: hidden;
   background: var(--background-alt-grey);
   border-right: 1px solid var(--border-default-grey);
 
-  @include bp.below(bp.$md) {
+  @include bp.below(bp.$lg) {
     display: none;
   }
 }
@@ -114,7 +119,7 @@ function isItemActive(item: NavItem): boolean {
   background: var(--background-default-grey);
   border-bottom: 1px solid var(--border-default-grey);
 
-  @include bp.below(bp.$md) {
+  @include bp.below(bp.$lg) {
     display: flex;
   }
 }

@@ -21,13 +21,13 @@ withDefaults(defineProps<CspSidebarItemProps>(), {
   isActive: false,
 })
 
-const { isExpanded, isMobile } = useSidebar()
+const { showLabels } = useSidebar()
 </script>
 
 <template>
   <CspTooltip
     :content="label"
-    :disabled="isExpanded || isMobile"
+    :disabled="showLabels"
     side="right"
     :side-offset="12"
   >
@@ -38,7 +38,7 @@ const { isExpanded, isMobile } = useSidebar()
       class="csp-sidebar-item"
       :class="{
         'csp-sidebar-item--active': isActive,
-        'csp-sidebar-item--expanded': isExpanded || isMobile,
+        'csp-sidebar-item--expanded': showLabels,
       }"
       :aria-current="isActive ? 'page' : undefined"
     >
@@ -48,7 +48,7 @@ const { isExpanded, isMobile } = useSidebar()
         :size="16"
       />
       <span
-        v-if="isExpanded || isMobile"
+        v-if="showLabels"
         class="csp-sidebar-item__label"
       >
         {{ label }}
@@ -59,13 +59,17 @@ const { isExpanded, isMobile } = useSidebar()
 
 <style scoped lang="scss">
 .csp-sidebar-item {
+  --sidebar-item-icon-size: 1rem;
+  --sidebar-item-icon-start: calc((var(--sidebar-item-size) - var(--sidebar-item-icon-size)) / 2);
+  --sidebar-item-marker-width: 2px;
+
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
-  width: var(--sidebar-item-size, 2.5rem);
-  height: var(--sidebar-item-size, 2.5rem);
+  gap: var(--sidebar-leading-gap);
+  width: var(--sidebar-item-size);
+  height: var(--sidebar-item-size);
   padding: 0;
   border: none;
   background: var(--background-alt-grey);
@@ -76,8 +80,10 @@ const { isExpanded, isMobile } = useSidebar()
   &--expanded {
     justify-content: flex-start;
     width: 100%;
-    height: var(--sidebar-item-size, 2.5rem);
-    padding: 0 var(--sidebar-inset-x, 0.5rem);
+    padding-inline: var(--sidebar-item-padding-inline);
+    --sidebar-item-icon-start: calc(
+      var(--sidebar-item-padding-inline) + (var(--sidebar-leading-size) - var(--sidebar-item-icon-size)) / 2
+    );
   }
 
   &:hover {
@@ -89,14 +95,17 @@ const { isExpanded, isMobile } = useSidebar()
   }
 
   &:focus-visible {
-    outline: 2px solid var(--csp-focus-ring-color);
-    outline-offset: 2px;
+    outline: var(--focus-ring);
+    outline-offset: var(--csp-focus-ring-offset);
   }
 }
 
 .csp-sidebar-item__icon {
   flex-shrink: 0;
-  margin-left: 0.125rem;
+
+  .csp-sidebar-item--expanded & {
+    margin-left: calc(var(--sidebar-item-icon-start) - var(--sidebar-item-padding-inline));
+  }
 }
 
 .csp-sidebar-item__label {
@@ -118,10 +127,10 @@ const { isExpanded, isMobile } = useSidebar()
 .csp-sidebar-item--active::before {
   content: '';
   position: absolute;
-  left: 0;
+  left: calc(var(--sidebar-item-icon-start) - var(--sidebar-leading-gap) - var(--sidebar-item-marker-width));
   top: var(--csp-space-2);
   bottom: var(--csp-space-2);
-  width: 2px;
+  width: var(--sidebar-item-marker-width);
   border-radius: 1px;
   background: var(--border-active-blue-france);
 }

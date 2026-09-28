@@ -14,6 +14,7 @@ const breadcrumb: CspBreadcrumbItem[] = [
   <CspPageHeader
     :breadcrumb="breadcrumb"
     title="Gestion des organismes"
+    subtitle="Les organismes permettent d'organiser les recrutements. Chaque organisme dispose de ses propres utilisateurs, offres et paramètres."
   />
   <CspPageContainer width="large">
     <OrganismesSection />

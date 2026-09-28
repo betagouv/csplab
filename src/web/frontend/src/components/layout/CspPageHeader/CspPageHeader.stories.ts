@@ -15,7 +15,7 @@ const meta = {
     },
     docs: {
       description: {
-        component: 'En-tête de page : fil d’Ariane + titre (prop `title`), avec un lien de retour optionnel (`backLink`), les slots `#actions` et `#subtitle`, et des skeletons de chargement (`showTitleSkeleton`, `showSubtitleSkeleton`).',
+        component: 'En-tête de page : fil d’Ariane, titre (prop `title`) et sous-titre textuel (prop `subtitle`), avec un lien de retour optionnel (`backLink`), une largeur alignée sur le conteneur de page (`width`), les slots `#actions` et `#subtitle` pour un sous-titre riche, et des skeletons de chargement (`showTitleSkeleton`, `showSubtitleSkeleton`).',
       },
     },
   },
@@ -23,6 +23,11 @@ const meta = {
     title: {
       control: { type: 'text' },
       description: 'Titre de la page (rendu dans le `<h1>`).',
+      table: { type: { summary: 'string' } },
+    },
+    subtitle: {
+      control: { type: 'text' },
+      description: 'Sous-titre textuel sous le titre. Le slot `#subtitle` le remplace pour un contenu riche.',
       table: { type: { summary: 'string' } },
     },
     breadcrumb: {
@@ -55,6 +60,13 @@ export const Default: Story = {
   name: 'Par défaut',
 }
 
+export const WithTextSubtitle: Story = {
+  name: 'Avec sous-titre textuel',
+  args: {
+    subtitle: 'Une phrase qui présente le contenu de la page.',
+  },
+}
+
 export const WithoutBreadcrumb: Story = {
   name: 'Sans fil d’Ariane',
   args: {
@@ -81,7 +93,7 @@ export const WithActions: Story = {
 }
 
 export const WithSubtitle: Story = {
-  name: 'Avec sous-titre',
+  name: 'Avec sous-titre riche',
   render: (args: CspPageHeaderProps) => ({
     components: { CspPageHeader, CspBadge },
     setup() {

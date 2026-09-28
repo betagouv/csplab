@@ -18,4 +18,9 @@ export const ORGANISME_TAB_LABELS = {
   etapes: 'Étapes de recrutement',
 } as const
 
+export const ORGANISME_TAB_ICONS = {
+  membres: 'ri:group-line',
+  etapes: 'ri:route-line',
+} as const
+
 export type OrganismeTabKey = keyof typeof ORGANISME_TAB_LABELS

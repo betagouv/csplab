@@ -70,6 +70,7 @@ import riPriceTag3Line from '@iconify-icons/ri/price-tag-3-line'
 import riQuestionAnswerLine from '@iconify-icons/ri/question-answer-line'
 import riRefreshLine from '@iconify-icons/ri/refresh-line'
 import riRestartLine from '@iconify-icons/ri/restart-line'
+import riRouteLine from '@iconify-icons/ri/route-line'
 import riSearchLine from '@iconify-icons/ri/search-line'
 import riSendPlaneFill from '@iconify-icons/ri/send-plane-fill'
 import riSettings3Line from '@iconify-icons/ri/settings-3-line'
@@ -155,6 +156,7 @@ addIcon('ri:price-tag-3-line', riPriceTag3Line)
 addIcon('ri:question-answer-line', riQuestionAnswerLine)
 addIcon('ri:refresh-line', riRefreshLine)
 addIcon('ri:restart-line', riRestartLine)
+addIcon('ri:route-line', riRouteLine)
 addIcon('ri:search-line', riSearchLine)
 addIcon('ri:send-plane-fill', riSendPlaneFill)
 addIcon('ri:settings-3-line', riSettings3Line)

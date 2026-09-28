@@ -8,6 +8,7 @@ import CspSkeleton from '@/components/base/CspSkeleton/CspSkeleton.vue'
 
 const props = defineProps<{
   title?: string
+  subtitle?: string
   breadcrumb?: CspBreadcrumbItem[]
   backLink?: { to: RouteLocationRaw, label: string }
   showTitleSkeleton?: boolean
@@ -73,7 +74,14 @@ const hasBreadcrumb = computed(() => Boolean(props.breadcrumb?.length))
             <slot
               v-else
               name="subtitle"
-            />
+            >
+              <p
+                v-if="subtitle"
+                class="csp-page-header__subtitle-text"
+              >
+                {{ subtitle }}
+              </p>
+            </slot>
           </div>
         </div>
       </div>
@@ -88,6 +96,8 @@ const hasBreadcrumb = computed(() => Boolean(props.breadcrumb?.length))
 </template>
 
 <style scoped lang="scss">
+@use '@/styles/breakpoints' as bp;
+
 .csp-page-header {
   background: var(--background-default-grey);
 
@@ -101,13 +111,13 @@ const hasBreadcrumb = computed(() => Boolean(props.breadcrumb?.length))
 }
 
 .csp-page-header__top-row {
-  padding-top: 0.75rem;
-  padding-bottom: 1.25rem;
+  padding-top: var(--csp-page-header-padding-top);
+  padding-bottom: var(--csp-page-header-breadcrumb-gap);
   padding-inline: var(--csp-page-container-padding-inline);
 }
 
 .csp-page-header__breadcrumb-wrapper {
-  min-height: 1.5rem;
+  min-height: var(--csp-page-header-breadcrumb-height);
 }
 
 .csp-page-header__main-row {
@@ -115,7 +125,7 @@ const hasBreadcrumb = computed(() => Boolean(props.breadcrumb?.length))
   align-items: flex-end;
   justify-content: space-between;
   gap: 1rem;
-  padding-bottom: 1.25rem;
+  padding-bottom: var(--csp-page-header-padding-bottom);
   border-bottom: 1px solid var(--border-default-grey);
   padding-inline: var(--csp-page-container-padding-inline);
 }
@@ -123,13 +133,16 @@ const hasBreadcrumb = computed(() => Boolean(props.breadcrumb?.length))
 .csp-page-header__hgroup-wrapper {
   display: flex;
   gap: var(--csp-page-header-back-link-gap);
-  margin-left: calc(calc(var(--csp-page-header-back-link-size) + var(--csp-page-header-back-link-gap)) * -1);
+
+  @include bp.from(bp.$lg) {
+    margin-left: calc(calc(var(--csp-page-header-back-link-size) + var(--csp-page-header-back-link-gap)) * -1);
+  }
 }
 
 .csp-page-header__hgroup {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: var(--csp-page-header-subtitle-gap);
 }
 
 .csp-page-header__back-link {
@@ -140,15 +153,20 @@ const hasBreadcrumb = computed(() => Boolean(props.breadcrumb?.length))
 .csp-page-header__title {
   font-weight: 600;
   font-size: 1.5rem;
-  min-height: 2.5rem;
+  min-height: var(--csp-page-header-title-height);
 }
 
 .csp-page-header__title-skeleton {
-  height: 4rem;
+  height: var(--csp-page-header-title-height);
 }
 
 .csp-page-header__subtitle {
-  min-height: 1.5rem;
+  min-height: var(--csp-page-header-subtitle-height);
+}
+
+.csp-page-header__subtitle-text {
+  margin: 0;
+  color: var(--text-mention-grey);
 }
 
 .csp-page-header__actions {

@@ -15,11 +15,13 @@ interface Props {
   getItemVariant?: (item: T, index: number) => 'default' | 'alt'
   disabled?: boolean
   showPosition?: boolean
+  handlePlacement?: 'inline' | 'gutter'
 }
 
 const props = withDefaults(defineProps<Props>(), {
   disabled: false,
   showPosition: false,
+  handlePlacement: 'inline',
 })
 
 const emit = defineEmits<{
@@ -128,7 +130,10 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="csp-sortable-list">
+  <div
+    class="csp-sortable-list"
+    :class="`csp-sortable-list--handle-${handlePlacement}`"
+  >
     <div
       v-if="$slots.header"
       class="csp-sortable-list__header"
@@ -170,15 +175,28 @@ onMounted(() => {
 </template>
 
 <style scoped lang="scss">
+@use '@/styles/breakpoints' as bp;
+
+.csp-sortable-list {
+  --sortable-list-handle-size: 1rem;
+  --sortable-list-handle-gap: var(--csp-space-3);
+}
+
+.csp-sortable-list--handle-gutter {
+  @include bp.from(bp.$lg) {
+    margin-left: calc(-1 * (var(--sortable-list-handle-size) + var(--sortable-list-handle-gap)));
+  }
+}
+
 .csp-sortable-list__header {
   display: flex;
   align-items: center;
-  gap: var(--csp-space-3);
+  gap: var(--sortable-list-handle-gap);
 }
 
 .csp-sortable-list__header-handle-spacer {
   flex-shrink: 0;
-  width: 1rem;
+  width: var(--sortable-list-handle-size);
 }
 
 .csp-sortable-list__header-content {

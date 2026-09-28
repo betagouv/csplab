@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { CspDropdownMenuProps } from '@/components/base/CspDropdownMenu/CspDropdownMenu.types'
 import {
   DropdownMenuContent,
   DropdownMenuItem,
@@ -9,21 +10,7 @@ import {
 } from 'reka-ui'
 import CspIcon from '@/components/base/CspIcon/CspIcon.vue'
 
-withDefaults(defineProps<{
-  sections: {
-    items: {
-      label: string
-      icon?: string
-      disabled?: boolean
-      destructive?: boolean
-      onSelect?: () => void
-    }[]
-  }[]
-  align?: 'start' | 'center' | 'end'
-  side?: 'top' | 'right' | 'bottom' | 'left'
-  sideOffset?: number
-  sideFlip?: boolean
-}>(), {
+withDefaults(defineProps<CspDropdownMenuProps>(), {
   align: 'start',
   side: 'top',
 })

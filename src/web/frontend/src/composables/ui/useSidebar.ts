@@ -5,7 +5,7 @@ import { useMediaQuery } from './useMediaQuery'
 
 export const SIDEBAR_STORAGE_KEY = 'csp_sidebar_state'
 export const SIDEBAR_KEYBOARD_SHORTCUT = 'b'
-export const SIDEBAR_WIDTH = '15rem'
+export const SIDEBAR_WIDTH = '16rem'
 export const SIDEBAR_WIDTH_COLLAPSED = '4rem'
 
 export interface SidebarContext {
@@ -13,6 +13,7 @@ export interface SidebarContext {
   isExpanded: Ref<boolean>
   isMobile: Ref<boolean>
   isMobileOpen: Ref<boolean>
+  showLabels: ComputedRef<boolean>
   setExpanded: (value: boolean) => void
   setMobileOpen: (value: boolean) => void
   toggle: () => void
@@ -32,12 +33,14 @@ export function provideSidebar(options: {
     : defaultExpanded
 
   const isExpanded = ref(initialExpanded)
-  const isMobile = useMediaQuery(below('md'))
+  const isMobile = useMediaQuery(below('lg'))
   const isMobileOpen = ref(false)
 
   const state = computed<'expanded' | 'collapsed'>(() =>
     isExpanded.value ? 'expanded' : 'collapsed',
   )
+
+  const showLabels = computed(() => isExpanded.value || isMobile.value)
 
   function setExpanded(value: boolean) {
     isExpanded.value = value
@@ -88,6 +91,7 @@ export function provideSidebar(options: {
     isExpanded,
     isMobile,
     isMobileOpen,
+    showLabels,
     setExpanded,
     setMobileOpen,
     toggle,

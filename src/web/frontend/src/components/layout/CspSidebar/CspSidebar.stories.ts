@@ -1,5 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/vue3-vite'
 import { useRoute } from 'vue-router'
+import CspSelect from '@/components/base/CspSelect/CspSelect.vue'
+import CspPageHeader from '@/components/layout/CspPageHeader/CspPageHeader.vue'
 import CspSidebar from './CspSidebar.vue'
 import CspSidebarGroup from './CspSidebarGroup.vue'
 import CspSidebarItem from './CspSidebarItem.vue'
@@ -24,6 +26,13 @@ Sidebar de navigation adaptée au DSFR.
 - \`CspSidebar\` : panneau de navigation
 - \`CspSidebarTrigger\` : bouton hamburger mobile (dans le header)
 - \`CspSidebarGroup\`, \`CspSidebarItem\`, \`CspSidebarLogo\`, \`CspSidebarUser\`
+
+## Slots
+
+- \`logo\` : en-tête, à la hauteur du fil d'Ariane de la page
+- \`context\` : sous l'en-tête, à la hauteur du titre de la page (sélecteur d'espace ou d'organisme)
+- défaut : entrées de navigation, groupées par \`CspSidebarGroup\`
+- \`footer\` : bas de panneau (utilisateur)
 
 ## Usage
 
@@ -216,6 +225,75 @@ export const WithRouterLinks: Story = {
                 <code style="padding: 0.125rem 0.375rem; border-radius: 0.25rem; background: var(--background-contrast-grey); font-family: monospace;">{{ route.path }}</code>
               </p>
             </div>
+          </div>
+        </div>
+      </CspSidebarProvider>
+    `,
+  }),
+}
+
+export const WithContext: Story = {
+  name: 'Avec sélecteur de contexte',
+  args: {
+    defaultExpanded: true,
+    persistState: false,
+  },
+  parameters: {
+    docs: {
+      description: {
+        story: 'Le slot `context` reçoit un sélecteur d\'espace ou d\'organisme, à la hauteur du titre de la page ; la navigation commence sous la ligne de l\'en-tête. La zone est réservée même sans contenu.',
+      },
+    },
+  },
+  render: args => ({
+    components: { ...components, CspSelect, CspPageHeader },
+    setup() {
+      const options = [
+        { value: 'a', label: 'Premier espace' },
+        { value: 'b', label: 'Deuxième espace' },
+      ]
+      const breadcrumb = [{ label: 'Accueil', to: '/' }, { label: 'Page' }]
+      return {
+        defaultExpanded: args.defaultExpanded,
+        persistState: args.persistState,
+        options,
+        breadcrumb,
+      }
+    },
+    template: `
+      <CspSidebarProvider :default-expanded="defaultExpanded" :persist-state="persistState">
+        <div style="display: flex; min-height: 100vh;">
+          <aside style="flex-shrink: 0; border-right: 1px solid var(--border-default-grey);">
+            <CspSidebar>
+              <template #logo>
+                <CspSidebarLogo />
+              </template>
+
+              <template #context>
+                <CspSelect :options="options" model-value="a" aria-label="Espace" />
+              </template>
+
+              <CspSidebarGroup>
+                <CspSidebarItem icon="ri:briefcase-line" label="Entrée active" :to="{ path: '/active' }" :is-active="true" />
+                <CspSidebarItem icon="ri:group-line" label="Deuxième entrée" :to="{ path: '/deuxieme' }" />
+              </CspSidebarGroup>
+
+              <CspSidebarGroup>
+                <CspSidebarItem icon="ri:settings-3-line" label="Troisième entrée" :to="{ path: '/troisieme' }" />
+              </CspSidebarGroup>
+
+              <template #footer>
+                <CspSidebarUser name="Prénom Nom" role="Rôle" />
+              </template>
+            </CspSidebar>
+          </aside>
+
+          <div style="flex: 1; min-width: 0;">
+            <CspPageHeader title="Titre de la page" :breadcrumb="breadcrumb">
+              <template #subtitle>
+                <p style="margin: 0; color: var(--text-mention-grey);">Sous-titre de la page</p>
+              </template>
+            </CspPageHeader>
           </div>
         </div>
       </CspSidebarProvider>

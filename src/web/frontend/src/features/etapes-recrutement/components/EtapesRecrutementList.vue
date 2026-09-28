@@ -233,6 +233,7 @@ function getMenuSections(
           :is-item-draggable="(etape) => !isEtapeLocked(etape)"
           :get-item-variant="(etape) => isEtapeLocked(etape) ? 'alt' : 'default'"
           show-position
+          handle-placement="gutter"
           @reorder="reorderEtapes"
         >
           <template #header>
@@ -358,7 +359,8 @@ function getMenuSections(
 <style scoped lang="scss">
 .etapes-list {
   display: flex;
-  gap: var(--csp-space-8);
+  gap: var(--csp-space-16);
+  max-width: var(--csp-page-container-reading-width);
 }
 
 .etapes-list__main {

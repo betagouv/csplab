@@ -7,7 +7,7 @@ import {
   useSidebar,
 } from './useSidebar'
 
-const MOBILE_WIDTH = 767
+const MOBILE_WIDTH = 991
 const DESKTOP_WIDTH = 1024
 
 const listeners = new Set<() => void>()
@@ -18,7 +18,7 @@ const mediaQueryMock = {
 }
 
 function setViewportWidth(width: number) {
-  mediaQueryMock.matches = width < 768
+  mediaQueryMock.matches = width < 992
   listeners.forEach(listener => listener())
 }
 
