@@ -5922,7 +5922,7 @@ components:
     RecrutementAgent:
       type: object
       properties:
-        agent_id:
+        uuid:
           type: string
           format: uuid
         nom:
@@ -5937,12 +5937,12 @@ components:
         recrutement_role:
           $ref: '#/components/schemas/RecrutementRoleEnum'
       required:
-      - agent_id
       - email
       - nom
       - poste
       - prenom
       - recrutement_role
+      - uuid
     RecrutementAgentRole:
       type: object
       properties:

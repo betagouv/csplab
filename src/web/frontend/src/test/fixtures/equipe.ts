@@ -4,7 +4,7 @@ import { AGENT_UUID } from './organismes'
 export const RECRUTEMENT_UUID = 'aaaaaaaa-0001-0001-0001-000000000001'
 
 export const MEMBRE_EQUIPE: MembreEquipe = {
-  agent_id: AGENT_UUID,
+  uuid: AGENT_UUID,
   nom: 'Dupont',
   prenom: 'Jeanne',
   poste: 'Responsable recrutement',

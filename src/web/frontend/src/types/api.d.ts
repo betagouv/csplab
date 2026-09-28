@@ -1048,7 +1048,7 @@ export interface components {
         };
         RecrutementAgent: {
             /** Format: uuid */
-            agent_id: string;
+            uuid: string;
             nom: string;
             prenom: string;
             poste: string;

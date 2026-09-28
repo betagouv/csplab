@@ -226,7 +226,7 @@ class AgentRechercheSerializer(serializers.ModelSerializer):
 
 
 class RecrutementAgentSerializer(serializers.ModelSerializer):
-    agent_id = serializers.UUIDField(source="agent.utilisateur.username")
+    uuid = serializers.UUIDField(source="agent.utilisateur.username")
     nom = serializers.CharField(source="agent.utilisateur.last_name")
     prenom = serializers.CharField(source="agent.utilisateur.first_name")
     poste = serializers.CharField(source="agent.intitule_poste")
@@ -237,7 +237,7 @@ class RecrutementAgentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = RecrutementAgentModel
-        fields = ["agent_id", "nom", "prenom", "poste", "email", "recrutement_role"]
+        fields = ["uuid", "nom", "prenom", "poste", "email", "recrutement_role"]
 
 
 class RecrutementAgentRoleSerializer(serializers.Serializer):

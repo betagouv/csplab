@@ -16,7 +16,7 @@ export function useEquipeRecrutement(organismeUuid: string, recrutementUuid: str
 
   const revokeMutation = useMutation({
     mutation: (membre: MembreEquipe) => updateMembreEquipe(organismeUuid, recrutementUuid, {
-      agent_id: membre.agent_id,
+      agent_id: membre.uuid,
       recrutement_role: membre.recrutement_role,
       date_revocation_recrutement: new Date().toISOString(),
     }),
@@ -26,7 +26,7 @@ export function useEquipeRecrutement(organismeUuid: string, recrutementUuid: str
   const roleMutation = useMutation({
     mutation: ({ membre, role }: { membre: MembreEquipe, role: RecrutementRole }) =>
       updateMembreEquipe(organismeUuid, recrutementUuid, {
-        agent_id: membre.agent_id,
+        agent_id: membre.uuid,
         recrutement_role: role,
       }),
     onSettled: invalidate,
