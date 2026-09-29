@@ -1,4 +1,4 @@
-import type { PaginatedCandidatureListeList, RecrutementDetailKanban } from '../types'
+import type { PaginatedCandidatureListeList } from '../types'
 import type { Utilisateur } from '@/api/utilisateur'
 import type { RecrutementDetail } from '@/features/recrutements/types'
 import { PiniaColada, useQueryCache } from '@pinia/colada'
@@ -11,13 +11,12 @@ import { getMe } from '@/api/utilisateur'
 import { getRecrutementDetail } from '@/features/recrutements/api'
 import { RECRUTEMENTS_QUERY_KEYS } from '@/features/recrutements/queries'
 import { routes } from '@/router'
-import { getCandidatureListe, getRecrutementKanban, patchEtapeCandidatures } from '../api'
+import { getCandidatures, patchEtapeCandidatures } from '../api'
 import { CANDIDATURES_QUERY_KEYS } from '../queries'
 import { useCandidatures } from './useCandidatures'
 
 vi.mock('../api', () => ({
-  getRecrutementKanban: vi.fn(),
-  getCandidatureListe: vi.fn(),
+  getCandidatures: vi.fn(),
   patchEtapeCandidatures: vi.fn(),
 }))
 
@@ -65,45 +64,7 @@ const MOCK_DETAIL: RecrutementDetail = {
   ],
 }
 
-const MOCK_KANBAN: RecrutementDetailKanban = {
-  offer_id: RECRUTEMENT_UUID,
-  etapes: [
-    {
-      etape_uuid: 'cccccccc-0001-0001-0001-000000000001',
-      nom: 'Réception des candidatures',
-      categorie: 'ENTREE',
-      candidatures: [
-        {
-          uuid: 'dddddddd-0001-0001-0001-000000000001',
-          date_soumission: '2025-06-10T09:15:00Z',
-          date_derniere_activite: '2025-06-11T10:00:00Z',
-          candidat: { uuid: 'eeeeeeee-0001-0001-0001-000000000001', nom: 'Dupont', prenom: 'Alice' },
-        },
-        {
-          uuid: 'dddddddd-0001-0001-0001-000000000002',
-          date_soumission: '2025-06-11T14:30:00Z',
-          date_derniere_activite: '2025-06-12T09:15:00Z',
-          candidat: { uuid: 'eeeeeeee-0001-0001-0001-000000000002', nom: 'Martin', prenom: 'Bruno' },
-        },
-      ],
-    },
-    {
-      etape_uuid: 'cccccccc-0001-0001-0001-000000000002',
-      nom: 'Présélection',
-      categorie: 'EN_COURS',
-      candidatures: [
-        {
-          uuid: 'dddddddd-0001-0001-0001-000000000005',
-          date_soumission: '2025-06-08T10:00:00Z',
-          date_derniere_activite: '2025-06-11T10:00:00Z',
-          candidat: { uuid: 'eeeeeeee-0001-0001-0001-000000000005', nom: 'Bernard', prenom: 'Élise' },
-        },
-      ],
-    },
-  ],
-}
-
-const MOCK_LISTE: PaginatedCandidatureListeList = {
+const MOCK_CANDIDATURES: PaginatedCandidatureListeList = {
   count: 3,
   next: null,
   previous: null,
@@ -164,21 +125,19 @@ describe('useCandidatures', () => {
   beforeEach(() => {
     vi.mocked(getMe).mockReset()
     vi.mocked(getRecrutementDetail).mockReset()
-    vi.mocked(getRecrutementKanban).mockReset()
-    vi.mocked(getCandidatureListe).mockReset()
+    vi.mocked(getCandidatures).mockReset()
     vi.mocked(patchEtapeCandidatures).mockReset()
     vi.mocked(getMe).mockResolvedValue(MOCK_USER)
     vi.mocked(patchEtapeCandidatures).mockResolvedValue({ reussites: [], echecs: [] })
     vi.mocked(getRecrutementDetail).mockResolvedValue(MOCK_DETAIL)
-    vi.mocked(getRecrutementKanban).mockResolvedValue(MOCK_KANBAN)
-    vi.mocked(getCandidatureListe).mockResolvedValue(MOCK_LISTE)
+    vi.mocked(getCandidatures).mockResolvedValue(MOCK_CANDIDATURES)
   })
 
   describe('data', () => {
     it('computes totalCount from etapes', async () => {
       const { context } = await mountCandidatures()
 
-      await vi.waitFor(() => expect(context.pendingKanban.value).toBe(false))
+      await vi.waitFor(() => expect(context.pendingCandidatures.value).toBe(false))
 
       expect(context.totalCount.value).toBe(3)
     })
@@ -189,18 +148,18 @@ describe('useCandidatures', () => {
         `/organismes/${ORGANISME_UUID}/recrutements/${RECRUTEMENT_UUID}/candidatures/${CANDIDATURE_ALICE}`,
       )
 
-      await vi.waitFor(() => expect(context.pendingKanban.value).toBe(false))
+      await vi.waitFor(() => expect(context.pendingCandidatures.value).toBe(false))
 
-      expect(getRecrutementKanban).toHaveBeenCalledWith(ORGANISME_UUID, RECRUTEMENT_UUID)
+      expect(getCandidatures).toHaveBeenCalledWith(ORGANISME_UUID, RECRUTEMENT_UUID)
       expect(context.totalCount.value).toBe(3)
     })
 
     it('exposes error on api failure', async () => {
-      vi.mocked(getRecrutementKanban).mockRejectedValue(new Error('API error'))
+      vi.mocked(getCandidatures).mockRejectedValue(new Error('API error'))
 
       const { context } = await mountCandidatures()
 
-      await vi.waitFor(() => expect(context.pendingKanban.value).toBe(false))
+      await vi.waitFor(() => expect(context.pendingCandidatures.value).toBe(false))
 
       expect(context.error.value).toBeInstanceOf(Error)
     })
@@ -208,7 +167,7 @@ describe('useCandidatures', () => {
     it('moves a candidature between etapes', async () => {
       const { context } = await mountCandidatures()
 
-      await vi.waitFor(() => expect(context.pendingKanban.value).toBe(false))
+      await vi.waitFor(() => expect(context.pendingCandidatures.value).toBe(false))
 
       context.moveCandidature({
         sourceColumnId: ETAPE_RECEPTION,
@@ -226,7 +185,7 @@ describe('useCandidatures', () => {
     it('persists the move through the api', async () => {
       const { context } = await mountCandidatures()
 
-      await vi.waitFor(() => expect(context.pendingKanban.value).toBe(false))
+      await vi.waitFor(() => expect(context.pendingCandidatures.value).toBe(false))
 
       context.moveCandidature({
         sourceColumnId: ETAPE_RECEPTION,
@@ -245,7 +204,7 @@ describe('useCandidatures', () => {
       vi.mocked(patchEtapeCandidatures).mockRejectedValue(new Error('boom'))
       const { context } = await mountCandidatures()
 
-      await vi.waitFor(() => expect(context.pendingKanban.value).toBe(false))
+      await vi.waitFor(() => expect(context.pendingCandidatures.value).toBe(false))
 
       const before = structuredClone(context.candidatureKanban.value)
       context.moveCandidature({
@@ -266,8 +225,8 @@ describe('useCandidatures', () => {
       })
       const { context } = await mountCandidatures()
 
-      await vi.waitFor(() => expect(context.pendingKanban.value).toBe(false))
-      expect(getRecrutementKanban).toHaveBeenCalledTimes(1)
+      await vi.waitFor(() => expect(context.pendingCandidatures.value).toBe(false))
+      expect(getCandidatures).toHaveBeenCalledTimes(1)
 
       context.moveCandidature({
         sourceColumnId: ETAPE_RECEPTION,
@@ -276,7 +235,7 @@ describe('useCandidatures', () => {
       })
 
       await vi.waitFor(() =>
-        expect(getRecrutementKanban).toHaveBeenCalledTimes(2),
+        expect(getCandidatures).toHaveBeenCalledTimes(2),
       )
     })
 
@@ -288,7 +247,7 @@ describe('useCandidatures', () => {
     ])('leaves etapes untouched when $when', async ({ sourceColumnId, targetColumnId, cardId }) => {
       const { context } = await mountCandidatures()
 
-      await vi.waitFor(() => expect(context.pendingKanban.value).toBe(false))
+      await vi.waitFor(() => expect(context.pendingCandidatures.value).toBe(false))
 
       const before = structuredClone(context.candidatureKanban.value)
       context.moveCandidature({ sourceColumnId, targetColumnId, cardId })
@@ -297,7 +256,7 @@ describe('useCandidatures', () => {
     })
 
     it('leaves etapes empty when the kanban data is not loaded', async () => {
-      vi.mocked(getRecrutementKanban).mockImplementation(() => new Promise(() => {}))
+      vi.mocked(getCandidatures).mockImplementation(() => new Promise(() => {}))
 
       const { context } = await mountCandidatures()
 
@@ -355,7 +314,7 @@ describe('useCandidatures', () => {
     it('moves multiple candidatures between etapes in batch', async () => {
       const { context } = await mountCandidatures()
 
-      await vi.waitFor(() => expect(context.pendingKanban.value).toBe(false))
+      await vi.waitFor(() => expect(context.pendingCandidatures.value).toBe(false))
 
       const sourceColumnId = ETAPE_RECEPTION
       const targetColumnId = ETAPE_PRESELECTION
@@ -376,7 +335,7 @@ describe('useCandidatures', () => {
     it('ignores batch move when target column is unknown', async () => {
       const { context } = await mountCandidatures()
 
-      await vi.waitFor(() => expect(context.pendingKanban.value).toBe(false))
+      await vi.waitFor(() => expect(context.pendingCandidatures.value).toBe(false))
 
       const etapesBefore = structuredClone(context.candidatureKanban.value)
 
@@ -392,7 +351,7 @@ describe('useCandidatures', () => {
     it('ignores batch move when source column is unknown', async () => {
       const { context } = await mountCandidatures()
 
-      await vi.waitFor(() => expect(context.pendingKanban.value).toBe(false))
+      await vi.waitFor(() => expect(context.pendingCandidatures.value).toBe(false))
 
       const etapesBefore = structuredClone(context.candidatureKanban.value)
 
@@ -411,7 +370,7 @@ describe('useCandidatures', () => {
     it('ignores candidatures from same column as target in batch move', async () => {
       const { context } = await mountCandidatures()
 
-      await vi.waitFor(() => expect(context.pendingKanban.value).toBe(false))
+      await vi.waitFor(() => expect(context.pendingCandidatures.value).toBe(false))
 
       const targetColumnId = ETAPE_PRESELECTION
 
@@ -429,7 +388,7 @@ describe('useCandidatures', () => {
     it('ignores unknown candidatures in batch move', async () => {
       const { context } = await mountCandidatures()
 
-      await vi.waitFor(() => expect(context.pendingKanban.value).toBe(false))
+      await vi.waitFor(() => expect(context.pendingCandidatures.value).toBe(false))
 
       const sourceColumnId = ETAPE_RECEPTION
       const targetColumnId = ETAPE_PRESELECTION
@@ -453,7 +412,7 @@ describe('useCandidatures', () => {
     it('applies filters to the live kanban data', async () => {
       const { context } = await mountCandidatures()
 
-      await vi.waitFor(() => expect(context.pendingKanban.value).toBe(false))
+      await vi.waitFor(() => expect(context.pendingCandidatures.value).toBe(false))
 
       context.filters.draft.etapes = [ETAPE_PRESELECTION]
       context.filters.apply()
@@ -467,7 +426,7 @@ describe('useCandidatures', () => {
         `/organismes/${ORGANISME_UUID}/recrutements/${RECRUTEMENT_UUID}/liste`,
       )
 
-      await vi.waitFor(() => expect(context.pendingListe.value).toBe(false))
+      await vi.waitFor(() => expect(context.pendingCandidatures.value).toBe(false))
 
       context.filters.draft.etapes = [ETAPE_PRESELECTION]
       context.filters.apply()
@@ -501,7 +460,7 @@ describe('useCandidatures', () => {
         },
       })
 
-      await vi.waitFor(() => expect(contexts[0]?.pendingKanban.value).toBe(false))
+      await vi.waitFor(() => expect(contexts[0]?.pendingCandidatures.value).toBe(false))
 
       expect(contexts[0]?.filters).toBe(contexts[1]?.filters)
       expect(contexts[0]?.recrutementUuid.value).toBe(RECRUTEMENT_UUID)
@@ -510,28 +469,28 @@ describe('useCandidatures', () => {
   })
 
   describe('route changes', () => {
-    it('resyncs etapes when the kanban data changes', async () => {
+    it('keeps an etape without candidature as a column', async () => {
       let queryCache!: ReturnType<typeof useQueryCache>
       const { context } = await mountCandidatures(() => {
         queryCache = useQueryCache()
       })
 
-      await vi.waitFor(() => expect(context.pendingKanban.value).toBe(false))
-      expect(context.totalCount.value).toBe(3)
+      await vi.waitFor(() => expect(context.pendingCandidatures.value).toBe(false))
+      expect(context.candidatureKanban.value.map(etape => etape.candidatures.length)).toEqual([2, 1])
 
       queryCache.setQueryData(
-        CANDIDATURES_QUERY_KEYS.kanban(ORGANISME_UUID, RECRUTEMENT_UUID),
-        { ...MOCK_KANBAN, etapes: [MOCK_KANBAN.etapes[0]!] },
+        CANDIDATURES_QUERY_KEYS.candidatures(ORGANISME_UUID, RECRUTEMENT_UUID),
+        { ...MOCK_CANDIDATURES, count: 2, results: MOCK_CANDIDATURES.results.slice(0, 2) },
       )
 
       await vi.waitFor(() => expect(context.totalCount.value).toBe(2))
-      expect(context.candidatureKanban.value).toHaveLength(1)
+      expect(context.candidatureKanban.value.map(etape => etape.candidatures.length)).toEqual([2, 0])
     })
 
     it('resets filters when navigating to another recrutement', async () => {
       const { context, router } = await mountCandidatures()
 
-      await vi.waitFor(() => expect(context.pendingKanban.value).toBe(false))
+      await vi.waitFor(() => expect(context.pendingCandidatures.value).toBe(false))
 
       context.filters.search.value = 'alice'
       context.filters.flushSearch()

@@ -1,8 +1,8 @@
 import type { Ref } from 'vue'
 import type {
+  CandidatureListe,
   EtapeRecrutement,
   EtapeRecrutementDetailedCandidatures,
-  PaginatedCandidatureListeList,
 } from '../types'
 import type { CspCheckboxGroupOption } from '@/components/base/CspCheckboxGroup/CspCheckboxGroup.vue'
 import { computed, ref, watch } from 'vue'
@@ -22,13 +22,13 @@ export type CandidaturesFiltersContext = ReturnType<typeof useCandidaturesFilter
 export interface CandidaturesFiltersSources {
   recrutementEtapes: Readonly<Ref<EtapeRecrutement[]>>
   candidatureKanban: Readonly<Ref<EtapeRecrutementDetailedCandidatures[]>>
-  candidatureListe: Ref<PaginatedCandidatureListeList | undefined>
+  candidatures: Readonly<Ref<CandidatureListe[]>>
 }
 
 export function useCandidaturesFilters({
   recrutementEtapes,
   candidatureKanban,
-  candidatureListe,
+  candidatures,
 }: CandidaturesFiltersSources) {
   const {
     draft,
@@ -63,7 +63,7 @@ export function useCandidaturesFilters({
   )
 
   const filteredCandidatures = computed(() =>
-    (candidatureListe.value?.results ?? []).filter(row =>
+    candidatures.value.filter(row =>
       matchesEtape(row.etape.etape_uuid, applied)
       && matchesSearch(row.candidat, appliedSearch.value),
     ),

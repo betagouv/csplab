@@ -1,15 +1,13 @@
 import type { CandidatureParams } from './types'
 import { defineQueryOptions } from '@pinia/colada'
-import { getCandidatureDetail, getCandidatureDocuments, getCandidatureListe, getCandidatureNotes, getMotifsRefus, getRecrutementKanban } from './api'
+import { getCandidatureDetail, getCandidatureDocuments, getCandidatureNotes, getCandidatures, getMotifsRefus } from './api'
 
 export const CANDIDATURES_QUERY_KEYS = {
   root: ['candidatures'] as const,
   recrutement: (organismeUuid: string, recrutementUuid: string) =>
     [...CANDIDATURES_QUERY_KEYS.root, organismeUuid, recrutementUuid] as const,
-  kanban: (organismeUuid: string, recrutementUuid: string) =>
-    [...CANDIDATURES_QUERY_KEYS.recrutement(organismeUuid, recrutementUuid), 'kanban'] as const,
-  liste: (organismeUuid: string, recrutementUuid: string) =>
-    [...CANDIDATURES_QUERY_KEYS.recrutement(organismeUuid, recrutementUuid), 'liste'] as const,
+  candidatures: (organismeUuid: string, recrutementUuid: string) =>
+    [...CANDIDATURES_QUERY_KEYS.recrutement(organismeUuid, recrutementUuid), 'candidatures'] as const,
   detail: ({ organismeUuid, recrutementUuid, candidatureUuid }: CandidatureParams) =>
     [...CANDIDATURES_QUERY_KEYS.recrutement(organismeUuid, recrutementUuid), 'candidature', candidatureUuid, 'detail'] as const,
   motifsRefus: (organismeUuid: string) =>
@@ -25,17 +23,10 @@ export interface CandidaturesQueryParams {
   recrutementUuid: string
 }
 
-export const recrutementKanbanQuery = defineQueryOptions(
+export const candidaturesQuery = defineQueryOptions(
   ({ organismeUuid, recrutementUuid }: CandidaturesQueryParams) => ({
-    key: CANDIDATURES_QUERY_KEYS.kanban(organismeUuid, recrutementUuid),
-    query: () => getRecrutementKanban(organismeUuid, recrutementUuid),
-  }),
-)
-
-export const candidatureListeQuery = defineQueryOptions(
-  ({ organismeUuid, recrutementUuid }: CandidaturesQueryParams) => ({
-    key: CANDIDATURES_QUERY_KEYS.liste(organismeUuid, recrutementUuid),
-    query: () => getCandidatureListe(organismeUuid, recrutementUuid),
+    key: CANDIDATURES_QUERY_KEYS.candidatures(organismeUuid, recrutementUuid),
+    query: () => getCandidatures(organismeUuid, recrutementUuid),
   }),
 )
 

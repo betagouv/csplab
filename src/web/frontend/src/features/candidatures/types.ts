@@ -1,10 +1,18 @@
 import type { components } from '@/types/api'
 
-export type RecrutementDetailKanban = components['schemas']['RecrutementDetailKanban']
+export interface Candidature {
+  uuid: string
+  date_soumission: string
+  date_derniere_activite: string
+  candidat: Candidat
+}
 
-export type EtapeRecrutementDetailedCandidatures = components['schemas']['EtapeRecrutementDetailedCandidatures']
-
-export type Candidature = components['schemas']['Candidature']
+export interface EtapeRecrutementDetailedCandidatures {
+  etape_uuid: string
+  nom: string
+  categorie: EtapeRecrutement['categorie']
+  candidatures: Candidature[]
+}
 
 export type Candidat = components['schemas']['Candidat']
 

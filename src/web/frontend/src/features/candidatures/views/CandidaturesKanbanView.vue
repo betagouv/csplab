@@ -19,7 +19,7 @@ const {
   recrutementUuid,
   recrutementEtapes,
   candidatureKanban,
-  pendingKanban,
+  pendingCandidatures,
   findCandidature,
   moveCandidature,
   moveCandidaturesBatch,
@@ -37,7 +37,7 @@ watch(() => route.params.candidatureUuid, async (current, previous) => {
   document.querySelector<HTMLElement>(`[data-candidature-uuid="${previous}"] a`)?.focus()
 })
 
-const showSkeleton = useMinimumPending(pendingKanban)
+const showSkeleton = useMinimumPending(pendingCandidatures)
 
 const {
   selectedByEtape,
