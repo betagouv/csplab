@@ -44,6 +44,7 @@ class PostgresRecrutementQueryService(IRecrutementQueryService):
         }
         if agent_id is not None:
             filters["agents_liaisons__agent_id"] = str(agent_id)
+            filters["agents_liaisons__date_revocation__isnull"] = True
 
         qs = (
             RecrutementModel.objects.filter(**filters)
@@ -109,6 +110,7 @@ class PostgresRecrutementQueryService(IRecrutementQueryService):
         }
         if agent_id is not None:
             filters["agents_liaisons__agent_id"] = str(agent_id)
+            filters["agents_liaisons__date_revocation__isnull"] = True
 
         qs = (
             RecrutementModel.objects.filter(**filters)

@@ -186,8 +186,7 @@ class TestSuperviseurEtStaffActions:
                 utilisateur=_utilisateur(demandeur_id),
             )
 
-    def test_revoked_agent_is_still_allowed(self, action: OrganismeAction) -> None:
-        # TODO:filter out revoked agent in organisme-agent role lookup
+    def test_revoked_superviseur_is_denied(self, action: OrganismeAction) -> None:
         organisme = OrganismeDjangoFactory()
         agent = OrganismeAgentDjangoFactory(
             organisme=organisme,
@@ -195,13 +194,12 @@ class TestSuperviseurEtStaffActions:
             date_revocation=timezone.now(),
         ).agent
 
-        result = OrganismePermissionService().can_execute(
-            action=action,
-            organisme_id=organisme.id,  # type: ignore[arg-type]
-            utilisateur=_utilisateur(agent.utilisateur_id),  # type: ignore[attr-defined]
-        )
-
-        assert result == AgentOrganismeRole.SUPERVISEUR
+        with pytest.raises(AccesOrganismeRefuse):
+            OrganismePermissionService().can_execute(
+                action=action,
+                organisme_id=organisme.id,  # type: ignore[arg-type]
+                utilisateur=_utilisateur(agent.utilisateur_id),  # type: ignore[attr-defined]
+            )
 
 
 @pytest.mark.parametrize("action", SUPERVISEUR_OU_AGENT_SANS_RECRUTEMENT_ACTIONS)
@@ -221,6 +219,21 @@ class TestSuperviseurOuAgentSansRecrutementActions:
         )
 
         assert result == role
+
+    def test_revoked_agent_is_denied(self, action: OrganismeAction) -> None:
+        organisme = OrganismeDjangoFactory()
+        agent = OrganismeAgentDjangoFactory(
+            organisme=organisme,
+            role=AgentOrganismeRole.AGENT.value,
+            date_revocation=timezone.now(),
+        ).agent
+
+        with pytest.raises(AccesOrganismeRefuse):
+            OrganismePermissionService().can_execute(
+                action=action,
+                organisme_id=organisme.id,  # type: ignore[arg-type]
+                utilisateur=_utilisateur(agent.utilisateur_id),  # type: ignore[attr-defined]
+            )
 
     @pytest.mark.parametrize("est_staff", [False, True])
     def test_reject_no_role_nor_staff(

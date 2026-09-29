@@ -9,6 +9,7 @@ from application.identite.usecases.log_utilisateur_connexion import (
     LogUtilisateurConnexionInput,
 )
 from infrastructure.authentication.proconnect_client import END_SESSION_ENDPOINT
+from infrastructure.authentication.rattachement import a_un_rattachement_actif
 from infrastructure.di.identite.identite_factory import create_identite_container
 from infrastructure.mappers.utilisateur_mapper import UtilisateurMapper
 
@@ -44,9 +45,17 @@ class ProconnectBackend(ModelBackend):
             .objects.filter(email__iexact=proconnect_claims["email"], is_active=True)
             .first()
         )
-        if user is not None:
-            self._sync_identite(user, proconnect_claims)
-            self._audit_connexion(user)
+        if user is None:
+            return None
+        # Accès à l'ATS : compte existant et au moins un rattachement actif (#1584)
+        if not (user.is_staff or a_un_rattachement_actif(user)):
+            self.logger.info(
+                "ProConnect refusé : aucun rattachement actif (utilisateur %s)",
+                user.pk,
+            )
+            return None
+        self._sync_identite(user, proconnect_claims)
+        self._audit_connexion(user)
         return user
 
     def _sync_identite(self, user, proconnect_claims) -> None:

@@ -4,9 +4,12 @@ from uuid import UUID
 
 import pytest
 from django.urls import reverse
+from django.utils import timezone as django_timezone
 from faker import Faker
 from referentiel.value_objects.contract_type import ContractType
 from rest_framework import status
+from rest_framework.test import APIClient
+from rest_framework_simplejwt.tokens import RefreshToken
 
 from application.recruteur.dtos.recrutement_read_models import (
     CandidaturesCompteurDto,
@@ -18,7 +21,12 @@ from domain.recruteur.value_objects.roles import (
     AgentOrganismeRole,
     AgentRecrutementRole,
 )
+from infrastructure.factories.identite.agent_django_factory import (
+    AgentDjangoFactory,
+)
 from infrastructure.factories.identite.organisme_django_factory import (
+    OrganismeAgentDjangoFactory,
+    OrganismeDjangoFactory,
     create_organisme_with_agent,
 )
 from infrastructure.factories.recruteur.recrutement_django_factory import (
@@ -368,3 +376,51 @@ class TestRecrutementsArchivesViewDbVerified:
             response = authenticated_client.get(RECRUTEMENTS_ARCHIVES_URL)
 
         assert response.status_code == status.HTTP_200_OK
+
+
+def _archives_url(organisme_id) -> str:
+    return reverse(
+        "recruteur:organisme-recrutements-archives",
+        kwargs={"organisme_uuid": str(organisme_id)},
+    )
+
+
+def _client_for(utilisateur) -> APIClient:
+    client = APIClient()
+    token = RefreshToken.for_user(utilisateur).access_token
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+    return client
+
+
+class TestRecrutementsArchivesViewRattachement:
+    @pytest.mark.parametrize("cas", ["revoque", "jamais_rattache"])
+    def test_organisme_without_active_liaison_is_refused_like_never_attached(
+        self, db, cas
+    ):
+        agent, organisme_b = create_organisme_with_agent(role=AgentOrganismeRole.AGENT)
+        RecrutementDjangoFactory(
+            organisme=organisme_b, offre_archivee=True, agent_link__agent=agent
+        )
+        organisme_a = OrganismeDjangoFactory()
+        if cas == "revoque":
+            RecrutementDjangoFactory(
+                organisme=organisme_a, offre_archivee=True, agent_link__agent=agent
+            )
+            OrganismeAgentDjangoFactory(
+                organisme=organisme_a,
+                agent=agent,
+                date_revocation=django_timezone.now(),
+            )
+        temoin_jamais_rattache = AgentDjangoFactory()
+        client = _client_for(agent.utilisateur)
+
+        reponse_a = client.get(_archives_url(organisme_a.id))
+        reponse_temoin = _client_for(temoin_jamais_rattache.utilisateur).get(
+            _archives_url(organisme_a.id)
+        )
+        reponse_b = client.get(_archives_url(organisme_b.id))
+
+        assert reponse_a.status_code == reponse_temoin.status_code
+        assert reponse_a.status_code != status.HTTP_200_OK
+        assert reponse_b.status_code == status.HTTP_200_OK
+        assert reponse_b.json()["count"] == 1
