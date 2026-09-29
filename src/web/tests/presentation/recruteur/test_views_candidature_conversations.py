@@ -289,6 +289,7 @@ class TestCreateConversation:
             (_payload(objet=""), "objet"),
             (_payload(objet="a" * 256), "objet"),
             (_payload(content=""), "content"),
+            (_payload(content=" \n\t"), "content"),
         ],
         ids=[
             "missing_objet",
@@ -296,6 +297,7 @@ class TestCreateConversation:
             "blank_objet",
             "objet_too_long",
             "blank_content",
+            "whitespace_only_content",
         ],
     )
     def test_invalid_payload_is_rejected(

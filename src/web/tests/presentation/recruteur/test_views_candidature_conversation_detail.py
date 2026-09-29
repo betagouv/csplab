@@ -302,7 +302,9 @@ class TestCandidatureConversationDetailView:
         assert response.json()["content"] == "    code\n"
 
     @pytest.mark.parametrize(
-        "payload", [{}, {"content": ""}], ids=["missing_content", "blank_content"]
+        "payload",
+        [{}, {"content": ""}, {"content": " \n\t"}],
+        ids=["missing_content", "blank_content", "whitespace_only_content"],
     )
     def test_invalid_content_is_rejected(
         self, authenticated_client, test_user, payload

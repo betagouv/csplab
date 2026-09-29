@@ -482,6 +482,11 @@ class CreateMessageSerializer(serializers.Serializer):
         default=list,
     )
 
+    def validate_content(self, content):
+        if not content.strip():
+            self.fields["content"].fail("blank")
+        return content
+
     def validate_documents(self, documents):
         max_size_mb = settings.MESSAGE_DOCUMENT_MAX_SIZE_MB
         for document in documents:
