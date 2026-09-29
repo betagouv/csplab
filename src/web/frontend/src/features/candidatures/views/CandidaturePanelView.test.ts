@@ -233,6 +233,97 @@ describe('candidaturePanelView', () => {
     await vi.waitFor(() => expect(router.currentRoute.value.meta.tab).toBe('candidature'))
   })
 
+  describe('with a note being typed', () => {
+    async function renderWithNote() {
+      const user = setupUser()
+      const rendered = await renderPanel([KANBAN_PATH, `${KANBAN_PATH}/candidatures/${CANDIDATURE_ALICE}`])
+      const note = await rendered.panel.findByRole('textbox', { name: 'Ajouter une note' })
+      await user.type(note, 'À rappeler')
+      return { ...rendered, user, note }
+    }
+
+    function unsavedDialog() {
+      return screen.findByRole('dialog', { name: 'Modifications non enregistrées' })
+    }
+
+    it.each([
+      ['closing the panel', () => closeButton()],
+      ['moving to the next candidature', () => screen.getByRole('button', { name: 'Suivant' })],
+    ])('asks before %s and stays when the user keeps editing', async (_case, control) => {
+      const { user, router, note } = await renderWithNote()
+
+      await user.click(control())
+      const dialog = within(await unsavedDialog())
+      expect(dialog.getByText('Si vous quittez maintenant, votre saisie sera perdue.')).toBeInTheDocument()
+      await user.click(dialog.getByRole('button', { name: 'Continuer l\'édition' }))
+
+      await vi.waitFor(() => expect(screen.queryByRole('dialog', { name: 'Modifications non enregistrées' })).not.toBeInTheDocument())
+      expect(router.currentRoute.value.params.candidatureUuid).toBe(CANDIDATURE_ALICE)
+      expect(note).toHaveValue('À rappeler')
+    })
+
+    it('leaves without the note when the user confirms', async () => {
+      const { user, router, note } = await renderWithNote()
+
+      await user.click(screen.getByRole('button', { name: 'Suivant' }))
+      await user.click(within(await unsavedDialog()).getByRole('button', { name: 'Quitter sans enregistrer' }))
+
+      await vi.waitFor(() => expect(router.currentRoute.value.params.candidatureUuid).toBe(CANDIDATURE_BRUNO))
+      expect(note).toHaveValue('')
+    })
+
+    it('asks before going back to the kanban with the browser, and restores the address', async () => {
+      const { user, router, note } = await renderWithNote()
+      const candidaturePath = `${KANBAN_PATH}/candidatures/${CANDIDATURE_ALICE}`
+
+      router.back()
+      const dialog = within(await unsavedDialog())
+      expect(window.location.pathname).toBe(KANBAN_PATH)
+      await user.click(dialog.getByRole('button', { name: 'Continuer l\'édition' }))
+
+      await vi.waitFor(() => expect(window.location.pathname).toBe(candidaturePath))
+      expect(router.currentRoute.value.path).toBe(candidaturePath)
+      expect(note).toHaveValue('À rappeler')
+    })
+
+    it('returns to the note on Escape', async () => {
+      const { user, router } = await renderWithNote()
+
+      await user.click(closeButton())
+      await unsavedDialog()
+      await user.keyboard('{Escape}')
+
+      await vi.waitFor(() => expect(screen.queryByRole('dialog', { name: 'Modifications non enregistrées' })).not.toBeInTheDocument())
+      expect(router.currentRoute.value.params.candidatureUuid).toBe(CANDIDATURE_ALICE)
+    })
+
+    it('asks before changing the stage', async () => {
+      const { user, router } = await renderWithNote()
+
+      await user.click(screen.getByRole('button', { name: 'Changer d\'étape' }))
+      await user.click(await screen.findByRole('radio', { name: 'Entretien' }))
+      await user.click(screen.getByRole('button', { name: 'Valider' }))
+
+      const dialog = within(await unsavedDialog())
+      expect(patchEtapeCandidatures).not.toHaveBeenCalled()
+      await user.click(dialog.getByRole('button', { name: 'Quitter sans enregistrer' }))
+
+      await vi.waitFor(() => expect(router.currentRoute.value.params.candidatureUuid).toBe(CANDIDATURE_BRUNO))
+      expect(patchEtapeCandidatures).toHaveBeenCalledOnce()
+    })
+
+    it('keeps the note across tabs without asking', async () => {
+      const { user, panel, note } = await renderWithNote()
+
+      await user.click(panel.getByRole('tab', { name: 'Messages' }))
+      await user.click(await panel.findByRole('tab', { name: 'Documents' }))
+
+      expect(await panel.findByRole('tab', { name: 'Documents', selected: true })).toBeInTheDocument()
+      expect(screen.queryByRole('dialog', { name: 'Modifications non enregistrées' })).not.toBeInTheDocument()
+      expect(note).toHaveValue('À rappeler')
+    })
+  })
+
   it('reopens on the candidature tab when moving to the next candidature', async () => {
     const user = setupUser()
     const { router } = await renderPanel([`${KANBAN_PATH}/candidatures/${CANDIDATURE_ALICE}/messages`])

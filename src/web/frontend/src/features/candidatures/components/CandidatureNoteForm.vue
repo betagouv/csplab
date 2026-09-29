@@ -3,6 +3,7 @@ import type { CandidatureParams } from '../types'
 import { computed, ref, useId } from 'vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspTextarea from '@/components/base/CspTextarea/CspTextarea.vue'
+import { useUnsavedChanges } from '@/composables/navigation/useUnsavedChanges'
 import { useToast } from '@/composables/ui/useToast'
 import { useCreateCandidatureNote } from '../composables/useCandidatureNotes'
 
@@ -16,6 +17,10 @@ const { addToast } = useToast()
 const titleId = useId()
 const message = ref('')
 const canSubmit = computed(() => message.value.trim().length > 0 && !creating.value)
+
+useUnsavedChanges(() => message.value !== '', () => {
+  message.value = ''
+})
 
 async function submit(): Promise<void> {
   if (!canSubmit.value)
