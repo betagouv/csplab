@@ -14,7 +14,7 @@ const route = useRoute()
 const router = useRouter()
 
 const { pendingCandidatures, filters } = useCandidatures()
-const { filteredCandidatures } = filters
+const { filteredCandidatures, sort } = filters
 
 const showSkeleton = useMinimumPending(pendingCandidatures)
 
@@ -28,6 +28,10 @@ function openCandidature(candidatureUuid: string): void {
 
 const PAGE_SIZE = 6
 const candidatureListePage = ref(1)
+
+const pagedCandidatures = computed(() =>
+  filteredCandidatures.value.slice((candidatureListePage.value - 1) * PAGE_SIZE, candidatureListePage.value * PAGE_SIZE),
+)
 
 watch(filteredCandidatures, () => {
   candidatureListePage.value = 1
@@ -67,7 +71,10 @@ const countLabel = computed(() => {
     </p>
     <CspDataTable
       v-model:page="candidatureListePage"
-      :rows="filteredCandidatures"
+      v-model:sort="sort"
+      manual
+      :row-count="filteredCandidatures.length"
+      :rows="pagedCandidatures"
       :columns="CANDIDATURE_LISTE_COLUMNS"
       :row-key="row => row.uuid"
       activation-mode="cell"
