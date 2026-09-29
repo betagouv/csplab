@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+# Runs `docker compose up --wait` unless the service container is up to date and healthy, or running when it has no healthcheck.
+# Usage: bin/compose-up <service> [env file for compose variable substitution]
+
+set -eo pipefail
+
+service=$1
+env_file=$2
+
+if [ -n "$env_file" ]; then
+  set -a
+  . "$env_file"
+  set +a
+fi
+
+container=$(docker compose ps -q "$service" 2>/dev/null || true)
+if [ -n "$container" ]; then
+  expected=$(docker compose config --hash "$service" 2>/dev/null | cut -d ' ' -f 2 || true)
+  current=$(docker inspect -f '{{index .Config.Labels "com.docker.compose.config-hash"}} {{if .State.Health}}{{.State.Health.Status}}{{else}}{{.State.Status}}{{end}}' "$container" 2>/dev/null || true)
+  if [ "$current" = "$expected healthy" ] || [ "$current" = "$expected running" ]; then
+    exit 0
+  fi
+fi
+
+docker compose up -d --wait --remove-orphans "$service"
