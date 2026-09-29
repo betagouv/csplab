@@ -34,3 +34,25 @@ export const TYPE_DOCUMENT_LABELS = {
   piece_justificative: 'Pièce justificative',
   autre: 'Autre document',
 } as const
+
+export const LATEST_ACTIVITES_LIMIT = 3
+
+export const ACTIVITE_LABELS = {
+  CandidatureRecue: 'Candidature reçue',
+  CandidatureEtapeModifiee: 'Étape modifiée',
+  NoteAjoutee: 'Note ajoutée',
+  NoteEditee: 'Note modifiée',
+  NoteSupprimee: 'Note supprimée',
+} as const
+
+export type ActiviteEventName = keyof typeof ACTIVITE_LABELS
+
+export const ACTIVITE_ICONS = {
+  CandidatureRecue: 'ri:inbox-2-line',
+  CandidatureEtapeModifiee: 'ri:arrow-left-right-line',
+  NoteAjoutee: 'ri:sticky-note-line',
+  NoteEditee: 'ri:edit-line',
+  NoteSupprimee: 'ri:delete-bin-line',
+} as const satisfies Record<ActiviteEventName, string>
+
+export const DEFAULT_ACTIVITE = { label: 'Activité', icon: 'ri:history-line' }

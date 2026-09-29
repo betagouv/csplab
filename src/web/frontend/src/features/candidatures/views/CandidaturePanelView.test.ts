@@ -37,6 +37,7 @@ vi.mock('../api', () => ({
   candidatureDocumentUrl: vi.fn(),
   getCandidatureNotes: vi.fn(() => new Promise(() => {})),
   createCandidatureNote: vi.fn(),
+  getCandidatureActivites: vi.fn(() => new Promise(() => {})),
 }))
 
 vi.mock('@/features/recrutements/api', () => ({
@@ -100,6 +101,7 @@ describe('candidaturePanelView', () => {
     expect(await panel.findByRole('tab', { name: 'Candidature', selected: true })).toBeInTheDocument()
     expect(router.currentRoute.value.meta.tab).toBe('candidature')
     const suivi = within(panel.getByRole('complementary', { name: 'Suivi de la candidature' }))
+    expect(suivi.getByRole('heading', { name: 'Dernières activités' })).toBeInTheDocument()
     expect(suivi.getByRole('heading', { name: 'Ajouter une note' })).toBeInTheDocument()
   })
 

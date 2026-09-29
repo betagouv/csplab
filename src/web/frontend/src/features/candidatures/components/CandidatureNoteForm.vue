@@ -72,8 +72,8 @@ async function submit(): Promise<void> {
 <style scoped lang="scss">
 .candidature-note-form__title {
   margin: 0 0 var(--csp-space-3);
-  font-size: 0.875rem;
-  font-weight: 700;
+  font-size: var(--csp-font-size-base);
+  font-weight: var(--csp-font-weight-bold);
   color: var(--text-title-grey);
 }
 

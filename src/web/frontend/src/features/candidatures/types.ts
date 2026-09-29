@@ -36,6 +36,10 @@ export type Note = components['schemas']['Note']
 
 export type PaginatedNoteList = components['schemas']['PaginatedNoteList']
 
+export type Activite = components['schemas']['AuditLog']
+
+export type PaginatedActiviteList = components['schemas']['PaginatedAuditLogList']
+
 export interface CandidatureParams {
   organismeUuid: string
   recrutementUuid: string

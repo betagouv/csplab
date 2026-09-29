@@ -44,6 +44,7 @@ import riFlashlightFill from '@iconify-icons/ri/flashlight-fill'
 import riFullscreenLine from '@iconify-icons/ri/fullscreen-line'
 import riGovernmentLine from '@iconify-icons/ri/government-line'
 import riGroupLine from '@iconify-icons/ri/group-line'
+import riHistoryLine from '@iconify-icons/ri/history-line'
 import riHomeLine from '@iconify-icons/ri/home-line'
 import riInbox2Line from '@iconify-icons/ri/inbox-2-line'
 import riInformationFill from '@iconify-icons/ri/information-fill'
@@ -130,6 +131,7 @@ addIcon('ri:flashlight-fill', riFlashlightFill)
 addIcon('ri:fullscreen-line', riFullscreenLine)
 addIcon('ri:government-line', riGovernmentLine)
 addIcon('ri:group-line', riGroupLine)
+addIcon('ri:history-line', riHistoryLine)
 addIcon('ri:home-line', riHomeLine)
 addIcon('ri:inbox-2-line', riInbox2Line)
 addIcon('ri:information-fill', riInformationFill)
