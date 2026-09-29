@@ -9,14 +9,11 @@ from rest_framework import status
 
 from application.recruteur.dtos.recrutement_read_models import (
     CandidatDto,
-    CandidatureKanbanDto,
     CandidatureListeReadModel,
     EtapeDto,
-    EtapeKanbanReadModel,
     LocalisationDto,
     OrganismeRecruteurDto,
     RecrutementDetailReadModel,
-    RecrutementKanbanReadModel,
 )
 from domain.commons.errors.organisme_errors import OrganismeNexistePas
 from domain.identite.errors.organisme_permission_errors import AccesOrganismeRefuse
@@ -88,35 +85,6 @@ def _recrutement_detail_read_model() -> RecrutementDetailReadModel:
     )
 
 
-def _recrutement_kanban_read_model() -> RecrutementKanbanReadModel:
-    return RecrutementKanbanReadModel(
-        offer_id=UUID(RECRUTEMENT_UUID),
-        etapes=[
-            EtapeKanbanReadModel(
-                etape_uuid=uuid4(),
-                nom="Réception des candidatures",
-                categorie="ENTREE",
-                candidatures=[
-                    CandidatureKanbanDto(
-                        uuid=uuid4(),
-                        date_soumission=datetime.now(tz=timezone.utc),
-                        date_derniere_activite=datetime.now(tz=timezone.utc),
-                        candidat=CandidatDto(
-                            uuid=uuid4(), nom="Dupont", prenom="Alice"
-                        ),
-                    )
-                ],
-            ),
-            EtapeKanbanReadModel(
-                etape_uuid=uuid4(),
-                nom="Candidature acceptée",
-                categorie="ACCEPTE",
-                candidatures=[],
-            ),
-        ],
-    )
-
-
 ORGANISME_UUID = fake.uuid4()
 
 # UUID du recrutement statique défini dans views.py
@@ -129,23 +97,12 @@ RECRUTEMENT_CANDIDATURES_ETAPE_URL = reverse(
     "recruteur:organisme-recrutement-candidatures-etape",
     kwargs={"organisme_uuid": ORGANISME_UUID, "recrutement_uuid": RECRUTEMENT_UUID},
 )
-RECRUTEMENT_KANBAN_URL = reverse(
-    "recruteur:organisme-recrutement-kanban",
-    kwargs={"organisme_uuid": ORGANISME_UUID, "recrutement_uuid": RECRUTEMENT_UUID},
-)
 RECRUTEMENT_LISTE_URL = reverse(
-    "recruteur:organisme-recrutement-liste",
+    "recruteur:organisme-recrutement-candidatures",
     kwargs={"organisme_uuid": ORGANISME_UUID, "recrutement_uuid": RECRUTEMENT_UUID},
-)
-UNKNOWN_RECRUTEMENT_KANBAN_URL = reverse(
-    "recruteur:organisme-recrutement-kanban",
-    kwargs={
-        "organisme_uuid": ORGANISME_UUID,
-        "recrutement_uuid": UNKNOWN_RECRUTEMENT_UUID,
-    },
 )
 UNKNOWN_RECRUTEMENT_LISTE_URL = reverse(
-    "recruteur:organisme-recrutement-liste",
+    "recruteur:organisme-recrutement-candidatures",
     kwargs={
         "organisme_uuid": ORGANISME_UUID,
         "recrutement_uuid": UNKNOWN_RECRUTEMENT_UUID,
@@ -266,94 +223,6 @@ class TestRecrutementDetailView:
         response = authenticated_client.get(RECRUTEMENT_DETAIL_URL)
         assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
         assert response.json() == {"error": "Unexpected error"}
-
-
-class TestRecrutementKanbanView:
-    @pytest.fixture(autouse=True)
-    def _default_usecase(self, container):
-        container.get_recrutement_kanban_usecase.return_value.execute.return_value = (
-            _recrutement_kanban_read_model()
-        )
-
-    def test_anonymous_access_is_unauthorized(self, api_client):
-        response = api_client.get(RECRUTEMENT_KANBAN_URL)
-        assert response.status_code == status.HTTP_401_UNAUTHORIZED
-
-    def test_returns_200(self, authenticated_client):
-        response = authenticated_client.get(RECRUTEMENT_KANBAN_URL)
-        assert response.status_code == status.HTTP_200_OK
-
-    def test_response_structure(self, authenticated_client):
-        data = authenticated_client.get(RECRUTEMENT_KANBAN_URL).json()
-        assert set(data) == {"offer_id", "etapes"}
-        assert isinstance(data["etapes"], list)
-
-    def test_etape_structure(self, authenticated_client):
-        etape = authenticated_client.get(RECRUTEMENT_KANBAN_URL).json()["etapes"][0]
-        assert "etape_uuid" in etape
-        assert "nom" in etape
-        assert "categorie" in etape
-        assert "candidatures" in etape
-        assert isinstance(etape["candidatures"], list)
-
-    def test_candidature_structure(self, authenticated_client):
-        data = authenticated_client.get(RECRUTEMENT_KANBAN_URL).json()
-        candidature = data["etapes"][0]["candidatures"][0]
-        assert "uuid" in candidature
-        assert "date_soumission" in candidature
-        assert "candidat" in candidature
-        assert "uuid" in candidature["candidat"]
-        assert "nom" in candidature["candidat"]
-        assert "prenom" in candidature["candidat"]
-
-    def test_etapes_order(self, authenticated_client):
-        etapes = authenticated_client.get(RECRUTEMENT_KANBAN_URL).json()["etapes"]
-        assert etapes[0]["categorie"] == "ENTREE"
-        assert etapes[-1]["categorie"] == "ACCEPTE"
-
-    def test_etape_accepte_has_no_candidatures(self, authenticated_client):
-        etape_accepte = authenticated_client.get(RECRUTEMENT_KANBAN_URL).json()[
-            "etapes"
-        ][-1]
-        assert etape_accepte["categorie"] == "ACCEPTE"
-        assert etape_accepte["candidatures"] == []
-
-    def test_returns_404_for_unknown_recrutement(self, container, authenticated_client):
-        container.get_recrutement_kanban_usecase.return_value.execute.return_value = (
-            None
-        )
-
-        response = authenticated_client.get(UNKNOWN_RECRUTEMENT_KANBAN_URL)
-        assert response.status_code == status.HTTP_404_NOT_FOUND
-        assert response.json() == {"detail": "Not found."}
-
-    def test_returns_403_when_not_authorized(self, container, authenticated_client):
-        container.get_recrutement_kanban_usecase.return_value.execute.side_effect = (
-            AccesOrganismeRefuse(UUID(fake.uuid4()))
-        )
-
-        response = authenticated_client.get(RECRUTEMENT_KANBAN_URL)
-        assert response.status_code == status.HTTP_403_FORBIDDEN
-        assert response.json() == {"detail": "Forbidden."}
-
-    def test_returns_404_for_unknown_organisme(self, container, authenticated_client):
-        container.get_recrutement_kanban_usecase.return_value.execute.side_effect = (
-            OrganismeNexistePas("not found")
-        )
-
-        response = authenticated_client.get(RECRUTEMENT_KANBAN_URL)
-        assert response.status_code == status.HTTP_404_NOT_FOUND
-        assert response.json() == {"detail": "Not found."}
-
-    def test_returns_500_on_unexpected_error(self, container, authenticated_client):
-        container.get_recrutement_kanban_usecase.return_value.execute.side_effect = (
-            Exception("unexpected")
-        )
-
-        response = authenticated_client.get(RECRUTEMENT_KANBAN_URL)
-        assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
-        assert response.json() == {"error": "Unexpected error"}
-
 
 class TestRecrutementListeView:
     @pytest.fixture(autouse=True)
@@ -626,26 +495,6 @@ class TestRecrutementDetailViewDbVerified:
             "siret": organisme.siret,
         }
         assert len(data["etapes"]) == len(recrutement.ordre_etapes)
-
-
-class TestRecrutementKanbanViewDbVerified:
-    def test_returns_persisted_kanban(self, authenticated_client, test_user):
-        _, organisme = create_organisme_with_agent(
-            role=AgentOrganismeRole.SUPERVISEUR,
-            utilisateur=test_user,
-            id=UUID(ORGANISME_UUID),
-        )
-        offer = OfferDjangoFactory(id=UUID(RECRUTEMENT_UUID))
-        recrutement = RecrutementDjangoFactory(organisme=organisme, offre=offer)
-
-        response = authenticated_client.get(RECRUTEMENT_KANBAN_URL)
-
-        assert response.status_code == status.HTTP_200_OK
-        data = response.json()
-        assert data["offer_id"] == str(recrutement.offre_id)
-        assert len(data["etapes"]) == len(recrutement.ordre_etapes)
-        assert data["etapes"][0]["candidatures"] == []
-
 
 class TestRecrutementListeViewDbVerified:
     def test_returns_persisted_candidatures(self, authenticated_client, test_user):

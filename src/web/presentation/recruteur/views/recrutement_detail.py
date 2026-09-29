@@ -13,9 +13,6 @@ from application.recruteur.usecases.changer_etape_candidatures import (
 from application.recruteur.usecases.get_recrutement_detail import (
     GetRecrutementDetailQuery,
 )
-from application.recruteur.usecases.get_recrutement_kanban import (
-    GetRecrutementKanbanQuery,
-)
 from application.recruteur.usecases.get_recrutement_liste import (
     GetRecrutementListeQuery,
 )
@@ -37,7 +34,6 @@ from presentation.recruteur.serializers import (
     CandidatureListeSerializer,
     ChangerEtapeCandidaturesSerializer,
     ChangerEtapeResultatSerializer,
-    RecrutementDetailKanbanSerializer,
     RecrutementDetailSerializer,
 )
 
@@ -79,55 +75,6 @@ class RecrutementDetailView(APIView):
                 )
 
             serializer = RecrutementDetailSerializer(result)
-            return Response(serializer.data)
-        except OrganismePermissionError:
-            return Response({"detail": "Forbidden."}, status=status.HTTP_403_FORBIDDEN)
-        except OrganismeNexistePas:
-            return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
-        except Exception:
-            serializer = GenericErrorSerializer({"error": "Unexpected error"})
-            return Response(
-                serializer.data, status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
-
-
-@extend_schema(
-    summary="Détail d'un recrutement — vue kanban",
-    tags=["recruteur"],
-    responses={
-        200: RecrutementDetailKanbanSerializer,
-        401: TokenErrorSerializer,
-        403: GenericErrorSerializer,
-        404: GenericErrorSerializer,
-        500: GenericErrorSerializer,
-    },
-)
-class RecrutementKanbanView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.container = recruteur_container()
-        self.user_mapper = UtilisateurMapper()
-
-    def get(
-        self, request: Request, organisme_uuid: UUID, recrutement_uuid: UUID
-    ) -> Response:
-        try:
-            usecase = self.container.get_recrutement_kanban_usecase()
-            result = usecase.execute(
-                GetRecrutementKanbanQuery(
-                    organisme_id=organisme_uuid,
-                    recrutement_id=recrutement_uuid,
-                    utilisateur=self.user_mapper.to_domain(request),
-                )
-            )
-            if result is None:
-                return Response(
-                    {"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND
-                )
-
-            serializer = RecrutementDetailKanbanSerializer(result)
             return Response(serializer.data)
         except OrganismePermissionError:
             return Response({"detail": "Forbidden."}, status=status.HTTP_403_FORBIDDEN)

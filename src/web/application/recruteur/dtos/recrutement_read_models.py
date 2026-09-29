@@ -80,22 +80,6 @@ class OrganismeRecruteurDto:
 
 
 @dataclass(frozen=True, kw_only=True)
-class CandidatureKanbanDto:
-    uuid: UUID
-    date_soumission: datetime
-    date_derniere_activite: datetime
-    candidat: CandidatDto
-
-
-@dataclass(frozen=True, kw_only=True)
-class EtapeKanbanReadModel:
-    etape_uuid: UUID
-    nom: str
-    categorie: str
-    candidatures: list[CandidatureKanbanDto]
-
-
-@dataclass(frozen=True, kw_only=True)
 class RecrutementDetailReadModel:
     offer_id: UUID
     intitule: str
@@ -105,9 +89,3 @@ class RecrutementDetailReadModel:
     organisme_recruteur: OrganismeRecruteurDto
     categorie_offre: str
     etapes: list[EtapeDto]
-
-
-@dataclass(frozen=True, kw_only=True)
-class RecrutementKanbanReadModel:
-    offer_id: UUID
-    etapes: list[EtapeKanbanReadModel]

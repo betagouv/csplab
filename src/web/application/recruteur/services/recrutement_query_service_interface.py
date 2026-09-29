@@ -8,7 +8,6 @@ from application.recruteur.dtos.recrutement_read_models import (
     RecrutementActifsReadModel,
     RecrutementArchivesReadModel,
     RecrutementDetailReadModel,
-    RecrutementKanbanReadModel,
 )
 
 
@@ -25,6 +24,3 @@ class IRecrutementQueryService(Protocol):
     def get_detail_by_recrutement(
         self, organisme_id: UUID, recrutement_id: UUID
     ) -> RecrutementDetailReadModel | None: ...
-    def get_kanban_by_recrutement(
-        self, organisme_id: UUID, recrutement_id: UUID
-    ) -> RecrutementKanbanReadModel | None: ...

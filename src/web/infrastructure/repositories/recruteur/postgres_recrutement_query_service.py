@@ -6,17 +6,14 @@ from django.db.models import Count, Max, Prefetch, Q
 
 from application.recruteur.dtos.recrutement_read_models import (
     CandidatDto,
-    CandidatureKanbanDto,
     CandidatureListeReadModel,
     CandidaturesCompteurDto,
     EtapeDto,
-    EtapeKanbanReadModel,
     LocalisationDto,
     OrganismeRecruteurDto,
     RecrutementActifsReadModel,
     RecrutementArchivesReadModel,
     RecrutementDetailReadModel,
-    RecrutementKanbanReadModel,
     ResponsableDto,
 )
 from application.recruteur.services.recrutement_query_service_interface import (
@@ -260,64 +257,6 @@ class PostgresRecrutementQueryService(IRecrutementQueryService):
                     etape_uuid=etape.id,
                     nom=etape.nom,
                     categorie=CategorieEtapeRecrutement(etape.categorie).name,
-                )
-                for etape in etapes_ordonnees
-            ],
-        )
-
-    def get_kanban_by_recrutement(
-        self, organisme_id: UUID, recrutement_id: UUID
-    ) -> RecrutementKanbanReadModel | None:
-        recrutement = (
-            RecrutementModel.objects.filter(
-                pk=recrutement_id, organisme_id=organisme_id
-            )
-            .prefetch_related(
-                Prefetch(
-                    "etapes",
-                    queryset=EtapeModel.objects.prefetch_related(
-                        Prefetch(
-                            "candidatures",
-                            queryset=CandidatureModel.objects.select_related(
-                                "candidat__utilisateur"
-                            ).order_by("created_at"),
-                        )
-                    ),
-                )
-            )
-            .first()
-        )
-        if recrutement is None:
-            return None
-
-        etapes_by_id = {str(etape.id): etape for etape in recrutement.etapes.all()}
-        etapes_ordonnees = [
-            etapes_by_id[etape_id]
-            for etape_id in recrutement.ordre_etapes
-            if etape_id in etapes_by_id
-        ]
-
-        return RecrutementKanbanReadModel(
-            offer_id=recrutement.offre_id,
-            etapes=[
-                EtapeKanbanReadModel(
-                    etape_uuid=etape.id,
-                    nom=etape.nom,
-                    categorie=CategorieEtapeRecrutement(etape.categorie).name,
-                    candidatures=[
-                        CandidatureKanbanDto(
-                            uuid=candidature.id,
-                            date_soumission=candidature.created_at,
-                            date_derniere_activite=candidature.updated_by_recruteur
-                            or candidature.updated_at,
-                            candidat=CandidatDto(
-                                uuid=candidature.candidat_id,
-                                nom=candidature.candidat.utilisateur.last_name,
-                                prenom=candidature.candidat.utilisateur.first_name,
-                            ),
-                        )
-                        for candidature in etape.candidatures.all()
-                    ],
                 )
                 for etape in etapes_ordonnees
             ],
