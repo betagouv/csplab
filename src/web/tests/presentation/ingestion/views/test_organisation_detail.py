@@ -1,4 +1,3 @@
-import pytest
 from django.urls import reverse
 from rest_framework import status
 
@@ -14,61 +13,46 @@ def _url(entity_code):
     )
 
 
-@pytest.mark.django_db
-def test_returns_talentsoft_organisation(authenticated_client):
-    TalentsoftOrganismeDjangoFactory(
-        entity_code="ENT-1",
-        code=1,
-        name="Commune de Paris",
-        description="Description de la commune",
-        url="https://paris.fr",
-        phone_number="0102030405",
-        post_code="75001",
-        latitude=48.8566,
-        longitude=2.3522,
-        parent_name="Métropole du Grand Paris",
-        logo_url="https://paris.fr/logo.png",
-        max_delay_for_consent=30,
-        retention_period=24,
-        general_conditions="Conditions générales",
-        personal_data_consent="Consentement",
-    )
+def test_returns_talentsoft_organisation(db, authenticated_client):
+    ts_organisme = TalentsoftOrganismeDjangoFactory()
 
-    response = authenticated_client.get(_url("ENT-1"))
+    response = authenticated_client.get(_url(ts_organisme.entity_code))
 
     assert response.status_code == status.HTTP_200_OK
     assert response.json() == {
-        "entityCode": "ENT-1",
-        "name": "Commune de Paris",
-        "description": "Description de la commune",
-        "url": "https://paris.fr",
-        "phoneNumber": "0102030405",
-        "postCode": "75001",
-        "geolocation": {"latitude": 48.8566, "longitude": 2.3522},
-        "parentName": "Métropole du Grand Paris",
-        "logoUrl": "https://paris.fr/logo.png",
-        "maxDelayForConsent": 30,
-        "retentionPeriod": 24,
-        "generalConditions": "Conditions générales",
-        "personalDataConsent": "Consentement",
+        "entityCode": ts_organisme.entity_code,
+        "name": ts_organisme.name,
+        "description": ts_organisme.description,
+        "url": ts_organisme.url,
+        "phoneNumber": ts_organisme.phone_number,
+        "postCode": ts_organisme.post_code,
+        "geolocation": {
+            "latitude": ts_organisme.latitude,
+            "longitude": ts_organisme.longitude,
+        },
+        "parentName": ts_organisme.parent_name,
+        "logoUrl": ts_organisme.logo_url,
+        "maxDelayForConsent": ts_organisme.max_delay_for_consent,
+        "retentionPeriod": ts_organisme.retention_period,
+        "generalConditions": ts_organisme.general_conditions,
+        "personalDataConsent": ts_organisme.personal_data_consent,
     }
 
 
-@pytest.mark.django_db
-def test_geolocation_is_null_without_coordinates(authenticated_client):
-    TalentsoftOrganismeDjangoFactory(entity_code="ENT-1")
+def test_geolocation_is_null_without_coordinates(db, authenticated_client):
+    ts_organisme = TalentsoftOrganismeDjangoFactory(latitude=None, longitude=None)
 
-    response = authenticated_client.get(_url("ENT-1"))
+    response = authenticated_client.get(_url(ts_organisme.entity_code))
 
     assert response.status_code == status.HTTP_200_OK
     assert response.json()["geolocation"] is None
 
 
-@pytest.mark.django_db
-def test_unknown_organisation_returns_404(authenticated_client):
+def test_unknown_organisation_returns_404(db, authenticated_client):
     response = authenticated_client.get(_url("UNKNOWN"))
 
     assert response.status_code == status.HTTP_404_NOT_FOUND
+    assert response.json() == {"error": "Organisation inconnue : UNKNOWN."}
 
 
 def test_unauthenticated_access(api_client):
@@ -77,11 +61,10 @@ def test_unauthenticated_access(api_client):
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
 
-@pytest.mark.django_db
-def test_response_matches_openapi_schema(authenticated_client):
-    TalentsoftOrganismeDjangoFactory(entity_code="ENT-1")
+def test_response_matches_openapi_schema(db, authenticated_client):
+    ts_organisme = TalentsoftOrganismeDjangoFactory()
 
-    response = authenticated_client.get(_url("ENT-1"))
+    response = authenticated_client.get(_url(ts_organisme.entity_code))
 
     assert_matches_openapi_schema(
         response.json(), "/api/fake-ts/organisation/{entity_code}", method="get"
