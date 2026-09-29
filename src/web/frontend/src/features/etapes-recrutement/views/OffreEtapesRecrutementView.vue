@@ -35,7 +35,7 @@ const recrutementsListLink = computed(() =>
 )
 
 const candidaturesRoute = computed(() => ({
-  name: 'recrutement-candidatures-kanban',
+  name: 'recrutement-candidatures',
   params: { organismeUuid, recrutementUuid },
 }))
 

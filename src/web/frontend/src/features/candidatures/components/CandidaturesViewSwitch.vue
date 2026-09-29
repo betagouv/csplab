@@ -1,23 +1,16 @@
 <script setup lang="ts">
+import type { CandidaturesViewName } from '../composables/useCandidaturesView'
 import type { CspSegmentedControlOption } from '@/components/base/CspSegmentedControl/CspSegmentedControl.vue'
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import CspSegmentedControl from '@/components/base/CspSegmentedControl/CspSegmentedControl.vue'
-
-export type CandidaturesViewName = 'liste' | 'kanban'
+import { candidaturesViewQuery } from '../composables/useCandidaturesView'
 
 const props = defineProps<{
-  organismeUuid: string
-  recrutementUuid: string
   current: CandidaturesViewName
 }>()
 
 const router = useRouter()
-
-const ROUTE_BY_VIEW: Record<CandidaturesViewName, string> = {
-  kanban: 'recrutement-candidatures-kanban',
-  liste: 'recrutement-candidatures',
-}
 
 const OPTIONS: CspSegmentedControlOption<CandidaturesViewName>[] = [
   { value: 'kanban', label: 'Kanban', icon: 'ri:table-line' },
@@ -29,10 +22,7 @@ const view = computed({
   set: (value) => {
     if (value === props.current)
       return
-    void router.push({
-      name: ROUTE_BY_VIEW[value],
-      params: { organismeUuid: props.organismeUuid, recrutementUuid: props.recrutementUuid },
-    })
+    void router.push({ query: candidaturesViewQuery(value) })
   },
 })
 </script>

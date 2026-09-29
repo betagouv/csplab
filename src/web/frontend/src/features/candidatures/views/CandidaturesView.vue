@@ -22,9 +22,12 @@ import ForbiddenView from '@/views/ForbiddenView.vue'
 import CandidaturesFiltersDrawer from '../components/CandidaturesFiltersDrawer.vue'
 import CandidaturesViewSwitch from '../components/CandidaturesViewSwitch.vue'
 import { useCandidatures } from '../composables/useCandidatures'
+import { useCandidaturesView } from '../composables/useCandidaturesView'
 import { CANDIDATURE_TAB_ICONS, CANDIDATURE_TAB_LABELS } from '../constants/candidature'
 import { formatRecrutementMeta } from '../format'
 import { CANDIDATURES_TAB_ROUTE_NAMES } from '../routes'
+import CandidaturesKanbanView from './CandidaturesKanbanView.vue'
+import CandidaturesListeView from './CandidaturesListeView.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -92,9 +95,7 @@ const isNotFound = computed(() =>
   !pendingDetail.value && !error.value && !recrutementDetail.value,
 )
 
-const currentView = computed(() => {
-  return route.matched.some(record => record.name === 'recrutement-candidatures-kanban') ? 'kanban' : 'liste'
-})
+const currentView = useCandidaturesView()
 
 const headerMenuSections = [{
   items: [{
@@ -187,6 +188,8 @@ const activeTab = useRouteTab(CANDIDATURES_TAB_ROUTE_NAMES, 'candidatures')
               @click="openFilters"
             />
           </CspTableToolbar>
+          <CandidaturesKanbanView v-if="currentView === 'kanban'" />
+          <CandidaturesListeView v-else />
           <router-view />
           <CandidaturesFiltersDrawer
             v-model:open="isFiltersDrawerOpen"

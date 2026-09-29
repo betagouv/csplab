@@ -17,8 +17,7 @@ describe('organisme scoped routes', () => {
     [`/organismes/${ORGANISME_UUID}/etapes`, 'organisme-etapes'],
     [`/organismes/${ORGANISME_UUID}/recrutements`, 'recrutements'],
     [`/organismes/${ORGANISME_UUID}/recrutements/archives`, 'recrutements-archives'],
-    [`/organismes/${ORGANISME_UUID}/recrutements/${RECRUTEMENT_UUID}`, 'recrutement-candidatures-kanban'],
-    [`/organismes/${ORGANISME_UUID}/recrutements/${RECRUTEMENT_UUID}/liste`, 'recrutement-candidatures'],
+    [`/organismes/${ORGANISME_UUID}/recrutements/${RECRUTEMENT_UUID}`, 'recrutement-candidatures'],
     [`/organismes/${ORGANISME_UUID}/recrutements/${RECRUTEMENT_UUID}/candidatures/${CANDIDATURE_UUID}`, 'recrutement-candidature'],
     [`/organismes/${ORGANISME_UUID}/recrutements/${RECRUTEMENT_UUID}/activites`, 'recrutement-activites'],
     [`/organismes/${ORGANISME_UUID}/recrutements/${RECRUTEMENT_UUID}/equipe`, 'recrutement-equipe'],
@@ -33,9 +32,9 @@ describe('organisme scoped routes', () => {
       .toBe('archives')
   })
 
-  it('renders the candidature panel inside the kanban route', () => {
+  it('renders the candidature panel inside the candidatures route', () => {
     const route = resolve(`/organismes/${ORGANISME_UUID}/recrutements/${RECRUTEMENT_UUID}/candidatures/${CANDIDATURE_UUID}`)
-    expect(route.matched.map(record => record.name)).toContain('recrutement-candidatures-kanban')
+    expect(route.matched.map(record => record.name)).toContain('recrutement-candidatures')
     expect(route.params.candidatureUuid).toBe(CANDIDATURE_UUID)
   })
 

@@ -19,7 +19,6 @@ function recrutementsItem(organismeUuid: string): NavItem {
     match: [
       ...Object.values(RECRUTEMENTS_TAB_ROUTE_NAMES),
       ...Object.values(CANDIDATURES_TAB_ROUTE_NAMES),
-      'recrutement-candidatures',
       'recrutement-etapes-recrutement',
     ],
   }
