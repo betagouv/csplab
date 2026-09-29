@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import CspDataTable from '@/components/base/CspDataTable/CspDataTable.vue'
 import CspSkeleton from '@/components/base/CspSkeleton/CspSkeleton.vue'
 import CspSkeletonTable from '@/components/base/CspSkeleton/CspSkeletonTable.vue'
@@ -7,11 +8,23 @@ import { useMinimumPending } from '@/composables/async/useMinimumPending'
 import { pluralize } from '@/utils/format'
 import { CANDIDATURE_LISTE_COLUMNS } from '../columns'
 import { useCandidatures } from '../composables/useCandidatures'
+import { CANDIDATURE_ROUTE_NAME } from '../routes'
+
+const route = useRoute()
+const router = useRouter()
 
 const { pendingCandidatures, filters } = useCandidatures()
 const { filteredCandidatures } = filters
 
 const showSkeleton = useMinimumPending(pendingCandidatures)
+
+function openCandidature(candidatureUuid: string): void {
+  void router.push({
+    name: CANDIDATURE_ROUTE_NAME,
+    params: { ...route.params, candidatureUuid },
+    query: route.query,
+  })
+}
 
 const PAGE_SIZE = 6
 const candidatureListePage = ref(1)
@@ -61,6 +74,7 @@ const countLabel = computed(() => {
       caption="Candidatures"
       empty-label="Aucune candidature"
       :page-size="PAGE_SIZE"
+      @activate="openCandidature"
     />
   </div>
 </template>
