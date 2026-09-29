@@ -11,9 +11,11 @@ import CspSkeleton from '@/components/base/CspSkeleton/CspSkeleton.vue'
 import CspTabs from '@/components/base/CspTabs/CspTabs.vue'
 import CspTabsList from '@/components/base/CspTabs/CspTabsList.vue'
 import CspTabsPanels from '@/components/base/CspTabs/CspTabsPanels.vue'
+import CspUnsavedChangesDialog from '@/components/base/CspUnsavedChangesDialog/CspUnsavedChangesDialog.vue'
 import { useMinimumPending } from '@/composables/async/useMinimumPending'
 import { tabItems } from '@/composables/navigation/tabs'
 import { useRouteTab } from '@/composables/navigation/useRouteTab'
+import { useUnsavedChangesGuard } from '@/composables/navigation/useUnsavedChanges'
 import MessagesSection from '@/features/messages/components/MessagesSection.vue'
 import { formatElapsedDays } from '@/utils/date'
 import CandidatureCv from '../components/CandidatureCv.vue'
@@ -80,7 +82,16 @@ function close(): void {
   })
 }
 
+const unsavedChanges = useUnsavedChangesGuard({
+  ignore: to => to.params.candidatureUuid === candidatureUuid.value,
+})
+
 const etapeChange = useEtapeChange(candidatureUuid, close)
+
+async function requestEtapeChange(targetEtapeUuid: string): Promise<void> {
+  if (await unsavedChanges.confirmLeave())
+    etapeChange.request(targetEtapeUuid)
+}
 
 function handleUpdateOpen(open: boolean): void {
   if (!open)
@@ -104,7 +115,7 @@ function handleUpdateOpen(open: boolean): void {
       <ChangerEtapePopover
         :etapes="etapeChange.etapes.value"
         :current-etape-uuid="etape.etape_uuid"
-        @confirm="etapeChange.request"
+        @confirm="requestEtapeChange"
       />
     </template>
 
@@ -207,7 +218,7 @@ function handleUpdateOpen(open: boolean): void {
               </template>
             </CspTabsPanels>
             <aside
-              v-if="showAside"
+              v-show="showAside"
               class="candidature-panel__aside"
               aria-label="Suivi de la candidature"
             >
@@ -249,6 +260,12 @@ function handleUpdateOpen(open: boolean): void {
     :motifs-unavailable="etapeChange.refus.motifsUnavailable.value"
     @confirm="etapeChange.refus.confirm"
     @cancel="etapeChange.refus.cancel"
+  />
+
+  <CspUnsavedChangesDialog
+    :open="unsavedChanges.isConfirming.value"
+    @keep-editing="unsavedChanges.keepEditing"
+    @leave="unsavedChanges.leave"
   />
 </template>
 
