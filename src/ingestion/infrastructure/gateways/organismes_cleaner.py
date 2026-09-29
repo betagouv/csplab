@@ -22,8 +22,11 @@ logger = logging.getLogger(__name__)
 _DATA_DIR = Path(__file__).resolve().parent.parent.parent / "data"
 # From https://smt.esante.gouv.fr/fhir/CodeSystem/tre-r397-categorie-entite-geographique-exercice
 _CATEGORIES_CSV = _DATA_DIR / "categories_entite_geographique_exercice.csv"
-# Codes "publics" (famille 1xxx) de
+# Codes des établissements publics de santé (10 à 16) et des établissements
+# publics sociaux et médico-sociaux (18 à 23) de
 # https://smt.esante.gouv.fr/fhir/CodeSystem/tre-r400-finess-statut-juridique
+# Les autres statuts publics (collectivités, CCAS, CIAS, GCS, GIP…) relèvent
+# d'autres versants ou ne sont pas des employeurs FPH.
 _STATUTS_JURIDIQUES_PUBLICS_CSV = _DATA_DIR / "statuts_juridiques_publics.csv"
 
 _MAX_LONGITUDE_DEGREES = 180
