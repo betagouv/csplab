@@ -105,6 +105,14 @@ export async function getCandidatureDocuments(candidature: CandidatureParams): P
   return data!
 }
 
+export async function checkCandidatureDocument(candidature: CandidatureParams, documentUuid: string): Promise<void> {
+  const { response } = await api.GET(
+    '/recruteur/organismes/{organisme_uuid}/recrutements/{recrutement_uuid}/candidatures/{candidature_uuid}/documents/{document_uuid}',
+    { params: { path: { ...candidaturePath(candidature), document_uuid: documentUuid } }, parseAs: 'stream' },
+  )
+  await response.body?.cancel()
+}
+
 export function candidatureDocumentUrl(
   { organismeUuid, recrutementUuid, candidatureUuid }: CandidatureParams,
   documentUuid: string,

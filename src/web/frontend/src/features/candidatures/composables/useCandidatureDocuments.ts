@@ -3,7 +3,7 @@ import type { CandidatureParams, DocumentListe } from '../types'
 import { useQuery } from '@pinia/colada'
 import { computed, toValue } from 'vue'
 import { candidatureDocumentUrl } from '../api'
-import { candidatureDocumentsQuery } from '../queries'
+import { candidatureDocumentCheckQuery, candidatureDocumentsQuery } from '../queries'
 
 const PDF_CONTENT_TYPE = 'application/pdf'
 
@@ -24,5 +24,20 @@ export function useCandidatureDocuments(candidature: MaybeRefOrGetter<Candidatur
     pending: computed(() => query.isPending.value),
     error: computed(() => query.error.value),
     pdfUrl,
+  }
+}
+
+export function useCandidatureDocumentCheck(
+  candidature: MaybeRefOrGetter<CandidatureParams>,
+  documentUuid: MaybeRefOrGetter<string | null>,
+) {
+  const query = useQuery(() => ({
+    ...candidatureDocumentCheckQuery({ candidature: toValue(candidature), documentUuid: toValue(documentUuid) ?? '' }),
+    enabled: toValue(documentUuid) !== null,
+  }))
+
+  return {
+    pending: computed(() => toValue(documentUuid) !== null && query.isPending.value),
+    error: computed(() => query.error.value),
   }
 }
