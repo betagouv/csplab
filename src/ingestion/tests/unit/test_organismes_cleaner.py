@@ -150,6 +150,52 @@ def test_keeps_public_statut_juridique(cleaner: OrganismesCleaner):
     assert organisme is not None
 
 
+@pytest.fixture
+def default_statuts_cleaner(categories_csv: Path) -> OrganismesCleaner:
+    return OrganismesCleaner(
+        categories_csv_path=categories_csv,
+        dila_siret_lookup_max_age_days=DILA_SIRET_LOOKUP_MAX_AGE_DAYS,
+    )
+
+
+@pytest.mark.parametrize(
+    "statut_juridique",
+    [
+        "11",  # Etablissement Public Départemental d'Hospitalisation
+        "13",  # Etablissement Public Communal d'Hospitalisation
+        "16",  # Syndicat Inter Hospitalier
+        "19",  # Etablissement Social et Médico-Social Départemental
+        "21",  # Etablissement Social et Médico-Social Communal
+    ],
+)
+def test_default_statuts_keep_fph_employeurs(
+    default_statuts_cleaner: OrganismesCleaner, statut_juridique: str
+):
+    raw_organisme = _raw_organisme(_ege(statut_juridique=statut_juridique))
+
+    assert default_statuts_cleaner.clean(raw_organisme) is not None
+
+
+@pytest.mark.parametrize(
+    "statut_juridique",
+    [
+        "02",  # Département
+        "03",  # Commune
+        "08",  # Centre Intercommunal d'Action Sociale
+        "17",  # Centre Communal d'Action Sociale
+        "26",  # Autre Etablissement Public à Caractère Administratif
+        "28",  # Groupement d'Intérêt Public (G.I.P.)
+        "29",  # Groupement de Coopération Sanitaire public
+    ],
+)
+def test_default_statuts_filter_out_non_fph_publics(
+    default_statuts_cleaner: OrganismesCleaner, statut_juridique: str
+):
+    raw_organisme = _raw_organisme(_ege(statut_juridique=statut_juridique))
+
+    assert default_statuts_cleaner.clean(raw_organisme) is None
+
+
 def test_filters_out_non_active_etat_objet(cleaner: OrganismesCleaner):
     raw_organisme = _raw_organisme(_ege(etat_objet="I"))
 
