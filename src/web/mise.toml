@@ -30,7 +30,7 @@ run = "uv run -q --project ../../libs/scaleway_secrets python -m scaleway_secret
 [tasks.dev]
 alias = "web:dev"
 description = "Django dev server (HOST and PORT override the 127.0.0.1:8000 default)"
-depends = ["install:py", "//:services:postgres"]
+depends = ["install:py", "//:services:postgres", "//:services:redis", "//:services:rustfs"]
 shell = "bash -c"
 run = """
 python manage.py runserver "${HOST:-127.0.0.1}:${PORT:-8000}"
@@ -51,7 +51,7 @@ python manage.py runserver
 [tasks.huey]
 alias = "web:huey"
 description = "Huey task queue"
-depends = ["install:py", "//:services:postgres"]
+depends = ["install:py", "//:services:postgres", "//:services:redis"]
 run = "python manage.py run_huey"
 
 [tasks.migrate]
@@ -87,7 +87,7 @@ run = "bin/restore-web-db"
 [tasks.seed]
 alias = "web:seed"
 description = "Seed the demo dataset (idempotent, -- --force to reseed)"
-depends = ["migrate"]
+depends = ["migrate", "s3:init"]
 run = "python manage.py seed_recruteur_datas"
 
 [tasks."db:reset"]
@@ -105,7 +105,7 @@ mise run '//src/web:seed'
 [tasks.emulate-prod]
 alias = "web:emulate-prod"
 description = "Emulate production: frontend build + collectstatic + runserver :8001"
-depends = ["install:py", "//src/web/frontend:build", "//:services:postgres"]
+depends = ["install:py", "//src/web/frontend:build", "//:services:postgres", "//:services:redis", "//:services:rustfs"]
 env = { DJANGO_SETTINGS_MODULE = "config.settings.base", WEB_ALLOWED_HOSTS = "localhost,127.0.0.1" }
 run = [
   "python manage.py collectstatic --noinput --clear",
@@ -115,21 +115,21 @@ run = [
 [tasks.test]
 alias = "web:test"
 description = "Backend tests (e2e and accessibility excluded)"
-depends = ["install:py", "//:services:postgres"]
+depends = ["install:py", "//:services:postgres", "//:services:redis", "//:services:rustfs"]
 env = { _.file = "env.test" }
 run = "pytest --numprocesses=logical --create-db -m 'not accessibility and not e2e' --no-cov"
 
 [tasks."test:e2e"]
 alias = "web:test:e2e"
 description = "Playwright e2e tests (live_server + browser, rebuilds the frontend when needed)"
-depends = ["install:py", "//src/web/frontend:build", "//:services:postgres"]
+depends = ["install:py", "//src/web/frontend:build", "//:services:postgres", "//:services:redis"]
 env = { _.file = "env.test" }
 run = "pytest -m e2e --no-cov"
 
 [tasks."test:a11y"]
 alias = "web:test:a11y"
 description = "Accessibility tests (Playwright + axe)"
-depends = ["install:py", "//:services:postgres"]
+depends = ["install:py", "//:services:postgres", "//:services:redis"]
 env = { _.file = "env.test" }
 run = "pytest -m accessibility --create-db --no-cov"
 
@@ -229,7 +229,7 @@ run = [
 [tasks."test:cov"]
 alias = "web:test:cov"
 description = "Web tests with an HTML coverage report"
-depends = ["install:py", "//:services:postgres"]
+depends = ["install:py", "//:services:postgres", "//:services:redis", "//:services:rustfs"]
 env = { _.file = "env.test" }
 run = [
   "mkdir -p tests/cov_html",
