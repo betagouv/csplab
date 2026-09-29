@@ -6,6 +6,7 @@ from pydantic import EmailStr
 from application.identite.context_services.organisme_permission_service import (
     OrganismePermissionService,
 )
+from domain.commons.services.audit_log_writer import AuditLogWriter
 from domain.identite.entities.agent import Agent
 from domain.identite.entities.utilisateurs import Utilisateur
 from domain.identite.errors.agent_errors import ProfilAgentExisteDeja
@@ -31,10 +32,12 @@ class CreateAgentUsecase:
         agent_repository: IAgentRepository,
         utilisateur_repository: IUtilisateurRepository,
         permission_service: OrganismePermissionService,
+        audit_log_writer: AuditLogWriter,
     ):
         self.agent_repository = agent_repository
         self.utilisateur_repository = utilisateur_repository
         self.permission_service = permission_service
+        self.audit_log_writer = audit_log_writer
 
     def can_execute(self, input_data: CreateAgentInput) -> None:
         self.permission_service.can_execute(
@@ -64,4 +67,11 @@ class CreateAgentUsecase:
             user_id=agent_utilisateur.entity_id,
         )
 
-        return self.agent_repository.create(agent_utilisateur, agent)
+        created = self.agent_repository.create(agent_utilisateur, agent)
+        self.audit_log_writer.log_action(
+            utilisateur_id=input_data.utilisateur.entity_id,
+            entity=created,
+            ressource_kind="Agent",
+            event_name="ProfilAgentCree",
+        )
+        return created
