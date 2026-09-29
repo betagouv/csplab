@@ -1,0 +1,24 @@
+name: Create Sentry release
+description: Create a production Sentry release for the current commit. Never fails the job, so a Sentry outage doesn't block a deploy. Requires actions/checkout to have run first with fetch-depth 0.
+
+inputs:
+  project:
+    description: Sentry project slug (e.g. csplab-web)
+    required: true
+  auth-token:
+    description: Sentry auth token
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Create Sentry release
+      continue-on-error: true
+      uses: getsentry/action-release@v3
+      env:
+        SENTRY_AUTH_TOKEN: ${{ inputs.auth-token }}
+        SENTRY_ORG: betagouv
+        SENTRY_PROJECT: ${{ inputs.project }}
+        SENTRY_URL: https://sentry.incubateur.net
+      with:
+        environment: production
