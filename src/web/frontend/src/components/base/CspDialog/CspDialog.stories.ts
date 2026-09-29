@@ -221,18 +221,16 @@ const meta = {
         </p>
 
         <template #footer>
-          <div class="flex gap-3">
-            <CspButton
-              label="Annuler"
-              variant="secondary"
-              @click="handleUpdateOpen(false)"
-            />
-            <CspButton
-              label="Confirmer"
-              variant="primary"
-              @click="handleUpdateOpen(false)"
-            />
-          </div>
+          <CspButton
+            label="Annuler"
+            variant="secondary"
+            @click="handleUpdateOpen(false)"
+          />
+          <CspButton
+            label="Confirmer"
+            variant="primary"
+            @click="handleUpdateOpen(false)"
+          />
         </template>
       </CspDialog>
     `,

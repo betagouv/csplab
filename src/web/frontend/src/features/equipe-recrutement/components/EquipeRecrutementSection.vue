@@ -242,18 +242,16 @@ const countLabel = computed(() => {
       </template>
 
       <template #footer>
-        <div class="equipe-recrutement-section__dialog-actions">
-          <CspButton
-            label="Annuler"
-            variant="secondary"
-            @click="revocationDialogOpen = false"
-          />
-          <CspButton
-            label="Retirer de l’équipe"
-            :disabled="revoking"
-            @click="handleRevocation"
-          />
-        </div>
+        <CspButton
+          label="Annuler"
+          variant="secondary"
+          @click="revocationDialogOpen = false"
+        />
+        <CspButton
+          label="Retirer de l’équipe"
+          :disabled="revoking"
+          @click="handleRevocation"
+        />
       </template>
     </CspDialog>
   </section>
@@ -291,11 +289,5 @@ const countLabel = computed(() => {
 
 .equipe-recrutement-section__empty-title {
   margin: 0;
-}
-
-.equipe-recrutement-section__dialog-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: var(--csp-space-3);
 }
 </style>
