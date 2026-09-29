@@ -49,22 +49,29 @@ class PostgresOffersRepository(IIngestionOffersRepository):
         self.mapper = mapper
 
     def upsert_batch(self, offers_list: List[Offer]) -> IUpsertResult:
+        if not offers_list:
+            return {"created": 0, "updated": 0, "errors": []}
+
         try:
+            source_ids = {offer.source_id for offer in offers_list}
+            if len(source_ids) > 1:
+                raise ValueError(f"Batch with multiple sources: {source_ids}")
+            (source_id,) = source_ids
+
             with transaction.atomic():
                 existing_models = list(
                     OfferModel.objects.filter(
+                        source_id=source_id,
                         reference__in={offer.reference for offer in offers_list},
-                        source_id__in={offer.source_id for offer in offers_list},
                     ).select_for_update(of=("self",))
                 )
                 existing_models_map = {
-                    (model.reference, model.source_id): model
-                    for model in existing_models
+                    model.reference: model for model in existing_models
                 }
 
                 partitioned: Dict[str, List[Offer]] = {"new": [], "existing": []}
                 for offer in offers_list:
-                    if (offer.reference, offer.source_id) in existing_models_map:
+                    if offer.reference in existing_models_map:
                         partitioned["existing"].append(offer)
                     else:
                         partitioned["new"].append(offer)
@@ -81,9 +88,7 @@ class PostgresOffersRepository(IIngestionOffersRepository):
                 if partitioned["existing"]:
                     models_to_update = []
                     for offer in partitioned["existing"]:
-                        existing_model = existing_models_map[
-                            (offer.reference, offer.source_id)
-                        ]
+                        existing_model = existing_models_map[offer.reference]
                         updated_model = self.mapper.from_domain(offer)
                         updated_model.id = existing_model.id
                         updated_model.updated_at = timezone.make_aware(datetime.now())
