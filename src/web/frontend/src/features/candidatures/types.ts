@@ -1,17 +1,7 @@
 import type { components } from '@/types/api'
 
-export interface Candidature {
-  uuid: string
-  date_soumission: string
-  date_derniere_activite: string
-  candidat: Candidat
-}
-
-export interface EtapeRecrutementDetailedCandidatures {
-  etape_uuid: string
-  nom: string
-  categorie: EtapeRecrutement['categorie']
-  candidatures: Candidature[]
+export type EtapeRecrutementDetailedCandidatures = EtapeRecrutement & {
+  candidatures: CandidatureListe[]
 }
 
 export type Candidat = components['schemas']['Candidat']
@@ -43,9 +33,3 @@ export type PaginatedDocumentListeList = components['schemas']['PaginatedDocumen
 export type Note = components['schemas']['Note']
 
 export type PaginatedNoteList = components['schemas']['PaginatedNoteList']
-
-export interface CandidatureParams {
-  organismeUuid: string
-  recrutementUuid: string
-  candidatureUuid: string
-}

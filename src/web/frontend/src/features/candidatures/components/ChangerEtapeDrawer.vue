@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Candidature, EtapeRecrutement, EtapeRecrutementDetailedCandidatures } from '../types'
+import type { CandidatureListe, EtapeRecrutement, EtapeRecrutementDetailedCandidatures } from '../types'
 import { RadioGroupIndicator, RadioGroupItem, RadioGroupRoot } from 'reka-ui'
 import { computed, ref, watch } from 'vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
@@ -42,7 +42,7 @@ function handleConfirm(): void {
   }
 }
 
-function getCandidatName(candidature: Candidature): string {
+function getCandidatName(candidature: CandidatureListe): string {
   const candidat = candidature.candidat
   return `${candidat.prenom} ${candidat.nom}`
 }
