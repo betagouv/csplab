@@ -30,6 +30,9 @@ from referentiel.value_objects.verse import Verse
 from domain.ingestion.repositories.ingestion_offers_repository_interface import (
     IIngestionOffersRepository,
 )
+from infrastructure.django_apps.ingestion.models.talentsoft_organisme import (
+    TalentsoftOrganismeModel,
+)
 from infrastructure.django_apps.referentiel.models.offer import OfferModel
 from infrastructure.mappers.offer_mapper import OfferMapper
 from infrastructure.mappers.queryset_page import QuerySetPage
@@ -233,9 +236,15 @@ class PostgresOffersRepository(IIngestionOffersRepository):
                 ("country__in", country, str),
                 ("area__in", area, lambda a: a.value),
                 ("functional_area_code__in", domain, str),
-                ("organization__in", organization, str),
             ],
         )
+
+        if organization:
+            qs = qs.filter(
+                talentsoft_organisme_entity_code__in=TalentsoftOrganismeModel.objects.with_descendants_of(
+                    organization
+                ).values("entity_code")
+            )
 
         if published_within_days is not None:
             since = timezone.now() - timedelta(days=abs(published_within_days))

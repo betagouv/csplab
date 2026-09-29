@@ -277,10 +277,9 @@ critères suivants :
 - `pays` — un ou plusieurs codes pays alpha-3 (ex. `FRA,BEL`)
 - `zone` — une ou plusieurs zones géographiques (ex. `EUROPE,ASIE`)
 - `domaine` — un ou plusieurs codes de domaine fonctionnel (ex. `NUM,ACH`)
-- `organisme` — un ou plusieurs noms d'organisme (nom exact). Répéter le
-  paramètre pour filtrer sur plusieurs organismes (ex.
-  `?organisme=Foo&organisme=Bar`), ne pas séparer les valeurs par une
-  virgule, le nom d'un organisme pouvant en contenir une.
+- `organisme` — un ou plusieurs codes d'organisme Talentsoft (`entityCode`),
+  en incluant tous leurs organismes descendants. Répéter le paramètre pour
+  filtrer sur plusieurs organismes (ex. `?organisme=ORG1&organisme=ORG2`).
 - `date_publication` — nombre de jours négatif pour ne retourner que les
   offres publiées au cours des N derniers jours (ex. `-7`)
 - filtre géographique par rayon autour d'un point, les trois paramètres
