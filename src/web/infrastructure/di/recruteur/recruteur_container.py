@@ -149,6 +149,7 @@ class RecruteurContainer(containers.DeclarativeContainer):
         ListOrganismeAgentsUsecase,
         organisme_agent_query_service=postgres_organisme_agent_query_service,
         organisme_permission_service=organisme_permission_service,
+        audit_log_writer=audit_log_writer,
     )
     attach_organisme_agent_usecase = providers.Factory(
         AttachOrganismeAgentUsecase,

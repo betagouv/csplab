@@ -1,3 +1,5 @@
+from unittest.mock import Mock, patch
+
 import pytest
 
 from application.recruteur.usecases.list_organisme_agents import (
@@ -12,6 +14,9 @@ from infrastructure.factories.identite.organisme_django_factory import (
 )
 from infrastructure.gateways.shared.logger import LoggerService
 from infrastructure.mappers.utilisateur_mapper import UtilisateurMapper
+from infrastructure.repositories.recruteur.postgres_organisme_agent_query_service import (  # noqa: E501
+    PostgresOrganismeAgentQueryService,
+)
 
 
 @pytest.fixture(name="recruteur_integration_container")
@@ -47,6 +52,17 @@ def test_list_organisme_agents_returns_agents_for_responsable(
     assert agent_organisme.poste == agent.intitule_poste
     assert agent_organisme.role == AgentOrganismeRole.SUPERVISEUR.value
 
+    audit_log_repository = (
+        recruteur_integration_container.postgres_audit_log_repository()
+    )
+    logs = audit_log_repository.get_logs_for_ressource(
+        "OrganismeRecruteur", organisme_model.id
+    )
+    assert len(logs) == 1
+    assert logs[0].event_name == "OrganismeAgentsConsultes"
+    assert logs[0].utilisateur_id == agent.utilisateur_id
+    assert logs[0].ressource_id == organisme_model.id
+
 
 def test_list_organisme_agents_raises_when_membre(db, recruteur_integration_container):
     agent, organisme_model = create_organisme_with_agent(role=AgentOrganismeRole.AGENT)
@@ -59,3 +75,45 @@ def test_list_organisme_agents_raises_when_membre(db, recruteur_integration_cont
                 organisme_id=organisme_model.id, utilisateur=utilisateur
             )
         )
+
+    audit_log_repository = (
+        recruteur_integration_container.postgres_audit_log_repository()
+    )
+    assert (
+        audit_log_repository.get_logs_for_ressource(
+            "OrganismeRecruteur", organisme_model.id
+        )
+        == []
+    )
+
+
+@patch.object(
+    PostgresOrganismeAgentQueryService,
+    "list_by_organisme",
+    new=Mock(side_effect=RuntimeError("read failed")),
+)
+def test_list_organisme_agents_does_not_log_when_read_fails(
+    db, recruteur_integration_container
+):
+    agent, organisme_model = create_organisme_with_agent(
+        role=AgentOrganismeRole.SUPERVISEUR
+    )
+    utilisateur = UtilisateurMapper().to_domain(agent.utilisateur)
+    usecase = recruteur_integration_container.list_organisme_agents_usecase()
+
+    with pytest.raises(RuntimeError):
+        usecase.execute(
+            ListOrganismeAgentsQuery(
+                organisme_id=organisme_model.id, utilisateur=utilisateur
+            )
+        )
+
+    audit_log_repository = (
+        recruteur_integration_container.postgres_audit_log_repository()
+    )
+    assert (
+        audit_log_repository.get_logs_for_ressource(
+            "OrganismeRecruteur", organisme_model.id
+        )
+        == []
+    )
