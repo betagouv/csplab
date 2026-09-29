@@ -30,15 +30,16 @@ def test_agent_gets_full_motifs_list(db, role):
     assert result == list(MotifRefus)
 
 
-def test_staff_without_role_is_denied(db):
+def test_staff_without_role_gets_full_motifs_list(db):
     _, organisme = create_organisme_with_agent()
     staff = UtilisateurDjangoFactory(is_staff=True)
 
-    with pytest.raises(AccesOrganismeRefuse):
-        list_motifs_refus(
-            organisme_id=organisme.id,
-            utilisateur=UtilisateurMapper().to_domain(staff),
-        )
+    result = list_motifs_refus(
+        organisme_id=organisme.id,
+        utilisateur=UtilisateurMapper().to_domain(staff),
+    )
+
+    assert result == list(MotifRefus)
 
 
 def test_non_agent_is_denied(db):

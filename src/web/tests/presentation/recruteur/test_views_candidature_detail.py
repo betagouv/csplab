@@ -137,6 +137,22 @@ class TestCandidatureDetailView:
         assert data["document_uuid"] == str(cv.id)
         assert data["navigation_candidature_uuids"] == [str(candidature.id)]
 
+    def test_staff_without_organisme_role_gets_candidature_detail(
+        self, authenticated_client, test_user
+    ):
+        test_user.is_staff = True
+        test_user.save(update_fields=["is_staff"])
+        _, organisme, recrutement, candidature = (
+            create_recrutement_and_candidature_for_agent(utilisateur=None)
+        )
+
+        response = authenticated_client.get(
+            _detail_url(organisme.id, recrutement.pk, candidature.id)
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json()["uuid"] == str(candidature.id)
+
     def test_does_not_trigger_n_plus_one_queries(
         self, authenticated_client, test_user, django_assert_num_queries
     ):

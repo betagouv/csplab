@@ -289,13 +289,13 @@ class TestListerMesRecrutementsRbac:
             recrutement_in_other_org_with_role,
         )
 
-    def _lister_recrutements(self, usecase, organisme, agent, statut):
+    def _lister_recrutements(self, usecase, organisme, agent, statut, is_staff=False):
         return usecase.execute(
             ListerMesRecrutementsQuery(
                 organisme_id=organisme.id,
                 statut=statut,
                 utilisateur=UtilisateurFactory.create_entity(
-                    entity_id=agent.utilisateur_id
+                    entity_id=agent.utilisateur_id, is_staff=is_staff
                 ),
             )
         )
@@ -347,3 +347,35 @@ class TestListerMesRecrutementsRbac:
 
         with pytest.raises(AccesOrganismeRefuse):
             self._lister_recrutements(usecase, organisme, agent, statut)
+
+    @pytest.mark.parametrize(
+        "organisme_role",
+        [None, AgentOrganismeRole.AGENT],
+        ids=["no_organisme_role", "membre_role"],
+    )
+    def test_staff_sees_all_recrutements_of_organisme(
+        self, usecase, statut, organisme_role
+    ):
+        if organisme_role is None:
+            agent = AgentDjangoFactory()
+            organisme = OrganismeDjangoFactory()
+        else:
+            agent, organisme = create_organisme_with_agent(role=organisme_role)
+        (
+            recrutement_in_org,
+            recrutement_in_org_with_role,
+            recrutement_in_other_org,
+            recrutement_in_other_org_with_role,
+        ) = self._create_recrutements(agent, organisme, statut)
+
+        results = self._lister_recrutements(
+            usecase, organisme, agent, statut, is_staff=True
+        )
+
+        for recrutement in [recrutement_in_org, recrutement_in_org_with_role]:
+            assert recrutement in results._qs
+        for recrutement in [
+            recrutement_in_other_org,
+            recrutement_in_other_org_with_role,
+        ]:
+            assert recrutement not in results._qs

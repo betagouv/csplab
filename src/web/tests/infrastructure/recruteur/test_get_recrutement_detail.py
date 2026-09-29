@@ -94,8 +94,7 @@ class TestGetRecrutementDetail:
                 )
             )
 
-    @pytest.mark.parametrize("est_staff", [False, True])
-    def test_forbidden_when_agent_has_no_organisme_role(self, usecase, est_staff):
+    def test_forbidden_when_agent_has_no_organisme_role(self, usecase):
         agent = AgentDjangoFactory()
         organisme = OrganismeDjangoFactory()
 
@@ -105,10 +104,27 @@ class TestGetRecrutementDetail:
                     organisme_id=organisme.id,
                     recrutement_id=uuid4(),
                     utilisateur=UtilisateurFactory.create_entity(
-                        entity_id=agent.utilisateur_id, is_staff=est_staff
+                        entity_id=agent.utilisateur_id
                     ),
                 )
             )
+
+    def test_staff_without_organisme_role_is_allowed(self, usecase):
+        agent = AgentDjangoFactory()
+        organisme = OrganismeDjangoFactory()
+        recrutement = RecrutementDjangoFactory(organisme=organisme)
+
+        result = usecase.execute(
+            GetRecrutementDetailQuery(
+                organisme_id=organisme.id,
+                recrutement_id=recrutement.pk,
+                utilisateur=UtilisateurFactory.create_entity(
+                    entity_id=agent.utilisateur_id, is_staff=True
+                ),
+            )
+        )
+
+        assert result is not None
 
     def test_returns_none_for_unknown_recrutement(self, usecase):
         agent, organisme = create_organisme_with_agent(
