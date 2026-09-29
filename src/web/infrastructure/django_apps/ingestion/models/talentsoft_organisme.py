@@ -14,6 +14,9 @@ class TalentsoftOrganismeQuerySet(models.QuerySet):
     def by_entity_codes(self, entity_codes: list) -> "TalentsoftOrganismeQuerySet":
         return self.filter(entity_code__in=entity_codes)
 
+    def by_entity_code(self, entity_code: str) -> "TalentsoftOrganismeQuerySet":
+        return self.filter(entity_code=entity_code)
+
 
 class TalentsoftOrganismeModel(BaseDatedModel):
     id = models.UUIDField(primary_key=True, default=uuid4)
