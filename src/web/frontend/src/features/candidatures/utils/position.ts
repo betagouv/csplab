@@ -1,4 +1,4 @@
-import type { EtapeRecrutementDetailedCandidatures } from '../types'
+import type { CandidatureListe, EtapeRecrutementDetailedCandidatures } from '../types'
 
 export interface CandidaturePosition {
   index: number
@@ -7,23 +7,21 @@ export interface CandidaturePosition {
   nextUuid: string | null
 }
 
-export function findCandidaturePosition(
-  etapes: EtapeRecrutementDetailedCandidatures[],
+export function findPositionInList(
+  candidatures: CandidatureListe[],
   candidatureUuid: string,
 ): CandidaturePosition | null {
-  for (const etape of etapes) {
-    const uuids = etape.candidatures.map(candidature => candidature.uuid)
-    const index = uuids.indexOf(candidatureUuid)
-    if (index !== -1) {
-      return {
-        index,
-        total: uuids.length,
-        previousUuid: uuids[index - 1] ?? null,
-        nextUuid: uuids[index + 1] ?? null,
-      }
-    }
+  const uuids = candidatures.map(candidature => candidature.uuid)
+  const index = uuids.indexOf(candidatureUuid)
+  if (index === -1) {
+    return null
   }
-  return null
+  return {
+    index,
+    total: uuids.length,
+    previousUuid: uuids[index - 1] ?? null,
+    nextUuid: uuids[index + 1] ?? null,
+  }
 }
 
 export function findEtapeOfCandidature(

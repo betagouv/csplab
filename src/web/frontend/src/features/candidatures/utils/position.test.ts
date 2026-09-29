@@ -1,6 +1,6 @@
 import type { EtapeRecrutementDetailedCandidatures } from '../types'
 import { describe, expect, it } from 'vitest'
-import { findCandidaturePosition, findEtapeOfCandidature } from './position'
+import { findEtapeOfCandidature, findPositionInList } from './position'
 
 function etape(etapeUuid: string, candidatureUuids: string[]): EtapeRecrutementDetailedCandidatures {
   return {
@@ -18,19 +18,20 @@ function etape(etapeUuid: string, candidatureUuids: string[]): EtapeRecrutementD
 }
 
 const ETAPES = [etape('entree', ['a']), etape('entretien', ['b', 'c', 'd'])]
+const SEQUENCE = ETAPES.flatMap(({ candidatures }) => candidatures)
 
-describe('findCandidaturePosition', () => {
-  it('locates a candidature within its own column, in display order', () => {
-    expect(findCandidaturePosition(ETAPES, 'c')).toEqual({ index: 1, total: 3, previousUuid: 'b', nextUuid: 'd' })
+describe('findPositionInList', () => {
+  it('locates a candidature in the displayed order, across the etapes', () => {
+    expect(findPositionInList(SEQUENCE, 'b')).toEqual({ index: 1, total: 4, previousUuid: 'a', nextUuid: 'c' })
   })
 
-  it('has no neighbour before the first nor after the last of the column', () => {
-    expect(findCandidaturePosition(ETAPES, 'b')).toMatchObject({ previousUuid: null, nextUuid: 'c' })
-    expect(findCandidaturePosition(ETAPES, 'd')).toMatchObject({ previousUuid: 'c', nextUuid: null })
+  it('has no neighbour before the first nor after the last', () => {
+    expect(findPositionInList(SEQUENCE, 'a')).toMatchObject({ previousUuid: null, nextUuid: 'b' })
+    expect(findPositionInList(SEQUENCE, 'd')).toMatchObject({ previousUuid: 'c', nextUuid: null })
   })
 
-  it('returns an unknown position for a candidature absent from the displayed columns', () => {
-    expect(findCandidaturePosition(ETAPES, 'masquee')).toBeNull()
+  it('returns an unknown position for a candidature absent from the display', () => {
+    expect(findPositionInList(SEQUENCE, 'masquee')).toBeNull()
   })
 })
 

@@ -22,7 +22,7 @@ const emit = defineEmits<{
 }>()
 
 const counter = computed(() =>
-  props.position === null ? null : `${props.itemLabel} ${props.position} sur ${props.total}`,
+  props.position === null ? null : `${props.itemLabel} ${props.position}/${props.total}`,
 )
 </script>
 
@@ -77,6 +77,10 @@ const counter = computed(() =>
   line-height: 1.4;
   color: var(--text-default-grey);
   text-align: center;
+}
+
+.csp-sequence-nav__status > :slotted(*) {
+  align-self: center;
 }
 
 .csp-sequence-nav__counter {

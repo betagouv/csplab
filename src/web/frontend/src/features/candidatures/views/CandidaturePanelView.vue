@@ -3,6 +3,7 @@ import type { CandidaturePanelTabKey } from '../constants/candidature'
 import { useQueryCache } from '@pinia/colada'
 import { computed, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import CspBadge from '@/components/base/CspBadge/CspBadge.vue'
 import CspDrawer from '@/components/base/CspDrawer/CspDrawer.vue'
 import CspEmptyState from '@/components/base/CspEmptyState/CspEmptyState.vue'
 import CspErrorState from '@/components/base/CspErrorState/CspErrorState.vue'
@@ -230,15 +231,16 @@ function handleUpdateOpen(open: boolean): void {
         :position="position ? position.index + 1 : null"
         :total="position?.total ?? 0"
         item-label="Candidature"
-        label="Navigation entre les candidatures de l'étape"
+        label="Navigation entre les candidatures"
         :previous-disabled="!position?.previousUuid"
         :next-disabled="!position?.nextUuid"
         @previous="goPrevious"
         @next="goNext"
       >
-        <template v-if="etape">
-          Étape : {{ etape.nom }}
-        </template>
+        <CspBadge
+          v-if="etape"
+          :label="etape.nom"
+        />
       </CspSequenceNav>
     </template>
   </CspDrawer>
