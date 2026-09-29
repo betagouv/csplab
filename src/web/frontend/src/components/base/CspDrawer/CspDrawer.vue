@@ -286,6 +286,8 @@ const hasFooter = computed(() => Boolean(slots.footer))
   padding: var(--csp-space-6);
   border-top: 1px solid var(--border-default-grey);
   display: flex;
+  flex-wrap: wrap;
   justify-content: flex-end;
+  gap: var(--csp-space-3);
 }
 </style>

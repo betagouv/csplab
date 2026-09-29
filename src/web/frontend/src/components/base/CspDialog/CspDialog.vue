@@ -210,6 +210,8 @@ const hasFooter = computed(() => Boolean(slots.footer))
 
 .csp-dialog__footer {
   display: flex;
+  flex-wrap: wrap;
   justify-content: flex-end;
+  gap: var(--csp-space-3);
 }
 </style>

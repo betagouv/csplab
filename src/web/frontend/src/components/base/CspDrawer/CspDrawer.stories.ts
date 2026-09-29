@@ -251,14 +251,12 @@ const meta = {
         <div class="h-48" />
 
         <template #footer>
-          <div class="flex gap-3">
-            <DialogClose as-child>
-              <CspButton
-                label="Fermer"
-                variant="secondary"
-              />
-            </DialogClose>
-          </div>
+          <DialogClose as-child>
+            <CspButton
+              label="Fermer"
+              variant="secondary"
+            />
+          </DialogClose>
         </template>
       </CspDrawer>
     `,

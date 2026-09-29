@@ -290,19 +290,17 @@ function getMenuSections(
         @keydown.enter="handleModalConfirm"
       />
       <template #footer>
-        <div class="etapes-list__modal-footer">
-          <CspButton
-            label="Annuler"
-            variant="secondary"
-            @click="modalOpen = false"
-          />
-          <CspButton
-            :label="modalMode === 'add' ? 'Ajouter' : 'Renommer'"
-            variant="primary"
-            :disabled="!modalNom.trim() || saving"
-            @click="handleModalConfirm"
-          />
-        </div>
+        <CspButton
+          label="Annuler"
+          variant="secondary"
+          @click="modalOpen = false"
+        />
+        <CspButton
+          :label="modalMode === 'add' ? 'Ajouter' : 'Renommer'"
+          variant="primary"
+          :disabled="!modalNom.trim() || saving"
+          @click="handleModalConfirm"
+        />
       </template>
     </CspDialog>
 
@@ -314,19 +312,17 @@ function getMenuSections(
       Voulez-vous vraiment supprimer l'étape « {{ deleteEtapeNom }} » ? Cette action est irréversible.
 
       <template #footer>
-        <div class="etapes-list__modal-footer">
-          <CspButton
-            label="Annuler"
-            variant="secondary"
-            @click="deleteModalOpen = false"
-          />
-          <CspButton
-            label="Supprimer"
-            variant="primary"
-            :disabled="saving"
-            @click="handleDeleteConfirm"
-          />
-        </div>
+        <CspButton
+          label="Annuler"
+          variant="secondary"
+          @click="deleteModalOpen = false"
+        />
+        <CspButton
+          label="Supprimer"
+          variant="primary"
+          :disabled="saving"
+          @click="handleDeleteConfirm"
+        />
       </template>
     </CspDialog>
 
@@ -338,19 +334,17 @@ function getMenuSections(
       {{ texts.resetDescription }}
 
       <template #footer>
-        <div class="etapes-list__modal-footer">
-          <CspButton
-            label="Annuler"
-            variant="secondary"
-            @click="resetModalOpen = false"
-          />
-          <CspButton
-            label="Réinitialiser"
-            variant="primary"
-            :disabled="saving"
-            @click="handleResetConfirm"
-          />
-        </div>
+        <CspButton
+          label="Annuler"
+          variant="secondary"
+          @click="resetModalOpen = false"
+        />
+        <CspButton
+          label="Réinitialiser"
+          variant="primary"
+          :disabled="saving"
+          @click="handleResetConfirm"
+        />
       </template>
     </CspDialog>
   </div>
@@ -429,11 +423,5 @@ function getMenuSections(
 .etapes-list__header-actions {
   width: 2rem;
   flex-shrink: 0;
-}
-
-.etapes-list__modal-footer {
-  display: flex;
-  gap: var(--csp-space-3);
-  justify-content: flex-end;
 }
 </style>

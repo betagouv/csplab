@@ -67,19 +67,17 @@ function handleConfirm(): void {
     </div>
 
     <template #footer>
-      <div class="refus-candidature-dialog__footer">
-        <CspButton
-          label="Annuler"
-          variant="secondary"
-          @click="emit('cancel')"
-        />
-        <CspButton
-          label="Valider le refus"
-          variant="primary"
-          :disabled="!motifRefus"
-          @click="handleConfirm"
-        />
-      </div>
+      <CspButton
+        label="Annuler"
+        variant="secondary"
+        @click="emit('cancel')"
+      />
+      <CspButton
+        label="Valider le refus"
+        variant="primary"
+        :disabled="!motifRefus"
+        @click="handleConfirm"
+      />
     </template>
   </CspDialog>
 </template>
@@ -93,10 +91,5 @@ function handleConfirm(): void {
 
 .refus-candidature-dialog__description {
   margin: 0;
-}
-
-.refus-candidature-dialog__footer {
-  display: flex;
-  gap: var(--csp-space-3);
 }
 </style>

@@ -231,18 +231,16 @@ async function handleRevocation(): Promise<void> {
       </template>
 
       <template #footer>
-        <div class="organisme-agents-section__dialog-actions">
-          <CspButton
-            label="Annuler"
-            variant="secondary"
-            @click="revocationDialogOpen = false"
-          />
-          <CspButton
-            label="Révoquer les accès"
-            :disabled="updatingAgent"
-            @click="handleRevocation"
-          />
-        </div>
+        <CspButton
+          label="Annuler"
+          variant="secondary"
+          @click="revocationDialogOpen = false"
+        />
+        <CspButton
+          label="Révoquer les accès"
+          :disabled="updatingAgent"
+          @click="handleRevocation"
+        />
       </template>
     </CspDialog>
   </section>
@@ -280,11 +278,5 @@ async function handleRevocation(): Promise<void> {
 
 .organisme-agents-section__empty-title {
   margin: 0;
-}
-
-.organisme-agents-section__dialog-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: var(--csp-space-3);
 }
 </style>
