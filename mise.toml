@@ -86,9 +86,12 @@ description = "ATS dev stack: Django + Vite HMR"
 depends = ["//src/web:dev", "//src/web/frontend:dev"]
 
 [tasks."docker:up"]
-description = "Check the docker daemon is reachable"
+description = "Check the docker daemon is reachable and the compose plugin is available"
 hide = true
-run = "docker info >/dev/null 2>&1 || { echo 'Docker unreachable, start your engine (Colima, Docker Desktop, OrbStack…)'; exit 1; }"
+run = """
+docker info >/dev/null 2>&1 || { echo 'Docker unreachable, start your engine (Colima, Docker Desktop, OrbStack…)'; exit 1; }
+docker compose version >/dev/null 2>&1 || { echo 'Docker Compose unavailable, install the compose plugin: https://docs.docker.com/compose/install/'; exit 1; }
+"""
 
 [tasks."services:postgres"]
 description = "Start postgres"
