@@ -15,7 +15,11 @@ export function useCandidatureNavigation(candidatureUuid: MaybeRefOrGetter<strin
 
   function navigateTo(uuid: string): void {
     const navigate = route.params.candidatureUuid ? router.replace : router.push
-    void navigate({ name: CANDIDATURE_ROUTE_NAME, params: { ...route.params, candidatureUuid: uuid } })
+    void navigate({
+      name: CANDIDATURE_ROUTE_NAME,
+      params: { ...route.params, candidatureUuid: uuid },
+      query: route.query,
+    })
   }
 
   function goPrevious(): void {

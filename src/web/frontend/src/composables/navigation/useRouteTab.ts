@@ -22,7 +22,7 @@ export function useRouteTab<T extends string>(
   return computed<T>({
     get: () => (isTab(route.meta.tab) ? route.meta.tab : fallback),
     set: (tab) => {
-      void router.push({ name: toValue(routeNames)[tab] })
+      void router.push({ name: toValue(routeNames)[tab], query: route.query })
     },
   })
 }
