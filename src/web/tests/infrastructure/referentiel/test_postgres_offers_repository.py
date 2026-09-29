@@ -67,8 +67,9 @@ class TestFindByIds:
 
 class TestUpsertBatch:
     def test_datetime_on_upsert(self, db, repository):
-        offer = OfferDjangoFactory()
-        offer_to_update = OfferDjangoFactory()
+        source = SourceDjangoFactory()
+        offer = OfferDjangoFactory(source=source)
+        offer_to_update = OfferDjangoFactory(source=source)
         new_offer_entity = OfferFactory.create_entity(
             source_id=_mapper.to_domain(offer).source_id
         )
@@ -118,7 +119,7 @@ class TestUpsertBatch:
         assert result == {"created": 0, "updated": 0, "errors": []}
 
     def test_multiple_offers_success(self, db, repository):
-        offers = OfferDjangoFactory.create_batch(2)
+        offers = OfferDjangoFactory.create_batch(2, source=SourceDjangoFactory())
         entities = [_mapper.to_domain(offer) for offer in offers]
         entities.append(OfferFactory.create_entity(source_id=entities[0].source_id))
 
@@ -218,6 +219,64 @@ class TestUpsertBatch:
 
         archived_offer.refresh_from_db()
         assert archived_offer.archived_at is None
+
+    def test_existing_offer_is_matched_by_reference_and_source(self, db, repository):
+        existing = OfferDjangoFactory(
+            external_id="Versant_FPT-REF001", reference="REF001", title="old title"
+        )
+        entity = OfferFactory.create_entity(
+            external_id="FPT-REF001",
+            reference="REF001",
+            source_id=existing.source_id,
+            title="new title",
+        )
+
+        result = repository.upsert_batch([entity])
+
+        assert result == {"created": 0, "updated": 1, "errors": []}
+        saved = OfferModel.objects.get()
+        assert saved.id == existing.id
+        assert saved.external_id == "FPT-REF001"
+        assert saved.title == "new title"
+
+    def test_same_reference_in_another_source_is_created(self, db, repository):
+        existing = OfferDjangoFactory(reference="REF001")
+        other_source = SourceDjangoFactory()
+        entity = OfferFactory.create_entity(
+            reference="REF001", source_id=other_source.source_id
+        )
+
+        result = repository.upsert_batch([entity])
+
+        assert result == {"created": 1, "updated": 0, "errors": []}
+        assert set(
+            OfferModel.objects.filter(reference="REF001").values_list(
+                "source_id", flat=True
+            )
+        ) == {existing.source_id, other_source.source_id}
+
+    def test_batch_with_multiple_sources_raises(self, db, repository):
+        entities = [
+            OfferFactory.create_entity(source_id=SourceDjangoFactory().source_id),
+            OfferFactory.create_entity(source_id=SourceDjangoFactory().source_id),
+        ]
+
+        with pytest.raises(DatabaseError):
+            repository.upsert_batch(entities)
+
+        assert OfferModel.objects.count() == 0
+
+    def test_conflict_on_create_raises_instead_of_being_ignored(self, db, repository):
+        existing = OfferDjangoFactory(external_id="FPT-REF001")
+        other_source = SourceDjangoFactory()
+        entity = OfferFactory.create_entity(
+            external_id=existing.external_id, source_id=other_source.source_id
+        )
+
+        with pytest.raises(DatabaseError):
+            repository.upsert_batch([entity])
+
+        assert OfferModel.objects.count() == 1
 
 
 class TestGetFilteredByGeo:

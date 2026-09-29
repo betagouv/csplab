@@ -12,6 +12,9 @@ from infrastructure.di.candidate.candidate_container import CandidateContainer
 from infrastructure.di.shared.shared_container import SharedContainer
 from infrastructure.django_apps.referentiel.models.concours import ConcoursModel
 from infrastructure.factories.candidate.cv_metadata_factory import CVMetadataFactory
+from infrastructure.factories.ingestion.source_django_factory import (
+    SourceDjangoFactory,
+)
 from infrastructure.factories.ingestion.vectorized_document_factory import (
     VectorizedDocumentFactory,
 )
@@ -105,7 +108,7 @@ def test_execute_with_valid_cv_returns_opportunities(
     mock_embedding_response(httpx_mock, test_app_config)
 
     concours = ConcoursDjangoFactory.create_batch(2)
-    offers = OfferDjangoFactory.create_batch(3)
+    offers = OfferDjangoFactory.create_batch(3, source=SourceDjangoFactory())
     metiers = MetierDjangoFactory.create_batch(3)
 
     limit = len(offers) + len(concours) - 1
@@ -179,7 +182,7 @@ def test_vectorize_qdrant_search_empty_filters(
     mock_embedding_response(httpx_mock, test_app_config)
 
     # Create test data like in the working test
-    offers = OfferDjangoFactory.create_batch(3)
+    offers = OfferDjangoFactory.create_batch(3, source=SourceDjangoFactory())
 
     # Setup CV metadata in real DB
     cv_repo = candidate_container.postgres_cv_metadata_repository()
@@ -221,10 +224,11 @@ def test_vectorize_qdrant_search_list_filters(
 ):
     mock_embedding_response(httpx_mock, test_app_config)
 
+    source = SourceDjangoFactory()
     offers = [
-        OfferDjangoFactory(verse=Verse.FPE),
-        OfferDjangoFactory(verse=Verse.FPH),
-        OfferDjangoFactory(verse=Verse.FPT),
+        OfferDjangoFactory(verse=Verse.FPE, source=source),
+        OfferDjangoFactory(verse=Verse.FPH, source=source),
+        OfferDjangoFactory(verse=Verse.FPT, source=source),
     ]
 
     concours = [
