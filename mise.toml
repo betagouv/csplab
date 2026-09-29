@@ -120,7 +120,7 @@ depends = ["services:postgres", "services:redis", "services:qdrant", "services:r
 [tasks.setup]
 description = "Create missing env files from the examples (never overwrites)"
 run = """
-for f in web ocr notebook ingestion postgresql redis rustfs; do cp -n env.d/$f-example env.d/$f || true; done
+for example in env.d/*-example; do cp -n "$example" "${example%-example}" || true; done
 echo "Env files in place (existing files untouched)."
 """
 
@@ -128,7 +128,7 @@ echo "Env files in place (existing files untouched)."
 description = "Reset env files from the examples (overwrites)"
 confirm = { message = "Overwrite your env.d/* files with the examples?", default = "no" }
 run = """
-for f in web ocr notebook ingestion postgresql redis; do cp env.d/$f-example env.d/$f; done
+for example in env.d/*-example; do cp "$example" "${example%-example}"; done
 echo "Env files reset from the examples."
 """
 
