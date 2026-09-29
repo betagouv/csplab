@@ -52,7 +52,7 @@ export const EnCours: Story = {
 }
 
 export const Archivees: Story = {
-  name: 'Offres archivées',
+  name: 'Recrutements terminés',
   render: () => ({
     components: { CspDataTable },
     setup() {
@@ -66,8 +66,8 @@ export const Archivees: Story = {
         :columns="columns"
         :row-key="row => row.offer_id"
         activation-mode="cell"
-        caption="Offres archivées"
-        empty-label="Aucune offre archivée"
+        caption="Recrutements terminés"
+        empty-label="Aucun recrutement terminé"
         :page-size="10"
       />
     `,

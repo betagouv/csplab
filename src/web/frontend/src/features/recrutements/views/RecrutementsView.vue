@@ -38,7 +38,7 @@ import { useRecrutementsFilters } from '../composables/useRecrutementsFilters'
 import { RECRUTEMENT_TAB_ICONS, RECRUTEMENT_TAB_LABELS } from '../constants/recrutement'
 import { DEFAULT_RECRUTEMENT_TAB, RECRUTEMENTS_TAB_ROUTE_NAMES } from '../routes'
 
-const AUCUN_RECRUTEMENT_DESCRIPTION = 'Pas de panique, vous êtes bien connecté à l’ATS, mais vous n’êtes actuellement rattaché à aucun recrutement. Lorsqu’un responsable de recrutement vous ajoutera à une équipe, les recrutements auxquels vous avez accès apparaîtront automatiquement ici.'
+const AUCUN_RECRUTEMENT_EN_COURS_DESCRIPTION = 'Les recrutements auxquels vous participez apparaissent ici. Pour accéder à un recrutement, contactez la personne responsable dans votre organisation.'
 
 const BREADCRUMB: CspBreadcrumbItem[] = [
   { label: 'Accueil', to: { name: 'home' } },
@@ -201,7 +201,7 @@ const actifsCountLabel = computed(() => {
 
 const archivesCountLabel = computed(() => {
   const count = archivesFilters.filtered.value.length
-  return `${count} offre${count > 1 ? 's' : ''} archivée${count > 1 ? 's' : ''}`
+  return `${count} recrutement${count > 1 ? 's' : ''} terminé${count > 1 ? 's' : ''}`
 })
 </script>
 
@@ -212,7 +212,13 @@ const archivesCountLabel = computed(() => {
       title="Recrutements"
       subtitle="Retrouvez ici l’ensemble des recrutements en cours et archivés."
       :breadcrumb="BREADCRUMB"
-    />
+    >
+      <template #subtitle>
+        <p class="mes-recrutement-view__subtitle">
+          Retrouvez ici l’ensemble des recrutements en cours et terminés.
+        </p>
+      </template>
+    </CspPageHeader>
     <CspPageContainer
       v-model:active-tab="activeTab"
       class="mes-recrutement-view"
@@ -233,8 +239,8 @@ const archivesCountLabel = computed(() => {
         <CspEmptyState
           v-if="aucunRecrutementActif"
           icon="ri:briefcase-line"
-          title="Pas encore de recrutement ?"
-          :description="AUCUN_RECRUTEMENT_DESCRIPTION"
+          title="Vous n’avez pas de recrutement en cours"
+          :description="AUCUN_RECRUTEMENT_EN_COURS_DESCRIPTION"
         />
         <template v-else>
           <CspTableToolbar
@@ -343,8 +349,7 @@ const archivesCountLabel = computed(() => {
         <CspEmptyState
           v-if="aucuneOffreArchivee"
           icon="ri:archive-line"
-          title="Pas encore de recrutement ?"
-          :description="AUCUN_RECRUTEMENT_DESCRIPTION"
+          title="Aucun recrutement terminé"
         />
         <template v-else>
           <CspTableToolbar :bordered="false">
@@ -388,7 +393,7 @@ const archivesCountLabel = computed(() => {
           />
           <CspAsyncSection
             :pending="showArchivesSkeleton"
-            loading-label="Chargement des offres archivées"
+            loading-label="Chargement des recrutements terminés"
           >
             <template #skeleton>
               <CspSkeletonTable
@@ -403,8 +408,8 @@ const archivesCountLabel = computed(() => {
               :columns="RECRUTEMENTS_ARCHIVES_COLUMNS"
               :row-key="row => row.offer_id"
               activation-mode="cell"
-              caption="Offres archivées"
-              empty-label="Aucune offre archivée"
+              caption="Recrutements terminés"
+              empty-label="Aucun recrutement terminé"
               :page-size="PAGE_SIZE"
               @activate="openOffre"
             />
