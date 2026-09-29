@@ -123,6 +123,11 @@ urlpatterns = [
         name="organisme-recrutement-liste",
     ),
     path(
+        "organismes/<uuid:organisme_uuid>/recrutements/<uuid:recrutement_uuid>/candidatures",
+        RecrutementListeView.as_view(),
+        name="organisme-recrutement-candidatures",
+    ),
+    path(
         "organismes/<uuid:organisme_uuid>/recrutements/<uuid:recrutement_uuid>/candidatures/etape",
         RecrutementCandidaturesEtapeView.as_view(),
         name="organisme-recrutement-candidatures-etape",
