@@ -224,6 +224,7 @@ class TestRecrutementDetailView:
         assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
         assert response.json() == {"error": "Unexpected error"}
 
+
 class TestRecrutementListeView:
     @pytest.fixture(autouse=True)
     def _default_usecase(self, container):
@@ -495,6 +496,7 @@ class TestRecrutementDetailViewDbVerified:
             "siret": organisme.siret,
         }
         assert len(data["etapes"]) == len(recrutement.ordre_etapes)
+
 
 class TestRecrutementListeViewDbVerified:
     def test_returns_persisted_candidatures(self, authenticated_client, test_user):

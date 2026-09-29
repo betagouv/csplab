@@ -134,7 +134,7 @@ describe('useCandidatures', () => {
   })
 
   describe('data', () => {
-    it('computes totalCount from etapes', async () => {
+    it('counts every candidature of the recrutement', async () => {
       const { context } = await mountCandidatures()
 
       await vi.waitFor(() => expect(context.pendingCandidatures.value).toBe(false))
@@ -218,7 +218,7 @@ describe('useCandidatures', () => {
       )
     })
 
-    it('refetches the kanban when the api reports partial failures', async () => {
+    it('refetches the candidatures when the api reports partial failures', async () => {
       vi.mocked(patchEtapeCandidatures).mockResolvedValue({
         reussites: [],
         echecs: [{ candidature_uuid: CANDIDATURE_ALICE, raison: 'conflit' }],
@@ -255,7 +255,7 @@ describe('useCandidatures', () => {
       expect(context.candidatureKanban.value).toEqual(before)
     })
 
-    it('leaves etapes empty when the kanban data is not loaded', async () => {
+    it('leaves the kanban empty while the candidatures are loading', async () => {
       vi.mocked(getCandidatures).mockImplementation(() => new Promise(() => {}))
 
       const { context } = await mountCandidatures()
