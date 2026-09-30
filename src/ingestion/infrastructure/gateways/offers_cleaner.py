@@ -722,7 +722,7 @@ class OffersCleaner:
         self, entity_code: str, transcoder: Optional[SourceTranscoder]
     ) -> str:
         if transcoder:
-            return transcoder.translate("organisations", entity_code)
+            return transcoder.translate("organisations", entity_code) or entity_code
         return entity_code
 
     def _parse_url(self, url_str: str) -> Optional[HttpUrl]:
