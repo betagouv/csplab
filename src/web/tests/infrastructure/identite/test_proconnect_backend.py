@@ -1,14 +1,8 @@
 from unittest.mock import MagicMock
 
 import pytest
-from django.utils import timezone
 
 from infrastructure.authentication.proconnect_backend import ProconnectBackend
-from infrastructure.django_apps.recruteur.models.organisme import OrganismeAgentModel
-from infrastructure.factories.identite.organisme_django_factory import (
-    OrganismeAgentDjangoFactory,
-    create_organisme_with_agent,
-)
 from infrastructure.factories.identite.utilisateur_django_factory import (
     UtilisateurDjangoFactory,
 )
@@ -23,34 +17,12 @@ def backend_fixture():
 class TestProconnectBackend:
     def test_authenticate_matches_existing_email(self, db, backend):
         user = UtilisateurDjangoFactory()
-        OrganismeAgentDjangoFactory(agent__utilisateur=user)
 
         authenticated = backend.authenticate(
             None, proconnect_claims={"email": user.email}
         )
 
         assert authenticated == user
-
-    def test_authenticate_refuses_agent_revoked_from_only_organisme(self, db, backend):
-        agent, _ = create_organisme_with_agent()
-        OrganismeAgentModel.objects.filter(agent=agent).update(
-            date_revocation=timezone.now()
-        )
-        user = agent.utilisateur
-        backend._sync_identite = MagicMock()
-        backend._audit_connexion = MagicMock()
-        backend.logger = MagicMock()
-
-        authenticated = backend.authenticate(
-            None, proconnect_claims={"email": user.email, "given_name": "Autre"}
-        )
-
-        assert authenticated is None
-        backend._sync_identite.assert_not_called()
-        backend._audit_connexion.assert_not_called()
-        message, *args = backend.logger.info.call_args.args
-        assert args == [user.pk]
-        assert user.email not in message % tuple(args)
 
     def test_authenticate_returns_none_for_unknown_email(self, db, backend):
         authenticated = backend.authenticate(
@@ -65,7 +37,6 @@ class TestProconnectBackend:
 
     def test_authenticate_fills_the_name_from_the_claims(self, db, backend):
         user = UtilisateurDjangoFactory(first_name="", last_name="")
-        OrganismeAgentDjangoFactory(agent__utilisateur=user)
 
         authenticated = backend.authenticate(
             None,

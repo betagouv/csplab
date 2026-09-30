@@ -393,34 +393,47 @@ def _client_for(utilisateur) -> APIClient:
 
 
 class TestRecrutementsArchivesViewRattachement:
-    @pytest.mark.parametrize("cas", ["revoque", "jamais_rattache"])
-    def test_organisme_without_active_liaison_is_refused_like_never_attached(
-        self, db, cas
+    @pytest.mark.parametrize(
+        ("demandeur", "organisme", "statut_attendu", "nombre_attendu"),
+        [
+            ("revoque", "a", status.HTTP_403_FORBIDDEN, None),
+            ("jamais_rattache", "a", status.HTTP_403_FORBIDDEN, None),
+            ("temoin", "a", status.HTTP_403_FORBIDDEN, None),
+            ("revoque", "b", status.HTTP_200_OK, 1),
+        ],
+        ids=["revoque", "jamais_rattache", "temoin", "reponse_b"],
+    )
+    def test_archives_require_active_liaison(
+        self, db, demandeur, organisme, statut_attendu, nombre_attendu
     ):
-        agent, organisme_b = create_organisme_with_agent(role=AgentOrganismeRole.AGENT)
+        revoque, organisme_b = create_organisme_with_agent(
+            role=AgentOrganismeRole.AGENT
+        )
         RecrutementDjangoFactory(
-            organisme=organisme_b, offre_archivee=True, agent_link__agent=agent
+            organisme=organisme_b, offre_archivee=True, agent_link__agent=revoque
         )
         organisme_a = OrganismeDjangoFactory()
-        if cas == "revoque":
-            RecrutementDjangoFactory(
-                organisme=organisme_a, offre_archivee=True, agent_link__agent=agent
-            )
-            OrganismeAgentDjangoFactory(
-                organisme=organisme_a,
-                agent=agent,
-                date_revocation=django_timezone.now(),
-            )
-        temoin_jamais_rattache = AgentDjangoFactory()
-        client = _client_for(agent.utilisateur)
-
-        reponse_a = client.get(_archives_url(organisme_a.id))
-        reponse_temoin = _client_for(temoin_jamais_rattache.utilisateur).get(
-            _archives_url(organisme_a.id)
+        RecrutementDjangoFactory(
+            organisme=organisme_a, offre_archivee=True, agent_link__agent=revoque
         )
-        reponse_b = client.get(_archives_url(organisme_b.id))
+        OrganismeAgentDjangoFactory(
+            organisme=organisme_a,
+            agent=revoque,
+            date_revocation=django_timezone.now(),
+        )
+        jamais_rattache = OrganismeAgentDjangoFactory(
+            organisme=organisme_b, role=AgentOrganismeRole.AGENT.value
+        ).agent
+        agents = {
+            "revoque": revoque,
+            "jamais_rattache": jamais_rattache,
+            "temoin": AgentDjangoFactory(),
+        }
+        organismes = {"a": organisme_a, "b": organisme_b}
 
-        assert reponse_a.status_code == reponse_temoin.status_code
-        assert reponse_a.status_code != status.HTTP_200_OK
-        assert reponse_b.status_code == status.HTTP_200_OK
-        assert reponse_b.json()["count"] == 1
+        reponse = _client_for(agents[demandeur].utilisateur).get(
+            _archives_url(organismes[organisme].id)
+        )
+
+        assert reponse.status_code == statut_attendu
+        assert reponse.json().get("count") == nombre_attendu

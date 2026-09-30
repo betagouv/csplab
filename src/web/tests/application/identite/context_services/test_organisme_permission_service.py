@@ -186,21 +186,6 @@ class TestSuperviseurEtStaffActions:
                 utilisateur=_utilisateur(demandeur_id),
             )
 
-    def test_revoked_superviseur_is_denied(self, action: OrganismeAction) -> None:
-        organisme = OrganismeDjangoFactory()
-        agent = OrganismeAgentDjangoFactory(
-            organisme=organisme,
-            role=AgentOrganismeRole.SUPERVISEUR.value,
-            date_revocation=timezone.now(),
-        ).agent
-
-        with pytest.raises(AccesOrganismeRefuse):
-            OrganismePermissionService().can_execute(
-                action=action,
-                organisme_id=organisme.id,  # type: ignore[arg-type]
-                utilisateur=_utilisateur(agent.utilisateur_id),  # type: ignore[attr-defined]
-            )
-
 
 @pytest.mark.parametrize("action", SUPERVISEUR_OU_AGENT_SANS_RECRUTEMENT_ACTIONS)
 class TestSuperviseurOuAgentSansRecrutementActions:
@@ -220,21 +205,6 @@ class TestSuperviseurOuAgentSansRecrutementActions:
 
         assert result == role
 
-    def test_revoked_agent_is_denied(self, action: OrganismeAction) -> None:
-        organisme = OrganismeDjangoFactory()
-        agent = OrganismeAgentDjangoFactory(
-            organisme=organisme,
-            role=AgentOrganismeRole.AGENT.value,
-            date_revocation=timezone.now(),
-        ).agent
-
-        with pytest.raises(AccesOrganismeRefuse):
-            OrganismePermissionService().can_execute(
-                action=action,
-                organisme_id=organisme.id,  # type: ignore[arg-type]
-                utilisateur=_utilisateur(agent.utilisateur_id),  # type: ignore[attr-defined]
-            )
-
     @pytest.mark.parametrize("est_staff", [False, True])
     def test_reject_no_role_nor_staff(
         self, action: OrganismeAction, est_staff: bool
@@ -247,6 +217,37 @@ class TestSuperviseurOuAgentSansRecrutementActions:
                 organisme_id=organisme.id,  # type: ignore[arg-type]
                 utilisateur=_utilisateur(uuid4(), is_staff=est_staff),
             )
+
+
+REVOKED_LIAISON_CASES = [
+    *[
+        (action, AgentOrganismeRole.SUPERVISEUR)
+        for action in SUPERVISEUR_ET_STAFF_ACTIONS
+    ],
+    *[
+        (action, AgentOrganismeRole.AGENT)
+        for action in SUPERVISEUR_OU_AGENT_SANS_RECRUTEMENT_ACTIONS
+    ],
+]
+
+
+@pytest.mark.parametrize(("action", "role"), REVOKED_LIAISON_CASES)
+def test_revoked_liaison_is_denied(
+    action: OrganismeAction, role: AgentOrganismeRole
+) -> None:
+    organisme = OrganismeDjangoFactory()
+    agent = OrganismeAgentDjangoFactory(
+        organisme=organisme,
+        role=role.value,
+        date_revocation=timezone.now(),
+    ).agent
+
+    with pytest.raises(AccesOrganismeRefuse):
+        OrganismePermissionService().can_execute(
+            action=action,
+            organisme_id=organisme.id,  # type: ignore[arg-type]
+            utilisateur=_utilisateur(agent.utilisateur_id),  # type: ignore[attr-defined]
+        )
 
 
 @pytest.mark.parametrize("action", SUPERVISEUR_OU_AGENT_AVEC_RECRUTEMENT_ACTIONS)
