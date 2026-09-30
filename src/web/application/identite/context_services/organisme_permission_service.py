@@ -38,7 +38,6 @@ _ACTIONS_STAFF_AVEC_ORGANISME: frozenset[OrganismeAction] = frozenset(
 # -------------------------------------
 # Authorisations niveau Organisme
 # -------------------------------------
-# Accorder SUPERVISEUR à une action l'ouvre aussi au staff
 _ROLES_REQUIS: dict[OrganismeAction, frozenset[AgentOrganismeRole]] = {
     OrganismeAction.GET_ORGANISME: frozenset({AgentOrganismeRole.SUPERVISEUR}),
     OrganismeAction.INITIALIZE_ORGANISME_STEPS: frozenset(
