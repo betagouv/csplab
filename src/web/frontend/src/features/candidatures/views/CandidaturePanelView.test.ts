@@ -14,9 +14,9 @@ import {
   CANDIDATURE_ALICE,
   CANDIDATURE_BRUNO,
   candidatureDetail,
+  CANDIDATURES_PAGE,
   ETAPE_ENTRETIEN,
   ETAPE_REFUS,
-  KANBAN,
   KANBAN_PATH,
   MOTIFS_REFUS,
   ORGANISME_UUID,
@@ -24,13 +24,12 @@ import {
   RECRUTEMENT_UUID,
 } from '@/test/fixtures/candidatures'
 import { setupUser } from '@/test/render'
-import { getCandidatureDetail, getMotifsRefus, getRecrutementKanban, patchEtapeCandidatures } from '../api'
+import { getCandidatureDetail, getCandidatures, getMotifsRefus, patchEtapeCandidatures } from '../api'
 import CandidaturePanelView from './CandidaturePanelView.vue'
 
 vi.mock('../api', () => ({
   getCandidatureDetail: vi.fn(),
-  getRecrutementKanban: vi.fn(),
-  getCandidatureListe: vi.fn(),
+  getCandidatures: vi.fn(),
   patchEtapeCandidatures: vi.fn(),
   getMotifsRefus: vi.fn(),
   getCandidatureDocuments: vi.fn(() => new Promise(() => {})),
@@ -75,7 +74,7 @@ describe('candidaturePanelView', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     vi.mocked(getCandidatureDetail).mockImplementation(async ({ candidatureUuid }) => candidatureDetail(candidatureUuid))
-    vi.mocked(getRecrutementKanban).mockResolvedValue(KANBAN)
+    vi.mocked(getCandidatures).mockResolvedValue(CANDIDATURES_PAGE)
     vi.mocked(getMotifsRefus).mockResolvedValue(MOTIFS_REFUS)
     vi.mocked(getRecrutementDetail).mockResolvedValue(RECRUTEMENT_DETAIL)
     vi.mocked(patchEtapeCandidatures).mockResolvedValue({ reussites: [CANDIDATURE_ALICE], echecs: [] })

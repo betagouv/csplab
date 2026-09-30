@@ -18,9 +18,6 @@ from application.recruteur.usecases.get_recrutement_detail import (
 from application.recruteur.usecases.get_recrutement_etapes import (
     GetRecrutementEtapesUsecase,
 )
-from application.recruteur.usecases.get_recrutement_kanban import (
-    GetRecrutementKanbanUsecase,
-)
 from application.recruteur.usecases.get_recrutement_liste import (
     GetRecrutementListeUsecase,
 )
@@ -181,12 +178,6 @@ class RecruteurContainer(containers.DeclarativeContainer):
 
     get_recrutement_detail_usecase = providers.Factory(
         GetRecrutementDetailUsecase,
-        organisme_permission_service=organisme_permission_service,
-        recrutement_query_service=postgres_recrutement_query_service,
-    )
-
-    get_recrutement_kanban_usecase = providers.Factory(
-        GetRecrutementKanbanUsecase,
         organisme_permission_service=organisme_permission_service,
         recrutement_query_service=postgres_recrutement_query_service,
     )

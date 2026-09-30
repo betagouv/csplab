@@ -1,9 +1,9 @@
 import type { ComputedRef, Ref } from 'vue'
-import type { Candidature, EtapeRecrutementDetailedCandidatures } from '../types'
+import type { CandidatureListe, EtapeRecrutementDetailedCandidatures } from '../types'
 import { computed, ref } from 'vue'
 
 export interface SelectedCandidature {
-  candidature: Candidature
+  candidature: CandidatureListe
   etapeUuid: string
 }
 

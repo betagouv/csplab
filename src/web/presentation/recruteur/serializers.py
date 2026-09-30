@@ -105,7 +105,7 @@ class RecrutementsArchivesSerializer(RecrutementsSerializer):
 
 
 # ---------------------------------------------------------------------------
-# Serializers pour la vue détail d'un recrutement (kanban / liste)
+# Serializers pour la vue détail d'un recrutement et la liste des candidatures
 # ---------------------------------------------------------------------------
 
 
@@ -113,17 +113,6 @@ class CandidatSerializer(serializers.Serializer):
     uuid = serializers.UUIDField()
     nom = serializers.CharField()
     prenom = serializers.CharField()
-
-
-class CandidatureSerializer(serializers.Serializer):
-    uuid = serializers.UUIDField()
-    date_soumission = serializers.DateTimeField()
-    date_derniere_activite = serializers.DateTimeField()
-    candidat = CandidatSerializer()
-
-
-class EtapeRecrutementDetailedCandidaturesSerializer(EtapeRecrutementSerializer):
-    candidatures = CandidatureSerializer(many=True)
 
 
 class RecrutementDetailSerializer(serializers.Serializer):
@@ -137,11 +126,6 @@ class RecrutementDetailSerializer(serializers.Serializer):
         choices=[(c.name, c.value) for c in Category]
     )
     etapes = EtapeRecrutementSerializer(many=True)
-
-
-class RecrutementDetailKanbanSerializer(serializers.Serializer):
-    offer_id = serializers.UUIDField()
-    etapes = EtapeRecrutementDetailedCandidaturesSerializer(many=True)
 
 
 class CandidatureListeSerializer(serializers.Serializer):

@@ -1,4 +1,4 @@
-import type { EtapeRecrutementDetailedCandidatures } from '../types'
+import type { CandidatureListe, EtapeRecrutementDetailedCandidatures } from '../types'
 import { describe, expect, it } from 'vitest'
 import { ref } from 'vue'
 import { useKanbanSelection } from './useKanbanSelection'
@@ -10,25 +10,28 @@ const CANDIDATURE_1_UUID = 'cccccccc-0001-0001-0001-000000000001'
 const CANDIDATURE_2_UUID = 'cccccccc-0001-0001-0001-000000000002'
 const CANDIDATURE_3_UUID = 'cccccccc-0001-0001-0001-000000000003'
 
-const CANDIDATURE_1 = {
+const CANDIDATURE_1: CandidatureListe = {
   uuid: CANDIDATURE_1_UUID,
   date_soumission: '2025-06-10T09:15:00Z',
   date_derniere_activite: '2025-06-11T10:00:00Z',
   candidat: { uuid: 'dddddddd-0001-0001-0001-000000000001', nom: 'Dupont', prenom: 'Alice' },
+  etape: { etape_uuid: ETAPE_1_UUID, nom: ETAPE_1_UUID, categorie: 'EN_COURS' },
 }
 
-const CANDIDATURE_2 = {
+const CANDIDATURE_2: CandidatureListe = {
   uuid: CANDIDATURE_2_UUID,
   date_soumission: '2025-06-11T14:30:00Z',
   date_derniere_activite: '2025-06-12T09:15:00Z',
   candidat: { uuid: 'dddddddd-0001-0001-0001-000000000002', nom: 'Martin', prenom: 'Bruno' },
+  etape: { etape_uuid: ETAPE_1_UUID, nom: ETAPE_1_UUID, categorie: 'EN_COURS' },
 }
 
-const CANDIDATURE_3 = {
+const CANDIDATURE_3: CandidatureListe = {
   uuid: CANDIDATURE_3_UUID,
   date_soumission: '2025-06-08T10:00:00Z',
   date_derniere_activite: '2025-06-11T10:00:00Z',
   candidat: { uuid: 'dddddddd-0001-0001-0001-000000000003', nom: 'Bernard', prenom: 'Élise' },
+  etape: { etape_uuid: ETAPE_2_UUID, nom: ETAPE_2_UUID, categorie: 'EN_COURS' },
 }
 
 function createEtapes(): EtapeRecrutementDetailedCandidatures[] {

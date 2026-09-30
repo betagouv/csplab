@@ -1,10 +1,8 @@
 import type { components } from '@/types/api'
 
-export type RecrutementDetailKanban = components['schemas']['RecrutementDetailKanban']
-
-export type EtapeRecrutementDetailedCandidatures = components['schemas']['EtapeRecrutementDetailedCandidatures']
-
-export type Candidature = components['schemas']['Candidature']
+export type EtapeRecrutementDetailedCandidatures = EtapeRecrutement & {
+  candidatures: CandidatureListe[]
+}
 
 export type Candidat = components['schemas']['Candidat']
 
@@ -35,9 +33,3 @@ export type PaginatedDocumentListeList = components['schemas']['PaginatedDocumen
 export type Note = components['schemas']['Note']
 
 export type PaginatedNoteList = components['schemas']['PaginatedNoteList']
-
-export interface CandidatureParams {
-  organismeUuid: string
-  recrutementUuid: string
-  candidatureUuid: string
-}

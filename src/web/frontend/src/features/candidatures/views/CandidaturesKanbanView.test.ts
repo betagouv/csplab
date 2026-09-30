@@ -4,8 +4,8 @@ import { getRecrutementDetail } from '@/features/recrutements/api'
 import {
   CANDIDATURE_ALICE,
   CANDIDATURE_BRUNO,
+  CANDIDATURES_PAGE,
   ETAPE_REFUS,
-  KANBAN,
   KANBAN_PATH,
   MOTIFS_REFUS,
   ORGANISME_UUID,
@@ -13,12 +13,11 @@ import {
   RECRUTEMENT_UUID,
 } from '@/test/fixtures/candidatures'
 import { renderWithApp, setupUser } from '@/test/render'
-import { getMotifsRefus, getRecrutementKanban, patchEtapeCandidatures } from '../api'
+import { getCandidatures, getMotifsRefus, patchEtapeCandidatures } from '../api'
 import CandidaturesKanbanView from './CandidaturesKanbanView.vue'
 
 vi.mock('../api', () => ({
-  getRecrutementKanban: vi.fn(),
-  getCandidatureListe: vi.fn(),
+  getCandidatures: vi.fn(),
   patchEtapeCandidatures: vi.fn(),
   getMotifsRefus: vi.fn(),
 }))
@@ -43,7 +42,7 @@ async function refuseSelectedColumn() {
 describe('candidaturesKanbanView', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    vi.mocked(getRecrutementKanban).mockResolvedValue(KANBAN)
+    vi.mocked(getCandidatures).mockResolvedValue(CANDIDATURES_PAGE)
     vi.mocked(getMotifsRefus).mockResolvedValue(MOTIFS_REFUS)
     vi.mocked(getRecrutementDetail).mockResolvedValue(RECRUTEMENT_DETAIL)
     vi.mocked(patchEtapeCandidatures).mockResolvedValue({ reussites: [CANDIDATURE_ALICE, CANDIDATURE_BRUNO], echecs: [] })

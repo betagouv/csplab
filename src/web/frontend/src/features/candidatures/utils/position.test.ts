@@ -12,6 +12,7 @@ function etape(etapeUuid: string, candidatureUuids: string[]): EtapeRecrutementD
       date_soumission: '2025-06-10T09:15:00Z',
       date_derniere_activite: '2025-06-10T09:15:00Z',
       candidat: { uuid: `candidat-${uuid}`, nom: uuid, prenom: uuid },
+      etape: { etape_uuid: etapeUuid, nom: etapeUuid, categorie: 'EN_COURS' },
     })),
   }
 }

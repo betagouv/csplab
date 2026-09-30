@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Candidature } from '../types'
+import type { CandidatureListe } from '../types'
 import { computed, ref, watchEffect } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
 import CspCard from '@/components/base/CspCard/CspCard.vue'
@@ -10,7 +10,7 @@ import { CANDIDATURE_ROUTE_NAME } from '../routes'
 import { formatCandidatNom } from '../utils/candidat'
 
 const props = defineProps<{
-  candidature: Candidature
+  candidature: CandidatureListe
   boardId: string
   columnId: string
   cardIndex: number

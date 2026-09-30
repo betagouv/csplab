@@ -1,10 +1,10 @@
 import type {
+  CandidatureListe,
   EtapeRecrutement,
   EtapeRecrutementDetailedCandidatures,
-  PaginatedCandidatureListeList,
 } from '../types'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { nextTick, ref, shallowRef } from 'vue'
+import { nextTick, shallowRef } from 'vue'
 import { useCandidaturesFilters } from './useCandidaturesFilters'
 
 const ETAPE_RECEPTION = 'cccccccc-0001-0001-0001-000000000001'
@@ -31,12 +31,14 @@ function makeEtapes(): EtapeRecrutementDetailedCandidatures[] {
           date_soumission: '2025-06-10T09:15:00Z',
           date_derniere_activite: '2025-06-11T10:00:00Z',
           candidat: { uuid: 'eeeeeeee-0001', nom: 'Dupont', prenom: 'Alice' },
+          etape: { etape_uuid: ETAPE_RECEPTION, nom: 'Réception des candidatures', categorie: 'ENTREE' },
         },
         {
           uuid: 'dddddddd-0001-0001-0001-000000000002',
           date_soumission: '2025-06-11T14:30:00Z',
           date_derniere_activite: '2025-06-12T09:15:00Z',
           candidat: { uuid: 'eeeeeeee-0002', nom: 'Martin', prenom: 'Bruno' },
+          etape: { etape_uuid: ETAPE_RECEPTION, nom: 'Réception des candidatures', categorie: 'ENTREE' },
         },
       ],
     },
@@ -50,54 +52,50 @@ function makeEtapes(): EtapeRecrutementDetailedCandidatures[] {
           date_soumission: '2025-06-08T10:00:00Z',
           date_derniere_activite: '2025-06-11T10:00:00Z',
           candidat: { uuid: 'eeeeeeee-0005', nom: 'Bernard', prenom: 'Élise' },
+          etape: { etape_uuid: ETAPE_PRESELECTION, nom: 'Présélection', categorie: 'EN_COURS' },
         },
       ],
     },
   ]
 }
 
-function makeListe(): PaginatedCandidatureListeList {
-  return {
-    count: 3,
-    next: null,
-    previous: null,
-    results: [
-      {
-        uuid: 'dddddddd-0001-0001-0001-000000000001',
-        date_soumission: '2025-06-10T09:15:00Z',
-        date_derniere_activite: '2025-06-11T10:00:00Z',
-        candidat: { uuid: 'eeeeeeee-0001', nom: 'Dupont', prenom: 'Alice' },
-        etape: { etape_uuid: ETAPE_RECEPTION, nom: 'Réception des candidatures', categorie: 'ENTREE' },
-      },
-      {
-        uuid: 'dddddddd-0001-0001-0001-000000000002',
-        date_soumission: '2025-06-11T14:30:00Z',
-        date_derniere_activite: '2025-06-12T09:15:00Z',
-        candidat: { uuid: 'eeeeeeee-0002', nom: 'Martin', prenom: 'Bruno' },
-        etape: { etape_uuid: ETAPE_RECEPTION, nom: 'Réception des candidatures', categorie: 'ENTREE' },
-      },
-      {
-        uuid: 'dddddddd-0001-0001-0001-000000000005',
-        date_soumission: '2025-06-08T10:00:00Z',
-        date_derniere_activite: '2025-06-11T10:00:00Z',
-        candidat: { uuid: 'eeeeeeee-0005', nom: 'Bernard', prenom: 'Élise' },
-        etape: { etape_uuid: ETAPE_PRESELECTION, nom: 'Présélection', categorie: 'EN_COURS' },
-      },
-    ],
-  }
+function makeCandidatures(): CandidatureListe[] {
+  return [
+    {
+      uuid: 'dddddddd-0001-0001-0001-000000000001',
+      date_soumission: '2025-06-10T09:15:00Z',
+      date_derniere_activite: '2025-06-11T10:00:00Z',
+      candidat: { uuid: 'eeeeeeee-0001', nom: 'Dupont', prenom: 'Alice' },
+      etape: { etape_uuid: ETAPE_RECEPTION, nom: 'Réception des candidatures', categorie: 'ENTREE' },
+    },
+    {
+      uuid: 'dddddddd-0001-0001-0001-000000000002',
+      date_soumission: '2025-06-11T14:30:00Z',
+      date_derniere_activite: '2025-06-12T09:15:00Z',
+      candidat: { uuid: 'eeeeeeee-0002', nom: 'Martin', prenom: 'Bruno' },
+      etape: { etape_uuid: ETAPE_RECEPTION, nom: 'Réception des candidatures', categorie: 'ENTREE' },
+    },
+    {
+      uuid: 'dddddddd-0001-0001-0001-000000000005',
+      date_soumission: '2025-06-08T10:00:00Z',
+      date_derniere_activite: '2025-06-11T10:00:00Z',
+      candidat: { uuid: 'eeeeeeee-0005', nom: 'Bernard', prenom: 'Élise' },
+      etape: { etape_uuid: ETAPE_PRESELECTION, nom: 'Présélection', categorie: 'EN_COURS' },
+    },
+  ]
 }
 
 function setup() {
   const recrutementEtapes = shallowRef(makeRecrutementEtapes())
   const etapes = shallowRef(makeEtapes())
-  const liste = ref<PaginatedCandidatureListeList | undefined>(makeListe())
+  const candidatures = shallowRef(makeCandidatures())
   return {
     etapes,
-    liste,
+    candidatures,
     filters: useCandidaturesFilters({
       recrutementEtapes,
       candidatureKanban: etapes,
-      candidatureListe: liste,
+      candidatures,
     }),
   }
 }
@@ -136,16 +134,6 @@ describe('useCandidaturesFilters', () => {
     filters.flushSearch()
 
     expect(filters.filteredCandidatures.value.map(c => c.candidat.nom)).toEqual(['Martin'])
-  })
-
-  it('falls back to an empty list when candidatureListe is undefined', () => {
-    const filters = useCandidaturesFilters({
-      recrutementEtapes: shallowRef(makeRecrutementEtapes()),
-      candidatureKanban: shallowRef(makeEtapes()),
-      candidatureListe: ref<PaginatedCandidatureListeList | undefined>(undefined),
-    })
-
-    expect(filters.filteredCandidatures.value).toEqual([])
   })
 
   it('clears etape filter and search on reset', () => {
