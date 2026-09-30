@@ -26,10 +26,13 @@ from infrastructure.authentication.proconnect_client import (
 )
 from infrastructure.di.identite.identite_factory import create_identite_container
 from presentation.api.serializers import GenericErrorSerializer, TokenErrorSerializer
+from presentation.identite.forms import SuperuserAuthenticationForm
 from presentation.identite.serializers import UtilisateurSerializer
 
 
 class LoginView(auth_views.LoginView):
+    form_class = SuperuserAuthenticationForm
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.container = create_identite_container()

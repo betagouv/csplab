@@ -13,6 +13,9 @@ class TestAtsSmoke:
     def test_login_form_then_spa_boots(
         self, page: Page, live_server, agent_user: UserModel
     ) -> None:
+        # Password login is reserved to superusers; agents use ProConnect.
+        agent_user.is_superuser = True
+        agent_user.save(update_fields=["is_superuser"])
         page.goto(f"{live_server.url}/utilisateur/connexion")
         page.get_by_label("Email").fill(agent_user.email)
         page.get_by_role("textbox", name="Mot de passe").fill(DEFAULT_PASSWORD)

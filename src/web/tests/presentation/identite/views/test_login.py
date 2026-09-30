@@ -3,6 +3,9 @@ from django.urls import reverse
 from pytest_django.asserts import assertContains, assertNotContains, assertTemplateUsed
 from rest_framework import status
 
+from infrastructure.factories.identite.utilisateur_django_factory import (
+    UtilisateurDjangoFactory,
+)
 from infrastructure.factories.identite.utilisateur_factory import DEFAULT_PASSWORD
 
 
@@ -33,9 +36,8 @@ class TestLoginView:
         errors_all = response.context["form"].errors["__all__"]
         assert "Saisissez un email et un mot de passe valides." in errors_all[0]
 
-    def test_post_with_correct_credentials_redirects_to_ats_base(
-        self, db, client, test_user
-    ):
+    def test_post_with_correct_credentials_redirects_to_ats_base(self, db, client):
+        test_user = UtilisateurDjangoFactory(is_superuser=True)
         response = client.post(
             reverse("identite:login"),
             {
@@ -62,9 +64,8 @@ class TestLoginView:
         assertNotContains(response, "ProConnect")
         assertNotContains(response, reverse("identite:proconnect_login"))
 
-    def test_post_with_correct_credentials_redirects_to_next_url(
-        self, db, client, test_user
-    ):
+    def test_post_with_correct_credentials_redirects_to_next_url(self, db, client):
+        test_user = UtilisateurDjangoFactory(is_superuser=True)
         response = client.post(
             reverse("identite:login"),
             {
@@ -77,3 +78,15 @@ class TestLoginView:
         assert response.status_code == status.HTTP_302_FOUND
         assert response.url == "/ats/"
         assert "_auth_user_id" in client.session
+
+    def test_post_with_correct_password_is_rejected_for_non_superuser(
+        self, db, client, test_user
+    ):
+        response = client.post(
+            reverse("identite:login"),
+            {"username": test_user.email, "password": DEFAULT_PASSWORD},
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        assertContains(response, "Adresse e-mail ou mot de passe incorrect")
+        assert "_auth_user_id" not in client.session
