@@ -78,15 +78,32 @@ def test_initialize_organisme_steps_logs_action(audited_container):
     assert logs[0].ressource_id == organisme_model.id
 
 
-@pytest.mark.parametrize(
-    "role", [AgentOrganismeRole.AGENT, None], ids=["membre", "non_membre"]
-)
-def test_initialize_organisme_steps_does_not_log_when_refused(audited_container, role):
-    agent, organisme_model = create_organisme_with_agent(role)
+def test_initialize_organisme_steps_does_not_log_when_member_refused(
+    audited_container,
+):
+    agent, organisme_model = create_organisme_with_agent(role=AgentOrganismeRole.AGENT)
     usecase = audited_container.initialize_organisme_steps_usecase()
 
     with pytest.raises(AccesOrganismeRefuse):
         usecase.execute(_init_command(agent, organisme_model.id))
+
+    assert _audit_logs(audited_container, organisme_model.id) == []
+
+
+def test_initialize_organisme_steps_does_not_log_for_other_organisme(
+    audited_container,
+):
+    # Superviseur ailleurs : seul le périmètre d'organisme justifie le refus
+    _, organisme_model = create_organisme_with_agent(
+        role=AgentOrganismeRole.SUPERVISEUR
+    )
+    autre_superviseur, _ = create_organisme_with_agent(
+        role=AgentOrganismeRole.SUPERVISEUR
+    )
+    usecase = audited_container.initialize_organisme_steps_usecase()
+
+    with pytest.raises(AccesOrganismeRefuse):
+        usecase.execute(_init_command(autre_superviseur, organisme_model.id))
 
     assert _audit_logs(audited_container, organisme_model.id) == []
 
