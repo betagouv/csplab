@@ -531,6 +531,7 @@ def initialize_organisme_steps_usecase():
     return InitializeOrganismeStepsUsecase(
         organisme_recruteur_repository=repository,
         organisme_permission_service=MagicMock(spec=OrganismePermissionService),
+        audit_log_writer=MagicMock(spec=AuditLogWriter),
     )
 
 

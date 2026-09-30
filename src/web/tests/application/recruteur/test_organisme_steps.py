@@ -46,7 +46,8 @@ def test_get_organisme_steps(get_organisme_recruteur_usecase):
     assert organisme.entity_id == organisme_before.entity_id
 
 
-def test_initialize_organisme_steps(initialize_organisme_steps_usecase):
+# transaction.atomic() dans le usecase ouvre une connexion ; le repository reste factice
+def test_initialize_organisme_steps(db, initialize_organisme_steps_usecase):
     organisme_before = OrganismeRecruteurFactory.create_entity()
     initialize_organisme_steps_usecase.organisme_recruteur_repository.save(
         organisme_before

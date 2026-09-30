@@ -1,4 +1,4 @@
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, Mock, patch
 
 import pytest
 
@@ -24,6 +24,9 @@ from infrastructure.factories.recruteur.etapes_recrutement_factory import (
     EtapeRecrutementFactory,
 )
 from infrastructure.gateways.shared.logger import LoggerService
+from infrastructure.repositories.recruteur.postgres_organisme_repository import (
+    PostgresOrganismeRecruteurRepository,
+)
 
 NB_ETAPES_PAR_DEFAUT = 6
 
@@ -37,6 +40,134 @@ def recruteur_integration_container_fixture(db):
     container.logger_service.override(logger_service)
     container.audit_log_writer.override(MagicMock(spec=AuditLogWriter))
     return container
+
+
+@pytest.fixture(name="audited_container")
+def audited_container_fixture(db) -> RecruteurContainer:
+    container = RecruteurContainer()
+    container.app_config.override(AppConfig.from_django_settings())
+    container.logger_service.override(LoggerService())
+    return container
+
+
+def _audit_logs(container, organisme_id):
+    return container.postgres_audit_log_repository().get_logs_for_ressource(
+        "OrganismeRecruteur", organisme_id
+    )
+
+
+def _init_command(agent, organisme_id):
+    return InitializeOrganismeStepsCommand(
+        organisme_id=organisme_id,
+        utilisateur=UtilisateurFactory.create_entity(entity_id=agent.utilisateur_id),
+    )
+
+
+def test_initialize_organisme_steps_logs_action(audited_container):
+    agent, organisme_model = create_organisme_with_agent(
+        role=AgentOrganismeRole.SUPERVISEUR
+    )
+    usecase = audited_container.initialize_organisme_steps_usecase()
+
+    usecase.execute(_init_command(agent, organisme_model.id))
+
+    logs = _audit_logs(audited_container, organisme_model.id)
+    assert len(logs) == 1
+    assert logs[0].event_name == "OrganismeEtapesInitialises"
+    assert logs[0].utilisateur_id == agent.utilisateur_id
+    assert logs[0].ressource_id == organisme_model.id
+
+
+def test_initialize_organisme_steps_does_not_log_when_member_refused(
+    audited_container,
+):
+    agent, organisme_model = create_organisme_with_agent(role=AgentOrganismeRole.AGENT)
+    usecase = audited_container.initialize_organisme_steps_usecase()
+
+    with pytest.raises(AccesOrganismeRefuse):
+        usecase.execute(_init_command(agent, organisme_model.id))
+
+    assert _audit_logs(audited_container, organisme_model.id) == []
+
+
+def test_initialize_organisme_steps_does_not_log_for_other_organisme(
+    audited_container,
+):
+    # Superviseur ailleurs : seul le périmètre d'organisme justifie le refus
+    _, organisme_model = create_organisme_with_agent(
+        role=AgentOrganismeRole.SUPERVISEUR
+    )
+    autre_superviseur, _ = create_organisme_with_agent(
+        role=AgentOrganismeRole.SUPERVISEUR
+    )
+    usecase = audited_container.initialize_organisme_steps_usecase()
+
+    with pytest.raises(AccesOrganismeRefuse):
+        usecase.execute(_init_command(autre_superviseur, organisme_model.id))
+
+    assert _audit_logs(audited_container, organisme_model.id) == []
+
+
+@patch.object(
+    PostgresOrganismeRecruteurRepository,
+    "save",
+    new=Mock(side_effect=RuntimeError("save failed")),
+)
+def test_initialize_organisme_steps_does_not_log_when_save_fails(audited_container):
+    agent, organisme_model = create_organisme_with_agent(
+        role=AgentOrganismeRole.SUPERVISEUR
+    )
+    usecase = audited_container.initialize_organisme_steps_usecase()
+
+    with pytest.raises(RuntimeError):
+        usecase.execute(_init_command(agent, organisme_model.id))
+
+    assert _audit_logs(audited_container, organisme_model.id) == []
+
+
+@patch.object(
+    AuditLogWriter,
+    "log_action",
+    new=Mock(side_effect=RuntimeError("audit log write failed")),
+)
+def test_initialize_organisme_steps_rolls_back_when_audit_log_fails(
+    audited_container,
+):
+    agent, organisme_model = create_organisme_with_agent(
+        role=AgentOrganismeRole.SUPERVISEUR
+    )
+    etapes_avant = organisme_model.etapes
+    usecase = audited_container.initialize_organisme_steps_usecase()
+
+    with pytest.raises(RuntimeError):
+        usecase.execute(_init_command(agent, organisme_model.id))
+
+    organisme_model.refresh_from_db()
+    assert organisme_model.etapes == etapes_avant
+
+
+def test_update_organisme_steps_logs_action(audited_container):
+    etapes = EtapeRecrutementFactory.create_entity_batch()
+    agent, organisme_model = create_organisme_with_agent(
+        AgentOrganismeRole.SUPERVISEUR, etapes=etapes
+    )
+    usecase = audited_container.update_organisme_steps_usecase()
+
+    usecase.execute(
+        UpdateOrganismeStepsCommand(
+            utilisateur=UtilisateurFactory.create_entity(
+                entity_id=agent.utilisateur_id
+            ),
+            organisme_id=organisme_model.id,
+            etapes=EtapeRecrutementFactory.to_etape_data_list(etapes),
+        )
+    )
+
+    logs = _audit_logs(audited_container, organisme_model.id)
+    assert len(logs) == 1
+    assert logs[0].event_name == "OrganismeEtapesMisesAJour"
+    assert logs[0].utilisateur_id == agent.utilisateur_id
+    assert logs[0].ressource_id == organisme_model.id
 
 
 def test_get_organisme_steps(recruteur_integration_container):
