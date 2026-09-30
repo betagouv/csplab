@@ -136,6 +136,7 @@ class RecruteurContainer(containers.DeclarativeContainer):
         InitializeOrganismeStepsUsecase,
         organisme_recruteur_repository=postgres_organisme_recruteur_repository,
         organisme_permission_service=organisme_permission_service,
+        audit_log_writer=audit_log_writer,
     )
 
     update_organisme_steps_usecase = providers.Factory(
