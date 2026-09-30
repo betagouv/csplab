@@ -46,12 +46,20 @@ async def flower_proxy(path: str, request: Request):
     if request.url.query:
         url = f"{url}?{request.url.query}"
     async with httpx.AsyncClient() as client:
-        proxied = await client.request(
-            method=request.method,
-            url=url,
-            headers={k: v for k, v in request.headers.items() if k.lower() != "host"},
-            content=await request.body(),
-        )
+        try:
+            proxied = await client.request(
+                method=request.method,
+                url=url,
+                headers={
+                    k: v for k, v in request.headers.items() if k.lower() != "host"
+                },
+                content=await request.body(),
+            )
+        except httpx.ConnectError as exc:
+            logger.warning("Flower is unreachable on port %s", flower_port)
+            raise HTTPException(
+                status_code=502, detail="Flower is unavailable"
+            ) from exc
     return Response(
         content=proxied.content,
         status_code=proxied.status_code,
