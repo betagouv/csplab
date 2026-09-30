@@ -423,6 +423,32 @@ async def test_publish_raises_and_logs_error_when_response_contains_errors(
 
 
 @pytest.mark.asyncio
+async def test_publish_error_message_contains_web_errors(
+    gateway, httpx_mock: HTTPXMock
+):
+    httpx_mock.add_response(
+        method="POST",
+        url=PUBLISH_URL,
+        status_code=201,
+        json={
+            "created": 0,
+            "updated": 0,
+            "errors": [
+                {
+                    "offer": {"reference": "2024-OFFER-001"},
+                    "error": {"metier": ["Code métier inconnu : ERMED008."]},
+                }
+            ],
+        },
+    )
+
+    with pytest.raises(ExternalApiError, match="Code métier inconnu : ERMED008"):
+        await gateway.publish(
+            PublishOfferInput(source_id=SOURCE_ID, offer=MINIMAL_OFFER)
+        )
+
+
+@pytest.mark.asyncio
 async def test_publish_does_not_log_when_response_has_no_errors(
     gateway, httpx_mock: HTTPXMock, caplog
 ):

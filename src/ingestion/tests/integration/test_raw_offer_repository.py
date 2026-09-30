@@ -298,6 +298,53 @@ async def test_mark_as_upserted_raises_when_row_not_found(
         )
 
 
+@pytest.mark.asyncio
+async def test_mark_as_upserted_clears_error_msg(raw_offer_repository, db_engine):
+    await raw_offer_repository.upsert(
+        RawOffer(reference=REFERENCE, source_id=SOURCE_ID)
+    )
+    await raw_offer_repository.mark_as_publish_failed(
+        REFERENCE, SOURCE_ID, "Code métier inconnu"
+    )
+
+    await raw_offer_repository.mark_as_upserted(
+        REFERENCE, SOURCE_ID, datetime.now(tz=timezone.utc)
+    )
+
+    saved = _fetch(db_engine, REFERENCE, SOURCE_ID)
+    assert saved.error_msg is None
+
+
+# ---------------------------------------------------------------------------
+# mark_as_publish_failed
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_mark_as_publish_failed_sets_error_msg(raw_offer_repository, db_engine):
+    await raw_offer_repository.upsert(
+        RawOffer(reference=REFERENCE, source_id=SOURCE_ID)
+    )
+
+    await raw_offer_repository.mark_as_publish_failed(
+        REFERENCE, SOURCE_ID, "Code métier inconnu : ERMED008."
+    )
+
+    saved = _fetch(db_engine, REFERENCE, SOURCE_ID)
+    assert saved.error_msg == "Code métier inconnu : ERMED008."
+    assert saved.upsert_at is None
+
+
+@pytest.mark.asyncio
+async def test_mark_as_publish_failed_raises_when_row_not_found(
+    raw_offer_repository, db_engine
+):
+    with pytest.raises(ValueError, match="RawOffer not found"):
+        await raw_offer_repository.mark_as_publish_failed(
+            "UNKNOWN-REF", SOURCE_ID, "error"
+        )
+
+
 # ---------------------------------------------------------------------------
 # mark_as_archived
 # ---------------------------------------------------------------------------

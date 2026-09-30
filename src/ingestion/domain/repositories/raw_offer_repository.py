@@ -12,6 +12,9 @@ class IRawOfferRepository(Protocol):
     async def mark_as_upserted(
         self, reference: str, source_id: str, upsert_at: datetime
     ) -> None: ...
+    async def mark_as_publish_failed(
+        self, reference: str, source_id: str, error_msg: str
+    ) -> None: ...
     async def mark_as_archived(
         self, reference: str, source_id: str, archived_at: datetime
     ) -> None: ...

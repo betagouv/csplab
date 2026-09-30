@@ -97,6 +97,7 @@ def setup_talentsoft_front_in_container(
     mock_repo.upsert = AsyncMock()
     mock_repo.mark_as_cleaned = AsyncMock()
     mock_repo.mark_as_upserted = AsyncMock()
+    mock_repo.mark_as_publish_failed = AsyncMock()
     mock_repo.mark_as_archived = AsyncMock()
     container.raw_offer_repository.override(providers.Object(mock_repo))
 
