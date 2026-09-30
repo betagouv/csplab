@@ -399,6 +399,11 @@ class OffersCleaner:
             transcoder,
         )
 
+        organisme_entity_code = self._map_organisme_entity_code(
+            cast(TalentsoftOrganisation, talentsoft_offer.organisation).entityCode,
+            transcoder,
+        )
+
         return Offer(
             reference=raw_offer.reference,
             source_id=UUID(cast(str, raw_offer.source_id)),
@@ -428,9 +433,7 @@ class OffersCleaner:
             working_place=working_place,
             working_time=working_time,
             management=management,
-            talentsoft_organisme_entity_code=cast(
-                TalentsoftOrganisation, talentsoft_offer.organisation
-            ).entityCode,
+            talentsoft_organisme_entity_code=organisme_entity_code,
         )
 
     def _map_verse(
@@ -714,6 +717,13 @@ class OffersCleaner:
         if transcoder:
             return transcoder.translate("metiers", client_code) or client_code
         return client_code
+
+    def _map_organisme_entity_code(
+        self, entity_code: str, transcoder: Optional[SourceTranscoder]
+    ) -> str:
+        if transcoder:
+            return transcoder.translate("organisations", entity_code)
+        return entity_code
 
     def _parse_url(self, url_str: str) -> Optional[HttpUrl]:
         try:

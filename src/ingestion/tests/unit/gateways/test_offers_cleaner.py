@@ -1120,6 +1120,26 @@ def test_clean_maps_talentsoft_organisme_entity_code_from_organisation(cleaner):
     assert offer.talentsoft_organisme_entity_code == "12345"
 
 
+@pytest.mark.parametrize(
+    "entity_code, expected",
+    [
+        ("011A270001", "735"),
+        ("011A440001", "_TS_424e953f-150e-47d3-9c17-95f4da4793c7"),
+        ("PPC2A38EFDE-D61B-4ED6-9354-9A1314EA0B6F", "741"),
+    ],
+)
+def test_clean_transcodes_talentsoft_organisme_entity_code(
+    cleaner, entity_code, expected
+):
+    raw_offer = _make_raw_offer(
+        organisation=TalentsoftOrganisationFactory.build(entityCode=entity_code),
+    )
+
+    offer = cleaner.clean(raw_offer)
+
+    assert offer.talentsoft_organisme_entity_code == expected
+
+
 def test_clean_raises_when_no_organisation(cleaner):
     raw_offer = _make_raw_offer(organisation=None)
 
