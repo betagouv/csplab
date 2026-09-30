@@ -17,7 +17,7 @@ from infrastructure.factories.identite.utilisateur_factory import DEFAULT_PASSWO
 
 class TestAdminOTPRequired:
     def test_admin_otp_required_by_default(self):
-        assert settings.ADMIN_OTP_REQUIRED is True
+        assert settings.OTP_REQUIRED is True
         assert isinstance(admin.site, OTPAdminSite)
 
     def test_admin_shows_totp_input_for_staff_without_otp_device(

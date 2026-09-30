@@ -7,8 +7,11 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import Http404, HttpRequest, HttpResponse, HttpResponseBase
 from django.shortcuts import redirect
 from django.urls import reverse
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.views import View
-from django.views.generic import TemplateView
+from django.views.generic import FormView, TemplateView
+from django_otp import login as otp_login
+from django_otp import match_token
 from drf_spectacular.utils import extend_schema
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
@@ -26,22 +29,24 @@ from infrastructure.authentication.proconnect_client import (
 )
 from infrastructure.di.identite.identite_factory import create_identite_container
 from presentation.api.serializers import GenericErrorSerializer, TokenErrorSerializer
-from presentation.identite.forms import SuperuserAuthenticationForm
+from presentation.identite.forms import OtpTokenForm, SuperuserAuthenticationForm
+from presentation.identite.otp_flow import (
+    NO_DEVICE_MESSAGE,
+    clear_pending,
+    get_pending,
+    has_confirmed_device,
+    load_pending_user,
+    requires_otp,
+    start_challenge,
+)
 from presentation.identite.serializers import UtilisateurSerializer
 
 
-class LoginView(auth_views.LoginView):
-    form_class = SuperuserAuthenticationForm
-
+class LoginAuditMixin:
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.container = create_identite_container()
         self.logger = self.container.logger_service()
-
-    def form_valid(self, form) -> HttpResponse:
-        response = super().form_valid(form)
-        self._audit_connexion(form.get_user())
-        return response
 
     def _audit_connexion(self, user) -> None:
         # Auditing must never break the login flow (e.g. a non-UUID username on
@@ -53,6 +58,65 @@ class LoginView(auth_views.LoginView):
             usecase.execute(LogUtilisateurConnexionInput(utilisateur=utilisateur))
         except Exception as e:
             self.logger.error("Failed to audit login: %s", str(e))
+
+
+class LoginView(LoginAuditMixin, auth_views.LoginView):
+    form_class = SuperuserAuthenticationForm
+
+    def form_valid(self, form) -> HttpResponse:
+        user = form.get_user()
+        if requires_otp(user):
+            if not has_confirmed_device(user):
+                messages.error(self.request, NO_DEVICE_MESSAGE)
+                return redirect(settings.LOGIN_URL)
+            start_challenge(
+                self.request,
+                user,
+                user.backend,
+                next_url=self.get_redirect_url(),
+                audit=True,
+            )
+            return redirect("identite:otp_verify")
+        response = super().form_valid(form)
+        self._audit_connexion(user)
+        return response
+
+
+class OtpVerifyView(LoginAuditMixin, FormView):
+    form_class = OtpTokenForm
+    template_name = "registration/otp.html"
+
+    def dispatch(self, request: HttpRequest, *args, **kwargs) -> HttpResponseBase:
+        self.pending = get_pending(request)
+        self.user = load_pending_user(self.pending) if self.pending else None
+        if self.user is None:
+            clear_pending(request)
+            return redirect(settings.LOGIN_URL)
+        return super().dispatch(request, *args, **kwargs)
+
+    def form_valid(self, form) -> HttpResponse:
+        device = match_token(self.user, form.cleaned_data["otp_token"])
+        if device is None:
+            form.add_error("otp_token", "Code invalide ou expiré.")
+            return self.form_invalid(form)
+
+        pending = self.pending
+        clear_pending(self.request)
+        login(self.request, self.user, backend=pending["backend"])
+        otp_login(self.request, device)
+        if pending["oidc_id_token"]:
+            self.request.session["oidc_id_token"] = pending["oidc_id_token"]
+        if pending["audit"]:
+            self._audit_connexion(self.user)
+        return redirect(self._success_url(pending["next_url"]))
+
+    def _success_url(self, next_url: str) -> str:
+        is_safe = url_has_allowed_host_and_scheme(
+            next_url,
+            allowed_hosts={self.request.get_host()},
+            require_https=self.request.is_secure(),
+        )
+        return next_url if next_url and is_safe else settings.LOGIN_REDIRECT_URL
 
 
 class ProconnectLoginView(View):
@@ -81,11 +145,16 @@ class ProconnectCallbackView(View):
         if user is None:
             return self._login_failure(request)
 
-        login(
-            request,
-            user,
-            backend="infrastructure.authentication.proconnect_backend.ProconnectBackend",
-        )
+        if requires_otp(user):
+            if not has_confirmed_device(user):
+                messages.error(request, NO_DEVICE_MESSAGE)
+                return redirect(settings.LOGIN_URL)
+            start_challenge(
+                request, user, user.backend, oidc_id_token=token.get("id_token")
+            )
+            return redirect("identite:otp_verify")
+
+        login(request, user, backend=user.backend)
         request.session["oidc_id_token"] = token.get("id_token")
         return redirect(settings.LOGIN_REDIRECT_URL)
 

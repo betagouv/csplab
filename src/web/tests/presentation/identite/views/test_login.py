@@ -36,6 +36,7 @@ class TestLoginView:
         errors_all = response.context["form"].errors["__all__"]
         assert "Saisissez un email et un mot de passe valides." in errors_all[0]
 
+    @override_settings(OTP_REQUIRED=False)
     def test_post_with_correct_credentials_redirects_to_ats_base(self, db, client):
         test_user = UtilisateurDjangoFactory(is_superuser=True)
         response = client.post(
@@ -64,6 +65,7 @@ class TestLoginView:
         assertNotContains(response, "ProConnect")
         assertNotContains(response, reverse("identite:proconnect_login"))
 
+    @override_settings(OTP_REQUIRED=False)
     def test_post_with_correct_credentials_redirects_to_next_url(self, db, client):
         test_user = UtilisateurDjangoFactory(is_superuser=True)
         response = client.post(

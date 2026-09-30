@@ -14,7 +14,7 @@ from presentation.pages import urls as pages_urls
 from presentation.pages.views import security_txt
 from presentation.recruteur import urls as recruteur_urls
 
-if settings.ADMIN_OTP_REQUIRED:
+if settings.OTP_REQUIRED:
     admin.site.__class__ = OTPAdminSite
 
 urlpatterns: list[URLPattern | URLResolver] = [

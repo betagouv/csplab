@@ -1,0 +1,32 @@
+{% extends "layouts/base.html" %}
+{% block page_title %}
+    Vérification en deux étapes
+{% endblock page_title %}
+{% block main %}
+    <div class="fr-container fr-py-10v fr-py-md-14v">
+        <div class="fr-grid-row fr-grid-row--center">
+            <div class="fr-col-12 fr-col-md-8 fr-col-lg-5">
+                <h1 class="fr-h4 fr-mb-6v">Vérification en deux étapes</h1>
+                <form method="post" id="otp-form">
+                    {% csrf_token %}
+                    <div class="fr-input-group {% if form.otp_token.errors %}fr-input-group--error{% endif %}">
+                        <label class="fr-label" for="{{ form.otp_token.id_for_label }}">
+                            {{ form.otp_token.label }}
+                            <span class="fr-hint-text">Code affiché par votre application d'authentification</span>
+                        </label>
+                        {{ form.otp_token }}
+                        {% for error in form.otp_token.errors %}<p class="fr-error-text" role="alert">{{ error }}</p>{% endfor %}
+                    </div>
+                    <ul class="fr-btns-group fr-mt-4v">
+                        <li>
+                            <button class="fr-btn" type="submit">Valider</button>
+                        </li>
+                    </ul>
+                </form>
+                <p>
+                    <a class="fr-link" href="{% url 'identite:login' %}">Retour à la connexion</a>
+                </p>
+            </div>
+        </div>
+    </div>
+{% endblock main %}

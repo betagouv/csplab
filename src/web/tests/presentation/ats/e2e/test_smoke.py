@@ -11,8 +11,9 @@ from infrastructure.factories.identite.utilisateur_factory import DEFAULT_PASSWO
 @pytest.mark.e2e
 class TestAtsSmoke:
     def test_login_form_then_spa_boots(
-        self, page: Page, live_server, agent_user: UserModel
+        self, page: Page, live_server, agent_user: UserModel, settings
     ) -> None:
+        settings.OTP_REQUIRED = False
         # Password login is reserved to superusers; agents use ProConnect.
         agent_user.is_superuser = True
         agent_user.save(update_fields=["is_superuser"])

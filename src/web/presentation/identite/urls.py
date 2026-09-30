@@ -2,6 +2,7 @@ from django.urls import path
 
 from presentation.identite.views import (
     LoginView,
+    OtpVerifyView,
     ProconnectCallbackView,
     ProconnectLoginView,
     ProconnectLogoutView,
@@ -13,6 +14,7 @@ app_name = "identite"
 
 urlpatterns = [
     path("connexion", LoginView.as_view(), name="login"),
+    path("otp", OtpVerifyView.as_view(), name="otp_verify"),
     path("deconnexion", ProconnectLogoutView.as_view(), name="logout"),
     path(
         "proconnect/connexion",
