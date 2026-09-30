@@ -9,6 +9,14 @@ from infrastructure.django_apps.ingestion.models.api_log_daily_aggregation impor
     ApiLogDailyAggregationModel,
 )
 from infrastructure.django_apps.ingestion.models.raw_document import RawDocument
+from infrastructure.django_apps.messagerie.admin import (
+    MessageDocumentInline,
+    MessageInline,
+)
+from infrastructure.django_apps.messagerie.models import (
+    ConversationModel,
+    MessageModel,
+)
 from infrastructure.django_apps.recruteur.admin import (
     OrganismeAgentInline,
     RecrutementAgentInline,
@@ -35,6 +43,8 @@ READONLY_MODELS = [
     ApiLogDailyAggregationModel,
     RawDocument,
     NoteModel,
+    ConversationModel,
+    MessageModel,
     RecrutementModel,
     EtapeModel,
     ProfilAgentModel,
@@ -44,6 +54,8 @@ READONLY_MODELS = [
 READONLY_INLINES = [
     (OrganismeModel, OrganismeAgentInline),
     (RecrutementModel, RecrutementAgentInline),
+    (ConversationModel, MessageInline),
+    (MessageModel, MessageDocumentInline),
 ]
 
 
