@@ -60,6 +60,7 @@ class IdentiteContainer(containers.DeclarativeContainer):
         CreateCandidatUsecase,
         candidat_repository=postgres_candidat_repository,
         utilisateur_repository=postgres_utilisateur_repository,
+        audit_log_writer=audit_log_writer,
     )
 
     log_utilisateur_connexion_usecase = providers.Factory(

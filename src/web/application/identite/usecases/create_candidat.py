@@ -2,6 +2,7 @@ from dataclasses import dataclass
 
 from pydantic import EmailStr
 
+from domain.commons.services.audit_log_writer import AuditLogWriter
 from domain.identite.entities.candidat import Candidat
 from domain.identite.entities.utilisateurs import Utilisateur
 from domain.identite.errors.candidat_errors import ProfilCandidatExisteDeja
@@ -28,9 +29,11 @@ class CreateCandidatUsecase:
         self,
         candidat_repository: ICandidatRepository,
         utilisateur_repository: IUtilisateurRepository,
+        audit_log_writer: AuditLogWriter,
     ):
         self.candidat_repository = candidat_repository
         self.utilisateur_repository = utilisateur_repository
+        self.audit_log_writer = audit_log_writer
 
     def execute(self, input_data: CreateCandidatInput) -> Candidat:
         email = normalize_email(input_data.email)
@@ -58,4 +61,11 @@ class CreateCandidatUsecase:
             user_id=utilisateur.entity_id,
         )
 
-        return self.candidat_repository.create(utilisateur, candidat)
+        created = self.candidat_repository.create(utilisateur, candidat)
+        self.audit_log_writer.log_action(
+            utilisateur_id=utilisateur.entity_id,
+            entity=created,
+            ressource_kind="Candidat",
+            event_name="ProfilCandidatCree",
+        )
+        return created
