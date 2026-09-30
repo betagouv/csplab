@@ -4,6 +4,90 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] - 2026-09-30
+
+### <!-- 1 --> Added
+
+- Interface, assigner un responsable sur plusieurs recrutements d'un organisme ([#1438](https://github.com/betagouv/csplab/pull/1438))
+- Supprimer un membre de l'équipe de recrutement ([#1445](https://github.com/betagouv/csplab/pull/1445))
+- Ajoute l'enum Radius ([#1449](https://github.com/betagouv/csplab/pull/1449))
+- Motifs refus candidature ([#1430](https://github.com/betagouv/csplab/pull/1430))
+- Interface, enregistrer le motif de refus d'une ou plusieurs candidatures ([#1431](https://github.com/betagouv/csplab/pull/1431))
+- Persister le motif de refus d'une ou plusieurs candidatures en db ([#1432](https://github.com/betagouv/csplab/pull/1432))
+- Enregistre le nom et le prénom issus de ProConnect ([#1451](https://github.com/betagouv/csplab/pull/1451))
+- Back, assigner un responsable sur plusieurs recrutements d'un organisme ([#1452](https://github.com/betagouv/csplab/pull/1452))
+- Add document model, its FileField wire to S3 storage and its enum ([#1473](https://github.com/betagouv/csplab/pull/1473))
+- Assigner un responsable recrutement en lot ([#1483](https://github.com/betagouv/csplab/pull/1483))
+- Ajoute CspSearchBar et l'utilise pour toutes les recherches ([#1491](https://github.com/betagouv/csplab/pull/1491))
+- Ouvre le panneau de candidature depuis le kanban ([#1477](https://github.com/betagouv/csplab/pull/1477))
+- Ajoute les onglets et la colonne de droite au panneau de candidature ([#1487](https://github.com/betagouv/csplab/pull/1487))
+- Navigue entre les candidatures de l'étape depuis le panneau ([#1489](https://github.com/betagouv/csplab/pull/1489))
+- Attacher un agent à l'organisme lors de son ajout dans un recrutement ([#1501](https://github.com/betagouv/csplab/pull/1501))
+- Change l'étape d'une candidature depuis le panneau ([#1493](https://github.com/betagouv/csplab/pull/1493))
+- Uniformise l'ajout d'une personne ([#1505](https://github.com/betagouv/csplab/pull/1505))
+- Retrouve le SIRET DILA manquant via une API externe ([#1482](https://github.com/betagouv/csplab/pull/1482))
+- Prépare l'import des organisations Talentsoft ([#1499](https://github.com/betagouv/csplab/pull/1499))
+- Ajoute TalentsoftOrganisme et l'endpoint creer_modifier ([#1502](https://github.com/betagouv/csplab/pull/1502))
+- Setup candidature logs view interface ([#1459](https://github.com/betagouv/csplab/pull/1459))
+- Affiche un message d'état vide si pas de recrutements ([#1514](https://github.com/betagouv/csplab/pull/1514))
+- Interface du endpoint de la vue de detail d'une candidature ([#1462](https://github.com/betagouv/csplab/pull/1462))
+- Visualiser un document en tant qu'agent autorisé ([#1475](https://github.com/betagouv/csplab/pull/1475))
+- Publie les organismes Talentsoft préparés vers web ([#1516](https://github.com/betagouv/csplab/pull/1516))
+- Rend organisme_id optionnel pour l'upsert des organismes Talentsoft ([#1515](https://github.com/betagouv/csplab/pull/1515))
+- Gestion des permissions sur les Notes ([#1507](https://github.com/betagouv/csplab/pull/1507))
+- Ajoute le code entité DGAFP Talentsoft sur les offres ([#1546](https://github.com/betagouv/csplab/pull/1546))
+- Remonte le code entité DGAFP Talentsoft vers web ([#1547](https://github.com/betagouv/csplab/pull/1547))
+- Demande un motif avant de refuser une candidature ([#1506](https://github.com/betagouv/csplab/pull/1506))
+- Alimenter le detail d'une candidature avec les données réelles ([#1550](https://github.com/betagouv/csplab/pull/1550))
+- Interface de liste des conversations d'une candidature  ([#1536](https://github.com/betagouv/csplab/pull/1536))
+- Interface de detail des messages d'une conversation ([#1537](https://github.com/betagouv/csplab/pull/1537))
+- Ajoute le référentiel des organismes Talentsoft à l'API fake-ts ([#1554](https://github.com/betagouv/csplab/pull/1554))
+- Lister les document d'une candidature en tant qu'agent autorisé ([#1476](https://github.com/betagouv/csplab/pull/1476))
+- Affiche le CV et les documents dans le panneau de candidature ([#1549](https://github.com/betagouv/csplab/pull/1549))
+- Affiche la liste des conversations d'une candidature ([#1563](https://github.com/betagouv/csplab/pull/1563))
+- Alimente le panneau par le détail de la candidature ([#1556](https://github.com/betagouv/csplab/pull/1556))
+- Ajoute une note sur la candidature depuis le panneau ([#1562](https://github.com/betagouv/csplab/pull/1562))
+- Affiche les messages d'un conversation ([#1564](https://github.com/betagouv/csplab/pull/1564))
+- Harmonise la sidebar, l'en-tête de page et la largeur des pages ([#1575](https://github.com/betagouv/csplab/pull/1575))
+- Interface de creation d'une conversation ([#1561](https://github.com/betagouv/csplab/pull/1561))
+- Interface de reponse à une conversation ([#1585](https://github.com/betagouv/csplab/pull/1585))
+- Améliore les messages d'état recrutements ([#1589](https://github.com/betagouv/csplab/pull/1589))
+- Expose l'organisation Talentsoft dans le détail d'une offre ([#1565](https://github.com/betagouv/csplab/pull/1565))
+- Ajoute l'endpoint fake-ts de détail d'une organisation ([#1566](https://github.com/betagouv/csplab/pull/1566))
+- Filtre les offres par organisme Talentsoft et ses descendants ([#1568](https://github.com/betagouv/csplab/pull/1568))
+- Intègre le garde-fou de saisie non enregistrée au panneau ([#1594](https://github.com/betagouv/csplab/pull/1594))
+- Annonce la mise en pause du produit CV sur la page d'accueil ([#1587](https://github.com/betagouv/csplab/pull/1587))
+- Trace la consultation des membres d'un organisme ([#1598](https://github.com/betagouv/csplab/pull/1598))
+- Transcode le code entité des organisations Talentsoft ARS ([#1615](https://github.com/betagouv/csplab/pull/1615))
+- Trace l'initialisation des étapes d'un organisme ([#1626](https://github.com/betagouv/csplab/pull/1626))
+
+### <!-- 2 --> Modified
+
+- Reecriture des services de lecture/écriture des services de Notes ([#1494](https://github.com/betagouv/csplab/pull/1494))
+- Renommage des services Notes et mise à jour des routes ([#1495](https://github.com/betagouv/csplab/pull/1495))
+- Transforme le panneau candidature en modale ([#1569](https://github.com/betagouv/csplab/pull/1569))
+- Ajout de candidature agent service ([#1570](https://github.com/betagouv/csplab/pull/1570))
+- Place l'espacement des boutons dans le pied des fenêtres et des tiroirs ([#1596](https://github.com/betagouv/csplab/pull/1596))
+
+### <!-- 4 --> Fixed
+
+- Répare la tâche mise web:emulate-prod ([#1457](https://github.com/betagouv/csplab/pull/1457))
+- Augmente le nombre de bases redis pour pytest-xdist ([#1448](https://github.com/betagouv/csplab/pull/1448))
+- Remove "vous n'avez pas de compte" link ([#1454](https://github.com/betagouv/csplab/pull/1454))
+- Enregistre et recherche les emails en minuscules ([#1471](https://github.com/betagouv/csplab/pull/1471))
+- Corrige le mot de passe des comptes du seed ([#1465](https://github.com/betagouv/csplab/pull/1465))
+- Affiche seulement les responsables actifs dans le tableau des recrutements ([#1484](https://github.com/betagouv/csplab/pull/1484))
+- Annonce le bouton de fermeture des tiroirs et modales en français ([#1492](https://github.com/betagouv/csplab/pull/1492))
+- Garde les métiers en tests, inferieurs aux limites de taille des Labels ([#1544](https://github.com/betagouv/csplab/pull/1544))
+- Conserve les établissements FINESS autonomes sans rattachement ([#1542](https://github.com/betagouv/csplab/pull/1542))
+- Ne conserve que les établissements FINESS publics ([#1551](https://github.com/betagouv/csplab/pull/1551))
+- Corrige le test flaky de mise à jour des étapes de recrutement ([#1552](https://github.com/betagouv/csplab/pull/1552))
+- Stocke le code et le code parent Talentsoft des organismes en entiers ([#1553](https://github.com/betagouv/csplab/pull/1553))
+- Ne conserve que les établissements FINESS publics de santé et médico-sociaux ([#1595](https://github.com/betagouv/csplab/pull/1595))
+- Retrouve les offres par référence et source à l'upsert ([#1576](https://github.com/betagouv/csplab/pull/1576))
+- Ignore le niveau de diplôme « Non renseigné » de l'ARS ([#1616](https://github.com/betagouv/csplab/pull/1616))
+- Normalise les corps d'erreur des endpoints internes ([#1456](https://github.com/betagouv/csplab/pull/1456))
+
 ## [0.2.0] - 2026-09-15
 
 ### <!-- 0 --> Breaking Changes
