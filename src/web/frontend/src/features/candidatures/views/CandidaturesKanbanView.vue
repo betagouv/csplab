@@ -198,8 +198,6 @@ const countLabel = computed(() => {
       @cancel="refus.cancel"
     />
   </div>
-
-  <router-view />
 </template>
 
 <style scoped lang="scss">

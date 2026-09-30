@@ -16,7 +16,7 @@ export const CANDIDATURE_PANEL_TAB_ROUTE_NAMES = {
 export const CANDIDATURE_CONVERSATION_ROUTE_NAME = 'recrutement-candidature-conversation'
 
 export const CANDIDATURES_TAB_ROUTE_NAMES = {
-  'candidatures': 'recrutement-candidatures-kanban',
+  'candidatures': 'recrutement-candidatures',
   'activites-et-taches': 'recrutement-activites',
   'equipe': 'recrutement-equipe',
 } as const satisfies Record<CandidatureTabKey, string>
@@ -42,50 +42,39 @@ export const candidaturesRoutes: RouteRecordRaw[] = [
   },
   {
     path: RECRUTEMENT_PATH,
+    name: CANDIDATURES_TAB_ROUTE_NAMES.candidatures,
     component: () => import('./views/CandidaturesView.vue'),
     meta: tabMeta('candidatures'),
     children: [
       {
-        path: '',
-        name: 'recrutement-candidatures-kanban',
-        component: () => import('./views/CandidaturesKanbanView.vue'),
-        children: [
-          {
-            path: CANDIDATURE_PANEL_PATH,
-            name: CANDIDATURE_PANEL_TAB_ROUTE_NAMES.candidature,
-            component: () => import('./views/CandidaturePanelView.vue'),
-            meta: panelTabMeta('candidature'),
-          },
-          {
-            path: `${CANDIDATURE_PANEL_PATH}/documents`,
-            name: CANDIDATURE_PANEL_TAB_ROUTE_NAMES.documents,
-            component: () => import('./views/CandidaturePanelView.vue'),
-            meta: panelTabMeta('documents'),
-          },
-          {
-            path: `${CANDIDATURE_PANEL_PATH}/notes`,
-            name: CANDIDATURE_PANEL_TAB_ROUTE_NAMES.notes,
-            component: () => import('./views/CandidaturePanelView.vue'),
-            meta: panelTabMeta('notes'),
-          },
-          {
-            path: `${CANDIDATURE_PANEL_PATH}/messages`,
-            name: CANDIDATURE_PANEL_TAB_ROUTE_NAMES.messages,
-            component: () => import('./views/CandidaturePanelView.vue'),
-            meta: panelTabMeta('messages'),
-          },
-          {
-            path: `${CANDIDATURE_PANEL_PATH}/messages/:conversationUuid${UUID_ROUTE_PARAM}`,
-            name: CANDIDATURE_CONVERSATION_ROUTE_NAME,
-            component: () => import('./views/CandidaturePanelView.vue'),
-            meta: panelTabMeta('messages'),
-          },
-        ],
+        path: CANDIDATURE_PANEL_PATH,
+        name: CANDIDATURE_PANEL_TAB_ROUTE_NAMES.candidature,
+        component: () => import('./views/CandidaturePanelView.vue'),
+        meta: panelTabMeta('candidature'),
       },
       {
-        path: 'liste',
-        name: 'recrutement-candidatures',
-        component: () => import('./views/CandidaturesListeView.vue'),
+        path: `${CANDIDATURE_PANEL_PATH}/documents`,
+        name: CANDIDATURE_PANEL_TAB_ROUTE_NAMES.documents,
+        component: () => import('./views/CandidaturePanelView.vue'),
+        meta: panelTabMeta('documents'),
+      },
+      {
+        path: `${CANDIDATURE_PANEL_PATH}/notes`,
+        name: CANDIDATURE_PANEL_TAB_ROUTE_NAMES.notes,
+        component: () => import('./views/CandidaturePanelView.vue'),
+        meta: panelTabMeta('notes'),
+      },
+      {
+        path: `${CANDIDATURE_PANEL_PATH}/messages`,
+        name: CANDIDATURE_PANEL_TAB_ROUTE_NAMES.messages,
+        component: () => import('./views/CandidaturePanelView.vue'),
+        meta: panelTabMeta('messages'),
+      },
+      {
+        path: `${CANDIDATURE_PANEL_PATH}/messages/:conversationUuid${UUID_ROUTE_PARAM}`,
+        name: CANDIDATURE_CONVERSATION_ROUTE_NAME,
+        component: () => import('./views/CandidaturePanelView.vue'),
+        meta: panelTabMeta('messages'),
       },
     ],
   },

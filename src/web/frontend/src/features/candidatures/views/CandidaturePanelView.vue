@@ -29,7 +29,7 @@ import { useCandidatureNavigation } from '../composables/useCandidatureNavigatio
 import { useEtapeChange } from '../composables/useEtapeChange'
 import { CANDIDATURE_PANEL_TAB_ICONS, CANDIDATURE_PANEL_TAB_LABELS } from '../constants/candidature'
 import { candidatureDetailQuery } from '../queries'
-import { CANDIDATURE_PANEL_TAB_ROUTE_NAMES } from '../routes'
+import { CANDIDATURE_PANEL_TAB_ROUTE_NAMES, CANDIDATURES_TAB_ROUTE_NAMES } from '../routes'
 import { formatCandidatNom } from '../utils/candidat'
 
 const route = useRoute()
@@ -77,8 +77,9 @@ const showAside = computed(() => !isMessagesTab.value)
 
 function close(): void {
   void router.push({
-    name: 'recrutement-candidatures-kanban',
+    name: CANDIDATURES_TAB_ROUTE_NAMES.candidatures,
     params: { organismeUuid: route.params.organismeUuid, recrutementUuid: route.params.recrutementUuid },
+    query: route.query,
   })
 }
 

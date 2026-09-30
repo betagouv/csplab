@@ -63,7 +63,7 @@ describe('nav highlighting against the real route table', () => {
     `/organismes/${ORGANISME_UUID}/recrutements`,
     `/organismes/${ORGANISME_UUID}/recrutements/archives`,
     `/organismes/${ORGANISME_UUID}/recrutements/${RECRUTEMENT_UUID}`,
-    `/organismes/${ORGANISME_UUID}/recrutements/${RECRUTEMENT_UUID}/liste`,
+    `/organismes/${ORGANISME_UUID}/recrutements/${RECRUTEMENT_UUID}?vue=liste`,
     `/organismes/${ORGANISME_UUID}/recrutements/${RECRUTEMENT_UUID}/activites`,
     `/organismes/${ORGANISME_UUID}/recrutements/${RECRUTEMENT_UUID}/etapes-recrutement`,
   ])('%s highlights only Recrutements', (path) => {

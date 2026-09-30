@@ -423,7 +423,7 @@ describe('useCandidatures', () => {
     it('applies filters to the live liste data', async () => {
       const { context } = await mountCandidatures(
         undefined,
-        `/organismes/${ORGANISME_UUID}/recrutements/${RECRUTEMENT_UUID}/liste`,
+        `/organismes/${ORGANISME_UUID}/recrutements/${RECRUTEMENT_UUID}?vue=liste`,
       )
 
       await vi.waitFor(() => expect(context.pendingCandidatures.value).toBe(false))

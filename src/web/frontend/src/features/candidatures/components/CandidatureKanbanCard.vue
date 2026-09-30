@@ -28,6 +28,7 @@ const route = useRoute()
 const panelLocation = computed(() => ({
   name: CANDIDATURE_ROUTE_NAME,
   params: { ...route.params, candidatureUuid: props.candidature.uuid },
+  query: route.query,
 }))
 
 const { isDragging } = useDraggableKanbanCard({

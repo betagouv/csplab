@@ -67,7 +67,7 @@ const showArchivesSkeleton = useMinimumPending(pendingArchives, 300)
 
 function openOffre(recrutementUuid: string) {
   void router.push({
-    name: 'recrutement-candidatures-kanban',
+    name: 'recrutement-candidatures',
     params: { organismeUuid: organismeUuid.value, recrutementUuid },
   })
 }

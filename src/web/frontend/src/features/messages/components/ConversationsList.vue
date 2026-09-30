@@ -15,6 +15,7 @@ function conversationLocation(conversationUuid: string) {
   return {
     name: CANDIDATURE_CONVERSATION_ROUTE_NAME,
     params: { ...route.params, conversationUuid },
+    query: route.query,
   }
 }
 </script>

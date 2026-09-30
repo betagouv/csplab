@@ -198,13 +198,26 @@ describe('candidaturePanelView', () => {
     ['opened from the kanban', [KANBAN_PATH, `${KANBAN_PATH}/candidatures/${CANDIDATURE_ALICE}`]],
     ['opened directly', [`${KANBAN_PATH}/candidatures/${CANDIDATURE_ALICE}`]],
     ['left on another tab', [KANBAN_PATH, `${KANBAN_PATH}/candidatures/${CANDIDATURE_ALICE}/messages`]],
-  ])('closes to the kanban when %s', async (_, paths) => {
+  ])('closes to the candidatures view when %s', async (_, paths) => {
     const user = setupUser()
     const { router } = await renderPanel(paths)
 
     await user.click(closeButton())
 
-    await vi.waitFor(() => expect(router.currentRoute.value.name).toBe('recrutement-candidatures-kanban'))
+    await vi.waitFor(() => expect(router.currentRoute.value.name).toBe('recrutement-candidatures'))
+  })
+
+  it('keeps the list behind the panel when switching tab and closing', async () => {
+    const user = setupUser()
+    const { router, panel } = await renderPanel([`${KANBAN_PATH}?vue=liste`, `${KANBAN_PATH}/candidatures/${CANDIDATURE_ALICE}?vue=liste`])
+
+    await user.click(await panel.findByRole('tab', { name: 'Messages' }))
+    await vi.waitFor(() => expect(router.currentRoute.value.query.vue).toBe('liste'))
+
+    await user.click(closeButton())
+
+    await vi.waitFor(() => expect(router.currentRoute.value.name).toBe('recrutement-candidatures'))
+    expect(router.currentRoute.value.query.vue).toBe('liste')
   })
 
   it('gives the messages tab its own address and the full width', async () => {
