@@ -42,9 +42,11 @@
         {% block header %}
             {% include "partials/header.html" %}
         {% endblock header %}
-        {% if SITE_CONFIG.notice_title or SITE_CONFIG.notice_description %}
-            {% dsfr_notice title=SITE_CONFIG.notice_title description=SITE_CONFIG.notice_description link=SITE_CONFIG.notice_link type=SITE_CONFIG.notice_type icon=SITE_CONFIG.notice_icon_class is_collapsible=SITE_CONFIG.notice_is_collapsible %}
-        {% endif %}
+        {% block notice %}
+            {% if SITE_CONFIG.notice_title or SITE_CONFIG.notice_description %}
+                {% dsfr_notice title=SITE_CONFIG.notice_title description=SITE_CONFIG.notice_description link=SITE_CONFIG.notice_link type=SITE_CONFIG.notice_type icon=SITE_CONFIG.notice_icon_class is_collapsible=SITE_CONFIG.notice_is_collapsible %}
+            {% endif %}
+        {% endblock notice %}
         {% for message in messages %}
             {% dsfr_alert type=message.level_tag content=message is_collapsible=True extra_classes="csplab-toast" %}
         {% endfor %}

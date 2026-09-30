@@ -6,6 +6,10 @@
 {% block meta_description %}
     CSPLab fait le lien entre vos compétences et les métiers du service public. Analysez votre CV et découvrez les opportunités qui vous correspondent.
 {% endblock meta_description %}
+{% block notice %}
+    {{ block.super }}
+    {% include "partials/_notice_pause_produit.html" %}
+{% endblock notice %}
 {% block main %}
     <!-- Hero Section -->
     <section class="csplab-hero">
@@ -17,8 +21,10 @@
                         <ul class="fr-btns-group fr-btns-group--lg fr-btns-group--inline-lg">
                             <li>
                                 <a class="fr-btn fr-btn--lg"
-                                   href="{% url 'candidate:cv_upload' %}"
-                                   data-matomo-event="Funnel|cta_click|home_hero">Analyser mon CV</a>
+                                   href="https://choisirleservicepublic.gouv.fr/"
+                                   target="_blank"
+                                   rel="noopener noreferrer"
+                                   data-matomo-event="Outbound|cta_click|home_csp">Visiter Choisir le Service Public<span class="fr-sr-only">- nouvelle fenêtre</span></a>
                             </li>
                         </ul>
                     </div>
@@ -62,13 +68,6 @@
                         <p class="fr-text--xl">
                             CSPLab vous propose de découvrir de nouvelles opportunités de carrière dans la fonction publique quelque soit les modalités d'entrée. Offres d'emploi et concours sur une seule interface.
                         </p>
-                        <ul class="fr-btns-group fr-btns-group--lg fr-btns-group--inline-lg">
-                            <li>
-                                <a class="fr-btn fr-mt-2w"
-                                   href="{% url 'candidate:cv_upload' %}"
-                                   data-matomo-event="Funnel|cta_click|home_discover">Découvrir toutes les opportunités</a>
-                            </li>
-                        </ul>
                     </div>
                 </div>
             </div>
@@ -81,13 +80,6 @@
                         <p class="fr-text--xl">
                             En partageant votre CV sur notre interface sécurisée, notre outil facilite votre recherche. Vous n'aurez plus qu'à affiner les résultats avec les critères qui comptent pour vous.
                         </p>
-                        <ul class="fr-btns-group fr-btns-group--lg fr-btns-group--inline-lg">
-                            <li>
-                                <a class="fr-btn fr-mt-2w"
-                                   href="{% url 'candidate:cv_upload' %}"
-                                   data-matomo-event="Funnel|cta_click|home_facilitate">Analyser mon CV</a>
-                            </li>
-                        </ul>
                     </div>
                 </div>
                 <div class="fr-col-12 fr-col-offset-md-1 fr-col-md-3">
@@ -116,13 +108,6 @@
                         <p class="fr-text--xl">
                             Votre CV dit tout de vos compétences et de votre parcours professionnel. Notre outil s'occupe de vous proposer les opportunités qui correspondent le plus à votre profil.
                         </p>
-                        <ul class="fr-btns-group fr-btns-group--lg fr-btns-group--inline-lg">
-                            <li>
-                                <a class="fr-btn fr-mt-2w"
-                                   href="{% url 'candidate:cv_upload' %}"
-                                   data-matomo-event="Funnel|cta_click|home_personalize">Voir les opportunités faites pour moi</a>
-                            </li>
-                        </ul>
                     </div>
                 </div>
             </div>
@@ -160,3 +145,6 @@
         </div>
     </section>
 {% endblock main %}
+{% block page_js %}
+    <script src="{% static 'js/notice.js' %}" nonce="{{ csp_nonce }}"></script>
+{% endblock page_js %}
