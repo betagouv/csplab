@@ -140,8 +140,9 @@ def test_clean_maps_verse_fph_from_aphp_reference(cleaner):
     assert offer.verse == Verse.FPH
 
 
-def test_clean_maps_verse_fpe_from_menj_reference(cleaner):
-    raw_offer = _make_raw_offer(reference="MENJ-2024-001")
+@pytest.mark.parametrize("reference", ["MENJ-2024-001", "OFII_2026-271"])
+def test_clean_maps_verse_fpe_from_reference(cleaner, reference):
+    raw_offer = _make_raw_offer(reference=reference)
 
     offer = cleaner.clean(raw_offer)
 
