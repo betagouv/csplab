@@ -17,6 +17,16 @@ import {
 
 const SEARCH_DEBOUNCE_MS = 500
 
+export interface CandidaturesSort {
+  id: string
+  desc: boolean
+}
+
+const SORT_KEYS: Record<string, (row: CandidatureListe) => string> = {
+  date_soumission: row => row.date_soumission,
+  derniere_activite: row => row.date_derniere_activite,
+}
+
 export type CandidaturesFiltersContext = ReturnType<typeof useCandidaturesFilters>
 
 export interface CandidaturesFiltersSources {
@@ -62,12 +72,19 @@ export function useCandidaturesFilters({
       })),
   )
 
-  const filteredCandidatures = computed(() =>
-    candidatures.value.filter(row =>
+  const sort = ref<CandidaturesSort | null>(null)
+
+  const filteredCandidatures = computed(() => {
+    const rows = candidatures.value.filter(row =>
       matchesEtape(row.etape.etape_uuid, applied)
       && matchesSearch(row.candidat, appliedSearch.value),
-    ),
-  )
+    )
+    const key = sort.value && SORT_KEYS[sort.value.id]
+    if (!key)
+      return rows
+    const direction = sort.value!.desc ? -1 : 1
+    return [...rows].sort((a, b) => key(a).localeCompare(key(b)) * direction)
+  })
 
   const etapeOptions = computed<CspCheckboxGroupOption[]>(() =>
     recrutementEtapes.value.map(etape => ({ value: etape.etape_uuid, label: etape.nom })),
@@ -89,6 +106,7 @@ export function useCandidaturesFilters({
     reset,
     search,
     flushSearch,
+    sort,
     filteredEtapes,
     filteredCandidatures,
     etapeOptions,

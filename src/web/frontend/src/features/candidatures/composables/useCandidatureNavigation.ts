@@ -2,15 +2,23 @@ import type { MaybeRefOrGetter } from 'vue'
 import { computed, toValue } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { CANDIDATURE_ROUTE_NAME } from '../routes'
-import { findCandidaturePosition, findEtapeOfCandidature } from '../utils/position'
+import { findEtapeOfCandidature, findPositionInList } from '../utils/position'
 import { useCandidatures } from './useCandidatures'
+import { useCandidaturesView } from './useCandidaturesView'
 
 export function useCandidatureNavigation(candidatureUuid: MaybeRefOrGetter<string>) {
   const route = useRoute()
   const router = useRouter()
   const { candidatureKanban, filters } = useCandidatures()
 
-  const position = computed(() => findCandidaturePosition(filters.filteredEtapes.value, toValue(candidatureUuid)))
+  const vue = useCandidaturesView()
+
+  const sequence = computed(() => vue.value === 'liste'
+    ? filters.filteredCandidatures.value
+    : filters.filteredEtapes.value.flatMap(etape => etape.candidatures),
+  )
+
+  const position = computed(() => findPositionInList(sequence.value, toValue(candidatureUuid)))
   const etape = computed(() => findEtapeOfCandidature(candidatureKanban.value, toValue(candidatureUuid)))
 
   function navigateTo(uuid: string): void {

@@ -17,6 +17,7 @@ import {
   CANDIDATURES_PAGE,
   ETAPE_ENTRETIEN,
   ETAPE_REFUS,
+  ETAPES,
   KANBAN_PATH,
   MOTIFS_REFUS,
   ORGANISME_UUID,
@@ -102,20 +103,36 @@ describe('candidaturePanelView', () => {
     expect(suivi.getByRole('heading', { name: 'Ajouter une note' })).toBeInTheDocument()
   })
 
-  it('moves to the next candidature of the column from the bottom bar', async () => {
+  function candidaturesSurDeuxEtapes() {
+    const [alice, bruno] = CANDIDATURES_PAGE.results
+    return { ...CANDIDATURES_PAGE, results: [alice!, { ...bruno!, etape: ETAPES[1]! }] }
+  }
+
+  it('crosses the etapes in list view, following the displayed order', async () => {
+    const user = setupUser()
+    vi.mocked(getCandidatures).mockResolvedValue(candidaturesSurDeuxEtapes())
+    const { router } = await renderPanel([`${KANBAN_PATH}/candidatures/${CANDIDATURE_ALICE}?vue=liste`])
+    const navigation = within(await screen.findByRole('navigation', { name: 'Navigation entre les candidatures' }))
+
+    await user.click(navigation.getByRole('button', { name: 'Suivant' }))
+
+    await vi.waitFor(() => expect(router.currentRoute.value.params.candidatureUuid).toBe(CANDIDATURE_BRUNO))
+  })
+
+  it('moves to the next candidature from the bottom bar', async () => {
     const user = setupUser()
     const { router } = await renderPanel([`${KANBAN_PATH}/candidatures/${CANDIDATURE_ALICE}`])
-    const navigation = within(await screen.findByRole('navigation', { name: 'Navigation entre les candidatures de l\'étape' }))
+    const navigation = within(await screen.findByRole('navigation', { name: 'Navigation entre les candidatures' }))
 
-    expect(navigation.getByText('Candidature 1 sur 2')).toBeInTheDocument()
+    expect(navigation.getByText('Candidature 1/2')).toBeInTheDocument()
     expect(getCandidatureDetail).toHaveBeenCalledWith(expect.objectContaining({ candidatureUuid: CANDIDATURE_BRUNO }))
-    expect(navigation.getByText('Étape : Réception des candidatures')).toBeInTheDocument()
+    expect(navigation.getByText('Réception des candidatures')).toBeInTheDocument()
     expect(navigation.getByRole('button', { name: 'Précédent' })).toBeDisabled()
 
     await user.click(navigation.getByRole('button', { name: 'Suivant' }))
 
     await vi.waitFor(() => expect(router.currentRoute.value.params.candidatureUuid).toBe(CANDIDATURE_BRUNO))
-    expect(await navigation.findByText('Candidature 2 sur 2')).toBeInTheDocument()
+    expect(await navigation.findByText('Candidature 2/2')).toBeInTheDocument()
     expect(navigation.getByRole('button', { name: 'Suivant' })).toBeDisabled()
   })
 
@@ -339,7 +356,7 @@ describe('candidaturePanelView', () => {
   it('reopens on the candidature tab when moving to the next candidature', async () => {
     const user = setupUser()
     const { router } = await renderPanel([`${KANBAN_PATH}/candidatures/${CANDIDATURE_ALICE}/messages`])
-    const navigation = within(await screen.findByRole('navigation', { name: 'Navigation entre les candidatures de l\'étape' }))
+    const navigation = within(await screen.findByRole('navigation', { name: 'Navigation entre les candidatures' }))
 
     await user.click(navigation.getByRole('button', { name: 'Suivant' }))
 
