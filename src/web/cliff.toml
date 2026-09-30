@@ -18,10 +18,13 @@ body = """
 {% else -%}
     ## [Unreleased]
 {% endif -%}
-{% for group, commits in commits | group_by(attribute="group") %}
-    ### {{ group | upper_first }}
-    {% for commit in commits %}
-        - {{ commit.message | split(pat="\n") | first | upper_first | trim }}\
+{% for scope, scope_commits in commits | group_by(attribute="scope") %}
+    ### {{ scope | upper_first }}
+    {% for group, group_commits in scope_commits | group_by(attribute="group") %}
+        #### {{ group | upper_first }}
+        {% for commit in group_commits %}
+            - {{ commit.message | split(pat="\n") | first | upper_first | trim }}\
+        {% endfor %}
     {% endfor %}
 {% endfor %}\n
 """
@@ -66,23 +69,27 @@ protect_breaking_commits = true
 # changelog template. It must be IDENTICAL for the new (type-based) and legacy
 # (label-based) parser matching the same logical category, otherwise the two
 # would render as separate, duplicate sections instead of merging into one.
+#
+# NOTE: the template groups by scope first (level 3), then by group (level 4). A commit
+# without a scope (all legacy Gitmoji commits) would break `group_by`, so every grouping
+# parser sets `default_scope = "other"`.
 commit_parsers = [
   # New scheme (conventional commits, no PR labels): matched first.
-  { message = "^.+!:", group = "<!-- 0 --> Breaking Changes" },
-  { body = ".*BREAKING CHANGE", group = "<!-- 0 --> Breaking Changes" },
-  { message = "^feat", group = "<!-- 1 --> Added" },
-  { message = "^refactor", group = "<!-- 2 --> Modified" },
-  { message = "^perf", group = "<!-- 2 --> Modified" },
-  { message = "^fix", group = "<!-- 4 --> Fixed" },
-  { message = "^docs", group = "<!-- 5 --> Documentation" },
+  { message = "^.+!:", group = "<!-- 0 --> Breaking Changes", default_scope = "other" },
+  { body = ".*BREAKING CHANGE", group = "<!-- 0 --> Breaking Changes", default_scope = "other" },
+  { message = "^feat", group = "<!-- 1 --> Added", default_scope = "other" },
+  { message = "^refactor", group = "<!-- 2 --> Modified", default_scope = "other" },
+  { message = "^perf", group = "<!-- 2 --> Modified", default_scope = "other" },
+  { message = "^fix", group = "<!-- 4 --> Fixed", default_scope = "other" },
+  { message = "^docs", group = "<!-- 5 --> Documentation", default_scope = "other" },
   { message = "^style|^test|^build|^ci|^chore|^revert", skip = true },
   # Legacy scheme (Gitmoji + PR labels): fallback for commits made before the switch,
   # so regenerating the full changelog doesn't drop pre-migration history.
-  { field = "github.pr_labels", pattern = "breaking", group = "<!-- 0 --> Breaking Changes" },
-  { field = "github.pr_labels", pattern = "added", group = "<!-- 1 --> Added" },
-  { field = "github.pr_labels", pattern = "modified", group = "<!-- 2 --> Modified" },
-  { field = "github.pr_labels", pattern = "removed", group = "<!-- 3 --> Removed" },
-  { field = "github.pr_labels", pattern = "bugfix", group = "<!-- 4 --> Fixed" },
+  { field = "github.pr_labels", pattern = "breaking", group = "<!-- 0 --> Breaking Changes", default_scope = "other" },
+  { field = "github.pr_labels", pattern = "added", group = "<!-- 1 --> Added", default_scope = "other" },
+  { field = "github.pr_labels", pattern = "modified", group = "<!-- 2 --> Modified", default_scope = "other" },
+  { field = "github.pr_labels", pattern = "removed", group = "<!-- 3 --> Removed", default_scope = "other" },
+  { field = "github.pr_labels", pattern = "bugfix", group = "<!-- 4 --> Fixed", default_scope = "other" },
 ]
 # Exclude commits that are not matched by any commit parser.
 filter_commits = false
