@@ -660,7 +660,7 @@ def test_clean_maps_education_level(cleaner, client_code, expected):
     assert offer.education_level == expected
 
 
-@pytest.mark.parametrize("client_code", ["UNKNOWN_CODE", "NIV_DIPL0"])
+@pytest.mark.parametrize("client_code", ["UNKNOWN_CODE", "NIV_DIPL0", "NIV_DIPL10"])
 def test_clean_maps_unknown_education_level_to_none(cleaner, client_code):
     education = TalentsoftCodedObjectFactory.build(clientCode=client_code)
     raw_offer = _make_raw_offer(educationLevel=education)
