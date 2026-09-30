@@ -60,6 +60,7 @@ def mock_raw_offer_repository():
     repo = MagicMock()
     repo.mark_as_cleaned = AsyncMock()
     repo.mark_as_upserted = AsyncMock()
+    repo.mark_as_publish_failed = AsyncMock()
     return repo
 
 
@@ -259,6 +260,54 @@ async def test_execute_does_not_raise_when_mark_as_upserted_fails(
     await pipeline_with_post.execute(reference=REFERENCE, source_id=SOURCE_ID)
 
     mock_logger.exception.assert_called_once()
+
+
+@pytest.mark.asyncio
+@patch("application.pipelines.ingest_offer_pipeline.logger")
+async def test_execute_records_error_when_publish_fails(
+    mock_logger,
+    pipeline_with_post,
+    mock_publish_offer_usecase,
+    mock_raw_offer_repository,
+):
+    mock_publish_offer_usecase.execute.side_effect = ExternalApiError(
+        "Failed to publish offer: Code métier inconnu : ERMED008.", api_name="web"
+    )
+
+    await pipeline_with_post.execute(reference=REFERENCE, source_id=SOURCE_ID)
+
+    mock_raw_offer_repository.mark_as_publish_failed.assert_awaited_once_with(
+        REFERENCE,
+        SOURCE_ID,
+        "Failed to publish offer: Code métier inconnu : ERMED008.",
+    )
+
+
+@pytest.mark.asyncio
+async def test_execute_does_not_record_error_when_publish_succeeds(
+    pipeline_with_post, mock_raw_offer_repository
+):
+    await pipeline_with_post.execute(reference=REFERENCE, source_id=SOURCE_ID)
+
+    mock_raw_offer_repository.mark_as_publish_failed.assert_not_called()
+
+
+@pytest.mark.asyncio
+@patch("application.pipelines.ingest_offer_pipeline.logger")
+async def test_execute_does_not_raise_when_recording_publish_error_fails(
+    mock_logger,
+    pipeline_with_post,
+    mock_publish_offer_usecase,
+    mock_raw_offer_repository,
+):
+    mock_publish_offer_usecase.execute.side_effect = RuntimeError("Web API down")
+    mock_raw_offer_repository.mark_as_publish_failed.side_effect = RuntimeError(
+        "DB down"
+    )
+
+    await pipeline_with_post.execute(reference=REFERENCE, source_id=SOURCE_ID)
+
+    assert mock_logger.exception.call_count == 2
 
 
 @pytest.mark.asyncio

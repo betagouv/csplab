@@ -95,7 +95,34 @@ class RawOfferRepository(IRawOfferRepository):
                     col(RawOfferModel.reference) == reference,
                     col(RawOfferModel.source_id) == source_id,
                 )
-                .values(upsert_at=upsert_at, updated_at=now)
+                .values(upsert_at=upsert_at, error_msg=None, updated_at=now)
+            )
+            if result.rowcount == 0:  # type: ignore[attr-defined]
+                raise ValueError(
+                    f"RawOffer not found for reference={reference},"
+                    f" source_id={source_id}"
+                )
+            session.commit()
+
+    async def mark_as_publish_failed(
+        self, reference: str, source_id: str, error_msg: str
+    ) -> None:
+        await asyncio.to_thread(
+            self._mark_as_publish_failed_sync, reference, source_id, error_msg
+        )
+
+    def _mark_as_publish_failed_sync(
+        self, reference: str, source_id: str, error_msg: str
+    ) -> None:
+        now = datetime.now(tz=timezone.utc)
+        with Session(self._engine) as session:
+            result = session.execute(
+                update(RawOfferModel)
+                .where(
+                    col(RawOfferModel.reference) == reference,
+                    col(RawOfferModel.source_id) == source_id,
+                )
+                .values(error_msg=error_msg, updated_at=now)
             )
             if result.rowcount == 0:  # type: ignore[attr-defined]
                 raise ValueError(

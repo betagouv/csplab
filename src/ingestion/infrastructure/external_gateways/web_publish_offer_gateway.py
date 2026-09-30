@@ -29,7 +29,7 @@ class WebPublishOfferGateway(BaseWebGateway, IPublishOfferGateway):
                 errors,
             )
             raise ExternalApiError(
-                f"Failed to publish offer {input.offer.reference}",
+                f"Failed to publish offer {input.offer.reference}: {errors}",
                 api_name="web",
                 details={"errors": errors},
             )

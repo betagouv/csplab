@@ -49,5 +49,15 @@ class IngestOfferPipeline:
                 cast(str, raw_offer.source_id),
                 datetime.now(tz=timezone.utc),
             )
-        except Exception:
+        except Exception as exc:
             logger.exception("Failed to publish offer for reference %s", reference)
+            try:
+                await self._raw_offer_repository.mark_as_publish_failed(
+                    cast(str, raw_offer.reference),
+                    cast(str, raw_offer.source_id),
+                    str(exc),
+                )
+            except Exception:
+                logger.exception(
+                    "Failed to record publish error for reference %s", reference
+                )
