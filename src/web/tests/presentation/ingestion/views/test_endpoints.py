@@ -29,6 +29,17 @@ class TestJWTEndpoints:
         test_user.refresh_from_db()
         assert test_user.last_login is not None
 
+    def test_token_obtain_endpoint_accepts_non_superuser(self, api_client, test_user):
+        assert test_user.is_superuser is False
+
+        response = api_client.post(
+            reverse("api:token_obtain_pair"),
+            {"email": test_user.email, "password": DEFAULT_PASSWORD},
+            format="json",
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+
     def test_token_refresh_endpoint_exists(self, api_client, test_user):
         refresh = RefreshToken.for_user(test_user)
 
