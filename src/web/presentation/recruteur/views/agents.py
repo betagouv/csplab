@@ -66,7 +66,8 @@ class AgentsView(APIView):
             )
         except OrganismeNexistePas:
             return Response(
-                {"organisme_id": "Not found."}, status=status.HTTP_404_NOT_FOUND
+                GenericErrorSerializer({"error": "organisme_id: Not found."}).data,
+                status=status.HTTP_404_NOT_FOUND,
             )
         except Exception:
             return Response(

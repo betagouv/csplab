@@ -94,7 +94,7 @@ class TestAgentsView:
             (
                 OrganismeNexistePas(str(uuid4())),
                 status.HTTP_404_NOT_FOUND,
-                {"organisme_id": "Not found."},
+                {"error": "organisme_id: Not found."},
             ),
             (
                 Exception("unexpected"),

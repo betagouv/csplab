@@ -75,15 +75,22 @@ class RecrutementDetailView(APIView):
             )
             if result is None:
                 return Response(
-                    {"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND
+                    GenericErrorSerializer({"error": "Not found."}).data,
+                    status=status.HTTP_404_NOT_FOUND,
                 )
 
             serializer = RecrutementDetailSerializer(result)
             return Response(serializer.data)
         except OrganismePermissionError:
-            return Response({"detail": "Forbidden."}, status=status.HTTP_403_FORBIDDEN)
+            return Response(
+                GenericErrorSerializer({"error": "Forbidden."}).data,
+                status=status.HTTP_403_FORBIDDEN,
+            )
         except OrganismeNexistePas:
-            return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                GenericErrorSerializer({"error": "Not found."}).data,
+                status=status.HTTP_404_NOT_FOUND,
+            )
         except Exception:
             serializer = GenericErrorSerializer({"error": "Unexpected error"})
             return Response(
@@ -124,15 +131,22 @@ class RecrutementKanbanView(APIView):
             )
             if result is None:
                 return Response(
-                    {"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND
+                    GenericErrorSerializer({"error": "Not found."}).data,
+                    status=status.HTTP_404_NOT_FOUND,
                 )
 
             serializer = RecrutementDetailKanbanSerializer(result)
             return Response(serializer.data)
         except OrganismePermissionError:
-            return Response({"detail": "Forbidden."}, status=status.HTTP_403_FORBIDDEN)
+            return Response(
+                GenericErrorSerializer({"error": "Forbidden."}).data,
+                status=status.HTTP_403_FORBIDDEN,
+            )
         except OrganismeNexistePas:
-            return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                GenericErrorSerializer({"error": "Not found."}).data,
+                status=status.HTTP_404_NOT_FOUND,
+            )
         except Exception:
             serializer = GenericErrorSerializer({"error": "Unexpected error"})
             return Response(
@@ -175,7 +189,8 @@ class RecrutementListeView(APIView):
             )
             if result is None:
                 return Response(
-                    {"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND
+                    GenericErrorSerializer({"error": "Not found."}).data,
+                    status=status.HTTP_404_NOT_FOUND,
                 )
 
             paginator = WebPagination()
@@ -184,9 +199,15 @@ class RecrutementListeView(APIView):
                 CandidatureListeSerializer(items, many=True).data
             )
         except OrganismePermissionError:
-            return Response({"detail": "Forbidden."}, status=status.HTTP_403_FORBIDDEN)
+            return Response(
+                GenericErrorSerializer({"error": "Forbidden."}).data,
+                status=status.HTTP_403_FORBIDDEN,
+            )
         except OrganismeNexistePas:
-            return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                GenericErrorSerializer({"error": "Not found."}).data,
+                status=status.HTTP_404_NOT_FOUND,
+            )
         except Exception:
             serializer = GenericErrorSerializer({"error": "Unexpected error"})
             return Response(
