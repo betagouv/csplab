@@ -487,6 +487,7 @@ def create_agent_usecase():
         agent_repository=agent_repository,
         utilisateur_repository=utilisateur_repository,
         permission_service=permission_service,
+        audit_log_writer=MagicMock(spec=AuditLogWriter),
     )
 
 

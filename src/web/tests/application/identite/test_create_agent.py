@@ -12,6 +12,7 @@ from application.identite.usecases.create_agent import (
     CreateAgentUsecase,
 )
 from domain.commons.errors.organisme_errors import OrganismeNexistePas
+from domain.commons.services.audit_log_writer import AuditLogWriter
 from domain.identite.errors.organisme_permission_errors import AccesOrganismeRefuse
 from domain.identite.repositories.agent_repository_interface import IAgentRepository
 from domain.identite.repositories.utilisateur_repository_interface import (
@@ -45,12 +46,20 @@ def utilisateur_repository_fixture():
     return repository
 
 
+@pytest.fixture(name="audit_log_writer")
+def audit_log_writer_fixture():
+    return Mock(spec=AuditLogWriter)
+
+
 @pytest.fixture(name="usecase")
-def usecase_fixture(permission_service, agent_repository, utilisateur_repository):
+def usecase_fixture(
+    permission_service, agent_repository, utilisateur_repository, audit_log_writer
+):
     return CreateAgentUsecase(
         agent_repository=agent_repository,
         utilisateur_repository=utilisateur_repository,
         permission_service=permission_service,
+        audit_log_writer=audit_log_writer,
     )
 
 
@@ -78,7 +87,7 @@ def test_create_agent_checks_permission(permission_service, usecase):
     "exception", [AccesOrganismeRefuse(uuid4()), OrganismeNexistePas(str(uuid4()))]
 )
 def test_create_agent_propagates_permission_errors(
-    permission_service, agent_repository, usecase, exception
+    permission_service, agent_repository, audit_log_writer, usecase, exception
 ):
     permission_service.can_execute.side_effect = exception
 
@@ -86,6 +95,21 @@ def test_create_agent_propagates_permission_errors(
         usecase.execute(_input())
 
     agent_repository.get_by_email.assert_not_called()
+    audit_log_writer.log_action.assert_not_called()
+
+
+def test_create_agent_logs_the_creation(agent_repository, audit_log_writer, usecase):
+    input_data = _input()
+
+    agent = usecase.execute(input_data)
+
+    audit_log_writer.log_action.assert_called_once_with(
+        utilisateur_id=input_data.utilisateur.entity_id,
+        entity=agent,
+        ressource_kind="Agent",
+        event_name="ProfilAgentCree",
+    )
+    assert agent is agent_repository.create.return_value
 
 
 def test_create_agent_normalizes_the_email(
