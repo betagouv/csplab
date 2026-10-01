@@ -1,10 +1,15 @@
 import ipaddress
+import logging
 
 from django.conf import settings
 from drf_spectacular.extensions import OpenApiAuthenticationExtension
 from rest_framework.authentication import BaseAuthentication
 from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.throttling import SimpleRateThrottle, UserRateThrottle
+
+from config.logger_names import LoggerName
+
+logger = logging.getLogger(LoggerName.IDENTITE)
 
 
 class _IngestionApiKeyUser:
@@ -32,6 +37,13 @@ def _ip_is_allowed(ip: str, allowed_ranges: list[str]) -> bool:
         return False
 
 
+def _log_rejection(reason: str, request) -> None:
+    # Never log the submitted key.
+    logger.warning(
+        "Ingestion API key rejected (%s) from %s.", reason, _get_client_ip(request)
+    )
+
+
 class ApiKeyAuthentication(BaseAuthentication):
     def authenticate(self, request):
         auth_header = request.headers.get("Authorization", "")
@@ -39,11 +51,13 @@ class ApiKeyAuthentication(BaseAuthentication):
             return None
         key = auth_header[len("Api-Key ") :]
         if key != settings.INGESTION_API_KEY:
+            _log_rejection("invalid key", request)
             raise AuthenticationFailed("Invalid API key.")
         allowed_ranges = settings.INGESTION_API_KEY_ALLOWED_IP_RANGES
         if allowed_ranges and not _ip_is_allowed(
             _get_client_ip(request), allowed_ranges
         ):
+            _log_rejection("ip not allowed", request)
             raise AuthenticationFailed("IP address not allowed.")
         return (_IngestionApiKeyUser(), None)
 
