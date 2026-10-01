@@ -96,22 +96,22 @@ docker compose version >/dev/null 2>&1 || { echo 'Docker Compose unavailable, in
 [tasks."services:postgres"]
 description = "Start postgres"
 depends = ["docker:up"]
-run = "set -a && . env.d/postgresql && docker compose up -d --wait --remove-orphans postgresql"
+run = "bin/compose-up postgresql env.d/postgresql"
 
 [tasks."services:redis"]
 description = "Start redis"
 depends = ["docker:up"]
-run = "set -a && . env.d/redis && docker compose up -d --wait --remove-orphans redis"
+run = "bin/compose-up redis env.d/redis"
 
 [tasks."services:qdrant"]
 description = "Start qdrant (vector search)"
 depends = ["docker:up"]
-run = "docker compose up -d --wait --remove-orphans qdrant"
+run = "bin/compose-up qdrant"
 
 [tasks."services:rustfs"]
 description = "Start RustFS (S3-compatible object storage)"
 depends = ["docker:up"]
-run = "set -a && . env.d/rustfs && docker compose up -d --wait --remove-orphans rustfs"
+run = "bin/compose-up rustfs env.d/rustfs"
 
 [tasks.services]
 description = "Start all docker services"
