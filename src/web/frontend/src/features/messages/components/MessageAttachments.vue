@@ -1,22 +1,26 @@
 <script setup lang="ts">
-import { ref, useTemplateRef, watch } from 'vue'
+import { computed, ref, useTemplateRef, watch } from 'vue'
 import CspIcon from '@/components/base/CspIcon/CspIcon.vue'
 import CspTag from '@/components/base/CspTag/CspTag.vue'
 import { validateAttachments } from '../attachments'
 import { MESSAGE_DOCUMENT_CONTENT_TYPES } from '../constants/message'
 
-defineProps<{
+const props = withDefaults(defineProps<{
   disabled?: boolean
-}>()
+  serverErrors?: string[]
+}>(), {
+  serverErrors: () => [],
+})
 
 const files = defineModel<File[]>({ default: () => [] })
 
-const errors = ref<string[]>([])
+const rejections = ref<string[]>([])
+const errors = computed(() => [...rejections.value, ...props.serverErrors])
 const input = useTemplateRef('input')
 
 watch(() => files.value.length, (length, previousLength) => {
   if (length === 0 && previousLength > 0)
-    errors.value = []
+    rejections.value = []
 })
 
 function pick(): void {
@@ -25,15 +29,15 @@ function pick(): void {
 
 function add(event: Event): void {
   const target = event.target as HTMLInputElement
-  const { accepted, errors: rejections } = validateAttachments(files.value, [...(target.files ?? [])])
-  files.value = [...files.value, ...accepted]
-  errors.value = rejections
+  const validation = validateAttachments(files.value, [...(target.files ?? [])])
+  files.value = [...files.value, ...validation.accepted]
+  rejections.value = validation.errors
   target.value = ''
 }
 
 function remove(index: number): void {
   files.value = files.value.filter((_, position) => position !== index)
-  errors.value = []
+  rejections.value = []
 }
 
 defineExpose({ pick })
@@ -70,8 +74,8 @@ defineExpose({ pick })
     </ul>
     <div aria-live="polite">
       <p
-        v-for="error in errors"
-        :key="error"
+        v-for="(error, index) in errors"
+        :key="index"
         class="message-attachments__error"
       >
         <CspIcon

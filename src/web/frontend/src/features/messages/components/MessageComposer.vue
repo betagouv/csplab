@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { ConversationMessagesParams } from '../queries'
-import { computed, ref, useTemplateRef } from 'vue'
+import { computed, ref, useTemplateRef, watch } from 'vue'
+import { ValidationError } from '@/api/errors'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspTextarea from '@/components/base/CspTextarea/CspTextarea.vue'
 import { useUnsavedChanges } from '@/composables/navigation/useUnsavedChanges'
@@ -28,6 +29,16 @@ useUnsavedChanges(() => content.value !== '' || documents.value.length > 0, () =
   isLeftBy: (to, from) => to.params.conversationUuid !== from.params.conversationUuid,
 })
 
+const contentErrors = ref<string[]>([])
+const documentsErrors = ref<string[]>([])
+
+watch(content, () => {
+  contentErrors.value = []
+})
+watch(documents, () => {
+  documentsErrors.value = []
+})
+
 const canSend = computed(() => content.value.trim() !== '' && !replying.value)
 
 const canAttach = computed(() => documents.value.length < MESSAGE_MAX_DOCUMENTS && !replying.value)
@@ -40,7 +51,12 @@ async function send(): Promise<void> {
     content.value = ''
     documents.value = []
   }
-  catch {
+  catch (sendError) {
+    if (sendError instanceof ValidationError && (sendError.fieldErrors.content || sendError.fieldErrors.documents)) {
+      contentErrors.value = sendError.fieldErrors.content ?? []
+      documentsErrors.value = sendError.fieldErrors.documents ?? []
+      return
+    }
     addToast({ variant: 'error', title: 'L\'envoi du message a échoué' })
   }
 }
@@ -59,12 +75,15 @@ async function send(): Promise<void> {
       resize="none"
       placeholder="Écrivez votre message…"
       aria-label="Écrivez votre message"
+      :error="contentErrors.length > 0"
+      :error-message="contentErrors.join(' ')"
       class="message-composer__field"
     />
     <MessageAttachments
       ref="attachments"
       v-model="documents"
       :disabled="replying"
+      :server-errors="documentsErrors"
     />
     <div class="message-composer__actions">
       <CspButton
