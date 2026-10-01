@@ -13,7 +13,6 @@ https://beta.gouv.fr/startups/csplab.html
 
 Le monorepo est organisé en services :
 
-- **dev** : Service pour les outils de développement
 - **notebook** : Service Jupyter pour l'analyse et le prototypage
 
 ### Prérequis
@@ -47,10 +46,10 @@ Pour personnaliser Docker Compose (ex : changer les ports), voir [docs/docker_co
 ```bash
 mise run lint:fix
 git add .
-mise x -- cz commit
+git commit
 ```
 
-`cz commit` pose les questions qui composent le message de commit au format du projet ; `mise run lint` vérifie le tout avant de pousser.
+Le hook commit-msg vérifie le format de chaque message de commit, et la CI celui du titre de PR. `mise x -- cz commit`, facultatif, remplace `git commit` en posant les questions qui composent le message. `mise run lint` vérifie le tout avant de pousser.
 
 ### Format des messages de commit
 

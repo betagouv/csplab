@@ -1,5 +1,0 @@
-#!/usr/bin/env bash
-
-set -eo pipefail
-
-exec mise x -- cz check --allow-abort --commit-msg-file "$1"
