@@ -25,6 +25,11 @@ class CachedToken(BaseModel):
         return (self.expires_at_epoch - leeway_seconds) > time()
 
 
+class TalentsoftLink(BaseModel):
+    href: str
+    rel: str
+
+
 class TalentsoftCodedObject(BaseModel):
     code: int
     clientCode: str
@@ -34,11 +39,56 @@ class TalentsoftCodedObject(BaseModel):
     type: str
     parentType: str = ""
     hasChildren: bool = False
+    links: List[TalentsoftLink] = Field(default=[], alias="_links")
 
 
-class TalentsoftLink(BaseModel):
-    href: str
-    rel: str
+class TalentsoftFormatFields(BaseModel):
+    title: Optional[str] = None
+    subtitle: Optional[str] = None
+    tooltip: Optional[str] = None
+
+
+class TalentsoftMetadataField(BaseModel):
+    fieldName: Optional[str] = None
+    fieldLabel: Optional[str] = None
+    fieldCustomTableCode: Optional[str] = None
+    fieldOrder: Optional[int] = None
+    path: Optional[str] = None
+
+
+class TalentsoftMetadataBlock(BaseModel):
+    blockIdentifier: Optional[str] = None
+    blockLabel: Optional[str] = None
+    blockOrder: Optional[int] = None
+    customFields: List[TalentsoftMetadataField] = []
+
+
+class TalentsoftMetadata(BaseModel):
+    blocks: List[TalentsoftMetadataBlock] = []
+
+
+class TalentsoftMultiLocationAddress(BaseModel):
+    country: Optional[str] = None
+    countryCode: Optional[str] = None
+    countryCodeISO3: Optional[str] = None
+    countrySecondarySubdivision: Optional[str] = None
+    countrySubdivision: Optional[str] = None
+    freeformAddress: Optional[str] = None
+    municipality: Optional[str] = None
+
+
+class TalentsoftMultiLocationPosition(BaseModel):
+    lat: Optional[float] = None
+    lon: Optional[float] = None
+
+
+class TalentsoftMultiLocation(BaseModel):
+    locationReferential: Optional[TalentsoftCodedObject] = None
+    clientCode: Optional[str] = None
+    displayedAddress: Optional[str] = None
+    address: Optional[TalentsoftMultiLocationAddress] = None
+    position: Optional[TalentsoftMultiLocationPosition] = None
+    active: Optional[bool] = None
 
 
 class TalentsoftOffer(BaseModel):
@@ -62,7 +112,8 @@ class TalentsoftOffer(BaseModel):
     country: List[TalentsoftCodedObject] = []
     region: List[TalentsoftCodedObject] = []
     department: List[TalentsoftCodedObject] = []
-    _links: List[TalentsoftLink] = []
+    links: List[TalentsoftLink] = Field(default=[], alias="_links")
+    locations: List[TalentsoftMultiLocation] = []
 
     # Optional text fields
     location: Optional[str] = None
@@ -87,6 +138,9 @@ class TalentsoftOffer(BaseModel):
     urlRedirectionApplicant: Optional[str] = None
 
     customFields: Optional[TalentsoftCustomFields] = None
+
+    format: Optional[TalentsoftFormatFields] = Field(default=None, alias="_format")
+    metadata: Optional[TalentsoftMetadata] = Field(default=None, alias="_metadata")
 
     @field_validator("modificationDate", mode="before")
     @classmethod
@@ -158,11 +212,67 @@ class TalentsoftOrganisationPayload(TalentsoftOrganisation):
 
 
 class TalentsoftOperationalManager(BaseModel):
-    language: Optional[str] = None
+    language: Optional[TalentsoftCodedObject] = None
     firstName: Optional[str] = None
     lastName: Optional[str] = None
     email: Optional[str] = None
     phoneNumber: Optional[str] = None
+
+
+class TalentsoftMainSupervisor(BaseModel):
+    firstName: str
+    lastName: str
+    fullName: Optional[str] = None
+    login: Optional[str] = None
+    email: Optional[str] = None
+    phoneNumber: Optional[str] = None
+
+
+class TalentsoftApplicationQuestion(BaseModel):
+    question: Optional[TalentsoftCodedObject] = None
+    answers: List[TalentsoftCodedObject] = []
+    isRequired: bool = False
+
+
+class TalentsoftFormMetadataField(BaseModel):
+    name: Optional[str] = None
+    controlType: Optional[str] = None
+    dataType: Optional[str] = None
+    label: Optional[str] = None
+    isReadOnly: Optional[bool] = None
+    isRequired: Optional[bool] = None
+    isVisible: Optional[bool] = None
+    order: Optional[int] = None
+    referentialTypeName: Optional[str] = None
+    isMultipleSelectionAllowed: Optional[bool] = None
+    textValidationType: Optional[str] = None
+    maxTextLength: Optional[int] = None
+    textValidationRegularExpression: Optional[str] = None
+    booleanTrueLabel: Optional[str] = None
+    booleanFalseLabel: Optional[str] = None
+    booleanNullLabel: Optional[str] = None
+
+
+class TalentsoftFormMetadataBlock(BaseModel):
+    blockIdentifier: Optional[str] = None
+    blockLabel: Optional[str] = None
+    blockOrder: Optional[int] = None
+    fields: List[TalentsoftFormMetadataField] = []
+
+
+class TalentsoftFileSettings(BaseModel):
+    fileTypeId: Optional[int] = None
+    label: Optional[str] = None
+    maxRequired: Optional[int] = None
+    minRequired: Optional[int] = None
+    maxSizeInBytes: Optional[int] = None
+    orderNumber: Optional[int] = None
+    attachmentType: Optional[str] = None
+
+
+class TalentsoftFormMetadata(BaseModel):
+    blocks: List[TalentsoftFormMetadataBlock] = []
+    attachmentSettings: List[TalentsoftFileSettings] = []
 
 
 class TalentsoftLanguage(BaseModel):
@@ -179,47 +289,17 @@ class TalentsoftCustomCodeTable(BaseModel):
     type: Optional[str] = None
     parentType: Optional[str] = None
     hasChildren: bool = False
+    links: List[TalentsoftLink] = Field(default=[], alias="_links")
 
 
-class TalentsoftOfferCustomFields(BaseModel):
+class TalentsoftDynamicField(BaseModel):
+    associatedObjectIdentifier: Optional[int] = None
     date1: Optional[str] = None
-    longText1: Optional[str] = None
-    longText2: Optional[str] = None
-    longText1Formatted: Optional[str] = None
-    longText2Formatted: Optional[str] = None
-    customCodeTable2: Optional[TalentsoftCustomCodeTable] = None
-
-
-class TalentsoftDescriptionCustomFields(BaseModel):
-    shortText2: Optional[str] = None
-    shortText3: Optional[str] = None
-    longText1: Optional[str] = None
-    longText2: Optional[str] = None
-    longText3: Optional[str] = None
-    longText1Formatted: Optional[str] = None
-    longText2Formatted: Optional[str] = None
-    longText3Formatted: Optional[str] = None
-    customCodeTable1: Optional[TalentsoftCustomCodeTable] = None
-    customCodeTable3: Optional[TalentsoftCustomCodeTable] = None
-
-
-class TalentsoftLocationCustomFields(BaseModel):
-    shortText1: Optional[str] = None
-
-
-class TalentsoftApplicantCriteriaCustomFields(BaseModel):
-    longText1: Optional[str] = None
-    longText1Formatted: Optional[str] = None
-    customCodeTable1: Optional[TalentsoftCustomCodeTable] = None
-
-
-class TalentsoftOriginCustomFields(BaseModel):
+    date2: Optional[str] = None
+    date3: Optional[str] = None
     shortText1: Optional[str] = None
     shortText2: Optional[str] = None
     shortText3: Optional[str] = None
-
-
-class TalentsoftOfferCustomBlock(BaseModel):
     longText1: Optional[str] = None
     longText2: Optional[str] = None
     longText3: Optional[str] = None
@@ -232,12 +312,15 @@ class TalentsoftOfferCustomBlock(BaseModel):
 
 
 class TalentsoftCustomFields(BaseModel):
-    offer: Optional[TalentsoftOfferCustomFields] = None
-    description: Optional[TalentsoftDescriptionCustomFields] = None
-    location: Optional[TalentsoftLocationCustomFields] = None
-    applicantCriteria: Optional[TalentsoftApplicantCriteriaCustomFields] = None
-    origin: Optional[TalentsoftOriginCustomFields] = None
-    offerCustomBlock1: Optional[TalentsoftOfferCustomBlock] = None
+    offer: Optional[TalentsoftDynamicField] = None
+    description: Optional[TalentsoftDynamicField] = None
+    location: Optional[TalentsoftDynamicField] = None
+    applicantCriteria: Optional[TalentsoftDynamicField] = None
+    origin: Optional[TalentsoftDynamicField] = None
+    offerCustomBlock1: Optional[TalentsoftDynamicField] = None
+    offerCustomBlock2: Optional[TalentsoftDynamicField] = None
+    offerCustomBlock3: Optional[TalentsoftDynamicField] = None
+    offerCustomBlock4: Optional[TalentsoftDynamicField] = None
 
 
 class TalentsoftDetailOffer(TalentsoftOffer):
@@ -248,14 +331,32 @@ class TalentsoftDetailOffer(TalentsoftOffer):
 
     organisation: Optional[TalentsoftOrganisation] = None
     operationalManager: Optional[TalentsoftOperationalManager] = None
+    mainSupervisor: Optional[TalentsoftMainSupervisor] = None
+    usersInChargeOf: List[str] = []
+    notificationCollection: List[str] = []
+    applicationNotificationLevel: Optional[TalentsoftCodedObject] = None
+
+    offerTime: Optional[TalentsoftCodedObject] = None
+    numberOfVacancies: Optional[int] = None
+    recruitingReason: Optional[TalentsoftCodedObject] = None
 
     educationLevel: Optional[TalentsoftCodedObject] = None
     diploma: Optional[TalentsoftCodedObject] = None
     experienceLevel: Optional[TalentsoftCodedObject] = None
     languages: List[TalentsoftLanguage] = []
     specialisations: List[TalentsoftCodedObject] = []
-    applicationQuestions: List[str] = []
+    profileCollection: List[TalentsoftCodedObject] = []
+    skillCollection: List[TalentsoftCodedObject] = []
+    freeCriteria1: Optional[str] = None
+    freeCriteria2: Optional[str] = None
+    freeCriteria1Formatted: Optional[str] = None
+    freeCriteria2Formatted: Optional[str] = None
+    applicationQuestions: List[TalentsoftApplicationQuestion] = []
     attachedFilesUrls: List[str] = []
+
+    applicationFormMetadata: Optional[TalentsoftFormMetadata] = Field(
+        default=None, alias="_applicationformmetadata"
+    )
 
     geolocation: Optional[TalentsoftGeolocation] = None
 

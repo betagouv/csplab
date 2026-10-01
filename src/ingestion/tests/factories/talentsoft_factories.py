@@ -7,8 +7,8 @@ from infrastructure.external_gateways.dtos.talentsoft_dtos import (
     TalentsoftCodedObject,
     TalentsoftCustomCodeTable,
     TalentsoftCustomFields,
-    TalentsoftDescriptionCustomFields,
     TalentsoftDetailOffer,
+    TalentsoftDynamicField,
     TalentsoftGeolocation,
     TalentsoftLink,
     TalentsoftOffer,
@@ -116,7 +116,7 @@ class TalentsoftOfferFactory(ModelFactory[TalentsoftOffer]):
             elements=["CAT-AEF", "CAT-ESD", "CAT-ES", "CAT-A", "CAT-B", "CAT-C"]
         )
         return TalentsoftCustomFieldsFactory.build(
-            description=TalentsoftDescriptionCustomFieldsFactory.build(
+            description=TalentsoftDynamicFieldFactory.build(
                 customCodeTable1=TalentsoftCustomCodeTableFactory.build(
                     clientCode=value
                 )
@@ -164,10 +164,8 @@ class TalentsoftCustomFieldsFactory(ModelFactory[TalentsoftCustomFields]):
     __faker__ = _fake
 
 
-class TalentsoftDescriptionCustomFieldsFactory(
-    ModelFactory[TalentsoftDescriptionCustomFields]
-):
-    __model__ = TalentsoftDescriptionCustomFields
+class TalentsoftDynamicFieldFactory(ModelFactory[TalentsoftDynamicField]):
+    __model__ = TalentsoftDynamicField
     __faker__ = _fake
 
 

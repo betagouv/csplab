@@ -16,8 +16,8 @@ from tests.factories.talentsoft_factories import (
     TalentsoftCodedObjectFactory,
     TalentsoftCustomCodeTableFactory,
     TalentsoftCustomFieldsFactory,
-    TalentsoftDescriptionCustomFieldsFactory,
     TalentsoftDetailOfferFactory,
+    TalentsoftDynamicFieldFactory,
 )
 
 REFERENCE = "2024-OFFER-001"
@@ -107,7 +107,7 @@ def test_execute_maps_contract_type(usecase, contract_code, expected):
 def test_execute_maps_category(usecase, category_code, expected_category):
     raw = _raw_offer(
         customFields=TalentsoftCustomFieldsFactory.build(
-            description=TalentsoftDescriptionCustomFieldsFactory.build(
+            description=TalentsoftDynamicFieldFactory.build(
                 customCodeTable1=TalentsoftCustomCodeTableFactory.build(
                     clientCode=category_code
                 )
