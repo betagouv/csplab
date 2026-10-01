@@ -3,6 +3,8 @@ from unittest.mock import Mock, patch
 import pytest
 from django.core.management import call_command
 
+from domain.ingestion.entities.document import DocumentType
+
 _CMD_MODULE = "presentation.ingestion.management.commands.load_corps"
 
 
@@ -22,7 +24,7 @@ def mock_container_factory(mock_logger):
 
 @pytest.fixture
 def mock_task(mock_container_factory):
-    with patch(f"{_CMD_MODULE}.load_corps") as mock:
+    with patch(f"{_CMD_MODULE}.enqueue_ingestion_from_api") as mock:
         yield mock
 
 
@@ -34,9 +36,9 @@ class TestLoadCorpsCommand:
     ):
         call_command("load_corps")
 
-        mock_task.assert_called_once()
+        mock_task.assert_called_once_with(DocumentType.CORPS)
         mock_logger.info.assert_any_call(
-            "Enqueuing load task for CORPS...",
+            "Enqueuing load, clean and vectorize tasks for CORPS...",
         )
-        mock_logger.info.assert_any_call("✅ Task enqueued successfully.")
+        mock_logger.info.assert_any_call("✅ Tasks enqueued successfully.")
         assert mock_logger.info.call_count == 2  # noqa
