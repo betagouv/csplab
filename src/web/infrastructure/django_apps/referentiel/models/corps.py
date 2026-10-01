@@ -10,7 +10,7 @@ from infrastructure.django_apps.utils.models import BaseDatedModel
 
 
 class CorpsModel(BaseDatedModel):
-    code = models.CharField(max_length=50)
+    code = models.CharField(max_length=50, unique=True)
     category = models.CharField(max_length=20, null=True, blank=True)
     ministry = models.CharField(max_length=100)
     diploma_level = models.IntegerField(null=True, blank=True)

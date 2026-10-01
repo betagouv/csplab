@@ -18,7 +18,7 @@ class CorpsDjangoFactory(DjangoModelFactory):
         skip_postgeneration_save = True
 
     id = factory.LazyFunction(uuid4)
-    code = factory.Faker("word")
+    code = factory.LazyFunction(lambda: uuid4().hex[:8])
     category = Category.A.value
     ministry = Ministry.MI.value
     diploma_level = None
