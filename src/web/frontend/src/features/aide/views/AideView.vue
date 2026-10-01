@@ -1,26 +1,49 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref, watch } from 'vue'
 import CspAccordion from '@/components/base/CspAccordion/CspAccordion.vue'
 import CspAccordionItem from '@/components/base/CspAccordion/CspAccordionItem.vue'
 import CspEmptyState from '@/components/base/CspEmptyState/CspEmptyState.vue'
 import CspSearchBar from '@/components/base/CspSearchBar/CspSearchBar.vue'
 import CspPageContainer from '@/components/layout/CspPageContainer/CspPageContainer.vue'
 import CspPageHeader from '@/components/layout/CspPageHeader/CspPageHeader.vue'
-import { useTextSearch } from '@/composables/data/useTextSearch'
+import AssistantAide from '../components/AssistantAide.vue'
+import { useAssistantAide } from '../composables/useAssistantAide'
 import { FAQ_ENTREES, FAQ_THEMES } from '../constants/faq'
+import { createClassement } from '../utils/motsClesAdapter'
 
-const { search, filtered } = useTextSearch(FAQ_ENTREES, entree => [
-  entree.question,
-  entree.reponse,
-  ...entree.motsCles,
-])
+const classer = createClassement()
+const { poser, reponse, pending, error } = useAssistantAide()
+
+const saisie = ref('')
+const question = ref('')
+
+watch(saisie, (valeur) => {
+  if (!valeur.trim()) {
+    question.value = ''
+  }
+})
+
+function rechercher(valeur: string) {
+  question.value = valeur
+  if (valeur) {
+    poser(valeur)
+  }
+}
+
+const entreesRetenues = computed(() => {
+  if (!question.value) {
+    return FAQ_ENTREES
+  }
+  const ids = new Set(classer(question.value).filter(({ score }) => score > 0).map(({ entree }) => entree.id))
+  return FAQ_ENTREES.filter(entree => ids.has(entree.id))
+})
 
 const sections = computed(() =>
   FAQ_THEMES
     .map((titre, index) => ({
       id: `aide-theme-${index}`,
       titre,
-      entrees: filtered.value.filter(entree => entree.theme === titre),
+      entrees: entreesRetenues.value.filter(entree => entree.theme === titre),
     }))
     .filter(section => section.entrees.length > 0),
 )
@@ -33,12 +56,20 @@ const sections = computed(() =>
   />
   <CspPageContainer width="reading">
     <CspSearchBar
-      v-model="search"
-      mode="live"
-      label="Rechercher dans l'aide"
-      hide-label
-      placeholder="Rechercher dans l'aide"
+      v-model="saisie"
+      label="Posez votre question"
+      placeholder="Ex. : comment retirer un collègue qui quitte le service ?"
+      button-label="Rechercher"
+      size="lg"
       class="aide-view__search"
+      @search="rechercher"
+    />
+    <AssistantAide
+      v-if="question && sections.length > 0"
+      :reponse="reponse"
+      :pending="pending"
+      :error="error"
+      class="aide-view__assistant"
     />
     <CspEmptyState
       v-if="sections.length === 0"
@@ -76,7 +107,8 @@ const sections = computed(() =>
 </template>
 
 <style scoped lang="scss">
-.aide-view__search {
+.aide-view__search,
+.aide-view__assistant {
   margin-bottom: 2rem;
 }
 

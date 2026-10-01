@@ -8,3 +8,12 @@ export interface FaqEntree {
   ou: string
   motsCles: string[]
 }
+
+export interface ReponseAide {
+  reponse: string
+  entreeId: string | null
+}
+
+export interface AssistantAdapter {
+  repondre: (question: string) => Promise<ReponseAide>
+}

@@ -401,9 +401,9 @@ export const FAQ_ENTREES = [
     id: 'droits-qui-fait-quoi',
     theme: 'Droits et rôles',
     question: 'Qui peut faire quoi dans la plateforme ?',
-    reponse: 'Responsable de l\'organisme : tout dans l\'organisme (membres, étapes par défaut, équipes, responsables de recrutement, tous les recrutements).\nResponsable du recrutement : candidatures, étapes du recrutement, notes.\nRecruteur : candidatures et notes, y compris le changement d\'étape.\nContributeur : consultation des candidatures et des documents, ajout de notes.\nMembre sans rôle sur un recrutement : n\'y a pas accès.',
-    ou: 'Sans objet (règle de droits).',
-    motsCles: ['droits', 'matrice', 'qui peut', 'permissions'],
+    reponse: 'Cela dépend de votre rôle.\n- Le Responsable de l\'organisme peut tout faire dans l\'organisme : gérer les membres, les étapes par défaut et les équipes, désigner les responsables de recrutement et accéder à tous les recrutements.\n- Le Responsable d\'un recrutement gère les candidatures, les étapes et les notes de ce recrutement.\n- Le Recruteur traite les candidatures, y compris le changement d\'étape, et rédige des notes.\n- Le Contributeur consulte les candidatures et les documents, et peut ajouter des notes.\n- Un Membre sans rôle sur un recrutement n\'y a pas accès.',
+    ou: 'Votre rôle dans un recrutement : onglet « Équipe de recrutement » du recrutement. Les rôles dans l\'organisme : « Paramètres de l\'organisme » › onglet « Membres », réservé au Responsable de l\'organisme.',
+    motsCles: ['droits', 'matrice', 'qui peut', 'permissions', 'rôles', 'autorisations'],
   },
   {
     id: 'droits-role-organisme',
@@ -418,7 +418,7 @@ export const FAQ_ENTREES = [
     theme: 'Droits et rôles',
     question: 'Pourquoi le mot « Responsable » désigne-t-il deux rôles différents ?',
     reponse: '« Responsable » existe à deux niveaux. Le Responsable de l\'organisme gère l\'organisme et accède à tous ses recrutements. Le Responsable d\'un recrutement pilote ce seul recrutement. Une même personne peut être Membre de l\'organisme et Responsable d\'un recrutement. Regardez où le rôle est affiché pour savoir duquel il s\'agit.',
-    ou: 'Rôle dans l\'organisme : « Paramètres de l\'organisme » › onglet « Membres ». Rôle dans le recrutement : onglet « Équipe de recrutement ».',
+    ou: 'Rôle dans le recrutement : onglet « Équipe de recrutement ». Rôle dans l\'organisme : « Paramètres de l\'organisme » › onglet « Membres », réservé au Responsable de l\'organisme.',
     motsCles: ['responsable', 'superviseur', 'vocabulaire', 'libellé'],
   },
   {
