@@ -5621,9 +5621,6 @@ components:
           type: string
           maxLength: 14
           minLength: 14
-        gestionnaire:
-          type: string
-          nullable: true
         gestion_ats:
           type: boolean
         date_derniere_activite:
@@ -5636,7 +5633,6 @@ components:
       - date_creation
       - date_derniere_activite
       - gestion_ats
-      - gestionnaire
       - nom
       - organisme_uuid
       - siret
@@ -5669,9 +5665,6 @@ components:
           type: string
           maxLength: 14
           minLength: 14
-        gestionnaire:
-          type: string
-          nullable: true
         gestion_ats:
           type: boolean
         date_derniere_activite:
@@ -5680,7 +5673,11 @@ components:
         date_creation:
           type: string
           format: date-time
-        nombre_agents:
+        superviseurs:
+          type: array
+          items:
+            $ref: '#/components/schemas/Superviseur'
+        nombre_membres:
           type: integer
         nombre_offres_publiees:
           type: integer
@@ -5688,12 +5685,12 @@ components:
       - date_creation
       - date_derniere_activite
       - gestion_ats
-      - gestionnaire
       - nom
-      - nombre_agents
+      - nombre_membres
       - nombre_offres_publiees
       - organisme_uuid
       - siret
+      - superviseurs
       - versant
     PaginatedAuditLogList:
       type: object
@@ -6197,6 +6194,13 @@ components:
       required:
       - echecs
       - reussites
+    Superviseur:
+      type: object
+      properties:
+        nom:
+          type: string
+      required:
+      - nom
     TokenError:
       type: object
       properties:

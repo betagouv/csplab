@@ -61,6 +61,10 @@ class OrganismeMapper(IFromDomainMapper[Organisme, dict]):
             "gestion_ats": organisme_read_model.managed_ats,
             "date_creation": organisme_read_model.creation_date,
             "date_derniere_activite": organisme_read_model.last_activity_date,
-            "nombre_agents": organisme_read_model.number_agents,
+            "superviseurs": [
+                {"nom": superviseur.nom}
+                for superviseur in organisme_read_model.superviseurs
+            ],
+            "nombre_membres": organisme_read_model.number_members,
             "nombre_offres_publiees": organisme_read_model.number_published_offers,
         }

@@ -65,6 +65,13 @@ class OrganismeAgentQuerySet(models.QuerySet):
     def active(self) -> "OrganismeAgentQuerySet":
         return self.filter(date_revocation__isnull=True)
 
+    def superviseurs(self) -> "OrganismeAgentQuerySet":
+        return (
+            self.active()
+            .filter(role=AgentOrganismeRole.SUPERVISEUR.value)
+            .order_by("created_at")
+        )
+
     def by_organisme_and_agent(
         self, organisme_id, agent_id
     ) -> "OrganismeAgentQuerySet":

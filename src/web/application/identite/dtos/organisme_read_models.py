@@ -7,6 +7,11 @@ from referentiel.value_objects.verse import Verse
 
 
 @dataclass(frozen=True, kw_only=True)
+class SuperviseurDto:
+    nom: str
+
+
+@dataclass(frozen=True, kw_only=True)
 class OrganismeReadModel:
     entity_id: UUID
     name: str
@@ -15,5 +20,6 @@ class OrganismeReadModel:
     managed_ats: bool
     creation_date: datetime
     last_activity_date: datetime
-    number_agents: int
+    superviseurs: list[SuperviseurDto]
+    number_members: int
     number_published_offers: int

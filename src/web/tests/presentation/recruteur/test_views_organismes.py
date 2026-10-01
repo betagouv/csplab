@@ -10,6 +10,7 @@ from referentiel.value_objects.verse import Verse
 from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
 
+from application.identite.dtos.organisme_read_models import SuperviseurDto
 from application.identite.services.organisme_query_service_interface import (
     OrganismeReadModel,
 )
@@ -83,7 +84,8 @@ class TestOrganismesView:
                 managed_ats=organisme.gestion_ats,
                 creation_date=organisme.date_creation,
                 last_activity_date=organisme.date_derniere_activite,
-                number_agents=5,
+                superviseurs=[SuperviseurDto(nom="Marie Dupont")],
+                number_members=5,
                 number_published_offers=100,
             )
             for organisme in organismes
@@ -103,14 +105,14 @@ class TestOrganismesView:
                 "nom": organisme.name,
                 "versant": organisme.verse.value,
                 "siret": str(organisme.siret),
-                "gestionnaire": None,
                 "gestion_ats": organisme.managed_ats,
                 # TODO : inspect the origin of these divergent formats
                 "date_creation": datetime_to_drf_representation(
                     organisme.creation_date
                 ),
                 "date_derniere_activite": datetime_to_str(organisme.last_activity_date),
-                "nombre_agents": 5,
+                "superviseurs": [{"nom": "Marie Dupont"}],
+                "nombre_membres": 5,
                 "nombre_offres_publiees": 100,
             }
             for organisme in expected_result
@@ -240,7 +242,8 @@ class TestOrganismesViewDbVerified:
         assert matching["versant"] == organisme.versant
         assert matching["siret"] == organisme.siret
         assert matching["gestion_ats"] == organisme.gestion_ats
-        assert matching["nombre_agents"] == 0
+        assert matching["superviseurs"] == []
+        assert matching["nombre_membres"] == 0
         assert matching["nombre_offres_publiees"] == 0
 
     def test_post_creates_and_persists_the_organisme(self, staff_client):

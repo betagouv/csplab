@@ -46,7 +46,8 @@ def organisme_read_models_fixture():
             managed_ats=organisme.gestion_ats,
             creation_date=organisme.date_creation,
             last_activity_date=organisme.date_derniere_activite,
-            number_agents=5,
+            superviseurs=[],
+            number_members=5,
             number_published_offers=100,
         )
         for organisme in organismes

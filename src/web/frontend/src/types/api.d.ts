@@ -874,7 +874,6 @@ export interface components {
             nom: string;
             versant: components["schemas"]["VersantEnum"];
             siret: string;
-            gestionnaire: string | null;
             gestion_ats: boolean;
             /** Format: date-time */
             date_derniere_activite: string;
@@ -893,13 +892,13 @@ export interface components {
             nom: string;
             versant: components["schemas"]["VersantEnum"];
             siret: string;
-            gestionnaire: string | null;
             gestion_ats: boolean;
             /** Format: date-time */
             date_derniere_activite: string;
             /** Format: date-time */
             date_creation: string;
-            nombre_agents: number;
+            superviseurs: components["schemas"]["Superviseur"][];
+            nombre_membres: number;
             nombre_offres_publiees: number;
         };
         PaginatedAuditLogList: {
@@ -1163,6 +1162,9 @@ export interface components {
         SetRecrutementsResponsableResultat: {
             reussites: string[];
             echecs: components["schemas"]["RecrutementEchec"][];
+        };
+        Superviseur: {
+            nom: string;
         };
         TokenError: {
             detail: string;

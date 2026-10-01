@@ -1,7 +1,9 @@
 from unittest.mock import Mock
 
 import pytest
+from django.utils import timezone
 
+from application.identite.dtos.organisme_read_models import SuperviseurDto
 from application.identite.usecases.list_organismes import (
     ListOrganismesCommand,
 )
@@ -13,6 +15,7 @@ from domain.identite.errors.organisme_permission_errors import (
 from domain.recruteur.value_objects.roles import AgentOrganismeRole
 from infrastructure.di.identite.identite_container import IdentiteContainer
 from infrastructure.factories.identite.organisme_django_factory import (
+    OrganismeAgentDjangoFactory,
     OrganismeDjangoFactory,
     create_organisme_with_agent,
 )
@@ -52,7 +55,7 @@ def test_list_organismes(db, organismes, identite_integration_container):
     assert result_ids == organism_ids
 
     for organisme in result:
-        assert organisme.number_agents == 0
+        assert organisme.number_members == 0
         assert organisme.number_published_offers == 0
 
 
@@ -73,14 +76,51 @@ def test_list_organismes_with_counts(db, identite_integration_container):
     organisme_with_agents_result = next(
         r for r in result if r.entity_id == organisme_with_agents.id
     )
-    assert organisme_with_agents_result.number_agents == 1
+    assert organisme_with_agents_result.number_members == 1
     assert organisme_with_agents_result.number_published_offers == 0
 
     organisme_with_offers_result = next(
         r for r in result if r.entity_id == organisme_with_recruitments.id
     )
-    assert organisme_with_offers_result.number_agents == 0
+    assert organisme_with_offers_result.number_members == 0
     assert organisme_with_offers_result.number_published_offers == 2  # noqa
+
+
+def test_list_organismes_with_active_superviseurs_and_members(
+    db, identite_integration_container
+):
+    organisme = OrganismeDjangoFactory()
+    OrganismeAgentDjangoFactory(
+        organisme=organisme,
+        role=AgentOrganismeRole.SUPERVISEUR.value,
+        agent__utilisateur__first_name="Marie",
+        agent__utilisateur__last_name="Dupont",
+    )
+    superviseur_sans_identite = OrganismeAgentDjangoFactory(
+        organisme=organisme,
+        role=AgentOrganismeRole.SUPERVISEUR.value,
+        agent__utilisateur__first_name="",
+        agent__utilisateur__last_name="",
+    )
+    OrganismeAgentDjangoFactory(organisme=organisme)
+    OrganismeAgentDjangoFactory(
+        organisme=organisme,
+        role=AgentOrganismeRole.SUPERVISEUR.value,
+        date_revocation=timezone.now(),
+    )
+
+    command = ListOrganismesCommand(
+        utilisateur=UtilisateurFactory.create_entity(is_staff=True),
+    )
+
+    result = identite_integration_container.list_organismes_usecase().execute(command)
+
+    organisme_result = next(r for r in result if r.entity_id == organisme.id)
+    assert organisme_result.superviseurs == [
+        SuperviseurDto(nom="Marie Dupont"),
+        SuperviseurDto(nom=superviseur_sans_identite.agent.utilisateur.email),
+    ]
+    assert organisme_result.number_members == 3  # noqa
 
 
 def test_list_organismes_refuse_non_staff(db, identite_integration_container):
