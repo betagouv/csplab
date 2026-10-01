@@ -57,7 +57,7 @@ class ApiKeyAuthentication(BaseAuthentication):
         if allowed_ranges and not _ip_is_allowed(
             _get_client_ip(request), allowed_ranges
         ):
-            _log_rejection("ip not allowed", request)
+            _log_rejection("IP not allowed", request)
             raise AuthenticationFailed("IP address not allowed.")
         return (_IngestionApiKeyUser(), None)
 

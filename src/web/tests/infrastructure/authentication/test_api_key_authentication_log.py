@@ -40,7 +40,7 @@ class TestApiKeyAuthenticationLog:
             )
 
         assert [r.getMessage() for r in logs.records] == [
-            "Ingestion API key rejected (ip not allowed) from 192.168.1.1."
+            "Ingestion API key rejected (IP not allowed) from 192.168.1.1."
         ]
         assert "good-key" not in logs.text
 
