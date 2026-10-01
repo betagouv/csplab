@@ -43,7 +43,7 @@ const formDrawer = useTemplateRef('formDrawer')
 
 const rows = computed(() => organismesList.value ?? [])
 
-const { search, filtered } = useTextSearch(rows, row => [row.nom, row.siret, row.gestionnaire])
+const { search, filtered } = useTextSearch(rows, row => [row.nom, row.siret, ...row.superviseurs.map(s => s.nom)])
 
 watch(filtered, () => {
   page.value = 1
@@ -105,9 +105,9 @@ async function handleUpdate(payload: UpdateOrganismePayload): Promise<void> {
         <CspSearchBar
           v-model="search"
           mode="live"
-          label="Rechercher un organisme, un siret"
+          label="Rechercher un organisme, un siret, un superviseur"
           hide-label
-          placeholder="Rechercher un organisme, un siret"
+          placeholder="Rechercher un organisme, un siret, un superviseur"
           class="organismes-section__search"
         />
         <CspButton

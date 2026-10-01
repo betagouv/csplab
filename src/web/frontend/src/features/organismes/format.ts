@@ -1,3 +1,4 @@
+import type { OrganismesList } from './types'
 import { ROLE_LABELS } from './constants/organisme'
 
 interface AgentIdentite {
@@ -11,6 +12,10 @@ export function formatAgentName(agent: AgentIdentite): string {
 
 export function formatAgentNameAlphabetical(agent: AgentIdentite): string {
   return `${agent.nom} ${agent.prenom}`.trim()
+}
+
+export function formatSuperviseursLabel(row: OrganismesList): string {
+  return row.superviseurs.map(s => s.nom).join(', ') || '-'
 }
 
 export function formatAgentRole(role: string): string {

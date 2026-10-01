@@ -27,10 +27,10 @@ export const ORGANISME: OrganismesList = {
   nom: 'Organisme 1',
   siret: '11004601800021',
   versant: 'FPT',
-  gestionnaire: null,
+  superviseurs: [],
   gestion_ats: false,
   date_derniere_activite: '2026-08-01T00:00:00Z',
   date_creation: '2026-01-01T00:00:00Z',
-  nombre_agents: 10,
+  nombre_membres: 10,
   nombre_offres_publiees: 5,
 }

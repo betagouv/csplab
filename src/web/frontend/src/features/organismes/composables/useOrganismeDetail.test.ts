@@ -22,7 +22,6 @@ const ORGANISME: OrganismeDetail = {
   nom: 'Commune de Briançon',
   versant: 'FPT',
   siret: '21050023700354',
-  gestionnaire: null,
   gestion_ats: true,
   date_creation: '2026-01-01',
   date_derniere_activite: '2026-01-15',
