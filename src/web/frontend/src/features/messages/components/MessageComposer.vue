@@ -6,6 +6,7 @@ import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspTextarea from '@/components/base/CspTextarea/CspTextarea.vue'
 import { useUnsavedChanges } from '@/composables/navigation/useUnsavedChanges'
 import { useToast } from '@/composables/ui/useToast'
+import { countValidAttachments, hasInvalidAttachment } from '../attachments'
 import { useReplyConversation } from '../composables/useConversationMessages'
 import { MESSAGE_CONTENT_MAX_LENGTH, MESSAGE_MAX_DOCUMENTS } from '../constants/message'
 import MessageAttachments from './MessageAttachments.vue'
@@ -39,9 +40,9 @@ watch(documents, () => {
   documentsErrors.value = []
 })
 
-const canSend = computed(() => content.value.trim() !== '' && !replying.value)
+const canSend = computed(() => content.value.trim() !== '' && !hasInvalidAttachment(documents.value) && !replying.value)
 
-const canAttach = computed(() => documents.value.length < MESSAGE_MAX_DOCUMENTS && !replying.value)
+const canAttach = computed(() => countValidAttachments(documents.value) < MESSAGE_MAX_DOCUMENTS && !replying.value)
 
 async function send(): Promise<void> {
   if (!canSend.value)

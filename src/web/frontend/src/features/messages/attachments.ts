@@ -1,34 +1,37 @@
 import { MESSAGE_DOCUMENT_CONTENT_TYPES, MESSAGE_DOCUMENT_MAX_SIZE_MB, MESSAGE_MAX_DOCUMENTS } from './constants/message'
 
-export interface AttachmentsValidation {
-  accepted: File[]
-  errors: string[]
+export interface Attachment {
+  file: File
+  error: string | null
 }
 
 const MAX_SIZE_BYTES = MESSAGE_DOCUMENT_MAX_SIZE_MB * 1024 * 1024
 
-function attachmentError(file: File): string | null {
+function fileError(file: File): string | null {
   if (!MESSAGE_DOCUMENT_CONTENT_TYPES.includes(file.type))
-    return `Format non supporté pour ${file.name}. Formats acceptés : PDF, PNG, JPEG.`
+    return 'Format non supporté. Formats acceptés : PDF, PNG, JPEG.'
   if (file.size > MAX_SIZE_BYTES)
-    return `Le fichier ${file.name} dépasse la taille maximale de ${MESSAGE_DOCUMENT_MAX_SIZE_MB} Mo.`
+    return `Dépasse la taille maximale de ${MESSAGE_DOCUMENT_MAX_SIZE_MB} Mo.`
   return null
 }
 
-export function validateAttachments(current: File[], added: File[]): AttachmentsValidation {
-  const accepted: File[] = []
-  const errors: string[] = []
-  for (const file of added) {
-    const error = attachmentError(file)
+export function validateAttachments(files: File[]): Attachment[] {
+  let validCount = 0
+  return files.map((file) => {
+    const error = fileError(file)
     if (error)
-      errors.push(error)
-    else
-      accepted.push(file)
-  }
-  const remaining = MESSAGE_MAX_DOCUMENTS - current.length
-  if (accepted.length > remaining) {
-    errors.push(`Vous pouvez joindre ${MESSAGE_MAX_DOCUMENTS} fichiers au maximum.`)
-    accepted.splice(remaining)
-  }
-  return { accepted, errors }
+      return { file, error }
+    if (validCount === MESSAGE_MAX_DOCUMENTS)
+      return { file, error: `Limite de ${MESSAGE_MAX_DOCUMENTS} fichiers atteinte.` }
+    validCount++
+    return { file, error: null }
+  })
+}
+
+export function hasInvalidAttachment(files: File[]): boolean {
+  return validateAttachments(files).some(({ error }) => error !== null)
+}
+
+export function countValidAttachments(files: File[]): number {
+  return validateAttachments(files).filter(({ error }) => error === null).length
 }

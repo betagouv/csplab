@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { computed, ref, useTemplateRef, watch } from 'vue'
+import { computed, useTemplateRef } from 'vue'
 import CspIcon from '@/components/base/CspIcon/CspIcon.vue'
 import CspTag from '@/components/base/CspTag/CspTag.vue'
 import { validateAttachments } from '../attachments'
 import { MESSAGE_DOCUMENT_CONTENT_TYPES } from '../constants/message'
 
-const props = withDefaults(defineProps<{
+withDefaults(defineProps<{
   disabled?: boolean
   serverErrors?: string[]
 }>(), {
@@ -14,14 +14,8 @@ const props = withDefaults(defineProps<{
 
 const files = defineModel<File[]>({ default: () => [] })
 
-const rejections = ref<string[]>([])
-const errors = computed(() => [...rejections.value, ...props.serverErrors])
+const attachments = computed(() => validateAttachments(files.value))
 const input = useTemplateRef('input')
-
-watch(() => files.value.length, (length, previousLength) => {
-  if (length === 0 && previousLength > 0)
-    rejections.value = []
-})
 
 function pick(): void {
   input.value?.click()
@@ -29,15 +23,12 @@ function pick(): void {
 
 function add(event: Event): void {
   const target = event.target as HTMLInputElement
-  const validation = validateAttachments(files.value, [...(target.files ?? [])])
-  files.value = [...files.value, ...validation.accepted]
-  rejections.value = validation.errors
+  files.value = [...files.value, ...(target.files ?? [])]
   target.value = ''
 }
 
 function remove(index: number): void {
   files.value = files.value.filter((_, position) => position !== index)
-  rejections.value = []
 }
 
 defineExpose({ pick })
@@ -54,27 +45,39 @@ defineExpose({ pick })
       @change="add"
     >
     <ul
-      v-if="files.length > 0"
+      v-if="attachments.length > 0"
       class="message-attachments__files"
       aria-label="Pièces jointes"
+      aria-live="polite"
     >
       <li
-        v-for="(file, index) in files"
-        :key="`${index}-${file.name}`"
+        v-for="(attachment, index) in attachments"
+        :key="`${index}-${attachment.file.name}`"
+        class="message-attachments__file"
       >
         <CspTag
           variant="dismissible"
           size="sm"
-          :label="file.name"
-          :dismiss-label="`Retirer ${file.name}`"
+          :label="attachment.file.name"
+          :dismiss-label="`Retirer ${attachment.file.name}`"
           :disabled="disabled"
           @dismiss="remove(index)"
         />
+        <p
+          v-if="attachment.error"
+          class="message-attachments__error"
+        >
+          <CspIcon
+            name="ri:error-warning-fill"
+            :size="14"
+          />
+          {{ attachment.error }}
+        </p>
       </li>
     </ul>
     <div aria-live="polite">
       <p
-        v-for="(error, index) in errors"
+        v-for="(error, index) in serverErrors"
         :key="index"
         class="message-attachments__error"
       >
@@ -91,11 +94,18 @@ defineExpose({ pick })
 <style scoped lang="scss">
 .message-attachments__files {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
   gap: var(--csp-space-2);
   margin: 0;
   padding: 0;
   list-style: none;
+}
+
+.message-attachments__file {
+  display: flex;
+  flex-direction: column;
+  gap: var(--csp-space-1);
+  align-items: flex-start;
 }
 
 .message-attachments__error {
