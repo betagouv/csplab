@@ -3,6 +3,7 @@ import type { ConversationMessagesParams } from '../queries'
 import { computed, ref } from 'vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspTextarea from '@/components/base/CspTextarea/CspTextarea.vue'
+import { useUnsavedChanges } from '@/composables/navigation/useUnsavedChanges'
 import { useToast } from '@/composables/ui/useToast'
 import { useReplyConversation } from '../composables/useConversationMessages'
 import { MESSAGE_CONTENT_MAX_LENGTH } from '../constants/message'
@@ -16,6 +17,12 @@ const { reply, replying } = useReplyConversation(() => ({
 const { addToast } = useToast()
 
 const content = ref('')
+
+useUnsavedChanges(() => content.value !== '', () => {
+  content.value = ''
+}, {
+  isLeftBy: (to, from) => to.params.conversationUuid !== from.params.conversationUuid,
+})
 
 const canSend = computed(() => content.value.trim() !== '' && !replying.value)
 
