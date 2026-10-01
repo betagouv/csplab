@@ -70,6 +70,9 @@
   /* Sidebar */
   --csp-sidebar-padding: var(--csp-space-1);
 
+  /* Tabs */
+  --csp-tabs-trigger-padding-inline: var(--csp-space-4);
+
   @variant xxl {
     --csp-page-container-padding-inline: clamp(1.5rem, 1rem + 2.5vw, 4rem);
     --csp-page-container-wide-width: 120rem;

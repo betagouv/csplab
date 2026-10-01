@@ -48,7 +48,7 @@ defineProps<{
   justify-content: center;
   white-space: nowrap;
   gap: 0.5rem;
-  padding: 0.75rem 1rem;
+  padding: var(--csp-space-3) var(--csp-tabs-trigger-padding-inline);
   font-size: 0.875rem;
   font-weight: 500;
   line-height: 1.25;

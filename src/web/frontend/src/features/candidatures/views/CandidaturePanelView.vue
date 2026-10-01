@@ -292,6 +292,8 @@ function handleUpdateOpen(open: boolean): void {
 /* unscoped: the drawer content is portaled */
 .csp-drawer.candidature-panel {
   --base-drawer-width: 100vw;
+  --csp-drawer-padding-inline: var(--csp-page-container-padding-inline);
+  --candidature-panel-aside-padding-start: var(--csp-space-6);
 
   @include bp.from(bp.$lg) {
     --base-drawer-width: calc(100vw - 15rem);
@@ -313,12 +315,12 @@ function handleUpdateOpen(open: boolean): void {
   }
 
   .candidature-panel__tabs .csp-tabs__list {
-    padding-inline: calc(var(--csp-page-container-padding-inline) - 1rem);
+    padding-inline: calc(var(--csp-drawer-padding-inline) - var(--csp-tabs-trigger-padding-inline));
     border-bottom: 1px solid var(--border-default-grey);
   }
 
   .csp-drawer__footer {
-    padding: var(--csp-space-3) var(--csp-page-container-padding-inline);
+    padding-block: var(--csp-space-3);
   }
 
   .candidature-panel__tabs .csp-tabs__trigger {
@@ -329,7 +331,7 @@ function handleUpdateOpen(open: boolean): void {
 
 <style scoped lang="scss">
 .candidature-panel__exception {
-  padding: var(--csp-page-content-padding-block) var(--csp-page-container-padding-inline);
+  padding: var(--csp-page-content-padding-block) var(--csp-drawer-padding-inline);
 }
 
 .candidature-panel__body {
@@ -374,14 +376,15 @@ function handleUpdateOpen(open: boolean): void {
   flex: 1;
   flex-direction: column;
   min-height: 0;
-  padding: var(--csp-page-content-padding-block) var(--csp-page-container-padding-inline);
+  padding: var(--csp-page-content-padding-block) var(--csp-drawer-padding-inline);
 }
 
 .candidature-panel__aside {
   display: flex;
   flex-direction: column;
   gap: var(--csp-space-5);
-  padding: var(--csp-page-content-padding-block) var(--csp-page-container-padding-inline);
+  padding-block: var(--csp-page-content-padding-block);
+  padding-inline: var(--candidature-panel-aside-padding-start) var(--csp-drawer-padding-inline);
   border-left: 1px solid var(--border-default-grey);
 }
 
@@ -391,6 +394,7 @@ function handleUpdateOpen(open: boolean): void {
   }
 
   .candidature-panel__aside {
+    padding-inline: var(--csp-drawer-padding-inline);
     border-top: 1px solid var(--border-default-grey);
     border-left: 0;
   }

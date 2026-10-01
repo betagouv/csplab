@@ -235,7 +235,8 @@ const hasFooter = computed(() => Boolean(slots.footer))
   align-items: flex-start;
   justify-content: space-between;
   gap: var(--csp-space-4);
-  padding: var(--csp-space-6);
+  padding-block: var(--csp-space-6);
+  padding-inline: var(--csp-drawer-padding-inline, var(--csp-space-6));
   border-bottom: 1px solid var(--border-default-grey);
 }
 
@@ -277,13 +278,15 @@ const hasFooter = computed(() => Boolean(slots.footer))
 .csp-drawer__body {
   flex: 1 1 auto;
   overflow: auto;
-  padding: var(--csp-space-6);
+  padding-block: var(--csp-space-6);
+  padding-inline: var(--csp-drawer-padding-inline, var(--csp-space-6));
   font-size: 0.875rem;
   line-height: 1.5;
 }
 
 .csp-drawer__footer {
-  padding: var(--csp-space-6);
+  padding-block: var(--csp-space-6);
+  padding-inline: var(--csp-drawer-padding-inline, var(--csp-space-6));
   border-top: 1px solid var(--border-default-grey);
   display: flex;
   flex-wrap: wrap;
