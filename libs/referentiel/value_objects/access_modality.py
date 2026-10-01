@@ -13,6 +13,7 @@ class AccessModality(TextChoices):
     LISTE_APTITUDE = "Liste d'aptitude", "Liste d'aptitude"
     RECRUTEMENT_SUR_TITRE = "Recrutement sur titre", "Recrutement sur titre"
     PAR_VOIE_IRA = "Par voie des IRA", "Par voie des IRA"
+    PAR_VOIE_GISP = "Par voie du GISP", "Par voie du GISP"
     CONCOURS_COMPLEMENTAIRE = "Concours complémentaire", "Concours complémentaire"
     DEUXIEME_CONCOURS = "Deuxième concours", "Deuxième concours"
     TOUR_EXTERIEUR = "Tour extérieur", "Tour extérieur"
