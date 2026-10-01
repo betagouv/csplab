@@ -15,3 +15,8 @@ class PublicApiMixin:
 class PublicJwtOnlyMixin:
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
+
+
+class PublicApiKeyOnlyMixin:
+    authentication_classes = [ApiKeyAuthentication]
+    permission_classes = [IsAuthenticated]

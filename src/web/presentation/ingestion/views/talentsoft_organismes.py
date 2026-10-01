@@ -10,9 +10,7 @@ from application.ingestion.services.upsert_talentsoft_organismes import (
     upsert_talentsoft_organismes,
 )
 from config.logger_names import LoggerName
-from infrastructure.authentication.api_key_authentication import (
-    ApiKeyAuthentication,
-)
+from presentation.api.authentication import PublicApiKeyOnlyMixin
 from presentation.api.serializers import GenericErrorSerializer
 from presentation.ingestion.serializers import (
     TalentsoftOrganismeUpsertInputSerializer,
@@ -41,8 +39,7 @@ UPSERT_TALENTSOFT_ORGANISMES_DESCRIPTION = (
         500: GenericErrorSerializer,
     },
 )
-class TalentsoftOrganismesUpsertView(APIView):
-    authentication_classes = [ApiKeyAuthentication]
+class TalentsoftOrganismesUpsertView(PublicApiKeyOnlyMixin, APIView):
     parser_classes = [JSONParser]
     serializer_class = UpsertTalentsoftOrganismesRequestSerializer
 
