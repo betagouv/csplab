@@ -145,7 +145,7 @@ def test_call_with_args(mock_offers_container, jwt_client, active):
     jwt_client.get(URL, {"actif": active})
 
     mock_offers_container.list_offers_usecase.return_value.execute.assert_called_once_with(
-        GetFilteredOffersInput(active=active, external_id_contains=None)
+        GetFilteredOffersInput(active=active)
     )
 
 
@@ -155,7 +155,7 @@ def test_external_id_contains_is_not_accepted(mock_offers_container, jwt_client)
     jwt_client.get(URL, {"external_id_contains": "123"})
 
     mock_offers_container.list_offers_usecase.return_value.execute.assert_called_once_with(
-        GetFilteredOffersInput(active=True, external_id_contains=None)
+        GetFilteredOffersInput(active=True)
     )
 
 
