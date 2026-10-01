@@ -36,8 +36,9 @@ async function send(): Promise<void> {
   if (!canSend.value)
     return
   try {
-    await reply({ content: content.value })
+    await reply({ content: content.value, documents: documents.value })
     content.value = ''
+    documents.value = []
   }
   catch {
     addToast({ variant: 'error', title: 'L\'envoi du message a échoué' })
@@ -63,6 +64,7 @@ async function send(): Promise<void> {
     <MessageAttachments
       ref="attachments"
       v-model="documents"
+      :disabled="replying"
     />
     <div class="message-composer__actions">
       <CspButton

@@ -1,14 +1,23 @@
 <script setup lang="ts">
-import { ref, useTemplateRef } from 'vue'
+import { ref, useTemplateRef, watch } from 'vue'
 import CspIcon from '@/components/base/CspIcon/CspIcon.vue'
 import CspTag from '@/components/base/CspTag/CspTag.vue'
 import { validateAttachments } from '../attachments'
 import { MESSAGE_DOCUMENT_CONTENT_TYPES } from '../constants/message'
 
+defineProps<{
+  disabled?: boolean
+}>()
+
 const files = defineModel<File[]>({ default: () => [] })
 
 const errors = ref<string[]>([])
 const input = useTemplateRef('input')
+
+watch(() => files.value.length, (length, previousLength) => {
+  if (length === 0 && previousLength > 0)
+    errors.value = []
+})
 
 function pick(): void {
   input.value?.click()
@@ -54,6 +63,7 @@ defineExpose({ pick })
           size="sm"
           :label="file.name"
           :dismiss-label="`Retirer ${file.name}`"
+          :disabled="disabled"
           @dismiss="remove(index)"
         />
       </li>
