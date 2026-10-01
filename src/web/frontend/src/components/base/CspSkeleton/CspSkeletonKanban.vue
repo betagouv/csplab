@@ -76,6 +76,10 @@ withDefaults(defineProps<CspSkeletonKanbanProps>(), {
 
 .csp-skeleton-kanban__header {
   padding: 0 var(--csp-kanban-column-header-padding-inline);
+
+  :deep(.csp-skeleton) {
+    background: var(--background-contrast-grey);
+  }
 }
 
 .csp-skeleton-kanban__card-meta {
