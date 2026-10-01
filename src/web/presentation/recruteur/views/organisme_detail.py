@@ -3,7 +3,6 @@ from uuid import UUID
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from referentiel.value_objects.verse import Verse
 from rest_framework import status
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -36,6 +35,7 @@ from domain.recruteur.value_objects.categorie_etapes_recrutement import (
 from domain.recruteur.value_objects.etape_data import EtapeData
 from infrastructure.di.identite.identite_factory import create_identite_container
 from infrastructure.di.recruteur.recruteur_factory import recruteur_container
+from presentation.api.authentication import SessionApiMixin
 from presentation.api.serializers import (
     GenericErrorSerializer,
     generic_response_format,
@@ -75,8 +75,7 @@ from presentation.recruteur.serializers import (
         },
     ),
 )
-class OrganismeDetailView(APIView):
-    permission_classes = [IsAuthenticated]
+class OrganismeDetailView(SessionApiMixin, APIView):
     serializer_class = OrganismeDetailSerializer
 
     def __init__(self, **kwargs):
@@ -170,9 +169,7 @@ class OrganismeDetailView(APIView):
         },
     ),
 )
-class EtapesRecrutementOrganismeView(APIView):
-    permission_classes = [IsAuthenticated]
-
+class EtapesRecrutementOrganismeView(SessionApiMixin, APIView):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.container = recruteur_container()
@@ -257,9 +254,7 @@ class EtapesRecrutementOrganismeView(APIView):
         },
     ),
 )
-class MotifsRefusOrganismeView(APIView):
-    permission_classes = [IsAuthenticated]
-
+class MotifsRefusOrganismeView(SessionApiMixin, APIView):
     def get(self, request: Request, organisme_uuid: UUID) -> Response:
         try:
             motifs = list_motifs_refus(
@@ -290,9 +285,7 @@ class MotifsRefusOrganismeView(APIView):
         201: EtapeRecrutementSerializer(many=True),
     },
 )
-class InitEtapesRecrutementOrganismeView(APIView):
-    permission_classes = [IsAuthenticated]
-
+class InitEtapesRecrutementOrganismeView(SessionApiMixin, APIView):
     def post(self, request: Request, organisme_uuid: UUID) -> Response:
         try:
             organisme = initialize_organisme_etapes(

@@ -6,7 +6,6 @@ from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import exceptions, status
 from rest_framework.generics import ListAPIView
 from rest_framework.parsers import FormParser, MultiPartParser
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
 
@@ -25,6 +24,7 @@ from domain.recruteur.errors.recrutement_errors import (
     RecrutementInexistant,
 )
 from infrastructure.django_apps.messagerie.models import ConversationModel
+from presentation.api.authentication import SessionApiMixin
 from presentation.api.serializers import GenericErrorSerializer, generic_response_format
 from presentation.commons.pagination import PageNumberLimitPagination
 from presentation.recruteur.mappers import UtilisateurMapper
@@ -58,8 +58,7 @@ class ConversationPagination(PageNumberLimitPagination):
         },
     ),
 )
-class CandidatureConversationsView(ListAPIView):
-    permission_classes = [IsAuthenticated]
+class CandidatureConversationsView(SessionApiMixin, ListAPIView):
     serializer_class = ConversationSerializer
     pagination_class = ConversationPagination
     parser_classes = [MultiPartParser, FormParser]

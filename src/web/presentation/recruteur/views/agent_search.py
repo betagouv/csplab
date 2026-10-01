@@ -2,7 +2,6 @@ from uuid import UUID
 
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import status
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -13,6 +12,7 @@ from domain.identite.errors.organisme_permission_errors import (
     AccesOrganismeRefuse,
     OperationOrganismeRefusee,
 )
+from presentation.api.authentication import SessionApiMixin
 from presentation.api.serializers import GenericErrorSerializer, generic_response_format
 from presentation.recruteur.mappers import UtilisateurMapper
 from presentation.recruteur.serializers import (
@@ -33,9 +33,7 @@ from presentation.recruteur.serializers import (
         },
     ),
 )
-class AgentRechercheView(APIView):
-    permission_classes = [IsAuthenticated]
-
+class AgentRechercheView(SessionApiMixin, APIView):
     def get(self, request: Request, organisme_uuid: UUID) -> Response:
         query = RechercheAgentQuerySerializer(data=request.query_params)
         if not query.is_valid():
