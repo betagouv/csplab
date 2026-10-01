@@ -293,8 +293,8 @@ def test_api_key_authentication(api_key_client, use_case):
     assert response.status_code == status.HTTP_201_CREATED
 
 
-def test_get_method_not_allowed(authenticated_client):
-    response = authenticated_client.get(URL)
+def test_get_method_not_allowed(jwt_client):
+    response = jwt_client.get(URL)
     assert response.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
 
 
@@ -305,10 +305,8 @@ def test_get_method_not_allowed(authenticated_client):
         (0, "Assurez-vous que ce champ a au moins 1 éléments."),
     ],
 )
-def test_invalid_payload_returns_error_400(
-    authenticated_client, num_offers, expected_msg
-):
-    response = authenticated_client.post(
+def test_invalid_payload_returns_error_400(jwt_client, num_offers, expected_msg):
+    response = jwt_client.post(
         URL,
         data={"source_id": SOURCE_UUID, "offres": [MINIMAL_VALID_OFFER] * num_offers},
         content_type="application/json",
@@ -317,9 +315,9 @@ def test_invalid_payload_returns_error_400(
     assert response.json() == {"offres": [expected_msg]}
 
 
-def test_jwt_forbidden_source_id_returns_403(authenticated_client, use_case):
+def test_jwt_forbidden_source_id_returns_403(jwt_client, use_case):
     use_case.execute.side_effect = SourceAuthorizationError({UUID(SOURCE_UUID)})
-    response = authenticated_client.post(
+    response = jwt_client.post(
         URL,
         data={"source_id": SOURCE_UUID, "offres": [MINIMAL_VALID_OFFER]},
         content_type="application/json",

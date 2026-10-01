@@ -29,8 +29,8 @@ def test_unauthenticated_access(api_client):
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
 
-def test_post_not_allowed(authenticated_client):
-    response = authenticated_client.post(URL)
+def test_post_not_allowed(jwt_client):
+    response = jwt_client.post(URL)
     assert response.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
 
 
@@ -46,10 +46,10 @@ def _make_paginated_mock(mock_metiers_container, num_metiers, metiers_slice):
     return mock_usecase
 
 
-def test_empty_result(mock_metiers_container, authenticated_client):
+def test_empty_result(mock_metiers_container, jwt_client):
     _make_paginated_mock(mock_metiers_container, num_metiers=0, metiers_slice=[])
 
-    response = authenticated_client.get(URL)
+    response = jwt_client.get(URL)
 
     assert response.status_code == status.HTTP_200_OK
     assert response.json() == {
@@ -60,14 +60,14 @@ def test_empty_result(mock_metiers_container, authenticated_client):
     }
 
 
-def test_call_without_arg(mock_metiers_container, authenticated_client):
+def test_call_without_arg(mock_metiers_container, jwt_client):
     metiers = [MetierFactory.create_entity() for _ in range(2)]
 
     _make_paginated_mock(
         mock_metiers_container, num_metiers=len(metiers), metiers_slice=metiers
     )
 
-    response = authenticated_client.get(URL, {})
+    response = jwt_client.get(URL, {})
 
     assert response.status_code == status.HTTP_200_OK
 
@@ -88,28 +88,28 @@ def test_call_without_arg(mock_metiers_container, authenticated_client):
 
 
 @pytest.mark.parametrize("domain", [None, "TRE"])
-def test_call_with_args(mock_metiers_container, authenticated_client, domain):
+def test_call_with_args(mock_metiers_container, jwt_client, domain):
     _make_paginated_mock(mock_metiers_container, num_metiers=0, metiers_slice=[])
 
     params = {"domaine": domain} if domain else {}
-    authenticated_client.get(URL, params)
+    jwt_client.get(URL, params)
 
     mock_metiers_container.list_metiers_usecase.return_value.execute.assert_called_once_with(
         GetFilteredMetiersInput(domain=domain)
     )
 
 
-def test_returns_error_500(mock_metiers_container, authenticated_client):
+def test_returns_error_500(mock_metiers_container, jwt_client):
     mock_usecase = MagicMock()
     mock_usecase.execute.side_effect = Exception("db error")
     mock_metiers_container.list_metiers_usecase.return_value = mock_usecase
 
-    response = authenticated_client.get(URL)
+    response = jwt_client.get(URL)
     assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
 
 
 @patch("presentation.ingestion.views.metiers.WebPagination.page_size", new=2)
-def test_pagination_page_arg(mock_metiers_container, authenticated_client):
+def test_pagination_page_arg(mock_metiers_container, jwt_client):
     num_metiers = 5
     metiers = [MetierFactory.create_entity() for _ in range(num_metiers)]
 
@@ -117,7 +117,7 @@ def test_pagination_page_arg(mock_metiers_container, authenticated_client):
         mock_metiers_container, num_metiers=len(metiers), metiers_slice=metiers[2:4]
     )
 
-    response = authenticated_client.get(URL, {"page": 2, "dummy": "arg"})
+    response = jwt_client.get(URL, {"page": 2, "dummy": "arg"})
 
     assert response.status_code == status.HTTP_200_OK
     data = response.json()
@@ -143,7 +143,7 @@ def test_pagination_page_arg(mock_metiers_container, authenticated_client):
 
 
 @patch("presentation.ingestion.views.metiers.WebPagination.page_size", new=2)
-def test_pagination_out_of_bond(mock_metiers_container, authenticated_client):
+def test_pagination_out_of_bond(mock_metiers_container, jwt_client):
     num_metiers = 3
     metiers = [MetierFactory.create_entity() for _ in range(num_metiers)]
 
@@ -151,7 +151,7 @@ def test_pagination_out_of_bond(mock_metiers_container, authenticated_client):
         mock_metiers_container, num_metiers=len(metiers), metiers_slice=[]
     )
 
-    response = authenticated_client.get(URL, {"page": 3})
+    response = jwt_client.get(URL, {"page": 3})
     assert response.status_code == status.HTTP_200_OK
     data = response.json()
 
@@ -168,17 +168,17 @@ def test_pagination_out_of_bond(mock_metiers_container, authenticated_client):
     assert data["next"] is None
 
 
-def test_invalid_payload(mock_metiers_container, authenticated_client):
+def test_invalid_payload(mock_metiers_container, jwt_client):
     _make_paginated_mock(mock_metiers_container, num_metiers=0, metiers_slice=[])
 
-    response = authenticated_client.get(URL, {"domaine": "ABCD"})
+    response = jwt_client.get(URL, {"domaine": "ABCD"})
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert "error" in response.json().keys()
 
 
 class TestMetiersListViewDbVerified:
-    def test_response_matches_db_record_field_by_field(self, authenticated_client):
+    def test_response_matches_db_record_field_by_field(self, jwt_client):
         metier = MetierDjangoFactory(
             domaine_fonctionnel_code="TRA",
             versants=["FPE"],
@@ -186,7 +186,7 @@ class TestMetiersListViewDbVerified:
             conditions_particulieres=["Habilitation"],
         )
 
-        response = authenticated_client.get(URL)
+        response = jwt_client.get(URL)
 
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
@@ -204,11 +204,11 @@ class TestMetiersListViewDbVerified:
         ]
 
     def test_does_not_trigger_n_plus_one_queries(
-        self, authenticated_client, django_assert_num_queries
+        self, jwt_client, django_assert_num_queries
     ):
         MetierDjangoFactory.create_batch(5)
 
         with django_assert_num_queries(NOMBRE_REQUETES_ATTENDU):
-            response = authenticated_client.get(URL)
+            response = jwt_client.get(URL)
 
         assert response.status_code == status.HTTP_200_OK

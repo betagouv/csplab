@@ -40,8 +40,8 @@ def test_unauthenticated_access(api_client):
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
 
-def test_jwt_authentication_is_rejected(authenticated_client, use_case):
-    response = authenticated_client.post(
+def test_jwt_authentication_is_rejected(jwt_client, use_case):
+    response = jwt_client.post(
         URL,
         data={"organismes": [_organisme_payload()]},
         content_type="application/json",

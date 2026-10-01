@@ -91,10 +91,10 @@ class TestArchiveOffersView:
         )
 
     def test_jwt_authentication_forbidden_source_id_returns_403(
-        self, authenticated_client, use_case
+        self, jwt_client, use_case
     ):
         use_case.execute.side_effect = SourceAuthorizationError({SOURCE_ID})
-        response = authenticated_client.post(URL, VALID_BODY, format="json")
+        response = jwt_client.post(URL, VALID_BODY, format="json")
         assert response.status_code == status.HTTP_403_FORBIDDEN
 
     def test_api_key_authentication_archives_offer(self, api_client, use_case):
