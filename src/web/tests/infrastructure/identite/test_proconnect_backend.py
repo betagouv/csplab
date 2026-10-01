@@ -24,12 +24,26 @@ class TestProconnectBackend:
 
         assert authenticated == user
 
+    def test_authenticate_logs_the_successful_login(self, db, backend):
+        user = UtilisateurDjangoFactory()
+        backend.logger = MagicMock()
+
+        backend.authenticate(None, proconnect_claims={"email": user.email})
+
+        backend.logger.info.assert_called_once_with(
+            "User %s logged in through ProConnect.", user.pk
+        )
+
     def test_authenticate_returns_none_for_unknown_email(self, db, backend):
+        backend.logger = MagicMock()
+
         authenticated = backend.authenticate(
             None, proconnect_claims={"email": "unknown@example.com"}
         )
 
         assert authenticated is None
+        backend.logger.warning.assert_called_once()
+        backend.logger.info.assert_not_called()
 
     def test_authenticate_returns_none_without_claims(self, db, backend):
         assert backend.authenticate(None, proconnect_claims=None) is None
