@@ -2,17 +2,17 @@
 
 set -eo pipefail
 
-# read commit message
-MESSAGE=$(cat "$1")
+# the hook is copied to .git/hooks/commit-msg, so resolve the repo root explicitly
+ROOT=$(git rev-parse --show-toplevel)
+CZ="$ROOT/dev/.venv/bin/cz"
+[ -x "$CZ" ] || CZ="$ROOT/bin/cz"   # venv missing: fall back to uv run
 
-# commit message schema regex
-SCHEMA_REGEX="^(fixup!\s*)?(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)\\([a-z0-9:-]+\\): [[:alpha:]].{1,75}"
-
-# validate commit message schema
-if ! echo "$MESSAGE" | grep -qE "$SCHEMA_REGEX"; then
+# validate against commitizen's schema_pattern (dev/pyproject.toml)
+if ! "$CZ" --config "$ROOT/dev/pyproject.toml" check --commit-msg-file "$1"; then
     echo "❌ Invalid commit message!"
-    echo "Required format: <type>(<scope>): <subject>"
+    echo "Required format: <type>(<scope>)[!]: <subject>  (! marks a breaking change)"
     echo "Example: feat(auth): ajoute le support de l'authentification HTTP basic"
-    echo "Use 'bin/cz commit' for more assistance (requires that commitzen is installed on your system)"
+    echo "Breaking change: feat(api)!: supprime l'ancien endpoint"
+    echo "Use 'bin/cz commit' for more assistance"
     exit 1
 fi
