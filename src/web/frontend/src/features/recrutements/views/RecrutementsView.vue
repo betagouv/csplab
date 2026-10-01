@@ -255,16 +255,15 @@ const archivesCountLabel = computed(() => {
               />
             </template>
             <template #status>
-              <CspSkeleton
-                v-if="showActifsSkeleton"
-                width="12rem"
-                height="0.9375rem"
-              />
-              <p
-                v-else
-                class="mes-recrutement-view__count"
-              >
-                {{ actifsCountLabel }}
+              <p class="mes-recrutement-view__count">
+                <CspSkeleton
+                  v-if="showActifsSkeleton"
+                  width="12rem"
+                  variant="text"
+                />
+                <template v-else>
+                  {{ actifsCountLabel }}
+                </template>
               </p>
             </template>
             <CspSearchBar
@@ -354,16 +353,15 @@ const archivesCountLabel = computed(() => {
         <template v-else>
           <CspTableToolbar :bordered="false">
             <template #status>
-              <CspSkeleton
-                v-if="showArchivesSkeleton"
-                width="12rem"
-                height="0.9375rem"
-              />
-              <p
-                v-else
-                class="mes-recrutement-view__count"
-              >
-                {{ archivesCountLabel }}
+              <p class="mes-recrutement-view__count">
+                <CspSkeleton
+                  v-if="showArchivesSkeleton"
+                  width="12rem"
+                  variant="text"
+                />
+                <template v-else>
+                  {{ archivesCountLabel }}
+                </template>
               </p>
             </template>
             <CspSearchBar
