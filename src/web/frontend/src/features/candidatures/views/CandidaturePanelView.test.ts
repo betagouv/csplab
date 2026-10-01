@@ -191,7 +191,7 @@ describe('candidaturePanelView', () => {
     const { panel } = await renderPanel([`${KANBAN_PATH}/candidatures/${CANDIDATURE_INCONNUE}`])
 
     expect(await panel.findByText('Cette candidature n\'est pas accessible.')).toBeInTheDocument()
-    expect(panel.getByText('Elle n\'existe pas ou ne vous est pas accessible. Contactez le responsable de votre organisme si besoin.')).toBeInTheDocument()
+    expect(panel.getByText('Elle n\'existe pas ou ne vous est pas accessible. Contactez le superviseur de votre organisme si besoin.')).toBeInTheDocument()
     expect(await panel.findByRole('heading', { name: 'Candidature' })).toBeInTheDocument()
   })
 

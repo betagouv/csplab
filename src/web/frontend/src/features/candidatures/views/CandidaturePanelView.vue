@@ -156,7 +156,7 @@ function handleUpdateOpen(open: boolean): void {
         v-else
         icon="ri:search-line"
         title="Cette candidature n'est pas accessible."
-        description="Elle n'existe pas ou ne vous est pas accessible. Contactez le responsable de votre organisme si besoin."
+        description="Elle n'existe pas ou ne vous est pas accessible. Contactez le superviseur de votre organisme si besoin."
       />
     </div>
 

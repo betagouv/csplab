@@ -9,7 +9,7 @@ export const VERSANT_LABELS: Record<Versant, string> = {
 export const SIRET_LENGTH = 14
 
 export const ROLE_LABELS: Record<Role, string> = {
-  superviseur: 'Responsable',
+  superviseur: 'Superviseur',
   agent: 'Membre',
 }
 
