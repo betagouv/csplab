@@ -11,9 +11,6 @@ from application.identite.usecases.get_utilisateur_details import (
     GetUtilisateurDetailsUsecase,
 )
 from application.identite.usecases.list_organismes import ListOrganismesUsecase
-from application.identite.usecases.log_utilisateur_connexion import (
-    LogUtilisateurConnexionUsecase,
-)
 from application.identite.usecases.update_organisme import UpdateOrganismeUsecase
 from domain.commons.services.audit_log_writer import AuditLogWriter
 from infrastructure.repositories.commons.postgres_audit_log_repository import (
@@ -61,10 +58,6 @@ class IdentiteContainer(containers.DeclarativeContainer):
         candidat_repository=postgres_candidat_repository,
         utilisateur_repository=postgres_utilisateur_repository,
         audit_log_writer=audit_log_writer,
-    )
-
-    log_utilisateur_connexion_usecase = providers.Factory(
-        LogUtilisateurConnexionUsecase, audit_log_writer=audit_log_writer
     )
 
     postgres_organisme_query_service = providers.Singleton(
