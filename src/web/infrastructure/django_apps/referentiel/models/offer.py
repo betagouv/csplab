@@ -21,7 +21,6 @@ class OfferModel(BaseDatedModel):
     # Verse choices from Verse enum
     VERSE_CHOICES = [(v.value, v.name) for v in Verse]
 
-    external_id = models.CharField(max_length=100, unique=True)
     reference = models.CharField(max_length=100, null=False, blank=False)
     verse = models.CharField(
         max_length=20, choices=VERSE_CHOICES, null=True, blank=True
@@ -86,9 +85,6 @@ class OfferModel(BaseDatedModel):
         db_table = "offers"
         verbose_name = "Offer"
         verbose_name_plural = "Offers"
-        indexes = [
-            models.Index(fields=["external_id"]),
-        ]
         constraints = [
             models.UniqueConstraint(
                 fields=["reference", "source_id"],
@@ -97,4 +93,4 @@ class OfferModel(BaseDatedModel):
         ]
 
     def __str__(self) -> str:
-        return f"Offer {self.external_id} - {self.title}"
+        return f"Offer {self.reference} ({self.source_id}) - {self.title}"

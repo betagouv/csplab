@@ -58,7 +58,6 @@ class OfferInputMapper(IToDomainMapper[dict, Offer]):
         forme_contrat = data.get("forme_contrat")
 
         return Offer(
-            external_id=f"{data['identification']['versant']}-{data['identification']['reference']}",
             reference=data["identification"]["reference"],
             title=data["titre"],
             profile=data["description"]["profil"],

@@ -20,22 +20,17 @@ class IOffersRepository(Protocol):
 
     def get_by_ids(self, offer_ids: List[UUID]) -> List[Offer]: ...
 
-    def get_by_external_id(self, external_id: str) -> Offer: ...
-
     def get_by_reference_and_source_id(
         self, reference: str, source_id: UUID
     ) -> Offer: ...
 
     def get_by_reference(self, reference: str) -> Offer: ...
 
-    def get_by_external_ids(self, external_ids: List[str]) -> List[Offer]: ...
-
     def get_all(self) -> List[Offer]: ...
 
     def get_filtered(
         self,
         active: bool,
-        external_id_contains: str | None,
         category: Optional[List[Category]] = None,
         verse: Optional[List[Verse]] = None,
         contract_type: Optional[List[ContractType]] = None,

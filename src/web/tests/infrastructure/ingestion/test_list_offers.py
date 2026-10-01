@@ -22,53 +22,31 @@ from infrastructure.factories.referentiel.offer_django_factory import (
 def offers_fixture(db):
     return {
         "archived_expected": OfferDjangoFactory(
-            external_id="test-expected-archived", archived_at=datetime.now(UTC)
+            reference="test-expected-archived", archived_at=datetime.now(UTC)
         ),
         "archived_other": OfferDjangoFactory(
-            external_id="test-other-archived", archived_at=datetime.now(UTC)
+            reference="test-other-archived", archived_at=datetime.now(UTC)
         ),
-        "active_expected": OfferDjangoFactory(external_id="test-expected-active"),
-        "active_other": OfferDjangoFactory(external_id="test-other-active"),
+        "active_expected": OfferDjangoFactory(reference="test-expected-active"),
+        "active_other": OfferDjangoFactory(reference="test-other-active"),
     }
 
 
 @pytest.mark.parametrize(
-    "active, external_id_contains, expected_keys",
+    "active, expected_keys",
     [
-        pytest.param(True, "unknown", [], id="empty_result"),
+        pytest.param(True, ["active_expected", "active_other"], id="active_offers"),
         pytest.param(
-            True, None, ["active_expected", "active_other"], id="all_active_offers"
-        ),
-        pytest.param(
-            True,
-            "expected",
-            ["active_expected"],
-            id="active_offers_containing_expected",
-        ),
-        pytest.param(
-            False,
-            None,
-            ["archived_expected", "archived_other"],
-            id="all_archived_offers",
-        ),
-        pytest.param(
-            False,
-            "expected",
-            ["archived_expected"],
-            id="archived_offers_containing_expected",
+            False, ["archived_expected", "archived_other"], id="archived_offers"
         ),
     ],
 )
-def test_list_offers_result(
-    ingestion_container, offers, active, external_id_contains, expected_keys
-):
-    input_data = GetFilteredOffersInput(
-        active=active, external_id_contains=external_id_contains
-    )
+def test_list_offers_result(ingestion_container, offers, active, expected_keys):
+    input_data = GetFilteredOffersInput(active=active)
     result = ingestion_container.list_offers_usecase().execute(input_data=input_data)
 
-    assert {offer.external_id for offer in result._qs} == {
-        offers[key].external_id for key in expected_keys
+    assert {offer.reference for offer in result._qs} == {
+        offers[key].reference for key in expected_keys
     }
 
 
@@ -83,23 +61,23 @@ def test_list_offers_result(
 def test_list_offers_page_slice(
     ingestion_container, offers, offset, limit, expected_keys
 ):
-    input_data = GetFilteredOffersInput(active=True, external_id_contains=None)
+    input_data = GetFilteredOffersInput(active=True)
     result = ingestion_container.list_offers_usecase().execute(input_data=input_data)
 
     assert result.count() == len(["active_expected", "active_other"])
 
     sliced = list(result.slice(offset=offset, limit=limit))
-    assert {offer.external_id for offer in sliced} == {
-        offers[key].external_id for key in expected_keys
+    assert {offer.reference for offer in sliced} == {
+        offers[key].reference for key in expected_keys
     }
 
 
 @pytest.fixture(name="offers_by_category")
 def offers_by_category_fixture(db):
     return {
-        "cat_a": OfferDjangoFactory(external_id="test-cat-a", category=Category.A),
-        "cat_b": OfferDjangoFactory(external_id="test-cat-b", category=Category.B),
-        "cat_c": OfferDjangoFactory(external_id="test-cat-c", category=Category.C),
+        "cat_a": OfferDjangoFactory(reference="test-cat-a", category=Category.A),
+        "cat_b": OfferDjangoFactory(reference="test-cat-b", category=Category.B),
+        "cat_c": OfferDjangoFactory(reference="test-cat-c", category=Category.C),
     }
 
 
@@ -117,22 +95,20 @@ def offers_by_category_fixture(db):
 def test_list_offers_filtered_by_category(
     ingestion_container, offers_by_category, category, expected_keys
 ):
-    input_data = GetFilteredOffersInput(
-        active=True, external_id_contains=None, category=category
-    )
+    input_data = GetFilteredOffersInput(active=True, category=category)
     result = ingestion_container.list_offers_usecase().execute(input_data=input_data)
 
-    assert {offer.external_id for offer in result._qs} == {
-        offers_by_category[key].external_id for key in expected_keys
+    assert {offer.reference for offer in result._qs} == {
+        offers_by_category[key].reference for key in expected_keys
     }
 
 
 @pytest.fixture(name="offers_by_verse")
 def offers_by_verse_fixture(db):
     return {
-        "fpe": OfferDjangoFactory(external_id="test-fpe", verse=Verse.FPE),
-        "fpt": OfferDjangoFactory(external_id="test-fpt", verse=Verse.FPT),
-        "fph": OfferDjangoFactory(external_id="test-fph", verse=Verse.FPH),
+        "fpe": OfferDjangoFactory(reference="test-fpe", verse=Verse.FPE),
+        "fpt": OfferDjangoFactory(reference="test-fpt", verse=Verse.FPT),
+        "fph": OfferDjangoFactory(reference="test-fph", verse=Verse.FPH),
     }
 
 
@@ -147,13 +123,11 @@ def offers_by_verse_fixture(db):
 def test_list_offers_filtered_by_verse(
     ingestion_container, offers_by_verse, verse, expected_keys
 ):
-    input_data = GetFilteredOffersInput(
-        active=True, external_id_contains=None, verse=verse
-    )
+    input_data = GetFilteredOffersInput(active=True, verse=verse)
     result = ingestion_container.list_offers_usecase().execute(input_data=input_data)
 
-    assert {offer.external_id for offer in result._qs} == {
-        offers_by_verse[key].external_id for key in expected_keys
+    assert {offer.reference for offer in result._qs} == {
+        offers_by_verse[key].reference for key in expected_keys
     }
 
 
@@ -161,13 +135,13 @@ def test_list_offers_filtered_by_verse(
 def offers_by_contract_type_fixture(db):
     return {
         "contractuels": OfferDjangoFactory(
-            external_id="test-contractuels", contract_type=ContractType.CONTRACTUELS
+            reference="test-contractuels", contract_type=ContractType.CONTRACTUELS
         ),
         "territorial": OfferDjangoFactory(
-            external_id="test-territorial", contract_type=ContractType.TERRITORIAL
+            reference="test-territorial", contract_type=ContractType.TERRITORIAL
         ),
         "titulaire": OfferDjangoFactory(
-            external_id="test-titulaire",
+            reference="test-titulaire",
             contract_type=ContractType.TITULAIRE_CONTRACTUEL,
         ),
     }
@@ -194,13 +168,11 @@ def offers_by_contract_type_fixture(db):
 def test_list_offers_filtered_by_contract_type(
     ingestion_container, offers_by_contract_type, contract_type, expected_keys
 ):
-    input_data = GetFilteredOffersInput(
-        active=True, external_id_contains=None, contract_type=contract_type
-    )
+    input_data = GetFilteredOffersInput(active=True, contract_type=contract_type)
     result = ingestion_container.list_offers_usecase().execute(input_data=input_data)
 
-    assert {offer.external_id for offer in result._qs} == {
-        offers_by_contract_type[key].external_id for key in expected_keys
+    assert {offer.reference for offer in result._qs} == {
+        offers_by_contract_type[key].reference for key in expected_keys
     }
 
 
@@ -208,15 +180,15 @@ def test_list_offers_filtered_by_contract_type(
 def offers_by_experience_level_fixture(db):
     return {
         "debutant": OfferDjangoFactory(
-            external_id="test-debutant",
+            reference="test-debutant",
             criteria=OfferCriteria(experience_level=ExperienceLevel.DEBUTANT).to_dict(),
         ),
         "confirme": OfferDjangoFactory(
-            external_id="test-confirme",
+            reference="test-confirme",
             criteria=OfferCriteria(experience_level=ExperienceLevel.CONFIRME).to_dict(),
         ),
         "expert": OfferDjangoFactory(
-            external_id="test-expert",
+            reference="test-expert",
             criteria=OfferCriteria(experience_level=ExperienceLevel.EXPERT).to_dict(),
         ),
     }
@@ -239,13 +211,11 @@ def offers_by_experience_level_fixture(db):
 def test_list_offers_filtered_by_experience_level(
     ingestion_container, offers_by_experience_level, experience_level, expected_keys
 ):
-    input_data = GetFilteredOffersInput(
-        active=True, external_id_contains=None, experience_level=experience_level
-    )
+    input_data = GetFilteredOffersInput(active=True, experience_level=experience_level)
     result = ingestion_container.list_offers_usecase().execute(input_data=input_data)
 
-    assert {offer.external_id for offer in result._qs} == {
-        offers_by_experience_level[key].external_id for key in expected_keys
+    assert {offer.reference for offer in result._qs} == {
+        offers_by_experience_level[key].reference for key in expected_keys
     }
 
 
@@ -253,11 +223,11 @@ def test_list_offers_filtered_by_experience_level(
 def offers_by_management_fixture(db):
     return {
         "sans": OfferDjangoFactory(
-            external_id="test-sans",
+            reference="test-sans",
             conditions={"management": Management.SANS.name},
         ),
         "avec": OfferDjangoFactory(
-            external_id="test-avec",
+            reference="test-avec",
             conditions={"management": Management.AVEC.name},
         ),
     }
@@ -278,13 +248,11 @@ def offers_by_management_fixture(db):
 def test_list_offers_filtered_by_management(
     ingestion_container, offers_by_management, management, expected_keys
 ):
-    input_data = GetFilteredOffersInput(
-        active=True, external_id_contains=None, management=management
-    )
+    input_data = GetFilteredOffersInput(active=True, management=management)
     result = ingestion_container.list_offers_usecase().execute(input_data=input_data)
 
-    assert {offer.external_id for offer in result._qs} == {
-        offers_by_management[key].external_id for key in expected_keys
+    assert {offer.reference for offer in result._qs} == {
+        offers_by_management[key].reference for key in expected_keys
     }
 
 
@@ -292,11 +260,11 @@ def test_list_offers_filtered_by_management(
 def offers_by_working_place_fixture(db):
     return {
         "sur_site": OfferDjangoFactory(
-            external_id="test-sur-site",
+            reference="test-sur-site",
             conditions={"lieu_de_travail": WorkingPlace.SUR_SITE.name},
         ),
         "teletravail": OfferDjangoFactory(
-            external_id="test-teletravail",
+            reference="test-teletravail",
             conditions={"lieu_de_travail": WorkingPlace.TELETRAVAIL.name},
         ),
     }
@@ -317,13 +285,11 @@ def offers_by_working_place_fixture(db):
 def test_list_offers_filtered_by_working_place(
     ingestion_container, offers_by_working_place, working_place, expected_keys
 ):
-    input_data = GetFilteredOffersInput(
-        active=True, external_id_contains=None, working_place=working_place
-    )
+    input_data = GetFilteredOffersInput(active=True, working_place=working_place)
     result = ingestion_container.list_offers_usecase().execute(input_data=input_data)
 
-    assert {offer.external_id for offer in result._qs} == {
-        offers_by_working_place[key].external_id for key in expected_keys
+    assert {offer.reference for offer in result._qs} == {
+        offers_by_working_place[key].reference for key in expected_keys
     }
 
 
@@ -331,13 +297,13 @@ def test_list_offers_filtered_by_working_place(
 def offers_by_region_fixture(db):
     return {
         "idf": OfferDjangoFactory(
-            external_id="test-idf",
+            reference="test-idf",
             country="FRA",
             region="11",
             department="75",
         ),
         "ara": OfferDjangoFactory(
-            external_id="test-ara",
+            reference="test-ara",
             country="FRA",
             region="84",
             department="69",
@@ -360,13 +326,11 @@ def offers_by_region_fixture(db):
 def test_list_offers_filtered_by_region(
     ingestion_container, offers_by_region, region, expected_keys
 ):
-    input_data = GetFilteredOffersInput(
-        active=True, external_id_contains=None, region=region
-    )
+    input_data = GetFilteredOffersInput(active=True, region=region)
     result = ingestion_container.list_offers_usecase().execute(input_data=input_data)
 
-    assert {offer.external_id for offer in result._qs} == {
-        offers_by_region[key].external_id for key in expected_keys
+    assert {offer.reference for offer in result._qs} == {
+        offers_by_region[key].reference for key in expected_keys
     }
 
 
@@ -374,13 +338,13 @@ def test_list_offers_filtered_by_region(
 def offers_by_department_fixture(db):
     return {
         "paris": OfferDjangoFactory(
-            external_id="test-paris",
+            reference="test-paris",
             country="FRA",
             region="11",
             department="75",
         ),
         "rhone": OfferDjangoFactory(
-            external_id="test-rhone",
+            reference="test-rhone",
             country="FRA",
             region="84",
             department="69",
@@ -403,13 +367,11 @@ def offers_by_department_fixture(db):
 def test_list_offers_filtered_by_department(
     ingestion_container, offers_by_department, department, expected_keys
 ):
-    input_data = GetFilteredOffersInput(
-        active=True, external_id_contains=None, department=department
-    )
+    input_data = GetFilteredOffersInput(active=True, department=department)
     result = ingestion_container.list_offers_usecase().execute(input_data=input_data)
 
-    assert {offer.external_id for offer in result._qs} == {
-        offers_by_department[key].external_id for key in expected_keys
+    assert {offer.reference for offer in result._qs} == {
+        offers_by_department[key].reference for key in expected_keys
     }
 
 
@@ -417,13 +379,13 @@ def test_list_offers_filtered_by_department(
 def offers_by_country_fixture(db):
     return {
         "france": OfferDjangoFactory(
-            external_id="test-france",
+            reference="test-france",
             country="FRA",
             region="11",
             department="75",
         ),
         "belgium": OfferDjangoFactory(
-            external_id="test-belgium",
+            reference="test-belgium",
             country="BEL",
             region="11",
             department="75",
@@ -446,13 +408,11 @@ def offers_by_country_fixture(db):
 def test_list_offers_filtered_by_country(
     ingestion_container, offers_by_country, country, expected_keys
 ):
-    input_data = GetFilteredOffersInput(
-        active=True, external_id_contains=None, country=country
-    )
+    input_data = GetFilteredOffersInput(active=True, country=country)
     result = ingestion_container.list_offers_usecase().execute(input_data=input_data)
 
-    assert {offer.external_id for offer in result._qs} == {
-        offers_by_country[key].external_id for key in expected_keys
+    assert {offer.reference for offer in result._qs} == {
+        offers_by_country[key].reference for key in expected_keys
     }
 
 
@@ -460,35 +420,35 @@ def test_list_offers_filtered_by_country(
 def offers_by_multiple_criteria_fixture(db):
     return {
         "match": OfferDjangoFactory(
-            external_id="test-match",
+            reference="test-match",
             category=Category.A,
             verse=Verse.FPE,
             contract_type=ContractType.CONTRACTUELS,
             criteria=OfferCriteria(experience_level=ExperienceLevel.DEBUTANT).to_dict(),
         ),
         "match_other_values": OfferDjangoFactory(
-            external_id="test-match-other-values",
+            reference="test-match-other-values",
             category=Category.B,
             verse=Verse.FPT,
             contract_type=ContractType.CONTRACTUELS,
             criteria=OfferCriteria(experience_level=ExperienceLevel.EXPERT).to_dict(),
         ),
         "wrong_category": OfferDjangoFactory(
-            external_id="test-wrong-category",
+            reference="test-wrong-category",
             category=Category.C,
             verse=Verse.FPE,
             contract_type=ContractType.CONTRACTUELS,
             criteria=OfferCriteria(experience_level=ExperienceLevel.DEBUTANT).to_dict(),
         ),
         "wrong_contract_type": OfferDjangoFactory(
-            external_id="test-wrong-contract-type",
+            reference="test-wrong-contract-type",
             category=Category.A,
             verse=Verse.FPE,
             contract_type=ContractType.TERRITORIAL,
             criteria=OfferCriteria(experience_level=ExperienceLevel.DEBUTANT).to_dict(),
         ),
         "wrong_experience_level": OfferDjangoFactory(
-            external_id="test-wrong-experience-level",
+            reference="test-wrong-experience-level",
             category=Category.A,
             verse=Verse.FPE,
             contract_type=ContractType.CONTRACTUELS,
@@ -502,7 +462,6 @@ def test_list_offers_filtered_by_multiple_criteria(
 ):
     input_data = GetFilteredOffersInput(
         active=True,
-        external_id_contains=None,
         category=[Category.A, Category.B],
         verse=[Verse.FPE, Verse.FPT],
         contract_type=[ContractType.CONTRACTUELS],
@@ -510,8 +469,8 @@ def test_list_offers_filtered_by_multiple_criteria(
     )
     result = ingestion_container.list_offers_usecase().execute(input_data=input_data)
 
-    assert {offer.external_id for offer in result._qs} == {
-        offers_by_multiple_criteria[key].external_id
+    assert {offer.reference for offer in result._qs} == {
+        offers_by_multiple_criteria[key].reference
         for key in ["match", "match_other_values"]
     }
 
@@ -520,7 +479,7 @@ def test_list_offers_filtered_by_multiple_criteria(
 def offers_by_geo_fixture(db):
     return {
         "paris": OfferDjangoFactory(
-            external_id="test-paris-geo",
+            reference="test-paris-geo",
             country="FRA",
             region="11",
             department="75",
@@ -528,7 +487,7 @@ def offers_by_geo_fixture(db):
             longitude=2.3522,
         ),
         "lyon": OfferDjangoFactory(
-            external_id="test-lyon-geo",
+            reference="test-lyon-geo",
             country="FRA",
             region="84",
             department="69",
@@ -536,7 +495,7 @@ def offers_by_geo_fixture(db):
             longitude=4.8357,
         ),
         "no_coordinates": OfferDjangoFactory(
-            external_id="test-no-coordinates-geo",
+            reference="test-no-coordinates-geo",
             country="FRA",
             region="11",
             department="75",
@@ -561,15 +520,14 @@ def test_list_offers_filtered_by_geo(
 ):
     input_data = GetFilteredOffersInput(
         active=True,
-        external_id_contains=None,
         latitude=latitude,
         longitude=longitude,
         radius_km=radius_km,
     )
     result = ingestion_container.list_offers_usecase().execute(input_data=input_data)
 
-    assert {offer.external_id for offer in result._qs} == {
-        offers_by_geo[key].external_id for key in expected_keys
+    assert {offer.reference for offer in result._qs} == {
+        offers_by_geo[key].reference for key in expected_keys
     }
 
 
@@ -580,5 +538,5 @@ def test_get_filtered_raises_error(db, ingestion_container):
     offers_repo.get_filtered = MagicMock(side_effect=Exception("db error"))
 
     with pytest.raises(Exception, match="db error"):
-        input_data = GetFilteredOffersInput(active=True, external_id_contains=None)
+        input_data = GetFilteredOffersInput(active=True)
         ingestion_container.list_offers_usecase().execute(input_data=input_data)

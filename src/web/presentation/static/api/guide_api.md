@@ -139,7 +139,6 @@ Chaque offre renvoyée contient notamment :
 
 | Information | Signification | Peut être vide ? |
 |---|---|---|
-| `external_id` | Identifiant unique de l'offre dans le système | Non |
 | `reference` | Référence d'origine de l'offre | Non |
 | `source_id` | Identifiant de la source ayant transmis l'offre | Non |
 | `title` | Intitulé du poste | Non |

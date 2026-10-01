@@ -15,7 +15,6 @@ from referentiel.value_objects.verse import Verse
 @dataclass
 class GetFilteredOffersInput:
     active: bool
-    external_id_contains: Optional[str]
     category: Optional[List[Category]] = None
     verse: Optional[List[Verse]] = None
     contract_type: Optional[List[ContractType]] = None

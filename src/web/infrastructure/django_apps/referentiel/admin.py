@@ -10,7 +10,7 @@ from infrastructure.django_apps.utils.admin import ReadOnlyAdminMixin
 @admin.register(OfferModel)
 class OfferAdmin(ReadOnlyAdminMixin, admin.ModelAdmin):
     list_display = (
-        "external_id",
+        "reference",
         "code_emploi_csp",
         "verse",
         "title",
@@ -33,7 +33,7 @@ class OfferAdmin(ReadOnlyAdminMixin, admin.ModelAdmin):
         "archived_at",
     )
     search_fields = (
-        "external_id",
+        "reference",
         "title",
         "profile",
         "mission",

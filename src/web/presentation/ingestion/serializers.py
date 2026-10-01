@@ -191,7 +191,6 @@ class ConcoursUploadResponseSerializer(serializers.Serializer):
 
 
 class ListOffersResponseSerializer(serializers.Serializer):
-    external_id = serializers.CharField()
     reference = serializers.CharField()
     source_id = serializers.UUIDField()
     title = serializers.CharField()
@@ -658,7 +657,6 @@ class LocalisationInputSerializer(LocalisationSerializer):
 
 
 class OfferDetailResponseSerializer(serializers.Serializer):
-    external_id = serializers.CharField()
     reference = serializers.CharField()
     source_id = serializers.UUIDField()
     title = serializers.CharField()

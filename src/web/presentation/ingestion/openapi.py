@@ -306,7 +306,6 @@ LIST_OFFERS_EXAMPLES = [
             "Les offres d'emploi sans date d'archivage sont retournées paginées"
         ),
         value={
-            "external_id": "FPE-2026-999999",
             "reference": "2026-999999",
             "source_id": "12345678-1234-4234-b234-123456789abc",
             "title": "Responsable de la Division des Affaires Financières H/F",
@@ -329,7 +328,6 @@ LIST_OFFERS_EXAMPLES = [
             "Les offres d'emploi avec une date d'archivage sont retournées paginées"
         ),
         value={
-            "external_id": "FPE-2026-999999",
             "reference": "2026-999999",
             "source_id": "12345678-1234-4234-b234-123456789abc",
             "title": "Responsable de la Division des Affaires Financières H/F",

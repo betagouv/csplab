@@ -87,10 +87,8 @@ class TestUpsertBatch:
             ),
         }
 
-        OfferModel.objects.get(external_id=offer.external_id)
-        OfferModel.objects.get(external_id=offer_to_update.external_id)
         assert not OfferModel.objects.filter(
-            external_id=new_offer_entity.external_id
+            reference=new_offer_entity.reference
         ).exists()
 
         repository.upsert_batch(offers)
@@ -105,9 +103,7 @@ class TestUpsertBatch:
         assert offer_to_update.created_at == created_at
         assert offer_to_update.updated_at > updated_at
 
-        assert OfferModel.objects.filter(
-            external_id=new_offer_entity.external_id
-        ).exists()
+        assert OfferModel.objects.filter(reference=new_offer_entity.reference).exists()
 
     def test_upsert_raises_error(self, db, repository):
         with pytest.raises(DatabaseError):
@@ -127,12 +123,13 @@ class TestUpsertBatch:
 
         assert result == {"created": 1, "updated": 2, "errors": []}
 
-        external_ids = [e.external_id for e in entities]
-        saved_offers = OfferModel.objects.filter(external_id__in=external_ids)
-        saved_by_id = {o.external_id: o for o in saved_offers}
+        saved_by_reference = {
+            o.reference: o
+            for o in OfferModel.objects.filter(source_id=entities[0].source_id)
+        }
 
         for entity in entities:
-            saved = saved_by_id[entity.external_id]
+            saved = saved_by_reference[entity.reference]
             assert _mapper.to_domain(saved) == entity
 
     def test_updated_datas_are_stored(self, db, repository):
@@ -203,7 +200,7 @@ class TestUpsertBatch:
         result = repository.upsert_batch([entity])
 
         assert result == {"created": 1, "updated": 0, "errors": []}
-        saved = OfferModel.objects.get(external_id=entity.external_id)
+        saved = OfferModel.objects.get(reference=entity.reference)
         assert saved.conditions["debut_contrat"] == "2019-08-24T14:15:22Z"
         assert saved.conditions["fin_contrat"] == "2019-08-24T14:15:22Z"
 
@@ -221,11 +218,8 @@ class TestUpsertBatch:
         assert archived_offer.archived_at is None
 
     def test_existing_offer_is_matched_by_reference_and_source(self, db, repository):
-        existing = OfferDjangoFactory(
-            external_id="Versant_FPT-REF001", reference="REF001", title="old title"
-        )
+        existing = OfferDjangoFactory(reference="REF001", title="old title")
         entity = OfferFactory.create_entity(
-            external_id="FPT-REF001",
             reference="REF001",
             source_id=existing.source_id,
             title="new title",
@@ -236,7 +230,6 @@ class TestUpsertBatch:
         assert result == {"created": 0, "updated": 1, "errors": []}
         saved = OfferModel.objects.get()
         assert saved.id == existing.id
-        assert saved.external_id == "FPT-REF001"
         assert saved.title == "new title"
 
     def test_same_reference_in_another_source_is_created(self, db, repository):
@@ -267,16 +260,16 @@ class TestUpsertBatch:
         assert OfferModel.objects.count() == 0
 
     def test_conflict_on_create_raises_instead_of_being_ignored(self, db, repository):
-        existing = OfferDjangoFactory(external_id="FPT-REF001")
-        other_source = SourceDjangoFactory()
-        entity = OfferFactory.create_entity(
-            external_id=existing.external_id, source_id=other_source.source_id
-        )
+        source_id = SourceDjangoFactory().source_id
+        entities = [
+            OfferFactory.create_entity(reference="REF001", source_id=source_id),
+            OfferFactory.create_entity(reference="REF001", source_id=source_id),
+        ]
 
         with pytest.raises(DatabaseError):
-            repository.upsert_batch([entity])
+            repository.upsert_batch(entities)
 
-        assert OfferModel.objects.count() == 1
+        assert OfferModel.objects.count() == 0
 
 
 class TestGetFilteredByGeo:
@@ -303,7 +296,6 @@ class TestGetFilteredByGeo:
 
         page = repository.get_filtered(
             active=True,
-            external_id_contains=None,
             latitude=48.8566,
             longitude=2.3522,
             radius_km=50,
@@ -331,7 +323,6 @@ class TestGetFilteredByGeo:
 
         page = repository.get_filtered(
             active=True,
-            external_id_contains=None,
             latitude=48.8566,
             longitude=2.3522,
             radius_km=500,
@@ -351,7 +342,6 @@ class TestGetFilteredByGeo:
 
         page = repository.get_filtered(
             active=True,
-            external_id_contains=None,
             latitude=48.8566,
         )
 
@@ -365,7 +355,6 @@ class TestGetFilteredByDomain:
 
         page = repository.get_filtered(
             active=True,
-            external_id_contains=None,
             domain=["NUM"],
         )
 
@@ -379,7 +368,6 @@ class TestGetFilteredByDomain:
 
         page = repository.get_filtered(
             active=True,
-            external_id_contains=None,
             domain=["NUM", "ACH"],
         )
 
@@ -391,7 +379,6 @@ class TestGetFilteredByDomain:
 
         page = repository.get_filtered(
             active=True,
-            external_id_contains=None,
         )
 
         assert page.count() == len(offers)
@@ -408,7 +395,6 @@ class TestGetFilteredByOrganization:
 
         page = repository.get_filtered(
             active=True,
-            external_id_contains=None,
             organization=[organisme.entity_code],
         )
 
@@ -426,7 +412,6 @@ class TestGetFilteredByOrganization:
 
         page = repository.get_filtered(
             active=True,
-            external_id_contains=None,
             organization=[organisme_a.entity_code, organisme_b.entity_code],
         )
 
@@ -445,7 +430,6 @@ class TestGetFilteredByOrganization:
 
         page = repository.get_filtered(
             active=True,
-            external_id_contains=None,
             organization=[parent.entity_code],
         )
 
@@ -466,7 +450,6 @@ class TestGetFilteredByOrganization:
 
         page = repository.get_filtered(
             active=True,
-            external_id_contains=None,
             organization=[parent.entity_code],
         )
 
@@ -481,7 +464,6 @@ class TestGetFilteredByOrganization:
 
         page = repository.get_filtered(
             active=True,
-            external_id_contains=None,
             organization=[child.entity_code],
         )
 
@@ -495,7 +477,6 @@ class TestGetFilteredByOrganization:
 
         page = repository.get_filtered(
             active=True,
-            external_id_contains=None,
             organization=["INCONNU"],
         )
 
@@ -506,7 +487,6 @@ class TestGetFilteredByOrganization:
 
         page = repository.get_filtered(
             active=True,
-            external_id_contains=None,
         )
 
         assert page.count() == len(offers)
@@ -519,7 +499,6 @@ class TestGetFilteredByPublicationDate:
 
         page = repository.get_filtered(
             active=True,
-            external_id_contains=None,
             published_within_days=-7,
         )
 
@@ -531,7 +510,6 @@ class TestGetFilteredByPublicationDate:
 
         page = repository.get_filtered(
             active=True,
-            external_id_contains=None,
         )
 
         assert page.count() == len(offers)
@@ -549,7 +527,6 @@ class TestGetFilteredByKeywords:
 
         page = repository.get_filtered(
             active=True,
-            external_id_contains=None,
             keywords="développeur",
         )
 
@@ -565,7 +542,6 @@ class TestGetFilteredByKeywords:
 
         page = repository.get_filtered(
             active=True,
-            external_id_contains=None,
             keywords="Bordeaux",
         )
 
@@ -577,7 +553,6 @@ class TestGetFilteredByKeywords:
 
         page = repository.get_filtered(
             active=True,
-            external_id_contains=None,
             keywords="astrophysicien",
         )
 
@@ -588,7 +563,6 @@ class TestGetFilteredByKeywords:
 
         page = repository.get_filtered(
             active=True,
-            external_id_contains=None,
         )
 
         assert page.count() == len(offers)
@@ -602,7 +576,6 @@ class TestGetFilteredByKeywords:
 
         page = repository.get_filtered(
             active=True,
-            external_id_contains=None,
             keywords="développeur python",
         )
 
@@ -618,7 +591,6 @@ class TestGetFilteredByKeywords:
 
         page = repository.get_filtered(
             active=True,
-            external_id_contains=None,
             keywords="développeur",
             domain=["NUM"],
         )
@@ -638,7 +610,6 @@ class TestGetFilteredByKeywords:
 
         page = repository.get_filtered(
             active=True,
-            external_id_contains=None,
             keywords="développeur",
         )
 

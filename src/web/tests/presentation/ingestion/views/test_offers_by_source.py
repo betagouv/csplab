@@ -108,7 +108,7 @@ class TestOffersBySourceView:
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
         assert data["count"] == 1
-        assert data["results"][0]["external_id"] == offer.external_id
+        assert data["results"][0]["reference"] == offer.reference
         assert data["results"][0]["source_id"] == str(SOURCE_ID)
 
         use_case.execute.assert_called_once_with(
@@ -170,7 +170,6 @@ class TestOffersBySourceViewDbVerified:
         assert data["count"] == 1
         assert data["results"] == [
             {
-                "external_id": offer.external_id,
                 "reference": offer.reference,
                 "source_id": str(SOURCE_ID),
                 "title": offer.title,
@@ -233,7 +232,6 @@ class TestOffersBySourceViewDbVerified:
         assert data["count"] == 1
         assert data["results"] == [
             {
-                "external_id": offer.external_id,
                 "reference": offer.reference,
                 "source_id": str(SOURCE_ID),
                 "title": offer.title,

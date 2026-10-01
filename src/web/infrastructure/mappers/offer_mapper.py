@@ -53,7 +53,6 @@ class OfferMapper(
 
         return Offer(
             id=model.id,
-            external_id=model.external_id,
             verse=verse,
             title=model.title,
             profile=model.profile,
@@ -124,7 +123,6 @@ class OfferMapper(
 
         return OfferModel(
             id=entity.id,
-            external_id=entity.external_id,
             reference=entity.reference,
             verse=entity.verse.value if entity.verse else None,
             title=entity.title,

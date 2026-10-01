@@ -120,7 +120,6 @@ def test_call_without_arg(mock_offers_container, authenticated_client):
     assert data["previous"] is None
 
     for result, offer in zip(data["results"], offers, strict=True):
-        assert result["external_id"] == offer.external_id
         assert result["reference"] == offer.reference
         assert result["source_id"] == str(offer.source_id)
         assert result["title"] == offer.title
@@ -146,19 +145,7 @@ def test_call_with_args(mock_offers_container, authenticated_client, active):
     authenticated_client.get(URL, {"actif": active})
 
     mock_offers_container.list_offers_usecase.return_value.execute.assert_called_once_with(
-        GetFilteredOffersInput(active=active, external_id_contains=None)
-    )
-
-
-def test_external_id_contains_is_not_accepted(
-    mock_offers_container, authenticated_client
-):
-    _make_paginated_mock(mock_offers_container, num_offers=0, offers_slice=[])
-
-    authenticated_client.get(URL, {"external_id_contains": "123"})
-
-    mock_offers_container.list_offers_usecase.return_value.execute.assert_called_once_with(
-        GetFilteredOffersInput(active=True, external_id_contains=None)
+        GetFilteredOffersInput(active=active)
     )
 
 
@@ -172,7 +159,6 @@ def test_category_filter_is_forwarded_to_usecase(
     mock_offers_container.list_offers_usecase.return_value.execute.assert_called_once_with(
         GetFilteredOffersInput(
             active=True,
-            external_id_contains=None,
             category=[Category.A, Category.B],
         )
     )
@@ -198,7 +184,6 @@ def test_verse_filter_is_forwarded_to_usecase(
     mock_offers_container.list_offers_usecase.return_value.execute.assert_called_once_with(
         GetFilteredOffersInput(
             active=True,
-            external_id_contains=None,
             verse=[Verse.FPE, Verse.FPT],
         )
     )
@@ -224,7 +209,6 @@ def test_contract_type_filter_is_forwarded_to_usecase(
     mock_offers_container.list_offers_usecase.return_value.execute.assert_called_once_with(
         GetFilteredOffersInput(
             active=True,
-            external_id_contains=None,
             contract_type=[ContractType.CONTRACTUELS, ContractType.TERRITORIAL],
         )
     )
@@ -252,7 +236,6 @@ def test_experience_level_filter_is_forwarded_to_usecase(
     mock_offers_container.list_offers_usecase.return_value.execute.assert_called_once_with(
         GetFilteredOffersInput(
             active=True,
-            external_id_contains=None,
             experience_level=[ExperienceLevel.DEBUTANT, ExperienceLevel.EXPERT],
         )
     )
@@ -280,7 +263,6 @@ def test_management_filter_is_forwarded_to_usecase(
     mock_offers_container.list_offers_usecase.return_value.execute.assert_called_once_with(
         GetFilteredOffersInput(
             active=True,
-            external_id_contains=None,
             management=[Management.SANS, Management.AVEC],
         )
     )
@@ -306,7 +288,6 @@ def test_working_place_filter_is_forwarded_to_usecase(
     mock_offers_container.list_offers_usecase.return_value.execute.assert_called_once_with(
         GetFilteredOffersInput(
             active=True,
-            external_id_contains=None,
             working_place=[WorkingPlace.SUR_SITE, WorkingPlace.TELETRAVAIL],
         )
     )
@@ -332,7 +313,6 @@ def test_region_filter_is_forwarded_to_usecase(
     mock_offers_container.list_offers_usecase.return_value.execute.assert_called_once_with(
         GetFilteredOffersInput(
             active=True,
-            external_id_contains=None,
             region=[Region(code="11"), Region(code="84")],
         )
     )
@@ -357,7 +337,6 @@ def test_departement_filter_is_forwarded_to_usecase(
     mock_offers_container.list_offers_usecase.return_value.execute.assert_called_once_with(
         GetFilteredOffersInput(
             active=True,
-            external_id_contains=None,
             department=[Department(code="75"), Department(code="69")],
         )
     )
@@ -382,7 +361,6 @@ def test_pays_filter_is_forwarded_to_usecase(
     mock_offers_container.list_offers_usecase.return_value.execute.assert_called_once_with(
         GetFilteredOffersInput(
             active=True,
-            external_id_contains=None,
             country=[Country("FRA"), Country("BEL")],
         )
     )
@@ -407,7 +385,6 @@ def test_zone_filter_is_forwarded_to_usecase(
     mock_offers_container.list_offers_usecase.return_value.execute.assert_called_once_with(
         GetFilteredOffersInput(
             active=True,
-            external_id_contains=None,
             area=[GeographicalArea.EUROPE, GeographicalArea.AFRIQUE],
         )
     )
@@ -432,7 +409,6 @@ def test_domaine_filter_is_forwarded_to_usecase(
     mock_offers_container.list_offers_usecase.return_value.execute.assert_called_once_with(
         GetFilteredOffersInput(
             active=True,
-            external_id_contains=None,
             domain=[DomaineFonctionnel.NUMERIQUE.value, DomaineFonctionnel.ACHAT.value],
         )
     )
@@ -457,7 +433,6 @@ def test_organisme_filter_is_forwarded_to_usecase(
     mock_offers_container.list_offers_usecase.return_value.execute.assert_called_once_with(
         GetFilteredOffersInput(
             active=True,
-            external_id_contains=None,
             organization=["ORG1"],
         )
     )
@@ -479,7 +454,6 @@ def test_organisme_filter_with_multiple_values_is_forwarded_to_usecase(
     mock_offers_container.list_offers_usecase.return_value.execute.assert_called_once_with(
         GetFilteredOffersInput(
             active=True,
-            external_id_contains=None,
             organization=["ORG1", "ORG2"],
         )
     )
@@ -495,7 +469,6 @@ def test_keywords_filter_is_forwarded_to_usecase(
     mock_offers_container.list_offers_usecase.return_value.execute.assert_called_once_with(
         GetFilteredOffersInput(
             active=True,
-            external_id_contains=None,
             keywords="développeur informatique",
         )
     )
@@ -510,7 +483,7 @@ def test_blank_keywords_is_treated_as_not_provided(
 
     assert response.status_code == status.HTTP_200_OK
     mock_offers_container.list_offers_usecase.return_value.execute.assert_called_once_with(
-        GetFilteredOffersInput(active=True, external_id_contains=None)
+        GetFilteredOffersInput(active=True)
     )
 
 
@@ -524,7 +497,6 @@ def test_date_publication_filter_is_forwarded_to_usecase(
     mock_offers_container.list_offers_usecase.return_value.execute.assert_called_once_with(
         GetFilteredOffersInput(
             active=True,
-            external_id_contains=None,
             published_within_days=-7,
         )
     )
@@ -552,7 +524,6 @@ def test_geo_filter_is_forwarded_to_usecase(
     mock_offers_container.list_offers_usecase.return_value.execute.assert_called_once_with(
         GetFilteredOffersInput(
             active=True,
-            external_id_contains=None,
             latitude=48.8566,
             longitude=2.3522,
             radius_km=10,
@@ -701,7 +672,6 @@ class TestOffersListViewDbVerified:
         assert data["count"] == 1
         assert data["results"] == [
             {
-                "external_id": offer.external_id,
                 "reference": offer.reference,
                 "source_id": str(offer.source_id),
                 "title": offer.title,

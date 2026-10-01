@@ -112,7 +112,7 @@ INVALID_DATA_OFFER = PayloadOfferFactory.create(
 
 
 COMPARABLE_OFFER_ATTRS = [
-    "external_id",
+    "reference",
     "title",
     "profile",
     "mission",
@@ -207,7 +207,6 @@ def parse_offer_from_payload(payload: dict, source_id: UUID) -> Offer:
     )
 
     return Offer(
-        external_id=f"{versant}-{reference}",
         reference=reference,
         title=payload["titre"],
         profile=payload["description"]["profil"],

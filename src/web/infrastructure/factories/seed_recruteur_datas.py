@@ -164,7 +164,6 @@ _OFFRES_ACTIVES_SPECS = [
     {
         "title": "Chargé de mission numérique",
         "reference": "REF-2025-001",
-        "external_id": "SEED-ACTIF-001",
         "verse": Verse.FPE.value,
         "category": Category.A.value,
         "publication_date": datetime(2025, 6, 22, tzinfo=UTC),
@@ -172,7 +171,6 @@ _OFFRES_ACTIVES_SPECS = [
     {
         "title": "Responsable RH",
         "reference": "REF-2025-002",
-        "external_id": "SEED-ACTIF-002",
         "verse": Verse.FPE.value,
         "category": Category.A.value,
         "publication_date": datetime(2025, 6, 22, tzinfo=UTC),
@@ -180,7 +178,6 @@ _OFFRES_ACTIVES_SPECS = [
     {
         "title": "Ingénieur infrastructure cloud",
         "reference": "REF-2025-003",
-        "external_id": "SEED-ACTIF-003",
         "verse": Verse.FPE.value,
         "category": Category.A.value,
         "publication_date": datetime(2025, 6, 21, tzinfo=UTC),
@@ -188,7 +185,6 @@ _OFFRES_ACTIVES_SPECS = [
     {
         "title": "Juriste droit public",
         "reference": "REF-2025-004",
-        "external_id": "SEED-ACTIF-004",
         "verse": Verse.FPT.value,
         "category": Category.A.value,
         "publication_date": datetime(2025, 6, 21, tzinfo=UTC),
@@ -196,7 +192,6 @@ _OFFRES_ACTIVES_SPECS = [
     {
         "title": "Chargé de communication",
         "reference": "REF-2025-005",
-        "external_id": "SEED-ACTIF-005",
         "verse": Verse.FPE.value,
         "category": Category.B.value,
         "publication_date": datetime(2025, 6, 2, tzinfo=UTC),
@@ -204,7 +199,6 @@ _OFFRES_ACTIVES_SPECS = [
     {
         "title": "Analyste budgétaire",
         "reference": "REF-2025-006",
-        "external_id": "SEED-ACTIF-006",
         "verse": Verse.FPE.value,
         "category": Category.A.value,
         "publication_date": datetime(2025, 6, 1, tzinfo=UTC),
@@ -212,7 +206,6 @@ _OFFRES_ACTIVES_SPECS = [
     {
         "title": "Chargé de mission",
         "reference": "REF-2025-007",
-        "external_id": "SEED-ACTIF-007",
         "verse": Verse.FPE.value,
         "category": Category.A.value,
         "publication_date": datetime(2025, 6, 1, tzinfo=UTC),
@@ -223,7 +216,6 @@ _OFFRES_ARCHIVEES_SPECS = [
     {
         "title": "Directeur des systèmes d'information",
         "reference": "REF-2024-A01",
-        "external_id": "SEED-ARCHIVE-001",
         "verse": Verse.FPE.value,
         "category": Category.A.value,
         "publication_date": datetime(2024, 12, 1, tzinfo=UTC),
@@ -232,7 +224,6 @@ _OFFRES_ARCHIVEES_SPECS = [
     {
         "title": "Chef de projet transformation numérique",
         "reference": "REF-2024-A02",
-        "external_id": "SEED-ARCHIVE-002",
         "verse": Verse.FPE.value,
         "category": Category.A.value,
         "publication_date": datetime(2024, 11, 15, tzinfo=UTC),
@@ -241,7 +232,6 @@ _OFFRES_ARCHIVEES_SPECS = [
     {
         "title": "Conseiller en mobilité professionnelle",
         "reference": "REF-2024-A03",
-        "external_id": "SEED-ARCHIVE-003",
         "verse": Verse.FPT.value,
         "category": Category.B.value,
         "publication_date": datetime(2024, 10, 1, tzinfo=UTC),
@@ -253,7 +243,6 @@ _OFFRES_BRIANCON_SPECS = [
     {
         "title": "Agent technique polyvalent",
         "reference": "REF-2025-B01",
-        "external_id": "SEED-B-ACTIF-001",
         "verse": Verse.FPT.value,
         "category": Category.C.value,
         "publication_date": datetime(2025, 5, 12, tzinfo=UTC),
@@ -261,7 +250,6 @@ _OFFRES_BRIANCON_SPECS = [
     {
         "title": "Responsable des services techniques",
         "reference": "REF-2025-B02",
-        "external_id": "SEED-B-ACTIF-002",
         "verse": Verse.FPT.value,
         "category": Category.B.value,
         "publication_date": datetime(2025, 5, 20, tzinfo=UTC),
@@ -419,9 +407,9 @@ def _delete_seed_data() -> None:
     seed_offer_specs = (
         _OFFRES_ACTIVES_SPECS + _OFFRES_ARCHIVEES_SPECS + _OFFRES_BRIANCON_SPECS
     )
-    seed_offer_external_ids = [spec["external_id"] for spec in seed_offer_specs]
+    seed_offer_references = [spec["reference"] for spec in seed_offer_specs]
     seed_offre_ids = OfferModel.objects.filter(
-        external_id__in=seed_offer_external_ids
+        reference__in=seed_offer_references
     ).values_list("id", flat=True)
     RecrutementModel.objects.filter(offre_id__in=seed_offre_ids).delete()  # type: ignore[attr-defined]
 
@@ -432,7 +420,7 @@ def _delete_seed_data() -> None:
     ProfilCandidatModel.objects.filter(utilisateur_id__in=seed_usernames).delete()
     UserModel.objects.filter(email__in=_ALL_SEED_EMAILS).delete()
 
-    OfferModel.objects.filter(external_id__in=seed_offer_external_ids).delete()
+    OfferModel.objects.filter(reference__in=seed_offer_references).delete()
     MetierModel.objects.filter(
         offer_family_code__in=_SEED_METIER_OFFER_FAMILY_CODES
     ).delete()
