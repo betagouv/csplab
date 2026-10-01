@@ -78,7 +78,7 @@
   /* Form fields */
   --csp-field-label-gap: var(--csp-space-2);
   --csp-field-hint-gap: var(--csp-space-1);
-  --csp-field-legend-gap: var(--csp-space-3);
+  --csp-field-legend-gap: var(--csp-space-4);
   --csp-field-messages-gap: var(--csp-space-4);
   --csp-field-error-bar-width: 2px;
   --csp-field-error-padding-start: var(--csp-space-3);
