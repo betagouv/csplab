@@ -17,9 +17,8 @@ from referentiel.value_objects.verse import Verse
 
 from domain.entities.raw_offer import RawOffer
 from infrastructure.external_gateways.dtos.talentsoft_dtos import (
+    TalentsoftDynamicField,
     TalentsoftLanguage,
-    TalentsoftOfferCustomBlock,
-    TalentsoftOfferCustomFields,
 )
 from infrastructure.gateways.offers_cleaner import OffersCleaner
 from infrastructure.gateways.transcoding import SourceTranscoder
@@ -29,8 +28,8 @@ from tests.factories.talentsoft_factories import (
     TalentsoftCodedObjectFactory,
     TalentsoftCustomCodeTableFactory,
     TalentsoftCustomFieldsFactory,
-    TalentsoftDescriptionCustomFieldsFactory,
     TalentsoftDetailOfferFactory,
+    TalentsoftDynamicFieldFactory,
     TalentsoftGeolocationFactory,
     TalentsoftOrganisationFactory,
 )
@@ -166,7 +165,7 @@ def test_clean_maps_category_from_custom_fields(
 ):
     offer_dto_kwargs = {
         "customFields": TalentsoftCustomFieldsFactory.build(
-            description=TalentsoftDescriptionCustomFieldsFactory.build(
+            description=TalentsoftDynamicFieldFactory.build(
                 customCodeTable1=TalentsoftCustomCodeTableFactory.build(
                     clientCode=category_code
                 )
@@ -478,7 +477,7 @@ def test_clean_raises_when_contract_type_csv_maps_to_unknown_code(
 def test_clean_maps_contract_kind(cleaner, contract_kind_code, expected):
     offer_dto_kwargs = {
         "customFields": TalentsoftCustomFieldsFactory.build(
-            offer=TalentsoftOfferCustomFields(
+            offer=TalentsoftDynamicField(
                 customCodeTable2=TalentsoftCustomCodeTableFactory.build(
                     clientCode=contract_kind_code
                 )
@@ -506,7 +505,7 @@ def test_clean_maps_contract_kind(cleaner, contract_kind_code, expected):
 def test_clean_maps_working_place(cleaner, working_place_code, expected):
     offer_dto_kwargs = {
         "customFields": TalentsoftCustomFieldsFactory.build(
-            offerCustomBlock1=TalentsoftOfferCustomBlock(
+            offerCustomBlock1=TalentsoftDynamicField(
                 customCodeTable2=TalentsoftCustomCodeTableFactory.build(
                     clientCode=working_place_code
                 )
@@ -534,7 +533,7 @@ def test_clean_maps_working_place(cleaner, working_place_code, expected):
 def test_clean_maps_working_time(cleaner, working_time_code, expected):
     offer_dto_kwargs = {
         "customFields": TalentsoftCustomFieldsFactory.build(
-            description=TalentsoftDescriptionCustomFieldsFactory.build(
+            description=TalentsoftDynamicFieldFactory.build(
                 customCodeTable3=TalentsoftCustomCodeTableFactory.build(
                     clientCode=working_time_code
                 )
@@ -562,7 +561,7 @@ def test_clean_maps_working_time(cleaner, working_time_code, expected):
 def test_clean_maps_management(cleaner, management_code, expected):
     offer_dto_kwargs = {
         "customFields": TalentsoftCustomFieldsFactory.build(
-            offerCustomBlock1=TalentsoftOfferCustomBlock(
+            offerCustomBlock1=TalentsoftDynamicField(
                 customCodeTable1=TalentsoftCustomCodeTableFactory.build(
                     clientCode=management_code
                 )
