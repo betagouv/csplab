@@ -79,7 +79,7 @@
   --csp-field-label-gap: var(--csp-space-2);
   --csp-field-hint-gap: 0.125rem;
   --csp-field-legend-gap: var(--csp-space-3);
-  --csp-field-messages-gap: 0.375rem;
+  --csp-field-messages-gap: var(--csp-space-4);
   --csp-field-error-bar-width: 2px;
   --csp-field-error-padding-start: var(--csp-space-3);
 
