@@ -267,15 +267,15 @@ const model = defineModel<string>()
 }
 
 :deep(.csp-select-content__viewport) {
-  padding: 0.25rem;
+  padding: var(--csp-menu-padding);
 }
 
 :deep(.csp-select-content__item) {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 0.5rem;
-  padding: 0.5rem 0.75rem;
+  gap: var(--csp-menu-item-gap);
+  padding: var(--csp-menu-item-padding);
   font-size: 0.875rem;
   line-height: 1.25;
   border-radius: 0.125rem;

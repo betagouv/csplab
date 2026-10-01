@@ -72,7 +72,7 @@ const open = defineModel<boolean | undefined>('open')
   box-shadow:
     inset 0 0 0 1px var(--border-default-grey),
     var(--csp-shadow-lg);
-  padding: 0.25rem;
+  padding: var(--csp-menu-padding);
   z-index: var(--csp-z-dropdown);
   outline: none;
 }
@@ -80,14 +80,14 @@ const open = defineModel<boolean | undefined>('open')
 .csp-dropdown__separator {
   height: 1px;
   background-color: var(--border-default-grey);
-  margin: 0.25rem 0;
+  margin-block: var(--csp-menu-padding);
 }
 
 .csp-dropdown__item {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 0.75rem;
+  gap: var(--csp-menu-item-gap);
+  padding: var(--csp-menu-item-padding);
   cursor: pointer;
   outline: none;
   color: var(--text-default-grey);
