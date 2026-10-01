@@ -21,6 +21,7 @@ from infrastructure.django_apps.recruteur.models.organisme import (
 from infrastructure.django_apps.recruteur.models.recrutement import (
     RecrutementAgentModel,
 )
+from infrastructure.django_apps.users.models import UserModel
 
 # Actions sans organisme existant : seul le statut staff autorise l'opération
 _ACTIONS_SANS_ORGANISME: frozenset[OrganismeAction] = frozenset(
@@ -228,12 +229,20 @@ _ROLES_RECRUTEMENT_REQUIS: dict[OrganismeAction, frozenset[AgentRecrutementRole]
 }
 
 
+# Transitoire (#1356) : accepter Utilisateur tant qu'un usecase legacy l'envoie ;
+# à retirer quand mypy passe sans | Utilisateur dans la signature de can_execute.
+def _agent_id(utilisateur: UserModel | Utilisateur) -> UUID:
+    if isinstance(utilisateur, UserModel):
+        return utilisateur.username
+    return utilisateur.entity_id
+
+
 class OrganismePermissionService:
     def can_execute(
         self,
         *,
         action: OrganismeAction,
-        utilisateur: Utilisateur,
+        utilisateur: UserModel | Utilisateur,
         organisme_id: UUID | None = None,
         recrutement_id: UUID | None = None,
     ) -> AgentOrganismeRole | None:
@@ -264,8 +273,9 @@ class OrganismePermissionService:
         # near-identical OrganismeAgentModel lookups for the *target* agent right next
         # to this call (application/recruteur/usecases/{attach,update,revoke}
         # _organisme_agent.py); dedupe when refactoring to ADR-009
+        agent_id = _agent_id(utilisateur)
         liaison = OrganismeAgentModel.objects.by_organisme_and_agent(
-            organisme_id, utilisateur.entity_id
+            organisme_id, agent_id
         ).first()
         role = AgentOrganismeRole(liaison.role) if liaison else None
         if role not in _ROLES_REQUIS[action]:
@@ -284,7 +294,7 @@ class OrganismePermissionService:
             # _recrutement_etapes.py); dedupe when refactoring to ADR-009
             recrutement_liaison = (
                 RecrutementAgentModel.objects.by_recrutement_and_agent(
-                    recrutement_id, utilisateur.entity_id
+                    recrutement_id, agent_id
                 ).first()
             )
             recrutement_role = (

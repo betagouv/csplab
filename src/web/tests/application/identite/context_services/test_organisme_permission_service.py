@@ -26,6 +26,9 @@ from infrastructure.factories.identite.organisme_django_factory import (
     OrganismeDjangoFactory,
     create_organisme_with_agent,
 )
+from infrastructure.factories.identite.utilisateur_django_factory import (
+    UtilisateurDjangoFactory,
+)
 from infrastructure.factories.identite.utilisateur_factory import UtilisateurFactory
 from infrastructure.factories.recruteur.recrutement_django_factory import (
     RecrutementAgentDjangoFactory,
@@ -639,4 +642,56 @@ class TestStaffActsAsSuperviseur:
             OrganismePermissionService().can_execute(
                 action=action,
                 utilisateur=_utilisateur(uuid4(), is_staff=True),
+            )
+
+
+class TestUserModel:
+    def test_staff_acts_as_superviseur(self) -> None:
+        organisme = OrganismeDjangoFactory()
+
+        result = OrganismePermissionService().can_execute(
+            action=OrganismeAction.GET_ORGANISME,
+            organisme_id=organisme.id,  # type: ignore[arg-type]
+            utilisateur=UtilisateurDjangoFactory.create(is_staff=True),
+        )
+
+        assert result == AgentOrganismeRole.SUPERVISEUR
+
+    def test_superviseur_is_allowed(self) -> None:
+        agent, organisme = create_organisme_with_agent(
+            role=AgentOrganismeRole.SUPERVISEUR
+        )
+
+        result = OrganismePermissionService().can_execute(
+            action=OrganismeAction.GET_ORGANISME,
+            organisme_id=organisme.id,
+            utilisateur=agent.utilisateur,
+        )
+
+        assert result == AgentOrganismeRole.SUPERVISEUR
+
+    def test_agent_with_recrutement_role_is_allowed(self) -> None:
+        agent, organisme = create_organisme_with_agent(role=AgentOrganismeRole.AGENT)
+        recrutement = _attach_recrutement_role(
+            organisme, agent, AgentRecrutementRole.RECRUTEUR
+        )
+
+        result = OrganismePermissionService().can_execute(
+            action=OrganismeAction.VOIR_DETAIL_RECRUTEMENT,
+            organisme_id=organisme.id,
+            utilisateur=agent.utilisateur,
+            recrutement_id=recrutement.pk,
+        )
+
+        assert result == AgentOrganismeRole.AGENT
+
+    def test_superviseur_of_another_organisme_is_denied(self) -> None:
+        agent, _ = create_organisme_with_agent(role=AgentOrganismeRole.SUPERVISEUR)
+        organisme = OrganismeDjangoFactory()
+
+        with pytest.raises(AccesOrganismeRefuse):
+            OrganismePermissionService().can_execute(
+                action=OrganismeAction.GET_ORGANISME,
+                organisme_id=organisme.id,  # type: ignore[arg-type]
+                utilisateur=agent.utilisateur,
             )
