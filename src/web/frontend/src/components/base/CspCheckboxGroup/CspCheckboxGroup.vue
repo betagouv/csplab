@@ -126,6 +126,10 @@ function updateModel(val: unknown[]): void {
   }
 }
 
+.csp-checkbox-group__messages:not(:empty) {
+  margin-top: var(--csp-field-messages-gap);
+}
+
 .csp-checkbox-group__error {
   display: flex;
   align-items: center;
@@ -133,6 +137,5 @@ function updateModel(val: unknown[]): void {
   color: var(--text-default-error);
   font-size: 0.75rem;
   margin: 0;
-  margin-top: 0.5rem;
 }
 </style>
