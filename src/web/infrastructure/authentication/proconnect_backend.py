@@ -5,12 +5,11 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.backends import ModelBackend
 from django.urls import reverse
 
-from application.identite.usecases.log_utilisateur_connexion import (
-    LogUtilisateurConnexionInput,
-)
 from infrastructure.authentication.proconnect_client import END_SESSION_ENDPOINT
 from infrastructure.di.identite.identite_factory import create_identite_container
-from infrastructure.mappers.utilisateur_mapper import UtilisateurMapper
+from infrastructure.django_apps.commons.enums import Canal, Resultat
+from infrastructure.django_apps.commons.models import AuditLoginLogModel
+from infrastructure.django_apps.utils.ip import get_client_ip
 
 CLAIMS_IDENTITE = (
     ("first_name", "given_name"),
@@ -34,14 +33,15 @@ class ProconnectBackend(ModelBackend):
     def __init__(self):
         self.container = create_identite_container()
         self.logger = self.container.logger_service()
-        self._mapper = UtilisateurMapper()
 
     def authenticate(self, request, proconnect_claims=None, **kwargs):
+        ip_address = get_client_ip(request) if request else None
         if proconnect_claims is None:
             # this is not a ProConnect attempt.
             return None
         if not proconnect_claims.get("email"):
             self.logger.warning("ProConnect login rejected: no email claim.")
+            self._record(Resultat.ECHEC, ip_address)
             return None
         user = (
             get_user_model()
@@ -51,9 +51,10 @@ class ProconnectBackend(ModelBackend):
         if user is None:
             # No email in the log: it identifies a person.
             self.logger.warning("ProConnect login rejected: no matching active user.")
+            self._record(Resultat.ECHEC, ip_address)
             return None
         self._sync_identite(user, proconnect_claims)
-        self._audit_connexion(user)
+        self._record(Resultat.SUCCES, ip_address, user)
         self.logger.info("User %s logged in through ProConnect.", user.pk)
         return user
 
@@ -93,12 +94,10 @@ class ProconnectBackend(ModelBackend):
         )
         return valeur[:longueur_max]
 
-    def _audit_connexion(self, user) -> None:
-        # Auditing must never break the login flow.
-        try:
-            usecase = self.container.log_utilisateur_connexion_usecase()
-            usecase.execute(
-                LogUtilisateurConnexionInput(utilisateur=self._mapper.to_domain(user))
-            )
-        except Exception as e:
-            self.logger.error("Failed to audit ProConnect login: %s", str(e))
+    def _record(self, resultat: Resultat, ip_address: str | None, user=None) -> None:
+        AuditLoginLogModel.objects.record_attempt(
+            canal=Canal.PROCONNECT,
+            resultat=resultat,
+            utilisateur_id=user.username if user else None,
+            ip_address=ip_address,
+        )

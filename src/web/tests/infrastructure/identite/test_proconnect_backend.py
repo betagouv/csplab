@@ -1,12 +1,14 @@
 from unittest.mock import MagicMock
 
 import pytest
+from django.test import RequestFactory
 
 from infrastructure.authentication.proconnect_backend import ProconnectBackend
+from infrastructure.django_apps.commons.enums import Canal, Resultat
+from infrastructure.django_apps.commons.models import AuditLoginLogModel
 from infrastructure.factories.identite.utilisateur_django_factory import (
     UtilisateurDjangoFactory,
 )
-from infrastructure.mappers.utilisateur_mapper import UtilisateurMapper
 
 
 @pytest.fixture(name="backend")
@@ -128,23 +130,45 @@ class TestProconnectBackend:
         user.refresh_from_db()
         assert user.first_name == "Jean"
 
-    def test_audit_connexion_logs_the_login(self, db, backend):
+    def test_authenticate_records_the_successful_login(self, db, backend):
         user = UtilisateurDjangoFactory()
 
-        backend._audit_connexion(user)
+        backend.authenticate(None, proconnect_claims={"email": user.email})
 
-        audit_log_repository = backend.container.postgres_audit_log_repository()
-        entity = UtilisateurMapper().to_domain(user)
-        logs = audit_log_repository.get_logs_for_ressource(
-            "Utilisateur", entity.entity_id
+        attempt = AuditLoginLogModel.objects.get()
+        assert attempt.canal == Canal.PROCONNECT
+        assert attempt.resultat == Resultat.SUCCES
+        assert attempt.utilisateur_id == user.username
+
+    def test_authenticate_records_the_failed_login(self, db, backend):
+        claims_rejetes = [{"email": "unknown@example.com"}, {}]
+
+        for claims in claims_rejetes:
+            backend.authenticate(None, proconnect_claims=claims)
+
+        attempts = list(AuditLoginLogModel.objects.all())
+        assert len(attempts) == len(claims_rejetes)
+        assert all(
+            a.resultat == Resultat.ECHEC and a.utilisateur_id is None for a in attempts
         )
-        assert len(logs) == 1
-        assert logs[0].event_name == "Connexion"
 
-    def test_audit_connexion_swallows_errors(self, db, backend):
+    def test_authenticate_records_the_client_ip(self, db, backend):
         user = UtilisateurDjangoFactory()
-        failing_usecase = MagicMock()
-        failing_usecase.execute.side_effect = RuntimeError("boom")
-        backend.container.log_utilisateur_connexion_usecase.override(failing_usecase)
+        request = RequestFactory().get(
+            "/", HTTP_X_REAL_IP="203.0.113.7", HTTP_X_FORWARDED_FOR="1.2.3.4"
+        )
 
-        backend._audit_connexion(user)
+        backend.authenticate(request, proconnect_claims={"email": user.email})
+
+        assert AuditLoginLogModel.objects.get().ip_address == "203.0.113.7"
+
+    def test_authenticate_records_the_attempt_without_ip_when_client_ip_is_invalid(
+        self, db, backend
+    ):
+        request = RequestFactory().get("/", HTTP_X_REAL_IP="not-an-ip")
+
+        backend.authenticate(request, proconnect_claims={"email": "nobody@example.com"})
+
+        attempt = AuditLoginLogModel.objects.get()
+        assert attempt.resultat == Resultat.ECHEC
+        assert attempt.ip_address is None

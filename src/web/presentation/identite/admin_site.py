@@ -5,9 +5,11 @@ from django.http import HttpRequest, HttpResponse
 from django_otp.admin import OTPAdminSite
 
 from application.identite.context_services.login_log import (
-    log_admin_login_failed,
-    log_admin_login_succeeded,
+    log_login_failed,
+    log_login_succeeded,
 )
+from infrastructure.django_apps.commons.enums import Canal
+from infrastructure.django_apps.utils.ip import get_client_ip
 
 
 class LoginLoggingAdminSiteMixin:
@@ -21,9 +23,17 @@ class LoginLoggingAdminSiteMixin:
                 response.status_code == HTTPStatus.FOUND
                 and request.user.is_authenticated
             ):
-                log_admin_login_succeeded(request.user)
+                log_login_succeeded(
+                    canal=Canal.ADMIN,
+                    user=request.user,
+                    ip_address=get_client_ip(request),
+                )
             else:
-                log_admin_login_failed(request.POST.get("username", ""))
+                log_login_failed(
+                    canal=Canal.ADMIN,
+                    email=request.POST.get("username", ""),
+                    ip_address=get_client_ip(request),
+                )
         return response
 
 

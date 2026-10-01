@@ -8,6 +8,9 @@ from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.throttling import SimpleRateThrottle, UserRateThrottle
 
 from config.logger_names import LoggerName
+from infrastructure.django_apps.commons.enums import Canal, Resultat
+from infrastructure.django_apps.commons.models import AuditLoginLogModel
+from infrastructure.django_apps.utils.ip import get_client_ip
 
 logger = logging.getLogger(LoggerName.IDENTITE)
 
@@ -17,16 +20,11 @@ class _IngestionApiKeyUser:
     pk = "ingestion-api-key"
 
 
-def _get_client_ip(request) -> str:
-    forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR")
-    if forwarded_for:
-        return forwarded_for.split(",")[0].strip()
-    return request.META.get("REMOTE_ADDR", "")
-
-
-def _ip_is_allowed(ip: str, allowed_ranges: list[str]) -> bool:
+def _ip_is_allowed(ip: str | None, allowed_ranges: list[str]) -> bool:
     if not allowed_ranges:
         return True
+    if ip is None:
+        return False
     try:
         client_ip = ipaddress.ip_address(ip)
         return any(
@@ -39,8 +37,10 @@ def _ip_is_allowed(ip: str, allowed_ranges: list[str]) -> bool:
 
 def _log_rejection(reason: str, request) -> None:
     # Never log the submitted key.
-    logger.warning(
-        "Ingestion API key rejected (%s) from %s.", reason, _get_client_ip(request)
+    ip_address = get_client_ip(request)
+    logger.warning("Ingestion API key rejected (%s) from %s.", reason, ip_address)
+    AuditLoginLogModel.objects.record_attempt(
+        canal=Canal.APIKEY, resultat=Resultat.ECHEC, ip_address=ip_address
     )
 
 
@@ -55,7 +55,7 @@ class ApiKeyAuthentication(BaseAuthentication):
             raise AuthenticationFailed("Invalid API key.")
         allowed_ranges = settings.INGESTION_API_KEY_ALLOWED_IP_RANGES
         if allowed_ranges and not _ip_is_allowed(
-            _get_client_ip(request), allowed_ranges
+            get_client_ip(request), allowed_ranges
         ):
             _log_rejection("IP not allowed", request)
             raise AuthenticationFailed("IP address not allowed.")
