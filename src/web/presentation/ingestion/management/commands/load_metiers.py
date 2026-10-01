@@ -1,11 +1,12 @@
 from django.core.management.base import BaseCommand
 
+from domain.ingestion.entities.document import DocumentType
 from infrastructure.di.ingestion.ingestion_factory import create_ingestion_container
-from presentation.ingestion.tasks import load_metiers
+from presentation.ingestion.tasks import enqueue_ingestion_from_api
 
 
 class Command(BaseCommand):
-    help = "Load documents, type METIERS"
+    help = "Load, clean and vectorize documents, type METIERS"
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -13,6 +14,6 @@ class Command(BaseCommand):
         self.logger = self.container.logger_service()
 
     def handle(self, *args, **options):
-        self.logger.info("Enqueuing load task for METIERS...")
-        load_metiers()
-        self.logger.info("✅ Task enqueued successfully.")
+        self.logger.info("Enqueuing load, clean and vectorize tasks for METIERS...")
+        enqueue_ingestion_from_api(DocumentType.METIERS)
+        self.logger.info("✅ Tasks enqueued successfully.")

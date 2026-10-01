@@ -1,25 +1,97 @@
+from datetime import datetime
 from unittest.mock import AsyncMock, MagicMock, Mock, call, patch
 
 import pytest
 from huey.api import PeriodicTask
+from huey.contrib.djhuey import lock_task
+from huey.exceptions import TaskLockedException
 
 from application.ingestion.interfaces.load_documents_input import LoadDocumentsInput
 from application.ingestion.interfaces.load_operation_type import LoadOperationType
 from domain.ingestion.entities.document import DocumentType
 from infrastructure.exceptions.exceptions import TaskError
 from presentation.ingestion.tasks import (
-    clean_concours,
-    clean_corps,
     clean_documents,
-    clean_metiers,
-    load_corps,
+    ingest_concours,
+    ingest_corps,
+    ingest_metiers,
     load_documents,
-    load_metiers,
-    vectorize_concours,
-    vectorize_corps,
     vectorize_documents,
     vectorize_offers,
 )
+
+
+@pytest.mark.parametrize(
+    "task",
+    [ingest_corps, ingest_metiers, ingest_concours],
+)
+def test_periodic_task_runs_once_per_scheduled_hour(task):
+    first_day_of_month = datetime(2026, 6, 1)
+    matching_minutes = [
+        minute
+        for hour in range(24)
+        for minute in range(60)
+        if task.task_class().validate_datetime(
+            first_day_of_month.replace(hour=hour, minute=minute)
+        )
+    ]
+
+    assert len(matching_minutes) == 1
+
+
+def _pipeline_steps(task):
+    steps = []
+    while task is not None:
+        steps.append((type(task), task.args, task.kwargs))
+        task = task.on_complete
+    return steps
+
+
+class TestIngestionPipelines:
+    @pytest.fixture
+    def mock_huey(self):
+        with patch("presentation.ingestion.tasks.HUEY") as mock:
+            yield mock
+
+    @pytest.mark.parametrize(
+        ("task", "document_type"),
+        [
+            pytest.param(ingest_corps, DocumentType.CORPS, id="corps"),
+            pytest.param(ingest_metiers, DocumentType.METIERS, id="metiers"),
+        ],
+    )
+    def test_loads_then_cleans_then_vectorizes(
+        self, mock_huey, mock_container, task, document_type
+    ):
+        assert issubclass(task.task_class, PeriodicTask)
+
+        task.call_local()
+
+        mock_huey.enqueue.assert_called_once()
+        (pipeline,) = mock_huey.enqueue.call_args.args
+        assert _pipeline_steps(pipeline) == [
+            (
+                load_documents.task_class,
+                ({"document_type": document_type},),
+                {"usecase_name": "load_documents_usecase"},
+            ),
+            (clean_documents.task_class, (document_type,), {}),
+            (vectorize_documents.task_class, (document_type,), {}),
+        ]
+        mock_container.load_documents_usecase.assert_not_called()
+
+    def test_concours_cleans_then_vectorizes(self, mock_huey, mock_container):
+        assert issubclass(ingest_concours.task_class, PeriodicTask)
+
+        ingest_concours.call_local()
+
+        mock_huey.enqueue.assert_called_once()
+        (pipeline,) = mock_huey.enqueue.call_args.args
+        assert _pipeline_steps(pipeline) == [
+            (clean_documents.task_class, (DocumentType.CONCOURS,), {}),
+            (vectorize_documents.task_class, (DocumentType.CONCOURS,), {}),
+        ]
+        mock_container.clean_documents_usecase.assert_not_called()
 
 
 @pytest.fixture
@@ -36,7 +108,6 @@ class TestLoadDocumentsTasks:
     CASES = [
         pytest.param(
             {
-                "task": load_corps,
                 "kwargs": {"document_type": DocumentType.CORPS},
                 "usecase_name": "load_documents_usecase",
             },
@@ -44,7 +115,6 @@ class TestLoadDocumentsTasks:
         ),
         pytest.param(
             {
-                "task": load_metiers,
                 "kwargs": {"document_type": DocumentType.METIERS},
                 "usecase_name": "load_documents_usecase",
             },
@@ -61,13 +131,6 @@ class TestLoadDocumentsTasks:
         mock = AsyncMock()
         getattr(mock_container, case["usecase_name"]).return_value = mock
         return mock
-
-    def test_is_periodic_task(self, case):
-        assert issubclass(case["task"].task_class, PeriodicTask)
-
-    def test_periodic_task_does_not_call_usecase(self, mock_container, case):
-        case["task"].call_local()
-        getattr(mock_container, case["usecase_name"]).assert_not_called()
 
     def test_calls_correct_usecase(self, mock_container, usecase, case):
         usecase.execute.return_value = {"created": 3, "updated": 2, "errors": []}
@@ -112,12 +175,6 @@ class TestLoadDocumentsTasks:
 
 
 class TestCleanTasks:
-    @pytest.mark.parametrize("task", [clean_corps, clean_concours, clean_metiers])
-    def test_periodic_task_does_not_call_usecase(self, mock_container, task):
-        assert issubclass(task.task_class, PeriodicTask)
-        task.call_local()
-        mock_container.clean_documents_usecase.assert_not_called()
-
     def test_calls_usecase_and_logs(self, mock_container):
         usecase = MagicMock()
         usecase.execute.return_value = {
@@ -155,14 +212,28 @@ class TestCleanTasks:
             exc_info.value.message == f"Failed to clean documents {DocumentType.OFFERS}"
         )
 
+    def test_does_not_run_concurrently_for_same_document_type(self, mock_container):
+        with lock_task(f"clean-documents-{DocumentType.CORPS.value}"):
+            with pytest.raises(TaskLockedException):
+                clean_documents.call_local(DocumentType.CORPS)
+
+        mock_container.clean_documents_usecase.assert_not_called()
+
+    def test_runs_concurrently_for_other_document_type(self, mock_container):
+        usecase = MagicMock()
+        usecase.execute.return_value = {"cleaned": 0, "processed": 0, "errors": 0}
+        mock_container.clean_documents_usecase.return_value = usecase
+
+        with lock_task(f"clean-documents-{DocumentType.CORPS.value}"):
+            clean_documents.call_local(DocumentType.METIERS)
+
+        usecase.execute.assert_called_once_with(DocumentType.METIERS)
+
 
 class TestVectorizeTasks:
-    @pytest.mark.parametrize(
-        "task", [vectorize_corps, vectorize_concours, vectorize_offers]
-    )
-    def test_periodic_task_does_not_call_usecase(self, mock_container, task):
-        assert issubclass(task.task_class, PeriodicTask)
-        task.call_local()
+    def test_periodic_task_does_not_call_usecase(self, mock_container):
+        assert issubclass(vectorize_offers.task_class, PeriodicTask)
+        vectorize_offers.call_local()
         mock_container.vectorize_documents_usecase.assert_not_called()
 
     def test_calls_usecase_and_logs(self, mock_container):

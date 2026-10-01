@@ -3,7 +3,7 @@ import logging
 from datetime import date, timedelta
 
 from huey import crontab
-from huey.contrib.djhuey import db_periodic_task, db_task, lock_task
+from huey.contrib.djhuey import HUEY, db_periodic_task, db_task, lock_task
 
 from application.ingestion.interfaces.load_documents_input import LoadDocumentsInput
 from application.ingestion.interfaces.load_operation_type import LoadOperationType
@@ -16,19 +16,34 @@ from infrastructure.exceptions.exceptions import TaskError
 API_LOG_MIN_RETENTION_DAYS = 90
 
 
-@db_periodic_task(crontab(day="1", hour="7"))
-def vectorize_corps():
-    vectorize_documents(DocumentType.CORPS)
+@db_periodic_task(crontab(day="1", hour="5", minute="0"))
+def ingest_corps():
+    enqueue_ingestion_from_api(DocumentType.CORPS)
 
 
-@db_periodic_task(crontab(day="1", hour="7"))
-def vectorize_metiers():
-    vectorize_documents(DocumentType.METIERS)
+@db_periodic_task(crontab(day="1", hour="5", minute="0"))
+def ingest_metiers():
+    enqueue_ingestion_from_api(DocumentType.METIERS)
 
 
-@db_periodic_task(crontab(hour="7"))
-def vectorize_concours():
-    vectorize_documents(DocumentType.CONCOURS)
+def enqueue_ingestion_from_api(document_type: DocumentType):
+    HUEY.enqueue(
+        load_documents.s(
+            {"document_type": document_type},
+            usecase_name="load_documents_usecase",
+        )
+        .then(clean_documents, document_type)
+        .then(vectorize_documents, document_type)
+    )
+
+
+@db_periodic_task(crontab(hour="6", minute="0"))
+def ingest_concours():
+    HUEY.enqueue(
+        clean_documents.s(DocumentType.CONCOURS).then(
+            vectorize_documents, DocumentType.CONCOURS
+        )
+    )
 
 
 @db_periodic_task(crontab(minute="*/10"))
@@ -69,23 +84,13 @@ def vectorize_documents(document_type: DocumentType):
         ) from e
 
 
-@db_periodic_task(crontab(day="1", hour="6"))
-def clean_corps():
-    clean_documents(DocumentType.CORPS)
-
-
-@db_periodic_task(crontab(day="1", hour="6"))
-def clean_metiers():
-    clean_documents(DocumentType.METIERS)
-
-
-@db_periodic_task(crontab(hour="6"))
-def clean_concours():
-    clean_documents(DocumentType.CONCOURS)
-
-
 @db_task()
 def clean_documents(document_type: DocumentType):
+    with lock_task(f"clean-documents-{document_type.value}"):
+        _clean_documents(document_type)
+
+
+def _clean_documents(document_type: DocumentType):
     container = create_ingestion_container()
     logger = container.logger_service()
     usecase = container.clean_documents_usecase()
@@ -114,18 +119,6 @@ def clean_documents(document_type: DocumentType):
             message=f"Failed to clean documents {document_type}",
             details={"error": str(e)},
         ) from e
-
-
-@db_periodic_task(crontab(day="1", hour="5"))
-def load_corps():
-    kwargs = {"document_type": DocumentType.CORPS}
-    load_documents(kwargs, usecase_name="load_documents_usecase")
-
-
-@db_periodic_task(crontab(day="1", hour="5"))
-def load_metiers():
-    kwargs = {"document_type": DocumentType.METIERS}
-    load_documents(kwargs, usecase_name="load_documents_usecase")
 
 
 @db_task()
