@@ -38,6 +38,7 @@ import riEyeLine from '@iconify-icons/ri/eye-line'
 import riFileAddLine from '@iconify-icons/ri/file-add-line'
 import riFileCopyLine from '@iconify-icons/ri/file-copy-line'
 import riFileListLine from '@iconify-icons/ri/file-list-line'
+import riFileTextFill from '@iconify-icons/ri/file-text-fill'
 import riFilter3Line from '@iconify-icons/ri/filter-3-line'
 import riFilterLine from '@iconify-icons/ri/filter-line'
 import riFlashlightFill from '@iconify-icons/ri/flashlight-fill'
@@ -124,6 +125,7 @@ addIcon('ri:eye-line', riEyeLine)
 addIcon('ri:file-add-line', riFileAddLine)
 addIcon('ri:file-copy-line', riFileCopyLine)
 addIcon('ri:file-list-line', riFileListLine)
+addIcon('ri:file-text-fill', riFileTextFill)
 addIcon('ri:filter-3-line', riFilter3Line)
 addIcon('ri:filter-line', riFilterLine)
 addIcon('ri:flashlight-fill', riFlashlightFill)
