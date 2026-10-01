@@ -93,8 +93,8 @@ class TestOffersBySourceView:
             GetOffersBySourceInput(source_id=SOURCE_ID, utilisateur_username=None)
         )
 
-    def test_post_not_allowed(self, authenticated_client):
-        response = authenticated_client.post(URL)
+    def test_post_not_allowed(self, jwt_client):
+        response = jwt_client.post(URL)
         assert response.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
 
     def test_jwt_authentication_returns_offers(
@@ -131,16 +131,16 @@ class TestOffersBySourceView:
         assert response.json()["results"][0]["localisation"] is None
 
     def test_jwt_authentication_forbidden_source_returns_401(
-        self, authenticated_client, use_case
+        self, jwt_client, use_case
     ):
         use_case.execute.side_effect = SourceAuthorizationError({SOURCE_ID})
-        response = authenticated_client.get(URL)
+        response = jwt_client.get(URL)
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
-    def test_returns_error_500(self, authenticated_client, use_case):
+    def test_returns_error_500(self, jwt_client, use_case):
         use_case.execute.side_effect = Exception("db error")
 
-        response = authenticated_client.get(URL)
+        response = jwt_client.get(URL)
         assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
 
 

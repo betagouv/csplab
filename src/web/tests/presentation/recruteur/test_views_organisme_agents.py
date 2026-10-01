@@ -58,7 +58,9 @@ class TestOrganismeAgentsView:
             "email": test_user.email,
             "poste": test_user.profil_agent.intitule_poste,
             "role": AgentOrganismeRole.SUPERVISEUR.value,
-            "date_derniere_activite": None,
+            "date_derniere_activite": test_user.last_login.isoformat().replace(
+                "+00:00", "Z"
+            ),
             "date_creation_compte": test_user.date_joined.isoformat().replace(
                 "+00:00", "Z"
             ),

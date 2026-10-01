@@ -128,6 +128,12 @@ def test_user_fixture(db):
 
 @pytest.fixture(name="authenticated_client")
 def authenticated_client_fixture(api_client, test_user):
+    api_client.force_login(test_user)
+    return api_client
+
+
+@pytest.fixture(name="jwt_client")
+def jwt_client_fixture(api_client, test_user):
     refresh = RefreshToken.for_user(test_user)
     token = str(refresh.access_token)
     api_client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
