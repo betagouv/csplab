@@ -3,6 +3,7 @@ from unittest.mock import MagicMock
 
 import pytest
 from django.test import RequestFactory
+from django.urls import reverse
 from rest_framework_simplejwt.tokens import AccessToken
 
 from domain.ingestion.entities.api_log import ApiLog
@@ -124,7 +125,7 @@ class TestApiRequestLoggerMiddleware:
         self, rf: RequestFactory, mock_repository: MagicMock, mock_response: MagicMock
     ) -> None:
         middleware, _ = make_middleware(mock_response, mock_repository)
-        request = rf.get("/admin/login/")
+        request = rf.get(reverse("admin:login"))
 
         middleware(request)
 

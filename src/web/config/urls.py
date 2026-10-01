@@ -22,11 +22,11 @@ urlpatterns: list[URLPattern | URLResolver] = [
     path("", include(pages_urls)),
     path("api/", include(api_urls)),
     path(
-        "admin/stat-snapshots/",
+        "cockpit/stat-snapshots/",
         admin.site.admin_view(stat_snapshot_list_view),
         name="admin_stat_snapshot_list",
     ),
-    path("admin/", admin.site.urls),
+    path("cockpit/", admin.site.urls),
     path("candidate/", include(candidate_urls)),
     path("api/v1/", include(ingestion_urls)),
     path("api/fake-ts/", include(ingestion_fake_ts_urls)),
