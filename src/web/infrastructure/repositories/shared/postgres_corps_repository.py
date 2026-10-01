@@ -24,21 +24,20 @@ class PostgresCorpsRepository(ICorpsRepository):
 
         for entity in corps:
             try:
+                defaults = {
+                    "category": entity.category.value if entity.category else None,
+                    "ministry": entity.ministry.value,
+                    "diploma_level": entity.diploma.value if entity.diploma else None,
+                    "short_label": entity.label.short_value,
+                    "long_label": entity.label.value,
+                    "access_modalities": [
+                        modality.value for modality in entity.access_modalities
+                    ],
+                }
                 _, created_flag = CorpsModel.objects.update_or_create(
-                    id=entity.id,  # Use ID as the lookup key
-                    defaults={
-                        "code": entity.code,
-                        "category": entity.category.value if entity.category else None,
-                        "ministry": entity.ministry.value,
-                        "diploma_level": entity.diploma.value
-                        if entity.diploma
-                        else None,
-                        "short_label": entity.label.short_value,
-                        "long_label": entity.label.value,
-                        "access_modalities": [
-                            modality.value for modality in entity.access_modalities
-                        ],
-                    },
+                    code=entity.code,
+                    defaults=defaults,
+                    create_defaults={"id": entity.id, **defaults},
                 )
 
                 if created_flag:

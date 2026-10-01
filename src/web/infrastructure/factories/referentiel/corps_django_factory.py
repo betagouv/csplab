@@ -1,6 +1,7 @@
 from uuid import uuid4
 
 import factory
+import factory.fuzzy
 from factory.django import DjangoModelFactory
 from faker import Faker
 from referentiel.value_objects.category import Category
@@ -18,7 +19,7 @@ class CorpsDjangoFactory(DjangoModelFactory):
         skip_postgeneration_save = True
 
     id = factory.LazyFunction(uuid4)
-    code = factory.Faker("word")
+    code = factory.fuzzy.FuzzyText(length=8)
     category = Category.A.value
     ministry = Ministry.MI.value
     diploma_level = None

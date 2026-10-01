@@ -8,6 +8,7 @@ from infrastructure.django_apps.referentiel.models.corps import CorpsModel
 from infrastructure.factories.referentiel.corps_django_factory import (
     CorpsDjangoFactory,
 )
+from infrastructure.factories.referentiel.corps_factory import CorpsFactory
 from infrastructure.gateways.shared.logger import LoggerService
 from infrastructure.repositories.shared.postgres_corps_repository import (
     PostgresCorpsRepository,
@@ -20,6 +21,27 @@ DAY_AGO = NOW - relativedelta(days=1)
 @pytest.fixture(name="repository")
 def repository_fixture():
     return PostgresCorpsRepository(LoggerService())
+
+
+class TestUpsertBatch:
+    def test_creates_new_corps(self, db, repository):
+        corps = CorpsFactory.create_entity(code="01378")
+
+        result = repository.upsert_batch([corps])
+
+        assert result == {"created": 1, "updated": 0, "errors": []}
+        assert CorpsModel.objects.get(code="01378").id == corps.id
+
+    def test_updates_existing_corps_with_same_code(self, db, repository):
+        existing = CorpsDjangoFactory(code="01378")
+        corps = CorpsFactory.create_entity(code="01378", short_label="Nouveau")
+
+        result = repository.upsert_batch([corps])
+
+        assert result == {"created": 0, "updated": 1, "errors": []}
+        model = CorpsModel.objects.get(code="01378")
+        assert model.id == existing.id
+        assert model.short_label == "Nouveau"
 
 
 class TestGetPendingProcessing:

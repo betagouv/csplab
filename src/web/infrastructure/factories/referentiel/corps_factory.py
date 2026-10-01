@@ -30,7 +30,7 @@ class CorpsFactory:
         archived_at: Optional[datetime] = None,
     ) -> Corps:
         if code is None:
-            code = fake.word()
+            code = fake.pystr(max_chars=8)
 
         if category is None:
             category = random.choice(list(Category)).value
