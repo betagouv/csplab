@@ -45,6 +45,7 @@ const hasBreadcrumb = computed(() => Boolean(props.breadcrumb?.length))
             :aria-label="backLink.label"
           >
             <CspButton
+              class="csp-page-header__back-button"
               variant="tertiary-no-outline"
               is-icon-left
               icon="ri:arrow-left-line"
@@ -147,7 +148,16 @@ const hasBreadcrumb = computed(() => Boolean(props.breadcrumb?.length))
 
 .csp-page-header__back-link {
   margin-top: var(--csp-space-1);
-  width: var(--csp-page-header-back-link-size);
+
+  @include bp.from(bp.$lg) {
+    width: var(--csp-page-header-back-link-size);
+  }
+}
+
+.csp-page-header__back-button {
+  @include bp.below(bp.$lg) {
+    margin-inline-start: calc(-1 * var(--csp-btn-icon-inset));
+  }
 }
 
 .csp-page-header__title {
