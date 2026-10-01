@@ -1372,6 +1372,8 @@ paths:
             schema:
               $ref: '#/components/schemas/TokenObtainPair'
         required: true
+      security:
+      - {}
       responses:
         '200':
           content:
@@ -1425,6 +1427,8 @@ paths:
             schema:
               $ref: '#/components/schemas/TokenRefresh'
         required: true
+      security:
+      - {}
       responses:
         '200':
           content:
@@ -1503,7 +1507,7 @@ paths:
               - file
       security:
       - jwtAuth: []
-      - cookieAuth: []
+      - ApiKeyAuth: []
       responses:
         '201':
           content:
@@ -1720,7 +1724,7 @@ paths:
       - metiers
       security:
       - jwtAuth: []
-      - cookieAuth: []
+      - ApiKeyAuth: []
       responses:
         '200':
           content:
@@ -5830,10 +5834,6 @@ components:
       in: header
       name: Authorization
       description: 'API key authentication. Use the format: `Api-Key <key>`.'
-    cookieAuth:
-      type: apiKey
-      in: cookie
-      name: sessionid
     jwtAuth:
       type: http
       scheme: bearer
