@@ -5,7 +5,6 @@ import { useRoute, useRouter } from 'vue-router'
 import CspAsyncSection from '@/components/base/CspAsyncSection/CspAsyncSection.vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspEmptyState from '@/components/base/CspEmptyState/CspEmptyState.vue'
-import CspSkeleton from '@/components/base/CspSkeleton/CspSkeleton.vue'
 import { useMinimumPending } from '@/composables/async/useMinimumPending'
 import { CANDIDATURE_NEW_CONVERSATION_ROUTE_NAME } from '@/features/candidatures/routes'
 import { pluralize } from '@/utils/format'
@@ -82,13 +81,7 @@ function startConversation(): void {
         error-title="Impossible de charger les conversations"
       >
         <template #skeleton>
-          <div class="messages-section__skeleton">
-            <CspSkeleton
-              v-for="row in SKELETON_ROWS"
-              :key="row"
-              height="4rem"
-            />
-          </div>
+          <ConversationsList :skeleton-rows="SKELETON_ROWS" />
         </template>
 
         <p
@@ -188,13 +181,6 @@ function startConversation(): void {
   color: var(--text-mention-grey);
   font-size: 0.875rem;
   font-weight: 700;
-}
-
-.messages-section__skeleton {
-  display: flex;
-  flex-direction: column;
-  gap: var(--csp-space-2);
-  padding: 0 var(--csp-space-4);
 }
 
 @container panel (max-width: 48rem) {
