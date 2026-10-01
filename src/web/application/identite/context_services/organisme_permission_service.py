@@ -274,8 +274,8 @@ class OrganismePermissionService:
         # near-identical OrganismeAgentModel lookups for the *target* agent right next
         # to this call (application/recruteur/usecases/{attach,update,revoke}
         # _organisme_agent.py); dedupe when refactoring to ADR-009
-        liaison = OrganismeAgentModel.objects.filter(
-            organisme_id=organisme_id, agent_id=utilisateur.entity_id
+        liaison = OrganismeAgentModel.objects.by_organisme_and_agent(
+            organisme_id, utilisateur.entity_id
         ).first()
         role = AgentOrganismeRole(liaison.role) if liaison else None
         if role not in _ROLES_REQUIS[action]:

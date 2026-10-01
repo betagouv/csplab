@@ -4,9 +4,12 @@ from uuid import UUID
 
 import pytest
 from django.urls import reverse
+from django.utils import timezone as django_timezone
 from faker import Faker
 from referentiel.value_objects.contract_type import ContractType
 from rest_framework import status
+from rest_framework.test import APIClient
+from rest_framework_simplejwt.tokens import RefreshToken
 
 from application.recruteur.dtos.recrutement_read_models import (
     CandidaturesCompteurDto,
@@ -18,7 +21,12 @@ from domain.recruteur.value_objects.roles import (
     AgentOrganismeRole,
     AgentRecrutementRole,
 )
+from infrastructure.factories.identite.agent_django_factory import (
+    AgentDjangoFactory,
+)
 from infrastructure.factories.identite.organisme_django_factory import (
+    OrganismeAgentDjangoFactory,
+    OrganismeDjangoFactory,
     create_organisme_with_agent,
 )
 from infrastructure.factories.recruteur.recrutement_django_factory import (
@@ -368,3 +376,64 @@ class TestRecrutementsArchivesViewDbVerified:
             response = authenticated_client.get(RECRUTEMENTS_ARCHIVES_URL)
 
         assert response.status_code == status.HTTP_200_OK
+
+
+def _archives_url(organisme_id) -> str:
+    return reverse(
+        "recruteur:organisme-recrutements-archives",
+        kwargs={"organisme_uuid": str(organisme_id)},
+    )
+
+
+def _client_for(utilisateur) -> APIClient:
+    client = APIClient()
+    token = RefreshToken.for_user(utilisateur).access_token
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+    return client
+
+
+class TestRecrutementsArchivesViewRattachement:
+    @pytest.mark.parametrize(
+        ("demandeur", "organisme", "statut_attendu", "nombre_attendu"),
+        [
+            ("revoque", "a", status.HTTP_403_FORBIDDEN, None),
+            ("jamais_rattache", "a", status.HTTP_403_FORBIDDEN, None),
+            ("temoin", "a", status.HTTP_403_FORBIDDEN, None),
+            ("revoque", "b", status.HTTP_200_OK, 1),
+        ],
+        ids=["revoque", "jamais_rattache", "temoin", "reponse_b"],
+    )
+    def test_archives_require_active_liaison(
+        self, db, demandeur, organisme, statut_attendu, nombre_attendu
+    ):
+        revoque, organisme_b = create_organisme_with_agent(
+            role=AgentOrganismeRole.AGENT
+        )
+        RecrutementDjangoFactory(
+            organisme=organisme_b, offre_archivee=True, agent_link__agent=revoque
+        )
+        organisme_a = OrganismeDjangoFactory()
+        RecrutementDjangoFactory(
+            organisme=organisme_a, offre_archivee=True, agent_link__agent=revoque
+        )
+        OrganismeAgentDjangoFactory(
+            organisme=organisme_a,
+            agent=revoque,
+            date_revocation=django_timezone.now(),
+        )
+        jamais_rattache = OrganismeAgentDjangoFactory(
+            organisme=organisme_b, role=AgentOrganismeRole.AGENT.value
+        ).agent
+        agents = {
+            "revoque": revoque,
+            "jamais_rattache": jamais_rattache,
+            "temoin": AgentDjangoFactory(),
+        }
+        organismes = {"a": organisme_a, "b": organisme_b}
+
+        reponse = _client_for(agents[demandeur].utilisateur).get(
+            _archives_url(organismes[organisme].id)
+        )
+
+        assert reponse.status_code == statut_attendu
+        assert reponse.json().get("count") == nombre_attendu
