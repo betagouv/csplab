@@ -14,13 +14,16 @@ config_roots = [
   "libs/ddd",
   "libs/referentiel",
   "libs/scaleway_secrets",
-  "dev",
 ]
 
 [tools]
 node = "24"
 uv = "0.9"
 scaleway-cli = "2"
+"pipx:commitizen" = "4"
+# aqua backend: the default one for hk (packslip) needs a mise newer than min_version
+"aqua:jdx/hk" = "2"
+yq = "4"
 
 [settings]
 # corepack shims let pnpm resolve its version from packageManager (single source of truth)
@@ -61,11 +64,21 @@ depends = ["//...:install"]
 
 [tasks.lint]
 description = "Lint the whole repo in parallel"
-depends = ["//...:lint", "//...:typecheck"]
+depends = ["//...:lint", "//...:typecheck", "lint:files"]
 
 [tasks."lint:fix"]
 description = "Lint the whole repo with autofix"
 depends = ["//...:lint:fix"]
+# after the subproject fixers, which rewrite some of the same files
+depends_post = ["lint:files:fix"]
+
+[tasks."lint:files"]
+description = "Check every file with the steps declared in hk.pkl"
+run = "hk check --all"
+
+[tasks."lint:files:fix"]
+description = "Fix every file with the steps declared in hk.pkl"
+run = "hk fix --all"
 
 [tasks.test]
 description = "Run every test suite (e2e excluded)"
@@ -133,17 +146,19 @@ echo "Env files reset from the examples."
 """
 
 [tasks.git-hooks]
-description = "Install the git hooks (pre-commit, commit-msg)"
+description = "Install the git hooks declared in hk.pkl"
+# git also runs the scripts left in the hooks directory, after the hooks hk declares in .git/config
 run = """
-mkdir -p .pre-commit-cache
-cp bin/git-pre-commit-hook .git/hooks/pre-commit
-cp bin/git-commit-msg-hook .git/hooks/commit-msg
+hooks=$(git rev-parse --git-path hooks)
+rm -f "$hooks/pre-commit" "$hooks/commit-msg"
+hk install --mise
 """
 
 [tasks.bootstrap]
-description = "Prepare the full dev environment (services, dependencies, migrations, superuser)"
+description = "Prepare the full dev environment (services, dependencies, git hooks, migrations, superuser)"
 depends = [
   "services",
+  "git-hooks",
   "install",
   "//src/web:qdrant:init",
   "//src/web:s3:init",
@@ -155,8 +170,8 @@ depends = [
 ]
 
 [tasks.onboard]
-description = "First-time setup: env files, git hooks, then full bootstrap"
-depends = ["setup", "git-hooks"]
+description = "First-time setup: env files, then full bootstrap"
+depends = ["setup"]
 # fresh mise invocation so the env files setup just created are loaded
 run = "mise run bootstrap"
 
@@ -166,7 +181,6 @@ confirm = { message = "Reset env.d/* AND remove docker volumes (local databases 
 # single confirm here: the inner destructive tasks are pre-confirmed via MISE_YES
 run = [
   "MISE_YES=1 mise run setup:force",
-  "mise run git-hooks",
   "MISE_YES=1 mise run bootstrap:reset",
 ]
 

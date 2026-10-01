@@ -1,5 +1,5 @@
 name: Set up mise
-description: Install mise with the ci environment, provision the repo toolchain (node + pnpm, uv) and cache the package stores. Requires actions/checkout to have run first.
+description: Install mise with the ci environment, provision the tools declared in mise.toml and cache the package stores. Requires actions/checkout to have run first.
 
 inputs:
   mise-version:

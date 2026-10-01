@@ -2,6 +2,41 @@
 
 lockfile_version = 1
 
+[[tools."aqua:jdx/hk"]]
+version = "2.4.0"
+backend = "aqua:jdx/hk"
+specifiers = ["2"]
+
+[tools."aqua:jdx/hk"."platforms.linux-arm64"]
+checksum = "sha256:836235bd8aa06f25e7ff28591b32efb5297abe55366e912095636a49ffe4d363"
+url = "https://github.com/jdx/hk/releases/download/v2.4.0/hk-aarch64-unknown-linux-gnu.tar.gz"
+url_api = "https://api.github.com/repos/jdx/hk/releases/assets/594327179"
+
+[tools."aqua:jdx/hk"."platforms.linux-arm64-musl"]
+checksum = "sha256:ad5c5a556e0a505d9a3441868217976bd4ae610e1364e93516993b9717d9ef28"
+url = "https://github.com/jdx/hk/releases/download/v2.4.0/hk-aarch64-unknown-linux-musl.tar.gz"
+url_api = "https://api.github.com/repos/jdx/hk/releases/assets/594327184"
+
+[tools."aqua:jdx/hk"."platforms.linux-x64"]
+checksum = "sha256:6efabe30aeabc4611a42ce6cf0fd46b9a19478e2cfd9acfd1bd93998736f3153"
+url = "https://github.com/jdx/hk/releases/download/v2.4.0/hk-x86_64-unknown-linux-gnu.tar.gz"
+url_api = "https://api.github.com/repos/jdx/hk/releases/assets/594327200"
+
+[tools."aqua:jdx/hk"."platforms.linux-x64-musl"]
+checksum = "sha256:f34598671ca40be5c308324a60ef30b736dbbbf4259dfb511abd79009ee4de2a"
+url = "https://github.com/jdx/hk/releases/download/v2.4.0/hk-x86_64-unknown-linux-musl.tar.gz"
+url_api = "https://api.github.com/repos/jdx/hk/releases/assets/594327202"
+
+[tools."aqua:jdx/hk"."platforms.macos-arm64"]
+checksum = "sha256:6e1c970b9de7ab4ee52c85869b2ea9cfe8769d25a0fe9536062e0ba62366ec59"
+url = "https://github.com/jdx/hk/releases/download/v2.4.0/hk-aarch64-apple-darwin.tar.gz"
+url_api = "https://api.github.com/repos/jdx/hk/releases/assets/594327181"
+
+[tools."aqua:jdx/hk"."platforms.windows-x64"]
+checksum = "sha256:028931e00fd670ad891a428bf44e14ac8e2726a8f72b7fae80b27b6502af2be3"
+url = "https://github.com/jdx/hk/releases/download/v2.4.0/hk-x86_64-pc-windows-msvc.zip"
+url_api = "https://api.github.com/repos/jdx/hk/releases/assets/594327180"
+
 [[tools.node]]
 version = "24.18.0"
 backend = "core:node"
@@ -34,6 +69,11 @@ url = "https://nodejs.org/dist/v24.18.0/node-v24.18.0-darwin-x64.tar.gz"
 [tools.node."platforms.windows-x64"]
 checksum = "sha256:0ae68406b42d7725661da979b1403ec9926da205c6770827f33aac9d8f26e821"
 url = "https://nodejs.org/dist/v24.18.0/node-v24.18.0-win-x64.zip"
+
+[[tools."pipx:commitizen"]]
+version = "4.19.0"
+backend = "pipx:commitizen"
+specifiers = ["4"]
 
 [[tools.scaleway-cli]]
 version = "2.62.0"
@@ -121,3 +161,50 @@ checksum = "sha256:875981be7908295937dee09532bb66d576986d4f223259e171b0c767c8858
 url = "https://github.com/astral-sh/uv/releases/download/0.9.30/uv-x86_64-pc-windows-msvc.zip"
 url_api = "https://api.github.com/repos/astral-sh/uv/releases/assets/350792491"
 provenance = "github-attestations"
+
+[[tools.yq]]
+version = "4.54.1"
+backend = "aqua:mikefarah/yq"
+specifiers = ["4"]
+
+[tools.yq."platforms.linux-arm64"]
+checksum = "sha256:189088da0c6429ec5178dfaab1a114805f6cab0b61b165ab236efedf1d57a71b"
+url = "https://github.com/mikefarah/yq/releases/download/v4.54.1/yq_linux_arm64"
+url_api = "https://api.github.com/repos/mikefarah/yq/releases/assets/597222603"
+provenance = "cosign"
+
+[tools.yq."platforms.linux-arm64-musl"]
+checksum = "sha256:189088da0c6429ec5178dfaab1a114805f6cab0b61b165ab236efedf1d57a71b"
+url = "https://github.com/mikefarah/yq/releases/download/v4.54.1/yq_linux_arm64"
+url_api = "https://api.github.com/repos/mikefarah/yq/releases/assets/597222603"
+provenance = "cosign"
+
+[tools.yq."platforms.linux-x64"]
+checksum = "sha256:8e34fc298390875de416e6a4afcb8cabeceb25d9aa8506c1a2f9353cf702ea5f"
+url = "https://github.com/mikefarah/yq/releases/download/v4.54.1/yq_linux_amd64"
+url_api = "https://api.github.com/repos/mikefarah/yq/releases/assets/597222595"
+provenance = "cosign"
+
+[tools.yq."platforms.linux-x64-musl"]
+checksum = "sha256:8e34fc298390875de416e6a4afcb8cabeceb25d9aa8506c1a2f9353cf702ea5f"
+url = "https://github.com/mikefarah/yq/releases/download/v4.54.1/yq_linux_amd64"
+url_api = "https://api.github.com/repos/mikefarah/yq/releases/assets/597222595"
+provenance = "cosign"
+
+[tools.yq."platforms.macos-arm64"]
+checksum = "sha256:fee511a181bd8b3e6b7da98842b41973bfac8cd3bcd341ed29a584620b5b2844"
+url = "https://github.com/mikefarah/yq/releases/download/v4.54.1/yq_darwin_arm64"
+url_api = "https://api.github.com/repos/mikefarah/yq/releases/assets/597222609"
+provenance = "cosign"
+
+[tools.yq."platforms.macos-x64"]
+checksum = "sha256:3a812fce205a4d67014fb71b7fa297092210e580df3d8f52dddc2cf3a599c22b"
+url = "https://github.com/mikefarah/yq/releases/download/v4.54.1/yq_darwin_amd64"
+url_api = "https://api.github.com/repos/mikefarah/yq/releases/assets/597222619"
+provenance = "cosign"
+
+[tools.yq."platforms.windows-x64"]
+checksum = "sha256:b645f47ebb3a0d2fbab52998550bbd0a1706f23b5ca5f5b48e638c580bb70928"
+url = "https://github.com/mikefarah/yq/releases/download/v4.54.1/yq_windows_amd64.exe"
+url_api = "https://api.github.com/repos/mikefarah/yq/releases/assets/597222575"
+provenance = "cosign"

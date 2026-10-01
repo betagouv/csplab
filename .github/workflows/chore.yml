@@ -12,37 +12,25 @@ permissions:
   contents: read
 
 jobs:
-  build-dev:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v5
-      - uses: ./.github/actions/setup-mise
-      - name: Install dev tools
-        run: mise run dev:install
-
   PR-title-format:
     if: github.event_name == 'pull_request'
-    needs: build-dev
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
-        with:
-          fetch-depth: 0
       - uses: ./.github/actions/setup-mise
       - name: Check PR title format
         env:
           PR_TITLE: ${{ github.event.pull_request.title }}
-        run: mise run dev:cz -- check --message "$PR_TITLE"
+        run: cz check --message "$PR_TITLE"
 
   lint-format:
-    needs: build-dev
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
       - uses: ./.github/actions/setup-mise
-      - name: Run pre-commit
-        run: mise run dev:pre-commit
+      - name: Check every file with hk
+        run: mise run lint:files
 
   fixup-commits:
     runs-on: ubuntu-latest

@@ -1,0 +1,40 @@
+amends "package://github.com/jdx/hk/releases/download/v2.4.0/hk@2.4.0#/Config.pkl"
+import "package://github.com/jdx/hk/releases/download/v2.4.0/hk@2.4.0#/Builtins.pkl"
+
+local linters = new Mapping<String, Step> {
+  ["yaml"] {
+    glob = List("**/*.yml", "**/*.yaml")
+    check = "yq eval true {{files}} > /dev/null"
+  }
+  ["newlines"] = (Builtins.newlines) {
+    exclude = "docs/**"
+  }
+  ["trailing-whitespace"] = (Builtins.trailing_whitespace) {
+    exclude = "docs/**"
+  }
+  ["python-debug-statements"] = (Builtins.python_debug_statements) {
+    glob = "src/**/*.py"
+  }
+}
+
+hooks {
+  ["pre-commit"] {
+    fix = true
+    stash = "git"
+    steps = linters
+  }
+  ["commit-msg"] {
+    steps {
+      ["commitizen"] {
+        check = "cz check --allow-abort --commit-msg-file {{commit_msg_file}} || { cz example; exit 1; }"
+      }
+    }
+  }
+  ["check"] {
+    steps = linters
+  }
+  ["fix"] {
+    fix = true
+    steps = linters
+  }
+}

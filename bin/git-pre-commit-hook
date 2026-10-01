@@ -1,5 +1,0 @@
-#!/usr/bin/env bash
-
-set -eo pipefail
-
-cd dev && uv run pre-commit run
