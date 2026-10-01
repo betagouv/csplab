@@ -18,7 +18,7 @@ vi.mock('../api', () => ({
 
 const ORGANISMES: OrganismesList[] = [
   {
-    organisme_uuid: '11111111-1111-1111-1111-111111111111',
+    uuid: '11111111-1111-1111-1111-111111111111',
     nom: 'Organisme 1',
     siret: '11111111111111',
     gestionnaire: null,
@@ -30,7 +30,7 @@ const ORGANISMES: OrganismesList[] = [
     versant: 'FPT',
   },
   {
-    organisme_uuid: '22222222-2222-2222-2222-222222222222',
+    uuid: '22222222-2222-2222-2222-222222222222',
     nom: 'Organisme 2',
     siret: '22222222222222',
     gestionnaire: 'Marie Noel',
@@ -79,7 +79,7 @@ describe('useOrganismes', () => {
 
   it('creates an organisme and refetches the list', async () => {
     const created: OrganismeDetail = {
-      organisme_uuid: '33333333-3333-3333-3333-333333333333',
+      uuid: '33333333-3333-3333-3333-333333333333',
       nom: 'Organisme 3',
       siret: '33333333333333',
       gestionnaire: null,
@@ -115,10 +115,10 @@ describe('useOrganismes', () => {
     await flush()
 
     const payload = { nom: 'Renommé', versant: 'FPE' as const, gestion_ats: true }
-    await update({ organismeUuid: ORGANISMES[0].organisme_uuid, payload })
+    await update({ organismeUuid: ORGANISMES[0].uuid, payload })
     await flush()
 
-    expect(mockUpdateOrganisme).toHaveBeenCalledWith(ORGANISMES[0].organisme_uuid, payload)
+    expect(mockUpdateOrganisme).toHaveBeenCalledWith(ORGANISMES[0].uuid, payload)
     expect(mockGetOrganismesList).toHaveBeenCalledTimes(2)
   })
 

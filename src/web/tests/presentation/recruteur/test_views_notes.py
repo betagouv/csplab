@@ -106,7 +106,7 @@ class TestCandidatureNotesView:
         )
 
         assert response.status_code == status.HTTP_200_OK
-        assert [n["entity_id"] for n in response.json()["results"]] == [
+        assert [n["uuid"] for n in response.json()["results"]] == [
             str(newer.id),
             str(older.id),
         ]
@@ -137,7 +137,7 @@ class TestCandidatureNotesView:
         assert response.status_code == status.HTTP_200_OK
         data = response.json()["results"]
         assert len(data) == 1
-        assert data[0]["entity_id"] == str(note.id)
+        assert data[0]["uuid"] == str(note.id)
         assert data[0]["message"] == "Bon profil"
         assert data[0]["publie_par_id"] == str(note.publie_par_id)
         assert data[0]["publie_par_prenom"] == note.publie_par.utilisateur.first_name
@@ -160,7 +160,7 @@ class TestCandidatureNotesView:
         assert data["candidature_id"] == str(candidature.id)
         assert data["publie_par_id"] == str(test_user.username)
 
-        note = NoteModel.objects.get(id=data["entity_id"])
+        note = NoteModel.objects.get(id=data["uuid"])
         assert note.message == "Nouvelle note"
         assert str(note.publie_par_id) == str(test_user.username)
 

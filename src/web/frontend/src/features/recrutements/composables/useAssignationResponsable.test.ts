@@ -34,7 +34,7 @@ const NOUVEL_AGENT_ID = 'bbbbbbbb-0002-0002-0002-000000000002'
 const EMAIL = 'jeanne.dupont@example.gouv.fr'
 
 const AGENT: AgentRecherche = {
-  agent_id: AGENT_ID,
+  uuid: AGENT_ID,
   email: EMAIL,
   prenom: 'Jeanne',
   nom: 'Dupont',
@@ -67,7 +67,7 @@ describe('useAssignationResponsable', () => {
     vi.clearAllMocks()
     mockGetRecrutementsActifs.mockResolvedValue({ results: RECRUTEMENTS_ACTIFS })
     mockSearchAgentByEmail.mockResolvedValue(AGENT)
-    mockCreateAgent.mockResolvedValue({ ...AGENT, agent_id: NOUVEL_AGENT_ID, prenom: '', nom: '' })
+    mockCreateAgent.mockResolvedValue({ ...AGENT, uuid: NOUVEL_AGENT_ID, prenom: '', nom: '' })
     mockSetRecrutementsResponsable.mockResolvedValue({ reussites: ['rec-1'], echecs: [] })
   })
 
@@ -127,7 +127,7 @@ describe('useAssignationResponsable', () => {
     await flush()
     expect(result.submitting.value).toBe(true)
 
-    acheverCreation({ ...AGENT, agent_id: NOUVEL_AGENT_ID })
+    acheverCreation({ ...AGENT, uuid: NOUVEL_AGENT_ID })
     await flush()
     expect(result.submitting.value).toBe(true)
 

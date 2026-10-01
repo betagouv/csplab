@@ -199,7 +199,7 @@ const countLabel = computed(() => {
         v-model:page="page"
         :rows="filtered"
         :columns="columns"
-        :row-key="row => row.agent_id"
+        :row-key="row => row.uuid"
         caption="Équipe de recrutement"
         :page-size="PAGE_SIZE"
       >

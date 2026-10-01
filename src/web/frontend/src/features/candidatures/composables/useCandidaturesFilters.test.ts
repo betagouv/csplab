@@ -13,16 +13,16 @@ const ETAPE_ENTRETIEN = 'cccccccc-0001-0001-0001-000000000003'
 
 function makeRecrutementEtapes(): EtapeRecrutement[] {
   return [
-    { etape_uuid: ETAPE_RECEPTION, nom: 'Réception des candidatures', categorie: 'ENTREE' },
-    { etape_uuid: ETAPE_PRESELECTION, nom: 'Présélection', categorie: 'EN_COURS' },
-    { etape_uuid: ETAPE_ENTRETIEN, nom: 'Entretien', categorie: 'EN_COURS' },
+    { uuid: ETAPE_RECEPTION, nom: 'Réception des candidatures', categorie: 'ENTREE' },
+    { uuid: ETAPE_PRESELECTION, nom: 'Présélection', categorie: 'EN_COURS' },
+    { uuid: ETAPE_ENTRETIEN, nom: 'Entretien', categorie: 'EN_COURS' },
   ]
 }
 
 function makeEtapes(): EtapeRecrutementDetailedCandidatures[] {
   return [
     {
-      etape_uuid: ETAPE_RECEPTION,
+      uuid: ETAPE_RECEPTION,
       nom: 'Réception des candidatures',
       categorie: 'ENTREE',
       candidatures: [
@@ -41,7 +41,7 @@ function makeEtapes(): EtapeRecrutementDetailedCandidatures[] {
       ],
     },
     {
-      etape_uuid: ETAPE_PRESELECTION,
+      uuid: ETAPE_PRESELECTION,
       nom: 'Présélection',
       categorie: 'EN_COURS',
       candidatures: [
@@ -67,21 +67,21 @@ function makeListe(): PaginatedCandidatureListeList {
         date_soumission: '2025-06-10T09:15:00Z',
         date_derniere_activite: '2025-06-11T10:00:00Z',
         candidat: { uuid: 'eeeeeeee-0001', nom: 'Dupont', prenom: 'Alice' },
-        etape: { etape_uuid: ETAPE_RECEPTION, nom: 'Réception des candidatures', categorie: 'ENTREE' },
+        etape: { uuid: ETAPE_RECEPTION, nom: 'Réception des candidatures', categorie: 'ENTREE' },
       },
       {
         uuid: 'dddddddd-0001-0001-0001-000000000002',
         date_soumission: '2025-06-11T14:30:00Z',
         date_derniere_activite: '2025-06-12T09:15:00Z',
         candidat: { uuid: 'eeeeeeee-0002', nom: 'Martin', prenom: 'Bruno' },
-        etape: { etape_uuid: ETAPE_RECEPTION, nom: 'Réception des candidatures', categorie: 'ENTREE' },
+        etape: { uuid: ETAPE_RECEPTION, nom: 'Réception des candidatures', categorie: 'ENTREE' },
       },
       {
         uuid: 'dddddddd-0001-0001-0001-000000000005',
         date_soumission: '2025-06-08T10:00:00Z',
         date_derniere_activite: '2025-06-11T10:00:00Z',
         candidat: { uuid: 'eeeeeeee-0005', nom: 'Bernard', prenom: 'Élise' },
-        etape: { etape_uuid: ETAPE_PRESELECTION, nom: 'Présélection', categorie: 'EN_COURS' },
+        etape: { uuid: ETAPE_PRESELECTION, nom: 'Présélection', categorie: 'EN_COURS' },
       },
     ],
   }

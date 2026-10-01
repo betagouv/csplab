@@ -56,13 +56,13 @@ const drawerInitialEtapeUuid = ref<string | null>(null)
 const refus = useRefusCandidature()
 
 const refusEtapeUuid = computed(() => {
-  return recrutementEtapes.value.find(e => e.categorie === 'REFUS')?.etape_uuid ?? null
+  return recrutementEtapes.value.find(e => e.categorie === 'REFUS')?.uuid ?? null
 })
 
 const sourceEtape = computed(() => {
   if (!currentEtapeUuid.value)
     return null
-  return candidatureKanban.value.find(e => e.etape_uuid === currentEtapeUuid.value) ?? null
+  return candidatureKanban.value.find(e => e.uuid === currentEtapeUuid.value) ?? null
 })
 
 const selectedCandidats = computed(() =>

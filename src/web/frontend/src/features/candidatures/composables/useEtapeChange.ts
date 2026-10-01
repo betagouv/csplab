@@ -16,7 +16,7 @@ export function useEtapeChange(candidatureUuid: Ref<string>, leavePanel: () => v
 
   async function confirm(targetEtapeUuid: string, motifRefus?: MotifRefus): Promise<void> {
     const candidature = findCandidature(candidatureUuid.value)
-    const target = recrutementEtapes.value.find(candidate => candidate.etape_uuid === targetEtapeUuid)
+    const target = recrutementEtapes.value.find(candidate => candidate.uuid === targetEtapeUuid)
     if (!etape.value || !candidature || !target)
       return
 
@@ -24,7 +24,7 @@ export function useEtapeChange(candidatureUuid: Ref<string>, leavePanel: () => v
     const nextUuid = position.value?.nextUuid ?? null
 
     const moved = moveCandidature({
-      sourceColumnId: etape.value.etape_uuid,
+      sourceColumnId: etape.value.uuid,
       targetColumnId: targetEtapeUuid,
       cardId: movedUuid,
       motifRefus,
@@ -48,7 +48,7 @@ export function useEtapeChange(candidatureUuid: Ref<string>, leavePanel: () => v
 
   function request(targetEtapeUuid: string): void {
     const candidature = findCandidature(candidatureUuid.value)
-    const target = recrutementEtapes.value.find(candidate => candidate.etape_uuid === targetEtapeUuid)
+    const target = recrutementEtapes.value.find(candidate => candidate.uuid === targetEtapeUuid)
     if (target?.categorie === 'REFUS' && candidature)
       refus.request([candidature.candidat], motifRefus => void confirm(targetEtapeUuid, motifRefus))
     else

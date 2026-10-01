@@ -15,7 +15,7 @@ vi.mock('../api', async importOriginal => ({
 
 function note(overrides: Partial<Note>): Note {
   return {
-    entity_id: 'ffffffff-0001-0001-0001-000000000001',
+    uuid: 'ffffffff-0001-0001-0001-000000000001',
     candidature_id: CANDIDATURE_PARAMS.candidatureUuid,
     message: 'Profil solide',
     publie_par_id: 'eeeeeeee-0001-0001-0001-000000000001',
@@ -41,7 +41,7 @@ describe('candidatureNotes', () => {
   it('lists the notes with their author', async () => {
     const results = [
       note({}),
-      note({ entity_id: 'ffffffff-0001-0001-0001-000000000002', message: 'À recontacter', publie_par_prenom: 'Paul', publie_par_nom: 'Bernard' }),
+      note({ uuid: 'ffffffff-0001-0001-0001-000000000002', message: 'À recontacter', publie_par_prenom: 'Paul', publie_par_nom: 'Bernard' }),
     ]
     vi.mocked(getCandidatureNotes).mockResolvedValue({ count: 2, results })
     renderNotes()

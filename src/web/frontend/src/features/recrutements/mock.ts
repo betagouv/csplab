@@ -9,7 +9,7 @@ function daysAgo(days: number): string {
 
 export const RECRUTEMENTS_ACTIFS: RecrutementsActifs[] = [
   {
-    offer_id: 'rec-1',
+    uuid: 'rec-1',
     intitule: 'Chargé·e de mission numérique',
     reference_csp: 'REF-001',
     responsables: [{ nom: 'Camille Durand' }],
@@ -19,7 +19,7 @@ export const RECRUTEMENTS_ACTIFS: RecrutementsActifs[] = [
     candidatures: { total: 24, a_traiter: 12, en_cours: 2 },
   },
   {
-    offer_id: 'rec-2',
+    uuid: 'rec-2',
     intitule: 'Gestionnaire de paie',
     reference_csp: 'REF-002',
     responsables: [{ nom: 'Léa Martin' }],
@@ -29,7 +29,7 @@ export const RECRUTEMENTS_ACTIFS: RecrutementsActifs[] = [
     candidatures: { total: 24, a_traiter: 12, en_cours: 2 },
   },
   {
-    offer_id: 'rec-3',
+    uuid: 'rec-3',
     intitule: 'Développeur·se back-end',
     reference_csp: 'REF-003',
     responsables: [{ nom: 'Hugo Bernard' }],
@@ -39,7 +39,7 @@ export const RECRUTEMENTS_ACTIFS: RecrutementsActifs[] = [
     candidatures: { total: 24, a_traiter: 12, en_cours: 2 },
   },
   {
-    offer_id: 'rec-4',
+    uuid: 'rec-4',
     intitule: 'Apprenti·e communication',
     reference_csp: 'REF-004',
     responsables: [{ nom: 'Sofia Petit' }],
@@ -49,7 +49,7 @@ export const RECRUTEMENTS_ACTIFS: RecrutementsActifs[] = [
     candidatures: { total: 24, a_traiter: 12, en_cours: 2 },
   },
   {
-    offer_id: 'rec-5',
+    uuid: 'rec-5',
     intitule: 'Assistant·e administratif·ve',
     reference_csp: 'REF-005',
     responsables: [{ nom: 'Camille Durand' }, { nom: 'Léa Martin' }],
@@ -59,7 +59,7 @@ export const RECRUTEMENTS_ACTIFS: RecrutementsActifs[] = [
     candidatures: { total: 24, a_traiter: 12, en_cours: 2 },
   },
   {
-    offer_id: 'rec-6',
+    uuid: 'rec-6',
     intitule: 'Agent·e d’accueil',
     reference_csp: 'REF-006',
     responsables: [{ nom: 'Léa Martin' }],
@@ -72,7 +72,7 @@ export const RECRUTEMENTS_ACTIFS: RecrutementsActifs[] = [
 
 export const RECRUTEMENTS_ARCHIVES: RecrutementsArchives[] = [
   {
-    offer_id: 'arch-1',
+    uuid: 'arch-1',
     intitule: 'Chef·fe de projet SI',
     reference_csp: 'REF-101',
     responsables: [{ nom: 'Hugo Bernard' }],
@@ -82,7 +82,7 @@ export const RECRUTEMENTS_ARCHIVES: RecrutementsArchives[] = [
     recrute: 'Nadia Lefèvre',
   },
   {
-    offer_id: 'arch-2',
+    uuid: 'arch-2',
     intitule: 'Juriste droit public',
     reference_csp: 'REF-102',
     responsables: [{ nom: 'Sofia Petit' }],
@@ -92,7 +92,7 @@ export const RECRUTEMENTS_ARCHIVES: RecrutementsArchives[] = [
     recrute: null,
   },
   {
-    offer_id: 'arch-3',
+    uuid: 'arch-3',
     intitule: 'Technicien·ne support',
     reference_csp: 'REF-103',
     responsables: [{ nom: 'Camille Durand' }],

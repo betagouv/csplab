@@ -70,7 +70,7 @@ const deleteEtapeUuid = ref<string | null>(null)
 const deleteEtapeNom = ref('')
 
 function openDeleteModal(etape: EtapeRecrutement) {
-  deleteEtapeUuid.value = etape.etape_uuid
+  deleteEtapeUuid.value = etape.uuid
   deleteEtapeNom.value = etape.nom
   deleteModalOpen.value = true
 }
@@ -110,7 +110,7 @@ function openAddAtModal(index: number) {
 function openRenameModal(etape: EtapeRecrutement) {
   modalMode.value = 'rename'
   modalNom.value = etape.nom
-  modalEtapeUuid.value = etape.etape_uuid
+  modalEtapeUuid.value = etape.uuid
   modalInsertIndex.value = null
   modalOpen.value = true
 }
@@ -228,7 +228,7 @@ function getMenuSections(
         </template>
         <CspSortableList
           :items="[...etapes]"
-          :get-item-key="(etape) => etape.etape_uuid"
+          :get-item-key="(etape) => etape.uuid"
           :get-item-label="(etape) => etape.nom"
           :is-item-draggable="(etape) => !isEtapeLocked(etape)"
           :get-item-variant="(etape) => isEtapeLocked(etape) ? 'alt' : 'default'"

@@ -44,7 +44,7 @@ const ETAPE_PRESELECTION = 'cccccccc-0001-0001-0001-000000000002'
 const CANDIDATURE_ALICE = 'dddddddd-0001-0001-0001-000000000001'
 
 const MOCK_DETAIL: RecrutementDetail = {
-  offer_id: RECRUTEMENT_UUID,
+  uuid: RECRUTEMENT_UUID,
   intitule: 'Chargé de mission numérique',
   archive: false,
   date_publication: '2025-06-22T10:00:00Z',
@@ -60,16 +60,16 @@ const MOCK_DETAIL: RecrutementDetail = {
   organisme_recruteur: { nom: 'Mairie de Paris', siret: '21750001600019' },
   categorie_offre: 'A',
   etapes: [
-    { etape_uuid: ETAPE_RECEPTION, nom: 'Réception des candidatures', categorie: 'ENTREE' },
-    { etape_uuid: ETAPE_PRESELECTION, nom: 'Présélection', categorie: 'EN_COURS' },
+    { uuid: ETAPE_RECEPTION, nom: 'Réception des candidatures', categorie: 'ENTREE' },
+    { uuid: ETAPE_PRESELECTION, nom: 'Présélection', categorie: 'EN_COURS' },
   ],
 }
 
 const MOCK_KANBAN: RecrutementDetailKanban = {
-  offer_id: RECRUTEMENT_UUID,
+  uuid: RECRUTEMENT_UUID,
   etapes: [
     {
-      etape_uuid: 'cccccccc-0001-0001-0001-000000000001',
+      uuid: 'cccccccc-0001-0001-0001-000000000001',
       nom: 'Réception des candidatures',
       categorie: 'ENTREE',
       candidatures: [
@@ -88,7 +88,7 @@ const MOCK_KANBAN: RecrutementDetailKanban = {
       ],
     },
     {
-      etape_uuid: 'cccccccc-0001-0001-0001-000000000002',
+      uuid: 'cccccccc-0001-0001-0001-000000000002',
       nom: 'Présélection',
       categorie: 'EN_COURS',
       candidatures: [
@@ -113,21 +113,21 @@ const MOCK_LISTE: PaginatedCandidatureListeList = {
       date_soumission: '2025-06-10T09:15:00Z',
       date_derniere_activite: '2025-06-11T10:00:00Z',
       candidat: { uuid: 'eeeeeeee-0001-0001-0001-000000000001', nom: 'Dupont', prenom: 'Alice' },
-      etape: { etape_uuid: 'cccccccc-0001-0001-0001-000000000001', nom: 'Réception des candidatures', categorie: 'ENTREE' },
+      etape: { uuid: 'cccccccc-0001-0001-0001-000000000001', nom: 'Réception des candidatures', categorie: 'ENTREE' },
     },
     {
       uuid: 'dddddddd-0001-0001-0001-000000000002',
       date_soumission: '2025-06-11T14:30:00Z',
       date_derniere_activite: '2025-06-12T09:15:00Z',
       candidat: { uuid: 'eeeeeeee-0001-0001-0001-000000000002', nom: 'Martin', prenom: 'Bruno' },
-      etape: { etape_uuid: 'cccccccc-0001-0001-0001-000000000001', nom: 'Réception des candidatures', categorie: 'ENTREE' },
+      etape: { uuid: 'cccccccc-0001-0001-0001-000000000001', nom: 'Réception des candidatures', categorie: 'ENTREE' },
     },
     {
       uuid: 'dddddddd-0001-0001-0001-000000000005',
       date_soumission: '2025-06-08T10:00:00Z',
       date_derniere_activite: '2025-06-11T10:00:00Z',
       candidat: { uuid: 'eeeeeeee-0001-0001-0001-000000000005', nom: 'Bernard', prenom: 'Élise' },
-      etape: { etape_uuid: 'cccccccc-0001-0001-0001-000000000002', nom: 'Présélection', categorie: 'EN_COURS' },
+      etape: { uuid: 'cccccccc-0001-0001-0001-000000000002', nom: 'Présélection', categorie: 'EN_COURS' },
     },
   ],
 }
@@ -216,8 +216,8 @@ describe('useCandidatures', () => {
         cardId: CANDIDATURE_ALICE,
       })
 
-      const source = context.candidatureKanban.value.find(e => e.etape_uuid === ETAPE_RECEPTION)
-      const target = context.candidatureKanban.value.find(e => e.etape_uuid === ETAPE_PRESELECTION)
+      const source = context.candidatureKanban.value.find(e => e.uuid === ETAPE_RECEPTION)
+      const target = context.candidatureKanban.value.find(e => e.uuid === ETAPE_PRESELECTION)
 
       expect(source?.candidatures).toHaveLength(1)
       expect(target?.candidatures).toHaveLength(2)
@@ -331,7 +331,7 @@ describe('useCandidatures', () => {
             count: 1,
             next: null,
             previous: null,
-            results: [{ offer_id: RECRUTEMENT_UUID, intitule: 'Chargé de mission numérique' }],
+            results: [{ uuid: RECRUTEMENT_UUID, intitule: 'Chargé de mission numérique' }],
           },
         )
       })
@@ -366,8 +366,8 @@ describe('useCandidatures', () => {
 
       context.moveCandidaturesBatch({ candidaturesByEtape, targetColumnId })
 
-      const sourceEtape = context.candidatureKanban.value.find(etape => etape.etape_uuid === sourceColumnId)
-      const targetEtape = context.candidatureKanban.value.find(etape => etape.etape_uuid === targetColumnId)
+      const sourceEtape = context.candidatureKanban.value.find(etape => etape.uuid === sourceColumnId)
+      const targetEtape = context.candidatureKanban.value.find(etape => etape.uuid === targetColumnId)
 
       expect(sourceEtape?.candidatures).toHaveLength(0)
       expect(targetEtape?.candidatures).toHaveLength(3)

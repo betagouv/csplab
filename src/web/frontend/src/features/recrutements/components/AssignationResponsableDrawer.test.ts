@@ -54,7 +54,7 @@ describe('assignationResponsableDrawer', () => {
     await screen.findByRole('dialog')
     await user.click(dismissButton(RECRUTEMENTS[1].intitule))
 
-    expect(emitted('remove')).toEqual([[RECRUTEMENTS[1].offer_id]])
+    expect(emitted('remove')).toEqual([[RECRUTEMENTS[1].uuid]])
   })
 
   it('closes itself once every offer has been removed', async () => {

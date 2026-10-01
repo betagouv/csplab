@@ -33,7 +33,6 @@ from infrastructure.factories.recruteur.recrutement_django_factory import (
 from infrastructure.factories.referentiel.offer_django_factory import (
     OfferDjangoFactory,
 )
-from presentation.recruteur.views.recrutement_params import _etapes_to_serializer_data
 
 fake = Faker()
 
@@ -52,6 +51,13 @@ RECRUTEMENT_ETAPES_INIT_URL = reverse(
 )
 
 ETAPE_UUID = "aaaaaaaa-0002-0002-0002-000000000002"
+
+
+def _etapes_payload(etapes) -> list[dict]:
+    return [
+        {"uuid": str(e.entity_id), "nom": e.nom, "categorie": e.categorie.name}
+        for e in etapes
+    ]
 
 
 @pytest.fixture
@@ -156,16 +162,20 @@ class TestRecrutementEtapeView:
 
         response = authenticated_client.patch(
             RECRUTEMENT_ETAPES_URL,
-            data=_etapes_to_serializer_data(etapes=etapes),
+            data=_etapes_payload(etapes),
             format="json",
         )
 
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
         assert len(data) == len(etapes)
-        assert data[-1]["etape_uuid"] == str(etapes[-1].entity_id)
+        assert data[-1]["uuid"] == str(etapes[-1].entity_id)
         assert data[-1]["nom"] == "Recrutement"
         assert data[-1]["categorie"] == "ACCEPTE"
+        (command,), _ = usecase.call_args
+        assert [e.etape_uuid for e in command.etapes_data] == [
+            e.entity_id for e in etapes
+        ]
 
     @pytest.mark.parametrize(
         ("exception", "expected_status", "expected_body"),
@@ -243,7 +253,7 @@ class TestRecrutementEtapeView:
         etapes = EtapeRecrutementFactory.create_entity_batch()
         response = authenticated_client.patch(
             RECRUTEMENT_ETAPES_URL,
-            data=_etapes_to_serializer_data(etapes=etapes),
+            data=_etapes_payload(etapes),
             format="json",
         )
 

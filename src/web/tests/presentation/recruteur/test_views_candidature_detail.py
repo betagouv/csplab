@@ -130,7 +130,7 @@ class TestCandidatureDetailView:
         }
         assert data["recrutement_intitule"] == recrutement.offre.title
         assert data["etape_actuelle"] == {
-            "etape_uuid": str(candidature.etape_id),
+            "uuid": str(candidature.etape_id),
             "nom": candidature.etape.nom,
         }
         assert data["date_derniere_maj_candidat"] is None

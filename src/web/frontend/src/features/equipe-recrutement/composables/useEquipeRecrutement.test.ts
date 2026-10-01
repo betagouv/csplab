@@ -20,7 +20,7 @@ const AUTRE_RECRUTEMENT_UUID = 'aaaaaaaa-0002-0002-0002-000000000002'
 
 const MEMBRES: MembreEquipe[] = [
   {
-    agent_id: 'bbbbbbbb-0001-0001-0001-000000000001',
+    uuid: 'bbbbbbbb-0001-0001-0001-000000000001',
     nom: 'Dupont',
     prenom: 'Jeanne',
     poste: 'Responsable recrutement',
@@ -78,7 +78,7 @@ describe('useEquipeRecrutement', () => {
     await result.revoke(MEMBRES[0])
 
     expect(mockUpdateMembreEquipe).toHaveBeenCalledWith(ORGANISME_UUID, RECRUTEMENT_UUID, {
-      agent_id: MEMBRES[0].agent_id,
+      agent_id: MEMBRES[0].uuid,
       recrutement_role: MEMBRES[0].recrutement_role,
       date_revocation_recrutement: expect.any(String),
     })
@@ -102,7 +102,7 @@ describe('useEquipeRecrutement', () => {
     await result.changeRole({ membre: MEMBRES[0], role: 'contributeur' })
 
     expect(mockUpdateMembreEquipe).toHaveBeenCalledWith(ORGANISME_UUID, RECRUTEMENT_UUID, {
-      agent_id: MEMBRES[0].agent_id,
+      agent_id: MEMBRES[0].uuid,
       recrutement_role: 'contributeur',
     })
   })

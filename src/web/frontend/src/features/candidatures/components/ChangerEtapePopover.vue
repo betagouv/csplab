@@ -22,9 +22,9 @@ watch(open, () => {
 })
 
 const options = computed(() => props.etapes.map((etape) => {
-  const isCurrent = etape.etape_uuid === props.currentEtapeUuid
+  const isCurrent = etape.uuid === props.currentEtapeUuid
   return {
-    value: etape.etape_uuid,
+    value: etape.uuid,
     label: isCurrent ? `${etape.nom} (étape actuelle)` : etape.nom,
     disabled: isCurrent,
   }

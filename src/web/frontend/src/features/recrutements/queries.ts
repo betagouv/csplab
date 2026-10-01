@@ -59,7 +59,7 @@ export function peekRecrutementIntitule(
   ]
 
   for (const list of lists) {
-    const row = list?.results?.find(r => r.offer_id === offerId)
+    const row = list?.results?.find(r => r.uuid === offerId)
     if (row) {
       return row.intitule
     }

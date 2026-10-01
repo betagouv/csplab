@@ -18,7 +18,7 @@ vi.mock('../api', () => ({
 const ORGANISME_UUID = '11111111-1111-1111-1111-111111111111'
 
 const ORGANISME: OrganismeDetail = {
-  organisme_uuid: ORGANISME_UUID,
+  uuid: ORGANISME_UUID,
   nom: 'Commune de Briançon',
   versant: 'FPT',
   siret: '21050023700354',

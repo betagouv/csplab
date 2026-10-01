@@ -34,13 +34,13 @@ const CANDIDATURE_3 = {
 function createEtapes(): EtapeRecrutementDetailedCandidatures[] {
   return [
     {
-      etape_uuid: ETAPE_1_UUID,
+      uuid: ETAPE_1_UUID,
       nom: 'À traiter',
       categorie: 'ENTREE',
       candidatures: [CANDIDATURE_1, CANDIDATURE_2],
     },
     {
-      etape_uuid: ETAPE_2_UUID,
+      uuid: ETAPE_2_UUID,
       nom: 'Entretien',
       categorie: 'EN_COURS',
       candidatures: [CANDIDATURE_3],

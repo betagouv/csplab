@@ -141,7 +141,7 @@ class TestRecrutementAgentsViewDbVerified:
         assert body["count"] == 1
         assert body["results"] == [
             {
-                "agent_id": str(membre.utilisateur_id),
+                "uuid": str(membre.utilisateur_id),
                 "nom": membre.utilisateur.last_name,
                 "prenom": membre.utilisateur.first_name,
                 "poste": membre.intitule_poste,
@@ -233,7 +233,7 @@ class TestRecrutementAgentsViewPost:
 
         assert response.status_code == status.HTTP_201_CREATED
         assert response.json() == {
-            "agent_id": str(membre.utilisateur_id),
+            "uuid": str(membre.utilisateur_id),
             "nom": membre.utilisateur.last_name,
             "prenom": membre.utilisateur.first_name,
             "poste": membre.intitule_poste,
@@ -622,9 +622,9 @@ class TestRecrutementAgentsViewPut:
 
         list_response = authenticated_client.get(_url(organisme.id, recrutement.pk))
 
-        agent_ids = {r["agent_id"] for r in list_response.json()["results"]}
-        assert str(revoked_membre.utilisateur_id) not in agent_ids
-        assert str(active_membre.utilisateur_id) in agent_ids
+        uuids = {r["uuid"] for r in list_response.json()["results"]}
+        assert str(revoked_membre.utilisateur_id) not in uuids
+        assert str(active_membre.utilisateur_id) in uuids
 
     def test_responsable_updates_agent_role(self, authenticated_client, test_user):
         _, organisme = create_organisme_with_agent(

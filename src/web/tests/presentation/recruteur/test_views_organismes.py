@@ -99,7 +99,7 @@ class TestOrganismesView:
         assert response.status_code == status.HTTP_200_OK
         assert response.json() == [
             {
-                "organisme_uuid": str(organisme.entity_id),
+                "uuid": str(organisme.entity_id),
                 "nom": organisme.name,
                 "versant": organisme.verse.value,
                 "siret": str(organisme.siret),
@@ -166,7 +166,7 @@ class TestOrganismesView:
         }
         response = authenticated_client.post(ORGANISME_URL, body)
         assert response.status_code == status.HTTP_201_CREATED
-        assert response.json()["organisme_uuid"] == str(organisme.entity_id)
+        assert response.json()["uuid"] == str(organisme.entity_id)
         assert response.json()["gestion_ats"] == organisme.gestion_ats
 
     @pytest.mark.parametrize(
@@ -233,9 +233,7 @@ class TestOrganismesViewDbVerified:
         response = staff_client.get(ORGANISME_URL)
 
         assert response.status_code == status.HTTP_200_OK
-        matching = next(
-            o for o in response.json() if o["organisme_uuid"] == str(organisme.id)
-        )
+        matching = next(o for o in response.json() if o["uuid"] == str(organisme.id))
         assert matching["nom"] == organisme.nom
         assert matching["versant"] == organisme.versant
         assert matching["siret"] == organisme.siret
@@ -262,5 +260,5 @@ class TestOrganismesViewDbVerified:
         assert data["gestion_ats"] is True
 
         organisme = OrganismeModel.objects.get(siret=siret_code)
-        assert str(organisme.id) == data["organisme_uuid"]
+        assert str(organisme.id) == data["uuid"]
         assert organisme.nom == body["nom"]

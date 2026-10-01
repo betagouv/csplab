@@ -53,7 +53,7 @@ export function useCandidaturesFilters({
 
   const filteredEtapes = computed(() =>
     candidatureKanban.value
-      .filter(etape => matchesEtape(etape.etape_uuid, applied))
+      .filter(etape => matchesEtape(etape.uuid, applied))
       .map(etape => ({
         ...etape,
         candidatures: etape.candidatures.filter(
@@ -64,13 +64,13 @@ export function useCandidaturesFilters({
 
   const filteredCandidatures = computed(() =>
     (candidatureListe.value?.results ?? []).filter(row =>
-      matchesEtape(row.etape.etape_uuid, applied)
+      matchesEtape(row.etape.uuid, applied)
       && matchesSearch(row.candidat, appliedSearch.value),
     ),
   )
 
   const etapeOptions = computed<CspCheckboxGroupOption[]>(() =>
-    recrutementEtapes.value.map(etape => ({ value: etape.etape_uuid, label: etape.nom })),
+    recrutementEtapes.value.map(etape => ({ value: etape.uuid, label: etape.nom })),
   )
 
   const activeFiltersCount = computed(() => countActiveFilters(applied))

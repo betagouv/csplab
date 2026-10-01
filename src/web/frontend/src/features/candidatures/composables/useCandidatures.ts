@@ -165,8 +165,8 @@ export const useCandidatures = defineQuery(() => {
     if (!kanbanData)
       return false
 
-    const sourceEtape = kanbanData.etapes.find(e => e.etape_uuid === sourceColumnId)
-    const targetEtape = kanbanData.etapes.find(e => e.etape_uuid === targetColumnId)
+    const sourceEtape = kanbanData.etapes.find(e => e.uuid === sourceColumnId)
+    const targetEtape = kanbanData.etapes.find(e => e.uuid === targetColumnId)
 
     if (!sourceEtape || !targetEtape)
       return false
@@ -178,13 +178,13 @@ export const useCandidatures = defineQuery(() => {
     const candidature = sourceEtape.candidatures[candidatureIndex] as Candidature
 
     const newEtapes = kanbanData.etapes.map((etape) => {
-      if (etape.etape_uuid === sourceColumnId) {
+      if (etape.uuid === sourceColumnId) {
         return {
           ...etape,
           candidatures: etape.candidatures.filter(c => c.uuid !== cardId),
         }
       }
-      if (etape.etape_uuid === targetColumnId) {
+      if (etape.uuid === targetColumnId) {
         return {
           ...etape,
           candidatures: [...etape.candidatures, candidature],
@@ -204,7 +204,7 @@ export const useCandidatures = defineQuery(() => {
     if (!kanbanData)
       return
 
-    const targetEtape = kanbanData.etapes.find(e => e.etape_uuid === targetColumnId)
+    const targetEtape = kanbanData.etapes.find(e => e.uuid === targetColumnId)
     if (!targetEtape)
       return
 
@@ -214,7 +214,7 @@ export const useCandidatures = defineQuery(() => {
       if (sourceEtapeUuid === targetColumnId)
         continue
 
-      const sourceEtape = kanbanData.etapes.find(e => e.etape_uuid === sourceEtapeUuid)
+      const sourceEtape = kanbanData.etapes.find(e => e.uuid === sourceEtapeUuid)
       if (!sourceEtape)
         continue
 
@@ -232,14 +232,14 @@ export const useCandidatures = defineQuery(() => {
     const movedUuids = new Set(candidaturesToMove.map(c => c.uuid))
 
     const newEtapes = kanbanData.etapes.map((etape) => {
-      if (etape.etape_uuid === targetColumnId) {
+      if (etape.uuid === targetColumnId) {
         return {
           ...etape,
           candidatures: [...etape.candidatures, ...candidaturesToMove],
         }
       }
 
-      if (candidaturesByEtape.has(etape.etape_uuid)) {
+      if (candidaturesByEtape.has(etape.uuid)) {
         return {
           ...etape,
           candidatures: etape.candidatures.filter(c => !movedUuids.has(c.uuid)),

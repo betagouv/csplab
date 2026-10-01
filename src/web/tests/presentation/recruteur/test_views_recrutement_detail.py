@@ -200,7 +200,7 @@ class TestRecrutementDetailView:
     def test_response_structure(self, authenticated_client):
         payload = authenticated_client.get(RECRUTEMENT_DETAIL_URL).json()
         assert set(payload) == {
-            "offer_id",
+            "uuid",
             "intitule",
             "archive",
             "date_publication",
@@ -227,7 +227,7 @@ class TestRecrutementDetailView:
     def test_etape_structure(self, authenticated_client):
         data = authenticated_client.get(RECRUTEMENT_DETAIL_URL).json()
         etape = data["etapes"][0]
-        assert "etape_uuid" in etape
+        assert "uuid" in etape
         assert "nom" in etape
         assert "categorie" in etape
 
@@ -285,12 +285,12 @@ class TestRecrutementKanbanView:
 
     def test_response_structure(self, authenticated_client):
         data = authenticated_client.get(RECRUTEMENT_KANBAN_URL).json()
-        assert set(data) == {"offer_id", "etapes"}
+        assert set(data) == {"uuid", "etapes"}
         assert isinstance(data["etapes"], list)
 
     def test_etape_structure(self, authenticated_client):
         etape = authenticated_client.get(RECRUTEMENT_KANBAN_URL).json()["etapes"][0]
-        assert "etape_uuid" in etape
+        assert "uuid" in etape
         assert "nom" in etape
         assert "categorie" in etape
         assert "candidatures" in etape
@@ -398,7 +398,7 @@ class TestRecrutementListeView:
         etape = authenticated_client.get(RECRUTEMENT_LISTE_URL).json()["results"][0][
             "etape"
         ]
-        assert "etape_uuid" in etape
+        assert "uuid" in etape
         assert "nom" in etape
         assert "categorie" in etape
 
@@ -617,7 +617,7 @@ class TestRecrutementDetailViewDbVerified:
 
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
-        assert data["offer_id"] == str(offer.id)
+        assert data["uuid"] == str(offer.id)
         assert data["intitule"] == offer.title
         assert data["archive"] is False
         assert data["categorie_offre"] == offer.category
@@ -642,7 +642,7 @@ class TestRecrutementKanbanViewDbVerified:
 
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
-        assert data["offer_id"] == str(recrutement.offre_id)
+        assert data["uuid"] == str(recrutement.offre_id)
         assert len(data["etapes"]) == len(recrutement.ordre_etapes)
         assert data["etapes"][0]["candidatures"] == []
 
@@ -670,7 +670,7 @@ class TestRecrutementListeViewDbVerified:
         assert result["candidat"]["prenom"] == (
             candidature.candidat.utilisateur.first_name
         )
-        assert result["etape"]["etape_uuid"] == str(etape.id)
+        assert result["etape"]["uuid"] == str(etape.id)
         assert result["etape"]["nom"] == etape.nom
 
     def test_does_not_trigger_n_plus_one_queries(

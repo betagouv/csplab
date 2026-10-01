@@ -95,7 +95,7 @@ watch(() => roleChange.requested, async (change) => {
   const { agent, role } = change
   roleChange.clear()
   try {
-    await updateAgent({ agent_id: agent.agent_id, role })
+    await updateAgent({ agent_id: agent.uuid, role })
     addToast({
       variant: 'success',
       title: 'Rôle modifié',
@@ -123,7 +123,7 @@ async function handleRevocation(): Promise<void> {
   const agent = revocation.requested
   try {
     await updateAgent({
-      agent_id: agent.agent_id,
+      agent_id: agent.uuid,
       role: agent.role,
       date_revocation: new Date().toISOString(),
     })
@@ -186,7 +186,7 @@ async function handleRevocation(): Promise<void> {
         v-model:page="page"
         :rows="filtered"
         :columns="ORGANISME_AGENTS_COLUMNS"
-        :row-key="row => row.agent_id"
+        :row-key="row => row.uuid"
         caption="Membres de l'organisme"
         :page-size="PAGE_SIZE"
       >

@@ -487,7 +487,7 @@ export interface components {
     schemas: {
         Agent: {
             /** Format: uuid */
-            agent_id: string;
+            uuid: string;
             /** Format: email */
             email: string;
             prenom: string;
@@ -496,7 +496,7 @@ export interface components {
         };
         AgentOrganisme: {
             /** Format: uuid */
-            agent_id: string;
+            uuid: string;
             /** Format: uuid */
             organisme_id: string;
             nom: string;
@@ -514,7 +514,7 @@ export interface components {
         };
         AgentRecherche: {
             /** Format: uuid */
-            agent_id: string;
+            uuid: string;
             /** Format: email */
             email: string;
             prenom: string;
@@ -794,18 +794,18 @@ export interface components {
         };
         EtapeCandidatureDetail: {
             /** Format: uuid */
-            etape_uuid: string;
+            uuid: string;
             nom: string;
         };
         EtapeRecrutement: {
             /** Format: uuid */
-            etape_uuid: string;
+            uuid: string;
             nom: string;
             categorie: components["schemas"]["CategorieEnum"];
         };
         EtapeRecrutementDetailedCandidatures: {
             /** Format: uuid */
-            etape_uuid: string;
+            uuid: string;
             nom: string;
             categorie: components["schemas"]["CategorieEnum"];
             candidatures: components["schemas"]["Candidature"][];
@@ -842,7 +842,7 @@ export interface components {
         MotifRefusEnum: "corps_grade_non_eligible" | "condition_mobilite_non_remplie" | "candidat_non_fonctionnaire" | "experience_insuffisante" | "competences_techniques_insuffisantes" | "niveau_qualification_insuffisant" | "disponibilite" | "autre";
         Note: {
             /** Format: uuid */
-            entity_id: string;
+            uuid: string;
             /** Format: uuid */
             candidature_id: string;
             message: string;
@@ -855,7 +855,7 @@ export interface components {
         };
         NoteDetail: {
             /** Format: uuid */
-            entity_id: string;
+            uuid: string;
             /** Format: uuid */
             candidature_id: string;
             message: string;
@@ -870,7 +870,7 @@ export interface components {
         };
         OrganismeDetail: {
             /** Format: uuid */
-            organisme_uuid: string;
+            uuid: string;
             nom: string;
             versant: components["schemas"]["VersantEnum"];
             siret: string;
@@ -889,7 +889,7 @@ export interface components {
         };
         OrganismesList: {
             /** Format: uuid */
-            organisme_uuid: string;
+            uuid: string;
             nom: string;
             versant: components["schemas"]["VersantEnum"];
             siret: string;
@@ -1048,7 +1048,7 @@ export interface components {
         };
         RecrutementAgent: {
             /** Format: uuid */
-            agent_id: string;
+            uuid: string;
             nom: string;
             prenom: string;
             poste: string;
@@ -1065,7 +1065,7 @@ export interface components {
         };
         RecrutementDetail: {
             /** Format: uuid */
-            offer_id: string;
+            uuid: string;
             intitule: string;
             archive: boolean;
             /** Format: date-time */
@@ -1077,7 +1077,7 @@ export interface components {
         };
         RecrutementDetailKanban: {
             /** Format: uuid */
-            offer_id: string;
+            uuid: string;
             etapes: components["schemas"]["EtapeRecrutementDetailedCandidatures"][];
         };
         RecrutementEchec: {
@@ -1094,7 +1094,7 @@ export interface components {
         RecrutementRoleEnum: "responsable" | "recruteur" | "contributeur";
         RecrutementsActifs: {
             /** Format: uuid */
-            offer_id: string;
+            uuid: string;
             intitule: string;
             reference_csp: string;
             type_contrat: (components["schemas"]["TypeContratEnum"] | components["schemas"]["NullEnum"]) | null;
@@ -1107,7 +1107,7 @@ export interface components {
         };
         RecrutementsArchives: {
             /** Format: uuid */
-            offer_id: string;
+            uuid: string;
             intitule: string;
             reference_csp: string;
             type_contrat: (components["schemas"]["TypeContratEnum"] | components["schemas"]["NullEnum"]) | null;
@@ -1198,7 +1198,7 @@ export interface components {
         };
         UpdateEtapeRecrutement: {
             /** Format: uuid */
-            etape_uuid?: string;
+            uuid?: string;
             nom: string;
             categorie: components["schemas"]["CategorieEnum"];
         };

@@ -22,10 +22,10 @@ export const CANDIDAT_ALICE: Candidat = { uuid: 'eeeeeeee-0001-0001-0001-0000000
 export const CANDIDAT_BRUNO: Candidat = { uuid: 'eeeeeeee-0001-0001-0001-000000000002', nom: 'Martin', prenom: 'Bruno' }
 
 export const KANBAN: RecrutementDetailKanban = {
-  offer_id: RECRUTEMENT_UUID,
+  uuid: RECRUTEMENT_UUID,
   etapes: [
     {
-      etape_uuid: ETAPE_RECEPTION,
+      uuid: ETAPE_RECEPTION,
       nom: 'Réception des candidatures',
       categorie: 'ENTREE',
       candidatures: [
@@ -43,8 +43,8 @@ export const KANBAN: RecrutementDetailKanban = {
         },
       ],
     },
-    { etape_uuid: ETAPE_ENTRETIEN, nom: 'Entretien', categorie: 'EN_COURS', candidatures: [] },
-    { etape_uuid: ETAPE_REFUS, nom: 'Refus', categorie: 'REFUS', candidatures: [] },
+    { uuid: ETAPE_ENTRETIEN, nom: 'Entretien', categorie: 'EN_COURS', candidatures: [] },
+    { uuid: ETAPE_REFUS, nom: 'Refus', categorie: 'REFUS', candidatures: [] },
   ],
 }
 
@@ -55,8 +55,8 @@ export function candidatureDetail(candidatureUuid: string): CandidatureDetail {
     uuid: candidatureUuid,
     candidat: { ...candidature.candidat, email: 'candidat@example.fr' },
     recrutement_intitule: 'Chargé de mission',
-    etapes: KANBAN.etapes.map(({ etape_uuid, nom }) => ({ etape_uuid, nom })),
-    etape_actuelle: { etape_uuid: etape.etape_uuid, nom: etape.nom },
+    etapes: KANBAN.etapes.map(({ uuid, nom }) => ({ uuid, nom })),
+    etape_actuelle: { uuid: etape.uuid, nom: etape.nom },
     date_candidature: candidature.date_soumission,
     date_derniere_maj_candidat: null,
     date_derniere_maj_recruteur: null,
@@ -71,7 +71,7 @@ export const RECRUTEMENT_DETAIL = {
   localisation: { localisation_label: 'Paris' },
   organisme_recruteur: { nom: 'Ministère de la Transition Écologique' },
   categorie_offre: 'A',
-  etapes: KANBAN.etapes.map(({ etape_uuid, nom, categorie }) => ({ etape_uuid, nom, categorie })),
+  etapes: KANBAN.etapes.map(({ uuid, nom, categorie }) => ({ uuid, nom, categorie })),
 } as unknown as RecrutementDetail
 
 export const MOTIFS_REFUS: MotifRefusOption[] = [

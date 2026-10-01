@@ -24,7 +24,7 @@ export function useAssignationResponsable(organismeUuid: MaybeRefOrGetter<string
     const agent = await resolve()
     return assignationMutation.mutateAsync({
       recrutement_ids: recrutementIds,
-      agent_id: agent.agent_id,
+      agent_id: agent.uuid,
     })
   }
 

@@ -4732,7 +4732,7 @@ components:
     Agent:
       type: object
       properties:
-        agent_id:
+        uuid:
           type: string
           format: uuid
         email:
@@ -4745,15 +4745,15 @@ components:
         intitule_poste:
           type: string
       required:
-      - agent_id
       - email
       - intitule_poste
       - nom
       - prenom
+      - uuid
     AgentOrganisme:
       type: object
       properties:
-        agent_id:
+        uuid:
           type: string
           format: uuid
         organisme_id:
@@ -4782,7 +4782,6 @@ components:
           format: date-time
           nullable: true
       required:
-      - agent_id
       - date_creation_compte
       - date_derniere_activite
       - email
@@ -4791,10 +4790,11 @@ components:
       - poste
       - prenom
       - role
+      - uuid
     AgentRecherche:
       type: object
       properties:
-        agent_id:
+        uuid:
           type: string
           format: uuid
         email:
@@ -4808,11 +4808,11 @@ components:
           type: string
           maxLength: 255
       required:
-      - agent_id
       - email
       - intitule_poste
       - nom
       - prenom
+      - uuid
     AuditLog:
       type: object
       properties:
@@ -5427,18 +5427,18 @@ components:
     EtapeCandidatureDetail:
       type: object
       properties:
-        etape_uuid:
+        uuid:
           type: string
           format: uuid
         nom:
           type: string
       required:
-      - etape_uuid
       - nom
+      - uuid
     EtapeRecrutement:
       type: object
       properties:
-        etape_uuid:
+        uuid:
           type: string
           format: uuid
         nom:
@@ -5447,12 +5447,12 @@ components:
           $ref: '#/components/schemas/CategorieEnum'
       required:
       - categorie
-      - etape_uuid
       - nom
+      - uuid
     EtapeRecrutementDetailedCandidatures:
       type: object
       properties:
-        etape_uuid:
+        uuid:
           type: string
           format: uuid
         nom:
@@ -5466,8 +5466,8 @@ components:
       required:
       - candidatures
       - categorie
-      - etape_uuid
       - nom
+      - uuid
     GenericError:
       type: object
       properties:
@@ -5548,7 +5548,7 @@ components:
     Note:
       type: object
       properties:
-        entity_id:
+        uuid:
           type: string
           format: uuid
         candidature_id:
@@ -5568,16 +5568,16 @@ components:
           format: date-time
       required:
       - candidature_id
-      - entity_id
       - message
       - publie_le
       - publie_par_id
       - publie_par_nom
       - publie_par_prenom
+      - uuid
     NoteDetail:
       type: object
       properties:
-        entity_id:
+        uuid:
           type: string
           format: uuid
         candidature_id:
@@ -5590,9 +5590,9 @@ components:
           format: uuid
       required:
       - candidature_id
-      - entity_id
       - message
       - publie_par_id
+      - uuid
     NullEnum:
       enum:
       - null
@@ -5610,7 +5610,7 @@ components:
     OrganismeDetail:
       type: object
       properties:
-        organisme_uuid:
+        uuid:
           type: string
           format: uuid
         nom:
@@ -5638,8 +5638,8 @@ components:
       - gestion_ats
       - gestionnaire
       - nom
-      - organisme_uuid
       - siret
+      - uuid
       - versant
     OrganismeRole:
       type: object
@@ -5658,7 +5658,7 @@ components:
     OrganismesList:
       type: object
       properties:
-        organisme_uuid:
+        uuid:
           type: string
           format: uuid
         nom:
@@ -5692,8 +5692,8 @@ components:
       - nom
       - nombre_agents
       - nombre_offres_publiees
-      - organisme_uuid
       - siret
+      - uuid
       - versant
     PaginatedAuditLogList:
       type: object
@@ -5922,7 +5922,7 @@ components:
     RecrutementAgent:
       type: object
       properties:
-        agent_id:
+        uuid:
           type: string
           format: uuid
         nom:
@@ -5937,12 +5937,12 @@ components:
         recrutement_role:
           $ref: '#/components/schemas/RecrutementRoleEnum'
       required:
-      - agent_id
       - email
       - nom
       - poste
       - prenom
       - recrutement_role
+      - uuid
     RecrutementAgentRole:
       type: object
       properties:
@@ -5961,7 +5961,7 @@ components:
     RecrutementDetail:
       type: object
       properties:
-        offer_id:
+        uuid:
           type: string
           format: uuid
         intitule:
@@ -5988,12 +5988,12 @@ components:
       - etapes
       - intitule
       - localisation
-      - offer_id
       - organisme_recruteur
+      - uuid
     RecrutementDetailKanban:
       type: object
       properties:
-        offer_id:
+        uuid:
           type: string
           format: uuid
         etapes:
@@ -6002,7 +6002,7 @@ components:
             $ref: '#/components/schemas/EtapeRecrutementDetailedCandidatures'
       required:
       - etapes
-      - offer_id
+      - uuid
     RecrutementEchec:
       type: object
       properties:
@@ -6027,7 +6027,7 @@ components:
     RecrutementsActifs:
       type: object
       properties:
-        offer_id:
+        uuid:
           type: string
           format: uuid
         intitule:
@@ -6058,14 +6058,14 @@ components:
       - date_publication
       - derniere_activite
       - intitule
-      - offer_id
       - reference_csp
       - responsables
       - type_contrat
+      - uuid
     RecrutementsArchives:
       type: object
       properties:
-        offer_id:
+        uuid:
           type: string
           format: uuid
         intitule:
@@ -6093,11 +6093,11 @@ components:
       - date_archivage
       - finalise
       - intitule
-      - offer_id
       - recrute
       - reference_csp
       - responsables
       - type_contrat
+      - uuid
     RegionEnum:
       enum:
       - '01'
@@ -6264,7 +6264,7 @@ components:
     UpdateEtapeRecrutement:
       type: object
       properties:
-        etape_uuid:
+        uuid:
           type: string
           format: uuid
         nom:

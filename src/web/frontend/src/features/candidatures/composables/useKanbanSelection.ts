@@ -28,7 +28,7 @@ export function useKanbanSelection(
     const result: SelectedCandidature[] = []
 
     for (const [etapeUuid, candidatureUuids] of selectedByEtape.value) {
-      const etape = etapes.value.find(e => e.etape_uuid === etapeUuid)
+      const etape = etapes.value.find(e => e.uuid === etapeUuid)
       if (!etape)
         continue
 
@@ -60,7 +60,7 @@ export function useKanbanSelection(
     if (!selected || selected.size === 0)
       return false
 
-    const etape = etapes.value.find(e => e.etape_uuid === etapeUuid)
+    const etape = etapes.value.find(e => e.uuid === etapeUuid)
     if (!etape)
       return false
 
@@ -68,7 +68,7 @@ export function useKanbanSelection(
   }
 
   function toggleColumnSelection(etape: EtapeRecrutementDetailedCandidatures): void {
-    const etapeUuid = etape.etape_uuid
+    const etapeUuid = etape.uuid
     const currentSelection = selectedByEtape.value.get(etapeUuid)
     const isCurrentlySelected = currentSelection && currentSelection.size === etape.candidatures.length
 
