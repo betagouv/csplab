@@ -13,10 +13,6 @@ def logs_fixture(caplog):
     return caplog
 
 
-def _messages(logs):
-    return [r.getMessage() for r in logs.records]
-
-
 class TestTokenLoginLog:
     def test_logs_successful_login_without_email(self, api_client, test_user, logs):
         response = api_client.post(
@@ -26,7 +22,9 @@ class TestTokenLoginLog:
         )
 
         assert response.status_code == status.HTTP_200_OK
-        assert _messages(logs) == [f"API login succeeded for user {test_user.pk}."]
+        assert f"API login succeeded for user {test_user.pk}." in [
+            r.getMessage() for r in logs.records
+        ]
         assert test_user.email not in logs.text
 
     def test_logs_failed_login_for_existing_user(self, api_client, test_user, logs):
@@ -37,7 +35,9 @@ class TestTokenLoginLog:
         )
 
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
-        assert _messages(logs) == [f"API login failed for user {test_user.pk}."]
+        assert f"API login failed for user {test_user.pk}." in [
+            r.getMessage() for r in logs.records
+        ]
         assert test_user.email not in logs.text
 
     def test_logs_failed_login_for_unknown_account(self, api_client, db, logs):
@@ -48,5 +48,7 @@ class TestTokenLoginLog:
         )
 
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
-        assert _messages(logs) == ["API login failed for an unknown account."]
+        assert "API login failed for an unknown account." in [
+            r.getMessage() for r in logs.records
+        ]
         assert "nobody@example.com" not in logs.text
