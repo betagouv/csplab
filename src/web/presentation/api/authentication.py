@@ -28,3 +28,10 @@ class PublicApiKeyOnlyMixin:
 class SessionApiMixin:
     authentication_classes = [SessionApiAuthentication]
     permission_classes = [IsAuthenticated]
+
+
+class UnauthenticatedMixin:
+    """Open on purpose (e.g. token issuing): no authenticator at all."""
+
+    authentication_classes: list[type[BaseAuthentication]] = []
+    permission_classes = [AllowAny]
