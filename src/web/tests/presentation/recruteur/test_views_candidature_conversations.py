@@ -33,7 +33,7 @@ TAILLE_PAGE_PAR_DEFAUT = 20
 
 def _url(organisme_uuid, recrutement_uuid, candidature_uuid):
     return reverse(
-        "recruteur:organisme-recrutement-candidature-conversations",
+        "recruteur:organisme_recrutement_candidature_conversations",
         kwargs={
             "organisme_uuid": organisme_uuid,
             "recrutement_uuid": recrutement_uuid,

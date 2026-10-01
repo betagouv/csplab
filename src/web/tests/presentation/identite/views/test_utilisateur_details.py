@@ -17,7 +17,7 @@ from infrastructure.factories.identite.organisme_django_factory import (
 )
 from infrastructure.factories.identite.utilisateur_factory import UtilisateurFactory
 
-URL = reverse("identite:user-details")
+URL = reverse("identite:user_details")
 
 
 @pytest.fixture

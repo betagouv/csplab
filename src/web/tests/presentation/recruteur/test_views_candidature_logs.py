@@ -20,7 +20,7 @@ TAILLE_PAGE_LIMITEE = 2
 
 def _url(organisme_uuid, recrutement_uuid, candidature_uuid):
     return reverse(
-        "recruteur:organisme-recrutement-candidature-logs",
+        "recruteur:organisme_recrutement_candidature_logs",
         kwargs={
             "organisme_uuid": organisme_uuid,
             "recrutement_uuid": recrutement_uuid,

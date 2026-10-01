@@ -18,7 +18,7 @@ from infrastructure.factories.recruteur.recrutement_django_factory import (
 
 def _notes_url(organisme_id, recrutement_id, candidature_id) -> str:
     return reverse(
-        "recruteur:candidature-notes",
+        "recruteur:candidature_notes",
         kwargs={
             "organisme_uuid": str(organisme_id),
             "recrutement_uuid": str(recrutement_id),
@@ -29,7 +29,7 @@ def _notes_url(organisme_id, recrutement_id, candidature_id) -> str:
 
 def _note_detail_url(organisme_id, recrutement_id, candidature_id, note_id) -> str:
     return reverse(
-        "recruteur:candidature-note-detail",
+        "recruteur:candidature_note_detail",
         kwargs={
             "organisme_uuid": str(organisme_id),
             "recrutement_uuid": str(recrutement_id),

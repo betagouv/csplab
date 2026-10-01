@@ -17,7 +17,7 @@ from infrastructure.factories.identite.organisme_django_factory import (
 ORGANISME_UUID = str(uuid4())
 
 AGENTS_URL = reverse(
-    "recruteur:organisme-parametres-agents",
+    "recruteur:organisme_parametres_agents",
     kwargs={"organisme_uuid": ORGANISME_UUID},
 )
 
@@ -38,7 +38,7 @@ class TestOrganismeAgentsView:
             agent__intitule_poste="Recruteur",
         ).agent
         url = reverse(
-            "recruteur:organisme-parametres-agents",
+            "recruteur:organisme_parametres_agents",
             kwargs={"organisme_uuid": str(organisme.id)},
         )
 
@@ -83,7 +83,7 @@ class TestOrganismeAgentsView:
             organisme_id=organisme.id, agent_id=autre_agent.utilisateur_id
         ).update(date_revocation=timezone.now())
         url = reverse(
-            "recruteur:organisme-parametres-agents",
+            "recruteur:organisme_parametres_agents",
             kwargs={"organisme_uuid": str(organisme.id)},
         )
 
@@ -105,7 +105,7 @@ class TestOrganismeAgentsView:
         )
         bare_agent = AgentDjangoFactory()
         url = reverse(
-            "recruteur:organisme-parametres-agents",
+            "recruteur:organisme_parametres_agents",
             kwargs={"organisme_uuid": str(organisme.id)},
         )
 
@@ -139,7 +139,7 @@ class TestOrganismeAgentsView:
         )
         bare_agent = AgentDjangoFactory()
         url = reverse(
-            "recruteur:organisme-parametres-agents",
+            "recruteur:organisme_parametres_agents",
             kwargs={"organisme_uuid": str(organisme.id)},
         )
 
@@ -166,7 +166,7 @@ class TestOrganismeAgentsView:
             role=AgentOrganismeRole.AGENT.value,
         ).agent
         url = reverse(
-            "recruteur:organisme-parametres-agents",
+            "recruteur:organisme_parametres_agents",
             kwargs={"organisme_uuid": str(organisme.id)},
         )
 
@@ -224,7 +224,7 @@ class TestOrganismeAgentsView:
             agent__intitule_poste="Recruteur",
         ).agent
         url = reverse(
-            "recruteur:organisme-parametres-agents",
+            "recruteur:organisme_parametres_agents",
             kwargs={"organisme_uuid": str(organisme.id)},
         )
 
@@ -258,7 +258,7 @@ class TestOrganismeAgentsView:
             role=AgentOrganismeRole.AGENT.value,
         ).agent
         url = reverse(
-            "recruteur:organisme-parametres-agents",
+            "recruteur:organisme_parametres_agents",
             kwargs={"organisme_uuid": str(organisme.id)},
         )
 
@@ -282,7 +282,7 @@ class TestOrganismeAgentsView:
         )
         bare_agent = AgentDjangoFactory()
         url = reverse(
-            "recruteur:organisme-parametres-agents",
+            "recruteur:organisme_parametres_agents",
             kwargs={"organisme_uuid": str(organisme.id)},
         )
 
@@ -336,7 +336,7 @@ class TestOrganismeAgentsView:
             role=AgentOrganismeRole.AGENT.value,
         ).agent
         url = reverse(
-            "recruteur:organisme-parametres-agents",
+            "recruteur:organisme_parametres_agents",
             kwargs={"organisme_uuid": str(organisme.id)},
         )
 
@@ -368,7 +368,7 @@ class TestOrganismeAgentsView:
             role=AgentOrganismeRole.AGENT.value,
         ).agent
         url = reverse(
-            "recruteur:organisme-parametres-agents",
+            "recruteur:organisme_parametres_agents",
             kwargs={"organisme_uuid": str(organisme.id)},
         )
 
@@ -401,7 +401,7 @@ class TestOrganismeAgentsView:
             role=AgentOrganismeRole.AGENT.value,
         ).agent
         url = reverse(
-            "recruteur:organisme-parametres-agents",
+            "recruteur:organisme_parametres_agents",
             kwargs={"organisme_uuid": str(organisme.id)},
         )
 
@@ -426,7 +426,7 @@ class TestOrganismeAgentsView:
         )
         bare_agent = AgentDjangoFactory()
         url = reverse(
-            "recruteur:organisme-parametres-agents",
+            "recruteur:organisme_parametres_agents",
             kwargs={"organisme_uuid": str(organisme.id)},
         )
 

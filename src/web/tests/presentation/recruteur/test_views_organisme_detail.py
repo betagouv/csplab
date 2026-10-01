@@ -39,18 +39,18 @@ fake = Faker("fr_FR")
 
 ORGANISME_UUID = fake.uuid4()
 ORGANISME_URL = reverse(
-    "recruteur:organisme-detail", kwargs={"organisme_uuid": ORGANISME_UUID}
+    "recruteur:organisme_detail", kwargs={"organisme_uuid": ORGANISME_UUID}
 )
 ETAPES_URL = reverse(
-    "recruteur:organisme-parametres-etapes",
+    "recruteur:organisme_parametres_etapes",
     kwargs={"organisme_uuid": ORGANISME_UUID},
 )
 INIT_ETAPES_URL = reverse(
-    "recruteur:organisme-parametres-etapes-init",
+    "recruteur:organisme_parametres_etapes_init",
     kwargs={"organisme_uuid": ORGANISME_UUID},
 )
 MOTIFS_REFUS_URL = reverse(
-    "recruteur:organisme-parametres-motifs-refus",
+    "recruteur:organisme_parametres_motifs_refus",
     kwargs={"organisme_uuid": ORGANISME_UUID},
 )
 

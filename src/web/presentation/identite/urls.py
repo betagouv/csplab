@@ -25,5 +25,5 @@ urlpatterns = [
         name="proconnect_callback",
     ),
     path("profil", ProfileView.as_view(), name="profile"),
-    path("me", UtilisateurDetailsView.as_view(), name="user-details"),
+    path("me", UtilisateurDetailsView.as_view(), name="user_details"),
 ]

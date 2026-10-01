@@ -22,7 +22,7 @@ from infrastructure.factories.recruteur.recrutement_django_factory import (
 
 def _url(organisme_uuid):
     return reverse(
-        "recruteur:organisme-recrutements-responsable",
+        "recruteur:organisme_recrutements_responsable",
         kwargs={"organisme_uuid": organisme_uuid},
     )
 

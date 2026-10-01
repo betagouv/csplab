@@ -14,7 +14,7 @@ from infrastructure.factories.identite.organisme_django_factory import (
 ORGANISME_UUID = str(uuid4())
 
 AGENT_RECHERCHE_URL = reverse(
-    "recruteur:organisme-parametres-agents-recherche",
+    "recruteur:organisme_parametres_agents_recherche",
     kwargs={"organisme_uuid": ORGANISME_UUID},
 )
 
@@ -31,7 +31,7 @@ class TestAgentRechercheView:
             utilisateur=test_user,
         )
         url = reverse(
-            "recruteur:organisme-parametres-agents-recherche",
+            "recruteur:organisme_parametres_agents_recherche",
             kwargs={"organisme_uuid": str(organisme.id)},
         )
 
@@ -43,7 +43,7 @@ class TestAgentRechercheView:
     def test_unknown_organisme_returns_404(self, authenticated_client):
         organisme_uuid = str(uuid4())
         url = reverse(
-            "recruteur:organisme-parametres-agents-recherche",
+            "recruteur:organisme_parametres_agents_recherche",
             kwargs={"organisme_uuid": organisme_uuid},
         )
 
@@ -58,7 +58,7 @@ class TestAgentRechercheView:
             utilisateur=test_user,
         )
         url = reverse(
-            "recruteur:organisme-parametres-agents-recherche",
+            "recruteur:organisme_parametres_agents_recherche",
             kwargs={"organisme_uuid": str(organisme.id)},
         )
 
@@ -72,7 +72,7 @@ class TestAgentRechercheView:
             utilisateur=test_user,
         )
         url = reverse(
-            "recruteur:organisme-parametres-agents-recherche",
+            "recruteur:organisme_parametres_agents_recherche",
             kwargs={"organisme_uuid": str(organisme.id)},
         )
 
@@ -86,7 +86,7 @@ class TestAgentRechercheView:
             utilisateur=test_user,
         )
         url = reverse(
-            "recruteur:organisme-parametres-agents-recherche",
+            "recruteur:organisme_parametres_agents_recherche",
             kwargs={"organisme_uuid": str(organisme.id)},
         )
 
@@ -103,7 +103,7 @@ class TestAgentRechercheViewDbVerified:
         )
         autre_agent = AgentDjangoFactory()
         url = reverse(
-            "recruteur:organisme-parametres-agents-recherche",
+            "recruteur:organisme_parametres_agents_recherche",
             kwargs={"organisme_uuid": str(organisme.id)},
         )
 
