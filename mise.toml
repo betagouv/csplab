@@ -155,9 +155,10 @@ hk install --mise
 """
 
 [tasks.bootstrap]
-description = "Prepare the full dev environment (services, dependencies, migrations, superuser)"
+description = "Prepare the full dev environment (services, dependencies, git hooks, migrations, superuser)"
 depends = [
   "services",
+  "git-hooks",
   "install",
   "//src/web:qdrant:init",
   "//src/web:s3:init",
@@ -169,8 +170,8 @@ depends = [
 ]
 
 [tasks.onboard]
-description = "First-time setup: env files, git hooks, then full bootstrap"
-depends = ["setup", "git-hooks"]
+description = "First-time setup: env files, then full bootstrap"
+depends = ["setup"]
 # fresh mise invocation so the env files setup just created are loaded
 run = "mise run bootstrap"
 
@@ -180,7 +181,6 @@ confirm = { message = "Reset env.d/* AND remove docker volumes (local databases 
 # single confirm here: the inner destructive tasks are pre-confirmed via MISE_YES
 run = [
   "MISE_YES=1 mise run setup:force",
-  "mise run git-hooks",
   "MISE_YES=1 mise run bootstrap:reset",
 ]
 

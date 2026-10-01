@@ -42,7 +42,7 @@ Le `mise.toml` à la racine contient ce qui concerne le repo entier :
 
 - `lint`, `lint:fix`, `test`, `test:cov`, `check`, `install` : lancent la tâche correspondante de tous les sous-projets, plus celles du frontend. `lint` et `lint:fix` lancent aussi `lint:files` et `lint:files:fix`, les contrôles de fichiers déclarés dans `hk.pkl`. Un nouveau sous-projet ajouté à `config_roots` y est inclus automatiquement.
 - `services:postgres`, `services:redis`, `services:qdrant`, `services:rustfs`, `services` : démarrent les conteneurs docker, ou les recréent quand leur configuration a changé ; un conteneur à jour et sain est laissé tel quel. Les tâches qui ont besoin d'un service le déclarent en dépendance, il démarre donc tout seul. `web:s3:init` crée les buckets de RustFS, `bootstrap` le lance.
-- `onboard` : premier embarquement (setup + git-hooks + bootstrap). `setup`, `git-hooks` et `bootstrap` restent disponibles séparément, et `bootstrap:reset` repart de zéro (volumes docker supprimés puis bootstrap).
+- `onboard` : premier embarquement (setup + bootstrap, qui installe aussi les git hooks). `setup`, `git-hooks` et `bootstrap` restent disponibles séparément, et `bootstrap:reset` repart de zéro (volumes docker supprimés puis bootstrap).
 
 Les opérations sur la base de dev sont dans le namespace web : `web:seed` charge le jeu de données de démo, `web:db:reset` recrée la base à vide puis migre et seed, `web:db:restore` la remplace par un dump Scalingo.
 
