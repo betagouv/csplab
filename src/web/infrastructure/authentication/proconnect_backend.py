@@ -37,16 +37,24 @@ class ProconnectBackend(ModelBackend):
         self._mapper = UtilisateurMapper()
 
     def authenticate(self, request, proconnect_claims=None, **kwargs):
-        if not proconnect_claims or not proconnect_claims.get("email"):
+        if proconnect_claims is None:
+            # this is not a ProConnect attempt.
+            return None
+        if not proconnect_claims.get("email"):
+            self.logger.warning("ProConnect login rejected: no email claim.")
             return None
         user = (
             get_user_model()
             .objects.filter(email__iexact=proconnect_claims["email"], is_active=True)
             .first()
         )
-        if user is not None:
-            self._sync_identite(user, proconnect_claims)
-            self._audit_connexion(user)
+        if user is None:
+            # No email in the log: it identifies a person.
+            self.logger.warning("ProConnect login rejected: no matching active user.")
+            return None
+        self._sync_identite(user, proconnect_claims)
+        self._audit_connexion(user)
+        self.logger.info("User %s logged in through ProConnect.", user.pk)
         return user
 
     def _sync_identite(self, user, proconnect_claims) -> None:
@@ -86,8 +94,7 @@ class ProconnectBackend(ModelBackend):
         return valeur[:longueur_max]
 
     def _audit_connexion(self, user) -> None:
-        # Auditing must never break the login flow, mirrors
-        # presentation.identite.views.LoginView._audit_connexion.
+        # Auditing must never break the login flow.
         try:
             usecase = self.container.log_utilisateur_connexion_usecase()
             usecase.execute(
