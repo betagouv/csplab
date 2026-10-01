@@ -1,8 +1,8 @@
 import random
 from datetime import datetime
 from typing import List, Optional
-from uuid import uuid4
 
+from faker import Faker
 from referentiel.entities.corps import Corps
 from referentiel.value_objects.access_modality import AccessModality
 from referentiel.value_objects.category import Category
@@ -10,6 +10,8 @@ from referentiel.value_objects.label import Label
 from referentiel.value_objects.ministry import Ministry
 
 from infrastructure.factories.datetime_utils import as_aware
+
+fake = Faker()
 
 
 class CorpsFactory:
@@ -28,7 +30,7 @@ class CorpsFactory:
         archived_at: Optional[datetime] = None,
     ) -> Corps:
         if code is None:
-            code = uuid4().hex[:8]
+            code = fake.pystr(max_chars=8)
 
         if category is None:
             category = random.choice(list(Category)).value
