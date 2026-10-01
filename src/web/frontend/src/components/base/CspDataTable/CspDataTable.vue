@@ -425,23 +425,23 @@ function onActivate(id: string): void {
 
   &.csp-table-wrapper--sm {
     --csp-table-row-height: 2rem;
-    --csp-table-header-padding: 0.5rem 0.75rem;
-    --csp-table-footer-padding: 0.5rem 0.25rem 0.5rem 0.75rem;
-    --csp-table-cell-padding: 0.5rem 0.75rem;
+    --csp-table-header-padding: var(--csp-space-2) var(--csp-space-3);
+    --csp-table-footer-padding: var(--csp-space-2) var(--csp-space-1) var(--csp-space-2) var(--csp-space-3);
+    --csp-table-cell-padding: var(--csp-space-2) var(--csp-space-3);
   }
 
   &.csp-table-wrapper--md {
     --csp-table-row-height: 3.25rem;
-    --csp-table-header-padding: 0.75rem 0.75rem;
-    --csp-table-footer-padding: 0.75rem 0.25rem 0.5rem 0.75rem;
-    --csp-table-cell-padding: 0.75rem 0.75rem;
+    --csp-table-header-padding: var(--csp-space-3) var(--csp-space-3);
+    --csp-table-footer-padding: var(--csp-space-3) var(--csp-space-1) var(--csp-space-2) var(--csp-space-3);
+    --csp-table-cell-padding: var(--csp-space-3) var(--csp-space-3);
   }
 
   &.csp-table-wrapper--lg {
     --csp-table-row-height: 4rem;
-    --csp-table-header-padding: 0.75rem 1rem;
-    --csp-table-footer-padding: 0.75rem 0.25rem 0.75rem 1rem;
-    --csp-table-cell-padding: 0.75rem 1rem;
+    --csp-table-header-padding: var(--csp-space-3) var(--csp-space-4);
+    --csp-table-footer-padding: var(--csp-space-3) var(--csp-space-1) var(--csp-space-3) var(--csp-space-4);
+    --csp-table-cell-padding: var(--csp-space-3) var(--csp-space-4);
   }
 }
 
@@ -583,7 +583,7 @@ function onActivate(id: string): void {
 }
 
 .csp-table__empty {
-  padding: 2rem 0.75rem;
+  padding: var(--csp-space-8) var(--csp-space-3);
   text-align: center;
   color: var(--text-mention-grey);
 }
@@ -597,7 +597,7 @@ function onActivate(id: string): void {
 .csp-table__footer-default {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: var(--csp-space-3);
 
   @include bp.from(bp.$md) {
     flex-direction: row;

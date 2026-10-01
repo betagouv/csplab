@@ -106,7 +106,7 @@ const hasBreadcrumb = computed(() => Boolean(props.breadcrumb?.length))
 
   &.csp-page-header--has-back-link {
     --csp-page-header-back-link-size: 2rem;
-    --csp-page-header-back-link-gap: 0.5rem;
+    --csp-page-header-back-link-gap: var(--csp-space-2);
   }
 }
 
@@ -124,7 +124,7 @@ const hasBreadcrumb = computed(() => Boolean(props.breadcrumb?.length))
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
-  gap: 1rem;
+  gap: var(--csp-space-4);
   padding-bottom: var(--csp-page-header-padding-bottom);
   border-bottom: 1px solid var(--border-default-grey);
   padding-inline: var(--csp-page-container-padding-inline);
@@ -146,7 +146,7 @@ const hasBreadcrumb = computed(() => Boolean(props.breadcrumb?.length))
 }
 
 .csp-page-header__back-link {
-  margin-top: 0.25rem;
+  margin-top: var(--csp-space-1);
   width: var(--csp-page-header-back-link-size);
 }
 
@@ -173,7 +173,7 @@ const hasBreadcrumb = computed(() => Boolean(props.breadcrumb?.length))
   display: flex;
   align-items: center;
   align-self: flex-start;
-  gap: 0.5rem;
+  gap: var(--csp-space-2);
   flex-shrink: 0;
 }
 </style>

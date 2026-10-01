@@ -79,13 +79,13 @@ const groupName = props.name ?? useId()
   padding: 0;
   border: 0;
   --csp-segmented-font-size: 1rem;
-  --csp-segmented-padding: 0.5rem 1rem;
+  --csp-segmented-padding: var(--csp-space-2) var(--csp-space-4);
   --csp-segmented-icon-size: 1.5rem;
 }
 
 .csp-segmented--sm {
   --csp-segmented-font-size: 0.875rem;
-  --csp-segmented-padding: 0.25rem 0.75rem;
+  --csp-segmented-padding: var(--csp-space-1) var(--csp-space-3);
   --csp-segmented-icon-size: 1.25rem;
 }
 
@@ -139,7 +139,7 @@ const groupName = props.name ?? useId()
   position: relative;
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: var(--csp-space-2);
   width: 100%;
   padding: var(--csp-segmented-padding);
   border-radius: 0.25rem;
@@ -154,7 +154,7 @@ const groupName = props.name ?? useId()
 .csp-segmented__element label::before {
   content: '';
   position: absolute;
-  inset: 0.25rem;
+  inset: var(--csp-space-1);
   border-radius: 0.25rem;
   z-index: -1;
 }

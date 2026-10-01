@@ -102,14 +102,14 @@ function updateModel(val: unknown): void {
   font-size: 0.875rem;
   font-weight: 600;
   color: var(--text-default-grey);
-  margin-bottom: var(--csp-space-3, 0.75rem);
+  margin-bottom: var(--csp-space-3);
   padding: 0;
 }
 
 .csp-radio-group__items {
   display: flex;
   flex-direction: column;
-  gap: var(--csp-space-2, 0.5rem);
+  gap: var(--csp-space-2);
 }
 
 .csp-radio-group--disabled {
