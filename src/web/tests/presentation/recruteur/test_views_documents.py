@@ -28,7 +28,7 @@ from infrastructure.factories.recruteur.recrutement_django_factory import (
 
 def _url(organisme_uuid, recrutement_uuid, candidature_uuid, document_uuid):
     return reverse(
-        "recruteur:organisme-recrutement-candidature-document",
+        "recruteur:organisme_recrutement_candidature_document",
         kwargs={
             "organisme_uuid": organisme_uuid,
             "recrutement_uuid": recrutement_uuid,
@@ -64,7 +64,7 @@ def _unknown_document(organisme, recrutement, candidature, document):
 
 def _liste_url(organisme_uuid, recrutement_uuid, candidature_uuid):
     return reverse(
-        "recruteur:organisme-recrutement-candidature-documents",
+        "recruteur:organisme_recrutement_candidature_documents",
         kwargs={
             "organisme_uuid": organisme_uuid,
             "recrutement_uuid": recrutement_uuid,

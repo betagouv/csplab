@@ -34,11 +34,11 @@ fake = Faker()
 ORGANISME_UUID = fake.uuid4()
 
 RECRUTEMENTS_ACTIFS_URL = reverse(
-    "recruteur:organisme-recrutements-actifs",
+    "recruteur:organisme_recrutements_actifs",
     kwargs={"organisme_uuid": ORGANISME_UUID},
 )
 RECRUTEMENTS_ARCHIVES_URL = reverse(
-    "recruteur:organisme-recrutements-archives",
+    "recruteur:organisme_recrutements_archives",
     kwargs={"organisme_uuid": ORGANISME_UUID},
 )
 

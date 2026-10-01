@@ -42,11 +42,11 @@ ORGANISME_UUID = fake.uuid4()
 RECRUTEMENT_UUID = "aaaaaaaa-0001-0001-0001-000000000001"
 
 RECRUTEMENT_ETAPES_URL = reverse(
-    "recruteur:organisme-recrutement-etapes",
+    "recruteur:organisme_recrutement_etapes",
     kwargs={"organisme_uuid": ORGANISME_UUID, "recrutement_uuid": RECRUTEMENT_UUID},
 )
 RECRUTEMENT_ETAPES_INIT_URL = reverse(
-    "recruteur:organisme-recrutement-etapes-init",
+    "recruteur:organisme_recrutement_etapes_init",
     kwargs={"organisme_uuid": ORGANISME_UUID, "recrutement_uuid": RECRUTEMENT_UUID},
 )
 

@@ -126,37 +126,37 @@ UNKNOWN_RECRUTEMENT_UUID = fake.uuid4()
 CANDIDATURE_UUID = "aaaaaaaa-0002-0002-0002-000000000002"
 
 RECRUTEMENT_CANDIDATURES_ETAPE_URL = reverse(
-    "recruteur:organisme-recrutement-candidatures-etape",
+    "recruteur:organisme_recrutement_candidatures_etape",
     kwargs={"organisme_uuid": ORGANISME_UUID, "recrutement_uuid": RECRUTEMENT_UUID},
 )
 RECRUTEMENT_KANBAN_URL = reverse(
-    "recruteur:organisme-recrutement-kanban",
+    "recruteur:organisme_recrutement_kanban",
     kwargs={"organisme_uuid": ORGANISME_UUID, "recrutement_uuid": RECRUTEMENT_UUID},
 )
 RECRUTEMENT_LISTE_URL = reverse(
-    "recruteur:organisme-recrutement-liste",
+    "recruteur:organisme_recrutement_liste",
     kwargs={"organisme_uuid": ORGANISME_UUID, "recrutement_uuid": RECRUTEMENT_UUID},
 )
 UNKNOWN_RECRUTEMENT_KANBAN_URL = reverse(
-    "recruteur:organisme-recrutement-kanban",
+    "recruteur:organisme_recrutement_kanban",
     kwargs={
         "organisme_uuid": ORGANISME_UUID,
         "recrutement_uuid": UNKNOWN_RECRUTEMENT_UUID,
     },
 )
 UNKNOWN_RECRUTEMENT_LISTE_URL = reverse(
-    "recruteur:organisme-recrutement-liste",
+    "recruteur:organisme_recrutement_liste",
     kwargs={
         "organisme_uuid": ORGANISME_UUID,
         "recrutement_uuid": UNKNOWN_RECRUTEMENT_UUID,
     },
 )
 RECRUTEMENT_DETAIL_URL = reverse(
-    "recruteur:organisme-recrutement",
+    "recruteur:organisme_recrutement",
     kwargs={"organisme_uuid": ORGANISME_UUID, "recrutement_uuid": RECRUTEMENT_UUID},
 )
 UNKNOWN_RECRUTEMENT_DETAIL_URL = reverse(
-    "recruteur:organisme-recrutement",
+    "recruteur:organisme_recrutement",
     kwargs={
         "organisme_uuid": ORGANISME_UUID,
         "recrutement_uuid": UNKNOWN_RECRUTEMENT_UUID,

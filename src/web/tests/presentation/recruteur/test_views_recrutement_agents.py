@@ -42,7 +42,7 @@ NOMBRE_REQUETES_ATTENDU = (
 
 def _url(organisme_uuid, recrutement_uuid):
     return reverse(
-        "recruteur:organisme-recrutement-parametres-agents",
+        "recruteur:organisme_recrutement_parametres_agents",
         kwargs={"organisme_uuid": organisme_uuid, "recrutement_uuid": recrutement_uuid},
     )
 

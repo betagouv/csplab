@@ -34,7 +34,7 @@ NOMBRE_REQUETES_ATTENDU = (
 
 def _detail_url(organisme_id, recrutement_id, candidature_id) -> str:
     return reverse(
-        "recruteur:organisme-recrutement-candidature-detail",
+        "recruteur:organisme_recrutement_candidature_detail",
         kwargs={
             "organisme_uuid": str(organisme_id),
             "recrutement_uuid": str(recrutement_id),
