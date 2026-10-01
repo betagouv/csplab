@@ -1,13 +1,20 @@
 <script setup lang="ts">
+import { computed, ref } from 'vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspTextarea from '@/components/base/CspTextarea/CspTextarea.vue'
+import { MESSAGE_CONTENT_MAX_LENGTH } from '../constants/message'
+
+const content = ref('')
+
+const canSend = computed(() => content.value.trim() !== '')
 </script>
 
 <template>
   <div class="message-composer">
     <CspTextarea
+      v-model="content"
       :rows="3"
-      disabled
+      :maxlength="MESSAGE_CONTENT_MAX_LENGTH"
       resize="none"
       placeholder="Écrivez votre message…"
       aria-label="Écrivez votre message"
@@ -25,7 +32,7 @@ import CspTextarea from '@/components/base/CspTextarea/CspTextarea.vue'
         icon="ri:send-plane-fill"
         is-icon-left
         label="Envoyer"
-        disabled
+        :disabled="!canSend"
       />
     </div>
   </div>
