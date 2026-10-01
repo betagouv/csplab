@@ -76,7 +76,7 @@
   --csp-menu-item-gap: var(--csp-space-2);
 
   /* Form fields */
-  --csp-field-label-gap: 0.375rem;
+  --csp-field-label-gap: var(--csp-space-2);
   --csp-field-hint-gap: 0.125rem;
   --csp-field-legend-gap: var(--csp-space-3);
   --csp-field-messages-gap: 0.375rem;
