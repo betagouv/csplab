@@ -86,9 +86,12 @@ description = "ATS dev stack: Django + Vite HMR"
 depends = ["//src/web:dev", "//src/web/frontend:dev"]
 
 [tasks."docker:up"]
-description = "Check the docker daemon is reachable"
+description = "Check the docker daemon is reachable and the compose plugin is available"
 hide = true
-run = "docker info >/dev/null 2>&1 || { echo 'Docker unreachable, start your engine (Colima, Docker Desktop, OrbStack…)'; exit 1; }"
+run = """
+docker info >/dev/null 2>&1 || { echo 'Docker unreachable, start your engine (Colima, Docker Desktop, OrbStack…)'; exit 1; }
+docker compose version >/dev/null 2>&1 || { echo 'Docker Compose unavailable, install the compose plugin: https://docs.docker.com/compose/install/'; exit 1; }
+"""
 
 [tasks."services:postgres"]
 description = "Start postgres"
@@ -117,7 +120,7 @@ depends = ["services:postgres", "services:redis", "services:qdrant", "services:r
 [tasks.setup]
 description = "Create missing env files from the examples (never overwrites)"
 run = """
-for f in web ocr notebook ingestion postgresql redis rustfs; do cp -n env.d/$f-example env.d/$f || true; done
+for example in env.d/*-example; do cp -n "$example" "${example%-example}" || true; done
 echo "Env files in place (existing files untouched)."
 """
 
@@ -125,7 +128,7 @@ echo "Env files in place (existing files untouched)."
 description = "Reset env files from the examples (overwrites)"
 confirm = { message = "Overwrite your env.d/* files with the examples?", default = "no" }
 run = """
-for f in web ocr notebook ingestion postgresql redis; do cp env.d/$f-example env.d/$f; done
+for example in env.d/*-example; do cp "$example" "${example%-example}"; done
 echo "Env files reset from the examples."
 """
 
