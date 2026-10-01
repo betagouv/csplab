@@ -94,7 +94,8 @@ withDefaults(defineProps<CspSkeletonTableProps>(), {
   border-bottom: 1px solid var(--border-default-grey);
 }
 
-.csp-skeleton-table__head {
+.csp-skeleton-table__head,
+.csp-skeleton-table__footer {
   background: var(--background-alt-grey);
 
   :deep(.csp-skeleton) {
@@ -129,7 +130,6 @@ withDefaults(defineProps<CspSkeletonTableProps>(), {
   flex-direction: column;
   gap: var(--csp-space-3);
   padding: var(--csp-table-footer-padding);
-  background: var(--background-alt-grey);
 
   @include bp.from(bp.$md) {
     flex-direction: row;
