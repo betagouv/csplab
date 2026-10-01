@@ -11,6 +11,8 @@ from application.ingestion.interfaces.load_operation_type import LoadOperationTy
 from domain.ingestion.entities.document import DocumentType
 from infrastructure.exceptions.exceptions import TaskError
 from presentation.ingestion.tasks import (
+    INGESTION_TASK_RETRIES,
+    INGESTION_TASK_RETRY_DELAY_SECONDS,
     clean_documents,
     ingest_concours,
     ingest_corps,
@@ -92,6 +94,11 @@ class TestIngestionPipelines:
             (vectorize_documents.task_class, (DocumentType.CONCOURS,), {}),
         ]
         mock_container.clean_documents_usecase.assert_not_called()
+
+    @pytest.mark.parametrize("task", [load_documents, clean_documents])
+    def test_retries_on_failure(self, task):
+        assert task.task_class.default_retries == INGESTION_TASK_RETRIES
+        assert task.task_class.default_retry_delay == INGESTION_TASK_RETRY_DELAY_SECONDS
 
 
 @pytest.fixture

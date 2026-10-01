@@ -14,6 +14,8 @@ from infrastructure.di.shared.shared_container import SharedContainer
 from infrastructure.exceptions.exceptions import TaskError
 
 API_LOG_MIN_RETENTION_DAYS = 90
+INGESTION_TASK_RETRIES = 3
+INGESTION_TASK_RETRY_DELAY_SECONDS = 10 * 60
 
 
 @db_periodic_task(crontab(day="1", hour="5", minute="0"))
@@ -84,7 +86,7 @@ def vectorize_documents(document_type: DocumentType):
         ) from e
 
 
-@db_task()
+@db_task(retries=INGESTION_TASK_RETRIES, retry_delay=INGESTION_TASK_RETRY_DELAY_SECONDS)
 def clean_documents(document_type: DocumentType):
     with lock_task(f"clean-documents-{document_type.value}"):
         _clean_documents(document_type)
@@ -121,7 +123,7 @@ def _clean_documents(document_type: DocumentType):
         ) from e
 
 
-@db_task()
+@db_task(retries=INGESTION_TASK_RETRIES, retry_delay=INGESTION_TASK_RETRY_DELAY_SECONDS)
 def load_documents(kwargs, usecase_name):
     container = create_ingestion_container()
     logger = container.logger_service()
