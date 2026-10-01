@@ -58,7 +58,11 @@ const showSkeleton = useMinimumPending(pending)
       </ol>
     </CspAsyncSection>
 
-    <MessageComposer />
+    <MessageComposer
+      :key="conversationUuid"
+      :candidature="candidature"
+      :conversation-uuid="conversationUuid"
+    />
   </div>
 </template>
 

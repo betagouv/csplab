@@ -1,16 +1,42 @@
 <script setup lang="ts">
+import type { ConversationMessagesParams } from '../queries'
 import { computed, ref } from 'vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspTextarea from '@/components/base/CspTextarea/CspTextarea.vue'
+import { useToast } from '@/composables/ui/useToast'
+import { useReplyConversation } from '../composables/useConversationMessages'
 import { MESSAGE_CONTENT_MAX_LENGTH } from '../constants/message'
+
+const props = defineProps<ConversationMessagesParams>()
+
+const { reply, replying } = useReplyConversation(() => ({
+  candidature: props.candidature,
+  conversationUuid: props.conversationUuid,
+}))
+const { addToast } = useToast()
 
 const content = ref('')
 
-const canSend = computed(() => content.value.trim() !== '')
+const canSend = computed(() => content.value.trim() !== '' && !replying.value)
+
+async function send(): Promise<void> {
+  if (!canSend.value)
+    return
+  try {
+    await reply({ content: content.value })
+    content.value = ''
+  }
+  catch {
+    addToast({ variant: 'error', title: 'L\'envoi du message a échoué' })
+  }
+}
 </script>
 
 <template>
-  <div class="message-composer">
+  <form
+    class="message-composer"
+    @submit.prevent="send"
+  >
     <CspTextarea
       v-model="content"
       :rows="3"
@@ -22,6 +48,7 @@ const canSend = computed(() => content.value.trim() !== '')
     />
     <div class="message-composer__actions">
       <CspButton
+        type="button"
         variant="tertiary-no-outline"
         icon="ri:file-add-line"
         is-icon-left
@@ -29,13 +56,14 @@ const canSend = computed(() => content.value.trim() !== '')
         disabled
       />
       <CspButton
+        type="submit"
         icon="ri:send-plane-fill"
         is-icon-left
         label="Envoyer"
         :disabled="!canSend"
       />
     </div>
-  </div>
+  </form>
 </template>
 
 <style scoped lang="scss">
