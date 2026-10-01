@@ -30,27 +30,9 @@ _ACTIONS_SANS_ORGANISME: frozenset[OrganismeAction] = frozenset(
     }
 )
 
-# Actions pour lesquelles le statut staff dispense d'un rôle réel sur l'organisme
-_AUTORISE_POUR_STAFF: frozenset[OrganismeAction] = frozenset(
-    {
-        OrganismeAction.GET_ORGANISME,
-        OrganismeAction.INITIALIZE_ORGANISME_STEPS,
-        OrganismeAction.UPDATE_ORGANISME_STEPS,
-        OrganismeAction.CREER_ORGANISME,
-        OrganismeAction.LISTER_ORGANISMES,
-        OrganismeAction.MODIFIER_ORGANISME,
-        OrganismeAction.LIST_ORGANISME_AGENTS,
-        OrganismeAction.SEARCH_AGENT,
-        OrganismeAction.ATTACH_ORGANISME_AGENT,
-        OrganismeAction.UPDATE_ORGANISME_AGENT,
-        OrganismeAction.REVOKE_ORGANISME_AGENT,
-        OrganismeAction.CREATE_AGENT,
-        OrganismeAction.LIST_RECRUTEMENT_AGENTS,
-        OrganismeAction.ADD_RECRUTEMENT_AGENT,
-        OrganismeAction.UPDATE_RECRUTEMENT_AGENT,
-        OrganismeAction.REVOKE_RECRUTEMENT_AGENT,
-        OrganismeAction.SET_RECRUTEMENTS_RESPONSABLE,
-    }
+# Actions sur un organisme existant réservées au staff, hors rôles d'organisme
+_ACTIONS_STAFF_AVEC_ORGANISME: frozenset[OrganismeAction] = frozenset(
+    {OrganismeAction.MODIFIER_ORGANISME}
 )
 
 # -------------------------------------
@@ -264,11 +246,19 @@ class OrganismePermissionService:
         if organisme_id and not OrganismeModel.objects.filter(id=organisme_id).exists():
             raise OrganismeNexistePas(str(organisme_id))
 
-        if utilisateur.is_staff and action in _AUTORISE_POUR_STAFF:
+        if utilisateur.is_staff and action in _ACTIONS_STAFF_AVEC_ORGANISME:
             return None
 
         if action not in _ROLES_REQUIS:
             raise OperationOrganismeRefusee()
+
+        # Le staff agit en superviseur : lister_mes_recrutements lève le filtre agent
+        if (
+            utilisateur.is_staff
+            and organisme_id
+            and AgentOrganismeRole.SUPERVISEUR in _ROLES_REQUIS[action]
+        ):
+            return AgentOrganismeRole.SUPERVISEUR
 
         # TODO : duplicate query — agent-attach/update/revoke usecases run
         # near-identical OrganismeAgentModel lookups for the *target* agent right next

@@ -611,12 +611,12 @@ class TestMotifsRefusOrganismeView:
             {"value": motif.value, "label": motif.label} for motif in MotifRefus
         ]
 
-    def test_staff_without_role_is_forbidden(self, staff_client):
+    def test_staff_without_role_is_allowed(self, staff_client):
         OrganismeDjangoFactory(id=UUID(ORGANISME_UUID))
 
         response = staff_client.get(MOTIFS_REFUS_URL)
 
-        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert response.status_code == status.HTTP_200_OK
 
 
 class TestInitEtapesRecrutementOrganismeViewDbVerified:

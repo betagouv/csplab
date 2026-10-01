@@ -2,6 +2,7 @@ from datetime import timedelta
 from uuid import uuid4
 
 import pytest
+from django.db import IntegrityError
 from django.utils import timezone
 from faker import Faker
 
@@ -29,6 +30,9 @@ from infrastructure.factories.candidate.candidature_django_factory import (
 )
 from infrastructure.factories.identite.organisme_django_factory import (
     create_organisme_with_agent,
+)
+from infrastructure.factories.identite.utilisateur_django_factory import (
+    UtilisateurDjangoFactory,
 )
 from infrastructure.factories.identite.utilisateur_factory import UtilisateurFactory
 from infrastructure.factories.recruteur.note_django_factory import NoteDjangoFactory
@@ -266,6 +270,29 @@ class TestCreateNote:
             )
 
         assert not NoteModel.objects.exists()
+
+    @pytest.mark.xfail(
+        strict=True,
+        raises=IntegrityError,
+        reason="publie_par exige un ProfilAgent, absent pour un staff hors organisme",
+    )
+    # transactional_db : les FK Postgres sont DEFERRABLE INITIALLY DEFERRED,
+    # l'IntegrityError n'apparaît qu'au COMMIT, que le fixture `db` n'atteint jamais
+    def test_staff_without_profil_agent_can_create_note(self, transactional_db):
+        _, organisme, recrutement, candidature = (
+            create_recrutement_and_candidature_for_agent()
+        )
+        staff = UtilisateurDjangoFactory(is_staff=True)
+
+        note = create_note(
+            organisme_id=organisme.id,
+            recrutement_id=recrutement.pk,
+            candidature_id=candidature.id,
+            message="x",
+            utilisateur=_utilisateur(staff.username, is_staff=True),
+        )
+
+        assert NoteModel.objects.filter(pk=note.id).exists()
 
 
 class TestUpdateNote:

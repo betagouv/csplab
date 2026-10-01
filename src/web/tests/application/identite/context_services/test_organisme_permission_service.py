@@ -90,6 +90,20 @@ SUPERVISEUR_OU_AGENT_AVEC_RESPONSABLE_OU_RECRUTEUR_ACTIONS = [
     OrganismeAction.CHANGER_ETAPE_CANDIDATURES,
 ]
 
+SUPERVISEUR_ACTIONS = (
+    SUPERVISEUR_ET_STAFF_ACTIONS
+    + SUPERVISEUR_OU_AGENT_SANS_RECRUTEMENT_ACTIONS
+    + SUPERVISEUR_OU_AGENT_AVEC_RECRUTEMENT_ACTIONS
+    + SUPERVISEUR_OU_AGENT_AVEC_RESPONSABLE_ACTIONS
+    + SUPERVISEUR_OU_AGENT_AVEC_RESPONSABLE_OU_RECRUTEUR_ACTIONS
+)
+
+RECRUTEMENT_ACTIONS = (
+    SUPERVISEUR_OU_AGENT_AVEC_RECRUTEMENT_ACTIONS
+    + SUPERVISEUR_OU_AGENT_AVEC_RESPONSABLE_ACTIONS
+    + SUPERVISEUR_OU_AGENT_AVEC_RESPONSABLE_OU_RECRUTEUR_ACTIONS
+)
+
 
 def _utilisateur(entity_id: UUID, *, is_staff: bool = False):
     return UtilisateurFactory.create_entity(entity_id=entity_id, is_staff=is_staff)
@@ -153,17 +167,6 @@ class TestSuperviseurEtStaffActions:
 
         assert result == AgentOrganismeRole.SUPERVISEUR
 
-    def test_staff_bypasses_role_check(self, action: OrganismeAction) -> None:
-        organisme = OrganismeDjangoFactory()
-
-        result = OrganismePermissionService().can_execute(
-            action=action,
-            organisme_id=organisme.id,  # type: ignore[arg-type]
-            utilisateur=_utilisateur(uuid4(), is_staff=True),
-        )
-
-        assert result is None
-
     @pytest.mark.parametrize(
         "role",
         [AgentOrganismeRole.AGENT, None],
@@ -222,17 +225,14 @@ class TestSuperviseurOuAgentSansRecrutementActions:
 
         assert result == role
 
-    @pytest.mark.parametrize("est_staff", [False, True])
-    def test_reject_no_role_nor_staff(
-        self, action: OrganismeAction, est_staff: bool
-    ) -> None:
+    def test_reject_no_role(self, action: OrganismeAction) -> None:
         organisme = OrganismeDjangoFactory()
 
         with pytest.raises(AccesOrganismeRefuse):
             OrganismePermissionService().can_execute(
                 action=action,
                 organisme_id=organisme.id,  # type: ignore[arg-type]
-                utilisateur=_utilisateur(uuid4(), is_staff=est_staff),
+                utilisateur=_utilisateur(uuid4()),
             )
 
 
@@ -291,17 +291,6 @@ class TestSuperviseurOuAgentAvecRecrutementActions:
                 action=action,
                 organisme_id=organisme.id,
                 utilisateur=_utilisateur(agent.utilisateur_id),
-            )
-
-    def test_staff_without_role_is_denied(self, action: OrganismeAction) -> None:
-        agent, organisme = create_organisme_with_agent(role=AgentOrganismeRole.AGENT)
-
-        with pytest.raises(AccesRecrutementRefuse):
-            OrganismePermissionService().can_execute(
-                action=action,
-                organisme_id=organisme.id,
-                utilisateur=_utilisateur(agent.utilisateur_id, is_staff=True),
-                recrutement_id=uuid4(),
             )
 
     def test_agent_with_revoked_recrutement_role_is_denied(
@@ -387,19 +376,6 @@ class TestSuperviseurOuAgentAvecResponsableActions:
                 action=action,
                 organisme_id=organisme.id,
                 utilisateur=_utilisateur(agent.utilisateur_id),
-            )
-
-    def test_staff_without_organisme_role_is_denied(
-        self, action: OrganismeAction
-    ) -> None:
-        organisme = OrganismeDjangoFactory()
-
-        with pytest.raises(AccesOrganismeRefuse):
-            OrganismePermissionService().can_execute(
-                action=action,
-                organisme_id=organisme.id,  # type: ignore[arg-type]
-                utilisateur=_utilisateur(uuid4(), is_staff=True),
-                recrutement_id=uuid4(),
             )
 
     def test_agent_with_revoked_responsable_role_is_denied(
@@ -490,19 +466,6 @@ class TestSuperviseurOuAgentAvecResponsableOuRecruteurActions:
                 utilisateur=_utilisateur(agent.utilisateur_id),
             )
 
-    def test_staff_without_organisme_role_is_denied(
-        self, action: OrganismeAction
-    ) -> None:
-        organisme = OrganismeDjangoFactory()
-
-        with pytest.raises(AccesOrganismeRefuse):
-            OrganismePermissionService().can_execute(
-                action=action,
-                organisme_id=organisme.id,  # type: ignore[arg-type]
-                utilisateur=_utilisateur(uuid4(), is_staff=True),
-                recrutement_id=uuid4(),
-            )
-
     def test_agent_with_revoked_recruteur_role_is_denied(
         self, action: OrganismeAction
     ) -> None:
@@ -585,5 +548,46 @@ class TestStaffSeulementAvecOrganismeActions:
             OrganismePermissionService().can_execute(
                 action=action,
                 organisme_id=organisme_id,
+                utilisateur=_utilisateur(uuid4(), is_staff=True),
+            )
+
+
+@pytest.mark.parametrize("action", SUPERVISEUR_ACTIONS)
+class TestStaffActsAsSuperviseur:
+    @pytest.mark.parametrize(
+        "organisme_role",
+        [None, AgentOrganismeRole.AGENT],
+        ids=["no_organisme_role", "membre_role"],
+    )
+    def test_staff_gets_superviseur_role(
+        self, action: OrganismeAction, organisme_role: AgentOrganismeRole | None
+    ) -> None:
+        if organisme_role is None:
+            organisme = OrganismeDjangoFactory()
+            demandeur_id = uuid4()
+        else:
+            agent, organisme = create_organisme_with_agent(role=organisme_role)
+            demandeur_id = agent.utilisateur_id
+        recrutement_id = (
+            RecrutementDjangoFactory(organisme=organisme).pk  # type: ignore[attr-defined]
+            if action in RECRUTEMENT_ACTIONS
+            else None
+        )
+
+        result = OrganismePermissionService().can_execute(
+            action=action,
+            organisme_id=organisme.id,  # type: ignore[arg-type]
+            utilisateur=_utilisateur(demandeur_id, is_staff=True),
+            recrutement_id=recrutement_id,
+        )
+
+        assert result == AgentOrganismeRole.SUPERVISEUR
+
+    def test_staff_without_organisme_id_is_denied(
+        self, action: OrganismeAction
+    ) -> None:
+        with pytest.raises(AccesOrganismeRefuse):
+            OrganismePermissionService().can_execute(
+                action=action,
                 utilisateur=_utilisateur(uuid4(), is_staff=True),
             )
