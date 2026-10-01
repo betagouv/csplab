@@ -5,12 +5,13 @@ import { createPinia } from 'pinia'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { HttpError } from '@/api/errors'
 import { CANDIDATURE_PARAMS } from '@/test/fixtures/candidatures'
-import { getCandidatureDocuments } from '../api'
+import { checkCandidatureDocument, getCandidatureDocuments } from '../api'
 import CandidatureCv from './CandidatureCv.vue'
 
 vi.mock('../api', async importOriginal => ({
   ...await importOriginal<typeof import('../api')>(),
   getCandidatureDocuments: vi.fn(),
+  checkCandidatureDocument: vi.fn(),
 }))
 
 const CV_UUID = 'ffffffff-0001-0001-0001-000000000001'
@@ -32,6 +33,7 @@ function document(overrides: Partial<DocumentListe>): DocumentListe {
 
 function renderCv(results: DocumentListe[]) {
   vi.mocked(getCandidatureDocuments).mockResolvedValue({ count: results.length, results })
+  vi.mocked(checkCandidatureDocument).mockResolvedValue()
   return render(CandidatureCv, {
     props: { candidature: CANDIDATURE_PARAMS, candidatNom: 'Alice Dupont' },
     global: { plugins: [createPinia(), PiniaColada] },
@@ -59,6 +61,7 @@ describe('candidatureCv', () => {
     expect(await screen.findByText('Le CV ne peut pas être affiché ici.')).toBeInTheDocument()
     expect(screen.queryByRole('link')).not.toBeInTheDocument()
     expect(screen.queryByTitle('CV de Alice Dupont')).not.toBeInTheDocument()
+    expect(checkCandidatureDocument).not.toHaveBeenCalled()
   })
 
   it('says when the candidature has no CV', async () => {
@@ -66,6 +69,21 @@ describe('candidatureCv', () => {
 
     expect(await screen.findByText('La candidature ne contient pas de CV')).toBeInTheDocument()
     expect(screen.queryByRole('link')).not.toBeInTheDocument()
+    expect(checkCandidatureDocument).not.toHaveBeenCalled()
+  })
+
+  it('shows an error when the CV file cannot be loaded', async () => {
+    vi.mocked(getCandidatureDocuments).mockResolvedValue({ count: 1, results: [document({})] })
+    vi.mocked(checkCandidatureDocument).mockRejectedValue(new HttpError(500, 'Internal Server Error', undefined))
+    render(CandidatureCv, {
+      props: { candidature: CANDIDATURE_PARAMS, candidatNom: 'Alice Dupont' },
+      global: { plugins: [createPinia(), PiniaColada] },
+    })
+
+    expect(await screen.findByText('Le CV n\'a pas pu être chargé.')).toBeInTheDocument()
+    expect(screen.queryByTitle('CV de Alice Dupont')).not.toBeInTheDocument()
+    expect(screen.queryByRole('link')).not.toBeInTheDocument()
+    expect(checkCandidatureDocument).toHaveBeenCalledWith(CANDIDATURE_PARAMS, CV_UUID)
   })
 
   it('shows an error when the documents cannot be loaded', async () => {

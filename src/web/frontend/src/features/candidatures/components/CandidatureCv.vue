@@ -6,7 +6,7 @@ import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspEmptyState from '@/components/base/CspEmptyState/CspEmptyState.vue'
 import CspSkeleton from '@/components/base/CspSkeleton/CspSkeleton.vue'
 import { useMinimumPending } from '@/composables/async/useMinimumPending'
-import { useCandidatureDocuments } from '../composables/useCandidatureDocuments'
+import { useCandidatureDocumentCheck, useCandidatureDocuments } from '../composables/useCandidatureDocuments'
 
 const props = defineProps<{
   candidature: CandidatureParams
@@ -18,7 +18,10 @@ const { documents, pending, error, pdfUrl } = useCandidatureDocuments(() => prop
 const cv = computed<DocumentListe | null>(() => documents.value.find(document => document.type === 'cv') ?? null)
 const cvUrl = computed(() => cv.value ? pdfUrl(cv.value) : null)
 
-const showSkeleton = useMinimumPending(pending)
+const cvCheck = useCandidatureDocumentCheck(() => props.candidature, () => cv.value && cvUrl.value ? cv.value.uuid : null)
+
+const showSkeleton = useMinimumPending(computed(() => pending.value || cvCheck.pending.value))
+const loadError = computed(() => error.value ?? cvCheck.error.value)
 const title = computed(() => `CV de ${props.candidatNom}`)
 const titleId = useId()
 </script>
@@ -36,7 +39,7 @@ const titleId = useId()
         Curriculum vitae
       </h3>
       <div
-        v-if="cv && cvUrl && !showSkeleton"
+        v-if="cv && cvUrl && !showSkeleton && !loadError"
         class="candidature-cv__actions"
       >
         <CspButton
@@ -64,7 +67,7 @@ const titleId = useId()
 
     <CspAsyncSection
       :pending="showSkeleton"
-      :error="error"
+      :error="loadError"
       loading-label="Chargement du CV"
       error-title="Le CV n'a pas pu être chargé."
       fill
