@@ -1,7 +1,6 @@
 from django.urls import path
-from rest_framework_simplejwt.views import TokenRefreshView
 
-from presentation.api.token_views import LoggedTokenObtainPairView
+from presentation.api.token_views import LoggedTokenObtainPairView, TokenRefreshView
 from presentation.api.views import HueyHealthView, RedocView
 
 app_name = "api"

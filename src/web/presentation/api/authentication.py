@@ -28,3 +28,8 @@ class PublicApiKeyOnlyMixin:
 class SessionApiMixin:
     authentication_classes = [SessionApiAuthentication]
     permission_classes = [IsAuthenticated]
+
+
+class UnauthenticatedMixin:
+    authentication_classes: list[type[BaseAuthentication]] = []
+    permission_classes = [AllowAny]
