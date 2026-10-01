@@ -1,10 +1,9 @@
 import type { Activite } from '../types'
-import { PiniaColada } from '@pinia/colada'
-import { render, screen, within } from '@testing-library/vue'
-import { createPinia } from 'pinia'
+import { screen, within } from '@testing-library/vue'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { HttpError } from '@/api/errors'
-import { CANDIDATURE_PARAMS } from '@/test/fixtures/candidatures'
+import { CANDIDATURE_ALICE, CANDIDATURE_PARAMS, KANBAN_PATH } from '@/test/fixtures/candidatures'
+import { renderWithApp } from '@/test/render'
 import { getCandidatureActivites } from '../api'
 import CandidatureActivites from './CandidatureActivites.vue'
 
@@ -25,10 +24,7 @@ function activite(overrides: Partial<Activite>): Activite {
 }
 
 function renderActivites() {
-  render(CandidatureActivites, {
-    props: { candidature: CANDIDATURE_PARAMS },
-    global: { plugins: [createPinia(), PiniaColada] },
-  })
+  return renderWithApp(CandidatureActivites, { props: { candidature: CANDIDATURE_PARAMS } })
 }
 
 describe('candidatureActivites', () => {
@@ -49,7 +45,7 @@ describe('candidatureActivites', () => {
       activite({ event_name: 'CandidatureRecue', utilisateur_prenom: '', utilisateur_nom: '' }),
     ]
     vi.mocked(getCandidatureActivites).mockResolvedValue({ count: 3, results })
-    renderActivites()
+    await renderActivites()
 
     const list = await screen.findByRole('list')
     const [note, etape, reception] = within(list).getAllByRole('listitem').map(item => within(item))
@@ -63,23 +59,30 @@ describe('candidatureActivites', () => {
     expect(getCandidatureActivites).toHaveBeenCalledWith(CANDIDATURE_PARAMS, 3)
   })
 
+  it('links to the full activity history of the candidature', async () => {
+    vi.mocked(getCandidatureActivites).mockResolvedValue({ count: 0, results: [] })
+    await renderActivites()
+
+    expect(screen.getByRole('link', { name: 'Voir tout' })).toHaveAttribute('href', `${KANBAN_PATH}/candidatures/${CANDIDATURE_ALICE}/historique`)
+  })
+
   it('names an unknown activity with a generic label', async () => {
     vi.mocked(getCandidatureActivites).mockResolvedValue({ count: 1, results: [activite({ event_name: 'TagPose' })] })
-    renderActivites()
+    await renderActivites()
 
     expect(await screen.findByText('Activité')).toBeInTheDocument()
   })
 
   it('says when the candidature has no activity', async () => {
     vi.mocked(getCandidatureActivites).mockResolvedValue({ count: 0, results: [] })
-    renderActivites()
+    await renderActivites()
 
     expect(await screen.findByText('La candidature n\'a aucune activité')).toBeInTheDocument()
   })
 
   it('shows an error when the activities cannot be loaded', async () => {
     vi.mocked(getCandidatureActivites).mockRejectedValue(new HttpError(500, 'Internal Server Error', undefined))
-    renderActivites()
+    await renderActivites()
 
     expect(await screen.findByText('Les activités n\'ont pas pu être chargées.')).toBeInTheDocument()
   })

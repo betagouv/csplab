@@ -79,8 +79,8 @@ export const candidatureDocumentCheckQuery = defineQueryOptions(
 )
 
 export const candidatureActivitesQuery = defineQueryOptions(
-  ({ candidature, limit }: { candidature: CandidatureParams, limit: number }) => ({
-    key: [...CANDIDATURES_QUERY_KEYS.activites(candidature), limit],
+  ({ candidature, limit }: { candidature: CandidatureParams, limit?: number }) => ({
+    key: [...CANDIDATURES_QUERY_KEYS.activites(candidature), limit ?? null],
     query: () => getCandidatureActivites(candidature, limit),
   }),
 )

@@ -201,6 +201,13 @@ describe('candidaturePanelView', () => {
     expect(router.currentRoute.value.params.candidatureUuid).toBe(CANDIDATURE_ALICE)
   })
 
+  it('opens the history tab from its own address, with the full width', async () => {
+    const { panel } = await renderPanel([`${KANBAN_PATH}/candidatures/${CANDIDATURE_ALICE}/historique`])
+
+    expect(await panel.findByRole('tab', { name: 'Historique d\'activité', selected: true })).toBeInTheDocument()
+    expect(panel.queryByRole('complementary', { name: 'Suivi de la candidature' })).not.toBeInTheDocument()
+  })
+
   it('shows the access message when the candidature detail answers not found', async () => {
     vi.mocked(getCandidatureDetail).mockRejectedValue(new HttpError(404, 'Not Found'))
     const { panel } = await renderPanel([`${KANBAN_PATH}/candidatures/${CANDIDATURE_INCONNUE}`])
