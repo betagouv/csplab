@@ -4,7 +4,7 @@ from django.contrib.admin import AdminSite
 from django.http import HttpRequest, HttpResponse
 from django_otp.admin import OTPAdminSite
 
-from application.identite.context_services.admin_login_log import (
+from application.identite.context_services.login_log import (
     log_admin_login_failed,
     log_admin_login_succeeded,
 )

@@ -3,7 +3,7 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework_simplejwt.views import TokenObtainPairView
 
-from application.identite.context_services.api_login_log import (
+from application.identite.context_services.login_log import (
     log_api_login_failed,
     log_api_login_succeeded,
 )
