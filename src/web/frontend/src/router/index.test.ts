@@ -89,5 +89,6 @@ describe('not-found route', () => {
   it('does not shadow known paths', () => {
     expect(resolve('/').name).toBe('home')
     expect(resolve('/organismes').name).toBe('organismes')
+    expect(resolve('/aide').name).toBe('aide')
   })
 })
