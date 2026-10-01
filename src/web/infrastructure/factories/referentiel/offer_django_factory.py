@@ -21,7 +21,6 @@ class OfferDjangoFactory(DjangoModelFactory):
 
     id = factory.LazyFunction(uuid4)
     source = factory.SubFactory(SourceDjangoFactory)
-    external_id = factory.Sequence(lambda n: f"OFFER_{n}")
     reference = factory.LazyFunction(lambda: str(uuid4()))
     verse = Verse.FPE.value
     title = "Test Offer Title"

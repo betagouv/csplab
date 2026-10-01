@@ -2975,8 +2975,7 @@ paths:
                     next: null
                     previous: null
                     results:
-                    - external_id: FPE-2026-999999
-                      reference: 2026-999999
+                    - reference: 2026-999999
                       source_id: 12345678-1234-4234-b234-123456789abc
                       title: Responsable de la Division des Affaires Financières H/F
                       organization: Ecole Nationale Supérieure de Techniques Avancées
@@ -2995,8 +2994,7 @@ paths:
                     next: null
                     previous: null
                     results:
-                    - external_id: FPE-2026-999999
-                      reference: 2026-999999
+                    - reference: 2026-999999
                       source_id: 12345678-1234-4234-b234-123456789abc
                       title: Responsable de la Division des Affaires Financières H/F
                       organization: Ecole Nationale Supérieure de Techniques Avancées
@@ -4763,8 +4761,6 @@ components:
     ListOffersResponse:
       type: object
       properties:
-        external_id:
-          type: string
         reference:
           type: string
         source_id:
@@ -4794,7 +4790,6 @@ components:
       - archived_at
       - category
       - contract_type
-      - external_id
       - offer_url
       - organization
       - publication_date
@@ -4920,8 +4915,6 @@ components:
     OfferDetailResponse:
       type: object
       properties:
-        external_id:
-          type: string
         reference:
           type: string
         source_id:
@@ -5011,7 +5004,6 @@ components:
       - contract_type
       - criteria
       - employer
-      - external_id
       - job_vacancy
       - localisation
       - long_title

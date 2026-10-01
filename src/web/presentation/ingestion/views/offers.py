@@ -82,9 +82,7 @@ class OffersListView(APIView):
         try:
             filters = ListOffersFiltersSerializer(data=self.request.query_params)
             filters.is_valid(raise_exception=True)
-            input_data = GetFilteredOffersInput(
-                external_id_contains=None, **filters.validated_data
-            )
+            input_data = GetFilteredOffersInput(**filters.validated_data)
 
             result = self.usecase.execute(input_data)
 

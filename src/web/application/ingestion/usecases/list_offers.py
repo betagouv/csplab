@@ -19,7 +19,6 @@ class ListOffersUsecase(IUsecase[GetFilteredOffersInput, IPage[Offer]]):
     def execute(self, input_data: GetFilteredOffersInput) -> IPage[Offer]:
         return self.offers_repository.get_filtered(
             active=input_data.active,
-            external_id_contains=input_data.external_id_contains,
             category=input_data.category,
             verse=input_data.verse,
             contract_type=input_data.contract_type,

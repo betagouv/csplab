@@ -45,7 +45,7 @@ def test_upsert_offers_result(ingestion_container):
         "category": Category.C,
         "contract_type": ContractType.TITULAIRE_CONTRACTUEL,
         "organization": fake.name(),
-        "offer_url": HttpUrl(f"https://fake.url/offer/{existing_offer.external_id}"),
+        "offer_url": HttpUrl(f"https://fake.url/offer/{existing_offer.reference}"),
         "code_emploi_csp": fake.word(),
         "localisation": Localisation(
             area=GeographicalArea("AF"),
@@ -69,7 +69,9 @@ def test_upsert_offers_result(ingestion_container):
     assert result == {"created": 1, "updated": 1, "errors": []}
 
     for offer in [existing_offer, new_offer]:
-        model = OfferModel.objects.get(external_id=offer.external_id)
+        model = OfferModel.objects.get(
+            reference=offer.reference, source_id=offer.source_id
+        )
         assert _mapper.to_domain(model) == offer
 
 
@@ -87,7 +89,6 @@ def test_upsert_offers_unarchives_offer_and_makes_it_eligible_for_reindexing(
     # an offer has no way to send it: the incoming entity always defaults to
     # archived_at=None, regardless of the offer's current archived state.
     existing_offer = OfferFactory.create_entity(
-        external_id=archived_offer.external_id,
         reference=archived_offer.reference,
         source_id=archived_offer.source_id,
     )

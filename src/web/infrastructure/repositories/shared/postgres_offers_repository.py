@@ -101,7 +101,6 @@ class PostgresOffersRepository(IIngestionOffersRepository):
                         updated = OfferModel.objects.bulk_update(
                             models_to_update,
                             fields=[
-                                "external_id",
                                 "reference",
                                 "verse",
                                 "title",
@@ -156,13 +155,6 @@ class PostgresOffersRepository(IIngestionOffersRepository):
         offers = OfferModel.objects.filter(id__in=offer_ids)
         return [self.mapper.to_domain(offer) for offer in offers]
 
-    def get_by_external_id(self, external_id: str) -> Offer:
-        try:
-            offer_model = OfferModel.objects.get(external_id=external_id)
-            return self.mapper.to_domain(offer_model)
-        except OfferModel.DoesNotExist as e:
-            raise OfferDoesNotExist(external_id) from e
-
     def get_by_reference_and_source_id(self, reference: str, source_id: UUID) -> Offer:
         try:
             offer_model = OfferModel.objects.get(
@@ -183,10 +175,6 @@ class PostgresOffersRepository(IIngestionOffersRepository):
             raise MultipleOffersFoundForReference(reference) from e
         return self.mapper.to_domain(offer_model)
 
-    def get_by_external_ids(self, external_ids: List[str]) -> List[Offer]:
-        offers = OfferModel.objects.filter(external_id__in=external_ids)
-        return [self.mapper.to_domain(offer) for offer in offers]
-
     def get_all(self) -> List[Offer]:
         offer_models = OfferModel.objects.all()
         return [self.mapper.to_domain(model) for model in offer_models]
@@ -194,7 +182,6 @@ class PostgresOffersRepository(IIngestionOffersRepository):
     def get_filtered(
         self,
         active: bool,
-        external_id_contains: str | None,
         category: List[Category] | None = None,
         verse: List[Verse] | None = None,
         contract_type: List[ContractType] | None = None,
@@ -214,9 +201,6 @@ class PostgresOffersRepository(IIngestionOffersRepository):
         keywords: str | None = None,
     ) -> IPage[Offer]:
         qs = OfferModel.objects.filter(archived_at__isnull=active)
-
-        if external_id_contains:
-            qs = qs.filter(external_id__contains=external_id_contains)
 
         qs = self._apply_field_filters(
             qs,

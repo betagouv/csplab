@@ -47,7 +47,6 @@ class OfferSummariesView(APIView):
             page = self.usecase.execute(
                 GetFilteredOffersInput(
                     active=True,
-                    external_id_contains=None,
                     category=query.validated_data.get("category"),
                     verse=query.validated_data.get("verse"),
                     contract_type=query.validated_data.get("contract_type"),

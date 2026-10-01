@@ -17,7 +17,6 @@ from referentiel.value_objects.verse import Verse
 
 @dataclass
 class Offer(IEntity):
-    external_id: str
     title: str
     profile: str
     mission: str

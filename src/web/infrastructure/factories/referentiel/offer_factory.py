@@ -26,7 +26,6 @@ class OfferFactory:
         category: Category | None = None,
         contract_type: ContractType | None = None,
         verse: Verse | None = None,
-        external_id: str | None = None,
         reference: str | None = None,
         profile: str | None = None,
         mission: str | None = None,
@@ -53,9 +52,7 @@ class OfferFactory:
                 region=Region(code="11"),
                 department=Department(code="75"),
             )
-        _external_id = external_id or f"OFFER_{uuid4().hex[:8]}"
         return Offer(
-            external_id=_external_id,
             reference=reference or str(uuid4()),
             verse=verse or Verse.FPE,
             title=title or "Test Offer Title",
