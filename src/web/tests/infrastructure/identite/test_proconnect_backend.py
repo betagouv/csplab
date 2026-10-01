@@ -49,6 +49,13 @@ class TestProconnectBackend:
         assert backend.authenticate(None, proconnect_claims=None) is None
         assert backend.authenticate(None, proconnect_claims={}) is None
 
+    def test_authenticate_ignores_calls_that_are_not_proconnect(self, db, backend):
+        backend.logger = MagicMock()
+
+        assert backend.authenticate(None, proconnect_claims=None) is None
+
+        backend.logger.warning.assert_not_called()
+
     def test_authenticate_fills_the_name_from_the_claims(self, db, backend):
         user = UtilisateurDjangoFactory(first_name="", last_name="")
 

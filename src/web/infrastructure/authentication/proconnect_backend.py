@@ -37,7 +37,10 @@ class ProconnectBackend(ModelBackend):
         self._mapper = UtilisateurMapper()
 
     def authenticate(self, request, proconnect_claims=None, **kwargs):
-        if not proconnect_claims or not proconnect_claims.get("email"):
+        if proconnect_claims is None:
+            # this is not a ProConnect attempt.
+            return None
+        if not proconnect_claims.get("email"):
             self.logger.warning("ProConnect login rejected: no email claim.")
             return None
         user = (
