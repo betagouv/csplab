@@ -149,15 +149,15 @@ const attrs = useAttrs()
 }
 
 .csp-textarea-group__label {
-  margin-bottom: 0.375rem;
+  margin-bottom: var(--csp-field-label-gap);
   font-size: 0.875rem;
   font-weight: 600;
   color: var(--text-default-grey);
 }
 
 .csp-textarea-group--error {
-  border-left: 2px solid var(--border-plain-error);
-  padding-left: 0.75rem;
+  border-inline-start: var(--csp-field-error-bar-width) solid var(--border-plain-error);
+  padding-inline-start: var(--csp-field-error-padding-start);
 
   .csp-textarea-group__label {
     color: var(--text-default-error);
@@ -165,7 +165,7 @@ const attrs = useAttrs()
 }
 
 .csp-textarea-group__messages:not(:empty) {
-  margin-top: 0.375rem;
+  margin-top: var(--csp-field-messages-gap);
 }
 
 .csp-textarea-group__error {

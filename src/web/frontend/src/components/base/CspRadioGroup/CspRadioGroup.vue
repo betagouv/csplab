@@ -102,7 +102,7 @@ function updateModel(val: unknown): void {
   font-size: 0.875rem;
   font-weight: 600;
   color: var(--text-default-grey);
-  margin-bottom: var(--csp-space-3);
+  margin-bottom: var(--csp-field-legend-gap);
   padding: 0;
 }
 

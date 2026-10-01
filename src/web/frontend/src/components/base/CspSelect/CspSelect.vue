@@ -219,8 +219,8 @@ const model = defineModel<string>()
 .csp-select-group__label {
   display: flex;
   flex-direction: column;
-  gap: 0.125rem;
-  margin-bottom: 0.375rem;
+  gap: var(--csp-field-hint-gap);
+  margin-bottom: var(--csp-field-label-gap);
   font-size: 0.875rem;
   font-weight: 600;
   color: var(--text-default-grey);
@@ -233,8 +233,8 @@ const model = defineModel<string>()
 }
 
 .csp-select-group--error {
-  border-left: 2px solid var(--border-plain-error);
-  padding-left: 0.75rem;
+  border-inline-start: var(--csp-field-error-bar-width) solid var(--border-plain-error);
+  padding-inline-start: var(--csp-field-error-padding-start);
 
   .csp-select-group__label {
     color: var(--text-default-error);
@@ -242,7 +242,7 @@ const model = defineModel<string>()
 }
 
 .csp-select-group__messages:not(:empty) {
-  margin-top: 0.375rem;
+  margin-top: var(--csp-field-messages-gap);
 }
 
 .csp-select-group__error {

@@ -172,13 +172,13 @@ const announcedStatus = useDebounce(statusMessage, 1000)
 :global(.csp-combobox) {
   display: flex;
   flex-direction: column;
-  gap: 0.375rem;
+  gap: var(--csp-field-label-gap);
 }
 
 .csp-combobox__label {
   display: flex;
   flex-direction: column;
-  gap: 0.125rem;
+  gap: var(--csp-field-hint-gap);
   font-size: 0.875rem;
   font-weight: 600;
   color: var(--text-default-grey);

@@ -101,7 +101,7 @@ function updateModel(val: unknown[]): void {
   font-size: 0.875rem;
   font-weight: 600;
   color: var(--text-default-grey);
-  margin-bottom: var(--csp-space-3);
+  margin-bottom: var(--csp-field-legend-gap);
   padding: 0;
 }
 
@@ -118,8 +118,8 @@ function updateModel(val: unknown[]): void {
 }
 
 .csp-checkbox-group--error {
-  border-left: 2px solid var(--border-plain-error);
-  padding-left: 0.75rem;
+  border-inline-start: var(--csp-field-error-bar-width) solid var(--border-plain-error);
+  padding-inline-start: var(--csp-field-error-padding-start);
 
   .csp-checkbox-group__legend {
     color: var(--text-default-error);

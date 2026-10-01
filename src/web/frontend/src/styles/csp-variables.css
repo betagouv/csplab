@@ -75,6 +75,14 @@
   --csp-menu-item-padding: var(--csp-space-2) var(--csp-space-3);
   --csp-menu-item-gap: var(--csp-space-2);
 
+  /* Form fields */
+  --csp-field-label-gap: 0.375rem;
+  --csp-field-hint-gap: 0.125rem;
+  --csp-field-legend-gap: var(--csp-space-3);
+  --csp-field-messages-gap: 0.375rem;
+  --csp-field-error-bar-width: 2px;
+  --csp-field-error-padding-start: var(--csp-space-3);
+
   @variant xxl {
     --csp-page-container-padding-inline: clamp(1.5rem, 1rem + 2.5vw, 4rem);
     --csp-page-container-wide-width: 120rem;

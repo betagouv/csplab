@@ -129,8 +129,8 @@ function submit() {
 .csp-search-bar__label {
   display: flex;
   flex-direction: column;
-  gap: 0.125rem;
-  margin-bottom: 0.375rem;
+  gap: var(--csp-field-hint-gap);
+  margin-bottom: var(--csp-field-label-gap);
   font-size: 0.875rem;
   font-weight: 600;
   color: var(--text-default-grey);
@@ -221,7 +221,7 @@ function submit() {
 }
 
 .csp-search-bar__messages:not(:empty) {
-  margin-top: 0.375rem;
+  margin-top: var(--csp-field-messages-gap);
 }
 
 .csp-search-bar__error {
