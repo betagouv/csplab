@@ -10,7 +10,6 @@ from django.views import View
 from django.views.generic import TemplateView
 from drf_spectacular.utils import extend_schema
 from rest_framework import status
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -21,6 +20,7 @@ from infrastructure.authentication.proconnect_client import (
     oauth,
 )
 from infrastructure.di.identite.identite_factory import create_identite_container
+from presentation.api.authentication import SessionApiMixin
 from presentation.api.serializers import GenericErrorSerializer, TokenErrorSerializer
 from presentation.identite.serializers import UtilisateurSerializer
 
@@ -96,8 +96,7 @@ class ProfileView(LoginRequiredMixin, TemplateView):
         500: GenericErrorSerializer,
     },
 )
-class UtilisateurDetailsView(APIView):
-    permission_classes = [IsAuthenticated]
+class UtilisateurDetailsView(SessionApiMixin, APIView):
     serializer_class = UtilisateurSerializer
 
     def __init__(self, **kwargs):

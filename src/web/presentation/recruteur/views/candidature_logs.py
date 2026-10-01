@@ -4,7 +4,6 @@ from django.http import Http404
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import exceptions, status
 from rest_framework.generics import ListAPIView
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from domain.commons.errors.organisme_errors import OrganismeNexistePas
@@ -19,6 +18,7 @@ from infrastructure.django_apps.recruteur.models.recrutement import RecrutementM
 from infrastructure.factories.commons.audit_log_django_factory import (
     AuditLogDjangoFactory,
 )
+from presentation.api.authentication import SessionApiMixin
 from presentation.api.serializers import GenericErrorSerializer, generic_response_format
 from presentation.commons.pagination import PageNumberLimitPagination
 from presentation.recruteur.serializers import AuditLogSerializer
@@ -77,8 +77,7 @@ def _build_seed_logs() -> list[AuditLogModel]:
         },
     ),
 )
-class CandidatureLogsView(ListAPIView):
-    permission_classes = [IsAuthenticated]
+class CandidatureLogsView(SessionApiMixin, ListAPIView):
     serializer_class = AuditLogSerializer
     pagination_class = PageNumberLimitPagination
 
