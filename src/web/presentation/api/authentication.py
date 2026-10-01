@@ -10,3 +10,8 @@ from infrastructure.authentication.api_key_authentication import (
 class PublicApiMixin:
     authentication_classes = [JWTAuthentication, ApiKeyAuthentication]
     permission_classes = [IsAuthenticated]
+
+
+class PublicJwtOnlyMixin:
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]

@@ -3,10 +3,10 @@ from rest_framework import status
 from rest_framework.exceptions import ValidationError as DRFValidationError
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from application.ingestion.interfaces.list_offers_input import GetFilteredOffersInput
 from infrastructure.di.ingestion.ingestion_factory import create_ingestion_container
+from presentation.api.authentication import PublicJwtOnlyMixin
 from presentation.api.serializers import GenericErrorSerializer
 from presentation.commons.pagination import TalentsoftPagination
 from presentation.ingestion.mappers import OfferSummaryOutputMapper
@@ -27,8 +27,7 @@ from presentation.ingestion.serializers import (
         500: GenericErrorSerializer,
     },
 )
-class OfferSummariesView(APIView):
-    authentication_classes = [JWTAuthentication]
+class OfferSummariesView(PublicJwtOnlyMixin, APIView):
     pagination_class = TalentsoftPagination
     serializer_class = FakeTsOfferSummarySerializer
 

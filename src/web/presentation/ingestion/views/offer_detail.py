@@ -4,12 +4,12 @@ from rest_framework import status
 from rest_framework.exceptions import ValidationError as DRFValidationError
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from application.ingestion.interfaces.get_offer_by_reference_input import (
     GetOfferByReferenceInput,
 )
 from infrastructure.di.ingestion.ingestion_factory import create_ingestion_container
+from presentation.api.authentication import PublicJwtOnlyMixin
 from presentation.api.serializers import GenericErrorSerializer
 from presentation.ingestion.mappers import OfferDetailOutputMapper
 from presentation.ingestion.serializers import (
@@ -30,8 +30,7 @@ from presentation.ingestion.serializers import (
         500: GenericErrorSerializer,
     },
 )
-class OfferDetailView(APIView):
-    authentication_classes = [JWTAuthentication]
+class OfferDetailView(PublicJwtOnlyMixin, APIView):
     serializer_class = FakeTsOfferDetailSerializer
 
     def __init__(self, **kwargs):
