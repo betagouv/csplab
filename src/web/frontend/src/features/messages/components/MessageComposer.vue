@@ -47,6 +47,7 @@ async function send(): Promise<void> {
     <CspTextarea
       v-model="content"
       :rows="3"
+      :readonly="replying"
       :maxlength="MESSAGE_CONTENT_MAX_LENGTH"
       resize="none"
       placeholder="Écrivez votre message…"
