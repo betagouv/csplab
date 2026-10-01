@@ -11,7 +11,6 @@ from rest_framework.exceptions import ValidationError as DRFValidationError
 from rest_framework.parsers import JSONParser
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from application.ingestion.interfaces.archive_offer_by_reference_input import (
     ArchiveOfferByReferenceInput,
@@ -24,11 +23,9 @@ from application.ingestion.interfaces.upsert_offers_input import UpsertOffersInp
 from domain.ingestion.exceptions.source_authorization_error import (
     SourceAuthorizationError,
 )
-from infrastructure.authentication.api_key_authentication import (
-    ApiKeyAuthentication,
-)
 from infrastructure.di.ingestion.ingestion_factory import create_ingestion_container
 from infrastructure.django_apps.users.models import UserModel
+from presentation.api.authentication import PublicApiMixin
 from presentation.api.serializers import GenericErrorSerializer, TokenErrorSerializer
 from presentation.commons.pagination import WebPagination
 from presentation.ingestion.mappers import OfferInputMapper
@@ -65,8 +62,7 @@ from presentation.ingestion.serializers import (
         500: GenericErrorSerializer,
     },
 )
-class OffersListView(APIView):
-    authentication_classes = [JWTAuthentication, ApiKeyAuthentication]
+class OffersListView(PublicApiMixin, APIView):
     serializer_class = ListOffersResponseSerializer
     pagination_class = WebPagination
     usecase = None
@@ -125,8 +121,7 @@ class OffersListView(APIView):
         500: GenericErrorSerializer,
     },
 )
-class OffersBySourceView(APIView):
-    authentication_classes = [JWTAuthentication, ApiKeyAuthentication]
+class OffersBySourceView(PublicApiMixin, APIView):
     serializer_class = OfferDetailResponseSerializer
     pagination_class = WebPagination
 
@@ -201,9 +196,7 @@ class OffersBySourceView(APIView):
         },
     )
 )
-class ArchiveOffersView(APIView):
-    authentication_classes = [JWTAuthentication, ApiKeyAuthentication]
-
+class ArchiveOffersView(PublicApiMixin, APIView):
     serializer_class = ArchiveOfferSuccessSerializer
 
     def post(self, request):
@@ -286,8 +279,7 @@ class ArchiveOffersView(APIView):
         500: GenericErrorSerializer,
     },
 )
-class OffersUpsertView(APIView):
-    authentication_classes = [JWTAuthentication, ApiKeyAuthentication]
+class OffersUpsertView(PublicApiMixin, APIView):
     parser_classes = [JSONParser]
     serializer_class = UpsertOffersRequestSerializer
 

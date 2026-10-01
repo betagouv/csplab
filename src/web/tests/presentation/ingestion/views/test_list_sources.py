@@ -19,8 +19,8 @@ def test_unauthenticated_returns_401(api_client):
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
 
-def test_jwt_auth_returns_401(authenticated_client):
-    response = authenticated_client.get(URL)
+def test_jwt_auth_returns_401(jwt_client):
+    response = jwt_client.get(URL)
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
 

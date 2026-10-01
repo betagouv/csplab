@@ -42,10 +42,10 @@ def test_unauthenticated_access(api_client):
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
 
-def test_jwt_authentication_is_rejected(authenticated_client):
+def test_jwt_authentication_is_rejected(jwt_client):
     organisme = OrganismeDjangoFactory()
     payload = TalentsoftOrganismeUpsertPayloadFactory(organisme_id=str(organisme.id))
-    response = authenticated_client.post(
+    response = jwt_client.post(
         URL,
         data={"talentsoft_organismes": [payload]},
         content_type="application/json",

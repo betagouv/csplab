@@ -8,7 +8,6 @@ from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema
 from rest_framework import exceptions, status
 from rest_framework.generics import ListAPIView
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -28,6 +27,7 @@ from domain.recruteur.errors.recrutement_errors import (
     RecrutementDocumentTypeNonAutorise,
     RecrutementInexistant,
 )
+from presentation.api.authentication import SessionApiMixin
 from presentation.api.serializers import GenericErrorSerializer, generic_response_format
 from presentation.commons.pagination import PageNumberLimitPagination
 from presentation.recruteur.mappers import UtilisateurMapper
@@ -46,9 +46,7 @@ from presentation.recruteur.serializers import DocumentListeSerializer
         415: GenericErrorSerializer,
     },
 )
-class DocumentView(APIView):
-    permission_classes = [IsAuthenticated]
-
+class DocumentView(SessionApiMixin, APIView):
     @method_decorator(xframe_options_sameorigin)
     def get(
         self,
@@ -107,8 +105,7 @@ class DocumentView(APIView):
     tags=["recruteur"],
     responses={**generic_response_format, 200: DocumentListeSerializer(many=True)},
 )
-class CandidatureDocumentsView(ListAPIView):
-    permission_classes = [IsAuthenticated]
+class CandidatureDocumentsView(SessionApiMixin, ListAPIView):
     serializer_class = DocumentListeSerializer
     pagination_class = PageNumberLimitPagination
 

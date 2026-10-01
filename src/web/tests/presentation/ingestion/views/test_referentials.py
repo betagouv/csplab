@@ -35,13 +35,13 @@ from tests.utils.openapi_test_utils import assert_matches_openapi_schema
         ("radius", Radius),
     ],
 )
-def test_returns_all_enum_members(authenticated_client, referential_type, enum_cls):
+def test_returns_all_enum_members(jwt_client, referential_type, enum_cls):
     url = reverse(
         "ingestion_fake_ts:referentials_list",
         kwargs={"referential_type": referential_type},
     )
 
-    response = authenticated_client.get(url)
+    response = jwt_client.get(url)
 
     assert response.status_code == status.HTTP_200_OK
     data = response.json()
@@ -61,13 +61,13 @@ def test_returns_all_enum_members(authenticated_client, referential_type, enum_c
         ("domain", DOMAIN_NAMES),
     ],
 )
-def test_returns_all_code_names(authenticated_client, referential_type, names):
+def test_returns_all_code_names(jwt_client, referential_type, names):
     url = reverse(
         "ingestion_fake_ts:referentials_list",
         kwargs={"referential_type": referential_type},
     )
 
-    response = authenticated_client.get(url)
+    response = jwt_client.get(url)
 
     assert response.status_code == status.HTTP_200_OK
     data = response.json()
@@ -79,7 +79,7 @@ def test_returns_all_code_names(authenticated_client, referential_type, names):
 
 
 @pytest.mark.django_db
-def test_returns_all_talentsoft_organismes(authenticated_client):
+def test_returns_all_talentsoft_organismes(jwt_client):
     TalentsoftOrganismeDjangoFactory(
         entity_code="ENT-1", code=1, name="Ministère", has_children=True
     )
@@ -91,7 +91,7 @@ def test_returns_all_talentsoft_organismes(authenticated_client):
         kwargs={"referential_type": "organisation"},
     )
 
-    response = authenticated_client.get(url)
+    response = jwt_client.get(url)
 
     assert response.status_code == status.HTTP_200_OK
     assert response.json() == [
@@ -128,33 +128,33 @@ def test_unauthenticated_access(api_client):
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
 
-def test_unknown_referential_returns_404(authenticated_client):
+def test_unknown_referential_returns_404(jwt_client):
     url = reverse(
         "ingestion_fake_ts:referentials_list", kwargs={"referential_type": "unknown"}
     )
 
-    response = authenticated_client.get(url)
+    response = jwt_client.get(url)
 
     assert response.status_code == status.HTTP_404_NOT_FOUND
 
 
-def test_response_has_no_undeclared_fields(authenticated_client):
+def test_response_has_no_undeclared_fields(jwt_client):
     url = reverse(
         "ingestion_fake_ts:referentials_list", kwargs={"referential_type": "verse"}
     )
 
-    response = authenticated_client.get(url)
+    response = jwt_client.get(url)
     result = response.json()[0]
 
     assert set(result.keys()) == set(FakeTsCodedObjectSerializer().fields.keys())
 
 
-def test_response_matches_openapi_schema(authenticated_client):
+def test_response_matches_openapi_schema(jwt_client):
     url = reverse(
         "ingestion_fake_ts:referentials_list", kwargs={"referential_type": "verse"}
     )
 
-    response = authenticated_client.get(url)
+    response = jwt_client.get(url)
 
     assert_matches_openapi_schema(
         response.json(), "/api/fake-ts/referentials/{referential_type}", method="get"

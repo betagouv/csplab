@@ -3,7 +3,6 @@ from pydantic import ValidationError
 from referentiel.value_objects.siret import SIRET
 from referentiel.value_objects.verse import Verse
 from rest_framework import status
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -15,6 +14,7 @@ from domain.identite.errors.organisme_permission_errors import (
     OperationOrganismeRefusee,
 )
 from infrastructure.di.identite.identite_factory import create_identite_container
+from presentation.api.authentication import SessionApiMixin
 from presentation.api.serializers import (
     GenericErrorSerializer,
     generic_response_format,
@@ -50,8 +50,7 @@ from presentation.recruteur.serializers import (
         },
     ),
 )
-class OrganismesView(APIView):
-    permission_classes = [IsAuthenticated]
+class OrganismesView(SessionApiMixin, APIView):
     serializer_class = OrganismeDetailSerializer
 
     def __init__(self, **kwargs):

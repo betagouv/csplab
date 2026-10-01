@@ -8,7 +8,6 @@ from pydantic import ValidationError
 from referentiel.value_objects.siret import SIRET
 from referentiel.value_objects.verse import Verse
 from rest_framework import status
-from rest_framework_simplejwt.tokens import RefreshToken
 
 from application.identite.services.organisme_query_service_interface import (
     OrganismeReadModel,
@@ -223,8 +222,7 @@ class TestOrganismesViewDbVerified:
     @pytest.fixture
     def staff_client(self, api_client):
         staff_user = UtilisateurDjangoFactory(is_staff=True)
-        refresh = RefreshToken.for_user(staff_user)
-        api_client.credentials(HTTP_AUTHORIZATION=f"Bearer {refresh.access_token}")
+        api_client.force_login(staff_user)
         return api_client
 
     def test_get_returns_persisted_organismes(self, staff_client):

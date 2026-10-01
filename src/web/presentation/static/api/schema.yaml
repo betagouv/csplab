@@ -1365,9 +1365,7 @@ paths:
   /api/token:
     post:
       operationId: token_create
-      description: |-
-        Takes a set of user credentials and returns an access and refresh JSON web
-        token pair to prove the authentication of those credentials.
+      description: 'Open on purpose (e.g. token issuing): no authenticator at all.'
       tags:
       - token
       requestBody:
@@ -1382,6 +1380,8 @@ paths:
             schema:
               $ref: '#/components/schemas/TokenObtainPair'
         required: true
+      security:
+      - {}
       responses:
         '200':
           content:
@@ -1418,9 +1418,7 @@ paths:
   /api/token/refresh:
     post:
       operationId: token_refresh_create
-      description: |-
-        Takes a refresh type JSON web token and returns an access type JSON web
-        token if the refresh token is valid.
+      description: 'Open on purpose (e.g. token issuing): no authenticator at all.'
       tags:
       - token
       requestBody:
@@ -1435,6 +1433,8 @@ paths:
             schema:
               $ref: '#/components/schemas/TokenRefresh'
         required: true
+      security:
+      - {}
       responses:
         '200':
           content:
@@ -1513,7 +1513,7 @@ paths:
               - file
       security:
       - jwtAuth: []
-      - cookieAuth: []
+      - ApiKeyAuth: []
       responses:
         '201':
           content:
@@ -1730,7 +1730,7 @@ paths:
       - metiers
       security:
       - jwtAuth: []
-      - cookieAuth: []
+      - ApiKeyAuth: []
       responses:
         '200':
           content:
@@ -5780,10 +5780,6 @@ components:
       in: header
       name: Authorization
       description: 'API key authentication. Use the format: `Api-Key <key>`.'
-    cookieAuth:
-      type: apiKey
-      in: cookie
-      name: sessionid
     jwtAuth:
       type: http
       scheme: bearer

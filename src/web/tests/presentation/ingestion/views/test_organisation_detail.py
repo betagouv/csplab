@@ -13,10 +13,10 @@ def _url(entity_code):
     )
 
 
-def test_returns_talentsoft_organisation(db, authenticated_client):
+def test_returns_talentsoft_organisation(db, jwt_client):
     ts_organisme = TalentsoftOrganismeDjangoFactory()
 
-    response = authenticated_client.get(_url(ts_organisme.entity_code))
+    response = jwt_client.get(_url(ts_organisme.entity_code))
 
     assert response.status_code == status.HTTP_200_OK
     assert response.json() == {
@@ -39,17 +39,17 @@ def test_returns_talentsoft_organisation(db, authenticated_client):
     }
 
 
-def test_geolocation_is_null_without_coordinates(db, authenticated_client):
+def test_geolocation_is_null_without_coordinates(db, jwt_client):
     ts_organisme = TalentsoftOrganismeDjangoFactory(latitude=None, longitude=None)
 
-    response = authenticated_client.get(_url(ts_organisme.entity_code))
+    response = jwt_client.get(_url(ts_organisme.entity_code))
 
     assert response.status_code == status.HTTP_200_OK
     assert response.json()["geolocation"] is None
 
 
-def test_unknown_organisation_returns_404(db, authenticated_client):
-    response = authenticated_client.get(_url("UNKNOWN"))
+def test_unknown_organisation_returns_404(db, jwt_client):
+    response = jwt_client.get(_url("UNKNOWN"))
 
     assert response.status_code == status.HTTP_404_NOT_FOUND
     assert response.json() == {"error": "Organisation inconnue : UNKNOWN."}
@@ -61,10 +61,10 @@ def test_unauthenticated_access(api_client):
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
 
-def test_response_matches_openapi_schema(db, authenticated_client):
+def test_response_matches_openapi_schema(db, jwt_client):
     ts_organisme = TalentsoftOrganismeDjangoFactory()
 
-    response = authenticated_client.get(_url(ts_organisme.entity_code))
+    response = jwt_client.get(_url(ts_organisme.entity_code))
 
     assert_matches_openapi_schema(
         response.json(), "/api/fake-ts/organisation/{entity_code}", method="get"

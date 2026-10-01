@@ -4,7 +4,6 @@ from django.http import Http404
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import exceptions, status
 from rest_framework.generics import ListAPIView
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -34,6 +33,7 @@ from domain.recruteur.errors.recrutement_agent_errors import (
     AgentNonMembreRecrutement,
 )
 from domain.recruteur.errors.recrutement_errors import RecrutementInexistant
+from presentation.api.authentication import SessionApiMixin
 from presentation.api.serializers import GenericErrorSerializer, generic_response_format
 from presentation.recruteur.mappers import UtilisateurMapper
 from presentation.recruteur.serializers import (
@@ -77,8 +77,7 @@ from presentation.recruteur.serializers import (
         },
     ),
 )
-class RecrutementAgentsView(ListAPIView):
-    permission_classes = [IsAuthenticated]
+class RecrutementAgentsView(SessionApiMixin, ListAPIView):
     serializer_class = RecrutementAgentSerializer
 
     def get_queryset(self):
@@ -189,9 +188,7 @@ class RecrutementAgentsView(ListAPIView):
         },
     ),
 )
-class RecrutementsResponsableView(APIView):
-    permission_classes = [IsAuthenticated]
-
+class RecrutementsResponsableView(SessionApiMixin, APIView):
     def put(self, request: Request, organisme_uuid: UUID) -> Response:
         serializer = SetRecrutementsResponsableSerializer(data=request.data)
         if not serializer.is_valid():

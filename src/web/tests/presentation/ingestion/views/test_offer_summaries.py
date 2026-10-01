@@ -62,15 +62,15 @@ def test_valid_api_key_no_longer_grants_access(api_key_client):
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
 
-def test_post_not_allowed(authenticated_client):
-    response = authenticated_client.post(URL)
+def test_post_not_allowed(jwt_client):
+    response = jwt_client.post(URL)
     assert response.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
 
 
-def test_empty_result(mock_offer_summaries_container, authenticated_client):
+def test_empty_result(mock_offer_summaries_container, jwt_client):
     _make_paginated_mock(mock_offer_summaries_container, total=0, offers_slice=[])
 
-    response = authenticated_client.get(URL)
+    response = jwt_client.get(URL)
 
     assert response.status_code == status.HTTP_200_OK
     assert response.json() == {
@@ -85,26 +85,24 @@ def test_empty_result(mock_offer_summaries_container, authenticated_client):
     }
 
 
-def test_only_queries_non_archived_offers(
-    mock_offer_summaries_container, authenticated_client
-):
+def test_only_queries_non_archived_offers(mock_offer_summaries_container, jwt_client):
     _make_paginated_mock(mock_offer_summaries_container, total=0, offers_slice=[])
 
-    authenticated_client.get(URL)
+    jwt_client.get(URL)
 
     mock_offer_summaries_container.list_offers_usecase.return_value.execute.assert_called_once_with(
         GetFilteredOffersInput(active=True)
     )
 
 
-def test_call_without_arg(mock_offer_summaries_container, authenticated_client):
+def test_call_without_arg(mock_offer_summaries_container, jwt_client):
     offer = OfferFactory.create_entity(
         contract_type=ContractType.TERRITORIAL,
         category=Category.A,
     )
     _make_paginated_mock(mock_offer_summaries_container, total=1, offers_slice=[offer])
 
-    response = authenticated_client.get(URL)
+    response = jwt_client.get(URL)
 
     assert response.status_code == status.HTTP_200_OK
     data = response.json()
@@ -146,32 +144,28 @@ def test_call_without_arg(mock_offer_summaries_container, authenticated_client):
     assert result["department"][0]["label"] == offer.localisation.department.name
 
 
-def test_response_matches_openapi_schema(
-    mock_offer_summaries_container, authenticated_client
-):
+def test_response_matches_openapi_schema(mock_offer_summaries_container, jwt_client):
     offer = OfferFactory.create_entity(
         contract_type=ContractType.TERRITORIAL,
         category=Category.A,
     )
     _make_paginated_mock(mock_offer_summaries_container, total=1, offers_slice=[offer])
 
-    response = authenticated_client.get(URL)
+    response = jwt_client.get(URL)
 
     assert_matches_openapi_schema(
         response.json(), "/api/fake-ts/offersummaries", method="get"
     )
 
 
-def test_response_has_no_undeclared_fields(
-    mock_offer_summaries_container, authenticated_client
-):
+def test_response_has_no_undeclared_fields(mock_offer_summaries_container, jwt_client):
     offer = OfferFactory.create_entity(
         contract_type=ContractType.TERRITORIAL,
         category=Category.A,
     )
     _make_paginated_mock(mock_offer_summaries_container, total=1, offers_slice=[offer])
 
-    response = authenticated_client.get(URL)
+    response = jwt_client.get(URL)
     result = response.json()["data"][0]
 
     assert set(result.keys()) == set(FakeTsOfferSummarySerializer().fields.keys())
@@ -187,7 +181,7 @@ def test_response_has_no_undeclared_fields(
 
 
 class TestOfferSummariesViewDbVerified:
-    def test_response_matches_db_record_field_by_field(self, authenticated_client):
+    def test_response_matches_db_record_field_by_field(self, jwt_client):
         OfferDjangoFactory(
             reference="REF-E2E-SUMMARY-1",
             title="Développeur Backend",
@@ -207,7 +201,7 @@ class TestOfferSummariesViewDbVerified:
             beginning_date=datetime(2024, 6, 1, tzinfo=UTC),
         )
 
-        response = authenticated_client.get(URL)
+        response = jwt_client.get(URL)
 
         assert response.status_code == status.HTTP_200_OK
         assert response.json() == {
@@ -308,9 +302,7 @@ class TestOfferSummariesViewDbVerified:
             },
         }
 
-    def test_organization_filter_includes_child_organizations(
-        self, authenticated_client
-    ):
+    def test_organization_filter_includes_child_organizations(self, jwt_client):
         parent = TalentsoftOrganismeDjangoFactory(has_children=True)
         child_b = TalentsoftOrganismeDjangoFactory(parent_code=parent.code)
         child_c = TalentsoftOrganismeDjangoFactory(parent_code=parent.code)
@@ -322,19 +314,19 @@ class TestOfferSummariesViewDbVerified:
             talentsoft_organisme_entity_code=TalentsoftOrganismeDjangoFactory(),
         )
 
-        response = authenticated_client.get(URL, {"organization": parent.entity_code})
+        response = jwt_client.get(URL, {"organization": parent.entity_code})
 
         assert response.status_code == status.HTTP_200_OK
         references = {offer["reference"] for offer in response.json()["data"]}
         assert references == {"REF-A", "REF-B", "REF-C"}
 
     def test_does_not_trigger_n_plus_one_queries(
-        self, authenticated_client, django_assert_num_queries
+        self, jwt_client, django_assert_num_queries
     ):
         OfferDjangoFactory.create_batch(5)
 
         with django_assert_num_queries(NOMBRE_REQUETES_ATTENDU):
-            response = authenticated_client.get(URL)
+            response = jwt_client.get(URL)
 
         assert response.status_code == status.HTTP_200_OK
 
@@ -344,13 +336,13 @@ class TestOfferSummariesViewDbVerified:
     [(0, 10), (5, 20), (10, 1)],
 )
 def test_start_and_count_are_forwarded_to_pagination(
-    mock_offer_summaries_container, authenticated_client, start, count
+    mock_offer_summaries_container, jwt_client, start, count
 ):
     mock_usecase = _make_paginated_mock(
         mock_offer_summaries_container, total=100, offers_slice=[]
     )
 
-    response = authenticated_client.get(URL, {"start": start, "count": count})
+    response = jwt_client.get(URL, {"start": start, "count": count})
 
     assert response.status_code == status.HTTP_200_OK
     data = response.json()
@@ -360,23 +352,23 @@ def test_start_and_count_are_forwarded_to_pagination(
 
 
 def test_has_more_true_when_more_results_exist(
-    mock_offer_summaries_container, authenticated_client
+    mock_offer_summaries_container, jwt_client
 ):
     offers = [OfferFactory.create_entity() for _ in range(2)]
     _make_paginated_mock(mock_offer_summaries_container, total=5, offers_slice=offers)
 
-    response = authenticated_client.get(URL, {"start": 0, "count": 2})
+    response = jwt_client.get(URL, {"start": 0, "count": 2})
 
     assert response.status_code == status.HTTP_200_OK
     assert response.json()["_pagination"]["hasMore"] is True
 
 
 def test_category_filter_is_forwarded_to_usecase(
-    mock_offer_summaries_container, authenticated_client
+    mock_offer_summaries_container, jwt_client
 ):
     _make_paginated_mock(mock_offer_summaries_container, total=0, offers_slice=[])
 
-    authenticated_client.get(URL, {"category": "A,B"})
+    jwt_client.get(URL, {"category": "A,B"})
 
     mock_offer_summaries_container.list_offers_usecase.return_value.execute.assert_called_once_with(
         GetFilteredOffersInput(
@@ -387,11 +379,11 @@ def test_category_filter_is_forwarded_to_usecase(
 
 
 def test_category_legacy_numeric_codes_are_translated(
-    mock_offer_summaries_container, authenticated_client
+    mock_offer_summaries_container, jwt_client
 ):
     _make_paginated_mock(mock_offer_summaries_container, total=0, offers_slice=[])
 
-    authenticated_client.get(URL, {"category": "1805,1806,1807,4327,4328"})
+    jwt_client.get(URL, {"category": "1805,1806,1807,4327,4328"})
 
     mock_offer_summaries_container.list_offers_usecase.return_value.execute.assert_called_once_with(
         GetFilteredOffersInput(
@@ -408,11 +400,11 @@ def test_category_legacy_numeric_codes_are_translated(
 
 
 def test_category_legacy_range_alias_is_translated(
-    mock_offer_summaries_container, authenticated_client
+    mock_offer_summaries_container, jwt_client
 ):
     _make_paginated_mock(mock_offer_summaries_container, total=0, offers_slice=[])
 
-    authenticated_client.get(URL, {"category": "4327-4328"})
+    jwt_client.get(URL, {"category": "4327-4328"})
 
     mock_offer_summaries_container.list_offers_usecase.return_value.execute.assert_called_once_with(
         GetFilteredOffersInput(
@@ -422,12 +414,10 @@ def test_category_legacy_range_alias_is_translated(
     )
 
 
-def test_invalid_category_returns_400(
-    mock_offer_summaries_container, authenticated_client
-):
+def test_invalid_category_returns_400(mock_offer_summaries_container, jwt_client):
     _make_paginated_mock(mock_offer_summaries_container, total=0, offers_slice=[])
 
-    response = authenticated_client.get(URL, {"category": "INVALID"})
+    response = jwt_client.get(URL, {"category": "INVALID"})
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert "INVALID" in response.json()["error"]
@@ -435,11 +425,11 @@ def test_invalid_category_returns_400(
 
 
 def test_verse_filter_is_forwarded_to_usecase(
-    mock_offer_summaries_container, authenticated_client
+    mock_offer_summaries_container, jwt_client
 ):
     _make_paginated_mock(mock_offer_summaries_container, total=0, offers_slice=[])
 
-    authenticated_client.get(URL, {"verse": "FPE,FPT"})
+    jwt_client.get(URL, {"verse": "FPE,FPT"})
 
     mock_offer_summaries_container.list_offers_usecase.return_value.execute.assert_called_once_with(
         GetFilteredOffersInput(
@@ -449,12 +439,10 @@ def test_verse_filter_is_forwarded_to_usecase(
     )
 
 
-def test_invalid_verse_returns_400(
-    mock_offer_summaries_container, authenticated_client
-):
+def test_invalid_verse_returns_400(mock_offer_summaries_container, jwt_client):
     _make_paginated_mock(mock_offer_summaries_container, total=0, offers_slice=[])
 
-    response = authenticated_client.get(URL, {"verse": "INVALID"})
+    response = jwt_client.get(URL, {"verse": "INVALID"})
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert "INVALID" in response.json()["error"]
@@ -462,11 +450,11 @@ def test_invalid_verse_returns_400(
 
 
 def test_contract_type_filter_is_forwarded_to_usecase(
-    mock_offer_summaries_container, authenticated_client
+    mock_offer_summaries_container, jwt_client
 ):
     _make_paginated_mock(mock_offer_summaries_container, total=0, offers_slice=[])
 
-    authenticated_client.get(URL, {"contractType": "CONTRACTUELS,TERRITORIAL"})
+    jwt_client.get(URL, {"contractType": "CONTRACTUELS,TERRITORIAL"})
 
     mock_offer_summaries_container.list_offers_usecase.return_value.execute.assert_called_once_with(
         GetFilteredOffersInput(
@@ -477,11 +465,11 @@ def test_contract_type_filter_is_forwarded_to_usecase(
 
 
 def test_contract_type_legacy_numeric_codes_are_translated(
-    mock_offer_summaries_container, authenticated_client
+    mock_offer_summaries_container, jwt_client
 ):
     _make_paginated_mock(mock_offer_summaries_container, total=0, offers_slice=[])
 
-    authenticated_client.get(URL, {"contractType": "2349,4534,2267"})
+    jwt_client.get(URL, {"contractType": "2349,4534,2267"})
 
     mock_offer_summaries_container.list_offers_usecase.return_value.execute.assert_called_once_with(
         GetFilteredOffersInput(
@@ -495,12 +483,10 @@ def test_contract_type_legacy_numeric_codes_are_translated(
     )
 
 
-def test_invalid_contract_type_returns_400(
-    mock_offer_summaries_container, authenticated_client
-):
+def test_invalid_contract_type_returns_400(mock_offer_summaries_container, jwt_client):
     _make_paginated_mock(mock_offer_summaries_container, total=0, offers_slice=[])
 
-    response = authenticated_client.get(URL, {"contractType": "INVALID"})
+    response = jwt_client.get(URL, {"contractType": "INVALID"})
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert "INVALID" in response.json()["error"]
@@ -510,11 +496,11 @@ def test_invalid_contract_type_returns_400(
 
 
 def test_experience_level_filter_is_forwarded_to_usecase(
-    mock_offer_summaries_container, authenticated_client
+    mock_offer_summaries_container, jwt_client
 ):
     _make_paginated_mock(mock_offer_summaries_container, total=0, offers_slice=[])
 
-    authenticated_client.get(URL, {"experienceLevel": "DEBUTANT,EXPERT"})
+    jwt_client.get(URL, {"experienceLevel": "DEBUTANT,EXPERT"})
 
     mock_offer_summaries_container.list_offers_usecase.return_value.execute.assert_called_once_with(
         GetFilteredOffersInput(
@@ -525,11 +511,11 @@ def test_experience_level_filter_is_forwarded_to_usecase(
 
 
 def test_experience_level_legacy_numeric_codes_are_translated(
-    mock_offer_summaries_container, authenticated_client
+    mock_offer_summaries_container, jwt_client
 ):
     _make_paginated_mock(mock_offer_summaries_container, total=0, offers_slice=[])
 
-    authenticated_client.get(URL, {"experienceLevel": "1835,1834,1833"})
+    jwt_client.get(URL, {"experienceLevel": "1835,1834,1833"})
 
     mock_offer_summaries_container.list_offers_usecase.return_value.execute.assert_called_once_with(
         GetFilteredOffersInput(
@@ -544,11 +530,11 @@ def test_experience_level_legacy_numeric_codes_are_translated(
 
 
 def test_invalid_experience_level_returns_400(
-    mock_offer_summaries_container, authenticated_client
+    mock_offer_summaries_container, jwt_client
 ):
     _make_paginated_mock(mock_offer_summaries_container, total=0, offers_slice=[])
 
-    response = authenticated_client.get(URL, {"experienceLevel": "INVALID"})
+    response = jwt_client.get(URL, {"experienceLevel": "INVALID"})
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert "INVALID" in response.json()["error"]
@@ -556,11 +542,11 @@ def test_invalid_experience_level_returns_400(
 
 
 def test_management_filter_is_forwarded_to_usecase(
-    mock_offer_summaries_container, authenticated_client
+    mock_offer_summaries_container, jwt_client
 ):
     _make_paginated_mock(mock_offer_summaries_container, total=0, offers_slice=[])
 
-    authenticated_client.get(URL, {"management": "SANS,AVEC"})
+    jwt_client.get(URL, {"management": "SANS,AVEC"})
 
     mock_offer_summaries_container.list_offers_usecase.return_value.execute.assert_called_once_with(
         GetFilteredOffersInput(
@@ -571,11 +557,11 @@ def test_management_filter_is_forwarded_to_usecase(
 
 
 def test_management_legacy_numeric_code_is_translated(
-    mock_offer_summaries_container, authenticated_client
+    mock_offer_summaries_container, jwt_client
 ):
     _make_paginated_mock(mock_offer_summaries_container, total=0, offers_slice=[])
 
-    authenticated_client.get(URL, {"management": "1814"})
+    jwt_client.get(URL, {"management": "1814"})
 
     mock_offer_summaries_container.list_offers_usecase.return_value.execute.assert_called_once_with(
         GetFilteredOffersInput(
@@ -585,12 +571,10 @@ def test_management_legacy_numeric_code_is_translated(
     )
 
 
-def test_invalid_management_returns_400(
-    mock_offer_summaries_container, authenticated_client
-):
+def test_invalid_management_returns_400(mock_offer_summaries_container, jwt_client):
     _make_paginated_mock(mock_offer_summaries_container, total=0, offers_slice=[])
 
-    response = authenticated_client.get(URL, {"management": "INVALID"})
+    response = jwt_client.get(URL, {"management": "INVALID"})
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert "INVALID" in response.json()["error"]
@@ -598,11 +582,11 @@ def test_invalid_management_returns_400(
 
 
 def test_working_place_filter_is_forwarded_to_usecase(
-    mock_offer_summaries_container, authenticated_client
+    mock_offer_summaries_container, jwt_client
 ):
     _make_paginated_mock(mock_offer_summaries_container, total=0, offers_slice=[])
 
-    authenticated_client.get(URL, {"workingPlace": "SUR_SITE,TELETRAVAIL"})
+    jwt_client.get(URL, {"workingPlace": "SUR_SITE,TELETRAVAIL"})
 
     mock_offer_summaries_container.list_offers_usecase.return_value.execute.assert_called_once_with(
         GetFilteredOffersInput(
@@ -613,11 +597,11 @@ def test_working_place_filter_is_forwarded_to_usecase(
 
 
 def test_working_place_legacy_numeric_code_is_translated(
-    mock_offer_summaries_container, authenticated_client
+    mock_offer_summaries_container, jwt_client
 ):
     _make_paginated_mock(mock_offer_summaries_container, total=0, offers_slice=[])
 
-    authenticated_client.get(URL, {"workingPlace": "1814"})
+    jwt_client.get(URL, {"workingPlace": "1814"})
 
     mock_offer_summaries_container.list_offers_usecase.return_value.execute.assert_called_once_with(
         GetFilteredOffersInput(
@@ -627,12 +611,10 @@ def test_working_place_legacy_numeric_code_is_translated(
     )
 
 
-def test_invalid_working_place_returns_400(
-    mock_offer_summaries_container, authenticated_client
-):
+def test_invalid_working_place_returns_400(mock_offer_summaries_container, jwt_client):
     _make_paginated_mock(mock_offer_summaries_container, total=0, offers_slice=[])
 
-    response = authenticated_client.get(URL, {"workingPlace": "INVALID"})
+    response = jwt_client.get(URL, {"workingPlace": "INVALID"})
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert "INVALID" in response.json()["error"]
@@ -640,11 +622,11 @@ def test_invalid_working_place_returns_400(
 
 
 def test_region_filter_is_forwarded_to_usecase(
-    mock_offer_summaries_container, authenticated_client
+    mock_offer_summaries_container, jwt_client
 ):
     _make_paginated_mock(mock_offer_summaries_container, total=0, offers_slice=[])
 
-    authenticated_client.get(URL, {"region": "11,84"})
+    jwt_client.get(URL, {"region": "11,84"})
 
     mock_offer_summaries_container.list_offers_usecase.return_value.execute.assert_called_once_with(
         GetFilteredOffersInput(
@@ -655,11 +637,11 @@ def test_region_filter_is_forwarded_to_usecase(
 
 
 def test_region_legacy_numeric_codes_are_translated(
-    mock_offer_summaries_container, authenticated_client
+    mock_offer_summaries_container, jwt_client
 ):
     _make_paginated_mock(mock_offer_summaries_container, total=0, offers_slice=[])
 
-    authenticated_client.get(URL, {"region": "208,198,219"})
+    jwt_client.get(URL, {"region": "208,198,219"})
 
     mock_offer_summaries_container.list_offers_usecase.return_value.execute.assert_called_once_with(
         GetFilteredOffersInput(
@@ -669,23 +651,21 @@ def test_region_legacy_numeric_codes_are_translated(
     )
 
 
-def test_invalid_region_returns_400(
-    mock_offer_summaries_container, authenticated_client
-):
+def test_invalid_region_returns_400(mock_offer_summaries_container, jwt_client):
     _make_paginated_mock(mock_offer_summaries_container, total=0, offers_slice=[])
 
-    response = authenticated_client.get(URL, {"region": "INVALID"})
+    response = jwt_client.get(URL, {"region": "INVALID"})
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert "INVALID" in response.json()["error"]
 
 
 def test_department_filter_is_forwarded_to_usecase(
-    mock_offer_summaries_container, authenticated_client
+    mock_offer_summaries_container, jwt_client
 ):
     _make_paginated_mock(mock_offer_summaries_container, total=0, offers_slice=[])
 
-    authenticated_client.get(URL, {"department": "75,69"})
+    jwt_client.get(URL, {"department": "75,69"})
 
     mock_offer_summaries_container.list_offers_usecase.return_value.execute.assert_called_once_with(
         GetFilteredOffersInput(
@@ -696,11 +676,11 @@ def test_department_filter_is_forwarded_to_usecase(
 
 
 def test_department_legacy_numeric_codes_are_translated(
-    mock_offer_summaries_container, authenticated_client
+    mock_offer_summaries_container, jwt_client
 ):
     _make_paginated_mock(mock_offer_summaries_container, total=0, offers_slice=[])
 
-    authenticated_client.get(URL, {"department": "284,336"})
+    jwt_client.get(URL, {"department": "284,336"})
 
     mock_offer_summaries_container.list_offers_usecase.return_value.execute.assert_called_once_with(
         GetFilteredOffersInput(
@@ -710,23 +690,21 @@ def test_department_legacy_numeric_codes_are_translated(
     )
 
 
-def test_invalid_department_returns_400(
-    mock_offer_summaries_container, authenticated_client
-):
+def test_invalid_department_returns_400(mock_offer_summaries_container, jwt_client):
     _make_paginated_mock(mock_offer_summaries_container, total=0, offers_slice=[])
 
-    response = authenticated_client.get(URL, {"department": "INVALID"})
+    response = jwt_client.get(URL, {"department": "INVALID"})
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert "INVALID" in response.json()["error"]
 
 
 def test_country_filter_is_forwarded_to_usecase(
-    mock_offer_summaries_container, authenticated_client
+    mock_offer_summaries_container, jwt_client
 ):
     _make_paginated_mock(mock_offer_summaries_container, total=0, offers_slice=[])
 
-    authenticated_client.get(URL, {"country": "fra,bel"})
+    jwt_client.get(URL, {"country": "fra,bel"})
 
     mock_offer_summaries_container.list_offers_usecase.return_value.execute.assert_called_once_with(
         GetFilteredOffersInput(
@@ -737,11 +715,11 @@ def test_country_filter_is_forwarded_to_usecase(
 
 
 def test_country_legacy_numeric_codes_are_translated(
-    mock_offer_summaries_container, authenticated_client
+    mock_offer_summaries_container, jwt_client
 ):
     _make_paginated_mock(mock_offer_summaries_container, total=0, offers_slice=[])
 
-    authenticated_client.get(URL, {"country": "29,40"})
+    jwt_client.get(URL, {"country": "29,40"})
 
     mock_offer_summaries_container.list_offers_usecase.return_value.execute.assert_called_once_with(
         GetFilteredOffersInput(
@@ -751,23 +729,21 @@ def test_country_legacy_numeric_codes_are_translated(
     )
 
 
-def test_invalid_country_returns_400(
-    mock_offer_summaries_container, authenticated_client
-):
+def test_invalid_country_returns_400(mock_offer_summaries_container, jwt_client):
     _make_paginated_mock(mock_offer_summaries_container, total=0, offers_slice=[])
 
-    response = authenticated_client.get(URL, {"country": "INVALID"})
+    response = jwt_client.get(URL, {"country": "INVALID"})
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert "INVALID" in response.json()["error"]
 
 
 def test_area_filter_is_forwarded_to_usecase(
-    mock_offer_summaries_container, authenticated_client
+    mock_offer_summaries_container, jwt_client
 ):
     _make_paginated_mock(mock_offer_summaries_container, total=0, offers_slice=[])
 
-    authenticated_client.get(URL, {"area": "EUROPE,AFRIQUE"})
+    jwt_client.get(URL, {"area": "EUROPE,AFRIQUE"})
 
     mock_offer_summaries_container.list_offers_usecase.return_value.execute.assert_called_once_with(
         GetFilteredOffersInput(
@@ -778,11 +754,11 @@ def test_area_filter_is_forwarded_to_usecase(
 
 
 def test_area_legacy_numeric_codes_are_translated(
-    mock_offer_summaries_container, authenticated_client
+    mock_offer_summaries_container, jwt_client
 ):
     _make_paginated_mock(mock_offer_summaries_container, total=0, offers_slice=[])
 
-    authenticated_client.get(URL, {"area": "22,19,20,21,23,24"})
+    jwt_client.get(URL, {"area": "22,19,20,21,23,24"})
 
     mock_offer_summaries_container.list_offers_usecase.return_value.execute.assert_called_once_with(
         GetFilteredOffersInput(
@@ -799,21 +775,21 @@ def test_area_legacy_numeric_codes_are_translated(
     )
 
 
-def test_invalid_area_returns_400(mock_offer_summaries_container, authenticated_client):
+def test_invalid_area_returns_400(mock_offer_summaries_container, jwt_client):
     _make_paginated_mock(mock_offer_summaries_container, total=0, offers_slice=[])
 
-    response = authenticated_client.get(URL, {"area": "INVALID"})
+    response = jwt_client.get(URL, {"area": "INVALID"})
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert "INVALID" in response.json()["error"]
 
 
 def test_locations_filter_detects_country_region_department_and_area(
-    mock_offer_summaries_container, authenticated_client
+    mock_offer_summaries_container, jwt_client
 ):
     _make_paginated_mock(mock_offer_summaries_container, total=0, offers_slice=[])
 
-    authenticated_client.get(URL, {"locations": "29,198,330,19"})
+    jwt_client.get(URL, {"locations": "29,198,330,19"})
 
     mock_offer_summaries_container.list_offers_usecase.return_value.execute.assert_called_once_with(
         GetFilteredOffersInput(
@@ -827,11 +803,11 @@ def test_locations_filter_detects_country_region_department_and_area(
 
 
 def test_locations_filter_is_merged_with_explicit_filters(
-    mock_offer_summaries_container, authenticated_client
+    mock_offer_summaries_container, jwt_client
 ):
     _make_paginated_mock(mock_offer_summaries_container, total=0, offers_slice=[])
 
-    authenticated_client.get(
+    jwt_client.get(
         URL,
         {
             "locations": "198,19",
@@ -851,23 +827,21 @@ def test_locations_filter_is_merged_with_explicit_filters(
     )
 
 
-def test_invalid_locations_returns_400(
-    mock_offer_summaries_container, authenticated_client
-):
+def test_invalid_locations_returns_400(mock_offer_summaries_container, jwt_client):
     _make_paginated_mock(mock_offer_summaries_container, total=0, offers_slice=[])
 
-    response = authenticated_client.get(URL, {"locations": "INVALID"})
+    response = jwt_client.get(URL, {"locations": "INVALID"})
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert "INVALID" in response.json()["error"]
 
 
 def test_domain_filter_is_forwarded_to_usecase(
-    mock_offer_summaries_container, authenticated_client
+    mock_offer_summaries_container, jwt_client
 ):
     _make_paginated_mock(mock_offer_summaries_container, total=0, offers_slice=[])
 
-    authenticated_client.get(URL, {"domain": "NUM,ACH"})
+    jwt_client.get(URL, {"domain": "NUM,ACH"})
 
     mock_offer_summaries_container.list_offers_usecase.return_value.execute.assert_called_once_with(
         GetFilteredOffersInput(
@@ -878,11 +852,11 @@ def test_domain_filter_is_forwarded_to_usecase(
 
 
 def test_domain_legacy_numeric_codes_are_translated(
-    mock_offer_summaries_container, authenticated_client
+    mock_offer_summaries_container, jwt_client
 ):
     _make_paginated_mock(mock_offer_summaries_container, total=0, offers_slice=[])
 
-    authenticated_client.get(URL, {"domain": "3522,3503"})
+    jwt_client.get(URL, {"domain": "3522,3503"})
 
     mock_offer_summaries_container.list_offers_usecase.return_value.execute.assert_called_once_with(
         GetFilteredOffersInput(
@@ -892,23 +866,21 @@ def test_domain_legacy_numeric_codes_are_translated(
     )
 
 
-def test_invalid_domain_returns_400(
-    mock_offer_summaries_container, authenticated_client
-):
+def test_invalid_domain_returns_400(mock_offer_summaries_container, jwt_client):
     _make_paginated_mock(mock_offer_summaries_container, total=0, offers_slice=[])
 
-    response = authenticated_client.get(URL, {"domain": "INVALID"})
+    response = jwt_client.get(URL, {"domain": "INVALID"})
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert "INVALID" in response.json()["error"]
 
 
 def test_organization_filter_is_forwarded_to_usecase(
-    mock_offer_summaries_container, authenticated_client
+    mock_offer_summaries_container, jwt_client
 ):
     _make_paginated_mock(mock_offer_summaries_container, total=0, offers_slice=[])
 
-    authenticated_client.get(URL, [("organization", "ORG1")])
+    jwt_client.get(URL, [("organization", "ORG1")])
 
     mock_offer_summaries_container.list_offers_usecase.return_value.execute.assert_called_once_with(
         GetFilteredOffersInput(
@@ -919,11 +891,11 @@ def test_organization_filter_is_forwarded_to_usecase(
 
 
 def test_organization_filter_with_multiple_values_is_forwarded_to_usecase(
-    mock_offer_summaries_container, authenticated_client
+    mock_offer_summaries_container, jwt_client
 ):
     _make_paginated_mock(mock_offer_summaries_container, total=0, offers_slice=[])
 
-    authenticated_client.get(
+    jwt_client.get(
         URL,
         [
             ("organization", "ORG1"),
@@ -940,11 +912,11 @@ def test_organization_filter_with_multiple_values_is_forwarded_to_usecase(
 
 
 def test_keywords_filter_is_forwarded_to_usecase(
-    mock_offer_summaries_container, authenticated_client
+    mock_offer_summaries_container, jwt_client
 ):
     _make_paginated_mock(mock_offer_summaries_container, total=0, offers_slice=[])
 
-    authenticated_client.get(URL, {"keywords": "développeur informatique"})
+    jwt_client.get(URL, {"keywords": "développeur informatique"})
 
     mock_offer_summaries_container.list_offers_usecase.return_value.execute.assert_called_once_with(
         GetFilteredOffersInput(
@@ -955,11 +927,11 @@ def test_keywords_filter_is_forwarded_to_usecase(
 
 
 def test_blank_keywords_is_treated_as_not_provided(
-    mock_offer_summaries_container, authenticated_client
+    mock_offer_summaries_container, jwt_client
 ):
     _make_paginated_mock(mock_offer_summaries_container, total=0, offers_slice=[])
 
-    response = authenticated_client.get(URL, {"keywords": ""})
+    response = jwt_client.get(URL, {"keywords": ""})
 
     assert response.status_code == status.HTTP_200_OK
     mock_offer_summaries_container.list_offers_usecase.return_value.execute.assert_called_once_with(
@@ -968,11 +940,11 @@ def test_blank_keywords_is_treated_as_not_provided(
 
 
 def test_publication_date_filter_is_forwarded_to_usecase(
-    mock_offer_summaries_container, authenticated_client
+    mock_offer_summaries_container, jwt_client
 ):
     _make_paginated_mock(mock_offer_summaries_container, total=0, offers_slice=[])
 
-    authenticated_client.get(URL, {"publicationDate": "-7"})
+    jwt_client.get(URL, {"publicationDate": "-7"})
 
     mock_offer_summaries_container.list_offers_usecase.return_value.execute.assert_called_once_with(
         GetFilteredOffersInput(
@@ -991,11 +963,11 @@ def test_publication_date_filter_is_forwarded_to_usecase(
     ],
 )
 def test_publication_date_legacy_aliases_are_translated(
-    mock_offer_summaries_container, authenticated_client, alias, expected_days
+    mock_offer_summaries_container, jwt_client, alias, expected_days
 ):
     _make_paginated_mock(mock_offer_summaries_container, total=0, offers_slice=[])
 
-    authenticated_client.get(URL, {"publicationDate": alias})
+    jwt_client.get(URL, {"publicationDate": alias})
 
     mock_offer_summaries_container.list_offers_usecase.return_value.execute.assert_called_once_with(
         GetFilteredOffersInput(
@@ -1006,23 +978,19 @@ def test_publication_date_legacy_aliases_are_translated(
 
 
 def test_positive_publication_date_returns_400(
-    mock_offer_summaries_container, authenticated_client
+    mock_offer_summaries_container, jwt_client
 ):
     _make_paginated_mock(mock_offer_summaries_container, total=0, offers_slice=[])
 
-    response = authenticated_client.get(URL, {"publicationDate": "7"})
+    response = jwt_client.get(URL, {"publicationDate": "7"})
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
 
 
-def test_geo_filter_is_forwarded_to_usecase(
-    mock_offer_summaries_container, authenticated_client
-):
+def test_geo_filter_is_forwarded_to_usecase(mock_offer_summaries_container, jwt_client):
     _make_paginated_mock(mock_offer_summaries_container, total=0, offers_slice=[])
 
-    authenticated_client.get(
-        URL, {"latitude": "48.8566", "longitude": "2.3522", "radius": "10"}
-    )
+    jwt_client.get(URL, {"latitude": "48.8566", "longitude": "2.3522", "radius": "10"})
 
     mock_offer_summaries_container.list_offers_usecase.return_value.execute.assert_called_once_with(
         GetFilteredOffersInput(
@@ -1046,33 +1014,29 @@ def test_geo_filter_is_forwarded_to_usecase(
     ],
 )
 def test_partial_geo_filter_returns_400(
-    mock_offer_summaries_container, authenticated_client, params
+    mock_offer_summaries_container, jwt_client, params
 ):
     _make_paginated_mock(mock_offer_summaries_container, total=0, offers_slice=[])
 
-    response = authenticated_client.get(URL, params)
+    response = jwt_client.get(URL, params)
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
 
 
-def test_radius_below_one_returns_400(
-    mock_offer_summaries_container, authenticated_client
-):
+def test_radius_below_one_returns_400(mock_offer_summaries_container, jwt_client):
     _make_paginated_mock(mock_offer_summaries_container, total=0, offers_slice=[])
 
-    response = authenticated_client.get(
+    response = jwt_client.get(
         URL, {"latitude": "48.8566", "longitude": "2.3522", "radius": "0"}
     )
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
 
 
-def test_non_integer_radius_returns_400(
-    mock_offer_summaries_container, authenticated_client
-):
+def test_non_integer_radius_returns_400(mock_offer_summaries_container, jwt_client):
     _make_paginated_mock(mock_offer_summaries_container, total=0, offers_slice=[])
 
-    response = authenticated_client.get(
+    response = jwt_client.get(
         URL, {"latitude": "48.8566", "longitude": "2.3522", "radius": "10.5"}
     )
 
@@ -1087,19 +1051,19 @@ def test_non_integer_radius_returns_400(
     ],
 )
 def test_out_of_range_lat_lon_returns_400(
-    mock_offer_summaries_container, authenticated_client, params
+    mock_offer_summaries_container, jwt_client, params
 ):
     _make_paginated_mock(mock_offer_summaries_container, total=0, offers_slice=[])
 
-    response = authenticated_client.get(URL, params)
+    response = jwt_client.get(URL, params)
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
 
 
-def test_returns_error_500(mock_offer_summaries_container, authenticated_client):
+def test_returns_error_500(mock_offer_summaries_container, jwt_client):
     mock_usecase = MagicMock()
     mock_usecase.execute.side_effect = Exception("db error")
     mock_offer_summaries_container.list_offers_usecase.return_value = mock_usecase
 
-    response = authenticated_client.get(URL)
+    response = jwt_client.get(URL)
     assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR

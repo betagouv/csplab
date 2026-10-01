@@ -3,7 +3,6 @@ from uuid import UUID
 from django.http import Http404
 from drf_spectacular.utils import extend_schema
 from rest_framework import exceptions, status
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -20,6 +19,7 @@ from domain.recruteur.errors.recrutement_errors import (
     RecrutementCandidatureInexistante,
     RecrutementInexistant,
 )
+from presentation.api.authentication import SessionApiMixin
 from presentation.api.serializers import GenericErrorSerializer, generic_response_format
 from presentation.recruteur.mappers import UtilisateurMapper
 from presentation.recruteur.serializers import CandidatureDetailSerializer
@@ -33,9 +33,7 @@ from presentation.recruteur.serializers import CandidatureDetailSerializer
         200: CandidatureDetailSerializer,
     },
 )
-class CandidatureDetailView(APIView):
-    permission_classes = [IsAuthenticated]
-
+class CandidatureDetailView(SessionApiMixin, APIView):
     def get(
         self,
         request: Request,

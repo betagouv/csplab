@@ -17,13 +17,11 @@ from application.ingestion.usecases.supprimer_organismes import (
     SupprimerOrganismesUsecase,
 )
 from config.logger_names import LoggerName
-from infrastructure.authentication.api_key_authentication import (
-    ApiKeyAuthentication,
-)
 from infrastructure.di.ingestion.ingestion_factory import create_ingestion_container
 from infrastructure.repositories.identite.postgres_organisme_repository import (
     PostgresOrganismeRepository,
 )
+from presentation.api.authentication import PublicApiKeyOnlyMixin
 from presentation.api.serializers import GenericErrorSerializer
 from presentation.ingestion.mappers import OrganismeInputMapper
 from presentation.ingestion.serializers import (
@@ -77,8 +75,7 @@ UPSERT_ORGANISMES_DESCRIPTION = (
         500: GenericErrorSerializer,
     },
 )
-class OrganismesUpsertView(APIView):
-    authentication_classes = [ApiKeyAuthentication]
+class OrganismesUpsertView(PublicApiKeyOnlyMixin, APIView):
     parser_classes = [JSONParser]
     serializer_class = UpsertOrganismesRequestSerializer
 
@@ -156,8 +153,7 @@ SUPPRIMER_ORGANISMES_DESCRIPTION = (
         500: GenericErrorSerializer,
     },
 )
-class OrganismesSupprimerView(APIView):
-    authentication_classes = [ApiKeyAuthentication]
+class OrganismesSupprimerView(PublicApiKeyOnlyMixin, APIView):
     parser_classes = [JSONParser]
     serializer_class = SupprimerOrganismesRequestSerializer
 

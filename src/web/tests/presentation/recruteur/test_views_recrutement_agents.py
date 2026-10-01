@@ -4,7 +4,6 @@ from uuid import uuid4
 import pytest
 from django.urls import reverse
 from rest_framework import status
-from rest_framework_simplejwt.tokens import RefreshToken
 
 from domain.recruteur.value_objects.roles import (
     AgentOrganismeRole,
@@ -69,8 +68,7 @@ class TestRecrutementAgentsView:
 
     def test_staff_can_list_without_organisme_role(self, api_client):
         staff_user = UtilisateurDjangoFactory(is_staff=True)
-        refresh = RefreshToken.for_user(staff_user)
-        api_client.credentials(HTTP_AUTHORIZATION=f"Bearer {refresh.access_token}")
+        api_client.force_login(staff_user)
         organisme = OrganismeDjangoFactory()
         recrutement = RecrutementDjangoFactory(organisme=organisme)
 
@@ -246,8 +244,7 @@ class TestRecrutementAgentsViewPost:
 
     def test_staff_can_add_agent_without_organisme_role(self, api_client):
         staff_user = UtilisateurDjangoFactory(is_staff=True)
-        refresh = RefreshToken.for_user(staff_user)
-        api_client.credentials(HTTP_AUTHORIZATION=f"Bearer {refresh.access_token}")
+        api_client.force_login(staff_user)
         organisme = OrganismeDjangoFactory()
         membre = OrganismeAgentDjangoFactory(
             organisme=organisme, role=AgentOrganismeRole.AGENT.value
@@ -458,8 +455,7 @@ class TestRecrutementAgentsViewPut:
 
     def test_staff_can_revoke_agent_without_organisme_role(self, api_client):
         staff_user = UtilisateurDjangoFactory(is_staff=True)
-        refresh = RefreshToken.for_user(staff_user)
-        api_client.credentials(HTTP_AUTHORIZATION=f"Bearer {refresh.access_token}")
+        api_client.force_login(staff_user)
         organisme = OrganismeDjangoFactory()
         membre = OrganismeAgentDjangoFactory(
             organisme=organisme, role=AgentOrganismeRole.AGENT.value
@@ -659,8 +655,7 @@ class TestRecrutementAgentsViewPut:
 
     def test_staff_can_update_agent_without_organisme_role(self, api_client):
         staff_user = UtilisateurDjangoFactory(is_staff=True)
-        refresh = RefreshToken.for_user(staff_user)
-        api_client.credentials(HTTP_AUTHORIZATION=f"Bearer {refresh.access_token}")
+        api_client.force_login(staff_user)
         organisme = OrganismeDjangoFactory()
         membre = OrganismeAgentDjangoFactory(
             organisme=organisme, role=AgentOrganismeRole.AGENT.value
