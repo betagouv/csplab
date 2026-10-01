@@ -6,7 +6,11 @@ from django.http import HttpRequest, HttpResponse
 from django.shortcuts import render
 from django.urls import reverse
 
-from infrastructure.django_apps.commons.models import AuditLogModel, StatSnapshotModel
+from infrastructure.django_apps.commons.models import (
+    AuditLoginLogModel,
+    AuditLogModel,
+    StatSnapshotModel,
+)
 from infrastructure.django_apps.utils.admin import ReadOnlyAdminMixin
 
 
@@ -87,3 +91,16 @@ def _register_stat_snapshot_admin_link() -> None:
 
 
 _register_stat_snapshot_admin_link()
+
+
+@admin.register(AuditLoginLogModel)
+class AuditLoginLogAdmin(ReadOnlyAdminMixin, admin.ModelAdmin):
+    list_display = (
+        "occurred_at",
+        "canal",
+        "resultat",
+        "utilisateur_id",
+        "ip_address",
+    )
+    list_filter = ("canal", "resultat", "occurred_at")
+    search_fields = ("utilisateur_id", "ip_address")
