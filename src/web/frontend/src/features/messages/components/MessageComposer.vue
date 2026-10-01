@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import type { ConversationMessagesParams } from '../queries'
-import { computed, ref } from 'vue'
+import { computed, ref, useTemplateRef } from 'vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspTextarea from '@/components/base/CspTextarea/CspTextarea.vue'
 import { useUnsavedChanges } from '@/composables/navigation/useUnsavedChanges'
 import { useToast } from '@/composables/ui/useToast'
 import { useReplyConversation } from '../composables/useConversationMessages'
-import { MESSAGE_CONTENT_MAX_LENGTH } from '../constants/message'
+import { MESSAGE_CONTENT_MAX_LENGTH, MESSAGE_MAX_DOCUMENTS } from '../constants/message'
+import MessageAttachments from './MessageAttachments.vue'
 
 const props = defineProps<ConversationMessagesParams>()
 
@@ -17,14 +18,19 @@ const { reply, replying } = useReplyConversation(() => ({
 const { addToast } = useToast()
 
 const content = ref('')
+const documents = ref<File[]>([])
+const attachments = useTemplateRef('attachments')
 
-useUnsavedChanges(() => content.value !== '', () => {
+useUnsavedChanges(() => content.value !== '' || documents.value.length > 0, () => {
   content.value = ''
+  documents.value = []
 }, {
   isLeftBy: (to, from) => to.params.conversationUuid !== from.params.conversationUuid,
 })
 
 const canSend = computed(() => content.value.trim() !== '' && !replying.value)
+
+const canAttach = computed(() => documents.value.length < MESSAGE_MAX_DOCUMENTS && !replying.value)
 
 async function send(): Promise<void> {
   if (!canSend.value)
@@ -54,6 +60,10 @@ async function send(): Promise<void> {
       aria-label="Écrivez votre message"
       class="message-composer__field"
     />
+    <MessageAttachments
+      ref="attachments"
+      v-model="documents"
+    />
     <div class="message-composer__actions">
       <CspButton
         type="button"
@@ -61,7 +71,8 @@ async function send(): Promise<void> {
         icon="ri:file-add-line"
         is-icon-left
         label="Pièce jointe"
-        disabled
+        :disabled="!canAttach"
+        @click="attachments?.pick()"
       />
       <CspButton
         type="submit"
