@@ -36,7 +36,7 @@ withDefaults(defineProps<CspSkeletonTableProps>(), {
         class="csp-skeleton-table__th"
       >
         <CspSkeleton
-          height="0.875rem"
+          variant="text"
           :width="column === 1 ? '60%' : '40%'"
         />
       </div>
@@ -52,7 +52,7 @@ withDefaults(defineProps<CspSkeletonTableProps>(), {
         class="csp-skeleton-table__td"
       >
         <CspSkeleton
-          height="1rem"
+          variant="text"
           :width="column === 1 ? '75%' : '55%'"
         />
       </div>
@@ -61,12 +61,10 @@ withDefaults(defineProps<CspSkeletonTableProps>(), {
       v-if="withFooter"
       class="csp-skeleton-table__footer"
     >
-      <div class="csp-skeleton-table__footer-info">
-        <CspSkeleton
-          width="10rem"
-          height="1rem"
-        />
-      </div>
+      <CspSkeleton
+        width="10rem"
+        variant="text"
+      />
       <CspSkeleton
         width="6rem"
         height="2rem"
@@ -113,12 +111,9 @@ withDefaults(defineProps<CspSkeletonTableProps>(), {
 }
 
 .csp-skeleton-table__th,
-.csp-skeleton-table__td,
-.csp-skeleton-table__footer-info {
+.csp-skeleton-table__td {
   display: flex;
   align-items: center;
-  box-sizing: content-box;
-  min-height: 1lh;
 }
 
 .csp-skeleton-table__th {
