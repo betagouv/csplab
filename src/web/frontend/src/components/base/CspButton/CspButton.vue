@@ -163,7 +163,9 @@ const isIconOnly = computed(() => Boolean(props.icon) && !props.label)
 }
 
 .csp-btn--icon-only {
-  padding: var(--csp-btn-padding-y) var(--csp-btn-padding-y);
+  --csp-btn-icon-inset: var(--csp-btn-padding-y);
+
+  padding: var(--csp-btn-icon-inset);
 }
 
 .csp-btn--icon-right {
