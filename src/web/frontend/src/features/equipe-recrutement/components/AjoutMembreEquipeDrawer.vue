@@ -119,7 +119,7 @@ defineExpose({ setEmailError })
 .ajout-membre-equipe-drawer {
   display: flex;
   flex-direction: column;
-  gap: var(--csp-space-5);
+  gap: var(--csp-drawer-body-gap);
 }
 
 .ajout-membre-equipe-drawer__actions {

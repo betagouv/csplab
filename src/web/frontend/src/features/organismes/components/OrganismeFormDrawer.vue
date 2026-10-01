@@ -162,7 +162,7 @@ defineExpose({ setSiretError })
 .organisme-form {
   display: flex;
   flex-direction: column;
-  gap: var(--csp-space-5);
+  gap: var(--csp-drawer-body-gap);
   height: 100%;
 }
 

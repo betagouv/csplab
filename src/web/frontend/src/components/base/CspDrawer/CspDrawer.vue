@@ -164,6 +164,8 @@ const hasFooter = computed(() => Boolean(slots.footer))
 }
 
 .csp-drawer {
+  --csp-drawer-body-gap: var(--csp-space-5);
+
   position: fixed;
   top: 0;
   bottom: 0;

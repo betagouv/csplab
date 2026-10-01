@@ -181,7 +181,7 @@ const selectedUuidsModel = computed({
 .changer-etape-drawer__content {
   display: flex;
   flex-direction: column;
-  gap: var(--csp-space-6);
+  gap: var(--csp-drawer-body-gap);
 }
 
 .changer-etape-drawer__selection {

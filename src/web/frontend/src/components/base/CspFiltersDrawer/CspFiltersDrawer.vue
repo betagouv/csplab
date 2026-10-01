@@ -45,7 +45,7 @@ const open = defineModel<boolean>('open', { required: true })
 .csp-filters-drawer {
   display: flex;
   flex-direction: column;
-  gap: var(--csp-space-6);
+  gap: var(--csp-drawer-body-gap);
 }
 
 .csp-filters-drawer__actions {
