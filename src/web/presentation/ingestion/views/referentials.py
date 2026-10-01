@@ -10,11 +10,11 @@ from referentiel.value_objects.verse import Verse
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from infrastructure.django_apps.ingestion.models.talentsoft_organisme import (
     TalentsoftOrganismeModel,
 )
+from presentation.api.authentication import PublicJwtOnlyMixin
 from presentation.api.serializers import GenericErrorSerializer
 from presentation.ingestion.serializers import (
     COUNTRY_NAMES,
@@ -88,8 +88,7 @@ REFERENTIAL_TYPES = {
         404: GenericErrorSerializer,
     },
 )
-class ReferentialListView(APIView):
-    authentication_classes = [JWTAuthentication]
+class ReferentialListView(PublicJwtOnlyMixin, APIView):
     serializer_class = FakeTsCodedObjectSerializer
 
     def get(self, request, referential_type):
