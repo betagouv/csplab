@@ -31,10 +31,12 @@ class Command(BaseCommand):
         else:
             self.logger.info(
                 "✅ Seed terminé : %s offres actives, %s archivées, "
-                "%s candidats, %s agents. Mot de passe des comptes seed : %s",
+                "%s candidats, %s agents, %s conversations. "
+                "Mot de passe des comptes seed : %s",
                 context["nb_offres_actives"],
                 context["nb_offres_archivees"],
                 context["nb_candidats"],
                 context["nb_agents"],
+                context["nb_conversations"],
                 context["seed_password"],
             )

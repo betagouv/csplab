@@ -2,15 +2,22 @@ import secrets
 
 import filetype
 from django.contrib.auth import authenticate
+from django.db import models
 
 from domain.candidate.value_objects.statut_candidature import StatutCandidature
 from infrastructure.django_apps.candidate.enums.type_document import TypeDocument
 from infrastructure.django_apps.candidate.models.candidature import CandidatureModel
 from infrastructure.django_apps.candidate.models.document import DocumentModel
+from infrastructure.django_apps.messagerie.models import (
+    ConversationModel,
+    MessageDocumentModel,
+    MessageModel,
+)
 from infrastructure.factories.seed_recruteur_datas import (
     _ADMIN_SPEC,
     _AGENTS_SPECS,
     _CANDIDATS_SPECS,
+    _CONVERSATIONS_SPECS,
     seed_recruteur_datas,
 )
 
@@ -45,12 +52,30 @@ class TestSeedRecruteurDatas:
         seed_recruteur_datas()
         seed_recruteur_datas(force=True)
 
-        soumises = CandidatureModel.objects.filter(
+        submitted = CandidatureModel.objects.filter(
             statut=StatutCandidature.SOUMISE.value
         )
         cvs = DocumentModel.objects.filter(type_document=TypeDocument.CV.value)
         assert set(cvs.values_list("candidature_id", flat=True)) == set(
-            soumises.values_list("id", flat=True)
+            submitted.values_list("id", flat=True)
         )
-        with cvs.first().fichier.open("rb") as fichier:  # type: ignore[union-attr]
-            assert filetype.guess(fichier.read(262)).mime == "application/pdf"
+        with cvs.first().fichier.open("rb") as cv_file:  # type: ignore[union-attr]
+            assert filetype.guess(cv_file.read(262)).mime == "application/pdf"
+
+    def test_seed_messagerie_survives_a_reseed(self, db):
+        seed_recruteur_datas()
+        seed_recruteur_datas(force=True)
+
+        assert ConversationModel.objects.count() == len(_CONVERSATIONS_SPECS)
+        assert MessageModel.objects.filter(
+            auteur_id=models.F("conversation__candidature__candidat_id")
+        ).exists()
+        attachment = MessageDocumentModel.objects.get()
+        assert (
+            attachment.document.candidature
+            == attachment.message.conversation.candidature
+        )
+        agent_email = _AGENTS_SPECS[0]["email"]
+        assert ConversationModel.objects.exclude(
+            lectures__utilisateur__email=agent_email
+        ).exists()

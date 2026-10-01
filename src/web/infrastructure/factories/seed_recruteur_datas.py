@@ -2,6 +2,7 @@ import os
 import secrets
 from datetime import UTC, datetime
 from pathlib import Path
+from typing import TypedDict
 from uuid import UUID
 
 from django.core.files.base import ContentFile
@@ -21,6 +22,11 @@ from domain.recruteur.value_objects.roles import (
 from infrastructure.django_apps.candidate.enums.type_document import TypeDocument
 from infrastructure.django_apps.candidate.models.candidature import CandidatureModel
 from infrastructure.django_apps.candidate.models.document import DocumentModel
+from infrastructure.django_apps.messagerie.models import (
+    ConversationModel,
+    MessageDocumentModel,
+    MessageModel,
+)
 from infrastructure.django_apps.recruteur.models.organisme import (
     OrganismeAgentModel,
     OrganismeModel,
@@ -51,6 +57,12 @@ from infrastructure.factories.identite.organisme_django_factory import (
 )
 from infrastructure.factories.identite.utilisateur_django_factory import (
     UtilisateurDjangoFactory,
+)
+from infrastructure.factories.messagerie.conversation_django_factory import (
+    ConversationDjangoFactory,
+    ConversationLectureDjangoFactory,
+    MessageDjangoFactory,
+    MessageDocumentDjangoFactory,
 )
 from infrastructure.factories.recruteur.etapes_recrutement_factory import (
     EtapeRecrutementFactory,
@@ -257,6 +269,71 @@ _OFFRES_BRIANCON_SPECS = [
 ]
 
 
+# Auteur ou lecteur désignant le candidat de la candidature ; sinon prénom d'agent.
+_CANDIDAT = "candidat"
+
+
+class _ConversationSpec(TypedDict):
+    candidature: tuple[int, int]
+    objet: str
+    messages: list[tuple[str, str, bool]]
+    lectures: dict[str, int]
+
+
+# Conversations sur le recrutement de offres_actives[0] (Marie responsable, Paul
+# recruteur). "candidature" : (index dans candidats, index dans offres_actives).
+# "lectures" : index du dernier message lu par chaque lecteur ; un lecteur absent
+# n'a jamais ouvert la conversation. Thomas (candidats[1]) reste sans conversation.
+_CONVERSATIONS_SPECS: list[_ConversationSpec] = [
+    {
+        "candidature": (0, 0),
+        "objet": "Pièces justificatives",
+        "messages": [
+            (
+                "Marie",
+                (
+                    "Bonjour, pouvez-vous nous transmettre vos justificatifs de "
+                    "diplômes et d'expérience ?"
+                ),
+                False,
+            ),
+            (
+                _CANDIDAT,
+                "Bonjour, vous trouverez ci-joint l'ensemble des justificatifs.",
+                True,
+            ),
+            ("Paul", "Merci, votre dossier est complet.", False),
+        ],
+        "lectures": {"Marie": 1, "Paul": 2, _CANDIDAT: 2},
+    },
+    {
+        "candidature": (0, 0),
+        "objet": "Convocation à l'entretien",
+        "messages": [
+            (
+                "Paul",
+                (
+                    "Vous êtes convoqué(e) à un entretien le 3 octobre à 10h. "
+                    "Pouvez-vous confirmer votre présence ?"
+                ),
+                False,
+            ),
+        ],
+        "lectures": {"Paul": 0},
+    },
+    {
+        "candidature": (2, 0),
+        "objet": "Question sur le poste",
+        "messages": [
+            ("Marie", "Bonjour, avez-vous des questions sur le poste ?", False),
+            (_CANDIDAT, "Oui : le poste est-il ouvert au télétravail ?", False),
+            ("Marie", "Oui, jusqu'à deux jours par semaine.", False),
+        ],
+        "lectures": {"Marie": 2, _CANDIDAT: 2},
+    },
+]
+
+
 _SEED_CV = Path(__file__).parent / "seed_documents" / "cv.pdf"
 
 
@@ -274,13 +351,69 @@ def _seed_cv(candidature: CandidatureModel, utilisateur: UserModel) -> None:
     )
 
 
+def _seed_piece_jointe(message: MessageModel, utilisateur: UserModel) -> None:
+    contenu = _SEED_CV.read_bytes()
+    nom_original = f"Justificatifs {utilisateur.get_full_name()}.pdf"
+    document = DocumentDjangoFactory(
+        candidature=message.conversation.candidature,
+        type_document=TypeDocument.PIECE_JUSTIFICATIVE.value,
+        fichier=ContentFile(contenu, name=nom_original),
+        nom_original=nom_original,
+        content_type="application/pdf",
+        taille=len(contenu),
+        depose_par=utilisateur,
+    )
+    MessageDocumentDjangoFactory(message=message, document=document)
+
+
+def _seed_conversation(
+    candidature: CandidatureModel,
+    agents: dict[str, ProfilAgentModel],
+    spec: _ConversationSpec,
+) -> None:
+    def utilisateur(nom: str) -> UserModel:
+        if nom == _CANDIDAT:
+            return candidature.candidat.utilisateur
+        return agents[nom].utilisateur
+
+    conversation = ConversationDjangoFactory.create(
+        candidature=candidature,
+        objet=spec["objet"],
+    )
+    messages = []
+    for auteur, contenu, avec_piece_jointe in spec["messages"]:
+        message = MessageDjangoFactory.create(
+            conversation=conversation,
+            auteur=utilisateur(auteur),
+            contenu=contenu,
+        )
+        if avec_piece_jointe:
+            _seed_piece_jointe(message, utilisateur(auteur))
+        messages.append(message)
+    for lecteur, dernier_lu in spec["lectures"].items():
+        ConversationLectureDjangoFactory.create(
+            conversation=conversation,
+            utilisateur=utilisateur(lecteur),
+            read_at=messages[dernier_lu].created_at,
+        )
+
+
 def _delete_seed_data() -> None:
     seed_usernames = list(
         UserModel.objects.filter(email__in=_ALL_SEED_EMAILS).values_list(
             "username", flat=True
         )
     )
+    MessageDocumentModel.objects.filter(
+        message__conversation__candidature__candidat_id__in=seed_usernames
+    ).delete()
     DocumentModel.objects.filter(candidature__candidat_id__in=seed_usernames).delete()
+    MessageModel.objects.filter(
+        conversation__candidature__candidat_id__in=seed_usernames
+    ).delete()
+    ConversationModel.objects.filter(
+        candidature__candidat_id__in=seed_usernames
+    ).delete()
     CandidatureModel.objects.filter(candidat_id__in=seed_usernames).delete()
 
     seed_offer_specs = (
@@ -502,6 +635,7 @@ def seed_recruteur_datas(force: bool = False) -> dict:
             (candidats[7], offres_actives[5], StatutCandidature.INITIAL),
         ]
 
+        candidatures = {}
         recrutements_by_offre_id = {
             r.pk: r  # type: ignore[attr-defined]
             for r in recrutements
@@ -516,8 +650,19 @@ def seed_recruteur_datas(force: bool = False) -> dict:
                 etape=etape,
                 statut=statut.value,
             )
+            candidatures[(candidat_model, offre_model)] = candidature
             if statut == StatutCandidature.SOUMISE:
                 _seed_cv(candidature, candidat_model.utilisateur)  # type: ignore[arg-type]
+
+        # -------------------------------------------------------------- #
+        # Messagerie                                                     #
+        # -------------------------------------------------------------- #
+        for spec in _CONVERSATIONS_SPECS:
+            candidat_index, offre_index = spec["candidature"]
+            candidature = candidatures[
+                (candidats[candidat_index], offres_actives[offre_index])
+            ]
+            _seed_conversation(candidature, agents, spec)  # type: ignore[arg-type]
 
         return {
             "status": "seeded",
@@ -527,6 +672,7 @@ def seed_recruteur_datas(force: bool = False) -> dict:
             "nb_candidats": len(candidats),
             "nb_agents": len(agents),
             "nb_recrutements": len(recrutements),
+            "nb_conversations": len(_CONVERSATIONS_SPECS),
             "seed_password": seed_password,
             "admin_email": admin.email,
         }
