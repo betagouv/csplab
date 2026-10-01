@@ -33,11 +33,12 @@ const countLabel = computed(() => {
     role="status"
     aria-label="Chargement des candidatures"
   >
-    <CspSkeleton
-      class="candidatures-liste-content__count-skeleton"
-      width="8rem"
-      height="0.9375rem"
-    />
+    <p class="candidatures-liste-content__count">
+      <CspSkeleton
+        width="8rem"
+        variant="text"
+      />
+    </p>
     <CspSkeletonTable
       :rows="PAGE_SIZE"
       :columns="CANDIDATURE_LISTE_COLUMNS.length"
@@ -70,9 +71,5 @@ const countLabel = computed(() => {
   margin: 0 0 var(--csp-space-4);
   font-size: 0.9375rem;
   color: var(--text-mention-grey);
-}
-
-.candidatures-liste-content__count-skeleton {
-  margin: var(--csp-space-1) 0 calc(var(--csp-space-4) + 0.15rem);
 }
 </style>

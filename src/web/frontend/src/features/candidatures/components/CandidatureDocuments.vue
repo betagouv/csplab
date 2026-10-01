@@ -17,6 +17,8 @@ const props = defineProps<{
   candidature: CandidatureParams
 }>()
 
+const SKELETON_ROWS = 2
+
 const { documents, total, pending, error, pdfUrl } = useCandidatureDocuments(() => props.candidature)
 
 const showSkeleton = useMinimumPending(pending)
@@ -33,13 +35,44 @@ const title = computed(() => `${total.value} ${pluralize(total.value, 'document'
       error-title="Les documents n'ont pas pu être chargés."
     >
       <template #skeleton>
-        <CspSkeleton
-          width="8rem"
-          height="1.25rem"
-          class="candidature-documents__skeleton"
-        />
-        <CspSkeleton height="3.5rem" />
-        <CspSkeleton height="3.5rem" />
+        <h3
+          class="candidature-documents__title"
+          aria-hidden="true"
+        >
+          <CspSkeleton
+            width="8rem"
+            variant="text"
+          />
+        </h3>
+        <ul
+          class="candidature-documents__list"
+          aria-hidden="true"
+        >
+          <li
+            v-for="row in SKELETON_ROWS"
+            :key="row"
+            class="candidature-documents__item"
+          >
+            <CspSkeleton
+              width="1.25rem"
+              height="1.25rem"
+            />
+            <div class="candidature-documents__content">
+              <p class="candidature-documents__name">
+                <CspSkeleton
+                  width="60%"
+                  variant="text"
+                />
+              </p>
+              <p class="candidature-documents__meta">
+                <CspSkeleton
+                  width="80%"
+                  variant="text"
+                />
+              </p>
+            </div>
+          </li>
+        </ul>
       </template>
 
       <CspEmptyState
@@ -104,10 +137,6 @@ const title = computed(() => `${total.value} ${pluralize(total.value, 'document'
 </template>
 
 <style scoped lang="scss">
-.candidature-documents__skeleton {
-  margin-bottom: var(--csp-space-4);
-}
-
 .candidature-documents__title {
   margin: 0 0 var(--csp-space-4);
   font-size: 0.875rem;

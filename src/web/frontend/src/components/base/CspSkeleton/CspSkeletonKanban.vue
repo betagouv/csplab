@@ -38,13 +38,13 @@ withDefaults(defineProps<CspSkeletonKanbanProps>(), {
         <template #title>
           <CspSkeleton
             width="70%"
-            height="1lh"
+            variant="text"
           />
         </template>
         <div class="csp-skeleton-kanban__card-meta">
           <CspSkeleton
             width="45%"
-            height="0.875rem"
+            variant="text"
           />
         </div>
       </CspCard>
@@ -79,9 +79,6 @@ withDefaults(defineProps<CspSkeletonKanbanProps>(), {
 }
 
 .csp-skeleton-kanban__card-meta {
-  display: flex;
-  align-items: center;
-  min-height: 1lh;
   margin-top: var(--csp-space-2);
   font-size: var(--csp-font-size-sm);
 }

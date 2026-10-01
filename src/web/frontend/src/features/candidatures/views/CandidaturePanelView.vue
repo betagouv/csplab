@@ -127,7 +127,7 @@ function handleUpdateOpen(open: boolean): void {
       <CspSkeleton
         v-if="showSkeleton"
         width="12rem"
-        height="1.375rem"
+        variant="text"
       />
       <template v-else>
         {{ title }}
@@ -141,7 +141,7 @@ function handleUpdateOpen(open: boolean): void {
       <CspSkeleton
         v-if="showSkeleton"
         width="9rem"
-        height="1.25rem"
+        variant="text"
       />
       <template v-else>
         {{ description }}
