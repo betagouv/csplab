@@ -83,6 +83,15 @@
   --csp-field-error-bar-width: 2px;
   --csp-field-error-padding-start: var(--csp-space-3);
 
+  /* Kanban board and columns, mirrored by the kanban skeleton */
+  --csp-kanban-gap: var(--csp-space-3);
+  --csp-kanban-padding-bottom: var(--csp-space-2);
+  --csp-kanban-column-width: 18.75rem;
+  --csp-kanban-column-padding: var(--csp-space-3);
+  --csp-kanban-column-gap: var(--csp-space-3);
+  --csp-kanban-column-accent-width: 3px;
+  --csp-kanban-column-header-padding-inline: var(--csp-space-1);
+
   @variant xxl {
     --csp-page-container-padding-inline: clamp(1.5rem, 1rem + 2.5vw, 4rem);
     --csp-page-container-wide-width: 120rem;

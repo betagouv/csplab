@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import CspCard from '@/components/base/CspCard/CspCard.vue'
 import CspSkeleton from './CspSkeleton.vue'
 
 export interface CspSkeletonKanbanProps {
@@ -28,20 +29,25 @@ withDefaults(defineProps<CspSkeletonKanbanProps>(), {
           height="1.25rem"
         />
       </div>
-      <div
+      <CspCard
         v-for="card in cards"
         :key="card"
-        class="csp-skeleton-kanban__card"
+        as="div"
+        size="sm"
       >
-        <CspSkeleton
-          width="70%"
-          height="1.125rem"
-        />
-        <CspSkeleton
-          width="45%"
-          height="0.875rem"
-        />
-      </div>
+        <template #title>
+          <CspSkeleton
+            width="70%"
+            height="1lh"
+          />
+        </template>
+        <div class="csp-skeleton-kanban__card-meta">
+          <CspSkeleton
+            width="45%"
+            height="0.875rem"
+          />
+        </div>
+      </CspCard>
     </div>
   </div>
 </template>
@@ -50,31 +56,33 @@ withDefaults(defineProps<CspSkeletonKanbanProps>(), {
 .csp-skeleton-kanban {
   display: flex;
   flex: 1;
-  gap: var(--csp-space-3);
+  gap: var(--csp-kanban-gap);
   overflow: hidden;
   min-height: 0;
+  padding-bottom: var(--csp-kanban-padding-bottom);
 }
 
 .csp-skeleton-kanban__column {
   display: flex;
+  flex: 0 0 var(--csp-kanban-column-width);
   flex-direction: column;
-  gap: var(--csp-space-3);
-  min-width: 18.75rem;
-  padding: var(--csp-space-3);
+  gap: var(--csp-kanban-column-gap);
+  min-width: var(--csp-kanban-column-width);
+  padding: var(--csp-kanban-column-padding);
   background-color: var(--background-alt-grey);
-  border-top: 3px solid var(--border-default-grey);
+  box-shadow: inset 0 0 0 1px var(--border-default-grey);
+  border-top: var(--csp-kanban-column-accent-width) solid var(--border-default-grey);
 }
 
 .csp-skeleton-kanban__header {
-  padding: 0 var(--csp-space-1);
+  padding: 0 var(--csp-kanban-column-header-padding-inline);
 }
 
-.csp-skeleton-kanban__card {
+.csp-skeleton-kanban__card-meta {
   display: flex;
-  flex-direction: column;
-  gap: var(--csp-space-3);
-  padding: var(--csp-space-4);
-  background: var(--background-default-grey);
-  box-shadow: inset 0 0 0 1px var(--border-default-grey);
+  align-items: center;
+  min-height: 1lh;
+  margin-top: var(--csp-space-2);
+  font-size: var(--csp-font-size-sm);
 }
 </style>

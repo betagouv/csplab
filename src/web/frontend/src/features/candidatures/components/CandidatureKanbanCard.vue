@@ -124,7 +124,7 @@ const { isDragging } = useDraggableKanbanCard({
   align-items: center;
   gap: var(--csp-space-1);
   margin: var(--csp-space-2) 0 0;
-  font-size: 0.8125rem;
+  font-size: var(--csp-font-size-sm);
   color: var(--text-mention-grey);
 }
 
