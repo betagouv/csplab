@@ -2,7 +2,7 @@
 
 Ce projet utilise [mise](https://mise.jdx.dev/tasks/) pour lancer les tâches, en local comme dans la CI.
 
-`mise install` installe les outils (node, uv, scw).
+`mise install` installe les outils déclarés dans la section `[tools]` de `mise.toml`.
 
 `mise run` seul affiche les commandes usuelles
 

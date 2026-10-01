@@ -10,9 +10,3 @@ alias = "dev:pre-commit"
 description = "Run the pre-commit hooks on the whole repo"
 depends = ["install"]
 run = "uv run pre-commit run --all-files"
-
-[tasks.cz]
-alias = "dev:cz"
-description = "Commitizen: guided commit, message check"
-depends = ["install"]
-run = "uv run cz"

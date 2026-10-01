@@ -2,17 +2,4 @@
 
 set -eo pipefail
 
-# the hook is copied to .git/hooks/commit-msg, so resolve the repo root explicitly
-ROOT=$(git rev-parse --show-toplevel)
-CZ="$ROOT/dev/.venv/bin/cz"
-[ -x "$CZ" ] || CZ="$ROOT/bin/cz"   # venv missing: fall back to uv run
-
-# validate against commitizen's schema_pattern (dev/pyproject.toml)
-if ! "$CZ" --config "$ROOT/dev/pyproject.toml" check --commit-msg-file "$1"; then
-    echo "❌ Invalid commit message!"
-    echo "Required format: <type>(<scope>)[!]: <subject>  (! marks a breaking change)"
-    echo "Example: feat(auth): ajoute le support de l'authentification HTTP basic"
-    echo "Breaking change: feat(api)!: supprime l'ancien endpoint"
-    echo "Use 'bin/cz commit' for more assistance"
-    exit 1
-fi
+exec mise x -- cz check --allow-abort --commit-msg-file "$1"

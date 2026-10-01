@@ -1,5 +1,0 @@
-#!/usr/bin/env bash
-
-set -eo pipefail
-
-cd "$(dirname "$0")/../dev" && uv run cz "$@"
