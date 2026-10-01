@@ -3,9 +3,10 @@ name = "cz_customize"
 
 [tool.commitizen.customize]
 message_template = "{{change_type}}({{scope}}): {{subject}}{% if body %}\n\n{{body}}{% endif %}{% if footer %}\n\n{{footer}}{% endif %}"
-example = "feat(candidate): ajoute une nouvelle fonctionnalité"
+example = "feat(recruteur): ajoute une nouvelle fonctionnalité"
 schema = "<type>(<scope>): <subject>"
-schema_pattern = "^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)\\([a-z0-9:-]+\\)!?: [A-zÀ-ú].{1,75}(\\n\\n[\\s\\S]*)?$"
+# The scope list is duplicated in the "scope" question below: keep both in sync.
+schema_pattern = "^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)\\((recruteur|candidatures|messages|identite|ingestion|referentiel|ocr|notebook|tooling|release)\\)!?: [A-zÀ-ú].{1,75}(\\n\\n[\\s\\S]*)?$"
 
 [[tool.commitizen.customize.questions]]
 type = "list"
@@ -25,10 +26,23 @@ choices = [
     {value = "revert", name = "revert: revert a previous commit"}
 ]
 
+# Same list as schema_pattern above.
 [[tool.commitizen.customize.questions]]
-type = "input"
+type = "list"
 name = "scope"
-message = "scope (candidate, ingestion, ocr, accessibility, tooling, notebook):"
+message = "Select the scope:"
+choices = [
+    {value = "recruteur", name = "recruteur"},
+    {value = "candidatures", name = "candidatures"},
+    {value = "messages", name = "messages"},
+    {value = "identite", name = "identite"},
+    {value = "ingestion", name = "ingestion"},
+    {value = "referentiel", name = "referentiel"},
+    {value = "ocr", name = "ocr"},
+    {value = "notebook", name = "notebook"},
+    {value = "tooling", name = "tooling"},
+    {value = "release", name = "release"}
+]
 
 [[tool.commitizen.customize.questions]]
 type = "input"

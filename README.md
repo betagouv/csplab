@@ -59,10 +59,25 @@ Les commits et les titres de PR suivent le format [Conventional Commits](https:/
 <type>(<scope>): <subject>
 ```
 
-Types autorisés : `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore`, `revert`. Le scope est généralement le service ou la fonctionnalité concernée.
+Types autorisés : `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore`, `revert`. Le changelog range les entrées par scope ; la liste des scopes est donc fermée, et un scope hors liste est refusé au commit comme au titre de PR :
+
+| Scope | Périmètre |
+|---|---|
+| `recruteur` | Espace recruteur |
+| `candidatures` | Candidatures et parcours candidat |
+| `messages` | Messagerie |
+| `identite` | Authentification et comptes |
+| `ingestion` | Service d'ingestion |
+| `referentiel` | Données de référence |
+| `ocr` | Service OCR |
+| `notebook` | Notebooks d'analyse |
+| `tooling` | Outillage de développement, CI |
+| `release` | Versions et changelog |
+
+Un changement technique (`web`, `front`, `ui`…) prend le scope du domaine fonctionnel qu'il touche. La liste est déclarée deux fois dans `cz.toml` (le motif `schema_pattern` et les choix de la question `scope`) : modifier les deux ensemble.
 
 **Exemples :**
 
-- `feat(candidate-infrastructure): ajoute le support de l'authentification HTTP basic`
-- `fix(api): corrige un bug d'authentification`
-- `docs(readme): met à jour le guide d'installation`
+- `feat(identite): ajoute le support de l'authentification HTTP basic`
+- `fix(recruteur): corrige le filtre des offres`
+- `docs(tooling): met à jour le guide d'installation`
