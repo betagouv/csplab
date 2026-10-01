@@ -9,6 +9,7 @@ import type {
   CspColumnDef,
   CspTableAlign,
   CspTableCellValue,
+  CspTableSize,
 } from './table'
 import {
   createColumnHelper,
@@ -31,7 +32,7 @@ const props = withDefaults(defineProps<{
   activationMode?: 'none' | 'row' | 'cell'
   selectedIds?: Set<string>
   selectionLabel?: (row: TRow) => string
-  size?: 'sm' | 'md' | 'lg'
+  size?: CspTableSize
   pageSize?: number
   manual?: boolean
   rowCount?: number
@@ -416,6 +417,7 @@ function onActivate(id: string): void {
 
 <style scoped lang="scss">
 @use '@/styles/breakpoints' as bp;
+@use './table-sizes' as table;
 
 .csp-table-wrapper {
   width: 100%;
@@ -423,26 +425,7 @@ function onActivate(id: string): void {
   background: var(--background-default-grey);
   overflow: hidden;
 
-  &.csp-table-wrapper--sm {
-    --csp-table-row-height: 2rem;
-    --csp-table-header-padding: var(--csp-space-2) var(--csp-space-3);
-    --csp-table-footer-padding: var(--csp-space-2) var(--csp-space-1) var(--csp-space-2) var(--csp-space-3);
-    --csp-table-cell-padding: var(--csp-space-2) var(--csp-space-3);
-  }
-
-  &.csp-table-wrapper--md {
-    --csp-table-row-height: 3.25rem;
-    --csp-table-header-padding: var(--csp-space-3) var(--csp-space-3);
-    --csp-table-footer-padding: var(--csp-space-3) var(--csp-space-1) var(--csp-space-2) var(--csp-space-3);
-    --csp-table-cell-padding: var(--csp-space-3) var(--csp-space-3);
-  }
-
-  &.csp-table-wrapper--lg {
-    --csp-table-row-height: 4rem;
-    --csp-table-header-padding: var(--csp-space-3) var(--csp-space-4);
-    --csp-table-footer-padding: var(--csp-space-3) var(--csp-space-1) var(--csp-space-3) var(--csp-space-4);
-    --csp-table-cell-padding: var(--csp-space-3) var(--csp-space-4);
-  }
+  @include table.sizes;
 }
 
 .csp-table__scroll {

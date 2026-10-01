@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { CspTableSize } from '@/components/base/CspDataTable/table'
 import CspSkeleton from './CspSkeleton.vue'
 
 export interface CspSkeletonTableProps {
@@ -6,6 +7,7 @@ export interface CspSkeletonTableProps {
   columns?: number
   withHeader?: boolean
   withFooter?: boolean
+  size?: CspTableSize
 }
 
 withDefaults(defineProps<CspSkeletonTableProps>(), {
@@ -13,46 +15,58 @@ withDefaults(defineProps<CspSkeletonTableProps>(), {
   columns: 4,
   withHeader: true,
   withFooter: false,
+  size: 'md',
 })
 </script>
 
 <template>
   <div
     class="csp-skeleton-table"
+    :class="`csp-skeleton-table--${size}`"
     :style="{ '--csp-skeleton-table-columns': columns }"
     aria-hidden="true"
   >
     <div
       v-if="withHeader"
-      class="csp-skeleton-table__row csp-skeleton-table__row--header"
+      class="csp-skeleton-table__head"
     >
-      <CspSkeleton
+      <div
         v-for="column in columns"
         :key="column"
-        height="0.875rem"
-        :width="column === 1 ? '60%' : '40%'"
-      />
+        class="csp-skeleton-table__th"
+      >
+        <CspSkeleton
+          height="0.875rem"
+          :width="column === 1 ? '60%' : '40%'"
+        />
+      </div>
     </div>
     <div
       v-for="row in rows"
       :key="row"
       class="csp-skeleton-table__row"
     >
-      <CspSkeleton
+      <div
         v-for="column in columns"
         :key="column"
-        height="1rem"
-        :width="column === 1 ? '75%' : '55%'"
-      />
+        class="csp-skeleton-table__td"
+      >
+        <CspSkeleton
+          height="1rem"
+          :width="column === 1 ? '75%' : '55%'"
+        />
+      </div>
     </div>
     <div
       v-if="withFooter"
       class="csp-skeleton-table__footer"
     >
-      <CspSkeleton
-        width="10rem"
-        height="1rem"
-      />
+      <div class="csp-skeleton-table__footer-info">
+        <CspSkeleton
+          width="10rem"
+          height="1rem"
+        />
+      </div>
       <CspSkeleton
         width="6rem"
         height="2rem"
@@ -62,26 +76,27 @@ withDefaults(defineProps<CspSkeletonTableProps>(), {
 </template>
 
 <style scoped lang="scss">
+@use '@/styles/breakpoints' as bp;
+@use '@/components/base/CspDataTable/table-sizes' as table;
+
 .csp-skeleton-table {
   display: flex;
   flex-direction: column;
   border: 1px solid var(--border-default-grey);
   background: var(--background-default-grey);
+  font-size: var(--csp-font-size-base);
+
+  @include table.sizes;
 }
 
+.csp-skeleton-table__head,
 .csp-skeleton-table__row {
   display: grid;
   grid-template-columns: repeat(var(--csp-skeleton-table-columns), 1fr);
-  align-items: center;
-  gap: var(--csp-space-4);
-  padding: 1rem 0.75rem;
-
-  &:not(:last-child) {
-    border-bottom: 1px solid var(--border-default-grey);
-  }
+  border-bottom: 1px solid var(--border-default-grey);
 }
 
-.csp-skeleton-table__row--header {
+.csp-skeleton-table__head {
   background: var(--background-alt-grey);
 
   :deep(.csp-skeleton) {
@@ -89,11 +104,42 @@ withDefaults(defineProps<CspSkeletonTableProps>(), {
   }
 }
 
-.csp-skeleton-table__footer {
+.csp-skeleton-table__row {
+  min-height: var(--csp-table-row-height);
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.csp-skeleton-table__th,
+.csp-skeleton-table__td,
+.csp-skeleton-table__footer-info {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 0.5rem 0.75rem;
+  box-sizing: content-box;
+  min-height: 1lh;
+}
+
+.csp-skeleton-table__th {
+  padding: var(--csp-table-header-padding);
+}
+
+.csp-skeleton-table__td {
+  padding: var(--csp-table-cell-padding);
+}
+
+.csp-skeleton-table__footer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--csp-space-3);
+  padding: var(--csp-table-footer-padding);
   background: var(--background-alt-grey);
+
+  @include bp.from(bp.$md) {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
 }
 </style>
