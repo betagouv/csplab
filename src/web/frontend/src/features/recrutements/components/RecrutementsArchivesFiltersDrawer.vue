@@ -80,7 +80,6 @@ const typeContratOptions = withAllOption('Tous les types', TYPE_CONTRAT_OPTIONS)
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
-  padding: 1.5rem 0;
 }
 
 .filters-drawer__actions {

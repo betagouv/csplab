@@ -70,7 +70,6 @@ const responsableModel = selectModel(responsable)
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
-  padding: 1.5rem 0;
 }
 
 .filters-drawer__actions {
