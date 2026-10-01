@@ -71,10 +71,11 @@ Types autorisés : `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `
 | `referentiel` | Données de référence |
 | `ocr` | Service OCR |
 | `notebook` | Notebooks d'analyse |
+| `design-system` | Composants d'interface génériques, hors domaine fonctionnel |
 | `tooling` | Outillage de développement, CI |
 | `release` | Versions et changelog |
 
-Un changement technique (`web`, `front`, `ui`…) prend le scope du domaine fonctionnel qu'il touche. La liste est déclarée deux fois dans `cz.toml` (le motif `schema_pattern` et les choix de la question `scope`) : modifier les deux ensemble.
+Un changement technique (`web`, `front`, `ui`…) prend le scope du domaine fonctionnel qu'il touche ; un composant d'interface générique, utilisé par plusieurs domaines, prend `design-system`. La liste est déclarée deux fois dans `cz.toml` (le motif `schema_pattern` et les choix de la question `scope`) : modifier les deux ensemble.
 
 **Exemples :**
 

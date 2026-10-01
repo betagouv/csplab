@@ -6,7 +6,7 @@ message_template = "{{change_type}}({{scope}}): {{subject}}{% if body %}\n\n{{bo
 example = "feat(recruteur): ajoute une nouvelle fonctionnalité"
 schema = "<type>(<scope>): <subject>"
 # The scope list is duplicated in the "scope" question below: keep both in sync.
-schema_pattern = "^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)\\((recruteur|candidatures|messages|identite|ingestion|referentiel|ocr|notebook|tooling|release)\\)!?: [A-zÀ-ú].{1,75}(\\n\\n[\\s\\S]*)?$"
+schema_pattern = "^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)\\((recruteur|candidatures|messages|identite|ingestion|referentiel|ocr|notebook|design-system|tooling|release)\\)!?: [A-zÀ-ú].{1,75}(\\n\\n[\\s\\S]*)?$"
 
 [[tool.commitizen.customize.questions]]
 type = "list"
@@ -40,6 +40,7 @@ choices = [
     {value = "referentiel", name = "referentiel"},
     {value = "ocr", name = "ocr"},
     {value = "notebook", name = "notebook"},
+    {value = "design-system", name = "design-system"},
     {value = "tooling", name = "tooling"},
     {value = "release", name = "release"}
 ]
