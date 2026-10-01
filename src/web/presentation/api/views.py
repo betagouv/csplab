@@ -8,6 +8,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from config.logger_names import LoggerName
+from presentation.api.authentication import PublicApiMixin
 
 logger = logging.getLogger(LoggerName.WEB.value)
 
@@ -22,7 +23,7 @@ class RedocView(TemplateView):
 
 
 @extend_schema(exclude=True)
-class HueyHealthView(APIView):
+class HueyHealthView(PublicApiMixin, APIView):
     def get(self, request):
         try:
             HUEY.storage.conn.ping()  # pings the Redis connection used by Huey

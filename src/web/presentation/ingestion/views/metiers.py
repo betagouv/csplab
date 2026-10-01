@@ -8,6 +8,7 @@ from rest_framework.views import APIView
 
 from application.ingestion.interfaces.list_metiers_input import GetFilteredMetiersInput
 from infrastructure.di.ingestion.ingestion_factory import create_ingestion_container
+from presentation.api.authentication import PublicApiMixin
 from presentation.api.serializers import GenericErrorSerializer, TokenErrorSerializer
 from presentation.commons.pagination import WebPagination
 from presentation.ingestion.openapi import (
@@ -33,7 +34,7 @@ from presentation.ingestion.serializers import (
         500: GenericErrorSerializer,
     },
 )
-class MetiersListView(APIView):
+class MetiersListView(PublicApiMixin, APIView):
     serializer_class = ListMetiersResponseSerializer
     pagination_class = WebPagination
     usecase = None
