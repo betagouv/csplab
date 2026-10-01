@@ -1,21 +1,25 @@
 from django.conf import settings
 from django.contrib import admin
 from django.urls import URLPattern, URLResolver, include, path
-from django_otp.admin import OTPAdminSite
 
 from infrastructure.django_apps.commons.admin import stat_snapshot_list_view
 from presentation.api import urls as api_urls
 from presentation.ats import urls as ats_urls
 from presentation.candidate import urls as candidate_urls
 from presentation.identite import urls as identite_urls
+from presentation.identite.admin_site import (
+    LoggedAdminSite,
+    LoggedOTPAdminSite,
+)
 from presentation.ingestion import urls as ingestion_urls
 from presentation.ingestion import urls_fake_ts as ingestion_fake_ts_urls
 from presentation.pages import urls as pages_urls
 from presentation.pages.views import security_txt
 from presentation.recruteur import urls as recruteur_urls
 
-if settings.ADMIN_OTP_REQUIRED:
-    admin.site.__class__ = OTPAdminSite
+admin.site.__class__ = (
+    LoggedOTPAdminSite if settings.ADMIN_OTP_REQUIRED else LoggedAdminSite
+)
 
 urlpatterns: list[URLPattern | URLResolver] = [
     path(".well-known/security.txt", security_txt),
