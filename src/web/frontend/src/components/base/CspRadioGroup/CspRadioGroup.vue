@@ -119,8 +119,8 @@ function updateModel(val: unknown): void {
 }
 
 .csp-radio-group--error {
-  border-left: 4px solid var(--border-plain-error);
-  padding-left: 1rem;
+  border-inline-start: var(--csp-field-error-bar-width) solid var(--border-plain-error);
+  padding-inline-start: var(--csp-field-error-padding-start);
 
   .csp-radio-group__legend {
     color: var(--text-default-error);
