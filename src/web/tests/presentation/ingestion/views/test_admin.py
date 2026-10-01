@@ -3,6 +3,7 @@ from http import HTTPStatus
 from django.conf import settings
 from django.contrib import admin
 from django.test import Client
+from django.urls import reverse
 from django_otp.admin import OTPAdminSite
 from django_otp.middleware import is_verified
 from django_otp.oath import totp
@@ -26,7 +27,7 @@ class TestAdminOTPRequired:
         user = UtilisateurDjangoFactory(is_staff=True, is_superuser=True)
 
         client.login(username=user.email, password=DEFAULT_PASSWORD)
-        response = client.get("/admin/", follow=True)
+        response = client.get(reverse("admin:index"), follow=True)
 
         assert response.status_code == HTTPStatus.OK
         assert b'id="id_otp_token"' in response.content
@@ -38,13 +39,13 @@ class TestAdminOTPRequired:
         token = totp(device.bin_key)
 
         response = client.post(
-            "/admin/login/",
+            reverse("admin:login"),
             {
                 "username": user.email,
                 "password": DEFAULT_PASSWORD,
                 "otp_device": device.persistent_id,
                 "otp_token": token,
-                "next": "/admin/",
+                "next": reverse("admin:index"),
             },
             follow=True,
         )

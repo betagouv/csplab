@@ -2,9 +2,8 @@ from authlib.integrations.base_client.errors import OAuthError
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
-from django.contrib.auth import views as auth_views
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.http import Http404, HttpRequest, HttpResponse, HttpResponseBase
+from django.http import Http404, HttpRequest, HttpResponseBase
 from django.shortcuts import redirect
 from django.urls import reverse
 from django.views import View
@@ -15,9 +14,6 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from application.identite.usecases.log_utilisateur_connexion import (
-    LogUtilisateurConnexionInput,
-)
 from domain.identite.errors.identite_errors import UtilisateurNexistePas
 from infrastructure.authentication.proconnect_backend import build_proconnect_logout_url
 from infrastructure.authentication.proconnect_client import (
@@ -29,27 +25,8 @@ from presentation.api.serializers import GenericErrorSerializer, TokenErrorSeria
 from presentation.identite.serializers import UtilisateurSerializer
 
 
-class LoginView(auth_views.LoginView):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.container = create_identite_container()
-        self.logger = self.container.logger_service()
-
-    def form_valid(self, form) -> HttpResponse:
-        response = super().form_valid(form)
-        self._audit_connexion(form.get_user())
-        return response
-
-    def _audit_connexion(self, user) -> None:
-        # Auditing must never break the login flow (e.g. a non-UUID username on
-        # a legacy/superuser account), so failures are swallowed and logged.
-        try:
-            details_usecase = self.container.get_utilisateur_details_usecase()
-            utilisateur = details_usecase.execute(user.username)
-            usecase = self.container.log_utilisateur_connexion_usecase()
-            usecase.execute(LogUtilisateurConnexionInput(utilisateur=utilisateur))
-        except Exception as e:
-            self.logger.error("Failed to audit login: %s", str(e))
+class LoginView(TemplateView):
+    template_name = "registration/login.html"
 
 
 class ProconnectLoginView(View):
