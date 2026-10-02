@@ -194,13 +194,14 @@ async function send(): Promise<void> {
 
 .new-conversation__title {
   margin: 0 0 var(--csp-space-2);
-  font-size: 1.25rem;
+  font-size: var(--csp-font-size-lg);
+  font-weight: var(--csp-font-weight-bold);
 }
 
 .new-conversation__description {
   max-width: 40rem;
   margin: 0;
-  font-size: 0.875rem;
+  font-size: var(--csp-font-size-base);
 }
 
 .new-conversation__objet {
