@@ -6,6 +6,13 @@ from infrastructure.django_apps.users.models import UserModel
 from infrastructure.django_apps.utils.models import BaseDatedModel
 
 
+class ConversationQuerySet(models.QuerySet):
+    def by_candidature_and_id(
+        self, candidature_id, conversation_id
+    ) -> "ConversationQuerySet":
+        return self.filter(candidature_id=candidature_id, pk=conversation_id)
+
+
 class ConversationModel(BaseDatedModel):
     candidature = models.ForeignKey(
         CandidatureModel,
@@ -15,6 +22,7 @@ class ConversationModel(BaseDatedModel):
     )
     objet = models.CharField(max_length=255)
 
+    objects = ConversationQuerySet.as_manager()
     class Meta:
         db_table = "conversation"
         verbose_name = "Conversation"

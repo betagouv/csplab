@@ -5,7 +5,6 @@ import pytest
 from application.recruteur.context_services.candidature_agent_service import (
     CandidatureAgentService,
 )
-from application.recruteur.services.conversation_stubs import stub_conversation_id
 from domain.recruteur.errors.recrutement_errors import (
     ConversationInexistante,
     RecrutementCandidatureInexistante,
@@ -13,12 +12,13 @@ from domain.recruteur.errors.recrutement_errors import (
 from infrastructure.factories.candidate.candidature_django_factory import (
     CandidatureDjangoFactory,
 )
+from infrastructure.factories.messagerie.conversation_django_factory import (
+    ConversationDjangoFactory,
+)
 from infrastructure.factories.recruteur.recrutement_django_factory import (
     EtapeDjangoFactory,
     RecrutementDjangoFactory,
 )
-
-OBJET = "Convocation à l'entretien"
 
 
 class TestCheckCandidatureBelongsToRecrutement:
@@ -51,24 +51,22 @@ class TestCheckCandidatureBelongsToRecrutement:
 
 
 class TestCheckConversationBelongsToCandidature:
-    def test_passes_when_conversation_belongs_to_candidature(self):
-        candidature_id = uuid4()
+    def test_passes_when_conversation_belongs_to_candidature(self, db):
+        conversation = ConversationDjangoFactory()
 
         CandidatureAgentService(
-            recrutement_id=uuid4(), candidature_id=candidature_id
-        ).check_conversation_belongs_to_candidature(
-            stub_conversation_id(candidature_id, OBJET)
-        )
+            recrutement_id=uuid4(), candidature_id=conversation.candidature_id
+        ).check_conversation_belongs_to_candidature(conversation.pk)
 
-    def test_raises_when_conversation_belongs_to_another_candidature(self):
+    def test_raises_when_conversation_belongs_to_another_candidature(self, db):
+        conversation = ConversationDjangoFactory()
+
         with pytest.raises(ConversationInexistante):
             CandidatureAgentService(
-                recrutement_id=uuid4(), candidature_id=uuid4()
-            ).check_conversation_belongs_to_candidature(
-                stub_conversation_id(uuid4(), OBJET)
-            )
+                recrutement_id=uuid4(), candidature_id=CandidatureDjangoFactory().pk
+            ).check_conversation_belongs_to_candidature(conversation.pk)
 
-    def test_raises_when_conversation_does_not_exist(self):
+    def test_raises_when_conversation_does_not_exist(self, db):
         with pytest.raises(ConversationInexistante):
             CandidatureAgentService(
                 recrutement_id=uuid4(), candidature_id=uuid4()
