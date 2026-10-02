@@ -10,7 +10,7 @@ const meta = {
   tags: ['autodocs'],
   parameters: {
     controls: {
-      include: ['modelValue', 'type', 'placeholder', 'size', 'disabled', 'error', 'errorMessage', 'id', 'name', 'label'],
+      include: ['modelValue', 'type', 'placeholder', 'size', 'disabled', 'error', 'errorMessage', 'id', 'name', 'label', 'hint'],
     },
     docs: {
       description: {
@@ -106,6 +106,13 @@ const meta = {
         type: {
           summary: 'string',
         },
+      },
+    },
+    hint: {
+      control: { type: 'text' },
+      description: 'Aide affichée sous le libellé, dont elle fait partie et qui la porte dans le nom accessible.',
+      table: {
+        type: { summary: 'string' },
       },
     },
     class: {

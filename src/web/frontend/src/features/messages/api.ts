@@ -1,4 +1,4 @@
-import type { ConversationMessage, CreateMessagePayload, PaginatedConversationList, PaginatedConversationMessageList } from './types'
+import type { Conversation, ConversationMessage, CreateConversationPayload, CreateMessagePayload, PaginatedConversationList, PaginatedConversationMessageList } from './types'
 import type { CandidatureParams } from '@/features/candidatures/types'
 import { api } from '@/api/client'
 import { toMultipartFormData } from './multipart'
@@ -60,6 +60,26 @@ export async function replyToConversation(
           recrutement_uuid: recrutementUuid,
           candidature_uuid: candidatureUuid,
           conversation_uuid: conversationUuid,
+        },
+      },
+      body: toMultipartFormData(payload) as never,
+    },
+  )
+  return data!
+}
+
+export async function createConversation(
+  { organismeUuid, recrutementUuid, candidatureUuid }: CandidatureParams,
+  payload: CreateConversationPayload,
+): Promise<Conversation> {
+  const { data } = await api.POST(
+    '/recruteur/organismes/{organisme_uuid}/recrutements/{recrutement_uuid}/candidatures/{candidature_uuid}/conversations',
+    {
+      params: {
+        path: {
+          organisme_uuid: organismeUuid,
+          recrutement_uuid: recrutementUuid,
+          candidature_uuid: candidatureUuid,
         },
       },
       body: toMultipartFormData(payload) as never,
