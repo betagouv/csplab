@@ -37,7 +37,7 @@ vi.mock('../api', () => ({
   candidatureDocumentUrl: vi.fn(),
   getCandidatureNotes: vi.fn(() => new Promise(() => {})),
   createCandidatureNote: vi.fn(),
-  getCandidatureActivites: vi.fn(() => new Promise(() => {})),
+  getCandidatureActivites: vi.fn(),
 }))
 
 vi.mock('@/features/recrutements/api', () => ({
