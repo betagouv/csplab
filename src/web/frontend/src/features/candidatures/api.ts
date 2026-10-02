@@ -135,7 +135,7 @@ export async function createCandidatureNote(candidature: CandidatureParams, mess
   )
 }
 
-export async function getCandidatureActivites(candidature: CandidatureParams, limit: number): Promise<PaginatedActiviteList> {
+export async function getCandidatureActivites(candidature: CandidatureParams, limit?: number): Promise<PaginatedActiviteList> {
   const { data } = await api.GET(
     '/recruteur/organismes/{organisme_uuid}/recrutements/{recrutement_uuid}/candidatures/{candidature_uuid}/logs',
     { params: { path: candidaturePath(candidature), query: { limit } } },

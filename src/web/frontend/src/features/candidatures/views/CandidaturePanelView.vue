@@ -22,6 +22,7 @@ import { formatElapsedDays } from '@/utils/date'
 import CandidatureActivites from '../components/CandidatureActivites.vue'
 import CandidatureCv from '../components/CandidatureCv.vue'
 import CandidatureDocuments from '../components/CandidatureDocuments.vue'
+import CandidatureHistorique from '../components/CandidatureHistorique.vue'
 import CandidatureNoteForm from '../components/CandidatureNoteForm.vue'
 import CandidatureNotes from '../components/CandidatureNotes.vue'
 import ChangerEtapePopover from '../components/ChangerEtapePopover.vue'
@@ -74,8 +75,9 @@ watch(candidatureUuid, () => {
 
 const TABS = tabItems(CANDIDATURE_PANEL_TAB_LABELS, CANDIDATURE_PANEL_TAB_ICONS)
 const activeTab = useRouteTab<CandidaturePanelTabKey>(CANDIDATURE_PANEL_TAB_ROUTE_NAMES, 'candidature')
+const TABS_WITHOUT_ASIDE: CandidaturePanelTabKey[] = ['historique', 'messages']
 const isMessagesTab = computed(() => activeTab.value === 'messages')
-const showAside = computed(() => !isMessagesTab.value)
+const showAside = computed(() => !TABS_WITHOUT_ASIDE.includes(activeTab.value))
 
 function close(): void {
   void router.push({
@@ -179,7 +181,7 @@ function handleUpdateOpen(open: boolean): void {
         >
           <div
             class="candidature-panel__layout"
-            :class="{ 'candidature-panel__layout--full': isMessagesTab }"
+            :class="{ 'candidature-panel__layout--full': !showAside }"
           >
             <CspTabsPanels
               :tabs="TABS"
@@ -192,6 +194,14 @@ function handleUpdateOpen(open: boolean): void {
                     v-if="candidature"
                     :candidature="candidatureParams"
                     :candidat-nom="title"
+                  />
+                </div>
+              </template>
+              <template #historique>
+                <div class="candidature-panel__tab">
+                  <CandidatureHistorique
+                    v-if="candidature"
+                    :candidature="candidatureParams"
                   />
                 </div>
               </template>

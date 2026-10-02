@@ -14,6 +14,7 @@ export const CANDIDATURE_TAB_ICONS = {
 
 export const CANDIDATURE_PANEL_TAB_LABELS = {
   candidature: 'Candidature',
+  historique: 'Historique d\'activité',
   documents: 'Documents',
   notes: 'Notes',
   messages: 'Messages',
@@ -23,6 +24,7 @@ export type CandidaturePanelTabKey = keyof typeof CANDIDATURE_PANEL_TAB_LABELS
 
 export const CANDIDATURE_PANEL_TAB_ICONS = {
   candidature: 'ri:user-line',
+  historique: 'ri:history-line',
   documents: 'ri:file-list-line',
   notes: 'ri:sticky-note-line',
   messages: 'ri:question-answer-line',

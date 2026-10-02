@@ -8,6 +8,7 @@ export const CANDIDATURE_ROUTE_NAME = 'recrutement-candidature'
 
 export const CANDIDATURE_PANEL_TAB_ROUTE_NAMES = {
   candidature: CANDIDATURE_ROUTE_NAME,
+  historique: 'recrutement-candidature-historique',
   documents: 'recrutement-candidature-documents',
   notes: 'recrutement-candidature-notes',
   messages: 'recrutement-candidature-messages',
@@ -55,6 +56,12 @@ export const candidaturesRoutes: RouteRecordRaw[] = [
             name: CANDIDATURE_PANEL_TAB_ROUTE_NAMES.candidature,
             component: () => import('./views/CandidaturePanelView.vue'),
             meta: panelTabMeta('candidature'),
+          },
+          {
+            path: `${CANDIDATURE_PANEL_PATH}/historique`,
+            name: CANDIDATURE_PANEL_TAB_ROUTE_NAMES.historique,
+            component: () => import('./views/CandidaturePanelView.vue'),
+            meta: panelTabMeta('historique'),
           },
           {
             path: `${CANDIDATURE_PANEL_PATH}/documents`,
