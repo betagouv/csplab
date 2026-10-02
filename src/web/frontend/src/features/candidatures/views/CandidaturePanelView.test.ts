@@ -24,7 +24,7 @@ import {
   RECRUTEMENT_UUID,
 } from '@/test/fixtures/candidatures'
 import { setupUser } from '@/test/render'
-import { getCandidatureDetail, getMotifsRefus, getRecrutementKanban, patchEtapeCandidatures } from '../api'
+import { createCandidatureNote, getCandidatureActivites, getCandidatureDetail, getMotifsRefus, getRecrutementKanban, patchEtapeCandidatures } from '../api'
 import CandidaturePanelView from './CandidaturePanelView.vue'
 
 vi.mock('../api', () => ({
@@ -37,6 +37,7 @@ vi.mock('../api', () => ({
   candidatureDocumentUrl: vi.fn(),
   getCandidatureNotes: vi.fn(() => new Promise(() => {})),
   createCandidatureNote: vi.fn(),
+  getCandidatureActivites: vi.fn(),
 }))
 
 vi.mock('@/features/recrutements/api', () => ({
@@ -80,6 +81,7 @@ describe('candidaturePanelView', () => {
     vi.mocked(getRecrutementDetail).mockResolvedValue(RECRUTEMENT_DETAIL)
     vi.mocked(patchEtapeCandidatures).mockResolvedValue({ reussites: [CANDIDATURE_ALICE], echecs: [] })
     vi.mocked(getConversations).mockResolvedValue({ count: 0, next: null, previous: null, results: [] })
+    vi.mocked(getCandidatureActivites).mockResolvedValue({ count: 0, next: null, previous: null, results: [] })
   })
 
   afterEach(() => {
@@ -100,7 +102,20 @@ describe('candidaturePanelView', () => {
     expect(await panel.findByRole('tab', { name: 'Candidature', selected: true })).toBeInTheDocument()
     expect(router.currentRoute.value.meta.tab).toBe('candidature')
     const suivi = within(panel.getByRole('complementary', { name: 'Suivi de la candidature' }))
+    expect(suivi.getByRole('heading', { name: 'Dernières activités' })).toBeInTheDocument()
     expect(suivi.getByRole('heading', { name: 'Ajouter une note' })).toBeInTheDocument()
+  })
+
+  it('refreshes the latest activities once a note is saved', async () => {
+    vi.mocked(createCandidatureNote).mockResolvedValue()
+    const user = setupUser()
+    const { panel } = await renderPanel([`${KANBAN_PATH}/candidatures/${CANDIDATURE_ALICE}`])
+    await vi.waitFor(() => expect(getCandidatureActivites).toHaveBeenCalledTimes(1))
+
+    await user.type(await panel.findByRole('textbox', { name: 'Ajouter une note' }), 'À rappeler')
+    await user.click(panel.getByRole('button', { name: 'Enregistrer la note' }))
+
+    await vi.waitFor(() => expect(getCandidatureActivites).toHaveBeenCalledTimes(2))
   })
 
   it('moves to the next candidature of the column from the bottom bar', async () => {

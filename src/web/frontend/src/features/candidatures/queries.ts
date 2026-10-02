@@ -1,6 +1,6 @@
 import type { CandidatureParams } from './types'
 import { defineQueryOptions } from '@pinia/colada'
-import { checkCandidatureDocument, getCandidatureDetail, getCandidatureDocuments, getCandidatureListe, getCandidatureNotes, getMotifsRefus, getRecrutementKanban } from './api'
+import { checkCandidatureDocument, getCandidatureActivites, getCandidatureDetail, getCandidatureDocuments, getCandidatureListe, getCandidatureNotes, getMotifsRefus, getRecrutementKanban } from './api'
 
 export const CANDIDATURES_QUERY_KEYS = {
   root: ['candidatures'] as const,
@@ -20,6 +20,8 @@ export const CANDIDATURES_QUERY_KEYS = {
     [...CANDIDATURES_QUERY_KEYS.documents(candidature), documentUuid] as const,
   notes: ({ organismeUuid, recrutementUuid, candidatureUuid }: CandidatureParams) =>
     [...CANDIDATURES_QUERY_KEYS.recrutement(organismeUuid, recrutementUuid), 'candidature', candidatureUuid, 'notes'] as const,
+  activites: ({ organismeUuid, recrutementUuid, candidatureUuid }: CandidatureParams) =>
+    [...CANDIDATURES_QUERY_KEYS.recrutement(organismeUuid, recrutementUuid), 'candidature', candidatureUuid, 'activites'] as const,
 }
 
 export interface CandidaturesQueryParams {
@@ -73,5 +75,12 @@ export const candidatureDocumentCheckQuery = defineQueryOptions(
   ({ candidature, documentUuid }: { candidature: CandidatureParams, documentUuid: string }) => ({
     key: CANDIDATURES_QUERY_KEYS.document(candidature, documentUuid),
     query: () => checkCandidatureDocument(candidature, documentUuid),
+  }),
+)
+
+export const candidatureActivitesQuery = defineQueryOptions(
+  ({ candidature, limit }: { candidature: CandidatureParams, limit: number }) => ({
+    key: [...CANDIDATURES_QUERY_KEYS.activites(candidature), limit],
+    query: () => getCandidatureActivites(candidature, limit),
   }),
 )

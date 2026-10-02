@@ -11,14 +11,16 @@ import { getMe } from '@/api/utilisateur'
 import { getRecrutementDetail } from '@/features/recrutements/api'
 import { RECRUTEMENTS_QUERY_KEYS } from '@/features/recrutements/queries'
 import { routes } from '@/router'
-import { getCandidatureListe, getRecrutementKanban, patchEtapeCandidatures } from '../api'
+import { getCandidatureActivites, getCandidatureListe, getRecrutementKanban, patchEtapeCandidatures } from '../api'
 import { CANDIDATURES_QUERY_KEYS } from '../queries'
+import { useCandidatureActivites } from './useCandidatureActivites'
 import { useCandidatures } from './useCandidatures'
 
 vi.mock('../api', () => ({
   getRecrutementKanban: vi.fn(),
   getCandidatureListe: vi.fn(),
   patchEtapeCandidatures: vi.fn(),
+  getCandidatureActivites: vi.fn(),
 }))
 
 vi.mock('@/features/recrutements/api', () => ({
@@ -167,6 +169,7 @@ describe('useCandidatures', () => {
     vi.mocked(getRecrutementKanban).mockReset()
     vi.mocked(getCandidatureListe).mockReset()
     vi.mocked(patchEtapeCandidatures).mockReset()
+    vi.mocked(getCandidatureActivites).mockReset()
     vi.mocked(getMe).mockResolvedValue(MOCK_USER)
     vi.mocked(patchEtapeCandidatures).mockResolvedValue({ reussites: [], echecs: [] })
     vi.mocked(getRecrutementDetail).mockResolvedValue(MOCK_DETAIL)
@@ -239,6 +242,25 @@ describe('useCandidatures', () => {
         RECRUTEMENT_UUID,
         { etapeCibleUuid: ETAPE_PRESELECTION, candidatureUuids: [CANDIDATURE_ALICE] },
       ))
+    })
+
+    it('refreshes the activities of the moved candidature', async () => {
+      vi.mocked(patchEtapeCandidatures).mockResolvedValue({ reussites: [CANDIDATURE_ALICE], echecs: [] })
+      vi.mocked(getCandidatureActivites).mockResolvedValue({ count: 0, next: null, previous: null, results: [] })
+      const { context } = await mountCandidatures(() => {
+        useCandidatureActivites({ organismeUuid: ORGANISME_UUID, recrutementUuid: RECRUTEMENT_UUID, candidatureUuid: CANDIDATURE_ALICE })
+      })
+
+      await vi.waitFor(() => expect(context.pendingKanban.value).toBe(false))
+      expect(getCandidatureActivites).toHaveBeenCalledTimes(1)
+
+      context.moveCandidature({
+        sourceColumnId: ETAPE_RECEPTION,
+        targetColumnId: ETAPE_PRESELECTION,
+        cardId: CANDIDATURE_ALICE,
+      })
+
+      await vi.waitFor(() => expect(getCandidatureActivites).toHaveBeenCalledTimes(2))
     })
 
     it('rolls the move back when the api call fails', async () => {

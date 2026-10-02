@@ -1,4 +1,4 @@
-import type { CandidatureDetail, CandidatureParams, ChangerEtapeResultat, MotifRefus, MotifRefusOption, PaginatedCandidatureListeList, PaginatedDocumentListeList, PaginatedNoteList, RecrutementDetailKanban } from './types'
+import type { CandidatureDetail, CandidatureParams, ChangerEtapeResultat, MotifRefus, MotifRefusOption, PaginatedActiviteList, PaginatedCandidatureListeList, PaginatedDocumentListeList, PaginatedNoteList, RecrutementDetailKanban } from './types'
 import { api } from '@/api/client'
 
 export async function getRecrutementKanban(
@@ -133,4 +133,12 @@ export async function createCandidatureNote(candidature: CandidatureParams, mess
     '/recruteur/organismes/{organisme_uuid}/recrutements/{recrutement_uuid}/candidatures/{candidature_uuid}/notes',
     { params: { path: candidaturePath(candidature) }, body: { message } },
   )
+}
+
+export async function getCandidatureActivites(candidature: CandidatureParams, limit: number): Promise<PaginatedActiviteList> {
+  const { data } = await api.GET(
+    '/recruteur/organismes/{organisme_uuid}/recrutements/{recrutement_uuid}/candidatures/{candidature_uuid}/logs',
+    { params: { path: candidaturePath(candidature), query: { limit } } },
+  )
+  return data!
 }

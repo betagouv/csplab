@@ -6,6 +6,7 @@ import { useRoute, useRouter } from 'vue-router'
 import CspDrawer from '@/components/base/CspDrawer/CspDrawer.vue'
 import CspEmptyState from '@/components/base/CspEmptyState/CspEmptyState.vue'
 import CspErrorState from '@/components/base/CspErrorState/CspErrorState.vue'
+import CspSeparator from '@/components/base/CspSeparator/CspSeparator.vue'
 import CspSequenceNav from '@/components/base/CspSequenceNav/CspSequenceNav.vue'
 import CspSkeleton from '@/components/base/CspSkeleton/CspSkeleton.vue'
 import CspTabs from '@/components/base/CspTabs/CspTabs.vue'
@@ -18,6 +19,7 @@ import { useRouteTab } from '@/composables/navigation/useRouteTab'
 import { useUnsavedChangesGuard } from '@/composables/navigation/useUnsavedChanges'
 import MessagesSection from '@/features/messages/components/MessagesSection.vue'
 import { formatElapsedDays } from '@/utils/date'
+import CandidatureActivites from '../components/CandidatureActivites.vue'
 import CandidatureCv from '../components/CandidatureCv.vue'
 import CandidatureDocuments from '../components/CandidatureDocuments.vue'
 import CandidatureNoteForm from '../components/CandidatureNoteForm.vue'
@@ -222,10 +224,11 @@ function handleUpdateOpen(open: boolean): void {
               class="candidature-panel__aside"
               aria-label="Suivi de la candidature"
             >
-              <CandidatureNoteForm
-                v-if="candidature"
-                :candidature="candidatureParams"
-              />
+              <template v-if="candidature">
+                <CandidatureActivites :candidature="candidatureParams" />
+                <CspSeparator />
+                <CandidatureNoteForm :candidature="candidatureParams" />
+              </template>
             </aside>
           </div>
         </div>
@@ -361,6 +364,9 @@ function handleUpdateOpen(open: boolean): void {
 }
 
 .candidature-panel__aside {
+  display: flex;
+  flex-direction: column;
+  gap: var(--csp-space-5);
   padding: var(--csp-page-content-padding-block) var(--csp-page-container-padding-inline);
   border-left: 1px solid var(--border-default-grey);
 }

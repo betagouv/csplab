@@ -23,6 +23,7 @@ export function useCreateCandidatureNote(candidature: MaybeRefOrGetter<Candidatu
     mutation: (message: string) => createCandidatureNote(toValue(candidature), message),
     onSuccess: () => {
       queryCache.invalidateQueries({ key: CANDIDATURES_QUERY_KEYS.notes(toValue(candidature)) })
+      queryCache.invalidateQueries({ key: CANDIDATURES_QUERY_KEYS.activites(toValue(candidature)) })
     },
   })
 
