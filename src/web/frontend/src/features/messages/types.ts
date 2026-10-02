@@ -11,3 +11,7 @@ export type PaginatedConversationMessageList = components['schemas']['PaginatedC
 export type CreateMessagePayload = Omit<components['schemas']['CreateMessage'], 'documents'> & {
   documents?: File[]
 }
+
+export type CreateConversationPayload = Omit<components['schemas']['CreateConversation'], 'documents'> & {
+  documents?: File[]
+}
