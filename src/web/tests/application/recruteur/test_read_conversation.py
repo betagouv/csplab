@@ -3,10 +3,6 @@ from uuid import uuid4
 import pytest
 from django.conf import settings
 
-from application.recruteur.services.conversation_stubs import (
-    _CONVERSATIONS,
-    stub_conversation_id,
-)
 from application.recruteur.services.read_conversation import (
     _MESSAGES,
     read_conversation,
@@ -27,12 +23,13 @@ from infrastructure.factories.identite.organisme_django_factory import (
     create_organisme_with_agent,
 )
 from infrastructure.factories.identite.utilisateur_factory import UtilisateurFactory
+from infrastructure.factories.messagerie.conversation_django_factory import (
+    ConversationDjangoFactory,
+)
 from infrastructure.factories.recruteur.recrutement_django_factory import (
     EtapeDjangoFactory,
     RecrutementDjangoFactory,
 )
-
-OBJET = _CONVERSATIONS[0][0]
 
 
 def _utilisateur(entity_id):
@@ -61,7 +58,7 @@ def test_authorized_agent_reads_the_conversation(superviseur_candidature):
         organisme_id=organisme.id,
         recrutement_id=recrutement.pk,
         candidature_id=candidature.pk,
-        conversation_id=stub_conversation_id(candidature.pk, OBJET),
+        conversation_id=ConversationDjangoFactory(candidature=candidature).pk,
         utilisateur=_utilisateur(agent.utilisateur_id),
     )
 
@@ -84,7 +81,7 @@ def test_unauthorized_agent_is_denied(db):
             organisme_id=recrutement.organisme_id,
             recrutement_id=recrutement.pk,
             candidature_id=candidature.pk,
-            conversation_id=stub_conversation_id(candidature.pk, OBJET),
+            conversation_id=ConversationDjangoFactory(candidature=candidature).pk,
             utilisateur=_utilisateur(uuid4()),
         )
 
@@ -109,7 +106,7 @@ def test_recrutement_not_under_organisme_is_denied(superviseur_candidature):
             organisme_id=organisme.id,
             recrutement_id=other_recrutement.pk,
             candidature_id=other_candidature.pk,
-            conversation_id=stub_conversation_id(other_candidature.pk, OBJET),
+            conversation_id=ConversationDjangoFactory(candidature=other_candidature).pk,
             utilisateur=_utilisateur(agent.utilisateur_id),
         )
 
@@ -123,7 +120,7 @@ def test_candidature_not_under_recrutement_is_denied(superviseur_candidature):
             organisme_id=organisme.id,
             recrutement_id=recrutement.pk,
             candidature_id=other_candidature.pk,
-            conversation_id=stub_conversation_id(other_candidature.pk, OBJET),
+            conversation_id=ConversationDjangoFactory(candidature=other_candidature).pk,
             utilisateur=_utilisateur(agent.utilisateur_id),
         )
 
@@ -150,6 +147,6 @@ def test_conversation_of_another_candidature_is_denied(superviseur_candidature):
             organisme_id=organisme.id,
             recrutement_id=recrutement.pk,
             candidature_id=candidature.pk,
-            conversation_id=stub_conversation_id(other_candidature.pk, OBJET),
+            conversation_id=ConversationDjangoFactory(candidature=other_candidature).pk,
             utilisateur=_utilisateur(agent.utilisateur_id),
         )

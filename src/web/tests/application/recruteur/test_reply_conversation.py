@@ -2,10 +2,6 @@ from uuid import uuid4
 
 import pytest
 
-from application.recruteur.services.conversation_stubs import (
-    _CONVERSATIONS,
-    stub_conversation_id,
-)
 from application.recruteur.services.reply_conversation import reply_conversation
 from domain.commons.errors.organisme_errors import OrganismeNexistePas
 from domain.identite.errors.organisme_permission_errors import (
@@ -27,13 +23,15 @@ from infrastructure.factories.identite.organisme_django_factory import (
     create_organisme_with_agent,
 )
 from infrastructure.factories.identite.utilisateur_factory import UtilisateurFactory
+from infrastructure.factories.messagerie.conversation_django_factory import (
+    ConversationDjangoFactory,
+)
 from infrastructure.factories.recruteur.recrutement_django_factory import (
     EtapeDjangoFactory,
     RecrutementDjangoFactory,
 )
 from tests.utils.message_documents import PDF_BYTES, pdf
 
-OBJET = _CONVERSATIONS[0][0]
 CONTENT = "Merci, je confirme ma présence."
 
 
@@ -50,7 +48,7 @@ def _candidature_for(organisme):
 
 
 def _conversation_of(candidature):
-    return stub_conversation_id(candidature.pk, OBJET)
+    return ConversationDjangoFactory(candidature=candidature).pk
 
 
 def _reply(
