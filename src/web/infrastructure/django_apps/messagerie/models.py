@@ -51,6 +51,10 @@ class ConversationModel(BaseDatedModel):
 
     objects = ConversationQuerySet.as_manager()
 
+    # renseignés par ConversationQuerySet.by_candidature (Prefetch to_attr)
+    premiers_messages: list["MessageModel"]
+    derniers_messages: list["MessageModel"]
+
     class Meta:
         db_table = "conversation"
         verbose_name = "Conversation"
