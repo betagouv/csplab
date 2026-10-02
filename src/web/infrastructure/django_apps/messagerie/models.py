@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models import F, OuterRef, Prefetch, Subquery
 
 from infrastructure.django_apps.candidate.models.candidature import CandidatureModel
 from infrastructure.django_apps.candidate.models.document import DocumentModel
@@ -12,6 +13,32 @@ class ConversationQuerySet(models.QuerySet):
     ) -> "ConversationQuerySet":
         return self.filter(candidature_id=candidature_id, pk=conversation_id)
 
+    def by_candidature(self, candidature_id) -> "ConversationQuerySet":
+        messages = MessageModel.objects.select_related("auteur")
+        derniere_date = (
+            MessageModel.objects.filter(conversation=OuterRef("pk"))
+            .order_by("-created_at")
+            .values("created_at")[:1]
+        )
+        return (
+            self.filter(candidature_id=candidature_id)
+            .annotate(uuid=F("id"), last_message_created_at=Subquery(derniere_date))
+            .filter(last_message_created_at__isnull=False)
+            .prefetch_related(
+                Prefetch(
+                    "messages",
+                    queryset=messages.order_by("created_at")[:1],
+                    to_attr="premiers_messages",
+                ),
+                Prefetch(
+                    "messages",
+                    queryset=messages.order_by("-created_at")[:1],
+                    to_attr="derniers_messages",
+                ),
+            )
+            .order_by("-last_message_created_at", "-created_at")
+        )
+
 
 class ConversationModel(BaseDatedModel):
     candidature = models.ForeignKey(
@@ -23,6 +50,7 @@ class ConversationModel(BaseDatedModel):
     objet = models.CharField(max_length=255)
 
     objects = ConversationQuerySet.as_manager()
+
     class Meta:
         db_table = "conversation"
         verbose_name = "Conversation"
