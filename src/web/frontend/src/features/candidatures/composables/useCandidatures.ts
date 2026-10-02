@@ -6,7 +6,7 @@ import { useRoute } from 'vue-router'
 import { useToast } from '@/composables/ui/useToast'
 import { peekRecrutementIntitule, recrutementDetailQuery } from '@/features/recrutements/queries'
 import { patchEtapeCandidatures } from '../api'
-import { candidatureListeQuery, recrutementKanbanQuery } from '../queries'
+import { candidatureListeQuery, CANDIDATURES_QUERY_KEYS, recrutementKanbanQuery } from '../queries'
 import { useCandidaturesFilters } from './useCandidaturesFilters'
 
 export interface MoveCandidatureParams {
@@ -135,6 +135,11 @@ export const useCandidatures = defineQuery(() => {
         candidatureUuids,
         motifRefus,
       })
+      for (const candidatureUuid of resultat.reussites) {
+        void queryCache.invalidateQueries({
+          key: CANDIDATURES_QUERY_KEYS.activites({ organismeUuid: organismeUuid.value!, recrutementUuid: recrutementUuid.value!, candidatureUuid }),
+        })
+      }
       if (resultat.echecs.length > 0) {
         await queryCache.invalidateQueries({ key })
         addToast({
