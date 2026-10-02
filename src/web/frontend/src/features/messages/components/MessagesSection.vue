@@ -1,16 +1,18 @@
 <script setup lang="ts">
 import type { CandidatureParams } from '@/features/candidatures/types'
 import { computed } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import CspAsyncSection from '@/components/base/CspAsyncSection/CspAsyncSection.vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspEmptyState from '@/components/base/CspEmptyState/CspEmptyState.vue'
 import CspSkeleton from '@/components/base/CspSkeleton/CspSkeleton.vue'
 import { useMinimumPending } from '@/composables/async/useMinimumPending'
+import { CANDIDATURE_NEW_CONVERSATION_ROUTE_NAME } from '@/features/candidatures/routes'
 import { pluralize } from '@/utils/format'
 import { useConversations } from '../composables/useConversations'
 import ConversationsList from './ConversationsList.vue'
 import ConversationThread from './ConversationThread.vue'
+import NewConversationForm from './NewConversationForm.vue'
 
 const props = defineProps<{
   candidature: CandidatureParams
@@ -32,10 +34,28 @@ const isEmpty = computed(() => !showSkeleton.value && !error.value && conversati
 
 const route = useRoute()
 const openConversationUuid = computed(() => route.params.conversationUuid as string | undefined)
+const isCreatingConversation = computed(() => route.name === CANDIDATURE_NEW_CONVERSATION_ROUTE_NAME)
+
+const router = useRouter()
+
+function startConversation(): void {
+  const { organismeUuid, recrutementUuid, candidatureUuid } = props.candidature
+  void router.push({
+    name: CANDIDATURE_NEW_CONVERSATION_ROUTE_NAME,
+    params: { organismeUuid, recrutementUuid, candidatureUuid },
+  })
+}
 </script>
 
 <template>
-  <div class="messages-section">
+  <NewConversationForm
+    v-if="isCreatingConversation"
+    :candidature="candidature"
+  />
+  <div
+    v-else
+    class="messages-section"
+  >
     <section
       class="messages-section__pane messages-section__conversations"
       aria-label="Conversations de la candidature"
@@ -48,8 +68,8 @@ const openConversationUuid = computed(() => route.params.conversationUuid as str
           variant="tertiary-no-outline"
           size="sm"
           icon="ri:mail-add-line"
-          disabled
           aria-label="Démarrer une conversation"
+          @click="startConversation"
         />
       </header>
 
@@ -98,7 +118,7 @@ const openConversationUuid = computed(() => route.params.conversationUuid as str
             variant="secondary"
             icon="ri:mail-add-line"
             label="Démarrer une conversation"
-            disabled
+            @click="startConversation"
           />
         </template>
       </CspEmptyState>

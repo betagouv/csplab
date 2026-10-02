@@ -15,6 +15,8 @@ export const CANDIDATURE_PANEL_TAB_ROUTE_NAMES = {
 
 export const CANDIDATURE_CONVERSATION_ROUTE_NAME = 'recrutement-candidature-conversation'
 
+export const CANDIDATURE_NEW_CONVERSATION_ROUTE_NAME = 'recrutement-candidature-nouvelle-conversation'
+
 export const CANDIDATURES_TAB_ROUTE_NAMES = {
   'candidatures': 'recrutement-candidatures-kanban',
   'activites-et-taches': 'recrutement-activites',
@@ -71,6 +73,12 @@ export const candidaturesRoutes: RouteRecordRaw[] = [
           {
             path: `${CANDIDATURE_PANEL_PATH}/messages`,
             name: CANDIDATURE_PANEL_TAB_ROUTE_NAMES.messages,
+            component: () => import('./views/CandidaturePanelView.vue'),
+            meta: panelTabMeta('messages'),
+          },
+          {
+            path: `${CANDIDATURE_PANEL_PATH}/messages/nouveau`,
+            name: CANDIDATURE_NEW_CONVERSATION_ROUTE_NAME,
             component: () => import('./views/CandidaturePanelView.vue'),
             meta: panelTabMeta('messages'),
           },
