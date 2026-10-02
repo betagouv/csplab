@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { CandidatureTabKey } from '../constants/candidature'
 import type { CspBreadcrumbItem } from '@/components/base/CspBreadcrumb/CspBreadcrumb.vue'
 import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
@@ -18,6 +19,8 @@ import { useRouteTab } from '@/composables/navigation/useRouteTab'
 import { useDisclosure } from '@/composables/ui/useDisclosure'
 import EquipeRecrutementSection from '@/features/equipe-recrutement/components/EquipeRecrutementSection.vue'
 import { recrutementsListLocation } from '@/features/recrutements/routes'
+import { useCurrentUser } from '@/stores/currentUser'
+import { useRouteOrganisme } from '@/stores/routeOrganisme'
 import ForbiddenView from '@/views/ForbiddenView.vue'
 import CandidaturesFiltersDrawer from '../components/CandidaturesFiltersDrawer.vue'
 import CandidaturesViewSwitch from '../components/CandidaturesViewSwitch.vue'
@@ -84,7 +87,20 @@ const metaItems = computed(() =>
   recrutementDetail.value ? formatRecrutementMeta(recrutementDetail.value) : [],
 )
 
-const forbidden = computed(() => isHttpStatus(error.value, 403))
+const { user } = useCurrentUser()
+const { canManageOrganisme } = useRouteOrganisme()
+
+const TABS = tabItems(CANDIDATURE_TAB_LABELS, CANDIDATURE_TAB_ICONS)
+const visibleTabs = computed(() =>
+  canManageOrganisme.value ? TABS : TABS.filter(tab => tab.value !== 'equipe'),
+)
+const activeTab = useRouteTab<CandidatureTabKey>(CANDIDATURES_TAB_ROUTE_NAMES, 'candidatures')
+
+const equipeForbidden = computed(() =>
+  activeTab.value === 'equipe' && Boolean(user.value) && !canManageOrganisme.value,
+)
+
+const forbidden = computed(() => isHttpStatus(error.value, 403) || equipeForbidden.value)
 
 const loadFailed = computed(() => !pendingDetail.value && Boolean(error.value))
 
@@ -106,9 +122,6 @@ const headerMenuSections = [{
     }),
   }],
 }]
-
-const TABS = tabItems(CANDIDATURE_TAB_LABELS, CANDIDATURE_TAB_ICONS)
-const activeTab = useRouteTab(CANDIDATURES_TAB_ROUTE_NAMES, 'candidatures')
 </script>
 
 <template>
@@ -146,7 +159,7 @@ const activeTab = useRouteTab(CANDIDATURES_TAB_ROUTE_NAMES, 'candidatures')
       fill
       width="full"
       class="candidatures-view"
-      :tabs="TABS"
+      :tabs="visibleTabs"
     >
       <template #tab-candidatures>
         <CspErrorState
