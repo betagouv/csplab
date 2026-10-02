@@ -304,10 +304,6 @@ function handleUpdateOpen(open: boolean): void {
     --base-drawer-width: clamp(42rem, 100vw - 36rem, 90rem);
   }
 
-  .csp-drawer__header {
-    border-bottom: 0;
-  }
-
   .csp-drawer__body {
     display: flex;
     flex-direction: column;
