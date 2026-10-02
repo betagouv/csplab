@@ -1,5 +1,6 @@
 from uuid import UUID
 
+from django.db.models import QuerySet
 from django.http import Http404
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import exceptions, status
@@ -9,7 +10,6 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
 
-from application.recruteur.services.conversation_stubs import ConversationStub
 from application.recruteur.services.create_conversation import create_conversation
 from application.recruteur.services.list_conversations import list_conversations
 from domain.commons.errors.organisme_errors import OrganismeNexistePas
@@ -23,11 +23,13 @@ from domain.recruteur.errors.recrutement_errors import (
     RecrutementCandidatureInexistante,
     RecrutementInexistant,
 )
+from infrastructure.django_apps.messagerie.models import ConversationModel
 from presentation.api.serializers import GenericErrorSerializer, generic_response_format
 from presentation.commons.pagination import PageNumberLimitPagination
 from presentation.recruteur.mappers import UtilisateurMapper
 from presentation.recruteur.serializers import (
     ConversationSerializer,
+    ConversationStubSerializer,
     CreateConversationSerializer,
 )
 
@@ -38,7 +40,7 @@ class ConversationPagination(PageNumberLimitPagination):
 
 @extend_schema_view(
     get=extend_schema(
-        summary="Liste des conversations d'une candidature (stub)",
+        summary="Liste des conversations d'une candidature",
         tags=["recruteur"],
         responses={
             **generic_response_format,
@@ -62,7 +64,7 @@ class CandidatureConversationsView(ListAPIView):
     pagination_class = ConversationPagination
     parser_classes = [MultiPartParser, FormParser]
 
-    def get_queryset(self) -> list[ConversationStub]:
+    def get_queryset(self) -> QuerySet[ConversationModel]:
         return list_conversations(
             organisme_id=self.kwargs["organisme_uuid"],
             recrutement_id=self.kwargs["recrutement_uuid"],
@@ -91,7 +93,7 @@ class CandidatureConversationsView(ListAPIView):
             utilisateur=UtilisateurMapper().to_domain(request),
         )
         return Response(
-            ConversationSerializer(conversation).data,
+            ConversationStubSerializer(conversation).data,
             status=status.HTTP_201_CREATED,
         )
 

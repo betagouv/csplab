@@ -5,10 +5,6 @@ from django.conf import settings
 from django.urls import reverse
 from rest_framework import status
 
-from application.recruteur.services.conversation_stubs import (
-    _CONVERSATIONS,
-    stub_conversation_id,
-)
 from application.recruteur.services.read_conversation import (
     _MESSAGES,
 )
@@ -23,6 +19,9 @@ from infrastructure.factories.identite.organisme_django_factory import (
     OrganismeDjangoFactory,
     create_organisme_with_agent,
 )
+from infrastructure.factories.messagerie.conversation_django_factory import (
+    ConversationDjangoFactory,
+)
 from infrastructure.factories.recruteur.recrutement_django_factory import (
     EtapeDjangoFactory,
     RecrutementAgentDjangoFactory,
@@ -33,7 +32,6 @@ from presentation.recruteur.views.candidature_conversation_detail import (
 )
 from tests.utils.message_documents import INVALID_DOCUMENTS, valid_documents
 
-OBJET = _CONVERSATIONS[0][0]
 TAILLE_PAGE_LIMITEE = 2
 TAILLE_PAGE_PAR_DEFAUT = 20
 
@@ -59,7 +57,7 @@ def _candidature_for(organisme):
 
 
 def _conversation_of(candidature):
-    return stub_conversation_id(candidature.pk, OBJET)
+    return ConversationDjangoFactory(candidature=candidature).pk
 
 
 def _unknown_organisme(organisme, recrutement, candidature):
