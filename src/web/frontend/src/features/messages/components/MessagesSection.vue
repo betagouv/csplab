@@ -16,6 +16,7 @@ import NewConversationForm from './NewConversationForm.vue'
 
 const props = defineProps<{
   candidature: CandidatureParams
+  candidatNom: string
 }>()
 
 const SKELETON_ROWS = 4
@@ -111,7 +112,7 @@ function startConversation(): void {
         v-if="isEmpty"
         icon="ri:mail-close-line"
         title="Aucune conversation pour le moment"
-        description="Créer une conversation pour échanger avec le candidat"
+        :description="`Créer une conversation pour échanger avec ${candidatNom}`"
       >
         <template #action>
           <CspButton
@@ -131,7 +132,7 @@ function startConversation(): void {
         v-else-if="!showSkeleton && !error"
         icon="ri:chat-3-line"
         title="Sélectionnez une conversation"
-        description="Choisissez une conversation pour lire les messages échangés avec le candidat."
+        :description="`Choisissez une conversation pour lire les messages échangés avec ${candidatNom}.`"
       />
     </section>
   </div>

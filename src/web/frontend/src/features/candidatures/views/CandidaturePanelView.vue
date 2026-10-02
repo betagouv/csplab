@@ -213,7 +213,11 @@ function handleUpdateOpen(open: boolean): void {
 
               <template #messages>
                 <div class="candidature-panel__tab">
-                  <MessagesSection :candidature="candidatureParams" />
+                  <MessagesSection
+                    v-if="candidature"
+                    :candidature="candidatureParams"
+                    :candidat-nom="formatCandidatNom(candidature.candidat)"
+                  />
                 </div>
               </template>
             </CspTabsPanels>

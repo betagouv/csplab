@@ -31,6 +31,7 @@ describe('messagesSection', () => {
           recrutementUuid: RECRUTEMENT_UUID,
           candidatureUuid: CANDIDATURE_ALICE,
         },
+        candidatNom: 'Alice Dupont',
       },
     })
 
