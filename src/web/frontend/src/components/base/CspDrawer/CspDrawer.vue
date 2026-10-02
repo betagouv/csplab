@@ -130,6 +130,7 @@ const hasFooter = computed(() => Boolean(slots.footer))
             as-child
           >
             <CspButton
+              class="csp-drawer__close"
               variant="tertiary-no-outline"
               size="sm"
               icon="ri:close-line"
@@ -234,7 +235,7 @@ const hasFooter = computed(() => Boolean(slots.footer))
 
 .csp-drawer__header {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   gap: var(--csp-space-4);
   padding-block: var(--csp-space-6);
@@ -248,12 +249,21 @@ const hasFooter = computed(() => Boolean(slots.footer))
   margin-block: calc(-1 * var(--csp-space-1));
 }
 
+.csp-drawer__start :slotted(.csp-btn--icon-only) {
+  margin-inline-start: calc(-1 * var(--csp-btn-icon-inset));
+}
+
 .csp-drawer__end {
   display: flex;
   flex-shrink: 0;
   align-items: center;
   gap: var(--csp-space-2);
   margin-block: calc(-1 * var(--csp-space-1));
+}
+
+.csp-drawer__close {
+  margin-block: calc(-1 * var(--csp-space-1));
+  margin-inline-end: calc(-1 * var(--csp-btn-icon-inset));
 }
 
 .csp-drawer__heading {
