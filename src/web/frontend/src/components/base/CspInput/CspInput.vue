@@ -12,6 +12,7 @@ export interface CspInputProps {
   id?: string
   name?: string
   label?: string
+  hint?: string
 }
 
 defineOptions({
@@ -48,6 +49,12 @@ const inputAttrs = computed(() => {
       :for="id"
     >
       {{ label }}
+      <span
+        v-if="hint"
+        class="csp-input-group__hint"
+      >
+        {{ hint }}
+      </span>
     </label>
     <input
       v-bind="inputAttrs"
@@ -152,10 +159,19 @@ const inputAttrs = computed(() => {
 }
 
 .csp-input-group__label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
   margin-bottom: 0.375rem;
   font-size: 0.875rem;
   font-weight: 600;
   color: var(--text-default-grey);
+}
+
+.csp-input-group__hint {
+  font-size: 0.75rem;
+  font-weight: 400;
+  color: var(--text-mention-grey);
 }
 
 .csp-input-group--error {
