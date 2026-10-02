@@ -1976,7 +1976,7 @@ paths:
   /recruteur/organismes/{organisme_uuid}/recrutements/{recrutement_uuid}/candidatures/{candidature_uuid}/conversations:
     get:
       operationId: recruteur_organismes_recrutements_candidatures_conversations_list
-      summary: Liste des conversations d'une candidature (stub)
+      summary: Liste des conversations d'une candidature
       parameters:
       - in: path
         name: candidature_uuid
@@ -5042,16 +5042,20 @@ components:
           format: uuid
         objet:
           type: string
+          maxLength: 255
         creator:
           type: string
+          readOnly: true
         created_at:
           type: string
           format: date-time
+          readOnly: true
         last_message_content:
           type: string
-          maxLength: 300
+          readOnly: true
         last_message_author:
           type: string
+          readOnly: true
         last_message_created_at:
           type: string
           format: date-time

@@ -5,7 +5,6 @@ from django.conf import settings
 from django.urls import reverse
 from rest_framework import status
 
-from application.recruteur.services.conversation_stubs import _CONVERSATIONS
 from domain.recruteur.value_objects.roles import (
     AgentOrganismeRole,
     AgentRecrutementRole,
@@ -16,6 +15,10 @@ from infrastructure.factories.candidate.candidature_django_factory import (
 from infrastructure.factories.identite.organisme_django_factory import (
     OrganismeDjangoFactory,
     create_organisme_with_agent,
+)
+from infrastructure.factories.messagerie.conversation_django_factory import (
+    ConversationDjangoFactory,
+    MessageDjangoFactory,
 )
 from infrastructure.factories.recruteur.recrutement_django_factory import (
     EtapeDjangoFactory,
@@ -29,6 +32,7 @@ from tests.utils.message_documents import INVALID_DOCUMENTS, valid_documents
 
 TAILLE_PAGE_LIMITEE = 2
 TAILLE_PAGE_PAR_DEFAUT = 20
+NB_CONVERSATIONS = 2
 
 
 def _url(organisme_uuid, recrutement_uuid, candidature_uuid):
@@ -48,6 +52,13 @@ def _candidature_for(organisme):
         etape=EtapeDjangoFactory(recrutement=recrutement)
     )
     return recrutement, candidature
+
+
+def _conversation_with_messages(candidature, *contenus):
+    conversation = ConversationDjangoFactory(candidature=candidature)
+    for contenu in contenus:
+        MessageDjangoFactory(conversation=conversation, contenu=contenu)
+    return conversation
 
 
 def _unknown_organisme(organisme, recrutement, candidature):
@@ -100,6 +111,8 @@ class TestCandidatureConversationsView:
             role=organisme_role, utilisateur=test_user
         )
         recrutement, candidature = _candidature_for(organisme)
+        _conversation_with_messages(candidature, "Bonjour")
+        _conversation_with_messages(candidature, "Merci", "x" * 1000)
         if recrutement_role is not None:
             RecrutementAgentDjangoFactory(
                 recrutement=recrutement,
@@ -113,7 +126,7 @@ class TestCandidatureConversationsView:
 
         assert response.status_code == status.HTTP_200_OK
         body = response.json()
-        assert body["count"] == len(_CONVERSATIONS)
+        assert body["count"] == NB_CONVERSATIONS
         results = body["results"]
         assert set(results[0].keys()) == {
             "uuid",
@@ -182,6 +195,8 @@ class TestCandidatureConversationsView:
             role=AgentOrganismeRole.SUPERVISEUR, utilisateur=test_user
         )
         recrutement, candidature = _candidature_for(organisme)
+        for _ in range(TAILLE_PAGE_LIMITEE + 1):
+            _conversation_with_messages(candidature, "Bonjour")
 
         response = authenticated_client.get(
             _url(organisme.id, recrutement.pk, candidature.pk),
@@ -192,6 +207,43 @@ class TestCandidatureConversationsView:
         body = response.json()
         assert len(body["results"]) == TAILLE_PAGE_LIMITEE
         assert body["next"] is not None
+
+    def test_lists_only_the_conversations_of_the_candidature(
+        self, authenticated_client, test_user
+    ):
+        _, organisme = create_organisme_with_agent(
+            role=AgentOrganismeRole.SUPERVISEUR, utilisateur=test_user
+        )
+        recrutement, candidature = _candidature_for(organisme)
+        _, autre_candidature = _candidature_for(organisme)
+        conversation = _conversation_with_messages(candidature, "Bonjour")
+        _conversation_with_messages(autre_candidature, "Bonjour")
+
+        response = authenticated_client.get(
+            _url(organisme.id, recrutement.pk, candidature.pk)
+        )
+
+        assert [r["uuid"] for r in response.json()["results"]] == [str(conversation.pk)]
+
+    def test_exposes_first_and_last_message_authors(
+        self, authenticated_client, test_user
+    ):
+        _, organisme = create_organisme_with_agent(
+            role=AgentOrganismeRole.SUPERVISEUR, utilisateur=test_user
+        )
+        recrutement, candidature = _candidature_for(organisme)
+        conversation = ConversationDjangoFactory(candidature=candidature)
+        premier = MessageDjangoFactory(conversation=conversation, contenu="Premier")
+        dernier = MessageDjangoFactory(conversation=conversation, contenu="Dernier")
+
+        response = authenticated_client.get(
+            _url(organisme.id, recrutement.pk, candidature.pk)
+        )
+
+        (result,) = response.json()["results"]
+        assert result["creator"] == premier.auteur.get_full_name()
+        assert result["last_message_author"] == dernier.auteur.get_full_name()
+        assert result["last_message_content"] == "Dernier"
 
     def test_default_page_size_is_20(self):
         assert ConversationPagination.page_size == TAILLE_PAGE_PAR_DEFAUT

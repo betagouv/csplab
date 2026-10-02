@@ -226,7 +226,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Liste des conversations d'une candidature (stub) */
+        /** Liste des conversations d'une candidature */
         get: operations["recruteur_organismes_recrutements_candidatures_conversations_list"];
         put?: never;
         /** Créer une conversation sur une candidature (stub) */
@@ -621,11 +621,11 @@ export interface components {
             /** Format: uuid */
             uuid: string;
             objet: string;
-            creator: string;
+            readonly creator: string;
             /** Format: date-time */
-            created_at: string;
-            last_message_content: string;
-            last_message_author: string;
+            readonly created_at: string;
+            readonly last_message_content: string;
+            readonly last_message_author: string;
             /** Format: date-time */
             last_message_created_at: string;
         };
