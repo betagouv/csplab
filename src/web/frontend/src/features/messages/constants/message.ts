@@ -1,0 +1,1 @@
+export const MESSAGE_CONTENT_MAX_LENGTH = 10_000

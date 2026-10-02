@@ -4,7 +4,7 @@ import { defineComponent, h, ref } from 'vue'
 import { createMemoryHistory, createRouter, RouterView } from 'vue-router'
 import { useUnsavedChanges, useUnsavedChangesGuard } from './useUnsavedChanges'
 
-async function mountGuard() {
+async function mountGuard(options: Parameters<typeof useUnsavedChanges>[2] = {}) {
   const text = ref('')
   let guard!: ReturnType<typeof useUnsavedChangesGuard>
 
@@ -12,7 +12,7 @@ async function mountGuard() {
     setup() {
       useUnsavedChanges(() => text.value !== '', () => {
         text.value = ''
-      })
+      }, options)
       return () => h('textarea')
     },
   })
@@ -86,6 +86,19 @@ describe('useUnsavedChanges', () => {
     expect(router.currentRoute.value.path).toBe('/fiche/1/notes')
     expect(guard.isConfirming.value).toBe(false)
     expect(text.value).toBe('Brouillon')
+  })
+
+  it('asks to confirm when the input says the navigation leaves it, even if the guard ignores it', async () => {
+    const { router, text, guard } = await mountGuard({ isLeftBy: (to, from) => to.path !== from.path })
+    text.value = 'Brouillon'
+
+    const navigation = router.push('/fiche/1/notes')
+    await vi.waitFor(() => expect(guard.isConfirming.value).toBe(true))
+    guard.leave()
+    await navigation
+
+    expect(router.currentRoute.value.path).toBe('/fiche/1/notes')
+    expect(text.value).toBe('')
   })
 
   it('asks the browser to warn before unloading the page while an input is typed', async () => {

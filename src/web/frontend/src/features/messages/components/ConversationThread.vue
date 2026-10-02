@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { CandidatureParams } from '@/features/candidatures/types'
+import { useTemplateRef, watch } from 'vue'
 import CspAsyncSection from '@/components/base/CspAsyncSection/CspAsyncSection.vue'
 import CspSkeleton from '@/components/base/CspSkeleton/CspSkeleton.vue'
 import { useMinimumPending } from '@/composables/async/useMinimumPending'
@@ -20,11 +21,24 @@ const { messages, pending, error } = useConversationMessages(() => ({
 }))
 
 const showSkeleton = useMinimumPending(pending)
+
+const messagesSection = useTemplateRef('messagesSection')
+
+watch(
+  () => [props.conversationUuid, messages.value.length, showSkeleton.value],
+  () => {
+    const container = messagesSection.value?.$el as HTMLElement | undefined
+    if (container)
+      container.scrollTop = container.scrollHeight
+  },
+  { flush: 'post' },
+)
 </script>
 
 <template>
   <div class="conversation-thread">
     <CspAsyncSection
+      ref="messagesSection"
       :pending="showSkeleton"
       :error="error"
       fill
@@ -58,7 +72,11 @@ const showSkeleton = useMinimumPending(pending)
       </ol>
     </CspAsyncSection>
 
-    <MessageComposer />
+    <MessageComposer
+      :key="conversationUuid"
+      :candidature="candidature"
+      :conversation-uuid="conversationUuid"
+    />
   </div>
 </template>
 
