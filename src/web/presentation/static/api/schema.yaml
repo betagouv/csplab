@@ -984,16 +984,6 @@ paths:
         description: 'Filtre géographique : latitude du point en degrés décimaux (à
           fournir avec `longitude` et `radius`).'
       - in: query
-        name: locations
-        schema:
-          type: string
-          minLength: 1
-        description: Filtre géographique par identifiants du référentiel legacy du
-          client, séparés par une virgule (ex. `?locations=27,208,330`). Le type (pays,
-          région, département ou zone géographique) de chaque identifiant est détecté
-          automatiquement et vient compléter les filtres `country`, `region`, `department`
-          et `area`.
-      - in: query
         name: longitude
         schema:
           type: number
