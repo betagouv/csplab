@@ -50,6 +50,11 @@ RECRUTEMENT_ETAPES_INIT_URL = reverse(
     kwargs={"organisme_uuid": ORGANISME_UUID, "recrutement_uuid": RECRUTEMENT_UUID},
 )
 
+RECRUTEMENT_KANBAN_URL = reverse(
+    "recruteur:organisme_recrutement_kanban",
+    kwargs={"organisme_uuid": ORGANISME_UUID, "recrutement_uuid": RECRUTEMENT_UUID},
+)
+
 ETAPE_UUID = "aaaaaaaa-0002-0002-0002-000000000002"
 
 
@@ -383,7 +388,31 @@ class TestRecrutementEtapeViewDbVerified:
         recrutement_model = RecrutementModel.objects.get(
             offre_id=UUID(RECRUTEMENT_UUID)
         )
-        assert [e["nom"] for e in recrutement_model.ordre_etapes] == [
+        etapes_par_id = {str(e.id): e.nom for e in recrutement_model.etapes.all()}
+        assert [etapes_par_id[i] for i in recrutement_model.ordre_etapes] == [
+            e["nom"] for e in payload
+        ]
+
+    def test_kanban_reflects_the_patched_etapes(self, authenticated_client, test_user):
+        _, organisme = create_organisme_with_agent(
+            role=AgentOrganismeRole.SUPERVISEUR,
+            utilisateur=test_user,
+            id=UUID(ORGANISME_UUID),
+        )
+        offer = OfferDjangoFactory(id=UUID(RECRUTEMENT_UUID))
+        RecrutementDjangoFactory(organisme=organisme, offre=offer)
+        payload = [
+            {"nom": "Réception", "categorie": "ENTREE"},
+            {"nom": "Entretien", "categorie": "EN_COURS"},
+            {"nom": "Refus", "categorie": "REFUS"},
+            {"nom": "Recrutement", "categorie": "ACCEPTE"},
+        ]
+        authenticated_client.patch(RECRUTEMENT_ETAPES_URL, data=payload, format="json")
+
+        response = authenticated_client.get(RECRUTEMENT_KANBAN_URL)
+
+        assert response.status_code == status.HTTP_200_OK
+        assert [e["nom"] for e in response.json()["etapes"]] == [
             e["nom"] for e in payload
         ]
 

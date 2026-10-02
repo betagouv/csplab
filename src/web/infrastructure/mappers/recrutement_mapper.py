@@ -41,12 +41,5 @@ class RecrutementMapper(IFromDomainMapper, IToDomainMapper):
             derniere_activite_le=model.updated_at,
         )
 
-    def from_domain(self, etapes: tuple[EtapeRecrutement, ...]) -> list[dict]:
-        return [
-            {
-                "entity_id": str(etape.entity_id),
-                "categorie": etape.categorie.value,
-                "nom": etape.nom,
-            }
-            for etape in etapes
-        ]
+    def from_domain(self, etapes: tuple[EtapeRecrutement, ...]) -> list[str]:
+        return [str(etape.entity_id) for etape in etapes]
