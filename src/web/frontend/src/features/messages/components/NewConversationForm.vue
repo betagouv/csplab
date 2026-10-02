@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { CandidatureParams } from '@/features/candidatures/types'
-import { computed, ref, useId, useTemplateRef, watch } from 'vue'
+import { computed, onMounted, ref, useId, useTemplateRef, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ValidationError } from '@/api/errors'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
@@ -28,6 +28,9 @@ const content = ref('')
 const documents = ref<File[]>([])
 const attachments = useTemplateRef('attachments')
 const titleId = useId()
+const objetId = useId()
+
+onMounted(() => document.getElementById(objetId)?.focus())
 
 const objetErrors = ref<string[]>([])
 const contentErrors = ref<string[]>([])
@@ -123,6 +126,7 @@ async function send(): Promise<void> {
       @submit.prevent="send"
     >
       <CspInput
+        :id="objetId"
         v-model="objet"
         label="Sujet de la conversation"
         hint="L'objet ne pourra plus être modifié après la création de la conversation."
