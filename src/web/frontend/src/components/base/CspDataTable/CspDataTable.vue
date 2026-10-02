@@ -9,6 +9,7 @@ import type {
   CspColumnDef,
   CspTableAlign,
   CspTableCellValue,
+  CspTableSize,
 } from './table'
 import {
   createColumnHelper,
@@ -31,7 +32,7 @@ const props = withDefaults(defineProps<{
   activationMode?: 'none' | 'row' | 'cell'
   selectedIds?: Set<string>
   selectionLabel?: (row: TRow) => string
-  size?: 'sm' | 'md' | 'lg'
+  size?: CspTableSize
   pageSize?: number
   manual?: boolean
   rowCount?: number
@@ -416,6 +417,7 @@ function onActivate(id: string): void {
 
 <style scoped lang="scss">
 @use '@/styles/breakpoints' as bp;
+@use './table-sizes' as table;
 
 .csp-table-wrapper {
   width: 100%;
@@ -423,26 +425,7 @@ function onActivate(id: string): void {
   background: var(--background-default-grey);
   overflow: hidden;
 
-  &.csp-table-wrapper--sm {
-    --csp-table-row-height: 2rem;
-    --csp-table-header-padding: 0.5rem 0.75rem;
-    --csp-table-footer-padding: 0.5rem 0.25rem 0.5rem 0.75rem;
-    --csp-table-cell-padding: 0.5rem 0.75rem;
-  }
-
-  &.csp-table-wrapper--md {
-    --csp-table-row-height: 3.25rem;
-    --csp-table-header-padding: 0.75rem 0.75rem;
-    --csp-table-footer-padding: 0.75rem 0.25rem 0.5rem 0.75rem;
-    --csp-table-cell-padding: 0.75rem 0.75rem;
-  }
-
-  &.csp-table-wrapper--lg {
-    --csp-table-row-height: 4rem;
-    --csp-table-header-padding: 0.75rem 1rem;
-    --csp-table-footer-padding: 0.75rem 0.25rem 0.75rem 1rem;
-    --csp-table-cell-padding: 0.75rem 1rem;
-  }
+  @include table.sizes;
 }
 
 .csp-table__scroll {
@@ -583,7 +566,7 @@ function onActivate(id: string): void {
 }
 
 .csp-table__empty {
-  padding: 2rem 0.75rem;
+  padding: var(--csp-space-8) var(--csp-space-3);
   text-align: center;
   color: var(--text-mention-grey);
 }
@@ -597,7 +580,7 @@ function onActivate(id: string): void {
 .csp-table__footer-default {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: var(--csp-space-3);
 
   @include bp.from(bp.$md) {
     flex-direction: row;

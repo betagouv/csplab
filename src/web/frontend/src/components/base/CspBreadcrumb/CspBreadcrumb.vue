@@ -64,7 +64,7 @@ withDefaults(defineProps<CspBreadcrumbProps>(), {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 0.25rem;
+  gap: var(--csp-space-1);
   margin: 0;
   padding: 0;
   list-style: none;

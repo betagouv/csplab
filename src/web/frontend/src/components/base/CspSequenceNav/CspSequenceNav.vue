@@ -61,15 +61,21 @@ const counter = computed(() =>
 </template>
 
 <style scoped lang="scss">
+@use '@/styles/breakpoints' as bp;
+
 .csp-sequence-nav {
+  container-type: inline-size;
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: var(--csp-space-4);
+  gap: var(--csp-space-3) var(--csp-space-4);
   width: 100%;
 }
 
 .csp-sequence-nav__status {
+  flex: 1 1 0;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -77,6 +83,11 @@ const counter = computed(() =>
   line-height: 1.4;
   color: var(--text-default-grey);
   text-align: center;
+
+  @container (width < #{bp.$sm}) {
+    flex-basis: 100%;
+    order: -1;
+  }
 }
 
 .csp-sequence-nav__counter {

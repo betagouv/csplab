@@ -107,6 +107,7 @@ const hasFooter = computed(() => Boolean(slots.footer))
             as-child
           >
             <CspButton
+              class="csp-dialog__close"
               variant="tertiary-no-outline"
               size="sm"
               icon="ri:close-line"
@@ -178,9 +179,14 @@ const hasFooter = computed(() => Boolean(slots.footer))
 
 .csp-dialog__header {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   gap: var(--csp-space-4);
+}
+
+.csp-dialog__close {
+  margin-block: calc(-1 * var(--csp-space-1));
+  margin-inline-end: calc(-1 * var(--csp-btn-icon-inset));
 }
 
 .csp-dialog__heading {

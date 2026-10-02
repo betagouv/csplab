@@ -29,13 +29,19 @@ defineProps<{
 
 <style scoped lang="scss">
 .csp-tabs__list {
+  --csp-tabs-trigger-padding-inline: var(--csp-space-4);
+
   display: flex;
   gap: var(--csp-space-1, 0.25rem);
+  // Aligns the trigger labels with content inset by --csp-tabs-content-padding-inline
+  padding-inline: max(0px, var(--csp-tabs-content-padding-inline, 0px) - var(--csp-tabs-trigger-padding-inline));
   overflow-x: auto;
   scrollbar-width: thin;
+  border-bottom: 1px solid var(--border-default-grey);
 
   &[data-orientation='vertical'] {
     flex-direction: column;
+    padding-inline: 0;
     border-bottom: none;
     border-right: 1px solid var(--border-default-grey);
   }
@@ -48,7 +54,7 @@ defineProps<{
   justify-content: center;
   white-space: nowrap;
   gap: 0.5rem;
-  padding: 0.75rem 1rem;
+  padding: var(--csp-space-3) var(--csp-tabs-trigger-padding-inline);
   font-size: 0.875rem;
   font-weight: 500;
   line-height: 1.25;

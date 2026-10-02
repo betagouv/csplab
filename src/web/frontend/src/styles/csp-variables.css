@@ -70,6 +70,28 @@
   /* Sidebar */
   --csp-sidebar-padding: var(--csp-space-1);
 
+  /* Menus: dropdown menu, select and combobox lists */
+  --csp-menu-padding: var(--csp-space-1);
+  --csp-menu-item-padding: var(--csp-space-2) var(--csp-space-3);
+  --csp-menu-item-gap: var(--csp-space-2);
+
+  /* Form fields */
+  --csp-field-label-gap: var(--csp-space-2);
+  --csp-field-hint-gap: var(--csp-space-1);
+  --csp-field-legend-gap: var(--csp-space-4);
+  --csp-field-messages-gap: var(--csp-space-4);
+  --csp-field-error-bar-width: 2px;
+  --csp-field-error-padding-start: var(--csp-space-3);
+
+  /* Kanban board and columns, mirrored by the kanban skeleton */
+  --csp-kanban-gap: var(--csp-space-3);
+  --csp-kanban-padding-bottom: var(--csp-space-2);
+  --csp-kanban-column-width: 18.75rem;
+  --csp-kanban-column-padding: var(--csp-space-3);
+  --csp-kanban-column-gap: var(--csp-space-3);
+  --csp-kanban-column-accent-width: 3px;
+  --csp-kanban-column-header-padding-inline: var(--csp-space-1);
+
   @variant xxl {
     --csp-page-container-padding-inline: clamp(1.5rem, 1rem + 2.5vw, 4rem);
     --csp-page-container-wide-width: 120rem;

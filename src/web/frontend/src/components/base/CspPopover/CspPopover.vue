@@ -56,7 +56,7 @@ const hasTrigger = Boolean(slots.trigger)
   box-shadow:
     inset 0 0 0 1px var(--border-default-grey),
     var(--csp-shadow-lg);
-  padding: 1rem;
+  padding: var(--csp-space-4);
   z-index: var(--csp-z-dropdown);
   outline: none;
 

@@ -102,14 +102,14 @@ function updateModel(val: unknown): void {
   font-size: 0.875rem;
   font-weight: 600;
   color: var(--text-default-grey);
-  margin-bottom: var(--csp-space-3, 0.75rem);
+  margin-bottom: var(--csp-field-legend-gap);
   padding: 0;
 }
 
 .csp-radio-group__items {
   display: flex;
   flex-direction: column;
-  gap: var(--csp-space-2, 0.5rem);
+  gap: var(--csp-space-2);
 }
 
 .csp-radio-group--disabled {
@@ -119,12 +119,16 @@ function updateModel(val: unknown): void {
 }
 
 .csp-radio-group--error {
-  border-left: 4px solid var(--border-plain-error);
-  padding-left: 1rem;
+  border-inline-start: var(--csp-field-error-bar-width) solid var(--border-plain-error);
+  padding-inline-start: var(--csp-field-error-padding-start);
 
   .csp-radio-group__legend {
     color: var(--text-default-error);
   }
+}
+
+.csp-radio-group__messages:not(:empty) {
+  margin-top: var(--csp-field-messages-gap);
 }
 
 .csp-radio-group__error {
@@ -134,6 +138,5 @@ function updateModel(val: unknown): void {
   color: var(--text-default-error);
   font-size: 0.75rem;
   margin: 0;
-  margin-top: 0.5rem;
 }
 </style>

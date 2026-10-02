@@ -127,7 +127,7 @@ function handleUpdateOpen(open: boolean): void {
       <CspSkeleton
         v-if="showSkeleton"
         width="12rem"
-        height="1.375rem"
+        variant="text"
       />
       <template v-else>
         {{ title }}
@@ -141,7 +141,7 @@ function handleUpdateOpen(open: boolean): void {
       <CspSkeleton
         v-if="showSkeleton"
         width="9rem"
-        height="1.25rem"
+        variant="text"
       />
       <template v-else>
         {{ description }}
@@ -292,6 +292,9 @@ function handleUpdateOpen(open: boolean): void {
 /* unscoped: the drawer content is portaled */
 .csp-drawer.candidature-panel {
   --base-drawer-width: 100vw;
+  --csp-drawer-padding-inline: var(--csp-page-container-padding-inline);
+  --csp-tabs-content-padding-inline: var(--csp-drawer-padding-inline);
+  --candidature-panel-aside-padding-start: var(--csp-space-6);
 
   @include bp.from(bp.$lg) {
     --base-drawer-width: calc(100vw - 15rem);
@@ -301,10 +304,6 @@ function handleUpdateOpen(open: boolean): void {
     --base-drawer-width: clamp(42rem, 100vw - 36rem, 90rem);
   }
 
-  .csp-drawer__header {
-    border-bottom: 0;
-  }
-
   .csp-drawer__body {
     display: flex;
     flex-direction: column;
@@ -312,24 +311,15 @@ function handleUpdateOpen(open: boolean): void {
     overflow: hidden;
   }
 
-  .candidature-panel__tabs .csp-tabs__list {
-    padding-inline: calc(var(--csp-page-container-padding-inline) - 1rem);
-    border-bottom: 1px solid var(--border-default-grey);
-  }
-
   .csp-drawer__footer {
-    padding: var(--csp-space-3) var(--csp-page-container-padding-inline);
-  }
-
-  .candidature-panel__tabs .csp-tabs__trigger {
-    white-space: nowrap;
+    padding-block: var(--csp-space-3);
   }
 }
 </style>
 
 <style scoped lang="scss">
 .candidature-panel__exception {
-  padding: var(--csp-page-content-padding-block) var(--csp-page-container-padding-inline);
+  padding: var(--csp-page-content-padding-block) var(--csp-drawer-padding-inline);
 }
 
 .candidature-panel__body {
@@ -374,14 +364,15 @@ function handleUpdateOpen(open: boolean): void {
   flex: 1;
   flex-direction: column;
   min-height: 0;
-  padding: var(--csp-page-content-padding-block) var(--csp-page-container-padding-inline);
+  padding: var(--csp-page-content-padding-block) var(--csp-drawer-padding-inline);
 }
 
 .candidature-panel__aside {
   display: flex;
   flex-direction: column;
   gap: var(--csp-space-5);
-  padding: var(--csp-page-content-padding-block) var(--csp-page-container-padding-inline);
+  padding-block: var(--csp-page-content-padding-block);
+  padding-inline: var(--candidature-panel-aside-padding-start) var(--csp-drawer-padding-inline);
   border-left: 1px solid var(--border-default-grey);
 }
 
@@ -391,6 +382,7 @@ function handleUpdateOpen(open: boolean): void {
   }
 
   .candidature-panel__aside {
+    padding-inline: var(--csp-drawer-padding-inline);
     border-top: 1px solid var(--border-default-grey);
     border-left: 0;
   }

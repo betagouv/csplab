@@ -125,7 +125,7 @@ function handleSubmit(): void {
 .assignation-responsable-drawer {
   display: flex;
   flex-direction: column;
-  gap: var(--csp-space-5);
+  gap: var(--csp-drawer-body-gap);
 }
 
 .assignation-responsable-drawer__count {

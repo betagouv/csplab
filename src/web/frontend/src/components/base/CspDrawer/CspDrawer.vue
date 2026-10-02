@@ -130,6 +130,7 @@ const hasFooter = computed(() => Boolean(slots.footer))
             as-child
           >
             <CspButton
+              class="csp-drawer__close"
               variant="tertiary-no-outline"
               size="sm"
               icon="ri:close-line"
@@ -164,6 +165,8 @@ const hasFooter = computed(() => Boolean(slots.footer))
 }
 
 .csp-drawer {
+  --csp-drawer-body-gap: var(--csp-space-5);
+
   position: fixed;
   top: 0;
   bottom: 0;
@@ -232,10 +235,11 @@ const hasFooter = computed(() => Boolean(slots.footer))
 
 .csp-drawer__header {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   gap: var(--csp-space-4);
-  padding: var(--csp-space-6);
+  padding-block: var(--csp-space-6);
+  padding-inline: var(--csp-drawer-padding-inline, var(--csp-space-6));
   border-bottom: 1px solid var(--border-default-grey);
 }
 
@@ -245,12 +249,21 @@ const hasFooter = computed(() => Boolean(slots.footer))
   margin-block: calc(-1 * var(--csp-space-1));
 }
 
+.csp-drawer__start :slotted(.csp-btn--icon-only) {
+  margin-inline-start: calc(-1 * var(--csp-btn-icon-inset));
+}
+
 .csp-drawer__end {
   display: flex;
   flex-shrink: 0;
   align-items: center;
   gap: var(--csp-space-2);
   margin-block: calc(-1 * var(--csp-space-1));
+}
+
+.csp-drawer__close {
+  margin-block: calc(-1 * var(--csp-space-1));
+  margin-inline-end: calc(-1 * var(--csp-btn-icon-inset));
 }
 
 .csp-drawer__heading {
@@ -277,13 +290,15 @@ const hasFooter = computed(() => Boolean(slots.footer))
 .csp-drawer__body {
   flex: 1 1 auto;
   overflow: auto;
-  padding: var(--csp-space-6);
+  padding-block: var(--csp-space-6);
+  padding-inline: var(--csp-drawer-padding-inline, var(--csp-space-6));
   font-size: 0.875rem;
   line-height: 1.5;
 }
 
 .csp-drawer__footer {
-  padding: var(--csp-space-6);
+  padding-block: var(--csp-space-6);
+  padding-inline: var(--csp-drawer-padding-inline, var(--csp-space-6));
   border-top: 1px solid var(--border-default-grey);
   display: flex;
   flex-wrap: wrap;

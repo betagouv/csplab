@@ -50,9 +50,9 @@ useKanbanBoardAutoScroll({ element: boardRef })
 .candidatures-kanban-board {
   display: flex;
   flex: 1;
-  gap: var(--csp-space-3);
+  gap: var(--csp-kanban-gap);
   overflow-x: auto;
-  padding-bottom: var(--csp-space-2);
+  padding-bottom: var(--csp-kanban-padding-bottom);
   min-height: 0;
 }
 </style>

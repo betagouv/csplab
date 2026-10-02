@@ -108,15 +108,15 @@ function handleCheckboxChange(): void {
   position: relative;
   display: flex;
   flex-direction: column;
-  flex: 0 0 18.75rem;
-  min-width: 18.75rem;
-  gap: var(--csp-space-3);
+  flex: 0 0 var(--csp-kanban-column-width);
+  min-width: var(--csp-kanban-column-width);
+  gap: var(--csp-kanban-column-gap);
   min-height: 12rem;
   max-height: 100%;
-  padding: var(--csp-space-3);
+  padding: var(--csp-kanban-column-padding);
   background-color: var(--background-alt-grey);
   box-shadow: inset 0 0 0 1px var(--border-default-grey);
-  border-top: 3px solid var(--border-default-grey);
+  border-top: var(--csp-kanban-column-accent-width) solid var(--border-default-grey);
 }
 
 .candidature-kanban-column--en-cours {
@@ -136,7 +136,7 @@ function handleCheckboxChange(): void {
 }
 
 .candidature-kanban-column__header {
-  padding: 0 var(--csp-space-1);
+  padding: 0 var(--csp-kanban-column-header-padding-inline);
 }
 
 .candidature-kanban-column__title {
@@ -171,7 +171,7 @@ function handleCheckboxChange(): void {
   display: flex;
   flex: 1;
   flex-direction: column;
-  gap: var(--csp-space-3);
+  gap: var(--csp-kanban-column-gap);
   margin: 0;
   padding: 0;
   list-style: none;

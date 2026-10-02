@@ -9,11 +9,11 @@ const meta = {
   tags: ['autodocs'],
   parameters: {
     controls: {
-      include: ['rows', 'columns', 'withHeader', 'withFooter'],
+      include: ['rows', 'columns', 'withHeader', 'withFooter', 'size'],
     },
     docs: {
       description: {
-        component: 'Skeleton de tableau : réserve l\'encombrement d\'un CspDataTable pendant le chargement. Dimensionner `rows`/`columns` sur le tableau attendu (ex. la taille de page).',
+        component: 'Skeleton de tableau : réserve l\'encombrement d\'un CspDataTable pendant le chargement. Dimensionner `rows`/`columns` sur le tableau attendu (ex. la taille de page) et passer la même `size` que le CspDataTable.',
       },
     },
   },
@@ -53,6 +53,12 @@ const meta = {
           summary: 'true',
         },
       },
+    },
+    size: {
+      control: { type: 'radio' },
+      options: ['sm', 'md', 'lg'] satisfies NonNullable<CspSkeletonTableProps['size']>[],
+      description: 'Densité du CspDataTable remplacé : hauteur de ligne et marges internes.',
+      table: { defaultValue: { summary: 'md' } },
     },
   },
 }

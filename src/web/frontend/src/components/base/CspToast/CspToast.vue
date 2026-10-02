@@ -261,7 +261,8 @@ const resolvedIcon = computed(() => iconByVariant[props.variant])
 
 .csp-toast__close {
   flex: 0 0 auto;
-  margin: calc(var(--csp-space-1) * -1) calc(var(--csp-space-2) * -1) 0 0;
+  margin-block-start: calc(-1 * var(--csp-space-1));
+  margin-inline-end: calc(-1 * var(--csp-btn-icon-inset));
 }
 
 .csp-toast--info {

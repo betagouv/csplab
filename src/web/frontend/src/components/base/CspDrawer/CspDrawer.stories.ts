@@ -16,7 +16,7 @@ const meta = {
     },
     docs: {
       description: {
-        component: 'Tiroir générique (panneau latéral)',
+        component: 'Tiroir générique (panneau latéral). Expose `--csp-drawer-body-gap`, l\'espacement vertical entre les blocs du contenu, que le conteneur placé dans le slot par défaut applique avec `gap`.',
       },
     },
   },

@@ -70,7 +70,7 @@ function isItemActive(item: NavItem): boolean {
       </aside>
       <div class="csp-app-shell__content">
         <header class="csp-app-shell__header">
-          <CspSidebarTrigger />
+          <CspSidebarTrigger class="csp-app-shell__trigger" />
         </header>
         <div class="csp-app-shell__main">
           <slot />
@@ -113,15 +113,19 @@ function isItemActive(item: NavItem): boolean {
 .csp-app-shell__header {
   display: none;
   align-items: center;
-  gap: 0.5rem;
   flex-shrink: 0;
-  padding: 0.75rem 1rem;
+  padding-block: var(--csp-space-3);
+  padding-inline: var(--csp-page-container-padding-inline);
   background: var(--background-default-grey);
   border-bottom: 1px solid var(--border-default-grey);
 
   @include bp.below(bp.$lg) {
     display: flex;
   }
+}
+
+.csp-app-shell__trigger {
+  margin-inline-start: calc(-1 * var(--csp-btn-icon-inset));
 }
 
 .csp-app-shell__main {

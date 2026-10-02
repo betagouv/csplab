@@ -2,12 +2,17 @@
 import type { Conversation } from '../types'
 import { RouterLink, useRoute } from 'vue-router'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
+import CspSkeleton from '@/components/base/CspSkeleton/CspSkeleton.vue'
 import { CANDIDATURE_CONVERSATION_ROUTE_NAME } from '@/features/candidatures/routes'
 import { formatElapsedTime } from '@/utils/date'
 
-defineProps<{
-  conversations: Conversation[]
-}>()
+withDefaults(defineProps<{
+  conversations?: Conversation[]
+  skeletonRows?: number
+}>(), {
+  conversations: () => [],
+  skeletonRows: 0,
+})
 
 const route = useRoute()
 
@@ -20,7 +25,37 @@ function conversationLocation(conversationUuid: string) {
 </script>
 
 <template>
-  <ul class="conversations-list">
+  <div
+    v-if="skeletonRows"
+    class="conversations-list"
+    aria-hidden="true"
+  >
+    <div
+      v-for="row in skeletonRows"
+      :key="row"
+      class="conversations-list__row"
+    >
+      <div class="conversations-list__item">
+        <CspSkeleton
+          width="60%"
+          variant="text"
+        />
+        <CspSkeleton
+          width="90%"
+          variant="text"
+        />
+        <CspSkeleton
+          width="40%"
+          variant="text"
+          class="conversations-list__meta"
+        />
+      </div>
+    </div>
+  </div>
+  <ul
+    v-else
+    class="conversations-list"
+  >
     <li
       v-for="conversation in conversations"
       :key="conversation.uuid"
@@ -78,7 +113,7 @@ function conversationLocation(conversationUuid: string) {
   text-decoration: none;
   background-image: none;
 
-  &:hover {
+  &:where([href]):hover {
     background-color: var(--background-alt-grey);
   }
 }

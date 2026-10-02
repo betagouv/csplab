@@ -3,6 +3,8 @@ import type { Component } from 'vue'
 
 export type CspTableAlign = 'start' | 'center' | 'end'
 
+export type CspTableSize = 'sm' | 'md' | 'lg'
+
 export type CspTableCellValue = string | number | null | undefined
 
 export interface CspColumnDef<TRow> {

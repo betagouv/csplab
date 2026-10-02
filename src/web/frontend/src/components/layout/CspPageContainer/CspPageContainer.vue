@@ -83,8 +83,7 @@ const activeTab = defineModel<T>('activeTab')
 }
 
 .csp-page-container__tabs {
-  padding-inline: calc(var(--csp-page-container-padding-inline) - 1rem);
-  border-bottom: 1px solid var(--border-default-grey);
+  --csp-tabs-content-padding-inline: var(--csp-page-container-padding-inline);
 }
 
 .csp-page-container__content {

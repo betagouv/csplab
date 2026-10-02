@@ -13,6 +13,8 @@ const props = defineProps<{
   candidature: CandidatureParams
 }>()
 
+const SKELETON_ROWS = 2
+
 const { notes, total, pending, error } = useCandidatureNotes(() => props.candidature)
 
 const showSkeleton = useMinimumPending(pending)
@@ -29,13 +31,38 @@ const title = computed(() => `${total.value} ${pluralize(total.value, 'note')}`)
       error-title="Les notes n'ont pas pu être chargées."
     >
       <template #skeleton>
-        <CspSkeleton
-          width="8rem"
-          height="1.25rem"
-          class="candidature-notes__skeleton"
-        />
-        <CspSkeleton height="4.5rem" />
-        <CspSkeleton height="4.5rem" />
+        <h3
+          class="candidature-notes__title"
+          aria-hidden="true"
+        >
+          <CspSkeleton
+            width="8rem"
+            variant="text"
+          />
+        </h3>
+        <ul
+          class="candidature-notes__list"
+          aria-hidden="true"
+        >
+          <li
+            v-for="row in SKELETON_ROWS"
+            :key="row"
+            class="candidature-notes__item"
+          >
+            <p class="candidature-notes__meta">
+              <CspSkeleton
+                width="10rem"
+                variant="text"
+              />
+            </p>
+            <p class="candidature-notes__message">
+              <CspSkeleton
+                width="80%"
+                variant="text"
+              />
+            </p>
+          </li>
+        </ul>
       </template>
 
       <CspEmptyState
@@ -68,10 +95,6 @@ const title = computed(() => `${total.value} ${pluralize(total.value, 'note')}`)
 </template>
 
 <style scoped lang="scss">
-.candidature-notes__skeleton {
-  margin-bottom: var(--csp-space-4);
-}
-
 .candidature-notes__title {
   margin: 0 0 var(--csp-space-4);
   font-size: 0.875rem;

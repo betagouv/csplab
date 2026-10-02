@@ -50,12 +50,32 @@ watch(
       class="conversation-thread__messages"
     >
       <template #skeleton>
-        <div class="conversation-thread__skeleton">
-          <CspSkeleton
+        <div
+          class="conversation-thread__list"
+          aria-hidden="true"
+        >
+          <div
             v-for="row in SKELETON_ROWS"
             :key="row"
-            height="6rem"
-          />
+          >
+            <div class="conversation-thread__meta">
+              <CspSkeleton
+                width="8rem"
+                variant="text"
+              />
+              <CspSkeleton
+                width="7rem"
+                variant="text"
+                class="conversation-thread__date"
+              />
+            </div>
+            <div class="conversation-thread__body">
+              <CspSkeleton
+                width="75%"
+                variant="text"
+              />
+            </div>
+          </div>
         </div>
       </template>
 
@@ -140,6 +160,10 @@ watch(
   justify-content: space-between;
   padding: var(--csp-space-2) var(--csp-space-4);
   background-color: var(--background-alt-grey);
+
+  :deep(.csp-skeleton) {
+    background: var(--background-contrast-grey);
+  }
 }
 
 .conversation-thread__author {
@@ -191,12 +215,5 @@ watch(
 .conversation-thread__document-open {
   flex-shrink: 0;
   margin-left: auto;
-}
-
-.conversation-thread__skeleton {
-  display: flex;
-  flex-direction: column;
-  gap: var(--csp-space-4);
-  padding: var(--csp-space-4);
 }
 </style>

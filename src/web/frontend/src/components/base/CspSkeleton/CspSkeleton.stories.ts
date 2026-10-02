@@ -9,11 +9,11 @@ const meta = {
   tags: ['autodocs'],
   parameters: {
     controls: {
-      include: ['width', 'height'],
+      include: ['width', 'height', 'variant'],
     },
     docs: {
       description: {
-        component: 'Bloc de chargement neutre qui réserve l\'espace du contenu à venir, pour éviter les décalages de mise en page (layout shift). Dimensionner au plus proche du contenu final.',
+        component: 'Bloc de chargement neutre qui réserve l\'espace du contenu à venir, pour éviter les décalages de mise en page (layout shift). Dimensionner au plus proche du contenu final. La variante `text` prend la hauteur de ligne de son conteneur et ignore `height`.',
       },
     },
   },
@@ -42,6 +42,12 @@ const meta = {
         },
       },
     },
+    variant: {
+      control: { type: 'radio' },
+      options: ['block', 'text'] satisfies NonNullable<CspSkeletonProps['variant']>[],
+      description: 'Bloc à la hauteur donnée, ou ligne de texte à la hauteur de ligne de son conteneur.',
+      table: { defaultValue: { summary: 'block' } },
+    },
   },
 }
 
@@ -54,6 +60,18 @@ export const Default: Story = {
     width: '16rem',
     height: '1rem',
   },
+}
+
+export const Text: Story = {
+  name: 'Ligne de texte',
+  render: () => ({
+    components: { CspSkeleton },
+    template: `
+      <p style="margin: 0; font-size: 1.125rem;">
+        <CspSkeleton width="16rem" variant="text" />
+      </p>
+    `,
+  }),
 }
 
 export const TitleAndMeta: Story = {

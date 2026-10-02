@@ -78,17 +78,18 @@ const selectedUuidsModel = computed({
     :show-close="false"
     @update:open="emit('update:open', $event)"
   >
+    <template #start>
+      <CspButton
+        variant="tertiary-no-outline"
+        size="sm"
+        icon="ri:arrow-left-line"
+        aria-label="Fermer"
+        @click="emit('update:open', false)"
+      />
+    </template>
+
     <template #title>
-      <div class="changer-etape-drawer__title-row">
-        <CspButton
-          variant="tertiary-no-outline"
-          size="sm"
-          icon="ri:arrow-left-line"
-          aria-label="Fermer"
-          @click="emit('update:open', false)"
-        />
-        <span>Changer d'étape</span>
-      </div>
+      Changer d'étape
     </template>
 
     <div
@@ -172,16 +173,10 @@ const selectedUuidsModel = computed({
 </template>
 
 <style scoped lang="scss">
-.changer-etape-drawer__title-row {
-  display: flex;
-  align-items: center;
-  gap: var(--csp-space-2);
-}
-
 .changer-etape-drawer__content {
   display: flex;
   flex-direction: column;
-  gap: var(--csp-space-6);
+  gap: var(--csp-drawer-body-gap);
 }
 
 .changer-etape-drawer__selection {

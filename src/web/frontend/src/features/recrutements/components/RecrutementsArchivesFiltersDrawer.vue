@@ -3,8 +3,7 @@ import type { Ref } from 'vue'
 import type { TypeContrat } from '../types'
 import type { CspSelectOption } from '@/components/base/CspSelect/CspSelect.vue'
 import { computed } from 'vue'
-import CspButton from '@/components/base/CspButton/CspButton.vue'
-import CspDrawer from '@/components/base/CspDrawer/CspDrawer.vue'
+import CspFiltersDrawer from '@/components/base/CspFiltersDrawer/CspFiltersDrawer.vue'
 import CspSelect from '@/components/base/CspSelect/CspSelect.vue'
 import { FILTER_ALL, TYPE_CONTRAT_OPTIONS, withAllOption } from '../utils/filters'
 
@@ -38,59 +37,21 @@ const typeContratOptions = withAllOption('Tous les types', TYPE_CONTRAT_OPTIONS)
 </script>
 
 <template>
-  <CspDrawer
+  <CspFiltersDrawer
     v-model:open="open"
-    title="Filtres"
-    side="right"
-    size="md"
+    :can-reset="canReset"
+    @apply="emit('apply')"
+    @reset="emit('reset')"
   >
-    <div class="filters-drawer">
-      <CspSelect
-        v-model="responsableModel"
-        label="Responsable"
-        :options="responsableOptions"
-      />
-      <CspSelect
-        v-model="typeContratModel"
-        label="Type de contrat"
-        :options="typeContratOptions"
-      />
-
-      <div class="filters-drawer__actions">
-        <CspButton
-          label="Appliquer les filtres"
-          variant="primary"
-          @click="emit('apply')"
-        />
-        <CspButton
-          label="Réinitialiser"
-          variant="tertiary"
-          icon="ri:refresh-line"
-          is-icon-left
-          :disabled="!canReset"
-          @click="emit('reset')"
-        />
-      </div>
-    </div>
-  </CspDrawer>
+    <CspSelect
+      v-model="responsableModel"
+      label="Responsable"
+      :options="responsableOptions"
+    />
+    <CspSelect
+      v-model="typeContratModel"
+      label="Type de contrat"
+      :options="typeContratOptions"
+    />
+  </CspFiltersDrawer>
 </template>
-
-<style scoped lang="scss">
-.filters-drawer {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-  padding: 1.5rem 0;
-}
-
-.filters-drawer__actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-
-  &:deep(button) {
-    /* @todo We should not do this but have a CspButtonGroup component instead */
-    flex: 1;
-  }
-}
-</style>

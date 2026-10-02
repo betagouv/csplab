@@ -117,7 +117,7 @@ defineExpose({ setEmailError })
 .attach-agent-drawer {
   display: flex;
   flex-direction: column;
-  gap: var(--csp-space-5);
+  gap: var(--csp-drawer-body-gap);
 }
 
 .attach-agent-drawer__actions {

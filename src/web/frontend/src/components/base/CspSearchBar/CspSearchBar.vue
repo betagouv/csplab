@@ -113,6 +113,10 @@ function submit() {
         v-if="error && errorMessage"
         class="csp-search-bar__error"
       >
+        <CspIcon
+          name="ri:error-warning-fill"
+          :size="14"
+        />
         {{ errorMessage }}
       </p>
     </div>
@@ -126,11 +130,20 @@ function submit() {
   min-width: 0;
 }
 
+.csp-search-bar--error {
+  border-inline-start: var(--csp-field-error-bar-width) solid var(--border-plain-error);
+  padding-inline-start: var(--csp-field-error-padding-start);
+
+  .csp-search-bar__label {
+    color: var(--text-default-error);
+  }
+}
+
 .csp-search-bar__label {
   display: flex;
   flex-direction: column;
-  gap: 0.125rem;
-  margin-bottom: 0.375rem;
+  gap: var(--csp-field-hint-gap);
+  margin-bottom: var(--csp-field-label-gap);
   font-size: 0.875rem;
   font-weight: 600;
   color: var(--text-default-grey);
@@ -221,12 +234,15 @@ function submit() {
 }
 
 .csp-search-bar__messages:not(:empty) {
-  margin-top: 0.375rem;
+  margin-top: var(--csp-field-messages-gap);
 }
 
 .csp-search-bar__error {
-  margin: 0;
-  font-size: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
   color: var(--text-default-error);
+  font-size: 0.75rem;
+  margin: 0;
 }
 </style>

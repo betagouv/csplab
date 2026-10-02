@@ -172,13 +172,13 @@ const announcedStatus = useDebounce(statusMessage, 1000)
 :global(.csp-combobox) {
   display: flex;
   flex-direction: column;
-  gap: 0.375rem;
+  gap: var(--csp-field-label-gap);
 }
 
 .csp-combobox__label {
   display: flex;
   flex-direction: column;
-  gap: 0.125rem;
+  gap: var(--csp-field-hint-gap);
   font-size: 0.875rem;
   font-weight: 600;
   color: var(--text-default-grey);
@@ -251,11 +251,11 @@ const announcedStatus = useDebounce(statusMessage, 1000)
 }
 
 .csp-combobox-content__viewport {
-  padding: 0.25rem;
+  padding: var(--csp-menu-padding);
 }
 
 .csp-combobox-content__empty {
-  padding: 0.75rem;
+  padding: var(--csp-space-3);
   font-size: 0.875rem;
   color: var(--text-mention-grey);
 }
@@ -264,7 +264,7 @@ const announcedStatus = useDebounce(statusMessage, 1000)
   display: flex;
   flex-direction: column;
   gap: 0.125rem;
-  padding: 0.5rem 0.75rem;
+  padding: var(--csp-menu-item-padding);
   font-size: 0.875rem;
   line-height: 1.25;
   border-radius: 0.125rem;
@@ -291,14 +291,14 @@ const announcedStatus = useDebounce(statusMessage, 1000)
 .csp-combobox-content__item--action {
   flex-direction: row;
   align-items: center;
-  gap: 0.5rem;
+  gap: var(--csp-menu-item-gap);
   color: var(--text-action-high-blue-france);
   font-weight: 500;
 }
 
 .csp-combobox-content__separator {
   height: 1px;
-  margin: 0.25rem 0;
+  margin-block: var(--csp-menu-padding);
   background-color: var(--border-default-grey);
 }
 </style>
