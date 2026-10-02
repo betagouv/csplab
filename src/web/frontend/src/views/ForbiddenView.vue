@@ -9,7 +9,7 @@ import CspPageHeader from '@/components/layout/CspPageHeader/CspPageHeader.vue'
   <CspPageContainer>
     <CspErrorState
       title="Vous n’avez pas accès à cette page."
-      description="Votre compte n’est pas autorisé sur cet organisme. Rapprochez-vous de son responsable si vous pensez que c’est une erreur."
+      description="Votre compte n’est pas autorisé sur cet organisme. Rapprochez-vous de son superviseur si vous pensez que c’est une erreur."
       icon="ri:lock-line"
     />
   </CspPageContainer>

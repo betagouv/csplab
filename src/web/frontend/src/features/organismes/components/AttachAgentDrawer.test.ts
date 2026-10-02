@@ -78,7 +78,7 @@ describe('attachAgentDrawer', () => {
     const user = setupUser()
     const { emitted } = await renderDrawer({ status: 'found', agent: AGENT_RECHERCHE })
 
-    await user.click(screen.getByRole('radio', { name: 'Responsable' }))
+    await user.click(screen.getByRole('radio', { name: 'Superviseur' }))
     await user.click(screen.getByRole('button', { name: 'Ajouter le membre' }))
 
     expect(emitted().add).toEqual([['superviseur']])

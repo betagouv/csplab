@@ -4,6 +4,7 @@ import { computed } from 'vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspDropdownMenu from '@/components/base/CspDropdownMenu/CspDropdownMenu.vue'
 import { useAgentActions } from '../../composables/useAgentActions'
+import { ROLE_LABELS } from '../../constants/organisme'
 import { formatAgentName } from '../../format'
 
 defineOptions({ inheritAttrs: false })
@@ -19,12 +20,12 @@ const sections = computed(() => [
     items: [
       props.row.role === 'superviseur'
         ? {
-            label: 'Passer membre',
+            label: `Passer ${ROLE_LABELS.agent.toLowerCase()}`,
             icon: 'ri:user-line',
             onSelect: () => roleChange.request({ agent: props.row, role: 'agent' }),
           }
         : {
-            label: 'Passer responsable',
+            label: `Passer ${ROLE_LABELS.superviseur.toLowerCase()}`,
             icon: 'ri:shield-user-line',
             onSelect: () => roleChange.request({ agent: props.row, role: 'superviseur' }),
           },
