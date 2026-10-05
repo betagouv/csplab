@@ -31,7 +31,7 @@ _VOLUME_EMAIL_DOMAIN = "@volume.candidat.fr"
 _CV_EVERY = 10
 _CREATED_WITHIN = timedelta(days=60)
 
-# 105 exceeds one API page (100); 13 fills three list pages of 6.
+# 105 exceeds one API page (100); 13 spans three list pages of 6.
 _VOLUMES_BY_OFFER_REFERENCE = {
     "REF-2025-001": {
         "Réception des candidatures": 120,

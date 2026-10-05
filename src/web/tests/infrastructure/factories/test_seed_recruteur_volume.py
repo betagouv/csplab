@@ -6,6 +6,7 @@ from infrastructure.factories.messagerie.conversation_django_factory import (
 from infrastructure.factories.recruteur.note_django_factory import NoteDjangoFactory
 from infrastructure.factories.seed_recruteur_datas import seed_recruteur_datas
 from infrastructure.factories.seed_recruteur_volume import (
+    _VOLUME_EMAIL_DOMAIN,
     _VOLUMES_BY_OFFER_REFERENCE,
     seed_recruteur_volume,
 )
@@ -17,10 +18,14 @@ NB_VOLUME_CANDIDATURES = sum(
 )
 
 
+def _volume_candidatures():
+    return CandidatureModel.objects.filter(
+        candidat__utilisateur__email__endswith=_VOLUME_EMAIL_DOMAIN
+    )
+
+
 def _annotate_one_volume_candidature():
-    candidature = CandidatureModel.objects.filter(
-        candidat__utilisateur__email__endswith="@volume.candidat.fr"
-    ).first()
+    candidature = _volume_candidatures().first()
     NoteDjangoFactory(candidature=candidature)
     ConversationDjangoFactory(candidature=candidature)
 
@@ -54,6 +59,7 @@ class TestSeedRecruteurVolume:
         assert not CandidatureModel.objects.filter(
             etape__nom="Refus", motif_refus__isnull=True
         ).exists()
+        assert _volume_candidatures().values("created_at").distinct().count() > 1
 
     def test_base_reseed_removes_volume_candidatures(self, db):
         seed_recruteur_datas()
