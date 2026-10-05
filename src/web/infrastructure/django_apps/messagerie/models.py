@@ -72,7 +72,9 @@ class MessageQuerySet(models.QuerySet):
             .prefetch_related(
                 Prefetch(
                     "pieces_jointes",
-                    queryset=MessageDocumentModel.objects.select_related("document"),
+                    queryset=MessageDocumentModel.objects.select_related(
+                        "document"
+                    ).order_by("created_at", "id"),
                 )
             )
             .order_by("created_at", "id")

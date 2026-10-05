@@ -1,9 +1,16 @@
+from datetime import timedelta
+
 import pytest
 from django.db import IntegrityError, transaction
 from django.db.models.deletion import ProtectedError
 from django.db.models.fetch_modes import FETCH_RAISE
+from django.utils import timezone
 
-from infrastructure.django_apps.messagerie.models import ConversationModel
+from infrastructure.django_apps.messagerie.models import (
+    ConversationModel,
+    MessageDocumentModel,
+    MessageModel,
+)
 from infrastructure.factories.identite.agent_django_factory import AgentDjangoFactory
 from infrastructure.factories.identite.utilisateur_django_factory import (
     UtilisateurDjangoFactory,
@@ -128,3 +135,18 @@ def test_by_candidature_orders_by_last_message_and_skips_empty_conversations(db)
     result = ConversationModel.objects.by_candidature(ancienne.candidature_id)
 
     assert list(result) == [recente, ancienne]
+
+
+def test_by_conversation_orders_attachments_by_creation(db):
+    message = MessageDjangoFactory()
+    attachments = MessageDocumentDjangoFactory.create_batch(3, message=message)
+    for age, attachment in enumerate(attachments):
+        MessageDocumentModel.objects.filter(pk=attachment.pk).update(
+            created_at=timezone.now() - timedelta(days=age)
+        )
+
+    (result,) = MessageModel.objects.by_conversation(message.conversation_id)
+
+    assert [pj.pk for pj in result.pieces_jointes.all()] == [
+        pj.pk for pj in reversed(attachments)
+    ]
