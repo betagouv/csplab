@@ -35,6 +35,9 @@ STORAGES = {
     },
 }
 
+# PBKDF2 costs ~100 ms per hash; every factory-built user pays it.
+PASSWORD_HASHERS = ["django.contrib.auth.hashers.MD5PasswordHasher"]
+
 HUEY["immediate"] = True  # noqa: F405, run synchronously
 
 # Override third-party API endpoints
