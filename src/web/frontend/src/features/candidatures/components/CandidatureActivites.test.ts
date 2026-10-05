@@ -5,6 +5,7 @@ import { HttpError } from '@/api/errors'
 import { CANDIDATURE_ALICE, CANDIDATURE_PARAMS, KANBAN_PATH } from '@/test/fixtures/candidatures'
 import { renderWithApp } from '@/test/render'
 import { getCandidatureActivites } from '../api'
+import { CANDIDATURE_PANEL_ROUTE_NAMES } from '../routes'
 import CandidatureActivites from './CandidatureActivites.vue'
 
 vi.mock('../api', async importOriginal => ({
@@ -24,7 +25,9 @@ function activite(overrides: Partial<Activite>): Activite {
 }
 
 function renderActivites() {
-  return renderWithApp(CandidatureActivites, { props: { candidature: CANDIDATURE_PARAMS } })
+  return renderWithApp(CandidatureActivites, {
+    props: { candidature: CANDIDATURE_PARAMS, historiqueRouteName: CANDIDATURE_PANEL_ROUTE_NAMES.kanban.tabs.historique },
+  })
 }
 
 describe('candidatureActivites', () => {

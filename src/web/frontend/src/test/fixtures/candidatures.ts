@@ -1,5 +1,5 @@
 import type { OrganismeRole } from '@/api/utilisateur'
-import type { Candidat, CandidatureDetail, CandidatureParams, MotifRefusOption, RecrutementDetailKanban } from '@/features/candidatures/types'
+import type { Candidat, CandidatureDetail, CandidatureParams, MotifRefusOption, PaginatedCandidatureListeList, RecrutementDetailKanban } from '@/features/candidatures/types'
 import type { RecrutementDetail } from '@/features/recrutements/types'
 
 export const ORGANISME_UUID = '00000000-0000-0000-0000-000000000000'
@@ -51,6 +51,14 @@ export const KANBAN: RecrutementDetailKanban = {
     { uuid: ETAPE_ENTRETIEN, nom: 'Entretien', categorie: 'EN_COURS', candidatures: [] },
     { uuid: ETAPE_REFUS, nom: 'Refus', categorie: 'REFUS', candidatures: [] },
   ],
+}
+
+export const CANDIDATURE_LISTE: PaginatedCandidatureListeList = {
+  count: 2,
+  next: null,
+  previous: null,
+  results: KANBAN.etapes.flatMap(({ uuid, nom, categorie, candidatures }) =>
+    candidatures.map(candidature => ({ ...candidature, etape: { uuid, nom, categorie } }))),
 }
 
 export function kanbanColumns(kanban: RecrutementDetailKanban | undefined): Record<string, string[]> {

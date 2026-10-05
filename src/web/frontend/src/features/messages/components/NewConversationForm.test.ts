@@ -2,7 +2,7 @@ import { screen } from '@testing-library/vue'
 import { describe, expect, it, vi } from 'vitest'
 import { HttpError } from '@/api/errors'
 import { useToast } from '@/composables/ui/useToast'
-import { CANDIDATURE_CONVERSATION_ROUTE_NAMES } from '@/features/candidatures/routes'
+import { CANDIDATURE_PANEL_ROUTE_NAMES } from '@/features/candidatures/routes'
 import { renderWithApp, setupUser } from '@/test/render'
 import { createConversation } from '../api'
 import NewConversationForm from './NewConversationForm.vue'
@@ -35,14 +35,14 @@ describe('newConversationForm', () => {
     const user = setupUser()
     const { router } = await renderWithApp(NewConversationForm, {
       route: NEW_CONVERSATION_PATH,
-      props: { candidature: CANDIDATURE, routes: CANDIDATURE_CONVERSATION_ROUTE_NAMES },
+      props: { candidature: CANDIDATURE, routes: CANDIDATURE_PANEL_ROUTE_NAMES.kanban.conversations },
     })
 
     await user.type(screen.getByRole('textbox', { name: /Sujet de la conversation/ }), 'Convocation')
     await user.type(screen.getByRole('textbox', { name: 'Écrivez votre message' }), 'Bonjour')
     await user.click(screen.getByRole('button', { name: 'Envoyer' }))
 
-    await vi.waitFor(() => expect(router.currentRoute.value.name).toBe(CANDIDATURE_CONVERSATION_ROUTE_NAMES.conversation))
+    await vi.waitFor(() => expect(router.currentRoute.value.name).toBe(CANDIDATURE_PANEL_ROUTE_NAMES.kanban.conversations.conversation))
     expect(router.currentRoute.value.params.conversationUuid).toBe(CONVERSATION_UUID)
   })
 
@@ -51,7 +51,7 @@ describe('newConversationForm', () => {
     const user = setupUser()
     const { router } = await renderWithApp(NewConversationForm, {
       route: NEW_CONVERSATION_PATH,
-      props: { candidature: CANDIDATURE, routes: CANDIDATURE_CONVERSATION_ROUTE_NAMES },
+      props: { candidature: CANDIDATURE, routes: CANDIDATURE_PANEL_ROUTE_NAMES.kanban.conversations },
     })
 
     await user.type(screen.getByRole('textbox', { name: /Sujet de la conversation/ }), 'Convocation')

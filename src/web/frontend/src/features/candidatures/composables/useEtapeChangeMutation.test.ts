@@ -1,12 +1,15 @@
-import type { CandidatureDetail, ChangerEtapeResultat, RecrutementDetailKanban } from '../types'
+import type { CandidatureDetail, ChangerEtapeResultat, PaginatedCandidatureListeList, RecrutementDetailKanban } from '../types'
 import { PiniaColada, useQuery } from '@pinia/colada'
 import { mount } from '@vue/test-utils'
 import { createPinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { defineComponent, h } from 'vue'
+import { getRecrutementDetail } from '@/features/recrutements/api'
+import { recrutementDetailQuery } from '@/features/recrutements/queries'
 import {
   CANDIDATURE_ALICE,
   CANDIDATURE_BRUNO,
+  CANDIDATURE_LISTE,
   CANDIDATURE_PARAMS,
   candidatureDetail,
   ETAPE_ENTRETIEN,
@@ -15,6 +18,7 @@ import {
   KANBAN,
   kanbanColumns,
   ORGANISME_UUID,
+  RECRUTEMENT_DETAIL,
   RECRUTEMENT_UUID,
 } from '@/test/fixtures/candidatures'
 import { getCandidatureActivites, getCandidatureDetail, getCandidatureListe, getRecrutementKanban, patchEtapeCandidatures } from '../api'
@@ -31,6 +35,14 @@ vi.mock('../api', () => ({
   patchEtapeCandidatures: vi.fn(),
 }))
 
+vi.mock('@/features/recrutements/api', () => ({
+  getRecrutementDetail: vi.fn(),
+}))
+
+function listeEtapes(liste: PaginatedCandidatureListeList | undefined) {
+  return Object.fromEntries((liste?.results ?? []).map(row => [row.uuid, row.etape.uuid]))
+}
+
 const RECRUTEMENT = { organismeUuid: ORGANISME_UUID, recrutementUuid: RECRUTEMENT_UUID }
 const CHANGE = { etapeCibleUuid: ETAPE_ENTRETIEN, candidatureUuids: [CANDIDATURE_ALICE] }
 
@@ -38,11 +50,14 @@ async function mountEtapeChangeMutation() {
   let context!: ReturnType<typeof useEtapeChangeMutation>
   let kanban!: ReturnType<typeof useQuery<RecrutementDetailKanban>>
   let detail!: ReturnType<typeof useQuery<CandidatureDetail>>
+  let liste!: ReturnType<typeof useQuery<PaginatedCandidatureListeList>>
+  let recrutementDetail!: ReturnType<typeof useQuery<unknown>>
 
   mount(defineComponent({
     setup() {
       kanban = useQuery(recrutementKanbanQuery(RECRUTEMENT))
-      useQuery(candidatureListeQuery(RECRUTEMENT))
+      liste = useQuery(candidatureListeQuery(RECRUTEMENT))
+      recrutementDetail = useQuery(recrutementDetailQuery(RECRUTEMENT))
       useCandidatureActivites(CANDIDATURE_PARAMS)
       detail = useQuery(candidatureDetailQuery(CANDIDATURE_PARAMS))
       context = useEtapeChangeMutation(RECRUTEMENT)
@@ -52,26 +67,28 @@ async function mountEtapeChangeMutation() {
     global: { plugins: [createPinia(), PiniaColada] },
   })
 
-  await vi.waitFor(() => expect(kanban.data.value && detail.data.value).toBeDefined())
-  return { context, kanban, detail }
+  await vi.waitFor(() => expect(kanban.data.value && detail.data.value && liste.data.value && recrutementDetail.data.value).toBeDefined())
+  return { context, kanban, detail, liste }
 }
 
 describe('useEtapeChangeMutation', () => {
   beforeEach(() => {
     vi.mocked(getRecrutementKanban).mockReset().mockResolvedValue(KANBAN)
-    vi.mocked(getCandidatureListe).mockReset().mockResolvedValue({ count: 0, next: null, previous: null, results: [] })
+    vi.mocked(getCandidatureListe).mockReset().mockResolvedValue(CANDIDATURE_LISTE)
+    vi.mocked(getRecrutementDetail).mockReset().mockResolvedValue(RECRUTEMENT_DETAIL)
     vi.mocked(getCandidatureActivites).mockReset().mockResolvedValue({ count: 0, next: null, previous: null, results: [] })
     vi.mocked(getCandidatureDetail).mockReset().mockImplementation(async ({ candidatureUuid }) => candidatureDetail(candidatureUuid))
     vi.mocked(patchEtapeCandidatures).mockReset().mockResolvedValue({ reussites: [CANDIDATURE_ALICE], echecs: [] })
   })
 
-  it('moves the candidatures in the kanban before the api answers', async () => {
+  it('moves the candidatures in the kanban and the list before the api answers', async () => {
     vi.mocked(patchEtapeCandidatures).mockImplementation(() => new Promise(() => {}))
-    const { context, kanban } = await mountEtapeChangeMutation()
+    const { context, kanban, liste } = await mountEtapeChangeMutation()
 
     void context.changeEtape({ etapeCibleUuid: ETAPE_ENTRETIEN, candidatureUuids: [CANDIDATURE_ALICE, CANDIDATURE_BRUNO] })
 
     expect(kanbanColumns(kanban.data.value)[ETAPE_ENTRETIEN]).toEqual([CANDIDATURE_ALICE, CANDIDATURE_BRUNO])
+    expect(listeEtapes(liste.data.value)).toEqual({ [CANDIDATURE_ALICE]: ETAPE_ENTRETIEN, [CANDIDATURE_BRUNO]: ETAPE_ENTRETIEN })
     await vi.waitFor(() => expect(patchEtapeCandidatures).toHaveBeenCalledWith(ORGANISME_UUID, RECRUTEMENT_UUID, {
       etapeCibleUuid: ETAPE_ENTRETIEN,
       candidatureUuids: [CANDIDATURE_ALICE, CANDIDATURE_BRUNO],
@@ -105,13 +122,15 @@ describe('useEtapeChangeMutation', () => {
     expect(getRecrutementKanban).toHaveBeenCalledTimes(1)
   })
 
-  it('restores the kanban when the api call fails', async () => {
+  it('restores the kanban and the list when the api call fails', async () => {
     vi.mocked(patchEtapeCandidatures).mockRejectedValue(new Error('boom'))
-    const { context, kanban } = await mountEtapeChangeMutation()
+    const { context, kanban, liste } = await mountEtapeChangeMutation()
+    vi.mocked(getCandidatureListe).mockImplementation(() => new Promise(() => {}))
 
     await expect(context.changeEtape(CHANGE)).resolves.toBe(false)
 
     expect(kanbanColumns(kanban.data.value)).toEqual(kanbanColumns(KANBAN))
+    expect(listeEtapes(liste.data.value)).toEqual(listeEtapes(CANDIDATURE_LISTE))
   })
 
   it('keeps a later move and reloads the kanban when an earlier move fails', async () => {

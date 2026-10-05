@@ -1,18 +1,14 @@
 import type { Ref } from 'vue'
 import type { CandidatureDetail, MotifRefus } from '../types'
-import type { useCandidatureNavigation } from './useCandidatureNavigation'
 import { useToast } from '@/composables/ui/useToast'
 import { formatCandidatNom } from '../utils/candidat'
 import { useCandidatures } from './useCandidatures'
 import { useEtapeChangeMutation } from './useEtapeChangeMutation'
 import { useRefusCandidature } from './useRefusCandidature'
 
-type CandidatureNavigation = Pick<ReturnType<typeof useCandidatureNavigation>, 'position' | 'navigateTo'>
-
 export function useEtapeChange(
   candidature: Ref<CandidatureDetail | undefined>,
-  { position, navigateTo }: CandidatureNavigation,
-  leavePanel: () => void,
+  leaveMovedCandidature: () => void,
 ) {
   const { recrutementParams, recrutementEtapes } = useCandidatures()
   const { changeEtape } = useEtapeChangeMutation(recrutementParams)
@@ -28,16 +24,8 @@ export function useEtapeChange(
       return
     }
 
-    const nextUuid = position.value?.nextUuid ?? null
-
+    leaveMovedCandidature()
     const saved = changeEtape({ etapeCibleUuid: targetEtapeUuid, candidatureUuids: [moved.uuid], motifRefus })
-
-    if (nextUuid) {
-      navigateTo(nextUuid)
-    }
-    else {
-      leavePanel()
-    }
 
     if (!await saved) {
       return

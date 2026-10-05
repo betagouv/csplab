@@ -18,7 +18,7 @@ import {
   getSortedRowModel,
   useVueTable,
 } from '@tanstack/vue-table'
-import { computed } from 'vue'
+import { computed, watch } from 'vue'
 import CspCheckbox from '@/components/base/CspCheckbox/CspCheckbox.vue'
 import CspIcon from '@/components/base/CspIcon/CspIcon.vue'
 import CspPagination from '@/components/base/CspPagination/CspPagination.vue'
@@ -31,6 +31,7 @@ const props = withDefaults(defineProps<{
   selectionMode?: 'none' | 'checkbox' | 'row'
   activationMode?: 'none' | 'row' | 'cell'
   selectedIds?: Set<string>
+  currentId?: string
   selectionLabel?: (row: TRow) => string
   size?: CspTableSize
   pageSize?: number
@@ -96,6 +97,7 @@ const table = useVueTable({
     },
   },
   getRowId: row => props.rowKey(row),
+  autoResetPageIndex: false,
   enableMultiSort: false,
   manualSorting: props.manual,
   manualPagination: props.manual,
@@ -118,6 +120,29 @@ const table = useVueTable({
 const headers = computed(() => table.getHeaderGroups()[0]?.headers ?? [])
 const displayRows = computed(() => table.getRowModel().rows)
 const visibleIds = computed(() => displayRows.value.map(row => row.id))
+
+const sortedRowIds = computed(() => table.getSortedRowModel().rows.map(row => row.id))
+
+function pageOf(id: string | undefined): number | null {
+  const index = id === undefined ? -1 : sortedRowIds.value.indexOf(id)
+  return index === -1 ? null : Math.floor(index / effectivePageSize.value) + 1
+}
+
+watch(sortedRowIds, (ids, previous) => {
+  if (props.manual || ids.join() === previous.join()) {
+    return
+  }
+  page.value = pageOf(props.currentId) ?? 1
+})
+
+watch(() => props.currentId, (id) => {
+  const current = pageOf(id)
+  if (current !== null) {
+    page.value = current
+  }
+}, { immediate: true })
+
+defineExpose({ sortedRowIds })
 const hasRowSelection = computed(() => props.selectionMode === 'row')
 const hasSelectionColumn = computed(() => props.selectionMode !== 'none')
 
@@ -338,8 +363,10 @@ function onActivate(id: string): void {
             :class="{
               'csp-table__row--selected': isRowSelected(row),
               'csp-table__row--selectable': hasRowSelection || hasRowActivation,
+              'csp-table__row--current': row.id === currentId,
             }"
             :aria-selected="hasSelectionColumn ? isRowSelected(row) : undefined"
+            :aria-current="row.id === currentId ? 'true' : undefined"
             @click="onRowClick(row)"
           >
             <td
@@ -526,6 +553,11 @@ function onActivate(id: string): void {
     outline: 2px solid var(--csp-focus-ring-color);
     outline-offset: -2px;
   }
+}
+
+.csp-table__row--current {
+  outline: 2px solid var(--border-plain-info);
+  outline-offset: -2px;
 }
 
 .csp-table__row--selected {
