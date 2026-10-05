@@ -244,7 +244,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Messages d'une conversation d'une candidature (stub) */
+        /** Messages d'une conversation d'une candidature */
         get: operations["recruteur_organismes_recrutements_candidatures_conversations_messages_list"];
         put?: never;
         /** Répondre dans une conversation d'une candidature (stub) */
@@ -637,12 +637,27 @@ export interface components {
             content_type: string;
             taille: number;
         };
+        ConversationDocumentStub: {
+            /** Format: uuid */
+            uuid: string;
+            nom: string;
+            type: components["schemas"]["TypeEnum"];
+            content_type: string;
+            taille: number;
+        };
         ConversationMessage: {
             content: string;
             author: string;
             /** Format: date-time */
-            created_at: string;
+            readonly created_at: string;
             documents: components["schemas"]["ConversationDocument"][];
+        };
+        ConversationMessageStub: {
+            content: string;
+            author: string;
+            /** Format: date-time */
+            created_at: string;
+            documents: components["schemas"]["ConversationDocumentStub"][];
         };
         CreateAgent: {
             /** Format: email */
@@ -3144,7 +3159,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ConversationMessage"];
+                    "application/json": components["schemas"]["ConversationMessageStub"];
                 };
             };
             400: {

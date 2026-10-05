@@ -1,12 +1,8 @@
 from uuid import uuid4
 
 import pytest
-from django.conf import settings
 
-from application.recruteur.services.read_conversation import (
-    _MESSAGES,
-    read_conversation,
-)
+from application.recruteur.services.read_conversation import read_conversation
 from domain.commons.errors.organisme_errors import OrganismeNexistePas
 from domain.identite.errors.organisme_permission_errors import AccesOrganismeRefuse
 from domain.recruteur.errors.recrutement_errors import (
@@ -25,6 +21,8 @@ from infrastructure.factories.identite.organisme_django_factory import (
 from infrastructure.factories.identite.utilisateur_factory import UtilisateurFactory
 from infrastructure.factories.messagerie.conversation_django_factory import (
     ConversationDjangoFactory,
+    MessageDjangoFactory,
+    MessageDocumentDjangoFactory,
 )
 from infrastructure.factories.recruteur.recrutement_django_factory import (
     EtapeDjangoFactory,
@@ -53,6 +51,28 @@ def superviseur_candidature(db):
 
 def test_authorized_agent_reads_the_conversation(superviseur_candidature):
     agent, organisme, recrutement, candidature = superviseur_candidature
+    first = MessageDjangoFactory(
+        conversation__candidature=candidature, with_document=True
+    )
+    conversation = first.conversation
+    second = MessageDjangoFactory(conversation=conversation)
+    MessageDjangoFactory(conversation__candidature=candidature)
+
+    first_read, second_read = read_conversation(
+        organisme_id=organisme.id,
+        recrutement_id=recrutement.pk,
+        candidature_id=candidature.pk,
+        conversation_id=conversation.pk,
+        utilisateur=_utilisateur(agent.utilisateur_id),
+    )
+
+    assert (first_read.pk, second_read.pk) == (first.pk, second.pk)
+    assert first_read.pieces_jointes.count() == 1
+    assert second_read.pieces_jointes.count() == 0
+
+
+def test_conversation_without_message_is_empty(superviseur_candidature):
+    agent, organisme, recrutement, candidature = superviseur_candidature
 
     messages = read_conversation(
         organisme_id=organisme.id,
@@ -62,15 +82,31 @@ def test_authorized_agent_reads_the_conversation(superviseur_candidature):
         utilisateur=_utilisateur(agent.utilisateur_id),
     )
 
-    assert len(messages) == len(_MESSAGES)
-    dates = [message.created_at for message in messages]
-    assert dates == sorted(dates)
-    assert all(
-        len(message.documents) <= settings.MESSAGE_MAX_DOCUMENTS for message in messages
+    assert not messages.exists()
+
+
+def test_reading_does_not_issue_a_query_per_message(
+    superviseur_candidature, django_assert_num_queries
+):
+    agent, organisme, recrutement, candidature = superviseur_candidature
+    conversation = ConversationDjangoFactory(candidature=candidature)
+    for message in MessageDjangoFactory.create_batch(2, conversation=conversation):
+        MessageDocumentDjangoFactory.create_batch(2, message=message)
+    messages = read_conversation(
+        organisme_id=organisme.id,
+        recrutement_id=recrutement.pk,
+        candidature_id=candidature.pk,
+        conversation_id=conversation.pk,
+        utilisateur=_utilisateur(agent.utilisateur_id),
     )
-    assert any(
-        len(message.documents) == settings.MESSAGE_MAX_DOCUMENTS for message in messages
-    )
+
+    with django_assert_num_queries(
+        1  # message + its author
+        + 1  # documents
+    ):
+        for message in messages:
+            message.auteur.get_full_name()
+            [pj.document.nom_original for pj in message.pieces_jointes.all()]
 
 
 def test_unauthorized_agent_is_denied(db):

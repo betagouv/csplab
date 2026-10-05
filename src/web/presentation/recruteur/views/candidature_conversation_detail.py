@@ -1,5 +1,6 @@
 from uuid import UUID
 
+from django.db.models import QuerySet
 from django.http import Http404
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import exceptions, status
@@ -9,10 +10,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
 
-from application.recruteur.services.read_conversation import (
-    MessageStub,
-    read_conversation,
-)
+from application.recruteur.services.read_conversation import read_conversation
 from application.recruteur.services.reply_conversation import reply_conversation
 from domain.commons.errors.organisme_errors import OrganismeNexistePas
 from domain.identite.errors.organisme_permission_errors import (
@@ -26,11 +24,13 @@ from domain.recruteur.errors.recrutement_errors import (
     RecrutementCandidatureInexistante,
     RecrutementInexistant,
 )
+from infrastructure.django_apps.messagerie.models import MessageModel
 from presentation.api.serializers import GenericErrorSerializer, generic_response_format
 from presentation.commons.pagination import PageNumberLimitPagination
 from presentation.recruteur.mappers import UtilisateurMapper
 from presentation.recruteur.serializers import (
     ConversationMessageSerializer,
+    ConversationMessageStubSerializer,
     CreateMessageSerializer,
 )
 
@@ -42,7 +42,7 @@ class MessagePagination(PageNumberLimitPagination):
 @extend_schema_view(
     get=extend_schema(
         operation_id="recruteur_organismes_recrutements_candidatures_conversations_messages_list",
-        summary="Messages d'une conversation d'une candidature (stub)",
+        summary="Messages d'une conversation d'une candidature",
         tags=["recruteur"],
         responses={
             **generic_response_format,
@@ -56,7 +56,7 @@ class MessagePagination(PageNumberLimitPagination):
         request={"multipart/form-data": CreateMessageSerializer},
         responses={
             **generic_response_format,
-            201: ConversationMessageSerializer,
+            201: ConversationMessageStubSerializer,
             400: GenericErrorSerializer,
         },
     ),
@@ -67,7 +67,7 @@ class CandidatureConversationDetailView(ListAPIView):
     pagination_class = MessagePagination
     parser_classes = [MultiPartParser, FormParser]
 
-    def get_queryset(self) -> list[MessageStub]:
+    def get_queryset(self) -> QuerySet[MessageModel]:
         return read_conversation(
             organisme_id=self.kwargs["organisme_uuid"],
             recrutement_id=self.kwargs["recrutement_uuid"],
@@ -98,7 +98,7 @@ class CandidatureConversationDetailView(ListAPIView):
             utilisateur=UtilisateurMapper().to_domain(request),
         )
         return Response(
-            ConversationMessageSerializer(message).data,
+            ConversationMessageStubSerializer(message).data,
             status=status.HTTP_201_CREATED,
         )
 

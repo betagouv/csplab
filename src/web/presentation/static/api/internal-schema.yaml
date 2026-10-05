@@ -2232,7 +2232,7 @@ paths:
   ? /recruteur/organismes/{organisme_uuid}/recrutements/{recrutement_uuid}/candidatures/{candidature_uuid}/conversations/{conversation_uuid}
   : get:
       operationId: recruteur_organismes_recrutements_candidatures_conversations_messages_list
-      summary: Messages d'une conversation d'une candidature (stub)
+      summary: Messages d'une conversation d'une candidature
       parameters:
       - in: path
         name: candidature_uuid
@@ -2456,7 +2456,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ConversationMessage'
+                $ref: '#/components/schemas/ConversationMessageStub'
           description: ''
           headers:
             X-RateLimit-Limit:
@@ -5087,7 +5087,47 @@ components:
       - taille
       - type
       - uuid
+    ConversationDocumentStub:
+      type: object
+      properties:
+        uuid:
+          type: string
+          format: uuid
+        nom:
+          type: string
+        type:
+          $ref: '#/components/schemas/TypeEnum'
+        content_type:
+          type: string
+        taille:
+          type: integer
+      required:
+      - content_type
+      - nom
+      - taille
+      - type
+      - uuid
     ConversationMessage:
+      type: object
+      properties:
+        content:
+          type: string
+        author:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        documents:
+          type: array
+          items:
+            $ref: '#/components/schemas/ConversationDocument'
+      required:
+      - author
+      - content
+      - created_at
+      - documents
+    ConversationMessageStub:
       type: object
       properties:
         content:
@@ -5100,7 +5140,7 @@ components:
         documents:
           type: array
           items:
-            $ref: '#/components/schemas/ConversationDocument'
+            $ref: '#/components/schemas/ConversationDocumentStub'
       required:
       - author
       - content
