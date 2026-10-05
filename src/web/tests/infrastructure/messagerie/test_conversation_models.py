@@ -1,7 +1,9 @@
 import pytest
 from django.db import IntegrityError, transaction
 from django.db.models.deletion import ProtectedError
+from django.db.models.fetch_modes import FETCH_RAISE
 
+from infrastructure.django_apps.messagerie.models import ConversationModel
 from infrastructure.factories.identite.agent_django_factory import AgentDjangoFactory
 from infrastructure.factories.identite.utilisateur_django_factory import (
     UtilisateurDjangoFactory,
@@ -96,3 +98,31 @@ def test_read_receipts_by_agents_and_candidate(db):
         other_agent.utilisateur,
         candidate,
     }
+
+
+def test_by_candidature_prefetches_first_and_last_message_with_their_author(db):
+    conversation = ConversationDjangoFactory()
+    premier = MessageDjangoFactory(conversation=conversation, contenu="Premier")
+    dernier = MessageDjangoFactory(conversation=conversation, contenu="Dernier")
+
+    (result,) = ConversationModel.objects.by_candidature(
+        conversation.candidature_id
+    ).fetch_mode(FETCH_RAISE)
+
+    assert result.premiers_messages == [premier]
+    assert result.derniers_messages == [dernier]
+    assert result.premiers_messages[0].auteur == premier.auteur
+    assert result.derniers_messages[0].auteur == dernier.auteur
+    assert result.last_message_created_at == dernier.created_at
+
+
+def test_by_candidature_orders_by_last_message_and_skips_empty_conversations(db):
+    ancienne = ConversationDjangoFactory()
+    recente = ConversationDjangoFactory(candidature=ancienne.candidature)
+    ConversationDjangoFactory(candidature=ancienne.candidature)
+    MessageDjangoFactory(conversation=ancienne)
+    MessageDjangoFactory(conversation=recente)
+
+    result = ConversationModel.objects.by_candidature(ancienne.candidature_id)
+
+    assert list(result) == [recente, ancienne]

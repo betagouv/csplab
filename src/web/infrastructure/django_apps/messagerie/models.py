@@ -1,9 +1,38 @@
 from django.db import models
+from django.db.models import Max, Prefetch
 
 from infrastructure.django_apps.candidate.models.candidature import CandidatureModel
 from infrastructure.django_apps.candidate.models.document import DocumentModel
 from infrastructure.django_apps.users.models import UserModel
 from infrastructure.django_apps.utils.models import BaseDatedModel
+
+
+class ConversationQuerySet(models.QuerySet):
+    def by_candidature_and_id(
+        self, candidature_id, conversation_id
+    ) -> "ConversationQuerySet":
+        return self.filter(candidature_id=candidature_id, pk=conversation_id)
+
+    def by_candidature(self, candidature_id) -> "ConversationQuerySet":
+        messages = MessageModel.objects.select_related("auteur")
+        return (
+            self.filter(candidature_id=candidature_id)
+            .annotate(last_message_created_at=Max("messages__created_at"))
+            .filter(last_message_created_at__isnull=False)
+            .prefetch_related(
+                Prefetch(
+                    "messages",
+                    queryset=messages.order_by("created_at")[:1],
+                    to_attr="premiers_messages",
+                ),
+                Prefetch(
+                    "messages",
+                    queryset=messages.order_by("-created_at")[:1],
+                    to_attr="derniers_messages",
+                ),
+            )
+            .order_by("-last_message_created_at", "-created_at")
+        )
 
 
 class ConversationModel(BaseDatedModel):
@@ -14,6 +43,12 @@ class ConversationModel(BaseDatedModel):
         related_name="conversations",
     )
     objet = models.CharField(max_length=255)
+
+    objects = ConversationQuerySet.as_manager()
+
+    # renseignés par ConversationQuerySet.by_candidature (Prefetch to_attr)
+    premiers_messages: list["MessageModel"]
+    derniers_messages: list["MessageModel"]
 
     class Meta:
         db_table = "conversation"

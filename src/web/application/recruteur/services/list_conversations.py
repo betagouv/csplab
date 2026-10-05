@@ -1,5 +1,7 @@
 from uuid import UUID
 
+from django.db.models import QuerySet
+
 from application.identite.context_services.organisme_permission_service import (
     OrganismePermissionService,
 )
@@ -9,12 +11,9 @@ from application.recruteur.context_services.candidature_agent_service import (
 from application.recruteur.context_services.recrutement_agent_service import (
     RecrutementAgentService,
 )
-from application.recruteur.services.conversation_stubs import (
-    ConversationStub,
-    stub_conversations_of,
-)
 from domain.identite.entities.utilisateurs import Utilisateur
 from domain.identite.value_objects.organisme_action import OrganismeAction
+from infrastructure.django_apps.messagerie.models import ConversationModel
 
 
 def list_conversations(
@@ -23,7 +22,7 @@ def list_conversations(
     recrutement_id: UUID,
     candidature_id: UUID,
     utilisateur: Utilisateur,
-) -> list[ConversationStub]:
+) -> QuerySet[ConversationModel]:
     OrganismePermissionService().can_execute(
         action=OrganismeAction.LIST_CONVERSATIONS,
         utilisateur=utilisateur,
@@ -39,8 +38,4 @@ def list_conversations(
     )
     candidature_service.check_candidature_belongs_to_recrutement()
 
-    return sorted(
-        stub_conversations_of(candidature_id).values(),
-        key=lambda c: c.last_message_created_at,
-        reverse=True,
-    )
+    return ConversationModel.objects.by_candidature(candidature_id)

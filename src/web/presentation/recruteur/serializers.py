@@ -14,6 +14,7 @@ from domain.recruteur.value_objects.roles import (
 from infrastructure.django_apps.candidate.enums.type_document import TypeDocument
 from infrastructure.django_apps.candidate.models.document import DocumentModel
 from infrastructure.django_apps.commons.models import AuditLogModel
+from infrastructure.django_apps.messagerie.models import ConversationModel
 from infrastructure.django_apps.recruteur.enums.motif_refus import MotifRefus
 from infrastructure.django_apps.recruteur.models.note import NoteModel
 from infrastructure.django_apps.recruteur.models.recrutement import (
@@ -423,16 +424,50 @@ class AuditLogSerializer(serializers.ModelSerializer):
 
 
 # ---------------------------------------------------------------------------
-# Serializer pour les conversations d'une candidature (stub)
+# Serializer pour les conversations d'une candidature
 # ---------------------------------------------------------------------------
 
 
-class ConversationSerializer(serializers.Serializer):
+class ConversationSerializer(serializers.ModelSerializer):
+    # last_message_created_at is annotated, premiers_messages and derniers_messages
+    # are prefetched by ConversationQuerySet.by_candidature
+    uuid = serializers.UUIDField(source="id")
+    creator = serializers.SerializerMethodField()
+    last_message_content = serializers.SerializerMethodField()
+    last_message_author = serializers.SerializerMethodField()
+    last_message_created_at = serializers.DateTimeField()
+
+    class Meta:
+        model = ConversationModel
+        fields = [
+            "uuid",
+            "objet",
+            "creator",
+            "created_at",
+            "last_message_content",
+            "last_message_author",
+            "last_message_created_at",
+        ]
+
+    def get_creator(self, conversation: ConversationModel) -> str:
+        return conversation.premiers_messages[0].auteur.get_full_name()
+
+    def get_last_message_content(self, conversation: ConversationModel) -> str:
+        contenu = conversation.derniers_messages[0].contenu
+        return contenu[: settings.CONVERSATION_LAST_MESSAGE_CONTENT_MAX_LENGTH]
+
+    def get_last_message_author(self, conversation: ConversationModel) -> str:
+        return conversation.derniers_messages[0].auteur.get_full_name()
+
+
+class ConversationStubSerializer(serializers.Serializer):
+    """Réponse du POST (stub), même forme JSON que ConversationSerializer."""
+
     uuid = serializers.UUIDField()
     objet = serializers.CharField()
     creator = serializers.CharField()
     created_at = serializers.DateTimeField()
-    last_message_content = serializers.CharField(max_length=300)
+    last_message_content = serializers.CharField()
     last_message_author = serializers.CharField()
     last_message_created_at = serializers.DateTimeField()
 

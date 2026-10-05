@@ -1,11 +1,11 @@
 from uuid import UUID
 
-from application.recruteur.services.conversation_stubs import stub_conversations_of
 from domain.recruteur.errors.recrutement_errors import (
     ConversationInexistante,
     RecrutementCandidatureInexistante,
 )
 from infrastructure.django_apps.candidate.models.candidature import CandidatureModel
+from infrastructure.django_apps.messagerie.models import ConversationModel
 
 
 class CandidatureAgentService:
@@ -20,5 +20,7 @@ class CandidatureAgentService:
             raise RecrutementCandidatureInexistante(self.candidature_id)
 
     def check_conversation_belongs_to_candidature(self, conversation_id: UUID) -> None:
-        if conversation_id not in stub_conversations_of(self.candidature_id):
+        if not ConversationModel.objects.by_candidature_and_id(
+            self.candidature_id, conversation_id
+        ).exists():
             raise ConversationInexistante(conversation_id)
