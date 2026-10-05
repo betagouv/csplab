@@ -12,19 +12,21 @@ import ChangerEtapeDrawer from '../components/ChangerEtapeDrawer.vue'
 import RefusCandidatureDialog from '../components/RefusCandidatureDialog.vue'
 import SelectionActionBar from '../components/SelectionActionBar.vue'
 import { useCandidatures } from '../composables/useCandidatures'
+import { useEtapeChangeMutation } from '../composables/useEtapeChangeMutation'
 import { useKanbanSelection } from '../composables/useKanbanSelection'
 import { useRefusCandidature } from '../composables/useRefusCandidature'
 
 const {
   recrutementUuid,
+  recrutementParams,
   recrutementEtapes,
   candidatureKanban,
   pendingKanban,
   findCandidature,
-  moveCandidature,
-  moveCandidaturesBatch,
   filters,
 } = useCandidatures()
+
+const { changeEtape } = useEtapeChangeMutation(recrutementParams)
 
 const { filteredEtapes } = filters
 
@@ -80,14 +82,21 @@ const selectedCandidatureUuids = computed(() => {
   return selectedByEtape.value.get(currentEtapeUuid.value) ?? new Set<string>()
 })
 
-function handleMove(event: KanbanDropEvent) {
-  const candidature = findCandidature(event.cardId)
-  if (candidature && event.sourceColumnId !== event.targetColumnId && event.targetColumnId === refusEtapeUuid.value) {
-    refus.request([candidature.candidat], motifRefus => void moveCandidature({ ...event, motifRefus }))
+function handleMove({ sourceColumnId, targetColumnId, cardId }: KanbanDropEvent) {
+  if (sourceColumnId === targetColumnId) {
     return
   }
 
-  void moveCandidature(event)
+  const move = (motifRefus?: MotifRefus) =>
+    void changeEtape({ etapeCibleUuid: targetColumnId, candidatureUuids: [cardId], motifRefus })
+
+  const candidature = findCandidature(cardId)
+  if (candidature && targetColumnId === refusEtapeUuid.value) {
+    refus.request([candidature.candidat], move)
+  }
+  else {
+    move()
+  }
 }
 
 function handleToggleColumnSelection(etape: EtapeRecrutementDetailedCandidatures): void {
@@ -114,17 +123,12 @@ function handleConfirmBatchMove(targetEtapeUuid: string): void {
 }
 
 function applyBatchMove(targetEtapeUuid: string, motifRefus?: MotifRefus): void {
-  const candidaturesByEtape = new Map<string, string[]>()
+  const candidatureUuids = candidatureKanban.value
+    .filter(etape => etape.uuid !== targetEtapeUuid)
+    .flatMap(etape => etape.candidatures.filter(({ uuid }) => selectedByEtape.value.get(etape.uuid)?.has(uuid)))
+    .map(({ uuid }) => uuid)
 
-  for (const [etapeUuid, uuids] of selectedByEtape.value) {
-    candidaturesByEtape.set(etapeUuid, [...uuids])
-  }
-
-  moveCandidaturesBatch({
-    candidaturesByEtape,
-    targetColumnId: targetEtapeUuid,
-    motifRefus,
-  })
+  void changeEtape({ etapeCibleUuid: targetEtapeUuid, candidatureUuids, motifRefus })
 
   clearSelection()
   isDrawerOpen.value = false

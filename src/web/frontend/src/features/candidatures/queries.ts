@@ -10,18 +10,20 @@ export const CANDIDATURES_QUERY_KEYS = {
     [...CANDIDATURES_QUERY_KEYS.recrutement(organismeUuid, recrutementUuid), 'kanban'] as const,
   liste: (organismeUuid: string, recrutementUuid: string) =>
     [...CANDIDATURES_QUERY_KEYS.recrutement(organismeUuid, recrutementUuid), 'liste'] as const,
-  detail: ({ organismeUuid, recrutementUuid, candidatureUuid }: CandidatureParams) =>
-    [...CANDIDATURES_QUERY_KEYS.recrutement(organismeUuid, recrutementUuid), 'candidature', candidatureUuid, 'detail'] as const,
+  candidature: ({ organismeUuid, recrutementUuid, candidatureUuid }: CandidatureParams) =>
+    [...CANDIDATURES_QUERY_KEYS.recrutement(organismeUuid, recrutementUuid), 'candidature', candidatureUuid] as const,
+  detail: (candidature: CandidatureParams) =>
+    [...CANDIDATURES_QUERY_KEYS.candidature(candidature), 'detail'] as const,
   motifsRefus: (organismeUuid: string) =>
     [...CANDIDATURES_QUERY_KEYS.root, organismeUuid, 'motifs-refus'] as const,
-  documents: ({ organismeUuid, recrutementUuid, candidatureUuid }: CandidatureParams) =>
-    [...CANDIDATURES_QUERY_KEYS.recrutement(organismeUuid, recrutementUuid), 'candidature', candidatureUuid, 'documents'] as const,
+  documents: (candidature: CandidatureParams) =>
+    [...CANDIDATURES_QUERY_KEYS.candidature(candidature), 'documents'] as const,
   document: (candidature: CandidatureParams, documentUuid: string) =>
     [...CANDIDATURES_QUERY_KEYS.documents(candidature), documentUuid] as const,
-  notes: ({ organismeUuid, recrutementUuid, candidatureUuid }: CandidatureParams) =>
-    [...CANDIDATURES_QUERY_KEYS.recrutement(organismeUuid, recrutementUuid), 'candidature', candidatureUuid, 'notes'] as const,
-  activites: ({ organismeUuid, recrutementUuid, candidatureUuid }: CandidatureParams) =>
-    [...CANDIDATURES_QUERY_KEYS.recrutement(organismeUuid, recrutementUuid), 'candidature', candidatureUuid, 'activites'] as const,
+  notes: (candidature: CandidatureParams) =>
+    [...CANDIDATURES_QUERY_KEYS.candidature(candidature), 'notes'] as const,
+  activites: (candidature: CandidatureParams) =>
+    [...CANDIDATURES_QUERY_KEYS.candidature(candidature), 'activites'] as const,
 }
 
 export interface CandidaturesQueryParams {

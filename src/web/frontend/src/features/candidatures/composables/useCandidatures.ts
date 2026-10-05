@@ -1,26 +1,12 @@
-import type { Candidature, MotifRefus, RecrutementDetailKanban } from '../types'
+import type { CandidaturesQueryParams } from '../queries'
+import type { Candidature } from '../types'
 import type { RecrutementDetail } from '@/features/recrutements/types'
 import { defineQuery, useQuery, useQueryCache } from '@pinia/colada'
 import { computed, watch } from 'vue'
 import { useRoute } from 'vue-router'
-import { useToast } from '@/composables/ui/useToast'
 import { peekRecrutementIntitule, recrutementDetailQuery } from '@/features/recrutements/queries'
-import { patchEtapeCandidatures } from '../api'
-import { candidatureListeQuery, CANDIDATURES_QUERY_KEYS, recrutementKanbanQuery } from '../queries'
+import { candidatureListeQuery, recrutementKanbanQuery } from '../queries'
 import { useCandidaturesFilters } from './useCandidaturesFilters'
-
-export interface MoveCandidatureParams {
-  sourceColumnId: string
-  targetColumnId: string
-  cardId: string
-  motifRefus?: MotifRefus
-}
-
-export interface MoveCandidaturesBatchParams {
-  candidaturesByEtape: Map<string, string[]>
-  targetColumnId: string
-  motifRefus?: MotifRefus
-}
 
 export const useCandidatures = defineQuery(() => {
   const route = useRoute()
@@ -34,16 +20,18 @@ export const useCandidatures = defineQuery(() => {
     return typeof param === 'string' && param !== '' ? param : null
   })
 
+  const recrutementParams = computed<CandidaturesQueryParams>(() => ({
+    organismeUuid: organismeUuid.value ?? '',
+    recrutementUuid: recrutementUuid.value ?? '',
+  }))
+
   const isKanbanRoute = computed(() => route.matched.some(record => record.name === 'recrutement-candidatures-kanban'))
   const isListeRoute = computed(() => route.name === 'recrutement-candidatures')
 
   const queryCache = useQueryCache()
 
   const detail = useQuery(() => ({
-    ...recrutementDetailQuery({
-      organismeUuid: organismeUuid.value ?? '',
-      recrutementUuid: recrutementUuid.value ?? '',
-    }),
+    ...recrutementDetailQuery(recrutementParams.value),
     enabled: (
       recrutementUuid.value !== null
       && organismeUuid.value !== null
@@ -51,10 +39,7 @@ export const useCandidatures = defineQuery(() => {
   }))
 
   const kanban = useQuery(() => ({
-    ...recrutementKanbanQuery({
-      organismeUuid: organismeUuid.value ?? '',
-      recrutementUuid: recrutementUuid.value ?? '',
-    }),
+    ...recrutementKanbanQuery(recrutementParams.value),
     enabled: (
       recrutementUuid.value !== null
       && isKanbanRoute.value
@@ -63,10 +48,7 @@ export const useCandidatures = defineQuery(() => {
   }))
 
   const liste = useQuery(() => ({
-    ...candidatureListeQuery({
-      organismeUuid: organismeUuid.value ?? '',
-      recrutementUuid: recrutementUuid.value ?? '',
-    }),
+    ...candidatureListeQuery(recrutementParams.value),
     enabled: (
       recrutementUuid.value !== null
       && isListeRoute.value
@@ -114,165 +96,6 @@ export const useCandidatures = defineQuery(() => {
     candidatureKanban.value.reduce((sum, etape) => sum + etape.candidatures.length, 0),
   )
 
-  const { addToast } = useToast()
-
-  function kanbanQueryKey() {
-    return recrutementKanbanQuery({
-      organismeUuid: organismeUuid.value!,
-      recrutementUuid: recrutementUuid.value!,
-    }).key
-  }
-
-  async function persistEtapeChange(
-    targetColumnId: string,
-    candidatureUuids: string[],
-    previousData: RecrutementDetailKanban,
-    motifRefus?: MotifRefus,
-  ): Promise<boolean> {
-    const key = kanbanQueryKey()
-    try {
-      const resultat = await patchEtapeCandidatures(organismeUuid.value!, recrutementUuid.value!, {
-        etapeCibleUuid: targetColumnId,
-        candidatureUuids,
-        motifRefus,
-      })
-      for (const candidatureUuid of resultat.reussites) {
-        void queryCache.invalidateQueries({
-          key: CANDIDATURES_QUERY_KEYS.activites({ organismeUuid: organismeUuid.value!, recrutementUuid: recrutementUuid.value!, candidatureUuid }),
-        })
-      }
-      if (resultat.echecs.length > 0) {
-        await queryCache.invalidateQueries({ key })
-        addToast({
-          variant: 'warning',
-          title: 'Certaines candidatures n\'ont pas changé d\'étape',
-        })
-      }
-      return resultat.echecs.length === 0
-    }
-    catch {
-      queryCache.setQueryData(key, previousData)
-      addToast({
-        variant: 'error',
-        title: 'Le changement d\'étape a échoué',
-        description: 'Vos candidatures sont restées à leur étape actuelle.',
-      })
-      return false
-    }
-  }
-
-  async function moveCandidature(params: MoveCandidatureParams): Promise<boolean> {
-    const { sourceColumnId, targetColumnId, cardId, motifRefus } = params
-
-    if (sourceColumnId === targetColumnId) {
-      return false
-    }
-
-    const kanbanData = kanban.data.value
-    if (!kanbanData) {
-      return false
-    }
-
-    const sourceEtape = kanbanData.etapes.find(e => e.uuid === sourceColumnId)
-    const targetEtape = kanbanData.etapes.find(e => e.uuid === targetColumnId)
-
-    if (!sourceEtape || !targetEtape) {
-      return false
-    }
-
-    const candidatureIndex = sourceEtape.candidatures.findIndex(c => c.uuid === cardId)
-    if (candidatureIndex === -1) {
-      return false
-    }
-
-    const candidature = sourceEtape.candidatures[candidatureIndex] as Candidature
-
-    const newEtapes = kanbanData.etapes.map((etape) => {
-      if (etape.uuid === sourceColumnId) {
-        return {
-          ...etape,
-          candidatures: etape.candidatures.filter(c => c.uuid !== cardId),
-        }
-      }
-      if (etape.uuid === targetColumnId) {
-        return {
-          ...etape,
-          candidatures: [...etape.candidatures, candidature],
-        }
-      }
-      return etape
-    })
-
-    queryCache.setQueryData(kanbanQueryKey(), { ...kanbanData, etapes: newEtapes })
-    return persistEtapeChange(targetColumnId, [cardId], kanbanData, motifRefus)
-  }
-
-  function moveCandidaturesBatch(params: MoveCandidaturesBatchParams): void {
-    const { candidaturesByEtape, targetColumnId, motifRefus } = params
-
-    const kanbanData = kanban.data.value
-    if (!kanbanData) {
-      return
-    }
-
-    const targetEtape = kanbanData.etapes.find(e => e.uuid === targetColumnId)
-    if (!targetEtape) {
-      return
-    }
-
-    const candidaturesToMove: Candidature[] = []
-
-    for (const [sourceEtapeUuid, candidatureUuids] of candidaturesByEtape) {
-      if (sourceEtapeUuid === targetColumnId) {
-        continue
-      }
-
-      const sourceEtape = kanbanData.etapes.find(e => e.uuid === sourceEtapeUuid)
-      if (!sourceEtape) {
-        continue
-      }
-
-      for (const uuid of candidatureUuids) {
-        const candidature = sourceEtape.candidatures.find(c => c.uuid === uuid)
-        if (candidature) {
-          candidaturesToMove.push(candidature as Candidature)
-        }
-      }
-    }
-
-    if (candidaturesToMove.length === 0) {
-      return
-    }
-
-    const movedUuids = new Set(candidaturesToMove.map(c => c.uuid))
-
-    const newEtapes = kanbanData.etapes.map((etape) => {
-      if (etape.uuid === targetColumnId) {
-        return {
-          ...etape,
-          candidatures: [...etape.candidatures, ...candidaturesToMove],
-        }
-      }
-
-      if (candidaturesByEtape.has(etape.uuid)) {
-        return {
-          ...etape,
-          candidatures: etape.candidatures.filter(c => !movedUuids.has(c.uuid)),
-        }
-      }
-
-      return etape
-    })
-
-    queryCache.setQueryData(kanbanQueryKey(), { ...kanbanData, etapes: newEtapes })
-    void persistEtapeChange(
-      targetColumnId,
-      candidaturesToMove.map(c => c.uuid),
-      kanbanData,
-      motifRefus,
-    )
-  }
-
   const filters = useCandidaturesFilters({
     recrutementEtapes,
     candidatureKanban,
@@ -286,6 +109,7 @@ export const useCandidatures = defineQuery(() => {
   return {
     organismeUuid,
     recrutementUuid,
+    recrutementParams,
     recrutementDetail,
     intitule,
     findCandidature,
@@ -297,8 +121,6 @@ export const useCandidatures = defineQuery(() => {
     pendingKanban,
     pendingListe,
     error,
-    moveCandidature,
-    moveCandidaturesBatch,
     filters,
   }
 })
