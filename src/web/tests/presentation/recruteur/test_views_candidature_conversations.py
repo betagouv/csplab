@@ -1,3 +1,4 @@
+from unittest.mock import patch
 from uuid import uuid4
 
 import pytest
@@ -5,9 +6,17 @@ from django.conf import settings
 from django.urls import reverse
 from rest_framework import status
 
+from domain.candidate.exceptions.document_errors import FichierDeposeIncomplet
 from domain.recruteur.value_objects.roles import (
     AgentOrganismeRole,
     AgentRecrutementRole,
+)
+from infrastructure.django_apps.candidate.enums.type_document import TypeDocument
+from infrastructure.django_apps.commons.models import AuditLogModel
+from infrastructure.django_apps.messagerie.models import (
+    ConversationModel,
+    MessageDocumentModel,
+    MessageModel,
 )
 from infrastructure.factories.candidate.candidature_django_factory import (
     CandidatureDjangoFactory,
@@ -83,42 +92,121 @@ def _unknown_candidature(organisme, recrutement, candidature):
     return organisme.id, recrutement.pk, uuid4()
 
 
-class TestCandidatureConversationsView:
-    def test_anonymous_access_is_unauthorized(self, api_client):
-        response = api_client.get(_url(uuid4(), uuid4(), uuid4()))
+def _payload(**overrides):
+    return {"objet": "Convocation", "content": "Bonjour", **overrides}
+
+
+AUTHORIZED_ROLES = pytest.mark.parametrize(
+    "organisme_role,recrutement_role",
+    [
+        (AgentOrganismeRole.SUPERVISEUR, None),
+        (AgentOrganismeRole.AGENT, AgentRecrutementRole.RESPONSABLE),
+        (AgentOrganismeRole.AGENT, AgentRecrutementRole.RECRUTEUR),
+        (AgentOrganismeRole.AGENT, AgentRecrutementRole.CONTRIBUTEUR),
+    ],
+    ids=["superviseur", "agent_responsable", "agent_recruteur", "agent_contributeur"],
+)
+BOTH_METHODS = pytest.mark.parametrize("method", ["get", "post"])
+UNKNOWN_OR_FOREIGN_IDS = pytest.mark.parametrize(
+    "build_ids",
+    [
+        _unknown_organisme,
+        _unknown_recrutement,
+        _recrutement_from_another_organisme,
+        _candidature_from_another_recrutement,
+        _unknown_candidature,
+    ],
+    ids=[
+        "unknown_organisme",
+        "unknown_recrutement",
+        "recrutement_from_another_organisme",
+        "candidature_from_another_recrutement",
+        "unknown_candidature",
+    ],
+)
+
+
+def _call(client, method, url, **payload):
+    if method == "post":
+        return client.post(url, _payload(**payload), format="multipart")
+    return client.get(url)
+
+
+def _grant(test_user, organisme_role, recrutement_role):
+    agent, organisme = create_organisme_with_agent(
+        role=organisme_role, utilisateur=test_user
+    )
+    recrutement, candidature = _candidature_for(organisme)
+    if recrutement_role is not None:
+        RecrutementAgentDjangoFactory(
+            recrutement=recrutement,
+            agent=test_user.profil_agent,
+            role=recrutement_role.value,
+        )
+    return agent, organisme, recrutement, candidature
+
+
+@pytest.fixture
+def contexte(test_user):
+    agent, organisme, recrutement, candidature = _grant(
+        test_user, AgentOrganismeRole.SUPERVISEUR, None
+    )
+    return agent, candidature, _url(organisme.id, recrutement.pk, candidature.pk)
+
+
+class TestAccess:
+    @BOTH_METHODS
+    def test_anonymous_access_is_unauthorized(self, api_client, method):
+        response = _call(api_client, method, _url(uuid4(), uuid4(), uuid4()))
 
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
+    @BOTH_METHODS
     @pytest.mark.parametrize(
-        "organisme_role,recrutement_role",
-        [
-            (AgentOrganismeRole.SUPERVISEUR, None),
-            (AgentOrganismeRole.AGENT, AgentRecrutementRole.RESPONSABLE),
-            (AgentOrganismeRole.AGENT, AgentRecrutementRole.RECRUTEUR),
-            (AgentOrganismeRole.AGENT, AgentRecrutementRole.CONTRIBUTEUR),
-        ],
-        ids=[
-            "superviseur",
-            "agent_responsable",
-            "agent_recruteur",
-            "agent_contributeur",
-        ],
+        "role", [AgentOrganismeRole.AGENT, None], ids=["no_recrutement_role", "no_role"]
     )
+    def test_is_forbidden_for(self, authenticated_client, test_user, method, role):
+        if role is None:
+            organisme = OrganismeDjangoFactory()
+        else:
+            _, organisme = create_organisme_with_agent(role=role, utilisateur=test_user)
+        recrutement, candidature = _candidature_for(organisme)
+
+        response = _call(
+            authenticated_client,
+            method,
+            _url(organisme.id, recrutement.pk, candidature.pk),
+        )
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    @BOTH_METHODS
+    @UNKNOWN_OR_FOREIGN_IDS
+    def test_returns_404_for(self, authenticated_client, test_user, method, build_ids):
+        _, organisme = create_organisme_with_agent(
+            role=AgentOrganismeRole.SUPERVISEUR, utilisateur=test_user
+        )
+        recrutement, candidature = _candidature_for(organisme)
+
+        response = _call(
+            authenticated_client,
+            method,
+            _url(*build_ids(organisme, recrutement, candidature)),
+        )
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
+
+class TestListConversations:
+    @AUTHORIZED_ROLES
     def test_authorized_agent_lists_conversations(
         self, authenticated_client, test_user, organisme_role, recrutement_role
     ):
-        _, organisme = create_organisme_with_agent(
-            role=organisme_role, utilisateur=test_user
+        _, organisme, recrutement, candidature = _grant(
+            test_user, organisme_role, recrutement_role
         )
-        recrutement, candidature = _candidature_for(organisme)
         _conversation_with_messages(candidature, "Bonjour")
         _conversation_with_messages(candidature, "Merci", "x" * 1000)
-        if recrutement_role is not None:
-            RecrutementAgentDjangoFactory(
-                recrutement=recrutement,
-                agent=test_user.profil_agent,
-                role=recrutement_role.value,
-            )
 
         response = authenticated_client.get(
             _url(organisme.id, recrutement.pk, candidature.pk)
@@ -145,63 +233,12 @@ class TestCandidatureConversationsView:
             for result in results
         )
 
-    @pytest.mark.parametrize(
-        "role", [AgentOrganismeRole.AGENT, None], ids=["no_recrutement_role", "no_role"]
-    )
-    def test_is_forbidden_for(self, authenticated_client, test_user, role):
-        if role is None:
-            organisme = OrganismeDjangoFactory()
-        else:
-            _, organisme = create_organisme_with_agent(role=role, utilisateur=test_user)
-        recrutement, candidature = _candidature_for(organisme)
-
-        response = authenticated_client.get(
-            _url(organisme.id, recrutement.pk, candidature.pk)
-        )
-
-        assert response.status_code == status.HTTP_404_NOT_FOUND
-
-    @pytest.mark.parametrize(
-        "build_ids",
-        [
-            _unknown_organisme,
-            _unknown_recrutement,
-            _recrutement_from_another_organisme,
-            _candidature_from_another_recrutement,
-            _unknown_candidature,
-        ],
-        ids=[
-            "unknown_organisme",
-            "unknown_recrutement",
-            "recrutement_from_another_organisme",
-            "candidature_from_another_recrutement",
-            "unknown_candidature",
-        ],
-    )
-    def test_returns_404_for(self, authenticated_client, test_user, build_ids):
-        _, organisme = create_organisme_with_agent(
-            role=AgentOrganismeRole.SUPERVISEUR, utilisateur=test_user
-        )
-        recrutement, candidature = _candidature_for(organisme)
-
-        response = authenticated_client.get(
-            _url(*build_ids(organisme, recrutement, candidature))
-        )
-
-        assert response.status_code == status.HTTP_404_NOT_FOUND
-
-    def test_limit_param_caps_page_size(self, authenticated_client, test_user):
-        _, organisme = create_organisme_with_agent(
-            role=AgentOrganismeRole.SUPERVISEUR, utilisateur=test_user
-        )
-        recrutement, candidature = _candidature_for(organisme)
+    def test_limit_param_caps_page_size(self, authenticated_client, contexte):
+        _, candidature, url = contexte
         for _ in range(TAILLE_PAGE_LIMITEE + 1):
             _conversation_with_messages(candidature, "Bonjour")
 
-        response = authenticated_client.get(
-            _url(organisme.id, recrutement.pk, candidature.pk),
-            {"limit": TAILLE_PAGE_LIMITEE},
-        )
+        response = authenticated_client.get(url, {"limit": TAILLE_PAGE_LIMITEE})
 
         assert response.status_code == status.HTTP_200_OK
         body = response.json()
@@ -209,36 +246,26 @@ class TestCandidatureConversationsView:
         assert body["next"] is not None
 
     def test_lists_only_the_conversations_of_the_candidature(
-        self, authenticated_client, test_user
+        self, authenticated_client, contexte
     ):
-        _, organisme = create_organisme_with_agent(
-            role=AgentOrganismeRole.SUPERVISEUR, utilisateur=test_user
-        )
-        recrutement, candidature = _candidature_for(organisme)
-        _, autre_candidature = _candidature_for(organisme)
+        _, candidature, url = contexte
+        _, autre_candidature = _candidature_for(candidature.etape.recrutement.organisme)
         conversation = _conversation_with_messages(candidature, "Bonjour")
         _conversation_with_messages(autre_candidature, "Bonjour")
 
-        response = authenticated_client.get(
-            _url(organisme.id, recrutement.pk, candidature.pk)
-        )
+        response = authenticated_client.get(url)
 
         assert [r["uuid"] for r in response.json()["results"]] == [str(conversation.pk)]
 
     def test_exposes_first_and_last_message_authors(
-        self, authenticated_client, test_user
+        self, authenticated_client, contexte
     ):
-        _, organisme = create_organisme_with_agent(
-            role=AgentOrganismeRole.SUPERVISEUR, utilisateur=test_user
-        )
-        recrutement, candidature = _candidature_for(organisme)
+        _, candidature, url = contexte
         conversation = ConversationDjangoFactory(candidature=candidature)
         premier = MessageDjangoFactory(conversation=conversation, contenu="Premier")
         dernier = MessageDjangoFactory(conversation=conversation, contenu="Dernier")
 
-        response = authenticated_client.get(
-            _url(organisme.id, recrutement.pk, candidature.pk)
-        )
+        response = authenticated_client.get(url)
 
         (result,) = response.json()["results"]
         assert result["creator"] == premier.auteur.get_full_name()
@@ -249,51 +276,19 @@ class TestCandidatureConversationsView:
         assert ConversationPagination.page_size == TAILLE_PAGE_PAR_DEFAUT
 
 
-def _payload(**overrides):
-    return {"objet": "Convocation", "content": "Bonjour", **overrides}
-
-
 class TestCreateConversation:
-    def test_anonymous_access_is_unauthorized(self, api_client):
-        response = api_client.post(
-            _url(uuid4(), uuid4(), uuid4()), _payload(), format="multipart"
-        )
-
-        assert response.status_code == status.HTTP_401_UNAUTHORIZED
-
-    @pytest.mark.parametrize(
-        "organisme_role,recrutement_role",
-        [
-            (AgentOrganismeRole.SUPERVISEUR, None),
-            (AgentOrganismeRole.AGENT, AgentRecrutementRole.RESPONSABLE),
-            (AgentOrganismeRole.AGENT, AgentRecrutementRole.RECRUTEUR),
-            (AgentOrganismeRole.AGENT, AgentRecrutementRole.CONTRIBUTEUR),
-        ],
-        ids=[
-            "superviseur",
-            "agent_responsable",
-            "agent_recruteur",
-            "agent_contributeur",
-        ],
-    )
+    @AUTHORIZED_ROLES
     def test_authorized_agent_creates_a_conversation(
         self, authenticated_client, test_user, organisme_role, recrutement_role
     ):
-        _, organisme = create_organisme_with_agent(
-            role=organisme_role, utilisateur=test_user
+        agent, organisme, recrutement, candidature = _grant(
+            test_user, organisme_role, recrutement_role
         )
-        recrutement, candidature = _candidature_for(organisme)
-        if recrutement_role is not None:
-            RecrutementAgentDjangoFactory(
-                recrutement=recrutement,
-                agent=test_user.profil_agent,
-                role=recrutement_role.value,
-            )
 
-        response = authenticated_client.post(
+        response = _call(
+            authenticated_client,
+            "post",
             _url(organisme.id, recrutement.pk, candidature.pk),
-            _payload(),
-            format="multipart",
         )
 
         assert response.status_code == status.HTTP_201_CREATED
@@ -301,34 +296,53 @@ class TestCreateConversation:
         assert body["objet"] == "Convocation"
         assert body["last_message_content"] == "Bonjour"
         assert body["creator"] == body["last_message_author"]
+        message = MessageModel.objects.get(conversation_id=body["uuid"])
+        assert message.auteur_id == agent.utilisateur_id
 
-    def test_accepts_max_documents_of_each_allowed_type(
-        self, authenticated_client, test_user
+    def test_created_conversation_is_persisted_audited_and_listed(
+        self, authenticated_client, contexte
     ):
-        _, organisme = create_organisme_with_agent(
-            role=AgentOrganismeRole.SUPERVISEUR, utilisateur=test_user
-        )
-        recrutement, candidature = _candidature_for(organisme)
+        agent, candidature, url = contexte
 
-        response = authenticated_client.post(
-            _url(organisme.id, recrutement.pk, candidature.pk),
-            _payload(documents=valid_documents()),
-            format="multipart",
-        )
+        created = _call(authenticated_client, "post", url).json()
+
+        conversation = ConversationModel.objects.get(pk=created["uuid"])
+        assert conversation.candidature_id == candidature.pk
+        assert conversation.objet == "Convocation"
+        audit = AuditLogModel.objects.get(ressource_id=conversation.pk)
+        assert audit.ressource_kind == "Conversation"
+        assert audit.event_name == "ConversationCreee"
+        assert audit.utilisateur_id == agent.utilisateur_id
+        listed = authenticated_client.get(url).json()["results"]
+        assert [c["uuid"] for c in listed] == [created["uuid"]]
+
+    def test_attaches_max_documents_of_each_allowed_type_to_the_message(
+        self, authenticated_client, contexte
+    ):
+        agent, candidature, url = contexte
+
+        response = _call(authenticated_client, "post", url, documents=valid_documents())
 
         assert response.status_code == status.HTTP_201_CREATED
-
-    def test_content_whitespace_is_preserved(self, authenticated_client, test_user):
-        _, organisme = create_organisme_with_agent(
-            role=AgentOrganismeRole.SUPERVISEUR, utilisateur=test_user
+        pieces_jointes = MessageDocumentModel.objects.select_related("document").filter(
+            message__conversation_id=response.json()["uuid"]
         )
-        recrutement, candidature = _candidature_for(organisme)
+        documents = [piece.document for piece in pieces_jointes]
+        assert sorted(d.nom_original for d in documents) == [
+            "cv.pdf",
+            "diplome.pdf",
+            "lettre.pdf",
+            "photo.png",
+            "scan.jpg",
+        ]
+        assert all(d.candidature_id == candidature.pk for d in documents)
+        assert all(d.type_document == TypeDocument.AUTRE for d in documents)
+        assert all(d.depose_par_id == agent.utilisateur_id for d in documents)
 
-        response = authenticated_client.post(
-            _url(organisme.id, recrutement.pk, candidature.pk),
-            _payload(content="    code\n"),
-            format="multipart",
-        )
+    def test_content_whitespace_is_preserved(self, authenticated_client, contexte):
+        *_, url = contexte
+
+        response = _call(authenticated_client, "post", url, content="    code\n")
 
         assert response.status_code == status.HTTP_201_CREATED
         assert response.json()["last_message_content"] == "    code\n"
@@ -353,85 +367,37 @@ class TestCreateConversation:
         ],
     )
     def test_invalid_payload_is_rejected(
-        self, authenticated_client, test_user, payload, champ
+        self, authenticated_client, contexte, payload, champ
     ):
-        _, organisme = create_organisme_with_agent(
-            role=AgentOrganismeRole.SUPERVISEUR, utilisateur=test_user
-        )
-        recrutement, candidature = _candidature_for(organisme)
+        *_, url = contexte
 
-        response = authenticated_client.post(
-            _url(organisme.id, recrutement.pk, candidature.pk),
-            payload,
-            format="multipart",
-        )
+        response = authenticated_client.post(url, payload, format="multipart")
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert champ in response.json()
+        assert not ConversationModel.objects.exists()
 
     @pytest.mark.parametrize("build_documents", INVALID_DOCUMENTS)
     def test_invalid_documents_are_rejected(
-        self, authenticated_client, test_user, build_documents
+        self, authenticated_client, contexte, build_documents
     ):
-        _, organisme = create_organisme_with_agent(
-            role=AgentOrganismeRole.SUPERVISEUR, utilisateur=test_user
-        )
-        recrutement, candidature = _candidature_for(organisme)
+        *_, url = contexte
 
-        response = authenticated_client.post(
-            _url(organisme.id, recrutement.pk, candidature.pk),
-            _payload(documents=build_documents()),
-            format="multipart",
-        )
+        response = _call(authenticated_client, "post", url, documents=build_documents())
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert "documents" in response.json()
 
-    @pytest.mark.parametrize(
-        "role", [AgentOrganismeRole.AGENT, None], ids=["no_recrutement_role", "no_role"]
-    )
-    def test_is_forbidden_for(self, authenticated_client, test_user, role):
-        if role is None:
-            organisme = OrganismeDjangoFactory()
-        else:
-            _, organisme = create_organisme_with_agent(role=role, utilisateur=test_user)
-        recrutement, candidature = _candidature_for(organisme)
+    def test_incomplete_uploaded_file_is_a_bad_request(
+        self, authenticated_client, contexte
+    ):
+        *_, url = contexte
 
-        response = authenticated_client.post(
-            _url(organisme.id, recrutement.pk, candidature.pk),
-            _payload(),
-            format="multipart",
-        )
+        with patch(
+            "presentation.recruteur.views.candidature_conversations.create_conversation",
+            side_effect=FichierDeposeIncomplet(),
+        ):
+            response = _call(authenticated_client, "post", url)
 
-        assert response.status_code == status.HTTP_404_NOT_FOUND
-
-    @pytest.mark.parametrize(
-        "build_ids",
-        [
-            _unknown_organisme,
-            _unknown_recrutement,
-            _recrutement_from_another_organisme,
-            _candidature_from_another_recrutement,
-            _unknown_candidature,
-        ],
-        ids=[
-            "unknown_organisme",
-            "unknown_recrutement",
-            "recrutement_from_another_organisme",
-            "candidature_from_another_recrutement",
-            "unknown_candidature",
-        ],
-    )
-    def test_returns_404_for(self, authenticated_client, test_user, build_ids):
-        _, organisme = create_organisme_with_agent(
-            role=AgentOrganismeRole.SUPERVISEUR, utilisateur=test_user
-        )
-        recrutement, candidature = _candidature_for(organisme)
-
-        response = authenticated_client.post(
-            _url(*build_ids(organisme, recrutement, candidature)),
-            _payload(),
-            format="multipart",
-        )
-
-        assert response.status_code == status.HTTP_404_NOT_FOUND
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert response.json() == {"error": str(FichierDeposeIncomplet())}
