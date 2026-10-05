@@ -19,9 +19,7 @@ oauth.register(
     access_token_url=f"{settings.PROCONNECT_BASE_URL}{TOKEN_ENDPOINT}",
     userinfo_endpoint=f"{settings.PROCONNECT_BASE_URL}{USERINFO_ENDPOINT}",
     jwks_uri=f"{settings.PROCONNECT_BASE_URL}{JWKS_ENDPOINT}",
-    client_kwargs={
-        "scope": "openid email given_name usual_name roles organization_label"
-    },
+    client_kwargs={"scope": "openid email given_name usual_name organization_label"},
 )
 
 
