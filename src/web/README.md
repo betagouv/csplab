@@ -50,6 +50,12 @@ Pour réinitialiser et re-seeder :
 mise run web:seed -- --force
 ```
 
+Pour recetter la pagination, les filtres et le défilement du kanban, `seed_recruteur_volume` ajoute plusieurs centaines de candidatures à trois recrutements du seed, réparties sur toutes les étapes de « Chargé de mission numérique » :
+
+```sh
+mise run web:seed:volume
+```
+
 ### Frontend Vue.js (ATS)
 
 Le service web inclut un frontend Vue.js pour l'ATS (Applicant Tracking System).

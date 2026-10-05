@@ -90,6 +90,12 @@ description = "Seed the demo dataset (idempotent, -- --force to reseed)"
 depends = ["migrate", "s3:init"]
 run = "python manage.py seed_recruteur_datas"
 
+[tasks."seed:volume"]
+alias = "web:seed:volume"
+description = "Add several hundred candidatures to the demo dataset (idempotent, -- --force to reseed)"
+depends = ["seed"]
+run = "python manage.py seed_recruteur_volume"
+
 [tasks."db:reset"]
 alias = "web:db:reset"
 description = "Recreate an empty web database, then migrate and seed"
