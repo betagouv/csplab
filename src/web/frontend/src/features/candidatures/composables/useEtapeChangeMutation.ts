@@ -1,3 +1,4 @@
+import type { EntryKey } from '@pinia/colada'
 import type { MaybeRefOrGetter } from 'vue'
 import type { EtapeChange } from '../api'
 import type { CandidaturesQueryParams } from '../queries'
@@ -5,12 +6,21 @@ import { useMutation, useQueryCache } from '@pinia/colada'
 import { toValue } from 'vue'
 import { useToast } from '@/composables/ui/useToast'
 import { patchEtapeCandidatures } from '../api'
-import { CANDIDATURES_QUERY_KEYS, recrutementKanbanQuery } from '../queries'
+import { candidatureDetailQuery, CANDIDATURES_QUERY_KEYS, recrutementKanbanQuery } from '../queries'
 import { moveCandidaturesInKanban } from '../utils/kanban'
 
 export function useEtapeChangeMutation(recrutement: MaybeRefOrGetter<CandidaturesQueryParams>) {
   const queryCache = useQueryCache()
   const { addToast } = useToast()
+
+  function restore(key: EntryKey, previous: unknown, optimistic: unknown): void {
+    if (queryCache.getQueryData(key) === optimistic) {
+      queryCache.setQueryData(key, previous)
+    }
+    else {
+      void queryCache.invalidateQueries({ key })
+    }
+  }
 
   const mutation = useMutation({
     mutation: (change: EtapeChange, { params }) =>
@@ -24,7 +34,23 @@ export function useEtapeChangeMutation(recrutement: MaybeRefOrGetter<Candidature
         queryCache.cancelQueries({ key })
         queryCache.setQueryData(key, optimistic)
       }
-      return { params, key, previous, optimistic }
+
+      const etapeCible = previous?.etapes.find(etape => etape.uuid === etapeCibleUuid)
+      const details = etapeCible
+        ? candidatureUuids.flatMap((candidatureUuid) => {
+            const detailKey = candidatureDetailQuery({ ...params, candidatureUuid }).key
+            const previousDetail = queryCache.getQueryData(detailKey)
+            if (!previousDetail) {
+              return []
+            }
+            const optimisticDetail = { ...previousDetail, etape_actuelle: { uuid: etapeCible.uuid, nom: etapeCible.nom } }
+            queryCache.cancelQueries({ key: detailKey })
+            queryCache.setQueryData(detailKey, optimisticDetail)
+            return [{ key: detailKey, previous: previousDetail, optimistic: optimisticDetail }]
+          })
+        : []
+
+      return { params, key, previous, optimistic, details }
     },
     onSuccess: ({ echecs }, _change, { key, optimistic }) => {
       if (queryCache.getQueryData(key) !== optimistic || echecs.length > 0) {
@@ -38,14 +64,12 @@ export function useEtapeChangeMutation(recrutement: MaybeRefOrGetter<Candidature
         title: 'Certaines candidatures n\'ont pas changé d\'étape',
       })
     },
-    onError: (_error, _change, { key, previous, optimistic }) => {
+    onError: (_error, _change, { key, previous, optimistic, details }) => {
       if (key && previous) {
-        if (queryCache.getQueryData(key) === optimistic) {
-          queryCache.setQueryData(key, previous)
-        }
-        else {
-          void queryCache.invalidateQueries({ key })
-        }
+        restore(key, previous, optimistic)
+      }
+      for (const detail of details ?? []) {
+        restore(detail.key, detail.previous, detail.optimistic)
       }
       addToast({
         variant: 'error',

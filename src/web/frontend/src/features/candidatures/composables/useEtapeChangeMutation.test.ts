@@ -1,4 +1,4 @@
-import type { ChangerEtapeResultat, RecrutementDetailKanban } from '../types'
+import type { CandidatureDetail, ChangerEtapeResultat, RecrutementDetailKanban } from '../types'
 import { PiniaColada, useQuery } from '@pinia/colada'
 import { mount } from '@vue/test-utils'
 import { createPinia } from 'pinia'
@@ -8,15 +8,17 @@ import {
   CANDIDATURE_ALICE,
   CANDIDATURE_BRUNO,
   CANDIDATURE_PARAMS,
+  candidatureDetail,
   ETAPE_ENTRETIEN,
+  ETAPE_RECEPTION,
   ETAPE_REFUS,
   KANBAN,
   kanbanColumns,
   ORGANISME_UUID,
   RECRUTEMENT_UUID,
 } from '@/test/fixtures/candidatures'
-import { getCandidatureActivites, getCandidatureListe, getRecrutementKanban, patchEtapeCandidatures } from '../api'
-import { candidatureListeQuery, recrutementKanbanQuery } from '../queries'
+import { getCandidatureActivites, getCandidatureDetail, getCandidatureListe, getRecrutementKanban, patchEtapeCandidatures } from '../api'
+import { candidatureDetailQuery, candidatureListeQuery, recrutementKanbanQuery } from '../queries'
 import { moveCandidaturesInKanban } from '../utils/kanban'
 import { useCandidatureActivites } from './useCandidatureActivites'
 import { useEtapeChangeMutation } from './useEtapeChangeMutation'
@@ -25,6 +27,7 @@ vi.mock('../api', () => ({
   getRecrutementKanban: vi.fn(),
   getCandidatureListe: vi.fn(),
   getCandidatureActivites: vi.fn(),
+  getCandidatureDetail: vi.fn(),
   patchEtapeCandidatures: vi.fn(),
 }))
 
@@ -34,12 +37,14 @@ const CHANGE = { etapeCibleUuid: ETAPE_ENTRETIEN, candidatureUuids: [CANDIDATURE
 async function mountEtapeChangeMutation() {
   let context!: ReturnType<typeof useEtapeChangeMutation>
   let kanban!: ReturnType<typeof useQuery<RecrutementDetailKanban>>
+  let detail!: ReturnType<typeof useQuery<CandidatureDetail>>
 
   mount(defineComponent({
     setup() {
       kanban = useQuery(recrutementKanbanQuery(RECRUTEMENT))
       useQuery(candidatureListeQuery(RECRUTEMENT))
       useCandidatureActivites(CANDIDATURE_PARAMS)
+      detail = useQuery(candidatureDetailQuery(CANDIDATURE_PARAMS))
       context = useEtapeChangeMutation(RECRUTEMENT)
       return () => h('div')
     },
@@ -47,8 +52,8 @@ async function mountEtapeChangeMutation() {
     global: { plugins: [createPinia(), PiniaColada] },
   })
 
-  await vi.waitFor(() => expect(kanban.data.value).toBeDefined())
-  return { context, kanban }
+  await vi.waitFor(() => expect(kanban.data.value && detail.data.value).toBeDefined())
+  return { context, kanban, detail }
 }
 
 describe('useEtapeChangeMutation', () => {
@@ -56,6 +61,7 @@ describe('useEtapeChangeMutation', () => {
     vi.mocked(getRecrutementKanban).mockReset().mockResolvedValue(KANBAN)
     vi.mocked(getCandidatureListe).mockReset().mockResolvedValue({ count: 0, next: null, previous: null, results: [] })
     vi.mocked(getCandidatureActivites).mockReset().mockResolvedValue({ count: 0, next: null, previous: null, results: [] })
+    vi.mocked(getCandidatureDetail).mockReset().mockImplementation(async ({ candidatureUuid }) => candidatureDetail(candidatureUuid))
     vi.mocked(patchEtapeCandidatures).mockReset().mockResolvedValue({ reussites: [CANDIDATURE_ALICE], echecs: [] })
   })
 
@@ -70,6 +76,23 @@ describe('useEtapeChangeMutation', () => {
       etapeCibleUuid: ETAPE_ENTRETIEN,
       candidatureUuids: [CANDIDATURE_ALICE, CANDIDATURE_BRUNO],
     }))
+  })
+
+  it('shows the new stage in the detail of the moved candidature, and restores it when the api call fails', async () => {
+    let fail!: (error: Error) => void
+    vi.mocked(patchEtapeCandidatures).mockImplementation(() => new Promise<ChangerEtapeResultat>((_resolve, reject) => {
+      fail = reject
+    }))
+    const { context, detail } = await mountEtapeChangeMutation()
+    vi.mocked(getCandidatureDetail).mockImplementation(() => new Promise(() => {}))
+
+    const change = context.changeEtape(CHANGE)
+    expect(detail.data.value?.etape_actuelle.uuid).toBe(ETAPE_ENTRETIEN)
+
+    await vi.waitFor(() => expect(patchEtapeCandidatures).toHaveBeenCalled())
+    fail(new Error('boom'))
+    await expect(change).resolves.toBe(false)
+    expect(detail.data.value?.etape_actuelle.uuid).toBe(ETAPE_RECEPTION)
   })
 
   it('reloads the list and the moved candidature once the change is saved', async () => {

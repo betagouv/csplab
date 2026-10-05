@@ -1,15 +1,24 @@
 import type { InjectionKey, MaybeRefOrGetter } from 'vue'
-import { computed, inject, toValue } from 'vue'
+import { computed, inject, provide, toValue } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { CANDIDATURE_ROUTE_NAME } from '../routes'
 import { findCandidaturePosition } from '../utils/position'
 
-export const CANDIDATURE_SEQUENCE: InjectionKey<(candidatureUuid: string) => string[]> = Symbol('candidature-sequence')
+type CandidatureSequence = (candidatureUuid: string) => string[]
+
+const KEY: InjectionKey<CandidatureSequence> = Symbol('candidature-sequence')
+
+export function provideCandidatureSequence(sequenceOf: CandidatureSequence): void {
+  provide(KEY, sequenceOf)
+}
 
 export function useCandidatureNavigation(candidatureUuid: MaybeRefOrGetter<string>) {
   const route = useRoute()
   const router = useRouter()
-  const sequenceOf = inject(CANDIDATURE_SEQUENCE, () => [])
+  const sequenceOf = inject(KEY)
+  if (!sequenceOf) {
+    throw new Error('useCandidatureNavigation must be used within provideCandidatureSequence')
+  }
 
   const position = computed(() => findCandidaturePosition(sequenceOf(toValue(candidatureUuid)), toValue(candidatureUuid)))
 

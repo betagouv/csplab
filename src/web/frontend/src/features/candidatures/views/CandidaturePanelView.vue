@@ -58,7 +58,8 @@ const description = computed(() =>
 )
 
 const etape = computed(() => candidature.value?.etape_actuelle ?? null)
-const { position, goPrevious, goNext } = useCandidatureNavigation(candidatureUuid)
+const navigation = useCandidatureNavigation(candidatureUuid)
+const { position, goPrevious, goNext } = navigation
 
 const queryCache = useQueryCache()
 watch(position, (current) => {
@@ -93,7 +94,7 @@ const unsavedChanges = useUnsavedChangesGuard({
   ignore: to => to.params.candidatureUuid === candidatureUuid.value,
 })
 
-const etapeChange = useEtapeChange(candidature, close)
+const etapeChange = useEtapeChange(candidature, navigation, close)
 
 async function requestEtapeChange(targetEtapeUuid: string): Promise<void> {
   if (await unsavedChanges.confirmLeave()) {

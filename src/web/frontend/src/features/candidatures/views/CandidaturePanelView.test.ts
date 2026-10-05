@@ -157,6 +157,7 @@ describe('candidaturePanelView', () => {
       etapeCibleUuid: ETAPE_ENTRETIEN,
       candidatureUuids: [CANDIDATURE_ALICE],
     })
+    expect(await screen.findByText('Alice Dupont est passé à l\'étape Entretien')).toBeInTheDocument()
   })
 
   it('asks for confirmation before refusing the candidature', async () => {

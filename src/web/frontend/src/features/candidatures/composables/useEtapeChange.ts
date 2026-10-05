@@ -1,16 +1,21 @@
 import type { Ref } from 'vue'
 import type { CandidatureDetail, MotifRefus } from '../types'
+import type { useCandidatureNavigation } from './useCandidatureNavigation'
 import { useToast } from '@/composables/ui/useToast'
 import { formatCandidatNom } from '../utils/candidat'
-import { useCandidatureNavigation } from './useCandidatureNavigation'
 import { useCandidatures } from './useCandidatures'
 import { useEtapeChangeMutation } from './useEtapeChangeMutation'
 import { useRefusCandidature } from './useRefusCandidature'
 
-export function useEtapeChange(candidature: Ref<CandidatureDetail | undefined>, leavePanel: () => void) {
+type CandidatureNavigation = Pick<ReturnType<typeof useCandidatureNavigation>, 'position' | 'navigateTo'>
+
+export function useEtapeChange(
+  candidature: Ref<CandidatureDetail | undefined>,
+  { position, navigateTo }: CandidatureNavigation,
+  leavePanel: () => void,
+) {
   const { recrutementParams, recrutementEtapes } = useCandidatures()
   const { changeEtape } = useEtapeChangeMutation(recrutementParams)
-  const { position, navigateTo } = useCandidatureNavigation(() => candidature.value?.uuid ?? '')
   const { addToast, dismissToast } = useToast()
   const refus = useRefusCandidature()
 
