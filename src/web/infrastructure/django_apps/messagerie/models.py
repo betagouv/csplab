@@ -64,6 +64,21 @@ class ConversationModel(BaseDatedModel):
         return self.objet
 
 
+class MessageQuerySet(models.QuerySet):
+    def by_conversation(self, conversation_id) -> "MessageQuerySet":
+        return (
+            self.filter(conversation_id=conversation_id)
+            .select_related("auteur")
+            .prefetch_related(
+                Prefetch(
+                    "pieces_jointes",
+                    queryset=MessageDocumentModel.objects.select_related("document"),
+                )
+            )
+            .order_by("created_at", "id")
+        )
+
+
 class MessageModel(BaseDatedModel):
     conversation = models.ForeignKey(
         ConversationModel,
@@ -78,6 +93,8 @@ class MessageModel(BaseDatedModel):
         db_column="auteur_id",
         related_name="messages_rediges",
     )
+
+    objects = MessageQuerySet.as_manager()
 
     class Meta:
         db_table = "message"
