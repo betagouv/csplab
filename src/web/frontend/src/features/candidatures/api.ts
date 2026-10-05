@@ -27,22 +27,38 @@ export async function getCandidatureDetail(candidature: CandidatureParams): Prom
   return data!
 }
 
+const CANDIDATURE_LISTE_PAGE_SIZE = 100
+
 export async function getCandidatureListe(
   organismeUuid: string,
   recrutementUuid: string,
 ): Promise<PaginatedCandidatureListeList> {
-  const { data } = await api.GET(
-    '/recruteur/organismes/{organisme_uuid}/recrutements/{recrutement_uuid}/liste',
-    {
-      params: {
-        path: {
-          organisme_uuid: organismeUuid,
-          recrutement_uuid: recrutementUuid,
+  async function fetchPage(page: number): Promise<PaginatedCandidatureListeList> {
+    const { data } = await api.GET(
+      '/recruteur/organismes/{organisme_uuid}/recrutements/{recrutement_uuid}/liste',
+      {
+        params: {
+          path: {
+            organisme_uuid: organismeUuid,
+            recrutement_uuid: recrutementUuid,
+          },
+          query: { page, taille: CANDIDATURE_LISTE_PAGE_SIZE },
         },
       },
-    },
+    )
+    return data!
+  }
+
+  const first = await fetchPage(1)
+  const pageCount = Math.ceil(first.count / CANDIDATURE_LISTE_PAGE_SIZE)
+  const others = await Promise.all(
+    Array.from({ length: pageCount - 1 }, (_, index) => fetchPage(index + 2)),
   )
-  return data!
+  return {
+    ...first,
+    next: null,
+    results: [first, ...others].flatMap(page => page.results),
+  }
 }
 
 export interface EtapeChange {
