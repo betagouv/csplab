@@ -464,18 +464,6 @@ class ConversationSerializer(serializers.ModelSerializer):
         return conversation.derniers_messages[0].auteur.get_full_name()
 
 
-class ConversationStubSerializer(serializers.Serializer):
-    """Réponse du POST (stub), même forme JSON que ConversationSerializer."""
-
-    uuid = serializers.UUIDField()
-    objet = serializers.CharField()
-    creator = serializers.CharField()
-    created_at = serializers.DateTimeField()
-    last_message_content = serializers.CharField()
-    last_message_author = serializers.CharField()
-    last_message_created_at = serializers.DateTimeField()
-
-
 # ---------------------------------------------------------------------------
 # Serializers pour le détail d'une conversation (stub)
 # ---------------------------------------------------------------------------
