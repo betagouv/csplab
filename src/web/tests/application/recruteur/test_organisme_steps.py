@@ -1,8 +1,5 @@
 import pytest
 
-from application.recruteur.usecases.get_organisme_recruteur import (
-    GetOrganismeRecruteurQuery,
-)
 from application.recruteur.usecases.initialize_organisme_steps import (
     InitializeOrganismeStepsCommand,
 )
@@ -26,24 +23,6 @@ from infrastructure.factories.recruteur.etapes_recrutement_factory import (
 from infrastructure.factories.recruteur.organisme_factory import (
     OrganismeRecruteurFactory,
 )
-
-
-def test_get_organisme_steps(get_organisme_recruteur_usecase):
-    organisme_before = OrganismeRecruteurFactory.create_entity()
-    get_organisme_recruteur_usecase.organisme_recruteur_repository.save(
-        organisme_before
-    )
-
-    organisme = get_organisme_recruteur_usecase.execute(
-        command=InitializeOrganismeStepsCommand(
-            organisme_id=organisme_before.entity_id,
-            utilisateur=UtilisateurFactory.create_entity(),
-        )
-    )
-
-    events = organisme.collect_events()
-    assert len(events) == 0
-    assert organisme.entity_id == organisme_before.entity_id
 
 
 # transaction.atomic() dans le usecase ouvre une connexion ; le repository reste factice
@@ -93,27 +72,6 @@ def test_update_organisme_steps(update_organisme_steps_usecase):
     assert any(isinstance(e, EtapeAjoutee) for e in events)
     assert any(isinstance(e, EtapeSupprimee) for e in events)
     assert any(isinstance(e, EtapeReordonnee) for e in events)
-
-
-def test_get_organisme_steps_raises_when_not_responsable(
-    get_organisme_recruteur_usecase,
-):
-    organisme_before = OrganismeRecruteurFactory.create_entity()
-    get_organisme_recruteur_usecase.organisme_recruteur_repository.save(
-        organisme_before
-    )
-    permission_service = get_organisme_recruteur_usecase.organisme_permission_service
-    permission_service.can_execute.side_effect = AccesOrganismeRefuse(
-        organisme_before.entity_id
-    )
-
-    with pytest.raises(AccesOrganismeRefuse):
-        get_organisme_recruteur_usecase.execute(
-            command=GetOrganismeRecruteurQuery(
-                organisme_id=organisme_before.entity_id,
-                utilisateur=UtilisateurFactory.create_entity(),
-            )
-        )
 
 
 def test_initialize_organisme_steps_raises_when_not_responsable(

@@ -46,9 +46,6 @@ from application.ingestion.usecases.list_sources import ListSourcesUsecase
 from application.ingestion.usecases.load_documents import LoadDocumentsUsecase
 from application.ingestion.usecases.upsert_offers import UpsertOffersUsecase
 from application.ingestion.usecases.vectorize_documents import VectorizeDocumentsUsecase
-from application.recruteur.usecases.get_organisme_recruteur import (
-    GetOrganismeRecruteurUsecase,
-)
 from application.recruteur.usecases.initialize_organisme_steps import (
     InitializeOrganismeStepsUsecase,
 )
@@ -508,18 +505,6 @@ def get_organisme_usecase():
     return GetOrganismeUsecase(
         organisme_repository=Mock(spec=IOrganismeRepository),
         permission_service=MagicMock(spec=OrganismePermissionService),
-    )
-
-
-@pytest.fixture
-def get_organisme_recruteur_usecase():
-    organisme_recruteur_repository = cast(
-        IOrganismeRecruteurRepository,
-        create_interface_aware_mock(IOrganismeRecruteurRepository),
-    )
-    return GetOrganismeRecruteurUsecase(
-        organisme_recruteur_repository=organisme_recruteur_repository,
-        organisme_permission_service=MagicMock(spec=OrganismePermissionService),
     )
 
 

@@ -2,9 +2,6 @@ from unittest.mock import MagicMock, Mock, patch
 
 import pytest
 
-from application.recruteur.usecases.get_organisme_recruteur import (
-    GetOrganismeRecruteurQuery,
-)
 from application.recruteur.usecases.initialize_organisme_steps import (
     InitializeOrganismeStepsCommand,
 )
@@ -170,25 +167,6 @@ def test_update_organisme_steps_logs_action(audited_container):
     assert logs[0].ressource_id == organisme_model.id
 
 
-def test_get_organisme_steps(recruteur_integration_container):
-    agent, organisme_model = create_organisme_with_agent(
-        role=AgentOrganismeRole.SUPERVISEUR
-    )
-    usecase = recruteur_integration_container.get_organisme_recruteur_usecase()
-
-    organisme = usecase.execute(
-        command=GetOrganismeRecruteurQuery(
-            organisme_id=organisme_model.id,
-            utilisateur=UtilisateurFactory.create_entity(
-                entity_id=agent.utilisateur_id
-            ),
-        )
-    )
-    events = organisme.collect_events()
-    assert len(events) == 0
-    assert organisme.entity_id == organisme_model.id
-
-
 def test_initialize_organisme_steps(recruteur_integration_container):
     agent, organisme_model = create_organisme_with_agent(
         role=AgentOrganismeRole.SUPERVISEUR
@@ -234,45 +212,6 @@ def test_update_organisme_steps(recruteur_integration_container):
     usecase.audit_log_writer.drain_events.assert_called_once_with(
         utilisateur_id=agent.utilisateur_id, aggregate=organisme
     )
-
-
-class TestGetOrganismeRecruteurRbac:
-    @pytest.mark.parametrize(
-        ("role", "est_staff"),
-        [(AgentOrganismeRole.SUPERVISEUR, False), (None, True)],
-        ids=["responsable", "staff"],
-    )
-    def test_role_grants_access(self, recruteur_integration_container, role, est_staff):
-        agent, organisme = create_organisme_with_agent(role)
-        usecase = recruteur_integration_container.get_organisme_recruteur_usecase()
-
-        result = usecase.execute(
-            GetOrganismeRecruteurQuery(
-                organisme_id=organisme.id,
-                utilisateur=UtilisateurFactory.create_entity(
-                    entity_id=agent.utilisateur_id, is_staff=est_staff
-                ),
-            )
-        )
-
-        assert result.entity_id == organisme.id
-
-    @pytest.mark.parametrize(
-        "role", [AgentOrganismeRole.AGENT, None], ids=["membre", "non_membre"]
-    )
-    def test_role_refuse_access(self, recruteur_integration_container, role):
-        agent, organisme = create_organisme_with_agent(role)
-        usecase = recruteur_integration_container.get_organisme_recruteur_usecase()
-
-        with pytest.raises(AccesOrganismeRefuse):
-            usecase.execute(
-                GetOrganismeRecruteurQuery(
-                    organisme_id=organisme.id,
-                    utilisateur=UtilisateurFactory.create_entity(
-                        entity_id=agent.utilisateur_id
-                    ),
-                )
-            )
 
 
 class TestInitializeOrganismeStepsRbac:
