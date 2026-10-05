@@ -1,6 +1,8 @@
 import type { EtapeRecrutement, UpdateEtapeRecrutement } from '../types'
 import { useMutation, useQuery, useQueryCache } from '@pinia/colada'
 import { computed } from 'vue'
+import { CANDIDATURES_QUERY_KEYS } from '@/features/candidatures/queries'
+import { RECRUTEMENTS_QUERY_KEYS } from '@/features/recrutements/queries'
 import {
   initEtapesOffre,
   initEtapesRecrutement,
@@ -53,6 +55,10 @@ function resolveEtapesApi(params: EtapesRecrutementType) {
       update: (payload: UpdateEtapeRecrutement[]) =>
         updateEtapesOffre(organismeUuid, recrutementUuid, payload),
       init: () => initEtapesOffre(organismeUuid, recrutementUuid),
+      clesAffectees: [
+        CANDIDATURES_QUERY_KEYS.recrutement(organismeUuid, recrutementUuid),
+        RECRUTEMENTS_QUERY_KEYS.detail(organismeUuid, recrutementUuid),
+      ],
     }
   }
 
@@ -62,6 +68,7 @@ function resolveEtapesApi(params: EtapesRecrutementType) {
     update: (payload: UpdateEtapeRecrutement[]) =>
       updateEtapesRecrutement(organismeUuid, payload),
     init: () => initEtapesRecrutement(organismeUuid),
+    clesAffectees: [],
   }
 }
 
@@ -75,6 +82,9 @@ export function useEtapesRecrutement(params: EtapesRecrutementType) {
 
   function applyFreshEtapes(fresh: EtapeRecrutement[]): void {
     queryCache.setQueryData(queryOptions.key, fresh)
+    for (const key of etapesApi.clesAffectees) {
+      void queryCache.invalidateQueries({ key })
+    }
   }
 
   const update = useMutation({

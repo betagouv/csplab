@@ -1,6 +1,6 @@
 import type { EtapeRecrutement, UpdateEtapeRecrutement } from '../types'
 import type { EtapesRecrutementType } from './useEtapesRecrutement'
-import { PiniaColada } from '@pinia/colada'
+import { PiniaColada, useQueryCache } from '@pinia/colada'
 import { mount } from '@vue/test-utils'
 import { createPinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
@@ -37,11 +37,11 @@ const DEFAULT_ETAPES: EtapeRecrutement[] = [
 async function mountEtapes(
   params: EtapesRecrutementType = { type: 'organisme', organismeUuid: ORGANISME_UUID },
 ) {
-  let result!: ReturnType<typeof useEtapesRecrutement>
+  let result!: ReturnType<typeof useEtapesRecrutement> & { queryCache: ReturnType<typeof useQueryCache> }
 
   mount(defineComponent({
     setup() {
-      result = useEtapesRecrutement(params)
+      result = { ...useEtapesRecrutement(params), queryCache: useQueryCache() }
       return () => h('div')
     },
   }), {
@@ -200,6 +200,20 @@ describe('useEtapesRecrutement — type offre', () => {
     expect((payload as UpdateEtapeRecrutement[]).find(p => p.uuid === 'bbbb')?.nom)
       .toBe('Présélection RH')
     expect(mockUpdateEtapesRecrutement).not.toHaveBeenCalled()
+  })
+
+  it('invalidates the recrutement caches that display its etapes', async () => {
+    const { renameEtape, queryCache } = await mountEtapes(PARAMS_OFFRE)
+    const invalidateQueries = vi.spyOn(queryCache, 'invalidateQueries')
+
+    await renameEtape('bbbb', 'Présélection RH')
+
+    expect(invalidateQueries).toHaveBeenCalledWith({
+      key: ['candidatures', ORGANISME_UUID, RECRUTEMENT_UUID],
+    })
+    expect(invalidateQueries).toHaveBeenCalledWith({
+      key: ['recrutements', ORGANISME_UUID, RECRUTEMENT_UUID],
+    })
   })
 
   it('resets etapes on the offre endpoint', async () => {
