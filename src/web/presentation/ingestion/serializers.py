@@ -28,29 +28,14 @@ from infrastructure.django_apps.ingestion.models.talentsoft_organisme import (
 )
 from presentation.api.serializers import GenericErrorSerializer
 from presentation.commons.serializers import LocalisationSerializer, OrganismeSerializer
-from presentation.ingestion.legacy_client_aliases import (
-    AREA_CODE_ALIASES,
-    CATEGORY_CODE_ALIASES,
-    CONTRACT_TYPE_CODE_ALIASES,
-    COUNTRY_CODE_ALIASES,
-    DEPARTMENT_CODE_ALIASES,
-    DOMAIN_CODE_ALIASES,
-    EXPERIENCE_LEVEL_CODE_ALIASES,
-    MANAGEMENT_CODE_ALIASES,
-    PUBLICATION_DATE_ALIASES,
-    REGION_CODE_ALIASES,
-    WORKING_PLACE_CODE_ALIASES,
-)
 
 
-def _parse_enum_list(value, enum_cls, error_label, excluded=frozenset(), aliases=None):
+def _parse_enum_list(value, enum_cls, error_label, excluded=frozenset()):
     if not value:
         return None
 
     allowed = {e.name for e in enum_cls if e not in excluded}
     requested = [part.strip() for part in value.split(",") if part.strip()]
-    if aliases:
-        requested = [aliases.get(part, part) for part in requested]
     invalid = [part for part in requested if part not in allowed]
     if invalid:
         raise serializers.ValidationError(
@@ -63,13 +48,10 @@ def _parse_enum_list(value, enum_cls, error_label, excluded=frozenset(), aliases
 
 
 class _CommaSeparatedEnumField(serializers.MultipleChoiceField):
-    def __init__(
-        self, enum_cls, error_label, excluded=frozenset(), aliases=None, **kwargs
-    ):
+    def __init__(self, enum_cls, error_label, excluded=frozenset(), **kwargs):
         self.enum_cls = enum_cls
         self.error_label = error_label
         self.excluded = excluded
-        self.aliases = aliases
         choices = [(e.name, e.value) for e in enum_cls if e not in excluded]
         kwargs.setdefault("default", None)
         super().__init__(choices=choices, **kwargs)
@@ -77,9 +59,7 @@ class _CommaSeparatedEnumField(serializers.MultipleChoiceField):
     def to_internal_value(self, data):
         if isinstance(data, (list, tuple)):
             data = ",".join(data)
-        return _parse_enum_list(
-            data, self.enum_cls, self.error_label, self.excluded, self.aliases
-        )
+        return _parse_enum_list(data, self.enum_cls, self.error_label, self.excluded)
 
 
 _fr_country_names = gettext.translation(
@@ -94,13 +74,11 @@ DEPARTMENT_NAMES = {
 DOMAIN_NAMES = {e.value: e.label for e in DomaineFonctionnel}
 
 
-def _parse_code_list(value, valid_codes, error_label, aliases=None):
+def _parse_code_list(value, valid_codes, error_label):
     if not value:
         return None
 
     requested = [part.strip().upper() for part in value.split(",") if part.strip()]
-    if aliases:
-        requested = [aliases.get(part, part) for part in requested]
     invalid = [part for part in requested if part not in valid_codes]
     if invalid:
         raise serializers.ValidationError(
@@ -111,13 +89,10 @@ def _parse_code_list(value, valid_codes, error_label, aliases=None):
 
 
 class _CommaSeparatedCodeField(serializers.MultipleChoiceField):
-    def __init__(
-        self, code_labels, error_label, to_value_object, aliases=None, **kwargs
-    ):
+    def __init__(self, code_labels, error_label, to_value_object, **kwargs):
         self.valid_codes = frozenset(code_labels)
         self.error_label = error_label
         self.to_value_object = to_value_object
-        self.aliases = aliases
         kwargs.setdefault("default", None)
         choices = sorted(code_labels.items(), key=lambda item: item[0])
         super().__init__(choices=choices, **kwargs)
@@ -125,50 +100,8 @@ class _CommaSeparatedCodeField(serializers.MultipleChoiceField):
     def to_internal_value(self, data):
         if isinstance(data, (list, tuple)):
             data = ",".join(data)
-        codes = _parse_code_list(data, self.valid_codes, self.error_label, self.aliases)
+        codes = _parse_code_list(data, self.valid_codes, self.error_label)
         return [self.to_value_object(code) for code in codes] if codes else None
-
-
-def _resolve_location_codes(value):
-    """
-    For each legacy client identifier provided in `locations`, detects
-    whether it refers to a country, a region, a department or a
-    geographical area, then translates it to the corresponding target
-    code. Legacy identifiers are unique across the four referentials, so a
-    given identifier can only match one type.
-    """
-    requested = [part.strip() for part in value.split(",") if part.strip()]
-
-    countries, regions, departments, areas, invalid = [], [], [], [], []
-    for code in requested:
-        if code in COUNTRY_CODE_ALIASES:
-            countries.append(COUNTRY_CODE_ALIASES[code])
-        elif code in REGION_CODE_ALIASES:
-            regions.append(REGION_CODE_ALIASES[code])
-        elif code in DEPARTMENT_CODE_ALIASES:
-            departments.append(DEPARTMENT_CODE_ALIASES[code])
-        elif code in AREA_CODE_ALIASES:
-            areas.append(AREA_CODE_ALIASES[code])
-        else:
-            invalid.append(code)
-
-    if invalid:
-        raise serializers.ValidationError(
-            "Valeurs de localisation invalides : {}.".format(", ".join(invalid))
-        )
-
-    return countries, regions, departments, areas
-
-
-class _AliasedIntegerField(serializers.IntegerField):
-    def __init__(self, aliases=None, **kwargs):
-        self.aliases = aliases or {}
-        super().__init__(**kwargs)
-
-    def to_internal_value(self, data):
-        if isinstance(data, str) and data in self.aliases:
-            data = self.aliases[data]
-        return super().to_internal_value(data)
 
 
 class ValidationErrorSerializer(GenericErrorSerializer):
@@ -366,67 +299,28 @@ class OfferSummariesQuerySerializer(serializers.Serializer):
         required=False, min_value=1, max_value=1_000, default=100
     )
     category = _CommaSeparatedEnumField(
-        Category,
-        "catégorie",
-        excluded={Category.HORS_CATEGORIE},
-        aliases=CATEGORY_CODE_ALIASES,
+        Category, "catégorie", excluded={Category.HORS_CATEGORIE}
     )
     verse = _CommaSeparatedEnumField(Verse, "versant")
     contractType = _CommaSeparatedEnumField(
-        ContractType,
-        "type de contrat",
-        source="contract_type",
-        aliases=CONTRACT_TYPE_CODE_ALIASES,
+        ContractType, "type de contrat", source="contract_type"
     )
     experienceLevel = _CommaSeparatedEnumField(
-        ExperienceLevel,
-        "niveau d'expérience",
-        source="experience_level",
-        aliases=EXPERIENCE_LEVEL_CODE_ALIASES,
+        ExperienceLevel, "niveau d'expérience", source="experience_level"
     )
-    management = _CommaSeparatedEnumField(
-        Management, "management", aliases=MANAGEMENT_CODE_ALIASES
-    )
+    management = _CommaSeparatedEnumField(Management, "management")
     workingPlace = _CommaSeparatedEnumField(
-        WorkingPlace,
-        "lieu de travail",
-        source="working_place",
-        aliases=WORKING_PLACE_CODE_ALIASES,
+        WorkingPlace, "lieu de travail", source="working_place"
     )
     region = _CommaSeparatedCodeField(
-        REGION_NAMES,
-        "région",
-        lambda code: Region(code=code),
-        aliases=REGION_CODE_ALIASES,
+        REGION_NAMES, "région", lambda code: Region(code=code)
     )
     department = _CommaSeparatedCodeField(
-        DEPARTMENT_NAMES,
-        "département",
-        lambda code: Department(code=code),
-        aliases=DEPARTMENT_CODE_ALIASES,
+        DEPARTMENT_NAMES, "département", lambda code: Department(code=code)
     )
-    country = _CommaSeparatedCodeField(
-        COUNTRY_NAMES, "pays", Country, aliases=COUNTRY_CODE_ALIASES
-    )
-    area = _CommaSeparatedEnumField(
-        GeographicalArea, "zone géographique", aliases=AREA_CODE_ALIASES
-    )
-    domain = _CommaSeparatedCodeField(
-        DOMAIN_NAMES, "domaine", lambda code: code, aliases=DOMAIN_CODE_ALIASES
-    )
-    locations = serializers.CharField(
-        required=False,
-        default=None,
-        allow_blank=False,
-        help_text=(
-            "Filtre géographique par identifiants du référentiel legacy du "
-            "client, séparés par une virgule (ex. `?locations=27,208,330`). "
-            "Le type (pays, région, département ou zone géographique) de "
-            "chaque identifiant est détecté automatiquement et vient "
-            "compléter les filtres `country`, `region`, `department` et "
-            "`area`."
-        ),
-    )
+    country = _CommaSeparatedCodeField(COUNTRY_NAMES, "pays", Country)
+    area = _CommaSeparatedEnumField(GeographicalArea, "zone géographique")
+    domain = _CommaSeparatedCodeField(DOMAIN_NAMES, "domaine", lambda code: code)
     organization = serializers.ListField(
         child=serializers.CharField(),
         required=False,
@@ -437,8 +331,7 @@ class OfferSummariesQuerySerializer(serializers.Serializer):
             "plusieurs organismes (ex. `?organization=ORG1&organization=ORG2`)."
         ),
     )
-    publicationDate = _AliasedIntegerField(
-        aliases=PUBLICATION_DATE_ALIASES,
+    publicationDate = serializers.IntegerField(
         required=False,
         max_value=-1,
         default=None,
@@ -490,28 +383,6 @@ class OfferSummariesQuerySerializer(serializers.Serializer):
                 "Les paramètres latitude, longitude et radius doivent être "
                 "fournis ensemble."
             )
-
-        locations = data.pop("locations", None)
-        if locations:
-            country_codes, region_codes, department_codes, area_names = (
-                _resolve_location_codes(locations)
-            )
-            if country_codes:
-                data["country"] = (data.get("country") or []) + [
-                    Country(code) for code in country_codes
-                ]
-            if region_codes:
-                data["region"] = (data.get("region") or []) + [
-                    Region(code=code) for code in region_codes
-                ]
-            if department_codes:
-                data["department"] = (data.get("department") or []) + [
-                    Department(code=code) for code in department_codes
-                ]
-            if area_names:
-                data["area"] = (data.get("area") or []) + [
-                    GeographicalArea[name] for name in area_names
-                ]
 
         return data
 
