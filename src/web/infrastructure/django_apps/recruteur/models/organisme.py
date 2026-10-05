@@ -4,26 +4,18 @@ from django.db import models
 from django.db.models import Q
 from referentiel.value_objects.verse import Verse
 
-from domain.recruteur.value_objects.categorie_etapes_recrutement import (
-    CategorieEtapeRecrutement,
-)
 from domain.recruteur.value_objects.roles import AgentOrganismeRole
+from infrastructure.django_apps.recruteur.enums.etape_par_defaut import EtapeParDefaut
 from infrastructure.django_apps.users.fields import agent_fk
 from infrastructure.django_apps.utils.models import BaseDatedModel
-
-DEFAULT_ETAPES = (
-    (CategorieEtapeRecrutement.ENTREE, "Réception des candidatures"),
-    (CategorieEtapeRecrutement.EN_COURS, "Présélection"),
-    (CategorieEtapeRecrutement.EN_COURS, "Entretien"),
-    (CategorieEtapeRecrutement.EN_COURS, "Proposition"),
-    (CategorieEtapeRecrutement.REFUS, "Refus"),
-    (CategorieEtapeRecrutement.ACCEPTE, "Recrutement"),
-)
 
 
 class OrganismeQuerySet(models.QuerySet):
     def not_supprimes(self) -> "OrganismeQuerySet":
         return self.filter(supprime_le__isnull=True)
+
+    def by_id(self, organisme_id) -> "OrganismeQuerySet":
+        return self.filter(pk=organisme_id)
 
     def by_organisme_ids(self, organisme_ids) -> "OrganismeQuerySet":
         return self.filter(pk__in=organisme_ids)
@@ -79,8 +71,12 @@ class OrganismeModel(BaseDatedModel):
 
     def initialize_default_etapes(self) -> None:
         self.etapes = [
-            {"entity_id": str(uuid4()), "categorie": categorie.value, "nom": nom}
-            for categorie, nom in DEFAULT_ETAPES
+            {
+                "entity_id": str(uuid4()),
+                "categorie": etape.categorie.value,
+                "nom": etape.nom,
+            }
+            for etape in EtapeParDefaut
         ]
 
 

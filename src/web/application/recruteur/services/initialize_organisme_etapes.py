@@ -6,6 +6,7 @@ from django.db import transaction
 from application.identite.context_services.organisme_permission_service import (
     OrganismePermissionService,
 )
+from domain.commons.errors.organisme_errors import OrganismeNexistePas
 from domain.commons.services.audit_log_writer import AuditLogWriter
 from domain.identite.value_objects.organisme_action import OrganismeAction
 from infrastructure.django_apps.recruteur.models.organisme import OrganismeModel
@@ -18,19 +19,21 @@ from infrastructure.repositories.commons.postgres_audit_log_repository import (
 def initialize_organisme_etapes(
     *, organisme_id: UUID, utilisateur: UserModel
 ) -> OrganismeModel:
-    # can_execute lève OrganismeNexistePas si l'organisme n'existe pas
     OrganismePermissionService().can_execute(
         action=OrganismeAction.INITIALIZE_ORGANISME_STEPS,
         utilisateur=utilisateur,
         organisme_id=organisme_id,
     )
     with transaction.atomic():
-        # Verrou pour que lecture et écriture restent cohérentes dans la transaction
-        # (#1686 lira avant d'écrire) ; NO KEY pour ne pas bloquer les insertions
-        # des tables liées
-        organisme = OrganismeModel.objects.select_for_update(no_key=True).get(
-            id=organisme_id
-        )
+        try:
+            organisme = (
+                OrganismeModel.objects.not_supprimes()
+                .by_id(organisme_id)
+                .select_for_update(no_key=True)
+                .get()
+            )
+        except OrganismeModel.DoesNotExist as error:
+            raise OrganismeNexistePas(str(organisme_id)) from error
         organisme.initialize_default_etapes()
         organisme.save(update_fields=["etapes", "updated_at"])
         AuditLogWriter(repository=PostgresAuditLogRepository()).log_action(

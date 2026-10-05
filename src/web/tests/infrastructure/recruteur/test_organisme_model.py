@@ -5,7 +5,7 @@ from infrastructure.django_apps.recruteur.models.organisme import OrganismeModel
 NB_ETAPES_PAR_DEFAUT = 6
 
 
-def test_initialize_default_etapes_sets_ordered_defaults():
+def test_initialize_default_etapes_sets_ordered_defaults_with_distinct_uuids():
     organisme = OrganismeModel()
 
     organisme.initialize_default_etapes()
@@ -18,12 +18,4 @@ def test_initialize_default_etapes_sets_ordered_defaults():
         ("refus", "Refus"),
         ("accepte", "Recrutement"),
     ]
-
-
-def test_initialize_default_etapes_gives_distinct_uuids():
-    organisme = OrganismeModel()
-
-    organisme.initialize_default_etapes()
-
-    ids = {UUID(e["entity_id"]) for e in organisme.etapes}
-    assert len(ids) == NB_ETAPES_PAR_DEFAUT
+    assert len({UUID(e["entity_id"]) for e in organisme.etapes}) == NB_ETAPES_PAR_DEFAUT
