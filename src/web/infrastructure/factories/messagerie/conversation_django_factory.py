@@ -30,6 +30,17 @@ class ConversationDjangoFactory(DjangoModelFactory[ConversationModel]):
     objet = factory.Faker("sentence", nb_words=4, locale="fr_FR")
 
 
+class MessageDocumentDjangoFactory(DjangoModelFactory[MessageDocumentModel]):
+    class Meta:
+        model = MessageDocumentModel
+
+    id = factory.LazyFunction(uuid4)
+    document = factory.SubFactory(
+        DocumentDjangoFactory,
+        candidature=factory.SelfAttribute("..message.conversation.candidature"),
+    )
+
+
 class MessageDjangoFactory(DjangoModelFactory[MessageModel]):
     class Meta:
         model = MessageModel
@@ -38,6 +49,11 @@ class MessageDjangoFactory(DjangoModelFactory[MessageModel]):
         par_candidat = factory.Trait(
             auteur=factory.SelfAttribute(
                 "conversation.candidature.candidat.utilisateur"
+            ),
+        )
+        with_document = factory.Trait(
+            piece_jointe=factory.RelatedFactory(
+                MessageDocumentDjangoFactory, factory_related_name="message"
             ),
         )
 
@@ -55,15 +71,3 @@ class ConversationLectureDjangoFactory(DjangoModelFactory[ConversationLectureMod
     conversation = factory.SubFactory(ConversationDjangoFactory)
     utilisateur = factory.SubFactory(UtilisateurDjangoFactory)
     read_at = factory.LazyFunction(timezone.now)
-
-
-class MessageDocumentDjangoFactory(DjangoModelFactory[MessageDocumentModel]):
-    class Meta:
-        model = MessageDocumentModel
-
-    id = factory.LazyFunction(uuid4)
-    message = factory.SubFactory(MessageDjangoFactory)
-    document = factory.SubFactory(
-        DocumentDjangoFactory,
-        candidature=factory.SelfAttribute("..message.conversation.candidature"),
-    )

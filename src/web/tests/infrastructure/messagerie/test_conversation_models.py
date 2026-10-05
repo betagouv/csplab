@@ -45,7 +45,7 @@ def test_candidature_with_conversation_cannot_be_deleted(db):
 
 
 def test_message_with_attached_document_cannot_be_deleted(db):
-    attachment = MessageDocumentDjangoFactory()
+    attachment = MessageDocumentDjangoFactory(message=MessageDjangoFactory())
 
     assert (
         attachment.document.candidature == attachment.message.conversation.candidature
@@ -55,10 +55,12 @@ def test_message_with_attached_document_cannot_be_deleted(db):
 
 
 def test_document_can_be_attached_to_a_single_message(db):
-    attachment = MessageDocumentDjangoFactory()
+    attachment = MessageDocumentDjangoFactory(message=MessageDjangoFactory())
 
     with pytest.raises(IntegrityError), transaction.atomic():
-        MessageDocumentDjangoFactory(document=attachment.document)
+        MessageDocumentDjangoFactory(
+            message=MessageDjangoFactory(), document=attachment.document
+        )
 
 
 def test_empty_message_content_or_conversation_object_is_rejected(db):
