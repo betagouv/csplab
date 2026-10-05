@@ -1,10 +1,24 @@
+from uuid import uuid4
+
 from django.db import models
 from django.db.models import Q
 from referentiel.value_objects.verse import Verse
 
+from domain.recruteur.value_objects.categorie_etapes_recrutement import (
+    CategorieEtapeRecrutement,
+)
 from domain.recruteur.value_objects.roles import AgentOrganismeRole
 from infrastructure.django_apps.users.fields import agent_fk
 from infrastructure.django_apps.utils.models import BaseDatedModel
+
+DEFAULT_ETAPES = (
+    (CategorieEtapeRecrutement.ENTREE, "Réception des candidatures"),
+    (CategorieEtapeRecrutement.EN_COURS, "Présélection"),
+    (CategorieEtapeRecrutement.EN_COURS, "Entretien"),
+    (CategorieEtapeRecrutement.EN_COURS, "Proposition"),
+    (CategorieEtapeRecrutement.REFUS, "Refus"),
+    (CategorieEtapeRecrutement.ACCEPTE, "Recrutement"),
+)
 
 
 class OrganismeQuerySet(models.QuerySet):
@@ -62,6 +76,12 @@ class OrganismeModel(BaseDatedModel):
 
     def __str__(self) -> str:
         return str(self.id)
+
+    def initialize_default_etapes(self) -> None:
+        self.etapes = [
+            {"entity_id": str(uuid4()), "categorie": categorie.value, "nom": nom}
+            for categorie, nom in DEFAULT_ETAPES
+        ]
 
 
 class OrganismeAgentQuerySet(models.QuerySet):

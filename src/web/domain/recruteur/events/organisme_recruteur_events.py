@@ -8,9 +8,5 @@ from domain.recruteur.value_objects.etape_data import (
 
 
 @dataclass(frozen=True)
-class OrganismeEtapesInitialises(DomainEvent): ...
-
-
-@dataclass(frozen=True)
 class OrganismeEtapesMisesAJour(DomainEvent):
     etapes_data: tuple[EtapeData, ...]

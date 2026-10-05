@@ -1,5 +1,5 @@
 from datetime import datetime, timezone
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, Mock, patch
 from uuid import UUID
 
 import pytest
@@ -9,6 +9,7 @@ from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from domain.commons.errors.organisme_errors import OrganismeNexistePas
+from domain.commons.services.audit_log_writer import AuditLogWriter
 from domain.identite.errors.organisme_permission_errors import (
     AccesOrganismeRefuse,
     OperationOrganismeRefusee,
@@ -30,6 +31,9 @@ from infrastructure.factories.identite.organisme_django_factory import (
 from infrastructure.factories.identite.organisme_factory import OrganismeFactory
 from infrastructure.factories.identite.utilisateur_django_factory import (
     UtilisateurDjangoFactory,
+)
+from infrastructure.factories.recruteur.etapes_recrutement_factory import (
+    EtapeRecrutementFactory,
 )
 from infrastructure.factories.recruteur.organisme_factory import (
     OrganismeRecruteurFactory,
@@ -325,72 +329,71 @@ class TestInitEtapesRecrutementOrganismeView:
         response = api_client.post(INIT_ETAPES_URL)
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
-    @pytest.mark.parametrize(
-        ("exception", "expected_status", "expected_body"),
-        [
-            (
-                OrganismeNexistePas("not found"),
-                status.HTTP_404_NOT_FOUND,
-                {"error": "organisme_uuid: Not found."},
-            ),
-            (
-                AccesOrganismeRefuse(UUID(fake.uuid4())),
-                status.HTTP_403_FORBIDDEN,
-                {"error": "Forbidden."},
-            ),
-            (
-                Exception("unexpected"),
-                status.HTTP_500_INTERNAL_SERVER_ERROR,
-                {"error": "Unexpected error"},
-            ),
-        ],
-    )
-    def test_post_returns_error_from_usecase(
-        self,
-        container,
-        authenticated_client,
-        exception,
-        expected_status,
-        expected_body,
-    ):
-        mock_usecase = MagicMock()
-        mock_usecase.execute.side_effect = exception
-        container.initialize_organisme_steps_usecase.return_value = mock_usecase
-
-        response = authenticated_client.post(INIT_ETAPES_URL)
-
-        assert response.status_code == expected_status
-        assert response.json() == expected_body
-
-    def test_authenticated_post_initialize_steps(self, container, authenticated_client):
-        organisme = OrganismeRecruteurFactory.create_entity()
-        organisme.initialiser_etapes()
-
-        mock_usecase = MagicMock()
-        mock_usecase.execute.return_value = organisme
-        container.initialize_organisme_steps_usecase.return_value = mock_usecase
+    def test_superviseur_initializes_etapes(self, authenticated_client, test_user):
+        create_organisme_with_agent(
+            role=AgentOrganismeRole.SUPERVISEUR,
+            utilisateur=test_user,
+            id=UUID(ORGANISME_UUID),
+        )
 
         response = authenticated_client.post(INIT_ETAPES_URL)
 
         assert response.status_code == status.HTTP_201_CREATED
-        assert response.json() == etapes_as_json(organisme.etapes or ())
+        persisted = OrganismeModel.objects.get(id=UUID(ORGANISME_UUID)).etapes
+        expected = [
+            ("Réception des candidatures", "ENTREE"),
+            ("Présélection", "EN_COURS"),
+            ("Entretien", "EN_COURS"),
+            ("Proposition", "EN_COURS"),
+            ("Refus", "REFUS"),
+            ("Recrutement", "ACCEPTE"),
+        ]
+        assert response.json() == [
+            {"uuid": etape["entity_id"], "nom": nom, "categorie": categorie}
+            for etape, (nom, categorie) in zip(persisted, expected, strict=True)
+        ]
 
-    def test_forwards_est_staff_to_usecase(
-        self, container, authenticated_client, test_user
+    def test_membre_is_forbidden(self, authenticated_client, test_user):
+        create_organisme_with_agent(
+            role=AgentOrganismeRole.AGENT,
+            utilisateur=test_user,
+            id=UUID(ORGANISME_UUID),
+        )
+
+        response = authenticated_client.post(INIT_ETAPES_URL)
+
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert response.json() == {"error": "Forbidden."}
+
+    def test_unknown_organisme_returns_404(self, staff_client):
+        response = staff_client.post(INIT_ETAPES_URL)
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+        assert response.json() == {"error": "organisme_uuid: Not found."}
+
+    @patch.object(
+        AuditLogWriter,
+        "log_action",
+        new=Mock(side_effect=RuntimeError("audit log write failed")),
+    )
+    def test_audit_failure_returns_500_and_keeps_etapes(
+        self, authenticated_client, test_user
     ):
-        test_user.is_staff = True
-        test_user.save()
+        _, organisme = create_organisme_with_agent(
+            role=AgentOrganismeRole.SUPERVISEUR,
+            utilisateur=test_user,
+            id=UUID(ORGANISME_UUID),
+            etapes=EtapeRecrutementFactory.create_entity_batch(),
+        )
+        organisme.refresh_from_db()
+        etapes_avant = organisme.etapes
 
-        organisme = OrganismeRecruteurFactory.create_entity()
-        organisme.initialiser_etapes()
-        mock_usecase = MagicMock()
-        mock_usecase.execute.return_value = organisme
-        container.initialize_organisme_steps_usecase.return_value = mock_usecase
+        response = authenticated_client.post(INIT_ETAPES_URL)
 
-        authenticated_client.post(INIT_ETAPES_URL)
-
-        command = mock_usecase.execute.call_args.args[0]
-        assert command.utilisateur.is_staff is True
+        assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
+        assert response.json() == {"error": "Unexpected error"}
+        organisme.refresh_from_db()
+        assert organisme.etapes == etapes_avant
 
 
 class TestPutEtapesRecrutementOrganismeView:

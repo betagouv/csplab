@@ -1,8 +1,5 @@
 import pytest
 
-from application.recruteur.usecases.initialize_organisme_steps import (
-    InitializeOrganismeStepsCommand,
-)
 from application.recruteur.usecases.update_organisme_steps import (
     UpdateOrganismeStepsCommand,
 )
@@ -13,7 +10,6 @@ from domain.recruteur.events.etape_events import (
     EtapeSupprimee,
 )
 from domain.recruteur.events.organisme_recruteur_events import (
-    OrganismeEtapesInitialises,
     OrganismeEtapesMisesAJour,
 )
 from infrastructure.factories.identite.utilisateur_factory import UtilisateurFactory
@@ -23,26 +19,6 @@ from infrastructure.factories.recruteur.etapes_recrutement_factory import (
 from infrastructure.factories.recruteur.organisme_factory import (
     OrganismeRecruteurFactory,
 )
-
-
-# transaction.atomic() dans le usecase ouvre une connexion ; le repository reste factice
-def test_initialize_organisme_steps(db, initialize_organisme_steps_usecase):
-    organisme_before = OrganismeRecruteurFactory.create_entity()
-    initialize_organisme_steps_usecase.organisme_recruteur_repository.save(
-        organisme_before
-    )
-
-    organisme = initialize_organisme_steps_usecase.execute(
-        command=InitializeOrganismeStepsCommand(
-            organisme_id=organisme_before.entity_id,
-            utilisateur=UtilisateurFactory.create_entity(),
-        )
-    )
-
-    events = organisme.collect_events()
-    assert len(events) == 1
-    assert any(isinstance(e, OrganismeEtapesInitialises) for e in events)
-
 
 NUMBER_CHANGES = 7
 
@@ -72,27 +48,6 @@ def test_update_organisme_steps(update_organisme_steps_usecase):
     assert any(isinstance(e, EtapeAjoutee) for e in events)
     assert any(isinstance(e, EtapeSupprimee) for e in events)
     assert any(isinstance(e, EtapeReordonnee) for e in events)
-
-
-def test_initialize_organisme_steps_raises_when_not_responsable(
-    initialize_organisme_steps_usecase,
-):
-    organisme_before = OrganismeRecruteurFactory.create_entity()
-    initialize_organisme_steps_usecase.organisme_recruteur_repository.save(
-        organisme_before
-    )
-    permission_service = initialize_organisme_steps_usecase.organisme_permission_service
-    permission_service.can_execute.side_effect = AccesOrganismeRefuse(
-        organisme_before.entity_id
-    )
-
-    with pytest.raises(AccesOrganismeRefuse):
-        initialize_organisme_steps_usecase.execute(
-            command=InitializeOrganismeStepsCommand(
-                organisme_id=organisme_before.entity_id,
-                utilisateur=UtilisateurFactory.create_entity(),
-            )
-        )
 
 
 def test_update_organisme_steps_raises_when_not_responsable(
