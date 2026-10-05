@@ -1,10 +1,9 @@
-import type { OrganismeRole } from '@/api/utilisateur'
 import { screen } from '@testing-library/vue'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { getMe } from '@/api/utilisateur'
 import { getEquipeRecrutement } from '@/features/equipe-recrutement/api'
 import { getRecrutementDetail } from '@/features/recrutements/api'
-import { KANBAN, KANBAN_PATH, ORGANISME_UUID, RECRUTEMENT_DETAIL } from '@/test/fixtures/candidatures'
+import { KANBAN, KANBAN_PATH, RECRUTEMENT_DETAIL, roleOnOrganisme } from '@/test/fixtures/candidatures'
 import { makeUser } from '@/test/fixtures/utilisateur'
 import { renderWithApp } from '@/test/render'
 import { getRecrutementKanban } from '../api'
@@ -30,10 +29,6 @@ vi.mock('@/api/utilisateur', () => ({
 }))
 
 const EQUIPE_PATH = `${KANBAN_PATH}/equipe`
-
-function roleOnOrganisme(role: OrganismeRole['role']): OrganismeRole {
-  return { organisme_uuid: ORGANISME_UUID, nom: 'Ministère de la Transition Écologique', role }
-}
 
 describe('candidaturesView', () => {
   beforeEach(() => {

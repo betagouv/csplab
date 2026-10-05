@@ -1,3 +1,4 @@
+import type { OrganismeRole } from '@/api/utilisateur'
 import type { Candidat, CandidatureDetail, CandidatureParams, MotifRefusOption, RecrutementDetailKanban } from '@/features/candidatures/types'
 import type { RecrutementDetail } from '@/features/recrutements/types'
 
@@ -8,6 +9,10 @@ export const KANBAN_PATH = `/organismes/${ORGANISME_UUID}/recrutements/${RECRUTE
 export const ETAPE_RECEPTION = 'cccccccc-0001-0001-0001-000000000001'
 export const ETAPE_ENTRETIEN = 'cccccccc-0001-0001-0001-000000000002'
 export const ETAPE_REFUS = 'cccccccc-0001-0001-0001-000000000003'
+
+export function roleOnOrganisme(role: OrganismeRole['role']): OrganismeRole {
+  return { organisme_uuid: ORGANISME_UUID, nom: 'Ministère de la Transition Écologique', role }
+}
 
 export const CANDIDATURE_ALICE = 'dddddddd-0001-0001-0001-000000000001'
 export const CANDIDATURE_BRUNO = 'dddddddd-0001-0001-0001-000000000002'
@@ -46,6 +51,10 @@ export const KANBAN: RecrutementDetailKanban = {
     { uuid: ETAPE_ENTRETIEN, nom: 'Entretien', categorie: 'EN_COURS', candidatures: [] },
     { uuid: ETAPE_REFUS, nom: 'Refus', categorie: 'REFUS', candidatures: [] },
   ],
+}
+
+export function kanbanColumns(kanban: RecrutementDetailKanban | undefined): Record<string, string[]> {
+  return Object.fromEntries((kanban?.etapes ?? []).map(etape => [etape.uuid, etape.candidatures.map(({ uuid }) => uuid)]))
 }
 
 export function candidatureDetail(candidatureUuid: string): CandidatureDetail {

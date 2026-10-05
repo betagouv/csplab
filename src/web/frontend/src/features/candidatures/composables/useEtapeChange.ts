@@ -4,10 +4,12 @@ import { useToast } from '@/composables/ui/useToast'
 import { formatCandidatNom } from '../utils/candidat'
 import { useCandidatureNavigation } from './useCandidatureNavigation'
 import { useCandidatures } from './useCandidatures'
+import { useEtapeChangeMutation } from './useEtapeChangeMutation'
 import { useRefusCandidature } from './useRefusCandidature'
 
 export function useEtapeChange(candidatureUuid: Ref<string>, leavePanel: () => void) {
-  const { moveCandidature, recrutementEtapes, findCandidature } = useCandidatures()
+  const { recrutementParams, recrutementEtapes, findCandidature } = useCandidatures()
+  const { changeEtape } = useEtapeChangeMutation(recrutementParams)
   const { position, etape, navigateTo } = useCandidatureNavigation(candidatureUuid)
   const { addToast, dismissToast } = useToast()
   const refus = useRefusCandidature()
@@ -24,12 +26,7 @@ export function useEtapeChange(candidatureUuid: Ref<string>, leavePanel: () => v
     const movedUuid = candidatureUuid.value
     const nextUuid = position.value?.nextUuid ?? null
 
-    const moved = moveCandidature({
-      sourceColumnId: etape.value.uuid,
-      targetColumnId: targetEtapeUuid,
-      cardId: movedUuid,
-      motifRefus,
-    })
+    const moved = changeEtape({ etapeCibleUuid: targetEtapeUuid, candidatureUuids: [movedUuid], motifRefus })
 
     if (nextUuid) {
       navigateTo(nextUuid)
