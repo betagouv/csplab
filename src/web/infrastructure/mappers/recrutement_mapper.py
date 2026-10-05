@@ -6,6 +6,7 @@ from domain.recruteur.value_objects.categorie_etapes_recrutement import (
     CategorieEtapeRecrutement,
 )
 from domain.recruteur.value_objects.statut_recrutement import StatutRecrutement
+from infrastructure.django_apps.recruteur.models.etape import etapes_ordonnees
 from infrastructure.django_apps.recruteur.models.recrutement import RecrutementModel
 
 
@@ -13,7 +14,7 @@ class RecrutementMapper(IFromDomainMapper, IToDomainMapper):
     def to_domain(self, model: RecrutementModel) -> Recrutement:
         etapes = []
         candidatures = []
-        for e in model.etapes.all():  # type: ignore[attr-defined]
+        for e in etapes_ordonnees(model):
             candidatures_etapes = [
                 c.id
                 for c in e.candidatures.all()  # type: ignore[attr-defined]
