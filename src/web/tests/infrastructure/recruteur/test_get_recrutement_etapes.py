@@ -74,6 +74,32 @@ class TestGetRecrutementEtapes:
 
         assert len(resultat) == NB_ETAPES_PAR_DEFAUT
 
+    def test_get_recrutement_etapes_follows_ordre_etapes(
+        self, db, recruteur_integration_container
+    ):
+        agent, organisme = create_organisme_with_agent(
+            role=AgentOrganismeRole.SUPERVISEUR
+        )
+        recrutement_model = RecrutementDjangoFactory(
+            organisme=organisme, agent_link__agent=agent
+        )
+        entree, *en_cours, refus, accepte = recrutement_model.ordre_etapes
+        recrutement_model.ordre_etapes = [entree, *reversed(en_cours), refus, accepte]
+        recrutement_model.save(update_fields=["ordre_etapes"])
+        usecase = recruteur_integration_container.get_recrutement_etapes_usecase()
+
+        resultat = usecase.execute(
+            RecrutementRequest(
+                organisme_id=recrutement_model.organisme_id,
+                recrutement_id=recrutement_model.offre_id,
+                utilisateur=UtilisateurFactory.create_entity(
+                    entity_id=recrutement_model.agents_liaisons.get().agent_id
+                ),
+            )
+        )
+
+        assert [str(e.entity_id) for e in resultat] == recrutement_model.ordre_etapes
+
     @pytest.mark.parametrize(
         "agent_role",
         [AgentRecrutementRole.RECRUTEUR, AgentRecrutementRole.CONTRIBUTEUR],
