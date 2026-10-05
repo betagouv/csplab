@@ -1,17 +1,17 @@
-import type { MaybeRefOrGetter } from 'vue'
-import { computed, toValue } from 'vue'
+import type { InjectionKey, MaybeRefOrGetter } from 'vue'
+import { computed, inject, toValue } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { CANDIDATURE_ROUTE_NAME } from '../routes'
-import { findCandidaturePosition, findEtapeOfCandidature } from '../utils/position'
-import { useCandidatures } from './useCandidatures'
+import { findCandidaturePosition } from '../utils/position'
+
+export const CANDIDATURE_SEQUENCE: InjectionKey<(candidatureUuid: string) => string[]> = Symbol('candidature-sequence')
 
 export function useCandidatureNavigation(candidatureUuid: MaybeRefOrGetter<string>) {
   const route = useRoute()
   const router = useRouter()
-  const { candidatureKanban, filters } = useCandidatures()
+  const sequenceOf = inject(CANDIDATURE_SEQUENCE, () => [])
 
-  const position = computed(() => findCandidaturePosition(filters.filteredEtapes.value, toValue(candidatureUuid)))
-  const etape = computed(() => findEtapeOfCandidature(candidatureKanban.value, toValue(candidatureUuid)))
+  const position = computed(() => findCandidaturePosition(sequenceOf(toValue(candidatureUuid)), toValue(candidatureUuid)))
 
   function navigateTo(uuid: string): void {
     const navigate = route.params.candidatureUuid ? router.replace : router.push
@@ -30,5 +30,5 @@ export function useCandidatureNavigation(candidatureUuid: MaybeRefOrGetter<strin
     }
   }
 
-  return { position, etape, navigateTo, goPrevious, goNext }
+  return { position, navigateTo, goPrevious, goNext }
 }
