@@ -1,9 +1,11 @@
+import logging
 from unittest.mock import patch
 
 import pytest
 from django.core.cache import cache
-from django.test import RequestFactory
+from django.test import RequestFactory, override_settings
 from rest_framework.exceptions import AuthenticationFailed
+from rest_framework.test import APIRequestFactory
 
 from infrastructure.authentication.api_key_authentication import (
     ApiKeyAuthentication,
@@ -13,6 +15,8 @@ from infrastructure.authentication.api_key_authentication import (
     _IngestionApiKeyUser,
     _ip_is_allowed,
 )
+from infrastructure.django_apps.commons.enums import Canal, Resultat
+from infrastructure.django_apps.commons.models import AuditLoginLogModel
 
 API_KEY_USER = _IngestionApiKeyUser()
 
@@ -60,7 +64,7 @@ class TestApiKeyAuthenticationIpRestriction:
         return RequestFactory()
 
     def _make_request(self, rf, ip="1.2.3.4", forwarded_for=None):
-        request = rf.get("/", REMOTE_ADDR=ip)
+        request = rf.get("/", HTTP_X_REAL_IP=ip)
         if forwarded_for:
             request.META["HTTP_X_FORWARDED_FOR"] = forwarded_for
         request.META["HTTP_AUTHORIZATION"] = "Api-Key test-ingestion-api-key"
@@ -95,11 +99,20 @@ class TestApiKeyAuthenticationIpRestriction:
     @patch(
         "django.conf.settings.INGESTION_API_KEY_ALLOWED_IP_RANGES", ["192.168.1.0/24"]
     )
-    def test_uses_first_forwarded_for_ip(self, rf):
+    def test_ignores_spoofed_forwarded_for(self, rf):
         auth = ApiKeyAuthentication()
         request = self._make_request(
-            rf, ip="192.168.1.1", forwarded_for="10.0.0.1, 192.168.1.1"
+            rf, ip="10.0.0.1", forwarded_for="192.168.1.1, 10.0.0.1"
         )
+        with pytest.raises(AuthenticationFailed, match="IP address not allowed"):
+            auth.authenticate(request)
+
+    @patch(
+        "django.conf.settings.INGESTION_API_KEY_ALLOWED_IP_RANGES", ["192.168.1.0/24"]
+    )
+    def test_rejects_missing_client_ip(self, rf):
+        auth = ApiKeyAuthentication()
+        request = rf.get("/", HTTP_AUTHORIZATION="Api-Key test-ingestion-api-key")
         with pytest.raises(AuthenticationFailed, match="IP address not allowed"):
             auth.authenticate(request)
 
@@ -265,3 +278,52 @@ class TestNonApiKeyUserRateThrottle:
         for _ in range(2):
             assert NonApiKeyUserRateThrottle().allow_request(request, view=None) is True
         assert NonApiKeyUserRateThrottle().allow_request(request, view=None) is False
+
+
+@pytest.fixture(name="logs")
+def logs_fixture(caplog):
+    caplog.set_level(logging.INFO, logger="identite")
+    return caplog
+
+
+def _request(key: str, **extra):
+    return APIRequestFactory().get("/", HTTP_AUTHORIZATION=f"Api-Key {key}", **extra)
+
+
+class TestApiKeyAuthenticationLog:
+    def test_logs_invalid_key_without_the_key(self, db, logs):
+        with pytest.raises(AuthenticationFailed):
+            ApiKeyAuthentication().authenticate(
+                _request("secret-wrong-key", HTTP_X_REAL_IP="10.0.0.1")
+            )
+
+        assert [r.getMessage() for r in logs.records] == [
+            "Ingestion API key rejected (invalid key) from 10.0.0.1."
+        ]
+        assert "secret-wrong-key" not in logs.text
+        attempt = AuditLoginLogModel.objects.get()
+        assert attempt.canal == Canal.APIKEY
+        assert attempt.resultat == Resultat.ECHEC
+        assert attempt.utilisateur_id is None
+        assert attempt.ip_address == "10.0.0.1"
+
+    @override_settings(
+        INGESTION_API_KEY="good-key", INGESTION_API_KEY_ALLOWED_IP_RANGES=["10.0.0.0/8"]
+    )
+    def test_logs_ip_not_allowed(self, db, logs):
+        with pytest.raises(AuthenticationFailed):
+            ApiKeyAuthentication().authenticate(
+                _request("good-key", HTTP_X_REAL_IP="192.168.1.1")
+            )
+
+        assert [r.getMessage() for r in logs.records] == [
+            "Ingestion API key rejected (IP not allowed) from 192.168.1.1."
+        ]
+        assert "good-key" not in logs.text
+        assert AuditLoginLogModel.objects.get().ip_address == "192.168.1.1"
+
+    @override_settings(INGESTION_API_KEY="good-key")
+    def test_valid_key_logs_nothing(self, logs):
+        ApiKeyAuthentication().authenticate(_request("good-key"))
+
+        assert not logs.records

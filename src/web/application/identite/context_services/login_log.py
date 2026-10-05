@@ -1,28 +1,43 @@
 import logging
 
 from config.logger_names import LoggerName
+from infrastructure.django_apps.commons.enums import Canal, Resultat
+from infrastructure.django_apps.commons.models import AuditLoginLogModel
 from infrastructure.django_apps.users.models import UserModel
+from infrastructure.django_apps.utils.ip import IPAddressInput
 
 logger = logging.getLogger(LoggerName.IDENTITE)
 
 
-def _describe_account(email: str) -> str:
+def _find_user(email: str) -> UserModel | None:
+    return UserModel.objects.filter(email__iexact=email).first()
+
+
+def _describe_account(user: UserModel | None) -> str:
     # Never log the typed email: it identifies a person.
-    user = UserModel.objects.filter(email__iexact=email).first()
     return f"user {user.pk}" if user else "an unknown account"
 
 
-def log_admin_login_succeeded(user: UserModel) -> None:
-    logger.info("Admin login succeeded for user %s.", user.pk)
+def log_login_succeeded(
+    *, canal: Canal, user: UserModel, ip_address: IPAddressInput | None
+) -> None:
+    logger.info("%s login succeeded for user %s.", canal.name, user.pk)
+    AuditLoginLogModel.objects.record_attempt(
+        canal=canal,
+        resultat=Resultat.SUCCES,
+        utilisateur_id=user.username,
+        ip_address=ip_address,
+    )
 
 
-def log_admin_login_failed(username: str) -> None:
-    logger.warning("Admin login failed for %s.", _describe_account(username))
-
-
-def log_api_login_succeeded(email: str) -> None:
-    logger.info("API login succeeded for %s.", _describe_account(email))
-
-
-def log_api_login_failed(email: str) -> None:
-    logger.warning("API login failed for %s.", _describe_account(email))
+def log_login_failed(
+    *, canal: Canal, email: str, ip_address: IPAddressInput | None
+) -> None:
+    user = _find_user(email) if email else None
+    logger.warning("%s login failed for %s.", canal.name, _describe_account(user))
+    AuditLoginLogModel.objects.record_attempt(
+        canal=canal,
+        resultat=Resultat.ECHEC,
+        utilisateur_id=user.username if user else None,
+        ip_address=ip_address,
+    )
