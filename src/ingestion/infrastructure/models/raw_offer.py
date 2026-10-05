@@ -1,16 +1,13 @@
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import datetime
 from typing import Any, Optional
 from uuid import UUID, uuid4
 
-from sqlalchemy import Column, UniqueConstraint
+from sqlalchemy import Column, UniqueConstraint, func
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlmodel import Field, SQLModel
-
-
-def _now() -> datetime:
-    return datetime.now(tz=timezone.utc)
+from sqlmodel.sql.sqltypes import UTCDateTime
 
 
 class RawOfferModel(SQLModel, table=True):  # type: ignore[call-arg]
@@ -22,8 +19,16 @@ class RawOfferModel(SQLModel, table=True):  # type: ignore[call-arg]
     )
 
     id: UUID = Field(default_factory=uuid4, primary_key=True)
-    created_at: datetime = Field(default_factory=_now)
-    updated_at: datetime = Field(default_factory=_now)
+    created_at: datetime = Field(
+        default=None,
+        sa_column=Column(UTCDateTime(), default=func.now(), nullable=False),
+    )
+    updated_at: datetime = Field(
+        default=None,
+        sa_column=Column(
+            UTCDateTime(), default=func.now(), onupdate=func.now(), nullable=False
+        ),
+    )
     reference: str = Field(index=True)
     source_id: str = Field(index=True)
     data: Optional[dict[str, Any]] = Field(

@@ -1,8 +1,8 @@
 import asyncio
 import logging
-from datetime import datetime, timezone
+from datetime import datetime
 
-from sqlalchemy import Engine, update
+from sqlalchemy import Engine, func, update
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlmodel import Session, col
 
@@ -21,14 +21,11 @@ class RawOfferRepository(IRawOfferRepository):
         await asyncio.to_thread(self._upsert_sync, offer)
 
     def _upsert_sync(self, offer: RawOffer) -> None:
-        now = datetime.now(tz=timezone.utc)
         with Session(self._engine) as session:
             stmt = (
                 pg_insert(RawOfferModel)
                 .values(
                     id=offer.id,
-                    created_at=now,
-                    updated_at=now,
                     reference=offer.reference,
                     source_id=offer.source_id,
                     data=offer.data,
@@ -40,7 +37,7 @@ class RawOfferRepository(IRawOfferRepository):
                 .on_conflict_do_update(
                     constraint="uq_raw_offer_reference_source",
                     set_={
-                        "updated_at": now,
+                        "updated_at": func.now(),
                         "data": offer.data,
                         "error_msg": offer.error_msg,
                         "loaded_at": offer.loaded_at,
@@ -60,7 +57,6 @@ class RawOfferRepository(IRawOfferRepository):
     def _mark_as_cleaned_sync(
         self, reference: str, source_id: str, cleaned_at: datetime
     ) -> None:
-        now = datetime.now(tz=timezone.utc)
         with Session(self._engine) as session:
             result = session.execute(
                 update(RawOfferModel)
@@ -68,7 +64,7 @@ class RawOfferRepository(IRawOfferRepository):
                     col(RawOfferModel.reference) == reference,
                     col(RawOfferModel.source_id) == source_id,
                 )
-                .values(cleaned_at=cleaned_at, updated_at=now)
+                .values(cleaned_at=cleaned_at)
             )
             if result.rowcount == 0:  # type: ignore[attr-defined]
                 raise ValueError(
@@ -87,7 +83,6 @@ class RawOfferRepository(IRawOfferRepository):
     def _mark_as_upserted_sync(
         self, reference: str, source_id: str, upsert_at: datetime
     ) -> None:
-        now = datetime.now(tz=timezone.utc)
         with Session(self._engine) as session:
             result = session.execute(
                 update(RawOfferModel)
@@ -95,7 +90,7 @@ class RawOfferRepository(IRawOfferRepository):
                     col(RawOfferModel.reference) == reference,
                     col(RawOfferModel.source_id) == source_id,
                 )
-                .values(upsert_at=upsert_at, error_msg=None, updated_at=now)
+                .values(upsert_at=upsert_at, error_msg=None)
             )
             if result.rowcount == 0:  # type: ignore[attr-defined]
                 raise ValueError(
@@ -114,7 +109,6 @@ class RawOfferRepository(IRawOfferRepository):
     def _mark_as_publish_failed_sync(
         self, reference: str, source_id: str, error_msg: str
     ) -> None:
-        now = datetime.now(tz=timezone.utc)
         with Session(self._engine) as session:
             result = session.execute(
                 update(RawOfferModel)
@@ -122,7 +116,7 @@ class RawOfferRepository(IRawOfferRepository):
                     col(RawOfferModel.reference) == reference,
                     col(RawOfferModel.source_id) == source_id,
                 )
-                .values(error_msg=error_msg, updated_at=now)
+                .values(error_msg=error_msg)
             )
             if result.rowcount == 0:  # type: ignore[attr-defined]
                 raise ValueError(
@@ -141,7 +135,6 @@ class RawOfferRepository(IRawOfferRepository):
     def _mark_as_archived_sync(
         self, reference: str, source_id: str, archived_at: datetime
     ) -> None:
-        now = datetime.now(tz=timezone.utc)
         with Session(self._engine) as session:
             result = session.execute(
                 update(RawOfferModel)
@@ -149,7 +142,7 @@ class RawOfferRepository(IRawOfferRepository):
                     col(RawOfferModel.reference) == reference,
                     col(RawOfferModel.source_id) == source_id,
                 )
-                .values(archived_at=archived_at, updated_at=now)
+                .values(archived_at=archived_at)
             )
             if result.rowcount == 0:  # type: ignore[attr-defined]
                 logger.warning(

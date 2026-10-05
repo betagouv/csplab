@@ -17,12 +17,13 @@ class WebhookModel(SQLModel, table=True):  # type: ignore[call-arg]
 
     id: UUID = Field(default_factory=uuid4, primary_key=True)
     created_at: datetime = Field(
-        sa_column=Column(DateTime, default=func.now(), nullable=False)
+        default=None, sa_column=Column(DateTime, default=func.now(), nullable=False)
     )
     updated_at: datetime = Field(
+        default=None,
         sa_column=Column(
             DateTime, default=func.now(), onupdate=func.now(), nullable=False
-        )
+        ),
     )
     source_id: str
     webhook_type: str = Field(index=True)
