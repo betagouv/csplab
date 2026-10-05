@@ -229,7 +229,7 @@ export interface paths {
         /** Liste des conversations d'une candidature */
         get: operations["recruteur_organismes_recrutements_candidatures_conversations_list"];
         put?: never;
-        /** Créer une conversation sur une candidature (stub) */
+        /** Créer une conversation sur une candidature */
         post: operations["recruteur_organismes_recrutements_candidatures_conversations_create"];
         delete?: never;
         options?: never;
