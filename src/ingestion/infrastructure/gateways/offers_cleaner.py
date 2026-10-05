@@ -27,7 +27,9 @@ from domain.entities.raw_offer import RawOffer
 from domain.repositories.sources_repository import ISourcesRepository
 from infrastructure.external_gateways.dtos.talentsoft_dtos import (
     TalentsoftCodedObject,
+    TalentsoftCustomFields,
     TalentsoftDetailOffer,
+    TalentsoftDynamicField,
     TalentsoftLanguage,
     TalentsoftOrganisation,
 )
@@ -306,6 +308,12 @@ class OffersCleaner:
             else None
         )
 
+        custom_fields = talentsoft_offer.customFields or TalentsoftCustomFields()
+        offer_fields = custom_fields.offer or TalentsoftDynamicField()
+        description_fields = custom_fields.description or TalentsoftDynamicField()
+        location_fields = custom_fields.location or TalentsoftDynamicField()
+        offer_block_1 = custom_fields.offerCustomBlock1 or TalentsoftDynamicField()
+
         coordinates = self._extract_coordinates(talentsoft_offer)
 
         localisation = self._map_localisation_from_arrays(
@@ -315,14 +323,17 @@ class OffersCleaner:
             talentsoft_offer.department,
             coordinates,
             transcoder,
+            label=location_fields.shortText1 or None,
         )
 
         offer_url = self._parse_url(talentsoft_offer.offerUrl)
-        application_url = (
-            self._parse_url(talentsoft_offer.applicationUrl)
-            if talentsoft_offer.applicationUrl
-            else None
+        application_url_str = (
+            talentsoft_offer.urlRedirectionApplicant or talentsoft_offer.applicationUrl
         )
+        application_url = (
+            self._parse_url(application_url_str) if application_url_str else None
+        )
+        application_deadline = self._parse_optional_date(offer_fields.date1)
         publication_date = self._parse_publication_date(
             talentsoft_offer.startPublicationDate
         )
@@ -424,6 +435,12 @@ class OffersCleaner:
             publication_date=publication_date,
             end_publication_date=end_publication_date,
             beginning_date=beginning_date,
+            application_deadline=application_deadline,
+            contract_duration=talentsoft_offer.contractDuration or None,
+            employer_description=description_fields.longText1 or "",
+            exercise_conditions=description_fields.longText2 or "",
+            service_description=description_fields.longText3 or "",
+            complements=offer_block_1.longText1 or "",
             education_level=education_level,
             experience=experience,
             diploma=diploma,
@@ -592,6 +609,7 @@ class OffersCleaner:
         departments: List,
         coordinates: tuple[Optional[float], Optional[float]] = (None, None),
         transcoder: Optional[SourceTranscoder] = None,
+        label: Optional[str] = None,
     ) -> Optional[Localisation]:
         latitude, longitude = coordinates
         area_code = areas[0].clientCode if areas else None
@@ -632,6 +650,7 @@ class OffersCleaner:
                 country=Country(country_code),
                 region=Region(code=insee_region_code),
                 department=Department(code=insee_department_code),
+                label=label,
                 latitude=latitude,
                 longitude=longitude,
             )

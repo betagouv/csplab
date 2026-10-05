@@ -36,6 +36,12 @@ class Offer:
     publication_date: datetime
     end_publication_date: Optional[datetime]
     beginning_date: Optional[LimitDate]
+    application_deadline: Optional[datetime] = None
+    contract_duration: Optional[str] = None
+    employer_description: str = ""
+    exercise_conditions: str = ""
+    service_description: str = ""
+    complements: str = ""
     contract_kind: Optional[ContractKind] = None
     education_level: Optional[int] = None
     experience: Optional[ExperienceLevel] = None

@@ -1,5 +1,7 @@
 import json
+from dataclasses import replace
 from datetime import datetime, timezone
+from typing import cast
 from uuid import UUID
 
 import httpx
@@ -142,7 +144,7 @@ async def test_publish_serializes_minimal_offer(gateway, httpx_mock: HTTPXMock):
     assert offer["vacance_poste"] == ""
     assert offer["description"]["mission"] == "Mission text"
     assert offer["description"]["profil"] == "Profile text"
-    assert offer["description"]["employeur"] == "City Hall"
+    assert offer["description"]["employeur"] == ""
     assert offer["description"]["complements"] == ""
     assert offer["localisation"] is None
     assert offer["criteres"] is None
@@ -303,6 +305,76 @@ async def test_publish_serializes_application_url(gateway, httpx_mock: HTTPXMock
     body = json.loads(httpx_mock.get_requests()[0].content)
     offer = body["offres"][0]
     assert offer["url_candidature"] == "https://apply.example.com/job/123"
+
+
+@pytest.mark.asyncio
+async def test_publish_serializes_description_fields(gateway, httpx_mock: HTTPXMock):
+    httpx_mock.add_response(method="POST", url=PUBLISH_URL, status_code=201)
+    offer = Offer(
+        **{
+            **MINIMAL_OFFER.__dict__,
+            "employer_description": "Présentation de l'employeur",
+            "exercise_conditions": "Conditions d'exercice",
+            "service_description": "Descriptif du service",
+            "complements": "Compléments",
+        }
+    )
+
+    await gateway.publish(PublishOfferInput(source_id=SOURCE_ID, offer=offer))
+
+    body = json.loads(httpx_mock.get_requests()[0].content)
+    assert body["offres"][0]["description"] == {
+        "mission": "Mission text",
+        "profil": "Profile text",
+        "employeur": "Présentation de l'employeur",
+        "conditions_exercice": "Conditions d'exercice",
+        "descriptif_service": "Descriptif du service",
+        "complements": "Compléments",
+    }
+
+
+@pytest.mark.asyncio
+async def test_publish_serializes_contract_conditions(gateway, httpx_mock: HTTPXMock):
+    httpx_mock.add_response(method="POST", url=PUBLISH_URL, status_code=201)
+    offer = Offer(**{**FULL_OFFER.__dict__, "contract_duration": "12 mois"})
+
+    await gateway.publish(PublishOfferInput(source_id=SOURCE_ID, offer=offer))
+
+    body = json.loads(httpx_mock.get_requests()[0].content)
+    assert body["offres"][0]["conditions"] == {
+        "temps_travail": "NON_DEFINI",
+        "lieu_de_travail": "NON_DEFINI",
+        "duree_contrat": "12 mois",
+        "debut_contrat": "2024-06-01T00:00:00Z",
+    }
+
+
+@pytest.mark.asyncio
+async def test_publish_serializes_fin_candidature(gateway, httpx_mock: HTTPXMock):
+    httpx_mock.add_response(method="POST", url=PUBLISH_URL, status_code=201)
+    offer = Offer(
+        **{
+            **MINIMAL_OFFER.__dict__,
+            "application_deadline": datetime(2024, 3, 31, tzinfo=timezone.utc),
+        }
+    )
+
+    await gateway.publish(PublishOfferInput(source_id=SOURCE_ID, offer=offer))
+
+    body = json.loads(httpx_mock.get_requests()[0].content)
+    assert body["offres"][0]["publication"]["fin_candidature"] == "2024-03-31T00:00:00Z"
+
+
+@pytest.mark.asyncio
+async def test_publish_serializes_localisation_label(gateway, httpx_mock: HTTPXMock):
+    httpx_mock.add_response(method="POST", url=PUBLISH_URL, status_code=201)
+    localisation = replace(cast(Localisation, FULL_OFFER.localisation), label="Paris")
+    offer = Offer(**{**FULL_OFFER.__dict__, "localisation": localisation})
+
+    await gateway.publish(PublishOfferInput(source_id=SOURCE_ID, offer=offer))
+
+    body = json.loads(httpx_mock.get_requests()[0].content)
+    assert body["offres"][0]["localisation"][0]["localisation_label"] == "Paris"
 
 
 @pytest.mark.asyncio
