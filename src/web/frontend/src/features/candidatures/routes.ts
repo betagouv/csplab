@@ -1,5 +1,6 @@
 import type { RouteRecordRaw } from 'vue-router'
 import type { CandidaturePanelTabKey, CandidatureTabKey } from './constants/candidature'
+import type { ConversationRouteNames } from '@/features/messages/types'
 import { tabMetaFor } from '@/composables/navigation/tabs'
 import { ORGANISME_PATH_PREFIX, UUID_ROUTE_PARAM } from '@/router/params'
 import { CANDIDATURE_PANEL_TAB_LABELS, CANDIDATURE_TAB_LABELS } from './constants/candidature'
@@ -14,9 +15,15 @@ export const CANDIDATURE_PANEL_TAB_ROUTE_NAMES = {
   messages: 'recrutement-candidature-messages',
 } as const satisfies Record<CandidaturePanelTabKey, string>
 
-export const CANDIDATURE_CONVERSATION_ROUTE_NAME = 'recrutement-candidature-conversation'
+const CANDIDATURE_CONVERSATION_ROUTE_NAME = 'recrutement-candidature-conversation'
 
-export const CANDIDATURE_NEW_CONVERSATION_ROUTE_NAME = 'recrutement-candidature-nouvelle-conversation'
+const CANDIDATURE_NEW_CONVERSATION_ROUTE_NAME = 'recrutement-candidature-nouvelle-conversation'
+
+export const CANDIDATURE_CONVERSATION_ROUTE_NAMES = {
+  conversations: CANDIDATURE_PANEL_TAB_ROUTE_NAMES.messages,
+  create: CANDIDATURE_NEW_CONVERSATION_ROUTE_NAME,
+  conversation: CANDIDATURE_CONVERSATION_ROUTE_NAME,
+} as const satisfies ConversationRouteNames
 
 export const CANDIDATURES_TAB_ROUTE_NAMES = {
   'candidatures': 'recrutement-candidatures-kanban',
