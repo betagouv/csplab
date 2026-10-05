@@ -380,7 +380,7 @@ class TestRecrutementsArchivesViewDbVerified:
 
 def _archives_url(organisme_id) -> str:
     return reverse(
-        "recruteur:organisme-recrutements-archives",
+        "recruteur:organisme_recrutements_archives",
         kwargs={"organisme_uuid": str(organisme_id)},
     )
 
@@ -394,46 +394,34 @@ def _client_for(utilisateur) -> APIClient:
 
 class TestRecrutementsArchivesViewRattachement:
     @pytest.mark.parametrize(
-        ("demandeur", "organisme", "statut_attendu", "nombre_attendu"),
+        ("demandeur", "statut_attendu"),
         [
-            ("revoque", "a", status.HTTP_403_FORBIDDEN, None),
-            ("jamais_rattache", "a", status.HTTP_403_FORBIDDEN, None),
-            ("temoin", "a", status.HTTP_403_FORBIDDEN, None),
-            ("revoque", "b", status.HTTP_200_OK, 1),
+            ("actif", status.HTTP_200_OK),
+            ("revoque", status.HTTP_403_FORBIDDEN),
+            ("jamais_rattache", status.HTTP_403_FORBIDDEN),
         ],
-        ids=["revoque", "jamais_rattache", "temoin", "reponse_b"],
+        ids=["actif", "revoque", "jamais_rattache"],
     )
-    def test_archives_require_active_liaison(
-        self, db, demandeur, organisme, statut_attendu, nombre_attendu
-    ):
-        revoque, organisme_b = create_organisme_with_agent(
-            role=AgentOrganismeRole.AGENT
-        )
-        RecrutementDjangoFactory(
-            organisme=organisme_b, offre_archivee=True, agent_link__agent=revoque
-        )
-        organisme_a = OrganismeDjangoFactory()
-        RecrutementDjangoFactory(
-            organisme=organisme_a, offre_archivee=True, agent_link__agent=revoque
-        )
-        OrganismeAgentDjangoFactory(
-            organisme=organisme_a,
-            agent=revoque,
-            date_revocation=django_timezone.now(),
-        )
-        jamais_rattache = OrganismeAgentDjangoFactory(
-            organisme=organisme_b, role=AgentOrganismeRole.AGENT.value
-        ).agent
+    def test_archives_require_active_liaison(self, db, demandeur, statut_attendu):
+        organisme = OrganismeDjangoFactory()
         agents = {
-            "revoque": revoque,
-            "jamais_rattache": jamais_rattache,
-            "temoin": AgentDjangoFactory(),
+            "actif": OrganismeAgentDjangoFactory(organisme=organisme).agent,
+            "revoque": OrganismeAgentDjangoFactory(
+                organisme=organisme, date_revocation=django_timezone.now()
+            ).agent,
+            "jamais_rattache": AgentDjangoFactory(),
         }
-        organismes = {"a": organisme_a, "b": organisme_b}
+        # Rôle de recrutement pour tous : sans liaison active, il ne suffit pas.
+        RecrutementDjangoFactory(
+            organisme=organisme,
+            offre_archivee=True,
+            agent_link__agent=agents[demandeur],
+        )
 
         reponse = _client_for(agents[demandeur].utilisateur).get(
-            _archives_url(organismes[organisme].id)
+            _archives_url(organisme.id)
         )
 
         assert reponse.status_code == statut_attendu
-        assert reponse.json().get("count") == nombre_attendu
+        if statut_attendu == status.HTTP_200_OK:
+            assert reponse.json()["count"] == 1
