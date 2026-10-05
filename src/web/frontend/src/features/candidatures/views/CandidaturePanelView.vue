@@ -32,7 +32,7 @@ import { useCandidatureNavigation } from '../composables/useCandidatureNavigatio
 import { useEtapeChange } from '../composables/useEtapeChange'
 import { CANDIDATURE_PANEL_TAB_ICONS, CANDIDATURE_PANEL_TAB_LABELS } from '../constants/candidature'
 import { candidatureDetailQuery } from '../queries'
-import { CANDIDATURE_PANEL_TAB_ROUTE_NAMES } from '../routes'
+import { CANDIDATURE_CONVERSATION_ROUTE_NAMES, CANDIDATURE_PANEL_TAB_ROUTE_NAMES } from '../routes'
 import { formatCandidatNom } from '../utils/candidat'
 
 const route = useRoute()
@@ -235,6 +235,7 @@ function handleUpdateOpen(open: boolean): void {
                     v-if="candidature"
                     :candidature="candidatureParams"
                     :candidat-nom="formatCandidatNom(candidature.candidat)"
+                    :routes="CANDIDATURE_CONVERSATION_ROUTE_NAMES"
                   />
                 </div>
               </template>

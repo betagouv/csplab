@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import type { Conversation } from '../types'
+import type { Conversation, ConversationRouteNames } from '../types'
 import { RouterLink, useRoute } from 'vue-router'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspSkeleton from '@/components/base/CspSkeleton/CspSkeleton.vue'
-import { CANDIDATURE_CONVERSATION_ROUTE_NAME } from '@/features/candidatures/routes'
 import { formatElapsedTime } from '@/utils/date'
 
-withDefaults(defineProps<{
+const props = withDefaults(defineProps<{
+  routes: ConversationRouteNames
   conversations?: Conversation[]
   skeletonRows?: number
 }>(), {
@@ -18,7 +18,7 @@ const route = useRoute()
 
 function conversationLocation(conversationUuid: string) {
   return {
-    name: CANDIDATURE_CONVERSATION_ROUTE_NAME,
+    name: props.routes.conversation,
     params: { ...route.params, conversationUuid },
   }
 }

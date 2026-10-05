@@ -1,5 +1,11 @@
 import type { components } from '@/types/api'
 
+export interface ConversationRouteNames {
+  conversations: string
+  create: string
+  conversation: string
+}
+
 export type Conversation = components['schemas']['Conversation']
 
 export type PaginatedConversationList = components['schemas']['PaginatedConversationList']
