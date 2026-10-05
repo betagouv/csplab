@@ -578,8 +578,11 @@ class TestOrganismeDetailViewDbVerified:
 
 
 class TestEtapesRecrutementOrganismeViewDbVerified:
-    def test_staff_without_liaison_gets_etapes(self, staff_client):
+    def test_staff_without_liaison_gets_empty_list_when_etapes_is_null(
+        self, staff_client
+    ):
         OrganismeDjangoFactory(id=UUID(ORGANISME_UUID))
+        assert OrganismeModel.objects.get(id=UUID(ORGANISME_UUID)).etapes is None
 
         response = staff_client.get(ETAPES_URL)
 
