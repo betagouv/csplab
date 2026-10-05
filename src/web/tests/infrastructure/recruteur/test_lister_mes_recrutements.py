@@ -379,3 +379,30 @@ class TestListerMesRecrutementsRbac:
             recrutement_in_other_org_with_role,
         ]:
             assert recrutement not in results._qs
+
+    def test_membre_organisme_revoked_from_recrutement(self, usecase, statut):
+        agent, organisme = create_organisme_with_agent(role=AgentOrganismeRole.AGENT)
+        offre_archivee = statut == StatutRecrutement.ARCHIVE
+        recrutement_revoque = RecrutementDjangoFactory(
+            offre_archivee=offre_archivee,
+            organisme=organisme,
+            agent_link__agent=agent,
+            agent_link__role=AgentRecrutementRole.CONTRIBUTEUR.value,
+            agent_link__date_revocation=datetime.now(UTC),
+        )
+        # Autre membre actif : deux jointures laisseraient passer ce recrutement
+        RecrutementAgentDjangoFactory(
+            recrutement=recrutement_revoque,
+            role=AgentRecrutementRole.RESPONSABLE.value,
+        )
+        recrutement_temoin = RecrutementDjangoFactory(
+            offre_archivee=offre_archivee,
+            organisme=organisme,
+            agent_link__agent=agent,
+            agent_link__role=AgentRecrutementRole.CONTRIBUTEUR.value,
+        )
+
+        results = self._lister_recrutements(usecase, organisme, agent, statut)
+
+        assert recrutement_temoin in results._qs
+        assert recrutement_revoque not in results._qs

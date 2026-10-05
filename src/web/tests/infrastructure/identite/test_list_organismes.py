@@ -1,6 +1,7 @@
 from unittest.mock import Mock
 
 import pytest
+from django.utils import timezone
 
 from application.identite.usecases.list_organismes import (
     ListOrganismesCommand,
@@ -13,6 +14,7 @@ from domain.identite.errors.organisme_permission_errors import (
 from domain.recruteur.value_objects.roles import AgentOrganismeRole
 from infrastructure.di.identite.identite_container import IdentiteContainer
 from infrastructure.factories.identite.organisme_django_factory import (
+    OrganismeAgentDjangoFactory,
     OrganismeDjangoFactory,
     create_organisme_with_agent,
 )
@@ -81,6 +83,22 @@ def test_list_organismes_with_counts(db, identite_integration_container):
     )
     assert organisme_with_offers_result.number_agents == 0
     assert organisme_with_offers_result.number_published_offers == 2  # noqa
+
+
+def test_list_organismes_does_not_count_revoked_agents(
+    db, identite_integration_container
+):
+    _, organisme = create_organisme_with_agent(role=AgentOrganismeRole.AGENT)
+    OrganismeAgentDjangoFactory(organisme=organisme, date_revocation=timezone.now())
+
+    command = ListOrganismesCommand(
+        utilisateur=UtilisateurFactory.create_entity(is_staff=True),
+    )
+
+    result = identite_integration_container.list_organismes_usecase().execute(command)
+
+    organisme_result = next(r for r in result if r.entity_id == organisme.id)
+    assert organisme_result.number_agents == 1
 
 
 def test_list_organismes_refuse_non_staff(db, identite_integration_container):

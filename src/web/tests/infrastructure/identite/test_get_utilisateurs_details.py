@@ -1,4 +1,5 @@
 import pytest
+from django.utils import timezone
 from faker import Faker
 
 from config.app_config import AppConfig
@@ -101,4 +102,27 @@ def test_agent_with_multiple_roles(db, identite_integration_container):
             nom=other_organisme.nom,
             role=AgentOrganismeRole.SUPERVISEUR.value,
         ),
+    ]
+
+
+def test_revoked_organisme_is_not_in_organisme_roles(
+    db, identite_integration_container
+):
+    agent, organisme_actif = create_organisme_with_agent(role=AgentOrganismeRole.AGENT)
+    OrganismeAgentDjangoFactory(
+        organisme=OrganismeDjangoFactory(),
+        agent=agent,
+        role=AgentOrganismeRole.SUPERVISEUR.value,
+        date_revocation=timezone.now(),
+    )
+    usecase = identite_integration_container.get_utilisateur_details_usecase()
+
+    result = usecase.execute(agent.utilisateur.username)
+
+    assert result.organisme_roles == [
+        OrganismeRole(
+            organisme_uuid=organisme_actif.id,
+            nom=organisme_actif.nom,
+            role=AgentOrganismeRole.AGENT.value,
+        )
     ]

@@ -30,7 +30,7 @@ class PostgresUtilisateurRepository(IUtilisateurRepository):
         return self._mapper.to_domain(utilisateur, organisme_roles=organisme_roles)
 
     def _get_organisme_roles(self, username) -> list[OrganismeRole]:
-        liaisons = OrganismeAgentModel.objects.filter(agent_id=username).select_related(
+        liaisons = OrganismeAgentModel.objects.by_agent(username).select_related(
             "organisme"
         )
         return [
