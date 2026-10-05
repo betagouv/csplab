@@ -1,5 +1,5 @@
 from django.db import models
-from django.db.models import F, OuterRef, Prefetch, Subquery
+from django.db.models import Max, Prefetch
 
 from infrastructure.django_apps.candidate.models.candidature import CandidatureModel
 from infrastructure.django_apps.candidate.models.document import DocumentModel
@@ -15,14 +15,9 @@ class ConversationQuerySet(models.QuerySet):
 
     def by_candidature(self, candidature_id) -> "ConversationQuerySet":
         messages = MessageModel.objects.select_related("auteur")
-        derniere_date = (
-            MessageModel.objects.filter(conversation=OuterRef("pk"))
-            .order_by("-created_at")
-            .values("created_at")[:1]
-        )
         return (
             self.filter(candidature_id=candidature_id)
-            .annotate(uuid=F("id"), last_message_created_at=Subquery(derniere_date))
+            .annotate(last_message_created_at=Max("messages__created_at"))
             .filter(last_message_created_at__isnull=False)
             .prefetch_related(
                 Prefetch(
