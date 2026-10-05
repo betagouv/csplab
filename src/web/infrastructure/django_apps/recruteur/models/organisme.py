@@ -14,6 +14,9 @@ class OrganismeQuerySet(models.QuerySet):
     def by_organisme_ids(self, organisme_ids) -> "OrganismeQuerySet":
         return self.filter(pk__in=organisme_ids)
 
+    def etapes_of(self, organisme_id) -> "OrganismeQuerySet":
+        return self.filter(pk=organisme_id).only("id", "etapes")
+
     def by_referentiel_and_external_id_pairs(
         self, pairs: list[tuple[str, str]]
     ) -> "OrganismeQuerySet":

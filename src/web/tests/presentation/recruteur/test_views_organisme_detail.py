@@ -285,8 +285,36 @@ class TestEtapesRecrutementOrganismeView:
         assert response.status_code == status.HTTP_403_FORBIDDEN
         assert response.json() == {"error": "Forbidden."}
 
+    def test_superviseur_of_another_organisme_is_forbidden(
+        self, authenticated_client, test_user
+    ):
+        OrganismeDjangoFactory(id=UUID(ORGANISME_UUID))
+        create_organisme_with_agent(
+            role=AgentOrganismeRole.SUPERVISEUR, utilisateur=test_user
+        )
+
+        response = authenticated_client.get(ETAPES_URL)
+
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert response.json() == {"error": "Forbidden."}
+
     def test_unknown_organisme_returns_404(self, staff_client):
         response = staff_client.get(ETAPES_URL)
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+        assert response.json() == {"error": "organisme_uuid: Not found."}
+
+    # Passe par le except du service : can_execute ne filtre pas supprime_le
+    def test_supprime_organisme_returns_404(self, authenticated_client, test_user):
+        _, organisme = create_organisme_with_agent(
+            role=AgentOrganismeRole.SUPERVISEUR,
+            utilisateur=test_user,
+            id=UUID(ORGANISME_UUID),
+        )
+        organisme.supprime_le = datetime.now(timezone.utc)
+        organisme.save(update_fields=["supprime_le"])
+
+        response = authenticated_client.get(ETAPES_URL)
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
         assert response.json() == {"error": "organisme_uuid: Not found."}
@@ -550,7 +578,7 @@ class TestOrganismeDetailViewDbVerified:
 
 
 class TestEtapesRecrutementOrganismeViewDbVerified:
-    def test_get_returns_persisted_etapes(self, staff_client):
+    def test_staff_without_liaison_gets_etapes(self, staff_client):
         OrganismeDjangoFactory(id=UUID(ORGANISME_UUID))
 
         response = staff_client.get(ETAPES_URL)
