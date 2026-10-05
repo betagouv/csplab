@@ -97,6 +97,25 @@ describe('useKanbanSelection', () => {
       expect(selectedCount.value).toBe(2)
       expect(isColumnSelected(ETAPE_1_UUID)).toBe(true)
     })
+
+    it('selects and deselects the candidatures of the etape, keeping selected ones missing from it', () => {
+      const etapes = ref(createEtapes())
+      const { toggleColumnSelection, toggleCandidatureSelection, selectedCount } = useKanbanSelection(etapes)
+      const hideCandidature2 = () => {
+        etapes.value = createEtapes().map(etape => ({ ...etape, candidatures: etape.candidatures.filter(({ uuid }) => uuid !== CANDIDATURE_2_UUID) }))
+      }
+
+      toggleCandidatureSelection(CANDIDATURE_2_UUID, ETAPE_1_UUID)
+      hideCandidature2()
+      toggleColumnSelection(etapes.value[0]!)
+      etapes.value = createEtapes()
+      expect(selectedCount.value).toBe(2)
+
+      hideCandidature2()
+      toggleColumnSelection(etapes.value[0]!)
+      etapes.value = createEtapes()
+      expect(selectedCount.value).toBe(1)
+    })
   })
 
   describe('toggleCandidatureSelection', () => {
@@ -166,6 +185,17 @@ describe('useKanbanSelection', () => {
 
       toggleCandidatureSelection(CANDIDATURE_1_UUID, ETAPE_1_UUID)
       toggleCandidatureSelection(CANDIDATURE_2_UUID, ETAPE_1_UUID)
+
+      expect(isColumnSelected(ETAPE_1_UUID)).toBe(true)
+    })
+
+    it('returns true when every candidature of the etape is selected, ignoring selected ones missing from it', () => {
+      const etapes = ref(createEtapes())
+      const { toggleCandidatureSelection, isColumnSelected } = useKanbanSelection(etapes)
+
+      toggleCandidatureSelection(CANDIDATURE_1_UUID, ETAPE_1_UUID)
+      toggleCandidatureSelection(CANDIDATURE_2_UUID, ETAPE_1_UUID)
+      etapes.value = etapes.value.map(etape => ({ ...etape, candidatures: etape.candidatures.filter(({ uuid }) => uuid !== CANDIDATURE_2_UUID) }))
 
       expect(isColumnSelected(ETAPE_1_UUID)).toBe(true)
     })

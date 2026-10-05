@@ -21,7 +21,6 @@ const {
   recrutementUuid,
   recrutementParams,
   recrutementEtapes,
-  candidatureKanban,
   pendingKanban,
   findCandidature,
   filters,
@@ -42,7 +41,7 @@ useCandidatureLinkFocus()
 const showSkeleton = useMinimumPending(pendingKanban)
 
 const {
-  selectedByEtape,
+  selectedCandidatures,
   selectedCount,
   currentEtapeUuid,
   isColumnSelected,
@@ -65,21 +64,16 @@ const sourceEtape = computed(() => {
   if (!currentEtapeUuid.value) {
     return null
   }
-  return candidatureKanban.value.find(e => e.uuid === currentEtapeUuid.value) ?? null
+  return filteredEtapes.value.find(e => e.uuid === currentEtapeUuid.value) ?? null
 })
 
 const selectedCandidats = computed(() =>
-  [...selectedByEtape.value.values()]
-    .flatMap(uuids => [...uuids])
-    .flatMap(uuid => findCandidature(uuid)?.candidat ?? []),
+  selectedCandidatures.value.map(({ candidature }) => candidature.candidat),
 )
 
-const selectedCandidatureUuids = computed(() => {
-  if (!currentEtapeUuid.value) {
-    return new Set<string>()
-  }
-  return selectedByEtape.value.get(currentEtapeUuid.value) ?? new Set<string>()
-})
+const selectedCandidatureUuids = computed(() =>
+  new Set(selectedCandidatures.value.map(({ candidature }) => candidature.uuid)),
+)
 
 function handleMove({ sourceColumnId, targetColumnId, cardId }: KanbanDropEvent) {
   if (sourceColumnId === targetColumnId) {
@@ -122,11 +116,7 @@ function handleConfirmBatchMove(targetEtapeUuid: string): void {
 }
 
 function applyBatchMove(targetEtapeUuid: string, motifRefus?: MotifRefus): void {
-  const candidatureUuids = candidatureKanban.value
-    .filter(etape => etape.uuid !== targetEtapeUuid)
-    .flatMap(etape => etape.candidatures.filter(({ uuid }) => selectedByEtape.value.get(etape.uuid)?.has(uuid)))
-    .map(({ uuid }) => uuid)
-
+  const candidatureUuids = [...selectedCandidatureUuids.value]
   if (candidatureUuids.length > 0) {
     void changeEtape({ etapeCibleUuid: targetEtapeUuid, candidatureUuids, motifRefus })
   }
