@@ -45,7 +45,7 @@ for svc in "${SERVICES[@]}"; do
   branch="chore/upgrade-deps-$svc"
   git switch -c "$branch"
   git add "$svc_dir/uv.lock"
-  git commit -m "⬆️($svc) mise à jour des dépendances"
+  git commit -m "(build): upgrade $svc dependancies"
   git push -u origin "$branch"
   git switch main
 done
