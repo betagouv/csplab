@@ -3,8 +3,9 @@ import { render, screen, within } from '@testing-library/vue'
 import { createPinia } from 'pinia'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { defineComponent, h } from 'vue'
-import { createRouter, createWebHistory } from 'vue-router'
+import { createRouter, createWebHistory, RouterView } from 'vue-router'
 import { HttpError } from '@/api/errors'
+import { getMe } from '@/api/utilisateur'
 import CspToaster from '@/components/base/CspToast/CspToaster.vue'
 import { useToast } from '@/composables/ui/useToast'
 import { getConversations } from '@/features/messages/api'
@@ -22,10 +23,11 @@ import {
   ORGANISME_UUID,
   RECRUTEMENT_DETAIL,
   RECRUTEMENT_UUID,
+  roleOnOrganisme,
 } from '@/test/fixtures/candidatures'
+import { makeUser } from '@/test/fixtures/utilisateur'
 import { setupUser } from '@/test/render'
 import { createCandidatureNote, getCandidatureActivites, getCandidatureDetail, getMotifsRefus, getRecrutementKanban, patchEtapeCandidatures } from '../api'
-import CandidaturePanelView from './CandidaturePanelView.vue'
 
 vi.mock('../api', () => ({
   getCandidatureDetail: vi.fn(),
@@ -44,14 +46,18 @@ vi.mock('@/features/recrutements/api', () => ({
   getRecrutementDetail: vi.fn(),
 }))
 
+vi.mock('@/api/utilisateur', () => ({
+  getMe: vi.fn(),
+}))
+
 vi.mock('@/features/messages/api', () => ({
   getConversations: vi.fn(),
 }))
 
 const CANDIDATURE_INCONNUE = 'dddddddd-0001-0001-0001-000000000099'
 
-const PanelWithToasts = defineComponent({
-  render: () => h(CspToaster, null, { default: () => h(CandidaturePanelView) }),
+const RoutesWithToasts = defineComponent({
+  render: () => h(CspToaster, null, { default: () => h(RouterView) }),
 })
 
 // Web history: closing the panel depends on the browser history state.
@@ -63,7 +69,7 @@ async function renderPanel(paths: string[]) {
     await router.push(path)
   }
 
-  render(PanelWithToasts, {
+  render(RoutesWithToasts, {
     global: { plugins: [createPinia(), PiniaColada, router] },
   })
   return { router, panel: within(await screen.findByRole('dialog')) }
@@ -76,6 +82,7 @@ function closeButton() {
 describe('candidaturePanelView', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    vi.mocked(getMe).mockResolvedValue(makeUser([roleOnOrganisme('agent')]))
     vi.mocked(getCandidatureDetail).mockImplementation(async ({ candidatureUuid }) => candidatureDetail(candidatureUuid))
     vi.mocked(getRecrutementKanban).mockResolvedValue(KANBAN)
     vi.mocked(getMotifsRefus).mockResolvedValue(MOTIFS_REFUS)

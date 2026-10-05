@@ -1,5 +1,5 @@
 import type { Ref } from 'vue'
-import type { MotifRefus } from '../types'
+import type { CandidatureDetail, MotifRefus } from '../types'
 import { useToast } from '@/composables/ui/useToast'
 import { formatCandidatNom } from '../utils/candidat'
 import { useCandidatureNavigation } from './useCandidatureNavigation'
@@ -7,26 +7,25 @@ import { useCandidatures } from './useCandidatures'
 import { useEtapeChangeMutation } from './useEtapeChangeMutation'
 import { useRefusCandidature } from './useRefusCandidature'
 
-export function useEtapeChange(candidatureUuid: Ref<string>, leavePanel: () => void) {
-  const { recrutementParams, recrutementEtapes, findCandidature } = useCandidatures()
+export function useEtapeChange(candidature: Ref<CandidatureDetail | undefined>, leavePanel: () => void) {
+  const { recrutementParams, recrutementEtapes } = useCandidatures()
   const { changeEtape } = useEtapeChangeMutation(recrutementParams)
-  const { position, etape, navigateTo } = useCandidatureNavigation(candidatureUuid)
+  const { position, navigateTo } = useCandidatureNavigation(() => candidature.value?.uuid ?? '')
   const { addToast, dismissToast } = useToast()
   const refus = useRefusCandidature()
 
   let lastToastId: number | null = null
 
   async function confirm(targetEtapeUuid: string, motifRefus?: MotifRefus): Promise<void> {
-    const candidature = findCandidature(candidatureUuid.value)
+    const moved = candidature.value
     const target = recrutementEtapes.value.find(candidate => candidate.uuid === targetEtapeUuid)
-    if (!etape.value || !candidature || !target) {
+    if (!moved || !target) {
       return
     }
 
-    const movedUuid = candidatureUuid.value
     const nextUuid = position.value?.nextUuid ?? null
 
-    const moved = changeEtape({ etapeCibleUuid: targetEtapeUuid, candidatureUuids: [movedUuid], motifRefus })
+    const saved = changeEtape({ etapeCibleUuid: targetEtapeUuid, candidatureUuids: [moved.uuid], motifRefus })
 
     if (nextUuid) {
       navigateTo(nextUuid)
@@ -35,7 +34,7 @@ export function useEtapeChange(candidatureUuid: Ref<string>, leavePanel: () => v
       leavePanel()
     }
 
-    if (!await moved) {
+    if (!await saved) {
       return
     }
 
@@ -44,15 +43,14 @@ export function useEtapeChange(candidatureUuid: Ref<string>, leavePanel: () => v
     }
     lastToastId = addToast({
       variant: 'success',
-      title: `${formatCandidatNom(candidature.candidat)} est passé à l'étape ${target.nom}`,
+      title: `${formatCandidatNom(moved.candidat)} est passé à l'étape ${target.nom}`,
     })
   }
 
   function request(targetEtapeUuid: string): void {
-    const candidature = findCandidature(candidatureUuid.value)
     const target = recrutementEtapes.value.find(candidate => candidate.uuid === targetEtapeUuid)
-    if (target?.categorie === 'REFUS' && candidature) {
-      refus.request([candidature.candidat], motifRefus => void confirm(targetEtapeUuid, motifRefus))
+    if (target?.categorie === 'REFUS' && candidature.value) {
+      refus.request([candidature.value.candidat], motifRefus => void confirm(targetEtapeUuid, motifRefus))
     }
     else {
       void confirm(targetEtapeUuid)

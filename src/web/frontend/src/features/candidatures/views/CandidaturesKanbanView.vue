@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { EtapeRecrutementDetailedCandidatures, MotifRefus } from '../types'
 import type { KanbanDropEvent } from '@/composables/dnd/useKanbanDnd'
-import { computed, nextTick, ref, toRef, watch } from 'vue'
+import { computed, nextTick, provide, ref, toRef, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import CspSkeleton from '@/components/base/CspSkeleton/CspSkeleton.vue'
 import CspSkeletonKanban from '@/components/base/CspSkeleton/CspSkeletonKanban.vue'
@@ -11,6 +11,7 @@ import CandidaturesKanbanBoard from '../components/CandidaturesKanbanBoard.vue'
 import ChangerEtapeDrawer from '../components/ChangerEtapeDrawer.vue'
 import RefusCandidatureDialog from '../components/RefusCandidatureDialog.vue'
 import SelectionActionBar from '../components/SelectionActionBar.vue'
+import { CANDIDATURE_SEQUENCE } from '../composables/useCandidatureNavigation'
 import { useCandidatures } from '../composables/useCandidatures'
 import { useEtapeChangeMutation } from '../composables/useEtapeChangeMutation'
 import { useKanbanSelection } from '../composables/useKanbanSelection'
@@ -29,6 +30,12 @@ const {
 const { changeEtape } = useEtapeChangeMutation(recrutementParams)
 
 const { filteredEtapes } = filters
+
+provide(CANDIDATURE_SEQUENCE, candidatureUuid =>
+  filteredEtapes.value
+    .find(etape => etape.candidatures.some(({ uuid }) => uuid === candidatureUuid))
+    ?.candidatures
+    .map(({ uuid }) => uuid) ?? [])
 
 const route = useRoute()
 
