@@ -24,6 +24,8 @@ from infrastructure.factories.referentiel.offer_django_factory import (
 from infrastructure.factories.referentiel.offer_factory import OfferFactory
 from presentation.ingestion.serializers import (
     FakeTsCodedObjectSerializer,
+    FakeTsCustomFieldsSerializer,
+    FakeTsDynamicFieldSerializer,
     FakeTsOfferDetailSerializer,
     FakeTsOrganisationSerializer,
 )
@@ -133,6 +135,13 @@ def test_response_has_no_undeclared_fields(
     assert set(data["offerFamilyCategory"].keys()) == set(
         FakeTsCodedObjectSerializer().fields.keys()
     )
+    assert set(data["customFields"].keys()) == set(
+        FakeTsCustomFieldsSerializer().fields.keys()
+    )
+    for dynamic_field in data["customFields"].values():
+        assert set(dynamic_field.keys()) == set(
+            FakeTsDynamicFieldSerializer().fields.keys()
+        )
 
 
 class TestOfferDetailViewDbVerified:
@@ -161,7 +170,13 @@ class TestOfferDetailViewDbVerified:
             longitude=2.3522,
             publication_date=datetime(2024, 3, 1, 9, 0, tzinfo=UTC),
             beginning_date=datetime(2024, 6, 1, tzinfo=UTC),
+            application_deadline=datetime(2024, 5, 15, 12, 0, tzinfo=UTC),
             criteria=criteria.to_dict(),
+            conditions={"duree_contrat": "36 mois"},
+            employer="Présentation de l'employeur",
+            exercise_conditions="Télétravail possible",
+            service_description="Service des ressources humaines",
+            complements="Poste à pourvoir immédiatement",
         )
 
         response = authenticated_client.get(URL, {"reference": offer_model.reference})
@@ -194,9 +209,9 @@ class TestOfferDetailViewDbVerified:
                 "hasChildren": False,
             },
             "organisationName": "Ministère Test",
-            "organisationDescription": None,
+            "organisationDescription": "Présentation de l'employeur",
             "organisationLogoUrl": None,
-            "contractDuration": None,
+            "contractDuration": "36 mois",
             "contractTypeCountry": None,
             "description1": "Mission du poste",
             "description2": "Profil recherché",
@@ -258,7 +273,7 @@ class TestOfferDetailViewDbVerified:
             "organisation": {
                 "entityCode": "",
                 "name": "Ministère Test",
-                "description": None,
+                "description": "Présentation de l'employeur",
                 "url": "https://exemple.gouv.fr/offres/e2e-1",
                 "phoneNumber": None,
                 "postCode": None,
@@ -340,7 +355,36 @@ class TestOfferDetailViewDbVerified:
             "applicationQuestions": [],
             "attachedFilesUrls": [],
             "geolocation": {"latitude": 48.8566, "longitude": 2.3522},
-            "customFields": None,
+            "customFields": {
+                "offer": {
+                    "date1": "2024-05-15T12:00:00",
+                    "shortText1": None,
+                    "longText1": None,
+                    "longText2": None,
+                    "longText3": None,
+                },
+                "description": {
+                    "date1": None,
+                    "shortText1": None,
+                    "longText1": "Présentation de l'employeur",
+                    "longText2": "Télétravail possible",
+                    "longText3": "Service des ressources humaines",
+                },
+                "location": {
+                    "date1": None,
+                    "shortText1": "Paris",
+                    "longText1": None,
+                    "longText2": None,
+                    "longText3": None,
+                },
+                "offerCustomBlock1": {
+                    "date1": None,
+                    "shortText1": None,
+                    "longText1": "Poste à pourvoir immédiatement",
+                    "longText2": None,
+                    "longText3": None,
+                },
+            },
         }
 
     def test_organisation_is_filled_from_talentsoft_organisme(

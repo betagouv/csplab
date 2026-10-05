@@ -24,8 +24,10 @@ def test_description_input_serializer_allows_blanks():
     payload = {
         "mission": "",
         "profil": "",
-        "employeur": "Employeur",
+        "employeur": "",
         "complements": "",
+        "conditions_exercice": "",
+        "descriptif_service": "",
     }
 
     serializer = DescriptionInputSerializer(data=payload)
@@ -34,7 +36,25 @@ def test_description_input_serializer_allows_blanks():
 
     assert serializer.validated_data["mission"] == ""
     assert serializer.validated_data["profil"] == ""
+    assert serializer.validated_data["employeur"] == ""
     assert serializer.validated_data["complements"] == ""
+    assert serializer.validated_data["conditions_exercice"] == ""
+    assert serializer.validated_data["descriptif_service"] == ""
+
+
+def test_description_input_serializer_new_fields_are_optional():
+    payload = {
+        "mission": "Mission",
+        "profil": "Profil",
+        "employeur": "Employeur",
+        "complements": "",
+    }
+
+    serializer = DescriptionInputSerializer(data=payload)
+
+    assert serializer.is_valid(), serializer.errors
+    assert "conditions_exercice" not in serializer.validated_data
+    assert "descriptif_service" not in serializer.validated_data
 
 
 def test_profession_input_serializer_defaults_referentiel_to_rmfpv2():

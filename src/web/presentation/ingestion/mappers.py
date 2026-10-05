@@ -83,6 +83,9 @@ class OfferInputMapper(IToDomainMapper[dict, Offer]):
             job_vacancy=data.get("vacance_poste") or None,
             employer=data["description"].get("employeur") or None,
             complements=data["description"].get("complements") or None,
+            exercise_conditions=data["description"].get("conditions_exercice") or None,
+            service_description=data["description"].get("descriptif_service") or None,
+            application_deadline=data["publication"].get("fin_candidature"),
             criteria=OfferCriteria.from_dict(data.get("criteres")),
             conditions=conditions,
             contacts=list(data["contacts"]) if data.get("contacts") else None,
@@ -137,7 +140,7 @@ class OfferSummaryOutputMapper:
             "organisationName": offer.organization,
             "organisationDescription": offer.employer,
             "organisationLogoUrl": None,
-            "contractDuration": None,
+            "contractDuration": (offer.conditions or {}).get("duree_contrat") or None,
             "contractTypeCountry": None,
             "description1": offer.mission,
             "description2": offer.profile,
@@ -286,7 +289,34 @@ class OfferDetailOutputMapper(OfferSummaryOutputMapper):
             "applicationQuestions": [],
             "attachedFilesUrls": [],
             "geolocation": geolocation,
-            "customFields": None,
+            "customFields": self._custom_fields(offer),
+        }
+
+    def _custom_fields(self, offer: Offer) -> dict:
+        return {
+            "offer": self._dynamic_field(
+                date1=self._isoformat(offer.application_deadline)
+            ),
+            "description": self._dynamic_field(
+                longText1=offer.employer,
+                longText2=offer.exercise_conditions,
+                longText3=offer.service_description,
+            ),
+            "location": self._dynamic_field(
+                shortText1=offer.localisation.label if offer.localisation else None
+            ),
+            "offerCustomBlock1": self._dynamic_field(longText1=offer.complements),
+        }
+
+    @staticmethod
+    def _dynamic_field(**values: Optional[str]) -> dict:
+        return {
+            "date1": None,
+            "shortText1": None,
+            "longText1": None,
+            "longText2": None,
+            "longText3": None,
+            **values,
         }
 
     @staticmethod

@@ -498,6 +498,21 @@ class FakeTsLanguageSerializer(serializers.Serializer):
     languageLevel = FakeTsCodedObjectSerializer()
 
 
+class FakeTsDynamicFieldSerializer(serializers.Serializer):
+    date1 = serializers.CharField(allow_null=True)
+    shortText1 = serializers.CharField(allow_null=True)
+    longText1 = serializers.CharField(allow_null=True)
+    longText2 = serializers.CharField(allow_null=True)
+    longText3 = serializers.CharField(allow_null=True)
+
+
+class FakeTsCustomFieldsSerializer(serializers.Serializer):
+    offer = FakeTsDynamicFieldSerializer()
+    description = FakeTsDynamicFieldSerializer()
+    location = FakeTsDynamicFieldSerializer()
+    offerCustomBlock1 = FakeTsDynamicFieldSerializer()
+
+
 class FakeTsOfferDetailSerializer(FakeTsOfferSummarySerializer):
     applicationUrl = serializers.CharField(allow_null=True)
     endPublicationDate = serializers.CharField(allow_null=True)
@@ -512,7 +527,7 @@ class FakeTsOfferDetailSerializer(FakeTsOfferSummarySerializer):
     applicationQuestions = serializers.ListField(child=serializers.DictField())
     attachedFilesUrls = serializers.ListField(child=serializers.CharField())
     geolocation = FakeTsGeolocationSerializer(allow_null=True)
-    customFields = serializers.CharField(allow_null=True)
+    customFields = FakeTsCustomFieldsSerializer()
 
 
 class LocalisationInputSerializer(LocalisationSerializer):
@@ -537,6 +552,8 @@ class OfferDetailResponseSerializer(serializers.Serializer):
     profile = serializers.CharField()
     mission = serializers.CharField()
     complements = serializers.CharField(allow_null=True)
+    exercise_conditions = serializers.CharField(allow_null=True)
+    service_description = serializers.CharField(allow_null=True)
     verse = serializers.CharField(allow_null=True)
     category = serializers.CharField(allow_null=True)
     contract_type = serializers.CharField(allow_null=True)
@@ -552,6 +569,7 @@ class OfferDetailResponseSerializer(serializers.Serializer):
     contacts = serializers.ListField(child=serializers.DictField(), allow_null=True)
     publication_date = serializers.DateTimeField()
     beginning_date = serializers.SerializerMethodField()
+    application_deadline = serializers.DateTimeField(allow_null=True)
     archived_at = serializers.DateTimeField(allow_null=True)
 
     @extend_schema_field(LocalisationSerializer(allow_null=True))
@@ -679,8 +697,14 @@ class ProfessionInputSerializer(serializers.Serializer):
 class DescriptionInputSerializer(serializers.Serializer):
     mission = serializers.CharField(max_length=10000, allow_blank=True)
     profil = serializers.CharField(max_length=10000, allow_blank=True)
-    employeur = serializers.CharField(max_length=3000)
+    employeur = serializers.CharField(max_length=3000, allow_blank=True)
     complements = serializers.CharField(max_length=5000, allow_blank=True)
+    conditions_exercice = serializers.CharField(
+        max_length=10000, allow_blank=True, required=False
+    )
+    descriptif_service = serializers.CharField(
+        max_length=10000, allow_blank=True, required=False
+    )
 
 
 class LanguageInputSerializer(serializers.Serializer):

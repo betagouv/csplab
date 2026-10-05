@@ -39,6 +39,9 @@ class Offer(IEntity):
     job_vacancy: Optional[str] = None
     employer: Optional[str] = None
     complements: Optional[str] = None
+    exercise_conditions: Optional[str] = None
+    service_description: Optional[str] = None
+    application_deadline: Optional[datetime] = None
     criteria: Optional[OfferCriteria] = None
     conditions: Optional[dict] = None
     contacts: Optional[list[dict]] = None
