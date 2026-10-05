@@ -1145,3 +1145,125 @@ def test_clean_raises_when_no_organisation(cleaner):
 
     with pytest.raises(ValueError, match="has no organisation"):
         cleaner.clean(raw_offer)
+
+
+def test_clean_prefers_url_redirection_applicant_as_application_url(cleaner):
+    raw_offer = _make_raw_offer(
+        urlRedirectionApplicant="https://redirect.example.com/job/123",
+        applicationUrl="https://apply.example.com/job/123",
+    )
+
+    offer = cleaner.clean(raw_offer)
+
+    assert str(offer.application_url) == "https://redirect.example.com/job/123"
+
+
+def test_clean_falls_back_to_application_url_without_url_redirection_applicant(
+    cleaner,
+):
+    raw_offer = _make_raw_offer(
+        urlRedirectionApplicant=None,
+        applicationUrl="https://apply.example.com/job/123",
+    )
+
+    offer = cleaner.clean(raw_offer)
+
+    assert str(offer.application_url) == "https://apply.example.com/job/123"
+
+
+def test_clean_maps_contract_duration(cleaner):
+    raw_offer = _make_raw_offer(contractDuration="12 mois")
+
+    offer = cleaner.clean(raw_offer)
+
+    assert offer.contract_duration == "12 mois"
+
+
+def test_clean_returns_none_contract_duration_when_absent(cleaner):
+    raw_offer = _make_raw_offer(contractDuration=None)
+
+    offer = cleaner.clean(raw_offer)
+
+    assert offer.contract_duration is None
+
+
+def test_clean_maps_custom_field_texts(cleaner):
+    raw_offer = _make_raw_offer(
+        customFields=TalentsoftCustomFieldsFactory.build(
+            description=TalentsoftDynamicField(
+                longText1="Présentation de l'employeur",
+                longText2="Conditions d'exercice",
+                longText3="Descriptif du service",
+            ),
+            offerCustomBlock1=TalentsoftDynamicField(longText1="Compléments"),
+        )
+    )
+
+    offer = cleaner.clean(raw_offer)
+
+    assert offer.employer_description == "Présentation de l'employeur"
+    assert offer.exercise_conditions == "Conditions d'exercice"
+    assert offer.service_description == "Descriptif du service"
+    assert offer.complements == "Compléments"
+
+
+def test_clean_returns_empty_custom_field_texts_when_absent(cleaner):
+    raw_offer = _make_raw_offer(customFields=None)
+
+    offer = cleaner.clean(raw_offer)
+
+    assert offer.employer_description == ""
+    assert offer.exercise_conditions == ""
+    assert offer.service_description == ""
+    assert offer.complements == ""
+    assert offer.application_deadline is None
+
+
+def test_clean_maps_application_deadline(cleaner):
+    raw_offer = _make_raw_offer(
+        customFields=TalentsoftCustomFieldsFactory.build(
+            offer=TalentsoftDynamicField(date1="2025-06-30T00:00:00Z")
+        )
+    )
+
+    offer = cleaner.clean(raw_offer)
+
+    assert offer.application_deadline == datetime(2025, 6, 30, tzinfo=timezone.utc)
+
+
+def test_clean_returns_none_application_deadline_on_invalid_format(cleaner):
+    raw_offer = _make_raw_offer(
+        customFields=TalentsoftCustomFieldsFactory.build(
+            offer=TalentsoftDynamicField(date1="not-a-date")
+        )
+    )
+
+    offer = cleaner.clean(raw_offer)
+
+    assert offer.application_deadline is None
+
+
+def test_clean_maps_localisation_label(cleaner):
+    raw_offer = _make_raw_offer(
+        **_valid_localisation_kwargs(),
+        customFields=TalentsoftCustomFieldsFactory.build(
+            location=TalentsoftDynamicField(shortText1="Blois (41)")
+        ),
+    )
+
+    offer = cleaner.clean(raw_offer)
+
+    assert offer.localisation is not None
+    assert offer.localisation.label == "Blois (41)"
+
+
+def test_clean_returns_none_localisation_label_when_absent(cleaner):
+    raw_offer = _make_raw_offer(
+        **_valid_localisation_kwargs(),
+        customFields=TalentsoftCustomFieldsFactory.build(location=None),
+    )
+
+    offer = cleaner.clean(raw_offer)
+
+    assert offer.localisation is not None
+    assert offer.localisation.label is None

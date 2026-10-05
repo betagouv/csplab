@@ -30,6 +30,8 @@ class DescriptionPayload(BaseModel):
     mission: str
     profil: str
     employeur: str
+    conditions_exercice: str = ""
+    descriptif_service: str = ""
     complements: str = ""
 
 
@@ -77,6 +79,8 @@ class ConditionsPayload(BaseModel):
     temps_travail: str
     lieu_de_travail: str
     management: Optional[str] = None
+    duree_contrat: Optional[str] = None
+    debut_contrat: Optional[datetime] = None
 
     @model_serializer
     def serialize(self) -> dict:
@@ -118,6 +122,7 @@ class OfferUpsertPayload(BaseModel):
                     pays=str(offer.localisation.country),
                     region=offer.localisation.region.code,
                     departement=offer.localisation.department.code,
+                    localisation_label=offer.localisation.label or "",
                     latitude=offer.localisation.latitude,
                     longitude=offer.localisation.longitude,
                 )
@@ -155,7 +160,10 @@ class OfferUpsertPayload(BaseModel):
             description=DescriptionPayload(
                 mission=offer.mission,
                 profil=offer.profile,
-                employeur=offer.organization,
+                employeur=offer.employer_description,
+                conditions_exercice=offer.exercise_conditions,
+                descriptif_service=offer.service_description,
+                complements=offer.complements,
             ),
             localisation=localisation,
             criteres=CriteresPayload(
@@ -177,10 +185,15 @@ class OfferUpsertPayload(BaseModel):
                 temps_travail=offer.working_time.name,
                 lieu_de_travail=offer.working_place.name,
                 management=offer.management.name if offer.management else None,
+                duree_contrat=offer.contract_duration,
+                debut_contrat=offer.beginning_date.value
+                if offer.beginning_date
+                else None,
             ),
             contacts=None,
             publication=PublicationPayload(
                 debut_publication=offer.publication_date,
                 fin_publication=fin_publication,
+                fin_candidature=offer.application_deadline,
             ),
         )
