@@ -128,7 +128,9 @@ function applyBatchMove(targetEtapeUuid: string, motifRefus?: MotifRefus): void 
     .flatMap(etape => etape.candidatures.filter(({ uuid }) => selectedByEtape.value.get(etape.uuid)?.has(uuid)))
     .map(({ uuid }) => uuid)
 
-  void changeEtape({ etapeCibleUuid: targetEtapeUuid, candidatureUuids, motifRefus })
+  if (candidatureUuids.length > 0) {
+    void changeEtape({ etapeCibleUuid: targetEtapeUuid, candidatureUuids, motifRefus })
+  }
 
   clearSelection()
   isDrawerOpen.value = false
