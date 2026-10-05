@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { CandidaturePanelTabKey } from '../constants/candidature'
+import type { CandidaturesViewName } from '../routes'
 import { useQueryCache } from '@pinia/colada'
 import { computed, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
@@ -29,10 +30,10 @@ import ChangerEtapePopover from '../components/ChangerEtapePopover.vue'
 import RefusCandidatureDialog from '../components/RefusCandidatureDialog.vue'
 import { useCandidatureDetail } from '../composables/useCandidatureDetail'
 import { useCandidatureNavigation } from '../composables/useCandidatureNavigation'
+import { useCandidaturePanelRoutes } from '../composables/useCandidaturePanelRoutes'
 import { useEtapeChange } from '../composables/useEtapeChange'
 import { CANDIDATURE_PANEL_TAB_ICONS, CANDIDATURE_PANEL_TAB_LABELS } from '../constants/candidature'
 import { candidatureDetailQuery } from '../queries'
-import { CANDIDATURE_CONVERSATION_ROUTE_NAMES, CANDIDATURE_PANEL_TAB_ROUTE_NAMES } from '../routes'
 import { formatCandidatNom } from '../utils/candidat'
 
 const route = useRoute()
@@ -78,26 +79,42 @@ watch(candidatureUuid, () => {
 })
 
 const TABS = tabItems(CANDIDATURE_PANEL_TAB_LABELS, CANDIDATURE_PANEL_TAB_ICONS)
-const activeTab = useRouteTab<CandidaturePanelTabKey>(CANDIDATURE_PANEL_TAB_ROUTE_NAMES, 'candidature')
+const { view, names: panelRouteNames, parentName } = useCandidaturePanelRoutes()
+const SEQUENCE_LABELS = {
+  kanban: 'Navigation entre les candidatures de l\'étape',
+  liste: 'Navigation entre les candidatures de la liste',
+} as const satisfies Record<CandidaturesViewName, string>
+const activeTab = useRouteTab<CandidaturePanelTabKey>(() => panelRouteNames.value.tabs, 'candidature')
 const TABS_WITHOUT_ASIDE: CandidaturePanelTabKey[] = ['historique', 'messages']
 const isMessagesTab = computed(() => activeTab.value === 'messages')
 const showAside = computed(() => !TABS_WITHOUT_ASIDE.includes(activeTab.value))
 
 function close(): void {
-  void router.push({
-    name: 'recrutement-candidatures-kanban',
-    params: { organismeUuid: route.params.organismeUuid, recrutementUuid: route.params.recrutementUuid },
-  })
+  void router.push({ name: parentName.value })
 }
 
 const unsavedChanges = useUnsavedChangesGuard({
   ignore: to => to.params.candidatureUuid === candidatureUuid.value,
 })
 
-const etapeChange = useEtapeChange(candidature, navigation, close)
+const movesToNextCandidature = computed(() => view.value === 'kanban')
+
+function leaveMovedCandidature(): void {
+  if (!movesToNextCandidature.value) {
+    return
+  }
+  if (position.value?.nextUuid) {
+    navigation.navigateTo(position.value.nextUuid)
+  }
+  else {
+    close()
+  }
+}
+
+const etapeChange = useEtapeChange(candidature, leaveMovedCandidature)
 
 async function requestEtapeChange(targetEtapeUuid: string): Promise<void> {
-  if (await unsavedChanges.confirmLeave()) {
+  if (!movesToNextCandidature.value || await unsavedChanges.confirmLeave()) {
     etapeChange.request(targetEtapeUuid)
   }
 }
@@ -235,7 +252,7 @@ function handleUpdateOpen(open: boolean): void {
                     v-if="candidature"
                     :candidature="candidatureParams"
                     :candidat-nom="formatCandidatNom(candidature.candidat)"
-                    :routes="CANDIDATURE_CONVERSATION_ROUTE_NAMES"
+                    :routes="panelRouteNames.conversations"
                   />
                 </div>
               </template>
@@ -246,7 +263,10 @@ function handleUpdateOpen(open: boolean): void {
               aria-label="Suivi de la candidature"
             >
               <template v-if="candidature">
-                <CandidatureActivites :candidature="candidatureParams" />
+                <CandidatureActivites
+                  :candidature="candidatureParams"
+                  :historique-route-name="panelRouteNames.tabs.historique"
+                />
                 <CspSeparator />
                 <CandidatureNoteForm :candidature="candidatureParams" />
               </template>
@@ -264,7 +284,7 @@ function handleUpdateOpen(open: boolean): void {
         :position="position ? position.index + 1 : null"
         :total="position?.total ?? 0"
         item-label="Candidature"
-        label="Navigation entre les candidatures de l'étape"
+        :label="SEQUENCE_LABELS[view]"
         :previous-disabled="!position?.previousUuid"
         :next-disabled="!position?.nextUuid"
         @previous="goPrevious"

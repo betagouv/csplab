@@ -39,4 +39,10 @@ describe('candidatureKanbanCard', () => {
 
     await vi.waitFor(() => expect(router.currentRoute.value.path).toBe(`${KANBAN_PATH}/candidatures/${ALICE}`))
   })
+
+  it('marks the card of the open candidature as current', async () => {
+    await renderCard(`${KANBAN_PATH}/candidatures/${ALICE}`)
+
+    expect(screen.getByRole('article')).toHaveAttribute('aria-current', 'true')
+  })
 })

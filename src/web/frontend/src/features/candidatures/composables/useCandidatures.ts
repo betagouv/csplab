@@ -25,8 +25,8 @@ export const useCandidatures = defineQuery(() => {
     recrutementUuid: recrutementUuid.value ?? '',
   }))
 
-  const isKanbanRoute = computed(() => route.matched.some(record => record.name === 'recrutement-candidatures-kanban'))
-  const isListeRoute = computed(() => route.name === 'recrutement-candidatures')
+  const isKanbanRoute = computed(() => route.meta.candidaturesView === 'kanban')
+  const isListeRoute = computed(() => route.meta.candidaturesView === 'liste')
 
   const queryCache = useQueryCache()
 

@@ -5,11 +5,11 @@ import { RouterLink } from 'vue-router'
 import { useMinimumPending } from '@/composables/async/useMinimumPending'
 import { useCandidatureActivites } from '../composables/useCandidatureActivites'
 import { LATEST_ACTIVITES_LIMIT } from '../constants/candidature'
-import { CANDIDATURE_PANEL_TAB_ROUTE_NAMES } from '../routes'
 import CandidatureActivitesList from './CandidatureActivitesList.vue'
 
 const props = defineProps<{
   candidature: CandidatureParams
+  historiqueRouteName: string
 }>()
 
 const { activites, pending, error } = useCandidatureActivites(() => props.candidature, LATEST_ACTIVITES_LIMIT)
@@ -18,7 +18,7 @@ const showSkeleton = useMinimumPending(pending)
 const titleId = useId()
 
 const historiqueLocation = computed(() => ({
-  name: CANDIDATURE_PANEL_TAB_ROUTE_NAMES.historique,
+  name: props.historiqueRouteName,
   params: { ...props.candidature },
 }))
 </script>

@@ -1,8 +1,8 @@
 import type { InjectionKey, MaybeRefOrGetter } from 'vue'
 import { computed, inject, provide, toValue } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { CANDIDATURE_ROUTE_NAME } from '../routes'
 import { findCandidaturePosition } from '../utils/position'
+import { useCandidaturePanelRoutes } from './useCandidaturePanelRoutes'
 
 type CandidatureSequence = (candidatureUuid: string) => string[]
 
@@ -15,6 +15,7 @@ export function provideCandidatureSequence(sequenceOf: CandidatureSequence): voi
 export function useCandidatureNavigation(candidatureUuid: MaybeRefOrGetter<string>) {
   const route = useRoute()
   const router = useRouter()
+  const { names } = useCandidaturePanelRoutes()
   const sequenceOf = inject(KEY)
   if (!sequenceOf) {
     throw new Error('useCandidatureNavigation must be used within provideCandidatureSequence')
@@ -24,7 +25,7 @@ export function useCandidatureNavigation(candidatureUuid: MaybeRefOrGetter<strin
 
   function navigateTo(uuid: string): void {
     const navigate = route.params.candidatureUuid ? router.replace : router.push
-    void navigate({ name: CANDIDATURE_ROUTE_NAME, params: { ...route.params, candidatureUuid: uuid } })
+    void navigate({ name: names.value.tabs.candidature, params: { ...route.params, candidatureUuid: uuid } })
   }
 
   function goPrevious(): void {

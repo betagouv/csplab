@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import type { EtapeRecrutementDetailedCandidatures, MotifRefus } from '../types'
 import type { KanbanDropEvent } from '@/composables/dnd/useKanbanDnd'
-import { computed, nextTick, ref, toRef, watch } from 'vue'
-import { useRoute } from 'vue-router'
+import { computed, ref, toRef } from 'vue'
 import CspSkeleton from '@/components/base/CspSkeleton/CspSkeleton.vue'
 import CspSkeletonKanban from '@/components/base/CspSkeleton/CspSkeletonKanban.vue'
 import { useMinimumPending } from '@/composables/async/useMinimumPending'
@@ -11,6 +10,7 @@ import CandidaturesKanbanBoard from '../components/CandidaturesKanbanBoard.vue'
 import ChangerEtapeDrawer from '../components/ChangerEtapeDrawer.vue'
 import RefusCandidatureDialog from '../components/RefusCandidatureDialog.vue'
 import SelectionActionBar from '../components/SelectionActionBar.vue'
+import { useCandidatureLinkFocus } from '../composables/useCandidatureLinkFocus'
 import { provideCandidatureSequence } from '../composables/useCandidatureNavigation'
 import { useCandidatures } from '../composables/useCandidatures'
 import { useEtapeChangeMutation } from '../composables/useEtapeChangeMutation'
@@ -37,15 +37,7 @@ provideCandidatureSequence(candidatureUuid =>
     ?.candidatures
     .map(({ uuid }) => uuid) ?? [])
 
-const route = useRoute()
-
-watch(() => route.params.candidatureUuid, async (current, previous) => {
-  if (current || typeof previous !== 'string') {
-    return
-  }
-  await nextTick()
-  document.querySelector<HTMLElement>(`[data-candidature-uuid="${previous}"] a`)?.focus()
-})
+useCandidatureLinkFocus()
 
 const showSkeleton = useMinimumPending(pendingKanban)
 

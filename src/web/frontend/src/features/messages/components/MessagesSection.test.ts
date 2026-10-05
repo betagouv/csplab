@@ -1,7 +1,7 @@
 import { screen } from '@testing-library/vue'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { HttpError } from '@/api/errors'
-import { CANDIDATURE_CONVERSATION_ROUTE_NAMES } from '@/features/candidatures/routes'
+import { CANDIDATURE_PANEL_ROUTE_NAMES } from '@/features/candidatures/routes'
 import { renderWithApp } from '@/test/render'
 import { getConversations } from '../api'
 import MessagesSection from './MessagesSection.vue'
@@ -33,7 +33,7 @@ describe('messagesSection', () => {
           candidatureUuid: CANDIDATURE_ALICE,
         },
         candidatNom: 'Alice Dupont',
-        routes: CANDIDATURE_CONVERSATION_ROUTE_NAMES,
+        routes: CANDIDATURE_PANEL_ROUTE_NAMES.kanban.conversations,
       },
     })
 
