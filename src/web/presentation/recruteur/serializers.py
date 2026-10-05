@@ -14,7 +14,11 @@ from domain.recruteur.value_objects.roles import (
 from infrastructure.django_apps.candidate.enums.type_document import TypeDocument
 from infrastructure.django_apps.candidate.models.document import DocumentModel
 from infrastructure.django_apps.commons.models import AuditLogModel
-from infrastructure.django_apps.messagerie.models import ConversationModel
+from infrastructure.django_apps.messagerie.models import (
+    ConversationModel,
+    MessageDocumentModel,
+    MessageModel,
+)
 from infrastructure.django_apps.recruteur.enums.motif_refus import MotifRefus
 from infrastructure.django_apps.recruteur.models.note import NoteModel
 from infrastructure.django_apps.recruteur.models.recrutement import (
@@ -477,7 +481,7 @@ class ConversationStubSerializer(serializers.Serializer):
 # ---------------------------------------------------------------------------
 
 
-class ConversationDocumentSerializer(serializers.Serializer):
+class ConversationDocumentStubSerializer(serializers.Serializer):
     uuid = serializers.UUIDField()
     nom = serializers.CharField()
     type = serializers.ChoiceField(choices=TypeDocument.choices)
@@ -485,13 +489,37 @@ class ConversationDocumentSerializer(serializers.Serializer):
     taille = serializers.IntegerField()
 
 
-class ConversationMessageSerializer(serializers.Serializer):
+class ConversationMessageStubSerializer(serializers.Serializer):
     content = serializers.CharField()
     author = serializers.CharField()
     created_at = serializers.DateTimeField()
-    documents = ConversationDocumentSerializer(
+    documents = ConversationDocumentStubSerializer(
         many=True, max_length=settings.MESSAGE_MAX_DOCUMENTS
     )
+
+
+class ConversationDocumentSerializer(serializers.ModelSerializer):
+    uuid = serializers.UUIDField(source="document_id")
+    nom = serializers.CharField(source="document.nom_original")
+    type = serializers.ChoiceField(
+        choices=TypeDocument.choices, source="document.type_document"
+    )
+    content_type = serializers.CharField(source="document.content_type")
+    taille = serializers.IntegerField(source="document.taille")
+
+    class Meta:
+        model = MessageDocumentModel
+        fields = ["uuid", "nom", "type", "content_type", "taille"]
+
+
+class ConversationMessageSerializer(serializers.ModelSerializer):
+    content = serializers.CharField(source="contenu")
+    author = serializers.CharField(source="auteur.get_full_name")
+    documents = ConversationDocumentSerializer(source="pieces_jointes", many=True)
+
+    class Meta:
+        model = MessageModel
+        fields = ["content", "author", "created_at", "documents"]
 
 
 # ---------------------------------------------------------------------------

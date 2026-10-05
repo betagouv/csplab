@@ -5,9 +5,6 @@ from django.conf import settings
 from django.urls import reverse
 from rest_framework import status
 
-from application.recruteur.services.read_conversation import (
-    _MESSAGES,
-)
 from domain.recruteur.value_objects.roles import (
     AgentOrganismeRole,
     AgentRecrutementRole,
@@ -21,6 +18,7 @@ from infrastructure.factories.identite.organisme_django_factory import (
 )
 from infrastructure.factories.messagerie.conversation_django_factory import (
     ConversationDjangoFactory,
+    MessageDjangoFactory,
 )
 from infrastructure.factories.recruteur.recrutement_django_factory import (
     EtapeDjangoFactory,
@@ -34,6 +32,7 @@ from tests.utils.message_documents import INVALID_DOCUMENTS, valid_documents
 
 TAILLE_PAGE_LIMITEE = 2
 TAILLE_PAGE_PAR_DEFAUT = 20
+NB_MESSAGES = 3
 
 
 def _url(organisme_uuid, recrutement_uuid, candidature_uuid, conversation_uuid):
@@ -57,7 +56,10 @@ def _candidature_for(organisme):
 
 
 def _conversation_of(candidature):
-    return ConversationDjangoFactory(candidature=candidature).pk
+    conversation = ConversationDjangoFactory(candidature=candidature)
+    MessageDjangoFactory(conversation=conversation, with_document=True)
+    MessageDjangoFactory.create_batch(NB_MESSAGES - 1, conversation=conversation)
+    return conversation.pk
 
 
 def _unknown_organisme(organisme, recrutement, candidature):
@@ -226,7 +228,7 @@ class TestCandidatureConversationDetailView:
 
         assert response.status_code == status.HTTP_200_OK
         body = response.json()
-        assert body["count"] == len(_MESSAGES)
+        assert body["count"] == NB_MESSAGES
         results = body["results"]
         assert set(results[0].keys()) == {
             "content",
@@ -241,6 +243,7 @@ class TestCandidatureConversationDetailView:
             for message in results
         )
         documents = [doc for message in results for doc in message["documents"]]
+        assert len(documents) == 1
         assert set(documents[0].keys()) == {
             "uuid",
             "nom",
