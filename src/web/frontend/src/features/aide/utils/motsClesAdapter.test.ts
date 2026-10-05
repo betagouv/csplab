@@ -83,7 +83,7 @@ describe('createMotsClesAdapter', () => {
   it('weighs title words over keywords in the real FAQ', async () => {
     const adapter = createMotsClesAdapter()
 
-    expect((await adapter.repondre('RETIRER UN COLLEGUE QUI QUITTE')).entreeId).toBe('org-revoquer')
+    expect((await adapter.repondre('l\'accès d\'un collègue du service')).entreeId).toBe('org-revoquer')
   })
 
   it('answers on a keyword that also appears in the title in the real FAQ', async () => {
