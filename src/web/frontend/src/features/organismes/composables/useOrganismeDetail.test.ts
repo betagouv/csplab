@@ -1,32 +1,18 @@
-import type { OrganismeDetail } from '../types'
 import { PiniaColada } from '@pinia/colada'
 import { mount } from '@vue/test-utils'
 import { createPinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { defineComponent, h, nextTick } from 'vue'
 import { HttpError } from '@/api/errors'
+import { ORGANISME_DETAIL } from '@/test/fixtures/organismes'
 import { useOrganismeDetail } from './useOrganismeDetail'
 
 const mockGetOrganismeDetail = vi.fn()
 
 vi.mock('../api', () => ({
   getOrganismesList: vi.fn(),
-  getOrganismeAgents: vi.fn(),
   getOrganismeDetail: (...args: unknown[]) => mockGetOrganismeDetail(...args),
 }))
-
-const ORGANISME_UUID = '11111111-1111-1111-1111-111111111111'
-
-const ORGANISME: OrganismeDetail = {
-  uuid: ORGANISME_UUID,
-  nom: 'Commune de Briançon',
-  versant: 'FPT',
-  siret: '21050023700354',
-  gestionnaire: null,
-  gestion_ats: true,
-  date_creation: '2026-01-01',
-  date_derniere_activite: '2026-01-15',
-}
 
 async function flush() {
   await new Promise(resolve => setTimeout(resolve, 0))
@@ -37,7 +23,7 @@ function mountDetail() {
   let result!: ReturnType<typeof useOrganismeDetail>
   mount(defineComponent({
     setup() {
-      result = useOrganismeDetail(ORGANISME_UUID)
+      result = useOrganismeDetail(ORGANISME_DETAIL.uuid)
       return () => h('div')
     },
   }), {
@@ -51,7 +37,7 @@ function mountDetail() {
 describe('useOrganismeDetail', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    mockGetOrganismeDetail.mockResolvedValue(ORGANISME)
+    mockGetOrganismeDetail.mockResolvedValue(ORGANISME_DETAIL)
   })
 
   it('exposes the organisme detail', async () => {
@@ -59,8 +45,8 @@ describe('useOrganismeDetail', () => {
     expect(pending.value).toBe(true)
     await flush()
 
-    expect(mockGetOrganismeDetail).toHaveBeenCalledWith(ORGANISME_UUID)
-    expect(organisme.value).toEqual(ORGANISME)
+    expect(mockGetOrganismeDetail).toHaveBeenCalledWith(ORGANISME_DETAIL.uuid)
+    expect(organisme.value).toEqual(ORGANISME_DETAIL)
     expect(notFound.value).toBe(false)
   })
 

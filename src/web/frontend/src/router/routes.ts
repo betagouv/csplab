@@ -1,7 +1,9 @@
 import type { RouteLocationNormalized, RouteRecordRaw } from 'vue-router'
 import type { CandidaturePanelRouteNames } from './names'
+import type { EtapesRecrutementType } from '@/features/etapes-recrutement/composables/useEtapesRecrutement'
 import { tabMetaFor } from '@/composables/navigation/tabs'
 import { CANDIDATURE_PANEL_TAB_LABELS, CANDIDATURE_TAB_LABELS } from '@/features/candidatures/constants/candidature'
+import { ETAPES_TEXTS_ORGANISME } from '@/features/etapes-recrutement/constants/etape-recrutement'
 import { ORGANISME_TAB_LABELS } from '@/features/organismes/constants/organisme'
 import { RECRUTEMENT_TAB_LABELS } from '@/features/recrutements/constants/recrutement'
 import {
@@ -24,7 +26,6 @@ const recrutementsTabMeta = tabMetaFor(RECRUTEMENT_TAB_LABELS)
 const recrutementTabMeta = tabMetaFor(CANDIDATURE_TAB_LABELS)
 const panelTabMeta = tabMetaFor(CANDIDATURE_PANEL_TAB_LABELS)
 
-const OrganismeView = () => import('@/features/organismes/views/OrganismeView.vue')
 const RecrutementsView = () => import('@/features/recrutements/views/RecrutementsView.vue')
 const CandidaturePanelView = () => import('@/features/candidatures/views/CandidaturePanelView.vue')
 
@@ -112,8 +113,30 @@ const organismeRoutes: RouteRecordRaw[] = [
     path: '',
     name: ORGANISME_SECTION_ROUTE_NAMES.parametres,
     children: [
-      { path: '', name: ORGANISME_TAB_ROUTE_NAMES.membres, component: OrganismeView, props: true, meta: organismeTabMeta('membres') },
-      { path: 'etapes', name: ORGANISME_TAB_ROUTE_NAMES.etapes, component: OrganismeView, props: true, meta: organismeTabMeta('etapes') },
+      {
+        path: '',
+        component: () => import('@/features/organismes/views/OrganismeView.vue'),
+        props: true,
+        children: [
+          {
+            path: '',
+            name: ORGANISME_TAB_ROUTE_NAMES.membres,
+            component: () => import('@/features/organismes/components/OrganismeAgentsSection.vue'),
+            props: true,
+            meta: organismeTabMeta('membres'),
+          },
+          {
+            path: 'etapes',
+            name: ORGANISME_TAB_ROUTE_NAMES.etapes,
+            component: () => import('@/features/etapes-recrutement/components/EtapesRecrutementList.vue'),
+            props: ({ params }) => ({
+              params: { type: 'organisme', organismeUuid: String(params.organismeUuid) } satisfies EtapesRecrutementType,
+              texts: ETAPES_TEXTS_ORGANISME,
+            }),
+            meta: organismeTabMeta('etapes'),
+          },
+        ],
+      },
     ],
   },
   {

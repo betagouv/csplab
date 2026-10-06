@@ -120,11 +120,7 @@ const headerMenuSections = [{
       width="full"
       :tabs="visibleTabs"
     >
-      <template
-        v-for="tab in visibleTabs"
-        #[`tab-${tab.value}`]
-        :key="tab.value"
-      >
+      <template #tab>
         <router-view />
       </template>
     </CspPageContainer>

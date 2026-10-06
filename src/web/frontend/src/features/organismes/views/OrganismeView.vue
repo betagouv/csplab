@@ -9,13 +9,10 @@ import CspPageHeader from '@/components/layout/CspPageHeader/CspPageHeader.vue'
 import { tabItems } from '@/composables/navigation/tabs'
 import { useRouteTab } from '@/composables/navigation/useRouteTab'
 import { useDocumentTitle } from '@/composables/ui/useDocumentTitle'
-import EtapesRecrutementList from '@/features/etapes-recrutement/components/EtapesRecrutementList.vue'
-import { ETAPES_TEXTS_ORGANISME } from '@/features/etapes-recrutement/constants/etape-recrutement'
 import { HOME_BREADCRUMB_ITEM } from '@/router/breadcrumb'
 import { ORGANISME_TAB_ROUTE_NAMES } from '@/router/names'
 import ForbiddenView from '@/views/ForbiddenView.vue'
 import NotFoundView from '@/views/NotFoundView.vue'
-import OrganismeAgentsSection from '../components/OrganismeAgentsSection.vue'
 import { useOrganismeDetail } from '../composables/useOrganismeDetail'
 import { ORGANISME_TAB_ICONS, ORGANISME_TAB_LABELS } from '../constants/organisme'
 
@@ -61,17 +58,8 @@ const metaItems = computed<CspMetaItem[]>(() =>
       v-model:active-tab="activeTab"
       :tabs="tabs"
     >
-      <template #tab-membres>
-        <OrganismeAgentsSection
-          :key="organismeUuid"
-          :organisme-uuid="organismeUuid"
-        />
-      </template>
-      <template #tab-etapes>
-        <EtapesRecrutementList
-          :params="{ type: 'organisme', organismeUuid }"
-          :texts="ETAPES_TEXTS_ORGANISME"
-        />
+      <template #tab>
+        <router-view :key="organismeUuid" />
       </template>
     </CspPageContainer>
   </template>
