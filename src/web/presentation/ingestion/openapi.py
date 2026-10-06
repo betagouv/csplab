@@ -460,6 +460,8 @@ dans le payload, sa `reference` finale et son `statut` (`created` ou `updated`).
 L'`index` permet de retrouver la référence générée pour chaque offre envoyée en \
 `"auto"`.
 
+Chaque offre rejetée apparaît dans `errors` avec son `index` dans le payload.
+
 **Important :** `"auto"` crée toujours une nouvelle offre. Pour mettre à jour \
 l'offre ensuite, conservez la référence renvoyée et envoyez-la à la place de \
 `"auto"`. Sinon, chaque envoi crée un doublon.
@@ -494,6 +496,7 @@ UPSERT_OFFERS_EXAMPLES = [
             ],
             "errors": [
                 {
+                    "index": 1,
                     "offer": {"reference": "auto", "versant": "FPE"},
                     "error": {"titre": ["Ce champ ne peut être nul."]},
                 }

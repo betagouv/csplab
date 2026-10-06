@@ -284,6 +284,10 @@ class ArchiveOffersView(PublicApiMixin, APIView):
                     child=inline_serializer(
                         name="UpsertOfferError",
                         fields={
+                            "index": serializers.IntegerField(
+                                help_text="Position de l'offre dans `offres` du "
+                                "payload (à partir de 0)"
+                            ),
                             "offer": IdentityInputSerializer(
                                 help_text="Identification de l'offre rejetée"
                             ),
@@ -334,6 +338,7 @@ class OffersUpsertView(PublicApiMixin, APIView):
             if not serializer.is_valid():
                 errors.append(
                     {
+                        "index": index,
                         "offer": offer_data.get("identification", {}),
                         "error": serializer.errors,
                     }
@@ -347,6 +352,7 @@ class OffersUpsertView(PublicApiMixin, APIView):
             except Exception as e:
                 errors.append(
                     {
+                        "index": index,
                         "offer": offer_data.get("identification", {}),
                         "error": str(e),
                     }

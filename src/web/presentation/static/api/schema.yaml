@@ -3255,6 +3255,8 @@ paths:
 
         La réponse liste dans `offres` chaque offre créée ou mise à jour, avec son `index` dans le payload, sa `reference` finale et son `statut` (`created` ou `updated`). L'`index` permet de retrouver la référence générée pour chaque offre envoyée en `"auto"`.
 
+        Chaque offre rejetée apparaît dans `errors` avec son `index` dans le payload.
+
         **Important :** `"auto"` crée toujours une nouvelle offre. Pour mettre à jour l'offre ensuite, conservez la référence renvoyée et envoyez-la à la place de `"auto"`. Sinon, chaque envoi crée un doublon.
 
         # Permissions
@@ -3297,7 +3299,8 @@ paths:
                       reference: CSP-2026-000042
                       statut: created
                     errors:
-                    - offer:
+                    - index: 1
+                      offer:
                         reference: auto
                         versant: FPE
                       error:
@@ -5708,6 +5711,9 @@ components:
     UpsertOfferError:
       type: object
       properties:
+        index:
+          type: integer
+          description: Position de l'offre dans `offres` du payload (à partir de 0)
         offer:
           allOf:
           - $ref: '#/components/schemas/IdentityInput'
@@ -5718,6 +5724,7 @@ components:
           description: Détail de l'erreur de validation
       required:
       - error
+      - index
       - offer
     UpsertOfferStatus:
       type: object
@@ -5987,6 +5994,8 @@ tags:
     - `POST /api/v1/offres/creer_modifier` : la réponse contient un nouveau champ
       `offres`, qui donne pour chaque offre créée ou mise à jour son `index` dans le
       payload, sa `reference` finale et son `statut` (`created` ou `updated`).
+    - `POST /api/v1/offres/creer_modifier` : chaque entrée de `errors` contient un
+      nouveau champ `index`, la position de l'offre rejetée dans le payload.
 
     ## 2026-10-05
 

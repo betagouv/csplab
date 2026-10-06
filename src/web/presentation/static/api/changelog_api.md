@@ -56,6 +56,8 @@ fonction publique et les offres qui ne donnent pas lieu à un contrat.
 - `POST /api/v1/offres/creer_modifier` : la réponse contient un nouveau champ
   `offres`, qui donne pour chaque offre créée ou mise à jour son `index` dans le
   payload, sa `reference` finale et son `statut` (`created` ou `updated`).
+- `POST /api/v1/offres/creer_modifier` : chaque entrée de `errors` contient un
+  nouveau champ `index`, la position de l'offre rejetée dans le payload.
 
 ## 2026-10-05
 

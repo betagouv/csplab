@@ -2,6 +2,7 @@ import re
 from datetime import datetime
 from unittest.mock import MagicMock
 from uuid import UUID
+from zoneinfo import ZoneInfo
 
 import pytest
 from django.urls import reverse
@@ -383,10 +384,12 @@ def test_mixed_valid_invalid_offers_in_payload(
     assert errors == [
         "db error on offer xxx",
         {
+            "index": 1,
             "offer": {"reference": "REF-004", "versant": "FPT"},
             "error": {"titre": ["Ce champ ne peut être nul."]},
         },
         {
+            "index": 2,
             "offer": {"reference": "REF-005", "versant": "FPT"},
             "error": {"nature_offre": ["«\xa0ABC\xa0» n'est pas un choix valide."]},
         },
@@ -414,6 +417,7 @@ def test_unknown_metier_returns_error_in_payload(
     errors = response.json()["errors"]
     assert errors == [
         {
+            "index": 0,
             "offer": {"reference": "REF-001", "versant": "FPT"},
             "error": {
                 "profession": {
@@ -555,3 +559,31 @@ class TestOffersUpsertViewDbVerified:
             references.append(response.json()["offres"][0]["reference"])
 
         assert references[0] != references[1]
+
+    def test_auto_reference_skips_a_reference_sent_in_the_same_payload(
+        self, authenticated_client_with_source
+    ):
+        MetierDjangoFactory(offer_family_code="ERNUM001")
+        explicit_reference = f"CSP-{datetime.now(ZoneInfo('Europe/Paris')).year}-000001"
+        auto_offer = PayloadOfferFactory.create(
+            identification={"reference": "auto", "versant": "FPT"}
+        )
+        explicit_offer = PayloadOfferFactory.create(
+            identification={"reference": explicit_reference, "versant": "FPT"}
+        )
+
+        response = authenticated_client_with_source.post(
+            URL,
+            data={"source_id": SOURCE_UUID, "offres": [auto_offer, explicit_offer]},
+            content_type="application/json",
+        )
+
+        assert response.status_code == status.HTTP_201_CREATED
+        offres = response.json()["offres"]
+        assert offres[1]["reference"] == explicit_reference
+        assert offres[0]["reference"] != explicit_reference
+        assert set(
+            OfferModel.objects.filter(source_id=UUID(SOURCE_UUID)).values_list(
+                "reference", flat=True
+            )
+        ) == {offres[0]["reference"], explicit_reference}
