@@ -1,9 +1,8 @@
 from uuid import uuid4
 
 import pytest
-from django.conf import settings
+from django.db import IntegrityError
 
-from application.recruteur.services.conversation_stubs import stub_conversation_id
 from application.recruteur.services.create_conversation import create_conversation
 from domain.commons.errors.organisme_errors import OrganismeNexistePas
 from domain.identite.errors.organisme_permission_errors import (
@@ -15,6 +14,9 @@ from domain.recruteur.errors.recrutement_errors import (
     RecrutementInexistant,
 )
 from domain.recruteur.value_objects.roles import AgentOrganismeRole
+from infrastructure.django_apps.messagerie.models import (
+    ConversationModel,
+)
 from infrastructure.factories.candidate.candidature_django_factory import (
     CandidatureDjangoFactory,
 )
@@ -63,35 +65,21 @@ def superviseur_candidature(db):
     return agent, organisme, recrutement, candidature
 
 
-def test_authorized_agent_creates_a_conversation(superviseur_candidature):
-    agent, organisme, recrutement, candidature = superviseur_candidature
-    utilisateur = _utilisateur(agent.utilisateur_id, prenom="Camille", nom="Durand")
-
-    conversation = _create(organisme.id, recrutement.pk, candidature.pk, utilisateur)
-
-    assert conversation.uuid == stub_conversation_id(candidature.pk, OBJET)
-    assert conversation.objet == OBJET
-    assert conversation.creator == "Camille Durand"
-    assert conversation.last_message_author == "Camille Durand"
-    assert conversation.last_message_content == CONTENT
-    assert conversation.created_at == conversation.last_message_created_at
-
-
-def test_last_message_content_is_truncated(superviseur_candidature):
+def test_nothing_is_persisted_when_the_message_cannot_be_created(
+    superviseur_candidature,
+):
     agent, organisme, recrutement, candidature = superviseur_candidature
 
-    conversation = _create(
-        organisme.id,
-        recrutement.pk,
-        candidature.pk,
-        _utilisateur(agent.utilisateur_id),
-        content="a" * (settings.CONVERSATION_LAST_MESSAGE_CONTENT_MAX_LENGTH + 1),
-    )
+    with pytest.raises(IntegrityError):
+        _create(
+            organisme.id,
+            recrutement.pk,
+            candidature.pk,
+            _utilisateur(agent.utilisateur_id),
+            content="",
+        )
 
-    assert (
-        len(conversation.last_message_content)
-        == settings.CONVERSATION_LAST_MESSAGE_CONTENT_MAX_LENGTH
-    )
+    assert not ConversationModel.objects.exists()
 
 
 def _without_organisme_role():

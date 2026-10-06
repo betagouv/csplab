@@ -2100,7 +2100,7 @@ paths:
               $ref: '#/components/headers/X-RateLimit-Reset'
     post:
       operationId: recruteur_organismes_recrutements_candidatures_conversations_create
-      summary: Créer une conversation sur une candidature (stub)
+      summary: Créer une conversation sur une candidature
       parameters:
       - in: path
         name: candidature_uuid

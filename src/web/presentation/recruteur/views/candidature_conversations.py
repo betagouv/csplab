@@ -12,6 +12,7 @@ from rest_framework.response import Response
 
 from application.recruteur.services.create_conversation import create_conversation
 from application.recruteur.services.list_conversations import list_conversations
+from domain.candidate.exceptions.document_errors import FichierDeposeIncomplet
 from domain.commons.errors.organisme_errors import OrganismeNexistePas
 from domain.identite.errors.organisme_permission_errors import (
     AccesOrganismeRefuse,
@@ -29,7 +30,6 @@ from presentation.commons.pagination import PageNumberLimitPagination
 from presentation.recruteur.mappers import UtilisateurMapper
 from presentation.recruteur.serializers import (
     ConversationSerializer,
-    ConversationStubSerializer,
     CreateConversationSerializer,
 )
 
@@ -48,7 +48,7 @@ class ConversationPagination(PageNumberLimitPagination):
         },
     ),
     post=extend_schema(
-        summary="Créer une conversation sur une candidature (stub)",
+        summary="Créer une conversation sur une candidature",
         tags=["recruteur"],
         request={"multipart/form-data": CreateConversationSerializer},
         responses={
@@ -93,7 +93,7 @@ class CandidatureConversationsView(ListAPIView):
             utilisateur=UtilisateurMapper().to_domain(request),
         )
         return Response(
-            ConversationStubSerializer(conversation).data,
+            ConversationSerializer(conversation).data,
             status=status.HTTP_201_CREATED,
         )
 
@@ -113,6 +113,11 @@ class CandidatureConversationsView(ListAPIView):
             return Response(
                 GenericErrorSerializer({"error": str(exc)}).data,
                 status=status.HTTP_404_NOT_FOUND,
+            )
+        if isinstance(exc, FichierDeposeIncomplet):
+            return Response(
+                GenericErrorSerializer({"error": str(exc)}).data,
+                status=status.HTTP_400_BAD_REQUEST,
             )
         if isinstance(exc, (exceptions.APIException, Http404)):
             return super().handle_exception(exc)

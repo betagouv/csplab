@@ -1,6 +1,10 @@
+from uuid import uuid4
+
 from django.core.files.storage import storages
+from django.core.files.uploadedfile import UploadedFile
 from django.db import models
 
+from domain.candidate.exceptions.document_errors import FichierDeposeIncomplet
 from infrastructure.django_apps.candidate.enums.type_document import TypeDocument
 from infrastructure.django_apps.candidate.models.candidature import CandidatureModel
 from infrastructure.django_apps.users.models import UserModel
@@ -35,6 +39,22 @@ class DocumentQuerySet(models.QuerySet):
                 candidature__etape__recrutement_id=recrutement_id,
             )
             .order_by("-created_at")
+        )
+
+    def build_from_upload(
+        self, upload: UploadedFile, *, candidature_id, depose_par_id
+    ) -> "DocumentModel":
+        if upload.name is None or upload.content_type is None or upload.size is None:
+            raise FichierDeposeIncomplet()
+        return self.model(
+            id=uuid4(),
+            candidature_id=candidature_id,
+            type_document=TypeDocument.AUTRE,
+            fichier=upload,
+            nom_original=upload.name,
+            content_type=upload.content_type,
+            taille=upload.size,
+            depose_par_id=depose_par_id,
         )
 
     def cvs_of(self, candidature_id) -> "DocumentQuerySet":
