@@ -10,7 +10,9 @@ import CspAppShell from '@/components/layout/CspAppShell/CspAppShell.vue'
 import { useCurrentUser } from '@/stores/currentUser'
 import { useRouteOrganisme } from '@/stores/routeOrganisme'
 
-useHead({ titleTemplate: '%s | CSPLab' })
+const LOADING_TITLE = document.title
+
+useHead({ titleTemplate: title => (title ? `${title} | CSPLab` : LOADING_TITLE) })
 
 const { user } = useCurrentUser()
 const { organismeUuid, canManageOrganisme } = useRouteOrganisme()
