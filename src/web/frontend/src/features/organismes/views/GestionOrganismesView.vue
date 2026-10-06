@@ -3,13 +3,14 @@ import type { CspBreadcrumbItem } from '@/components/base/CspBreadcrumb/CspBread
 import CspPageContainer from '@/components/layout/CspPageContainer/CspPageContainer.vue'
 import CspPageHeader from '@/components/layout/CspPageHeader/CspPageHeader.vue'
 import { useDocumentTitle } from '@/composables/ui/useDocumentTitle'
-import { HOME_ROUTE_NAME, ORGANISMES_ROUTE_NAME } from '@/router/names'
+import { HOME_BREADCRUMB_ITEM } from '@/router/breadcrumb'
+import { ORGANISMES_ROUTE_NAME } from '@/router/names'
 import OrganismesSection from '../components/OrganismesSection.vue'
 
 const TITLE = 'Gestion des organismes'
 
 const breadcrumb: CspBreadcrumbItem[] = [
-  { label: 'Accueil', to: { name: HOME_ROUTE_NAME } },
+  HOME_BREADCRUMB_ITEM,
   { label: TITLE, to: { name: ORGANISMES_ROUTE_NAME } },
 ]
 

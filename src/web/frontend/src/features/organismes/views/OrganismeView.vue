@@ -11,7 +11,8 @@ import { useRouteTab } from '@/composables/navigation/useRouteTab'
 import { useDocumentTitle } from '@/composables/ui/useDocumentTitle'
 import EtapesRecrutementList from '@/features/etapes-recrutement/components/EtapesRecrutementList.vue'
 import { ETAPES_TEXTS_ORGANISME } from '@/features/etapes-recrutement/constants/etape-recrutement'
-import { HOME_ROUTE_NAME, ORGANISME_TAB_ROUTE_NAMES } from '@/router/names'
+import { HOME_BREADCRUMB_ITEM } from '@/router/breadcrumb'
+import { ORGANISME_TAB_ROUTE_NAMES } from '@/router/names'
 import ForbiddenView from '@/views/ForbiddenView.vue'
 import NotFoundView from '@/views/NotFoundView.vue'
 import OrganismeAgentsSection from '../components/OrganismeAgentsSection.vue'
@@ -27,7 +28,7 @@ const { organisme, notFound, forbidden } = useOrganismeDetail(() => props.organi
 const TITLE = 'Paramètres de l\'organisme'
 
 const breadcrumb: CspBreadcrumbItem[] = [
-  { label: 'Accueil', to: { name: HOME_ROUTE_NAME } },
+  HOME_BREADCRUMB_ITEM,
   { label: TITLE },
 ]
 

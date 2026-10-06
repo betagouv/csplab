@@ -19,7 +19,8 @@ import { useRouteTab } from '@/composables/navigation/useRouteTab'
 import { useDisclosure } from '@/composables/ui/useDisclosure'
 import { useDocumentTitle } from '@/composables/ui/useDocumentTitle'
 import EquipeRecrutementSection from '@/features/equipe-recrutement/components/EquipeRecrutementSection.vue'
-import { CANDIDATURES_TAB_ROUTE_NAMES, HOME_ROUTE_NAME, RECRUTEMENT_ETAPES_ROUTE_NAME, recrutementsListLocation } from '@/router/names'
+import { HOME_BREADCRUMB_ITEM, recrutementsBreadcrumbItem } from '@/router/breadcrumb'
+import { CANDIDATURES_TAB_ROUTE_NAMES, RECRUTEMENT_ETAPES_ROUTE_NAME, recrutementsListLocation } from '@/router/names'
 import { useCurrentUser } from '@/stores/currentUser'
 import { useRouteOrganisme } from '@/stores/routeOrganisme'
 import ForbiddenView from '@/views/ForbiddenView.vue'
@@ -79,8 +80,8 @@ const recrutementsListLink = computed(() => recrutementsListLocation(props.organ
 const title = computed(() => intitule.value ?? 'Candidatures')
 
 const breadcrumb = computed<CspBreadcrumbItem[]>(() => [
-  { label: 'Accueil', to: { name: HOME_ROUTE_NAME } },
-  { label: 'Recrutements', to: recrutementsListLink.value },
+  HOME_BREADCRUMB_ITEM,
+  recrutementsBreadcrumbItem(props.organismeUuid, recrutementDetail.value?.archive),
   ...(intitule.value ? [{ label: intitule.value }] : []),
 ])
 

@@ -25,7 +25,8 @@ import { useDisclosure } from '@/composables/ui/useDisclosure'
 import { useDocumentTitle } from '@/composables/ui/useDocumentTitle'
 import { useToast } from '@/composables/ui/useToast'
 import { formatAgentName } from '@/features/organismes/format'
-import { CANDIDATURES_VIEW_ROUTE_NAMES, HOME_ROUTE_NAME, RECRUTEMENTS_TAB_ROUTE_NAMES } from '@/router/names'
+import { HOME_BREADCRUMB_ITEM, RECRUTEMENTS_BREADCRUMB_LABEL } from '@/router/breadcrumb'
+import { CANDIDATURES_VIEW_ROUTE_NAMES, RECRUTEMENTS_TAB_ROUTE_NAMES } from '@/router/names'
 import { useRouteOrganisme } from '@/stores/routeOrganisme'
 import { pluralize } from '@/utils/format'
 import ForbiddenView from '@/views/ForbiddenView.vue'
@@ -45,8 +46,8 @@ const props = defineProps<{
 const AUCUN_RECRUTEMENT_EN_COURS_DESCRIPTION = 'Les recrutements auxquels vous participez apparaissent ici. Pour accéder à un recrutement, contactez la personne responsable dans votre organisation.'
 
 const BREADCRUMB: CspBreadcrumbItem[] = [
-  { label: 'Accueil', to: { name: HOME_ROUTE_NAME } },
-  { label: 'Recrutements' },
+  HOME_BREADCRUMB_ITEM,
+  { label: RECRUTEMENTS_BREADCRUMB_LABEL },
 ]
 
 const router = useRouter()

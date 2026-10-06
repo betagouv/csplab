@@ -9,7 +9,7 @@ The project **is** the ATS, so there is no top-level `ats/` feature. Business co
 ```
 src/
 ├── app/                    # Bootstrap & app config (main.ts, App.vue, navigation.ts, icons)
-├── router/                 # Route tree (routes.ts) and shared route names (names.ts)
+├── router/                 # Route tree (routes.ts), shared route names (names.ts), shared breadcrumb items (breadcrumb.ts)
 ├── views/                  # App-level pages WITHOUT business logic (Home, ParametresView, NotFound)
 │
 ├── features/               # Business modules (self-contained) — business views & components ONLY
