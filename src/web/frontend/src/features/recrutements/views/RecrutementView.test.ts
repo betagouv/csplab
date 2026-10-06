@@ -2,21 +2,21 @@ import { screen } from '@testing-library/vue'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { RouterView } from 'vue-router'
 import { getMe } from '@/api/utilisateur'
+import { getRecrutementKanban } from '@/features/candidatures/api'
 import { getEquipeRecrutement } from '@/features/equipe-recrutement/api'
-import { getRecrutementDetail } from '@/features/recrutements/api'
 import { KANBAN, KANBAN_PATH, RECRUTEMENT_DETAIL, roleOnOrganisme } from '@/test/fixtures/candidatures'
 import { makeUser } from '@/test/fixtures/utilisateur'
 import { renderWithApp } from '@/test/render'
-import { getRecrutementKanban } from '../api'
+import { getRecrutementDetail } from '../api'
 
-vi.mock('../api', () => ({
+vi.mock('@/features/candidatures/api', () => ({
   getRecrutementKanban: vi.fn(),
   getCandidatureListe: vi.fn(),
   patchEtapeCandidatures: vi.fn(),
   getMotifsRefus: vi.fn(),
 }))
 
-vi.mock('@/features/recrutements/api', () => ({
+vi.mock('../api', () => ({
   getRecrutementDetail: vi.fn(),
 }))
 
@@ -30,7 +30,7 @@ vi.mock('@/api/utilisateur', () => ({
 
 const EQUIPE_PATH = `${KANBAN_PATH}/equipe`
 
-describe('candidaturesView', () => {
+describe('recrutementView', () => {
   beforeEach(() => {
     vi.mocked(getRecrutementDetail).mockReset().mockResolvedValue(RECRUTEMENT_DETAIL)
     vi.mocked(getRecrutementKanban).mockReset().mockResolvedValue(KANBAN)

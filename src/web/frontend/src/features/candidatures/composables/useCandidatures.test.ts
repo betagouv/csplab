@@ -9,7 +9,6 @@ import { defineComponent, h } from 'vue'
 import { createMemoryHistory, createRouter } from 'vue-router'
 import { getMe } from '@/api/utilisateur'
 import { getRecrutementDetail } from '@/features/recrutements/api'
-import { RECRUTEMENTS_QUERY_KEYS } from '@/features/recrutements/queries'
 import { routes } from '@/router/routes'
 import { getCandidatureListe, getRecrutementKanban } from '../api'
 import { CANDIDATURES_QUERY_KEYS } from '../queries'
@@ -200,46 +199,6 @@ describe('useCandidatures', () => {
       await vi.waitFor(() => expect(context.pendingKanban.value).toBe(false))
 
       expect(context.error.value).toBeInstanceOf(Error)
-    })
-  })
-
-  describe('intitule', () => {
-    it('exposes the intitule from the loaded detail', async () => {
-      const { context } = await mountCandidatures()
-
-      await vi.waitFor(() => expect(context.pendingDetail.value).toBe(false))
-
-      expect(context.intitule.value).toBe('Chargé de mission numérique')
-    })
-
-    it('seeds the intitule from the recrutements list cache while pending', async () => {
-      vi.mocked(getRecrutementDetail).mockImplementation(() => new Promise(() => {}))
-
-      const { context } = await mountCandidatures(() => {
-        const queryCache = useQueryCache()
-        queryCache.setQueryData(
-          RECRUTEMENTS_QUERY_KEYS.actifs(ORGANISME_UUID),
-          {
-            count: 1,
-            next: null,
-            previous: null,
-            results: [{ uuid: RECRUTEMENT_UUID, intitule: 'Chargé de mission numérique' }],
-          },
-        )
-      })
-
-      await vi.waitFor(() =>
-        expect(context.intitule.value).toBe('Chargé de mission numérique'),
-      )
-      expect(context.pendingDetail.value).toBe(true)
-    })
-
-    it('has no intitule while pending without cached list', async () => {
-      vi.mocked(getRecrutementDetail).mockImplementation(() => new Promise(() => {}))
-
-      const { context } = await mountCandidatures()
-
-      expect(context.intitule.value).toBeNull()
     })
   })
 

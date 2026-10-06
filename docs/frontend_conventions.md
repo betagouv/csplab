@@ -112,11 +112,11 @@ The shell wraps `<RouterView>` **once** (in `App.vue`), so views never import it
   children: [
     {
       path: '',
-      component: CandidaturesView,
+      component: RecrutementView,
       props: paramsAsProps('organismeUuid', 'recrutementUuid'),
       children: [
-        { path: 'activites', name: CANDIDATURES_TAB_ROUTE_NAMES['activites-et-taches'], component: ActivitesTachesView },
-        { path: 'equipe', name: CANDIDATURES_TAB_ROUTE_NAMES.equipe, component: EquipeRecrutementSection, props: true },
+        { path: 'activites', name: RECRUTEMENT_DETAIL_TAB_ROUTE_NAMES['activites-et-taches'], component: ActivitesTachesView },
+        { path: 'equipe', name: RECRUTEMENT_DETAIL_TAB_ROUTE_NAMES.equipe, component: EquipeRecrutementSection, props: true },
       ],
     },
   ],

@@ -2,19 +2,19 @@ import type { RouteLocationNormalized, RouteRecordRaw } from 'vue-router'
 import type { CandidaturePanelRouteNames } from './names'
 import type { EtapesRecrutementType } from '@/features/etapes-recrutement/composables/useEtapesRecrutement'
 import { tabMetaFor } from '@/composables/navigation/tabs'
-import { CANDIDATURE_PANEL_TAB_LABELS, CANDIDATURE_TAB_LABELS } from '@/features/candidatures/constants/candidature'
+import { CANDIDATURE_PANEL_TAB_LABELS } from '@/features/candidatures/constants/candidature'
 import { ETAPES_TEXTS_ORGANISME } from '@/features/etapes-recrutement/constants/etape-recrutement'
 import { ORGANISME_TAB_LABELS } from '@/features/organismes/constants/organisme'
-import { RECRUTEMENT_TAB_LABELS } from '@/features/recrutements/constants/recrutement'
+import { RECRUTEMENT_DETAIL_TAB_LABELS, RECRUTEMENT_TAB_LABELS } from '@/features/recrutements/constants/recrutement'
 import {
   CANDIDATURE_PANEL_ROUTE_NAMES,
-  CANDIDATURES_TAB_ROUTE_NAMES,
   CANDIDATURES_VIEW_ROUTE_NAMES,
   HOME_ROUTE_NAME,
   NOT_FOUND_ROUTE_NAME,
   ORGANISME_SECTION_ROUTE_NAMES,
   ORGANISME_TAB_ROUTE_NAMES,
   ORGANISMES_ROUTE_NAME,
+  RECRUTEMENT_DETAIL_TAB_ROUTE_NAMES,
   RECRUTEMENT_ETAPES_ROUTE_NAME,
   RECRUTEMENTS_TAB_ROUTE_NAMES,
 } from './names'
@@ -23,7 +23,7 @@ const UUID = '([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a
 
 const organismeTabMeta = tabMetaFor(ORGANISME_TAB_LABELS)
 const recrutementsTabMeta = tabMetaFor(RECRUTEMENT_TAB_LABELS)
-const recrutementTabMeta = tabMetaFor(CANDIDATURE_TAB_LABELS)
+const recrutementTabMeta = tabMetaFor(RECRUTEMENT_DETAIL_TAB_LABELS)
 const panelTabMeta = tabMetaFor(CANDIDATURE_PANEL_TAB_LABELS)
 
 const RecrutementsView = () => import('@/features/recrutements/views/RecrutementsView.vue')
@@ -59,7 +59,7 @@ function candidaturePanelRoutes({ tabs, conversations }: CandidaturePanelRouteNa
 const recrutementRoutes: RouteRecordRaw[] = [
   {
     path: '',
-    component: () => import('@/features/candidatures/views/CandidaturesView.vue'),
+    component: () => import('@/features/recrutements/views/RecrutementView.vue'),
     props: recrutementProps,
     children: [
       {
@@ -87,13 +87,13 @@ const recrutementRoutes: RouteRecordRaw[] = [
       },
       {
         path: 'activites',
-        name: CANDIDATURES_TAB_ROUTE_NAMES['activites-et-taches'],
+        name: RECRUTEMENT_DETAIL_TAB_ROUTE_NAMES['activites-et-taches'],
         component: () => import('@/features/candidatures/views/ActivitesTachesView.vue'),
         meta: recrutementTabMeta('activites-et-taches'),
       },
       {
         path: 'equipe',
-        name: CANDIDATURES_TAB_ROUTE_NAMES.equipe,
+        name: RECRUTEMENT_DETAIL_TAB_ROUTE_NAMES.equipe,
         component: () => import('@/features/equipe-recrutement/components/EquipeRecrutementSection.vue'),
         props: true,
         meta: recrutementTabMeta('equipe'),

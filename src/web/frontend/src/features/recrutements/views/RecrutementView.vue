@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { CandidatureTabKey } from '../constants/candidature'
+import type { RecrutementDetailTabKey } from '../constants/recrutement'
 import type { CspBreadcrumbItem } from '@/components/base/CspBreadcrumb/CspBreadcrumb.vue'
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
@@ -14,12 +14,12 @@ import { tabItems } from '@/composables/navigation/tabs'
 import { useRouteTab } from '@/composables/navigation/useRouteTab'
 import { useDocumentTitle } from '@/composables/ui/useDocumentTitle'
 import { HOME_BREADCRUMB_ITEM, recrutementsBreadcrumbItem } from '@/router/breadcrumb'
-import { CANDIDATURES_TAB_ROUTE_NAMES, RECRUTEMENT_ETAPES_ROUTE_NAME, recrutementsListLocation } from '@/router/names'
+import { RECRUTEMENT_DETAIL_TAB_ROUTE_NAMES, RECRUTEMENT_ETAPES_ROUTE_NAME, recrutementsListLocation } from '@/router/names'
 import { useCurrentUser } from '@/stores/currentUser'
 import { useRouteOrganisme } from '@/stores/routeOrganisme'
 import ForbiddenView from '@/views/ForbiddenView.vue'
-import { useCandidatures } from '../composables/useCandidatures'
-import { CANDIDATURE_TAB_ICONS, CANDIDATURE_TAB_LABELS } from '../constants/candidature'
+import { useRecrutementDetail } from '../composables/useRecrutementDetail'
+import { RECRUTEMENT_DETAIL_TAB_ICONS, RECRUTEMENT_DETAIL_TAB_LABELS } from '../constants/recrutement'
 import { formatRecrutementMeta } from '../format'
 
 const props = defineProps<{
@@ -27,12 +27,7 @@ const props = defineProps<{
   recrutementUuid: string
 }>()
 const router = useRouter()
-const {
-  recrutementDetail,
-  intitule,
-  pendingDetail,
-  error,
-} = useCandidatures()
+const { recrutementDetail, intitule, pending: pendingDetail, error } = useRecrutementDetail(() => props)
 
 const showTitleSkeleton = useMinimumPending(
   computed(() => pendingDetail.value && !intitule.value),
@@ -58,13 +53,13 @@ const metaItems = computed(() =>
 const { user } = useCurrentUser()
 const { canManageOrganisme } = useRouteOrganisme()
 
-const TABS = tabItems(CANDIDATURE_TAB_LABELS, CANDIDATURE_TAB_ICONS)
+const TABS = tabItems(RECRUTEMENT_DETAIL_TAB_LABELS, RECRUTEMENT_DETAIL_TAB_ICONS)
 const visibleTabs = computed(() =>
   canManageOrganisme.value ? TABS : TABS.filter(tab => tab.value !== 'equipe'),
 )
-const activeTab = useRouteTab<CandidatureTabKey>(CANDIDATURES_TAB_ROUTE_NAMES, 'candidatures')
+const activeTab = useRouteTab<RecrutementDetailTabKey>(RECRUTEMENT_DETAIL_TAB_ROUTE_NAMES, 'candidatures')
 
-useDocumentTitle(() => CANDIDATURE_TAB_LABELS[activeTab.value], intitule)
+useDocumentTitle(() => RECRUTEMENT_DETAIL_TAB_LABELS[activeTab.value], intitule)
 
 const equipeForbidden = computed(() =>
   activeTab.value === 'equipe' && Boolean(user.value) && !canManageOrganisme.value,
