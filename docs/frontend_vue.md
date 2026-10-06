@@ -10,7 +10,7 @@ src/web/
 │   ├── src/
 │   │   ├── app/                      # Bootstrap & app config (main.ts, App.vue, navigation.ts)
 │   │   ├── router/                   # Route tree, shared route names and breadcrumb items
-│   │   ├── views/                    # App-level pages without business logic (Home, Parametres, ...)
+│   │   ├── views/                    # App-level pages without business logic (Home, NotFound, ...)
 │   │   ├── features/                 # Business modules (recrutements, etapes-recrutement, ...)
 │   │   ├── components/               # Design system (base/, layout/)
 │   │   ├── composables/              # Technical hooks (async/, ui/, dnd/)

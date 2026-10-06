@@ -54,7 +54,9 @@ const activeTab = defineModel<T>('activeTab')
           >
             <slot
               :name="`tab-${tab.value}`"
-            />
+            >
+              <slot name="tab" />
+            </slot>
           </div>
         </template>
       </CspTabsPanels>
