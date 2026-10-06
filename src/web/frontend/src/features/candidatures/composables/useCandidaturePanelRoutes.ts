@@ -1,7 +1,7 @@
-import type { CandidaturesViewName } from '../routes'
+import type { CandidaturesViewName } from '@/router/names'
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
-import { CANDIDATURE_PANEL_ROUTE_NAMES, CANDIDATURES_VIEW_ROUTE_NAMES } from '../routes'
+import { CANDIDATURE_PANEL_ROUTE_NAMES, CANDIDATURES_VIEW_ROUTE_NAMES } from '@/router/names'
 
 export function useCandidaturePanelRoutes() {
   const route = useRoute()

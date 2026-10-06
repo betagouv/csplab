@@ -18,7 +18,7 @@ import { tabItems } from '@/composables/navigation/tabs'
 import { useRouteTab } from '@/composables/navigation/useRouteTab'
 import { useDisclosure } from '@/composables/ui/useDisclosure'
 import EquipeRecrutementSection from '@/features/equipe-recrutement/components/EquipeRecrutementSection.vue'
-import { recrutementsListLocation } from '@/features/recrutements/routes'
+import { CANDIDATURES_TAB_ROUTE_NAMES, HOME_ROUTE_NAME, RECRUTEMENT_ETAPES_ROUTE_NAME, recrutementsListLocation } from '@/router/names'
 import { useCurrentUser } from '@/stores/currentUser'
 import { useRouteOrganisme } from '@/stores/routeOrganisme'
 import ForbiddenView from '@/views/ForbiddenView.vue'
@@ -27,7 +27,6 @@ import CandidaturesViewSwitch from '../components/CandidaturesViewSwitch.vue'
 import { useCandidatures } from '../composables/useCandidatures'
 import { CANDIDATURE_TAB_ICONS, CANDIDATURE_TAB_LABELS } from '../constants/candidature'
 import { formatRecrutementMeta } from '../format'
-import { CANDIDATURES_TAB_ROUTE_NAMES } from '../routes'
 
 const route = useRoute()
 const router = useRouter()
@@ -78,7 +77,7 @@ const recrutementsListLink = computed(() => recrutementsListLocation(organismeUu
 const title = computed(() => intitule.value ?? 'Candidatures')
 
 const breadcrumb = computed<CspBreadcrumbItem[]>(() => [
-  { label: 'Accueil', to: { name: 'home' } },
+  { label: 'Accueil', to: { name: HOME_ROUTE_NAME } },
   { label: 'Recrutements', to: recrutementsListLink.value },
   ...(intitule.value ? [{ label: intitule.value }] : []),
 ])
@@ -117,7 +116,7 @@ const headerMenuSections = [{
     label: 'Personnaliser les étapes de recrutement',
     icon: 'ri:table-line',
     onSelect: () => router.push({
-      name: 'recrutement-etapes-recrutement',
+      name: RECRUTEMENT_ETAPES_ROUTE_NAME,
       params: { organismeUuid, recrutementUuid },
     }),
   }],

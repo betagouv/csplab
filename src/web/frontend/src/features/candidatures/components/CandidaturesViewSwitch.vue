@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import type { CandidaturesViewName } from '../routes'
 import type { CspSegmentedControlOption } from '@/components/base/CspSegmentedControl/CspSegmentedControl.vue'
+import type { CandidaturesViewName } from '@/router/names'
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import CspSegmentedControl from '@/components/base/CspSegmentedControl/CspSegmentedControl.vue'
-import { CANDIDATURES_VIEW_ROUTE_NAMES } from '../routes'
+import { CANDIDATURES_VIEW_ROUTE_NAMES } from '@/router/names'
 
 const props = defineProps<{
   organismeUuid: string

@@ -5,7 +5,7 @@ import userEvent, { PointerEventsCheckLevel } from '@testing-library/user-event'
 import { render } from '@testing-library/vue'
 import { createPinia } from 'pinia'
 import { createMemoryHistory, createRouter } from 'vue-router'
-import { routes } from '@/router'
+import { routes } from '@/router/routes'
 
 export function setupUser(options: Parameters<typeof userEvent.setup>[0] = {}) {
   return userEvent.setup({ pointerEventsCheck: PointerEventsCheckLevel.Never, ...options })

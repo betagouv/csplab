@@ -10,7 +10,7 @@ import CspToaster from '@/components/base/CspToast/CspToaster.vue'
 import { useToast } from '@/composables/ui/useToast'
 import { getConversations } from '@/features/messages/api'
 import { getRecrutementDetail } from '@/features/recrutements/api'
-import { routes } from '@/router'
+import { routes } from '@/router/routes'
 import {
   CANDIDATURE_ALICE,
   CANDIDATURE_BRUNO,

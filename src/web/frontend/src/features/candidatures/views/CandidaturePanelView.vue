@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { CandidaturePanelTabKey } from '../constants/candidature'
-import type { CandidaturesViewName } from '../routes'
+import type { CandidaturesViewName } from '@/router/names'
 import { useQueryCache } from '@pinia/colada'
 import { computed, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
