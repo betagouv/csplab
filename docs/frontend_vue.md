@@ -9,7 +9,7 @@ src/web/
 ├── frontend/                         # Vue/Vite source code
 │   ├── src/
 │   │   ├── app/                      # Bootstrap & app config (main.ts, App.vue, navigation.ts)
-│   │   ├── router/                   # Route tree and shared route names
+│   │   ├── router/                   # Route tree, shared route names and breadcrumb items
 │   │   ├── views/                    # App-level pages without business logic (Home, Parametres, ...)
 │   │   ├── features/                 # Business modules (recrutements, etapes-recrutement, ...)
 │   │   ├── components/               # Design system (base/, layout/)
