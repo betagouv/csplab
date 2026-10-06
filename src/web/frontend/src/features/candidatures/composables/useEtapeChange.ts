@@ -1,19 +1,22 @@
-import type { Ref } from 'vue'
+import type { MaybeRefOrGetter, Ref } from 'vue'
 import type { CandidatureDetail, MotifRefus } from '../types'
+import type { RecrutementParams } from '@/features/recrutements/queries'
+import { toValue } from 'vue'
 import { useToast } from '@/composables/ui/useToast'
+import { useRecrutementDetail } from '@/features/recrutements/composables/useRecrutementDetail'
 import { formatCandidatNom } from '../utils/candidat'
-import { useCandidatures } from './useCandidatures'
 import { useEtapeChangeMutation } from './useEtapeChangeMutation'
 import { useRefusCandidature } from './useRefusCandidature'
 
 export function useEtapeChange(
+  recrutement: MaybeRefOrGetter<RecrutementParams>,
   candidature: Ref<CandidatureDetail | undefined>,
   leaveMovedCandidature: () => void,
 ) {
-  const { recrutementParams, recrutementEtapes } = useCandidatures()
-  const { changeEtape } = useEtapeChangeMutation(recrutementParams)
+  const { etapes: recrutementEtapes } = useRecrutementDetail(recrutement)
+  const { changeEtape } = useEtapeChangeMutation(recrutement)
   const { addToast, dismissToast } = useToast()
-  const refus = useRefusCandidature()
+  const refus = useRefusCandidature(() => toValue(recrutement).organismeUuid)
 
   let lastToastId: number | null = null
 

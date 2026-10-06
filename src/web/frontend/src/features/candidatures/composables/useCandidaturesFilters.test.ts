@@ -4,8 +4,8 @@ import type {
   PaginatedCandidatureListeList,
 } from '../types'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { nextTick, ref, shallowRef } from 'vue'
-import { useCandidaturesFilters } from './useCandidaturesFilters'
+import { nextTick, shallowRef } from 'vue'
+import { createCandidaturesFilters } from './useCandidaturesFilters'
 
 const ETAPE_RECEPTION = 'cccccccc-0001-0001-0001-000000000001'
 const ETAPE_PRESELECTION = 'cccccccc-0001-0001-0001-000000000002'
@@ -88,25 +88,14 @@ function makeListe(): PaginatedCandidatureListeList {
 }
 
 function setup() {
-  const recrutementEtapes = shallowRef(makeRecrutementEtapes())
-  const etapes = shallowRef(makeEtapes())
-  const liste = ref<PaginatedCandidatureListeList | undefined>(makeListe())
-  return {
-    etapes,
-    liste,
-    filters: useCandidaturesFilters({
-      recrutementEtapes,
-      candidatureKanban: etapes,
-      candidatureListe: liste,
-    }),
-  }
+  return { filters: createCandidaturesFilters(shallowRef(makeRecrutementEtapes())) }
 }
 
 describe('useCandidaturesFilters', () => {
   it('exposes unfiltered data when no filter is active', () => {
     const { filters } = setup()
-    expect(filters.filteredEtapes.value).toHaveLength(2)
-    expect(filters.filteredCandidatures.value).toHaveLength(3)
+    expect(filters.filterEtapes(makeEtapes())).toHaveLength(2)
+    expect(filters.filterCandidatures(makeListe().results)).toHaveLength(3)
     expect(filters.activeFiltersCount.value).toBe(0)
   })
 
@@ -122,11 +111,11 @@ describe('useCandidaturesFilters', () => {
   it('filters kanban columns and liste rows by etape once applied', () => {
     const { filters } = setup()
     filters.draft.etapes = [ETAPE_PRESELECTION]
-    expect(filters.filteredEtapes.value).toHaveLength(2)
+    expect(filters.filterEtapes(makeEtapes())).toHaveLength(2)
 
     filters.apply()
-    expect(filters.filteredEtapes.value.map(e => e.nom)).toEqual(['Présélection'])
-    expect(filters.filteredCandidatures.value.map(c => c.candidat.nom)).toEqual(['Bernard'])
+    expect(filters.filterEtapes(makeEtapes()).map(e => e.nom)).toEqual(['Présélection'])
+    expect(filters.filterCandidatures(makeListe().results).map(c => c.candidat.nom)).toEqual(['Bernard'])
     expect(filters.activeFiltersCount.value).toBe(1)
   })
 
@@ -135,17 +124,7 @@ describe('useCandidaturesFilters', () => {
     filters.search.value = 'martin'
     filters.flushSearch()
 
-    expect(filters.filteredCandidatures.value.map(c => c.candidat.nom)).toEqual(['Martin'])
-  })
-
-  it('falls back to an empty list when candidatureListe is undefined', () => {
-    const filters = useCandidaturesFilters({
-      recrutementEtapes: shallowRef(makeRecrutementEtapes()),
-      candidatureKanban: shallowRef(makeEtapes()),
-      candidatureListe: ref<PaginatedCandidatureListeList | undefined>(undefined),
-    })
-
-    expect(filters.filteredCandidatures.value).toEqual([])
+    expect(filters.filterCandidatures(makeListe().results).map(c => c.candidat.nom)).toEqual(['Martin'])
   })
 
   it('clears etape filter and search on reset', () => {
@@ -157,8 +136,8 @@ describe('useCandidaturesFilters', () => {
 
     filters.reset()
 
-    expect(filters.filteredEtapes.value).toHaveLength(2)
-    expect(filters.filteredCandidatures.value).toHaveLength(3)
+    expect(filters.filterEtapes(makeEtapes())).toHaveLength(2)
+    expect(filters.filterCandidatures(makeListe().results)).toHaveLength(3)
     expect(filters.search.value).toBe('')
     expect(filters.canReset.value).toBe(false)
   })
@@ -172,12 +151,12 @@ describe('useCandidaturesFilters: debounced search', () => {
     const { filters } = setup()
     filters.search.value = 'alice'
     await nextTick()
-    expect(filters.filteredCandidatures.value).toHaveLength(3)
+    expect(filters.filterCandidatures(makeListe().results)).toHaveLength(3)
 
     vi.advanceTimersByTime(500)
     await nextTick()
 
-    expect(filters.filteredCandidatures.value.map(c => c.candidat.nom)).toEqual(['Dupont'])
-    expect(filters.filteredEtapes.value[0]?.candidatures.map(c => c.candidat.nom)).toEqual(['Dupont'])
+    expect(filters.filterCandidatures(makeListe().results).map(c => c.candidat.nom)).toEqual(['Dupont'])
+    expect(filters.filterEtapes(makeEtapes())[0]?.candidatures.map(c => c.candidat.nom)).toEqual(['Dupont'])
   })
 })

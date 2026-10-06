@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspEmptyState from '@/components/base/CspEmptyState/CspEmptyState.vue'
@@ -7,17 +7,25 @@ import CspErrorState from '@/components/base/CspErrorState/CspErrorState.vue'
 import CspSearchBar from '@/components/base/CspSearchBar/CspSearchBar.vue'
 import CspTableToolbar from '@/components/base/CspTableToolbar/CspTableToolbar.vue'
 import { useDisclosure } from '@/composables/ui/useDisclosure'
+import { useRecrutementDetail } from '@/features/recrutements/composables/useRecrutementDetail'
 import CandidaturesFiltersDrawer from '../components/CandidaturesFiltersDrawer.vue'
 import CandidaturesViewSwitch from '../components/CandidaturesViewSwitch.vue'
-import { useCandidatures } from '../composables/useCandidatures'
+import { provideCandidaturesFilters } from '../composables/useCandidaturesFilters'
 
-defineProps<{
+const props = defineProps<{
   organismeUuid: string
   recrutementUuid: string
 }>()
 
 const route = useRoute()
-const { recrutementDetail, pendingDetail, error, filters } = useCandidatures()
+const { recrutementDetail, etapes, pending: pendingDetail, error } = useRecrutementDetail(() => props)
+
+const filters = provideCandidaturesFilters(etapes)
+
+watch(() => props.recrutementUuid, () => {
+  filters.reset()
+  filters.listeSort.value = null
+})
 
 const {
   draft: filtersDraft,
