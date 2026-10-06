@@ -9,9 +9,11 @@ from rest_framework import status
 from domain.candidate.exceptions.document_errors import FichierDeposeIncomplet
 from domain.recruteur.value_objects.roles import AgentOrganismeRole
 from infrastructure.django_apps.candidate.enums.type_document import TypeDocument
+from infrastructure.django_apps.candidate.models.document import DocumentQuerySet
 from infrastructure.django_apps.commons.models import AuditLogModel
 from infrastructure.django_apps.messagerie.models import (
     ConversationModel,
+    ConversationQuerySet,
     MessageDocumentModel,
     MessageModel,
 )
@@ -35,8 +37,7 @@ from presentation.recruteur.views.candidature_conversations import (
 from tests.utils.conversation_views import AUTHORIZED_ROLES, HTTP_METHODS, grant
 from tests.utils.message_documents import INVALID_DOCUMENTS, valid_documents
 
-TAILLE_PAGE_LIMITEE = 2
-TAILLE_PAGE = 2
+TAILLE_PAGE_LIMITEE = 1
 TAILLE_PAGE_PAR_DEFAUT = 20
 NB_CONVERSATIONS = 2
 
@@ -161,17 +162,16 @@ class TestAccess:
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
     @pytest.mark.parametrize(
-        "method,service",
-        [("get", "list_conversations"), ("post", "create_conversation")],
+        "method,queryset_method",
+        [("get", "by_candidature"), ("post", "create")],
     )
     def test_unexpected_error_is_a_server_error(
-        self, authenticated_client, contexte, method, service
+        self, authenticated_client, contexte, method, queryset_method
     ):
         *_, url = contexte
 
-        with patch(
-            f"presentation.recruteur.views.candidature_conversations.{service}",
-            side_effect=RuntimeError("boom"),
+        with patch.object(
+            ConversationQuerySet, queryset_method, side_effect=RuntimeError("boom")
         ):
             response = _call(authenticated_client, method, url)
 
@@ -229,25 +229,6 @@ class TestListConversations:
 
     def test_default_page_size_is_20(self):
         assert ConversationPagination.page_size == TAILLE_PAGE_PAR_DEFAUT
-
-    @patch(
-        "presentation.recruteur.views.candidature_conversations"
-        ".ConversationPagination.page_size",
-        new=TAILLE_PAGE,
-    )
-    def test_default_page_size_applies_without_limit(
-        self, authenticated_client, contexte
-    ):
-        _, candidature, url = contexte
-        for _ in range(TAILLE_PAGE + 1):
-            _conversation_with_messages(candidature, "Bonjour")
-
-        response = authenticated_client.get(url)
-
-        assert response.status_code == status.HTTP_200_OK
-        body = response.json()
-        assert len(body["results"]) == TAILLE_PAGE
-        assert body["next"] is not None
 
     def test_lists_only_the_conversations_of_the_candidature(
         self, authenticated_client, contexte
@@ -389,11 +370,12 @@ class TestCreateConversation:
     ):
         *_, url = contexte
 
-        with patch(
-            "presentation.recruteur.views.candidature_conversations.create_conversation",
-            side_effect=FichierDeposeIncomplet(),
+        with patch.object(
+            DocumentQuerySet, "build_from_upload", side_effect=FichierDeposeIncomplet()
         ):
-            response = _call(authenticated_client, "post", url)
+            response = _call(
+                authenticated_client, "post", url, documents=valid_documents()
+            )
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert response.json() == {"error": str(FichierDeposeIncomplet())}

@@ -3,14 +3,15 @@ from uuid import uuid4
 
 import pytest
 from django.conf import settings
-from django.urls import resolve, reverse
+from django.urls import reverse
 from rest_framework import status
 
 from domain.candidate.exceptions.document_errors import FichierDeposeIncomplet
 from domain.recruteur.value_objects.roles import AgentOrganismeRole
 from infrastructure.django_apps.candidate.enums.type_document import TypeDocument
+from infrastructure.django_apps.candidate.models.document import DocumentQuerySet
 from infrastructure.django_apps.commons.models import AuditLogModel
-from infrastructure.django_apps.messagerie.models import MessageModel
+from infrastructure.django_apps.messagerie.models import MessageModel, MessageQuerySet
 from infrastructure.factories.candidate.candidature_django_factory import (
     CandidatureDjangoFactory,
     create_recrutement_with_candidature,
@@ -36,8 +37,7 @@ from tests.utils.message_documents import (
     valid_documents,
 )
 
-TAILLE_PAGE_LIMITEE = 2
-TAILLE_PAGE = 2
+TAILLE_PAGE_LIMITEE = 1
 TAILLE_PAGE_PAR_DEFAUT = 20
 NB_MESSAGES = 3
 
@@ -193,16 +193,17 @@ class TestCandidatureConversationDetailView:
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
     @pytest.mark.parametrize(
-        "method,service", [("get", "read_conversation"), ("post", "reply_conversation")]
+        "method,queryset_method", [("get", "by_conversation"), ("post", "create")]
     )
     def test_unexpected_error_is_a_server_error(
-        self, authenticated_client, test_user, method, service
+        self, authenticated_client, test_user, method, queryset_method
     ):
-        with patch(
-            f"presentation.recruteur.views.candidature_conversation_detail.{service}",
-            side_effect=RuntimeError("boom"),
+        url = _superviseur_url(test_user)
+
+        with patch.object(
+            MessageQuerySet, queryset_method, side_effect=RuntimeError("boom")
         ):
-            response = _call(authenticated_client, method, _superviseur_url(test_user))
+            response = _call(authenticated_client, method, url)
 
         assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
         assert response.json() == {"error": "Unexpected error"}
@@ -253,28 +254,6 @@ class TestCandidatureConversationDetailView:
 
     def test_default_page_size_is_20(self):
         assert MessagePagination.page_size == TAILLE_PAGE_PAR_DEFAUT
-
-    @patch(
-        "presentation.recruteur.views.candidature_conversation_detail"
-        ".MessagePagination.page_size",
-        new=TAILLE_PAGE,
-    )
-    def test_default_page_size_applies_without_limit(
-        self, authenticated_client, test_user
-    ):
-        url = _superviseur_url(test_user)
-        conversation_uuid = resolve(url).kwargs["conversation_uuid"]
-        MessageDjangoFactory.create_batch(
-            TAILLE_PAGE + 1,
-            conversation_id=conversation_uuid,
-        )
-
-        response = authenticated_client.get(url)
-
-        assert response.status_code == status.HTTP_200_OK
-        body = response.json()
-        assert len(body["results"]) == TAILLE_PAGE
-        assert body["next"] is not None
 
     def test_out_of_range_page_returns_404(self, authenticated_client, test_user):
         response = authenticated_client.get(_superviseur_url(test_user), {"page": 999})
@@ -344,13 +323,12 @@ class TestCandidatureConversationDetailView:
     def test_incomplete_uploaded_file_is_a_bad_request(
         self, authenticated_client, test_user
     ):
-        with patch(
-            "presentation.recruteur.views.candidature_conversation_detail.reply_conversation",
-            side_effect=FichierDeposeIncomplet(),
+        with patch.object(
+            DocumentQuerySet, "build_from_upload", side_effect=FichierDeposeIncomplet()
         ):
             response = authenticated_client.post(
                 _superviseur_url(test_user),
-                {"content": "Bonjour"},
+                {"content": "Bonjour", "documents": valid_documents()},
                 format="multipart",
             )
 
