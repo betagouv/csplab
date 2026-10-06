@@ -143,6 +143,24 @@ class TestAccess:
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
+    @pytest.mark.parametrize(
+        "method,service",
+        [("get", "list_conversations"), ("post", "create_conversation")],
+    )
+    def test_unexpected_error_is_a_server_error(
+        self, authenticated_client, contexte, method, service
+    ):
+        *_, url = contexte
+
+        with patch(
+            f"presentation.recruteur.views.candidature_conversations.{service}",
+            side_effect=RuntimeError("boom"),
+        ):
+            response = _call(authenticated_client, method, url)
+
+        assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
+        assert response.json() == {"error": "Unexpected error"}
+
 
 class TestListConversations:
     @AUTHORIZED_ROLES

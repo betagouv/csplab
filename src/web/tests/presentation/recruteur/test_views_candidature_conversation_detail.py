@@ -177,6 +177,21 @@ class TestCandidatureConversationDetailView:
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
+    @pytest.mark.parametrize(
+        "method,service", [("get", "read_conversation"), ("post", "reply_conversation")]
+    )
+    def test_unexpected_error_is_a_server_error(
+        self, authenticated_client, test_user, method, service
+    ):
+        with patch(
+            f"presentation.recruteur.views.candidature_conversation_detail.{service}",
+            side_effect=RuntimeError("boom"),
+        ):
+            response = _call(authenticated_client, method, _superviseur_url(test_user))
+
+        assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
+        assert response.json() == {"error": "Unexpected error"}
+
     @AUTHORIZED_ROLES
     def test_authorized_agent_reads_conversation(
         self, authenticated_client, test_user, organisme_role, recrutement_role
