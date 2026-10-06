@@ -4,7 +4,6 @@ from rest_framework import exceptions, status
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from application.ingestion.errors.application_errors_ingestion import (
     TalentsoftOrganismeInexistant,
@@ -12,6 +11,7 @@ from application.ingestion.errors.application_errors_ingestion import (
 from application.ingestion.services.talentsoft_organisme_detail import (
     get_talentsoft_organisme,
 )
+from presentation.api.authentication import PublicJwtOnlyMixin
 from presentation.api.serializers import GenericErrorSerializer, generic_response_format
 from presentation.ingestion.serializers import FakeTsTalentsoftOrganismeSerializer
 
@@ -26,8 +26,7 @@ from presentation.ingestion.serializers import FakeTsTalentsoftOrganismeSerializ
         200: FakeTsTalentsoftOrganismeSerializer,
     },
 )
-class OrganisationDetailView(APIView):
-    authentication_classes = [JWTAuthentication]
+class OrganisationDetailView(PublicJwtOnlyMixin, APIView):
     serializer_class = FakeTsTalentsoftOrganismeSerializer
 
     def get(self, request: Request, entity_code: str) -> Response:

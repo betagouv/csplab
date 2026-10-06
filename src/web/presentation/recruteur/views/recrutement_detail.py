@@ -2,7 +2,6 @@ from uuid import UUID
 
 from drf_spectacular.utils import extend_schema
 from rest_framework import status
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -30,6 +29,7 @@ from domain.recruteur.errors.recrutement_errors import (
     RecrutementInexistant,
 )
 from infrastructure.di.recruteur.recruteur_factory import recruteur_container
+from presentation.api.authentication import SessionApiMixin
 from presentation.api.serializers import GenericErrorSerializer, TokenErrorSerializer
 from presentation.commons.pagination import WebPagination
 from presentation.recruteur.mappers import UtilisateurMapper
@@ -53,9 +53,7 @@ from presentation.recruteur.serializers import (
         500: GenericErrorSerializer,
     },
 )
-class RecrutementDetailView(APIView):
-    permission_classes = [IsAuthenticated]
-
+class RecrutementDetailView(SessionApiMixin, APIView):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.container = recruteur_container()
@@ -109,9 +107,7 @@ class RecrutementDetailView(APIView):
         500: GenericErrorSerializer,
     },
 )
-class RecrutementKanbanView(APIView):
-    permission_classes = [IsAuthenticated]
-
+class RecrutementKanbanView(SessionApiMixin, APIView):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.container = recruteur_container()
@@ -166,8 +162,7 @@ class RecrutementKanbanView(APIView):
         500: GenericErrorSerializer,
     },
 )
-class RecrutementListeView(APIView):
-    permission_classes = [IsAuthenticated]
+class RecrutementListeView(SessionApiMixin, APIView):
     pagination_class = WebPagination
 
     def __init__(self, **kwargs):
@@ -227,9 +222,7 @@ class RecrutementListeView(APIView):
         500: GenericErrorSerializer,
     },
 )
-class RecrutementCandidaturesEtapeView(APIView):
-    permission_classes = [IsAuthenticated]
-
+class RecrutementCandidaturesEtapeView(SessionApiMixin, APIView):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.container = recruteur_container()

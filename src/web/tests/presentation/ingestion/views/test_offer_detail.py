@@ -54,49 +54,43 @@ def test_valid_api_key_no_longer_grants_access(api_key_client):
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
 
-def test_post_not_allowed(authenticated_client):
-    response = authenticated_client.post(URL)
+def test_post_not_allowed(jwt_client):
+    response = jwt_client.post(URL)
     assert response.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
 
 
-def test_missing_reference_returns_400(
-    mock_offer_detail_container, authenticated_client
-):
+def test_missing_reference_returns_400(mock_offer_detail_container, jwt_client):
     _make_usecase(mock_offer_detail_container)
 
-    response = authenticated_client.get(URL)
+    response = jwt_client.get(URL)
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
 
 
-def test_unknown_reference_returns_404(
-    mock_offer_detail_container, authenticated_client
-):
+def test_unknown_reference_returns_404(mock_offer_detail_container, jwt_client):
     _make_usecase(mock_offer_detail_container, exception=OfferDoesNotExist("REF-1"))
 
-    response = authenticated_client.get(URL, {"reference": "REF-1"})
+    response = jwt_client.get(URL, {"reference": "REF-1"})
 
     assert response.status_code == status.HTTP_404_NOT_FOUND
 
 
-def test_reference_is_forwarded_to_usecase(
-    mock_offer_detail_container, authenticated_client
-):
+def test_reference_is_forwarded_to_usecase(mock_offer_detail_container, jwt_client):
     offer = OfferFactory.create_entity(reference="REF-1")
     mock_usecase = _make_usecase(mock_offer_detail_container, offer=offer)
 
-    authenticated_client.get(URL, {"reference": "REF-1"})
+    jwt_client.get(URL, {"reference": "REF-1"})
 
     mock_usecase.execute.assert_called_once_with(
         GetOfferByReferenceInput(reference="REF-1")
     )
 
 
-def test_returns_offer_detail(mock_offer_detail_container, authenticated_client):
+def test_returns_offer_detail(mock_offer_detail_container, jwt_client):
     offer = OfferFactory.create_entity()
     _make_usecase(mock_offer_detail_container, offer=offer)
 
-    response = authenticated_client.get(URL, {"reference": offer.reference})
+    response = jwt_client.get(URL, {"reference": offer.reference})
 
     assert response.status_code == status.HTTP_200_OK
     data = response.json()
@@ -106,26 +100,22 @@ def test_returns_offer_detail(mock_offer_detail_container, authenticated_client)
     assert data["isAnonymousOrganisation"] is False
 
 
-def test_response_matches_openapi_schema(
-    mock_offer_detail_container, authenticated_client
-):
+def test_response_matches_openapi_schema(mock_offer_detail_container, jwt_client):
     offer = OfferFactory.create_entity()
     _make_usecase(mock_offer_detail_container, offer=offer)
 
-    response = authenticated_client.get(URL, {"reference": offer.reference})
+    response = jwt_client.get(URL, {"reference": offer.reference})
 
     assert_matches_openapi_schema(
         response.json(), "/api/fake-ts/offers/getoffer", method="get"
     )
 
 
-def test_response_has_no_undeclared_fields(
-    mock_offer_detail_container, authenticated_client
-):
+def test_response_has_no_undeclared_fields(mock_offer_detail_container, jwt_client):
     offer = OfferFactory.create_entity()
     _make_usecase(mock_offer_detail_container, offer=offer)
 
-    response = authenticated_client.get(URL, {"reference": offer.reference})
+    response = jwt_client.get(URL, {"reference": offer.reference})
     data = response.json()
 
     assert set(data.keys()) == set(FakeTsOfferDetailSerializer().fields.keys())
@@ -145,7 +135,7 @@ def test_response_has_no_undeclared_fields(
 
 
 class TestOfferDetailViewDbVerified:
-    def test_response_matches_db_record_field_by_field(self, authenticated_client):
+    def test_response_matches_db_record_field_by_field(self, jwt_client):
         criteria = OfferCriteria(
             diploma_level=Diploma(5),
             diploma="Master",
@@ -179,7 +169,7 @@ class TestOfferDetailViewDbVerified:
             complements="Poste à pourvoir immédiatement",
         )
 
-        response = authenticated_client.get(URL, {"reference": offer_model.reference})
+        response = jwt_client.get(URL, {"reference": offer_model.reference})
 
         assert response.status_code == status.HTTP_200_OK
         assert response.json() == {
@@ -387,9 +377,7 @@ class TestOfferDetailViewDbVerified:
             },
         }
 
-    def test_organisation_is_filled_from_talentsoft_organisme(
-        self, authenticated_client
-    ):
+    def test_organisation_is_filled_from_talentsoft_organisme(self, jwt_client):
         talentsoft_organisme = TalentsoftOrganismeDjangoFactory(
             entity_code="ENT-1",
             code=1,
@@ -412,7 +400,7 @@ class TestOfferDetailViewDbVerified:
             talentsoft_organisme_entity_code=talentsoft_organisme,
         )
 
-        response = authenticated_client.get(URL, {"reference": offer_model.reference})
+        response = jwt_client.get(URL, {"reference": offer_model.reference})
 
         assert response.status_code == status.HTTP_200_OK
         assert response.json()["organisation"] == {
@@ -432,9 +420,9 @@ class TestOfferDetailViewDbVerified:
         }
 
 
-def test_returns_error_500(mock_offer_detail_container, authenticated_client):
+def test_returns_error_500(mock_offer_detail_container, jwt_client):
     _make_usecase(mock_offer_detail_container, exception=Exception("db error"))
 
-    response = authenticated_client.get(URL, {"reference": "REF-1"})
+    response = jwt_client.get(URL, {"reference": "REF-1"})
 
     assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR

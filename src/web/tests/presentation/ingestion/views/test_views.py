@@ -10,8 +10,8 @@ from rest_framework import status
 class TestHueyHealthView:
     url = reverse("api:health_huey")
 
-    def test_success_response(self, authenticated_client):
-        response = authenticated_client.get(self.url)
+    def test_success_response(self, jwt_client):
+        response = jwt_client.get(self.url)
         assert response.status_code == status.HTTP_200_OK
 
     def test_unauthenticated_access(self, api_client):
@@ -19,10 +19,10 @@ class TestHueyHealthView:
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
     @patch("huey.contrib.djhuey.HUEY.storage.conn.ping")
-    def test_redis_unavailable(self, mocked_ping, authenticated_client):
+    def test_redis_unavailable(self, mocked_ping, jwt_client):
         mocked_ping.side_effect = Exception("Redis connection refused")
 
-        response = authenticated_client.get(self.url)
+        response = jwt_client.get(self.url)
 
         assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
         assert response.data == {"status": "Huey health check failed"}

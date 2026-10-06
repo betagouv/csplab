@@ -2,7 +2,6 @@ from uuid import UUID
 
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import status
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -14,6 +13,7 @@ from domain.commons.errors.organisme_errors import OrganismeNexistePas
 from domain.identite.errors.organisme_permission_errors import AccesOrganismeRefuse
 from domain.recruteur.value_objects.statut_recrutement import StatutRecrutement
 from infrastructure.di.recruteur.recruteur_factory import recruteur_container
+from presentation.api.authentication import SessionApiMixin
 from presentation.api.serializers import GenericErrorSerializer, TokenErrorSerializer
 from presentation.commons.pagination import WebPagination
 from presentation.recruteur.mappers import UtilisateurMapper
@@ -38,8 +38,7 @@ from presentation.recruteur.serializers import (
         },
     ),
 )
-class RecrutementsActifsView(APIView):
-    permission_classes = [IsAuthenticated]
+class RecrutementsActifsView(SessionApiMixin, APIView):
     pagination_class = WebPagination
 
     def __init__(self, **kwargs):
@@ -97,8 +96,7 @@ class RecrutementsActifsView(APIView):
         },
     ),
 )
-class RecrutementsArchivesView(APIView):
-    permission_classes = [IsAuthenticated]
+class RecrutementsArchivesView(SessionApiMixin, APIView):
     pagination_class = WebPagination
 
     def __init__(self, **kwargs):

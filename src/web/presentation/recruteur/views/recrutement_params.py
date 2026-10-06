@@ -2,7 +2,6 @@ from uuid import UUID
 
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import status
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -34,6 +33,7 @@ from domain.recruteur.value_objects.categorie_etapes_recrutement import (
 )
 from domain.recruteur.value_objects.etape_data import EtapeData
 from infrastructure.di.recruteur.recruteur_factory import recruteur_container
+from presentation.api.authentication import SessionApiMixin
 from presentation.api.serializers import GenericErrorSerializer, TokenErrorSerializer
 from presentation.recruteur.mappers import UtilisateurMapper
 from presentation.recruteur.serializers import (
@@ -75,9 +75,7 @@ def _etapes_to_serializer_data(etapes: tuple[EtapeRecrutement, ...]) -> list[dic
         },
     ),
 )
-class RecrutementEtapeView(APIView):
-    permission_classes = [IsAuthenticated]
-
+class RecrutementEtapeView(SessionApiMixin, APIView):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.container = recruteur_container()
@@ -177,9 +175,7 @@ class RecrutementEtapeView(APIView):
         500: GenericErrorSerializer,
     },
 )
-class InitRecrutementEtapeView(APIView):
-    permission_classes = [IsAuthenticated]
-
+class InitRecrutementEtapeView(SessionApiMixin, APIView):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.container = recruteur_container()

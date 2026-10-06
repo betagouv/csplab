@@ -9,7 +9,6 @@ from faker import Faker
 from referentiel.value_objects.offer_nature import OfferNature
 from rest_framework import status
 from rest_framework.test import APIClient
-from rest_framework_simplejwt.tokens import RefreshToken
 
 from application.recruteur.dtos.recrutement_read_models import (
     CandidaturesCompteurDto,
@@ -387,8 +386,7 @@ def _archives_url(organisme_id) -> str:
 
 def _client_for(utilisateur) -> APIClient:
     client = APIClient()
-    token = RefreshToken.for_user(utilisateur).access_token
-    client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+    client.force_login(utilisateur)
     return client
 
 

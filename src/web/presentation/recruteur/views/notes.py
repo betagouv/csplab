@@ -4,7 +4,6 @@ from django.http import Http404
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import exceptions, status
 from rest_framework.generics import ListAPIView
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -25,6 +24,7 @@ from domain.recruteur.errors.recrutement_errors import (
     RecrutementCandidatureInexistante,
     RecrutementInexistant,
 )
+from presentation.api.authentication import SessionApiMixin
 from presentation.api.serializers import GenericErrorSerializer, TokenErrorSerializer
 from presentation.recruteur.mappers import UtilisateurMapper
 from presentation.recruteur.serializers import (
@@ -35,7 +35,7 @@ from presentation.recruteur.serializers import (
 )
 
 
-class NoteBaseView(APIView):
+class NoteBaseView(SessionApiMixin, APIView):
     def handle_exception(self, exc: Exception) -> Response:
         if isinstance(
             exc,
@@ -98,7 +98,6 @@ class NoteBaseView(APIView):
     ),
 )
 class CandidatureNotesView(NoteBaseView, ListAPIView):
-    permission_classes = [IsAuthenticated]
     serializer_class = NoteSerializer
 
     def get_queryset(self):
@@ -159,8 +158,6 @@ class CandidatureNotesView(NoteBaseView, ListAPIView):
     ),
 )
 class CandidatureNoteDetailView(NoteBaseView):
-    permission_classes = [IsAuthenticated]
-
     def patch(
         self,
         request: Request,

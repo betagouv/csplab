@@ -4,6 +4,7 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
 from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework_simplejwt.views import TokenRefreshView as SimpleJWTTokenRefreshView
 
 from application.identite.context_services.login_log import (
     log_login_failed,
@@ -11,9 +12,12 @@ from application.identite.context_services.login_log import (
 )
 from infrastructure.django_apps.commons.enums import Canal
 from infrastructure.django_apps.utils.ip import get_client_ip
+from presentation.api.authentication import UnauthenticatedMixin
 
 
-class LoggedTokenObtainPairView(TokenObtainPairView):
+class LoggedTokenObtainPairView(  # type: ignore[misc]
+    UnauthenticatedMixin, TokenObtainPairView
+):
     def post(self, request: Request, *args, **kwargs) -> Response:
         email = str(request.data.get("email", ""))
         ip_address = get_client_ip(request)
@@ -29,3 +33,9 @@ class LoggedTokenObtainPairView(TokenObtainPairView):
             canal=Canal.JWT, user=serializer.user, ip_address=ip_address
         )
         return Response(serializer.validated_data, status=status.HTTP_200_OK)
+
+
+class TokenRefreshView(  # type: ignore[misc]
+    UnauthenticatedMixin, SimpleJWTTokenRefreshView
+):
+    pass

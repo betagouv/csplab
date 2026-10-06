@@ -6,7 +6,6 @@ import pytest
 from django.urls import reverse
 from faker import Faker
 from rest_framework import status
-from rest_framework_simplejwt.tokens import RefreshToken
 
 from domain.commons.errors.organisme_errors import OrganismeNexistePas
 from domain.commons.services.audit_log_writer import AuditLogWriter
@@ -111,8 +110,7 @@ def identite_container():
 @pytest.fixture
 def staff_client(api_client):
     staff_user = UtilisateurDjangoFactory(is_staff=True)
-    refresh = RefreshToken.for_user(staff_user)
-    api_client.credentials(HTTP_AUTHORIZATION=f"Bearer {refresh.access_token}")
+    api_client.force_login(staff_user)
     return api_client
 
 

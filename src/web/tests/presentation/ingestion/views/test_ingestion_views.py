@@ -39,23 +39,21 @@ class TestConcoursUploadView:
         )
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
-    def test_no_file_provided(self, authenticated_client):
-        response = authenticated_client.post(self.url, {}, format="multipart")
+    def test_no_file_provided(self, jwt_client):
+        response = jwt_client.post(self.url, {}, format="multipart")
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert response.data["error"] == "No file provided"
 
-    def test_invalid_file_format(self, authenticated_client):
+    def test_invalid_file_format(self, jwt_client):
         txt_file = SimpleUploadedFile(
             "test.txt", b"not a csv file", content_type="text/plain"
         )
-        response = authenticated_client.post(
-            self.url, {"file": txt_file}, format="multipart"
-        )
+        response = jwt_client.post(self.url, {"file": txt_file}, format="multipart")
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert response.data["error"] == "File must be a CSV"
 
-    def test_validation_errors(self, authenticated_client, invalid_csv_content):
-        response = authenticated_client.post(
+    def test_validation_errors(self, jwt_client, invalid_csv_content):
+        response = jwt_client.post(
             self.url, {"file": make_csv_file(invalid_csv_content)}, format="multipart"
         )
         assert response.status_code == status.HTTP_400_BAD_REQUEST
@@ -63,8 +61,8 @@ class TestConcoursUploadView:
         assert "validation_errors" in response.data
         assert len(response.data["validation_errors"]) == 2  # noqa
 
-    def test_success_response(self, db, authenticated_client, valid_csv_content):
-        response = authenticated_client.post(
+    def test_success_response(self, db, jwt_client, valid_csv_content):
+        response = jwt_client.post(
             self.url, {"file": make_csv_file(valid_csv_content)}, format="multipart"
         )
         assert response.status_code == status.HTTP_201_CREATED

@@ -2,7 +2,6 @@ from uuid import UUID
 
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import status
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -31,6 +30,7 @@ from domain.recruteur.errors.organisme_agent_errors import (
 )
 from domain.recruteur.value_objects.roles import AgentOrganismeRole
 from infrastructure.di.recruteur.recruteur_factory import recruteur_container
+from presentation.api.authentication import SessionApiMixin
 from presentation.api.serializers import GenericErrorSerializer, generic_response_format
 from presentation.recruteur.mappers import UtilisateurMapper
 from presentation.recruteur.serializers import (
@@ -71,9 +71,7 @@ from presentation.recruteur.serializers import (
         },
     ),
 )
-class OrganismeAgentsView(APIView):
-    permission_classes = [IsAuthenticated]
-
+class OrganismeAgentsView(SessionApiMixin, APIView):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.container = recruteur_container()

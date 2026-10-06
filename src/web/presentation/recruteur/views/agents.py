@@ -1,6 +1,5 @@
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import status
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -13,6 +12,7 @@ from domain.identite.errors.organisme_permission_errors import (
     OperationOrganismeRefusee,
 )
 from infrastructure.di.identite.identite_factory import create_identite_container
+from presentation.api.authentication import SessionApiMixin
 from presentation.api.serializers import GenericErrorSerializer, generic_response_format
 from presentation.recruteur.mappers import UtilisateurMapper
 from presentation.recruteur.serializers import AgentSerializer, CreateAgentSerializer
@@ -32,9 +32,7 @@ from presentation.recruteur.serializers import AgentSerializer, CreateAgentSeria
         },
     ),
 )
-class AgentsView(APIView):
-    permission_classes = [IsAuthenticated]
-
+class AgentsView(SessionApiMixin, APIView):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.container = create_identite_container()
