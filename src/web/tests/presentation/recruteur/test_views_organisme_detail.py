@@ -1,5 +1,5 @@
 from datetime import datetime, timezone
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, Mock, patch
 from uuid import UUID
 
 import pytest
@@ -9,6 +9,7 @@ from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from domain.commons.errors.organisme_errors import OrganismeNexistePas
+from domain.commons.services.audit_log_writer import AuditLogWriter
 from domain.identite.errors.organisme_permission_errors import (
     AccesOrganismeRefuse,
     OperationOrganismeRefusee,
@@ -31,11 +32,19 @@ from infrastructure.factories.identite.organisme_factory import OrganismeFactory
 from infrastructure.factories.identite.utilisateur_django_factory import (
     UtilisateurDjangoFactory,
 )
+from infrastructure.factories.recruteur.etapes_recrutement_factory import (
+    EtapeRecrutementFactory,
+)
 from infrastructure.factories.recruteur.organisme_factory import (
     OrganismeRecruteurFactory,
 )
+from infrastructure.repositories.commons.postgres_audit_log_repository import (
+    PostgresAuditLogRepository,
+)
 
 fake = Faker("fr_FR")
+
+NB_ETAPES_PAR_DEFAUT = 6
 
 ORGANISME_UUID = fake.uuid4()
 ORGANISME_URL = reverse(
@@ -71,6 +80,12 @@ def etapes_as_json(etapes: tuple[EtapeRecrutement, ...]) -> list[dict]:
         }
         for etape in etapes
     ]
+
+
+def _organisme_audit_logs():
+    return PostgresAuditLogRepository().get_logs_for_ressource(
+        "OrganismeRecruteur", UUID(ORGANISME_UUID)
+    )
 
 
 @pytest.fixture
@@ -325,72 +340,157 @@ class TestInitEtapesRecrutementOrganismeView:
         response = api_client.post(INIT_ETAPES_URL)
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
-    @pytest.mark.parametrize(
-        ("exception", "expected_status", "expected_body"),
-        [
-            (
-                OrganismeNexistePas("not found"),
-                status.HTTP_404_NOT_FOUND,
-                {"error": "organisme_uuid: Not found."},
-            ),
-            (
-                AccesOrganismeRefuse(UUID(fake.uuid4())),
-                status.HTTP_403_FORBIDDEN,
-                {"error": "Forbidden."},
-            ),
-            (
-                Exception("unexpected"),
-                status.HTTP_500_INTERNAL_SERVER_ERROR,
-                {"error": "Unexpected error"},
-            ),
-        ],
-    )
-    def test_post_returns_error_from_usecase(
-        self,
-        container,
-        authenticated_client,
-        exception,
-        expected_status,
-        expected_body,
-    ):
-        mock_usecase = MagicMock()
-        mock_usecase.execute.side_effect = exception
-        container.initialize_organisme_steps_usecase.return_value = mock_usecase
-
-        response = authenticated_client.post(INIT_ETAPES_URL)
-
-        assert response.status_code == expected_status
-        assert response.json() == expected_body
-
-    def test_authenticated_post_initialize_steps(self, container, authenticated_client):
-        organisme = OrganismeRecruteurFactory.create_entity()
-        organisme.initialiser_etapes()
-
-        mock_usecase = MagicMock()
-        mock_usecase.execute.return_value = organisme
-        container.initialize_organisme_steps_usecase.return_value = mock_usecase
+    def test_superviseur_initializes_etapes(self, authenticated_client, test_user):
+        create_organisme_with_agent(
+            role=AgentOrganismeRole.SUPERVISEUR,
+            utilisateur=test_user,
+            id=UUID(ORGANISME_UUID),
+        )
+        assert OrganismeModel.objects.get(id=UUID(ORGANISME_UUID)).etapes is None
 
         response = authenticated_client.post(INIT_ETAPES_URL)
 
         assert response.status_code == status.HTTP_201_CREATED
-        assert response.json() == etapes_as_json(organisme.etapes or ())
+        persisted = OrganismeModel.objects.get(id=UUID(ORGANISME_UUID)).etapes
+        expected = [
+            ("Réception des candidatures", "ENTREE"),
+            ("Présélection", "EN_COURS"),
+            ("Entretien", "EN_COURS"),
+            ("Proposition", "EN_COURS"),
+            ("Refus", "REFUS"),
+            ("Recrutement", "ACCEPTE"),
+        ]
+        assert response.json() == [
+            {"uuid": etape["entity_id"], "nom": nom, "categorie": categorie}
+            for etape, (nom, categorie) in zip(persisted, expected, strict=True)
+        ]
 
-    def test_forwards_est_staff_to_usecase(
-        self, container, authenticated_client, test_user
+    def test_staff_without_liaison_initializes_etapes(self, staff_client):
+        OrganismeDjangoFactory(id=UUID(ORGANISME_UUID))
+
+        response = staff_client.post(INIT_ETAPES_URL)
+
+        assert response.status_code == status.HTTP_201_CREATED
+        persisted = OrganismeModel.objects.get(id=UUID(ORGANISME_UUID)).etapes
+        assert len(persisted) == NB_ETAPES_PAR_DEFAUT
+        assert [etape["uuid"] for etape in response.json()] == [
+            etape["entity_id"] for etape in persisted
+        ]
+
+    def test_superviseur_replaces_existing_etapes(
+        self, authenticated_client, test_user
     ):
-        test_user.is_staff = True
-        test_user.save()
+        _, organisme = create_organisme_with_agent(
+            role=AgentOrganismeRole.SUPERVISEUR,
+            utilisateur=test_user,
+            id=UUID(ORGANISME_UUID),
+            etapes=EtapeRecrutementFactory.create_entity_batch(),
+        )
+        organisme.refresh_from_db()
+        anciens_ids = {etape["entity_id"] for etape in organisme.etapes}
 
-        organisme = OrganismeRecruteurFactory.create_entity()
-        organisme.initialiser_etapes()
-        mock_usecase = MagicMock()
-        mock_usecase.execute.return_value = organisme
-        container.initialize_organisme_steps_usecase.return_value = mock_usecase
+        response = authenticated_client.post(INIT_ETAPES_URL)
+
+        assert response.status_code == status.HTTP_201_CREATED
+        organisme.refresh_from_db()
+        assert anciens_ids.isdisjoint(e["entity_id"] for e in organisme.etapes)
+
+    def test_initialization_is_audited(self, authenticated_client, test_user):
+        create_organisme_with_agent(
+            role=AgentOrganismeRole.SUPERVISEUR,
+            utilisateur=test_user,
+            id=UUID(ORGANISME_UUID),
+        )
 
         authenticated_client.post(INIT_ETAPES_URL)
 
-        command = mock_usecase.execute.call_args.args[0]
-        assert command.utilisateur.is_staff is True
+        logs = _organisme_audit_logs()
+        assert len(logs) == 1
+        assert logs[0].event_name == "OrganismeEtapesInitialises"
+        assert logs[0].utilisateur_id == test_user.username
+        assert logs[0].ressource_id == UUID(ORGANISME_UUID)
+
+    def test_updated_at_advances(self, authenticated_client, test_user):
+        _, organisme = create_organisme_with_agent(
+            role=AgentOrganismeRole.SUPERVISEUR,
+            utilisateur=test_user,
+            id=UUID(ORGANISME_UUID),
+        )
+        updated_at_avant = organisme.updated_at
+
+        authenticated_client.post(INIT_ETAPES_URL)
+
+        organisme.refresh_from_db()
+        assert organisme.updated_at > updated_at_avant
+
+    def test_membre_is_forbidden(self, authenticated_client, test_user):
+        create_organisme_with_agent(
+            role=AgentOrganismeRole.AGENT,
+            utilisateur=test_user,
+            id=UUID(ORGANISME_UUID),
+        )
+
+        response = authenticated_client.post(INIT_ETAPES_URL)
+
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert response.json() == {"error": "Forbidden."}
+        assert OrganismeModel.objects.get(id=UUID(ORGANISME_UUID)).etapes is None
+        assert _organisme_audit_logs() == []
+
+    def test_superviseur_of_another_organisme_is_forbidden(
+        self, authenticated_client, test_user
+    ):
+        OrganismeDjangoFactory(id=UUID(ORGANISME_UUID))
+        create_organisme_with_agent(
+            role=AgentOrganismeRole.SUPERVISEUR,
+            utilisateur=test_user,
+        )
+
+        response = authenticated_client.post(INIT_ETAPES_URL)
+
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert response.json() == {"error": "Forbidden."}
+        assert OrganismeModel.objects.get(id=UUID(ORGANISME_UUID)).etapes is None
+        assert _organisme_audit_logs() == []
+
+    def test_unknown_organisme_returns_404(self, staff_client):
+        response = staff_client.post(INIT_ETAPES_URL)
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+        assert response.json() == {"error": "organisme_uuid: Not found."}
+
+    def test_supprime_organisme_returns_404(self, authenticated_client, test_user):
+        _, organisme = create_organisme_with_agent(
+            role=AgentOrganismeRole.SUPERVISEUR,
+            utilisateur=test_user,
+            id=UUID(ORGANISME_UUID),
+        )
+        organisme.supprime_le = datetime.now(timezone.utc)
+        organisme.save(update_fields=["supprime_le"])
+
+        response = authenticated_client.post(INIT_ETAPES_URL)
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+        assert response.json() == {"error": "organisme_uuid: Not found."}
+        assert OrganismeModel.objects.get(id=UUID(ORGANISME_UUID)).etapes is None
+        assert _organisme_audit_logs() == []
+
+    @patch.object(
+        AuditLogWriter,
+        "log_action",
+        new=Mock(side_effect=RuntimeError("audit log write failed")),
+    )
+    def test_audit_failure_returns_500(self, authenticated_client, test_user):
+        create_organisme_with_agent(
+            role=AgentOrganismeRole.SUPERVISEUR,
+            utilisateur=test_user,
+            id=UUID(ORGANISME_UUID),
+        )
+
+        response = authenticated_client.post(INIT_ETAPES_URL)
+
+        assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
+        assert response.json() == {"error": "Unexpected error"}
 
 
 class TestPutEtapesRecrutementOrganismeView:
@@ -643,19 +743,3 @@ class TestMotifsRefusOrganismeView:
         response = staff_client.get(MOTIFS_REFUS_URL)
 
         assert response.status_code == status.HTTP_200_OK
-
-
-class TestInitEtapesRecrutementOrganismeViewDbVerified:
-    def test_post_initializes_and_persists_default_etapes(self, staff_client):
-        OrganismeDjangoFactory(id=UUID(ORGANISME_UUID))
-
-        response = staff_client.post(INIT_ETAPES_URL)
-
-        assert response.status_code == status.HTTP_201_CREATED
-        data = response.json()
-        assert len(data) > 0
-        assert data[0]["categorie"] == "ENTREE"
-
-        organisme = OrganismeModel.objects.get(id=UUID(ORGANISME_UUID))
-        assert organisme.etapes
-        assert len(organisme.etapes) == len(data)

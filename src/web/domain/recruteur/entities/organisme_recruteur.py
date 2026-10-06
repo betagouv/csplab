@@ -8,7 +8,6 @@ from domain.recruteur.errors.organisme_recruteur_errors import (
     ConfigurationEtapesInvalide,
 )
 from domain.recruteur.events.organisme_recruteur_events import (
-    OrganismeEtapesInitialises,
     OrganismeEtapesMisesAJour,
 )
 from domain.recruteur.value_objects.categorie_etapes_recrutement import (
@@ -33,10 +32,6 @@ class OrganismeRecruteur(AggregateRoot):
     @property
     def etapes(self) -> tuple[EtapeRecrutement, ...]:
         return self._etapes
-
-    @mutate(OrganismeEtapesInitialises)
-    def initialiser_etapes(self) -> None:
-        self._etapes = self._generate_default()
 
     @mutate(OrganismeEtapesMisesAJour)
     def mettre_a_jour_etapes(self, etapes_data: tuple[EtapeData, ...]) -> None:
@@ -112,31 +107,3 @@ class OrganismeRecruteur(AggregateRoot):
             for event in etape.collect_events():
                 self.add_event(event)
         self._etapes = tuple(new_steps)
-
-    def _generate_default(self) -> tuple[EtapeRecrutement, ...]:
-        return (
-            EtapeRecrutement.create(
-                categorie=CategorieEtapeRecrutement.ENTREE,
-                nom="Réception des candidatures",
-            ),
-            EtapeRecrutement.create(
-                categorie=CategorieEtapeRecrutement.EN_COURS,
-                nom="Présélection",
-            ),
-            EtapeRecrutement.create(
-                categorie=CategorieEtapeRecrutement.EN_COURS,
-                nom="Entretien",
-            ),
-            EtapeRecrutement.create(
-                categorie=CategorieEtapeRecrutement.EN_COURS,
-                nom="Proposition",
-            ),
-            EtapeRecrutement.create(
-                categorie=CategorieEtapeRecrutement.REFUS,
-                nom="Refus",
-            ),
-            EtapeRecrutement.create(
-                categorie=CategorieEtapeRecrutement.ACCEPTE,
-                nom="Recrutement",
-            ),
-        )

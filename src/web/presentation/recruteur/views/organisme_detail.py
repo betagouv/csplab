@@ -15,10 +15,10 @@ from application.identite.usecases.update_organisme import (
     UpdateOrganismeCommand,
 )
 from application.recruteur.services.get_organisme_etapes import get_organisme_etapes
-from application.recruteur.services.list_motifs_refus import list_motifs_refus
-from application.recruteur.usecases.initialize_organisme_steps import (
-    InitializeOrganismeStepsCommand,
+from application.recruteur.services.initialize_organisme_etapes import (
+    initialize_organisme_etapes,
 )
+from application.recruteur.services.list_motifs_refus import list_motifs_refus
 from application.recruteur.usecases.update_organisme_steps import (
     UpdateOrganismeStepsCommand,
 )
@@ -293,22 +293,13 @@ class MotifsRefusOrganismeView(APIView):
 class InitEtapesRecrutementOrganismeView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.container = recruteur_container()
-        self.user_mapper = UtilisateurMapper()
-
     def post(self, request: Request, organisme_uuid: UUID) -> Response:
         try:
-            usecase = self.container.initialize_organisme_steps_usecase()
-            organisme = usecase.execute(
-                InitializeOrganismeStepsCommand(
-                    organisme_id=organisme_uuid,
-                    utilisateur=self.user_mapper.to_domain(request),
-                )
+            organisme = initialize_organisme_etapes(
+                organisme_id=organisme_uuid,
+                utilisateur=request.user,
             )
-            data = EtapesMapper().from_domain(organisme)
-            serializer = EtapeRecrutementSerializer(data, many=True)
+            serializer = EtapeOrganismeSerializer(organisme.etapes, many=True)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         except AccesOrganismeRefuse:
             return Response(

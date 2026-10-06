@@ -1,8 +1,11 @@
+from uuid import uuid4
+
 from django.db import models
 from django.db.models import Q
 from referentiel.value_objects.verse import Verse
 
 from domain.recruteur.value_objects.roles import AgentOrganismeRole
+from infrastructure.django_apps.recruteur.enums.etape_par_defaut import EtapeParDefaut
 from infrastructure.django_apps.users.fields import agent_fk
 from infrastructure.django_apps.utils.models import BaseDatedModel
 
@@ -10,6 +13,9 @@ from infrastructure.django_apps.utils.models import BaseDatedModel
 class OrganismeQuerySet(models.QuerySet):
     def not_supprimes(self) -> "OrganismeQuerySet":
         return self.filter(supprime_le__isnull=True)
+
+    def by_id(self, organisme_id) -> "OrganismeQuerySet":
+        return self.not_supprimes().filter(pk=organisme_id)
 
     def by_organisme_ids(self, organisme_ids) -> "OrganismeQuerySet":
         return self.filter(pk__in=organisme_ids)
@@ -62,6 +68,16 @@ class OrganismeModel(BaseDatedModel):
 
     def __str__(self) -> str:
         return str(self.id)
+
+    def initialize_default_etapes(self) -> None:
+        self.etapes = [
+            {
+                "entity_id": str(uuid4()),
+                "categorie": etape.categorie.value,
+                "nom": etape.nom,
+            }
+            for etape in EtapeParDefaut
+        ]
 
 
 class OrganismeAgentQuerySet(models.QuerySet):

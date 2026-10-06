@@ -1,10 +1,7 @@
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import MagicMock
 
 import pytest
 
-from application.recruteur.usecases.initialize_organisme_steps import (
-    InitializeOrganismeStepsCommand,
-)
 from application.recruteur.usecases.update_organisme_steps import (
     UpdateOrganismeStepsCommand,
 )
@@ -21,11 +18,6 @@ from infrastructure.factories.recruteur.etapes_recrutement_factory import (
     EtapeRecrutementFactory,
 )
 from infrastructure.gateways.shared.logger import LoggerService
-from infrastructure.repositories.recruteur.postgres_organisme_repository import (
-    PostgresOrganismeRecruteurRepository,
-)
-
-NB_ETAPES_PAR_DEFAUT = 6
 
 
 @pytest.fixture(name="recruteur_integration_container")
@@ -53,96 +45,6 @@ def _audit_logs(container, organisme_id):
     )
 
 
-def _init_command(agent, organisme_id):
-    return InitializeOrganismeStepsCommand(
-        organisme_id=organisme_id,
-        utilisateur=UtilisateurFactory.create_entity(entity_id=agent.utilisateur_id),
-    )
-
-
-def test_initialize_organisme_steps_logs_action(audited_container):
-    agent, organisme_model = create_organisme_with_agent(
-        role=AgentOrganismeRole.SUPERVISEUR
-    )
-    usecase = audited_container.initialize_organisme_steps_usecase()
-
-    usecase.execute(_init_command(agent, organisme_model.id))
-
-    logs = _audit_logs(audited_container, organisme_model.id)
-    assert len(logs) == 1
-    assert logs[0].event_name == "OrganismeEtapesInitialises"
-    assert logs[0].utilisateur_id == agent.utilisateur_id
-    assert logs[0].ressource_id == organisme_model.id
-
-
-def test_initialize_organisme_steps_does_not_log_when_member_refused(
-    audited_container,
-):
-    agent, organisme_model = create_organisme_with_agent(role=AgentOrganismeRole.AGENT)
-    usecase = audited_container.initialize_organisme_steps_usecase()
-
-    with pytest.raises(AccesOrganismeRefuse):
-        usecase.execute(_init_command(agent, organisme_model.id))
-
-    assert _audit_logs(audited_container, organisme_model.id) == []
-
-
-def test_initialize_organisme_steps_does_not_log_for_other_organisme(
-    audited_container,
-):
-    # Superviseur ailleurs : seul le périmètre d'organisme justifie le refus
-    _, organisme_model = create_organisme_with_agent(
-        role=AgentOrganismeRole.SUPERVISEUR
-    )
-    autre_superviseur, _ = create_organisme_with_agent(
-        role=AgentOrganismeRole.SUPERVISEUR
-    )
-    usecase = audited_container.initialize_organisme_steps_usecase()
-
-    with pytest.raises(AccesOrganismeRefuse):
-        usecase.execute(_init_command(autre_superviseur, organisme_model.id))
-
-    assert _audit_logs(audited_container, organisme_model.id) == []
-
-
-@patch.object(
-    PostgresOrganismeRecruteurRepository,
-    "save",
-    new=Mock(side_effect=RuntimeError("save failed")),
-)
-def test_initialize_organisme_steps_does_not_log_when_save_fails(audited_container):
-    agent, organisme_model = create_organisme_with_agent(
-        role=AgentOrganismeRole.SUPERVISEUR
-    )
-    usecase = audited_container.initialize_organisme_steps_usecase()
-
-    with pytest.raises(RuntimeError):
-        usecase.execute(_init_command(agent, organisme_model.id))
-
-    assert _audit_logs(audited_container, organisme_model.id) == []
-
-
-@patch.object(
-    AuditLogWriter,
-    "log_action",
-    new=Mock(side_effect=RuntimeError("audit log write failed")),
-)
-def test_initialize_organisme_steps_rolls_back_when_audit_log_fails(
-    audited_container,
-):
-    agent, organisme_model = create_organisme_with_agent(
-        role=AgentOrganismeRole.SUPERVISEUR
-    )
-    etapes_avant = organisme_model.etapes
-    usecase = audited_container.initialize_organisme_steps_usecase()
-
-    with pytest.raises(RuntimeError):
-        usecase.execute(_init_command(agent, organisme_model.id))
-
-    organisme_model.refresh_from_db()
-    assert organisme_model.etapes == etapes_avant
-
-
 def test_update_organisme_steps_logs_action(audited_container):
     etapes = EtapeRecrutementFactory.create_entity_batch()
     agent, organisme_model = create_organisme_with_agent(
@@ -165,27 +67,6 @@ def test_update_organisme_steps_logs_action(audited_container):
     assert logs[0].event_name == "OrganismeEtapesMisesAJour"
     assert logs[0].utilisateur_id == agent.utilisateur_id
     assert logs[0].ressource_id == organisme_model.id
-
-
-def test_initialize_organisme_steps(recruteur_integration_container):
-    agent, organisme_model = create_organisme_with_agent(
-        role=AgentOrganismeRole.SUPERVISEUR
-    )
-    usecase = recruteur_integration_container.initialize_organisme_steps_usecase()
-
-    organisme = usecase.execute(
-        command=InitializeOrganismeStepsCommand(
-            organisme_id=organisme_model.id,
-            utilisateur=UtilisateurFactory.create_entity(
-                entity_id=agent.utilisateur_id
-            ),
-        )
-    )
-
-    events = organisme.collect_events()
-    assert len(events) == 1
-    assert organisme.etapes is not None
-    assert len(organisme.etapes) == NB_ETAPES_PAR_DEFAUT
 
 
 def test_update_organisme_steps(recruteur_integration_container):
@@ -212,46 +93,6 @@ def test_update_organisme_steps(recruteur_integration_container):
     usecase.audit_log_writer.drain_events.assert_called_once_with(
         utilisateur_id=agent.utilisateur_id, aggregate=organisme
     )
-
-
-class TestInitializeOrganismeStepsRbac:
-    @pytest.mark.parametrize(
-        ("role", "est_staff"),
-        [(AgentOrganismeRole.SUPERVISEUR, False), (None, True)],
-        ids=["responsable", "staff"],
-    )
-    def test_role_grants_access(self, recruteur_integration_container, role, est_staff):
-        agent, organisme = create_organisme_with_agent(role)
-        usecase = recruteur_integration_container.initialize_organisme_steps_usecase()
-
-        result = usecase.execute(
-            InitializeOrganismeStepsCommand(
-                organisme_id=organisme.id,
-                utilisateur=UtilisateurFactory.create_entity(
-                    entity_id=agent.utilisateur_id, is_staff=est_staff
-                ),
-            )
-        )
-
-        assert result.etapes is not None
-        assert len(result.etapes) == NB_ETAPES_PAR_DEFAUT
-
-    @pytest.mark.parametrize(
-        "role", [AgentOrganismeRole.AGENT, None], ids=["membre", "non_membre"]
-    )
-    def test_role_refuse_access(self, recruteur_integration_container, role):
-        agent, organisme = create_organisme_with_agent(role)
-        usecase = recruteur_integration_container.initialize_organisme_steps_usecase()
-
-        with pytest.raises(AccesOrganismeRefuse):
-            usecase.execute(
-                InitializeOrganismeStepsCommand(
-                    organisme_id=organisme.id,
-                    utilisateur=UtilisateurFactory.create_entity(
-                        entity_id=agent.utilisateur_id
-                    ),
-                )
-            )
 
 
 class TestUpdateOrganismeStepsRbac:
