@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { PiniaColadaDevtools } from '@pinia/colada-devtools'
+import { useHead } from '@unhead/vue'
 import { computed } from 'vue'
 import { RouterView } from 'vue-router'
 import { navigationFor } from '@/app/navigation'
@@ -8,6 +9,8 @@ import ErrorBoundary from '@/components/ErrorBoundary.vue'
 import CspAppShell from '@/components/layout/CspAppShell/CspAppShell.vue'
 import { useCurrentUser } from '@/stores/currentUser'
 import { useRouteOrganisme } from '@/stores/routeOrganisme'
+
+useHead({ titleTemplate: '%s | CSPLab' })
 
 const { user } = useCurrentUser()
 const { organismeUuid, canManageOrganisme } = useRouteOrganisme()

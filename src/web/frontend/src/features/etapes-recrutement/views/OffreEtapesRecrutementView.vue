@@ -4,6 +4,7 @@ import { useQuery, useQueryCache } from '@pinia/colada'
 import { computed } from 'vue'
 import CspPageContainer from '@/components/layout/CspPageContainer/CspPageContainer.vue'
 import CspPageHeader from '@/components/layout/CspPageHeader/CspPageHeader.vue'
+import { useDocumentTitle } from '@/composables/ui/useDocumentTitle'
 import { peekRecrutementIntitule, recrutementDetailQuery } from '@/features/recrutements/queries'
 import { CANDIDATURES_VIEW_ROUTE_NAMES, HOME_ROUTE_NAME, recrutementsListLocation } from '@/router/names'
 import EtapesRecrutementList from '../components/EtapesRecrutementList.vue'
@@ -39,11 +40,15 @@ const candidaturesRoute = computed(() => ({
   params: { organismeUuid: props.organismeUuid, recrutementUuid: props.recrutementUuid },
 }))
 
+const ETAPES_LABEL = 'Étapes de recrutement'
+
+useDocumentTitle(ETAPES_LABEL, intitule)
+
 const breadcrumb = computed<CspBreadcrumbItem[]>(() => [
   { label: 'Accueil', to: { name: HOME_ROUTE_NAME } },
   { label: 'Recrutements', to: recrutementsListLink.value },
   ...(intitule.value ? [{ label: intitule.value, to: candidaturesRoute.value }] : []),
-  { label: 'Étapes de recrutement' },
+  { label: ETAPES_LABEL },
 ])
 </script>
 

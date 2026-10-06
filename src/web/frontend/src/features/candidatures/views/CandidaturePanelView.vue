@@ -18,6 +18,7 @@ import { useMinimumPending } from '@/composables/async/useMinimumPending'
 import { tabItems } from '@/composables/navigation/tabs'
 import { useRouteTab } from '@/composables/navigation/useRouteTab'
 import { useUnsavedChangesGuard } from '@/composables/navigation/useUnsavedChanges'
+import { useDocumentTitle } from '@/composables/ui/useDocumentTitle'
 import MessagesSection from '@/features/messages/components/MessagesSection.vue'
 import { formatElapsedDays } from '@/utils/date'
 import CandidatureActivites from '../components/CandidatureActivites.vue'
@@ -85,6 +86,11 @@ const SEQUENCE_LABELS = {
   liste: 'Navigation entre les candidatures de la liste',
 } as const satisfies Record<CandidaturesViewName, string>
 const activeTab = useRouteTab<CandidaturePanelTabKey>(() => panelRouteNames.value.tabs, 'candidature')
+
+useDocumentTitle(
+  () => CANDIDATURE_PANEL_TAB_LABELS[activeTab.value],
+  () => candidature.value && formatCandidatNom(candidature.value.candidat),
+)
 const TABS_WITHOUT_ASIDE: CandidaturePanelTabKey[] = ['historique', 'messages']
 const isMessagesTab = computed(() => activeTab.value === 'messages')
 const showAside = computed(() => !TABS_WITHOUT_ASIDE.includes(activeTab.value))

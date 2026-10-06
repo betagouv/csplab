@@ -8,6 +8,7 @@ import CspPageContainer from '@/components/layout/CspPageContainer/CspPageContai
 import CspPageHeader from '@/components/layout/CspPageHeader/CspPageHeader.vue'
 import { tabItems } from '@/composables/navigation/tabs'
 import { useRouteTab } from '@/composables/navigation/useRouteTab'
+import { useDocumentTitle } from '@/composables/ui/useDocumentTitle'
 import EtapesRecrutementList from '@/features/etapes-recrutement/components/EtapesRecrutementList.vue'
 import { ETAPES_TEXTS_ORGANISME } from '@/features/etapes-recrutement/constants/etape-recrutement'
 import { HOME_ROUTE_NAME, ORGANISME_TAB_ROUTE_NAMES } from '@/router/names'
@@ -23,14 +24,18 @@ const props = defineProps<{
 
 const { organisme, notFound, forbidden } = useOrganismeDetail(() => props.organismeUuid)
 
+const TITLE = 'Paramètres de l\'organisme'
+
 const breadcrumb: CspBreadcrumbItem[] = [
   { label: 'Accueil', to: { name: HOME_ROUTE_NAME } },
-  { label: 'Paramètres de l\'organisme' },
+  { label: TITLE },
 ]
 
 const tabs = tabItems(ORGANISME_TAB_LABELS, ORGANISME_TAB_ICONS)
 
 const activeTab = useRouteTab<OrganismeTabKey>(ORGANISME_TAB_ROUTE_NAMES, 'membres')
+
+useDocumentTitle(() => ORGANISME_TAB_LABELS[activeTab.value], () => organisme.value?.nom)
 
 const metaItems = computed<CspMetaItem[]>(() =>
   organisme.value
@@ -44,7 +49,7 @@ const metaItems = computed<CspMetaItem[]>(() =>
   <ForbiddenView v-else-if="forbidden" />
   <template v-else>
     <CspPageHeader
-      title="Paramètres de l'organisme"
+      :title="TITLE"
       :breadcrumb="breadcrumb"
     >
       <template #subtitle>

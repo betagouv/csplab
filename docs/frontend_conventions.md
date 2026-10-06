@@ -117,6 +117,7 @@ The shell wraps `<RouterView>` **once** (in `App.vue`), so views never import it
 - Route names live in `router/names.ts`. Views, components and the navigation import names from there.
 - A set of routes mounted under several parents is built by a function called once per parent, like the candidature panel under the kanban and the list.
 - A view receives its route params as props: `props: true` when the location carries the params the view declares and no others, or a function that picks the declared params when the location carries others, such as the params of child routes.
+- A route-level view sets the document title with `useDocumentTitle`, from the most specific part to the most general (`Notes - Alice Dupont`). It calls `useHead` from [`@unhead/vue`](https://unhead.unjs.io/docs/vue/head/api/composables/use-head); `App.vue` adds the site name through `titleTemplate`.
 
 ```ts
 // router/routes.ts
