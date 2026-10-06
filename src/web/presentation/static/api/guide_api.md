@@ -165,9 +165,9 @@ comme pour la liste principale des offres (paramètres `page` et `taille`).
 
 Chaque offre renvoyée contient, en plus des informations de la liste principale
 (voir section précédente), le détail complet de l'offre : `long_title`, `employer`,
-`profile`, `mission`, `complements`, `verse`, `contract_kind`, `job_vacancy`,
-`application_url`, `localisation`, `criteria`, `conditions`, `contacts`,
-`beginning_date`.
+`profile`, `mission`, `complements`, `exercise_conditions`, `service_description`,
+`verse`, `contract_kind`, `job_vacancy`, `application_url`, `localisation`,
+`criteria`, `conditions`, `contacts`, `beginning_date`, `application_deadline`.
 
 **Réponses possibles :**
 
@@ -258,14 +258,17 @@ longueur et de valeurs autorisées**.
 | `vacance_poste` | **OUI** = poste vacant ; **NON** = poste susceptible d'être vacant (ou vide). |
 
 #### Bloc « Description » (`description`) — obligatoire
-Tous les champs ci-dessous sont obligatoires.
+Les champs `mission`, `profil`, `employeur` et `complements` sont obligatoires, mais
+peuvent être des textes vides.
 
 | Champ | Règle |
 |---|---|
 | `mission` | **10 000 caractères maximum.** |
 | `profil` | **10 000 caractères maximum.** |
-| `employeur` | **3 000 caractères maximum.** |
+| `employeur` | Présentation de l'employeur. **3 000 caractères maximum.** |
 | `complements` | **5 000 caractères maximum.** |
+| `conditions_exercice` | Facultatif. Conditions particulières d'exercice. **10 000 caractères maximum.** |
+| `descriptif_service` | Facultatif. Description du service qui recrute. **10 000 caractères maximum.** |
 
 #### Bloc « Localisation » (`localisation`) — liste, peut être vide
 | Champ | Règle |
@@ -313,7 +316,7 @@ Tous les champs ci-dessous sont obligatoires.
 |---|---|
 | `debut_publication` | Obligatoire. Date. |
 | `fin_publication` | Obligatoire. Date. |
-| `fin_candidature` | Date. Peut être vide. |
+| `fin_candidature` | Date limite de candidature. Peut être vide. |
 | `debut_vacance_poste` | Date. Peut être vide. |
 
 ### En cas de problème

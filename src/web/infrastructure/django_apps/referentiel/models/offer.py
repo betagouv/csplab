@@ -70,6 +70,8 @@ class OfferModel(BaseDatedModel):
     job_vacancy = models.CharField(max_length=50, null=True, blank=True)
     employer = models.TextField(null=True, blank=True)
     complements = models.TextField(null=True, blank=True)
+    exercise_conditions = models.TextField(null=True, blank=True)
+    service_description = models.TextField(null=True, blank=True)
     criteria = models.JSONField(null=True, blank=True, encoder=DjangoJSONEncoder)
     conditions = models.JSONField(null=True, blank=True, encoder=DjangoJSONEncoder)
     contacts = models.JSONField(null=True, blank=True, encoder=DjangoJSONEncoder)
@@ -77,6 +79,7 @@ class OfferModel(BaseDatedModel):
     # Date fields
     publication_date = models.DateTimeField()
     beginning_date = models.DateTimeField(null=True, blank=True)
+    application_deadline = models.DateTimeField(null=True, blank=True)
     processing = models.BooleanField(default=False)
     processed_at = models.DateTimeField(null=True, blank=True)
     archived_at = models.DateTimeField(null=True, blank=True)

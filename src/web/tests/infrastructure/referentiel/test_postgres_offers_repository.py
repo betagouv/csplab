@@ -174,6 +174,9 @@ class TestUpsertBatch:
             ),
             "publication_date": now,
             "beginning_date": LimitDate(now),
+            "exercise_conditions": "Télétravail possible",
+            "service_description": "Service des ressources humaines",
+            "application_deadline": now,
         }
         for field, value in updated_fields.items():
             setattr(entity, field, value)

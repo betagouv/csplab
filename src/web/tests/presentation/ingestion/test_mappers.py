@@ -87,6 +87,38 @@ def test_offer_input_mapper_maps_criteres_to_offer_criteria():
     )
 
 
+def test_offer_input_mapper_maps_export_unif_fields():
+    payload = PayloadOfferFactory.create(
+        identification={"reference": "REF-001", "versant": "FPT"},
+        description={
+            "conditions_exercice": "Télétravail possible",
+            "descriptif_service": "Service des ressources humaines",
+        },
+        publication={"fin_candidature": datetime(2026, 11, 30, tzinfo=timezone.utc)},
+    )
+
+    offer = OfferInputMapper().to_domain(payload, source_id=uuid4())
+
+    assert offer.exercise_conditions == "Télétravail possible"
+    assert offer.service_description == "Service des ressources humaines"
+    assert offer.application_deadline == datetime(2026, 11, 30, tzinfo=timezone.utc)
+
+
+def test_offer_input_mapper_maps_blank_or_absent_export_unif_fields_to_none():
+    payload = PayloadOfferFactory.create(
+        identification={"reference": "REF-001", "versant": "FPT"},
+        description={"employeur": "", "conditions_exercice": ""},
+    )
+    del payload["description"]["descriptif_service"]
+
+    offer = OfferInputMapper().to_domain(payload, source_id=uuid4())
+
+    assert offer.employer is None
+    assert offer.exercise_conditions is None
+    assert offer.service_description is None
+    assert offer.application_deadline is None
+
+
 def test_offer_input_mapper_maps_absent_criteres_to_none():
     payload = PayloadOfferFactory.create(
         identification={"reference": "REF-001", "versant": "FPT"},

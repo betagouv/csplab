@@ -69,7 +69,14 @@ COMPLETE_VALID_OFFER = PayloadOfferFactory.create(
     categories=["A", "B"],
     forme_contrat=["CDD"],
     vacance_poste="OUI",
-    description={"profil": "", "mission": ""},
+    description={
+        "profil": "",
+        "mission": "",
+        "employeur": "",
+        "conditions_exercice": fake.text(max_nb_chars=1500),
+        "descriptif_service": fake.text(max_nb_chars=1500),
+    },
+    publication={"fin_candidature": fake_datetime(future=True)},
     localisation=[
         {
             "zone_geographique": "EU",
@@ -134,6 +141,9 @@ COMPARABLE_OFFER_ATTRS = [
     "job_vacancy",
     "employer",
     "complements",
+    "exercise_conditions",
+    "service_description",
+    "application_deadline",
     "criteria",
     "conditions",
     "contacts",
@@ -233,6 +243,11 @@ def parse_offer_from_payload(payload: dict, source_id: UUID) -> Offer:
         job_vacancy=payload.get("vacance_poste") or None,
         employer=payload["description"].get("employeur") or None,
         complements=payload["description"].get("complements") or None,
+        exercise_conditions=payload["description"].get("conditions_exercice") or None,
+        service_description=payload["description"].get("descriptif_service") or None,
+        application_deadline=parse_datetime(fin_candidature)
+        if (fin_candidature := payload["publication"].get("fin_candidature"))
+        else None,
         criteria=criteria,
         conditions=conditions,
         contacts=list(payload["contacts"]) if payload.get("contacts") else None,

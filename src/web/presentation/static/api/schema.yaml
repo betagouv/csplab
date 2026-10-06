@@ -4139,6 +4139,12 @@ components:
         complements:
           type: string
           maxLength: 5000
+        conditions_exercice:
+          type: string
+          maxLength: 10000
+        descriptif_service:
+          type: string
+          maxLength: 10000
       required:
       - complements
       - employeur
@@ -4184,6 +4190,46 @@ components:
       - parentCode
       - parentType
       - type
+    FakeTsCustomFields:
+      type: object
+      properties:
+        offer:
+          $ref: '#/components/schemas/FakeTsDynamicField'
+        description:
+          $ref: '#/components/schemas/FakeTsDynamicField'
+        location:
+          $ref: '#/components/schemas/FakeTsDynamicField'
+        offerCustomBlock1:
+          $ref: '#/components/schemas/FakeTsDynamicField'
+      required:
+      - description
+      - location
+      - offer
+      - offerCustomBlock1
+    FakeTsDynamicField:
+      type: object
+      properties:
+        date1:
+          type: string
+          nullable: true
+        shortText1:
+          type: string
+          nullable: true
+        longText1:
+          type: string
+          nullable: true
+        longText2:
+          type: string
+          nullable: true
+        longText3:
+          type: string
+          nullable: true
+      required:
+      - date1
+      - longText1
+      - longText2
+      - longText3
+      - shortText1
     FakeTsGeolocation:
       type: object
       properties:
@@ -4361,8 +4407,7 @@ components:
           - $ref: '#/components/schemas/FakeTsGeolocation'
           nullable: true
         customFields:
-          type: string
-          nullable: true
+          $ref: '#/components/schemas/FakeTsCustomFields'
       required:
       - _format
       - _links
@@ -4927,6 +4972,12 @@ components:
         complements:
           type: string
           nullable: true
+        exercise_conditions:
+          type: string
+          nullable: true
+        service_description:
+          type: string
+          nullable: true
         verse:
           type: string
           nullable: true
@@ -4978,11 +5029,16 @@ components:
           format: date-time
           nullable: true
           readOnly: true
+        application_deadline:
+          type: string
+          format: date-time
+          nullable: true
         archived_at:
           type: string
           format: date-time
           nullable: true
       required:
+      - application_deadline
       - application_url
       - archived_at
       - beginning_date
@@ -4994,6 +5050,7 @@ components:
       - contract_type
       - criteria
       - employer
+      - exercise_conditions
       - job_vacancy
       - localisation
       - long_title
@@ -5003,6 +5060,7 @@ components:
       - profile
       - publication_date
       - reference
+      - service_description
       - source_id
       - title
       - verse

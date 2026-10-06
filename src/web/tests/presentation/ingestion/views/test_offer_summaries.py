@@ -205,6 +205,7 @@ class TestOfferSummariesViewDbVerified:
             longitude=2.3522,
             publication_date=datetime(2024, 3, 1, 9, 0, tzinfo=UTC),
             beginning_date=datetime(2024, 6, 1, tzinfo=UTC),
+            conditions={"duree_contrat": "36 mois"},
         )
 
         response = authenticated_client.get(URL)
@@ -241,7 +242,7 @@ class TestOfferSummariesViewDbVerified:
                     "organisationName": "Ministère Test",
                     "organisationDescription": None,
                     "organisationLogoUrl": None,
-                    "contractDuration": None,
+                    "contractDuration": "36 mois",
                     "contractTypeCountry": None,
                     "description1": "Mission du poste",
                     "description2": "Profil recherché",

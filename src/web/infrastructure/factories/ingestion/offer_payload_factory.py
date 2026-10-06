@@ -49,6 +49,8 @@ class PayloadOfferFactory:
                 "profil": fake.text(max_nb_chars=3000),
                 "employeur": fake.text(max_nb_chars=1500),
                 "complements": "",
+                "conditions_exercice": "",
+                "descriptif_service": "",
             },
             "localisation": None,
             "criteres": None,

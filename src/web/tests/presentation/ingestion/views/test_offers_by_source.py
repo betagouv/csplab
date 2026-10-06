@@ -179,6 +179,8 @@ class TestOffersBySourceViewDbVerified:
                 "profile": offer.profile,
                 "mission": offer.mission,
                 "complements": None,
+                "exercise_conditions": None,
+                "service_description": None,
                 "verse": offer.verse,
                 "category": offer.category,
                 "contract_type": None,
@@ -192,6 +194,7 @@ class TestOffersBySourceViewDbVerified:
                 "contacts": None,
                 "publication_date": "2024-01-15T00:00:00Z",
                 "beginning_date": None,
+                "application_deadline": None,
                 "archived_at": None,
             }
         ]
@@ -211,6 +214,9 @@ class TestOffersBySourceViewDbVerified:
             long_title="Développeur Backend Senior",
             employer="Ministère Test",
             complements="Poste à pourvoir immédiatement",
+            exercise_conditions="Télétravail possible",
+            service_description="Service des ressources humaines",
+            application_deadline=datetime(2024, 5, 15, tzinfo=UTC),
             contract_type=ContractType.TERRITORIAL.value,
             contract_kind=[ContractKind.CDI.name, ContractKind.CDD.name],
             job_vacancy="1",
@@ -241,6 +247,8 @@ class TestOffersBySourceViewDbVerified:
                 "profile": offer.profile,
                 "mission": offer.mission,
                 "complements": offer.complements,
+                "exercise_conditions": offer.exercise_conditions,
+                "service_description": offer.service_description,
                 "verse": offer.verse,
                 "category": offer.category,
                 "contract_type": offer.contract_type,
@@ -264,6 +272,7 @@ class TestOffersBySourceViewDbVerified:
                 ],
                 "publication_date": "2024-01-15T00:00:00Z",
                 "beginning_date": "2024-06-01T00:00:00Z",
+                "application_deadline": "2024-05-15T00:00:00Z",
                 "archived_at": None,
             }
         ]
