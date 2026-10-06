@@ -19,7 +19,7 @@ from infrastructure.django_apps.messagerie.models import (
     MessageModel,
 )
 from infrastructure.factories.candidate.candidature_django_factory import (
-    CandidatureDjangoFactory,
+    create_recrutement_with_candidature,
 )
 from infrastructure.factories.identite.organisme_django_factory import (
     OrganismeDjangoFactory,
@@ -30,7 +30,6 @@ from infrastructure.factories.messagerie.conversation_django_factory import (
     MessageDjangoFactory,
 )
 from infrastructure.factories.recruteur.recrutement_django_factory import (
-    EtapeDjangoFactory,
     RecrutementAgentDjangoFactory,
     RecrutementDjangoFactory,
 )
@@ -55,14 +54,6 @@ def _url(organisme_uuid, recrutement_uuid, candidature_uuid):
     )
 
 
-def _candidature_for(organisme):
-    recrutement = RecrutementDjangoFactory(organisme=organisme)
-    candidature = CandidatureDjangoFactory(
-        etape=EtapeDjangoFactory(recrutement=recrutement)
-    )
-    return recrutement, candidature
-
-
 def _conversation_with_messages(candidature, *contenus):
     conversation = ConversationDjangoFactory(candidature=candidature)
     for contenu in contenus:
@@ -84,7 +75,7 @@ def _recrutement_from_another_organisme(organisme, recrutement, candidature):
 
 
 def _candidature_from_another_recrutement(organisme, recrutement, candidature):
-    _, autre_candidature = _candidature_for(organisme)
+    _, autre_candidature = create_recrutement_with_candidature(organisme)
     return organisme.id, recrutement.pk, autre_candidature.pk
 
 
@@ -136,7 +127,7 @@ def _grant(test_user, organisme_role, recrutement_role):
     agent, organisme = create_organisme_with_agent(
         role=organisme_role, utilisateur=test_user
     )
-    recrutement, candidature = _candidature_for(organisme)
+    recrutement, candidature = create_recrutement_with_candidature(organisme)
     if recrutement_role is not None:
         RecrutementAgentDjangoFactory(
             recrutement=recrutement,
@@ -170,7 +161,7 @@ class TestAccess:
             organisme = OrganismeDjangoFactory()
         else:
             _, organisme = create_organisme_with_agent(role=role, utilisateur=test_user)
-        recrutement, candidature = _candidature_for(organisme)
+        recrutement, candidature = create_recrutement_with_candidature(organisme)
 
         response = _call(
             authenticated_client,
@@ -186,7 +177,7 @@ class TestAccess:
         _, organisme = create_organisme_with_agent(
             role=AgentOrganismeRole.SUPERVISEUR, utilisateur=test_user
         )
-        recrutement, candidature = _candidature_for(organisme)
+        recrutement, candidature = create_recrutement_with_candidature(organisme)
 
         response = _call(
             authenticated_client,
@@ -249,7 +240,9 @@ class TestListConversations:
         self, authenticated_client, contexte
     ):
         _, candidature, url = contexte
-        _, autre_candidature = _candidature_for(candidature.etape.recrutement.organisme)
+        _, autre_candidature = create_recrutement_with_candidature(
+            candidature.etape.recrutement.organisme
+        )
         conversation = _conversation_with_messages(candidature, "Bonjour")
         _conversation_with_messages(autre_candidature, "Bonjour")
 

@@ -10,13 +10,13 @@ from domain.recruteur.errors.recrutement_errors import (
     RecrutementCandidatureInexistante,
     RecrutementInexistant,
 )
-from domain.recruteur.value_objects.roles import AgentOrganismeRole
 from infrastructure.factories.candidate.candidature_django_factory import (
     CandidatureDjangoFactory,
+    create_recrutement_and_candidature_for_agent,
+    create_recrutement_with_candidature,
 )
 from infrastructure.factories.identite.organisme_django_factory import (
     OrganismeDjangoFactory,
-    create_organisme_with_agent,
 )
 from infrastructure.factories.identite.utilisateur_factory import UtilisateurFactory
 from infrastructure.factories.messagerie.conversation_django_factory import (
@@ -24,33 +24,16 @@ from infrastructure.factories.messagerie.conversation_django_factory import (
     MessageDjangoFactory,
     MessageDocumentDjangoFactory,
 )
-from infrastructure.factories.recruteur.recrutement_django_factory import (
-    EtapeDjangoFactory,
-    RecrutementDjangoFactory,
-)
 
 
 def _utilisateur(entity_id):
     return UtilisateurFactory.create_entity(entity_id=entity_id)
 
 
-def _candidature_for(organisme):
-    recrutement = RecrutementDjangoFactory(organisme=organisme)
-    candidature = CandidatureDjangoFactory(
-        etape=EtapeDjangoFactory(recrutement=recrutement)
+def test_authorized_agent_reads_the_conversation(db):
+    agent, organisme, recrutement, candidature = (
+        create_recrutement_and_candidature_for_agent()
     )
-    return recrutement, candidature
-
-
-@pytest.fixture
-def superviseur_candidature(db):
-    agent, organisme = create_organisme_with_agent(role=AgentOrganismeRole.SUPERVISEUR)
-    recrutement, candidature = _candidature_for(organisme)
-    return agent, organisme, recrutement, candidature
-
-
-def test_authorized_agent_reads_the_conversation(superviseur_candidature):
-    agent, organisme, recrutement, candidature = superviseur_candidature
     first = MessageDjangoFactory(
         conversation__candidature=candidature, with_document=True
     )
@@ -71,8 +54,10 @@ def test_authorized_agent_reads_the_conversation(superviseur_candidature):
     assert second_read.pieces_jointes.count() == 0
 
 
-def test_conversation_without_message_is_empty(superviseur_candidature):
-    agent, organisme, recrutement, candidature = superviseur_candidature
+def test_conversation_without_message_is_empty(db):
+    agent, organisme, recrutement, candidature = (
+        create_recrutement_and_candidature_for_agent()
+    )
 
     messages = read_conversation(
         organisme_id=organisme.id,
@@ -85,10 +70,10 @@ def test_conversation_without_message_is_empty(superviseur_candidature):
     assert not messages.exists()
 
 
-def test_reading_does_not_issue_a_query_per_message(
-    superviseur_candidature, django_assert_num_queries
-):
-    agent, organisme, recrutement, candidature = superviseur_candidature
+def test_reading_does_not_issue_a_query_per_message(db, django_assert_num_queries):
+    agent, organisme, recrutement, candidature = (
+        create_recrutement_and_candidature_for_agent()
+    )
     conversation = ConversationDjangoFactory(candidature=candidature)
     for message in MessageDjangoFactory.create_batch(2, conversation=conversation):
         MessageDocumentDjangoFactory.create_batch(2, message=message)
@@ -110,7 +95,9 @@ def test_reading_does_not_issue_a_query_per_message(
 
 
 def test_unauthorized_agent_is_denied(db):
-    recrutement, candidature = _candidature_for(OrganismeDjangoFactory())
+    recrutement, candidature = create_recrutement_with_candidature(
+        OrganismeDjangoFactory()
+    )
 
     with pytest.raises(AccesOrganismeRefuse):
         read_conversation(
@@ -133,9 +120,11 @@ def test_unknown_organisme_is_denied(db):
         )
 
 
-def test_recrutement_not_under_organisme_is_denied(superviseur_candidature):
-    agent, organisme, _, _ = superviseur_candidature
-    other_recrutement, other_candidature = _candidature_for(OrganismeDjangoFactory())
+def test_recrutement_not_under_organisme_is_denied(db):
+    agent, organisme, _, _ = create_recrutement_and_candidature_for_agent()
+    other_recrutement, other_candidature = create_recrutement_with_candidature(
+        OrganismeDjangoFactory()
+    )
 
     with pytest.raises(RecrutementInexistant):
         read_conversation(
@@ -147,9 +136,9 @@ def test_recrutement_not_under_organisme_is_denied(superviseur_candidature):
         )
 
 
-def test_candidature_not_under_recrutement_is_denied(superviseur_candidature):
-    agent, organisme, recrutement, _ = superviseur_candidature
-    _, other_candidature = _candidature_for(organisme)
+def test_candidature_not_under_recrutement_is_denied(db):
+    agent, organisme, recrutement, _ = create_recrutement_and_candidature_for_agent()
+    _, other_candidature = create_recrutement_with_candidature(organisme)
 
     with pytest.raises(RecrutementCandidatureInexistante):
         read_conversation(
@@ -161,8 +150,10 @@ def test_candidature_not_under_recrutement_is_denied(superviseur_candidature):
         )
 
 
-def test_unknown_conversation_is_denied(superviseur_candidature):
-    agent, organisme, recrutement, candidature = superviseur_candidature
+def test_unknown_conversation_is_denied(db):
+    agent, organisme, recrutement, candidature = (
+        create_recrutement_and_candidature_for_agent()
+    )
 
     with pytest.raises(ConversationInexistante):
         read_conversation(
@@ -174,8 +165,10 @@ def test_unknown_conversation_is_denied(superviseur_candidature):
         )
 
 
-def test_conversation_of_another_candidature_is_denied(superviseur_candidature):
-    agent, organisme, recrutement, candidature = superviseur_candidature
+def test_conversation_of_another_candidature_is_denied(db):
+    agent, organisme, recrutement, candidature = (
+        create_recrutement_and_candidature_for_agent()
+    )
     other_candidature = CandidatureDjangoFactory(etape=candidature.etape)
 
     with pytest.raises(ConversationInexistante):
