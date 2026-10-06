@@ -155,7 +155,7 @@ class OfferUpsertPayload(BaseModel):
                 metier=offer.family_code or "",
             ),
             categories=[offer.category.value] if offer.category else [],
-            nature_offre=offer.contract_type.value if offer.contract_type else None,
+            nature_offre=offer.offer_nature.value if offer.offer_nature else None,
             type_contrat=offer.contract_kind.name if offer.contract_kind else None,
             description=DescriptionPayload(
                 mission=offer.mission,

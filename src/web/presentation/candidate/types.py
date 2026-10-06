@@ -31,7 +31,7 @@ class OfferCard(_BaseCard):
     organization: str
     location: str
     location_value: str
-    contract_type_display: str
+    offer_nature_display: str
     metier: NotRequired[str]
 
 

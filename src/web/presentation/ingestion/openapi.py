@@ -312,7 +312,7 @@ LIST_OFFERS_EXAMPLES = [
             "organization": (
                 "Ecole Nationale Supérieure de Techniques Avancées (ENSTA)"
             ),
-            "contract_type": "TITULAIRE_CONTRACTUEL",
+            "offer_nature": "TITULAIRE_CONTRACTUEL",
             "category": "A",
             "publication_date": "2026-04-17T14:44:49.873000+00:00",
             "offer_url": "https://test.com/offre-emploi/2026-999999/",
@@ -334,7 +334,7 @@ LIST_OFFERS_EXAMPLES = [
             "organization": (
                 "Ecole Nationale Supérieure de Techniques Avancées (ENSTA)"
             ),
-            "contract_type": "TITULAIRE_CONTRACTUEL",
+            "offer_nature": "TITULAIRE_CONTRACTUEL",
             "category": "A",
             "publication_date": "2026-04-17T14:44:49.873000+00:00",
             "offer_url": "https://test.com/offre-emploi/2026-999999/",

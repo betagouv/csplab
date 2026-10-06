@@ -383,7 +383,7 @@ const archivesCountLabel = computed(() => {
           <RecrutementsArchivesFiltersDrawer
             v-model:open="archivesFiltersDrawer.isOpen.value"
             v-model:responsable="archivesFilters.draft.responsable"
-            v-model:type-contrat="archivesFilters.draft.typeContrat"
+            v-model:nature-offre="archivesFilters.draft.natureOffre"
             :responsable-options="archivesFilters.responsableOptions.value"
             :can-reset="archivesFilters.canReset.value"
             @apply="applyArchivesFilters"

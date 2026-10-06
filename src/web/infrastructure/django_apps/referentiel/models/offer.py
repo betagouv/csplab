@@ -1,7 +1,7 @@
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db import models
 from referentiel.value_objects.category import Category
-from referentiel.value_objects.contract_type import ContractType
+from referentiel.value_objects.offer_nature import OfferNature
 from referentiel.value_objects.verse import Verse
 
 from infrastructure.django_apps.ingestion.models.source import SourceModel
@@ -12,8 +12,8 @@ from infrastructure.django_apps.utils.models import BaseDatedModel
 
 
 class OfferModel(BaseDatedModel):
-    # Contract type choices from ContractType enum
-    CONTRACT_TYPE_CHOICES = [(ct.value, ct.name) for ct in ContractType]
+    # Offer nature choices from OfferNature enum
+    OFFER_NATURE_CHOICES = [(ct.value, ct.name) for ct in OfferNature]
 
     # Category choices from Category enum
     CATEGORY_CHOICES = [(cat.value, cat.name) for cat in Category]
@@ -31,9 +31,8 @@ class OfferModel(BaseDatedModel):
     category = models.CharField(
         max_length=20, choices=CATEGORY_CHOICES, null=True, blank=True
     )
-    # API: nature_offre (nature of the offer, not the contract type)
-    contract_type = models.CharField(
-        max_length=25, choices=CONTRACT_TYPE_CHOICES, null=True, blank=True
+    offer_nature = models.CharField(
+        max_length=25, choices=OFFER_NATURE_CHOICES, null=True, blank=True
     )
     organization = models.CharField(max_length=500)
     offer_url = models.URLField(null=True, blank=True)
@@ -67,7 +66,6 @@ class OfferModel(BaseDatedModel):
 
     long_title = models.CharField(max_length=1500, null=True, blank=True)
     application_url = models.URLField(null=True, blank=True)
-    # API: type_contrat
     contract_kind = models.CharField(max_length=20, null=True, blank=True)
     job_vacancy = models.CharField(max_length=50, null=True, blank=True)
     employer = models.TextField(null=True, blank=True)

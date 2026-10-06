@@ -12,11 +12,11 @@ describe('useRecrutementsFilters', () => {
 
   it('only filters once draft is applied', () => {
     const { draft, apply, filtered, activeFiltersCount } = useRecrutementsFilters(RECRUTEMENTS_ACTIFS)
-    draft.typeContrat = 'CONTRACTUEL'
+    draft.natureOffre = 'CONTRACTUEL'
     expect(filtered.value).toEqual(RECRUTEMENTS_ACTIFS)
 
     apply()
-    expect(filtered.value.every(row => row.type_contrat === 'CONTRACTUEL')).toBe(true)
+    expect(filtered.value.every(row => row.nature_offre === 'CONTRACTUEL')).toBe(true)
     expect(filtered.value.length).toBeGreaterThan(0)
     expect(filtered.value.length).toBeLessThan(RECRUTEMENTS_ACTIFS.length)
     expect(activeFiltersCount.value).toBe(1)
@@ -31,7 +31,7 @@ describe('useRecrutementsFilters', () => {
 
   it('restores full list on reset', () => {
     const { draft, apply, reset, filtered, canReset } = useRecrutementsFilters(RECRUTEMENTS_ACTIFS)
-    draft.typeContrat = 'CONTRACTUEL'
+    draft.natureOffre = 'CONTRACTUEL'
     apply()
     expect(filtered.value.length).toBeLessThan(RECRUTEMENTS_ACTIFS.length)
 
@@ -47,7 +47,7 @@ describe('useRecrutementsFilters: search', () => {
 
   it('combines search with applied filters', async () => {
     const { draft, apply, search, filtered } = useRecrutementsFilters(RECRUTEMENTS_ACTIFS)
-    draft.typeContrat = 'CONTRACTUEL'
+    draft.natureOffre = 'CONTRACTUEL'
     apply()
     search.value = 'zzz-no-match'
     await nextTick()

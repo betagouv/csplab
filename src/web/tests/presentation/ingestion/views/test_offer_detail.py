@@ -5,11 +5,11 @@ from django.urls import reverse
 from pydantic import HttpUrl
 from referentiel.exceptions.offer_errors import OfferDoesNotExist
 from referentiel.value_objects.category import Category
-from referentiel.value_objects.contract_type import ContractType
 from referentiel.value_objects.diploma import Diploma
 from referentiel.value_objects.experience_level import ExperienceLevel
 from referentiel.value_objects.language_level import LanguageLevel
 from referentiel.value_objects.offer_criteria import OfferCriteria, OfferLanguage
+from referentiel.value_objects.offer_nature import OfferNature
 from rest_framework import status
 
 from application.ingestion.interfaces.get_offer_by_reference_input import (
@@ -160,7 +160,7 @@ class TestOfferDetailViewDbVerified:
             mission="Mission du poste",
             organization="Ministère Test",
             category=Category.A,
-            contract_type=ContractType.TERRITORIAL,
+            offer_nature=OfferNature.TERRITORIAL,
             offer_url=HttpUrl("https://exemple.gouv.fr/offres/e2e-1"),
             country="FRA",
             region="11",

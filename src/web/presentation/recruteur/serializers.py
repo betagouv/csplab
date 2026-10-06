@@ -1,6 +1,6 @@
 from django.conf import settings
 from referentiel.value_objects.category import Category
-from referentiel.value_objects.contract_type import ContractType
+from referentiel.value_objects.offer_nature import OfferNature
 from referentiel.value_objects.verse import Verse
 from rest_framework import serializers
 
@@ -90,8 +90,8 @@ class RecrutementsSerializer(serializers.Serializer):
     uuid = serializers.UUIDField(source="offer_id")
     intitule = serializers.CharField()
     reference_csp = serializers.CharField()
-    type_contrat = serializers.ChoiceField(
-        choices=[(c.name, c.value) for c in ContractType],
+    nature_offre = serializers.ChoiceField(
+        choices=[(c.name, c.value) for c in OfferNature],
         allow_null=True,
     )
     responsables = ResponsableSerializer(many=True)

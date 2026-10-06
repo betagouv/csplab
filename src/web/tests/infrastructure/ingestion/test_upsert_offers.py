@@ -5,11 +5,11 @@ from faker import Faker
 from pydantic import HttpUrl
 from referentiel.value_objects.area import GeographicalArea
 from referentiel.value_objects.category import Category
-from referentiel.value_objects.contract_type import ContractType
 from referentiel.value_objects.country import Country
 from referentiel.value_objects.department import Department
 from referentiel.value_objects.limit_date import LimitDate
 from referentiel.value_objects.localisation import Localisation
+from referentiel.value_objects.offer_nature import OfferNature
 from referentiel.value_objects.region import Region
 from referentiel.value_objects.verse import Verse
 
@@ -30,7 +30,7 @@ def test_upsert_offers_result(ingestion_container):
     offer = OfferDjangoFactory(
         verse=Verse.FPE,
         category=Category.B,
-        contract_type=ContractType.CONTRACTUEL,
+        offer_nature=OfferNature.CONTRACTUEL,
         area="AS",
         country="GUF",
         region="03",
@@ -43,7 +43,7 @@ def test_upsert_offers_result(ingestion_container):
         "profile": fake.sentence(),
         "mission": fake.sentence(),
         "category": Category.C,
-        "contract_type": ContractType.TITULAIRE_CONTRACTUEL,
+        "offer_nature": OfferNature.TITULAIRE_CONTRACTUEL,
         "organization": fake.name(),
         "offer_url": HttpUrl(f"https://fake.url/offer/{existing_offer.reference}"),
         "code_emploi_csp": fake.word(),

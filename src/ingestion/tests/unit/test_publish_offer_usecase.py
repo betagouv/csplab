@@ -3,7 +3,7 @@ from unittest.mock import AsyncMock, MagicMock
 from uuid import UUID
 
 import pytest
-from referentiel.value_objects.contract_type import ContractType
+from referentiel.value_objects.offer_nature import OfferNature
 from referentiel.value_objects.verse import Verse
 
 from application.usecases.publish_offer import PublishOfferUsecase
@@ -21,7 +21,7 @@ OFFER = Offer(
     organization="City Hall",
     verse=Verse.FPT,
     category=None,
-    contract_type=ContractType.TITULAIRE_CONTRACTUEL,
+    offer_nature=OfferNature.TITULAIRE_CONTRACTUEL,
     offer_url=None,
     application_url=None,
     localisation=None,

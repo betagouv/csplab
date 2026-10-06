@@ -49,7 +49,7 @@ class OfferSummariesView(APIView):
                     active=True,
                     category=query.validated_data.get("category"),
                     verse=query.validated_data.get("verse"),
-                    contract_type=query.validated_data.get("contract_type"),
+                    offer_nature=query.validated_data.get("offer_nature"),
                     experience_level=query.validated_data.get("experience_level"),
                     management=query.validated_data.get("management"),
                     working_place=query.validated_data.get("working_place"),

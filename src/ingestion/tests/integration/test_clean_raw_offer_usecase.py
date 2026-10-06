@@ -3,8 +3,8 @@ from uuid import UUID
 
 import pytest
 from referentiel.value_objects.category import Category
-from referentiel.value_objects.contract_type import ContractType
 from referentiel.value_objects.limit_date import LimitDate
+from referentiel.value_objects.offer_nature import OfferNature
 from referentiel.value_objects.verse import Verse
 
 from application.usecases.clean_raw_offer import CleanRawOfferUsecase
@@ -74,22 +74,22 @@ def test_execute_maps_verse(usecase, salary_range_code, expected_verse):
 @pytest.mark.parametrize(
     "contract_code, expected",
     [
-        ("TITULAIRE_CDI", ContractType.TITULAIRE_CONTRACTUEL),
-        ("CONTRACTUEL_CDD", ContractType.CONTRACTUEL),
-        ("TERRITORIAL_TIT", ContractType.TERRITORIAL),
+        ("TITULAIRE_CDI", OfferNature.TITULAIRE_CONTRACTUEL),
+        ("CONTRACTUEL_CDD", OfferNature.CONTRACTUEL),
+        ("TERRITORIAL_TIT", OfferNature.TERRITORIAL),
         ("INCONNU", None),
         (None, None),
     ],
 )
-def test_execute_maps_contract_type(usecase, contract_code, expected):
-    contract_type = (
+def test_execute_maps_offer_nature(usecase, contract_code, expected):
+    offer_nature = (
         TalentsoftCodedObjectFactory.build(clientCode=contract_code)
         if contract_code
         else None
     )
-    result = usecase.execute(_raw_offer(contractType=contract_type))
+    result = usecase.execute(_raw_offer(contractType=offer_nature))
 
-    assert result.contract_type == expected
+    assert result.offer_nature == expected
 
 
 @pytest.mark.parametrize(

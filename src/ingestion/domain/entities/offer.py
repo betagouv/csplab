@@ -5,7 +5,7 @@ from uuid import UUID, uuid4
 
 from pydantic import HttpUrl
 from referentiel.value_objects.category import Category
-from referentiel.value_objects.contract_type import ContractKind, ContractType
+from referentiel.value_objects.contract_kind import ContractKind
 from referentiel.value_objects.experience_level import ExperienceLevel
 from referentiel.value_objects.language import Language
 from referentiel.value_objects.limit_date import LimitDate
@@ -15,6 +15,7 @@ from referentiel.value_objects.offer_conditions import (
     WorkingPlace,
     WorkingTime,
 )
+from referentiel.value_objects.offer_nature import OfferNature
 from referentiel.value_objects.verse import Verse
 
 
@@ -29,8 +30,7 @@ class Offer:
     organization: str
     verse: Optional[Verse]
     category: Optional[Category]
-    # API: nature_offre (nature of the offer, not the contract type)
-    contract_type: Optional[ContractType]
+    offer_nature: Optional[OfferNature]
     offer_url: Optional[HttpUrl]
     application_url: Optional[HttpUrl]
     localisation: Optional[Localisation]
@@ -43,7 +43,6 @@ class Offer:
     exercise_conditions: str = ""
     service_description: str = ""
     complements: str = ""
-    # API: type_contrat
     contract_kind: Optional[ContractKind] = None
     education_level: Optional[int] = None
     experience: Optional[ExperienceLevel] = None

@@ -4,7 +4,7 @@ import pycountry
 from drf_spectacular.utils import extend_schema_field
 from referentiel.value_objects.area import GeographicalArea
 from referentiel.value_objects.category import Category
-from referentiel.value_objects.contract_type import ContractKind, ContractType
+from referentiel.value_objects.contract_kind import ContractKind
 from referentiel.value_objects.country import Country
 from referentiel.value_objects.department import Department
 from referentiel.value_objects.diploma import Diploma
@@ -19,6 +19,7 @@ from referentiel.value_objects.offer_conditions import (
     WorkingPlace,
     WorkingTime,
 )
+from referentiel.value_objects.offer_nature import OfferNature
 from referentiel.value_objects.region import Region
 from referentiel.value_objects.verse import Verse
 from rest_framework import serializers
@@ -128,7 +129,7 @@ class ListOffersResponseSerializer(serializers.Serializer):
     source_id = serializers.UUIDField()
     title = serializers.CharField()
     organization = serializers.CharField()
-    contract_type = serializers.CharField(allow_null=True)
+    offer_nature = serializers.CharField(allow_null=True)
     category = serializers.CharField(allow_null=True)
     publication_date = serializers.DateTimeField()
     offer_url = serializers.CharField(allow_null=True)
@@ -151,10 +152,10 @@ class ListOffersFiltersSerializer(serializers.Serializer):
         source="verse",
     )
     nature_offre = _CommaSeparatedEnumField(
-        ContractType,
+        OfferNature,
         "nature de l'offre",
         help_text="Valeurs séparées par une virgule (ex. `TITULAIRE_CONTRACTUEL`).",
-        source="contract_type",
+        source="offer_nature",
     )
     niveau_experience = _CommaSeparatedEnumField(
         ExperienceLevel,
@@ -303,7 +304,7 @@ class OfferSummariesQuerySerializer(serializers.Serializer):
     )
     verse = _CommaSeparatedEnumField(Verse, "versant")
     contractType = _CommaSeparatedEnumField(
-        ContractType, "type de contrat", source="contract_type"
+        OfferNature, "type de contrat", source="offer_nature"
     )
     experienceLevel = _CommaSeparatedEnumField(
         ExperienceLevel, "niveau d'expérience", source="experience_level"
@@ -556,7 +557,7 @@ class OfferDetailResponseSerializer(serializers.Serializer):
     service_description = serializers.CharField(allow_null=True)
     verse = serializers.CharField(allow_null=True)
     category = serializers.CharField(allow_null=True)
-    contract_type = serializers.CharField(allow_null=True)
+    offer_nature = serializers.CharField(allow_null=True)
     contract_kind = serializers.CharField(allow_null=True)
     job_vacancy = serializers.CharField(allow_null=True)
     offer_url = serializers.CharField(allow_null=True)
@@ -786,7 +787,7 @@ class OffersInputSerializer(serializers.Serializer):
         choices=[(c.name, c.value) for c in Category], allow_blank=True
     )
     nature_offre = serializers.ChoiceField(
-        choices=[(c.name, c.value) for c in ContractType]
+        choices=[(c.name, c.value) for c in OfferNature]
     )
     type_contrat = serializers.ChoiceField(
         choices=[(c.name, c.value) for c in ContractKind],

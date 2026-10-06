@@ -855,6 +855,13 @@ export interface components {
          * @enum {string}
          */
         MotifRefusEnum: "corps_grade_non_eligible" | "condition_mobilite_non_remplie" | "candidat_non_fonctionnaire" | "experience_insuffisante" | "competences_techniques_insuffisantes" | "niveau_qualification_insuffisant" | "disponibilite" | "autre";
+        /**
+         * @description * `TITULAIRE_CONTRACTUEL` - TITULAIRE_CONTRACTUEL
+         *     * `CONTRACTUEL` - CONTRACTUEL
+         *     * `TERRITORIAL` - TERRITORIAL
+         * @enum {string}
+         */
+        NatureOffreEnum: "TITULAIRE_CONTRACTUEL" | "CONTRACTUEL" | "TERRITORIAL";
         Note: {
             /** Format: uuid */
             uuid: string;
@@ -1112,7 +1119,7 @@ export interface components {
             uuid: string;
             intitule: string;
             reference_csp: string;
-            type_contrat: (components["schemas"]["TypeContratEnum"] | components["schemas"]["NullEnum"]) | null;
+            nature_offre: (components["schemas"]["NatureOffreEnum"] | components["schemas"]["NullEnum"]) | null;
             responsables: components["schemas"]["Responsable"][];
             /** Format: date-time */
             date_publication: string;
@@ -1125,7 +1132,7 @@ export interface components {
             uuid: string;
             intitule: string;
             reference_csp: string;
-            type_contrat: (components["schemas"]["TypeContratEnum"] | components["schemas"]["NullEnum"]) | null;
+            nature_offre: (components["schemas"]["NatureOffreEnum"] | components["schemas"]["NullEnum"]) | null;
             responsables: components["schemas"]["Responsable"][];
             /** Format: date-time */
             date_archivage: string;
@@ -1189,13 +1196,6 @@ export interface components {
             token_type: string;
             message: string;
         };
-        /**
-         * @description * `TITULAIRE_CONTRACTUEL` - TITULAIRE_CONTRACTUEL
-         *     * `CONTRACTUEL` - CONTRACTUEL
-         *     * `TERRITORIAL` - TERRITORIAL
-         * @enum {string}
-         */
-        TypeContratEnum: "TITULAIRE_CONTRACTUEL" | "CONTRACTUEL" | "TERRITORIAL";
         /**
          * @description * `cv` - CV
          *     * `lettre_motivation` - Lettre de motivation

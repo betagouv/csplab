@@ -1,21 +1,21 @@
-import type { RecrutementBase, TypeContrat } from '../types'
+import type { NatureOffre, RecrutementBase } from '../types'
 import type { CspSelectOption } from '@/components/base/CspSelect/CspSelect.vue'
-import { TYPE_CONTRAT_LABELS } from '../format'
+import { NATURE_OFFRE_LABELS } from '../format'
 
 export interface RecrutementsFilters extends Record<string, unknown> {
   responsable: string | null
-  typeContrat: TypeContrat | null
+  natureOffre: NatureOffre | null
 }
 
 export function emptyRecrutementsFilters(): RecrutementsFilters {
-  return { responsable: null, typeContrat: null }
+  return { responsable: null, natureOffre: null }
 }
 
 export function matchesFilters(row: RecrutementBase, filters: RecrutementsFilters): boolean {
   if (filters.responsable && !row.responsables.some(r => r.nom === filters.responsable)) {
     return false
   }
-  if (filters.typeContrat && row.type_contrat !== filters.typeContrat) {
+  if (filters.natureOffre && row.nature_offre !== filters.natureOffre) {
     return false
   }
   return true
@@ -48,6 +48,6 @@ export function responsableOptions(rows: RecrutementBase[]): CspSelectOption[] {
     .map(nom => ({ value: nom, label: nom }))
 }
 
-export const TYPE_CONTRAT_OPTIONS: CspSelectOption[] = Object
-  .entries(TYPE_CONTRAT_LABELS)
+export const NATURE_OFFRE_OPTIONS: CspSelectOption[] = Object
+  .entries(NATURE_OFFRE_LABELS)
   .map(([value, label]) => ({ value, label }))

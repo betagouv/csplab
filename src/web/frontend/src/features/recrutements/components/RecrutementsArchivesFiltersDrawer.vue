@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import type { Ref } from 'vue'
-import type { TypeContrat } from '../types'
+import type { NatureOffre } from '../types'
 import type { CspSelectOption } from '@/components/base/CspSelect/CspSelect.vue'
 import { computed } from 'vue'
 import CspFiltersDrawer from '@/components/base/CspFiltersDrawer/CspFiltersDrawer.vue'
 import CspSelect from '@/components/base/CspSelect/CspSelect.vue'
-import { FILTER_ALL, TYPE_CONTRAT_OPTIONS, withAllOption } from '../utils/filters'
+import { FILTER_ALL, NATURE_OFFRE_OPTIONS, withAllOption } from '../utils/filters'
 
 defineProps<{
   responsableOptions: CspSelectOption[]
@@ -19,7 +19,7 @@ const emit = defineEmits<{
 
 const open = defineModel<boolean>('open', { required: true })
 const responsable = defineModel<string | null>('responsable', { required: true })
-const typeContrat = defineModel<TypeContrat | null>('typeContrat', { required: true })
+const natureOffre = defineModel<NatureOffre | null>('natureOffre', { required: true })
 
 function selectModel<T extends string>(model: Ref<T | null>) {
   return computed<string>({
@@ -31,9 +31,9 @@ function selectModel<T extends string>(model: Ref<T | null>) {
 }
 
 const responsableModel = selectModel(responsable)
-const typeContratModel = selectModel(typeContrat)
+const natureOffreModel = selectModel(natureOffre)
 
-const typeContratOptions = withAllOption('Tous les types', TYPE_CONTRAT_OPTIONS)
+const natureOffreOptions = withAllOption('Toutes les natures', NATURE_OFFRE_OPTIONS)
 </script>
 
 <template>
@@ -49,9 +49,9 @@ const typeContratOptions = withAllOption('Tous les types', TYPE_CONTRAT_OPTIONS)
       :options="responsableOptions"
     />
     <CspSelect
-      v-model="typeContratModel"
-      label="Type de contrat"
-      :options="typeContratOptions"
+      v-model="natureOffreModel"
+      label="Nature de l'offre"
+      :options="natureOffreOptions"
     />
   </CspFiltersDrawer>
 </template>

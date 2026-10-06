@@ -19,11 +19,11 @@ from referentiel.exceptions.offer_errors import (
 from referentiel.types import IUpsertResult
 from referentiel.value_objects.area import GeographicalArea
 from referentiel.value_objects.category import Category
-from referentiel.value_objects.contract_type import ContractType
 from referentiel.value_objects.country import Country
 from referentiel.value_objects.department import Department
 from referentiel.value_objects.experience_level import ExperienceLevel
 from referentiel.value_objects.offer_conditions import Management, WorkingPlace
+from referentiel.value_objects.offer_nature import OfferNature
 from referentiel.value_objects.region import Region
 from referentiel.value_objects.verse import Verse
 
@@ -107,7 +107,7 @@ class PostgresOffersRepository(IIngestionOffersRepository):
                                 "profile",
                                 "mission",
                                 "category",
-                                "contract_type",
+                                "offer_nature",
                                 "organization",
                                 "offer_url",
                                 "code_emploi_csp",
@@ -187,7 +187,7 @@ class PostgresOffersRepository(IIngestionOffersRepository):
         active: bool,
         category: List[Category] | None = None,
         verse: List[Verse] | None = None,
-        contract_type: List[ContractType] | None = None,
+        offer_nature: List[OfferNature] | None = None,
         experience_level: List[ExperienceLevel] | None = None,
         management: List[Management] | None = None,
         working_place: List[WorkingPlace] | None = None,
@@ -210,7 +210,7 @@ class PostgresOffersRepository(IIngestionOffersRepository):
             [
                 ("category__in", category, lambda c: c.value),
                 ("verse__in", verse, lambda v: v.value),
-                ("contract_type__in", contract_type, lambda c: c.value),
+                ("offer_nature__in", offer_nature, lambda c: c.value),
                 ("criteria__experience__in", experience_level, lambda e: e.name),
                 ("conditions__management__in", management, lambda m: m.name),
                 (

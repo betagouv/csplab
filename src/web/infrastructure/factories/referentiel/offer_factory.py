@@ -5,11 +5,11 @@ from pydantic import HttpUrl
 from referentiel.entities.offer import Offer
 from referentiel.value_objects.area import GeographicalArea
 from referentiel.value_objects.category import Category
-from referentiel.value_objects.contract_type import ContractType
 from referentiel.value_objects.country import Country
 from referentiel.value_objects.department import Department
 from referentiel.value_objects.limit_date import LimitDate
 from referentiel.value_objects.localisation import Localisation
+from referentiel.value_objects.offer_nature import OfferNature
 from referentiel.value_objects.region import Region
 from referentiel.value_objects.verse import Verse
 
@@ -24,7 +24,7 @@ class OfferFactory:
     def create_entity(
         title: str | None = None,
         category: Category | None = None,
-        contract_type: ContractType | None = None,
+        offer_nature: OfferNature | None = None,
         verse: Verse | None = None,
         reference: str | None = None,
         profile: str | None = None,
@@ -59,7 +59,7 @@ class OfferFactory:
             profile=profile or "Test profile description",
             mission=mission or "Test mission description",
             category=category or Category.A,
-            contract_type=contract_type,
+            offer_nature=offer_nature,
             organization=organization or "Test Organization",
             offer_url=offer_url,
             localisation=localisation,

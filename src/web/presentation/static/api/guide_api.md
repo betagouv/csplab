@@ -143,7 +143,7 @@ Chaque offre renvoyée contient notamment :
 | `source_id` | Identifiant de la source ayant transmis l'offre | Non |
 | `title` | Intitulé du poste | Non |
 | `organization` | Organisme employeur | Non |
-| `contract_type` | Nature de l'offre (valeur de `nature_offre`) | Oui |
+| `offer_nature` | Nature de l'offre (valeur de `nature_offre`) | Oui |
 | `category` | Catégorie (A+, A, B, C…) | Oui |
 | `publication_date` | Date de publication | Non |
 | `offer_url` | Lien vers l'annonce | Oui |
