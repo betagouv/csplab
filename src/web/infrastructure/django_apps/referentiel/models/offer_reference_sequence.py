@@ -1,3 +1,5 @@
+from collections.abc import Collection
+
 from django.db import connection, models, transaction
 
 from infrastructure.django_apps.referentiel.models.offer import OfferModel
@@ -8,12 +10,15 @@ def format_reference(year: int, number: int) -> str:
 
 
 class OfferReferenceSequenceManager(models.Manager["OfferReferenceSequenceModel"]):
-    def next_references(self, year: int, count: int) -> list[str]:
+    def next_references(
+        self, year: int, count: int, exclude: Collection[str] = ()
+    ) -> list[str]:
+        excluded = set(exclude)
         references: list[str] = []
         with transaction.atomic():
             while len(references) < count:
                 candidates = self._reserve(year, count - len(references))
-                taken = set(
+                taken = excluded | set(
                     OfferModel.objects.filter(reference__in=candidates).values_list(
                         "reference", flat=True
                     )

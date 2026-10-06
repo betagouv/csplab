@@ -63,6 +63,13 @@ def test_references_already_used_by_an_offer_are_skipped(db):
     ]
 
 
+def test_excluded_references_are_skipped(db):
+    assert next_references(year=2026, count=2, exclude={"CSP-2026-000001"}) == [
+        "CSP-2026-000002",
+        "CSP-2026-000003",
+    ]
+
+
 def test_zero_count_returns_no_reference(db):
     assert next_references(year=2026, count=0) == []
 

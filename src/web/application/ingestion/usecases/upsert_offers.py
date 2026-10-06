@@ -70,9 +70,14 @@ class UpsertOffersUsecase(IUsecase[UpsertOffersInput, IOffersUpsertResult]):
         if not auto_count:
             return offers
 
+        explicit_references = {
+            offer.reference for offer in offers if offer.reference != AUTO_REFERENCE
+        }
         references = iter(
             OfferReferenceSequenceModel.objects.next_references(
-                year=datetime.now(TIMEZONE).year, count=auto_count
+                year=datetime.now(TIMEZONE).year,
+                count=auto_count,
+                exclude=explicit_references,
             )
         )
         return [
