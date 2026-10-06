@@ -1,3 +1,4 @@
+from unittest.mock import patch
 from uuid import uuid4
 
 import pytest
@@ -5,10 +6,13 @@ from django.conf import settings
 from django.urls import reverse
 from rest_framework import status
 
+from domain.candidate.exceptions.document_errors import FichierDeposeIncomplet
 from domain.recruteur.value_objects.roles import (
     AgentOrganismeRole,
     AgentRecrutementRole,
 )
+from infrastructure.django_apps.commons.models import AuditLogModel
+from infrastructure.django_apps.messagerie.models import MessageModel
 from infrastructure.factories.candidate.candidature_django_factory import (
     CandidatureDjangoFactory,
 )
@@ -291,6 +295,47 @@ class TestCandidatureConversationDetailView:
             "photo.png",
             "scan.jpg",
         ]
+        assert all(document["uuid"] for document in body["documents"])
+
+    def test_reply_is_persisted_audited_and_listed(
+        self, authenticated_client, test_user
+    ):
+        url = _superviseur_url(test_user)
+
+        created = authenticated_client.post(
+            url,
+            {"content": "Merci", "documents": valid_documents()},
+            format="multipart",
+        ).json()
+
+        message = MessageModel.objects.get(contenu="Merci")
+        assert message.auteur_id == test_user.username
+        assert message.pieces_jointes.count() == len(created["documents"])
+
+        audit = AuditLogModel.objects.get(ressource_id=message.pk)
+        assert audit.ressource_kind == "Message"
+        assert audit.event_name == "MessageCree"
+
+        listed = authenticated_client.get(url).json()["results"]
+        assert listed[-1]["content"] == "Merci"
+        assert listed[-1]["created_at"] == created["created_at"]
+        assert len(listed) == NB_MESSAGES + 1
+
+    def test_incomplete_uploaded_file_is_a_bad_request(
+        self, authenticated_client, test_user
+    ):
+        with patch(
+            "presentation.recruteur.views.candidature_conversation_detail.reply_conversation",
+            side_effect=FichierDeposeIncomplet(),
+        ):
+            response = authenticated_client.post(
+                _superviseur_url(test_user),
+                {"content": "Bonjour"},
+                format="multipart",
+            )
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert response.json() == {"error": str(FichierDeposeIncomplet())}
 
     def test_content_whitespace_is_preserved(self, authenticated_client, test_user):
         response = authenticated_client.post(
