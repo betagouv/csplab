@@ -22,5 +22,6 @@ __Étapes pour reproduire ou tester__
 ## ✅ Liste de contrôle
 - [ ] 💅 J’ai ajouté ou mis à jour les tests appropriés.
 - [ ] 📝 J’ai mis à jour ou ajouté la documentation nécessaire.
+- [ ] 🔌 Si cette PR modifie l’API `/api/v1`, j’ai mis à jour `src/web/presentation/static/api/changelog_api.md`.
 - [ ] 🚀 J’ai pris en compte l’impact sur les performances, la sécurité et l’expérience utilisateur.
 - [ ] 👀 J’ai demandé une revue à une personne de l’équipe.

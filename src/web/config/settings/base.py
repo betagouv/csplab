@@ -410,6 +410,17 @@ SPECTACULAR_SETTINGS = {
         "presentation.api.openapi_hooks.postprocess_add_too_many_requests_response",
     ],
     "TAGS": [
+        # Section de documentation sans endpoint, affichée dans le menu de Redoc.
+        # Le titre du fichier est retiré, Redoc affichant déjà x-displayName.
+        {
+            "name": "changelog",
+            "x-displayName": "Changelog",
+            "x-traitTag": True,
+            "description": (STATIC_DIR / "api" / "changelog_api.md")
+            .read_text()
+            .partition("\n")[2]
+            .lstrip(),
+        },
         {"name": "token", "description": "Gestion de l'authentification"},
         {
             "name": "concours",
