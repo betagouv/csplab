@@ -18,7 +18,6 @@ from domain.recruteur.errors.recrutement_errors import (
     RecrutementInexistant,
 )
 from domain.recruteur.value_objects.roles import AgentOrganismeRole
-from infrastructure.django_apps.candidate.enums.type_document import TypeDocument
 from infrastructure.django_apps.candidate.models.document import DocumentModel
 from infrastructure.django_apps.commons.models import AuditLogModel
 from infrastructure.django_apps.messagerie.models import MessageModel
@@ -35,51 +34,13 @@ from infrastructure.factories.identite.utilisateur_factory import UtilisateurFac
 from infrastructure.factories.messagerie.conversation_django_factory import (
     ConversationDjangoFactory,
 )
-from tests.utils.message_documents import PDF_BYTES, pdf
+from tests.utils.message_documents import PDF_BYTES
 
 fake = Faker("fr_FR")
 
 
 def _utilisateur(entity_id, **kwargs):
     return UtilisateurFactory.create_entity(entity_id=entity_id, **kwargs)
-
-
-def test_authorized_agent_replies_in_the_conversation(db):
-    agent, organisme, recrutement, candidature = (
-        create_recrutement_and_candidature_for_agent()
-    )
-    utilisateur = _utilisateur(agent.utilisateur_id, prenom="Camille", nom="Durand")
-    conversation_id = ConversationDjangoFactory(candidature=candidature).pk
-    content = fake.sentence(nb_words=30)
-
-    message = reply_conversation(
-        organisme_id=organisme.id,
-        recrutement_id=recrutement.pk,
-        candidature_id=candidature.pk,
-        conversation_id=conversation_id,
-        content=content,
-        documents=[pdf("convocation.pdf")],
-        utilisateur=utilisateur,
-    )
-
-    persisted = MessageModel.objects.get(pk=message.pk)
-    assert persisted.conversation_id == conversation_id
-    assert persisted.contenu == content
-    assert persisted.auteur_id == agent.utilisateur_id
-    [piece_jointe] = persisted.pieces_jointes.select_related("document")
-
-    document = piece_jointe.document
-    assert document.nom_original == "convocation.pdf"
-    assert document.type_document == TypeDocument.AUTRE
-    assert document.content_type == "application/pdf"
-    assert document.taille == len(PDF_BYTES)
-    assert document.candidature_id == candidature.pk
-    assert document.depose_par_id == agent.utilisateur_id
-
-    audit = AuditLogModel.objects.get(ressource_id=message.pk)
-    assert audit.ressource_kind == "Message"
-    assert audit.event_name == "MessageCree"
-    assert audit.utilisateur_id == agent.utilisateur_id
 
 
 def test_nothing_is_persisted_when_the_message_cannot_be_created(db):

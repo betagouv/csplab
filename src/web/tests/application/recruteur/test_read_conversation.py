@@ -4,12 +4,16 @@ import pytest
 
 from application.recruteur.services.read_conversation import read_conversation
 from domain.commons.errors.organisme_errors import OrganismeNexistePas
-from domain.identite.errors.organisme_permission_errors import AccesOrganismeRefuse
+from domain.identite.errors.organisme_permission_errors import (
+    AccesOrganismeRefuse,
+    AccesRecrutementRefuse,
+)
 from domain.recruteur.errors.recrutement_errors import (
     ConversationInexistante,
     RecrutementCandidatureInexistante,
     RecrutementInexistant,
 )
+from domain.recruteur.value_objects.roles import AgentOrganismeRole
 from infrastructure.factories.candidate.candidature_django_factory import (
     CandidatureDjangoFactory,
     create_recrutement_and_candidature_for_agent,
@@ -28,30 +32,6 @@ from infrastructure.factories.messagerie.conversation_django_factory import (
 
 def _utilisateur(entity_id):
     return UtilisateurFactory.create_entity(entity_id=entity_id)
-
-
-def test_authorized_agent_reads_the_conversation(db):
-    agent, organisme, recrutement, candidature = (
-        create_recrutement_and_candidature_for_agent()
-    )
-    first = MessageDjangoFactory(
-        conversation__candidature=candidature, with_document=True
-    )
-    conversation = first.conversation
-    second = MessageDjangoFactory(conversation=conversation)
-    MessageDjangoFactory(conversation__candidature=candidature)
-
-    first_read, second_read = read_conversation(
-        organisme_id=organisme.id,
-        recrutement_id=recrutement.pk,
-        candidature_id=candidature.pk,
-        conversation_id=conversation.pk,
-        utilisateur=_utilisateur(agent.utilisateur_id),
-    )
-
-    assert (first_read.pk, second_read.pk) == (first.pk, second.pk)
-    assert first_read.pieces_jointes.count() == 1
-    assert second_read.pieces_jointes.count() == 0
 
 
 def test_conversation_without_message_is_empty(db):
@@ -106,6 +86,21 @@ def test_unauthorized_agent_is_denied(db):
             candidature_id=candidature.pk,
             conversation_id=ConversationDjangoFactory(candidature=candidature).pk,
             utilisateur=_utilisateur(uuid4()),
+        )
+
+
+def test_agent_without_recrutement_role_is_denied(db):
+    agent, organisme, recrutement, candidature = (
+        create_recrutement_and_candidature_for_agent(role=AgentOrganismeRole.AGENT)
+    )
+
+    with pytest.raises(AccesRecrutementRefuse):
+        read_conversation(
+            organisme_id=organisme.id,
+            recrutement_id=recrutement.pk,
+            candidature_id=candidature.pk,
+            conversation_id=ConversationDjangoFactory(candidature=candidature).pk,
+            utilisateur=_utilisateur(agent.utilisateur_id),
         )
 
 
