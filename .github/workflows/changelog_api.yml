@@ -14,8 +14,14 @@ jobs:
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:
-      # The pull request merge commit: its first parent is the base branch, so
-      # HEAD^1..HEAD holds exactly the changes of the pull request
+      # The checkout is refs/pull/<n>/merge, a single merge commit of the whole pull
+      # request into its base branch (main or not, for stacked pull requests):
+      # - HEAD^1 is the tip of the base branch, HEAD^2 the last commit of the pull request;
+      # - HEAD^1..HEAD holds every change of the pull request, whatever its number of
+      #   commits, and nothing that landed on the base branch meanwhile.
+      # fetch-depth: 2 fetches the merge commit and its parents, enough for the script.
+      # A pull request in conflict with its base has no merge commit: the workflow runs
+      # again once the conflict is solved.
       - uses: actions/checkout@v6
         with:
           fetch-depth: 2

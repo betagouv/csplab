@@ -10,7 +10,15 @@ customFields) changes the routes that use it even if their own definition is unt
 The other routes, `info` and the `tags` section (generated from changelog_api.md) are
 ignored, as are description texts: rewording one has no impact for partners.
 
+The script compares two snapshots, not commits: the schema and the changelog at the
+base ref against the working tree. Every commit of a pull request is covered, whatever
+their number; a changelog entry added then removed counts as no entry.
+
 Usage: uv run check_changelog_api.py <base git ref>
+
+- In CI, the checkout is the pull request merge commit and the base ref is HEAD^1.
+- Locally, on a branch, pass the point where it left its base branch:
+  uv run .github/scripts/check_changelog_api.py $(git merge-base origin/main HEAD)
 """
 
 import subprocess
