@@ -38,8 +38,6 @@ STORAGES = {
 # PBKDF2 costs ~100 ms per hash; every factory-built user pays it.
 PASSWORD_HASHERS = ["django.contrib.auth.hashers.MD5PasswordHasher"]
 
-HUEY["immediate"] = True  # noqa: F405, run synchronously
-
 # Override third-party API endpoints
 PISTE_OAUTH_BASE_URL = "https://fake-piste-oauth.example.com"
 
@@ -60,4 +58,8 @@ INGESTION_API_KEY = "test-ingestion-api-key"
 
 SENTRY_DNS = "example.com"
 
+# Huey namespaces its Redis keys (queue, schedule, task locks) by `name`, so
+# give each pytest-xdist worker its own to keep parallel workers from
+# contending for the same locks.
 HUEY["immediate"] = False  # noqa: F405
+HUEY["name"] = f"{HUEY['name']}-{_xdist_worker}"  # noqa: F405
