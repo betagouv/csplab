@@ -62,6 +62,14 @@ describe('candidaturesView', () => {
     expect(await screen.findAllByRole('tab', { name: /Équipe de recrutement/ })).not.toHaveLength(0)
   })
 
+  it('opens the équipe tab from its own address', async () => {
+    vi.mocked(getMe).mockReset().mockResolvedValue(makeUser([roleOnOrganisme('superviseur')]))
+    await renderWithApp(RouterView, { route: EQUIPE_PATH })
+
+    expect(await screen.findByRole('tab', { name: /Équipe de recrutement/, selected: true })).toBeInTheDocument()
+    expect(await screen.findByRole('button', { name: 'Ajouter un membre' })).toBeInTheDocument()
+  })
+
   it('refuses access to the équipe tab url for an agent', async () => {
     vi.mocked(getMe).mockReset().mockResolvedValue(makeUser([roleOnOrganisme('agent')]))
     await renderWithApp(RouterView, { route: EQUIPE_PATH })

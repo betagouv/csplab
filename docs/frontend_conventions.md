@@ -116,20 +116,22 @@ The shell wraps `<RouterView>` **once** (in `App.vue`), so views never import it
 - `router/routes.ts` holds the whole route tree. Nesting follows the URL: a parent without component groups its children under a path prefix.
 - Route names live in `router/names.ts`. Views, components and the navigation import names from there.
 - A set of routes mounted under several parents is built by a function called once per parent, like the candidature panel under the kanban and the list.
+- When the tabs of a page are different route components, they are child routes: the page renders `<router-view />` in each tab slot, and the route tree mounts the tab's component: a view, or a component from the `components/` folder of the tab's feature, which can differ from the page's feature.
 - A view receives its route params as props: `props: true` when the location carries the params the view declares and no others, or a function that picks the declared params when the location carries others, such as the params of child routes.
 - A route-level view sets the document title with `useDocumentTitle`, from the most specific part to the most general (`Notes - Alice Dupont`). It calls `useHead` from [`@unhead/vue`](https://unhead.unjs.io/docs/vue/head/api/composables/use-head); `App.vue` adds the site name through `titleTemplate`.
 
 ```ts
 // router/routes.ts
 {
-  path: `/organismes/:organismeUuid${UUID}`,
+  path: `:recrutementUuid${UUID}`,
   children: [
     {
-      path: 'recrutements',
-      name: ORGANISME_SECTION_ROUTE_NAMES.recrutements,
+      path: '',
+      component: CandidaturesView,
+      props: paramsAsProps('organismeUuid', 'recrutementUuid'),
       children: [
-        { path: '', name: RECRUTEMENTS_TAB_ROUTE_NAMES.actifs, component: RecrutementsView, props: true },
-        { path: 'archives', name: RECRUTEMENTS_TAB_ROUTE_NAMES.archives, component: RecrutementsView, props: true },
+        { path: 'activites', name: CANDIDATURES_TAB_ROUTE_NAMES['activites-et-taches'], component: ActivitesTachesView },
+        { path: 'equipe', name: CANDIDATURES_TAB_ROUTE_NAMES.equipe, component: EquipeRecrutementSection, props: true },
       ],
     },
   ],

@@ -26,13 +26,13 @@ const panelTabMeta = tabMetaFor(CANDIDATURE_PANEL_TAB_LABELS)
 
 const OrganismeView = () => import('@/features/organismes/views/OrganismeView.vue')
 const RecrutementsView = () => import('@/features/recrutements/views/RecrutementsView.vue')
-const CandidaturesView = () => import('@/features/candidatures/views/CandidaturesView.vue')
 const CandidaturePanelView = () => import('@/features/candidatures/views/CandidaturePanelView.vue')
 
 function paramsAsProps(...names: string[]) {
   return ({ params }: RouteLocationNormalized) => Object.fromEntries(names.map(name => [name, params[name]]))
 }
 
+const recrutementProps = paramsAsProps('organismeUuid', 'recrutementUuid')
 const panelProps = paramsAsProps('organismeUuid', 'recrutementUuid', 'candidatureUuid')
 
 const CANDIDATURE_PANEL_PATH = `candidatures/:candidatureUuid${UUID}`
@@ -58,40 +58,46 @@ function candidaturePanelRoutes({ tabs, conversations }: CandidaturePanelRouteNa
 const recrutementRoutes: RouteRecordRaw[] = [
   {
     path: '',
-    component: CandidaturesView,
-    props: paramsAsProps('organismeUuid', 'recrutementUuid'),
-    meta: recrutementTabMeta('candidatures'),
+    component: () => import('@/features/candidatures/views/CandidaturesView.vue'),
+    props: recrutementProps,
     children: [
       {
         path: '',
-        name: CANDIDATURES_VIEW_ROUTE_NAMES.kanban,
-        component: () => import('@/features/candidatures/views/CandidaturesKanbanView.vue'),
-        meta: { candidaturesView: 'kanban' },
-        children: candidaturePanelRoutes(CANDIDATURE_PANEL_ROUTE_NAMES.kanban),
+        component: () => import('@/features/candidatures/views/CandidaturesTabView.vue'),
+        props: recrutementProps,
+        meta: recrutementTabMeta('candidatures'),
+        children: [
+          {
+            path: '',
+            name: CANDIDATURES_VIEW_ROUTE_NAMES.kanban,
+            component: () => import('@/features/candidatures/views/CandidaturesKanbanView.vue'),
+            meta: { candidaturesView: 'kanban' },
+            children: candidaturePanelRoutes(CANDIDATURE_PANEL_ROUTE_NAMES.kanban),
+          },
+          {
+            path: 'liste',
+            name: CANDIDATURES_VIEW_ROUTE_NAMES.liste,
+            component: () => import('@/features/candidatures/views/CandidaturesListeView.vue'),
+            props: paramsAsProps('candidatureUuid'),
+            meta: { candidaturesView: 'liste' },
+            children: candidaturePanelRoutes(CANDIDATURE_PANEL_ROUTE_NAMES.liste),
+          },
+        ],
       },
       {
-        path: 'liste',
-        name: CANDIDATURES_VIEW_ROUTE_NAMES.liste,
-        component: () => import('@/features/candidatures/views/CandidaturesListeView.vue'),
-        props: paramsAsProps('candidatureUuid'),
-        meta: { candidaturesView: 'liste' },
-        children: candidaturePanelRoutes(CANDIDATURE_PANEL_ROUTE_NAMES.liste),
+        path: 'activites',
+        name: CANDIDATURES_TAB_ROUTE_NAMES['activites-et-taches'],
+        component: () => import('@/features/candidatures/views/ActivitesTachesView.vue'),
+        meta: recrutementTabMeta('activites-et-taches'),
+      },
+      {
+        path: 'equipe',
+        name: CANDIDATURES_TAB_ROUTE_NAMES.equipe,
+        component: () => import('@/features/equipe-recrutement/components/EquipeRecrutementSection.vue'),
+        props: true,
+        meta: recrutementTabMeta('equipe'),
       },
     ],
-  },
-  {
-    path: 'activites',
-    name: CANDIDATURES_TAB_ROUTE_NAMES['activites-et-taches'],
-    component: CandidaturesView,
-    props: true,
-    meta: recrutementTabMeta('activites-et-taches'),
-  },
-  {
-    path: 'equipe',
-    name: CANDIDATURES_TAB_ROUTE_NAMES.equipe,
-    component: CandidaturesView,
-    props: true,
-    meta: recrutementTabMeta('equipe'),
   },
   {
     path: 'etapes-recrutement',
