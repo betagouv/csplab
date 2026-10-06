@@ -29,10 +29,15 @@ from infrastructure.factories.messagerie.conversation_django_factory import (
 from infrastructure.factories.recruteur.recrutement_django_factory import (
     RecrutementDjangoFactory,
 )
+from presentation.recruteur.views.candidature_conversations import (
+    ConversationPagination,
+)
 from tests.utils.conversation_views import AUTHORIZED_ROLES, HTTP_METHODS, grant
 from tests.utils.message_documents import INVALID_DOCUMENTS, valid_documents
 
 TAILLE_PAGE_LIMITEE = 2
+TAILLE_PAGE = 2
+TAILLE_PAGE_PAR_DEFAUT = 20
 NB_CONVERSATIONS = 2
 
 
@@ -58,6 +63,10 @@ def _unknown_organisme(organisme, recrutement, candidature):
     return uuid4(), recrutement.pk, candidature.pk
 
 
+def _unknown_recrutement(organisme, recrutement, candidature):
+    return organisme.id, uuid4(), candidature.pk
+
+
 def _recrutement_from_another_organisme(organisme, recrutement, candidature):
     autre_recrutement = RecrutementDjangoFactory(organisme=OrganismeDjangoFactory())
     return organisme.id, autre_recrutement.pk, candidature.pk
@@ -68,6 +77,10 @@ def _candidature_from_another_recrutement(organisme, recrutement, candidature):
     return organisme.id, recrutement.pk, autre_candidature.pk
 
 
+def _unknown_candidature(organisme, recrutement, candidature):
+    return organisme.id, recrutement.pk, uuid4()
+
+
 def _payload(**overrides):
     return {"objet": "Convocation", "content": "Bonjour", **overrides}
 
@@ -76,13 +89,17 @@ UNKNOWN_OR_FOREIGN_IDS = pytest.mark.parametrize(
     "build_ids",
     [
         _unknown_organisme,
+        _unknown_recrutement,
         _recrutement_from_another_organisme,
         _candidature_from_another_recrutement,
+        _unknown_candidature,
     ],
     ids=[
         "unknown_organisme",
+        "unknown_recrutement",
         "recrutement_from_another_organisme",
         "candidature_from_another_recrutement",
+        "unknown_candidature",
     ],
 )
 
@@ -208,6 +225,28 @@ class TestListConversations:
         assert response.status_code == status.HTTP_200_OK
         body = response.json()
         assert len(body["results"]) == TAILLE_PAGE_LIMITEE
+        assert body["next"] is not None
+
+    def test_default_page_size_is_20(self):
+        assert ConversationPagination.page_size == TAILLE_PAGE_PAR_DEFAUT
+
+    @patch(
+        "presentation.recruteur.views.candidature_conversations"
+        ".ConversationPagination.page_size",
+        new=TAILLE_PAGE,
+    )
+    def test_default_page_size_applies_without_limit(
+        self, authenticated_client, contexte
+    ):
+        _, candidature, url = contexte
+        for _ in range(TAILLE_PAGE + 1):
+            _conversation_with_messages(candidature, "Bonjour")
+
+        response = authenticated_client.get(url)
+
+        assert response.status_code == status.HTTP_200_OK
+        body = response.json()
+        assert len(body["results"]) == TAILLE_PAGE
         assert body["next"] is not None
 
     def test_lists_only_the_conversations_of_the_candidature(

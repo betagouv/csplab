@@ -3,7 +3,7 @@ from uuid import uuid4
 
 import pytest
 from django.conf import settings
-from django.urls import reverse
+from django.urls import resolve, reverse
 from rest_framework import status
 
 from domain.candidate.exceptions.document_errors import FichierDeposeIncomplet
@@ -26,6 +26,9 @@ from infrastructure.factories.messagerie.conversation_django_factory import (
 from infrastructure.factories.recruteur.recrutement_django_factory import (
     RecrutementDjangoFactory,
 )
+from presentation.recruteur.views.candidature_conversation_detail import (
+    MessagePagination,
+)
 from tests.utils.conversation_views import AUTHORIZED_ROLES, HTTP_METHODS, grant
 from tests.utils.message_documents import (
     INVALID_DOCUMENTS,
@@ -34,6 +37,8 @@ from tests.utils.message_documents import (
 )
 
 TAILLE_PAGE_LIMITEE = 2
+TAILLE_PAGE = 2
+TAILLE_PAGE_PAR_DEFAUT = 20
 NB_MESSAGES = 3
 
 
@@ -60,6 +65,10 @@ def _unknown_organisme(organisme, recrutement, candidature):
     return uuid4(), recrutement.pk, candidature.pk, _conversation_of(candidature)
 
 
+def _unknown_recrutement(organisme, recrutement, candidature):
+    return organisme.id, uuid4(), candidature.pk, _conversation_of(candidature)
+
+
 def _recrutement_from_another_organisme(organisme, recrutement, candidature):
     autre_recrutement = RecrutementDjangoFactory(organisme=OrganismeDjangoFactory())
     return (
@@ -80,6 +89,10 @@ def _candidature_from_another_recrutement(organisme, recrutement, candidature):
     )
 
 
+def _unknown_candidature(organisme, recrutement, candidature):
+    return organisme.id, recrutement.pk, uuid4(), _conversation_of(candidature)
+
+
 def _unknown_conversation(organisme, recrutement, candidature):
     return organisme.id, recrutement.pk, candidature.pk, uuid4()
 
@@ -96,12 +109,14 @@ def _conversation_from_another_candidature(organisme, recrutement, candidature):
 
 NOT_FOUND_CASES = [
     pytest.param(_unknown_organisme, id="unknown_organisme"),
+    pytest.param(_unknown_recrutement, id="unknown_recrutement"),
     pytest.param(
         _recrutement_from_another_organisme, id="recrutement_from_another_organisme"
     ),
     pytest.param(
         _candidature_from_another_recrutement, id="candidature_from_another_recrutement"
     ),
+    pytest.param(_unknown_candidature, id="unknown_candidature"),
     pytest.param(_unknown_conversation, id="unknown_conversation"),
     pytest.param(
         _conversation_from_another_candidature,
@@ -234,6 +249,31 @@ class TestCandidatureConversationDetailView:
         assert response.status_code == status.HTTP_200_OK
         body = response.json()
         assert len(body["results"]) == TAILLE_PAGE_LIMITEE
+        assert body["next"] is not None
+
+    def test_default_page_size_is_20(self):
+        assert MessagePagination.page_size == TAILLE_PAGE_PAR_DEFAUT
+
+    @patch(
+        "presentation.recruteur.views.candidature_conversation_detail"
+        ".MessagePagination.page_size",
+        new=TAILLE_PAGE,
+    )
+    def test_default_page_size_applies_without_limit(
+        self, authenticated_client, test_user
+    ):
+        url = _superviseur_url(test_user)
+        conversation_uuid = resolve(url).kwargs["conversation_uuid"]
+        MessageDjangoFactory.create_batch(
+            TAILLE_PAGE + 1,
+            conversation_id=conversation_uuid,
+        )
+
+        response = authenticated_client.get(url)
+
+        assert response.status_code == status.HTTP_200_OK
+        body = response.json()
+        assert len(body["results"]) == TAILLE_PAGE
         assert body["next"] is not None
 
     def test_out_of_range_page_returns_404(self, authenticated_client, test_user):
