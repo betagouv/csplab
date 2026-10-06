@@ -45,7 +45,7 @@ def format_verse_display(verse: Verse | None) -> str:
 
 CONTRACT_TYPE_DISPLAY: dict[ContractType, str] = {
     ContractType.TITULAIRE_CONTRACTUEL: "Titulaire / Contractuel",
-    ContractType.CONTRACTUELS: "Contractuels",
+    ContractType.CONTRACTUEL: "Contractuels",
     ContractType.TERRITORIAL: "Territorial",
 }
 

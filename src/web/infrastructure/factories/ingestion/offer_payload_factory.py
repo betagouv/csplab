@@ -41,8 +41,8 @@ class PayloadOfferFactory:
                 "referentiel": "RMFPv2",
             },
             "categories": [],
-            "type_contrat": "TITULAIRE_CONTRACTUEL",
-            "forme_contrat": [],
+            "nature_offre": "TITULAIRE_CONTRACTUEL",
+            "type_contrat": None,
             "vacance_poste": "",
             "description": {
                 "mission": fake.text(max_nb_chars=3000),

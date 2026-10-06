@@ -499,7 +499,7 @@ class OffersCleaner:
         if "TITULAIRE" in contract_upper:
             return ContractType.TITULAIRE_CONTRACTUEL
         elif "CONTRACTUEL" in contract_upper:
-            return ContractType.CONTRACTUELS
+            return ContractType.CONTRACTUEL
         elif "TERRITORIAL" in contract_upper:
             return ContractType.TERRITORIAL
 
@@ -507,7 +507,7 @@ class OffersCleaner:
 
     _CONTRACT_KIND_MAPPING: dict[str, ContractKind] = {
         "CDI": ContractKind.CDI,
-        "PERMANENT": ContractKind.PERMANENT,
+        "PERMANENT": ContractKind.CDI,
         "VACATION": ContractKind.VACATION,
     }
 

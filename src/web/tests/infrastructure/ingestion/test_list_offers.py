@@ -135,7 +135,7 @@ def test_list_offers_filtered_by_verse(
 def offers_by_contract_type_fixture(db):
     return {
         "contractuels": OfferDjangoFactory(
-            reference="test-contractuels", contract_type=ContractType.CONTRACTUELS
+            reference="test-contractuels", contract_type=ContractType.CONTRACTUEL
         ),
         "territorial": OfferDjangoFactory(
             reference="test-territorial", contract_type=ContractType.TERRITORIAL
@@ -156,10 +156,10 @@ def offers_by_contract_type_fixture(db):
             id="no_filter",
         ),
         pytest.param(
-            [ContractType.CONTRACTUELS], ["contractuels"], id="single_contract_type"
+            [ContractType.CONTRACTUEL], ["contractuels"], id="single_contract_type"
         ),
         pytest.param(
-            [ContractType.CONTRACTUELS, ContractType.TERRITORIAL],
+            [ContractType.CONTRACTUEL, ContractType.TERRITORIAL],
             ["contractuels", "territorial"],
             id="multiple_contract_types",
         ),
@@ -423,21 +423,21 @@ def offers_by_multiple_criteria_fixture(db):
             reference="test-match",
             category=Category.A,
             verse=Verse.FPE,
-            contract_type=ContractType.CONTRACTUELS,
+            contract_type=ContractType.CONTRACTUEL,
             criteria=OfferCriteria(experience_level=ExperienceLevel.DEBUTANT).to_dict(),
         ),
         "match_other_values": OfferDjangoFactory(
             reference="test-match-other-values",
             category=Category.B,
             verse=Verse.FPT,
-            contract_type=ContractType.CONTRACTUELS,
+            contract_type=ContractType.CONTRACTUEL,
             criteria=OfferCriteria(experience_level=ExperienceLevel.EXPERT).to_dict(),
         ),
         "wrong_category": OfferDjangoFactory(
             reference="test-wrong-category",
             category=Category.C,
             verse=Verse.FPE,
-            contract_type=ContractType.CONTRACTUELS,
+            contract_type=ContractType.CONTRACTUEL,
             criteria=OfferCriteria(experience_level=ExperienceLevel.DEBUTANT).to_dict(),
         ),
         "wrong_contract_type": OfferDjangoFactory(
@@ -451,7 +451,7 @@ def offers_by_multiple_criteria_fixture(db):
             reference="test-wrong-experience-level",
             category=Category.A,
             verse=Verse.FPE,
-            contract_type=ContractType.CONTRACTUELS,
+            contract_type=ContractType.CONTRACTUEL,
             criteria=OfferCriteria(experience_level=ExperienceLevel.CONFIRME).to_dict(),
         ),
     }
@@ -464,7 +464,7 @@ def test_list_offers_filtered_by_multiple_criteria(
         active=True,
         category=[Category.A, Category.B],
         verse=[Verse.FPE, Verse.FPT],
-        contract_type=[ContractType.CONTRACTUELS],
+        contract_type=[ContractType.CONTRACTUEL],
         experience_level=[ExperienceLevel.DEBUTANT, ExperienceLevel.EXPERT],
     )
     result = ingestion_container.list_offers_usecase().execute(input_data=input_data)

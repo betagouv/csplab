@@ -1191,11 +1191,11 @@ export interface components {
         };
         /**
          * @description * `TITULAIRE_CONTRACTUEL` - TITULAIRE_CONTRACTUEL
-         *     * `CONTRACTUELS` - CONTRACTUELS
+         *     * `CONTRACTUEL` - CONTRACTUEL
          *     * `TERRITORIAL` - TERRITORIAL
          * @enum {string}
          */
-        TypeContratEnum: "TITULAIRE_CONTRACTUEL" | "CONTRACTUELS" | "TERRITORIAL";
+        TypeContratEnum: "TITULAIRE_CONTRACTUEL" | "CONTRACTUEL" | "TERRITORIAL";
         /**
          * @description * `cv` - CV
          *     * `lettre_motivation` - Lettre de motivation

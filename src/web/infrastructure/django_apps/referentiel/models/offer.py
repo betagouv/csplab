@@ -31,6 +31,7 @@ class OfferModel(BaseDatedModel):
     category = models.CharField(
         max_length=20, choices=CATEGORY_CHOICES, null=True, blank=True
     )
+    # API: nature_offre (nature of the offer, not the contract type)
     contract_type = models.CharField(
         max_length=25, choices=CONTRACT_TYPE_CHOICES, null=True, blank=True
     )
@@ -66,7 +67,8 @@ class OfferModel(BaseDatedModel):
 
     long_title = models.CharField(max_length=1500, null=True, blank=True)
     application_url = models.URLField(null=True, blank=True)
-    contract_kind = models.JSONField(null=True, blank=True, encoder=DjangoJSONEncoder)
+    # API: type_contrat
+    contract_kind = models.CharField(max_length=20, null=True, blank=True)
     job_vacancy = models.CharField(max_length=50, null=True, blank=True)
     employer = models.TextField(null=True, blank=True)
     complements = models.TextField(null=True, blank=True)

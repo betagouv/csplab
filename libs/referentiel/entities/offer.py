@@ -23,6 +23,7 @@ class Offer(IEntity):
     organization: str
     verse: Optional[Verse]
     category: Optional[Category]
+    # API: nature_offre (nature of the offer, not the contract type)
     contract_type: Optional[ContractType]
     offer_url: Optional[HttpUrl]
     localisation: Optional[Localisation]
@@ -35,7 +36,8 @@ class Offer(IEntity):
     local_job_code: Optional[str] = None
     long_title: Optional[str] = None
     application_url: Optional[HttpUrl] = None
-    contract_kind: Optional[list[ContractKind]] = None
+    # API: type_contrat
+    contract_kind: Optional[ContractKind] = None
     job_vacancy: Optional[str] = None
     employer: Optional[str] = None
     complements: Optional[str] = None

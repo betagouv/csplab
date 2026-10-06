@@ -150,9 +150,9 @@ class ListOffersFiltersSerializer(serializers.Serializer):
         help_text="Valeurs séparées par une virgule (ex. `FPE,FPT`).",
         source="verse",
     )
-    type_contrat = _CommaSeparatedEnumField(
+    nature_offre = _CommaSeparatedEnumField(
         ContractType,
-        "type de contrat",
+        "nature de l'offre",
         help_text="Valeurs séparées par une virgule (ex. `TITULAIRE_CONTRACTUEL`).",
         source="contract_type",
     )
@@ -557,9 +557,7 @@ class OfferDetailResponseSerializer(serializers.Serializer):
     verse = serializers.CharField(allow_null=True)
     category = serializers.CharField(allow_null=True)
     contract_type = serializers.CharField(allow_null=True)
-    contract_kind = serializers.ListField(
-        child=serializers.CharField(), allow_null=True
-    )
+    contract_kind = serializers.CharField(allow_null=True)
     job_vacancy = serializers.CharField(allow_null=True)
     offer_url = serializers.CharField(allow_null=True)
     application_url = serializers.CharField(allow_null=True)
@@ -787,11 +785,14 @@ class OffersInputSerializer(serializers.Serializer):
     categories = serializers.MultipleChoiceField(
         choices=[(c.name, c.value) for c in Category], allow_blank=True
     )
-    type_contrat = serializers.ChoiceField(
+    nature_offre = serializers.ChoiceField(
         choices=[(c.name, c.value) for c in ContractType]
     )
-    forme_contrat = serializers.MultipleChoiceField(
-        choices=[(c.name, c.value) for c in ContractKind], allow_blank=True
+    type_contrat = serializers.ChoiceField(
+        choices=[(c.name, c.value) for c in ContractKind],
+        allow_blank=True,
+        allow_null=True,
+        required=False,
     )
     vacance_poste = serializers.ChoiceField(
         choices=[(c.name, c.value) for c in JobVacancy], allow_blank=True

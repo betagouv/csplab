@@ -67,7 +67,7 @@ FULL_OFFER = Offer(
     organization="Hospital",
     verse=Verse.FPH,
     category=Category.A,
-    contract_type=ContractType.CONTRACTUELS,
+    contract_type=ContractType.CONTRACTUEL,
     offer_url=None,
     application_url=None,
     localisation=Localisation(
@@ -139,8 +139,8 @@ async def test_publish_serializes_minimal_offer(gateway, httpx_mock: HTTPXMock):
     assert offer["profession"]["domaine"] == "INF"
     assert offer["profession"]["metier"] == "INF001"
     assert offer["categories"] == []
-    assert offer["type_contrat"] == "TITULAIRE_CONTRACTUEL"
-    assert offer["forme_contrat"] == []
+    assert offer["nature_offre"] == "TITULAIRE_CONTRACTUEL"
+    assert offer["type_contrat"] is None
     assert offer["vacance_poste"] == ""
     assert offer["description"]["mission"] == "Mission text"
     assert offer["description"]["profil"] == "Profile text"
@@ -164,7 +164,7 @@ async def test_publish_serializes_contract_kind(gateway, httpx_mock: HTTPXMock):
     await gateway.publish(PublishOfferInput(source_id=SOURCE_ID, offer=offer))
 
     body = json.loads(httpx_mock.get_requests()[0].content)
-    assert body["offres"][0]["forme_contrat"] == ["CDD"]
+    assert body["offres"][0]["type_contrat"] == "CDD"
 
 
 @pytest.mark.asyncio

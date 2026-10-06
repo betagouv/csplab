@@ -139,7 +139,7 @@ class TestUpsertBatch:
             profile="old  profile",
             mission="old mission",
             category=Category.B,
-            contract_type=ContractType.CONTRACTUELS,
+            contract_type=ContractType.CONTRACTUEL,
             organization="old organization",
             offer_url="https://fake.url/old",
             code_emploi_csp="OLD001",

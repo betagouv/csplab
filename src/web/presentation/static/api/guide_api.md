@@ -118,7 +118,7 @@ par lots plutôt qu'en une seule fois). La pagination se pilote avec les paramè
 | `actif` | Ne retourner que les offres actives (`true`, valeur par défaut) ou archivées (`false`) | Booléen |
 | `categorie` | Filtrer par catégorie(s) | Liste séparée par virgules parmi APLUS, A, B, C |
 | `versant` | Filtrer par versant(s) | Liste séparée par virgules parmi FPT, FPE, FPH |
-| `type_contrat` | Filtrer par type(s) de contrat | Liste séparée par virgules parmi TITULAIRE_CONTRACTUEL, CONTRACTUELS, TERRITORIAL |
+| `nature_offre` | Filtrer par nature(s) d'offre | Liste séparée par virgules parmi TITULAIRE_CONTRACTUEL, CONTRACTUEL, TERRITORIAL |
 | `niveau_experience` | Filtrer par niveau(x) d'expérience | Liste séparée par virgules parmi DEBUTANT, CONFIRME, EXPERT |
 | `lieu_de_travail` | Filtrer par mode de travail | Liste séparée par virgules parmi NON_DEFINI, SUR_SITE, TELETRAVAIL |
 | `management` | Filtrer selon la présence de management | Liste séparée par virgules parmi SANS, AVEC |
@@ -143,7 +143,7 @@ Chaque offre renvoyée contient notamment :
 | `source_id` | Identifiant de la source ayant transmis l'offre | Non |
 | `title` | Intitulé du poste | Non |
 | `organization` | Organisme employeur | Non |
-| `contract_type` | Type de contrat | Oui |
+| `contract_type` | Nature de l'offre (valeur de `nature_offre`) | Oui |
 | `category` | Catégorie (A+, A, B, C…) | Oui |
 | `publication_date` | Date de publication | Non |
 | `offer_url` | Lien vers l'annonce | Oui |
@@ -253,8 +253,8 @@ longueur et de valeurs autorisées**.
 | Champ | Règle |
 |---|---|
 | `categories` | Liste. Valeurs autorisées : **APLUS, A, B, C, HORS_CATEGORIE** (ou vide). |
-| `type_contrat` | Valeurs autorisées : **TITULAIRE_CONTRACTUEL, CONTRACTUELS, TERRITORIAL**. |
-| `forme_contrat` | Liste. Valeurs autorisées : **CDD, CDI, PERMANENT, VACATION** (ou vide). |
+| `nature_offre` | Obligatoire. Public visé par l'offre. Valeurs autorisées : **TITULAIRE_CONTRACTUEL, CONTRACTUEL, TERRITORIAL**. |
+| `type_contrat` | Facultatif. Une seule valeur parmi **CDD, CDI, CDD_CDI, CONTRAT_PROJET, VACATION** (ou vide / `null` si l'offre n'est pas soumise à contractualisation). |
 | `vacance_poste` | **OUI** = poste vacant ; **NON** = poste susceptible d'être vacant (ou vide). |
 
 #### Bloc « Description » (`description`) — obligatoire
@@ -411,8 +411,8 @@ invalides, lignes créées, lignes mises à jour, et la liste éventuelle des er
 |---|---|
 | **Versant** | FPT (Territoriale), FPE (État), FPH (Hospitalière) |
 | **Catégorie** | APLUS, A, B, C, HORS_CATEGORIE |
-| **Type de contrat** | TITULAIRE_CONTRACTUEL, CONTRACTUELS, TERRITORIAL |
-| **Forme de contrat** | CDD, CDI, PERMANENT, VACATION |
+| **Nature de l'offre** | TITULAIRE_CONTRACTUEL, CONTRACTUEL, TERRITORIAL |
+| **Type de contrat** | CDD, CDI, CDD_CDI (CDD ou CDI), CONTRAT_PROJET (contrat de projet), VACATION (payés à l'acte) |
 | **Vacance de poste** | OUI (vacant), NON (susceptible d'être vacant) |
 | **Expérience** | DEBUTANT, CONFIRME, EXPERT |
 | **Niveau de langue** | A1, A2, B1, B2, C1, C2 |

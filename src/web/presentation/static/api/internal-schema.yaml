@@ -6272,12 +6272,12 @@ components:
     TypeContratEnum:
       enum:
       - TITULAIRE_CONTRACTUEL
-      - CONTRACTUELS
+      - CONTRACTUEL
       - TERRITORIAL
       type: string
       description: |-
         * `TITULAIRE_CONTRACTUEL` - TITULAIRE_CONTRACTUEL
-        * `CONTRACTUELS` - CONTRACTUELS
+        * `CONTRACTUEL` - CONTRACTUEL
         * `TERRITORIAL` - TERRITORIAL
     TypeEnum:
       enum:
