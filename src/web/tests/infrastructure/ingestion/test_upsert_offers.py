@@ -30,7 +30,7 @@ def test_upsert_offers_result(ingestion_container):
     offer = OfferDjangoFactory(
         verse=Verse.FPE,
         category=Category.B,
-        contract_type=ContractType.CONTRACTUELS,
+        contract_type=ContractType.CONTRACTUEL,
         area="AS",
         country="GUF",
         region="03",

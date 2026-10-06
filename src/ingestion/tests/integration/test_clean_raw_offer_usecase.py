@@ -75,7 +75,7 @@ def test_execute_maps_verse(usecase, salary_range_code, expected_verse):
     "contract_code, expected",
     [
         ("TITULAIRE_CDI", ContractType.TITULAIRE_CONTRACTUEL),
-        ("CONTRACTUEL_CDD", ContractType.CONTRACTUELS),
+        ("CONTRACTUEL_CDD", ContractType.CONTRACTUEL),
         ("TERRITORIAL_TIT", ContractType.TERRITORIAL),
         ("INCONNU", None),
         (None, None),

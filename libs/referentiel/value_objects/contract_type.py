@@ -4,17 +4,18 @@ from referentiel.value_objects._choices import TextChoices
 class ContractType(TextChoices):
     TITULAIRE_CONTRACTUEL = (
         "TITULAIRE_CONTRACTUEL",
-        "Emploi ouvert aux titulaires et aux contractuels",
+        "Ouvert aux fonctionnaires et aux contractuels",
     )
-    CONTRACTUELS = "CONTRACTUELS", "Emploi ouvert uniquement aux contractuels"
+    CONTRACTUEL = "CONTRACTUEL", "Ouvert uniquement aux contractuels"
     TERRITORIAL = (
         "TERRITORIAL",
-        "Emploi réservé aux fonctionnaires et lauréats d'un concours territorial",
+        "Ouvert aux fonctionnaires et lauréats d'un concours territorial",
     )
 
 
 class ContractKind(TextChoices):
     CDD = "CDD", "CDD"
     CDI = "CDI", "CDI"
-    PERMANENT = "Permanent", "Permanent"
-    VACATION = "Vacation", "Vacation"
+    CDD_CDI = "CDD ou CDI", "CDD ou CDI"
+    CONTRAT_PROJET = "Contrat de projet", "Contrat de projet"
+    VACATION = "Payés à l'acte", "Payés à l'acte"

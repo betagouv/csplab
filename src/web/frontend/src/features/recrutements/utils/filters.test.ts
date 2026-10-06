@@ -30,18 +30,18 @@ describe('matchesFilters', () => {
     expect(matchesFilters(makeRow(), responsableFilters)).toBe(true)
     expect(matchesFilters(makeRow({ responsables: [{ nom: 'John Doe' }] }), responsableFilters)).toBe(false)
 
-    const typeFilters = { ...emptyRecrutementsFilters(), typeContrat: 'CONTRACTUELS' as const }
+    const typeFilters = { ...emptyRecrutementsFilters(), typeContrat: 'CONTRACTUEL' as const }
     expect(matchesFilters(makeRow(), typeFilters)).toBe(false)
-    expect(matchesFilters(makeRow({ type_contrat: 'CONTRACTUELS' }), typeFilters)).toBe(true)
+    expect(matchesFilters(makeRow({ type_contrat: 'CONTRACTUEL' }), typeFilters)).toBe(true)
   })
 
   it('combines filters with a logical AND', () => {
     const filters = {
       responsable: 'Camille Durand',
-      typeContrat: 'CONTRACTUELS' as const,
+      typeContrat: 'CONTRACTUEL' as const,
     }
     expect(matchesFilters(makeRow(), filters)).toBe(false)
-    expect(matchesFilters(makeRow({ type_contrat: 'CONTRACTUELS' }), filters)).toBe(true)
+    expect(matchesFilters(makeRow({ type_contrat: 'CONTRACTUEL' }), filters)).toBe(true)
   })
 })
 

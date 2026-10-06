@@ -144,12 +144,12 @@ paths:
           items:
             enum:
             - TITULAIRE_CONTRACTUEL
-            - CONTRACTUELS
+            - CONTRACTUEL
             - TERRITORIAL
             type: string
             description: |-
               * `TITULAIRE_CONTRACTUEL` - TITULAIRE_CONTRACTUEL
-              * `CONTRACTUELS` - CONTRACTUELS
+              * `CONTRACTUEL` - CONTRACTUEL
               * `TERRITORIAL` - TERRITORIAL
       - in: query
         name: count
@@ -1880,7 +1880,7 @@ paths:
         - `actif` — candidature active / archivée
         - `categorie` — une ou plusieurs catégories (ex. `A,B`)
         - `versant` — un ou plusieurs versants (ex. `FPE,FPT`)
-        - `type_contrat` — un ou plusieurs types de contrat (ex. `TITULAIRE_CONTRACTUEL`)
+        - `nature_offre` — une ou plusieurs natures d'offre (ex. `TITULAIRE_CONTRACTUEL`)
         - `niveau_experience` — un ou plusieurs niveaux d'expérience (ex. `DEBUTANT,EXPERT`)
         - `region` — un ou plusieurs codes région (ex. `11,84`)
         - `departement` — un ou plusieurs codes département (ex. `75,69`)
@@ -2291,6 +2291,21 @@ paths:
         description: Recherche plein texte (en français) sur le titre, l'intitulé
           long, la mission, le profil, l'organisme, l'employeur et les compléments
           de l'offre.
+      - in: query
+        name: nature_offre
+        schema:
+          type: array
+          items:
+            enum:
+            - TITULAIRE_CONTRACTUEL
+            - CONTRACTUEL
+            - TERRITORIAL
+            type: string
+            description: |-
+              * `TITULAIRE_CONTRACTUEL` - TITULAIRE_CONTRACTUEL
+              * `CONTRACTUEL` - CONTRACTUEL
+              * `TERRITORIAL` - TERRITORIAL
+        description: Valeurs séparées par une virgule (ex. `TITULAIRE_CONTRACTUEL`).
       - in: query
         name: niveau_experience
         schema:
@@ -2894,21 +2909,6 @@ paths:
           type: integer
           default: 100
           minimum: 1
-      - in: query
-        name: type_contrat
-        schema:
-          type: array
-          items:
-            enum:
-            - TITULAIRE_CONTRACTUEL
-            - CONTRACTUELS
-            - TERRITORIAL
-            type: string
-            description: |-
-              * `TITULAIRE_CONTRACTUEL` - TITULAIRE_CONTRACTUEL
-              * `CONTRACTUELS` - CONTRACTUELS
-              * `TERRITORIAL` - TERRITORIAL
-        description: Valeurs séparées par une virgule (ex. `TITULAIRE_CONTRACTUEL`).
       - in: query
         name: versant
         schema:
@@ -4709,18 +4709,6 @@ components:
       - postCode
       - retentionPeriod
       - url
-    FormeContratEnum:
-      enum:
-      - CDD
-      - CDI
-      - PERMANENT
-      - VACATION
-      type: string
-      description: |-
-        * `CDD` - CDD
-        * `CDI` - CDI
-        * `PERMANENT` - Permanent
-        * `VACATION` - Vacation
     GenericError:
       type: object
       properties:
@@ -4919,6 +4907,16 @@ components:
       description: |-
         * `SANS` - Sans management
         * `AVEC` - Avec management
+    NatureOffreEnum:
+      enum:
+      - TITULAIRE_CONTRACTUEL
+      - CONTRACTUEL
+      - TERRITORIAL
+      type: string
+      description: |-
+        * `TITULAIRE_CONTRACTUEL` - TITULAIRE_CONTRACTUEL
+        * `CONTRACTUEL` - CONTRACTUEL
+        * `TERRITORIAL` - TERRITORIAL
     NiveauEnum:
       enum:
       - A1
@@ -4947,6 +4945,9 @@ components:
       required:
       - error
       - validation_errors
+    NullEnum:
+      enum:
+      - null
     OfferDetailResponse:
       type: object
       properties:
@@ -4988,9 +4989,7 @@ components:
           type: string
           nullable: true
         contract_kind:
-          type: array
-          items:
-            type: string
+          type: string
           nullable: true
         job_vacancy:
           type: string
@@ -5104,14 +5103,14 @@ components:
             oneOf:
             - $ref: '#/components/schemas/CategoriesEnum'
             - $ref: '#/components/schemas/BlankEnum'
+        nature_offre:
+          $ref: '#/components/schemas/NatureOffreEnum'
         type_contrat:
-          $ref: '#/components/schemas/TypeContratEnum'
-        forme_contrat:
-          type: array
-          items:
-            oneOf:
-            - $ref: '#/components/schemas/FormeContratEnum'
-            - $ref: '#/components/schemas/BlankEnum'
+          nullable: true
+          oneOf:
+          - $ref: '#/components/schemas/TypeContratEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+          - $ref: '#/components/schemas/NullEnum'
         vacance_poste:
           oneOf:
           - $ref: '#/components/schemas/VacancePosteEnum'
@@ -5144,15 +5143,14 @@ components:
       - contacts
       - criteres
       - description
-      - forme_contrat
       - identification
       - localisation
+      - nature_offre
       - organisation
       - profession
       - publication
       - titre
       - titre_long
-      - type_contrat
       - url_candidature
       - url_offre
       - vacance_poste
@@ -5648,14 +5646,18 @@ components:
       - refresh
     TypeContratEnum:
       enum:
-      - TITULAIRE_CONTRACTUEL
-      - CONTRACTUELS
-      - TERRITORIAL
+      - CDD
+      - CDI
+      - CDD_CDI
+      - CONTRAT_PROJET
+      - VACATION
       type: string
       description: |-
-        * `TITULAIRE_CONTRACTUEL` - TITULAIRE_CONTRACTUEL
-        * `CONTRACTUELS` - CONTRACTUELS
-        * `TERRITORIAL` - TERRITORIAL
+        * `CDD` - CDD
+        * `CDI` - CDI
+        * `CDD_CDI` - CDD ou CDI
+        * `CONTRAT_PROJET` - Contrat de projet
+        * `VACATION` - Payés à l'acte
     UpsertOfferError:
       type: object
       properties:
@@ -5863,6 +5865,46 @@ tags:
     champs et de leurs règles se trouve dans le [guide de l'API](/pages/guide_api).
 
     Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/).
+
+    ## 2026-10-06
+
+    ### ⚠️ Changements non rétrocompatibles
+
+    Les champs qui décrivent le contrat d'une offre sont renommés, pour mieux refléter la
+    fonction publique et les offres qui ne donnent pas lieu à un contrat.
+
+    > **Attention :** `type_contrat` existe toujours mais **change de sens**. Il désigne
+    > désormais la forme du contrat (ancien `forme_contrat`). L'ancienne valeur de
+    > `type_contrat` (ex. `TITULAIRE_CONTRACTUEL`) doit être envoyée dans `nature_offre`.
+
+    - `POST /api/v1/offres/creer_modifier` :
+      - `type_contrat` est renommé `nature_offre` (obligatoire). Sa valeur `CONTRACTUELS`
+        devient `CONTRACTUEL`. Valeurs : `TITULAIRE_CONTRACTUEL`, `CONTRACTUEL`,
+        `TERRITORIAL` ;
+      - `forme_contrat` est renommé `type_contrat`. Ce n'est plus une liste mais une valeur
+        unique, facultative (vide ou `null` si l'offre n'est pas soumise à
+        contractualisation). Valeurs : `CDD`, `CDI`, `CDD_CDI` (CDD ou CDI),
+        `CONTRAT_PROJET` (contrat de projet), `VACATION`. La valeur `PERMANENT` est
+        supprimée.
+    - `GET /api/v1/offres` : le filtre `type_contrat` est renommé `nature_offre`, et la
+      valeur `CONTRACTUELS` devient `CONTRACTUEL`.
+    - `GET /api/v1/offres` et `GET /api/v1/offres/sources/{source_id}` : `contract_type`
+      renvoie `CONTRACTUEL` au lieu de `CONTRACTUELS`.
+    - `GET /api/v1/offres/sources/{source_id}` : `contract_kind` n'est plus une liste mais
+      une valeur unique ou `null` (`CDD`, `CDI`, `CDD ou CDI`, `Contrat de projet`,
+      `Payés à l'acte`). La valeur `Vacation` devient `Payés à l'acte`.
+    - `/api/fake-ts/…` : le code `CONTRACTUELS` devient `CONTRACTUEL` dans le filtre
+      `contractType` de `GET /api/fake-ts/offersummaries`, dans le champ `contractType`
+      des offres renvoyées et dans `GET /api/fake-ts/referentials/contract_type`.
+      Les libellés de ce référentiel changent aussi : « Ouvert aux fonctionnaires et aux
+      contractuels », « Ouvert uniquement aux contractuels », « Ouvert aux fonctionnaires
+      et lauréats d'un concours territorial ».
+
+    ### Migration des offres existantes
+
+    - `CONTRACTUELS` devient `CONTRACTUEL`.
+    - Une offre avec les formes de contrat CDD et CDI passe à `CDD_CDI`.
+    - `PERMANENT` devient `CDI`.
 
     ## 2026-10-05
 

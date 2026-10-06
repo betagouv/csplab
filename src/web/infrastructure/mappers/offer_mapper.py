@@ -46,9 +46,7 @@ class OfferMapper(
         verse = Verse(model.verse) if model.verse else None
 
         contract_kind = (
-            [ContractKind[name] for name in model.contract_kind]
-            if model.contract_kind
-            else None
+            ContractKind[model.contract_kind] if model.contract_kind else None
         )
 
         return Offer(
@@ -120,9 +118,7 @@ class OfferMapper(
         contract_type = entity.contract_type.value if entity.contract_type else None
         offer_url = str(entity.offer_url) if entity.offer_url else None
 
-        contract_kind = (
-            [ck.name for ck in entity.contract_kind] if entity.contract_kind else None
-        )
+        contract_kind = entity.contract_kind.name if entity.contract_kind else None
 
         return OfferModel(
             id=entity.id,

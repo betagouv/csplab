@@ -67,7 +67,7 @@ COMPLETE_VALID_OFFER = PayloadOfferFactory.create(
     url_offre="https://example.com/offre",
     url_candidature="https://example.com/candidature",
     categories=["A", "B"],
-    forme_contrat=["CDD"],
+    type_contrat="CDD_CDI",
     vacance_poste="OUI",
     description={
         "profil": "",
@@ -114,7 +114,7 @@ INVALID_PAYLOAD_OFFER = PayloadOfferFactory.create(
 
 INVALID_DATA_OFFER = PayloadOfferFactory.create(
     identification={"reference": "REF-005", "versant": "FPT"},
-    type_contrat="ABC",  # invalid enum value
+    nature_offre="ABC",  # invalid enum value
 )
 
 
@@ -190,7 +190,7 @@ def parse_offer_from_payload(payload: dict, source_id: UUID) -> Offer:
         else None
     )
 
-    forme_contrat = payload.get("forme_contrat")
+    type_contrat = payload.get("type_contrat")
 
     criteres = payload.get("criteres")
     criteria = (
@@ -227,7 +227,7 @@ def parse_offer_from_payload(payload: dict, source_id: UUID) -> Offer:
         ),
         verse=Verse(versant),
         category=category,
-        contract_type=ContractType(payload["type_contrat"]),
+        contract_type=ContractType(payload["nature_offre"]),
         offer_url=payload.get("url_offre"),
         localisation=localisation,
         beginning_date=debut_contrat,
@@ -237,9 +237,7 @@ def parse_offer_from_payload(payload: dict, source_id: UUID) -> Offer:
         source_id=source_id,
         long_title=payload.get("titre_long") or None,
         application_url=payload.get("url_candidature"),
-        contract_kind=[ContractKind[name] for name in sorted(forme_contrat)]
-        if forme_contrat
-        else None,
+        contract_kind=ContractKind[type_contrat] if type_contrat else None,
         job_vacancy=payload.get("vacance_poste") or None,
         employer=payload["description"].get("employeur") or None,
         complements=payload["description"].get("complements") or None,
@@ -377,7 +375,7 @@ def test_mixed_valid_invalid_offers_in_payload(
         },
         {
             "offer": {"reference": "REF-005", "versant": "FPT"},
-            "error": {"type_contrat": ["«\xa0ABC\xa0» n'est pas un choix valide."]},
+            "error": {"nature_offre": ["«\xa0ABC\xa0» n'est pas un choix valide."]},
         },
     ]
 

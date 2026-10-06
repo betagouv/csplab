@@ -55,8 +55,6 @@ class OfferInputMapper(IToDomainMapper[dict, Offer]):
         localisations = data.get("localisation", [])
         raw_localisation = localisations[0] if localisations else None
 
-        forme_contrat = data.get("forme_contrat")
-
         return Offer(
             reference=data["identification"]["reference"],
             title=data["titre"],
@@ -66,7 +64,7 @@ class OfferInputMapper(IToDomainMapper[dict, Offer]):
             publication_date=data["publication"]["debut_publication"],
             verse=Verse(data["identification"]["versant"]),
             category=category,
-            contract_type=ContractType(data["type_contrat"]),
+            contract_type=ContractType(data["nature_offre"]),
             offer_url=data.get("url_offre"),
             localisation=self._localisation_mapper.to_domain(raw_localisation),
             beginning_date=LimitDate(debut_contrat) if debut_contrat else None,
@@ -77,8 +75,8 @@ class OfferInputMapper(IToDomainMapper[dict, Offer]):
             source_id=source_id,
             long_title=data.get("titre_long") or None,
             application_url=data.get("url_candidature"),
-            contract_kind=[ContractKind[name] for name in sorted(forme_contrat)]
-            if forme_contrat
+            contract_kind=ContractKind[data["type_contrat"]]
+            if data.get("type_contrat")
             else None,
             job_vacancy=data.get("vacance_poste") or None,
             employer=data["description"].get("employeur") or None,

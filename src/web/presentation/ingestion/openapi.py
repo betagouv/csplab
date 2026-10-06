@@ -270,7 +270,7 @@ critères suivants :
 - `actif` — candidature active / archivée
 - `categorie` — une ou plusieurs catégories (ex. `A,B`)
 - `versant` — un ou plusieurs versants (ex. `FPE,FPT`)
-- `type_contrat` — un ou plusieurs types de contrat (ex. `TITULAIRE_CONTRACTUEL`)
+- `nature_offre` — une ou plusieurs natures d'offre (ex. `TITULAIRE_CONTRACTUEL`)
 - `niveau_experience` — un ou plusieurs niveaux d'expérience (ex. `DEBUTANT,EXPERT`)
 - `region` — un ou plusieurs codes région (ex. `11,84`)
 - `departement` — un ou plusieurs codes département (ex. `75,69`)

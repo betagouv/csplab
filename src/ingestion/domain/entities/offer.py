@@ -29,6 +29,7 @@ class Offer:
     organization: str
     verse: Optional[Verse]
     category: Optional[Category]
+    # API: nature_offre (nature of the offer, not the contract type)
     contract_type: Optional[ContractType]
     offer_url: Optional[HttpUrl]
     application_url: Optional[HttpUrl]
@@ -42,6 +43,7 @@ class Offer:
     exercise_conditions: str = ""
     service_description: str = ""
     complements: str = ""
+    # API: type_contrat
     contract_kind: Optional[ContractKind] = None
     education_level: Optional[int] = None
     experience: Optional[ExperienceLevel] = None

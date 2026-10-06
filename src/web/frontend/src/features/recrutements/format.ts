@@ -5,7 +5,7 @@ import type {
 
 export const TYPE_CONTRAT_LABELS = {
   TITULAIRE_CONTRACTUEL: 'Titulaire et contractuel',
-  CONTRACTUELS: 'Contractuels',
+  CONTRACTUEL: 'Contractuels',
   TERRITORIAL: 'Territorial',
 } satisfies Record<TypeContrat, string>
 

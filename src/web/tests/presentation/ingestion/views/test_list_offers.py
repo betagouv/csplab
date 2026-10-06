@@ -204,12 +204,12 @@ def test_contract_type_filter_is_forwarded_to_usecase(
 ):
     _make_paginated_mock(mock_offers_container, num_offers=0, offers_slice=[])
 
-    authenticated_client.get(URL, {"type_contrat": "CONTRACTUELS,TERRITORIAL"})
+    authenticated_client.get(URL, {"nature_offre": "CONTRACTUEL,TERRITORIAL"})
 
     mock_offers_container.list_offers_usecase.return_value.execute.assert_called_once_with(
         GetFilteredOffersInput(
             active=True,
-            contract_type=[ContractType.CONTRACTUELS, ContractType.TERRITORIAL],
+            contract_type=[ContractType.CONTRACTUEL, ContractType.TERRITORIAL],
         )
     )
 
@@ -217,13 +217,11 @@ def test_contract_type_filter_is_forwarded_to_usecase(
 def test_invalid_contract_type_returns_400(mock_offers_container, authenticated_client):
     _make_paginated_mock(mock_offers_container, num_offers=0, offers_slice=[])
 
-    response = authenticated_client.get(URL, {"type_contrat": "INVALID"})
+    response = authenticated_client.get(URL, {"nature_offre": "INVALID"})
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert "INVALID" in response.json()["error"]
-    assert (
-        "CONTRACTUELS, TERRITORIAL, TITULAIRE_CONTRACTUEL" in response.json()["error"]
-    )
+    assert "CONTRACTUEL, TERRITORIAL, TITULAIRE_CONTRACTUEL" in response.json()["error"]
 
 
 def test_experience_level_filter_is_forwarded_to_usecase(
