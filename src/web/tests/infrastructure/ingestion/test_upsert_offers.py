@@ -1,4 +1,5 @@
 from datetime import datetime, timezone
+from zoneinfo import ZoneInfo
 
 from dateutil.relativedelta import relativedelta
 from faker import Faker
@@ -66,7 +67,15 @@ def test_upsert_offers_result(ingestion_container):
     )
     result = ingestion_container.upsert_offers_usecase().execute(input_data=input_data)
 
-    assert result == {"created": 1, "updated": 1, "errors": []}
+    assert result == {
+        "created": 1,
+        "updated": 1,
+        "errors": [],
+        "offres": [
+            {"reference": existing_offer.reference, "statut": "updated"},
+            {"reference": new_offer.reference, "statut": "created"},
+        ],
+    }
 
     for offer in [existing_offer, new_offer]:
         model = OfferModel.objects.get(
@@ -97,7 +106,12 @@ def test_upsert_offers_unarchives_offer_and_makes_it_eligible_for_reindexing(
         source_id=existing_offer.source_id, offers=[existing_offer]
     )
     result = ingestion_container.upsert_offers_usecase().execute(input_data=input_data)
-    assert result == {"created": 0, "updated": 1, "errors": []}
+    assert result == {
+        "created": 0,
+        "updated": 1,
+        "errors": [],
+        "offres": [{"reference": existing_offer.reference, "statut": "updated"}],
+    }
 
     archived_offer.refresh_from_db()
     assert archived_offer.archived_at is None
@@ -107,3 +121,26 @@ def test_upsert_offers_unarchives_offer_and_makes_it_eligible_for_reindexing(
         offer.id for offer in offers_repository.get_pending_processing()
     }
     assert archived_offer.id in pending_offer_ids
+
+
+def test_upsert_offers_generates_auto_references(ingestion_container):
+    source_id = OfferDjangoFactory().source_id
+    offers = [
+        OfferFactory.create_entity(reference="auto", source_id=source_id),
+        OfferFactory.create_entity(reference="REF-1", source_id=source_id),
+        OfferFactory.create_entity(reference="auto", source_id=source_id),
+    ]
+
+    result = ingestion_container.upsert_offers_usecase().execute(
+        input_data=UpsertOffersInput(source_id=source_id, offers=offers)
+    )
+
+    year = datetime.now(ZoneInfo("Europe/Paris")).year
+    assert result["offres"] == [
+        {"reference": f"CSP-{year}-000001", "statut": "created"},
+        {"reference": "REF-1", "statut": "created"},
+        {"reference": f"CSP-{year}-000002", "statut": "created"},
+    ]
+    assert not OfferModel.objects.filter(reference="auto").exists()
+    generated = OfferModel.objects.get(reference=f"CSP-{year}-000002")
+    assert generated.title == offers[2].title

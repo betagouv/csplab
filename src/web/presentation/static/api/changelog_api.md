@@ -47,6 +47,16 @@ fonction publique et les offres qui ne donnent pas lieu à un contrat.
 - Une offre avec les formes de contrat CDD et CDI passe à `CDD_CDI`.
 - `PERMANENT` devient `CDI`.
 
+### Ajouté
+
+- `POST /api/v1/offres/creer_modifier` : `identification.reference` accepte la valeur
+  `"auto"`. CSPLab génère alors une référence au format `CSP-AAAA-NNNNNN` (par
+  exemple `CSP-2026-000042`), unique sur toute la plateforme. `"auto"` crée toujours une nouvelle
+  offre : pour la mettre à jour ensuite, renvoyez la référence générée.
+- `POST /api/v1/offres/creer_modifier` : la réponse contient un nouveau champ
+  `offres`, qui donne pour chaque offre créée ou mise à jour son `index` dans le
+  payload, sa `reference` finale et son `statut` (`created` ou `updated`).
+
 ## 2026-10-05
 
 ### Ajouté

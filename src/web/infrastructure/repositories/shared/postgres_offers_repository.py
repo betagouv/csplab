@@ -16,7 +16,6 @@ from referentiel.exceptions.offer_errors import (
     MultipleOffersFoundForReference,
     OfferDoesNotExist,
 )
-from referentiel.types import IUpsertResult
 from referentiel.value_objects.area import GeographicalArea
 from referentiel.value_objects.category import Category
 from referentiel.value_objects.country import Country
@@ -29,6 +28,7 @@ from referentiel.value_objects.verse import Verse
 
 from domain.ingestion.repositories.ingestion_offers_repository_interface import (
     IIngestionOffersRepository,
+    IOffersUpsertResult,
 )
 from infrastructure.django_apps.ingestion.models.talentsoft_organisme import (
     TalentsoftOrganismeModel,
@@ -51,9 +51,9 @@ class PostgresOffersRepository(IIngestionOffersRepository):
         self.logger = logger
         self.mapper = mapper
 
-    def upsert_batch(self, offers_list: List[Offer]) -> IUpsertResult:
+    def upsert_batch(self, offers_list: List[Offer]) -> IOffersUpsertResult:
         if not offers_list:
-            return {"created": 0, "updated": 0, "errors": []}
+            return {"created": 0, "updated": 0, "errors": [], "offres": []}
 
         try:
             source_ids = {offer.source_id for offer in offers_list}
@@ -141,7 +141,20 @@ class PostgresOffersRepository(IIngestionOffersRepository):
                             ],
                         )
 
-            return {"created": created, "updated": updated, "errors": []}
+            return {
+                "created": created,
+                "updated": updated,
+                "errors": [],
+                "offres": [
+                    {
+                        "reference": offer.reference,
+                        "statut": "updated"
+                        if offer.reference in existing_models_map
+                        else "created",
+                    }
+                    for offer in offers_list
+                ],
+            }
 
         except Exception as e:
             self.logger.error("Database error during bulk upsert: %s", str(e))
