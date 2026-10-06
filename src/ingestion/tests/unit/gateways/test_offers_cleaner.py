@@ -467,8 +467,6 @@ def test_clean_raises_when_contract_type_csv_maps_to_unknown_code(
         ("CDD_3A", ContractKind.CDD),
         ("CDD_6M", ContractKind.CDD),
         ("CDI", ContractKind.CDI),
-        ("PERMANENT", ContractKind.CDI),
-        ("VACATION", ContractKind.VACATION),
         ("STAGE", None),
         ("UNKNOWN_KIND", None),
         (None, None),

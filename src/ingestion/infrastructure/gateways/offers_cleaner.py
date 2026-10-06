@@ -505,12 +505,6 @@ class OffersCleaner:
 
         return None
 
-    _CONTRACT_KIND_MAPPING: dict[str, ContractKind] = {
-        "CDI": ContractKind.CDI,
-        "PERMANENT": ContractKind.CDI,
-        "VACATION": ContractKind.VACATION,
-    }
-
     def _map_contract_kind(
         self, contract_kind_str: Optional[str]
     ) -> Optional[ContractKind]:
@@ -521,7 +515,10 @@ class OffersCleaner:
         if contract_kind_upper.startswith("CDD"):
             return ContractKind.CDD
 
-        return self._CONTRACT_KIND_MAPPING.get(contract_kind_upper)
+        if contract_kind_upper == "CDI":
+            return ContractKind.CDI
+
+        return None
 
     _WORKING_PLACE_MAPPING: dict[str, WorkingPlace] = {
         "reponse_oui": WorkingPlace.TELETRAVAIL,
