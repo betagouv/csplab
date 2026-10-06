@@ -57,6 +57,7 @@ export function useReplyConversation(params: MaybeRefOrGetter<ConversationMessag
     onSuccess: (message, { target }) => {
       appendToThread(target, message)
       moveConversationToTop(target, message)
+      void queryCache.invalidateQueries({ key: MESSAGES_QUERY_KEYS.conversations(target.candidature) })
     },
   })
 

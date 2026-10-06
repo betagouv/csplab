@@ -38,7 +38,10 @@ export function useCreateConversation(candidature: MaybeRefOrGetter<CandidatureP
   const mutation = useMutation({
     mutation: ({ target, payload }: { target: CandidatureParams, payload: CreateConversationPayload }) =>
       createConversation(target, payload),
-    onSuccess: (conversation, { target }) => prependToList(target, conversation),
+    onSuccess: (conversation, { target }) => {
+      prependToList(target, conversation)
+      void queryCache.invalidateQueries({ key: MESSAGES_QUERY_KEYS.conversations(target) })
+    },
   })
 
   return {
