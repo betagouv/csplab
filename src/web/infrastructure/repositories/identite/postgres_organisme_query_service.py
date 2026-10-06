@@ -1,4 +1,4 @@
-from django.db.models import Count, Max
+from django.db.models import Count, Max, Q
 from django.db.models.functions import Coalesce, Greatest
 from referentiel.value_objects.siret import SIRET
 from referentiel.value_objects.verse import Verse
@@ -14,7 +14,11 @@ class PostgresOrganismeQueryService(IOrganismeQueryService):
     def get_all_with_counts(self) -> list[OrganismeReadModel]:
         models = (
             OrganismeModel.objects.annotate(
-                number_agents=Count("agents_liaisons", distinct=True),
+                number_agents=Count(
+                    "agents_liaisons",
+                    filter=Q(agents_liaisons__date_revocation__isnull=True),
+                    distinct=True,
+                ),
                 number_published_offers=Count("recrutements", distinct=True),
                 max_agent_updated=Max("agents_liaisons__updated_at"),
                 last_activity_date=Greatest(
