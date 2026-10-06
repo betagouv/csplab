@@ -1,0 +1,24 @@
+name: Changelog API
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  merge_group:
+
+permissions:
+  contents: read
+
+jobs:
+  check-changelog-api:
+    # Skipped in the merge queue: the check already ran on the pull request
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      # The pull request merge commit: its first parent is the base branch, so
+      # HEAD^1..HEAD holds exactly the changes of the pull request
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 2
+      - uses: ./.github/actions/setup-mise
+      - name: Check changelog_api.md follows the public API changes
+        run: uv run .github/scripts/check_changelog_api.py HEAD^1
