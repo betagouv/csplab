@@ -116,6 +116,7 @@ The shell wraps `<RouterView>` **once** (in `App.vue`), so views never import it
 - `router/routes.ts` holds the whole route tree. Nesting follows the URL: a parent without component groups its children under a path prefix.
 - Route names live in `router/names.ts`. Views, components and the navigation import names from there.
 - A set of routes mounted under several parents is built by a function called once per parent, like the candidature panel under the kanban and the list.
+- A view receives its route params as props: `props: true` when the location carries the params the view declares and no others, or a function that picks the declared params when the location carries others, such as the params of child routes.
 
 ```ts
 // router/routes.ts
@@ -126,8 +127,8 @@ The shell wraps `<RouterView>` **once** (in `App.vue`), so views never import it
       path: 'recrutements',
       name: ORGANISME_SECTION_ROUTE_NAMES.recrutements,
       children: [
-        { path: '', name: RECRUTEMENTS_TAB_ROUTE_NAMES.actifs, component: RecrutementsView },
-        { path: 'archives', name: RECRUTEMENTS_TAB_ROUTE_NAMES.archives, component: RecrutementsView },
+        { path: '', name: RECRUTEMENTS_TAB_ROUTE_NAMES.actifs, component: RecrutementsView, props: true },
+        { path: 'archives', name: RECRUTEMENTS_TAB_ROUTE_NAMES.archives, component: RecrutementsView, props: true },
       ],
     },
   ],

@@ -2,7 +2,6 @@
 import type { CspBreadcrumbItem } from '@/components/base/CspBreadcrumb/CspBreadcrumb.vue'
 import { useQuery, useQueryCache } from '@pinia/colada'
 import { computed } from 'vue'
-import { useRoute } from 'vue-router'
 import CspPageContainer from '@/components/layout/CspPageContainer/CspPageContainer.vue'
 import CspPageHeader from '@/components/layout/CspPageHeader/CspPageHeader.vue'
 import { peekRecrutementIntitule, recrutementDetailQuery } from '@/features/recrutements/queries'
@@ -10,16 +9,17 @@ import { CANDIDATURES_VIEW_ROUTE_NAMES, HOME_ROUTE_NAME, recrutementsListLocatio
 import EtapesRecrutementList from '../components/EtapesRecrutementList.vue'
 import { ETAPES_TEXTS_OFFRE } from '../constants/etape-recrutement'
 
-const route = useRoute()
-const recrutementUuid = route.params.recrutementUuid as string
-const organismeUuid = route.params.organismeUuid as string
+const props = defineProps<{
+  organismeUuid: string
+  recrutementUuid: string
+}>()
 
 const queryCache = useQueryCache()
 
 const { data: recrutementDetail } = useQuery(() => ({
   ...recrutementDetailQuery({
-    organismeUuid,
-    recrutementUuid,
+    organismeUuid: props.organismeUuid,
+    recrutementUuid: props.recrutementUuid,
   }),
 }))
 
@@ -27,16 +27,16 @@ const intitule = computed<string | null>(() => {
   if (recrutementDetail.value?.intitule) {
     return recrutementDetail.value.intitule
   }
-  return peekRecrutementIntitule(queryCache, organismeUuid, recrutementUuid)
+  return peekRecrutementIntitule(queryCache, props.organismeUuid, props.recrutementUuid)
 })
 
 const recrutementsListLink = computed(() =>
-  recrutementsListLocation(organismeUuid, recrutementDetail.value?.archive),
+  recrutementsListLocation(props.organismeUuid, recrutementDetail.value?.archive),
 )
 
 const candidaturesRoute = computed(() => ({
   name: CANDIDATURES_VIEW_ROUTE_NAMES.kanban,
-  params: { organismeUuid, recrutementUuid },
+  params: { organismeUuid: props.organismeUuid, recrutementUuid: props.recrutementUuid },
 }))
 
 const breadcrumb = computed<CspBreadcrumbItem[]>(() => [

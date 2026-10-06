@@ -1,4 +1,4 @@
-import type { RouteRecordRaw } from 'vue-router'
+import type { RouteLocationNormalized, RouteRecordRaw } from 'vue-router'
 import type { CandidaturePanelRouteNames } from './names'
 import { tabMetaFor } from '@/composables/navigation/tabs'
 import { CANDIDATURE_PANEL_TAB_LABELS, CANDIDATURE_TAB_LABELS } from '@/features/candidatures/constants/candidature'
@@ -29,20 +29,27 @@ const RecrutementsView = () => import('@/features/recrutements/views/Recrutement
 const CandidaturesView = () => import('@/features/candidatures/views/CandidaturesView.vue')
 const CandidaturePanelView = () => import('@/features/candidatures/views/CandidaturePanelView.vue')
 
+function paramsAsProps(...names: string[]) {
+  return ({ params }: RouteLocationNormalized) => Object.fromEntries(names.map(name => [name, params[name]]))
+}
+
+const panelProps = paramsAsProps('organismeUuid', 'recrutementUuid', 'candidatureUuid')
+
 const CANDIDATURE_PANEL_PATH = `candidatures/:candidatureUuid${UUID}`
 
 function candidaturePanelRoutes({ tabs, conversations }: CandidaturePanelRouteNames): RouteRecordRaw[] {
   return [
-    { path: CANDIDATURE_PANEL_PATH, name: tabs.candidature, component: CandidaturePanelView, meta: panelTabMeta('candidature') },
-    { path: `${CANDIDATURE_PANEL_PATH}/historique`, name: tabs.historique, component: CandidaturePanelView, meta: panelTabMeta('historique') },
-    { path: `${CANDIDATURE_PANEL_PATH}/documents`, name: tabs.documents, component: CandidaturePanelView, meta: panelTabMeta('documents') },
-    { path: `${CANDIDATURE_PANEL_PATH}/notes`, name: tabs.notes, component: CandidaturePanelView, meta: panelTabMeta('notes') },
-    { path: `${CANDIDATURE_PANEL_PATH}/messages`, name: tabs.messages, component: CandidaturePanelView, meta: panelTabMeta('messages') },
-    { path: `${CANDIDATURE_PANEL_PATH}/messages/nouveau`, name: conversations.create, component: CandidaturePanelView, meta: panelTabMeta('messages') },
+    { path: CANDIDATURE_PANEL_PATH, name: tabs.candidature, component: CandidaturePanelView, props: panelProps, meta: panelTabMeta('candidature') },
+    { path: `${CANDIDATURE_PANEL_PATH}/historique`, name: tabs.historique, component: CandidaturePanelView, props: panelProps, meta: panelTabMeta('historique') },
+    { path: `${CANDIDATURE_PANEL_PATH}/documents`, name: tabs.documents, component: CandidaturePanelView, props: panelProps, meta: panelTabMeta('documents') },
+    { path: `${CANDIDATURE_PANEL_PATH}/notes`, name: tabs.notes, component: CandidaturePanelView, props: panelProps, meta: panelTabMeta('notes') },
+    { path: `${CANDIDATURE_PANEL_PATH}/messages`, name: tabs.messages, component: CandidaturePanelView, props: panelProps, meta: panelTabMeta('messages') },
+    { path: `${CANDIDATURE_PANEL_PATH}/messages/nouveau`, name: conversations.create, component: CandidaturePanelView, props: panelProps, meta: panelTabMeta('messages') },
     {
       path: `${CANDIDATURE_PANEL_PATH}/messages/:conversationUuid${UUID}`,
       name: conversations.conversation,
       component: CandidaturePanelView,
+      props: panelProps,
       meta: panelTabMeta('messages'),
     },
   ]
@@ -52,6 +59,7 @@ const recrutementRoutes: RouteRecordRaw[] = [
   {
     path: '',
     component: CandidaturesView,
+    props: paramsAsProps('organismeUuid', 'recrutementUuid'),
     meta: recrutementTabMeta('candidatures'),
     children: [
       {
@@ -65,6 +73,7 @@ const recrutementRoutes: RouteRecordRaw[] = [
         path: 'liste',
         name: CANDIDATURES_VIEW_ROUTE_NAMES.liste,
         component: () => import('@/features/candidatures/views/CandidaturesListeView.vue'),
+        props: paramsAsProps('candidatureUuid'),
         meta: { candidaturesView: 'liste' },
         children: candidaturePanelRoutes(CANDIDATURE_PANEL_ROUTE_NAMES.liste),
       },
@@ -74,18 +83,21 @@ const recrutementRoutes: RouteRecordRaw[] = [
     path: 'activites',
     name: CANDIDATURES_TAB_ROUTE_NAMES['activites-et-taches'],
     component: CandidaturesView,
+    props: true,
     meta: recrutementTabMeta('activites-et-taches'),
   },
   {
     path: 'equipe',
     name: CANDIDATURES_TAB_ROUTE_NAMES.equipe,
     component: CandidaturesView,
+    props: true,
     meta: recrutementTabMeta('equipe'),
   },
   {
     path: 'etapes-recrutement',
     name: RECRUTEMENT_ETAPES_ROUTE_NAME,
     component: () => import('@/features/etapes-recrutement/views/OffreEtapesRecrutementView.vue'),
+    props: true,
   },
 ]
 
@@ -94,16 +106,16 @@ const organismeRoutes: RouteRecordRaw[] = [
     path: '',
     name: ORGANISME_SECTION_ROUTE_NAMES.parametres,
     children: [
-      { path: '', name: ORGANISME_TAB_ROUTE_NAMES.membres, component: OrganismeView, meta: organismeTabMeta('membres') },
-      { path: 'etapes', name: ORGANISME_TAB_ROUTE_NAMES.etapes, component: OrganismeView, meta: organismeTabMeta('etapes') },
+      { path: '', name: ORGANISME_TAB_ROUTE_NAMES.membres, component: OrganismeView, props: true, meta: organismeTabMeta('membres') },
+      { path: 'etapes', name: ORGANISME_TAB_ROUTE_NAMES.etapes, component: OrganismeView, props: true, meta: organismeTabMeta('etapes') },
     ],
   },
   {
     path: 'recrutements',
     name: ORGANISME_SECTION_ROUTE_NAMES.recrutements,
     children: [
-      { path: '', name: RECRUTEMENTS_TAB_ROUTE_NAMES.actifs, component: RecrutementsView, meta: recrutementsTabMeta('actifs') },
-      { path: 'archives', name: RECRUTEMENTS_TAB_ROUTE_NAMES.archives, component: RecrutementsView, meta: recrutementsTabMeta('archives') },
+      { path: '', name: RECRUTEMENTS_TAB_ROUTE_NAMES.actifs, component: RecrutementsView, props: true, meta: recrutementsTabMeta('actifs') },
+      { path: 'archives', name: RECRUTEMENTS_TAB_ROUTE_NAMES.archives, component: RecrutementsView, props: true, meta: recrutementsTabMeta('archives') },
       { path: `:recrutementUuid${UUID}`, children: recrutementRoutes },
     ],
   },

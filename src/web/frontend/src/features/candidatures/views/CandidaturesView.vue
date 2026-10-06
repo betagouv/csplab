@@ -28,11 +28,12 @@ import { useCandidatures } from '../composables/useCandidatures'
 import { CANDIDATURE_TAB_ICONS, CANDIDATURE_TAB_LABELS } from '../constants/candidature'
 import { formatRecrutementMeta } from '../format'
 
+const props = defineProps<{
+  organismeUuid: string
+  recrutementUuid: string
+}>()
 const route = useRoute()
 const router = useRouter()
-const recrutementUuid = route.params.recrutementUuid as string
-const organismeUuid = route.params.organismeUuid as string
-
 const {
   recrutementDetail,
   intitule,
@@ -72,7 +73,7 @@ function applyFilters() {
   closeFiltersDrawer()
 }
 
-const recrutementsListLink = computed(() => recrutementsListLocation(organismeUuid, recrutementDetail.value?.archive))
+const recrutementsListLink = computed(() => recrutementsListLocation(props.organismeUuid, recrutementDetail.value?.archive))
 
 const title = computed(() => intitule.value ?? 'Candidatures')
 
@@ -117,7 +118,7 @@ const headerMenuSections = [{
     icon: 'ri:table-line',
     onSelect: () => router.push({
       name: RECRUTEMENT_ETAPES_ROUTE_NAME,
-      params: { organismeUuid, recrutementUuid },
+      params: { organismeUuid: props.organismeUuid, recrutementUuid: props.recrutementUuid },
     }),
   }],
 }]

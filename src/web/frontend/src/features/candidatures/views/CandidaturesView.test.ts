@@ -1,5 +1,6 @@
 import { screen } from '@testing-library/vue'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { RouterView } from 'vue-router'
 import { getMe } from '@/api/utilisateur'
 import { getEquipeRecrutement } from '@/features/equipe-recrutement/api'
 import { getRecrutementDetail } from '@/features/recrutements/api'
@@ -7,7 +8,6 @@ import { KANBAN, KANBAN_PATH, RECRUTEMENT_DETAIL, roleOnOrganisme } from '@/test
 import { makeUser } from '@/test/fixtures/utilisateur'
 import { renderWithApp } from '@/test/render'
 import { getRecrutementKanban } from '../api'
-import CandidaturesView from './CandidaturesView.vue'
 
 vi.mock('../api', () => ({
   getRecrutementKanban: vi.fn(),
@@ -39,7 +39,7 @@ describe('candidaturesView', () => {
 
   it('hides the équipe tab from an agent who cannot list the team', async () => {
     vi.mocked(getMe).mockReset().mockResolvedValue(makeUser([roleOnOrganisme('agent')]))
-    await renderWithApp(CandidaturesView, { route: KANBAN_PATH })
+    await renderWithApp(RouterView, { route: KANBAN_PATH })
 
     await screen.findAllByRole('tab', { name: /Candidatures/ })
     expect(screen.queryAllByRole('tab', { name: /Équipe de recrutement/ })).toHaveLength(0)
@@ -50,14 +50,14 @@ describe('candidaturesView', () => {
     ['a staff user', makeUser([], true)],
   ])('shows the équipe tab to %s', async (_, utilisateur) => {
     vi.mocked(getMe).mockReset().mockResolvedValue(utilisateur)
-    await renderWithApp(CandidaturesView, { route: KANBAN_PATH })
+    await renderWithApp(RouterView, { route: KANBAN_PATH })
 
     expect(await screen.findAllByRole('tab', { name: /Équipe de recrutement/ })).not.toHaveLength(0)
   })
 
   it('refuses access to the équipe tab url for an agent', async () => {
     vi.mocked(getMe).mockReset().mockResolvedValue(makeUser([roleOnOrganisme('agent')]))
-    await renderWithApp(CandidaturesView, { route: EQUIPE_PATH })
+    await renderWithApp(RouterView, { route: EQUIPE_PATH })
 
     expect(await screen.findByText('Vous n’avez pas accès à cette page.')).toBeInTheDocument()
   })

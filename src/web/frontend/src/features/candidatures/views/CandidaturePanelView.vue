@@ -3,7 +3,7 @@ import type { CandidaturePanelTabKey } from '../constants/candidature'
 import type { CandidaturesViewName } from '@/router/names'
 import { useQueryCache } from '@pinia/colada'
 import { computed, ref, watch } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { useRouter } from 'vue-router'
 import CspDrawer from '@/components/base/CspDrawer/CspDrawer.vue'
 import CspEmptyState from '@/components/base/CspEmptyState/CspEmptyState.vue'
 import CspErrorState from '@/components/base/CspErrorState/CspErrorState.vue'
@@ -36,18 +36,18 @@ import { CANDIDATURE_PANEL_TAB_ICONS, CANDIDATURE_PANEL_TAB_LABELS } from '../co
 import { candidatureDetailQuery } from '../queries'
 import { formatCandidatNom } from '../utils/candidat'
 
-const route = useRoute()
+const props = defineProps<{
+  organismeUuid: string
+  recrutementUuid: string
+  candidatureUuid: string
+}>()
+
 const router = useRouter()
 
-const candidatureUuid = computed(() => route.params.candidatureUuid as string)
 function paramsFor(uuid: string) {
-  return {
-    organismeUuid: route.params.organismeUuid as string,
-    recrutementUuid: route.params.recrutementUuid as string,
-    candidatureUuid: uuid,
-  }
+  return { organismeUuid: props.organismeUuid, recrutementUuid: props.recrutementUuid, candidatureUuid: uuid }
 }
-const candidatureParams = computed(() => paramsFor(candidatureUuid.value))
+const candidatureParams = computed(() => paramsFor(props.candidatureUuid))
 const { candidature, pending, error, notFound } = useCandidatureDetail(() => candidatureParams.value)
 
 const showSkeleton = useMinimumPending(pending)
@@ -59,7 +59,7 @@ const description = computed(() =>
 )
 
 const etape = computed(() => candidature.value?.etape_actuelle ?? null)
-const navigation = useCandidatureNavigation(candidatureUuid)
+const navigation = useCandidatureNavigation(() => props.candidatureUuid)
 const { position, goPrevious, goNext } = navigation
 
 const queryCache = useQueryCache()
@@ -72,7 +72,7 @@ watch(position, (current) => {
 }, { immediate: true })
 
 const scrollArea = ref<HTMLElement | null>(null)
-watch(candidatureUuid, () => {
+watch(() => props.candidatureUuid, () => {
   if (scrollArea.value) {
     scrollArea.value.scrollTop = 0
   }
@@ -94,7 +94,7 @@ function close(): void {
 }
 
 const unsavedChanges = useUnsavedChangesGuard({
-  ignore: to => to.params.candidatureUuid === candidatureUuid.value,
+  ignore: to => to.params.candidatureUuid === props.candidatureUuid,
 })
 
 function leaveMovedCandidature(): void {
