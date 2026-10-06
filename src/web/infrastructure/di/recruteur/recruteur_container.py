@@ -9,9 +9,6 @@ from application.recruteur.usecases.attach_organisme_agent import (
 from application.recruteur.usecases.changer_etape_candidatures import (
     ChangerEtapeCandidaturesUsecase,
 )
-from application.recruteur.usecases.get_organisme_recruteur import (
-    GetOrganismeRecruteurUsecase,
-)
 from application.recruteur.usecases.get_recrutement_detail import (
     GetRecrutementDetailUsecase,
 )
@@ -125,12 +122,6 @@ class RecruteurContainer(containers.DeclarativeContainer):
     )
 
     postgres_agent_repository = providers.Singleton(PostgresAgentRepository)
-
-    get_organisme_recruteur_usecase = providers.Factory(
-        GetOrganismeRecruteurUsecase,
-        organisme_recruteur_repository=postgres_organisme_recruteur_repository,
-        organisme_permission_service=organisme_permission_service,
-    )
 
     initialize_organisme_steps_usecase = providers.Factory(
         InitializeOrganismeStepsUsecase,

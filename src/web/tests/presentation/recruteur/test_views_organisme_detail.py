@@ -237,64 +237,87 @@ class TestEtapesRecrutementOrganismeView:
         response = api_client.get(ETAPES_URL)
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
-    @pytest.mark.parametrize(
-        ("exception", "expected_status", "expected_body"),
-        [
-            (
-                OrganismeNexistePas("not found"),
-                status.HTTP_404_NOT_FOUND,
-                {"error": "organisme_uuid: Not found."},
-            ),
-            (
-                AccesOrganismeRefuse(UUID(fake.uuid4())),
-                status.HTTP_403_FORBIDDEN,
-                {"error": "Forbidden."},
-            ),
-        ],
-    )
-    def test_get_returns_error_from_usecase(
-        self,
-        container,
-        authenticated_client,
-        exception,
-        expected_status,
-        expected_body,
-    ):
-        mock_usecase = MagicMock()
-        mock_usecase.execute.side_effect = exception
-        container.get_organisme_recruteur_usecase.return_value = mock_usecase
-
-        response = authenticated_client.get(ETAPES_URL)
-
-        assert response.status_code == expected_status
-        assert response.json() == expected_body
-
-    def test_authenticated_access_is_ok(self, container, authenticated_client):
-        organisme = OrganismeRecruteurFactory.create_entity()
-
-        mock_usecase = MagicMock()
-        mock_usecase.execute.return_value = organisme
-        container.get_organisme_recruteur_usecase.return_value = mock_usecase
+    def test_superviseur_gets_etapes(self, authenticated_client, test_user):
+        _, organisme = create_organisme_with_agent(
+            role=AgentOrganismeRole.SUPERVISEUR,
+            utilisateur=test_user,
+            id=UUID(ORGANISME_UUID),
+        )
+        organisme.etapes = [
+            {
+                "entity_id": "7f1d4c3a-1b2e-4c5d-8e9f-0a1b2c3d4e5f",
+                "categorie": "entree",
+                "nom": "Réception",
+            },
+            {
+                "entity_id": "2a3b4c5d-6e7f-4a8b-9c0d-1e2f3a4b5c6d",
+                "categorie": "accepte",
+                "nom": "Recrutement",
+            },
+        ]
+        organisme.save(update_fields=["etapes"])
 
         response = authenticated_client.get(ETAPES_URL)
 
         assert response.status_code == status.HTTP_200_OK
-        assert response.json() == etapes_as_json(organisme.etapes or ())
+        assert response.json() == [
+            {
+                "uuid": "7f1d4c3a-1b2e-4c5d-8e9f-0a1b2c3d4e5f",
+                "nom": "Réception",
+                "categorie": "ENTREE",
+            },
+            {
+                "uuid": "2a3b4c5d-6e7f-4a8b-9c0d-1e2f3a4b5c6d",
+                "nom": "Recrutement",
+                "categorie": "ACCEPTE",
+            },
+        ]
 
-    def test_forwards_est_staff_to_usecase(
-        self, container, authenticated_client, test_user
+    def test_membre_is_forbidden(self, authenticated_client, test_user):
+        create_organisme_with_agent(
+            role=AgentOrganismeRole.AGENT,
+            utilisateur=test_user,
+            id=UUID(ORGANISME_UUID),
+        )
+
+        response = authenticated_client.get(ETAPES_URL)
+
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert response.json() == {"error": "Forbidden."}
+
+    def test_superviseur_of_another_organisme_is_forbidden(
+        self, authenticated_client, test_user
     ):
-        test_user.is_staff = True
-        test_user.save()
+        OrganismeDjangoFactory(id=UUID(ORGANISME_UUID))
+        create_organisme_with_agent(
+            role=AgentOrganismeRole.SUPERVISEUR, utilisateur=test_user
+        )
 
-        mock_usecase = MagicMock()
-        mock_usecase.execute.return_value = OrganismeRecruteurFactory.create_entity()
-        container.get_organisme_recruteur_usecase.return_value = mock_usecase
+        response = authenticated_client.get(ETAPES_URL)
 
-        authenticated_client.get(ETAPES_URL)
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert response.json() == {"error": "Forbidden."}
 
-        command = mock_usecase.execute.call_args.args[0]
-        assert command.utilisateur.is_staff is True
+    def test_unknown_organisme_returns_404(self, staff_client):
+        response = staff_client.get(ETAPES_URL)
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+        assert response.json() == {"error": "organisme_uuid: Not found."}
+
+    # Passe par le except du service : can_execute ne filtre pas supprime_le
+    def test_supprime_organisme_returns_404(self, authenticated_client, test_user):
+        _, organisme = create_organisme_with_agent(
+            role=AgentOrganismeRole.SUPERVISEUR,
+            utilisateur=test_user,
+            id=UUID(ORGANISME_UUID),
+        )
+        organisme.supprime_le = datetime.now(timezone.utc)
+        organisme.save(update_fields=["supprime_le"])
+
+        response = authenticated_client.get(ETAPES_URL)
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+        assert response.json() == {"error": "organisme_uuid: Not found."}
 
 
 class TestInitEtapesRecrutementOrganismeView:
@@ -555,8 +578,11 @@ class TestOrganismeDetailViewDbVerified:
 
 
 class TestEtapesRecrutementOrganismeViewDbVerified:
-    def test_get_returns_persisted_etapes(self, staff_client):
+    def test_staff_without_liaison_gets_empty_list_when_etapes_is_null(
+        self, staff_client
+    ):
         OrganismeDjangoFactory(id=UUID(ORGANISME_UUID))
+        assert OrganismeModel.objects.get(id=UUID(ORGANISME_UUID)).etapes is None
 
         response = staff_client.get(ETAPES_URL)
 

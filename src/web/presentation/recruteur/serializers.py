@@ -71,6 +71,16 @@ class UpdateEtapeRecrutementSerializer(EtapeRecrutementSerializer):
     uuid = serializers.UUIDField(required=False, source="etape_uuid")
 
 
+# Item du JSON OrganismeModel.etapes ; hérite des champs de EtapeRecrutementSerializer,
+# qui reste le composant du schéma.
+class EtapeOrganismeSerializer(EtapeRecrutementSerializer):
+    uuid = serializers.UUIDField(source="entity_id")
+    categorie = serializers.SerializerMethodField()
+
+    def get_categorie(self, etape: dict) -> str:
+        return CategorieEtapeRecrutement(etape["categorie"]).name
+
+
 class MotifRefusSerializer(serializers.Serializer):
     value = serializers.CharField()
     label = serializers.CharField()

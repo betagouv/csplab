@@ -14,10 +14,8 @@ from application.identite.usecases.get_organisme import (
 from application.identite.usecases.update_organisme import (
     UpdateOrganismeCommand,
 )
+from application.recruteur.services.get_organisme_etapes import get_organisme_etapes
 from application.recruteur.services.list_motifs_refus import list_motifs_refus
-from application.recruteur.usecases.get_organisme_recruteur import (
-    GetOrganismeRecruteurQuery,
-)
 from application.recruteur.usecases.initialize_organisme_steps import (
     InitializeOrganismeStepsCommand,
 )
@@ -48,6 +46,7 @@ from presentation.recruteur.mappers import (
     UtilisateurMapper,
 )
 from presentation.recruteur.serializers import (
+    EtapeOrganismeSerializer,
     EtapeRecrutementSerializer,
     MotifRefusSerializer,
     OrganismeDetailSerializer,
@@ -181,15 +180,11 @@ class EtapesRecrutementOrganismeView(APIView):
 
     def get(self, request: Request, organisme_uuid: UUID) -> Response:
         try:
-            usecase = self.container.get_organisme_recruteur_usecase()
-            organisme = usecase.execute(
-                GetOrganismeRecruteurQuery(
-                    organisme_id=organisme_uuid,
-                    utilisateur=self.user_mapper.to_domain(request),
-                )
+            organisme = get_organisme_etapes(
+                organisme_id=organisme_uuid,
+                utilisateur=request.user,
             )
-            data = EtapesMapper().from_domain(organisme)
-            serializer = EtapeRecrutementSerializer(data, many=True)
+            serializer = EtapeOrganismeSerializer(organisme.etapes, many=True)
             return Response(serializer.data)
         except AccesOrganismeRefuse:
             return Response(
