@@ -20,7 +20,8 @@
                     id="{{ filter_prefix|default:'' }}filter-location"
                     name="filter-location">
                 {% for option in location_options %}
-                    <option value="{{ option.value }}" {% if option.checked %}selected{% endif %}>{{ option.text }}</option>
+                    <option value="{{ option.value }}"
+                            {% if option.checked %}selected{% endif %}>{{ option.text }}</option>
                 {% endfor %}
             </select>
         </div>
