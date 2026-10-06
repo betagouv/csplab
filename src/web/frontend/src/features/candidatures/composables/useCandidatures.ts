@@ -2,10 +2,10 @@ import type { CandidaturesQueryParams } from '../queries'
 import type { Candidature } from '../types'
 import type { CspTableSort } from '@/components/base/CspDataTable/table'
 import type { RecrutementDetail } from '@/features/recrutements/types'
-import { defineQuery, useQuery, useQueryCache } from '@pinia/colada'
+import { defineQuery, useQuery } from '@pinia/colada'
 import { computed, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
-import { peekRecrutementIntitule, recrutementDetailQuery } from '@/features/recrutements/queries'
+import { recrutementDetailQuery } from '@/features/recrutements/queries'
 import { candidatureListeQuery, recrutementKanbanQuery } from '../queries'
 import { useCandidaturesFilters } from './useCandidaturesFilters'
 
@@ -28,8 +28,6 @@ export const useCandidatures = defineQuery(() => {
 
   const isKanbanRoute = computed(() => route.meta.candidaturesView === 'kanban')
   const isListeRoute = computed(() => route.meta.candidaturesView === 'liste')
-
-  const queryCache = useQueryCache()
 
   const detail = useQuery(() => ({
     ...recrutementDetailQuery(recrutementParams.value),
@@ -61,16 +59,6 @@ export const useCandidatures = defineQuery(() => {
     () => detail.data.value ?? null,
   )
   const candidatureListe = liste.data
-
-  const intitule = computed<string | null>(() => {
-    if (recrutementDetail.value?.intitule) {
-      return recrutementDetail.value.intitule
-    }
-    if (!organismeUuid.value || !recrutementUuid.value) {
-      return null
-    }
-    return peekRecrutementIntitule(queryCache, organismeUuid.value, recrutementUuid.value)
-  })
 
   const recrutementEtapes = computed(() => detail.data.value?.etapes ?? [])
   const candidatureKanban = computed(() => kanban.data.value?.etapes ?? [])
@@ -115,7 +103,6 @@ export const useCandidatures = defineQuery(() => {
     recrutementUuid,
     recrutementParams,
     recrutementDetail,
-    intitule,
     findCandidature,
     candidatureListe,
     candidatureKanban,

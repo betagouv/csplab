@@ -20,11 +20,13 @@ export const RECRUTEMENTS_QUERY_KEYS = {
     [...RECRUTEMENTS_QUERY_KEYS.root, organismeUuid, recrutementUuid] as const,
 }
 
+export interface RecrutementParams {
+  organismeUuid: string
+  recrutementUuid: string
+}
+
 export const recrutementDetailQuery = defineQueryOptions(
-  ({ organismeUuid, recrutementUuid }: {
-    organismeUuid: string
-    recrutementUuid: string
-  }) => ({
+  ({ organismeUuid, recrutementUuid }: RecrutementParams) => ({
     key: RECRUTEMENTS_QUERY_KEYS.detail(organismeUuid, recrutementUuid),
     query: () => getRecrutementDetail(organismeUuid, recrutementUuid),
   }),
