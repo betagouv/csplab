@@ -2362,7 +2362,7 @@ paths:
               $ref: '#/components/headers/X-RateLimit-Reset'
     post:
       operationId: recruteur_organismes_recrutements_candidatures_conversations_messages_create
-      summary: Répondre dans une conversation d'une candidature (stub)
+      summary: Répondre dans une conversation d'une candidature
       parameters:
       - in: path
         name: candidature_uuid
@@ -2456,7 +2456,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ConversationMessageStub'
+                $ref: '#/components/schemas/ConversationMessage'
           description: ''
           headers:
             X-RateLimit-Limit:
@@ -5087,26 +5087,6 @@ components:
       - taille
       - type
       - uuid
-    ConversationDocumentStub:
-      type: object
-      properties:
-        uuid:
-          type: string
-          format: uuid
-        nom:
-          type: string
-        type:
-          $ref: '#/components/schemas/TypeEnum'
-        content_type:
-          type: string
-        taille:
-          type: integer
-      required:
-      - content_type
-      - nom
-      - taille
-      - type
-      - uuid
     ConversationMessage:
       type: object
       properties:
@@ -5122,25 +5102,6 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/ConversationDocument'
-      required:
-      - author
-      - content
-      - created_at
-      - documents
-    ConversationMessageStub:
-      type: object
-      properties:
-        content:
-          type: string
-        author:
-          type: string
-        created_at:
-          type: string
-          format: date-time
-        documents:
-          type: array
-          items:
-            $ref: '#/components/schemas/ConversationDocumentStub'
       required:
       - author
       - content
