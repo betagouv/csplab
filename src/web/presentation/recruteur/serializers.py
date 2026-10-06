@@ -465,25 +465,8 @@ class ConversationSerializer(serializers.ModelSerializer):
 
 
 # ---------------------------------------------------------------------------
-# Serializers pour le détail d'une conversation (stub)
+# Serializers pour le détail d'une conversation
 # ---------------------------------------------------------------------------
-
-
-class ConversationDocumentStubSerializer(serializers.Serializer):
-    uuid = serializers.UUIDField()
-    nom = serializers.CharField()
-    type = serializers.ChoiceField(choices=TypeDocument.choices)
-    content_type = serializers.CharField()
-    taille = serializers.IntegerField()
-
-
-class ConversationMessageStubSerializer(serializers.Serializer):
-    content = serializers.CharField()
-    author = serializers.CharField()
-    created_at = serializers.DateTimeField()
-    documents = ConversationDocumentStubSerializer(
-        many=True, max_length=settings.MESSAGE_MAX_DOCUMENTS
-    )
 
 
 class ConversationDocumentSerializer(serializers.ModelSerializer):
@@ -511,7 +494,7 @@ class ConversationMessageSerializer(serializers.ModelSerializer):
 
 
 # ---------------------------------------------------------------------------
-# Serializers pour la création d'un message ou d'une conversation (stub)
+# Serializers pour la création d'un message ou d'une conversation
 # ---------------------------------------------------------------------------
 
 # Signature binaire attendue en tête de fichier, par content type autorisé

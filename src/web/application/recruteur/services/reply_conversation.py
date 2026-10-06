@@ -1,7 +1,8 @@
-from uuid import UUID, uuid5
+from uuid import UUID, uuid4
 
+from ddd.entity import Entity
 from django.core.files.uploadedfile import UploadedFile
-from django.utils import timezone
+from django.db import transaction
 
 from application.identite.context_services.organisme_permission_service import (
     OrganismePermissionService,
@@ -12,24 +13,17 @@ from application.recruteur.context_services.candidature_agent_service import (
 from application.recruteur.context_services.recrutement_agent_service import (
     RecrutementAgentService,
 )
-from application.recruteur.services.read_conversation import (
-    DocumentStub,
-    MessageStub,
-)
+from domain.commons.services.audit_log_writer import AuditLogWriter
 from domain.identite.entities.utilisateurs import Utilisateur
 from domain.identite.value_objects.organisme_action import OrganismeAction
-from infrastructure.django_apps.candidate.enums.type_document import TypeDocument
-
-
-def _document_stub(conversation_id: UUID, document: UploadedFile) -> DocumentStub:
-    nom = document.name or ""
-    return DocumentStub(
-        uuid=uuid5(conversation_id, nom),
-        nom=nom,
-        type=TypeDocument.AUTRE,
-        content_type=document.content_type or "",
-        taille=document.size or 0,
-    )
+from infrastructure.django_apps.candidate.models.document import DocumentModel
+from infrastructure.django_apps.messagerie.models import (
+    MessageDocumentModel,
+    MessageModel,
+)
+from infrastructure.repositories.commons.postgres_audit_log_repository import (
+    PostgresAuditLogRepository,
+)
 
 
 def reply_conversation(
@@ -41,26 +35,47 @@ def reply_conversation(
     content: str,
     documents: list[UploadedFile],
     utilisateur: Utilisateur,
-) -> MessageStub:
+) -> MessageModel:
     OrganismePermissionService().can_execute(
         action=OrganismeAction.REPLY_CONVERSATION,
         utilisateur=utilisateur,
         organisme_id=organisme_id,
         recrutement_id=recrutement_id,
     )
-    service = RecrutementAgentService(
+    contexte = RecrutementAgentService(
         organisme_id=organisme_id, recrutement_id=recrutement_id
     )
-    service.check_recrutement_belongs_to_organisme()
+    contexte.check_recrutement_belongs_to_organisme()
     candidature_service = CandidatureAgentService(
         recrutement_id=recrutement_id, candidature_id=candidature_id
     )
     candidature_service.check_candidature_belongs_to_recrutement()
     candidature_service.check_conversation_belongs_to_candidature(conversation_id)
 
-    return MessageStub(
-        content=content,
-        author=f"{utilisateur.prenom} {utilisateur.nom}".strip(),
-        created_at=timezone.now(),
-        documents=[_document_stub(conversation_id, document) for document in documents],
-    )
+    auteur_id = utilisateur.entity_id
+
+    with transaction.atomic():
+        message = MessageModel.objects.create(
+            id=uuid4(),
+            conversation_id=conversation_id,
+            auteur_id=auteur_id,
+            contenu=content,
+        )
+        attachements = DocumentModel.objects.bulk_create(
+            DocumentModel.objects.build_from_upload(
+                upload, candidature_id=candidature_id, depose_par_id=auteur_id
+            )
+            for upload in documents
+        )
+        MessageDocumentModel.objects.bulk_create(
+            MessageDocumentModel(id=uuid4(), message=message, document=document)
+            for document in attachements
+        )
+        AuditLogWriter(repository=PostgresAuditLogRepository()).log_action(
+            utilisateur_id=auteur_id,
+            entity=Entity(entity_id=message.id),
+            ressource_kind="Message",
+            event_name="MessageCree",
+        )
+
+    return MessageModel.objects.by_conversation(conversation_id).get(pk=message.id)

@@ -1,5 +1,3 @@
-from dataclasses import dataclass
-from datetime import datetime
 from uuid import UUID
 
 from django.db.models import QuerySet
@@ -16,23 +14,6 @@ from application.recruteur.context_services.recrutement_agent_service import (
 from domain.identite.entities.utilisateurs import Utilisateur
 from domain.identite.value_objects.organisme_action import OrganismeAction
 from infrastructure.django_apps.messagerie.models import MessageModel
-
-
-@dataclass(frozen=True, kw_only=True)
-class DocumentStub:
-    uuid: UUID
-    nom: str
-    type: str
-    content_type: str
-    taille: int
-
-
-@dataclass(frozen=True, kw_only=True)
-class MessageStub:
-    content: str
-    author: str
-    created_at: datetime
-    documents: list[DocumentStub]
 
 
 def read_conversation(

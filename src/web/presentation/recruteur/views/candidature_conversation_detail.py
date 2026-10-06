@@ -12,6 +12,7 @@ from rest_framework.response import Response
 
 from application.recruteur.services.read_conversation import read_conversation
 from application.recruteur.services.reply_conversation import reply_conversation
+from domain.candidate.exceptions.document_errors import FichierDeposeIncomplet
 from domain.commons.errors.organisme_errors import OrganismeNexistePas
 from domain.identite.errors.organisme_permission_errors import (
     AccesOrganismeRefuse,
@@ -30,7 +31,6 @@ from presentation.commons.pagination import PageNumberLimitPagination
 from presentation.recruteur.mappers import UtilisateurMapper
 from presentation.recruteur.serializers import (
     ConversationMessageSerializer,
-    ConversationMessageStubSerializer,
     CreateMessageSerializer,
 )
 
@@ -51,12 +51,12 @@ class MessagePagination(PageNumberLimitPagination):
     ),
     post=extend_schema(
         operation_id="recruteur_organismes_recrutements_candidatures_conversations_messages_create",
-        summary="Répondre dans une conversation d'une candidature (stub)",
+        summary="Répondre dans une conversation d'une candidature",
         tags=["recruteur"],
         request={"multipart/form-data": CreateMessageSerializer},
         responses={
             **generic_response_format,
-            201: ConversationMessageStubSerializer,
+            201: ConversationMessageSerializer,
             400: GenericErrorSerializer,
         },
     ),
@@ -98,7 +98,7 @@ class CandidatureConversationDetailView(ListAPIView):
             utilisateur=UtilisateurMapper().to_domain(request),
         )
         return Response(
-            ConversationMessageStubSerializer(message).data,
+            ConversationMessageSerializer(message).data,
             status=status.HTTP_201_CREATED,
         )
 
@@ -119,6 +119,11 @@ class CandidatureConversationDetailView(ListAPIView):
             return Response(
                 GenericErrorSerializer({"error": str(exc)}).data,
                 status=status.HTTP_404_NOT_FOUND,
+            )
+        if isinstance(exc, FichierDeposeIncomplet):
+            return Response(
+                GenericErrorSerializer({"error": str(exc)}).data,
+                status=status.HTTP_400_BAD_REQUEST,
             )
         if isinstance(exc, (exceptions.APIException, Http404)):
             return super().handle_exception(exc)
