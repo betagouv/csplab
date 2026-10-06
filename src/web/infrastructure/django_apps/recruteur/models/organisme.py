@@ -15,7 +15,7 @@ class OrganismeQuerySet(models.QuerySet):
         return self.filter(supprime_le__isnull=True)
 
     def by_id(self, organisme_id) -> "OrganismeQuerySet":
-        return self.filter(pk=organisme_id)
+        return self.not_supprimes().filter(pk=organisme_id)
 
     def by_organisme_ids(self, organisme_ids) -> "OrganismeQuerySet":
         return self.filter(pk__in=organisme_ids)

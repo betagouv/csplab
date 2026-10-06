@@ -27,8 +27,7 @@ def initialize_organisme_etapes(
     with transaction.atomic():
         try:
             organisme = (
-                OrganismeModel.objects.not_supprimes()
-                .by_id(organisme_id)
+                OrganismeModel.objects.by_id(organisme_id)
                 .select_for_update(no_key=True)
                 .get()
             )
