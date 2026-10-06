@@ -4,7 +4,7 @@ import type { CspBreadcrumbItem } from '@/components/base/CspBreadcrumb/CspBread
 import type { ToastOptions } from '@/composables/ui/useToast'
 import type { AgentRecherche } from '@/features/organismes/types'
 import { computed, ref, watch } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { useRouter } from 'vue-router'
 import { HttpError, isHttpStatus } from '@/api/errors'
 import CspAsyncSection from '@/components/base/CspAsyncSection/CspAsyncSection.vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
@@ -37,6 +37,10 @@ import { useRecrutements } from '../composables/useRecrutements'
 import { useRecrutementsFilters } from '../composables/useRecrutementsFilters'
 import { RECRUTEMENT_TAB_ICONS, RECRUTEMENT_TAB_LABELS } from '../constants/recrutement'
 
+const props = defineProps<{
+  organismeUuid: string
+}>()
+
 const AUCUN_RECRUTEMENT_EN_COURS_DESCRIPTION = 'Les recrutements auxquels vous participez apparaissent ici. Pour accéder à un recrutement, contactez la personne responsable dans votre organisation.'
 
 const BREADCRUMB: CspBreadcrumbItem[] = [
@@ -44,9 +48,7 @@ const BREADCRUMB: CspBreadcrumbItem[] = [
   { label: 'Recrutements' },
 ]
 
-const route = useRoute()
 const router = useRouter()
-const organismeUuid = computed(() => route.params.organismeUuid as string)
 
 const activeTab = useRouteTab<RecrutementKey>(RECRUTEMENTS_TAB_ROUTE_NAMES, 'actifs')
 
@@ -57,7 +59,7 @@ const {
   pendingArchives,
   error: recrutementsError,
   data: recrutementsData,
-} = useRecrutements(organismeUuid, activeTab)
+} = useRecrutements(() => props.organismeUuid, activeTab)
 
 const forbidden = computed(() => isHttpStatus(recrutementsError.value, 403))
 
@@ -67,7 +69,7 @@ const showArchivesSkeleton = useMinimumPending(pendingArchives, 300)
 function openOffre(recrutementUuid: string) {
   void router.push({
     name: CANDIDATURES_VIEW_ROUTE_NAMES.kanban,
-    params: { organismeUuid: organismeUuid.value, recrutementUuid },
+    params: { organismeUuid: props.organismeUuid, recrutementUuid },
   })
 }
 
@@ -95,7 +97,7 @@ const {
   assign,
   submitting,
   reset: resetResponsable,
-} = useAssignationResponsable(organismeUuid)
+} = useAssignationResponsable(() => props.organismeUuid)
 
 const selectionLabel = computed(() => {
   const count = selection.count.value

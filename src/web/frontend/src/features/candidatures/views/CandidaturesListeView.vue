@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { computed, ref, useTemplateRef } from 'vue'
-import { useRoute } from 'vue-router'
 import CspDataTable from '@/components/base/CspDataTable/CspDataTable.vue'
 import CspSkeleton from '@/components/base/CspSkeleton/CspSkeleton.vue'
 import CspSkeletonTable from '@/components/base/CspSkeleton/CspSkeletonTable.vue'
@@ -11,13 +10,13 @@ import { useCandidatureLinkFocus } from '../composables/useCandidatureLinkFocus'
 import { provideCandidatureSequence } from '../composables/useCandidatureNavigation'
 import { useCandidatures } from '../composables/useCandidatures'
 
+const props = defineProps<{
+  candidatureUuid?: string
+}>()
 const { pendingListe, filters } = useCandidatures()
 const { filteredCandidatures } = filters
 
 const showSkeleton = useMinimumPending(pendingListe)
-
-const route = useRoute()
-const openCandidatureUuid = computed(() => route.params.candidatureUuid as string | undefined)
 
 const table = useTemplateRef('table')
 provideCandidatureSequence(() => table.value?.sortedRowIds ?? [])
@@ -65,7 +64,7 @@ const countLabel = computed(() => {
       :rows="filteredCandidatures"
       :columns="CANDIDATURE_LISTE_COLUMNS"
       :row-key="row => row.uuid"
-      :current-id="openCandidatureUuid"
+      :current-id="props.candidatureUuid"
       caption="Candidatures"
       empty-label="Aucune candidature"
       :page-size="PAGE_SIZE"

@@ -3,7 +3,6 @@ import type { OrganismeTabKey } from '../constants/organisme'
 import type { CspBreadcrumbItem } from '@/components/base/CspBreadcrumb/CspBreadcrumb.vue'
 import type { CspMetaItem } from '@/components/base/CspMeta/types'
 import { computed } from 'vue'
-import { useRoute } from 'vue-router'
 import CspMetaList from '@/components/base/CspMeta/CspMetaList.vue'
 import CspPageContainer from '@/components/layout/CspPageContainer/CspPageContainer.vue'
 import CspPageHeader from '@/components/layout/CspPageHeader/CspPageHeader.vue'
@@ -18,11 +17,11 @@ import OrganismeAgentsSection from '../components/OrganismeAgentsSection.vue'
 import { useOrganismeDetail } from '../composables/useOrganismeDetail'
 import { ORGANISME_TAB_ICONS, ORGANISME_TAB_LABELS } from '../constants/organisme'
 
-const route = useRoute()
+const props = defineProps<{
+  organismeUuid: string
+}>()
 
-const organismeUuid = computed(() => route.params.organismeUuid as string)
-
-const { organisme, notFound, forbidden } = useOrganismeDetail(organismeUuid)
+const { organisme, notFound, forbidden } = useOrganismeDetail(() => props.organismeUuid)
 
 const breadcrumb: CspBreadcrumbItem[] = [
   { label: 'Accueil', to: { name: HOME_ROUTE_NAME } },
@@ -58,14 +57,12 @@ const metaItems = computed<CspMetaItem[]>(() =>
     >
       <template #tab-membres>
         <OrganismeAgentsSection
-          v-if="organismeUuid"
           :key="organismeUuid"
           :organisme-uuid="organismeUuid"
         />
       </template>
       <template #tab-etapes>
         <EtapesRecrutementList
-          v-if="organismeUuid"
           :params="{ type: 'organisme', organismeUuid }"
           :texts="ETAPES_TEXTS_ORGANISME"
         />
