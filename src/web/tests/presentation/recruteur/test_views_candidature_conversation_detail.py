@@ -7,14 +7,14 @@ from django.urls import reverse
 from rest_framework import status
 
 from domain.candidate.exceptions.document_errors import FichierDeposeIncomplet
-from domain.recruteur.value_objects.roles import (
-    AgentOrganismeRole,
-    AgentRecrutementRole,
-)
+from domain.recruteur.value_objects.roles import AgentOrganismeRole
+from infrastructure.django_apps.candidate.enums.type_document import TypeDocument
+from infrastructure.django_apps.candidate.models.document import DocumentQuerySet
 from infrastructure.django_apps.commons.models import AuditLogModel
-from infrastructure.django_apps.messagerie.models import MessageModel
+from infrastructure.django_apps.messagerie.models import MessageModel, MessageQuerySet
 from infrastructure.factories.candidate.candidature_django_factory import (
     CandidatureDjangoFactory,
+    create_recrutement_with_candidature,
 )
 from infrastructure.factories.identite.organisme_django_factory import (
     OrganismeDjangoFactory,
@@ -25,16 +25,19 @@ from infrastructure.factories.messagerie.conversation_django_factory import (
     MessageDjangoFactory,
 )
 from infrastructure.factories.recruteur.recrutement_django_factory import (
-    EtapeDjangoFactory,
-    RecrutementAgentDjangoFactory,
     RecrutementDjangoFactory,
 )
 from presentation.recruteur.views.candidature_conversation_detail import (
     MessagePagination,
 )
-from tests.utils.message_documents import INVALID_DOCUMENTS, valid_documents
+from tests.utils.conversation_views import AUTHORIZED_ROLES, HTTP_METHODS, grant
+from tests.utils.message_documents import (
+    INVALID_DOCUMENTS,
+    PDF_BYTES,
+    valid_documents,
+)
 
-TAILLE_PAGE_LIMITEE = 2
+TAILLE_PAGE_LIMITEE = 1
 TAILLE_PAGE_PAR_DEFAUT = 20
 NB_MESSAGES = 3
 
@@ -49,14 +52,6 @@ def _url(organisme_uuid, recrutement_uuid, candidature_uuid, conversation_uuid):
             "conversation_uuid": conversation_uuid,
         },
     )
-
-
-def _candidature_for(organisme):
-    recrutement = RecrutementDjangoFactory(organisme=organisme)
-    candidature = CandidatureDjangoFactory(
-        etape=EtapeDjangoFactory(recrutement=recrutement)
-    )
-    return recrutement, candidature
 
 
 def _conversation_of(candidature):
@@ -85,7 +80,7 @@ def _recrutement_from_another_organisme(organisme, recrutement, candidature):
 
 
 def _candidature_from_another_recrutement(organisme, recrutement, candidature):
-    _, autre_candidature = _candidature_for(organisme)
+    _, autre_candidature = create_recrutement_with_candidature(organisme)
     return (
         organisme.id,
         recrutement.pk,
@@ -130,25 +125,6 @@ NOT_FOUND_CASES = [
 ]
 
 
-AUTHORIZED_ROLES = pytest.mark.parametrize(
-    "organisme_role,recrutement_role",
-    [
-        (AgentOrganismeRole.SUPERVISEUR, None),
-        (AgentOrganismeRole.AGENT, AgentRecrutementRole.RESPONSABLE),
-        (AgentOrganismeRole.AGENT, AgentRecrutementRole.RECRUTEUR),
-        (AgentOrganismeRole.AGENT, AgentRecrutementRole.CONTRIBUTEUR),
-    ],
-    ids=[
-        "superviseur",
-        "agent_responsable",
-        "agent_recruteur",
-        "agent_contributeur",
-    ],
-)
-
-HTTP_METHODS = pytest.mark.parametrize("method", ["get", "post"])
-
-
 def _call(client, method, url):
     if method == "post":
         return client.post(url, {"content": "Bonjour"}, format="multipart")
@@ -156,16 +132,10 @@ def _call(client, method, url):
 
 
 def _authorized_url(test_user, organisme_role, recrutement_role):
-    _, organisme = create_organisme_with_agent(
-        role=organisme_role, utilisateur=test_user
+    _, organisme, recrutement, candidature = grant(
+        test_user, organisme_role, recrutement_role
     )
-    recrutement, candidature = _candidature_for(organisme)
-    if recrutement_role is not None:
-        RecrutementAgentDjangoFactory(
-            recrutement=recrutement,
-            agent=test_user.profil_agent,
-            role=recrutement_role.value,
-        )
+    MessageDjangoFactory(conversation__candidature=candidature)  # other conversation
     return _url(
         organisme.id, recrutement.pk, candidature.pk, _conversation_of(candidature)
     )
@@ -191,7 +161,7 @@ class TestCandidatureConversationDetailView:
             organisme = OrganismeDjangoFactory()
         else:
             _, organisme = create_organisme_with_agent(role=role, utilisateur=test_user)
-        recrutement, candidature = _candidature_for(organisme)
+        recrutement, candidature = create_recrutement_with_candidature(organisme)
 
         response = _call(
             authenticated_client,
@@ -212,7 +182,7 @@ class TestCandidatureConversationDetailView:
         _, organisme = create_organisme_with_agent(
             role=AgentOrganismeRole.SUPERVISEUR, utilisateur=test_user
         )
-        recrutement, candidature = _candidature_for(organisme)
+        recrutement, candidature = create_recrutement_with_candidature(organisme)
 
         response = _call(
             authenticated_client,
@@ -221,6 +191,22 @@ class TestCandidatureConversationDetailView:
         )
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    @pytest.mark.parametrize(
+        "method,queryset_method", [("get", "by_conversation"), ("post", "create")]
+    )
+    def test_unexpected_error_is_a_server_error(
+        self, authenticated_client, test_user, method, queryset_method
+    ):
+        url = _superviseur_url(test_user)
+
+        with patch.object(
+            MessageQuerySet, queryset_method, side_effect=RuntimeError("boom")
+        ):
+            response = _call(authenticated_client, method, url)
+
+        assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
+        assert response.json() == {"error": "Unexpected error"}
 
     @AUTHORIZED_ROLES
     def test_authorized_agent_reads_conversation(
@@ -266,13 +252,13 @@ class TestCandidatureConversationDetailView:
         assert len(body["results"]) == TAILLE_PAGE_LIMITEE
         assert body["next"] is not None
 
+    def test_default_page_size_is_20(self):
+        assert MessagePagination.page_size == TAILLE_PAGE_PAR_DEFAUT
+
     def test_out_of_range_page_returns_404(self, authenticated_client, test_user):
         response = authenticated_client.get(_superviseur_url(test_user), {"page": 999})
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
-
-    def test_default_page_size_is_20(self):
-        assert MessagePagination.page_size == TAILLE_PAGE_PAR_DEFAUT
 
     @AUTHORIZED_ROLES
     def test_authorized_agent_replies(
@@ -310,27 +296,39 @@ class TestCandidatureConversationDetailView:
 
         message = MessageModel.objects.get(contenu="Merci")
         assert message.auteur_id == test_user.username
-        assert message.pieces_jointes.count() == len(created["documents"])
+        pieces_jointes = message.pieces_jointes.select_related("document")
+
+        documents = [piece.document for piece in pieces_jointes]
+        assert len(documents) == len(created["documents"])
+
+        cv = next(d for d in documents if d.nom_original == "cv.pdf")
+        assert cv.type_document == TypeDocument.AUTRE
+        assert cv.content_type == "application/pdf"
+        assert cv.taille == len(PDF_BYTES)
+
+        candidature_id = message.conversation.candidature_id
+        assert all(d.candidature_id == candidature_id for d in documents)
+        assert all(d.depose_par_id == test_user.username for d in documents)
 
         audit = AuditLogModel.objects.get(ressource_id=message.pk)
         assert audit.ressource_kind == "Message"
         assert audit.event_name == "MessageCree"
+        assert audit.utilisateur_id == test_user.username
 
         listed = authenticated_client.get(url).json()["results"]
         assert listed[-1]["content"] == "Merci"
         assert listed[-1]["created_at"] == created["created_at"]
-        assert len(listed) == NB_MESSAGES + 1
+        assert len(listed) == NB_MESSAGES + 1  # the other conversation is excluded
 
     def test_incomplete_uploaded_file_is_a_bad_request(
         self, authenticated_client, test_user
     ):
-        with patch(
-            "presentation.recruteur.views.candidature_conversation_detail.reply_conversation",
-            side_effect=FichierDeposeIncomplet(),
+        with patch.object(
+            DocumentQuerySet, "build_from_upload", side_effect=FichierDeposeIncomplet()
         ):
             response = authenticated_client.post(
                 _superviseur_url(test_user),
-                {"content": "Bonjour"},
+                {"content": "Bonjour", "documents": valid_documents()},
                 format="multipart",
             )
 

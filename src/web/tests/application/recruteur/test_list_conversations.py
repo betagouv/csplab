@@ -1,10 +1,8 @@
 from uuid import uuid4
 
 import pytest
-from django.db import IntegrityError
-from faker import Faker
 
-from application.recruteur.services.create_conversation import create_conversation
+from application.recruteur.services.list_conversations import list_conversations
 from domain.commons.errors.organisme_errors import OrganismeNexistePas
 from domain.identite.errors.organisme_permission_errors import (
     AccesOrganismeRefuse,
@@ -15,9 +13,6 @@ from domain.recruteur.errors.recrutement_errors import (
     RecrutementInexistant,
 )
 from domain.recruteur.value_objects.roles import AgentOrganismeRole
-from infrastructure.django_apps.messagerie.models import (
-    ConversationModel,
-)
 from infrastructure.factories.candidate.candidature_django_factory import (
     create_recrutement_and_candidature_for_agent,
     create_recrutement_with_candidature,
@@ -28,30 +23,9 @@ from infrastructure.factories.identite.organisme_django_factory import (
 )
 from infrastructure.factories.identite.utilisateur_factory import UtilisateurFactory
 
-fake = Faker("fr_FR")
 
-
-def _utilisateur(entity_id, **kwargs):
-    return UtilisateurFactory.create_entity(entity_id=entity_id, **kwargs)
-
-
-def test_nothing_is_persisted_when_the_message_cannot_be_created(db):
-    agent, organisme, recrutement, candidature = (
-        create_recrutement_and_candidature_for_agent()
-    )
-
-    with pytest.raises(IntegrityError):
-        create_conversation(
-            organisme_id=organisme.id,
-            recrutement_id=recrutement.pk,
-            candidature_id=candidature.pk,
-            objet=fake.sentence(nb_words=4),
-            content="",
-            documents=[],
-            utilisateur=_utilisateur(agent.utilisateur_id),
-        )
-
-    assert not ConversationModel.objects.exists()
+def _utilisateur(entity_id):
+    return UtilisateurFactory.create_entity(entity_id=entity_id)
 
 
 def _without_organisme_role():
@@ -128,12 +102,9 @@ def test_is_denied(db, build_args, error):
     organisme_id, recrutement_id, candidature_id, utilisateur = build_args()
 
     with pytest.raises(error):
-        create_conversation(
+        list_conversations(
             organisme_id=organisme_id,
             recrutement_id=recrutement_id,
             candidature_id=candidature_id,
-            objet=fake.sentence(nb_words=4),
-            content=fake.sentence(nb_words=30),
-            documents=[],
             utilisateur=utilisateur,
         )
