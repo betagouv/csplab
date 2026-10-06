@@ -2,30 +2,22 @@
 import type { CandidatureTabKey } from '../constants/candidature'
 import type { CspBreadcrumbItem } from '@/components/base/CspBreadcrumb/CspBreadcrumb.vue'
 import { computed } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { useRouter } from 'vue-router'
 import { isHttpStatus } from '@/api/errors'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspDropdownMenu from '@/components/base/CspDropdownMenu/CspDropdownMenu.vue'
-import CspEmptyState from '@/components/base/CspEmptyState/CspEmptyState.vue'
-import CspErrorState from '@/components/base/CspErrorState/CspErrorState.vue'
 import CspMetaList from '@/components/base/CspMeta/CspMetaList.vue'
-import CspSearchBar from '@/components/base/CspSearchBar/CspSearchBar.vue'
-import CspTableToolbar from '@/components/base/CspTableToolbar/CspTableToolbar.vue'
 import CspPageContainer from '@/components/layout/CspPageContainer/CspPageContainer.vue'
 import CspPageHeader from '@/components/layout/CspPageHeader/CspPageHeader.vue'
 import { useMinimumPending } from '@/composables/async/useMinimumPending'
 import { tabItems } from '@/composables/navigation/tabs'
 import { useRouteTab } from '@/composables/navigation/useRouteTab'
-import { useDisclosure } from '@/composables/ui/useDisclosure'
 import { useDocumentTitle } from '@/composables/ui/useDocumentTitle'
-import EquipeRecrutementSection from '@/features/equipe-recrutement/components/EquipeRecrutementSection.vue'
 import { HOME_BREADCRUMB_ITEM, recrutementsBreadcrumbItem } from '@/router/breadcrumb'
 import { CANDIDATURES_TAB_ROUTE_NAMES, RECRUTEMENT_ETAPES_ROUTE_NAME, recrutementsListLocation } from '@/router/names'
 import { useCurrentUser } from '@/stores/currentUser'
 import { useRouteOrganisme } from '@/stores/routeOrganisme'
 import ForbiddenView from '@/views/ForbiddenView.vue'
-import CandidaturesFiltersDrawer from '../components/CandidaturesFiltersDrawer.vue'
-import CandidaturesViewSwitch from '../components/CandidaturesViewSwitch.vue'
 import { useCandidatures } from '../composables/useCandidatures'
 import { CANDIDATURE_TAB_ICONS, CANDIDATURE_TAB_LABELS } from '../constants/candidature'
 import { formatRecrutementMeta } from '../format'
@@ -34,14 +26,12 @@ const props = defineProps<{
   organismeUuid: string
   recrutementUuid: string
 }>()
-const route = useRoute()
 const router = useRouter()
 const {
   recrutementDetail,
   intitule,
   pendingDetail,
   error,
-  filters,
 } = useCandidatures()
 
 const showTitleSkeleton = useMinimumPending(
@@ -50,30 +40,6 @@ const showTitleSkeleton = useMinimumPending(
 const showSubtitleSkeleton = useMinimumPending(
   computed(() => pendingDetail.value && !recrutementDetail.value),
 )
-
-const {
-  draft: filtersDraft,
-  canReset: canResetFilters,
-  search,
-  activeFiltersCount,
-  etapeOptions,
-} = filters
-
-const {
-  isOpen: isFiltersDrawerOpen,
-  open: openFiltersDrawer,
-  close: closeFiltersDrawer,
-} = useDisclosure()
-
-function openFilters() {
-  filters.syncDraft()
-  openFiltersDrawer()
-}
-
-function applyFilters() {
-  filters.apply()
-  closeFiltersDrawer()
-}
 
 const recrutementsListLink = computed(() => recrutementsListLocation(props.organismeUuid, recrutementDetail.value?.archive))
 
@@ -105,16 +71,6 @@ const equipeForbidden = computed(() =>
 )
 
 const forbidden = computed(() => isHttpStatus(error.value, 403) || equipeForbidden.value)
-
-const loadFailed = computed(() => !pendingDetail.value && Boolean(error.value))
-
-const isNotFound = computed(() =>
-  !pendingDetail.value && !error.value && !recrutementDetail.value,
-)
-
-const currentView = computed(() => {
-  return route.meta.candidaturesView ?? 'kanban'
-})
 
 const headerMenuSections = [{
   items: [{
@@ -162,80 +118,15 @@ const headerMenuSections = [{
       v-model:active-tab="activeTab"
       fill
       width="full"
-      class="candidatures-view"
       :tabs="visibleTabs"
     >
-      <template #tab-candidatures>
-        <CspErrorState
-          v-if="loadFailed"
-          title="Une erreur est survenue lors du chargement du recrutement."
-        />
-
-        <CspEmptyState
-          v-else-if="isNotFound"
-          icon="ri:search-line"
-          title="Recrutement introuvable"
-          description="Ce recrutement n'existe pas ou n'est plus accessible."
-        />
-
-        <template v-else>
-          <CspTableToolbar :bordered="false">
-            <template #status>
-              <CandidaturesViewSwitch
-                :organisme-uuid="organismeUuid"
-                :recrutement-uuid="recrutementUuid"
-                :current="currentView"
-              />
-            </template>
-            <CspSearchBar
-              v-model="search"
-              mode="live"
-              label="Rechercher un candidat"
-              hide-label
-              placeholder="Rechercher un candidat…"
-              class="candidatures-view__search"
-              @search="filters.flushSearch()"
-            />
-            <CspButton
-              :label="activeFiltersCount ? `Filtres (${activeFiltersCount})` : 'Filtres'"
-              variant="tertiary"
-              icon="ri:filter-line"
-              is-icon-left
-              @click="openFilters"
-            />
-          </CspTableToolbar>
-          <router-view />
-          <CandidaturesFiltersDrawer
-            v-model:open="isFiltersDrawerOpen"
-            v-model:etapes="filtersDraft.etapes"
-            :etape-options="etapeOptions"
-            :can-reset="canResetFilters"
-            @apply="applyFilters"
-            @reset="filters.reset"
-          />
-        </template>
-      </template>
-      <template #tab-activites-et-taches>
-        <div class="candidatures-view__placeholder">
-          Activités et tâches (à venir)
-        </div>
-      </template>
-      <template #tab-equipe>
-        <EquipeRecrutementSection
-          :organisme-uuid="organismeUuid"
-          :recrutement-uuid="recrutementUuid"
-        />
+      <template
+        v-for="tab in visibleTabs"
+        #[`tab-${tab.value}`]
+        :key="tab.value"
+      >
+        <router-view />
       </template>
     </CspPageContainer>
   </template>
 </template>
-
-<style scoped lang="scss">
-.candidatures-view__search {
-  min-width: 20rem;
-}
-
-.candidatures-view__placeholder {
-  color: var(--text-mention-grey);
-}
-</style>
