@@ -2,7 +2,7 @@
 import type { CandidatureListe } from '../../types'
 import type { CspTableCellValue } from '@/components/base/CspDataTable/table'
 import { RouterLink } from 'vue-router'
-import { CANDIDATURE_PANEL_ROUTE_NAMES } from '../../routes'
+import { CANDIDATURE_PANEL_ROUTE_NAMES } from '@/router/names'
 
 defineOptions({ inheritAttrs: false })
 

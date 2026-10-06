@@ -4,6 +4,7 @@ import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspErrorState from '@/components/base/CspErrorState/CspErrorState.vue'
 import CspPageContainer from '@/components/layout/CspPageContainer/CspPageContainer.vue'
 import CspPageHeader from '@/components/layout/CspPageHeader/CspPageHeader.vue'
+import { HOME_ROUTE_NAME } from '@/router/names'
 </script>
 
 <template>
@@ -17,7 +18,7 @@ import CspPageHeader from '@/components/layout/CspPageHeader/CspPageHeader.vue'
       <template #action>
         <CspButton
           :as="RouterLink"
-          :to="{ name: 'home' }"
+          :to="{ name: HOME_ROUTE_NAME }"
           label="Retour à l’accueil"
           variant="primary"
         />

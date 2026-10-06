@@ -6,7 +6,7 @@ import { useRoute } from 'vue-router'
 import CspPageContainer from '@/components/layout/CspPageContainer/CspPageContainer.vue'
 import CspPageHeader from '@/components/layout/CspPageHeader/CspPageHeader.vue'
 import { peekRecrutementIntitule, recrutementDetailQuery } from '@/features/recrutements/queries'
-import { recrutementsListLocation } from '@/features/recrutements/routes'
+import { CANDIDATURES_VIEW_ROUTE_NAMES, HOME_ROUTE_NAME, recrutementsListLocation } from '@/router/names'
 import EtapesRecrutementList from '../components/EtapesRecrutementList.vue'
 import { ETAPES_TEXTS_OFFRE } from '../constants/etape-recrutement'
 
@@ -35,12 +35,12 @@ const recrutementsListLink = computed(() =>
 )
 
 const candidaturesRoute = computed(() => ({
-  name: 'recrutement-candidatures-kanban',
+  name: CANDIDATURES_VIEW_ROUTE_NAMES.kanban,
   params: { organismeUuid, recrutementUuid },
 }))
 
 const breadcrumb = computed<CspBreadcrumbItem[]>(() => [
-  { label: 'Accueil', to: { name: 'home' } },
+  { label: 'Accueil', to: { name: HOME_ROUTE_NAME } },
   { label: 'Recrutements', to: recrutementsListLink.value },
   ...(intitule.value ? [{ label: intitule.value, to: candidaturesRoute.value }] : []),
   { label: 'Étapes de recrutement' },

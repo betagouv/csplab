@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { AssignationResponsableResultat } from '../types'
+import type { AssignationResponsableResultat, RecrutementKey } from '../types'
 import type { CspBreadcrumbItem } from '@/components/base/CspBreadcrumb/CspBreadcrumb.vue'
 import type { ToastOptions } from '@/composables/ui/useToast'
 import type { AgentRecherche } from '@/features/organismes/types'
@@ -24,6 +24,7 @@ import { useRouteTab } from '@/composables/navigation/useRouteTab'
 import { useDisclosure } from '@/composables/ui/useDisclosure'
 import { useToast } from '@/composables/ui/useToast'
 import { formatAgentName } from '@/features/organismes/format'
+import { CANDIDATURES_VIEW_ROUTE_NAMES, HOME_ROUTE_NAME, RECRUTEMENTS_TAB_ROUTE_NAMES } from '@/router/names'
 import { useRouteOrganisme } from '@/stores/routeOrganisme'
 import { pluralize } from '@/utils/format'
 import ForbiddenView from '@/views/ForbiddenView.vue'
@@ -32,16 +33,14 @@ import AssignationResponsableDrawer from '../components/AssignationResponsableDr
 import RecrutementsActifsFiltersDrawer from '../components/RecrutementsActifsFiltersDrawer.vue'
 import RecrutementsArchivesFiltersDrawer from '../components/RecrutementsArchivesFiltersDrawer.vue'
 import { useAssignationResponsable } from '../composables/useAssignationResponsable'
-
 import { useRecrutements } from '../composables/useRecrutements'
 import { useRecrutementsFilters } from '../composables/useRecrutementsFilters'
 import { RECRUTEMENT_TAB_ICONS, RECRUTEMENT_TAB_LABELS } from '../constants/recrutement'
-import { DEFAULT_RECRUTEMENT_TAB, RECRUTEMENTS_TAB_ROUTE_NAMES } from '../routes'
 
 const AUCUN_RECRUTEMENT_EN_COURS_DESCRIPTION = 'Les recrutements auxquels vous participez apparaissent ici. Pour accéder à un recrutement, contactez la personne responsable dans votre organisation.'
 
 const BREADCRUMB: CspBreadcrumbItem[] = [
-  { label: 'Accueil', to: { name: 'home' } },
+  { label: 'Accueil', to: { name: HOME_ROUTE_NAME } },
   { label: 'Recrutements' },
 ]
 
@@ -49,7 +48,7 @@ const route = useRoute()
 const router = useRouter()
 const organismeUuid = computed(() => route.params.organismeUuid as string)
 
-const activeTab = useRouteTab(RECRUTEMENTS_TAB_ROUTE_NAMES, DEFAULT_RECRUTEMENT_TAB)
+const activeTab = useRouteTab<RecrutementKey>(RECRUTEMENTS_TAB_ROUTE_NAMES, 'actifs')
 
 const TABS = tabItems(RECRUTEMENT_TAB_LABELS, RECRUTEMENT_TAB_ICONS)
 
@@ -67,7 +66,7 @@ const showArchivesSkeleton = useMinimumPending(pendingArchives, 300)
 
 function openOffre(recrutementUuid: string) {
   void router.push({
-    name: 'recrutement-candidatures-kanban',
+    name: CANDIDATURES_VIEW_ROUTE_NAMES.kanban,
     params: { organismeUuid: organismeUuid.value, recrutementUuid },
   })
 }

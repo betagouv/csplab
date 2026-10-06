@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { recrutementsListLocation } from './routes'
+import { recrutementsListLocation } from './names'
 
 const ORGANISME_UUID = '00000000-0000-0000-0000-000000000000'
 
