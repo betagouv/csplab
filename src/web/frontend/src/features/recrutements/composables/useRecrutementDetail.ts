@@ -16,8 +16,11 @@ export function useRecrutementDetail(params: MaybeRefOrGetter<RecrutementParams>
     return peekRecrutementIntitule(queryCache, organismeUuid, recrutementUuid)
   })
 
+  const etapes = computed(() => query.data.value?.etapes ?? [])
+
   return {
     recrutementDetail: query.data,
+    etapes,
     intitule,
     pending: query.isPending,
     error: query.error,

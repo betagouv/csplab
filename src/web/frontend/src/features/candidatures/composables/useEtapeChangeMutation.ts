@@ -1,7 +1,7 @@
 import type { EntryKey } from '@pinia/colada'
 import type { MaybeRefOrGetter } from 'vue'
 import type { EtapeChange } from '../api'
-import type { CandidaturesQueryParams } from '../queries'
+import type { RecrutementParams } from '@/features/recrutements/queries'
 import { useMutation, useQueryCache } from '@pinia/colada'
 import { toValue } from 'vue'
 import { useToast } from '@/composables/ui/useToast'
@@ -16,7 +16,7 @@ interface Snapshot {
   optimistic: unknown
 }
 
-export function useEtapeChangeMutation(recrutement: MaybeRefOrGetter<CandidaturesQueryParams>) {
+export function useEtapeChangeMutation(recrutement: MaybeRefOrGetter<RecrutementParams>) {
   const queryCache = useQueryCache()
   const { addToast } = useToast()
 

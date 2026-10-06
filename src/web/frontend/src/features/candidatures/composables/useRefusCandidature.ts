@@ -1,22 +1,18 @@
+import type { MaybeRefOrGetter } from 'vue'
 import type { Candidat, MotifRefus } from '../types'
 import { useQuery } from '@pinia/colada'
-import { computed, shallowRef } from 'vue'
+import { computed, shallowRef, toValue } from 'vue'
 import { motifsRefusQuery } from '../queries'
-import { useCandidatures } from './useCandidatures'
 
 interface PendingRefus {
   candidats: Candidat[]
   apply: (motifRefus: MotifRefus) => void
 }
 
-export function useRefusCandidature() {
-  const { organismeUuid } = useCandidatures()
+export function useRefusCandidature(organismeUuid: MaybeRefOrGetter<string>) {
   const pending = shallowRef<PendingRefus | null>(null)
 
-  const motifs = useQuery(() => ({
-    ...motifsRefusQuery({ organismeUuid: organismeUuid.value ?? '' }),
-    enabled: organismeUuid.value !== null,
-  }))
+  const motifs = useQuery(() => motifsRefusQuery({ organismeUuid: toValue(organismeUuid) }))
 
   function request(candidats: Candidat[], apply: PendingRefus['apply']): void {
     pending.value = { candidats, apply }

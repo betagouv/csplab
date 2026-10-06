@@ -111,6 +111,23 @@ describe('candidaturesListeView', () => {
     expect(table.getByRole('link', { name: 'Bruno Martin', hidden: true }).closest('tr')).not.toHaveAttribute('aria-current')
   })
 
+  it('shows the rows matching the search of the candidatures tab', async () => {
+    const user = setupUser()
+    const { table } = await renderListe()
+
+    await user.type(screen.getByRole('searchbox', { name: 'Rechercher un candidat' }), 'Bruno{Enter}')
+
+    await vi.waitFor(() => expect(table.queryByRole('link', { name: 'Alice Dupont' })).not.toBeInTheDocument())
+    expect(table.getByRole('link', { name: 'Bruno Martin' })).toBeInTheDocument()
+  })
+
+  it('shows an error when the list fails to load', async () => {
+    vi.mocked(getCandidatureListe).mockRejectedValue(new Error('boom'))
+    await renderWithApp(RouterView, { route: LISTE_PATH })
+
+    expect(await screen.findByText('Une erreur est survenue lors du chargement des candidatures.')).toBeInTheDocument()
+  })
+
   it('moves to the next candidature in the sorted order of the list', async () => {
     const user = setupUser()
     const { router, table } = await renderListe()
@@ -192,6 +209,16 @@ describe('candidaturesListeView', () => {
 
     const sorted = within(await screen.findByRole('table', { name: 'Candidatures' }))
     expect(sorted.getByRole('columnheader', { name: 'Dernière activité' })).toHaveAttribute('aria-sort', 'ascending')
+  })
+
+  it('resets the sort of the list when another recrutement opens', async () => {
+    const user = setupUser()
+    const { router, table } = await renderListe()
+
+    await user.click(table.getByRole('button', { name: 'Dernière activité' }))
+    await router.push(`/organismes/${ORGANISME_UUID}/recrutements/aaaaaaaa-0001-0001-0001-000000000002/liste`)
+
+    await vi.waitFor(() => expect(screen.getByRole('columnheader', { name: 'Dernière activité' })).not.toHaveAttribute('aria-sort', 'ascending'))
   })
 
   it('closes back to the list and focuses the link of the last candidature shown', async () => {

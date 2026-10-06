@@ -112,7 +112,11 @@ function leaveMovedCandidature(): void {
   }
 }
 
-const etapeChange = useEtapeChange(candidature, leaveMovedCandidature)
+const etapeChange = useEtapeChange(
+  () => ({ organismeUuid: props.organismeUuid, recrutementUuid: props.recrutementUuid }),
+  candidature,
+  leaveMovedCandidature,
+)
 
 async function requestEtapeChange(targetEtapeUuid: string): Promise<void> {
   if (await unsavedChanges.confirmLeave()) {
