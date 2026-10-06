@@ -12,9 +12,6 @@ from application.recruteur.usecases.changer_etape_candidatures import (
 from application.recruteur.usecases.get_recrutement_detail import (
     GetRecrutementDetailUsecase,
 )
-from application.recruteur.usecases.get_recrutement_etapes import (
-    GetRecrutementEtapesUsecase,
-)
 from application.recruteur.usecases.get_recrutement_kanban import (
     GetRecrutementKanbanUsecase,
 )
@@ -178,13 +175,6 @@ class RecruteurContainer(containers.DeclarativeContainer):
         GetRecrutementListeUsecase,
         organisme_permission_service=organisme_permission_service,
         recrutement_query_service=postgres_recrutement_query_service,
-    )
-
-    get_recrutement_etapes_usecase = providers.Factory(
-        GetRecrutementEtapesUsecase,
-        permission_service=organisme_permission_service,
-        recrutement_repository=postgres_recrutement_repository,
-        organisme_recruteur_repository=postgres_organisme_recruteur_repository,
     )
 
     update_recrutement_etapes_usecase = providers.Factory(

@@ -288,7 +288,7 @@ class OrganismePermissionService:
 
             # TODO : duplicate query — overlaps the
             # recrutement_repository.get_by_id(...) call usecases already made just
-            # above (application/recruteur/usecases/{get,init,update}
+            # above (application/recruteur/usecases/{init,update}
             # _recrutement_etapes.py); dedupe when refactoring to ADR-009
             recrutement_liaison = (
                 RecrutementAgentModel.objects.by_recrutement_and_agent(

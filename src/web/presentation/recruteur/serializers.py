@@ -20,6 +20,7 @@ from infrastructure.django_apps.messagerie.models import (
     MessageModel,
 )
 from infrastructure.django_apps.recruteur.enums.motif_refus import MotifRefus
+from infrastructure.django_apps.recruteur.models.etape import EtapeModel
 from infrastructure.django_apps.recruteur.models.note import NoteModel
 from infrastructure.django_apps.recruteur.models.recrutement import (
     RecrutementAgentModel,
@@ -139,6 +140,20 @@ class CandidatureSerializer(serializers.Serializer):
 
 class EtapeRecrutementDetailedCandidaturesSerializer(EtapeRecrutementSerializer):
     candidatures = CandidatureSerializer(many=True)
+
+
+class CategorieEtapeField(serializers.ReadOnlyField):
+    def to_representation(self, value: str) -> str:
+        return CategorieEtapeRecrutement(value).name
+
+
+class EtapeRecrutementModelSerializer(serializers.ModelSerializer):
+    uuid = serializers.UUIDField(source="id")
+    categorie = CategorieEtapeField()
+
+    class Meta:
+        model = EtapeModel
+        fields = ["uuid", "nom", "categorie"]
 
 
 class RecrutementDetailSerializer(serializers.Serializer):
