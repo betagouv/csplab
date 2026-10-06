@@ -4,11 +4,16 @@ import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspErrorState from '@/components/base/CspErrorState/CspErrorState.vue'
 import CspPageContainer from '@/components/layout/CspPageContainer/CspPageContainer.vue'
 import CspPageHeader from '@/components/layout/CspPageHeader/CspPageHeader.vue'
+import { useDocumentTitle } from '@/composables/ui/useDocumentTitle'
 import { HOME_ROUTE_NAME } from '@/router/names'
+
+const TITLE = 'Page introuvable'
+
+useDocumentTitle(TITLE)
 </script>
 
 <template>
-  <CspPageHeader title="Page introuvable" />
+  <CspPageHeader :title="TITLE" />
   <CspPageContainer>
     <CspErrorState
       title="Cette page n’existe pas."

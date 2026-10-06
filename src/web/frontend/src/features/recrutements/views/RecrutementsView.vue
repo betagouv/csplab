@@ -22,6 +22,7 @@ import { useTableSelection } from '@/composables/data/useTableSelection'
 import { tabItems } from '@/composables/navigation/tabs'
 import { useRouteTab } from '@/composables/navigation/useRouteTab'
 import { useDisclosure } from '@/composables/ui/useDisclosure'
+import { useDocumentTitle } from '@/composables/ui/useDocumentTitle'
 import { useToast } from '@/composables/ui/useToast'
 import { formatAgentName } from '@/features/organismes/format'
 import { CANDIDATURES_VIEW_ROUTE_NAMES, HOME_ROUTE_NAME, RECRUTEMENTS_TAB_ROUTE_NAMES } from '@/router/names'
@@ -51,6 +52,9 @@ const BREADCRUMB: CspBreadcrumbItem[] = [
 const router = useRouter()
 
 const activeTab = useRouteTab<RecrutementKey>(RECRUTEMENTS_TAB_ROUTE_NAMES, 'actifs')
+
+const { organisme: routeOrganisme, canManageOrganisme } = useRouteOrganisme()
+useDocumentTitle(() => RECRUTEMENT_TAB_LABELS[activeTab.value], () => routeOrganisme.value?.nom)
 
 const TABS = tabItems(RECRUTEMENT_TAB_LABELS, RECRUTEMENT_TAB_ICONS)
 
@@ -84,7 +88,6 @@ const archivesFilters = useRecrutementsFilters(computed(() => recrutementsData.a
 const actifsFiltersDrawer = useDisclosure()
 const archivesFiltersDrawer = useDisclosure()
 
-const { canManageOrganisme } = useRouteOrganisme()
 const { addToast } = useToast()
 
 const selection = useTableSelection(actifsFilters.filtered, row => row.uuid)

@@ -17,6 +17,7 @@ import { useMinimumPending } from '@/composables/async/useMinimumPending'
 import { tabItems } from '@/composables/navigation/tabs'
 import { useRouteTab } from '@/composables/navigation/useRouteTab'
 import { useDisclosure } from '@/composables/ui/useDisclosure'
+import { useDocumentTitle } from '@/composables/ui/useDocumentTitle'
 import EquipeRecrutementSection from '@/features/equipe-recrutement/components/EquipeRecrutementSection.vue'
 import { CANDIDATURES_TAB_ROUTE_NAMES, HOME_ROUTE_NAME, RECRUTEMENT_ETAPES_ROUTE_NAME, recrutementsListLocation } from '@/router/names'
 import { useCurrentUser } from '@/stores/currentUser'
@@ -95,6 +96,8 @@ const visibleTabs = computed(() =>
   canManageOrganisme.value ? TABS : TABS.filter(tab => tab.value !== 'equipe'),
 )
 const activeTab = useRouteTab<CandidatureTabKey>(CANDIDATURES_TAB_ROUTE_NAMES, 'candidatures')
+
+useDocumentTitle(() => CANDIDATURE_TAB_LABELS[activeTab.value], intitule)
 
 const equipeForbidden = computed(() =>
   activeTab.value === 'equipe' && Boolean(user.value) && !canManageOrganisme.value,

@@ -37,6 +37,13 @@ describe('candidaturesView', () => {
     vi.mocked(getEquipeRecrutement).mockReset().mockResolvedValue([])
   })
 
+  it('names the document after the tab and the recrutement', async () => {
+    vi.mocked(getMe).mockReset().mockResolvedValue(makeUser([roleOnOrganisme('agent')]))
+    await renderWithApp(RouterView, { route: KANBAN_PATH })
+
+    await vi.waitFor(() => expect(document.title).toBe('Candidatures - Chargé de mission'))
+  })
+
   it('hides the équipe tab from an agent who cannot list the team', async () => {
     vi.mocked(getMe).mockReset().mockResolvedValue(makeUser([roleOnOrganisme('agent')]))
     await renderWithApp(RouterView, { route: KANBAN_PATH })
@@ -60,5 +67,6 @@ describe('candidaturesView', () => {
     await renderWithApp(RouterView, { route: EQUIPE_PATH })
 
     expect(await screen.findByText('Vous n’avez pas accès à cette page.')).toBeInTheDocument()
+    await vi.waitFor(() => expect(document.title).toBe('Accès refusé'))
   })
 })
