@@ -6,11 +6,11 @@ from ddd.page_interface import IPage
 from referentiel.entities.offer import Offer
 from referentiel.value_objects.area import GeographicalArea
 from referentiel.value_objects.category import Category
-from referentiel.value_objects.contract_type import ContractType
 from referentiel.value_objects.country import Country
 from referentiel.value_objects.department import Department
 from referentiel.value_objects.experience_level import ExperienceLevel
 from referentiel.value_objects.offer_conditions import Management, WorkingPlace
+from referentiel.value_objects.offer_nature import OfferNature
 from referentiel.value_objects.region import Region
 from referentiel.value_objects.verse import Verse
 
@@ -33,7 +33,7 @@ class IOffersRepository(Protocol):
         active: bool,
         category: Optional[List[Category]] = None,
         verse: Optional[List[Verse]] = None,
-        contract_type: Optional[List[ContractType]] = None,
+        offer_nature: Optional[List[OfferNature]] = None,
         experience_level: Optional[List[ExperienceLevel]] = None,
         management: Optional[List[Management]] = None,
         working_place: Optional[List[WorkingPlace]] = None,

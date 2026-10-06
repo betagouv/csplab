@@ -15,7 +15,7 @@ class OfferAdmin(ReadOnlyAdminMixin, admin.ModelAdmin):
         "verse",
         "title",
         "category",
-        "contract_type",
+        "offer_nature",
         "region",
         "department",
         "beginning_date",
@@ -25,7 +25,7 @@ class OfferAdmin(ReadOnlyAdminMixin, admin.ModelAdmin):
     list_filter = (
         "verse",
         "category",
-        "contract_type",
+        "offer_nature",
         "region",
         "created_at",
         "updated_at",

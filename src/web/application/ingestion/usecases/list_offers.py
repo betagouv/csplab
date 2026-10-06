@@ -21,7 +21,7 @@ class ListOffersUsecase(IUsecase[GetFilteredOffersInput, IPage[Offer]]):
             active=input_data.active,
             category=input_data.category,
             verse=input_data.verse,
-            contract_type=input_data.contract_type,
+            offer_nature=input_data.offer_nature,
             experience_level=input_data.experience_level,
             management=input_data.management,
             working_place=input_data.working_place,

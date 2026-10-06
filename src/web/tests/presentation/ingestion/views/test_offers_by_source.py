@@ -5,11 +5,12 @@ from uuid import UUID
 import pytest
 from django.urls import reverse
 from pydantic import HttpUrl
-from referentiel.value_objects.contract_type import ContractKind, ContractType
+from referentiel.value_objects.contract_kind import ContractKind
 from referentiel.value_objects.diploma import Diploma
 from referentiel.value_objects.experience_level import ExperienceLevel
 from referentiel.value_objects.language_level import LanguageLevel
 from referentiel.value_objects.offer_criteria import OfferCriteria, OfferLanguage
+from referentiel.value_objects.offer_nature import OfferNature
 from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
 
@@ -155,7 +156,7 @@ class TestOffersBySourceViewDbVerified:
         offer = OfferDjangoFactory(
             source=source,
             offer_url=None,
-            contract_type=None,
+            offer_nature=None,
             area=None,
             country=None,
             region=None,
@@ -183,7 +184,7 @@ class TestOffersBySourceViewDbVerified:
                 "service_description": None,
                 "verse": offer.verse,
                 "category": offer.category,
-                "contract_type": None,
+                "offer_nature": None,
                 "contract_kind": None,
                 "job_vacancy": None,
                 "offer_url": None,
@@ -217,7 +218,7 @@ class TestOffersBySourceViewDbVerified:
             exercise_conditions="Télétravail possible",
             service_description="Service des ressources humaines",
             application_deadline=datetime(2024, 5, 15, tzinfo=UTC),
-            contract_type=ContractType.TERRITORIAL.value,
+            offer_nature=OfferNature.TERRITORIAL.value,
             contract_kind=ContractKind.CDD_CDI.name,
             job_vacancy="1",
             offer_url=HttpUrl("https://exemple.gouv.fr/offres/e2e-1"),
@@ -251,7 +252,7 @@ class TestOffersBySourceViewDbVerified:
                 "service_description": offer.service_description,
                 "verse": offer.verse,
                 "category": offer.category,
-                "contract_type": offer.contract_type,
+                "offer_nature": offer.offer_nature,
                 "contract_kind": ContractKind.CDD_CDI.value,
                 "job_vacancy": offer.job_vacancy,
                 "offer_url": "https://exemple.gouv.fr/offres/e2e-1",

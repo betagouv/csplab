@@ -7,12 +7,13 @@ from referentiel.entities.offer import Offer
 from referentiel.entities.talentsoft_organisme import TalentsoftOrganisme
 from referentiel.value_objects.area import GeographicalArea
 from referentiel.value_objects.category import Category
-from referentiel.value_objects.contract_type import ContractKind, ContractType
+from referentiel.value_objects.contract_kind import ContractKind
 from referentiel.value_objects.country import Country
 from referentiel.value_objects.department import Department
 from referentiel.value_objects.limit_date import LimitDate
 from referentiel.value_objects.localisation import Localisation
 from referentiel.value_objects.offer_criteria import OfferCriteria, OfferLanguage
+from referentiel.value_objects.offer_nature import OfferNature
 from referentiel.value_objects.region import Region
 from referentiel.value_objects.siret import SIRET
 from referentiel.value_objects.verse import Verse
@@ -64,7 +65,7 @@ class OfferInputMapper(IToDomainMapper[dict, Offer]):
             publication_date=data["publication"]["debut_publication"],
             verse=Verse(data["identification"]["versant"]),
             category=category,
-            contract_type=ContractType(data["nature_offre"]),
+            offer_nature=OfferNature(data["nature_offre"]),
             offer_url=data.get("url_offre"),
             localisation=self._localisation_mapper.to_domain(raw_localisation),
             beginning_date=LimitDate(debut_contrat) if debut_contrat else None,
@@ -126,9 +127,9 @@ class OfferSummaryOutputMapper:
                 offer.processed_at or offer.publication_date
             ),
             "contractType": self._coded_object(
-                offer.contract_type.name, offer.contract_type.value, "contractType"
+                offer.offer_nature.name, offer.offer_nature.value, "contractType"
             )
-            if offer.contract_type
+            if offer.offer_nature
             else None,
             "offerFamilyCategory": self._coded_object(
                 offer.category.name, offer.category.value, "offerFamilyCategory"

@@ -28,8 +28,9 @@ fonction publique et les offres qui ne donnent pas lieu à un contrat.
     supprimée.
 - `GET /api/v1/offres` : le filtre `type_contrat` est renommé `nature_offre`, et la
   valeur `CONTRACTUELS` devient `CONTRACTUEL`.
-- `GET /api/v1/offres` et `GET /api/v1/offres/sources/{source_id}` : `contract_type`
-  renvoie `CONTRACTUEL` au lieu de `CONTRACTUELS`.
+- `GET /api/v1/offres` et `GET /api/v1/offres/sources/{source_id}` : le champ
+  `contract_type` est renommé `offer_nature`, et renvoie `CONTRACTUEL` au lieu de
+  `CONTRACTUELS`.
 - `GET /api/v1/offres/sources/{source_id}` : `contract_kind` n'est plus une liste mais
   une valeur unique ou `null` (`CDD`, `CDI`, `CDD ou CDI`, `Contrat de projet`,
   `Payés à l'acte`). La valeur `Vacation` devient `Payés à l'acte`.

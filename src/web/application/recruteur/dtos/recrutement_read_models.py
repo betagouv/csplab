@@ -20,7 +20,7 @@ class RecrutementActifsReadModel:
     offer_id: UUID
     intitule: str
     reference_csp: str
-    type_contrat: str
+    nature_offre: str
     date_publication: datetime
     responsables: list[ResponsableDto]
     derniere_activite: datetime
@@ -32,7 +32,7 @@ class RecrutementArchivesReadModel:
     offer_id: UUID
     intitule: str
     reference_csp: str
-    type_contrat: str
+    nature_offre: str
     date_archivage: datetime
     responsables: list[ResponsableDto]
     finalise: bool

@@ -2,9 +2,9 @@ from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import OpenApiParameter, extend_schema
 from referentiel.value_objects.area import GeographicalArea
 from referentiel.value_objects.category import Category
-from referentiel.value_objects.contract_type import ContractType
 from referentiel.value_objects.experience_level import ExperienceLevel
 from referentiel.value_objects.offer_conditions import Management, WorkingPlace
+from referentiel.value_objects.offer_nature import OfferNature
 from referentiel.value_objects.radius import Radius
 from referentiel.value_objects.verse import Verse
 from rest_framework import status
@@ -53,7 +53,7 @@ def _organisation_items():
 
 REFERENTIAL_TYPES = {
     "area": lambda: _enum_items(GeographicalArea),
-    "contract_type": lambda: _enum_items(ContractType),
+    "contract_type": lambda: _enum_items(OfferNature),
     "country": lambda: _code_names_items(COUNTRY_NAMES),
     "department": lambda: _code_names_items(DEPARTMENT_NAMES),
     "domain": lambda: _code_names_items(DOMAIN_NAMES),

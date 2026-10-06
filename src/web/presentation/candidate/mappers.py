@@ -25,8 +25,8 @@ from presentation.candidate.filter_config import (
 )
 from presentation.candidate.formatters import (
     format_category_display,
-    format_contract_type_display,
     format_location_display,
+    format_offer_nature_display,
     format_opportunity_type_display,
     format_verse_display,
 )
@@ -108,7 +108,7 @@ class OfferToTemplateMapper:
             "versant_value": offer.verse.value if offer.verse else "",
             "location": format_location_display(offer.localisation),
             "location_value": format_location_value(offer.localisation),
-            "contract_type_display": format_contract_type_display(offer.contract_type),
+            "offer_nature_display": format_offer_nature_display(offer.offer_nature),
             "url": str(offer.offer_url) if offer.offer_url else "#",
         }
         if metiers:

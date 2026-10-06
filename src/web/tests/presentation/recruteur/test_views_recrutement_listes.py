@@ -6,7 +6,7 @@ import pytest
 from django.urls import reverse
 from django.utils import timezone as django_timezone
 from faker import Faker
-from referentiel.value_objects.contract_type import ContractType
+from referentiel.value_objects.offer_nature import OfferNature
 from rest_framework import status
 from rest_framework.test import APIClient
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -120,7 +120,7 @@ class TestRecrutementsActifsView:
             RecrutementFactory.create_actif_read_model(
                 intitule="Chargé de mission numérique",
                 reference_csp="REF-2025-001",
-                type_contrat="TITULAIRE_CONTRACTUEL",
+                nature_offre="TITULAIRE_CONTRACTUEL",
                 responsables=[ResponsableDto(nom="Marie Dupont")],
             )
         ]
@@ -133,7 +133,7 @@ class TestRecrutementsActifsView:
         assert "uuid" in first
         assert "intitule" in first
         assert "reference_csp" in first
-        assert "type_contrat" in first
+        assert "nature_offre" in first
         assert "date_publication" in first
         assert "responsables" in first
         assert "derniere_activite" in first
@@ -209,7 +209,7 @@ class TestRecrutementsArchivesView:
             RecrutementFactory.create_archive_read_model(
                 intitule="Directeur des systèmes d'information",
                 reference_csp="REF-2024-A01",
-                type_contrat="TITULAIRE_CONTRACTUEL",
+                nature_offre="TITULAIRE_CONTRACTUEL",
                 responsables=[ResponsableDto(nom="Marie Dupont")],
                 finalise=True,
                 recrute="Sophie Leblanc",
@@ -224,7 +224,7 @@ class TestRecrutementsArchivesView:
         assert "uuid" in first
         assert "intitule" in first
         assert "reference_csp" in first
-        assert "type_contrat" in first
+        assert "nature_offre" in first
         assert "date_archivage" in first
         assert "responsables" in first
         assert "finalise" in first
@@ -278,7 +278,7 @@ class TestRecrutementsActifsViewDbVerified:
             id=UUID(ORGANISME_UUID),
         )
         offer = OfferDjangoFactory(
-            archived_at=None, contract_type=ContractType.TERRITORIAL.value
+            archived_at=None, offer_nature=OfferNature.TERRITORIAL.value
         )
         recrutement = RecrutementDjangoFactory(
             organisme=organisme,
@@ -296,7 +296,7 @@ class TestRecrutementsActifsViewDbVerified:
         assert result["uuid"] == str(offer.id)
         assert result["intitule"] == offer.title
         assert result["reference_csp"] == (offer.code_emploi_csp or "")
-        assert result["type_contrat"] == offer.contract_type
+        assert result["nature_offre"] == offer.offer_nature
         assert result["responsables"] == [
             {
                 "nom": (
@@ -331,7 +331,7 @@ class TestRecrutementsArchivesViewDbVerified:
         )
         offer = OfferDjangoFactory(
             archived_at=datetime(2025, 6, 1, tzinfo=timezone.utc),
-            contract_type=ContractType.TERRITORIAL.value,
+            offer_nature=OfferNature.TERRITORIAL.value,
         )
         recrutement = RecrutementDjangoFactory(
             organisme=organisme,
@@ -349,7 +349,7 @@ class TestRecrutementsArchivesViewDbVerified:
         assert result["uuid"] == str(offer.id)
         assert result["intitule"] == offer.title
         assert result["reference_csp"] == (offer.code_emploi_csp or "")
-        assert result["type_contrat"] == offer.contract_type
+        assert result["nature_offre"] == offer.offer_nature
         assert result["responsables"] == [
             {
                 "nom": (

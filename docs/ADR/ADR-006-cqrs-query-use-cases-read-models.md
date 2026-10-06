@@ -26,7 +26,7 @@ La vue liste des recrutements actifs attend les données suivantes (extrait des 
     "offer_id": UUID,
     "intitule": str,                       # titre de l'offre (OfferModel.title)
     "reference_csp": str,                  # code emploi CSP (OfferModel.code_emploi_csp)
-    "type_contrat": str,                   # type de contrat (OfferModel.contract_type)
+    "nature_offre": str,                   # nature de l'offre (OfferModel.offer_nature)
     "date_publication": datetime,          # date de publication (OfferModel.publication_date)
     "agents": [{"nom": "Dupont"}],         # noms des agents  (UserModel)
     "derniere_activite": datetime,         # date max des candidatures

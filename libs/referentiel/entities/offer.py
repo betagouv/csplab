@@ -8,10 +8,11 @@ from pydantic import HttpUrl
 
 from referentiel.entities.talentsoft_organisme import TalentsoftOrganisme
 from referentiel.value_objects.category import Category
-from referentiel.value_objects.contract_type import ContractKind, ContractType
+from referentiel.value_objects.contract_kind import ContractKind
 from referentiel.value_objects.limit_date import LimitDate
 from referentiel.value_objects.localisation import Localisation
 from referentiel.value_objects.offer_criteria import OfferCriteria
+from referentiel.value_objects.offer_nature import OfferNature
 from referentiel.value_objects.verse import Verse
 
 
@@ -23,8 +24,7 @@ class Offer(IEntity):
     organization: str
     verse: Optional[Verse]
     category: Optional[Category]
-    # API: nature_offre (nature of the offer, not the contract type)
-    contract_type: Optional[ContractType]
+    offer_nature: Optional[OfferNature]
     offer_url: Optional[HttpUrl]
     localisation: Optional[Localisation]
     publication_date: datetime
@@ -36,7 +36,6 @@ class Offer(IEntity):
     local_job_code: Optional[str] = None
     long_title: Optional[str] = None
     application_url: Optional[HttpUrl] = None
-    # API: type_contrat
     contract_kind: Optional[ContractKind] = None
     job_vacancy: Optional[str] = None
     employer: Optional[str] = None

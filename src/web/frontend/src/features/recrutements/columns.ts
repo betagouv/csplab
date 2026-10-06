@@ -4,7 +4,7 @@ import ElapsedDaysCell from '@/components/base/CspDataTable/cells/ElapsedDaysCel
 import CandidaturesCell from './components/cells/CandidaturesCell.vue'
 import OffreActionsCell from './components/cells/OffreActionsCell.vue'
 import OffreIntituleCell from './components/cells/OffreIntituleCell.vue'
-import { formatResponsablesLabel, formatTypeContratLabel } from './format'
+import { formatNatureOffreLabel, formatResponsablesLabel } from './format'
 
 export const RECRUTEMENTS_ACTIFS_COLUMNS: CspColumnDef<RecrutementsActifs>[] = [
   { id: 'intitule', header: 'Intitulé de l\'offre', accessor: row => row.intitule, cellComponent: OffreIntituleCell },
@@ -20,7 +20,7 @@ export const RECRUTEMENTS_ARCHIVES_COLUMNS: CspColumnDef<RecrutementsArchives>[]
   { id: 'intitule', header: 'Intitulé de l\'offre', accessor: row => row.intitule, cellComponent: OffreIntituleCell },
   { id: 'reference_csp', header: 'Référence CSP', accessor: row => row.reference_csp },
   { id: 'responsables', header: 'Responsable', sortable: true, accessor: formatResponsablesLabel },
-  { id: 'type_contrat', header: 'Type de contrat', accessor: formatTypeContratLabel },
+  { id: 'nature_offre', header: 'Nature de l\'offre', accessor: formatNatureOffreLabel },
   { id: 'date_archivage', header: 'Date d\'archivage', sortable: true, accessor: row => row.date_archivage, cellComponent: ElapsedDaysCell },
   { id: 'recrute', header: 'Candidat recruté', accessor: row => row.recrute },
   { id: 'actions', header: '', align: 'end', width: '3.5rem', cellComponent: OffreActionsCell },

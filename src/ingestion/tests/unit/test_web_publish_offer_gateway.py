@@ -10,7 +10,7 @@ from pydantic import HttpUrl
 from pytest_httpx import HTTPXMock
 from referentiel.value_objects.area import GeographicalArea
 from referentiel.value_objects.category import Category
-from referentiel.value_objects.contract_type import ContractKind, ContractType
+from referentiel.value_objects.contract_kind import ContractKind
 from referentiel.value_objects.country import Country
 from referentiel.value_objects.department import Department
 from referentiel.value_objects.experience_level import ExperienceLevel
@@ -19,6 +19,7 @@ from referentiel.value_objects.language_level import LanguageLevel
 from referentiel.value_objects.limit_date import LimitDate
 from referentiel.value_objects.localisation import Localisation
 from referentiel.value_objects.offer_conditions import Management, WorkingPlace
+from referentiel.value_objects.offer_nature import OfferNature
 from referentiel.value_objects.region import Region
 from referentiel.value_objects.verse import Verse
 
@@ -46,7 +47,7 @@ MINIMAL_OFFER = Offer(
     organization="City Hall",
     verse=Verse.FPT,
     category=None,
-    contract_type=ContractType.TITULAIRE_CONTRACTUEL,
+    offer_nature=OfferNature.TITULAIRE_CONTRACTUEL,
     offer_url=None,
     application_url=None,
     localisation=None,
@@ -67,7 +68,7 @@ FULL_OFFER = Offer(
     organization="Hospital",
     verse=Verse.FPH,
     category=Category.A,
-    contract_type=ContractType.CONTRACTUEL,
+    offer_nature=OfferNature.CONTRACTUEL,
     offer_url=None,
     application_url=None,
     localisation=Localisation(

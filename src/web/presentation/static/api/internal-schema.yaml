@@ -5589,6 +5589,16 @@ components:
         * `niveau_qualification_insuffisant` - Niveau de qualification insuffisant
         * `disponibilite` - Disponibilité
         * `autre` - Autre
+    NatureOffreEnum:
+      enum:
+      - TITULAIRE_CONTRACTUEL
+      - CONTRACTUEL
+      - TERRITORIAL
+      type: string
+      description: |-
+        * `TITULAIRE_CONTRACTUEL` - TITULAIRE_CONTRACTUEL
+        * `CONTRACTUEL` - CONTRACTUEL
+        * `TERRITORIAL` - TERRITORIAL
     Note:
       type: object
       properties:
@@ -6078,10 +6088,10 @@ components:
           type: string
         reference_csp:
           type: string
-        type_contrat:
+        nature_offre:
           nullable: true
           oneOf:
-          - $ref: '#/components/schemas/TypeContratEnum'
+          - $ref: '#/components/schemas/NatureOffreEnum'
           - $ref: '#/components/schemas/NullEnum'
         responsables:
           type: array
@@ -6102,9 +6112,9 @@ components:
       - date_publication
       - derniere_activite
       - intitule
+      - nature_offre
       - reference_csp
       - responsables
-      - type_contrat
       - uuid
     RecrutementsArchives:
       type: object
@@ -6116,10 +6126,10 @@ components:
           type: string
         reference_csp:
           type: string
-        type_contrat:
+        nature_offre:
           nullable: true
           oneOf:
-          - $ref: '#/components/schemas/TypeContratEnum'
+          - $ref: '#/components/schemas/NatureOffreEnum'
           - $ref: '#/components/schemas/NullEnum'
         responsables:
           type: array
@@ -6137,10 +6147,10 @@ components:
       - date_archivage
       - finalise
       - intitule
+      - nature_offre
       - recrute
       - reference_csp
       - responsables
-      - type_contrat
       - uuid
     RegionEnum:
       enum:
@@ -6269,16 +6279,6 @@ components:
       - message
       - token_class
       - token_type
-    TypeContratEnum:
-      enum:
-      - TITULAIRE_CONTRACTUEL
-      - CONTRACTUEL
-      - TERRITORIAL
-      type: string
-      description: |-
-        * `TITULAIRE_CONTRACTUEL` - TITULAIRE_CONTRACTUEL
-        * `CONTRACTUEL` - CONTRACTUEL
-        * `TERRITORIAL` - TERRITORIAL
     TypeEnum:
       enum:
       - cv

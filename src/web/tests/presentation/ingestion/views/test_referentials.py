@@ -2,9 +2,9 @@ import pytest
 from django.urls import reverse
 from referentiel.value_objects.area import GeographicalArea
 from referentiel.value_objects.category import Category
-from referentiel.value_objects.contract_type import ContractType
 from referentiel.value_objects.experience_level import ExperienceLevel
 from referentiel.value_objects.offer_conditions import Management, WorkingPlace
+from referentiel.value_objects.offer_nature import OfferNature
 from referentiel.value_objects.radius import Radius
 from referentiel.value_objects.verse import Verse
 from rest_framework import status
@@ -29,7 +29,7 @@ from tests.utils.openapi_test_utils import assert_matches_openapi_schema
         ("area", GeographicalArea),
         ("management", Management),
         ("working_place", WorkingPlace),
-        ("contract_type", ContractType),
+        ("contract_type", OfferNature),
         ("offer_family_category", Category),
         ("experience_level", ExperienceLevel),
         ("radius", Radius),

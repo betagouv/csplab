@@ -7,12 +7,12 @@ from django.urls import reverse
 from faker import Faker
 from referentiel.value_objects.area import GeographicalArea
 from referentiel.value_objects.category import Category
-from referentiel.value_objects.contract_type import ContractType
 from referentiel.value_objects.country import Country
 from referentiel.value_objects.department import Department
 from referentiel.value_objects.domaine_fonctionnel import DomaineFonctionnel
 from referentiel.value_objects.experience_level import ExperienceLevel
 from referentiel.value_objects.offer_conditions import Management, WorkingPlace
+from referentiel.value_objects.offer_nature import OfferNature
 from referentiel.value_objects.region import Region
 from referentiel.value_objects.verse import Verse
 from rest_framework import status
@@ -98,7 +98,7 @@ def test_empty_result(mock_offers_container, authenticated_client, list_offers_u
 
 def test_call_without_arg(mock_offers_container, authenticated_client):
     first_offer = OfferFactory.create_entity(
-        contract_type=ContractType.TERRITORIAL,
+        offer_nature=OfferNature.TERRITORIAL,
         offer_url=fake.url(),
         archived_at=datetime.now(UTC),
     )
@@ -124,8 +124,8 @@ def test_call_without_arg(mock_offers_container, authenticated_client):
         assert result["source_id"] == str(offer.source_id)
         assert result["title"] == offer.title
         assert result["organization"] == offer.organization
-        assert result["contract_type"] == (
-            offer.contract_type.value if offer.contract_type else None
+        assert result["offer_nature"] == (
+            offer.offer_nature.value if offer.offer_nature else None
         )
         assert result["category"] == offer.category.value
         assert result["publication_date"] == "2024-01-15T00:00:00Z"
@@ -199,7 +199,7 @@ def test_invalid_verse_returns_400(mock_offers_container, authenticated_client):
     assert "FPE, FPH, FPT" in response.json()["error"]
 
 
-def test_contract_type_filter_is_forwarded_to_usecase(
+def test_offer_nature_filter_is_forwarded_to_usecase(
     mock_offers_container, authenticated_client
 ):
     _make_paginated_mock(mock_offers_container, num_offers=0, offers_slice=[])
@@ -209,12 +209,12 @@ def test_contract_type_filter_is_forwarded_to_usecase(
     mock_offers_container.list_offers_usecase.return_value.execute.assert_called_once_with(
         GetFilteredOffersInput(
             active=True,
-            contract_type=[ContractType.CONTRACTUEL, ContractType.TERRITORIAL],
+            offer_nature=[OfferNature.CONTRACTUEL, OfferNature.TERRITORIAL],
         )
     )
 
 
-def test_invalid_contract_type_returns_400(mock_offers_container, authenticated_client):
+def test_invalid_offer_nature_returns_400(mock_offers_container, authenticated_client):
     _make_paginated_mock(mock_offers_container, num_offers=0, offers_slice=[])
 
     response = authenticated_client.get(URL, {"nature_offre": "INVALID"})
@@ -659,7 +659,7 @@ def test_pagination_out_of_bond(mock_offers_container, authenticated_client):
 class TestOffersListViewDbVerified:
     def test_response_matches_db_record_field_by_field(self, authenticated_client):
         offer = OfferDjangoFactory(
-            contract_type=ContractType.TERRITORIAL.value,
+            offer_nature=OfferNature.TERRITORIAL.value,
             offer_url="https://example.org/offre",
         )
 
@@ -674,7 +674,7 @@ class TestOffersListViewDbVerified:
                 "source_id": str(offer.source_id),
                 "title": offer.title,
                 "organization": offer.organization,
-                "contract_type": offer.contract_type,
+                "offer_nature": offer.offer_nature,
                 "category": offer.category,
                 "publication_date": offer.publication_date.isoformat().replace(
                     "+00:00", "Z"

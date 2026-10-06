@@ -87,7 +87,7 @@ class PostgresRecrutementQueryService(IRecrutementQueryService):
                 offer_id=model.offre_id,  # type: ignore[attr-defined]
                 intitule=model.offre.title,
                 reference_csp=model.offre.code_emploi_csp or "",
-                type_contrat=model.offre.contract_type or "",
+                nature_offre=model.offre.offer_nature or "",
                 date_publication=model.offre.publication_date,
                 responsables=responsables,
                 derniere_activite=model.derniere_activite  # type: ignore[attr-defined]
@@ -169,7 +169,7 @@ class PostgresRecrutementQueryService(IRecrutementQueryService):
                 offer_id=model.offre_id,  # type: ignore[attr-defined]
                 intitule=model.offre.title,
                 reference_csp=model.offre.code_emploi_csp or "",
-                type_contrat=model.offre.contract_type or "",
+                nature_offre=model.offre.offer_nature or "",
                 date_archivage=cast(datetime, model.offre.archived_at),
                 responsables=responsables,
                 finalise=finalise,

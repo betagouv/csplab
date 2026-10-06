@@ -8,7 +8,7 @@ from faker import Faker
 from referentiel.entities.offer import Offer
 from referentiel.value_objects.area import GeographicalArea
 from referentiel.value_objects.category import Category
-from referentiel.value_objects.contract_type import ContractKind, ContractType
+from referentiel.value_objects.contract_kind import ContractKind
 from referentiel.value_objects.country import Country
 from referentiel.value_objects.department import Department
 from referentiel.value_objects.diploma import Diploma
@@ -17,6 +17,7 @@ from referentiel.value_objects.language_level import LanguageLevel
 from referentiel.value_objects.limit_date import LimitDate
 from referentiel.value_objects.localisation import Localisation
 from referentiel.value_objects.offer_criteria import OfferCriteria, OfferLanguage
+from referentiel.value_objects.offer_nature import OfferNature
 from referentiel.value_objects.region import Region
 from referentiel.value_objects.verse import Verse
 from rest_framework import status
@@ -127,7 +128,7 @@ COMPARABLE_OFFER_ATTRS = [
     "publication_date",
     "verse",
     "category",
-    "contract_type",
+    "offer_nature",
     "offer_url",
     "localisation",
     "beginning_date",
@@ -227,7 +228,7 @@ def parse_offer_from_payload(payload: dict, source_id: UUID) -> Offer:
         ),
         verse=Verse(versant),
         category=category,
-        contract_type=ContractType(payload["nature_offre"]),
+        offer_nature=OfferNature(payload["nature_offre"]),
         offer_url=payload.get("url_offre"),
         localisation=localisation,
         beginning_date=debut_contrat,

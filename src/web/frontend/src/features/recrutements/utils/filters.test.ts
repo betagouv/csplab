@@ -12,7 +12,7 @@ function makeRow(overrides: Partial<RecrutementBase> = {}): RecrutementBase {
     intitule: 'Chargé·e de mission',
     reference_csp: 'REF-001',
     responsables: [{ nom: 'Camille Durand' }],
-    type_contrat: 'TITULAIRE_CONTRACTUEL',
+    nature_offre: 'TITULAIRE_CONTRACTUEL',
     date_publication: '2026-07-01T12:00:00Z',
     derniere_activite: '2026-07-02T12:00:00Z',
     candidatures: null,
@@ -30,18 +30,18 @@ describe('matchesFilters', () => {
     expect(matchesFilters(makeRow(), responsableFilters)).toBe(true)
     expect(matchesFilters(makeRow({ responsables: [{ nom: 'John Doe' }] }), responsableFilters)).toBe(false)
 
-    const typeFilters = { ...emptyRecrutementsFilters(), typeContrat: 'CONTRACTUEL' as const }
+    const typeFilters = { ...emptyRecrutementsFilters(), natureOffre: 'CONTRACTUEL' as const }
     expect(matchesFilters(makeRow(), typeFilters)).toBe(false)
-    expect(matchesFilters(makeRow({ type_contrat: 'CONTRACTUEL' }), typeFilters)).toBe(true)
+    expect(matchesFilters(makeRow({ nature_offre: 'CONTRACTUEL' }), typeFilters)).toBe(true)
   })
 
   it('combines filters with a logical AND', () => {
     const filters = {
       responsable: 'Camille Durand',
-      typeContrat: 'CONTRACTUEL' as const,
+      natureOffre: 'CONTRACTUEL' as const,
     }
     expect(matchesFilters(makeRow(), filters)).toBe(false)
-    expect(matchesFilters(makeRow({ type_contrat: 'CONTRACTUEL' }), filters)).toBe(true)
+    expect(matchesFilters(makeRow({ nature_offre: 'CONTRACTUEL' }), filters)).toBe(true)
   })
 })
 

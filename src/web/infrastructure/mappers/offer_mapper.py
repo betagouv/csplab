@@ -6,12 +6,13 @@ from referentiel.entities.offer import Offer
 from referentiel.entities.talentsoft_organisme import TalentsoftOrganisme
 from referentiel.value_objects.area import GeographicalArea
 from referentiel.value_objects.category import Category
-from referentiel.value_objects.contract_type import ContractKind, ContractType
+from referentiel.value_objects.contract_kind import ContractKind
 from referentiel.value_objects.country import Country
 from referentiel.value_objects.department import Department
 from referentiel.value_objects.limit_date import LimitDate
 from referentiel.value_objects.localisation import Localisation
 from referentiel.value_objects.offer_criteria import OfferCriteria
+from referentiel.value_objects.offer_nature import OfferNature
 from referentiel.value_objects.region import Region
 from referentiel.value_objects.verse import Verse
 
@@ -39,9 +40,7 @@ class OfferMapper(
             LimitDate(model.beginning_date) if model.beginning_date else None
         )
         category = Category(model.category) if model.category else None
-        contract_type = (
-            ContractType(model.contract_type) if model.contract_type else None
-        )
+        offer_nature = OfferNature(model.offer_nature) if model.offer_nature else None
         offer_url = HttpUrl(model.offer_url) if model.offer_url else None
         verse = Verse(model.verse) if model.verse else None
 
@@ -56,7 +55,7 @@ class OfferMapper(
             profile=model.profile,
             mission=model.mission,
             category=category,
-            contract_type=contract_type,
+            offer_nature=offer_nature,
             organization=model.organization,
             offer_url=offer_url,
             localisation=localisation,
@@ -115,7 +114,7 @@ class OfferMapper(
 
         beginning_date = entity.beginning_date.value if entity.beginning_date else None
         category = entity.category.value if entity.category else None
-        contract_type = entity.contract_type.value if entity.contract_type else None
+        offer_nature = entity.offer_nature.value if entity.offer_nature else None
         offer_url = str(entity.offer_url) if entity.offer_url else None
 
         contract_kind = entity.contract_kind.name if entity.contract_kind else None
@@ -128,7 +127,7 @@ class OfferMapper(
             profile=entity.profile,
             mission=entity.mission,
             category=category,
-            contract_type=contract_type,
+            offer_nature=offer_nature,
             organization=entity.organization,
             offer_url=offer_url,
             area=area,

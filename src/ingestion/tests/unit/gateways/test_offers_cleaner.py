@@ -4,7 +4,7 @@ from uuid import UUID
 import pytest
 from pydantic import ValidationError
 from referentiel.value_objects.category import Category
-from referentiel.value_objects.contract_type import ContractKind, ContractType
+from referentiel.value_objects.contract_kind import ContractKind
 from referentiel.value_objects.experience_level import ExperienceLevel
 from referentiel.value_objects.language import Language
 from referentiel.value_objects.language_level import LanguageLevel
@@ -13,6 +13,7 @@ from referentiel.value_objects.offer_conditions import (
     WorkingPlace,
     WorkingTime,
 )
+from referentiel.value_objects.offer_nature import OfferNature
 from referentiel.value_objects.verse import Verse
 
 from domain.entities.raw_offer import RawOffer
@@ -388,37 +389,37 @@ def test_clean_external_id_uses_salary_range_client_code_as_prefix(cleaner):
 @pytest.mark.parametrize(
     "contract_code, expected",
     [
-        ("TITULAIRE_CODE", ContractType.TITULAIRE_CONTRACTUEL),
-        ("CONTRACTUEL_CDD", ContractType.CONTRACTUEL),
-        ("TERRITORIAL_TIT", ContractType.TERRITORIAL),
+        ("TITULAIRE_CODE", OfferNature.TITULAIRE_CONTRACTUEL),
+        ("CONTRACTUEL_CDD", OfferNature.CONTRACTUEL),
+        ("TERRITORIAL_TIT", OfferNature.TERRITORIAL),
         ("UNKNOWN_TYPE", None),
         (None, None),
-        ("ACCOMP", ContractType.CONTRACTUEL),
-        ("ACCOMPCDI", ContractType.TITULAIRE_CONTRACTUEL),
-        ("APP7", ContractType.CONTRACTUEL),
-        ("APPCDD", ContractType.CONTRACTUEL),
-        ("APPREN", ContractType.CONTRACTUEL),
-        ("AUTCDD", ContractType.CONTRACTUEL),
-        ("CCNCDINE", ContractType.TITULAIRE_CONTRACTUEL),
-        ("CDI", ContractType.TITULAIRE_CONTRACTUEL),
-        ("CES", ContractType.CONTRACTUEL),
-        ("CONTRCDD", ContractType.CONTRACTUEL),
-        ("CUICDD", ContractType.CONTRACTUEL),
-        ("GRH", ContractType.CONTRACTUEL),
-        ("PROCDD", ContractType.CONTRACTUEL),
-        ("REMPLA", ContractType.CONTRACTUEL),
-        ("RENOIRH", ContractType.CONTRACTUEL),
-        ("STA", ContractType.CONTRACTUEL),
-        ("STAGE", ContractType.CONTRACTUEL),
-        ("SURCHA", ContractType.CONTRACTUEL),
-        ("TC01", ContractType.CONTRACTUEL),
-        ("TC02", ContractType.TITULAIRE_CONTRACTUEL),
-        ("TITULAIRE FONCTION PUBLIQUE", ContractType.TITULAIRE_CONTRACTUEL),
+        ("ACCOMP", OfferNature.CONTRACTUEL),
+        ("ACCOMPCDI", OfferNature.TITULAIRE_CONTRACTUEL),
+        ("APP7", OfferNature.CONTRACTUEL),
+        ("APPCDD", OfferNature.CONTRACTUEL),
+        ("APPREN", OfferNature.CONTRACTUEL),
+        ("AUTCDD", OfferNature.CONTRACTUEL),
+        ("CCNCDINE", OfferNature.TITULAIRE_CONTRACTUEL),
+        ("CDI", OfferNature.TITULAIRE_CONTRACTUEL),
+        ("CES", OfferNature.CONTRACTUEL),
+        ("CONTRCDD", OfferNature.CONTRACTUEL),
+        ("CUICDD", OfferNature.CONTRACTUEL),
+        ("GRH", OfferNature.CONTRACTUEL),
+        ("PROCDD", OfferNature.CONTRACTUEL),
+        ("REMPLA", OfferNature.CONTRACTUEL),
+        ("RENOIRH", OfferNature.CONTRACTUEL),
+        ("STA", OfferNature.CONTRACTUEL),
+        ("STAGE", OfferNature.CONTRACTUEL),
+        ("SURCHA", OfferNature.CONTRACTUEL),
+        ("TC01", OfferNature.CONTRACTUEL),
+        ("TC02", OfferNature.TITULAIRE_CONTRACTUEL),
+        ("TITULAIRE FONCTION PUBLIQUE", OfferNature.TITULAIRE_CONTRACTUEL),
         (
             "TITULAIRE FONCTION PUBLIQUE / UCANSS",
-            ContractType.TITULAIRE_CONTRACTUEL,
+            OfferNature.TITULAIRE_CONTRACTUEL,
         ),
-        ("TITULAIRE UCANSS", ContractType.CONTRACTUEL),
+        ("TITULAIRE UCANSS", OfferNature.CONTRACTUEL),
         # "TC21" is present in the ARS transcoding table but has no
         # DGAFP mapping configured; the untranscoded heuristic can't
         # match it either, so it should resolve to None rather than
@@ -426,21 +427,21 @@ def test_clean_external_id_uses_salary_range_client_code_as_prefix(cleaner):
         ("TC21", None),
     ],
 )
-def test_clean_maps_contract_type(cleaner, contract_code, expected):
+def test_clean_maps_offer_nature(cleaner, contract_code, expected):
 
-    contract_type = (
+    offer_nature = (
         TalentsoftCodedObjectFactory.build(clientCode=contract_code)
         if contract_code
         else None
     )
-    raw_offer = _make_raw_offer(contractType=contract_type)
+    raw_offer = _make_raw_offer(contractType=offer_nature)
 
     offer = cleaner.clean(raw_offer)
 
-    assert offer.contract_type == expected
+    assert offer.offer_nature == expected
 
 
-def test_clean_raises_when_contract_type_csv_maps_to_unknown_code(
+def test_clean_raises_when_offer_nature_csv_maps_to_unknown_code(
     sources_repository,
 ):
     cleaner = OffersCleaner(
@@ -1069,7 +1070,7 @@ def test_clean_returns_none_coordinates_when_no_source_available(cleaner):
     assert offer.localisation.longitude is None
 
 
-def test_clean_ars_contract_type_transcoding_is_scoped_to_ars_source(cleaner):
+def test_clean_ars_offer_nature_transcoding_is_scoped_to_ars_source(cleaner):
     raw_offer = _make_raw_offer(
         slug="talentsoft-main",
         contractType=TalentsoftCodedObjectFactory.build(clientCode="TC02"),
@@ -1079,7 +1080,7 @@ def test_clean_ars_contract_type_transcoding_is_scoped_to_ars_source(cleaner):
 
     # "TC02" is an ARS-specific code; without the ARS transcoding table it
     # doesn't match the generic TITULAIRE/CONTRACTUEL/TERRITORIAL fallback.
-    assert offer.contract_type is None
+    assert offer.offer_nature is None
 
 
 def test_clean_returns_none_localisation_on_invalid_region_code(cleaner):

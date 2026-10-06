@@ -6,7 +6,7 @@ from uuid import UUID
 from pydantic import HttpUrl, ValidationError
 from referentiel.value_objects.area import GeographicalArea
 from referentiel.value_objects.category import Category
-from referentiel.value_objects.contract_type import ContractKind, ContractType
+from referentiel.value_objects.contract_kind import ContractKind
 from referentiel.value_objects.country import Country
 from referentiel.value_objects.department import Department
 from referentiel.value_objects.experience_level import ExperienceLevel
@@ -19,6 +19,7 @@ from referentiel.value_objects.offer_conditions import (
     WorkingPlace,
     WorkingTime,
 )
+from referentiel.value_objects.offer_nature import OfferNature
 from referentiel.value_objects.region import Region
 from referentiel.value_objects.verse import Verse
 
@@ -293,7 +294,7 @@ class OffersCleaner:
         )
         verse = self._map_verse(ts_verse, talentsoft_offer.reference, transcoder)
 
-        contract_type = self._map_contract_type(
+        offer_nature = self._map_offer_nature(
             talentsoft_offer.contractType.clientCode
             if talentsoft_offer.contractType
             else None,
@@ -426,7 +427,7 @@ class OffersCleaner:
             profile=talentsoft_offer.description2 or "",
             mission=talentsoft_offer.description1 or "",
             category=category,
-            contract_type=contract_type,
+            offer_nature=offer_nature,
             contract_kind=contract_kind,
             organization=talentsoft_offer.organisationName,
             offer_url=offer_url,
@@ -476,32 +477,32 @@ class OffersCleaner:
             return Verse.FPE
         return None
 
-    def _map_contract_type(
+    def _map_offer_nature(
         self,
-        contract_type_str: Optional[str],
+        offer_nature_str: Optional[str],
         transcoder: Optional[SourceTranscoder],
-    ) -> Optional[ContractType]:
-        if not contract_type_str:
+    ) -> Optional[OfferNature]:
+        if not offer_nature_str:
             return None
 
-        contract_upper = contract_type_str.upper()
+        contract_upper = offer_nature_str.upper()
 
         if transcoder:
             csplab_code = transcoder.translate("types_de_contrat", contract_upper)
             if csplab_code is not None:
-                if csplab_code not in ContractType.values:
+                if csplab_code not in OfferNature.values:
                     raise ValueError(
                         f"types_de_contrat maps {contract_upper!r} to unknown "
-                        f"ContractType {csplab_code!r}"
+                        f"OfferNature {csplab_code!r}"
                     )
-                return ContractType(csplab_code)
+                return OfferNature(csplab_code)
 
         if "TITULAIRE" in contract_upper:
-            return ContractType.TITULAIRE_CONTRACTUEL
+            return OfferNature.TITULAIRE_CONTRACTUEL
         elif "CONTRACTUEL" in contract_upper:
-            return ContractType.CONTRACTUEL
+            return OfferNature.CONTRACTUEL
         elif "TERRITORIAL" in contract_upper:
-            return ContractType.TERRITORIAL
+            return OfferNature.TERRITORIAL
 
         return None
 

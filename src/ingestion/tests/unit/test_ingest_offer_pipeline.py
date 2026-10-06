@@ -2,7 +2,7 @@ from datetime import datetime, timezone
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-from referentiel.value_objects.contract_type import ContractType
+from referentiel.value_objects.offer_nature import OfferNature
 from referentiel.value_objects.verse import Verse
 
 from application.pipelines.ingest_offer_pipeline import IngestOfferPipeline
@@ -30,7 +30,7 @@ CLEANED_OFFER = Offer(
     organization="Org",
     verse=Verse.FPT,
     category=None,
-    contract_type=ContractType.TITULAIRE_CONTRACTUEL,
+    offer_nature=OfferNature.TITULAIRE_CONTRACTUEL,
     offer_url=None,
     application_url=None,
     localisation=None,

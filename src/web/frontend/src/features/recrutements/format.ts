@@ -1,18 +1,18 @@
 import type {
+  NatureOffre,
   RecrutementBase,
-  TypeContrat,
 } from './types'
 
-export const TYPE_CONTRAT_LABELS = {
+export const NATURE_OFFRE_LABELS = {
   TITULAIRE_CONTRACTUEL: 'Titulaire et contractuel',
   CONTRACTUEL: 'Contractuels',
   TERRITORIAL: 'Territorial',
-} satisfies Record<TypeContrat, string>
+} satisfies Record<NatureOffre, string>
 
 export function formatResponsablesLabel(row: RecrutementBase): string {
   return row.responsables.map(r => r.nom).join(', ') || '-'
 }
 
-export function formatTypeContratLabel(row: RecrutementBase): string {
-  return row.type_contrat ? TYPE_CONTRAT_LABELS[row.type_contrat] : '-'
+export function formatNatureOffreLabel(row: RecrutementBase): string {
+  return row.nature_offre ? NATURE_OFFRE_LABELS[row.nature_offre] : '-'
 }

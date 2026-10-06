@@ -14,7 +14,7 @@ export type RecrutementDetail = components['schemas']['RecrutementDetail']
 
 export type RecrutementKey = 'actifs' | 'archives'
 
-export type TypeContrat = components['schemas']['TypeContratEnum']
+export type NatureOffre = components['schemas']['NatureOffreEnum']
 
 export type AssignationResponsablePayload = components['schemas']['SetRecrutementsResponsable']
 
