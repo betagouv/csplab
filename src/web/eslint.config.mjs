@@ -6,7 +6,21 @@ export default antfu(
     formatters: {
       css: true,
     },
-    vue: true,
+    stylistic: {
+      overrides: {
+        'antfu/curly': 'off',
+        'curly': ['error', 'all'],
+        'style/brace-style': ['error', 'stroustrup', { allowSingleLine: false }],
+      },
+    },
+    vue: {
+      overrides: {
+        'vue/no-restricted-syntax': ['error', 'DebuggerStatement', 'LabeledStatement', 'WithStatement', {
+          selector: 'IfStatement > :not(BlockStatement).consequent, IfStatement > :not(BlockStatement, IfStatement).alternate',
+          message: 'Wrap the body of if and else in braces.',
+        }],
+      },
+    },
     typescript: true,
     toml: false,
     pnpm: false,

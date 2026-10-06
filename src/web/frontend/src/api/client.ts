@@ -16,8 +16,9 @@ function redirectToLogin(): never {
 
 const csrfMiddleware: Middleware = {
   async onRequest({ request }) {
-    if (request.method === 'GET')
+    if (request.method === 'GET') {
       return undefined
+    }
     request.headers.set('X-CSRFToken', readCsrfCookie())
     return request
   },
@@ -25,11 +26,13 @@ const csrfMiddleware: Middleware = {
 
 const errorMiddleware: Middleware = {
   async onResponse({ response }) {
-    if (response.ok)
+    if (response.ok) {
       return undefined
+    }
 
-    if (response.status === 401)
+    if (response.status === 401) {
       redirectToLogin()
+    }
 
     const data = await response.clone().json().catch(() => undefined)
 
@@ -69,12 +72,15 @@ function wrapWithNetworkErrors(client: RawClient): RawClient {
         return await original(...args)
       }
       catch (err) {
-        if (err instanceof DOMException && err.name === 'AbortError')
+        if (err instanceof DOMException && err.name === 'AbortError') {
           throw err
-        if (err instanceof HttpError)
+        }
+        if (err instanceof HttpError) {
           throw err
-        if (err instanceof Error && err.message === 'Redirecting to login')
+        }
+        if (err instanceof Error && err.message === 'Redirecting to login') {
           throw err
+        }
         throw new NetworkError(err)
       }
     }

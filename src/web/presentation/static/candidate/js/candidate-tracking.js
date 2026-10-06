@@ -48,14 +48,17 @@ class CandidateTrackingHandler {
    */
   handleDrawerSwap(e) {
     const target = e.detail.target
-    if (!target || target.tagName !== 'BODY')
+    if (!target || target.tagName !== 'BODY') {
       return
+    }
     const drawer = target.querySelector(`${CandidateTrackingHandler.DRAWER_SELECTOR}:last-of-type`)
-    if (!drawer)
+    if (!drawer) {
       return
+    }
     const feedback = drawer.querySelector('[data-opportunity-type][data-opportunity-id]')
-    if (!feedback)
+    if (!feedback) {
       return
+    }
     const name = `${feedback.dataset.opportunityType}:${feedback.dataset.opportunityId}`
     this.lastDrawerOpportunity = name
     window.csplab.matomo.trackEvent('OpportunityDrawer', 'opened', name)

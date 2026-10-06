@@ -38,8 +38,9 @@ export function useDraggableKanbanCard(options: UseDraggableKanbanCardOptions) {
   watch(
     [options.element, enabled],
     ([element, isEnabled], _, onCleanup) => {
-      if (!element || !isEnabled)
+      if (!element || !isEnabled) {
         return
+      }
 
       const cleanup = draggable({
         element,
@@ -81,8 +82,9 @@ export function useDropTargetKanbanColumn(options: UseDropTargetKanbanColumnOpti
   watch(
     [options.element, enabled],
     ([element, isEnabled], _, onCleanup) => {
-      if (!element || !isEnabled)
+      if (!element || !isEnabled) {
         return
+      }
 
       const cleanup = dropTargetForElements({
         element,
@@ -127,8 +129,9 @@ export function useKanbanBoardAutoScroll(options: UseKanbanBoardAutoScrollOption
   watch(
     options.element,
     (element, _, onCleanup) => {
-      if (!element)
+      if (!element) {
         return
+      }
 
       const cleanup = autoScrollForElements({ element })
 
@@ -154,14 +157,16 @@ export function useKanbanBoardMonitor(options: UseKanbanBoardMonitorOptions) {
       },
       onDrop: ({ source, location }) => {
         const destination = location.current.dropTargets[0]
-        if (!destination)
+        if (!destination) {
           return
+        }
 
         const sourceData = source.data as unknown as KanbanCardData
         const targetColumnId = destination.data.columnId as string
 
-        if (!targetColumnId)
+        if (!targetColumnId) {
           return
+        }
 
         options.onDrop({
           sourceColumnId: sourceData.columnId,

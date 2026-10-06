@@ -19,13 +19,15 @@ export function useCandidatureNavigation(candidatureUuid: MaybeRefOrGetter<strin
   }
 
   function goPrevious(): void {
-    if (position.value?.previousUuid)
+    if (position.value?.previousUuid) {
       navigateTo(position.value.previousUuid)
+    }
   }
 
   function goNext(): void {
-    if (position.value?.nextUuid)
+    if (position.value?.nextUuid) {
       navigateTo(position.value.nextUuid)
+    }
   }
 
   return { position, etape, navigateTo, goPrevious, goNext }

@@ -31,8 +31,9 @@ const options = computed(() => props.etapes.map((etape) => {
 }))
 
 function handleConfirm(): void {
-  if (!selectedEtapeUuid.value)
+  if (!selectedEtapeUuid.value) {
     return
+  }
   emit('confirm', selectedEtapeUuid.value)
   open.value = false
 }

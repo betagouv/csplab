@@ -23,8 +23,9 @@ useUnsavedChanges(() => message.value !== '', () => {
 })
 
 async function submit(): Promise<void> {
-  if (!canSubmit.value)
+  if (!canSubmit.value) {
     return
+  }
   try {
     await create(message.value.trim())
     message.value = ''

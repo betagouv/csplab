@@ -26,8 +26,9 @@ export function useCreateConversation(candidature: MaybeRefOrGetter<CandidatureP
   function prependToList(target: CandidatureParams, conversation: Conversation) {
     const key = MESSAGES_QUERY_KEYS.conversations(target)
     const list = queryCache.getQueryData<PaginatedConversationList>(key)
-    if (!list)
+    if (!list) {
       return
+    }
     queryCache.setQueryData(key, {
       ...list,
       count: list.count + 1,

@@ -13,8 +13,9 @@ const CHECK = argv.includes('--check')
 function walk(dir) {
   return readdirSync(dir).flatMap((name) => {
     const path = join(dir, name)
-    if (statSync(path).isDirectory())
+    if (statSync(path).isDirectory()) {
       return walk(path)
+    }
     return /\.(?:vue|ts)$/.test(name) ? [path] : []
   })
 }
@@ -25,11 +26,13 @@ const custom = new Set(
 
 const used = new Map()
 for (const file of walk(SRC)) {
-  if (file === TARGET || file === CUSTOM)
+  if (file === TARGET || file === CUSTOM) {
     continue
+  }
   for (const match of readFileSync(file, 'utf8').matchAll(ICON_PATTERN)) {
-    if (!used.has(match[0]))
+    if (!used.has(match[0])) {
       used.set(match[0], [])
+    }
     used.get(match[0]).push(file.replace(`${SRC}/`, ''))
   }
 }
@@ -39,14 +42,16 @@ const names = [...used.keys()].filter(name => !custom.has(name)).sort()
 const unknown = names.filter(name => !existsSync(join(RI_DIR, `${name.slice(3)}.js`)))
 if (unknown.length > 0) {
   console.error(`✗ ${unknown.length} icon(s) not found in @iconify-icons/ri (typo? or add to icons.custom.ts):`)
-  for (const name of unknown)
+  for (const name of unknown) {
     console.error(`  ${name}  (${[...new Set(used.get(name))].slice(0, 3).join(', ')})`)
+  }
   exit(1)
 }
 
 const unusedCustom = [...custom].filter(name => !used.has(name))
-if (unusedCustom.length > 0)
+if (unusedCustom.length > 0) {
   console.warn(`ℹ ${unusedCustom.length} custom icon(s) unused: ${unusedCustom.join(', ')}`)
+}
 
 function importName(name) {
   return `ri${name.slice(3).replace(/(?:^|-)([a-z0-9])/g, (_, c) => c.toUpperCase())}`

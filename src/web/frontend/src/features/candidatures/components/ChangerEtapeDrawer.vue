@@ -50,8 +50,9 @@ function getCandidatName(candidature: Candidature): string {
 const selectedUuidsModel = computed({
   get: () => [...props.selectedCandidatureUuids],
   set: (uuids: string[]) => {
-    if (!props.sourceEtape)
+    if (!props.sourceEtape) {
       return
+    }
 
     const prev = props.selectedCandidatureUuids
     const etapeUuid = props.sourceEtape.uuid

@@ -16,7 +16,7 @@ const emit = defineEmits<{
   <CspDialog
     :open="open"
     title="Modifications non enregistrées"
-    @update:open="(value) => { if (!value) emit('keepEditing') }"
+    @update:open="(value) => { if (!value) { emit('keepEditing') } }"
   >
     <p class="csp-unsaved-changes-dialog__text">
       Si vous quittez maintenant, votre saisie sera perdue.

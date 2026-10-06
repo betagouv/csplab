@@ -17,7 +17,9 @@ function mockFetchResponse(data: unknown, status = 200, statusText = 'OK') {
     status,
     statusText,
     headers: new Headers({ 'content-type': 'application/json' }),
-    clone() { return this as Response },
+    clone() {
+      return this as Response
+    },
     json: () => Promise.resolve(data),
     text: () => Promise.resolve(JSON.stringify(data)),
   } as unknown as Response)

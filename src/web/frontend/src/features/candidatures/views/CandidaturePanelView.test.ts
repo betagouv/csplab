@@ -59,8 +59,9 @@ async function renderPanel(paths: string[]) {
   window.history.replaceState(null, '', '/')
   const router = createRouter({ history: createWebHistory(), routes })
   await router.replace(paths[0]!)
-  for (const path of paths.slice(1))
+  for (const path of paths.slice(1)) {
     await router.push(path)
+  }
 
   render(PanelWithToasts, {
     global: { plugins: [createPinia(), PiniaColada, router] },

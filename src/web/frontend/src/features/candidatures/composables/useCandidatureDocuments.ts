@@ -13,8 +13,9 @@ export function useCandidatureDocuments(candidature: MaybeRefOrGetter<Candidatur
   const documents = computed<DocumentListe[]>(() => query.data.value?.results ?? [])
 
   function pdfUrl(document: DocumentListe): string | null {
-    if (document.content_type !== PDF_CONTENT_TYPE)
+    if (document.content_type !== PDF_CONTENT_TYPE) {
       return null
+    }
     return candidatureDocumentUrl(toValue(candidature), document.uuid)
   }
 

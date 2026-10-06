@@ -14,7 +14,8 @@ export function provideOrganismeEdition(): Request<OrganismesList> {
 
 export function useOrganismeEdition(): Request<OrganismesList> {
   const edition = inject(KEY)
-  if (!edition)
+  if (!edition) {
     throw new Error('useOrganismeEdition must be used within provideOrganismeEdition')
+  }
   return edition
 }

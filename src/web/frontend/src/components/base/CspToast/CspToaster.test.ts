@@ -7,8 +7,9 @@ import CspToaster from './CspToaster.vue'
 describe('cspToaster', () => {
   afterEach(() => {
     const { toasts, dismissToast } = useToast()
-    for (const toast of toasts.value)
+    for (const toast of toasts.value) {
       dismissToast(toast.id)
+    }
   })
 
   it('runs the toast action and closes the toast', async () => {

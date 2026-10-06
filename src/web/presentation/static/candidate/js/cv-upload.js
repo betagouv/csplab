@@ -52,8 +52,9 @@ class CVUploadHandler {
   }
 
   init() {
-    if (!this.dropzone || !this.fileInput)
+    if (!this.dropzone || !this.fileInput) {
       return
+    }
 
     this.preventNoJsFormValidationConflicts()
     this.setupDragAndDrop()
@@ -69,8 +70,9 @@ class CVUploadHandler {
   }
 
   setupDragAndDrop() {
-    if (!this.dropzone)
+    if (!this.dropzone) {
       return
+    }
 
     this.dropzone.addEventListener('dragover', e => this.handleDragOver(e))
     this.dropzone.addEventListener('dragleave', e => this.handleDragLeave(e))
@@ -78,15 +80,17 @@ class CVUploadHandler {
   }
 
   setupFileInputChange() {
-    if (!this.fileInput)
+    if (!this.fileInput) {
       return
+    }
 
     this.fileInput.addEventListener('change', () => this.handleFileSelect())
   }
 
   setupFileRemove() {
-    if (!this.removeButton)
+    if (!this.removeButton) {
       return
+    }
 
     this.removeButton.addEventListener('click', () => this.handleRemove())
   }
@@ -176,10 +180,12 @@ class CVUploadHandler {
     const KB = 1024
     const MB = KB * 1024
 
-    if (bytes < KB)
+    if (bytes < KB) {
       return `${bytes} octets`
-    if (bytes < MB)
+    }
+    if (bytes < MB) {
       return `${(bytes / KB).toFixed(1)} Ko`
+    }
     return `${(bytes / MB).toFixed(1)} Mo`
   }
 
@@ -220,12 +226,14 @@ class CVUploadHandler {
   }
 
   showInfo() {
-    if (!this.infoTemplate)
+    if (!this.infoTemplate) {
       return
+    }
 
     const toast = this.infoTemplate.content.cloneNode(true).firstElementChild
-    if (!toast)
+    if (!toast) {
       return
+    }
 
     const closeBtn = toast.querySelector('.fr-btn--close')
     if (closeBtn) {
@@ -244,8 +252,9 @@ class CVUploadHandler {
 
 document.addEventListener('DOMContentLoaded', () => {
   const form = document.getElementById('cv-upload-form')
-  if (!form)
+  if (!form) {
     return
+  }
 
   void new CVUploadHandler(form)
 })

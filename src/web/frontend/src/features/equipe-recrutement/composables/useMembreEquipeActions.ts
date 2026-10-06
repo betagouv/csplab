@@ -22,7 +22,8 @@ export function provideMembreEquipeActions(): MembreEquipeActions {
 
 export function useMembreEquipeActions(): MembreEquipeActions {
   const actions = inject(KEY)
-  if (!actions)
+  if (!actions) {
     throw new Error('useMembreEquipeActions must be used within provideMembreEquipeActions')
+  }
   return actions
 }

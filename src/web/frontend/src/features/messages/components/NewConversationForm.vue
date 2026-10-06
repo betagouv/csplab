@@ -72,8 +72,9 @@ function backToConversations(): void {
 }
 
 async function send(): Promise<void> {
-  if (!canSend.value)
+  if (!canSend.value) {
     return
+  }
   try {
     const conversation = await create({ objet: objet.value, content: content.value, documents: documents.value })
     discard()

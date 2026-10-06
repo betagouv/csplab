@@ -85,7 +85,9 @@ const root = computed(() => {
         is: Toggle,
         attrs: {
           'modelValue': pressed.value,
-          'onUpdate:modelValue': (value: boolean) => { pressed.value = value },
+          'onUpdate:modelValue': (value: boolean) => {
+            pressed.value = value
+          },
           'disabled': resolvedDisabled.value,
         },
       }

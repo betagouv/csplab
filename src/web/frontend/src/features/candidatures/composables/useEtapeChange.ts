@@ -17,8 +17,9 @@ export function useEtapeChange(candidatureUuid: Ref<string>, leavePanel: () => v
   async function confirm(targetEtapeUuid: string, motifRefus?: MotifRefus): Promise<void> {
     const candidature = findCandidature(candidatureUuid.value)
     const target = recrutementEtapes.value.find(candidate => candidate.uuid === targetEtapeUuid)
-    if (!etape.value || !candidature || !target)
+    if (!etape.value || !candidature || !target) {
       return
+    }
 
     const movedUuid = candidatureUuid.value
     const nextUuid = position.value?.nextUuid ?? null
@@ -30,16 +31,20 @@ export function useEtapeChange(candidatureUuid: Ref<string>, leavePanel: () => v
       motifRefus,
     })
 
-    if (nextUuid)
+    if (nextUuid) {
       navigateTo(nextUuid)
-    else
+    }
+    else {
       leavePanel()
+    }
 
-    if (!await moved)
+    if (!await moved) {
       return
+    }
 
-    if (lastToastId !== null)
+    if (lastToastId !== null) {
       dismissToast(lastToastId)
+    }
     lastToastId = addToast({
       variant: 'success',
       title: `${formatCandidatNom(candidature.candidat)} est passé à l'étape ${target.nom}`,
@@ -49,10 +54,12 @@ export function useEtapeChange(candidatureUuid: Ref<string>, leavePanel: () => v
   function request(targetEtapeUuid: string): void {
     const candidature = findCandidature(candidatureUuid.value)
     const target = recrutementEtapes.value.find(candidate => candidate.uuid === targetEtapeUuid)
-    if (target?.categorie === 'REFUS' && candidature)
+    if (target?.categorie === 'REFUS' && candidature) {
       refus.request([candidature.candidat], motifRefus => void confirm(targetEtapeUuid, motifRefus))
-    else
+    }
+    else {
       void confirm(targetEtapeUuid)
+    }
   }
 
   return { etapes: recrutementEtapes, request, refus }

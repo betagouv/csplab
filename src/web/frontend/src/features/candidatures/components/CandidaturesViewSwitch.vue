@@ -27,8 +27,9 @@ const OPTIONS: CspSegmentedControlOption<CandidaturesViewName>[] = [
 const view = computed({
   get: () => props.current,
   set: (value) => {
-    if (value === props.current)
+    if (value === props.current) {
       return
+    }
     void router.push({
       name: ROUTE_BY_VIEW[value],
       params: { organismeUuid: props.organismeUuid, recrutementUuid: props.recrutementUuid },

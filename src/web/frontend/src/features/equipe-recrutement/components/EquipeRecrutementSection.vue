@@ -88,8 +88,9 @@ async function handleAdd(role: RecrutementRole) {
 }
 
 watch(() => roleChange.requested, async (change) => {
-  if (!change)
+  if (!change) {
     return
+  }
   const { membre, role } = change
   roleChange.clear()
   try {
@@ -106,18 +107,21 @@ watch(() => roleChange.requested, async (change) => {
 })
 
 watch(() => revocation.requested, (membre) => {
-  if (membre)
+  if (membre) {
     revocationDialogOpen.value = true
+  }
 })
 
 watch(revocationDialogOpen, (isOpen) => {
-  if (!isOpen)
+  if (!isOpen) {
     revocation.clear()
+  }
 })
 
 async function handleRevocation(): Promise<void> {
-  if (!revocation.requested)
+  if (!revocation.requested) {
     return
+  }
   const membre = revocation.requested
   try {
     await revoke(membre)

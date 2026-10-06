@@ -45,8 +45,9 @@ const canSend = computed(() => content.value.trim() !== '' && !hasInvalidAttachm
 const canAttach = computed(() => countValidAttachments(documents.value) < MESSAGE_MAX_DOCUMENTS && !replying.value)
 
 async function send(): Promise<void> {
-  if (!canSend.value)
+  if (!canSend.value) {
     return
+  }
   try {
     await reply({ content: content.value, documents: documents.value })
     content.value = ''

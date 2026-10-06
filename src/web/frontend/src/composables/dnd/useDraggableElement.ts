@@ -19,8 +19,9 @@ export function useDraggableElement(options: UseDraggableElementOptions) {
   watch(
     [options.element, () => options.dragHandle?.value, enabled],
     ([element, dragHandle, isEnabled], _, onCleanup) => {
-      if (!element || !isEnabled)
+      if (!element || !isEnabled) {
         return
+      }
 
       const cleanup = draggable({
         element,
