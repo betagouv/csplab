@@ -29,10 +29,17 @@ class CandidatureDjangoFactory(DjangoModelFactory):
     documents = None
 
 
+def create_recrutement_with_candidature(organisme=None, **recrutement_kwargs):
+    if organisme is not None:
+        recrutement_kwargs["organisme"] = organisme
+    recrutement = RecrutementDjangoFactory(**recrutement_kwargs)
+    candidature = CandidatureDjangoFactory(etape__recrutement=recrutement)
+    return recrutement, candidature
+
+
 def create_recrutement_and_candidature_for_agent(
     role=AgentOrganismeRole.SUPERVISEUR, utilisateur=None
 ):
     agent, organisme = create_organisme_with_agent(role=role, utilisateur=utilisateur)
-    recrutement = RecrutementDjangoFactory(organisme=organisme)
-    candidature = CandidatureDjangoFactory(etape__recrutement=recrutement)
+    recrutement, candidature = create_recrutement_with_candidature(organisme)
     return agent, organisme, recrutement, candidature
