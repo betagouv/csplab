@@ -229,8 +229,6 @@ _ROLES_RECRUTEMENT_REQUIS: dict[OrganismeAction, frozenset[AgentRecrutementRole]
 }
 
 
-# Transitoire (#1356) : accepter Utilisateur tant qu'un usecase legacy l'envoie ;
-# à retirer quand mypy passe sans | Utilisateur dans la signature de can_execute.
 def _agent_id(utilisateur: UserModel | Utilisateur) -> UUID:
     if isinstance(utilisateur, UserModel):
         return utilisateur.username
