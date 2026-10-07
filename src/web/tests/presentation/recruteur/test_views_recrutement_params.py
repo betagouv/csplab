@@ -6,7 +6,6 @@ from django.urls import reverse
 from django.utils import timezone
 from faker import Faker
 from rest_framework import status
-from rest_framework_simplejwt.tokens import RefreshToken
 
 from application.recruteur.errors.application_errors_recruteur import (
     OrganismeRecrutementIncoherents,
@@ -382,8 +381,7 @@ class TestGetRecrutementEtapesView:
         ]
 
     def test_staff_without_liaison_gets_etapes(self, api_client):
-        token = RefreshToken.for_user(UtilisateurDjangoFactory(is_staff=True))
-        api_client.credentials(HTTP_AUTHORIZATION=f"Bearer {token.access_token}")
+        api_client.force_login(UtilisateurDjangoFactory(is_staff=True))
         organisme, recrutement, reception, entretien, refus = _superviseur_recrutement(
             UtilisateurDjangoFactory()
         )
