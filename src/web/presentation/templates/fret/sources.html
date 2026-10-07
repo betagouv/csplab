@@ -1,0 +1,19 @@
+{% extends "layouts/base.html" %}
+{% load dsfr_tags %}
+{% block page_title %}
+    Mes sources
+{% endblock page_title %}
+{% block main %}
+    <div class="fr-container fr-py-6w">
+        {% dsfr_breadcrumb breadcrumb_data %}
+        <h1>Mes sources</h1>
+        {% if table.content %}
+            {% dsfr_table table %}
+            {% if page_obj.paginator.num_pages > 1 %}
+                {% dsfr_pagination page_obj %}
+            {% endif %}
+        {% else %}
+            {% dsfr_callout text="Aucune source ne vous est associée." %}
+        {% endif %}
+    </div>
+{% endblock main %}

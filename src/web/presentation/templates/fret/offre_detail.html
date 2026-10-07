@@ -1,0 +1,18 @@
+{% extends "layouts/base.html" %}
+{% load dsfr_tags %}
+{% block page_title %}
+    {{ offre.title }}
+{% endblock page_title %}
+{% block main %}
+    <div class="fr-container fr-py-6w">
+        {% dsfr_breadcrumb breadcrumb_data %}
+        <h1>{{ offre.title }}</h1>
+        {% dsfr_table table %}
+        <h2>Mission</h2>
+        <div>{{ offre.mission|linebreaks }}</div>
+        <h2>Profil</h2>
+        <div>{{ offre.profile|linebreaks }}</div>
+        {% url 'fret:offres' source.source_id as liste_url %}
+        {% dsfr_link label="Retour aux offres" url=liste_url extra_classes="fr-icon-arrow-left-line fr-link--icon-left" %}
+    </div>
+{% endblock main %}
