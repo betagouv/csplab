@@ -13,6 +13,9 @@ from application.recruteur.errors.application_errors_recruteur import (
     OrganismeRecrutementIncoherents,
     RecrutementEtapeIncoherents,
 )
+from application.recruteur.services.get_recrutement_etapes import (
+    get_recrutement_etapes,
+)
 from application.recruteur.usecases.update_recrutement_etapes import (
     UpdateRecrutementEtapesCommand,
 )
@@ -37,6 +40,7 @@ from presentation.api.authentication import SessionApiMixin
 from presentation.api.serializers import GenericErrorSerializer, TokenErrorSerializer
 from presentation.recruteur.mappers import UtilisateurMapper
 from presentation.recruteur.serializers import (
+    EtapeRecrutementModelSerializer,
     EtapeRecrutementSerializer,
     UpdateEtapeRecrutementSerializer,
 )
@@ -85,17 +89,12 @@ class RecrutementEtapeView(SessionApiMixin, APIView):
         self, request: Request, organisme_uuid: UUID, recrutement_uuid: UUID
     ) -> Response:
         try:
-            usecase = self.container.get_recrutement_etapes_usecase()
-            resultat = usecase.execute(
-                RecrutementRequest(
-                    organisme_id=organisme_uuid,
-                    recrutement_id=recrutement_uuid,
-                    utilisateur=self.user_mapper.to_domain(request),
-                )
+            etapes = get_recrutement_etapes(
+                organisme_id=organisme_uuid,
+                recrutement_id=recrutement_uuid,
+                utilisateur=request.user,
             )
-            serializer = EtapeRecrutementSerializer(
-                _etapes_to_serializer_data(resultat), many=True
-            )
+            serializer = EtapeRecrutementModelSerializer(etapes, many=True)
             return Response(serializer.data)
         except OrganismeRecrutementIncoherents as e:
             error_serializer = GenericErrorSerializer({"error": str(e)})
