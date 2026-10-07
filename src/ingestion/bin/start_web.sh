@@ -1,8 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-source "$(dirname "${BASH_SOURCE[0]}")/inject_scaleway_env.sh"
-
 # Start Flower in the background so the web process can proxy to it via localhost.
 # Scalingo only supervises uvicorn, so restart Flower ourselves if it exits
 # (e.g. killed by the OOM killer).
