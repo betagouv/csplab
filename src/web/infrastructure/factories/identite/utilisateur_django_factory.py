@@ -12,7 +12,7 @@ class UtilisateurDjangoFactory(DjangoModelFactory):
         model = UserModel
 
     username = factory.LazyFunction(uuid4)
-    email = factory.Faker("email")
+    email = factory.LazyAttribute(lambda o: f"{o.username}@example.org")
     first_name = factory.Faker("first_name", locale="fr_FR")
     last_name = factory.Faker("last_name", locale="fr_FR")
     is_staff = False
