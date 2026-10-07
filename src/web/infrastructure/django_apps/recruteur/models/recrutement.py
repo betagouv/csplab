@@ -8,11 +8,8 @@ from infrastructure.django_apps.utils.models import BaseDatedModel
 
 
 class RecrutementQuerySet(models.QuerySet):
-    def by_id(self, recrutement_id) -> "RecrutementQuerySet":
-        return self.filter(pk=recrutement_id)
-
-    def organisme_not_supprime(self) -> "RecrutementQuerySet":
-        return self.filter(organisme__supprime_le__isnull=True)
+    def active_by_id(self, recrutement_id) -> "RecrutementQuerySet":
+        return self.filter(pk=recrutement_id, organisme__supprime_le__isnull=True)
 
     def by_organisme_and_recrutement(
         self, organisme_id, recrutement_id

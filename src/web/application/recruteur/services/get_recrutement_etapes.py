@@ -26,11 +26,7 @@ def get_recrutement_etapes(
         recrutement_id=recrutement_id,
     )
     try:
-        recrutement = (
-            RecrutementModel.objects.organisme_not_supprime()
-            .by_id(recrutement_id)
-            .get()
-        )
+        recrutement = RecrutementModel.objects.active_by_id(recrutement_id).get()
     except RecrutementModel.DoesNotExist as error:
         raise RecrutementInexistant(recrutement_id) from error
     if recrutement.organisme_id != organisme_id:
