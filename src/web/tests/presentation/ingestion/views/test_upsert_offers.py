@@ -39,7 +39,11 @@ from infrastructure.factories.ingestion.source_django_factory import (
 from infrastructure.factories.referentiel.metier_django_factory import (
     MetierDjangoFactory,
 )
+from infrastructure.factories.referentiel.offer_django_factory import (
+    OfferDjangoFactory,
+)
 from infrastructure.mappers.offer_mapper import OfferMapper
+from presentation.ingestion.views.offers import UNKNOWN_GENERATED_REFERENCE
 
 fake = Faker("fr_FR")
 
@@ -560,7 +564,7 @@ class TestOffersUpsertViewDbVerified:
 
         assert references[0] != references[1]
 
-    def test_auto_reference_skips_a_reference_sent_in_the_same_payload(
+    def test_unknown_generated_reference_is_rejected(
         self, authenticated_client_with_source
     ):
         MetierDjangoFactory(offer_family_code="ERNUM001")
@@ -574,16 +578,37 @@ class TestOffersUpsertViewDbVerified:
 
         response = authenticated_client_with_source.post(
             URL,
-            data={"source_id": SOURCE_UUID, "offres": [auto_offer, explicit_offer]},
+            data={"source_id": SOURCE_UUID, "offres": [explicit_offer, auto_offer]},
             content_type="application/json",
         )
 
         assert response.status_code == status.HTTP_201_CREATED
-        offres = response.json()["offres"]
-        assert offres[1]["reference"] == explicit_reference
-        assert offres[0]["reference"] != explicit_reference
-        assert set(
-            OfferModel.objects.filter(source_id=UUID(SOURCE_UUID)).values_list(
-                "reference", flat=True
-            )
-        ) == {offres[0]["reference"], explicit_reference}
+        body = response.json()
+        assert [o["index"] for o in body["offres"]] == [1]
+        assert OfferModel.objects.filter(source_id=UUID(SOURCE_UUID)).count() == 1
+        assert body["errors"] == [
+            {
+                "index": 0,
+                "offer": {"reference": explicit_reference, "versant": "FPT"},
+                "error": {"reference": [UNKNOWN_GENERATED_REFERENCE]},
+            }
+        ]
+
+    def test_generated_reference_of_another_source_is_rejected(
+        self, authenticated_client_with_source
+    ):
+        MetierDjangoFactory(offer_family_code="ERNUM001")
+        reference = OfferDjangoFactory(reference="CSP-2026-000042").reference
+        offer = PayloadOfferFactory.create(
+            identification={"reference": reference, "versant": "FPT"}
+        )
+
+        response = authenticated_client_with_source.post(
+            URL,
+            data={"source_id": SOURCE_UUID, "offres": [offer]},
+            content_type="application/json",
+        )
+
+        assert response.json()["offres"] == []
+        assert [e["index"] for e in response.json()["errors"]] == [0]
+        assert not OfferModel.objects.filter(source_id=UUID(SOURCE_UUID)).exists()

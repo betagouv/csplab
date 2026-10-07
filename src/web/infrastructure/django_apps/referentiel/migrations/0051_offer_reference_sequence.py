@@ -2,20 +2,6 @@
 
 from django.db import migrations, models
 
-INITIALIZE_SEQUENCES_SQL = r"""
-    INSERT INTO offer_reference_sequences (year, last_value)
-    SELECT
-        split_part(reference, '-', 2)::integer,
-        max(split_part(reference, '-', 3)::integer)
-    FROM offers
-    WHERE reference ~ '^CSP-\d{4}-\d{6}$'
-    GROUP BY 1
-    ON CONFLICT (year) DO UPDATE
-    SET last_value = greatest(
-        offer_reference_sequences.last_value, EXCLUDED.last_value
-    )
-"""
-
 
 class Migration(migrations.Migration):
 
@@ -36,5 +22,4 @@ class Migration(migrations.Migration):
                 'db_table': 'offer_reference_sequences',
             },
         ),
-        migrations.RunSQL(INITIALIZE_SEQUENCES_SQL, migrations.RunSQL.noop),
     ]

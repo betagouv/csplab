@@ -7,6 +7,7 @@ from ddd.usecase_interface import IUsecase
 from referentiel.entities.offer import Offer
 
 from application.ingestion.interfaces.upsert_offers_input import UpsertOffersInput
+from application.ingestion.services.offer_references import format_reference
 from domain.identite.repositories.utilisateur_repository_interface import (
     IUtilisateurRepository,
 )
@@ -70,14 +71,11 @@ class UpsertOffersUsecase(IUsecase[UpsertOffersInput, IOffersUpsertResult]):
         if not auto_count:
             return offers
 
-        explicit_references = {
-            offer.reference for offer in offers if offer.reference != AUTO_REFERENCE
-        }
+        year = datetime.now(TIMEZONE).year
         references = iter(
-            OfferReferenceSequenceModel.objects.next_references(
-                year=datetime.now(TIMEZONE).year,
-                count=auto_count,
-                exclude=explicit_references,
+            format_reference(year, number)
+            for number in OfferReferenceSequenceModel.objects.reserve(
+                year=year, count=auto_count
             )
         )
         return [

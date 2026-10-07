@@ -466,6 +466,10 @@ Chaque offre rejetée apparaît dans `errors` avec son `index` dans le payload.
 l'offre ensuite, conservez la référence renvoyée et envoyez-la à la place de \
 `"auto"`. Sinon, chaque envoi crée un doublon.
 
+Le format `CSP-AAAA-NNNNNN` est réservé aux références générées par CSPLab. Une \
+référence à ce format n'est acceptée que pour mettre à jour une offre existante \
+de la source. Sinon, l'offre est rejetée dans `errors`.
+
 # Permissions
 
 L'utilisation de cette API nécessite un token d'autorisation spécifique à chaque \

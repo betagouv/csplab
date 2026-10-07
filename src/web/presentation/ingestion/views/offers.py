@@ -20,6 +20,9 @@ from application.ingestion.interfaces.get_offers_by_source_input import (
 )
 from application.ingestion.interfaces.list_offers_input import GetFilteredOffersInput
 from application.ingestion.interfaces.upsert_offers_input import UpsertOffersInput
+from application.ingestion.services.offer_references import (
+    unknown_generated_references,
+)
 from domain.ingestion.exceptions.source_authorization_error import (
     SourceAuthorizationError,
 )
@@ -47,6 +50,12 @@ from presentation.ingestion.serializers import (
     OfferDetailResponseSerializer,
     OffersInputSerializer,
     UpsertOffersRequestSerializer,
+)
+
+UNKNOWN_GENERATED_REFERENCE = (
+    "Aucune offre de cette source ne porte cette référence. Les références au "
+    "format CSP-AAAA-NNNNNN sont générées par CSPLab : utilisez `auto` pour créer "
+    "une offre."
 )
 
 
@@ -358,6 +367,25 @@ class OffersUpsertView(PublicApiMixin, APIView):
                     }
                 )
 
+        unknown = unknown_generated_references(
+            source_id, [offer.reference for offer in valid_offers]
+        )
+        if unknown:
+            kept = []
+            for index, offer in zip(valid_indexes, valid_offers, strict=True):
+                if offer.reference in unknown:
+                    errors.append(
+                        {
+                            "index": index,
+                            "offer": request.data["offres"][index]["identification"],
+                            "error": {"reference": [UNKNOWN_GENERATED_REFERENCE]},
+                        }
+                    )
+                else:
+                    kept.append((index, offer))
+            valid_indexes = [index for index, _ in kept]
+            valid_offers = [offer for _, offer in kept]
+
         utilisateur_username = (
             request.user.username if isinstance(request.user, UserModel) else None
         )
@@ -370,7 +398,7 @@ class OffersUpsertView(PublicApiMixin, APIView):
                     utilisateur_username=utilisateur_username,
                 )
             )
-            result["errors"].extend(errors)
+            result["errors"].extend(sorted(errors, key=lambda error: error["index"]))
             offres = [
                 {"index": index, **offer_status}
                 for index, offer_status in zip(

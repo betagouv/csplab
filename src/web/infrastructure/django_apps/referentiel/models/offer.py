@@ -1,3 +1,6 @@
+from collections.abc import Iterable
+from uuid import UUID
+
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db import models
 from referentiel.value_objects.category import Category
@@ -9,6 +12,14 @@ from infrastructure.django_apps.ingestion.models.talentsoft_organisme import (
     TalentsoftOrganismeModel,
 )
 from infrastructure.django_apps.utils.models import BaseDatedModel
+
+
+class OfferQuerySet(models.QuerySet):
+    def by_source(self, source_id: UUID) -> "OfferQuerySet":
+        return self.filter(source_id=source_id)
+
+    def by_references(self, references: Iterable[str]) -> "OfferQuerySet":
+        return self.filter(reference__in=references)
 
 
 class OfferModel(BaseDatedModel):
@@ -83,6 +94,8 @@ class OfferModel(BaseDatedModel):
     processing = models.BooleanField(default=False)
     processed_at = models.DateTimeField(null=True, blank=True)
     archived_at = models.DateTimeField(null=True, blank=True)
+
+    objects = OfferQuerySet.as_manager()
 
     class Meta:
         db_table = "offers"
