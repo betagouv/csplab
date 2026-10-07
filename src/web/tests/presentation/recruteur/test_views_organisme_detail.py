@@ -317,8 +317,12 @@ class TestEtapesRecrutementOrganismeView:
         assert response.status_code == status.HTTP_404_NOT_FOUND
         assert response.json() == {"error": "organisme_uuid: Not found."}
 
-    # Passe par le except du service : can_execute ne filtre pas supprime_le
-    def test_supprime_organisme_returns_404(self, authenticated_client, test_user):
+    @pytest.mark.parametrize(
+        "client_fixture",
+        ["authenticated_client", "staff_client"],
+        ids=["superviseur", "staff"],
+    )
+    def test_supprime_organisme_returns_404(self, request, test_user, client_fixture):
         _, organisme = create_organisme_with_agent(
             role=AgentOrganismeRole.SUPERVISEUR,
             utilisateur=test_user,
@@ -327,7 +331,7 @@ class TestEtapesRecrutementOrganismeView:
         organisme.supprime_le = datetime.now(timezone.utc)
         organisme.save(update_fields=["supprime_le"])
 
-        response = authenticated_client.get(ETAPES_URL)
+        response = request.getfixturevalue(client_fixture).get(ETAPES_URL)
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
         assert response.json() == {"error": "organisme_uuid: Not found."}
@@ -673,6 +677,24 @@ class TestOrganismeDetailViewDbVerified:
         assert organisme.nom == nouveau_nom
         assert organisme.gestion_ats is True
         assert organisme.versant == "FPT"
+
+    @pytest.mark.parametrize(
+        "client_fixture",
+        ["authenticated_client", "staff_client"],
+        ids=["non_staff", "staff"],
+    )
+    def test_put_supprime_organisme_returns_404(self, request, client_fixture):
+        client = request.getfixturevalue(client_fixture)
+        organisme = OrganismeDjangoFactory(
+            id=UUID(ORGANISME_UUID), supprime_le=datetime.now(timezone.utc)
+        )
+        body = {"nom": fake.name(), "gestion_ats": True, "versant": "FPT"}
+
+        response = client.put(ORGANISME_URL, body)
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+        assert response.json() == {"error": f"Organisme introuvable : {ORGANISME_UUID}"}
+        assert OrganismeModel.objects.get(id=UUID(ORGANISME_UUID)).nom == organisme.nom
 
 
 class TestEtapesRecrutementOrganismeViewDbVerified:

@@ -41,6 +41,7 @@ class UpdateOrganismeUsecase(IUsecase[UpdateOrganismeCommand, Organisme]):
         self.permission_service.can_execute(
             action=OrganismeAction.MODIFIER_ORGANISME,
             utilisateur=command.utilisateur,
+            organisme_id=command.organisme_id,
         )
         return organisme
 

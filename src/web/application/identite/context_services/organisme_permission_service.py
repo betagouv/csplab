@@ -250,7 +250,7 @@ class OrganismePermissionService:
         # TODO : duplicate query — callers passing organisme_id typically also fetch the
         # full Organisme/OrganismeRecruteur row via their repository right around this
         # call (application/*/usecases/*.py); dedupe when refactoring to ADR-009
-        if organisme_id and not OrganismeModel.objects.filter(id=organisme_id).exists():
+        if organisme_id and not OrganismeModel.objects.by_id(organisme_id).exists():
             raise OrganismeNexistePas(str(organisme_id))
 
         if utilisateur.is_staff and action in _ACTIONS_STAFF_AVEC_ORGANISME:

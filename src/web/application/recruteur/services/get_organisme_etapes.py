@@ -18,6 +18,6 @@ def get_organisme_etapes(
         organisme_id=organisme_id,
     )
     try:
-        return OrganismeModel.objects.not_supprimes().etapes_of(organisme_id).get()
+        return OrganismeModel.objects.etapes_of(organisme_id).get()
     except OrganismeModel.DoesNotExist as error:
         raise OrganismeNexistePas(str(organisme_id)) from error

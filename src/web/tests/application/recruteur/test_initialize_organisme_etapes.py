@@ -1,15 +1,24 @@
 from unittest.mock import Mock, patch
 
 import pytest
+from django.utils import timezone
 
+from application.identite.context_services.organisme_permission_service import (
+    OrganismePermissionService,
+)
 from application.recruteur.services.initialize_organisme_etapes import (
     initialize_organisme_etapes,
 )
+from domain.commons.errors.organisme_errors import OrganismeNexistePas
 from domain.commons.services.audit_log_writer import AuditLogWriter
 from domain.recruteur.value_objects.roles import AgentOrganismeRole
 from infrastructure.django_apps.recruteur.models.organisme import OrganismeModel
 from infrastructure.factories.identite.organisme_django_factory import (
+    OrganismeDjangoFactory,
     create_organisme_with_agent,
+)
+from infrastructure.factories.identite.utilisateur_django_factory import (
+    UtilisateurDjangoFactory,
 )
 from infrastructure.factories.recruteur.etapes_recrutement_factory import (
     EtapeRecrutementFactory,
@@ -59,4 +68,19 @@ def test_does_not_log_when_save_fails(db):
             organisme_id=organisme.id, utilisateur=agent.utilisateur
         )
 
+    assert _audit_logs(organisme.id) == []
+
+
+@patch.object(OrganismePermissionService, "can_execute")
+def test_supprime_organisme_after_permission_check_raises(_can_execute, db):
+    organisme = OrganismeDjangoFactory(supprime_le=timezone.now())
+
+    with pytest.raises(OrganismeNexistePas) as error:
+        initialize_organisme_etapes(
+            organisme_id=organisme.id, utilisateur=UtilisateurDjangoFactory()
+        )
+
+    assert isinstance(error.value.__cause__, OrganismeModel.DoesNotExist)
+    organisme.refresh_from_db()
+    assert organisme.etapes is None
     assert _audit_logs(organisme.id) == []
