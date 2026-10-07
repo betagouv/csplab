@@ -206,7 +206,7 @@ def _group_rows(group: str, specs: list, data: dict | None) -> list[list[SafeStr
             cell = _NOT_PROVIDED
         else:
             shown = formatter(value) if formatter else value
-            cell = shown if isinstance(shown, SafeString) else linebreaksbr(shown)
+            cell = shown if isinstance(shown, SafeString) else linebreaksbr(str(shown))
         rows.append([format_html("<strong>{} — {}</strong>", group, label), cell])
     return rows
 
