@@ -80,6 +80,7 @@ def test_update_organisme_success(
     permission_service.can_execute.assert_called_once_with(
         action=OrganismeAction.MODIFIER_ORGANISME,
         utilisateur=utilisateur,
+        organisme_id=organisme.entity_id,
     )
     audit_log_writer.drain_events.assert_called_once_with(
         utilisateur_id=utilisateur.entity_id, aggregate=organisme

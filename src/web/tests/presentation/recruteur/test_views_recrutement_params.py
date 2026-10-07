@@ -491,6 +491,22 @@ class TestGetRecrutementEtapesView:
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
         assert response.json() == {
+            "error": OrganismeNexistePas(str(organisme.id)).message
+        }
+
+    def test_recrutement_of_another_supprime_organisme_returns_404(
+        self, authenticated_client, test_user
+    ):
+        _, organisme = create_organisme_with_agent(
+            role=AgentOrganismeRole.SUPERVISEUR, utilisateur=test_user
+        )
+        _, autre_organisme = create_organisme_with_agent(supprime_le=timezone.now())
+        recrutement, *_ = _recrutement_with_etapes(autre_organisme)
+
+        response = authenticated_client.get(_etapes_url(organisme.id, recrutement.pk))
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+        assert response.json() == {
             "error": RecrutementInexistant(recrutement.pk).message
         }
 

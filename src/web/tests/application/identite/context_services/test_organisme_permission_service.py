@@ -601,6 +601,21 @@ class TestOrganismeExistenceGuard:
                 utilisateur=utilisateur_de(uuid4(), is_staff=True),
             )
 
+    @pytest.mark.parametrize("is_staff", [False, True], ids=["superviseur", "staff"])
+    def test_raises_when_organisme_supprime(
+        self, utilisateur_de: ConstruireUtilisateur, is_staff: bool
+    ) -> None:
+        agent, organisme = create_organisme_with_agent(
+            role=AgentOrganismeRole.SUPERVISEUR, supprime_le=timezone.now()
+        )
+
+        with pytest.raises(OrganismeNexistePas):
+            OrganismePermissionService().can_execute(
+                action=OrganismeAction.GET_ORGANISME,
+                organisme_id=organisme.id,
+                utilisateur=utilisateur_de(agent.utilisateur_id, is_staff=is_staff),
+            )
+
 
 @pytest.mark.parametrize("action", STAFF_SEULEMENT_SANS_ORGANISME_ACTIONS)
 class TestStaffSeulementSansOrganismeActions:
