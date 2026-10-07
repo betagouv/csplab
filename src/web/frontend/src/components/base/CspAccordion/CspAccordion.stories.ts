@@ -95,3 +95,44 @@ export const Single: Story = {
     defaultValue: 'item-1',
   },
 }
+
+export const PlusieursOuvertes: Story = {
+  name: 'Plusieurs sections ouvertes',
+  args: {
+    type: 'multiple',
+    defaultValue: ['item-1', 'item-3'],
+  },
+}
+
+const LONG_CONTENT = 'Une réponse longue, découpée en paragraphes et en liste, pour vérifier le retour à la ligne et l\'espacement.\n- Premier point de la liste, assez long pour passer sur plusieurs lignes lorsque la largeur disponible est réduite.\n- Deuxième point de la liste.\n- Troisième point de la liste.\n\nUn dernier paragraphe conclut la réponse et rappelle où trouver plus d\'informations.'
+
+export const ContenuLong: Story = {
+  name: 'Contenu long',
+  args: {
+    defaultValue: ['item-long'],
+  },
+  render: (args: CspAccordionProps) => ({
+    components: { CspAccordion, CspAccordionItem },
+    setup() {
+      return { args, content: LONG_CONTENT, items: ITEMS.slice(1) }
+    },
+    template: `
+      <CspAccordion v-bind="args">
+        <CspAccordionItem
+          value="item-long"
+          title="Une question dont la réponse est longue et dont le titre lui-même s'étend sur plusieurs lignes quand la place manque"
+        >
+          <p style="white-space: pre-line">{{ content }}</p>
+        </CspAccordionItem>
+        <CspAccordionItem
+          v-for="item in items"
+          :key="item.value"
+          :value="item.value"
+          :title="item.title"
+        >
+          <p>{{ item.content }}</p>
+        </CspAccordionItem>
+      </CspAccordion>
+    `,
+  }),
+}
