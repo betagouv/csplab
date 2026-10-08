@@ -265,23 +265,32 @@ class TestRecrutementDetailView:
             for etape in etapes
         }
 
-    def test_archive_flag_is_true_for_archived_offre(
-        self, authenticated_client, test_user
+    @pytest.mark.parametrize("archivee", [True, False], ids=["archivee", "active"])
+    def test_archive_flag_reflects_offre(
+        self, authenticated_client, test_user, archivee
     ):
         _, organisme = create_organisme_with_agent(
             role=AgentOrganismeRole.SUPERVISEUR, utilisateur=test_user
         )
-        recrutement = RecrutementDjangoFactory(organisme=organisme, offre_archivee=True)
+        recrutement = RecrutementDjangoFactory(
+            organisme=organisme, offre_archivee=archivee
+        )
 
         payload = authenticated_client.get(
             _detail_url(organisme.id, recrutement.pk)
         ).json()
 
-        assert payload["archive"] is True
+        assert payload["archive"] is archivee
 
     @pytest.mark.parametrize(
         ("organisme_role", "recrutement_role", "expected_status"),
         [
+            pytest.param(
+                AgentOrganismeRole.SUPERVISEUR,
+                None,
+                status.HTTP_200_OK,
+                id="superviseur",
+            ),
             *[
                 pytest.param(
                     AgentOrganismeRole.AGENT,

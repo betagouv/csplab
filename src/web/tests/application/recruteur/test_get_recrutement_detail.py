@@ -27,6 +27,9 @@ from infrastructure.factories.recruteur.recrutement_django_factory import (
     RecrutementAgentDjangoFactory,
     RecrutementDjangoFactory,
 )
+from infrastructure.factories.referentiel.offer_django_factory import (
+    OfferDjangoFactory,
+)
 
 pytestmark = pytest.mark.django_db
 
@@ -137,6 +140,29 @@ def test_raises(scenario, expected_error):
             recrutement_id=recrutement_id,
             utilisateur=_utilisateur(agent),
         )
+
+
+def test_offre_with_nullable_columns_is_returned():
+    agent, organisme = create_organisme_with_agent(role=AgentOrganismeRole.SUPERVISEUR)
+    offre = OfferDjangoFactory(
+        area=None,
+        country=None,
+        region=None,
+        department=None,
+        location_label=None,
+        latitude=None,
+        longitude=None,
+    )
+    recrutement = RecrutementDjangoFactory(organisme=organisme, offre=offre)
+
+    result = get_recrutement_detail(
+        organisme_id=organisme.id,
+        recrutement_id=recrutement.pk,
+        utilisateur=_utilisateur(agent),
+    )
+
+    assert result.offre.country is None
+    assert result.offre.latitude is None
 
 
 def test_etapes_ordonnees_ignores_stale_and_missing_ids():
