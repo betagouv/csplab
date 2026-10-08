@@ -95,7 +95,7 @@ function startNote(): void {
       <CspEmptyState
         v-if="notes.length === 0"
         icon="ri:sticky-note-line"
-        title="Aucune note sur cette candidature."
+        title="Aucune note sur cette candidature"
       >
         <template #action>
           <CspButton
