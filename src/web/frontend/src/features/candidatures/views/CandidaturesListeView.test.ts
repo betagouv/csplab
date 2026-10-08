@@ -55,15 +55,30 @@ async function renderListe() {
   return { router, table }
 }
 
-function mockSevenRows() {
+function sevenRows() {
   const [row] = CANDIDATURE_LISTE.results
-  const rows = Array.from({ length: 7 }, (_, index) => ({
+  return Array.from({ length: 7 }, (_, index) => ({
     ...row!,
     uuid: `dddddddd-0002-0002-0002-00000000000${index + 1}`,
+    date_derniere_activite: `2025-06-1${9 - index}T10:00:00Z`,
     candidat: { ...row!.candidat, prenom: `Candidat ${index + 1}` },
   }))
+}
+
+function mockSevenRows(refresh?: ReturnType<typeof sevenRows>) {
+  const rows = sevenRows()
   vi.mocked(getCandidatureListe).mockResolvedValue({ ...CANDIDATURE_LISTE, count: rows.length, results: rows })
+  if (refresh) {
+    vi.mocked(getCandidatureListe).mockResolvedValueOnce({ ...CANDIDATURE_LISTE, count: rows.length, results: rows })
+    vi.mocked(getCandidatureListe).mockResolvedValueOnce({ ...CANDIDATURE_LISTE, count: refresh.length, results: refresh })
+  }
   vi.mocked(getCandidatureDetail).mockImplementation(async ({ candidatureUuid }) => ({ ...candidatureDetail(CANDIDATURE_ALICE), uuid: candidatureUuid }))
+}
+
+async function changeEtapeToEntretien(user: ReturnType<typeof setupUser>) {
+  await user.click(await screen.findByRole('button', { name: 'Changer d\'étape' }))
+  await user.click(await screen.findByRole('radio', { name: 'Entretien' }))
+  await user.click(screen.getByRole('button', { name: 'Valider' }))
 }
 
 function sequenceNavigation() {
@@ -121,40 +136,48 @@ describe('candidaturesListeView', () => {
     expect(await table.findByRole('link', { name: 'Candidat 7 Dupont', hidden: true })).toBeInTheDocument()
   })
 
-  it('keeps the page of the open candidature after changing its stage', async () => {
-    mockSevenRows()
-    const user = setupUser()
-    const { table } = await renderListe()
-
-    await user.click(screen.getByRole('button', { name: 'Page suivante' }))
-    await user.click(await table.findByRole('link', { name: 'Candidat 7 Dupont' }))
-    await user.click(await screen.findByRole('button', { name: 'Changer d\'étape' }))
-    await user.click(await screen.findByRole('radio', { name: 'Entretien' }))
-    await user.click(screen.getByRole('button', { name: 'Valider' }))
-    await vi.waitFor(() => expect(getCandidatureListe).toHaveBeenCalledTimes(2))
-
-    expect(await table.findByRole('link', { name: 'Candidat 7 Dupont', hidden: true })).toBeInTheDocument()
-    expect(table.queryByRole('link', { name: 'Candidat 1 Dupont', hidden: true })).not.toBeInTheDocument()
-  })
-
-  it('stays on the candidature after changing its stage', async () => {
+  it('opens the next candidature of the list after changing a stage, even when the list reorders', async () => {
+    const [first, second, third, ...others] = sevenRows()
+    mockSevenRows([{ ...third!, date_derniere_activite: '2025-06-20T10:00:00Z' }, first!, second!, ...others])
     const user = setupUser()
     const { router, table } = await renderListe()
 
-    await user.click(table.getByRole('link', { name: 'Alice Dupont' }))
-    const note = await screen.findByRole('textbox', { name: 'Ajouter une note' })
-    await user.type(note, 'À rappeler')
-    await user.click(screen.getByRole('button', { name: 'Changer d\'étape' }))
-    await user.click(await screen.findByRole('radio', { name: 'Entretien' }))
-    await user.click(screen.getByRole('button', { name: 'Valider' }))
+    await user.click(table.getByRole('button', { name: 'Dernière activité' }))
+    await user.click(table.getByRole('button', { name: 'Dernière activité' }))
+    await user.click(table.getByRole('link', { name: 'Candidat 3 Dupont' }))
+    await changeEtapeToEntretien(user)
 
-    await vi.waitFor(() => expect(patchEtapeCandidatures).toHaveBeenCalledWith(ORGANISME_UUID, RECRUTEMENT_UUID, {
+    await vi.waitFor(() => expect(router.currentRoute.value.params.candidatureUuid).toBe(others[0]!.uuid))
+    expect(patchEtapeCandidatures).toHaveBeenCalledWith(ORGANISME_UUID, RECRUTEMENT_UUID, {
       etapeCibleUuid: ETAPE_ENTRETIEN,
-      candidatureUuids: [CANDIDATURE_ALICE],
+      candidatureUuids: [third!.uuid],
+    })
+    await vi.waitFor(() => expect(getCandidatureListe).toHaveBeenCalledTimes(2))
+    const navigation = within(await sequenceNavigation())
+    expect(await navigation.findByText('Candidature 4 sur 7')).toBeInTheDocument()
+    await user.click(navigation.getByRole('button', { name: 'Suivant' }))
+    await vi.waitFor(() => expect(router.currentRoute.value.params.candidatureUuid).toBe(others[1]!.uuid))
+  })
+
+  it('closes the last candidature after changing its stage and keeps the page of the list', async () => {
+    const rows = sevenRows()
+    mockSevenRows([rows[6]!, ...rows.slice(0, 6)])
+    let respond!: () => void
+    vi.mocked(patchEtapeCandidatures).mockReturnValue(new Promise((resolve) => {
+      respond = () => resolve({ reussites: [rows[6]!.uuid], echecs: [] })
     }))
-    expect(router.currentRoute.value.path).toBe(`${LISTE_PATH}/candidatures/${CANDIDATURE_ALICE}`)
-    expect(screen.queryByRole('dialog', { name: 'Modifications non enregistrées' })).not.toBeInTheDocument()
-    expect(note).toHaveValue('À rappeler')
+    const user = setupUser()
+    const { router, table } = await renderListe()
+
+    await user.click(screen.getByRole('button', { name: 'Page suivante' }))
+    await user.click(await table.findByRole('link', { name: 'Candidat 7 Dupont' }))
+    await changeEtapeToEntretien(user)
+
+    await vi.waitFor(() => expect(router.currentRoute.value.path).toBe(LISTE_PATH))
+    respond()
+    await vi.waitFor(() => expect(getCandidatureListe).toHaveBeenCalledTimes(2))
+    expect(await table.findByRole('link', { name: 'Candidat 6 Dupont' })).toBeInTheDocument()
+    expect(table.queryByRole('link', { name: 'Candidat 1 Dupont' })).not.toBeInTheDocument()
   })
 
   it('closes back to the list and focuses the link of the last candidature shown', async () => {

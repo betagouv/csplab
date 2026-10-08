@@ -97,12 +97,7 @@ const unsavedChanges = useUnsavedChangesGuard({
   ignore: to => to.params.candidatureUuid === candidatureUuid.value,
 })
 
-const movesToNextCandidature = computed(() => view.value === 'kanban')
-
 function leaveMovedCandidature(): void {
-  if (!movesToNextCandidature.value) {
-    return
-  }
   if (position.value?.nextUuid) {
     navigation.navigateTo(position.value.nextUuid)
   }
@@ -114,7 +109,7 @@ function leaveMovedCandidature(): void {
 const etapeChange = useEtapeChange(candidature, leaveMovedCandidature)
 
 async function requestEtapeChange(targetEtapeUuid: string): Promise<void> {
-  if (!movesToNextCandidature.value || await unsavedChanges.confirmLeave()) {
+  if (await unsavedChanges.confirmLeave()) {
     etapeChange.request(targetEtapeUuid)
   }
 }
