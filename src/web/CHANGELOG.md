@@ -4,93 +4,382 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.0] - 2026-10-08
+
+### Candidatures
+
+#### <!-- 1 --> Added
+
+- Intègre les dernières activités au panneau de candidature ([#1607](https://github.com/betagouv/csplab/pull/1607))
+- Intègre l'historique d'activité au panneau de candidature ([#1668](https://github.com/betagouv/csplab/pull/1668))
+- Ouvre le panneau de candidature depuis la vue liste ([#1750](https://github.com/betagouv/csplab/pull/1750))
+
+#### <!-- 4 --> Fixed
+
+- Affiche un message quand le CV ne peut pas être chargé ([#1604](https://github.com/betagouv/csplab/pull/1604))
+- Charge toutes les candidatures dans la vue liste ([#1752](https://github.com/betagouv/csplab/pull/1752))
+- Limite la sélection du kanban aux candidatures affichées ([#1753](https://github.com/betagouv/csplab/pull/1753))
+
+
+### Identite
+
+#### <!-- 1 --> Added
+
+- Trace la création d'un profil agent ([#1602](https://github.com/betagouv/csplab/pull/1602))
+- Trace la création d'un profil candidat ([#1641](https://github.com/betagouv/csplab/pull/1641))
+- Suppression de l'authent par email/password vers l'ATS ([#1642](https://github.com/betagouv/csplab/pull/1642))
+- Log des tentatives de connexion  ([#1651](https://github.com/betagouv/csplab/pull/1651))
+- Aligne les droits staff sur ceux du superviseur ([#1593](https://github.com/betagouv/csplab/pull/1593))
+- Log en base les tentatives de connexion par canal d'accès ([#1660](https://github.com/betagouv/csplab/pull/1660))
+- Scope les methodes d'authentification par endpoints ([#1673](https://github.com/betagouv/csplab/pull/1673))
+- Redirect to request page after login ([#1767](https://github.com/betagouv/csplab/pull/1767))
+
+#### <!-- 2 --> Modified
+
+- OrganismePermissionService accepte request.user ([#1692](https://github.com/betagouv/csplab/pull/1692))
+- Nettoyer les sessions expirées ([#1768](https://github.com/betagouv/csplab/pull/1768))
+
+#### <!-- 4 --> Fixed
+
+- Remove roles for proconnect claims ([#1721](https://github.com/betagouv/csplab/pull/1721))
+- Coupe l'accès d'un agent révoqué de son organisme ([#1597](https://github.com/betagouv/csplab/pull/1597))
+- Rend unique l'e-mail de UtilisateurDjangoFactory ([#1758](https://github.com/betagouv/csplab/pull/1758))
+- Refuse l'accès à un organisme supprimé ([#1762](https://github.com/betagouv/csplab/pull/1762))
+- Limite le débit des rejets Api-Key ([#1807](https://github.com/betagouv/csplab/pull/1807))
+
+
+### Ingestion
+
+#### <!-- 1 --> Added
+
+- Récupère les champs Talentsoft manquants pour l'export UNIF ([#1697](https://github.com/betagouv/csplab/pull/1697))
+- Enregistre et expose les champs de l'export UNIF des offres ([#1716](https://github.com/betagouv/csplab/pull/1716))
+- Renomme les champs de contrat de l'API d'ingestion ([#1739](https://github.com/betagouv/csplab/pull/1739))
+- Génère la référence d'une offre avec "auto" ([#1748](https://github.com/betagouv/csplab/pull/1748))
+- Mappe vacance_poste et debut_vacance_poste ([#1812](https://github.com/betagouv/csplab/pull/1812))
+- Enregistre et expose la date de vacance de poste côté web ([#1815](https://github.com/betagouv/csplab/pull/1815))
+- Afficher les offres actives par source ([#1763](https://github.com/betagouv/csplab/pull/1763))
+
+#### <!-- 2 --> Modified
+
+- Supprime les alias d'identifiants legacy de fake-ts ([#1676](https://github.com/betagouv/csplab/pull/1676))
+- Renomme la nature de l'offre en offer_nature ([#1742](https://github.com/betagouv/csplab/pull/1742))
+
+#### <!-- 4 --> Fixed
+
+- Relance Flower en cas de crash ([#1627](https://github.com/betagouv/csplab/pull/1627))
+- Enregistre l'erreur de publication d'une offre vers web ([#1633](https://github.com/betagouv/csplab/pull/1633))
+- Associe les offres OFII au versant FPE ([#1639](https://github.com/betagouv/csplab/pull/1639))
+- Enchaîne chargement, nettoyage et vectorisation des documents ([#1650](https://github.com/betagouv/csplab/pull/1650))
+- Ajoute une contrainte d'unicité sur le code des corps ([#1652](https://github.com/betagouv/csplab/pull/1652))
+- Aligne le DTO des offres Talentsoft sur la spec OpenAPI ([#1665](https://github.com/betagouv/csplab/pull/1665))
+- Convertit les dates des tables raw en une seule réécriture par table ([#1717](https://github.com/betagouv/csplab/pull/1717))
+
+#### <!-- 5 --> Documentation
+
+- Ajoute un changelog à la documentation de l'API ([#1727](https://github.com/betagouv/csplab/pull/1727))
+- Ajout de la correspondance entre les champs TS et ceux de l'API d'ingestion ([#1380](https://github.com/betagouv/csplab/pull/1380))
+- Met à jour la correspondance entre le format TS et l'API v1 ([#1789](https://github.com/betagouv/csplab/pull/1789))
+- Distingue le format Talentsoft de l'API fake-ts ([#1804](https://github.com/betagouv/csplab/pull/1804))
+
+
+### Messages
+
+#### <!-- 1 --> Added
+
+- Répond dans une conversation d'une candidature ([#1664](https://github.com/betagouv/csplab/pull/1664))
+- Joint des fichiers à un message ([#1666](https://github.com/betagouv/csplab/pull/1666))
+- Demarrer une conversation ([#1678](https://github.com/betagouv/csplab/pull/1678))
+- Connexion de la liste des conversations à la base de données ([#1681](https://github.com/betagouv/csplab/pull/1681))
+- Connexion de la liste des messages d'une conversation à la base de données ([#1683](https://github.com/betagouv/csplab/pull/1683))
+- Enregitrer une conversation créée en base de données ([#1720](https://github.com/betagouv/csplab/pull/1720))
+- Enregistrer une réponse à une conversation en base de données ([#1735](https://github.com/betagouv/csplab/pull/1735))
+- Resynchronise les conversations après un envoi ([#1747](https://github.com/betagouv/csplab/pull/1747))
+
+#### <!-- 2 --> Modified
+
+- Nettoyage des tests des services liées aux conversations ([#1737](https://github.com/betagouv/csplab/pull/1737))
+
+
+### Organismes
+
+#### <!-- 4 --> Fixed
+
+- Affiche « Superviseur » pour le rôle d'organisme ([#1655](https://github.com/betagouv/csplab/pull/1655))
+
+
+### Recruteur
+
+#### <!-- 1 --> Added
+
+- Ajout du modèle de base de données messagerie ([#1592](https://github.com/betagouv/csplab/pull/1592))
+- Ajoute un seed de candidatures en volume ([#1751](https://github.com/betagouv/csplab/pull/1751))
+
+#### <!-- 2 --> Modified
+
+- Expose l'identifiant des serializers internes sous le nom uuid ([#1586](https://github.com/betagouv/csplab/pull/1586))
+- Harmonise le nommage des routes en snake_case ([#1669](https://github.com/betagouv/csplab/pull/1669))
+- Convertit la lecture des étapes d'organisme ([#1704](https://github.com/betagouv/csplab/pull/1704))
+- Convertit l'initialisation des étapes d'organisme ([#1713](https://github.com/betagouv/csplab/pull/1713))
+- Convertit la lecture des étapes d'un recrutement ([#1746](https://github.com/betagouv/csplab/pull/1746))
+- Convertit init_recrutement_etapes (ADR-009) ([#1771](https://github.com/betagouv/csplab/pull/1771))
+
+#### <!-- 4 --> Fixed
+
+- Masque onglet équipe de recrutement si non autorisés ([#1656](https://github.com/betagouv/csplab/pull/1656))
+- Aligne espacements et bords des composants par rôle ([#1677](https://github.com/betagouv/csplab/pull/1677))
+- Corrige le kanban en erreur après modification d'étapes ([#1682](https://github.com/betagouv/csplab/pull/1682))
+- Ordonne les étapes du domaine selon ordre_etapes ([#1691](https://github.com/betagouv/csplab/pull/1691))
+- Rafraîchit le kanban après modification des étapes ([#1715](https://github.com/betagouv/csplab/pull/1715))
+
+
+### Referentiel
+
+#### <!-- 0 --> Breaking Changes
+
+- Supprime external_id des offres ([#1659](https://github.com/betagouv/csplab/pull/1659))
+
+#### <!-- 4 --> Fixed
+
+- Ajoute la modalité d'accès « Par voie du GISP » ([#1649](https://github.com/betagouv/csplab/pull/1649))
+
+
+### Tooling
+
+#### <!-- 2 --> Modified
+
+- Saute le démarrage des services déjà lancés ([#1601](https://github.com/betagouv/csplab/pull/1601))
+- Utilise un hasher MD5 dans les settings de test ([#1718](https://github.com/betagouv/csplab/pull/1718))
+
+#### <!-- 4 --> Fixed
+
+- Corrige les tâches mise des services locaux ([#1600](https://github.com/betagouv/csplab/pull/1600))
+- Update commit message of upgrade deps script ([#1708](https://github.com/betagouv/csplab/pull/1708))
+- Isole le verrou huey par worker xdist dans les tests ([#1734](https://github.com/betagouv/csplab/pull/1734))
+
+#### <!-- 5 --> Documentation
+
+- Reformat changelog per scopes ([#1630](https://github.com/betagouv/csplab/pull/1630))
+
+
 ## [0.3.0] - 2026-09-30
 
-### <!-- 1 --> Added
+### Api
 
-- Interface, assigner un responsable sur plusieurs recrutements d'un organisme ([#1438](https://github.com/betagouv/csplab/pull/1438))
-- Supprimer un membre de l'équipe de recrutement ([#1445](https://github.com/betagouv/csplab/pull/1445))
-- Ajoute l'enum Radius ([#1449](https://github.com/betagouv/csplab/pull/1449))
-- Motifs refus candidature ([#1430](https://github.com/betagouv/csplab/pull/1430))
-- Interface, enregistrer le motif de refus d'une ou plusieurs candidatures ([#1431](https://github.com/betagouv/csplab/pull/1431))
-- Persister le motif de refus d'une ou plusieurs candidatures en db ([#1432](https://github.com/betagouv/csplab/pull/1432))
-- Enregistre le nom et le prénom issus de ProConnect ([#1451](https://github.com/betagouv/csplab/pull/1451))
-- Back, assigner un responsable sur plusieurs recrutements d'un organisme ([#1452](https://github.com/betagouv/csplab/pull/1452))
-- Add document model, its FileField wire to S3 storage and its enum ([#1473](https://github.com/betagouv/csplab/pull/1473))
-- Assigner un responsable recrutement en lot ([#1483](https://github.com/betagouv/csplab/pull/1483))
+#### <!-- 4 --> Fixed
+
+- Normalise les corps d'erreur des endpoints internes ([#1456](https://github.com/betagouv/csplab/pull/1456))
+
+
+### Ats
+
+#### <!-- 1 --> Added
+
+- Harmonise la sidebar, l'en-tête de page et la largeur des pages ([#1575](https://github.com/betagouv/csplab/pull/1575))
+
+
+### Ats-presentation
+
+#### <!-- 1 --> Added
+
 - Ajoute CspSearchBar et l'utilise pour toutes les recherches ([#1491](https://github.com/betagouv/csplab/pull/1491))
+
+
+### Candidat
+
+#### <!-- 1 --> Added
+
+- Add document model, its FileField wire to S3 storage and its enum ([#1473](https://github.com/betagouv/csplab/pull/1473))
+
+
+### Candidatures
+
+#### <!-- 1 --> Added
+
 - Ouvre le panneau de candidature depuis le kanban ([#1477](https://github.com/betagouv/csplab/pull/1477))
 - Ajoute les onglets et la colonne de droite au panneau de candidature ([#1487](https://github.com/betagouv/csplab/pull/1487))
 - Navigue entre les candidatures de l'étape depuis le panneau ([#1489](https://github.com/betagouv/csplab/pull/1489))
-- Attacher un agent à l'organisme lors de son ajout dans un recrutement ([#1501](https://github.com/betagouv/csplab/pull/1501))
 - Change l'étape d'une candidature depuis le panneau ([#1493](https://github.com/betagouv/csplab/pull/1493))
-- Uniformise l'ajout d'une personne ([#1505](https://github.com/betagouv/csplab/pull/1505))
-- Retrouve le SIRET DILA manquant via une API externe ([#1482](https://github.com/betagouv/csplab/pull/1482))
-- Prépare l'import des organisations Talentsoft ([#1499](https://github.com/betagouv/csplab/pull/1499))
-- Ajoute TalentsoftOrganisme et l'endpoint creer_modifier ([#1502](https://github.com/betagouv/csplab/pull/1502))
-- Setup candidature logs view interface ([#1459](https://github.com/betagouv/csplab/pull/1459))
-- Affiche un message d'état vide si pas de recrutements ([#1514](https://github.com/betagouv/csplab/pull/1514))
-- Interface du endpoint de la vue de detail d'une candidature ([#1462](https://github.com/betagouv/csplab/pull/1462))
-- Visualiser un document en tant qu'agent autorisé ([#1475](https://github.com/betagouv/csplab/pull/1475))
-- Publie les organismes Talentsoft préparés vers web ([#1516](https://github.com/betagouv/csplab/pull/1516))
-- Rend organisme_id optionnel pour l'upsert des organismes Talentsoft ([#1515](https://github.com/betagouv/csplab/pull/1515))
-- Gestion des permissions sur les Notes ([#1507](https://github.com/betagouv/csplab/pull/1507))
-- Ajoute le code entité DGAFP Talentsoft sur les offres ([#1546](https://github.com/betagouv/csplab/pull/1546))
-- Remonte le code entité DGAFP Talentsoft vers web ([#1547](https://github.com/betagouv/csplab/pull/1547))
 - Demande un motif avant de refuser une candidature ([#1506](https://github.com/betagouv/csplab/pull/1506))
-- Alimenter le detail d'une candidature avec les données réelles ([#1550](https://github.com/betagouv/csplab/pull/1550))
-- Interface de liste des conversations d'une candidature  ([#1536](https://github.com/betagouv/csplab/pull/1536))
-- Interface de detail des messages d'une conversation ([#1537](https://github.com/betagouv/csplab/pull/1537))
-- Ajoute le référentiel des organismes Talentsoft à l'API fake-ts ([#1554](https://github.com/betagouv/csplab/pull/1554))
-- Lister les document d'une candidature en tant qu'agent autorisé ([#1476](https://github.com/betagouv/csplab/pull/1476))
 - Affiche le CV et les documents dans le panneau de candidature ([#1549](https://github.com/betagouv/csplab/pull/1549))
-- Affiche la liste des conversations d'une candidature ([#1563](https://github.com/betagouv/csplab/pull/1563))
 - Alimente le panneau par le détail de la candidature ([#1556](https://github.com/betagouv/csplab/pull/1556))
 - Ajoute une note sur la candidature depuis le panneau ([#1562](https://github.com/betagouv/csplab/pull/1562))
-- Affiche les messages d'un conversation ([#1564](https://github.com/betagouv/csplab/pull/1564))
-- Harmonise la sidebar, l'en-tête de page et la largeur des pages ([#1575](https://github.com/betagouv/csplab/pull/1575))
-- Interface de creation d'une conversation ([#1561](https://github.com/betagouv/csplab/pull/1561))
-- Interface de reponse à une conversation ([#1585](https://github.com/betagouv/csplab/pull/1585))
-- Améliore les messages d'état recrutements ([#1589](https://github.com/betagouv/csplab/pull/1589))
+- Intègre le garde-fou de saisie non enregistrée au panneau ([#1594](https://github.com/betagouv/csplab/pull/1594))
+
+#### <!-- 2 --> Modified
+
+- Transforme le panneau candidature en modale ([#1569](https://github.com/betagouv/csplab/pull/1569))
+
+
+### Identite
+
+#### <!-- 1 --> Added
+
+- Enregistre le nom et le prénom issus de ProConnect ([#1451](https://github.com/betagouv/csplab/pull/1451))
+
+#### <!-- 4 --> Fixed
+
+- Enregistre et recherche les emails en minuscules ([#1471](https://github.com/betagouv/csplab/pull/1471))
+
+
+### Ingestion
+
+#### <!-- 1 --> Added
+
+- Retrouve le SIRET DILA manquant via une API externe ([#1482](https://github.com/betagouv/csplab/pull/1482))
+- Prépare l'import des organisations Talentsoft ([#1499](https://github.com/betagouv/csplab/pull/1499))
+- Publie les organismes Talentsoft préparés vers web ([#1516](https://github.com/betagouv/csplab/pull/1516))
+- Ajoute le code entité DGAFP Talentsoft sur les offres ([#1546](https://github.com/betagouv/csplab/pull/1546))
+- Remonte le code entité DGAFP Talentsoft vers web ([#1547](https://github.com/betagouv/csplab/pull/1547))
+- Ajoute le référentiel des organismes Talentsoft à l'API fake-ts ([#1554](https://github.com/betagouv/csplab/pull/1554))
 - Expose l'organisation Talentsoft dans le détail d'une offre ([#1565](https://github.com/betagouv/csplab/pull/1565))
 - Ajoute l'endpoint fake-ts de détail d'une organisation ([#1566](https://github.com/betagouv/csplab/pull/1566))
 - Filtre les offres par organisme Talentsoft et ses descendants ([#1568](https://github.com/betagouv/csplab/pull/1568))
-- Intègre le garde-fou de saisie non enregistrée au panneau ([#1594](https://github.com/betagouv/csplab/pull/1594))
-- Annonce la mise en pause du produit CV sur la page d'accueil ([#1587](https://github.com/betagouv/csplab/pull/1587))
-- Trace la consultation des membres d'un organisme ([#1598](https://github.com/betagouv/csplab/pull/1598))
 - Transcode le code entité des organisations Talentsoft ARS ([#1615](https://github.com/betagouv/csplab/pull/1615))
-- Trace l'initialisation des étapes d'un organisme ([#1626](https://github.com/betagouv/csplab/pull/1626))
 
-### <!-- 2 --> Modified
+#### <!-- 4 --> Fixed
 
-- Reecriture des services de lecture/écriture des services de Notes ([#1494](https://github.com/betagouv/csplab/pull/1494))
-- Renommage des services Notes et mise à jour des routes ([#1495](https://github.com/betagouv/csplab/pull/1495))
-- Transforme le panneau candidature en modale ([#1569](https://github.com/betagouv/csplab/pull/1569))
-- Ajout de candidature agent service ([#1570](https://github.com/betagouv/csplab/pull/1570))
-- Place l'espacement des boutons dans le pied des fenêtres et des tiroirs ([#1596](https://github.com/betagouv/csplab/pull/1596))
-
-### <!-- 4 --> Fixed
-
-- Répare la tâche mise web:emulate-prod ([#1457](https://github.com/betagouv/csplab/pull/1457))
-- Augmente le nombre de bases redis pour pytest-xdist ([#1448](https://github.com/betagouv/csplab/pull/1448))
-- Remove "vous n'avez pas de compte" link ([#1454](https://github.com/betagouv/csplab/pull/1454))
-- Enregistre et recherche les emails en minuscules ([#1471](https://github.com/betagouv/csplab/pull/1471))
-- Corrige le mot de passe des comptes du seed ([#1465](https://github.com/betagouv/csplab/pull/1465))
-- Affiche seulement les responsables actifs dans le tableau des recrutements ([#1484](https://github.com/betagouv/csplab/pull/1484))
-- Annonce le bouton de fermeture des tiroirs et modales en français ([#1492](https://github.com/betagouv/csplab/pull/1492))
-- Garde les métiers en tests, inferieurs aux limites de taille des Labels ([#1544](https://github.com/betagouv/csplab/pull/1544))
 - Conserve les établissements FINESS autonomes sans rattachement ([#1542](https://github.com/betagouv/csplab/pull/1542))
 - Ne conserve que les établissements FINESS publics ([#1551](https://github.com/betagouv/csplab/pull/1551))
-- Corrige le test flaky de mise à jour des étapes de recrutement ([#1552](https://github.com/betagouv/csplab/pull/1552))
 - Stocke le code et le code parent Talentsoft des organismes en entiers ([#1553](https://github.com/betagouv/csplab/pull/1553))
 - Ne conserve que les établissements FINESS publics de santé et médico-sociaux ([#1595](https://github.com/betagouv/csplab/pull/1595))
 - Retrouve les offres par référence et source à l'upsert ([#1576](https://github.com/betagouv/csplab/pull/1576))
 - Ignore le niveau de diplôme « Non renseigné » de l'ARS ([#1616](https://github.com/betagouv/csplab/pull/1616))
-- Normalise les corps d'erreur des endpoints internes ([#1456](https://github.com/betagouv/csplab/pull/1456))
+
+
+### Messages
+
+#### <!-- 1 --> Added
+
+- Interface de liste des conversations d'une candidature  ([#1536](https://github.com/betagouv/csplab/pull/1536))
+- Interface de detail des messages d'une conversation ([#1537](https://github.com/betagouv/csplab/pull/1537))
+- Affiche la liste des conversations d'une candidature ([#1563](https://github.com/betagouv/csplab/pull/1563))
+- Affiche les messages d'un conversation ([#1564](https://github.com/betagouv/csplab/pull/1564))
+
+
+### Pages
+
+#### <!-- 1 --> Added
+
+- Annonce la mise en pause du produit CV sur la page d'accueil ([#1587](https://github.com/betagouv/csplab/pull/1587))
+
+
+### Recrutement
+
+#### <!-- 1 --> Added
+
+- Supprimer un membre de l'équipe de recrutement ([#1445](https://github.com/betagouv/csplab/pull/1445))
+
+
+### Recrutements
+
+#### <!-- 1 --> Added
+
+- Améliore les messages d'état recrutements ([#1589](https://github.com/betagouv/csplab/pull/1589))
+
+
+### Recruteur
+
+#### <!-- 1 --> Added
+
+- Interface, assigner un responsable sur plusieurs recrutements d'un organisme ([#1438](https://github.com/betagouv/csplab/pull/1438))
+- Motifs refus candidature ([#1430](https://github.com/betagouv/csplab/pull/1430))
+- Interface, enregistrer le motif de refus d'une ou plusieurs candidatures ([#1431](https://github.com/betagouv/csplab/pull/1431))
+- Persister le motif de refus d'une ou plusieurs candidatures en db ([#1432](https://github.com/betagouv/csplab/pull/1432))
+- Back, assigner un responsable sur plusieurs recrutements d'un organisme ([#1452](https://github.com/betagouv/csplab/pull/1452))
+- Assigner un responsable recrutement en lot ([#1483](https://github.com/betagouv/csplab/pull/1483))
+- Attacher un agent à l'organisme lors de son ajout dans un recrutement ([#1501](https://github.com/betagouv/csplab/pull/1501))
+- Uniformise l'ajout d'une personne ([#1505](https://github.com/betagouv/csplab/pull/1505))
+- Setup candidature logs view interface ([#1459](https://github.com/betagouv/csplab/pull/1459))
+- Affiche un message d'état vide si pas de recrutements ([#1514](https://github.com/betagouv/csplab/pull/1514))
+- Interface du endpoint de la vue de detail d'une candidature ([#1462](https://github.com/betagouv/csplab/pull/1462))
+- Visualiser un document en tant qu'agent autorisé ([#1475](https://github.com/betagouv/csplab/pull/1475))
+- Gestion des permissions sur les Notes ([#1507](https://github.com/betagouv/csplab/pull/1507))
+- Alimenter le detail d'une candidature avec les données réelles ([#1550](https://github.com/betagouv/csplab/pull/1550))
+- Lister les document d'une candidature en tant qu'agent autorisé ([#1476](https://github.com/betagouv/csplab/pull/1476))
+- Interface de creation d'une conversation ([#1561](https://github.com/betagouv/csplab/pull/1561))
+- Interface de reponse à une conversation ([#1585](https://github.com/betagouv/csplab/pull/1585))
+- Trace la consultation des membres d'un organisme ([#1598](https://github.com/betagouv/csplab/pull/1598))
+- Trace l'initialisation des étapes d'un organisme ([#1626](https://github.com/betagouv/csplab/pull/1626))
+
+#### <!-- 2 --> Modified
+
+- Reecriture des services de lecture/écriture des services de Notes ([#1494](https://github.com/betagouv/csplab/pull/1494))
+- Renommage des services Notes et mise à jour des routes ([#1495](https://github.com/betagouv/csplab/pull/1495))
+- Ajout de candidature agent service ([#1570](https://github.com/betagouv/csplab/pull/1570))
+
+#### <!-- 4 --> Fixed
+
+- Corrige le mot de passe des comptes du seed ([#1465](https://github.com/betagouv/csplab/pull/1465))
+- Affiche seulement les responsables actifs dans le tableau des recrutements ([#1484](https://github.com/betagouv/csplab/pull/1484))
+- Corrige le test flaky de mise à jour des étapes de recrutement ([#1552](https://github.com/betagouv/csplab/pull/1552))
+
+
+### Referentiel
+
+#### <!-- 1 --> Added
+
+- Ajoute l'enum Radius ([#1449](https://github.com/betagouv/csplab/pull/1449))
+
+#### <!-- 4 --> Fixed
+
+- Garde les métiers en tests, inferieurs aux limites de taille des Labels ([#1544](https://github.com/betagouv/csplab/pull/1544))
+
+
+### Registration
+
+#### <!-- 4 --> Fixed
+
+- Remove "vous n'avez pas de compte" link ([#1454](https://github.com/betagouv/csplab/pull/1454))
+
+
+### Tooling
+
+#### <!-- 4 --> Fixed
+
+- Répare la tâche mise web:emulate-prod ([#1457](https://github.com/betagouv/csplab/pull/1457))
+- Augmente le nombre de bases redis pour pytest-xdist ([#1448](https://github.com/betagouv/csplab/pull/1448))
+
+
+### Ui
+
+#### <!-- 2 --> Modified
+
+- Place l'espacement des boutons dans le pied des fenêtres et des tiroirs ([#1596](https://github.com/betagouv/csplab/pull/1596))
+
+#### <!-- 4 --> Fixed
+
+- Annonce le bouton de fermeture des tiroirs et modales en français ([#1492](https://github.com/betagouv/csplab/pull/1492))
+
+
+### Web
+
+#### <!-- 1 --> Added
+
+- Ajoute TalentsoftOrganisme et l'endpoint creer_modifier ([#1502](https://github.com/betagouv/csplab/pull/1502))
+- Rend organisme_id optionnel pour l'upsert des organismes Talentsoft ([#1515](https://github.com/betagouv/csplab/pull/1515))
+
 
 ## [0.2.0] - 2026-09-15
 
-### <!-- 0 --> Breaking Changes
+### Identite
+
+#### <!-- 2 --> Modified
+
+- Adaptation du service de gestion des permissions ADR-009 ([#1427](https://github.com/betagouv/csplab/pull/1427))
+- Renommage des rôles dans l'organisme ([#1428](https://github.com/betagouv/csplab/pull/1428))
+
+
+### Ingestion
+
+#### <!-- 1 --> Added
+
+- Ajoute le temps de travail dans OffersCleaner ([#1436](https://github.com/betagouv/csplab/pull/1436))
+
+
+### Other
+
+#### <!-- 0 --> Breaking Changes
 
 - ✨(ingestion) fetch secrets from Scaleway Secret Manager ([#1280](https://github.com/betagouv/csplab/pull/1280))
 - ✨(ocr) fetch secrets from Scaleway Secret Manager ([#1301](https://github.com/betagouv/csplab/pull/1301))
@@ -99,7 +388,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - ♻️(web) merge the frontend package into csplab-web ([#1346](https://github.com/betagouv/csplab/pull/1346))
 - 🔥(candidate) Désactivation du parcours candidat ([#1404](https://github.com/betagouv/csplab/pull/1404))
 
-### <!-- 1 --> Added
+#### <!-- 1 --> Added
 
 - ✨(recruteur) Ajout du usecase d'ajout d'un membre dans un organisme ([#1264](https://github.com/betagouv/csplab/pull/1264))
 - ✨(recruteur) Ajout du usecase de mise à jour du rôle d'un membre dans un organisme ([#1269](https://github.com/betagouv/csplab/pull/1269))
@@ -147,11 +436,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - ✨(recruteur-back) Revoquer le role d'un agent dans l'équipe de recrutement ([#1416](https://github.com/betagouv/csplab/pull/1416))
 - ✨(ats) Affiche le tableau des membres d'un recrutement ([#1420](https://github.com/betagouv/csplab/pull/1420))
 - ♻️(recruteur) mutualisation de la gestion du rôle d'un agent dans un recrutement ([#1419](https://github.com/betagouv/csplab/pull/1419))
-- Ajoute un membre à l'équipe de recrutement ([#1437](https://github.com/betagouv/csplab/pull/1437))
-- Ajoute le temps de travail dans OffersCleaner ([#1436](https://github.com/betagouv/csplab/pull/1436))
-- Ajoute la suppression des organismes ([#1386](https://github.com/betagouv/csplab/pull/1386))
 
-### <!-- 2 --> Modified
+#### <!-- 2 --> Modified
 
 - ✨(ats-presentation) improve tab management and behaviour ([#1293](https://github.com/betagouv/csplab/pull/1293))
 - ♻️(ats-presentation) setup automatic icon registry ([#1294](https://github.com/betagouv/csplab/pull/1294))
@@ -176,12 +462,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - ♻️(tooling) reuse the front types task in web:schema ([#1401](https://github.com/betagouv/csplab/pull/1401))
 - ♻️(recruteur) ADR-009, utiliser les factory Django dans le seed recruteur ([#1400](https://github.com/betagouv/csplab/pull/1400))
 - ♻️(presentation) ADR-009: securiser la suite de test  ([#1396](https://github.com/betagouv/csplab/pull/1396))
-- Migre vers Conventional Commits ([#1415](https://github.com/betagouv/csplab/pull/1415))
-- Adaptation du service de gestion des permissions ADR-009 ([#1427](https://github.com/betagouv/csplab/pull/1427))
-- Renommage des rôles dans l'organisme ([#1428](https://github.com/betagouv/csplab/pull/1428))
 - ✨(identite) redirect user to the login page after logout ([#1384](https://github.com/betagouv/csplab/pull/1384))
 
-### <!-- 4 --> Fixed
+#### <!-- 4 --> Fixed
 
 - 🐛(ingestion) fix test_schema_path_visibility ([#1355](https://github.com/betagouv/csplab/pull/1355))
 - ⚡️(ingestion) reduce peak memory in the organismes pipeline ([#1369](https://github.com/betagouv/csplab/pull/1369))
@@ -189,17 +472,44 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - 🐛(ingestion) injecte l'env Scaleway dans les jobs cron ([#1378](https://github.com/betagouv/csplab/pull/1378))
 - 🐛(tooling) corrige le listing vide des secrets Scaleway ([#1397](https://github.com/betagouv/csplab/pull/1397))
 - 🔧(tooling) set factory-boy as default deps, not dev deps ([#1417](https://github.com/betagouv/csplab/pull/1417))
+
+
+### Recrutement
+
+#### <!-- 1 --> Added
+
+- Ajoute un membre à l'équipe de recrutement ([#1437](https://github.com/betagouv/csplab/pull/1437))
+
+
+### Tooling
+
+#### <!-- 2 --> Modified
+
+- Migre vers Conventional Commits ([#1415](https://github.com/betagouv/csplab/pull/1415))
+
+#### <!-- 4 --> Fixed
+
 - Corrige le déploiement Scalingo du backup DB ([#1434](https://github.com/betagouv/csplab/pull/1434))
 - Corrige le regex du hook commit-msg pour la portabilité ([#1435](https://github.com/betagouv/csplab/pull/1435))
 
+
+### Web
+
+#### <!-- 1 --> Added
+
+- Ajoute la suppression des organismes ([#1386](https://github.com/betagouv/csplab/pull/1386))
+
+
 ## [0.1.16] - 2026-09-01
 
-### <!-- 0 --> Breaking Changes
+### Other
+
+#### <!-- 0 --> Breaking Changes
 
 - ✨(recruteur-presentation) add create organisme view ([#1178](https://github.com/betagouv/csplab/pull/1178))
 - ✨(tooling) run every task natively with mise ([#1276](https://github.com/betagouv/csplab/pull/1276))
 
-### <!-- 1 --> Added
+#### <!-- 1 --> Added
 
 - ✨(ats-presentation) wire etape candidature patch from frontend ([#1197](https://github.com/betagouv/csplab/pull/1197))
 - ⚡️(ci) cache Playwright browsers between runs ([#1202](https://github.com/betagouv/csplab/pull/1202))
@@ -224,7 +534,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - 🚧(identite) proconnect authent ([#1072](https://github.com/betagouv/csplab/pull/1072))
 - ✨(recruteur) Ajout du usecase de liste des agents d'un organisme ([#1240](https://github.com/betagouv/csplab/pull/1240))
 
-### <!-- 2 --> Modified
+#### <!-- 2 --> Modified
 
 - ♻️(identite-infrastructure) convertit `username` en UUIDField ([#1200](https://github.com/betagouv/csplab/pull/1200))
 - ♻️(identite-infrastructure) simplifier la déclaration des clés étrangères sur Agent et Candidat ([#1201](https://github.com/betagouv/csplab/pull/1201))
@@ -244,12 +554,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - ♻️(ci) use mise in ingestion ci workflow ([#1285](https://github.com/betagouv/csplab/pull/1285))
 - ♻️(ci) use mise in ocr ci workflow ([#1287](https://github.com/betagouv/csplab/pull/1287))
 
-### <!-- 3 --> Removed
+#### <!-- 3 --> Removed
 
 - 🔥(ingestion) supprime l'import et l'archivage des offres via l'API Talentsoft ([#1217](https://github.com/betagouv/csplab/pull/1217))
 - 🔥(recruteur-presentation) delete endpoint get organisme recruteur details ([#1218](https://github.com/betagouv/csplab/pull/1218))
 
-### <!-- 4 --> Fixed
+#### <!-- 4 --> Fixed
 
 - 🐛(ats-presentation) surface front-end errors in dev ([#1230](https://github.com/betagouv/csplab/pull/1230))
 - 🐛(ingestion) convert Lambert-93 coordinates from FINESS to WGS84 ([#1245](https://github.com/betagouv/csplab/pull/1245))
@@ -257,9 +567,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - 🔒️(ci) empêcher l'injection de script via titre de PR et nom de branche ([#1253](https://github.com/betagouv/csplab/pull/1253))
 - 🔧(tooling) add failure diagnostics for the e2e suite so the next flake in test_smoke.py will be diagnosable ([#1265](https://github.com/betagouv/csplab/pull/1265))
 
+
 ## [0.1.15] - 2026-08-18
 
-### <!-- 1 --> Added
+### Ats-frontend
+
+#### <!-- 4 --> Fixed
+
+- Correct CspDialog content placement ([#1093](https://github.com/betagouv/csplab/pull/1093))
+
+
+### Other
+
+#### <!-- 1 --> Added
 
 - ✨(api) utiliser Redis comme backend de cache pour le throttling ([#1086](https://github.com/betagouv/csplab/pull/1086))
 - ✨(api) valider domaine et metier RMFP sur ProfessionInputSerializer ([#1089](https://github.com/betagouv/csplab/pull/1089))
@@ -287,31 +607,33 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - ✨(candidature) different updated dates by recruteur and candidate([#1156](https://github.com/betagouv/csplab/pull/1156))
 - ✨(identite) ajout de colonnes à Organisme ([#1182](https://github.com/betagouv/csplab/pull/1182))
 
-### <!-- 2 --> Modified
+#### <!-- 2 --> Modified
 
 - ✨(recrutements) Endpoint dédié pour le détail d'un recrutement ([#1101](https://github.com/betagouv/csplab/pull/1101))
 - ♻️(ats-recrutements) Séparer les filtres des tableaux mes recrutements ([#1103](https://github.com/betagouv/csplab/pull/1103))
 - ♻️(candidature) clean candidature bounded context ([#1155](https://github.com/betagouv/csplab/pull/1155))
 - ♻️(recruteur-application) move NoteReadModel and INoteQueryService to application ([#989](https://github.com/betagouv/csplab/pull/989))
 
-### <!-- 3 --> Removed
+#### <!-- 3 --> Removed
 
 - ♻️(ats-recrutements) Remove kindcontrat filter ([#1084](https://github.com/betagouv/csplab/pull/1084))
 
-### <!-- 4 --> Fixed
+#### <!-- 4 --> Fixed
 
-- Correct CspDialog content placement ([#1093](https://github.com/betagouv/csplab/pull/1093))
 - ✨(ats-recrutements) Fix overflow x kanban ([#1102](https://github.com/betagouv/csplab/pull/1102))
 - 🐛(ats-recrutements) Corriger la largeur des searchbar ([#1104](https://github.com/betagouv/csplab/pull/1104))
 
+
 ## [0.1.14] - 2026-08-04
 
-### <!-- 0 --> Breaking Changes
+### Other
+
+#### <!-- 0 --> Breaking Changes
 
 - ✨(recruteur) infra et presentation mes recrutements ([#963](https://github.com/betagouv/csplab/pull/963))
 - 🔥(ingestion) supprimer la forme de contrat STAGE ([#998](https://github.com/betagouv/csplab/pull/998))
 
-### <!-- 1 --> Added
+#### <!-- 1 --> Added
 
 - ✨(frontend) integration du kanban et ajout du switch liste ([#947](https://github.com/betagouv/csplab/pull/947))
 - ✨(ats-presentation) add search and filters to candidatures views ([#977](https://github.com/betagouv/csplab/pull/977))
@@ -356,7 +678,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - ✨(api) ajouter le champ code_emploi_local sur les offres ([#1082](https://github.com/betagouv/csplab/pull/1082))
 - ✨(api) ajouter le champ functional_area_code sur les offres ([#1083](https://github.com/betagouv/csplab/pull/1083))
 
-### <!-- 2 --> Modified
+#### <!-- 2 --> Modified
 
 - ♻️(ats-presentation) harmonise shared pages shell ([#978](https://github.com/betagouv/csplab/pull/978))
 - 🔥(infrastructure) refactoriser quertsetpage with mappers ([#976](https://github.com/betagouv/csplab/pull/976))
@@ -378,7 +700,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - ♻️(recrutement-tooling) amélioration de OrganismeFactory, RecruteurFactory et du seed ([#1070](https://github.com/betagouv/csplab/pull/1070))
 - ♻️(recrutement-domain) Refacto des Repositories Organisme ([#1073](https://github.com/betagouv/csplab/pull/1073))
 
-### <!-- 4 --> Fixed
+#### <!-- 4 --> Fixed
 
 - 🐛(recruteur-usecase) wire lister_notes_usecase in its container ([#967](https://github.com/betagouv/csplab/pull/967))
 - 🔧(frontend) pin pnpm version from root packageManager ([#949](https://github.com/betagouv/csplab/pull/949))
@@ -395,14 +717,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - 🐛(ingestion) autoriser un champ mission vide dans DescriptionInputSerializer ([#1074](https://github.com/betagouv/csplab/pull/1074))
 - 🐛(api) exclure les requêtes API key du throttle UserRateThrottle ([#1085](https://github.com/betagouv/csplab/pull/1085))
 
+
 ## [0.1.13] - 2026-07-16
 
-### <!-- 0 --> Breaking Changes
+### Other
+
+#### <!-- 0 --> Breaking Changes
 
 - ✨(recruteur-presentation) interface mes recrutements update ([#911](https://github.com/betagouv/csplab/pull/911))
 - ♻️(recruteur-presentation) interface recrutement detail update ([#912](https://github.com/betagouv/csplab/pull/912))
 
-### <!-- 1 --> Added
+#### <!-- 1 --> Added
 
 - ✨(admin) ajoute un modèle admin readonly pour StatSnapshot ([#894](https://github.com/betagouv/csplab/pull/894))
 - ✨(recruteur-domain) ajout de l'aggregat et du modèle Note (partie 1) ([#870](https://github.com/betagouv/csplab/pull/870))
@@ -425,7 +750,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - 🐛(ingestion) filter out non-talentsoft sources in WebSourcesGateway ([#965](https://github.com/betagouv/csplab/pull/965))
 - ✨(ingestion) map contract_kind from Talentsoft offers ([#968](https://github.com/betagouv/csplab/pull/968))
 
-### <!-- 2 --> Modified
+#### <!-- 2 --> Modified
 
 - ♻️(recruteur-presentation) split views ([#928](https://github.com/betagouv/csplab/pull/928))
 - ✨(ingestion-presentation) make management condition optionnal ([#939](https://github.com/betagouv/csplab/pull/939))
@@ -433,21 +758,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - ✨(recruteur-infrastructure) update models candidature fk etapes ([#943](https://github.com/betagouv/csplab/pull/943))
 - 🎨(web-presentation) add webpagination typing ([#957](https://github.com/betagouv/csplab/pull/957))
 
-### <!-- 4 --> Fixed
+#### <!-- 4 --> Fixed
 
 - 🐛(tooling) résolution des incompatibilités entre la PR de changelog et les actions github ([#895](https://github.com/betagouv/csplab/pull/895))
 - 🐛(candidate-infrastructure) update albert new api ([#966](https://github.com/betagouv/csplab/pull/966))
 
+
 ## [0.1.12] - 2026-07-02
 
-### <!-- 0 --> Breaking Changes
+### Other
+
+#### <!-- 0 --> Breaking Changes
 
 - 🐛(web-ingestion) hide source_id from OffersInputSerializer OpenAPI doc ([#800](https://github.com/betagouv/csplab/pull/800))
 - 🐛(ingestion) remove trailing slashes from web gateway URLs ([#843](https://github.com/betagouv/csplab/pull/843))
 - 🎨(web-presentation) harmonize trailing slash on routes ([#841](https://github.com/betagouv/csplab/pull/841))
 - ✨(recruteur) refine recruit steps categories ([#845](https://github.com/betagouv/csplab/pull/845))
 
-### <!-- 1 --> Added
+#### <!-- 1 --> Added
 
 - ✨(ingestion) enrich Offer with new fields from Talentsoft ([#794](https://github.com/betagouv/csplab/pull/794))
 - ✨(ci) check pyproject.toml version bump on libs changes ([#801](https://github.com/betagouv/csplab/pull/801))
@@ -495,7 +823,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - ✨(recruteur-usecase) update organisme steps part2 ([#883](https://github.com/betagouv/csplab/pull/883))
 - ✨(recruteur) implement update organsime steps part 3 ([#886](https://github.com/betagouv/csplab/pull/886))
 
-### <!-- 2 --> Modified
+#### <!-- 2 --> Modified
 
 - 🐛(ingestion) stop sending source per offer when upserting to web ([#802](https://github.com/betagouv/csplab/pull/802))
 - ♻️(identite-domain) traduction des erreurs de domaine en FR ([#807](https://github.com/betagouv/csplab/pull/807))
@@ -516,7 +844,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - ✨(ci) update SENTRY_PROJECT in web.yml workflow ([#889](https://github.com/betagouv/csplab/pull/889))
 - ♻️(ingestion) rend la configuration des identifiants TalentSoft dynamique ([#892](https://github.com/betagouv/csplab/pull/892))
 
-### <!-- 4 --> Fixed
+#### <!-- 4 --> Fixed
 
 - 🐛(web-infrastructure) run a single Huey scheduler ([#782](https://github.com/betagouv/csplab/pull/782))
 - 🐛(ingestion) fix event loop closed error and add timeout to Celery tasks ([#797](https://github.com/betagouv/csplab/pull/797))
@@ -526,16 +854,33 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - 🐛(ingestion) corriger la sérialisation JSON des datetime dans les conditions d'offre ([#888](https://github.com/betagouv/csplab/pull/888))
 - 🐛(recruteur-presentation) fix organisme not found ([#893](https://github.com/betagouv/csplab/pull/893))
 
+
 ## [0.1.11] - 2026-06-17
 
-### <!-- 0 --> Breaking Changes
+### Frontend
+
+#### <!-- 4 --> Fixed
+
+- Fix fonts for Storybook and local development ([#740](https://github.com/betagouv/csplab/pull/740))
+
+
+### Ingestion-presentation
+
+#### <!-- 4 --> Fixed
+
+- Fix upsert offers test data structure ([#717](https://github.com/betagouv/csplab/pull/717))
+
+
+### Other
+
+#### <!-- 0 --> Breaking Changes
 
 - ♻️(lib-domain) move ddd object in a separate lib in monorepo ([#663](https://github.com/betagouv/csplab/pull/663))
 - ♻️(lib-domain) referentiel ([#672](https://github.com/betagouv/csplab/pull/672))
 - ♻️(referentiel-infrastructure) renommer l'application django shared en referentiel ([#748](https://github.com/betagouv/csplab/pull/748))
 - ✨(web) move source_id to top-level of upsert offers endpoint ([#756](https://github.com/betagouv/csplab/pull/756))
 
-### <!-- 1 --> Added
+#### <!-- 1 --> Added
 
 - ✨(candidate-usecase) add metiers in match cv to opportunities usecase ([#637](https://github.com/betagouv/csplab/pull/637))
 - ✨(tooling) add storybook publishing workflow ([#647](https://github.com/betagouv/csplab/pull/647))
@@ -581,7 +926,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - ✨(frontend) get current username in ATS  ([#741](https://github.com/betagouv/csplab/pull/741))
 - ✨(frontend) Add tabs component ([#790](https://github.com/betagouv/csplab/pull/790))
 
-### <!-- 2 --> Modified
+#### <!-- 2 --> Modified
 
 - 🔧(storybook) update storybook pr preview path ([#650](https://github.com/betagouv/csplab/pull/650))
 - ⚡️(users-admin) let update some fields in admin view ([#653](https://github.com/betagouv/csplab/pull/653))
@@ -599,21 +944,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - ⚡️(identite-tooling) amélioration des factories Agent et Candidat ([#777](https://github.com/betagouv/csplab/pull/777))
 - ♻️(ingestion) apilog should be in web/ingestion ([#778](https://github.com/betagouv/csplab/pull/778))
 
-### <!-- 3 --> Removed
+#### <!-- 3 --> Removed
 
 - ♻️(web-infrastructure) remove manager declaration, since default manager is not modified ([#749](https://github.com/betagouv/csplab/pull/749))
 
-### <!-- 4 --> Fixed
+#### <!-- 4 --> Fixed
 
 - 🐛(storybook) fix storybook deploy workflow ([#649](https://github.com/betagouv/csplab/pull/649))
 - 🔧(web) Fix/dependabot vitest node24 ([#674](https://github.com/betagouv/csplab/pull/674))
 - 🐛(ats-presentation) fix disabled btn states rendering ([#688](https://github.com/betagouv/csplab/pull/688))
 - 🐛(web-ingestion) fix upsert offers payload in API ([#693](https://github.com/betagouv/csplab/pull/693))
-- Fix upsert offers test data structure ([#717](https://github.com/betagouv/csplab/pull/717))
 - ✅(web) recreate missing indexes ([#719](https://github.com/betagouv/csplab/pull/719))
 - 🐛(github-pages) resolve github pages concurrency ([#724](https://github.com/betagouv/csplab/pull/724))
 - 🐛(metiers) fix !N! displayed as-is in conditions_particulieres and description ([#739](https://github.com/betagouv/csplab/pull/739))
-- Fix fonts for Storybook and local development ([#740](https://github.com/betagouv/csplab/pull/740))
 - 💚(storybook) narrow down path detection triggering storybook build ([#751](https://github.com/betagouv/csplab/pull/751))
 - ✨(ingestion) lock periodic API log tasks to single execution ([#754](https://github.com/betagouv/csplab/pull/754))
 - 🐛(web) fix local run-mvp ([#788](https://github.com/betagouv/csplab/pull/788))
@@ -622,16 +965,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - 🐛(ingestion) run Flower inside web container for Scalingo compatibility ([#784](https://github.com/betagouv/csplab/pull/784))
 - 🐛(ingestion) register Celery tasks via include instead of autodiscover ([#783](https://github.com/betagouv/csplab/pull/783))
 
+
 ## [0.1.10] - 2026-06-02
 
-### <!-- 0 --> Breaking Changes
+### Other
+
+#### <!-- 0 --> Breaking Changes
 
 - ♻️(ingestion-presentation) refactor archive offer to use body params + French names ([#580](https://github.com/betagouv/csplab/pull/580))
 - ✨(ingestion-domain) add front and back base_url for Source ([#583](https://github.com/betagouv/csplab/pull/583))
 - 🏗️(users-infrastructure) switch to custom UserModel - part 1 ([#614](https://github.com/betagouv/csplab/pull/614))
 - 🏗️(users-infrastructure) switch to custom UserModel - part 2 ([#616](https://github.com/betagouv/csplab/pull/616))
 
-### <!-- 1 --> Added
+#### <!-- 1 --> Added
 
 - ✨(ingestion) setup logging mecanism ([#578](https://github.com/betagouv/csplab/pull/578))
 - ✨(web) setup frontend ([#579](https://github.com/betagouv/csplab/pull/579))
@@ -661,7 +1007,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - ✨(web-infrastructure) backfill source_id for offers ([#643](https://github.com/betagouv/csplab/pull/643))
 - ✨(users-presentation) mise en place de l'authentification par email-password ([#639](https://github.com/betagouv/csplab/pull/639))
 
-### <!-- 2 --> Modified
+#### <!-- 2 --> Modified
 
 - ♻️(ingestion-infrastructure) standardise method names: get_xxxx for retrieval operations ([#568](https://github.com/betagouv/csplab/pull/568))
 - ♻️(ingestion-presentation) move files related to archive offer ([#532](https://github.com/betagouv/csplab/pull/532))
@@ -676,7 +1022,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - (users-infrastructure) the very last step of the custom user model migration ([#632](https://github.com/betagouv/csplab/pull/632))
 - 🔧(ingestion) run database migrations in a one-off process ([#628](https://github.com/betagouv/csplab/pull/628))
 
-### <!-- 4 --> Fixed
+#### <!-- 4 --> Fixed
 
 - 🐛(tooling) fix path for schema generation in CI ([#581](https://github.com/betagouv/csplab/pull/581))
 - 🐛(tooling) run djlint in CI ([#584](https://github.com/betagouv/csplab/pull/584))
@@ -691,13 +1037,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - 🐛(web-infrastructure) fix archive offer container wiring ([#644](https://github.com/betagouv/csplab/pull/644))
 - 🐛(ingestion) postdeploy is the appropriate name ([#645](https://github.com/betagouv/csplab/pull/645))
 
+
 ## [0.1.9] - 2026-05-19
 
-### <!-- 0 --> Breaking Changes
+### Other
+
+#### <!-- 0 --> Breaking Changes
 
 - ♻️(web) rename tycho into web ([#515](https://github.com/betagouv/csplab/pull/515))
 
-### <!-- 1 --> Added
+#### <!-- 1 --> Added
 
 - ✨(candidate) category filter now includes A+ ([#482](https://github.com/betagouv/csplab/pull/482))
 - ✨(ingestion-domain) map APLUS category in offers cleaner ([#486](https://github.com/betagouv/csplab/pull/486))
@@ -720,7 +1069,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - 💎(candidate-presentation) display job in offer drawer ([#550](https://github.com/betagouv/csplab/pull/550))
 - ✨(ingestion) add vectorization implementation for metiers ([#551](https://github.com/betagouv/csplab/pull/551))
 
-### <!-- 2 --> Modified
+#### <!-- 2 --> Modified
 
 - 🔧(tooling-presentation) async tasks in dev: reduce footprint using 'immediate' setup for huey ([#483](https://github.com/betagouv/csplab/pull/483))
 - ♻️(ocr) Replace deprecated Pydantic Config with SettingsConfigDict ([#489](https://github.com/betagouv/csplab/pull/489))
@@ -730,11 +1079,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - 💎(candidate-presentation) remove icon from cv analysis launch cta ([#530](https://github.com/betagouv/csplab/pull/530))
 - ⚡️(ingestion-usecase) let list_offers usecase handle pagination ([#513](https://github.com/betagouv/csplab/pull/513))
 
-### <!-- 3 --> Removed
+#### <!-- 3 --> Removed
 
 - 🔥(candidate-presentation) drop existing view tests covered by e2e ([#462](https://github.com/betagouv/csplab/pull/462))
 
-### <!-- 4 --> Fixed
+#### <!-- 4 --> Fixed
 
 - ✨(shared) unarchive an offer received from load_offers ([#492](https://github.com/betagouv/csplab/pull/492))
 - 🐛(ingestion) set the Python version ([#501](https://github.com/betagouv/csplab/pull/501))
@@ -745,9 +1094,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - 🐛(ingestion-infrastructure) rename columns for ConcoursCleaner ([#511](https://github.com/betagouv/csplab/pull/511))
 - 🐛(ingestion-infrastructure) make ministry mapping more robust ([#548](https://github.com/betagouv/csplab/pull/548))
 
+
 ## [0.1.8] - 2026-05-06
 
-### <!-- 1 --> Added
+### Other
+
+#### <!-- 1 --> Added
 
 - 🔧(tooling) add optional layer in commit templates ([#417](https://github.com/betagouv/csplab/pull/417))
 - ✨(ingestion) add delete to vector repository ([#421](https://github.com/betagouv/csplab/pull/421))
@@ -758,7 +1110,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - ✨(ingestion-usecase) archive offers ([#455](https://github.com/betagouv/csplab/pull/455))
 - 🎨(ingestion-presentation) get better endpoint documentation ([#480](https://github.com/betagouv/csplab/pull/480))
 
-### <!-- 2 --> Modified
+#### <!-- 2 --> Modified
 
 - 🎨(tooling) replace stdout with loggers ([#413](https://github.com/betagouv/csplab/pull/413))
 - 🔥(candidate-presentation) delete unused search corps feature ([#437](https://github.com/betagouv/csplab/pull/437))
@@ -772,11 +1124,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - 🔧(ingestion-infrastructure) admin - update list_display and list_filter to visualize ingestion workflow ([#469](https://github.com/betagouv/csplab/pull/469))
 - ♻️(tycho) homogenise tests and refactoring factories and fixtures ([#467](https://github.com/betagouv/csplab/pull/467))
 
-### <!-- 3 --> Removed
+#### <!-- 3 --> Removed
 
 - 🔥(ingestion-infrastructure) remove unused config, dtos and lib ([#459](https://github.com/betagouv/csplab/pull/459))
 
-### <!-- 4 --> Fixed
+#### <!-- 4 --> Fixed
 
 - 🐛(tycho:candidate) reflect active filters in UI on page load ([#380](https://github.com/betagouv/csplab/pull/380))
 - 🐛(tooling) fix vscode python interpreter path ([#439](https://github.com/betagouv/csplab/pull/439))
@@ -786,13 +1138,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - 🐛(ingestion-presentation) remove unused mandatory updated_before arg ([#479](https://github.com/betagouv/csplab/pull/479))
 - ✅(ingestion) autoclose worker thread connections in tests ([#478](https://github.com/betagouv/csplab/pull/478))
 
+
 ## [0.1.7] - 2026-04-22
 
-### <!-- 0 --> Breaking Changes
+### Other
+
+#### <!-- 0 --> Breaking Changes
 
 - ✨(async) setup broker and queue ([#376](https://github.com/betagouv/csplab/pull/376))
 
-### <!-- 1 --> Added
+#### <!-- 1 --> Added
 
 - 🔧(accessibility) add automated accessibility testing with pytest-playwright and axe-playwright-python ([#157](https://github.com/betagouv/csplab/pull/157))
 - 🔧(project) add port override ([#391](https://github.com/betagouv/csplab/pull/391))
@@ -800,28 +1155,31 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - ✨(tycho-ingestion) clean metiers ([#398](https://github.com/betagouv/csplab/pull/398))
 - ✨(tycho-ingestion) add task for clean metiers ([#414](https://github.com/betagouv/csplab/pull/414))
 
-### <!-- 2 --> Modified
+#### <!-- 2 --> Modified
 
 - ✨(candidate) send process uploaded cv usecase to tasks broker ([#377](https://github.com/betagouv/csplab/pull/377))
 - 🔧(tooling) disable periodic tasks in dev ([#390](https://github.com/betagouv/csplab/pull/390))
 - ✨(ingestion) enqueue periodiq vectorization and cleaning tasks ([#381](https://github.com/betagouv/csplab/pull/381))
 - ♻️(tycho:ingestion) use async http client ([#389](https://github.com/betagouv/csplab/pull/389))
 
-### <!-- 3 --> Removed
+#### <!-- 3 --> Removed
 
 - 🔥(notebook) good bye es ([#370](https://github.com/betagouv/csplab/pull/370))
 - 🔥(shared) remove VectorizedDocumentModel and pgvector_repository ([#385](https://github.com/betagouv/csplab/pull/385))
 - 🔥(shared) remove pgvector lib ([#386](https://github.com/betagouv/csplab/pull/386))
 
-### <!-- 4 --> Fixed
+#### <!-- 4 --> Fixed
 
 - 🐛(candidate) make sure drawer opens after filtering occured ([#374](https://github.com/betagouv/csplab/pull/374))
 - 🐛(ingestion) let load_offers task call load_offers_usecase, instead of load_documents_usecase ([#393](https://github.com/betagouv/csplab/pull/393))
 - 🐛(tooling) make bootstrap work on fresh setup ([#399](https://github.com/betagouv/csplab/pull/399))
 
+
 ## [0.1.6] - 2026-04-07
 
-### <!-- 1 --> Added
+### Other
+
+#### <!-- 1 --> Added
 
 - 🤸(tycho:candidate) add live region to announce results to screen readers ([#353](https://github.com/betagouv/csplab/pull/353))
 - 💎(candidate) add loading opacity on results zone during htmx swap ([#352](https://github.com/betagouv/csplab/pull/352))
@@ -832,26 +1190,29 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - ✨(ingestion) map categories to offers ([#362](https://github.com/betagouv/csplab/pull/362))
 - ✨(tycho:candidate) add Matomo analytics for candidate journey ([#358](https://github.com/betagouv/csplab/pull/358))
 
-### <!-- 2 --> Modified
+#### <!-- 2 --> Modified
 
 - ✨(candidate) add progressive enhancement to opportunity detail trigger ([#348](https://github.com/betagouv/csplab/pull/348))
 - ✨(ingestion) load detailed offers (usecase and commnand) ([#342](https://github.com/betagouv/csplab/pull/342))
 - ♻️(candidate) refactor CV results view into use case + presenter ([#361](https://github.com/betagouv/csplab/pull/361))
 - 🐛(tooling) fix dev static management ([#360](https://github.com/betagouv/csplab/pull/360))
 
-### <!-- 3 --> Removed
+#### <!-- 3 --> Removed
 
 - 🔥(ingestion) remove ability from load_documents (command and strategy) to handle ingestion of the offers ([#350](https://github.com/betagouv/csplab/pull/350))
 
-### <!-- 4 --> Fixed
+#### <!-- 4 --> Fixed
 
 - 🐛(tycho:candidate) delete max tokens contraints for experimented cv ([#341](https://github.com/betagouv/csplab/pull/341))
 - 🐛(tycho:candidate) fix toast alert positioning and close button ([#354](https://github.com/betagouv/csplab/pull/354))
 - 💚(tycho) fix ci qdrant ([#356](https://github.com/betagouv/csplab/pull/356))
 
+
 ## [0.1.5] - 2026-03-24
 
-### <!-- 1 --> Added
+### Other
+
+#### <!-- 1 --> Added
 
 - ✨(candidate) push cv results filter params in url and implement simple pagination ([#274](https://github.com/betagouv/csplab/pull/274))
 - 🤸(tycho) add skip links for accessibility ([#275](https://github.com/betagouv/csplab/pull/275))
@@ -866,14 +1227,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - ✨(ingestion) resilient mini batch clean documents ([#329](https://github.com/betagouv/csplab/pull/329))
 - ✨(tycho) implementation of soveraign ocr ([#332](https://github.com/betagouv/csplab/pull/332))
 
-### <!-- 2 --> Modified
+#### <!-- 2 --> Modified
 
 - 🔧(tycho:candidate) improve meta tags ([#308](https://github.com/betagouv/csplab/pull/308))
 - 🤸(candidate) remove redundant main role ([#309](https://github.com/betagouv/csplab/pull/309))
 - 🤸(tycho:candidate) add a11y sr-only hints on result cards and drawer ([#311](https://github.com/betagouv/csplab/pull/311))
 - 🎨(candidate) reactivate assertion on scoring ([#281](https://github.com/betagouv/csplab/pull/281))
 
-### <!-- 4 --> Fixed
+#### <!-- 4 --> Fixed
 
 - 🤸(a11y) fix cv results page title hierarchy ([#315](https://github.com/betagouv/csplab/pull/315))
 - 🤸(tycho:candidate) hide drag-drop text from AT in dropzone ([#314](https://github.com/betagouv/csplab/pull/314))
@@ -881,9 +1242,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - ⬆️(ocr) add httpx for sentry_sdk ([#325](https://github.com/betagouv/csplab/pull/325))
 - 🚀(ocr) add popper-utils for scalingo ([#330](https://github.com/betagouv/csplab/pull/330))
 
+
 ## [0.1.4] - 2026-03-10
 
-### <!-- 1 --> Added
+### Other
+
+#### <!-- 1 --> Added
 
 - 🔧(backend) let add custom domain to allowed hosts in dev ([#206](https://github.com/betagouv/csplab/pull/206))
 - ✨(tycho:candidate) integrate tally form in no results scenario for user feedback ([#245](https://github.com/betagouv/csplab/pull/245))
@@ -894,7 +1258,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - ✨(candidate) add feedback modal and trigger button in cv results page when matching return results ([#261](https://github.com/betagouv/csplab/pull/261))
 - ✨(tycho) add field in admin raw documents for better data wrangling ([#285](https://github.com/betagouv/csplab/pull/285))
 
-### <!-- 2 --> Modified
+#### <!-- 2 --> Modified
 
 - ♻️(tycho:candidate) update results page styles and filtering logic ([#196](https://github.com/betagouv/csplab/pull/196))
 - 💎(candidate) update cv upload page styles ([#219](https://github.com/betagouv/csplab/pull/219))
@@ -907,7 +1271,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - ⚡️(candidate) remove duplicates queries ([#271](https://github.com/betagouv/csplab/pull/271))
 - 🧩(candidate) hide inactive header actions ([#288](https://github.com/betagouv/csplab/pull/288))
 
-### <!-- 4 --> Fixed
+#### <!-- 4 --> Fixed
 
 - 🐛(tooling) align git commit hook with new cz emojis config ([#221](https://github.com/betagouv/csplab/pull/221))
 - 🔧(tooling) make sure both vscode djlint and cli djlint use same config ([#220](https://github.com/betagouv/csplab/pull/220))
@@ -924,20 +1288,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - 🐛(candidate) fix opportunity variable reference in feedback component inclusion ([#270](https://github.com/betagouv/csplab/pull/270))
 - 🐛(ingestion) add updated_at in load_documents upsert_batch ([#286](https://github.com/betagouv/csplab/pull/286))
 
+
 ## [0.1.3] - 2026-02-24
 
-### <!-- 0 --> Breaking Changes
+### Other
+
+#### <!-- 0 --> Breaking Changes
 
 - ♻️(ingestion) replace entities id with uuid ([#201](https://github.com/betagouv/csplab/pull/201))
 
-### <!-- 1 --> Added
+#### <!-- 1 --> Added
 
 - 🔧(tooling) add django debug toolbar in dev settings ([#186](https://github.com/betagouv/csplab/pull/186))
 - 🔧(tooling) update sentry config ([#192](https://github.com/betagouv/csplab/pull/192))
 - ✨(ingestion) add fields to optimize ingestion by batch ([#208](https://github.com/betagouv/csplab/pull/208))
 - ✨(candidate) add details if json parsing error ([#217](https://github.com/betagouv/csplab/pull/217))
 
-### <!-- 2 --> Modified
+#### <!-- 2 --> Modified
 
 - ♻️(admin) refactor admins, set fields read-only ([#184](https://github.com/betagouv/csplab/pull/184))
 - 🔧(tooling) let use custom third parties endpoint in dev mode, and set explicit fake value for override test vars ([#188](https://github.com/betagouv/csplab/pull/188))
@@ -945,13 +1312,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - ♻️(ingestion) split compositedocumentrepository into document repository and document gateway ([#212](https://github.com/betagouv/csplab/pull/212))
 - ♻️(tycho) simplify config for envs ([#215](https://github.com/betagouv/csplab/pull/215))
 
-### <!-- 4 --> Fixed
+#### <!-- 4 --> Fixed
 
 - 💚(tooling) disable PR-title-format on push ([#207](https://github.com/betagouv/csplab/pull/207))
 
+
 ## [0.1.2] - 2026-02-11
 
-### <!-- 1 --> Added
+### Other
+
+#### <!-- 1 --> Added
 
 - Offers ingestion - load document - technical improvements ([#107](https://github.com/betagouv/csplab/pull/107))
 - 76 ingestion offers clean ([#138](https://github.com/betagouv/csplab/pull/138))
@@ -967,7 +1337,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - 💄(tycho:candidate) add CSP images required for next integration tasks ([#179](https://github.com/betagouv/csplab/pull/179))
 - ✨(test:tycho) update test command to accept additional arguments (allows filtering) ([#178](https://github.com/betagouv/csplab/pull/178))
 
-### <!-- 2 --> Modified
+#### <!-- 2 --> Modified
 
 - ✨(tycho:ingestion) let clean_documents command accept OFFERS document type ([#152](https://github.com/betagouv/csplab/pull/152))
 - ✨(tycho:candidate) update process uploaded cv usecase ([#160](https://github.com/betagouv/csplab/pull/160))
@@ -979,16 +1349,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - 💄 (tycho:candidate) update global partials styles ([#182](https://github.com/betagouv/csplab/pull/182))
 - 💄(tycho:candidate) update homepage template and styles ([#180](https://github.com/betagouv/csplab/pull/180))
 
-### <!-- 4 --> Fixed
+#### <!-- 4 --> Fixed
 
 - 🐛(tycho) fix config tycho with django 6 ([#151](https://github.com/betagouv/csplab/pull/151))
 - 🐛(tycho:ingestion) fix localisation and reference cleaner ([#154](https://github.com/betagouv/csplab/pull/154))
 - 🐛(ingestion) fix errors preventing clean offers usecase saving in db ([#168](https://github.com/betagouv/csplab/pull/168))
 - 🐛(shared) update CorpsModel and VectorizedDocumentsModel for instantiate match cv necessity ([#183](https://github.com/betagouv/csplab/pull/183))
 
+
 ## [0.1.1] - 2026-01-27
 
-### <!-- 1 --> Added
+### Other
+
+#### <!-- 1 --> Added
 
 - ✨(tycho:ingestion) define entities and value objects for offers
 - 🔧(project) share vscode config ([#55](https://github.com/betagouv/csplab/pull/55))
@@ -1001,7 +1374,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - (tycho) Add talentsoft front office client to collect offers ([#95](https://github.com/betagouv/csplab/pull/95))
 - Editor front-tooling upgrade (prettier, stylelint) ([#121](https://github.com/betagouv/csplab/pull/121))
 
-### <!-- 2 --> Modified
+#### <!-- 2 --> Modified
 
 - 🔧(tooling) ignore docker-compose.override.yml for local port customization ([#80](https://github.com/betagouv/csplab/pull/80))
 - 109 Refactoriser le css existant en scss modulaire ([#115](https://github.com/betagouv/csplab/pull/115))
@@ -1009,17 +1382,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - ✨(tycho:ingestion) update offer entity and value objects ([#128](https://github.com/betagouv/csplab/pull/128))
 - ♻️(tycho:ingestion) refactor clean tests ([#130](https://github.com/betagouv/csplab/pull/130))
 
-### <!-- 3 --> Removed
+#### <!-- 3 --> Removed
 
 - 🔧(tycho:candidate) remove redundant search path from candidate URLs ([#92](https://github.com/betagouv/csplab/pull/92))
 
-### <!-- 4 --> Fixed
+#### <!-- 4 --> Fixed
 
 - 🔧(tooling:mypy) update python version for mypy, update domain/types.py syntax ([#110](https://github.com/betagouv/csplab/pull/110))
 
+
 ## [0.1.0] - 2026-01-13
 
-### <!-- 1 --> Added
+### Other
+
+#### <!-- 1 --> Added
 
 - ✨(tycho:ingestion) set-up ingestion and load CORPS documents
 - 🔧(tycho) add CSRF_TRUSTED_ORIGINS necessary for deployment on https ([#15](https://github.com/betagouv/csplab/pull/15))
@@ -1035,7 +1411,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - 👷(tooling) automate changelog and releases ([#56](https://github.com/betagouv/csplab/pull/56))
 - 🔧(tooling) use N-1 processors to launch tycho tests suite ([#83](https://github.com/betagouv/csplab/pull/83))
 
-### <!-- 2 --> Modified
+#### <!-- 2 --> Modified
 
 - 🐛(tycho:candidate) fix template tags ([#26](https://github.com/betagouv/csplab/pull/26))
 - 🐛(tycho) fix concurrency pb caused by container singletons ([#29](https://github.com/betagouv/csplab/pull/29))
@@ -1046,13 +1422,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - ♻️(backend) use fixtures instead of setup methods to make container in tests ([#59](https://github.com/betagouv/csplab/pull/59))
 - 🔧(tooling) frenchification of issue templates ([#85](https://github.com/betagouv/csplab/pull/85))
 
-### <!-- 3 --> Removed
+#### <!-- 3 --> Removed
 
 - 🏗️(tooling) reduce overhead in local Python application execution ([#36](https://github.com/betagouv/csplab/pull/36))
 - 🔧(project) delete commit-format job from merge on main events ([#48](https://github.com/betagouv/csplab/pull/48))
 
-### <!-- 4 --> Fixed
+#### <!-- 4 --> Fixed
 
 - 🔧(tycho) fix coverage computation ([#79](https://github.com/betagouv/csplab/pull/79))
+
 
 <!-- generated by git-cliff -->
