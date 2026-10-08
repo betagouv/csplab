@@ -18,6 +18,9 @@ class OfferQuerySet(models.QuerySet):
     def by_source(self, source_id: UUID) -> "OfferQuerySet":
         return self.filter(source_id=source_id)
 
+    def actives(self) -> "OfferQuerySet":
+        return self.filter(archived_at__isnull=True)
+
     def by_references(self, references: Iterable[str]) -> "OfferQuerySet":
         return self.filter(reference__in=references)
 
