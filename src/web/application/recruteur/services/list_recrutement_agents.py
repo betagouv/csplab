@@ -18,11 +18,11 @@ from infrastructure.django_apps.recruteur.models.recrutement import (
 def list_recrutement_agents(
     *, organisme_id: UUID, recrutement_id: UUID, utilisateur: Utilisateur
 ) -> QuerySet[RecrutementAgentModel]:
-    # TODO : to refactor in ADR-009 style
     OrganismePermissionService().can_execute(
         action=OrganismeAction.LIST_RECRUTEMENT_AGENTS,
         utilisateur=utilisateur,
         organisme_id=organisme_id,
+        recrutement_id=recrutement_id,
     )
 
     contexte = RecrutementAgentService(

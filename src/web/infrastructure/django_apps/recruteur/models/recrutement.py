@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models import OuterRef, Subquery
 
 from domain.recruteur.value_objects.roles import AgentRecrutementRole
 from infrastructure.django_apps.recruteur.models.organisme import OrganismeModel
@@ -16,6 +17,15 @@ class RecrutementQuerySet(models.QuerySet):
 
     def with_detail(self) -> "RecrutementQuerySet":
         return self.with_organisme().select_related("offre").prefetch_related("etapes")
+
+    def with_role_of(self, agent_id) -> "RecrutementQuerySet":
+        return self.annotate(
+            recrutement_role=Subquery(
+                RecrutementAgentModel.objects.by_recrutement_and_agent(
+                    OuterRef("pk"), agent_id
+                ).values("role")[:1]
+            )
+        )
 
     def by_organisme_and_recrutement(
         self, organisme_id, recrutement_id
@@ -73,6 +83,13 @@ class RecrutementAgentQuerySet(models.QuerySet):
             self.active()
             .filter(role=AgentRecrutementRole.RESPONSABLE.value)
             .order_by("created_at")
+        )
+
+    def is_responsable_dans_organisme(self, agent_id, organisme_id) -> bool:
+        return (
+            self.responsables()
+            .filter(agent_id=agent_id, recrutement__organisme_id=organisme_id)
+            .exists()
         )
 
     def by_recrutement(self, recrutement_id) -> "RecrutementAgentQuerySet":
