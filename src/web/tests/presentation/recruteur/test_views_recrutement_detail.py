@@ -3,6 +3,8 @@ from unittest.mock import MagicMock, patch
 from uuid import UUID, uuid4
 
 import pytest
+from django.db import connection
+from django.test.utils import CaptureQueriesContext
 from django.urls import reverse
 from faker import Faker
 from rest_framework import status
@@ -13,9 +15,6 @@ from application.recruteur.dtos.recrutement_read_models import (
     CandidatureListeReadModel,
     EtapeDto,
     EtapeKanbanReadModel,
-    LocalisationDto,
-    OrganismeRecruteurDto,
-    RecrutementDetailReadModel,
     RecrutementKanbanReadModel,
 )
 from domain.commons.errors.organisme_errors import OrganismeNexistePas
@@ -26,7 +25,10 @@ from domain.recruteur.errors.recrutement_errors import (
     RecrutementEtapeInexistante,
     RecrutementInexistant,
 )
-from domain.recruteur.value_objects.roles import AgentOrganismeRole
+from domain.recruteur.value_objects.roles import (
+    AgentOrganismeRole,
+    AgentRecrutementRole,
+)
 from infrastructure.django_apps.recruteur.models.etape import EtapeModel
 from infrastructure.factories.candidate.candidature_django_factory import (
     CandidatureDjangoFactory,
@@ -34,10 +36,18 @@ from infrastructure.factories.candidate.candidature_django_factory import (
 from infrastructure.factories.identite.organisme_django_factory import (
     create_organisme_with_agent,
 )
+from infrastructure.factories.identite.utilisateur_django_factory import (
+    UtilisateurDjangoFactory,
+)
 from infrastructure.factories.recruteur.candidature_recruteur_factory import (
     CandidatureRecruteurFactory,
 )
+from infrastructure.factories.recruteur.etapes_recrutement_factory import (
+    EtapeRecrutementFactory,
+)
 from infrastructure.factories.recruteur.recrutement_django_factory import (
+    EtapeDjangoFactory,
+    RecrutementAgentDjangoFactory,
     RecrutementDjangoFactory,
 )
 from infrastructure.factories.referentiel.offer_django_factory import (
@@ -60,32 +70,6 @@ def _candidature_liste_read_models(
         )
         for _ in range(count)
     ]
-
-
-def _recrutement_detail_read_model() -> RecrutementDetailReadModel:
-    return RecrutementDetailReadModel(
-        offer_id=UUID(RECRUTEMENT_UUID),
-        intitule="Chargé de mission numérique",
-        archive=False,
-        date_publication=datetime.now(tz=timezone.utc),
-        localisation=LocalisationDto(
-            zone_geographique="EU",
-            pays="FRA",
-            region="11",
-            departement="75",
-            localisation_label="Paris 8e arrondissement",
-            latitude=48.8748,
-            longitude=2.3070,
-        ),
-        organisme_recruteur=OrganismeRecruteurDto(
-            nom="Mairie de Paris", siret="21750001600019"
-        ),
-        categorie_offre="A",
-        etapes=[
-            EtapeDto(etape_uuid=uuid4(), nom="Réception", categorie="ENTREE"),
-            EtapeDto(etape_uuid=uuid4(), nom="Présélection", categorie="EN_COURS"),
-        ],
-    )
 
 
 def _recrutement_kanban_read_model() -> RecrutementKanbanReadModel:
@@ -155,13 +139,6 @@ RECRUTEMENT_DETAIL_URL = reverse(
     "recruteur:organisme_recrutement",
     kwargs={"organisme_uuid": ORGANISME_UUID, "recrutement_uuid": RECRUTEMENT_UUID},
 )
-UNKNOWN_RECRUTEMENT_DETAIL_URL = reverse(
-    "recruteur:organisme_recrutement",
-    kwargs={
-        "organisme_uuid": ORGANISME_UUID,
-        "recrutement_uuid": UNKNOWN_RECRUTEMENT_UUID,
-    },
-)
 
 NOMBRE_REQUETES_LISTE_ATTENDU = (
     2  # authentication (view + RateLimitHeadersMiddleware)
@@ -182,23 +159,29 @@ def container():
         yield instance
 
 
-class TestRecrutementDetailView:
-    @pytest.fixture(autouse=True)
-    def _default_usecase(self, container):
-        container.get_recrutement_detail_usecase.return_value.execute.return_value = (
-            _recrutement_detail_read_model()
-        )
+def _detail_url(organisme_id, recrutement_id) -> str:
+    return reverse(
+        "recruteur:organisme_recrutement",
+        kwargs={"organisme_uuid": organisme_id, "recrutement_uuid": recrutement_id},
+    )
 
+
+class TestRecrutementDetailView:
     def test_anonymous_access_is_unauthorized(self, api_client):
         response = api_client.get(RECRUTEMENT_DETAIL_URL)
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
-    def test_returns_200(self, authenticated_client):
-        response = authenticated_client.get(RECRUTEMENT_DETAIL_URL)
-        assert response.status_code == status.HTTP_200_OK
+    def test_returns_detail_payload(self, authenticated_client, test_user):
+        _, organisme = create_organisme_with_agent(
+            role=AgentOrganismeRole.SUPERVISEUR, utilisateur=test_user
+        )
+        offre = OfferDjangoFactory(title="Chargé de mission numérique", category="A")
+        recrutement = RecrutementDjangoFactory(organisme=organisme, offre=offre)
 
-    def test_response_structure(self, authenticated_client):
-        payload = authenticated_client.get(RECRUTEMENT_DETAIL_URL).json()
+        response = authenticated_client.get(_detail_url(organisme.id, recrutement.pk))
+
+        assert response.status_code == status.HTTP_200_OK
+        payload = response.json()
         assert set(payload) == {
             "uuid",
             "intitule",
@@ -209,63 +192,145 @@ class TestRecrutementDetailView:
             "categorie_offre",
             "etapes",
         }
+        assert payload["uuid"] == str(recrutement.pk)
+        assert payload["intitule"] == "Chargé de mission numérique"
+        assert payload["archive"] is False
+        assert payload["categorie_offre"] == "A"
+        assert payload["organisme_recruteur"] == {
+            "nom": organisme.nom,
+            "siret": organisme.siret,
+        }
+        assert set(payload["localisation"]) == {
+            "zone_geographique",
+            "pays",
+            "region",
+            "departement",
+            "localisation_label",
+            "latitude",
+            "longitude",
+        }
 
-    def test_localisation_structure(self, authenticated_client):
-        data = authenticated_client.get(RECRUTEMENT_DETAIL_URL).json()
-        localisation = data["localisation"]
-        assert "zone_geographique" in localisation
-        assert "pays" in localisation
-        assert "region" in localisation
-        assert "departement" in localisation
+    def test_etapes_follow_ordre_etapes(self, authenticated_client, test_user):
+        _, organisme = create_organisme_with_agent(
+            role=AgentOrganismeRole.SUPERVISEUR, utilisateur=test_user
+        )
+        recrutement = RecrutementDjangoFactory(organisme=organisme)
+        etapes = list(recrutement.etapes.all())
+        recrutement.ordre_etapes = [str(etape.id) for etape in reversed(etapes)]
+        recrutement.save(update_fields=["ordre_etapes"])
 
-    def test_organisme_recruteur_structure(self, authenticated_client):
-        data = authenticated_client.get(RECRUTEMENT_DETAIL_URL).json()
-        organisme = data["organisme_recruteur"]
-        assert "nom" in organisme
-        assert "siret" in organisme
+        payload = authenticated_client.get(
+            _detail_url(organisme.id, recrutement.pk)
+        ).json()
 
-    def test_etape_structure(self, authenticated_client):
-        data = authenticated_client.get(RECRUTEMENT_DETAIL_URL).json()
-        etape = data["etapes"][0]
-        assert "uuid" in etape
-        assert "nom" in etape
-        assert "categorie" in etape
+        assert [etape["uuid"] for etape in payload["etapes"]] == (
+            recrutement.ordre_etapes
+        )
+        assert set(payload["etapes"][0]) == {"uuid", "nom", "categorie"}
 
-    def test_returns_404_for_unknown_recrutement(self, container, authenticated_client):
-        container.get_recrutement_detail_usecase.return_value.execute.return_value = (
-            None
+    @pytest.mark.parametrize("archivee", [True, False], ids=["archivee", "active"])
+    def test_archive_flag_reflects_offre(
+        self, authenticated_client, test_user, archivee
+    ):
+        _, organisme = create_organisme_with_agent(
+            role=AgentOrganismeRole.SUPERVISEUR, utilisateur=test_user
+        )
+        recrutement = RecrutementDjangoFactory(
+            organisme=organisme, offre_archivee=archivee
         )
 
-        response = authenticated_client.get(UNKNOWN_RECRUTEMENT_DETAIL_URL)
+        payload = authenticated_client.get(
+            _detail_url(organisme.id, recrutement.pk)
+        ).json()
+
+        assert payload["archive"] is archivee
+
+    @pytest.mark.parametrize(
+        ("organisme_role", "recrutement_role", "expected_status"),
+        [
+            pytest.param(
+                AgentOrganismeRole.SUPERVISEUR,
+                None,
+                status.HTTP_200_OK,
+                id="superviseur",
+            ),
+            *[
+                pytest.param(
+                    AgentOrganismeRole.AGENT,
+                    role,
+                    status.HTTP_200_OK,
+                    id=f"agent_{role.value}",
+                )
+                for role in AgentRecrutementRole
+            ],
+            pytest.param(
+                AgentOrganismeRole.AGENT,
+                None,
+                status.HTTP_403_FORBIDDEN,
+                id="agent_sans_role_recrutement",
+            ),
+        ],
+    )
+    def test_access_depends_on_roles(
+        self,
+        authenticated_client,
+        test_user,
+        organisme_role,
+        recrutement_role,
+        expected_status,
+    ):
+        agent, organisme = create_organisme_with_agent(
+            role=organisme_role, utilisateur=test_user
+        )
+        recrutement = RecrutementDjangoFactory(organisme=organisme)
+        if recrutement_role is not None:
+            RecrutementAgentDjangoFactory(
+                recrutement=recrutement, agent=agent, role=recrutement_role.value
+            )
+
+        response = authenticated_client.get(_detail_url(organisme.id, recrutement.pk))
+
+        assert response.status_code == expected_status
+        if expected_status == status.HTTP_403_FORBIDDEN:
+            assert response.json() == {"error": "Forbidden."}
+
+    def test_staff_gets_detail_without_organisme_role(self, api_client):
+        api_client.force_login(UtilisateurDjangoFactory(is_staff=True))
+        recrutement = RecrutementDjangoFactory()
+
+        response = api_client.get(_detail_url(recrutement.organisme_id, recrutement.pk))
+
+        assert response.status_code == status.HTTP_200_OK
+
+    def test_returns_404_for_unknown_recrutement(self, authenticated_client, test_user):
+        _, organisme = create_organisme_with_agent(
+            role=AgentOrganismeRole.SUPERVISEUR, utilisateur=test_user
+        )
+
+        response = authenticated_client.get(_detail_url(organisme.id, uuid4()))
+
         assert response.status_code == status.HTTP_404_NOT_FOUND
         assert response.json() == {"error": "Not found."}
 
-    def test_returns_403_when_not_authorized(self, container, authenticated_client):
-        container.get_recrutement_detail_usecase.return_value.execute.side_effect = (
-            AccesOrganismeRefuse(UUID(fake.uuid4()))
+    def test_number_of_queries_does_not_depend_on_etapes_count(
+        self, authenticated_client, test_user
+    ):
+        _, organisme = create_organisme_with_agent(
+            role=AgentOrganismeRole.SUPERVISEUR, utilisateur=test_user
         )
-
-        response = authenticated_client.get(RECRUTEMENT_DETAIL_URL)
-        assert response.status_code == status.HTTP_403_FORBIDDEN
-        assert response.json() == {"error": "Forbidden."}
-
-    def test_returns_404_for_unknown_organisme(self, container, authenticated_client):
-        container.get_recrutement_detail_usecase.return_value.execute.side_effect = (
-            OrganismeNexistePas("not found")
+        petit = RecrutementDjangoFactory(
+            organisme=organisme,
+            etapes=EtapeRecrutementFactory.create_entity_batch()[:1],
         )
+        grand = RecrutementDjangoFactory(organisme=organisme)
+        EtapeDjangoFactory.create_batch(5, recrutement=grand)
 
-        response = authenticated_client.get(RECRUTEMENT_DETAIL_URL)
-        assert response.status_code == status.HTTP_404_NOT_FOUND
-        assert response.json() == {"error": "Not found."}
+        with CaptureQueriesContext(connection) as petit_queries:
+            authenticated_client.get(_detail_url(organisme.id, petit.pk))
+        with CaptureQueriesContext(connection) as grand_queries:
+            authenticated_client.get(_detail_url(organisme.id, grand.pk))
 
-    def test_returns_500_on_unexpected_error(self, container, authenticated_client):
-        container.get_recrutement_detail_usecase.return_value.execute.side_effect = (
-            Exception("unexpected")
-        )
-
-        response = authenticated_client.get(RECRUTEMENT_DETAIL_URL)
-        assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
-        assert response.json() == {"error": "Unexpected error"}
+        assert len(grand_queries) == len(petit_queries)
 
 
 class TestRecrutementKanbanView:
@@ -599,33 +664,6 @@ class TestRecrutementCandidaturesEtapeView:
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert response.json() == {"error": MotifRefusRequis(uuid).message}
-
-
-class TestRecrutementDetailViewDbVerified:
-    def test_returns_persisted_detail(self, authenticated_client, test_user):
-        _, organisme = create_organisme_with_agent(
-            role=AgentOrganismeRole.SUPERVISEUR,
-            utilisateur=test_user,
-            id=UUID(ORGANISME_UUID),
-        )
-        offer = OfferDjangoFactory(
-            id=UUID(RECRUTEMENT_UUID), archived_at=None, category="A"
-        )
-        recrutement = RecrutementDjangoFactory(organisme=organisme, offre=offer)
-
-        response = authenticated_client.get(RECRUTEMENT_DETAIL_URL)
-
-        assert response.status_code == status.HTTP_200_OK
-        data = response.json()
-        assert data["uuid"] == str(offer.id)
-        assert data["intitule"] == offer.title
-        assert data["archive"] is False
-        assert data["categorie_offre"] == offer.category
-        assert data["organisme_recruteur"] == {
-            "nom": organisme.nom,
-            "siret": organisme.siret,
-        }
-        assert len(data["etapes"]) == len(recrutement.ordre_etapes)
 
 
 class TestRecrutementKanbanViewDbVerified:
