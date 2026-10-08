@@ -53,8 +53,18 @@ class TestClearExpiredSessionsTask:
 
     def test_raises_task_error_on_failure(self, db):
         with patch(
-            "presentation.identite.tasks.SessionStore.clear_expired",
+            "django.contrib.sessions.backends.db.SessionStore.clear_expired",
             side_effect=RuntimeError("boom"),
         ):
             with pytest.raises(TaskError):
                 clear_expired_sessions.call_local()
+
+    def test_follows_configured_session_engine(self, settings):
+        settings.SESSION_ENGINE = "django.contrib.sessions.backends.cached_db"
+
+        with patch(
+            "django.contrib.sessions.backends.cached_db.SessionStore.clear_expired"
+        ) as clear_expired:
+            clear_expired_sessions.call_local()
+
+        clear_expired.assert_called_once_with()

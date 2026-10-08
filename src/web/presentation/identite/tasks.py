@@ -1,6 +1,7 @@
 import logging
+from importlib import import_module
 
-from django.contrib.sessions.backends.db import SessionStore
+from django.conf import settings
 from huey import crontab
 from huey.contrib.djhuey import db_periodic_task, db_task, lock_task
 
@@ -19,7 +20,8 @@ def clear_expired_sessions():
     logger = logging.getLogger(LoggerName.IDENTITE.value)
 
     try:
-        SessionStore.clear_expired()
+        engine = import_module(settings.SESSION_ENGINE)
+        engine.SessionStore.clear_expired()
     except Exception as e:
         raise TaskError(
             message="Failed to clear expired sessions",
