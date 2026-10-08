@@ -18,7 +18,7 @@ Notation : `a.b` désigne un objet imbriqué, `a[]` une liste, `a[0]` son premie
 | `organisationName` | `organisation.nom` | |
 | `organisation.entityCode` | `organisation.talentsoft_organisme_entity_code` | Lien vers l'organisme Talentsoft, vide s'il est inconnu. |
 | `contractType.clientCode` | `nature_offre` | Traduit par le transcodeur de la source. |
-| `professionalCategory.clientCode` | `vacance_poste` | `STATUT01` → `OUI` (poste vacant), `STATUT02` → `NON` (poste susceptible d'être vacant), sinon vide. Malgré son nom, c'est le « Statut du poste » affiché par l'ancien site WordPress. |
+| `professionalCategory.clientCode` | `vacance_poste` | `STATUT01` → `OUI` (poste vacant), `STATUT02` → `NON` (poste susceptible d'être vacant), sinon vide. Malgré son nom, c'est le « Statut du poste » affiché par l'ancien site WordPress. API fake-ts : `OUI` → `STATUT01`, `NON` → `STATUT02`, sinon `null`. |
 | `offerFamilyCategory.clientCode` | `profession.metier` | `profession.domaine` correspond à ses 3 premiers caractères, après retrait d'un `ER` initial. |
 | `description1` | `description.mission` | |
 | `description2` | `description.profil` | |
@@ -39,7 +39,7 @@ Notation : `a.b` désigne un objet imbriqué, `a[]` une liste, `a[0]` son premie
 | `endPublicationDate` | `publication.fin_publication` | Repli sur `beginningDate`, puis sur `debut_publication` + 365 jours. Le `OfferInputMapper` du web ne lit jamais `fin_publication`. |
 | `customFields.offer.date1` | `publication.fin_candidature` | |
 | `beginningDate` | `conditions.debut_contrat` | Sert aussi de repli pour `fin_publication`. |
-| `beginningDate` | `publication.debut_vacance_poste` | Comme l'ancien site WordPress (« Vacant à partir du … », « Poste à pourvoir le … »). Ignoré par le `OfferInputMapper` du web. |
+| `beginningDate` | `publication.debut_vacance_poste` | Comme l'ancien site WordPress (« Vacant à partir du … », « Poste à pourvoir le … »). |
 | `contractDuration` | `conditions.duree_contrat` | |
 | `educationLevel.clientCode` | `criteres.diplome_niveau` | Lettres `A`-`H` ou `NIV_DIPL<n>` converties en niveau. |
 | `diploma.clientCode` | `criteres.diplome` | |

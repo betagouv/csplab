@@ -436,7 +436,7 @@ class FakeTsOfferSummarySerializer(serializers.Serializer):
     department = FakeTsCodedObjectSerializer(many=True)
     latitude = serializers.FloatField(allow_null=True)
     longitude = serializers.FloatField(allow_null=True)
-    professionalCategory = serializers.CharField(allow_null=True)
+    professionalCategory = FakeTsCodedObjectSerializer(allow_null=True)
     _links = serializers.ListField(child=serializers.DictField(), label="_links")
     offerUrl = serializers.CharField(allow_null=True)
     _format = serializers.CharField(allow_null=True, label="_format")
@@ -569,6 +569,7 @@ class OfferDetailResponseSerializer(serializers.Serializer):
     publication_date = serializers.DateTimeField()
     beginning_date = serializers.SerializerMethodField()
     application_deadline = serializers.DateTimeField(allow_null=True)
+    job_vacancy_date = serializers.DateTimeField(allow_null=True)
     archived_at = serializers.DateTimeField(allow_null=True)
 
     @extend_schema_field(LocalisationSerializer(allow_null=True))

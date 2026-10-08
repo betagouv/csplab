@@ -94,6 +94,7 @@ class OfferModel(BaseDatedModel):
     publication_date = models.DateTimeField()
     beginning_date = models.DateTimeField(null=True, blank=True)
     application_deadline = models.DateTimeField(null=True, blank=True)
+    job_vacancy_date = models.DateTimeField(null=True, blank=True)
     processing = models.BooleanField(default=False)
     processed_at = models.DateTimeField(null=True, blank=True)
     archived_at = models.DateTimeField(null=True, blank=True)

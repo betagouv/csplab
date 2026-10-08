@@ -38,6 +38,41 @@ def test_isoformat(value, expected):
     assert OfferSummaryOutputMapper._isoformat(value) == expected
 
 
+@pytest.mark.parametrize(
+    "job_vacancy,expected_client_code,expected_label",
+    [
+        ("OUI", "STATUT01", "Poste vacant"),
+        ("NON", "STATUT02", "Poste susceptible d'être vacant"),
+    ],
+)
+def test_summary_output_mapper_maps_job_vacancy_to_professional_category(
+    job_vacancy, expected_client_code, expected_label
+):
+    offer = replace(OfferFactory.create_entity(), job_vacancy=job_vacancy)
+
+    result = OfferSummaryOutputMapper().to_dict(offer)
+
+    assert result["professionalCategory"] == {
+        "code": None,
+        "clientCode": expected_client_code,
+        "label": expected_label,
+        "active": True,
+        "parentCode": None,
+        "type": "professionalCategory",
+        "parentType": "",
+        "hasChildren": False,
+    }
+
+
+@pytest.mark.parametrize("job_vacancy", [None, "", "1"])
+def test_summary_output_mapper_maps_unknown_job_vacancy_to_null(job_vacancy):
+    offer = replace(OfferFactory.create_entity(), job_vacancy=job_vacancy)
+
+    result = OfferSummaryOutputMapper().to_dict(offer)
+
+    assert result["professionalCategory"] is None
+
+
 def test_offer_input_mapper_maps_profession_referentiel_to_job_family_referential():
     payload = PayloadOfferFactory.create(
         identification={"reference": "REF-001", "versant": "FPT"},
@@ -94,7 +129,10 @@ def test_offer_input_mapper_maps_export_unif_fields():
             "conditions_exercice": "Télétravail possible",
             "descriptif_service": "Service des ressources humaines",
         },
-        publication={"fin_candidature": datetime(2026, 11, 30, tzinfo=timezone.utc)},
+        publication={
+            "fin_candidature": datetime(2026, 11, 30, tzinfo=timezone.utc),
+            "debut_vacance_poste": datetime(2027, 1, 1, tzinfo=timezone.utc),
+        },
     )
 
     offer = OfferInputMapper().to_domain(payload, source_id=uuid4())
@@ -102,6 +140,7 @@ def test_offer_input_mapper_maps_export_unif_fields():
     assert offer.exercise_conditions == "Télétravail possible"
     assert offer.service_description == "Service des ressources humaines"
     assert offer.application_deadline == datetime(2026, 11, 30, tzinfo=timezone.utc)
+    assert offer.job_vacancy_date == datetime(2027, 1, 1, tzinfo=timezone.utc)
 
 
 def test_offer_input_mapper_maps_blank_or_absent_export_unif_fields_to_none():
@@ -117,6 +156,7 @@ def test_offer_input_mapper_maps_blank_or_absent_export_unif_fields_to_none():
     assert offer.exercise_conditions is None
     assert offer.service_description is None
     assert offer.application_deadline is None
+    assert offer.job_vacancy_date is None
 
 
 def test_offer_input_mapper_maps_absent_criteres_to_none():
