@@ -55,7 +55,7 @@ async function submit(): Promise<void> {
       <CspTextarea
         v-model="message"
         :rows="3"
-        placeholder="Votre note sur cette candidature…"
+        placeholder="Écrivez votre note…"
         :aria-labelledby="titleId"
       />
       <CspButton
