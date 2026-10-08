@@ -1081,6 +1081,14 @@ export interface components {
             organisme_recruteur: components["schemas"]["Organisme"];
             categorie_offre: components["schemas"]["CategorieOffreEnum"];
             etapes: components["schemas"]["EtapeRecrutement"][];
+            /**
+             * @description Rôle de l'utilisateur courant sur ce recrutement (null si aucun).
+             *
+             *     * `responsable` - responsable
+             *     * `recruteur` - recruteur
+             *     * `contributeur` - contributeur
+             */
+            recrutement_role: (components["schemas"]["RecrutementRoleEnum"] | components["schemas"]["NullEnum"]) | null;
         };
         RecrutementDetailKanban: {
             /** Format: uuid */

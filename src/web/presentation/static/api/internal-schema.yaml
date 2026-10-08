@@ -5957,6 +5957,17 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/EtapeRecrutement'
+        recrutement_role:
+          nullable: true
+          description: |-
+            Rôle de l'utilisateur courant sur ce recrutement (null si aucun).
+
+            * `responsable` - responsable
+            * `recruteur` - recruteur
+            * `contributeur` - contributeur
+          oneOf:
+          - $ref: '#/components/schemas/RecrutementRoleEnum'
+          - $ref: '#/components/schemas/NullEnum'
       required:
       - archive
       - categorie_offre
@@ -5965,6 +5976,7 @@ components:
       - intitule
       - localisation
       - organisme_recruteur
+      - recrutement_role
       - uuid
     RecrutementDetailKanban:
       type: object
