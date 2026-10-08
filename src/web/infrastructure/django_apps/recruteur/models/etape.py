@@ -1,3 +1,5 @@
+from collections.abc import Iterable
+
 from django.db import models
 
 from domain.recruteur.value_objects.categorie_etapes_recrutement import (
@@ -5,6 +7,11 @@ from domain.recruteur.value_objects.categorie_etapes_recrutement import (
 )
 from infrastructure.django_apps.recruteur.models.recrutement import RecrutementModel
 from infrastructure.django_apps.utils.models import BaseDatedModel
+
+
+class EtapeQuerySet(models.QuerySet):
+    def with_nb_candidatures(self) -> "EtapeQuerySet":
+        return self.annotate(nb_candidatures=models.Count("candidatures"))
 
 
 class EtapeModel(BaseDatedModel):
@@ -29,6 +36,8 @@ class EtapeModel(BaseDatedModel):
         ),
     )
 
+    objects = EtapeQuerySet.as_manager()
+
     class Meta:
         db_table = "etape_recrutement"
         verbose_name = "Étape de recrutement"
@@ -38,8 +47,12 @@ class EtapeModel(BaseDatedModel):
         return str(self.recrutement)
 
 
-def etapes_ordonnees(recrutement: RecrutementModel) -> list[EtapeModel]:
-    etapes_by_id = {str(etape.id): etape for etape in recrutement.etapes.all()}
+def etapes_ordonnees(
+    recrutement: RecrutementModel, etapes: Iterable[EtapeModel] | None = None
+) -> list[EtapeModel]:
+    if etapes is None:
+        etapes = recrutement.etapes.all()
+    etapes_by_id = {str(etape.id): etape for etape in etapes}
     return [
         etapes_by_id[etape_id]
         for etape_id in recrutement.ordre_etapes

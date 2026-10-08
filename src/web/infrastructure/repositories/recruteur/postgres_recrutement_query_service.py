@@ -277,7 +277,7 @@ class PostgresRecrutementQueryService(IRecrutementQueryService):
             .prefetch_related(
                 Prefetch(
                     "etapes",
-                    queryset=EtapeModel.objects.prefetch_related(
+                    queryset=EtapeModel.objects.all().prefetch_related(
                         Prefetch(
                             "candidatures",
                             queryset=CandidatureModel.objects.select_related(

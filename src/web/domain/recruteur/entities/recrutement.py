@@ -19,7 +19,6 @@ from domain.recruteur.errors.recrutement_errors import (
 from domain.recruteur.events.recrutement_events import (
     EtapeCandidaturesChangees,
     RecrutementEtapesMisesAJour,
-    RecrutementEtapesReinitialisees,
 )
 from domain.recruteur.value_objects.categorie_etapes_recrutement import (
     CategorieEtapeRecrutement,
@@ -102,26 +101,6 @@ class Recrutement(OrganismeRecruteur):
         # business rules about etapes order can be managed here
         self._derniere_activite_le = datetime.now(tz=timezone.utc)
         return {"successes": successes, "failures": failures}
-
-    @mutate(RecrutementEtapesReinitialisees)
-    def reinitialiser_etapes(
-        self,
-        etapes_organisme: tuple[EtapeRecrutement, ...],
-    ):
-        for step in self._etapes:
-            step.delete()
-            for event in step.collect_events():
-                self.add_event(event)
-
-        new_steps = []
-        for step in etapes_organisme:
-            new_step = EtapeRecrutement.create(nom=step.nom, categorie=step.categorie)
-            new_steps.append(new_step)
-            for event in new_step.collect_events():
-                self.add_event(event)
-
-        self._etapes = tuple(new_steps)
-        self._derniere_activite_le = datetime.now(tz=timezone.utc)
 
     @mutate(RecrutementEtapesMisesAJour)
     def mettre_a_jour_etapes(
