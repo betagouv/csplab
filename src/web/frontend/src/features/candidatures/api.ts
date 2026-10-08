@@ -31,18 +31,27 @@ export async function getCandidatureListe(
   organismeUuid: string,
   recrutementUuid: string,
 ): Promise<PaginatedCandidatureListeList> {
-  const { data } = await api.GET(
-    '/recruteur/organismes/{organisme_uuid}/recrutements/{recrutement_uuid}/liste',
-    {
-      params: {
-        path: {
-          organisme_uuid: organismeUuid,
-          recrutement_uuid: recrutementUuid,
+  async function fetchListe(taille?: number): Promise<PaginatedCandidatureListeList> {
+    const { data } = await api.GET(
+      '/recruteur/organismes/{organisme_uuid}/recrutements/{recrutement_uuid}/liste',
+      {
+        params: {
+          path: {
+            organisme_uuid: organismeUuid,
+            recrutement_uuid: recrutementUuid,
+          },
+          query: { taille },
         },
       },
-    },
-  )
-  return data!
+    )
+    return data!
+  }
+
+  const firstPage = await fetchListe()
+  if (firstPage.results.length >= firstPage.count) {
+    return firstPage
+  }
+  return fetchListe(firstPage.count)
 }
 
 export interface EtapeChange {
