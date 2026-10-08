@@ -24,7 +24,8 @@
                         <h2 class="fr-h4 fr-mb-6v">Connexion</h2>
                         {% if PROCONNECT_LOGIN_ENABLED %}
                             <div class="fr-connect-group fr-mt-2w">
-                                <a href="{% url 'identite:proconnect_login' %}" class="fr-connect">
+                                <a href="{% url 'identite:proconnect_login' %}{% if next %}?next={{ next|urlencode:'' }}{% endif %}"
+                                   class="fr-connect">
                                     <span class="fr-connect__login">S'identifier avec</span>
                                     <span class="fr-connect__brand">ProConnect</span>
                                 </a>

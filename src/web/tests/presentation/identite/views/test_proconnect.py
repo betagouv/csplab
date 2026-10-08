@@ -1,8 +1,10 @@
 from unittest.mock import MagicMock
 
+import pytest
 from authlib.integrations.base_client.errors import OAuthError
 from django.conf import settings
 from django.contrib.messages import get_messages
+from django.http import HttpResponse
 from django.test import override_settings
 from django.urls import reverse
 from rest_framework import status
@@ -19,6 +21,31 @@ class TestProconnectLoginView:
         response = client.get(reverse("identite:proconnect_login"))
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    def test_get_stores_safe_next_in_session(self, db, client, monkeypatch):
+        monkeypatch.setattr(
+            oauth.proconnect,
+            "authorize_redirect",
+            MagicMock(return_value=HttpResponse()),
+        )
+
+        client.get(reverse("identite:proconnect_login"), {"next": "/ats/some/page"})
+
+        assert client.session["login_next"] == "/ats/some/page"
+
+    @pytest.mark.parametrize(
+        "next_url", ["https://evil.example.com/", "//evil.example.com/", ""]
+    )
+    def test_get_does_not_store_unsafe_next(self, db, client, monkeypatch, next_url):
+        monkeypatch.setattr(
+            oauth.proconnect,
+            "authorize_redirect",
+            MagicMock(return_value=HttpResponse()),
+        )
+
+        client.get(reverse("identite:proconnect_login"), {"next": next_url})
+
+        assert "login_next" not in client.session
 
 
 class TestProconnectCallbackView:
@@ -83,6 +110,38 @@ class TestProconnectCallbackView:
         assert response.url == reverse(settings.LOGIN_REDIRECT_URL)
         assert "_auth_user_id" in client.session
         assert client.session["oidc_id_token"] == "fake-id-token"  # noqa S105
+
+    @pytest.mark.parametrize(
+        ("stored_next", "expected"),
+        [
+            ("/ats/organismes/1/messages/2", "/ats/organismes/1/messages/2"),
+            ("/fret/some/page", "/fret/some/page"),
+            ("https://evil.example.com/", None),
+            (None, None),
+        ],
+    )
+    def test_callback_redirects_to_stored_next(
+        self, db, client, monkeypatch, test_user, stored_next, expected
+    ):
+        monkeypatch.setattr(
+            oauth.proconnect,
+            "authorize_access_token",
+            MagicMock(return_value={"id_token": "fake-id-token"}),
+        )
+        monkeypatch.setattr(
+            "presentation.identite.views.fetch_userinfo_claims",
+            MagicMock(return_value={"email": test_user.email}),
+        )
+        if stored_next:
+            session = client.session
+            session["login_next"] = stored_next
+            session.save()
+
+        response = client.get(reverse("identite:proconnect_callback"))
+
+        assert response.status_code == status.HTTP_302_FOUND
+        assert response.url == (expected or reverse(settings.LOGIN_REDIRECT_URL))
+        assert "login_next" not in client.session
 
 
 class TestProconnectLogoutView:
