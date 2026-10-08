@@ -61,7 +61,7 @@ describe('candidatureNotes', () => {
     vi.mocked(getCandidatureNotes).mockResolvedValue({ count: 0, results: [] })
     await renderNotes()
 
-    expect(await screen.findByText('Aucune note sur cette candidature.')).toBeInTheDocument()
+    expect(await screen.findByText('Aucune note sur cette candidature')).toBeInTheDocument()
   })
 
   it.each([
