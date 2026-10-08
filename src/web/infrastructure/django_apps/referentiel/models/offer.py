@@ -3,6 +3,7 @@ from uuid import UUID
 
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db import models
+from django.db.models import Q
 from referentiel.value_objects.category import Category
 from referentiel.value_objects.offer_nature import OfferNature
 from referentiel.value_objects.verse import Verse
@@ -23,6 +24,11 @@ class OfferQuerySet(models.QuerySet):
 
     def by_references(self, references: Iterable[str]) -> "OfferQuerySet":
         return self.filter(reference__in=references)
+
+    def search(self, term: str) -> "OfferQuerySet":
+        if not term:
+            return self
+        return self.filter(Q(reference__icontains=term) | Q(title__icontains=term))
 
 
 class OfferModel(BaseDatedModel):

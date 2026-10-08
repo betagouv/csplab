@@ -6,6 +6,7 @@ from infrastructure.django_apps.commons.admin import stat_snapshot_list_view
 from presentation.api import urls as api_urls
 from presentation.ats import urls as ats_urls
 from presentation.candidate import urls as candidate_urls
+from presentation.fret import urls as fret_urls
 from presentation.identite import urls as identite_urls
 from presentation.identite.admin_site import (
     LoggedAdminSite,
@@ -37,6 +38,7 @@ urlpatterns: list[URLPattern | URLResolver] = [
     path("ats/", include(ats_urls)),
     path("utilisateur/", include(identite_urls)),
     path("recruteur/", include(recruteur_urls)),
+    path("fret/", include(fret_urls)),
 ]
 
 if settings.DEBUG and "debug_toolbar" in settings.INSTALLED_APPS:

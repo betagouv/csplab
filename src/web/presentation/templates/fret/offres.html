@@ -1,0 +1,32 @@
+{% extends "layouts/base.html" %}
+{% load dsfr_tags %}
+{% block page_title %}
+    Offres de la source {{ source.slug }}
+{% endblock page_title %}
+{% block main %}
+    <div class="fr-container fr-py-6w">
+        {% dsfr_breadcrumb breadcrumb_data %}
+        <h1>Offres de la source {{ source.slug }}</h1>
+        <form method="get" role="search" class="fr-search-bar fr-mb-4w">
+            <label class="fr-label" for="search-offers">Rechercher par référence ou titre</label>
+            <input class="fr-input"
+                   type="search"
+                   id="search-offers"
+                   name="q"
+                   value="{{ search }}">
+            <button class="fr-btn" type="submit">Rechercher</button>
+        </form>
+        {% if table.content %}
+            {% dsfr_table table %}
+            {% if page_obj.paginator.num_pages > 1 %}
+                {% dsfr_pagination page_obj %}
+            {% endif %}
+        {% else %}
+            {% if search %}
+                {% dsfr_callout text="Aucune offre ne correspond à votre recherche." %}
+            {% else %}
+                {% dsfr_callout text="Aucune offre pour cette source." %}
+            {% endif %}
+        {% endif %}
+    </div>
+{% endblock main %}

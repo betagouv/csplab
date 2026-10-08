@@ -10,6 +10,7 @@ from infrastructure.factories.identite.utilisateur_factory import DEFAULT_PASSWO
 class UtilisateurDjangoFactory(DjangoModelFactory):
     class Meta:
         model = UserModel
+        skip_postgeneration_save = True
 
     username = factory.LazyFunction(uuid4)
     email = factory.LazyAttribute(lambda o: f"{o.username}@example.org")
@@ -18,3 +19,8 @@ class UtilisateurDjangoFactory(DjangoModelFactory):
     is_staff = False
     is_superuser = False
     password = Password(DEFAULT_PASSWORD)
+
+    @factory.post_generation
+    def sources(self, create, extracted, **kwargs):
+        if create and extracted:
+            self.sources.add(*extracted)

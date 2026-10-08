@@ -23,6 +23,7 @@ from domain.recruteur.value_objects.roles import (
 from infrastructure.django_apps.candidate.enums.type_document import TypeDocument
 from infrastructure.django_apps.candidate.models.candidature import CandidatureModel
 from infrastructure.django_apps.candidate.models.document import DocumentModel
+from infrastructure.django_apps.ingestion.models.source import SourceModel
 from infrastructure.django_apps.messagerie.models import (
     ConversationModel,
     MessageDocumentModel,
@@ -59,6 +60,9 @@ from infrastructure.factories.identite.organisme_django_factory import (
 )
 from infrastructure.factories.identite.utilisateur_django_factory import (
     UtilisateurDjangoFactory,
+)
+from infrastructure.factories.ingestion.source_django_factory import (
+    SourceDjangoFactory,
 )
 from infrastructure.factories.messagerie.conversation_django_factory import (
     ConversationDjangoFactory,
@@ -111,6 +115,15 @@ _ORGANISMES_SPECS = [
         "siret": "26330001500017",
     },
 ]
+
+# Sources des offres du seed (visibles dans /fret/) : Marie n'a que la première,
+# Marc les deux, les autres agents aucune.
+_SOURCE_MTE_UUID = UUID("00000000-0000-0000-0000-0000000000a1")
+_SOURCE_BRIANCON_UUID = UUID("00000000-0000-0000-0000-0000000000a2")
+_SOURCES_SPECS = {
+    _SOURCE_MTE_UUID: "seed-ministere-transition-ecologique",
+    _SOURCE_BRIANCON_UUID: "seed-commune-briancon",
+}
 
 _ALL_SEED_ORGANISME_UUIDS = [spec["entity_id"] for spec in _ORGANISMES_SPECS]
 _ALL_SEED_ORGANISME_SIRETS = [spec["siret"] for spec in _ORGANISMES_SPECS]
@@ -433,6 +446,7 @@ def _delete_seed_data() -> None:
     UserModel.objects.filter(email__in=_ALL_SEED_EMAILS).delete()
 
     OfferModel.objects.filter(reference__in=seed_offer_references).delete()
+    SourceModel.objects.filter(source_id__in=_SOURCES_SPECS).delete()
     MetierModel.objects.filter(
         offer_family_code__in=_SEED_METIER_OFFER_FAMILY_CODES
     ).delete()
@@ -523,22 +537,41 @@ def seed_recruteur_datas(force: bool = False) -> dict:
         )
 
         # -------------------------------------------------------------- #
+        # Sources (rattachées aux agents pour les pages /fret/)          #
+        # -------------------------------------------------------------- #
+        sources = {
+            source_id: SourceDjangoFactory(source_id=source_id, slug=slug)
+            for source_id, slug in _SOURCES_SPECS.items()
+        }
+        source_mte = sources[_SOURCE_MTE_UUID]
+        source_briancon = sources[_SOURCE_BRIANCON_UUID]
+        agents["Marie"].utilisateur.sources.add(source_mte)  # type: ignore[attr-defined]
+        agents["Marc"].utilisateur.sources.add(  # type: ignore[attr-defined]
+            source_mte, source_briancon
+        )
+
+        # -------------------------------------------------------------- #
         # Offres actives (6)                                             #
         # -------------------------------------------------------------- #
-        offres_actives = [OfferDjangoFactory(**spec) for spec in _OFFRES_ACTIVES_SPECS]
+        offres_actives = [
+            OfferDjangoFactory(source=source_mte, **spec)
+            for spec in _OFFRES_ACTIVES_SPECS
+        ]
 
         # -------------------------------------------------------------- #
         # Offres archivées (3)                                           #
         # -------------------------------------------------------------- #
         offres_archivees = [
-            OfferDjangoFactory(**spec) for spec in _OFFRES_ARCHIVEES_SPECS
+            OfferDjangoFactory(source=source_mte, **spec)
+            for spec in _OFFRES_ARCHIVEES_SPECS
         ]
 
         # -------------------------------------------------------------- #
         # Offres du second organisme                                     #
         # -------------------------------------------------------------- #
         offres_briancon = [
-            OfferDjangoFactory(**spec) for spec in _OFFRES_BRIANCON_SPECS
+            OfferDjangoFactory(source=source_briancon, **spec)
+            for spec in _OFFRES_BRIANCON_SPECS
         ]
 
         # -------------------------------------------------------------- #
@@ -671,6 +704,7 @@ def seed_recruteur_datas(force: bool = False) -> dict:
             "nb_offres_archivees": len(offres_archivees),
             "nb_candidats": len(candidats),
             "nb_agents": len(agents),
+            "nb_sources": len(sources),
             "nb_recrutements": len(recrutements),
             "nb_conversations": len(_CONVERSATIONS_SPECS),
             "seed_password": seed_password,
