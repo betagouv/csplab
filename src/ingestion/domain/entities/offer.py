@@ -11,6 +11,7 @@ from referentiel.value_objects.language import Language
 from referentiel.value_objects.limit_date import LimitDate
 from referentiel.value_objects.localisation import Localisation
 from referentiel.value_objects.offer_conditions import (
+    JobVacancy,
     Management,
     WorkingPlace,
     WorkingTime,
@@ -53,5 +54,6 @@ class Offer:
     working_place: WorkingPlace = WorkingPlace.NON_DEFINI
     working_time: WorkingTime = WorkingTime.NON_DEFINI
     management: Optional[Management] = None
+    job_vacancy: Optional[JobVacancy] = None
     talentsoft_organisme_entity_code: str = ""
     id: UUID = field(default_factory=uuid4)
