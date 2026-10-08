@@ -1,0 +1,88 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+# ---------------------------------------------------------------------------
+# scalingo-review-app — Create (or update) the Scalingo review app of the
+# current branch's PR, from the csplab-web-demo app.
+#
+# Usage:
+#   bin/scalingo-review-app   # create/update the review app
+#
+# The review app is deleted by Scalingo when the PR is closed.
+#
+# Environment (all optional):
+#   PR_NUMBER               default: PR of the current branch (via gh)
+#   SCALINGO_REGION         default: osc-fr1
+#
+# Addons, base env vars and seeding come from src/web/scalingo.json.
+#
+# Prerequisites: `scalingo login` done, and access to csplab-web-demo.
+# ---------------------------------------------------------------------------
+
+PARENT_APP="csplab-web-demo"
+REGION="${SCALINGO_REGION:-osc-fr1}"
+
+branch="$(git rev-parse --abbrev-ref HEAD)"
+pr_number="${PR_NUMBER:-$(gh pr view --json number --jq .number 2>/dev/null || true)}"
+if [[ -z "$pr_number" ]]; then
+  echo "❌ No PR found for '$branch' (open one, or set PR_NUMBER)."
+  exit 1
+fi
+app="${PARENT_APP}-pr${pr_number}"
+host="${app}.${REGION}.scalingo.io"
+
+sc() { scalingo --region "$REGION" --app "$app" "$@"; }
+
+if sc env >/dev/null 2>&1; then
+  echo "ℹ️  Review app '$app' already exists, updating it."
+else
+  echo "🚀 Creating review app '$app' (${host}) for PR #${pr_number}…"
+  scalingo --region "$REGION" --app "$PARENT_APP" \
+    integration-link-manual-review-app "$pr_number"
+  echo "⏳ Waiting for the app…"
+  for _ in $(seq 1 60); do
+    sc env >/dev/null 2>&1 && break
+    sleep 5
+  done
+  sc env >/dev/null 2>&1 || { echo "❌ '$app' not found after 5 minutes."; exit 1; }
+fi
+
+echo "✅ https://${host}"
+
+echo
+echo "🔑 ProConnect: add these URLs to the 'CSPLab Demo' app at"
+echo "   https://partenaires.proconnect.gouv.fr/apps"
+echo "   - Callback URL: https://${host}/utilisateur/proconnect/callback"
+echo "   - Logout URL:   https://${host}/utilisateur/connexion"
+echo
+
+# ---------------------------------
+# status
+# ---------------------------------
+deployment_status() {
+  sc deployments 2>/dev/null |
+    awk -F'│' '/│/ && $2 !~ /ID/ { gsub(/[[:space:]]/, "", $7); print $7; exit }'
+}
+
+echo "⏳ Waiting for a successful deployment (up to 20 minutes)…"
+status=""
+for _ in $(seq 1 120); do
+  status="$(deployment_status)"
+  case "$status" in
+    success) break ;;
+    crashed* | *error | aborted | timeout | interrupted)
+      echo "❌ Latest deployment: $status."
+      echo "   The first deploy started before the addons and variables existed:"
+      echo "   redeploy it from the Scalingo dashboard (Deploy tab), then rerun"
+      echo "   this script (idempotent) to seed."
+      exit 1
+      ;;
+  esac
+  sleep 10
+done
+if [[ "$status" != "success" ]]; then
+  echo "❌ No successful deployment after 20 minutes (status: ${status:-unknown})."
+  echo "   Redeploy from the dashboard, then rerun this script to seed."
+  exit 1
+fi
