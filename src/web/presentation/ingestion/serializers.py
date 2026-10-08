@@ -639,7 +639,12 @@ class ListMetiersFiltersSerializer(serializers.Serializer):
 
 
 class IdentityInputSerializer(serializers.Serializer):
-    reference = serializers.CharField()
+    reference = serializers.CharField(
+        help_text="Référence de l'offre, unique par source. La valeur `auto` "
+        "demande à CSPLab de générer une référence au format CSP-AAAA-NNNNNN : elle "
+        "crée toujours une nouvelle offre. Une référence au format CSP-AAAA-NNNNNN "
+        "n'est acceptée que si elle désigne une offre existante de la source."
+    )
     versant = serializers.ChoiceField(choices=[v.value for v in Verse])
 
 
@@ -819,6 +824,7 @@ class UpsertOffersRequestSerializer(serializers.Serializer):
 class UpsertOffersResponseSerializer(serializers.Serializer):
     created = serializers.IntegerField()
     updated = serializers.IntegerField()
+    offres = serializers.ListField(child=serializers.DictField())
     errors = serializers.ListField(child=serializers.DictField())
 
 

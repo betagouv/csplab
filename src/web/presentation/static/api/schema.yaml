@@ -3249,6 +3249,18 @@ paths:
         - Les offres sont identifiées par leur champs `identification.reference` et `identification.source`.
         - Une offre existante est mise à jour, une offre inconnue est créée.
 
+        # Référence générée automatiquement
+
+        Si vous n'avez pas de référence pour une offre, envoyez `"auto"` dans `identification.reference`. CSPLab génère alors une référence au format `CSP-AAAA-NNNNNN` (année, puis numéro séquentiel), par exemple `CSP-2026-000042`. La séquence est commune à toutes les sources et repart de 1 chaque année.
+
+        La réponse liste dans `offres` chaque offre créée ou mise à jour, avec son `index` dans le payload, sa `reference` finale et son `statut` (`created` ou `updated`). L'`index` permet de retrouver la référence générée pour chaque offre envoyée en `"auto"`.
+
+        Chaque offre rejetée apparaît dans `errors` avec son `index` dans le payload.
+
+        **Important :** `"auto"` crée toujours une nouvelle offre. Pour mettre à jour l'offre ensuite, conservez la référence renvoyée et envoyez-la à la place de `"auto"`. Sinon, chaque envoi crée un doublon.
+
+        Le format `CSP-AAAA-NNNNNN` est réservé aux références générées par CSPLab. Une référence à ce format n'est acceptée que pour mettre à jour une offre existante de la source. Sinon, l'offre est rejetée dans `errors`.
+
         # Permissions
 
         L'utilisation de cette API nécessite un token d'autorisation spécifique à chaque utilisateur.
@@ -3276,6 +3288,31 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/UpsertOffersResponse'
+              examples:
+                Success:
+                  value:
+                    created: 1
+                    updated: 1
+                    offres:
+                    - index: 0
+                      reference: REF-001
+                      statut: updated
+                    - index: 2
+                      reference: CSP-2026-000042
+                      statut: created
+                    errors:
+                    - index: 1
+                      offer:
+                        reference: auto
+                        versant: FPE
+                      error:
+                        titre:
+                        - Ce champ ne peut être nul.
+                  summary: Offres créées ou mises à jour
+                  description: 'Trois offres envoyées : la première avec une référence
+                    existante, la deuxième rejetée, la troisième avec `"auto"`. La
+                    référence générée pour la troisième se retrouve grâce à son `index`
+                    (2).'
           description: ''
           headers:
             X-RateLimit-Limit:
@@ -4725,6 +4762,10 @@ components:
       properties:
         reference:
           type: string
+          description: 'Référence de l''offre, unique par source. La valeur `auto`
+            demande à CSPLab de générer une référence au format CSP-AAAA-NNNNNN :
+            elle crée toujours une nouvelle offre. Une référence au format CSP-AAAA-NNNNNN
+            n''est acceptée que si elle désigne une offre existante de la source.'
         versant:
           $ref: '#/components/schemas/VersantEnum'
       required:
@@ -5478,6 +5519,14 @@ components:
         * `94` - 94
         * `DOM` - DOM
         * `TOM` - TOM
+    StatutEnum:
+      enum:
+      - created
+      - updated
+      type: string
+      description: |-
+        * `created` - created
+        * `updated` - updated
     SupprimerOrganismesRequest:
       type: object
       properties:
@@ -5665,6 +5714,9 @@ components:
     UpsertOfferError:
       type: object
       properties:
+        index:
+          type: integer
+          description: Position de l'offre dans `offres` du payload (à partir de 0)
         offer:
           allOf:
           - $ref: '#/components/schemas/IdentityInput'
@@ -5675,7 +5727,29 @@ components:
           description: Détail de l'erreur de validation
       required:
       - error
+      - index
       - offer
+    UpsertOfferStatus:
+      type: object
+      properties:
+        index:
+          type: integer
+          description: Position de l'offre dans `offres` du payload (à partir de 0)
+        reference:
+          type: string
+          description: Référence de l'offre, fournie ou générée
+        statut:
+          allOf:
+          - $ref: '#/components/schemas/StatutEnum'
+          description: |-
+            `created` si l'offre a été créée, `updated` si elle a été mise à jour
+
+            * `created` - created
+            * `updated` - updated
+      required:
+      - index
+      - reference
+      - statut
     UpsertOffersForbidden:
       type: object
       properties:
@@ -5709,6 +5783,12 @@ components:
         updated:
           type: integer
           description: Nombre d'offres mises à jour
+        offres:
+          type: array
+          items:
+            $ref: '#/components/schemas/UpsertOfferStatus'
+          description: Offres créées ou mises à jour, avec leur référence finale (générée
+            si `identification.reference` vaut `auto`)
         errors:
           type: array
           items:
@@ -5717,6 +5797,7 @@ components:
       required:
       - created
       - errors
+      - offres
       - updated
     UpsertOrganismesRequest:
       type: object
@@ -5865,6 +5946,22 @@ tags:
     champs et de leurs règles se trouve dans le [guide de l'API](/pages/guide_api).
 
     Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/).
+
+    ## 2026-10-07
+
+    ### Ajouté
+
+    - `POST /api/v1/offres/creer_modifier` : `identification.reference` accepte la valeur
+      `"auto"`. CSPLab génère alors une référence au format `CSP-AAAA-NNNNNN` (par
+      exemple `CSP-2026-000042`), unique sur toute la plateforme. `"auto"` crée toujours une nouvelle
+      offre : pour la mettre à jour ensuite, renvoyez la référence générée. Une
+      référence au format `CSP-AAAA-NNNNNN` qui ne désigne pas une offre existante de
+      la source est rejetée dans `errors`.
+    - `POST /api/v1/offres/creer_modifier` : la réponse contient un nouveau champ
+      `offres`, qui donne pour chaque offre créée ou mise à jour son `index` dans le
+      payload, sa `reference` finale et son `statut` (`created` ou `updated`).
+    - `POST /api/v1/offres/creer_modifier` : chaque entrée de `errors` contient un
+      nouveau champ `index`, la position de l'offre rejetée dans le payload.
 
     ## 2026-10-06
 

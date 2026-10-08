@@ -20,6 +20,9 @@ from application.ingestion.interfaces.get_offers_by_source_input import (
 )
 from application.ingestion.interfaces.list_offers_input import GetFilteredOffersInput
 from application.ingestion.interfaces.upsert_offers_input import UpsertOffersInput
+from application.ingestion.services.offer_references import (
+    unknown_generated_references,
+)
 from domain.ingestion.exceptions.source_authorization_error import (
     SourceAuthorizationError,
 )
@@ -36,6 +39,7 @@ from presentation.ingestion.openapi import (
     LIST_OFFERS_EXAMPLES,
     OFFERS_BY_SOURCE_DESCRIPTION,
     UPSERT_OFFERS_DESCRIPTION,
+    UPSERT_OFFERS_EXAMPLES,
 )
 from presentation.ingestion.serializers import (
     ArchiveOfferRequestSerializer,
@@ -46,6 +50,12 @@ from presentation.ingestion.serializers import (
     OfferDetailResponseSerializer,
     OffersInputSerializer,
     UpsertOffersRequestSerializer,
+)
+
+UNKNOWN_GENERATED_REFERENCE = (
+    "Aucune offre de cette source ne porte cette référence. Les références au "
+    "format CSP-AAAA-NNNNNN sont générées par CSPLab : utilisez `auto` pour créer "
+    "une offre."
 )
 
 
@@ -231,6 +241,7 @@ class ArchiveOffersView(PublicApiMixin, APIView):
 @extend_schema(
     summary="Ajouter/mettre à jour une offre d'emploi",
     description=UPSERT_OFFERS_DESCRIPTION,
+    examples=UPSERT_OFFERS_EXAMPLES,
     tags=["offres"],
     request=inline_serializer(
         name="UpsertOffersRequest",
@@ -254,11 +265,38 @@ class ArchiveOffersView(PublicApiMixin, APIView):
                 "updated": serializers.IntegerField(
                     help_text="Nombre d'offres mises à jour"
                 ),
+                "offres": serializers.ListField(
+                    help_text=(
+                        "Offres créées ou mises à jour, avec leur référence finale "
+                        "(générée si `identification.reference` vaut `auto`)"
+                    ),
+                    child=inline_serializer(
+                        name="UpsertOfferStatus",
+                        fields={
+                            "index": serializers.IntegerField(
+                                help_text="Position de l'offre dans `offres` du "
+                                "payload (à partir de 0)"
+                            ),
+                            "reference": serializers.CharField(
+                                help_text="Référence de l'offre, fournie ou générée"
+                            ),
+                            "statut": serializers.ChoiceField(
+                                choices=["created", "updated"],
+                                help_text="`created` si l'offre a été créée, "
+                                "`updated` si elle a été mise à jour",
+                            ),
+                        },
+                    ),
+                ),
                 "errors": serializers.ListField(
                     help_text="Offres rejetées avec le détail de l'erreur",
                     child=inline_serializer(
                         name="UpsertOfferError",
                         fields={
+                            "index": serializers.IntegerField(
+                                help_text="Position de l'offre dans `offres` du "
+                                "payload (à partir de 0)"
+                            ),
                             "offer": IdentityInputSerializer(
                                 help_text="Identification de l'offre rejetée"
                             ),
@@ -297,10 +335,11 @@ class OffersUpsertView(PublicApiMixin, APIView):
 
         # iterate over offers, to handle only valid ones
         valid_offers = []
+        valid_indexes = []
         errors = []
         offer_mapper = OfferInputMapper()
 
-        for _, offer_data in enumerate(request.data["offres"]):
+        for index, offer_data in enumerate(request.data["offres"]):
             serializer = OffersInputSerializer(
                 data=offer_data,
                 context={"metiers_repository": container.metiers_repository()},
@@ -308,6 +347,7 @@ class OffersUpsertView(PublicApiMixin, APIView):
             if not serializer.is_valid():
                 errors.append(
                     {
+                        "index": index,
                         "offer": offer_data.get("identification", {}),
                         "error": serializer.errors,
                     }
@@ -317,13 +357,34 @@ class OffersUpsertView(PublicApiMixin, APIView):
                 valid_offers.append(
                     offer_mapper.to_domain(serializer.validated_data, source_id)
                 )
+                valid_indexes.append(index)
             except Exception as e:
                 errors.append(
                     {
+                        "index": index,
                         "offer": offer_data.get("identification", {}),
                         "error": str(e),
                     }
                 )
+
+        unknown = unknown_generated_references(
+            source_id, [offer.reference for offer in valid_offers]
+        )
+        if unknown:
+            kept = []
+            for index, offer in zip(valid_indexes, valid_offers, strict=True):
+                if offer.reference in unknown:
+                    errors.append(
+                        {
+                            "index": index,
+                            "offer": request.data["offres"][index]["identification"],
+                            "error": {"reference": [UNKNOWN_GENERATED_REFERENCE]},
+                        }
+                    )
+                else:
+                    kept.append((index, offer))
+            valid_indexes = [index for index, _ in kept]
+            valid_offers = [offer for _, offer in kept]
 
         utilisateur_username = (
             request.user.username if isinstance(request.user, UserModel) else None
@@ -337,8 +398,16 @@ class OffersUpsertView(PublicApiMixin, APIView):
                     utilisateur_username=utilisateur_username,
                 )
             )
-            result["errors"].extend(errors)
-            return Response(result, status=status.HTTP_201_CREATED)
+            result["errors"].extend(sorted(errors, key=lambda error: error["index"]))
+            offres = [
+                {"index": index, **offer_status}
+                for index, offer_status in zip(
+                    valid_indexes, result["offres"], strict=True
+                )
+            ]
+            return Response(
+                {**result, "offres": offres}, status=status.HTTP_201_CREATED
+            )
         except SourceAuthorizationError as e:
             source_ids = sorted(str(sid) for sid in e.source_ids)
             return Response(

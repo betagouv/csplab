@@ -112,7 +112,7 @@ class TestUpsertBatch:
     def test_upsert_batch_with_empty_offers_list(self, db, repository):
         result = repository.upsert_batch([])
 
-        assert result == {"created": 0, "updated": 0, "errors": []}
+        assert result == {"created": 0, "updated": 0, "errors": [], "offres": []}
 
     def test_multiple_offers_success(self, db, repository):
         offers = OfferDjangoFactory.create_batch(2, source=SourceDjangoFactory())
@@ -121,7 +121,16 @@ class TestUpsertBatch:
 
         result = repository.upsert_batch(entities)
 
-        assert result == {"created": 1, "updated": 2, "errors": []}
+        assert result == {
+            "created": 1,
+            "updated": 2,
+            "errors": [],
+            "offres": [
+                {"reference": entities[0].reference, "statut": "updated"},
+                {"reference": entities[1].reference, "statut": "updated"},
+                {"reference": entities[2].reference, "statut": "created"},
+            ],
+        }
 
         saved_by_reference = {
             o.reference: o
@@ -182,7 +191,12 @@ class TestUpsertBatch:
             setattr(entity, field, value)
 
         result = repository.upsert_batch([entity])
-        assert result == {"created": 0, "updated": 1, "errors": []}
+        assert result == {
+            "created": 0,
+            "updated": 1,
+            "errors": [],
+            "offres": [{"reference": entity.reference, "statut": "updated"}],
+        }
 
         saved_offer = OfferModel.objects.get()
         assert _mapper.to_domain(saved_offer) == entity
@@ -202,7 +216,12 @@ class TestUpsertBatch:
 
         result = repository.upsert_batch([entity])
 
-        assert result == {"created": 1, "updated": 0, "errors": []}
+        assert result == {
+            "created": 1,
+            "updated": 0,
+            "errors": [],
+            "offres": [{"reference": entity.reference, "statut": "created"}],
+        }
         saved = OfferModel.objects.get(reference=entity.reference)
         assert saved.conditions["debut_contrat"] == "2019-08-24T14:15:22Z"
         assert saved.conditions["fin_contrat"] == "2019-08-24T14:15:22Z"
@@ -215,7 +234,12 @@ class TestUpsertBatch:
         entity.archived_at = None
 
         result = repository.upsert_batch([entity])
-        assert result == {"created": 0, "updated": 1, "errors": []}
+        assert result == {
+            "created": 0,
+            "updated": 1,
+            "errors": [],
+            "offres": [{"reference": entity.reference, "statut": "updated"}],
+        }
 
         archived_offer.refresh_from_db()
         assert archived_offer.archived_at is None
@@ -230,7 +254,12 @@ class TestUpsertBatch:
 
         result = repository.upsert_batch([entity])
 
-        assert result == {"created": 0, "updated": 1, "errors": []}
+        assert result == {
+            "created": 0,
+            "updated": 1,
+            "errors": [],
+            "offres": [{"reference": entity.reference, "statut": "updated"}],
+        }
         saved = OfferModel.objects.get()
         assert saved.id == existing.id
         assert saved.title == "new title"
@@ -244,7 +273,12 @@ class TestUpsertBatch:
 
         result = repository.upsert_batch([entity])
 
-        assert result == {"created": 1, "updated": 0, "errors": []}
+        assert result == {
+            "created": 1,
+            "updated": 0,
+            "errors": [],
+            "offres": [{"reference": entity.reference, "statut": "created"}],
+        }
         assert set(
             OfferModel.objects.filter(reference="REF001").values_list(
                 "source_id", flat=True

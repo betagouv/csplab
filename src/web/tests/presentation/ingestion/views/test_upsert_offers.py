@@ -1,6 +1,8 @@
+import re
 from datetime import datetime
 from unittest.mock import MagicMock
 from uuid import UUID
+from zoneinfo import ZoneInfo
 
 import pytest
 from django.urls import reverse
@@ -37,7 +39,11 @@ from infrastructure.factories.ingestion.source_django_factory import (
 from infrastructure.factories.referentiel.metier_django_factory import (
     MetierDjangoFactory,
 )
+from infrastructure.factories.referentiel.offer_django_factory import (
+    OfferDjangoFactory,
+)
 from infrastructure.mappers.offer_mapper import OfferMapper
+from presentation.ingestion.views.offers import UNKNOWN_GENERATED_REFERENCE
 
 fake = Faker("fr_FR")
 
@@ -256,7 +262,7 @@ def parse_offer_from_payload(payload: dict, source_id: UUID) -> Offer:
 @pytest.fixture
 def use_case():
     mock = MagicMock()
-    mock.execute.return_value = {"created": 0, "updated": 0, "errors": []}
+    mock.execute.return_value = {"created": 0, "updated": 0, "errors": [], "offres": []}
     return mock
 
 
@@ -284,7 +290,12 @@ def test_unauthenticated_access(api_client):
 
 
 def test_api_key_authentication(api_key_client, use_case):
-    use_case.execute.return_value = {"created": 1, "updated": 0, "errors": []}
+    use_case.execute.return_value = {
+        "created": 1,
+        "updated": 0,
+        "errors": [],
+        "offres": [{"reference": "REF-001", "statut": "created"}],
+    }
     response = api_key_client.post(
         URL,
         data={"source_id": SOURCE_UUID, "offres": [MINIMAL_VALID_OFFER]},
@@ -334,6 +345,10 @@ def test_valid_payload_returns_201_and_valid_offers_to_usecase(
         "created": len(offers_payload),
         "updated": 0,
         "errors": [],
+        "offres": [
+            {"reference": p["identification"]["reference"], "statut": "created"}
+            for p in offers_payload
+        ],
     }
     response = authenticated_client_with_source.post(
         URL,
@@ -358,6 +373,7 @@ def test_mixed_valid_invalid_offers_in_payload(
         "created": 1,
         "updated": 0,
         "errors": ["db error on offer xxx"],
+        "offres": [{"reference": "REF-001", "statut": "created"}],
     }
     response = authenticated_client_with_source.post(
         URL,
@@ -365,14 +381,19 @@ def test_mixed_valid_invalid_offers_in_payload(
         content_type="application/json",
     )
     assert response.status_code == status.HTTP_201_CREATED
+    assert response.json()["offres"] == [
+        {"index": 0, "reference": "REF-001", "statut": "created"}
+    ]
     errors = response.json()["errors"]
     assert errors == [
         "db error on offer xxx",
         {
+            "index": 1,
             "offer": {"reference": "REF-004", "versant": "FPT"},
             "error": {"titre": ["Ce champ ne peut être nul."]},
         },
         {
+            "index": 2,
             "offer": {"reference": "REF-005", "versant": "FPT"},
             "error": {"nature_offre": ["«\xa0ABC\xa0» n'est pas un choix valide."]},
         },
@@ -384,7 +405,12 @@ def test_unknown_metier_returns_error_in_payload(
 ):
     mock_offers_container.metiers_repository.return_value.get_filtered.return_value = []
 
-    use_case.execute.return_value = {"created": 0, "updated": 0, "errors": []}
+    use_case.execute.return_value = {
+        "created": 0,
+        "updated": 0,
+        "errors": [],
+        "offres": [],
+    }
     response = authenticated_client_with_source.post(
         URL,
         data={"source_id": SOURCE_UUID, "offres": [MINIMAL_VALID_OFFER]},
@@ -395,6 +421,7 @@ def test_unknown_metier_returns_error_in_payload(
     errors = response.json()["errors"]
     assert errors == [
         {
+            "index": 0,
             "offer": {"reference": "REF-001", "versant": "FPT"},
             "error": {
                 "profession": {
@@ -431,7 +458,12 @@ class TestOffersUpsertViewDbVerified:
         )
 
         assert response.status_code == status.HTTP_201_CREATED
-        assert response.json() == {"created": 1, "updated": 0, "errors": []}
+        assert response.json() == {
+            "created": 1,
+            "updated": 0,
+            "errors": [],
+            "offres": [{"index": 0, "reference": "REF-001", "statut": "created"}],
+        }
 
         offer_model = OfferModel.objects.get(
             reference="REF-001", source_id=UUID(SOURCE_UUID)
@@ -442,3 +474,141 @@ class TestOffersUpsertViewDbVerified:
         )
         for attr in COMPARABLE_OFFER_ATTRS:
             assert getattr(persisted, attr) == getattr(expected, attr)
+
+    def test_auto_references_are_generated_and_returned_with_their_index(
+        self, authenticated_client_with_source
+    ):
+        MetierDjangoFactory(offer_family_code="ERNUM001")
+        auto_offer = PayloadOfferFactory.create(
+            identification={"reference": "auto", "versant": "FPT"}
+        )
+
+        response = authenticated_client_with_source.post(
+            URL,
+            data={
+                "source_id": SOURCE_UUID,
+                "offres": [
+                    auto_offer,
+                    INVALID_PAYLOAD_OFFER,
+                    MINIMAL_VALID_OFFER,
+                    auto_offer,
+                ],
+            },
+            content_type="application/json",
+        )
+
+        assert response.status_code == status.HTTP_201_CREATED
+        offres = response.json()["offres"]
+        assert [o["index"] for o in offres] == [0, 2, 3]
+        assert all(o["statut"] == "created" for o in offres)
+        assert offres[1]["reference"] == "REF-001"
+        generated = [offres[0]["reference"], offres[2]["reference"]]
+        assert len(set(generated)) == len(generated)
+        for reference in generated:
+            assert re.fullmatch(r"CSP-\d{4}-\d{6}", reference)
+            assert OfferModel.objects.filter(
+                reference=reference, source_id=UUID(SOURCE_UUID)
+            ).exists()
+        assert not OfferModel.objects.filter(reference="auto").exists()
+
+    def test_generated_reference_can_be_used_to_update_the_offer(
+        self, authenticated_client_with_source
+    ):
+        MetierDjangoFactory(offer_family_code="ERNUM001")
+        auto_offer = PayloadOfferFactory.create(
+            identification={"reference": "auto", "versant": "FPT"}
+        )
+        response = authenticated_client_with_source.post(
+            URL,
+            data={"source_id": SOURCE_UUID, "offres": [auto_offer]},
+            content_type="application/json",
+        )
+        reference = response.json()["offres"][0]["reference"]
+
+        update = {
+            **auto_offer,
+            "identification": {"reference": reference, "versant": "FPT"},
+            "titre": "Nouveau titre",
+        }
+        response = authenticated_client_with_source.post(
+            URL,
+            data={"source_id": SOURCE_UUID, "offres": [update]},
+            content_type="application/json",
+        )
+
+        assert response.json()["offres"] == [
+            {"index": 0, "reference": reference, "statut": "updated"}
+        ]
+        offer = OfferModel.objects.get(source_id=UUID(SOURCE_UUID))
+        assert offer.reference == reference
+        assert offer.title == "Nouveau titre"
+
+    def test_sources_share_the_reference_sequence(
+        self, authenticated_client_with_source, test_user
+    ):
+        MetierDjangoFactory(offer_family_code="ERNUM001")
+        other_source = SourceDjangoFactory()
+        test_user.sources.add(other_source)
+        auto_offer = PayloadOfferFactory.create(
+            identification={"reference": "auto", "versant": "FPT"}
+        )
+
+        references = []
+        for source_id in [SOURCE_UUID, str(other_source.source_id)]:
+            response = authenticated_client_with_source.post(
+                URL,
+                data={"source_id": source_id, "offres": [auto_offer]},
+                content_type="application/json",
+            )
+            references.append(response.json()["offres"][0]["reference"])
+
+        assert references[0] != references[1]
+
+    def test_unknown_generated_reference_is_rejected(
+        self, authenticated_client_with_source
+    ):
+        MetierDjangoFactory(offer_family_code="ERNUM001")
+        explicit_reference = f"CSP-{datetime.now(ZoneInfo('Europe/Paris')).year}-000001"
+        auto_offer = PayloadOfferFactory.create(
+            identification={"reference": "auto", "versant": "FPT"}
+        )
+        explicit_offer = PayloadOfferFactory.create(
+            identification={"reference": explicit_reference, "versant": "FPT"}
+        )
+
+        response = authenticated_client_with_source.post(
+            URL,
+            data={"source_id": SOURCE_UUID, "offres": [explicit_offer, auto_offer]},
+            content_type="application/json",
+        )
+
+        assert response.status_code == status.HTTP_201_CREATED
+        body = response.json()
+        assert [o["index"] for o in body["offres"]] == [1]
+        assert OfferModel.objects.filter(source_id=UUID(SOURCE_UUID)).count() == 1
+        assert body["errors"] == [
+            {
+                "index": 0,
+                "offer": {"reference": explicit_reference, "versant": "FPT"},
+                "error": {"reference": [UNKNOWN_GENERATED_REFERENCE]},
+            }
+        ]
+
+    def test_generated_reference_of_another_source_is_rejected(
+        self, authenticated_client_with_source
+    ):
+        MetierDjangoFactory(offer_family_code="ERNUM001")
+        reference = OfferDjangoFactory(reference="CSP-2026-000042").reference
+        offer = PayloadOfferFactory.create(
+            identification={"reference": reference, "versant": "FPT"}
+        )
+
+        response = authenticated_client_with_source.post(
+            URL,
+            data={"source_id": SOURCE_UUID, "offres": [offer]},
+            content_type="application/json",
+        )
+
+        assert response.json()["offres"] == []
+        assert [e["index"] for e in response.json()["errors"]] == [0]
+        assert not OfferModel.objects.filter(source_id=UUID(SOURCE_UUID)).exists()

@@ -447,6 +447,29 @@ via un payload JSON.
 `identification.source`.
 - Une offre existante est mise à jour, une offre inconnue est créée.
 
+# Référence générée automatiquement
+
+Si vous n'avez pas de référence pour une offre, envoyez `"auto"` dans \
+`identification.reference`. CSPLab génère alors une référence au format \
+`CSP-AAAA-NNNNNN` (année, puis numéro séquentiel), par exemple \
+`CSP-2026-000042`. La séquence est commune à toutes les sources et repart de 1 \
+chaque année.
+
+La réponse liste dans `offres` chaque offre créée ou mise à jour, avec son `index` \
+dans le payload, sa `reference` finale et son `statut` (`created` ou `updated`). \
+L'`index` permet de retrouver la référence générée pour chaque offre envoyée en \
+`"auto"`.
+
+Chaque offre rejetée apparaît dans `errors` avec son `index` dans le payload.
+
+**Important :** `"auto"` crée toujours une nouvelle offre. Pour mettre à jour \
+l'offre ensuite, conservez la référence renvoyée et envoyez-la à la place de \
+`"auto"`. Sinon, chaque envoi crée un doublon.
+
+Le format `CSP-AAAA-NNNNNN` est réservé aux références générées par CSPLab. Une \
+référence à ce format n'est acceptée que pour mettre à jour une offre existante \
+de la source. Sinon, l'offre est rejetée dans `errors`.
+
 # Permissions
 
 L'utilisation de cette API nécessite un token d'autorisation spécifique à chaque \
@@ -458,3 +481,32 @@ L'interrogation de cette API est limitée à 120 appels par minute et par utilis
 
 Le nombre d'offres transmises par appel à l'API est limité à 100.
 """
+
+UPSERT_OFFERS_EXAMPLES = [
+    OpenApiExample(
+        "Success",
+        summary="Offres créées ou mises à jour",
+        description=(
+            "Trois offres envoyées : la première avec une référence existante, la "
+            'deuxième rejetée, la troisième avec `"auto"`. La référence générée '
+            "pour la troisième se retrouve grâce à son `index` (2)."
+        ),
+        value={
+            "created": 1,
+            "updated": 1,
+            "offres": [
+                {"index": 0, "reference": "REF-001", "statut": "updated"},
+                {"index": 2, "reference": "CSP-2026-000042", "statut": "created"},
+            ],
+            "errors": [
+                {
+                    "index": 1,
+                    "offer": {"reference": "auto", "versant": "FPE"},
+                    "error": {"titre": ["Ce champ ne peut être nul."]},
+                }
+            ],
+        },
+        response_only=True,
+        status_codes=["201"],
+    ),
+]
