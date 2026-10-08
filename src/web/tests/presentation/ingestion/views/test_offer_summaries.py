@@ -200,6 +200,7 @@ class TestOfferSummariesViewDbVerified:
             publication_date=datetime(2024, 3, 1, 9, 0, tzinfo=UTC),
             beginning_date=datetime(2024, 6, 1, tzinfo=UTC),
             conditions={"duree_contrat": "36 mois"},
+            job_vacancy="OUI",
         )
 
         response = jwt_client.get(URL)
@@ -282,7 +283,16 @@ class TestOfferSummariesViewDbVerified:
                     ],
                     "latitude": 48.8566,
                     "longitude": 2.3522,
-                    "professionalCategory": None,
+                    "professionalCategory": {
+                        "code": None,
+                        "clientCode": "STATUT01",
+                        "label": "Poste vacant",
+                        "active": True,
+                        "parentCode": None,
+                        "type": "professionalCategory",
+                        "parentType": "",
+                        "hasChildren": False,
+                    },
                     "_links": [],
                     "offerUrl": "https://exemple.gouv.fr/offres/e2e-1",
                     "_format": None,

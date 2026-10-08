@@ -38,6 +38,41 @@ def test_isoformat(value, expected):
     assert OfferSummaryOutputMapper._isoformat(value) == expected
 
 
+@pytest.mark.parametrize(
+    "job_vacancy,expected_client_code,expected_label",
+    [
+        ("OUI", "STATUT01", "Poste vacant"),
+        ("NON", "STATUT02", "Poste susceptible d'être vacant"),
+    ],
+)
+def test_summary_output_mapper_maps_job_vacancy_to_professional_category(
+    job_vacancy, expected_client_code, expected_label
+):
+    offer = replace(OfferFactory.create_entity(), job_vacancy=job_vacancy)
+
+    result = OfferSummaryOutputMapper().to_dict(offer)
+
+    assert result["professionalCategory"] == {
+        "code": None,
+        "clientCode": expected_client_code,
+        "label": expected_label,
+        "active": True,
+        "parentCode": None,
+        "type": "professionalCategory",
+        "parentType": "",
+        "hasChildren": False,
+    }
+
+
+@pytest.mark.parametrize("job_vacancy", [None, "", "1"])
+def test_summary_output_mapper_maps_unknown_job_vacancy_to_null(job_vacancy):
+    offer = replace(OfferFactory.create_entity(), job_vacancy=job_vacancy)
+
+    result = OfferSummaryOutputMapper().to_dict(offer)
+
+    assert result["professionalCategory"] is None
+
+
 def test_offer_input_mapper_maps_profession_referentiel_to_job_family_referential():
     payload = PayloadOfferFactory.create(
         identification={"reference": "REF-001", "versant": "FPT"},

@@ -436,7 +436,7 @@ class FakeTsOfferSummarySerializer(serializers.Serializer):
     department = FakeTsCodedObjectSerializer(many=True)
     latitude = serializers.FloatField(allow_null=True)
     longitude = serializers.FloatField(allow_null=True)
-    professionalCategory = serializers.CharField(allow_null=True)
+    professionalCategory = FakeTsCodedObjectSerializer(allow_null=True)
     _links = serializers.ListField(child=serializers.DictField(), label="_links")
     offerUrl = serializers.CharField(allow_null=True)
     _format = serializers.CharField(allow_null=True, label="_format")

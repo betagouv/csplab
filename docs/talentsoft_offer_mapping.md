@@ -18,7 +18,7 @@ Notation : `a.b` désigne un objet imbriqué, `a[]` une liste, `a[0]` son premie
 | `organisationName` | `organisation.nom` | |
 | `organisation.entityCode` | `organisation.talentsoft_organisme_entity_code` | Lien vers l'organisme Talentsoft, vide s'il est inconnu. |
 | `contractType.clientCode` | `nature_offre` | Traduit par le transcodeur de la source. |
-| `professionalCategory.clientCode` | `vacance_poste` | `STATUT01` → `OUI` (poste vacant), `STATUT02` → `NON` (poste susceptible d'être vacant), sinon vide. Malgré son nom, c'est le « Statut du poste » affiché par l'ancien site WordPress. |
+| `professionalCategory.clientCode` | `vacance_poste` | `STATUT01` → `OUI` (poste vacant), `STATUT02` → `NON` (poste susceptible d'être vacant), sinon vide. Malgré son nom, c'est le « Statut du poste » affiché par l'ancien site WordPress. API fake-ts : `OUI` → `STATUT01`, `NON` → `STATUT02`, sinon `null`. |
 | `offerFamilyCategory.clientCode` | `profession.metier` | `profession.domaine` correspond à ses 3 premiers caractères, après retrait d'un `ER` initial. |
 | `description1` | `description.mission` | |
 | `description2` | `description.profil` | |

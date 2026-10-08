@@ -17,10 +17,19 @@ Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/).
   champ `job_vacancy_date`, valeur de `publication.debut_vacance_poste` (date ISO
   8601), à `null` si l'information n'a pas été transmise.
 
+### Modifié
+
+- `GET /api/fake-ts/offersummaries` et `GET /api/fake-ts/offers/getoffer` :
+  `professionalCategory` n'est plus toujours `null`. C'est un objet codé qui reprend
+  `vacance_poste` : `clientCode` vaut `STATUT01` (poste vacant) ou `STATUT02` (poste
+  susceptible d'être vacant). Il reste à `null` si la vacance de poste n'est pas
+  renseignée.
+
 ### Compatibilité
 
 Ces changements sont rétrocompatibles : un appel valide avant ces changements reste
-valide, et le champ ajouté dans les réponses n'en retire aucun.
+valide, et le champ ajouté dans les réponses n'en retire aucun. `professionalCategory`
+passe d'une chaîne toujours `null` à un objet codé, comme dans l'API Talentsoft.
 
 ## 2026-10-07
 

@@ -12,6 +12,7 @@ from referentiel.value_objects.country import Country
 from referentiel.value_objects.department import Department
 from referentiel.value_objects.limit_date import LimitDate
 from referentiel.value_objects.localisation import Localisation
+from referentiel.value_objects.offer_conditions import JobVacancy
 from referentiel.value_objects.offer_criteria import OfferCriteria, OfferLanguage
 from referentiel.value_objects.offer_nature import OfferNature
 from referentiel.value_objects.region import Region
@@ -118,6 +119,11 @@ class OrganismeInputMapper(IToDomainMapper[dict, OrganismeUpsertData]):
 
 
 class OfferSummaryOutputMapper:
+    _PROFESSIONAL_CATEGORY_CODES: dict[JobVacancy, str] = {
+        JobVacancy.OUI: "STATUT01",
+        JobVacancy.NON: "STATUT02",
+    }
+
     def to_dict(self, offer: Offer) -> dict:
         return {
             "reference": offer.reference,
@@ -177,7 +183,7 @@ class OfferSummaryOutputMapper:
             else [],
             "latitude": offer.localisation.latitude if offer.localisation else None,
             "longitude": offer.localisation.longitude if offer.localisation else None,
-            "professionalCategory": None,
+            "professionalCategory": self._professional_category(offer.job_vacancy),
             "_links": [],
             "offerUrl": str(offer.offer_url) if offer.offer_url else None,
             "_format": None,
@@ -192,6 +198,17 @@ class OfferSummaryOutputMapper:
             else None,
             "locations": [],
         }
+
+    def _professional_category(self, job_vacancy: Optional[str]) -> Optional[dict]:
+        if job_vacancy not in JobVacancy.__members__:
+            return None
+
+        vacancy = JobVacancy[job_vacancy]
+        return self._coded_object(
+            self._PROFESSIONAL_CATEGORY_CODES[vacancy],
+            vacancy.value,
+            "professionalCategory",
+        )
 
     @staticmethod
     def _isoformat(value: Optional[datetime]) -> Optional[str]:
