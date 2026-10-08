@@ -26,19 +26,19 @@ describe('navigationFor', () => {
   it('gives a membre only the recrutements of their organisme', () => {
     const items = navigationFor(MEMBRE)
 
-    expect(items.map(item => item.label)).toEqual(['Recrutements'])
+    expect(items.map(item => item.label)).toEqual(['Recrutements', 'Aide'])
     expect(items[0]?.params).toEqual({ organismeUuid: ORGANISME_UUID })
   })
 
   it('adds the organisme settings for a responsable', () => {
     const items = navigationFor(RESPONSABLE)
 
-    expect(items.map(item => item.label)).toEqual(['Recrutements', 'Paramètres de l\'organisme'])
+    expect(items.map(item => item.label)).toEqual(['Recrutements', 'Paramètres de l\'organisme', 'Aide'])
     expect(items[1]?.params).toEqual({ organismeUuid: ORGANISME_UUID })
   })
 
   it('gives a staff user the organismes list', () => {
-    expect(navigationFor(STAFF).map(item => item.label)).toEqual(['Gestion des organismes'])
+    expect(navigationFor(STAFF).map(item => item.label)).toEqual(['Gestion des organismes', 'Aide'])
   })
 
   it('adds the organisme entries when a staff user browses an organisme', () => {
@@ -48,11 +48,12 @@ describe('navigationFor', () => {
       'Gestion des organismes',
       'Recrutements',
       'Paramètres de l\'organisme',
+      'Aide',
     ])
   })
 
-  it('gives nothing to an agent without any organisme', () => {
-    expect(navigationFor({ ...MEMBRE, organismeUuid: null })).toEqual([])
+  it('gives only the help page to an agent without any organisme', () => {
+    expect(navigationFor({ ...MEMBRE, organismeUuid: null }).map(item => item.label)).toEqual(['Aide'])
   })
 })
 
@@ -82,5 +83,9 @@ describe('nav highlighting against the real route table', () => {
 
     expect(activeLabelsOn('/organismes', staffItems)).toEqual(['Gestion des organismes'])
     expect(activeLabelsOn(`/organismes/${ORGANISME_UUID}`, staffItems)).toEqual([])
+  })
+
+  it('highlights only the help entry on the help page', () => {
+    expect(activeLabelsOn('/aide', items)).toEqual(['Aide'])
   })
 })
