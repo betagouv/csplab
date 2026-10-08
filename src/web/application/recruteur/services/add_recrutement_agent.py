@@ -32,11 +32,11 @@ def add_recrutement_agent(
     role: str,
     utilisateur: Utilisateur,
 ) -> RecrutementAgentModel:
-    # TODO : to refactor in ADR-009 style
     OrganismePermissionService().can_execute(
         action=OrganismeAction.ADD_RECRUTEMENT_AGENT,
         utilisateur=utilisateur,
         organisme_id=organisme_id,
+        recrutement_id=recrutement_id,
     )
 
     agent = get_profil_agent(agent_id)
