@@ -4,7 +4,7 @@ import logging
 from django.conf import settings
 from drf_spectacular.extensions import OpenApiAuthenticationExtension
 from rest_framework.authentication import BaseAuthentication
-from rest_framework.exceptions import AuthenticationFailed
+from rest_framework.exceptions import AuthenticationFailed, Throttled
 from rest_framework.throttling import SimpleRateThrottle, UserRateThrottle
 
 from config.logger_names import LoggerName
@@ -35,6 +35,30 @@ def _ip_is_allowed(ip: str | None, allowed_ranges: list[str]) -> bool:
         return False
 
 
+class ApiKeyRejectionRateThrottle(SimpleRateThrottle):
+    """
+    Counts rejected API key attempts per client IP. DRF authenticates before
+    running DEFAULT_THROTTLE_CLASSES, so a rejected key never reaches them:
+    without this, every rejection would write an audit row with no limit.
+    """
+
+    scope = "api_key_rejection"
+
+    def get_cache_key(self, request, view):
+        return self.cache_format % {
+            "scope": self.scope,
+            "ident": get_client_ip(request),
+        }
+
+
+def _reject(reason: str, message: str, request) -> AuthenticationFailed | Throttled:
+    throttle = ApiKeyRejectionRateThrottle()
+    if not throttle.allow_request(request, view=None):
+        return Throttled(wait=throttle.wait())
+    _log_rejection(reason, request)
+    return AuthenticationFailed(message)
+
+
 def _log_rejection(reason: str, request) -> None:
     # Never log the submitted key.
     ip_address = get_client_ip(request)
@@ -51,14 +75,12 @@ class ApiKeyAuthentication(BaseAuthentication):
             return None
         key = auth_header[len("Api-Key ") :]
         if key != settings.INGESTION_API_KEY:
-            _log_rejection("invalid key", request)
-            raise AuthenticationFailed("Invalid API key.")
+            raise _reject("invalid key", "Invalid API key.", request)
         allowed_ranges = settings.INGESTION_API_KEY_ALLOWED_IP_RANGES
         if allowed_ranges and not _ip_is_allowed(
             get_client_ip(request), allowed_ranges
         ):
-            _log_rejection("IP not allowed", request)
-            raise AuthenticationFailed("IP address not allowed.")
+            raise _reject("IP not allowed", "IP address not allowed.", request)
         return (_IngestionApiKeyUser(), None)
 
     def authenticate_header(self, request):

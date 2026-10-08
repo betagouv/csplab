@@ -4,13 +4,14 @@ from unittest.mock import patch
 import pytest
 from django.core.cache import cache
 from django.test import RequestFactory, override_settings
-from rest_framework.exceptions import AuthenticationFailed
+from rest_framework.exceptions import AuthenticationFailed, Throttled
 from rest_framework.test import APIRequestFactory
 
 from infrastructure.authentication.api_key_authentication import (
     ApiKeyAuthentication,
     ApiKeyRateThrottle,
     ApiKeyRateThrottleDaily,
+    ApiKeyRejectionRateThrottle,
     NonApiKeyUserRateThrottle,
     _IngestionApiKeyUser,
     _ip_is_allowed,
@@ -327,3 +328,60 @@ class TestApiKeyAuthenticationLog:
         ApiKeyAuthentication().authenticate(_request("good-key"))
 
         assert not logs.records
+
+
+REJECTION_LIMIT = 2
+
+
+@patch.object(
+    ApiKeyRejectionRateThrottle,
+    "THROTTLE_RATES",
+    {"api_key_rejection": f"{REJECTION_LIMIT}/minute"},
+)
+class TestApiKeyRejectionRateThrottle:
+    @pytest.fixture(autouse=True)
+    def clear_cache(self):
+        cache.clear()
+
+    def _reject(self, ip="10.0.0.1", key="wrong-key"):
+        ApiKeyAuthentication().authenticate(_request(key, HTTP_X_REAL_IP=ip))
+
+    def test_throttles_rejections_over_limit_without_recording(self, db, logs):
+        for _ in range(REJECTION_LIMIT):
+            with pytest.raises(AuthenticationFailed):
+                self._reject()
+
+        with pytest.raises(Throttled):
+            self._reject()
+
+        assert AuditLoginLogModel.objects.count() == REJECTION_LIMIT
+        assert len(logs.records) == REJECTION_LIMIT
+
+    @override_settings(
+        INGESTION_API_KEY="good-key", INGESTION_API_KEY_ALLOWED_IP_RANGES=["10.0.0.0/8"]
+    )
+    def test_throttles_ip_not_allowed_rejections(self, db):
+        for _ in range(REJECTION_LIMIT):
+            with pytest.raises(AuthenticationFailed):
+                self._reject(ip="192.168.1.1", key="good-key")
+
+        with pytest.raises(Throttled):
+            self._reject(ip="192.168.1.1", key="good-key")
+
+    def test_counts_rejections_per_ip(self, db):
+        for _ in range(REJECTION_LIMIT):
+            with pytest.raises(AuthenticationFailed):
+                self._reject(ip="10.0.0.1")
+
+        with pytest.raises(AuthenticationFailed):
+            self._reject(ip="10.0.0.2")
+
+    @override_settings(INGESTION_API_KEY="good-key")
+    def test_valid_key_is_not_counted(self, db):
+        for _ in range(5):
+            ApiKeyAuthentication().authenticate(
+                _request("good-key", HTTP_X_REAL_IP="10.0.0.1")
+            )
+
+        with pytest.raises(AuthenticationFailed):
+            self._reject()
