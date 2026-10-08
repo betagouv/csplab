@@ -474,7 +474,7 @@ filtre `domaine` des routes de consultation des offres et des métiers.
 
 Cette annexe est destinée aux intégrateurs qui alimentent l'API à partir d'offres au format Talentsoft. Elle indique, pour chaque champ d'une offre Talentsoft, le champ correspondant de l'offre envoyée à `POST /api/v1/offres/creer_modifier/` (« Offer API v1 »), ainsi que les champs sans équivalent des deux côtés. Les notes « API fake-ts » décrivent les offres renvoyées par l'API fake-ts (`/api/fake-ts/`), qui expose les offres de CSPLab au format Talentsoft.
 
-Notation : `a.b` désigne un objet imbriqué, `a[]` une liste, `a[0]` son premier élément. Tout objet codé (`contractType`, `offerFamilyCategory`, `educationLevel`, `diploma`, `experienceLevel`, `country`, `region`, `department`, `specialisations[]`, `languages[].languageName|languageLevel`) est lu par son `clientCode` ; ses autres clés (`code`, `label`, `active`, `parentCode`, `type`, `parentType`, `hasChildren`) sont ignorées.
+Notation : `a.b` désigne un objet imbriqué, `a[]` une liste, `a[0]` son premier élément. Tout objet codé (`contractType`, `offerFamilyCategory`, `professionalCategory`, `educationLevel`, `diploma`, `experienceLevel`, `country`, `region`, `department`, `specialisations[]`, `languages[].languageName|languageLevel`) est lu par son `clientCode` ; ses autres clés (`code`, `label`, `active`, `parentCode`, `type`, `parentType`, `hasChildren`) sont ignorées.
 
 ### Champs reliés
 
@@ -486,6 +486,7 @@ Notation : `a.b` désigne un objet imbriqué, `a[]` une liste, `a[0]` son premie
 | `organisationName` | `organisation.nom` | |
 | `organisation.entityCode` | `organisation.talentsoft_organisme_entity_code` | Lien vers l'organisme Talentsoft, vide s'il est inconnu. |
 | `contractType.clientCode` | `nature_offre` | Traduit par le transcodeur de la source. |
+| `professionalCategory.clientCode` | `vacance_poste` | `STATUT01` → `OUI` (poste vacant), `STATUT02` → `NON` (poste susceptible d'être vacant), sinon vide. Malgré son nom, c'est le « Statut du poste » affiché par l'ancien site WordPress. |
 | `offerFamilyCategory.clientCode` | `profession.metier` | `profession.domaine` correspond à ses 3 premiers caractères, après retrait d'un `ER` initial. |
 | `description1` | `description.mission` | |
 | `description2` | `description.profil` | |
@@ -506,6 +507,7 @@ Notation : `a.b` désigne un objet imbriqué, `a[]` une liste, `a[0]` son premie
 | `endPublicationDate` | `publication.fin_publication` | Repli sur `beginningDate`, puis sur `debut_publication` + 365 jours. Le `OfferInputMapper` du web ne lit jamais `fin_publication`. |
 | `customFields.offer.date1` | `publication.fin_candidature` | |
 | `beginningDate` | `conditions.debut_contrat` | Sert aussi de repli pour `fin_publication`. |
+| `beginningDate` | `publication.debut_vacance_poste` | Comme l'ancien site WordPress (« Vacant à partir du … », « Poste à pourvoir le … »). Ignoré par le `OfferInputMapper` du web. |
 | `contractDuration` | `conditions.duree_contrat` | |
 | `educationLevel.clientCode` | `criteres.diplome_niveau` | Lettres `A`-`H` ou `NIV_DIPL<n>` converties en niveau. |
 | `diploma.clientCode` | `criteres.diplome` | |
@@ -528,7 +530,6 @@ Notation : `a.b` désigne un objet imbriqué, `a[]` une liste, `a[0]` son premie
 | `organisationLogoUrl` | |
 | `description1Formatted` | Variante HTML de `description1`, non utilisée. |
 | `description2Formatted` | Variante HTML de `description2`, non utilisée. |
-| `professionalCategory` | |
 | `_links` | Métadonnées de transport. |
 | `_format` | Métadonnées de transport. |
 | `_metadata` | Métadonnées de transport. |
@@ -577,7 +578,6 @@ Notation : `a.b` désigne un objet imbriqué, `a[]` une liste, `a[0]` son premie
 |---|---|
 | `categories` | Lu par l'ingestion dans `customFields.description.customCodeTable1`, que l'API fake-ts n'expose pas (`CAT-A`/`B`/`C` ; `CAT-AEF`/`ESD`/`ES` → `APLUS`). Le web garde `sorted(categories)[0]`. |
 | `type_contrat` | Lu dans `customFields.offer.customCodeTable2` (absent de l'API fake-ts) : `CDD*`, `CDI`. |
-| `vacance_poste` | Jamais renseigné par l'ingestion (vide), stocké à `null`. |
 | `organisation.siret` | Jamais renseigné par l'ingestion (vide) ; le rapprochement d'organisme passe par `talentsoft_organisme_entity_code`. |
 | `profession.referentiel` | Constante `RMFPv2`. |
 | `profession.code_emploi_local` | Jamais renseigné, `local_job_code` reste à `null`. |
@@ -594,7 +594,6 @@ Notation : `a.b` désigne un objet imbriqué, `a[]` une liste, `a[0]` son premie
 | `conditions.bases_legales` | Jamais renseigné par l'ingestion. |
 | `conditions.note_ouverture_poste_url` | Jamais renseigné par l'ingestion. |
 | `contacts[].email` | Toujours `null` côté ingestion. |
-| `publication.debut_vacance_poste` | Jamais renseigné par l'ingestion, et ignoré par le mapper du web. |
 
 
 

@@ -9,6 +9,7 @@ from referentiel.value_objects.experience_level import ExperienceLevel
 from referentiel.value_objects.language import Language
 from referentiel.value_objects.language_level import LanguageLevel
 from referentiel.value_objects.offer_conditions import (
+    JobVacancy,
     Management,
     WorkingPlace,
     WorkingTime,
@@ -574,6 +575,29 @@ def test_clean_maps_management(cleaner, management_code, expected):
     offer = cleaner.clean(raw_offer)
 
     assert offer.management == expected
+
+
+@pytest.mark.parametrize(
+    "professional_category_code, expected",
+    [
+        ("STATUT01", JobVacancy.OUI),
+        ("STATUT02", JobVacancy.NON),
+        ("_TS_CO_ProfessionalCategory_Cadre", None),
+        (None, None),
+    ],
+)
+def test_clean_maps_job_vacancy(cleaner, professional_category_code, expected):
+    raw_offer = _make_raw_offer(
+        professionalCategory=TalentsoftCodedObjectFactory.build(
+            clientCode=professional_category_code
+        )
+        if professional_category_code
+        else None
+    )
+
+    offer = cleaner.clean(raw_offer)
+
+    assert offer.job_vacancy == expected
 
 
 def test_clean_returns_none_url_on_invalid_offer_url(cleaner):

@@ -18,7 +18,11 @@ from referentiel.value_objects.language import Language
 from referentiel.value_objects.language_level import LanguageLevel
 from referentiel.value_objects.limit_date import LimitDate
 from referentiel.value_objects.localisation import Localisation
-from referentiel.value_objects.offer_conditions import Management, WorkingPlace
+from referentiel.value_objects.offer_conditions import (
+    JobVacancy,
+    Management,
+    WorkingPlace,
+)
 from referentiel.value_objects.offer_nature import OfferNature
 from referentiel.value_objects.region import Region
 from referentiel.value_objects.verse import Verse
@@ -348,6 +352,54 @@ async def test_publish_serializes_contract_conditions(gateway, httpx_mock: HTTPX
         "duree_contrat": "12 mois",
         "debut_contrat": "2024-06-01T00:00:00Z",
     }
+
+
+@pytest.mark.asyncio
+async def test_publish_serializes_job_vacancy(gateway, httpx_mock: HTTPXMock):
+    httpx_mock.add_response(method="POST", url=PUBLISH_URL, status_code=201)
+    offer = Offer(
+        **{
+            **MINIMAL_OFFER.__dict__,
+            "job_vacancy": JobVacancy.NON,
+            "beginning_date": LimitDate(
+                value=datetime(2024, 6, 1, tzinfo=timezone.utc)
+            ),
+        }
+    )
+
+    await gateway.publish(PublishOfferInput(source_id=SOURCE_ID, offer=offer))
+
+    body = json.loads(httpx_mock.get_requests()[0].content)
+    assert body["offres"][0]["vacance_poste"] == "NON"
+    assert (
+        body["offres"][0]["publication"]["debut_vacance_poste"]
+        == "2024-06-01T00:00:00Z"
+    )
+
+
+@pytest.mark.asyncio
+async def test_publish_serializes_debut_vacance_poste_without_job_vacancy(
+    gateway, httpx_mock: HTTPXMock
+):
+    httpx_mock.add_response(method="POST", url=PUBLISH_URL, status_code=201)
+    offer = Offer(
+        **{
+            **MINIMAL_OFFER.__dict__,
+            "job_vacancy": None,
+            "beginning_date": LimitDate(
+                value=datetime(2024, 6, 1, tzinfo=timezone.utc)
+            ),
+        }
+    )
+
+    await gateway.publish(PublishOfferInput(source_id=SOURCE_ID, offer=offer))
+
+    body = json.loads(httpx_mock.get_requests()[0].content)
+    assert body["offres"][0]["vacance_poste"] == ""
+    assert (
+        body["offres"][0]["publication"]["debut_vacance_poste"]
+        == "2024-06-01T00:00:00Z"
+    )
 
 
 @pytest.mark.asyncio

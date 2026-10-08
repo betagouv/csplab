@@ -157,6 +157,7 @@ class OfferUpsertPayload(BaseModel):
             categories=[offer.category.value] if offer.category else [],
             nature_offre=offer.offer_nature.value if offer.offer_nature else None,
             type_contrat=offer.contract_kind.name if offer.contract_kind else None,
+            vacance_poste=offer.job_vacancy.name if offer.job_vacancy else "",
             description=DescriptionPayload(
                 mission=offer.mission,
                 profil=offer.profile,
@@ -195,5 +196,8 @@ class OfferUpsertPayload(BaseModel):
                 debut_publication=offer.publication_date,
                 fin_publication=fin_publication,
                 fin_candidature=offer.application_deadline,
+                debut_vacance_poste=offer.beginning_date.value
+                if offer.beginning_date
+                else None,
             ),
         )

@@ -15,6 +15,7 @@ from referentiel.value_objects.language_level import LanguageLevel
 from referentiel.value_objects.limit_date import LimitDate
 from referentiel.value_objects.localisation import Localisation
 from referentiel.value_objects.offer_conditions import (
+    JobVacancy,
     Management,
     WorkingPlace,
     WorkingTime,
@@ -411,6 +412,12 @@ class OffersCleaner:
             transcoder,
         )
 
+        job_vacancy = self._map_job_vacancy(
+            talentsoft_offer.professionalCategory.clientCode
+            if talentsoft_offer.professionalCategory
+            else None
+        )
+
         organisme_entity_code = self._map_organisme_entity_code(
             cast(TalentsoftOrganisation, talentsoft_offer.organisation).entityCode,
             transcoder,
@@ -451,6 +458,7 @@ class OffersCleaner:
             working_place=working_place,
             working_time=working_time,
             management=management,
+            job_vacancy=job_vacancy,
             talentsoft_organisme_entity_code=organisme_entity_code,
         )
 
@@ -578,6 +586,17 @@ class OffersCleaner:
             client_code = transcoder.translate("oui_non", client_code) or client_code
 
         return self._MANAGEMENT_MAPPING.get(client_code.lower())
+
+    _JOB_VACANCY_MAPPING: dict[str, JobVacancy] = {
+        "STATUT01": JobVacancy.OUI,
+        "STATUT02": JobVacancy.NON,
+    }
+
+    def _map_job_vacancy(self, client_code: Optional[str]) -> Optional[JobVacancy]:
+        if not client_code:
+            return None
+
+        return self._JOB_VACANCY_MAPPING.get(client_code.upper())
 
     def _extract_coordinates(
         self, talentsoft_offer: TalentsoftDetailOffer
