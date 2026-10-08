@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { ConversationRouteNames } from '../types'
 import type { CandidatureParams } from '@/features/candidatures/types'
 import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
@@ -6,7 +7,6 @@ import CspAsyncSection from '@/components/base/CspAsyncSection/CspAsyncSection.v
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspEmptyState from '@/components/base/CspEmptyState/CspEmptyState.vue'
 import { useMinimumPending } from '@/composables/async/useMinimumPending'
-import { CANDIDATURE_NEW_CONVERSATION_ROUTE_NAME } from '@/features/candidatures/routes'
 import { pluralize } from '@/utils/format'
 import { useConversations } from '../composables/useConversations'
 import ConversationsList from './ConversationsList.vue'
@@ -16,6 +16,7 @@ import NewConversationForm from './NewConversationForm.vue'
 const props = defineProps<{
   candidature: CandidatureParams
   candidatNom: string
+  routes: ConversationRouteNames
 }>()
 
 const SKELETON_ROWS = 4
@@ -34,14 +35,14 @@ const isEmpty = computed(() => !showSkeleton.value && !error.value && conversati
 
 const route = useRoute()
 const openConversationUuid = computed(() => route.params.conversationUuid as string | undefined)
-const isCreatingConversation = computed(() => route.name === CANDIDATURE_NEW_CONVERSATION_ROUTE_NAME)
+const isCreatingConversation = computed(() => route.name === props.routes.create)
 
 const router = useRouter()
 
 function startConversation(): void {
   const { organismeUuid, recrutementUuid, candidatureUuid } = props.candidature
   void router.push({
-    name: CANDIDATURE_NEW_CONVERSATION_ROUTE_NAME,
+    name: props.routes.create,
     params: { organismeUuid, recrutementUuid, candidatureUuid },
   })
 }
@@ -51,6 +52,7 @@ function startConversation(): void {
   <NewConversationForm
     v-if="isCreatingConversation"
     :candidature="candidature"
+    :routes="routes"
   />
   <div
     v-else
@@ -81,7 +83,10 @@ function startConversation(): void {
         error-title="Impossible de charger les conversations"
       >
         <template #skeleton>
-          <ConversationsList :skeleton-rows="SKELETON_ROWS" />
+          <ConversationsList
+            :routes="routes"
+            :skeleton-rows="SKELETON_ROWS"
+          />
         </template>
 
         <p
@@ -92,6 +97,7 @@ function startConversation(): void {
         </p>
         <ConversationsList
           v-else
+          :routes="routes"
           :conversations="conversations"
         />
       </CspAsyncSection>

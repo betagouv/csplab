@@ -6,7 +6,7 @@ import CspCard from '@/components/base/CspCard/CspCard.vue'
 import CspIcon from '@/components/base/CspIcon/CspIcon.vue'
 import { useDraggableKanbanCard } from '@/composables/dnd/useKanbanDnd'
 import { formatElapsedDays } from '@/utils/date'
-import { CANDIDATURE_ROUTE_NAME } from '../routes'
+import { CANDIDATURE_PANEL_ROUTE_NAMES } from '../routes'
 import { formatCandidatNom } from '../utils/candidat'
 
 const props = defineProps<{
@@ -26,9 +26,11 @@ watchEffect(() => {
 const route = useRoute()
 
 const panelLocation = computed(() => ({
-  name: CANDIDATURE_ROUTE_NAME,
+  name: CANDIDATURE_PANEL_ROUTE_NAMES.kanban.tabs.candidature,
   params: { ...route.params, candidatureUuid: props.candidature.uuid },
 }))
+
+const isCurrent = computed(() => route.params.candidatureUuid === props.candidature.uuid)
 
 const { isDragging } = useDraggableKanbanCard({
   element: cardRef,
@@ -47,9 +49,9 @@ const { isDragging } = useDraggableKanbanCard({
     class="candidature-kanban-card"
     :class="{
       'candidature-kanban-card--dragging': isDragging,
-      'candidature-kanban-card--current': route.params.candidatureUuid === candidature.uuid,
+      'candidature-kanban-card--current': isCurrent,
     }"
-    :data-candidature-uuid="candidature.uuid"
+    :aria-current="isCurrent ? 'true' : undefined"
   >
     <template #title>
       <!-- draggable="false": the card starts the drag, not the link -->
@@ -57,6 +59,7 @@ const { isDragging } = useDraggableKanbanCard({
         :to="panelLocation"
         draggable="false"
         class="candidature-kanban-card__link"
+        :data-candidature-uuid="candidature.uuid"
       >
         {{ formatCandidatNom(candidature.candidat) }}
       </RouterLink>

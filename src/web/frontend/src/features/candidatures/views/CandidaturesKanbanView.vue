@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import type { EtapeRecrutementDetailedCandidatures, MotifRefus } from '../types'
 import type { KanbanDropEvent } from '@/composables/dnd/useKanbanDnd'
-import { computed, nextTick, ref, toRef, watch } from 'vue'
-import { useRoute } from 'vue-router'
+import { computed, ref, toRef } from 'vue'
 import CspSkeleton from '@/components/base/CspSkeleton/CspSkeleton.vue'
 import CspSkeletonKanban from '@/components/base/CspSkeleton/CspSkeletonKanban.vue'
 import { useMinimumPending } from '@/composables/async/useMinimumPending'
@@ -11,32 +10,34 @@ import CandidaturesKanbanBoard from '../components/CandidaturesKanbanBoard.vue'
 import ChangerEtapeDrawer from '../components/ChangerEtapeDrawer.vue'
 import RefusCandidatureDialog from '../components/RefusCandidatureDialog.vue'
 import SelectionActionBar from '../components/SelectionActionBar.vue'
+import { useCandidatureLinkFocus } from '../composables/useCandidatureLinkFocus'
+import { provideCandidatureSequence } from '../composables/useCandidatureNavigation'
 import { useCandidatures } from '../composables/useCandidatures'
+import { useEtapeChangeMutation } from '../composables/useEtapeChangeMutation'
 import { useKanbanSelection } from '../composables/useKanbanSelection'
 import { useRefusCandidature } from '../composables/useRefusCandidature'
 
 const {
   recrutementUuid,
+  recrutementParams,
   recrutementEtapes,
   candidatureKanban,
   pendingKanban,
   findCandidature,
-  moveCandidature,
-  moveCandidaturesBatch,
   filters,
 } = useCandidatures()
 
+const { changeEtape } = useEtapeChangeMutation(recrutementParams)
+
 const { filteredEtapes } = filters
 
-const route = useRoute()
+provideCandidatureSequence(candidatureUuid =>
+  filteredEtapes.value
+    .find(etape => etape.candidatures.some(({ uuid }) => uuid === candidatureUuid))
+    ?.candidatures
+    .map(({ uuid }) => uuid) ?? [])
 
-watch(() => route.params.candidatureUuid, async (current, previous) => {
-  if (current || typeof previous !== 'string') {
-    return
-  }
-  await nextTick()
-  document.querySelector<HTMLElement>(`[data-candidature-uuid="${previous}"] a`)?.focus()
-})
+useCandidatureLinkFocus()
 
 const showSkeleton = useMinimumPending(pendingKanban)
 
@@ -80,14 +81,21 @@ const selectedCandidatureUuids = computed(() => {
   return selectedByEtape.value.get(currentEtapeUuid.value) ?? new Set<string>()
 })
 
-function handleMove(event: KanbanDropEvent) {
-  const candidature = findCandidature(event.cardId)
-  if (candidature && event.sourceColumnId !== event.targetColumnId && event.targetColumnId === refusEtapeUuid.value) {
-    refus.request([candidature.candidat], motifRefus => void moveCandidature({ ...event, motifRefus }))
+function handleMove({ sourceColumnId, targetColumnId, cardId }: KanbanDropEvent) {
+  if (sourceColumnId === targetColumnId) {
     return
   }
 
-  void moveCandidature(event)
+  const move = (motifRefus?: MotifRefus) =>
+    void changeEtape({ etapeCibleUuid: targetColumnId, candidatureUuids: [cardId], motifRefus })
+
+  const candidature = findCandidature(cardId)
+  if (candidature && targetColumnId === refusEtapeUuid.value) {
+    refus.request([candidature.candidat], move)
+  }
+  else {
+    move()
+  }
 }
 
 function handleToggleColumnSelection(etape: EtapeRecrutementDetailedCandidatures): void {
@@ -114,17 +122,14 @@ function handleConfirmBatchMove(targetEtapeUuid: string): void {
 }
 
 function applyBatchMove(targetEtapeUuid: string, motifRefus?: MotifRefus): void {
-  const candidaturesByEtape = new Map<string, string[]>()
+  const candidatureUuids = candidatureKanban.value
+    .filter(etape => etape.uuid !== targetEtapeUuid)
+    .flatMap(etape => etape.candidatures.filter(({ uuid }) => selectedByEtape.value.get(etape.uuid)?.has(uuid)))
+    .map(({ uuid }) => uuid)
 
-  for (const [etapeUuid, uuids] of selectedByEtape.value) {
-    candidaturesByEtape.set(etapeUuid, [...uuids])
+  if (candidatureUuids.length > 0) {
+    void changeEtape({ etapeCibleUuid: targetEtapeUuid, candidatureUuids, motifRefus })
   }
-
-  moveCandidaturesBatch({
-    candidaturesByEtape,
-    targetColumnId: targetEtapeUuid,
-    motifRefus,
-  })
 
   clearSelection()
   isDrawerOpen.value = false

@@ -1,10 +1,10 @@
 <script setup lang="ts">
+import type { CandidaturesViewName } from '../routes'
 import type { CspSegmentedControlOption } from '@/components/base/CspSegmentedControl/CspSegmentedControl.vue'
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import CspSegmentedControl from '@/components/base/CspSegmentedControl/CspSegmentedControl.vue'
-
-export type CandidaturesViewName = 'liste' | 'kanban'
+import { CANDIDATURES_VIEW_ROUTE_NAMES } from '../routes'
 
 const props = defineProps<{
   organismeUuid: string
@@ -13,11 +13,6 @@ const props = defineProps<{
 }>()
 
 const router = useRouter()
-
-const ROUTE_BY_VIEW: Record<CandidaturesViewName, string> = {
-  kanban: 'recrutement-candidatures-kanban',
-  liste: 'recrutement-candidatures',
-}
 
 const OPTIONS: CspSegmentedControlOption<CandidaturesViewName>[] = [
   { value: 'kanban', label: 'Kanban', icon: 'ri:table-line' },
@@ -31,7 +26,7 @@ const view = computed({
       return
     }
     void router.push({
-      name: ROUTE_BY_VIEW[value],
+      name: CANDIDATURES_VIEW_ROUTE_NAMES[value],
       params: { organismeUuid: props.organismeUuid, recrutementUuid: props.recrutementUuid },
     })
   },

@@ -1,21 +1,31 @@
-import type { MaybeRefOrGetter } from 'vue'
-import { computed, toValue } from 'vue'
+import type { InjectionKey, MaybeRefOrGetter } from 'vue'
+import { computed, inject, provide, toValue } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { CANDIDATURE_ROUTE_NAME } from '../routes'
-import { findCandidaturePosition, findEtapeOfCandidature } from '../utils/position'
-import { useCandidatures } from './useCandidatures'
+import { findCandidaturePosition } from '../utils/position'
+import { useCandidaturePanelRoutes } from './useCandidaturePanelRoutes'
+
+type CandidatureSequence = (candidatureUuid: string) => string[]
+
+const KEY: InjectionKey<CandidatureSequence> = Symbol('candidature-sequence')
+
+export function provideCandidatureSequence(sequenceOf: CandidatureSequence): void {
+  provide(KEY, sequenceOf)
+}
 
 export function useCandidatureNavigation(candidatureUuid: MaybeRefOrGetter<string>) {
   const route = useRoute()
   const router = useRouter()
-  const { candidatureKanban, filters } = useCandidatures()
+  const { names } = useCandidaturePanelRoutes()
+  const sequenceOf = inject(KEY)
+  if (!sequenceOf) {
+    throw new Error('useCandidatureNavigation must be used within provideCandidatureSequence')
+  }
 
-  const position = computed(() => findCandidaturePosition(filters.filteredEtapes.value, toValue(candidatureUuid)))
-  const etape = computed(() => findEtapeOfCandidature(candidatureKanban.value, toValue(candidatureUuid)))
+  const position = computed(() => findCandidaturePosition(sequenceOf(toValue(candidatureUuid)), toValue(candidatureUuid)))
 
   function navigateTo(uuid: string): void {
     const navigate = route.params.candidatureUuid ? router.replace : router.push
-    void navigate({ name: CANDIDATURE_ROUTE_NAME, params: { ...route.params, candidatureUuid: uuid } })
+    void navigate({ name: names.value.tabs.candidature, params: { ...route.params, candidatureUuid: uuid } })
   }
 
   function goPrevious(): void {
@@ -30,5 +40,5 @@ export function useCandidatureNavigation(candidatureUuid: MaybeRefOrGetter<strin
     }
   }
 
-  return { position, etape, navigateTo, goPrevious, goNext }
+  return { position, navigateTo, goPrevious, goNext }
 }

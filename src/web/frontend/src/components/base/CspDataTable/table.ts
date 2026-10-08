@@ -7,6 +7,11 @@ export type CspTableSize = 'sm' | 'md' | 'lg'
 
 export type CspTableCellValue = string | number | null | undefined
 
+export interface CspTableSort {
+  id: string
+  desc: boolean
+}
+
 export interface CspColumnDef<TRow> {
   id: string
   header: string

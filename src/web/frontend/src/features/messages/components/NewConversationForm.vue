@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { ConversationRouteNames } from '../types'
 import type { CandidatureParams } from '@/features/candidatures/types'
 import { computed, onMounted, ref, useId, useTemplateRef, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
@@ -8,7 +9,6 @@ import CspInput from '@/components/base/CspInput/CspInput.vue'
 import CspTextarea from '@/components/base/CspTextarea/CspTextarea.vue'
 import { useUnsavedChanges } from '@/composables/navigation/useUnsavedChanges'
 import { useToast } from '@/composables/ui/useToast'
-import { CANDIDATURE_CONVERSATION_ROUTE_NAME, CANDIDATURE_NEW_CONVERSATION_ROUTE_NAME, CANDIDATURE_PANEL_TAB_ROUTE_NAMES } from '@/features/candidatures/routes'
 import { countValidAttachments, hasInvalidAttachment } from '../attachments'
 import { useCreateConversation } from '../composables/useConversations'
 import { CONVERSATION_OBJET_MAX_LENGTH, MESSAGE_CONTENT_MAX_LENGTH, MESSAGE_MAX_DOCUMENTS } from '../constants/message'
@@ -16,6 +16,7 @@ import MessageAttachments from './MessageAttachments.vue'
 
 const props = defineProps<{
   candidature: CandidatureParams
+  routes: ConversationRouteNames
 }>()
 
 const route = useRoute()
@@ -55,7 +56,7 @@ function discard(): void {
 useUnsavedChanges(
   () => objet.value !== '' || content.value !== '' || documents.value.length > 0,
   discard,
-  { isLeftBy: to => to.name !== CANDIDATURE_NEW_CONVERSATION_ROUTE_NAME },
+  { isLeftBy: to => to.name !== props.routes.create },
 )
 
 const canSend = computed(() =>
@@ -68,7 +69,7 @@ const canSend = computed(() =>
 const canAttach = computed(() => countValidAttachments(documents.value) < MESSAGE_MAX_DOCUMENTS && !creating.value)
 
 function backToConversations(): void {
-  void router.push({ name: CANDIDATURE_PANEL_TAB_ROUTE_NAMES.messages, params: route.params })
+  void router.push({ name: props.routes.conversations, params: route.params })
 }
 
 async function send(): Promise<void> {
@@ -79,7 +80,7 @@ async function send(): Promise<void> {
     const conversation = await create({ objet: objet.value, content: content.value, documents: documents.value })
     discard()
     void router.push({
-      name: CANDIDATURE_CONVERSATION_ROUTE_NAME,
+      name: props.routes.conversation,
       params: { ...route.params, conversationUuid: conversation.uuid },
     })
   }
