@@ -82,6 +82,7 @@ async function submit(): Promise<void> {
         :id="messageId"
         v-model="message"
         :rows="8"
+        :readonly="creating"
         placeholder="Votre note sur cette candidature…"
         :aria-labelledby="titleId"
       />
