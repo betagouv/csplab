@@ -6,10 +6,6 @@
       "description": "Scaleway Secret Manager environment to load secrets from",
       "value": "demo"
     },
-    "WEB_SECRET_KEY": {
-      "description": "Django secret key",
-      "generator": "secret"
-    },
     "WEB_ALLOWED_HOSTS": {
       "description": "Hostname of the review app",
       "generator": "template",

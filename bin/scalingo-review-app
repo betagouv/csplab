@@ -48,42 +48,6 @@ else
   sc env >/dev/null 2>&1 || { echo "❌ '$app' not found after 5 minutes."; exit 1; }
 fi
 
-# ---------------------------------
-# addons
-# ---------------------------------
-# Addons, SCALEWAY_ENV, WEB_SECRET_KEY, WEB_ALLOWED_HOSTS and
-# WEB_CSRF_TRUSTED_ORIGINS and the seeding are declared in src/web/scalingo.json.
-# Only the addon URL wiring (WEB_DATABASE_URL / WEB_REDIS_URL) remains here.
-addon_url() {
-  local name="$1" value
-  for _ in $(seq 1 60); do
-    value="$(sc env-get "$name" 2>/dev/null || true)"
-    if [[ -n "$value" ]]; then
-      echo "$value"
-      return 0
-    fi
-    sleep 5
-  done
-  echo "❌ $name not available after 5 minutes." >&2
-  return 1
-}
-echo "⏳ Waiting for the addons…"
-database_url="$(addon_url SCALINGO_POSTGRESQL_URL)"
-redis_url="$(addon_url SCALINGO_REDIS_URL)"
-
-# ---------------------------------
-# env vars
-# ---------------------------------
-echo "🔧 Setting environment variables…"
-env_set_status=0
-env_set_output="$(
-  sc env-set \
-    "WEB_DATABASE_URL=${database_url}" \
-    "WEB_REDIS_URL=${redis_url}" 2>&1
-)" || env_set_status=$?
-printf '%s\n' "$env_set_output" | sed -E 's#(://)[^/@[:space:]]*@#\1***:***@#g'
-[[ "$env_set_status" -eq 0 ]] || exit "$env_set_status"
-
 echo "✅ https://${host}"
 
 echo
