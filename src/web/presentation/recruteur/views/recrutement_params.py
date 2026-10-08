@@ -6,15 +6,15 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from application.recruteur.dtos.recrutement_request import (
-    RecrutementRequest,
-)
 from application.recruteur.errors.application_errors_recruteur import (
     OrganismeRecrutementIncoherents,
     RecrutementEtapeIncoherents,
 )
 from application.recruteur.services.get_recrutement_etapes import (
     get_recrutement_etapes,
+)
+from application.recruteur.services.initialize_recrutement_etapes import (
+    initialize_recrutement_etapes,
 )
 from application.recruteur.usecases.update_recrutement_etapes import (
     UpdateRecrutementEtapesCommand,
@@ -175,31 +175,18 @@ class RecrutementEtapeView(SessionApiMixin, APIView):
     },
 )
 class InitRecrutementEtapeView(SessionApiMixin, APIView):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.container = recruteur_container()
-        self.user_mapper = UtilisateurMapper()
-
     def post(
         self, request: Request, organisme_uuid: UUID, recrutement_uuid: UUID
     ) -> Response:
         try:
-            usecase = self.container.init_recrutement_etapes_usecase()
-            resultat = usecase.execute(
-                RecrutementRequest(
-                    organisme_id=organisme_uuid,
-                    recrutement_id=recrutement_uuid,
-                    utilisateur=self.user_mapper.to_domain(request),
-                )
+            etapes = initialize_recrutement_etapes(
+                organisme_id=organisme_uuid,
+                recrutement_id=recrutement_uuid,
+                utilisateur=request.user,
             )
-            serializer = EtapeRecrutementSerializer(
-                _etapes_to_serializer_data(resultat), many=True
-            )
+            serializer = EtapeRecrutementModelSerializer(etapes, many=True)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
-        except (
-            OrganismeRecrutementIncoherents,
-            SupressionEtapeImpossible,
-        ) as e:
+        except SupressionEtapeImpossible as e:
             error_serializer = GenericErrorSerializer({"error": str(e)})
             return Response(error_serializer.data, status=status.HTTP_400_BAD_REQUEST)
         except OrganismePermissionError as e:

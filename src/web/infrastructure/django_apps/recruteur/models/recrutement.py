@@ -11,6 +11,9 @@ class RecrutementQuerySet(models.QuerySet):
     def active_by_id(self, recrutement_id) -> "RecrutementQuerySet":
         return self.filter(pk=recrutement_id, organisme__supprime_le__isnull=True)
 
+    def with_organisme(self) -> "RecrutementQuerySet":
+        return self.select_related("organisme")
+
     def by_organisme_and_recrutement(
         self, organisme_id, recrutement_id
     ) -> "RecrutementQuerySet":
