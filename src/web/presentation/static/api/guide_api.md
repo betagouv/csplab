@@ -33,10 +33,10 @@
 - [Annexe — Les codes de réponse, en clair](#annexe-les-codes-de-reponse-en-clair)
 - [Annexe — Récapitulatif des listes de valeurs autorisées](#annexe-recapitulatif-des-listes-de-valeurs-autorisees)
   - [Domaine fonctionnel (référentiel RMFPv2)](#domaine-fonctionnel-referentiel-rmfpv2)
-- [Annexe — Correspondance entre le format TalentSoft et l'API v1](#annexe-correspondance-entre-le-format-talentsoft-et-lapi-v1)
+- [Annexe — Correspondance entre le format Talentsoft et l'API v1](#annexe-correspondance-entre-le-format-talentsoft-et-lapi-v1)
   - [Champs reliés](#champs-relies)
-  - [Champs Format TS sans équivalent dans l'API v1](#champs-format-ts-sans-equivalent-dans-lapi-v1)
-  - [Champs de l'API v1 sans équivalent dans le Format TS](#champs-de-lapi-v1-sans-equivalent-dans-le-format-ts)
+  - [Champs Talentsoft sans équivalent dans l'API v1](#champs-talentsoft-sans-equivalent-dans-lapi-v1)
+  - [Champs de l'API v1 sans équivalent dans l'API fake-ts](#champs-de-lapi-v1-sans-equivalent-dans-lapi-fake-ts)
 
 
 
@@ -220,8 +220,8 @@ La réponse indique combien d'offres ont été **créées**, **mises à jour**, 
 des offres **rejetées** avec le détail de l'erreur. Une offre rejetée n'empêche pas les
 autres d'être traitées.
 
-> Vous partez d'une offre au format TalentSoft ? Consultez l'[annexe de correspondance
-> entre le format TalentSoft et l'API v1](#annexe-correspondance-entre-le-format-talentsoft-et-lapi-v1).
+> Vous partez d'une offre au format Talentsoft ? Consultez l'[annexe de correspondance
+> entre le format Talentsoft et l'API v1](#annexe-correspondance-entre-le-format-talentsoft-et-lapi-v1).
 
 ### Structure d'une offre et contraintes sur les champs
 
@@ -470,18 +470,18 @@ filtre `domaine` des routes de consultation des offres et des métiers.
 
 
 
-# Annexe — Correspondance entre le format TalentSoft et l'API v1
+# Annexe — Correspondance entre le format Talentsoft et l'API v1
 
-Cette annexe est destinée aux intégrateurs qui alimentent l'API à partir d'offres au format TalentSoft (« Format TS »). Elle indique, pour chaque champ d'une offre Format TS, le champ correspondant de l'offre envoyée à `POST /api/v1/offres/creer_modifier/` (« Offer API v1 »), ainsi que les champs sans équivalent des deux côtés.
+Cette annexe est destinée aux intégrateurs qui alimentent l'API à partir d'offres au format Talentsoft. Elle indique, pour chaque champ d'une offre Talentsoft, le champ correspondant de l'offre envoyée à `POST /api/v1/offres/creer_modifier/` (« Offer API v1 »), ainsi que les champs sans équivalent des deux côtés. Les notes « API fake-ts » décrivent les offres renvoyées par l'API fake-ts (`/api/fake-ts/`), qui expose les offres de CSPLab au format Talentsoft.
 
 Notation : `a.b` désigne un objet imbriqué, `a[]` une liste, `a[0]` son premier élément. Tout objet codé (`contractType`, `offerFamilyCategory`, `educationLevel`, `diploma`, `experienceLevel`, `country`, `region`, `department`, `specialisations[]`, `languages[].languageName|languageLevel`) est lu par son `clientCode` ; ses autres clés (`code`, `label`, `active`, `parentCode`, `type`, `parentType`, `hasChildren`) sont ignorées.
 
 ### Champs reliés
 
-| Format TS Offer | Offer API v1 | Note |
+| Offre Talentsoft | Offer API v1 | Note |
 |---|---|---|
 | `reference` | `identification.reference` | |
-| `salaryRange.clientCode` | `identification.versant` | Dans Format TS, `salaryRange` est une simple chaîne, toujours `null` : le versant est alors déduit de `reference` (`APHP`/`MENJ`/`OFII`). Les valeurs contenant `FPT`/`FPH`/`FPE` donnent un `Verse`. |
+| `salaryRange.clientCode` | `identification.versant` | Dans l'API fake-ts, `salaryRange` est une simple chaîne, toujours `null` : le versant est alors déduit de `reference` (`APHP`/`MENJ`/`OFII`). Les valeurs contenant `FPT`/`FPH`/`FPE` donnent un `Verse`. |
 | `title` | `titre` | Copié aussi dans `titre_long`. |
 | `organisationName` | `organisation.nom` | |
 | `organisation.entityCode` | `organisation.talentsoft_organisme_entity_code` | Lien vers l'organisme Talentsoft, vide s'il est inconnu. |
@@ -495,7 +495,7 @@ Notation : `a.b` désigne un objet imbriqué, `a[]` une liste, `a[0]` son premie
 | `customFields.offerCustomBlock1.longText1` | `description.complements` | |
 | `offerUrl` | `url_offre` | |
 | `urlRedirectionApplicant` | `url_candidature` | Repli sur `applicationUrl`. |
-| `geographicalLocation[0].clientCode` | `localisation[0].zone_geographique` | Format TS renvoie toujours `[]` : aucune `localisation` n'est donc produite à partir de lui. Toute la `localisation` est abandonnée si la zone, le pays, la région ou le département manque. |
+| `geographicalLocation[0].clientCode` | `localisation[0].zone_geographique` | L'API fake-ts renvoie toujours `[]` : aucune `localisation` n'est donc produite à partir de lui. Toute la `localisation` est abandonnée si la zone, le pays, la région ou le département manque. |
 | `country[0].clientCode` | `localisation[0].pays` | |
 | `region[0].clientCode` | `localisation[0].region` | Les préfixes `_TS_CO_Region_` et `R` sont retirés pour obtenir le code INSEE. |
 | `department[0].clientCode` | `localisation[0].departement` | Cas particulier de la Nouvelle-Calédonie (`988`). |
@@ -516,11 +516,11 @@ Notation : `a.b` désigne un objet imbriqué, `a[]` une liste, `a[0]` son premie
 
 `criteres` n'est envoyé que si au moins un des champs niveau de diplôme, diplôme, expérience, spécialisations ou langues est renseigné.
 
-### Champs Format TS sans équivalent dans l'API v1
+### Champs Talentsoft sans équivalent dans l'API v1
 
-| Format TS Offer | Note |
+| Offre Talentsoft | Note |
 |---|---|
-| `isTopOffer` | Toujours `false` dans Format TS. |
+| `isTopOffer` | Toujours `false` dans l'API fake-ts. |
 | `location` | Libellé d'affichage ; le libellé repris vient de `customFields.location.shortText1`. |
 | `modificationDate` | |
 | `contractTypeCountry` | |
@@ -571,21 +571,21 @@ Notation : `a.b` désigne un objet imbriqué, `a[]` une liste, `a[0]` son premie
 | `parentType` | Clé de tout objet codé : seul `clientCode` est lu. |
 | `hasChildren` | Clé de tout objet codé : seul `clientCode` est lu. |
 
-### Champs de l'API v1 sans équivalent dans le Format TS
+### Champs de l'API v1 sans équivalent dans l'API fake-ts
 
 | Offer API v1 | Note |
 |---|---|
-| `categories` | Lu par l'ingestion dans `customFields.description.customCodeTable1`, que le serializer Format TS n'expose pas (`CAT-A`/`B`/`C` ; `CAT-AEF`/`ESD`/`ES` → `APLUS`). Le web garde `sorted(categories)[0]`. |
-| `type_contrat` | Lu dans `customFields.offer.customCodeTable2` (absent de Format TS) : `CDD*`, `CDI`. |
+| `categories` | Lu par l'ingestion dans `customFields.description.customCodeTable1`, que l'API fake-ts n'expose pas (`CAT-A`/`B`/`C` ; `CAT-AEF`/`ESD`/`ES` → `APLUS`). Le web garde `sorted(categories)[0]`. |
+| `type_contrat` | Lu dans `customFields.offer.customCodeTable2` (absent de l'API fake-ts) : `CDD*`, `CDI`. |
 | `vacance_poste` | Jamais renseigné par l'ingestion (vide), stocké à `null`. |
 | `organisation.siret` | Jamais renseigné par l'ingestion (vide) ; le rapprochement d'organisme passe par `talentsoft_organisme_entity_code`. |
 | `profession.referentiel` | Constante `RMFPv2`. |
 | `profession.code_emploi_local` | Jamais renseigné, `local_job_code` reste à `null`. |
 | `criteres.documents_requis` | Jamais renseigné par l'ingestion. |
 | `criteres.competences_requises` | Jamais renseigné par l'ingestion. |
-| `conditions.temps_travail` | Lu dans `customFields.description.customCodeTable3` (absent de Format TS) : `reponse_oui` → `TEMPS_PLEIN`, `reponse_non` → `TEMPS_PARTIEL`, sinon `NON_DEFINI`. |
-| `conditions.lieu_de_travail` | Lu dans `customFields.offerCustomBlock1.customCodeTable2` (absent du Format TS) : `reponse_oui` → `TELETRAVAIL`, `reponse_non` → `SUR_SITE`, sinon `NON_DEFINI`. |
-| `conditions.management` | Lu dans `customFields.offerCustomBlock1.customCodeTable1` (absent du Format TS) : `reponse_oui` → `AVEC`, `reponse_non` → `SANS`. |
+| `conditions.temps_travail` | Lu dans `customFields.description.customCodeTable3` (absent de l'API fake-ts) : `reponse_oui` → `TEMPS_PLEIN`, `reponse_non` → `TEMPS_PARTIEL`, sinon `NON_DEFINI`. |
+| `conditions.lieu_de_travail` | Lu dans `customFields.offerCustomBlock1.customCodeTable2` (absent de l'API fake-ts) : `reponse_oui` → `TELETRAVAIL`, `reponse_non` → `SUR_SITE`, sinon `NON_DEFINI`. |
+| `conditions.management` | Lu dans `customFields.offerCustomBlock1.customCodeTable1` (absent de l'API fake-ts) : `reponse_oui` → `AVEC`, `reponse_non` → `SANS`. |
 | `conditions.salaire_titulaire` | Jamais renseigné par l'ingestion. |
 | `conditions.salaire_contractuel` | Jamais renseigné par l'ingestion. |
 | `conditions.fin_contrat` | Jamais renseigné par l'ingestion. |
