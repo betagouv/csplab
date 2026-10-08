@@ -1,3 +1,4 @@
+from functools import partial
 from unittest.mock import MagicMock, patch
 from uuid import UUID, uuid4
 
@@ -528,18 +529,137 @@ def _avec_etapes_organisme(organisme):
     return organisme
 
 
+def _superviseur(test_user):
+    organisme, recrutement, *anciennes_etapes = _superviseur_recrutement(test_user)
+    return organisme, recrutement, anciennes_etapes
+
+
+def _agent_responsable(test_user):
+    agent, organisme = create_organisme_with_agent(
+        role=AgentOrganismeRole.AGENT, utilisateur=test_user
+    )
+    recrutement, *anciennes_etapes = _recrutement_with_etapes(
+        organisme,
+        agent_link__agent=agent,
+        agent_link__role=AgentRecrutementRole.RESPONSABLE.value,
+    )
+    return organisme, recrutement, anciennes_etapes
+
+
+def _staff_without_liaison(test_user):
+    test_user.is_staff = True
+    test_user.save(update_fields=["is_staff"])
+    return _superviseur(UtilisateurDjangoFactory())
+
+
+def _agent_with_recrutement_role(recrutement_role, test_user):
+    agent, organisme = create_organisme_with_agent(
+        role=AgentOrganismeRole.AGENT, utilisateur=test_user
+    )
+    recrutement, *_ = _recrutement_with_etapes(
+        organisme, agent_link__agent=agent, agent_link__role=recrutement_role.value
+    )
+    return organisme.id, recrutement.pk, AccesRecrutementRefuse(recrutement.pk)
+
+
+def _agent_without_recrutement_role(test_user):
+    _, organisme = create_organisme_with_agent(
+        role=AgentOrganismeRole.AGENT, utilisateur=test_user
+    )
+    recrutement, *_ = _recrutement_with_etapes(organisme)
+    return organisme.id, recrutement.pk, AccesRecrutementRefuse(recrutement.pk)
+
+
+def _agent_on_unknown_recrutement(test_user):
+    _, organisme = create_organisme_with_agent(
+        role=AgentOrganismeRole.AGENT, utilisateur=test_user
+    )
+    recrutement_id = uuid4()
+    return organisme.id, recrutement_id, AccesRecrutementRefuse(recrutement_id)
+
+
+def _agent_on_another_organisme(test_user):
+    _, organisme = create_organisme_with_agent(
+        role=AgentOrganismeRole.AGENT, utilisateur=test_user
+    )
+    _, autre_organisme = create_organisme_with_agent()
+    recrutement, *_ = _recrutement_with_etapes(autre_organisme)
+    return organisme.id, recrutement.pk, AccesRecrutementRefuse(recrutement.pk)
+
+
+def _superviseur_of_another_organisme(test_user):
+    create_organisme_with_agent(
+        role=AgentOrganismeRole.SUPERVISEUR, utilisateur=test_user
+    )
+    _, autre_organisme = create_organisme_with_agent()
+    recrutement, *_ = _recrutement_with_etapes(autre_organisme)
+    return autre_organisme.id, recrutement.pk, AccesOrganismeRefuse(autre_organisme.id)
+
+
+def _non_member(test_user):
+    _, organisme = create_organisme_with_agent()
+    return organisme.id, uuid4(), AccesOrganismeRefuse(organisme.id)
+
+
+def _non_member_on_another_organisme(test_user):
+    _, organisme = create_organisme_with_agent()
+    _, autre_organisme = create_organisme_with_agent()
+    recrutement, *_ = _recrutement_with_etapes(autre_organisme)
+    return organisme.id, recrutement.pk, AccesOrganismeRefuse(organisme.id)
+
+
+def _unknown_organisme(test_user):
+    organisme_id = uuid4()
+    return organisme_id, uuid4(), OrganismeNexistePas(str(organisme_id))
+
+
+def _unknown_recrutement(test_user):
+    organisme, *_ = _superviseur_recrutement(test_user)
+    recrutement_id = uuid4()
+    return organisme.id, recrutement_id, RecrutementInexistant(recrutement_id)
+
+
+def _recrutement_of_supprime_organisme(test_user):
+    organisme, recrutement, *_ = _superviseur_recrutement(test_user)
+    organisme.supprime_le = timezone.now()
+    organisme.save(update_fields=["supprime_le"])
+    return organisme.id, recrutement.pk, OrganismeNexistePas(str(organisme.id))
+
+
+def _recrutement_of_another_supprime_organisme(test_user):
+    _, organisme = create_organisme_with_agent(
+        role=AgentOrganismeRole.SUPERVISEUR, utilisateur=test_user
+    )
+    _, autre_organisme = create_organisme_with_agent(supprime_le=timezone.now())
+    recrutement, *_ = _recrutement_with_etapes(autre_organisme)
+    return organisme.id, recrutement.pk, RecrutementInexistant(recrutement.pk)
+
+
+def _recrutement_of_another_organisme(test_user):
+    _, organisme = create_organisme_with_agent(
+        role=AgentOrganismeRole.SUPERVISEUR, utilisateur=test_user
+    )
+    _, autre_organisme = create_organisme_with_agent()
+    recrutement, *_ = _recrutement_with_etapes(autre_organisme)
+    return organisme.id, recrutement.pk, RecrutementInexistant(recrutement.pk)
+
+
 class TestInitRecrutementEtapeView:
     def test_anonymous_access_is_unauthorized(self, api_client):
         response = api_client.post(RECRUTEMENT_ETAPES_INIT_URL)
 
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
-    def test_superviseur_resets_etapes_to_organisme_etapes(
-        self, authenticated_client, test_user
-    ):
-        organisme, recrutement, reception, entretien, refus = _superviseur_recrutement(
-            test_user
-        )
+    @pytest.mark.parametrize(
+        "arrange",
+        [
+            pytest.param(_superviseur, id="superviseur"),
+            pytest.param(_agent_responsable, id="agent_responsable"),
+            pytest.param(_staff_without_liaison, id="staff_without_liaison"),
+        ],
+    )
+    def test_resets_etapes(self, authenticated_client, test_user, arrange):
+        organisme, recrutement, anciennes_etapes = arrange(test_user)
         _avec_etapes_organisme(organisme)
         updated_at_avant = recrutement.updated_at
 
@@ -557,211 +677,75 @@ class TestInitRecrutementEtapeView:
             e["uuid"] for e in data
         )
         assert not EtapeModel.objects.filter(
-            id__in=[reception.id, entretien.id, refus.id]
+            id__in=[e.id for e in anciennes_etapes]
         ).exists()
         assert recrutement.updated_at > updated_at_avant
 
-    def test_agent_responsable_resets_etapes(self, authenticated_client, test_user):
-        agent, organisme = create_organisme_with_agent(
-            role=AgentOrganismeRole.AGENT, utilisateur=test_user
-        )
-        _avec_etapes_organisme(organisme)
-        recrutement, *_ = _recrutement_with_etapes(
-            organisme,
-            agent_link__agent=agent,
-            agent_link__role=AgentRecrutementRole.RESPONSABLE.value,
-        )
+    @pytest.mark.parametrize(
+        "arrange",
+        [
+            pytest.param(
+                partial(_agent_with_recrutement_role, AgentRecrutementRole.RECRUTEUR),
+                id="recruteur",
+            ),
+            pytest.param(
+                partial(
+                    _agent_with_recrutement_role, AgentRecrutementRole.CONTRIBUTEUR
+                ),
+                id="contributeur",
+            ),
+            pytest.param(
+                _agent_without_recrutement_role, id="agent_without_recrutement_role"
+            ),
+            pytest.param(
+                _agent_on_unknown_recrutement, id="agent_on_unknown_recrutement"
+            ),
+            pytest.param(_agent_on_another_organisme, id="agent_on_another_organisme"),
+            pytest.param(
+                _superviseur_of_another_organisme,
+                id="superviseur_of_another_organisme",
+            ),
+            pytest.param(_non_member, id="non_member"),
+            pytest.param(
+                _non_member_on_another_organisme,
+                id="non_member_on_another_organisme",
+            ),
+        ],
+    )
+    def test_is_forbidden(self, authenticated_client, test_user, arrange):
+        organisme_id, recrutement_id, erreur = arrange(test_user)
 
-        response = authenticated_client.post(_init_url(organisme.id, recrutement.pk))
+        response = authenticated_client.post(_init_url(organisme_id, recrutement_id))
 
-        assert response.status_code == status.HTTP_201_CREATED
-        assert [e["nom"] for e in response.json()] == ["Accueil", "Recrutement"]
-
-    def test_staff_without_liaison_resets_etapes(self, api_client):
-        api_client.force_login(UtilisateurDjangoFactory(is_staff=True))
-        organisme, recrutement, *_ = _superviseur_recrutement(
-            UtilisateurDjangoFactory()
-        )
-        _avec_etapes_organisme(organisme)
-
-        response = api_client.post(_init_url(organisme.id, recrutement.pk))
-
-        assert response.status_code == status.HTTP_201_CREATED
-        assert [e["nom"] for e in response.json()] == ["Accueil", "Recrutement"]
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert response.json() == {"error": erreur.message}
 
     @pytest.mark.parametrize(
-        "recrutement_role",
-        [AgentRecrutementRole.RECRUTEUR, AgentRecrutementRole.CONTRIBUTEUR],
+        "arrange",
+        [
+            pytest.param(_unknown_organisme, id="unknown_organisme"),
+            pytest.param(_unknown_recrutement, id="unknown_recrutement"),
+            pytest.param(
+                _recrutement_of_supprime_organisme,
+                id="recrutement_of_supprime_organisme",
+            ),
+            pytest.param(
+                _recrutement_of_another_supprime_organisme,
+                id="recrutement_of_another_supprime_organisme",
+            ),
+            pytest.param(
+                _recrutement_of_another_organisme,
+                id="recrutement_of_another_organisme",
+            ),
+        ],
     )
-    def test_agent_with_lower_recrutement_role_is_forbidden(
-        self, authenticated_client, test_user, recrutement_role
-    ):
-        agent, organisme = create_organisme_with_agent(
-            role=AgentOrganismeRole.AGENT, utilisateur=test_user
-        )
-        recrutement, *_ = _recrutement_with_etapes(
-            organisme, agent_link__agent=agent, agent_link__role=recrutement_role.value
-        )
+    def test_returns_404(self, authenticated_client, test_user, arrange):
+        organisme_id, recrutement_id, erreur = arrange(test_user)
 
-        response = authenticated_client.post(_init_url(organisme.id, recrutement.pk))
-
-        assert response.status_code == status.HTTP_403_FORBIDDEN
-        assert response.json() == {
-            "error": AccesRecrutementRefuse(recrutement.pk).message
-        }
-
-    def test_agent_without_recrutement_role_is_forbidden(
-        self, authenticated_client, test_user
-    ):
-        _, organisme = create_organisme_with_agent(
-            role=AgentOrganismeRole.AGENT, utilisateur=test_user
-        )
-        recrutement, *_ = _recrutement_with_etapes(organisme)
-
-        response = authenticated_client.post(_init_url(organisme.id, recrutement.pk))
-
-        assert response.status_code == status.HTTP_403_FORBIDDEN
-        assert response.json() == {
-            "error": AccesRecrutementRefuse(recrutement.pk).message
-        }
-
-    def test_agent_without_recrutement_role_is_forbidden_on_unknown_recrutement(
-        self, authenticated_client, test_user
-    ):
-        _, organisme = create_organisme_with_agent(
-            role=AgentOrganismeRole.AGENT, utilisateur=test_user
-        )
-        recrutement_id = uuid4()
-
-        response = authenticated_client.post(_init_url(organisme.id, recrutement_id))
-
-        assert response.status_code == status.HTTP_403_FORBIDDEN
-        assert response.json() == {
-            "error": AccesRecrutementRefuse(recrutement_id).message
-        }
-
-    def test_agent_without_recrutement_role_is_forbidden_on_another_organisme(
-        self, authenticated_client, test_user
-    ):
-        _, organisme = create_organisme_with_agent(
-            role=AgentOrganismeRole.AGENT, utilisateur=test_user
-        )
-        _, autre_organisme = create_organisme_with_agent()
-        recrutement, *_ = _recrutement_with_etapes(autre_organisme)
-
-        response = authenticated_client.post(_init_url(organisme.id, recrutement.pk))
-
-        assert response.status_code == status.HTTP_403_FORBIDDEN
-        assert response.json() == {
-            "error": AccesRecrutementRefuse(recrutement.pk).message
-        }
-
-    def test_superviseur_of_another_organisme_is_forbidden(
-        self, authenticated_client, test_user
-    ):
-        create_organisme_with_agent(
-            role=AgentOrganismeRole.SUPERVISEUR, utilisateur=test_user
-        )
-        _, autre_organisme = create_organisme_with_agent()
-        recrutement, *_ = _recrutement_with_etapes(autre_organisme)
-
-        response = authenticated_client.post(
-            _init_url(autre_organisme.id, recrutement.pk)
-        )
-
-        assert response.status_code == status.HTTP_403_FORBIDDEN
-        assert response.json() == {
-            "error": AccesOrganismeRefuse(autre_organisme.id).message
-        }
-
-    def test_non_member_is_forbidden_before_recrutement_lookup(
-        self, authenticated_client
-    ):
-        _, organisme = create_organisme_with_agent()
-
-        response = authenticated_client.post(_init_url(organisme.id, uuid4()))
-
-        assert response.status_code == status.HTTP_403_FORBIDDEN
-        assert response.json() == {"error": AccesOrganismeRefuse(organisme.id).message}
-
-    def test_non_member_is_forbidden_on_recrutement_of_another_organisme(
-        self, authenticated_client
-    ):
-        _, organisme = create_organisme_with_agent()
-        _, autre_organisme = create_organisme_with_agent()
-        recrutement, *_ = _recrutement_with_etapes(autre_organisme)
-
-        response = authenticated_client.post(_init_url(organisme.id, recrutement.pk))
-
-        assert response.status_code == status.HTTP_403_FORBIDDEN
-        assert response.json() == {"error": AccesOrganismeRefuse(organisme.id).message}
-
-    def test_unknown_organisme_returns_404(self, authenticated_client):
-        organisme_id = uuid4()
-
-        response = authenticated_client.post(_init_url(organisme_id, uuid4()))
+        response = authenticated_client.post(_init_url(organisme_id, recrutement_id))
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
-        assert response.json() == {
-            "error": OrganismeNexistePas(str(organisme_id)).message
-        }
-
-    def test_unknown_recrutement_returns_404(self, authenticated_client, test_user):
-        organisme, *_ = _superviseur_recrutement(test_user)
-        recrutement_id = uuid4()
-
-        response = authenticated_client.post(_init_url(organisme.id, recrutement_id))
-
-        assert response.status_code == status.HTTP_404_NOT_FOUND
-        assert response.json() == {
-            "error": RecrutementInexistant(recrutement_id).message
-        }
-
-    def test_recrutement_of_supprime_organisme_returns_404(
-        self, authenticated_client, test_user
-    ):
-        organisme, recrutement, *_ = _superviseur_recrutement(test_user)
-        organisme.supprime_le = timezone.now()
-        organisme.save(update_fields=["supprime_le"])
-
-        response = authenticated_client.post(_init_url(organisme.id, recrutement.pk))
-
-        assert response.status_code == status.HTTP_404_NOT_FOUND
-        assert response.json() == {
-            "error": OrganismeNexistePas(str(organisme.id)).message
-        }
-
-    def test_recrutement_of_another_supprime_organisme_returns_404(
-        self, authenticated_client, test_user
-    ):
-        _, organisme = create_organisme_with_agent(
-            role=AgentOrganismeRole.SUPERVISEUR, utilisateur=test_user
-        )
-        _, autre_organisme = create_organisme_with_agent(supprime_le=timezone.now())
-        recrutement, *_ = _recrutement_with_etapes(autre_organisme)
-
-        response = authenticated_client.post(_init_url(organisme.id, recrutement.pk))
-
-        assert response.status_code == status.HTTP_404_NOT_FOUND
-        assert response.json() == {
-            "error": RecrutementInexistant(recrutement.pk).message
-        }
-
-    def test_recrutement_of_another_organisme_returns_404(
-        self, authenticated_client, test_user
-    ):
-        _, organisme = create_organisme_with_agent(
-            role=AgentOrganismeRole.SUPERVISEUR, utilisateur=test_user
-        )
-        _, autre_organisme = create_organisme_with_agent()
-        recrutement, *_ = _recrutement_with_etapes(autre_organisme)
-
-        response = authenticated_client.post(_init_url(organisme.id, recrutement.pk))
-
-        assert response.status_code == status.HTTP_404_NOT_FOUND
-        assert response.json() == {
-            "error": RecrutementInexistant(recrutement.pk).message
-        }
+        assert response.json() == {"error": erreur.message}
 
     def test_etape_with_candidatures_is_a_bad_request(
         self, authenticated_client, test_user
