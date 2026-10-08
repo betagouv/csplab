@@ -36,8 +36,9 @@ class OpportunityFeedbackHandler {
       restored: OpportunityFeedbackHandler.getStoredFeedbacks()[this.opportunityId] ?? null,
     })
 
-    if (this.container.dataset.feedbackInit)
+    if (this.container.dataset.feedbackInit) {
       return
+    }
     this.container.dataset.feedbackInit = 'true'
 
     this.setupClickHandler()
@@ -59,10 +60,12 @@ class OpportunityFeedbackHandler {
    */
   handleClick(e) {
     const btn = e.target.closest('.csplab-feedback__btn')
-    if (!btn)
+    if (!btn) {
       return
-    if (this.throttleTimer)
+    }
+    if (this.throttleTimer) {
       return
+    }
 
     const { sentiment } = btn.dataset
 

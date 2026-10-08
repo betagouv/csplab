@@ -87,8 +87,9 @@ const meta = {
       watch(
         () => args.modelValue,
         (value) => {
-          if (value !== undefined)
+          if (value !== undefined) {
             selected.value = value
+          }
         },
       )
 

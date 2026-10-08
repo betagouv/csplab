@@ -12,8 +12,9 @@ function isLuhnValid(digits: string): boolean {
     let digit = Number(char)
     if (index % 2 === 1) {
       digit *= 2
-      if (digit > LUHN_DIGIT_OVERFLOW_THRESHOLD)
+      if (digit > LUHN_DIGIT_OVERFLOW_THRESHOLD) {
         digit -= LUHN_DIGIT_OVERFLOW_THRESHOLD
+      }
     }
     total += digit
   }
@@ -21,7 +22,8 @@ function isLuhnValid(digits: string): boolean {
 }
 
 export function isSiretValid(value: string): boolean {
-  if (value.length !== SIRET_LENGTH || !/^\d+$/.test(value))
+  if (value.length !== SIRET_LENGTH || !/^\d+$/.test(value)) {
     return false
+  }
   return value.startsWith(LA_POSTE_SIREN) || isLuhnValid(value)
 }

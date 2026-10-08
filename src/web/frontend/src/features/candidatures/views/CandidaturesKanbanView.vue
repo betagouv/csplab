@@ -31,8 +31,9 @@ const { filteredEtapes } = filters
 const route = useRoute()
 
 watch(() => route.params.candidatureUuid, async (current, previous) => {
-  if (current || typeof previous !== 'string')
+  if (current || typeof previous !== 'string') {
     return
+  }
   await nextTick()
   document.querySelector<HTMLElement>(`[data-candidature-uuid="${previous}"] a`)?.focus()
 })
@@ -60,8 +61,9 @@ const refusEtapeUuid = computed(() => {
 })
 
 const sourceEtape = computed(() => {
-  if (!currentEtapeUuid.value)
+  if (!currentEtapeUuid.value) {
     return null
+  }
   return candidatureKanban.value.find(e => e.uuid === currentEtapeUuid.value) ?? null
 })
 
@@ -72,8 +74,9 @@ const selectedCandidats = computed(() =>
 )
 
 const selectedCandidatureUuids = computed(() => {
-  if (!currentEtapeUuid.value)
+  if (!currentEtapeUuid.value) {
     return new Set<string>()
+  }
   return selectedByEtape.value.get(currentEtapeUuid.value) ?? new Set<string>()
 })
 
@@ -102,10 +105,12 @@ function handleRefuser(): void {
 }
 
 function handleConfirmBatchMove(targetEtapeUuid: string): void {
-  if (targetEtapeUuid === refusEtapeUuid.value)
+  if (targetEtapeUuid === refusEtapeUuid.value) {
     refus.request(selectedCandidats.value, motifRefus => applyBatchMove(targetEtapeUuid, motifRefus))
-  else
+  }
+  else {
     applyBatchMove(targetEtapeUuid)
+  }
 }
 
 function applyBatchMove(targetEtapeUuid: string, motifRefus?: MotifRefus): void {

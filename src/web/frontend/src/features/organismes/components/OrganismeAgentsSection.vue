@@ -68,8 +68,9 @@ async function handleAdd(role: Role) {
 }
 
 watch(attachDrawerOpen, (isOpen) => {
-  if (!isOpen)
+  if (!isOpen) {
     reset()
+  }
 })
 
 const rows = computed(() => agents.value ?? [])
@@ -90,8 +91,9 @@ const countLabel = computed(() => {
 })
 
 watch(() => roleChange.requested, async (change) => {
-  if (!change)
+  if (!change) {
     return
+  }
   const { agent, role } = change
   roleChange.clear()
   try {
@@ -108,18 +110,21 @@ watch(() => roleChange.requested, async (change) => {
 })
 
 watch(() => revocation.requested, (agent) => {
-  if (agent)
+  if (agent) {
     revocationDialogOpen.value = true
+  }
 })
 
 watch(revocationDialogOpen, (isOpen) => {
-  if (!isOpen)
+  if (!isOpen) {
     revocation.clear()
+  }
 })
 
 async function handleRevocation(): Promise<void> {
-  if (!revocation.requested)
+  if (!revocation.requested) {
     return
+  }
   const agent = revocation.requested
   try {
     await updateAgent({

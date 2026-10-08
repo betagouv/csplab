@@ -16,10 +16,12 @@ function submitButton() {
 
 async function fillForm(user: ReturnType<typeof setupUser>, { nom = 'Nouvel organisme', siret = '', versant = '' } = {}) {
   await user.type(await screen.findByRole('textbox', { name: 'Nom de l\'organisme' }), nom)
-  if (siret)
+  if (siret) {
     await user.type(screen.getByRole('textbox', { name: 'SIRET de l\'organisme' }), siret)
-  if (versant)
+  }
+  if (versant) {
     await user.click(screen.getByRole('radio', { name: versant }))
+  }
 }
 
 describe('organismeFormDrawer', () => {

@@ -32,15 +32,17 @@ export function useUnsavedChangesGuard({ ignore }: UnsavedChangesGuardOptions = 
   function settle(leave: boolean): void {
     const confirmation = pending.value
     pending.value = null
-    if (leave)
+    if (leave) {
       confirmation?.inputs.forEach(input => input.discard())
+    }
     confirmation?.resolve(leave)
   }
 
   async function confirmLeave(leftInputs: UnsavedInput[] = [...inputs]): Promise<boolean> {
     const dirtyInputs = leftInputs.filter(input => input.isDirty())
-    if (dirtyInputs.length === 0)
+    if (dirtyInputs.length === 0) {
       return true
+    }
     settle(false)
     return new Promise((resolve) => {
       pending.value = { resolve, inputs: dirtyInputs }
@@ -57,8 +59,9 @@ export function useUnsavedChangesGuard({ ignore }: UnsavedChangesGuardOptions = 
   onScopeDispose(removeGuard)
 
   function warnBeforeUnload(event: BeforeUnloadEvent): void {
-    if (hasUnsavedChanges.value)
+    if (hasUnsavedChanges.value) {
       event.preventDefault()
+    }
   }
   onMounted(() => window.addEventListener('beforeunload', warnBeforeUnload))
   onUnmounted(() => window.removeEventListener('beforeunload', warnBeforeUnload))
@@ -81,8 +84,9 @@ export function useUnsavedChanges(
   { isLeftBy }: UnsavedChangesOptions = {},
 ): void {
   const inputs = inject(UNSAVED_INPUTS, null)
-  if (!inputs)
+  if (!inputs) {
     return
+  }
   const input: UnsavedInput = { isDirty, discard, isLeftBy }
   inputs.add(input)
   onScopeDispose(() => inputs.delete(input))

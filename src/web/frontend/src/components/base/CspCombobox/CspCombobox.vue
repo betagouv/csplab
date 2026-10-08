@@ -52,17 +52,20 @@ const searchTerm = defineModel<string>('searchTerm', { default: '' })
 const open = defineModel<boolean>('open', { default: false })
 
 function displayValue(value: unknown): string {
-  if (value == null)
+  if (value == null) {
     return ''
+  }
   return props.options.find(option => option.value === value)?.label ?? searchTerm.value
 }
 
 const statusMessage = computed(() => {
-  if (!open.value || props.pending)
+  if (!open.value || props.pending) {
     return ''
+  }
   const count = props.options.length
-  if (count === 0)
+  if (count === 0) {
     return props.actionLabel ?? props.emptyLabel
+  }
   return `${count} ${pluralize(count, 'résultat')}`
 })
 

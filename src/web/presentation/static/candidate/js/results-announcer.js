@@ -31,13 +31,15 @@ class ResultsAnnouncer {
     })
 
     document.body.addEventListener('htmx:responseError', (e) => {
-      if (this.isResultsSwap(e))
+      if (this.isResultsSwap(e)) {
         this.clearBusy()
+      }
     })
 
     document.body.addEventListener('htmx:sendError', (e) => {
-      if (this.isResultsSwap(e))
+      if (this.isResultsSwap(e)) {
         this.clearBusy()
+      }
     })
   }
 
@@ -52,8 +54,9 @@ class ResultsAnnouncer {
 
   announce() {
     const heading = this.resultsZone.querySelector('h2')
-    if (!heading)
+    if (!heading) {
       return
+    }
 
     this.liveRegion.textContent = ''
     setTimeout(() => {

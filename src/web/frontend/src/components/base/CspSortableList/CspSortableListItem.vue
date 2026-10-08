@@ -58,10 +58,12 @@ const showTopIndicator = computed(() => isDraggedOver.value && isSourceAfterMe.v
 const showBottomIndicator = computed(() => isDraggedOver.value && isSourceBeforeMe.value)
 
 const closestEdge = computed(() => {
-  if (showTopIndicator.value)
+  if (showTopIndicator.value) {
     return 'top'
-  if (showBottomIndicator.value)
+  }
+  if (showBottomIndicator.value) {
     return 'bottom'
+  }
   return null
 })
 

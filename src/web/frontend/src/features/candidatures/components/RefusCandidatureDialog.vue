@@ -37,8 +37,9 @@ const description = computed(() => {
 })
 
 function handleConfirm(): void {
-  if (motifRefus.value)
+  if (motifRefus.value) {
     emit('confirm', motifRefus.value)
+  }
 }
 </script>
 
@@ -47,7 +48,7 @@ function handleConfirm(): void {
     :open="open"
     size="sm"
     title="Refus de candidature"
-    @update:open="(value) => { if (!value) emit('cancel') }"
+    @update:open="(value) => { if (!value) { emit('cancel') } }"
   >
     <div class="refus-candidature-dialog">
       <p class="refus-candidature-dialog__description">

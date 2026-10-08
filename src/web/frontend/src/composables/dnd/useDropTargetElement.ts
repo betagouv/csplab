@@ -21,14 +21,16 @@ export function useDropTargetElement(options: UseDropTargetElementOptions) {
   watch(
     [options.element, enabled],
     ([element, isEnabled], _, onCleanup) => {
-      if (!element || !isEnabled)
+      if (!element || !isEnabled) {
         return
+      }
 
       const cleanup = dropTargetForElements({
         element,
         canDrop: ({ source }) => {
-          if (options.canDrop && !options.canDrop(source.data))
+          if (options.canDrop && !options.canDrop(source.data)) {
             return false
+          }
           return true
         },
         getData: ({ input, element: dropElement }) => attachClosestEdge(

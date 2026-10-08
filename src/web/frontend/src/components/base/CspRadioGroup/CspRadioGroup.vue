@@ -35,8 +35,9 @@ const messagesId = useId()
 const model = defineModel<string>({ required: true })
 
 function updateModel(val: unknown): void {
-  if (typeof val === 'string')
+  if (typeof val === 'string') {
     model.value = val
+  }
 }
 </script>
 

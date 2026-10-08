@@ -73,8 +73,9 @@ export async function searchAgentByEmail(
     return data!
   }
   catch (error) {
-    if (isHttpStatus(error, 404))
+    if (isHttpStatus(error, 404)) {
       return null
+    }
     throw error
   }
 }

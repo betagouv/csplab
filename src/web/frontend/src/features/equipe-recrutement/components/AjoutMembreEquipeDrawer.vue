@@ -55,8 +55,9 @@ function handleReset(): void {
 }
 
 function handleSubmit(): void {
-  if (isSearched.value)
+  if (isSearched.value) {
     emit('add', role.value)
+  }
 }
 
 function setEmailError(message: string): void {

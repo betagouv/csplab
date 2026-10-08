@@ -31,8 +31,9 @@ watch(
   () => [props.conversationUuid, messages.value.length, showSkeleton.value],
   () => {
     const container = messagesSection.value?.$el as HTMLElement | undefined
-    if (container)
+    if (container) {
       container.scrollTop = container.scrollHeight
+    }
   },
   { flush: 'post' },
 )

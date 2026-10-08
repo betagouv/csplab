@@ -103,8 +103,9 @@ export const useCandidatures = defineQuery(() => {
   function findCandidature(uuid: string): Candidature | null {
     for (const etape of candidatureKanban.value) {
       const found = etape.candidatures.find(c => c.uuid === uuid)
-      if (found)
+      if (found) {
         return found
+      }
     }
     return null
   }
@@ -163,22 +164,26 @@ export const useCandidatures = defineQuery(() => {
   async function moveCandidature(params: MoveCandidatureParams): Promise<boolean> {
     const { sourceColumnId, targetColumnId, cardId, motifRefus } = params
 
-    if (sourceColumnId === targetColumnId)
+    if (sourceColumnId === targetColumnId) {
       return false
+    }
 
     const kanbanData = kanban.data.value
-    if (!kanbanData)
+    if (!kanbanData) {
       return false
+    }
 
     const sourceEtape = kanbanData.etapes.find(e => e.uuid === sourceColumnId)
     const targetEtape = kanbanData.etapes.find(e => e.uuid === targetColumnId)
 
-    if (!sourceEtape || !targetEtape)
+    if (!sourceEtape || !targetEtape) {
       return false
+    }
 
     const candidatureIndex = sourceEtape.candidatures.findIndex(c => c.uuid === cardId)
-    if (candidatureIndex === -1)
+    if (candidatureIndex === -1) {
       return false
+    }
 
     const candidature = sourceEtape.candidatures[candidatureIndex] as Candidature
 
@@ -206,22 +211,26 @@ export const useCandidatures = defineQuery(() => {
     const { candidaturesByEtape, targetColumnId, motifRefus } = params
 
     const kanbanData = kanban.data.value
-    if (!kanbanData)
+    if (!kanbanData) {
       return
+    }
 
     const targetEtape = kanbanData.etapes.find(e => e.uuid === targetColumnId)
-    if (!targetEtape)
+    if (!targetEtape) {
       return
+    }
 
     const candidaturesToMove: Candidature[] = []
 
     for (const [sourceEtapeUuid, candidatureUuids] of candidaturesByEtape) {
-      if (sourceEtapeUuid === targetColumnId)
+      if (sourceEtapeUuid === targetColumnId) {
         continue
+      }
 
       const sourceEtape = kanbanData.etapes.find(e => e.uuid === sourceEtapeUuid)
-      if (!sourceEtape)
+      if (!sourceEtape) {
         continue
+      }
 
       for (const uuid of candidatureUuids) {
         const candidature = sourceEtape.candidatures.find(c => c.uuid === uuid)
@@ -231,8 +240,9 @@ export const useCandidatures = defineQuery(() => {
       }
     }
 
-    if (candidaturesToMove.length === 0)
+    if (candidaturesToMove.length === 0) {
       return
+    }
 
     const movedUuids = new Set(candidaturesToMove.map(c => c.uuid))
 

@@ -128,8 +128,9 @@ const meta = {
       watch(
         () => args.page,
         (value) => {
-          if (value !== undefined)
+          if (value !== undefined) {
             page.value = value
+          }
         },
       )
 

@@ -111,8 +111,9 @@ const meta = {
       watch(
         () => args.modelValue,
         (value) => {
-          if (Array.isArray(value))
+          if (Array.isArray(value)) {
             selected.value = [...value]
+          }
         },
       )
 
@@ -159,8 +160,9 @@ export const NoLabel: Story = {
       watch(
         () => args.modelValue,
         (value) => {
-          if (Array.isArray(value))
+          if (Array.isArray(value)) {
             selected.value = [...value]
+          }
         },
       )
 

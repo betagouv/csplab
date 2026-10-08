@@ -125,7 +125,9 @@ const meta = {
 
       watch(
         () => args.modelValue,
-        (next) => { value.value = next ?? '' },
+        (next) => {
+          value.value = next ?? ''
+        },
       )
 
       return { args, value }

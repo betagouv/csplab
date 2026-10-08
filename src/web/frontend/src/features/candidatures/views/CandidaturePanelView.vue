@@ -62,15 +62,17 @@ const { position, etape, goPrevious, goNext } = useCandidatureNavigation(candida
 const queryCache = useQueryCache()
 watch(position, (current) => {
   for (const uuid of [current?.previousUuid, current?.nextUuid]) {
-    if (uuid)
+    if (uuid) {
       void queryCache.refresh(queryCache.ensure(candidatureDetailQuery(paramsFor(uuid))))
+    }
   }
 }, { immediate: true })
 
 const scrollArea = ref<HTMLElement | null>(null)
 watch(candidatureUuid, () => {
-  if (scrollArea.value)
+  if (scrollArea.value) {
     scrollArea.value.scrollTop = 0
+  }
 })
 
 const TABS = tabItems(CANDIDATURE_PANEL_TAB_LABELS, CANDIDATURE_PANEL_TAB_ICONS)
@@ -93,13 +95,15 @@ const unsavedChanges = useUnsavedChangesGuard({
 const etapeChange = useEtapeChange(candidatureUuid, close)
 
 async function requestEtapeChange(targetEtapeUuid: string): Promise<void> {
-  if (await unsavedChanges.confirmLeave())
+  if (await unsavedChanges.confirmLeave()) {
     etapeChange.request(targetEtapeUuid)
+  }
 }
 
 function handleUpdateOpen(open: boolean): void {
-  if (!open)
+  if (!open) {
     close()
+  }
 }
 </script>
 

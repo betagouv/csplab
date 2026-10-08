@@ -22,7 +22,8 @@ export function provideAgentActions(): AgentActions {
 
 export function useAgentActions(): AgentActions {
   const actions = inject(KEY)
-  if (!actions)
+  if (!actions) {
     throw new Error('useAgentActions must be used within provideAgentActions')
+  }
   return actions
 }

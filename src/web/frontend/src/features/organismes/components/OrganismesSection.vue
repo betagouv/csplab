@@ -72,8 +72,9 @@ async function handleCreate(payload: CreateOrganismePayload): Promise<void> {
 }
 
 async function handleUpdate(payload: UpdateOrganismePayload): Promise<void> {
-  if (!edition.requested)
+  if (!edition.requested) {
     return
+  }
   try {
     await update({ organismeUuid: edition.requested.uuid, payload })
     addToast({ variant: 'success', title: 'Organisme modifié' })

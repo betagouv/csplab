@@ -29,8 +29,9 @@ const gestionAts = ref<'oui' | 'non'>('oui')
 const siretError = ref<string | null>(null)
 
 watch(open, (isOpen) => {
-  if (!isOpen)
+  if (!isOpen) {
     return
+  }
   nom.value = props.organisme?.nom ?? ''
   siret.value = props.organisme?.siret ?? ''
   versant.value = props.organisme?.versant ?? ''
@@ -41,8 +42,9 @@ watch(open, (isOpen) => {
 watch(siret, (value) => {
   siretError.value = null
   const digits = value.replace(/\D/g, '')
-  if (digits !== value)
+  if (digits !== value) {
     siret.value = digits
+  }
 })
 
 const VERSANT_OPTIONS = Object.entries(VERSANT_LABELS).map(
@@ -61,8 +63,9 @@ const canSubmit = computed(() =>
 )
 
 function handleSubmit(): void {
-  if (!canSubmit.value || props.saving)
+  if (!canSubmit.value || props.saving) {
     return
+  }
   const commonFields = {
     nom: nom.value.trim(),
     versant: versant.value as Versant,

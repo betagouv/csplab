@@ -8,14 +8,16 @@ const colorMode = ref<ColorMode>('system')
 const systemPrefersDark = ref(false)
 
 function getSystemPreference(): boolean {
-  if (typeof window === 'undefined')
+  if (typeof window === 'undefined') {
     return false
+  }
   return window.matchMedia('(prefers-color-scheme: dark)').matches
 }
 
 function applyTheme(isDark: boolean) {
-  if (typeof document === 'undefined')
+  if (typeof document === 'undefined') {
     return
+  }
   document.documentElement.setAttribute('data-fr-theme', isDark ? 'dark' : 'light')
 }
 

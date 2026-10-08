@@ -29,8 +29,9 @@ export function useKanbanSelection(
 
     for (const [etapeUuid, candidatureUuids] of selectedByEtape.value) {
       const etape = etapes.value.find(e => e.uuid === etapeUuid)
-      if (!etape)
+      if (!etape) {
         continue
+      }
 
       for (const uuid of candidatureUuids) {
         const candidature = etape.candidatures.find(c => c.uuid === uuid)
@@ -57,12 +58,14 @@ export function useKanbanSelection(
 
   function isColumnSelected(etapeUuid: string): boolean {
     const selected = selectedByEtape.value.get(etapeUuid)
-    if (!selected || selected.size === 0)
+    if (!selected || selected.size === 0) {
       return false
+    }
 
     const etape = etapes.value.find(e => e.uuid === etapeUuid)
-    if (!etape)
+    if (!etape) {
       return false
+    }
 
     return selected.size === etape.candidatures.length && etape.candidatures.length > 0
   }

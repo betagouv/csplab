@@ -23,8 +23,9 @@ function createMediaQueryMock(matches: boolean) {
     },
     removeEventListener: (_: string, handler: (e: MediaQueryListEvent) => void) => {
       const idx = listeners.indexOf(handler)
-      if (idx >= 0)
+      if (idx >= 0) {
         listeners.splice(idx, 1)
+      }
     },
     dispatchChange: (newMatches: boolean) => {
       listeners.forEach(handler => handler({ matches: newMatches } as MediaQueryListEvent))

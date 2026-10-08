@@ -176,8 +176,9 @@ export const WithPinnedItems: Story = {
 
       function onReorder(newItems: PinnedDemoItem[]) {
         const pinnedIndex = newItems.findIndex(item => item.pinned)
-        if (pinnedIndex !== 0)
+        if (pinnedIndex !== 0) {
           return
+        }
 
         items.value = newItems
       }

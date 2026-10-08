@@ -31,8 +31,9 @@ const emit = defineEmits<{
 const listId = useId()
 
 function isDraggable(item: T, index: number) {
-  if (props.disabled)
+  if (props.disabled) {
     return false
+  }
   return props.isItemDraggable?.(item, index) ?? true
 }
 
@@ -47,45 +48,56 @@ function getLabel(item: T): string {
 function isReorderValid(newItems: T[]): boolean {
   for (let i = 0; i < props.items.length; i++) {
     const original = props.items[i]
-    if (isDraggable(original, i))
+    if (isDraggable(original, i)) {
       continue
-    if (props.getItemKey(newItems[i]) !== props.getItemKey(original))
+    }
+    if (props.getItemKey(newItems[i]) !== props.getItemKey(original)) {
       return false
+    }
   }
   return true
 }
 
 function tryReorder(fromIndex: number, toIndex: number) {
-  if (props.disabled)
+  if (props.disabled) {
     return
-  if (fromIndex === toIndex)
+  }
+  if (fromIndex === toIndex) {
     return
-  if (toIndex < 0 || toIndex >= props.items.length)
+  }
+  if (toIndex < 0 || toIndex >= props.items.length) {
     return
-  if (!isDraggable(props.items[fromIndex], fromIndex))
+  }
+  if (!isDraggable(props.items[fromIndex], fromIndex)) {
     return
+  }
 
   const newItems = reorder({ list: props.items, startIndex: fromIndex, finishIndex: toIndex })
-  if (!isReorderValid(newItems))
+  if (!isReorderValid(newItems)) {
     return
+  }
 
   emit('reorder', newItems)
   announce(`${getLabel(props.items[fromIndex])} déplacé`)
 }
 
 function canMoveUp(index: number): boolean {
-  if (index <= 0)
+  if (index <= 0) {
     return false
-  if (!isDraggable(props.items[index], index))
+  }
+  if (!isDraggable(props.items[index], index)) {
     return false
+  }
   return isDraggable(props.items[index - 1], index - 1)
 }
 
 function canMoveDown(index: number): boolean {
-  if (index >= props.items.length - 1)
+  if (index >= props.items.length - 1) {
     return false
-  if (!isDraggable(props.items[index], index))
+  }
+  if (!isDraggable(props.items[index], index)) {
     return false
+  }
   return isDraggable(props.items[index + 1], index + 1)
 }
 
@@ -101,18 +113,21 @@ onMounted(() => {
   return monitorForElements({
     canMonitor: ({ source }) => source.data.type === SORTABLE_ITEM_TYPE && source.data.listId === listId,
     onDrop: ({ source, location }) => {
-      if (props.disabled)
+      if (props.disabled) {
         return
+      }
 
       const destination = location.current.dropTargets[0]
-      if (!destination)
+      if (!destination) {
         return
+      }
 
       const startIndex = source.data.index
       const indexOfTarget = destination.data.index
 
-      if (typeof startIndex !== 'number' || typeof indexOfTarget !== 'number')
+      if (typeof startIndex !== 'number' || typeof indexOfTarget !== 'number') {
         return
+      }
 
       const closestEdgeOfTarget: 'top' | 'bottom' = indexOfTarget > startIndex ? 'bottom' : 'top'
 

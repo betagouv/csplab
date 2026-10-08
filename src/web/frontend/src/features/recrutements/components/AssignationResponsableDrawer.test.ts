@@ -42,8 +42,9 @@ describe('assignationResponsableDrawer', () => {
     renderDrawer()
 
     await screen.findByRole('dialog')
-    for (const recrutement of RECRUTEMENTS)
+    for (const recrutement of RECRUTEMENTS) {
       expect(dismissButton(recrutement.intitule)).toBeInTheDocument()
+    }
     expect(screen.getByText('2 offres sélectionnées')).toBeInTheDocument()
   })
 

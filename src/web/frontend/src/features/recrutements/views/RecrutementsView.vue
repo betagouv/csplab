@@ -127,10 +127,12 @@ function assignationToast(
 }
 
 function assignationErrorTitle(assignationError: unknown): string {
-  if (assignationError instanceof HttpError && assignationError.status === 403)
+  if (assignationError instanceof HttpError && assignationError.status === 403) {
     return 'Vous n\'avez pas les droits pour assigner un responsable'
-  if (assignationError instanceof HttpError && assignationError.status === 404)
+  }
+  if (assignationError instanceof HttpError && assignationError.status === 404) {
     return 'Ce membre n\'est plus rattaché à l\'organisme'
+  }
   return 'L\'assignation du responsable a échoué'
 }
 

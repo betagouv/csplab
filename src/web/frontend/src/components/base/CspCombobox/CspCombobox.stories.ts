@@ -66,8 +66,9 @@ function renderCombobox(args: Partial<CspComboboxProps>) {
       const searchTerm = ref('')
       const filtered = computed(() => {
         const term = searchTerm.value.trim().toLowerCase()
-        if (!term)
+        if (!term) {
           return DEMO_OPTIONS
+        }
         return DEMO_OPTIONS.filter(o => o.label.toLowerCase().includes(term))
       })
       return { args, model, searchTerm, filtered }

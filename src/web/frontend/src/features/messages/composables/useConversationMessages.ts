@@ -22,8 +22,9 @@ export function useReplyConversation(params: MaybeRefOrGetter<ConversationMessag
   function appendToThread({ candidature, conversationUuid }: ConversationMessagesParams, message: ConversationMessage) {
     const key = MESSAGES_QUERY_KEYS.conversation(candidature, conversationUuid)
     const thread = queryCache.getQueryData<PaginatedConversationMessageList>(key)
-    if (!thread)
+    if (!thread) {
       return
+    }
     queryCache.setQueryData(key, {
       ...thread,
       count: thread.count + 1,
@@ -35,8 +36,9 @@ export function useReplyConversation(params: MaybeRefOrGetter<ConversationMessag
     const key = MESSAGES_QUERY_KEYS.conversations(candidature)
     const list = queryCache.getQueryData<PaginatedConversationList>(key)
     const conversation = list?.results.find(({ uuid }) => uuid === conversationUuid)
-    if (!list || !conversation)
+    if (!list || !conversation) {
       return
+    }
     queryCache.setQueryData(key, {
       ...list,
       results: [
