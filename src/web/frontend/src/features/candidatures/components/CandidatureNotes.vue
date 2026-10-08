@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import type { CandidatureParams, NoteRouteNames } from '../types'
 import { computed } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import CspAsyncSection from '@/components/base/CspAsyncSection/CspAsyncSection.vue'
+import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspCard from '@/components/base/CspCard/CspCard.vue'
 import CspEmptyState from '@/components/base/CspEmptyState/CspEmptyState.vue'
 import CspSkeleton from '@/components/base/CspSkeleton/CspSkeleton.vue'
@@ -28,6 +29,16 @@ const title = computed(() => `${total.value} ${pluralize(total.value, 'note')}`)
 
 const route = useRoute()
 const isCreatingNote = computed(() => route.name === props.routes.create)
+
+const router = useRouter()
+
+function startNote(): void {
+  const { organismeUuid, recrutementUuid, candidatureUuid } = props.candidature
+  void router.push({
+    name: props.routes.create,
+    params: { organismeUuid, recrutementUuid, candidatureUuid },
+  })
+}
 </script>
 
 <template>
@@ -84,12 +95,32 @@ const isCreatingNote = computed(() => route.name === props.routes.create)
       <CspEmptyState
         v-if="notes.length === 0"
         icon="ri:sticky-note-line"
-        title="La candidature ne contient aucune note"
-      />
+        title="Aucune note sur cette candidature."
+      >
+        <template #action>
+          <CspButton
+            variant="secondary"
+            icon="ri:add-line"
+            is-icon-left
+            label="Ajouter une note"
+            @click="startNote"
+          />
+        </template>
+      </CspEmptyState>
       <template v-else>
-        <h3 class="candidature-notes__title">
-          {{ title }}
-        </h3>
+        <header class="candidature-notes__header">
+          <h3 class="candidature-notes__title">
+            {{ title }}
+          </h3>
+          <CspButton
+            variant="secondary"
+            size="sm"
+            icon="ri:add-line"
+            is-icon-left
+            label="Ajouter une note"
+            @click="startNote"
+          />
+        </header>
         <ul class="candidature-notes__list">
           <CspCard
             v-for="note in notes"
@@ -125,6 +156,18 @@ const isCreatingNote = computed(() => route.name === props.routes.create)
 </template>
 
 <style scoped lang="scss">
+.candidature-notes__header {
+  display: flex;
+  gap: var(--csp-space-4);
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--csp-space-4);
+
+  .candidature-notes__title {
+    margin: 0;
+  }
+}
+
 .candidature-notes__title {
   margin: 0 0 var(--csp-space-4);
   font-size: var(--csp-font-size-base);
