@@ -6,6 +6,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import Http404, HttpRequest, HttpResponseBase
 from django.shortcuts import redirect
 from django.urls import reverse
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.views import View
 from django.views.generic import TemplateView
 from drf_spectacular.utils import extend_schema
@@ -24,15 +25,37 @@ from presentation.api.authentication import SessionApiMixin
 from presentation.api.serializers import GenericErrorSerializer, TokenErrorSerializer
 from presentation.identite.serializers import UtilisateurSerializer
 
+LOGIN_NEXT_SESSION_KEY = "login_next"
+
+
+def _safe_next_url(request: HttpRequest, url: str | None) -> str | None:
+    if url and url_has_allowed_host_and_scheme(
+        url,
+        allowed_hosts={request.get_host()},
+        require_https=request.is_secure(),
+    ):
+        return url
+    return None
+
 
 class LoginView(TemplateView):
     template_name = "registration/login.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["next"] = _safe_next_url(self.request, self.request.GET.get("next"))
+        return context
 
 
 class ProconnectLoginView(View):
     def get(self, request: HttpRequest, *args, **kwargs) -> HttpResponseBase:
         if not settings.PROCONNECT_LOGIN_ENABLED:
             raise Http404
+        next_url = _safe_next_url(request, request.GET.get("next"))
+        if next_url:
+            request.session[LOGIN_NEXT_SESSION_KEY] = next_url
+        else:
+            request.session.pop(LOGIN_NEXT_SESSION_KEY, None)
         redirect_uri = request.build_absolute_uri(
             reverse("identite:proconnect_callback")
         )
@@ -61,7 +84,10 @@ class ProconnectCallbackView(View):
             backend="infrastructure.authentication.proconnect_backend.ProconnectBackend",
         )
         request.session["oidc_id_token"] = token.get("id_token")
-        return redirect(settings.LOGIN_REDIRECT_URL)
+        next_url = _safe_next_url(
+            request, request.session.pop(LOGIN_NEXT_SESSION_KEY, None)
+        )
+        return redirect(next_url or settings.LOGIN_REDIRECT_URL)
 
     def _login_failure(self, request: HttpRequest) -> HttpResponseBase:
         messages.error(
