@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import type { CandidatureParams } from '../types'
+import type { CandidatureParams, NoteRouteNames } from '../types'
 import { computed } from 'vue'
+import { useRoute } from 'vue-router'
 import CspAsyncSection from '@/components/base/CspAsyncSection/CspAsyncSection.vue'
 import CspCard from '@/components/base/CspCard/CspCard.vue'
 import CspEmptyState from '@/components/base/CspEmptyState/CspEmptyState.vue'
@@ -9,10 +10,12 @@ import { useMinimumPending } from '@/composables/async/useMinimumPending'
 import { formatDate, formatTime } from '@/utils/date'
 import { pluralize } from '@/utils/format'
 import { useCandidatureNotes } from '../composables/useCandidatureNotes'
+import CandidatureNewNoteForm from './CandidatureNewNoteForm.vue'
 import CandidatureNoteMessage from './CandidatureNoteMessage.vue'
 
 const props = defineProps<{
   candidature: CandidatureParams
+  routes: NoteRouteNames
 }>()
 
 const SKELETON_ROWS = 2
@@ -22,10 +25,21 @@ const { notes, total, pending, error } = useCandidatureNotes(() => props.candida
 const showSkeleton = useMinimumPending(pending)
 
 const title = computed(() => `${total.value} ${pluralize(total.value, 'note')}`)
+
+const route = useRoute()
+const isCreatingNote = computed(() => route.name === props.routes.create)
 </script>
 
 <template>
-  <section class="candidature-notes">
+  <CandidatureNewNoteForm
+    v-if="isCreatingNote"
+    :candidature="candidature"
+    :routes="routes"
+  />
+  <section
+    v-else
+    class="candidature-notes"
+  >
     <CspAsyncSection
       :pending="showSkeleton"
       :error="error"

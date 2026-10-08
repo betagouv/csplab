@@ -1,5 +1,6 @@
 import type { RouteRecordRaw } from 'vue-router'
 import type { CandidaturePanelTabKey, CandidatureTabKey } from './constants/candidature'
+import type { NoteRouteNames } from './types'
 import type { ConversationRouteNames } from '@/features/messages/types'
 import { tabMetaFor } from '@/composables/navigation/tabs'
 import { ORGANISME_PATH_PREFIX, UUID_ROUTE_PARAM } from '@/router/params'
@@ -21,6 +22,7 @@ export const CANDIDATURES_VIEW_ROUTE_NAMES = {
 export interface CandidaturePanelRouteNames {
   tabs: Record<CandidaturePanelTabKey, string>
   conversations: ConversationRouteNames
+  notes: NoteRouteNames
 }
 
 function panelRouteNames(prefix: string): CandidaturePanelRouteNames {
@@ -37,6 +39,10 @@ function panelRouteNames(prefix: string): CandidaturePanelRouteNames {
       conversations: tabs.messages,
       create: `${prefix}-nouvelle-conversation`,
       conversation: `${prefix}-conversation`,
+    },
+    notes: {
+      notes: tabs.notes,
+      create: `${prefix}-nouvelle-note`,
     },
   }
 }
@@ -58,13 +64,14 @@ const panelTabMeta = tabMetaFor(CANDIDATURE_PANEL_TAB_LABELS)
 const RECRUTEMENT_PATH = `${ORGANISME_PATH_PREFIX}/recrutements/:recrutementUuid${UUID_ROUTE_PARAM}`
 const CANDIDATURE_PANEL_PATH = `candidatures/:candidatureUuid${UUID_ROUTE_PARAM}`
 
-function panelRoutes({ tabs, conversations }: CandidaturePanelRouteNames): RouteRecordRaw[] {
+function panelRoutes({ tabs, conversations, notes }: CandidaturePanelRouteNames): RouteRecordRaw[] {
   const panel = () => import('./views/CandidaturePanelView.vue')
   return [
     { path: CANDIDATURE_PANEL_PATH, name: tabs.candidature, component: panel, meta: panelTabMeta('candidature') },
     { path: `${CANDIDATURE_PANEL_PATH}/historique`, name: tabs.historique, component: panel, meta: panelTabMeta('historique') },
     { path: `${CANDIDATURE_PANEL_PATH}/documents`, name: tabs.documents, component: panel, meta: panelTabMeta('documents') },
     { path: `${CANDIDATURE_PANEL_PATH}/notes`, name: tabs.notes, component: panel, meta: panelTabMeta('notes') },
+    { path: `${CANDIDATURE_PANEL_PATH}/notes/nouvelle`, name: notes.create, component: panel, meta: panelTabMeta('notes') },
     { path: `${CANDIDATURE_PANEL_PATH}/messages`, name: tabs.messages, component: panel, meta: panelTabMeta('messages') },
     { path: `${CANDIDATURE_PANEL_PATH}/messages/nouveau`, name: conversations.create, component: panel, meta: panelTabMeta('messages') },
     {

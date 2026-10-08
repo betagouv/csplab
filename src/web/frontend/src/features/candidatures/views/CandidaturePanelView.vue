@@ -237,6 +237,7 @@ function handleUpdateOpen(open: boolean): void {
                   <CandidatureNotes
                     v-if="candidature"
                     :candidature="candidatureParams"
+                    :routes="panelRouteNames.notes"
                   />
                 </div>
               </template>
