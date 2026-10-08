@@ -179,3 +179,22 @@ def test_etapes_ordonnees_ignores_stale_and_missing_ids():
     )
 
     assert etapes_ordonnees(result) == [etapes[0]]
+
+
+def test_recrutement_role_ignores_revoked_link():
+    agent, organisme = create_organisme_with_agent(role=AgentOrganismeRole.SUPERVISEUR)
+    recrutement = RecrutementDjangoFactory(organisme=organisme)
+    RecrutementAgentDjangoFactory(
+        recrutement=recrutement,
+        agent=agent,
+        role=AgentRecrutementRole.RESPONSABLE.value,
+        date_revocation=timezone.now(),
+    )
+
+    result = get_recrutement_detail(
+        organisme_id=organisme.id,
+        recrutement_id=recrutement.pk,
+        utilisateur=_utilisateur(agent),
+    )
+
+    assert result.recrutement_role is None

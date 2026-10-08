@@ -191,7 +191,9 @@ class TestRecrutementDetailView:
             "organisme_recruteur",
             "categorie_offre",
             "etapes",
+            "recrutement_role",
         }
+        assert payload["recrutement_role"] is None
         assert payload["uuid"] == str(recrutement.pk)
         assert payload["intitule"] == "Chargé de mission numérique"
         assert payload["archive"] is False
@@ -293,6 +295,9 @@ class TestRecrutementDetailView:
         assert response.status_code == expected_status
         if expected_status == status.HTTP_403_FORBIDDEN:
             assert response.json() == {"error": "Forbidden."}
+        else:
+            expected_role = recrutement_role.value if recrutement_role else None
+            assert response.json()["recrutement_role"] == expected_role
 
     def test_staff_gets_detail_without_organisme_role(self, api_client):
         api_client.force_login(UtilisateurDjangoFactory(is_staff=True))

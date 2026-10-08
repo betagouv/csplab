@@ -7,7 +7,10 @@ from application.recruteur.services.update_recrutement_agent import (
     update_recrutement_agent,
 )
 from domain.commons.errors.organisme_errors import OrganismeNexistePas
-from domain.identite.errors.organisme_permission_errors import AccesOrganismeRefuse
+from domain.identite.errors.organisme_permission_errors import (
+    AccesOrganismeRefuse,
+    AccesRecrutementRefuse,
+)
 from domain.recruteur.errors.organisme_agent_errors import AgentNonRattache
 from domain.recruteur.errors.recrutement_agent_errors import AgentNonMembreRecrutement
 from domain.recruteur.errors.recrutement_errors import RecrutementInexistant
@@ -99,6 +102,41 @@ def test_staff_bypasses_role_check(db):
     assert recrutement_agent.role == AgentRecrutementRole.RECRUTEUR.value
 
 
+def test_denied_when_demandeur_responsable_role_is_revoked(db):
+    demandeur, organisme = create_organisme_with_agent(role=AgentOrganismeRole.AGENT)
+    membre = OrganismeAgentDjangoFactory(
+        organisme=organisme, role=AgentOrganismeRole.AGENT.value
+    ).agent
+    recrutement = RecrutementDjangoFactory(organisme=organisme)
+    RecrutementAgentDjangoFactory(
+        recrutement=recrutement,
+        agent=demandeur,
+        role=AgentRecrutementRole.RESPONSABLE.value,
+        date_revocation=timezone.now(),
+    )
+    RecrutementAgentDjangoFactory(
+        recrutement=recrutement,
+        agent=membre,
+        role=AgentRecrutementRole.CONTRIBUTEUR.value,
+    )
+
+    with pytest.raises(AccesRecrutementRefuse):
+        update_recrutement_agent(
+            organisme_id=organisme.id,
+            recrutement_id=recrutement.pk,
+            agent_id=membre.utilisateur_id,
+            role=AgentRecrutementRole.RECRUTEUR.value,
+            utilisateur=_utilisateur(demandeur.utilisateur_id),
+        )
+
+    assert (
+        RecrutementAgentModel.objects.get(
+            recrutement_id=recrutement.pk, agent_id=membre.utilisateur_id
+        ).role
+        == AgentRecrutementRole.CONTRIBUTEUR.value
+    )
+
+
 @pytest.mark.parametrize(
     "role", [AgentOrganismeRole.AGENT, None], ids=["membre_role", "no_organisme_role"]
 )
@@ -119,7 +157,7 @@ def test_denied_when_demandeur_is_not_responsable(db, role):
         role=AgentRecrutementRole.CONTRIBUTEUR.value,
     )
 
-    with pytest.raises(AccesOrganismeRefuse):
+    with pytest.raises((AccesOrganismeRefuse, AccesRecrutementRefuse)):
         update_recrutement_agent(
             organisme_id=organisme.id,
             recrutement_id=recrutement.pk,
