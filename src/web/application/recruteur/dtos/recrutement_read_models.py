@@ -63,23 +63,6 @@ class CandidatureListeReadModel:
 
 
 @dataclass(frozen=True, kw_only=True)
-class LocalisationDto:
-    zone_geographique: str
-    pays: str
-    region: str
-    departement: str
-    localisation_label: str
-    latitude: float | None
-    longitude: float | None
-
-
-@dataclass(frozen=True, kw_only=True)
-class OrganismeRecruteurDto:
-    nom: str
-    siret: str
-
-
-@dataclass(frozen=True, kw_only=True)
 class CandidatureKanbanDto:
     uuid: UUID
     date_soumission: datetime
@@ -93,18 +76,6 @@ class EtapeKanbanReadModel:
     nom: str
     categorie: str
     candidatures: list[CandidatureKanbanDto]
-
-
-@dataclass(frozen=True, kw_only=True)
-class RecrutementDetailReadModel:
-    offer_id: UUID
-    intitule: str
-    archive: bool
-    date_publication: datetime
-    localisation: LocalisationDto
-    organisme_recruteur: OrganismeRecruteurDto
-    categorie_offre: str
-    etapes: list[EtapeDto]
 
 
 @dataclass(frozen=True, kw_only=True)

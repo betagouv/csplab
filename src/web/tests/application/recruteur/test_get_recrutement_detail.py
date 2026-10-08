@@ -1,145 +1,181 @@
-from datetime import datetime, timezone
-from unittest.mock import MagicMock
 from uuid import uuid4
 
 import pytest
+from django.utils import timezone
 
-from application.identite.context_services.organisme_permission_service import (
-    OrganismePermissionService,
+from application.recruteur.services.get_recrutement_detail import (
+    get_recrutement_detail,
 )
-from application.recruteur.dtos.recrutement_read_models import (
-    EtapeDto,
-    LocalisationDto,
-    OrganismeRecruteurDto,
-    RecrutementDetailReadModel,
+from domain.commons.errors.organisme_errors import OrganismeNexistePas
+from domain.identite.errors.organisme_permission_errors import (
+    AccesOrganismeRefuse,
+    AccesRecrutementRefuse,
 )
-from application.recruteur.services.recrutement_query_service_interface import (
-    IRecrutementQueryService,
+from domain.recruteur.errors.recrutement_errors import RecrutementInexistant
+from domain.recruteur.value_objects.roles import (
+    AgentOrganismeRole,
+    AgentRecrutementRole,
 )
-from application.recruteur.usecases.get_recrutement_detail import (
-    GetRecrutementDetailQuery,
-    GetRecrutementDetailUsecase,
+from infrastructure.django_apps.recruteur.models.etape import etapes_ordonnees
+from infrastructure.django_apps.users.models import UserModel
+from infrastructure.factories.identite.organisme_django_factory import (
+    OrganismeAgentDjangoFactory,
+    OrganismeDjangoFactory,
+    create_organisme_with_agent,
 )
-from domain.identite.errors.organisme_permission_errors import AccesOrganismeRefuse
-from domain.identite.value_objects.organisme_action import OrganismeAction
-from domain.recruteur.value_objects.roles import AgentOrganismeRole
-from infrastructure.factories.identite.utilisateur_factory import UtilisateurFactory
+from infrastructure.factories.recruteur.recrutement_django_factory import (
+    RecrutementAgentDjangoFactory,
+    RecrutementDjangoFactory,
+)
+from infrastructure.factories.referentiel.offer_django_factory import (
+    OfferDjangoFactory,
+)
+
+pytestmark = pytest.mark.django_db
 
 
-def _recrutement_detail_read_model() -> RecrutementDetailReadModel:
-    return RecrutementDetailReadModel(
-        offer_id=uuid4(),
-        intitule="Chargé de mission numérique",
-        archive=False,
-        date_publication=datetime.now(tz=timezone.utc),
-        localisation=LocalisationDto(
-            zone_geographique="EU",
-            pays="FRA",
-            region="11",
-            departement="75",
-            localisation_label="Paris 8e arrondissement",
-            latitude=48.8748,
-            longitude=2.3070,
+def _utilisateur(agent) -> UserModel:
+    return agent.utilisateur
+
+
+def _agent_without_role_in_organisme():
+    organisme = OrganismeDjangoFactory()
+    recrutement = RecrutementDjangoFactory(organisme=organisme)
+    agent, _ = create_organisme_with_agent(role=AgentOrganismeRole.SUPERVISEUR)
+    return agent, organisme.id, recrutement.pk
+
+
+def _agent_revoked_from_organisme():
+    organisme = OrganismeDjangoFactory()
+    agent = OrganismeAgentDjangoFactory(
+        organisme=organisme,
+        role=AgentOrganismeRole.SUPERVISEUR.value,
+        date_revocation=timezone.now(),
+    ).agent
+    recrutement = RecrutementDjangoFactory(organisme=organisme)
+    return agent, organisme.id, recrutement.pk
+
+
+def _agent_with_revoked_recrutement_role():
+    agent, organisme = create_organisme_with_agent(role=AgentOrganismeRole.AGENT)
+    recrutement = RecrutementDjangoFactory(organisme=organisme)
+    RecrutementAgentDjangoFactory(
+        recrutement=recrutement,
+        agent=agent,
+        role=AgentRecrutementRole.RESPONSABLE.value,
+        date_revocation=timezone.now(),
+    )
+    return agent, organisme.id, recrutement.pk
+
+
+def _agent_on_unknown_recrutement():
+    agent, organisme = create_organisme_with_agent(role=AgentOrganismeRole.AGENT)
+    return agent, organisme.id, uuid4()
+
+
+def _superviseur_on_unknown_organisme():
+    agent, _ = create_organisme_with_agent(role=AgentOrganismeRole.SUPERVISEUR)
+    return agent, uuid4(), uuid4()
+
+
+def _superviseur_on_deleted_organisme():
+    agent, organisme = create_organisme_with_agent(role=AgentOrganismeRole.SUPERVISEUR)
+    recrutement = RecrutementDjangoFactory(organisme=organisme)
+    organisme.supprime_le = timezone.now()
+    organisme.save(update_fields=["supprime_le"])
+    return agent, organisme.id, recrutement.pk
+
+
+def _superviseur_on_recrutement_of_another_organisme():
+    agent, organisme = create_organisme_with_agent(role=AgentOrganismeRole.SUPERVISEUR)
+    return agent, organisme.id, RecrutementDjangoFactory().pk
+
+
+@pytest.mark.parametrize(
+    ("scenario", "expected_error"),
+    [
+        pytest.param(
+            _agent_without_role_in_organisme,
+            AccesOrganismeRefuse,
+            id="no_role_in_organisme",
         ),
-        organisme_recruteur=OrganismeRecruteurDto(
-            nom="Mairie de Paris", siret="21750001600019"
+        pytest.param(
+            _agent_revoked_from_organisme,
+            AccesOrganismeRefuse,
+            id="revoked_from_organisme",
         ),
-        categorie_offre="A",
-        etapes=[EtapeDto(etape_uuid=uuid4(), nom="Réception", categorie="ENTREE")],
-    )
+        pytest.param(
+            _agent_with_revoked_recrutement_role,
+            AccesRecrutementRefuse,
+            id="revoked_recrutement_role",
+        ),
+        pytest.param(
+            _agent_on_unknown_recrutement,
+            AccesRecrutementRefuse,
+            id="permission_checked_before_existence",
+        ),
+        pytest.param(
+            _superviseur_on_unknown_organisme,
+            OrganismeNexistePas,
+            id="unknown_organisme",
+        ),
+        pytest.param(
+            _superviseur_on_deleted_organisme,
+            OrganismeNexistePas,
+            id="deleted_organisme",
+        ),
+        pytest.param(
+            _superviseur_on_recrutement_of_another_organisme,
+            RecrutementInexistant,
+            id="recrutement_of_another_organisme",
+        ),
+    ],
+)
+def test_raises(scenario, expected_error):
+    agent, organisme_id, recrutement_id = scenario()
 
-
-@pytest.fixture(name="organisme_permission_service")
-def organisme_permission_service_fixture():
-    return MagicMock(spec=OrganismePermissionService)
-
-
-@pytest.fixture(name="recrutement_query_service")
-def recrutement_query_service_fixture():
-    return MagicMock(spec=IRecrutementQueryService)
-
-
-@pytest.fixture(name="usecase")
-def usecase_fixture(organisme_permission_service, recrutement_query_service):
-    return GetRecrutementDetailUsecase(
-        organisme_permission_service=organisme_permission_service,
-        recrutement_query_service=recrutement_query_service,
-    )
-
-
-class TestGetRecrutementDetail:
-    @pytest.mark.parametrize(
-        "role",
-        [
-            pytest.param(AgentOrganismeRole.SUPERVISEUR, id="responsable"),
-            pytest.param(AgentOrganismeRole.AGENT, id="agent"),
-        ],
-    )
-    def test_returns_detail_when_authorized(
-        self,
-        organisme_permission_service,
-        recrutement_query_service,
-        usecase,
-        role,
-    ):
-        organisme_permission_service.can_execute.return_value = role
-        organisme_id = uuid4()
-        recrutement_id = uuid4()
-        read_model = _recrutement_detail_read_model()
-        recrutement_query_service.get_detail_by_recrutement.return_value = read_model
-
-        utilisateur = UtilisateurFactory.create_entity()
-        result = usecase.execute(
-            GetRecrutementDetailQuery(
-                organisme_id=organisme_id,
-                recrutement_id=recrutement_id,
-                utilisateur=utilisateur,
-            )
-        )
-
-        assert result == read_model
-        organisme_permission_service.can_execute.assert_called_once_with(
-            action=OrganismeAction.VOIR_DETAIL_RECRUTEMENT,
+    with pytest.raises(expected_error):
+        get_recrutement_detail(
             organisme_id=organisme_id,
-            utilisateur=utilisateur,
             recrutement_id=recrutement_id,
-        )
-        recrutement_query_service.get_detail_by_recrutement.assert_called_once_with(
-            organisme_id=organisme_id, recrutement_id=recrutement_id
+            utilisateur=_utilisateur(agent),
         )
 
-    def test_returns_none_for_unknown_recrutement(
-        self,
-        organisme_permission_service,
-        recrutement_query_service,
-        usecase,
-    ):
-        organisme_permission_service.can_execute.return_value = (
-            AgentOrganismeRole.SUPERVISEUR
-        )
-        recrutement_query_service.get_detail_by_recrutement.return_value = None
 
-        result = usecase.execute(
-            GetRecrutementDetailQuery(
-                organisme_id=uuid4(),
-                recrutement_id=uuid4(),
-                utilisateur=UtilisateurFactory.create_entity(),
-            )
-        )
+def test_offre_with_nullable_columns_is_returned():
+    agent, organisme = create_organisme_with_agent(role=AgentOrganismeRole.SUPERVISEUR)
+    offre = OfferDjangoFactory(
+        area=None,
+        country=None,
+        region=None,
+        department=None,
+        location_label=None,
+        latitude=None,
+        longitude=None,
+    )
+    recrutement = RecrutementDjangoFactory(organisme=organisme, offre=offre)
 
-        assert result is None
+    result = get_recrutement_detail(
+        organisme_id=organisme.id,
+        recrutement_id=recrutement.pk,
+        utilisateur=_utilisateur(agent),
+    )
 
-    def test_raises_when_not_authorized(self, organisme_permission_service, usecase):
-        organisme_id = uuid4()
-        organisme_permission_service.can_execute.side_effect = AccesOrganismeRefuse(
-            organisme_id
-        )
+    assert result.offre.country is None
+    assert result.offre.latitude is None
 
-        with pytest.raises(AccesOrganismeRefuse):
-            usecase.execute(
-                GetRecrutementDetailQuery(
-                    organisme_id=organisme_id,
-                    recrutement_id=uuid4(),
-                    utilisateur=UtilisateurFactory.create_entity(),
-                )
-            )
+
+def test_etapes_ordonnees_ignores_stale_and_missing_ids():
+    agent, organisme = create_organisme_with_agent(role=AgentOrganismeRole.SUPERVISEUR)
+    recrutement = RecrutementDjangoFactory(organisme=organisme)
+    etapes = list(recrutement.etapes.all())
+    recrutement.ordre_etapes = [str(uuid4()), str(etapes[0].id)]
+    recrutement.save(update_fields=["ordre_etapes"])
+
+    result = get_recrutement_detail(
+        organisme_id=organisme.id,
+        recrutement_id=recrutement.pk,
+        utilisateur=_utilisateur(agent),
+    )
+
+    assert etapes_ordonnees(result) == [etapes[0]]

@@ -7,7 +7,6 @@ from application.recruteur.dtos.recrutement_read_models import (
     CandidatureListeReadModel,
     RecrutementActifsReadModel,
     RecrutementArchivesReadModel,
-    RecrutementDetailReadModel,
     RecrutementKanbanReadModel,
 )
 
@@ -22,9 +21,6 @@ class IRecrutementQueryService(Protocol):
     def get_candidatures_by_recrutement(
         self, organisme_id: UUID, recrutement_id: UUID
     ) -> IPage[CandidatureListeReadModel] | None: ...
-    def get_detail_by_recrutement(
-        self, organisme_id: UUID, recrutement_id: UUID
-    ) -> RecrutementDetailReadModel | None: ...
     def get_kanban_by_recrutement(
         self, organisme_id: UUID, recrutement_id: UUID
     ) -> RecrutementKanbanReadModel | None: ...
