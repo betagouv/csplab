@@ -25,6 +25,8 @@ from domain.commons.errors.organisme_errors import OrganismeNexistePas
 from domain.identite.errors.agent_errors import ProfilAgentNexistePas
 from domain.identite.errors.organisme_permission_errors import (
     AccesOrganismeRefuse,
+    AccesRecrutementInconnu,
+    AccesRecrutementRefuse,
     OperationOrganismeRefusee,
 )
 from domain.recruteur.errors.organisme_agent_errors import AgentNonRattache
@@ -142,7 +144,15 @@ class RecrutementAgentsView(SessionApiMixin, ListAPIView):
         )
 
     def handle_exception(self, exc: Exception) -> Response:
-        if isinstance(exc, (AccesOrganismeRefuse, OperationOrganismeRefusee)):
+        if isinstance(
+            exc,
+            (
+                AccesOrganismeRefuse,
+                OperationOrganismeRefusee,
+                AccesRecrutementRefuse,
+                AccesRecrutementInconnu,
+            ),
+        ):
             return Response(
                 GenericErrorSerializer({"error": str(exc)}).data,
                 status=status.HTTP_403_FORBIDDEN,

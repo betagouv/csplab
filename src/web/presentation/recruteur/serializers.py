@@ -223,6 +223,11 @@ class RecrutementDetailSerializer(serializers.ModelSerializer):
         source="offre.category", choices=[(c.name, c.value) for c in Category]
     )
     etapes = EtapesOrdonneesField()
+    recrutement_role = serializers.ChoiceField(
+        choices=[(r.value, r.value) for r in AgentRecrutementRole],
+        allow_null=True,
+        help_text="Rôle de l'utilisateur courant sur ce recrutement (null si aucun).",
+    )
 
     class Meta:
         model = RecrutementModel
@@ -235,6 +240,7 @@ class RecrutementDetailSerializer(serializers.ModelSerializer):
             "organisme_recruteur",
             "categorie_offre",
             "etapes",
+            "recrutement_role",
         ]
 
 
