@@ -14,16 +14,14 @@ set -eo pipefail
 # Environment (all optional):
 #   PR_NUMBER               default: PR of the current branch (via gh)
 #   SCALINGO_REGION         default: osc-fr1
-#   REVIEW_POSTGRES_PLAN    default: postgresql-starter-512
-#   REVIEW_REDIS_PLAN       default: redis-starter-256
+#
+# Addons, base env vars and seeding come from src/web/scalingo.json.
 #
 # Prerequisites: `scalingo login` done, and access to csplab-web-demo.
 # ---------------------------------------------------------------------------
 
 PARENT_APP="csplab-web-demo"
 REGION="${SCALINGO_REGION:-osc-fr1}"
-POSTGRES_PLAN="${REVIEW_POSTGRES_PLAN:-postgresql-starter-512}"
-REDIS_PLAN="${REVIEW_REDIS_PLAN:-redis-starter-256}"
 
 branch="$(git rev-parse --abbrev-ref HEAD)"
 pr_number="${PR_NUMBER:-$(gh pr view --json number --jq .number 2>/dev/null || true)}"
@@ -53,17 +51,9 @@ fi
 # ---------------------------------
 # addons
 # ---------------------------------
-add_addon_if_missing() {
-  local addon="$1" plan="$2"
-  if sc addons | grep -qi "$addon"; then
-    echo "ℹ️  Addon $addon already present."
-  else
-    sc addons-add "$addon" "$plan"
-  fi
-}
-add_addon_if_missing postgresql "$POSTGRES_PLAN"
-add_addon_if_missing redis "$REDIS_PLAN"
-
+# Addons, SCALEWAY_ENV, WEB_SECRET_KEY, WEB_ALLOWED_HOSTS and
+# WEB_CSRF_TRUSTED_ORIGINS and the seeding are declared in src/web/scalingo.json.
+# Only the addon URL wiring (WEB_DATABASE_URL / WEB_REDIS_URL) remains here.
 addon_url() {
   local name="$1" value
   for _ in $(seq 1 60); do
@@ -88,9 +78,6 @@ echo "🔧 Setting environment variables…"
 env_set_status=0
 env_set_output="$(
   sc env-set \
-    "SCALEWAY_ENV=demo" \
-    "WEB_ALLOWED_HOSTS=${host}" \
-    "WEB_CSRF_TRUSTED_ORIGINS=https://${host}" \
     "WEB_DATABASE_URL=${database_url}" \
     "WEB_REDIS_URL=${redis_url}" 2>&1
 )" || env_set_status=$?
@@ -135,10 +122,3 @@ if [[ "$status" != "success" ]]; then
   echo "   Redeploy from the dashboard, then rerun this script to seed."
   exit 1
 fi
-
-# ---------------------------------
-# seeding
-# ---------------------------------
-echo "🌱 Seeding the review app…"
-sc run --env DJANGO_SETTINGS_MODULE=config.settings.base \
-  -- python manage.py seed_recruteur_datas

@@ -1,0 +1,35 @@
+{
+  "name": "csplab-web",
+  "description": "CSPLab web review app",
+  "env": {
+    "SCALEWAY_ENV": {
+      "description": "Scaleway Secret Manager environment to load secrets from",
+      "value": "demo"
+    },
+    "WEB_SECRET_KEY": {
+      "description": "Django secret key",
+      "generator": "secret"
+    },
+    "WEB_ALLOWED_HOSTS": {
+      "description": "Hostname of the review app",
+      "generator": "template",
+      "template": "%APP%.osc-fr1.scalingo.io"
+    },
+    "WEB_CSRF_TRUSTED_ORIGINS": {
+      "description": "Origin of the review app",
+      "generator": "url",
+      "template": "%URL%"
+    }
+  },
+  "addons": [
+    {
+      "plan": "postgresql:postgresql-starter-512"
+    },
+    {
+      "plan": "redis:redis-starter-256"
+    }
+  ],
+  "scripts": {
+    "first-deploy": "DJANGO_SETTINGS_MODULE=config.settings.base python manage.py seed_recruteur_datas"
+  }
+}
