@@ -7,6 +7,7 @@ from uuid import UUID
 
 from django.core.files.base import ContentFile
 from django.db import transaction
+from django.db.models import Q
 from django.utils import timezone
 from referentiel.value_objects.category import Category
 from referentiel.value_objects.verse import Verse
@@ -27,6 +28,7 @@ from infrastructure.django_apps.messagerie.models import (
     MessageDocumentModel,
     MessageModel,
 )
+from infrastructure.django_apps.recruteur.models.note import NoteModel
 from infrastructure.django_apps.recruteur.models.organisme import (
     OrganismeAgentModel,
     OrganismeModel,
@@ -386,28 +388,38 @@ def _seed_conversation(
         )
 
 
+def delete_candidatures(candidature_ids: list[UUID]) -> None:
+    MessageDocumentModel.objects.filter(
+        message__conversation__candidature_id__in=candidature_ids
+    ).delete()
+    DocumentModel.objects.filter(candidature_id__in=candidature_ids).delete()
+    MessageModel.objects.filter(
+        conversation__candidature_id__in=candidature_ids
+    ).delete()
+    ConversationModel.objects.filter(candidature_id__in=candidature_ids).delete()
+    NoteModel.objects.filter(candidature_id__in=candidature_ids).delete()
+    CandidatureModel.objects.filter(id__in=candidature_ids).delete()
+
+
 def _delete_seed_data() -> None:
     seed_usernames = list(
         UserModel.objects.filter(email__in=_ALL_SEED_EMAILS).values_list(
             "username", flat=True
         )
     )
-    MessageDocumentModel.objects.filter(
-        message__conversation__candidature__candidat_id__in=seed_usernames
-    ).delete()
-    DocumentModel.objects.filter(candidature__candidat_id__in=seed_usernames).delete()
-    MessageModel.objects.filter(
-        conversation__candidature__candidat_id__in=seed_usernames
-    ).delete()
-    ConversationModel.objects.filter(
-        candidature__candidat_id__in=seed_usernames
-    ).delete()
-    CandidatureModel.objects.filter(candidat_id__in=seed_usernames).delete()
-
     seed_offer_specs = (
         _OFFRES_ACTIVES_SPECS + _OFFRES_ARCHIVEES_SPECS + _OFFRES_BRIANCON_SPECS
     )
     seed_offer_references = [spec["reference"] for spec in seed_offer_specs]
+
+    seed_candidature_ids = list(
+        CandidatureModel.objects.filter(
+            Q(candidat_id__in=seed_usernames)
+            | Q(etape__recrutement__offre__reference__in=seed_offer_references)
+        ).values_list("id", flat=True)
+    )
+    delete_candidatures(seed_candidature_ids)
+
     seed_offre_ids = OfferModel.objects.filter(
         reference__in=seed_offer_references
     ).values_list("id", flat=True)
