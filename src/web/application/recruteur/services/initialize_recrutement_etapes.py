@@ -6,9 +6,6 @@ from django.db import transaction
 from application.identite.context_services.organisme_permission_service import (
     OrganismePermissionService,
 )
-from application.recruteur.errors.application_errors_recruteur import (
-    OrganismeRecrutementIncoherents,
-)
 from domain.commons.services.audit_log_writer import AuditLogWriter
 from domain.identite.value_objects.organisme_action import OrganismeAction
 from domain.recruteur.errors.recrutement_errors import (
@@ -42,14 +39,13 @@ def initialize_recrutement_etapes(
         try:
             recrutement = (
                 RecrutementModel.objects.active_by_id(recrutement_id)
+                .filter(organisme_id=organisme_id)
                 .with_organisme()
                 .select_for_update(of=("self",), no_key=True)
                 .get()
             )
         except RecrutementModel.DoesNotExist as error:
             raise RecrutementInexistant(recrutement_id) from error
-        if recrutement.organisme_id != organisme_id:
-            raise OrganismeRecrutementIncoherents(organisme_id, recrutement_id)
 
         anciennes = etapes_ordonnees(
             recrutement, recrutement.etapes.with_nb_candidatures()

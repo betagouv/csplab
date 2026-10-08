@@ -747,7 +747,7 @@ class TestInitRecrutementEtapeView:
             "error": RecrutementInexistant(recrutement.pk).message
         }
 
-    def test_recrutement_of_another_organisme_is_a_bad_request(
+    def test_recrutement_of_another_organisme_returns_404(
         self, authenticated_client, test_user
     ):
         _, organisme = create_organisme_with_agent(
@@ -758,11 +758,9 @@ class TestInitRecrutementEtapeView:
 
         response = authenticated_client.post(_init_url(organisme.id, recrutement.pk))
 
-        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert response.status_code == status.HTTP_404_NOT_FOUND
         assert response.json() == {
-            "error": OrganismeRecrutementIncoherents(
-                organisme.id, recrutement.pk
-            ).message
+            "error": RecrutementInexistant(recrutement.pk).message
         }
 
     def test_etape_with_candidatures_is_a_bad_request(
