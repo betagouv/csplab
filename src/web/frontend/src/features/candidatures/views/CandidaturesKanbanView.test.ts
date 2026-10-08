@@ -74,13 +74,23 @@ const DroppingBoard = defineComponent({
   },
 })
 
-async function refuseSelectedColumn() {
+async function selectColumns(columns: string[], search?: string) {
   const user = setupUser()
   await renderKanbanPage()
 
-  // CspCheckbox exposes both its reka button and its hidden native input as checkboxes.
-  const [columnCheckbox] = await screen.findAllByRole('checkbox', { name: 'Sélectionner la colonne Réception des candidatures' })
-  await user.click(columnCheckbox!)
+  for (const column of columns) {
+    // CspCheckbox exposes both its reka button and its hidden native input as checkboxes.
+    const [columnCheckbox] = await screen.findAllByRole('checkbox', { name: `Sélectionner la colonne ${column}` })
+    await user.click(columnCheckbox!)
+  }
+  if (search) {
+    await user.type(screen.getByRole('searchbox', { name: 'Rechercher un candidat' }), `${search}{Enter}`)
+  }
+  return user
+}
+
+async function refuseSelectedColumn(search?: string) {
+  const user = await selectColumns(['Réception des candidatures'], search)
   await user.click(await screen.findByRole('button', { name: 'Refuser' }))
   await user.click(await screen.findByRole('button', { name: 'Valider le changement d\'étape' }))
 
@@ -114,6 +124,21 @@ describe('candidaturesKanbanView', () => {
     }))
   })
 
+  it('counts in the refusal the candidatures still shown once a search hides part of the selection', async () => {
+    const { dialog } = await refuseSelectedColumn('Alice')
+
+    expect(dialog.getByText(/Vous êtes sur le point de refuser la candidature de Alice/)).toBeInTheDocument()
+  })
+
+  it('lists in the stage drawer the selected candidatures still shown after a search', async () => {
+    const user = await selectColumns(['Réception des candidatures'], 'Alice')
+    await user.click(await screen.findByRole('button', { name: 'Changer d\'étape' }))
+
+    const drawer = within(await screen.findByRole('dialog', { name: /Changer d'étape/ }))
+    expect(drawer.getByRole('button', { name: /Alice/ })).toBeInTheDocument()
+    expect(drawer.queryByRole('button', { name: /Bruno/ })).not.toBeInTheDocument()
+  })
+
   it('goes back to the stage drawer when the refusal is cancelled', async () => {
     const { user, dialog } = await refuseSelectedColumn()
 
@@ -124,17 +149,9 @@ describe('candidaturesKanbanView', () => {
     expect(patchEtapeCandidatures).not.toHaveBeenCalled()
   })
 
-  it('moves a selection to a stage without sending the selected candidatures already there', async () => {
+  it('moves the shown selection to a stage, without the candidatures hidden by a search', async () => {
     vi.mocked(getRecrutementKanban).mockResolvedValue(KANBAN_WITH_ENTRETIEN)
-    const user = setupUser()
-    await renderKanbanPage()
-
-    // CspCheckbox exposes both its reka button and its hidden native input as checkboxes.
-    for (const colonne of ['Réception des candidatures', 'Entretien']) {
-      const [columnCheckbox] = await screen.findAllByRole('checkbox', { name: `Sélectionner la colonne ${colonne}` })
-      await user.click(columnCheckbox!)
-    }
-    await user.type(screen.getByRole('searchbox', { name: 'Rechercher un candidat' }), 'Alice{Enter}')
+    const user = await selectColumns(['Réception des candidatures', 'Entretien'], 'Alice')
     await user.click(await screen.findByRole('button', { name: 'Changer d\'étape' }))
     const drawer = within(await screen.findByRole('dialog', { name: /Changer d'étape/ }))
     await user.click(drawer.getByRole('radio', { name: /Entretien/ }))
@@ -142,7 +159,7 @@ describe('candidaturesKanbanView', () => {
 
     await vi.waitFor(() => expect(patchEtapeCandidatures).toHaveBeenCalledWith(ORGANISME_UUID, RECRUTEMENT_UUID, {
       etapeCibleUuid: ETAPE_ENTRETIEN,
-      candidatureUuids: [CANDIDATURE_ALICE, CANDIDATURE_BRUNO],
+      candidatureUuids: [CANDIDATURE_ALICE],
     }))
   })
 

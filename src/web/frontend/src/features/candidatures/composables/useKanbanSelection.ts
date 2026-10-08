@@ -19,6 +19,10 @@ export interface KanbanSelectionContext {
   hasSelection: ComputedRef<boolean>
 }
 
+function isFullySelected(etape: EtapeRecrutementDetailedCandidatures, selected: Set<string> | undefined): boolean {
+  return etape.candidatures.length > 0 && etape.candidatures.every(({ uuid }) => selected?.has(uuid))
+}
+
 export function useKanbanSelection(
   etapes: Ref<EtapeRecrutementDetailedCandidatures[]>,
 ): KanbanSelectionContext {
@@ -57,32 +61,27 @@ export function useKanbanSelection(
   })
 
   function isColumnSelected(etapeUuid: string): boolean {
-    const selected = selectedByEtape.value.get(etapeUuid)
-    if (!selected || selected.size === 0) {
-      return false
-    }
-
     const etape = etapes.value.find(e => e.uuid === etapeUuid)
-    if (!etape) {
-      return false
-    }
-
-    return selected.size === etape.candidatures.length && etape.candidatures.length > 0
+    return !!etape && isFullySelected(etape, selectedByEtape.value.get(etapeUuid))
   }
 
   function toggleColumnSelection(etape: EtapeRecrutementDetailedCandidatures): void {
-    const etapeUuid = etape.uuid
-    const currentSelection = selectedByEtape.value.get(etapeUuid)
-    const isCurrentlySelected = currentSelection && currentSelection.size === etape.candidatures.length
+    const selected = new Set(selectedByEtape.value.get(etape.uuid))
+    const shownUuids = etape.candidatures.map(({ uuid }) => uuid)
 
-    const newMap = new Map(selectedByEtape.value)
-
-    if (isCurrentlySelected) {
-      newMap.delete(etapeUuid)
+    if (isFullySelected(etape, selected)) {
+      shownUuids.forEach(uuid => selected.delete(uuid))
     }
     else {
-      const newSet = new Set(etape.candidatures.map(c => c.uuid))
-      newMap.set(etapeUuid, newSet)
+      shownUuids.forEach(uuid => selected.add(uuid))
+    }
+
+    const newMap = new Map(selectedByEtape.value)
+    if (selected.size === 0) {
+      newMap.delete(etape.uuid)
+    }
+    else {
+      newMap.set(etape.uuid, selected)
     }
 
     selectedByEtape.value = newMap
