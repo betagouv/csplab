@@ -4,14 +4,9 @@ from uuid import UUID
 from ddd.aggregate_root import AggregateRoot, mutate
 
 from domain.recruteur.entities.etape_recrutement import EtapeRecrutement
-from domain.recruteur.errors.organisme_recruteur_errors import (
-    ConfigurationEtapesInvalide,
-)
+from domain.recruteur.etapes_rules import valider_sequence_etapes
 from domain.recruteur.events.organisme_recruteur_events import (
     OrganismeEtapesMisesAJour,
-)
-from domain.recruteur.value_objects.categorie_etapes_recrutement import (
-    CategorieEtapeRecrutement,
 )
 from domain.recruteur.value_objects.etape_data import EtapeData
 
@@ -40,37 +35,7 @@ class OrganismeRecruteur(AggregateRoot):
         self._apply(etapes_data)
 
     def _validate(self, etapes_data: tuple[EtapeData, ...]) -> None:
-        categories = [e.categorie for e in etapes_data]
-        # add that etapes as a whole is a set of schemas (schema = nom x categorie)
-        if not categories or categories[0] != CategorieEtapeRecrutement.ENTREE:
-            raise ConfigurationEtapesInvalide(
-                "La première étape doit être de catégorie ENTREE"
-            )
-        elif categories[-1] != CategorieEtapeRecrutement.ACCEPTE:
-            raise ConfigurationEtapesInvalide(
-                "La dernière étape doit être de catégorie ACCEPTE"
-            )
-        elif categories[-2] != CategorieEtapeRecrutement.REFUS:
-            raise ConfigurationEtapesInvalide(
-                "L'avant-dernière étape doit être de catégorie REFUS"
-            )
-
-        milieu = categories[1:-2]
-        if not milieu:
-            raise ConfigurationEtapesInvalide(
-                "Il doit y avoir au moins une étape EN_COURS"
-            )
-        if any(c != CategorieEtapeRecrutement.EN_COURS for c in milieu):
-            raise ConfigurationEtapesInvalide(
-                "Seules les étapes EN_COURS peuvent être placées entre ENTREE et REFUS"
-            )
-
-        # each schema (nom, categorie) must be unique
-        couples = {(e.nom, e.categorie) for e in etapes_data}
-        if len(couples) != len(etapes_data):
-            raise ConfigurationEtapesInvalide(
-                "Chaque couple (nom, catégorie) doit être unique"
-            )
+        valider_sequence_etapes(etapes_data)
 
     def _apply(self, etapes_data: tuple[EtapeData, ...]) -> None:
         # mutate

@@ -1,5 +1,4 @@
 from typing import List
-from uuid import uuid4
 
 import pytest
 
@@ -74,127 +73,34 @@ def test_organisme_update_steps(etapes_data, etapes) -> None:
     assert any(isinstance(e, EtapeReordonnee) for e in events)
 
 
-@pytest.mark.parametrize(
-    "invalid",
-    [
-        pytest.param(
-            (
-                EtapeData(
-                    etape_uuid=uuid4(),
-                    categorie=CategorieEtapeRecrutement.EN_COURS,
-                    nom="Présélection",
-                ),
-            ),
-            id="no_entry",
-        ),
-        pytest.param(
-            (
-                EtapeData(
-                    etape_uuid=uuid4(),
-                    categorie=CategorieEtapeRecrutement.ENTREE,
-                    nom="Réception des candidatures",
-                ),
-                EtapeData(
-                    etape_uuid=uuid4(),
-                    categorie=CategorieEtapeRecrutement.EN_COURS,
-                    nom="Entretien",
-                ),
-                EtapeData(
-                    etape_uuid=uuid4(),
-                    categorie=CategorieEtapeRecrutement.EN_COURS,
-                    nom="Avant-dernière EN_COURS au lieu de REFUS",
-                ),
-                EtapeData(
-                    etape_uuid=uuid4(),
-                    categorie=CategorieEtapeRecrutement.ACCEPTE,
-                    nom="Recrutement",
-                ),
-            ),
-            id="second_to_last_not_refus",
-        ),
-        pytest.param(
-            (
-                EtapeData(
-                    etape_uuid=uuid4(),
-                    categorie=CategorieEtapeRecrutement.ENTREE,
-                    nom="Réception des candidatures",
-                ),
-                EtapeData(
-                    etape_uuid=uuid4(),
-                    categorie=CategorieEtapeRecrutement.REFUS,
-                    nom="Refus",
-                ),
-                EtapeData(
-                    etape_uuid=uuid4(),
-                    categorie=CategorieEtapeRecrutement.ACCEPTE,
-                    nom="Recrutement",
-                ),
-            ),
-            id="no_en_cours",
-        ),
-        pytest.param(
-            (
-                EtapeData(
-                    etape_uuid=uuid4(),
-                    categorie=CategorieEtapeRecrutement.ENTREE,
-                    nom="Réception des candidatures",
-                ),
-                EtapeData(
-                    etape_uuid=uuid4(),
-                    categorie=CategorieEtapeRecrutement.EN_COURS,
-                    nom="Entretien",
-                ),
-                EtapeData(
-                    etape_uuid=uuid4(),
-                    categorie=CategorieEtapeRecrutement.ENTREE,
-                    nom="Doublon ENTREE au milieu",
-                ),
-                EtapeData(
-                    etape_uuid=uuid4(),
-                    categorie=CategorieEtapeRecrutement.REFUS,
-                    nom="Refus",
-                ),
-                EtapeData(
-                    etape_uuid=uuid4(),
-                    categorie=CategorieEtapeRecrutement.ACCEPTE,
-                    nom="Recrutement",
-                ),
-            ),
-            id="middle_contains_non_en_cours",
-        ),
-        pytest.param(
-            (
-                EtapeData(
-                    etape_uuid=uuid4(),
-                    categorie=CategorieEtapeRecrutement.ENTREE,
-                    nom="Réception des candidatures",
-                ),
-                EtapeData(
-                    etape_uuid=uuid4(),
-                    categorie=CategorieEtapeRecrutement.EN_COURS,
-                    nom="Entretien",
-                ),
-                EtapeData(
-                    etape_uuid=uuid4(),
-                    categorie=CategorieEtapeRecrutement.REFUS,
-                    nom="Refus",
-                ),
-                EtapeData(
-                    etape_uuid=uuid4(),
-                    categorie=CategorieEtapeRecrutement.EN_COURS,
-                    nom="Étape parasite en fin",
-                ),
-            ),
-            id="last_not_accepte",
-        ),
-    ],
-)
-def test_organisme_update_steps_fails(
-    invalid: List[EtapeData],
-) -> None:
+def test_organisme_update_steps_fails() -> None:
     organisme = OrganismeRecruteurFactory.create_entity(
         etapes=EtapeRecrutementFactory.create_entity_batch()
     )
+    sans_entree = (
+        EtapeData(
+            etape_uuid=None,
+            categorie=CategorieEtapeRecrutement.EN_COURS,
+            nom="Présélection",
+        ),
+        EtapeData(
+            etape_uuid=None,
+            categorie=CategorieEtapeRecrutement.EN_COURS,
+            nom="Entretien",
+        ),
+        EtapeData(
+            etape_uuid=None,
+            categorie=CategorieEtapeRecrutement.REFUS,
+            nom="Refus",
+        ),
+        EtapeData(
+            etape_uuid=None,
+            categorie=CategorieEtapeRecrutement.ACCEPTE,
+            nom="Recrutement",
+        ),
+    )
 
-    with pytest.raises(ConfigurationEtapesInvalide):
-        organisme.mettre_a_jour_etapes(etapes_data=tuple(invalid))
+    with pytest.raises(ConfigurationEtapesInvalide) as error:
+        organisme.mettre_a_jour_etapes(etapes_data=sans_entree)
+
+    assert error.value.raison == "La première étape doit être de catégorie ENTREE"

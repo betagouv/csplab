@@ -1,9 +1,14 @@
-from uuid import uuid4
+from collections.abc import Sequence
+from uuid import UUID, uuid4
 
 from django.db import models
 from django.db.models import Q
 from referentiel.value_objects.verse import Verse
 
+from domain.recruteur.errors.organisme_recruteur_errors import (
+    ConfigurationEtapesInvalide,
+)
+from domain.recruteur.value_objects.etape_data import EtapeData
 from domain.recruteur.value_objects.roles import AgentOrganismeRole
 from infrastructure.django_apps.recruteur.enums.etape_par_defaut import EtapeParDefaut
 from infrastructure.django_apps.users.fields import agent_fk
@@ -78,6 +83,48 @@ class OrganismeModel(BaseDatedModel):
             }
             for etape in EtapeParDefaut
         ]
+
+    def mettre_a_jour_etapes(
+        self, etapes: Sequence[EtapeData]
+    ) -> list[tuple[UUID, str]]:
+        anciennes = {
+            UUID(etape["entity_id"]): (rang, etape)
+            for rang, etape in enumerate(self.etapes or [])
+        }
+        nouvelles = []
+        changements = []
+        for rang, etape in enumerate(etapes):
+            if etape.etape_uuid is None:
+                etape_id = uuid4()
+                changements.append((etape_id, "EtapeAjoutee"))
+            else:
+                etape_id = etape.etape_uuid
+                if etape_id not in anciennes:
+                    raise ConfigurationEtapesInvalide(f"Étape inconnue : {etape_id}")
+                ancien_rang, ancienne = anciennes[etape_id]
+                if ancienne["categorie"] != etape.categorie.value:
+                    raise ConfigurationEtapesInvalide(
+                        "La catégorie d'une étape existante ne peut pas changer"
+                    )
+                if ancienne["nom"] != etape.nom:
+                    changements.append((etape_id, "EtapeRenommee"))
+                if ancien_rang != rang:
+                    changements.append((etape_id, "EtapeReordonnee"))
+            nouvelles.append(
+                {
+                    "entity_id": str(etape_id),
+                    "categorie": etape.categorie.value,
+                    "nom": etape.nom,
+                }
+            )
+        conservees = {etape.etape_uuid for etape in etapes}
+        changements += [
+            (etape_id, "EtapeSupprimee")
+            for etape_id in anciennes
+            if etape_id not in conservees
+        ]
+        self.etapes = nouvelles
+        return changements
 
 
 class OrganismeAgentQuerySet(models.QuerySet):
