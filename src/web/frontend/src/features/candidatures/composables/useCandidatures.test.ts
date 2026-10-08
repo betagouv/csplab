@@ -65,6 +65,7 @@ const MOCK_DETAIL: RecrutementDetail = {
     { uuid: ETAPE_RECEPTION, nom: 'Réception des candidatures', categorie: 'ENTREE' },
     { uuid: ETAPE_PRESELECTION, nom: 'Présélection', categorie: 'EN_COURS' },
   ],
+  recrutement_role: 'recruteur',
 }
 
 const MOCK_KANBAN: RecrutementDetailKanban = {
