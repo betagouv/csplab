@@ -569,6 +569,7 @@ class OfferDetailResponseSerializer(serializers.Serializer):
     publication_date = serializers.DateTimeField()
     beginning_date = serializers.SerializerMethodField()
     application_deadline = serializers.DateTimeField(allow_null=True)
+    job_vacancy_date = serializers.DateTimeField(allow_null=True)
     archived_at = serializers.DateTimeField(allow_null=True)
 
     @extend_schema_field(LocalisationSerializer(allow_null=True))

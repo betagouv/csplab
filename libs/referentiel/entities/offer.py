@@ -43,6 +43,7 @@ class Offer(IEntity):
     exercise_conditions: Optional[str] = None
     service_description: Optional[str] = None
     application_deadline: Optional[datetime] = None
+    job_vacancy_date: Optional[datetime] = None
     criteria: Optional[OfferCriteria] = None
     conditions: Optional[dict] = None
     contacts: Optional[list[dict]] = None

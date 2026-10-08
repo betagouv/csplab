@@ -39,7 +39,7 @@ Notation : `a.b` désigne un objet imbriqué, `a[]` une liste, `a[0]` son premie
 | `endPublicationDate` | `publication.fin_publication` | Repli sur `beginningDate`, puis sur `debut_publication` + 365 jours. Le `OfferInputMapper` du web ne lit jamais `fin_publication`. |
 | `customFields.offer.date1` | `publication.fin_candidature` | |
 | `beginningDate` | `conditions.debut_contrat` | Sert aussi de repli pour `fin_publication`. |
-| `beginningDate` | `publication.debut_vacance_poste` | Comme l'ancien site WordPress (« Vacant à partir du … », « Poste à pourvoir le … »). Ignoré par le `OfferInputMapper` du web. |
+| `beginningDate` | `publication.debut_vacance_poste` | Comme l'ancien site WordPress (« Vacant à partir du … », « Poste à pourvoir le … »). |
 | `contractDuration` | `conditions.duree_contrat` | |
 | `educationLevel.clientCode` | `criteres.diplome_niveau` | Lettres `A`-`H` ou `NIV_DIPL<n>` converties en niveau. |
 | `diploma.clientCode` | `criteres.diplome` | |

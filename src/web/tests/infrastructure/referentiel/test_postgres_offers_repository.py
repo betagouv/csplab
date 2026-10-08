@@ -186,6 +186,7 @@ class TestUpsertBatch:
             "exercise_conditions": "Télétravail possible",
             "service_description": "Service des ressources humaines",
             "application_deadline": now,
+            "job_vacancy_date": now,
         }
         for field, value in updated_fields.items():
             setattr(entity, field, value)

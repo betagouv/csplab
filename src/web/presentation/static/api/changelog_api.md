@@ -6,6 +6,22 @@ champs et de leurs règles se trouve dans le [guide de l'API](/pages/guide_api).
 
 Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/).
 
+## 2026-10-08
+
+### Ajouté
+
+- `POST /api/v1/offres/creer_modifier` : le champ `publication.debut_vacance_poste`
+  (date à partir de laquelle le poste est vacant) est désormais enregistré. Il était
+  accepté jusqu'ici, mais ignoré.
+- `GET /api/v1/offres/sources/{source_id}` : chaque offre renvoyée contient un nouveau
+  champ `job_vacancy_date`, valeur de `publication.debut_vacance_poste` (date ISO
+  8601), à `null` si l'information n'a pas été transmise.
+
+### Compatibilité
+
+Ces changements sont rétrocompatibles : un appel valide avant ces changements reste
+valide, et le champ ajouté dans les réponses n'en retire aucun.
+
 ## 2026-10-07
 
 ### Ajouté

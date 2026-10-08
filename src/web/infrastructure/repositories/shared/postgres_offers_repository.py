@@ -124,6 +124,7 @@ class PostgresOffersRepository(IIngestionOffersRepository):
                                 "publication_date",
                                 "beginning_date",
                                 "application_deadline",
+                                "job_vacancy_date",
                                 "updated_at",
                                 "archived_at",
                                 "long_title",

@@ -85,6 +85,7 @@ class OfferInputMapper(IToDomainMapper[dict, Offer]):
             exercise_conditions=data["description"].get("conditions_exercice") or None,
             service_description=data["description"].get("descriptif_service") or None,
             application_deadline=data["publication"].get("fin_candidature"),
+            job_vacancy_date=data["publication"].get("debut_vacance_poste"),
             criteria=OfferCriteria.from_dict(data.get("criteres")),
             conditions=conditions,
             contacts=list(data["contacts"]) if data.get("contacts") else None,

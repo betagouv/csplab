@@ -94,7 +94,10 @@ def test_offer_input_mapper_maps_export_unif_fields():
             "conditions_exercice": "Télétravail possible",
             "descriptif_service": "Service des ressources humaines",
         },
-        publication={"fin_candidature": datetime(2026, 11, 30, tzinfo=timezone.utc)},
+        publication={
+            "fin_candidature": datetime(2026, 11, 30, tzinfo=timezone.utc),
+            "debut_vacance_poste": datetime(2027, 1, 1, tzinfo=timezone.utc),
+        },
     )
 
     offer = OfferInputMapper().to_domain(payload, source_id=uuid4())
@@ -102,6 +105,7 @@ def test_offer_input_mapper_maps_export_unif_fields():
     assert offer.exercise_conditions == "Télétravail possible"
     assert offer.service_description == "Service des ressources humaines"
     assert offer.application_deadline == datetime(2026, 11, 30, tzinfo=timezone.utc)
+    assert offer.job_vacancy_date == datetime(2027, 1, 1, tzinfo=timezone.utc)
 
 
 def test_offer_input_mapper_maps_blank_or_absent_export_unif_fields_to_none():
@@ -117,6 +121,7 @@ def test_offer_input_mapper_maps_blank_or_absent_export_unif_fields_to_none():
     assert offer.exercise_conditions is None
     assert offer.service_description is None
     assert offer.application_deadline is None
+    assert offer.job_vacancy_date is None
 
 
 def test_offer_input_mapper_maps_absent_criteres_to_none():

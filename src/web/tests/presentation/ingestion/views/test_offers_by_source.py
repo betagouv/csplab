@@ -196,6 +196,7 @@ class TestOffersBySourceViewDbVerified:
                 "publication_date": "2024-01-15T00:00:00Z",
                 "beginning_date": None,
                 "application_deadline": None,
+                "job_vacancy_date": None,
                 "archived_at": None,
             }
         ]
@@ -218,6 +219,7 @@ class TestOffersBySourceViewDbVerified:
             exercise_conditions="Télétravail possible",
             service_description="Service des ressources humaines",
             application_deadline=datetime(2024, 5, 15, tzinfo=UTC),
+            job_vacancy_date=datetime(2024, 7, 1, tzinfo=UTC),
             offer_nature=OfferNature.TERRITORIAL.value,
             contract_kind=ContractKind.CDD_CDI.name,
             job_vacancy="1",
@@ -274,6 +276,7 @@ class TestOffersBySourceViewDbVerified:
                 "publication_date": "2024-01-15T00:00:00Z",
                 "beginning_date": "2024-06-01T00:00:00Z",
                 "application_deadline": "2024-05-15T00:00:00Z",
+                "job_vacancy_date": "2024-07-01T00:00:00Z",
                 "archived_at": None,
             }
         ]

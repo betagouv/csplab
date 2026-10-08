@@ -83,7 +83,10 @@ COMPLETE_VALID_OFFER = PayloadOfferFactory.create(
         "conditions_exercice": fake.text(max_nb_chars=1500),
         "descriptif_service": fake.text(max_nb_chars=1500),
     },
-    publication={"fin_candidature": fake_datetime(future=True)},
+    publication={
+        "fin_candidature": fake_datetime(future=True),
+        "debut_vacance_poste": fake_datetime(future=True),
+    },
     localisation=[
         {
             "zone_geographique": "EU",
@@ -151,6 +154,7 @@ COMPARABLE_OFFER_ATTRS = [
     "exercise_conditions",
     "service_description",
     "application_deadline",
+    "job_vacancy_date",
     "criteria",
     "conditions",
     "contacts",
@@ -252,6 +256,9 @@ def parse_offer_from_payload(payload: dict, source_id: UUID) -> Offer:
         service_description=payload["description"].get("descriptif_service") or None,
         application_deadline=parse_datetime(fin_candidature)
         if (fin_candidature := payload["publication"].get("fin_candidature"))
+        else None,
+        job_vacancy_date=parse_datetime(debut_vacance_poste)
+        if (debut_vacance_poste := payload["publication"].get("debut_vacance_poste"))
         else None,
         criteria=criteria,
         conditions=conditions,
