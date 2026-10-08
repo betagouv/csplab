@@ -67,20 +67,26 @@ _ROLES_REQUIS: dict[OrganismeAction, frozenset[AgentOrganismeRole]] = {
         {AgentOrganismeRole.SUPERVISEUR, AgentOrganismeRole.AGENT}
     ),
     OrganismeAction.LIST_ORGANISME_AGENTS: frozenset({AgentOrganismeRole.SUPERVISEUR}),
-    OrganismeAction.SEARCH_AGENT: frozenset({AgentOrganismeRole.SUPERVISEUR}),
+    OrganismeAction.SEARCH_AGENT: frozenset(
+        {AgentOrganismeRole.SUPERVISEUR, AgentOrganismeRole.AGENT}
+    ),
     OrganismeAction.ATTACH_ORGANISME_AGENT: frozenset({AgentOrganismeRole.SUPERVISEUR}),
     OrganismeAction.UPDATE_ORGANISME_AGENT: frozenset({AgentOrganismeRole.SUPERVISEUR}),
     OrganismeAction.REVOKE_ORGANISME_AGENT: frozenset({AgentOrganismeRole.SUPERVISEUR}),
-    OrganismeAction.CREATE_AGENT: frozenset({AgentOrganismeRole.SUPERVISEUR}),
-    OrganismeAction.LIST_RECRUTEMENT_AGENTS: frozenset(
-        {AgentOrganismeRole.SUPERVISEUR}
+    OrganismeAction.CREATE_AGENT: frozenset(
+        {AgentOrganismeRole.SUPERVISEUR, AgentOrganismeRole.AGENT}
     ),
-    OrganismeAction.ADD_RECRUTEMENT_AGENT: frozenset({AgentOrganismeRole.SUPERVISEUR}),
+    OrganismeAction.LIST_RECRUTEMENT_AGENTS: frozenset(
+        {AgentOrganismeRole.SUPERVISEUR, AgentOrganismeRole.AGENT}
+    ),
+    OrganismeAction.ADD_RECRUTEMENT_AGENT: frozenset(
+        {AgentOrganismeRole.SUPERVISEUR, AgentOrganismeRole.AGENT}
+    ),
     OrganismeAction.UPDATE_RECRUTEMENT_AGENT: frozenset(
-        {AgentOrganismeRole.SUPERVISEUR}
+        {AgentOrganismeRole.SUPERVISEUR, AgentOrganismeRole.AGENT}
     ),
     OrganismeAction.REVOKE_RECRUTEMENT_AGENT: frozenset(
-        {AgentOrganismeRole.SUPERVISEUR}
+        {AgentOrganismeRole.SUPERVISEUR, AgentOrganismeRole.AGENT}
     ),
     OrganismeAction.SET_RECRUTEMENTS_RESPONSABLE: frozenset(
         {AgentOrganismeRole.SUPERVISEUR}
@@ -128,6 +134,12 @@ _SANS_ROLE_RECRUTEMENT_REQUIS: frozenset[OrganismeAction] = frozenset(
     {OrganismeAction.LISTER_MES_RECRUTEMENTS, OrganismeAction.GET_MOTIFS_REFUS}
 )
 
+# Actions sans recrutement ciblé : un MEMBRE doit être RESPONSABLE d'au moins un
+# recrutement de l'organisme
+_RESPONSABLE_D_UN_RECRUTEMENT_REQUIS: frozenset[OrganismeAction] = frozenset(
+    {OrganismeAction.SEARCH_AGENT, OrganismeAction.CREATE_AGENT}
+)
+
 # Actions pour lesquelles un MEMBRE doit avoir un rôle sur le recrutement
 _ROLES_RECRUTEMENT_REQUIS: dict[OrganismeAction, frozenset[AgentRecrutementRole]] = {
     OrganismeAction.VOIR_DETAIL_RECRUTEMENT: frozenset(
@@ -155,6 +167,18 @@ _ROLES_RECRUTEMENT_REQUIS: dict[OrganismeAction, frozenset[AgentRecrutementRole]
     ),
     OrganismeAction.CHANGER_ETAPE_CANDIDATURES: frozenset(
         {AgentRecrutementRole.RESPONSABLE, AgentRecrutementRole.RECRUTEUR}
+    ),
+    OrganismeAction.LIST_RECRUTEMENT_AGENTS: frozenset(
+        {AgentRecrutementRole.RESPONSABLE}
+    ),
+    OrganismeAction.ADD_RECRUTEMENT_AGENT: frozenset(
+        {AgentRecrutementRole.RESPONSABLE}
+    ),
+    OrganismeAction.UPDATE_RECRUTEMENT_AGENT: frozenset(
+        {AgentRecrutementRole.RESPONSABLE}
+    ),
+    OrganismeAction.REVOKE_RECRUTEMENT_AGENT: frozenset(
+        {AgentRecrutementRole.RESPONSABLE}
     ),
     OrganismeAction.READ_DOCUMENT: frozenset(
         {
@@ -281,6 +305,14 @@ class OrganismePermissionService:
 
         if (
             role == AgentOrganismeRole.AGENT
+            and action in _RESPONSABLE_D_UN_RECRUTEMENT_REQUIS
+        ):
+            if not RecrutementAgentModel.objects.is_responsable_dans_organisme(
+                agent_id, cast(UUID, organisme_id)
+            ):
+                raise AccesOrganismeRefuse(cast(UUID, organisme_id))
+        elif (
+            role == AgentOrganismeRole.AGENT
             and action not in _SANS_ROLE_RECRUTEMENT_REQUIS
         ):
             if recrutement_id is None:
@@ -300,7 +332,9 @@ class OrganismePermissionService:
                 if recrutement_liaison
                 else None
             )
-            if recrutement_role not in _ROLES_RECRUTEMENT_REQUIS[action]:
+            if recrutement_role not in _ROLES_RECRUTEMENT_REQUIS.get(
+                action, frozenset()
+            ):
                 raise AccesRecrutementRefuse(recrutement_id)
 
         return role
