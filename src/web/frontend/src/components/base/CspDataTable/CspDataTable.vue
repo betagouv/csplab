@@ -128,11 +128,17 @@ function pageOf(id: string | undefined): number | null {
   return index === -1 ? null : Math.floor(index / effectivePageSize.value) + 1
 }
 
-watch(sortedRowIds, (ids, previous) => {
-  if (props.manual || ids.join() === previous.join()) {
+function hasSameRows(ids: string[], previous: string[]): boolean {
+  const previousIds = new Set(previous)
+  return ids.length === previousIds.size && ids.every(id => previousIds.has(id))
+}
+
+watch([sortedRowIds, sort], ([ids, currentSort], [previousIds, previousSort]) => {
+  if (props.manual || ids.join() === previousIds.join()) {
     return
   }
-  page.value = pageOf(props.currentId) ?? 1
+  const refreshed = currentSort === previousSort && hasSameRows(ids, previousIds)
+  page.value = pageOf(props.currentId) ?? (refreshed ? page.value : 1)
 })
 
 watch(() => props.currentId, (id) => {

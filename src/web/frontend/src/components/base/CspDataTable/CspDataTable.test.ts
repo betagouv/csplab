@@ -257,6 +257,20 @@ describe('cspDataTable: pagination', () => {
     expect(emitted('update:page')?.at(-1)).toEqual([1])
   })
 
+  it('keeps its page when the same rows come back in another order', async () => {
+    const { emitted, rerender } = renderTable({ pageSize: 2, page: 2 })
+
+    await rerender({ rows: [ROWS[2]!, ROWS[0]!, ROWS[1]!] })
+    expect(emitted('update:page')).toBeUndefined()
+  })
+
+  it('returns to the first page when the sort changes', async () => {
+    const { emitted, rerender } = renderTable({ pageSize: 2, page: 2 })
+
+    await rerender({ sort: { id: 'name', desc: true } })
+    expect(emitted('update:page')?.at(-1)).toEqual([1])
+  })
+
   it('shows the page of the current row', async () => {
     const { emitted } = renderTable({ pageSize: 2, page: 1, currentId: '3' })
     expect(emitted('update:page')?.at(-1)).toEqual([2])
