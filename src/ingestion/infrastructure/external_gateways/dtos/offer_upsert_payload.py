@@ -197,7 +197,7 @@ class OfferUpsertPayload(BaseModel):
                 fin_publication=fin_publication,
                 fin_candidature=offer.application_deadline,
                 debut_vacance_poste=offer.beginning_date.value
-                if offer.job_vacancy and offer.beginning_date
+                if offer.beginning_date
                 else None,
             ),
         )
