@@ -3,6 +3,7 @@ from unittest.mock import MagicMock, patch
 from urllib.parse import parse_qs, urlparse
 
 import pytest
+from django.core.cache import cache
 from django.urls import reverse
 from faker import Faker
 from referentiel.value_objects.area import GeographicalArea
@@ -18,6 +19,10 @@ from referentiel.value_objects.verse import Verse
 from rest_framework import status
 
 from application.ingestion.interfaces.list_offers_input import GetFilteredOffersInput
+from infrastructure.authentication.api_key_authentication import (
+    ApiKeyRejectionRateThrottle,
+)
+from infrastructure.django_apps.commons.models import AuditLoginLogModel
 from infrastructure.factories.ingestion.talentsoft_organisme_django_factory import (
     TalentsoftOrganismeDjangoFactory,
 )
@@ -57,6 +62,22 @@ def test_invalid_api_key_returns_401(api_client):
     api_client.credentials(HTTP_AUTHORIZATION="Api-Key wrong-key")
     response = api_client.get(URL)
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+
+@patch.object(
+    ApiKeyRejectionRateThrottle, "THROTTLE_RATES", {"api_key_rejection": "1/minute"}
+)
+def test_repeated_invalid_api_key_is_throttled(api_client, db):
+    cache.clear()
+    api_client.credentials(
+        HTTP_AUTHORIZATION="Api-Key wrong-key", HTTP_X_REAL_IP="10.0.0.1"
+    )
+    assert api_client.get(URL).status_code == status.HTTP_401_UNAUTHORIZED
+
+    response = api_client.get(URL)
+
+    assert response.status_code == status.HTTP_429_TOO_MANY_REQUESTS
+    assert AuditLoginLogModel.objects.count() == 1
 
 
 def test_api_key_authentication_access(mock_offers_container, api_key_client):

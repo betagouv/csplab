@@ -6,6 +6,16 @@ champs et de leurs règles se trouve dans le [guide de l'API](/pages/guide_api).
 
 Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/).
 
+## 2026-10-08
+
+### Modifié
+
+- Routes authentifiées par `Api-Key` : au-delà de 10 rejets par minute depuis la
+  même adresse IP (clé invalide ou IP non autorisée), l'API répond
+  `429 Too Many Requests` au lieu de `401`. L'en-tête `Retry-After` indique le délai
+  avant de pouvoir réessayer. Les requêtes avec une clé valide ne sont pas
+  concernées.
+
 ## 2026-10-07
 
 ### Ajouté

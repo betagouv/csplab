@@ -378,6 +378,11 @@ REST_FRAMEWORK = {
         "user": "120/minute",
         "api_key": "70000/hour",
         "api_key_daily": "100000/day",
+        # Rejected API keys per client IP, counted before the audit row is
+        # written (ApiKeyRejectionRateThrottle): past it, a 429 is returned and
+        # nothing is recorded. Leaves room for a misconfigured client's retries
+        # while capping audit writes and key brute-forcing.
+        "api_key_rejection": "10/minute",
     },
 }
 

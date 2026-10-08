@@ -1,4 +1,5 @@
 import os
+from typing import cast
 
 from config.settings.base import *  # noqa E402 F403
 
@@ -55,6 +56,11 @@ PROCONNECT_LOGIN_FLAG = True
 PROCONNECT_LOGIN_ENABLED = True
 
 INGESTION_API_KEY = "test-ingestion-api-key"
+# A None rate disables the throttle. Otherwise every test rejecting a key would
+# share one counter per worker (most send no X-Real-IP) and unrelated tests
+# would get a 429. Tests covering this throttle patch their own rate.
+_throttle_rates = cast(dict[str, str | None], REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"])  # noqa: F405
+_throttle_rates["api_key_rejection"] = None
 
 SENTRY_DNS = "example.com"
 
