@@ -11,7 +11,7 @@ import { useCandidatureLinkFocus } from '../composables/useCandidatureLinkFocus'
 import { provideCandidatureSequence } from '../composables/useCandidatureNavigation'
 import { useCandidatures } from '../composables/useCandidatures'
 
-const { pendingListe, filters } = useCandidatures()
+const { pendingListe, filters, listeSort } = useCandidatures()
 const { filteredCandidatures } = filters
 
 const showSkeleton = useMinimumPending(pendingListe)
@@ -61,6 +61,7 @@ const countLabel = computed(() => {
     </p>
     <CspDataTable
       ref="table"
+      v-model:sort="listeSort"
       v-model:page="candidatureListePage"
       :rows="filteredCandidatures"
       :columns="CANDIDATURE_LISTE_COLUMNS"

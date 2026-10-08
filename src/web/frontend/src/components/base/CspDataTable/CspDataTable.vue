@@ -10,6 +10,7 @@ import type {
   CspTableAlign,
   CspTableCellValue,
   CspTableSize,
+  CspTableSort,
 } from './table'
 import {
   createColumnHelper,
@@ -51,7 +52,7 @@ const emit = defineEmits<{
   toggleAll: [visibleIds: string[]]
   activate: [id: string]
 }>()
-const sort = defineModel<{ id: string, desc: boolean } | null>('sort', { default: null })
+const sort = defineModel<CspTableSort | null>('sort', { default: null })
 const page = defineModel<number>('page', { default: 1 })
 
 const columnHelper = createColumnHelper<TRow>()

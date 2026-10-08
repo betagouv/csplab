@@ -10,6 +10,7 @@ import {
   CANDIDATURE_LISTE,
   candidatureDetail,
   ETAPE_ENTRETIEN,
+  KANBAN,
   KANBAN_PATH,
   MOTIFS_REFUS,
   ORGANISME_UUID,
@@ -19,7 +20,7 @@ import {
 } from '@/test/fixtures/candidatures'
 import { makeUser } from '@/test/fixtures/utilisateur'
 import { renderWithApp, setupUser } from '@/test/render'
-import { getCandidatureActivites, getCandidatureDetail, getCandidatureListe, getMotifsRefus, patchEtapeCandidatures } from '../api'
+import { getCandidatureActivites, getCandidatureDetail, getCandidatureListe, getMotifsRefus, getRecrutementKanban, patchEtapeCandidatures } from '../api'
 
 vi.mock('../api', () => ({
   getCandidatureDetail: vi.fn(),
@@ -178,6 +179,19 @@ describe('candidaturesListeView', () => {
     await vi.waitFor(() => expect(getCandidatureListe).toHaveBeenCalledTimes(2))
     expect(await table.findByRole('link', { name: 'Candidat 6 Dupont' })).toBeInTheDocument()
     expect(table.queryByRole('link', { name: 'Candidat 1 Dupont' })).not.toBeInTheDocument()
+  })
+
+  it('keeps the sort of the list after a visit to the kanban', async () => {
+    vi.mocked(getRecrutementKanban).mockResolvedValue(KANBAN)
+    const user = setupUser()
+    const { router, table } = await renderListe()
+
+    await user.click(table.getByRole('button', { name: 'Dernière activité' }))
+    await router.push(KANBAN_PATH)
+    await router.push(LISTE_PATH)
+
+    const sorted = within(await screen.findByRole('table', { name: 'Candidatures' }))
+    expect(sorted.getByRole('columnheader', { name: 'Dernière activité' })).toHaveAttribute('aria-sort', 'ascending')
   })
 
   it('closes back to the list and focuses the link of the last candidature shown', async () => {

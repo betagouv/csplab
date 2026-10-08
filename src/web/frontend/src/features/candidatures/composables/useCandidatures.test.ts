@@ -325,7 +325,7 @@ describe('useCandidatures', () => {
       expect(context.candidatureKanban.value).toHaveLength(1)
     })
 
-    it('resets filters when navigating to another recrutement', async () => {
+    it('resets filters and sort when navigating to another recrutement', async () => {
       const { context, router } = await mountCandidatures()
 
       await vi.waitFor(() => expect(context.pendingKanban.value).toBe(false))
@@ -335,12 +335,14 @@ describe('useCandidatures', () => {
       context.filters.draft.etapes = [ETAPE_RECEPTION]
       context.filters.apply()
       expect(context.filters.activeFiltersCount.value).toBe(1)
+      context.listeSort.value = { id: 'derniere_activite', desc: false }
 
       await router.push(`/organismes/${ORGANISME_UUID}/recrutements/aaaaaaaa-0001-0001-0001-000000000002`)
 
       await vi.waitFor(() => {
         expect(context.filters.search.value).toBe('')
         expect(context.filters.activeFiltersCount.value).toBe(0)
+        expect(context.listeSort.value).toBeNull()
       })
       expect(context.recrutementUuid.value).toBe('aaaaaaaa-0001-0001-0001-000000000002')
     })

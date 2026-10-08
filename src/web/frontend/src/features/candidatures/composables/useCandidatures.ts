@@ -1,8 +1,9 @@
 import type { CandidaturesQueryParams } from '../queries'
 import type { Candidature } from '../types'
+import type { CspTableSort } from '@/components/base/CspDataTable/table'
 import type { RecrutementDetail } from '@/features/recrutements/types'
 import { defineQuery, useQuery, useQueryCache } from '@pinia/colada'
-import { computed, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { peekRecrutementIntitule, recrutementDetailQuery } from '@/features/recrutements/queries'
 import { candidatureListeQuery, recrutementKanbanQuery } from '../queries'
@@ -102,8 +103,11 @@ export const useCandidatures = defineQuery(() => {
     candidatureListe,
   })
 
+  const listeSort = ref<CspTableSort | null>(null)
+
   watch(recrutementUuid, () => {
     filters.reset()
+    listeSort.value = null
   })
 
   return {
@@ -122,5 +126,6 @@ export const useCandidatures = defineQuery(() => {
     pendingListe,
     error,
     filters,
+    listeSort,
   }
 })
