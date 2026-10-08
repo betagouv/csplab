@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { calendarDaysBetween, formatDateLong, formatDateTime, formatElapsedDays, formatElapsedTime } from './date'
+import { calendarDaysBetween, formatDate, formatDateLong, formatDateTime, formatElapsedDays, formatElapsedTime, formatTime } from './date'
 
 const NOW = new Date('2026-06-23T12:00:00')
 
@@ -77,5 +77,25 @@ describe('formatDateTime', () => {
 
   it('returns - for invalid input', () => {
     expect(formatDateTime('not-a-date')).toBe('-')
+  })
+})
+
+describe('formatDate', () => {
+  it('formats ISO dates as day/month/year', () => {
+    expect(formatDate('2026-05-02T10:21:00')).toBe('02/05/2026')
+  })
+
+  it('returns - for invalid input', () => {
+    expect(formatDate('not-a-date')).toBe('-')
+  })
+})
+
+describe('formatTime', () => {
+  it('spells the hour out in french without leading zero', () => {
+    expect(formatTime('2026-05-02T09:13:00')).toBe('9h13')
+  })
+
+  it('returns - for invalid input', () => {
+    expect(formatTime('not-a-date')).toBe('-')
   })
 })

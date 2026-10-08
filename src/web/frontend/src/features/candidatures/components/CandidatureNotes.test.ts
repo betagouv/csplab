@@ -21,7 +21,7 @@ function note(overrides: Partial<Note>): Note {
     publie_par_id: 'eeeeeeee-0001-0001-0001-000000000001',
     publie_par_prenom: 'Marie',
     publie_par_nom: 'Dupont',
-    publie_le: '2025-06-10T09:15:00Z',
+    publie_le: '2025-06-10T09:15:00',
     ...overrides,
   }
 }
@@ -38,7 +38,7 @@ describe('candidatureNotes', () => {
     vi.clearAllMocks()
   })
 
-  it('lists the notes with their author', async () => {
+  it('lists the notes with their author and publication date', async () => {
     const results = [
       note({}),
       note({ uuid: 'ffffffff-0001-0001-0001-000000000002', message: 'À recontacter', publie_par_prenom: 'Paul', publie_par_nom: 'Bernard' }),
@@ -50,6 +50,7 @@ describe('candidatureNotes', () => {
     const [premiere, seconde] = screen.getAllByRole('listitem').map(item => within(item))
     expect(premiere!.getByText('Marie Dupont')).toBeInTheDocument()
     expect(premiere!.getByText('Profil solide')).toBeInTheDocument()
+    expect(premiere!.getByText(/10\/06\/2025/)).toHaveTextContent('10/06/2025 • 9h15')
     expect(seconde!.getByText('Paul Bernard')).toBeInTheDocument()
     expect(seconde!.getByText('À recontacter')).toBeInTheDocument()
   })

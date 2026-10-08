@@ -36,6 +36,11 @@ const hourMinute = new Intl.DateTimeFormat('fr-FR', {
   minute: '2-digit',
 })
 
+const shortHourMinute = new Intl.DateTimeFormat('fr-FR', {
+  hour: 'numeric',
+  minute: '2-digit',
+})
+
 const longDate = new Intl.DateTimeFormat('fr-FR', {
   day: '2-digit',
   month: 'long',
@@ -90,4 +95,20 @@ export function formatDateTime(iso: string): string {
     return PLACEHOLDER
   }
   return `${dayMonthYear.format(date)} à ${hourMinute.format(date).replace(':', 'h')}`
+}
+
+export function formatDate(iso: string): string {
+  const date = parse(iso)
+  if (!date) {
+    return PLACEHOLDER
+  }
+  return dayMonthYear.format(date)
+}
+
+export function formatTime(iso: string): string {
+  const date = parse(iso)
+  if (!date) {
+    return PLACEHOLDER
+  }
+  return shortHourMinute.format(date).replace(':', 'h')
 }
