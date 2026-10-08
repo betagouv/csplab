@@ -83,7 +83,7 @@ async function submit(): Promise<void> {
         v-model="message"
         :rows="8"
         :readonly="creating"
-        placeholder="Votre note sur cette candidature…"
+        placeholder="Écrivez votre note…"
         :aria-labelledby="titleId"
       />
       <CspButton
