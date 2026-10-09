@@ -249,7 +249,7 @@ autres d'être traitées.
 |---|---|
 | `creees` | Nombre d'offres créées |
 | `mises_a_jour` | Nombre d'offres mises à jour |
-| `offres` | Offres créées ou mises à jour : `index` (position dans le tableau `offres` envoyé, à partir de 0), `reference` et `statut` (`created` ou `updated`) |
+| `offres` | Offres créées ou mises à jour : `index` (position dans le tableau `offres` envoyé, à partir de 0), `reference` et `statut` (`creee` ou `mise_a_jour`) |
 | `errors` | Offres rejetées : `index`, `offre` (bloc `identification` envoyé) et `error` (détail de l'erreur) |
 
 Exemple de réponse :
@@ -259,8 +259,8 @@ Exemple de réponse :
   "creees": 1,
   "mises_a_jour": 1,
   "offres": [
-    {"index": 0, "reference": "REF-001", "statut": "updated"},
-    {"index": 2, "reference": "CSP-2026-000042", "statut": "created"}
+    {"index": 0, "reference": "REF-001", "statut": "mise_a_jour"},
+    {"index": 2, "reference": "CSP-2026-000042", "statut": "creee"}
   ],
   "errors": [
     {

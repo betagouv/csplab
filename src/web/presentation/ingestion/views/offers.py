@@ -58,6 +58,8 @@ UNKNOWN_GENERATED_REFERENCE = (
     "une offre."
 )
 
+STATUTS_OFFRE = {"created": "creee", "updated": "mise_a_jour"}
+
 
 @extend_schema(
     summary="Liste des offres",
@@ -281,9 +283,9 @@ class ArchiveOffersView(PublicApiMixin, APIView):
                                 help_text="Référence de l'offre, fournie ou générée"
                             ),
                             "statut": serializers.ChoiceField(
-                                choices=["created", "updated"],
-                                help_text="`created` si l'offre a été créée, "
-                                "`updated` si elle a été mise à jour",
+                                choices=["creee", "mise_a_jour"],
+                                help_text="`creee` si l'offre a été créée, "
+                                "`mise_a_jour` si elle a été mise à jour",
                             ),
                         },
                     ),
@@ -400,7 +402,11 @@ class OffersUpsertView(PublicApiMixin, APIView):
             )
             result["errors"].extend(sorted(errors, key=lambda error: error["index"]))
             offres = [
-                {"index": index, **offer_status}
+                {
+                    "index": index,
+                    "reference": offer_status["reference"],
+                    "statut": STATUTS_OFFRE[offer_status["statut"]],
+                }
                 for index, offer_status in zip(
                     valid_indexes, result["offres"], strict=True
                 )
