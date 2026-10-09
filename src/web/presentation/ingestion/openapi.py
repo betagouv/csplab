@@ -220,7 +220,7 @@ ARCHIVE_OFFER_EXAMPLES = [
         "Success",
         summary="Offre archivée avec succès",
         description="L'offre correspondant à la référence a été archivée.",
-        value={"status": "ok"},
+        value={"statut": "ok"},
         response_only=True,
         status_codes=["200"],
     ),
