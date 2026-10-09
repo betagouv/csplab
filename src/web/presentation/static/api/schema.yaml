@@ -3253,7 +3253,7 @@ paths:
 
         Si vous n'avez pas de référence pour une offre, envoyez `"auto"` dans `identification.reference`. CSPLab génère alors une référence au format `CSP-AAAA-NNNNNN` (année, puis numéro séquentiel), par exemple `CSP-2026-000042`. La séquence est commune à toutes les sources et repart de 1 chaque année.
 
-        La réponse liste dans `offres` chaque offre créée ou mise à jour, avec son `index` dans le payload, sa `reference` finale et son `statut` (`created` ou `updated`). L'`index` permet de retrouver la référence générée pour chaque offre envoyée en `"auto"`.
+        La réponse liste dans `offres` chaque offre créée ou mise à jour, avec son `index` dans le payload, sa `reference` finale et son `statut` (`creee` ou `mise_a_jour`). L'`index` permet de retrouver la référence générée pour chaque offre envoyée en `"auto"`.
 
         Chaque offre rejetée apparaît dans `errors` avec son `index` dans le payload.
 
@@ -3291,18 +3291,18 @@ paths:
               examples:
                 Success:
                   value:
-                    created: 1
-                    updated: 1
+                    creees: 1
+                    mises_a_jour: 1
                     offres:
                     - index: 0
                       reference: REF-001
-                      statut: updated
+                      statut: mise_a_jour
                     - index: 2
                       reference: CSP-2026-000042
-                      statut: created
+                      statut: creee
                     errors:
                     - index: 1
-                      offer:
+                      offre:
                         reference: auto
                         versant: FPE
                       error:
@@ -5528,12 +5528,12 @@ components:
         * `TOM` - TOM
     StatutEnum:
       enum:
-      - created
-      - updated
+      - creee
+      - mise_a_jour
       type: string
       description: |-
-        * `created` - created
-        * `updated` - updated
+        * `creee` - creee
+        * `mise_a_jour` - mise_a_jour
     SupprimerOrganismesRequest:
       type: object
       properties:
@@ -5724,7 +5724,7 @@ components:
         index:
           type: integer
           description: Position de l'offre dans `offres` du payload (à partir de 0)
-        offer:
+        offre:
           allOf:
           - $ref: '#/components/schemas/IdentityInput'
           description: Identification de l'offre rejetée
@@ -5735,7 +5735,7 @@ components:
       required:
       - error
       - index
-      - offer
+      - offre
     UpsertOfferStatus:
       type: object
       properties:
@@ -5749,10 +5749,10 @@ components:
           allOf:
           - $ref: '#/components/schemas/StatutEnum'
           description: |-
-            `created` si l'offre a été créée, `updated` si elle a été mise à jour
+            `creee` si l'offre a été créée, `mise_a_jour` si elle a été mise à jour
 
-            * `created` - created
-            * `updated` - updated
+            * `creee` - creee
+            * `mise_a_jour` - mise_a_jour
       required:
       - index
       - reference
@@ -5784,10 +5784,10 @@ components:
     UpsertOffersResponse:
       type: object
       properties:
-        created:
+        creees:
           type: integer
           description: Nombre d'offres créées
-        updated:
+        mises_a_jour:
           type: integer
           description: Nombre d'offres mises à jour
         offres:
@@ -5802,10 +5802,10 @@ components:
             $ref: '#/components/schemas/UpsertOfferError'
           description: Offres rejetées avec le détail de l'erreur
       required:
-      - created
+      - creees
       - errors
+      - mises_a_jour
       - offres
-      - updated
     UpsertOrganismesRequest:
       type: object
       properties:
@@ -6007,6 +6007,18 @@ tags:
 
     `POST /api/v1/offres/archiver` : le champ `status` de la réponse devient `statut`.
     La valeur renvoyée (`ok`) ne change pas.
+
+    `POST /api/v1/offres/creer_modifier` : les champs de la réponse et les valeurs de
+    `offres[].statut` sont renommés en français.
+
+    - `created` devient `creees` ;
+    - `updated` devient `mises_a_jour` ;
+    - dans chaque élément de `offres`, la valeur de `statut` `created` devient `creee`
+      et `updated` devient `mise_a_jour` ;
+    - dans chaque élément de `errors`, `offer` devient `offre`.
+
+    `offres` et ses sous-champs `index`, `reference` et `statut` gardent leur nom.
+    `errors` et `errors[].error` ne changent pas pour l'instant.
 
     ## 2026-10-08
 

@@ -831,8 +831,8 @@ class UpsertOffersRequestSerializer(serializers.Serializer):
 
 
 class UpsertOffersResponseSerializer(serializers.Serializer):
-    created = serializers.IntegerField()
-    updated = serializers.IntegerField()
+    creees = serializers.IntegerField()
+    mises_a_jour = serializers.IntegerField()
     offres = serializers.ListField(child=serializers.DictField())
     errors = serializers.ListField(child=serializers.DictField())
 
