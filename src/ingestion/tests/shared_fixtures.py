@@ -67,7 +67,7 @@ def mock_web_publish_offer_response(httpx_mock: HTTPXMock) -> None:
     httpx_mock.add_response(
         method="POST",
         url=PUBLISH_OFFER_URL,
-        json={"created": 1, "updated": 0, "errors": []},
+        json={"creees": 1, "mises_a_jour": 0, "offres": [], "errors": []},
         status_code=201,
     )
 

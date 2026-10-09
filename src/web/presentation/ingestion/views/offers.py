@@ -265,8 +265,8 @@ class ArchiveOffersView(PublicApiMixin, APIView):
         201: inline_serializer(
             name="UpsertOffersResponse",
             fields={
-                "created": serializers.IntegerField(help_text="Nombre d'offres créées"),
-                "updated": serializers.IntegerField(
+                "creees": serializers.IntegerField(help_text="Nombre d'offres créées"),
+                "mises_a_jour": serializers.IntegerField(
                     help_text="Nombre d'offres mises à jour"
                 ),
                 "offres": serializers.ListField(
@@ -301,7 +301,7 @@ class ArchiveOffersView(PublicApiMixin, APIView):
                                 help_text="Position de l'offre dans `offres` du "
                                 "payload (à partir de 0)"
                             ),
-                            "offer": IdentityInputSerializer(
+                            "offre": IdentityInputSerializer(
                                 help_text="Identification de l'offre rejetée"
                             ),
                             "error": serializers.DictField(
@@ -352,7 +352,7 @@ class OffersUpsertView(PublicApiMixin, APIView):
                 errors.append(
                     {
                         "index": index,
-                        "offer": offer_data.get("identification", {}),
+                        "offre": offer_data.get("identification", {}),
                         "error": serializer.errors,
                     }
                 )
@@ -366,7 +366,7 @@ class OffersUpsertView(PublicApiMixin, APIView):
                 errors.append(
                     {
                         "index": index,
-                        "offer": offer_data.get("identification", {}),
+                        "offre": offer_data.get("identification", {}),
                         "error": str(e),
                     }
                 )
@@ -381,7 +381,7 @@ class OffersUpsertView(PublicApiMixin, APIView):
                     errors.append(
                         {
                             "index": index,
-                            "offer": request.data["offres"][index]["identification"],
+                            "offre": request.data["offres"][index]["identification"],
                             "error": {"reference": [UNKNOWN_GENERATED_REFERENCE]},
                         }
                     )
@@ -410,7 +410,13 @@ class OffersUpsertView(PublicApiMixin, APIView):
                 )
             ]
             return Response(
-                {**result, "offres": offres}, status=status.HTTP_201_CREATED
+                {
+                    "creees": result["created"],
+                    "mises_a_jour": result["updated"],
+                    "offres": offres,
+                    "errors": result["errors"],
+                },
+                status=status.HTTP_201_CREATED,
             )
         except SourceAuthorizationError as e:
             source_ids = sorted(str(sid) for sid in e.source_ids)
