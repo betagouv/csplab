@@ -60,6 +60,17 @@ français, avec les noms déjà utilisés par `POST /api/v1/offres/creer_modifie
 `POST /api/v1/offres/archiver` : le champ `status` de la réponse devient `statut`.
 La valeur renvoyée (`ok`) ne change pas.
 
+`POST /api/v1/offres/creer_modifier` : les champs de la réponse sont renommés en
+français.
+
+- `created` devient `creees` ;
+- `updated` devient `mises_a_jour` ;
+- dans chaque élément de `errors`, `offer` devient `offre`.
+
+`offres` (et ses sous-champs `index`, `reference`, `statut`) ne change pas, ni les
+valeurs renvoyées (`created`, `updated` dans `statut`). `errors` et `errors[].error`
+ne changent pas pour l'instant.
+
 ## 2026-10-08
 
 ### Ajouté

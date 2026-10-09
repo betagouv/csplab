@@ -492,8 +492,8 @@ UPSERT_OFFERS_EXAMPLES = [
             "pour la troisième se retrouve grâce à son `index` (2)."
         ),
         value={
-            "created": 1,
-            "updated": 1,
+            "creees": 1,
+            "mises_a_jour": 1,
             "offres": [
                 {"index": 0, "reference": "REF-001", "statut": "updated"},
                 {"index": 2, "reference": "CSP-2026-000042", "statut": "created"},
@@ -501,7 +501,7 @@ UPSERT_OFFERS_EXAMPLES = [
             "errors": [
                 {
                     "index": 1,
-                    "offer": {"reference": "auto", "versant": "FPE"},
+                    "offre": {"reference": "auto", "versant": "FPE"},
                     "error": {"titre": ["Ce champ ne peut être nul."]},
                 }
             ],

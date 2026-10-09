@@ -396,12 +396,12 @@ def test_mixed_valid_invalid_offers_in_payload(
         "db error on offer xxx",
         {
             "index": 1,
-            "offer": {"reference": "REF-004", "versant": "FPT"},
+            "offre": {"reference": "REF-004", "versant": "FPT"},
             "error": {"titre": ["Ce champ ne peut être nul."]},
         },
         {
             "index": 2,
-            "offer": {"reference": "REF-005", "versant": "FPT"},
+            "offre": {"reference": "REF-005", "versant": "FPT"},
             "error": {"nature_offre": ["«\xa0ABC\xa0» n'est pas un choix valide."]},
         },
     ]
@@ -429,7 +429,7 @@ def test_unknown_metier_returns_error_in_payload(
     assert errors == [
         {
             "index": 0,
-            "offer": {"reference": "REF-001", "versant": "FPT"},
+            "offre": {"reference": "REF-001", "versant": "FPT"},
             "error": {
                 "profession": {
                     "metier": ["Code métier inconnu : ERNUM001."],
@@ -466,8 +466,8 @@ class TestOffersUpsertViewDbVerified:
 
         assert response.status_code == status.HTTP_201_CREATED
         assert response.json() == {
-            "created": 1,
-            "updated": 0,
+            "creees": 1,
+            "mises_a_jour": 0,
             "errors": [],
             "offres": [{"index": 0, "reference": "REF-001", "statut": "created"}],
         }
@@ -596,7 +596,7 @@ class TestOffersUpsertViewDbVerified:
         assert body["errors"] == [
             {
                 "index": 0,
-                "offer": {"reference": explicit_reference, "versant": "FPT"},
+                "offre": {"reference": explicit_reference, "versant": "FPT"},
                 "error": {"reference": [UNKNOWN_GENERATED_REFERENCE]},
             }
         ]
