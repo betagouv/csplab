@@ -1,11 +1,12 @@
-import type { Ref } from 'vue'
+import type { InjectionKey, MaybeRefOrGetter } from 'vue'
 import type {
+  CandidatureListe,
   EtapeRecrutement,
   EtapeRecrutementDetailedCandidatures,
-  PaginatedCandidatureListeList,
 } from '../types'
 import type { CspCheckboxGroupOption } from '@/components/base/CspCheckboxGroup/CspCheckboxGroup.vue'
-import { computed, ref, watch } from 'vue'
+import type { CspTableSort } from '@/components/base/CspDataTable/table'
+import { computed, inject, provide, ref, toValue, watch } from 'vue'
 import { useDebounce } from '@/composables/async/useDebounce'
 import { useDraft } from '@/composables/storage/useDraft'
 import {
@@ -17,19 +18,11 @@ import {
 
 const SEARCH_DEBOUNCE_MS = 500
 
-export type CandidaturesFiltersContext = ReturnType<typeof useCandidaturesFilters>
+export type CandidaturesFiltersContext = ReturnType<typeof createCandidaturesFilters>
 
-export interface CandidaturesFiltersSources {
-  recrutementEtapes: Readonly<Ref<EtapeRecrutement[]>>
-  candidatureKanban: Readonly<Ref<EtapeRecrutementDetailedCandidatures[]>>
-  candidatureListe: Ref<PaginatedCandidatureListeList | undefined>
-}
+const KEY: InjectionKey<CandidaturesFiltersContext> = Symbol('candidatures-filters')
 
-export function useCandidaturesFilters({
-  recrutementEtapes,
-  candidatureKanban,
-  candidatureListe,
-}: CandidaturesFiltersSources) {
+export function createCandidaturesFilters(recrutementEtapes: MaybeRefOrGetter<EtapeRecrutement[]>) {
   const {
     draft,
     applied,
@@ -51,29 +44,31 @@ export function useCandidaturesFilters({
     appliedSearch.value = search.value
   }
 
-  const filteredEtapes = computed(() =>
-    candidatureKanban.value
+  function filterEtapes(etapes: EtapeRecrutementDetailedCandidatures[]): EtapeRecrutementDetailedCandidatures[] {
+    return etapes
       .filter(etape => matchesEtape(etape.uuid, applied))
       .map(etape => ({
         ...etape,
         candidatures: etape.candidatures.filter(
           candidature => matchesSearch(candidature.candidat, appliedSearch.value),
         ),
-      })),
-  )
+      }))
+  }
 
-  const filteredCandidatures = computed(() =>
-    (candidatureListe.value?.results ?? []).filter(row =>
+  function filterCandidatures(rows: CandidatureListe[]): CandidatureListe[] {
+    return rows.filter(row =>
       matchesEtape(row.etape.uuid, applied)
       && matchesSearch(row.candidat, appliedSearch.value),
-    ),
-  )
+    )
+  }
 
   const etapeOptions = computed<CspCheckboxGroupOption[]>(() =>
-    recrutementEtapes.value.map(etape => ({ value: etape.uuid, label: etape.nom })),
+    toValue(recrutementEtapes).map(etape => ({ value: etape.uuid, label: etape.nom })),
   )
 
   const activeFiltersCount = computed(() => countActiveFilters(applied))
+
+  const listeSort = ref<CspTableSort | null>(null)
 
   function reset(): void {
     resetDraft()
@@ -89,9 +84,24 @@ export function useCandidaturesFilters({
     reset,
     search,
     flushSearch,
-    filteredEtapes,
-    filteredCandidatures,
+    filterEtapes,
+    filterCandidatures,
     etapeOptions,
     activeFiltersCount,
+    listeSort,
   }
+}
+
+export function provideCandidaturesFilters(recrutementEtapes: MaybeRefOrGetter<EtapeRecrutement[]>): CandidaturesFiltersContext {
+  const filters = createCandidaturesFilters(recrutementEtapes)
+  provide(KEY, filters)
+  return filters
+}
+
+export function useCandidaturesFilters(): CandidaturesFiltersContext {
+  const filters = inject(KEY)
+  if (!filters) {
+    throw new Error('useCandidaturesFilters must be used within provideCandidaturesFilters')
+  }
+  return filters
 }

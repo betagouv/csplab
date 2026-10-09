@@ -107,6 +107,35 @@ describe('candidaturesKanbanView', () => {
     vi.mocked(patchEtapeCandidatures).mockResolvedValue({ reussites: [CANDIDATURE_ALICE, CANDIDATURE_BRUNO], echecs: [] })
   })
 
+  it('shows the cards matching the search of the candidatures tab', async () => {
+    const user = setupUser()
+    await renderKanbanPage()
+
+    await screen.findByRole('link', { name: 'Alice Dupont' })
+    await user.type(screen.getByRole('searchbox', { name: 'Rechercher un candidat' }), 'Bruno{Enter}')
+
+    await vi.waitFor(() => expect(screen.queryByRole('link', { name: 'Alice Dupont' })).not.toBeInTheDocument())
+    expect(screen.getByRole('link', { name: 'Bruno Martin' })).toBeInTheDocument()
+  })
+
+  it('clears the search when another recrutement opens', async () => {
+    const user = setupUser()
+    const { router } = await renderKanbanPage()
+    const search = await screen.findByRole('searchbox', { name: 'Rechercher un candidat' })
+    await user.type(search, 'Bruno{Enter}')
+
+    await router.push(`/organismes/${ORGANISME_UUID}/recrutements/aaaaaaaa-0001-0001-0001-000000000002`)
+
+    await vi.waitFor(() => expect(screen.getByRole('searchbox', { name: 'Rechercher un candidat' })).toHaveValue(''))
+  })
+
+  it('shows an error when the kanban fails to load', async () => {
+    vi.mocked(getRecrutementKanban).mockRejectedValue(new Error('boom'))
+    await renderKanbanPage()
+
+    expect(await screen.findByText('Une erreur est survenue lors du chargement des candidatures.')).toBeInTheDocument()
+  })
+
   it('asks for a motif before refusing a selection, and sends it', async () => {
     const { user, dialog } = await refuseSelectedColumn()
 

@@ -1,5 +1,7 @@
 <script setup lang="ts">
+import { useQuery } from '@pinia/colada'
 import { computed, ref, useTemplateRef } from 'vue'
+import CspAsyncSection from '@/components/base/CspAsyncSection/CspAsyncSection.vue'
 import CspDataTable from '@/components/base/CspDataTable/CspDataTable.vue'
 import CspSkeleton from '@/components/base/CspSkeleton/CspSkeleton.vue'
 import CspSkeletonTable from '@/components/base/CspSkeleton/CspSkeletonTable.vue'
@@ -8,15 +10,20 @@ import { pluralize } from '@/utils/format'
 import { CANDIDATURE_LISTE_COLUMNS } from '../columns'
 import { useCandidatureLinkFocus } from '../composables/useCandidatureLinkFocus'
 import { provideCandidatureSequence } from '../composables/useCandidatureNavigation'
-import { useCandidatures } from '../composables/useCandidatures'
+import { useCandidaturesFilters } from '../composables/useCandidaturesFilters'
+import { candidatureListeQuery } from '../queries'
 
 const props = defineProps<{
+  organismeUuid: string
+  recrutementUuid: string
   candidatureUuid?: string
 }>()
-const { pendingListe, filters, listeSort } = useCandidatures()
-const { filteredCandidatures } = filters
+const liste = useQuery(() => candidatureListeQuery(props))
+const filters = useCandidaturesFilters()
+const filteredCandidatures = computed(() => filters.filterCandidatures(liste.data.value?.results ?? []))
+const { listeSort } = filters
 
-const showSkeleton = useMinimumPending(pendingListe)
+const showSkeleton = useMinimumPending(liste.isPending)
 
 const table = useTemplateRef('table')
 provideCandidatureSequence(() => table.value?.sortedRowIds ?? [])
@@ -32,29 +39,26 @@ const countLabel = computed(() => {
 </script>
 
 <template>
-  <div
-    v-if="showSkeleton"
-    class="candidatures-liste-content"
-    role="status"
-    aria-label="Chargement des candidatures"
+  <CspAsyncSection
+    :pending="showSkeleton"
+    :error="liste.error.value"
+    loading-label="Chargement des candidatures"
+    error-title="Une erreur est survenue lors du chargement des candidatures."
   >
-    <p class="candidatures-liste-content__count">
-      <CspSkeleton
-        width="8rem"
-        variant="text"
+    <template #skeleton>
+      <p class="candidatures-liste-content__count">
+        <CspSkeleton
+          width="8rem"
+          variant="text"
+        />
+      </p>
+      <CspSkeletonTable
+        :rows="PAGE_SIZE"
+        :columns="CANDIDATURE_LISTE_COLUMNS.length"
+        with-footer
       />
-    </p>
-    <CspSkeletonTable
-      :rows="PAGE_SIZE"
-      :columns="CANDIDATURE_LISTE_COLUMNS.length"
-      with-footer
-    />
-  </div>
+    </template>
 
-  <div
-    v-else
-    class="candidatures-liste-content"
-  >
     <p class="candidatures-liste-content__count">
       {{ countLabel }}
     </p>
@@ -70,7 +74,7 @@ const countLabel = computed(() => {
       empty-label="Aucune candidature"
       :page-size="PAGE_SIZE"
     />
-  </div>
+  </CspAsyncSection>
 
   <router-view />
 </template>

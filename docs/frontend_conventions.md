@@ -10,7 +10,7 @@ The project **is** the ATS, so there is no top-level `ats/` feature. Business co
 src/
 ├── app/                    # Bootstrap & app config (main.ts, App.vue, navigation.ts, icons)
 ├── router/                 # Route tree (routes.ts), shared route names (names.ts), shared breadcrumb items (breadcrumb.ts)
-├── views/                  # App-level pages WITHOUT business logic (Home, ParametresView, NotFound)
+├── views/                  # App-level pages WITHOUT business logic (Home, NotFound)
 │
 ├── features/               # Business modules (self-contained) — business views & components ONLY
 │   ├── recrutements/
@@ -71,7 +71,6 @@ The following are **not** features:
 | Not a feature            | Where it goes                          |
 | ------------------------ | -------------------------------------- |
 | A page with no business logic (Home, 404) | `views/`                  |
-| A container page hosting several features (Parametres) | `views/`      |
 | The concrete app shell (sidebar + nav + user)         | `components/layout/AppShell.vue` |
 | App navigation config                     | `app/navigation.ts`       |
 | Generic UI / layout building blocks       | `components/`             |
@@ -79,20 +78,6 @@ The following are **not** features:
 
 - **There is no `features/shared/`.** Cross-feature business code either becomes its own feature, or is promoted to a root folder if it is business-agnostic.
 - When two features need the same *business* type, the owning feature exposes it and the other imports it (e.g. `candidatures` imports `EtapeRecrutement` from `etapes-recrutement`). A dependency between features is fine when it mirrors the domain.
-
-### Container pages vs features
-
-A settings/dashboard page is often just a **container**: it arranges tabs/sections, each rendering a feature component. The container page has no business logic → it lives in `views/`. The business logic of each panel lives in its feature.
-
-```
-views/ParametresView.vue                      # tabs container (no business logic)
-features/etapes-recrutement/
-  ├── components/EtapesRecrutementList.vue     # the actual config UI
-  ├── composables/useEtapesRecrutement.ts
-  ├── constants/etape-recrutement.ts
-  ├── api.ts
-  └── types.ts
-```
 
 ### App shell
 
@@ -116,20 +101,22 @@ The shell wraps `<RouterView>` **once** (in `App.vue`), so views never import it
 - `router/routes.ts` holds the whole route tree. Nesting follows the URL: a parent without component groups its children under a path prefix.
 - Route names live in `router/names.ts`. Views, components and the navigation import names from there.
 - A set of routes mounted under several parents is built by a function called once per parent, like the candidature panel under the kanban and the list.
-- A view receives its route params as props: `props: true` when the location carries the params the view declares and no others, or a function that picks the declared params when the location carries others, such as the params of child routes.
+- When the tabs of a page are different route components, they are child routes: the page renders `<router-view />` in the `tab` slot of `CspPageContainer`, used by every tab that has no slot of its own, and the route tree mounts the tab's component: a view, or a component from the `components/` folder of the tab's feature, which can differ from the page's feature.
+- A view receives its route params as props: `props: true` when the location carries the params the view declares and no others, or a function that picks the declared params when the location carries others, such as the params of child routes. A props function can also build the props of a tab component; each built prop value uses `satisfies` with its prop type so that vue-tsc checks it.
 - A route-level view sets the document title with `useDocumentTitle`, from the most specific part to the most general (`Notes - Alice Dupont`). It calls `useHead` from [`@unhead/vue`](https://unhead.unjs.io/docs/vue/head/api/composables/use-head); `App.vue` adds the site name through `titleTemplate`.
 
 ```ts
 // router/routes.ts
 {
-  path: `/organismes/:organismeUuid${UUID}`,
+  path: `:recrutementUuid${UUID}`,
   children: [
     {
-      path: 'recrutements',
-      name: ORGANISME_SECTION_ROUTE_NAMES.recrutements,
+      path: '',
+      component: RecrutementView,
+      props: paramsAsProps('organismeUuid', 'recrutementUuid'),
       children: [
-        { path: '', name: RECRUTEMENTS_TAB_ROUTE_NAMES.actifs, component: RecrutementsView, props: true },
-        { path: 'archives', name: RECRUTEMENTS_TAB_ROUTE_NAMES.archives, component: RecrutementsView, props: true },
+        { path: 'activites', name: RECRUTEMENT_DETAIL_TAB_ROUTE_NAMES['activites-et-taches'], component: ActivitesTachesView },
+        { path: 'equipe', name: RECRUTEMENT_DETAIL_TAB_ROUTE_NAMES.equipe, component: EquipeRecrutementSection, props: true },
       ],
     },
   ],

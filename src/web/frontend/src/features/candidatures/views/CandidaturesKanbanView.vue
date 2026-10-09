@@ -1,10 +1,13 @@
 <script setup lang="ts">
 import type { EtapeRecrutementDetailedCandidatures, MotifRefus } from '../types'
 import type { KanbanDropEvent } from '@/composables/dnd/useKanbanDnd'
+import { useQuery } from '@pinia/colada'
 import { computed, ref, toRef } from 'vue'
+import CspAsyncSection from '@/components/base/CspAsyncSection/CspAsyncSection.vue'
 import CspSkeleton from '@/components/base/CspSkeleton/CspSkeleton.vue'
 import CspSkeletonKanban from '@/components/base/CspSkeleton/CspSkeletonKanban.vue'
 import { useMinimumPending } from '@/composables/async/useMinimumPending'
+import { useRecrutementDetail } from '@/features/recrutements/composables/useRecrutementDetail'
 import { pluralize } from '@/utils/format'
 import CandidaturesKanbanBoard from '../components/CandidaturesKanbanBoard.vue'
 import ChangerEtapeDrawer from '../components/ChangerEtapeDrawer.vue'
@@ -12,23 +15,36 @@ import RefusCandidatureDialog from '../components/RefusCandidatureDialog.vue'
 import SelectionActionBar from '../components/SelectionActionBar.vue'
 import { useCandidatureLinkFocus } from '../composables/useCandidatureLinkFocus'
 import { provideCandidatureSequence } from '../composables/useCandidatureNavigation'
-import { useCandidatures } from '../composables/useCandidatures'
+import { useCandidaturesFilters } from '../composables/useCandidaturesFilters'
 import { useEtapeChangeMutation } from '../composables/useEtapeChangeMutation'
 import { useKanbanSelection } from '../composables/useKanbanSelection'
 import { useRefusCandidature } from '../composables/useRefusCandidature'
+import { recrutementKanbanQuery } from '../queries'
 
-const {
-  recrutementUuid,
-  recrutementParams,
-  recrutementEtapes,
-  pendingKanban,
-  findCandidature,
-  filters,
-} = useCandidatures()
+const props = defineProps<{
+  organismeUuid: string
+  recrutementUuid: string
+}>()
 
-const { changeEtape } = useEtapeChangeMutation(recrutementParams)
+const kanban = useQuery(() => recrutementKanbanQuery(props))
+const candidatureKanban = computed(() => kanban.data.value?.etapes ?? [])
 
-const { filteredEtapes } = filters
+const { etapes: recrutementEtapes } = useRecrutementDetail(() => props)
+
+const { changeEtape } = useEtapeChangeMutation(() => props)
+
+const filters = useCandidaturesFilters()
+const filteredEtapes = computed(() => filters.filterEtapes(candidatureKanban.value))
+
+function findCandidature(uuid: string) {
+  for (const etape of candidatureKanban.value) {
+    const found = etape.candidatures.find(candidature => candidature.uuid === uuid)
+    if (found) {
+      return found
+    }
+  }
+  return null
+}
 
 provideCandidatureSequence(candidatureUuid =>
   filteredEtapes.value
@@ -38,7 +54,7 @@ provideCandidatureSequence(candidatureUuid =>
 
 useCandidatureLinkFocus()
 
-const showSkeleton = useMinimumPending(pendingKanban)
+const showSkeleton = useMinimumPending(kanban.isPending)
 
 const {
   selectedCandidatures,
@@ -51,10 +67,10 @@ const {
   hasSelection,
 } = useKanbanSelection(toRef(() => filteredEtapes.value))
 
-const boardId = computed(() => `kanban-${recrutementUuid.value}`)
+const boardId = computed(() => `kanban-${props.recrutementUuid}`)
 const isDrawerOpen = ref(false)
 const drawerInitialEtapeUuid = ref<string | null>(null)
-const refus = useRefusCandidature()
+const refus = useRefusCandidature(() => props.organismeUuid)
 
 const refusEtapeUuid = computed(() => {
   return recrutementEtapes.value.find(e => e.categorie === 'REFUS')?.uuid ?? null
@@ -140,25 +156,23 @@ const countLabel = computed(() => {
 </script>
 
 <template>
-  <div
-    v-if="showSkeleton"
-    class="candidatures-kanban-content"
-    role="status"
-    aria-label="Chargement des candidatures"
+  <CspAsyncSection
+    fill
+    :pending="showSkeleton"
+    :error="kanban.error.value"
+    loading-label="Chargement des candidatures"
+    error-title="Une erreur est survenue lors du chargement des candidatures."
   >
-    <p class="candidatures-kanban-content__count">
-      <CspSkeleton
-        width="8rem"
-        variant="text"
-      />
-    </p>
-    <CspSkeletonKanban />
-  </div>
+    <template #skeleton>
+      <p class="candidatures-kanban-content__count">
+        <CspSkeleton
+          width="8rem"
+          variant="text"
+        />
+      </p>
+      <CspSkeletonKanban />
+    </template>
 
-  <div
-    v-else
-    class="candidatures-kanban-content"
-  >
     <p
       v-if="!hasSelection"
       class="candidatures-kanban-content__count"
@@ -198,19 +212,12 @@ const countLabel = computed(() => {
       @confirm="refus.confirm"
       @cancel="refus.cancel"
     />
-  </div>
+  </CspAsyncSection>
 
   <router-view />
 </template>
 
 <style scoped lang="scss">
-.candidatures-kanban-content {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-  min-height: 0;
-}
-
 .candidatures-kanban-content__count {
   margin: 0 0 var(--csp-space-4);
   font-size: 0.9375rem;
