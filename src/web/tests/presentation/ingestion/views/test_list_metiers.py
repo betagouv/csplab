@@ -53,10 +53,10 @@ def test_empty_result(mock_metiers_container, jwt_client):
 
     assert response.status_code == status.HTTP_200_OK
     assert response.json() == {
-        "count": 0,
-        "next": None,
-        "previous": None,
-        "results": [],
+        "total": 0,
+        "page_suivante": None,
+        "page_precedente": None,
+        "resultats": [],
     }
 
 
@@ -73,11 +73,11 @@ def test_call_without_arg(mock_metiers_container, jwt_client):
 
     data = response.json()
 
-    assert data["count"] == len(metiers)
-    assert data["next"] is None
-    assert data["previous"] is None
+    assert data["total"] == len(metiers)
+    assert data["page_suivante"] is None
+    assert data["page_precedente"] is None
 
-    for result, metier in zip(data["results"], metiers, strict=True):
+    for result, metier in zip(data["resultats"], metiers, strict=True):
         assert result["libelle"] == metier.libelle
         assert result["description"] == metier.description
         assert result["domaine_fonctionnel_code"] == metier.domaine_fonctionnel_code
@@ -108,7 +108,7 @@ def test_returns_error_500(mock_metiers_container, jwt_client):
     assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
 
 
-@patch("presentation.ingestion.views.metiers.WebPagination.page_size", new=2)
+@patch("presentation.ingestion.views.metiers.ApiV1Pagination.page_size", new=2)
 def test_pagination_page_arg(mock_metiers_container, jwt_client):
     num_metiers = 5
     metiers = [MetierFactory.create_entity() for _ in range(num_metiers)]
@@ -122,10 +122,10 @@ def test_pagination_page_arg(mock_metiers_container, jwt_client):
     assert response.status_code == status.HTTP_200_OK
     data = response.json()
 
-    assert data["count"] == num_metiers
-    assert len(data["results"]) == 2  # noqa
+    assert data["total"] == num_metiers
+    assert len(data["resultats"]) == 2  # noqa
 
-    parsed_previous = urlparse(data["previous"])
+    parsed_previous = urlparse(data["page_precedente"])
     assert parsed_previous.path == URL
     assert parse_qs(parsed_previous.query) == {
         "page": ["1"],
@@ -133,7 +133,7 @@ def test_pagination_page_arg(mock_metiers_container, jwt_client):
         "taille": ["2"],
     }
 
-    parsed_next = urlparse(data["next"])
+    parsed_next = urlparse(data["page_suivante"])
     assert parsed_next.path == URL
     assert parse_qs(parsed_next.query) == {
         "page": ["3"],
@@ -142,7 +142,7 @@ def test_pagination_page_arg(mock_metiers_container, jwt_client):
     }
 
 
-@patch("presentation.ingestion.views.metiers.WebPagination.page_size", new=2)
+@patch("presentation.ingestion.views.metiers.ApiV1Pagination.page_size", new=2)
 def test_pagination_out_of_bond(mock_metiers_container, jwt_client):
     num_metiers = 3
     metiers = [MetierFactory.create_entity() for _ in range(num_metiers)]
@@ -155,17 +155,17 @@ def test_pagination_out_of_bond(mock_metiers_container, jwt_client):
     assert response.status_code == status.HTTP_200_OK
     data = response.json()
 
-    assert data["count"] == num_metiers
-    assert data["results"] == []
+    assert data["total"] == num_metiers
+    assert data["resultats"] == []
 
-    parsed = urlparse(data["previous"])
+    parsed = urlparse(data["page_precedente"])
     assert parsed.path == URL
     assert parse_qs(parsed.query) == {
         "page": ["2"],
         "taille": ["2"],
     }
 
-    assert data["next"] is None
+    assert data["page_suivante"] is None
 
 
 def test_invalid_payload(mock_metiers_container, jwt_client):
@@ -174,7 +174,7 @@ def test_invalid_payload(mock_metiers_container, jwt_client):
     response = jwt_client.get(URL, {"domaine": "ABCD"})
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert "error" in response.json().keys()
+    assert "erreur" in response.json().keys()
 
 
 class TestMetiersListViewDbVerified:
@@ -190,8 +190,8 @@ class TestMetiersListViewDbVerified:
 
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
-        assert data["count"] == 1
-        assert data["results"] == [
+        assert data["total"] == 1
+        assert data["resultats"] == [
             {
                 "libelle": metier.libelle_long,
                 "description": metier.definition_synthetique,

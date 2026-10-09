@@ -1577,17 +1577,17 @@ paths:
               examples:
                 Error-NoFileProvided:
                   value:
-                    error: No file provided
+                    erreur: No file provided
                   summary: Aucun fichier dans la requête
                   description: Le champ `file` est absent du corps de la requête multipart.
                 Error-WrongFileType:
                   value:
-                    error: File must be a CSV
+                    erreur: File must be a CSV
                   summary: Fichier non CSV
                   description: Le fichier uploadé n'a pas l'extension `.csv`.
                 Error-NoValidRows:
                   value:
-                    error: No valid rows found
+                    erreur: No valid rows found
                     validation_errors:
                     - row: 1
                       error: Le champ 'N° NOR' est requis
@@ -1600,7 +1600,7 @@ paths:
                     donnée n'a été persistée.
                 Error-MalformedCSV:
                   value:
-                    error: CSV parsing error
+                    erreur: CSV parsing error
                   summary: Fichier CSV mal formé
                   description: Le fichier ne peut pas être parsé,vérifiez le séparateur
                     (`;`) et l'encodage (UTF-8).
@@ -1616,16 +1616,12 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TokenError'
+                $ref: '#/components/schemas/ErreurAuthentification'
               examples:
                 Error-InvalidToken:
                   value:
-                    detail: Le jeton fourni n'est pas valide.
+                    erreur: Le jeton fourni n'est pas valide.
                     code: token_not_valid
-                    messages:
-                    - token_class: AccessToken
-                      token_type: access
-                      message: Token is invalid or expired
                   summary: Token JWT invalide ou expiré
                   description: Le token dans le header `Authorization` est invalide
                     ou expiré.
@@ -1641,11 +1637,11 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/GenericError'
+                $ref: '#/components/schemas/ErreurApi'
               examples:
                 Error-UnexpectedServerError:
                   value:
-                    error: Unexpected error
+                    erreur: Unexpected error
                   summary: Erreur serveur inattendue
                   description: Une erreur inattendue s'est produite côté serveur.
           description: ''
@@ -1663,7 +1659,7 @@ paths:
               schema:
                 type: object
                 properties:
-                  detail:
+                  erreur:
                     type: string
                     example: Request was throttled. Expected available in 42 seconds.
           headers:
@@ -1734,10 +1730,10 @@ paths:
               examples:
                 Success-All:
                   value:
-                    count: 1
-                    next: null
-                    previous: null
-                    results:
+                    total: 1
+                    page_suivante: null
+                    page_precedente: null
+                    resultats:
                     - libelle: Cheffe / Chef de projet politique de la ville
                       description: Mettre en oeuvre les orientations stratégiques
                         en matièrede développement social et de redynamisation des
@@ -1758,10 +1754,10 @@ paths:
                   description: Les métiers sont retournés paginés
                 Success-Filtered:
                   value:
-                    count: 1
-                    next: null
-                    previous: null
-                    results:
+                    total: 1
+                    page_suivante: null
+                    page_precedente: null
+                    resultats:
                     - libelle: Personne ressource en santé et protection animales
                       description: Mobilise sa compétence dans la gestion et le suivi
                         de la santé et de la protection animale en appui aux services
@@ -1793,11 +1789,11 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/GenericError'
+                $ref: '#/components/schemas/ErreurApi'
               examples:
                 Error-MalformedPayload:
                   value:
-                    error: string
+                    erreur: string
                   summary: Données invalides
                   description: Les données passées dans le payload sont incorrectes
           description: ''
@@ -1812,16 +1808,12 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TokenError'
+                $ref: '#/components/schemas/ErreurAuthentification'
               examples:
                 Error-InvalidToken:
                   value:
-                    detail: Le jeton fourni n'est pas valide.
+                    erreur: Le jeton fourni n'est pas valide.
                     code: token_not_valid
-                    messages:
-                    - token_class: AccessToken
-                      token_type: access
-                      message: Token is invalid or expired
                   summary: Token JWT invalide ou expiré
                   description: Le token dans le header `Authorization` est invalide
                     ou expiré.
@@ -1837,11 +1829,11 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/GenericError'
+                $ref: '#/components/schemas/ErreurApi'
               examples:
                 Error-UnexpectedServerError:
                   value:
-                    error: Unexpected error
+                    erreur: Unexpected error
                   summary: Erreur serveur inattendue
                   description: Une erreur inattendue s'est produite côté serveur.
           description: ''
@@ -1859,7 +1851,7 @@ paths:
               schema:
                 type: object
                 properties:
-                  detail:
+                  erreur:
                     type: string
                     example: Request was throttled. Expected available in 42 seconds.
           headers:
@@ -2965,10 +2957,10 @@ paths:
               examples:
                 Success-ActiveOffers:
                   value:
-                    count: 1
-                    next: null
-                    previous: null
-                    results:
+                    total: 1
+                    page_suivante: null
+                    page_precedente: null
+                    resultats:
                     - reference: 2026-999999
                       source_id: 12345678-1234-4234-b234-123456789abc
                       titre: Responsable de la Division des Affaires Financières H/F
@@ -2984,10 +2976,10 @@ paths:
                     paginées
                 Success-ArchivedOffers:
                   value:
-                    count: 1
-                    next: null
-                    previous: null
-                    results:
+                    total: 1
+                    page_suivante: null
+                    page_precedente: null
+                    resultats:
                     - reference: 2026-999999
                       source_id: 12345678-1234-4234-b234-123456789abc
                       titre: Responsable de la Division des Affaires Financières H/F
@@ -3013,7 +3005,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/GenericError'
+                $ref: '#/components/schemas/ErreurApi'
           description: ''
           headers:
             X-RateLimit-Limit:
@@ -3026,16 +3018,12 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TokenError'
+                $ref: '#/components/schemas/ErreurAuthentification'
               examples:
                 Error-InvalidToken:
                   value:
-                    detail: Le jeton fourni n'est pas valide.
+                    erreur: Le jeton fourni n'est pas valide.
                     code: token_not_valid
-                    messages:
-                    - token_class: AccessToken
-                      token_type: access
-                      message: Token is invalid or expired
                   summary: Token JWT invalide ou expiré
                   description: Le token dans le header `Authorization` est invalide
                     ou expiré.
@@ -3051,11 +3039,11 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/GenericError'
+                $ref: '#/components/schemas/ErreurApi'
               examples:
                 Error-UnexpectedServerError:
                   value:
-                    error: Unexpected error
+                    erreur: Unexpected error
                   summary: Erreur serveur inattendue
                   description: Une erreur inattendue s'est produite côté serveur.
           description: ''
@@ -3073,7 +3061,7 @@ paths:
               schema:
                 type: object
                 properties:
-                  detail:
+                  erreur:
                     type: string
                     example: Request was throttled. Expected available in 42 seconds.
           headers:
@@ -3145,7 +3133,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ArchiveOfferBadRequest'
+                $ref: '#/components/schemas/ErreurApi'
               examples:
                 Error-MissingField:
                   value:
@@ -3165,16 +3153,12 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ArchiveOffer401Error'
+                $ref: '#/components/schemas/ErreurAuthentification'
               examples:
                 Error-InvalidToken:
                   value:
-                    detail: Le jeton fourni n'est pas valide.
+                    erreur: Le jeton fourni n'est pas valide.
                     code: token_not_valid
-                    messages:
-                    - token_class: AccessToken
-                      token_type: access
-                      message: Token is invalid or expired
                   summary: Token JWT invalide ou expiré
                   description: Le token dans le header `Authorization` est invalide
                     ou expiré.
@@ -3190,7 +3174,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ArchiveOfferForbidden'
+                $ref: '#/components/schemas/ErreurApi'
           description: ''
           headers:
             X-RateLimit-Limit:
@@ -3203,11 +3187,11 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ArchiveOfferNotFound'
+                $ref: '#/components/schemas/ErreurApi'
               examples:
                 Error-NotFound:
                   value:
-                    detail: Not found.
+                    erreur: Not found.
                   summary: Offre introuvable
                   description: Aucune offre ne correspond à la référence fournie.
           description: ''
@@ -3225,7 +3209,7 @@ paths:
               schema:
                 type: object
                 properties:
-                  detail:
+                  erreur:
                     type: string
                     example: Request was throttled. Expected available in 42 seconds.
           headers:
@@ -3255,11 +3239,11 @@ paths:
 
         La réponse liste dans `offres` chaque offre créée ou mise à jour, avec son `index` dans le payload, sa `reference` finale et son `statut` (`creee` ou `mise_a_jour`). L'`index` permet de retrouver la référence générée pour chaque offre envoyée en `"auto"`.
 
-        Chaque offre rejetée apparaît dans `errors` avec son `index` dans le payload.
+        Chaque offre rejetée apparaît dans `erreurs` avec son `index` dans le payload.
 
         **Important :** `"auto"` crée toujours une nouvelle offre. Pour mettre à jour l'offre ensuite, conservez la référence renvoyée et envoyez-la à la place de `"auto"`. Sinon, chaque envoi crée un doublon.
 
-        Le format `CSP-AAAA-NNNNNN` est réservé aux références générées par CSPLab. Une référence à ce format n'est acceptée que pour mettre à jour une offre existante de la source. Sinon, l'offre est rejetée dans `errors`.
+        Le format `CSP-AAAA-NNNNNN` est réservé aux références générées par CSPLab. Une référence à ce format n'est acceptée que pour mettre à jour une offre existante de la source. Sinon, l'offre est rejetée dans `erreurs`.
 
         # Permissions
 
@@ -3300,12 +3284,12 @@ paths:
                     - index: 2
                       reference: CSP-2026-000042
                       statut: creee
-                    errors:
+                    erreurs:
                     - index: 1
                       offre:
                         reference: auto
                         versant: FPE
-                      error:
+                      erreur:
                         titre:
                         - Ce champ ne peut être nul.
                   summary: Offres créées ou mises à jour
@@ -3325,20 +3309,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/GenericError'
-          description: ''
-          headers:
-            X-RateLimit-Limit:
-              $ref: '#/components/headers/X-RateLimit-Limit'
-            X-RateLimit-Remaining:
-              $ref: '#/components/headers/X-RateLimit-Remaining'
-            X-RateLimit-Reset:
-              $ref: '#/components/headers/X-RateLimit-Reset'
-        '401':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/TokenError'
+                $ref: '#/components/schemas/ErreurApi'
           description: ''
           headers:
             X-RateLimit-Limit:
@@ -3351,7 +3322,20 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UpsertOffersForbidden'
+                $ref: '#/components/schemas/ErreurApi'
+          description: ''
+          headers:
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErreurAuthentification'
           description: ''
           headers:
             X-RateLimit-Limit:
@@ -3364,7 +3348,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/GenericError'
+                $ref: '#/components/schemas/ErreurApi'
           description: ''
           headers:
             X-RateLimit-Limit:
@@ -3380,7 +3364,7 @@ paths:
               schema:
                 type: object
                 properties:
-                  detail:
+                  erreur:
                     type: string
                     example: Request was throttled. Expected available in 42 seconds.
           headers:
@@ -3463,7 +3447,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OffersBySource401Error'
+                $ref: '#/components/schemas/ErreurAuthentification'
           description: ''
           headers:
             X-RateLimit-Limit:
@@ -3476,7 +3460,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/GenericError'
+                $ref: '#/components/schemas/ErreurApi'
           description: ''
           headers:
             X-RateLimit-Limit:
@@ -3492,7 +3476,7 @@ paths:
               schema:
                 type: object
                 properties:
-                  detail:
+                  erreur:
                     type: string
                     example: Request was throttled. Expected available in 42 seconds.
           headers:
@@ -3538,7 +3522,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/GenericError'
+                $ref: '#/components/schemas/ErreurApi'
           description: ''
           headers:
             X-RateLimit-Limit:
@@ -3551,7 +3535,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/GenericError'
+                $ref: '#/components/schemas/ErreurAuthentification'
           description: ''
           headers:
             X-RateLimit-Limit:
@@ -3564,7 +3548,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/GenericError'
+                $ref: '#/components/schemas/ErreurApi'
           description: ''
           headers:
             X-RateLimit-Limit:
@@ -3580,7 +3564,7 @@ paths:
               schema:
                 type: object
                 properties:
-                  detail:
+                  erreur:
                     type: string
                     example: Request was throttled. Expected available in 42 seconds.
           headers:
@@ -3626,7 +3610,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/GenericError'
+                $ref: '#/components/schemas/ErreurApi'
           description: ''
           headers:
             X-RateLimit-Limit:
@@ -3639,7 +3623,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/GenericError'
+                $ref: '#/components/schemas/ErreurAuthentification'
           description: ''
           headers:
             X-RateLimit-Limit:
@@ -3652,7 +3636,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/GenericError'
+                $ref: '#/components/schemas/ErreurApi'
           description: ''
           headers:
             X-RateLimit-Limit:
@@ -3668,7 +3652,7 @@ paths:
               schema:
                 type: object
                 properties:
-                  detail:
+                  erreur:
                     type: string
                     example: Request was throttled. Expected available in 42 seconds.
           headers:
@@ -3715,7 +3699,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/GenericError'
+                $ref: '#/components/schemas/ErreurApi'
           description: ''
           headers:
             X-RateLimit-Limit:
@@ -3728,7 +3712,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/GenericError'
+                $ref: '#/components/schemas/ErreurAuthentification'
           description: ''
           headers:
             X-RateLimit-Limit:
@@ -3741,7 +3725,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/GenericError'
+                $ref: '#/components/schemas/ErreurApi'
           description: ''
           headers:
             X-RateLimit-Limit:
@@ -3757,7 +3741,7 @@ paths:
               schema:
                 type: object
                 properties:
-                  detail:
+                  erreur:
                     type: string
                     example: Request was throttled. Expected available in 42 seconds.
           headers:
@@ -3771,31 +3755,6 @@ paths:
               $ref: '#/components/headers/X-RateLimit-Reset'
 components:
   schemas:
-    ArchiveOffer401Error:
-      oneOf:
-      - $ref: '#/components/schemas/TokenError'
-      - $ref: '#/components/schemas/ArchiveOfferUnauthorized'
-    ArchiveOfferBadRequest:
-      type: object
-      properties:
-        detail:
-          type: string
-      required:
-      - detail
-    ArchiveOfferForbidden:
-      type: object
-      properties:
-        detail:
-          type: string
-      required:
-      - detail
-    ArchiveOfferNotFound:
-      type: object
-      properties:
-        detail:
-          type: string
-      required:
-      - detail
     ArchiveOfferRequest:
       type: object
       properties:
@@ -3814,13 +3773,6 @@ components:
           type: string
       required:
       - statut
-    ArchiveOfferUnauthorized:
-      type: object
-      properties:
-        detail:
-          type: string
-      required:
-      - detail
     BlankEnum:
       enum:
       - ''
@@ -3840,7 +3792,7 @@ components:
         * `HORS_CATEGORIE` - HORS_CATEGORIE
     ConcoursUpload400Error:
       oneOf:
-      - $ref: '#/components/schemas/GenericError'
+      - $ref: '#/components/schemas/ErreurApi'
       - $ref: '#/components/schemas/NoValidRowsError'
     ConcoursUploadResponse:
       type: object
@@ -4191,6 +4143,23 @@ components:
       - employeur
       - mission
       - profil
+    ErreurApi:
+      type: object
+      properties:
+        erreur:
+          type: string
+      required:
+      - erreur
+    ErreurAuthentification:
+      type: object
+      properties:
+        erreur:
+          type: string
+        code:
+          type: string
+          description: Présent si le jeton JWT est invalide ou expiré
+      required:
+      - erreur
     ExperienceEnum:
       enum:
       - DEBUTANT
@@ -4983,14 +4952,14 @@ components:
     NoValidRowsError:
       type: object
       properties:
-        error:
+        erreur:
           type: string
         validation_errors:
           type: array
           items:
             $ref: '#/components/schemas/ValidationError'
       required:
-      - error
+      - erreur
       - validation_errors
     NullEnum:
       enum:
@@ -5115,17 +5084,6 @@ components:
       - url_offre
       - vacance_poste
       - versant
-    OffersBySource401Error:
-      oneOf:
-      - $ref: '#/components/schemas/TokenError'
-      - $ref: '#/components/schemas/OffersBySourceUnauthorized'
-    OffersBySourceUnauthorized:
-      type: object
-      properties:
-        detail:
-          type: string
-      required:
-      - detail
     OffersInput:
       type: object
       properties:
@@ -5215,6 +5173,18 @@ components:
         external_id:
           type: string
           maxLength: 50
+      required:
+      - external_id
+      - referentiel
+    OrganismeIdentification:
+      type: object
+      properties:
+        referentiel:
+          type: string
+          nullable: true
+        external_id:
+          type: string
+          nullable: true
       required:
       - external_id
       - referentiel
@@ -5358,69 +5328,69 @@ components:
     PaginatedListMetiersResponseList:
       type: object
       required:
-      - count
-      - results
+      - total
+      - resultats
       properties:
-        count:
+        total:
           type: integer
           example: 1
-        next:
+        page_suivante:
           type: string
           format: uri
           nullable: true
           example: null
-        previous:
+        page_precedente:
           type: string
           format: uri
           nullable: true
           example: null
-        results:
+        resultats:
           type: array
           items:
             $ref: '#/components/schemas/ListMetiersResponse'
     PaginatedListOffersResponseList:
       type: object
       required:
-      - count
-      - results
+      - total
+      - resultats
       properties:
-        count:
+        total:
           type: integer
           example: 1
-        next:
+        page_suivante:
           type: string
           format: uri
           nullable: true
           example: null
-        previous:
+        page_precedente:
           type: string
           format: uri
           nullable: true
           example: null
-        results:
+        resultats:
           type: array
           items:
             $ref: '#/components/schemas/ListOffersResponse'
     PaginatedOfferDetailResponseList:
       type: object
       required:
-      - count
-      - results
+      - total
+      - resultats
       properties:
-        count:
+        total:
           type: integer
           example: 1
-        next:
+        page_suivante:
           type: string
           format: uri
           nullable: true
           example: null
-        previous:
+        page_precedente:
           type: string
           format: uri
           nullable: true
           example: null
-        results:
+        resultats:
           type: array
           items:
             $ref: '#/components/schemas/OfferDetailResponse'
@@ -5558,6 +5528,19 @@ components:
       required:
       - deleted
       - not_found
+    TalentsoftOrganismeIdentification:
+      type: object
+      properties:
+        entity_code:
+          type: string
+          nullable: true
+        organisme_id:
+          type: string
+          format: uuid
+          nullable: true
+      required:
+      - entity_code
+      - organisme_id
     TalentsoftOrganismeUpsertInput:
       type: object
       properties:
@@ -5718,52 +5701,6 @@ components:
         * `CDD_CDI` - CDD ou CDI
         * `CONTRAT_PROJET` - Contrat de projet
         * `VACATION` - Payés à l'acte
-    UpsertOfferError:
-      type: object
-      properties:
-        index:
-          type: integer
-          description: Position de l'offre dans `offres` du payload (à partir de 0)
-        offre:
-          allOf:
-          - $ref: '#/components/schemas/IdentityInput'
-          description: Identification de l'offre rejetée
-        error:
-          type: object
-          additionalProperties: {}
-          description: Détail de l'erreur de validation
-      required:
-      - error
-      - index
-      - offre
-    UpsertOfferStatus:
-      type: object
-      properties:
-        index:
-          type: integer
-          description: Position de l'offre dans `offres` du payload (à partir de 0)
-        reference:
-          type: string
-          description: Référence de l'offre, fournie ou générée
-        statut:
-          allOf:
-          - $ref: '#/components/schemas/StatutEnum'
-          description: |-
-            `creee` si l'offre a été créée, `mise_a_jour` si elle a été mise à jour
-
-            * `creee` - creee
-            * `mise_a_jour` - mise_a_jour
-      required:
-      - index
-      - reference
-      - statut
-    UpsertOffersForbidden:
-      type: object
-      properties:
-        detail:
-          type: string
-      required:
-      - detail
     UpsertOffersRequest:
       type: object
       properties:
@@ -5793,19 +5730,70 @@ components:
         offres:
           type: array
           items:
-            $ref: '#/components/schemas/UpsertOfferStatus'
+            $ref: '#/components/schemas/UpsertOffreStatut'
           description: Offres créées ou mises à jour, avec leur référence finale (générée
             si `identification.reference` vaut `auto`)
-        errors:
+        erreurs:
           type: array
           items:
-            $ref: '#/components/schemas/UpsertOfferError'
+            $ref: '#/components/schemas/UpsertOffreErreur'
           description: Offres rejetées avec le détail de l'erreur
       required:
       - creees
-      - errors
+      - erreurs
       - mises_a_jour
       - offres
+    UpsertOffreErreur:
+      type: object
+      properties:
+        erreur:
+          description: 'Détail de l''erreur : un message, ou les messages par nom
+            de champ'
+        index:
+          type: integer
+          description: Position de l'offre dans `offres` du payload (à partir de 0)
+        offre:
+          allOf:
+          - $ref: '#/components/schemas/IdentityInput'
+          description: Identification de l'offre rejetée
+      required:
+      - erreur
+      - index
+      - offre
+    UpsertOffreStatut:
+      type: object
+      properties:
+        index:
+          type: integer
+          description: Position de l'offre dans `offres` du payload (à partir de 0)
+        reference:
+          type: string
+          description: Référence de l'offre, fournie ou générée
+        statut:
+          allOf:
+          - $ref: '#/components/schemas/StatutEnum'
+          description: |-
+            `creee` si l'offre a été créée, `mise_a_jour` si elle a été mise à jour
+
+            * `creee` - creee
+            * `mise_a_jour` - mise_a_jour
+      required:
+      - index
+      - reference
+      - statut
+    UpsertOrganismeErreur:
+      type: object
+      properties:
+        erreur:
+          description: 'Détail de l''erreur : un message, ou les messages par nom
+            de champ'
+        organisme:
+          allOf:
+          - $ref: '#/components/schemas/OrganismeIdentification'
+          description: Identification de l'organisme rejeté
+      required:
+      - erreur
+      - organisme
     UpsertOrganismesRequest:
       type: object
       properties:
@@ -5828,16 +5816,28 @@ components:
         updated:
           type: integer
           description: Nombre d'organismes mis à jour
-        errors:
+        erreurs:
           type: array
           items:
-            type: object
-            additionalProperties: {}
+            $ref: '#/components/schemas/UpsertOrganismeErreur'
           description: Organismes rejetés avec le détail de l'erreur
       required:
       - created
-      - errors
+      - erreurs
       - updated
+    UpsertTalentsoftOrganismeErreur:
+      type: object
+      properties:
+        erreur:
+          description: 'Détail de l''erreur : un message, ou les messages par nom
+            de champ'
+        talentsoft_organisme:
+          allOf:
+          - $ref: '#/components/schemas/TalentsoftOrganismeIdentification'
+          description: Identification de l'organisme Talentsoft rejeté
+      required:
+      - erreur
+      - talentsoft_organisme
     UpsertTalentsoftOrganismesRequest:
       type: object
       properties:
@@ -5860,15 +5860,14 @@ components:
         updated:
           type: integer
           description: Nombre d'organismes Talentsoft mis à jour
-        errors:
+        erreurs:
           type: array
           items:
-            type: object
-            additionalProperties: {}
+            $ref: '#/components/schemas/UpsertTalentsoftOrganismeErreur'
           description: Organismes Talentsoft rejetés avec le détail de l'erreur
       required:
       - created
-      - errors
+      - erreurs
       - updated
     VacancePosteEnum:
       enum:
@@ -5881,10 +5880,10 @@ components:
     ValidationError:
       type: object
       properties:
-        error:
-          type: string
         row:
           type: integer
+        error:
+          type: string
       required:
       - error
       - row
@@ -6018,7 +6017,41 @@ tags:
     - dans chaque élément de `errors`, `offer` devient `offre`.
 
     `offres` et ses sous-champs `index`, `reference` et `statut` gardent leur nom.
-    `errors` et `errors[].error` ne changent pas pour l'instant.
+    `errors` et `errors[].error` sont renommés plus bas, avec les autres champs d'erreur.
+
+    Pagination de `GET /api/v1/offres`, `GET /api/v1/offres/sources/{source_id}` et
+    `GET /api/v1/metiers` : les champs de l'enveloppe sont renommés en français.
+
+    - `count` devient `total` ;
+    - `next` devient `page_suivante` ;
+    - `previous` devient `page_precedente` ;
+    - `results` devient `resultats`.
+
+    Les paramètres `page` et `taille` ne changent pas.
+
+    Erreurs de toutes les routes `/api/v1/…` : une réponse d'erreur contient désormais
+    un champ `erreur`.
+
+    - `error` devient `erreur` ;
+    - `detail` devient `erreur` (authentification absente, source non autorisée,
+      action interdite, offre introuvable, limite d'appels dépassée…) ;
+    - jeton JWT invalide ou expiré (`401`) : la réponse devient
+      `{"erreur": "…", "code": "token_not_valid"}`, `detail` devient `erreur`, `code`
+      ne change pas et `messages` est supprimé.
+
+    Les erreurs de validation des champs du corps de la requête (`400`) gardent leur
+    format, une liste de messages par nom de champ.
+
+    Listes d'erreurs des réponses de `POST /api/v1/offres/creer_modifier`,
+    `POST /api/v1/organismes/creer_modifier` et
+    `POST /api/v1/talentsoft_organisme/creer_modifier` :
+
+    - `errors` devient `erreurs` ;
+    - dans chaque élément de `erreurs`, `error` devient `erreur`.
+
+    Les autres champs propres à chaque route (`created`, `updated`, `validation_errors`…)
+    ne changent pas pour l'instant. Les routes `/api/token` et `/api/fake-ts/…` gardent
+    leur format d'erreur.
 
     ## 2026-10-08
 

@@ -21,7 +21,7 @@ class WebPublishOfferGateway(BaseWebGateway, IPublishOfferGateway):
                 "offres": [self._serialize(input.offer)],
             },
         )
-        errors = response.json().get("errors") if response.content else None
+        errors = response.json().get("erreurs") if response.content else None
         if errors:
             logger.error(
                 "WebPublishOfferGateway: publish failed for offer %s: %s",

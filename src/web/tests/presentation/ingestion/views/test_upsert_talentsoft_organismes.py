@@ -87,7 +87,7 @@ def test_creates_talentsoft_organisme(api_key_client):
     )
 
     assert response.status_code == status.HTTP_201_CREATED
-    assert response.json() == {"created": 1, "updated": 0, "errors": []}
+    assert response.json() == {"created": 1, "updated": 0, "erreurs": []}
 
     talentsoft_organisme = TalentsoftOrganismeModel.objects.get(
         organisme_id=organisme.id
@@ -108,7 +108,7 @@ def test_creates_talentsoft_organisme_with_null_organisme_id(api_key_client):
     )
 
     assert response.status_code == status.HTTP_201_CREATED
-    assert response.json() == {"created": 1, "updated": 0, "errors": []}
+    assert response.json() == {"created": 1, "updated": 0, "erreurs": []}
     talentsoft_organisme = TalentsoftOrganismeModel.objects.get(entity_code="ENT-1")
     assert talentsoft_organisme.organisme_id is None
 
@@ -124,7 +124,7 @@ def test_creates_talentsoft_organisme_without_organisme_id_field(api_key_client)
     )
 
     assert response.status_code == status.HTTP_201_CREATED
-    assert response.json() == {"created": 1, "updated": 0, "errors": []}
+    assert response.json() == {"created": 1, "updated": 0, "erreurs": []}
     talentsoft_organisme = TalentsoftOrganismeModel.objects.get(entity_code="ENT-1")
     assert talentsoft_organisme.organisme_id is None
 
@@ -147,7 +147,7 @@ def test_updates_existing_talentsoft_organisme(api_key_client):
     )
 
     assert response.status_code == status.HTTP_201_CREATED
-    assert response.json() == {"created": 0, "updated": 1, "errors": []}
+    assert response.json() == {"created": 0, "updated": 1, "erreurs": []}
     talentsoft_organisme = TalentsoftOrganismeModel.objects.get(
         organisme_id=organisme.id
     )
@@ -175,7 +175,7 @@ def test_upsert_matches_by_entity_code_not_organisme_id(api_key_client):
     )
 
     assert response.status_code == status.HTTP_201_CREATED
-    assert response.json() == {"created": 0, "updated": 1, "errors": []}
+    assert response.json() == {"created": 0, "updated": 1, "erreurs": []}
     assert TalentsoftOrganismeModel.objects.count() == 1
     talentsoft_organisme = TalentsoftOrganismeModel.objects.get(entity_code="ENT-1")
     assert talentsoft_organisme.organisme_id == second_organisme.id
@@ -195,13 +195,13 @@ def test_unknown_organisme_id_reported_as_error(api_key_client):
     body = response.json()
     assert body["created"] == 0
     assert body["updated"] == 0
-    assert body["errors"] == [
+    assert body["erreurs"] == [
         {
             "talentsoft_organisme": {
                 "entity_code": "ENT-1",
                 "organisme_id": str(unknown_id),
             },
-            "error": "Organisme introuvable.",
+            "erreur": "Organisme introuvable.",
         }
     ]
 
@@ -232,7 +232,7 @@ def test_creates_and_updates_multiple_items_in_a_single_batch(api_key_client):
     )
 
     assert response.status_code == status.HTTP_201_CREATED
-    assert response.json() == {"created": 1, "updated": 1, "errors": []}
+    assert response.json() == {"created": 1, "updated": 1, "erreurs": []}
     assert TalentsoftOrganismeModel.objects.get(entity_code="ENT-A").name == "Renommé"
     assert TalentsoftOrganismeModel.objects.filter(entity_code="ENT-B").exists()
 
@@ -257,14 +257,14 @@ def test_duplicate_entity_code_in_same_batch_is_rejected(api_key_client):
     assert body["created"] == 0
     assert body["updated"] == 0
     assert (
-        body["errors"]
+        body["erreurs"]
         == [
             {
                 "talentsoft_organisme": {
                     "entity_code": "ENT-1",
                     "organisme_id": str(organisme.id),
                 },
-                "error": "entity_code en doublon dans le lot.",
+                "erreur": "entity_code en doublon dans le lot.",
             }
         ]
         * 2
@@ -286,7 +286,7 @@ def test_duplicate_code_in_same_batch_is_rejected(api_key_client):
     body = response.json()
     assert body["created"] == 0
     assert body["updated"] == 0
-    assert [error["error"] for error in body["errors"]] == [
+    assert [error["erreur"] for error in body["erreurs"]] == [
         "code en doublon dans le lot."
     ] * 2
     assert not TalentsoftOrganismeModel.objects.exists()
@@ -305,7 +305,7 @@ def test_missing_code_is_rejected(api_key_client):
     assert response.status_code == status.HTTP_201_CREATED
     body = response.json()
     assert body["created"] == 0
-    assert len(body["errors"]) == 1
+    assert len(body["erreurs"]) == 1
     assert not TalentsoftOrganismeModel.objects.exists()
 
 
@@ -324,7 +324,7 @@ def test_all_items_invalid_returns_zero_counts(api_key_client):
     body = response.json()
     assert body["created"] == 0
     assert body["updated"] == 0
-    assert len(body["errors"]) == 1
+    assert len(body["erreurs"]) == 1
 
 
 def test_mixed_valid_invalid_items_in_payload(api_key_client):
@@ -346,7 +346,7 @@ def test_mixed_valid_invalid_items_in_payload(api_key_client):
     body = response.json()
     assert body["created"] == 1
     assert body["updated"] == 0
-    assert len(body["errors"]) == 1
-    assert body["errors"][0]["talentsoft_organisme"]["organisme_id"] == str(
+    assert len(body["erreurs"]) == 1
+    assert body["erreurs"][0]["talentsoft_organisme"]["organisme_id"] == str(
         organisme.id
     )

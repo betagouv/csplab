@@ -14,6 +14,10 @@ class PageNumberLimitPagination(PageNumberPagination):
 class WebPagination(BasePagination):
     page_size = api_settings.PAGE_SIZE
     min_page_size = 1
+    count_key = "count"
+    next_key = "next"
+    previous_key = "previous"
+    results_key = "results"
 
     def paginate(self, page: IPage, request) -> list[Any]:
         self.request = request
@@ -29,10 +33,10 @@ class WebPagination(BasePagination):
     def get_paginated_response(self, data: list[Any]) -> Response:
         return Response(
             {
-                "count": self.count,
-                "next": self._get_next_url(),
-                "previous": self._get_previous_url(),
-                "results": data,
+                self.count_key: self.count,
+                self.next_key: self._get_next_url(),
+                self.previous_key: self._get_previous_url(),
+                self.results_key: data,
             }
         )
 
@@ -61,22 +65,22 @@ class WebPagination(BasePagination):
     def get_paginated_response_schema(self, schema: dict) -> dict:
         return {
             "type": "object",
-            "required": ["count", "results"],
+            "required": [self.count_key, self.results_key],
             "properties": {
-                "count": {"type": "integer", "example": 1},
-                "next": {
+                self.count_key: {"type": "integer", "example": 1},
+                self.next_key: {
                     "type": "string",
                     "format": "uri",
                     "nullable": True,
                     "example": None,
                 },
-                "previous": {
+                self.previous_key: {
                     "type": "string",
                     "format": "uri",
                     "nullable": True,
                     "example": None,
                 },
-                "results": schema,
+                self.results_key: schema,
             },
         }
 
@@ -99,6 +103,13 @@ class WebPagination(BasePagination):
         params["taille"] = [self.page_size]
         new_query = urlencode({k: v[0] for k, v in params.items()})
         return urlunparse(parsed._replace(query=new_query))
+
+
+class ApiV1Pagination(WebPagination):
+    count_key = "total"
+    next_key = "page_suivante"
+    previous_key = "page_precedente"
+    results_key = "resultats"
 
 
 class TalentsoftPagination(BasePagination):

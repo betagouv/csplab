@@ -22,7 +22,7 @@ class WebPublishTalentsoftOrganismesGateway(
             "/talentsoft_organisme/creer_modifier",
             json={"talentsoft_organismes": [self._serialize(o) for o in organisations]},
         )
-        errors = response.json().get("errors") if response.content else None
+        errors = response.json().get("erreurs") if response.content else None
         if errors:
             logger.error(
                 "WebPublishTalentsoftOrganismesGateway: publish failed for "

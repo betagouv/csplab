@@ -391,18 +391,18 @@ def test_mixed_valid_invalid_offers_in_payload(
     assert response.json()["offres"] == [
         {"index": 0, "reference": "REF-001", "statut": "creee"}
     ]
-    errors = response.json()["errors"]
+    errors = response.json()["erreurs"]
     assert errors == [
         "db error on offer xxx",
         {
             "index": 1,
             "offre": {"reference": "REF-004", "versant": "FPT"},
-            "error": {"titre": ["Ce champ ne peut être nul."]},
+            "erreur": {"titre": ["Ce champ ne peut être nul."]},
         },
         {
             "index": 2,
             "offre": {"reference": "REF-005", "versant": "FPT"},
-            "error": {"nature_offre": ["«\xa0ABC\xa0» n'est pas un choix valide."]},
+            "erreur": {"nature_offre": ["«\xa0ABC\xa0» n'est pas un choix valide."]},
         },
     ]
 
@@ -425,12 +425,12 @@ def test_unknown_metier_returns_error_in_payload(
     )
 
     assert response.status_code == status.HTTP_201_CREATED
-    errors = response.json()["errors"]
+    errors = response.json()["erreurs"]
     assert errors == [
         {
             "index": 0,
             "offre": {"reference": "REF-001", "versant": "FPT"},
-            "error": {
+            "erreur": {
                 "profession": {
                     "metier": ["Code métier inconnu : ERNUM001."],
                 }
@@ -468,7 +468,7 @@ class TestOffersUpsertViewDbVerified:
         assert response.json() == {
             "creees": 1,
             "mises_a_jour": 0,
-            "errors": [],
+            "erreurs": [],
             "offres": [{"index": 0, "reference": "REF-001", "statut": "creee"}],
         }
 
@@ -593,11 +593,11 @@ class TestOffersUpsertViewDbVerified:
         body = response.json()
         assert [o["index"] for o in body["offres"]] == [1]
         assert OfferModel.objects.filter(source_id=UUID(SOURCE_UUID)).count() == 1
-        assert body["errors"] == [
+        assert body["erreurs"] == [
             {
                 "index": 0,
                 "offre": {"reference": explicit_reference, "versant": "FPT"},
-                "error": {"reference": [UNKNOWN_GENERATED_REFERENCE]},
+                "erreur": {"reference": [UNKNOWN_GENERATED_REFERENCE]},
             }
         ]
 
@@ -617,5 +617,5 @@ class TestOffersUpsertViewDbVerified:
         )
 
         assert response.json()["offres"] == []
-        assert [e["index"] for e in response.json()["errors"]] == [0]
+        assert [e["index"] for e in response.json()["erreurs"]] == [0]
         assert not OfferModel.objects.filter(source_id=UUID(SOURCE_UUID)).exists()
