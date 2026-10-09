@@ -1,13 +1,15 @@
 import type { NavItem } from '@/components/layout/CspAppShell/CspAppShell.types'
-import { CANDIDATURES_TAB_ROUTE_NAMES } from '@/features/candidatures/routes'
-import { ORGANISME_TAB_ROUTE_NAMES } from '@/features/organismes/routes'
-import { RECRUTEMENTS_TAB_ROUTE_NAMES } from '@/features/recrutements/routes'
+import {
+  ORGANISME_SECTION_ROUTE_NAMES,
+  ORGANISME_TAB_ROUTE_NAMES,
+  ORGANISMES_ROUTE_NAME,
+  RECRUTEMENTS_TAB_ROUTE_NAMES,
+} from '@/router/names'
 
 const ORGANISMES_ITEM: NavItem = {
   icon: 'ri:settings-3-line',
   label: 'Gestion des organismes',
-  to: 'organismes',
-  match: ['organismes'],
+  to: ORGANISMES_ROUTE_NAME,
 }
 
 function recrutementsItem(organismeUuid: string): NavItem {
@@ -16,12 +18,7 @@ function recrutementsItem(organismeUuid: string): NavItem {
     label: 'Recrutements',
     to: RECRUTEMENTS_TAB_ROUTE_NAMES.actifs,
     params: { organismeUuid },
-    match: [
-      ...Object.values(RECRUTEMENTS_TAB_ROUTE_NAMES),
-      ...Object.values(CANDIDATURES_TAB_ROUTE_NAMES),
-      'recrutement-candidatures',
-      'recrutement-etapes-recrutement',
-    ],
+    match: [ORGANISME_SECTION_ROUTE_NAMES.recrutements],
   }
 }
 
@@ -31,7 +28,7 @@ function parametresItem(organismeUuid: string): NavItem {
     label: 'Paramètres de l\'organisme',
     to: ORGANISME_TAB_ROUTE_NAMES.membres,
     params: { organismeUuid },
-    match: Object.values(ORGANISME_TAB_ROUTE_NAMES),
+    match: [ORGANISME_SECTION_ROUTE_NAMES.parametres],
   }
 }
 

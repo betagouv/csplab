@@ -10,7 +10,7 @@ import CspToaster from '@/components/base/CspToast/CspToaster.vue'
 import { useToast } from '@/composables/ui/useToast'
 import { getConversations } from '@/features/messages/api'
 import { getRecrutementDetail } from '@/features/recrutements/api'
-import { routes } from '@/router'
+import { routes } from '@/router/routes'
 import {
   CANDIDATURE_ALICE,
   CANDIDATURE_BRUNO,
@@ -102,6 +102,12 @@ describe('candidaturePanelView', () => {
 
     expect(await panel.findByText(/Candidature il y a \d+ jours/)).toBeInTheDocument()
     expect(panel.getByRole('heading', { name: 'Alice Dupont' })).toBeInTheDocument()
+  })
+
+  it('names the document after the tab and the candidat', async () => {
+    await renderPanel([`${KANBAN_PATH}/candidatures/${CANDIDATURE_ALICE}/notes`])
+
+    await vi.waitFor(() => expect(document.title).toBe('Notes - Alice Dupont'))
   })
 
   it('opens on the candidature tab, with the follow-up column beside it', async () => {
@@ -224,6 +230,7 @@ describe('candidaturePanelView', () => {
     expect(await panel.findByText('Cette candidature n\'est pas accessible.')).toBeInTheDocument()
     expect(panel.getByText('Elle n\'existe pas ou ne vous est pas accessible. Contactez le superviseur de votre organisme si besoin.')).toBeInTheDocument()
     expect(await panel.findByRole('heading', { name: 'Candidature' })).toBeInTheDocument()
+    expect(document.title).toBe('Candidature')
   })
 
   it.each([

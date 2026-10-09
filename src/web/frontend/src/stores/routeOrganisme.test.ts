@@ -6,7 +6,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { defineComponent, h } from 'vue'
 import { createMemoryHistory, createRouter } from 'vue-router'
 import { getMe } from '@/api/utilisateur'
-import { routes } from '@/router'
+import { routes } from '@/router/routes'
 import { useRouteOrganisme } from './routeOrganisme'
 
 vi.mock('@/api/utilisateur', () => ({

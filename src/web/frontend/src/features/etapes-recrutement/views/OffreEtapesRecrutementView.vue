@@ -2,24 +2,26 @@
 import type { CspBreadcrumbItem } from '@/components/base/CspBreadcrumb/CspBreadcrumb.vue'
 import { useQuery, useQueryCache } from '@pinia/colada'
 import { computed } from 'vue'
-import { useRoute } from 'vue-router'
 import CspPageContainer from '@/components/layout/CspPageContainer/CspPageContainer.vue'
 import CspPageHeader from '@/components/layout/CspPageHeader/CspPageHeader.vue'
+import { useDocumentTitle } from '@/composables/ui/useDocumentTitle'
 import { peekRecrutementIntitule, recrutementDetailQuery } from '@/features/recrutements/queries'
-import { recrutementsListLocation } from '@/features/recrutements/routes'
+import { HOME_BREADCRUMB_ITEM, recrutementsBreadcrumbItem } from '@/router/breadcrumb'
+import { CANDIDATURES_VIEW_ROUTE_NAMES } from '@/router/names'
 import EtapesRecrutementList from '../components/EtapesRecrutementList.vue'
 import { ETAPES_TEXTS_OFFRE } from '../constants/etape-recrutement'
 
-const route = useRoute()
-const recrutementUuid = route.params.recrutementUuid as string
-const organismeUuid = route.params.organismeUuid as string
+const props = defineProps<{
+  organismeUuid: string
+  recrutementUuid: string
+}>()
 
 const queryCache = useQueryCache()
 
 const { data: recrutementDetail } = useQuery(() => ({
   ...recrutementDetailQuery({
-    organismeUuid,
-    recrutementUuid,
+    organismeUuid: props.organismeUuid,
+    recrutementUuid: props.recrutementUuid,
   }),
 }))
 
@@ -27,23 +29,23 @@ const intitule = computed<string | null>(() => {
   if (recrutementDetail.value?.intitule) {
     return recrutementDetail.value.intitule
   }
-  return peekRecrutementIntitule(queryCache, organismeUuid, recrutementUuid)
+  return peekRecrutementIntitule(queryCache, props.organismeUuid, props.recrutementUuid)
 })
 
-const recrutementsListLink = computed(() =>
-  recrutementsListLocation(organismeUuid, recrutementDetail.value?.archive),
-)
-
 const candidaturesRoute = computed(() => ({
-  name: 'recrutement-candidatures-kanban',
-  params: { organismeUuid, recrutementUuid },
+  name: CANDIDATURES_VIEW_ROUTE_NAMES.kanban,
+  params: { organismeUuid: props.organismeUuid, recrutementUuid: props.recrutementUuid },
 }))
 
+const ETAPES_LABEL = 'Étapes de recrutement'
+
+useDocumentTitle(ETAPES_LABEL, intitule)
+
 const breadcrumb = computed<CspBreadcrumbItem[]>(() => [
-  { label: 'Accueil', to: { name: 'home' } },
-  { label: 'Recrutements', to: recrutementsListLink.value },
+  HOME_BREADCRUMB_ITEM,
+  recrutementsBreadcrumbItem(props.organismeUuid, recrutementDetail.value?.archive),
   ...(intitule.value ? [{ label: intitule.value, to: candidaturesRoute.value }] : []),
-  { label: 'Étapes de recrutement' },
+  { label: ETAPES_LABEL },
 ])
 </script>
 

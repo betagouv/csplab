@@ -5,8 +5,8 @@ import { RouterLink, useRoute } from 'vue-router'
 import CspCard from '@/components/base/CspCard/CspCard.vue'
 import CspIcon from '@/components/base/CspIcon/CspIcon.vue'
 import { useDraggableKanbanCard } from '@/composables/dnd/useKanbanDnd'
+import { CANDIDATURE_PANEL_ROUTE_NAMES } from '@/router/names'
 import { formatElapsedDays } from '@/utils/date'
-import { CANDIDATURE_PANEL_ROUTE_NAMES } from '../routes'
 import { formatCandidatNom } from '../utils/candidat'
 
 const props = defineProps<{

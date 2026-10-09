@@ -9,7 +9,7 @@ src/web/
 ├── frontend/                         # Vue/Vite source code
 │   ├── src/
 │   │   ├── app/                      # Bootstrap & app config (main.ts, App.vue, navigation.ts)
-│   │   ├── router/                   # App-level routes + feature routes aggregation
+│   │   ├── router/                   # Route tree, shared route names and breadcrumb items
 │   │   ├── views/                    # App-level pages without business logic (Home, Parametres, ...)
 │   │   ├── features/                 # Business modules (recrutements, etapes-recrutement, ...)
 │   │   ├── components/               # Design system (base/, layout/)
@@ -152,12 +152,11 @@ src/features/
     ├── components/       # Feature-specific components
     ├── composables/      # Feature-specific hooks
     ├── stores/           # Feature Pinia stores (if needed)
-    ├── routes.ts         # Feature routes (aggregated by src/router/)
     ├── api.ts            # Feature API calls
     └── types.ts          # Feature types
 ```
 
-- A feature owns its routes (`routes.ts`), aggregated in `src/router/index.ts`.
+- Routes are declared in `src/router/routes.ts`, route names in `src/router/names.ts`.
 - Cross-feature business code is **not** dumped in a `shared/` folder: it either becomes its own feature or is imported from the owning feature.
 - The design system lives in `src/components/` (`base/` for `Csp*` primitives, `layout/` for app chrome).
 - Only business-agnostic, reusable code belongs in root folders (`components/`, `composables/`, `utils/`…).
