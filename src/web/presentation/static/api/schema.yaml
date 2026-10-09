@@ -3291,8 +3291,8 @@ paths:
               examples:
                 Success:
                   value:
-                    created: 1
-                    updated: 1
+                    creees: 1
+                    mises_a_jour: 1
                     offres:
                     - index: 0
                       reference: REF-001
@@ -3302,7 +3302,7 @@ paths:
                       statut: created
                     errors:
                     - index: 1
-                      offer:
+                      offre:
                         reference: auto
                         versant: FPE
                       error:
@@ -5724,7 +5724,7 @@ components:
         index:
           type: integer
           description: Position de l'offre dans `offres` du payload (à partir de 0)
-        offer:
+        offre:
           allOf:
           - $ref: '#/components/schemas/IdentityInput'
           description: Identification de l'offre rejetée
@@ -5735,7 +5735,7 @@ components:
       required:
       - error
       - index
-      - offer
+      - offre
     UpsertOfferStatus:
       type: object
       properties:
@@ -5784,10 +5784,10 @@ components:
     UpsertOffersResponse:
       type: object
       properties:
-        created:
+        creees:
           type: integer
           description: Nombre d'offres créées
-        updated:
+        mises_a_jour:
           type: integer
           description: Nombre d'offres mises à jour
         offres:
@@ -5802,10 +5802,10 @@ components:
             $ref: '#/components/schemas/UpsertOfferError'
           description: Offres rejetées avec le détail de l'erreur
       required:
-      - created
+      - creees
       - errors
+      - mises_a_jour
       - offres
-      - updated
     UpsertOrganismesRequest:
       type: object
       properties:
@@ -6007,6 +6007,17 @@ tags:
 
     `POST /api/v1/offres/archiver` : le champ `status` de la réponse devient `statut`.
     La valeur renvoyée (`ok`) ne change pas.
+
+    `POST /api/v1/offres/creer_modifier` : les champs de la réponse sont renommés en
+    français.
+
+    - `created` devient `creees` ;
+    - `updated` devient `mises_a_jour` ;
+    - dans chaque élément de `errors`, `offer` devient `offre`.
+
+    `offres` (et ses sous-champs `index`, `reference`, `statut`) ne change pas, ni les
+    valeurs renvoyées (`created`, `updated` dans `statut`). `errors` et `errors[].error`
+    ne changent pas pour l'instant.
 
     ## 2026-10-08
 
