@@ -628,7 +628,7 @@ class ArchiveOfferRequestSerializer(serializers.Serializer):
 
 
 class ArchiveOfferSuccessSerializer(serializers.Serializer):
-    status = serializers.CharField()
+    statut = serializers.CharField()
 
 
 class ListMetiersResponseSerializer(serializers.Serializer):
