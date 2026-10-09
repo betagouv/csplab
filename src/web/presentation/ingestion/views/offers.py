@@ -1,12 +1,10 @@
 from drf_spectacular.utils import (
-    PolymorphicProxySerializer,
     extend_schema,
     extend_schema_view,
     inline_serializer,
 )
 from referentiel.exceptions.offer_errors import OfferDoesNotExist
 from rest_framework import serializers, status
-from rest_framework import serializers as drf_serializers
 from rest_framework.exceptions import ValidationError as DRFValidationError
 from rest_framework.parsers import JSONParser
 from rest_framework.response import Response
@@ -29,8 +27,12 @@ from domain.ingestion.exceptions.source_authorization_error import (
 from infrastructure.di.ingestion.ingestion_factory import create_ingestion_container
 from infrastructure.django_apps.users.models import UserModel
 from presentation.api.authentication import PublicApiMixin
-from presentation.api.serializers import GenericErrorSerializer, TokenErrorSerializer
-from presentation.commons.pagination import WebPagination
+from presentation.api.serializers import (
+    ErreurApiSerializer,
+    ErreurAuthentificationSerializer,
+    api_v1_response_format,
+)
+from presentation.commons.pagination import ApiV1Pagination
 from presentation.ingestion.mappers import OfferInputMapper
 from presentation.ingestion.openapi import (
     ARCHIVE_OFFER_DESCRIPTION,
@@ -44,12 +46,12 @@ from presentation.ingestion.openapi import (
 from presentation.ingestion.serializers import (
     ArchiveOfferRequestSerializer,
     ArchiveOfferSuccessSerializer,
-    IdentityInputSerializer,
     ListOffersFiltersSerializer,
     ListOffersResponseSerializer,
     OfferDetailResponseSerializer,
     OffersInputSerializer,
     UpsertOffersRequestSerializer,
+    UpsertOffersResponseSerializer,
 )
 
 UNKNOWN_GENERATED_REFERENCE = (
@@ -69,14 +71,13 @@ STATUTS_OFFRE = {"created": "creee", "updated": "mise_a_jour"}
     parameters=[ListOffersFiltersSerializer],
     responses={
         200: ListOffersResponseSerializer(many=True),
-        400: GenericErrorSerializer,
-        401: TokenErrorSerializer,
-        500: GenericErrorSerializer,
+        400: ErreurApiSerializer,
+        **api_v1_response_format,
     },
 )
 class OffersListView(PublicApiMixin, APIView):
     serializer_class = ListOffersResponseSerializer
-    pagination_class = WebPagination
+    pagination_class = ApiV1Pagination
     usecase = None
 
     def __init__(self, **kwargs):
@@ -94,20 +95,20 @@ class OffersListView(PublicApiMixin, APIView):
 
             result = self.usecase.execute(input_data)
 
-            paginator = WebPagination()
+            paginator = ApiV1Pagination()
             items = paginator.paginate(result, request)
             return paginator.get_paginated_response(
                 ListOffersResponseSerializer(items, many=True).data
             )
         except DRFValidationError as e:
-            serializer = GenericErrorSerializer({"error": str(e)})
+            serializer = ErreurApiSerializer({"erreur": str(e)})
             return Response(
                 serializer.data,
                 status=status.HTTP_400_BAD_REQUEST,
             )
         except Exception as e:
             self.logger.error("Unexpected error in OffersListView: %s", str(e))
-            serializer = GenericErrorSerializer({"error": "Unexpected error"})
+            serializer = ErreurApiSerializer({"erreur": "Unexpected error"})
             return Response(
                 serializer.data, status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
@@ -119,23 +120,12 @@ class OffersListView(PublicApiMixin, APIView):
     tags=["offres"],
     responses={
         200: OfferDetailResponseSerializer(many=True),
-        401: PolymorphicProxySerializer(
-            component_name="OffersBySource401Error",
-            serializers=[
-                TokenErrorSerializer,
-                inline_serializer(
-                    name="OffersBySourceUnauthorized",
-                    fields={"detail": drf_serializers.CharField()},
-                ),
-            ],
-            resource_type_field_name=None,
-        ),
-        500: GenericErrorSerializer,
+        **api_v1_response_format,
     },
 )
 class OffersBySourceView(PublicApiMixin, APIView):
     serializer_class = OfferDetailResponseSerializer
-    pagination_class = WebPagination
+    pagination_class = ApiV1Pagination
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -154,7 +144,7 @@ class OffersBySourceView(PublicApiMixin, APIView):
                     utilisateur_username=utilisateur_username,
                 )
             )
-            paginator = WebPagination()
+            paginator = ApiV1Pagination()
             items = paginator.paginate(result, request)
             return paginator.get_paginated_response(
                 OfferDetailResponseSerializer(items, many=True).data
@@ -162,13 +152,13 @@ class OffersBySourceView(PublicApiMixin, APIView):
         except SourceAuthorizationError as e:
             source_ids = sorted(str(sid) for sid in e.source_ids)
             return Response(
-                {"detail": f"Not authorized to access this source: {source_ids}."},
+                {"erreur": f"Not authorized to access this source: {source_ids}."},
                 status=status.HTTP_401_UNAUTHORIZED,
             )
         except Exception as e:
             self.logger.error("Unexpected error in OffersBySourceView: %s", str(e))
             return Response(
-                {"error": "Unexpected error"},
+                {"erreur": "Unexpected error"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -182,29 +172,10 @@ class OffersBySourceView(PublicApiMixin, APIView):
         tags=["offres"],
         responses={
             200: ArchiveOfferSuccessSerializer,
-            400: inline_serializer(
-                name="ArchiveOfferBadRequest",
-                fields={"detail": drf_serializers.CharField()},
-            ),
-            401: PolymorphicProxySerializer(
-                component_name="ArchiveOffer401Error",
-                serializers=[
-                    TokenErrorSerializer,
-                    inline_serializer(
-                        name="ArchiveOfferUnauthorized",
-                        fields={"detail": drf_serializers.CharField()},
-                    ),
-                ],
-                resource_type_field_name=None,
-            ),
-            403: inline_serializer(
-                name="ArchiveOfferForbidden",
-                fields={"detail": drf_serializers.CharField()},
-            ),
-            404: inline_serializer(
-                name="ArchiveOfferNotFound",
-                fields={"detail": drf_serializers.CharField()},
-            ),
+            400: ErreurApiSerializer,
+            401: ErreurAuthentificationSerializer,
+            403: ErreurApiSerializer,
+            404: ErreurApiSerializer,
         },
     )
 )
@@ -232,11 +203,11 @@ class ArchiveOffersView(PublicApiMixin, APIView):
         except SourceAuthorizationError as e:
             source_ids = sorted(str(sid) for sid in e.source_ids)
             return Response(
-                {"detail": f"Cannot edit this source: {source_ids}."},
+                {"erreur": f"Cannot edit this source: {source_ids}."},
                 status=status.HTTP_403_FORBIDDEN,
             )
         except OfferDoesNotExist:
-            return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"erreur": "Not found."}, status=status.HTTP_404_NOT_FOUND)
         return Response({"statut": "ok"}, status=status.HTTP_200_OK)
 
 
@@ -260,63 +231,10 @@ class ArchiveOffersView(PublicApiMixin, APIView):
         },
     ),
     responses={
-        201: inline_serializer(
-            name="UpsertOffersResponse",
-            fields={
-                "creees": serializers.IntegerField(help_text="Nombre d'offres créées"),
-                "mises_a_jour": serializers.IntegerField(
-                    help_text="Nombre d'offres mises à jour"
-                ),
-                "offres": serializers.ListField(
-                    help_text=(
-                        "Offres créées ou mises à jour, avec leur référence finale "
-                        "(générée si `identification.reference` vaut `auto`)"
-                    ),
-                    child=inline_serializer(
-                        name="UpsertOfferStatus",
-                        fields={
-                            "index": serializers.IntegerField(
-                                help_text="Position de l'offre dans `offres` du "
-                                "payload (à partir de 0)"
-                            ),
-                            "reference": serializers.CharField(
-                                help_text="Référence de l'offre, fournie ou générée"
-                            ),
-                            "statut": serializers.ChoiceField(
-                                choices=["creee", "mise_a_jour"],
-                                help_text="`creee` si l'offre a été créée, "
-                                "`mise_a_jour` si elle a été mise à jour",
-                            ),
-                        },
-                    ),
-                ),
-                "errors": serializers.ListField(
-                    help_text="Offres rejetées avec le détail de l'erreur",
-                    child=inline_serializer(
-                        name="UpsertOfferError",
-                        fields={
-                            "index": serializers.IntegerField(
-                                help_text="Position de l'offre dans `offres` du "
-                                "payload (à partir de 0)"
-                            ),
-                            "offre": IdentityInputSerializer(
-                                help_text="Identification de l'offre rejetée"
-                            ),
-                            "error": serializers.DictField(
-                                help_text="Détail de l'erreur de validation"
-                            ),
-                        },
-                    ),
-                ),
-            },
-        ),
-        400: GenericErrorSerializer,
-        401: TokenErrorSerializer,
-        403: inline_serializer(
-            name="UpsertOffersForbidden",
-            fields={"detail": drf_serializers.CharField()},
-        ),
-        500: GenericErrorSerializer,
+        201: UpsertOffersResponseSerializer,
+        400: ErreurApiSerializer,
+        403: ErreurApiSerializer,
+        **api_v1_response_format,
     },
 )
 class OffersUpsertView(PublicApiMixin, APIView):
@@ -351,7 +269,7 @@ class OffersUpsertView(PublicApiMixin, APIView):
                     {
                         "index": index,
                         "offre": offer_data.get("identification", {}),
-                        "error": serializer.errors,
+                        "erreur": serializer.errors,
                     }
                 )
                 continue
@@ -365,7 +283,7 @@ class OffersUpsertView(PublicApiMixin, APIView):
                     {
                         "index": index,
                         "offre": offer_data.get("identification", {}),
-                        "error": str(e),
+                        "erreur": str(e),
                     }
                 )
 
@@ -380,7 +298,7 @@ class OffersUpsertView(PublicApiMixin, APIView):
                         {
                             "index": index,
                             "offre": request.data["offres"][index]["identification"],
-                            "error": {"reference": [UNKNOWN_GENERATED_REFERENCE]},
+                            "erreur": {"reference": [UNKNOWN_GENERATED_REFERENCE]},
                         }
                     )
                 else:
@@ -400,7 +318,7 @@ class OffersUpsertView(PublicApiMixin, APIView):
                     utilisateur_username=utilisateur_username,
                 )
             )
-            result["errors"].extend(sorted(errors, key=lambda error: error["index"]))
+            erreurs = sorted(errors, key=lambda erreur: erreur["index"])
             offres = [
                 {
                     "index": index,
@@ -416,19 +334,19 @@ class OffersUpsertView(PublicApiMixin, APIView):
                     "creees": result["created"],
                     "mises_a_jour": result["updated"],
                     "offres": offres,
-                    "errors": result["errors"],
+                    "erreurs": [*result["errors"], *erreurs],
                 },
                 status=status.HTTP_201_CREATED,
             )
         except SourceAuthorizationError as e:
             source_ids = sorted(str(sid) for sid in e.source_ids)
             return Response(
-                {"detail": f"Cannot edit offers with this source: {source_ids}."},
+                {"erreur": f"Cannot edit offers with this source: {source_ids}."},
                 status=status.HTTP_403_FORBIDDEN,
             )
         except Exception as e:
             logger.error("OffersUpsertView: unexpected error %s", str(e))
             return Response(
-                {"error": "Unexpected error"},
+                {"erreur": "Unexpected error"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )

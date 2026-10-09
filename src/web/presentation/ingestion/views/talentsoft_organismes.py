@@ -11,7 +11,10 @@ from application.ingestion.services.upsert_talentsoft_organismes import (
 )
 from config.logger_names import LoggerName
 from presentation.api.authentication import PublicApiKeyOnlyMixin
-from presentation.api.serializers import GenericErrorSerializer
+from presentation.api.serializers import (
+    ErreurApiSerializer,
+    api_v1_response_format,
+)
 from presentation.ingestion.serializers import (
     TalentsoftOrganismeUpsertInputSerializer,
     UpsertTalentsoftOrganismesRequestSerializer,
@@ -34,9 +37,8 @@ UPSERT_TALENTSOFT_ORGANISMES_DESCRIPTION = (
     request=UpsertTalentsoftOrganismesRequestSerializer,
     responses={
         201: UpsertTalentsoftOrganismesResponseSerializer,
-        400: GenericErrorSerializer,
-        401: GenericErrorSerializer,
-        500: GenericErrorSerializer,
+        400: ErreurApiSerializer,
+        **api_v1_response_format,
     },
 )
 class TalentsoftOrganismesUpsertView(PublicApiKeyOnlyMixin, APIView):
@@ -64,7 +66,7 @@ class TalentsoftOrganismesUpsertView(PublicApiKeyOnlyMixin, APIView):
                             "entity_code": item_data.get("entity_code"),
                             "organisme_id": item_data.get("organisme_id"),
                         },
-                        "error": item_serializer.errors,
+                        "erreur": item_serializer.errors,
                     }
                 )
                 continue
@@ -72,11 +74,17 @@ class TalentsoftOrganismesUpsertView(PublicApiKeyOnlyMixin, APIView):
 
         try:
             result = upsert_talentsoft_organismes(valid_items)
-            result["errors"].extend(errors)
-            return Response(result, status=status.HTTP_201_CREATED)
+            return Response(
+                {
+                    "created": result["created"],
+                    "updated": result["updated"],
+                    "erreurs": [*result["errors"], *errors],
+                },
+                status=status.HTTP_201_CREATED,
+            )
         except Exception as e:
             logger.error("TalentsoftOrganismesUpsertView: unexpected error %s", str(e))
             return Response(
-                {"error": "Unexpected error"},
+                {"erreur": "Unexpected error"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )

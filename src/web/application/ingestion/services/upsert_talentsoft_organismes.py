@@ -35,7 +35,7 @@ def _error(item: dict, message: str) -> dict:
             "entity_code": item["entity_code"],
             "organisme_id": str(organisme_id) if organisme_id else None,
         },
-        "error": message,
+        "erreur": message,
     }
 
 

@@ -535,7 +535,9 @@ async def test_publish_raises_and_logs_error_when_response_contains_errors(
         json={
             "creees": 0,
             "mises_a_jour": 0,
-            "errors": [{"offre": {"reference": "2024-OFFER-001"}, "error": "invalid"}],
+            "erreurs": [
+                {"offre": {"reference": "2024-OFFER-001"}, "erreur": "invalid"}
+            ],
         },
     )
 
@@ -558,10 +560,10 @@ async def test_publish_error_message_contains_web_errors(
         json={
             "creees": 0,
             "mises_a_jour": 0,
-            "errors": [
+            "erreurs": [
                 {
                     "offre": {"reference": "2024-OFFER-001"},
-                    "error": {"metier": ["Code métier inconnu : ERMED008."]},
+                    "erreur": {"metier": ["Code métier inconnu : ERMED008."]},
                 }
             ],
         },
@@ -581,7 +583,7 @@ async def test_publish_does_not_log_when_response_has_no_errors(
         method="POST",
         url=PUBLISH_URL,
         status_code=201,
-        json={"creees": 1, "mises_a_jour": 0, "offres": [], "errors": []},
+        json={"creees": 1, "mises_a_jour": 0, "offres": [], "erreurs": []},
     )
 
     with caplog.at_level("ERROR"):

@@ -5,15 +5,8 @@ _EXAMPLE_INVALID_TOKEN = OpenApiExample(
     summary="Token JWT invalide ou expiré",
     description="Le token dans le header `Authorization` est invalide ou expiré.",
     value={
-        "detail": "Le jeton fourni n'est pas valide.",
+        "erreur": "Le jeton fourni n'est pas valide.",
         "code": "token_not_valid",
-        "messages": [
-            {
-                "token_class": "AccessToken",
-                "token_type": "access",
-                "message": "Token is invalid or expired",
-            }
-        ],
     },
     response_only=True,
     status_codes=["401"],
@@ -23,7 +16,7 @@ _EXAMPLE_SERVER_ERROR = OpenApiExample(
     "Error - unexpected server error",
     summary="Erreur serveur inattendue",
     description="Une erreur inattendue s'est produite côté serveur.",
-    value={"error": "Unexpected error"},
+    value={"erreur": "Unexpected error"},
     response_only=True,
     status_codes=["500"],
 )
@@ -131,7 +124,7 @@ CONCOURS_UPLOAD_EXAMPLES = [
         "Error - no file provided",
         summary="Aucun fichier dans la requête",
         description="Le champ `file` est absent du corps de la requête multipart.",
-        value={"error": "No file provided"},
+        value={"erreur": "No file provided"},
         response_only=True,
         status_codes=["400"],
     ),
@@ -139,7 +132,7 @@ CONCOURS_UPLOAD_EXAMPLES = [
         "Error - wrong file type",
         summary="Fichier non CSV",
         description="Le fichier uploadé n'a pas l'extension `.csv`.",
-        value={"error": "File must be a CSV"},
+        value={"erreur": "File must be a CSV"},
         response_only=True,
         status_codes=["400"],
     ),
@@ -151,7 +144,7 @@ CONCOURS_UPLOAD_EXAMPLES = [
             "Aucune donnée n'a été persistée."
         ),
         value={
-            "error": "No valid rows found",
+            "erreur": "No valid rows found",
             "validation_errors": [
                 {"row": 1, "error": "Le champ 'N° NOR' est requis"},
                 {"row": 2, "error": "Le champ 'Corps' est requis"},
@@ -168,7 +161,7 @@ CONCOURS_UPLOAD_EXAMPLES = [
             "Le fichier ne peut pas être parsé,"
             "vérifiez le séparateur (`;`) et l'encodage (UTF-8)."
         ),
-        value={"error": "CSV parsing error"},
+        value={"erreur": "CSV parsing error"},
         response_only=True,
         status_codes=["400"],
     ),
@@ -236,28 +229,11 @@ ARCHIVE_OFFER_EXAMPLES = [
         "Error - not found",
         summary="Offre introuvable",
         description="Aucune offre ne correspond à la référence fournie.",
-        value={"detail": "Not found."},
+        value={"erreur": "Not found."},
         response_only=True,
         status_codes=["404"],
     ),
-    OpenApiExample(
-        "Error - invalid token",
-        summary="Token JWT invalide ou expiré",
-        description="Le token dans le header `Authorization` est invalide ou expiré.",
-        value={
-            "detail": "Le jeton fourni n'est pas valide.",
-            "code": "token_not_valid",
-            "messages": [
-                {
-                    "token_class": "AccessToken",
-                    "token_type": "access",
-                    "message": "Token is invalid or expired",
-                }
-            ],
-        },
-        response_only=True,
-        status_codes=["401"],
-    ),
+    _EXAMPLE_INVALID_TOKEN,
 ]
 
 LIST_OFFERS_DESCRIPTION = (
@@ -429,7 +405,7 @@ LIST_METIERS_EXAMPLES = [
         "Error - malformed payload",
         summary="Données invalides",
         description=("Les données passées dans le payload sont incorrectes"),
-        value={"error": "string"},
+        value={"erreur": "string"},
         response_only=True,
         status_codes=["400"],
     ),
@@ -460,7 +436,7 @@ dans le payload, sa `reference` finale et son `statut` (`creee` ou `mise_a_jour`
 L'`index` permet de retrouver la référence générée pour chaque offre envoyée en \
 `"auto"`.
 
-Chaque offre rejetée apparaît dans `errors` avec son `index` dans le payload.
+Chaque offre rejetée apparaît dans `erreurs` avec son `index` dans le payload.
 
 **Important :** `"auto"` crée toujours une nouvelle offre. Pour mettre à jour \
 l'offre ensuite, conservez la référence renvoyée et envoyez-la à la place de \
@@ -468,7 +444,7 @@ l'offre ensuite, conservez la référence renvoyée et envoyez-la à la place de
 
 Le format `CSP-AAAA-NNNNNN` est réservé aux références générées par CSPLab. Une \
 référence à ce format n'est acceptée que pour mettre à jour une offre existante \
-de la source. Sinon, l'offre est rejetée dans `errors`.
+de la source. Sinon, l'offre est rejetée dans `erreurs`.
 
 # Permissions
 
@@ -498,11 +474,11 @@ UPSERT_OFFERS_EXAMPLES = [
                 {"index": 0, "reference": "REF-001", "statut": "mise_a_jour"},
                 {"index": 2, "reference": "CSP-2026-000042", "statut": "creee"},
             ],
-            "errors": [
+            "erreurs": [
                 {
                     "index": 1,
                     "offre": {"reference": "auto", "versant": "FPE"},
-                    "error": {"titre": ["Ce champ ne peut être nul."]},
+                    "erreur": {"titre": ["Ce champ ne peut être nul."]},
                 }
             ],
         },

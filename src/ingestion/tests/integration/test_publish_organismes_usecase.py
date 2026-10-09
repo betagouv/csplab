@@ -204,7 +204,7 @@ async def test_execute_logs_error_when_response_contains_errors(
         json={
             "created": 0,
             "updated": 0,
-            "errors": [{"organisme": {"id": str(ORGANISME_ID)}, "error": "invalid"}],
+            "erreurs": [{"organisme": {"id": str(ORGANISME_ID)}, "erreur": "invalid"}],
         },
     )
 
@@ -226,7 +226,7 @@ async def test_execute_does_not_log_when_response_has_no_errors(
         method="POST",
         url=PUBLISH_URL,
         status_code=201,
-        json={"created": 1, "updated": 0, "errors": []},
+        json={"created": 1, "updated": 0, "erreurs": []},
     )
 
     with caplog.at_level("ERROR"):

@@ -27,7 +27,7 @@ from rest_framework import serializers
 from infrastructure.django_apps.ingestion.models.talentsoft_organisme import (
     TalentsoftOrganismeModel,
 )
-from presentation.api.serializers import GenericErrorSerializer
+from presentation.api.serializers import ErreurApiSerializer
 from presentation.commons.serializers import LocalisationSerializer, OrganismeSerializer
 
 
@@ -105,11 +105,12 @@ class _CommaSeparatedCodeField(serializers.MultipleChoiceField):
         return [self.to_value_object(code) for code in codes] if codes else None
 
 
-class ValidationErrorSerializer(GenericErrorSerializer):
+class ValidationErrorSerializer(serializers.Serializer):
     row = serializers.IntegerField()
+    error = serializers.CharField()
 
 
-class NoValidRowsErrorSerializer(GenericErrorSerializer):
+class NoValidRowsErrorSerializer(ErreurApiSerializer):
     validation_errors = ValidationErrorSerializer(many=True)
 
 
@@ -604,14 +605,6 @@ class OfferDetailResponseSerializer(serializers.Serializer):
         return obj.beginning_date.value if obj.beginning_date else None
 
 
-class ListOffersErrorSerializer(serializers.Serializer):
-    error = serializers.CharField
-
-
-class ApiKeyErrorSerializer(serializers.Serializer):
-    detail = serializers.CharField()
-
-
 class SourceSerializer(serializers.Serializer):
     source_id = serializers.UUIDField()
     slug = serializers.CharField()
@@ -830,11 +823,47 @@ class UpsertOffersRequestSerializer(serializers.Serializer):
     )
 
 
+class ErreurUpsertSerializer(serializers.Serializer):
+    erreur = serializers.JSONField(
+        help_text="Détail de l'erreur : un message, ou les messages par nom de champ"
+    )
+
+
+class UpsertOffreStatutSerializer(serializers.Serializer):
+    index = serializers.IntegerField(
+        help_text="Position de l'offre dans `offres` du payload (à partir de 0)"
+    )
+    reference = serializers.CharField(
+        help_text="Référence de l'offre, fournie ou générée"
+    )
+    statut = serializers.ChoiceField(
+        choices=["creee", "mise_a_jour"],
+        help_text=(
+            "`creee` si l'offre a été créée, `mise_a_jour` si elle a été mise à jour"
+        ),
+    )
+
+
+class UpsertOffreErreurSerializer(ErreurUpsertSerializer):
+    index = serializers.IntegerField(
+        help_text="Position de l'offre dans `offres` du payload (à partir de 0)"
+    )
+    offre = IdentityInputSerializer(help_text="Identification de l'offre rejetée")
+
+
 class UpsertOffersResponseSerializer(serializers.Serializer):
-    creees = serializers.IntegerField()
-    mises_a_jour = serializers.IntegerField()
-    offres = serializers.ListField(child=serializers.DictField())
-    errors = serializers.ListField(child=serializers.DictField())
+    creees = serializers.IntegerField(help_text="Nombre d'offres créées")
+    mises_a_jour = serializers.IntegerField(help_text="Nombre d'offres mises à jour")
+    offres = UpsertOffreStatutSerializer(
+        many=True,
+        help_text=(
+            "Offres créées ou mises à jour, avec leur référence finale "
+            "(générée si `identification.reference` vaut `auto`)"
+        ),
+    )
+    erreurs = UpsertOffreErreurSerializer(
+        many=True, help_text="Offres rejetées avec le détail de l'erreur"
+    )
 
 
 class OrganismeLocalisationInputSerializer(serializers.Serializer):
@@ -880,10 +909,23 @@ class UpsertOrganismesRequestSerializer(serializers.Serializer):
     )
 
 
+class OrganismeIdentificationSerializer(serializers.Serializer):
+    referentiel = serializers.CharField(allow_null=True)
+    external_id = serializers.CharField(allow_null=True)
+
+
+class UpsertOrganismeErreurSerializer(ErreurUpsertSerializer):
+    organisme = OrganismeIdentificationSerializer(
+        help_text="Identification de l'organisme rejeté"
+    )
+
+
 class UpsertOrganismesResponseSerializer(serializers.Serializer):
-    created = serializers.IntegerField()
-    updated = serializers.IntegerField()
-    errors = serializers.ListField(child=serializers.DictField())
+    created = serializers.IntegerField(help_text="Nombre d'organismes créés")
+    updated = serializers.IntegerField(help_text="Nombre d'organismes mis à jour")
+    erreurs = UpsertOrganismeErreurSerializer(
+        many=True, help_text="Organismes rejetés avec le détail de l'erreur"
+    )
 
 
 class OrganismeDeleteInputSerializer(serializers.Serializer):
@@ -957,12 +999,23 @@ class UpsertTalentsoftOrganismesRequestSerializer(serializers.Serializer):
     )
 
 
+class TalentsoftOrganismeIdentificationSerializer(serializers.Serializer):
+    entity_code = serializers.CharField(allow_null=True)
+    organisme_id = serializers.UUIDField(allow_null=True)
+
+
+class UpsertTalentsoftOrganismeErreurSerializer(ErreurUpsertSerializer):
+    talentsoft_organisme = TalentsoftOrganismeIdentificationSerializer(
+        help_text="Identification de l'organisme Talentsoft rejeté"
+    )
+
+
 class UpsertTalentsoftOrganismesResponseSerializer(serializers.Serializer):
     created = serializers.IntegerField(help_text="Nombre d'organismes Talentsoft créés")
     updated = serializers.IntegerField(
         help_text="Nombre d'organismes Talentsoft mis à jour"
     )
-    errors = serializers.ListField(
-        child=serializers.DictField(),
+    erreurs = UpsertTalentsoftOrganismeErreurSerializer(
+        many=True,
         help_text="Organismes Talentsoft rejetés avec le détail de l'erreur",
     )

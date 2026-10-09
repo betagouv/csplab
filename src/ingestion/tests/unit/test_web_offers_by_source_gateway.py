@@ -16,10 +16,10 @@ OFFERS_BY_SOURCE_URL = f"{BASE_OFFERS_BY_SOURCE_URL}/{SOURCE_UUID}"
 
 def _page(references: list[str], next_url: str | None) -> dict:
     return {
-        "count": len(references),
-        "next": next_url,
-        "previous": None,
-        "results": [{"reference": r} for r in references],
+        "total": len(references),
+        "page_suivante": next_url,
+        "page_precedente": None,
+        "resultats": [{"reference": r} for r in references],
     }
 
 

@@ -57,7 +57,7 @@ def test_api_key_authentication(api_key_client, use_case):
         content_type="application/json",
     )
     assert response.status_code == status.HTTP_201_CREATED
-    assert response.json() == {"created": 1, "updated": 0, "errors": []}
+    assert response.json() == {"created": 1, "updated": 0, "erreurs": []}
 
 
 def test_get_method_not_allowed(api_key_client):
@@ -119,12 +119,12 @@ def test_mixed_valid_invalid_organismes_in_payload(api_key_client, use_case):
         content_type="application/json",
     )
     assert response.status_code == status.HTTP_201_CREATED
-    errors = response.json()["errors"]
+    errors = response.json()["erreurs"]
     assert errors == [
         "db error on organisme xxx",
         {
             "organisme": {"referentiel": "FINESS", "external_id": "ext-invalid"},
-            "error": {"nom": ["Ce champ ne peut être nul."]},
+            "erreur": {"nom": ["Ce champ ne peut être nul."]},
         },
     ]
 
@@ -155,7 +155,7 @@ class TestOrganismesUpsertViewDbVerified:
         )
 
         assert response.status_code == status.HTTP_201_CREATED
-        assert response.json() == {"created": 1, "updated": 0, "errors": []}
+        assert response.json() == {"created": 1, "updated": 0, "erreurs": []}
 
         organisme = OrganismeModel.objects.get(
             referentiel=payload["referentiel"], external_id=payload["external_id"]

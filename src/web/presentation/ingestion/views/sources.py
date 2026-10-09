@@ -21,6 +21,6 @@ class SourcesListView(PublicApiKeyOnlyMixin, APIView):
             return Response(SourceSerializer(sources, many=True).data)
         except Exception:
             return Response(
-                {"error": "Unexpected error"},
+                {"erreur": "Unexpected error"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
