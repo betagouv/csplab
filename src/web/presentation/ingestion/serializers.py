@@ -127,13 +127,13 @@ class ConcoursUploadResponseSerializer(serializers.Serializer):
 class ListOffersResponseSerializer(serializers.Serializer):
     reference = serializers.CharField()
     source_id = serializers.UUIDField()
-    title = serializers.CharField()
-    organization = serializers.CharField()
-    offer_nature = serializers.CharField(allow_null=True)
-    category = serializers.CharField(allow_null=True)
-    publication_date = serializers.DateTimeField()
-    offer_url = serializers.CharField(allow_null=True)
-    archived_at = serializers.DateTimeField(allow_null=True)
+    titre = serializers.CharField(source="title")
+    organisation = serializers.CharField(source="organization")
+    nature_offre = serializers.CharField(source="offer_nature", allow_null=True)
+    categorie = serializers.CharField(source="category", allow_null=True)
+    debut_publication = serializers.DateTimeField(source="publication_date")
+    url_offre = serializers.CharField(source="offer_url", allow_null=True)
+    date_archivage = serializers.DateTimeField(source="archived_at", allow_null=True)
 
 
 class ListOffersFiltersSerializer(serializers.Serializer):
@@ -207,7 +207,7 @@ class ListOffersFiltersSerializer(serializers.Serializer):
         help_text="Valeurs séparées par une virgule (ex. `NUM,ACH`).",
         source="domain",
     )
-    organisme = serializers.ListField(
+    organisation = serializers.ListField(
         child=serializers.CharField(),
         required=False,
         default=None,
@@ -215,10 +215,10 @@ class ListOffersFiltersSerializer(serializers.Serializer):
         help_text=(
             "Filtre sur l'organisme Talentsoft (`entityCode`), en incluant tous "
             "ses organismes descendants. Répéter le paramètre pour filtrer sur "
-            "plusieurs organismes (ex. `?organisme=ORG1&organisme=ORG2`)."
+            "plusieurs organismes (ex. `?organisation=ORG1&organisation=ORG2`)."
         ),
     )
-    date_publication = serializers.IntegerField(
+    debut_publication = serializers.IntegerField(
         required=False,
         max_value=-1,
         default=None,

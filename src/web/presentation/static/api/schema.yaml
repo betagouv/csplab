@@ -1891,10 +1891,10 @@ paths:
         - `pays` — un ou plusieurs codes pays alpha-3 (ex. `FRA,BEL`)
         - `zone` — une ou plusieurs zones géographiques (ex. `EUROPE,ASIE`)
         - `domaine` — un ou plusieurs codes de domaine fonctionnel (ex. `NUM,ACH`)
-        - `organisme` — un ou plusieurs codes d'organisme Talentsoft (`entityCode`),
+        - `organisation` — un ou plusieurs codes d'organisme Talentsoft (`entityCode`),
           en incluant tous leurs organismes descendants. Répéter le paramètre pour
-          filtrer sur plusieurs organismes (ex. `?organisme=ORG1&organisme=ORG2`).
-        - `date_publication` — nombre de jours négatif pour ne retourner que les
+          filtrer sur plusieurs organismes (ex. `?organisation=ORG1&organisation=ORG2`).
+        - `debut_publication` — nombre de jours négatif pour ne retourner que les
           offres publiées au cours des N derniers jours (ex. `-7`)
         - filtre géographique par rayon autour d'un point, les trois paramètres
           doivent être fournis ensemble :
@@ -1944,7 +1944,7 @@ paths:
               * `C` - C
         description: Valeurs séparées par une virgule (ex. `A,B`).
       - in: query
-        name: date_publication
+        name: debut_publication
         schema:
           type: integer
           maximum: -1
@@ -2326,14 +2326,14 @@ paths:
               * `EXPERT` - Expert
         description: Valeurs séparées par une virgule (ex. `DEBUTANT,EXPERT`).
       - in: query
-        name: organisme
+        name: organisation
         schema:
           type: array
           items:
             type: string
         description: Filtre sur l'organisme Talentsoft (`entityCode`), en incluant
           tous ses organismes descendants. Répéter le paramètre pour filtrer sur plusieurs
-          organismes (ex. `?organisme=ORG1&organisme=ORG2`).
+          organismes (ex. `?organisation=ORG1&organisation=ORG2`).
       - name: page
         required: false
         in: query
@@ -2971,14 +2971,14 @@ paths:
                     results:
                     - reference: 2026-999999
                       source_id: 12345678-1234-4234-b234-123456789abc
-                      title: Responsable de la Division des Affaires Financières H/F
-                      organization: Ecole Nationale Supérieure de Techniques Avancées
+                      titre: Responsable de la Division des Affaires Financières H/F
+                      organisation: Ecole Nationale Supérieure de Techniques Avancées
                         (ENSTA)
-                      offer_nature: TITULAIRE_CONTRACTUEL
-                      category: A
-                      publication_date: '2026-04-17T14:44:49.873000+00:00'
-                      offer_url: https://test.com/offre-emploi/2026-999999/
-                      archived_at: null
+                      nature_offre: TITULAIRE_CONTRACTUEL
+                      categorie: A
+                      debut_publication: '2026-04-17T14:44:49.873000+00:00'
+                      url_offre: https://test.com/offre-emploi/2026-999999/
+                      date_archivage: null
                   summary: Liste des offres d'emploi actives
                   description: Les offres d'emploi sans date d'archivage sont retournées
                     paginées
@@ -2990,14 +2990,14 @@ paths:
                     results:
                     - reference: 2026-999999
                       source_id: 12345678-1234-4234-b234-123456789abc
-                      title: Responsable de la Division des Affaires Financières H/F
-                      organization: Ecole Nationale Supérieure de Techniques Avancées
+                      titre: Responsable de la Division des Affaires Financières H/F
+                      organisation: Ecole Nationale Supérieure de Techniques Avancées
                         (ENSTA)
-                      offer_nature: TITULAIRE_CONTRACTUEL
-                      category: A
-                      publication_date: '2026-04-17T14:44:49.873000+00:00'
-                      offer_url: https://test.com/offre-emploi/2026-999999/
-                      archived_at: '2026-05-17T12:42:42.873000+00:00'
+                      nature_offre: TITULAIRE_CONTRACTUEL
+                      categorie: A
+                      debut_publication: '2026-04-17T14:44:49.873000+00:00'
+                      url_offre: https://test.com/offre-emploi/2026-999999/
+                      date_archivage: '2026-05-17T12:42:42.873000+00:00'
                   summary: Liste des offres d'emploi archivées
                   description: Les offres d'emploi avec une date d'archivage sont
                     retournées paginées
@@ -4836,36 +4836,36 @@ components:
         source_id:
           type: string
           format: uuid
-        title:
+        titre:
           type: string
-        organization:
+        organisation:
           type: string
-        offer_nature:
-          type: string
-          nullable: true
-        category:
+        nature_offre:
           type: string
           nullable: true
-        publication_date:
+        categorie:
+          type: string
+          nullable: true
+        debut_publication:
           type: string
           format: date-time
-        offer_url:
+        url_offre:
           type: string
           nullable: true
-        archived_at:
+        date_archivage:
           type: string
           format: date-time
           nullable: true
       required:
-      - archived_at
-      - category
-      - offer_nature
-      - offer_url
-      - organization
-      - publication_date
+      - categorie
+      - date_archivage
+      - debut_publication
+      - nature_offre
+      - organisation
       - reference
       - source_id
-      - title
+      - titre
+      - url_offre
     Localisation:
       type: object
       properties:
@@ -5953,6 +5953,30 @@ tags:
     champs et de leurs règles se trouve dans le [guide de l'API](/pages/guide_api).
 
     Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/).
+
+    ## 2026-10-09
+
+    ### ⚠️ Changements non rétrocompatibles
+
+    `GET /api/v1/offres` : les champs renvoyés et deux filtres sont renommés en français,
+    avec les noms déjà utilisés par `POST /api/v1/offres/creer_modifier`.
+
+    - Champs de chaque offre renvoyée :
+      - `title` devient `titre` ;
+      - `organization` devient `organisation` ;
+      - `offer_nature` devient `nature_offre` ;
+      - `category` devient `categorie` ;
+      - `publication_date` devient `debut_publication` ;
+      - `offer_url` devient `url_offre` ;
+      - `archived_at` devient `date_archivage`.
+
+      `reference` et `source_id` ne changent pas, ni les valeurs renvoyées.
+    - Filtres :
+      - `organisme` devient `organisation` (ex. `?organisation=ORG1&organisation=ORG2`) ;
+      - `date_publication` devient `debut_publication` (ex. `?debut_publication=-7`).
+
+    > **Attention :** les anciens noms de filtre ne sont plus reconnus et sont ignorés
+    > sans erreur : un appel qui les utilise encore renvoie les offres **non filtrées**.
 
     ## 2026-10-08
 
