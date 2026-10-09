@@ -2,12 +2,14 @@
 import type { CandidatureParams } from '../types'
 import { computed } from 'vue'
 import CspAsyncSection from '@/components/base/CspAsyncSection/CspAsyncSection.vue'
+import CspCard from '@/components/base/CspCard/CspCard.vue'
 import CspEmptyState from '@/components/base/CspEmptyState/CspEmptyState.vue'
 import CspSkeleton from '@/components/base/CspSkeleton/CspSkeleton.vue'
 import { useMinimumPending } from '@/composables/async/useMinimumPending'
-import { formatElapsedDays } from '@/utils/date'
+import { formatDate, formatTime } from '@/utils/date'
 import { pluralize } from '@/utils/format'
 import { useCandidatureNotes } from '../composables/useCandidatureNotes'
+import CandidatureNoteMessage from './CandidatureNoteMessage.vue'
 
 const props = defineProps<{
   candidature: CandidatureParams
@@ -44,24 +46,24 @@ const title = computed(() => `${total.value} ${pluralize(total.value, 'note')}`)
           class="candidature-notes__list"
           aria-hidden="true"
         >
-          <li
+          <CspCard
             v-for="row in SKELETON_ROWS"
             :key="row"
+            as="li"
+            variant="alt"
             class="candidature-notes__item"
           >
-            <p class="candidature-notes__meta">
+            <template #start>
               <CspSkeleton
-                width="10rem"
+                width="14rem"
                 variant="text"
               />
-            </p>
-            <p class="candidature-notes__message">
-              <CspSkeleton
-                width="80%"
-                variant="text"
-              />
-            </p>
-          </li>
+            </template>
+            <CspSkeleton
+              width="80%"
+              variant="text"
+            />
+          </CspCard>
         </ul>
       </template>
 
@@ -75,19 +77,33 @@ const title = computed(() => `${total.value} ${pluralize(total.value, 'note')}`)
           {{ title }}
         </h3>
         <ul class="candidature-notes__list">
-          <li
+          <CspCard
             v-for="note in notes"
             :key="note.uuid"
+            as="li"
+            variant="alt"
             class="candidature-notes__item"
           >
-            <p class="candidature-notes__meta">
+            <template #start>
               <span class="candidature-notes__auteur">{{ note.publie_par_prenom }} {{ note.publie_par_nom }}</span>
-              <time :datetime="note.publie_le">{{ formatElapsedDays(note.publie_le) }}</time>
-            </p>
-            <p class="candidature-notes__message">
-              {{ note.message }}
-            </p>
-          </li>
+              <span
+                class="candidature-notes__separator"
+                aria-hidden="true"
+              >•</span>
+              <time
+                :datetime="note.publie_le"
+                class="candidature-notes__horodatage"
+              >
+                {{ formatDate(note.publie_le) }}
+                <span
+                  class="candidature-notes__separator"
+                  aria-hidden="true"
+                >•</span>
+                {{ formatTime(note.publie_le) }}
+              </time>
+            </template>
+            <CandidatureNoteMessage :message="note.message" />
+          </CspCard>
         </ul>
       </template>
     </CspAsyncSection>
@@ -97,44 +113,42 @@ const title = computed(() => `${total.value} ${pluralize(total.value, 'note')}`)
 <style scoped lang="scss">
 .candidature-notes__title {
   margin: 0 0 var(--csp-space-4);
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: var(--text-mention-grey);
+  font-size: var(--csp-font-size-base);
+  font-weight: var(--csp-font-weight-regular);
+  color: var(--text-default-grey);
 }
 
 .candidature-notes__list {
   display: flex;
   flex-direction: column;
+  gap: var(--csp-space-4);
   margin: 0;
   padding: 0;
   list-style: none;
-  border: 1px solid var(--border-default-grey);
 }
 
 .candidature-notes__item {
-  padding: var(--csp-space-3) var(--csp-space-4);
+  --csp-card-border: transparent;
 
-  & + & {
-    border-top: 1px solid var(--border-default-grey);
+  :deep(.csp-skeleton) {
+    background: var(--background-contrast-grey);
   }
 }
 
-.candidature-notes__meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--csp-space-2);
-  margin: 0 0 var(--csp-space-1);
-  font-size: 0.8125rem;
-  color: var(--text-mention-grey);
-}
-
 .candidature-notes__auteur {
-  font-weight: 500;
+  font-size: var(--csp-font-size-base);
+  font-weight: var(--csp-font-weight-bold);
   color: var(--text-title-grey);
 }
 
-.candidature-notes__message {
-  margin: 0;
-  white-space: pre-line;
+.candidature-notes__horodatage {
+  display: inline-flex;
+  gap: var(--csp-space-2);
+}
+
+.candidature-notes__horodatage,
+.candidature-notes__separator {
+  font-size: var(--csp-font-size-sm);
+  color: var(--text-default-grey);
 }
 </style>
