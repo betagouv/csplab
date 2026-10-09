@@ -99,14 +99,17 @@ const hasFooter = computed(() => Boolean(slots.footer))
           </div>
 
           <div class="csp-drawer__heading">
-            <DialogTitle
+            <div
               v-if="hasTitle"
-              class="csp-drawer__title"
+              class="csp-drawer__title-row"
             >
-              <slot name="title">
-                {{ title }}
-              </slot>
-            </DialogTitle>
+              <DialogTitle class="csp-drawer__title">
+                <slot name="title">
+                  {{ title }}
+                </slot>
+              </DialogTitle>
+              <slot name="title-end" />
+            </div>
 
             <DialogDescription
               v-if="hasDescription"
@@ -116,6 +119,13 @@ const hasFooter = computed(() => Boolean(slots.footer))
                 {{ description }}
               </slot>
             </DialogDescription>
+
+            <div
+              v-if="$slots.meta"
+              class="csp-drawer__meta"
+            >
+              <slot name="meta" />
+            </div>
           </div>
 
           <div
@@ -272,6 +282,18 @@ const hasFooter = computed(() => Boolean(slots.footer))
   flex-direction: column;
   gap: var(--csp-space-1);
   min-width: 0;
+}
+
+.csp-drawer__title-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--csp-space-1) var(--csp-space-3);
+  min-width: 0;
+}
+
+.csp-drawer__meta {
+  margin-top: var(--csp-space-2);
 }
 
 .csp-drawer__title {

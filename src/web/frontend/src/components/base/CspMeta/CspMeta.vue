@@ -24,7 +24,7 @@ withDefaults(defineProps<CspMetaItem & {
       :size="12"
       class="csp-meta__icon"
     />
-    <span class="sr-only">{{ srLabel }} :</span>
+    <span class="sr-only csp-meta__sr-label">{{ srLabel }} :</span>
     <span class="csp-meta__label">{{ label }}</span>
   </span>
 </template>
@@ -65,6 +65,10 @@ withDefaults(defineProps<CspMetaItem & {
 
 .csp-meta__icon {
   flex: none;
+}
+
+.csp-meta__sr-label {
+  user-select: none;
 }
 
 .csp-meta__label {
