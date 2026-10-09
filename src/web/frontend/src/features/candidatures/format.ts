@@ -43,6 +43,7 @@ export function formatCandidatureMeta(detail: CandidatureDetail): CspMetaItem[] 
       icon: 'ri:mail-line',
       srLabel: 'Courriel',
       label: detail.candidat.email,
+      copy: { action: 'Copier le courriel', confirmation: 'Courriel copié dans le presse-papier' },
     },
   ]
 }

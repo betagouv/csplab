@@ -107,6 +107,16 @@ describe('candidaturePanelView', () => {
     expect(panel.getByText('Réception des candidatures')).toBeInTheDocument()
   })
 
+  it('copies the candidat email to the clipboard', async () => {
+    const user = setupUser()
+    const { panel } = await renderPanel([`${KANBAN_PATH}/candidatures/${CANDIDATURE_ALICE}`])
+
+    await user.click(await panel.findByRole('button', { name: 'Copier le courriel' }))
+
+    expect(await navigator.clipboard.readText()).toBe('candidat@example.fr')
+    expect(await screen.findByText('Courriel copié dans le presse-papier')).toBeInTheDocument()
+  })
+
   it('opens on the candidature tab, with the follow-up column beside it', async () => {
     const { router, panel } = await renderPanel([`${KANBAN_PATH}/candidatures/${CANDIDATURE_ALICE}`])
 
