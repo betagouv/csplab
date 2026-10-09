@@ -16,7 +16,7 @@ class WebOffersBySourceGateway(BaseWebGateway, IOffersBySourceGateway):
             response = await self._client.get(url, headers=self._auth_headers)
             response.raise_for_status()
             data = response.json()
-            references.extend(item["reference"] for item in data["results"])
-            url = data["next"]
+            references.extend(item["reference"] for item in data["resultats"])
+            url = data["page_suivante"]
 
         return references

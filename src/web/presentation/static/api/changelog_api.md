@@ -70,7 +70,41 @@ La valeur renvoyée (`ok`) ne change pas.
 - dans chaque élément de `errors`, `offer` devient `offre`.
 
 `offres` et ses sous-champs `index`, `reference` et `statut` gardent leur nom.
-`errors` et `errors[].error` ne changent pas pour l'instant.
+`errors` et `errors[].error` sont renommés plus bas, avec les autres champs d'erreur.
+
+Pagination de `GET /api/v1/offres`, `GET /api/v1/offres/sources/{source_id}` et
+`GET /api/v1/metiers` : les champs de l'enveloppe sont renommés en français.
+
+- `count` devient `total` ;
+- `next` devient `page_suivante` ;
+- `previous` devient `page_precedente` ;
+- `results` devient `resultats`.
+
+Les paramètres `page` et `taille` ne changent pas.
+
+Erreurs de toutes les routes `/api/v1/…` : une réponse d'erreur contient désormais
+un champ `erreur`.
+
+- `error` devient `erreur` ;
+- `detail` devient `erreur` (authentification absente, source non autorisée,
+  action interdite, offre introuvable, limite d'appels dépassée…) ;
+- jeton JWT invalide ou expiré (`401`) : la réponse devient
+  `{"erreur": "…", "code": "token_not_valid"}`, `detail` devient `erreur`, `code`
+  ne change pas et `messages` est supprimé.
+
+Les erreurs de validation des champs du corps de la requête (`400`) gardent leur
+format, une liste de messages par nom de champ.
+
+Listes d'erreurs des réponses de `POST /api/v1/offres/creer_modifier`,
+`POST /api/v1/organismes/creer_modifier` et
+`POST /api/v1/talentsoft_organisme/creer_modifier` :
+
+- `errors` devient `erreurs` ;
+- dans chaque élément de `erreurs`, `error` devient `erreur`.
+
+Les autres champs propres à chaque route (`created`, `updated`, `validation_errors`…)
+ne changent pas pour l'instant. Les routes `/api/token` et `/api/fake-ts/…` gardent
+leur format d'erreur.
 
 ## 2026-10-08
 

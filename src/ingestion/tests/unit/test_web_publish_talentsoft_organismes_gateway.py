@@ -141,13 +141,13 @@ async def test_publish_logs_error_when_response_contains_errors(
         json={
             "created": 0,
             "updated": 0,
-            "errors": [
+            "erreurs": [
                 {
                     "talentsoft_organisme": {
                         "entity_code": "123",
                         "organisme_id": None,
                     },
-                    "error": "Organisme introuvable.",
+                    "erreur": "Organisme introuvable.",
                 }
             ],
         },
@@ -167,7 +167,7 @@ async def test_publish_does_not_log_when_response_has_no_errors(
         method="POST",
         url=PUBLISH_URL,
         status_code=201,
-        json={"created": 1, "updated": 0, "errors": []},
+        json={"created": 1, "updated": 0, "erreurs": []},
     )
 
     with caplog.at_level("ERROR"):

@@ -4,8 +4,10 @@ import pytest
 import yaml
 from django.urls import reverse
 from rest_framework import status
+from rest_framework.exceptions import NotAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
 
+from config.exception_handler import custom_exception_handler
 from infrastructure.factories.identite.utilisateur_factory import DEFAULT_PASSWORD
 
 
@@ -54,3 +56,27 @@ class TestSchemaEndpoint:
         schema = yaml.safe_load(schema_path.read_text())
         paths = schema.get("paths", {})
         assert (reverse(name) in paths) == expected_in_schema
+
+
+class TestApiV1ErrorFormat:
+    def test_missing_credentials_returns_erreur(self, api_client):
+        response = api_client.get(reverse("ingestion:offers_list"))
+
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+        assert set(response.json()) == {"erreur"}
+
+    def test_invalid_token_returns_erreur_and_code(self, api_client):
+        api_client.credentials(HTTP_AUTHORIZATION="Bearer invalid")
+
+        response = api_client.get(reverse("ingestion:offers_list"))
+
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+        assert response.json()["code"] == "token_not_valid"
+        assert set(response.json()) == {"erreur", "code"}
+
+    def test_errors_outside_api_v1_keep_drf_format(self, rf):
+        request = rf.get("/api/token")
+
+        response = custom_exception_handler(NotAuthenticated(), {"request": request})
+
+        assert set(response.data) == {"detail"}

@@ -13,10 +13,32 @@ application_logger = logger_service.get_logger("APPLICATION")
 infrastructure_logger = logger_service.get_logger("INFRASTRUCTURE")
 
 
+API_V1_PREFIX = "/api/v1/"
+
+
+def _is_api_v1(context) -> bool:
+    request = context.get("request")
+    return request is not None and request.path.startswith(API_V1_PREFIX)
+
+
+def _format_api_v1_error(data):
+    # DRF and simplejwt errors ({"detail", "code", "messages"}) become
+    # {"erreur", "code"} on the public API v1
+    if not isinstance(data, dict) or "detail" not in data:
+        return data
+    erreur = {"erreur": data["detail"]}
+    if "code" in data:
+        erreur["code"] = data["code"]
+    return erreur
+
+
 def custom_exception_handler(exc, context):
     # Handle our custom exceptions with layer-specific logging
     if not isinstance(exc, (DomainError, ApplicationError, InfrastructureError)):
-        return exception_handler(exc, context)
+        response = exception_handler(exc, context)
+        if response is not None and _is_api_v1(context):
+            response.data = _format_api_v1_error(response.data)
+        return response
 
     error_type = getattr(exc, "error_type", exc.__class__.__name__)
 

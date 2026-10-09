@@ -110,10 +110,10 @@ def test_empty_result(mock_offers_container, jwt_client, list_offers_usecase):
 
     assert response.status_code == status.HTTP_200_OK
     assert response.json() == {
-        "count": 0,
-        "next": None,
-        "previous": None,
-        "results": [],
+        "total": 0,
+        "page_suivante": None,
+        "page_precedente": None,
+        "resultats": [],
     }
 
 
@@ -136,11 +136,11 @@ def test_call_without_arg(mock_offers_container, jwt_client):
 
     data = response.json()
 
-    assert data["count"] == len(offers)
-    assert data["next"] is None
-    assert data["previous"] is None
+    assert data["total"] == len(offers)
+    assert data["page_suivante"] is None
+    assert data["page_precedente"] is None
 
-    for result, offer in zip(data["results"], offers, strict=True):
+    for result, offer in zip(data["resultats"], offers, strict=True):
         assert result["reference"] == offer.reference
         assert result["source_id"] == str(offer.source_id)
         assert result["titre"] == offer.title
@@ -199,8 +199,8 @@ def test_invalid_category_returns_400(mock_offers_container, jwt_client):
     response = jwt_client.get(URL, {"categorie": "INVALID"})
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert "INVALID" in response.json()["error"]
-    assert "A, APLUS, B, C" in response.json()["error"]
+    assert "INVALID" in response.json()["erreur"]
+    assert "A, APLUS, B, C" in response.json()["erreur"]
 
 
 def test_verse_filter_is_forwarded_to_usecase(mock_offers_container, jwt_client):
@@ -222,8 +222,8 @@ def test_invalid_verse_returns_400(mock_offers_container, jwt_client):
     response = jwt_client.get(URL, {"versant": "INVALID"})
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert "INVALID" in response.json()["error"]
-    assert "FPE, FPH, FPT" in response.json()["error"]
+    assert "INVALID" in response.json()["erreur"]
+    assert "FPE, FPH, FPT" in response.json()["erreur"]
 
 
 def test_offer_nature_filter_is_forwarded_to_usecase(mock_offers_container, jwt_client):
@@ -245,8 +245,10 @@ def test_invalid_offer_nature_returns_400(mock_offers_container, jwt_client):
     response = jwt_client.get(URL, {"nature_offre": "INVALID"})
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert "INVALID" in response.json()["error"]
-    assert "CONTRACTUEL, TERRITORIAL, TITULAIRE_CONTRACTUEL" in response.json()["error"]
+    assert "INVALID" in response.json()["erreur"]
+    assert (
+        "CONTRACTUEL, TERRITORIAL, TITULAIRE_CONTRACTUEL" in response.json()["erreur"]
+    )
 
 
 def test_experience_level_filter_is_forwarded_to_usecase(
@@ -270,8 +272,8 @@ def test_invalid_experience_level_returns_400(mock_offers_container, jwt_client)
     response = jwt_client.get(URL, {"niveau_experience": "INVALID"})
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert "INVALID" in response.json()["error"]
-    assert "CONFIRME, DEBUTANT, EXPERT" in response.json()["error"]
+    assert "INVALID" in response.json()["erreur"]
+    assert "CONFIRME, DEBUTANT, EXPERT" in response.json()["erreur"]
 
 
 def test_management_filter_is_forwarded_to_usecase(mock_offers_container, jwt_client):
@@ -293,8 +295,8 @@ def test_invalid_management_returns_400(mock_offers_container, jwt_client):
     response = jwt_client.get(URL, {"management": "INVALID"})
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert "INVALID" in response.json()["error"]
-    assert "AVEC, SANS" in response.json()["error"]
+    assert "INVALID" in response.json()["erreur"]
+    assert "AVEC, SANS" in response.json()["erreur"]
 
 
 def test_working_place_filter_is_forwarded_to_usecase(
@@ -318,8 +320,8 @@ def test_invalid_working_place_returns_400(mock_offers_container, jwt_client):
     response = jwt_client.get(URL, {"lieu_de_travail": "INVALID"})
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert "INVALID" in response.json()["error"]
-    assert "NON_DEFINI, SUR_SITE, TELETRAVAIL" in response.json()["error"]
+    assert "INVALID" in response.json()["erreur"]
+    assert "NON_DEFINI, SUR_SITE, TELETRAVAIL" in response.json()["erreur"]
 
 
 def test_region_filter_is_forwarded_to_usecase(mock_offers_container, jwt_client):
@@ -341,7 +343,7 @@ def test_invalid_region_returns_400(mock_offers_container, jwt_client):
     response = jwt_client.get(URL, {"region": "INVALID"})
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert "INVALID" in response.json()["error"]
+    assert "INVALID" in response.json()["erreur"]
 
 
 def test_departement_filter_is_forwarded_to_usecase(mock_offers_container, jwt_client):
@@ -363,7 +365,7 @@ def test_invalid_departement_returns_400(mock_offers_container, jwt_client):
     response = jwt_client.get(URL, {"departement": "INVALID"})
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert "INVALID" in response.json()["error"]
+    assert "INVALID" in response.json()["erreur"]
 
 
 def test_pays_filter_is_forwarded_to_usecase(mock_offers_container, jwt_client):
@@ -385,7 +387,7 @@ def test_invalid_pays_returns_400(mock_offers_container, jwt_client):
     response = jwt_client.get(URL, {"pays": "INVALID"})
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert "INVALID" in response.json()["error"]
+    assert "INVALID" in response.json()["erreur"]
 
 
 def test_zone_filter_is_forwarded_to_usecase(mock_offers_container, jwt_client):
@@ -407,7 +409,7 @@ def test_invalid_zone_returns_400(mock_offers_container, jwt_client):
     response = jwt_client.get(URL, {"zone": "INVALID"})
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert "INVALID" in response.json()["error"]
+    assert "INVALID" in response.json()["erreur"]
 
 
 def test_domaine_filter_is_forwarded_to_usecase(mock_offers_container, jwt_client):
@@ -429,7 +431,7 @@ def test_invalid_domaine_returns_400(mock_offers_container, jwt_client):
     response = jwt_client.get(URL, {"domaine": "INVALID"})
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert "INVALID" in response.json()["error"]
+    assert "INVALID" in response.json()["erreur"]
 
 
 def test_organisation_filter_is_forwarded_to_usecase(mock_offers_container, jwt_client):
@@ -591,7 +593,7 @@ def test_returns_error_500(mock_offers_container, jwt_client):
     assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
 
 
-@patch("presentation.ingestion.views.offers.WebPagination.page_size", new=2)
+@patch("presentation.ingestion.views.offers.ApiV1Pagination.page_size", new=2)
 def test_pagination_page_arg(mock_offers_container, jwt_client):
     num_offers = 5
     offers = [OfferFactory.create_entity() for _ in range(num_offers)]
@@ -605,10 +607,10 @@ def test_pagination_page_arg(mock_offers_container, jwt_client):
     assert response.status_code == status.HTTP_200_OK
     data = response.json()
 
-    assert data["count"] == num_offers
-    assert len(data["results"]) == 2  # noqa
+    assert data["total"] == num_offers
+    assert len(data["resultats"]) == 2  # noqa
 
-    parsed_previous = urlparse(data["previous"])
+    parsed_previous = urlparse(data["page_precedente"])
     assert parsed_previous.path == URL
     assert parse_qs(parsed_previous.query) == {
         "page": ["1"],
@@ -617,7 +619,7 @@ def test_pagination_page_arg(mock_offers_container, jwt_client):
         "taille": ["2"],
     }
 
-    parsed_next = urlparse(data["next"])
+    parsed_next = urlparse(data["page_suivante"])
     assert parsed_next.path == URL
     assert parse_qs(parsed_next.query) == {
         "page": ["3"],
@@ -627,7 +629,7 @@ def test_pagination_page_arg(mock_offers_container, jwt_client):
     }
 
 
-@patch("presentation.ingestion.views.offers.WebPagination.page_size", new=2)
+@patch("presentation.ingestion.views.offers.ApiV1Pagination.page_size", new=2)
 def test_pagination_out_of_bond(mock_offers_container, jwt_client):
     num_offers = 3
     offers = [OfferFactory.create_entity() for _ in range(num_offers)]
@@ -638,17 +640,17 @@ def test_pagination_out_of_bond(mock_offers_container, jwt_client):
     assert response.status_code == status.HTTP_200_OK
     data = response.json()
 
-    assert data["count"] == num_offers
-    assert data["results"] == []
+    assert data["total"] == num_offers
+    assert data["resultats"] == []
 
-    parsed = urlparse(data["previous"])
+    parsed = urlparse(data["page_precedente"])
     assert parsed.path == URL
     assert parse_qs(parsed.query) == {
         "page": ["2"],
         "taille": ["2"],
     }
 
-    assert data["next"] is None
+    assert data["page_suivante"] is None
 
 
 class TestOffersListViewDbVerified:
@@ -662,8 +664,8 @@ class TestOffersListViewDbVerified:
 
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
-        assert data["count"] == 1
-        assert data["results"] == [
+        assert data["total"] == 1
+        assert data["resultats"] == [
             {
                 "reference": offer.reference,
                 "source_id": str(offer.source_id),
@@ -694,7 +696,7 @@ class TestOffersListViewDbVerified:
         response = jwt_client.get(URL, {"organisation": parent.entity_code})
 
         assert response.status_code == status.HTTP_200_OK
-        references = {offer["reference"] for offer in response.json()["results"]}
+        references = {offer["reference"] for offer in response.json()["resultats"]}
         assert references == {"REF-A", "REF-B", "REF-C"}
 
     def test_does_not_trigger_n_plus_one_queries(

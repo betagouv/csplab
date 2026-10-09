@@ -115,6 +115,28 @@ par lots plutôt qu'en une seule fois). La pagination se pilote avec les paramè
 `page` (numéro de page, défaut `1`) et `taille` (nombre d'éléments par page, défaut
 `100`).
 
+Toutes les routes paginées renvoient la même enveloppe :
+
+| Champ | Signification |
+|---|---|
+| `total` | Nombre total d'éléments, toutes pages confondues |
+| `page_suivante` | URL de la page suivante, `null` sur la dernière page |
+| `page_precedente` | URL de la page précédente, `null` sur la première page |
+| `resultats` | Éléments de la page demandée |
+
+Exemple de réponse :
+
+```json
+{
+  "total": 250,
+  "page_suivante": "https://…/api/v1/offres?page=3&taille=100",
+  "page_precedente": "https://…/api/v1/offres?page=1&taille=100",
+  "resultats": [{"reference": "2026-999999", "titre": "…"}]
+}
+```
+
+Pour tout récupérer, suivez `page_suivante` jusqu'à ce qu'il vaille `null`.
+
 ### Filtres disponibles
 
 | Paramètre | Rôle | Format |
@@ -250,7 +272,7 @@ autres d'être traitées.
 | `creees` | Nombre d'offres créées |
 | `mises_a_jour` | Nombre d'offres mises à jour |
 | `offres` | Offres créées ou mises à jour : `index` (position dans le tableau `offres` envoyé, à partir de 0), `reference` et `statut` (`creee` ou `mise_a_jour`) |
-| `errors` | Offres rejetées : `index`, `offre` (bloc `identification` envoyé) et `error` (détail de l'erreur) |
+| `erreurs` | Offres rejetées : `index`, `offre` (bloc `identification` envoyé) et `erreur` (détail de l'erreur) |
 
 Exemple de réponse :
 
@@ -262,11 +284,11 @@ Exemple de réponse :
     {"index": 0, "reference": "REF-001", "statut": "mise_a_jour"},
     {"index": 2, "reference": "CSP-2026-000042", "statut": "creee"}
   ],
-  "errors": [
+  "erreurs": [
     {
       "index": 1,
       "offre": {"reference": "auto", "versant": "FPE"},
-      "error": {"titre": ["Ce champ ne peut être nul."]}
+      "erreur": {"titre": ["Ce champ ne peut être nul."]}
     }
   ]
 }
@@ -460,7 +482,28 @@ invalides, lignes créées, lignes mises à jour, et la liste éventuelle des er
 | `401` | Authentification | Identité non prouvée (jeton manquant/expiré) |
 | `403` | Autorisation | Identité prouvée, mais action non permise |
 | `404` | Introuvable | L'élément demandé n'existe pas |
+| `429` | Limite d'appels | Trop d'appels sur la fenêtre courante, réessayer après le délai indiqué par l'en-tête `Retry-After` |
 | `500` | Erreur serveur | Problème inattendu côté CSPLab |
+
+## Format des erreurs
+
+Sur les routes `/api/v1/…`, une erreur renvoie un objet avec un champ `erreur` qui
+décrit le problème :
+
+```json
+{"erreur": "Unexpected error"}
+```
+
+Quand le jeton JWT est invalide ou expiré, la réponse `401` contient aussi un champ
+`code` :
+
+```json
+{"erreur": "Le jeton fourni n'est pas valide.", "code": "token_not_valid"}
+```
+
+Seule exception : quand des champs du corps de la requête sont invalides, la réponse
+`400` liste les erreurs par nom de champ (ex. `{"reference": ["Ce champ est
+obligatoire."]}`).
 
 
 

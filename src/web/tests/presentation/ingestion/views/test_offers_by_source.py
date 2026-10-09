@@ -108,9 +108,9 @@ class TestOffersBySourceView:
 
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
-        assert data["count"] == 1
-        assert data["results"][0]["reference"] == offer.reference
-        assert data["results"][0]["source_id"] == str(SOURCE_ID)
+        assert data["total"] == 1
+        assert data["resultats"][0]["reference"] == offer.reference
+        assert data["resultats"][0]["source_id"] == str(SOURCE_ID)
 
         use_case.execute.assert_called_once_with(
             GetOffersBySourceInput(
@@ -129,7 +129,7 @@ class TestOffersBySourceView:
         response = authenticated_client_with_source.get(URL)
 
         assert response.status_code == status.HTTP_200_OK
-        assert response.json()["results"][0]["localisation"] is None
+        assert response.json()["resultats"][0]["localisation"] is None
 
     def test_jwt_authentication_forbidden_source_returns_401(
         self, jwt_client, use_case
@@ -168,8 +168,8 @@ class TestOffersBySourceViewDbVerified:
 
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
-        assert data["count"] == 1
-        assert data["results"] == [
+        assert data["total"] == 1
+        assert data["resultats"] == [
             {
                 "reference": offer.reference,
                 "source_id": str(SOURCE_ID),
@@ -238,8 +238,8 @@ class TestOffersBySourceViewDbVerified:
 
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
-        assert data["count"] == 1
-        assert data["results"] == [
+        assert data["total"] == 1
+        assert data["resultats"] == [
             {
                 "reference": offer.reference,
                 "source_id": str(SOURCE_ID),

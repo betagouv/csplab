@@ -42,7 +42,7 @@ class TestConcoursUploadView:
     def test_no_file_provided(self, jwt_client):
         response = jwt_client.post(self.url, {}, format="multipart")
         assert response.status_code == status.HTTP_400_BAD_REQUEST
-        assert response.data["error"] == "No file provided"
+        assert response.data["erreur"] == "No file provided"
 
     def test_invalid_file_format(self, jwt_client):
         txt_file = SimpleUploadedFile(
@@ -50,14 +50,14 @@ class TestConcoursUploadView:
         )
         response = jwt_client.post(self.url, {"file": txt_file}, format="multipart")
         assert response.status_code == status.HTTP_400_BAD_REQUEST
-        assert response.data["error"] == "File must be a CSV"
+        assert response.data["erreur"] == "File must be a CSV"
 
     def test_validation_errors(self, jwt_client, invalid_csv_content):
         response = jwt_client.post(
             self.url, {"file": make_csv_file(invalid_csv_content)}, format="multipart"
         )
         assert response.status_code == status.HTTP_400_BAD_REQUEST
-        assert response.data["error"] == "No valid rows found"
+        assert response.data["erreur"] == "No valid rows found"
         assert "validation_errors" in response.data
         assert len(response.data["validation_errors"]) == 2  # noqa
 

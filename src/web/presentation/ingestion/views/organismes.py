@@ -22,13 +22,17 @@ from infrastructure.repositories.identite.postgres_organisme_repository import (
     PostgresOrganismeRepository,
 )
 from presentation.api.authentication import PublicApiKeyOnlyMixin
-from presentation.api.serializers import GenericErrorSerializer
+from presentation.api.serializers import (
+    ErreurApiSerializer,
+    api_v1_response_format,
+)
 from presentation.ingestion.mappers import OrganismeInputMapper
 from presentation.ingestion.serializers import (
     OrganismeUpsertInputSerializer,
     SupprimerOrganismesRequestSerializer,
     SupprimerOrganismesResponseSerializer,
     UpsertOrganismesRequestSerializer,
+    UpsertOrganismesResponseSerializer,
 )
 
 logger = logging.getLogger(LoggerName.INGESTION.value)
@@ -55,24 +59,9 @@ UPSERT_ORGANISMES_DESCRIPTION = (
         },
     ),
     responses={
-        201: inline_serializer(
-            name="UpsertOrganismesResponse",
-            fields={
-                "created": serializers.IntegerField(
-                    help_text="Nombre d'organismes créés"
-                ),
-                "updated": serializers.IntegerField(
-                    help_text="Nombre d'organismes mis à jour"
-                ),
-                "errors": serializers.ListField(
-                    help_text="Organismes rejetés avec le détail de l'erreur",
-                    child=serializers.DictField(),
-                ),
-            },
-        ),
-        400: GenericErrorSerializer,
-        401: GenericErrorSerializer,
-        500: GenericErrorSerializer,
+        201: UpsertOrganismesResponseSerializer,
+        400: ErreurApiSerializer,
+        **api_v1_response_format,
     },
 )
 class OrganismesUpsertView(PublicApiKeyOnlyMixin, APIView):
@@ -103,7 +92,7 @@ class OrganismesUpsertView(PublicApiKeyOnlyMixin, APIView):
                             "referentiel": organisme_data.get("referentiel"),
                             "external_id": organisme_data.get("external_id"),
                         },
-                        "error": item_serializer.errors,
+                        "erreur": item_serializer.errors,
                     }
                 )
                 continue
@@ -118,19 +107,25 @@ class OrganismesUpsertView(PublicApiKeyOnlyMixin, APIView):
                             "referentiel": organisme_data.get("referentiel"),
                             "external_id": organisme_data.get("external_id"),
                         },
-                        "error": str(e),
+                        "erreur": str(e),
                     }
                 )
 
         try:
             usecase = container.upsert_organismes_usecase()
             result = usecase.execute(UpsertOrganismesInput(organismes=valid_organismes))
-            result["errors"].extend(errors)
-            return Response(result, status=status.HTTP_201_CREATED)
+            return Response(
+                {
+                    "created": result["created"],
+                    "updated": result["updated"],
+                    "erreurs": [*result["errors"], *errors],
+                },
+                status=status.HTTP_201_CREATED,
+            )
         except Exception as e:
             logger.error("OrganismesUpsertView: unexpected error %s", str(e))
             return Response(
-                {"error": "Unexpected error"},
+                {"erreur": "Unexpected error"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -148,9 +143,8 @@ SUPPRIMER_ORGANISMES_DESCRIPTION = (
     request=SupprimerOrganismesRequestSerializer,
     responses={
         200: SupprimerOrganismesResponseSerializer,
-        400: GenericErrorSerializer,
-        401: GenericErrorSerializer,
-        500: GenericErrorSerializer,
+        400: ErreurApiSerializer,
+        **api_v1_response_format,
     },
 )
 class OrganismesSupprimerView(PublicApiKeyOnlyMixin, APIView):
@@ -182,6 +176,6 @@ class OrganismesSupprimerView(PublicApiKeyOnlyMixin, APIView):
         except Exception as e:
             logger.error("OrganismesSupprimerView: unexpected error %s", str(e))
             return Response(
-                {"error": "Unexpected error"},
+                {"erreur": "Unexpected error"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )

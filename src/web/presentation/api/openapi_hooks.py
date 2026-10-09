@@ -44,40 +44,47 @@ def postprocess_add_rate_limit_headers(result, **kwargs):
     return result
 
 
-_TOO_MANY_REQUESTS_RESPONSE = {
-    "description": "Nombre maximal d'appels autorisés dépassé.",
-    "content": {
-        "application/json": {
-            "schema": {
-                "type": "object",
-                "properties": {
-                    "detail": {
-                        "type": "string",
-                        "example": (
-                            "Request was throttled. Expected available in 42 seconds."
-                        ),
+PUBLIC_API_V1_PATH = "/api/v1/"
+
+
+def _too_many_requests_response(error_key):
+    return {
+        "description": "Nombre maximal d'appels autorisés dépassé.",
+        "content": {
+            "application/json": {
+                "schema": {
+                    "type": "object",
+                    "properties": {
+                        error_key: {
+                            "type": "string",
+                            "example": (
+                                "Request was throttled. "
+                                "Expected available in 42 seconds."
+                            ),
+                        },
                     },
                 },
             },
         },
-    },
-    "headers": {
-        "Retry-After": _header_ref("Retry-After"),
-        **_RATE_LIMIT_HEADER_REFS,
-    },
-}
+        "headers": {
+            "Retry-After": _header_ref("Retry-After"),
+            **_RATE_LIMIT_HEADER_REFS,
+        },
+    }
 
 
 def postprocess_add_too_many_requests_response(result, **kwargs):
     components_headers = result.setdefault("components", {}).setdefault("headers", {})
     components_headers.setdefault("Retry-After", dict(_RETRY_AFTER_HEADER))
 
-    for path in result.get("paths", {}).values():
+    for path_name, path in result.get("paths", {}).items():
+        # Errors on the public API v1 use `erreur` (see config.exception_handler)
+        error_key = "erreur" if path_name.startswith(PUBLIC_API_V1_PATH) else "detail"
         for operation in path.values():
             responses = operation.get("responses")
             if responses is None:
                 continue
-            responses.setdefault("429", dict(_TOO_MANY_REQUESTS_RESPONSE))
+            responses.setdefault("429", _too_many_requests_response(error_key))
     return result
 
 

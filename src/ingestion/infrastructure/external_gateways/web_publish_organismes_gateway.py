@@ -17,7 +17,7 @@ class WebPublishOrganismesGateway(BaseWebGateway, IPublishOrganismesGateway):
             "/organismes/creer_modifier",
             json={"organismes": [self._serialize(o) for o in organismes]},
         )
-        errors = response.json().get("errors") if response.content else None
+        errors = response.json().get("erreurs") if response.content else None
         if errors:
             logger.error(
                 "WebPublishOrganismesGateway: publish failed for %d organismes: %s",

@@ -17,7 +17,10 @@ from application.ingestion.interfaces.load_operation_type import LoadOperationTy
 from domain.ingestion.entities.document import Document, DocumentType
 from infrastructure.di.ingestion.ingestion_factory import create_ingestion_container
 from presentation.api.authentication import PublicApiMixin
-from presentation.api.serializers import GenericErrorSerializer, TokenErrorSerializer
+from presentation.api.serializers import (
+    ErreurApiSerializer,
+    api_v1_response_format,
+)
 from presentation.ingestion.openapi import (
     CONCOURS_UPLOAD_DESCRIPTION,
     CONCOURS_UPLOAD_EXAMPLES,
@@ -122,11 +125,10 @@ class ConcoursUploadView(PublicApiMixin, APIView):
             201: ConcoursUploadResponseSerializer,
             400: PolymorphicProxySerializer(
                 component_name="ConcoursUpload400Error",
-                serializers=[GenericErrorSerializer, NoValidRowsErrorSerializer],
+                serializers=[ErreurApiSerializer, NoValidRowsErrorSerializer],
                 resource_type_field_name=None,
             ),
-            401: TokenErrorSerializer,
-            500: GenericErrorSerializer,
+            **api_v1_response_format,
         },
     )
     def post(self, request):
@@ -164,13 +166,13 @@ class ConcoursUploadView(PublicApiMixin, APIView):
         except pl.exceptions.ComputeError as e:
             logger.error("CSV parsing error: %s", str(e))
             return Response(
-                {"error": "CSV parsing error"},
+                {"erreur": "CSV parsing error"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
         except Exception as e:
             logger.error("Unexpected error during CSV upload: %s", str(e))
             return Response(
-                {"error": "Unexpected error"},
+                {"erreur": "Unexpected error"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -183,14 +185,14 @@ class ConcoursUploadView(PublicApiMixin, APIView):
         if "file" not in request.FILES:
             logger.warning("No file provided in upload request")
             return Response(
-                {"error": "No file provided"}, status=status.HTTP_400_BAD_REQUEST
+                {"erreur": "No file provided"}, status=status.HTTP_400_BAD_REQUEST
             )
 
         csv_file = request.FILES["file"]
         if not csv_file.name.endswith(".csv"):
             logger.warning("Invalid file type: %s", csv_file.name)
             return Response(
-                {"error": "File must be a CSV"}, status=status.HTTP_400_BAD_REQUEST
+                {"erreur": "File must be a CSV"}, status=status.HTTP_400_BAD_REQUEST
             )
 
         return None
@@ -259,7 +261,7 @@ class ConcoursUploadView(PublicApiMixin, APIView):
     def _handle_no_valid_documents(self, validation_errors):
         return Response(
             {
-                "error": "No valid rows found",
+                "erreur": "No valid rows found",
                 "validation_errors": validation_errors,
             },
             status=status.HTTP_400_BAD_REQUEST,
