@@ -1,13 +1,29 @@
 <script setup lang="ts">
 import type { CspMetaItem } from './types'
+import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspIcon from '@/components/base/CspIcon/CspIcon.vue'
+import CspTooltip from '@/components/base/CspTooltip/CspTooltip.vue'
+import { useToast } from '@/composables/ui/useToast'
 
-withDefaults(defineProps<CspMetaItem & {
+const props = withDefaults(defineProps<CspMetaItem & {
   size?: 'sm' | 'md' | 'lg'
 }>(), {
   icon: undefined,
+  copy: undefined,
   size: 'md',
 })
+
+const { addToast } = useToast()
+
+async function copyLabel(): Promise<void> {
+  try {
+    await navigator.clipboard.writeText(props.label)
+    addToast({ variant: 'success', title: props.copy?.confirmation, duration: 2000 })
+  }
+  catch {
+    addToast({ variant: 'error', title: 'La copie a échoué' })
+  }
+}
 </script>
 
 <template>
@@ -24,8 +40,22 @@ withDefaults(defineProps<CspMetaItem & {
       :size="12"
       class="csp-meta__icon"
     />
-    <span class="sr-only">{{ srLabel }} :</span>
+    <span class="sr-only csp-meta__sr-label">{{ srLabel }} :</span>
     <span class="csp-meta__label">{{ label }}</span>
+    <CspTooltip
+      v-if="copy"
+      :content="copy.action"
+      side="bottom"
+    >
+      <CspButton
+        class="csp-meta__copy"
+        variant="tertiary-no-outline"
+        size="sm"
+        icon="ri:file-copy-line"
+        :aria-label="copy.action"
+        @click="copyLabel"
+      />
+    </CspTooltip>
   </span>
 </template>
 
@@ -67,7 +97,16 @@ withDefaults(defineProps<CspMetaItem & {
   flex: none;
 }
 
+.csp-meta__sr-label {
+  user-select: none;
+}
+
 .csp-meta__label {
   min-width: 0;
+}
+
+.csp-meta__copy {
+  margin-block: calc(-1 * var(--csp-btn-icon-inset));
+  color: inherit;
 }
 </style>

@@ -4,9 +4,11 @@ import type { CandidaturesViewName } from '../routes'
 import { useQueryCache } from '@pinia/colada'
 import { computed, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import CspBadge from '@/components/base/CspBadge/CspBadge.vue'
 import CspDrawer from '@/components/base/CspDrawer/CspDrawer.vue'
 import CspEmptyState from '@/components/base/CspEmptyState/CspEmptyState.vue'
 import CspErrorState from '@/components/base/CspErrorState/CspErrorState.vue'
+import CspMetaList from '@/components/base/CspMeta/CspMetaList.vue'
 import CspSeparator from '@/components/base/CspSeparator/CspSeparator.vue'
 import CspSequenceNav from '@/components/base/CspSequenceNav/CspSequenceNav.vue'
 import CspSkeleton from '@/components/base/CspSkeleton/CspSkeleton.vue'
@@ -19,7 +21,6 @@ import { tabItems } from '@/composables/navigation/tabs'
 import { useRouteTab } from '@/composables/navigation/useRouteTab'
 import { useUnsavedChangesGuard } from '@/composables/navigation/useUnsavedChanges'
 import MessagesSection from '@/features/messages/components/MessagesSection.vue'
-import { formatElapsedDays } from '@/utils/date'
 import CandidatureActivites from '../components/CandidatureActivites.vue'
 import CandidatureCv from '../components/CandidatureCv.vue'
 import CandidatureDocuments from '../components/CandidatureDocuments.vue'
@@ -33,6 +34,7 @@ import { useCandidatureNavigation } from '../composables/useCandidatureNavigatio
 import { useCandidaturePanelRoutes } from '../composables/useCandidaturePanelRoutes'
 import { useEtapeChange } from '../composables/useEtapeChange'
 import { CANDIDATURE_PANEL_TAB_ICONS, CANDIDATURE_PANEL_TAB_LABELS } from '../constants/candidature'
+import { formatCandidatureMeta } from '../format'
 import { candidatureDetailQuery } from '../queries'
 import { formatCandidatNom } from '../utils/candidat'
 
@@ -54,9 +56,8 @@ const showSkeleton = useMinimumPending(pending)
 const loadFailed = computed(() => Boolean(error.value) && !notFound.value)
 
 const title = computed(() => candidature.value ? formatCandidatNom(candidature.value.candidat) : 'Candidature')
-const description = computed(() =>
-  candidature.value ? `Candidature ${formatElapsedDays(candidature.value.date_candidature)}` : null,
-)
+const description = computed(() => candidature.value?.recrutement_intitule || null)
+const metaItems = computed(() => candidature.value ? formatCandidatureMeta(candidature.value) : [])
 
 const etape = computed(() => candidature.value?.etape_actuelle ?? null)
 const navigation = useCandidatureNavigation(candidatureUuid)
@@ -153,6 +154,16 @@ function handleUpdateOpen(open: boolean): void {
     </template>
 
     <template
+      v-if="!showSkeleton && etape"
+      #title-end
+    >
+      <CspBadge
+        class="candidature-panel__etape"
+        :label="etape.nom"
+      />
+    </template>
+
+    <template
       v-if="showSkeleton || description"
       #description
     >
@@ -164,6 +175,13 @@ function handleUpdateOpen(open: boolean): void {
       <template v-else>
         {{ description }}
       </template>
+    </template>
+
+    <template
+      v-if="!showSkeleton && metaItems.length"
+      #meta
+    >
+      <CspMetaList :items="metaItems" />
     </template>
 
     <div
@@ -340,6 +358,11 @@ function handleUpdateOpen(open: boolean): void {
 </style>
 
 <style scoped lang="scss">
+.candidature-panel__etape {
+  align-self: center;
+  margin: 0;
+}
+
 .candidature-panel__exception {
   padding: var(--csp-page-content-padding-block) var(--csp-drawer-padding-inline);
 }

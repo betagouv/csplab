@@ -97,11 +97,24 @@ describe('candidaturePanelView', () => {
     toasts.value.forEach(toast => dismissToast(toast.id))
   })
 
-  it('shows the candidat name and submission date from the candidature detail', async () => {
+  it('shows who applies, to which offer and at which stage from the candidature detail', async () => {
     const { panel } = await renderPanel([`${KANBAN_PATH}/candidatures/${CANDIDATURE_ALICE}`])
 
-    expect(await panel.findByText(/Candidature il y a \d+ jours/)).toBeInTheDocument()
-    expect(panel.getByRole('heading', { name: 'Alice Dupont' })).toBeInTheDocument()
+    expect(await panel.findByRole('heading', { name: 'Alice Dupont' })).toBeInTheDocument()
+    expect(panel.getByText('Chargé de mission')).toBeInTheDocument()
+    expect(panel.getByText(/Candidature il y a \d+ jours/)).toBeInTheDocument()
+    expect(panel.getByText('candidat@example.fr')).toBeInTheDocument()
+    expect(panel.getByText('Réception des candidatures')).toBeInTheDocument()
+  })
+
+  it('copies the candidat email to the clipboard', async () => {
+    const user = setupUser()
+    const { panel } = await renderPanel([`${KANBAN_PATH}/candidatures/${CANDIDATURE_ALICE}`])
+
+    await user.click(await panel.findByRole('button', { name: 'Copier le courriel' }))
+
+    expect(await navigator.clipboard.readText()).toBe('candidat@example.fr')
+    expect(await screen.findByText('Courriel copié dans le presse-papier')).toBeInTheDocument()
   })
 
   it('opens on the candidature tab, with the follow-up column beside it', async () => {
