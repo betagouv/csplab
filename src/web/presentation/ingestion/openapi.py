@@ -277,10 +277,10 @@ critères suivants :
 - `pays` — un ou plusieurs codes pays alpha-3 (ex. `FRA,BEL`)
 - `zone` — une ou plusieurs zones géographiques (ex. `EUROPE,ASIE`)
 - `domaine` — un ou plusieurs codes de domaine fonctionnel (ex. `NUM,ACH`)
-- `organisme` — un ou plusieurs codes d'organisme Talentsoft (`entityCode`),
+- `organisation` — un ou plusieurs codes d'organisme Talentsoft (`entityCode`),
   en incluant tous leurs organismes descendants. Répéter le paramètre pour
-  filtrer sur plusieurs organismes (ex. `?organisme=ORG1&organisme=ORG2`).
-- `date_publication` — nombre de jours négatif pour ne retourner que les
+  filtrer sur plusieurs organismes (ex. `?organisation=ORG1&organisation=ORG2`).
+- `debut_publication` — nombre de jours négatif pour ne retourner que les
   offres publiées au cours des N derniers jours (ex. `-7`)
 - filtre géographique par rayon autour d'un point, les trois paramètres
   doivent être fournis ensemble :
@@ -308,15 +308,15 @@ LIST_OFFERS_EXAMPLES = [
         value={
             "reference": "2026-999999",
             "source_id": "12345678-1234-4234-b234-123456789abc",
-            "title": "Responsable de la Division des Affaires Financières H/F",
-            "organization": (
+            "titre": "Responsable de la Division des Affaires Financières H/F",
+            "organisation": (
                 "Ecole Nationale Supérieure de Techniques Avancées (ENSTA)"
             ),
-            "offer_nature": "TITULAIRE_CONTRACTUEL",
-            "category": "A",
-            "publication_date": "2026-04-17T14:44:49.873000+00:00",
-            "offer_url": "https://test.com/offre-emploi/2026-999999/",
-            "archived_at": None,
+            "nature_offre": "TITULAIRE_CONTRACTUEL",
+            "categorie": "A",
+            "debut_publication": "2026-04-17T14:44:49.873000+00:00",
+            "url_offre": "https://test.com/offre-emploi/2026-999999/",
+            "date_archivage": None,
         },
         response_only=True,
         status_codes=["200"],
@@ -330,15 +330,15 @@ LIST_OFFERS_EXAMPLES = [
         value={
             "reference": "2026-999999",
             "source_id": "12345678-1234-4234-b234-123456789abc",
-            "title": "Responsable de la Division des Affaires Financières H/F",
-            "organization": (
+            "titre": "Responsable de la Division des Affaires Financières H/F",
+            "organisation": (
                 "Ecole Nationale Supérieure de Techniques Avancées (ENSTA)"
             ),
-            "offer_nature": "TITULAIRE_CONTRACTUEL",
-            "category": "A",
-            "publication_date": "2026-04-17T14:44:49.873000+00:00",
-            "offer_url": "https://test.com/offre-emploi/2026-999999/",
-            "archived_at": "2026-05-17T12:42:42.873000+00:00",
+            "nature_offre": "TITULAIRE_CONTRACTUEL",
+            "categorie": "A",
+            "debut_publication": "2026-04-17T14:44:49.873000+00:00",
+            "url_offre": "https://test.com/offre-emploi/2026-999999/",
+            "date_archivage": "2026-05-17T12:42:42.873000+00:00",
         },
         response_only=True,
         status_codes=["200"],

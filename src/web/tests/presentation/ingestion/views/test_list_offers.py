@@ -143,20 +143,20 @@ def test_call_without_arg(mock_offers_container, jwt_client):
     for result, offer in zip(data["results"], offers, strict=True):
         assert result["reference"] == offer.reference
         assert result["source_id"] == str(offer.source_id)
-        assert result["title"] == offer.title
-        assert result["organization"] == offer.organization
-        assert result["offer_nature"] == (
+        assert result["titre"] == offer.title
+        assert result["organisation"] == offer.organization
+        assert result["nature_offre"] == (
             offer.offer_nature.value if offer.offer_nature else None
         )
-        assert result["category"] == offer.category.value
-        assert result["publication_date"] == "2024-01-15T00:00:00Z"
-        assert result["offer_url"] == offer.offer_url
+        assert result["categorie"] == offer.category.value
+        assert result["debut_publication"] == "2024-01-15T00:00:00Z"
+        assert result["url_offre"] == offer.offer_url
         if offer.archived_at:
-            assert result["archived_at"] == offer.archived_at.isoformat(
+            assert result["date_archivage"] == offer.archived_at.isoformat(
                 timespec="microseconds"
             ).replace("+00:00", "Z")
         else:
-            assert result["archived_at"] is None
+            assert result["date_archivage"] is None
 
 
 @pytest.mark.parametrize("active", [True, False])
@@ -432,10 +432,10 @@ def test_invalid_domaine_returns_400(mock_offers_container, jwt_client):
     assert "INVALID" in response.json()["error"]
 
 
-def test_organisme_filter_is_forwarded_to_usecase(mock_offers_container, jwt_client):
+def test_organisation_filter_is_forwarded_to_usecase(mock_offers_container, jwt_client):
     _make_paginated_mock(mock_offers_container, num_offers=0, offers_slice=[])
 
-    jwt_client.get(URL, [("organisme", "ORG1")])
+    jwt_client.get(URL, [("organisation", "ORG1")])
 
     mock_offers_container.list_offers_usecase.return_value.execute.assert_called_once_with(
         GetFilteredOffersInput(
@@ -445,7 +445,7 @@ def test_organisme_filter_is_forwarded_to_usecase(mock_offers_container, jwt_cli
     )
 
 
-def test_organisme_filter_with_multiple_values_is_forwarded_to_usecase(
+def test_organisation_filter_with_multiple_values_is_forwarded_to_usecase(
     mock_offers_container, jwt_client
 ):
     _make_paginated_mock(mock_offers_container, num_offers=0, offers_slice=[])
@@ -453,8 +453,8 @@ def test_organisme_filter_with_multiple_values_is_forwarded_to_usecase(
     jwt_client.get(
         URL,
         [
-            ("organisme", "ORG1"),
-            ("organisme", "ORG2"),
+            ("organisation", "ORG1"),
+            ("organisation", "ORG2"),
         ],
     )
 
@@ -490,12 +490,12 @@ def test_blank_keywords_is_treated_as_not_provided(mock_offers_container, jwt_cl
     )
 
 
-def test_date_publication_filter_is_forwarded_to_usecase(
+def test_debut_publication_filter_is_forwarded_to_usecase(
     mock_offers_container, jwt_client
 ):
     _make_paginated_mock(mock_offers_container, num_offers=0, offers_slice=[])
 
-    jwt_client.get(URL, {"date_publication": "-7"})
+    jwt_client.get(URL, {"debut_publication": "-7"})
 
     mock_offers_container.list_offers_usecase.return_value.execute.assert_called_once_with(
         GetFilteredOffersInput(
@@ -505,10 +505,10 @@ def test_date_publication_filter_is_forwarded_to_usecase(
     )
 
 
-def test_positive_date_publication_returns_400(mock_offers_container, jwt_client):
+def test_positive_debut_publication_returns_400(mock_offers_container, jwt_client):
     _make_paginated_mock(mock_offers_container, num_offers=0, offers_slice=[])
 
-    response = jwt_client.get(URL, {"date_publication": "7"})
+    response = jwt_client.get(URL, {"debut_publication": "7"})
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
 
@@ -667,19 +667,19 @@ class TestOffersListViewDbVerified:
             {
                 "reference": offer.reference,
                 "source_id": str(offer.source_id),
-                "title": offer.title,
-                "organization": offer.organization,
-                "offer_nature": offer.offer_nature,
-                "category": offer.category,
-                "publication_date": offer.publication_date.isoformat().replace(
+                "titre": offer.title,
+                "organisation": offer.organization,
+                "nature_offre": offer.offer_nature,
+                "categorie": offer.category,
+                "debut_publication": offer.publication_date.isoformat().replace(
                     "+00:00", "Z"
                 ),
-                "offer_url": offer.offer_url,
-                "archived_at": None,
+                "url_offre": offer.offer_url,
+                "date_archivage": None,
             }
         ]
 
-    def test_organisme_filter_includes_child_organizations(self, jwt_client):
+    def test_organisation_filter_includes_child_organizations(self, jwt_client):
         parent = TalentsoftOrganismeDjangoFactory(has_children=True)
         child_b = TalentsoftOrganismeDjangoFactory(parent_code=parent.code)
         child_c = TalentsoftOrganismeDjangoFactory(parent_code=parent.code)
@@ -691,7 +691,7 @@ class TestOffersListViewDbVerified:
             talentsoft_organisme_entity_code=TalentsoftOrganismeDjangoFactory(),
         )
 
-        response = jwt_client.get(URL, {"organisme": parent.entity_code})
+        response = jwt_client.get(URL, {"organisation": parent.entity_code})
 
         assert response.status_code == status.HTTP_200_OK
         references = {offer["reference"] for offer in response.json()["results"]}

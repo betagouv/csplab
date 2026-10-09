@@ -131,8 +131,8 @@ par lots plutôt qu'en une seule fois). La pagination se pilote avec les paramè
 | `pays` | Filtrer par code(s) pays alpha-3 | Liste séparée par virgules (ex. `FRA,BEL`) |
 | `zone` | Filtrer par zone(s) géographique(s) | Liste séparée par virgules parmi AFRIQUE, EUROPE, ASIE, AMERIQUE, OCEANIE, ANTARTIQUE, MOYEN_ORIENT_AFRIQUE_DU_NORD |
 | `domaine` | Filtrer par code(s) de domaine fonctionnel | Liste séparée par virgules (ex. `NUM,ACH`) |
-| `organisme` | Filtrer par code d'organisme Talentsoft (`entityCode`), tous ses organismes descendants inclus | Répéter le paramètre pour en filtrer plusieurs (ex. `?organisme=ORG1&organisme=ORG2`) |
-| `date_publication` | Ne retourner que les offres publiées au cours des N derniers jours | Entier négatif (ex. `-7`) |
+| `organisation` | Filtrer par code d'organisme Talentsoft (`entityCode`), tous ses organismes descendants inclus | Répéter le paramètre pour en filtrer plusieurs (ex. `?organisation=ORG1&organisation=ORG2`) |
+| `debut_publication` | Ne retourner que les offres publiées au cours des N derniers jours | Entier négatif (ex. `-7`) |
 | `latitude`, `longitude`, `radius` | Filtre géographique par rayon autour d'un point — **les trois doivent être fournis ensemble** | `latitude`/`longitude` en degrés décimaux, `radius` en kilomètres (entier positif) |
 | `mots_cles` | Recherche plein texte (en français) sur le titre, l'intitulé long, la mission, le profil, l'organisme, l'employeur et les compléments de l'offre | Texte libre |
 
@@ -145,16 +145,16 @@ Chaque offre renvoyée contient notamment :
 |---|---|---|
 | `reference` | Référence d'origine de l'offre | Non |
 | `source_id` | Identifiant de la source ayant transmis l'offre | Non |
-| `title` | Intitulé du poste | Non |
-| `organization` | Organisme employeur | Non |
-| `offer_nature` | Nature de l'offre (valeur de `nature_offre`) | Oui |
-| `category` | Catégorie (A+, A, B, C…) | Oui |
-| `publication_date` | Date de publication | Non |
-| `offer_url` | Lien vers l'annonce | Oui |
-| `archived_at` | Date d'archivage de l'offre | Oui |
+| `titre` | Intitulé du poste | Non |
+| `organisation` | Organisme employeur | Non |
+| `nature_offre` | Nature de l'offre | Oui |
+| `categorie` | Catégorie (A+, A, B, C…) | Oui |
+| `debut_publication` | Date de début de publication | Non |
+| `url_offre` | Lien vers l'annonce | Oui |
+| `date_archivage` | Date d'archivage de l'offre | Oui |
 
-> **Règle métier clé :** une offre dont `archived_at` est **vide** est **active** ;
-> une offre dont `archived_at` est **renseigné** est **archivée**.
+> **Règle métier clé :** une offre dont `date_archivage` est **vide** est **active** ;
+> une offre dont `date_archivage` est **renseigné** est **archivée**.
 
 
 
