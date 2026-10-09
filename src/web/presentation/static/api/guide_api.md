@@ -168,11 +168,29 @@ comme pour la liste principale des offres (paramètres `page` et `taille`).
 > renvoie une erreur `401`, même si la source existe.
 
 Chaque offre renvoyée contient, en plus des informations de la liste principale
-(voir section précédente), le détail complet de l'offre : `long_title`, `employer`,
-`profile`, `mission`, `complements`, `exercise_conditions`, `service_description`,
-`verse`, `contract_kind`, `job_vacancy`, `application_url`, `localisation`,
-`criteria`, `conditions`, `contacts`, `beginning_date`, `application_deadline`,
-`job_vacancy_date`.
+(voir section précédente), le détail complet de l'offre. Les champs reprennent les
+noms utilisés par `POST /api/v1/offres/creer_modifier` (voir section 4) :
+
+| Champ | Signification | Peut être vide ? |
+|---|---|---|
+| `titre_long` | Intitulé long du poste | Oui |
+| `employeur` | Présentation de l'employeur | Oui |
+| `profil` | Profil recherché | Non |
+| `mission` | Missions du poste | Non |
+| `complements` | Informations complémentaires | Oui |
+| `conditions_exercice` | Conditions particulières d'exercice | Oui |
+| `descriptif_service` | Description du service | Oui |
+| `versant` | Versant de la fonction publique | Oui |
+| `type_contrat` | Type de contrat | Oui |
+| `vacance_poste` | Vacance du poste | Oui |
+| `url_candidature` | Lien pour candidater | Oui |
+| `localisation` | Localisation de l'offre (`zone_geographique`, `pays`, `region`, `departement`, `localisation_label`, `latitude`, `longitude`) | Oui |
+| `criteres` | Critères de l'offre (diplôme, expérience, langues…) | Oui |
+| `conditions` | Conditions de l'offre (rémunération, temps de travail…) | Oui |
+| `contacts` | Contacts de l'offre | Oui |
+| `debut_contrat` | Date de début du contrat | Oui |
+| `fin_candidature` | Date limite de candidature | Oui |
+| `debut_vacance_poste` | Date à partir de laquelle le poste est vacant | Oui |
 
 **Réponses possibles :**
 

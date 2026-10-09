@@ -546,31 +546,39 @@ class LocalisationInputSerializer(LocalisationSerializer):
 class OfferDetailResponseSerializer(serializers.Serializer):
     reference = serializers.CharField()
     source_id = serializers.UUIDField()
-    title = serializers.CharField()
-    long_title = serializers.CharField(allow_null=True)
-    organization = serializers.CharField()
-    employer = serializers.CharField(allow_null=True)
-    profile = serializers.CharField()
+    titre = serializers.CharField(source="title")
+    titre_long = serializers.CharField(source="long_title", allow_null=True)
+    organisation = serializers.CharField(source="organization")
+    employeur = serializers.CharField(source="employer", allow_null=True)
+    profil = serializers.CharField(source="profile")
     mission = serializers.CharField()
     complements = serializers.CharField(allow_null=True)
-    exercise_conditions = serializers.CharField(allow_null=True)
-    service_description = serializers.CharField(allow_null=True)
-    verse = serializers.CharField(allow_null=True)
-    category = serializers.CharField(allow_null=True)
-    offer_nature = serializers.CharField(allow_null=True)
-    contract_kind = serializers.CharField(allow_null=True)
-    job_vacancy = serializers.CharField(allow_null=True)
-    offer_url = serializers.CharField(allow_null=True)
-    application_url = serializers.CharField(allow_null=True)
+    conditions_exercice = serializers.CharField(
+        source="exercise_conditions", allow_null=True
+    )
+    descriptif_service = serializers.CharField(
+        source="service_description", allow_null=True
+    )
+    versant = serializers.CharField(source="verse", allow_null=True)
+    categorie = serializers.CharField(source="category", allow_null=True)
+    nature_offre = serializers.CharField(source="offer_nature", allow_null=True)
+    type_contrat = serializers.CharField(source="contract_kind", allow_null=True)
+    vacance_poste = serializers.CharField(source="job_vacancy", allow_null=True)
+    url_offre = serializers.CharField(source="offer_url", allow_null=True)
+    url_candidature = serializers.CharField(source="application_url", allow_null=True)
     localisation = serializers.SerializerMethodField()
-    criteria = serializers.SerializerMethodField()
+    criteres = serializers.SerializerMethodField()
     conditions = serializers.DictField(allow_null=True)
     contacts = serializers.ListField(child=serializers.DictField(), allow_null=True)
-    publication_date = serializers.DateTimeField()
-    beginning_date = serializers.SerializerMethodField()
-    application_deadline = serializers.DateTimeField(allow_null=True)
-    job_vacancy_date = serializers.DateTimeField(allow_null=True)
-    archived_at = serializers.DateTimeField(allow_null=True)
+    debut_publication = serializers.DateTimeField(source="publication_date")
+    debut_contrat = serializers.SerializerMethodField()
+    fin_candidature = serializers.DateTimeField(
+        source="application_deadline", allow_null=True
+    )
+    debut_vacance_poste = serializers.DateTimeField(
+        source="job_vacancy_date", allow_null=True
+    )
+    date_archivage = serializers.DateTimeField(source="archived_at", allow_null=True)
 
     @extend_schema_field(LocalisationSerializer(allow_null=True))
     def get_localisation(self, obj):
@@ -588,11 +596,11 @@ class OfferDetailResponseSerializer(serializers.Serializer):
         }
 
     @extend_schema_field(serializers.DictField(allow_null=True))
-    def get_criteria(self, obj):
+    def get_criteres(self, obj):
         return obj.criteria.to_dict() if obj.criteria else None
 
     @extend_schema_field(serializers.DateTimeField(allow_null=True))
-    def get_beginning_date(self, obj):
+    def get_debut_contrat(self, obj):
         return obj.beginning_date.value if obj.beginning_date else None
 
 
