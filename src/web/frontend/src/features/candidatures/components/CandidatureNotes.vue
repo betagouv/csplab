@@ -9,6 +9,7 @@ import { useMinimumPending } from '@/composables/async/useMinimumPending'
 import { formatDate, formatTime } from '@/utils/date'
 import { pluralize } from '@/utils/format'
 import { useCandidatureNotes } from '../composables/useCandidatureNotes'
+import CandidatureNoteMessage from './CandidatureNoteMessage.vue'
 
 const props = defineProps<{
   candidature: CandidatureParams
@@ -101,9 +102,7 @@ const title = computed(() => `${total.value} ${pluralize(total.value, 'note')}`)
                 {{ formatTime(note.publie_le) }}
               </time>
             </template>
-            <p class="candidature-notes__message">
-              {{ note.message }}
-            </p>
+            <CandidatureNoteMessage :message="note.message" />
           </CspCard>
         </ul>
       </template>
@@ -151,10 +150,5 @@ const title = computed(() => `${total.value} ${pluralize(total.value, 'note')}`)
 .candidature-notes__separator {
   font-size: var(--csp-font-size-sm);
   color: var(--text-default-grey);
-}
-
-.candidature-notes__message {
-  margin: 0;
-  white-space: pre-line;
 }
 </style>
