@@ -5003,48 +5003,48 @@ components:
         source_id:
           type: string
           format: uuid
-        title:
+        titre:
           type: string
-        long_title:
-          type: string
-          nullable: true
-        organization:
-          type: string
-        employer:
+        titre_long:
           type: string
           nullable: true
-        profile:
+        organisation:
+          type: string
+        employeur:
+          type: string
+          nullable: true
+        profil:
           type: string
         mission:
           type: string
         complements:
           type: string
           nullable: true
-        exercise_conditions:
+        conditions_exercice:
           type: string
           nullable: true
-        service_description:
+        descriptif_service:
           type: string
           nullable: true
-        verse:
+        versant:
           type: string
           nullable: true
-        category:
+        categorie:
           type: string
           nullable: true
-        offer_nature:
+        nature_offre:
           type: string
           nullable: true
-        contract_kind:
+        type_contrat:
           type: string
           nullable: true
-        job_vacancy:
+        vacance_poste:
           type: string
           nullable: true
-        offer_url:
+        url_offre:
           type: string
           nullable: true
-        application_url:
+        url_candidature:
           type: string
           nullable: true
         localisation:
@@ -5052,7 +5052,7 @@ components:
           - $ref: '#/components/schemas/Localisation'
           nullable: true
           readOnly: true
-        criteria:
+        criteres:
           type: object
           additionalProperties: {}
           nullable: true
@@ -5067,54 +5067,54 @@ components:
             type: object
             additionalProperties: {}
           nullable: true
-        publication_date:
+        debut_publication:
           type: string
           format: date-time
-        beginning_date:
+        debut_contrat:
           type: string
           format: date-time
           nullable: true
           readOnly: true
-        application_deadline:
+        fin_candidature:
           type: string
           format: date-time
           nullable: true
-        job_vacancy_date:
+        debut_vacance_poste:
           type: string
           format: date-time
           nullable: true
-        archived_at:
+        date_archivage:
           type: string
           format: date-time
           nullable: true
       required:
-      - application_deadline
-      - application_url
-      - archived_at
-      - beginning_date
-      - category
+      - categorie
       - complements
       - conditions
+      - conditions_exercice
       - contacts
-      - contract_kind
-      - criteria
-      - employer
-      - exercise_conditions
-      - job_vacancy
-      - job_vacancy_date
+      - criteres
+      - date_archivage
+      - debut_contrat
+      - debut_publication
+      - debut_vacance_poste
+      - descriptif_service
+      - employeur
+      - fin_candidature
       - localisation
-      - long_title
       - mission
-      - offer_nature
-      - offer_url
-      - organization
-      - profile
-      - publication_date
+      - nature_offre
+      - organisation
+      - profil
       - reference
-      - service_description
       - source_id
-      - title
-      - verse
+      - titre
+      - titre_long
+      - type_contrat
+      - url_candidature
+      - url_offre
+      - vacance_poste
+      - versant
     OffersBySource401Error:
       oneOf:
       - $ref: '#/components/schemas/TokenError'
@@ -5977,6 +5977,33 @@ tags:
 
     > **Attention :** les anciens noms de filtre ne sont plus reconnus et sont ignorés
     > sans erreur : un appel qui les utilise encore renvoie les offres **non filtrées**.
+
+    `GET /api/v1/offres/sources/{source_id}` : les champs renvoyés sont renommés en
+    français, avec les noms déjà utilisés par `POST /api/v1/offres/creer_modifier`.
+
+    - `title` devient `titre` ;
+    - `long_title` devient `titre_long` ;
+    - `organization` devient `organisation` ;
+    - `employer` devient `employeur` ;
+    - `profile` devient `profil` ;
+    - `exercise_conditions` devient `conditions_exercice` ;
+    - `service_description` devient `descriptif_service` ;
+    - `verse` devient `versant` ;
+    - `category` devient `categorie` ;
+    - `offer_nature` devient `nature_offre` ;
+    - `contract_kind` devient `type_contrat` ;
+    - `job_vacancy` devient `vacance_poste` ;
+    - `offer_url` devient `url_offre` ;
+    - `application_url` devient `url_candidature` ;
+    - `criteria` devient `criteres` ;
+    - `publication_date` devient `debut_publication` ;
+    - `beginning_date` devient `debut_contrat` ;
+    - `application_deadline` devient `fin_candidature` ;
+    - `job_vacancy_date` devient `debut_vacance_poste` ;
+    - `archived_at` devient `date_archivage`.
+
+    `reference`, `source_id`, `mission`, `complements`, `localisation`, `conditions` et
+    `contacts` ne changent pas, ni leurs sous-champs, ni les valeurs renvoyées.
 
     ## 2026-10-08
 
