@@ -3130,7 +3130,7 @@ paths:
               examples:
                 Success:
                   value:
-                    status: ok
+                    statut: ok
                   summary: Offre archivée avec succès
                   description: L'offre correspondant à la référence a été archivée.
           description: ''
@@ -3810,10 +3810,10 @@ components:
     ArchiveOfferSuccess:
       type: object
       properties:
-        status:
+        statut:
           type: string
       required:
-      - status
+      - statut
     ArchiveOfferUnauthorized:
       type: object
       properties:
@@ -6004,6 +6004,9 @@ tags:
 
     `reference`, `source_id`, `mission`, `complements`, `localisation`, `conditions` et
     `contacts` ne changent pas, ni leurs sous-champs, ni les valeurs renvoyées.
+
+    `POST /api/v1/offres/archiver` : le champ `status` de la réponse devient `statut`.
+    La valeur renvoyée (`ok`) ne change pas.
 
     ## 2026-10-08
 

@@ -224,6 +224,12 @@ référence.
 | `403` | Action interdite pour cet utilisateur |
 | `404` | Aucune offre ne correspond à cette référence |
 
+En cas de succès, la réponse contient un champ `statut` qui vaut `ok` :
+
+```json
+{"statut": "ok"}
+```
+
 
 
 ## 4. Créer ou modifier des offres — `POST /api/v1/offres/creer_modifier/`

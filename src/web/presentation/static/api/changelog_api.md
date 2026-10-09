@@ -57,6 +57,9 @@ français, avec les noms déjà utilisés par `POST /api/v1/offres/creer_modifie
 `reference`, `source_id`, `mission`, `complements`, `localisation`, `conditions` et
 `contacts` ne changent pas, ni leurs sous-champs, ni les valeurs renvoyées.
 
+`POST /api/v1/offres/archiver` : le champ `status` de la réponse devient `statut`.
+La valeur renvoyée (`ok`) ne change pas.
+
 ## 2026-10-08
 
 ### Ajouté

@@ -235,7 +235,7 @@ class ArchiveOffersView(PublicApiMixin, APIView):
             )
         except OfferDoesNotExist:
             return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
-        return Response({"status": "ok"}, status=status.HTTP_200_OK)
+        return Response({"statut": "ok"}, status=status.HTTP_200_OK)
 
 
 @extend_schema(
