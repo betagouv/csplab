@@ -87,6 +87,7 @@ const SEQUENCE_LABELS = {
 const activeTab = useRouteTab<CandidaturePanelTabKey>(() => panelRouteNames.value.tabs, 'candidature')
 const TABS_WITHOUT_ASIDE: CandidaturePanelTabKey[] = ['historique', 'messages']
 const isMessagesTab = computed(() => activeTab.value === 'messages')
+const isNotesTab = computed(() => activeTab.value === 'notes')
 const showAside = computed(() => !TABS_WITHOUT_ASIDE.includes(activeTab.value))
 
 function close(): void {
@@ -237,6 +238,7 @@ function handleUpdateOpen(open: boolean): void {
                   <CandidatureNotes
                     v-if="candidature"
                     :candidature="candidatureParams"
+                    :routes="panelRouteNames.notes"
                   />
                 </div>
               </template>
@@ -262,8 +264,11 @@ function handleUpdateOpen(open: boolean): void {
                   :candidature="candidatureParams"
                   :historique-route-name="panelRouteNames.tabs.historique"
                 />
-                <CspSeparator />
-                <CandidatureNoteForm :candidature="candidatureParams" />
+                <CspSeparator v-show="!isNotesTab" />
+                <CandidatureNoteForm
+                  v-show="!isNotesTab"
+                  :candidature="candidatureParams"
+                />
               </template>
             </aside>
           </div>
