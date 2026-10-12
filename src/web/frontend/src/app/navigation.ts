@@ -10,6 +10,12 @@ const ORGANISMES_ITEM: NavItem = {
   match: ['organismes'],
 }
 
+const AIDE_ITEM: NavItem = {
+  icon: 'ri:question-line',
+  label: 'Aide',
+  to: 'aide',
+}
+
 function recrutementsItem(organismeUuid: string): NavItem {
   return {
     icon: 'ri:briefcase-line',
@@ -60,6 +66,8 @@ export function navigationFor(options: {
       items.push(parametresItem(organismeUuid))
     }
   }
+
+  items.push(AIDE_ITEM)
 
   return items
 }
