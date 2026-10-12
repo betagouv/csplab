@@ -151,6 +151,9 @@ class OrganismeAgentQuerySet(models.QuerySet):
     def by_agent(self, agent_id) -> "OrganismeAgentQuerySet":
         return self.active().filter(agent_id=agent_id)
 
+    def with_organisme(self) -> "OrganismeAgentQuerySet":
+        return self.select_related("organisme")
+
     def by_organisme_and_agent(
         self, organisme_id, agent_id
     ) -> "OrganismeAgentQuerySet":

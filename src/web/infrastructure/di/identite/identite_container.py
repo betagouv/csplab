@@ -6,9 +6,6 @@ from application.identite.context_services.organisme_permission_service import (
 from application.identite.usecases.create_agent import CreateAgentUsecase
 from application.identite.usecases.create_organisme import CreateOrganismeUsecase
 from application.identite.usecases.get_organisme import GetOrganismeUsecase
-from application.identite.usecases.get_utilisateur_details import (
-    GetUtilisateurDetailsUsecase,
-)
 from application.identite.usecases.update_organisme import UpdateOrganismeUsecase
 from domain.commons.services.audit_log_writer import AuditLogWriter
 from infrastructure.repositories.commons.postgres_audit_log_repository import (
@@ -38,11 +35,6 @@ class IdentiteContainer(containers.DeclarativeContainer):
         repository=postgres_audit_log_repository,
     )
     postgres_organisme_repository = providers.Singleton(PostgresOrganismeRepository)
-
-    get_utilisateur_details_usecase = providers.Factory(
-        GetUtilisateurDetailsUsecase,
-        utilisateur_repository=postgres_utilisateur_repository,
-    )
 
     organisme_permission_service = providers.Factory(OrganismePermissionService)
 
