@@ -34,7 +34,7 @@ src/
 │   └── dnd/                # Drag & drop
 │
 ├── stores/                 # Global Pinia stores (session, ui)
-├── api/                    # HTTP client
+├── api/                    # HTTP client, query keys, path parameters
 ├── utils/                  # Pure helpers
 ├── types/                  # Global technical types
 ├── constants/              # Global constants
@@ -60,7 +60,7 @@ src/
 | Technical reusable hook             | `composables/<category>/`             |
 | Global store                        | `stores/`                             |
 
-**Rule**: business code lives in its feature. Root folders hold only reusable, business-agnostic code. App config (navigation) lives in `app/`. The concrete app shell lives in `components/layout/` alongside the layout blocks it composes.
+Business code lives in its feature. Root folders hold only reusable, business-agnostic code, except the query keys and path parameters of `api/`. App config (navigation) lives in `app/`. The concrete app shell lives in `components/layout/` alongside the layout blocks it composes.
 
 ### What is (and isn't) a feature
 
@@ -77,7 +77,8 @@ The following are **not** features:
 | Technical, business-agnostic logic        | `composables/`, `utils/` |
 
 - **There is no `features/shared/`.** Cross-feature business code either becomes its own feature, or is promoted to a root folder if it is business-agnostic.
-- When two features need the same *business* type, the owning feature exposes it and the other imports it (e.g. `candidatures` imports `EtapeRecrutement` from `etapes-recrutement`). A dependency between features is fine when it mirrors the domain.
+- When two features need the same *business* type or component, the owning feature exposes it and the other imports it (e.g. `candidatures` imports `EtapeRecrutement` from `etapes-recrutement`).
+- `FEATURE_DEPENDENCIES` in `src/web/eslint.config.mjs` declares the features each feature imports, and `no-restricted-imports` enforces it outside tests. A feature missing from it imports no other feature, and the configuration throws when the graph has a cycle. Root folders import no feature; `app/` and `router/` may import any feature. An import from another feature uses the `@/features/` alias.
 
 ### App shell
 
@@ -170,7 +171,7 @@ function handleSave() {
 | Page/View            | `*View.vue`      | `CandidateListView.vue`           |
 | UI ingredient        | `Csp` prefix     | `CspButton.vue`, `CspCandidateCard.vue` |
 
-**Rule**: The `Csp` prefix is reserved for UI "ingredients" and design system components. This includes both generic components (base UI) and business-specific UI components (e.g., a card, a specialized input). It does NOT apply to full pages/views or technical utility components (like error boundaries).
+The `Csp` prefix is reserved for UI "ingredients" and design system components. This includes both generic components (base UI) and business-specific UI components (e.g., a card, a specialized input). It does NOT apply to full pages/views or technical utility components (like error boundaries).
 
 ### Props & Emits
 
@@ -280,6 +281,8 @@ export const useCandidatesStore = defineStore('candidates', () => {
 
 - HTTP client + error handling → `api/client.ts`, `api/errors.ts`
 - Cross-cutting API modules (e.g. current user) → `api/`
+- Query keys → `api/queryKeys.ts`, one tree that follows the API paths, split into `organismeKeys`, `recrutementKeys` and `candidatureKeys`: `recrutementKeys.kanban(params)` is `['organismes', organismeUuid, 'recrutements', recrutementUuid, 'kanban']`. At each level, `root(params)` is the prefix of the subtree and `detail(params)` the key of the detail query, so invalidating `recrutementKeys.root(params)` invalidates every query of that recrutement ([Pinia Colada](https://pinia-colada.esm.dev/guide/query-keys.html)). The queries of a feature (`features/<feature>/queries.ts`) and its invalidations take their keys from these objects.
+- Path parameters → `api/params.ts`. Keys, queries and the API functions they call take the params object as is.
 - Feature-specific calls → `features/<feature>/api.ts`
 
 ### Convention
