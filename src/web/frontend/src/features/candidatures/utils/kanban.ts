@@ -1,4 +1,4 @@
-import type { Candidature, RecrutementDetailKanban } from '../types'
+import type { Candidature, EtapeRecrutementDetailedCandidatures, RecrutementDetailKanban } from '../types'
 
 export function moveCandidaturesInKanban(
   kanban: RecrutementDetailKanban,
@@ -25,4 +25,17 @@ export function moveCandidaturesInKanban(
       ? { ...etape, candidatures: [...etape.candidatures, ...moved] }
       : { ...etape, candidatures: etape.candidatures.filter(candidature => !movedUuids.has(candidature.uuid)) }),
   }
+}
+
+export function etapesReceivingCandidatures(
+  previousEtapes: EtapeRecrutementDetailedCandidatures[],
+  etapes: EtapeRecrutementDetailedCandidatures[],
+): Set<string> {
+  const previousEtapeOf = new Map(previousEtapes.flatMap(etape =>
+    etape.candidatures.map(({ uuid }) => [uuid, etape.uuid] as const)))
+
+  return new Set(etapes
+    .filter(etape => etape.candidatures.some(({ uuid }) =>
+      previousEtapeOf.has(uuid) && previousEtapeOf.get(uuid) !== etape.uuid))
+    .map(etape => etape.uuid))
 }

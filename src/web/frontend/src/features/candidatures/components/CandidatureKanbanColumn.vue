@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { EtapeRecrutementDetailedCandidatures } from '../types'
-import { computed, nextTick, ref, watch } from 'vue'
+import { computed, ref } from 'vue'
 import CspBadge from '@/components/base/CspBadge/CspBadge.vue'
 import CspCheckbox from '@/components/base/CspCheckbox/CspCheckbox.vue'
 import { useDropTargetKanbanColumn } from '@/composables/dnd/useKanbanDnd'
@@ -28,15 +28,13 @@ const { isDraggedOver } = useDropTargetKanbanColumn({
   columnId: props.etape.uuid,
 })
 
-watch(isDraggedOver, async (isOver, wasOver) => {
-  if (wasOver && !isOver && cardsRef.value) {
-    await nextTick()
-    cardsRef.value.scrollTo({
-      top: cardsRef.value.scrollHeight,
-      behavior: 'smooth',
-    })
+function scrollToEnd(): void {
+  if (cardsRef.value) {
+    cardsRef.value.scrollTop = cardsRef.value.scrollHeight
   }
-})
+}
+
+defineExpose({ scrollToEnd })
 
 function handleCheckboxChange(): void {
   emit('toggleSelection', props.etape)
@@ -177,6 +175,10 @@ function handleCheckboxChange(): void {
   list-style: none;
   overflow-y: auto;
   min-height: 0;
+
+  @media (prefers-reduced-motion: no-preference) {
+    scroll-behavior: smooth;
+  }
 }
 
 .candidature-kanban-column__card-item {
