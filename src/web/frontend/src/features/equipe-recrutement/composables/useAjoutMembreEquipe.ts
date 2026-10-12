@@ -3,7 +3,7 @@ import type { MembreEquipePayload, RecrutementRole } from '../types'
 import { useMutation, useQueryCache } from '@pinia/colada'
 import { computed, toValue } from 'vue'
 import { recrutementKeys } from '@/api/queryKeys'
-import { useAgentParEmail } from '@/features/agents/composables/useAgentParEmail'
+import { useTrouverOuCreerAgent } from '@/features/agents/composables/useTrouverOuCreerAgent'
 import { addMembreEquipe } from '../api'
 
 export function useAjoutMembreEquipe(
@@ -13,7 +13,7 @@ export function useAjoutMembreEquipe(
   const queryCache = useQueryCache()
 
   const { status, foundAgent, searching, creating, search, resolve, reset }
-    = useAgentParEmail(organismeUuid)
+    = useTrouverOuCreerAgent(organismeUuid)
 
   const addMutation = useMutation({
     mutation: (payload: MembreEquipePayload) =>

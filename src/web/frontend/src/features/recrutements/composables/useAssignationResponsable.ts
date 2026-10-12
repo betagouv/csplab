@@ -3,14 +3,14 @@ import type { AssignationResponsablePayload, AssignationResponsableResultat } fr
 import { useMutation, useQueryCache } from '@pinia/colada'
 import { computed, toValue } from 'vue'
 import { organismeKeys } from '@/api/queryKeys'
-import { useAgentParEmail } from '@/features/agents/composables/useAgentParEmail'
+import { useTrouverOuCreerAgent } from '@/features/agents/composables/useTrouverOuCreerAgent'
 import { setRecrutementsResponsable } from '../api'
 
 export function useAssignationResponsable(organismeUuid: MaybeRefOrGetter<string>) {
   const queryCache = useQueryCache()
 
   const { status, foundAgent, searching, creating, search, resolve, reset }
-    = useAgentParEmail(organismeUuid)
+    = useTrouverOuCreerAgent(organismeUuid)
 
   const assignationMutation = useMutation({
     mutation: (payload: AssignationResponsablePayload) =>

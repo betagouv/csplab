@@ -4,7 +4,7 @@ import { mount } from '@vue/test-utils'
 import { createPinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { defineComponent, h } from 'vue'
-import { useAgentParEmail } from './useAgentParEmail'
+import { useTrouverOuCreerAgent } from './useTrouverOuCreerAgent'
 
 const mockSearchAgentByEmail = vi.fn()
 const mockCreateAgent = vi.fn()
@@ -35,10 +35,10 @@ const AGENT_CREE: AgentRecherche = {
 }
 
 function mountAgentParEmail() {
-  let result!: ReturnType<typeof useAgentParEmail>
+  let result!: ReturnType<typeof useTrouverOuCreerAgent>
   mount(defineComponent({
     setup() {
-      result = useAgentParEmail(ORGANISME_UUID)
+      result = useTrouverOuCreerAgent(ORGANISME_UUID)
       return () => h('div')
     },
   }), {
@@ -49,7 +49,7 @@ function mountAgentParEmail() {
   return result
 }
 
-describe('useAgentParEmail', () => {
+describe('useTrouverOuCreerAgent', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     mockCreateAgent.mockResolvedValue(AGENT_CREE)

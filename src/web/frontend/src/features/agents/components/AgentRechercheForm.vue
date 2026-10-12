@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { AgentSearchStatus } from '../composables/useAgentParEmail'
+import type { AgentSearchStatus } from '../composables/useTrouverOuCreerAgent'
 import type { AgentRecherche } from '../types'
 import { computed, ref, watch } from 'vue'
 import CspSearchBar from '@/components/base/CspSearchBar/CspSearchBar.vue'

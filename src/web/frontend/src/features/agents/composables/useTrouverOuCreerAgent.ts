@@ -6,7 +6,7 @@ import { createAgent, searchAgentByEmail } from '../api'
 
 export type AgentSearchStatus = 'idle' | 'found' | 'not-found'
 
-export function useAgentParEmail(organismeUuid: MaybeRefOrGetter<string>) {
+export function useTrouverOuCreerAgent(organismeUuid: MaybeRefOrGetter<string>) {
   const status = ref<AgentSearchStatus>('idle')
   const foundAgent = ref<AgentRecherche | null>(null)
   const searchedEmail = ref('')
