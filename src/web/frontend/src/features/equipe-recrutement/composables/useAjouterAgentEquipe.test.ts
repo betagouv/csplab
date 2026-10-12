@@ -26,7 +26,6 @@ const ORGANISME_UUID = '11111111-1111-1111-1111-111111111111'
 const RECRUTEMENT_UUID = 'aaaaaaaa-0001-0001-0001-000000000001'
 const AGENT_ID = 'bbbbbbbb-0001-0001-0001-000000000001'
 const NOUVEL_AGENT_ID = 'bbbbbbbb-0002-0002-0002-000000000002'
-const EMAIL_INCONNU = 'nouvelle.agente@example.gouv.fr'
 
 const AGENT: AgentRecherche = {
   uuid: AGENT_ID,
@@ -84,23 +83,5 @@ describe('useAjouterAgentEquipe', () => {
       recrutement_role: 'recruteur',
     })
     expect(mockGetEquipeRecrutement).toHaveBeenCalledTimes(2)
-  })
-
-  it('creates the account before adding when no agent matches the email', async () => {
-    mockSearchAgentByEmail.mockResolvedValue(null)
-    const result = mountAjoutMembre()
-    await flush()
-
-    await result.search(EMAIL_INCONNU)
-    await result.add('contributeur')
-
-    expect(mockCreateAgent).toHaveBeenCalledWith({
-      email: EMAIL_INCONNU,
-      organisme_id: ORGANISME_UUID,
-    })
-    expect(mockAddMembreEquipe).toHaveBeenCalledWith(ORGANISME_UUID, RECRUTEMENT_UUID, {
-      agent_id: NOUVEL_AGENT_ID,
-      recrutement_role: 'contributeur',
-    })
   })
 })

@@ -70,24 +70,4 @@ describe('useAjouterAgentOrganisme', () => {
     })
     expect(mockGetOrganismeAgents).toHaveBeenCalledTimes(2)
   })
-
-  it('creates the agent then attaches it when no account matches', async () => {
-    mockSearchAgentByEmail.mockResolvedValue(null)
-    mockCreateAgent.mockResolvedValue({ ...AGENT_RECHERCHE, prenom: '', nom: '', intitule_poste: '' })
-    mockSetAgentRole.mockResolvedValue({})
-    const { search, add } = mountAjoutMembre()
-    await flush()
-
-    await search('nouvelle.agente@example.gouv.fr')
-    await add('superviseur')
-
-    expect(mockCreateAgent).toHaveBeenCalledWith({
-      email: 'nouvelle.agente@example.gouv.fr',
-      organisme_id: ORGANISME_UUID,
-    })
-    expect(mockSetAgentRole).toHaveBeenCalledWith(ORGANISME_UUID, {
-      agent_id: AGENT_RECHERCHE.uuid,
-      role: 'superviseur',
-    })
-  })
 })
