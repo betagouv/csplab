@@ -1,4 +1,4 @@
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 import pytest
 
@@ -188,6 +188,37 @@ def test_accepts_well_formed_sequence() -> None:
             ),
             "Chaque couple (nom, catégorie) doit être unique",
             id="duplicate_nom_categorie",
+        ),
+        pytest.param(
+            (
+                EtapeData(
+                    etape_uuid=None,
+                    categorie=CategorieEtapeRecrutement.ENTREE,
+                    nom="Réception des candidatures",
+                ),
+                EtapeData(
+                    etape_uuid=UUID("6c1f2a3e-4b5d-4e6f-8a7b-9c0d1e2f3a4b"),
+                    categorie=CategorieEtapeRecrutement.EN_COURS,
+                    nom="Entretien",
+                ),
+                EtapeData(
+                    etape_uuid=UUID("6c1f2a3e-4b5d-4e6f-8a7b-9c0d1e2f3a4b"),
+                    categorie=CategorieEtapeRecrutement.EN_COURS,
+                    nom="Entretien technique",
+                ),
+                EtapeData(
+                    etape_uuid=None,
+                    categorie=CategorieEtapeRecrutement.REFUS,
+                    nom="Refus",
+                ),
+                EtapeData(
+                    etape_uuid=None,
+                    categorie=CategorieEtapeRecrutement.ACCEPTE,
+                    nom="Recrutement",
+                ),
+            ),
+            "Chaque étape existante ne peut figurer qu'une fois",
+            id="duplicate_etape_uuid",
         ),
     ],
 )

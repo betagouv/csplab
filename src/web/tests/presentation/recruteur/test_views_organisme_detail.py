@@ -584,6 +584,29 @@ def _categorie_changee(etapes: list[dict]) -> list[dict]:
     ]
 
 
+def _uuid_en_double(etapes: list[dict]) -> list[dict]:
+    reception, preselection, _, _, refus, recrutement = etapes
+    return [
+        {"uuid": reception["entity_id"], "nom": "Réception", "categorie": "ENTREE"},
+        {
+            "uuid": preselection["entity_id"],
+            "nom": "Présélection",
+            "categorie": "EN_COURS",
+        },
+        {
+            "uuid": preselection["entity_id"],
+            "nom": "Entretien",
+            "categorie": "EN_COURS",
+        },
+        {"uuid": refus["entity_id"], "nom": "Refus", "categorie": "REFUS"},
+        {
+            "uuid": recrutement["entity_id"],
+            "nom": "Recrutement",
+            "categorie": "ACCEPTE",
+        },
+    ]
+
+
 def _etapes_persistees():
     return OrganismeModel.objects.get(id=UUID(ORGANISME_UUID)).etapes
 
@@ -777,6 +800,11 @@ class TestPutEtapesRecrutementOrganismeView:
                 _categorie_changee,
                 "La catégorie d'une étape existante ne peut pas changer",
                 id="categorie_changee",
+            ),
+            pytest.param(
+                _uuid_en_double,
+                "Chaque étape existante ne peut figurer qu'une fois",
+                id="uuid_en_double",
             ),
         ],
     )
