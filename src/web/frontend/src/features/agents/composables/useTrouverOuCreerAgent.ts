@@ -2,6 +2,7 @@ import type { MaybeRefOrGetter } from 'vue'
 import type { AgentRecherche, CreateAgentPayload } from '../types'
 import { useMutation } from '@pinia/colada'
 import { computed, ref, toValue } from 'vue'
+import { useToast } from '@/composables/ui/useToast'
 import { createAgent, searchAgentByEmail } from '../api'
 
 export type AgentSearchStatus = 'idle' | 'found' | 'not-found'
@@ -15,6 +16,8 @@ export function useTrouverOuCreerAgent<TVariables, TResult>(
   organismeUuid: MaybeRefOrGetter<string>,
   options: TrouverOuCreerAgentOptions<TVariables, TResult>,
 ) {
+  const { addToast } = useToast()
+
   const status = ref<AgentSearchStatus>('idle')
   const foundAgent = ref<AgentRecherche | null>(null)
   const searchedEmail = ref('')
@@ -26,7 +29,7 @@ export function useTrouverOuCreerAgent<TVariables, TResult>(
     searchedEmail.value = ''
   }
 
-  async function search(email: string): Promise<AgentSearchStatus> {
+  async function search(email: string): Promise<void> {
     reset()
     searching.value = true
     try {
@@ -34,7 +37,9 @@ export function useTrouverOuCreerAgent<TVariables, TResult>(
       foundAgent.value = agent
       searchedEmail.value = email
       status.value = agent ? 'found' : 'not-found'
-      return status.value
+    }
+    catch {
+      addToast({ variant: 'error', title: 'La recherche a échoué' })
     }
     finally {
       searching.value = false

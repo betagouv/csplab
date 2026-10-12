@@ -141,15 +141,6 @@ function assignationErrorTitle(assignationError: unknown): string {
   return 'L\'assignation du responsable a échoué'
 }
 
-async function handleSearchResponsable(email: string) {
-  try {
-    await searchResponsable(email)
-  }
-  catch {
-    addToast({ variant: 'error', title: 'La recherche a échoué' })
-  }
-}
-
 async function handleAssign() {
   const recrutementIds = selection.selected.value.map(row => row.uuid)
 
@@ -305,7 +296,7 @@ const archivesCountLabel = computed(() => {
             :searching="searching"
             :submitting="submitting"
             @remove="selection.toggle"
-            @search="handleSearchResponsable"
+            @search="searchResponsable"
             @assign="handleAssign"
             @reset="resetResponsable"
           />

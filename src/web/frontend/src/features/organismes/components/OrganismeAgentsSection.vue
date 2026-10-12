@@ -39,15 +39,6 @@ const revocationDialogOpen = ref(false)
 const attachDrawerOpen = ref(false)
 const attachDrawer = useTemplateRef('attachDrawer')
 
-async function handleSearch(email: string) {
-  try {
-    await searchAgent(email)
-  }
-  catch {
-    addToast({ variant: 'error', title: 'La recherche a échoué' })
-  }
-}
-
 async function handleAdd(role: Role) {
   try {
     const agent = await add(role)
@@ -219,7 +210,7 @@ async function handleRevocation(): Promise<void> {
       :agent="foundAgent"
       :searching="searching"
       :submitting="submitting"
-      @search="handleSearch"
+      @search="searchAgent"
       @add="handleAdd"
       @reset="reset"
     />

@@ -59,15 +59,6 @@ const columns = computed(() =>
     : EQUIPE_RECRUTEMENT_COLUMNS,
 )
 
-async function handleSearchAgent(email: string) {
-  try {
-    await searchAgent(email)
-  }
-  catch {
-    addToast({ variant: 'error', title: 'La recherche a échoué' })
-  }
-}
-
 async function handleAdd(role: RecrutementRole) {
   try {
     const membre = await add(role)
@@ -229,7 +220,7 @@ const countLabel = computed(() => {
       :agent="foundAgent"
       :searching="searching"
       :submitting="submitting"
-      @search="handleSearchAgent"
+      @search="searchAgent"
       @add="handleAdd"
       @reset="resetAgent"
     />
