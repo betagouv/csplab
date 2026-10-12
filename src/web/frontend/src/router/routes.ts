@@ -89,7 +89,7 @@ const recrutementRoutes: RouteRecordRaw[] = [
       {
         path: 'activites',
         name: RECRUTEMENT_DETAIL_TAB_ROUTE_NAMES['activites-et-taches'],
-        component: () => import('@/features/candidatures/views/ActivitesTachesView.vue'),
+        component: () => import('@/features/recrutements/views/ActivitesTachesView.vue'),
         meta: recrutementTabMeta('activites-et-taches'),
       },
       {
