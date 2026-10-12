@@ -1,12 +1,20 @@
 import type { MaybeRefOrGetter } from 'vue'
 import type { AgentRecherche, CreateAgentPayload } from '../types'
 import { useMutation } from '@pinia/colada'
-import { ref, toValue } from 'vue'
+import { computed, ref, toValue } from 'vue'
 import { createAgent, searchAgentByEmail } from '../api'
 
 export type AgentSearchStatus = 'idle' | 'found' | 'not-found'
 
-export function useTrouverOuCreerAgent(organismeUuid: MaybeRefOrGetter<string>) {
+interface TrouverOuCreerAgentOptions<TVariables, TResult> {
+  action: (agent: AgentRecherche, variables: TVariables) => Promise<TResult>
+  onSettled: () => unknown
+}
+
+export function useTrouverOuCreerAgent<TVariables, TResult>(
+  organismeUuid: MaybeRefOrGetter<string>,
+  options: TrouverOuCreerAgentOptions<TVariables, TResult>,
+) {
   const status = ref<AgentSearchStatus>('idle')
   const foundAgent = ref<AgentRecherche | null>(null)
   const searchedEmail = ref('')
@@ -53,13 +61,26 @@ export function useTrouverOuCreerAgent(organismeUuid: MaybeRefOrGetter<string>) 
     return foundAgent.value
   }
 
+  const actionMutation = useMutation({
+    mutation: ({ agent, variables }: { agent: AgentRecherche, variables: TVariables }) =>
+      options.action(agent, variables),
+    onSettled: options.onSettled,
+  })
+
+  async function run(variables: TVariables): Promise<TResult> {
+    const agent = await resolve()
+    return actionMutation.mutateAsync({ agent, variables })
+  }
+
+  const submitting = computed(() => createMutation.isLoading.value || actionMutation.isLoading.value)
+
   return {
     status,
     foundAgent,
     searching,
-    creating: createMutation.isLoading,
     search,
-    resolve,
+    run,
+    submitting,
     reset,
   }
 }
