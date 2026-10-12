@@ -1,5 +1,5 @@
 import type { MaybeRefOrGetter } from 'vue'
-import type { RecrutementParams } from '../queries'
+import type { RecrutementParams } from '@/api/params'
 import { useQuery, useQueryCache } from '@pinia/colada'
 import { computed, toValue } from 'vue'
 import { peekRecrutementIntitule, recrutementDetailQuery } from '../queries'

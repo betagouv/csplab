@@ -1,5 +1,6 @@
+import type { CandidatureParams } from '@/api/params'
 import type { OrganismeRole } from '@/api/utilisateur'
-import type { Candidat, CandidatureDetail, CandidatureParams, MotifRefusOption, PaginatedCandidatureListeList, RecrutementDetailKanban } from '@/features/candidatures/types'
+import type { Candidat, CandidatureDetail, MotifRefusOption, PaginatedCandidatureListeList, RecrutementDetailKanban } from '@/features/candidatures/types'
 import type { RecrutementDetail } from '@/features/recrutements/types'
 
 export const ORGANISME_UUID = '00000000-0000-0000-0000-000000000000'

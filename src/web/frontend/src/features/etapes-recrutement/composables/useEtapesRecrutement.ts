@@ -1,8 +1,8 @@
 import type { EtapeRecrutement, UpdateEtapeRecrutement } from '../types'
+import type { OrganismeParams, RecrutementParams } from '@/api/params'
 import { useMutation, useQuery, useQueryCache } from '@pinia/colada'
 import { computed } from 'vue'
-import { CANDIDATURES_QUERY_KEYS } from '@/features/candidatures/queries'
-import { RECRUTEMENTS_QUERY_KEYS } from '@/features/recrutements/queries'
+import { recrutementKeys } from '@/api/queryKeys'
 import {
   initEtapesOffre,
   initEtapesRecrutement,
@@ -12,8 +12,8 @@ import {
 import { etapesOffreQuery, etapesRecrutementQuery } from '../queries'
 
 export type EtapesRecrutementType
-  = | { type: 'organisme', organismeUuid: string }
-    | { type: 'offre', organismeUuid: string, recrutementUuid: string }
+  = | { type: 'organisme' } & OrganismeParams
+    | { type: 'offre' } & RecrutementParams
 
 function toUpdatePayload(items: EtapeRecrutement[]): UpdateEtapeRecrutement[] {
   return items.map((etape) => {
@@ -55,10 +55,7 @@ function resolveEtapesApi(params: EtapesRecrutementType) {
       update: (payload: UpdateEtapeRecrutement[]) =>
         updateEtapesOffre(organismeUuid, recrutementUuid, payload),
       init: () => initEtapesOffre(organismeUuid, recrutementUuid),
-      clesAffectees: [
-        CANDIDATURES_QUERY_KEYS.recrutement(organismeUuid, recrutementUuid),
-        RECRUTEMENTS_QUERY_KEYS.detail(organismeUuid, recrutementUuid),
-      ],
+      clesAffectees: [recrutementKeys.root({ organismeUuid, recrutementUuid })],
     }
   }
 
@@ -82,8 +79,9 @@ export function useEtapesRecrutement(params: EtapesRecrutementType) {
 
   function applyFreshEtapes(fresh: EtapeRecrutement[]): void {
     queryCache.setQueryData(queryOptions.key, fresh)
+    const etapesEntry = queryCache.get(queryOptions.key)
     for (const key of etapesApi.clesAffectees) {
-      void queryCache.invalidateQueries({ key })
+      void queryCache.invalidateQueries({ key, predicate: entry => entry !== etapesEntry })
     }
   }
 

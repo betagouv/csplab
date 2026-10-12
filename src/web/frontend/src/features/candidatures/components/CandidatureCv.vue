@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import type { CandidatureParams, DocumentListe } from '../types'
+import type { DocumentListe } from '../types'
+import type { CandidatureParams } from '@/api/params'
 import { computed, useId } from 'vue'
 import CspAsyncSection from '@/components/base/CspAsyncSection/CspAsyncSection.vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'

@@ -1,4 +1,5 @@
 import type { Agent, AgentOrganisme, AgentRecherche, CreateAgentPayload, CreateOrganismePayload, OrganismeDetail, OrganismesList, SetAgentRolePayload, UpdateAgentRolePayload, UpdateOrganismePayload } from './types'
+import type { OrganismeParams } from '@/api/params'
 import { api } from '@/api/client'
 import { isHttpStatus } from '@/api/errors'
 
@@ -7,7 +8,7 @@ export async function getOrganismesList(): Promise<OrganismesList[]> {
   return data!
 }
 
-export async function getOrganismeDetail(organismeUuid: string): Promise<OrganismeDetail> {
+export async function getOrganismeDetail({ organismeUuid }: OrganismeParams): Promise<OrganismeDetail> {
   const { data } = await api.GET('/recruteur/organismes/{organisme_uuid}', {
     params: { path: { organisme_uuid: organismeUuid } },
   })
@@ -30,7 +31,7 @@ export async function updateOrganisme(
   return data!
 }
 
-export async function getOrganismeAgents(organismeUuid: string): Promise<AgentOrganisme[]> {
+export async function getOrganismeAgents({ organismeUuid }: OrganismeParams): Promise<AgentOrganisme[]> {
   const { data } = await api.GET('/recruteur/organismes/{organisme_uuid}/parametres/agents', {
     params: { path: { organisme_uuid: organismeUuid } },
   })

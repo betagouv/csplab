@@ -1,5 +1,5 @@
 import type { Conversation, ConversationMessage, CreateConversationPayload, CreateMessagePayload, PaginatedConversationList, PaginatedConversationMessageList } from './types'
-import type { CandidatureParams } from '@/features/candidatures/types'
+import type { CandidatureParams, ConversationParams } from '@/api/params'
 import { api } from '@/api/client'
 import { toMultipartFormData } from './multipart'
 
@@ -26,8 +26,7 @@ export async function getConversations(
 }
 
 export async function getConversationMessages(
-  { organismeUuid, recrutementUuid, candidatureUuid }: CandidatureParams,
-  conversationUuid: string,
+  { organismeUuid, recrutementUuid, candidatureUuid, conversationUuid }: ConversationParams,
 ): Promise<PaginatedConversationMessageList> {
   const { data } = await api.GET(
     '/recruteur/organismes/{organisme_uuid}/recrutements/{recrutement_uuid}/candidatures/{candidature_uuid}/conversations/{conversation_uuid}',

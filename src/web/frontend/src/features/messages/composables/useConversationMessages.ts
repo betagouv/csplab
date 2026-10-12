@@ -1,12 +1,13 @@
 import type { MaybeRefOrGetter } from 'vue'
-import type { ConversationMessagesParams } from '../queries'
 import type { ConversationMessage, CreateMessagePayload, PaginatedConversationList, PaginatedConversationMessageList } from '../types'
+import type { ConversationParams } from '@/api/params'
 import { useMutation, useQuery, useQueryCache } from '@pinia/colada'
 import { computed, toValue } from 'vue'
+import { candidatureKeys } from '@/api/queryKeys'
 import { replyToConversation } from '../api'
-import { conversationMessagesQuery, MESSAGES_QUERY_KEYS } from '../queries'
+import { conversationMessagesQuery } from '../queries'
 
-export function useConversationMessages(params: MaybeRefOrGetter<ConversationMessagesParams>) {
+export function useConversationMessages(params: MaybeRefOrGetter<ConversationParams>) {
   const query = useQuery(() => conversationMessagesQuery(toValue(params)))
 
   return {
@@ -16,11 +17,11 @@ export function useConversationMessages(params: MaybeRefOrGetter<ConversationMes
   }
 }
 
-export function useReplyConversation(params: MaybeRefOrGetter<ConversationMessagesParams>) {
+export function useReplyConversation(params: MaybeRefOrGetter<ConversationParams>) {
   const queryCache = useQueryCache()
 
-  function appendToThread({ candidature, conversationUuid }: ConversationMessagesParams, message: ConversationMessage) {
-    const key = MESSAGES_QUERY_KEYS.conversation(candidature, conversationUuid)
+  function appendToThread(target: ConversationParams, message: ConversationMessage) {
+    const key = candidatureKeys.conversation(target)
     const thread = queryCache.getQueryData<PaginatedConversationMessageList>(key)
     if (!thread) {
       return
@@ -32,10 +33,10 @@ export function useReplyConversation(params: MaybeRefOrGetter<ConversationMessag
     })
   }
 
-  function moveConversationToTop({ candidature, conversationUuid }: ConversationMessagesParams, message: ConversationMessage) {
-    const key = MESSAGES_QUERY_KEYS.conversations(candidature)
+  function moveConversationToTop(target: ConversationParams, message: ConversationMessage) {
+    const key = candidatureKeys.conversations(target)
     const list = queryCache.getQueryData<PaginatedConversationList>(key)
-    const conversation = list?.results.find(({ uuid }) => uuid === conversationUuid)
+    const conversation = list?.results.find(({ uuid }) => uuid === target.conversationUuid)
     if (!list || !conversation) {
       return
     }
@@ -48,18 +49,18 @@ export function useReplyConversation(params: MaybeRefOrGetter<ConversationMessag
           last_message_author: message.author,
           last_message_created_at: message.created_at,
         },
-        ...list.results.filter(({ uuid }) => uuid !== conversationUuid),
+        ...list.results.filter(({ uuid }) => uuid !== target.conversationUuid),
       ],
     })
   }
 
   const mutation = useMutation({
-    mutation: ({ target, payload }: { target: ConversationMessagesParams, payload: CreateMessagePayload }) =>
-      replyToConversation(target.candidature, target.conversationUuid, payload),
+    mutation: ({ target, payload }: { target: ConversationParams, payload: CreateMessagePayload }) =>
+      replyToConversation(target, target.conversationUuid, payload),
     onSuccess: (message, { target }) => {
       appendToThread(target, message)
       moveConversationToTop(target, message)
-      void queryCache.invalidateQueries({ key: MESSAGES_QUERY_KEYS.conversations(target.candidature) })
+      void queryCache.invalidateQueries({ key: candidatureKeys.conversations(target) })
     },
   })
 

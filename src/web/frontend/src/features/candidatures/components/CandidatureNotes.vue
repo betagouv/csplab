@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { CandidatureParams } from '../types'
+import type { CandidatureParams } from '@/api/params'
 import { computed } from 'vue'
 import CspAsyncSection from '@/components/base/CspAsyncSection/CspAsyncSection.vue'
 import CspEmptyState from '@/components/base/CspEmptyState/CspEmptyState.vue'

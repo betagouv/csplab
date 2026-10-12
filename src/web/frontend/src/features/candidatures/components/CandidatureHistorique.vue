@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { CandidatureParams } from '../types'
+import type { CandidatureParams } from '@/api/params'
 import { computed } from 'vue'
 import CspSkeleton from '@/components/base/CspSkeleton/CspSkeleton.vue'
 import { useMinimumPending } from '@/composables/async/useMinimumPending'

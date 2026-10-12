@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { CandidatureParams } from '@/features/candidatures/types'
+import type { CandidatureParams } from '@/api/params'
 import { useTemplateRef, watch } from 'vue'
 import CspAsyncSection from '@/components/base/CspAsyncSection/CspAsyncSection.vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
@@ -19,7 +19,7 @@ const props = defineProps<{
 const SKELETON_ROWS = 3
 
 const { messages, pending, error } = useConversationMessages(() => ({
-  candidature: props.candidature,
+  ...props.candidature,
   conversationUuid: props.conversationUuid,
 }))
 

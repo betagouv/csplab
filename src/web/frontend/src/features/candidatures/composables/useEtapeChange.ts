@@ -1,6 +1,6 @@
 import type { MaybeRefOrGetter, Ref } from 'vue'
 import type { CandidatureDetail, MotifRefus } from '../types'
-import type { RecrutementParams } from '@/features/recrutements/queries'
+import type { RecrutementParams } from '@/api/params'
 import { toValue } from 'vue'
 import { useToast } from '@/composables/ui/useToast'
 import { useRecrutementDetail } from '@/features/recrutements/composables/useRecrutementDetail'

@@ -2,9 +2,9 @@ import type { MaybeRefOrGetter } from 'vue'
 import type { MembreEquipePayload, RecrutementRole } from '../types'
 import { useMutation, useQueryCache } from '@pinia/colada'
 import { computed, toValue } from 'vue'
+import { recrutementKeys } from '@/api/queryKeys'
 import { useAgentParEmail } from '@/features/organismes/composables/useAgentParEmail'
 import { addMembreEquipe } from '../api'
-import { EQUIPE_RECRUTEMENT_QUERY_KEYS } from '../queries'
 
 export function useAjoutMembreEquipe(
   organismeUuid: MaybeRefOrGetter<string>,
@@ -19,10 +19,7 @@ export function useAjoutMembreEquipe(
     mutation: (payload: MembreEquipePayload) =>
       addMembreEquipe(toValue(organismeUuid), toValue(recrutementUuid), payload),
     onSettled: () => queryCache.invalidateQueries({
-      key: EQUIPE_RECRUTEMENT_QUERY_KEYS.byRecrutement(
-        toValue(organismeUuid),
-        toValue(recrutementUuid),
-      ),
+      key: recrutementKeys.equipe({ organismeUuid: toValue(organismeUuid), recrutementUuid: toValue(recrutementUuid) }),
     }),
   })
 

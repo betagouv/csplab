@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ConversationMessagesParams } from '../queries'
+import type { CandidatureParams } from '@/api/params'
 import { computed, ref, useTemplateRef, watch } from 'vue'
 import { ValidationError } from '@/api/errors'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
@@ -11,10 +11,13 @@ import { useReplyConversation } from '../composables/useConversationMessages'
 import { MESSAGE_CONTENT_MAX_LENGTH, MESSAGE_MAX_DOCUMENTS } from '../constants/message'
 import MessageAttachments from './MessageAttachments.vue'
 
-const props = defineProps<ConversationMessagesParams>()
+const props = defineProps<{
+  candidature: CandidatureParams
+  conversationUuid: string
+}>()
 
 const { reply, replying } = useReplyConversation(() => ({
-  candidature: props.candidature,
+  ...props.candidature,
   conversationUuid: props.conversationUuid,
 }))
 const { addToast } = useToast()

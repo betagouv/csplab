@@ -45,7 +45,7 @@ describe('useOrganismeDetail', () => {
     expect(pending.value).toBe(true)
     await flush()
 
-    expect(mockGetOrganismeDetail).toHaveBeenCalledWith(ORGANISME_DETAIL.uuid)
+    expect(mockGetOrganismeDetail).toHaveBeenCalledWith({ organismeUuid: ORGANISME_DETAIL.uuid })
     expect(organisme.value).toEqual(ORGANISME_DETAIL)
     expect(notFound.value).toBe(false)
   })

@@ -1,10 +1,8 @@
-import type { CandidatureDetail, CandidatureParams, ChangerEtapeResultat, MotifRefus, MotifRefusOption, PaginatedActiviteList, PaginatedCandidatureListeList, PaginatedDocumentListeList, PaginatedNoteList, RecrutementDetailKanban } from './types'
+import type { ActivitesParams, CandidatureDetail, ChangerEtapeResultat, MotifRefus, MotifRefusOption, PaginatedActiviteList, PaginatedCandidatureListeList, PaginatedDocumentListeList, PaginatedNoteList, RecrutementDetailKanban } from './types'
+import type { CandidatureParams, DocumentParams, OrganismeParams, RecrutementParams } from '@/api/params'
 import { api } from '@/api/client'
 
-export async function getRecrutementKanban(
-  organismeUuid: string,
-  recrutementUuid: string,
-): Promise<RecrutementDetailKanban> {
+export async function getRecrutementKanban({ organismeUuid, recrutementUuid }: RecrutementParams): Promise<RecrutementDetailKanban> {
   const { data } = await api.GET(
     '/recruteur/organismes/{organisme_uuid}/recrutements/{recrutement_uuid}/kanban',
     {
@@ -27,10 +25,7 @@ export async function getCandidatureDetail(candidature: CandidatureParams): Prom
   return data!
 }
 
-export async function getCandidatureListe(
-  organismeUuid: string,
-  recrutementUuid: string,
-): Promise<PaginatedCandidatureListeList> {
+export async function getCandidatureListe({ organismeUuid, recrutementUuid }: RecrutementParams): Promise<PaginatedCandidatureListeList> {
   async function fetchListe(taille?: number): Promise<PaginatedCandidatureListeList> {
     const { data } = await api.GET(
       '/recruteur/organismes/{organisme_uuid}/recrutements/{recrutement_uuid}/liste',
@@ -84,7 +79,7 @@ export async function patchEtapeCandidatures(
   return data!
 }
 
-export async function getMotifsRefus(organismeUuid: string): Promise<MotifRefusOption[]> {
+export async function getMotifsRefus({ organismeUuid }: OrganismeParams): Promise<MotifRefusOption[]> {
   const { data } = await api.GET(
     '/recruteur/organismes/{organisme_uuid}/parametres/motifs-refus',
     {
@@ -114,10 +109,10 @@ export async function getCandidatureDocuments(candidature: CandidatureParams): P
   return data!
 }
 
-export async function checkCandidatureDocument(candidature: CandidatureParams, documentUuid: string): Promise<void> {
+export async function checkCandidatureDocument(params: DocumentParams): Promise<void> {
   const { response } = await api.GET(
     '/recruteur/organismes/{organisme_uuid}/recrutements/{recrutement_uuid}/candidatures/{candidature_uuid}/documents/{document_uuid}',
-    { params: { path: { ...candidaturePath(candidature), document_uuid: documentUuid } }, parseAs: 'stream' },
+    { params: { path: { ...candidaturePath(params), document_uuid: params.documentUuid } }, parseAs: 'stream' },
   )
   await response.body?.cancel()
 }
@@ -144,10 +139,10 @@ export async function createCandidatureNote(candidature: CandidatureParams, mess
   )
 }
 
-export async function getCandidatureActivites(candidature: CandidatureParams, limit?: number): Promise<PaginatedActiviteList> {
+export async function getCandidatureActivites(params: ActivitesParams): Promise<PaginatedActiviteList> {
   const { data } = await api.GET(
     '/recruteur/organismes/{organisme_uuid}/recrutements/{recrutement_uuid}/candidatures/{candidature_uuid}/logs',
-    { params: { path: candidaturePath(candidature), query: { limit } } },
+    { params: { path: candidaturePath(params), query: { limit: params.limit } } },
   )
   return data!
 }

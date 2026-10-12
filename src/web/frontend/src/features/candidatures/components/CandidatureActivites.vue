@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { CandidatureParams } from '../types'
+import type { CandidatureParams } from '@/api/params'
 import { computed, useId } from 'vue'
 import { RouterLink } from 'vue-router'
 import { useMinimumPending } from '@/composables/async/useMinimumPending'

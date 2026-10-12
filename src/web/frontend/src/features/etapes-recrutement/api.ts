@@ -1,7 +1,8 @@
 import type { EtapeRecrutement, UpdateEtapeRecrutement } from './types'
+import type { OrganismeParams, RecrutementParams } from '@/api/params'
 import { api } from '@/api/client'
 
-export async function getEtapesRecrutement(organismeUuid: string): Promise<EtapeRecrutement[]> {
+export async function getEtapesRecrutement({ organismeUuid }: OrganismeParams): Promise<EtapeRecrutement[]> {
   const { data } = await api.GET('/recruteur/organismes/{organisme_uuid}/parametres/etapes', {
     params: { path: { organisme_uuid: organismeUuid } },
   })
@@ -26,10 +27,7 @@ export async function initEtapesRecrutement(organismeUuid: string): Promise<Etap
   return data!
 }
 
-export async function getEtapesOffre(
-  organismeUuid: string,
-  recrutementUuid: string,
-): Promise<EtapeRecrutement[]> {
+export async function getEtapesOffre({ organismeUuid, recrutementUuid }: RecrutementParams): Promise<EtapeRecrutement[]> {
   const { data } = await api.GET(
     '/recruteur/organismes/{organisme_uuid}/recrutements/{recrutement_uuid}/etapes',
     {

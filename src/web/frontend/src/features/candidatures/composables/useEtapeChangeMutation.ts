@@ -1,13 +1,14 @@
 import type { EntryKey } from '@pinia/colada'
 import type { MaybeRefOrGetter } from 'vue'
 import type { EtapeChange } from '../api'
-import type { RecrutementParams } from '@/features/recrutements/queries'
+import type { RecrutementParams } from '@/api/params'
 import { useMutation, useQueryCache } from '@pinia/colada'
 import { toValue } from 'vue'
+import { candidatureKeys, recrutementKeys } from '@/api/queryKeys'
 import { useToast } from '@/composables/ui/useToast'
 import { recrutementDetailQuery } from '@/features/recrutements/queries'
 import { patchEtapeCandidatures } from '../api'
-import { candidatureDetailQuery, candidatureListeQuery, CANDIDATURES_QUERY_KEYS, recrutementKanbanQuery } from '../queries'
+import { candidatureDetailQuery, candidatureListeQuery, recrutementKanbanQuery } from '../queries'
 import { moveCandidaturesInKanban } from '../utils/kanban'
 
 interface Snapshot {
@@ -101,9 +102,9 @@ export function useEtapeChangeMutation(recrutement: MaybeRefOrGetter<Recrutement
       if (!params) {
         return
       }
-      void queryCache.invalidateQueries({ key: CANDIDATURES_QUERY_KEYS.liste(params.organismeUuid, params.recrutementUuid) })
+      void queryCache.invalidateQueries({ key: recrutementKeys.liste(params) })
       for (const candidatureUuid of candidatureUuids) {
-        void queryCache.invalidateQueries({ key: CANDIDATURES_QUERY_KEYS.candidature({ ...params, candidatureUuid }) })
+        void queryCache.invalidateQueries({ key: candidatureKeys.root({ ...params, candidatureUuid }) })
       }
     },
   })

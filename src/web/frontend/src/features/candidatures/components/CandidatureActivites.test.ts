@@ -59,7 +59,7 @@ describe('candidatureActivites', () => {
     expect(etape!.getByText('par Paul Bernard')).toBeInTheDocument()
     expect(reception!.getByText('Candidature reçue')).toBeInTheDocument()
     expect(reception!.queryByText(/^par /)).not.toBeInTheDocument()
-    expect(getCandidatureActivites).toHaveBeenCalledWith(CANDIDATURE_PARAMS, 3)
+    expect(getCandidatureActivites).toHaveBeenCalledWith({ ...CANDIDATURE_PARAMS, limit: 3 })
   })
 
   it('links to the full activity history of the candidature', async () => {

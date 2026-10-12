@@ -3,9 +3,9 @@ import { mount } from '@vue/test-utils'
 import { createPinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { defineComponent, h } from 'vue'
+import { organismeKeys } from '@/api/queryKeys'
 import { ORGANISME_UUID, RECRUTEMENT_DETAIL, RECRUTEMENT_UUID } from '@/test/fixtures/candidatures'
 import { getRecrutementDetail } from '../api'
-import { RECRUTEMENTS_QUERY_KEYS } from '../queries'
 import { useRecrutementDetail } from './useRecrutementDetail'
 
 vi.mock('../api', () => ({
@@ -35,7 +35,7 @@ describe('useRecrutementDetail', () => {
     vi.mocked(getRecrutementDetail).mockImplementation(() => new Promise(() => {}))
 
     const context = mountRecrutementDetail(() => {
-      useQueryCache().setQueryData(RECRUTEMENTS_QUERY_KEYS.actifs(ORGANISME_UUID), {
+      useQueryCache().setQueryData(organismeKeys.recrutementsActifs({ organismeUuid: ORGANISME_UUID }), {
         count: 1,
         next: null,
         previous: null,

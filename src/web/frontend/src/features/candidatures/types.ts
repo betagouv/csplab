@@ -1,3 +1,4 @@
+import type { CandidatureParams } from '@/api/params'
 import type { components } from '@/types/api'
 
 export type RecrutementDetailKanban = components['schemas']['RecrutementDetailKanban']
@@ -9,12 +10,6 @@ export type Candidature = components['schemas']['Candidature']
 export type Candidat = components['schemas']['Candidat']
 
 export type CandidatureDetail = components['schemas']['CandidatureDetail']
-
-export interface CandidatureParams {
-  organismeUuid: string
-  recrutementUuid: string
-  candidatureUuid: string
-}
 
 export type PaginatedCandidatureListeList = components['schemas']['PaginatedCandidatureListeList']
 
@@ -40,8 +35,6 @@ export type Activite = components['schemas']['AuditLog']
 
 export type PaginatedActiviteList = components['schemas']['PaginatedAuditLogList']
 
-export interface CandidatureParams {
-  organismeUuid: string
-  recrutementUuid: string
-  candidatureUuid: string
+export interface ActivitesParams extends CandidatureParams {
+  limit?: number
 }

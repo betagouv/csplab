@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { CandidatureParams } from '../types'
+import type { CandidatureParams } from '@/api/params'
 import { computed, ref, useId } from 'vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspTextarea from '@/components/base/CspTextarea/CspTextarea.vue'

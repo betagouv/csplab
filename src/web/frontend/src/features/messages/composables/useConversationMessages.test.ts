@@ -1,12 +1,13 @@
-import type { ConversationMessagesParams } from '../queries'
+import type { QueryCache } from '@pinia/colada'
 import type { ConversationMessage, PaginatedConversationMessageList } from '../types'
+import type { ConversationParams } from '@/api/params'
 import { PiniaColada, useQueryCache } from '@pinia/colada'
 import { mount } from '@vue/test-utils'
 import { createPinia } from 'pinia'
 import { describe, expect, it, vi } from 'vitest'
 import { defineComponent, h, ref } from 'vue'
+import { candidatureKeys } from '@/api/queryKeys'
 import { replyToConversation } from '../api'
-import { MESSAGES_QUERY_KEYS } from '../queries'
 import { useReplyConversation } from './useConversationMessages'
 
 vi.mock('../api', () => ({
@@ -31,9 +32,9 @@ const MESSAGE: ConversationMessage = {
 }
 
 function mountReplyConversation(conversationUuid: string) {
-  const params = ref<ConversationMessagesParams>({ candidature: CANDIDATURE, conversationUuid })
+  const params = ref<ConversationParams>({ ...CANDIDATURE, conversationUuid })
   let context!: ReturnType<typeof useReplyConversation>
-  let queryCache!: ReturnType<typeof useQueryCache>
+  let queryCache!: QueryCache
 
   mount(defineComponent({
     setup() {
@@ -55,13 +56,13 @@ describe('useReplyConversation', () => {
       resolve = r
     }))
     const { context, params, queryCache } = mountReplyConversation(CONVERSATION_A)
-    const threadA = MESSAGES_QUERY_KEYS.conversation(CANDIDATURE, CONVERSATION_A)
-    const threadB = MESSAGES_QUERY_KEYS.conversation(CANDIDATURE, CONVERSATION_B)
+    const threadA = candidatureKeys.conversation({ ...CANDIDATURE, conversationUuid: CONVERSATION_A })
+    const threadB = candidatureKeys.conversation({ ...CANDIDATURE, conversationUuid: CONVERSATION_B })
     queryCache.setQueryData(threadA, EMPTY_THREAD)
     queryCache.setQueryData(threadB, EMPTY_THREAD)
 
     const sending = context.reply({ content: 'Bonjour' })
-    params.value = { candidature: CANDIDATURE, conversationUuid: CONVERSATION_B }
+    params.value = { ...CANDIDATURE, conversationUuid: CONVERSATION_B }
     resolve(MESSAGE)
     await sending
 

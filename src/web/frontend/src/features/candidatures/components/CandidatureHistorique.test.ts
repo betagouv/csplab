@@ -33,6 +33,6 @@ describe('candidatureHistorique', () => {
 
     expect(await screen.findByRole('heading', { name: '4 activités récentes' })).toBeInTheDocument()
     expect(within(screen.getByRole('list')).getAllByRole('listitem')).toHaveLength(4)
-    expect(getCandidatureActivites).toHaveBeenCalledWith(CANDIDATURE_PARAMS, undefined)
+    expect(getCandidatureActivites).toHaveBeenCalledWith(CANDIDATURE_PARAMS)
   })
 })
