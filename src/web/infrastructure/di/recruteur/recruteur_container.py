@@ -30,9 +30,6 @@ from application.recruteur.usecases.revoke_organisme_agent import (
 from application.recruteur.usecases.update_organisme_agent import (
     UpdateOrganismeAgentUsecase,
 )
-from application.recruteur.usecases.update_organisme_steps import (
-    UpdateOrganismeStepsUsecase,
-)
 from application.recruteur.usecases.update_recrutement_etapes import (
     UpdateRecrutementEtapesUsecase,
 )
@@ -113,13 +110,6 @@ class RecruteurContainer(containers.DeclarativeContainer):
     )
 
     postgres_agent_repository = providers.Singleton(PostgresAgentRepository)
-
-    update_organisme_steps_usecase = providers.Factory(
-        UpdateOrganismeStepsUsecase,
-        organisme_recruteur_repository=postgres_organisme_recruteur_repository,
-        audit_log_writer=audit_log_writer,
-        organisme_permission_service=organisme_permission_service,
-    )
 
     list_organisme_agents_usecase = providers.Factory(
         ListOrganismeAgentsUsecase,

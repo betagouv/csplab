@@ -18,8 +18,8 @@ from application.recruteur.services.initialize_organisme_etapes import (
     initialize_organisme_etapes,
 )
 from application.recruteur.services.list_motifs_refus import list_motifs_refus
-from application.recruteur.usecases.update_organisme_steps import (
-    UpdateOrganismeStepsCommand,
+from application.recruteur.services.update_organisme_etapes import (
+    update_organisme_etapes,
 )
 from domain.commons.errors.organisme_errors import OrganismeNexistePas
 from domain.identite.errors.organisme_permission_errors import (
@@ -34,14 +34,12 @@ from domain.recruteur.value_objects.categorie_etapes_recrutement import (
 )
 from domain.recruteur.value_objects.etape_data import EtapeData
 from infrastructure.di.identite.identite_factory import create_identite_container
-from infrastructure.di.recruteur.recruteur_factory import recruteur_container
 from presentation.api.authentication import SessionApiMixin
 from presentation.api.serializers import (
     GenericErrorSerializer,
     generic_response_format,
 )
 from presentation.recruteur.mappers import (
-    EtapesMapper,
     OrganismeMapper,
     UtilisateurMapper,
 )
@@ -170,11 +168,6 @@ class OrganismeDetailView(SessionApiMixin, APIView):
     ),
 )
 class EtapesRecrutementOrganismeView(SessionApiMixin, APIView):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.container = recruteur_container()
-        self.user_mapper = UtilisateurMapper()
-
     def get(self, request: Request, organisme_uuid: UUID) -> Response:
         try:
             organisme = get_organisme_etapes(
@@ -214,17 +207,12 @@ class EtapesRecrutementOrganismeView(SessionApiMixin, APIView):
             for etape in validated_etapes
         ]
         try:
-            usecase = self.container.update_organisme_steps_usecase()
-            organisme = usecase.execute(
-                UpdateOrganismeStepsCommand(
-                    organisme_id=organisme_uuid,
-                    utilisateur=self.user_mapper.to_domain(request),
-                    etapes=etapes_data,
-                )
+            organisme = update_organisme_etapes(
+                organisme_id=organisme_uuid,
+                utilisateur=request.user,
+                etapes=etapes_data,
             )
-            data = EtapesMapper().from_domain(organisme)
-            out_serializer = EtapeRecrutementSerializer(data, many=True)
-            return Response(out_serializer.data)
+            return Response(EtapeOrganismeSerializer(organisme.etapes, many=True).data)
         except ConfigurationEtapesInvalide as e:
             return Response({"error": e.raison}, status=status.HTTP_400_BAD_REQUEST)
         except AccesOrganismeRefuse:

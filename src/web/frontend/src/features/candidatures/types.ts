@@ -36,6 +36,11 @@ export type Note = components['schemas']['Note']
 
 export type PaginatedNoteList = components['schemas']['PaginatedNoteList']
 
+export interface NoteRouteNames {
+  notes: string
+  create: string
+}
+
 export type Activite = components['schemas']['AuditLog']
 
 export type PaginatedActiviteList = components['schemas']['PaginatedAuditLogList']

@@ -1,16 +1,22 @@
 <script setup lang="ts">
-import type { CandidatureParams } from '../types'
+import type { CandidatureParams, NoteRouteNames } from '../types'
 import { computed } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import CspAsyncSection from '@/components/base/CspAsyncSection/CspAsyncSection.vue'
+import CspButton from '@/components/base/CspButton/CspButton.vue'
+import CspCard from '@/components/base/CspCard/CspCard.vue'
 import CspEmptyState from '@/components/base/CspEmptyState/CspEmptyState.vue'
 import CspSkeleton from '@/components/base/CspSkeleton/CspSkeleton.vue'
 import { useMinimumPending } from '@/composables/async/useMinimumPending'
-import { formatElapsedDays } from '@/utils/date'
+import { formatDateTime } from '@/utils/date'
 import { pluralize } from '@/utils/format'
 import { useCandidatureNotes } from '../composables/useCandidatureNotes'
+import CandidatureNewNoteForm from './CandidatureNewNoteForm.vue'
+import CandidatureNoteMessage from './CandidatureNoteMessage.vue'
 
 const props = defineProps<{
   candidature: CandidatureParams
+  routes: NoteRouteNames
 }>()
 
 const SKELETON_ROWS = 2
@@ -20,10 +26,31 @@ const { notes, total, pending, error } = useCandidatureNotes(() => props.candida
 const showSkeleton = useMinimumPending(pending)
 
 const title = computed(() => `${total.value} ${pluralize(total.value, 'note')}`)
+
+const route = useRoute()
+const isCreatingNote = computed(() => route.name === props.routes.create)
+
+const router = useRouter()
+
+function startNote(): void {
+  const { organismeUuid, recrutementUuid, candidatureUuid } = props.candidature
+  void router.push({
+    name: props.routes.create,
+    params: { organismeUuid, recrutementUuid, candidatureUuid },
+  })
+}
 </script>
 
 <template>
-  <section class="candidature-notes">
+  <CandidatureNewNoteForm
+    v-if="isCreatingNote"
+    :candidature="candidature"
+    :routes="routes"
+  />
+  <section
+    v-else
+    class="candidature-notes"
+  >
     <CspAsyncSection
       :pending="showSkeleton"
       :error="error"
@@ -44,50 +71,79 @@ const title = computed(() => `${total.value} ${pluralize(total.value, 'note')}`)
           class="candidature-notes__list"
           aria-hidden="true"
         >
-          <li
+          <CspCard
             v-for="row in SKELETON_ROWS"
             :key="row"
+            as="li"
+            variant="alt"
             class="candidature-notes__item"
           >
-            <p class="candidature-notes__meta">
+            <template #start>
               <CspSkeleton
-                width="10rem"
+                width="14rem"
                 variant="text"
               />
-            </p>
-            <p class="candidature-notes__message">
-              <CspSkeleton
-                width="80%"
-                variant="text"
-              />
-            </p>
-          </li>
+            </template>
+            <CspSkeleton
+              width="80%"
+              variant="text"
+            />
+          </CspCard>
         </ul>
       </template>
 
       <CspEmptyState
         v-if="notes.length === 0"
         icon="ri:sticky-note-line"
-        title="La candidature ne contient aucune note"
-      />
+        title="Aucune note sur cette candidature"
+      >
+        <template #action>
+          <CspButton
+            variant="secondary"
+            icon="ri:add-line"
+            is-icon-left
+            label="Ajouter une note"
+            @click="startNote"
+          />
+        </template>
+      </CspEmptyState>
       <template v-else>
-        <h3 class="candidature-notes__title">
-          {{ title }}
-        </h3>
+        <header class="candidature-notes__header">
+          <h3 class="candidature-notes__title">
+            {{ title }}
+          </h3>
+          <CspButton
+            variant="secondary"
+            size="sm"
+            icon="ri:add-line"
+            is-icon-left
+            label="Ajouter une note"
+            @click="startNote"
+          />
+        </header>
         <ul class="candidature-notes__list">
-          <li
+          <CspCard
             v-for="note in notes"
             :key="note.uuid"
+            as="li"
+            variant="alt"
             class="candidature-notes__item"
           >
-            <p class="candidature-notes__meta">
+            <template #start>
               <span class="candidature-notes__auteur">{{ note.publie_par_prenom }} {{ note.publie_par_nom }}</span>
-              <time :datetime="note.publie_le">{{ formatElapsedDays(note.publie_le) }}</time>
-            </p>
-            <p class="candidature-notes__message">
-              {{ note.message }}
-            </p>
-          </li>
+              <span
+                class="candidature-notes__separator"
+                aria-hidden="true"
+              >•</span>
+              <time
+                :datetime="note.publie_le"
+                class="candidature-notes__horodatage"
+              >
+                {{ formatDateTime(note.publie_le) }}
+              </time>
+            </template>
+            <CandidatureNoteMessage :message="note.message" />
+          </CspCard>
         </ul>
       </template>
     </CspAsyncSection>
@@ -95,46 +151,56 @@ const title = computed(() => `${total.value} ${pluralize(total.value, 'note')}`)
 </template>
 
 <style scoped lang="scss">
+.candidature-notes__header {
+  display: flex;
+  gap: var(--csp-space-4);
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--csp-space-4);
+
+  .candidature-notes__title {
+    margin: 0;
+  }
+}
+
 .candidature-notes__title {
   margin: 0 0 var(--csp-space-4);
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: var(--text-mention-grey);
+  font-size: var(--csp-font-size-base);
+  font-weight: var(--csp-font-weight-regular);
+  color: var(--text-default-grey);
 }
 
 .candidature-notes__list {
   display: flex;
   flex-direction: column;
+  gap: var(--csp-space-4);
   margin: 0;
   padding: 0;
   list-style: none;
-  border: 1px solid var(--border-default-grey);
 }
 
 .candidature-notes__item {
-  padding: var(--csp-space-3) var(--csp-space-4);
+  --csp-card-border: transparent;
 
-  & + & {
-    border-top: 1px solid var(--border-default-grey);
+  :deep(.csp-skeleton) {
+    background: var(--background-contrast-grey);
   }
 }
 
-.candidature-notes__meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--csp-space-2);
-  margin: 0 0 var(--csp-space-1);
-  font-size: 0.8125rem;
-  color: var(--text-mention-grey);
-}
-
 .candidature-notes__auteur {
-  font-weight: 500;
+  font-size: var(--csp-font-size-base);
+  font-weight: var(--csp-font-weight-bold);
   color: var(--text-title-grey);
 }
 
-.candidature-notes__message {
-  margin: 0;
-  white-space: pre-line;
+.candidature-notes__horodatage {
+  display: inline-flex;
+  gap: var(--csp-space-2);
+}
+
+.candidature-notes__horodatage,
+.candidature-notes__separator {
+  font-size: var(--csp-font-size-sm);
+  color: var(--text-default-grey);
 }
 </style>
