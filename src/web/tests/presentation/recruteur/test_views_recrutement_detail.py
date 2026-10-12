@@ -210,6 +210,36 @@ class TestRecrutementDetailView:
             "longitude",
         }
 
+    def test_localisation_with_nullable_offre_columns(
+        self, authenticated_client, test_user
+    ):
+        _, organisme = create_organisme_with_agent(
+            role=AgentOrganismeRole.SUPERVISEUR, utilisateur=test_user
+        )
+        offre = OfferDjangoFactory(
+            area=None,
+            country=None,
+            region=None,
+            department=None,
+            location_label=None,
+            latitude=None,
+            longitude=None,
+        )
+        recrutement = RecrutementDjangoFactory(organisme=organisme, offre=offre)
+
+        response = authenticated_client.get(_detail_url(organisme.id, recrutement.pk))
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json()["localisation"] == {
+            "zone_geographique": "",
+            "pays": "",
+            "region": "",
+            "departement": "",
+            "localisation_label": "",
+            "latitude": None,
+            "longitude": None,
+        }
+
     def test_etapes_follow_ordre_etapes(self, authenticated_client, test_user):
         _, organisme = create_organisme_with_agent(
             role=AgentOrganismeRole.SUPERVISEUR, utilisateur=test_user
