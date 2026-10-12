@@ -4,7 +4,14 @@ from uuid import uuid4
 import pytest
 import time_machine
 
+from domain.recruteur.errors.organisme_recruteur_errors import (
+    ConfigurationEtapesInvalide,
+)
 from domain.recruteur.errors.recrutement_errors import MotifRefusRequis
+from domain.recruteur.value_objects.categorie_etapes_recrutement import (
+    CategorieEtapeRecrutement,
+)
+from domain.recruteur.value_objects.etape_data import EtapeData
 from domain.recruteur.value_objects.statut_recrutement import StatutRecrutement
 from infrastructure.factories.recruteur.candidature_recruteur_factory import (
     CandidatureRecruteurFactory,
@@ -118,3 +125,58 @@ def test_changer_etapes_candidatures_vers_etape_non_refus_sans_motif() -> None:
     assert resultat["successes"] == candidatures
     assert resultat["failures"] == []
     assert all(c.motif_refus is None for c in resultat["successes"])
+
+
+def test_recrutement_update_steps_fails() -> None:
+    recrutement = RecrutementFactory.create_entity(
+        etapes=EtapeRecrutementFactory.create_entity_batch()
+    )
+    sans_entree = (
+        EtapeData(
+            etape_uuid=None,
+            categorie=CategorieEtapeRecrutement.EN_COURS,
+            nom="Présélection",
+        ),
+        EtapeData(
+            etape_uuid=None,
+            categorie=CategorieEtapeRecrutement.EN_COURS,
+            nom="Entretien",
+        ),
+        EtapeData(
+            etape_uuid=None,
+            categorie=CategorieEtapeRecrutement.REFUS,
+            nom="Refus",
+        ),
+        EtapeData(
+            etape_uuid=None,
+            categorie=CategorieEtapeRecrutement.ACCEPTE,
+            nom="Recrutement",
+        ),
+    )
+
+    with pytest.raises(ConfigurationEtapesInvalide) as error:
+        recrutement.mettre_a_jour_etapes(etapes_data=sans_entree)
+
+    assert error.value.raison == "La première étape doit être de catégorie ENTREE"
+
+
+def test_recrutement_update_steps_rejects_duplicate_etape_uuid() -> None:
+    etapes = EtapeRecrutementFactory.create_entity_batch()
+    recrutement = RecrutementFactory.create_entity(etapes=etapes)
+    e0, e1, e2, _, e4, e5 = etapes
+    uuid_en_double = (
+        EtapeData(etape_uuid=e0.entity_id, nom=e0.nom, categorie=e0.categorie),
+        EtapeData(etape_uuid=e1.entity_id, nom=e1.nom, categorie=e1.categorie),
+        EtapeData(
+            etape_uuid=e1.entity_id, nom="Présélection bis", categorie=e1.categorie
+        ),
+        *[
+            EtapeData(etape_uuid=e.entity_id, nom=e.nom, categorie=e.categorie)
+            for e in [e2, e4, e5]
+        ],
+    )
+
+    with pytest.raises(ConfigurationEtapesInvalide) as error:
+        recrutement.mettre_a_jour_etapes(etapes_data=uuid_en_double)
+
+    assert error.value.raison == "Chaque étape existante ne peut figurer qu'une fois"
