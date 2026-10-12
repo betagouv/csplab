@@ -96,9 +96,6 @@ class RecrutementEtapeView(SessionApiMixin, APIView):
             )
             serializer = EtapeRecrutementModelSerializer(etapes, many=True)
             return Response(serializer.data)
-        except OrganismeRecrutementIncoherents as e:
-            error_serializer = GenericErrorSerializer({"error": str(e)})
-            return Response(error_serializer.data, status=status.HTTP_400_BAD_REQUEST)
         except OrganismePermissionError as e:
             error_serializer = GenericErrorSerializer({"error": str(e)})
             return Response(error_serializer.data, status=status.HTTP_403_FORBIDDEN)
