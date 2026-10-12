@@ -86,6 +86,11 @@ function isItemActive(item: NavItem): boolean {
 .csp-app-shell {
   display: flex;
   min-height: 100vh;
+
+  @include bp.fixed-header {
+    height: 100dvh;
+    min-height: 0;
+  }
 }
 
 .csp-app-shell__sidebar {
@@ -108,6 +113,7 @@ function isItemActive(item: NavItem): boolean {
   flex-direction: column;
   flex: 1;
   min-width: 0;
+  min-height: 0;
 }
 
 .csp-app-shell__header {

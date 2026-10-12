@@ -23,3 +23,11 @@ $breakpoints: (
     @content;
   }
 }
+
+$fixed-header-min-height: 30em;
+
+@mixin fixed-header {
+  @media screen and (height >= $fixed-header-min-height) {
+    @content;
+  }
+}
