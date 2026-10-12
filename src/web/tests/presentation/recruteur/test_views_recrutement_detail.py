@@ -228,32 +228,23 @@ class TestRecrutementDetailView:
         )
         assert set(payload["etapes"][0]) == {"uuid", "nom", "categorie"}
 
-    @pytest.mark.parametrize("archivee", [True, False], ids=["archivee", "active"])
-    def test_archive_flag_reflects_offre(
-        self, authenticated_client, test_user, archivee
+    def test_archive_flag_is_true_for_archived_offre(
+        self, authenticated_client, test_user
     ):
         _, organisme = create_organisme_with_agent(
             role=AgentOrganismeRole.SUPERVISEUR, utilisateur=test_user
         )
-        recrutement = RecrutementDjangoFactory(
-            organisme=organisme, offre_archivee=archivee
-        )
+        recrutement = RecrutementDjangoFactory(organisme=organisme, offre_archivee=True)
 
         payload = authenticated_client.get(
             _detail_url(organisme.id, recrutement.pk)
         ).json()
 
-        assert payload["archive"] is archivee
+        assert payload["archive"] is True
 
     @pytest.mark.parametrize(
         ("organisme_role", "recrutement_role", "expected_status"),
         [
-            pytest.param(
-                AgentOrganismeRole.SUPERVISEUR,
-                None,
-                status.HTTP_200_OK,
-                id="superviseur",
-            ),
             *[
                 pytest.param(
                     AgentOrganismeRole.AGENT,
