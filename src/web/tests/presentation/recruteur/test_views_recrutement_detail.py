@@ -25,6 +25,9 @@ from domain.recruteur.errors.recrutement_errors import (
     RecrutementEtapeInexistante,
     RecrutementInexistant,
 )
+from domain.recruteur.value_objects.categorie_etapes_recrutement import (
+    CategorieEtapeRecrutement,
+)
 from domain.recruteur.value_objects.roles import (
     AgentOrganismeRole,
     AgentRecrutementRole,
@@ -257,6 +260,10 @@ class TestRecrutementDetailView:
             recrutement.ordre_etapes
         )
         assert set(payload["etapes"][0]) == {"uuid", "nom", "categorie"}
+        assert {etape["uuid"]: etape["categorie"] for etape in payload["etapes"]} == {
+            str(etape.id): CategorieEtapeRecrutement(etape.categorie).name
+            for etape in etapes
+        }
 
     def test_archive_flag_is_true_for_archived_offre(
         self, authenticated_client, test_user
