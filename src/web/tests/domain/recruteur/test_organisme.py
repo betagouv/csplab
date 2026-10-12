@@ -104,3 +104,24 @@ def test_organisme_update_steps_fails() -> None:
         organisme.mettre_a_jour_etapes(etapes_data=sans_entree)
 
     assert error.value.raison == "La première étape doit être de catégorie ENTREE"
+
+
+def test_organisme_update_steps_rejects_duplicate_etape_uuid(etapes) -> None:
+    organisme = OrganismeRecruteurFactory.create_entity(etapes=etapes)
+    e0, e1, e2, _, e4, e5 = etapes
+    uuid_en_double = (
+        EtapeData(etape_uuid=e0.entity_id, nom=e0.nom, categorie=e0.categorie),
+        EtapeData(etape_uuid=e1.entity_id, nom=e1.nom, categorie=e1.categorie),
+        EtapeData(
+            etape_uuid=e1.entity_id, nom="Présélection bis", categorie=e1.categorie
+        ),
+        *[
+            EtapeData(etape_uuid=e.entity_id, nom=e.nom, categorie=e.categorie)
+            for e in [e2, e4, e5]
+        ],
+    )
+
+    with pytest.raises(ConfigurationEtapesInvalide) as error:
+        organisme.mettre_a_jour_etapes(etapes_data=uuid_en_double)
+
+    assert error.value.raison == "Chaque étape existante ne peut figurer qu'une fois"

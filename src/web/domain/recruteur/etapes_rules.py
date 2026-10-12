@@ -37,3 +37,9 @@ def valider_sequence_etapes(etapes: Sequence[EtapeData]) -> None:
         raise ConfigurationEtapesInvalide(
             "Chaque couple (nom, catégorie) doit être unique"
         )
+
+    uuids = [e.etape_uuid for e in etapes if e.etape_uuid is not None]
+    if len(set(uuids)) != len(uuids):
+        raise ConfigurationEtapesInvalide(
+            "Chaque étape existante ne peut figurer qu'une fois"
+        )
