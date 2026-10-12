@@ -2,10 +2,10 @@ import { screen } from '@testing-library/vue'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { HttpError } from '@/api/errors'
 import { useToast } from '@/composables/ui/useToast'
+import { CANDIDATURE_PANEL_ROUTE_NAMES } from '@/router/names'
 import { CANDIDATURE_PARAMS, KANBAN_PATH } from '@/test/fixtures/candidatures'
 import { renderWithApp, setupUser } from '@/test/render'
 import { createCandidatureNote } from '../api'
-import { CANDIDATURE_PANEL_ROUTE_NAMES } from '../routes'
 import CandidatureNewNoteForm from './CandidatureNewNoteForm.vue'
 
 vi.mock('../api', async importOriginal => ({

@@ -49,6 +49,10 @@ function panelRouteNames(prefix: string) {
       create: `${prefix}-nouvelle-conversation`,
       conversation: `${prefix}-conversation`,
     },
+    notes: {
+      notes: tabs.notes,
+      create: `${prefix}-nouvelle-note`,
+    },
   }
 }
 

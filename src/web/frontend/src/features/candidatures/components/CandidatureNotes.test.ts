@@ -2,10 +2,10 @@ import type { Note } from '../types'
 import { screen, within } from '@testing-library/vue'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { HttpError } from '@/api/errors'
+import { CANDIDATURE_PANEL_ROUTE_NAMES } from '@/router/names'
 import { CANDIDATURE_PARAMS, KANBAN_PATH } from '@/test/fixtures/candidatures'
 import { renderWithApp, setupUser } from '@/test/render'
 import { getCandidatureNotes } from '../api'
-import { CANDIDATURE_PANEL_ROUTE_NAMES } from '../routes'
 import CandidatureNotes from './CandidatureNotes.vue'
 
 vi.mock('../api', async importOriginal => ({
