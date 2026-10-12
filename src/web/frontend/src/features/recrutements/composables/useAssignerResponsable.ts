@@ -6,7 +6,7 @@ import { organismeKeys } from '@/api/queryKeys'
 import { useTrouverOuCreerAgent } from '@/features/agents/composables/useTrouverOuCreerAgent'
 import { setRecrutementsResponsable } from '../api'
 
-export function useAssignationResponsable(organismeUuid: MaybeRefOrGetter<string>) {
+export function useAssignerResponsable(organismeUuid: MaybeRefOrGetter<string>) {
   const queryCache = useQueryCache()
 
   const { status, foundAgent, searching, creating, search, resolve, reset }

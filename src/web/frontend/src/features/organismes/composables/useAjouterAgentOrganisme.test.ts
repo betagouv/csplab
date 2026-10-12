@@ -4,7 +4,7 @@ import { createPinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { defineComponent, h, nextTick } from 'vue'
 import { AGENT_RECHERCHE } from '@/test/fixtures/organismes'
-import { useAjoutMembre } from './useAjoutMembre'
+import { useAjouterAgentOrganisme } from './useAjouterAgentOrganisme'
 import { useOrganismeAgents } from './useOrganismeAgents'
 
 const mockGetOrganismeAgents = vi.fn()
@@ -32,11 +32,11 @@ async function flush() {
 }
 
 function mountAjoutMembre() {
-  let result!: ReturnType<typeof useAjoutMembre>
+  let result!: ReturnType<typeof useAjouterAgentOrganisme>
   mount(defineComponent({
     setup() {
       useOrganismeAgents(ORGANISME_UUID)
-      result = useAjoutMembre(ORGANISME_UUID)
+      result = useAjouterAgentOrganisme(ORGANISME_UUID)
       return () => h('div')
     },
   }), {
@@ -47,7 +47,7 @@ function mountAjoutMembre() {
   return result
 }
 
-describe('useAjoutMembre', () => {
+describe('useAjouterAgentOrganisme', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     mockGetOrganismeAgents.mockResolvedValue([])

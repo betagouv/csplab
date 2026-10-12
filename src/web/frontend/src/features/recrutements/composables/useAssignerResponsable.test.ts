@@ -7,7 +7,7 @@ import { defineComponent, h, nextTick } from 'vue'
 import { organismeKeys, recrutementKeys } from '@/api/queryKeys'
 import { RECRUTEMENTS_ACTIFS } from '../mock'
 import { recrutementsActifsQuery } from '../queries'
-import { useAssignationResponsable } from './useAssignationResponsable'
+import { useAssignerResponsable } from './useAssignerResponsable'
 
 const mockGetRecrutementsActifs = vi.fn()
 const mockSetRecrutementsResponsable = vi.fn()
@@ -47,10 +47,10 @@ async function flush() {
 }
 
 function mountAssignation() {
-  let result!: ReturnType<typeof useAssignationResponsable>
+  let result!: ReturnType<typeof useAssignerResponsable>
   mount(defineComponent({
     setup() {
-      result = useAssignationResponsable(ORGANISME_UUID)
+      result = useAssignerResponsable(ORGANISME_UUID)
       useQuery(() => recrutementsActifsQuery({ organismeUuid: ORGANISME_UUID }))
       useQuery({
         key: recrutementKeys.equipe({ organismeUuid: ORGANISME_UUID, recrutementUuid: 'rec-1' }),
@@ -70,7 +70,7 @@ function mountAssignation() {
   return result
 }
 
-describe('useAssignationResponsable', () => {
+describe('useAssignerResponsable', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     mockGetRecrutementsActifs.mockResolvedValue({ results: RECRUTEMENTS_ACTIFS })

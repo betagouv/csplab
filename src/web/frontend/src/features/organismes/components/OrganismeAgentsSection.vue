@@ -16,7 +16,7 @@ import { formatAgentName } from '@/features/agents/format'
 import { pluralize } from '@/utils/format'
 import { ORGANISME_AGENTS_COLUMNS } from '../columns'
 import { provideAgentActions } from '../composables/useAgentActions'
-import { useAjoutMembre } from '../composables/useAjoutMembre'
+import { useAjouterAgentOrganisme } from '../composables/useAjouterAgentOrganisme'
 import { useOrganismeAgents } from '../composables/useOrganismeAgents'
 import { ROLE_LABELS } from '../constants/organisme'
 import AttachAgentDrawer from './AttachAgentDrawer.vue'
@@ -28,7 +28,7 @@ const props = defineProps<{
 const PAGE_SIZE = 8
 
 const { agents, pending, error, updateAgent, updatingAgent } = useOrganismeAgents(props.organismeUuid)
-const { status, foundAgent, searching, search: searchAgent, add, submitting, reset } = useAjoutMembre(props.organismeUuid)
+const { status, foundAgent, searching, search: searchAgent, add, submitting, reset } = useAjouterAgentOrganisme(props.organismeUuid)
 const { roleChange, revocation } = provideAgentActions()
 const { addToast } = useToast()
 

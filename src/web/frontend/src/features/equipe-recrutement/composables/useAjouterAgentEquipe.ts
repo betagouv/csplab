@@ -6,7 +6,7 @@ import { recrutementKeys } from '@/api/queryKeys'
 import { useTrouverOuCreerAgent } from '@/features/agents/composables/useTrouverOuCreerAgent'
 import { addMembreEquipe } from '../api'
 
-export function useAjoutMembreEquipe(
+export function useAjouterAgentEquipe(
   organismeUuid: MaybeRefOrGetter<string>,
   recrutementUuid: MaybeRefOrGetter<string>,
 ) {

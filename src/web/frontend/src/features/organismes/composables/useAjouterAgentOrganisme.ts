@@ -6,7 +6,7 @@ import { useTrouverOuCreerAgent } from '@/features/agents/composables/useTrouver
 import { setAgentRole } from '../api'
 import { invalidateOrganisme } from '../queries'
 
-export function useAjoutMembre(organismeUuid: MaybeRefOrGetter<string>) {
+export function useAjouterAgentOrganisme(organismeUuid: MaybeRefOrGetter<string>) {
   const queryCache = useQueryCache()
 
   const { status, foundAgent, searching, creating, search, resolve, reset }
