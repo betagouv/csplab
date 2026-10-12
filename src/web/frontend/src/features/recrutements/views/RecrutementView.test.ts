@@ -4,9 +4,9 @@ import { RouterView } from 'vue-router'
 import { getMe } from '@/api/utilisateur'
 import { getRecrutementKanban } from '@/features/candidatures/api'
 import { getEquipeRecrutement } from '@/features/equipe-recrutement/api'
-import { KANBAN, KANBAN_PATH, RECRUTEMENT_DETAIL, roleOnOrganisme } from '@/test/fixtures/candidatures'
+import { KANBAN, KANBAN_PATH, ORGANISME_UUID, RECRUTEMENT_DETAIL, roleOnOrganisme } from '@/test/fixtures/candidatures'
 import { makeUser } from '@/test/fixtures/utilisateur'
-import { renderWithApp } from '@/test/render'
+import { renderWithApp, setupUser } from '@/test/render'
 import { getRecrutementDetail } from '../api'
 
 vi.mock('@/features/candidatures/api', () => ({
@@ -29,6 +29,7 @@ vi.mock('@/api/utilisateur', () => ({
 }))
 
 const EQUIPE_PATH = `${KANBAN_PATH}/equipe`
+const OTHER_RECRUTEMENT_UUID = '00000000-0000-0000-0000-0000000000ff'
 
 describe('recrutementView', () => {
   beforeEach(() => {
@@ -68,6 +69,30 @@ describe('recrutementView', () => {
 
     expect(await screen.findByRole('tab', { name: /Équipe de recrutement/, selected: true })).toBeInTheDocument()
     expect(await screen.findByRole('button', { name: 'Ajouter un membre' })).toBeInTheDocument()
+  })
+
+  it('keeps the candidatures search when coming back from another tab', async () => {
+    vi.mocked(getMe).mockReset().mockResolvedValue(makeUser([roleOnOrganisme('superviseur')]))
+    const user = setupUser()
+    const { router } = await renderWithApp(RouterView, { route: KANBAN_PATH })
+
+    await user.type(await screen.findByRole('searchbox', { name: 'Rechercher un candidat' }), 'Martin')
+    await router.push(EQUIPE_PATH)
+    await screen.findByRole('button', { name: 'Ajouter un membre' })
+    await router.push(KANBAN_PATH)
+
+    expect(await screen.findByRole('searchbox', { name: 'Rechercher un candidat' })).toHaveValue('Martin')
+  })
+
+  it('empties the candidatures search when moving to another recrutement', async () => {
+    vi.mocked(getMe).mockReset().mockResolvedValue(makeUser([roleOnOrganisme('agent')]))
+    const user = setupUser()
+    const { router } = await renderWithApp(RouterView, { route: KANBAN_PATH })
+
+    await user.type(await screen.findByRole('searchbox', { name: 'Rechercher un candidat' }), 'Martin')
+    await router.push(`/organismes/${ORGANISME_UUID}/recrutements/${OTHER_RECRUTEMENT_UUID}`)
+
+    await vi.waitFor(() => expect(screen.getByRole('searchbox', { name: 'Rechercher un candidat' })).toHaveValue(''))
   })
 
   it('refuses access to the équipe tab url for an agent', async () => {

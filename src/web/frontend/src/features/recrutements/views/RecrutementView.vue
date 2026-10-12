@@ -116,7 +116,14 @@ const headerMenuSections = [{
       :tabs="visibleTabs"
     >
       <template #tab>
-        <router-view />
+        <router-view v-slot="{ Component }">
+          <KeepAlive
+            :key="recrutementUuid"
+            include="CandidaturesTabView"
+          >
+            <component :is="Component" />
+          </KeepAlive>
+        </router-view>
       </template>
     </CspPageContainer>
   </template>

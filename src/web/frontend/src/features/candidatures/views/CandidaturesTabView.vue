@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, watch } from 'vue'
+import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspEmptyState from '@/components/base/CspEmptyState/CspEmptyState.vue'
@@ -21,11 +21,6 @@ const route = useRoute()
 const { recrutementDetail, etapes, pending: pendingDetail, error } = useRecrutementDetail(() => props)
 
 const filters = provideCandidaturesFilters(etapes)
-
-watch(() => props.recrutementUuid, () => {
-  filters.reset()
-  filters.listeSort.value = null
-})
 
 const {
   draft: filtersDraft,
