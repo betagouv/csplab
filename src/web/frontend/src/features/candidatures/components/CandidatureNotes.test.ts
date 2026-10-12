@@ -50,7 +50,7 @@ describe('candidatureNotes', () => {
     const [premiere, seconde] = screen.getAllByRole('listitem').map(item => within(item))
     expect(premiere!.getByText('Marie Dupont')).toBeInTheDocument()
     expect(premiere!.getByText('Profil solide')).toBeInTheDocument()
-    expect(premiere!.getByText(/10\/06\/2025/)).toHaveTextContent('10/06/2025 • 9h15')
+    expect(premiere!.getByText('10/06/2025 à 09h15')).toBeInTheDocument()
     expect(seconde!.getByText('Paul Bernard')).toBeInTheDocument()
     expect(seconde!.getByText('À recontacter')).toBeInTheDocument()
   })

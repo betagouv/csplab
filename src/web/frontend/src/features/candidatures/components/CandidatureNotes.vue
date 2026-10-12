@@ -6,7 +6,7 @@ import CspCard from '@/components/base/CspCard/CspCard.vue'
 import CspEmptyState from '@/components/base/CspEmptyState/CspEmptyState.vue'
 import CspSkeleton from '@/components/base/CspSkeleton/CspSkeleton.vue'
 import { useMinimumPending } from '@/composables/async/useMinimumPending'
-import { formatDate, formatTime } from '@/utils/date'
+import { formatDateTime } from '@/utils/date'
 import { pluralize } from '@/utils/format'
 import { useCandidatureNotes } from '../composables/useCandidatureNotes'
 import CandidatureNoteMessage from './CandidatureNoteMessage.vue'
@@ -94,12 +94,7 @@ const title = computed(() => `${total.value} ${pluralize(total.value, 'note')}`)
                 :datetime="note.publie_le"
                 class="candidature-notes__horodatage"
               >
-                {{ formatDate(note.publie_le) }}
-                <span
-                  class="candidature-notes__separator"
-                  aria-hidden="true"
-                >•</span>
-                {{ formatTime(note.publie_le) }}
+                {{ formatDateTime(note.publie_le) }}
               </time>
             </template>
             <CandidatureNoteMessage :message="note.message" />
