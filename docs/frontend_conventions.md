@@ -9,7 +9,7 @@ The project **is** the ATS, so there is no top-level `ats/` feature. Business co
 ```
 src/
 ├── app/                    # Bootstrap & app config (main.ts, App.vue, navigation.ts, icons)
-├── router/                 # index.ts — app-level routes + aggregates feature routes
+├── router/                 # Route tree (routes.ts), shared route names (names.ts), shared breadcrumb items (breadcrumb.ts)
 ├── views/                  # App-level pages WITHOUT business logic (Home, ParametresView, NotFound)
 │
 ├── features/               # Business modules (self-contained) — business views & components ONLY
@@ -19,10 +19,9 @@ src/
 │   │   ├── composables/    # Feature-specific hooks
 │   │   ├── stores/         # Feature Pinia stores (if needed)
 │   │   ├── utils/          # Feature-specific helpers
-│   │   ├── routes.ts       # Feature routes (optional — a feature may have none)
 │   │   ├── api.ts          # Feature API calls
 │   │   └── types.ts        # Feature types
-│   └── etapes-recrutement/ # Config feature mounted inside views/ParametresView.vue (no route)
+│   └── etapes-recrutement/
 │
 ├── components/             # Reusable UI components
 │   ├── base/               # UI primitives (CspButton, CspInput…)
@@ -65,7 +64,7 @@ src/
 
 ### What is (and isn't) a feature
 
-A feature is a **business domain** (`recrutements`, `etapes-recrutement`, `candidatures`). It contains only business views and business components (with their composables, api, types, stores). A feature does **not** need to own a route — it may just expose a component mounted by a page (e.g. `etapes-recrutement` lives inside `ParametresView`).
+A feature is a **business domain** (`recrutements`, `etapes-recrutement`, `candidatures`). It contains only business views and business components (with their composables, api, types, stores). A feature provides views and components; `router/routes.ts` mounts them.
 
 The following are **not** features:
 
@@ -114,34 +113,27 @@ The shell wraps `<RouterView>` **once** (in `App.vue`), so views never import it
 
 ## Routing
 
-- A feature that owns route-level pages declares them in `features/<feature>/routes.ts`.
-- App-level pages (`views/`) declare their routes directly in `router/index.ts`.
-- `router/index.ts` aggregates everything. Never hardcode a feature's routes in the router.
+- `router/routes.ts` holds the whole route tree. Nesting follows the URL: a parent without component groups its children under a path prefix.
+- Route names live in `router/names.ts`. Views, components and the navigation import names from there.
+- A set of routes mounted under several parents is built by a function called once per parent, like the candidature panel under the kanban and the list.
+- A view receives its route params as props: `props: true` when the location carries the params the view declares and no others, or a function that picks the declared params when the location carries others, such as the params of child routes.
+- A route-level view sets the document title with `useDocumentTitle`, from the most specific part to the most general (`Notes - Alice Dupont`). It calls `useHead` from [`@unhead/vue`](https://unhead.unjs.io/docs/vue/head/api/composables/use-head); `App.vue` adds the site name through `titleTemplate`.
 
 ```ts
-// features/recrutements/routes.ts
-import type { RouteRecordRaw } from 'vue-router';
-
-export const recrutementsRoutes: RouteRecordRaw[] = [
-  {
-    path: '/mes-recrutements',
-    name: 'mes-recrutements',
-    component: () => import('./views/MesRecrutementsView.vue'),
-  },
-];
-```
-
-```ts
-// router/index.ts
-import type { RouteRecordRaw } from 'vue-router';
-import { recrutementsRoutes } from '@/features/recrutements/routes';
-
-const appRoutes: RouteRecordRaw[] = [
-  { path: '/', name: 'home', component: () => import('@/views/HomeView.vue') },
-  { path: '/parametres', name: 'parametres', component: () => import('@/views/ParametresView.vue') },
-];
-
-export const routes = [...appRoutes, ...recrutementsRoutes];
+// router/routes.ts
+{
+  path: `/organismes/:organismeUuid${UUID}`,
+  children: [
+    {
+      path: 'recrutements',
+      name: ORGANISME_SECTION_ROUTE_NAMES.recrutements,
+      children: [
+        { path: '', name: RECRUTEMENTS_TAB_ROUTE_NAMES.actifs, component: RecrutementsView, props: true },
+        { path: 'archives', name: RECRUTEMENTS_TAB_ROUTE_NAMES.archives, component: RecrutementsView, props: true },
+      ],
+    },
+  ],
+}
 ```
 
 ## Components

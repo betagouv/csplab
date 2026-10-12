@@ -1,9 +1,10 @@
 import { PiniaColada, PiniaColadaQueryHooksPlugin } from '@pinia/colada'
 import * as Sentry from '@sentry/vue'
+import { createHead } from '@unhead/vue/client'
 import { createPinia } from 'pinia'
 import { createApp } from 'vue'
 import { createRouter, createWebHistory } from 'vue-router'
-import { routes } from '@/router'
+import { routes } from '@/router/routes'
 import App from './App.vue'
 import '@/app/icons'
 import '@/styles/index.css'
@@ -30,6 +31,7 @@ app.use(PiniaColada, {
   ],
 })
 app.use(router)
+app.use(createHead())
 
 if (import.meta.env.PROD && import.meta.env.VITE_SENTRY_DSN) {
   Sentry.init({

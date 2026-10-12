@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { OrganismesList } from '../../types'
+import { ORGANISME_TAB_ROUTE_NAMES } from '@/router/names'
 
 defineOptions({ inheritAttrs: false })
 
@@ -11,7 +12,7 @@ defineProps<{
 <template>
   <RouterLink
     class="organisme-nom-cell"
-    :to="{ name: 'organisme', params: { organismeUuid: row.uuid } }"
+    :to="{ name: ORGANISME_TAB_ROUTE_NAMES.membres, params: { organismeUuid: row.uuid } }"
   >
     {{ row.nom }}
   </RouterLink>

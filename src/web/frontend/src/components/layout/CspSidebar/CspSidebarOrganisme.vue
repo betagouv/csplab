@@ -3,7 +3,7 @@ import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import CspIcon from '@/components/base/CspIcon/CspIcon.vue'
 import CspSidebarDropdown from '@/components/layout/CspSidebar/CspSidebarDropdown.vue'
-import { RECRUTEMENTS_TAB_ROUTE_NAMES } from '@/features/recrutements/routes'
+import { RECRUTEMENTS_TAB_ROUTE_NAMES } from '@/router/names'
 import { useRouteOrganisme } from '@/stores/routeOrganisme'
 
 const router = useRouter()

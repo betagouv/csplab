@@ -34,6 +34,7 @@
     "@pinia/colada": "^1.4.2",
     "@sentry/vue": "^10.70.0",
     "@tanstack/vue-table": "^8.21.3",
+    "@unhead/vue": "^3.4.2",
     "openapi-fetch": "^0.17.0",
     "pinia": "^3.0.4",
     "reka-ui": "~2.9.10",

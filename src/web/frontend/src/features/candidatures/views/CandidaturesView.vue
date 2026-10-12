@@ -17,8 +17,10 @@ import { useMinimumPending } from '@/composables/async/useMinimumPending'
 import { tabItems } from '@/composables/navigation/tabs'
 import { useRouteTab } from '@/composables/navigation/useRouteTab'
 import { useDisclosure } from '@/composables/ui/useDisclosure'
+import { useDocumentTitle } from '@/composables/ui/useDocumentTitle'
 import EquipeRecrutementSection from '@/features/equipe-recrutement/components/EquipeRecrutementSection.vue'
-import { recrutementsListLocation } from '@/features/recrutements/routes'
+import { HOME_BREADCRUMB_ITEM, recrutementsBreadcrumbItem } from '@/router/breadcrumb'
+import { CANDIDATURES_TAB_ROUTE_NAMES, RECRUTEMENT_ETAPES_ROUTE_NAME, recrutementsListLocation } from '@/router/names'
 import { useCurrentUser } from '@/stores/currentUser'
 import { useRouteOrganisme } from '@/stores/routeOrganisme'
 import ForbiddenView from '@/views/ForbiddenView.vue'
@@ -27,13 +29,13 @@ import CandidaturesViewSwitch from '../components/CandidaturesViewSwitch.vue'
 import { useCandidatures } from '../composables/useCandidatures'
 import { CANDIDATURE_TAB_ICONS, CANDIDATURE_TAB_LABELS } from '../constants/candidature'
 import { formatRecrutementMeta } from '../format'
-import { CANDIDATURES_TAB_ROUTE_NAMES } from '../routes'
 
+const props = defineProps<{
+  organismeUuid: string
+  recrutementUuid: string
+}>()
 const route = useRoute()
 const router = useRouter()
-const recrutementUuid = route.params.recrutementUuid as string
-const organismeUuid = route.params.organismeUuid as string
-
 const {
   recrutementDetail,
   intitule,
@@ -73,13 +75,13 @@ function applyFilters() {
   closeFiltersDrawer()
 }
 
-const recrutementsListLink = computed(() => recrutementsListLocation(organismeUuid, recrutementDetail.value?.archive))
+const recrutementsListLink = computed(() => recrutementsListLocation(props.organismeUuid, recrutementDetail.value?.archive))
 
 const title = computed(() => intitule.value ?? 'Candidatures')
 
 const breadcrumb = computed<CspBreadcrumbItem[]>(() => [
-  { label: 'Accueil', to: { name: 'home' } },
-  { label: 'Recrutements', to: recrutementsListLink.value },
+  HOME_BREADCRUMB_ITEM,
+  recrutementsBreadcrumbItem(props.organismeUuid, recrutementDetail.value?.archive),
   ...(intitule.value ? [{ label: intitule.value }] : []),
 ])
 
@@ -95,6 +97,8 @@ const visibleTabs = computed(() =>
   canManageOrganisme.value ? TABS : TABS.filter(tab => tab.value !== 'equipe'),
 )
 const activeTab = useRouteTab<CandidatureTabKey>(CANDIDATURES_TAB_ROUTE_NAMES, 'candidatures')
+
+useDocumentTitle(() => CANDIDATURE_TAB_LABELS[activeTab.value], intitule)
 
 const equipeForbidden = computed(() =>
   activeTab.value === 'equipe' && Boolean(user.value) && !canManageOrganisme.value,
@@ -117,8 +121,8 @@ const headerMenuSections = [{
     label: 'Personnaliser les étapes de recrutement',
     icon: 'ri:table-line',
     onSelect: () => router.push({
-      name: 'recrutement-etapes-recrutement',
-      params: { organismeUuid, recrutementUuid },
+      name: RECRUTEMENT_ETAPES_ROUTE_NAME,
+      params: { organismeUuid: props.organismeUuid, recrutementUuid: props.recrutementUuid },
     }),
   }],
 }]

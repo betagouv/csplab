@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { createMemoryHistory, createRouter } from 'vue-router'
-import { routes } from '@/router'
+import { routes } from '@/router/routes'
 import { isNavItemActive, navigationFor } from './navigation'
 
 const ORGANISME_UUID = '00000000-0000-0000-0000-000000000000'

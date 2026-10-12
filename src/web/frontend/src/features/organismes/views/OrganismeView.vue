@@ -1,36 +1,42 @@
 <script setup lang="ts">
+import type { OrganismeTabKey } from '../constants/organisme'
 import type { CspBreadcrumbItem } from '@/components/base/CspBreadcrumb/CspBreadcrumb.vue'
 import type { CspMetaItem } from '@/components/base/CspMeta/types'
 import { computed } from 'vue'
-import { useRoute } from 'vue-router'
 import CspMetaList from '@/components/base/CspMeta/CspMetaList.vue'
 import CspPageContainer from '@/components/layout/CspPageContainer/CspPageContainer.vue'
 import CspPageHeader from '@/components/layout/CspPageHeader/CspPageHeader.vue'
 import { tabItems } from '@/composables/navigation/tabs'
 import { useRouteTab } from '@/composables/navigation/useRouteTab'
+import { useDocumentTitle } from '@/composables/ui/useDocumentTitle'
 import EtapesRecrutementList from '@/features/etapes-recrutement/components/EtapesRecrutementList.vue'
 import { ETAPES_TEXTS_ORGANISME } from '@/features/etapes-recrutement/constants/etape-recrutement'
+import { HOME_BREADCRUMB_ITEM } from '@/router/breadcrumb'
+import { ORGANISME_TAB_ROUTE_NAMES } from '@/router/names'
 import ForbiddenView from '@/views/ForbiddenView.vue'
 import NotFoundView from '@/views/NotFoundView.vue'
 import OrganismeAgentsSection from '../components/OrganismeAgentsSection.vue'
 import { useOrganismeDetail } from '../composables/useOrganismeDetail'
 import { ORGANISME_TAB_ICONS, ORGANISME_TAB_LABELS } from '../constants/organisme'
-import { ORGANISME_TAB_ROUTE_NAMES } from '../routes'
 
-const route = useRoute()
+const props = defineProps<{
+  organismeUuid: string
+}>()
 
-const organismeUuid = computed(() => route.params.organismeUuid as string)
+const { organisme, notFound, forbidden } = useOrganismeDetail(() => props.organismeUuid)
 
-const { organisme, notFound, forbidden } = useOrganismeDetail(organismeUuid)
+const TITLE = 'Paramètres de l\'organisme'
 
 const breadcrumb: CspBreadcrumbItem[] = [
-  { label: 'Accueil', to: { name: 'home' } },
-  { label: 'Paramètres de l\'organisme' },
+  HOME_BREADCRUMB_ITEM,
+  { label: TITLE },
 ]
 
 const tabs = tabItems(ORGANISME_TAB_LABELS, ORGANISME_TAB_ICONS)
 
-const activeTab = useRouteTab(ORGANISME_TAB_ROUTE_NAMES, 'membres')
+const activeTab = useRouteTab<OrganismeTabKey>(ORGANISME_TAB_ROUTE_NAMES, 'membres')
+
+useDocumentTitle(() => ORGANISME_TAB_LABELS[activeTab.value], () => organisme.value?.nom)
 
 const metaItems = computed<CspMetaItem[]>(() =>
   organisme.value
@@ -44,7 +50,7 @@ const metaItems = computed<CspMetaItem[]>(() =>
   <ForbiddenView v-else-if="forbidden" />
   <template v-else>
     <CspPageHeader
-      title="Paramètres de l'organisme"
+      :title="TITLE"
       :breadcrumb="breadcrumb"
     >
       <template #subtitle>
@@ -57,14 +63,12 @@ const metaItems = computed<CspMetaItem[]>(() =>
     >
       <template #tab-membres>
         <OrganismeAgentsSection
-          v-if="organismeUuid"
           :key="organismeUuid"
           :organisme-uuid="organismeUuid"
         />
       </template>
       <template #tab-etapes>
         <EtapesRecrutementList
-          v-if="organismeUuid"
           :params="{ type: 'organisme', organismeUuid }"
           :texts="ETAPES_TEXTS_ORGANISME"
         />

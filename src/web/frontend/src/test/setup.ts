@@ -1,7 +1,11 @@
 import { cleanup } from '@testing-library/vue'
+import { createHead } from '@unhead/vue/client'
+import { config } from '@vue/test-utils'
 import { afterEach, beforeAll, vi } from 'vitest'
 import { createMediaQueryMock } from './browser'
 import '@testing-library/jest-dom/vitest'
+
+config.global.plugins.push(createHead())
 
 beforeAll(() => {
   Element.prototype.scrollIntoView = vi.fn()

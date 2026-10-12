@@ -4,7 +4,7 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>ATS - CSPLab</title>
+        <title>ATS | {{ SITE_CONFIG.site_title|default:"CSPLab" }}</title>
         {% if debug %}
             <script type="module" src="{% vite_dev_asset '@vite/client' %}"></script>
             <script type="module"
