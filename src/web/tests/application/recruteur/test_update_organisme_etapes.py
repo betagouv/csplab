@@ -42,16 +42,20 @@ def test_rolls_back_when_audit_log_fails(db):
     assert organisme.updated_at == updated_at_avant
 
 
-def test_does_not_log_when_save_fails(db):
+@pytest.fixture(name="organisme_avec_superviseur")
+def organisme_avec_superviseur_fixture(db):
     etapes = EtapeRecrutementFactory.create_entity_batch()
     agent, organisme = create_organisme_with_agent(
         role=AgentOrganismeRole.SUPERVISEUR, etapes=etapes
     )
+    return agent, organisme, etapes
 
-    with (
-        patch.object(OrganismeModel, "save", side_effect=RuntimeError("save failed")),
-        pytest.raises(RuntimeError),
-    ):
+
+@patch.object(OrganismeModel, "save", side_effect=RuntimeError("save failed"))
+def test_does_not_log_when_save_fails(mock_save, organisme_avec_superviseur):
+    agent, organisme, etapes = organisme_avec_superviseur
+
+    with pytest.raises(RuntimeError):
         update_organisme_etapes(
             organisme_id=organisme.id,
             utilisateur=agent.utilisateur,
