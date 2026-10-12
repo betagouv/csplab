@@ -12,13 +12,13 @@ import CspTableToolbar from '@/components/base/CspTableToolbar/CspTableToolbar.v
 import { useMinimumPending } from '@/composables/async/useMinimumPending'
 import { useTextSearch } from '@/composables/data/useTextSearch'
 import { useToast } from '@/composables/ui/useToast'
+import { formatAgentName } from '@/features/agents/format'
 import { pluralize } from '@/utils/format'
 import { ORGANISME_AGENTS_COLUMNS } from '../columns'
 import { provideAgentActions } from '../composables/useAgentActions'
 import { useAjoutMembre } from '../composables/useAjoutMembre'
 import { useOrganismeAgents } from '../composables/useOrganismeAgents'
 import { ROLE_LABELS } from '../constants/organisme'
-import { formatAgentName } from '../format'
 import AttachAgentDrawer from './AttachAgentDrawer.vue'
 
 const props = defineProps<{

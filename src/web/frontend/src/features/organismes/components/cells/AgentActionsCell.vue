@@ -3,9 +3,9 @@ import type { AgentOrganisme } from '../../types'
 import { computed } from 'vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspDropdownMenu from '@/components/base/CspDropdownMenu/CspDropdownMenu.vue'
+import { formatAgentName } from '@/features/agents/format'
 import { useAgentActions } from '../../composables/useAgentActions'
 import { ROLE_LABELS } from '../../constants/organisme'
-import { formatAgentName } from '../../format'
 
 defineOptions({ inheritAttrs: false })
 

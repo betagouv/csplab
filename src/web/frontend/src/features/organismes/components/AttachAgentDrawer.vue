@@ -1,13 +1,14 @@
 <script setup lang="ts">
-import type { AgentSearchStatus } from '../composables/useAgentParEmail'
-import type { AgentRecherche, Role } from '../types'
+import type { Role } from '../types'
 import type { CspRadioGroupOption } from '@/components/base/CspRadioGroup/CspRadioGroup.vue'
+import type { AgentSearchStatus } from '@/features/agents/composables/useAgentParEmail'
+import type { AgentRecherche } from '@/features/agents/types'
 import { computed, ref, watch } from 'vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspDrawer from '@/components/base/CspDrawer/CspDrawer.vue'
 import CspRadioGroup from '@/components/base/CspRadioGroup/CspRadioGroup.vue'
+import AgentRechercheForm from '@/features/agents/components/AgentRechercheForm.vue'
 import { ROLE_LABELS } from '../constants/organisme'
-import AgentRechercheForm from './AgentRechercheForm.vue'
 
 const props = defineProps<{
   status: AgentSearchStatus

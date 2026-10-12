@@ -1,4 +1,4 @@
-import type { AgentRecherche } from '@/features/organismes/types'
+import type { AgentRecherche } from '@/features/agents/types'
 import { PiniaColada, useQuery } from '@pinia/colada'
 import { mount } from '@vue/test-utils'
 import { createPinia } from 'pinia'
@@ -20,10 +20,7 @@ vi.mock('../api', () => ({
   setRecrutementsResponsable: (...args: unknown[]) => mockSetRecrutementsResponsable(...args),
 }))
 
-vi.mock('@/features/organismes/api', () => ({
-  getOrganismesList: vi.fn(),
-  getOrganismeDetail: vi.fn(),
-  getOrganismeAgents: vi.fn(),
+vi.mock('@/features/agents/api', () => ({
   searchAgentByEmail: (...args: unknown[]) => mockSearchAgentByEmail(...args),
   createAgent: (...args: unknown[]) => mockCreateAgent(...args),
 }))

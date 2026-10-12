@@ -4,7 +4,7 @@ import { defineComponent, h } from 'vue'
 import { HttpError } from '@/api/errors'
 import { getMe } from '@/api/utilisateur'
 import CspToaster from '@/components/base/CspToast/CspToaster.vue'
-import { searchAgentByEmail } from '@/features/organismes/api'
+import { searchAgentByEmail } from '@/features/agents/api'
 import { MEMBRE_EQUIPE, RECRUTEMENT_UUID } from '@/test/fixtures/equipe'
 import { AGENT_RECHERCHE } from '@/test/fixtures/organismes'
 import { makeUser, MTE_UUID, ROLE_MTE } from '@/test/fixtures/utilisateur'
@@ -18,8 +18,8 @@ vi.mock('../api', () => ({
   updateMembreEquipe: vi.fn(),
 }))
 
-vi.mock('@/features/organismes/api', async importOriginal => ({
-  ...await importOriginal<typeof import('@/features/organismes/api')>(),
+vi.mock('@/features/agents/api', async importOriginal => ({
+  ...await importOriginal<typeof import('@/features/agents/api')>(),
   searchAgentByEmail: vi.fn(),
 }))
 

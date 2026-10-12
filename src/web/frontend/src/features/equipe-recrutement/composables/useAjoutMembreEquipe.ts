@@ -3,7 +3,7 @@ import type { MembreEquipePayload, RecrutementRole } from '../types'
 import { useMutation, useQueryCache } from '@pinia/colada'
 import { computed, toValue } from 'vue'
 import { recrutementKeys } from '@/api/queryKeys'
-import { useAgentParEmail } from '@/features/organismes/composables/useAgentParEmail'
+import { useAgentParEmail } from '@/features/agents/composables/useAgentParEmail'
 import { addMembreEquipe } from '../api'
 
 export function useAjoutMembreEquipe(

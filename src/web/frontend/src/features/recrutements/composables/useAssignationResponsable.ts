@@ -3,7 +3,7 @@ import type { AssignationResponsablePayload, AssignationResponsableResultat } fr
 import { useMutation, useQueryCache } from '@pinia/colada'
 import { computed, toValue } from 'vue'
 import { organismeKeys } from '@/api/queryKeys'
-import { useAgentParEmail } from '@/features/organismes/composables/useAgentParEmail'
+import { useAgentParEmail } from '@/features/agents/composables/useAgentParEmail'
 import { setRecrutementsResponsable } from '../api'
 
 export function useAssignationResponsable(organismeUuid: MaybeRefOrGetter<string>) {

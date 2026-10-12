@@ -2,11 +2,9 @@ import type { MaybeRefOrGetter } from 'vue'
 import type { Role, SetAgentRolePayload } from '../types'
 import { useMutation, useQueryCache } from '@pinia/colada'
 import { computed, toValue } from 'vue'
+import { useAgentParEmail } from '@/features/agents/composables/useAgentParEmail'
 import { setAgentRole } from '../api'
 import { invalidateOrganisme } from '../queries'
-import { useAgentParEmail } from './useAgentParEmail'
-
-export type { AgentSearchStatus } from './useAgentParEmail'
 
 export function useAjoutMembre(organismeUuid: MaybeRefOrGetter<string>) {
   const queryCache = useQueryCache()
