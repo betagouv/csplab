@@ -4,6 +4,7 @@ import { mount } from '@vue/test-utils'
 import { createPinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { defineComponent, h, nextTick } from 'vue'
+import { organismeKeys, recrutementKeys } from '@/api/queryKeys'
 import { RECRUTEMENTS_ACTIFS } from '../mock'
 import { recrutementsActifsQuery } from '../queries'
 import { useAssignationResponsable } from './useAssignationResponsable'
@@ -12,6 +13,8 @@ const mockGetRecrutementsActifs = vi.fn()
 const mockSetRecrutementsResponsable = vi.fn()
 const mockSearchAgentByEmail = vi.fn()
 const mockCreateAgent = vi.fn()
+const mockGetEquipe = vi.fn()
+const mockGetAgentsOrganisme = vi.fn()
 
 vi.mock('../api', () => ({
   getRecrutementDetail: vi.fn(),
@@ -49,6 +52,14 @@ function mountAssignation() {
     setup() {
       result = useAssignationResponsable(ORGANISME_UUID)
       useQuery(() => recrutementsActifsQuery({ organismeUuid: ORGANISME_UUID }))
+      useQuery({
+        key: recrutementKeys.equipe({ organismeUuid: ORGANISME_UUID, recrutementUuid: 'rec-1' }),
+        query: mockGetEquipe,
+      })
+      useQuery({
+        key: organismeKeys.agents({ organismeUuid: ORGANISME_UUID }),
+        query: mockGetAgentsOrganisme,
+      })
       return () => h('div')
     },
   }), {
@@ -66,6 +77,8 @@ describe('useAssignationResponsable', () => {
     mockSearchAgentByEmail.mockResolvedValue(AGENT)
     mockCreateAgent.mockResolvedValue({ ...AGENT, uuid: NOUVEL_AGENT_ID, prenom: '', nom: '' })
     mockSetRecrutementsResponsable.mockResolvedValue({ reussites: ['rec-1'], echecs: [] })
+    mockGetEquipe.mockResolvedValue([])
+    mockGetAgentsOrganisme.mockResolvedValue([])
   })
 
   it('refreshes the active recrutements once the found agent has been assigned', async () => {
@@ -84,6 +97,20 @@ describe('useAssignationResponsable', () => {
       agent_id: AGENT_ID,
     })
     expect(mockGetRecrutementsActifs).toHaveBeenCalledTimes(2)
+  })
+
+  it('refreshes the team of each recrutement and the agents of the organisme', async () => {
+    const result = mountAssignation()
+    await flush()
+    expect(mockGetEquipe).toHaveBeenCalledTimes(1)
+    expect(mockGetAgentsOrganisme).toHaveBeenCalledTimes(1)
+
+    await result.search(EMAIL)
+    await result.assign(['rec-1'])
+    await flush()
+
+    expect(mockGetEquipe).toHaveBeenCalledTimes(2)
+    expect(mockGetAgentsOrganisme).toHaveBeenCalledTimes(2)
   })
 
   it('creates the account before assigning when no agent matches the email', async () => {

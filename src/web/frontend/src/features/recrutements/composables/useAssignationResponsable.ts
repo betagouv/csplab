@@ -15,9 +15,10 @@ export function useAssignationResponsable(organismeUuid: MaybeRefOrGetter<string
   const assignationMutation = useMutation({
     mutation: (payload: AssignationResponsablePayload) =>
       setRecrutementsResponsable(toValue(organismeUuid), payload),
-    onSettled: () => queryCache.invalidateQueries({
-      key: organismeKeys.recrutementsActifs({ organismeUuid: toValue(organismeUuid) }),
-    }),
+    onSettled: () => Promise.all([
+      queryCache.invalidateQueries({ key: organismeKeys.root({ organismeUuid: toValue(organismeUuid) }) }),
+      queryCache.invalidateQueries({ key: organismeKeys.list() }),
+    ]),
   })
 
   async function assign(recrutementIds: string[]): Promise<AssignationResponsableResultat> {
