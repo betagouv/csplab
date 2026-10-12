@@ -8,10 +8,9 @@ import CspIcon from '@/components/base/CspIcon/CspIcon.vue'
 import CspSkeleton from '@/components/base/CspSkeleton/CspSkeleton.vue'
 import { useMinimumPending } from '@/composables/async/useMinimumPending'
 import { formatElapsedDays } from '@/utils/date'
-import { pluralize } from '@/utils/format'
+import { formatFileSize, pluralize } from '@/utils/format'
 import { useCandidatureDocuments } from '../composables/useCandidatureDocuments'
 import { TYPE_DOCUMENT_LABELS } from '../constants/candidature'
-import { formatFileSize } from '../utils/file'
 
 const props = defineProps<{
   candidature: CandidatureParams
