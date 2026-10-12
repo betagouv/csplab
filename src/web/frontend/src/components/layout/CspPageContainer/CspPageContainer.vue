@@ -45,7 +45,15 @@ const activeTab = defineModel<T>('activeTab')
         :fill="fill"
       >
         <template
-          v-for="tab in tabs"
+          v-if="$slots.tab"
+          #default
+        >
+          <div class="csp-page-container__content csp-page-container__content--with-tabs">
+            <slot name="tab" />
+          </div>
+        </template>
+        <template
+          v-for="tab in ($slots.tab ? [] : tabs)"
           #[tab.value]
           :key="tab.value"
         >

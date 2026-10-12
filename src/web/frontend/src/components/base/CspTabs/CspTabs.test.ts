@@ -1,6 +1,7 @@
 import { render, within } from '@testing-library/vue'
 import { describe, expect, it } from 'vitest'
-import { defineComponent, h } from 'vue'
+import { defineComponent, h, onMounted } from 'vue'
+import { setupUser } from '@/test/render'
 import CspTabs from './CspTabs.vue'
 import CspTabsList from './CspTabsList.vue'
 import CspTabsPanels from './CspTabsPanels.vue'
@@ -48,5 +49,35 @@ describe('cspTabs', () => {
     const main = within(container.querySelector('main')!)
     expect(header.getByRole('tab', { name: 'Onglet A', selected: true })).toBeInTheDocument()
     expect(main.getByRole('tabpanel')).toHaveTextContent('Contenu A')
+  })
+
+  it('keeps a shared panel mounted and controlled by the selected tab', async () => {
+    let mounts = 0
+    const SharedContent = defineComponent({
+      setup() {
+        onMounted(() => {
+          mounts++
+        })
+        return () => 'Contenu partagé'
+      },
+    })
+    const user = setupUser()
+    const { getByRole } = render(
+      defineComponent({
+        setup() {
+          return () =>
+            h(CspTabs, { defaultValue: 'a' }, () => [
+              h(CspTabsList, { tabs: TABS }),
+              h(CspTabsPanels, { tabs: TABS }, { default: () => h(SharedContent) }),
+            ])
+        },
+      }),
+      { global },
+    )
+
+    await user.click(getByRole('tab', { name: 'Onglet B' }))
+
+    expect(getByRole('tab', { name: 'Onglet B', selected: true })).toHaveAttribute('aria-controls', getByRole('tabpanel').id)
+    expect(mounts).toBe(1)
   })
 })

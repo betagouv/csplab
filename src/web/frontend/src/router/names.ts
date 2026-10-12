@@ -28,7 +28,7 @@ export const CANDIDATURES_VIEW_ROUTE_NAMES = {
 
 export type CandidaturesViewName = keyof typeof CANDIDATURES_VIEW_ROUTE_NAMES
 
-export const CANDIDATURES_TAB_ROUTE_NAMES = {
+export const RECRUTEMENT_DETAIL_TAB_ROUTE_NAMES = {
   'candidatures': CANDIDATURES_VIEW_ROUTE_NAMES.kanban,
   'activites-et-taches': 'recrutement-activites',
   'equipe': 'recrutement-equipe',

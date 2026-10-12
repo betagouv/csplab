@@ -1,11 +1,10 @@
 <script setup lang="ts">
 import type { CspBreadcrumbItem } from '@/components/base/CspBreadcrumb/CspBreadcrumb.vue'
-import { useQuery, useQueryCache } from '@pinia/colada'
 import { computed } from 'vue'
 import CspPageContainer from '@/components/layout/CspPageContainer/CspPageContainer.vue'
 import CspPageHeader from '@/components/layout/CspPageHeader/CspPageHeader.vue'
 import { useDocumentTitle } from '@/composables/ui/useDocumentTitle'
-import { peekRecrutementIntitule, recrutementDetailQuery } from '@/features/recrutements/queries'
+import { useRecrutementDetail } from '@/features/recrutements/composables/useRecrutementDetail'
 import { HOME_BREADCRUMB_ITEM, recrutementsBreadcrumbItem } from '@/router/breadcrumb'
 import { CANDIDATURES_VIEW_ROUTE_NAMES } from '@/router/names'
 import EtapesRecrutementList from '../components/EtapesRecrutementList.vue'
@@ -16,21 +15,7 @@ const props = defineProps<{
   recrutementUuid: string
 }>()
 
-const queryCache = useQueryCache()
-
-const { data: recrutementDetail } = useQuery(() => ({
-  ...recrutementDetailQuery({
-    organismeUuid: props.organismeUuid,
-    recrutementUuid: props.recrutementUuid,
-  }),
-}))
-
-const intitule = computed<string | null>(() => {
-  if (recrutementDetail.value?.intitule) {
-    return recrutementDetail.value.intitule
-  }
-  return peekRecrutementIntitule(queryCache, props.organismeUuid, props.recrutementUuid)
-})
+const { recrutementDetail, intitule } = useRecrutementDetail(() => props)
 
 const candidaturesRoute = computed(() => ({
   name: CANDIDATURES_VIEW_ROUTE_NAMES.kanban,
