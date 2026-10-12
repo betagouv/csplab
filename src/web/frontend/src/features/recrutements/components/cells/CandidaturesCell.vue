@@ -20,9 +20,11 @@ defineProps<{
 
 <style scoped lang="scss">
 .candidatures-cell {
-  display: inline-flex;
+  display: inline-grid;
+  grid-template-columns: repeat(3, 2.5rem);
+  justify-items: center;
   align-items: center;
-  gap: 1.25rem;
+  gap: 0.5rem;
   font-variant-numeric: tabular-nums;
 }
 
