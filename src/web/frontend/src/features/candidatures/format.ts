@@ -1,7 +1,7 @@
-import type { CandidatureListe } from './types'
+import type { CandidatureDetail, CandidatureListe } from './types'
 import type { CspMetaItem } from '@/components/base/CspMeta/types'
 import type { RecrutementDetail } from '@/features/recrutements/types'
-import { formatDateLong } from '@/utils/date'
+import { formatDateLong, formatElapsedDays } from '@/utils/date'
 
 export function formatCandidatName(candidat: CandidatureListe['candidat']): string {
   return `${candidat.prenom} ${candidat.nom}`
@@ -28,6 +28,22 @@ export function formatRecrutementMeta(detail: RecrutementDetail): CspMetaItem[] 
       icon: 'ri:price-tag-3-line',
       srLabel: 'Catégorie',
       label: `Catégorie ${detail.categorie_offre}`,
+    },
+  ]
+}
+
+export function formatCandidatureMeta(detail: CandidatureDetail): CspMetaItem[] {
+  return [
+    {
+      icon: 'ri:calendar-line',
+      srLabel: 'Date de candidature',
+      label: `Candidature ${formatElapsedDays(detail.date_candidature)}`,
+    },
+    {
+      icon: 'ri:mail-line',
+      srLabel: 'Courriel',
+      label: detail.candidat.email,
+      copy: { action: 'Copier le courriel', confirmation: 'Courriel copié dans le presse-papier' },
     },
   ]
 }
