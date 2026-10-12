@@ -333,6 +333,21 @@ class TestRecrutementDetailView:
         assert response.status_code == status.HTTP_404_NOT_FOUND
         assert response.json() == {"error": "Not found."}
 
+    def test_returns_404_for_recrutement_of_another_organisme(
+        self, authenticated_client, test_user
+    ):
+        _, organisme = create_organisme_with_agent(
+            role=AgentOrganismeRole.SUPERVISEUR, utilisateur=test_user
+        )
+        autre_recrutement = RecrutementDjangoFactory()
+
+        response = authenticated_client.get(
+            _detail_url(organisme.id, autre_recrutement.pk)
+        )
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+        assert response.json() == {"error": "Not found."}
+
     def test_number_of_queries_does_not_depend_on_etapes_count(
         self, authenticated_client, test_user
     ):
