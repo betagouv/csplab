@@ -132,26 +132,26 @@ The shell wraps `<RouterView>` **once** (in `App.vue`), so views never import it
 <script setup lang="ts">
 // 1. Imports
 import { ref, computed } from 'vue';
-import type { Candidate } from './types';
+import type { Candidat } from './types';
 
 // 2. Props & Emits
 const props = defineProps<{
-  candidate: Candidate;
+  candidat: Candidat;
   editable?: boolean;
 }>();
 
 const emit = defineEmits<{
-  save: [candidate: Candidate];
+  save: [candidat: Candidat];
   cancel: [];
 }>();
 
 // 3. State & computed
 const isLoading = ref(false);
-const fullName = computed(() => `${props.candidate.firstName} ${props.candidate.lastName}`);
+const fullName = computed(() => `${props.candidat.firstName} ${props.candidat.lastName}`);
 
 // 4. Functions
 function handleSave() {
-  emit('save', props.candidate);
+  emit('save', props.candidat);
 }
 </script>
 
@@ -168,8 +168,8 @@ function handleSave() {
 
 | Type                 | Convention       | Example                           |
 | -------------------- | ---------------- | --------------------------------- |
-| Page/View            | `*View.vue`      | `CandidateListView.vue`           |
-| UI ingredient        | `Csp` prefix     | `CspButton.vue`, `CspCandidateCard.vue` |
+| Page/View            | `*View.vue`      | `CandidatListView.vue`            |
+| UI ingredient        | `Csp` prefix     | `CspButton.vue`, `CspCandidatCard.vue` |
 
 The `Csp` prefix is reserved for UI "ingredients" and design system components. This includes both generic components (base UI) and business-specific UI components (e.g., a card, a specialized input). It does NOT apply to full pages/views or technical utility components (like error boundaries).
 
@@ -210,12 +210,12 @@ A composable is "technical" only if it contains **no** business/domain knowledge
 ### Convention
 
 ```ts
-// composables/useCandidate.ts
+// features/candidatures/composables/useCandidat.ts
 import { ref, computed } from 'vue';
-import type { Candidate } from '@/features/candidates/types';
+import type { Candidat } from '../types';
 
-export function useCandidate(id: string) {
-  const candidate = ref<Candidate | null>(null);
+export function useCandidat(id: string) {
+  const candidat = ref<Candidat | null>(null);
   const isLoading = ref(false);
   const error = ref<Error | null>(null);
 
@@ -225,7 +225,7 @@ export function useCandidate(id: string) {
   }
 
   return {
-    candidate,
+    candidat,
     isLoading,
     error,
     fetch,
@@ -252,12 +252,12 @@ export function useCandidate(id: string) {
 ### Convention
 
 ```ts
-// features/candidates/stores/candidates.ts
+// features/candidatures/stores/candidats.ts
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 
-export const useCandidatesStore = defineStore('candidates', () => {
-  const items = ref<Candidate[]>([]);
+export const useCandidatsStore = defineStore('candidats', () => {
+  const items = ref<Candidat[]>([]);
   const isLoading = ref(false);
 
   const count = computed(() => items.value.length);
@@ -288,17 +288,17 @@ export const useCandidatesStore = defineStore('candidates', () => {
 ### Convention
 
 ```ts
-// features/candidates/api.ts
+// features/candidatures/api.ts
 import { api } from '@/api/client';
-import type { Candidate } from './types';
+import type { Candidat } from './types';
 
-export async function getCandidates(): Promise<Candidate[]> {
-  const { data } = await api.GET('/candidates');
+export async function getCandidats(): Promise<Candidat[]> {
+  const { data } = await api.GET('/candidats');
   return data!;
 }
 
-export async function getCandidate(uuid: string): Promise<Candidate> {
-  const { data } = await api.GET('/candidates/{uuid}', {
+export async function getCandidat(uuid: string): Promise<Candidat> {
+  const { data } = await api.GET('/candidats/{uuid}', {
     params: { path: { uuid } },
   });
   return data!;
@@ -314,18 +314,15 @@ export async function getCandidate(uuid: string): Promise<Candidate> {
 ### Shared Types
 
 ```ts
-// features/candidates/types.ts
-export interface Candidate {
+// features/candidatures/types.ts
+export interface Candidat {
   id: string;
   firstName: string;
   lastName: string;
   email: string;
-  status: CandidateStatus;
 }
 
-export type CandidateStatus = 'new' | 'screening' | 'interview' | 'offer' | 'hired' | 'rejected';
-
-export interface CreateCandidateDto {
+export interface CreateCandidatDto {
   firstName: string;
   lastName: string;
   email: string;
@@ -351,7 +348,7 @@ Limit nesting to **2 levels max**. Use `&` for modifiers and pseudo-classes.
 ```vue
 <style scoped lang="scss">
 // Good: 2 levels max
-.candidate-card {
+.candidat-card {
   padding: var(--spacing-md);
   border-radius: var(--radius-sm);
 
@@ -372,7 +369,7 @@ Limit nesting to **2 levels max**. Use `&` for modifiers and pseudo-classes.
 
 ```scss
 // Bad: too deep
-.candidate-card {
+.candidat-card {
   .header {
     .title {
       .icon {
@@ -387,22 +384,24 @@ Use BEM or flat classes instead of deep nesting:
 
 ```scss
 // Prefer this
-.candidate-card {
+.candidat-card {
 }
-.candidate-card__header {
+.candidat-card__header {
 }
-.candidate-card__title {
+.candidat-card__title {
 }
-.candidate-card__icon {
+.candidat-card__icon {
 }
 ```
 
 ## Naming (What ESLint Doesn't Cover)
 
+We write identifiers in English, except the terms that the [domain glossary](domain_glossary.md) keeps in French ([ADR-011](ADR/ADR-011-identifier-language.md)).
+
 | Element        | Convention          | Example                     |
 | -------------- | ------------------- | --------------------------- |
-| Vue files      | PascalCase          | `CandidateCard.vue`         |
-| TS files       | camelCase           | `useCandidate.ts`, `api.ts` |
-| Route names    | kebab-case          | `candidate-detail`          |
+| Vue files      | PascalCase          | `CandidatCard.vue`          |
+| TS files       | camelCase           | `useCandidat.ts`, `api.ts`  |
+| Route names    | kebab-case          | `candidat-detail`           |
 | Emitted events | camelCase verb      | `save`, `updateStatus`      |
 | Boolean props  | `is/has/can` prefix | `isEditable`, `hasError`    |
