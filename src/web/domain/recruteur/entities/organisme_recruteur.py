@@ -1,13 +1,10 @@
 from dataclasses import dataclass
 from uuid import UUID
 
-from ddd.aggregate_root import AggregateRoot, mutate
+from ddd.aggregate_root import AggregateRoot
 
 from domain.recruteur.entities.etape_recrutement import EtapeRecrutement
 from domain.recruteur.etapes_rules import valider_sequence_etapes
-from domain.recruteur.events.organisme_recruteur_events import (
-    OrganismeEtapesMisesAJour,
-)
 from domain.recruteur.value_objects.etape_data import EtapeData
 
 
@@ -27,12 +24,6 @@ class OrganismeRecruteur(AggregateRoot):
     @property
     def etapes(self) -> tuple[EtapeRecrutement, ...]:
         return self._etapes
-
-    @mutate(OrganismeEtapesMisesAJour)
-    def mettre_a_jour_etapes(self, etapes_data: tuple[EtapeData, ...]) -> None:
-        # check business rules
-        self._validate(etapes_data)
-        self._apply(etapes_data)
 
     def _validate(self, etapes_data: tuple[EtapeData, ...]) -> None:
         valider_sequence_etapes(etapes_data)
