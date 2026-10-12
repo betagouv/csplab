@@ -11,6 +11,11 @@ beforeAll(() => {
   Element.prototype.scrollIntoView = vi.fn()
   Element.prototype.hasPointerCapture = vi.fn(() => false)
   Element.prototype.releasePointerCapture = vi.fn()
+  globalThis.ResizeObserver = class {
+    observe = vi.fn()
+    unobserve = vi.fn()
+    disconnect = vi.fn()
+  }
   Object.defineProperty(window, 'matchMedia', {
     configurable: true,
     writable: true,

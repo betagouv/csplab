@@ -97,17 +97,30 @@ describe('candidaturePanelView', () => {
     toasts.value.forEach(toast => dismissToast(toast.id))
   })
 
-  it('shows the candidat name and submission date from the candidature detail', async () => {
+  it('shows who applies, to which offer and at which stage from the candidature detail', async () => {
     const { panel } = await renderPanel([`${KANBAN_PATH}/candidatures/${CANDIDATURE_ALICE}`])
 
-    expect(await panel.findByText(/Candidature il y a \d+ jours/)).toBeInTheDocument()
-    expect(panel.getByRole('heading', { name: 'Alice Dupont' })).toBeInTheDocument()
+    expect(await panel.findByRole('heading', { name: 'Alice Dupont' })).toBeInTheDocument()
+    expect(panel.getByText('Chargé de mission')).toBeInTheDocument()
+    expect(panel.getByText(/Candidature il y a \d+ jours/)).toBeInTheDocument()
+    expect(panel.getByText('candidat@example.fr')).toBeInTheDocument()
+    expect(panel.getByText('Réception des candidatures')).toBeInTheDocument()
   })
 
   it('names the document after the tab and the candidat', async () => {
     await renderPanel([`${KANBAN_PATH}/candidatures/${CANDIDATURE_ALICE}/notes`])
 
     await vi.waitFor(() => expect(document.title).toBe('Notes - Alice Dupont'))
+  })
+
+  it('copies the candidat email to the clipboard', async () => {
+    const user = setupUser()
+    const { panel } = await renderPanel([`${KANBAN_PATH}/candidatures/${CANDIDATURE_ALICE}`])
+
+    await user.click(await panel.findByRole('button', { name: 'Copier le courriel' }))
+
+    expect(await navigator.clipboard.readText()).toBe('candidat@example.fr')
+    expect(await screen.findByText('Courriel copié dans le presse-papier')).toBeInTheDocument()
   })
 
   it('opens on the candidature tab, with the follow-up column beside it', async () => {
@@ -271,6 +284,15 @@ describe('candidaturePanelView', () => {
     await vi.waitFor(() => expect(router.currentRoute.value.meta.tab).toBe('candidature'))
   })
 
+  it('keeps the latest activities but hides the follow-up note field on the notes tab', async () => {
+    const { panel } = await renderPanel([`${KANBAN_PATH}/candidatures/${CANDIDATURE_ALICE}/notes`])
+
+    expect(await panel.findByRole('tab', { name: 'Notes', selected: true })).toBeInTheDocument()
+    const suivi = within(panel.getByRole('complementary', { name: 'Suivi de la candidature' }))
+    expect(suivi.getByRole('heading', { name: 'Dernières activités' })).toBeInTheDocument()
+    expect(suivi.queryByRole('textbox', { name: 'Ajouter une note' })).not.toBeInTheDocument()
+  })
+
   describe('with a note being typed', () => {
     async function renderWithNote() {
       const user = setupUser()
@@ -348,6 +370,17 @@ describe('candidaturePanelView', () => {
 
       await vi.waitFor(() => expect(router.currentRoute.value.params.candidatureUuid).toBe(CANDIDATURE_BRUNO))
       expect(patchEtapeCandidatures).toHaveBeenCalledOnce()
+    })
+
+    it('keeps the note typed in the follow-up column through the notes tab', async () => {
+      const { user, panel, note } = await renderWithNote()
+
+      await user.click(panel.getByRole('tab', { name: 'Notes' }))
+      await vi.waitFor(() => expect(note).not.toBeVisible())
+      await user.click(panel.getByRole('tab', { name: 'Candidature' }))
+
+      await vi.waitFor(() => expect(note).toBeVisible())
+      expect(note).toHaveValue('À rappeler')
     })
 
     it('keeps the note across tabs without asking', async () => {

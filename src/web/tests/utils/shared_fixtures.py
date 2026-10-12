@@ -46,9 +46,6 @@ from application.ingestion.usecases.list_sources import ListSourcesUsecase
 from application.ingestion.usecases.load_documents import LoadDocumentsUsecase
 from application.ingestion.usecases.upsert_offers import UpsertOffersUsecase
 from application.ingestion.usecases.vectorize_documents import VectorizeDocumentsUsecase
-from application.recruteur.usecases.update_organisme_steps import (
-    UpdateOrganismeStepsUsecase,
-)
 from config.app_config import AppConfig
 from domain.candidate.repositories.cv_metadata_repository_interface import (
     ICVMetadataRepository,
@@ -78,9 +75,6 @@ from domain.ingestion.repositories.user_source_repository_interface import (
     IUserSourceRepository,
 )
 from domain.ingestion.repositories.vector_repository_interface import IVectorRepository
-from domain.recruteur.repositories.organisme_repository_interface import (
-    IOrganismeRecruteurRepository,
-)
 from infrastructure.di.ingestion.ingestion_container import IngestionContainer
 from infrastructure.di.shared.shared_container import SharedContainer
 from infrastructure.factories.identite.utilisateur_django_factory import (
@@ -524,17 +518,4 @@ def calculate_daily_stats_usecase():
     return CalculateDailyStatsUsecase(
         offer_stats_query_service=offer_stats_query_service,
         stat_snapshot_writer=stat_snapshot_writer,
-    )
-
-
-@pytest.fixture
-def update_organisme_steps_usecase():
-    organisme_recruteur_repo = cast(
-        IOrganismeRecruteurRepository,
-        create_interface_aware_mock(IOrganismeRecruteurRepository),
-    )
-    return UpdateOrganismeStepsUsecase(
-        organisme_recruteur_repository=organisme_recruteur_repo,
-        audit_log_writer=MagicMock(spec=AuditLogWriter),
-        organisme_permission_service=MagicMock(spec=OrganismePermissionService),
     )

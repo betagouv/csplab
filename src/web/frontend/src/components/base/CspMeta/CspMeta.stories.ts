@@ -9,7 +9,7 @@ const meta = {
   tags: ['autodocs'],
   parameters: {
     controls: {
-      include: ['label', 'icon', 'srLabel', 'size'],
+      include: ['label', 'icon', 'srLabel', 'copy', 'size'],
     },
     docs: {
       description: {
@@ -32,6 +32,11 @@ const meta = {
       control: { type: 'text' },
       description: 'Préfixe réservé aux lecteurs d’écran. Obligatoire pour fournir le contexte sémantique de la métadonnée.',
       table: { type: { summary: 'string' } },
+    },
+    copy: {
+      control: { type: 'object' },
+      description: 'Ajoute un bouton qui copie le texte dans le presse-papier : libellé du bouton et message de confirmation.',
+      table: { type: { summary: '{ action: string, confirmation: string }' } },
     },
     size: {
       control: { type: 'radio' },
@@ -96,5 +101,15 @@ export const Sizes: Story = {
   }),
   parameters: {
     controls: { disable: true },
+  },
+}
+
+export const Copyable: Story = {
+  name: 'Copiable',
+  args: {
+    label: 'candidat@example.fr',
+    icon: 'ri:mail-line',
+    srLabel: 'Courriel',
+    copy: { action: 'Copier le courriel', confirmation: 'Courriel copié dans le presse-papier' },
   },
 }
