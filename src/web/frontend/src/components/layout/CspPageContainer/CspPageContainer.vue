@@ -29,7 +29,7 @@ const activeTab = defineModel<T>('activeTab')
     <CspTabs
       v-if="tabs && tabs.length > 0"
       v-model="activeTab"
-      :fill="fill"
+      fill
     >
       <div class="csp-page-container__tabs">
         <CspTabsList :tabs="tabs" />
@@ -42,7 +42,7 @@ const activeTab = defineModel<T>('activeTab')
       </div>
       <CspTabsPanels
         :tabs="tabs"
-        :fill="fill"
+        fill
       >
         <template
           v-if="$slots.tab"
@@ -77,9 +77,23 @@ const activeTab = defineModel<T>('activeTab')
 </template>
 
 <style scoped lang="scss">
+@use '@/styles/breakpoints' as bp;
+
 .csp-page-container {
   box-sizing: border-box;
   container: page / inline-size;
+
+  @include bp.fixed-header {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+
+    :deep(.csp-tabs__content) {
+      overflow-y: auto;
+    }
+  }
 }
 
 .csp-page-container--fill {
