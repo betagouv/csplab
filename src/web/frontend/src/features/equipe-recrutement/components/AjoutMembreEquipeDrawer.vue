@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import type { RecrutementRole } from '../types'
 import type { CspRadioGroupOption } from '@/components/base/CspRadioGroup/CspRadioGroup.vue'
-import type { AgentSearchStatus } from '@/features/organismes/composables/useAgentParEmail'
-import type { AgentRecherche } from '@/features/organismes/types'
+import type { AgentSearchStatus } from '@/features/agents/composables/useAgentParEmail'
+import type { AgentRecherche } from '@/features/agents/types'
 import { computed, ref, watch } from 'vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspDrawer from '@/components/base/CspDrawer/CspDrawer.vue'
 import CspRadioGroup from '@/components/base/CspRadioGroup/CspRadioGroup.vue'
-import AgentRechercheForm from '@/features/organismes/components/AgentRechercheForm.vue'
+import AgentRechercheForm from '@/features/agents/components/AgentRechercheForm.vue'
 import { RECRUTEMENT_ROLE_LABELS } from '../constants/equipe-recrutement'
 
 const props = defineProps<{

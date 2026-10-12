@@ -83,7 +83,7 @@ describe('candidatureCv', () => {
     expect(await screen.findByText('Le CV n\'a pas pu être chargé.')).toBeInTheDocument()
     expect(screen.queryByTitle('CV de Alice Dupont')).not.toBeInTheDocument()
     expect(screen.queryByRole('link')).not.toBeInTheDocument()
-    expect(checkCandidatureDocument).toHaveBeenCalledWith(CANDIDATURE_PARAMS, CV_UUID)
+    expect(checkCandidatureDocument).toHaveBeenCalledWith({ ...CANDIDATURE_PARAMS, documentUuid: CV_UUID })
   })
 
   it('shows an error when the documents cannot be loaded', async () => {

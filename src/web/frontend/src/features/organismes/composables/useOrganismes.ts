@@ -1,25 +1,22 @@
 import type { CreateOrganismePayload, UpdateOrganismePayload } from '../types'
 import { useMutation, useQuery, useQueryCache } from '@pinia/colada'
+import { organismeKeys } from '@/api/queryKeys'
 import { createOrganisme, updateOrganisme } from '../api'
-import { ORGANISMES_QUERY_KEYS, organismesListQuery } from '../queries'
+import { invalidateOrganisme, organismesListQuery } from '../queries'
 
 export function useOrganismes() {
   const queryCache = useQueryCache()
   const query = useQuery(organismesListQuery)
 
-  function invalidate() {
-    return queryCache.invalidateQueries({ key: ORGANISMES_QUERY_KEYS.root })
-  }
-
   const createMutation = useMutation({
     mutation: (payload: CreateOrganismePayload) => createOrganisme(payload),
-    onSettled: invalidate,
+    onSettled: () => queryCache.invalidateQueries({ key: organismeKeys.list() }),
   })
 
   const updateMutation = useMutation({
     mutation: ({ organismeUuid, payload }: { organismeUuid: string, payload: UpdateOrganismePayload }) =>
       updateOrganisme(organismeUuid, payload),
-    onSettled: invalidate,
+    onSettled: (_data, _error, { organismeUuid }) => invalidateOrganisme(queryCache, { organismeUuid }),
   })
 
   return {

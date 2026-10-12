@@ -1,6 +1,6 @@
 import type { MembreEquipe } from './types'
 import type { CspColumnDef } from '@/components/base/CspDataTable/table'
-import AgentNomCell from '@/features/organismes/components/cells/AgentNomCell.vue'
+import AgentNomCell from '@/features/agents/components/cells/AgentNomCell.vue'
 import MembreActionsCell from './components/cells/MembreActionsCell.vue'
 import { formatMembreNameAlphabetical, formatRecrutementRole } from './format'
 

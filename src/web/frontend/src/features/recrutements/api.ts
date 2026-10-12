@@ -5,12 +5,10 @@ import type {
   PaginatedRecrutementsArchivesResponse,
   RecrutementDetail,
 } from './types'
+import type { OrganismeParams, RecrutementParams } from '@/api/params'
 import { api } from '@/api/client'
 
-export async function getRecrutementDetail(
-  organismeUuid: string,
-  recrutementUuid: string,
-): Promise<RecrutementDetail> {
+export async function getRecrutementDetail({ organismeUuid, recrutementUuid }: RecrutementParams): Promise<RecrutementDetail> {
   const { data } = await api.GET(
     '/recruteur/organismes/{organisme_uuid}/recrutements/{recrutement_uuid}',
     {
@@ -25,14 +23,14 @@ export async function getRecrutementDetail(
   return data!
 }
 
-export async function getRecrutementsActifs(organismeUuid: string): Promise<PaginatedRecrutementsActifsResponse> {
+export async function getRecrutementsActifs({ organismeUuid }: OrganismeParams): Promise<PaginatedRecrutementsActifsResponse> {
   const { data } = await api.GET('/recruteur/organismes/{organisme_uuid}/recrutements-actifs', {
     params: { path: { organisme_uuid: organismeUuid } },
   })
   return data!
 }
 
-export async function getRecrutementsArchives(organismeUuid: string): Promise<PaginatedRecrutementsArchivesResponse> {
+export async function getRecrutementsArchives({ organismeUuid }: OrganismeParams): Promise<PaginatedRecrutementsArchivesResponse> {
   const { data } = await api.GET('/recruteur/organismes/{organisme_uuid}/recrutements-archives', {
     params: { path: { organisme_uuid: organismeUuid } },
   })

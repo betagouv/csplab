@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import type { CandidatureParams, NoteRouteNames } from '../types'
+import type { NoteRouteNames } from '../types'
+import type { CandidatureParams } from '@/api/params'
 import { computed, onMounted, ref, useId } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import CspButton from '@/components/base/CspButton/CspButton.vue'

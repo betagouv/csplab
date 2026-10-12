@@ -20,6 +20,6 @@ describe('offreEtapesRecrutementView', () => {
     await renderWithApp(RouterView, { route: `${KANBAN_PATH}/etapes-recrutement` })
 
     expect(await screen.findByRole('link', { name: 'Chargé de mission' })).toBeInTheDocument()
-    expect(getEtapesOffre).toHaveBeenCalledWith(ORGANISME_UUID, RECRUTEMENT_UUID)
+    expect(getEtapesOffre).toHaveBeenCalledWith({ organismeUuid: ORGANISME_UUID, recrutementUuid: RECRUTEMENT_UUID })
   })
 })

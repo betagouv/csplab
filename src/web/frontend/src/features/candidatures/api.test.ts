@@ -40,7 +40,7 @@ describe('getCandidatureListe', () => {
   it('requests the whole liste in one page when the first page is incomplete', async () => {
     serveListe(250)
 
-    const liste = await getCandidatureListe('organisme', 'recrutement')
+    const liste = await getCandidatureListe({ organismeUuid: 'organisme', recrutementUuid: 'recrutement' })
 
     expect(requestedQueries()).toEqual(['', '?taille=250'])
     expect(liste.count).toBe(250)
@@ -52,7 +52,7 @@ describe('getCandidatureListe', () => {
   it('requests a single page when the first page holds the whole liste', async () => {
     serveListe(42)
 
-    const liste = await getCandidatureListe('organisme', 'recrutement')
+    const liste = await getCandidatureListe({ organismeUuid: 'organisme', recrutementUuid: 'recrutement' })
 
     expect(requestedQueries()).toEqual([''])
     expect(liste.results).toHaveLength(42)

@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import type { CandidatureParams, NoteRouteNames } from '../types'
+import type { NoteRouteNames } from '../types'
+import type { CandidatureParams } from '@/api/params'
 import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import CspAsyncSection from '@/components/base/CspAsyncSection/CspAsyncSection.vue'

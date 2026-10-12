@@ -3,19 +3,23 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { defineComponent, h } from 'vue'
 import { HttpError } from '@/api/errors'
 import CspToaster from '@/components/base/CspToast/CspToaster.vue'
+import { searchAgentByEmail } from '@/features/agents/api'
 import { AGENT_ORGANISME, AGENT_RECHERCHE } from '@/test/fixtures/organismes'
 import { MTE_UUID } from '@/test/fixtures/utilisateur'
 import { renderWithApp, setupUser } from '@/test/render'
-import { getOrganismeAgents, searchAgentByEmail, setAgentRole, updateAgentRole } from '../api'
+import { getOrganismeAgents, setAgentRole, updateAgentRole } from '../api'
 import OrganismeAgentsSection from './OrganismeAgentsSection.vue'
 
 vi.mock('../api', async importOriginal => ({
   ...await importOriginal<typeof import('../api')>(),
   getOrganismeAgents: vi.fn(),
-  searchAgentByEmail: vi.fn(),
   setAgentRole: vi.fn(),
-  createAgent: vi.fn(),
   updateAgentRole: vi.fn(),
+}))
+
+vi.mock('@/features/agents/api', () => ({
+  searchAgentByEmail: vi.fn(),
+  createAgent: vi.fn(),
 }))
 
 const Host = defineComponent({

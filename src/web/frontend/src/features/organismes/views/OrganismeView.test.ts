@@ -22,6 +22,6 @@ describe('organismeView', () => {
 
     expect(await screen.findByRole('tab', { name: /Étapes de recrutement/, selected: true })).toBeInTheDocument()
     expect(await screen.findByRole('heading', { name: 'Étapes de recrutement' })).toBeInTheDocument()
-    expect(getEtapesRecrutement).toHaveBeenCalledWith(ORGANISME_DETAIL.uuid)
+    expect(getEtapesRecrutement).toHaveBeenCalledWith({ organismeUuid: ORGANISME_DETAIL.uuid })
   })
 })

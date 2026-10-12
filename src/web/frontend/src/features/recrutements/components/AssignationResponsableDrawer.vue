@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import type { RecrutementsActifs } from '../types'
-import type { AgentSearchStatus } from '@/features/organismes/composables/useAgentParEmail'
-import type { AgentRecherche } from '@/features/organismes/types'
+import type { AgentSearchStatus } from '@/features/agents/composables/useAgentParEmail'
+import type { AgentRecherche } from '@/features/agents/types'
 import { computed, ref, watch } from 'vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspDrawer from '@/components/base/CspDrawer/CspDrawer.vue'
 import CspTag from '@/components/base/CspTag/CspTag.vue'
-import AgentRechercheForm from '@/features/organismes/components/AgentRechercheForm.vue'
+import AgentRechercheForm from '@/features/agents/components/AgentRechercheForm.vue'
 import { pluralize } from '@/utils/format'
 
 const props = defineProps<{

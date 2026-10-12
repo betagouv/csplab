@@ -2,9 +2,9 @@ import type { MaybeRefOrGetter } from 'vue'
 import type { AssignationResponsablePayload, AssignationResponsableResultat } from '../types'
 import { useMutation, useQueryCache } from '@pinia/colada'
 import { computed, toValue } from 'vue'
-import { useAgentParEmail } from '@/features/organismes/composables/useAgentParEmail'
+import { organismeKeys } from '@/api/queryKeys'
+import { useAgentParEmail } from '@/features/agents/composables/useAgentParEmail'
 import { setRecrutementsResponsable } from '../api'
-import { RECRUTEMENTS_QUERY_KEYS } from '../queries'
 
 export function useAssignationResponsable(organismeUuid: MaybeRefOrGetter<string>) {
   const queryCache = useQueryCache()
@@ -16,7 +16,7 @@ export function useAssignationResponsable(organismeUuid: MaybeRefOrGetter<string
     mutation: (payload: AssignationResponsablePayload) =>
       setRecrutementsResponsable(toValue(organismeUuid), payload),
     onSettled: () => queryCache.invalidateQueries({
-      key: RECRUTEMENTS_QUERY_KEYS.actifs(toValue(organismeUuid)),
+      key: organismeKeys.recrutementsActifs({ organismeUuid: toValue(organismeUuid) }),
     }),
   })
 

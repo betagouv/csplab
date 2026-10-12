@@ -49,7 +49,7 @@ describe('useRecrutements', () => {
 
     await vi.waitFor(() => expect(pending.value).toBe(false))
 
-    expect(getRecrutementsActifs).toHaveBeenCalledWith(ORGANISME_UUID)
+    expect(getRecrutementsActifs).toHaveBeenCalledWith({ organismeUuid: ORGANISME_UUID })
     expect(data.actifs).toEqual(RECRUTEMENTS_ACTIFS)
   })
 
@@ -63,7 +63,7 @@ describe('useRecrutements', () => {
     activeKey.value = 'archives'
 
     await vi.waitFor(() => expect(data.archives).toEqual(RECRUTEMENTS_ARCHIVES))
-    expect(getRecrutementsArchives).toHaveBeenCalledWith(ORGANISME_UUID)
+    expect(getRecrutementsArchives).toHaveBeenCalledWith({ organismeUuid: ORGANISME_UUID })
   })
 
   it('exposes the error of the active tab on api failure', async () => {

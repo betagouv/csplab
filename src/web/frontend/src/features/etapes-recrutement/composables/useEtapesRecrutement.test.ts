@@ -1,7 +1,8 @@
+import type { QueryCache } from '@pinia/colada'
 import type { EtapeRecrutement, UpdateEtapeRecrutement } from '../types'
 import type { EtapesRecrutementType } from './useEtapesRecrutement'
 import { PiniaColada, useQueryCache } from '@pinia/colada'
-import { mount } from '@vue/test-utils'
+import { flushPromises, mount } from '@vue/test-utils'
 import { createPinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { defineComponent, h } from 'vue'
@@ -37,7 +38,7 @@ const DEFAULT_ETAPES: EtapeRecrutement[] = [
 async function mountEtapes(
   params: EtapesRecrutementType = { type: 'organisme', organismeUuid: ORGANISME_UUID },
 ) {
-  let result!: ReturnType<typeof useEtapesRecrutement> & { queryCache: ReturnType<typeof useQueryCache> }
+  let result!: ReturnType<typeof useEtapesRecrutement> & { queryCache: QueryCache }
 
   mount(defineComponent({
     setup() {
@@ -69,7 +70,7 @@ describe('useEtapesRecrutement', () => {
   it('loads etapes on mount', async () => {
     const { etapes } = await mountEtapes()
 
-    expect(mockGetEtapesRecrutement).toHaveBeenCalledWith(ORGANISME_UUID)
+    expect(mockGetEtapesRecrutement).toHaveBeenCalledWith({ organismeUuid: ORGANISME_UUID })
     expect(etapes.value).toEqual(DEFAULT_ETAPES)
   })
 
@@ -185,7 +186,7 @@ describe('useEtapesRecrutement — type offre', () => {
   it('loads etapes from the offre endpoint', async () => {
     const { etapes } = await mountEtapes(PARAMS_OFFRE)
 
-    expect(mockGetEtapesOffre).toHaveBeenCalledWith(ORGANISME_UUID, RECRUTEMENT_UUID)
+    expect(mockGetEtapesOffre).toHaveBeenCalledWith({ organismeUuid: ORGANISME_UUID, recrutementUuid: RECRUTEMENT_UUID })
     expect(mockGetEtapesRecrutement).not.toHaveBeenCalled()
     expect(etapes.value).toEqual(DEFAULT_ETAPES)
   })
@@ -202,18 +203,18 @@ describe('useEtapesRecrutement — type offre', () => {
     expect(mockUpdateEtapesRecrutement).not.toHaveBeenCalled()
   })
 
-  it('invalidates the recrutement caches that display its etapes', async () => {
+  it('invalidates the recrutement caches without refetching its etapes', async () => {
     const { renameEtape, queryCache } = await mountEtapes(PARAMS_OFFRE)
     const invalidateQueries = vi.spyOn(queryCache, 'invalidateQueries')
 
     await renameEtape('bbbb', 'Présélection RH')
+    await flushPromises()
 
     expect(invalidateQueries).toHaveBeenCalledWith({
-      key: ['candidatures', ORGANISME_UUID, RECRUTEMENT_UUID],
+      key: ['organismes', ORGANISME_UUID, 'recrutements', RECRUTEMENT_UUID],
+      predicate: expect.any(Function),
     })
-    expect(invalidateQueries).toHaveBeenCalledWith({
-      key: ['recrutements', ORGANISME_UUID, RECRUTEMENT_UUID],
-    })
+    expect(mockGetEtapesOffre).toHaveBeenCalledOnce()
   })
 
   it('resets etapes on the offre endpoint', async () => {

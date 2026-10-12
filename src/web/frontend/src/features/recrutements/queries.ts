@@ -1,62 +1,49 @@
-import type { useQueryCache } from '@pinia/colada'
+import type { QueryCache } from '@pinia/colada'
 import type {
   PaginatedRecrutementsActifsResponse,
   PaginatedRecrutementsArchivesResponse,
 } from './types'
+import type { OrganismeParams, RecrutementParams } from '@/api/params'
 import { defineQueryOptions } from '@pinia/colada'
+import { organismeKeys, recrutementKeys } from '@/api/queryKeys'
 import {
   getRecrutementDetail,
   getRecrutementsActifs,
   getRecrutementsArchives,
 } from './api'
 
-export const RECRUTEMENTS_QUERY_KEYS = {
-  root: ['recrutements'] as const,
-  actifs: (organismeUuid: string) =>
-    [...RECRUTEMENTS_QUERY_KEYS.root, organismeUuid, 'actifs'] as const,
-  archives: (organismeUuid: string) =>
-    [...RECRUTEMENTS_QUERY_KEYS.root, organismeUuid, 'archives'] as const,
-  detail: (organismeUuid: string, recrutementUuid: string) =>
-    [...RECRUTEMENTS_QUERY_KEYS.root, organismeUuid, recrutementUuid] as const,
-}
+export const recrutementDetailQuery = defineQueryOptions((params: RecrutementParams) => {
+  return {
+    key: recrutementKeys.detail(params),
+    query: () => getRecrutementDetail(params),
+  }
+})
 
-export interface RecrutementParams {
-  organismeUuid: string
-  recrutementUuid: string
-}
+export const recrutementsActifsQuery = defineQueryOptions((params: OrganismeParams) => {
+  return {
+    key: organismeKeys.recrutementsActifs(params),
+    query: () => getRecrutementsActifs(params),
+  }
+})
 
-export const recrutementDetailQuery = defineQueryOptions(
-  ({ organismeUuid, recrutementUuid }: RecrutementParams) => ({
-    key: RECRUTEMENTS_QUERY_KEYS.detail(organismeUuid, recrutementUuid),
-    query: () => getRecrutementDetail(organismeUuid, recrutementUuid),
-  }),
-)
-
-export const recrutementsActifsQuery = defineQueryOptions(
-  ({ organismeUuid }: { organismeUuid: string }) => ({
-    key: RECRUTEMENTS_QUERY_KEYS.actifs(organismeUuid),
-    query: () => getRecrutementsActifs(organismeUuid),
-  }),
-)
-
-export const recrutementsArchivesQuery = defineQueryOptions(
-  ({ organismeUuid }: { organismeUuid: string }) => ({
-    key: RECRUTEMENTS_QUERY_KEYS.archives(organismeUuid),
-    query: () => getRecrutementsArchives(organismeUuid),
-  }),
-)
+export const recrutementsArchivesQuery = defineQueryOptions((params: OrganismeParams) => {
+  return {
+    key: organismeKeys.recrutementsArchives(params),
+    query: () => getRecrutementsArchives(params),
+  }
+})
 
 export function peekRecrutementIntitule(
-  queryCache: ReturnType<typeof useQueryCache>,
+  queryCache: QueryCache,
   organismeUuid: string,
   offerId: string,
 ): string | null {
   const lists = [
     queryCache.getQueryData<PaginatedRecrutementsActifsResponse>(
-      RECRUTEMENTS_QUERY_KEYS.actifs(organismeUuid),
+      organismeKeys.recrutementsActifs({ organismeUuid }),
     ),
     queryCache.getQueryData<PaginatedRecrutementsArchivesResponse>(
-      RECRUTEMENTS_QUERY_KEYS.archives(organismeUuid),
+      organismeKeys.recrutementsArchives({ organismeUuid }),
     ),
   ]
 

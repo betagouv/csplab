@@ -1,5 +1,5 @@
 import type { MaybeRefOrGetter } from 'vue'
-import type { CandidatureParams } from '../types'
+import type { CandidatureParams } from '@/api/params'
 import { useQuery } from '@pinia/colada'
 import { computed, toValue } from 'vue'
 import { isHttpStatus } from '@/api/errors'

@@ -63,7 +63,7 @@ describe('useEquipeRecrutement', () => {
 
     expect(result.pending.value).toBe(false)
     expect(result.membres.value).toEqual(MEMBRES)
-    expect(mockGetEquipeRecrutement).toHaveBeenCalledWith(ORGANISME_UUID, RECRUTEMENT_UUID)
+    expect(mockGetEquipeRecrutement).toHaveBeenCalledWith({ organismeUuid: ORGANISME_UUID, recrutementUuid: RECRUTEMENT_UUID })
   })
 
   it('exposes an empty team while the members are loading', () => {
@@ -125,9 +125,9 @@ describe('useEquipeRecrutement', () => {
     await flush()
 
     expect(mockGetEquipeRecrutement).toHaveBeenCalledTimes(2)
-    expect(mockGetEquipeRecrutement).toHaveBeenLastCalledWith(
-      ORGANISME_UUID,
-      AUTRE_RECRUTEMENT_UUID,
-    )
+    expect(mockGetEquipeRecrutement).toHaveBeenLastCalledWith({
+      organismeUuid: ORGANISME_UUID,
+      recrutementUuid: AUTRE_RECRUTEMENT_UUID,
+    })
   })
 })

@@ -1,5 +1,6 @@
 import type { MaybeRefOrGetter } from 'vue'
-import type { CandidatureParams, DocumentListe } from '../types'
+import type { DocumentListe } from '../types'
+import type { CandidatureParams } from '@/api/params'
 import { useQuery } from '@pinia/colada'
 import { computed, toValue } from 'vue'
 import { candidatureDocumentUrl } from '../api'
@@ -33,7 +34,7 @@ export function useCandidatureDocumentCheck(
   documentUuid: MaybeRefOrGetter<string | null>,
 ) {
   const query = useQuery(() => ({
-    ...candidatureDocumentCheckQuery({ candidature: toValue(candidature), documentUuid: toValue(documentUuid) ?? '' }),
+    ...candidatureDocumentCheckQuery({ ...toValue(candidature), documentUuid: toValue(documentUuid) ?? '' }),
     enabled: toValue(documentUuid) !== null,
   }))
 

@@ -1,84 +1,61 @@
-import type { CandidatureParams } from './types'
-import type { RecrutementParams } from '@/features/recrutements/queries'
+import type { ActivitesParams } from './types'
+import type { CandidatureParams, DocumentParams, OrganismeParams, RecrutementParams } from '@/api/params'
 import { defineQueryOptions } from '@pinia/colada'
+import { candidatureKeys, organismeKeys, recrutementKeys } from '@/api/queryKeys'
 import { checkCandidatureDocument, getCandidatureActivites, getCandidatureDetail, getCandidatureDocuments, getCandidatureListe, getCandidatureNotes, getMotifsRefus, getRecrutementKanban } from './api'
 
-export const CANDIDATURES_QUERY_KEYS = {
-  root: ['candidatures'] as const,
-  recrutement: (organismeUuid: string, recrutementUuid: string) =>
-    [...CANDIDATURES_QUERY_KEYS.root, organismeUuid, recrutementUuid] as const,
-  kanban: (organismeUuid: string, recrutementUuid: string) =>
-    [...CANDIDATURES_QUERY_KEYS.recrutement(organismeUuid, recrutementUuid), 'kanban'] as const,
-  liste: (organismeUuid: string, recrutementUuid: string) =>
-    [...CANDIDATURES_QUERY_KEYS.recrutement(organismeUuid, recrutementUuid), 'liste'] as const,
-  candidature: ({ organismeUuid, recrutementUuid, candidatureUuid }: CandidatureParams) =>
-    [...CANDIDATURES_QUERY_KEYS.recrutement(organismeUuid, recrutementUuid), 'candidature', candidatureUuid] as const,
-  detail: (candidature: CandidatureParams) =>
-    [...CANDIDATURES_QUERY_KEYS.candidature(candidature), 'detail'] as const,
-  motifsRefus: (organismeUuid: string) =>
-    [...CANDIDATURES_QUERY_KEYS.root, organismeUuid, 'motifs-refus'] as const,
-  documents: (candidature: CandidatureParams) =>
-    [...CANDIDATURES_QUERY_KEYS.candidature(candidature), 'documents'] as const,
-  document: (candidature: CandidatureParams, documentUuid: string) =>
-    [...CANDIDATURES_QUERY_KEYS.documents(candidature), documentUuid] as const,
-  notes: (candidature: CandidatureParams) =>
-    [...CANDIDATURES_QUERY_KEYS.candidature(candidature), 'notes'] as const,
-  activites: (candidature: CandidatureParams) =>
-    [...CANDIDATURES_QUERY_KEYS.candidature(candidature), 'activites'] as const,
-}
+export const recrutementKanbanQuery = defineQueryOptions((params: RecrutementParams) => {
+  return {
+    key: recrutementKeys.kanban(params),
+    query: () => getRecrutementKanban(params),
+  }
+})
 
-export const recrutementKanbanQuery = defineQueryOptions(
-  ({ organismeUuid, recrutementUuid }: RecrutementParams) => ({
-    key: CANDIDATURES_QUERY_KEYS.kanban(organismeUuid, recrutementUuid),
-    query: () => getRecrutementKanban(organismeUuid, recrutementUuid),
-  }),
-)
+export const candidatureListeQuery = defineQueryOptions((params: RecrutementParams) => {
+  return {
+    key: recrutementKeys.liste(params),
+    query: () => getCandidatureListe(params),
+  }
+})
 
-export const candidatureListeQuery = defineQueryOptions(
-  ({ organismeUuid, recrutementUuid }: RecrutementParams) => ({
-    key: CANDIDATURES_QUERY_KEYS.liste(organismeUuid, recrutementUuid),
-    query: () => getCandidatureListe(organismeUuid, recrutementUuid),
-  }),
-)
+export const candidatureDetailQuery = defineQueryOptions((params: CandidatureParams) => {
+  return {
+    key: candidatureKeys.detail(params),
+    query: () => getCandidatureDetail(params),
+  }
+})
 
-export const candidatureDetailQuery = defineQueryOptions(
-  (candidature: CandidatureParams) => ({
-    key: CANDIDATURES_QUERY_KEYS.detail(candidature),
-    query: () => getCandidatureDetail(candidature),
-  }),
-)
+export const motifsRefusQuery = defineQueryOptions((params: OrganismeParams) => {
+  return {
+    key: organismeKeys.motifsRefus(params),
+    query: () => getMotifsRefus(params),
+  }
+})
 
-export const motifsRefusQuery = defineQueryOptions(
-  ({ organismeUuid }: { organismeUuid: string }) => ({
-    key: CANDIDATURES_QUERY_KEYS.motifsRefus(organismeUuid),
-    query: () => getMotifsRefus(organismeUuid),
-  }),
-)
+export const candidatureDocumentsQuery = defineQueryOptions((params: CandidatureParams) => {
+  return {
+    key: candidatureKeys.documents(params),
+    query: () => getCandidatureDocuments(params),
+  }
+})
 
-export const candidatureDocumentsQuery = defineQueryOptions(
-  (candidature: CandidatureParams) => ({
-    key: CANDIDATURES_QUERY_KEYS.documents(candidature),
-    query: () => getCandidatureDocuments(candidature),
-  }),
-)
+export const candidatureNotesQuery = defineQueryOptions((params: CandidatureParams) => {
+  return {
+    key: candidatureKeys.notes(params),
+    query: () => getCandidatureNotes(params),
+  }
+})
 
-export const candidatureNotesQuery = defineQueryOptions(
-  (candidature: CandidatureParams) => ({
-    key: CANDIDATURES_QUERY_KEYS.notes(candidature),
-    query: () => getCandidatureNotes(candidature),
-  }),
-)
+export const candidatureDocumentCheckQuery = defineQueryOptions((params: DocumentParams) => {
+  return {
+    key: candidatureKeys.document(params),
+    query: () => checkCandidatureDocument(params),
+  }
+})
 
-export const candidatureDocumentCheckQuery = defineQueryOptions(
-  ({ candidature, documentUuid }: { candidature: CandidatureParams, documentUuid: string }) => ({
-    key: CANDIDATURES_QUERY_KEYS.document(candidature, documentUuid),
-    query: () => checkCandidatureDocument(candidature, documentUuid),
-  }),
-)
-
-export const candidatureActivitesQuery = defineQueryOptions(
-  ({ candidature, limit }: { candidature: CandidatureParams, limit?: number }) => ({
-    key: [...CANDIDATURES_QUERY_KEYS.activites(candidature), limit ?? null],
-    query: () => getCandidatureActivites(candidature, limit),
-  }),
-)
+export const candidatureActivitesQuery = defineQueryOptions((params: ActivitesParams) => {
+  return {
+    key: [...candidatureKeys.activites(params), params.limit ?? null],
+    query: () => getCandidatureActivites(params),
+  }
+})

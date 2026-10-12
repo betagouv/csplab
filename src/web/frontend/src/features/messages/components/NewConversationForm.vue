@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { ConversationRouteNames } from '../types'
-import type { CandidatureParams } from '@/features/candidatures/types'
+import type { CandidatureParams } from '@/api/params'
 import { computed, onMounted, ref, useId, useTemplateRef, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ValidationError } from '@/api/errors'

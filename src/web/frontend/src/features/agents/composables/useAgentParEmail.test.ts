@@ -10,12 +10,8 @@ const mockSearchAgentByEmail = vi.fn()
 const mockCreateAgent = vi.fn()
 
 vi.mock('../api', () => ({
-  getOrganismesList: vi.fn(),
-  getOrganismeAgents: vi.fn(),
   createAgent: (...args: unknown[]) => mockCreateAgent(...args),
   searchAgentByEmail: (...args: unknown[]) => mockSearchAgentByEmail(...args),
-  setAgentRole: vi.fn(),
-  updateAgentRole: vi.fn(),
 }))
 
 const ORGANISME_UUID = '11111111-1111-1111-1111-111111111111'

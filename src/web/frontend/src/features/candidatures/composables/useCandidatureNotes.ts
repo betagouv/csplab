@@ -1,9 +1,11 @@
 import type { MaybeRefOrGetter } from 'vue'
-import type { CandidatureParams, Note } from '../types'
+import type { Note } from '../types'
+import type { CandidatureParams } from '@/api/params'
 import { useMutation, useQuery, useQueryCache } from '@pinia/colada'
 import { computed, toValue } from 'vue'
+import { candidatureKeys } from '@/api/queryKeys'
 import { createCandidatureNote } from '../api'
-import { candidatureNotesQuery, CANDIDATURES_QUERY_KEYS } from '../queries'
+import { candidatureNotesQuery } from '../queries'
 
 export function useCandidatureNotes(candidature: MaybeRefOrGetter<CandidatureParams>) {
   const query = useQuery(() => candidatureNotesQuery(toValue(candidature)))
@@ -22,8 +24,8 @@ export function useCreateCandidatureNote(candidature: MaybeRefOrGetter<Candidatu
   const mutation = useMutation({
     mutation: (message: string) => createCandidatureNote(toValue(candidature), message),
     onSuccess: () => {
-      queryCache.invalidateQueries({ key: CANDIDATURES_QUERY_KEYS.notes(toValue(candidature)) })
-      queryCache.invalidateQueries({ key: CANDIDATURES_QUERY_KEYS.activites(toValue(candidature)) })
+      queryCache.invalidateQueries({ key: candidatureKeys.notes(toValue(candidature)) })
+      queryCache.invalidateQueries({ key: candidatureKeys.activites(toValue(candidature)) })
     },
   })
 

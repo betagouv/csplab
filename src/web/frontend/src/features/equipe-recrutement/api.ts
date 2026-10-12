@@ -1,10 +1,8 @@
 import type { MembreEquipe, MembreEquipePayload } from './types'
+import type { RecrutementParams } from '@/api/params'
 import { api } from '@/api/client'
 
-export async function getEquipeRecrutement(
-  organismeUuid: string,
-  recrutementUuid: string,
-): Promise<MembreEquipe[]> {
+export async function getEquipeRecrutement({ organismeUuid, recrutementUuid }: RecrutementParams): Promise<MembreEquipe[]> {
   const { data } = await api.GET(
     '/recruteur/organismes/{organisme_uuid}/recrutements/{recrutement_uuid}/parametres/agents',
     {

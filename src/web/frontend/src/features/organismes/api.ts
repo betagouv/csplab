@@ -1,13 +1,13 @@
-import type { Agent, AgentOrganisme, AgentRecherche, CreateAgentPayload, CreateOrganismePayload, OrganismeDetail, OrganismesList, SetAgentRolePayload, UpdateAgentRolePayload, UpdateOrganismePayload } from './types'
+import type { AgentOrganisme, CreateOrganismePayload, OrganismeDetail, OrganismesList, SetAgentRolePayload, UpdateAgentRolePayload, UpdateOrganismePayload } from './types'
+import type { OrganismeParams } from '@/api/params'
 import { api } from '@/api/client'
-import { isHttpStatus } from '@/api/errors'
 
 export async function getOrganismesList(): Promise<OrganismesList[]> {
   const { data } = await api.GET('/recruteur/organismes')
   return data!
 }
 
-export async function getOrganismeDetail(organismeUuid: string): Promise<OrganismeDetail> {
+export async function getOrganismeDetail({ organismeUuid }: OrganismeParams): Promise<OrganismeDetail> {
   const { data } = await api.GET('/recruteur/organismes/{organisme_uuid}', {
     params: { path: { organisme_uuid: organismeUuid } },
   })
@@ -30,7 +30,7 @@ export async function updateOrganisme(
   return data!
 }
 
-export async function getOrganismeAgents(organismeUuid: string): Promise<AgentOrganisme[]> {
+export async function getOrganismeAgents({ organismeUuid }: OrganismeParams): Promise<AgentOrganisme[]> {
   const { data } = await api.GET('/recruteur/organismes/{organisme_uuid}/parametres/agents', {
     params: { path: { organisme_uuid: organismeUuid } },
   })
@@ -56,31 +56,5 @@ export async function updateAgentRole(
     params: { path: { organisme_uuid: organismeUuid } },
     body: payload,
   })
-  return data!
-}
-
-export async function searchAgentByEmail(
-  organismeUuid: string,
-  email: string,
-): Promise<AgentRecherche | null> {
-  try {
-    const { data } = await api.GET('/recruteur/organismes/{organisme_uuid}/parametres/agents/recherche', {
-      params: {
-        path: { organisme_uuid: organismeUuid },
-        query: { email },
-      },
-    })
-    return data!
-  }
-  catch (error) {
-    if (isHttpStatus(error, 404)) {
-      return null
-    }
-    throw error
-  }
-}
-
-export async function createAgent(payload: CreateAgentPayload): Promise<Agent> {
-  const { data } = await api.POST('/recruteur/agents', { body: payload })
   return data!
 }

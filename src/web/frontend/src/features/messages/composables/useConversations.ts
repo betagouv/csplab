@@ -1,10 +1,11 @@
 import type { MaybeRefOrGetter } from 'vue'
 import type { Conversation, CreateConversationPayload, PaginatedConversationList } from '../types'
-import type { CandidatureParams } from '@/features/candidatures/types'
+import type { CandidatureParams } from '@/api/params'
 import { useMutation, useQuery, useQueryCache } from '@pinia/colada'
 import { computed, toValue } from 'vue'
+import { candidatureKeys } from '@/api/queryKeys'
 import { createConversation } from '../api'
-import { conversationsQuery, MESSAGES_QUERY_KEYS } from '../queries'
+import { conversationsQuery } from '../queries'
 
 export function useConversations(candidature: MaybeRefOrGetter<CandidatureParams>) {
   const query = useQuery(() => conversationsQuery(toValue(candidature)))
@@ -24,7 +25,7 @@ export function useCreateConversation(candidature: MaybeRefOrGetter<CandidatureP
   const queryCache = useQueryCache()
 
   function prependToList(target: CandidatureParams, conversation: Conversation) {
-    const key = MESSAGES_QUERY_KEYS.conversations(target)
+    const key = candidatureKeys.conversations(target)
     const list = queryCache.getQueryData<PaginatedConversationList>(key)
     if (!list) {
       return
@@ -41,7 +42,7 @@ export function useCreateConversation(candidature: MaybeRefOrGetter<CandidatureP
       createConversation(target, payload),
     onSuccess: (conversation, { target }) => {
       prependToList(target, conversation)
-      void queryCache.invalidateQueries({ key: MESSAGES_QUERY_KEYS.conversations(target) })
+      void queryCache.invalidateQueries({ key: candidatureKeys.conversations(target) })
     },
   })
 

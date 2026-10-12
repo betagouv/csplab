@@ -2,11 +2,9 @@ import type { MaybeRefOrGetter } from 'vue'
 import type { Role, SetAgentRolePayload } from '../types'
 import { useMutation, useQueryCache } from '@pinia/colada'
 import { computed, toValue } from 'vue'
+import { useAgentParEmail } from '@/features/agents/composables/useAgentParEmail'
 import { setAgentRole } from '../api'
-import { ORGANISMES_QUERY_KEYS } from '../queries'
-import { useAgentParEmail } from './useAgentParEmail'
-
-export type { AgentSearchStatus } from './useAgentParEmail'
+import { invalidateOrganisme } from '../queries'
 
 export function useAjoutMembre(organismeUuid: MaybeRefOrGetter<string>) {
   const queryCache = useQueryCache()
@@ -17,7 +15,7 @@ export function useAjoutMembre(organismeUuid: MaybeRefOrGetter<string>) {
   const attachMutation = useMutation({
     mutation: (payload: SetAgentRolePayload) =>
       setAgentRole(toValue(organismeUuid), payload),
-    onSettled: () => queryCache.invalidateQueries({ key: ORGANISMES_QUERY_KEYS.root }),
+    onSettled: () => invalidateOrganisme(queryCache, { organismeUuid: toValue(organismeUuid) }),
   })
 
   async function add(role: Role) {

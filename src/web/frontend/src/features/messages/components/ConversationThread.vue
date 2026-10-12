@@ -1,13 +1,13 @@
 <script setup lang="ts">
-import type { CandidatureParams } from '@/features/candidatures/types'
+import type { CandidatureParams } from '@/api/params'
 import { useTemplateRef, watch } from 'vue'
 import CspAsyncSection from '@/components/base/CspAsyncSection/CspAsyncSection.vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspIcon from '@/components/base/CspIcon/CspIcon.vue'
 import CspSkeleton from '@/components/base/CspSkeleton/CspSkeleton.vue'
 import { useMinimumPending } from '@/composables/async/useMinimumPending'
-import { formatFileSize } from '@/features/candidatures/utils/file'
 import { formatDateTime } from '@/utils/date'
+import { formatFileSize } from '@/utils/format'
 import { useConversationMessages } from '../composables/useConversationMessages'
 import MessageComposer from './MessageComposer.vue'
 
@@ -19,7 +19,7 @@ const props = defineProps<{
 const SKELETON_ROWS = 3
 
 const { messages, pending, error } = useConversationMessages(() => ({
-  candidature: props.candidature,
+  ...props.candidature,
   conversationUuid: props.conversationUuid,
 }))
 

@@ -1,13 +1,13 @@
 import type { AgentOrganisme, OrganismesList } from './types'
 import type { CspColumnDef } from '@/components/base/CspDataTable/table'
 import ElapsedDaysCell from '@/components/base/CspDataTable/cells/ElapsedDaysCell.vue'
+import AgentNomCell from '@/features/agents/components/cells/AgentNomCell.vue'
+import { formatAgentNameAlphabetical } from '@/features/agents/format'
 import { shortDate } from '@/utils/date'
 import AgentActionsCell from './components/cells/AgentActionsCell.vue'
-import AgentNomCell from './components/cells/AgentNomCell.vue'
 import OrganismeActionsCell from './components/cells/OrganismeActionsCell.vue'
 import OrganismeNomCell from './components/cells/OrganismeNomCell.vue'
-
-import { formatAgentNameAlphabetical, formatAgentRole } from './format'
+import { formatAgentRole } from './format'
 
 export const ORGANISMES_LIST_COLUMNS: CspColumnDef<OrganismesList>[] = [
   { id: 'nom', header: 'Nom organisme', sortable: true, accessor: row => row.nom, cellComponent: OrganismeNomCell },
