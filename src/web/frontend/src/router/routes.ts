@@ -37,12 +37,13 @@ const panelProps = paramsAsProps('organismeUuid', 'recrutementUuid', 'candidatur
 
 const CANDIDATURE_PANEL_PATH = `candidatures/:candidatureUuid${UUID}`
 
-function candidaturePanelRoutes({ tabs, conversations }: CandidaturePanelRouteNames): RouteRecordRaw[] {
+function candidaturePanelRoutes({ tabs, conversations, notes }: CandidaturePanelRouteNames): RouteRecordRaw[] {
   return [
     { path: CANDIDATURE_PANEL_PATH, name: tabs.candidature, component: CandidaturePanelView, props: panelProps, meta: panelTabMeta('candidature') },
     { path: `${CANDIDATURE_PANEL_PATH}/historique`, name: tabs.historique, component: CandidaturePanelView, props: panelProps, meta: panelTabMeta('historique') },
     { path: `${CANDIDATURE_PANEL_PATH}/documents`, name: tabs.documents, component: CandidaturePanelView, props: panelProps, meta: panelTabMeta('documents') },
     { path: `${CANDIDATURE_PANEL_PATH}/notes`, name: tabs.notes, component: CandidaturePanelView, props: panelProps, meta: panelTabMeta('notes') },
+    { path: `${CANDIDATURE_PANEL_PATH}/notes/nouvelle`, name: notes.create, component: CandidaturePanelView, props: panelProps, meta: panelTabMeta('notes') },
     { path: `${CANDIDATURE_PANEL_PATH}/messages`, name: tabs.messages, component: CandidaturePanelView, props: panelProps, meta: panelTabMeta('messages') },
     { path: `${CANDIDATURE_PANEL_PATH}/messages/nouveau`, name: conversations.create, component: CandidaturePanelView, props: panelProps, meta: panelTabMeta('messages') },
     {
