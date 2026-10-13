@@ -10,6 +10,19 @@ Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/).
 
 ### ⚠️ Changements non rétrocompatibles
 
+`POST /api/v1/offres/creer_modifier` et `GET /api/v1/offres/sources/{source_id}` :
+le format de `contacts` change. Chaque contact ne contient plus seulement `email`,
+mais :
+
+- `role` : `principal` (personne à contacter) ou `autre` (autre personne à
+  contacter), au plus un contact par rôle ;
+- `texte` : le contact en texte libre (nom, fonction, e-mail, téléphone…),
+  100 caractères maximum ;
+- `emails` : la liste des adresses email présentes dans `texte`, vide si aucune.
+
+Les contacts sont renvoyés dans l'ordre `principal` puis `autre`. Un contact au
+format précédent (`{"email": "…"}`) est rejeté.
+
 `GET /api/v1/offres` : les champs renvoyés et deux filtres sont renommés en français,
 avec les noms déjà utilisés par `POST /api/v1/offres/creer_modifier`.
 
@@ -54,8 +67,9 @@ français, avec les noms déjà utilisés par `POST /api/v1/offres/creer_modifie
 - `job_vacancy_date` devient `debut_vacance_poste` ;
 - `archived_at` devient `date_archivage`.
 
-`reference`, `source_id`, `mission`, `complements`, `localisation`, `conditions` et
-`contacts` ne changent pas, ni leurs sous-champs, ni les valeurs renvoyées.
+`reference`, `source_id`, `mission`, `complements`, `localisation` et `conditions`
+ne changent pas, ni leurs sous-champs, ni les valeurs renvoyées. `contacts` garde son
+nom, mais son format change (voir plus haut).
 
 `POST /api/v1/offres/archiver` : le champ `status` de la réponse devient `statut`.
 La valeur renvoyée (`ok`) ne change pas.

@@ -1,5 +1,6 @@
 import gettext
 import json
+import re
 from collections.abc import Callable
 from datetime import datetime
 from enum import Enum
@@ -9,7 +10,7 @@ import pycountry
 from django.db import models
 from django.template.defaultfilters import linebreaksbr
 from django.utils.html import format_html, format_html_join
-from django.utils.safestring import SafeString
+from django.utils.safestring import SafeString, mark_safe
 from referentiel.value_objects.category import Category
 from referentiel.value_objects.contract_kind import ContractKind
 from referentiel.value_objects.experience_level import ExperienceLevel
@@ -146,17 +147,46 @@ def _link(url: str) -> SafeString:
     return format_html('<a href="{0}" rel="noopener" target="_blank">{0}</a>', url)
 
 
+_CONTACT_ROLES = {
+    "principal": "Personne à contacter",
+    "autre": "Autre personne à contacter",
+}
+
+
 def _contacts(contacts: list) -> SafeString:
-    """Adresses de contact, séparées par des virgules, avec un lien `mailto:`."""
+    """Un contact par ligne, précédé de son rôle, e-mails en lien `mailto:`."""
     return format_html_join(
-        ", ",
-        '<a href="mailto:{0}">{0}</a>',
+        mark_safe("<br>"),
+        "{} : {}",
         (
-            (contact["email"],)
+            (_CONTACT_ROLES.get(contact.get("role", ""), ""), _contact(contact))
             for contact in contacts
-            if isinstance(contact, dict) and contact.get("email")
+            if isinstance(contact, dict) and contact.get("texte")
         ),
     )
+
+
+def _contact(contact: dict) -> SafeString:
+    """Texte du contact, où chaque e-mail devient un lien `mailto:`.
+
+    Les e-mails absents du texte sont ajoutés à la suite."""
+    texte = contact["texte"]
+    emails = [email for email in contact.get("emails") or [] if email]
+    if not emails:
+        return format_html("{}", texte)
+    pattern = "|".join(re.escape(email) for email in emails)
+    parts = [
+        _mailto(part) if part in emails else part
+        for part in re.split(f"({pattern})", texte)
+    ]
+    parts += [
+        format_html(" {}", _mailto(email)) for email in emails if email not in texte
+    ]
+    return format_html_join("", "{}", ((part,) for part in parts))
+
+
+def _mailto(email: str) -> SafeString:
+    return format_html('<a href="mailto:{0}">{0}</a>', email)
 
 
 def _enum(enum: type[Enum]) -> Callable[[Any], str]:

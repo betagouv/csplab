@@ -187,7 +187,7 @@ noms utilisés par `POST /api/v1/offres/creer_modifier` (voir section 4) :
 | `localisation` | Localisation de l'offre (`zone_geographique`, `pays`, `region`, `departement`, `localisation_label`, `latitude`, `longitude`) | Oui |
 | `criteres` | Critères de l'offre (diplôme, expérience, langues…) | Oui |
 | `conditions` | Conditions de l'offre (rémunération, temps de travail…) | Oui |
-| `contacts` | Contacts de l'offre | Oui |
+| `contacts` | Contacts de l'offre (`role`, `texte`, `emails`), `principal` puis `autre` | Oui |
 | `debut_contrat` | Date de début du contrat | Oui |
 | `fin_candidature` | Date limite de candidature | Oui |
 | `debut_vacance_poste` | Date à partir de laquelle le poste est vacant | Oui |
@@ -366,9 +366,30 @@ peuvent être des textes vides.
 | `note_ouverture_poste_url` | Lien web. |
 
 #### Bloc « Contacts » (`contacts`) — liste, peut être vide
+Au plus un contact par rôle. Les contacts sont renvoyés dans l'ordre `principal` puis `autre`.
+
 | Champ | Règle |
 |---|---|
-| `email` | Obligatoire dans chaque contact. Doit être une **adresse email valide**. |
+| `role` | Obligatoire. Valeurs : **principal** (personne à contacter), **autre** (autre personne à contacter). |
+| `texte` | Obligatoire. Contact en texte libre (nom, fonction, e-mail, téléphone…). **100 caractères maximum**, au moins une lettre ou un chiffre. Les espaces en début et fin sont retirés. |
+| `emails` | Obligatoire, peut être vide. Liste d'**adresses email valides** présentes dans `texte`, dans l'ordre d'apparition. Les doublons sont retirés. |
+
+Exemple :
+
+```json
+"contacts": [
+  {
+    "role": "principal",
+    "texte": "Camille Martin, cheffe du bureau RH : camille.martin@exemple.gouv.fr",
+    "emails": ["camille.martin@exemple.gouv.fr"]
+  },
+  {
+    "role": "autre",
+    "texte": "recrutement@exemple.gouv.fr",
+    "emails": ["recrutement@exemple.gouv.fr"]
+  }
+]
+```
 
 #### Bloc « Publication » (`publication`) — obligatoire
 | Champ | Règle |
@@ -645,7 +666,7 @@ Notation : `a.b` désigne un objet imbriqué, `a[]` une liste, `a[0]` son premie
 | `conditions.complements` | Jamais renseigné par l'ingestion. |
 | `conditions.bases_legales` | Jamais renseigné par l'ingestion. |
 | `conditions.note_ouverture_poste_url` | Jamais renseigné par l'ingestion. |
-| `contacts[].email` | Toujours `null` côté ingestion. |
+| `contacts` | Toujours `null` côté ingestion. |
 
 
 

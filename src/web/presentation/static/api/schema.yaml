@@ -3909,14 +3909,48 @@ components:
       required:
       - lieu_de_travail
       - temps_travail
+    Contact:
+      type: object
+      properties:
+        role:
+          $ref: '#/components/schemas/RoleEnum'
+        texte:
+          type: string
+        emails:
+          type: array
+          items:
+            type: string
+            format: email
+      required:
+      - emails
+      - role
+      - texte
     ContactsInput:
       type: object
       properties:
-        email:
+        role:
+          allOf:
+          - $ref: '#/components/schemas/RoleEnum'
+          description: |-
+            `principal` pour la personne à contacter, `autre` pour une autre personne à contacter. Au plus un contact par rôle.
+
+            * `principal` - principal
+            * `autre` - autre
+        texte:
           type: string
-          format: email
+          description: Contact en texte libre (nom, fonction, e-mail, téléphone…).
+          maxLength: 100
+        emails:
+          type: array
+          items:
+            type: string
+            format: email
+          description: E-mails présents dans `texte`, dans l'ordre d'apparition. Liste
+            vide si aucun.
       required:
-      - email
+      - emails
+      - role
+      - texte
     CriteriaInput:
       type: object
       properties:
@@ -5061,8 +5095,7 @@ components:
         contacts:
           type: array
           items:
-            type: object
-            additionalProperties: {}
+            $ref: '#/components/schemas/Contact'
           nullable: true
         debut_publication:
           type: string
@@ -5523,6 +5556,14 @@ components:
         * `94` - 94
         * `DOM` - DOM
         * `TOM` - TOM
+    RoleEnum:
+      enum:
+      - principal
+      - autre
+      type: string
+      description: |-
+        * `principal` - principal
+        * `autre` - autre
     StatutEnum:
       enum:
       - creee
@@ -5955,6 +5996,19 @@ tags:
 
     ### ⚠️ Changements non rétrocompatibles
 
+    `POST /api/v1/offres/creer_modifier` et `GET /api/v1/offres/sources/{source_id}` :
+    le format de `contacts` change. Chaque contact ne contient plus seulement `email`,
+    mais :
+
+    - `role` : `principal` (personne à contacter) ou `autre` (autre personne à
+      contacter), au plus un contact par rôle ;
+    - `texte` : le contact en texte libre (nom, fonction, e-mail, téléphone…),
+      100 caractères maximum ;
+    - `emails` : la liste des adresses email présentes dans `texte`, vide si aucune.
+
+    Les contacts sont renvoyés dans l'ordre `principal` puis `autre`. Un contact au
+    format précédent (`{"email": "…"}`) est rejeté.
+
     `GET /api/v1/offres` : les champs renvoyés et deux filtres sont renommés en français,
     avec les noms déjà utilisés par `POST /api/v1/offres/creer_modifier`.
 
@@ -5999,8 +6053,9 @@ tags:
     - `job_vacancy_date` devient `debut_vacance_poste` ;
     - `archived_at` devient `date_archivage`.
 
-    `reference`, `source_id`, `mission`, `complements`, `localisation`, `conditions` et
-    `contacts` ne changent pas, ni leurs sous-champs, ni les valeurs renvoyées.
+    `reference`, `source_id`, `mission`, `complements`, `localisation` et `conditions`
+    ne changent pas, ni leurs sous-champs, ni les valeurs renvoyées. `contacts` garde son
+    nom, mais son format change (voir plus haut).
 
     `POST /api/v1/offres/archiver` : le champ `status` de la réponse devient `statut`.
     La valeur renvoyée (`ok`) ne change pas.
