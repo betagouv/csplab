@@ -82,7 +82,7 @@ describe('useOrganismes', () => {
       uuid: '33333333-3333-3333-3333-333333333333',
       nom: 'Organisme 3',
       siret: '33333333333333',
-      gestionnaire: null,
+      superviseurs: null,
       gestion_ats: true,
       date_derniere_activite: '2026-08-19T00:00:00Z',
       date_creation: '2026-08-19T00:00:00Z',

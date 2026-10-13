@@ -5597,7 +5597,7 @@ components:
           type: string
           maxLength: 14
           minLength: 14
-        gestionnaire:
+        superviseurs:
           type: string
           nullable: true
         gestion_ats:
@@ -5612,9 +5612,9 @@ components:
       - date_creation
       - date_derniere_activite
       - gestion_ats
-      - gestionnaire
       - nom
       - siret
+      - superviseurs
       - uuid
       - versant
     OrganismeRole:
