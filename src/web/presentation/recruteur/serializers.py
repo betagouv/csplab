@@ -81,8 +81,10 @@ class OrganismesListSerializer(serializers.ModelSerializer):
 
     def get_superviseurs(self, organisme) -> str:
         return ", ".join(
-            liaison.agent.utilisateur.get_full_name()
-            for liaison in organisme.superviseurs_actifs
+            f"{utilisateur.last_name} {utilisateur.first_name}".strip()
+            for utilisateur in (
+                liaison.agent.utilisateur for liaison in organisme.superviseurs_actifs
+            )
         )
 
 

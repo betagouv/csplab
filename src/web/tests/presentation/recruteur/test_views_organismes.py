@@ -95,7 +95,10 @@ class TestOrganismesView:
             "nom": organisme.nom,
             "versant": organisme.versant,
             "siret": organisme.siret,
-            "superviseurs": superviseur.agent.utilisateur.get_full_name(),
+            "superviseurs": (
+                f"{superviseur.agent.utilisateur.last_name} "
+                f"{superviseur.agent.utilisateur.first_name}"
+            ),
             "gestion_ats": True,
             "date_creation": datetime_to_drf_representation(organisme.created_at),
             "date_derniere_activite": datetime_to_drf_representation(last_activity),
