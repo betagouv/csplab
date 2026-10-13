@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { EtapeRecrutementDetailedCandidatures, MotifRefus } from '../types'
+import type { MotifRefus } from '../types'
 import type { KanbanDropEvent } from '@/composables/dnd/useKanbanDnd'
 import { useQuery } from '@pinia/colada'
 import { computed, ref, toRef } from 'vue'
@@ -107,10 +107,6 @@ function handleMove({ sourceColumnId, targetColumnId, cardId }: KanbanDropEvent)
   )
 }
 
-function handleToggleColumnSelection(etape: EtapeRecrutementDetailedCandidatures): void {
-  toggleColumnSelection(etape)
-}
-
 function handleOpenChangerEtape(): void {
   drawerInitialEtapeUuid.value = null
   isDrawerOpen.value = true
@@ -137,14 +133,6 @@ function applyBatchMove(targetEtapeUuid: string, motifRefus?: MotifRefus): void 
 
   clearSelection()
   isDrawerOpen.value = false
-}
-
-function handleDrawerClose(open: boolean): void {
-  isDrawerOpen.value = open
-}
-
-function handleToggleCandidature(candidatureUuid: string, etapeUuid: string): void {
-  toggleCandidatureSelection(candidatureUuid, etapeUuid)
 }
 
 const countLabel = computed(() => {
@@ -188,7 +176,7 @@ const countLabel = computed(() => {
       :board-id="boardId"
       :is-column-selected="isColumnSelected"
       @move="handleMove"
-      @toggle-column-selection="handleToggleColumnSelection"
+      @toggle-column-selection="toggleColumnSelection"
     />
 
     <ChangerEtapeDrawer
@@ -197,9 +185,9 @@ const countLabel = computed(() => {
       :selected-candidature-uuids="selectedCandidatureUuids"
       :etapes="recrutementEtapes"
       :initial-etape-uuid="drawerInitialEtapeUuid"
-      @update:open="handleDrawerClose"
+      @update:open="isDrawerOpen = $event"
       @confirm="handleConfirmBatchMove"
-      @toggle-candidature="handleToggleCandidature"
+      @toggle-candidature="toggleCandidatureSelection"
     />
 
     <RefusCandidatureDialog
