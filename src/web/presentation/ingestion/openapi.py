@@ -240,7 +240,24 @@ ARCHIVE_OFFER_EXAMPLES = [
         response_only=True,
         status_codes=["404"],
     ),
-    _EXAMPLE_INVALID_TOKEN,
+    OpenApiExample(
+        "Error - invalid token",
+        summary="Token JWT invalide ou expiré",
+        description="Le token dans le header `Authorization` est invalide ou expiré.",
+        value={
+            "detail": "Le jeton fourni n'est pas valide.",
+            "code": "token_not_valid",
+            "messages": [
+                {
+                    "token_class": "AccessToken",
+                    "token_type": "access",
+                    "message": "Token is invalid or expired",
+                }
+            ],
+        },
+        response_only=True,
+        status_codes=["401"],
+    ),
 ]
 
 LIST_OFFERS_DESCRIPTION = (

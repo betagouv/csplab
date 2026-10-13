@@ -11,10 +11,7 @@ from application.ingestion.services.upsert_talentsoft_organismes import (
 )
 from config.logger_names import LoggerName
 from presentation.api.authentication import PublicApiKeyOnlyMixin
-from presentation.api.serializers import (
-    ErreurApiSerializer,
-    api_v1_response_format,
-)
+from presentation.api.serializers import ErreurApiSerializer, GenericErrorSerializer
 from presentation.ingestion.serializers import (
     TalentsoftOrganismeUpsertInputSerializer,
     UpsertTalentsoftOrganismesRequestSerializer,
@@ -38,7 +35,8 @@ UPSERT_TALENTSOFT_ORGANISMES_DESCRIPTION = (
     responses={
         201: UpsertTalentsoftOrganismesResponseSerializer,
         400: ErreurApiSerializer,
-        **api_v1_response_format,
+        401: GenericErrorSerializer,
+        500: ErreurApiSerializer,
     },
 )
 class TalentsoftOrganismesUpsertView(PublicApiKeyOnlyMixin, APIView):
@@ -74,14 +72,9 @@ class TalentsoftOrganismesUpsertView(PublicApiKeyOnlyMixin, APIView):
 
         try:
             result = upsert_talentsoft_organismes(valid_items)
-            return Response(
-                {
-                    "created": result["created"],
-                    "updated": result["updated"],
-                    "erreurs": [*result["errors"], *errors],
-                },
-                status=status.HTTP_201_CREATED,
-            )
+            result["errors"].extend(errors)
+            result["erreurs"] = result.pop("errors")
+            return Response(result, status=status.HTTP_201_CREATED)
         except Exception as e:
             logger.error("TalentsoftOrganismesUpsertView: unexpected error %s", str(e))
             return Response(

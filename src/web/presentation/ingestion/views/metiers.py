@@ -9,10 +9,7 @@ from rest_framework.views import APIView
 from application.ingestion.interfaces.list_metiers_input import GetFilteredMetiersInput
 from infrastructure.di.ingestion.ingestion_factory import create_ingestion_container
 from presentation.api.authentication import PublicApiMixin
-from presentation.api.serializers import (
-    ErreurApiSerializer,
-    api_v1_response_format,
-)
+from presentation.api.serializers import ErreurApiSerializer, TokenErrorSerializer
 from presentation.commons.pagination import WebPagination
 from presentation.ingestion.openapi import (
     LIST_METIERS_DESCRIPTION,
@@ -33,7 +30,8 @@ from presentation.ingestion.serializers import (
     responses={
         200: ListMetiersResponseSerializer(many=True),
         400: ErreurApiSerializer,
-        **api_v1_response_format,
+        401: TokenErrorSerializer,
+        500: ErreurApiSerializer,
     },
 )
 class MetiersListView(PublicApiMixin, APIView):

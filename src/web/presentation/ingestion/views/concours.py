@@ -17,10 +17,7 @@ from application.ingestion.interfaces.load_operation_type import LoadOperationTy
 from domain.ingestion.entities.document import Document, DocumentType
 from infrastructure.di.ingestion.ingestion_factory import create_ingestion_container
 from presentation.api.authentication import PublicApiMixin
-from presentation.api.serializers import (
-    ErreurApiSerializer,
-    api_v1_response_format,
-)
+from presentation.api.serializers import ErreurApiSerializer, TokenErrorSerializer
 from presentation.ingestion.openapi import (
     CONCOURS_UPLOAD_DESCRIPTION,
     CONCOURS_UPLOAD_EXAMPLES,
@@ -128,7 +125,8 @@ class ConcoursUploadView(PublicApiMixin, APIView):
                 serializers=[ErreurApiSerializer, NoValidRowsErrorSerializer],
                 resource_type_field_name=None,
             ),
-            **api_v1_response_format,
+            401: TokenErrorSerializer,
+            500: ErreurApiSerializer,
         },
     )
     def post(self, request):

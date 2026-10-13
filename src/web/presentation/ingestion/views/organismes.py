@@ -22,17 +22,13 @@ from infrastructure.repositories.identite.postgres_organisme_repository import (
     PostgresOrganismeRepository,
 )
 from presentation.api.authentication import PublicApiKeyOnlyMixin
-from presentation.api.serializers import (
-    ErreurApiSerializer,
-    api_v1_response_format,
-)
+from presentation.api.serializers import ErreurApiSerializer, GenericErrorSerializer
 from presentation.ingestion.mappers import OrganismeInputMapper
 from presentation.ingestion.serializers import (
     OrganismeUpsertInputSerializer,
     SupprimerOrganismesRequestSerializer,
     SupprimerOrganismesResponseSerializer,
     UpsertOrganismesRequestSerializer,
-    UpsertOrganismesResponseSerializer,
 )
 
 logger = logging.getLogger(LoggerName.INGESTION.value)
@@ -59,9 +55,24 @@ UPSERT_ORGANISMES_DESCRIPTION = (
         },
     ),
     responses={
-        201: UpsertOrganismesResponseSerializer,
+        201: inline_serializer(
+            name="UpsertOrganismesResponse",
+            fields={
+                "created": serializers.IntegerField(
+                    help_text="Nombre d'organismes créés"
+                ),
+                "updated": serializers.IntegerField(
+                    help_text="Nombre d'organismes mis à jour"
+                ),
+                "erreurs": serializers.ListField(
+                    help_text="Organismes rejetés avec le détail de l'erreur",
+                    child=serializers.DictField(),
+                ),
+            },
+        ),
         400: ErreurApiSerializer,
-        **api_v1_response_format,
+        401: GenericErrorSerializer,
+        500: ErreurApiSerializer,
     },
 )
 class OrganismesUpsertView(PublicApiKeyOnlyMixin, APIView):
@@ -114,14 +125,9 @@ class OrganismesUpsertView(PublicApiKeyOnlyMixin, APIView):
         try:
             usecase = container.upsert_organismes_usecase()
             result = usecase.execute(UpsertOrganismesInput(organismes=valid_organismes))
-            return Response(
-                {
-                    "created": result["created"],
-                    "updated": result["updated"],
-                    "erreurs": [*result["errors"], *errors],
-                },
-                status=status.HTTP_201_CREATED,
-            )
+            result["errors"].extend(errors)
+            result["erreurs"] = result.pop("errors")
+            return Response(result, status=status.HTTP_201_CREATED)
         except Exception as e:
             logger.error("OrganismesUpsertView: unexpected error %s", str(e))
             return Response(
@@ -144,7 +150,8 @@ SUPPRIMER_ORGANISMES_DESCRIPTION = (
     responses={
         200: SupprimerOrganismesResponseSerializer,
         400: ErreurApiSerializer,
-        **api_v1_response_format,
+        401: GenericErrorSerializer,
+        500: ErreurApiSerializer,
     },
 )
 class OrganismesSupprimerView(PublicApiKeyOnlyMixin, APIView):

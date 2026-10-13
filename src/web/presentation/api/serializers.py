@@ -27,9 +27,3 @@ generic_response_format = {
 
 class ErreurApiSerializer(serializers.Serializer):
     erreur = serializers.CharField()
-
-
-api_v1_response_format = {
-    401: TokenErrorSerializer,
-    500: ErreurApiSerializer,
-}

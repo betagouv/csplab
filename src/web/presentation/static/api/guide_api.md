@@ -460,7 +460,6 @@ invalides, lignes créées, lignes mises à jour, et la liste éventuelle des er
 | `401` | Authentification | Identité non prouvée (jeton manquant/expiré) |
 | `403` | Autorisation | Identité prouvée, mais action non permise |
 | `404` | Introuvable | L'élément demandé n'existe pas |
-| `429` | Limite d'appels | Trop d'appels sur la fenêtre courante, réessayer après le délai indiqué par l'en-tête `Retry-After` |
 | `500` | Erreur serveur | Problème inattendu côté CSPLab |
 
 ## Format des erreurs

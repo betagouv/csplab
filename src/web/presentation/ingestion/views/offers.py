@@ -6,6 +6,7 @@ from drf_spectacular.utils import (
 )
 from referentiel.exceptions.offer_errors import OfferDoesNotExist
 from rest_framework import serializers, status
+from rest_framework import serializers as drf_serializers
 from rest_framework.exceptions import ValidationError as DRFValidationError
 from rest_framework.parsers import JSONParser
 from rest_framework.response import Response
@@ -28,11 +29,7 @@ from domain.ingestion.exceptions.source_authorization_error import (
 from infrastructure.di.ingestion.ingestion_factory import create_ingestion_container
 from infrastructure.django_apps.users.models import UserModel
 from presentation.api.authentication import PublicApiMixin
-from presentation.api.serializers import (
-    ErreurApiSerializer,
-    TokenErrorSerializer,
-    api_v1_response_format,
-)
+from presentation.api.serializers import ErreurApiSerializer, TokenErrorSerializer
 from presentation.commons.pagination import WebPagination
 from presentation.ingestion.mappers import OfferInputMapper
 from presentation.ingestion.openapi import (
@@ -73,7 +70,8 @@ STATUTS_OFFRE = {"created": "creee", "updated": "mise_a_jour"}
     responses={
         200: ListOffersResponseSerializer(many=True),
         400: ErreurApiSerializer,
-        **api_v1_response_format,
+        401: TokenErrorSerializer,
+        500: ErreurApiSerializer,
     },
 )
 class OffersListView(PublicApiMixin, APIView):
@@ -121,12 +119,18 @@ class OffersListView(PublicApiMixin, APIView):
     tags=["offres"],
     responses={
         200: OfferDetailResponseSerializer(many=True),
-        **api_v1_response_format,
         401: PolymorphicProxySerializer(
             component_name="OffersBySource401Error",
-            serializers=[TokenErrorSerializer, ErreurApiSerializer],
+            serializers=[
+                TokenErrorSerializer,
+                inline_serializer(
+                    name="OffersBySourceUnauthorized",
+                    fields={"erreur": drf_serializers.CharField()},
+                ),
+            ],
             resource_type_field_name=None,
         ),
+        500: ErreurApiSerializer,
     },
 )
 class OffersBySourceView(PublicApiMixin, APIView):
@@ -182,9 +186,25 @@ class OffersBySourceView(PublicApiMixin, APIView):
                 "type": "object",
                 "additionalProperties": {"type": "array", "items": {"type": "string"}},
             },
-            401: TokenErrorSerializer,
-            403: ErreurApiSerializer,
-            404: ErreurApiSerializer,
+            401: PolymorphicProxySerializer(
+                component_name="ArchiveOffer401Error",
+                serializers=[
+                    TokenErrorSerializer,
+                    inline_serializer(
+                        name="ArchiveOfferUnauthorized",
+                        fields={"detail": drf_serializers.CharField()},
+                    ),
+                ],
+                resource_type_field_name=None,
+            ),
+            403: inline_serializer(
+                name="ArchiveOfferForbidden",
+                fields={"erreur": drf_serializers.CharField()},
+            ),
+            404: inline_serializer(
+                name="ArchiveOfferNotFound",
+                fields={"erreur": drf_serializers.CharField()},
+            ),
         },
     )
 )
@@ -246,8 +266,12 @@ class ArchiveOffersView(PublicApiMixin, APIView):
     responses={
         201: UpsertOffersResponseSerializer,
         400: ErreurApiSerializer,
-        403: ErreurApiSerializer,
-        **api_v1_response_format,
+        401: TokenErrorSerializer,
+        403: inline_serializer(
+            name="UpsertOffersForbidden",
+            fields={"erreur": drf_serializers.CharField()},
+        ),
+        500: ErreurApiSerializer,
     },
 )
 class OffersUpsertView(PublicApiMixin, APIView):
@@ -331,7 +355,7 @@ class OffersUpsertView(PublicApiMixin, APIView):
                     utilisateur_username=utilisateur_username,
                 )
             )
-            erreurs = sorted(errors, key=lambda erreur: erreur["index"])
+            result["errors"].extend(sorted(errors, key=lambda error: error["index"]))
             offres = [
                 {
                     "index": index,
@@ -347,7 +371,7 @@ class OffersUpsertView(PublicApiMixin, APIView):
                     "creees": result["created"],
                     "mises_a_jour": result["updated"],
                     "offres": offres,
-                    "erreurs": [*result["errors"], *erreurs],
+                    "erreurs": result["errors"],
                 },
                 status=status.HTTP_201_CREATED,
             )
