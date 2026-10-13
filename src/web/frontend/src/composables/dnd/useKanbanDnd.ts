@@ -10,14 +10,12 @@ export interface KanbanCardData {
   boardId: string
   columnId: string
   cardId: string
-  cardIndex: number
 }
 
 export interface KanbanDropEvent {
   sourceColumnId: string
   targetColumnId: string
   cardId: string
-  cardIndex: number
 }
 
 interface UseDraggableKanbanCardOptions {
@@ -25,7 +23,6 @@ interface UseDraggableKanbanCardOptions {
   boardId: string
   columnId: string
   cardId: string
-  cardIndex: number
   enabled?: Ref<boolean>
 }
 
@@ -47,7 +44,6 @@ export function useDraggableKanbanCard(options: UseDraggableKanbanCardOptions) {
           boardId: options.boardId,
           columnId: options.columnId,
           cardId: options.cardId,
-          cardIndex: options.cardIndex,
         }) as Record<string, unknown>,
         onDragStart: () => {
           isDragging.value = true
@@ -160,7 +156,6 @@ export function useKanbanBoardMonitor(options: UseKanbanBoardMonitorOptions) {
           sourceColumnId: sourceData.columnId,
           targetColumnId,
           cardId: sourceData.cardId,
-          cardIndex: sourceData.cardIndex,
         })
       },
     })
