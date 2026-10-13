@@ -15,7 +15,7 @@ import { useToast } from '@/composables/ui/useToast'
 import { useRouteOrganisme } from '@/stores/routeOrganisme'
 import { pluralize } from '@/utils/format'
 import { EQUIPE_RECRUTEMENT_ACTIONS_COLUMN, EQUIPE_RECRUTEMENT_COLUMNS } from '../columns'
-import { useAjouterAgentEquipe } from '../composables/useAjouterAgentEquipe'
+import { useAddAgentToRecrutement } from '../composables/useAddAgentToRecrutement'
 import { useEquipeRecrutement } from '../composables/useEquipeRecrutement'
 import { provideMembreEquipeActions } from '../composables/useMembreEquipeActions'
 import { RECRUTEMENT_ROLE_LABELS } from '../constants/equipe-recrutement'
@@ -41,7 +41,7 @@ const {
   add,
   submitting,
   reset: resetAgent,
-} = useAjouterAgentEquipe(props.organismeUuid, props.recrutementUuid)
+} = useAddAgentToRecrutement(props.organismeUuid, props.recrutementUuid)
 const { revocation, roleChange } = provideMembreEquipeActions()
 const { canManageOrganisme } = useRouteOrganisme()
 const { addToast } = useToast()

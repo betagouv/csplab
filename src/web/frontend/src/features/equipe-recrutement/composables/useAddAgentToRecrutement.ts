@@ -3,16 +3,16 @@ import type { RecrutementRole } from '../types'
 import { useQueryCache } from '@pinia/colada'
 import { toValue } from 'vue'
 import { recrutementKeys } from '@/api/queryKeys'
-import { useTrouverOuCreerAgent } from '@/features/agents/composables/useTrouverOuCreerAgent'
+import { useFindOrCreateAgent } from '@/features/agents/composables/useFindOrCreateAgent'
 import { addMembreEquipe } from '../api'
 
-export function useAjouterAgentEquipe(
+export function useAddAgentToRecrutement(
   organismeUuid: MaybeRefOrGetter<string>,
   recrutementUuid: MaybeRefOrGetter<string>,
 ) {
   const queryCache = useQueryCache()
 
-  const { run: add, ...recherche } = useTrouverOuCreerAgent(organismeUuid, {
+  const { run: add, ...agentSearch } = useFindOrCreateAgent(organismeUuid, {
     action: (agent, role: RecrutementRole) =>
       addMembreEquipe(toValue(organismeUuid), toValue(recrutementUuid), {
         agent_id: agent.uuid,
@@ -23,5 +23,5 @@ export function useAjouterAgentEquipe(
     }),
   })
 
-  return { ...recherche, add }
+  return { ...agentSearch, add }
 }

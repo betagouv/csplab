@@ -5,7 +5,7 @@ import { createPinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { defineComponent, h, nextTick } from 'vue'
 import { equipeRecrutementQuery } from '../queries'
-import { useAjouterAgentEquipe } from './useAjouterAgentEquipe'
+import { useAddAgentToRecrutement } from './useAddAgentToRecrutement'
 
 const mockGetEquipeRecrutement = vi.fn()
 const mockAddMembreEquipe = vi.fn()
@@ -41,10 +41,10 @@ async function flush() {
 }
 
 function mountAjoutMembre() {
-  let result!: ReturnType<typeof useAjouterAgentEquipe>
+  let result!: ReturnType<typeof useAddAgentToRecrutement>
   mount(defineComponent({
     setup() {
-      result = useAjouterAgentEquipe(ORGANISME_UUID, RECRUTEMENT_UUID)
+      result = useAddAgentToRecrutement(ORGANISME_UUID, RECRUTEMENT_UUID)
       useQuery(() => equipeRecrutementQuery({
         organismeUuid: ORGANISME_UUID,
         recrutementUuid: RECRUTEMENT_UUID,
@@ -59,7 +59,7 @@ function mountAjoutMembre() {
   return result
 }
 
-describe('useAjouterAgentEquipe', () => {
+describe('useAddAgentToRecrutement', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     mockGetEquipeRecrutement.mockResolvedValue([])

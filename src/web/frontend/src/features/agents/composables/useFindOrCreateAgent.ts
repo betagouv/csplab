@@ -7,14 +7,14 @@ import { createAgent, searchAgentByEmail } from '../api'
 
 export type AgentSearchStatus = 'idle' | 'found' | 'not-found'
 
-interface TrouverOuCreerAgentOptions<TVariables, TResult> {
+interface FindOrCreateAgentOptions<TVariables, TResult> {
   action: (agent: AgentRecherche, variables: TVariables) => Promise<TResult>
   onSettled: () => unknown
 }
 
-export function useTrouverOuCreerAgent<TVariables, TResult>(
+export function useFindOrCreateAgent<TVariables, TResult>(
   organismeUuid: MaybeRefOrGetter<string>,
-  options: TrouverOuCreerAgentOptions<TVariables, TResult>,
+  options: FindOrCreateAgentOptions<TVariables, TResult>,
 ) {
   const { addToast } = useToast()
 

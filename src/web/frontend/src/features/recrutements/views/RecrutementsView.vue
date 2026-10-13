@@ -34,7 +34,7 @@ import { RECRUTEMENTS_ACTIFS_COLUMNS, RECRUTEMENTS_ARCHIVES_COLUMNS } from '../c
 import AssignationResponsableDrawer from '../components/AssignationResponsableDrawer.vue'
 import RecrutementsActifsFiltersDrawer from '../components/RecrutementsActifsFiltersDrawer.vue'
 import RecrutementsArchivesFiltersDrawer from '../components/RecrutementsArchivesFiltersDrawer.vue'
-import { useAssignerResponsable } from '../composables/useAssignerResponsable'
+import { useAssignResponsable } from '../composables/useAssignResponsable'
 import { useRecrutements } from '../composables/useRecrutements'
 import { useRecrutementsFilters } from '../composables/useRecrutementsFilters'
 import { RECRUTEMENT_TAB_ICONS, RECRUTEMENT_TAB_LABELS } from '../constants/recrutement'
@@ -101,7 +101,7 @@ const {
   assign,
   submitting,
   reset: resetResponsable,
-} = useAssignerResponsable(() => props.organismeUuid)
+} = useAssignResponsable(() => props.organismeUuid)
 
 const selectionLabel = computed(() => {
   const count = selection.count.value
