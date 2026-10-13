@@ -5,8 +5,15 @@ _EXAMPLE_INVALID_TOKEN = OpenApiExample(
     summary="Token JWT invalide ou expiré",
     description="Le token dans le header `Authorization` est invalide ou expiré.",
     value={
-        "erreur": "Le jeton fourni n'est pas valide.",
+        "detail": "Le jeton fourni n'est pas valide.",
         "code": "token_not_valid",
+        "messages": [
+            {
+                "token_class": "AccessToken",
+                "token_type": "access",
+                "message": "Token is invalid or expired",
+            }
+        ],
     },
     response_only=True,
     status_codes=["401"],

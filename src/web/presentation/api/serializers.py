@@ -29,14 +29,7 @@ class ErreurApiSerializer(serializers.Serializer):
     erreur = serializers.CharField()
 
 
-class ErreurAuthentificationSerializer(serializers.Serializer):
-    erreur = serializers.CharField()
-    code = serializers.CharField(
-        required=False, help_text="Présent si le jeton JWT est invalide ou expiré"
-    )
-
-
 api_v1_response_format = {
-    401: ErreurAuthentificationSerializer,
+    401: TokenErrorSerializer,
     500: ErreurApiSerializer,
 }

@@ -1616,12 +1616,16 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErreurAuthentification'
+                $ref: '#/components/schemas/TokenError'
               examples:
                 Error-InvalidToken:
                   value:
-                    erreur: Le jeton fourni n'est pas valide.
+                    detail: Le jeton fourni n'est pas valide.
                     code: token_not_valid
+                    messages:
+                    - token_class: AccessToken
+                      token_type: access
+                      message: Token is invalid or expired
                   summary: Token JWT invalide ou expiré
                   description: Le token dans le header `Authorization` est invalide
                     ou expiré.
@@ -1659,7 +1663,7 @@ paths:
               schema:
                 type: object
                 properties:
-                  erreur:
+                  detail:
                     type: string
                     example: Request was throttled. Expected available in 42 seconds.
           headers:
@@ -1808,12 +1812,16 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErreurAuthentification'
+                $ref: '#/components/schemas/TokenError'
               examples:
                 Error-InvalidToken:
                   value:
-                    erreur: Le jeton fourni n'est pas valide.
+                    detail: Le jeton fourni n'est pas valide.
                     code: token_not_valid
+                    messages:
+                    - token_class: AccessToken
+                      token_type: access
+                      message: Token is invalid or expired
                   summary: Token JWT invalide ou expiré
                   description: Le token dans le header `Authorization` est invalide
                     ou expiré.
@@ -1851,7 +1859,7 @@ paths:
               schema:
                 type: object
                 properties:
-                  erreur:
+                  detail:
                     type: string
                     example: Request was throttled. Expected available in 42 seconds.
           headers:
@@ -3018,12 +3026,16 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErreurAuthentification'
+                $ref: '#/components/schemas/TokenError'
               examples:
                 Error-InvalidToken:
                   value:
-                    erreur: Le jeton fourni n'est pas valide.
+                    detail: Le jeton fourni n'est pas valide.
                     code: token_not_valid
+                    messages:
+                    - token_class: AccessToken
+                      token_type: access
+                      message: Token is invalid or expired
                   summary: Token JWT invalide ou expiré
                   description: Le token dans le header `Authorization` est invalide
                     ou expiré.
@@ -3061,7 +3073,7 @@ paths:
               schema:
                 type: object
                 properties:
-                  erreur:
+                  detail:
                     type: string
                     example: Request was throttled. Expected available in 42 seconds.
           headers:
@@ -3157,12 +3169,16 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErreurAuthentification'
+                $ref: '#/components/schemas/TokenError'
               examples:
                 Error-InvalidToken:
                   value:
-                    erreur: Le jeton fourni n'est pas valide.
+                    detail: Le jeton fourni n'est pas valide.
                     code: token_not_valid
+                    messages:
+                    - token_class: AccessToken
+                      token_type: access
+                      message: Token is invalid or expired
                   summary: Token JWT invalide ou expiré
                   description: Le token dans le header `Authorization` est invalide
                     ou expiré.
@@ -3213,7 +3229,7 @@ paths:
               schema:
                 type: object
                 properties:
-                  erreur:
+                  detail:
                     type: string
                     example: Request was throttled. Expected available in 42 seconds.
           headers:
@@ -3339,7 +3355,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErreurAuthentification'
+                $ref: '#/components/schemas/TokenError'
           description: ''
           headers:
             X-RateLimit-Limit:
@@ -3368,7 +3384,7 @@ paths:
               schema:
                 type: object
                 properties:
-                  erreur:
+                  detail:
                     type: string
                     example: Request was throttled. Expected available in 42 seconds.
           headers:
@@ -3451,7 +3467,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErreurAuthentification'
+                $ref: '#/components/schemas/OffersBySource401Error'
           description: ''
           headers:
             X-RateLimit-Limit:
@@ -3480,7 +3496,7 @@ paths:
               schema:
                 type: object
                 properties:
-                  erreur:
+                  detail:
                     type: string
                     example: Request was throttled. Expected available in 42 seconds.
           headers:
@@ -3539,7 +3555,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErreurAuthentification'
+                $ref: '#/components/schemas/TokenError'
           description: ''
           headers:
             X-RateLimit-Limit:
@@ -3568,7 +3584,7 @@ paths:
               schema:
                 type: object
                 properties:
-                  erreur:
+                  detail:
                     type: string
                     example: Request was throttled. Expected available in 42 seconds.
           headers:
@@ -3627,7 +3643,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErreurAuthentification'
+                $ref: '#/components/schemas/TokenError'
           description: ''
           headers:
             X-RateLimit-Limit:
@@ -3656,7 +3672,7 @@ paths:
               schema:
                 type: object
                 properties:
-                  erreur:
+                  detail:
                     type: string
                     example: Request was throttled. Expected available in 42 seconds.
           headers:
@@ -3716,7 +3732,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErreurAuthentification'
+                $ref: '#/components/schemas/TokenError'
           description: ''
           headers:
             X-RateLimit-Limit:
@@ -3745,7 +3761,7 @@ paths:
               schema:
                 type: object
                 properties:
-                  erreur:
+                  detail:
                     type: string
                     example: Request was throttled. Expected available in 42 seconds.
           headers:
@@ -4152,16 +4168,6 @@ components:
       properties:
         erreur:
           type: string
-      required:
-      - erreur
-    ErreurAuthentification:
-      type: object
-      properties:
-        erreur:
-          type: string
-        code:
-          type: string
-          description: Présent si le jeton JWT est invalide ou expiré
       required:
       - erreur
     ExperienceEnum:
@@ -5088,6 +5094,10 @@ components:
       - url_offre
       - vacance_poste
       - versant
+    OffersBySource401Error:
+      oneOf:
+      - $ref: '#/components/schemas/TokenError'
+      - $ref: '#/components/schemas/ErreurApi'
     OffersInput:
       type: object
       properties:
@@ -6023,18 +6033,16 @@ tags:
     `offres` et ses sous-champs `index`, `reference` et `statut` gardent leur nom.
     `errors` et `errors[].error` sont renommés plus bas, avec les autres champs d'erreur.
 
-    Erreurs de toutes les routes `/api/v1/…` : une réponse d'erreur contient désormais
-    un champ `erreur`.
+    Erreurs renvoyées par CSPLab sur les routes `/api/v1/…` : le message est désormais
+    dans un champ `erreur`.
 
     - `error` devient `erreur` ;
-    - `detail` devient `erreur` (authentification absente, source non autorisée,
-      action interdite, offre introuvable, limite d'appels dépassée…) ;
-    - jeton JWT invalide ou expiré (`401`) : la réponse devient
-      `{"erreur": "…", "code": "token_not_valid"}`, `detail` devient `erreur`, `code`
-      ne change pas et `messages` est supprimé.
+    - `detail` devient `erreur` (source non autorisée, offre introuvable…).
 
-    Les erreurs de validation des champs du corps de la requête (`400`) gardent leur
-    format, une liste de messages par nom de champ.
+    Les erreurs génériques d'authentification, de méthode non autorisée ou de limite
+    d'appels dépassée gardent leur format, avec un champ `detail`. Les erreurs de
+    validation des champs du corps de la requête (`400`) gardent aussi leur format, une
+    liste de messages par nom de champ.
 
     Listes d'erreurs des réponses de `POST /api/v1/offres/creer_modifier`,
     `POST /api/v1/organismes/creer_modifier` et

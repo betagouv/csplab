@@ -472,16 +472,18 @@ décrit le problème :
 {"erreur": "Unexpected error"}
 ```
 
-Quand le jeton JWT est invalide ou expiré, la réponse `401` contient aussi un champ
-`code` :
+Deux exceptions :
 
-```json
-{"erreur": "Le jeton fourni n'est pas valide.", "code": "token_not_valid"}
-```
+- les erreurs génériques d'authentification (`401`), de méthode non autorisée
+  (`405`) et de limite d'appels (`429`) utilisent un champ `detail`. Quand le jeton
+  JWT est invalide ou expiré, la réponse contient aussi `code` et `messages` :
 
-Seule exception : quand des champs du corps de la requête sont invalides, la réponse
-`400` liste les erreurs par nom de champ (ex. `{"reference": ["Ce champ est
-obligatoire."]}`).
+  ```json
+  {"detail": "Le jeton fourni n'est pas valide.", "code": "token_not_valid", "messages": […]}
+  ```
+
+- quand des champs du corps de la requête sont invalides, la réponse `400` liste
+  les erreurs par nom de champ (ex. `{"reference": ["Ce champ est obligatoire."]}`).
 
 
 

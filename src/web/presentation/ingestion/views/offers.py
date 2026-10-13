@@ -1,4 +1,5 @@
 from drf_spectacular.utils import (
+    PolymorphicProxySerializer,
     extend_schema,
     extend_schema_view,
     inline_serializer,
@@ -29,7 +30,7 @@ from infrastructure.django_apps.users.models import UserModel
 from presentation.api.authentication import PublicApiMixin
 from presentation.api.serializers import (
     ErreurApiSerializer,
-    ErreurAuthentificationSerializer,
+    TokenErrorSerializer,
     api_v1_response_format,
 )
 from presentation.commons.pagination import WebPagination
@@ -121,6 +122,11 @@ class OffersListView(PublicApiMixin, APIView):
     responses={
         200: OfferDetailResponseSerializer(many=True),
         **api_v1_response_format,
+        401: PolymorphicProxySerializer(
+            component_name="OffersBySource401Error",
+            serializers=[TokenErrorSerializer, ErreurApiSerializer],
+            resource_type_field_name=None,
+        ),
     },
 )
 class OffersBySourceView(PublicApiMixin, APIView):
@@ -176,7 +182,7 @@ class OffersBySourceView(PublicApiMixin, APIView):
                 "type": "object",
                 "additionalProperties": {"type": "array", "items": {"type": "string"}},
             },
-            401: ErreurAuthentificationSerializer,
+            401: TokenErrorSerializer,
             403: ErreurApiSerializer,
             404: ErreurApiSerializer,
         },

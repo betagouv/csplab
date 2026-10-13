@@ -72,18 +72,16 @@ La valeur renvoyée (`ok`) ne change pas.
 `offres` et ses sous-champs `index`, `reference` et `statut` gardent leur nom.
 `errors` et `errors[].error` sont renommés plus bas, avec les autres champs d'erreur.
 
-Erreurs de toutes les routes `/api/v1/…` : une réponse d'erreur contient désormais
-un champ `erreur`.
+Erreurs renvoyées par CSPLab sur les routes `/api/v1/…` : le message est désormais
+dans un champ `erreur`.
 
 - `error` devient `erreur` ;
-- `detail` devient `erreur` (authentification absente, source non autorisée,
-  action interdite, offre introuvable, limite d'appels dépassée…) ;
-- jeton JWT invalide ou expiré (`401`) : la réponse devient
-  `{"erreur": "…", "code": "token_not_valid"}`, `detail` devient `erreur`, `code`
-  ne change pas et `messages` est supprimé.
+- `detail` devient `erreur` (source non autorisée, offre introuvable…).
 
-Les erreurs de validation des champs du corps de la requête (`400`) gardent leur
-format, une liste de messages par nom de champ.
+Les erreurs génériques d'authentification, de méthode non autorisée ou de limite
+d'appels dépassée gardent leur format, avec un champ `detail`. Les erreurs de
+validation des champs du corps de la requête (`400`) gardent aussi leur format, une
+liste de messages par nom de champ.
 
 Listes d'erreurs des réponses de `POST /api/v1/offres/creer_modifier`,
 `POST /api/v1/organismes/creer_modifier` et
