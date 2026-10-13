@@ -407,6 +407,11 @@ require_min_key_length(SECRET_KEY=SECRET_KEY, JWT_SIGNING_KEY=SIMPLE_JWT["SIGNIN
 
 PUBLIC_API_PREFIX = "/api/"
 
+
+def _doc_api_markdown(filename: str) -> str:
+    return (STATIC_DIR / "api" / filename).read_text().partition("\n")[2].lstrip()
+
+
 SPECTACULAR_SETTINGS = {
     "TITLE": "CSPLab API",
     "DESCRIPTION": "API for CSPLab",
@@ -422,16 +427,13 @@ SPECTACULAR_SETTINGS = {
         "presentation.api.openapi_hooks.postprocess_add_too_many_requests_response",
     ],
     "TAGS": [
-        # Section de documentation sans endpoint, affichée dans le menu de Redoc.
+        # Sections de documentation sans endpoint, affichées dans le menu de Redoc.
         # Le titre du fichier est retiré, Redoc affichant déjà x-displayName.
         {
             "name": "changelog",
             "x-displayName": "Changelog",
             "x-traitTag": True,
-            "description": (STATIC_DIR / "api" / "changelog_api.md")
-            .read_text()
-            .partition("\n")[2]
-            .lstrip(),
+            "description": _doc_api_markdown("changelog_api.md"),
         },
         {"name": "token", "description": "Gestion de l'authentification"},
         {
@@ -446,6 +448,13 @@ SPECTACULAR_SETTINGS = {
         {
             "name": "fake-ts",
             "description": "Endpoints de simulation au format Talentsoft",
+        },
+        # Dernier tag de la liste pour apparaître en bas du menu de Redoc.
+        {
+            "name": "contact",
+            "x-displayName": "Aide et contact",
+            "x-traitTag": True,
+            "description": _doc_api_markdown("contact_api.md"),
         },
     ],
 }
