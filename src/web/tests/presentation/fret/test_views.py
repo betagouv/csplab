@@ -374,7 +374,13 @@ class TestOffreDetailView:
             code_emploi_csp="ERNUM001",
             offer_url="https://exemple.gouv.fr/offres/1",
             criteria={"diplome": "Master"},
-            contacts=[{"email": "jean.dupont@exemple.gouv.fr"}],
+            contacts=[
+                {
+                    "role": "principal",
+                    "texte": "jean.dupont@exemple.gouv.fr",
+                    "emails": ["jean.dupont@exemple.gouv.fr"],
+                }
+            ],
             location_label="Paris",
             application_deadline=datetime(2024, 5, 15, tzinfo=UTC),
         )
@@ -392,7 +398,7 @@ class TestOffreDetailView:
             "ERNUM001",
             "https://exemple.gouv.fr/offres/1",
             "Master",
-            'href="mailto:jean.dupont@exemple.gouv.fr"',
+            "Personne à contacter : jean.dupont@exemple.gouv.fr",
             "Paris",
             "15/05/2024",
             f"Mairie de Test ({organisme.entity_code})",
@@ -401,18 +407,37 @@ class TestOffreDetailView:
         ):
             assert expected in content, expected
 
-    def test_shows_contacts_as_mailto_links(self, client, agent_user, source):
+    def test_shows_contacts_with_their_role_raw_text_and_emails(
+        self, client, agent_user, source
+    ):
         offer = OfferDjangoFactory(
             source=source,
-            contacts=[{"email": "a@exemple.gouv.fr"}, {"email": "b@exemple.gouv.fr"}],
+            contacts=[
+                {
+                    "role": "principal",
+                    "texte": "Camille Martin <RH> : a@exemple.gouv.fr ; 01 23 45",
+                    "emails": ["a@exemple.gouv.fr"],
+                },
+                {
+                    "role": "autre",
+                    "texte": "Bureau RH",
+                    "emails": ["b@exemple.gouv.fr"],
+                },
+            ],
         )
         client.force_login(agent_user)
 
         content = client.get(self.url(source, offer)).content.decode()
 
-        assert '<a href="mailto:a@exemple.gouv.fr">a@exemple.gouv.fr</a>, ' in content
-        assert '<a href="mailto:b@exemple.gouv.fr">b@exemple.gouv.fr</a>' in content
-        assert "&quot;email&quot;" not in content  # plus de JSON brut
+        assert (
+            "Personne à contacter : Camille Martin &lt;RH&gt; : a@exemple.gouv.fr"
+            " ; 01 23 45<br>"
+            "E-mails : a@exemple.gouv.fr<br>"
+            "Autre personne à contacter : Bureau RH<br>"
+            "E-mails : b@exemple.gouv.fr"
+        ) in content
+        assert "mailto:" not in content
+        assert "&quot;texte&quot;" not in content  # plus de JSON brut
 
     def test_shows_criteria_in_readable_rows(self, client, agent_user, source):
         offer = OfferDjangoFactory(

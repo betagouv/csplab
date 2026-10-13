@@ -543,6 +543,15 @@ class LocalisationInputSerializer(LocalisationSerializer):
         return data
 
 
+CONTACT_ROLES = ["principal", "autre"]
+
+
+class ContactSerializer(serializers.Serializer):
+    role = serializers.ChoiceField(choices=CONTACT_ROLES)
+    texte = serializers.CharField()
+    emails = serializers.ListField(child=serializers.EmailField())
+
+
 class OfferDetailResponseSerializer(serializers.Serializer):
     reference = serializers.CharField()
     source_id = serializers.UUIDField()
@@ -569,7 +578,7 @@ class OfferDetailResponseSerializer(serializers.Serializer):
     localisation = serializers.SerializerMethodField()
     criteres = serializers.SerializerMethodField()
     conditions = serializers.DictField(allow_null=True)
-    contacts = serializers.ListField(child=serializers.DictField(), allow_null=True)
+    contacts = ContactSerializer(many=True, allow_null=True)
     debut_publication = serializers.DateTimeField(source="publication_date")
     debut_contrat = serializers.SerializerMethodField()
     fin_candidature = serializers.DateTimeField(
@@ -775,7 +784,31 @@ class ConditionsInputSerializer(serializers.Serializer):
 
 
 class ContactsInputSerializer(serializers.Serializer):
-    email = serializers.EmailField()
+    role = serializers.ChoiceField(
+        choices=CONTACT_ROLES,
+        help_text="`principal` pour la personne à contacter, `autre` pour une "
+        "autre personne à contacter. Au plus un contact par rôle.",
+    )
+    texte = serializers.CharField(
+        max_length=100,
+        help_text="Contact en texte libre (nom, fonction, e-mail, téléphone…).",
+    )
+    emails = serializers.ListField(
+        child=serializers.EmailField(),
+        allow_empty=True,
+        help_text="E-mails présents dans `texte`, dans l'ordre d'apparition. "
+        "Liste vide si aucun.",
+    )
+
+    def validate_texte(self, value):
+        if not any(char.isalnum() for char in value):
+            raise serializers.ValidationError(
+                "Le texte doit contenir au moins une lettre ou un chiffre."
+            )
+        return value
+
+    def validate_emails(self, value):
+        return list(dict.fromkeys(value))
 
 
 class PublicationInputSerializer(serializers.Serializer):
@@ -819,6 +852,14 @@ class OffersInputSerializer(serializers.Serializer):
     conditions = ConditionsInputSerializer(allow_null=True)
     contacts = ContactsInputSerializer(many=True, allow_null=True)
     publication = PublicationInputSerializer()
+
+    def validate_contacts(self, value):
+        if value is None:
+            return None
+        roles = [contact["role"] for contact in value]
+        if len(roles) != len(set(roles)):
+            raise serializers.ValidationError("Au plus un contact par rôle.")
+        return sorted(value, key=lambda contact: CONTACT_ROLES.index(contact["role"]))
 
 
 class UpsertOffersRequestSerializer(serializers.Serializer):

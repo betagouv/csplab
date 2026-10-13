@@ -114,7 +114,14 @@ COMPLETE_VALID_OFFER = PayloadOfferFactory.create(
         "lieu_de_travail": "SUR_SITE",
         "management": "SANS",
     },
-    contacts=[{"email": fake.email()}, {"email": fake.email()}],
+    contacts=[
+        {
+            "role": "principal",
+            "texte": "Camille Martin, bureau RH : camille.martin@exemple.gouv.fr",
+            "emails": ["camille.martin@exemple.gouv.fr"],
+        },
+        {"role": "autre", "texte": "Bureau RH", "emails": []},
+    ],
 )
 
 INVALID_PAYLOAD_OFFER = PayloadOfferFactory.create(
@@ -435,6 +442,132 @@ def test_unknown_metier_returns_error_in_payload(
                     "metier": ["Code métier inconnu : ERNUM001."],
                 }
             },
+        }
+    ]
+
+
+def test_contacts_are_sorted_by_role_with_deduplicated_emails(
+    authenticated_client_with_source, use_case
+):
+    offer = PayloadOfferFactory.create(
+        identification={"reference": "REF-006", "versant": "FPT"},
+        contacts=[
+            {
+                "role": "autre",
+                "texte": "  rh@exemple.gouv.fr ; rh@exemple.gouv.fr  ",
+                "emails": ["rh@exemple.gouv.fr", "rh@exemple.gouv.fr"],
+            },
+            {"role": "principal", "texte": "Camille Martin", "emails": []},
+        ],
+    )
+    use_case.execute.return_value = {
+        "created": 1,
+        "updated": 0,
+        "errors": [],
+        "offres": [{"reference": "REF-006", "statut": "created"}],
+    }
+
+    response = authenticated_client_with_source.post(
+        URL,
+        data={"source_id": SOURCE_UUID, "offres": [offer]},
+        content_type="application/json",
+    )
+
+    assert response.status_code == status.HTTP_201_CREATED
+    upsert_input = use_case.execute.call_args[0][0]
+    assert upsert_input.offers[0].contacts == [
+        {"role": "principal", "texte": "Camille Martin", "emails": []},
+        {
+            "role": "autre",
+            "texte": "rh@exemple.gouv.fr ; rh@exemple.gouv.fr",
+            "emails": ["rh@exemple.gouv.fr"],
+        },
+    ]
+
+
+@pytest.mark.parametrize(
+    "contacts,expected_error",
+    [
+        (
+            [
+                {"role": "principal", "texte": "A", "emails": []},
+                {"role": "principal", "texte": "B", "emails": []},
+            ],
+            {"contacts": ["Au plus un contact par rôle."]},
+        ),
+        (
+            [{"role": "rh", "texte": "A", "emails": []}],
+            {"contacts": {"0": {"role": ["«\xa0rh\xa0» n'est pas un choix valide."]}}},
+        ),
+        (
+            [{"role": "principal", "texte": " . ", "emails": []}],
+            {
+                "contacts": {
+                    "0": {
+                        "texte": [
+                            "Le texte doit contenir au moins une lettre ou un chiffre."
+                        ]
+                    }
+                }
+            },
+        ),
+        (
+            [{"role": "principal", "texte": "a" * 101, "emails": []}],
+            {
+                "contacts": {
+                    "0": {
+                        "texte": [
+                            (
+                                "Assurez-vous que ce champ comporte au plus "
+                                "100\xa0caractères."
+                            )
+                        ]
+                    }
+                }
+            },
+        ),
+        (
+            [{"role": "principal", "texte": "A", "emails": ["pas-un-email"]}],
+            {
+                "contacts": {
+                    "0": {"emails": {"0": ["Saisissez une adresse e-mail valide."]}}
+                }
+            },
+        ),
+        (
+            [{"email": "camille.martin@exemple.gouv.fr"}],
+            {
+                "contacts": {
+                    "0": {
+                        "role": ["Ce champ est obligatoire."],
+                        "texte": ["Ce champ est obligatoire."],
+                        "emails": ["Ce champ est obligatoire."],
+                    }
+                }
+            },
+        ),
+    ],
+)
+def test_invalid_contacts_are_rejected(
+    authenticated_client_with_source, use_case, contacts, expected_error
+):
+    offer = PayloadOfferFactory.create(
+        identification={"reference": "REF-007", "versant": "FPT"},
+        contacts=contacts,
+    )
+
+    response = authenticated_client_with_source.post(
+        URL,
+        data={"source_id": SOURCE_UUID, "offres": [offer]},
+        content_type="application/json",
+    )
+
+    assert response.status_code == status.HTTP_201_CREATED
+    assert response.json()["errors"] == [
+        {
+            "index": 0,
+            "offre": {"reference": "REF-007", "versant": "FPT"},
+            "error": expected_error,
         }
     ]
 

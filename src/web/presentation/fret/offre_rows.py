@@ -9,7 +9,7 @@ import pycountry
 from django.db import models
 from django.template.defaultfilters import linebreaksbr
 from django.utils.html import format_html, format_html_join
-from django.utils.safestring import SafeString
+from django.utils.safestring import SafeString, mark_safe
 from referentiel.value_objects.category import Category
 from referentiel.value_objects.contract_kind import ContractKind
 from referentiel.value_objects.experience_level import ExperienceLevel
@@ -146,17 +146,33 @@ def _link(url: str) -> SafeString:
     return format_html('<a href="{0}" rel="noopener" target="_blank">{0}</a>', url)
 
 
+_CONTACT_ROLES = {
+    "principal": "Personne à contacter",
+    "autre": "Autre personne à contacter",
+}
+
+
 def _contacts(contacts: list) -> SafeString:
-    """Adresses de contact, séparées par des virgules, avec un lien `mailto:`."""
+    """Un contact par ligne, précédé de son rôle, affiché tel quel."""
     return format_html_join(
-        ", ",
-        '<a href="mailto:{0}">{0}</a>',
+        mark_safe("<br>"),
+        "{}",
         (
-            (contact["email"],)
+            (_contact(contact),)
             for contact in contacts
-            if isinstance(contact, dict) and contact.get("email")
+            if isinstance(contact, dict) and contact.get("texte")
         ),
     )
+
+
+def _contact(contact: dict) -> SafeString:
+    """Rôle et texte du contact, suivis de ses e-mails sur une ligne à part."""
+    role = _CONTACT_ROLES.get(contact.get("role", ""), "")
+    html = format_html("{} : {}", role, contact["texte"])
+    emails = [email for email in contact.get("emails") or [] if email]
+    if emails:
+        html = format_html("{}<br>E-mails : {}", html, ", ".join(emails))
+    return html
 
 
 def _enum(enum: type[Enum]) -> Callable[[Any], str]:

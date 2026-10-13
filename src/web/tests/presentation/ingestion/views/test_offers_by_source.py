@@ -230,7 +230,13 @@ class TestOffersBySourceViewDbVerified:
             longitude=2.3522,
             criteria=criteria.to_dict(),
             conditions={"salaire": "35000-45000"},
-            contacts=[{"nom": "Jean Dupont", "email": "jean.dupont@example.gouv.fr"}],
+            contacts=[
+                {
+                    "role": "principal",
+                    "texte": "Jean Dupont : jean.dupont@example.gouv.fr",
+                    "emails": ["jean.dupont@example.gouv.fr"],
+                }
+            ],
             beginning_date=datetime(2024, 6, 1, tzinfo=UTC),
         )
 
@@ -271,7 +277,11 @@ class TestOffersBySourceViewDbVerified:
                 "criteres": criteria.to_dict(),
                 "conditions": {"salaire": "35000-45000"},
                 "contacts": [
-                    {"nom": "Jean Dupont", "email": "jean.dupont@example.gouv.fr"}
+                    {
+                        "role": "principal",
+                        "texte": "Jean Dupont : jean.dupont@example.gouv.fr",
+                        "emails": ["jean.dupont@example.gouv.fr"],
+                    }
                 ],
                 "debut_publication": "2024-01-15T00:00:00Z",
                 "debut_contrat": "2024-06-01T00:00:00Z",
