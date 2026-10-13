@@ -27,35 +27,34 @@ class OrganismeQuerySet(models.QuerySet):
         return self.filter(pk__in=organisme_ids)
 
     def with_counts(self) -> "OrganismeQuerySet":
-        return (
-            self.annotate(
-                number_agents=Count(
-                    "agents_liaisons",
-                    filter=Q(agents_liaisons__date_revocation__isnull=True),
-                    distinct=True,
+        return self.annotate(
+            number_agents=Count(
+                "agents_liaisons",
+                filter=Q(agents_liaisons__date_revocation__isnull=True),
+                distinct=True,
+            ),
+            number_published_offers=Count("recrutements", distinct=True),
+            max_agent_updated=Max("agents_liaisons__updated_at"),
+            last_activity_date=Greatest(
+                "updated_at",
+                Coalesce("max_agent_updated", "updated_at"),
+            ),
+            managed_ats=Coalesce("gestion_ats", Value(False)),
+        ).order_by("-updated_at")
+
+    def with_superviseurs_actifs(self) -> "OrganismeQuerySet":
+        return self.prefetch_related(
+            Prefetch(
+                "agents_liaisons",
+                queryset=OrganismeAgentModel.objects.active()
+                .filter(role=AgentOrganismeRole.SUPERVISEUR.value)
+                .select_related("agent__utilisateur")
+                .order_by(
+                    "agent__utilisateur__last_name",
+                    "agent__utilisateur__first_name",
                 ),
-                number_published_offers=Count("recrutements", distinct=True),
-                max_agent_updated=Max("agents_liaisons__updated_at"),
-                last_activity_date=Greatest(
-                    "updated_at",
-                    Coalesce("max_agent_updated", "updated_at"),
-                ),
-                managed_ats=Coalesce("gestion_ats", Value(False)),
+                to_attr="superviseurs_actifs",
             )
-            .prefetch_related(
-                Prefetch(
-                    "agents_liaisons",
-                    queryset=OrganismeAgentModel.objects.active()
-                    .filter(role=AgentOrganismeRole.SUPERVISEUR.value)
-                    .select_related("agent__utilisateur")
-                    .order_by(
-                        "agent__utilisateur__last_name",
-                        "agent__utilisateur__first_name",
-                    ),
-                    to_attr="superviseurs_actifs",
-                )
-            )
-            .order_by("-updated_at")
         )
 
     def etapes_of(self, organisme_id) -> "OrganismeQuerySet":
