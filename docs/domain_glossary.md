@@ -33,7 +33,7 @@ Dans le code, on abrège le nom du service en `csp`.
 
 ## API publique `/api/v1`
 
-Les champs, les filtres et les valeurs de l'API publique sont en français, y compris les mots traduits ailleurs dans le code (`statut`, `titre`, `profil`). Les sérialiseurs exposent ces noms avec `source=` : le domaine et les cas d'usage gardent leurs noms. Les vues `recruteur` et `identite`, `/api/token`, `/api/fake-ts/` et le schéma d'API interne suivent la règle générale.
+On ne renomme pas l'API publique, que des systèmes externes appellent : ces règles s'appliquent aux noms qu'on y ajoute. Les champs, les filtres et les valeurs de l'API publique sont en français, y compris les mots traduits ailleurs dans le code (`statut`, `titre`, `profil`). Les sérialiseurs exposent ces noms avec `source=` : le domaine et les cas d'usage gardent leurs noms. Les vues `recruteur` et `identite`, `/api/token`, `/api/fake-ts/` et le schéma d'API interne suivent la règle générale.
 
 - On écrit en snake_case, sans accent : `conditions_exercice`, `mises_a_jour`.
 - Un champ porte le même nom en entrée et en sortie, et d'une route à l'autre.
@@ -48,8 +48,6 @@ On garde tels quels :
 - les messages de validation par nom de champ ;
 - les noms que les partenaires emploient déjà et qui se lisent dans les deux langues : `reference`, `source_id`, la valeur `ok` ;
 - un champ d'un sérialiseur partagé avec l'entrée, comme `localisation.localisation_label`.
-
-On ne garde pas d'alias pour l'ancien nom : on inscrit le renommage dans les changements non rétrocompatibles de `changelog_api.md`, on met à jour `guide_api.md` et on prévient les partenaires.
 
 ## Termes traduits
 
