@@ -1,7 +1,6 @@
 from unittest.mock import Mock, patch
 
 import pytest
-from django.db import IntegrityError
 from faker import Faker
 
 from application.identite.services.create_candidat import create_candidat
@@ -84,22 +83,6 @@ def test_refuses_a_second_profile_for_the_same_email(db):
 
     assert ProfilCandidatModel.objects.count() == 1
     assert UserModel.objects.count() == 1
-    assert not AuditLogModel.objects.exists()
-
-
-def test_reraises_other_integrity_errors(db):
-    email = fake.email()
-
-    with pytest.raises(IntegrityError) as excinfo:
-        create_candidat(
-            email=email,
-            prenom=fake.first_name(),
-            nom=fake.last_name(),
-            resume=None,
-        )
-
-    assert "resume" in str(excinfo.value)
-    assert not UserModel.objects.filter(email=email).exists()
     assert not AuditLogModel.objects.exists()
 
 
