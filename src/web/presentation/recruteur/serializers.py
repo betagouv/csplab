@@ -51,9 +51,17 @@ class OrganismeDetailSerializer(serializers.Serializer):
     date_creation = serializers.DateTimeField()
 
 
-class OrganismesListSerializer(OrganismeDetailSerializer):
-    nombre_agents = serializers.IntegerField()
-    nombre_offres_publiees = serializers.IntegerField()
+class OrganismesListSerializer(serializers.Serializer):
+    uuid = serializers.UUIDField(source="id")
+    nom = serializers.CharField()
+    versant = serializers.ChoiceField(choices=[c.value for c in Verse])
+    siret = serializers.CharField()
+    gestionnaire = serializers.CharField(allow_null=True)
+    gestion_ats = serializers.BooleanField(source="managed_ats")
+    date_derniere_activite = serializers.DateTimeField(source="last_activity_date")
+    date_creation = serializers.DateTimeField(source="created_at")
+    nombre_agents = serializers.IntegerField(source="number_agents")
+    nombre_offres_publiees = serializers.IntegerField(source="number_published_offers")
 
 
 class CreateOrganismeSerializer(serializers.Serializer):

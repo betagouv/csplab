@@ -8,7 +8,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from application.identite.usecases.create_organisme import CreateOrganismeCommand
-from application.identite.usecases.list_organismes import ListOrganismesCommand
+from application.recruteur.services.list_organismes import list_organismes
 from domain.identite.errors.organisme_errors import OrganismeSiretExisteDeja
 from domain.identite.errors.organisme_permission_errors import (
     OperationOrganismeRefusee,
@@ -19,10 +19,7 @@ from presentation.api.serializers import (
     GenericErrorSerializer,
     generic_response_format,
 )
-from presentation.recruteur.mappers import (
-    OrganismeMapper,
-    UtilisateurMapper,
-)
+from presentation.recruteur.mappers import UtilisateurMapper
 from presentation.recruteur.serializers import (
     CreateOrganismeSerializer,
     OrganismeDetailSerializer,
@@ -60,17 +57,8 @@ class OrganismesView(SessionApiMixin, APIView):
 
     def get(self, request: Request) -> Response:
         try:
-            usecase = self.container.list_organismes_usecase()
-            organisme_read_models = usecase.execute(
-                ListOrganismesCommand(
-                    utilisateur=self.user_mapper.to_domain(request),
-                )
-            )
-            organismes_dto = [
-                OrganismeMapper().from_application(organisme)
-                for organisme in organisme_read_models
-            ]
-            return Response(OrganismesListSerializer(organismes_dto, many=True).data)
+            organismes = list_organismes(utilisateur=request.user)
+            return Response(OrganismesListSerializer(organismes, many=True).data)
         except OperationOrganismeRefusee as e:
             serializer = GenericErrorSerializer({"error": str(e)})
             return Response(serializer.data, status=status.HTTP_403_FORBIDDEN)
