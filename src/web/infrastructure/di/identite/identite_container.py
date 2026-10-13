@@ -4,7 +4,6 @@ from application.identite.context_services.organisme_permission_service import (
     OrganismePermissionService,
 )
 from application.identite.usecases.create_agent import CreateAgentUsecase
-from application.identite.usecases.create_candidat import CreateCandidatUsecase
 from application.identite.usecases.create_organisme import CreateOrganismeUsecase
 from application.identite.usecases.get_organisme import GetOrganismeUsecase
 from application.identite.usecases.get_utilisateur_details import (
@@ -18,9 +17,6 @@ from infrastructure.repositories.commons.postgres_audit_log_repository import (
 )
 from infrastructure.repositories.identite.postgres_agent_repository import (
     PostgresAgentRepository,
-)
-from infrastructure.repositories.identite.postgres_candidat_repository import (
-    PostgresCandidatRepository,
 )
 from infrastructure.repositories.identite.postgres_organisme_query_service import (
     PostgresOrganismeQueryService,
@@ -39,7 +35,6 @@ class IdentiteContainer(containers.DeclarativeContainer):
 
     postgres_utilisateur_repository = providers.Singleton(PostgresUtilisateurRepository)
     postgres_agent_repository = providers.Singleton(PostgresAgentRepository)
-    postgres_candidat_repository = providers.Singleton(PostgresCandidatRepository)
     postgres_audit_log_repository = providers.Singleton(PostgresAuditLogRepository)
 
     audit_log_writer = providers.Factory(
@@ -51,13 +46,6 @@ class IdentiteContainer(containers.DeclarativeContainer):
     get_utilisateur_details_usecase = providers.Factory(
         GetUtilisateurDetailsUsecase,
         utilisateur_repository=postgres_utilisateur_repository,
-    )
-
-    create_candidat_usecase = providers.Factory(
-        CreateCandidatUsecase,
-        candidat_repository=postgres_candidat_repository,
-        utilisateur_repository=postgres_utilisateur_repository,
-        audit_log_writer=audit_log_writer,
     )
 
     postgres_organisme_query_service = providers.Singleton(
