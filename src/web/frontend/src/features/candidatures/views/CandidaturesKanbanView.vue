@@ -70,7 +70,7 @@ const {
 const boardId = computed(() => `kanban-${props.recrutementUuid}`)
 const isDrawerOpen = ref(false)
 const drawerInitialEtapeUuid = ref<string | null>(null)
-const refus = useRefusCandidature(() => props.organismeUuid)
+const refus = useRefusCandidature(() => props.organismeUuid, recrutementEtapes)
 
 const refusEtapeUuid = computed(() => {
   return recrutementEtapes.value.find(e => e.categorie === 'REFUS')?.uuid ?? null
@@ -96,16 +96,15 @@ function handleMove({ sourceColumnId, targetColumnId, cardId }: KanbanDropEvent)
     return
   }
 
-  const move = (motifRefus?: MotifRefus) =>
-    void changeEtape({ etapeCibleUuid: targetColumnId, candidatureUuids: [cardId], motifRefus })
-
   const candidature = findCandidature(cardId)
-  if (candidature && targetColumnId === refusEtapeUuid.value) {
-    refus.request([candidature.candidat], move)
+  if (!candidature) {
+    return
   }
-  else {
-    move()
-  }
+  refus.moveOrAskRejectionReason(
+    targetColumnId,
+    [candidature.candidat],
+    motifRefus => void changeEtape({ etapeCibleUuid: targetColumnId, candidatureUuids: [cardId], motifRefus }),
+  )
 }
 
 function handleToggleColumnSelection(etape: EtapeRecrutementDetailedCandidatures): void {
@@ -123,12 +122,11 @@ function handleRefuser(): void {
 }
 
 function handleConfirmBatchMove(targetEtapeUuid: string): void {
-  if (targetEtapeUuid === refusEtapeUuid.value) {
-    refus.request(selectedCandidats.value, motifRefus => applyBatchMove(targetEtapeUuid, motifRefus))
-  }
-  else {
-    applyBatchMove(targetEtapeUuid)
-  }
+  refus.moveOrAskRejectionReason(
+    targetEtapeUuid,
+    selectedCandidats.value,
+    motifRefus => applyBatchMove(targetEtapeUuid, motifRefus),
+  )
 }
 
 function applyBatchMove(targetEtapeUuid: string, motifRefus?: MotifRefus): void {
