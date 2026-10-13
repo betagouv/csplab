@@ -830,11 +830,42 @@ class UpsertOffersRequestSerializer(serializers.Serializer):
     )
 
 
+class UpsertOfferStatusSerializer(serializers.Serializer):
+    index = serializers.IntegerField(
+        help_text="Position de l'offre dans `offres` du payload (à partir de 0)"
+    )
+    reference = serializers.CharField(
+        help_text="Référence de l'offre, fournie ou générée"
+    )
+    statut = serializers.ChoiceField(
+        choices=["creee", "mise_a_jour"],
+        help_text="`creee` si l'offre a été créée, "
+        "`mise_a_jour` si elle a été mise à jour",
+    )
+
+
+class UpsertOfferErrorSerializer(serializers.Serializer):
+    index = serializers.IntegerField(
+        help_text="Position de l'offre dans `offres` du payload (à partir de 0)"
+    )
+    offre = IdentityInputSerializer(help_text="Identification de l'offre rejetée")
+    error = serializers.DictField(help_text="Détail de l'erreur de validation")
+
+
 class UpsertOffersResponseSerializer(serializers.Serializer):
-    created = serializers.IntegerField()
-    updated = serializers.IntegerField()
-    offres = serializers.ListField(child=serializers.DictField())
-    errors = serializers.ListField(child=serializers.DictField())
+    creees = serializers.IntegerField(help_text="Nombre d'offres créées")
+    mises_a_jour = serializers.IntegerField(help_text="Nombre d'offres mises à jour")
+    offres = serializers.ListField(
+        child=UpsertOfferStatusSerializer(),
+        help_text=(
+            "Offres créées ou mises à jour, avec leur référence finale "
+            "(générée si `identification.reference` vaut `auto`)"
+        ),
+    )
+    errors = serializers.ListField(
+        child=UpsertOfferErrorSerializer(),
+        help_text="Offres rejetées avec le détail de l'erreur",
+    )
 
 
 class OrganismeLocalisationInputSerializer(serializers.Serializer):

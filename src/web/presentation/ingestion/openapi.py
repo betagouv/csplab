@@ -456,7 +456,7 @@ Si vous n'avez pas de référence pour une offre, envoyez `"auto"` dans \
 chaque année.
 
 La réponse liste dans `offres` chaque offre créée ou mise à jour, avec son `index` \
-dans le payload, sa `reference` finale et son `statut` (`created` ou `updated`). \
+dans le payload, sa `reference` finale et son `statut` (`creee` ou `mise_a_jour`). \
 L'`index` permet de retrouver la référence générée pour chaque offre envoyée en \
 `"auto"`.
 
@@ -492,16 +492,16 @@ UPSERT_OFFERS_EXAMPLES = [
             "pour la troisième se retrouve grâce à son `index` (2)."
         ),
         value={
-            "created": 1,
-            "updated": 1,
+            "creees": 1,
+            "mises_a_jour": 1,
             "offres": [
-                {"index": 0, "reference": "REF-001", "statut": "updated"},
-                {"index": 2, "reference": "CSP-2026-000042", "statut": "created"},
+                {"index": 0, "reference": "REF-001", "statut": "mise_a_jour"},
+                {"index": 2, "reference": "CSP-2026-000042", "statut": "creee"},
             ],
             "errors": [
                 {
                     "index": 1,
-                    "offer": {"reference": "auto", "versant": "FPE"},
+                    "offre": {"reference": "auto", "versant": "FPE"},
                     "error": {"titre": ["Ce champ ne peut être nul."]},
                 }
             ],

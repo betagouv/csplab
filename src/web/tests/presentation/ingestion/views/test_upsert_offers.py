@@ -389,19 +389,19 @@ def test_mixed_valid_invalid_offers_in_payload(
     )
     assert response.status_code == status.HTTP_201_CREATED
     assert response.json()["offres"] == [
-        {"index": 0, "reference": "REF-001", "statut": "created"}
+        {"index": 0, "reference": "REF-001", "statut": "creee"}
     ]
     errors = response.json()["errors"]
     assert errors == [
         "db error on offer xxx",
         {
             "index": 1,
-            "offer": {"reference": "REF-004", "versant": "FPT"},
+            "offre": {"reference": "REF-004", "versant": "FPT"},
             "error": {"titre": ["Ce champ ne peut être nul."]},
         },
         {
             "index": 2,
-            "offer": {"reference": "REF-005", "versant": "FPT"},
+            "offre": {"reference": "REF-005", "versant": "FPT"},
             "error": {"nature_offre": ["«\xa0ABC\xa0» n'est pas un choix valide."]},
         },
     ]
@@ -429,7 +429,7 @@ def test_unknown_metier_returns_error_in_payload(
     assert errors == [
         {
             "index": 0,
-            "offer": {"reference": "REF-001", "versant": "FPT"},
+            "offre": {"reference": "REF-001", "versant": "FPT"},
             "error": {
                 "profession": {
                     "metier": ["Code métier inconnu : ERNUM001."],
@@ -466,10 +466,10 @@ class TestOffersUpsertViewDbVerified:
 
         assert response.status_code == status.HTTP_201_CREATED
         assert response.json() == {
-            "created": 1,
-            "updated": 0,
+            "creees": 1,
+            "mises_a_jour": 0,
             "errors": [],
-            "offres": [{"index": 0, "reference": "REF-001", "statut": "created"}],
+            "offres": [{"index": 0, "reference": "REF-001", "statut": "creee"}],
         }
 
         offer_model = OfferModel.objects.get(
@@ -507,7 +507,7 @@ class TestOffersUpsertViewDbVerified:
         assert response.status_code == status.HTTP_201_CREATED
         offres = response.json()["offres"]
         assert [o["index"] for o in offres] == [0, 2, 3]
-        assert all(o["statut"] == "created" for o in offres)
+        assert all(o["statut"] == "creee" for o in offres)
         assert offres[1]["reference"] == "REF-001"
         generated = [offres[0]["reference"], offres[2]["reference"]]
         assert len(set(generated)) == len(generated)
@@ -544,7 +544,7 @@ class TestOffersUpsertViewDbVerified:
         )
 
         assert response.json()["offres"] == [
-            {"index": 0, "reference": reference, "statut": "updated"}
+            {"index": 0, "reference": reference, "statut": "mise_a_jour"}
         ]
         offer = OfferModel.objects.get(source_id=UUID(SOURCE_UUID))
         assert offer.reference == reference
@@ -596,7 +596,7 @@ class TestOffersUpsertViewDbVerified:
         assert body["errors"] == [
             {
                 "index": 0,
-                "offer": {"reference": explicit_reference, "versant": "FPT"},
+                "offre": {"reference": explicit_reference, "versant": "FPT"},
                 "error": {"reference": [UNKNOWN_GENERATED_REFERENCE]},
             }
         ]

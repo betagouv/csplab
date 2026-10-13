@@ -245,6 +245,33 @@ La réponse indique combien d'offres ont été **créées**, **mises à jour**, 
 des offres **rejetées** avec le détail de l'erreur. Une offre rejetée n'empêche pas les
 autres d'être traitées.
 
+| Champ | Signification |
+|---|---|
+| `creees` | Nombre d'offres créées |
+| `mises_a_jour` | Nombre d'offres mises à jour |
+| `offres` | Offres créées ou mises à jour : `index` (position dans le tableau `offres` envoyé, à partir de 0), `reference` et `statut` (`creee` ou `mise_a_jour`) |
+| `errors` | Offres rejetées : `index`, `offre` (bloc `identification` envoyé) et `error` (détail de l'erreur) |
+
+Exemple de réponse :
+
+```json
+{
+  "creees": 1,
+  "mises_a_jour": 1,
+  "offres": [
+    {"index": 0, "reference": "REF-001", "statut": "mise_a_jour"},
+    {"index": 2, "reference": "CSP-2026-000042", "statut": "creee"}
+  ],
+  "errors": [
+    {
+      "index": 1,
+      "offre": {"reference": "auto", "versant": "FPE"},
+      "error": {"titre": ["Ce champ ne peut être nul."]}
+    }
+  ]
+}
+```
+
 > Vous partez d'une offre au format Talentsoft ? Consultez l'[annexe de correspondance
 > entre le format Talentsoft et l'API v1](#annexe-correspondance-entre-le-format-talentsoft-et-lapi-v1).
 

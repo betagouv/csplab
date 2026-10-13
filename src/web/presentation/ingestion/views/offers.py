@@ -44,12 +44,12 @@ from presentation.ingestion.openapi import (
 from presentation.ingestion.serializers import (
     ArchiveOfferRequestSerializer,
     ArchiveOfferSuccessSerializer,
-    IdentityInputSerializer,
     ListOffersFiltersSerializer,
     ListOffersResponseSerializer,
     OfferDetailResponseSerializer,
     OffersInputSerializer,
     UpsertOffersRequestSerializer,
+    UpsertOffersResponseSerializer,
 )
 
 UNKNOWN_GENERATED_REFERENCE = (
@@ -57,6 +57,8 @@ UNKNOWN_GENERATED_REFERENCE = (
     "format CSP-AAAA-NNNNNN sont générées par CSPLab : utilisez `auto` pour créer "
     "une offre."
 )
+
+STATUTS_OFFRE = {"created": "creee", "updated": "mise_a_jour"}
 
 
 @extend_schema(
@@ -262,56 +264,7 @@ class ArchiveOffersView(PublicApiMixin, APIView):
         },
     ),
     responses={
-        201: inline_serializer(
-            name="UpsertOffersResponse",
-            fields={
-                "created": serializers.IntegerField(help_text="Nombre d'offres créées"),
-                "updated": serializers.IntegerField(
-                    help_text="Nombre d'offres mises à jour"
-                ),
-                "offres": serializers.ListField(
-                    help_text=(
-                        "Offres créées ou mises à jour, avec leur référence finale "
-                        "(générée si `identification.reference` vaut `auto`)"
-                    ),
-                    child=inline_serializer(
-                        name="UpsertOfferStatus",
-                        fields={
-                            "index": serializers.IntegerField(
-                                help_text="Position de l'offre dans `offres` du "
-                                "payload (à partir de 0)"
-                            ),
-                            "reference": serializers.CharField(
-                                help_text="Référence de l'offre, fournie ou générée"
-                            ),
-                            "statut": serializers.ChoiceField(
-                                choices=["created", "updated"],
-                                help_text="`created` si l'offre a été créée, "
-                                "`updated` si elle a été mise à jour",
-                            ),
-                        },
-                    ),
-                ),
-                "errors": serializers.ListField(
-                    help_text="Offres rejetées avec le détail de l'erreur",
-                    child=inline_serializer(
-                        name="UpsertOfferError",
-                        fields={
-                            "index": serializers.IntegerField(
-                                help_text="Position de l'offre dans `offres` du "
-                                "payload (à partir de 0)"
-                            ),
-                            "offer": IdentityInputSerializer(
-                                help_text="Identification de l'offre rejetée"
-                            ),
-                            "error": serializers.DictField(
-                                help_text="Détail de l'erreur de validation"
-                            ),
-                        },
-                    ),
-                ),
-            },
-        ),
+        201: UpsertOffersResponseSerializer,
         400: GenericErrorSerializer,
         401: TokenErrorSerializer,
         403: inline_serializer(
@@ -352,7 +305,7 @@ class OffersUpsertView(PublicApiMixin, APIView):
                 errors.append(
                     {
                         "index": index,
-                        "offer": offer_data.get("identification", {}),
+                        "offre": offer_data.get("identification", {}),
                         "error": serializer.errors,
                     }
                 )
@@ -366,7 +319,7 @@ class OffersUpsertView(PublicApiMixin, APIView):
                 errors.append(
                     {
                         "index": index,
-                        "offer": offer_data.get("identification", {}),
+                        "offre": offer_data.get("identification", {}),
                         "error": str(e),
                     }
                 )
@@ -381,7 +334,7 @@ class OffersUpsertView(PublicApiMixin, APIView):
                     errors.append(
                         {
                             "index": index,
-                            "offer": request.data["offres"][index]["identification"],
+                            "offre": request.data["offres"][index]["identification"],
                             "error": {"reference": [UNKNOWN_GENERATED_REFERENCE]},
                         }
                     )
@@ -404,13 +357,23 @@ class OffersUpsertView(PublicApiMixin, APIView):
             )
             result["errors"].extend(sorted(errors, key=lambda error: error["index"]))
             offres = [
-                {"index": index, **offer_status}
+                {
+                    "index": index,
+                    "reference": offer_status["reference"],
+                    "statut": STATUTS_OFFRE[offer_status["statut"]],
+                }
                 for index, offer_status in zip(
                     valid_indexes, result["offres"], strict=True
                 )
             ]
             return Response(
-                {**result, "offres": offres}, status=status.HTTP_201_CREATED
+                {
+                    "creees": result["created"],
+                    "mises_a_jour": result["updated"],
+                    "offres": offres,
+                    "errors": result["errors"],
+                },
+                status=status.HTTP_201_CREATED,
             )
         except SourceAuthorizationError as e:
             source_ids = sorted(str(sid) for sid in e.source_ids)
