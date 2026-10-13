@@ -1,4 +1,4 @@
-import type { EntryKey } from '@pinia/colada'
+import type { EntryKey, EntryKeyTagged } from '@pinia/colada'
 import type { MaybeRefOrGetter } from 'vue'
 import type { EtapeChange } from '../api'
 import type { RecrutementParams } from '@/api/params'
@@ -30,52 +30,47 @@ export function useEtapeChangeMutation(recrutement: MaybeRefOrGetter<Recrutement
     }
   }
 
+  function applyOptimistic<TData>(key: EntryKeyTagged<TData>, update: (previous: TData) => TData): Snapshot | null {
+    const previous = queryCache.getQueryData(key)
+    if (!previous) {
+      return null
+    }
+    const optimistic = update(previous)
+    queryCache.cancelQueries({ key })
+    queryCache.setQueryData(key, optimistic)
+    return { key, previous, optimistic }
+  }
+
   const mutation = useMutation({
     mutation: (change: EtapeChange, { params }) =>
       patchEtapeCandidatures(params.organismeUuid, params.recrutementUuid, change),
     onMutate: ({ candidatureUuids, etapeCibleUuid }: EtapeChange) => {
       const params = { ...toValue(recrutement) }
-      const key = recrutementKanbanQuery(params).key
-      const previous = queryCache.getQueryData(key)
-      const optimistic = previous && moveCandidaturesInKanban(previous, candidatureUuids, etapeCibleUuid)
-      if (optimistic) {
-        queryCache.cancelQueries({ key })
-        queryCache.setQueryData(key, optimistic)
-      }
+      const kanban = applyOptimistic(recrutementKanbanQuery(params).key, previous =>
+        moveCandidaturesInKanban(previous, candidatureUuids, etapeCibleUuid))
 
-      const snapshots: Snapshot[] = []
+      const snapshots: (Snapshot | null)[] = []
       const etapeCible = queryCache.getQueryData(recrutementDetailQuery(params).key)?.etapes.find(etape => etape.uuid === etapeCibleUuid)
       if (etapeCible) {
         const moved = new Set(candidatureUuids)
-        const listeKey = candidatureListeQuery(params).key
-        const previousListe = queryCache.getQueryData(listeKey)
-        if (previousListe) {
-          const optimisticListe = {
-            ...previousListe,
-            results: previousListe.results.map(row => moved.has(row.uuid) ? { ...row, etape: etapeCible } : row),
-          }
-          queryCache.cancelQueries({ key: listeKey })
-          queryCache.setQueryData(listeKey, optimisticListe)
-          snapshots.push({ key: listeKey, previous: previousListe, optimistic: optimisticListe })
-        }
+        snapshots.push(applyOptimistic(candidatureListeQuery(params).key, liste => ({
+          ...liste,
+          results: liste.results.map(row => moved.has(row.uuid) ? { ...row, etape: etapeCible } : row),
+        })))
         for (const candidatureUuid of candidatureUuids) {
-          const detailKey = candidatureDetailQuery({ ...params, candidatureUuid }).key
-          const previousDetail = queryCache.getQueryData(detailKey)
-          if (!previousDetail) {
-            continue
-          }
-          const optimisticDetail = { ...previousDetail, etape_actuelle: { uuid: etapeCible.uuid, nom: etapeCible.nom } }
-          queryCache.cancelQueries({ key: detailKey })
-          queryCache.setQueryData(detailKey, optimisticDetail)
-          snapshots.push({ key: detailKey, previous: previousDetail, optimistic: optimisticDetail })
+          snapshots.push(applyOptimistic(candidatureDetailQuery({ ...params, candidatureUuid }).key, detail => ({
+            ...detail,
+            etape_actuelle: { uuid: etapeCible.uuid, nom: etapeCible.nom },
+          })))
         }
       }
 
-      return { params, key, previous, optimistic, snapshots }
+      return { params, kanban, snapshots }
     },
-    onSuccess: ({ echecs }, _change, { key, optimistic }) => {
-      if (queryCache.getQueryData(key) !== optimistic || echecs.length > 0) {
-        void queryCache.invalidateQueries({ key })
+    onSuccess: ({ echecs }, _change, { params, kanban }) => {
+      const kanbanChangedMeanwhile = kanban && queryCache.getQueryData(kanban.key) !== kanban.optimistic
+      if (kanbanChangedMeanwhile || echecs.length > 0) {
+        void queryCache.invalidateQueries({ key: recrutementKanbanQuery(params).key })
       }
       if (echecs.length === 0) {
         return
@@ -85,12 +80,11 @@ export function useEtapeChangeMutation(recrutement: MaybeRefOrGetter<Recrutement
         title: 'Certaines candidatures n\'ont pas changé d\'étape',
       })
     },
-    onError: (_error, _change, { key, previous, optimistic, snapshots }) => {
-      if (key && previous) {
-        restore({ key, previous, optimistic })
-      }
-      for (const snapshot of snapshots ?? []) {
-        restore(snapshot)
+    onError: (_error, _change, { kanban, snapshots }) => {
+      for (const snapshot of [kanban, ...(snapshots ?? [])]) {
+        if (snapshot) {
+          restore(snapshot)
+        }
       }
       addToast({
         variant: 'error',
