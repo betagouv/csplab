@@ -9,6 +9,8 @@ from referentiel.value_objects.limit_date import LimitDate
 from referentiel.value_objects.localisation import Localisation
 from referentiel.value_objects.region import Region
 
+from domain.value_objects.contact import Contact, ContactRole
+
 
 class TestLimitDate:
     def test_valid_datetime_is_accepted(self):
@@ -83,3 +85,54 @@ class TestDepartment:
     def test_invalid_code_raises(self):
         with pytest.raises(ValueError, match="Invalid French department code"):
             Department(code="INVALID")
+
+
+class TestContact:
+    def test_from_text_strips_text_and_extracts_emails(self):
+        contact = Contact.from_text(
+            ContactRole.PRINCIPAL,
+            "  Camille Martin : camille.martin@exemple.gouv.fr ; 01 23 45 67 89 ",
+        )
+
+        assert contact == Contact(
+            role=ContactRole.PRINCIPAL,
+            text="Camille Martin : camille.martin@exemple.gouv.fr ; 01 23 45 67 89",
+            emails=["camille.martin@exemple.gouv.fr"],
+        )
+
+    def test_from_text_extracts_several_emails_without_duplicates(self):
+        contact = Contact.from_text(
+            ContactRole.AUTRE,
+            "rh@exemple.fr;camille.martin@exemple.fr ; rh@exemple.fr",
+        )
+
+        assert contact is not None
+        assert contact.emails == ["rh@exemple.fr", "camille.martin@exemple.fr"]
+
+    def test_from_text_returns_no_email_for_name_only(self):
+        contact = Contact.from_text(ContactRole.PRINCIPAL, "Camille Martin")
+
+        assert contact is not None
+        assert contact.emails == []
+
+    @pytest.mark.parametrize(
+        "text, expected",
+        [
+            ("chg.tj-paris@justice.fr-Camille MARTIN", ["chg.tj-paris@justice.fr"]),
+            ("(camille.martin@exemple.gouv.fr)", ["camille.martin@exemple.gouv.fr"]),
+            ("mail : rh@exemple.gouv.fr.", ["rh@exemple.gouv.fr"]),
+            ("hélène.martin@exemple.fr", []),
+            ("camille.martin@@exemple.fr", []),
+            ("camille.martin.@exemple.fr", []),
+            ("camille.martin@exemple", []),
+        ],
+    )
+    def test_from_text_only_extracts_valid_emails(self, text, expected):
+        contact = Contact.from_text(ContactRole.PRINCIPAL, text)
+
+        assert contact is not None
+        assert contact.emails == expected
+
+    @pytest.mark.parametrize("text", [None, "", "   ", ".", " - ; "])
+    def test_from_text_returns_none_without_letter_or_digit(self, text):
+        assert Contact.from_text(ContactRole.PRINCIPAL, text) is None

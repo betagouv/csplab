@@ -18,6 +18,7 @@ from referentiel.value_objects.offer_nature import OfferNature
 from referentiel.value_objects.verse import Verse
 
 from domain.entities.raw_offer import RawOffer
+from domain.value_objects.contact import Contact, ContactRole
 from infrastructure.external_gateways.dtos.talentsoft_dtos import (
     TalentsoftDynamicField,
     TalentsoftLanguage,
@@ -1290,3 +1291,50 @@ def test_clean_returns_none_localisation_label_when_absent(cleaner):
 
     assert offer.localisation is not None
     assert offer.localisation.label is None
+
+
+def test_clean_maps_contacts_from_origin(cleaner):
+    raw_offer = _make_raw_offer(
+        customFields=TalentsoftCustomFieldsFactory.build(
+            origin=TalentsoftDynamicField(
+                shortText1="candidature@exemple.gouv.fr",
+                shortText2=" Camille Martin : camille.martin@exemple.gouv.fr ",
+                shortText3="Service RH",
+            )
+        )
+    )
+
+    offer = cleaner.clean(raw_offer)
+
+    assert offer.contacts == [
+        Contact(
+            role=ContactRole.PRINCIPAL,
+            text="Camille Martin : camille.martin@exemple.gouv.fr",
+            emails=["camille.martin@exemple.gouv.fr"],
+        ),
+        Contact(role=ContactRole.AUTRE, text="Service RH"),
+    ]
+
+
+def test_clean_ignores_contacts_without_letter_or_digit(cleaner):
+    raw_offer = _make_raw_offer(
+        customFields=TalentsoftCustomFieldsFactory.build(
+            origin=TalentsoftDynamicField(shortText2=".", shortText3="rh@exemple.fr")
+        )
+    )
+
+    offer = cleaner.clean(raw_offer)
+
+    assert offer.contacts == [
+        Contact(role=ContactRole.AUTRE, text="rh@exemple.fr", emails=["rh@exemple.fr"])
+    ]
+
+
+def test_clean_returns_no_contacts_when_origin_absent(cleaner):
+    raw_offer = _make_raw_offer(
+        customFields=TalentsoftCustomFieldsFactory.build(origin=None)
+    )
+
+    offer = cleaner.clean(raw_offer)
+
+    assert offer.contacts == []
