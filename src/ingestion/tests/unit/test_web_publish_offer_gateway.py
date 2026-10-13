@@ -29,6 +29,7 @@ from referentiel.value_objects.verse import Verse
 
 from domain.entities.offer import Offer
 from domain.gateways.publish_offer_input import PublishOfferInput
+from domain.value_objects.contact import Contact, ContactRole
 from infrastructure.exceptions.exceptions import ExternalApiError
 from infrastructure.external_gateways.base_web_gateway import WebGatewayCredentials
 from infrastructure.external_gateways.web_publish_offer_gateway import (
@@ -428,6 +429,32 @@ async def test_publish_serializes_localisation_label(gateway, httpx_mock: HTTPXM
 
     body = json.loads(httpx_mock.get_requests()[0].content)
     assert body["offres"][0]["localisation"][0]["localisation_label"] == "Paris"
+
+
+@pytest.mark.asyncio
+async def test_publish_serializes_contacts(gateway, httpx_mock: HTTPXMock):
+    httpx_mock.add_response(method="POST", url=PUBLISH_URL, status_code=201)
+    contacts = [
+        Contact(
+            role=ContactRole.PRINCIPAL,
+            text="Camille Martin : camille.martin@exemple.gouv.fr",
+            emails=["camille.martin@exemple.gouv.fr"],
+        ),
+        Contact(role=ContactRole.AUTRE, text="Service RH"),
+    ]
+    offer = Offer(**{**MINIMAL_OFFER.__dict__, "contacts": contacts})
+
+    await gateway.publish(PublishOfferInput(source_id=SOURCE_ID, offer=offer))
+
+    body = json.loads(httpx_mock.get_requests()[0].content)
+    assert body["offres"][0]["contacts"] == [
+        {
+            "role": "principal",
+            "texte": "Camille Martin : camille.martin@exemple.gouv.fr",
+            "emails": ["camille.martin@exemple.gouv.fr"],
+        },
+        {"role": "autre", "texte": "Service RH", "emails": []},
+    ]
 
 
 @pytest.mark.asyncio

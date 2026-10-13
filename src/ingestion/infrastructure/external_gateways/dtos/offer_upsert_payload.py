@@ -7,6 +7,7 @@ from pydantic import BaseModel, HttpUrl, model_serializer
 from referentiel.value_objects.language import Language
 
 from domain.entities.offer import Offer
+from domain.value_objects.contact import Contact
 
 
 class IdentificationPayload(BaseModel):
@@ -87,6 +88,16 @@ class ConditionsPayload(BaseModel):
         return {k: v for k, v in self.__dict__.items() if v is not None}
 
 
+class ContactPayload(BaseModel):
+    role: str
+    texte: str
+    emails: list[str] = []
+
+    @classmethod
+    def from_contact(cls, contact: Contact) -> ContactPayload:
+        return cls(role=contact.role.value, texte=contact.text, emails=contact.emails)
+
+
 class OfferUpsertPayload(BaseModel):
     identification: IdentificationPayload
     titre: str
@@ -103,7 +114,7 @@ class OfferUpsertPayload(BaseModel):
     localisation: Optional[list[LocalisationItemPayload]] = None
     criteres: Optional[CriteresPayload] = None
     conditions: Optional[ConditionsPayload] = None
-    contacts: None = None
+    contacts: Optional[list[ContactPayload]] = None
     publication: PublicationPayload
 
     @classmethod
@@ -127,6 +138,8 @@ class OfferUpsertPayload(BaseModel):
                     longitude=offer.localisation.longitude,
                 )
             ]
+
+        contacts = [ContactPayload.from_contact(contact) for contact in offer.contacts]
 
         domaine_length = 3
         er_prefix = "ER"
@@ -191,7 +204,7 @@ class OfferUpsertPayload(BaseModel):
                 if offer.beginning_date
                 else None,
             ),
-            contacts=None,
+            contacts=contacts or None,
             publication=PublicationPayload(
                 debut_publication=offer.publication_date,
                 fin_publication=fin_publication,

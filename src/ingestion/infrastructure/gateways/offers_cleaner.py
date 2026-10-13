@@ -27,6 +27,7 @@ from referentiel.value_objects.verse import Verse
 from domain.entities.offer import Offer
 from domain.entities.raw_offer import RawOffer
 from domain.repositories.sources_repository import ISourcesRepository
+from domain.value_objects.contact import Contact, ContactRole
 from infrastructure.external_gateways.dtos.talentsoft_dtos import (
     TalentsoftCodedObject,
     TalentsoftCustomFields,
@@ -315,6 +316,7 @@ class OffersCleaner:
         description_fields = custom_fields.description or TalentsoftDynamicField()
         location_fields = custom_fields.location or TalentsoftDynamicField()
         offer_block_1 = custom_fields.offerCustomBlock1 or TalentsoftDynamicField()
+        origin_fields = custom_fields.origin or TalentsoftDynamicField()
 
         coordinates = self._extract_coordinates(talentsoft_offer)
 
@@ -460,6 +462,7 @@ class OffersCleaner:
             management=management,
             job_vacancy=job_vacancy,
             talentsoft_organisme_entity_code=organisme_entity_code,
+            contacts=self._map_contacts(origin_fields),
         )
 
     def _map_verse(
@@ -591,6 +594,13 @@ class OffersCleaner:
         "STATUT01": JobVacancy.OUI,
         "STATUT02": JobVacancy.NON,
     }
+
+    def _map_contacts(self, origin_fields: TalentsoftDynamicField) -> list[Contact]:
+        candidates = [
+            Contact.from_text(ContactRole.PRINCIPAL, origin_fields.shortText2),
+            Contact.from_text(ContactRole.AUTRE, origin_fields.shortText3),
+        ]
+        return [contact for contact in candidates if contact is not None]
 
     def _map_job_vacancy(self, client_code: Optional[str]) -> Optional[JobVacancy]:
         if not client_code:

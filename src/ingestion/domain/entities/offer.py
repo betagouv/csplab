@@ -19,6 +19,8 @@ from referentiel.value_objects.offer_conditions import (
 from referentiel.value_objects.offer_nature import OfferNature
 from referentiel.value_objects.verse import Verse
 
+from domain.value_objects.contact import Contact
+
 
 @dataclass
 class Offer:
@@ -54,6 +56,7 @@ class Offer:
     working_place: WorkingPlace = WorkingPlace.NON_DEFINI
     working_time: WorkingTime = WorkingTime.NON_DEFINI
     management: Optional[Management] = None
+    contacts: list[Contact] = field(default_factory=list)
     job_vacancy: Optional[JobVacancy] = None
     talentsoft_organisme_entity_code: str = ""
     id: UUID = field(default_factory=uuid4)
