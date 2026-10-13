@@ -13,7 +13,7 @@ from presentation.api.serializers import (
     ErreurApiSerializer,
     api_v1_response_format,
 )
-from presentation.commons.pagination import ApiV1Pagination
+from presentation.commons.pagination import WebPagination
 from presentation.ingestion.openapi import (
     LIST_METIERS_DESCRIPTION,
     LIST_METIERS_EXAMPLES,
@@ -38,7 +38,7 @@ from presentation.ingestion.serializers import (
 )
 class MetiersListView(PublicApiMixin, APIView):
     serializer_class = ListMetiersResponseSerializer
-    pagination_class = ApiV1Pagination
+    pagination_class = WebPagination
     usecase = None
 
     def __init__(self, **kwargs):
@@ -56,7 +56,7 @@ class MetiersListView(PublicApiMixin, APIView):
 
             result = self.usecase.execute(input_data)
 
-            paginator = ApiV1Pagination()
+            paginator = WebPagination()
             items = paginator.paginate(result, request)
             return paginator.get_paginated_response(
                 ListMetiersResponseSerializer(items, many=True).data

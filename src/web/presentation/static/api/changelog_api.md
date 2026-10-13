@@ -72,16 +72,6 @@ La valeur renvoyée (`ok`) ne change pas.
 `offres` et ses sous-champs `index`, `reference` et `statut` gardent leur nom.
 `errors` et `errors[].error` sont renommés plus bas, avec les autres champs d'erreur.
 
-Pagination de `GET /api/v1/offres`, `GET /api/v1/offres/sources/{source_id}` et
-`GET /api/v1/metiers` : les champs de l'enveloppe sont renommés en français.
-
-- `count` devient `total` ;
-- `next` devient `page_suivante` ;
-- `previous` devient `page_precedente` ;
-- `results` devient `resultats`.
-
-Les paramètres `page` et `taille` ne changent pas.
-
 Erreurs de toutes les routes `/api/v1/…` : une réponse d'erreur contient désormais
 un champ `erreur`.
 

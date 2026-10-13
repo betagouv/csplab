@@ -1730,10 +1730,10 @@ paths:
               examples:
                 Success-All:
                   value:
-                    total: 1
-                    page_suivante: null
-                    page_precedente: null
-                    resultats:
+                    count: 1
+                    next: null
+                    previous: null
+                    results:
                     - libelle: Cheffe / Chef de projet politique de la ville
                       description: Mettre en oeuvre les orientations stratégiques
                         en matièrede développement social et de redynamisation des
@@ -1754,10 +1754,10 @@ paths:
                   description: Les métiers sont retournés paginés
                 Success-Filtered:
                   value:
-                    total: 1
-                    page_suivante: null
-                    page_precedente: null
-                    resultats:
+                    count: 1
+                    next: null
+                    previous: null
+                    results:
                     - libelle: Personne ressource en santé et protection animales
                       description: Mobilise sa compétence dans la gestion et le suivi
                         de la santé et de la protection animale en appui aux services
@@ -2957,10 +2957,10 @@ paths:
               examples:
                 Success-ActiveOffers:
                   value:
-                    total: 1
-                    page_suivante: null
-                    page_precedente: null
-                    resultats:
+                    count: 1
+                    next: null
+                    previous: null
+                    results:
                     - reference: 2026-999999
                       source_id: 12345678-1234-4234-b234-123456789abc
                       titre: Responsable de la Division des Affaires Financières H/F
@@ -2976,10 +2976,10 @@ paths:
                     paginées
                 Success-ArchivedOffers:
                   value:
-                    total: 1
-                    page_suivante: null
-                    page_precedente: null
-                    resultats:
+                    count: 1
+                    next: null
+                    previous: null
+                    results:
                     - reference: 2026-999999
                       source_id: 12345678-1234-4234-b234-123456789abc
                       titre: Responsable de la Division des Affaires Financières H/F
@@ -5332,69 +5332,69 @@ components:
     PaginatedListMetiersResponseList:
       type: object
       required:
-      - total
-      - resultats
+      - count
+      - results
       properties:
-        total:
+        count:
           type: integer
           example: 1
-        page_suivante:
+        next:
           type: string
           format: uri
           nullable: true
           example: null
-        page_precedente:
+        previous:
           type: string
           format: uri
           nullable: true
           example: null
-        resultats:
+        results:
           type: array
           items:
             $ref: '#/components/schemas/ListMetiersResponse'
     PaginatedListOffersResponseList:
       type: object
       required:
-      - total
-      - resultats
+      - count
+      - results
       properties:
-        total:
+        count:
           type: integer
           example: 1
-        page_suivante:
+        next:
           type: string
           format: uri
           nullable: true
           example: null
-        page_precedente:
+        previous:
           type: string
           format: uri
           nullable: true
           example: null
-        resultats:
+        results:
           type: array
           items:
             $ref: '#/components/schemas/ListOffersResponse'
     PaginatedOfferDetailResponseList:
       type: object
       required:
-      - total
-      - resultats
+      - count
+      - results
       properties:
-        total:
+        count:
           type: integer
           example: 1
-        page_suivante:
+        next:
           type: string
           format: uri
           nullable: true
           example: null
-        page_precedente:
+        previous:
           type: string
           format: uri
           nullable: true
           example: null
-        resultats:
+        results:
           type: array
           items:
             $ref: '#/components/schemas/OfferDetailResponse'
@@ -6022,16 +6022,6 @@ tags:
 
     `offres` et ses sous-champs `index`, `reference` et `statut` gardent leur nom.
     `errors` et `errors[].error` sont renommés plus bas, avec les autres champs d'erreur.
-
-    Pagination de `GET /api/v1/offres`, `GET /api/v1/offres/sources/{source_id}` et
-    `GET /api/v1/metiers` : les champs de l'enveloppe sont renommés en français.
-
-    - `count` devient `total` ;
-    - `next` devient `page_suivante` ;
-    - `previous` devient `page_precedente` ;
-    - `results` devient `resultats`.
-
-    Les paramètres `page` et `taille` ne changent pas.
 
     Erreurs de toutes les routes `/api/v1/…` : une réponse d'erreur contient désormais
     un champ `erreur`.

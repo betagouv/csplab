@@ -115,28 +115,6 @@ par lots plutôt qu'en une seule fois). La pagination se pilote avec les paramè
 `page` (numéro de page, défaut `1`) et `taille` (nombre d'éléments par page, défaut
 `100`).
 
-Toutes les routes paginées renvoient la même enveloppe :
-
-| Champ | Signification |
-|---|---|
-| `total` | Nombre total d'éléments, toutes pages confondues |
-| `page_suivante` | URL de la page suivante, `null` sur la dernière page |
-| `page_precedente` | URL de la page précédente, `null` sur la première page |
-| `resultats` | Éléments de la page demandée |
-
-Exemple de réponse :
-
-```json
-{
-  "total": 250,
-  "page_suivante": "https://…/api/v1/offres?page=3&taille=100",
-  "page_precedente": "https://…/api/v1/offres?page=1&taille=100",
-  "resultats": [{"reference": "2026-999999", "titre": "…"}]
-}
-```
-
-Pour tout récupérer, suivez `page_suivante` jusqu'à ce qu'il vaille `null`.
-
 ### Filtres disponibles
 
 | Paramètre | Rôle | Format |

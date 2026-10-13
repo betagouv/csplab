@@ -32,7 +32,7 @@ from presentation.api.serializers import (
     ErreurAuthentificationSerializer,
     api_v1_response_format,
 )
-from presentation.commons.pagination import ApiV1Pagination
+from presentation.commons.pagination import WebPagination
 from presentation.ingestion.mappers import OfferInputMapper
 from presentation.ingestion.openapi import (
     ARCHIVE_OFFER_DESCRIPTION,
@@ -77,7 +77,7 @@ STATUTS_OFFRE = {"created": "creee", "updated": "mise_a_jour"}
 )
 class OffersListView(PublicApiMixin, APIView):
     serializer_class = ListOffersResponseSerializer
-    pagination_class = ApiV1Pagination
+    pagination_class = WebPagination
     usecase = None
 
     def __init__(self, **kwargs):
@@ -95,7 +95,7 @@ class OffersListView(PublicApiMixin, APIView):
 
             result = self.usecase.execute(input_data)
 
-            paginator = ApiV1Pagination()
+            paginator = WebPagination()
             items = paginator.paginate(result, request)
             return paginator.get_paginated_response(
                 ListOffersResponseSerializer(items, many=True).data
@@ -125,7 +125,7 @@ class OffersListView(PublicApiMixin, APIView):
 )
 class OffersBySourceView(PublicApiMixin, APIView):
     serializer_class = OfferDetailResponseSerializer
-    pagination_class = ApiV1Pagination
+    pagination_class = WebPagination
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -144,7 +144,7 @@ class OffersBySourceView(PublicApiMixin, APIView):
                     utilisateur_username=utilisateur_username,
                 )
             )
-            paginator = ApiV1Pagination()
+            paginator = WebPagination()
             items = paginator.paginate(result, request)
             return paginator.get_paginated_response(
                 OfferDetailResponseSerializer(items, many=True).data
