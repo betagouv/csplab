@@ -56,8 +56,6 @@ class TestSchemaEndpoint:
         assert (reverse(name) in paths) == expected_in_schema
 
     def test_schema_contact_tag_is_last_in_redoc_menu(self):
-        # Redoc affiche après les tags déclarés ceux utilisés par un endpoint sans
-        # être déclarés : ils passeraient sous « Aide et contact ».
         schema_path = Path("presentation/static/api/schema.yaml")
         schema = yaml.safe_load(schema_path.read_text())
         declared_tags = [tag["name"] for tag in schema["tags"]]
