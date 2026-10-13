@@ -454,9 +454,7 @@ SPECTACULAR_SETTINGS = {
             "name": "talentsoft_organisme",
             "description": "Organismes au format Talentsoft",
         },
-        # Dernier tag de la liste pour apparaître en bas du menu de Redoc : Redoc
-        # ajoute après les tags déclarés ceux utilisés par un endpoint mais absents
-        # de cette liste, chaque tag d'endpoint doit donc y être déclaré.
+        # Dernier tag, en bas du menu : déclarer tout tag d'endpoint avant.
         {
             "name": "contact",
             "x-displayName": "Aide et contact",
