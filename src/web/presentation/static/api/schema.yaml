@@ -6152,6 +6152,10 @@ tags:
   description: Métiers du Référentiel des Métiers de la Fonction Publique
 - name: fake-ts
   description: Endpoints de simulation au format Talentsoft
+- name: organismes
+  description: Organismes de la Fonction Publique
+- name: talentsoft_organisme
+  description: Organismes au format Talentsoft
 - name: contact
   x-displayName: Aide et contact
   x-traitTag: true

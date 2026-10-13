@@ -449,7 +449,14 @@ SPECTACULAR_SETTINGS = {
             "name": "fake-ts",
             "description": "Endpoints de simulation au format Talentsoft",
         },
-        # Dernier tag de la liste pour apparaître en bas du menu de Redoc.
+        {"name": "organismes", "description": "Organismes de la Fonction Publique"},
+        {
+            "name": "talentsoft_organisme",
+            "description": "Organismes au format Talentsoft",
+        },
+        # Dernier tag de la liste pour apparaître en bas du menu de Redoc : Redoc
+        # ajoute après les tags déclarés ceux utilisés par un endpoint mais absents
+        # de cette liste, chaque tag d'endpoint doit donc y être déclaré.
         {
             "name": "contact",
             "x-displayName": "Aide et contact",
