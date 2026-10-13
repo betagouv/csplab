@@ -6,7 +6,7 @@ champs et de leurs règles se trouve dans le [guide de l'API](/pages/guide_api).
 
 Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/).
 
-## 2026-10-09
+## 2026-10-13
 
 ### ⚠️ Changements non rétrocompatibles
 
