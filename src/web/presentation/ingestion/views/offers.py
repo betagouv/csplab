@@ -227,10 +227,9 @@ class ArchiveOffersView(PublicApiMixin, APIView):
                     utilisateur_username=utilisateur_username,
                 )
             )
-        except SourceAuthorizationError as e:
-            source_ids = sorted(str(sid) for sid in e.source_ids)
+        except SourceAuthorizationError:
             return Response(
-                {"detail": f"Cannot edit this source: {source_ids}."},
+                {"detail": "Vous n'êtes pas autorisé à modifier cette source."},
                 status=status.HTTP_403_FORBIDDEN,
             )
         except OfferDoesNotExist:
