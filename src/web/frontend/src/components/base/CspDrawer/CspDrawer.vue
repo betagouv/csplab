@@ -87,6 +87,7 @@ const hasFooter = computed(() => Boolean(slots.footer))
           `csp-drawer--${size}`,
           {
             'csp-drawer--has-footer': hasFooter,
+            'csp-drawer--modal-no-overlay': modal && !overlay,
           },
         ]"
       >
@@ -163,6 +164,12 @@ const hasFooter = computed(() => Boolean(slots.footer))
     </DialogPortal>
   </DialogRoot>
 </template>
+
+<style lang="scss">
+:root:has(.csp-drawer--modal-no-overlay[data-state='open']) {
+  overflow: hidden;
+}
+</style>
 
 <style scoped lang="scss">
 @use '@/styles/breakpoints' as bp;
@@ -312,6 +319,7 @@ const hasFooter = computed(() => Boolean(slots.footer))
 .csp-drawer__body {
   flex: 1 1 auto;
   overflow: auto;
+  overscroll-behavior: contain;
   padding-block: var(--csp-space-6);
   padding-inline: var(--csp-drawer-padding-inline, var(--csp-space-6));
   font-size: 0.875rem;

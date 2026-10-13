@@ -394,6 +394,7 @@ function handleUpdateOpen(open: boolean): void {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 .candidature-panel__layout {
