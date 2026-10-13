@@ -36,7 +36,7 @@ Dans le code, on abrège le nom du service en `csp`.
 Les champs, les filtres et les valeurs de l'API publique sont en français, y compris les mots traduits ailleurs dans le code (`statut`, `titre`, `profil`). Les sérialiseurs exposent ces noms avec `source=` : le domaine et les cas d'usage gardent leurs noms. Les vues `recruteur` et `identite`, `/api/token`, `/api/fake-ts/` et le schéma d'API interne suivent la règle générale.
 
 - On écrit en snake_case, sans accent : `conditions_exercice`, `mises_a_jour`.
-- Un champ porte le même nom en entrée et en sortie, et d'une route à l'autre. On reprend les noms d'entrée de `POST /api/v1/offres/creer_modifier`.
+- Un champ porte le même nom en entrée et en sortie, et d'une route à l'autre.
 - Le nom vient avant son complément : `url_offre`, `nature_offre`, `type_contrat`, `titre_long`.
 - Une date porte le nom de l'événement qu'elle marque : `debut_publication`, `debut_contrat`, `fin_candidature`, `date_archivage`.
 - On accorde avec la ressource : `creees` et `mises_a_jour` pour des offres, valeurs `creee` et `mise_a_jour`. Un champ à une seule valeur reste au singulier : `categorie`.
