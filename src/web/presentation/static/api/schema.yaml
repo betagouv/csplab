@@ -3145,7 +3145,11 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ArchiveOfferBadRequest'
+                type: object
+                additionalProperties:
+                  type: array
+                  items:
+                    type: string
               examples:
                 Error-MissingField:
                   value:
@@ -3775,13 +3779,6 @@ components:
       oneOf:
       - $ref: '#/components/schemas/TokenError'
       - $ref: '#/components/schemas/ArchiveOfferUnauthorized'
-    ArchiveOfferBadRequest:
-      type: object
-      properties:
-        detail:
-          type: string
-      required:
-      - detail
     ArchiveOfferForbidden:
       type: object
       properties:

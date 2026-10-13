@@ -180,10 +180,10 @@ class OffersBySourceView(PublicApiMixin, APIView):
         tags=["offres"],
         responses={
             200: ArchiveOfferSuccessSerializer,
-            400: inline_serializer(
-                name="ArchiveOfferBadRequest",
-                fields={"detail": drf_serializers.CharField()},
-            ),
+            400: {
+                "type": "object",
+                "additionalProperties": {"type": "array", "items": {"type": "string"}},
+            },
             401: PolymorphicProxySerializer(
                 component_name="ArchiveOffer401Error",
                 serializers=[
