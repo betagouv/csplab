@@ -72,11 +72,30 @@ def test_refuses_non_staff(db):
         list_organismes(utilisateur=UtilisateurDjangoFactory(is_staff=False))
 
 
-def test_evaluates_in_a_single_query(staff, django_assert_num_queries):
+def test_lists_only_active_superviseurs(staff):
+    _, organisme = create_organisme_with_agent(role=AgentOrganismeRole.SUPERVISEUR)
+    OrganismeAgentDjangoFactory(
+        organisme=organisme,
+        role=AgentOrganismeRole.SUPERVISEUR.value,
+        date_revocation=timezone.now(),
+    )
+    OrganismeAgentDjangoFactory(
+        organisme=organisme, role=AgentOrganismeRole.AGENT.value
+    )
+
+    result = list_organismes(utilisateur=staff).get(pk=organisme.pk)
+
+    assert len(result.superviseurs_actifs) == 1
+    assert result.superviseurs_actifs[0].role == AgentOrganismeRole.SUPERVISEUR.value
+    assert result.number_agents == 2  # noqa: PLR2004
+
+
+def test_evaluates_in_a_constant_number_of_queries(staff, django_assert_num_queries):
     for organisme in OrganismeDjangoFactory.create_batch(3):
         OrganismeAgentDjangoFactory(organisme=organisme)
         RecrutementDjangoFactory(organisme=organisme)
 
-    with django_assert_num_queries(1):
+    with django_assert_num_queries(2):  # organismes + prefetch superviseurs
         result = list(list_organismes(utilisateur=staff))
         assert all(o.number_agents and o.number_published_offers for o in result)
+        assert all(o.superviseurs_actifs == [] for o in result)

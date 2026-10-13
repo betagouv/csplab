@@ -4,6 +4,7 @@ import pytest
 from django.db import connection
 from django.test.utils import CaptureQueriesContext
 from django.urls import reverse
+from django.utils import timezone
 from faker import Faker
 from pydantic import ValidationError
 from referentiel.value_objects.siret import SIRET
@@ -14,6 +15,7 @@ from domain.identite.errors.organisme_errors import OrganismeSiretExisteDeja
 from domain.identite.errors.organisme_permission_errors import (
     OperationOrganismeRefusee,
 )
+from domain.recruteur.value_objects.roles import AgentOrganismeRole
 from infrastructure.django_apps.recruteur.models.organisme import (
     OrganismeModel,
     OrganismeQuerySet,
@@ -70,24 +72,34 @@ class TestOrganismesView:
     def test_get_returns_organismes(self, staff_client):
         organisme = OrganismeDjangoFactory(gestion_ats=True)
         RecrutementDjangoFactory(organisme=organisme)
+        superviseur = OrganismeAgentDjangoFactory(
+            organisme=organisme, role=AgentOrganismeRole.SUPERVISEUR.value
+        )
+        OrganismeAgentDjangoFactory(
+            organisme=organisme,
+            role=AgentOrganismeRole.SUPERVISEUR.value,
+            date_revocation=timezone.now(),
+        )
 
         response = staff_client.get(ORGANISME_URL)
 
         assert response.status_code == status.HTTP_200_OK
         organisme.refresh_from_db()
         matching = next(o for o in response.json() if o["uuid"] == str(organisme.id))
+        last_activity = max(
+            organisme.updated_at,
+            *organisme.agents_liaisons.values_list("updated_at", flat=True),
+        )
         assert matching == {
             "uuid": str(organisme.id),
             "nom": organisme.nom,
             "versant": organisme.versant,
             "siret": organisme.siret,
-            "gestionnaire": None,
+            "superviseurs": superviseur.agent.utilisateur.get_full_name(),
             "gestion_ats": True,
             "date_creation": datetime_to_drf_representation(organisme.created_at),
-            "date_derniere_activite": datetime_to_drf_representation(
-                organisme.updated_at
-            ),
-            "nombre_agents": 0,
+            "date_derniere_activite": datetime_to_drf_representation(last_activity),
+            "nombre_agents": 1,
             "nombre_offres_publiees": 1,
         }
 
