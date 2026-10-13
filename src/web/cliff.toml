@@ -66,30 +66,24 @@ protect_breaking_commits = true
 # Optionally sets the commit's scope and can decide to exclude commits from further processing.
 #
 # NOTE: the `<!-- N -->` prefix in each group name is the sort key used by the
-# changelog template. It must be IDENTICAL for the new (type-based) and legacy
-# (label-based) parser matching the same logical category, otherwise the two
-# would render as separate, duplicate sections instead of merging into one.
+# changelog template. It must be IDENTICAL for parsers matching the same logical
+# category (e.g. refactor and perf), otherwise they would render as separate sections.
 #
 # NOTE: the template groups by scope first (level 3), then by group (level 4). A commit
-# without a scope (all legacy Gitmoji commits) would break `group_by`, so every grouping
-# parser sets `default_scope = "other"`.
+# without a scope would break `group_by`, so every grouping parser sets
+# `default_scope = "other"`.
+#
+# Only unreleased commits are parsed: previous releases are frozen in CHANGELOG.md
+# (the workflow uses `--prepend`), so no legacy (Gitmoji / PR label) parsing is needed.
 commit_parsers = [
-  # New scheme (conventional commits, no PR labels): matched first.
   { message = "^.+!:", group = "<!-- 0 --> Breaking Changes", default_scope = "other" },
   { body = ".*BREAKING CHANGE", group = "<!-- 0 --> Breaking Changes", default_scope = "other" },
   { message = "^feat", group = "<!-- 1 --> Added", default_scope = "other" },
   { message = "^refactor", group = "<!-- 2 --> Modified", default_scope = "other" },
   { message = "^perf", group = "<!-- 2 --> Modified", default_scope = "other" },
-  { message = "^fix", group = "<!-- 4 --> Fixed", default_scope = "other" },
-  { message = "^docs", group = "<!-- 5 --> Documentation", default_scope = "other" },
+  { message = "^fix", group = "<!-- 3 --> Fixed", default_scope = "other" },
+  { message = "^docs", group = "<!-- 4 --> Documentation", default_scope = "other" },
   { message = "^style|^test|^build|^ci|^chore|^revert", skip = true },
-  # Legacy scheme (Gitmoji + PR labels): fallback for commits made before the switch,
-  # so regenerating the full changelog doesn't drop pre-migration history.
-  { field = "github.pr_labels", pattern = "breaking", group = "<!-- 0 --> Breaking Changes", default_scope = "other" },
-  { field = "github.pr_labels", pattern = "added", group = "<!-- 1 --> Added", default_scope = "other" },
-  { field = "github.pr_labels", pattern = "modified", group = "<!-- 2 --> Modified", default_scope = "other" },
-  { field = "github.pr_labels", pattern = "removed", group = "<!-- 3 --> Removed", default_scope = "other" },
-  { field = "github.pr_labels", pattern = "bugfix", group = "<!-- 4 --> Fixed", default_scope = "other" },
 ]
 # Exclude commits that are not matched by any commit parser.
 filter_commits = false
@@ -109,6 +103,7 @@ sort_commits = "oldest"
 # Process submodules commits
 recurse_submodules = false
 
-[remote.github]
-owner = "betagouv"
-repo = "csplab"
+[bump]
+# Below 1.0.0 a breaking change bumps the minor version, not the major one.
+features_always_bump_minor = true
+breaking_always_bump_major = false

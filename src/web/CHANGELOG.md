@@ -4,6 +4,190 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0] - 2026-10-13
+
+### Candidatures
+
+#### <!-- 1 --> Added
+
+- Intègre les dernières activités au panneau de candidature ([#1607](https://github.com/betagouv/csplab/pull/1607))
+- Intègre l'historique d'activité au panneau de candidature ([#1668](https://github.com/betagouv/csplab/pull/1668))
+- Ouvre le panneau de candidature depuis la vue liste ([#1750](https://github.com/betagouv/csplab/pull/1750))
+- Afficher la liste des notes ([#1790](https://github.com/betagouv/csplab/pull/1790))
+- Ajouter une note ([#1805](https://github.com/betagouv/csplab/pull/1805))
+- Fait défiler la colonne jusqu'à la carte déposée ([#1895](https://github.com/betagouv/csplab/pull/1895))
+
+#### <!-- 3 --> Fixed
+
+- Affiche un message quand le CV ne peut pas être chargé ([#1604](https://github.com/betagouv/csplab/pull/1604))
+- Charge toutes les candidatures dans la vue liste ([#1752](https://github.com/betagouv/csplab/pull/1752))
+- Limite la sélection du kanban aux candidatures affichées ([#1753](https://github.com/betagouv/csplab/pull/1753))
+- Entete panneau candidature ([#1860](https://github.com/betagouv/csplab/pull/1860))
+
+
+### Design-system
+
+#### <!-- 3 --> Fixed
+
+- Haut de page sticky ([#1892](https://github.com/betagouv/csplab/pull/1892))
+
+
+### Identite
+
+#### <!-- 1 --> Added
+
+- Trace la création d'un profil agent ([#1602](https://github.com/betagouv/csplab/pull/1602))
+- Trace la création d'un profil candidat ([#1641](https://github.com/betagouv/csplab/pull/1641))
+- Suppression de l'authent par email/password vers l'ATS ([#1642](https://github.com/betagouv/csplab/pull/1642))
+- Log des tentatives de connexion  ([#1651](https://github.com/betagouv/csplab/pull/1651))
+- Aligne les droits staff sur ceux du superviseur ([#1593](https://github.com/betagouv/csplab/pull/1593))
+- Log en base les tentatives de connexion par canal d'accès ([#1660](https://github.com/betagouv/csplab/pull/1660))
+- Scope les methodes d'authentification par endpoints ([#1673](https://github.com/betagouv/csplab/pull/1673))
+- Redirect to request page after login ([#1767](https://github.com/betagouv/csplab/pull/1767))
+
+#### <!-- 2 --> Modified
+
+- OrganismePermissionService accepte request.user ([#1692](https://github.com/betagouv/csplab/pull/1692))
+- Nettoyer les sessions expirées ([#1768](https://github.com/betagouv/csplab/pull/1768))
+
+#### <!-- 3 --> Fixed
+
+- Remove roles for proconnect claims ([#1721](https://github.com/betagouv/csplab/pull/1721))
+- Coupe l'accès d'un agent révoqué de son organisme ([#1597](https://github.com/betagouv/csplab/pull/1597))
+- Rend unique l'e-mail de UtilisateurDjangoFactory ([#1758](https://github.com/betagouv/csplab/pull/1758))
+- Refuse l'accès à un organisme supprimé ([#1762](https://github.com/betagouv/csplab/pull/1762))
+- Limite le débit des rejets Api-Key ([#1807](https://github.com/betagouv/csplab/pull/1807))
+
+
+### Ingestion
+
+#### <!-- 1 --> Added
+
+- Récupère les champs Talentsoft manquants pour l'export UNIF ([#1697](https://github.com/betagouv/csplab/pull/1697))
+- Enregistre et expose les champs de l'export UNIF des offres ([#1716](https://github.com/betagouv/csplab/pull/1716))
+- Renomme les champs de contrat de l'API d'ingestion ([#1739](https://github.com/betagouv/csplab/pull/1739))
+- Génère la référence d'une offre avec "auto" ([#1748](https://github.com/betagouv/csplab/pull/1748))
+- Mappe vacance_poste et debut_vacance_poste ([#1812](https://github.com/betagouv/csplab/pull/1812))
+- Enregistre et expose la date de vacance de poste côté web ([#1815](https://github.com/betagouv/csplab/pull/1815))
+- Afficher les offres actives par source ([#1763](https://github.com/betagouv/csplab/pull/1763))
+- Franciser les champs et filtres de GET /api/v1/offres ([#1847](https://github.com/betagouv/csplab/pull/1847))
+- Franciser les champs de GET /api/v1/offres/sources/<source_id> ([#1848](https://github.com/betagouv/csplab/pull/1848))
+- Franciser le champ de réponse de POST /api/v1/offres/archiver ([#1850](https://github.com/betagouv/csplab/pull/1850))
+- Franciser la réponse de /api/v1/offres/creer_modifier ([#1852](https://github.com/betagouv/csplab/pull/1852))
+
+#### <!-- 2 --> Modified
+
+- Supprime les alias d'identifiants legacy de fake-ts ([#1676](https://github.com/betagouv/csplab/pull/1676))
+- Renomme la nature de l'offre en offer_nature ([#1742](https://github.com/betagouv/csplab/pull/1742))
+
+#### <!-- 3 --> Fixed
+
+- Relance Flower en cas de crash ([#1627](https://github.com/betagouv/csplab/pull/1627))
+- Enregistre l'erreur de publication d'une offre vers web ([#1633](https://github.com/betagouv/csplab/pull/1633))
+- Associe les offres OFII au versant FPE ([#1639](https://github.com/betagouv/csplab/pull/1639))
+- Enchaîne chargement, nettoyage et vectorisation des documents ([#1650](https://github.com/betagouv/csplab/pull/1650))
+- Ajoute une contrainte d'unicité sur le code des corps ([#1652](https://github.com/betagouv/csplab/pull/1652))
+- Aligne le DTO des offres Talentsoft sur la spec OpenAPI ([#1665](https://github.com/betagouv/csplab/pull/1665))
+- Convertit les dates des tables raw en une seule réécriture par table ([#1717](https://github.com/betagouv/csplab/pull/1717))
+
+#### <!-- 4 --> Documentation
+
+- Ajoute un changelog à la documentation de l'API ([#1727](https://github.com/betagouv/csplab/pull/1727))
+- Ajout de la correspondance entre les champs TS et ceux de l'API d'ingestion ([#1380](https://github.com/betagouv/csplab/pull/1380))
+- Met à jour la correspondance entre le format TS et l'API v1 ([#1789](https://github.com/betagouv/csplab/pull/1789))
+- Distingue le format Talentsoft de l'API fake-ts ([#1804](https://github.com/betagouv/csplab/pull/1804))
+
+
+### Messages
+
+#### <!-- 1 --> Added
+
+- Répond dans une conversation d'une candidature ([#1664](https://github.com/betagouv/csplab/pull/1664))
+- Joint des fichiers à un message ([#1666](https://github.com/betagouv/csplab/pull/1666))
+- Demarrer une conversation ([#1678](https://github.com/betagouv/csplab/pull/1678))
+- Connexion de la liste des conversations à la base de données ([#1681](https://github.com/betagouv/csplab/pull/1681))
+- Connexion de la liste des messages d'une conversation à la base de données ([#1683](https://github.com/betagouv/csplab/pull/1683))
+- Enregitrer une conversation créée en base de données ([#1720](https://github.com/betagouv/csplab/pull/1720))
+- Enregistrer une réponse à une conversation en base de données ([#1735](https://github.com/betagouv/csplab/pull/1735))
+- Resynchronise les conversations après un envoi ([#1747](https://github.com/betagouv/csplab/pull/1747))
+
+#### <!-- 2 --> Modified
+
+- Nettoyage des tests des services liées aux conversations ([#1737](https://github.com/betagouv/csplab/pull/1737))
+
+
+### Organismes
+
+#### <!-- 3 --> Fixed
+
+- Affiche « Superviseur » pour le rôle d'organisme ([#1655](https://github.com/betagouv/csplab/pull/1655))
+
+
+### Recruteur
+
+#### <!-- 1 --> Added
+
+- Ajout du modèle de base de données messagerie ([#1592](https://github.com/betagouv/csplab/pull/1592))
+- Ajoute un seed de candidatures en volume ([#1751](https://github.com/betagouv/csplab/pull/1751))
+- Réunit l'arbre des routes et titre chaque page ([#1861](https://github.com/betagouv/csplab/pull/1861))
+
+#### <!-- 2 --> Modified
+
+- Expose l'identifiant des serializers internes sous le nom uuid ([#1586](https://github.com/betagouv/csplab/pull/1586))
+- Harmonise le nommage des routes en snake_case ([#1669](https://github.com/betagouv/csplab/pull/1669))
+- Convertit la lecture des étapes d'organisme ([#1704](https://github.com/betagouv/csplab/pull/1704))
+- Convertit l'initialisation des étapes d'organisme ([#1713](https://github.com/betagouv/csplab/pull/1713))
+- Convertit la lecture des étapes d'un recrutement ([#1746](https://github.com/betagouv/csplab/pull/1746))
+- Convertit init_recrutement_etapes (ADR-009) ([#1771](https://github.com/betagouv/csplab/pull/1771))
+- Convertit update_organisme_steps (ADR-009) ([#1814](https://github.com/betagouv/csplab/pull/1814))
+- Monte les onglets du recrutement et de l'organisme en routes ([#1862](https://github.com/betagouv/csplab/pull/1862))
+- Ajoute un contrôle des dépendances entre features et range les clés de cache ([#1869](https://github.com/betagouv/csplab/pull/1869))
+- Supprime OrganismeRecruteur.mettre_a_jour_etapes ([#1870](https://github.com/betagouv/csplab/pull/1870))
+
+#### <!-- 3 --> Fixed
+
+- Masque onglet équipe de recrutement si non autorisés ([#1656](https://github.com/betagouv/csplab/pull/1656))
+- Aligne espacements et bords des composants par rôle ([#1677](https://github.com/betagouv/csplab/pull/1677))
+- Corrige le kanban en erreur après modification d'étapes ([#1682](https://github.com/betagouv/csplab/pull/1682))
+- Ordonne les étapes du domaine selon ordre_etapes ([#1691](https://github.com/betagouv/csplab/pull/1691))
+- Rafraîchit le kanban après modification des étapes ([#1715](https://github.com/betagouv/csplab/pull/1715))
+- Aligne les chiffres de la cellule candidatures ([#1857](https://github.com/betagouv/csplab/pull/1857))
+- Répond 404 aux étapes d'un recrutement hors organisme ([#1865](https://github.com/betagouv/csplab/pull/1865))
+- Refuse un uuid d'étape en double dans la séquence ([#1868](https://github.com/betagouv/csplab/pull/1868))
+- Rafraîchit l'équipe et les agents après assignation ([#1879](https://github.com/betagouv/csplab/pull/1879))
+
+
+### Referentiel
+
+#### <!-- 0 --> Breaking Changes
+
+- Supprime external_id des offres ([#1659](https://github.com/betagouv/csplab/pull/1659))
+
+#### <!-- 3 --> Fixed
+
+- Ajoute la modalité d'accès « Par voie du GISP » ([#1649](https://github.com/betagouv/csplab/pull/1649))
+
+
+### Tooling
+
+#### <!-- 2 --> Modified
+
+- Saute le démarrage des services déjà lancés ([#1601](https://github.com/betagouv/csplab/pull/1601))
+- Utilise un hasher MD5 dans les settings de test ([#1718](https://github.com/betagouv/csplab/pull/1718))
+
+#### <!-- 3 --> Fixed
+
+- Corrige les tâches mise des services locaux ([#1600](https://github.com/betagouv/csplab/pull/1600))
+- Update commit message of upgrade deps script ([#1708](https://github.com/betagouv/csplab/pull/1708))
+- Isole le verrou huey par worker xdist dans les tests ([#1734](https://github.com/betagouv/csplab/pull/1734))
+
+#### <!-- 4 --> Documentation
+
+- Reformat changelog per scopes ([#1630](https://github.com/betagouv/csplab/pull/1630))
+- Ajoute une page d'aide et de contact à la documentation API ([#1920](https://github.com/betagouv/csplab/pull/1920))
+- Place l'aide et contact en bas du menu de la doc API ([#1932](https://github.com/betagouv/csplab/pull/1932))
+
+
 ## [0.3.0] - 2026-09-30
 
 ### <!-- 1 --> Added

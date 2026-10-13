@@ -18,14 +18,12 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Generate the full changelog
+      - name: Prepend the unreleased changes to the changelog
         uses: orhun/git-cliff-action@v4
         id: git_cliff_full
         with:
           config: src/web/cliff.toml
-          args: --verbose --bump
-        env:
-          OUTPUT: src/web/CHANGELOG.md
+          args: --verbose --unreleased --bump --prepend src/web/CHANGELOG.md
 
       - name: Generate latest changes
         uses: orhun/git-cliff-action@v4
