@@ -14,7 +14,7 @@ class UtilisateurDetails(NamedTuple):
 def get_utilisateur_details(*, utilisateur: UserModel) -> UtilisateurDetails:
     return UtilisateurDetails(
         utilisateur=utilisateur,
-        organisme_roles=OrganismeAgentModel.objects.by_agent(
-            utilisateur.username
-        ).with_organisme(),
+        organisme_roles=OrganismeAgentModel.objects.by_agent(utilisateur.username)
+        .with_organisme()
+        .order_by("organisme__nom", "organisme_id"),
     )

@@ -1,5 +1,3 @@
-from operator import itemgetter
-
 import pytest
 from django.urls import reverse
 from django.utils import timezone
@@ -106,15 +104,10 @@ def test_agent_with_multiple_roles(authenticated_client, test_user):
     response = authenticated_client.get(URL)
 
     assert response.status_code == status.HTTP_200_OK
-    assert sorted(
-        response.json()["organisme_roles"], key=itemgetter("organisme_uuid")
-    ) == sorted(
-        [
-            _role(organisme, AgentOrganismeRole.AGENT),
-            _role(other_organisme, AgentOrganismeRole.SUPERVISEUR),
-        ],
-        key=itemgetter("organisme_uuid"),
-    )
+    assert response.json()["organisme_roles"] == [
+        _role(other_organisme, AgentOrganismeRole.SUPERVISEUR),
+        _role(organisme, AgentOrganismeRole.AGENT),
+    ]
 
 
 def test_revoked_organisme_is_not_in_organisme_roles(authenticated_client, test_user):
