@@ -5647,8 +5647,6 @@ components:
           $ref: '#/components/schemas/VersantEnum'
         siret:
           type: string
-          maxLength: 14
-          minLength: 14
         gestionnaire:
           type: string
           nullable: true
