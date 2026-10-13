@@ -14,6 +14,9 @@ class RecrutementQuerySet(models.QuerySet):
     def with_organisme(self) -> "RecrutementQuerySet":
         return self.select_related("organisme")
 
+    def with_detail(self) -> "RecrutementQuerySet":
+        return self.with_organisme().select_related("offre").prefetch_related("etapes")
+
     def by_organisme_and_recrutement(
         self, organisme_id, recrutement_id
     ) -> "RecrutementQuerySet":

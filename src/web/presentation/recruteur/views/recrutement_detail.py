@@ -6,11 +6,11 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from application.recruteur.services.get_recrutement_detail import (
+    get_recrutement_detail,
+)
 from application.recruteur.usecases.changer_etape_candidatures import (
     ChangerEtapeCandidaturesCommand,
-)
-from application.recruteur.usecases.get_recrutement_detail import (
-    GetRecrutementDetailQuery,
 )
 from application.recruteur.usecases.get_recrutement_kanban import (
     GetRecrutementKanbanQuery,
@@ -54,37 +54,22 @@ from presentation.recruteur.serializers import (
     },
 )
 class RecrutementDetailView(SessionApiMixin, APIView):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.container = recruteur_container()
-        self.user_mapper = UtilisateurMapper()
-
     def get(
         self, request: Request, organisme_uuid: UUID, recrutement_uuid: UUID
     ) -> Response:
         try:
-            usecase = self.container.get_recrutement_detail_usecase()
-            result = usecase.execute(
-                GetRecrutementDetailQuery(
-                    organisme_id=organisme_uuid,
-                    recrutement_id=recrutement_uuid,
-                    utilisateur=self.user_mapper.to_domain(request),
-                )
+            recrutement = get_recrutement_detail(
+                organisme_id=organisme_uuid,
+                recrutement_id=recrutement_uuid,
+                utilisateur=request.user,
             )
-            if result is None:
-                return Response(
-                    GenericErrorSerializer({"error": "Not found."}).data,
-                    status=status.HTTP_404_NOT_FOUND,
-                )
-
-            serializer = RecrutementDetailSerializer(result)
-            return Response(serializer.data)
+            return Response(RecrutementDetailSerializer(recrutement).data)
         except OrganismePermissionError:
             return Response(
                 GenericErrorSerializer({"error": "Forbidden."}).data,
                 status=status.HTTP_403_FORBIDDEN,
             )
-        except OrganismeNexistePas:
+        except (OrganismeNexistePas, RecrutementInexistant):
             return Response(
                 GenericErrorSerializer({"error": "Not found."}).data,
                 status=status.HTTP_404_NOT_FOUND,

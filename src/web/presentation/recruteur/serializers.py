@@ -1,4 +1,5 @@
 from django.conf import settings
+from drf_spectacular.utils import extend_schema_field
 from referentiel.value_objects.category import Category
 from referentiel.value_objects.offer_nature import OfferNature
 from referentiel.value_objects.verse import Verse
@@ -20,13 +21,23 @@ from infrastructure.django_apps.messagerie.models import (
     MessageModel,
 )
 from infrastructure.django_apps.recruteur.enums.motif_refus import MotifRefus
-from infrastructure.django_apps.recruteur.models.etape import EtapeModel
+from infrastructure.django_apps.recruteur.models.etape import (
+    EtapeModel,
+    etapes_ordonnees,
+)
 from infrastructure.django_apps.recruteur.models.note import NoteModel
 from infrastructure.django_apps.recruteur.models.recrutement import (
     RecrutementAgentModel,
+    RecrutementModel,
 )
 from infrastructure.django_apps.users.models import ProfilAgentModel
 from presentation.commons.serializers import LocalisationSerializer, OrganismeSerializer
+
+# Single source of choices for every `categorie` field of an etape. drf-spectacular
+# names enums after the field, so serializers declaring the same field with different
+# choices would collide on one name (and emit a warning / suffixed duplicate enum).
+# Identical choices are merged into a single component: do not inline another list.
+CATEGORIE_ETAPE_CHOICES = [(c.name, c.value) for c in CategorieEtapeRecrutement]
 
 
 class OrganismeDetailSerializer(serializers.Serializer):
@@ -63,9 +74,7 @@ class UpdateOrganismeSerializer(serializers.Serializer):
 class EtapeRecrutementSerializer(serializers.Serializer):
     uuid = serializers.UUIDField(source="etape_uuid")
     nom = serializers.CharField()
-    categorie = serializers.ChoiceField(
-        choices=[(c.name, c.value) for c in CategorieEtapeRecrutement]
-    )
+    categorie = serializers.ChoiceField(choices=CATEGORIE_ETAPE_CHOICES)
 
 
 class UpdateEtapeRecrutementSerializer(EtapeRecrutementSerializer):
@@ -142,7 +151,14 @@ class EtapeRecrutementDetailedCandidaturesSerializer(EtapeRecrutementSerializer)
     candidatures = CandidatureSerializer(many=True)
 
 
-class CategorieEtapeField(serializers.ReadOnlyField):
+class CategorieEtapeField(serializers.ChoiceField):
+    def __init__(self, **kwargs):
+        super().__init__(
+            choices=CATEGORIE_ETAPE_CHOICES,
+            read_only=True,
+            **kwargs,
+        )
+
     def to_representation(self, value: str) -> str:
         return CategorieEtapeRecrutement(value).name
 
@@ -156,17 +172,70 @@ class EtapeRecrutementModelSerializer(serializers.ModelSerializer):
         fields = ["uuid", "nom", "categorie"]
 
 
-class RecrutementDetailSerializer(serializers.Serializer):
-    uuid = serializers.UUIDField(source="offer_id")
-    intitule = serializers.CharField()
-    archive = serializers.BooleanField()
-    date_publication = serializers.DateTimeField()
-    localisation = LocalisationSerializer()
-    organisme_recruteur = OrganismeSerializer()
+# Computed fields of RecrutementDetailSerializer. They are plain (not read_only)
+# fields overriding get_attribute, rather than SerializerMethodField, so that
+# drf-spectacular does not flag them `readOnly` (and the generated TS `readonly`):
+# the response schema stays the same as the former plain Serializer.
+@extend_schema_field(serializers.BooleanField())
+class OffreArchiveeField(serializers.Field):
+    def get_attribute(self, instance: RecrutementModel) -> bool:
+        return instance.offre.archived_at is not None
+
+    def to_representation(self, value: bool) -> bool:
+        return value
+
+
+@extend_schema_field(LocalisationSerializer())
+class OffreLocalisationField(serializers.Field):
+    def get_attribute(self, instance: RecrutementModel) -> dict:
+        offre = instance.offre
+        return {
+            "zone_geographique": offre.area or "",
+            "pays": offre.country or "",
+            "region": offre.region or "",
+            "departement": offre.department or "",
+            "localisation_label": offre.location_label or "",
+            "latitude": offre.latitude,
+            "longitude": offre.longitude,
+        }
+
+    def to_representation(self, value: dict) -> dict:
+        return value
+
+
+@extend_schema_field(EtapeRecrutementSerializer(many=True))
+class EtapesOrdonneesField(serializers.Field):
+    def get_attribute(self, instance: RecrutementModel) -> list[EtapeModel]:
+        return etapes_ordonnees(instance)
+
+    def to_representation(self, value: list[EtapeModel]) -> list:
+        return EtapeRecrutementModelSerializer(value, many=True).data
+
+
+class RecrutementDetailSerializer(serializers.ModelSerializer):
+    uuid = serializers.UUIDField(source="offre_id")
+    intitule = serializers.CharField(source="offre.title")
+    archive = OffreArchiveeField()
+    date_publication = serializers.DateTimeField(source="offre.publication_date")
+    localisation = OffreLocalisationField()
+    organisme_recruteur = OrganismeSerializer(source="organisme")
     categorie_offre = serializers.ChoiceField(
-        choices=[(c.name, c.value) for c in Category]
+        source="offre.category", choices=[(c.name, c.value) for c in Category]
     )
-    etapes = EtapeRecrutementSerializer(many=True)
+    etapes = EtapesOrdonneesField()
+
+    class Meta:
+        model = RecrutementModel
+        fields = [
+            "uuid",
+            "intitule",
+            "archive",
+            "date_publication",
+            "localisation",
+            "organisme_recruteur",
+            "categorie_offre",
+            "etapes",
+        ]
 
 
 class RecrutementDetailKanbanSerializer(serializers.Serializer):
