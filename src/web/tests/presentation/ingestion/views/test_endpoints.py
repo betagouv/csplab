@@ -54,3 +54,16 @@ class TestSchemaEndpoint:
         schema = yaml.safe_load(schema_path.read_text())
         paths = schema.get("paths", {})
         assert (reverse(name) in paths) == expected_in_schema
+
+    def test_schema_contact_tag_is_last_in_redoc_menu(self):
+        schema_path = Path("presentation/static/api/schema.yaml")
+        schema = yaml.safe_load(schema_path.read_text())
+        declared_tags = [tag["name"] for tag in schema["tags"]]
+        endpoint_tags = {
+            tag
+            for path_item in schema["paths"].values()
+            for operation in path_item.values()
+            for tag in operation.get("tags", [])
+        }
+        assert endpoint_tags - set(declared_tags) == set()
+        assert declared_tags[-1] == "contact"
