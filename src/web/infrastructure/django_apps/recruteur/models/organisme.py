@@ -2,7 +2,7 @@ from collections.abc import Sequence
 from uuid import UUID, uuid4
 
 from django.db import models
-from django.db.models import Count, Max, Q, Value
+from django.db.models import Count, Max, Prefetch, Q, Value
 from django.db.models.functions import Coalesce, Greatest
 from referentiel.value_objects.verse import Verse
 
@@ -27,20 +27,33 @@ class OrganismeQuerySet(models.QuerySet):
         return self.filter(pk__in=organisme_ids)
 
     def with_counts(self) -> "OrganismeQuerySet":
-        return self.annotate(
-            number_agents=Count(
-                "agents_liaisons",
-                filter=Q(agents_liaisons__date_revocation__isnull=True),
-                distinct=True,
-            ),
-            number_published_offers=Count("recrutements", distinct=True),
-            max_agent_updated=Max("agents_liaisons__updated_at"),
-            last_activity_date=Greatest(
-                "updated_at",
-                Coalesce("max_agent_updated", "updated_at"),
-            ),
-            managed_ats=Coalesce("gestion_ats", Value(False)),
-        ).order_by("-updated_at")
+        return (
+            self.annotate(
+                number_agents=Count(
+                    "agents_liaisons",
+                    filter=Q(agents_liaisons__date_revocation__isnull=True),
+                    distinct=True,
+                ),
+                number_published_offers=Count("recrutements", distinct=True),
+                max_agent_updated=Max("agents_liaisons__updated_at"),
+                last_activity_date=Greatest(
+                    "updated_at",
+                    Coalesce("max_agent_updated", "updated_at"),
+                ),
+                managed_ats=Coalesce("gestion_ats", Value(False)),
+            )
+            .prefetch_related(
+                Prefetch(
+                    "agents_liaisons",
+                    queryset=OrganismeAgentModel.objects.active()
+                    .filter(role=AgentOrganismeRole.SUPERVISEUR.value)
+                    .select_related("agent__utilisateur")
+                    .order_by("agent__utilisateur__last_name"),
+                    to_attr="superviseurs_actifs",
+                )
+            )
+            .order_by("-updated_at")
+        )
 
     def etapes_of(self, organisme_id) -> "OrganismeQuerySet":
         return self.filter(pk=organisme_id).only("id", "etapes")

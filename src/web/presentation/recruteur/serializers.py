@@ -54,7 +54,7 @@ class OrganismeDetailSerializer(serializers.Serializer):
 
 class OrganismesListSerializer(serializers.ModelSerializer):
     uuid = serializers.UUIDField(source="id")
-    gestionnaire = serializers.CharField(allow_null=True)
+    superviseurs = serializers.SerializerMethodField()
     gestion_ats = serializers.BooleanField(source="managed_ats")
     date_derniere_activite = serializers.DateTimeField(source="last_activity_date")
     date_creation = serializers.DateTimeField(source="created_at")
@@ -68,7 +68,7 @@ class OrganismesListSerializer(serializers.ModelSerializer):
             "nom",
             "versant",
             "siret",
-            "gestionnaire",
+            "superviseurs",
             "gestion_ats",
             "date_derniere_activite",
             "date_creation",
@@ -76,6 +76,12 @@ class OrganismesListSerializer(serializers.ModelSerializer):
             "nombre_offres_publiees",
         )
         extra_kwargs = {"siret": {"min_length": 14}}
+
+    def get_superviseurs(self, organisme) -> str:
+        return ", ".join(
+            liaison.agent.utilisateur.get_full_name()
+            for liaison in organisme.superviseurs_actifs
+        )
 
 
 class CreateOrganismeSerializer(serializers.Serializer):
