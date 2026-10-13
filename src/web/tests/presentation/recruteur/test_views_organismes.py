@@ -14,7 +14,10 @@ from domain.identite.errors.organisme_errors import OrganismeSiretExisteDeja
 from domain.identite.errors.organisme_permission_errors import (
     OperationOrganismeRefusee,
 )
-from infrastructure.django_apps.recruteur.models.organisme import OrganismeModel
+from infrastructure.django_apps.recruteur.models.organisme import (
+    OrganismeModel,
+    OrganismeQuerySet,
+)
 from infrastructure.factories.identite.organisme_django_factory import (
     OrganismeAgentDjangoFactory,
     OrganismeDjangoFactory,
@@ -109,9 +112,8 @@ class TestOrganismesView:
         assert response.json() == {"error": OperationOrganismeRefusee().message}
 
     def test_get_returns_500_on_unexpected_error(self, staff_client):
-        with patch(
-            "presentation.recruteur.views.organismes.list_organismes",
-            side_effect=Exception("unexpected"),
+        with patch.object(
+            OrganismeQuerySet, "with_counts", side_effect=Exception("unexpected")
         ):
             response = staff_client.get(ORGANISME_URL)
 
