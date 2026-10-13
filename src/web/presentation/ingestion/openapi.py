@@ -236,7 +236,7 @@ ARCHIVE_OFFER_EXAMPLES = [
         "Error - not found",
         summary="Offre introuvable",
         description="Aucune offre ne correspond à la référence fournie.",
-        value={"detail": "Not found."},
+        value={"detail": "Offre introuvable."},
         response_only=True,
         status_codes=["404"],
     ),
