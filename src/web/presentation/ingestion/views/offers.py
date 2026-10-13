@@ -233,7 +233,9 @@ class ArchiveOffersView(PublicApiMixin, APIView):
                 status=status.HTTP_403_FORBIDDEN,
             )
         except OfferDoesNotExist:
-            return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                {"detail": "Offre introuvable."}, status=status.HTTP_404_NOT_FOUND
+            )
         return Response(
             ArchiveOfferSuccessSerializer({"statut": "ok"}).data,
             status=status.HTTP_200_OK,

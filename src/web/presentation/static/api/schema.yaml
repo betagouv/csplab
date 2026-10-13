@@ -3211,7 +3211,7 @@ paths:
               examples:
                 Error-NotFound:
                   value:
-                    detail: Not found.
+                    detail: Offre introuvable.
                   summary: Offre introuvable
                   description: Aucune offre ne correspond à la référence fournie.
           description: ''
