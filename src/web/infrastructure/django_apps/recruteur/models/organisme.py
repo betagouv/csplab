@@ -48,7 +48,10 @@ class OrganismeQuerySet(models.QuerySet):
                     queryset=OrganismeAgentModel.objects.active()
                     .filter(role=AgentOrganismeRole.SUPERVISEUR.value)
                     .select_related("agent__utilisateur")
-                    .order_by("agent__utilisateur__last_name"),
+                    .order_by(
+                        "agent__utilisateur__last_name",
+                        "agent__utilisateur__first_name",
+                    ),
                     to_attr="superviseurs_actifs",
                 )
             )
