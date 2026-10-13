@@ -4,6 +4,7 @@ import { mount } from '@vue/test-utils'
 import { createPinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { defineComponent, h, nextTick } from 'vue'
+import { useToast } from '@/composables/ui/useToast'
 import { useFindOrCreateAgent } from './useFindOrCreateAgent'
 
 const mockSearchAgentByEmail = vi.fn()
@@ -95,6 +96,20 @@ describe('useFindOrCreateAgent', () => {
 
     expect(status.value).toBe('not-found')
     expect(foundAgent.value).toBeNull()
+  })
+
+  it('tells the user when the search fails, and leaves nothing found', async () => {
+    mockSearchAgentByEmail.mockRejectedValue(new Error('boom'))
+    const { toasts, dismissToast } = useToast()
+    const { search, status, foundAgent, searching } = mountFindOrCreateAgent()
+
+    await search(UNKNOWN_EMAIL)
+
+    expect(toasts.value).toContainEqual(expect.objectContaining({ variant: 'error', title: 'La recherche a échoué' }))
+    expect(status.value).toBe('idle')
+    expect(foundAgent.value).toBeNull()
+    expect(searching.value).toBe(false)
+    toasts.value.forEach(toast => dismissToast(toast.id))
   })
 
   it('acts on the found agent without creating an account', async () => {
