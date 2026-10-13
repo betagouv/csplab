@@ -5639,6 +5639,7 @@ components:
           format: uuid
         nom:
           type: string
+          maxLength: 255
         versant:
           $ref: '#/components/schemas/VersantEnum'
         siret:

@@ -1,7 +1,8 @@
-from datetime import datetime, timezone
 from unittest.mock import MagicMock, patch
 
 import pytest
+from django.db import connection
+from django.test.utils import CaptureQueriesContext
 from django.urls import reverse
 from faker import Faker
 from pydantic import ValidationError
@@ -9,30 +10,28 @@ from referentiel.value_objects.siret import SIRET
 from referentiel.value_objects.verse import Verse
 from rest_framework import status
 
-from application.identite.services.organisme_query_service_interface import (
-    OrganismeReadModel,
-)
-from application.identite.usecases.list_organismes import (
-    ListOrganismesCommand,
-)
 from domain.identite.errors.organisme_errors import OrganismeSiretExisteDeja
 from domain.identite.errors.organisme_permission_errors import (
     OperationOrganismeRefusee,
 )
-from infrastructure.django_apps.recruteur.models.organisme import OrganismeModel
+from infrastructure.django_apps.recruteur.models.organisme import (
+    OrganismeModel,
+    OrganismeQuerySet,
+)
 from infrastructure.factories.identite.organisme_django_factory import (
+    OrganismeAgentDjangoFactory,
     OrganismeDjangoFactory,
 )
-from infrastructure.factories.identite.organisme_factory import OrganismeFactory
 from infrastructure.factories.identite.utilisateur_django_factory import (
     UtilisateurDjangoFactory,
 )
-from infrastructure.factories.seed_recruteur_datas import _ORGANISME_UUID
-from tests.utils.dates import datetime_to_drf_representation, datetime_to_str
+from infrastructure.factories.recruteur.recrutement_django_factory import (
+    RecrutementDjangoFactory,
+)
+from tests.utils.dates import datetime_to_drf_representation
 
 fake = Faker("fr_FR")
 
-ORGANISME_UUID = fake.uuid4()
 ORGANISME_URL = reverse("recruteur:organismes")
 
 
@@ -42,6 +41,12 @@ def _invalid_siret_error() -> ValidationError:
     except ValidationError as err:
         return err
     raise AssertionError("expected SIRET validation to fail")
+
+
+@pytest.fixture
+def staff_client(api_client):
+    api_client.force_login(UtilisateurDjangoFactory(is_staff=True))
+    return api_client
 
 
 @pytest.fixture
@@ -62,111 +67,58 @@ class TestOrganismesView:
         response = api_client.get(ORGANISME_URL)
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
-    def test_get_returns_organismes(
-        self,
-        container,
-        authenticated_client,
-    ):
-        mock_usecase = MagicMock()
-        organismes = OrganismeFactory.create_entity_batch(
-            gestion_ats=True,
-            date_creation=datetime(2025, 10, 1, tzinfo=timezone.utc),
-            date_derniere_activite=datetime.now(timezone.utc),
-        )
-        expected_result = [
-            OrganismeReadModel(
-                entity_id=organisme.entity_id,
-                name=organisme.nom,
-                siret=organisme.siret,
-                verse=organisme.versant,
-                managed_ats=organisme.gestion_ats,
-                creation_date=organisme.date_creation,
-                last_activity_date=organisme.date_derniere_activite,
-                number_agents=5,
-                number_published_offers=100,
-            )
-            for organisme in organismes
-        ]
+    def test_get_returns_organismes(self, staff_client):
+        organisme = OrganismeDjangoFactory(gestion_ats=True)
+        RecrutementDjangoFactory(organisme=organisme)
 
-        mock_usecase.execute.return_value = expected_result
-        container.list_organismes_usecase.return_value = mock_usecase
-        response = authenticated_client.get(ORGANISME_URL)
+        response = staff_client.get(ORGANISME_URL)
 
-        mock_usecase.execute.assert_called_once()
-        (called_command,), _ = mock_usecase.execute.call_args
-        assert isinstance(called_command, ListOrganismesCommand)
         assert response.status_code == status.HTTP_200_OK
-        assert response.json() == [
-            {
-                "uuid": str(organisme.entity_id),
-                "nom": organisme.name,
-                "versant": organisme.verse.value,
-                "siret": str(organisme.siret),
-                "gestionnaire": None,
-                "gestion_ats": organisme.managed_ats,
-                # TODO : inspect the origin of these divergent formats
-                "date_creation": datetime_to_drf_representation(
-                    organisme.creation_date
-                ),
-                "date_derniere_activite": datetime_to_str(organisme.last_activity_date),
-                "nombre_agents": 5,
-                "nombre_offres_publiees": 100,
-            }
-            for organisme in expected_result
-        ]
+        organisme.refresh_from_db()
+        matching = next(o for o in response.json() if o["uuid"] == str(organisme.id))
+        assert matching == {
+            "uuid": str(organisme.id),
+            "nom": organisme.nom,
+            "versant": organisme.versant,
+            "siret": organisme.siret,
+            "gestionnaire": None,
+            "gestion_ats": True,
+            "date_creation": datetime_to_drf_representation(organisme.created_at),
+            "date_derniere_activite": datetime_to_drf_representation(
+                organisme.updated_at
+            ),
+            "nombre_agents": 0,
+            "nombre_offres_publiees": 1,
+        }
 
-    @pytest.mark.parametrize(
-        ("exception", "expected_status", "expected_body"),
-        [
-            (
-                OperationOrganismeRefusee(),
-                status.HTTP_403_FORBIDDEN,
-                {"error": OperationOrganismeRefusee().message},
-            ),
-            (
-                Exception("unexpected"),
-                status.HTTP_500_INTERNAL_SERVER_ERROR,
-                {"error": "Unexpected error"},
-            ),
-        ],
-    )
-    def test_get_returns_error_from_usecase(
-        self,
-        container,
-        authenticated_client,
-        exception,
-        expected_status,
-        expected_body,
-    ):
-        mock_usecase = MagicMock()
-        mock_usecase.execute.side_effect = exception
-        container.list_organismes_usecase.return_value = mock_usecase
+    def test_get_query_count_does_not_grow_with_organismes(self, staff_client):
+        def count_queries() -> int:
+            with CaptureQueriesContext(connection) as queries:
+                staff_client.get(ORGANISME_URL)
+            return len(queries)
+
+        OrganismeDjangoFactory()
+        baseline = count_queries()
+        for organisme in OrganismeDjangoFactory.create_batch(3):
+            OrganismeAgentDjangoFactory(organisme=organisme)
+            RecrutementDjangoFactory(organisme=organisme)
+
+        assert count_queries() == baseline
+
+    def test_get_refuses_non_staff(self, authenticated_client):
         response = authenticated_client.get(ORGANISME_URL)
 
-        assert response.status_code == expected_status
-        assert response.json() == expected_body
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert response.json() == {"error": OperationOrganismeRefusee().message}
 
-    def test_post_create_organisme(
-        self,
-        container,
-        authenticated_client,
-    ):
-        mock_usecase = MagicMock()
-        organisme = OrganismeFactory.create_entity(entity_id=_ORGANISME_UUID)
-        mock_usecase.execute.return_value = organisme
-        container.create_organisme_usecase.return_value = mock_usecase
-        body = {
-            "nom": organisme.nom,
-            "siret": organisme.siret.code,
-            "versant": fake.random_choices(
-                [Verse.FPE.value, Verse.FPT.value, Verse.FPH.value]
-            ),
-            "gestion_ats": organisme.gestion_ats,
-        }
-        response = authenticated_client.post(ORGANISME_URL, body)
-        assert response.status_code == status.HTTP_201_CREATED
-        assert response.json()["uuid"] == str(organisme.entity_id)
-        assert response.json()["gestion_ats"] == organisme.gestion_ats
+    def test_get_returns_500_on_unexpected_error(self, staff_client):
+        with patch.object(
+            OrganismeQuerySet, "with_counts", side_effect=Exception("unexpected")
+        ):
+            response = staff_client.get(ORGANISME_URL)
+
+        assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
+        assert response.json() == {"error": "Unexpected error"}
 
     @pytest.mark.parametrize(
         ("exception", "expected_status", "expected_body"),
@@ -219,26 +171,6 @@ class TestOrganismesView:
 
 
 class TestOrganismesViewDbVerified:
-    @pytest.fixture
-    def staff_client(self, api_client):
-        staff_user = UtilisateurDjangoFactory(is_staff=True)
-        api_client.force_login(staff_user)
-        return api_client
-
-    def test_get_returns_persisted_organismes(self, staff_client):
-        organisme = OrganismeDjangoFactory(gestion_ats=True)
-
-        response = staff_client.get(ORGANISME_URL)
-
-        assert response.status_code == status.HTTP_200_OK
-        matching = next(o for o in response.json() if o["uuid"] == str(organisme.id))
-        assert matching["nom"] == organisme.nom
-        assert matching["versant"] == organisme.versant
-        assert matching["siret"] == organisme.siret
-        assert matching["gestion_ats"] == organisme.gestion_ats
-        assert matching["nombre_agents"] == 0
-        assert matching["nombre_offres_publiees"] == 0
-
     def test_post_creates_and_persists_the_organisme(self, staff_client):
         siret_code = fake.siret().replace(" ", "")
         body = {

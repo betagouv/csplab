@@ -26,6 +26,7 @@ from infrastructure.django_apps.recruteur.models.etape import (
     etapes_ordonnees,
 )
 from infrastructure.django_apps.recruteur.models.note import NoteModel
+from infrastructure.django_apps.recruteur.models.organisme import OrganismeModel
 from infrastructure.django_apps.recruteur.models.recrutement import (
     RecrutementAgentModel,
     RecrutementModel,
@@ -51,9 +52,30 @@ class OrganismeDetailSerializer(serializers.Serializer):
     date_creation = serializers.DateTimeField()
 
 
-class OrganismesListSerializer(OrganismeDetailSerializer):
-    nombre_agents = serializers.IntegerField()
-    nombre_offres_publiees = serializers.IntegerField()
+class OrganismesListSerializer(serializers.ModelSerializer):
+    uuid = serializers.UUIDField(source="id")
+    gestionnaire = serializers.CharField(allow_null=True)
+    gestion_ats = serializers.BooleanField(source="managed_ats")
+    date_derniere_activite = serializers.DateTimeField(source="last_activity_date")
+    date_creation = serializers.DateTimeField(source="created_at")
+    nombre_agents = serializers.IntegerField(source="number_agents")
+    nombre_offres_publiees = serializers.IntegerField(source="number_published_offers")
+
+    class Meta:
+        model = OrganismeModel
+        fields = (
+            "uuid",
+            "nom",
+            "versant",
+            "siret",
+            "gestionnaire",
+            "gestion_ats",
+            "date_derniere_activite",
+            "date_creation",
+            "nombre_agents",
+            "nombre_offres_publiees",
+        )
+        extra_kwargs = {"siret": {"min_length": 14}}
 
 
 class CreateOrganismeSerializer(serializers.Serializer):

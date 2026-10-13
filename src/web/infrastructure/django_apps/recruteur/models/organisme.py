@@ -2,7 +2,8 @@ from collections.abc import Sequence
 from uuid import UUID, uuid4
 
 from django.db import models
-from django.db.models import Q
+from django.db.models import Count, Max, Q, Value
+from django.db.models.functions import Coalesce, Greatest
 from referentiel.value_objects.verse import Verse
 
 from domain.recruteur.errors.organisme_recruteur_errors import (
@@ -24,6 +25,22 @@ class OrganismeQuerySet(models.QuerySet):
 
     def by_organisme_ids(self, organisme_ids) -> "OrganismeQuerySet":
         return self.filter(pk__in=organisme_ids)
+
+    def with_counts(self) -> "OrganismeQuerySet":
+        return self.annotate(
+            number_agents=Count(
+                "agents_liaisons",
+                filter=Q(agents_liaisons__date_revocation__isnull=True),
+                distinct=True,
+            ),
+            number_published_offers=Count("recrutements", distinct=True),
+            max_agent_updated=Max("agents_liaisons__updated_at"),
+            last_activity_date=Greatest(
+                "updated_at",
+                Coalesce("max_agent_updated", "updated_at"),
+            ),
+            managed_ats=Coalesce("gestion_ats", Value(False)),
+        ).order_by("-updated_at")
 
     def etapes_of(self, organisme_id) -> "OrganismeQuerySet":
         return self.filter(pk=organisme_id).only("id", "etapes")
