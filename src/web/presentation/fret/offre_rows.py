@@ -1,6 +1,5 @@
 import gettext
 import json
-import re
 from collections.abc import Callable
 from datetime import datetime
 from enum import Enum
@@ -154,12 +153,12 @@ _CONTACT_ROLES = {
 
 
 def _contacts(contacts: list) -> SafeString:
-    """Un contact par ligne, précédé de son rôle, e-mails en lien `mailto:`."""
+    """Un contact par ligne, précédé de son rôle, affiché tel quel."""
     return format_html_join(
         mark_safe("<br>"),
-        "{} : {}",
+        "{}",
         (
-            (_CONTACT_ROLES.get(contact.get("role", ""), ""), _contact(contact))
+            (_contact(contact),)
             for contact in contacts
             if isinstance(contact, dict) and contact.get("texte")
         ),
@@ -167,26 +166,13 @@ def _contacts(contacts: list) -> SafeString:
 
 
 def _contact(contact: dict) -> SafeString:
-    """Texte du contact, où chaque e-mail devient un lien `mailto:`.
-
-    Les e-mails absents du texte sont ajoutés à la suite."""
-    texte = contact["texte"]
+    """Rôle et texte du contact, suivis de ses e-mails sur une ligne à part."""
+    role = _CONTACT_ROLES.get(contact.get("role", ""), "")
+    html = format_html("{} : {}", role, contact["texte"])
     emails = [email for email in contact.get("emails") or [] if email]
-    if not emails:
-        return format_html("{}", texte)
-    pattern = "|".join(re.escape(email) for email in emails)
-    parts = [
-        _mailto(part) if part in emails else part
-        for part in re.split(f"({pattern})", texte)
-    ]
-    parts += [
-        format_html(" {}", _mailto(email)) for email in emails if email not in texte
-    ]
-    return format_html_join("", "{}", ((part,) for part in parts))
-
-
-def _mailto(email: str) -> SafeString:
-    return format_html('<a href="mailto:{0}">{0}</a>', email)
+    if emails:
+        html = format_html("{}<br>E-mails : {}", html, ", ".join(emails))
+    return html
 
 
 def _enum(enum: type[Enum]) -> Callable[[Any], str]:

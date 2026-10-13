@@ -398,7 +398,7 @@ class TestOffreDetailView:
             "ERNUM001",
             "https://exemple.gouv.fr/offres/1",
             "Master",
-            'href="mailto:jean.dupont@exemple.gouv.fr"',
+            "Personne à contacter : jean.dupont@exemple.gouv.fr",
             "Paris",
             "15/05/2024",
             f"Mairie de Test ({organisme.entity_code})",
@@ -407,7 +407,7 @@ class TestOffreDetailView:
         ):
             assert expected in content, expected
 
-    def test_shows_contacts_with_their_role_and_mailto_links(
+    def test_shows_contacts_with_their_role_raw_text_and_emails(
         self, client, agent_user, source
     ):
         offer = OfferDjangoFactory(
@@ -430,12 +430,13 @@ class TestOffreDetailView:
         content = client.get(self.url(source, offer)).content.decode()
 
         assert (
-            "Personne à contacter : Camille Martin &lt;RH&gt; : "
-            '<a href="mailto:a@exemple.gouv.fr">a@exemple.gouv.fr</a>'
+            "Personne à contacter : Camille Martin &lt;RH&gt; : a@exemple.gouv.fr"
             " ; 01 23 45<br>"
-            "Autre personne à contacter : Bureau RH "
-            '<a href="mailto:b@exemple.gouv.fr">b@exemple.gouv.fr</a>'
+            "E-mails : a@exemple.gouv.fr<br>"
+            "Autre personne à contacter : Bureau RH<br>"
+            "E-mails : b@exemple.gouv.fr"
         ) in content
+        assert "mailto:" not in content
         assert "&quot;texte&quot;" not in content  # plus de JSON brut
 
     def test_shows_criteria_in_readable_rows(self, client, agent_user, source):
