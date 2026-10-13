@@ -620,7 +620,7 @@ Notation : `a.b` désigne un objet imbriqué, `a[]` une liste, `a[0]` son premie
 | `organisation.retentionPeriod` | Données d'organisme, synchronisées par l'upsert séparé des organismes Talentsoft (`TalentsoftOrganismeUpsertInputSerializer`), pas par le payload d'offre. |
 | `organisation.generalConditions` | Données d'organisme, synchronisées par l'upsert séparé des organismes Talentsoft (`TalentsoftOrganismeUpsertInputSerializer`), pas par le payload d'offre. |
 | `organisation.personalDataConsent` | Données d'organisme, synchronisées par l'upsert séparé des organismes Talentsoft (`TalentsoftOrganismeUpsertInputSerializer`), pas par le payload d'offre. |
-| `operationalManager` | Jamais lu : `contacts` vaut toujours `null`. |
+| `operationalManager` | Jamais lu : `contacts` vient de `customFields.origin` (voir plus bas). |
 | `applicationQuestions` | |
 | `attachedFilesUrls` | |
 | `customFields.offer.shortText1` | |
@@ -666,7 +666,7 @@ Notation : `a.b` désigne un objet imbriqué, `a[]` une liste, `a[0]` son premie
 | `conditions.complements` | Jamais renseigné par l'ingestion. |
 | `conditions.bases_legales` | Jamais renseigné par l'ingestion. |
 | `conditions.note_ouverture_poste_url` | Jamais renseigné par l'ingestion. |
-| `contacts` | Toujours `null` côté ingestion. |
+| `contacts` | Lu dans `customFields.origin` (absent de l'API fake-ts) : `shortText2` (« Personnes à contacter ») → contact `principal`, `shortText3` (« Autre personne à contacter ») → contact `autre`. `texte` reprend la valeur sans les espaces en début et fin ; une valeur sans lettre ni chiffre est ignorée. `emails` contient les adresses email présentes dans le texte, dédoublonnées, dans l'ordre d'apparition. `null` si aucun contact. `shortText1` (adresse de candidature) n'est pas lu. |
 
 
 
