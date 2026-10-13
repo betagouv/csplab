@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import type { EtapeRecrutementDetailedCandidatures } from '../types'
 import type { KanbanDropEvent } from '@/composables/dnd/useKanbanDnd'
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import { useKanbanBoardAutoScroll, useKanbanBoardMonitor } from '@/composables/dnd/useKanbanDnd'
+import { etapesReceivingCandidatures } from '../utils/kanban'
 import CandidatureKanbanColumn from './CandidatureKanbanColumn.vue'
 
 const props = defineProps<{
@@ -28,6 +29,23 @@ useKanbanBoardMonitor({
 })
 
 useKanbanBoardAutoScroll({ element: boardRef })
+
+const columns = new Map<string, InstanceType<typeof CandidatureKanbanColumn>>()
+
+function setColumn(etapeUuid: string, column: unknown): void {
+  if (column) {
+    columns.set(etapeUuid, column as InstanceType<typeof CandidatureKanbanColumn>)
+  }
+  else {
+    columns.delete(etapeUuid)
+  }
+}
+
+watch(() => props.etapes, (etapes, previousEtapes) => {
+  for (const etapeUuid of etapesReceivingCandidatures(previousEtapes, etapes)) {
+    columns.get(etapeUuid)?.scrollToEnd()
+  }
+}, { flush: 'post' })
 </script>
 
 <template>
@@ -38,6 +56,7 @@ useKanbanBoardAutoScroll({ element: boardRef })
     <CandidatureKanbanColumn
       v-for="etape in etapes"
       :key="etape.uuid"
+      :ref="column => setColumn(etape.uuid, column)"
       :etape="etape"
       :board-id="boardId"
       :is-selected="isColumnSelected(etape.uuid)"
