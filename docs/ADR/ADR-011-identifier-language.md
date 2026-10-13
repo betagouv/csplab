@@ -23,7 +23,7 @@ Certains mots n'ont pas d'équivalent anglais fidèle : `corps`, `grade`, `versa
 
 On écrit les identifiants en anglais, sauf les termes gardés en français que liste [`docs/domain_glossary.md`](../domain_glossary.md). L'auteur d'une PR qui introduit un nouveau terme français l'ajoute au glossaire.
 
-Les textes affichés, les ADR et les messages de commit restent en français. On ne renomme pas l'API publique `/api/v1`, que des systèmes externes appellent.
+Les textes affichés, les ADR et les messages de commit restent en français. Les champs, les filtres et les valeurs de l'API publique `/api/v1`, que des partenaires appellent, sont aussi en français : le glossaire en fixe les règles.
 
 ## Consequences
 
