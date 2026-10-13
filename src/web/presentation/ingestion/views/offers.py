@@ -180,10 +180,10 @@ class OffersBySourceView(PublicApiMixin, APIView):
         tags=["offres"],
         responses={
             200: ArchiveOfferSuccessSerializer,
-            400: inline_serializer(
-                name="ArchiveOfferBadRequest",
-                fields={"detail": drf_serializers.CharField()},
-            ),
+            400: {
+                "type": "object",
+                "additionalProperties": {"type": "array", "items": {"type": "string"}},
+            },
             401: PolymorphicProxySerializer(
                 component_name="ArchiveOffer401Error",
                 serializers=[
@@ -227,15 +227,19 @@ class ArchiveOffersView(PublicApiMixin, APIView):
                     utilisateur_username=utilisateur_username,
                 )
             )
-        except SourceAuthorizationError as e:
-            source_ids = sorted(str(sid) for sid in e.source_ids)
+        except SourceAuthorizationError:
             return Response(
-                {"detail": f"Cannot edit this source: {source_ids}."},
+                {"detail": "Vous n'êtes pas autorisé à modifier cette source."},
                 status=status.HTTP_403_FORBIDDEN,
             )
         except OfferDoesNotExist:
-            return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
-        return Response({"status": "ok"}, status=status.HTTP_200_OK)
+            return Response(
+                {"detail": "Offre introuvable."}, status=status.HTTP_404_NOT_FOUND
+            )
+        return Response(
+            ArchiveOfferSuccessSerializer({"statut": "ok"}).data,
+            status=status.HTTP_200_OK,
+        )
 
 
 @extend_schema(

@@ -81,7 +81,7 @@ class TestArchiveOffersView:
     ):
         response = authenticated_client_with_source.post(URL, VALID_BODY, format="json")
         assert response.status_code == status.HTTP_200_OK
-        assert response.data == {"status": "ok"}
+        assert response.data == {"statut": "ok"}
         use_case.execute.assert_called_once_with(
             ArchiveOfferByReferenceInput(
                 reference=REFERENCE,
@@ -101,7 +101,7 @@ class TestArchiveOffersView:
         api_client.credentials(HTTP_AUTHORIZATION=f"Api-Key {API_KEY}")
         response = api_client.post(URL, VALID_BODY, format="json")
         assert response.status_code == status.HTTP_200_OK
-        assert response.data == {"status": "ok"}
+        assert response.data == {"statut": "ok"}
         use_case.execute.assert_called_once_with(
             ArchiveOfferByReferenceInput(reference=REFERENCE, source_id=SOURCE_ID)
         )
@@ -120,6 +120,6 @@ class TestArchiveOffersViewDbVerified:
         response = authenticated_client_with_source.post(URL, VALID_BODY, format="json")
 
         assert response.status_code == status.HTTP_200_OK
-        assert response.data == {"status": "ok"}
+        assert response.data == {"statut": "ok"}
         offer.refresh_from_db()
         assert offer.archived_at is not None
