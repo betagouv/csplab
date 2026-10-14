@@ -41,6 +41,7 @@ class Offer:
     end_publication_date: Optional[datetime]
     beginning_date: Optional[LimitDate]
     application_deadline: Optional[datetime] = None
+    application_email: Optional[str] = None
     contract_duration: Optional[str] = None
     employer_description: str = ""
     exercise_conditions: str = ""
