@@ -3407,7 +3407,7 @@ paths:
         à la source identifiée par son `uuid`.
 
         L'accès à une source non autorisée pour l'utilisateur authentifié renvoie une
-        erreur `401`.
+        erreur `403`.
 
 
         Cette API est à l'usage exclusif des personnes autorisées.
@@ -3467,7 +3467,20 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OffersBySource401Error'
+                $ref: '#/components/schemas/TokenError'
+          description: ''
+          headers:
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OffersBySourceForbidden'
           description: ''
           headers:
             X-RateLimit-Limit:
@@ -5145,11 +5158,7 @@ components:
       - url_offre
       - vacance_poste
       - versant
-    OffersBySource401Error:
-      oneOf:
-      - $ref: '#/components/schemas/TokenError'
-      - $ref: '#/components/schemas/OffersBySourceUnauthorized'
-    OffersBySourceUnauthorized:
+    OffersBySourceForbidden:
       type: object
       properties:
         detail:
@@ -5991,6 +6000,16 @@ tags:
     champs et de leurs règles se trouve dans le [guide de l'API](/pages/guide_api).
 
     Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/).
+
+    ## 2026-10-14
+
+    ### ⚠️ Changements non rétrocompatibles
+
+    `GET /api/v1/offres/sources/{source_id}` : l'accès à une source non autorisée pour
+    l'utilisateur authentifié renvoie désormais une erreur `403 Forbidden` au lieu de
+    `401 Unauthorized`, comme `POST /api/v1/offres/creer_modifier` et
+    `POST /api/v1/offres/archiver`. Le corps de la réponse ne change pas. Le code `401`
+    ne signale plus qu'une authentification manquante ou invalide.
 
     ## 2026-10-13
 

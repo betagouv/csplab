@@ -184,7 +184,7 @@ Cette API retourne, paginée, la liste complète des offres d'emploi rattachées
 à la source identifiée par son `uuid`.
 
 L'accès à une source non autorisée pour l'utilisateur authentifié renvoie une
-erreur `401`.
+erreur `403`.
 
 """
     + _API_COMMON_FOOTER

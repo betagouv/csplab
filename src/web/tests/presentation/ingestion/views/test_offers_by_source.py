@@ -131,12 +131,12 @@ class TestOffersBySourceView:
         assert response.status_code == status.HTTP_200_OK
         assert response.json()["results"][0]["localisation"] is None
 
-    def test_jwt_authentication_forbidden_source_returns_401(
+    def test_jwt_authentication_forbidden_source_returns_403(
         self, jwt_client, use_case
     ):
         use_case.execute.side_effect = SourceAuthorizationError({SOURCE_ID})
         response = jwt_client.get(URL)
-        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+        assert response.status_code == status.HTTP_403_FORBIDDEN
 
     def test_returns_error_500(self, jwt_client, use_case):
         use_case.execute.side_effect = Exception("db error")
