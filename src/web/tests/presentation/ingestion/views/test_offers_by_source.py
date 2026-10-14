@@ -189,6 +189,7 @@ class TestOffersBySourceViewDbVerified:
                 "vacance_poste": None,
                 "url_offre": None,
                 "url_candidature": None,
+                "email_candidature": None,
                 "localisation": None,
                 "criteres": None,
                 "conditions": None,
@@ -265,6 +266,7 @@ class TestOffersBySourceViewDbVerified:
                 "vacance_poste": offer.job_vacancy,
                 "url_offre": "https://exemple.gouv.fr/offres/e2e-1",
                 "url_candidature": "https://exemple.gouv.fr/candidature/e2e-1",
+                "email_candidature": None,
                 "localisation": {
                     "zone_geographique": offer.area,
                     "pays": offer.country,

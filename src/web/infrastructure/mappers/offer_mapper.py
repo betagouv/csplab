@@ -74,6 +74,7 @@ class OfferMapper(
             application_url=HttpUrl(model.application_url)
             if model.application_url
             else None,
+            application_email=model.application_email,
             contract_kind=contract_kind,
             job_vacancy=model.job_vacancy,
             employer=model.employer,
@@ -152,6 +153,7 @@ class OfferMapper(
             application_url=str(entity.application_url)
             if entity.application_url
             else None,
+            application_email=entity.application_email,
             contract_kind=contract_kind,
             job_vacancy=entity.job_vacancy,
             employer=entity.employer,

@@ -47,6 +47,7 @@ _LABELS = {
     "application_deadline": "Date limite de candidature",
     "offer_url": "Lien de l'offre",
     "application_url": "Lien de candidature",
+    "application_email": "E-mail de candidature",
     "code_emploi_csp": "Code emploi CSP",
     "job_family_referential": "Référentiel de familles de métiers",
     "functional_area_code": "Code du domaine fonctionnel",

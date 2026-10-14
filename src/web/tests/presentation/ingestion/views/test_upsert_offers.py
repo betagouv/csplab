@@ -7,6 +7,7 @@ from zoneinfo import ZoneInfo
 import pytest
 from django.urls import reverse
 from faker import Faker
+from pydantic import HttpUrl
 from referentiel.entities.offer import Offer
 from referentiel.value_objects.area import GeographicalArea
 from referentiel.value_objects.category import Category
@@ -154,6 +155,7 @@ COMPARABLE_OFFER_ATTRS = [
     "source_id",
     "long_title",
     "application_url",
+    "application_email",
     "contract_kind",
     "job_vacancy",
     "employer",
@@ -254,7 +256,10 @@ def parse_offer_from_payload(payload: dict, source_id: UUID) -> Offer:
         functional_area_code=payload["profession"].get("domaine"),
         source_id=source_id,
         long_title=payload.get("titre_long") or None,
-        application_url=payload.get("url_candidature"),
+        application_url=HttpUrl(url_candidature)
+        if (url_candidature := payload.get("url_candidature"))
+        else None,
+        application_email=payload.get("email_candidature"),
         contract_kind=ContractKind[type_contrat] if type_contrat else None,
         job_vacancy=payload.get("vacance_poste") or None,
         employer=payload["description"].get("employeur") or None,
@@ -567,6 +572,85 @@ def test_invalid_contacts_are_rejected(
         {
             "index": 0,
             "offre": {"reference": "REF-007", "versant": "FPT"},
+            "error": expected_error,
+        }
+    ]
+
+
+def test_email_candidature_is_passed_to_usecase(
+    authenticated_client_with_source, use_case
+):
+    offer = PayloadOfferFactory.create(
+        identification={"reference": "REF-008", "versant": "FPT"},
+        url_candidature=None,
+        email_candidature="rh@exemple.gouv.fr",
+    )
+    use_case.execute.return_value = {
+        "created": 1,
+        "updated": 0,
+        "errors": [],
+        "offres": [{"reference": "REF-008", "statut": "created"}],
+    }
+
+    response = authenticated_client_with_source.post(
+        URL,
+        data={"source_id": SOURCE_UUID, "offres": [offer]},
+        content_type="application/json",
+    )
+
+    assert response.status_code == status.HTTP_201_CREATED
+    upsert_input = use_case.execute.call_args[0][0]
+    assert upsert_input.offers[0].application_email == "rh@exemple.gouv.fr"
+    assert upsert_input.offers[0].application_url is None
+
+
+APPLICATION_CHANNEL_ERROR = {
+    "non_field_errors": [
+        "Renseigner soit url_candidature, soit email_candidature, mais pas les deux."
+    ]
+}
+
+
+@pytest.mark.parametrize(
+    "candidature,expected_error",
+    [
+        (
+            {
+                "url_candidature": "https://exemple.gouv.fr/candidature",
+                "email_candidature": "rh@exemple.gouv.fr",
+            },
+            APPLICATION_CHANNEL_ERROR,
+        ),
+        (
+            {"url_candidature": None, "email_candidature": None},
+            APPLICATION_CHANNEL_ERROR,
+        ),
+        ({"url_candidature": None}, APPLICATION_CHANNEL_ERROR),
+        (
+            {"url_candidature": None, "email_candidature": "pas-un-email"},
+            {"email_candidature": ["Saisissez une adresse e-mail valide."]},
+        ),
+    ],
+)
+def test_invalid_application_channels_are_rejected(
+    authenticated_client_with_source, use_case, candidature, expected_error
+):
+    offer = PayloadOfferFactory.create(
+        identification={"reference": "REF-009", "versant": "FPT"},
+        **candidature,
+    )
+
+    response = authenticated_client_with_source.post(
+        URL,
+        data={"source_id": SOURCE_UUID, "offres": [offer]},
+        content_type="application/json",
+    )
+
+    assert response.status_code == status.HTTP_201_CREATED
+    assert response.json()["errors"] == [
+        {
+            "index": 0,
+            "offre": {"reference": "REF-009", "versant": "FPT"},
             "error": expected_error,
         }
     ]

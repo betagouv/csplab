@@ -34,7 +34,7 @@ class PayloadOfferFactory:
             "titre_long": fake.text(max_nb_chars=1500),
             "organisation": {"nom": fake.company(), "siret": ""},
             "url_offre": None,
-            "url_candidature": None,
+            "url_candidature": fake.url(),
             "profession": {
                 "domaine": "NUM",
                 "metier": "ERNUM001",
