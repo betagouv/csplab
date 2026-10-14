@@ -105,6 +105,7 @@ class OfferUpsertPayload(BaseModel):
     organisation: OrganisationPayload
     url_offre: Optional[HttpUrl] = None
     url_candidature: Optional[HttpUrl] = None
+    email_candidature: Optional[str] = None
     profession: ProfessionPayload
     categories: list[str] = []
     nature_offre: Optional[str] = None
@@ -163,6 +164,7 @@ class OfferUpsertPayload(BaseModel):
             ),
             url_offre=offer.offer_url,
             url_candidature=offer.application_url,
+            email_candidature=offer.application_email,
             profession=ProfessionPayload(
                 domaine=domaine,
                 metier=offer.family_code or "",

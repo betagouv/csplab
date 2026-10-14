@@ -1,6 +1,6 @@
 # Correspondance offre Talentsoft → offre API v1
 
-_Dernière mise à jour : 2026-10-08_
+_Dernière mise à jour : 2026-10-14_
 
 Conversion d'une offre au format Talentsoft en offre envoyée à l'API.
 L'API fake-ts (`/api/fake-ts/`, `OfferSummaryOutputMapper` et `OfferDetailOutputMapper` dans `src/web/presentation/ingestion/mappers.py`) expose les offres du web au format Talentsoft : les notes « API fake-ts » décrivent ce qu'elle renvoie.
@@ -27,7 +27,9 @@ Notation : `a.b` désigne un objet imbriqué, `a[]` une liste, `a[0]` son premie
 | `customFields.description.longText3` | `description.descriptif_service` | |
 | `customFields.offerCustomBlock1.longText1` | `description.complements` | |
 | `offerUrl` | `url_offre` | |
-| `urlRedirectionApplicant` | `url_candidature` | Repli sur `applicationUrl`. |
+| `urlRedirectionApplicant` | `url_candidature` | Prioritaire sur `customFields.origin.shortText1` et `applicationUrl`. |
+| `customFields.origin.shortText1` | `email_candidature` | Texte libre (« adresse de candidature »). Lu seulement si `urlRedirectionApplicant` est vide : le premier e-mail valide trouvé devient `email_candidature`, et `url_candidature` reste vide. API fake-ts : reprend `email_candidature`, `null` si l'offre se candidate par lien. |
+| `applicationUrl` | `url_candidature` | Dernier recours, si `urlRedirectionApplicant` est vide et que `customFields.origin.shortText1` ne contient aucun e-mail valide. Toujours rempli dans Talentsoft (page de candidature générique). API fake-ts : reprend `url_candidature`, `null` si l'offre se candidate par e-mail. |
 | `geographicalLocation[0].clientCode` | `localisation[0].zone_geographique` | L'API fake-ts renvoie toujours `[]` : aucune `localisation` n'est donc produite à partir de lui. Toute la `localisation` est abandonnée si la zone, le pays, la région ou le département manque. |
 | `country[0].clientCode` | `localisation[0].pays` | |
 | `region[0].clientCode` | `localisation[0].region` | Les préfixes `_TS_CO_Region_` et `R` sont retirés pour obtenir le code INSEE. |

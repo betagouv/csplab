@@ -1175,24 +1175,66 @@ def test_clean_prefers_url_redirection_applicant_as_application_url(cleaner):
     raw_offer = _make_raw_offer(
         urlRedirectionApplicant="https://redirect.example.com/job/123",
         applicationUrl="https://apply.example.com/job/123",
+        customFields=TalentsoftCustomFieldsFactory.build(
+            origin=TalentsoftDynamicField(shortText1="candidature@exemple.gouv.fr")
+        ),
     )
 
     offer = cleaner.clean(raw_offer)
 
     assert str(offer.application_url) == "https://redirect.example.com/job/123"
+    assert offer.application_email is None
 
 
-def test_clean_falls_back_to_application_url_without_url_redirection_applicant(
-    cleaner,
+def test_clean_prefers_application_email_over_application_url(cleaner):
+    raw_offer = _make_raw_offer(
+        urlRedirectionApplicant=None,
+        applicationUrl="https://apply.example.com/job/123",
+        customFields=TalentsoftCustomFieldsFactory.build(
+            origin=TalentsoftDynamicField(
+                shortText1="Madame la Directrice ; rh@exemple.gouv.fr, dg@exemple.fr"
+            )
+        ),
+    )
+
+    offer = cleaner.clean(raw_offer)
+
+    assert offer.application_email == "rh@exemple.gouv.fr"
+    assert offer.application_url is None
+
+
+@pytest.mark.parametrize(
+    "short_text_1",
+    [None, "", "Madame la Directrice", "recrutement@chu-clermont ferrand.fr"],
+)
+def test_clean_falls_back_to_application_url_without_redirection_nor_email(
+    cleaner, short_text_1
 ):
     raw_offer = _make_raw_offer(
         urlRedirectionApplicant=None,
         applicationUrl="https://apply.example.com/job/123",
+        customFields=TalentsoftCustomFieldsFactory.build(
+            origin=TalentsoftDynamicField(shortText1=short_text_1)
+        ),
     )
 
     offer = cleaner.clean(raw_offer)
 
     assert str(offer.application_url) == "https://apply.example.com/job/123"
+    assert offer.application_email is None
+
+
+def test_clean_returns_no_application_channel_when_all_absent(cleaner):
+    raw_offer = _make_raw_offer(
+        urlRedirectionApplicant=None,
+        applicationUrl=None,
+        customFields=TalentsoftCustomFieldsFactory.build(origin=None),
+    )
+
+    offer = cleaner.clean(raw_offer)
+
+    assert offer.application_url is None
+    assert offer.application_email is None
 
 
 def test_clean_maps_contract_duration(cleaner):
