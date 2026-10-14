@@ -1,129 +1,55 @@
-from unittest.mock import Mock
-from uuid import uuid4
+from unittest.mock import Mock, patch
 
 import pytest
 from faker import Faker
 
-from application.identite.context_services.organisme_permission_service import (
-    OrganismePermissionService,
-)
-from application.identite.usecases.create_agent import (
-    CreateAgentInput,
-    CreateAgentUsecase,
-)
-from domain.commons.errors.organisme_errors import OrganismeNexistePas
+from application.identite.services.create_agent import create_agent
 from domain.commons.services.audit_log_writer import AuditLogWriter
-from domain.identite.errors.organisme_permission_errors import AccesOrganismeRefuse
-from domain.identite.repositories.agent_repository_interface import IAgentRepository
-from domain.identite.repositories.utilisateur_repository_interface import (
-    IUtilisateurRepository,
-)
-from domain.identite.value_objects.organisme_action import OrganismeAction
 from domain.recruteur.value_objects.roles import AgentOrganismeRole
-from infrastructure.factories.identite.utilisateur_factory import UtilisateurFactory
-
-fake = Faker()
-
-
-@pytest.fixture(name="permission_service")
-def permission_service_fixture():
-    service = Mock(spec=OrganismePermissionService)
-    service.can_execute.return_value = AgentOrganismeRole.SUPERVISEUR
-    return service
-
-
-@pytest.fixture(name="agent_repository")
-def agent_repository_fixture():
-    repository = Mock(spec=IAgentRepository)
-    repository.get_by_email.return_value = None
-    return repository
-
-
-@pytest.fixture(name="utilisateur_repository")
-def utilisateur_repository_fixture():
-    repository = Mock(spec=IUtilisateurRepository)
-    repository.get_by_email.return_value = UtilisateurFactory.create_entity()
-    return repository
-
-
-@pytest.fixture(name="audit_log_writer")
-def audit_log_writer_fixture():
-    return Mock(spec=AuditLogWriter)
-
-
-@pytest.fixture(name="usecase")
-def usecase_fixture(
-    permission_service, agent_repository, utilisateur_repository, audit_log_writer
-):
-    return CreateAgentUsecase(
-        agent_repository=agent_repository,
-        utilisateur_repository=utilisateur_repository,
-        permission_service=permission_service,
-        audit_log_writer=audit_log_writer,
-    )
-
-
-def _input() -> CreateAgentInput:
-    return CreateAgentInput(
-        email=fake.email(),
-        organisme_id=uuid4(),
-        utilisateur=UtilisateurFactory.create_entity(),
-    )
-
-
-def test_create_agent_checks_permission(permission_service, usecase):
-    input_data = _input()
-
-    usecase.execute(input_data)
-
-    permission_service.can_execute.assert_called_once_with(
-        action=OrganismeAction.CREATE_AGENT,
-        utilisateur=input_data.utilisateur,
-        organisme_id=input_data.organisme_id,
-    )
-
-
-@pytest.mark.parametrize(
-    "exception", [AccesOrganismeRefuse(uuid4()), OrganismeNexistePas(str(uuid4()))]
+from infrastructure.django_apps.commons.models import AuditLogModel
+from infrastructure.django_apps.users.models import ProfilAgentModel, UserModel
+from infrastructure.factories.identite.organisme_django_factory import (
+    create_organisme_with_agent,
 )
-def test_create_agent_propagates_permission_errors(
-    permission_service, agent_repository, audit_log_writer, usecase, exception
+
+fake = Faker("fr_FR")
+
+
+@pytest.fixture(name="superviseur_et_organisme")
+def superviseur_et_organisme_fixture(db):
+    agent, organisme = create_organisme_with_agent(role=AgentOrganismeRole.SUPERVISEUR)
+    return agent.utilisateur, organisme
+
+
+@patch.object(
+    ProfilAgentModel,
+    "save",
+    new=Mock(side_effect=RuntimeError("profile write failed")),
+)
+def test_rolls_back_user_when_profile_write_fails(superviseur_et_organisme):
+    superviseur, organisme = superviseur_et_organisme
+    email = fake.email()
+
+    with pytest.raises(RuntimeError):
+        create_agent(email=email, organisme_id=organisme.id, utilisateur=superviseur)
+
+    assert not UserModel.objects.filter(email=email).exists()
+    assert not AuditLogModel.objects.exists()
+
+
+@patch.object(
+    AuditLogWriter,
+    "log_action",
+    new=Mock(side_effect=RuntimeError("audit log write failed")),
+)
+def test_rolls_back_user_and_profile_when_audit_log_write_fails(
+    superviseur_et_organisme,
 ):
-    permission_service.can_execute.side_effect = exception
+    superviseur, organisme = superviseur_et_organisme
+    email = fake.email()
 
-    with pytest.raises(type(exception)):
-        usecase.execute(_input())
+    with pytest.raises(RuntimeError):
+        create_agent(email=email, organisme_id=organisme.id, utilisateur=superviseur)
 
-    agent_repository.get_by_email.assert_not_called()
-    audit_log_writer.log_action.assert_not_called()
-
-
-def test_create_agent_logs_the_creation(agent_repository, audit_log_writer, usecase):
-    input_data = _input()
-
-    agent = usecase.execute(input_data)
-
-    audit_log_writer.log_action.assert_called_once_with(
-        utilisateur_id=input_data.utilisateur.entity_id,
-        entity=agent,
-        ressource_kind="Agent",
-        event_name="ProfilAgentCree",
-    )
-    assert agent is agent_repository.create.return_value
-
-
-def test_create_agent_normalizes_the_email(
-    agent_repository, utilisateur_repository, usecase
-):
-    input_data = CreateAgentInput(
-        email="  Jean.DUPONT@GOUV.FR  ",
-        organisme_id=uuid4(),
-        utilisateur=UtilisateurFactory.create_entity(),
-    )
-
-    usecase.execute(input_data)
-
-    agent_repository.get_by_email.assert_called_once_with("jean.dupont@gouv.fr")
-    utilisateur_repository.get_by_email.assert_called_once_with("jean.dupont@gouv.fr")
-    _, agent = agent_repository.create.call_args.args
-    assert agent.email == "jean.dupont@gouv.fr"
+    assert not UserModel.objects.filter(email=email).exists()
+    assert not ProfilAgentModel.objects.filter(utilisateur__email=email).exists()

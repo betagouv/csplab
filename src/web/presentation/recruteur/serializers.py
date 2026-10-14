@@ -284,10 +284,10 @@ class CreateAgentSerializer(serializers.Serializer):
 
 
 class AgentSerializer(serializers.Serializer):
-    uuid = serializers.UUIDField(source="entity_id")
-    email = serializers.EmailField()
-    prenom = serializers.CharField()
-    nom = serializers.CharField()
+    uuid = serializers.UUIDField(source="utilisateur.username")
+    email = serializers.EmailField(source="utilisateur.email")
+    prenom = serializers.CharField(source="utilisateur.first_name")
+    nom = serializers.CharField(source="utilisateur.last_name")
     intitule_poste = serializers.CharField()
 
 

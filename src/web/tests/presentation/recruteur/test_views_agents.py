@@ -1,23 +1,20 @@
-from unittest.mock import MagicMock, patch
 from uuid import uuid4
 
-import pytest
 from django.urls import reverse
 from faker import Faker
 from rest_framework import status
 
-from application.identite.usecases.create_agent import CreateAgentInput
-from domain.commons.errors.organisme_errors import OrganismeNexistePas
 from domain.identite.errors.agent_errors import ProfilAgentExisteDeja
-from domain.identite.errors.organisme_permission_errors import (
-    AccesOrganismeRefuse,
-    OperationOrganismeRefusee,
-)
 from domain.recruteur.value_objects.roles import AgentOrganismeRole
-from infrastructure.django_apps.users.models import UserModel
-from infrastructure.factories.identite.agent_factory import AgentFactory
+from infrastructure.django_apps.commons.models import AuditLogModel
+from infrastructure.django_apps.users.models import ProfilAgentModel, UserModel
+from infrastructure.factories.identite.agent_django_factory import AgentDjangoFactory
 from infrastructure.factories.identite.organisme_django_factory import (
+    OrganismeDjangoFactory,
     create_organisme_with_agent,
+)
+from infrastructure.factories.identite.utilisateur_django_factory import (
+    UtilisateurDjangoFactory,
 )
 
 fake = Faker("fr_FR")
@@ -25,128 +22,107 @@ fake = Faker("fr_FR")
 AGENTS_URL = reverse("recruteur:agents")
 
 
-@pytest.fixture
-def container():
-    with patch("presentation.recruteur.views.agents.create_identite_container") as mock:
-        instance = MagicMock()
-        mock.return_value = instance
-        yield instance
-
-
-class TestAgentsView:
-    def test_anonymous_access_is_unauthorized(self, api_client):
-        response = api_client.post(AGENTS_URL)
-        assert response.status_code == status.HTTP_401_UNAUTHORIZED
-
-    def test_post_create_agent(self, container, authenticated_client):
-        mock_usecase = MagicMock()
-        agent = AgentFactory.create_entity()
-        mock_usecase.execute.return_value = agent
-        container.create_agent_usecase.return_value = mock_usecase
-        organisme_id = uuid4()
-        body = {
-            "email": agent.email,
-            "organisme_id": str(organisme_id),
-        }
-
-        response = authenticated_client.post(AGENTS_URL, body)
-
-        (called_input,), _ = mock_usecase.execute.call_args
-        assert isinstance(called_input, CreateAgentInput)
-        assert called_input.email == agent.email
-        assert called_input.organisme_id == organisme_id
-        assert called_input.utilisateur is not None
-        assert response.status_code == status.HTTP_201_CREATED
-        assert response.json() == {
-            "uuid": str(agent.entity_id),
-            "email": agent.email,
-            "prenom": agent.prenom,
-            "nom": agent.nom,
-            "intitule_poste": agent.intitule_poste,
-        }
-
-    def test_post_missing_organisme_returns_bad_request(
-        self, container, authenticated_client
-    ):
-        response = authenticated_client.post(AGENTS_URL, {"email": fake.email()})
-
-        assert response.status_code == status.HTTP_400_BAD_REQUEST
-        container.create_agent_usecase.assert_not_called()
-
-    @pytest.mark.parametrize(
-        ("exception", "expected_status", "expected_body"),
-        [
-            (
-                ProfilAgentExisteDeja(fake.email()),
-                status.HTTP_400_BAD_REQUEST,
-                None,
-            ),
-            (
-                AccesOrganismeRefuse(uuid4()),
-                status.HTTP_403_FORBIDDEN,
-                None,
-            ),
-            (
-                OperationOrganismeRefusee(),
-                status.HTTP_403_FORBIDDEN,
-                None,
-            ),
-            (
-                OrganismeNexistePas(str(uuid4())),
-                status.HTTP_404_NOT_FOUND,
-                {"error": "organisme_id: Not found."},
-            ),
-            (
-                Exception("unexpected"),
-                status.HTTP_500_INTERNAL_SERVER_ERROR,
-                {"error": "Unexpected error"},
-            ),
-        ],
+def _organisme_supervise_par(utilisateur):
+    _, organisme = create_organisme_with_agent(
+        role=AgentOrganismeRole.SUPERVISEUR, utilisateur=utilisateur
     )
-    def test_post_returns_error_from_usecase(
-        self,
-        container,
-        authenticated_client,
-        exception,
-        expected_status,
-        expected_body,
-    ):
-        mock_usecase = MagicMock()
-        mock_usecase.execute.side_effect = exception
-        container.create_agent_usecase.return_value = mock_usecase
-        body = {
-            "email": fake.email(),
-            "organisme_id": str(uuid4()),
-        }
-
-        response = authenticated_client.post(AGENTS_URL, body)
-
-        assert response.status_code == expected_status
-        if expected_body is not None:
-            assert response.json() == expected_body
-        else:
-            assert response.json() == {"error": str(exception)}
+    return organisme
 
 
-class TestAgentsViewDbVerified:
-    def test_creates_and_persists_the_agent(self, authenticated_client, test_user):
-        _, organisme = create_organisme_with_agent(
-            role=AgentOrganismeRole.SUPERVISEUR,
-            utilisateur=test_user,
-        )
-        email = fake.email()
-        body = {
-            "email": email,
-            "organisme_id": str(organisme.id),
-        }
+def test_anonymous_access_is_unauthorized(api_client):
+    response = api_client.post(AGENTS_URL)
 
-        response = authenticated_client.post(AGENTS_URL, body)
+    assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
-        assert response.status_code == status.HTTP_201_CREATED
-        data = response.json()
-        assert data["email"] == email
-        for k in ["nom", "prenom", "intitule_poste"]:
-            assert k in data.keys()
 
-        created_user = UserModel.objects.get(email=email)
-        assert data["uuid"] == str(created_user.username)
+def test_creates_the_agent_and_logs_the_caller(authenticated_client, test_user):
+    organisme = _organisme_supervise_par(test_user)
+    email = fake.email()
+
+    response = authenticated_client.post(
+        AGENTS_URL, {"email": email, "organisme_id": str(organisme.id)}
+    )
+
+    assert response.status_code == status.HTTP_201_CREATED
+    created = UserModel.objects.get(email=email)
+    assert response.json() == {
+        "uuid": str(created.username),
+        "email": email,
+        "prenom": "",
+        "nom": "",
+        "intitule_poste": "",
+    }
+    assert ProfilAgentModel.objects.filter(utilisateur=created).exists()
+    [log] = AuditLogModel.objects.filter(ressource_kind="Agent")
+    assert (log.event_name, log.utilisateur_id, log.ressource_id) == (
+        "ProfilAgentCree",
+        test_user.username,
+        created.username,
+    )
+
+
+def test_reuses_an_existing_account_whatever_the_case(authenticated_client, test_user):
+    organisme = _organisme_supervise_par(test_user)
+    existing = UtilisateurDjangoFactory(
+        email="marie.martin@gouv.fr", first_name="Marie", last_name="Martin"
+    )
+
+    response = authenticated_client.post(
+        AGENTS_URL,
+        {"email": "Marie.MARTIN@gouv.fr", "organisme_id": str(organisme.id)},
+    )
+
+    assert response.status_code == status.HTTP_201_CREATED
+    assert response.json()["uuid"] == str(existing.username)
+    assert (response.json()["prenom"], response.json()["nom"]) == ("Marie", "Martin")
+    assert UserModel.objects.filter(email="marie.martin@gouv.fr").count() == 1
+
+
+def test_refuses_a_second_agent_profile(authenticated_client, test_user):
+    organisme = _organisme_supervise_par(test_user)
+    existing = AgentDjangoFactory()
+    email = existing.utilisateur.email
+
+    response = authenticated_client.post(
+        AGENTS_URL, {"email": email, "organisme_id": str(organisme.id)}
+    )
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json() == {"error": str(ProfilAgentExisteDeja(email))}
+    assert (
+        ProfilAgentModel.objects.filter(utilisateur=existing.utilisateur).count() == 1
+    )
+    assert not AuditLogModel.objects.exists()
+
+
+def test_missing_organisme_returns_bad_request(authenticated_client):
+    response = authenticated_client.post(AGENTS_URL, {"email": fake.email()})
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+
+def test_refuses_a_caller_outside_the_organisme_and_writes_nothing(
+    authenticated_client, test_user
+):
+    _organisme_supervise_par(test_user)
+    other_organisme = OrganismeDjangoFactory()
+    email = fake.email()
+
+    response = authenticated_client.post(
+        AGENTS_URL, {"email": email, "organisme_id": str(other_organisme.id)}
+    )
+
+    assert response.status_code == status.HTTP_403_FORBIDDEN
+    assert not UserModel.objects.filter(email=email).exists()
+    assert not AuditLogModel.objects.exists()
+
+
+def test_unknown_organisme_returns_not_found(authenticated_client, test_user):
+    _organisme_supervise_par(test_user)
+
+    response = authenticated_client.post(
+        AGENTS_URL, {"email": fake.email(), "organisme_id": str(uuid4())}
+    )
+
+    assert response.status_code == status.HTTP_404_NOT_FOUND
+    assert response.json() == {"error": "organisme_id: Not found."}
