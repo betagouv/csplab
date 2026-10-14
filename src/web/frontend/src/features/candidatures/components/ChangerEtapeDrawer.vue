@@ -269,6 +269,16 @@ const selectedUuidsModel = computed({
   }
 }
 
+.changer-etape-drawer__radio:not(.changer-etape-drawer__radio--current) {
+  &:hover .changer-etape-drawer__radio-control {
+    background: var(--background-default-grey-hover);
+  }
+
+  &:active .changer-etape-drawer__radio-control {
+    background: var(--background-default-grey-active);
+  }
+}
+
 .changer-etape-drawer__radio-indicator {
   display: block;
   width: 0.5rem;

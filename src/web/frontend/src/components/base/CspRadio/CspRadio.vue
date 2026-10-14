@@ -96,6 +96,16 @@ withDefaults(defineProps<CspRadioProps>(), {
   }
 }
 
+.csp-radio:not(.csp-radio--disabled) {
+  &:hover .csp-radio__control {
+    background: var(--background-default-grey-hover);
+  }
+
+  &:active .csp-radio__control {
+    background: var(--background-default-grey-active);
+  }
+}
+
 .csp-radio--error .csp-radio__control {
   border-color: var(--border-plain-error);
 }

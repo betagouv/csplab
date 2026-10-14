@@ -148,6 +148,26 @@ function handleUpdate(val: unknown): void {
   }
 }
 
+.csp-checkbox:not(.csp-checkbox--disabled) {
+  &:hover .csp-checkbox__control {
+    background: var(--background-default-grey-hover);
+
+    &[data-state='checked'],
+    &[data-state='indeterminate'] {
+      background: var(--background-active-blue-france-hover);
+    }
+  }
+
+  &:active .csp-checkbox__control {
+    background: var(--background-default-grey-active);
+
+    &[data-state='checked'],
+    &[data-state='indeterminate'] {
+      background: var(--background-active-blue-france-active);
+    }
+  }
+}
+
 .csp-checkbox--error .csp-checkbox__control {
   border-color: var(--border-plain-error);
 }
