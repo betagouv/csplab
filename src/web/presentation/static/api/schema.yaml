@@ -3222,6 +3222,19 @@ paths:
               $ref: '#/components/headers/X-RateLimit-Remaining'
             X-RateLimit-Reset:
               $ref: '#/components/headers/X-RateLimit-Reset'
+        '503':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ArchiveOfferUnavailable'
+          description: ''
+          headers:
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
         '429':
           description: Nombre maximal d'appels autorisés dépassé.
           content:
@@ -3825,6 +3838,13 @@ components:
       required:
       - statut
     ArchiveOfferUnauthorized:
+      type: object
+      properties:
+        detail:
+          type: string
+      required:
+      - detail
+    ArchiveOfferUnavailable:
       type: object
       properties:
         detail:
@@ -6034,6 +6054,13 @@ tags:
 
     `GET /api/fake-ts/offers/getoffer` : l'adresse email de candidature est
     renvoyée dans `customFields.origin.shortText1`, comme dans Talentsoft.
+
+    ### Modifié
+
+    `POST /api/v1/offres/archiver` : si l'offre ne peut pas être retirée de l'index de
+    recherche, la requête renvoie désormais `503 Service Unavailable` et l'offre n'est
+    pas archivée. Auparavant, l'offre était archivée et la requête renvoyait `200`
+    alors que l'offre restait dans l'index. La requête peut être renvoyée plus tard.
 
     ## 2026-10-13
 

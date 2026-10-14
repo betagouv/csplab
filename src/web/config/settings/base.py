@@ -41,7 +41,7 @@ env = environ.Env(
     WEB_TALLY_FORM_ID_NO_RESULTS=(str, ""),
     WEB_MATOMO_BASE_URL=(str, ""),
     WEB_MATOMO_SITE_ID=(int, 1),
-    WEB_QDRANT_URL=(str, "http://localhost:6333"),
+    WEB_QDRANT_URL=(str, ""),
     WEB_QDRANT_API_KEY=(str, ""),
     # SCALINGO_REDIS_URL is injected by the Scalingo redis addon (e.g. review apps)
     WEB_REDIS_URL=(str, os.environ.get("SCALINGO_REDIS_URL", "redis://localhost:6379")),

@@ -29,6 +29,13 @@ l'offre se candidate par lien (`url_candidature`).
 `GET /api/fake-ts/offers/getoffer` : l'adresse email de candidature est
 renvoyée dans `customFields.origin.shortText1`, comme dans Talentsoft.
 
+### Modifié
+
+`POST /api/v1/offres/archiver` : si l'offre ne peut pas être retirée de l'index de
+recherche, la requête renvoie désormais `503 Service Unavailable` et l'offre n'est
+pas archivée. Auparavant, l'offre était archivée et la requête renvoyait `200`
+alors que l'offre restait dans l'index. La requête peut être renvoyée plus tard.
+
 ## 2026-10-13
 
 ### ⚠️ Changements non rétrocompatibles

@@ -9,6 +9,7 @@ from application.ingestion.interfaces.archive_offer_by_reference_input import (
     ArchiveOfferByReferenceInput,
 )
 from config.app_config import AppConfig
+from domain.ingestion.exceptions.vector_deletion_error import VectorDeletionError
 from infrastructure.di.ingestion.ingestion_container import IngestionContainer
 from infrastructure.di.shared.shared_container import SharedContainer
 from infrastructure.factories.referentiel.offer_django_factory import (
@@ -76,6 +77,26 @@ class TestArchiveOfferByReferenceUsecase:
         vector_repository.delete_vectorized_documents.assert_called_once_with(
             [offer.id]
         )
+
+    def test_does_not_archive_offer_when_vector_deletion_fails(
+        self, db, use_case, vector_repository, offers_repository
+    ):
+        offer = _mapper.to_domain(
+            OfferDjangoFactory(reference=REFERENCE, source__source_id=SOURCE_ID)
+        )
+        error = ConnectionRefusedError("Connection refused")
+        vector_repository.delete_vectorized_documents.return_value = {
+            "deleted": 0,
+            "errors": [
+                {"entity_id": offer.id, "error": str(error), "exception": error}
+            ],
+        }
+        with pytest.raises(VectorDeletionError):
+            use_case.execute(
+                ArchiveOfferByReferenceInput(reference=REFERENCE, source_id=SOURCE_ID)
+            )
+        offer = offers_repository.get_by_reference_and_source_id(REFERENCE, SOURCE_ID)
+        assert offer.archived_at is None
 
     def test_raises_when_reference_not_found(self, db, use_case):
         with pytest.raises(OfferDoesNotExist):
