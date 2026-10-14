@@ -7,6 +7,7 @@ from ddd.entity_interface import IEntity
 from pydantic import HttpUrl
 
 from referentiel.entities.talentsoft_organisme import TalentsoftOrganisme
+from referentiel.exceptions.offer_errors import ConflictingApplicationChannelsError
 from referentiel.value_objects.category import Category
 from referentiel.value_objects.contract_kind import ContractKind
 from referentiel.value_objects.limit_date import LimitDate
@@ -36,6 +37,7 @@ class Offer(IEntity):
     local_job_code: Optional[str] = None
     long_title: Optional[str] = None
     application_url: Optional[HttpUrl] = None
+    application_email: Optional[str] = None
     contract_kind: Optional[ContractKind] = None
     job_vacancy: Optional[str] = None
     employer: Optional[str] = None
@@ -54,3 +56,7 @@ class Offer(IEntity):
     processed_at: Optional[datetime] = None
     archived_at: Optional[datetime] = None
     id: UUID = field(default_factory=uuid4)
+
+    def __post_init__(self) -> None:
+        if self.application_url and self.application_email:
+            raise ConflictingApplicationChannelsError(self.reference)

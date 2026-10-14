@@ -384,3 +384,14 @@ class TestOfferDetailOutputMapper:
 
         assert result["organisation"]["entityCode"] == ""
         assert result["organisation"]["name"] == offer.organization
+
+    def test_application_email_is_mapped_to_origin_short_text1(self):
+        offer = replace(
+            OfferFactory.create_entity(), application_email="rh@exemple.gouv.fr"
+        )
+
+        result = OfferDetailOutputMapper().to_dict(offer)
+
+        assert result["customFields"]["origin"]["shortText1"] == "rh@exemple.gouv.fr"
+        assert result["applicationUrl"] is None
+        assert result["urlRedirectionApplicant"] is None

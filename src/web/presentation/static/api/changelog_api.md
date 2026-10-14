@@ -16,6 +16,19 @@ l'utilisateur authentifié renvoie désormais une erreur `403 Forbidden` au lieu
 `POST /api/v1/offres/archiver`. Le corps de la réponse ne change pas. Le code `401`
 ne signale plus qu'une authentification manquante ou invalide.
 
+`POST /api/v1/offres/creer_modifier` : une offre doit renseigner **soit**
+`url_candidature`, **soit** le nouveau champ `email_candidature` (adresse email
+valide), mais pas les deux. Une offre sans aucun des deux, ou avec les deux, est
+rejetée. Jusqu'ici, `url_candidature` pouvait être vide.
+
+### Ajouts
+
+`GET /api/v1/offres/sources/{source_id}` : nouveau champ `email_candidature`, vide si
+l'offre se candidate par lien (`url_candidature`).
+
+`GET /api/fake-ts/offers/getoffer` : l'adresse email de candidature est
+renvoyée dans `customFields.origin.shortText1`, comme dans Talentsoft.
+
 ## 2026-10-13
 
 ### ⚠️ Changements non rétrocompatibles

@@ -374,6 +374,13 @@ class TestOfferDetailViewDbVerified:
                     "longText2": None,
                     "longText3": None,
                 },
+                "origin": {
+                    "date1": None,
+                    "shortText1": None,
+                    "longText1": None,
+                    "longText2": None,
+                    "longText3": None,
+                },
             },
         }
 

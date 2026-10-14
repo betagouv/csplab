@@ -4286,11 +4286,14 @@ components:
           $ref: '#/components/schemas/FakeTsDynamicField'
         offerCustomBlock1:
           $ref: '#/components/schemas/FakeTsDynamicField'
+        origin:
+          $ref: '#/components/schemas/FakeTsDynamicField'
       required:
       - description
       - location
       - offer
       - offerCustomBlock1
+      - origin
     FakeTsDynamicField:
       type: object
       properties:
@@ -5091,6 +5094,10 @@ components:
         url_candidature:
           type: string
           nullable: true
+        email_candidature:
+          type: string
+          format: email
+          nullable: true
         localisation:
           allOf:
           - $ref: '#/components/schemas/Localisation'
@@ -5142,6 +5149,7 @@ components:
       - debut_publication
       - debut_vacance_poste
       - descriptif_service
+      - email_candidature
       - employeur
       - fin_candidature
       - localisation
@@ -5185,6 +5193,10 @@ components:
         url_candidature:
           type: string
           format: uri
+          nullable: true
+        email_candidature:
+          type: string
+          format: email
           nullable: true
         profession:
           $ref: '#/components/schemas/ProfessionInput'
@@ -5242,7 +5254,6 @@ components:
       - publication
       - titre
       - titre_long
-      - url_candidature
       - url_offre
       - vacance_poste
     OrganismeDeleteInput:

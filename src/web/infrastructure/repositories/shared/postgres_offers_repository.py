@@ -129,6 +129,7 @@ class PostgresOffersRepository(IIngestionOffersRepository):
                                 "archived_at",
                                 "long_title",
                                 "application_url",
+                                "application_email",
                                 "contract_kind",
                                 "job_vacancy",
                                 "employer",

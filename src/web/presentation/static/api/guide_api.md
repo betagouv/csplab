@@ -183,7 +183,8 @@ noms utilisés par `POST /api/v1/offres/creer_modifier` (voir section 4) :
 | `versant` | Versant de la fonction publique | Oui |
 | `type_contrat` | Type de contrat | Oui |
 | `vacance_poste` | Vacance du poste | Oui |
-| `url_candidature` | Lien pour candidater | Oui |
+| `url_candidature` | Lien pour candidater. Vide si `email_candidature` est renseigné. | Oui |
+| `email_candidature` | Adresse email pour candidater. Vide si `url_candidature` est renseigné. | Oui |
 | `localisation` | Localisation de l'offre (`zone_geographique`, `pays`, `region`, `departement`, `localisation_label`, `latitude`, `longitude`) | Oui |
 | `criteres` | Critères de l'offre (diplôme, expérience, langues…) | Oui |
 | `conditions` | Conditions de l'offre (rémunération, temps de travail…) | Oui |
@@ -292,7 +293,12 @@ longueur et de valeurs autorisées**.
 | `titre` | Obligatoire. **150 caractères maximum.** |
 | `titre_long` | Obligatoire. **1 500 caractères maximum.** |
 | `url_offre` | Lien web. Peut être vide. |
-| `url_candidature` | Lien web. Peut être vide. |
+| `url_candidature` | Lien web pour candidater. Voir la règle ci-dessous. |
+| `email_candidature` | Adresse email valide pour candidater. Voir la règle ci-dessous. |
+
+> **Règle métier :** renseigner **soit** `url_candidature`, **soit**
+> `email_candidature`, mais pas les deux. Une offre qui contient les deux, ou aucun
+> des deux, est rejetée.
 
 #### Bloc « Organisation » (`organisation`) — obligatoire
 | Champ | Règle |
