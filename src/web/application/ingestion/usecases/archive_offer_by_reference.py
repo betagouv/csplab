@@ -9,6 +9,7 @@ from domain.identite.repositories.utilisateur_repository_interface import (
 from domain.ingestion.exceptions.source_authorization_error import (
     SourceAuthorizationError,
 )
+from domain.ingestion.exceptions.vector_deletion_error import VectorDeletionError
 from domain.ingestion.repositories.ingestion_offers_repository_interface import (
     IIngestionOffersRepository,
 )
@@ -45,5 +46,9 @@ class ArchiveOfferByReferenceUsecase(IUsecase[ArchiveOfferByReferenceInput, None
         offer = self.offers_repository.get_by_reference_and_source_id(
             input_data.reference, input_data.source_id
         )
-        self.vector_repository.delete_vectorized_documents([offer.id])
+        result = self.vector_repository.delete_vectorized_documents([offer.id])
+        if result["errors"]:
+            raise VectorDeletionError(
+                [error["entity_id"] for error in result["errors"]]
+            )
         self.offers_repository.mark_as_archived([offer])
