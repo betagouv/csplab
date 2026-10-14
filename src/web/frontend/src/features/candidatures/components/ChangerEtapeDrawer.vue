@@ -250,18 +250,17 @@ const selectedUuidsModel = computed({
   flex: 0 0 auto;
   margin-top: 0.0625rem;
   border-radius: 50%;
-  border: 1px solid var(--border-default-grey);
+  border: 1px solid var(--border-action-high-blue-france);
   background: transparent;
   padding: 0;
   cursor: inherit;
 
   &[data-state='checked'] {
-    border-color: var(--background-action-high-blue-france);
+    border-color: var(--border-active-blue-france);
   }
 
   &[data-disabled] {
     border-color: var(--border-disabled-grey);
-    background: var(--background-disabled-grey);
   }
 
   &:focus-visible {
@@ -275,7 +274,11 @@ const selectedUuidsModel = computed({
   width: 0.5rem;
   height: 0.5rem;
   border-radius: 50%;
-  background: var(--background-action-high-blue-france);
+  background: var(--background-active-blue-france);
+
+  &[data-disabled] {
+    background: var(--background-disabled-grey);
+  }
 }
 
 .changer-etape-drawer__radio-content {
