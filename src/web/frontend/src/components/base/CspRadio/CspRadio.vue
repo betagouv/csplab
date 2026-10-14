@@ -73,12 +73,6 @@ withDefaults(defineProps<CspRadioProps>(), {
   color: var(--text-disabled-grey);
 }
 
-.csp-radio--error {
-  .csp-radio__control {
-    border-color: var(--border-plain-error);
-  }
-}
-
 .csp-radio__control {
   display: inline-flex;
   align-items: center;
@@ -87,18 +81,13 @@ withDefaults(defineProps<CspRadioProps>(), {
   height: var(--csp-radio-size);
   flex: 0 0 auto;
   border-radius: 50%;
-  border: 1px solid var(--border-default-grey);
+  border: 1px solid var(--border-action-high-blue-france);
   background: transparent;
   padding: 0;
   cursor: inherit;
 
   &[data-state='checked'] {
-    border-color: var(--background-action-high-blue-france);
-  }
-
-  &[data-disabled] {
-    border-color: var(--border-disabled-grey);
-    background: var(--background-disabled-grey);
+    border-color: var(--border-active-blue-france);
   }
 
   &:focus-visible {
@@ -107,12 +96,24 @@ withDefaults(defineProps<CspRadioProps>(), {
   }
 }
 
+.csp-radio--error .csp-radio__control {
+  border-color: var(--border-plain-error);
+}
+
+.csp-radio__control[data-disabled] {
+  border-color: var(--border-disabled-grey);
+}
+
 .csp-radio__indicator {
   display: block;
   width: var(--csp-radio-indicator-size);
   height: var(--csp-radio-indicator-size);
   border-radius: 50%;
-  background: var(--background-action-high-blue-france);
+  background: var(--background-active-blue-france);
+
+  &[data-disabled] {
+    background: var(--background-disabled-grey);
+  }
 }
 
 .csp-radio__label {
