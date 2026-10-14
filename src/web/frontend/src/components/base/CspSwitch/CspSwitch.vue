@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { SwitchRoot, SwitchThumb } from 'reka-ui'
 import { useId } from 'vue'
+import CspIcon from '@/components/base/CspIcon/CspIcon.vue'
 
 export interface CspSwitchProps {
   label: string
@@ -37,7 +38,13 @@ const model = defineModel<boolean>({ required: true })
       :disabled="disabled"
       :name="name"
     >
-      <SwitchThumb class="csp-switch__thumb" />
+      <SwitchThumb class="csp-switch__thumb">
+        <CspIcon
+          v-if="model"
+          name="ri:check-line"
+          class="csp-switch__icon"
+        />
+      </SwitchThumb>
     </SwitchRoot>
     <span class="csp-switch__label">{{ label }}</span>
   </label>
@@ -55,23 +62,25 @@ const model = defineModel<boolean>({ required: true })
   --csp-switch-gap: 0.75rem;
   --csp-switch-font-size: 0.875rem;
   --csp-switch-color: var(--text-default-grey);
+  --csp-switch-border-color: var(--border-action-high-blue-france);
   --csp-switch-track-width: 2.75rem;
   --csp-switch-track-height: 1.5rem;
-  --csp-switch-thumb-size: 1.125rem;
+  --csp-switch-icon-size: 1rem;
 }
 
 .csp-switch--disabled {
   cursor: not-allowed;
   color: var(--text-disabled-grey);
+
+  --csp-switch-border-color: var(--border-disabled-grey);
 }
 
 .csp-switch--error {
   --csp-switch-color: var(--text-default-error);
 
   .csp-switch__root {
-    box-shadow:
-      0 0 0 2px white,
-      0 0 0 4px var(--border-plain-error);
+    outline: 2px solid var(--border-plain-error);
+    outline-offset: 2px;
   }
 }
 
@@ -80,7 +89,7 @@ const model = defineModel<boolean>({ required: true })
   --csp-switch-font-size: 0.75rem;
   --csp-switch-track-width: 2.25rem;
   --csp-switch-track-height: 1.125rem;
-  --csp-switch-thumb-size: 0.75rem;
+  --csp-switch-icon-size: 0.75rem;
 }
 
 .csp-switch--lg {
@@ -88,7 +97,7 @@ const model = defineModel<boolean>({ required: true })
   --csp-switch-font-size: 1rem;
   --csp-switch-track-width: 3.5rem;
   --csp-switch-track-height: 2rem;
-  --csp-switch-thumb-size: 1.5rem;
+  --csp-switch-icon-size: 1.25rem;
 }
 
 .csp-switch__root {
@@ -99,17 +108,18 @@ const model = defineModel<boolean>({ required: true })
   width: var(--csp-switch-track-width);
   height: var(--csp-switch-track-height);
   border-radius: calc(var(--csp-switch-track-height) / 2);
-  background: var(--border-default-grey);
+  background: transparent;
+  box-shadow: inset 0 0 0 1px var(--csp-switch-border-color);
   border: none;
   padding: 0;
   cursor: inherit;
   transition: background-color 0.2s ease;
 
   &[data-state='checked'] {
-    background: var(--background-action-high-blue-france);
+    background: var(--background-active-blue-france);
   }
 
-  &[data-disabled] {
+  &[data-disabled][data-state='checked'] {
     background: var(--background-disabled-grey);
   }
 
@@ -120,28 +130,80 @@ const model = defineModel<boolean>({ required: true })
 }
 
 .csp-switch__thumb {
-  display: block;
-  width: var(--csp-switch-thumb-size);
-  height: var(--csp-switch-thumb-size);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--csp-switch-track-height);
+  height: var(--csp-switch-track-height);
   border-radius: 50%;
-  background: white;
-  box-shadow: 0 1px 2px rgb(0 0 0 / 20%);
+  background: var(--background-default-grey);
+  box-shadow: inset 0 0 0 1px var(--csp-switch-border-color);
+  color: var(--text-active-blue-france);
   transition: transform 0.2s ease;
-  transform: translateX(calc((var(--csp-switch-track-height) - var(--csp-switch-thumb-size)) / 2));
   will-change: transform;
 
   &[data-state='checked'] {
-    transform: translateX(
-      calc(
-        var(--csp-switch-track-width) - var(--csp-switch-thumb-size) -
-          (var(--csp-switch-track-height) - var(--csp-switch-thumb-size)) / 2
-      )
-    );
+    transform: translateX(calc(var(--csp-switch-track-width) - var(--csp-switch-track-height)));
+  }
+
+  &[data-disabled] {
+    color: var(--text-disabled-grey);
+  }
+}
+
+.csp-switch__icon {
+  width: var(--csp-switch-icon-size);
+  height: var(--csp-switch-icon-size);
+  flex-shrink: 0;
+}
+
+.csp-switch:not(.csp-switch--disabled) {
+  &:hover {
+    .csp-switch__root[data-state='checked'] {
+      background: var(--background-active-blue-france-hover);
+    }
+
+    .csp-switch__thumb {
+      background: var(--background-default-grey-hover);
+    }
+  }
+
+  &:active {
+    .csp-switch__root[data-state='checked'] {
+      background: var(--background-active-blue-france-active);
+    }
+
+    .csp-switch__thumb {
+      background: var(--background-default-grey-active);
+    }
   }
 }
 
 .csp-switch__label {
   line-height: 1.25;
   user-select: none;
+}
+
+@media (forced-colors: active) {
+  .csp-switch__root,
+  .csp-switch__thumb {
+    box-sizing: border-box;
+    border: 1px solid ButtonText;
+  }
+
+  .csp-switch__root[data-state='checked'] {
+    border-color: Highlight;
+  }
+
+  .csp-switch__thumb {
+    margin: -1px;
+  }
+
+  .csp-switch--disabled {
+    .csp-switch__root,
+    .csp-switch__thumb {
+      border-color: GrayText;
+    }
+  }
 }
 </style>
