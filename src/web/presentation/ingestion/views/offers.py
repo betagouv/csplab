@@ -119,16 +119,10 @@ class OffersListView(PublicApiMixin, APIView):
     tags=["offres"],
     responses={
         200: OfferDetailResponseSerializer(many=True),
-        401: PolymorphicProxySerializer(
-            component_name="OffersBySource401Error",
-            serializers=[
-                TokenErrorSerializer,
-                inline_serializer(
-                    name="OffersBySourceUnauthorized",
-                    fields={"detail": drf_serializers.CharField()},
-                ),
-            ],
-            resource_type_field_name=None,
+        401: TokenErrorSerializer,
+        403: inline_serializer(
+            name="OffersBySourceForbidden",
+            fields={"detail": drf_serializers.CharField()},
         ),
         500: GenericErrorSerializer,
     },
@@ -163,7 +157,7 @@ class OffersBySourceView(PublicApiMixin, APIView):
             source_ids = sorted(str(sid) for sid in e.source_ids)
             return Response(
                 {"detail": f"Not authorized to access this source: {source_ids}."},
-                status=status.HTTP_401_UNAUTHORIZED,
+                status=status.HTTP_403_FORBIDDEN,
             )
         except Exception as e:
             self.logger.error("Unexpected error in OffersBySourceView: %s", str(e))
