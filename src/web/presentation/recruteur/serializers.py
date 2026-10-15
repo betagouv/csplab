@@ -47,8 +47,9 @@ class OrganismeDetailSerializer(serializers.Serializer):
     versant = serializers.ChoiceField(choices=[c.value for c in Verse])
     siret = serializers.CharField(min_length=14, max_length=14)
     # TODO : fill with the active superviseurs (comma-separated, as in
-    # OrganismesListSerializer) when this view switches to ADR-009 style
-    superviseurs = serializers.CharField(allow_null=True)
+    # OrganismesListSerializer) when this view switches to ADR-009 style;
+    # empty string until then, like the list when there is none
+    superviseurs = serializers.CharField(allow_blank=True)
     gestion_ats = serializers.BooleanField()
     date_derniere_activite = serializers.DateTimeField()
     date_creation = serializers.DateTimeField()

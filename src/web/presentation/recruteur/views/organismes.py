@@ -90,6 +90,7 @@ class OrganismesView(SessionApiMixin, APIView):
                 "nom": organisme.nom,
                 "versant": organisme.versant.value,
                 "siret": organisme.siret.code,
+                "superviseurs": "",
                 "gestion_ats": organisme.gestion_ats,
                 "date_creation": organisme.date_creation,
                 "date_derniere_activite": organisme.date_derniere_activite,

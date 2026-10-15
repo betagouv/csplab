@@ -5602,7 +5602,6 @@ components:
           minLength: 14
         superviseurs:
           type: string
-          nullable: true
         gestion_ats:
           type: boolean
         date_derniere_activite:
