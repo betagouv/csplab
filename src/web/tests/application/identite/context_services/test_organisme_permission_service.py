@@ -670,6 +670,23 @@ class TestSuperviseurOuAgentAvecResponsableOuRecruteurActions:
             )
 
 
+@pytest.mark.parametrize("action", RECRUTEMENT_ACTIONS)
+def test_role_on_a_recrutement_does_not_grant_access_to_another_one(
+    utilisateur_de: ConstruireUtilisateur, action: OrganismeAction
+) -> None:
+    agent, organisme = create_organisme_with_agent(role=AgentOrganismeRole.AGENT)
+    _attach_recrutement_role(organisme, agent, AgentRecrutementRole.RESPONSABLE)
+    autre_recrutement = RecrutementDjangoFactory(organisme=organisme)
+
+    with pytest.raises(AccesRecrutementRefuse):
+        OrganismePermissionService().can_execute(
+            action=action,
+            organisme_id=organisme.id,
+            utilisateur=utilisateur_de(agent.utilisateur_id),
+            recrutement_id=autre_recrutement.pk,
+        )
+
+
 class TestOrganismeExistenceGuard:
     def test_raises_when_organisme_not_found(
         self, utilisateur_de: ConstruireUtilisateur
