@@ -14,8 +14,7 @@ from infrastructure.authentication.jwt_token import get_validated_jwt
 from infrastructure.di.shared.shared_container import SharedContainer
 from infrastructure.django_apps.utils.ip import get_client_ip
 
-# Logged when the client IP is missing or invalid: ApiLogModel.ip_address is
-# NOT NULL, and the request must be logged anyway.
+# Fallback for a missing client IP: ApiLogModel.ip_address is NOT NULL.
 UNSPECIFIED_IP = "0.0.0.0"  # noqa: S104
 
 _jwt_auth = JWTStatelessUserAuthentication()
