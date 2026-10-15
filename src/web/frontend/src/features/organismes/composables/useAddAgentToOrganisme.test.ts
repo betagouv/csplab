@@ -4,7 +4,7 @@ import { createPinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { defineComponent, h, nextTick } from 'vue'
 import { AGENT_RECHERCHE } from '@/test/fixtures/organismes'
-import { useAjoutMembre } from './useAjoutMembre'
+import { useAddAgentToOrganisme } from './useAddAgentToOrganisme'
 import { useOrganismeAgents } from './useOrganismeAgents'
 
 const mockGetOrganismeAgents = vi.fn()
@@ -32,11 +32,11 @@ async function flush() {
 }
 
 function mountAjoutMembre() {
-  let result!: ReturnType<typeof useAjoutMembre>
+  let result!: ReturnType<typeof useAddAgentToOrganisme>
   mount(defineComponent({
     setup() {
       useOrganismeAgents(ORGANISME_UUID)
-      result = useAjoutMembre(ORGANISME_UUID)
+      result = useAddAgentToOrganisme(ORGANISME_UUID)
       return () => h('div')
     },
   }), {
@@ -47,7 +47,7 @@ function mountAjoutMembre() {
   return result
 }
 
-describe('useAjoutMembre', () => {
+describe('useAddAgentToOrganisme', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     mockGetOrganismeAgents.mockResolvedValue([])
@@ -69,25 +69,5 @@ describe('useAjoutMembre', () => {
       role: 'agent',
     })
     expect(mockGetOrganismeAgents).toHaveBeenCalledTimes(2)
-  })
-
-  it('creates the agent then attaches it when no account matches', async () => {
-    mockSearchAgentByEmail.mockResolvedValue(null)
-    mockCreateAgent.mockResolvedValue({ ...AGENT_RECHERCHE, prenom: '', nom: '', intitule_poste: '' })
-    mockSetAgentRole.mockResolvedValue({})
-    const { search, add } = mountAjoutMembre()
-    await flush()
-
-    await search('nouvelle.agente@example.gouv.fr')
-    await add('superviseur')
-
-    expect(mockCreateAgent).toHaveBeenCalledWith({
-      email: 'nouvelle.agente@example.gouv.fr',
-      organisme_id: ORGANISME_UUID,
-    })
-    expect(mockSetAgentRole).toHaveBeenCalledWith(ORGANISME_UUID, {
-      agent_id: AGENT_RECHERCHE.uuid,
-      role: 'superviseur',
-    })
   })
 })

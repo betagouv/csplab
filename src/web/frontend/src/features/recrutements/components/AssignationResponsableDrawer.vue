@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { RecrutementsActifs } from '../types'
-import type { AgentSearchStatus } from '@/features/agents/composables/useAgentParEmail'
+import type { AgentSearchStatus } from '@/features/agents/composables/useFindOrCreateAgent'
 import type { AgentRecherche } from '@/features/agents/types'
 import { computed, ref, watch } from 'vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'

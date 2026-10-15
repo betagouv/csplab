@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { RecrutementRole } from '../types'
 import type { CspRadioGroupOption } from '@/components/base/CspRadioGroup/CspRadioGroup.vue'
-import type { AgentSearchStatus } from '@/features/agents/composables/useAgentParEmail'
+import type { AgentSearchStatus } from '@/features/agents/composables/useFindOrCreateAgent'
 import type { AgentRecherche } from '@/features/agents/types'
 import { computed, ref, watch } from 'vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'

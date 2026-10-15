@@ -15,7 +15,7 @@ import { useToast } from '@/composables/ui/useToast'
 import { useRouteOrganisme } from '@/stores/routeOrganisme'
 import { pluralize } from '@/utils/format'
 import { EQUIPE_RECRUTEMENT_ACTIONS_COLUMN, EQUIPE_RECRUTEMENT_COLUMNS } from '../columns'
-import { useAjoutMembreEquipe } from '../composables/useAjoutMembreEquipe'
+import { useAddAgentToRecrutement } from '../composables/useAddAgentToRecrutement'
 import { useEquipeRecrutement } from '../composables/useEquipeRecrutement'
 import { provideMembreEquipeActions } from '../composables/useMembreEquipeActions'
 import { RECRUTEMENT_ROLE_LABELS } from '../constants/equipe-recrutement'
@@ -41,7 +41,7 @@ const {
   add,
   submitting,
   reset: resetAgent,
-} = useAjoutMembreEquipe(props.organismeUuid, props.recrutementUuid)
+} = useAddAgentToRecrutement(props.organismeUuid, props.recrutementUuid)
 const { revocation, roleChange } = provideMembreEquipeActions()
 const { canManageOrganisme } = useRouteOrganisme()
 const { addToast } = useToast()
@@ -58,15 +58,6 @@ const columns = computed(() =>
     ? [...EQUIPE_RECRUTEMENT_COLUMNS, EQUIPE_RECRUTEMENT_ACTIONS_COLUMN]
     : EQUIPE_RECRUTEMENT_COLUMNS,
 )
-
-async function handleSearchAgent(email: string) {
-  try {
-    await searchAgent(email)
-  }
-  catch {
-    addToast({ variant: 'error', title: 'La recherche a échoué' })
-  }
-}
 
 async function handleAdd(role: RecrutementRole) {
   try {
@@ -229,7 +220,7 @@ const countLabel = computed(() => {
       :agent="foundAgent"
       :searching="searching"
       :submitting="submitting"
-      @search="handleSearchAgent"
+      @search="searchAgent"
       @add="handleAdd"
       @reset="resetAgent"
     />

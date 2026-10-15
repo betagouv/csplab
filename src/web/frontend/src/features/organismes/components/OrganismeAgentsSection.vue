@@ -15,8 +15,8 @@ import { useToast } from '@/composables/ui/useToast'
 import { formatAgentName } from '@/features/agents/format'
 import { pluralize } from '@/utils/format'
 import { ORGANISME_AGENTS_COLUMNS } from '../columns'
+import { useAddAgentToOrganisme } from '../composables/useAddAgentToOrganisme'
 import { provideAgentActions } from '../composables/useAgentActions'
-import { useAjoutMembre } from '../composables/useAjoutMembre'
 import { useOrganismeAgents } from '../composables/useOrganismeAgents'
 import { ROLE_LABELS } from '../constants/organisme'
 import AttachAgentDrawer from './AttachAgentDrawer.vue'
@@ -28,7 +28,7 @@ const props = defineProps<{
 const PAGE_SIZE = 8
 
 const { agents, pending, error, updateAgent, updatingAgent } = useOrganismeAgents(props.organismeUuid)
-const { status, foundAgent, searching, search: searchAgent, add, submitting, reset } = useAjoutMembre(props.organismeUuid)
+const { status, foundAgent, searching, search: searchAgent, add, submitting, reset } = useAddAgentToOrganisme(props.organismeUuid)
 const { roleChange, revocation } = provideAgentActions()
 const { addToast } = useToast()
 
@@ -38,15 +38,6 @@ const page = ref(1)
 const revocationDialogOpen = ref(false)
 const attachDrawerOpen = ref(false)
 const attachDrawer = useTemplateRef('attachDrawer')
-
-async function handleSearch(email: string) {
-  try {
-    await searchAgent(email)
-  }
-  catch {
-    addToast({ variant: 'error', title: 'La recherche a échoué' })
-  }
-}
 
 async function handleAdd(role: Role) {
   try {
@@ -219,7 +210,7 @@ async function handleRevocation(): Promise<void> {
       :agent="foundAgent"
       :searching="searching"
       :submitting="submitting"
-      @search="handleSearch"
+      @search="searchAgent"
       @add="handleAdd"
       @reset="reset"
     />

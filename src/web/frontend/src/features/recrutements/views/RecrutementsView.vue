@@ -34,7 +34,7 @@ import { RECRUTEMENTS_ACTIFS_COLUMNS, RECRUTEMENTS_ARCHIVES_COLUMNS } from '../c
 import AssignationResponsableDrawer from '../components/AssignationResponsableDrawer.vue'
 import RecrutementsActifsFiltersDrawer from '../components/RecrutementsActifsFiltersDrawer.vue'
 import RecrutementsArchivesFiltersDrawer from '../components/RecrutementsArchivesFiltersDrawer.vue'
-import { useAssignationResponsable } from '../composables/useAssignationResponsable'
+import { useAssignResponsable } from '../composables/useAssignResponsable'
 import { useRecrutements } from '../composables/useRecrutements'
 import { useRecrutementsFilters } from '../composables/useRecrutementsFilters'
 import { RECRUTEMENT_TAB_ICONS, RECRUTEMENT_TAB_LABELS } from '../constants/recrutement'
@@ -101,7 +101,7 @@ const {
   assign,
   submitting,
   reset: resetResponsable,
-} = useAssignationResponsable(() => props.organismeUuid)
+} = useAssignResponsable(() => props.organismeUuid)
 
 const selectionLabel = computed(() => {
   const count = selection.count.value
@@ -139,15 +139,6 @@ function assignationErrorTitle(assignationError: unknown): string {
     return 'Ce membre n\'est plus rattaché à l\'organisme'
   }
   return 'L\'assignation du responsable a échoué'
-}
-
-async function handleSearchResponsable(email: string) {
-  try {
-    await searchResponsable(email)
-  }
-  catch {
-    addToast({ variant: 'error', title: 'La recherche a échoué' })
-  }
 }
 
 async function handleAssign() {
@@ -305,7 +296,7 @@ const archivesCountLabel = computed(() => {
             :searching="searching"
             :submitting="submitting"
             @remove="selection.toggle"
-            @search="handleSearchResponsable"
+            @search="searchResponsable"
             @assign="handleAssign"
             @reset="resetResponsable"
           />
