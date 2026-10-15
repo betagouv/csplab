@@ -72,15 +72,6 @@ class ProfilCandidatModel(models.Model):
             resume=self.resume,
         )
 
-    @classmethod
-    def from_entity(
-        cls, utilisateur: Utilisateur, candidat: Candidat
-    ) -> "ProfilCandidatModel":
-        return cls(
-            utilisateur_id=utilisateur.entity_id,
-            resume=candidat.resume,
-        )
-
     def __str__(self):
         return self.utilisateur.email
 

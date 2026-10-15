@@ -1,10 +1,8 @@
 from dataclasses import dataclass
 from uuid import UUID
 
-from ddd.aggregate_root import AggregateRoot, factory
+from ddd.aggregate_root import AggregateRoot
 from pydantic import EmailStr
-
-from domain.identite.events.candidat_events import ProfilCandidatCree
 
 
 @dataclass(kw_only=True)
@@ -13,24 +11,6 @@ class Candidat(AggregateRoot):
     _prenom: str
     _nom: str
     _resume: str
-
-    @classmethod
-    @factory(ProfilCandidatCree)
-    def create(
-        cls,
-        email: EmailStr,
-        prenom: str,
-        nom: str,
-        resume: str,
-        user_id: UUID,
-    ) -> "Candidat":
-        return cls(
-            entity_id=user_id,
-            _email=email,
-            _prenom=prenom,
-            _nom=nom,
-            _resume=resume,
-        )
 
     @classmethod
     def build(
