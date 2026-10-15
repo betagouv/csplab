@@ -6,7 +6,6 @@ from django.db import DatabaseError, transaction
 from django.utils import timezone
 from referentiel.entities.organisme import Organisme
 from referentiel.types import IUpsertResult
-from referentiel.value_objects.siret import SIRET
 
 from domain.commons.errors.organisme_errors import OrganismeNexistePas
 from domain.identite.repositories.organisme_repository_interface import (
@@ -34,13 +33,6 @@ class PostgresOrganismeRepository(IOrganismeIdentiteRepository):
             model = OrganismeModel.objects.get(id=organisme_id)
         except OrganismeModel.DoesNotExist as e:
             raise OrganismeNexistePas(str(organisme_id)) from e
-        return self._mapper_identite.to_domain(model)
-
-    def get_by_siret(self, siret: SIRET) -> Organisme | None:
-        try:
-            model = OrganismeModel.objects.get(siret=str(siret))
-        except OrganismeModel.DoesNotExist:
-            return None
         return self._mapper_identite.to_domain(model)
 
     def save(self, organisme: Organisme) -> None:

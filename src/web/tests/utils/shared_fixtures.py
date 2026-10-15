@@ -34,7 +34,6 @@ from application.commons.usecases.calculate_daily_stats import (
 from application.identite.context_services.organisme_permission_service import (
     OrganismePermissionService,
 )
-from application.identite.usecases.create_organisme import CreateOrganismeUsecase
 from application.identite.usecases.get_organisme import GetOrganismeUsecase
 from application.ingestion.usecases.clean_documents import CleanDocumentsUsecase
 from application.ingestion.usecases.get_offers_by_source import (
@@ -462,18 +461,6 @@ def get_opportunity_details_usecase():
         offers_repository=offers_repository,
         concours_repository=concours_repository,
         metiers_repository=metiers_repository,
-    )
-
-
-@pytest.fixture
-def create_organisme_usecase():
-    organisme_repository = cast(
-        IOrganismeRepository, create_interface_aware_mock(IOrganismeRepository)
-    )
-    permission_service = OrganismePermissionService()
-    return CreateOrganismeUsecase(
-        organisme_repository=organisme_repository,
-        permission_service=permission_service,
     )
 
 
