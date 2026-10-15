@@ -16,7 +16,7 @@ export function useEtapeChange(
   const { etapes: recrutementEtapes } = useRecrutementDetail(recrutement)
   const { changeEtape } = useEtapeChangeMutation(recrutement)
   const { addToast, dismissToast } = useToast()
-  const refus = useRefusCandidature(() => toValue(recrutement).organismeUuid)
+  const refus = useRefusCandidature(() => toValue(recrutement).organismeUuid, recrutementEtapes)
 
   let lastToastId: number | null = null
 
@@ -44,13 +44,14 @@ export function useEtapeChange(
   }
 
   function request(targetEtapeUuid: string): void {
-    const target = recrutementEtapes.value.find(candidate => candidate.uuid === targetEtapeUuid)
-    if (target?.categorie === 'REFUS' && candidature.value) {
-      refus.request([candidature.value.candidat], motifRefus => void confirm(targetEtapeUuid, motifRefus))
+    if (!candidature.value) {
+      return
     }
-    else {
-      void confirm(targetEtapeUuid)
-    }
+    refus.moveOrAskRejectionReason(
+      targetEtapeUuid,
+      [candidature.value.candidat],
+      motifRefus => void confirm(targetEtapeUuid, motifRefus),
+    )
   }
 
   return { etapes: recrutementEtapes, request, refus }

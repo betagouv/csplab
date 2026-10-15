@@ -1,5 +1,5 @@
 import type { MaybeRefOrGetter } from 'vue'
-import type { Candidat, MotifRefus } from '../types'
+import type { Candidat, EtapeRecrutement, MotifRefus } from '../types'
 import { useQuery } from '@pinia/colada'
 import { computed, shallowRef, toValue } from 'vue'
 import { motifsRefusQuery } from '../queries'
@@ -9,13 +9,26 @@ interface PendingRefus {
   apply: (motifRefus: MotifRefus) => void
 }
 
-export function useRefusCandidature(organismeUuid: MaybeRefOrGetter<string>) {
+export function useRefusCandidature(
+  organismeUuid: MaybeRefOrGetter<string>,
+  etapes: MaybeRefOrGetter<EtapeRecrutement[]>,
+) {
   const pending = shallowRef<PendingRefus | null>(null)
 
   const motifs = useQuery(() => motifsRefusQuery({ organismeUuid: toValue(organismeUuid) }))
 
-  function request(candidats: Candidat[], apply: PendingRefus['apply']): void {
-    pending.value = { candidats, apply }
+  function moveOrAskRejectionReason(
+    etapeCibleUuid: string,
+    candidats: Candidat[],
+    move: (motifRefus?: MotifRefus) => void,
+  ): void {
+    const etapeCible = toValue(etapes).find(etape => etape.uuid === etapeCibleUuid)
+    if (etapeCible?.categorie === 'REFUS') {
+      pending.value = { candidats, apply: move }
+    }
+    else {
+      move()
+    }
   }
 
   function confirm(motifRefus: MotifRefus): void {
@@ -33,7 +46,7 @@ export function useRefusCandidature(organismeUuid: MaybeRefOrGetter<string>) {
     candidats: computed(() => pending.value?.candidats ?? []),
     motifs: computed(() => motifs.data.value ?? []),
     motifsUnavailable: computed(() => motifs.status.value === 'error'),
-    request,
+    moveOrAskRejectionReason,
     confirm,
     cancel,
   }

@@ -7,6 +7,7 @@ import CspDrawer from '@/components/base/CspDrawer/CspDrawer.vue'
 import CspSeparator from '@/components/base/CspSeparator/CspSeparator.vue'
 import CspTag from '@/components/base/CspTag/CspTag.vue'
 import CspTagGroup from '@/components/base/CspTag/CspTagGroup.vue'
+import { pluralize } from '@/utils/format'
 
 const props = defineProps<{
   open: boolean
@@ -31,6 +32,8 @@ watch(() => props.open, (isOpen) => {
 })
 
 const selectedCount = computed(() => props.selectedCandidatureUuids.size)
+const selectedCountLabel = computed(() =>
+  `${selectedCount.value} ${pluralize(selectedCount.value, 'candidature sélectionnée', 'candidatures sélectionnées')}`)
 
 const canConfirm = computed(() => {
   return selectedCount.value > 0 && selectedEtapeUuid.value !== '' && props.sourceEtape && selectedEtapeUuid.value !== props.sourceEtape.uuid
@@ -99,7 +102,7 @@ const selectedUuidsModel = computed({
     >
       <section class="changer-etape-drawer__selection">
         <p class="changer-etape-drawer__count">
-          {{ selectedCount }} candidature{{ selectedCount > 1 ? 's' : '' }} sélectionnée{{ selectedCount > 1 ? 's' : '' }}
+          {{ selectedCountLabel }}
         </p>
 
         <div class="changer-etape-drawer__tags">

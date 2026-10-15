@@ -13,7 +13,6 @@ const props = defineProps<{
   candidature: Candidature
   boardId: string
   columnId: string
-  cardIndex: number
 }>()
 
 const cardComponentRef = ref<InstanceType<typeof CspCard> | null>(null)
@@ -37,7 +36,6 @@ const { isDragging } = useDraggableKanbanCard({
   boardId: props.boardId,
   columnId: props.columnId,
   cardId: props.candidature.uuid,
-  cardIndex: props.cardIndex,
 })
 </script>
 
