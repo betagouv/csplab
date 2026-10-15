@@ -113,7 +113,10 @@ L'API est organisée en quatre grands domaines :
 Retourne la liste des offres d'emploi de la Fonction Publique, **paginée** (renvoyée
 par lots plutôt qu'en une seule fois). La pagination se pilote avec les paramètres
 `page` (numéro de page, défaut `1`) et `taille` (nombre d'éléments par page, défaut
-`100`).
+`100`, maximum `1000`). Une `taille` supérieure à `1000` est ramenée à `1000`. Une
+valeur absente, non numérique ou inférieure à `1` est remplacée par la valeur par
+défaut. Pour parcourir toutes les offres, suivez le lien `next` de chaque réponse
+jusqu'à ce qu'il vaille `null`.
 
 ### Filtres disponibles
 

@@ -1506,6 +1506,7 @@ paths:
           type: integer
           default: 100
           minimum: 1
+          maximum: 1000
       tags:
       - recruteur
       security:
@@ -1636,6 +1637,7 @@ paths:
           type: integer
           default: 100
           minimum: 1
+          maximum: 1000
       tags:
       - recruteur
       security:
@@ -3983,6 +3985,7 @@ paths:
           type: integer
           default: 100
           minimum: 1
+          maximum: 1000
       tags:
       - recruteur
       security:

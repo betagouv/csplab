@@ -6,6 +6,22 @@ from rest_framework.pagination import BasePagination, PageNumberPagination
 from rest_framework.response import Response
 from rest_framework.settings import api_settings
 
+MAX_PAGE_SIZE = 1_000
+
+
+def _bounded_int(
+    raw: str | None, default: int, minimum: int, maximum: int | None
+) -> int:
+    try:
+        value = int(raw) if raw is not None else default
+    except ValueError:
+        return default
+    if value < minimum:
+        return default
+    if maximum is not None:
+        return min(value, maximum)
+    return value
+
 
 class PageNumberLimitPagination(PageNumberPagination):
     page_size_query_param = "limit"
@@ -14,12 +30,20 @@ class PageNumberLimitPagination(PageNumberPagination):
 class WebPagination(BasePagination):
     page_size = api_settings.PAGE_SIZE
     min_page_size = 1
+    max_page_size = MAX_PAGE_SIZE
 
     def paginate(self, page: IPage, request) -> list[Any]:
         self.request = request
         self.count = page.count()
-        self.page_size = int(self.request.query_params.get("taille", self.page_size))
-        self.page_num = int(self.request.query_params.get("page", 1))
+        self.page_size = _bounded_int(
+            request.query_params.get("taille"),
+            default=self.page_size,
+            minimum=self.min_page_size,
+            maximum=self.max_page_size,
+        )
+        self.page_num = _bounded_int(
+            request.query_params.get("page"), default=1, minimum=1, maximum=None
+        )
 
         offset = (self.page_num - 1) * self.page_size
         self.results = list(page.slice(offset, self.page_size))
@@ -54,6 +78,7 @@ class WebPagination(BasePagination):
                     "type": "integer",
                     "default": self.page_size,
                     "minimum": self.min_page_size,
+                    "maximum": self.max_page_size,
                 },
             },
         ]
@@ -104,10 +129,21 @@ class WebPagination(BasePagination):
 class TalentsoftPagination(BasePagination):
     start_default = 0
     count_default = 100
+    count_max = MAX_PAGE_SIZE
 
     def paginate(self, page: IPage, request) -> list[Any]:
-        self.start = int(request.query_params.get("start", self.start_default))
-        self.count = int(request.query_params.get("count", self.count_default))
+        self.start = _bounded_int(
+            request.query_params.get("start"),
+            default=self.start_default,
+            minimum=0,
+            maximum=None,
+        )
+        self.count = _bounded_int(
+            request.query_params.get("count"),
+            default=self.count_default,
+            minimum=1,
+            maximum=self.count_max,
+        )
         self.total = page.count()
         self.results = list(page.slice(self.start, self.count))
 
@@ -134,14 +170,23 @@ class TalentsoftPagination(BasePagination):
                 "required": False,
                 "in": "query",
                 "description": "Index de début de la pagination.",
-                "schema": {"type": "integer"},
+                "schema": {
+                    "type": "integer",
+                    "default": self.start_default,
+                    "minimum": 0,
+                },
             },
             {
                 "name": "count",
                 "required": False,
                 "in": "query",
                 "description": "Nombre d'éléments par page.",
-                "schema": {"type": "integer"},
+                "schema": {
+                    "type": "integer",
+                    "default": self.count_default,
+                    "minimum": 1,
+                    "maximum": self.count_max,
+                },
             },
         ]
 
