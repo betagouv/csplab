@@ -7,9 +7,9 @@ from django.contrib.auth.models import AnonymousUser
 from django.core.cache import cache
 from django.http import HttpResponse
 from django.test import RequestFactory
-from rest_framework.throttling import AnonRateThrottle
 from rest_framework_simplejwt.tokens import RefreshToken
 
+from infrastructure.authentication.anon_rate_throttle import ClientIpAnonRateThrottle
 from infrastructure.authentication.api_key_authentication import (
     ApiKeyRateThrottle,
     ApiKeyRateThrottleDaily,
@@ -96,7 +96,7 @@ class TestRateLimitHeadersMiddleware:
 
     def test_adds_headers_for_anonymous_api_request(self, rf, mock_response):
         middleware, _ = make_middleware(mock_response)
-        request = rf.get("/api/v1/offres/", REMOTE_ADDR="203.0.113.5")
+        request = rf.get("/api/v1/offres/", HTTP_X_REAL_IP="203.0.113.5")
 
         middleware(request)
 
@@ -104,15 +104,23 @@ class TestRateLimitHeadersMiddleware:
         assert "X-RateLimit-Remaining" in mock_response.headers
         assert "X-RateLimit-Reset" in mock_response.headers
 
-    @patch.object(AnonRateThrottle, "THROTTLE_RATES", {"anon": "3/minute"})
+    @patch.object(ClientIpAnonRateThrottle, "THROTTLE_RATES", {"anon": "3/minute"})
     def test_anon_remaining_decreases_as_quota_is_consumed(self, rf, mock_response):
-        request = rf.get("/api/v1/offres/", REMOTE_ADDR="203.0.113.9")
-        request.user = AnonymousUser()
-        AnonRateThrottle().allow_request(request, view=None)
-        AnonRateThrottle().allow_request(request, view=None)
+        for i in range(2):
+            request = rf.get(
+                "/api/v1/offres/",
+                HTTP_X_REAL_IP="203.0.113.9",
+                HTTP_X_FORWARDED_FOR=f"198.51.100.{i}",
+            )
+            request.user = AnonymousUser()
+            ClientIpAnonRateThrottle().allow_request(request, view=None)
 
         middleware, _ = make_middleware(mock_response)
-        header_request = rf.get("/api/v1/offres/", REMOTE_ADDR="203.0.113.9")
+        header_request = rf.get(
+            "/api/v1/offres/",
+            HTTP_X_REAL_IP="203.0.113.9",
+            HTTP_X_FORWARDED_FOR="198.51.100.99",
+        )
 
         middleware(header_request)
 

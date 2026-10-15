@@ -5,14 +5,11 @@ from django.conf import settings
 from django.contrib.auth.base_user import AbstractBaseUser
 from django.core.cache import cache
 from django.http import HttpRequest, HttpResponse
-from rest_framework.throttling import (
-    AnonRateThrottle,
-    SimpleRateThrottle,
-    UserRateThrottle,
-)
+from rest_framework.throttling import SimpleRateThrottle, UserRateThrottle
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.exceptions import AuthenticationFailed, TokenError
 
+from infrastructure.authentication.anon_rate_throttle import ClientIpAnonRateThrottle
 from infrastructure.authentication.api_key_authentication import (
     ApiKeyRateThrottle,
     ApiKeyRateThrottleDaily,
@@ -21,7 +18,7 @@ from infrastructure.authentication.jwt_token import get_validated_jwt
 
 _API_KEY_THROTTLES = [ApiKeyRateThrottle(), ApiKeyRateThrottleDaily()]
 _USER_THROTTLE = UserRateThrottle()
-_ANON_THROTTLE = AnonRateThrottle()
+_ANON_THROTTLE = ClientIpAnonRateThrottle()
 _jwt_auth = JWTAuthentication()
 
 
