@@ -12,6 +12,9 @@ from infrastructure.django_apps.recruteur.models.organisme import OrganismeModel
 from infrastructure.factories.identite.utilisateur_django_factory import (
     UtilisateurDjangoFactory,
 )
+from infrastructure.repositories.commons.postgres_audit_log_repository import (
+    PostgresAuditLogRepository,
+)
 
 VALID_SIRET = "19754687200015"
 
@@ -50,7 +53,8 @@ def test_edit_with_invalid_siret_is_rejected(organisme_admin, request_):
 def test_create_persists_the_organisme_through_the_service(
     organisme_admin, request_, db
 ):
-    request_.user = UtilisateurDjangoFactory(is_staff=True)
+    staff = UtilisateurDjangoFactory(is_staff=True)
+    request_.user = staff
     form = Mock(
         cleaned_data={
             "nom": "Ministère X",
@@ -75,3 +79,7 @@ def test_create_persists_the_organisme_through_the_service(
         "region": "04",
         "department": "76",
     }
+    logs = PostgresAuditLogRepository().get_logs_for_ressource("Organisme", created.id)
+    assert [(log.event_name, log.utilisateur_id) for log in logs] == [
+        ("OrganismeCree", staff.username)
+    ]
