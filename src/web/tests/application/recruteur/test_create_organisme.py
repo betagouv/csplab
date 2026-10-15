@@ -1,4 +1,7 @@
+from unittest.mock import Mock, patch
+
 import pytest
+from django.db import IntegrityError
 from faker import Faker
 from pydantic import ValidationError
 from referentiel.value_objects.area import GeographicalArea
@@ -65,6 +68,41 @@ def test_refuses_existing_siret(staff):
         _create(staff)
 
     assert OrganismeModel.objects.filter(siret=VALID_SIRET).count() == 1
+
+
+def test_translates_a_siret_race_into_siret_existe_deja(staff):
+    OrganismeDjangoFactory(siret=VALID_SIRET)
+
+    with patch.object(
+        OrganismeModel.objects,
+        "filter",
+        return_value=Mock(exists=Mock(return_value=False)),
+    ):
+        with pytest.raises(OrganismeSiretExisteDeja):
+            _create(staff)
+
+    assert OrganismeModel.objects.filter(siret=VALID_SIRET).count() == 1
+    assert not AuditLogModel.objects.exists()
+
+
+def test_does_not_mask_an_integrity_error_raised_by_the_audit_log(staff):
+    with patch(
+        "application.recruteur.services.create_organisme.AuditLogWriter"
+    ) as audit_log_writer:
+        audit_log_writer.return_value.log_action.side_effect = IntegrityError("audit")
+        with pytest.raises(IntegrityError, match="audit"):
+            _create(staff)
+
+
+def test_rolls_back_the_organisme_when_the_audit_log_fails(staff):
+    with patch(
+        "application.recruteur.services.create_organisme.AuditLogWriter"
+    ) as audit_log_writer:
+        audit_log_writer.return_value.log_action.side_effect = RuntimeError("audit")
+        with pytest.raises(RuntimeError, match="audit"):
+            _create(staff)
+
+    assert not OrganismeModel.objects.filter(siret=VALID_SIRET).exists()
 
 
 def test_refuses_siret_with_invalid_checksum(staff):

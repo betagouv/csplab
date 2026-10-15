@@ -19,6 +19,9 @@ from infrastructure.repositories.commons.postgres_audit_log_repository import (
     PostgresAuditLogRepository,
 )
 
+# Postgres' default name for the unique constraint of `organisme.siret`
+SIRET_UNIQUE_CONSTRAINT = "organisme_siret_key"
+
 
 def create_organisme(
     *,
@@ -39,8 +42,8 @@ def create_organisme(
         raise OrganismeSiretExisteDeja(siret_str=siret_code)
 
     now = timezone.now()
-    try:
-        with transaction.atomic():
+    with transaction.atomic():
+        try:
             organisme = OrganismeModel.objects.create(
                 id=uuid4(),
                 nom=nom,
@@ -52,14 +55,16 @@ def create_organisme(
                 date_creation=now,
                 date_derniere_activite=now,
             )
-            AuditLogWriter(repository=PostgresAuditLogRepository()).log_action(
-                utilisateur_id=utilisateur.username,
-                entity=Entity(entity_id=organisme.id),
-                ressource_kind="Organisme",
-                event_name="OrganismeCree",
-            )
-    except IntegrityError as e:
-        raise OrganismeSiretExisteDeja(siret_str=siret_code) from e
+        except IntegrityError as exc:
+            if SIRET_UNIQUE_CONSTRAINT in str(exc):
+                raise OrganismeSiretExisteDeja(siret_str=siret_code) from exc
+            raise
+        AuditLogWriter(repository=PostgresAuditLogRepository()).log_action(
+            utilisateur_id=utilisateur.username,
+            entity=Entity(entity_id=organisme.id),
+            ressource_kind="Organisme",
+            event_name="OrganismeCree",
+        )
     return organisme
 
 
