@@ -1,6 +1,8 @@
+from unittest.mock import patch
 from uuid import uuid4
 
 import pytest
+from django.db import IntegrityError
 
 from application.recruteur.services.read_conversation import read_conversation
 from domain.commons.errors.organisme_errors import OrganismeNexistePas
@@ -14,6 +16,7 @@ from domain.recruteur.errors.recrutement_errors import (
     RecrutementInexistant,
 )
 from domain.recruteur.value_objects.roles import AgentOrganismeRole
+from infrastructure.django_apps.messagerie.models import ConversationLectureModel
 from infrastructure.factories.candidate.candidature_django_factory import (
     CandidatureDjangoFactory,
     create_recrutement_and_candidature_for_agent,
@@ -25,6 +28,7 @@ from infrastructure.factories.identite.organisme_django_factory import (
 from infrastructure.factories.identite.utilisateur_factory import UtilisateurFactory
 from infrastructure.factories.messagerie.conversation_django_factory import (
     ConversationDjangoFactory,
+    ConversationLectureDjangoFactory,
     MessageDjangoFactory,
     MessageDocumentDjangoFactory,
 )
@@ -72,6 +76,93 @@ def test_reading_does_not_issue_a_query_per_message(db, django_assert_num_querie
         for message in messages:
             message.auteur.get_full_name()
             [pj.document.nom_original for pj in message.pieces_jointes.all()]
+
+
+def _read(agent, organisme, recrutement, candidature, conversation):
+    return read_conversation(
+        organisme_id=organisme.id,
+        recrutement_id=recrutement.pk,
+        candidature_id=candidature.pk,
+        conversation_id=conversation.pk,
+        utilisateur=_utilisateur(agent.utilisateur_id),
+    )
+
+
+def test_reading_marks_the_conversation_as_read(db):
+    agent, organisme, recrutement, candidature = (
+        create_recrutement_and_candidature_for_agent()
+    )
+    conversation = ConversationDjangoFactory(candidature=candidature)
+
+    _read(agent, organisme, recrutement, candidature, conversation)
+
+    assert ConversationLectureModel.objects.filter(
+        conversation=conversation, utilisateur_id=agent.utilisateur_id
+    ).exists()
+
+
+def test_reading_again_refreshes_the_existing_read_receipt(db):
+    agent, organisme, recrutement, candidature = (
+        create_recrutement_and_candidature_for_agent()
+    )
+    conversation = ConversationDjangoFactory(candidature=candidature)
+    lecture = ConversationLectureDjangoFactory(
+        conversation=conversation, utilisateur_id=agent.utilisateur_id
+    )
+    previous = lecture.read_at
+
+    _read(agent, organisme, recrutement, candidature, conversation)
+
+    lecture.refresh_from_db()
+    assert lecture.read_at > previous
+    lectures = ConversationLectureModel.objects.filter(conversation=conversation)
+    assert lectures.count() == 1
+
+
+def test_reading_does_not_mark_the_conversation_read_for_others(db):
+    agent, organisme, recrutement, candidature = (
+        create_recrutement_and_candidature_for_agent()
+    )
+    conversation = ConversationDjangoFactory(candidature=candidature)
+
+    _read(agent, organisme, recrutement, candidature, conversation)
+
+    assert ConversationLectureModel.objects.count() == 1
+
+
+def test_failed_read_receipt_does_not_hide_messages(db, caplog):
+    agent, organisme, recrutement, candidature = (
+        create_recrutement_and_candidature_for_agent()
+    )
+    conversation = ConversationDjangoFactory(candidature=candidature)
+    message = MessageDjangoFactory(conversation=conversation)
+    with patch.object(
+        ConversationLectureModel.objects,
+        "update_or_create",
+        side_effect=IntegrityError("boom"),
+    ):
+        messages = _read(agent, organisme, recrutement, candidature, conversation)
+
+    assert list(messages) == [message]
+    assert "Could not mark conversation" in caplog.text
+
+
+def test_denied_read_leaves_no_read_receipt(db):
+    recrutement, candidature = create_recrutement_with_candidature(
+        OrganismeDjangoFactory()
+    )
+    conversation = ConversationDjangoFactory(candidature=candidature)
+
+    with pytest.raises(AccesOrganismeRefuse):
+        read_conversation(
+            organisme_id=recrutement.organisme_id,
+            recrutement_id=recrutement.pk,
+            candidature_id=candidature.pk,
+            conversation_id=conversation.pk,
+            utilisateur=_utilisateur(uuid4()),
+        )
+
+    assert not ConversationLectureModel.objects.exists()
 
 
 def test_unauthorized_agent_is_denied(db):
