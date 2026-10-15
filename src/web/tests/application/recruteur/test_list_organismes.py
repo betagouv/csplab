@@ -93,9 +93,18 @@ def test_lists_only_active_superviseurs(staff):
 def test_evaluates_in_a_constant_number_of_queries(staff, django_assert_num_queries):
     for organisme in OrganismeDjangoFactory.create_batch(3):
         OrganismeAgentDjangoFactory(organisme=organisme)
+        OrganismeAgentDjangoFactory(
+            organisme=organisme, role=AgentOrganismeRole.SUPERVISEUR.value
+        )
         RecrutementDjangoFactory(organisme=organisme)
 
     with django_assert_num_queries(2):  # organismes + prefetch superviseurs
         result = list(list_organismes(utilisateur=staff))
         assert all(o.number_agents and o.number_published_offers for o in result)
-        assert all(o.superviseurs_actifs == [] for o in result)
+        # same traversal as the serializer: a lazy load here would add queries
+        utilisateurs = [
+            liaison.agent.utilisateur
+            for o in result
+            for liaison in o.superviseurs_actifs
+        ]
+        assert len(utilisateurs) == len(result)
