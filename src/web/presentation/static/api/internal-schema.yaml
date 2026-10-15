@@ -4837,6 +4837,9 @@ components:
     Candidature:
       type: object
       properties:
+        unread_conversations:
+          type: integer
+          readOnly: true
         uuid:
           type: string
           format: uuid
@@ -4852,6 +4855,7 @@ components:
       - candidat
       - date_derniere_activite
       - date_soumission
+      - unread_conversations
       - uuid
     CandidatureAChanger:
       type: object
@@ -4922,6 +4926,9 @@ components:
     CandidatureListe:
       type: object
       properties:
+        unread_conversations:
+          type: integer
+          readOnly: true
         uuid:
           type: string
           format: uuid
@@ -4940,6 +4947,7 @@ components:
       - date_derniere_activite
       - date_soumission
       - etape
+      - unread_conversations
       - uuid
     CandidaturesActives:
       type: object
@@ -5023,9 +5031,13 @@ components:
         last_message_created_at:
           type: string
           format: date-time
+        is_unread:
+          type: boolean
+          readOnly: true
       required:
       - created_at
       - creator
+      - is_unread
       - last_message_author
       - last_message_content
       - last_message_created_at
@@ -6006,6 +6018,9 @@ components:
     RecrutementsActifs:
       type: object
       properties:
+        unread_conversations:
+          type: integer
+          readOnly: true
         uuid:
           type: string
           format: uuid
@@ -6040,10 +6055,14 @@ components:
       - nature_offre
       - reference_csp
       - responsables
+      - unread_conversations
       - uuid
     RecrutementsArchives:
       type: object
       properties:
+        unread_conversations:
+          type: integer
+          readOnly: true
         uuid:
           type: string
           format: uuid
@@ -6076,6 +6095,7 @@ components:
       - recrute
       - reference_csp
       - responsables
+      - unread_conversations
       - uuid
     RegionEnum:
       enum:

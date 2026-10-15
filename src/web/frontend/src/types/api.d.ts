@@ -547,6 +547,7 @@ export interface components {
             email: string;
         };
         Candidature: {
+            readonly unread_conversations: number;
             /** Format: uuid */
             uuid: string;
             /** Format: date-time */
@@ -582,6 +583,7 @@ export interface components {
             raison: string;
         };
         CandidatureListe: {
+            readonly unread_conversations: number;
             /** Format: uuid */
             uuid: string;
             /** Format: date-time */
@@ -628,6 +630,7 @@ export interface components {
             readonly last_message_author: string;
             /** Format: date-time */
             last_message_created_at: string;
+            readonly is_unread: boolean;
         };
         ConversationDocument: {
             /** Format: uuid */
@@ -1100,6 +1103,7 @@ export interface components {
          */
         RecrutementRoleEnum: "responsable" | "recruteur" | "contributeur";
         RecrutementsActifs: {
+            readonly unread_conversations: number;
             /** Format: uuid */
             uuid: string;
             intitule: string;
@@ -1113,6 +1117,7 @@ export interface components {
             derniere_activite: string;
         };
         RecrutementsArchives: {
+            readonly unread_conversations: number;
             /** Format: uuid */
             uuid: string;
             intitule: string;
