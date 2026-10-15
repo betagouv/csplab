@@ -288,7 +288,7 @@ paths:
               $ref: '#/components/headers/X-RateLimit-Remaining'
             X-RateLimit-Reset:
               $ref: '#/components/headers/X-RateLimit-Reset'
-        '200':
+        '201':
           content:
             application/json:
               schema:
@@ -5124,6 +5124,7 @@ components:
       properties:
         nom:
           type: string
+          maxLength: 255
         siret:
           type: string
           maxLength: 14
@@ -5589,25 +5590,32 @@ components:
         uuid:
           type: string
           format: uuid
+          readOnly: true
         nom:
           type: string
+          readOnly: true
         versant:
-          $ref: '#/components/schemas/VersantEnum'
+          allOf:
+          - $ref: '#/components/schemas/VersantEnum'
+          readOnly: true
         siret:
           type: string
-          maxLength: 14
-          minLength: 14
+          readOnly: true
         superviseurs:
           type: string
           nullable: true
+          readOnly: true
         gestion_ats:
           type: boolean
+          readOnly: true
         date_derniere_activite:
           type: string
           format: date-time
+          readOnly: true
         date_creation:
           type: string
           format: date-time
+          readOnly: true
       required:
       - date_creation
       - date_derniere_activite
