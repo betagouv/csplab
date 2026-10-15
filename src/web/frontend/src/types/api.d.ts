@@ -880,16 +880,16 @@ export interface components {
         };
         OrganismeDetail: {
             /** Format: uuid */
-            uuid: string;
-            nom: string;
-            versant: components["schemas"]["VersantEnum"];
-            siret: string;
-            superviseurs: string;
-            gestion_ats: boolean;
+            readonly uuid: string;
+            readonly nom: string;
+            readonly versant: components["schemas"]["VersantEnum"];
+            readonly siret: string;
+            readonly superviseurs: string;
+            readonly gestion_ats: boolean;
             /** Format: date-time */
-            date_derniere_activite: string;
+            readonly date_derniere_activite: string;
             /** Format: date-time */
-            date_creation: string;
+            readonly date_creation: string;
         };
         OrganismeRole: {
             /** Format: uuid */
@@ -1460,7 +1460,7 @@ export interface operations {
             };
         };
         responses: {
-            200: {
+            201: {
                 headers: {
                     "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
                     "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];

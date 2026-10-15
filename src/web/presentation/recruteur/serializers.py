@@ -41,20 +41,6 @@ from presentation.commons.serializers import LocalisationSerializer, OrganismeSe
 CATEGORIE_ETAPE_CHOICES = [(c.name, c.value) for c in CategorieEtapeRecrutement]
 
 
-class OrganismeDetailSerializer(serializers.Serializer):
-    uuid = serializers.UUIDField(source="organisme_uuid")
-    nom = serializers.CharField()
-    versant = serializers.ChoiceField(choices=[c.value for c in Verse])
-    siret = serializers.CharField(min_length=14, max_length=14)
-    # TODO : fill with the active superviseurs (comma-separated, as in
-    # OrganismesListSerializer) when this view switches to ADR-009 style;
-    # empty string until then, like the list when there is none
-    superviseurs = serializers.CharField(allow_blank=True)
-    gestion_ats = serializers.BooleanField()
-    date_derniere_activite = serializers.DateTimeField()
-    date_creation = serializers.DateTimeField()
-
-
 class OrganismesListSerializer(serializers.ModelSerializer):
     uuid = serializers.UUIDField(source="id")
     superviseurs = serializers.SerializerMethodField()
@@ -89,11 +75,43 @@ class OrganismesListSerializer(serializers.ModelSerializer):
         )
 
 
-class CreateOrganismeSerializer(serializers.Serializer):
-    nom = serializers.CharField()
-    siret = serializers.CharField(min_length=14, max_length=14)
-    versant = serializers.ChoiceField(choices=[c.value for c in Verse])
-    gestion_ats = serializers.BooleanField()
+class CreateOrganismeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OrganismeModel
+        fields = ["nom", "siret", "versant", "gestion_ats"]
+        extra_kwargs = {
+            # duplicates are rejected by the create_organisme service
+            "siret": {"min_length": 14, "validators": []},
+            "gestion_ats": {"required": True, "allow_null": False},
+        }
+
+
+class OrganismeDetailSerializer(serializers.ModelSerializer):
+    uuid = serializers.UUIDField(source="id", read_only=True)
+    gestion_ats = serializers.BooleanField(read_only=True)
+    date_derniere_activite = serializers.DateTimeField(read_only=True)
+    date_creation = serializers.DateTimeField(read_only=True)
+    # TODO : fill with the active superviseurs (comma-separated, as in
+    # OrganismesListSerializer) when the detail view switches to ADR-009 style
+    # (it still feeds this serializer dicts, hence the empty placeholder)
+    superviseurs = serializers.SerializerMethodField()
+
+    class Meta:
+        model = OrganismeModel
+        fields = [
+            "uuid",
+            "nom",
+            "versant",
+            "siret",
+            "superviseurs",
+            "gestion_ats",
+            "date_derniere_activite",
+            "date_creation",
+        ]
+        read_only_fields = fields
+
+    def get_superviseurs(self, organisme) -> str:
+        return ""
 
 
 class UpdateOrganismeSerializer(serializers.Serializer):
