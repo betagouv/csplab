@@ -139,7 +139,14 @@ class CandidaturesActivesSerializer(serializers.Serializer):
     en_cours = serializers.IntegerField(allow_null=True)
 
 
-class RecrutementsSerializer(serializers.Serializer):
+class UnreadConversationsSerializer(serializers.Serializer):
+    unread_conversations = serializers.SerializerMethodField()
+
+    def get_unread_conversations(self, instance: object) -> int:
+        return 0
+
+
+class RecrutementsSerializer(UnreadConversationsSerializer):
     uuid = serializers.UUIDField(source="offer_id")
     intitule = serializers.CharField()
     reference_csp = serializers.CharField()
@@ -173,7 +180,7 @@ class CandidatSerializer(serializers.Serializer):
     prenom = serializers.CharField()
 
 
-class CandidatureSerializer(serializers.Serializer):
+class CandidatureSerializer(UnreadConversationsSerializer):
     uuid = serializers.UUIDField()
     date_soumission = serializers.DateTimeField()
     date_derniere_activite = serializers.DateTimeField()
@@ -282,7 +289,7 @@ class RecrutementDetailKanbanSerializer(serializers.Serializer):
     etapes = EtapeRecrutementDetailedCandidaturesSerializer(many=True)
 
 
-class CandidatureListeSerializer(serializers.Serializer):
+class CandidatureListeSerializer(UnreadConversationsSerializer):
     uuid = serializers.UUIDField()
     date_soumission = serializers.DateTimeField()
     candidat = CandidatSerializer()
@@ -573,6 +580,7 @@ class ConversationSerializer(serializers.ModelSerializer):
     last_message_content = serializers.SerializerMethodField()
     last_message_author = serializers.SerializerMethodField()
     last_message_created_at = serializers.DateTimeField()
+    is_unread = serializers.SerializerMethodField()
 
     class Meta:
         model = ConversationModel
@@ -584,6 +592,7 @@ class ConversationSerializer(serializers.ModelSerializer):
             "last_message_content",
             "last_message_author",
             "last_message_created_at",
+            "is_unread",
         ]
 
     def get_creator(self, conversation: ConversationModel) -> str:
@@ -595,6 +604,9 @@ class ConversationSerializer(serializers.ModelSerializer):
 
     def get_last_message_author(self, conversation: ConversationModel) -> str:
         return conversation.derniers_messages[0].auteur.get_full_name()
+
+    def get_is_unread(self, conversation: ConversationModel) -> bool:
+        return False
 
 
 # ---------------------------------------------------------------------------
