@@ -88,6 +88,7 @@ class CreateOrganismeSerializer(serializers.ModelSerializer):
 
 class OrganismeDetailSerializer(serializers.ModelSerializer):
     uuid = serializers.UUIDField(source="id", read_only=True)
+    siret = serializers.CharField(min_length=14, max_length=14, read_only=True)
     gestion_ats = serializers.BooleanField(read_only=True)
     date_derniere_activite = serializers.DateTimeField(read_only=True)
     date_creation = serializers.DateTimeField(read_only=True)
