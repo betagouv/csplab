@@ -43,7 +43,7 @@ const formDrawer = useTemplateRef('formDrawer')
 
 const rows = computed(() => organismesList.value ?? [])
 
-const { search, filtered } = useTextSearch(rows, row => [row.nom, row.siret, row.gestionnaire])
+const { search, filtered } = useTextSearch(rows, row => [row.nom, row.siret, row.superviseurs])
 
 watch(filtered, () => {
   page.value = 1

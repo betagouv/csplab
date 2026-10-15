@@ -2,7 +2,7 @@ from collections.abc import Sequence
 from uuid import UUID, uuid4
 
 from django.db import models
-from django.db.models import Count, Max, Q, Value
+from django.db.models import Count, Max, Prefetch, Q, Value
 from django.db.models.functions import Coalesce, Greatest
 from referentiel.value_objects.verse import Verse
 
@@ -41,6 +41,21 @@ class OrganismeQuerySet(models.QuerySet):
             ),
             managed_ats=Coalesce("gestion_ats", Value(False)),
         ).order_by("-updated_at")
+
+    def with_superviseurs_actifs(self) -> "OrganismeQuerySet":
+        return self.prefetch_related(
+            Prefetch(
+                "agents_liaisons",
+                queryset=OrganismeAgentModel.objects.active()
+                .filter(role=AgentOrganismeRole.SUPERVISEUR.value)
+                .select_related("agent__utilisateur")
+                .order_by(
+                    "agent__utilisateur__last_name",
+                    "agent__utilisateur__first_name",
+                ),
+                to_attr="superviseurs_actifs",
+            )
+        )
 
     def etapes_of(self, organisme_id) -> "OrganismeQuerySet":
         return self.filter(pk=organisme_id).only("id", "etapes")
