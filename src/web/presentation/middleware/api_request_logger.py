@@ -12,14 +12,11 @@ from domain.ingestion.entities.api_log import ApiLog
 from domain.ingestion.repositories.api_log_repository_interface import IApiLogRepository
 from infrastructure.authentication.jwt_token import get_validated_jwt
 from infrastructure.di.shared.shared_container import SharedContainer
+from infrastructure.django_apps.utils.ip import get_client_ip
 
-
-def _get_ip_address(request: HttpRequest) -> str:
-    forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR")
-    if forwarded_for:
-        return forwarded_for.split(",")[0].strip()
-    return request.META.get("REMOTE_ADDR", "")
-
+# Logged when the client IP is missing or invalid: ApiLogModel.ip_address is
+# NOT NULL, and the request must be logged anyway.
+UNSPECIFIED_IP = "0.0.0.0"  # noqa: S104
 
 _jwt_auth = JWTStatelessUserAuthentication()
 
@@ -65,7 +62,7 @@ class ApiRequestLoggerMiddleware:
                 id=uuid4(),
                 timestamp=datetime.now(tz=timezone.utc),
                 path=request.path,
-                ip_address=_get_ip_address(request),
+                ip_address=get_client_ip(request) or UNSPECIFIED_IP,
                 method=request.method or "",
                 status_code=response.status_code,
                 auth_token=token,

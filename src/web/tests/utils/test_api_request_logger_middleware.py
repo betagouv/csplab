@@ -131,31 +131,49 @@ class TestApiRequestLoggerMiddleware:
 
         mock_repository.save.assert_not_called()
 
-    def test_captures_ip_from_remote_addr(
-        self, rf: RequestFactory, mock_repository: MagicMock, mock_response: MagicMock
-    ) -> None:
-        middleware, _ = make_middleware(mock_response, mock_repository)
-        request = rf.get("/api/health/", REMOTE_ADDR="192.168.1.10")
-
-        middleware(request)
-
-        saved: ApiLog = mock_repository.save.call_args[0][0]
-        assert saved.ip_address == "192.168.1.10"
-
-    def test_captures_ip_from_x_forwarded_for(
+    def test_captures_ip_from_x_real_ip(
         self, rf: RequestFactory, mock_repository: MagicMock, mock_response: MagicMock
     ) -> None:
         middleware, _ = make_middleware(mock_response, mock_repository)
         request = rf.get(
             "/api/health/",
-            HTTP_X_FORWARDED_FOR="10.0.0.1, 10.0.0.2",
+            HTTP_X_REAL_IP="203.0.113.7",
+            HTTP_X_FORWARDED_FOR="1.2.3.4",
             REMOTE_ADDR="172.16.0.1",
         )
 
         middleware(request)
 
         saved: ApiLog = mock_repository.save.call_args[0][0]
-        assert saved.ip_address == "10.0.0.1"
+        assert saved.ip_address == "203.0.113.7"
+
+    def test_ignores_forged_x_forwarded_for(
+        self, rf: RequestFactory, mock_repository: MagicMock, mock_response: MagicMock
+    ) -> None:
+        middleware, _ = make_middleware(mock_response, mock_repository)
+        request = rf.get(
+            "/api/health/",
+            HTTP_X_FORWARDED_FOR="not-an-ip, 10.0.0.2",
+            REMOTE_ADDR="172.16.0.1",
+        )
+
+        middleware(request)
+
+        mock_repository.save.assert_called_once()
+        saved: ApiLog = mock_repository.save.call_args[0][0]
+        assert saved.ip_address == "0.0.0.0"  # noqa: S104
+
+    def test_logs_unspecified_ip_for_invalid_x_real_ip(
+        self, rf: RequestFactory, mock_repository: MagicMock, mock_response: MagicMock
+    ) -> None:
+        middleware, _ = make_middleware(mock_response, mock_repository)
+        request = rf.get("/api/health/", HTTP_X_REAL_IP="not-an-ip")
+
+        middleware(request)
+
+        mock_repository.save.assert_called_once()
+        saved: ApiLog = mock_repository.save.call_args[0][0]
+        assert saved.ip_address == "0.0.0.0"  # noqa: S104
 
     def test_captures_request_path(
         self, rf: RequestFactory, mock_repository: MagicMock, mock_response: MagicMock
