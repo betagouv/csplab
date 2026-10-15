@@ -163,6 +163,19 @@ class TestApiRequestLoggerMiddleware:
         saved: ApiLog = mock_repository.save.call_args[0][0]
         assert saved.ip_address == "0.0.0.0"  # noqa: S104
 
+    def test_captures_private_network_ip_over_forged_x_real_ip(
+        self, rf: RequestFactory, mock_repository: MagicMock, mock_response: MagicMock
+    ) -> None:
+        middleware, _ = make_middleware(mock_response, mock_repository)
+        request = rf.get(
+            "/api/health/", HTTP_X_REAL_IP="203.0.113.7", REMOTE_ADDR="10.240.1.2"
+        )
+
+        middleware(request)
+
+        saved: ApiLog = mock_repository.save.call_args[0][0]
+        assert saved.ip_address == "10.240.1.2"
+
     def test_logs_unspecified_ip_for_invalid_x_real_ip(
         self, rf: RequestFactory, mock_repository: MagicMock, mock_response: MagicMock
     ) -> None:
