@@ -683,7 +683,7 @@ def test_role_on_a_recrutement_does_not_grant_access_to_another_one(
             action=action,
             organisme_id=organisme.id,
             utilisateur=utilisateur_de(agent.utilisateur_id),
-            recrutement_id=autre_recrutement.pk,
+            recrutement_id=autre_recrutement.pk,  # type: ignore[attr-defined]
         )
 
 
