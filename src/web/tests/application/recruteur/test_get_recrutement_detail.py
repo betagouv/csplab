@@ -27,6 +27,9 @@ from infrastructure.factories.recruteur.recrutement_django_factory import (
     RecrutementAgentDjangoFactory,
     RecrutementDjangoFactory,
 )
+from infrastructure.factories.referentiel.offer_django_factory import (
+    OfferDjangoFactory,
+)
 
 pytestmark = pytest.mark.django_db
 
@@ -139,6 +142,29 @@ def test_raises(scenario, expected_error):
         )
 
 
+def test_offre_with_nullable_columns_is_returned():
+    agent, organisme = create_organisme_with_agent(role=AgentOrganismeRole.SUPERVISEUR)
+    offre = OfferDjangoFactory(
+        area=None,
+        country=None,
+        region=None,
+        department=None,
+        location_label=None,
+        latitude=None,
+        longitude=None,
+    )
+    recrutement = RecrutementDjangoFactory(organisme=organisme, offre=offre)
+
+    result = get_recrutement_detail(
+        organisme_id=organisme.id,
+        recrutement_id=recrutement.pk,
+        utilisateur=_utilisateur(agent),
+    )
+
+    assert result.offre.country is None
+    assert result.offre.latitude is None
+
+
 def test_etapes_ordonnees_ignores_stale_and_missing_ids():
     agent, organisme = create_organisme_with_agent(role=AgentOrganismeRole.SUPERVISEUR)
     recrutement = RecrutementDjangoFactory(organisme=organisme)
@@ -153,3 +179,22 @@ def test_etapes_ordonnees_ignores_stale_and_missing_ids():
     )
 
     assert etapes_ordonnees(result) == [etapes[0]]
+
+
+def test_recrutement_role_ignores_revoked_link():
+    agent, organisme = create_organisme_with_agent(role=AgentOrganismeRole.SUPERVISEUR)
+    recrutement = RecrutementDjangoFactory(organisme=organisme)
+    RecrutementAgentDjangoFactory(
+        recrutement=recrutement,
+        agent=agent,
+        role=AgentRecrutementRole.RESPONSABLE.value,
+        date_revocation=timezone.now(),
+    )
+
+    result = get_recrutement_detail(
+        organisme_id=organisme.id,
+        recrutement_id=recrutement.pk,
+        utilisateur=_utilisateur(agent),
+    )
+
+    assert result.recrutement_role is None

@@ -23,6 +23,7 @@ def get_recrutement_detail(
             RecrutementModel.objects.active_by_id(recrutement_id)
             .filter(organisme_id=organisme_id)
             .with_detail()
+            .with_role_of(utilisateur.username)
             .get()
         )
     except RecrutementModel.DoesNotExist as error:
