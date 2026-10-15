@@ -63,7 +63,7 @@ def _view_throttle_scopes(request: HttpRequest) -> set[str]:
     }
 
 
-def _candidate_throttles(
+def _throttles_for_caller(
     request: HttpRequest,
 ) -> list[tuple[SimpleRateThrottle, str]]:
     if _is_authenticated_api_key_request(request):
@@ -84,7 +84,7 @@ def _collect_rate_limit_states(request: HttpRequest) -> list[tuple[int, int, int
         return []
     return [
         _rate_limit_state(throttle, ident)
-        for throttle, ident in _candidate_throttles(request)
+        for throttle, ident in _throttles_for_caller(request)
         if throttle.scope in scopes
     ]
 
