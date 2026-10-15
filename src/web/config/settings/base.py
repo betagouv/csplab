@@ -66,6 +66,10 @@ SITE_ID = 1
 SESSION_COOKIE_SECURE = True
 SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SAMESITE = "Lax"
+# RGAA 13.1 : toute limite de temps de session doit être d'au moins 20 h
+SESSION_COOKIE_AGE = 60 * 60 * 24  # 24 h depuis la dernière modification de la session
+SESSION_SAVE_EVERY_REQUEST = False
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False  # True créerait une limite non contrôlée
 CSRF_COOKIE_SECURE = True
 CSRF_TRUSTED_ORIGINS = env.list("CSRF_TRUSTED_ORIGINS", default=[])
 

@@ -111,6 +111,29 @@ class TestProconnectCallbackView:
         assert "_auth_user_id" in client.session
         assert client.session["oidc_id_token"] == "fake-id-token"  # noqa S105
 
+    def test_callback_session_cookie_lasts_at_least_20_hours(
+        self, db, client, monkeypatch, test_user
+    ):
+        # RGAA 13.1
+        monkeypatch.setattr(
+            oauth.proconnect,
+            "authorize_access_token",
+            MagicMock(return_value={"id_token": "fake-id-token"}),
+        )
+        monkeypatch.setattr(
+            "presentation.identite.views.fetch_userinfo_claims",
+            MagicMock(return_value={"email": test_user.email}),
+        )
+
+        response = client.get(reverse("identite:proconnect_callback"))
+
+        assert response.cookies[settings.SESSION_COOKIE_NAME]["max-age"] >= 20 * 3600
+
+    def test_session_cookie_age_is_at_least_20_hours(self):
+        # RGAA 13.1
+        assert settings.SESSION_COOKIE_AGE >= 20 * 3600
+        assert not settings.SESSION_EXPIRE_AT_BROWSER_CLOSE
+
     @pytest.mark.parametrize(
         ("stored_next", "expected"),
         [
