@@ -5616,6 +5616,8 @@ components:
         siret:
           type: string
           readOnly: true
+          maxLength: 14
+          minLength: 14
         superviseurs:
           type: string
           readOnly: true
