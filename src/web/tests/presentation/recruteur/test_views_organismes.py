@@ -80,6 +80,9 @@ class TestOrganismesView:
             role=AgentOrganismeRole.SUPERVISEUR.value,
             date_revocation=timezone.now(),
         )
+        OrganismeAgentDjangoFactory(
+            organisme=organisme, role=AgentOrganismeRole.AGENT.value
+        )
 
         response = staff_client.get(ORGANISME_URL)
 
@@ -102,7 +105,7 @@ class TestOrganismesView:
             "gestion_ats": True,
             "date_creation": datetime_to_drf_representation(organisme.created_at),
             "date_derniere_activite": datetime_to_drf_representation(last_activity),
-            "nombre_agents": 1,
+            "nombre_agents": 2,
             "nombre_offres_publiees": 1,
         }
 
