@@ -95,7 +95,7 @@ class OrganismeDetailView(SessionApiMixin, APIView):
                 "nom": organisme.nom,
                 "versant": organisme.versant.value,
                 "siret": organisme.siret.code,
-                "gestionnaire": None,
+                "superviseurs": None,
                 "gestion_ats": organisme.gestion_ats,
                 "date_creation": organisme.date_creation,
                 "date_derniere_activite": organisme.date_derniere_activite,

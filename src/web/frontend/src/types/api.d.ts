@@ -881,7 +881,7 @@ export interface components {
             nom: string;
             versant: components["schemas"]["VersantEnum"];
             siret: string;
-            gestionnaire: string | null;
+            superviseurs: string | null;
             gestion_ats: boolean;
             /** Format: date-time */
             date_derniere_activite: string;
@@ -900,7 +900,7 @@ export interface components {
             nom: string;
             versant: components["schemas"]["VersantEnum"];
             siret: string;
-            gestionnaire: string | null;
+            readonly superviseurs: string;
             gestion_ats: boolean;
             /** Format: date-time */
             date_derniere_activite: string;

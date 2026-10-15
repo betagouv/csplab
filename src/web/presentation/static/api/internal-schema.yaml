@@ -5597,7 +5597,7 @@ components:
           type: string
           maxLength: 14
           minLength: 14
-        gestionnaire:
+        superviseurs:
           type: string
           nullable: true
         gestion_ats:
@@ -5612,9 +5612,9 @@ components:
       - date_creation
       - date_derniere_activite
       - gestion_ats
-      - gestionnaire
       - nom
       - siret
+      - superviseurs
       - uuid
       - versant
     OrganismeRole:
@@ -5646,9 +5646,9 @@ components:
           type: string
           maxLength: 14
           minLength: 14
-        gestionnaire:
+        superviseurs:
           type: string
-          nullable: true
+          readOnly: true
         gestion_ats:
           type: boolean
         date_derniere_activite:
@@ -5665,11 +5665,11 @@ components:
       - date_creation
       - date_derniere_activite
       - gestion_ats
-      - gestionnaire
       - nom
       - nombre_agents
       - nombre_offres_publiees
       - siret
+      - superviseurs
       - uuid
       - versant
     PaginatedAuditLogList:
