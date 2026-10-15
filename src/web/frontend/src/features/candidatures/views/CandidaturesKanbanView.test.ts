@@ -54,6 +54,7 @@ const KANBAN_WITH_ENTRETIEN = {
           uuid: CANDIDATURE_CHLOE,
           date_soumission: '2025-06-13T09:15:00Z',
           date_derniere_activite: '2025-06-13T10:00:00Z',
+          unread_conversations: 0,
           candidat: { uuid: 'eeeeeeee-0001-0001-0001-000000000003', nom: 'Petit', prenom: 'Chloé' },
         }],
       }

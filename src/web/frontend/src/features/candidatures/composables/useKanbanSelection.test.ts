@@ -14,6 +14,7 @@ const CANDIDATURE_1 = {
   uuid: CANDIDATURE_1_UUID,
   date_soumission: '2025-06-10T09:15:00Z',
   date_derniere_activite: '2025-06-11T10:00:00Z',
+  unread_conversations: 0,
   candidat: { uuid: 'dddddddd-0001-0001-0001-000000000001', nom: 'Dupont', prenom: 'Alice' },
 }
 
@@ -21,6 +22,7 @@ const CANDIDATURE_2 = {
   uuid: CANDIDATURE_2_UUID,
   date_soumission: '2025-06-11T14:30:00Z',
   date_derniere_activite: '2025-06-12T09:15:00Z',
+  unread_conversations: 0,
   candidat: { uuid: 'dddddddd-0001-0001-0001-000000000002', nom: 'Martin', prenom: 'Bruno' },
 }
 
@@ -28,6 +30,7 @@ const CANDIDATURE_3 = {
   uuid: CANDIDATURE_3_UUID,
   date_soumission: '2025-06-08T10:00:00Z',
   date_derniere_activite: '2025-06-11T10:00:00Z',
+  unread_conversations: 0,
   candidat: { uuid: 'dddddddd-0001-0001-0001-000000000003', nom: 'Bernard', prenom: 'Élise' },
 }
 
