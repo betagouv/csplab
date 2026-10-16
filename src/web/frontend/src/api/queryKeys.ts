@@ -68,6 +68,9 @@ export const candidatureKeys = {
   activites: (params: CandidatureParams) => {
     return [...candidatureKeys.root(params), 'logs'] as const
   },
+  activitesList: (params: CandidatureParams & { limit?: number }) => {
+    return [...candidatureKeys.activites(params), params.limit ?? null] as const
+  },
   conversations: (params: CandidatureParams) => {
     return [...candidatureKeys.root(params), 'conversations'] as const
   },
