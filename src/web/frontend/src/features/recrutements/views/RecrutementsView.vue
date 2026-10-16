@@ -200,15 +200,9 @@ const archivesCountLabel = computed(() => {
   <template v-else>
     <CspPageHeader
       title="Recrutements"
-      subtitle="Retrouvez ici l’ensemble des recrutements en cours et archivés."
+      subtitle="Retrouvez ici l’ensemble des recrutements en cours et terminés."
       :breadcrumb="BREADCRUMB"
-    >
-      <template #subtitle>
-        <p class="mes-recrutement-view__subtitle">
-          Retrouvez ici l’ensemble des recrutements en cours et terminés.
-        </p>
-      </template>
-    </CspPageHeader>
+    />
     <CspPageContainer
       v-model:active-tab="activeTab"
       class="mes-recrutement-view"
