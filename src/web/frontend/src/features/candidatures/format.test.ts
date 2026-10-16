@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest'
-import { formatCandidatNom } from './candidat'
+import { formatCandidatName } from './format'
 
-describe('formatCandidatNom', () => {
+describe('formatCandidatName', () => {
   it('joins prenom and nom', () => {
-    expect(formatCandidatNom({
+    expect(formatCandidatName({
       uuid: 'eeeeeeee-0001-0001-0001-000000000001',
       prenom: 'Alice',
       nom: 'Dupont',

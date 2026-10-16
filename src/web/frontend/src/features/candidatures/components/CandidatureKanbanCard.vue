@@ -7,7 +7,7 @@ import CspIcon from '@/components/base/CspIcon/CspIcon.vue'
 import { useDraggableKanbanCard } from '@/composables/dnd/useKanbanDnd'
 import { CANDIDATURE_PANEL_ROUTE_NAMES } from '@/router/names'
 import { formatElapsedDays } from '@/utils/date'
-import { formatCandidatNom } from '../utils/candidat'
+import { formatCandidatName } from '../format'
 
 const props = defineProps<{
   candidature: Candidature
@@ -59,7 +59,7 @@ const { isDragging } = useDraggableKanbanCard({
         class="candidature-kanban-card__link"
         :data-candidature-uuid="candidature.uuid"
       >
-        {{ formatCandidatNom(candidature.candidat) }}
+        {{ formatCandidatName(candidature.candidat) }}
       </RouterLink>
     </template>
     <p class="candidature-kanban-card__date">
