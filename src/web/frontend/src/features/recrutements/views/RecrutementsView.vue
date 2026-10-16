@@ -24,7 +24,7 @@ import { useRouteTab } from '@/composables/navigation/useRouteTab'
 import { useDisclosure } from '@/composables/ui/useDisclosure'
 import { useDocumentTitle } from '@/composables/ui/useDocumentTitle'
 import { useToast } from '@/composables/ui/useToast'
-import { formatAgentName } from '@/features/agents/format'
+import { formatAgentLabel } from '@/features/agents/format'
 import { HOME_BREADCRUMB_ITEM, RECRUTEMENTS_BREADCRUMB_LABEL } from '@/router/breadcrumb'
 import { CANDIDATURES_VIEW_ROUTE_NAMES, RECRUTEMENTS_TAB_ROUTE_NAMES } from '@/router/names'
 import { useRouteOrganisme } from '@/stores/routeOrganisme'
@@ -112,7 +112,7 @@ function assignationToast(
   resultat: AssignationResponsableResultat,
   agent: AgentRecherche | null,
 ): ToastOptions {
-  const nom = agent ? formatAgentName(agent) || agent.email : 'Le membre choisi'
+  const nom = agent ? formatAgentLabel(agent) : 'Le membre choisi'
   const reussites = resultat.reussites.length
   const assignees = `${nom} est responsable de ${reussites} ${pluralize(reussites, 'offre')}`
 

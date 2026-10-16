@@ -12,7 +12,7 @@ import CspTableToolbar from '@/components/base/CspTableToolbar/CspTableToolbar.v
 import { useMinimumPending } from '@/composables/async/useMinimumPending'
 import { useTextSearch } from '@/composables/data/useTextSearch'
 import { useToast } from '@/composables/ui/useToast'
-import { formatAgentName } from '@/features/agents/format'
+import { formatAgentLabel, formatAgentName } from '@/features/agents/format'
 import { pluralize } from '@/utils/format'
 import { ORGANISME_AGENTS_COLUMNS } from '../columns'
 import { useAddAgentToOrganisme } from '../composables/useAddAgentToOrganisme'
@@ -45,7 +45,7 @@ async function handleAdd(role: Role) {
     addToast({
       variant: 'success',
       title: 'Membre ajouté',
-      description: `${formatAgentName(agent) || agent.email} a rejoint l'organisme.`,
+      description: `${formatAgentLabel(agent)} a rejoint l'organisme.`,
     })
     attachDrawerOpen.value = false
   }
