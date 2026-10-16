@@ -237,6 +237,9 @@ export const States: Story = {
         <CspCheckbox v-model="checked" label="Coché" />
         <CspCheckbox :model-value="false" :indeterminate="true" label="Indéterminé" />
         <CspCheckbox :model-value="false" :disabled="true" label="Désactivé" />
+        <CspCheckbox :model-value="true" :disabled="true" label="Désactivé coché" />
+        <CspCheckbox :model-value="false" :error="true" label="Erreur" />
+        <CspCheckbox :model-value="true" :error="true" label="Erreur coché" />
       </div>
     `,
   }),
