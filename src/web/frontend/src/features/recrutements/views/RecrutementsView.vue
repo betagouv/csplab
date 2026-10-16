@@ -186,12 +186,12 @@ const aucuneOffreArchivee = computed(
 
 const actifsCountLabel = computed(() => {
   const count = actifsFilters.filtered.value.length
-  return `${count} recrutement${count > 1 ? 's' : ''} en cours`
+  return `${count} ${pluralize(count, 'recrutement')} en cours`
 })
 
 const archivesCountLabel = computed(() => {
   const count = archivesFilters.filtered.value.length
-  return `${count} recrutement${count > 1 ? 's' : ''} terminé${count > 1 ? 's' : ''}`
+  return `${count} ${pluralize(count, 'recrutement terminé', 'recrutements terminés')}`
 })
 </script>
 
