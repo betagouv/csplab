@@ -1,4 +1,4 @@
-import type { RecrutementsActifs, RecrutementsArchives } from './types'
+import type { RecrutementsActifs, RecrutementsArchives } from '@/features/recrutements/types'
 
 function daysAgo(days: number): string {
   const date = new Date()

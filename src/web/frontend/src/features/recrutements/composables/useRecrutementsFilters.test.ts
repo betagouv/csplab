@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { nextTick } from 'vue'
-import { RECRUTEMENTS_ACTIFS } from '../mock'
+import { RECRUTEMENTS_ACTIFS } from '@/test/fixtures/recrutements'
 import { useRecrutementsFilters } from './useRecrutementsFilters'
 
 describe('useRecrutementsFilters', () => {

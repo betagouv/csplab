@@ -3,9 +3,9 @@ import type { AssignationResponsableResultat, RecrutementKey } from '../types'
 import type { CspBreadcrumbItem } from '@/components/base/CspBreadcrumb/CspBreadcrumb.vue'
 import type { ToastOptions } from '@/composables/ui/useToast'
 import type { AgentRecherche } from '@/features/agents/types'
-import { computed, ref, watch } from 'vue'
+import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { HttpError, isHttpStatus } from '@/api/errors'
+import { isHttpStatus } from '@/api/errors'
 import CspAsyncSection from '@/components/base/CspAsyncSection/CspAsyncSection.vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspDataTable from '@/components/base/CspDataTable/CspDataTable.vue'
@@ -132,10 +132,10 @@ function assignationToast(
 }
 
 function assignationErrorTitle(assignationError: unknown): string {
-  if (assignationError instanceof HttpError && assignationError.status === 403) {
+  if (isHttpStatus(assignationError, 403)) {
     return 'Vous n\'avez pas les droits pour assigner un responsable'
   }
-  if (assignationError instanceof HttpError && assignationError.status === 404) {
+  if (isHttpStatus(assignationError, 404)) {
     return 'Ce membre n\'est plus rattaché à l\'organisme'
   }
   return 'L\'assignation du responsable a échoué'
@@ -176,14 +176,6 @@ function applyArchivesFilters() {
   archivesFiltersDrawer.close()
 }
 
-watch(actifsFilters.filtered, () => {
-  recrutementsActifsPage.value = 1
-})
-
-watch(archivesFilters.filtered, () => {
-  recrutementsArchivesPage.value = 1
-})
-
 const aucunRecrutementActif = computed(
   () => !showActifsSkeleton.value && recrutementsData.actifs.length === 0,
 )
@@ -194,12 +186,12 @@ const aucuneOffreArchivee = computed(
 
 const actifsCountLabel = computed(() => {
   const count = actifsFilters.filtered.value.length
-  return `${count} recrutement${count > 1 ? 's' : ''} en cours`
+  return `${count} ${pluralize(count, 'recrutement')} en cours`
 })
 
 const archivesCountLabel = computed(() => {
   const count = archivesFilters.filtered.value.length
-  return `${count} recrutement${count > 1 ? 's' : ''} terminé${count > 1 ? 's' : ''}`
+  return `${count} ${pluralize(count, 'recrutement terminé', 'recrutements terminés')}`
 })
 </script>
 

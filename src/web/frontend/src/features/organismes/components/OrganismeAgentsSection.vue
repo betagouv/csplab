@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { Role } from '../types'
 import { computed, ref, useTemplateRef, watch } from 'vue'
-import { HttpError } from '@/api/errors'
+import { isHttpStatus } from '@/api/errors'
 import CspAsyncSection from '@/components/base/CspAsyncSection/CspAsyncSection.vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspDataTable from '@/components/base/CspDataTable/CspDataTable.vue'
@@ -50,7 +50,7 @@ async function handleAdd(role: Role) {
     attachDrawerOpen.value = false
   }
   catch (submitError) {
-    if (submitError instanceof HttpError && submitError.status === 409) {
+    if (isHttpStatus(submitError, 409)) {
       attachDrawer.value?.setEmailError('Cet agent est déjà rattaché à l\'organisme.')
       return
     }
@@ -71,10 +71,6 @@ const { search, filtered } = useTextSearch(rows, row => [
   `${row.nom} ${row.prenom}`,
   row.email,
 ])
-
-watch(filtered, () => {
-  page.value = 1
-})
 
 const countLabel = computed(() => {
   const count = filtered.value.length

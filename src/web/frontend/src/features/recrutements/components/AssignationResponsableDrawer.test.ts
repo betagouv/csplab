@@ -1,8 +1,8 @@
 import { render, screen } from '@testing-library/vue'
 import { describe, expect, it } from 'vitest'
 import { AGENT_RECHERCHE } from '@/test/fixtures/organismes'
+import { RECRUTEMENTS_ACTIFS } from '@/test/fixtures/recrutements'
 import { setupUser } from '@/test/render'
-import { RECRUTEMENTS_ACTIFS } from '../mock'
 import AssignationResponsableDrawer from './AssignationResponsableDrawer.vue'
 
 const RECRUTEMENTS = RECRUTEMENTS_ACTIFS.slice(0, 2)
