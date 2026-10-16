@@ -7,12 +7,12 @@ On écrit les identifiants en anglais, sauf les termes de la section « Termes g
 On ajoute un terme quand on répond oui aux trois questions :
 
 1. Les recruteurs, les candidats ou la DGAFP emploient-ils ce mot tel quel, dans un écran, une offre ou un texte statutaire ?
-2. Le mot désigne-t-il une chose du service : une entité, un rôle, une notion statutaire ? On traduit les verbes, les adjectifs, les éléments d'interface et les noms génériques comme liste, page, carte, titre ou erreur.
+2. Le mot désigne-t-il une chose du service : une entité, un rôle, une notion statutaire ? On traduit les notions de l'application, comme utilisateur, profil, espace ou paramètres, ainsi que les verbes, les adjectifs, les éléments d'interface et les noms génériques comme liste, page, carte, titre ou erreur.
 3. La traduction ferait-elle perdre le sens que le service donne au mot ?
 
 ## Écrire un terme
 
-On écrit le terme sans accent et on l'associe à des mots anglais : `CandidatureCard`, `onOrganismeSelect`, `RecrutementNotFound`, `useAssignResponsable`. Côté front, on reprend les noms de champs du schéma d'API interne.
+On écrit le terme sans accent et on l'associe à des mots anglais : `CandidatureCard`, `onOrganismeSelect`, `RecrutementNotFound`, `useAssignResponsable`, `AgentProfile`. Côté front, on reprend les noms de champs du schéma d'API interne.
 
 ## Termes gardés en français
 
@@ -22,8 +22,9 @@ On écrit le terme sans accent et on l'associe à des mots anglais : `Candidatur
 - `recrutement` : processus d'un organisme pour une offre, avec ses étapes, ses candidatures et son équipe.
 - `etape` : étape d'un recrutement où se trouve une candidature.
 - `organisme` : employeur public qui recrute.
-- `agent` : agent public d'un organisme qui utilise l'ATS.
-- `superviseur`, `responsable`, `recruteur`, `contributeur` : rôles d'un agent. `recruteur` désigne aussi l'espace des agents.
+- `agent` : personne d'un organisme qui utilise l'ATS. C'est un utilisateur qui a un profil d'agent ; il peut aussi avoir un profil de candidat.
+- `superviseur`, `agent` : rôles d'un agent dans un organisme. Un agent qui a le rôle `superviseur` voit tous les recrutements de l'organisme et gère les agents de l'organisme. Un agent qui a le rôle `agent` voit les recrutements où il a un rôle.
+- `responsable`, `recruteur`, `contributeur` : rôles d'un agent dans un recrutement. `recruteur` est aussi le nom du contexte du back qui couvre le recrutement du côté des organismes : recrutements, étapes, candidatures reçues.
 - `versant` : fonction publique d'État, territoriale ou hospitalière.
 - `categorie` : catégorie statutaire A, B ou C.
 - `corps`, `grade`, `concours`, `metier`, `domaineFonctionnel`, `referentiel` : notions statutaires et nomenclatures de la fonction publique.

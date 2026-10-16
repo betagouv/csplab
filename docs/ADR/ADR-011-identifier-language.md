@@ -23,7 +23,7 @@ Certains mots n'ont pas d'équivalent anglais fidèle : `corps`, `grade`, `versa
 
 On écrit les identifiants en anglais, sauf les termes gardés en français que liste [`docs/domain_glossary.md`](../domain_glossary.md). L'auteur d'une PR qui introduit un nouveau terme français l'ajoute au glossaire.
 
-Les textes affichés, les ADR et les messages de commit restent en français. On ne renomme pas l'API publique `/api/v1`, que des systèmes externes appellent. Ses champs, ses filtres et ses valeurs sont en français, et le glossaire fixe les règles des noms qu'on y ajoute.
+Les textes affichés, les ADR, les titres de PR et les messages de commit sont en français. On ne renomme pas l'API publique `/api/v1`, que des systèmes externes appellent. Ses champs, ses filtres et ses valeurs sont en français, et le glossaire fixe les règles des noms qu'on y ajoute.
 
 ## Conséquences
 
@@ -34,9 +34,12 @@ On applique la règle au code neuf ou modifié, et on renomme l'existant en quat
 3. les événements, avec une migration de données : leur nom est stocké dans `audit_logs.event_name`, et le front l'emploie comme clé des libellés de l'historique ;
 4. les champs des modèles, avec le schéma d'API interne et les types du front.
 
+Deux renommages demandent un chantier à part :
+
+- `offer` en `offre` dans l'ingestion, le référentiel et la table `offers` : on le fait dans une PR dédiée, à cause de la migration de cette table.
+- le contexte `candidate` en `candidat` : on le fait à la reprise de l'espace candidat, soit en convertissant d'abord l'app selon l'[ADR-009](ADR-009-idiomatic-django-switch.md), soit en créant une nouvelle app qui remplace `candidate`.
+
 ## Questions Ouvertes
 
-- Le glossaire retient `offre`, employé par le contexte `recruteur`, le front et les chemins de l'API publique. L'ingestion, le référentiel et la table `offers` emploient `offer` : faut-il les renommer ?
 - Le glossaire réserve `categorie` à la catégorie statutaire. Pour la catégorie d'une étape, on propose de traduire le mot et de renommer `CategorieEtapeRecrutement` en `EtapeCategory`, dans la PR des doublons.
 - Le glossaire traduit motif de refus en `rejection_reason`. On propose de renommer `motif_refus` dans la PR des champs, avec le schéma d'API interne.
-- Le glossaire retient `candidat`, alors que le contexte back s'appelle `candidate`. Son renommage touche l'adresse `/candidate/` et le label de l'app Django : faut-il le faire ?
