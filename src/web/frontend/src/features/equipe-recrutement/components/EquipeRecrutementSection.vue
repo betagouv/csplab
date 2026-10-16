@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { RecrutementRole } from '../types'
 import { computed, ref, useTemplateRef, watch } from 'vue'
-import { HttpError } from '@/api/errors'
+import { isHttpStatus } from '@/api/errors'
 import CspAsyncSection from '@/components/base/CspAsyncSection/CspAsyncSection.vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspDataTable from '@/components/base/CspDataTable/CspDataTable.vue'
@@ -70,7 +70,7 @@ async function handleAdd(role: RecrutementRole) {
     ajoutDrawerOpen.value = false
   }
   catch (submitError) {
-    if (submitError instanceof HttpError && submitError.status === 409) {
+    if (isHttpStatus(submitError, 409)) {
       ajoutDrawer.value?.setEmailError('Cette personne fait déjà partie de l\'équipe.')
       return
     }
@@ -124,7 +124,7 @@ async function handleRevocation(): Promise<void> {
     revocationDialogOpen.value = false
   }
   catch (revocationError) {
-    const title = revocationError instanceof HttpError && revocationError.status === 404
+    const title = isHttpStatus(revocationError, 404)
       ? 'Cet agent ne fait plus partie de l\'équipe'
       : 'Le retrait du membre a échoué'
     addToast({ variant: 'error', title })

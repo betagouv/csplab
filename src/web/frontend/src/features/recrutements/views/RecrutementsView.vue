@@ -5,7 +5,7 @@ import type { ToastOptions } from '@/composables/ui/useToast'
 import type { AgentRecherche } from '@/features/agents/types'
 import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { HttpError, isHttpStatus } from '@/api/errors'
+import { isHttpStatus } from '@/api/errors'
 import CspAsyncSection from '@/components/base/CspAsyncSection/CspAsyncSection.vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspDataTable from '@/components/base/CspDataTable/CspDataTable.vue'
@@ -132,10 +132,10 @@ function assignationToast(
 }
 
 function assignationErrorTitle(assignationError: unknown): string {
-  if (assignationError instanceof HttpError && assignationError.status === 403) {
+  if (isHttpStatus(assignationError, 403)) {
     return 'Vous n\'avez pas les droits pour assigner un responsable'
   }
-  if (assignationError instanceof HttpError && assignationError.status === 404) {
+  if (isHttpStatus(assignationError, 404)) {
     return 'Ce membre n\'est plus rattaché à l\'organisme'
   }
   return 'L\'assignation du responsable a échoué'
