@@ -4,7 +4,7 @@ import type { RecrutementParams } from '@/api/params'
 import { toValue } from 'vue'
 import { useToast } from '@/composables/ui/useToast'
 import { useRecrutementDetail } from '@/features/recrutements/composables/useRecrutementDetail'
-import { formatCandidatNom } from '../utils/candidat'
+import { formatCandidatName } from '../format'
 import { useEtapeChangeMutation } from './useEtapeChangeMutation'
 import { useRefusCandidature } from './useRefusCandidature'
 
@@ -39,7 +39,7 @@ export function useEtapeChange(
     }
     lastToastId = addToast({
       variant: 'success',
-      title: `${formatCandidatNom(moved.candidat)} est passé à l'étape ${target.nom}`,
+      title: `${formatCandidatName(moved.candidat)} est passé à l'étape ${target.nom}`,
     })
   }
 

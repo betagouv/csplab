@@ -4,7 +4,7 @@ import { computed, ref, watch } from 'vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspDialog from '@/components/base/CspDialog/CspDialog.vue'
 import CspSelect from '@/components/base/CspSelect/CspSelect.vue'
-import { formatCandidatNom } from '../utils/candidat'
+import { formatCandidatName } from '../format'
 
 const props = defineProps<{
   open: boolean
@@ -31,7 +31,7 @@ const description = computed(() => {
       + `Cette action n'est pas définitive, néanmoins les candidats seront informés du changement `
       + `de statut de leur candidature.`
   }
-  return `Vous êtes sur le point de refuser la candidature de ${formatCandidatNom(candidat)}. `
+  return `Vous êtes sur le point de refuser la candidature de ${formatCandidatName(candidat)}. `
     + `Cette action n'est pas définitive, néanmoins le candidat sera informé du changement `
     + `de statut de sa candidature.`
 })
