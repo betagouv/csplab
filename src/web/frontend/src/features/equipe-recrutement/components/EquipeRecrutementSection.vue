@@ -12,6 +12,7 @@ import CspTableToolbar from '@/components/base/CspTableToolbar/CspTableToolbar.v
 import { useMinimumPending } from '@/composables/async/useMinimumPending'
 import { useTextSearch } from '@/composables/data/useTextSearch'
 import { useToast } from '@/composables/ui/useToast'
+import { formatAgentLabel } from '@/features/agents/format'
 import { useRouteOrganisme } from '@/stores/routeOrganisme'
 import { pluralize } from '@/utils/format'
 import { EQUIPE_RECRUTEMENT_ACTIONS_COLUMN, EQUIPE_RECRUTEMENT_COLUMNS } from '../columns'
@@ -19,7 +20,6 @@ import { useAddAgentToRecrutement } from '../composables/useAddAgentToRecrutemen
 import { useEquipeRecrutement } from '../composables/useEquipeRecrutement'
 import { provideMembreEquipeActions } from '../composables/useMembreEquipeActions'
 import { RECRUTEMENT_ROLE_LABELS } from '../constants/equipe-recrutement'
-import { formatMembreLabel } from '../format'
 import AjoutMembreEquipeDrawer from './AjoutMembreEquipeDrawer.vue'
 
 const props = defineProps<{
@@ -65,7 +65,7 @@ async function handleAdd(role: RecrutementRole) {
     addToast({
       variant: 'success',
       title: 'Membre ajouté',
-      description: `${formatMembreLabel(membre)} a rejoint l'équipe de recrutement.`,
+      description: `${formatAgentLabel(membre)} a rejoint l'équipe de recrutement.`,
     })
     ajoutDrawerOpen.value = false
   }
@@ -89,7 +89,7 @@ watch(() => roleChange.requested, async (change) => {
     addToast({
       variant: 'success',
       title: 'Rôle modifié',
-      description: `${formatMembreLabel(membre)} est maintenant ${RECRUTEMENT_ROLE_LABELS[role].toLowerCase()} sur ce recrutement.`,
+      description: `${formatAgentLabel(membre)} est maintenant ${RECRUTEMENT_ROLE_LABELS[role].toLowerCase()} sur ce recrutement.`,
     })
   }
   catch {
@@ -119,7 +119,7 @@ async function handleRevocation(): Promise<void> {
     addToast({
       variant: 'success',
       title: 'Membre retiré',
-      description: `${formatMembreLabel(membre)} ne fait plus partie de l'équipe de recrutement.`,
+      description: `${formatAgentLabel(membre)} ne fait plus partie de l'équipe de recrutement.`,
     })
     revocationDialogOpen.value = false
   }
@@ -227,7 +227,7 @@ const countLabel = computed(() => {
       size="sm"
     >
       <template v-if="revocation.requested">
-        {{ formatMembreLabel(revocation.requested) }} perdra l'accès aux candidatures de ce
+        {{ formatAgentLabel(revocation.requested) }} perdra l'accès aux candidatures de ce
         recrutement. Son compte reste rattaché à l'organisme et pourra être réintégré à
         l'équipe plus tard.
       </template>
