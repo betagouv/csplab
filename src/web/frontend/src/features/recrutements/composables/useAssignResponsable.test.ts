@@ -5,7 +5,7 @@ import { createPinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { defineComponent, h, nextTick } from 'vue'
 import { organismeKeys, recrutementKeys } from '@/api/queryKeys'
-import { RECRUTEMENTS_ACTIFS } from '../mock'
+import { RECRUTEMENTS_ACTIFS } from '@/test/fixtures/recrutements'
 import { recrutementsActifsQuery } from '../queries'
 import { useAssignResponsable } from './useAssignResponsable'
 
