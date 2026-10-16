@@ -4,6 +4,76 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.0] - 2026-10-16
+
+### Candidatures
+
+#### <!-- 2 --> Modified
+
+- Centralise le passage par le motif de refus ([#1926](https://github.com/betagouv/csplab/pull/1926))
+- Déplace la clé des activités dans queryKeys ([#1978](https://github.com/betagouv/csplab/pull/1978))
+- Formateur nom candidat ([#1979](https://github.com/betagouv/csplab/pull/1979))
+
+
+### Identite
+
+#### <!-- 2 --> Modified
+
+- Convertit create_candidat (ADR-009) ([#1922](https://github.com/betagouv/csplab/pull/1922))
+- Convertit create_agent (ADR-009) ([#1940](https://github.com/betagouv/csplab/pull/1940))
+- Convertit get_utilisateur_details (ADR-009) ([#1877](https://github.com/betagouv/csplab/pull/1877))
+- Retire la chaîne OrganismeRole devenue morte ([#1928](https://github.com/betagouv/csplab/pull/1928))
+
+#### <!-- 3 --> Fixed
+
+- Limite les requêtes anonymes par X-Real-IP ([#1964](https://github.com/betagouv/csplab/pull/1964))
+
+
+### Ingestion
+
+#### <!-- 1 --> Added
+
+- Change le format des contacts de l'offre ([#1935](https://github.com/betagouv/csplab/pull/1935))
+- Renseigne les contacts de l'offre depuis Talentsoft ([#1936](https://github.com/betagouv/csplab/pull/1936))
+- Ajoute le champ email_candidature à l'offre ([#1944](https://github.com/betagouv/csplab/pull/1944))
+- Renseigne email_candidature depuis Talentsoft ([#1946](https://github.com/betagouv/csplab/pull/1946))
+
+#### <!-- 3 --> Fixed
+
+- Renvoie une 403 pour une source non autorisée ([#1941](https://github.com/betagouv/csplab/pull/1941))
+- Rend Qdrant optionnel et fiabilise l'archivage d'offre ([#1955](https://github.com/betagouv/csplab/pull/1955))
+- Fiabilise l'adresse IP des journaux d'API ([#1963](https://github.com/betagouv/csplab/pull/1963))
+- Plafonne la taille de page des API paginées ([#1967](https://github.com/betagouv/csplab/pull/1967))
+
+
+### Recruteur
+
+#### <!-- 1 --> Added
+
+- Ajoute un seed de démo sur un organisme existant ([#1949](https://github.com/betagouv/csplab/pull/1949))
+- Alimente la liste des superviseurs des organismes ([#1917](https://github.com/betagouv/csplab/pull/1917))
+
+#### <!-- 2 --> Modified
+
+- Convertit le service get_recrutement_detail dans le style ADR-009 ([#1808](https://github.com/betagouv/csplab/pull/1808))
+- Convertit le service `list_organismes` en style ADR-009 ([#1916](https://github.com/betagouv/csplab/pull/1916))
+- Mutualise l'ajout d'un agent trouvé par email ([#1882](https://github.com/betagouv/csplab/pull/1882))
+- Retire le code redondant ([#1976](https://github.com/betagouv/csplab/pull/1976))
+- Formateurs nom agent ([#1980](https://github.com/betagouv/csplab/pull/1980))
+
+#### <!-- 3 --> Fixed
+
+- Un agent avec rôle recrutement peut gérer les agents de son recrutement ([#1809](https://github.com/betagouv/csplab/pull/1809))
+- Corrige le style du sous-titre des recrutements ([#1977](https://github.com/betagouv/csplab/pull/1977))
+
+
+### Tooling
+
+#### <!-- 4 --> Documentation
+
+- Met à jour le gabarit des Pull Requests ([#1934](https://github.com/betagouv/csplab/pull/1934))
+
+
 ## [0.4.0] - 2026-10-13
 
 ### Candidatures
