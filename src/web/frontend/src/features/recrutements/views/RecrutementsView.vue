@@ -3,7 +3,7 @@ import type { AssignationResponsableResultat, RecrutementKey } from '../types'
 import type { CspBreadcrumbItem } from '@/components/base/CspBreadcrumb/CspBreadcrumb.vue'
 import type { ToastOptions } from '@/composables/ui/useToast'
 import type { AgentRecherche } from '@/features/agents/types'
-import { computed, ref, watch } from 'vue'
+import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { HttpError, isHttpStatus } from '@/api/errors'
 import CspAsyncSection from '@/components/base/CspAsyncSection/CspAsyncSection.vue'
@@ -175,14 +175,6 @@ function applyArchivesFilters() {
   archivesFilters.apply()
   archivesFiltersDrawer.close()
 }
-
-watch(actifsFilters.filtered, () => {
-  recrutementsActifsPage.value = 1
-})
-
-watch(archivesFilters.filtered, () => {
-  recrutementsArchivesPage.value = 1
-})
 
 const aucunRecrutementActif = computed(
   () => !showActifsSkeleton.value && recrutementsData.actifs.length === 0,

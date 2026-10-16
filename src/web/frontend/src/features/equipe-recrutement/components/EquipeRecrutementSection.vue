@@ -137,10 +137,6 @@ const { search, filtered } = useTextSearch(membres, membre => [
   membre.email,
 ])
 
-watch(filtered, () => {
-  page.value = 1
-})
-
 const countLabel = computed(() => {
   const count = filtered.value.length
   return `${count} ${pluralize(count, 'membre')}`
