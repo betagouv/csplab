@@ -94,7 +94,7 @@ class CandidatureConversationDetailView(SessionApiMixin, ListAPIView):
             conversation_id=conversation_uuid,
             content=serializer.validated_data["content"],
             documents=serializer.validated_data["documents"],
-            utilisateur=UtilisateurMapper().to_domain(request),
+            utilisateur=request.user,
         )
         return Response(
             ConversationMessageSerializer(message).data,

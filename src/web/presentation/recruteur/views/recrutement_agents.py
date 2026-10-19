@@ -37,7 +37,6 @@ from domain.recruteur.errors.recrutement_agent_errors import (
 from domain.recruteur.errors.recrutement_errors import RecrutementInexistant
 from presentation.api.authentication import SessionApiMixin
 from presentation.api.serializers import GenericErrorSerializer, generic_response_format
-from presentation.recruteur.mappers import UtilisateurMapper
 from presentation.recruteur.serializers import (
     RecrutementAgentRoleSerializer,
     RecrutementAgentSerializer,
@@ -86,7 +85,7 @@ class RecrutementAgentsView(SessionApiMixin, ListAPIView):
         return list_recrutement_agents(
             organisme_id=self.kwargs["organisme_uuid"],
             recrutement_id=self.kwargs["recrutement_uuid"],
-            utilisateur=UtilisateurMapper().to_domain(self.request),
+            utilisateur=self.request.user,
         )
 
     def post(
@@ -103,7 +102,7 @@ class RecrutementAgentsView(SessionApiMixin, ListAPIView):
             recrutement_id=recrutement_uuid,
             agent_id=serializer.validated_data["agent_id"],
             role=serializer.validated_data["recrutement_role"],
-            utilisateur=UtilisateurMapper().to_domain(request),
+            utilisateur=request.user,
         )
         return Response(
             RecrutementAgentSerializer(recrutement_agent).data,
@@ -125,7 +124,7 @@ class RecrutementAgentsView(SessionApiMixin, ListAPIView):
                 organisme_id=organisme_uuid,
                 recrutement_id=recrutement_uuid,
                 agent_id=data["agent_id"],
-                utilisateur=UtilisateurMapper().to_domain(request),
+                utilisateur=request.user,
             )
             return Response(
                 RecrutementAgentRoleSerializer(data).data,
@@ -136,7 +135,7 @@ class RecrutementAgentsView(SessionApiMixin, ListAPIView):
             recrutement_id=recrutement_uuid,
             agent_id=data["agent_id"],
             role=data["recrutement_role"],
-            utilisateur=UtilisateurMapper().to_domain(request),
+            utilisateur=request.user,
         )
         return Response(
             RecrutementAgentRoleSerializer(data).data,
@@ -211,7 +210,7 @@ class RecrutementsResponsableView(SessionApiMixin, APIView):
             organisme_id=organisme_uuid,
             recrutement_ids=data["recrutement_ids"],
             agent_id=data["agent_id"],
-            utilisateur=UtilisateurMapper().to_domain(request),
+            utilisateur=request.user,
         )
         return Response(
             SetRecrutementsResponsableResultatSerializer(

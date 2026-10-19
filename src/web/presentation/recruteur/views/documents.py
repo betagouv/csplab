@@ -30,7 +30,6 @@ from domain.recruteur.errors.recrutement_errors import (
 from presentation.api.authentication import SessionApiMixin
 from presentation.api.serializers import GenericErrorSerializer, generic_response_format
 from presentation.commons.pagination import PageNumberLimitPagination
-from presentation.recruteur.mappers import UtilisateurMapper
 from presentation.recruteur.serializers import DocumentListeSerializer
 
 
@@ -61,7 +60,7 @@ class DocumentView(SessionApiMixin, APIView):
             recrutement_id=recrutement_uuid,
             candidature_id=candidature_uuid,
             document_id=document_uuid,
-            utilisateur=UtilisateurMapper().to_domain(request),
+            utilisateur=request.user,
         )
         return FileResponse(
             document.fichier.open("rb"),
@@ -114,7 +113,7 @@ class CandidatureDocumentsView(SessionApiMixin, ListAPIView):
             organisme_id=self.kwargs["organisme_uuid"],
             recrutement_id=self.kwargs["recrutement_uuid"],
             candidature_id=self.kwargs["candidature_uuid"],
-            utilisateur=UtilisateurMapper().to_domain(self.request),
+            utilisateur=self.request.user,
         )
 
     def handle_exception(self, exc: Exception) -> Response:

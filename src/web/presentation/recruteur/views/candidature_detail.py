@@ -21,7 +21,6 @@ from domain.recruteur.errors.recrutement_errors import (
 )
 from presentation.api.authentication import SessionApiMixin
 from presentation.api.serializers import GenericErrorSerializer, generic_response_format
-from presentation.recruteur.mappers import UtilisateurMapper
 from presentation.recruteur.serializers import CandidatureDetailSerializer
 
 
@@ -45,7 +44,7 @@ class CandidatureDetailView(SessionApiMixin, APIView):
             organisme_id=organisme_uuid,
             recrutement_id=recrutement_uuid,
             candidature_id=candidature_uuid,
-            utilisateur=UtilisateurMapper().to_domain(request),
+            utilisateur=request.user,
         )
         return Response(CandidatureDetailSerializer(result).data)
 

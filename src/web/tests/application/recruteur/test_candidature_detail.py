@@ -32,7 +32,9 @@ from infrastructure.factories.identite.organisme_django_factory import (
     OrganismeDjangoFactory,
     create_organisme_with_agent,
 )
-from infrastructure.factories.identite.utilisateur_factory import UtilisateurFactory
+from infrastructure.factories.identite.utilisateur_django_factory import (
+    UtilisateurDjangoFactory,
+)
 from infrastructure.factories.recruteur.recrutement_django_factory import (
     EtapeDjangoFactory,
     RecrutementAgentDjangoFactory,
@@ -40,16 +42,12 @@ from infrastructure.factories.recruteur.recrutement_django_factory import (
 )
 
 
-def _utilisateur(entity_id):
-    return UtilisateurFactory.create_entity(entity_id=entity_id)
-
-
 def _get_detail(agent, organisme, recrutement, candidature):
     return get_candidature_detail(
         organisme_id=organisme.id,
         recrutement_id=recrutement.pk,
         candidature_id=candidature.pk,
-        utilisateur=_utilisateur(agent.utilisateur_id),
+        utilisateur=agent.utilisateur,
     )
 
 
@@ -137,12 +135,12 @@ def test_agent_member_of_recrutement_gets_the_detail(db):
     assert result.candidature == candidature
 
 
-def _kwargs(utilisateur_id, organisme, recrutement, candidature):
+def _kwargs(utilisateur, organisme, recrutement, candidature):
     return {
         "organisme_id": organisme.id,
         "recrutement_id": recrutement.pk,
         "candidature_id": candidature.pk,
-        "utilisateur": _utilisateur(utilisateur_id),
+        "utilisateur": utilisateur,
     }
 
 
@@ -150,14 +148,14 @@ def _agent_not_member_of_recrutement():
     agent, organisme = create_organisme_with_agent(role=AgentOrganismeRole.AGENT)
     recrutement = RecrutementDjangoFactory(organisme=organisme)
     candidature = CandidatureDjangoFactory(etape__recrutement=recrutement)
-    return _kwargs(agent.utilisateur_id, organisme, recrutement, candidature)
+    return _kwargs(agent.utilisateur, organisme, recrutement, candidature)
 
 
 def _user_without_organisme_role():
     organisme = OrganismeDjangoFactory()
     recrutement = RecrutementDjangoFactory(organisme=organisme)
     candidature = CandidatureDjangoFactory(etape__recrutement=recrutement)
-    return _kwargs(uuid4(), organisme, recrutement, candidature)
+    return _kwargs(UtilisateurDjangoFactory(), organisme, recrutement, candidature)
 
 
 def _unknown_organisme():
@@ -165,7 +163,7 @@ def _unknown_organisme():
         "organisme_id": uuid4(),
         "recrutement_id": uuid4(),
         "candidature_id": uuid4(),
-        "utilisateur": _utilisateur(uuid4()),
+        "utilisateur": UtilisateurDjangoFactory(),
     }
 
 
@@ -173,7 +171,7 @@ def _recrutement_not_under_organisme():
     agent, organisme = create_organisme_with_agent(role=AgentOrganismeRole.SUPERVISEUR)
     other_recrutement = RecrutementDjangoFactory(organisme=OrganismeDjangoFactory())
     candidature = CandidatureDjangoFactory(etape__recrutement=other_recrutement)
-    return _kwargs(agent.utilisateur_id, organisme, other_recrutement, candidature)
+    return _kwargs(agent.utilisateur, organisme, other_recrutement, candidature)
 
 
 def _candidature_of_another_recrutement():
@@ -181,7 +179,7 @@ def _candidature_of_another_recrutement():
     other_candidature = CandidatureDjangoFactory(
         etape__recrutement=RecrutementDjangoFactory(organisme=organisme)
     )
-    return _kwargs(agent.utilisateur_id, organisme, recrutement, other_candidature)
+    return _kwargs(agent.utilisateur, organisme, recrutement, other_candidature)
 
 
 @pytest.mark.parametrize(

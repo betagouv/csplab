@@ -13,7 +13,6 @@ from application.recruteur.context_services.organisme_agent_service import (
     get_profil_agent,
 )
 from domain.commons.services.audit_log_writer import AuditLogWriter
-from domain.identite.entities.utilisateurs import Utilisateur
 from domain.identite.value_objects.organisme_action import OrganismeAction
 from domain.recruteur.errors.recrutement_errors import RecrutementInexistant
 from domain.recruteur.value_objects.roles import AgentRecrutementRole
@@ -21,6 +20,7 @@ from infrastructure.django_apps.recruteur.models.recrutement import (
     RecrutementAgentModel,
     RecrutementModel,
 )
+from infrastructure.django_apps.users.models import UserModel
 from infrastructure.repositories.commons.postgres_audit_log_repository import (
     PostgresAuditLogRepository,
 )
@@ -41,7 +41,7 @@ def set_recrutements_responsable(
     organisme_id: UUID,
     recrutement_ids: list[UUID],
     agent_id: UUID,
-    utilisateur: Utilisateur,
+    utilisateur: UserModel,
 ) -> SetRecrutementsResponsableResultat:
     OrganismePermissionService().can_execute(
         action=OrganismeAction.SET_RECRUTEMENTS_RESPONSABLE,
@@ -107,7 +107,7 @@ def set_recrutements_responsable(
 
         for recrutement_id in successes:
             AuditLogWriter(repository=PostgresAuditLogRepository()).log_action(
-                utilisateur_id=utilisateur.entity_id,
+                utilisateur_id=utilisateur.username,
                 entity=Entity(entity_id=recrutement_id),
                 ressource_kind="RecrutementAgent",
                 event_name=(

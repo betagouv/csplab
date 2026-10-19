@@ -11,9 +11,9 @@ from application.recruteur.context_services.candidature_agent_service import (
 from application.recruteur.context_services.recrutement_agent_service import (
     RecrutementAgentService,
 )
-from domain.identite.entities.utilisateurs import Utilisateur
 from domain.identite.value_objects.organisme_action import OrganismeAction
 from infrastructure.django_apps.recruteur.models.note import NoteModel
+from infrastructure.django_apps.users.models import UserModel
 
 
 def list_notes(
@@ -21,7 +21,7 @@ def list_notes(
     organisme_id: UUID,
     recrutement_id: UUID,
     candidature_id: UUID,
-    utilisateur: Utilisateur,
+    utilisateur: UserModel,
 ) -> QuerySet[NoteModel]:
     OrganismePermissionService().can_execute(
         action=OrganismeAction.LIST_NOTES,

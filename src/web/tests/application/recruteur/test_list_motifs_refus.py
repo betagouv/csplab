@@ -13,7 +13,6 @@ from infrastructure.factories.identite.organisme_django_factory import (
 from infrastructure.factories.identite.utilisateur_django_factory import (
     UtilisateurDjangoFactory,
 )
-from infrastructure.mappers.utilisateur_mapper import UtilisateurMapper
 
 
 @pytest.mark.parametrize(
@@ -24,7 +23,7 @@ def test_agent_gets_full_motifs_list(db, role):
 
     result = list_motifs_refus(
         organisme_id=organisme.id,
-        utilisateur=UtilisateurMapper().to_domain(agent.utilisateur),
+        utilisateur=agent.utilisateur,
     )
 
     assert result == list(MotifRefus)
@@ -36,7 +35,7 @@ def test_staff_without_role_gets_full_motifs_list(db):
 
     result = list_motifs_refus(
         organisme_id=organisme.id,
-        utilisateur=UtilisateurMapper().to_domain(staff),
+        utilisateur=staff,
     )
 
     assert result == list(MotifRefus)
@@ -49,12 +48,12 @@ def test_non_agent_is_denied(db):
     with pytest.raises(AccesOrganismeRefuse):
         list_motifs_refus(
             organisme_id=organisme.id,
-            utilisateur=UtilisateurMapper().to_domain(autre_utilisateur),
+            utilisateur=autre_utilisateur,
         )
 
 
 def test_unknown_organisme_raises(db):
-    utilisateur = UtilisateurMapper().to_domain(UtilisateurDjangoFactory())
+    utilisateur = UtilisateurDjangoFactory()
 
     with pytest.raises(OrganismeNexistePas):
         list_motifs_refus(
