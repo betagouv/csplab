@@ -1,6 +1,6 @@
 # Correspondance offre Talentsoft → offre API v1
 
-_Dernière mise à jour : 2026-10-14_
+_Dernière mise à jour : 2026-10-19_
 
 Conversion d'une offre au format Talentsoft en offre envoyée à l'API.
 L'API fake-ts (`/api/fake-ts/`, `OfferSummaryOutputMapper` et `OfferDetailOutputMapper` dans `src/web/presentation/ingestion/mappers.py`) expose les offres du web au format Talentsoft : les notes « API fake-ts » décrivent ce qu'elle renvoie.
@@ -70,6 +70,7 @@ Notation : `a.b` désigne un objet imbriqué, `a[]` une liste, `a[0]` son premie
 | `urlRedirectionEmployee` | |
 | `locations` | |
 | `isAnonymousOrganisation` | |
+| `numberOfVacancies` | Nombre de postes à pourvoir. Jamais renseigné par Talentsoft : toujours `null` dans les offres chargées par l'ingestion (vérifié le 2026-10-19). |
 | `organisation.name` | Données d'organisme, synchronisées par l'upsert séparé des organismes Talentsoft (`TalentsoftOrganismeUpsertInputSerializer`), pas par le payload d'offre. |
 | `organisation.description` | Données d'organisme, synchronisées par l'upsert séparé des organismes Talentsoft (`TalentsoftOrganismeUpsertInputSerializer`), pas par le payload d'offre. |
 | `organisation.url` | Données d'organisme, synchronisées par l'upsert séparé des organismes Talentsoft (`TalentsoftOrganismeUpsertInputSerializer`), pas par le payload d'offre. |
