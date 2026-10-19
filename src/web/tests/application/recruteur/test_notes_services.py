@@ -34,7 +34,6 @@ from infrastructure.factories.identite.organisme_django_factory import (
 from infrastructure.factories.identite.utilisateur_django_factory import (
     UtilisateurDjangoFactory,
 )
-from infrastructure.factories.identite.utilisateur_factory import UtilisateurFactory
 from infrastructure.factories.recruteur.note_django_factory import NoteDjangoFactory
 from infrastructure.factories.recruteur.recrutement_django_factory import (
     RecrutementDjangoFactory,
@@ -44,10 +43,6 @@ from infrastructure.repositories.commons.postgres_audit_log_repository import (
 )
 
 fake = Faker("fr_FR")
-
-
-def _utilisateur(entity_id, *, is_staff=False):
-    return UtilisateurFactory.create_entity(entity_id=entity_id, is_staff=is_staff)
 
 
 def _logs(note_id):
@@ -69,7 +64,7 @@ class TestListNotes:
             organisme_id=organisme.id,
             recrutement_id=recrutement.pk,
             candidature_id=candidature.id,
-            utilisateur=_utilisateur(agent.utilisateur_id),
+            utilisateur=agent.utilisateur,
         )
 
         assert [note.pk for note in notes] == [newer.pk, older.pk]
@@ -85,7 +80,7 @@ class TestListNotes:
             organisme_id=organisme.id,
             recrutement_id=recrutement.pk,
             candidature_id=candidature.id,
-            utilisateur=_utilisateur(agent.utilisateur_id),
+            utilisateur=agent.utilisateur,
         )
 
         assert [note.pk for note in notes] == [kept.pk]
@@ -100,7 +95,7 @@ class TestListNotes:
             organisme_id=organisme.id,
             recrutement_id=recrutement.pk,
             candidature_id=candidature.id,
-            utilisateur=_utilisateur(agent.utilisateur_id),
+            utilisateur=agent.utilisateur,
         )
 
         assert list(notes) == []
@@ -115,7 +110,7 @@ class TestListNotes:
             organisme_id=organisme.id,
             recrutement_id=recrutement.pk,
             candidature_id=candidature.id,
-            utilisateur=_utilisateur(agent.utilisateur_id),
+            utilisateur=agent.utilisateur,
         )
 
         with django_assert_num_queries(1):
@@ -133,7 +128,7 @@ class TestListNotes:
                 organisme_id=organisme.id,
                 recrutement_id=recrutement.pk,
                 candidature_id=candidature.id,
-                utilisateur=_utilisateur(uuid4()),
+                utilisateur=UtilisateurDjangoFactory(),
             )
 
     def test_denied_when_agent_role_not_attached_to_recrutement(self, db):
@@ -146,7 +141,7 @@ class TestListNotes:
                 organisme_id=organisme.id,
                 recrutement_id=recrutement.pk,
                 candidature_id=candidature.id,
-                utilisateur=_utilisateur(membre.utilisateur_id),
+                utilisateur=membre.utilisateur,
             )
 
     def test_allowed_for_agent_role_attached_as_contributeur(self, db):
@@ -163,7 +158,7 @@ class TestListNotes:
             organisme_id=organisme.id,
             recrutement_id=recrutement.pk,
             candidature_id=candidature.id,
-            utilisateur=_utilisateur(membre.utilisateur_id),
+            utilisateur=membre.utilisateur,
         )
 
         assert [n.pk for n in notes] == [note.pk]
@@ -179,7 +174,7 @@ class TestListNotes:
                 organisme_id=organisme.id,
                 recrutement_id=other_recrutement.pk,
                 candidature_id=candidature.id,
-                utilisateur=_utilisateur(agent.utilisateur_id),
+                utilisateur=agent.utilisateur,
             )
 
     def test_candidature_not_in_recrutement(self, db):
@@ -193,7 +188,7 @@ class TestListNotes:
                 organisme_id=organisme.id,
                 recrutement_id=recrutement.pk,
                 candidature_id=other_candidature.id,
-                utilisateur=_utilisateur(agent.utilisateur_id),
+                utilisateur=agent.utilisateur,
             )
 
 
@@ -209,7 +204,7 @@ class TestCreateNote:
             recrutement_id=recrutement.pk,
             candidature_id=candidature.id,
             message=message,
-            utilisateur=_utilisateur(agent.utilisateur_id),
+            utilisateur=agent.utilisateur,
         )
 
         saved = NoteModel.objects.get(pk=note.id)
@@ -232,7 +227,7 @@ class TestCreateNote:
                 recrutement_id=recrutement.pk,
                 candidature_id=candidature.id,
                 message="x",
-                utilisateur=_utilisateur(uuid4()),
+                utilisateur=UtilisateurDjangoFactory(),
             )
 
         assert not NoteModel.objects.exists()
@@ -249,7 +244,7 @@ class TestCreateNote:
                 recrutement_id=other_recrutement.pk,
                 candidature_id=candidature.id,
                 message="x",
-                utilisateur=_utilisateur(agent.utilisateur_id),
+                utilisateur=agent.utilisateur,
             )
 
         assert not NoteModel.objects.exists()
@@ -266,7 +261,7 @@ class TestCreateNote:
                 recrutement_id=recrutement.pk,
                 candidature_id=other_candidature.id,
                 message="x",
-                utilisateur=_utilisateur(agent.utilisateur_id),
+                utilisateur=agent.utilisateur,
             )
 
         assert not NoteModel.objects.exists()
@@ -289,7 +284,7 @@ class TestCreateNote:
             recrutement_id=recrutement.pk,
             candidature_id=candidature.id,
             message="x",
-            utilisateur=_utilisateur(staff.username, is_staff=True),
+            utilisateur=staff,
         )
 
         assert NoteModel.objects.filter(pk=note.id).exists()
@@ -310,7 +305,7 @@ class TestUpdateNote:
             candidature_id=candidature.id,
             note_id=note.id,
             message="après",
-            utilisateur=_utilisateur(agent.utilisateur_id),
+            utilisateur=agent.utilisateur,
         )
 
         assert edited.message == "après"
@@ -330,7 +325,7 @@ class TestUpdateNote:
                 candidature_id=candidature.id,
                 note_id=uuid4(),
                 message="x",
-                utilisateur=_utilisateur(agent.utilisateur_id),
+                utilisateur=agent.utilisateur,
             )
 
     def test_update_note_of_another_author_is_not_found(self, db):
@@ -346,7 +341,7 @@ class TestUpdateNote:
                 candidature_id=candidature.id,
                 note_id=note.id,
                 message="après",
-                utilisateur=_utilisateur(agent.utilisateur_id),
+                utilisateur=agent.utilisateur,
             )
 
         assert NoteModel.objects.get(pk=note.id).message == "avant"
@@ -365,7 +360,7 @@ class TestUpdateNote:
                 candidature_id=candidature.id,
                 note_id=note.id,
                 message="après",
-                utilisateur=_utilisateur(agent.utilisateur_id),
+                utilisateur=agent.utilisateur,
             )
 
         assert NoteModel.objects.get(pk=note.id).message == "avant"
@@ -386,7 +381,7 @@ class TestUpdateNote:
                 candidature_id=candidature.id,
                 note_id=note.id,
                 message="x",
-                utilisateur=_utilisateur(agent.utilisateur_id),
+                utilisateur=agent.utilisateur,
             )
 
     def test_denied_without_organisme_role(self, db):
@@ -402,7 +397,7 @@ class TestUpdateNote:
                 candidature_id=candidature.id,
                 note_id=note.id,
                 message="x",
-                utilisateur=_utilisateur(uuid4()),
+                utilisateur=UtilisateurDjangoFactory(),
             )
 
         assert NoteModel.objects.get(pk=note.id).message == note.message
@@ -421,7 +416,7 @@ class TestUpdateNote:
                 candidature_id=candidature.id,
                 note_id=note.id,
                 message="x",
-                utilisateur=_utilisateur(agent.utilisateur_id),
+                utilisateur=agent.utilisateur,
             )
 
     def test_candidature_not_in_recrutement(self, db):
@@ -438,7 +433,7 @@ class TestUpdateNote:
                 candidature_id=other_candidature.id,
                 note_id=note.id,
                 message="x",
-                utilisateur=_utilisateur(agent.utilisateur_id),
+                utilisateur=agent.utilisateur,
             )
 
 
@@ -454,7 +449,7 @@ class TestDeleteNote:
             recrutement_id=recrutement.pk,
             candidature_id=candidature.id,
             note_id=note.id,
-            utilisateur=_utilisateur(agent.utilisateur_id),
+            utilisateur=agent.utilisateur,
         )
 
         assert NoteModel.objects.get(pk=note.id).supprimee_le is not None
@@ -472,7 +467,7 @@ class TestDeleteNote:
                 recrutement_id=recrutement.pk,
                 candidature_id=candidature.id,
                 note_id=uuid4(),
-                utilisateur=_utilisateur(agent.utilisateur_id),
+                utilisateur=agent.utilisateur,
             )
 
     def test_delete_note_of_another_author_is_not_found(self, db):
@@ -487,7 +482,7 @@ class TestDeleteNote:
                 recrutement_id=recrutement.pk,
                 candidature_id=candidature.id,
                 note_id=note.id,
-                utilisateur=_utilisateur(agent.utilisateur_id),
+                utilisateur=agent.utilisateur,
             )
 
         assert NoteModel.objects.get(pk=note.id).supprimee_le is None
@@ -505,7 +500,7 @@ class TestDeleteNote:
                 recrutement_id=recrutement.pk,
                 candidature_id=candidature.id,
                 note_id=note.id,
-                utilisateur=_utilisateur(agent.utilisateur_id),
+                utilisateur=agent.utilisateur,
             )
 
         assert NoteModel.objects.get(pk=note.id).supprimee_le is None
@@ -521,7 +516,7 @@ class TestDeleteNote:
             recrutement_id=recrutement.pk,
             candidature_id=candidature.id,
             note_id=note.id,
-            utilisateur=_utilisateur(agent.utilisateur_id),
+            utilisateur=agent.utilisateur,
         )
 
         with pytest.raises(NoteIntrouvable):
@@ -530,7 +525,7 @@ class TestDeleteNote:
                 recrutement_id=recrutement.pk,
                 candidature_id=candidature.id,
                 note_id=note.id,
-                utilisateur=_utilisateur(agent.utilisateur_id),
+                utilisateur=agent.utilisateur,
             )
 
     def test_denied_without_organisme_role(self, db):
@@ -545,7 +540,7 @@ class TestDeleteNote:
                 recrutement_id=recrutement.pk,
                 candidature_id=candidature.id,
                 note_id=note.id,
-                utilisateur=_utilisateur(uuid4()),
+                utilisateur=UtilisateurDjangoFactory(),
             )
 
         assert NoteModel.objects.get(pk=note.id).supprimee_le is None
@@ -563,7 +558,7 @@ class TestDeleteNote:
                 recrutement_id=other_recrutement.pk,
                 candidature_id=candidature.id,
                 note_id=note.id,
-                utilisateur=_utilisateur(agent.utilisateur_id),
+                utilisateur=agent.utilisateur,
             )
 
     def test_candidature_not_in_recrutement(self, db):
@@ -579,5 +574,5 @@ class TestDeleteNote:
                 recrutement_id=recrutement.pk,
                 candidature_id=other_candidature.id,
                 note_id=note.id,
-                utilisateur=_utilisateur(agent.utilisateur_id),
+                utilisateur=agent.utilisateur,
             )

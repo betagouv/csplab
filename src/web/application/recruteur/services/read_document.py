@@ -10,12 +10,12 @@ from application.identite.context_services.organisme_permission_service import (
 from application.recruteur.context_services.recrutement_agent_service import (
     RecrutementAgentService,
 )
-from domain.identite.entities.utilisateurs import Utilisateur
 from domain.identite.value_objects.organisme_action import OrganismeAction
 from domain.recruteur.errors.recrutement_errors import (
     RecrutementDocumentTypeNonAutorise,
 )
 from infrastructure.django_apps.candidate.models.document import DocumentModel
+from infrastructure.django_apps.users.models import UserModel
 
 
 class DocumentDownload(NamedTuple):
@@ -29,7 +29,7 @@ def read_document(
     recrutement_id: UUID,
     candidature_id: UUID,
     document_id: UUID,
-    utilisateur: Utilisateur,
+    utilisateur: UserModel,
 ) -> DocumentDownload:
     OrganismePermissionService().can_execute(
         action=OrganismeAction.READ_DOCUMENT,

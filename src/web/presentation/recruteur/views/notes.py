@@ -26,7 +26,6 @@ from domain.recruteur.errors.recrutement_errors import (
 )
 from presentation.api.authentication import SessionApiMixin
 from presentation.api.serializers import GenericErrorSerializer, TokenErrorSerializer
-from presentation.recruteur.mappers import UtilisateurMapper
 from presentation.recruteur.serializers import (
     CreateNoteSerializer,
     NoteDetailSerializer,
@@ -105,7 +104,7 @@ class CandidatureNotesView(NoteBaseView, ListAPIView):
             organisme_id=self.kwargs["organisme_uuid"],
             recrutement_id=self.kwargs["recrutement_uuid"],
             candidature_id=self.kwargs["candidature_uuid"],
-            utilisateur=UtilisateurMapper().to_domain(self.request),
+            utilisateur=self.request.user,
         )
 
     def post(
@@ -124,7 +123,7 @@ class CandidatureNotesView(NoteBaseView, ListAPIView):
             recrutement_id=recrutement_uuid,
             candidature_id=candidature_uuid,
             message=serializer.validated_data["message"],
-            utilisateur=UtilisateurMapper().to_domain(request),
+            utilisateur=request.user,
         )
         return Response(
             NoteDetailSerializer(note).data,
@@ -176,7 +175,7 @@ class CandidatureNoteDetailView(NoteBaseView):
             candidature_id=candidature_uuid,
             note_id=note_uuid,
             message=serializer.validated_data["message"],
-            utilisateur=UtilisateurMapper().to_domain(request),
+            utilisateur=request.user,
         )
         return Response(NoteDetailSerializer(note).data)
 
@@ -193,6 +192,6 @@ class CandidatureNoteDetailView(NoteBaseView):
             recrutement_id=recrutement_uuid,
             candidature_id=candidature_uuid,
             note_id=note_uuid,
-            utilisateur=UtilisateurMapper().to_domain(request),
+            utilisateur=request.user,
         )
         return Response(status=status.HTTP_204_NO_CONTENT)

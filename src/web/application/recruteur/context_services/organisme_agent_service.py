@@ -3,11 +3,10 @@ from uuid import UUID, uuid4
 from ddd.entity import Entity
 
 from domain.commons.services.audit_log_writer import AuditLogWriter
-from domain.identite.entities.utilisateurs import Utilisateur
 from domain.identite.errors.agent_errors import ProfilAgentNexistePas
 from domain.recruteur.value_objects.roles import AgentOrganismeRole
 from infrastructure.django_apps.recruteur.models.organisme import OrganismeAgentModel
-from infrastructure.django_apps.users.models import ProfilAgentModel
+from infrastructure.django_apps.users.models import ProfilAgentModel, UserModel
 from infrastructure.repositories.commons.postgres_audit_log_repository import (
     PostgresAuditLogRepository,
 )
@@ -21,7 +20,7 @@ def get_profil_agent(agent_id: UUID) -> ProfilAgentModel:
 
 
 def attach_agent_to_organisme(
-    *, organisme_id: UUID, agent: ProfilAgentModel, utilisateur: Utilisateur
+    *, organisme_id: UUID, agent: ProfilAgentModel, utilisateur: UserModel
 ) -> None:
     """
     Must be called inside a transaction
@@ -44,7 +43,7 @@ def attach_agent_to_organisme(
         },
     )
     AuditLogWriter(repository=PostgresAuditLogRepository()).log_action(
-        utilisateur_id=utilisateur.entity_id,
+        utilisateur_id=utilisateur.username,
         entity=Entity(entity_id=agent.utilisateur_id),
         ressource_kind="AgentOrganisme",
         event_name="AgentOrganismeRoleAttache",

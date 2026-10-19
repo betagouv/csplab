@@ -13,9 +13,9 @@ from application.recruteur.context_services.recrutement_agent_service import (
     RecrutementAgentService,
 )
 from domain.commons.services.audit_log_writer import AuditLogWriter
-from domain.identite.entities.utilisateurs import Utilisateur
 from domain.identite.value_objects.organisme_action import OrganismeAction
 from infrastructure.django_apps.recruteur.models.note import NoteModel
+from infrastructure.django_apps.users.models import UserModel
 from infrastructure.repositories.commons.postgres_audit_log_repository import (
     PostgresAuditLogRepository,
 )
@@ -27,7 +27,7 @@ def create_note(
     recrutement_id: UUID,
     candidature_id: UUID,
     message: str,
-    utilisateur: Utilisateur,
+    utilisateur: UserModel,
 ) -> NoteModel:
     OrganismePermissionService().can_execute(
         action=OrganismeAction.CREATE_NOTE,
@@ -44,7 +44,7 @@ def create_note(
     )
     candidature_service.check_candidature_belongs_to_recrutement()
 
-    publie_par_id = utilisateur.entity_id
+    publie_par_id = utilisateur.username
 
     with transaction.atomic():
         note = NoteModel.objects.create(

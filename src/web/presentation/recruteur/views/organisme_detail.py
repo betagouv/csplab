@@ -247,7 +247,7 @@ class MotifsRefusOrganismeView(SessionApiMixin, APIView):
         try:
             motifs = list_motifs_refus(
                 organisme_id=organisme_uuid,
-                utilisateur=UtilisateurMapper().to_domain(request),
+                utilisateur=request.user,
             )
             data = [{"value": m.value, "label": m.label} for m in motifs]
             return Response(MotifRefusSerializer(data, many=True).data)

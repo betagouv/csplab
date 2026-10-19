@@ -22,15 +22,13 @@ from infrastructure.factories.identite.organisme_django_factory import (
     OrganismeDjangoFactory,
     create_organisme_with_agent,
 )
-from infrastructure.factories.identite.utilisateur_factory import UtilisateurFactory
+from infrastructure.factories.identite.utilisateur_django_factory import (
+    UtilisateurDjangoFactory,
+)
 from infrastructure.factories.recruteur.recrutement_django_factory import (
     EtapeDjangoFactory,
     RecrutementDjangoFactory,
 )
-
-
-def _utilisateur(entity_id):
-    return UtilisateurFactory.create_entity(entity_id=entity_id)
 
 
 def test_authorized_agent_gets_the_document(db):
@@ -46,7 +44,7 @@ def test_authorized_agent_gets_the_document(db):
         recrutement_id=recrutement.pk,
         candidature_id=candidature.pk,
         document_id=document.pk,
-        utilisateur=_utilisateur(agent.utilisateur_id),
+        utilisateur=agent.utilisateur,
     )
 
     assert result.document.pk == document.pk
@@ -67,7 +65,7 @@ def test_unauthorized_agent_is_denied(db):
             recrutement_id=recrutement.pk,
             candidature_id=candidature.pk,
             document_id=document.pk,
-            utilisateur=_utilisateur(uuid4()),
+            utilisateur=UtilisateurDjangoFactory(),
         )
 
 
@@ -78,7 +76,7 @@ def test_unknown_organisme_is_denied(db):
             recrutement_id=uuid4(),
             candidature_id=uuid4(),
             document_id=uuid4(),
-            utilisateur=_utilisateur(uuid4()),
+            utilisateur=UtilisateurDjangoFactory(),
         )
 
 
@@ -97,7 +95,7 @@ def test_recrutement_not_under_organisme_is_denied(db):
             recrutement_id=other_recrutement.pk,
             candidature_id=candidature.pk,
             document_id=document.pk,
-            utilisateur=_utilisateur(agent.utilisateur_id),
+            utilisateur=agent.utilisateur,
         )
 
 
@@ -120,7 +118,7 @@ def test_document_with_disallowed_content_type_is_rejected(db):
             recrutement_id=recrutement.pk,
             candidature_id=candidature.pk,
             document_id=document.pk,
-            utilisateur=_utilisateur(agent.utilisateur_id),
+            utilisateur=agent.utilisateur,
         )
 
 
@@ -138,5 +136,5 @@ def test_mismatched_candidature_is_denied(db):
             recrutement_id=recrutement.pk,
             candidature_id=other_candidature.pk,
             document_id=document.pk,
-            utilisateur=_utilisateur(agent.utilisateur_id),
+            utilisateur=agent.utilisateur,
         )
