@@ -25,7 +25,7 @@ withDefaults(defineProps<CspSkeletonProps>(), {
 .csp-skeleton {
   display: block;
   max-width: 100%;
-  border-radius: var(--csp-radius-surface);
+  border-radius: var(--csp-surface-radius, 0.25rem);
   background: var(--background-alt-grey);
   animation: csp-skeleton-pulse 1.5s ease-in-out infinite;
 }

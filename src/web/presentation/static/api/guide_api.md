@@ -113,7 +113,10 @@ L'API est organisée en quatre grands domaines :
 Retourne la liste des offres d'emploi de la Fonction Publique, **paginée** (renvoyée
 par lots plutôt qu'en une seule fois). La pagination se pilote avec les paramètres
 `page` (numéro de page, défaut `1`) et `taille` (nombre d'éléments par page, défaut
-`100`).
+`100`, maximum `1000`). Une `taille` supérieure à `1000` est ramenée à `1000`. Une
+valeur absente, non numérique ou inférieure à `1` est remplacée par la valeur par
+défaut. Pour parcourir toutes les offres, suivez le lien `next` de chaque réponse
+jusqu'à ce qu'il vaille `null`.
 
 ### Filtres disponibles
 
@@ -189,6 +192,7 @@ noms utilisés par `POST /api/v1/offres/creer_modifier` (voir section 4) :
 | `criteres` | Critères de l'offre (diplôme, expérience, langues…) | Oui |
 | `conditions` | Conditions de l'offre (rémunération, temps de travail…) | Oui |
 | `contacts` | Contacts de l'offre (`role`, `texte`, `emails`), `principal` puis `autre` | Oui |
+| `fin_publication` | Date de fin de publication | Oui |
 | `debut_contrat` | Date de début du contrat | Oui |
 | `fin_candidature` | Date limite de candidature | Oui |
 | `debut_vacance_poste` | Date à partir de laquelle le poste est vacant | Oui |
@@ -585,7 +589,7 @@ Notation : `a.b` désigne un objet imbriqué, `a[]` une liste, `a[0]` son premie
 | `geolocation.longitude` | `localisation[0].longitude` | Repli sur `longitude`, puis sur `organisation.geolocation.longitude`. |
 | `customFields.location.shortText1` | `localisation[0].localisation_label` | |
 | `startPublicationDate` | `publication.debut_publication` | |
-| `endPublicationDate` | `publication.fin_publication` | Repli sur `beginningDate`, puis sur `debut_publication` + 365 jours. Le `OfferInputMapper` du web ne lit jamais `fin_publication`. |
+| `endPublicationDate` | `publication.fin_publication` | Repli sur `beginningDate`, puis sur `debut_publication` + 365 jours. API fake-ts : reprend `fin_publication`, `null` pour les offres reçues avant son enregistrement. |
 | `customFields.offer.date1` | `publication.fin_candidature` | |
 | `beginningDate` | `conditions.debut_contrat` | Sert aussi de repli pour `fin_publication`. |
 | `beginningDate` | `publication.debut_vacance_poste` | Comme l'ancien site WordPress (« Vacant à partir du … », « Poste à pourvoir le … »). |

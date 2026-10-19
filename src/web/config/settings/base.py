@@ -43,11 +43,11 @@ env = environ.Env(
     WEB_MATOMO_SITE_ID=(int, 1),
     WEB_QDRANT_URL=(str, ""),
     WEB_QDRANT_API_KEY=(str, ""),
-    # SCALINGO_REDIS_URL is injected by the Scalingo redis addon (e.g. review apps)
-    WEB_REDIS_URL=(str, os.environ.get("SCALINGO_REDIS_URL", "redis://localhost:6379")),
+    WEB_REDIS_URL=(str, "redis://localhost:6379"),
     WEB_REDIS_DB=(str, "0"),
     WEB_REDIS_CACHE_DB=(str, "2"),
     WEB_ROBOTS_INDEXING=(bool, True),
+    WEB_UI_THEME=(str, ""),
     WEB_S3_ENDPOINT_URL=(str, "http://localhost:9000"),
     WEB_S3_REGION_NAME=(str, "us-east-1"),
     WEB_S3_ACCESS_KEY_ID=(str, "rustfsadmin"),
@@ -59,6 +59,13 @@ env.prefix = "WEB_"
 DEBUG = False
 SECRET_KEY = env.str("SECRET_KEY")
 ALLOWED_HOSTS = env.list("ALLOWED_HOSTS")
+# Private network domain name of the web containers, used by ingestion to reach
+# web (see bin/start.sh). Injected by Scalingo only when the app is in a private
+# network: 1.web.<app-id>.<pn-id>.private-network.internal. allows
+# web.<app-id>.<pn-id>.private-network.internal only.
+# https://doc.scalingo.com/platform/networking/private/concepts
+if private_hostname := os.environ.get("SCALINGO_PRIVATE_HOSTNAME", "").rstrip("."):
+    ALLOWED_HOSTS.append("web." + private_hostname.split(".", 2)[2])
 SITE_ID = 1
 
 # SESSIONS
@@ -169,13 +176,7 @@ WSGI_APPLICATION = "config.wsgi.application"
 
 
 # Database
-# SCALINGO_POSTGRESQL_URL is injected by the Scalingo postgresql addon (review apps)
-DATABASES = {
-    "default": env.db(
-        "DATABASE_URL",
-        default=os.environ.get("SCALINGO_POSTGRESQL_URL", env.NOTSET),
-    )
-}
+DATABASES = {"default": env.db("DATABASE_URL")}
 
 
 # Password validation
@@ -328,6 +329,13 @@ MATOMO_SITE_ID = env.int("MATOMO_SITE_ID")
 # ---------------------------------------
 ROBOTS_INDEXING = env.bool("ROBOTS_INDEXING")
 
+# UI THEME
+# ---------------------------------------
+# Default interface theme, set outside production only: an id of UI_THEMES in
+# frontend/src/composables/ui/useUiTheme.ts.
+# Without it, the interface shows no theme and no theme choice.
+UI_THEME = env.str("UI_THEME")
+
 # CSP
 # ---------------------------------------
 connect_src = [CSP.SELF, "*.sentry.io"]
@@ -376,7 +384,7 @@ REST_FRAMEWORK = {
         "rest_framework.renderers.JSONRenderer",
     ],
     "DEFAULT_THROTTLE_CLASSES": [
-        "rest_framework.throttling.AnonRateThrottle",
+        "infrastructure.authentication.anon_rate_throttle.ClientIpAnonRateThrottle",
         "infrastructure.authentication.api_key_authentication.NonApiKeyUserRateThrottle",
         "infrastructure.authentication.api_key_authentication.ApiKeyRateThrottle",
         "infrastructure.authentication.api_key_authentication.ApiKeyRateThrottleDaily",

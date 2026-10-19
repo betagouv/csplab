@@ -101,7 +101,7 @@ const inputAttrs = computed(() => {
   color: var(--csp-input-text);
   box-shadow: inset 0 0 0 1px var(--csp-input-border);
   border: none;
-  border-radius: var(--csp-radius-field);
+  border-radius: var(--csp-field-radius);
 
   font-size: var(--csp-input-font-size);
   line-height: 1.25;

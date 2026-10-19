@@ -48,7 +48,7 @@ if (props.planche === 'etats') {
 function currentGlobals(): string {
   const root = document.documentElement
   return [
-    `interfaceTheme:${root.getAttribute('data-csp-theme') ?? 'aucun'}`,
+    `interfaceTheme:${root.getAttribute('data-csp-theme') ?? 'kit'}`,
     `theme:${root.getAttribute('data-fr-theme') ?? 'light'}`,
     `density:${root.getAttribute('data-csp-density') ?? 'compact'}`,
     `etiquettes:${root.getAttribute('data-csp-etiquettes') ?? 'repli'}`,
@@ -168,9 +168,9 @@ const ecranStyle = computed(() => {
 
 /* Variables of the hover state, set on an ancestor of a card that the pointer does not reach */
 .deck-interface__etat--survol {
-  --csp-raised-shadow: var(--csp-raised-shadow-hover);
-  --csp-raised-background: var(--csp-raised-background-hover);
-  --csp-raised-border: var(--csp-raised-border-hover);
+  --csp-raised-shadow: var(--csp-raised-shadow-hover, 0 1px 2px rgb(0 0 0 / 6%));
+  --csp-raised-background: var(--csp-raised-background-hover, var(--background-alt-grey));
+  --csp-raised-border-color: var(--csp-raised-border-color-hover, var(--border-default-grey));
 }
 
 /* The highlight of a dropped card stays on its first frame */

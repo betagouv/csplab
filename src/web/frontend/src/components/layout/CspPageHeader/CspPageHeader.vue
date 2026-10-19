@@ -100,11 +100,7 @@ const hasBreadcrumb = computed(() => Boolean(props.breadcrumb?.length))
 @use '@/styles/breakpoints' as bp;
 
 .csp-page-header {
-  background-color: var(--csp-page-header-background);
-  background-image: var(--csp-page-header-backdrop);
-  background-repeat: var(--csp-page-header-backdrop-repeat, no-repeat);
-  background-position: var(--csp-page-header-backdrop-position, right bottom);
-  background-size: var(--csp-page-header-backdrop-size, cover);
+  background: var(--csp-page-header-backdrop), var(--csp-chrome-background);
 
   --csp-page-header-back-link-size: 0;
   --csp-page-header-back-link-gap: 0;
@@ -167,8 +163,8 @@ const hasBreadcrumb = computed(() => Boolean(props.breadcrumb?.length))
 .csp-page-header__title {
   font-weight: var(--csp-text-page-title-weight, 600);
   font-size: var(--csp-text-page-title-size, 1.5rem);
-  min-height: var(--csp-page-header-title-height);
   line-height: var(--csp-text-page-title-line-height, inherit);
+  min-height: var(--csp-page-header-title-height);
 }
 
 .csp-page-header__title-skeleton {

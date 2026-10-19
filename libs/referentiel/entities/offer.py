@@ -44,6 +44,7 @@ class Offer(IEntity):
     complements: Optional[str] = None
     exercise_conditions: Optional[str] = None
     service_description: Optional[str] = None
+    end_publication_date: Optional[datetime] = None
     application_deadline: Optional[datetime] = None
     job_vacancy_date: Optional[datetime] = None
     criteria: Optional[OfferCriteria] = None

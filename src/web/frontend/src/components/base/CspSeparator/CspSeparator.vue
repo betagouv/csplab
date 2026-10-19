@@ -34,7 +34,7 @@ withDefaults(defineProps<CspSeparatorProps>(), {
   flex-shrink: 0;
   background-color: var(--csp-separator-color);
 
-  --csp-separator-color: var(--csp-surface-divider-color);
+  --csp-separator-color: var(--csp-divider-color);
   --csp-separator-size: 1px;
 }
 
@@ -65,7 +65,7 @@ withDefaults(defineProps<CspSeparatorProps>(), {
 }
 
 .csp-separator--default {
-  --csp-separator-color: var(--border-default-grey);
+  --csp-separator-color: var(--csp-divider-color);
 }
 
 .csp-separator--strong {

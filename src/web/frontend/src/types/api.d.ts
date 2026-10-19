@@ -547,6 +547,7 @@ export interface components {
             email: string;
         };
         Candidature: {
+            readonly unread_conversations: number;
             /** Format: uuid */
             uuid: string;
             /** Format: date-time */
@@ -582,6 +583,7 @@ export interface components {
             raison: string;
         };
         CandidatureListe: {
+            readonly unread_conversations: number;
             /** Format: uuid */
             uuid: string;
             /** Format: date-time */
@@ -628,6 +630,7 @@ export interface components {
             readonly last_message_author: string;
             /** Format: date-time */
             last_message_created_at: string;
+            readonly is_unread: boolean;
         };
         ConversationDocument: {
             /** Format: uuid */
@@ -881,7 +884,7 @@ export interface components {
             nom: string;
             versant: components["schemas"]["VersantEnum"];
             siret: string;
-            gestionnaire: string | null;
+            superviseurs: string;
             gestion_ats: boolean;
             /** Format: date-time */
             date_derniere_activite: string;
@@ -900,7 +903,7 @@ export interface components {
             nom: string;
             versant: components["schemas"]["VersantEnum"];
             siret: string;
-            gestionnaire: string | null;
+            readonly superviseurs: string;
             gestion_ats: boolean;
             /** Format: date-time */
             date_derniere_activite: string;
@@ -1081,6 +1084,14 @@ export interface components {
             organisme_recruteur: components["schemas"]["Organisme"];
             categorie_offre: components["schemas"]["CategorieOffreEnum"];
             etapes: components["schemas"]["EtapeRecrutement"][];
+            /**
+             * @description Rôle de l'utilisateur courant sur ce recrutement (null si aucun).
+             *
+             *     * `responsable` - responsable
+             *     * `recruteur` - recruteur
+             *     * `contributeur` - contributeur
+             */
+            recrutement_role: (components["schemas"]["RecrutementRoleEnum"] | components["schemas"]["NullEnum"]) | null;
         };
         RecrutementDetailKanban: {
             /** Format: uuid */
@@ -1100,6 +1111,7 @@ export interface components {
          */
         RecrutementRoleEnum: "responsable" | "recruteur" | "contributeur";
         RecrutementsActifs: {
+            readonly unread_conversations: number;
             /** Format: uuid */
             uuid: string;
             intitule: string;
@@ -1113,6 +1125,7 @@ export interface components {
             derniere_activite: string;
         };
         RecrutementsArchives: {
+            readonly unread_conversations: number;
             /** Format: uuid */
             uuid: string;
             intitule: string;

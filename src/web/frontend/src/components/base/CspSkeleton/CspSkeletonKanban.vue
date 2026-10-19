@@ -72,20 +72,26 @@ withDefaults(defineProps<CspSkeletonKanbanProps>(), {
   padding: var(--csp-kanban-column-padding);
   background-color: var(--csp-region-background);
   box-shadow: inset 0 0 0 1px var(--csp-region-border-color);
-  border-top: var(--csp-kanban-column-accent-width) solid var(--csp-category-accent-neutral);
-}
-
-.csp-skeleton-kanban__header {
-  padding: 0 var(--csp-kanban-column-header-padding-inline);
-
-  :deep(.csp-skeleton) {
-    background: var(--csp-neutral-fill);
-  }
+  border-radius: var(--csp-region-radius);
+  border-top: var(--csp-category-accent-width) solid var(--csp-category-neutral-accent);
 }
 
 .csp-skeleton-kanban__card.csp-card {
   --csp-card-bg: var(--csp-raised-background);
-  --csp-card-border: var(--csp-raised-border);
+  --csp-card-border: var(--csp-raised-border-color);
+
+  box-shadow:
+    var(--csp-raised-shadow, 0 0 transparent),
+    inset 0 0 0 1px var(--csp-card-border);
+}
+
+.csp-skeleton-kanban__header {
+  padding: 0 var(--csp-kanban-column-header-padding-inline) var(--csp-kanban-column-header-padding-bottom);
+  border-bottom: var(--csp-kanban-column-header-divider-width) solid var(--csp-divider-color);
+
+  :deep(.csp-skeleton) {
+    background: var(--csp-neutral-background);
+  }
 }
 
 .csp-skeleton-kanban__card-meta {

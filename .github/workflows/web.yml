@@ -79,7 +79,7 @@ jobs:
     runs-on: ubuntu-latest
     services:
       postgresql:
-        image: pgvector/pgvector:pg16
+        image: postgres:18
         env:
           POSTGRES_DB: web
           POSTGRES_USER: postgres

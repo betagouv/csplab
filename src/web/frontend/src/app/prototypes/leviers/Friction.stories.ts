@@ -7,7 +7,7 @@ const meta = {
   component: FrictionPlanche,
   decorators: [keepTheme],
   parameters: { layout: 'fullscreen' },
-  globals: { interfaceTheme: 'aucun' },
+  globals: { interfaceTheme: 'kit' },
 } satisfies Meta<typeof FrictionPlanche>
 
 export default meta

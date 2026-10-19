@@ -1506,6 +1506,7 @@ paths:
           type: integer
           default: 100
           minimum: 1
+          maximum: 1000
       tags:
       - recruteur
       security:
@@ -1636,6 +1637,7 @@ paths:
           type: integer
           default: 100
           minimum: 1
+          maximum: 1000
       tags:
       - recruteur
       security:
@@ -3983,6 +3985,7 @@ paths:
           type: integer
           default: 100
           minimum: 1
+          maximum: 1000
       tags:
       - recruteur
       security:
@@ -4834,6 +4837,9 @@ components:
     Candidature:
       type: object
       properties:
+        unread_conversations:
+          type: integer
+          readOnly: true
         uuid:
           type: string
           format: uuid
@@ -4849,6 +4855,7 @@ components:
       - candidat
       - date_derniere_activite
       - date_soumission
+      - unread_conversations
       - uuid
     CandidatureAChanger:
       type: object
@@ -4919,6 +4926,9 @@ components:
     CandidatureListe:
       type: object
       properties:
+        unread_conversations:
+          type: integer
+          readOnly: true
         uuid:
           type: string
           format: uuid
@@ -4937,6 +4947,7 @@ components:
       - date_derniere_activite
       - date_soumission
       - etape
+      - unread_conversations
       - uuid
     CandidaturesActives:
       type: object
@@ -5020,9 +5031,13 @@ components:
         last_message_created_at:
           type: string
           format: date-time
+        is_unread:
+          type: boolean
+          readOnly: true
       required:
       - created_at
       - creator
+      - is_unread
       - last_message_author
       - last_message_content
       - last_message_created_at
@@ -5597,9 +5612,8 @@ components:
           type: string
           maxLength: 14
           minLength: 14
-        gestionnaire:
+        superviseurs:
           type: string
-          nullable: true
         gestion_ats:
           type: boolean
         date_derniere_activite:
@@ -5612,9 +5626,9 @@ components:
       - date_creation
       - date_derniere_activite
       - gestion_ats
-      - gestionnaire
       - nom
       - siret
+      - superviseurs
       - uuid
       - versant
     OrganismeRole:
@@ -5646,9 +5660,9 @@ components:
           type: string
           maxLength: 14
           minLength: 14
-        gestionnaire:
+        superviseurs:
           type: string
-          nullable: true
+          readOnly: true
         gestion_ats:
           type: boolean
         date_derniere_activite:
@@ -5665,11 +5679,11 @@ components:
       - date_creation
       - date_derniere_activite
       - gestion_ats
-      - gestionnaire
       - nom
       - nombre_agents
       - nombre_offres_publiees
       - siret
+      - superviseurs
       - uuid
       - versant
     PaginatedAuditLogList:
@@ -5958,6 +5972,17 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/EtapeRecrutement'
+        recrutement_role:
+          nullable: true
+          description: |-
+            Rôle de l'utilisateur courant sur ce recrutement (null si aucun).
+
+            * `responsable` - responsable
+            * `recruteur` - recruteur
+            * `contributeur` - contributeur
+          oneOf:
+          - $ref: '#/components/schemas/RecrutementRoleEnum'
+          - $ref: '#/components/schemas/NullEnum'
       required:
       - archive
       - categorie_offre
@@ -5966,6 +5991,7 @@ components:
       - intitule
       - localisation
       - organisme_recruteur
+      - recrutement_role
       - uuid
     RecrutementDetailKanban:
       type: object
@@ -6004,6 +6030,9 @@ components:
     RecrutementsActifs:
       type: object
       properties:
+        unread_conversations:
+          type: integer
+          readOnly: true
         uuid:
           type: string
           format: uuid
@@ -6038,10 +6067,14 @@ components:
       - nature_offre
       - reference_csp
       - responsables
+      - unread_conversations
       - uuid
     RecrutementsArchives:
       type: object
       properties:
+        unread_conversations:
+          type: integer
+          readOnly: true
         uuid:
           type: string
           format: uuid
@@ -6074,6 +6107,7 @@ components:
       - recrute
       - reference_csp
       - responsables
+      - unread_conversations
       - uuid
     RegionEnum:
       enum:

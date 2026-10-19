@@ -63,7 +63,7 @@ import CspToastProvider from '@/components/base/CspToast/CspToastProvider.vue'
   gap: var(--csp-space-6);
   min-height: 35rem;
   padding: var(--csp-space-6);
-  background-color: var(--csp-panel-canvas-background, var(--background-default-grey));
+  background-color: var(--csp-panel-background);
 }
 
 .messages-planche__colonne {

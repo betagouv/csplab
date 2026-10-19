@@ -73,68 +73,42 @@
 
   /* Composition: white navigation and header with hairlines, cool grey work area, sunken columns, white cards */
   --csp-canvas-background: var(--lasuite-gray-025);
-  --csp-sidebar-background: var(--lasuite-gray-000);
-  --csp-page-header-background: var(--lasuite-gray-000);
+  --csp-nav-background: var(--lasuite-gray-000);
+  --csp-chrome-background: var(--lasuite-gray-000);
   --csp-region-background: var(--lasuite-gray-050);
   --csp-region-border-color: transparent;
-  --csp-region-drop-background: var(--lasuite-brand-050);
-  --csp-region-drop-border-color: var(--lasuite-brand-550);
-  --csp-region-drop-border-width: 2px;
+  --csp-region-background-drop: var(--lasuite-brand-050);
+  --csp-region-border-color-drop: var(--lasuite-brand-550);
+  --csp-region-border-width-drop: 2px;
   --csp-raised-background: var(--lasuite-gray-000);
   --csp-raised-background-hover: var(--lasuite-gray-000);
-  --csp-raised-current-background: var(--lasuite-brand-050);
-  --csp-raised-current-border-color: var(--lasuite-brand-550);
-  --csp-raised-focus-width: 3px;
-  --csp-raised-focus-gap-color: var(--lasuite-gray-000);
-  --csp-sidebar-item-radius: var(--csp-radius-action);
-  --csp-sidebar-item-active-background: var(--lasuite-gray-100);
-  --csp-sidebar-item-active-font-weight: var(--csp-font-weight-bold);
-  --csp-sidebar-item-marker-width: 0;
-  --csp-btn-secondary-background: var(--lasuite-brand-100);
-  --csp-btn-secondary-background-hover: var(--lasuite-brand-150);
-  --csp-btn-secondary-background-active: var(--lasuite-brand-200);
-  --csp-btn-secondary-border-color: transparent;
-  --csp-btn-secondary-disabled-background: var(--lasuite-gray-050);
-  --csp-btn-secondary-disabled-border-color: transparent;
+  --csp-raised-background-current: var(--lasuite-brand-050);
+  --csp-raised-border-color-current: var(--lasuite-brand-550);
+  --csp-nav-background-current: var(--lasuite-gray-100);
+  --csp-nav-weight-current: var(--csp-font-weight-bold);
+  --csp-nav-marker-width-current: 0;
+  --csp-action-secondary-background: var(--lasuite-brand-100);
+  --csp-action-secondary-background-hover: var(--lasuite-brand-150);
+  --csp-action-secondary-background-active: var(--lasuite-brand-200);
+  --csp-action-secondary-border-color: transparent;
+  --csp-action-secondary-background-disabled: var(--lasuite-gray-050);
+  --csp-action-secondary-border-color-disabled: transparent;
   --csp-control-border-color: var(--lasuite-gray-150);
-  --csp-table-radius: var(--csp-radius-surface);
-  --csp-document-frame-radius: 0;
   --csp-field-border-color: var(--lasuite-gray-450);
 
   /* Shadows: modal of the ui-kit, dropdown of Docs and Drive, raised control of Messages */
-  --csp-shadow-md: 0 0 6px 0 rgba(0, 0, 145, 0.1);
-  --csp-shadow-lg: 0 6px 20px 0 rgba(0, 0, 18, 0.1);
+  --csp-overlap-shadow: 0 0 6px 0 rgba(0, 0, 145, 0.1);
+  --csp-lifted-shadow: 0 6px 20px 0 rgba(0, 0, 18, 0.1);
   --csp-raised-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
   --csp-raised-shadow-hover: 0 0 6px 0 rgba(0, 0, 145, 0.1), 0 4px 12px rgba(0, 0, 18, 0.08);
   --csp-raised-shadow-drag: none;
   --csp-overlay-scrim: rgba(0, 0, 0, 0.6);
 
   /* Radii: 4px for controls, 8px for cards, groups and floating layers */
-  --csp-radius-action: 0.25rem;
-  --csp-radius-field: 0.25rem;
-  --csp-radius-inset: 0.25rem;
-  --csp-radius-surface: 0.5rem;
-  --csp-radius-overlay: 0.5rem;
-  --csp-radius-region: 0.5rem;
-  --csp-radius-panel: 0;
-  --csp-radius-badge: 0.25rem;
-  --csp-radius-tag: 2rem;
-
-  /* Motion: 250ms with the ease-out cubic of the ui-kit, 200ms for menus and the scrim */
-  --csp-motion-duration-state: 150ms;
-  --csp-motion-duration-panel: 250ms;
-  --csp-motion-easing-enter: cubic-bezier(0.33, 1, 0.68, 1);
-  --csp-motion-easing-exit: cubic-bezier(0.32, 0, 0.67, 0);
-  --csp-motion-panel-enter-right: csp-panel-enter-right var(--csp-motion-duration-panel) var(--csp-motion-easing-enter);
-  --csp-motion-panel-exit-right: csp-panel-exit-right 200ms var(--csp-motion-easing-exit);
-  --csp-motion-panel-enter-left: csp-panel-enter-left var(--csp-motion-duration-panel) var(--csp-motion-easing-enter);
-  --csp-motion-panel-exit-left: csp-panel-exit-left 200ms var(--csp-motion-easing-exit);
-  --csp-motion-dialog-enter: csp-dialog-enter var(--csp-motion-duration-panel) var(--csp-motion-easing-enter);
-  --csp-motion-dialog-exit: csp-dialog-exit 150ms var(--csp-motion-easing-exit);
-  --csp-motion-overlay-enter: csp-overlay-enter 200ms var(--csp-motion-easing-enter);
-  --csp-motion-overlay-exit: csp-overlay-exit 150ms var(--csp-motion-easing-exit);
-  --csp-motion-scrim-enter: csp-scrim-enter 200ms var(--csp-motion-easing-enter);
-  --csp-motion-scrim-exit: csp-scrim-exit 150ms var(--csp-motion-easing-exit);
+  --csp-action-radius: 0.25rem;
+  --csp-surface-radius: 0.5rem;
+  --csp-overlap-radius: 0.5rem;
+  --csp-region-radius: 0.5rem;
 }
 
 :root[data-csp-theme='lasuite'][data-fr-theme='dark'] {
@@ -179,25 +153,41 @@
   --csp-focus-ring-color: var(--lasuite-brand-350);
 
   --csp-canvas-background: var(--lasuite-gray-900);
-  --csp-sidebar-background: var(--lasuite-gray-850);
-  --csp-page-header-background: var(--lasuite-gray-850);
+  --csp-nav-background: var(--lasuite-gray-850);
+  --csp-chrome-background: var(--lasuite-gray-850);
   --csp-region-background: var(--lasuite-gray-950);
-  --csp-region-drop-background: var(--lasuite-brand-850);
-  --csp-region-drop-border-color: var(--lasuite-brand-350);
+  --csp-region-background-drop: var(--lasuite-brand-850);
+  --csp-region-border-color-drop: var(--lasuite-brand-350);
   --csp-raised-background: var(--lasuite-gray-800);
   --csp-raised-background-hover: var(--lasuite-gray-750);
-  --csp-raised-current-background: var(--lasuite-brand-850);
-  --csp-raised-current-border-color: var(--lasuite-brand-350);
-  --csp-raised-focus-gap-color: var(--lasuite-gray-950);
-  --csp-sidebar-item-active-background: var(--lasuite-gray-750);
-  --csp-btn-secondary-disabled-background: var(--lasuite-gray-800);
+  --csp-raised-background-current: var(--lasuite-brand-850);
+  --csp-raised-border-color-current: var(--lasuite-brand-350);
+  --csp-nav-background-current: var(--lasuite-gray-750);
+  --csp-action-secondary-background-disabled: var(--lasuite-gray-800);
   --csp-control-border-color: var(--lasuite-gray-700);
-  --csp-btn-secondary-background: var(--lasuite-brand-800);
-  --csp-btn-secondary-background-hover: var(--lasuite-brand-750);
-  --csp-btn-secondary-background-active: var(--lasuite-brand-700);
+  --csp-action-secondary-background: var(--lasuite-brand-800);
+  --csp-action-secondary-background-hover: var(--lasuite-brand-750);
+  --csp-action-secondary-background-active: var(--lasuite-brand-700);
 
-  --csp-shadow-md: 0 0 6px 0 rgba(0, 0, 0, 0.5);
-  --csp-shadow-lg: 0 6px 20px 0 rgba(0, 0, 0, 0.5);
+  --csp-overlap-shadow: 0 0 6px 0 rgba(0, 0, 0, 0.5);
+  --csp-lifted-shadow: 0 6px 20px 0 rgba(0, 0, 0, 0.5);
   --csp-raised-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
   --csp-raised-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+
+/* Motion: 250 ms with the ease-out cubic of the ui-kit, 200 ms for menus and the scrim */
+@media (prefers-reduced-motion: no-preference) {
+  :root[data-csp-theme='lasuite'] {
+    --lasuite-easing-enter: cubic-bezier(0.33, 1, 0.68, 1);
+    --lasuite-easing-exit: cubic-bezier(0.32, 0, 0.67, 0);
+    --csp-motion-duration-state: 150ms;
+    --csp-motion-drawer-enter: csp-drawer-enter 250ms var(--lasuite-easing-enter);
+    --csp-motion-drawer-exit: csp-drawer-exit 200ms var(--lasuite-easing-exit);
+    --csp-motion-dialog-enter: csp-dialog-enter 250ms var(--lasuite-easing-enter);
+    --csp-motion-dialog-exit: csp-dialog-exit 150ms var(--lasuite-easing-exit);
+    --csp-motion-overlap-enter: csp-overlap-enter 200ms var(--lasuite-easing-enter);
+    --csp-motion-overlap-exit: csp-fade-out 150ms var(--lasuite-easing-exit);
+    --csp-motion-scrim-enter: csp-fade-in 200ms var(--lasuite-easing-enter);
+    --csp-motion-scrim-exit: csp-fade-out 150ms var(--lasuite-easing-exit);
+  }
 }

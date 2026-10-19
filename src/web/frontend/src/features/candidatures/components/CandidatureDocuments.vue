@@ -160,7 +160,7 @@ const title = computed(() => `${total.value} ${pluralize(total.value, 'document'
   padding: var(--csp-space-3) var(--csp-space-4);
 
   & + & {
-    border-top: 1px solid var(--border-default-grey);
+    border-top: 1px solid var(--csp-divider-color);
   }
 }
 

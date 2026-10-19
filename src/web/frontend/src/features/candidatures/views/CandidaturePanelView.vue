@@ -37,9 +37,8 @@ import { useCandidaturePanelRoutes } from '../composables/useCandidaturePanelRou
 import { useEtapeChange } from '../composables/useEtapeChange'
 import { CANDIDATURE_PANEL_TAB_ICONS, CANDIDATURE_PANEL_TAB_LABELS } from '../constants/candidature'
 import { etiquettesOf } from '../etiquettes'
-import { formatCandidatureMeta } from '../format'
+import { formatCandidatName, formatCandidatureMeta } from '../format'
 import { candidatureDetailQuery } from '../queries'
-import { formatCandidatNom } from '../utils/candidat'
 
 const props = defineProps<{
   organismeUuid: string
@@ -58,7 +57,7 @@ const { candidature, pending, error, notFound } = useCandidatureDetail(() => can
 const showSkeleton = useMinimumPending(pending)
 const loadFailed = computed(() => Boolean(error.value) && !notFound.value)
 
-const title = computed(() => candidature.value ? formatCandidatNom(candidature.value.candidat) : 'Candidature')
+const title = computed(() => candidature.value ? formatCandidatName(candidature.value.candidat) : 'Candidature')
 const description = computed(() => candidature.value?.recrutement_intitule || null)
 const metaItems = computed(() => candidature.value ? formatCandidatureMeta(candidature.value) : [])
 const etiquettes = computed(() => candidature.value ? etiquettesOf(candidature.value) : [])
@@ -93,7 +92,7 @@ const activeTab = useRouteTab<CandidaturePanelTabKey>(() => panelRouteNames.valu
 
 useDocumentTitle(
   () => CANDIDATURE_PANEL_TAB_LABELS[activeTab.value],
-  () => candidature.value && formatCandidatNom(candidature.value.candidat),
+  () => candidature.value && formatCandidatName(candidature.value.candidat),
 )
 const TABS_WITHOUT_ASIDE: CandidaturePanelTabKey[] = ['historique', 'messages']
 const isMessagesTab = computed(() => activeTab.value === 'messages')
@@ -279,7 +278,7 @@ function handleUpdateOpen(open: boolean): void {
                   <MessagesSection
                     v-if="candidature"
                     :candidature="candidatureParams"
-                    :candidat-nom="formatCandidatNom(candidature.candidat)"
+                    :candidat-nom="formatCandidatName(candidature.candidat)"
                     :routes="panelRouteNames.conversations"
                   />
                 </div>
@@ -349,15 +348,15 @@ function handleUpdateOpen(open: boolean): void {
 <style lang="scss">
 @use '@/styles/breakpoints' as bp;
 
-/* On a wide screen, --csp-panel-push keeps the width of the open panel free beside the page: the panel becomes a
-   surface next to the board, and --csp-panel-docked-shadow replaces its shadow */
+/* On a wide screen, --csp-panel-page-offset keeps the width of the open panel free beside the page: the panel becomes
+   a surface next to the board, and --csp-panel-shadow-docked replaces its shadow */
 @media (min-width: 105rem) {
   body:has(.csp-drawer.candidature-panel) .csp-app-shell__content {
-    padding-right: var(--csp-panel-push, 0);
+    padding-right: var(--csp-panel-page-offset);
   }
 
   .csp-drawer.candidature-panel {
-    box-shadow: var(--csp-panel-docked-shadow, var(--csp-shadow-lg));
+    box-shadow: var(--csp-panel-shadow-docked);
   }
 }
 
@@ -373,7 +372,7 @@ function handleUpdateOpen(open: boolean): void {
   }
 
   @include bp.from(bp.$xl) {
-    --base-drawer-width: var(--csp-panel-width-wide, clamp(42rem, 100vw - 36rem, 90rem));
+    --base-drawer-width: var(--csp-panel-width-wide);
   }
 
   .csp-drawer__body {
@@ -412,7 +411,7 @@ function handleUpdateOpen(open: boolean): void {
   min-height: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
-  background-color: var(--csp-panel-canvas-background);
+  background-color: var(--csp-panel-background);
 }
 
 .candidature-panel__layout {

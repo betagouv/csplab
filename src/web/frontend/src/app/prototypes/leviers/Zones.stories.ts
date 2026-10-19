@@ -12,7 +12,7 @@ const meta = {
     layout: 'fullscreen',
     appRoute: `/organismes/${DEMO_ORGANISME.uuid}/recrutements/${DEMO_RECRUTEMENT_UUID}`,
   },
-  globals: { interfaceTheme: 'aucun' },
+  globals: { interfaceTheme: 'kit' },
   render: () => ({ components: { App }, template: '<App />' }),
 } satisfies Meta
 

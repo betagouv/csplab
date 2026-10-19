@@ -41,19 +41,19 @@ function planche(levier: string, option: string) {
   return { planche: 'ecran', ecran: `prototypes-leviers-${levier}--${option}`, hauteur: 560, cadre: { x: 0, y: 0, width: 1280, height: 560 } } as const
 }
 
-export const ArrondisDroits: Story = { name: 'Arrondis, kit actuel', args: planche('arrondis', 'droits'), globals: clair('aucun') }
-export const ArrondisLegers: Story = { name: 'Arrondis, 2 et 4 px', args: planche('arrondis', 'legers'), globals: clair('aucun') }
-export const ArrondisMoyens: Story = { name: 'Arrondis, 4 et 8 px', args: planche('arrondis', 'moyens'), globals: clair('aucun') }
-export const ArrondisMarques: Story = { name: 'Arrondis, 8 et 12 px', args: planche('arrondis', 'marques'), globals: clair('aucun') }
-export const ArrondisRolesLee: Story = { name: 'Arrondis, rôles de LEE', args: planche('arrondis', 'roles-lee'), globals: clair('aucun') }
+export const ArrondisDroits: Story = { name: 'Arrondis, kit actuel', args: planche('arrondis', 'droits'), globals: clair('kit') }
+export const ArrondisLegers: Story = { name: 'Arrondis, 2 et 4 px', args: planche('arrondis', 'legers'), globals: clair('kit') }
+export const ArrondisMoyens: Story = { name: 'Arrondis, 4 et 8 px', args: planche('arrondis', 'moyens'), globals: clair('kit') }
+export const ArrondisMarques: Story = { name: 'Arrondis, 8 et 12 px', args: planche('arrondis', 'marques'), globals: clair('kit') }
+export const ArrondisRolesLee: Story = { name: 'Arrondis, rôles de LEE', args: planche('arrondis', 'roles-lee'), globals: clair('kit') }
 
-export const OmbresKitActuel: Story = { name: 'Ombres, kit actuel', args: planche('ombres', 'kit-actuel'), globals: clair('aucun') }
-export const OmbresSansOmbre: Story = { name: 'Ombres, sans ombre', args: planche('ombres', 'sans-ombre'), globals: clair('aucun') }
-export const OmbresDsfr: Story = { name: 'Ombres, DSFR', args: planche('ombres', 'dsfr'), globals: clair('aucun') }
-export const OmbresDouces: Story = { name: 'Ombres, douces', args: planche('ombres', 'douces'), globals: clair('aucun') }
-export const OmbresCouchesLee: Story = { name: 'Ombres, couches superposées de LEE', args: planche('ombres', 'couches-lee'), globals: clair('aucun') }
+export const OmbresKitActuel: Story = { name: 'Ombres, kit actuel', args: planche('ombres', 'kit-actuel'), globals: clair('kit') }
+export const OmbresSansOmbre: Story = { name: 'Ombres, sans ombre', args: planche('ombres', 'sans-ombre'), globals: clair('kit') }
+export const OmbresDsfr: Story = { name: 'Ombres, DSFR', args: planche('ombres', 'dsfr'), globals: clair('kit') }
+export const OmbresDouces: Story = { name: 'Ombres, douces', args: planche('ombres', 'douces'), globals: clair('kit') }
+export const OmbresCouchesLee: Story = { name: 'Ombres, couches superposées de LEE', args: planche('ombres', 'couches-lee'), globals: clair('kit') }
 
-const MOUVEMENT_STORY: Story = { args: { planche: 'etats' }, decorators: [withLevierOption(MOUVEMENT)], globals: clair('aucun') }
+const MOUVEMENT_STORY: Story = { args: { planche: 'etats' }, decorators: [withLevierOption(MOUVEMENT)], globals: clair('kit') }
 
 export const MouvementInstantane: Story = { ...MOUVEMENT_STORY, name: 'Mouvement, instantané', parameters: { option: 'instantane' } }
 export const MouvementDsfr: Story = { ...MOUVEMENT_STORY, name: 'Mouvement, 300 ms du DSFR', parameters: { option: 'dsfr' } }
@@ -61,10 +61,10 @@ export const MouvementRoles: Story = { ...MOUVEMENT_STORY, name: 'Mouvement, dur
 
 const DEBUT = { planche: 'ecran', cadre: DEBUT_DE_PAGE } as const
 
-export const DensiteCompacte: Story = { name: 'Densité compacte', args: DEBUT, globals: clair('aucun') }
-export const DensiteConfortable: Story = { name: 'Densité confortable', args: DEBUT, globals: clair('aucun', 'comfortable') }
+export const DensiteCompacte: Story = { name: 'Densité compacte', args: DEBUT, globals: clair('kit') }
+export const DensiteConfortable: Story = { name: 'Densité confortable', args: DEBUT, globals: clair('kit', 'comfortable') }
 
-export const EcranAujourdhui: Story = { ...APP, name: 'Kanban et panneau, sans thème', parameters: PANNEAU, globals: clair('aucun') }
+export const EcranAujourdhui: Story = { ...APP, name: 'Kanban et panneau, kit', parameters: PANNEAU, globals: clair('kit') }
 export const EcranDsfr: Story = { ...APP, name: 'Kanban et panneau, dsfr', parameters: PANNEAU, globals: clair('dsfr') }
 export const EcranGreige: Story = { ...APP, name: 'Kanban et panneau, greige', parameters: PANNEAU, globals: clair('greige') }
 export const EcranLasuite: Story = { ...APP, name: 'Kanban et panneau, lasuite', parameters: PANNEAU, globals: clair('lasuite') }

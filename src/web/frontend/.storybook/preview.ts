@@ -5,9 +5,9 @@ import { createHead } from '@unhead/vue/client'
 import { createPinia } from 'pinia'
 import { sb } from 'storybook/test'
 import { createMemoryHistory, createRouter } from 'vue-router'
+import { applyUiTheme, UI_THEMES } from '../src/composables/ui/useUiTheme'
 import { routes } from '../src/router/routes'
 import { applyScenario, DEFAULT_SCENARIO, SCENARIOS } from '../src/styles/etiquettes/scenarios'
-import { applyTheme as applyInterfaceTheme, DEFAULT_THEME, THEMES } from '../src/styles/themes/scenarios'
 import '../src/app/icons'
 import '../src/styles/index.css'
 import './storybook.css'
@@ -45,7 +45,6 @@ function applyTheme(theme: string) {
 }
 
 const NO_SCENARIO = 'repli'
-const NO_THEME = 'aucun'
 const COMPACT = 'compact'
 const COMFORTABLE = 'comfortable'
 
@@ -61,7 +60,7 @@ function applyDensity(density: string) {
 const preview: Preview = {
   initialGlobals: {
     theme: 'light',
-    interfaceTheme: DEFAULT_THEME ?? NO_THEME,
+    interfaceTheme: 'kit',
     density: COMPACT,
     etiquettes: DEFAULT_SCENARIO ?? NO_SCENARIO,
   },
@@ -83,10 +82,7 @@ const preview: Preview = {
       toolbar: {
         title: 'Thème',
         icon: 'component',
-        items: [
-          { value: NO_THEME, title: 'Sans thème' },
-          ...THEMES.map(({ id, name }) => ({ value: id, title: name })),
-        ],
+        items: UI_THEMES.map(({ id, name }) => ({ value: id, title: name })),
         dynamicTitle: true,
       },
     },
@@ -118,7 +114,7 @@ const preview: Preview = {
   decorators: [
     (story, context) => {
       applyTheme(context.globals.theme ?? 'light')
-      applyInterfaceTheme(document.documentElement, context.globals.interfaceTheme)
+      applyUiTheme(context.globals.interfaceTheme)
       applyDensity(context.globals.density ?? COMPACT)
       applyScenario(document.documentElement, context.globals.etiquettes)
       // The Vue renderer keeps the story mounted when a global changes: the key remounts it for another theme, density or scenario,

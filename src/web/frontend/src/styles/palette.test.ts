@@ -1,16 +1,15 @@
 import type { LinearRgb } from './color'
 import type { PaletteColor, PaletteRole } from './palette'
-import { existsSync, readdirSync, readFileSync } from 'node:fs'
+import { existsSync, readdirSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
+import { readStyle as read } from '@/test/styles'
 import { contrastRatio, deltaEOk } from './color'
 import { SCENARIOS } from './etiquettes/scenarios'
 import { PALETTE_COLORS } from './palette'
 
 const STYLES = dirname(fileURLToPath(import.meta.url))
-
-const read = (path: string) => readFileSync(join(STYLES, path), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '')
 
 function declarations(css: string): Map<string, string> {
   return new Map([...css.matchAll(/--([\w-]+)\s*:([^;]+);/g)].map(([, name, value]) => [name!, value!.trim()]))
@@ -26,6 +25,7 @@ const THEMES: Theme[] = ['light', 'dark']
 
 const [optionsLight, optionsDark] = read('./dsfr-tokens-options.css').split(':root[data-fr-theme=\'dark\']') as [string, string]
 const decisions = declarations(read('./dsfr-tokens-decisions.css'))
+const roles = declarations(read('./csp-variables.css'))
 const fallback = declarations(read('./palette.css'))
 
 const scenarioFiles = readdirSync(join(STYLES, 'etiquettes'))
@@ -38,7 +38,7 @@ function scenarioAttribute(id: string): RegExp {
 }
 
 function valuesFor(theme: Theme, scenario?: string): Map<string, string> {
-  const values = new Map([...declarations(optionsLight), ...decisions, ...fallback])
+  const values = new Map([...declarations(optionsLight), ...decisions, ...roles, ...fallback])
   if (theme === 'dark') {
     declarations(optionsDark).forEach((value, name) => values.set(name, value))
   }

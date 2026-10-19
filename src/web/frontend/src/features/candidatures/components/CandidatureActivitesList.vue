@@ -145,8 +145,8 @@ function author(activite: Activite): string {
   margin: 0;
   font-size: var(--csp-text-label-size, var(--csp-font-size-base));
   line-height: var(--csp-text-label-line-height, 1.4);
-  color: var(--text-default-grey);
   font-weight: var(--csp-text-label-weight, inherit);
+  color: var(--text-default-grey);
 }
 
 .candidature-activites-list__meta {
@@ -156,7 +156,7 @@ function author(activite: Activite): string {
   margin: 0;
   font-size: var(--csp-text-caption-size, var(--csp-font-size-xs));
   line-height: var(--csp-text-caption-line-height, 1.4);
-  color: var(--text-mention-grey);
   font-weight: var(--csp-text-caption-weight, inherit);
+  color: var(--text-mention-grey);
 }
 </style>

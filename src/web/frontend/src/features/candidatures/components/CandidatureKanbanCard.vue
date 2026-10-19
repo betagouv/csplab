@@ -9,13 +9,12 @@ import { useDraggableKanbanCard } from '@/composables/dnd/useKanbanDnd'
 import { CANDIDATURE_PANEL_ROUTE_NAMES } from '@/router/names'
 import { formatElapsedDays } from '@/utils/date'
 import { etiquettesOf } from '../etiquettes'
-import { formatCandidatNom } from '../utils/candidat'
+import { formatCandidatName } from '../format'
 
 const props = defineProps<{
   candidature: Candidature
   boardId: string
   columnId: string
-  cardIndex: number
 }>()
 
 const cardComponentRef = ref<InstanceType<typeof CspCard> | null>(null)
@@ -41,7 +40,6 @@ const { isDragging, isJustMoved, settleMove } = useDraggableKanbanCard({
   boardId: props.boardId,
   columnId: props.columnId,
   cardId: props.candidature.uuid,
-  cardIndex: props.cardIndex,
 })
 
 function handleAnimationEnd(event: AnimationEvent): void {
@@ -63,7 +61,6 @@ function handleAnimationEnd(event: AnimationEvent): void {
       'candidature-kanban-card--moved': isJustMoved,
     }"
     :aria-current="isCurrent ? 'true' : undefined"
-    :data-csp-motion="isJustMoved ? 'color' : undefined"
     @animationend="handleAnimationEnd"
   >
     <template #title>
@@ -74,7 +71,7 @@ function handleAnimationEnd(event: AnimationEvent): void {
         class="candidature-kanban-card__link"
         :data-candidature-uuid="candidature.uuid"
       >
-        {{ formatCandidatNom(candidature.candidat) }}
+        {{ formatCandidatName(candidature.candidat) }}
       </RouterLink>
     </template>
     <p class="candidature-kanban-card__date">
@@ -97,12 +94,13 @@ function handleAnimationEnd(event: AnimationEvent): void {
 
 <style scoped lang="scss">
 .candidature-kanban-card {
-  --candidature-kanban-card-raised-shadow: var(--csp-raised-shadow);
-  --candidature-kanban-card-border: var(--csp-raised-border);
+  --candidature-kanban-card-shadow-rest: var(--csp-raised-shadow, 0 1px 2px rgba(0, 0, 0, 0.06));
+  --candidature-kanban-card-shadow: var(--candidature-kanban-card-shadow-rest);
+  --candidature-kanban-card-border: var(--csp-raised-border-color);
   --csp-card-bg: var(--csp-raised-background);
 
   box-shadow:
-    var(--candidature-kanban-card-raised-shadow),
+    var(--candidature-kanban-card-shadow),
     inset 0 0 0 1px var(--candidature-kanban-card-border);
   cursor: grab;
   transition:
@@ -115,37 +113,33 @@ function handleAnimationEnd(event: AnimationEvent): void {
 }
 
 .candidature-kanban-card:hover {
-  --csp-card-bg: var(--csp-raised-background-hover);
-  --candidature-kanban-card-raised-shadow: var(--csp-raised-shadow-hover);
-  --candidature-kanban-card-border: var(--csp-raised-border-hover);
+  --csp-card-bg: var(--csp-raised-background-hover, var(--background-alt-grey));
+  --candidature-kanban-card-shadow: var(--csp-raised-shadow-hover, var(--candidature-kanban-card-shadow-rest));
+  --candidature-kanban-card-border: var(--csp-raised-border-color-hover, var(--csp-raised-border-color));
 }
 
 /* inset: the scrolling column clips an outline drawn outside the card */
 .candidature-kanban-card:has(.candidature-kanban-card__link:focus-visible) {
-  outline: var(--csp-raised-focus-width) solid var(--csp-focus-ring-color);
-  outline-offset: calc(-1 * var(--csp-raised-focus-width));
+  outline: var(--csp-focus-ring-width) solid var(--csp-focus-ring-color);
+  outline-offset: calc(-1 * var(--csp-focus-ring-width));
+}
+
+.candidature-kanban-card--current {
+  --csp-card-bg: var(--csp-raised-background-current);
+
   box-shadow:
-    var(--candidature-kanban-card-raised-shadow),
-    inset 0 0 0 calc(var(--csp-raised-focus-width) + 1px) var(--csp-raised-focus-gap-color);
+    var(--candidature-kanban-card-shadow),
+    inset 0 0 0 var(--csp-raised-border-width-current) var(--csp-raised-border-color-current);
 }
 
 .candidature-kanban-card--moved {
   animation: var(--csp-motion-raised-drop);
 }
 
-.candidature-kanban-card--current {
-  --csp-card-bg: var(--csp-raised-current-background);
-
-  box-shadow:
-    var(--candidature-kanban-card-raised-shadow),
-    inset 0 0 0 var(--csp-raised-current-border-width, 2px) var(--csp-raised-current-border-color),
-    inset var(--csp-raised-current-bar-width, 0) 0 0 0 var(--csp-raised-current-bar-color, transparent);
-}
-
 .candidature-kanban-card--dragging {
-  --candidature-kanban-card-raised-shadow: var(--csp-raised-shadow-drag);
+  --candidature-kanban-card-shadow: var(--csp-raised-shadow-drag, var(--candidature-kanban-card-shadow-rest));
 
-  opacity: var(--csp-raised-drag-opacity);
+  opacity: var(--csp-raised-opacity-drag);
 }
 
 .candidature-kanban-card__link {
@@ -168,9 +162,9 @@ function handleAnimationEnd(event: AnimationEvent): void {
   gap: var(--csp-space-1);
   margin: var(--csp-space-2) 0 0;
   font-size: var(--csp-text-meta-size, var(--csp-font-size-sm));
-  color: var(--text-mention-grey);
-  font-weight: var(--csp-text-meta-weight, inherit);
   line-height: var(--csp-text-meta-line-height, inherit);
+  font-weight: var(--csp-text-meta-weight, inherit);
+  color: var(--text-mention-grey);
 }
 
 .candidature-kanban-card__date-icon {

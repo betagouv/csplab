@@ -6,6 +6,44 @@ champs et de leurs règles se trouve dans le [guide de l'API](/pages/guide_api).
 
 Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/).
 
+## 2026-10-19
+
+### Ajouté
+
+- `POST /api/v1/offres/creer_modifier` : le champ obligatoire
+  `publication.fin_publication` (date de fin de publication) est désormais
+  enregistré. Il était exigé jusqu'ici, mais ignoré.
+- `GET /api/v1/offres/sources/{source_id}` : chaque offre renvoyée contient un nouveau
+  champ `fin_publication` (date ISO 8601), à `null` pour les offres transmises avant
+  ce changement.
+
+### Modifié
+
+- `GET /api/fake-ts/offers/getoffer` : `endPublicationDate` n'est plus toujours
+  `null`. Il reprend `fin_publication`, et reste à `null` pour les offres transmises
+  avant ce changement.
+
+### Compatibilité
+
+Ces changements sont rétrocompatibles : un appel valide avant ces changements reste
+valide, et le champ ajouté dans les réponses n'en retire aucun.
+
+## 2026-10-15
+
+### Modifié
+
+`GET /api/v1/offres`, `GET /api/v1/offres/sources/{source_id}` et
+`GET /api/v1/metiers` : le paramètre `taille` est plafonné à `1000`. Une valeur
+supérieure est ramenée à `1000`, et le lien `next` reprend cette taille. Pour
+récupérer plus d'éléments, suivez le lien `next`. Une valeur de `taille` ou `page`
+non numérique ou inférieure à `1` est remplacée par la valeur par défaut, au lieu
+de renvoyer une erreur `500`.
+
+`GET /api/fake-ts/offersummaries` : le paramètre `count` est plafonné à
+`1000`, comme `taille`. Une valeur non numérique ou inférieure à `1` pour `count`,
+ou inférieure à `0` pour `start`, est remplacée par la valeur par défaut (`100`
+pour `count`, `0` pour `start`).
+
 ## 2026-10-14
 
 ### ⚠️ Changements non rétrocompatibles

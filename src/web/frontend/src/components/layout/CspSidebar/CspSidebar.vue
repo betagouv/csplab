@@ -135,7 +135,7 @@ const { state, isExpanded, isMobile, isMobileOpen, setMobileOpen, toggle } = use
   flex-direction: column;
   width: var(--sidebar-width-collapsed);
   height: 100%;
-  background: var(--csp-sidebar-background);
+  background: var(--csp-nav-background);
   overflow: hidden;
 
   &--expanded {
@@ -149,7 +149,7 @@ const { state, isExpanded, isMobile, isMobileOpen, setMobileOpen, toggle } = use
     width: var(--sidebar-width);
     max-width: calc(100vw - 3rem);
     z-index: var(--csp-z-modal);
-    box-shadow: var(--csp-shadow-lg);
+    box-shadow: var(--csp-lifted-shadow);
   }
 }
 
@@ -171,7 +171,7 @@ const { state, isExpanded, isMobile, isMobileOpen, setMobileOpen, toggle } = use
   align-items: center;
   padding: var(--csp-sidebar-padding);
   padding-bottom: 0;
-  border-top: 1px solid var(--border-default-grey);
+  border-top: 1px solid var(--csp-divider-color);
 
   .csp-sidebar--expanded &,
   .csp-sidebar--mobile & {
@@ -195,7 +195,7 @@ const { state, isExpanded, isMobile, isMobileOpen, setMobileOpen, toggle } = use
   flex-shrink: 0;
   padding: 0;
   border: none;
-  border-radius: var(--csp-sidebar-toggle-radius, var(--csp-radius-action));
+  border-radius: 0.375rem;
   background: transparent;
   color: var(--text-mention-grey);
   cursor: pointer;
@@ -242,7 +242,7 @@ const { state, isExpanded, isMobile, isMobileOpen, setMobileOpen, toggle } = use
   align-items: center;
   flex-shrink: 0;
   padding: var(--csp-sidebar-padding);
-  border-top: 1px solid var(--border-default-grey);
+  border-top: 1px solid var(--csp-divider-color);
 
   .csp-sidebar--expanded &,
   .csp-sidebar--mobile & {

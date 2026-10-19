@@ -200,7 +200,7 @@ const TAILLES = ['sm', 'md'] as const
   padding: var(--csp-kanban-column-padding);
   background-color: var(--background-alt-grey);
   box-shadow: inset 0 0 0 1px var(--border-default-grey);
-  border-top: var(--csp-kanban-column-accent-width) solid var(--border-default-grey);
+  border-top: var(--csp-category-accent-width) solid var(--border-default-grey);
 }
 
 .formes__panneau {

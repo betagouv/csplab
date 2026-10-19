@@ -27,6 +27,7 @@ export const DEMO_RECRUTEMENT_DETAIL: RecrutementDetail = {
   organisme_recruteur: { nom: DEMO_ORGANISME.nom, siret: DEMO_ORGANISME.siret },
   categorie_offre: 'B',
   etapes: DEMO_ETAPES,
+  recrutement_role: 'responsable',
 }
 
 export const DEMO_RECRUTEMENTS_ACTIFS: RecrutementsActifs[] = [{
@@ -38,4 +39,5 @@ export const DEMO_RECRUTEMENTS_ACTIFS: RecrutementsActifs[] = [{
   date_publication: demoDate(24),
   candidatures: { total: 32, a_traiter: 20, en_cours: 9 },
   derniere_activite: demoDate(1, 16, 40),
+  unread_conversations: 0,
 }]

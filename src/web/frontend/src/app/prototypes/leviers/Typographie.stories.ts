@@ -12,7 +12,7 @@ const meta = {
     // The panel opens on its Notes tab: a sandboxed frame, such as a deck slide, blocks the PDF viewer of the CV
     appRoute: `/organismes/${DEMO_ORGANISME.uuid}/recrutements/${DEMO_RECRUTEMENT_UUID}/candidatures/${DEMO_CANDIDATURE.uuid}/notes`,
   },
-  globals: { interfaceTheme: 'aucun' },
+  globals: { interfaceTheme: 'kit' },
   render: () => ({ components: { App }, template: '<App />' }),
 } satisfies Meta
 

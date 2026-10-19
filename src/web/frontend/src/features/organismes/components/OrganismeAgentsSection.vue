@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { Role } from '../types'
 import { computed, ref, useTemplateRef, watch } from 'vue'
-import { HttpError } from '@/api/errors'
+import { isHttpStatus } from '@/api/errors'
 import CspAsyncSection from '@/components/base/CspAsyncSection/CspAsyncSection.vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspDataTable from '@/components/base/CspDataTable/CspDataTable.vue'
@@ -12,11 +12,11 @@ import CspTableToolbar from '@/components/base/CspTableToolbar/CspTableToolbar.v
 import { useMinimumPending } from '@/composables/async/useMinimumPending'
 import { useTextSearch } from '@/composables/data/useTextSearch'
 import { useToast } from '@/composables/ui/useToast'
-import { formatAgentName } from '@/features/agents/format'
+import { formatAgentLabel, formatAgentName } from '@/features/agents/format'
 import { pluralize } from '@/utils/format'
 import { ORGANISME_AGENTS_COLUMNS } from '../columns'
+import { useAddAgentToOrganisme } from '../composables/useAddAgentToOrganisme'
 import { provideAgentActions } from '../composables/useAgentActions'
-import { useAjoutMembre } from '../composables/useAjoutMembre'
 import { useOrganismeAgents } from '../composables/useOrganismeAgents'
 import { ROLE_LABELS } from '../constants/organisme'
 import AttachAgentDrawer from './AttachAgentDrawer.vue'
@@ -28,7 +28,7 @@ const props = defineProps<{
 const PAGE_SIZE = 8
 
 const { agents, pending, error, updateAgent, updatingAgent } = useOrganismeAgents(props.organismeUuid)
-const { status, foundAgent, searching, search: searchAgent, add, submitting, reset } = useAjoutMembre(props.organismeUuid)
+const { status, foundAgent, searching, search: searchAgent, add, submitting, reset } = useAddAgentToOrganisme(props.organismeUuid)
 const { roleChange, revocation } = provideAgentActions()
 const { addToast } = useToast()
 
@@ -39,27 +39,18 @@ const revocationDialogOpen = ref(false)
 const attachDrawerOpen = ref(false)
 const attachDrawer = useTemplateRef('attachDrawer')
 
-async function handleSearch(email: string) {
-  try {
-    await searchAgent(email)
-  }
-  catch {
-    addToast({ variant: 'error', title: 'La recherche a échoué' })
-  }
-}
-
 async function handleAdd(role: Role) {
   try {
     const agent = await add(role)
     addToast({
       variant: 'success',
       title: 'Membre ajouté',
-      description: `${formatAgentName(agent) || agent.email} a rejoint l'organisme.`,
+      description: `${formatAgentLabel(agent)} a rejoint l'organisme.`,
     })
     attachDrawerOpen.value = false
   }
   catch (submitError) {
-    if (submitError instanceof HttpError && submitError.status === 409) {
+    if (isHttpStatus(submitError, 409)) {
       attachDrawer.value?.setEmailError('Cet agent est déjà rattaché à l\'organisme.')
       return
     }
@@ -80,10 +71,6 @@ const { search, filtered } = useTextSearch(rows, row => [
   `${row.nom} ${row.prenom}`,
   row.email,
 ])
-
-watch(filtered, () => {
-  page.value = 1
-})
 
 const countLabel = computed(() => {
   const count = filtered.value.length
@@ -219,7 +206,7 @@ async function handleRevocation(): Promise<void> {
       :agent="foundAgent"
       :searching="searching"
       :submitting="submitting"
-      @search="handleSearch"
+      @search="searchAgent"
       @add="handleAdd"
       @reset="reset"
     />

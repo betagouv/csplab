@@ -67,7 +67,7 @@ const isIconOnly = computed(() => Boolean(props.icon) && !props.label)
   line-height: 1.25;
   cursor: pointer;
   border: none;
-  border-radius: var(--csp-radius-action);
+  border-radius: var(--csp-action-radius);
   text-decoration: none;
   padding: var(--csp-btn-padding-y) var(--csp-btn-padding-x);
   transition:
@@ -104,22 +104,22 @@ const isIconOnly = computed(() => Boolean(props.icon) && !props.label)
 }
 
 .csp-btn--secondary {
-  background-color: var(--csp-btn-secondary-background);
+  background-color: var(--csp-action-secondary-background);
   color: var(--text-action-high-blue-france);
-  box-shadow: inset 0 0 0 1px var(--csp-btn-secondary-border-color);
+  box-shadow: inset 0 0 0 1px var(--csp-action-secondary-border-color);
 
   &:hover {
-    background-color: var(--csp-btn-secondary-background-hover);
+    background-color: var(--csp-action-secondary-background-hover);
   }
 
   &:active {
-    background-color: var(--csp-btn-secondary-background-active);
+    background-color: var(--csp-action-secondary-background-active);
   }
 
   &:disabled {
-    background-color: var(--csp-btn-secondary-disabled-background);
+    background-color: var(--csp-action-secondary-background-disabled);
     color: var(--text-disabled-grey);
-    box-shadow: inset 0 0 0 1px var(--csp-btn-secondary-disabled-border-color);
+    box-shadow: inset 0 0 0 1px var(--csp-action-secondary-border-color-disabled);
   }
 }
 

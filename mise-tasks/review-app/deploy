@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+#MISE description="Deploy the PR branch on its review app and fail if a container crashed"
+#MISE extends="review-app"
+set -euo pipefail
+
+branch="$(gh pr view "$PR_NUMBER" --json headRefName --jq .headRefName)"
+gum log -s -l info "Deploying the PR branch" branch "$branch" app "$SCALINGO_APP"
+if ! scalingo integration-link-manual-deploy "$branch" --follow; then
+  gum log -s -l error "Deployment failed" app_logs "scalingo --app $SCALINGO_APP logs --lines 200"
+  exit 1
+fi
+
+# Scalingo restarts a container that crashes at startup, and the deployment
+# can still end in success: look for crashes since the deployment started.
+sleep 30
+crashes="$(scalingo timeline --per-page 50 2>/dev/null | awk '/Deployment/ { exit } /Crash/')"
+if [[ -n "$crashes" ]]; then
+  gum log -s -l error "Deployment succeeded, but containers crashed since it started" \
+    app_logs "scalingo --app $SCALINGO_APP logs --lines 200"
+  echo "$crashes" >&2
+  exit 1
+fi
+gum log -s -l info "Deployed" url "$REVIEW_APP_URL"

@@ -54,6 +54,7 @@ const KANBAN_WITH_ENTRETIEN = {
           uuid: CANDIDATURE_CHLOE,
           date_soumission: '2025-06-13T09:15:00Z',
           date_derniere_activite: '2025-06-13T10:00:00Z',
+          unread_conversations: 0,
           candidat: { uuid: 'eeeeeeee-0001-0001-0001-000000000003', nom: 'Petit', prenom: 'Chloé' },
         }],
       }
@@ -61,11 +62,15 @@ const KANBAN_WITH_ENTRETIEN = {
 }
 
 function dropButton(label: string, targetColumnId: string) {
-  const event: KanbanDropEvent = { sourceColumnId: ETAPE_RECEPTION, targetColumnId, cardId: CANDIDATURE_ALICE, cardIndex: 0 }
+  const event: KanbanDropEvent = { sourceColumnId: ETAPE_RECEPTION, targetColumnId, cardId: CANDIDATURE_ALICE }
   return { label, event }
 }
 
-const DROPS = [dropButton('Déposer dans sa colonne', ETAPE_RECEPTION), dropButton('Déposer en entretien', ETAPE_ENTRETIEN)]
+const DROPS = [
+  dropButton('Déposer dans sa colonne', ETAPE_RECEPTION),
+  dropButton('Déposer en entretien', ETAPE_ENTRETIEN),
+  dropButton('Déposer en refus', ETAPE_REFUS),
+]
 
 const DroppingBoard = defineComponent({
   emits: ['move'],
@@ -204,5 +209,25 @@ describe('candidaturesKanbanView', () => {
       etapeCibleUuid: ETAPE_ENTRETIEN,
       candidatureUuids: [CANDIDATURE_ALICE],
     })
+  })
+
+  it('asks for a motif before refusing a card dropped in the refusal column, and sends it', async () => {
+    const user = setupUser()
+    await renderKanbanPage({ CandidaturesKanbanBoard: DroppingBoard })
+
+    await user.click(await screen.findByRole('button', { name: 'Déposer en refus' }))
+    const dialog = within(await screen.findByRole('dialog', { name: 'Refus de candidature' }))
+    expect(dialog.getByText(/Vous êtes sur le point de refuser la candidature de Alice/)).toBeInTheDocument()
+    expect(patchEtapeCandidatures).not.toHaveBeenCalled()
+
+    await user.click(dialog.getByRole('combobox', { name: /Motif de refus/ }))
+    await user.click(await screen.findByRole('option', { name: 'Autre' }))
+    await user.click(dialog.getByRole('button', { name: 'Valider le refus' }))
+
+    await vi.waitFor(() => expect(patchEtapeCandidatures).toHaveBeenCalledWith(ORGANISME_UUID, RECRUTEMENT_UUID, {
+      etapeCibleUuid: ETAPE_REFUS,
+      candidatureUuids: [CANDIDATURE_ALICE],
+      motifRefus: 'autre',
+    }))
   })
 })

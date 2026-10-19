@@ -41,35 +41,31 @@ withDefaults(defineProps<{
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--csp-empty-state-gap, var(--csp-space-2));
-  padding: var(--csp-empty-state-padding-block, var(--csp-space-10)) var(--csp-space-4);
-  background-color: var(--csp-empty-state-background, transparent);
-  background-image: var(--csp-empty-state-backdrop, none);
-  background-repeat: var(--csp-empty-state-backdrop-repeat, no-repeat);
-  background-position: var(--csp-empty-state-backdrop-position, right bottom);
-  background-size: var(--csp-empty-state-backdrop-size, cover);
-  box-shadow: inset 0 0 0 var(--csp-empty-state-frame-width, 0) var(--border-default-grey);
+  gap: var(--csp-empty-state-gap);
+  padding: var(--csp-empty-state-padding-block) var(--csp-space-4);
+  background: var(--csp-empty-state-backdrop), var(--csp-empty-state-background);
+  box-shadow: inset 0 0 0 var(--csp-empty-state-frame-width) var(--border-default-grey);
   text-align: center;
 }
 
 .csp-empty-state__icon {
   box-sizing: content-box;
-  padding: var(--csp-empty-state-icon-padding, 0);
-  background-color: var(--csp-empty-state-icon-background, transparent);
-  border-radius: var(--csp-empty-state-icon-radius, 0);
-  color: var(--csp-empty-state-icon-color, var(--text-mention-grey));
+  padding: var(--csp-empty-state-icon-padding);
+  background-color: var(--csp-empty-state-icon-background);
+  border-radius: var(--csp-empty-state-icon-radius);
+  color: var(--csp-empty-state-icon-color);
 }
 
 .csp-empty-state__title {
   margin: 0;
-  font-size: var(--csp-empty-state-title-size, var(--csp-font-size-base));
-  font-weight: var(--csp-empty-state-title-weight, var(--csp-font-weight-medium));
+  font-size: var(--csp-empty-state-title-size);
+  font-weight: var(--csp-empty-state-title-weight);
   color: var(--text-title-grey);
 }
 
 .csp-empty-state__description {
   margin: 0;
-  font-size: var(--csp-empty-state-description-size, var(--csp-font-size-sm));
+  font-size: var(--csp-empty-state-description-size);
   color: var(--text-mention-grey);
 }
 

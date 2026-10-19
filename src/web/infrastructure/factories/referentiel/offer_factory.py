@@ -37,6 +37,7 @@ class OfferFactory:
         offer_url: HttpUrl | None = None,
         localisation: Localisation | None = None,
         publication_date: datetime | None = None,
+        end_publication_date: datetime | None = None,
         beginning_date: LimitDate | None = None,
         archived_at: datetime | None = None,
         criteria: dict | None = None,
@@ -64,6 +65,8 @@ class OfferFactory:
             offer_url=offer_url,
             localisation=localisation,
             publication_date=publication_date or datetime(2024, 1, 15, tzinfo=UTC),
+            end_publication_date=end_publication_date
+            or datetime(2025, 1, 15, tzinfo=UTC),
             beginning_date=beginning_date
             or LimitDate(datetime(2024, 12, 31, tzinfo=UTC)),
             processed_at=None,

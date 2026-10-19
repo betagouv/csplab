@@ -15,7 +15,7 @@ import { demoCandidatureDetail, demoKanban, demoNotes } from '@/features/candida
 import CandidatureKanbanCard from '@/features/candidatures/components/CandidatureKanbanCard.vue'
 import CandidatureKanbanColumn from '@/features/candidatures/components/CandidatureKanbanColumn.vue'
 import CandidatureNoteMessage from '@/features/candidatures/components/CandidatureNoteMessage.vue'
-import { formatCandidatNom } from '@/features/candidatures/utils/candidat'
+import { formatCandidatName } from '@/features/candidatures/format'
 import { formatDateTime } from '@/utils/date'
 
 defineProps<{
@@ -167,7 +167,7 @@ const note = ref('')
       :open="true"
       :modal="false"
       :overlay="false"
-      :title="formatCandidatNom(CANDIDATURE.candidat)"
+      :title="formatCandidatName(CANDIDATURE.candidat)"
       :description="CANDIDATURE.recrutement_intitule"
       aria-label="Candidature"
       close-label="Fermer la candidature"
@@ -225,7 +225,7 @@ const note = ref('')
   padding: var(--csp-kanban-column-padding);
   background-color: var(--csp-region-background);
   box-shadow: inset 0 0 0 1px var(--csp-region-border-color);
-  border-radius: var(--csp-radius-region);
+  border-radius: var(--csp-region-radius);
 }
 
 .leviers-detail__etat {
@@ -241,15 +241,15 @@ const note = ref('')
 
 /* Variables of the hover and drag states, set on an ancestor of a card that the pointer does not reach */
 .leviers-detail__carte--survol {
-  --csp-raised-shadow: var(--csp-raised-shadow-hover);
-  --csp-raised-background: var(--csp-raised-background-hover);
-  --csp-raised-border: var(--csp-raised-border-hover);
+  --csp-raised-shadow: var(--csp-raised-shadow-hover, 0 1px 2px rgb(0 0 0 / 6%));
+  --csp-raised-background: var(--csp-raised-background-hover, var(--background-alt-grey));
+  --csp-raised-border-color: var(--csp-raised-border-color-hover, var(--border-default-grey));
 }
 
 .leviers-detail__carte--glisser {
-  --csp-raised-shadow: var(--csp-raised-shadow-drag);
+  --csp-raised-shadow: var(--csp-raised-shadow-drag, 0 1px 2px rgb(0 0 0 / 6%));
 
-  opacity: var(--csp-raised-drag-opacity);
+  opacity: var(--csp-raised-opacity-drag);
 }
 
 .leviers-detail__controles {

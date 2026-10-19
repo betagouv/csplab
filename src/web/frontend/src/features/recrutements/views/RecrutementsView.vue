@@ -3,9 +3,9 @@ import type { AssignationResponsableResultat, RecrutementKey } from '../types'
 import type { CspBreadcrumbItem } from '@/components/base/CspBreadcrumb/CspBreadcrumb.vue'
 import type { ToastOptions } from '@/composables/ui/useToast'
 import type { AgentRecherche } from '@/features/agents/types'
-import { computed, ref, watch } from 'vue'
+import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { HttpError, isHttpStatus } from '@/api/errors'
+import { isHttpStatus } from '@/api/errors'
 import CspAsyncSection from '@/components/base/CspAsyncSection/CspAsyncSection.vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspDataTable from '@/components/base/CspDataTable/CspDataTable.vue'
@@ -24,7 +24,7 @@ import { useRouteTab } from '@/composables/navigation/useRouteTab'
 import { useDisclosure } from '@/composables/ui/useDisclosure'
 import { useDocumentTitle } from '@/composables/ui/useDocumentTitle'
 import { useToast } from '@/composables/ui/useToast'
-import { formatAgentName } from '@/features/agents/format'
+import { formatAgentLabel } from '@/features/agents/format'
 import { HOME_BREADCRUMB_ITEM, RECRUTEMENTS_BREADCRUMB_LABEL } from '@/router/breadcrumb'
 import { CANDIDATURES_VIEW_ROUTE_NAMES, RECRUTEMENTS_TAB_ROUTE_NAMES } from '@/router/names'
 import { useRouteOrganisme } from '@/stores/routeOrganisme'
@@ -34,7 +34,7 @@ import { RECRUTEMENTS_ACTIFS_COLUMNS, RECRUTEMENTS_ARCHIVES_COLUMNS } from '../c
 import AssignationResponsableDrawer from '../components/AssignationResponsableDrawer.vue'
 import RecrutementsActifsFiltersDrawer from '../components/RecrutementsActifsFiltersDrawer.vue'
 import RecrutementsArchivesFiltersDrawer from '../components/RecrutementsArchivesFiltersDrawer.vue'
-import { useAssignationResponsable } from '../composables/useAssignationResponsable'
+import { useAssignResponsable } from '../composables/useAssignResponsable'
 import { useRecrutements } from '../composables/useRecrutements'
 import { useRecrutementsFilters } from '../composables/useRecrutementsFilters'
 import { RECRUTEMENT_TAB_ICONS, RECRUTEMENT_TAB_LABELS } from '../constants/recrutement'
@@ -101,7 +101,7 @@ const {
   assign,
   submitting,
   reset: resetResponsable,
-} = useAssignationResponsable(() => props.organismeUuid)
+} = useAssignResponsable(() => props.organismeUuid)
 
 const selectionLabel = computed(() => {
   const count = selection.count.value
@@ -112,7 +112,7 @@ function assignationToast(
   resultat: AssignationResponsableResultat,
   agent: AgentRecherche | null,
 ): ToastOptions {
-  const nom = agent ? formatAgentName(agent) || agent.email : 'Le membre choisi'
+  const nom = agent ? formatAgentLabel(agent) : 'Le membre choisi'
   const reussites = resultat.reussites.length
   const assignees = `${nom} est responsable de ${reussites} ${pluralize(reussites, 'offre')}`
 
@@ -132,22 +132,13 @@ function assignationToast(
 }
 
 function assignationErrorTitle(assignationError: unknown): string {
-  if (assignationError instanceof HttpError && assignationError.status === 403) {
+  if (isHttpStatus(assignationError, 403)) {
     return 'Vous n\'avez pas les droits pour assigner un responsable'
   }
-  if (assignationError instanceof HttpError && assignationError.status === 404) {
+  if (isHttpStatus(assignationError, 404)) {
     return 'Ce membre n\'est plus rattaché à l\'organisme'
   }
   return 'L\'assignation du responsable a échoué'
-}
-
-async function handleSearchResponsable(email: string) {
-  try {
-    await searchResponsable(email)
-  }
-  catch {
-    addToast({ variant: 'error', title: 'La recherche a échoué' })
-  }
 }
 
 async function handleAssign() {
@@ -185,14 +176,6 @@ function applyArchivesFilters() {
   archivesFiltersDrawer.close()
 }
 
-watch(actifsFilters.filtered, () => {
-  recrutementsActifsPage.value = 1
-})
-
-watch(archivesFilters.filtered, () => {
-  recrutementsArchivesPage.value = 1
-})
-
 const aucunRecrutementActif = computed(
   () => !showActifsSkeleton.value && recrutementsData.actifs.length === 0,
 )
@@ -203,12 +186,12 @@ const aucuneOffreArchivee = computed(
 
 const actifsCountLabel = computed(() => {
   const count = actifsFilters.filtered.value.length
-  return `${count} recrutement${count > 1 ? 's' : ''} en cours`
+  return `${count} ${pluralize(count, 'recrutement')} en cours`
 })
 
 const archivesCountLabel = computed(() => {
   const count = archivesFilters.filtered.value.length
-  return `${count} recrutement${count > 1 ? 's' : ''} terminé${count > 1 ? 's' : ''}`
+  return `${count} ${pluralize(count, 'recrutement terminé', 'recrutements terminés')}`
 })
 </script>
 
@@ -217,15 +200,9 @@ const archivesCountLabel = computed(() => {
   <template v-else>
     <CspPageHeader
       title="Recrutements"
-      subtitle="Retrouvez ici l’ensemble des recrutements en cours et archivés."
+      subtitle="Retrouvez ici l’ensemble des recrutements en cours et terminés."
       :breadcrumb="BREADCRUMB"
-    >
-      <template #subtitle>
-        <p class="mes-recrutement-view__subtitle">
-          Retrouvez ici l’ensemble des recrutements en cours et terminés.
-        </p>
-      </template>
-    </CspPageHeader>
+    />
     <CspPageContainer
       v-model:active-tab="activeTab"
       class="mes-recrutement-view"
@@ -305,7 +282,7 @@ const archivesCountLabel = computed(() => {
             :searching="searching"
             :submitting="submitting"
             @remove="selection.toggle"
-            @search="handleSearchResponsable"
+            @search="searchResponsable"
             @assign="handleAssign"
             @reset="resetResponsable"
           />

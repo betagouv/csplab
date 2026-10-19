@@ -136,7 +136,7 @@ function handleUpdate(val: unknown): void {
   width: var(--csp-checkbox-size);
   height: var(--csp-checkbox-size);
   flex: 0 0 auto;
-  border-radius: var(--csp-radius-indicator);
+  border-radius: var(--csp-indicator-radius);
   border: 1px solid var(--csp-field-border-color);
   background: var(--background-default-grey);
   padding: 0;

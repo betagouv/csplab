@@ -1,4 +1,5 @@
 from datetime import datetime, timezone
+from http import HTTPStatus
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -7,9 +8,10 @@ from django.contrib.auth.models import AnonymousUser
 from django.core.cache import cache
 from django.http import HttpResponse
 from django.test import RequestFactory
-from rest_framework.throttling import AnonRateThrottle
+from django.urls import Resolver404, resolve
 from rest_framework_simplejwt.tokens import RefreshToken
 
+from infrastructure.authentication.anon_rate_throttle import ClientIpAnonRateThrottle
 from infrastructure.authentication.api_key_authentication import (
     ApiKeyRateThrottle,
     ApiKeyRateThrottleDaily,
@@ -34,7 +36,14 @@ def mock_response():
 
 
 def make_middleware(mock_response):
-    get_response = MagicMock(return_value=mock_response)
+    def resolve_and_respond(request):
+        try:
+            request.resolver_match = resolve(request.path)
+        except Resolver404:
+            pass
+        return mock_response
+
+    get_response = MagicMock(side_effect=resolve_and_respond)
     middleware = RateLimitHeadersMiddleware(get_response=get_response)
     return middleware, get_response
 
@@ -43,7 +52,7 @@ class TestRateLimitHeadersMiddleware:
     def test_adds_headers_for_valid_api_key_request(self, rf, mock_response, settings):
         settings.INGESTION_API_KEY = "secret-key"
         middleware, _ = make_middleware(mock_response)
-        request = rf.get("/api/v1/offres/", HTTP_AUTHORIZATION="Api-Key secret-key")
+        request = rf.get("/api/v1/offres", HTTP_AUTHORIZATION="Api-Key secret-key")
 
         middleware(request)
 
@@ -56,7 +65,7 @@ class TestRateLimitHeadersMiddleware:
     ):
         settings.INGESTION_API_KEY = "secret-key"
         middleware, _ = make_middleware(mock_response)
-        request = rf.get("/api/v1/offres/", HTTP_AUTHORIZATION="Api-Key wrong-key")
+        request = rf.get("/api/v1/offres", HTTP_AUTHORIZATION="Api-Key wrong-key")
 
         middleware(request)
 
@@ -65,7 +74,7 @@ class TestRateLimitHeadersMiddleware:
     def test_does_not_add_headers_for_invalid_jwt(self, rf, mock_response, settings):
         settings.INGESTION_API_KEY = "secret-key"
         middleware, _ = make_middleware(mock_response)
-        request = rf.get("/api/v1/offres/", HTTP_AUTHORIZATION="Bearer some-token")
+        request = rf.get("/api/v1/offres", HTTP_AUTHORIZATION="Bearer some-token")
 
         middleware(request)
 
@@ -75,7 +84,7 @@ class TestRateLimitHeadersMiddleware:
         middleware, _ = make_middleware(mock_response)
         refresh = RefreshToken.for_user(test_user)
         request = rf.get(
-            "/api/v1/offres/", HTTP_AUTHORIZATION=f"Bearer {refresh.access_token}"
+            "/api/v1/offres", HTTP_AUTHORIZATION=f"Bearer {refresh.access_token}"
         )
 
         middleware(request)
@@ -96,7 +105,7 @@ class TestRateLimitHeadersMiddleware:
 
     def test_adds_headers_for_anonymous_api_request(self, rf, mock_response):
         middleware, _ = make_middleware(mock_response)
-        request = rf.get("/api/v1/offres/", REMOTE_ADDR="203.0.113.5")
+        request = rf.get("/api/v1/offres", HTTP_X_REAL_IP="203.0.113.5")
 
         middleware(request)
 
@@ -104,15 +113,23 @@ class TestRateLimitHeadersMiddleware:
         assert "X-RateLimit-Remaining" in mock_response.headers
         assert "X-RateLimit-Reset" in mock_response.headers
 
-    @patch.object(AnonRateThrottle, "THROTTLE_RATES", {"anon": "3/minute"})
+    @patch.object(ClientIpAnonRateThrottle, "THROTTLE_RATES", {"anon": "3/minute"})
     def test_anon_remaining_decreases_as_quota_is_consumed(self, rf, mock_response):
-        request = rf.get("/api/v1/offres/", REMOTE_ADDR="203.0.113.9")
-        request.user = AnonymousUser()
-        AnonRateThrottle().allow_request(request, view=None)
-        AnonRateThrottle().allow_request(request, view=None)
+        for i in range(2):
+            request = rf.get(
+                "/api/v1/offres",
+                HTTP_X_REAL_IP="203.0.113.9",
+                HTTP_X_FORWARDED_FOR=f"198.51.100.{i}",
+            )
+            request.user = AnonymousUser()
+            ClientIpAnonRateThrottle().allow_request(request, view=None)
 
         middleware, _ = make_middleware(mock_response)
-        header_request = rf.get("/api/v1/offres/", REMOTE_ADDR="203.0.113.9")
+        header_request = rf.get(
+            "/api/v1/offres",
+            HTTP_X_REAL_IP="203.0.113.9",
+            HTTP_X_FORWARDED_FOR="198.51.100.99",
+        )
 
         middleware(header_request)
 
@@ -135,7 +152,7 @@ class TestRateLimitHeadersMiddleware:
 
         middleware, _ = make_middleware(mock_response)
         header_request = rf.get(
-            "/api/v1/offres/", HTTP_AUTHORIZATION="Api-Key secret-key"
+            "/api/v1/offres", HTTP_AUTHORIZATION="Api-Key secret-key"
         )
 
         middleware(header_request)
@@ -160,7 +177,7 @@ class TestRateLimitHeadersMiddleware:
 
         middleware, _ = make_middleware(mock_response)
         header_request = rf.get(
-            "/api/v1/offres/", HTTP_AUTHORIZATION="Api-Key secret-key"
+            "/api/v1/offres", HTTP_AUTHORIZATION="Api-Key secret-key"
         )
 
         middleware(header_request)
@@ -180,7 +197,7 @@ class TestRateLimitHeadersMiddleware:
 
         middleware, _ = make_middleware(mock_response)
         header_request = rf.get(
-            "/api/v1/offres/", HTTP_AUTHORIZATION="Api-Key secret-key"
+            "/api/v1/offres", HTTP_AUTHORIZATION="Api-Key secret-key"
         )
 
         middleware(header_request)
@@ -191,9 +208,79 @@ class TestRateLimitHeadersMiddleware:
     def test_passes_through_response_unchanged(self, rf, mock_response, settings):
         settings.INGESTION_API_KEY = "secret-key"
         middleware, get_response = make_middleware(mock_response)
-        request = rf.get("/api/v1/offres/")
+        request = rf.get("/api/v1/offres")
 
         result = middleware(request)
 
         assert result is mock_response
         get_response.assert_called_once_with(request)
+
+    def test_does_not_add_headers_for_non_drf_api_view(self, rf, mock_response):
+        middleware, _ = make_middleware(mock_response)
+        request = rf.get("/api/schema/redoc", HTTP_X_REAL_IP="203.0.113.5")
+
+        middleware(request)
+
+        assert "X-RateLimit-Limit" not in mock_response.headers
+
+    def test_does_not_add_headers_for_unresolved_api_path(self, rf, mock_response):
+        middleware, _ = make_middleware(mock_response)
+        request = rf.get("/api/inexistant", HTTP_X_REAL_IP="203.0.113.5")
+
+        middleware(request)
+
+        assert "X-RateLimit-Limit" not in mock_response.headers
+
+    def test_does_not_add_headers_when_view_does_not_run_the_throttle(
+        self, rf, mock_response
+    ):
+        middleware, _ = make_middleware(mock_response)
+        request = rf.get("/api/v1/offres", HTTP_X_REAL_IP="203.0.113.5")
+
+        with patch(
+            "presentation.ingestion.views.offers.OffersListView.throttle_classes",
+            [ApiKeyRateThrottle],
+        ):
+            middleware(request)
+
+        assert "X-RateLimit-Limit" not in mock_response.headers
+
+    @patch.object(ApiKeyRateThrottle, "THROTTLE_RATES", {"api_key": "1000/hour"})
+    @patch.object(ApiKeyRateThrottleDaily, "THROTTLE_RATES", {"api_key_daily": "3/day"})
+    def test_adds_only_headers_of_throttles_run_by_the_view(
+        self, rf, mock_response, settings
+    ):
+        settings.INGESTION_API_KEY = "secret-key"
+        middleware, _ = make_middleware(mock_response)
+        request = rf.get("/api/v1/offres", HTTP_AUTHORIZATION="Api-Key secret-key")
+
+        with patch(
+            "presentation.ingestion.views.offers.OffersListView.throttle_classes",
+            [ApiKeyRateThrottle],
+        ):
+            middleware(request)
+
+        assert mock_response.headers["X-RateLimit-Limit"] == "1000"
+        assert mock_response.headers["X-RateLimit-Remaining"] == "1000"
+
+
+@pytest.mark.django_db
+class TestRateLimitHeadersOnRealViews:
+    def test_redoc_does_not_get_rate_limit_headers(self, client):
+        response = client.get("/api/schema/redoc")
+
+        assert response.status_code == HTTPStatus.OK
+        assert "X-RateLimit-Limit" not in response.headers
+        assert "X-RateLimit-Remaining" not in response.headers
+        assert "X-RateLimit-Reset" not in response.headers
+
+    def test_anonymous_drf_view_gets_rate_limit_headers(self, client):
+        response = client.post(
+            "/api/token/refresh",
+            {"refresh": "invalide"},
+            content_type="application/json",
+        )
+
+        assert response.headers["X-RateLimit-Limit"] == "5"
+        assert "X-RateLimit-Remaining" in response.headers
+        assert "X-RateLimit-Reset" in response.headers

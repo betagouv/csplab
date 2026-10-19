@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { CreateOrganismePayload, UpdateOrganismePayload } from '../types'
-import { computed, ref, useTemplateRef, watch } from 'vue'
+import { computed, ref, useTemplateRef } from 'vue'
 import { ValidationError } from '@/api/errors'
 import CspAsyncSection from '@/components/base/CspAsyncSection/CspAsyncSection.vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
@@ -43,11 +43,7 @@ const formDrawer = useTemplateRef('formDrawer')
 
 const rows = computed(() => organismesList.value ?? [])
 
-const { search, filtered } = useTextSearch(rows, row => [row.nom, row.siret, row.gestionnaire])
-
-watch(filtered, () => {
-  page.value = 1
-})
+const { search, filtered } = useTextSearch(rows, row => [row.nom, row.siret, row.superviseurs])
 
 const countLabel = computed(() => {
   const count = filtered.value.length

@@ -28,11 +28,11 @@ def revoke_recrutement_agent(
     agent_id: UUID,
     utilisateur: Utilisateur,
 ) -> RecrutementAgentModel:
-    # TODO : to refactor in ADR-009 style
     OrganismePermissionService().can_execute(
         action=OrganismeAction.REVOKE_RECRUTEMENT_AGENT,
         utilisateur=utilisateur,
         organisme_id=organisme_id,
+        recrutement_id=recrutement_id,
     )
 
     contexte = RecrutementAgentService(

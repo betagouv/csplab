@@ -1,0 +1,3 @@
+[submodule "docs/dat"]
+	path = docs/dat
+	url = git@github.com:betagouv/csplab-dat.git

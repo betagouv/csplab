@@ -46,7 +46,10 @@ class OrganismeDetailSerializer(serializers.Serializer):
     nom = serializers.CharField()
     versant = serializers.ChoiceField(choices=[c.value for c in Verse])
     siret = serializers.CharField(min_length=14, max_length=14)
-    gestionnaire = serializers.CharField(allow_null=True)
+    # TODO : fill with the active superviseurs (comma-separated, as in
+    # OrganismesListSerializer) when this view switches to ADR-009 style;
+    # empty string until then, like the list when there is none
+    superviseurs = serializers.CharField(allow_blank=True)
     gestion_ats = serializers.BooleanField()
     date_derniere_activite = serializers.DateTimeField()
     date_creation = serializers.DateTimeField()
@@ -54,7 +57,7 @@ class OrganismeDetailSerializer(serializers.Serializer):
 
 class OrganismesListSerializer(serializers.ModelSerializer):
     uuid = serializers.UUIDField(source="id")
-    gestionnaire = serializers.CharField(allow_null=True)
+    superviseurs = serializers.SerializerMethodField()
     gestion_ats = serializers.BooleanField(source="managed_ats")
     date_derniere_activite = serializers.DateTimeField(source="last_activity_date")
     date_creation = serializers.DateTimeField(source="created_at")
@@ -68,7 +71,7 @@ class OrganismesListSerializer(serializers.ModelSerializer):
             "nom",
             "versant",
             "siret",
-            "gestionnaire",
+            "superviseurs",
             "gestion_ats",
             "date_derniere_activite",
             "date_creation",
@@ -76,6 +79,14 @@ class OrganismesListSerializer(serializers.ModelSerializer):
             "nombre_offres_publiees",
         )
         extra_kwargs = {"siret": {"min_length": 14}}
+
+    def get_superviseurs(self, organisme) -> str:
+        return ", ".join(
+            f"{utilisateur.last_name} {utilisateur.first_name}".strip()
+            for utilisateur in (
+                liaison.agent.utilisateur for liaison in organisme.superviseurs_actifs
+            )
+        )
 
 
 class CreateOrganismeSerializer(serializers.Serializer):
@@ -128,7 +139,14 @@ class CandidaturesActivesSerializer(serializers.Serializer):
     en_cours = serializers.IntegerField(allow_null=True)
 
 
-class RecrutementsSerializer(serializers.Serializer):
+class UnreadConversationsSerializer(serializers.Serializer):
+    unread_conversations = serializers.SerializerMethodField()
+
+    def get_unread_conversations(self, instance: object) -> int:
+        return 0
+
+
+class RecrutementsSerializer(UnreadConversationsSerializer):
     uuid = serializers.UUIDField(source="offer_id")
     intitule = serializers.CharField()
     reference_csp = serializers.CharField()
@@ -162,7 +180,7 @@ class CandidatSerializer(serializers.Serializer):
     prenom = serializers.CharField()
 
 
-class CandidatureSerializer(serializers.Serializer):
+class CandidatureSerializer(UnreadConversationsSerializer):
     uuid = serializers.UUIDField()
     date_soumission = serializers.DateTimeField()
     date_derniere_activite = serializers.DateTimeField()
@@ -245,6 +263,11 @@ class RecrutementDetailSerializer(serializers.ModelSerializer):
         source="offre.category", choices=[(c.name, c.value) for c in Category]
     )
     etapes = EtapesOrdonneesField()
+    recrutement_role = serializers.ChoiceField(
+        choices=[(r.value, r.value) for r in AgentRecrutementRole],
+        allow_null=True,
+        help_text="Rôle de l'utilisateur courant sur ce recrutement (null si aucun).",
+    )
 
     class Meta:
         model = RecrutementModel
@@ -257,6 +280,7 @@ class RecrutementDetailSerializer(serializers.ModelSerializer):
             "organisme_recruteur",
             "categorie_offre",
             "etapes",
+            "recrutement_role",
         ]
 
 
@@ -265,7 +289,7 @@ class RecrutementDetailKanbanSerializer(serializers.Serializer):
     etapes = EtapeRecrutementDetailedCandidaturesSerializer(many=True)
 
 
-class CandidatureListeSerializer(serializers.Serializer):
+class CandidatureListeSerializer(UnreadConversationsSerializer):
     uuid = serializers.UUIDField()
     date_soumission = serializers.DateTimeField()
     candidat = CandidatSerializer()
@@ -549,13 +573,12 @@ class AuditLogSerializer(serializers.ModelSerializer):
 
 
 class ConversationSerializer(serializers.ModelSerializer):
-    # last_message_created_at is annotated, premiers_messages and derniers_messages
-    # are prefetched by ConversationQuerySet.by_candidature
     uuid = serializers.UUIDField(source="id")
     creator = serializers.SerializerMethodField()
     last_message_content = serializers.SerializerMethodField()
     last_message_author = serializers.SerializerMethodField()
     last_message_created_at = serializers.DateTimeField()
+    is_unread = serializers.BooleanField(read_only=True)
 
     class Meta:
         model = ConversationModel
@@ -567,6 +590,7 @@ class ConversationSerializer(serializers.ModelSerializer):
             "last_message_content",
             "last_message_author",
             "last_message_created_at",
+            "is_unread",
         ]
 
     def get_creator(self, conversation: ConversationModel) -> str:

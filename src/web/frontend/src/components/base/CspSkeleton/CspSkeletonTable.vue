@@ -81,7 +81,9 @@ withDefaults(defineProps<CspSkeletonTableProps>(), {
   display: flex;
   flex-direction: column;
   border: 1px solid var(--border-default-grey);
+  border-radius: var(--csp-surface-radius, 0);
   background: var(--background-default-grey);
+  overflow: hidden;
   font-size: var(--csp-font-size-base);
 
   @include table.sizes;
@@ -91,15 +93,21 @@ withDefaults(defineProps<CspSkeletonTableProps>(), {
 .csp-skeleton-table__row {
   display: grid;
   grid-template-columns: repeat(var(--csp-skeleton-table-columns), 1fr);
-  border-bottom: 1px solid var(--border-default-grey);
+  border-bottom: 1px solid var(--csp-table-divider-color);
+}
+
+.csp-skeleton-table__head {
+  background: var(--csp-table-head-background);
+}
+
+.csp-skeleton-table__footer {
+  background: var(--csp-table-footer-background);
 }
 
 .csp-skeleton-table__head,
 .csp-skeleton-table__footer {
-  background: var(--background-alt-grey);
-
   :deep(.csp-skeleton) {
-    background: var(--csp-neutral-fill);
+    background: var(--csp-neutral-background);
   }
 }
 

@@ -33,6 +33,7 @@ function conversation(): Conversation {
     last_message_content: last.content,
     last_message_author: last.author,
     last_message_created_at: last.created_at,
+    is_unread: false,
   }
 }
 

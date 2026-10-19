@@ -130,6 +130,7 @@ def test_offer_input_mapper_maps_export_unif_fields():
             "descriptif_service": "Service des ressources humaines",
         },
         publication={
+            "fin_publication": datetime(2026, 12, 31, tzinfo=timezone.utc),
             "fin_candidature": datetime(2026, 11, 30, tzinfo=timezone.utc),
             "debut_vacance_poste": datetime(2027, 1, 1, tzinfo=timezone.utc),
         },
@@ -139,6 +140,7 @@ def test_offer_input_mapper_maps_export_unif_fields():
 
     assert offer.exercise_conditions == "Télétravail possible"
     assert offer.service_description == "Service des ressources humaines"
+    assert offer.end_publication_date == datetime(2026, 12, 31, tzinfo=timezone.utc)
     assert offer.application_deadline == datetime(2026, 11, 30, tzinfo=timezone.utc)
     assert offer.job_vacancy_date == datetime(2027, 1, 1, tzinfo=timezone.utc)
 

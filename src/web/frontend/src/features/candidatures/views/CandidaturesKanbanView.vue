@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { EtapeRecrutementDetailedCandidatures, MotifRefus } from '../types'
+import type { MotifRefus } from '../types'
 import type { KanbanDropEvent } from '@/composables/dnd/useKanbanDnd'
 import { useQuery } from '@pinia/colada'
 import { computed, ref, toRef } from 'vue'
@@ -71,7 +71,7 @@ const {
 const boardId = computed(() => `kanban-${props.recrutementUuid}`)
 const isDrawerOpen = ref(false)
 const drawerInitialEtapeUuid = ref<string | null>(null)
-const refus = useRefusCandidature(() => props.organismeUuid)
+const refus = useRefusCandidature(() => props.organismeUuid, recrutementEtapes)
 
 const refusEtapeUuid = computed(() => {
   return recrutementEtapes.value.find(e => e.categorie === 'REFUS')?.uuid ?? null
@@ -97,22 +97,18 @@ function handleMove({ sourceColumnId, targetColumnId, cardId }: KanbanDropEvent)
     return
   }
 
-  const move = (motifRefus?: MotifRefus) => {
-    markKanbanCardMoved(boardId.value, cardId)
-    void changeEtape({ etapeCibleUuid: targetColumnId, candidatureUuids: [cardId], motifRefus })
-  }
-
   const candidature = findCandidature(cardId)
-  if (candidature && targetColumnId === refusEtapeUuid.value) {
-    refus.request([candidature.candidat], move)
+  if (!candidature) {
+    return
   }
-  else {
-    move()
-  }
-}
-
-function handleToggleColumnSelection(etape: EtapeRecrutementDetailedCandidatures): void {
-  toggleColumnSelection(etape)
+  refus.moveOrAskRejectionReason(
+    targetColumnId,
+    [candidature.candidat],
+    (motifRefus) => {
+      markKanbanCardMoved(boardId.value, cardId)
+      void changeEtape({ etapeCibleUuid: targetColumnId, candidatureUuids: [cardId], motifRefus })
+    },
+  )
 }
 
 function handleOpenChangerEtape(): void {
@@ -126,12 +122,11 @@ function handleRefuser(): void {
 }
 
 function handleConfirmBatchMove(targetEtapeUuid: string): void {
-  if (targetEtapeUuid === refusEtapeUuid.value) {
-    refus.request(selectedCandidats.value, motifRefus => applyBatchMove(targetEtapeUuid, motifRefus))
-  }
-  else {
-    applyBatchMove(targetEtapeUuid)
-  }
+  refus.moveOrAskRejectionReason(
+    targetEtapeUuid,
+    selectedCandidats.value,
+    motifRefus => applyBatchMove(targetEtapeUuid, motifRefus),
+  )
 }
 
 function applyBatchMove(targetEtapeUuid: string, motifRefus?: MotifRefus): void {
@@ -142,14 +137,6 @@ function applyBatchMove(targetEtapeUuid: string, motifRefus?: MotifRefus): void 
 
   clearSelection()
   isDrawerOpen.value = false
-}
-
-function handleDrawerClose(open: boolean): void {
-  isDrawerOpen.value = open
-}
-
-function handleToggleCandidature(candidatureUuid: string, etapeUuid: string): void {
-  toggleCandidatureSelection(candidatureUuid, etapeUuid)
 }
 
 const countLabel = computed(() => {
@@ -193,7 +180,7 @@ const countLabel = computed(() => {
       :board-id="boardId"
       :is-column-selected="isColumnSelected"
       @move="handleMove"
-      @toggle-column-selection="handleToggleColumnSelection"
+      @toggle-column-selection="toggleColumnSelection"
     />
 
     <ChangerEtapeDrawer
@@ -202,9 +189,9 @@ const countLabel = computed(() => {
       :selected-candidature-uuids="selectedCandidatureUuids"
       :etapes="recrutementEtapes"
       :initial-etape-uuid="drawerInitialEtapeUuid"
-      @update:open="handleDrawerClose"
+      @update:open="isDrawerOpen = $event"
       @confirm="handleConfirmBatchMove"
-      @toggle-candidature="handleToggleCandidature"
+      @toggle-candidature="toggleCandidatureSelection"
     />
 
     <RefusCandidatureDialog

@@ -100,7 +100,7 @@ function isItemActive(item: NavItem): boolean {
   flex-shrink: 0;
   height: 100dvh;
   overflow: hidden;
-  background: var(--csp-sidebar-background);
+  background: var(--csp-nav-background);
   border-right: 1px solid var(--csp-chrome-border-color);
 
   @include bp.below(bp.$lg) {
@@ -122,7 +122,7 @@ function isItemActive(item: NavItem): boolean {
   flex-shrink: 0;
   padding-block: var(--csp-space-3);
   padding-inline: var(--csp-page-container-padding-inline);
-  background: var(--csp-page-header-background);
+  background: var(--csp-chrome-background);
   border-bottom: 1px solid var(--csp-chrome-border-color);
 
   @include bp.below(bp.$lg) {

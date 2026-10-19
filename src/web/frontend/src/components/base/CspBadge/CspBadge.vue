@@ -78,7 +78,7 @@ const resolvedIcon = computed(() => {
   display: inline-flex;
   align-items: center;
   align-self: flex-start;
-  border-radius: var(--csp-radius-badge);
+  border-radius: 0.25rem;
   font-weight: bold;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -87,7 +87,7 @@ const resolvedIcon = computed(() => {
   padding: var(--badge-padding-y) var(--badge-padding-x);
   gap: var(--badge-gap);
 
-  --badge-default-bg: var(--csp-neutral-fill);
+  --badge-default-bg: var(--csp-neutral-background);
   --badge-default-text: var(--text-default-grey);
   --badge-soft-bg: var(--background-alt-grey);
   --badge-soft-text: var(--text-mention-grey);

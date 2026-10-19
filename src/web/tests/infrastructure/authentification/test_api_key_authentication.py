@@ -109,6 +109,27 @@ class TestApiKeyAuthenticationIpRestriction:
             auth.authenticate(request)
 
     @patch(
+        "django.conf.settings.INGESTION_API_KEY_ALLOWED_IP_RANGES", ["10.240.0.0/22"]
+    )
+    def test_accepts_private_network_request(self, rf):
+        auth = ApiKeyAuthentication()
+        request = self._make_request(rf, ip="203.0.113.7")
+        request.META["REMOTE_ADDR"] = "10.240.1.2"
+        result = auth.authenticate(request)
+        assert result is not None
+        assert isinstance(result[0], _IngestionApiKeyUser)
+
+    @patch(
+        "django.conf.settings.INGESTION_API_KEY_ALLOWED_IP_RANGES", ["10.240.0.0/22"]
+    )
+    def test_rejects_public_request_when_only_private_network_allowed(self, rf):
+        auth = ApiKeyAuthentication()
+        request = self._make_request(rf, ip="203.0.113.7")
+        request.META["REMOTE_ADDR"] = "172.17.0.5"
+        with pytest.raises(AuthenticationFailed, match="IP address not allowed"):
+            auth.authenticate(request)
+
+    @patch(
         "django.conf.settings.INGESTION_API_KEY_ALLOWED_IP_RANGES", ["192.168.1.0/24"]
     )
     def test_rejects_missing_client_ip(self, rf):

@@ -4,7 +4,7 @@ description: Install mise with the ci environment, provision the tools declared 
 inputs:
   mise-version:
     description: mise version to install
-    default: "2026.8.14"
+    default: "2026.9.11"
 
 runs:
   using: composite

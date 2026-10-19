@@ -9,7 +9,7 @@ const meta = {
   parameters: {
     layout: 'fullscreen',
   },
-  globals: { interfaceTheme: 'aucun' },
+  globals: { interfaceTheme: 'kit' },
   render: () => ({ components: { MessagesPlanche }, template: '<MessagesPlanche />' }),
 } satisfies Meta
 

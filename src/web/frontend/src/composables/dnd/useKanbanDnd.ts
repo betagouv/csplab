@@ -1,7 +1,5 @@
-import type { Edge } from '@atlaskit/pragmatic-drag-and-drop-hitbox/closest-edge'
 import type { Ref } from 'vue'
 import { autoScrollForElements } from '@atlaskit/pragmatic-drag-and-drop-auto-scroll/element'
-import { attachClosestEdge, extractClosestEdge } from '@atlaskit/pragmatic-drag-and-drop-hitbox/closest-edge'
 import { draggable, dropTargetForElements, monitorForElements } from '@atlaskit/pragmatic-drag-and-drop/element/adapter'
 import { onMounted, onUnmounted, ref, watch } from 'vue'
 
@@ -12,14 +10,12 @@ export interface KanbanCardData {
   boardId: string
   columnId: string
   cardId: string
-  cardIndex: number
 }
 
 export interface KanbanDropEvent {
   sourceColumnId: string
   targetColumnId: string
   cardId: string
-  cardIndex: number
 }
 
 interface UseDraggableKanbanCardOptions {
@@ -27,7 +23,6 @@ interface UseDraggableKanbanCardOptions {
   boardId: string
   columnId: string
   cardId: string
-  cardIndex: number
   enabled?: Ref<boolean>
 }
 
@@ -58,6 +53,11 @@ export function useDraggableKanbanCard(options: UseDraggableKanbanCardOptions) {
         return
       }
 
+      // Without a drop animation, no animationend event settles the move
+      if (isJustMoved.value && getComputedStyle(element).animationName === 'none') {
+        settleMove()
+      }
+
       const cleanup = draggable({
         element,
         getInitialData: () => ({
@@ -65,7 +65,6 @@ export function useDraggableKanbanCard(options: UseDraggableKanbanCardOptions) {
           boardId: options.boardId,
           columnId: options.columnId,
           cardId: options.cardId,
-          cardIndex: options.cardIndex,
         }) as Record<string, unknown>,
         onDragStart: () => {
           isDragging.value = true
@@ -93,7 +92,6 @@ interface UseDropTargetKanbanColumnOptions {
 
 export function useDropTargetKanbanColumn(options: UseDropTargetKanbanColumnOptions) {
   const isDraggedOver = ref(false)
-  const closestEdge = ref<Edge | null>(null)
   const enabled = options.enabled ?? ref(true)
 
   watch(
@@ -109,24 +107,15 @@ export function useDropTargetKanbanColumn(options: UseDropTargetKanbanColumnOpti
           const data = source.data as unknown as KanbanCardData
           return data.type === KANBAN_CARD_TYPE && data.boardId === options.boardId
         },
-        getData: ({ input, element: dropElement }) => attachClosestEdge(
-          { columnId: options.columnId },
-          { input, element: dropElement, allowedEdges: ['top', 'bottom'] },
-        ),
-        onDragEnter: ({ self }) => {
+        getData: () => ({ columnId: options.columnId }),
+        onDragEnter: () => {
           isDraggedOver.value = true
-          closestEdge.value = extractClosestEdge(self.data)
-        },
-        onDrag: ({ self }) => {
-          closestEdge.value = extractClosestEdge(self.data)
         },
         onDragLeave: () => {
           isDraggedOver.value = false
-          closestEdge.value = null
         },
         onDrop: () => {
           isDraggedOver.value = false
-          closestEdge.value = null
         },
       })
 
@@ -135,7 +124,7 @@ export function useDropTargetKanbanColumn(options: UseDropTargetKanbanColumnOpti
     { flush: 'post', immediate: true },
   )
 
-  return { isDraggedOver, closestEdge }
+  return { isDraggedOver }
 }
 
 interface UseKanbanBoardAutoScrollOptions {
@@ -189,7 +178,6 @@ export function useKanbanBoardMonitor(options: UseKanbanBoardMonitorOptions) {
           sourceColumnId: sourceData.columnId,
           targetColumnId,
           cardId: sourceData.cardId,
-          cardIndex: sourceData.cardIndex,
         })
       },
     })

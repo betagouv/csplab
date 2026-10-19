@@ -7,7 +7,7 @@ const meta = {
   title: 'Prototypes/Leviers/États et messages',
   decorators: [keepTheme, withLevierOption(MESSAGES)],
   parameters: { layout: 'fullscreen' },
-  globals: { interfaceTheme: 'aucun' },
+  globals: { interfaceTheme: 'kit' },
   render: () => ({ components: { MessagesPlanche }, template: '<MessagesPlanche />' }),
 } satisfies Meta
 

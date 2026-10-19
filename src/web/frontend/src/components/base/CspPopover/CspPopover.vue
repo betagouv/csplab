@@ -55,20 +55,20 @@ const hasTrigger = Boolean(slots.trigger)
   min-width: 12rem;
   max-width: 22rem;
   background-color: var(--background-overlap-grey);
-  border-radius: var(--csp-popover-radius, var(--csp-radius-overlay));
+  border-radius: var(--csp-overlap-radius, 0);
   box-shadow:
     inset 0 0 0 1px var(--border-default-grey),
-    var(--csp-shadow-lg);
+    var(--csp-overlap-shadow, var(--csp-shadow-lg));
   padding: var(--csp-space-4);
   z-index: var(--csp-z-dropdown);
   outline: none;
 
   &[data-state='open'] {
-    animation: var(--csp-motion-overlay-enter);
+    animation: var(--csp-motion-overlap-enter);
   }
 
   &[data-state='closed'] {
-    animation: var(--csp-motion-overlay-exit);
+    animation: var(--csp-motion-overlap-exit);
   }
 
   &:focus-visible {

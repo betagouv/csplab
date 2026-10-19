@@ -85,7 +85,7 @@ const attrs = useAttrs()
   appearance: none;
 
   padding: var(--csp-textarea-padding-y) var(--csp-textarea-padding-x);
-  border-radius: var(--csp-radius-field);
+  border-radius: var(--csp-field-radius);
   background-color: var(--csp-textarea-bg);
   color: var(--csp-textarea-text);
   font-family: inherit;

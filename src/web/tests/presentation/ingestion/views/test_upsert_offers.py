@@ -143,6 +143,7 @@ COMPARABLE_OFFER_ATTRS = [
     "mission",
     "organization",
     "publication_date",
+    "end_publication_date",
     "verse",
     "category",
     "offer_nature",
@@ -244,6 +245,9 @@ def parse_offer_from_payload(payload: dict, source_id: UUID) -> Offer:
         organization=payload["organisation"]["nom"],
         publication_date=datetime.fromisoformat(
             payload["publication"]["debut_publication"]
+        ),
+        end_publication_date=datetime.fromisoformat(
+            payload["publication"]["fin_publication"]
         ),
         verse=Verse(versant),
         category=category,

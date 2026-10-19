@@ -1,6 +1,6 @@
 # Correspondance offre Talentsoft → offre API v1
 
-_Dernière mise à jour : 2026-10-14_
+_Dernière mise à jour : 2026-10-19_
 
 Conversion d'une offre au format Talentsoft en offre envoyée à l'API.
 L'API fake-ts (`/api/fake-ts/`, `OfferSummaryOutputMapper` et `OfferDetailOutputMapper` dans `src/web/presentation/ingestion/mappers.py`) expose les offres du web au format Talentsoft : les notes « API fake-ts » décrivent ce qu'elle renvoie.
@@ -38,7 +38,7 @@ Notation : `a.b` désigne un objet imbriqué, `a[]` une liste, `a[0]` son premie
 | `geolocation.longitude` | `localisation[0].longitude` | Repli sur `longitude`, puis sur `organisation.geolocation.longitude`. |
 | `customFields.location.shortText1` | `localisation[0].localisation_label` | |
 | `startPublicationDate` | `publication.debut_publication` | |
-| `endPublicationDate` | `publication.fin_publication` | Repli sur `beginningDate`, puis sur `debut_publication` + 365 jours. Le `OfferInputMapper` du web ne lit jamais `fin_publication`. |
+| `endPublicationDate` | `publication.fin_publication` | Repli sur `beginningDate`, puis sur `debut_publication` + 365 jours. API fake-ts : reprend `fin_publication`, `null` pour les offres reçues avant son enregistrement. |
 | `customFields.offer.date1` | `publication.fin_candidature` | |
 | `beginningDate` | `conditions.debut_contrat` | Sert aussi de repli pour `fin_publication`. |
 | `beginningDate` | `publication.debut_vacance_poste` | Comme l'ancien site WordPress (« Vacant à partir du … », « Poste à pourvoir le … »). |
@@ -70,6 +70,7 @@ Notation : `a.b` désigne un objet imbriqué, `a[]` une liste, `a[0]` son premie
 | `urlRedirectionEmployee` | |
 | `locations` | |
 | `isAnonymousOrganisation` | |
+| `numberOfVacancies` | Nombre de postes à pourvoir. Jamais renseigné par Talentsoft : toujours `null` dans les offres chargées par l'ingestion (vérifié le 2026-10-19). |
 | `organisation.name` | Données d'organisme, synchronisées par l'upsert séparé des organismes Talentsoft (`TalentsoftOrganismeUpsertInputSerializer`), pas par le payload d'offre. |
 | `organisation.description` | Données d'organisme, synchronisées par l'upsert séparé des organismes Talentsoft (`TalentsoftOrganismeUpsertInputSerializer`), pas par le payload d'offre. |
 | `organisation.url` | Données d'organisme, synchronisées par l'upsert séparé des organismes Talentsoft (`TalentsoftOrganismeUpsertInputSerializer`), pas par le payload d'offre. |
@@ -84,6 +85,7 @@ Notation : `a.b` désigne un objet imbriqué, `a[]` une liste, `a[0]` son premie
 | `operationalManager` | Jamais lu : `contacts` vaut toujours `null`. |
 | `applicationQuestions` | |
 | `attachedFilesUrls` | |
+| `skillCollection[]` | Compétences requises (référentiel `skill`). Jamais renseigné par Talentsoft : toujours vide dans les offres chargées par l'ingestion (vérifié le 2026-10-19). |
 | `customFields.offer.shortText1` | |
 | `customFields.offer.longText1` | |
 | `customFields.offer.longText2` | |
@@ -116,7 +118,7 @@ Notation : `a.b` désigne un objet imbriqué, `a[]` une liste, `a[0]` son premie
 | `profession.referentiel` | Constante `RMFPv2`. |
 | `profession.code_emploi_local` | Jamais renseigné, `local_job_code` reste à `null`. |
 | `criteres.documents_requis` | Jamais renseigné par l'ingestion. |
-| `criteres.competences_requises` | Jamais renseigné par l'ingestion. |
+| `criteres.competences_requises` | Jamais renseigné par l'ingestion : `skillCollection[]` est toujours vide côté Talentsoft. |
 | `conditions.temps_travail` | Lu dans `customFields.description.customCodeTable3` (absent de l'API fake-ts) : `reponse_oui` → `TEMPS_PLEIN`, `reponse_non` → `TEMPS_PARTIEL`, sinon `NON_DEFINI`. |
 | `conditions.lieu_de_travail` | Lu dans `customFields.offerCustomBlock1.customCodeTable2` (absent de l'API fake-ts) : `reponse_oui` → `TELETRAVAIL`, `reponse_non` → `SUR_SITE`, sinon `NON_DEFINI`. |
 | `conditions.management` | Lu dans `customFields.offerCustomBlock1.customCodeTable1` (absent de l'API fake-ts) : `reponse_oui` → `AVEC`, `reponse_non` → `SANS`. |

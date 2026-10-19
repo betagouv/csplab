@@ -93,20 +93,20 @@ const resolvedIcon = computed(() => props.icon ?? iconByVariant[props.variant])
   align-items: flex-start;
   gap: var(--csp-space-3);
   padding: var(--csp-space-4);
-  padding-left: calc(var(--csp-space-4) + var(--csp-message-bar-width, 4px));
+  padding-left: calc(var(--csp-space-4) + var(--csp-message-bar-width));
   background-color: var(--csp-callout-bg);
-  border: var(--csp-message-border-width, 1px) solid var(--csp-callout-border);
+  border: var(--csp-message-border-width) solid var(--csp-callout-border);
   border-left: none;
-  box-shadow: inset 0 0 0 var(--csp-message-frame-width, 0) var(--csp-callout-border);
+  box-shadow: inset 0 0 0 var(--csp-message-frame-width) var(--csp-callout-accent);
   color: var(--csp-callout-text);
 
   &::before {
     content: '';
     position: absolute;
-    top: -1px;
+    top: calc(-1 * var(--csp-message-border-width));
     left: 0;
-    bottom: -1px;
-    width: var(--csp-message-bar-width, 4px);
+    bottom: calc(-1 * var(--csp-message-border-width));
+    width: var(--csp-message-bar-width);
     background-color: var(--csp-callout-accent);
   }
 }

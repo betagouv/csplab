@@ -185,7 +185,7 @@ function submit() {
   min-width: 0;
   appearance: none;
   border: none;
-  border-radius: var(--csp-radius-field) 0 0 var(--csp-radius-field);
+  border-radius: var(--csp-field-radius) 0 0 var(--csp-field-radius);
   background-color: var(--background-default-grey);
   color: var(--text-default-grey);
   box-shadow: inset 0 0 0 1px var(--csp-field-border-color);
@@ -198,7 +198,7 @@ function submit() {
   }
 
   .csp-search-bar--live & {
-    border-radius: var(--csp-radius-field);
+    border-radius: var(--csp-field-radius);
     padding-left: 2.5em;
   }
 
@@ -228,9 +228,9 @@ function submit() {
   }
 }
 
-.csp-search-bar__button {
+.csp-search-bar .csp-search-bar__button {
   flex-shrink: 0;
-  border-radius: 0 var(--csp-radius-field) var(--csp-radius-field) 0;
+  border-radius: 0 var(--csp-field-radius) var(--csp-field-radius) 0;
 }
 
 .csp-search-bar__messages:not(:empty) {

@@ -13,24 +13,15 @@ export interface LevierOption {
   sombre?: Valeurs
 }
 
-// Controls (button, field, badge), surfaces (card, menu, floating layer), regions (kanban column, panel)
+// Controls (button, field), indicators (checkbox), surfaces (card, table), floating layers (menu, toast), regions (kanban column)
 function rayons(controle: string, surface: string, region: string, interne: string): Valeurs {
   return {
-    '--csp-radius-action': controle,
-    '--csp-radius-field': controle,
-    '--csp-radius-badge': controle,
-    '--csp-radius-inset': interne,
-    '--csp-radius-indicator': interne,
-    '--csp-radius-surface': surface,
-    '--csp-radius-overlay': surface,
-    '--csp-radius-panel': region,
-    '--csp-radius-region': region,
-    '--csp-radius-edge': region,
-    '--csp-dropdown-radius': surface,
-    '--csp-popover-radius': surface,
-    '--csp-toast-radius': surface,
-    '--csp-table-radius': surface,
-    '--csp-document-frame-radius': surface,
+    '--csp-action-radius': controle,
+    '--csp-field-radius': controle,
+    '--csp-indicator-radius': interne,
+    '--csp-surface-radius': surface,
+    '--csp-overlap-radius': surface,
+    '--csp-region-radius': region,
   }
 }
 
@@ -51,9 +42,8 @@ function ombres(couleur: (opacite: number) => string, opacites: [number, number,
     '--csp-raised-shadow': carte,
     '--csp-raised-shadow-hover': survol,
     '--csp-raised-shadow-drag': `0 1px 2px ${repos}`,
-    '--csp-shadow-sm': `0 1px 2px ${repos}`,
-    '--csp-shadow-md': survol,
-    '--csp-shadow-lg': `0 4px 8px -2px ${coucheProche}, 0 20px 44px -12px ${coucheLarge}`,
+    '--csp-overlap-shadow': survol,
+    '--csp-lifted-shadow': `0 4px 8px -2px ${coucheProche}, 0 20px 44px -12px ${coucheLarge}`,
   }
 }
 
@@ -68,9 +58,8 @@ export const OMBRES: LevierOption[] = [
       '--csp-raised-shadow': SANS_OMBRE,
       '--csp-raised-shadow-hover': SANS_OMBRE,
       '--csp-raised-shadow-drag': SANS_OMBRE,
-      '--csp-shadow-sm': SANS_OMBRE,
-      '--csp-shadow-md': SANS_OMBRE,
-      '--csp-shadow-lg': SANS_OMBRE,
+      '--csp-overlap-shadow': SANS_OMBRE,
+      '--csp-lifted-shadow': SANS_OMBRE,
     },
   },
   { id: 'kit-actuel', nom: 'Kit actuel', valeurs: {} },
@@ -81,9 +70,8 @@ export const OMBRES: LevierOption[] = [
       '--csp-raised-shadow': 'var(--raised-shadow)',
       '--csp-raised-shadow-hover': 'var(--overlap-shadow)',
       '--csp-raised-shadow-drag': 'var(--raised-shadow)',
-      '--csp-shadow-sm': 'var(--raised-shadow)',
-      '--csp-shadow-md': 'var(--overlap-shadow)',
-      '--csp-shadow-lg': 'var(--lifted-shadow)',
+      '--csp-overlap-shadow': 'var(--overlap-shadow)',
+      '--csp-lifted-shadow': 'var(--lifted-shadow)',
     },
   },
   {
@@ -100,9 +88,8 @@ export const OMBRES: LevierOption[] = [
       '--csp-raised-shadow': SANS_OMBRE,
       '--csp-raised-shadow-hover': SANS_OMBRE,
       '--csp-raised-shadow-drag': 'var(--overlap-shadow)',
-      '--csp-shadow-sm': 'var(--overlap-shadow)',
-      '--csp-shadow-md': 'var(--overlap-shadow)',
-      '--csp-shadow-lg': 'var(--lifted-shadow)',
+      '--csp-overlap-shadow': 'var(--overlap-shadow)',
+      '--csp-lifted-shadow': 'var(--lifted-shadow)',
     },
   },
 ]
@@ -112,7 +99,7 @@ function grisChaud(gris: string, beige: string, part = 25): string {
   return `color-mix(in oklab, var(${gris}) ${100 - part}%, var(${beige}))`
 }
 
-// Backgrounds of the zones: page, sidebar, page header, kanban columns
+// Backgrounds of the zones: canvas, nav, chrome, regions
 export const ZONES: LevierOption[] = [
   { id: 'kit', nom: 'Kit actuel', valeurs: {} },
   {
@@ -120,7 +107,7 @@ export const ZONES: LevierOption[] = [
     nom: 'Gris du DSFR',
     valeurs: {
       '--csp-canvas-background': 'var(--background-alt-grey)',
-      '--csp-sidebar-background': 'var(--background-alt-grey)',
+      '--csp-nav-background': 'var(--background-alt-grey)',
       '--csp-region-background': 'var(--background-contrast-grey)',
       '--csp-region-border-color': 'transparent',
     },
@@ -132,7 +119,7 @@ export const ZONES: LevierOption[] = [
       '--background-alt-grey': grisChaud('--grey-975-75', '--beige-gris-galet-950-100'),
       '--border-default-grey': grisChaud('--grey-900-175', '--beige-gris-galet-850-200', 20),
       '--text-mention-grey': grisChaud('--grey-425-625', '--beige-gris-galet-sun-407-moon-821', 20),
-      '--csp-neutral-fill': grisChaud('--grey-950-100', '--beige-gris-galet-925-125'),
+      '--csp-neutral-background': grisChaud('--grey-950-100', '--beige-gris-galet-925-125'),
     },
   },
   {
@@ -140,8 +127,8 @@ export const ZONES: LevierOption[] = [
     nom: 'Cadre blanc',
     valeurs: {
       '--csp-canvas-background': 'var(--background-alt-grey)',
-      '--csp-sidebar-background': 'var(--background-default-grey)',
-      '--csp-page-header-background': 'var(--background-default-grey)',
+      '--csp-nav-background': 'var(--background-default-grey)',
+      '--csp-chrome-background': 'var(--background-default-grey)',
       '--csp-region-background': 'var(--background-contrast-grey)',
       '--csp-region-border-color': 'transparent',
     },
@@ -156,22 +143,22 @@ const CANEVAS = 'var(--background-alt-grey)'
 // above it such as the panel, a container splits inside with soft lines, and the panel lays its sections on the canvas.
 function chrome(barre: string, entete: string, filet: string, canevas: string, colonne: string, carte: string): Valeurs {
   return {
-    '--csp-sidebar-background': barre,
-    '--csp-page-header-background': entete,
+    '--csp-nav-background': barre,
+    '--csp-chrome-background': entete,
     '--csp-chrome-border-color': filet,
     '--csp-canvas-background': canevas,
     '--csp-region-background': 'var(--background-default-grey)',
     '--csp-region-border-color': colonne,
-    '--csp-raised-border': carte,
+    '--csp-raised-border-color': carte,
     '--csp-raised-shadow': SANS_OMBRE,
     '--csp-raised-shadow-hover': SANS_OMBRE,
     '--csp-raised-shadow-drag': SANS_OMBRE,
-    '--csp-surface-divider-color': FILET,
+    '--csp-divider-color': FILET,
     '--csp-kanban-gap': 'var(--csp-space-5)',
     '--csp-kanban-column-padding': 'var(--csp-space-4)',
     '--csp-kanban-column-header-padding-bottom': 'var(--csp-space-3)',
     '--csp-kanban-column-header-divider-width': '1px',
-    '--csp-panel-canvas-background': canevas,
+    '--csp-panel-background': canevas,
     '--csp-document-frame-header-background': 'var(--background-default-grey)',
     '--csp-aside-background': 'var(--background-default-grey)',
     '--csp-aside-border-color': colonne,
@@ -206,26 +193,24 @@ export const CHROME: LevierOption[] = [
 
 function animations(entree: string, sortie: string): Valeurs {
   return {
-    '--csp-motion-panel-enter-right': `csp-panel-enter-right var(--csp-motion-duration-panel) ${entree}`,
-    '--csp-motion-panel-exit-right': `csp-panel-exit-right ${sortie}`,
-    '--csp-motion-dialog-enter': `csp-scrim-enter var(--csp-motion-duration-panel) ${entree}`,
-    '--csp-motion-scrim-enter': `csp-scrim-enter var(--csp-motion-duration-panel) ${entree}`,
-    '--csp-motion-scrim-exit': `csp-scrim-exit ${sortie}`,
+    '--csp-motion-drawer-enter': `csp-drawer-enter ${entree}`,
+    '--csp-motion-drawer-exit': `csp-drawer-exit ${sortie}`,
+    '--csp-motion-dialog-enter': `csp-fade-in ${entree}`,
+    '--csp-motion-dialog-exit': `csp-fade-out ${sortie}`,
+    '--csp-motion-scrim-enter': `csp-fade-in ${entree}`,
+    '--csp-motion-scrim-exit': `csp-fade-out ${sortie}`,
   }
 }
 
-// Durations and curves of the panel, and the highlight of a card dropped in another column
+// Durations and curves of the panel and dialogs, and the highlight of a card dropped in another column
 export const MOUVEMENT: LevierOption[] = [
   { id: 'instantane', nom: 'Instantané, kit actuel', valeurs: {} },
   {
     id: 'dsfr',
     nom: '300 ms du DSFR',
     valeurs: {
-      '--csp-motion-duration-panel': '300ms',
-      '--csp-motion-duration-highlight': '300ms',
-      ...animations('ease', '300ms ease'),
-      '--csp-highlight-color': 'var(--border-action-high-blue-france)',
-      '--csp-motion-raised-drop': 'csp-highlight var(--csp-motion-duration-highlight) ease-in',
+      ...animations('300ms ease', '300ms ease'),
+      '--csp-motion-raised-drop': 'csp-raised-outline-drop 300ms ease-in',
     },
   },
   {
@@ -233,11 +218,8 @@ export const MOUVEMENT: LevierOption[] = [
     nom: 'Durées par rôle',
     valeurs: {
       '--csp-motion-duration-state': '100ms',
-      '--csp-motion-duration-panel': '300ms',
-      '--csp-motion-duration-highlight': '700ms',
-      ...animations('cubic-bezier(0, 0, 0.38, 0.9)', '200ms cubic-bezier(0.2, 0, 1, 0.9)'),
-      '--csp-raised-drop-background': 'var(--background-contrast-grey)',
-      '--csp-motion-raised-drop': 'csp-raised-drop var(--csp-motion-duration-highlight) cubic-bezier(0.2, 0, 1, 0.9)',
+      ...animations('300ms cubic-bezier(0, 0, 0.38, 0.9)', '200ms cubic-bezier(0.2, 0, 1, 0.9)'),
+      '--csp-motion-raised-drop': 'csp-raised-drop 700ms cubic-bezier(0.2, 0, 1, 0.9)',
     },
   },
 ]
@@ -250,7 +232,8 @@ function role(nom: string, taille: string, interligne: string, graisse: number):
   }
 }
 
-// Text roles of Les entreprises s'engagent, on the DSFR scale: h3, h5, h6, then the sm and xs text sizes
+// Text roles of Les entreprises s'engagent, on the DSFR scale: h3, h5, h6, then the sm and xs text sizes; CspCard keeps
+// the title size set by its size prop
 export const TYPOGRAPHIE: LevierOption[] = [
   { id: 'kit', nom: 'Kit actuel', valeurs: {} },
   {
@@ -259,7 +242,6 @@ export const TYPOGRAPHIE: LevierOption[] = [
     valeurs: {
       ...role('page-title', '1.75rem', '2.25rem', 700),
       ...role('section-title', '1.25rem', '1.75rem', 700),
-      ...role('card-title', '1.125rem', '1.5rem', 700),
       ...role('group-title', '0.875rem', '1.5rem', 700),
       ...role('label', '0.875rem', '1.5rem', 500),
       ...role('meta', '0.875rem', '1.5rem', 400),
@@ -285,11 +267,11 @@ export const MESSAGES: LevierOption[] = [
       '--csp-empty-state-icon-padding': 'var(--csp-space-3)',
       '--csp-empty-state-icon-background': 'var(--background-action-low-blue-france)',
       '--csp-empty-state-icon-color': 'var(--text-action-high-blue-france)',
-      '--csp-empty-state-icon-radius': 'var(--csp-radius-surface)',
+      '--csp-empty-state-icon-radius': 'var(--csp-surface-radius, 0.25rem)',
       '--csp-empty-state-title-size': '1.125rem',
       '--csp-empty-state-title-weight': '600',
       '--csp-empty-state-description-size': '0.875rem',
-      '--csp-panel-canvas-background': CANEVAS,
+      '--csp-panel-background': CANEVAS,
     },
   },
 ]
@@ -314,9 +296,9 @@ export const COLLECTIONS: LevierOption[] = [
 // Les entreprises s'engagent: the list and the detail are two surfaces side by side, and the selected element takes
 // a tinted background
 const OUVERTE_LEE: Valeurs = {
-  '--csp-raised-current-background': 'var(--background-alt-blue-france)',
-  '--csp-raised-current-border-width': '1px',
-  '--csp-raised-current-border-color': 'var(--border-default-blue-france)',
+  '--csp-raised-background-current': 'var(--background-alt-blue-france)',
+  '--csp-raised-border-width-current': '1px',
+  '--csp-raised-border-color-current': 'var(--border-default-blue-france)',
 }
 
 export const PARCOURS: LevierOption[] = [
@@ -328,8 +310,8 @@ export const PARCOURS: LevierOption[] = [
     valeurs: {
       ...OUVERTE_LEE,
       '--csp-panel-width-wide': '42rem',
-      '--csp-panel-push': '42rem',
-      '--csp-panel-docked-shadow': SANS_OMBRE,
+      '--csp-panel-page-offset': '42rem',
+      '--csp-panel-shadow-docked': SANS_OMBRE,
     },
   },
 ]
@@ -342,10 +324,10 @@ export const CATEGORIES: LevierOption[] = [
     id: 'en-tete-teinte',
     nom: 'En-tête de colonne teinté, LEE',
     valeurs: {
-      '--csp-category-surface-neutral': 'var(--background-contrast-grey)',
-      '--csp-category-surface-progress': 'var(--background-contrast-info)',
-      '--csp-category-surface-negative': 'var(--background-contrast-error)',
-      '--csp-category-surface-positive': 'var(--background-contrast-success)',
+      '--csp-category-neutral-background': 'var(--background-contrast-grey)',
+      '--csp-category-progress-background': 'var(--background-contrast-info)',
+      '--csp-category-negative-background': 'var(--background-contrast-error)',
+      '--csp-category-positive-background': 'var(--background-contrast-success)',
       '--csp-region-badge-background': 'var(--background-default-grey)',
     },
   },
@@ -361,16 +343,17 @@ interface Fond {
 
 const SURFACES = ['page-header', 'drawer-header', 'empty-state'] as const
 
+// Each layer of the backdrop carries its position, size and repeat, since a component draws it with the background shorthand
 function habillage({ calques, tailles, repetitions }: Fond): Valeurs {
+  const backdrop = calques
+    .map((calque, index) => `${calque} 0 0 / ${tailles?.[index] ?? '100% 100%'} ${repetitions?.[index] ?? 'no-repeat'}`)
+    .join(', ')
   const valeurs: Valeurs = {
     '--csp-empty-state-background': 'var(--background-default-grey)',
     '--csp-empty-state-frame-width': '1px',
   }
   for (const surface of SURFACES) {
-    valeurs[`--csp-${surface}-backdrop`] = calques.join(', ')
-    valeurs[`--csp-${surface}-backdrop-size`] = (tailles ?? calques.map(() => '100% 100%')).join(', ')
-    valeurs[`--csp-${surface}-backdrop-repeat`] = (repetitions ?? calques.map(() => 'no-repeat')).join(', ')
-    valeurs[`--csp-${surface}-backdrop-position`] = '0 0'
+    valeurs[`--csp-${surface}-backdrop`] = backdrop
   }
   return valeurs
 }

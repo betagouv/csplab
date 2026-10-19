@@ -102,6 +102,7 @@ const CANDIDATURES: (Candidature & WithEtiquettes)[] = CANDIDATS.map((candidat, 
   date_derniere_activite: demoDate(Math.max(1, candidat.jours - 1), 15, 30),
   candidat: { uuid: demoUuid('e', index), prenom: candidat.prenom, nom: candidat.nom },
   etiquettes: candidat.etiquettes,
+  unread_conversations: 0,
 }))
 
 const etapeOfCandidature = new Map(CANDIDATURES.map((candidature, index) => [candidature.uuid, DEMO_ETAPES[CANDIDATS[index]!.etape]!]))

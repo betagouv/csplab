@@ -16,13 +16,14 @@ const CANDIDATURE: Candidature = {
   uuid: ALICE,
   date_soumission: '2025-06-10T09:15:00Z',
   date_derniere_activite: '2025-06-11T10:00:00Z',
+  unread_conversations: 0,
   candidat: { uuid: 'eeeeeeee-0001-0001-0001-000000000001', nom: 'Dupont', prenom: 'Alice' },
 }
 
 function renderCard(route: string) {
   return renderWithApp(CandidatureKanbanCard, {
     route,
-    props: { candidature: CANDIDATURE, boardId: 'board', columnId: 'column', cardIndex: 0 },
+    props: { candidature: CANDIDATURE, boardId: 'board', columnId: 'column' },
   })
 }
 
