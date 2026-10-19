@@ -143,8 +143,9 @@ function author(activite: Activite): string {
 
 .candidature-activites-list__label {
   margin: 0;
-  font-size: var(--csp-font-size-base);
-  line-height: 1.4;
+  font-size: var(--csp-text-label-size, var(--csp-font-size-base));
+  line-height: var(--csp-text-label-line-height, 1.4);
+  font-weight: var(--csp-text-label-weight, inherit);
   color: var(--text-default-grey);
 }
 
@@ -153,8 +154,9 @@ function author(activite: Activite): string {
   flex-wrap: wrap;
   gap: var(--csp-space-2);
   margin: 0;
-  font-size: var(--csp-font-size-xs);
-  line-height: 1.4;
+  font-size: var(--csp-text-caption-size, var(--csp-font-size-xs));
+  line-height: var(--csp-text-caption-line-height, 1.4);
+  font-weight: var(--csp-text-caption-weight, inherit);
   color: var(--text-mention-grey);
 }
 </style>

@@ -4,7 +4,7 @@
 body {
   font-family: var(--csp-font-family);
   color: var(--text-default-grey);
-  background: var(--background-default-grey);
+  background: var(--csp-canvas-background);
   font-size: var(--csp-font-size-base);
   line-height: var(--csp-line-height-base);
   margin: 0;

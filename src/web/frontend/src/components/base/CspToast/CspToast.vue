@@ -163,10 +163,13 @@ const resolvedIcon = computed(() => iconByVariant[props.variant])
   --csp-toast-icon: var(--text-action-high-grey);
 
   background-color: var(--csp-toast-bg);
-  border: 1px solid var(--csp-toast-border);
-  border-left: 4px solid var(--csp-toast-accent);
+  border: var(--csp-message-border-width) solid var(--csp-toast-border);
+  border-left: var(--csp-message-bar-width) solid var(--csp-toast-accent);
+  border-radius: var(--csp-overlap-radius, 0);
   color: var(--csp-toast-text);
-  box-shadow: var(--csp-shadow-md);
+  box-shadow:
+    var(--csp-overlap-shadow, var(--csp-shadow-md)),
+    inset 0 0 0 var(--csp-message-frame-width) var(--csp-toast-accent);
   overflow: hidden;
   will-change: transform, opacity;
 }

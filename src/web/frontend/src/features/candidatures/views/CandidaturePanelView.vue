@@ -394,6 +394,7 @@ function handleUpdateOpen(open: boolean): void {
   min-height: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
+  background-color: var(--csp-panel-background);
 }
 
 .candidature-panel__layout {
@@ -433,7 +434,8 @@ function handleUpdateOpen(open: boolean): void {
   gap: var(--csp-space-5);
   padding-block: var(--csp-page-content-padding-block);
   padding-inline: var(--candidature-panel-aside-padding-start) var(--csp-drawer-padding-inline);
-  border-left: 1px solid var(--border-default-grey);
+  background-color: var(--csp-aside-background);
+  border-left: 1px solid var(--csp-aside-border-color);
 }
 
 @container panel (max-width: 64rem) {
@@ -443,7 +445,7 @@ function handleUpdateOpen(open: boolean): void {
 
   .candidature-panel__aside {
     padding-inline: var(--csp-drawer-padding-inline);
-    border-top: 1px solid var(--border-default-grey);
+    border-top: 1px solid var(--csp-aside-border-color);
     border-left: 0;
   }
 }

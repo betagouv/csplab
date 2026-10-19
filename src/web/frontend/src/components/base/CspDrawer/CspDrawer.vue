@@ -193,7 +193,7 @@ const hasFooter = computed(() => Boolean(slots.footer))
   outline: none;
   background-color: var(--background-overlap-grey);
   color: var(--text-default-grey);
-  box-shadow: var(--csp-shadow-lg);
+  box-shadow: var(--csp-lifted-shadow);
   z-index: var(--csp-z-modal);
 
   display: flex;
@@ -257,7 +257,8 @@ const hasFooter = computed(() => Boolean(slots.footer))
   gap: var(--csp-space-4);
   padding-block: var(--csp-space-6);
   padding-inline: var(--csp-drawer-padding-inline, var(--csp-space-6));
-  border-bottom: 1px solid var(--border-default-grey);
+  border-bottom: 1px solid var(--csp-divider-color);
+  background: var(--csp-drawer-header-backdrop);
 }
 
 .csp-drawer__start {
@@ -305,9 +306,9 @@ const hasFooter = computed(() => Boolean(slots.footer))
 
 .csp-drawer__title {
   color: var(--text-title-grey);
-  font-size: 1.125rem;
-  font-weight: 700;
-  line-height: 1.25;
+  font-size: var(--csp-text-section-title-size, 1.125rem);
+  font-weight: var(--csp-text-section-title-weight, 700);
+  line-height: var(--csp-text-section-title-line-height, 1.25);
 }
 
 .csp-drawer__description {
@@ -329,7 +330,7 @@ const hasFooter = computed(() => Boolean(slots.footer))
 .csp-drawer__footer {
   padding-block: var(--csp-space-6);
   padding-inline: var(--csp-drawer-padding-inline, var(--csp-space-6));
-  border-top: 1px solid var(--border-default-grey);
+  border-top: 1px solid var(--csp-divider-color);
   display: flex;
   flex-wrap: wrap;
   justify-content: flex-end;

@@ -34,6 +34,7 @@ withDefaults(defineProps<CspSkeletonKanbanProps>(), {
         :key="card"
         as="div"
         size="sm"
+        class="csp-skeleton-kanban__card"
       >
         <template #title>
           <CspSkeleton
@@ -69,16 +70,27 @@ withDefaults(defineProps<CspSkeletonKanbanProps>(), {
   gap: var(--csp-kanban-column-gap);
   min-width: var(--csp-kanban-column-width);
   padding: var(--csp-kanban-column-padding);
-  background-color: var(--background-alt-grey);
-  box-shadow: inset 0 0 0 1px var(--border-default-grey);
-  border-top: var(--csp-kanban-column-accent-width) solid var(--border-default-grey);
+  background-color: var(--csp-region-background);
+  box-shadow: inset 0 0 0 1px var(--csp-region-border-color);
+  border-radius: var(--csp-region-radius);
+  border-top: var(--csp-category-accent-width) solid var(--csp-category-neutral-accent);
+}
+
+.csp-skeleton-kanban__card.csp-card {
+  --csp-card-bg: var(--csp-raised-background);
+  --csp-card-border: var(--csp-raised-border-color);
+
+  box-shadow:
+    var(--csp-raised-shadow, 0 0 transparent),
+    inset 0 0 0 1px var(--csp-card-border);
 }
 
 .csp-skeleton-kanban__header {
-  padding: 0 var(--csp-kanban-column-header-padding-inline);
+  padding: 0 var(--csp-kanban-column-header-padding-inline) var(--csp-kanban-column-header-padding-bottom);
+  border-bottom: var(--csp-kanban-column-header-divider-width) solid var(--csp-divider-color);
 
   :deep(.csp-skeleton) {
-    background: var(--background-contrast-grey);
+    background: var(--csp-neutral-background);
   }
 }
 
