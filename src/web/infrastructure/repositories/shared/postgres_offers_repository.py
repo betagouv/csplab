@@ -122,6 +122,7 @@ class PostgresOffersRepository(IIngestionOffersRepository):
                                 "latitude",
                                 "longitude",
                                 "publication_date",
+                                "end_publication_date",
                                 "beginning_date",
                                 "application_deadline",
                                 "job_vacancy_date",

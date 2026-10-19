@@ -99,6 +99,7 @@ class OfferModel(BaseDatedModel):
 
     # Date fields
     publication_date = models.DateTimeField()
+    end_publication_date = models.DateTimeField(null=True, blank=True)
     beginning_date = models.DateTimeField(null=True, blank=True)
     application_deadline = models.DateTimeField(null=True, blank=True)
     job_vacancy_date = models.DateTimeField(null=True, blank=True)

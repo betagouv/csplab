@@ -159,6 +159,7 @@ class TestOfferDetailViewDbVerified:
             latitude=48.8566,
             longitude=2.3522,
             publication_date=datetime(2024, 3, 1, 9, 0, tzinfo=UTC),
+            end_publication_date=datetime(2024, 9, 30, tzinfo=UTC),
             beginning_date=datetime(2024, 6, 1, tzinfo=UTC),
             application_deadline=datetime(2024, 5, 15, 12, 0, tzinfo=UTC),
             criteria=criteria.to_dict(),
@@ -258,7 +259,7 @@ class TestOfferDetailViewDbVerified:
             "beginningDate": "2024-06-01T00:00:00",
             "locations": [],
             "applicationUrl": None,
-            "endPublicationDate": None,
+            "endPublicationDate": "2024-09-30T00:00:00",
             "isAnonymousOrganisation": False,
             "organisation": {
                 "entityCode": "",
