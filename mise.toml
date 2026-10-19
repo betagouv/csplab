@@ -131,7 +131,7 @@ description = "Start all docker services"
 depends = ["services:postgres", "services:redis", "services:qdrant", "services:rustfs"]
 
 [task_templates."review-app"]
-tools = { scalingo-cli = "1", gh = "2" }
+tools = { scalingo-cli = "1", gh = "2", gum = "0.17" }
 
 [task_templates."review-app".env]
 SCALINGO_REGION = "osc-fr1"

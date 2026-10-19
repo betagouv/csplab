@@ -6,26 +6,24 @@ set -euo pipefail
 
 eval "set -- ${usage_vars:-}"
 for var in "$@"; do
-  [[ "$var" == [A-Z_]*=* ]] || { echo "❌ '$var' is not NAME=value."; exit 1; }
+  [[ "$var" == [A-Z_]*=* ]] || { gum log -s -l error "Not a NAME=value pair" value "$var"; exit 1; }
 done
 
 if ! scalingo env >/dev/null 2>&1; then
-  echo "🚀 Creating review app '$SCALINGO_APP'…"
+  gum log -s -l info "Creating the review app" app "$SCALINGO_APP"
   scalingo --app "$REVIEW_APP_PARENT" integration-link-manual-review-app "$PR_NUMBER"
   for _ in $(seq 1 60); do
     scalingo env >/dev/null 2>&1 && break
     sleep 5
   done
-  scalingo env >/dev/null 2>&1 || { echo "❌ '$SCALINGO_APP' not found after 5 minutes."; exit 1; }
+  scalingo env >/dev/null 2>&1 || { gum log -s -l error "Review app not found after 5 minutes" app "$SCALINGO_APP"; exit 1; }
 fi
 
 if (($#)); then
   scalingo env-set "$@"
 fi
 
-echo "✅ $REVIEW_APP_URL"
-echo
-echo "🔑 ProConnect: add these URLs to the 'CSPLab Demo' app at"
-echo "   https://partenaires.proconnect.gouv.fr/apps"
-echo "   - Callback URL: $REVIEW_APP_URL/utilisateur/proconnect/callback"
-echo "   - Logout URL:   $REVIEW_APP_URL/utilisateur/connexion"
+gum log -s -l info "Review app ready" url "$REVIEW_APP_URL"
+gum log -s -l info "Add these URLs to the 'CSPLab Demo' ProConnect app" console "https://partenaires.proconnect.gouv.fr/apps"
+gum log -s -l info "ProConnect callback URL" url "$REVIEW_APP_URL/utilisateur/proconnect/callback"
+gum log -s -l info "ProConnect logout URL" url "$REVIEW_APP_URL/utilisateur/connexion"
