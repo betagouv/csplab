@@ -37,6 +37,53 @@ checksum = "sha256:028931e00fd670ad891a428bf44e14ac8e2726a8f72b7fae80b27b6502af2
 url = "https://github.com/jdx/hk/releases/download/v2.4.0/hk-x86_64-pc-windows-msvc.zip"
 url_api = "https://api.github.com/repos/jdx/hk/releases/assets/594327180"
 
+[[tools.gh]]
+version = "2.102.0"
+backend = "aqua:cli/cli"
+specifiers = ["2"]
+
+[tools.gh."platforms.linux-arm64"]
+checksum = "sha256:7862c86c72f43df3a2d93ddde6f473285b4e2af61b494849846827e513ef6484"
+url = "https://github.com/cli/cli/releases/download/v2.102.0/gh_2.102.0_linux_arm64.tar.gz"
+url_api = "https://api.github.com/repos/cli/cli/releases/assets/599854680"
+provenance = "github-attestations"
+
+[tools.gh."platforms.linux-arm64-musl"]
+checksum = "sha256:7862c86c72f43df3a2d93ddde6f473285b4e2af61b494849846827e513ef6484"
+url = "https://github.com/cli/cli/releases/download/v2.102.0/gh_2.102.0_linux_arm64.tar.gz"
+url_api = "https://api.github.com/repos/cli/cli/releases/assets/599854680"
+provenance = "github-attestations"
+
+[tools.gh."platforms.linux-x64"]
+checksum = "sha256:bb766f710eef8ede859c18578c72c327597cd4c8a85b06001b1f3843c6019386"
+url = "https://github.com/cli/cli/releases/download/v2.102.0/gh_2.102.0_linux_amd64.tar.gz"
+url_api = "https://api.github.com/repos/cli/cli/releases/assets/599854672"
+provenance = "github-attestations"
+
+[tools.gh."platforms.linux-x64-musl"]
+checksum = "sha256:bb766f710eef8ede859c18578c72c327597cd4c8a85b06001b1f3843c6019386"
+url = "https://github.com/cli/cli/releases/download/v2.102.0/gh_2.102.0_linux_amd64.tar.gz"
+url_api = "https://api.github.com/repos/cli/cli/releases/assets/599854672"
+provenance = "github-attestations"
+
+[tools.gh."platforms.macos-arm64"]
+checksum = "sha256:da922c20d1792e5b2cbf375593d7a658acf034c12c84e007e71c76ef959c337e"
+url = "https://github.com/cli/cli/releases/download/v2.102.0/gh_2.102.0_macOS_arm64.zip"
+url_api = "https://api.github.com/repos/cli/cli/releases/assets/599854720"
+provenance = "github-attestations"
+
+[tools.gh."platforms.macos-x64"]
+checksum = "sha256:b245f24eb2bf5f75b426b4c26da3651a107f8d5b6f4fddfbfccc5679041378b3"
+url = "https://github.com/cli/cli/releases/download/v2.102.0/gh_2.102.0_macOS_amd64.zip"
+url_api = "https://api.github.com/repos/cli/cli/releases/assets/599854716"
+provenance = "github-attestations"
+
+[tools.gh."platforms.windows-x64"]
+checksum = "sha256:ae64e556ecc240b200f7eba60d550e4bb60d78e860e69dd88c449405b86067f4"
+url = "https://github.com/cli/cli/releases/download/v2.102.0/gh_2.102.0_windows_amd64.zip"
+url_api = "https://api.github.com/repos/cli/cli/releases/assets/599854760"
+provenance = "github-attestations"
+
 [[tools.node]]
 version = "24.18.0"
 backend = "core:node"
@@ -114,6 +161,46 @@ url_api = "https://api.github.com/repos/scaleway/scaleway-cli/releases/assets/53
 checksum = "sha256:83e9d92f52c38515cf6eeed8ce15ab05b81bddab9130a8744216b9d797c5980f"
 url = "https://github.com/scaleway/scaleway-cli/releases/download/v2.62.0/scaleway-cli_2.62.0_windows_amd64.exe"
 url_api = "https://api.github.com/repos/scaleway/scaleway-cli/releases/assets/539383805"
+
+[[tools.scalingo-cli]]
+version = "1.50.0"
+backend = "aqua:Scalingo/cli"
+specifiers = ["1"]
+
+[tools.scalingo-cli."platforms.linux-arm64"]
+checksum = "sha256:01aa461476aad8ab46a03906fe44c87bb955d4f842b113760068438b83b3bb68"
+url = "https://github.com/Scalingo/cli/releases/download/1.50.0/scalingo_1.50.0_linux_arm64.tar.gz"
+url_api = "https://api.github.com/repos/Scalingo/cli/releases/assets/633842993"
+
+[tools.scalingo-cli."platforms.linux-arm64-musl"]
+checksum = "sha256:01aa461476aad8ab46a03906fe44c87bb955d4f842b113760068438b83b3bb68"
+url = "https://github.com/Scalingo/cli/releases/download/1.50.0/scalingo_1.50.0_linux_arm64.tar.gz"
+url_api = "https://api.github.com/repos/Scalingo/cli/releases/assets/633842993"
+
+[tools.scalingo-cli."platforms.linux-x64"]
+checksum = "sha256:8a912cd7ab17c41dbd0646be1477bb7b3b48d9251f490a703d472fa11da3aafd"
+url = "https://github.com/Scalingo/cli/releases/download/1.50.0/scalingo_1.50.0_linux_amd64.tar.gz"
+url_api = "https://api.github.com/repos/Scalingo/cli/releases/assets/633842932"
+
+[tools.scalingo-cli."platforms.linux-x64-musl"]
+checksum = "sha256:8a912cd7ab17c41dbd0646be1477bb7b3b48d9251f490a703d472fa11da3aafd"
+url = "https://github.com/Scalingo/cli/releases/download/1.50.0/scalingo_1.50.0_linux_amd64.tar.gz"
+url_api = "https://api.github.com/repos/Scalingo/cli/releases/assets/633842932"
+
+[tools.scalingo-cli."platforms.macos-arm64"]
+checksum = "sha256:082d50868b209d292f9a2d7dedf2c1f7e1b621721b337d3352e9a37ebb79b2fb"
+url = "https://github.com/Scalingo/cli/releases/download/1.50.0/scalingo_1.50.0_darwin_arm64.tar.gz"
+url_api = "https://api.github.com/repos/Scalingo/cli/releases/assets/633842928"
+
+[tools.scalingo-cli."platforms.macos-x64"]
+checksum = "sha256:63be41eaf38460bccc8d3e623586095bd520384498988600c1add399a749e278"
+url = "https://github.com/Scalingo/cli/releases/download/1.50.0/scalingo_1.50.0_darwin_amd64.tar.gz"
+url_api = "https://api.github.com/repos/Scalingo/cli/releases/assets/633843063"
+
+[tools.scalingo-cli."platforms.windows-x64"]
+checksum = "sha256:d4e32eb5c5eb6c3375dbddf84914f7fc65e6359aa3af5c12ea7af3466d08c0c5"
+url = "https://github.com/Scalingo/cli/releases/download/1.50.0/scalingo_1.50.0_windows_amd64.zip"
+url_api = "https://api.github.com/repos/Scalingo/cli/releases/assets/633837917"
 
 [[tools.uv]]
 version = "0.9.30"

@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+#MISE description="Create the review app if missing, then set the given variables"
+#MISE extends="review-app"
+#USAGE arg "[vars]..." help="NAME=value pairs set on the app"
+set -euo pipefail
+
+eval "set -- ${usage_vars:-}"
+for var in "$@"; do
+  [[ "$var" == [A-Z_]*=* ]] || { echo "❌ '$var' is not NAME=value."; exit 1; }
+done
+
+if ! scalingo env >/dev/null 2>&1; then
+  echo "🚀 Creating review app '$SCALINGO_APP'…"
+  scalingo --app "$REVIEW_APP_PARENT" integration-link-manual-review-app "$PR_NUMBER"
+  for _ in $(seq 1 60); do
+    scalingo env >/dev/null 2>&1 && break
+    sleep 5
+  done
+  scalingo env >/dev/null 2>&1 || { echo "❌ '$SCALINGO_APP' not found after 5 minutes."; exit 1; }
+fi
+
+if (($#)); then
+  scalingo env-set "$@"
+fi
+
+echo "✅ $REVIEW_APP_URL"
+echo
+echo "🔑 ProConnect: add these URLs to the 'CSPLab Demo' app at"
+echo "   https://partenaires.proconnect.gouv.fr/apps"
+echo "   - Callback URL: $REVIEW_APP_URL/utilisateur/proconnect/callback"
+echo "   - Logout URL:   $REVIEW_APP_URL/utilisateur/connexion"

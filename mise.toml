@@ -1,6 +1,6 @@
 # Task naming and layout: docs/mise.md. Personal overrides go to mise.local.toml.
 
-min_version = "2026.8.14"
+min_version = "2026.9.11"
 monorepo_root = true
 redactions = ["*SECRET*", "*_KEY", "*PASSWORD*", "*TOKEN*", "*CREDENTIALS*", "DATABASE_URL", "*_DATABASE_URL"]
 
@@ -129,6 +129,20 @@ run = "bin/compose-up rustfs env.d/rustfs"
 [tasks.services]
 description = "Start all docker services"
 depends = ["services:postgres", "services:redis", "services:qdrant", "services:rustfs"]
+
+[task_templates."review-app"]
+tools = { scalingo-cli = "1", gh = "2" }
+
+[task_templates."review-app".env]
+SCALINGO_REGION = "osc-fr1"
+REVIEW_APP_PARENT = "csplab-web-demo"
+PR_NUMBER = "{% if get_env(name='PR_NUMBER', default='') %}{{ get_env(name='PR_NUMBER') }}{% else %}{{ exec(command='gh pr view --json number --jq .number') }}{% endif %}"
+SCALINGO_APP = "{{ env.REVIEW_APP_PARENT }}-pr{{ env.PR_NUMBER }}"
+REVIEW_APP_URL = "https://{{ env.SCALINGO_APP }}.{{ env.SCALINGO_REGION }}.scalingo.io"
+
+[tasks."review-app"]
+description = "Create, deploy and seed the Scalingo review app of the current branch's PR"
+run = [{ task = "review-app:create" }, { task = "review-app:deploy" }, { task = "review-app:seed" }]
 
 [tasks.setup]
 description = "Create missing env files from the examples (never overwrites)"

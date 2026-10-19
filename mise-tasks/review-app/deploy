@@ -1,0 +1,69 @@
+#!/usr/bin/env bash
+#MISE description="Deploy the PR branch on its review app, or follow the deployment in progress, and fail if a container crashed"
+#MISE extends="review-app"
+set -euo pipefail
+
+# "<id> <status>" of the latest deployment
+latest_deployment() {
+  scalingo deployments --per-page 1 2>/dev/null |
+    awk -F'│' '/│/ && $2 !~ /ID/ { gsub(/[[:space:]]/, "", $2); gsub(/[[:space:]]/, "", $7); print $2, $7; exit }'
+}
+
+is_finished() {
+  case "$1" in
+    success | *error | aborted) return 0 ;;
+    *) return 1 ;;
+  esac
+}
+
+id="" status=""
+# a review app being created lists its first deployment within a minute
+for _ in $(seq 1 30); do
+  read -r id status < <(latest_deployment) || true
+  [[ -n "$id" ]] && break
+  sleep 2
+done
+
+if [[ -z "$id" ]] || is_finished "$status"; then
+  branch="$(gh pr view "$PR_NUMBER" --json headRefName --jq .headRefName)"
+  echo "🚀 Deploying '$branch' on '$SCALINGO_APP'…"
+  scalingo integration-link-manual-deploy "$branch"
+  previous_id="$id"
+  for _ in $(seq 1 30); do
+    read -r id status < <(latest_deployment) || true
+    [[ -n "$id" && "$id" != "$previous_id" ]] && break
+    sleep 2
+  done
+  if [[ -z "$id" || "$id" == "$previous_id" ]]; then
+    echo "❌ No new deployment listed after 60 seconds."
+    exit 1
+  fi
+else
+  echo "ℹ️  Following the deployment in progress ($status)."
+fi
+
+echo "⏳ Waiting for deployment $id to finish (up to 20 minutes)…"
+for _ in $(seq 1 120); do
+  read -r id status < <(latest_deployment) || true
+  is_finished "$status" && break
+  sleep 10
+done
+
+if [[ "$status" != "success" ]]; then
+  echo "❌ Deployment $id: ${status:-unknown}."
+  echo "   scalingo --app $SCALINGO_APP deployment-logs $id"
+  echo "   scalingo --app $SCALINGO_APP logs --lines 200"
+  exit 1
+fi
+
+# Scalingo restarts a container that crashes at startup, and the deployment
+# can still end in success: look for crashes since the deployment started.
+sleep 30
+crashes="$(scalingo timeline --per-page 50 2>/dev/null | awk '/Deployment/ { exit } /Crash/')"
+if [[ -n "$crashes" ]]; then
+  echo "❌ Deployment $id succeeded, but containers crashed since it started:"
+  echo "$crashes"
+  echo "   scalingo --app $SCALINGO_APP logs --lines 200"
+  exit 1
+fi
+echo "✅ Deployed: $REVIEW_APP_URL"
