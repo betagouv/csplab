@@ -41,4 +41,5 @@ def list_conversations(
     return (
         ConversationModel.objects.by_candidature(candidature_id)
         .with_message_summary()
+        .with_is_unread(utilisateur.entity_id)
     )

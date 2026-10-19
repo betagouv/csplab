@@ -1,5 +1,14 @@
+from datetime import datetime
+
 from django.db import models
-from django.db.models import Max, Prefetch
+from django.db.models import (
+    F,
+    Max,
+    OuterRef,
+    Prefetch,
+    Q,
+    Subquery,
+)
 
 from infrastructure.django_apps.candidate.models.candidature import CandidatureModel
 from infrastructure.django_apps.candidate.models.document import DocumentModel
@@ -36,6 +45,22 @@ class ConversationQuerySet(models.QuerySet):
             .order_by("-last_message_created_at", "-created_at")
         )
 
+    def with_is_unread(self, utilisateur_id) -> "ConversationQuerySet":
+        # Must be chained after with_message_summary (needs last_message_created_at)
+        last_message = MessageModel.objects.filter(
+            conversation=OuterRef("pk")
+        ).order_by("-created_at")
+        read_receipt = ConversationLectureModel.objects.filter(
+            conversation=OuterRef("pk"), utilisateur_id=utilisateur_id
+        )
+        return self.annotate(
+            last_author=Subquery(last_message.values("auteur_id")[:1]),
+            read_at=Subquery(read_receipt.values("read_at")[:1]),
+        ).annotate(
+            is_unread=~Q(last_author=utilisateur_id)
+            & (Q(read_at__isnull=True) | Q(last_message_created_at__gt=F("read_at")))
+        )
+
 
 class ConversationModel(BaseDatedModel):
     candidature = models.ForeignKey(
@@ -49,6 +74,7 @@ class ConversationModel(BaseDatedModel):
     objects = ConversationQuerySet.as_manager()
 
     last_message_created_at: datetime
+    is_unread: bool
     premiers_messages: list["MessageModel"]
     derniers_messages: list["MessageModel"]
 

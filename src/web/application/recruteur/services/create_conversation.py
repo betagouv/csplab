@@ -86,4 +86,5 @@ def create_conversation(
         .with_message_summary()
         .get(pk=conversation.id)
     )
+    created.is_unread = False
     return created
