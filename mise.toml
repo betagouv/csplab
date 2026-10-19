@@ -21,8 +21,7 @@ node = "24"
 uv = "0.9"
 scaleway-cli = "2"
 "pipx:commitizen" = "4"
-# aqua backend: the default one for hk (packslip) needs a mise newer than min_version
-"aqua:jdx/hk" = "2"
+hk = "2"
 yq = "4"
 
 [settings]
