@@ -59,6 +59,13 @@ env.prefix = "WEB_"
 DEBUG = False
 SECRET_KEY = env.str("SECRET_KEY")
 ALLOWED_HOSTS = env.list("ALLOWED_HOSTS")
+# Private network domain name of the web containers, used by ingestion to reach
+# web (see bin/start.sh). Injected by Scalingo only when the app is in a private
+# network: 1.web.<app-id>.<pn-id>.private-network.internal. allows
+# web.<app-id>.<pn-id>.private-network.internal only.
+# https://doc.scalingo.com/platform/networking/private/concepts
+if private_hostname := os.environ.get("SCALINGO_PRIVATE_HOSTNAME", "").rstrip("."):
+    ALLOWED_HOSTS.append("web." + private_hostname.split(".", 2)[2])
 SITE_ID = 1
 
 # SESSIONS
