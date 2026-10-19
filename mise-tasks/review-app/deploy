@@ -1,58 +1,12 @@
 #!/usr/bin/env bash
-#MISE description="Deploy the PR branch on its review app, or follow the deployment in progress, and fail if a container crashed"
+#MISE description="Deploy the PR branch on its review app and fail if a container crashed"
 #MISE extends="review-app"
 set -euo pipefail
 
-# "<id> <status>" of the latest deployment
-latest_deployment() {
-  scalingo deployments --per-page 1 2>/dev/null |
-    awk -F'│' '/│/ && $2 !~ /ID/ { gsub(/[[:space:]]/, "", $2); gsub(/[[:space:]]/, "", $7); print $2, $7; exit }'
-}
-
-is_finished() {
-  case "$1" in
-    success | *error | aborted) return 0 ;;
-    *) return 1 ;;
-  esac
-}
-
-id="" status=""
-# a review app being created lists its first deployment within a minute
-for _ in $(seq 1 30); do
-  read -r id status < <(latest_deployment) || true
-  [[ -n "$id" ]] && break
-  sleep 2
-done
-
-if [[ -z "$id" ]] || is_finished "$status"; then
-  branch="$(gh pr view "$PR_NUMBER" --json headRefName --jq .headRefName)"
-  gum log -s -l info "Deploying the PR branch" branch "$branch" app "$SCALINGO_APP"
-  scalingo integration-link-manual-deploy "$branch"
-  previous_id="$id"
-  for _ in $(seq 1 30); do
-    read -r id status < <(latest_deployment) || true
-    [[ -n "$id" && "$id" != "$previous_id" ]] && break
-    sleep 2
-  done
-  if [[ -z "$id" || "$id" == "$previous_id" ]]; then
-    gum log -s -l error "No new deployment listed after 60 seconds" app "$SCALINGO_APP"
-    exit 1
-  fi
-else
-  gum log -s -l info "Following the deployment in progress" id "$id" status "$status"
-fi
-
-gum log -s -l info "Waiting for the deployment to finish, up to 20 minutes" id "$id"
-for _ in $(seq 1 120); do
-  read -r id status < <(latest_deployment) || true
-  is_finished "$status" && break
-  sleep 10
-done
-
-if [[ "$status" != "success" ]]; then
-  gum log -s -l error "Deployment failed" id "$id" status "${status:-unknown}" \
-    deployment_logs "scalingo --app $SCALINGO_APP deployment-logs $id" \
-    app_logs "scalingo --app $SCALINGO_APP logs --lines 200"
+branch="$(gh pr view "$PR_NUMBER" --json headRefName --jq .headRefName)"
+gum log -s -l info "Deploying the PR branch" branch "$branch" app "$SCALINGO_APP"
+if ! scalingo integration-link-manual-deploy "$branch" --follow; then
+  gum log -s -l error "Deployment failed" app_logs "scalingo --app $SCALINGO_APP logs --lines 200"
   exit 1
 fi
 
@@ -61,7 +15,7 @@ fi
 sleep 30
 crashes="$(scalingo timeline --per-page 50 2>/dev/null | awk '/Deployment/ { exit } /Crash/')"
 if [[ -n "$crashes" ]]; then
-  gum log -s -l error "Deployment succeeded, but containers crashed since it started" id "$id" \
+  gum log -s -l error "Deployment succeeded, but containers crashed since it started" \
     app_logs "scalingo --app $SCALINGO_APP logs --lines 200"
   echo "$crashes" >&2
   exit 1
