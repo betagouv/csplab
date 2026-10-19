@@ -1,12 +1,16 @@
 import time
 
 import pytest
+from django.conf import settings
 from django.core.cache import cache
 from django.urls import reverse
 from rest_framework import status
 
-USER_LIMIT = 120
-ANON_LIMIT = 5
+RATES = settings.REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"]
+ANON_LIMIT = int(RATES["anon"].split("/")[0])
+USER_LIMIT = int(RATES["user"].split("/")[0])
+API_KEY = int(RATES["api_key"].split("/")[0])
+API_KEY_DAILY = int(RATES["api_key_daily"].split("/")[0])
 
 
 def fill_throttle_history(scope, ident, count):
@@ -62,8 +66,7 @@ class TestRateLimitingIntegration:
         assert response.data["detail"].code == "throttled"
 
     @pytest.mark.parametrize(
-        "scope,limit",
-        [("api_key", 70_000), ("api_key_daily", 100_000)],
+        "scope,limit", [("api_key", API_KEY), ("api_key_daily", API_KEY_DAILY)]
     )
     def test_api_key_limit_is_enforced_at_configured_rate(
         self, api_key_client, scope, limit
