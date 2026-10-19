@@ -34,3 +34,7 @@ WEB_S3_REGION_NAME=eu-west-3
 WEB_S3_ACCESS_KEY_ID=rustfsadmin
 WEB_S3_SECRET_ACCESS_KEY=rustfsadmin
 WEB_S3_CANDIDATURE_DOCUMENTS_BUCKET_NAME=csplab-candidature-documents-dev
+
+# Interface theme outside production, one of the ids of UI_THEMES in src/web/frontend/src/composables/ui/useUiTheme.ts.
+# kit shows the interface without a theme, with the theme choice in the account menu.
+# WEB_UI_THEME=kit

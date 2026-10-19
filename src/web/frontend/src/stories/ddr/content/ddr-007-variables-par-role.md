@@ -36,12 +36,13 @@ Les rôles désignent ces éléments :
 - `text-<rôle>` : les textes, du titre de page à la légende.
 - `category-<catégorie>` : les catégories d'étape d'un recrutement.
 - `message` : les encarts et les notifications.
+- `motion` : l'animation d'entrée et de sortie des tiroirs, des dialogues, des couches `overlap` qui en ont une (listes de choix, menus, popovers) et du voile, et la durée du changement d'état des boutons, des éléments de la barre latérale et des cartes du kanban. Le kit les laisse instantanées, comme le demande la décision « Pas de transitions décoratives » ; un thème peut les régler.
 
 Un composant lit un rôle quand la valeur a le même sens ailleurs dans l'interface, et une variable de composant quand elle lui est propre. Un composant qui propose plusieurs tailles garde ses propres tailles de texte.
 
 Quand le kit dessine un rôle avec des valeurs différentes selon les composants, on déclare le rôle avec la valeur `initial`, et chaque composant donne sa propre valeur en repli de `var()`. Donner une seule valeur à ce rôle change l'apparence des composants qui le lisent : on le décide dans une PR de design, captures à l'appui.
 
-On applique un thème sur la racine de la page. Il redéfinit des variables déclarées dans `csp-variables.css` et des jetons de décision du DSFR, jamais un jeton d'option du DSFR ni une variable déclarée dans un composant.
+On applique un thème sur la racine de la page. Il redéfinit des variables déclarées dans `csp-variables.css`, des jetons de décision du DSFR et des valeurs qui lui sont propres, préfixées par son identifiant (`--greige-*`), jamais un jeton d'option du DSFR ni une variable déclarée dans un composant.
 
 ## Conséquences
 

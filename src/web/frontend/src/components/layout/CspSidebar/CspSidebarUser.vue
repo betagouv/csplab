@@ -3,6 +3,7 @@ import { logout } from '@/api/utilisateur'
 import CspAvatar from '@/components/base/CspAvatar/CspAvatar.vue'
 import CspSidebarDropdown from '@/components/layout/CspSidebar/CspSidebarDropdown.vue'
 import { useColorMode } from '@/composables/ui/useColorMode'
+import { useUiTheme } from '@/composables/ui/useUiTheme'
 
 interface CspSidebarUserProps {
   name: string
@@ -12,6 +13,7 @@ interface CspSidebarUserProps {
 defineProps<CspSidebarUserProps>()
 
 const { isDark, toggle: toggleColorMode } = useColorMode()
+const { isEnabled: isUiThemeEnabled, currentName: uiThemeName, selectNext: selectNextUiTheme } = useUiTheme()
 </script>
 
 <template>
@@ -29,6 +31,9 @@ const { isDark, toggle: toggleColorMode } = useColorMode()
             icon: isDark ? 'ri:sun-line' : 'ri:moon-line',
             onSelect: toggleColorMode,
           },
+          ...(isUiThemeEnabled
+            ? [{ label: `Thème : ${uiThemeName}`, icon: 'ri:palette-line', onSelect: selectNextUiTheme }]
+            : []),
         ],
       },
       {
