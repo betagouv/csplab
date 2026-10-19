@@ -16,10 +16,12 @@ else
 fi
 # Scalingo private network only: a fixed port, as $PORT is not guaranteed
 # to be stable and is not advertised to the other apps of the network.
-# Skipped when $PORT is 8000: 0.0.0.0 already covers the private interface.
+# 0.0.0.0 covers the private interface; $SCALINGO_PRIVATE_HOSTNAME can still
+# resolve to the replaced container during a deploy.
+# Skipped when $PORT is unset or 8000: the first bind already takes port 8000.
 # https://doc.scalingo.com/platform/networking/private/working-with-private-networks
-if [[ -n "${SCALINGO_PRIVATE_HOSTNAME:-}" && "${PORT:-}" != "8000" ]]; then
-    binds+=(--bind "${SCALINGO_PRIVATE_HOSTNAME}:8000")
+if [[ -n "${SCALINGO_PRIVATE_HOSTNAME:-}" && -n "${PORT:-}" && "${PORT}" != "8000" ]]; then
+    binds+=(--bind "0.0.0.0:8000")
 fi
 
 echo "🚀 Starting server"
