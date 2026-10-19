@@ -44,7 +44,7 @@ jobs:
     runs-on: ubuntu-latest
     services:
       postgresql:
-        image: postgres:17
+        image: postgres:18
         env:
           POSTGRES_DB: ingestion
           POSTGRES_USER: postgres
@@ -74,7 +74,7 @@ jobs:
     runs-on: ubuntu-latest
     services:
       postgresql:
-        image: postgres:17
+        image: postgres:18
         env:
           POSTGRES_DB: ingestion
           POSTGRES_USER: postgres
