@@ -6,6 +6,14 @@
       "description": "Scaleway Secret Manager environment to load secrets from",
       "value": "demo"
     },
+    "WEB_DATABASE_URL": {
+      "description": "Database of the review app",
+      "value": "$SCALINGO_POSTGRESQL_URL"
+    },
+    "WEB_REDIS_URL": {
+      "description": "Redis of the review app",
+      "value": "$SCALINGO_REDIS_URL"
+    },
     "WEB_ALLOWED_HOSTS": {
       "description": "Hostname of the review app",
       "generator": "template",
