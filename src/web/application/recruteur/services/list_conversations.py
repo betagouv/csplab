@@ -38,4 +38,8 @@ def list_conversations(
     )
     candidature_service.check_candidature_belongs_to_recrutement()
 
-    return ConversationModel.objects.by_candidature(candidature_id)
+    return (
+        ConversationModel.objects.by_candidature(candidature_id)
+        .with_message_summary()
+        .with_is_unread(utilisateur.entity_id)
+    )

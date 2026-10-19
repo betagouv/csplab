@@ -573,14 +573,12 @@ class AuditLogSerializer(serializers.ModelSerializer):
 
 
 class ConversationSerializer(serializers.ModelSerializer):
-    # last_message_created_at is annotated, premiers_messages and derniers_messages
-    # are prefetched by ConversationQuerySet.by_candidature
     uuid = serializers.UUIDField(source="id")
     creator = serializers.SerializerMethodField()
     last_message_content = serializers.SerializerMethodField()
     last_message_author = serializers.SerializerMethodField()
     last_message_created_at = serializers.DateTimeField()
-    is_unread = serializers.SerializerMethodField()
+    is_unread = serializers.BooleanField(read_only=True)
 
     class Meta:
         model = ConversationModel
@@ -604,9 +602,6 @@ class ConversationSerializer(serializers.ModelSerializer):
 
     def get_last_message_author(self, conversation: ConversationModel) -> str:
         return conversation.derniers_messages[0].auteur.get_full_name()
-
-    def get_is_unread(self, conversation: ConversationModel) -> bool:
-        return False
 
 
 # ---------------------------------------------------------------------------

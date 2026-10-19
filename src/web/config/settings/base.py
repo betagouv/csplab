@@ -43,8 +43,7 @@ env = environ.Env(
     WEB_MATOMO_SITE_ID=(int, 1),
     WEB_QDRANT_URL=(str, ""),
     WEB_QDRANT_API_KEY=(str, ""),
-    # SCALINGO_REDIS_URL is injected by the Scalingo redis addon (e.g. review apps)
-    WEB_REDIS_URL=(str, os.environ.get("SCALINGO_REDIS_URL", "redis://localhost:6379")),
+    WEB_REDIS_URL=(str, "redis://localhost:6379"),
     WEB_REDIS_DB=(str, "0"),
     WEB_REDIS_CACHE_DB=(str, "2"),
     WEB_ROBOTS_INDEXING=(bool, True),
@@ -177,13 +176,7 @@ WSGI_APPLICATION = "config.wsgi.application"
 
 
 # Database
-# SCALINGO_POSTGRESQL_URL is injected by the Scalingo postgresql addon (review apps)
-DATABASES = {
-    "default": env.db(
-        "DATABASE_URL",
-        default=os.environ.get("SCALINGO_POSTGRESQL_URL", env.NOTSET),
-    )
-}
+DATABASES = {"default": env.db("DATABASE_URL")}
 
 
 # Password validation
