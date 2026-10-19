@@ -1,4 +1,5 @@
 import time
+from typing import cast
 
 import pytest
 from django.conf import settings
@@ -6,7 +7,7 @@ from django.core.cache import cache
 from django.urls import reverse
 from rest_framework import status
 
-RATES = settings.REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"]
+RATES = cast(dict[str, str], settings.REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"])
 ANON_LIMIT = int(RATES["anon"].split("/")[0])
 USER_LIMIT = int(RATES["user"].split("/")[0])
 API_KEY = int(RATES["api_key"].split("/")[0])
