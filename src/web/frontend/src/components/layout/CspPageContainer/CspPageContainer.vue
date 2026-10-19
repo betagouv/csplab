@@ -106,6 +106,8 @@ const activeTab = defineModel<T>('activeTab')
 
 .csp-page-container__tabs {
   --csp-tabs-content-padding-inline: var(--csp-page-container-padding-inline);
+
+  background: var(--csp-page-header-background);
 }
 
 .csp-page-container__content {

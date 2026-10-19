@@ -39,6 +39,74 @@
   --csp-shadow-md: 0 4px 6px -1px rgba(0, 0, 18, 0.1), 0 2px 4px -1px rgba(0, 0, 18, 0.06);
   --csp-shadow-lg: 0 10px 15px -3px rgba(0, 0, 18, 0.1), 0 4px 6px -2px rgba(0, 0, 18, 0.05);
 
+  /* Shadows of a surface the user picks up, such as a kanban card */
+  --csp-raised-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+  --csp-raised-shadow-hover: var(--csp-raised-shadow);
+  --csp-raised-shadow-drag: var(--csp-raised-shadow);
+  --csp-raised-background: var(--background-default-grey);
+  --csp-raised-background-hover: var(--background-alt-grey);
+  --csp-raised-border: var(--border-default-grey);
+  --csp-raised-border-hover: var(--csp-raised-border);
+  --csp-raised-drag-opacity: 0.5;
+  --csp-raised-drop-background: var(--background-alt-grey);
+  --csp-raised-focus-width: 2px;
+  --csp-raised-focus-gap-color: transparent;
+  --csp-raised-current-background: var(--csp-raised-background);
+  --csp-raised-current-border-color: var(--border-plain-info);
+
+  /* Radii by role */
+  --csp-radius-action: 0;
+  --csp-radius-field: 0.25rem;
+  --csp-radius-inset: 0.125rem;
+  --csp-radius-surface: 0.25rem;
+  --csp-radius-overlay: 0.25rem;
+  --csp-radius-panel: 0;
+  --csp-radius-region: var(--csp-radius-panel);
+  --csp-radius-edge: var(--csp-radius-panel);
+  --csp-radius-badge: 0.25rem;
+  --csp-radius-tag: 2rem;
+  --csp-radius-indicator: 2px;
+
+  /* Motion: durations and animations stay at zero until a theme sets them, with the keyframes of motion.css */
+  --csp-motion-duration-state: 0ms;
+  --csp-motion-duration-panel: 0ms;
+  --csp-motion-easing-enter: cubic-bezier(0.33, 1, 0.68, 1);
+  --csp-motion-easing-exit: cubic-bezier(0.32, 0, 0.67, 0);
+  --csp-motion-panel-enter-right: none;
+  --csp-motion-panel-exit-right: none;
+  --csp-motion-panel-enter-left: none;
+  --csp-motion-panel-exit-left: none;
+  --csp-motion-dialog-enter: none;
+  --csp-motion-dialog-exit: none;
+  --csp-motion-overlay-enter: none;
+  --csp-motion-overlay-exit: none;
+  --csp-motion-scrim-enter: none;
+  --csp-motion-scrim-exit: none;
+  --csp-motion-duration-highlight: 0ms;
+  --csp-motion-raised-drop: none;
+  --csp-highlight-color: var(--border-action-high-grey);
+
+  /* Backgrounds of the application */
+  --csp-canvas-background: var(--background-default-grey);
+  --csp-sidebar-background: var(--background-alt-grey);
+  --csp-region-background: var(--background-alt-grey);
+  --csp-region-border-color: var(--border-default-grey);
+  --csp-region-drop-background: var(--background-contrast-grey);
+  --csp-region-drop-border-color: var(--csp-region-border-color);
+  --csp-region-drop-border-width: 1px;
+  --csp-region-badge-background: var(--csp-neutral-fill);
+  --csp-aside-background: transparent;
+  --csp-page-header-background: var(--csp-canvas-background);
+  --csp-page-header-backdrop: none;
+  --csp-chrome-border-color: var(--border-default-grey);
+  --csp-surface-divider-color: var(--border-default-grey);
+  --csp-panel-canvas-background: transparent;
+  --csp-aside-border-color: var(--border-default-grey);
+  --csp-document-frame-header-background: var(--background-alt-grey);
+
+  /* Neutral fill of a badge, a tag, an avatar without color or a loading placeholder */
+  --csp-neutral-fill: var(--background-contrast-grey);
+
   /* Overlay scrim (dialog / drawer) */
   --csp-overlay-scrim: rgba(22, 22, 22, 0.64);
 
@@ -69,6 +137,21 @@
 
   /* Sidebar */
   --csp-sidebar-padding: var(--csp-space-1);
+  --csp-sidebar-item-radius: 0;
+  --csp-sidebar-item-active-background: transparent;
+  --csp-sidebar-item-marker-width: 2px;
+  --csp-sidebar-item-active-font-weight: var(--csp-font-weight-medium);
+
+  /* Secondary button */
+  --csp-btn-secondary-background: transparent;
+  --csp-btn-secondary-background-hover: var(--background-default-grey-hover);
+  --csp-btn-secondary-background-active: var(--background-default-grey-active);
+  --csp-btn-secondary-border-color: var(--border-action-high-blue-france);
+  --csp-btn-secondary-disabled-background: transparent;
+  --csp-btn-secondary-disabled-border-color: var(--border-disabled-grey);
+
+  /* Outline of a bordered control that is not a field: tertiary button, segmented control */
+  --csp-control-border-color: var(--border-default-grey);
 
   /* Menus: dropdown menu, select and combobox lists */
   --csp-menu-padding: var(--csp-space-1);
@@ -76,6 +159,7 @@
   --csp-menu-item-gap: var(--csp-space-2);
 
   /* Form fields */
+  --csp-field-border-color: var(--border-default-grey);
   --csp-field-label-gap: var(--csp-space-2);
   --csp-field-hint-gap: var(--csp-space-1);
   --csp-field-legend-gap: var(--csp-space-4);
@@ -90,7 +174,16 @@
   --csp-kanban-column-padding: var(--csp-space-3);
   --csp-kanban-column-gap: var(--csp-space-3);
   --csp-kanban-column-accent-width: 3px;
+  --csp-kanban-column-accent-bar-width: 0;
   --csp-kanban-column-header-padding-inline: var(--csp-space-1);
+  --csp-kanban-column-header-padding-bottom: 0;
+  --csp-kanban-column-header-divider-width: 0;
+
+  /* Accents of the four categories of a process: to process, in progress, closed negatively, closed positively */
+  --csp-category-accent-neutral: var(--border-default-grey);
+  --csp-category-accent-progress: var(--border-plain-info);
+  --csp-category-accent-negative: var(--border-plain-error);
+  --csp-category-accent-positive: var(--border-plain-success);
 
   @variant xxl {
     --csp-page-container-padding-inline: clamp(1.5rem, 1rem + 2.5vw, 4rem);
@@ -102,6 +195,16 @@
     --csp-page-header-padding-bottom: var(--csp-space-6);
     --csp-sidebar-padding: var(--csp-space-2);
   }
+}
+
+/* Radii that the kit draws apart from their role; with a theme, these components follow the role */
+:root:not([data-csp-theme]) {
+  --csp-dropdown-radius: 0;
+  --csp-popover-radius: 0;
+  --csp-toast-radius: 0;
+  --csp-table-radius: 0;
+  --csp-document-frame-radius: 0;
+  --csp-sidebar-toggle-radius: 0.375rem;
 }
 
 :root[data-fr-theme='dark'] {

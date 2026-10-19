@@ -1,0 +1,38 @@
+/*
+ * Ten named colors of the categorical palette, read by labels through three roles:
+ * background, text and dot. These fallback values are neutral grey; a scenario of
+ * styles/etiquettes/ gives each color its own values, light and dark.
+ */
+
+:root {
+  --csp-palette-grey-background: var(--background-contrast-grey);
+  --csp-palette-grey-text: var(--text-default-grey);
+  --csp-palette-grey-dot: var(--text-mention-grey);
+  --csp-palette-blue-background: var(--background-contrast-grey);
+  --csp-palette-blue-text: var(--text-default-grey);
+  --csp-palette-blue-dot: var(--text-mention-grey);
+  --csp-palette-teal-background: var(--background-contrast-grey);
+  --csp-palette-teal-text: var(--text-default-grey);
+  --csp-palette-teal-dot: var(--text-mention-grey);
+  --csp-palette-green-background: var(--background-contrast-grey);
+  --csp-palette-green-text: var(--text-default-grey);
+  --csp-palette-green-dot: var(--text-mention-grey);
+  --csp-palette-yellow-background: var(--background-contrast-grey);
+  --csp-palette-yellow-text: var(--text-default-grey);
+  --csp-palette-yellow-dot: var(--text-mention-grey);
+  --csp-palette-orange-background: var(--background-contrast-grey);
+  --csp-palette-orange-text: var(--text-default-grey);
+  --csp-palette-orange-dot: var(--text-mention-grey);
+  --csp-palette-red-background: var(--background-contrast-grey);
+  --csp-palette-red-text: var(--text-default-grey);
+  --csp-palette-red-dot: var(--text-mention-grey);
+  --csp-palette-pink-background: var(--background-contrast-grey);
+  --csp-palette-pink-text: var(--text-default-grey);
+  --csp-palette-pink-dot: var(--text-mention-grey);
+  --csp-palette-purple-background: var(--background-contrast-grey);
+  --csp-palette-purple-text: var(--text-default-grey);
+  --csp-palette-purple-dot: var(--text-mention-grey);
+  --csp-palette-brown-background: var(--background-contrast-grey);
+  --csp-palette-brown-text: var(--text-default-grey);
+  --csp-palette-brown-dot: var(--text-mention-grey);
+}

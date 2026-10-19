@@ -1,0 +1,4 @@
+/* Body text at 16px: every font size of the kit is in rem, and the breakpoints in em keep their width */
+:root[data-csp-density='comfortable'] {
+  font-size: 114.2857%;
+}

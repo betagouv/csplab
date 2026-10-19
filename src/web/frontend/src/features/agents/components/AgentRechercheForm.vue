@@ -91,7 +91,7 @@ function handleSearch(value: string): void {
   gap: var(--csp-space-1);
   padding: var(--csp-space-4);
   border: 1px solid var(--border-default-grey);
-  border-radius: 0.25rem;
+  border-radius: var(--csp-radius-surface);
 }
 
 .agent-recherche-form__agent-name {

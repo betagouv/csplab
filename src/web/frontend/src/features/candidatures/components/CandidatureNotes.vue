@@ -1,17 +1,21 @@
 <script setup lang="ts">
-import type { NoteRouteNames } from '../types'
+import type { Note, NoteRouteNames } from '../types'
 import type { CandidatureParams } from '@/api/params'
-import { computed } from 'vue'
+import type { CspLabelItem } from '@/components/base/CspLabel/types'
+import { computed, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import CspAsyncSection from '@/components/base/CspAsyncSection/CspAsyncSection.vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspCard from '@/components/base/CspCard/CspCard.vue'
 import CspEmptyState from '@/components/base/CspEmptyState/CspEmptyState.vue'
+import CspLabelList from '@/components/base/CspLabel/CspLabelList.vue'
 import CspSkeleton from '@/components/base/CspSkeleton/CspSkeleton.vue'
 import { useMinimumPending } from '@/composables/async/useMinimumPending'
+import { useCurrentUser } from '@/stores/currentUser'
 import { formatDateTime } from '@/utils/date'
 import { pluralize } from '@/utils/format'
 import { useCandidatureNotes } from '../composables/useCandidatureNotes'
+import { etiquettesOf } from '../etiquettes'
 import CandidatureNewNoteForm from './CandidatureNewNoteForm.vue'
 import CandidatureNoteMessage from './CandidatureNoteMessage.vue'
 
@@ -27,6 +31,22 @@ const { notes, total, pending, error } = useCandidatureNotes(() => props.candida
 const showSkeleton = useMinimumPending(pending)
 
 const title = computed(() => `${total.value} ${pluralize(total.value, 'note')}`)
+
+const { user } = useCurrentUser()
+const retirees = ref(new Set<string>())
+
+const etiquettesByNote = computed(() => new Map(notes.value.map(note => [
+  note.uuid,
+  etiquettesOf(note).filter(({ label }) => !retirees.value.has(`${note.uuid}/${label}`)),
+])))
+
+function isAuthor(note: Note): boolean {
+  return note.publie_par_prenom === user.value?.prenom && note.publie_par_nom === user.value?.nom
+}
+
+function retirer(note: Note, etiquette: CspLabelItem): void {
+  retirees.value.add(`${note.uuid}/${etiquette.label}`)
+}
 
 const route = useRoute()
 const isCreatingNote = computed(() => route.name === props.routes.create)
@@ -143,6 +163,13 @@ function startNote(): void {
                 {{ formatDateTime(note.publie_le) }}
               </time>
             </template>
+            <CspLabelList
+              v-if="etiquettesByNote.get(note.uuid)?.length"
+              class="candidature-notes__etiquettes"
+              :labels="etiquettesByNote.get(note.uuid)!"
+              :removable="isAuthor(note)"
+              @remove="etiquette => retirer(note, etiquette)"
+            />
             <CandidatureNoteMessage :message="note.message" />
           </CspCard>
         </ul>
@@ -184,7 +211,7 @@ function startNote(): void {
   --csp-card-border: transparent;
 
   :deep(.csp-skeleton) {
-    background: var(--background-contrast-grey);
+    background: var(--csp-neutral-fill);
   }
 }
 
@@ -197,6 +224,10 @@ function startNote(): void {
 .candidature-notes__horodatage {
   display: inline-flex;
   gap: var(--csp-space-2);
+}
+
+.candidature-notes__etiquettes {
+  margin-bottom: var(--csp-space-3);
 }
 
 .candidature-notes__horodatage,

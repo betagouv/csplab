@@ -1,0 +1,102 @@
+/* Keyframes that a theme names in the animation variables of csp-variables.css */
+@keyframes csp-panel-enter-right {
+  from {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes csp-panel-exit-right {
+  to {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes csp-panel-enter-left {
+  from {
+    transform: translateX(-100%);
+  }
+}
+
+@keyframes csp-panel-exit-left {
+  to {
+    transform: translateX(-100%);
+  }
+}
+
+@keyframes csp-dialog-enter {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -48%) scale(0.98);
+  }
+}
+
+@keyframes csp-dialog-exit {
+  to {
+    opacity: 0;
+    transform: translate(-50%, -49%) scale(0.98);
+  }
+}
+
+@keyframes csp-overlay-enter {
+  from {
+    opacity: 0;
+    transform: translateY(-0.25rem) scale(0.98);
+  }
+}
+
+@keyframes csp-overlay-exit {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes csp-scrim-enter {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes csp-scrim-exit {
+  to {
+    opacity: 0;
+  }
+}
+
+/* Fades an outline drawn inside the element from the highlight color to transparent */
+@keyframes csp-highlight {
+  from {
+    outline: 2px solid var(--csp-highlight-color);
+    outline-offset: -2px;
+  }
+
+  to {
+    outline: 2px solid transparent;
+    outline-offset: -2px;
+  }
+}
+
+/* Fades the background of a dropped surface from the drop color to its own */
+@keyframes csp-raised-drop {
+  from {
+    background-color: var(--csp-raised-drop-background);
+  }
+}
+
+/* 1ms: an exit animation still ends, and Reka UI unmounts the closed element on animationend */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 1ms !important;
+    animation-delay: 0s !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+    transition-delay: 0s !important;
+    scroll-behavior: auto !important;
+  }
+
+  /* A change of color alone is not a motion (WCAG 2.3.3): it keeps its duration */
+  [data-csp-motion='color'] {
+    animation-duration: var(--csp-motion-duration-highlight) !important;
+  }
+}

@@ -25,6 +25,7 @@ import MessagesSection from '@/features/messages/components/MessagesSection.vue'
 import CandidatureActivites from '../components/CandidatureActivites.vue'
 import CandidatureCv from '../components/CandidatureCv.vue'
 import CandidatureDocuments from '../components/CandidatureDocuments.vue'
+import CandidatureEtiquettes from '../components/CandidatureEtiquettes.vue'
 import CandidatureHistorique from '../components/CandidatureHistorique.vue'
 import CandidatureNoteForm from '../components/CandidatureNoteForm.vue'
 import CandidatureNotes from '../components/CandidatureNotes.vue'
@@ -35,6 +36,7 @@ import { useCandidatureNavigation } from '../composables/useCandidatureNavigatio
 import { useCandidaturePanelRoutes } from '../composables/useCandidaturePanelRoutes'
 import { useEtapeChange } from '../composables/useEtapeChange'
 import { CANDIDATURE_PANEL_TAB_ICONS, CANDIDATURE_PANEL_TAB_LABELS } from '../constants/candidature'
+import { etiquettesOf } from '../etiquettes'
 import { formatCandidatureMeta } from '../format'
 import { candidatureDetailQuery } from '../queries'
 import { formatCandidatNom } from '../utils/candidat'
@@ -59,6 +61,7 @@ const loadFailed = computed(() => Boolean(error.value) && !notFound.value)
 const title = computed(() => candidature.value ? formatCandidatNom(candidature.value.candidat) : 'Candidature')
 const description = computed(() => candidature.value?.recrutement_intitule || null)
 const metaItems = computed(() => candidature.value ? formatCandidatureMeta(candidature.value) : [])
+const etiquettes = computed(() => candidature.value ? etiquettesOf(candidature.value) : [])
 
 const etape = computed(() => candidature.value?.etape_actuelle ?? null)
 const navigation = useCandidatureNavigation(() => props.candidatureUuid)
@@ -292,6 +295,8 @@ function handleUpdateOpen(open: boolean): void {
                   :candidature="candidatureParams"
                   :historique-route-name="panelRouteNames.tabs.historique"
                 />
+                <CspSeparator />
+                <CandidatureEtiquettes :etiquettes="etiquettes" />
                 <CspSeparator v-show="!isNotesTab" />
                 <CandidatureNoteForm
                   v-show="!isNotesTab"
@@ -344,6 +349,18 @@ function handleUpdateOpen(open: boolean): void {
 <style lang="scss">
 @use '@/styles/breakpoints' as bp;
 
+/* On a wide screen, --csp-panel-push keeps the width of the open panel free beside the page: the panel becomes a
+   surface next to the board, and --csp-panel-docked-shadow replaces its shadow */
+@media (min-width: 105rem) {
+  body:has(.csp-drawer.candidature-panel) .csp-app-shell__content {
+    padding-right: var(--csp-panel-push, 0);
+  }
+
+  .csp-drawer.candidature-panel {
+    box-shadow: var(--csp-panel-docked-shadow, var(--csp-shadow-lg));
+  }
+}
+
 /* unscoped: the drawer content is portaled */
 .csp-drawer.candidature-panel {
   --base-drawer-width: 100vw;
@@ -356,7 +373,7 @@ function handleUpdateOpen(open: boolean): void {
   }
 
   @include bp.from(bp.$xl) {
-    --base-drawer-width: clamp(42rem, 100vw - 36rem, 90rem);
+    --base-drawer-width: var(--csp-panel-width-wide, clamp(42rem, 100vw - 36rem, 90rem));
   }
 
   .csp-drawer__body {
@@ -395,6 +412,7 @@ function handleUpdateOpen(open: boolean): void {
   min-height: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
+  background-color: var(--csp-panel-canvas-background);
 }
 
 .candidature-panel__layout {
@@ -434,7 +452,8 @@ function handleUpdateOpen(open: boolean): void {
   gap: var(--csp-space-5);
   padding-block: var(--csp-page-content-padding-block);
   padding-inline: var(--candidature-panel-aside-padding-start) var(--csp-drawer-padding-inline);
-  border-left: 1px solid var(--border-default-grey);
+  background-color: var(--csp-aside-background);
+  border-left: 1px solid var(--csp-aside-border-color);
 }
 
 @container panel (max-width: 64rem) {
@@ -444,7 +463,7 @@ function handleUpdateOpen(open: boolean): void {
 
   .candidature-panel__aside {
     padding-inline: var(--csp-drawer-padding-inline);
-    border-top: 1px solid var(--border-default-grey);
+    border-top: 1px solid var(--csp-aside-border-color);
     border-left: 0;
   }
 }

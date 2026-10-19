@@ -619,4 +619,14 @@
   --artwork-motif-brown-caramel: var(--brown-caramel-925-125);
   --artwork-motif-brown-opera: var(--brown-opera-925-125);
   --artwork-motif-beige-gris-galet: var(--beige-gris-galet-925-125);
+
+  /* Shadows */
+  --shadow-color: rgba(0, 0, 18, 0.16);
+  --raised-shadow: 0 1px 3px var(--shadow-color);
+  --overlap-shadow: 0 2px 6px var(--shadow-color);
+  --lifted-shadow: 0 3px 9px var(--shadow-color);
+}
+
+:root[data-fr-theme='dark'] {
+  --shadow-color: rgba(0, 0, 18, 0.32);
 }

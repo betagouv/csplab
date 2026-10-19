@@ -66,8 +66,9 @@ async function copyLabel(): Promise<void> {
   gap: var(--csp-meta-gap);
   min-width: 0;
   color: var(--text-mention-grey);
-  font-size: var(--csp-meta-font-size);
-  line-height: 1.4;
+  font-size: var(--csp-text-meta-size, var(--csp-meta-font-size));
+  line-height: var(--csp-text-meta-line-height, 1.4);
+  font-weight: var(--csp-text-meta-weight, inherit);
 
   --csp-meta-font-size: 0.75rem;
   --csp-meta-gap: 0.25rem;

@@ -93,10 +93,11 @@ const resolvedIcon = computed(() => props.icon ?? iconByVariant[props.variant])
   align-items: flex-start;
   gap: var(--csp-space-3);
   padding: var(--csp-space-4);
-  padding-left: calc(var(--csp-space-4) + 4px);
+  padding-left: calc(var(--csp-space-4) + var(--csp-message-bar-width, 4px));
   background-color: var(--csp-callout-bg);
-  border: 1px solid var(--csp-callout-border);
+  border: var(--csp-message-border-width, 1px) solid var(--csp-callout-border);
   border-left: none;
+  box-shadow: inset 0 0 0 var(--csp-message-frame-width, 0) var(--csp-callout-border);
   color: var(--csp-callout-text);
 
   &::before {
@@ -105,7 +106,7 @@ const resolvedIcon = computed(() => props.icon ?? iconByVariant[props.variant])
     top: -1px;
     left: 0;
     bottom: -1px;
-    width: 4px;
+    width: var(--csp-message-bar-width, 4px);
     background-color: var(--csp-callout-accent);
   }
 }

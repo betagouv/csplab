@@ -1,6 +1,7 @@
 import { readdirSync } from 'node:fs'
 import antfu from '@antfu/eslint-config'
 import storybook from 'eslint-plugin-storybook'
+import noHardCodedColor from './frontend/lint/no-hard-coded-color.mjs'
 
 const SRC = 'frontend/src'
 const TESTS = [`${SRC}/**/*.test.ts`]
@@ -13,6 +14,14 @@ function subfolders(path) {
 
 const FEATURES = subfolders(`./${SRC}/features`)
 const ROOT_FOLDERS = subfolders(`./${SRC}`).filter(folder => !['features', 'app', 'router', 'test'].includes(folder))
+
+// Components that read their colors from the palette variables of styles/palette.css
+const PALETTE_COMPONENTS = [
+  `${SRC}/components/base/CspLabel/**`,
+  `${SRC}/components/base/CspAvatar/**`,
+  `${SRC}/**/*[Ee]tiquette*.{ts,vue}`,
+  `${SRC}/app/prototypes/ColorField.vue`,
+]
 
 const FEATURE_DEPENDENCIES = {
   'candidatures': ['recrutements', 'etapes-recrutement', 'messages'],
@@ -117,6 +126,11 @@ export default antfu(
         },
       ],
     },
+  },
+  {
+    files: PALETTE_COMPONENTS,
+    plugins: { csp: { rules: { 'no-hard-coded-color': noHardCodedColor } } },
+    rules: { 'csp/no-hard-coded-color': 'error' },
   },
   ...FEATURES.map(restrictFeatureImports),
   restrictImports(ROOT_FOLDERS.map(folder => `${SRC}/${folder}/**`), [

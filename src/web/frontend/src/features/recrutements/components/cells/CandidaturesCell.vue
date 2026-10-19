@@ -35,7 +35,7 @@ defineProps<{
   min-width: 1.75rem;
   padding: 0.125rem 0.375rem;
   background: var(--background-alt-grey);
-  border-radius: 0.25rem;
+  border-radius: var(--csp-radius-badge);
   font-weight: 600;
 }
 </style>

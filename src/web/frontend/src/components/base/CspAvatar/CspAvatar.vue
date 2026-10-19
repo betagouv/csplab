@@ -1,19 +1,27 @@
 <script setup lang="ts">
+import type { PaletteColor } from '@/styles/palette'
 import { computed } from 'vue'
+import { paletteVar } from '@/styles/palette'
 import { getInitials } from '@/utils/format'
 
 export interface CspAvatarProps {
   name?: string | null
   size?: 'sm' | 'md' | 'lg'
+  color?: PaletteColor
 }
 
 const props = withDefaults(defineProps<CspAvatarProps>(), {
   size: 'md',
+  color: undefined,
 })
 
 const initials = computed(() => {
   return getInitials(props.name)
 })
+
+const colorStyle = computed(() => props.color
+  ? { '--csp-avatar-background': paletteVar(props.color, 'background'), '--csp-avatar-text': paletteVar(props.color, 'text') }
+  : undefined)
 </script>
 
 <template>
@@ -22,6 +30,7 @@ const initials = computed(() => {
     :class="`csp-avatar--${size}`"
     role="img"
     :aria-label="name ?? undefined"
+    :style="colorStyle"
   >
     <span
       class="csp-avatar__initials"
@@ -43,8 +52,8 @@ const initials = computed(() => {
   align-items: center;
   justify-content: center;
 
-  background-color: var(--background-contrast-grey);
-  color: var(--text-default-grey);
+  background-color: var(--csp-avatar-background, var(--csp-neutral-fill));
+  color: var(--csp-avatar-text, var(--text-default-grey));
   box-shadow: inset 0 0 0 1px var(--border-default-grey);
 
   font-weight: 700;

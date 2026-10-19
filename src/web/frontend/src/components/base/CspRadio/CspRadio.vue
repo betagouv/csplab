@@ -87,7 +87,7 @@ withDefaults(defineProps<CspRadioProps>(), {
   height: var(--csp-radio-size);
   flex: 0 0 auto;
   border-radius: 50%;
-  border: 1px solid var(--border-default-grey);
+  border: 1px solid var(--csp-field-border-color);
   background: transparent;
   padding: 0;
   cursor: inherit;

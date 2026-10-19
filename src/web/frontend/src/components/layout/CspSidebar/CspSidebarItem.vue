@@ -61,7 +61,7 @@ const { showLabels } = useSidebar()
 .csp-sidebar-item {
   --sidebar-item-icon-size: 1rem;
   --sidebar-item-icon-start: calc((var(--sidebar-item-size) - var(--sidebar-item-icon-size)) / 2);
-  --sidebar-item-marker-width: 2px;
+  --sidebar-item-marker-width: var(--csp-sidebar-item-marker-width);
 
   position: relative;
   display: flex;
@@ -72,8 +72,10 @@ const { showLabels } = useSidebar()
   height: var(--sidebar-item-size);
   padding: 0;
   border: none;
-  background: var(--background-alt-grey);
+  border-radius: var(--csp-sidebar-item-radius);
+  background: var(--csp-sidebar-background);
   text-decoration: none;
+  transition: background-color var(--csp-motion-duration-state);
   cursor: pointer;
   flex-shrink: 0;
 
@@ -120,7 +122,7 @@ const { showLabels } = useSidebar()
 .csp-sidebar-item--active:hover,
 .csp-sidebar-item--active:active {
   cursor: default;
-  background: transparent;
+  background: var(--csp-sidebar-item-active-background);
   color: var(--text-active-blue-france);
 }
 
@@ -136,6 +138,6 @@ const { showLabels } = useSidebar()
 }
 
 .csp-sidebar-item--active .csp-sidebar-item__label {
-  font-weight: var(--csp-font-weight-medium);
+  font-weight: var(--csp-sidebar-item-active-font-weight);
 }
 </style>

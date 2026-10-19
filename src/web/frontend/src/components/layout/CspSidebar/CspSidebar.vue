@@ -135,7 +135,7 @@ const { state, isExpanded, isMobile, isMobileOpen, setMobileOpen, toggle } = use
   flex-direction: column;
   width: var(--sidebar-width-collapsed);
   height: 100%;
-  background: var(--background-alt-grey);
+  background: var(--csp-sidebar-background);
   overflow: hidden;
 
   &--expanded {
@@ -195,7 +195,7 @@ const { state, isExpanded, isMobile, isMobileOpen, setMobileOpen, toggle } = use
   flex-shrink: 0;
   padding: 0;
   border: none;
-  border-radius: 0.375rem;
+  border-radius: var(--csp-sidebar-toggle-radius, var(--csp-radius-action));
   background: transparent;
   color: var(--text-mention-grey);
   cursor: pointer;

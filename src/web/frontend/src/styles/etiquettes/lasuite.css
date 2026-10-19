@@ -1,0 +1,136 @@
+/*
+ * Label colors of La Suite numérique: default tokens of @gouvfr-lasuite/ui-tokens 3.2.0
+ * (github.com/suitenumerique/ui-kit, packages/ui-tokens/src/lib/cunningham.ts), under the names of its generated CSS.
+ * Light: background 100 and text 600, the badge of the ui-kit; dot 500, the palette color of its avatars.
+ * Dark: background 800 for the darker DSFR surfaces, text 250 and dot 350.
+ * Brown sits one step away from grey (light 150 and 700, dark 750 and 200): at the common steps, both look grey.
+ * The light yellow dot takes step 250, outlined by the text color: at step 500, yellow looks khaki.
+ */
+
+:root[data-csp-etiquettes='lasuite'] {
+  --c--globals--colors--gray-100: #e1e2e5;
+  --c--globals--colors--gray-250: #b5b9be;
+  --c--globals--colors--gray-350: #999ea5;
+  --c--globals--colors--gray-500: #74777c;
+  --c--globals--colors--gray-600: #5c5f63;
+  --c--globals--colors--gray-800: #2f3033;
+  --c--globals--colors--blue-1-100: #d6e3fe;
+  --c--globals--colors--blue-1-250: #99b8fd;
+  --c--globals--colors--blue-1-350: #6f9bfd;
+  --c--globals--colors--blue-1-500: #3d71e4;
+  --c--globals--colors--blue-1-600: #305ab5;
+  --c--globals--colors--blue-1-800: #243048;
+  --c--globals--colors--blue-2-100: #c5e9f3;
+  --c--globals--colors--blue-2-250: #68c5e0;
+  --c--globals--colors--blue-2-350: #3baaca;
+  --c--globals--colors--blue-2-500: #2c8199;
+  --c--globals--colors--blue-2-600: #236679;
+  --c--globals--colors--blue-2-800: #233337;
+  --c--globals--colors--green-100: #c5ecca;
+  --c--globals--colors--green-250: #67ce75;
+  --c--globals--colors--green-350: #48b257;
+  --c--globals--colors--green-500: #368741;
+  --c--globals--colors--green-600: #2b6b33;
+  --c--globals--colors--green-800: #253426;
+  --c--globals--colors--yellow-100: #f5e2a4;
+  --c--globals--colors--yellow-250: #e4b213;
+  --c--globals--colors--yellow-350: #c39810;
+  --c--globals--colors--yellow-600: #755b0a;
+  --c--globals--colors--yellow-800: #36301f;
+  --c--globals--colors--orange-100: #fcddc5;
+  --c--globals--colors--orange-250: #f6a76a;
+  --c--globals--colors--orange-350: #f27e27;
+  --c--globals--colors--orange-500: #be5b0f;
+  --c--globals--colors--orange-600: #97480c;
+  --c--globals--colors--orange-800: #412c1f;
+  --c--globals--colors--red-100: #fadbdb;
+  --c--globals--colors--red-250: #f3a4a3;
+  --c--globals--colors--red-350: #ee7c7b;
+  --c--globals--colors--red-500: #d83f3d;
+  --c--globals--colors--red-600: #ac3231;
+  --c--globals--colors--red-800: #472826;
+  --c--globals--colors--pink-100: #f9daea;
+  --c--globals--colors--pink-250: #f1a1ca;
+  --c--globals--colors--pink-350: #ea77b3;
+  --c--globals--colors--pink-500: #cd4089;
+  --c--globals--colors--pink-600: #a3336d;
+  --c--globals--colors--pink-800: #442834;
+  --c--globals--colors--purple-100: #ecdcff;
+  --c--globals--colors--purple-250: #d0a7fe;
+  --c--globals--colors--purple-350: #bd83fd;
+  --c--globals--colors--purple-500: #9b4bf3;
+  --c--globals--colors--purple-600: #7b3cc1;
+  --c--globals--colors--purple-800: #382a4a;
+  --c--globals--colors--brown-150: #dcd2cf;
+  --c--globals--colors--brown-200: #d0c4bf;
+  --c--globals--colors--brown-350: #af9992;
+  --c--globals--colors--brown-500: #8f7065;
+  --c--globals--colors--brown-700: #57423c;
+  --c--globals--colors--brown-750: #463833;
+  --csp-palette-grey-background: var(--c--globals--colors--gray-100);
+  --csp-palette-grey-text: var(--c--globals--colors--gray-600);
+  --csp-palette-grey-dot: var(--c--globals--colors--gray-500);
+  --csp-palette-blue-background: var(--c--globals--colors--blue-1-100);
+  --csp-palette-blue-text: var(--c--globals--colors--blue-1-600);
+  --csp-palette-blue-dot: var(--c--globals--colors--blue-1-500);
+  --csp-palette-teal-background: var(--c--globals--colors--blue-2-100);
+  --csp-palette-teal-text: var(--c--globals--colors--blue-2-600);
+  --csp-palette-teal-dot: var(--c--globals--colors--blue-2-500);
+  --csp-palette-green-background: var(--c--globals--colors--green-100);
+  --csp-palette-green-text: var(--c--globals--colors--green-600);
+  --csp-palette-green-dot: var(--c--globals--colors--green-500);
+  --csp-palette-yellow-background: var(--c--globals--colors--yellow-100);
+  --csp-palette-yellow-text: var(--c--globals--colors--yellow-600);
+  --csp-palette-yellow-dot: var(--c--globals--colors--yellow-250);
+  --csp-palette-orange-background: var(--c--globals--colors--orange-100);
+  --csp-palette-orange-text: var(--c--globals--colors--orange-600);
+  --csp-palette-orange-dot: var(--c--globals--colors--orange-500);
+  --csp-palette-red-background: var(--c--globals--colors--red-100);
+  --csp-palette-red-text: var(--c--globals--colors--red-600);
+  --csp-palette-red-dot: var(--c--globals--colors--red-500);
+  --csp-palette-pink-background: var(--c--globals--colors--pink-100);
+  --csp-palette-pink-text: var(--c--globals--colors--pink-600);
+  --csp-palette-pink-dot: var(--c--globals--colors--pink-500);
+  --csp-palette-purple-background: var(--c--globals--colors--purple-100);
+  --csp-palette-purple-text: var(--c--globals--colors--purple-600);
+  --csp-palette-purple-dot: var(--c--globals--colors--purple-500);
+  --csp-palette-brown-background: var(--c--globals--colors--brown-150);
+  --csp-palette-brown-text: var(--c--globals--colors--brown-700);
+  --csp-palette-brown-dot: var(--c--globals--colors--brown-500);
+  --csp-label-dot-radius: 0.1875rem;
+  --csp-label-dot-border-width: 1px;
+}
+
+:root[data-fr-theme='dark'][data-csp-etiquettes='lasuite'] {
+  --csp-palette-grey-background: var(--c--globals--colors--gray-800);
+  --csp-palette-grey-text: var(--c--globals--colors--gray-250);
+  --csp-palette-grey-dot: var(--c--globals--colors--gray-350);
+  --csp-palette-blue-background: var(--c--globals--colors--blue-1-800);
+  --csp-palette-blue-text: var(--c--globals--colors--blue-1-250);
+  --csp-palette-blue-dot: var(--c--globals--colors--blue-1-350);
+  --csp-palette-teal-background: var(--c--globals--colors--blue-2-800);
+  --csp-palette-teal-text: var(--c--globals--colors--blue-2-250);
+  --csp-palette-teal-dot: var(--c--globals--colors--blue-2-350);
+  --csp-palette-green-background: var(--c--globals--colors--green-800);
+  --csp-palette-green-text: var(--c--globals--colors--green-250);
+  --csp-palette-green-dot: var(--c--globals--colors--green-350);
+  --csp-palette-yellow-background: var(--c--globals--colors--yellow-800);
+  --csp-palette-yellow-text: var(--c--globals--colors--yellow-250);
+  --csp-palette-yellow-dot: var(--c--globals--colors--yellow-350);
+  --csp-palette-orange-background: var(--c--globals--colors--orange-800);
+  --csp-palette-orange-text: var(--c--globals--colors--orange-250);
+  --csp-palette-orange-dot: var(--c--globals--colors--orange-350);
+  --csp-palette-red-background: var(--c--globals--colors--red-800);
+  --csp-palette-red-text: var(--c--globals--colors--red-250);
+  --csp-palette-red-dot: var(--c--globals--colors--red-350);
+  --csp-palette-pink-background: var(--c--globals--colors--pink-800);
+  --csp-palette-pink-text: var(--c--globals--colors--pink-250);
+  --csp-palette-pink-dot: var(--c--globals--colors--pink-350);
+  --csp-palette-purple-background: var(--c--globals--colors--purple-800);
+  --csp-palette-purple-text: var(--c--globals--colors--purple-250);
+  --csp-palette-purple-dot: var(--c--globals--colors--purple-350);
+  --csp-palette-brown-background: var(--c--globals--colors--brown-750);
+  --csp-palette-brown-text: var(--c--globals--colors--brown-200);
+  --csp-palette-brown-dot: var(--c--globals--colors--brown-350);
+  --csp-label-dot-border-width: 0;
+}

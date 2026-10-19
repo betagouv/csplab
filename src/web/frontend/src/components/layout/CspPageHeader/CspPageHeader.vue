@@ -100,7 +100,11 @@ const hasBreadcrumb = computed(() => Boolean(props.breadcrumb?.length))
 @use '@/styles/breakpoints' as bp;
 
 .csp-page-header {
-  background: var(--background-default-grey);
+  background-color: var(--csp-page-header-background);
+  background-image: var(--csp-page-header-backdrop);
+  background-repeat: var(--csp-page-header-backdrop-repeat, no-repeat);
+  background-position: var(--csp-page-header-backdrop-position, right bottom);
+  background-size: var(--csp-page-header-backdrop-size, cover);
 
   --csp-page-header-back-link-size: 0;
   --csp-page-header-back-link-gap: 0;
@@ -127,7 +131,7 @@ const hasBreadcrumb = computed(() => Boolean(props.breadcrumb?.length))
   justify-content: space-between;
   gap: var(--csp-space-4);
   padding-bottom: var(--csp-page-header-padding-bottom);
-  border-bottom: 1px solid var(--border-default-grey);
+  border-bottom: 1px solid var(--csp-chrome-border-color);
   padding-inline: var(--csp-page-container-padding-inline);
 }
 
@@ -161,9 +165,10 @@ const hasBreadcrumb = computed(() => Boolean(props.breadcrumb?.length))
 }
 
 .csp-page-header__title {
-  font-weight: 600;
-  font-size: 1.5rem;
+  font-weight: var(--csp-text-page-title-weight, 600);
+  font-size: var(--csp-text-page-title-size, 1.5rem);
   min-height: var(--csp-page-header-title-height);
+  line-height: var(--csp-text-page-title-line-height, inherit);
 }
 
 .csp-page-header__title-skeleton {

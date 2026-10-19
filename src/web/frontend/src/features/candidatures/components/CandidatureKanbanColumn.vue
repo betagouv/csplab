@@ -103,6 +103,9 @@ function handleCheckboxChange(): void {
 
 <style scoped lang="scss">
 .candidature-kanban-column {
+  --candidature-kanban-column-accent: var(--csp-category-accent-neutral);
+  --candidature-kanban-column-surface: var(--csp-category-surface-neutral, transparent);
+
   position: relative;
   display: flex;
   flex-direction: column;
@@ -112,29 +115,50 @@ function handleCheckboxChange(): void {
   min-height: 12rem;
   max-height: 100%;
   padding: var(--csp-kanban-column-padding);
-  background-color: var(--background-alt-grey);
-  box-shadow: inset 0 0 0 1px var(--border-default-grey);
-  border-top: var(--csp-kanban-column-accent-width) solid var(--border-default-grey);
+  background-color: var(--csp-region-background);
+  box-shadow: inset 0 0 0 1px var(--csp-region-border-color);
+  border-radius: var(--csp-radius-region);
+  border-top: var(--csp-kanban-column-accent-width) solid var(--candidature-kanban-column-accent);
+
+  /* Accent drawn inside the column, cut by its radius, when a theme sets --csp-kanban-column-accent-bar-width */
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: linear-gradient(var(--candidature-kanban-column-accent), var(--candidature-kanban-column-accent)) top /
+      100% var(--csp-kanban-column-accent-bar-width) no-repeat;
+    pointer-events: none;
+  }
 }
 
 .candidature-kanban-column--en-cours {
-  border-top-color: var(--border-plain-info);
+  --candidature-kanban-column-accent: var(--csp-category-accent-progress);
+  --candidature-kanban-column-surface: var(--csp-category-surface-progress, transparent);
 }
 
 .candidature-kanban-column--refus {
-  border-top-color: var(--border-plain-error);
+  --candidature-kanban-column-accent: var(--csp-category-accent-negative);
+  --candidature-kanban-column-surface: var(--csp-category-surface-negative, transparent);
 }
 
 .candidature-kanban-column--accepte {
-  border-top-color: var(--border-plain-success);
+  --candidature-kanban-column-accent: var(--csp-category-accent-positive);
+  --candidature-kanban-column-surface: var(--csp-category-surface-positive, transparent);
 }
 
 .candidature-kanban-column--drag-over {
-  background-color: var(--background-contrast-grey);
+  background-color: var(--csp-region-drop-background);
+  box-shadow: inset 0 0 0 var(--csp-region-drop-border-width) var(--csp-region-drop-border-color);
 }
 
 .candidature-kanban-column__header {
-  padding: 0 var(--csp-kanban-column-header-padding-inline);
+  margin: calc(-1 * var(--csp-kanban-column-padding)) calc(-1 * var(--csp-kanban-column-padding)) 0;
+  padding: var(--csp-kanban-column-padding)
+    calc(var(--csp-kanban-column-padding) + var(--csp-kanban-column-header-padding-inline))
+    var(--csp-kanban-column-header-padding-bottom);
+  background-color: var(--candidature-kanban-column-surface);
+  border-bottom: var(--csp-kanban-column-header-divider-width) solid var(--csp-surface-divider-color);
 }
 
 .candidature-kanban-column__title {
@@ -142,9 +166,9 @@ function handleCheckboxChange(): void {
   align-items: center;
   gap: var(--csp-space-2);
   margin: 0;
-  font-size: 0.9375rem;
-  font-weight: 700;
-  line-height: 1.3;
+  font-size: var(--csp-text-group-title-size, 0.9375rem);
+  font-weight: var(--csp-text-group-title-weight, 700);
+  line-height: var(--csp-text-group-title-line-height, 1.3);
   color: var(--text-title-grey);
 }
 
@@ -161,7 +185,9 @@ function handleCheckboxChange(): void {
   margin: 0;
 }
 
-.candidature-kanban-column__title :deep(.candidature-kanban-column__count) {
+.candidature-kanban-column__title :deep(.candidature-kanban-column__count.badge) {
+  --badge-default-bg: var(--csp-region-badge-background);
+
   align-self: center;
 }
 
@@ -191,13 +217,15 @@ function handleCheckboxChange(): void {
   gap: var(--csp-space-2);
   margin-top: auto;
   padding: var(--csp-space-3) var(--csp-space-1) 0;
-  border-top: 1px solid var(--border-default-grey);
+  border-top: 1px solid var(--csp-surface-divider-color);
 }
 
 .candidature-kanban-column__hint-label {
   margin: 0;
-  font-size: 0.75rem;
+  font-size: var(--csp-text-caption-size, 0.75rem);
   color: var(--text-mention-grey);
+  font-weight: var(--csp-text-caption-weight, inherit);
+  line-height: var(--csp-text-caption-line-height, inherit);
 }
 
 .candidature-kanban-column__hint-badge {
@@ -206,5 +234,12 @@ function handleCheckboxChange(): void {
 
 .candidature-kanban-column__hint :deep(.candidature-kanban-column__hint-badge) {
   align-self: flex-start;
+}
+
+/* .badge outranks the background that CspBadge declares; the typed badges of the other categories keep theirs */
+.candidature-kanban-column--entree
+  .candidature-kanban-column__hint
+  :deep(.candidature-kanban-column__hint-badge.badge) {
+  --badge-default-bg: var(--csp-region-badge-background);
 }
 </style>

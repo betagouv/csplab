@@ -456,6 +456,7 @@ function onActivate(id: string): void {
 .csp-table-wrapper {
   width: 100%;
   border: 1px solid var(--border-default-grey);
+  border-radius: var(--csp-table-radius, var(--csp-radius-surface));
   background: var(--background-default-grey);
   overflow: hidden;
 
@@ -480,14 +481,17 @@ function onActivate(id: string): void {
 }
 
 .csp-table__head {
-  background: var(--background-alt-grey);
-  border-bottom: 1px solid var(--border-default-grey);
+  background: var(--csp-table-head-background, var(--background-alt-grey));
+  border-bottom: 1px solid var(--csp-table-divider-color, var(--border-default-grey));
 }
 
 .csp-table__th {
   padding: var(--csp-table-header-padding);
   text-align: left;
-  font-weight: 600;
+  font-size: var(--csp-table-header-size, inherit);
+  font-weight: var(--csp-table-header-weight, 600);
+  letter-spacing: var(--csp-table-header-letter-spacing, normal);
+  text-transform: var(--csp-table-header-transform, none);
   color: var(--text-mention-grey);
   white-space: nowrap;
 }
@@ -512,7 +516,8 @@ function onActivate(id: string): void {
   background: none;
   border: none;
   font: inherit;
-  font-weight: 600;
+  letter-spacing: inherit;
+  text-transform: inherit;
   color: inherit;
   cursor: pointer;
 
@@ -523,7 +528,7 @@ function onActivate(id: string): void {
   &:focus-visible {
     outline: 2px solid var(--csp-focus-ring-color);
     outline-offset: 2px;
-    border-radius: 2px;
+    border-radius: var(--csp-radius-indicator);
   }
 }
 
@@ -538,7 +543,7 @@ function onActivate(id: string): void {
 
 .csp-table__row {
   height: var(--csp-table-row-height);
-  border-bottom: 1px solid var(--border-default-grey);
+  border-bottom: 1px solid var(--csp-table-divider-color, var(--border-default-grey));
 
   &:last-child {
     border-bottom: none;
@@ -612,8 +617,8 @@ function onActivate(id: string): void {
 
 .csp-table__footer {
   padding: var(--csp-table-footer-padding);
-  border-top: 1px solid var(--border-default-grey);
-  background: var(--background-alt-grey);
+  border-top: 1px solid var(--csp-table-divider-color, var(--border-default-grey));
+  background: var(--csp-table-footer-background, var(--background-alt-grey));
 }
 
 .csp-table__footer-default {

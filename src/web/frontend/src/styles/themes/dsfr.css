@@ -1,0 +1,67 @@
+/* DSFR tokens only: colors, shadows and radii of the DSFR, and its 300 ms transition */
+:root[data-csp-theme='dsfr'] {
+  /* Composition: neutral greys of the DSFR for the page and the groups, white working surfaces; blue France marks states only */
+  --csp-canvas-background: var(--background-alt-grey);
+  --csp-sidebar-background: var(--background-alt-grey);
+  --csp-region-background: var(--background-contrast-grey);
+  --csp-region-border-color: transparent;
+  --csp-region-drop-background: var(--background-action-low-blue-france);
+  --csp-region-badge-background: var(--background-overlap-grey);
+  --csp-aside-background: var(--background-alt-grey);
+
+  /* Cards raised by the shadows of the DSFR, without border */
+  --csp-raised-background: var(--background-overlap-grey);
+  --csp-raised-background-hover: var(--background-overlap-grey-hover);
+  --csp-raised-border: transparent;
+  --csp-raised-border-hover: transparent;
+  --csp-raised-shadow: var(--raised-shadow);
+  --csp-raised-shadow-hover: var(--overlap-shadow);
+  --csp-raised-shadow-drag: var(--raised-shadow);
+  --csp-shadow-md: var(--overlap-shadow);
+  --csp-shadow-lg: var(--lifted-shadow);
+
+  /* Process categories: plain borders of the illustrative colors of the DSFR */
+  --csp-kanban-column-accent-width: 0.25rem;
+  --csp-category-accent-neutral: var(--border-plain-beige-gris-galet);
+  --csp-category-accent-progress: var(--border-plain-blue-cumulus);
+  --csp-category-accent-negative: var(--border-plain-pink-tuile);
+  --csp-category-accent-positive: var(--border-plain-green-emeraude);
+
+  /* Radii: 4 px on fields, badges, checkboxes and lists, pill tags, square elsewhere */
+  --csp-radius-action: 0;
+  --csp-radius-field: 0.25rem;
+  --csp-radius-inset: 0;
+  --csp-radius-surface: 0;
+  --csp-radius-overlay: 0;
+  --csp-radius-panel: 0;
+  --csp-radius-badge: 0.25rem;
+  --csp-radius-tag: 1rem;
+  --csp-radius-indicator: 0.25rem;
+
+  /* Motion: the 300 ms of the DSFR with the CSS default easing, on panels, dialogs and a moved card */
+  --csp-motion-duration-panel: 300ms;
+  --csp-motion-easing-enter: ease;
+  --csp-motion-easing-exit: ease;
+  --csp-motion-panel-enter-right: csp-panel-enter-right var(--csp-motion-duration-panel) var(--csp-motion-easing-enter);
+  --csp-motion-panel-exit-right: csp-panel-exit-right var(--csp-motion-duration-panel) var(--csp-motion-easing-exit);
+  --csp-motion-panel-enter-left: csp-panel-enter-left var(--csp-motion-duration-panel) var(--csp-motion-easing-enter);
+  --csp-motion-panel-exit-left: csp-panel-exit-left var(--csp-motion-duration-panel) var(--csp-motion-easing-exit);
+  --csp-motion-dialog-enter: csp-scrim-enter var(--csp-motion-duration-panel) var(--csp-motion-easing-enter);
+  --csp-motion-dialog-exit: csp-scrim-exit var(--csp-motion-duration-panel) var(--csp-motion-easing-exit);
+  --csp-motion-scrim-enter: csp-scrim-enter var(--csp-motion-duration-panel) var(--csp-motion-easing-enter);
+  --csp-motion-scrim-exit: csp-scrim-exit var(--csp-motion-duration-panel) var(--csp-motion-easing-exit);
+  --csp-motion-duration-highlight: 300ms;
+  --csp-highlight-color: var(--border-action-high-blue-france);
+  --csp-motion-raised-drop: csp-highlight var(--csp-motion-duration-highlight) ease-in;
+}
+
+/* In dark, a lighter surface is a higher one: page and sidebar, then columns, then cards */
+:root[data-csp-theme='dsfr'][data-fr-theme='dark'] {
+  --csp-canvas-background: var(--background-default-grey);
+  --csp-sidebar-background: var(--background-default-grey);
+  --csp-region-background: var(--background-alt-grey);
+  --csp-raised-background: var(--background-overlap-grey);
+  --csp-raised-background-hover: var(--background-contrast-raised-grey);
+  --csp-raised-border: var(--border-default-grey);
+  --csp-raised-border-hover: var(--border-plain-grey);
+}

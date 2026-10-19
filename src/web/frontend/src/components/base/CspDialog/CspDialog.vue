@@ -137,6 +137,14 @@ const hasFooter = computed(() => Boolean(slots.footer))
   inset: 0;
   background-color: var(--csp-overlay-scrim);
   z-index: var(--csp-z-modal);
+
+  &[data-state='open'] {
+    animation: var(--csp-motion-scrim-enter);
+  }
+
+  &[data-state='closed'] {
+    animation: var(--csp-motion-scrim-exit);
+  }
 }
 
 .csp-dialog {
@@ -152,7 +160,7 @@ const hasFooter = computed(() => Boolean(slots.footer))
   outline: none;
   background-color: var(--background-overlap-grey);
   color: var(--text-default-grey);
-  border-radius: 0.25rem;
+  border-radius: var(--csp-radius-overlay);
   box-shadow:
     inset 0 0 0 1px var(--border-default-grey),
     var(--csp-shadow-lg);
@@ -163,6 +171,14 @@ const hasFooter = computed(() => Boolean(slots.footer))
   display: flex;
   flex-direction: column;
   gap: var(--csp-space-5);
+
+  &[data-state='open'] {
+    animation: var(--csp-motion-dialog-enter);
+  }
+
+  &[data-state='closed'] {
+    animation: var(--csp-motion-dialog-exit);
+  }
 }
 
 .csp-dialog--sm {

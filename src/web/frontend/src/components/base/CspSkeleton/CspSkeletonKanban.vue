@@ -34,6 +34,7 @@ withDefaults(defineProps<CspSkeletonKanbanProps>(), {
         :key="card"
         as="div"
         size="sm"
+        class="csp-skeleton-kanban__card"
       >
         <template #title>
           <CspSkeleton
@@ -69,17 +70,22 @@ withDefaults(defineProps<CspSkeletonKanbanProps>(), {
   gap: var(--csp-kanban-column-gap);
   min-width: var(--csp-kanban-column-width);
   padding: var(--csp-kanban-column-padding);
-  background-color: var(--background-alt-grey);
-  box-shadow: inset 0 0 0 1px var(--border-default-grey);
-  border-top: var(--csp-kanban-column-accent-width) solid var(--border-default-grey);
+  background-color: var(--csp-region-background);
+  box-shadow: inset 0 0 0 1px var(--csp-region-border-color);
+  border-top: var(--csp-kanban-column-accent-width) solid var(--csp-category-accent-neutral);
 }
 
 .csp-skeleton-kanban__header {
   padding: 0 var(--csp-kanban-column-header-padding-inline);
 
   :deep(.csp-skeleton) {
-    background: var(--background-contrast-grey);
+    background: var(--csp-neutral-fill);
   }
+}
+
+.csp-skeleton-kanban__card.csp-card {
+  --csp-card-bg: var(--csp-raised-background);
+  --csp-card-border: var(--csp-raised-border);
 }
 
 .csp-skeleton-kanban__card-meta {

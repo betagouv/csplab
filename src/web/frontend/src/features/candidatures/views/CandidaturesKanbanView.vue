@@ -7,6 +7,7 @@ import CspAsyncSection from '@/components/base/CspAsyncSection/CspAsyncSection.v
 import CspSkeleton from '@/components/base/CspSkeleton/CspSkeleton.vue'
 import CspSkeletonKanban from '@/components/base/CspSkeleton/CspSkeletonKanban.vue'
 import { useMinimumPending } from '@/composables/async/useMinimumPending'
+import { markKanbanCardMoved } from '@/composables/dnd/useKanbanDnd'
 import { useRecrutementDetail } from '@/features/recrutements/composables/useRecrutementDetail'
 import { pluralize } from '@/utils/format'
 import CandidaturesKanbanBoard from '../components/CandidaturesKanbanBoard.vue'
@@ -96,8 +97,10 @@ function handleMove({ sourceColumnId, targetColumnId, cardId }: KanbanDropEvent)
     return
   }
 
-  const move = (motifRefus?: MotifRefus) =>
+  const move = (motifRefus?: MotifRefus) => {
+    markKanbanCardMoved(boardId.value, cardId)
     void changeEtape({ etapeCibleUuid: targetColumnId, candidatureUuids: [cardId], motifRefus })
+  }
 
   const candidature = findCandidature(cardId)
   if (candidature && targetColumnId === refusEtapeUuid.value) {

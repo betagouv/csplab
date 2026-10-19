@@ -179,6 +179,14 @@ const hasFooter = computed(() => Boolean(slots.footer))
   inset: 0;
   background-color: var(--csp-overlay-scrim);
   z-index: var(--csp-z-overlay);
+
+  &[data-state='open'] {
+    animation: var(--csp-motion-scrim-enter);
+  }
+
+  &[data-state='closed'] {
+    animation: var(--csp-motion-scrim-exit);
+  }
 }
 
 .csp-drawer {
@@ -203,11 +211,29 @@ const hasFooter = computed(() => Boolean(slots.footer))
 .csp-drawer--right {
   right: 0;
   border-left: 1px solid var(--border-default-grey);
+  border-radius: var(--csp-radius-edge) 0 0 var(--csp-radius-edge);
+
+  &[data-state='open'] {
+    animation: var(--csp-motion-panel-enter-right);
+  }
+
+  &[data-state='closed'] {
+    animation: var(--csp-motion-panel-exit-right);
+  }
 }
 
 .csp-drawer--left {
   left: 0;
   border-right: 1px solid var(--border-default-grey);
+  border-radius: 0 var(--csp-radius-edge) var(--csp-radius-edge) 0;
+
+  &[data-state='open'] {
+    animation: var(--csp-motion-panel-enter-left);
+  }
+
+  &[data-state='closed'] {
+    animation: var(--csp-motion-panel-exit-left);
+  }
 }
 
 .csp-drawer--xs {
@@ -258,6 +284,10 @@ const hasFooter = computed(() => Boolean(slots.footer))
   padding-block: var(--csp-space-6);
   padding-inline: var(--csp-drawer-padding-inline, var(--csp-space-6));
   border-bottom: 1px solid var(--border-default-grey);
+  background-image: var(--csp-drawer-header-backdrop, none);
+  background-repeat: var(--csp-drawer-header-backdrop-repeat, no-repeat);
+  background-position: var(--csp-drawer-header-backdrop-position, right bottom);
+  background-size: var(--csp-drawer-header-backdrop-size, cover);
 }
 
 .csp-drawer__start {
@@ -305,9 +335,9 @@ const hasFooter = computed(() => Boolean(slots.footer))
 
 .csp-drawer__title {
   color: var(--text-title-grey);
-  font-size: 1.125rem;
-  font-weight: 700;
-  line-height: 1.25;
+  font-size: var(--csp-text-section-title-size, 1.125rem);
+  font-weight: var(--csp-text-section-title-weight, 700);
+  line-height: var(--csp-text-section-title-line-height, 1.25);
 }
 
 .csp-drawer__description {

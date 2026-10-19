@@ -4,9 +4,11 @@ import { computed, ref, watchEffect } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
 import CspCard from '@/components/base/CspCard/CspCard.vue'
 import CspIcon from '@/components/base/CspIcon/CspIcon.vue'
+import CspLabelList from '@/components/base/CspLabel/CspLabelList.vue'
 import { useDraggableKanbanCard } from '@/composables/dnd/useKanbanDnd'
 import { CANDIDATURE_PANEL_ROUTE_NAMES } from '@/router/names'
 import { formatElapsedDays } from '@/utils/date'
+import { etiquettesOf } from '../etiquettes'
 import { formatCandidatNom } from '../utils/candidat'
 
 const props = defineProps<{
@@ -32,13 +34,21 @@ const panelLocation = computed(() => ({
 
 const isCurrent = computed(() => route.params.candidatureUuid === props.candidature.uuid)
 
-const { isDragging } = useDraggableKanbanCard({
+const etiquettes = computed(() => etiquettesOf(props.candidature))
+
+const { isDragging, isJustMoved, settleMove } = useDraggableKanbanCard({
   element: cardRef,
   boardId: props.boardId,
   columnId: props.columnId,
   cardId: props.candidature.uuid,
   cardIndex: props.cardIndex,
 })
+
+function handleAnimationEnd(event: AnimationEvent): void {
+  if (event.target === event.currentTarget) {
+    settleMove()
+  }
+}
 </script>
 
 <template>
@@ -50,8 +60,11 @@ const { isDragging } = useDraggableKanbanCard({
     :class="{
       'candidature-kanban-card--dragging': isDragging,
       'candidature-kanban-card--current': isCurrent,
+      'candidature-kanban-card--moved': isJustMoved,
     }"
     :aria-current="isCurrent ? 'true' : undefined"
+    :data-csp-motion="isJustMoved ? 'color' : undefined"
+    @animationend="handleAnimationEnd"
   >
     <template #title>
       <!-- draggable="false": the card starts the drag, not the link -->
@@ -73,15 +86,28 @@ const { isDragging } = useDraggableKanbanCard({
       />
       {{ formatElapsedDays(candidature.date_soumission) }}
     </p>
+    <CspLabelList
+      v-if="etiquettes.length"
+      class="candidature-kanban-card__etiquettes"
+      :labels="etiquettes"
+      :max-lines="2"
+    />
   </CspCard>
 </template>
 
 <style scoped lang="scss">
 .candidature-kanban-card {
+  --candidature-kanban-card-raised-shadow: var(--csp-raised-shadow);
+  --candidature-kanban-card-border: var(--csp-raised-border);
+  --csp-card-bg: var(--csp-raised-background);
+
   box-shadow:
-    0 1px 2px rgb(0 0 0 / 6%),
-    inset 0 0 0 1px var(--border-default-grey);
+    var(--candidature-kanban-card-raised-shadow),
+    inset 0 0 0 1px var(--candidature-kanban-card-border);
   cursor: grab;
+  transition:
+    background-color var(--csp-motion-duration-state),
+    box-shadow var(--csp-motion-duration-state);
 
   &:active {
     cursor: grabbing;
@@ -89,23 +115,37 @@ const { isDragging } = useDraggableKanbanCard({
 }
 
 .candidature-kanban-card:hover {
-  --csp-card-bg: var(--background-alt-grey);
+  --csp-card-bg: var(--csp-raised-background-hover);
+  --candidature-kanban-card-raised-shadow: var(--csp-raised-shadow-hover);
+  --candidature-kanban-card-border: var(--csp-raised-border-hover);
 }
 
 /* inset: the scrolling column clips an outline drawn outside the card */
 .candidature-kanban-card:has(.candidature-kanban-card__link:focus-visible) {
-  outline: 2px solid var(--csp-focus-ring-color);
-  outline-offset: -2px;
+  outline: var(--csp-raised-focus-width) solid var(--csp-focus-ring-color);
+  outline-offset: calc(-1 * var(--csp-raised-focus-width));
+  box-shadow:
+    var(--candidature-kanban-card-raised-shadow),
+    inset 0 0 0 calc(var(--csp-raised-focus-width) + 1px) var(--csp-raised-focus-gap-color);
+}
+
+.candidature-kanban-card--moved {
+  animation: var(--csp-motion-raised-drop);
 }
 
 .candidature-kanban-card--current {
+  --csp-card-bg: var(--csp-raised-current-background);
+
   box-shadow:
-    0 1px 2px rgb(0 0 0 / 6%),
-    inset 0 0 0 2px var(--border-plain-info);
+    var(--candidature-kanban-card-raised-shadow),
+    inset 0 0 0 var(--csp-raised-current-border-width, 2px) var(--csp-raised-current-border-color),
+    inset var(--csp-raised-current-bar-width, 0) 0 0 0 var(--csp-raised-current-bar-color, transparent);
 }
 
 .candidature-kanban-card--dragging {
-  opacity: 0.5;
+  --candidature-kanban-card-raised-shadow: var(--csp-raised-shadow-drag);
+
+  opacity: var(--csp-raised-drag-opacity);
 }
 
 .candidature-kanban-card__link {
@@ -127,11 +167,23 @@ const { isDragging } = useDraggableKanbanCard({
   align-items: center;
   gap: var(--csp-space-1);
   margin: var(--csp-space-2) 0 0;
-  font-size: var(--csp-font-size-sm);
+  font-size: var(--csp-text-meta-size, var(--csp-font-size-sm));
   color: var(--text-mention-grey);
+  font-weight: var(--csp-text-meta-weight, inherit);
+  line-height: var(--csp-text-meta-line-height, inherit);
 }
 
 .candidature-kanban-card__date-icon {
   flex-shrink: 0;
+}
+
+.candidature-kanban-card__etiquettes {
+  margin-top: var(--csp-space-2);
+}
+
+/* above the link overlay, so that « +N » takes the pointer */
+.candidature-kanban-card__etiquettes :deep(.csp-label-list__more) {
+  position: relative;
+  z-index: 1;
 }
 </style>

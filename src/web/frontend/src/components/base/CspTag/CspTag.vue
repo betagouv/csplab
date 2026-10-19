@@ -167,9 +167,9 @@ const root = computed(() => {
   font-weight: 500;
   line-height: 1.25;
   padding: var(--csp-tag-padding-y) var(--csp-tag-padding-x);
-  border-radius: 2rem;
+  border-radius: var(--csp-radius-tag);
   border: none;
-  background-color: var(--background-contrast-grey);
+  background-color: var(--csp-neutral-fill);
   color: var(--text-label-grey);
   white-space: nowrap;
   cursor: default;

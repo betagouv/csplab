@@ -31,9 +31,25 @@ interface UseDraggableKanbanCardOptions {
   enabled?: Ref<boolean>
 }
 
+// Card moved last to another column, read by the card that mounts in that column
+const lastMovedCard = ref<string | null>(null)
+
+export function markKanbanCardMoved(boardId: string, cardId: string): void {
+  lastMovedCard.value = `${boardId}/${cardId}`
+}
+
 export function useDraggableKanbanCard(options: UseDraggableKanbanCardOptions) {
   const isDragging = ref(false)
   const enabled = options.enabled ?? ref(true)
+  const cardKey = `${options.boardId}/${options.cardId}`
+  const isJustMoved = ref(lastMovedCard.value === cardKey)
+
+  function settleMove(): void {
+    isJustMoved.value = false
+    if (lastMovedCard.value === cardKey) {
+      lastMovedCard.value = null
+    }
+  }
 
   watch(
     [options.element, enabled],
@@ -53,6 +69,7 @@ export function useDraggableKanbanCard(options: UseDraggableKanbanCardOptions) {
         }) as Record<string, unknown>,
         onDragStart: () => {
           isDragging.value = true
+          lastMovedCard.value = null
         },
         onDrop: () => {
           isDragging.value = false
@@ -64,7 +81,7 @@ export function useDraggableKanbanCard(options: UseDraggableKanbanCardOptions) {
     { flush: 'post', immediate: true },
   )
 
-  return { isDragging }
+  return { isDragging, isJustMoved, settleMove }
 }
 
 interface UseDropTargetKanbanColumnOptions {

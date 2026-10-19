@@ -59,9 +59,10 @@ const historiqueLocation = computed(() => ({
 
 .candidature-activites__title {
   margin: 0;
-  font-size: var(--csp-font-size-base);
-  font-weight: var(--csp-font-weight-bold);
+  font-size: var(--csp-text-group-title-size, var(--csp-font-size-base));
+  font-weight: var(--csp-text-group-title-weight, var(--csp-font-weight-bold));
   color: var(--text-title-grey);
+  line-height: var(--csp-text-group-title-line-height, inherit);
 }
 
 .candidature-activites__link {

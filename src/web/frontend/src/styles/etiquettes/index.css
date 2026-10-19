@@ -1,0 +1,5 @@
+/* One import per scenario listed in scenarios.ts, such as @import './<id>.css'; */
+@import './dsfr.css';
+@import './kit.css';
+@import './lasuite.css';
+@import './libre.css';
