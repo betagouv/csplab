@@ -111,8 +111,8 @@ def test_read_receipts_by_agents_and_candidate(db):
 
 def test_by_candidature_prefetches_first_and_last_message_with_their_author(db):
     conversation = ConversationDjangoFactory()
-    premier = MessageDjangoFactory(conversation=conversation, contenu="Premier")
-    dernier = MessageDjangoFactory(conversation=conversation, contenu="Dernier")
+    first_message = MessageDjangoFactory(conversation=conversation, contenu="Premier")
+    last_message = MessageDjangoFactory(conversation=conversation, contenu="Dernier")
 
     (result,) = (
         ConversationModel.objects.by_candidature(conversation.candidature_id)
@@ -120,11 +120,11 @@ def test_by_candidature_prefetches_first_and_last_message_with_their_author(db):
         .fetch_mode(FETCH_RAISE)
     )
 
-    assert result.premiers_messages == [premier]
-    assert result.derniers_messages == [dernier]
-    assert result.premiers_messages[0].auteur == premier.auteur
-    assert result.derniers_messages[0].auteur == dernier.auteur
-    assert result.last_message_created_at == dernier.created_at
+    assert result.premiers_messages == [first_message]
+    assert result.derniers_messages == [last_message]
+    assert result.premiers_messages[0].auteur == first_message.auteur
+    assert result.derniers_messages[0].auteur == last_message.auteur
+    assert result.last_message_created_at == last_message.created_at
 
 
 def test_by_candidature_orders_by_last_message_and_skips_empty_conversations(db):
