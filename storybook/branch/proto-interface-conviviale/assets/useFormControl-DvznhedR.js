@@ -1,0 +1,1 @@
+import{n as e}from"./rolldown-runtime-DkW27tQK.js";import{Et as t,g as n,t as r}from"./vue.esm-bundler-BdiU-5Kf.js";import{i,o as a}from"./useForwardExpose-CIwZrv_A.js";function o(e){return n(()=>!t(e)||!!a(e)?.closest(`form`))}function s(){return(s=e((()=>{r(),i()})))()}export{o as n,s as t};
