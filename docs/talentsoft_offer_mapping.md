@@ -1,6 +1,6 @@
 # Correspondance offre Talentsoft → offre API v1
 
-_Dernière mise à jour : 2026-10-14_
+_Dernière mise à jour : 2026-10-19_
 
 Conversion d'une offre au format Talentsoft en offre envoyée à l'API.
 L'API fake-ts (`/api/fake-ts/`, `OfferSummaryOutputMapper` et `OfferDetailOutputMapper` dans `src/web/presentation/ingestion/mappers.py`) expose les offres du web au format Talentsoft : les notes « API fake-ts » décrivent ce qu'elle renvoie.
@@ -84,6 +84,7 @@ Notation : `a.b` désigne un objet imbriqué, `a[]` une liste, `a[0]` son premie
 | `operationalManager` | Jamais lu : `contacts` vaut toujours `null`. |
 | `applicationQuestions` | |
 | `attachedFilesUrls` | |
+| `skillCollection[]` | Compétences requises (référentiel `skill`). Jamais renseigné par Talentsoft : toujours vide dans les offres chargées par l'ingestion (vérifié le 2026-10-19). |
 | `customFields.offer.shortText1` | |
 | `customFields.offer.longText1` | |
 | `customFields.offer.longText2` | |
@@ -116,7 +117,7 @@ Notation : `a.b` désigne un objet imbriqué, `a[]` une liste, `a[0]` son premie
 | `profession.referentiel` | Constante `RMFPv2`. |
 | `profession.code_emploi_local` | Jamais renseigné, `local_job_code` reste à `null`. |
 | `criteres.documents_requis` | Jamais renseigné par l'ingestion. |
-| `criteres.competences_requises` | Jamais renseigné par l'ingestion. |
+| `criteres.competences_requises` | Jamais renseigné par l'ingestion : `skillCollection[]` est toujours vide côté Talentsoft. |
 | `conditions.temps_travail` | Lu dans `customFields.description.customCodeTable3` (absent de l'API fake-ts) : `reponse_oui` → `TEMPS_PLEIN`, `reponse_non` → `TEMPS_PARTIEL`, sinon `NON_DEFINI`. |
 | `conditions.lieu_de_travail` | Lu dans `customFields.offerCustomBlock1.customCodeTable2` (absent de l'API fake-ts) : `reponse_oui` → `TELETRAVAIL`, `reponse_non` → `SUR_SITE`, sinon `NON_DEFINI`. |
 | `conditions.management` | Lu dans `customFields.offerCustomBlock1.customCodeTable1` (absent de l'API fake-ts) : `reponse_oui` → `AVEC`, `reponse_non` → `SANS`. |
