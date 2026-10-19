@@ -9,11 +9,6 @@ USER_LIMIT = 120
 ANON_LIMIT = 5
 
 
-@pytest.fixture(autouse=True)
-def clear_cache():
-    cache.clear()
-
-
 def fill_throttle_history(scope, ident, count):
     cache.set(f"throttle_{scope}_{ident}", [time.time()] * count)
 
