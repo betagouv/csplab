@@ -4,9 +4,11 @@ import { computed, ref, watchEffect } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
 import CspCard from '@/components/base/CspCard/CspCard.vue'
 import CspIcon from '@/components/base/CspIcon/CspIcon.vue'
+import CspLabelList from '@/components/base/CspLabel/CspLabelList.vue'
 import { useDraggableKanbanCard } from '@/composables/dnd/useKanbanDnd'
 import { CANDIDATURE_PANEL_ROUTE_NAMES } from '@/router/names'
 import { formatElapsedDays } from '@/utils/date'
+import { etiquettesOf } from '../etiquettes'
 import { formatCandidatNom } from '../utils/candidat'
 
 const props = defineProps<{
@@ -31,6 +33,8 @@ const panelLocation = computed(() => ({
 }))
 
 const isCurrent = computed(() => route.params.candidatureUuid === props.candidature.uuid)
+
+const etiquettes = computed(() => etiquettesOf(props.candidature))
 
 const { isDragging } = useDraggableKanbanCard({
   element: cardRef,
@@ -73,6 +77,12 @@ const { isDragging } = useDraggableKanbanCard({
       />
       {{ formatElapsedDays(candidature.date_soumission) }}
     </p>
+    <CspLabelList
+      v-if="etiquettes.length"
+      class="candidature-kanban-card__etiquettes"
+      :labels="etiquettes"
+      :max-lines="2"
+    />
   </CspCard>
 </template>
 
@@ -133,5 +143,15 @@ const { isDragging } = useDraggableKanbanCard({
 
 .candidature-kanban-card__date-icon {
   flex-shrink: 0;
+}
+
+.candidature-kanban-card__etiquettes {
+  margin-top: var(--csp-space-2);
+}
+
+/* above the link overlay, so that « +N » takes the pointer */
+.candidature-kanban-card__etiquettes :deep(.csp-label-list__more) {
+  position: relative;
+  z-index: 1;
 }
 </style>

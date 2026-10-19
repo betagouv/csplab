@@ -1,5 +1,6 @@
 import type { ComponentPropsAndSlots, StoryObj } from '@storybook/vue3-vite'
 import CspAvatar from '@/components/base/CspAvatar/CspAvatar.vue'
+import { PALETTE_COLORS } from '@/styles/palette'
 
 type CspAvatarProps = ComponentPropsAndSlots<typeof CspAvatar>
 
@@ -9,7 +10,7 @@ const meta = {
   tags: ['autodocs'],
   parameters: {
     controls: {
-      include: ['name', 'size'],
+      include: ['name', 'size', 'color'],
     },
     docs: {
       description: {
@@ -33,6 +34,12 @@ const meta = {
         type: { summary: 'sm | md | lg' },
         defaultValue: { summary: 'md' },
       },
+    },
+    color: {
+      control: { type: 'select' },
+      options: [...PALETTE_COLORS],
+      description: 'Clé de couleur de la palette. Sans clé, l\'avatar reste gris.',
+      table: { type: { summary: PALETTE_COLORS.join(' | ') } },
     },
     default: { control: false, table: { disable: true } },
     class: { control: false, table: { disable: true } },

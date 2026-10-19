@@ -1,6 +1,8 @@
 @import './dsfr-tokens-options.css';
 @import './dsfr-tokens-decisions.css';
 @import './csp-variables.css';
+@import './palette.css';
+@import './etiquettes/index.css';
 @import 'tailwindcss';
 
 @theme {

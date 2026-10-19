@@ -1,0 +1,357 @@
+/*
+ * Scenario « libre »: a tinted label with a vivid dot and a text in a deep shade of the same hue,
+ * and a kanban card or a note edged on the left with one band per colour of its labels.
+ * OKLCH lightness in the light theme: fill 0.865 to 0.96, text 0.38 to 0.47, dot 0.46 to 0.82;
+ * in the dark theme: fill 0.30 to 0.37, text 0.84 to 0.93, dot 0.58 to 0.86.
+ * Lightness differs from one hue to the next so that the pairs merged by colour blindness
+ * (red and brown, red and green, blue and purple, grey and pink, teal and green, orange and pink) keep a gap.
+ */
+
+:root[data-csp-etiquettes='libre'] {
+  --csp-palette-grey-background: oklch(0.96 0.004 255);
+  --csp-palette-grey-text: oklch(0.4 0.02 255);
+  --csp-palette-grey-dot: oklch(0.58 0.025 255);
+  --csp-palette-blue-background: oklch(0.915 0.044 240);
+  --csp-palette-blue-text: oklch(0.47 0.13 255);
+  --csp-palette-blue-dot: oklch(0.62 0.17 252);
+  --csp-palette-teal-background: oklch(0.925 0.056 192);
+  --csp-palette-teal-text: oklch(0.47 0.079 195);
+  --csp-palette-teal-dot: oklch(0.75 0.12 192);
+  --csp-palette-green-background: oklch(0.915 0.075 148);
+  --csp-palette-green-text: oklch(0.42 0.11 148);
+  --csp-palette-green-dot: oklch(0.59 0.16 148);
+  --csp-palette-yellow-background: oklch(0.955 0.069 95);
+  --csp-palette-yellow-text: oklch(0.47 0.095 75);
+  --csp-palette-yellow-dot: oklch(0.82 0.16 85);
+  --csp-palette-orange-background: oklch(0.915 0.051 58);
+  --csp-palette-orange-text: oklch(0.47 0.125 48);
+  --csp-palette-orange-dot: oklch(0.745 0.17 52);
+  --csp-palette-red-background: oklch(0.885 0.058 22);
+  --csp-palette-red-text: oklch(0.45 0.16 25);
+  --csp-palette-red-dot: oklch(0.66 0.19 25);
+  --csp-palette-pink-background: oklch(0.93 0.04 350);
+  --csp-palette-pink-text: oklch(0.44 0.14 350);
+  --csp-palette-pink-dot: oklch(0.68 0.18 350);
+  --csp-palette-purple-background: oklch(0.885 0.068 306);
+  --csp-palette-purple-text: oklch(0.41 0.16 305);
+  --csp-palette-purple-dot: oklch(0.52 0.21 305);
+  --csp-palette-brown-background: oklch(0.865 0.035 52);
+  --csp-palette-brown-text: oklch(0.38 0.06 48);
+  --csp-palette-brown-dot: oklch(0.46 0.07 52);
+
+  --csp-label-radius: 0.375rem;
+  --csp-label-dot-display: block;
+}
+
+:root[data-csp-etiquettes='libre'][data-fr-theme='dark'] {
+  --csp-palette-grey-background: oklch(0.36 0.006 255);
+  --csp-palette-grey-text: oklch(0.91 0.008 255);
+  --csp-palette-grey-dot: oklch(0.68 0.02 255);
+  --csp-palette-blue-background: oklch(0.34 0.068 255);
+  --csp-palette-blue-text: oklch(0.9 0.049 250);
+  --csp-palette-blue-dot: oklch(0.72 0.14 252);
+  --csp-palette-teal-background: oklch(0.36 0.055 192);
+  --csp-palette-teal-text: oklch(0.92 0.07 192);
+  --csp-palette-teal-dot: oklch(0.83 0.12 192);
+  --csp-palette-green-background: oklch(0.34 0.058 148);
+  --csp-palette-green-text: oklch(0.91 0.09 148);
+  --csp-palette-green-dot: oklch(0.78 0.17 148);
+  --csp-palette-yellow-background: oklch(0.37 0.06 85);
+  --csp-palette-yellow-text: oklch(0.93 0.1 95);
+  --csp-palette-yellow-dot: oklch(0.86 0.16 90);
+  --csp-palette-orange-background: oklch(0.35 0.064 50);
+  --csp-palette-orange-text: oklch(0.89 0.069 58);
+  --csp-palette-orange-dot: oklch(0.8 0.136 58);
+  --csp-palette-red-background: oklch(0.33 0.075 25);
+  --csp-palette-red-text: oklch(0.86 0.07 22);
+  --csp-palette-red-dot: oklch(0.7 0.18 25);
+  --csp-palette-pink-background: oklch(0.34 0.07 350);
+  --csp-palette-pink-text: oklch(0.88 0.065 350);
+  --csp-palette-pink-dot: oklch(0.72 0.16 350);
+  --csp-palette-purple-background: oklch(0.32 0.078 306);
+  --csp-palette-purple-text: oklch(0.85 0.08 305);
+  --csp-palette-purple-dot: oklch(0.62 0.19 305);
+  --csp-palette-brown-background: oklch(0.3 0.036 52);
+  --csp-palette-brown-text: oklch(0.84 0.045 55);
+  --csp-palette-brown-dot: oklch(0.58 0.07 55);
+}
+
+:root[data-csp-etiquettes='libre'] .csp-label {
+  --csp-label-border-color: color-mix(in oklab, var(--csp-label-dot) 26%, transparent);
+}
+
+:root[data-csp-etiquettes='libre'] .csp-label--sm {
+  --csp-label-padding-y: 0.125rem;
+  --csp-label-padding-x: 0.4375rem;
+  --csp-label-gap: 0.3125rem;
+
+  line-height: 1rem;
+}
+
+:root[data-csp-etiquettes='libre'] .csp-label--sm .csp-label__dot {
+  width: 0.375rem;
+  height: 0.375rem;
+}
+
+/* A panel label wraps so that its whole name stays visible */
+:root[data-csp-etiquettes='libre'] .csp-label--md {
+  --csp-label-font-size: 0.8125rem;
+  --csp-label-padding-y: 0.1875rem;
+  --csp-label-padding-x: 0.5rem;
+  --csp-label-gap: 0.375rem;
+
+  align-items: flex-start;
+  line-height: 1.25rem;
+  white-space: normal;
+}
+
+:root[data-csp-etiquettes='libre'] .csp-label--md .csp-label__text {
+  overflow: visible;
+  overflow-wrap: anywhere;
+}
+
+:root[data-csp-etiquettes='libre'] .csp-label--md .csp-label__dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  margin-block: 0.375rem;
+}
+
+:root[data-csp-etiquettes='libre'] .csp-label__remove {
+  border-radius: 50%;
+}
+
+:root[data-csp-etiquettes='libre'] .csp-label--md .csp-label__remove {
+  margin-block: 0.09375rem;
+}
+
+/* The focus ring of the cross goes around the label, on the surface, and the cross keeps its disc */
+:root[data-csp-etiquettes='libre'] .csp-label:has(.csp-label__remove:focus-visible) {
+  outline: 2px solid var(--csp-focus-ring-color);
+  outline-offset: 1px;
+}
+
+:root[data-csp-etiquettes='libre'] .csp-label--md:has(.csp-label__remove:focus-visible) {
+  outline-offset: 2px;
+}
+
+:root[data-csp-etiquettes='libre'] .csp-label__remove:focus-visible {
+  outline: none;
+  background-color: color-mix(in srgb, currentColor 20%, transparent);
+}
+
+/* One band per colour of the labels, in their order, along the left edge of a kanban card or a note */
+:root[data-csp-etiquettes='libre'] .candidature-kanban-card .csp-label-list__strip,
+:root[data-csp-etiquettes='libre'] .candidature-notes__item .csp-label-list__strip {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: var(--csp-label-strip-width, 0.1875rem);
+  overflow: hidden;
+  border-start-start-radius: var(--csp-card-radius, 0.25rem);
+  border-end-start-radius: var(--csp-card-radius, 0.25rem);
+  pointer-events: none;
+}
+
+:root[data-csp-etiquettes='libre'] .csp-label-list__strip > span {
+  flex: 1;
+  background-color: var(--csp-label-list-strip-color);
+}
+
+/* In dark, a band mixed with the card keeps away from the status lines of the columns */
+:root[data-csp-etiquettes='libre'][data-fr-theme='dark'] .csp-label-list__strip > span {
+  background-color: color-mix(in oklab, var(--csp-label-list-strip-color) 80%, var(--background-default-grey));
+}
+
+:root[data-csp-etiquettes='libre'] .candidature-kanban-card:hover {
+  --csp-label-strip-width: 0.3125rem;
+}
+
+/* The open card and the focused card keep their whole blue frame */
+:root[data-csp-etiquettes='libre'] .candidature-kanban-card--current .csp-label-list__strip,
+:root[data-csp-etiquettes='libre']
+  .candidature-kanban-card:has(.candidature-kanban-card__link:focus-visible)
+  .csp-label-list__strip {
+  inset-block: 2px;
+  inset-inline-start: 2px;
+  border-radius: 0;
+}
+
+:root[data-csp-etiquettes='libre'] .csp-label-list__more {
+  padding: 0.125rem 0.4375rem;
+  line-height: 1rem;
+}
+
+:root[data-csp-etiquettes='libre'] .csp-label-list__more--md {
+  padding: 0.1875rem 0.5rem;
+  font-size: 0.8125rem;
+  line-height: 1.25rem;
+}
+
+:root[data-csp-etiquettes='libre'] .csp-label-list__more:active {
+  background-color: var(--background-default-grey-active);
+}
+
+:root[data-csp-etiquettes='libre'] .csp-tooltip:has(.csp-label-list__hidden-labels) {
+  --csp-tooltip-bg: var(--background-overlap-grey);
+  --csp-tooltip-text: var(--text-default-grey);
+
+  padding: var(--csp-space-2);
+  border-radius: 0.5rem;
+  box-shadow:
+    var(--csp-shadow-lg),
+    0 0 0 1px var(--border-default-grey);
+}
+
+/* The arrow carries an inline display: block */
+:root[data-csp-etiquettes='libre'] :has(> .csp-tooltip .csp-label-list__hidden-labels) > span > .csp-tooltip__arrow {
+  visibility: hidden;
+}
+
+:root[data-csp-etiquettes='libre'] .csp-label-list__hidden-names {
+  display: none;
+}
+
+:root[data-csp-etiquettes='libre'] .csp-label-list__hidden-labels {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--csp-space-1);
+}
+
+:root[data-csp-etiquettes='libre'] .color-field__options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--csp-space-2);
+}
+
+:root[data-csp-etiquettes='libre'] .color-field__option {
+  position: relative;
+  gap: 0;
+  padding: 0.25rem 0.625rem 0.25rem 0.5rem;
+  border-radius: var(--csp-label-radius);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--color-field-swatch) 26%, transparent);
+  background-color: var(--color-field-background);
+  color: var(--color-field-text);
+  font-size: 0.8125rem;
+  font-weight: var(--csp-font-weight-medium);
+}
+
+:root[data-csp-etiquettes='libre'] .color-field__option .csp-radio__label {
+  line-height: 1.25rem;
+}
+
+:root[data-csp-etiquettes='libre'] .color-field__option .csp-radio__label::before {
+  width: 0.5rem;
+  height: 0.5rem;
+  margin-inline-end: 0.375rem;
+  vertical-align: 0.0625rem;
+}
+
+:root[data-csp-etiquettes='libre'] .color-field__option .csp-radio__control {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: none;
+  border-radius: inherit;
+  opacity: 0;
+}
+
+:root[data-csp-etiquettes='libre'] .color-field__option:not(:has([data-state='checked'])):hover {
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--color-field-text) 55%, transparent);
+}
+
+:root[data-csp-etiquettes='libre'] .color-field__option:active {
+  background-color: color-mix(in oklab, var(--color-field-background), var(--color-field-text) 10%);
+}
+
+:root[data-csp-etiquettes='libre'] .color-field__option:has([data-state='checked']) {
+  box-shadow: inset 0 0 0 2px var(--color-field-text);
+}
+
+:root[data-csp-etiquettes='libre'] .color-field__option:has([data-state='checked']) .csp-radio__label::before {
+  width: 0.875rem;
+  height: 0.875rem;
+  margin-inline: -0.1875rem 0.1875rem;
+  border-radius: 0;
+  background-color: currentColor;
+  vertical-align: -0.1875rem;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5' fill='none' stroke='black' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")
+    center / contain no-repeat;
+}
+
+:root[data-csp-etiquettes='libre'] .color-field__option:has(.csp-radio__control:focus-visible) {
+  outline: 2px solid var(--csp-focus-ring-color);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  :root[data-csp-etiquettes='libre'] .candidature-etiquettes .csp-label--md {
+    transition:
+      opacity 0.15s ease-out,
+      scale 0.15s ease-out;
+  }
+
+  /* A label of the panel fades and grows in when it appears */
+  @starting-style {
+    :root[data-csp-etiquettes='libre'] .candidature-etiquettes .csp-label--md {
+      opacity: 0;
+      scale: 0.96;
+    }
+  }
+
+  :root[data-csp-etiquettes='libre'] .csp-label-list__strip {
+    transition: width 0.15s ease-out;
+  }
+
+  :root[data-csp-etiquettes='libre'] .csp-label__remove {
+    transition: background-color 0.12s ease-out;
+  }
+
+  :root[data-csp-etiquettes='libre'] .csp-label-list__more {
+    transition: background-color 0.12s ease-out;
+  }
+
+  :root[data-csp-etiquettes='libre'] .color-field__option {
+    transition:
+      background-color 0.12s ease-out,
+      box-shadow 0.12s ease-out;
+  }
+}
+
+/* Forced colours remove backgrounds and shadows (CSS Color Adjustment 3.1): outlines draw the labels, the check marks the chosen colour */
+@media (forced-colors: active) {
+  :root[data-csp-etiquettes='libre'] .csp-label {
+    outline: 1px solid CanvasText;
+    outline-offset: -1px;
+  }
+
+  :root[data-csp-etiquettes='libre'] .csp-label__dot {
+    display: none;
+  }
+
+  :root[data-csp-etiquettes='libre'] .csp-label-list__strip {
+    display: none;
+  }
+
+  :root[data-csp-etiquettes='libre'] .csp-label-list__more:not(:focus-visible) {
+    outline: 1px solid ButtonText;
+    outline-offset: -1px;
+  }
+
+  :root[data-csp-etiquettes='libre'] .color-field__option:not(:has(:focus-visible)) {
+    outline: 1px solid ButtonText;
+    outline-offset: -1px;
+  }
+
+  :root[data-csp-etiquettes='libre'] .color-field__option:not(:has([data-state='checked'])) .csp-radio__label::before {
+    display: none;
+  }
+
+  :root[data-csp-etiquettes='libre'] .color-field__option:has([data-state='checked']) .csp-radio__label::before {
+    background-color: CanvasText;
+    forced-color-adjust: none;
+  }
+}

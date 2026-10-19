@@ -1,0 +1,161 @@
+/*
+ * DSFR scenario. A label takes an illustrative color: in light the colors of the standard badge (background-contrast
+ * 950, text-label sun), in dark the background of the clickable tag (action-low 125) and the moon text, and a dot
+ * in the artwork-minor token, the main color that DSFR pictograms use as an accent. The hover and active
+ * backgrounds of the remove button are the states of the background token of the label.
+ */
+
+:root[data-csp-etiquettes='dsfr'] {
+  --csp-label-radius: 0.25rem;
+  --csp-label-dot-display: block;
+  --csp-label-remove-state-color: var(--text-title-grey);
+
+  --csp-palette-grey-background: var(--background-contrast-grey);
+  --csp-palette-grey-background-hover: var(--background-contrast-grey-hover);
+  --csp-palette-grey-background-active: var(--background-contrast-grey-active);
+  --csp-palette-grey-text: var(--text-mention-grey);
+  --csp-palette-grey-dot: var(--text-mention-grey);
+
+  --csp-palette-blue-background: var(--background-contrast-blue-cumulus);
+  --csp-palette-blue-background-hover: var(--background-contrast-blue-cumulus-hover);
+  --csp-palette-blue-background-active: var(--background-contrast-blue-cumulus-active);
+  --csp-palette-blue-text: var(--text-label-blue-cumulus);
+  --csp-palette-blue-dot: var(--artwork-minor-blue-cumulus);
+
+  --csp-palette-teal-background: var(--background-contrast-green-archipel);
+  --csp-palette-teal-background-hover: var(--background-contrast-green-archipel-hover);
+  --csp-palette-teal-background-active: var(--background-contrast-green-archipel-active);
+  --csp-palette-teal-text: var(--text-label-green-archipel);
+  --csp-palette-teal-dot: var(--artwork-minor-green-archipel);
+
+  --csp-palette-green-background: var(--background-contrast-green-emeraude);
+  --csp-palette-green-background-hover: var(--background-contrast-green-emeraude-hover);
+  --csp-palette-green-background-active: var(--background-contrast-green-emeraude-active);
+  --csp-palette-green-text: var(--text-label-green-emeraude);
+  --csp-palette-green-dot: var(--artwork-minor-green-emeraude);
+
+  --csp-palette-yellow-background: var(--background-contrast-green-tilleul-verveine);
+  --csp-palette-yellow-background-hover: var(--background-contrast-green-tilleul-verveine-hover);
+  --csp-palette-yellow-background-active: var(--background-contrast-green-tilleul-verveine-active);
+  --csp-palette-yellow-text: var(--text-label-green-tilleul-verveine);
+  --csp-palette-yellow-dot: var(--artwork-minor-green-tilleul-verveine);
+
+  /* The pastels of orange-terre-battue are the ones of pink-tuile and pink-macaron: in light, orange takes the 925 apricot of yellow-moutarde */
+  --csp-palette-orange-background: var(--background-action-low-yellow-moutarde);
+  --csp-palette-orange-background-hover: var(--background-action-low-yellow-moutarde-hover);
+  --csp-palette-orange-background-active: var(--background-action-low-yellow-moutarde-active);
+  --csp-palette-orange-text: var(--text-label-yellow-moutarde);
+  --csp-palette-orange-dot: var(--artwork-minor-orange-terre-battue);
+
+  --csp-palette-red-background: var(--background-contrast-pink-tuile);
+  --csp-palette-red-background-hover: var(--background-contrast-pink-tuile-hover);
+  --csp-palette-red-background-active: var(--background-contrast-pink-tuile-active);
+  --csp-palette-red-text: var(--text-label-pink-tuile);
+  --csp-palette-red-dot: var(--artwork-minor-pink-tuile);
+
+  /* 925, so that pink keeps away from the 950 background of red and from brown */
+  --csp-palette-pink-background: var(--background-action-low-pink-macaron);
+  --csp-palette-pink-background-hover: var(--background-action-low-pink-macaron-hover);
+  --csp-palette-pink-background-active: var(--background-action-low-pink-macaron-active);
+  --csp-palette-pink-text: var(--text-label-pink-macaron);
+  --csp-palette-pink-dot: var(--artwork-minor-pink-macaron);
+
+  --csp-palette-purple-background: var(--background-contrast-purple-glycine);
+  --csp-palette-purple-background-hover: var(--background-contrast-purple-glycine-hover);
+  --csp-palette-purple-background-active: var(--background-contrast-purple-glycine-active);
+  --csp-palette-purple-text: var(--text-label-purple-glycine);
+  --csp-palette-purple-dot: var(--artwork-minor-purple-glycine);
+
+  --csp-palette-brown-background: var(--background-contrast-brown-opera);
+  --csp-palette-brown-background-hover: var(--background-contrast-brown-opera-hover);
+  --csp-palette-brown-background-active: var(--background-contrast-brown-opera-active);
+  --csp-palette-brown-text: var(--text-label-brown-opera);
+  --csp-palette-brown-dot: var(--artwork-minor-brown-opera);
+}
+
+/*
+ * In dark, the 125 background of the clickable tag: the 100 background of the badge has the lightness of the panel
+ * surface (overlap, #242424). Orange takes orange-terre-battue, whose main color is orange. Orange and brown write in
+ * their main color: the moon text of orange-terre-battue is close to the warning badge, and the one of brown-opera is
+ * lighter than the other texts.
+ */
+:root[data-csp-etiquettes='dsfr'][data-fr-theme='dark'] {
+  --csp-palette-grey-background: var(--background-contrast-raised-grey);
+  --csp-palette-grey-background-hover: var(--background-contrast-raised-grey-hover);
+  --csp-palette-grey-background-active: var(--background-contrast-raised-grey-active);
+  --csp-palette-blue-background: var(--background-action-low-blue-cumulus);
+  --csp-palette-blue-background-hover: var(--background-action-low-blue-cumulus-hover);
+  --csp-palette-blue-background-active: var(--background-action-low-blue-cumulus-active);
+  --csp-palette-teal-background: var(--background-action-low-green-archipel);
+  --csp-palette-teal-background-hover: var(--background-action-low-green-archipel-hover);
+  --csp-palette-teal-background-active: var(--background-action-low-green-archipel-active);
+  --csp-palette-green-background: var(--background-action-low-green-emeraude);
+  --csp-palette-green-background-hover: var(--background-action-low-green-emeraude-hover);
+  --csp-palette-green-background-active: var(--background-action-low-green-emeraude-active);
+  --csp-palette-yellow-background: var(--background-action-low-green-tilleul-verveine);
+  --csp-palette-yellow-background-hover: var(--background-action-low-green-tilleul-verveine-hover);
+  --csp-palette-yellow-background-active: var(--background-action-low-green-tilleul-verveine-active);
+  --csp-palette-orange-background: var(--background-action-low-orange-terre-battue);
+  --csp-palette-orange-background-hover: var(--background-action-low-orange-terre-battue-hover);
+  --csp-palette-orange-background-active: var(--background-action-low-orange-terre-battue-active);
+  --csp-palette-orange-text: var(--artwork-minor-orange-terre-battue);
+  --csp-palette-red-background: var(--background-action-low-pink-tuile);
+  --csp-palette-red-background-hover: var(--background-action-low-pink-tuile-hover);
+  --csp-palette-red-background-active: var(--background-action-low-pink-tuile-active);
+  --csp-palette-pink-background: var(--background-action-low-pink-macaron);
+  --csp-palette-pink-background-hover: var(--background-action-low-pink-macaron-hover);
+  --csp-palette-pink-background-active: var(--background-action-low-pink-macaron-active);
+  --csp-palette-purple-background: var(--background-action-low-purple-glycine);
+  --csp-palette-purple-background-hover: var(--background-action-low-purple-glycine-hover);
+  --csp-palette-purple-background-active: var(--background-action-low-purple-glycine-active);
+  --csp-palette-brown-background: var(--background-action-low-brown-opera);
+  --csp-palette-brown-background-hover: var(--background-action-low-brown-opera-hover);
+  --csp-palette-brown-background-active: var(--background-action-low-brown-opera-active);
+  --csp-palette-brown-text: var(--artwork-minor-brown-opera);
+}
+
+/* Horizontal padding of the standard badge (sm 6 px, md 8 px), 4 px between the dot and the text as between a badge icon and its text */
+:root[data-csp-etiquettes='dsfr'] .csp-label--sm {
+  --csp-label-padding-x: 0.375rem;
+}
+
+:root[data-csp-etiquettes='dsfr'] .csp-label--md {
+  --csp-label-padding-x: 0.5rem;
+}
+
+:root[data-csp-etiquettes='dsfr'] .csp-label--sm .csp-label__dot {
+  margin-inline: -0.0625rem;
+}
+
+:root[data-csp-etiquettes='dsfr'] .csp-label--md .csp-label__dot {
+  margin-inline: -0.125rem;
+}
+
+/* « +N »: the hovered kanban card takes the alt background, so the button takes its hover and active states */
+:root[data-csp-etiquettes='dsfr'] .csp-label-list__more:hover {
+  background-color: var(--background-alt-grey-hover);
+  color: var(--text-default-grey);
+}
+
+:root[data-csp-etiquettes='dsfr'] .csp-label-list__more:active {
+  background-color: var(--background-alt-grey-active);
+  color: var(--text-default-grey);
+}
+
+/* Color field: each option shows the label it produces */
+:root[data-csp-etiquettes='dsfr'] .color-field__option .csp-radio__label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.1875rem 0.5rem;
+  border-radius: var(--csp-label-radius);
+  background-color: var(--color-field-background);
+  color: var(--color-field-text);
+  font-weight: var(--csp-font-weight-medium);
+}
+
+:root[data-csp-etiquettes='dsfr'] .color-field__option .csp-radio__label::before {
+  width: 0.5rem;
+  height: 0.5rem;
+  margin-inline: -0.125rem 0;
+}

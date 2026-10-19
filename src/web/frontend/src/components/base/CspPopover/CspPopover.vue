@@ -28,9 +28,11 @@ const hasTrigger = Boolean(slots.trigger)
     :open="open"
     @update:open="value => open = value"
   >
+    <!-- $attrs go to the trigger: a tooltip that wraps the popover passes the props of its own trigger this way -->
     <PopoverTrigger
       v-if="hasTrigger"
       as-child
+      v-bind="$attrs"
     >
       <slot name="trigger" />
     </PopoverTrigger>

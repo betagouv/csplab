@@ -28,6 +28,8 @@ const props = withDefaults(defineProps<CspTooltipProps>(), {
   disabled: false,
 })
 
+const open = defineModel<boolean | undefined>('open')
+
 const isDisabled = computed(() => props.disabled || !props.content)
 </script>
 
@@ -36,18 +38,25 @@ const isDisabled = computed(() => props.disabled || !props.content)
     v-if="!isDisabled"
     :delay-duration="delayDuration"
   >
-    <TooltipRoot>
+    <TooltipRoot
+      :open="open"
+      @update:open="value => open = value"
+    >
       <TooltipTrigger as-child>
         <slot />
       </TooltipTrigger>
       <TooltipPortal>
+        <!-- aria-label: assistive technologies read the content text, whatever the content slot draws -->
         <TooltipContent
           :side="side"
           :align="align"
           :side-offset="sideOffset"
+          :aria-label="content"
         >
           <div class="csp-tooltip">
-            {{ content }}
+            <slot name="content">
+              {{ content }}
+            </slot>
           </div>
           <TooltipArrow class="csp-tooltip__arrow" />
         </TooltipContent>

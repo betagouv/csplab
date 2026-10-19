@@ -25,6 +25,7 @@ import MessagesSection from '@/features/messages/components/MessagesSection.vue'
 import CandidatureActivites from '../components/CandidatureActivites.vue'
 import CandidatureCv from '../components/CandidatureCv.vue'
 import CandidatureDocuments from '../components/CandidatureDocuments.vue'
+import CandidatureEtiquettes from '../components/CandidatureEtiquettes.vue'
 import CandidatureHistorique from '../components/CandidatureHistorique.vue'
 import CandidatureNoteForm from '../components/CandidatureNoteForm.vue'
 import CandidatureNotes from '../components/CandidatureNotes.vue'
@@ -35,6 +36,7 @@ import { useCandidatureNavigation } from '../composables/useCandidatureNavigatio
 import { useCandidaturePanelRoutes } from '../composables/useCandidaturePanelRoutes'
 import { useEtapeChange } from '../composables/useEtapeChange'
 import { CANDIDATURE_PANEL_TAB_ICONS, CANDIDATURE_PANEL_TAB_LABELS } from '../constants/candidature'
+import { etiquettesOf } from '../etiquettes'
 import { formatCandidatureMeta } from '../format'
 import { candidatureDetailQuery } from '../queries'
 import { formatCandidatNom } from '../utils/candidat'
@@ -59,6 +61,7 @@ const loadFailed = computed(() => Boolean(error.value) && !notFound.value)
 const title = computed(() => candidature.value ? formatCandidatNom(candidature.value.candidat) : 'Candidature')
 const description = computed(() => candidature.value?.recrutement_intitule || null)
 const metaItems = computed(() => candidature.value ? formatCandidatureMeta(candidature.value) : [])
+const etiquettes = computed(() => candidature.value ? etiquettesOf(candidature.value) : [])
 
 const etape = computed(() => candidature.value?.etape_actuelle ?? null)
 const navigation = useCandidatureNavigation(() => props.candidatureUuid)
@@ -292,6 +295,8 @@ function handleUpdateOpen(open: boolean): void {
                   :candidature="candidatureParams"
                   :historique-route-name="panelRouteNames.tabs.historique"
                 />
+                <CspSeparator />
+                <CandidatureEtiquettes :etiquettes="etiquettes" />
                 <CspSeparator v-show="!isNotesTab" />
                 <CandidatureNoteForm
                   v-show="!isNotesTab"
