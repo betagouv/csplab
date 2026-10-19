@@ -8,6 +8,7 @@ from rest_framework import status
 USER_LIMIT = 120
 ANON_LIMIT = 5
 
+
 @pytest.fixture(autouse=True)
 def clear_cache():
     cache.clear()
@@ -60,6 +61,27 @@ class TestRateLimitingIntegration:
         assert obtain().status_code == status.HTTP_401_UNAUTHORIZED
 
         response = obtain()
+
+        assert response.status_code == status.HTTP_429_TOO_MANY_REQUESTS
+        assert "Retry-After" in response.headers
+        assert response.data["detail"].code == "throttled"
+
+    @pytest.mark.parametrize(
+        "scope,limit",
+        [("api_key", 70_000), ("api_key_daily", 100_000)],
+    )
+    def test_api_key_limit_is_enforced_at_configured_rate(
+        self, api_key_client, scope, limit
+    ):
+        URL = reverse("ingestion:organismes_upsert")
+        fill_throttle_history(scope, "ingestion-api-key", limit - 1)
+
+        # Throttles run before the handler lookup, so a GET on a POST-only
+        # endpoint counts toward the limit without reaching the view.
+        response = api_key_client.get(URL)
+        assert response.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
+
+        response = api_key_client.get(URL)
 
         assert response.status_code == status.HTTP_429_TOO_MANY_REQUESTS
         assert "Retry-After" in response.headers
