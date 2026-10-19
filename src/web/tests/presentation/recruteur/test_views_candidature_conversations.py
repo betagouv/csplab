@@ -41,6 +41,16 @@ from tests.utils.message_documents import INVALID_DOCUMENTS, valid_documents
 TAILLE_PAGE_LIMITEE = 1
 TAILLE_PAGE_PAR_DEFAUT = 20
 NB_CONVERSATIONS = 2
+NB_CONVERSATIONS_N_PLUS_UN = 5
+NOMBRE_REQUETES_LISTE_ATTENDU = (
+    2  # authentication (view + RateLimitHeadersMiddleware)
+    + 1  # organisme exists
+    + 1  # agent's organisme role
+    + 1  # recrutement belongs to organisme
+    + 1  # candidature belongs to recrutement
+    + 2  # pagination: count + page
+    + 2  # prefetch premiers_messages + derniers_messages (auteur via select_related)
+)
 
 
 def _url(organisme_uuid, recrutement_uuid, candidature_uuid):
@@ -258,6 +268,19 @@ class TestListConversations:
 
         (result,) = response.json()["results"]
         assert result["is_unread"] is False
+
+    def test_does_not_trigger_n_plus_one_queries(
+        self, authenticated_client, contexte, django_assert_num_queries
+    ):
+        _, candidature, url = contexte
+        for _ in range(NB_CONVERSATIONS_N_PLUS_UN):
+            _conversation_with_messages(candidature, "Bonjour", "Merci")
+
+        with django_assert_num_queries(NOMBRE_REQUETES_LISTE_ATTENDU):
+            response = authenticated_client.get(url)
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json()["count"] == NB_CONVERSATIONS_N_PLUS_UN
 
     def test_limit_param_caps_page_size(self, authenticated_client, contexte):
         _, candidature, url = contexte
