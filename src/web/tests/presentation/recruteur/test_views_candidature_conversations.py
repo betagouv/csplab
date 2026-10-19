@@ -206,7 +206,9 @@ class TestListConversations:
             "last_message_content",
             "last_message_author",
             "last_message_created_at",
+            "is_unread",
         }
+        assert all(result["is_unread"] is False for result in results)
         dates = [result["last_message_created_at"] for result in results]
         assert dates == sorted(dates, reverse=True)
         assert all(
