@@ -34,6 +34,6 @@
     }
   ],
   "scripts": {
-    "first-deploy": "DJANGO_SETTINGS_MODULE=config.settings.base python manage.py seed_recruteur_datas"
+    "first-deploy": "bash bin/postdeploy.sh && DJANGO_SETTINGS_MODULE=config.settings.base python manage.py seed_recruteur_datas"
   }
 }
