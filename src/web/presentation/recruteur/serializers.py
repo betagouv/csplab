@@ -573,8 +573,6 @@ class AuditLogSerializer(serializers.ModelSerializer):
 
 
 class ConversationSerializer(serializers.ModelSerializer):
-    # last_message_created_at is annotated, premiers_messages and derniers_messages
-    # are prefetched by ConversationQuerySet.by_candidature
     uuid = serializers.UUIDField(source="id")
     creator = serializers.SerializerMethodField()
     last_message_content = serializers.SerializerMethodField()

@@ -114,9 +114,11 @@ def test_by_candidature_prefetches_first_and_last_message_with_their_author(db):
     premier = MessageDjangoFactory(conversation=conversation, contenu="Premier")
     dernier = MessageDjangoFactory(conversation=conversation, contenu="Dernier")
 
-    (result,) = ConversationModel.objects.by_candidature(
-        conversation.candidature_id
-    ).fetch_mode(FETCH_RAISE)
+    (result,) = (
+        ConversationModel.objects.by_candidature(conversation.candidature_id)
+        .with_message_summary()
+        .fetch_mode(FETCH_RAISE)
+    )
 
     assert result.premiers_messages == [premier]
     assert result.derniers_messages == [dernier]
@@ -126,15 +128,17 @@ def test_by_candidature_prefetches_first_and_last_message_with_their_author(db):
 
 
 def test_by_candidature_orders_by_last_message_and_skips_empty_conversations(db):
-    ancienne = ConversationDjangoFactory()
-    recente = ConversationDjangoFactory(candidature=ancienne.candidature)
-    ConversationDjangoFactory(candidature=ancienne.candidature)
-    MessageDjangoFactory(conversation=ancienne)
-    MessageDjangoFactory(conversation=recente)
+    older = ConversationDjangoFactory()
+    newer = ConversationDjangoFactory(candidature=older.candidature)
+    ConversationDjangoFactory(candidature=older.candidature)
+    MessageDjangoFactory(conversation=older)
+    MessageDjangoFactory(conversation=newer)
 
-    result = ConversationModel.objects.by_candidature(ancienne.candidature_id)
+    result = ConversationModel.objects.by_candidature(
+        older.candidature_id
+    ).with_message_summary()
 
-    assert list(result) == [recente, ancienne]
+    assert list(result) == [newer, older]
 
 
 def test_by_conversation_orders_attachments_by_creation(db):

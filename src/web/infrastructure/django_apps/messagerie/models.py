@@ -14,10 +14,12 @@ class ConversationQuerySet(models.QuerySet):
         return self.filter(candidature_id=candidature_id, pk=conversation_id)
 
     def by_candidature(self, candidature_id) -> "ConversationQuerySet":
+        return self.filter(candidature_id=candidature_id)
+
+    def with_message_summary(self) -> "ConversationQuerySet":
         messages = MessageModel.objects.select_related("auteur")
         return (
-            self.filter(candidature_id=candidature_id)
-            .annotate(last_message_created_at=Max("messages__created_at"))
+            self.annotate(last_message_created_at=Max("messages__created_at"))
             .filter(last_message_created_at__isnull=False)
             .prefetch_related(
                 Prefetch(
@@ -46,7 +48,7 @@ class ConversationModel(BaseDatedModel):
 
     objects = ConversationQuerySet.as_manager()
 
-    # renseignés par ConversationQuerySet.by_candidature (Prefetch to_attr)
+    last_message_created_at: datetime
     premiers_messages: list["MessageModel"]
     derniers_messages: list["MessageModel"]
 

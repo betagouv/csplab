@@ -81,6 +81,9 @@ def create_conversation(
             event_name="ConversationCreee",
         )
 
-    return ConversationModel.objects.by_candidature(candidature_id).get(
-        pk=conversation.id
+    created = (
+        ConversationModel.objects.by_candidature(candidature_id)
+        .with_message_summary()
+        .get(pk=conversation.id)
     )
+    return created
