@@ -2229,6 +2229,12 @@ paths:
           type: string
           format: uuid
         required: true
+      - name: cursor
+        required: false
+        in: query
+        description: La valeur du curseur de pagination.
+        schema:
+          type: string
       - name: limit
         required: false
         in: query
@@ -2241,12 +2247,6 @@ paths:
           type: string
           format: uuid
         required: true
-      - name: page
-        required: false
-        in: query
-        description: Un numéro de page de l'ensemble des résultats.
-        schema:
-          type: integer
       - in: path
         name: recrutement_uuid
         schema:
@@ -5758,22 +5758,18 @@ components:
     PaginatedConversationMessageList:
       type: object
       required:
-      - count
       - results
       properties:
-        count:
-          type: integer
-          example: 123
         next:
           type: string
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?page=4
+          example: http://api.example.org/accounts/?cursor=cD00ODY%3D"
         previous:
           type: string
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?page=2
+          example: http://api.example.org/accounts/?cursor=cj0xJnA9NDg3
         results:
           type: array
           items:
