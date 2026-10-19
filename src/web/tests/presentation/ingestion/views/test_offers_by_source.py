@@ -195,7 +195,7 @@ class TestOffersBySourceViewDbVerified:
                 "conditions": None,
                 "contacts": None,
                 "debut_publication": "2024-01-15T00:00:00Z",
-                "fin_publication": None,
+                "fin_publication": "2025-01-15T00:00:00Z",
                 "debut_contrat": None,
                 "fin_candidature": None,
                 "debut_vacance_poste": None,
