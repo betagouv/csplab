@@ -264,6 +264,14 @@ const model = defineModel<string>()
     var(--csp-overlap-shadow, var(--csp-shadow-md));
   overflow: hidden;
   z-index: var(--csp-z-dropdown);
+
+  &[data-state='open'] {
+    animation: var(--csp-motion-overlap-enter);
+  }
+
+  &[data-state='closed'] {
+    animation: var(--csp-motion-overlap-exit);
+  }
 }
 
 :deep(.csp-select-content__viewport) {

@@ -61,6 +61,14 @@ const hasTrigger = Boolean(slots.trigger)
   z-index: var(--csp-z-dropdown);
   outline: none;
 
+  &[data-state='open'] {
+    animation: var(--csp-motion-overlap-enter);
+  }
+
+  &[data-state='closed'] {
+    animation: var(--csp-motion-overlap-exit);
+  }
+
   &:focus-visible {
     outline: 2px solid var(--csp-focus-ring-color);
     outline-offset: 2px;

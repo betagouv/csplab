@@ -75,6 +75,7 @@ const { showLabels } = useSidebar()
   border-radius: var(--csp-action-radius);
   background: var(--csp-nav-background);
   text-decoration: none;
+  transition: background-color var(--csp-motion-duration-state);
   cursor: pointer;
   flex-shrink: 0;
 

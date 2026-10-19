@@ -251,6 +251,14 @@ const announcedStatus = useDebounce(statusMessage, 1000)
     var(--csp-overlap-shadow, var(--csp-shadow-md));
   overflow: hidden;
   z-index: var(--csp-z-dropdown);
+
+  &[data-state='open'] {
+    animation: var(--csp-motion-overlap-enter);
+  }
+
+  &[data-state='closed'] {
+    animation: var(--csp-motion-overlap-exit);
+  }
 }
 
 .csp-combobox-content__viewport {

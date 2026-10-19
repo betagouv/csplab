@@ -76,6 +76,14 @@ const open = defineModel<boolean | undefined>('open')
   padding: var(--csp-menu-padding);
   z-index: var(--csp-z-dropdown);
   outline: none;
+
+  &[data-state='open'] {
+    animation: var(--csp-motion-overlap-enter);
+  }
+
+  &[data-state='closed'] {
+    animation: var(--csp-motion-overlap-exit);
+  }
 }
 
 .csp-dropdown__separator {

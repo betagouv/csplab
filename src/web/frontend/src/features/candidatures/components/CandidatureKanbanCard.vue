@@ -85,6 +85,9 @@ const { isDragging } = useDraggableKanbanCard({
     var(--candidature-kanban-card-shadow),
     inset 0 0 0 1px var(--candidature-kanban-card-border);
   cursor: grab;
+  transition:
+    background-color var(--csp-motion-duration-state),
+    box-shadow var(--csp-motion-duration-state);
 
   &:active {
     cursor: grabbing;

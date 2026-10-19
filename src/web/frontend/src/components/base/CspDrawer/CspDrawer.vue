@@ -179,6 +179,14 @@ const hasFooter = computed(() => Boolean(slots.footer))
   inset: 0;
   background-color: var(--csp-overlay-scrim);
   z-index: var(--csp-z-overlay);
+
+  &[data-state='open'] {
+    animation: var(--csp-motion-scrim-enter);
+  }
+
+  &[data-state='closed'] {
+    animation: var(--csp-motion-scrim-exit);
+  }
 }
 
 .csp-drawer {
@@ -198,14 +206,26 @@ const hasFooter = computed(() => Boolean(slots.footer))
 
   display: flex;
   flex-direction: column;
+
+  &[data-state='open'] {
+    animation: var(--csp-motion-drawer-enter);
+  }
+
+  &[data-state='closed'] {
+    animation: var(--csp-motion-drawer-exit);
+  }
 }
 
 .csp-drawer--right {
+  --csp-drawer-offset: 100%;
+
   right: 0;
   border-left: 1px solid var(--border-default-grey);
 }
 
 .csp-drawer--left {
+  --csp-drawer-offset: -100%;
+
   left: 0;
   border-right: 1px solid var(--border-default-grey);
 }

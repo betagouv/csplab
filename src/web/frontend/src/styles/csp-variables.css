@@ -130,6 +130,17 @@
   --csp-message-border-width: 1px;
   --csp-message-frame-width: 0;
 
+  /* Motion: instant changes and no animation until a theme sets them */
+  --csp-motion-duration-state: 0ms;
+  --csp-motion-overlap-enter: none;
+  --csp-motion-overlap-exit: none;
+  --csp-motion-dialog-enter: none;
+  --csp-motion-dialog-exit: none;
+  --csp-motion-drawer-enter: none;
+  --csp-motion-drawer-exit: none;
+  --csp-motion-scrim-enter: none;
+  --csp-motion-scrim-exit: none;
+
   /* Overlay scrim (dialog / drawer) */
   --csp-overlay-scrim: rgba(22, 22, 22, 0.64);
 
