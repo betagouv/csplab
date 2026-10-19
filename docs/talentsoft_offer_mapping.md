@@ -1,6 +1,6 @@
 # Correspondance offre Talentsoft → offre API v1
 
-_Dernière mise à jour : 2026-10-08_
+_Dernière mise à jour : 2026-10-19_
 
 Conversion d'une offre au format Talentsoft en offre envoyée à l'API.
 L'API fake-ts (`/api/fake-ts/`, `OfferSummaryOutputMapper` et `OfferDetailOutputMapper` dans `src/web/presentation/ingestion/mappers.py`) expose les offres du web au format Talentsoft : les notes « API fake-ts » décrivent ce qu'elle renvoie.
@@ -27,7 +27,9 @@ Notation : `a.b` désigne un objet imbriqué, `a[]` une liste, `a[0]` son premie
 | `customFields.description.longText3` | `description.descriptif_service` | |
 | `customFields.offerCustomBlock1.longText1` | `description.complements` | |
 | `offerUrl` | `url_offre` | |
-| `urlRedirectionApplicant` | `url_candidature` | Repli sur `applicationUrl`. |
+| `urlRedirectionApplicant` | `url_candidature` | Prioritaire sur `customFields.origin.shortText1` et `applicationUrl`. |
+| `customFields.origin.shortText1` | `email_candidature` | Texte libre (« adresse de candidature »). Lu seulement si `urlRedirectionApplicant` est vide : le premier e-mail valide trouvé devient `email_candidature`, et `url_candidature` reste vide. API fake-ts : reprend `email_candidature`, `null` si l'offre se candidate par lien. |
+| `applicationUrl` | `url_candidature` | Dernier recours, si `urlRedirectionApplicant` est vide et que `customFields.origin.shortText1` ne contient aucun e-mail valide. Toujours rempli dans Talentsoft (page de candidature générique). API fake-ts : reprend `url_candidature`, `null` si l'offre se candidate par e-mail. |
 | `geographicalLocation[0].clientCode` | `localisation[0].zone_geographique` | L'API fake-ts renvoie toujours `[]` : aucune `localisation` n'est donc produite à partir de lui. Toute la `localisation` est abandonnée si la zone, le pays, la région ou le département manque. |
 | `country[0].clientCode` | `localisation[0].pays` | |
 | `region[0].clientCode` | `localisation[0].region` | Les préfixes `_TS_CO_Region_` et `R` sont retirés pour obtenir le code INSEE. |
@@ -36,7 +38,7 @@ Notation : `a.b` désigne un objet imbriqué, `a[]` une liste, `a[0]` son premie
 | `geolocation.longitude` | `localisation[0].longitude` | Repli sur `longitude`, puis sur `organisation.geolocation.longitude`. |
 | `customFields.location.shortText1` | `localisation[0].localisation_label` | |
 | `startPublicationDate` | `publication.debut_publication` | |
-| `endPublicationDate` | `publication.fin_publication` | Repli sur `beginningDate`, puis sur `debut_publication` + 365 jours. Le `OfferInputMapper` du web ne lit jamais `fin_publication`. |
+| `endPublicationDate` | `publication.fin_publication` | Repli sur `beginningDate`, puis sur `debut_publication` + 365 jours. API fake-ts : reprend `fin_publication`, `null` pour les offres reçues avant son enregistrement. |
 | `customFields.offer.date1` | `publication.fin_candidature` | |
 | `beginningDate` | `conditions.debut_contrat` | Sert aussi de repli pour `fin_publication`. |
 | `beginningDate` | `publication.debut_vacance_poste` | Comme l'ancien site WordPress (« Vacant à partir du … », « Poste à pourvoir le … »). |
@@ -68,6 +70,7 @@ Notation : `a.b` désigne un objet imbriqué, `a[]` une liste, `a[0]` son premie
 | `urlRedirectionEmployee` | |
 | `locations` | |
 | `isAnonymousOrganisation` | |
+| `numberOfVacancies` | Nombre de postes à pourvoir. Jamais renseigné par Talentsoft : toujours `null` dans les offres chargées par l'ingestion (vérifié le 2026-10-19). |
 | `organisation.name` | Données d'organisme, synchronisées par l'upsert séparé des organismes Talentsoft (`TalentsoftOrganismeUpsertInputSerializer`), pas par le payload d'offre. |
 | `organisation.description` | Données d'organisme, synchronisées par l'upsert séparé des organismes Talentsoft (`TalentsoftOrganismeUpsertInputSerializer`), pas par le payload d'offre. |
 | `organisation.url` | Données d'organisme, synchronisées par l'upsert séparé des organismes Talentsoft (`TalentsoftOrganismeUpsertInputSerializer`), pas par le payload d'offre. |
@@ -82,6 +85,7 @@ Notation : `a.b` désigne un objet imbriqué, `a[]` une liste, `a[0]` son premie
 | `operationalManager` | Jamais lu : `contacts` vaut toujours `null`. |
 | `applicationQuestions` | |
 | `attachedFilesUrls` | |
+| `skillCollection[]` | Compétences requises (référentiel `skill`). Jamais renseigné par Talentsoft : toujours vide dans les offres chargées par l'ingestion (vérifié le 2026-10-19). |
 | `customFields.offer.shortText1` | |
 | `customFields.offer.longText1` | |
 | `customFields.offer.longText2` | |
@@ -114,7 +118,7 @@ Notation : `a.b` désigne un objet imbriqué, `a[]` une liste, `a[0]` son premie
 | `profession.referentiel` | Constante `RMFPv2`. |
 | `profession.code_emploi_local` | Jamais renseigné, `local_job_code` reste à `null`. |
 | `criteres.documents_requis` | Jamais renseigné par l'ingestion. |
-| `criteres.competences_requises` | Jamais renseigné par l'ingestion. |
+| `criteres.competences_requises` | Jamais renseigné par l'ingestion : `skillCollection[]` est toujours vide côté Talentsoft. |
 | `conditions.temps_travail` | Lu dans `customFields.description.customCodeTable3` (absent de l'API fake-ts) : `reponse_oui` → `TEMPS_PLEIN`, `reponse_non` → `TEMPS_PARTIEL`, sinon `NON_DEFINI`. |
 | `conditions.lieu_de_travail` | Lu dans `customFields.offerCustomBlock1.customCodeTable2` (absent de l'API fake-ts) : `reponse_oui` → `TELETRAVAIL`, `reponse_non` → `SUR_SITE`, sinon `NON_DEFINI`. |
 | `conditions.management` | Lu dans `customFields.offerCustomBlock1.customCodeTable1` (absent de l'API fake-ts) : `reponse_oui` → `AVEC`, `reponse_non` → `SANS`. |

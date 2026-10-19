@@ -26,6 +26,7 @@ const THEMES: Theme[] = ['light', 'dark']
 
 const [optionsLight, optionsDark] = read('./dsfr-tokens-options.css').split(':root[data-fr-theme=\'dark\']') as [string, string]
 const decisions = declarations(read('./dsfr-tokens-decisions.css'))
+const roles = declarations(read('./csp-variables.css'))
 const fallback = declarations(read('./palette.css'))
 
 const scenarioFiles = readdirSync(join(STYLES, 'etiquettes'))
@@ -38,7 +39,7 @@ function scenarioAttribute(id: string): RegExp {
 }
 
 function valuesFor(theme: Theme, scenario?: string): Map<string, string> {
-  const values = new Map([...declarations(optionsLight), ...decisions, ...fallback])
+  const values = new Map([...declarations(optionsLight), ...decisions, ...roles, ...fallback])
   if (theme === 'dark') {
     declarations(optionsDark).forEach((value, name) => values.set(name, value))
   }

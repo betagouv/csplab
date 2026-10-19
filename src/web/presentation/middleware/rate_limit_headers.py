@@ -5,14 +5,12 @@ from django.conf import settings
 from django.contrib.auth.base_user import AbstractBaseUser
 from django.core.cache import cache
 from django.http import HttpRequest, HttpResponse
-from rest_framework.throttling import (
-    AnonRateThrottle,
-    SimpleRateThrottle,
-    UserRateThrottle,
-)
+from rest_framework.throttling import SimpleRateThrottle, UserRateThrottle
+from rest_framework.views import APIView
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.exceptions import AuthenticationFailed, TokenError
 
+from infrastructure.authentication.anon_rate_throttle import ClientIpAnonRateThrottle
 from infrastructure.authentication.api_key_authentication import (
     ApiKeyRateThrottle,
     ApiKeyRateThrottleDaily,
@@ -21,7 +19,7 @@ from infrastructure.authentication.jwt_token import get_validated_jwt
 
 _API_KEY_THROTTLES = [ApiKeyRateThrottle(), ApiKeyRateThrottleDaily()]
 _USER_THROTTLE = UserRateThrottle()
-_ANON_THROTTLE = AnonRateThrottle()
+_ANON_THROTTLE = ClientIpAnonRateThrottle()
 _jwt_auth = JWTAuthentication()
 
 
@@ -51,21 +49,44 @@ def _rate_limit_state(throttle: SimpleRateThrottle, ident: str) -> tuple[int, in
     return num_requests, remaining, reset
 
 
-def _collect_rate_limit_states(request: HttpRequest) -> list[tuple[int, int, int]]:
+def _view_throttle_scopes(request: HttpRequest) -> set[str]:
+    resolver_match = getattr(request, "resolver_match", None)
+    if resolver_match is None:
+        return set()
+    view_class: type[APIView] | None = getattr(resolver_match.func, "cls", None)
+    if view_class is None or not issubclass(view_class, APIView):
+        return set()
+    return {
+        scope
+        for throttle_class in view_class.throttle_classes
+        if (scope := getattr(throttle_class, "scope", None))
+    }
+
+
+def _throttles_for_caller(
+    request: HttpRequest,
+) -> list[tuple[SimpleRateThrottle, str]]:
     if _is_authenticated_api_key_request(request):
-        return [
-            _rate_limit_state(throttle, "ingestion-api-key")
-            for throttle in _API_KEY_THROTTLES
-        ]
+        return [(throttle, "ingestion-api-key") for throttle in _API_KEY_THROTTLES]
     user = _authenticate_jwt_user(request)
     if user is not None:
-        return [_rate_limit_state(_USER_THROTTLE, str(user.pk))]
+        return [(_USER_THROTTLE, str(user.pk))]
     if not request.headers.get("Authorization") and request.path.startswith(
         settings.PUBLIC_API_PREFIX
     ):
-        ident = _ANON_THROTTLE.get_ident(request)
-        return [_rate_limit_state(_ANON_THROTTLE, ident)]
+        return [(_ANON_THROTTLE, _ANON_THROTTLE.get_ident(request))]
     return []
+
+
+def _collect_rate_limit_states(request: HttpRequest) -> list[tuple[int, int, int]]:
+    scopes = _view_throttle_scopes(request)
+    if not scopes:
+        return []
+    return [
+        _rate_limit_state(throttle, ident)
+        for throttle, ident in _throttles_for_caller(request)
+        if throttle.scope in scopes
+    ]
 
 
 class RateLimitHeadersMiddleware:

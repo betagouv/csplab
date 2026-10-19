@@ -1,3 +1,5 @@
+import logging
+
 from authlib.integrations.base_client.errors import OAuthError
 from django.conf import settings
 from django.contrib import messages
@@ -14,18 +16,22 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from domain.identite.errors.identite_errors import UtilisateurNexistePas
+from application.identite.services.get_utilisateur_details import (
+    get_utilisateur_details,
+)
+from config.logger_names import LoggerName
 from infrastructure.authentication.proconnect_backend import build_proconnect_logout_url
 from infrastructure.authentication.proconnect_client import (
     fetch_userinfo_claims,
     oauth,
 )
-from infrastructure.di.identite.identite_factory import create_identite_container
 from presentation.api.authentication import SessionApiMixin
 from presentation.api.serializers import GenericErrorSerializer, TokenErrorSerializer
 from presentation.identite.serializers import UtilisateurSerializer
 
 LOGIN_NEXT_SESSION_KEY = "login_next"
+
+logger = logging.getLogger(LoggerName.IDENTITE.value)
 
 
 def _safe_next_url(request: HttpRequest, url: str | None) -> str | None:
@@ -125,24 +131,12 @@ class ProfileView(LoginRequiredMixin, TemplateView):
 class UtilisateurDetailsView(SessionApiMixin, APIView):
     serializer_class = UtilisateurSerializer
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.container = create_identite_container()
-        self.logger = self.container.logger_service()
-
     def get(self, request):
         try:
-            username = request.user.username
-            usecase = self.container.get_utilisateur_details_usecase()
-            utilisateur = usecase.execute(username)
-            return Response(UtilisateurSerializer(utilisateur).data)
-        except UtilisateurNexistePas:
-            return Response(
-                GenericErrorSerializer({"error": "Not found."}).data,
-                status=status.HTTP_404_NOT_FOUND,
-            )
+            details = get_utilisateur_details(utilisateur=request.user)
+            return Response(UtilisateurSerializer(details).data)
         except Exception as e:
-            self.logger.error("Unexpected error in UserInfoView: %s", str(e))
+            logger.error("Unexpected error in UserInfoView: %s", str(e))
             serializer = GenericErrorSerializer({"error": "Unexpected error"})
             return Response(
                 serializer.data, status=status.HTTP_500_INTERNAL_SERVER_ERROR

@@ -185,6 +185,7 @@ class TestUpsertBatch:
             "beginning_date": LimitDate(now),
             "exercise_conditions": "Télétravail possible",
             "service_description": "Service des ressources humaines",
+            "end_publication_date": now,
             "application_deadline": now,
             "job_vacancy_date": now,
         }

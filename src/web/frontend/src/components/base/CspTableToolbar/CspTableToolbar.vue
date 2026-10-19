@@ -59,7 +59,7 @@ const selectionCountLabel = computed(
 }
 
 .csp-table-toolbar--bordered {
-  border-top: 1px solid var(--border-default-grey);
+  border-top: 1px solid var(--csp-divider-color);
 }
 
 .csp-table-toolbar__count {

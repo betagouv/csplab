@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+#MISE description="Seed the demo dataset on the review app (idempotent)"
+#MISE extends="review-app"
+# scalingo run needs the terminal
+#MISE raw=true
+set -euo pipefail
+
+scalingo run 'DJANGO_SETTINGS_MODULE=config.settings.base python manage.py seed_recruteur_datas'

@@ -86,6 +86,7 @@ class OfferModel(BaseDatedModel):
 
     long_title = models.CharField(max_length=1500, null=True, blank=True)
     application_url = models.URLField(null=True, blank=True)
+    application_email = models.EmailField(null=True, blank=True)
     contract_kind = models.CharField(max_length=20, null=True, blank=True)
     job_vacancy = models.CharField(max_length=50, null=True, blank=True)
     employer = models.TextField(null=True, blank=True)
@@ -98,6 +99,7 @@ class OfferModel(BaseDatedModel):
 
     # Date fields
     publication_date = models.DateTimeField()
+    end_publication_date = models.DateTimeField(null=True, blank=True)
     beginning_date = models.DateTimeField(null=True, blank=True)
     application_deadline = models.DateTimeField(null=True, blank=True)
     job_vacancy_date = models.DateTimeField(null=True, blank=True)

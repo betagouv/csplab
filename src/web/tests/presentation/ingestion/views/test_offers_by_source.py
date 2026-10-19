@@ -131,12 +131,12 @@ class TestOffersBySourceView:
         assert response.status_code == status.HTTP_200_OK
         assert response.json()["results"][0]["localisation"] is None
 
-    def test_jwt_authentication_forbidden_source_returns_401(
+    def test_jwt_authentication_forbidden_source_returns_403(
         self, jwt_client, use_case
     ):
         use_case.execute.side_effect = SourceAuthorizationError({SOURCE_ID})
         response = jwt_client.get(URL)
-        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+        assert response.status_code == status.HTTP_403_FORBIDDEN
 
     def test_returns_error_500(self, jwt_client, use_case):
         use_case.execute.side_effect = Exception("db error")
@@ -189,11 +189,13 @@ class TestOffersBySourceViewDbVerified:
                 "vacance_poste": None,
                 "url_offre": None,
                 "url_candidature": None,
+                "email_candidature": None,
                 "localisation": None,
                 "criteres": None,
                 "conditions": None,
                 "contacts": None,
                 "debut_publication": "2024-01-15T00:00:00Z",
+                "fin_publication": "2025-01-15T00:00:00Z",
                 "debut_contrat": None,
                 "fin_candidature": None,
                 "debut_vacance_poste": None,
@@ -218,6 +220,7 @@ class TestOffersBySourceViewDbVerified:
             complements="Poste à pourvoir immédiatement",
             exercise_conditions="Télétravail possible",
             service_description="Service des ressources humaines",
+            end_publication_date=datetime(2024, 12, 31, tzinfo=UTC),
             application_deadline=datetime(2024, 5, 15, tzinfo=UTC),
             job_vacancy_date=datetime(2024, 7, 1, tzinfo=UTC),
             offer_nature=OfferNature.TERRITORIAL.value,
@@ -265,6 +268,7 @@ class TestOffersBySourceViewDbVerified:
                 "vacance_poste": offer.job_vacancy,
                 "url_offre": "https://exemple.gouv.fr/offres/e2e-1",
                 "url_candidature": "https://exemple.gouv.fr/candidature/e2e-1",
+                "email_candidature": None,
                 "localisation": {
                     "zone_geographique": offer.area,
                     "pays": offer.country,
@@ -284,6 +288,7 @@ class TestOffersBySourceViewDbVerified:
                     }
                 ],
                 "debut_publication": "2024-01-15T00:00:00Z",
+                "fin_publication": "2024-12-31T00:00:00Z",
                 "debut_contrat": "2024-06-01T00:00:00Z",
                 "fin_candidature": "2024-05-15T00:00:00Z",
                 "debut_vacance_poste": "2024-07-01T00:00:00Z",

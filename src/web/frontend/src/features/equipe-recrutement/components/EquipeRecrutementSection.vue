@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { RecrutementRole } from '../types'
 import { computed, ref, useTemplateRef, watch } from 'vue'
-import { HttpError } from '@/api/errors'
+import { isHttpStatus } from '@/api/errors'
 import CspAsyncSection from '@/components/base/CspAsyncSection/CspAsyncSection.vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspDataTable from '@/components/base/CspDataTable/CspDataTable.vue'
@@ -12,14 +12,14 @@ import CspTableToolbar from '@/components/base/CspTableToolbar/CspTableToolbar.v
 import { useMinimumPending } from '@/composables/async/useMinimumPending'
 import { useTextSearch } from '@/composables/data/useTextSearch'
 import { useToast } from '@/composables/ui/useToast'
+import { formatAgentLabel } from '@/features/agents/format'
 import { useRouteOrganisme } from '@/stores/routeOrganisme'
 import { pluralize } from '@/utils/format'
 import { EQUIPE_RECRUTEMENT_ACTIONS_COLUMN, EQUIPE_RECRUTEMENT_COLUMNS } from '../columns'
-import { useAjoutMembreEquipe } from '../composables/useAjoutMembreEquipe'
+import { useAddAgentToRecrutement } from '../composables/useAddAgentToRecrutement'
 import { useEquipeRecrutement } from '../composables/useEquipeRecrutement'
 import { provideMembreEquipeActions } from '../composables/useMembreEquipeActions'
 import { RECRUTEMENT_ROLE_LABELS } from '../constants/equipe-recrutement'
-import { formatMembreLabel } from '../format'
 import AjoutMembreEquipeDrawer from './AjoutMembreEquipeDrawer.vue'
 
 const props = defineProps<{
@@ -41,7 +41,7 @@ const {
   add,
   submitting,
   reset: resetAgent,
-} = useAjoutMembreEquipe(props.organismeUuid, props.recrutementUuid)
+} = useAddAgentToRecrutement(props.organismeUuid, props.recrutementUuid)
 const { revocation, roleChange } = provideMembreEquipeActions()
 const { canManageOrganisme } = useRouteOrganisme()
 const { addToast } = useToast()
@@ -59,27 +59,18 @@ const columns = computed(() =>
     : EQUIPE_RECRUTEMENT_COLUMNS,
 )
 
-async function handleSearchAgent(email: string) {
-  try {
-    await searchAgent(email)
-  }
-  catch {
-    addToast({ variant: 'error', title: 'La recherche a échoué' })
-  }
-}
-
 async function handleAdd(role: RecrutementRole) {
   try {
     const membre = await add(role)
     addToast({
       variant: 'success',
       title: 'Membre ajouté',
-      description: `${formatMembreLabel(membre)} a rejoint l'équipe de recrutement.`,
+      description: `${formatAgentLabel(membre)} a rejoint l'équipe de recrutement.`,
     })
     ajoutDrawerOpen.value = false
   }
   catch (submitError) {
-    if (submitError instanceof HttpError && submitError.status === 409) {
+    if (isHttpStatus(submitError, 409)) {
       ajoutDrawer.value?.setEmailError('Cette personne fait déjà partie de l\'équipe.')
       return
     }
@@ -98,7 +89,7 @@ watch(() => roleChange.requested, async (change) => {
     addToast({
       variant: 'success',
       title: 'Rôle modifié',
-      description: `${formatMembreLabel(membre)} est maintenant ${RECRUTEMENT_ROLE_LABELS[role].toLowerCase()} sur ce recrutement.`,
+      description: `${formatAgentLabel(membre)} est maintenant ${RECRUTEMENT_ROLE_LABELS[role].toLowerCase()} sur ce recrutement.`,
     })
   }
   catch {
@@ -128,12 +119,12 @@ async function handleRevocation(): Promise<void> {
     addToast({
       variant: 'success',
       title: 'Membre retiré',
-      description: `${formatMembreLabel(membre)} ne fait plus partie de l'équipe de recrutement.`,
+      description: `${formatAgentLabel(membre)} ne fait plus partie de l'équipe de recrutement.`,
     })
     revocationDialogOpen.value = false
   }
   catch (revocationError) {
-    const title = revocationError instanceof HttpError && revocationError.status === 404
+    const title = isHttpStatus(revocationError, 404)
       ? 'Cet agent ne fait plus partie de l\'équipe'
       : 'Le retrait du membre a échoué'
     addToast({ variant: 'error', title })
@@ -145,10 +136,6 @@ const { search, filtered } = useTextSearch(membres, membre => [
   `${membre.nom} ${membre.prenom}`,
   membre.email,
 ])
-
-watch(filtered, () => {
-  page.value = 1
-})
 
 const countLabel = computed(() => {
   const count = filtered.value.length
@@ -229,7 +216,7 @@ const countLabel = computed(() => {
       :agent="foundAgent"
       :searching="searching"
       :submitting="submitting"
-      @search="handleSearchAgent"
+      @search="searchAgent"
       @add="handleAdd"
       @reset="resetAgent"
     />
@@ -240,7 +227,7 @@ const countLabel = computed(() => {
       size="sm"
     >
       <template v-if="revocation.requested">
-        {{ formatMembreLabel(revocation.requested) }} perdra l'accès aux candidatures de ce
+        {{ formatAgentLabel(revocation.requested) }} perdra l'accès aux candidatures de ce
         recrutement. Son compte reste rattaché à l'organisme et pourra être réintégré à
         l'équipe plus tard.
       </template>

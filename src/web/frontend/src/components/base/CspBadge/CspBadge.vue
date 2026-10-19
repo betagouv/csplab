@@ -87,7 +87,7 @@ const resolvedIcon = computed(() => {
   padding: var(--badge-padding-y) var(--badge-padding-x);
   gap: var(--badge-gap);
 
-  --badge-default-bg: var(--background-contrast-grey);
+  --badge-default-bg: var(--csp-neutral-background);
   --badge-default-text: var(--text-default-grey);
   --badge-soft-bg: var(--background-alt-grey);
   --badge-soft-text: var(--text-mention-grey);

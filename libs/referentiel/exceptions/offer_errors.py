@@ -24,3 +24,11 @@ class InvalidOfferDataFormatError(DomainError):
         super().__init__(
             f"Raw offer data for '{offer_reference}' is invalid: {validation_details}"
         )
+
+
+class ConflictingApplicationChannelsError(DomainError):
+    def __init__(self, offer_reference: str):
+        super().__init__(
+            f"Offer '{offer_reference}' cannot have both an application URL "
+            "and an application e-mail"
+        )

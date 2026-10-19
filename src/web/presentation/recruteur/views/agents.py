@@ -4,17 +4,15 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from application.identite.usecases.create_agent import CreateAgentInput
+from application.identite.services.create_agent import create_agent
 from domain.commons.errors.organisme_errors import OrganismeNexistePas
 from domain.identite.errors.agent_errors import ProfilAgentExisteDeja
 from domain.identite.errors.organisme_permission_errors import (
     AccesOrganismeRefuse,
     OperationOrganismeRefusee,
 )
-from infrastructure.di.identite.identite_factory import create_identite_container
 from presentation.api.authentication import SessionApiMixin
 from presentation.api.serializers import GenericErrorSerializer, generic_response_format
-from presentation.recruteur.mappers import UtilisateurMapper
 from presentation.recruteur.serializers import AgentSerializer, CreateAgentSerializer
 
 
@@ -33,25 +31,16 @@ from presentation.recruteur.serializers import AgentSerializer, CreateAgentSeria
     ),
 )
 class AgentsView(SessionApiMixin, APIView):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.container = create_identite_container()
-        self.user_mapper = UtilisateurMapper()
-
     def post(self, request: Request) -> Response:
         serializer = CreateAgentSerializer(data=request.data)
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            usecase = self.container.create_agent_usecase()
-            agent = usecase.execute(
-                CreateAgentInput(
-                    **serializer.validated_data,
-                    utilisateur=self.user_mapper.to_domain(request),
-                )
+            profil = create_agent(**serializer.validated_data, utilisateur=request.user)
+            return Response(
+                AgentSerializer(profil).data, status=status.HTTP_201_CREATED
             )
-            return Response(AgentSerializer(agent).data, status=status.HTTP_201_CREATED)
         except ProfilAgentExisteDeja as e:
             return Response(
                 GenericErrorSerializer({"error": str(e)}).data,

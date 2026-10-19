@@ -3,6 +3,7 @@
 @import './csp-variables.css';
 @import './palette.css';
 @import './etiquettes/index.css';
+@import './themes/index.css';
 @import 'tailwindcss';
 
 @theme {

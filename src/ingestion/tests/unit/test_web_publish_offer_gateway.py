@@ -141,6 +141,7 @@ async def test_publish_serializes_minimal_offer(gateway, httpx_mock: HTTPXMock):
     assert offer["organisation"]["talentsoft_organisme_entity_code"] == "12345"
     assert offer["url_offre"] is None
     assert offer["url_candidature"] is None
+    assert offer["email_candidature"] is None
     assert offer["profession"]["referentiel"] == "RMFPv2"
     assert offer["profession"]["domaine"] == "INF"
     assert offer["profession"]["metier"] == "INF001"
@@ -311,6 +312,23 @@ async def test_publish_serializes_application_url(gateway, httpx_mock: HTTPXMock
     body = json.loads(httpx_mock.get_requests()[0].content)
     offer = body["offres"][0]
     assert offer["url_candidature"] == "https://apply.example.com/job/123"
+
+
+@pytest.mark.asyncio
+async def test_publish_serializes_application_email(gateway, httpx_mock: HTTPXMock):
+    httpx_mock.add_response(method="POST", url=PUBLISH_URL, status_code=201)
+    offer_with_app_email = Offer(
+        **{**MINIMAL_OFFER.__dict__, "application_email": "rh@exemple.gouv.fr"}
+    )
+
+    await gateway.publish(
+        PublishOfferInput(source_id=SOURCE_ID, offer=offer_with_app_email)
+    )
+
+    body = json.loads(httpx_mock.get_requests()[0].content)
+    offer = body["offres"][0]
+    assert offer["email_candidature"] == "rh@exemple.gouv.fr"
+    assert offer["url_candidature"] is None
 
 
 @pytest.mark.asyncio

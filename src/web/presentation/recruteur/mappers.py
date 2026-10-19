@@ -27,6 +27,7 @@ class OrganismeMapper(IFromDomainMapper[Organisme, dict]):
             "nom": organisme.nom,
             "siret": str(organisme.siret),
             "versant": organisme.versant.value,
+            "superviseurs": "",
             "gestion_ats": organisme.gestion_ats,
             "date_creation": organisme.date_creation,
             "date_derniere_activite": organisme.date_derniere_activite,

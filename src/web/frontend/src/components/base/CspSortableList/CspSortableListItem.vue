@@ -141,7 +141,7 @@ function setHandleRef(element: Element | null) {
 }
 
 .csp-sortable-list-item--dragging {
-  opacity: 0.5;
+  opacity: var(--csp-raised-opacity-drag);
 }
 
 .csp-sortable-list-item__handle,
@@ -168,9 +168,11 @@ function setHandleRef(element: Element | null) {
   align-items: center;
   gap: var(--csp-space-3);
   padding: var(--csp-space-3) var(--csp-space-4);
-  border-radius: 0.25rem;
-  box-shadow: inset 0 0 0 1px var(--border-default-grey);
-  background-color: var(--background-default-grey);
+  border-radius: var(--csp-surface-radius, 0.25rem);
+  box-shadow:
+    var(--csp-raised-shadow, 0 0 transparent),
+    inset 0 0 0 1px var(--csp-raised-border-color);
+  background-color: var(--csp-raised-background);
   color: var(--text-default-grey);
   font-weight: 500;
 }

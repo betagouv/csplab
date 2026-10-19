@@ -117,7 +117,7 @@ async function send(): Promise<void> {
   flex-direction: column;
   gap: var(--csp-space-2);
   padding: var(--csp-space-4);
-  border-top: 1px solid var(--border-default-grey);
+  border-top: 1px solid var(--csp-divider-color);
 }
 
 .message-composer__actions {

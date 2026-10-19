@@ -162,6 +162,18 @@ describe('candidaturePanelView', () => {
     expect(navigation.getByRole('button', { name: 'Suivant' })).toBeDisabled()
   })
 
+  it('moves back to the previous candidature of the column from the bottom bar', async () => {
+    const user = setupUser()
+    const { router } = await renderPanel([`${KANBAN_PATH}/candidatures/${CANDIDATURE_BRUNO}`])
+    const navigation = within(await screen.findByRole('navigation', { name: 'Navigation entre les candidatures de l\'étape' }))
+    expect(await navigation.findByText('Candidature 2 sur 2')).toBeInTheDocument()
+
+    await user.click(navigation.getByRole('button', { name: 'Précédent' }))
+
+    await vi.waitFor(() => expect(router.currentRoute.value.params.candidatureUuid).toBe(CANDIDATURE_ALICE))
+    expect(await navigation.findByText('Candidature 1 sur 2')).toBeInTheDocument()
+  })
+
   it('moves the candidature to another stage and opens the next one of its column', async () => {
     const user = setupUser()
     const { router } = await renderPanel([`${KANBAN_PATH}/candidatures/${CANDIDATURE_ALICE}`])
@@ -177,6 +189,26 @@ describe('candidaturePanelView', () => {
       candidatureUuids: [CANDIDATURE_ALICE],
     })
     expect(await screen.findByText('Alice Dupont est passé à l\'étape Entretien')).toBeInTheDocument()
+  })
+
+  it('replaces the previous success toast when candidatures are moved one after the other', async () => {
+    const user = setupUser()
+    const { router } = await renderPanel([`${KANBAN_PATH}/candidatures/${CANDIDATURE_ALICE}`])
+
+    async function moveToEntretien() {
+      await user.click(await screen.findByRole('button', { name: 'Changer d\'étape' }))
+      await user.click(await screen.findByRole('radio', { name: 'Entretien' }))
+      await user.click(screen.getByRole('button', { name: 'Valider' }))
+    }
+
+    await moveToEntretien()
+    expect(await screen.findByText('Alice Dupont est passé à l\'étape Entretien')).toBeInTheDocument()
+    await vi.waitFor(() => expect(router.currentRoute.value.params.candidatureUuid).toBe(CANDIDATURE_BRUNO))
+
+    await moveToEntretien()
+
+    expect(await screen.findByText('Bruno Martin est passé à l\'étape Entretien')).toBeInTheDocument()
+    expect(screen.queryByText('Alice Dupont est passé à l\'étape Entretien')).not.toBeInTheDocument()
   })
 
   it('asks for confirmation before refusing the candidature', async () => {

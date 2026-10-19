@@ -169,7 +169,7 @@ const root = computed(() => {
   padding: var(--csp-tag-padding-y) var(--csp-tag-padding-x);
   border-radius: 2rem;
   border: none;
-  background-color: var(--background-contrast-grey);
+  background-color: var(--csp-neutral-background);
   color: var(--text-label-grey);
   white-space: nowrap;
   cursor: default;

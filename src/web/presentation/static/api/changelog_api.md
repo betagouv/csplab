@@ -6,6 +6,74 @@ champs et de leurs règles se trouve dans le [guide de l'API](/pages/guide_api).
 
 Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/).
 
+## 2026-10-19
+
+### Ajouté
+
+- `POST /api/v1/offres/creer_modifier` : le champ obligatoire
+  `publication.fin_publication` (date de fin de publication) est désormais
+  enregistré. Il était exigé jusqu'ici, mais ignoré.
+- `GET /api/v1/offres/sources/{source_id}` : chaque offre renvoyée contient un nouveau
+  champ `fin_publication` (date ISO 8601), à `null` pour les offres transmises avant
+  ce changement.
+
+### Modifié
+
+- `GET /api/fake-ts/offers/getoffer` : `endPublicationDate` n'est plus toujours
+  `null`. Il reprend `fin_publication`, et reste à `null` pour les offres transmises
+  avant ce changement.
+
+### Compatibilité
+
+Ces changements sont rétrocompatibles : un appel valide avant ces changements reste
+valide, et le champ ajouté dans les réponses n'en retire aucun.
+
+## 2026-10-15
+
+### Modifié
+
+`GET /api/v1/offres`, `GET /api/v1/offres/sources/{source_id}` et
+`GET /api/v1/metiers` : le paramètre `taille` est plafonné à `1000`. Une valeur
+supérieure est ramenée à `1000`, et le lien `next` reprend cette taille. Pour
+récupérer plus d'éléments, suivez le lien `next`. Une valeur de `taille` ou `page`
+non numérique ou inférieure à `1` est remplacée par la valeur par défaut, au lieu
+de renvoyer une erreur `500`.
+
+`GET /api/fake-ts/offersummaries` : le paramètre `count` est plafonné à
+`1000`, comme `taille`. Une valeur non numérique ou inférieure à `1` pour `count`,
+ou inférieure à `0` pour `start`, est remplacée par la valeur par défaut (`100`
+pour `count`, `0` pour `start`).
+
+## 2026-10-14
+
+### ⚠️ Changements non rétrocompatibles
+
+`GET /api/v1/offres/sources/{source_id}` : l'accès à une source non autorisée pour
+l'utilisateur authentifié renvoie désormais une erreur `403 Forbidden` au lieu de
+`401 Unauthorized`, comme `POST /api/v1/offres/creer_modifier` et
+`POST /api/v1/offres/archiver`. Le corps de la réponse ne change pas. Le code `401`
+ne signale plus qu'une authentification manquante ou invalide.
+
+`POST /api/v1/offres/creer_modifier` : une offre doit renseigner **soit**
+`url_candidature`, **soit** le nouveau champ `email_candidature` (adresse email
+valide), mais pas les deux. Une offre sans aucun des deux, ou avec les deux, est
+rejetée. Jusqu'ici, `url_candidature` pouvait être vide.
+
+### Ajouts
+
+`GET /api/v1/offres/sources/{source_id}` : nouveau champ `email_candidature`, vide si
+l'offre se candidate par lien (`url_candidature`).
+
+`GET /api/fake-ts/offers/getoffer` : l'adresse email de candidature est
+renvoyée dans `customFields.origin.shortText1`, comme dans Talentsoft.
+
+### Modifié
+
+`POST /api/v1/offres/archiver` : si l'offre ne peut pas être retirée de l'index de
+recherche, la requête renvoie désormais `503 Service Unavailable` et l'offre n'est
+pas archivée. Auparavant, l'offre était archivée et la requête renvoyait `200`
+alors que l'offre restait dans l'index. La requête peut être renvoyée plus tard.
+
 ## 2026-10-13
 
 ### ⚠️ Changements non rétrocompatibles

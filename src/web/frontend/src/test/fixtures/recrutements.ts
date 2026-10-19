@@ -1,4 +1,4 @@
-import type { RecrutementsActifs, RecrutementsArchives } from './types'
+import type { RecrutementsActifs, RecrutementsArchives } from '@/features/recrutements/types'
 
 function daysAgo(days: number): string {
   const date = new Date()
@@ -12,6 +12,7 @@ export const RECRUTEMENTS_ACTIFS: RecrutementsActifs[] = [
     uuid: 'rec-1',
     intitule: 'Chargé·e de mission numérique',
     reference_csp: 'REF-001',
+    unread_conversations: 0,
     responsables: [{ nom: 'Camille Durand' }],
     nature_offre: 'TITULAIRE_CONTRACTUEL',
     date_publication: daysAgo(1),
@@ -22,6 +23,7 @@ export const RECRUTEMENTS_ACTIFS: RecrutementsActifs[] = [
     uuid: 'rec-2',
     intitule: 'Gestionnaire de paie',
     reference_csp: 'REF-002',
+    unread_conversations: 0,
     responsables: [{ nom: 'Léa Martin' }],
     nature_offre: 'TITULAIRE_CONTRACTUEL',
     date_publication: daysAgo(1),
@@ -32,6 +34,7 @@ export const RECRUTEMENTS_ACTIFS: RecrutementsActifs[] = [
     uuid: 'rec-3',
     intitule: 'Développeur·se back-end',
     reference_csp: 'REF-003',
+    unread_conversations: 0,
     responsables: [{ nom: 'Hugo Bernard' }],
     nature_offre: 'CONTRACTUEL',
     date_publication: daysAgo(2),
@@ -42,6 +45,7 @@ export const RECRUTEMENTS_ACTIFS: RecrutementsActifs[] = [
     uuid: 'rec-4',
     intitule: 'Apprenti·e communication',
     reference_csp: 'REF-004',
+    unread_conversations: 0,
     responsables: [{ nom: 'Sofia Petit' }],
     nature_offre: 'CONTRACTUEL',
     date_publication: daysAgo(2),
@@ -52,6 +56,7 @@ export const RECRUTEMENTS_ACTIFS: RecrutementsActifs[] = [
     uuid: 'rec-5',
     intitule: 'Assistant·e administratif·ve',
     reference_csp: 'REF-005',
+    unread_conversations: 0,
     responsables: [{ nom: 'Camille Durand' }, { nom: 'Léa Martin' }],
     nature_offre: 'TITULAIRE_CONTRACTUEL',
     date_publication: daysAgo(2),
@@ -62,6 +67,7 @@ export const RECRUTEMENTS_ACTIFS: RecrutementsActifs[] = [
     uuid: 'rec-6',
     intitule: 'Agent·e d’accueil',
     reference_csp: 'REF-006',
+    unread_conversations: 0,
     responsables: [{ nom: 'Léa Martin' }],
     nature_offre: 'TERRITORIAL',
     date_publication: daysAgo(22),
@@ -75,6 +81,7 @@ export const RECRUTEMENTS_ARCHIVES: RecrutementsArchives[] = [
     uuid: 'arch-1',
     intitule: 'Chef·fe de projet SI',
     reference_csp: 'REF-101',
+    unread_conversations: 0,
     responsables: [{ nom: 'Hugo Bernard' }],
     nature_offre: 'TITULAIRE_CONTRACTUEL',
     date_archivage: daysAgo(120),
@@ -85,6 +92,7 @@ export const RECRUTEMENTS_ARCHIVES: RecrutementsArchives[] = [
     uuid: 'arch-2',
     intitule: 'Juriste droit public',
     reference_csp: 'REF-102',
+    unread_conversations: 0,
     responsables: [{ nom: 'Sofia Petit' }],
     nature_offre: 'TITULAIRE_CONTRACTUEL',
     date_archivage: daysAgo(110),
@@ -95,6 +103,7 @@ export const RECRUTEMENTS_ARCHIVES: RecrutementsArchives[] = [
     uuid: 'arch-3',
     intitule: 'Technicien·ne support',
     reference_csp: 'REF-103',
+    unread_conversations: 0,
     responsables: [{ nom: 'Camille Durand' }],
     nature_offre: 'TITULAIRE_CONTRACTUEL',
     date_archivage: daysAgo(100),

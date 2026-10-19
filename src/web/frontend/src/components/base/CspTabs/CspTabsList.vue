@@ -37,13 +37,13 @@ defineProps<{
   padding-inline: max(0px, var(--csp-tabs-content-padding-inline, 0px) - var(--csp-tabs-trigger-padding-inline));
   overflow-x: auto;
   scrollbar-width: thin;
-  border-bottom: 1px solid var(--border-default-grey);
+  border-bottom: 1px solid var(--csp-divider-color);
 
   &[data-orientation='vertical'] {
     flex-direction: column;
     padding-inline: 0;
     border-bottom: none;
-    border-right: 1px solid var(--border-default-grey);
+    border-right: 1px solid var(--csp-divider-color);
   }
 }
 

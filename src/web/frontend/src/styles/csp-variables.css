@@ -39,6 +39,108 @@
   --csp-shadow-md: 0 4px 6px -1px rgba(0, 0, 18, 0.1), 0 2px 4px -1px rgba(0, 0, 18, 0.06);
   --csp-shadow-lg: 0 10px 15px -3px rgba(0, 0, 18, 0.1), 0 4px 6px -2px rgba(0, 0, 18, 0.05);
 
+  /*
+   * Roles, defined in src/stories/ddr/content/ddr-007-variables-par-role.md. A role drawn with several values in the
+   * kit is set to initial: each component that reads it gives its own value as the var() fallback.
+   */
+
+  /* Surfaces, from the page to the floating layers */
+  --csp-canvas-background: var(--background-default-grey);
+  --csp-chrome-background: var(--csp-canvas-background);
+  --csp-chrome-border-color: var(--border-default-grey);
+  --csp-nav-background: var(--background-alt-grey);
+  --csp-nav-background-current: transparent;
+  --csp-nav-marker-width-current: 2px;
+  --csp-nav-weight-current: var(--csp-font-weight-medium);
+  --csp-region-background: var(--background-alt-grey);
+  --csp-region-border-color: var(--border-default-grey);
+  --csp-region-radius: 0;
+  --csp-region-background-drop: var(--background-contrast-grey);
+  --csp-region-border-color-drop: var(--csp-region-border-color);
+  --csp-region-border-width-drop: 1px;
+  --csp-region-badge-background: var(--csp-neutral-background);
+  --csp-aside-background: transparent;
+  --csp-aside-border-color: var(--border-default-grey);
+  --csp-surface-radius: initial;
+  --csp-raised-background: var(--background-default-grey);
+  --csp-raised-background-hover: initial;
+  --csp-raised-border-color: var(--border-default-grey);
+  --csp-raised-border-color-hover: initial;
+  --csp-raised-shadow: initial;
+  --csp-raised-shadow-hover: initial;
+  --csp-raised-shadow-drag: initial;
+  --csp-raised-opacity-drag: 0.5;
+  --csp-raised-background-current: var(--csp-raised-background);
+  --csp-raised-border-color-current: var(--border-plain-info);
+  --csp-raised-border-width-current: 2px;
+  --csp-overlap-radius: initial;
+  --csp-overlap-shadow: initial;
+  --csp-lifted-shadow: var(--csp-shadow-lg);
+
+  /* Rules inside a surface, and fill of a neutral badge, tag, avatar or loading placeholder */
+  --csp-divider-color: var(--border-default-grey);
+  --csp-neutral-background: var(--background-contrast-grey);
+
+  /* Controls */
+  --csp-action-radius: 0;
+  --csp-action-secondary-background: transparent;
+  --csp-action-secondary-background-hover: var(--background-default-grey-hover);
+  --csp-action-secondary-background-active: var(--background-default-grey-active);
+  --csp-action-secondary-border-color: var(--border-action-high-blue-france);
+  --csp-action-secondary-background-disabled: transparent;
+  --csp-action-secondary-border-color-disabled: var(--border-disabled-grey);
+  --csp-field-border-color: var(--border-default-grey);
+  --csp-field-radius: 0.25rem;
+  --csp-control-border-color: var(--border-default-grey);
+  --csp-indicator-radius: 2px;
+
+  /* Text roles */
+  --csp-text-page-title-size: initial;
+  --csp-text-page-title-line-height: initial;
+  --csp-text-page-title-weight: initial;
+  --csp-text-section-title-size: initial;
+  --csp-text-section-title-line-height: initial;
+  --csp-text-section-title-weight: initial;
+  --csp-text-group-title-size: initial;
+  --csp-text-group-title-line-height: initial;
+  --csp-text-group-title-weight: initial;
+  --csp-text-label-size: initial;
+  --csp-text-label-line-height: initial;
+  --csp-text-label-weight: initial;
+  --csp-text-meta-size: initial;
+  --csp-text-meta-line-height: initial;
+  --csp-text-meta-weight: initial;
+  --csp-text-caption-size: initial;
+  --csp-text-caption-line-height: initial;
+  --csp-text-caption-weight: initial;
+
+  /* Categories of a process step: to process, in progress, closed negatively, closed positively */
+  --csp-category-accent-width: 3px;
+  --csp-category-neutral-accent: var(--border-default-grey);
+  --csp-category-neutral-background: transparent;
+  --csp-category-progress-accent: var(--border-plain-info);
+  --csp-category-progress-background: transparent;
+  --csp-category-negative-accent: var(--border-plain-error);
+  --csp-category-negative-background: transparent;
+  --csp-category-positive-accent: var(--border-plain-success);
+  --csp-category-positive-background: transparent;
+
+  /* Messages: callouts and notifications, drawn in the color of their tone */
+  --csp-message-bar-width: 4px;
+  --csp-message-border-width: 1px;
+  --csp-message-frame-width: 0;
+
+  /* Motion: instant changes and no animation until a theme sets them */
+  --csp-motion-duration-state: 0ms;
+  --csp-motion-overlap-enter: none;
+  --csp-motion-overlap-exit: none;
+  --csp-motion-dialog-enter: none;
+  --csp-motion-dialog-exit: none;
+  --csp-motion-drawer-enter: none;
+  --csp-motion-drawer-exit: none;
+  --csp-motion-scrim-enter: none;
+  --csp-motion-scrim-exit: none;
+
   /* Overlay scrim (dialog / drawer) */
   --csp-overlay-scrim: rgba(22, 22, 22, 0.64);
 
@@ -66,6 +168,7 @@
   --csp-page-header-subtitle-gap: var(--csp-space-1);
   --csp-page-header-subtitle-height: var(--csp-space-6);
   --csp-page-header-padding-bottom: var(--csp-space-5);
+  --csp-page-header-backdrop: none;
 
   /* Sidebar */
   --csp-sidebar-padding: var(--csp-space-1);
@@ -74,6 +177,7 @@
   --csp-menu-padding: var(--csp-space-1);
   --csp-menu-item-padding: var(--csp-space-2) var(--csp-space-3);
   --csp-menu-item-gap: var(--csp-space-2);
+  --csp-menu-item-radius: calc(var(--csp-overlap-radius, 0.25rem) / 2);
 
   /* Form fields */
   --csp-field-label-gap: var(--csp-space-2);
@@ -89,8 +193,36 @@
   --csp-kanban-column-width: 18.75rem;
   --csp-kanban-column-padding: var(--csp-space-3);
   --csp-kanban-column-gap: var(--csp-space-3);
-  --csp-kanban-column-accent-width: 3px;
   --csp-kanban-column-header-padding-inline: var(--csp-space-1);
+  --csp-kanban-column-header-padding-bottom: 0;
+  --csp-kanban-column-header-divider-width: 0;
+
+  /* Empty states */
+  --csp-empty-state-background: transparent;
+  --csp-empty-state-backdrop: none;
+  --csp-empty-state-frame-width: 0;
+  --csp-empty-state-gap: var(--csp-space-2);
+  --csp-empty-state-padding-block: var(--csp-space-10);
+  --csp-empty-state-icon-background: transparent;
+  --csp-empty-state-icon-color: var(--text-mention-grey);
+  --csp-empty-state-icon-padding: 0;
+  --csp-empty-state-icon-radius: 0;
+  --csp-empty-state-title-size: var(--csp-font-size-base);
+  --csp-empty-state-title-weight: var(--csp-font-weight-medium);
+  --csp-empty-state-description-size: var(--csp-font-size-sm);
+
+  /* Data tables */
+  --csp-table-head-background: var(--background-alt-grey);
+  --csp-table-footer-background: var(--background-alt-grey);
+  --csp-table-divider-color: var(--csp-divider-color);
+  --csp-table-header-size: var(--csp-font-size-base);
+  --csp-table-header-weight: 600;
+  --csp-table-header-transform: none;
+
+  /* Drawers, side panels and document frames */
+  --csp-drawer-header-backdrop: none;
+  --csp-panel-background: transparent;
+  --csp-document-frame-header-background: var(--background-alt-grey);
 
   @variant xxl {
     --csp-page-container-padding-inline: clamp(1.5rem, 1rem + 2.5vw, 4rem);

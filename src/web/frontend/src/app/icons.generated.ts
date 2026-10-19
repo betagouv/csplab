@@ -67,6 +67,7 @@ import riMore2Fill from '@iconify-icons/ri/more-2-fill'
 import riMore2Line from '@iconify-icons/ri/more-2-line'
 import riMoreFill from '@iconify-icons/ri/more-fill'
 import riNotification3Line from '@iconify-icons/ri/notification-3-line'
+import riPaletteLine from '@iconify-icons/ri/palette-line'
 import riPencilLine from '@iconify-icons/ri/pencil-line'
 import riPriceTag3Line from '@iconify-icons/ri/price-tag-3-line'
 import riQuestionAnswerLine from '@iconify-icons/ri/question-answer-line'
@@ -155,6 +156,7 @@ addIcon('ri:more-2-fill', riMore2Fill)
 addIcon('ri:more-2-line', riMore2Line)
 addIcon('ri:more-fill', riMoreFill)
 addIcon('ri:notification-3-line', riNotification3Line)
+addIcon('ri:palette-line', riPaletteLine)
 addIcon('ri:pencil-line', riPencilLine)
 addIcon('ri:price-tag-3-line', riPriceTag3Line)
 addIcon('ri:question-answer-line', riQuestionAnswerLine)

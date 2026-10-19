@@ -113,7 +113,10 @@ L'API est organisée en quatre grands domaines :
 Retourne la liste des offres d'emploi de la Fonction Publique, **paginée** (renvoyée
 par lots plutôt qu'en une seule fois). La pagination se pilote avec les paramètres
 `page` (numéro de page, défaut `1`) et `taille` (nombre d'éléments par page, défaut
-`100`).
+`100`, maximum `1000`). Une `taille` supérieure à `1000` est ramenée à `1000`. Une
+valeur absente, non numérique ou inférieure à `1` est remplacée par la valeur par
+défaut. Pour parcourir toutes les offres, suivez le lien `next` de chaque réponse
+jusqu'à ce qu'il vaille `null`.
 
 ### Filtres disponibles
 
@@ -183,11 +186,13 @@ noms utilisés par `POST /api/v1/offres/creer_modifier` (voir section 4) :
 | `versant` | Versant de la fonction publique | Oui |
 | `type_contrat` | Type de contrat | Oui |
 | `vacance_poste` | Vacance du poste | Oui |
-| `url_candidature` | Lien pour candidater | Oui |
+| `url_candidature` | Lien pour candidater. Vide si `email_candidature` est renseigné. | Oui |
+| `email_candidature` | Adresse email pour candidater. Vide si `url_candidature` est renseigné. | Oui |
 | `localisation` | Localisation de l'offre (`zone_geographique`, `pays`, `region`, `departement`, `localisation_label`, `latitude`, `longitude`) | Oui |
 | `criteres` | Critères de l'offre (diplôme, expérience, langues…) | Oui |
 | `conditions` | Conditions de l'offre (rémunération, temps de travail…) | Oui |
 | `contacts` | Contacts de l'offre (`role`, `texte`, `emails`), `principal` puis `autre` | Oui |
+| `fin_publication` | Date de fin de publication | Oui |
 | `debut_contrat` | Date de début du contrat | Oui |
 | `fin_candidature` | Date limite de candidature | Oui |
 | `debut_vacance_poste` | Date à partir de laquelle le poste est vacant | Oui |
@@ -292,7 +297,12 @@ longueur et de valeurs autorisées**.
 | `titre` | Obligatoire. **150 caractères maximum.** |
 | `titre_long` | Obligatoire. **1 500 caractères maximum.** |
 | `url_offre` | Lien web. Peut être vide. |
-| `url_candidature` | Lien web. Peut être vide. |
+| `url_candidature` | Lien web pour candidater. Voir la règle ci-dessous. |
+| `email_candidature` | Adresse email valide pour candidater. Voir la règle ci-dessous. |
+
+> **Règle métier :** renseigner **soit** `url_candidature`, **soit**
+> `email_candidature`, mais pas les deux. Une offre qui contient les deux, ou aucun
+> des deux, est rejetée.
 
 #### Bloc « Organisation » (`organisation`) — obligatoire
 | Champ | Règle |
@@ -568,7 +578,9 @@ Notation : `a.b` désigne un objet imbriqué, `a[]` une liste, `a[0]` son premie
 | `customFields.description.longText3` | `description.descriptif_service` | |
 | `customFields.offerCustomBlock1.longText1` | `description.complements` | |
 | `offerUrl` | `url_offre` | |
-| `urlRedirectionApplicant` | `url_candidature` | Repli sur `applicationUrl`. |
+| `urlRedirectionApplicant` | `url_candidature` | Prioritaire sur `customFields.origin.shortText1` et `applicationUrl`. |
+| `customFields.origin.shortText1` | `email_candidature` | Texte libre (« adresse de candidature »). Lu seulement si `urlRedirectionApplicant` est vide : le premier e-mail valide trouvé devient `email_candidature`, et `url_candidature` reste vide. API fake-ts : reprend `email_candidature`, `null` si l'offre se candidate par lien. |
+| `applicationUrl` | `url_candidature` | Dernier recours, si `urlRedirectionApplicant` est vide et que `customFields.origin.shortText1` ne contient aucun e-mail valide. Toujours rempli dans Talentsoft (page de candidature générique). API fake-ts : reprend `url_candidature`, `null` si l'offre se candidate par e-mail. |
 | `geographicalLocation[0].clientCode` | `localisation[0].zone_geographique` | L'API fake-ts renvoie toujours `[]` : aucune `localisation` n'est donc produite à partir de lui. Toute la `localisation` est abandonnée si la zone, le pays, la région ou le département manque. |
 | `country[0].clientCode` | `localisation[0].pays` | |
 | `region[0].clientCode` | `localisation[0].region` | Les préfixes `_TS_CO_Region_` et `R` sont retirés pour obtenir le code INSEE. |
@@ -577,7 +589,7 @@ Notation : `a.b` désigne un objet imbriqué, `a[]` une liste, `a[0]` son premie
 | `geolocation.longitude` | `localisation[0].longitude` | Repli sur `longitude`, puis sur `organisation.geolocation.longitude`. |
 | `customFields.location.shortText1` | `localisation[0].localisation_label` | |
 | `startPublicationDate` | `publication.debut_publication` | |
-| `endPublicationDate` | `publication.fin_publication` | Repli sur `beginningDate`, puis sur `debut_publication` + 365 jours. Le `OfferInputMapper` du web ne lit jamais `fin_publication`. |
+| `endPublicationDate` | `publication.fin_publication` | Repli sur `beginningDate`, puis sur `debut_publication` + 365 jours. API fake-ts : reprend `fin_publication`, `null` pour les offres reçues avant son enregistrement. |
 | `customFields.offer.date1` | `publication.fin_candidature` | |
 | `beginningDate` | `conditions.debut_contrat` | Sert aussi de repli pour `fin_publication`. |
 | `beginningDate` | `publication.debut_vacance_poste` | Comme l'ancien site WordPress (« Vacant à partir du … », « Poste à pourvoir le … »). |
@@ -666,7 +678,7 @@ Notation : `a.b` désigne un objet imbriqué, `a[]` une liste, `a[0]` son premie
 | `conditions.complements` | Jamais renseigné par l'ingestion. |
 | `conditions.bases_legales` | Jamais renseigné par l'ingestion. |
 | `conditions.note_ouverture_poste_url` | Jamais renseigné par l'ingestion. |
-| `contacts` | Lu dans `customFields.origin` (absent de l'API fake-ts) : `shortText2` (« Personnes à contacter ») → contact `principal`, `shortText3` (« Autre personne à contacter ») → contact `autre`. `texte` reprend la valeur sans les espaces en début et fin ; une valeur sans lettre ni chiffre est ignorée. `emails` contient les adresses email présentes dans le texte, dédoublonnées, dans l'ordre d'apparition. `null` si aucun contact. `shortText1` (adresse de candidature) n'est pas lu. |
+| `contacts` | Lu dans `customFields.origin.shortText2` et `customFields.origin.shortText3` (absents de l'API fake-ts) : `shortText2` (« Personnes à contacter ») → contact `principal`, `shortText3` (« Autre personne à contacter ») → contact `autre`. `texte` reprend la valeur sans les espaces en début et fin ; une valeur sans lettre ni chiffre est ignorée. `emails` contient les adresses email présentes dans le texte, dédoublonnées, dans l'ordre d'apparition. `null` si aucun contact. |
 
 
 

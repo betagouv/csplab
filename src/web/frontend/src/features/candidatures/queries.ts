@@ -55,7 +55,7 @@ export const candidatureDocumentCheckQuery = defineQueryOptions((params: Documen
 
 export const candidatureActivitesQuery = defineQueryOptions((params: ActivitesParams) => {
   return {
-    key: [...candidatureKeys.activites(params), params.limit ?? null],
+    key: candidatureKeys.activitesList(params),
     query: () => getCandidatureActivites(params),
   }
 })

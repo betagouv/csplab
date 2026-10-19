@@ -1,0 +1,54 @@
+/* Tokens of the DSFR only: its colors, its shadows, its radii and its 300 ms transition */
+:root[data-csp-theme='dsfr'] {
+  /* Neutral greys of the DSFR for the page and the groups, white working surfaces; blue France marks states only */
+  --csp-canvas-background: var(--background-alt-grey);
+  --csp-nav-background: var(--background-alt-grey);
+  --csp-region-background: var(--background-contrast-grey);
+  --csp-region-border-color: transparent;
+  --csp-region-background-drop: var(--background-action-low-blue-france);
+  --csp-region-badge-background: var(--background-overlap-grey);
+  --csp-aside-background: var(--background-alt-grey);
+
+  /* Cards raised by the shadows of the DSFR, without border */
+  --csp-raised-background: var(--background-overlap-grey);
+  --csp-raised-background-hover: var(--background-overlap-grey-hover);
+  --csp-raised-border-color: transparent;
+  --csp-raised-shadow: var(--raised-shadow);
+  --csp-raised-shadow-hover: var(--overlap-shadow);
+  --csp-overlap-shadow: var(--overlap-shadow);
+  --csp-lifted-shadow: var(--lifted-shadow);
+
+  /* Categories of a process step: plain borders of the illustrative colors of the DSFR */
+  --csp-category-accent-width: 0.25rem;
+  --csp-category-neutral-accent: var(--border-plain-beige-gris-galet);
+  --csp-category-progress-accent: var(--border-plain-blue-cumulus);
+  --csp-category-negative-accent: var(--border-plain-pink-tuile);
+  --csp-category-positive-accent: var(--border-plain-green-emeraude);
+
+  /* Radii: 4 px on fields and checkmarks, square elsewhere */
+  --csp-surface-radius: 0;
+  --csp-overlap-radius: 0;
+  --csp-indicator-radius: 0.25rem;
+}
+
+/* In dark mode, a lighter surface is a higher one: page and navigation, then columns, then cards */
+:root[data-csp-theme='dsfr'][data-fr-theme='dark'] {
+  --csp-canvas-background: var(--background-default-grey);
+  --csp-nav-background: var(--background-default-grey);
+  --csp-region-background: var(--background-alt-grey);
+  --csp-raised-background-hover: var(--background-contrast-raised-grey);
+  --csp-raised-border-color: var(--border-default-grey);
+  --csp-raised-border-color-hover: var(--border-plain-grey);
+}
+
+/* Motion: the 300 ms of the DSFR with the default easing of CSS, on drawers, dialogs and the scrim */
+@media (prefers-reduced-motion: no-preference) {
+  :root[data-csp-theme='dsfr'] {
+    --csp-motion-drawer-enter: csp-drawer-enter 300ms ease;
+    --csp-motion-drawer-exit: csp-drawer-exit 300ms ease;
+    --csp-motion-dialog-enter: csp-fade-in 300ms ease;
+    --csp-motion-dialog-exit: csp-fade-out 300ms ease;
+    --csp-motion-scrim-enter: csp-fade-in 300ms ease;
+    --csp-motion-scrim-exit: csp-fade-out 300ms ease;
+  }
+}

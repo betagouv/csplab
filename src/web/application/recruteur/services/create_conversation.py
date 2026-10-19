@@ -81,6 +81,9 @@ def create_conversation(
             event_name="ConversationCreee",
         )
 
-    return ConversationModel.objects.by_candidature(candidature_id).get(
-        pk=conversation.id
+    return (
+        ConversationModel.objects.by_candidature(candidature_id)
+        .with_message_summary()
+        .with_is_unread(auteur_id)
+        .get(pk=conversation.id)
     )

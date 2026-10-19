@@ -52,7 +52,7 @@ const colorStyle = computed(() => props.color
   align-items: center;
   justify-content: center;
 
-  background-color: var(--csp-avatar-background, var(--background-contrast-grey));
+  background-color: var(--csp-avatar-background, var(--csp-neutral-background));
   color: var(--csp-avatar-text, var(--text-default-grey));
   box-shadow: inset 0 0 0 1px var(--border-default-grey);
 

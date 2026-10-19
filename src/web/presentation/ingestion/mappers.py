@@ -3,6 +3,7 @@ from typing import Optional
 from uuid import UUID
 
 from ddd.mapper_interface import IToDomainMapper
+from pydantic import HttpUrl
 from referentiel.entities.offer import Offer
 from referentiel.entities.talentsoft_organisme import TalentsoftOrganisme
 from referentiel.value_objects.area import GeographicalArea
@@ -64,6 +65,7 @@ class OfferInputMapper(IToDomainMapper[dict, Offer]):
             mission=data["description"]["mission"],
             organization=data["organisation"]["nom"],
             publication_date=data["publication"]["debut_publication"],
+            end_publication_date=data["publication"]["fin_publication"],
             verse=Verse(data["identification"]["versant"]),
             category=category,
             offer_nature=OfferNature(data["nature_offre"]),
@@ -76,7 +78,10 @@ class OfferInputMapper(IToDomainMapper[dict, Offer]):
             functional_area_code=data["profession"].get("domaine"),
             source_id=source_id,
             long_title=data.get("titre_long") or None,
-            application_url=data.get("url_candidature"),
+            application_url=HttpUrl(data["url_candidature"])
+            if data.get("url_candidature")
+            else None,
+            application_email=data.get("email_candidature"),
             contract_kind=ContractKind[data["type_contrat"]]
             if data.get("type_contrat")
             else None,
@@ -257,7 +262,7 @@ class OfferDetailOutputMapper(OfferSummaryOutputMapper):
             "applicationUrl": str(offer.application_url)
             if offer.application_url
             else None,
-            "endPublicationDate": None,
+            "endPublicationDate": self._isoformat(offer.end_publication_date),
             "isAnonymousOrganisation": False,
             "organisation": self._talentsoft_organisation(offer.talentsoft_organisme)
             if offer.talentsoft_organisme
@@ -323,6 +328,7 @@ class OfferDetailOutputMapper(OfferSummaryOutputMapper):
                 shortText1=offer.localisation.label if offer.localisation else None
             ),
             "offerCustomBlock1": self._dynamic_field(longText1=offer.complements),
+            "origin": self._dynamic_field(shortText1=offer.application_email),
         }
 
     @staticmethod

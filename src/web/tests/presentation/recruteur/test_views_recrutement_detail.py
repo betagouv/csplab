@@ -194,7 +194,9 @@ class TestRecrutementDetailView:
             "organisme_recruteur",
             "categorie_offre",
             "etapes",
+            "recrutement_role",
         }
+        assert payload["recrutement_role"] is None
         assert payload["uuid"] == str(recrutement.pk)
         assert payload["intitule"] == "Chargé de mission numérique"
         assert payload["archive"] is False
@@ -265,23 +267,32 @@ class TestRecrutementDetailView:
             for etape in etapes
         }
 
-    def test_archive_flag_is_true_for_archived_offre(
-        self, authenticated_client, test_user
+    @pytest.mark.parametrize("archivee", [True, False], ids=["archivee", "active"])
+    def test_archive_flag_reflects_offre(
+        self, authenticated_client, test_user, archivee
     ):
         _, organisme = create_organisme_with_agent(
             role=AgentOrganismeRole.SUPERVISEUR, utilisateur=test_user
         )
-        recrutement = RecrutementDjangoFactory(organisme=organisme, offre_archivee=True)
+        recrutement = RecrutementDjangoFactory(
+            organisme=organisme, offre_archivee=archivee
+        )
 
         payload = authenticated_client.get(
             _detail_url(organisme.id, recrutement.pk)
         ).json()
 
-        assert payload["archive"] is True
+        assert payload["archive"] is archivee
 
     @pytest.mark.parametrize(
         ("organisme_role", "recrutement_role", "expected_status"),
         [
+            pytest.param(
+                AgentOrganismeRole.SUPERVISEUR,
+                None,
+                status.HTTP_200_OK,
+                id="superviseur",
+            ),
             *[
                 pytest.param(
                     AgentOrganismeRole.AGENT,
@@ -321,6 +332,9 @@ class TestRecrutementDetailView:
         assert response.status_code == expected_status
         if expected_status == status.HTTP_403_FORBIDDEN:
             assert response.json() == {"error": "Forbidden."}
+        else:
+            expected_role = recrutement_role.value if recrutement_role else None
+            assert response.json()["recrutement_role"] == expected_role
 
     def test_staff_gets_detail_without_organisme_role(self, api_client):
         api_client.force_login(UtilisateurDjangoFactory(is_staff=True))

@@ -512,6 +512,7 @@ class FakeTsCustomFieldsSerializer(serializers.Serializer):
     description = FakeTsDynamicFieldSerializer()
     location = FakeTsDynamicFieldSerializer()
     offerCustomBlock1 = FakeTsDynamicFieldSerializer()
+    origin = FakeTsDynamicFieldSerializer()
 
 
 class FakeTsOfferDetailSerializer(FakeTsOfferSummarySerializer):
@@ -575,11 +576,17 @@ class OfferDetailResponseSerializer(serializers.Serializer):
     vacance_poste = serializers.CharField(source="job_vacancy", allow_null=True)
     url_offre = serializers.CharField(source="offer_url", allow_null=True)
     url_candidature = serializers.CharField(source="application_url", allow_null=True)
+    email_candidature = serializers.EmailField(
+        source="application_email", allow_null=True
+    )
     localisation = serializers.SerializerMethodField()
     criteres = serializers.SerializerMethodField()
     conditions = serializers.DictField(allow_null=True)
     contacts = ContactSerializer(many=True, allow_null=True)
     debut_publication = serializers.DateTimeField(source="publication_date")
+    fin_publication = serializers.DateTimeField(
+        source="end_publication_date", allow_null=True
+    )
     debut_contrat = serializers.SerializerMethodField()
     fin_candidature = serializers.DateTimeField(
         source="application_deadline", allow_null=True
@@ -826,7 +833,8 @@ class OffersInputSerializer(serializers.Serializer):
     titre_long = serializers.CharField(max_length=1500)
     organisation = OrganismeInputSerializer()
     url_offre = serializers.URLField(allow_null=True)
-    url_candidature = serializers.URLField(allow_null=True)
+    url_candidature = serializers.URLField(allow_null=True, required=False)
+    email_candidature = serializers.EmailField(allow_null=True, required=False)
 
     # classification
     profession = ProfessionInputSerializer()
@@ -860,6 +868,14 @@ class OffersInputSerializer(serializers.Serializer):
         if len(roles) != len(set(roles)):
             raise serializers.ValidationError("Au plus un contact par rôle.")
         return sorted(value, key=lambda contact: CONTACT_ROLES.index(contact["role"]))
+
+    def validate(self, data):
+        if bool(data.get("url_candidature")) == bool(data.get("email_candidature")):
+            raise serializers.ValidationError(
+                "Renseigner soit url_candidature, soit email_candidature, "
+                "mais pas les deux."
+            )
+        return data
 
 
 class UpsertOffersRequestSerializer(serializers.Serializer):

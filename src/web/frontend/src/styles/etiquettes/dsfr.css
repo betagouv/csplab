@@ -10,7 +10,7 @@
   --csp-label-dot-display: block;
   --csp-label-remove-state-color: var(--text-title-grey);
 
-  --csp-palette-grey-background: var(--background-contrast-grey);
+  --csp-palette-grey-background: var(--csp-neutral-background);
   --csp-palette-grey-background-hover: var(--background-contrast-grey-hover);
   --csp-palette-grey-background-active: var(--background-contrast-grey-active);
   --csp-palette-grey-text: var(--text-mention-grey);

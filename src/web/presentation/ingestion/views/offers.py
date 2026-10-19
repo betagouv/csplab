@@ -26,6 +26,7 @@ from application.ingestion.services.offer_references import (
 from domain.ingestion.exceptions.source_authorization_error import (
     SourceAuthorizationError,
 )
+from domain.ingestion.exceptions.vector_deletion_error import VectorDeletionError
 from infrastructure.di.ingestion.ingestion_factory import create_ingestion_container
 from infrastructure.django_apps.users.models import UserModel
 from presentation.api.authentication import PublicApiMixin
@@ -119,16 +120,10 @@ class OffersListView(PublicApiMixin, APIView):
     tags=["offres"],
     responses={
         200: OfferDetailResponseSerializer(many=True),
-        401: PolymorphicProxySerializer(
-            component_name="OffersBySource401Error",
-            serializers=[
-                TokenErrorSerializer,
-                inline_serializer(
-                    name="OffersBySourceUnauthorized",
-                    fields={"detail": drf_serializers.CharField()},
-                ),
-            ],
-            resource_type_field_name=None,
+        401: TokenErrorSerializer,
+        403: inline_serializer(
+            name="OffersBySourceForbidden",
+            fields={"detail": drf_serializers.CharField()},
         ),
         500: GenericErrorSerializer,
     },
@@ -163,7 +158,7 @@ class OffersBySourceView(PublicApiMixin, APIView):
             source_ids = sorted(str(sid) for sid in e.source_ids)
             return Response(
                 {"detail": f"Not authorized to access this source: {source_ids}."},
-                status=status.HTTP_401_UNAUTHORIZED,
+                status=status.HTTP_403_FORBIDDEN,
             )
         except Exception as e:
             self.logger.error("Unexpected error in OffersBySourceView: %s", str(e))
@@ -205,6 +200,10 @@ class OffersBySourceView(PublicApiMixin, APIView):
                 name="ArchiveOfferNotFound",
                 fields={"detail": drf_serializers.CharField()},
             ),
+            503: inline_serializer(
+                name="ArchiveOfferUnavailable",
+                fields={"detail": drf_serializers.CharField()},
+            ),
         },
     )
 )
@@ -237,6 +236,14 @@ class ArchiveOffersView(PublicApiMixin, APIView):
         except OfferDoesNotExist:
             return Response(
                 {"detail": "Offre introuvable."}, status=status.HTTP_404_NOT_FOUND
+            )
+        except VectorDeletionError:
+            return Response(
+                {
+                    "detail": "L'offre n'a pas pu être archivée, "
+                    "veuillez réessayer plus tard."
+                },
+                status=status.HTTP_503_SERVICE_UNAVAILABLE,
             )
         return Response(
             ArchiveOfferSuccessSerializer({"statut": "ok"}).data,

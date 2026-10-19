@@ -28,6 +28,7 @@ from domain.entities.offer import Offer
 from domain.entities.raw_offer import RawOffer
 from domain.repositories.sources_repository import ISourcesRepository
 from domain.value_objects.contact import Contact, ContactRole
+from domain.value_objects.email import extract_emails
 from infrastructure.external_gateways.dtos.talentsoft_dtos import (
     TalentsoftCodedObject,
     TalentsoftCustomFields,
@@ -331,11 +332,8 @@ class OffersCleaner:
         )
 
         offer_url = self._parse_url(talentsoft_offer.offerUrl)
-        application_url_str = (
-            talentsoft_offer.urlRedirectionApplicant or talentsoft_offer.applicationUrl
-        )
-        application_url = (
-            self._parse_url(application_url_str) if application_url_str else None
+        application_url, application_email = self._map_application_channel(
+            talentsoft_offer, origin_fields
         )
         application_deadline = self._parse_optional_date(offer_fields.date1)
         publication_date = self._parse_publication_date(
@@ -441,6 +439,7 @@ class OffersCleaner:
             organization=talentsoft_offer.organisationName,
             offer_url=offer_url,
             application_url=application_url,
+            application_email=application_email,
             localisation=localisation,
             publication_date=publication_date,
             end_publication_date=end_publication_date,
@@ -594,6 +593,24 @@ class OffersCleaner:
         "STATUT01": JobVacancy.OUI,
         "STATUT02": JobVacancy.NON,
     }
+
+    def _map_application_channel(
+        self,
+        talentsoft_offer: TalentsoftDetailOffer,
+        origin_fields: TalentsoftDynamicField,
+    ) -> tuple[Optional[HttpUrl], Optional[str]]:
+        if talentsoft_offer.urlRedirectionApplicant:
+            return self._parse_url(talentsoft_offer.urlRedirectionApplicant), None
+
+        emails = extract_emails(origin_fields.shortText1)
+        if emails:
+            return None, emails[0]
+
+        # Talentsoft always fills applicationUrl with its generic application
+        # page: it comes last, otherwise the application e-mail would never win.
+        if talentsoft_offer.applicationUrl:
+            return self._parse_url(talentsoft_offer.applicationUrl), None
+        return None, None
 
     def _map_contacts(self, origin_fields: TalentsoftDynamicField) -> list[Contact]:
         candidates = [

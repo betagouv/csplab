@@ -1,9 +1,15 @@
+import functools
+
+from ddd.services.logger_interface import ILogger
 from dependency_injector import containers, providers
 
+from config.app_config import QdrantConfig
+from domain.ingestion.repositories.vector_repository_interface import IVectorRepository
 from infrastructure.external_gateways.albert_embedding_generator import (
     AlbertEmbeddingGenerator,
 )
 from infrastructure.gateways.shared.async_http_client import AsyncHttpClient
+from infrastructure.gateways.shared.logger import LoggerService
 from infrastructure.mappers.metier_mapper import MetierMapper
 from infrastructure.mappers.offer_mapper import OfferMapper
 from infrastructure.repositories.commons.postgres_offer_stats_query_service import (
@@ -18,6 +24,9 @@ from infrastructure.repositories.shared import (
     postgres_metier_repository,
     postgres_offers_repository,
 )
+from infrastructure.repositories.shared.null_vector_repository import (
+    NullVectorRepository,
+)
 from infrastructure.repositories.shared.postgres_api_log_daily_agg_repository import (
     PostgresApiLogDailyAggregationRepository,
 )
@@ -25,6 +34,24 @@ from infrastructure.repositories.shared.postgres_api_log_repository import (
     PostgresApiLogRepository,
 )
 from infrastructure.repositories.shared.qdrant_repository import QdrantRepository
+
+
+# Containers are created per request: cached so the warning is logged once
+@functools.cache
+def _null_vector_repository() -> NullVectorRepository:
+    LoggerService().warning(
+        "WEB_QDRANT_URL is not set: vector database disabled, "
+        "semantic search will return no results"
+    )
+    return NullVectorRepository()
+
+
+def _create_vector_repository(
+    config: QdrantConfig, logger: ILogger
+) -> IVectorRepository:
+    if not config.url:
+        return _null_vector_repository()
+    return QdrantRepository(config=config, logger=logger)
 
 
 class SharedContainer(containers.DeclarativeContainer):
@@ -76,7 +103,7 @@ class SharedContainer(containers.DeclarativeContainer):
     )
 
     vector_repository = providers.Singleton(
-        QdrantRepository,
+        _create_vector_repository,
         config=app_config.provided.qdrant,
         logger=logger_service,
     )

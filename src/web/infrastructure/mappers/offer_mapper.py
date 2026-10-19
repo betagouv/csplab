@@ -74,12 +74,14 @@ class OfferMapper(
             application_url=HttpUrl(model.application_url)
             if model.application_url
             else None,
+            application_email=model.application_email,
             contract_kind=contract_kind,
             job_vacancy=model.job_vacancy,
             employer=model.employer,
             complements=model.complements,
             exercise_conditions=model.exercise_conditions,
             service_description=model.service_description,
+            end_publication_date=model.end_publication_date,
             application_deadline=model.application_deadline,
             job_vacancy_date=model.job_vacancy_date,
             criteria=OfferCriteria.from_dict(model.criteria),
@@ -152,12 +154,14 @@ class OfferMapper(
             application_url=str(entity.application_url)
             if entity.application_url
             else None,
+            application_email=entity.application_email,
             contract_kind=contract_kind,
             job_vacancy=entity.job_vacancy,
             employer=entity.employer,
             complements=entity.complements,
             exercise_conditions=entity.exercise_conditions,
             service_description=entity.service_description,
+            end_publication_date=entity.end_publication_date,
             application_deadline=entity.application_deadline,
             job_vacancy_date=entity.job_vacancy_date,
             criteria=entity.criteria.to_dict() if entity.criteria else None,

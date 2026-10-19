@@ -5,9 +5,9 @@ import { createPinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { defineComponent, h, nextTick } from 'vue'
 import { organismeKeys, recrutementKeys } from '@/api/queryKeys'
-import { RECRUTEMENTS_ACTIFS } from '../mock'
+import { RECRUTEMENTS_ACTIFS } from '@/test/fixtures/recrutements'
 import { recrutementsActifsQuery } from '../queries'
-import { useAssignationResponsable } from './useAssignationResponsable'
+import { useAssignResponsable } from './useAssignResponsable'
 
 const mockGetRecrutementsActifs = vi.fn()
 const mockSetRecrutementsResponsable = vi.fn()
@@ -47,10 +47,10 @@ async function flush() {
 }
 
 function mountAssignation() {
-  let result!: ReturnType<typeof useAssignationResponsable>
+  let result!: ReturnType<typeof useAssignResponsable>
   mount(defineComponent({
     setup() {
-      result = useAssignationResponsable(ORGANISME_UUID)
+      result = useAssignResponsable(ORGANISME_UUID)
       useQuery(() => recrutementsActifsQuery({ organismeUuid: ORGANISME_UUID }))
       useQuery({
         key: recrutementKeys.equipe({ organismeUuid: ORGANISME_UUID, recrutementUuid: 'rec-1' }),
@@ -70,7 +70,7 @@ function mountAssignation() {
   return result
 }
 
-describe('useAssignationResponsable', () => {
+describe('useAssignResponsable', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     mockGetRecrutementsActifs.mockResolvedValue({ results: RECRUTEMENTS_ACTIFS })
@@ -111,53 +111,5 @@ describe('useAssignationResponsable', () => {
 
     expect(mockGetEquipe).toHaveBeenCalledTimes(2)
     expect(mockGetAgentsOrganisme).toHaveBeenCalledTimes(2)
-  })
-
-  it('creates the account before assigning when no agent matches the email', async () => {
-    mockSearchAgentByEmail.mockResolvedValue(null)
-    const result = mountAssignation()
-    await flush()
-
-    expect(await result.search(EMAIL)).toBe('not-found')
-
-    await result.assign(['rec-1'])
-
-    expect(mockCreateAgent).toHaveBeenCalledWith({
-      email: EMAIL,
-      organisme_id: ORGANISME_UUID,
-    })
-    expect(mockSetRecrutementsResponsable).toHaveBeenCalledWith(ORGANISME_UUID, {
-      recrutement_ids: ['rec-1'],
-      agent_id: NOUVEL_AGENT_ID,
-    })
-  })
-
-  it('stays submitting from the account creation until the assignation is done', async () => {
-    mockSearchAgentByEmail.mockResolvedValue(null)
-    let acheverCreation!: (agent: unknown) => void
-    let acheverAssignation!: (resultat: unknown) => void
-    mockCreateAgent.mockReturnValue(new Promise((resolve) => {
-      acheverCreation = resolve
-    }))
-    mockSetRecrutementsResponsable.mockReturnValue(new Promise((resolve) => {
-      acheverAssignation = resolve
-    }))
-
-    const result = mountAssignation()
-    await flush()
-    await result.search(EMAIL)
-
-    const enCours = result.assign(['rec-1'])
-    await flush()
-    expect(result.submitting.value).toBe(true)
-
-    acheverCreation({ ...AGENT, uuid: NOUVEL_AGENT_ID })
-    await flush()
-    expect(result.submitting.value).toBe(true)
-
-    acheverAssignation({ reussites: ['rec-1'], echecs: [] })
-    await enCours
-    await flush()
-    expect(result.submitting.value).toBe(false)
   })
 })

@@ -13,6 +13,7 @@ from application.ingestion.interfaces.archive_offer_by_reference_input import (
 from domain.ingestion.exceptions.source_authorization_error import (
     SourceAuthorizationError,
 )
+from domain.ingestion.exceptions.vector_deletion_error import VectorDeletionError
 from infrastructure.factories.ingestion.source_django_factory import (
     SourceDjangoFactory,
 )
@@ -75,6 +76,12 @@ class TestArchiveOffersView:
             format="json",
         )
         assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    def test_vector_deletion_error_returns_503(self, api_client, use_case):
+        use_case.execute.side_effect = VectorDeletionError([UUID(int=1)])
+        api_client.credentials(HTTP_AUTHORIZATION=f"Api-Key {API_KEY}")
+        response = api_client.post(URL, VALID_BODY, format="json")
+        assert response.status_code == status.HTTP_503_SERVICE_UNAVAILABLE
 
     def test_jwt_authentication_archives_offer(
         self, authenticated_client_with_source, test_user, use_case

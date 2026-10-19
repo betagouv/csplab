@@ -29,6 +29,7 @@ class OfferDjangoFactory(DjangoModelFactory):
     category = Category.A.value
     organization = "Test Organization"
     publication_date = datetime(2024, 1, 15, tzinfo=UTC)
+    end_publication_date = datetime(2025, 1, 15, tzinfo=UTC)
     beginning_date = datetime(2024, 12, 31, tzinfo=UTC)
     area = GeographicalArea.EUROPE.value
     country = "FRA"

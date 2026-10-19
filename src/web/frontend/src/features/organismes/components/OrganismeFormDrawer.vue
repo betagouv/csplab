@@ -195,6 +195,6 @@ defineExpose({ setSiretError })
   justify-content: flex-end;
   gap: var(--csp-space-3);
   padding-top: var(--csp-space-4);
-  border-top: 1px solid var(--border-default-grey);
+  border-top: 1px solid var(--csp-divider-color);
 }
 </style>

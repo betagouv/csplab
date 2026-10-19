@@ -156,7 +156,7 @@ const EN_COURS = CATEGORIE_CONFIG.EN_COURS
   gap: var(--csp-kanban-column-gap);
   width: var(--csp-kanban-column-width);
   padding: var(--csp-kanban-column-padding);
-  border-top: var(--csp-kanban-column-accent-width) solid var(--border-plain-info);
+  border-top: var(--csp-category-accent-width) solid var(--border-plain-info);
   background-color: var(--background-alt-grey);
   box-shadow: inset 0 0 0 1px var(--border-default-grey);
 }

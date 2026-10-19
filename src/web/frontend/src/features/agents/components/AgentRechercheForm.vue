@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import type { AgentSearchStatus } from '../composables/useAgentParEmail'
+import type { AgentSearchStatus } from '../composables/useFindOrCreateAgent'
 import type { AgentRecherche } from '../types'
 import { computed, ref, watch } from 'vue'
 import CspSearchBar from '@/components/base/CspSearchBar/CspSearchBar.vue'
-import { formatAgentName } from '../format'
+import { formatAgentLabel } from '../format'
 
 const props = withDefaults(defineProps<{
   status: AgentSearchStatus
@@ -65,7 +65,7 @@ function handleSearch(value: string): void {
     class="agent-recherche-form__agent"
   >
     <p class="agent-recherche-form__agent-name">
-      {{ formatAgentName(agent) || agent.email }}
+      {{ formatAgentLabel(agent) }}
     </p>
     <p class="agent-recherche-form__agent-detail">
       {{ agent.intitule_poste }}
@@ -91,7 +91,7 @@ function handleSearch(value: string): void {
   gap: var(--csp-space-1);
   padding: var(--csp-space-4);
   border: 1px solid var(--border-default-grey);
-  border-radius: 0.25rem;
+  border-radius: var(--csp-surface-radius, 0.25rem);
 }
 
 .agent-recherche-form__agent-name {

@@ -1,0 +1,56 @@
+/*
+ * The kit with the beige-gris-galet family of the DSFR in its secondary neutrals: a quarter for the navigation, the
+ * kanban columns and the neutral fills, a fifth for rules and secondary text. Each mix pairs a grey and a
+ * beige-gris-galet option token of the DSFR, which switch together between light and dark. Shadows are those of the
+ * DSFR, radii are 4 and 8 px.
+ */
+:root[data-csp-theme='greige'] {
+  --background-alt-grey: color-mix(in oklab, var(--grey-975-75) 75%, var(--beige-gris-galet-950-100));
+  --background-alt-grey-hover: color-mix(in oklab, var(--grey-975-75-hover) 75%, var(--beige-gris-galet-950-100-hover));
+  --background-alt-grey-active: color-mix(
+    in oklab,
+    var(--grey-975-75-active) 75%,
+    var(--beige-gris-galet-950-100-active)
+  );
+  --border-default-grey: color-mix(in oklab, var(--grey-900-175) 80%, var(--beige-gris-galet-850-200));
+  --text-mention-grey: color-mix(in oklab, var(--grey-425-625) 80%, var(--beige-gris-galet-sun-407-moon-821));
+  --csp-neutral-background: color-mix(in oklab, var(--grey-950-100) 75%, var(--beige-gris-galet-925-125));
+  --csp-region-background-drop: color-mix(in oklab, var(--background-alt-grey) 60%, var(--background-alt-grey-hover));
+
+  /* A dotted band in the bottom padding of the page header, under no text, fading out towards the start */
+  --greige-dots: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100%' height='100%'%3E%3Cdefs%3E%3Cpattern id='d' width='6' height='6' patternUnits='userSpaceOnUse'%3E%3Ccircle cx='3' cy='3' r='1.1' fill='%23aea397' fill-opacity='0.4'/%3E%3C/pattern%3E%3ClinearGradient id='g'%3E%3Cstop offset='0.3' stop-color='white' stop-opacity='0'/%3E%3Cstop offset='1' stop-color='white'/%3E%3C/linearGradient%3E%3Cmask id='m'%3E%3Crect width='100%' height='100%' fill='url(%23g)'/%3E%3C/mask%3E%3C/defs%3E%3Crect width='100%' height='100%' fill='url(%23d)' mask='url(%23m)'/%3E%3C/svg%3E");
+  --csp-page-header-backdrop: var(--greige-dots) right bottom / 100% var(--csp-page-header-padding-bottom) no-repeat;
+
+  /* Radii: 4 px for controls, 8 px for cards, floating layers and columns */
+  --csp-action-radius: 0.25rem;
+  --csp-surface-radius: 0.5rem;
+  --csp-overlap-radius: 0.5rem;
+  --csp-region-radius: 0.5rem;
+  --csp-indicator-radius: 0.25rem;
+
+  --csp-lifted-shadow: var(--overlap-shadow);
+  --csp-raised-shadow-hover: var(--raised-shadow);
+  --csp-raised-shadow-drag: var(--lifted-shadow);
+  --csp-raised-opacity-drag: 0.4;
+}
+
+:root[data-csp-theme='greige'][data-fr-theme='dark'] {
+  --greige-dots: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100%' height='100%'%3E%3Cdefs%3E%3Cpattern id='d' width='6' height='6' patternUnits='userSpaceOnUse'%3E%3Ccircle cx='3' cy='3' r='1.1' fill='%23aea397' fill-opacity='0.2'/%3E%3C/pattern%3E%3ClinearGradient id='g'%3E%3Cstop offset='0.3' stop-color='white' stop-opacity='0'/%3E%3Cstop offset='1' stop-color='white'/%3E%3C/linearGradient%3E%3Cmask id='m'%3E%3Crect width='100%' height='100%' fill='url(%23g)'/%3E%3C/mask%3E%3C/defs%3E%3Crect width='100%' height='100%' fill='url(%23d)' mask='url(%23m)'/%3E%3C/svg%3E");
+}
+
+/* Motion: 100 ms for a state, 200 ms for a floating layer, 300 ms for a drawer; entries decelerate, exits are shorter */
+@media (prefers-reduced-motion: no-preference) {
+  :root[data-csp-theme='greige'] {
+    --greige-easing-enter: cubic-bezier(0, 0, 0.38, 0.9);
+    --greige-easing-exit: cubic-bezier(0.2, 0, 1, 0.9);
+    --csp-motion-duration-state: 100ms;
+    --csp-motion-drawer-enter: csp-drawer-enter 300ms var(--greige-easing-enter);
+    --csp-motion-drawer-exit: csp-drawer-exit 200ms var(--greige-easing-exit);
+    --csp-motion-dialog-enter: csp-dialog-enter 200ms var(--greige-easing-enter);
+    --csp-motion-dialog-exit: csp-dialog-exit 100ms var(--greige-easing-exit);
+    --csp-motion-overlap-enter: csp-overlap-enter 200ms var(--greige-easing-enter);
+    --csp-motion-overlap-exit: csp-fade-out 100ms var(--greige-easing-exit);
+    --csp-motion-scrim-enter: csp-fade-in 300ms var(--greige-easing-enter);
+    --csp-motion-scrim-exit: csp-fade-out 200ms var(--greige-easing-exit);
+  }
+}

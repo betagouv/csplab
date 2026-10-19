@@ -67,8 +67,12 @@ const isIconOnly = computed(() => Boolean(props.icon) && !props.label)
   line-height: 1.25;
   cursor: pointer;
   border: none;
+  border-radius: var(--csp-action-radius);
   text-decoration: none;
   padding: var(--csp-btn-padding-y) var(--csp-btn-padding-x);
+  transition:
+    background-color var(--csp-motion-duration-state),
+    box-shadow var(--csp-motion-duration-state);
 
   &:focus-visible {
     outline: 2px solid var(--csp-focus-ring-color);
@@ -100,29 +104,29 @@ const isIconOnly = computed(() => Boolean(props.icon) && !props.label)
 }
 
 .csp-btn--secondary {
-  background-color: transparent;
+  background-color: var(--csp-action-secondary-background);
   color: var(--text-action-high-blue-france);
-  box-shadow: inset 0 0 0 1px var(--border-action-high-blue-france);
+  box-shadow: inset 0 0 0 1px var(--csp-action-secondary-border-color);
 
   &:hover {
-    background-color: var(--background-default-grey-hover);
+    background-color: var(--csp-action-secondary-background-hover);
   }
 
   &:active {
-    background-color: var(--background-default-grey-active);
+    background-color: var(--csp-action-secondary-background-active);
   }
 
   &:disabled {
-    background-color: transparent;
+    background-color: var(--csp-action-secondary-background-disabled);
     color: var(--text-disabled-grey);
-    box-shadow: inset 0 0 0 1px var(--border-disabled-grey);
+    box-shadow: inset 0 0 0 1px var(--csp-action-secondary-border-color-disabled);
   }
 }
 
 .csp-btn--tertiary {
   background-color: transparent;
   color: var(--text-action-high-blue-france);
-  box-shadow: inset 0 0 0 1px var(--border-default-grey);
+  box-shadow: inset 0 0 0 1px var(--csp-control-border-color);
 
   &:hover {
     background-color: var(--background-default-grey-hover);
