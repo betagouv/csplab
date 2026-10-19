@@ -584,6 +584,9 @@ class OfferDetailResponseSerializer(serializers.Serializer):
     conditions = serializers.DictField(allow_null=True)
     contacts = ContactSerializer(many=True, allow_null=True)
     debut_publication = serializers.DateTimeField(source="publication_date")
+    fin_publication = serializers.DateTimeField(
+        source="end_publication_date", allow_null=True
+    )
     debut_contrat = serializers.SerializerMethodField()
     fin_candidature = serializers.DateTimeField(
         source="application_deadline", allow_null=True

@@ -65,6 +65,7 @@ class OfferInputMapper(IToDomainMapper[dict, Offer]):
             mission=data["description"]["mission"],
             organization=data["organisation"]["nom"],
             publication_date=data["publication"]["debut_publication"],
+            end_publication_date=data["publication"]["fin_publication"],
             verse=Verse(data["identification"]["versant"]),
             category=category,
             offer_nature=OfferNature(data["nature_offre"]),
@@ -261,7 +262,7 @@ class OfferDetailOutputMapper(OfferSummaryOutputMapper):
             "applicationUrl": str(offer.application_url)
             if offer.application_url
             else None,
-            "endPublicationDate": None,
+            "endPublicationDate": self._isoformat(offer.end_publication_date),
             "isAnonymousOrganisation": False,
             "organisation": self._talentsoft_organisation(offer.talentsoft_organisme)
             if offer.talentsoft_organisme
