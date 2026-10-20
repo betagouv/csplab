@@ -1,1 +1,0 @@
-import{n as e}from"./rolldown-runtime-DkW27tQK.js";function t(e){return`${e.prenom} ${e.nom}`.trim()}function n(){return(n=e((()=>{})))()}export{n,t};

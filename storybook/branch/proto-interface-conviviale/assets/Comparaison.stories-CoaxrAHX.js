@@ -1,0 +1,11 @@
+import{n as e}from"./rolldown-runtime-DkW27tQK.js";import{n as t,t as n}from"./keepTheme-NgxgmUty.js";import{a as r,i,n as a,t as o}from"./imbrications-BbN186SC.js";import{g as s,v as c}from"./ecrans-Cj3JCDjD.js";import{n as l,t as u}from"./CadragePlanche-DjgGDKBQ.js";function d(e,t,n){return{render:()=>({components:{CadragePlanche:u},setup:()=>({colonnes:e,rangees:t,echelle:n}),template:`<CadragePlanche :colonnes="colonnes" :rangees="rangees" :echelle="echelle" />`})}}function f(e){return d(e.map(e=>e===`dialogue`?`Champ dans un dialogue`:a[e].legende),m.map(({nom:t,prefixe:n})=>({legende:t,ecrans:e.map(e=>e===`dialogue`?{story:`${n}-dialogue`,cadre:o}:{story:`${n}-imbrications`,cadre:i(e)})})),1.5)}var p,m,h,g,_,v,y,b,x;function S(){return(S=e((()=>{n(),l(),c(),r(),p={title:`Prototypes/Leviers/Rayons/Comparaison`,decorators:[t],parameters:{layout:`fullscreen`},globals:{interfaceTheme:`kit`}},m=[{nom:`Aujourd’hui`,prefixe:`prototypes-leviers-rayons-discrets--kit`},{nom:`Rayons discrets`,prefixe:`prototypes-leviers-rayons-discrets--discrets`},{nom:`Rayons affirmés`,prefixe:`prototypes-leviers-rayons-affirmes--affirmes`}],h={x:295,y:309,width:320,height:565},g=d(m.map(({nom:e})=>e),[{ecrans:m.map(({prefixe:e})=>({story:e,cadre:h}))}],1.1),_={...f([0,1,2,`dialogue`]),name:`Rayons imbriqués, conteneurs`},v={...f([3,4,5,6]),name:`Rayons imbriqués, contrôles`},y=g,b={...g,name:`Kanban, sombre`,globals:s},x=[`Imbrications`,`ImbricationsControles`,`Kanban`,`KanbanSombre`],_.parameters={..._.parameters,docs:{..._.parameters?.docs,source:{originalSource:`{
+  ...imbrications([0, 1, 2, 'dialogue']),
+  name: 'Rayons imbriqués, conteneurs'
+}`,..._.parameters?.docs?.source}}},v.parameters={...v.parameters,docs:{...v.parameters?.docs,source:{originalSource:`{
+  ...imbrications([3, 4, 5, 6]),
+  name: 'Rayons imbriqués, contrôles'
+}`,...v.parameters?.docs?.source}}},y.parameters={...y.parameters,docs:{...y.parameters?.docs,source:{originalSource:`kanban`,...y.parameters?.docs?.source}}},b.parameters={...b.parameters,docs:{...b.parameters?.docs,source:{originalSource:`{
+  ...kanban,
+  name: 'Kanban, sombre',
+  globals: SOMBRE
+}`,...b.parameters?.docs?.source}}}})))()}S();export{_ as Imbrications,v as ImbricationsControles,y as Kanban,b as KanbanSombre,x as __namedExportsOrder,p as default};
