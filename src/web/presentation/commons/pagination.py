@@ -2,7 +2,11 @@ from typing import Any
 from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
 
 from ddd.page_interface import IPage
-from rest_framework.pagination import BasePagination, PageNumberPagination
+from rest_framework.pagination import (
+    BasePagination,
+    CursorPagination,
+    PageNumberPagination,
+)
 from rest_framework.response import Response
 from rest_framework.settings import api_settings
 
@@ -25,6 +29,18 @@ def _bounded_int(
 
 class PageNumberLimitPagination(PageNumberPagination):
     page_size_query_param = "limit"
+
+
+class LatestMessagesCursorPagination(CursorPagination):
+    """Serves the latest messages, oldest first; `next` leads to older ones."""
+
+    ordering = ("-created_at", "-id")
+    page_size = 25
+    max_page_size = 100
+    page_size_query_param = "limit"
+
+    def get_paginated_response(self, data: list[Any]) -> Response:
+        return super().get_paginated_response(list(reversed(data)))
 
 
 class WebPagination(BasePagination):

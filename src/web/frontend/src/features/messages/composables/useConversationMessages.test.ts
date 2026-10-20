@@ -22,7 +22,7 @@ const CANDIDATURE = {
 const CONVERSATION_A = 'ffffffff-0001-0001-0001-000000000001'
 const CONVERSATION_B = 'ffffffff-0001-0001-0001-000000000002'
 
-const EMPTY_THREAD: PaginatedConversationMessageList = { count: 0, results: [] }
+const EMPTY_THREAD: PaginatedConversationMessageList = { results: [] }
 
 const MESSAGE: ConversationMessage = {
   content: 'Bonjour',

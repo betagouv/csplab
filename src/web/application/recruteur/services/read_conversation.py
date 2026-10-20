@@ -1,5 +1,8 @@
-from uuid import UUID
+import logging
+from datetime import datetime
+from uuid import UUID, uuid4
 
+from django.db import DatabaseError
 from django.db.models import QuerySet
 
 from application.identite.context_services.organisme_permission_service import (
@@ -13,7 +16,33 @@ from application.recruteur.context_services.recrutement_agent_service import (
 )
 from domain.identite.entities.utilisateurs import Utilisateur
 from domain.identite.value_objects.organisme_action import OrganismeAction
-from infrastructure.django_apps.messagerie.models import MessageModel
+from infrastructure.django_apps.messagerie.models import (
+    ConversationLectureModel,
+    MessageModel,
+)
+
+logger = logging.getLogger(__name__)
+
+
+def mark_as_read(
+    *, conversation_id: UUID, utilisateur: Utilisateur, read_up_to: datetime
+) -> None:
+    try:
+        lecture, created = ConversationLectureModel.objects.get_or_create(
+            conversation_id=conversation_id,
+            utilisateur_id=utilisateur.entity_id,
+            defaults={"id": uuid4(), "read_at": read_up_to},
+        )
+        if not created:
+            ConversationLectureModel.objects.filter(
+                pk=lecture.pk, read_at__lt=read_up_to
+            ).update(read_at=read_up_to)
+    except DatabaseError:
+        logger.exception(
+            "Could not mark conversation %s as read for %s",
+            conversation_id,
+            utilisateur.entity_id,
+        )
 
 
 def read_conversation(

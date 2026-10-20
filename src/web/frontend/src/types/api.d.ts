@@ -958,16 +958,14 @@ export interface components {
             results: components["schemas"]["Conversation"][];
         };
         PaginatedConversationMessageList: {
-            /** @example 123 */
-            count: number;
             /**
              * Format: uri
-             * @example http://api.example.org/accounts/?page=4
+             * @example http://api.example.org/accounts/?cursor=cD00ODY%3D"
              */
             next?: string | null;
             /**
              * Format: uri
-             * @example http://api.example.org/accounts/?page=2
+             * @example http://api.example.org/accounts/?cursor=cj0xJnA9NDg3
              */
             previous?: string | null;
             results: components["schemas"]["ConversationMessage"][];
@@ -3042,10 +3040,10 @@ export interface operations {
     recruteur_organismes_recrutements_candidatures_conversations_messages_list: {
         parameters: {
             query?: {
+                /** @description La valeur du curseur de pagination. */
+                cursor?: string;
                 /** @description Nombre de résultats à retourner par page. */
                 limit?: number;
-                /** @description Un numéro de page de l'ensemble des résultats. */
-                page?: number;
             };
             header?: never;
             path: {

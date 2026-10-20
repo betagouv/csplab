@@ -1,3 +1,4 @@
+from typing import Any
 from uuid import UUID
 
 from django.db.models import QuerySet
@@ -9,7 +10,10 @@ from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.request import Request
 from rest_framework.response import Response
 
-from application.recruteur.services.read_conversation import read_conversation
+from application.recruteur.services.read_conversation import (
+    mark_as_read,
+    read_conversation,
+)
 from application.recruteur.services.reply_conversation import reply_conversation
 from domain.candidate.exceptions.document_errors import FichierDeposeIncomplet
 from domain.commons.errors.organisme_errors import OrganismeNexistePas
@@ -27,16 +31,12 @@ from domain.recruteur.errors.recrutement_errors import (
 from infrastructure.django_apps.messagerie.models import MessageModel
 from presentation.api.authentication import SessionApiMixin
 from presentation.api.serializers import GenericErrorSerializer, generic_response_format
-from presentation.commons.pagination import PageNumberLimitPagination
+from presentation.commons.pagination import LatestMessagesCursorPagination
 from presentation.recruteur.mappers import UtilisateurMapper
 from presentation.recruteur.serializers import (
     ConversationMessageSerializer,
     CreateMessageSerializer,
 )
-
-
-class MessagePagination(PageNumberLimitPagination):
-    page_size = 20
 
 
 @extend_schema_view(
@@ -63,7 +63,7 @@ class MessagePagination(PageNumberLimitPagination):
 )
 class CandidatureConversationDetailView(SessionApiMixin, ListAPIView):
     serializer_class = ConversationMessageSerializer
-    pagination_class = MessagePagination
+    pagination_class = LatestMessagesCursorPagination
     parser_classes = [MultiPartParser, FormParser]
 
     def get_queryset(self) -> QuerySet[MessageModel]:
@@ -74,6 +74,19 @@ class CandidatureConversationDetailView(SessionApiMixin, ListAPIView):
             conversation_id=self.kwargs["conversation_uuid"],
             utilisateur=UtilisateurMapper().to_domain(self.request),
         )
+
+    def list(self, request: Request, *args: Any, **kwargs: Any) -> Response:
+        page = self.paginate_queryset(self.filter_queryset(self.get_queryset()))
+        response = self.get_paginated_response(
+            self.get_serializer(page, many=True).data
+        )
+        if request.method == "GET" and "cursor" not in request.query_params and page:
+            mark_as_read(
+                conversation_id=self.kwargs["conversation_uuid"],
+                utilisateur=UtilisateurMapper().to_domain(request),
+                read_up_to=page[0].created_at,
+            )
+        return response
 
     def post(
         self,
