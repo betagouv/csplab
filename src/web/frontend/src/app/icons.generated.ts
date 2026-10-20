@@ -66,6 +66,7 @@ import riLayoutGridLine from '@iconify-icons/ri/layout-grid-line'
 import riLightbulbLine from '@iconify-icons/ri/lightbulb-line'
 import riListCheck from '@iconify-icons/ri/list-check'
 import riListCheck3 from '@iconify-icons/ri/list-check-3'
+import riListSettingsLine from '@iconify-icons/ri/list-settings-line'
 import riListUnordered from '@iconify-icons/ri/list-unordered'
 import riLoader4Line from '@iconify-icons/ri/loader-4-line'
 import riLockLine from '@iconify-icons/ri/lock-line'
@@ -178,6 +179,7 @@ addIcon('ri:layout-grid-line', riLayoutGridLine)
 addIcon('ri:lightbulb-line', riLightbulbLine)
 addIcon('ri:list-check', riListCheck)
 addIcon('ri:list-check-3', riListCheck3)
+addIcon('ri:list-settings-line', riListSettingsLine)
 addIcon('ri:list-unordered', riListUnordered)
 addIcon('ri:loader-4-line', riLoader4Line)
 addIcon('ri:lock-line', riLockLine)

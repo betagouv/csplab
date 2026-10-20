@@ -181,5 +181,6 @@ export interface OffreState {
   journal: Journal[]
   /** Équipe de recrutement et droits sur les candidatures après publication. */
   equipe: { personneId: string, acces: 'gestion' | 'evaluation' | 'lecture' }[]
-  organisation: 'avec_dar' | 'sans_dar'
+  /** Paramétrage (fictif) de l'organisation : circuit de validation appliqué en arrière-plan. */
+  organisation: 'avec_dar' | 'sans_dar' | 'sans_validation'
 }

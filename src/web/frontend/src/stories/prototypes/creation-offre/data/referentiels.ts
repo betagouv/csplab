@@ -7,6 +7,7 @@ export const ORGANISMES = [
   { value: 'dreal-occ', label: 'DREAL Occitanie', versant: 'Fonction publique d\'État' },
   { value: 'pref-31', label: 'Préfecture de la Haute-Garonne', versant: 'Fonction publique d\'État' },
   { value: 'metro-garonne', label: 'Métropole de Garonne (fictive)', versant: 'Fonction publique territoriale' },
+  { value: 'commune-aurin', label: 'Commune de Saint-Aurin (fictive)', versant: 'Fonction publique territoriale' },
   { value: 'ch-montauban', label: 'Centre hospitalier de Montauban (fictif)', versant: 'Fonction publique hospitalière' },
 ]
 
@@ -18,6 +19,7 @@ export const SERVICES: Record<string, string[]> = {
   ],
   'pref-31': ['Direction des sécurités', 'Direction de la citoyenneté et de la légalité'],
   'metro-garonne': ['Direction de la transition écologique', 'Direction des ressources humaines'],
+  'commune-aurin': ['Services techniques', 'Direction générale des services'],
   'ch-montauban': ['Direction des soins', 'Direction des ressources humaines'],
 }
 

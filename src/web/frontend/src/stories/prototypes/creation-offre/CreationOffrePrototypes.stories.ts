@@ -5,14 +5,14 @@ import CreationOffre from './variants/parcours/CreationOffre.vue'
 // Prototype isolé : pas d'API, pas de router — données fictives dans data/scenario.ts.
 // Chaque story ouvre le même parcours dans un état différent ; tout reste manipulable.
 const meta = {
-  title: 'Prototypes/Création d\'offre',
-  id: 'prototypes-creation-offre',
+  title: 'Prototypes/Création d\'offre/Itération 1 (archive)',
+  id: 'prototypes-creation-offre-v1',
   parameters: {
     layout: 'fullscreen',
     docs: {
       description: {
         component:
-          'Création d\'une offre dans le futur ATS de la fonction publique : du besoin à la publication. '
+          'Première itération, jugée trop complexe (8 étapes, alertes permanentes). Conservée pour comparaison. '
           + 'Scénario fictif : la DREAL Occitanie remplace une chargée de mission (DAR validée). '
           + 'Les encadrés « Simulation » remplacent les actions des autres personnes (valideur, contributeur). '
           + 'Hypothèses et questions ouvertes : NOTES.md.',

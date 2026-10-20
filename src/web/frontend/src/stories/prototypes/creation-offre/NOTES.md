@@ -1,5 +1,120 @@
 # Notes — Prototype création d'offre
 
+## Itération 2 — version simplifiée (20 octobre 2026)
+
+Retour d'Alice sur l'itération 1 : trop complexe, trop d'étapes, trop de rouge. Hypothèse explorée :
+**un parcours commun à tous, avec des informations conditionnelles et des options facultatives
+qui n'apparaissent que si elles sont utiles.** La complexité organisationnelle est portée par le produit
+(paramétrage), pas par l'utilisateur.
+
+Stories : `Prototypes/Création d'offre/Version simplifiée` (l'itération 1 reste dans `…/Itération 1 (archive)`).
+
+| Story | Ce qu'elle montre |
+| --- | --- |
+| 0. Nouvelle offre | Organisation avec DAR et validation ; préremplissage depuis une DAR / fiche / offre |
+| 1. Brouillon repris | Reprise, contribution du manager en attente |
+| 2. En validation | Lecture seule, bandeau unique, réponse simulée dans « Suivi » |
+| 3. Corrections demandées | Remarques affichées dans la section concernée, renvoi en validation |
+| 4. Validée | Publication directe depuis « Vérifier et finaliser », duplication |
+| 5. Sans circuit de validation | Même parcours ; l'action finale devient « Publier l'offre » |
+
+### Analyse de l'itération 1
+
+**1. Étapes regroupées (9 écrans → 4 étapes)**
+- Écran de démarrage → intégré en haut de l'étape 1 (bandeau « partez de l'existant » + fenêtre de choix),
+  réduit à une ligne une fois la source appliquée.
+- Besoin et poste + Fiche de poste → **Définir le poste** (fiche de poste repliée).
+- Offre pour les candidats → **Rédiger l'offre** (inchangée sur le fond, allégée).
+- Conditions + Évaluation → **Conditions de candidature** (évaluation repliée).
+- Validation et équipe + Diffusion + Récapitulatif → **Vérifier et finaliser** ; le circuit, les remarques,
+  l'équipe et l'historique passent dans le volet **Suivi** (bouton de la barre d'offre), accessible à tout moment.
+
+**2. Informations affichées selon le contexte**
+- Type de contrat : seulement si le poste est ouvert aux contractuels.
+- DAR : seulement si l'organisation utilise des DAR (paramétrage). Reprise d'une DAR validée → une simple
+  ligne de rappel, sans champ. Sinon un champ facultatif « si votre recrutement en nécessite une ».
+  La question « une DAR est-elle nécessaire ? » est supprimée (règle métier non documentée).
+- Poste remplacé : seulement si le motif est une vacance ou un remplacement.
+- Corps / cadre d'emplois : libellé selon le versant.
+- Étape DAR du circuit : seulement si une référence DAR non validée est saisie.
+
+**3. Fonctionnalités devenues facultatives (repliées, avec un résumé)**
+- Fiche de poste (missions, activités, compétences, conditions particulières) — n'est plus requise.
+- Informations complémentaires : métier du répertoire, motif, date de prise de poste, quotité, nombre de postes, corps.
+- Questions de présélection ; évaluation et entretiens (grille, premier tri, jury).
+- Sections de l'offre « Présentation de l'organisme », « Conditions », « Informations pratiques ».
+- Ajout d'étapes facultatives au circuit : retiré (le circuit vient du paramétrage).
+- Métiers associés : retirés de cette version.
+
+**4. Alertes supprimées ou déplacées**
+- Bandeau « N informations requises » en tête de chaque étape : supprimé.
+- Compteurs orange et pastilles de remarques dans la navigation : remplacés par une coche discrète
+  (étape vue et complète).
+- Astérisques rouges : supprimés ; seuls les champs facultatifs du socle sont signalés « (facultatif) »
+  (convention DSFR).
+- Callouts permanents (hypothèses réglementaires, « lecture seule », « DAR passera en premier »,
+  « pas de blocage ») : supprimés ; un seul bandeau d'état quand l'offre est en validation, à corriger ou validée.
+- Bloc « Relecture éditoriale » de l'étape offre : déplacé en « suggestions » repliées dans le récapitulatif.
+- Erreurs de champ : uniquement après une tentative de soumission/publication, ou pour une donnée
+  réellement invalide (intitulé trop long, format de date, date limite avant le début).
+- Les remarques des valideurs restent visibles, dans la section concernée, sur fond bleu (pas rouge).
+
+**5. Interactions redondantes retirées**
+- Ressaisie des profils autorisés : proposés à partir des statuts ouverts de l'étape 1.
+- Catégorie et statuts ne sont plus rappelés comme champs à l'étape 3 (une ligne + « Modifier »).
+- Reprise section par section dans l'offre : un seul bouton « Préremplir » pour toutes les sections vides
+  (plus de dialogue « remplacer / ajouter » puisqu'on ne remplit que le vide).
+- Fenêtre de confirmation de publication : supprimée — le récapitulatif fait office de vérification.
+- Vue « côte à côte » : retirée (Rédaction / Aperçu suffisent ; aperçu aussi depuis le récapitulatif).
+- Panneau de contexte permanent à droite : retiré (doublait la barre d'offre et le récapitulatif).
+- Écran « Validation et équipe » : remplacé par une phrase dans le récapitulatif
+  (« Validation prévue : Julien Lefèvre, puis Nadia Benali ») et le volet Suivi.
+
+### Classement des particularités métier
+
+| Socle commun (visible) | Conditionnel (selon le contexte) | Facultatif (replié) |
+| --- | --- | --- |
+| Intitulé, organisme, service, localisation | Contrat (si contractuels) | Fiche de poste détaillée |
+| Catégorie(s), statuts ouverts | DAR (si l'organisation en utilise) | Métier du répertoire, motif, dates, quotité, corps |
+| Présentation du poste, missions, profil, modalités de candidature | Circuit de validation (selon paramétrage) | Questions de présélection |
+| Profils acceptés (proposés), critères de sélection | Poste remplacé (si vacance / remplacement) | Grille d'évaluation, premier tri, entretiens |
+| Canaux et date limite (avant publication) | Informations attendues par un canal choisi | Reformulation, contribution du manager |
+
+### Trois niveaux de messages (récapitulatif)
+
+- **À compléter pour soumettre / publier** (bloquant) : liste avec « Compléter » qui ouvre le bon champ.
+  Liseré bleu ; rouge seulement après une tentative.
+- **À compléter avant publication** (non bloquant pour la soumission) : canaux, date limite, remarques
+  non traitées. Fusionné avec la liste bloquante quand l'organisation n'a pas de validation.
+- **Suggestions** (repliées) : sigles internes, rémunération non évoquée, sections reprises sans retouche…
+
+### Action finale selon le contexte
+
+- Validation restante → « Soumettre à validation » (ou « Renvoyer en validation »), avec la phrase qui dit
+  qui validera.
+- Pas de circuit, ou validation obtenue → « Publier l'offre ».
+- En validation → « Retirer de la validation ».
+
+### Nouveaux composants (itération 2)
+
+`shared/Disclosure` (section repliable avec résumé), `shared/Panel`, `shared/QuestionsEditor`,
+`shared/EvaluationEditor`, `data/redaction` (préremplissage de l'offre), et dans `variants/simplifie/` :
+`ShellSimple`, `EtapesNav`, `SuiviDrawer`, `SourcePanel`, `RemarquesSection`, `EtapeFooter`, `useEtapes`
+et les 4 étapes. Le store commun accepte désormais des règles désactivables (`exclure`) et un paramétrage
+d'organisation « sans validation ».
+
+### Questions ouvertes ajoutées
+
+- Le circuit de validation peut-il dépendre du type de recrutement (ex. contractuel vs titulaire) ?
+  Qui le paramètre ?
+- Les profils acceptés sont-ils vraiment distincts des statuts ouverts, ou un seul champ suffit-il ?
+- La fiche de poste doit-elle rester facultative si l'organisation l'exige pour la DAR ?
+- Publier sans confirmation est-il acceptable, ou faut-il pouvoir dépublier rapidement ?
+
+---
+
+## Itération 1
+
 Sujet : transformer un besoin de recrutement en offre prête à être validée puis publiée, dans le
 futur ATS de la fonction publique. Le parcours est pensé comme une étape du recrutement (besoin → offre
 → validation → diffusion → suivi des candidatures), pas comme un formulaire de publication.

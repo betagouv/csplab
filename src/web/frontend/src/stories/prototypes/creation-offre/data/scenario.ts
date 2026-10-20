@@ -209,6 +209,9 @@ function evaluationVide(): Evaluation {
 
 export function circuitPour(organisation: OffreState['organisation']): EtapeCircuit[] {
   const manager: EtapeCircuit = { id: 'manager', libelle: 'Validation du contenu par le manager', personneId: 'julien', obligatoire: true, statut: 'a_venir', date: null }
+  if (organisation === 'sans_validation') {
+    return []
+  }
   if (organisation === 'sans_dar') {
     return [manager]
   }
@@ -332,11 +335,17 @@ function remplirComplet(s: OffreState) {
   s.dateLimite = '2026-11-30'
 }
 
-export type Preset = 'nouveau' | 'incomplet' | 'a_valider' | 'a_corriger' | 'pret' | 'sans_dar'
+export type Preset = 'nouveau' | 'incomplet' | 'a_valider' | 'a_corriger' | 'pret' | 'sans_dar' | 'sans_validation'
 
 export function etatPreset(preset: Preset): OffreState {
   if (preset === 'nouveau') {
     return etatInitial()
+  }
+  if (preset === 'sans_validation') {
+    const s = etatInitial('sans_validation')
+    s.besoin.organisme = 'commune-aurin'
+    s.besoin.darApplicable = 'non'
+    return s
   }
   if (preset === 'sans_dar') {
     const s = etatInitial('sans_dar')

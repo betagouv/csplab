@@ -9,6 +9,8 @@ import { ACRONYMES, CANAUX, MOI, personne, SECTIONS_OFFRE } from './referentiels
 import { clone, etatPreset, FICHES } from './scenario'
 
 export interface Manque {
+  /** Identifiant stable de la règle (permet à une variante d'en désactiver certaines). */
+  cle: string
   libelle: string
   stepId: StepId
 }
@@ -75,12 +77,13 @@ export function nouvelId(prefixe: string): string {
   return `${prefixe}${uid}`
 }
 
-export function createOffre(preset: Preset) {
+export function createOffre(preset: Preset, { exclure = [] as string[] } = {}) {
   const state = reactive<OffreState>(etatPreset(preset))
 
   const initialStep: StepId | 'demarrer' = {
     nouveau: 'demarrer',
     sans_dar: 'demarrer',
+    sans_validation: 'demarrer',
     incomplet: 'poste',
     a_valider: 'validation',
     a_corriger: 'validation',
@@ -95,7 +98,7 @@ export function createOffre(preset: Preset) {
   // --- Brouillon ---
   const dirty = ref(false)
   const saving = ref(false)
-  const lastSaved = ref<string | null>(preset === 'nouveau' || preset === 'sans_dar' ? null : 'il y a 3 jours')
+  const lastSaved = ref<string | null>(['nouveau', 'sans_dar', 'sans_validation'].includes(preset) ? null : 'il y a 3 jours')
   let ready = false
   watch(() => [state.besoin, state.poste, state.offre, state.conditions, state.evaluation, state.canaux, state.dateLimite, state.dateDebutDiffusion], () => {
     if (ready) {
@@ -152,26 +155,26 @@ export function createOffre(preset: Preset) {
   const manques = computed<Manque[]>(() => {
     const m: Manque[] = []
     const b = state.besoin
-    const champ = (cond: boolean, libelle: string, stepId: StepId) => {
-      if (cond) {
-        m.push({ libelle, stepId })
+    const champ = (cle: string, cond: boolean, libelle: string, stepId: StepId) => {
+      if (cond && !exclure.includes(cle)) {
+        m.push({ cle, libelle, stepId })
       }
     }
-    champ(vide(b.intitule), 'Intitulé du poste', 'besoin')
-    champ(vide(b.service), 'Service recruteur', 'besoin')
-    champ(vide(b.motif), 'Motif du recrutement', 'besoin')
-    champ(vide(b.localisation), 'Localisation', 'besoin')
-    champ(vide(b.categories), 'Catégorie(s) du poste', 'besoin')
-    champ(vide(b.statuts), 'Statut(s) ouverts au recrutement', 'besoin')
-    champ(b.statuts.includes('contractuel') && vide(b.typeContrat), 'Type de contrat proposé aux contractuels', 'besoin')
-    champ(b.darApplicable === 'oui' && vide(b.darRef), 'Référence de la DAR', 'besoin')
-    champ(vide(state.poste.missions), 'Missions principales', 'poste')
+    champ('intitule', vide(b.intitule), 'Intitulé du poste', 'besoin')
+    champ('service', vide(b.service), 'Service recruteur', 'besoin')
+    champ('motif', vide(b.motif), 'Motif du recrutement', 'besoin')
+    champ('localisation', vide(b.localisation), 'Localisation', 'besoin')
+    champ('categories', vide(b.categories), 'Catégorie(s) du poste', 'besoin')
+    champ('statuts', vide(b.statuts), 'Statut(s) ouverts au recrutement', 'besoin')
+    champ('contrat', b.statuts.includes('contractuel') && vide(b.typeContrat), 'Type de contrat proposé aux contractuels', 'besoin')
+    champ('dar', b.darApplicable === 'oui' && vide(b.darRef), 'Référence de la DAR', 'besoin')
+    champ('missions', vide(state.poste.missions), 'Missions principales', 'poste')
     for (const s of SECTIONS_OFFRE) {
-      champ(s.requise && vide(state.offre[s.id].texte), `Section « ${s.libelle} »`, 'offre')
+      champ(`offre.${s.id}`, s.requise && vide(state.offre[s.id].texte), `Section « ${s.libelle} »`, 'offre')
     }
-    champ(vide(state.conditions.profils), 'Profils autorisés à candidater', 'conditions')
-    champ(!state.canaux.some(c => c.selectionne), 'Au moins un canal de diffusion', 'diffusion')
-    champ(vide(state.dateLimite), 'Date limite de candidature', 'diffusion')
+    champ('profils', vide(state.conditions.profils), 'Profils autorisés à candidater', 'conditions')
+    champ('canaux', !state.canaux.some(c => c.selectionne), 'Au moins un canal de diffusion', 'diffusion')
+    champ('dateLimite', vide(state.dateLimite), 'Date limite de candidature', 'diffusion')
     return m
   })
 
@@ -469,8 +472,8 @@ export type OffreStore = ReturnType<typeof createOffre>
 
 const KEY: InjectionKey<OffreStore> = Symbol('offre')
 
-export function provideOffre(preset: Preset): OffreStore {
-  const store = createOffre(preset)
+export function provideOffre(preset: Preset, options?: { exclure?: string[] }): OffreStore {
+  const store = createOffre(preset, options)
   provide(KEY, store)
   return store
 }
