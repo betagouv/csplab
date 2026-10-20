@@ -10,10 +10,7 @@ from infrastructure.django_apps.utils.models import BaseDatedModel
 
 
 class SourceQuerySet(models.QuerySet):
-    def authorized_for(self, user) -> "SourceQuerySet":
-        if user.is_staff or user.is_superuser:
-            return self
-        return self.filter(users=user)
+    pass
 
 
 class SourceModel(BaseDatedModel):

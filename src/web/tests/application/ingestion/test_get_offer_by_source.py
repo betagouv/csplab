@@ -5,12 +5,9 @@ import pytest
 
 from application.ingestion.errors.application_errors_ingestion import (
     OffreIntrouvable,
-    SourceNonAutorisee,
+    SourceIntrouvable,
 )
 from application.ingestion.services.get_offer_by_source import get_offer_by_source
-from infrastructure.factories.identite.utilisateur_django_factory import (
-    UtilisateurDjangoFactory,
-)
 from infrastructure.factories.ingestion.source_django_factory import (
     SourceDjangoFactory,
 )
@@ -24,35 +21,35 @@ def source(db):
     return SourceDjangoFactory()
 
 
-@pytest.fixture
-def user(source):
-    return UtilisateurDjangoFactory(sources=[source])
+def test_returns_the_offer_of_the_source(source):
+    offer = OfferDjangoFactory(source=source)
+
+    assert get_offer_by_source(source.source_id, offer.id) == offer
 
 
-def test_refuses_a_source_the_user_is_not_linked_to(user):
-    other = SourceDjangoFactory()
-    offer = OfferDjangoFactory(source=other)
+def test_refuses_an_unknown_source(db):
+    offer = OfferDjangoFactory()
 
-    with pytest.raises(SourceNonAutorisee):
-        get_offer_by_source(user, other.source_id, offer.id)
+    with pytest.raises(SourceIntrouvable):
+        get_offer_by_source(uuid4(), offer.id)
 
 
-def test_refuses_an_offer_of_another_source(user, source):
+def test_refuses_an_offer_of_another_source(source):
     offer = OfferDjangoFactory(source=SourceDjangoFactory())
 
     with pytest.raises(OffreIntrouvable):
-        get_offer_by_source(user, source.source_id, offer.id)
+        get_offer_by_source(source.source_id, offer.id)
 
 
-def test_refuses_an_archived_offer(user, source):
+def test_refuses_an_archived_offer(source):
     offer = OfferDjangoFactory(
         source=source, archived_at=datetime(2024, 2, 1, tzinfo=UTC)
     )
 
     with pytest.raises(OffreIntrouvable):
-        get_offer_by_source(user, source.source_id, offer.id)
+        get_offer_by_source(source.source_id, offer.id)
 
 
-def test_refuses_an_unknown_offer(user, source):
+def test_refuses_an_unknown_offer(source):
     with pytest.raises(OffreIntrouvable):
-        get_offer_by_source(user, source.source_id, uuid4())
+        get_offer_by_source(source.source_id, uuid4())
