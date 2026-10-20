@@ -128,11 +128,9 @@ def test_by_candidature_prefetches_first_and_last_message_with_their_author(db):
 
 
 def test_by_candidature_orders_by_last_message_and_skips_empty_conversations(db):
-    older = ConversationDjangoFactory()
-    newer = ConversationDjangoFactory(candidature=older.candidature)
+    older = ConversationDjangoFactory(with_message=True)
+    newer = ConversationDjangoFactory(candidature=older.candidature, with_message=True)
     ConversationDjangoFactory(candidature=older.candidature)
-    MessageDjangoFactory(conversation=older)
-    MessageDjangoFactory(conversation=newer)
 
     result = ConversationModel.objects.by_candidature(
         older.candidature_id
@@ -211,14 +209,10 @@ def test_is_unread_for_the_candidate_follows_the_last_message_author(db):
 
 
 def test_is_unread_is_computed_per_conversation(db):
-    unread = ConversationDjangoFactory()
-    read = ConversationDjangoFactory(candidature=unread.candidature)
+    unread = ConversationDjangoFactory(with_message=True)
+    read = ConversationDjangoFactory(candidature=unread.candidature, with_message=True)
     viewer = UtilisateurDjangoFactory()
-    MessageDjangoFactory(conversation=unread)
-    message = MessageDjangoFactory(conversation=read)
-    ConversationLectureDjangoFactory(
-        conversation=read, utilisateur=viewer, read_at=message.created_at
-    )
+    ConversationLectureDjangoFactory(conversation=read, utilisateur=viewer)
 
     results = (
         ConversationModel.objects.by_candidature(unread.candidature_id)
