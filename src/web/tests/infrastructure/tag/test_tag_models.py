@@ -1,14 +1,14 @@
 import pytest
 from django.db import IntegrityError, transaction
 
-from infrastructure.django_apps.recruteur.models.tag import (
+from infrastructure.django_apps.tag.models import (
     CandidatureTagModel,
     NoteTagModel,
     RecrutementAgentTagModel,
     TagCategory,
     TagModel,
 )
-from infrastructure.factories.recruteur.tag_django_factory import (
+from infrastructure.factories.tag.tag_django_factory import (
     CandidatureTagDjangoFactory,
     NoteTagDjangoFactory,
     RecrutementAgentTagDjangoFactory,
