@@ -38,6 +38,8 @@ export interface Besoin {
   quotite: string
   datePriseDePoste: string
   nbPostes: string
+  /** Codes des postes budgétaires couverts par l'offre (facultatif). */
+  codesPostes: string[]
   ficheRef: string
   darApplicable: 'oui' | 'non' | 'nsp'
   darRef: string
@@ -158,6 +160,22 @@ export interface Canal {
 export interface Journal {
   date: string
   texte: string
+  /** Les modifications successives d'une même session sont regroupées en une seule ligne. */
+  type?: 'modification'
+}
+
+/** Contenu de la DAR figé au moment de la soumission (hypothèse : la DAR est validée telle que soumise). */
+export interface ContenuDar {
+  statut: 'soumise' | 'validee'
+  date: string
+  intitule: string
+  service: string
+  localisation: string
+  nbPostes: string
+  codesPostes: string[]
+  missions: string
+  activites: string[]
+  competences: string[]
 }
 
 export interface OffreState {
@@ -181,6 +199,12 @@ export interface OffreState {
   journal: Journal[]
   /** Équipe de recrutement et droits sur les candidatures après publication. */
   equipe: { personneId: string, acces: 'gestion' | 'evaluation' | 'lecture' }[]
+  darContenu: ContenuDar | null
+  /** Fréquence des courriels de nouvelles candidatures pour la personne connectée. */
+  notifications: 'chaque' | 'cinq' | 'quotidien' | 'aucune'
+  modifieLe: string
+  /** Étape où l'utilisateur s'est arrêté, pour reprendre au même endroit. */
+  derniereEtape: string
   /** Paramétrage (fictif) de l'organisation : circuit de validation appliqué en arrière-plan. */
   organisation: 'avec_dar' | 'sans_dar' | 'sans_validation'
 }

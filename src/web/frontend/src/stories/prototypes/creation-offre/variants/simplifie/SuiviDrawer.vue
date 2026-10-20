@@ -4,9 +4,11 @@ import { computed, ref } from 'vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspDrawer from '@/components/base/CspDrawer/CspDrawer.vue'
 import CspIcon from '@/components/base/CspIcon/CspIcon.vue'
+import CspRadioGroup from '@/components/base/CspRadioGroup/CspRadioGroup.vue'
 import CspTextarea from '@/components/base/CspTextarea/CspTextarea.vue'
 import { personne, PERSONNES } from '../../data/referentiels'
 import { LIBELLES_STATUT, useOffre } from '../../data/useOffre'
+import Disclosure from '../../shared/Disclosure.vue'
 import SimulationNote from '../../shared/SimulationNote.vue'
 import { ETAPE_DE, ETAPES, useEtapes } from './useEtapes'
 
@@ -41,6 +43,58 @@ function voir(stepId: keyof typeof ETAPE_DE) {
   open.value = false
   aller(stepId)
 }
+
+// --- DAR ---
+const avecDar = computed(() => state.organisation === 'avec_dar' && state.besoin.darApplicable === 'oui' && Boolean(state.besoin.darRef))
+const darOuverte = ref(false)
+
+// --- Notifications (simulées : aucun courriel envoyé) ---
+const FREQUENCES = [
+  { value: 'chaque', label: 'À chaque nouvelle candidature' },
+  { value: 'cinq', label: 'Toutes les 5 candidatures' },
+  { value: 'quotidien', label: 'Un récapitulatif par jour' },
+  { value: 'aucune', label: 'Aucun courriel' },
+]
+
+// --- Historique : regroupé par jour, une icône par type d'événement ---
+function iconeEvenement(texte: string) {
+  const t = texte.toLowerCase()
+  if (t.includes('créé')) {
+    return 'ri:file-add-line'
+  }
+  if (t.includes('modification')) {
+    return 'ri:edit-line'
+  }
+  if (t.includes('correction')) {
+    return 'ri:chat-1-line'
+  }
+  if (t.includes('soumise') || t.includes('renvoy')) {
+    return 'ri:send-plane-line'
+  }
+  if (t.includes('validée') || t.includes('circuit de validation terminé')) {
+    return 'ri:checkbox-circle-line'
+  }
+  if (t.includes('publiée')) {
+    return 'ri:global-line'
+  }
+  if (t.includes('contribution') || t.includes('complété')) {
+    return 'ri:user-shared-line'
+  }
+  return 'ri:download-2-line'
+}
+const historique = computed(() => {
+  const groupes: { jour: string, evenements: { heure: string, texte: string, icon: string }[] }[] = []
+  for (const j of [...state.journal].reverse()) {
+    const [jour, heure = ''] = j.date.split(', ')
+    let g = groupes.find(x => x.jour === jour)
+    if (!g) {
+      g = { jour: jour!, evenements: [] }
+      groupes.push(g)
+    }
+    g.evenements.push({ heure, texte: j.texte, icon: iconeEvenement(j.texte) })
+  }
+  return groupes
+})
 
 const ROLES = { gestion: 'Gère le recrutement', evaluation: 'Évalue les candidatures', lecture: 'Consulte' }
 const ajoutables = computed(() => PERSONNES.filter(p => !state.equipe.some(m => m.personneId === p.id)))
@@ -121,6 +175,65 @@ const ajoutables = computed(() => PERSONNES.filter(p => !state.equipe.some(m => 
             </li>
           </ol>
         </template>
+      </section>
+
+      <section v-if="avecDar">
+        <h3 class="suivi__h">
+          Demande d'autorisation ({{ state.besoin.darRef }})
+        </h3>
+        <p class="suivi__muted">
+          <template v-if="state.darContenu">
+            {{ state.darContenu.statut === 'validee' ? 'Validée' : 'Soumise' }} — {{ state.darContenu.date.toLowerCase() }}. Ce contenu n'est plus modifié ; l'offre pour les candidats se rédige à part.
+          </template>
+          <template v-else-if="state.besoin.darStatut === 'validee'">
+            Validée avant la création de ce dossier.
+          </template>
+          <template v-else>
+            En préparation. Elle reprendra la fiche de poste (étape 1) et sera figée au moment de la soumission.
+          </template>
+        </p>
+        <Disclosure
+          v-if="state.darContenu"
+          v-model:ouvert="darOuverte"
+          titre="Contenu de la DAR"
+          :resume="`Version ${state.darContenu.statut === 'validee' ? 'validée' : 'soumise'}`"
+        >
+          <dl class="dar">
+            <dt>Intitulé</dt>
+            <dd>{{ state.darContenu.intitule }}</dd>
+            <dt>Service</dt>
+            <dd>{{ state.darContenu.service }}</dd>
+            <dt>Localisation</dt>
+            <dd>{{ state.darContenu.localisation }}</dd>
+            <dt>Postes</dt>
+            <dd>
+              {{ state.darContenu.nbPostes }}<template v-if="state.darContenu.codesPostes.length">
+                ({{ state.darContenu.codesPostes.join(', ') }})
+              </template>
+            </dd>
+            <dt>Missions</dt>
+            <dd>{{ state.darContenu.missions || '—' }}</dd>
+            <dt>Activités</dt>
+            <dd>{{ state.darContenu.activites.join(' ; ') || '—' }}</dd>
+            <dt>Compétences</dt>
+            <dd>{{ state.darContenu.competences.join(' ; ') || '—' }}</dd>
+          </dl>
+        </Disclosure>
+      </section>
+
+      <section>
+        <h3 class="suivi__h">
+          Mes notifications
+        </h3>
+        <CspRadioGroup
+          v-model="state.notifications"
+          label="Courriel pour les nouvelles candidatures sur cette offre"
+          :options="FREQUENCES"
+          size="sm"
+        />
+        <p class="suivi__muted">
+          Prototype : aucun courriel n'est envoyé.
+        </p>
       </section>
 
       <section v-if="remarques.length">
@@ -223,14 +336,29 @@ const ajoutables = computed(() => PERSONNES.filter(p => !state.equipe.some(m => 
         <h3 class="suivi__h">
           Historique
         </h3>
-        <ol class="journal">
-          <li
-            v-for="(j, i) in [...state.journal].reverse()"
-            :key="i"
-          >
-            <small>{{ j.date }}</small>{{ j.texte }}
-          </li>
-        </ol>
+        <div
+          v-for="g in historique"
+          :key="g.jour"
+          class="histo"
+        >
+          <p class="histo__jour">
+            {{ g.jour }}
+          </p>
+          <ol class="histo__list">
+            <li
+              v-for="(e, i) in g.evenements"
+              :key="i"
+            >
+              <CspIcon
+                :name="e.icon"
+                :size="14"
+                class="histo__icon"
+              />
+              <span class="histo__texte">{{ e.texte }}</span>
+              <span class="histo__heure">{{ e.heure }}</span>
+            </li>
+          </ol>
+        </div>
       </section>
     </div>
   </CspDrawer>
@@ -344,9 +472,56 @@ const ajoutables = computed(() => PERSONNES.filter(p => !state.equipe.some(m => 
   max-width: 100%;
 }
 
-.journal li {
-  padding-left: var(--csp-space-3);
-  border-left: 2px solid var(--border-default-grey);
+.histo__jour {
+  font-size: var(--csp-font-size-xs) !important;
+  font-weight: var(--csp-font-weight-bold);
+  text-transform: uppercase;
+  color: var(--text-mention-grey);
+}
+
+.histo__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--csp-space-2);
+  margin: var(--csp-space-1) 0 0;
+  padding: 0;
+  list-style: none;
+
+  li {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--csp-space-2);
+  }
+}
+
+.histo__icon {
+  flex-shrink: 0;
+  margin-top: 3px;
+  color: var(--text-mention-grey);
+}
+
+.histo__texte {
+  flex: 1;
+}
+
+.histo__heure {
+  font-size: var(--csp-font-size-xs);
+  color: var(--text-mention-grey);
+}
+
+.dar {
+  display: grid;
+  grid-template-columns: 6rem 1fr;
+  gap: var(--csp-space-1) var(--csp-space-3);
+  margin: 0;
+
+  dt {
+    color: var(--text-mention-grey);
+  }
+
+  dd {
+    margin: 0;
+  }
 }
 
 .link {

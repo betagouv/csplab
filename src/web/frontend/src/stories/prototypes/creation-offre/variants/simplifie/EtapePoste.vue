@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import type { Preset } from '../../data/scenario'
 import { computed, ref, watch } from 'vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspCheckboxGroup from '@/components/base/CspCheckboxGroup/CspCheckboxGroup.vue'
@@ -24,7 +23,7 @@ import SourcePanel from './SourcePanel.vue'
 
 // Étape 1 — définir le poste. L'essentiel d'abord ; la fiche de poste et les compléments
 // sont repliés, et les champs conditionnels n'apparaissent que si la situation les rend utiles.
-const emit = defineEmits<{ reprendre: [preset: Preset] }>()
+const emit = defineEmits<{ reprendre: [reference: string] }>()
 
 const { state, verrouille, afficherErreurs, demanderContribution, simulerContribution, completerAvecFiche } = useOffre()
 const b = state.besoin
@@ -39,6 +38,9 @@ const territoriale = computed(() => versantDe(b.organisme).includes('territorial
 // --- DAR : uniquement si l'organisation en utilise (paramétrage), jamais comme question réglementaire ---
 const organisationAvecDar = computed(() => state.organisation === 'avec_dar')
 const darObtenue = computed(() => b.darStatut === 'validee' && Boolean(b.darRef))
+/** DAR préparée dans ce dossier (hypothèse : elle part en validation avec l'offre). */
+const darPreparee = computed(() => b.darApplicable === 'oui' && Boolean(b.darRef) && ['a_demander', 'en_cours'].includes(b.darStatut))
+const avecDar = computed(() => organisationAvecDar.value && b.darApplicable === 'oui')
 watch(() => b.darRef, (ref) => {
   if (darObtenue.value) {
     return
@@ -48,18 +50,32 @@ watch(() => b.darRef, (ref) => {
 })
 
 // --- Fiche de poste ---
-const ficheOuverte = ref(Boolean(p.missions) && state.statut === 'a_corriger')
 const ficheDispo = computed(() => !p.missions && !b.ficheRef && !verrouille.value)
+/** Ce qui manque à la fiche reprise : dit une fois, dans le résumé, sans alerte. */
+const manquantsFiche = computed(() => [
+  !p.missions && 'missions',
+  !p.competences.length && 'compétences',
+  !p.profil && 'profil recherché',
+  !p.environnement && 'environnement de travail',
+].filter(Boolean) as string[])
+const ficheOuverte = ref(state.statut === 'brouillon' && Boolean(b.ficheRef) && manquantsFiche.value.length > 0)
 const resumeFiche = computed(() => {
   if (!p.missions && !p.competences.length) {
     return 'Non renseignée. Elle facilite la rédaction de l\'offre et des critères.'
   }
-  const src = state.origines['poste.missions']
-  return `${p.activites.length} activité(s), ${p.competences.length} compétence(s)${src ? ' · reprise de la fiche de poste' : ''}`
+  const base = b.ficheRef ? `Reprise de ${b.ficheRef}` : `${p.activites.length} activité(s), ${p.competences.length} compétence(s)`
+  return manquantsFiche.value.length ? `${base} · à compléter : ${manquantsFiche.value.join(', ')}` : `${base} · complète`
 })
+/** La fiche a-t-elle changé depuis la DAR validée ? La DAR, elle, ne change pas. */
+const ecartDar = computed(() => {
+  const d = state.darContenu
+  return Boolean(d && d.statut === 'validee' && JSON.stringify([d.missions, d.activites, d.competences]) !== JSON.stringify([p.missions, p.activites, p.competences]))
+})
+const PLACEHOLDER_FICHE = 'Non renseigné dans la fiche de poste — à compléter, ou à demander à l\'équipe'
 const contributions = computed(() => state.contributions.filter(c => c.stepId === 'poste'))
+const managerId = computed(() => state.circuit.find(e => e.id === 'manager')?.personneId ?? 'julien')
 function demanderAuManager() {
-  demanderContribution({ personneId: 'julien', stepId: 'poste', demande: 'Compléter les missions et les compétences attendues' })
+  demanderContribution({ personneId: managerId.value, stepId: 'poste', demande: 'Compléter les missions et les compétences attendues' })
 }
 
 // --- Compléments ---
@@ -202,6 +218,28 @@ const intituleTropLong = computed(() => b.intitule.length > 120)
         </Field>
       </FieldRow>
 
+      <FieldRow :cols="2">
+        <Field path="besoin.nbPostes">
+          <CspInput
+            v-model="b.nbPostes"
+            type="number"
+            label="Nombre de postes à pourvoir"
+            :hint="Number(b.nbPostes) > 1 ? `Une seule offre publiée pour ${b.nbPostes} postes.` : 'Une offre peut couvrir plusieurs postes identiques.'"
+            :disabled="verrouille"
+            :error="Number(b.nbPostes) < 1"
+            :error-message="Number(b.nbPostes) < 1 ? 'Indiquez au moins 1 poste.' : undefined"
+          />
+        </Field>
+        <ListEditor
+          v-model="b.codesPostes"
+          :label="Number(b.nbPostes) > 1 ? 'Codes des postes concernés (facultatif)' : 'Code poste (facultatif)'"
+          :hint="Number(b.nbPostes) > 1 ? `${b.codesPostes.length} sur ${b.nbPostes} renseigné(s). Vous pourrez compléter plus tard.` : undefined"
+          placeholder="Ex. : SG-PAIE-012"
+          add-label="Ajouter"
+          :disabled="verrouille"
+        />
+      </FieldRow>
+
       <FieldRow
         v-if="b.statuts.includes('contractuel')"
         id="champ-contrat"
@@ -230,7 +268,14 @@ const intituleTropLong = computed(() => b.intitule.length > 120)
           v-if="darObtenue"
           class="dar-line"
         >
-          Autorisation de recrutement : <strong>{{ b.darRef }}</strong>, validée le 2 octobre 2026.
+          Autorisation de recrutement : <strong>{{ b.darRef }}</strong>, validée{{ state.darContenu ? ` (${state.darContenu.date.toLowerCase()})` : ' le 2 octobre 2026' }}.
+        </p>
+        <p
+          v-else-if="darPreparee"
+          class="dar-line"
+        >
+          Demande d'autorisation <strong>{{ b.darRef }}</strong> :
+          {{ b.darStatut === 'en_cours' ? 'soumise, en attente de validation' : 'en préparation dans ce dossier, elle sera soumise avec l\'offre' }}.
         </p>
         <Field
           v-else
@@ -250,13 +295,25 @@ const intituleTropLong = computed(() => b.intitule.length > 120)
     <Panel>
       <Disclosure
         v-model:ouvert="ficheOuverte"
-        titre="Fiche de poste"
+        :titre="avecDar ? 'Fiche de poste — contenu de la DAR' : 'Fiche de poste'"
         :resume="resumeFiche"
         icon="ri:lock-line"
-        facultatif
+        :facultatif="!avecDar"
       >
         <p class="hint">
-          Usage interne, non publiée. Elle sert de matière à l'offre : la modifier ne change pas le texte déjà rédigé pour les candidats.
+          <template v-if="avecDar">
+            Ce contenu forme la demande d'autorisation : il est soumis et validé tel quel, puis n'est plus modifié.
+            Le texte pour les candidats se rédige à l'étape suivante, sans toucher à la DAR. <em>Hypothèse à valider.</em>
+          </template>
+          <template v-else>
+            Usage interne, non publiée. Elle sert de matière à l'offre : la modifier ne change pas le texte déjà rédigé pour les candidats.
+          </template>
+        </p>
+        <p
+          v-if="ecartDar"
+          class="hint"
+        >
+          La fiche a été modifiée depuis la DAR validée. La DAR reste dans sa version validée (consultable dans « Suivi »).
         </p>
         <div
           v-if="ficheDispo || !verrouille"
@@ -273,7 +330,7 @@ const intituleTropLong = computed(() => b.intitule.length > 120)
           />
           <CspButton
             v-if="!contributions.length && !verrouille"
-            :label="`Demander à ${personne('julien').nom} de compléter`"
+            :label="`Demander à ${personne(managerId).nom} de compléter`"
             variant="tertiary-no-outline"
             size="sm"
             icon="ri:user-shared-line"
@@ -301,6 +358,7 @@ const intituleTropLong = computed(() => b.intitule.length > 120)
             v-model="p.missions"
             label="Missions principales"
             :rows="4"
+            :placeholder="PLACEHOLDER_FICHE"
             :disabled="verrouille"
           />
         </Field>
@@ -324,6 +382,7 @@ const intituleTropLong = computed(() => b.intitule.length > 120)
               v-model="p.environnement"
               label="Environnement de travail"
               :rows="3"
+              :placeholder="PLACEHOLDER_FICHE"
               :disabled="verrouille"
             />
           </Field>
@@ -336,6 +395,15 @@ const intituleTropLong = computed(() => b.intitule.length > 120)
             />
           </Field>
         </FieldRow>
+        <Field path="poste.profil">
+          <CspTextarea
+            v-model="p.profil"
+            label="Profil recherché"
+            :rows="2"
+            :placeholder="PLACEHOLDER_FICHE"
+            :disabled="verrouille"
+          />
+        </Field>
         <CspSwitch
           v-model="p.aDesConditions"
           label="Conditions particulières (astreintes, déplacements…)"
@@ -410,7 +478,7 @@ const intituleTropLong = computed(() => b.intitule.length > 120)
             />
           </Field>
         </FieldRow>
-        <FieldRow :cols="3">
+        <FieldRow :cols="2">
           <Field path="besoin.datePriseDePoste">
             <CspInput
               v-model="b.datePriseDePoste"
@@ -424,14 +492,6 @@ const intituleTropLong = computed(() => b.intitule.length > 120)
               v-model="b.quotite"
               label="Quotité"
               :options="QUOTITES"
-              :disabled="verrouille"
-            />
-          </Field>
-          <Field path="besoin.nbPostes">
-            <CspInput
-              v-model="b.nbPostes"
-              type="number"
-              label="Nombre de postes"
               :disabled="verrouille"
             />
           </Field>

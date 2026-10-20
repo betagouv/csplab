@@ -89,6 +89,30 @@ const FICHE_POSTE: Partial<Poste> = {
   conditionsParticulieres: 'Déplacements réguliers en région (permis B requis, véhicule de service).',
 }
 
+/** Fiche de poste volontairement incomplète : compétences, profil et environnement manquent. */
+export const FICHE_PAIE: SourceFiche = {
+  id: 'FP-SG-2026-007',
+  libelle: 'Fiche de poste — Gestionnaire de paie',
+  detail: 'Mise à jour en septembre 2026 · import SIRH fictif · incomplète',
+  besoin: {
+    intitule: 'Gestionnaire de paie',
+    organisme: 'dreal-occ',
+    service: 'Secrétariat général — Bureau des ressources humaines',
+    localisation: 'Toulouse (31)',
+    categories: ['B'],
+    metier: 'm-grh',
+    ficheRef: 'FP-SG-2026-007',
+  },
+  poste: {
+    missions: 'Assurer la préparation et le contrôle de la paie des agents titulaires et contractuels de la direction (environ 900 agents), en lien avec le centre de services RH et la DRFiP.',
+    activites: [
+      'Saisir et contrôler les éléments variables de paie',
+      'Calculer les indemnités et les rappels',
+      'Répondre aux questions des agents sur leur rémunération',
+    ],
+  },
+}
+
 export const FICHES: SourceFiche[] = [
   {
     id: 'FP-SECL-2024-012',
@@ -106,6 +130,7 @@ export const FICHES: SourceFiche[] = [
     },
     poste: FICHE_POSTE,
   },
+  FICHE_PAIE,
 ]
 
 export interface SourceOffre {
@@ -115,6 +140,7 @@ export interface SourceOffre {
 }
 
 export const OFFRES_PRECEDENTES: SourceOffre[] = [
+  { id: 'OFF-2025-0102', libelle: 'Gestionnaire de paie', detail: 'Publiée en juin 2025 · 18 candidatures · 2 postes pourvus' },
   { id: 'OFF-2025-0087', libelle: 'Chargé·e de mission rénovation énergétique', detail: 'Publiée en mars 2025 · 34 candidatures · pourvue' },
   { id: 'OFF-2026-0012', libelle: 'Chargé·e d\'études mobilité durable', detail: 'Publiée en février 2026 · 21 candidatures · pourvue' },
 ]
@@ -179,6 +205,7 @@ function besoinVide(): Besoin {
     quotite: '100 %',
     datePriseDePoste: '',
     nbPostes: '1',
+    codesPostes: [],
     ficheRef: '',
     darApplicable: 'nsp',
     darRef: '',
@@ -246,6 +273,10 @@ export function etatInitial(organisation: OffreState['organisation'] = 'avec_dar
       { personneId: 'julien', acces: 'evaluation' },
       { personneId: 'nadia', acces: 'gestion' },
     ],
+    darContenu: null,
+    notifications: 'chaque',
+    modifieLe: 'Aujourd\'hui',
+    derniereEtape: '',
   }
 }
 
@@ -335,11 +366,14 @@ function remplirComplet(s: OffreState) {
   s.dateLimite = '2026-11-30'
 }
 
-export type Preset = 'nouveau' | 'incomplet' | 'a_valider' | 'a_corriger' | 'pret' | 'sans_dar' | 'sans_validation'
+export type Preset = 'nouveau' | 'incomplet' | 'a_valider' | 'a_corriger' | 'pret' | 'sans_dar' | 'sans_validation' | 'paie'
 
 export function etatPreset(preset: Preset): OffreState {
   if (preset === 'nouveau') {
     return etatInitial()
+  }
+  if (preset === 'paie') {
+    return etatPaie()
   }
   if (preset === 'sans_validation') {
     const s = etatInitial('sans_validation')
@@ -407,4 +441,38 @@ export function etatPreset(preset: Preset): OffreState {
     s.journal.push({ date: 'Avant-hier', texte: 'Soumise à validation' }, { date: 'Hier', texte: 'Validée par Julien Lefèvre puis Nadia Benali' })
   }
   return s
+}
+
+/**
+ * Scénario principal de l'itération 3 : 3 postes de gestionnaire de paie. La fiche de poste a été
+ * reprise hier, puis Camille a été interrompue (appel) : le brouillon a été enregistré automatiquement.
+ * La DAR est préparée dans ce même dossier et n'est pas encore soumise.
+ */
+export function etatPaie(): OffreState {
+  const s = etatInitial()
+  s.reference = 'OFF-2026-0150'
+  depuisFiche(s, FICHE_PAIE)
+  s.journal = [
+    { date: 'Hier, 15:58', texte: 'Dossier créé par Camille Moreau' },
+    { date: 'Hier, 15:58', texte: 'Fiche de poste FP-SG-2026-007 reprise (6 informations)' },
+    { date: 'Hier, 16:12', texte: 'Modifications enregistrées automatiquement — Poste', type: 'modification' },
+  ]
+  s.besoin.nbPostes = '3'
+  s.besoin.codesPostes = ['SG-PAIE-012', 'SG-PAIE-015']
+  s.besoin.statuts = ['titulaire', 'contractuel']
+  s.besoin.darApplicable = 'oui'
+  s.besoin.darRef = 'DAR-2026-0331'
+  s.besoin.darStatut = 'a_demander'
+  s.modifieLe = 'Hier, 16:12'
+  s.derniereEtape = 'poste'
+  s.circuit[0]!.personneId = 'isabelle'
+  s.equipe[1] = { personneId: 'isabelle', acces: 'evaluation' }
+  return s
+}
+
+/** Ce que la cheffe de bureau RH apporte quand on lui demande de compléter la fiche paie (simulation). */
+export const COMPLEMENT_PAIE: Partial<Poste> = {
+  competences: ['Réglementation de la rémunération dans la fonction publique', 'Maîtrise d\'un logiciel de paie', 'Rigueur et respect des échéances', 'Sens du service aux agents'],
+  profil: 'Première expérience en paie ou en gestion administrative du personnel appréciée. Débutant·e accepté·e avec formation.',
+  environnement: 'Bureau des ressources humaines de 12 agents, dont une cellule paie de 5 personnes. Pics d\'activité mensuels liés au calendrier de paie.',
 }

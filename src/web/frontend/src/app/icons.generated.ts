@@ -54,6 +54,7 @@ import riFilterLine from '@iconify-icons/ri/filter-line'
 import riFlashlightFill from '@iconify-icons/ri/flashlight-fill'
 import riFlaskLine from '@iconify-icons/ri/flask-line'
 import riFullscreenLine from '@iconify-icons/ri/fullscreen-line'
+import riGlobalLine from '@iconify-icons/ri/global-line'
 import riGovernmentLine from '@iconify-icons/ri/government-line'
 import riGroupLine from '@iconify-icons/ri/group-line'
 import riHistoryLine from '@iconify-icons/ri/history-line'
@@ -167,6 +168,7 @@ addIcon('ri:filter-line', riFilterLine)
 addIcon('ri:flashlight-fill', riFlashlightFill)
 addIcon('ri:flask-line', riFlaskLine)
 addIcon('ri:fullscreen-line', riFullscreenLine)
+addIcon('ri:global-line', riGlobalLine)
 addIcon('ri:government-line', riGovernmentLine)
 addIcon('ri:group-line', riGroupLine)
 addIcon('ri:history-line', riHistoryLine)

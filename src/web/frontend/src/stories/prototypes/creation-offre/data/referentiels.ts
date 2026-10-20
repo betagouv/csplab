@@ -82,6 +82,7 @@ export const TYPES_CRITERE = [
 export const PERSONNES: Personne[] = [
   { id: 'camille', nom: 'Camille Moreau', role: 'RH de proximité', service: 'Bureau des ressources humaines' },
   { id: 'julien', nom: 'Julien Lefèvre', role: 'Manager — chef du pôle', service: 'Pôle transition énergétique' },
+  { id: 'isabelle', nom: 'Isabelle Fournier', role: 'Manager — cheffe du bureau RH', service: 'Bureau des ressources humaines' },
   { id: 'nadia', nom: 'Nadia Benali', role: 'Responsable recrutement et mobilité', service: 'Plateforme RH régionale' },
   { id: 'helene', nom: 'Hélène Robert', role: 'Secrétaire générale — autorité de validation', service: 'Secrétariat général' },
   { id: 'thomas', nom: 'Thomas Garnier', role: 'Contrôle de gestion — budget', service: 'Secrétariat général' },

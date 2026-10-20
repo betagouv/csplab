@@ -4,6 +4,7 @@ import { computed, nextTick, ref } from 'vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspIcon from '@/components/base/CspIcon/CspIcon.vue'
 import CspInput from '@/components/base/CspInput/CspInput.vue'
+import CspRadioGroup from '@/components/base/CspRadioGroup/CspRadioGroup.vue'
 import { nomOrganisme } from '../../data/redaction'
 import { libelleMetier, personne, SECTIONS_OFFRE } from '../../data/referentiels'
 import { useOffre } from '../../data/useOffre'
@@ -206,6 +207,15 @@ function basculer(id: string, action: string) {
         <li>{{ state.evaluation.criteres.length ? `Grille d'évaluation de ${state.evaluation.criteres.length} critère(s)` : 'Grille d\'évaluation à préparer au moment du tri' }}</li>
         <li>Équipe : {{ state.equipe.map(m => personne(m.personneId).nom).join(', ') }}</li>
       </ul>
+      <CspRadioGroup
+        v-model="state.notifications"
+        label="Me prévenir par courriel des nouvelles candidatures"
+        :options="[{ value: 'chaque', label: 'À chaque candidature' }, { value: 'cinq', label: 'Toutes les 5 candidatures' }, { value: 'quotidien', label: 'Un récapitulatif par jour' }, { value: 'aucune', label: 'Jamais' }]"
+        size="sm"
+      />
+      <p class="muted small">
+        Modifiable à tout moment depuis « Suivi ». Prototype : aucun courriel envoyé.
+      </p>
       <div>
         <CspButton
           label="Dupliquer cette offre"
@@ -326,7 +336,9 @@ function basculer(id: string, action: string) {
           <dd>
             <strong>{{ b.intitule || 'Intitulé à renseigner' }}</strong>
             <span>{{ [nomOrganisme(state), b.service, b.localisation].filter(Boolean).join(' · ') }}</span>
-            <span>{{ [b.categories.length ? `Catégorie ${b.categories.join(', ')}` : '', libelleMetier(b.metier), b.darRef].filter(Boolean).join(' · ') }}</span>
+            <span>{{ [b.categories.length ? `Catégorie ${b.categories.join(', ')}` : '', libelleMetier(b.metier)].filter(Boolean).join(' · ') }}</span>
+            <span>{{ Number(b.nbPostes) > 1 ? `${b.nbPostes} postes à pourvoir, une seule offre` : '1 poste à pourvoir' }}<template v-if="b.codesPostes.length"> · {{ b.codesPostes.join(', ') }}</template></span>
+            <span v-if="b.darRef && b.darApplicable === 'oui'">DAR {{ b.darRef }} · {{ state.darContenu?.statut === 'validee' || b.darStatut === 'validee' ? 'validée' : state.darContenu ? 'soumise' : 'en préparation' }}</span>
           </dd>
           <button
             type="button"
@@ -443,7 +455,10 @@ function basculer(id: string, action: string) {
             name="ri:route-line"
             :size="16"
           />
-          Validation prévue par votre organisation : {{ circuitTexte }}.
+          <span>
+            <template v-if="b.darApplicable === 'oui' && b.darStatut !== 'validee' && b.darRef">La DAR {{ b.darRef }} part avec l'offre. </template>
+            Validation prévue par votre organisation : {{ circuitTexte }}.
+          </span>
         </template>
         <template v-else-if="!circuit.length">
           <CspIcon
@@ -495,6 +510,10 @@ function basculer(id: string, action: string) {
 .muted {
   margin: 0;
   color: var(--text-mention-grey);
+}
+
+.small {
+  font-size: var(--csp-font-size-xs);
 }
 
 .points {

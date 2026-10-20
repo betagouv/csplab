@@ -3,68 +3,46 @@ import { computed, ref } from 'vue'
 import CspBadge from '@/components/base/CspBadge/CspBadge.vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspIcon from '@/components/base/CspIcon/CspIcon.vue'
-import CspSidebar from '@/components/layout/CspSidebar/CspSidebar.vue'
-import CspSidebarGroup from '@/components/layout/CspSidebar/CspSidebarGroup.vue'
-import CspSidebarItem from '@/components/layout/CspSidebar/CspSidebarItem.vue'
-import CspSidebarLogo from '@/components/layout/CspSidebar/CspSidebarLogo.vue'
 import CspSidebarProvider from '@/components/layout/CspSidebar/CspSidebarProvider.vue'
-import CspSidebarUser from '@/components/layout/CspSidebar/CspSidebarUser.vue'
 import { personne } from '../../data/referentiels'
 import { LIBELLES_STATUT, useOffre } from '../../data/useOffre'
+import AppSidebar from './AppSidebar.vue'
 import EtapesNav from './EtapesNav.vue'
 import SuiviDrawer from './SuiviDrawer.vue'
+import { useApp } from './useApp'
 
 // Cadre de la version simplifiée : une barre d'offre (statut, enregistrement, suivi),
 // 4 étapes en onglets, un seul bandeau d'état quand il y a vraiment quelque chose à savoir.
 const { state, dirty, saving, lastSaved, enregistrer, notifier, flash, etapeEnCours, retirerDeValidation, modifierApresValidation } = useOffre()
 
+const { quitter } = useApp()
 const suivi = ref(false)
 const statut = computed(() => LIBELLES_STATUT[state.statut])
 const remarquesOuvertes = computed(() => state.remarques.filter(r => !r.resolue).length)
 
 async function sauver() {
   await enregistrer()
-  notifier('Brouillon enregistré. Vous pourrez le reprendre depuis « Offres ».')
+  notifier('Brouillon enregistré. Vous pouvez quitter et le reprendre depuis « Offres ».')
 }
 </script>
 
 <template>
   <CspSidebarProvider :default-expanded="false">
     <div class="cs-app">
-      <aside class="cs-app__sidebar">
-        <CspSidebar>
-          <template #logo>
-            <CspSidebarLogo />
-          </template>
-          <CspSidebarGroup>
-            <CspSidebarItem
-              icon="ri:dashboard-line"
-              label="Tableau de bord"
-              :to="{ path: '/tableau-de-bord' }"
-            />
-            <CspSidebarItem
-              icon="ri:briefcase-line"
-              label="Offres"
-              :to="{ path: '/offres' }"
-              :is-active="true"
-            />
-            <CspSidebarItem
-              icon="ri:team-line"
-              label="Candidatures"
-              :to="{ path: '/candidatures' }"
-            />
-          </CspSidebarGroup>
-          <template #footer>
-            <CspSidebarUser name="Camille Moreau" />
-          </template>
-        </CspSidebar>
-      </aside>
+      <AppSidebar />
 
       <div class="cs-app__content">
         <header class="cs-bar">
           <div class="cs-bar__id">
             <p class="cs-bar__crumb">
-              Offres <span aria-hidden="true">›</span> {{ state.reference }}
+              <button
+                type="button"
+                class="cs-bar__back"
+                @click="quitter()"
+              >
+                Offres
+              </button>
+              <span aria-hidden="true">›</span> {{ state.reference }}
             </p>
             <h1 class="cs-bar__title">
               {{ state.besoin.intitule || 'Nouvelle offre' }}
@@ -81,9 +59,22 @@ async function sauver() {
               class="cs-bar__save"
               aria-live="polite"
             >
-              <template v-if="saving">Enregistrement…</template>
-              <template v-else-if="dirty">Modifications non enregistrées</template>
-              <template v-else-if="lastSaved">Enregistré {{ lastSaved }}</template>
+              <template v-if="saving">
+                <CspIcon
+                  name="ri:loader-4-line"
+                  class="cs-spin"
+                  :size="14"
+                />
+                Enregistrement en cours…
+              </template>
+              <template v-else-if="dirty">Modifications en cours…</template>
+              <template v-else-if="lastSaved">
+                <CspIcon
+                  name="ri:check-line"
+                  :size="14"
+                />
+                Enregistré {{ lastSaved }}
+              </template>
             </span>
             <CspButton
               label="Suivi"
@@ -94,12 +85,20 @@ async function sauver() {
               @click="suivi = true"
             />
             <CspButton
-              v-if="state.statut !== 'publiee'"
-              label="Enregistrer"
+              v-if="state.statut === 'brouillon' || state.statut === 'a_corriger'"
+              label="Enregistrer le brouillon"
               variant="secondary"
               size="sm"
               :disabled="saving || !dirty"
               @click="sauver"
+            />
+            <CspButton
+              label="Quitter"
+              variant="tertiary-no-outline"
+              size="sm"
+              icon="ri:close-line"
+              is-icon-left
+              @click="quitter()"
             />
           </div>
         </header>
@@ -196,13 +195,6 @@ async function sauver() {
   color: var(--text-default-grey);
 }
 
-.cs-app__sidebar {
-  flex-shrink: 0;
-  height: 100vh;
-  background: var(--background-alt-grey);
-  border-right: 1px solid var(--border-default-grey);
-}
-
 .cs-app__content {
   display: flex;
   flex-direction: column;
@@ -247,8 +239,31 @@ async function sauver() {
 }
 
 .cs-bar__save {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--csp-space-1);
   font-size: var(--csp-font-size-xs);
   color: var(--text-mention-grey);
+}
+
+.cs-bar__back {
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: var(--text-action-high-blue-france);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.cs-spin {
+  animation: cs-spin 1s linear infinite;
+}
+
+@keyframes cs-spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .cs-main {

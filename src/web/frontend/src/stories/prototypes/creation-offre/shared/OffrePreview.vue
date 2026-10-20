@@ -32,6 +32,9 @@ const etiquettes = computed(() => {
   if (b.teletravail) {
     e.push(`Télétravail : ${b.teletravail}`)
   }
+  if (Number(b.nbPostes) > 1) {
+    e.push(`${b.nbPostes} postes à pourvoir`)
+  }
   return e
 })
 

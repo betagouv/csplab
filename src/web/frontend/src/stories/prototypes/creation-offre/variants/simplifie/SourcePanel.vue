@@ -1,17 +1,19 @@
 <script setup lang="ts">
-import type { Preset } from '../../data/scenario'
 import type { OffreState } from '../../data/types'
 import { computed, ref } from 'vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspDialog from '@/components/base/CspDialog/CspDialog.vue'
 import CspIcon from '@/components/base/CspIcon/CspIcon.vue'
-import { BESOINS, BROUILLONS, depuisBesoin, depuisFiche, depuisOffre, etatInitial, FICHES, OFFRES_PRECEDENTES } from '../../data/scenario'
+import { dossiers } from '../../data/dossiers'
+import { BESOINS, depuisBesoin, depuisFiche, depuisOffre, etatInitial, FICHES, OFFRES_PRECEDENTES } from '../../data/scenario'
 import { useOffre } from '../../data/useOffre'
 
 // Reprise d'informations existantes, intégrée à l'étape 1 (plus d'écran de démarrage séparé).
 // Une fois la source appliquée, il ne reste qu'une ligne de rappel.
-const emit = defineEmits<{ reprendre: [preset: Preset] }>()
+const emit = defineEmits<{ reprendre: [reference: string] }>()
 const { state, notifier, completerAvecFiche } = useOffre()
+
+const brouillons = computed(() => dossiers.filter(d => (d.statut === 'brouillon' || d.statut === 'a_corriger') && d.reference !== state.reference))
 
 type Mode = 'besoin' | 'fiche' | 'duplication' | 'brouillon'
 const mode = ref<Mode | null>(null)
@@ -37,7 +39,7 @@ const sources = computed(() => {
     case 'besoin': return BESOINS.map(b => ({ id: b.id, libelle: b.libelle, detail: `${b.id} · ${b.statut}` }))
     case 'fiche': return FICHES.map(f => ({ id: f.id, libelle: f.libelle, detail: `${f.id} · ${f.detail}` }))
     case 'duplication': return OFFRES_PRECEDENTES.map(o => ({ id: o.id, libelle: o.libelle, detail: `${o.id} · ${o.detail}` }))
-    case 'brouillon': return BROUILLONS.map(b => ({ id: b.id, libelle: b.libelle, detail: `${b.id} · ${b.detail}` }))
+    case 'brouillon': return brouillons.value.map(b => ({ id: b.reference, libelle: b.besoin.intitule || 'Sans intitulé', detail: `${b.reference} · modifié ${b.modifieLe.toLowerCase()}` }))
     default: return []
   }
 })
@@ -79,7 +81,7 @@ const apercu = computed(() => {
 
 function valider() {
   if (mode.value === 'brouillon') {
-    emit('reprendre', BROUILLONS.find(b => b.id === sourceId.value)!.preset)
+    emit('reprendre', sourceId.value!)
     return
   }
   appliquer(state)
@@ -133,7 +135,8 @@ const ficheProposee = computed(() => state.startMode && state.startMode !== 'fic
         @click="ouvrir('duplication')"
       />
       <CspButton
-        :label="`Reprendre un brouillon (${BROUILLONS.length})`"
+        v-if="brouillons.length"
+        :label="`Reprendre un brouillon (${brouillons.length})`"
         variant="tertiary-no-outline"
         size="sm"
         @click="ouvrir('brouillon')"

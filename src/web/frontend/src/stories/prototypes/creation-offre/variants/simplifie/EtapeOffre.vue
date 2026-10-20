@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { SectionOffreId } from '../../data/types'
+import type { OffreState, SectionOffreId } from '../../data/types'
 import { computed, reactive, ref } from 'vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspIcon from '@/components/base/CspIcon/CspIcon.vue'
@@ -45,6 +45,25 @@ function accepter(id: SectionOffreId) {
   delete suggestion[id]
 }
 
+// --- Texte source (fiche / DAR) consultable à côté, jamais modifié depuis cet écran ---
+const avecDar = computed(() => state.organisation === 'avec_dar' && state.besoin.darApplicable === 'oui')
+/** Si la DAR a été soumise, la source est sa version figée ; sinon la fiche de poste en cours. */
+const etatSource = computed<OffreState>(() => {
+  const d = state.darContenu
+  if (!d) {
+    return state
+  }
+  return { ...state, besoin: { ...state.besoin, intitule: d.intitule, service: d.service, localisation: d.localisation }, poste: { ...state.poste, missions: d.missions, activites: d.activites, competences: d.competences } }
+})
+const libelleSource = computed(() => {
+  if (state.darContenu) {
+    return `Texte de la DAR ${state.besoin.darRef} — version ${state.darContenu.statut === 'validee' ? 'validée' : 'soumise'}, non modifiable`
+  }
+  return avecDar.value ? 'Contenu de la DAR en préparation (fiche de poste, étape 1)' : 'Informations du poste (étape 1)'
+})
+const sourceOuverte = reactive<Record<string, boolean>>({})
+const SECTIONS_SOURCEES: SectionOffreId[] = ['poste', 'missions', 'profil']
+
 const enErreur = (id: SectionOffreId, requise: boolean) => afficherErreurs.value && requise && !state.offre[id].texte.trim()
 </script>
 
@@ -56,6 +75,9 @@ const enErreur = (id: SectionOffreId, requise: boolean) => afficherErreurs.value
       </h2>
       <p class="head__desc">
         Le texte que liront les candidats. Écrivez pour quelqu'un qui ne connaît pas votre service.
+        <template v-if="avecDar">
+          Il est distinct de la DAR : le modifier ne change pas la DAR.
+        </template>
       </p>
     </div>
     <CspSegmentedControl
@@ -133,6 +155,22 @@ const enErreur = (id: SectionOffreId, requise: boolean) => afficherErreurs.value
         </p>
 
         <div
+          v-if="sourceOuverte[s.id]"
+          class="source"
+        >
+          <p class="source__label">
+            <CspIcon
+              name="ri:lock-line"
+              :size="12"
+            />
+            {{ libelleSource }}
+          </p>
+          <p class="source__text">
+            {{ texteDepuisPoste(etatSource, s.id) }}
+          </p>
+        </div>
+
+        <div
           v-if="suggestion[s.id]?.texte"
           class="sugg"
         >
@@ -157,10 +195,21 @@ const enErreur = (id: SectionOffreId, requise: boolean) => afficherErreurs.value
           </div>
         </div>
         <div
-          v-else-if="!verrouille && SUGGESTIONS[s.id] && state.offre[s.id].texte.trim()"
+          v-else-if="state.offre[s.id].texte.trim() && (SECTIONS_SOURCEES.includes(s.id) || (!verrouille && SUGGESTIONS[s.id]))"
           class="sec__tools"
         >
           <CspButton
+            v-if="SECTIONS_SOURCEES.includes(s.id) && texteDepuisPoste(etatSource, s.id)"
+            :label="sourceOuverte[s.id] ? 'Masquer le texte source' : (avecDar ? 'Comparer avec la DAR' : 'Comparer avec la fiche de poste')"
+            size="sm"
+            variant="tertiary-no-outline"
+            icon="ri:file-list-3-line"
+            is-icon-left
+            :aria-expanded="Boolean(sourceOuverte[s.id])"
+            @click="sourceOuverte[s.id] = !sourceOuverte[s.id]"
+          />
+          <CspButton
+            v-if="!verrouille && SUGGESTIONS[s.id]"
             :label="suggestion[s.id]?.chargement ? 'Préparation…' : 'Proposer une reformulation'"
             size="sm"
             variant="tertiary-no-outline"
@@ -273,7 +322,36 @@ const enErreur = (id: SectionOffreId, requise: boolean) => afficherErreurs.value
 }
 
 .sec__tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--csp-space-2);
   margin: var(--csp-space-1) 0 0 calc(-1 * var(--csp-space-2));
+}
+
+.source {
+  margin-top: var(--csp-space-2);
+  padding: var(--csp-space-3) var(--csp-space-4);
+  border: 1px dashed var(--border-default-grey);
+  background: var(--background-alt-grey);
+  font-size: var(--csp-font-size-sm);
+
+  p {
+    margin: 0;
+  }
+}
+
+.source__label {
+  display: flex;
+  align-items: center;
+  gap: var(--csp-space-1);
+  margin-bottom: var(--csp-space-2) !important;
+  font-size: var(--csp-font-size-xs);
+  color: var(--text-mention-grey);
+}
+
+.source__text {
+  white-space: pre-line;
+  color: var(--text-mention-grey);
 }
 
 .sugg {

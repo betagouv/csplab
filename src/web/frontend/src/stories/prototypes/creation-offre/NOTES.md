@@ -1,5 +1,52 @@
 # Notes — Prototype création d'offre
 
+## Itération 3 — enseignements complémentaires (20 octobre 2026)
+
+Même parcours en 4 étapes, sans nouvelle étape ni nouvel écran de création. Ajouts : une **liste des offres**
+(point d'entrée, consultation), la **sauvegarde automatique**, la **séparation fiche / DAR / offre**,
+le **multi-postes**, un **historique** lisible et des **notifications** réglables.
+
+Scénario : Camille prépare une offre pour **3 postes de gestionnaire de paie**. La fiche de poste
+FP-SG-2026-007 (import SIRH fictif) donne l'intitulé, le service, la localisation, la catégorie, les
+missions et 3 activités ; il manque les compétences, le profil et l'environnement. Interrompue hier, elle
+reprend son brouillon depuis la liste, demande un complément à Isabelle Fournier (cheffe du bureau RH),
+rédige l'offre, puis soumet : la DAR part en validation avec l'offre.
+
+Stories (`Version simplifiée`) : 0. Liste · 1. Brouillon paie · 2. Soumise · 3. Corrections ·
+4. Validée (démo isolée) · 5. Sans validation (démo isolée). Les stories 0 à 3 partagent les mêmes
+dossiers : ce qui est fait dans l'une se retrouve dans les autres, même après rechargement de la page
+(sessionStorage). Lien « Réinitialiser les données de démonstration » en bas de la liste.
+
+### Changements
+
+| Enseignement | Traitement | Où |
+| --- | --- | --- |
+| A. Fiche de poste base du travail, qualité variable | Reprise de la fiche ; ce qui manque est dit une fois dans le résumé de la section (« à compléter : compétences, profil… »), section ouverte d'office, champs vides avec une indication ; « Demander à [manager] de compléter » (réponse simulée) | Étape 1 |
+| B. DAR ≠ offre | La fiche de poste devient « Fiche de poste — contenu de la DAR ». À la soumission, ce contenu est **figé** (consultable dans Suivi) ; l'offre se rédige à part et peut être comparée au texte source (« Comparer avec la DAR »), jamais l'inverse. Si la fiche change après validation, une phrase le signale, la DAR ne bouge pas | Étapes 1 et 2, Suivi |
+| C. Brouillon | Sauvegarde automatique 1,5 s après la dernière saisie, indicateur discret (« Modifications en cours… / Enregistrement en cours… / Enregistré à 15:50 »), bouton « Enregistrer le brouillon », « Quitter » qui enregistre et revient à la liste, reprise à l'étape où l'on s'était arrêté. Aucune perte au rechargement | Barre de l'offre, liste |
+| D. Historique | Regroupé par jour, une icône par type (création, reprise, modifications, contribution, soumission, validation, correction, publication) ; les enregistrements successifs d'une même session tiennent sur une ligne | Suivi |
+| E. Tableaux personnalisables | Liste des offres avec choix des colonnes (dont **code poste**, DAR, étape, date limite…), conservé pendant la session ; filtres simples | Liste |
+| F. Plusieurs postes par offre | « Nombre de postes à pourvoir » dans l'essentiel du poste, codes poste facultatifs (« 2 sur 3 renseignés ») ; repris dans le récapitulatif, l'aperçu candidat (« 3 postes à pourvoir ») et la liste | Étape 1 |
+| G. Doubles saisies | Localisation, service, catégorie repris de la fiche ; badges de provenance affichés **seulement si la valeur a été modifiée** (pour proposer « Rétablir ») | Étape 1 |
+| H. Notifications | Fréquence des courriels de nouvelles candidatures (chaque / toutes les 5 / récapitulatif quotidien / aucun), dans Suivi et sur l'écran « publiée » ; aucun envoi | Suivi, écran publiée |
+
+Statuts distingués : **Brouillon** (modifiable, enregistré automatiquement) · **Soumise à validation**
+(lecture seule, DAR figée) · **Validée** · **Publiée**. Un brouillon peut être enregistré même incomplet.
+
+### Hypothèses à confirmer
+
+- La DAR reprend la fiche de poste et est **figée à la soumission** ; elle est validée telle que soumise.
+  Une modification après validation demanderait une nouvelle version de DAR (non prototypé).
+- La DAR est préparée **dans le même dossier** que l'offre et part en validation avec elle, en première
+  étape du circuit. Alternative à tester : DAR validée d'abord, offre rédigée ensuite.
+- Le contenu exact de la DAR (champs) et son format de publication légale ne sont pas modélisés.
+- Une offre couvre N postes **identiques** ; des postes différents (lieux, quotités) feraient l'objet
+  d'offres distinctes. Le niveau de détail par poste (code, date de prise de poste…) reste à déterminer.
+- Les codes poste viennent du SIRH ; leur saisie manuelle est un pis-aller.
+- Les notifications sont réglées par personne et par offre (pas pour toute l'équipe).
+- La sauvegarde automatique enregistre aussi les brouillons incomplets ; aucune règle de complétude ne
+  bloque l'enregistrement.
+
 ## Itération 2 — version simplifiée (20 octobre 2026)
 
 Retour d'Alice sur l'itération 1 : trop complexe, trop d'étapes, trop de rouge. Hypothèse explorée :

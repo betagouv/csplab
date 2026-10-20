@@ -6,7 +6,7 @@ import type { Preset } from './scenario'
 import type { Contribution, EtapeCircuit, OffreState, Origine, StepId } from './types'
 import { computed, inject, nextTick, provide, reactive, ref, watch } from 'vue'
 import { ACRONYMES, CANAUX, MOI, personne, SECTIONS_OFFRE } from './referentiels'
-import { clone, etatPreset, FICHES } from './scenario'
+import { clone, COMPLEMENT_PAIE, etatPreset, FICHES } from './scenario'
 
 export interface Manque {
   /** Identifiant stable de la règle (permet à une variante d'en désactiver certaines). */
@@ -36,7 +36,7 @@ export const STEPS: { id: StepId, libelle: string, phase: string, facultatif?: b
 
 export const LIBELLES_STATUT: Record<OffreState['statut'], { label: string, type: 'info' | 'new' | 'warning' | 'error' | 'success' }> = {
   brouillon: { label: 'Brouillon', type: 'info' },
-  a_valider: { label: 'En validation', type: 'new' },
+  a_valider: { label: 'Soumise à validation', type: 'new' },
   a_corriger: { label: 'À corriger', type: 'error' },
   validee: { label: 'Validée — prête à publier', type: 'success' },
   publiee: { label: 'Publiée', type: 'success' },
@@ -77,13 +77,23 @@ export function nouvelId(prefixe: string): string {
   return `${prefixe}${uid}`
 }
 
-export function createOffre(preset: Preset, { exclure = [] as string[] } = {}) {
+export interface OptionsOffre {
+  /** Clés de règles de complétude désactivées par une variante. */
+  exclure?: string[]
+  /** Sauvegarde automatique (simulée) quelques instants après la dernière modification. */
+  autosave?: boolean
+  /** Appelé à chaque enregistrement : la variante y range le dossier (stockage de session). */
+  persister?: (s: OffreState) => void
+}
+
+export function createOffre(preset: Preset, { exclure = [], autosave = false, persister }: OptionsOffre = {}) {
   const state = reactive<OffreState>(etatPreset(preset))
 
   const initialStep: StepId | 'demarrer' = {
     nouveau: 'demarrer',
     sans_dar: 'demarrer',
     sans_validation: 'demarrer',
+    paie: 'poste',
     incomplet: 'poste',
     a_valider: 'validation',
     a_corriger: 'validation',
@@ -100,24 +110,73 @@ export function createOffre(preset: Preset, { exclure = [] as string[] } = {}) {
   const saving = ref(false)
   const lastSaved = ref<string | null>(['nouveau', 'sans_dar', 'sans_validation'].includes(preset) ? null : 'il y a 3 jours')
   let ready = false
-  watch(() => [state.besoin, state.poste, state.offre, state.conditions, state.evaluation, state.canaux, state.dateLimite, state.dateDebutDiffusion], () => {
-    if (ready) {
+  let autoTimer: ReturnType<typeof setTimeout> | undefined
+  /** Parties modifiées depuis le dernier enregistrement, pour un historique lisible. */
+  const modifiees = new Set<string>()
+  const BLOCS: [() => unknown, string][] = [
+    [() => [state.besoin, state.poste], 'Poste'],
+    [() => state.offre, 'Offre'],
+    [() => [state.conditions, state.evaluation], 'Candidatures'],
+    [() => [state.canaux, state.dateLimite, state.dateDebutDiffusion], 'Diffusion'],
+  ]
+  for (const [source, libelle] of BLOCS) {
+    watch(source, () => {
+      if (!ready) {
+        return
+      }
       dirty.value = true
-    }
-  }, { deep: true })
+      modifiees.add(libelle)
+      if (autosave) {
+        clearTimeout(autoTimer)
+        autoTimer = setTimeout(() => void enregistrer(true), 1500)
+      }
+    }, { deep: true })
+  }
   setTimeout(() => {
     ready = true
   }, 0)
 
-  function enregistrer(): Promise<void> {
+  function persist() {
+    persister?.(JSON.parse(JSON.stringify(state)))
+  }
+  // Les changements d'état (soumission, validation, remarques…) sont rangés immédiatement.
+  watch(() => [state.statut, state.circuit, state.remarques, state.equipe, state.notifications, state.contributions, state.derniereEtape], () => {
+    if (ready) {
+      persist()
+    }
+  }, { deep: true })
+
+  /** Une session de travail = une ligne d'historique, mise à jour au fil des enregistrements. */
+  function consignerModifications(auto = false) {
+    if (!modifiees.size) {
+      return
+    }
+    const libelle = `Modifications enregistrées${auto ? ' automatiquement' : ''}`
+    const dernier = state.journal.at(-1)
+    if (dernier?.type === 'modification' && dernier.date.startsWith('Aujourd')) {
+      const deja = dernier.texte.split(' — ')[1]?.split(', ') ?? []
+      dernier.texte = `${libelle} — ${[...new Set([...deja, ...modifiees])].join(', ')}`
+      dernier.date = `Aujourd'hui, ${heure()}`
+    }
+    else {
+      state.journal.push({ date: `Aujourd'hui, ${heure()}`, texte: `${libelle} — ${[...modifiees].join(', ')}`, type: 'modification' })
+    }
+    modifiees.clear()
+  }
+
+  function enregistrer(auto = false): Promise<void> {
+    clearTimeout(autoTimer)
     saving.value = true
     return new Promise((resolve) => {
       setTimeout(() => {
         saving.value = false
         dirty.value = false
         lastSaved.value = `à ${heure()}`
+        state.modifieLe = `Aujourd'hui, ${heure()}`
+        consignerModifications(auto)
+        persist()
         resolve()
-      }, 700)
+      }, auto ? 500 : 700)
     })
   }
 
@@ -228,8 +287,8 @@ export function createOffre(preset: Preset, { exclure = [] as string[] } = {}) {
         personneId: 'helene',
         obligatoire: true,
         statut: validee ? 'approuve' : state.besoin.darStatut === 'en_cours' ? 'en_attente' : 'a_venir',
-        date: validee ? '2 octobre 2026' : null,
-        externe: validee,
+        date: validee ? (state.darContenu?.date ?? '2 octobre 2026') : null,
+        externe: validee && !state.darContenu,
       })
     }
     return etapes
@@ -262,6 +321,22 @@ export function createOffre(preset: Preset, { exclure = [] as string[] } = {}) {
       return false
     }
     const resoumission = state.statut === 'a_corriger'
+    consignerModifications()
+    // Hypothèse : le contenu de la DAR est figé tel que soumis ; l'offre reste modifiable à part.
+    if (state.besoin.darApplicable === 'oui' && state.besoin.darStatut !== 'validee') {
+      state.darContenu = {
+        statut: 'soumise',
+        date: `Aujourd'hui, ${heure()}`,
+        intitule: state.besoin.intitule,
+        service: state.besoin.service,
+        localisation: state.besoin.localisation,
+        nbPostes: state.besoin.nbPostes,
+        codesPostes: [...state.besoin.codesPostes],
+        missions: state.poste.missions,
+        activites: [...state.poste.activites],
+        competences: [...state.poste.competences],
+      }
+    }
     state.statut = 'a_valider'
     state.remarques.forEach((r) => {
       r.resolue = true
@@ -288,7 +363,11 @@ export function createOffre(preset: Preset, { exclure = [] as string[] } = {}) {
     if (etapeId === 'dar') {
       if (decision === 'approuve') {
         state.besoin.darStatut = 'validee'
-        journaliser(`DAR validée par ${nom}`)
+        if (state.darContenu) {
+          state.darContenu.statut = 'validee'
+          state.darContenu.date = `Aujourd'hui, ${heure()}`
+        }
+        journaliser(`DAR validée par ${nom}, telle que soumise`)
         activerEtapeSuivante()
       }
       else {
@@ -344,6 +423,7 @@ export function createOffre(preset: Preset, { exclure = [] as string[] } = {}) {
     if (!peutPublier.value) {
       return false
     }
+    consignerModifications()
     state.statut = 'publiee'
     journaliser('Offre publiée')
     void enregistrer()
@@ -364,7 +444,7 @@ export function createOffre(preset: Preset, { exclure = [] as string[] } = {}) {
       return
     }
     c.statut = 'faite'
-    const fiche = FICHES[0]!.poste
+    const fiche = state.besoin.ficheRef === 'FP-SG-2026-007' ? COMPLEMENT_PAIE : FICHES[0]!.poste
     if (c.stepId === 'poste') {
       if (!state.poste.competences.length) {
         state.poste.competences = [...fiche.competences!]
@@ -374,6 +454,10 @@ export function createOffre(preset: Preset, { exclure = [] as string[] } = {}) {
         state.poste.profil = fiche.profil!
         state.origines['poste.profil'] = { origine: 'contribution', valeur: fiche.profil }
       }
+      if (!state.poste.environnement && fiche.environnement) {
+        state.poste.environnement = fiche.environnement
+        state.origines['poste.environnement'] = { origine: 'contribution', valeur: fiche.environnement }
+      }
     }
     journaliser(`${personne(c.personneId).nom} a complété sa contribution`)
     notifier(`${personne(c.personneId).nom} a complété « ${c.demande} »`)
@@ -381,7 +465,7 @@ export function createOffre(preset: Preset, { exclure = [] as string[] } = {}) {
 
   /** Complète uniquement les champs vides avec la fiche de poste existante ; ne remplace rien. */
   function completerAvecFiche(): number {
-    const f = FICHES[0]!
+    const f = FICHES.find(x => x.id === state.besoin.ficheRef) ?? FICHES[0]!
     let n = 0
     for (const [bloc, valeurs] of [['besoin', f.besoin], ['poste', f.poste]] as const) {
       const cible = state[bloc] as unknown as Record<string, unknown>
@@ -460,6 +544,7 @@ export function createOffre(preset: Preset, { exclure = [] as string[] } = {}) {
     demanderContribution,
     simulerContribution,
     completerAvecFiche,
+    persist,
     statutStep,
     progression,
     aller,
@@ -472,7 +557,7 @@ export type OffreStore = ReturnType<typeof createOffre>
 
 const KEY: InjectionKey<OffreStore> = Symbol('offre')
 
-export function provideOffre(preset: Preset, options?: { exclure?: string[] }): OffreStore {
+export function provideOffre(preset: Preset, options?: OptionsOffre): OffreStore {
   const store = createOffre(preset, options)
   provide(KEY, store)
   return store

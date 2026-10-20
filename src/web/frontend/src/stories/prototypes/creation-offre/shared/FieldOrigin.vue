@@ -1,14 +1,19 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, inject } from 'vue'
 import CspIcon from '@/components/base/CspIcon/CspIcon.vue'
 import { useOffre } from '../data/useOffre'
+import { ORIGINES_DISCRETES } from './origines'
 
 // Indique qu'une valeur a été reprise d'une source (DAR, fiche de poste, offre dupliquée)
 // et si elle a été modifiée depuis. Permet de revenir à la valeur d'origine.
 const props = defineProps<{ path: string }>()
 
 const { origine, restaurer, verrouille } = useOffre()
-const info = computed(() => origine(props.path))
+const discret = inject(ORIGINES_DISCRETES, false)
+const info = computed(() => {
+  const o = origine(props.path)
+  return o && (!discret || o.modifie) ? o : null
+})
 </script>
 
 <template>
