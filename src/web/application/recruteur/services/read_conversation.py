@@ -14,23 +14,23 @@ from application.recruteur.context_services.candidature_agent_service import (
 from application.recruteur.context_services.recrutement_agent_service import (
     RecrutementAgentService,
 )
-from domain.identite.entities.utilisateurs import Utilisateur
 from domain.identite.value_objects.organisme_action import OrganismeAction
 from infrastructure.django_apps.messagerie.models import (
     ConversationLectureModel,
     MessageModel,
 )
+from infrastructure.django_apps.users.models import UserModel
 
 logger = logging.getLogger(__name__)
 
 
 def mark_as_read(
-    *, conversation_id: UUID, utilisateur: Utilisateur, read_up_to: datetime
+    *, conversation_id: UUID, utilisateur: UserModel, read_up_to: datetime
 ) -> None:
     try:
         lecture, created = ConversationLectureModel.objects.get_or_create(
             conversation_id=conversation_id,
-            utilisateur_id=utilisateur.entity_id,
+            utilisateur_id=utilisateur.username,
             defaults={"id": uuid4(), "read_at": read_up_to},
         )
         if not created:
@@ -41,7 +41,7 @@ def mark_as_read(
         logger.exception(
             "Could not mark conversation %s as read for %s",
             conversation_id,
-            utilisateur.entity_id,
+            utilisateur.username,
         )
 
 
@@ -51,7 +51,7 @@ def read_conversation(
     recrutement_id: UUID,
     candidature_id: UUID,
     conversation_id: UUID,
-    utilisateur: Utilisateur,
+    utilisateur: UserModel,
 ) -> QuerySet[MessageModel]:
     OrganismePermissionService().can_execute(
         action=OrganismeAction.READ_CONVERSATION,

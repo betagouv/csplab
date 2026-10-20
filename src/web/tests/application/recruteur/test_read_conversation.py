@@ -31,17 +31,15 @@ from infrastructure.factories.identite.agent_django_factory import AgentDjangoFa
 from infrastructure.factories.identite.organisme_django_factory import (
     OrganismeDjangoFactory,
 )
-from infrastructure.factories.identite.utilisateur_factory import UtilisateurFactory
+from infrastructure.factories.identite.utilisateur_django_factory import (
+    UtilisateurDjangoFactory,
+)
 from infrastructure.factories.messagerie.conversation_django_factory import (
     ConversationDjangoFactory,
     ConversationLectureDjangoFactory,
     MessageDjangoFactory,
     MessageDocumentDjangoFactory,
 )
-
-
-def _utilisateur(entity_id):
-    return UtilisateurFactory.create_entity(entity_id=entity_id)
 
 
 def test_conversation_without_message_is_empty(db):
@@ -54,7 +52,7 @@ def test_conversation_without_message_is_empty(db):
         recrutement_id=recrutement.pk,
         candidature_id=candidature.pk,
         conversation_id=ConversationDjangoFactory(candidature=candidature).pk,
-        utilisateur=_utilisateur(agent.utilisateur_id),
+        utilisateur=agent.utilisateur,
     )
 
     assert not messages.exists()
@@ -72,7 +70,7 @@ def test_reading_does_not_issue_a_query_per_message(db, django_assert_num_querie
         recrutement_id=recrutement.pk,
         candidature_id=candidature.pk,
         conversation_id=conversation.pk,
-        utilisateur=_utilisateur(agent.utilisateur_id),
+        utilisateur=agent.utilisateur,
     )
 
     with django_assert_num_queries(
@@ -96,7 +94,7 @@ def test_denied_read_leaves_no_read_receipt(db):
             recrutement_id=recrutement.pk,
             candidature_id=candidature.pk,
             conversation_id=conversation.pk,
-            utilisateur=_utilisateur(uuid4()),
+            utilisateur=UtilisateurDjangoFactory(),
         )
 
     assert not ConversationLectureModel.objects.exists()
@@ -108,7 +106,7 @@ def test_mark_as_read_never_moves_the_receipt_backwards(db):
 
     mark_as_read(
         conversation_id=lecture.conversation_id,
-        utilisateur=_utilisateur(lecture.utilisateur_id),
+        utilisateur=lecture.utilisateur,
         read_up_to=previous - timedelta(minutes=1),
     )
 
@@ -124,7 +122,7 @@ def test_mark_as_read_only_concerns_the_reader_and_the_conversation(db):
 
     mark_as_read(
         conversation_id=conversation.pk,
-        utilisateur=_utilisateur(agent.utilisateur_id),
+        utilisateur=agent.utilisateur,
         read_up_to=timezone.now(),
     )
 
@@ -145,7 +143,7 @@ def test_failed_read_receipt_is_logged_and_swallowed(db, caplog):
     ):
         mark_as_read(
             conversation_id=conversation.pk,
-            utilisateur=_utilisateur(uuid4()),
+            utilisateur=UtilisateurDjangoFactory(),
             read_up_to=timezone.now(),
         )
 
@@ -163,7 +161,7 @@ def test_unauthorized_agent_is_denied(db):
             recrutement_id=recrutement.pk,
             candidature_id=candidature.pk,
             conversation_id=ConversationDjangoFactory(candidature=candidature).pk,
-            utilisateur=_utilisateur(uuid4()),
+            utilisateur=UtilisateurDjangoFactory(),
         )
 
 
@@ -178,7 +176,7 @@ def test_agent_without_recrutement_role_is_denied(db):
             recrutement_id=recrutement.pk,
             candidature_id=candidature.pk,
             conversation_id=ConversationDjangoFactory(candidature=candidature).pk,
-            utilisateur=_utilisateur(agent.utilisateur_id),
+            utilisateur=agent.utilisateur,
         )
 
 
@@ -189,7 +187,7 @@ def test_unknown_organisme_is_denied(db):
             recrutement_id=uuid4(),
             candidature_id=uuid4(),
             conversation_id=uuid4(),
-            utilisateur=_utilisateur(uuid4()),
+            utilisateur=UtilisateurDjangoFactory(),
         )
 
 
@@ -205,7 +203,7 @@ def test_recrutement_not_under_organisme_is_denied(db):
             recrutement_id=other_recrutement.pk,
             candidature_id=other_candidature.pk,
             conversation_id=ConversationDjangoFactory(candidature=other_candidature).pk,
-            utilisateur=_utilisateur(agent.utilisateur_id),
+            utilisateur=agent.utilisateur,
         )
 
 
@@ -219,7 +217,7 @@ def test_candidature_not_under_recrutement_is_denied(db):
             recrutement_id=recrutement.pk,
             candidature_id=other_candidature.pk,
             conversation_id=ConversationDjangoFactory(candidature=other_candidature).pk,
-            utilisateur=_utilisateur(agent.utilisateur_id),
+            utilisateur=agent.utilisateur,
         )
 
 
@@ -234,7 +232,7 @@ def test_unknown_conversation_is_denied(db):
             recrutement_id=recrutement.pk,
             candidature_id=candidature.pk,
             conversation_id=uuid4(),
-            utilisateur=_utilisateur(agent.utilisateur_id),
+            utilisateur=agent.utilisateur,
         )
 
 
@@ -250,5 +248,5 @@ def test_conversation_of_another_candidature_is_denied(db):
             recrutement_id=recrutement.pk,
             candidature_id=candidature.pk,
             conversation_id=ConversationDjangoFactory(candidature=other_candidature).pk,
-            utilisateur=_utilisateur(agent.utilisateur_id),
+            utilisateur=agent.utilisateur,
         )

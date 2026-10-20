@@ -27,7 +27,6 @@ from infrastructure.django_apps.messagerie.models import ConversationModel
 from presentation.api.authentication import SessionApiMixin
 from presentation.api.serializers import GenericErrorSerializer, generic_response_format
 from presentation.commons.pagination import PageNumberLimitPagination
-from presentation.recruteur.mappers import UtilisateurMapper
 from presentation.recruteur.serializers import (
     ConversationSerializer,
     CreateConversationSerializer,
@@ -68,7 +67,7 @@ class CandidatureConversationsView(SessionApiMixin, ListAPIView):
             organisme_id=self.kwargs["organisme_uuid"],
             recrutement_id=self.kwargs["recrutement_uuid"],
             candidature_id=self.kwargs["candidature_uuid"],
-            utilisateur=UtilisateurMapper().to_domain(self.request),
+            utilisateur=self.request.user,
         )
 
     def post(
@@ -89,7 +88,7 @@ class CandidatureConversationsView(SessionApiMixin, ListAPIView):
             objet=serializer.validated_data["objet"],
             content=serializer.validated_data["content"],
             documents=serializer.validated_data["documents"],
-            utilisateur=UtilisateurMapper().to_domain(request),
+            utilisateur=request.user,
         )
         return Response(
             ConversationSerializer(conversation).data,
