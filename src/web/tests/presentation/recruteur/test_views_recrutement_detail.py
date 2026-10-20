@@ -45,6 +45,11 @@ from infrastructure.factories.identite.organisme_django_factory import (
 from infrastructure.factories.identite.utilisateur_django_factory import (
     UtilisateurDjangoFactory,
 )
+from infrastructure.factories.messagerie.conversation_django_factory import (
+    ConversationDjangoFactory,
+    ConversationLectureDjangoFactory,
+    MessageDjangoFactory,
+)
 from infrastructure.factories.recruteur.candidature_recruteur_factory import (
     CandidatureRecruteurFactory,
 )
@@ -512,6 +517,48 @@ class TestRecrutementListeView:
                     },
                 }
             ],
+        }
+
+    def test_counts_unread_conversations_of_the_current_agent(
+        self, authenticated_client, recrutement_liste, test_user
+    ):
+        etape = EtapeModel.objects.filter(recrutement=recrutement_liste).first()
+        candidature = CandidatureDjangoFactory(etape=etape)
+        ConversationDjangoFactory.create_batch(
+            2,
+            candidature=candidature,
+            with_message=True,
+            with_message__par_candidat=True,
+        )
+        answered = MessageDjangoFactory(
+            conversation=ConversationDjangoFactory(candidature=candidature),
+            auteur=test_user,
+        )
+        read = MessageDjangoFactory(
+            conversation=ConversationDjangoFactory(candidature=candidature),
+            par_candidat=True,
+        )
+        ConversationLectureDjangoFactory(
+            conversation=read.conversation,
+            utilisateur=test_user,
+            read_at=read.created_at,
+        )
+        unread_by_another_agent_only = CandidatureDjangoFactory(etape=etape)
+        ConversationDjangoFactory(
+            candidature=unread_by_another_agent_only,
+            with_message=True,
+            with_message__par_candidat=True,
+        )
+        ConversationLectureDjangoFactory(
+            conversation=answered.conversation,
+            read_at=answered.created_at,
+        )
+
+        results = authenticated_client.get(RECRUTEMENT_LISTE_URL).json()["results"]
+
+        assert {r["uuid"]: r["unread_conversations"] for r in results} == {
+            str(candidature.id): 2,
+            str(unread_by_another_agent_only.id): 1,
         }
 
     def test_returns_only_candidatures_of_the_recrutement(
