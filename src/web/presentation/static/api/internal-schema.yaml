@@ -3966,11 +3966,9 @@ paths:
       - name: page
         required: false
         in: query
-        description: Numéro de la page.
+        description: Un numéro de page de l'ensemble des résultats.
         schema:
           type: integer
-          default: 1
-          minimum: 1
       - in: path
         name: recrutement_uuid
         schema:
@@ -3980,12 +3978,9 @@ paths:
       - name: taille
         required: false
         in: query
-        description: Nombre d'éléments par page.
+        description: Nombre de résultats à retourner par page.
         schema:
           type: integer
-          default: 100
-          minimum: 1
-          maximum: 1000
       tags:
       - recruteur
       security:
@@ -5727,17 +5722,17 @@ components:
       properties:
         count:
           type: integer
-          example: 1
+          example: 123
         next:
           type: string
-          format: uri
           nullable: true
-          example: null
+          format: uri
+          example: http://api.example.org/accounts/?page=4
         previous:
           type: string
-          format: uri
           nullable: true
-          example: null
+          format: uri
+          example: http://api.example.org/accounts/?page=2
         results:
           type: array
           items:

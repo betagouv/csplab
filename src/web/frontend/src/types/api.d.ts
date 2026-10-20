@@ -928,16 +928,16 @@ export interface components {
             results: components["schemas"]["AuditLog"][];
         };
         PaginatedCandidatureListeList: {
-            /** @example 1 */
+            /** @example 123 */
             count: number;
             /**
              * Format: uri
-             * @example null
+             * @example http://api.example.org/accounts/?page=4
              */
             next?: string | null;
             /**
              * Format: uri
-             * @example null
+             * @example http://api.example.org/accounts/?page=2
              */
             previous?: string | null;
             results: components["schemas"]["CandidatureListe"][];
@@ -4346,9 +4346,9 @@ export interface operations {
     recruteur_organismes_recrutements_liste_list: {
         parameters: {
             query?: {
-                /** @description Numéro de la page. */
+                /** @description Un numéro de page de l'ensemble des résultats. */
                 page?: number;
-                /** @description Nombre d'éléments par page. */
+                /** @description Nombre de résultats à retourner par page. */
                 taille?: number;
             };
             header?: never;
