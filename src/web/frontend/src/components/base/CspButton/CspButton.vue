@@ -67,7 +67,7 @@ const isIconOnly = computed(() => Boolean(props.icon) && !props.label)
   line-height: 1.25;
   cursor: pointer;
   border: none;
-  border-radius: var(--csp-action-radius);
+  border-radius: var(--csp-action-radius, 0);
   text-decoration: none;
   padding: var(--csp-btn-padding-y) var(--csp-btn-padding-x);
   transition:
@@ -75,8 +75,8 @@ const isIconOnly = computed(() => Boolean(props.icon) && !props.label)
     box-shadow var(--csp-motion-duration-state);
 
   &:focus-visible {
-    outline: 2px solid var(--csp-focus-ring-color);
-    outline-offset: 2px;
+    outline: var(--csp-focus-ring-width) solid var(--csp-focus-ring-color);
+    outline-offset: var(--csp-focus-ring-offset);
   }
 
   &:disabled {

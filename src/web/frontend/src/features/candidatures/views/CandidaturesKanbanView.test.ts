@@ -62,7 +62,7 @@ const KANBAN_WITH_ENTRETIEN = {
 }
 
 function dropButton(label: string, targetColumnId: string) {
-  const event: KanbanDropEvent = { sourceColumnId: ETAPE_RECEPTION, targetColumnId, cardId: CANDIDATURE_ALICE }
+  const event: KanbanDropEvent = { sourceColumnId: ETAPE_RECEPTION, targetColumnId, cardId: CANDIDATURE_ALICE, releasedAt: { x: 0, y: 0 } }
   return { label, event }
 }
 

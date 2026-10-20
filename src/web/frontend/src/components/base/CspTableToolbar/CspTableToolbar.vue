@@ -50,16 +50,23 @@ const selectionCountLabel = computed(
 </template>
 
 <style scoped lang="scss">
+@use '@/styles/breakpoints' as bp;
+
 .csp-table-toolbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--csp-space-4);
   padding: var(--csp-space-3) 0;
+
+  @include bp.from(bp.$md) {
+    margin-inline: calc(-1 * var(--csp-table-toolbar-border-outset));
+    padding-inline: var(--csp-table-toolbar-border-outset);
+  }
 }
 
 .csp-table-toolbar--bordered {
-  border-top: 1px solid var(--csp-divider-color);
+  border-top: 1px solid var(--csp-table-toolbar-divider-color);
 }
 
 .csp-table-toolbar__count {

@@ -72,7 +72,9 @@ withDefaults(defineProps<CspSkeletonKanbanProps>(), {
   padding: var(--csp-kanban-column-padding);
   background-color: var(--csp-region-background);
   box-shadow: inset 0 0 0 1px var(--csp-region-border-color);
-  border-radius: var(--csp-region-radius);
+  border-radius: var(--csp-region-radius) var(--csp-region-radius) var(--csp-region-radius) var(--csp-region-radius) /
+    var(--csp-kanban-column-accent-radius) var(--csp-kanban-column-accent-radius) var(--csp-region-radius)
+    var(--csp-region-radius);
   border-top: var(--csp-category-accent-width) solid var(--csp-category-neutral-accent);
 }
 

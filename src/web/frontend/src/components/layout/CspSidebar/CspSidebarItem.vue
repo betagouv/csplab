@@ -72,7 +72,7 @@ const { showLabels } = useSidebar()
   height: var(--sidebar-item-size);
   padding: 0;
   border: none;
-  border-radius: var(--csp-action-radius);
+  border-radius: var(--csp-action-radius, 0);
   background: var(--csp-nav-background);
   text-decoration: none;
   transition: background-color var(--csp-motion-duration-state);

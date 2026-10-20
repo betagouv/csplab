@@ -72,7 +72,7 @@ const colorStyle = computed(() => ({
   max-width: 100%;
   padding: var(--csp-label-padding-y) var(--csp-label-padding-x);
   padding-inline-start: var(--csp-label-padding-start, var(--csp-label-padding-x));
-  border-radius: var(--csp-label-radius, 0.25rem);
+  border-radius: var(--csp-label-radius, var(--csp-badge-radius));
   box-shadow: inset 0 0 0 1px var(--csp-label-border-color, transparent);
   background-color: var(--csp-label-background);
   color: var(--csp-label-text);
@@ -150,7 +150,7 @@ const colorStyle = computed(() => ({
   }
 
   &:focus-visible {
-    outline: 2px solid var(--csp-focus-ring-color);
+    outline: var(--csp-focus-ring-width) solid var(--csp-focus-ring-color);
     outline-offset: 1px;
   }
 }

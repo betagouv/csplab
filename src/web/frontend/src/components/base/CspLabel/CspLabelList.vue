@@ -261,7 +261,7 @@ watch(() => [props.labels, props.maxLines], () => nextTick(computeVisibleCount),
   align-items: center;
   padding: 0.125rem 0.375rem;
   border: none;
-  border-radius: var(--csp-label-radius, 0.25rem);
+  border-radius: var(--csp-label-radius, var(--csp-badge-radius));
   box-shadow: inset 0 0 0 1px var(--border-default-grey);
   background: transparent;
   color: var(--text-mention-grey);
@@ -279,8 +279,8 @@ watch(() => [props.labels, props.maxLines], () => nextTick(computeVisibleCount),
   }
 
   &:focus-visible {
-    outline: 2px solid var(--csp-focus-ring-color);
-    outline-offset: 2px;
+    outline: var(--csp-focus-ring-width) solid var(--csp-focus-ring-color);
+    outline-offset: var(--csp-focus-ring-offset);
   }
 }
 

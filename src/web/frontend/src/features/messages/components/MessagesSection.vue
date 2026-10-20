@@ -110,6 +110,7 @@ function startConversation(): void {
       <CspEmptyState
         v-if="isEmpty"
         icon="ri:mail-close-line"
+        pictogram="digital/mail-send"
         title="Aucune conversation pour le moment"
         :description="`Créer une conversation pour échanger avec ${candidatNom}`"
       >
@@ -130,6 +131,7 @@ function startConversation(): void {
       <CspEmptyState
         v-else-if="!showSkeleton && !error"
         icon="ri:chat-3-line"
+        pictogram="leisure/community"
         title="Sélectionnez une conversation"
         :description="`Choisissez une conversation pour lire les messages échangés avec ${candidatNom}.`"
       />
@@ -144,6 +146,8 @@ function startConversation(): void {
   grid-template-columns: minmax(0, 22rem) minmax(0, 1fr);
   min-height: 0;
   border: 1px solid var(--border-default-grey);
+  border-radius: var(--csp-frame-radius, 0);
+  overflow: clip;
 }
 
 .messages-section__pane {

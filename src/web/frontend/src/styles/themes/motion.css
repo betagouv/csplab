@@ -65,3 +65,26 @@
     outline-offset: -2px;
   }
 }
+
+/* Scales a floating layer from the side of its trigger, that transform-origin sets */
+@keyframes csp-overlap-unfold {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+}
+
+/* The dialog keeps its centring translation */
+@keyframes csp-dialog-rise {
+  from {
+    opacity: 0;
+    transform: translate(-50%, calc(-50% + 1.5rem));
+  }
+}
+
+/* Moves a dropped card from the point where it was released, that --csp-drop-offset-x and -y give, to its place */
+@keyframes csp-raised-settle {
+  from {
+    translate: var(--csp-drop-offset-x, 0) var(--csp-drop-offset-y, 0);
+  }
+}

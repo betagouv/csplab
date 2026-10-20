@@ -95,17 +95,18 @@ const resolvedIcon = computed(() => props.icon ?? iconByVariant[props.variant])
   padding: var(--csp-space-4);
   padding-left: calc(var(--csp-space-4) + var(--csp-message-bar-width));
   background-color: var(--csp-callout-bg);
-  border: var(--csp-message-border-width) solid var(--csp-callout-border);
-  border-left: none;
+  border: var(--csp-callout-border-width) solid var(--csp-callout-border);
+  border-left-width: var(--csp-callout-border-width-start);
+  border-radius: var(--csp-message-radius, 0);
   box-shadow: inset 0 0 0 var(--csp-message-frame-width) var(--csp-callout-accent);
   color: var(--csp-callout-text);
 
   &::before {
     content: '';
     position: absolute;
-    top: calc(-1 * var(--csp-message-border-width));
+    top: calc(-1 * var(--csp-callout-border-width));
     left: 0;
-    bottom: calc(-1 * var(--csp-message-border-width));
+    bottom: calc(-1 * var(--csp-callout-border-width));
     width: var(--csp-message-bar-width);
     background-color: var(--csp-callout-accent);
   }

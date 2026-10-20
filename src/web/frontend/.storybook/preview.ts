@@ -15,7 +15,10 @@ import './storybook.css'
 // Demo data for the prototype screens: each module is replaced by the file of the same name in its __mocks__ folder.
 sb.mock('../src/api/utilisateur.ts')
 sb.mock('../src/features/candidatures/api.ts')
+sb.mock('../src/features/equipe-recrutement/api.ts')
+sb.mock('../src/features/etapes-recrutement/api.ts')
 sb.mock('../src/features/messages/api.ts')
+sb.mock('../src/features/organismes/api.ts')
 sb.mock('../src/features/recrutements/api.ts')
 sb.mock('@pinia/colada-devtools')
 

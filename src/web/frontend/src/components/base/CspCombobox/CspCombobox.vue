@@ -225,8 +225,8 @@ const announcedStatus = useDebounce(statusMessage, 1000)
   }
 
   &:focus-visible {
-    outline: 2px solid var(--csp-focus-ring-color);
-    outline-offset: 2px;
+    outline: var(--csp-focus-ring-width) solid var(--csp-focus-ring-color);
+    outline-offset: var(--csp-focus-ring-offset);
   }
 }
 
@@ -247,10 +247,11 @@ const announcedStatus = useDebounce(statusMessage, 1000)
   background-color: var(--background-overlap-grey);
   border-radius: var(--csp-overlap-radius, 0.25rem);
   box-shadow:
-    inset 0 0 0 1px var(--border-default-grey),
+    inset 0 0 0 1px var(--csp-overlap-border-color),
     var(--csp-overlap-shadow, var(--csp-shadow-md));
   overflow: hidden;
   z-index: var(--csp-z-dropdown);
+  transform-origin: var(--reka-popper-transform-origin);
 
   &[data-state='open'] {
     animation: var(--csp-motion-overlap-enter);
@@ -278,7 +279,7 @@ const announcedStatus = useDebounce(statusMessage, 1000)
   padding: var(--csp-menu-item-padding);
   font-size: 0.875rem;
   line-height: 1.25;
-  border-radius: var(--csp-menu-item-radius);
+  border-radius: var(--csp-menu-item-radius, calc(var(--csp-overlap-radius, 0.25rem) / 2));
   cursor: pointer;
   outline: none;
   color: var(--text-default-grey);

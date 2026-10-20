@@ -92,7 +92,7 @@ const selectedCandidatureUuids = computed(() =>
   new Set(selectedCandidatures.value.map(({ candidature }) => candidature.uuid)),
 )
 
-function handleMove({ sourceColumnId, targetColumnId, cardId }: KanbanDropEvent) {
+function handleMove({ sourceColumnId, targetColumnId, cardId, releasedAt }: KanbanDropEvent) {
   if (sourceColumnId === targetColumnId) {
     return
   }
@@ -105,7 +105,7 @@ function handleMove({ sourceColumnId, targetColumnId, cardId }: KanbanDropEvent)
     targetColumnId,
     [candidature.candidat],
     (motifRefus) => {
-      markKanbanCardMoved(boardId.value, cardId)
+      markKanbanCardMoved(boardId.value, cardId, releasedAt)
       void changeEtape({ etapeCibleUuid: targetColumnId, candidatureUuids: [cardId], motifRefus })
     },
   )

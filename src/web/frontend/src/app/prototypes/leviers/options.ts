@@ -11,6 +11,8 @@ export interface LevierOption {
   valeurs: Valeurs
   // Values that replace those of valeurs in the dark theme
   sombre?: Valeurs
+  // Values that replace those of valeurs when the system asks for reduced motion
+  reduit?: Valeurs
 }
 
 // Controls (button, field), indicators (checkbox), surfaces (card, table), floating layers (menu, toast), regions (kanban column)
@@ -30,69 +32,12 @@ export const ARRONDIS: LevierOption[] = [
   { id: 'legers', nom: '2 et 4 px', valeurs: rayons('2px', '4px', '4px', '2px') },
   { id: 'moyens', nom: '4 et 8 px', valeurs: rayons('4px', '8px', '12px', '2px') },
   { id: 'marques', nom: '8 et 12 px', valeurs: rayons('8px', '12px', '16px', '4px') },
-  // Les entreprises s'engagent: control 6 px, card 10 px, panel 16 px; an element in a narrow container takes the role below
-  { id: 'roles-lee', nom: 'Rayons par rôle de LEE, 6, 10 et 16 px', valeurs: rayons('0.375rem', '0.625rem', '1rem', '0.375rem') },
+  // Control 6 px, card 10 px, panel 16 px; an element in a narrow container takes the role below
+  { id: 'roles', nom: 'Rayons par rôle, 6, 10 et 16 px', valeurs: rayons('0.375rem', '0.625rem', '1rem', '0.375rem') },
 ]
-
-function ombres(couleur: (opacite: number) => string, opacites: [number, number, number, number, number]): Valeurs {
-  const [repos, survolProche, survolLarge, coucheProche, coucheLarge] = opacites.map(couleur)
-  const carte = `0 1px 2px ${repos}, 0 2px 6px -2px ${repos}`
-  const survol = `0 2px 4px ${survolProche}, 0 8px 20px -6px ${survolLarge}`
-  return {
-    '--csp-raised-shadow': carte,
-    '--csp-raised-shadow-hover': survol,
-    '--csp-raised-shadow-drag': `0 1px 2px ${repos}`,
-    '--csp-overlap-shadow': survol,
-    '--csp-lifted-shadow': `0 4px 8px -2px ${coucheProche}, 0 20px 44px -12px ${coucheLarge}`,
-  }
-}
 
 // A transparent shadow: components list these variables with other shadows, where none is invalid
-const SANS_OMBRE = '0 0 #0000'
-
-export const OMBRES: LevierOption[] = [
-  {
-    id: 'sans-ombre',
-    nom: 'Sans ombre',
-    valeurs: {
-      '--csp-raised-shadow': SANS_OMBRE,
-      '--csp-raised-shadow-hover': SANS_OMBRE,
-      '--csp-raised-shadow-drag': SANS_OMBRE,
-      '--csp-overlap-shadow': SANS_OMBRE,
-      '--csp-lifted-shadow': SANS_OMBRE,
-    },
-  },
-  { id: 'kit-actuel', nom: 'Kit actuel', valeurs: {} },
-  {
-    id: 'dsfr',
-    nom: 'Ombres du DSFR',
-    valeurs: {
-      '--csp-raised-shadow': 'var(--raised-shadow)',
-      '--csp-raised-shadow-hover': 'var(--overlap-shadow)',
-      '--csp-raised-shadow-drag': 'var(--raised-shadow)',
-      '--csp-overlap-shadow': 'var(--overlap-shadow)',
-      '--csp-lifted-shadow': 'var(--lifted-shadow)',
-    },
-  },
-  {
-    id: 'douces',
-    nom: 'Ombres douces',
-    valeurs: ombres(opacite => `rgb(0 0 18 / ${opacite}%)`, [4, 5, 14, 6, 22]),
-    sombre: ombres(opacite => `rgb(0 0 0 / ${opacite}%)`, [30, 30, 50, 40, 60]),
-  },
-  {
-    // Les entreprises s'engagent: no shadow on the content, the DSFR shadows on the layers above it
-    id: 'couches-lee',
-    nom: 'Ombre des couches superposées, LEE',
-    valeurs: {
-      '--csp-raised-shadow': SANS_OMBRE,
-      '--csp-raised-shadow-hover': SANS_OMBRE,
-      '--csp-raised-shadow-drag': 'var(--overlap-shadow)',
-      '--csp-overlap-shadow': 'var(--overlap-shadow)',
-      '--csp-lifted-shadow': 'var(--lifted-shadow)',
-    },
-  },
-]
+export const SANS_OMBRE = '0 0 #0000'
 
 // A quarter of the beige-gris-galet step of the same rank in a DSFR grey
 function grisChaud(gris: string, beige: string, part = 25): string {
@@ -139,7 +84,7 @@ const FILET = 'var(--border-default-grey)'
 const CANEVAS = 'var(--background-alt-grey)'
 
 // Chrome (sidebar, page header and the line between them and the content), canvas, kanban columns and cards,
-// with the surface rules of Les entreprises s'engagent: the content stays flat, the shadow belongs to the layers
+// with these surface rules: the content stays flat, the shadow belongs to the layers
 // above it such as the panel, a container splits inside with soft lines, and the panel lays its sections on the canvas.
 function chrome(barre: string, entete: string, filet: string, canevas: string, colonne: string, carte: string): Valeurs {
   return {
@@ -168,7 +113,7 @@ function chrome(barre: string, entete: string, filet: string, canevas: string, c
 const BLANC = 'var(--background-default-grey)'
 
 export const CHROME: LevierOption[] = [
-  { id: 'kit', nom: 'Kit actuel', valeurs: {} },
+  { id: 'kit', nom: 'Aujourd’hui', valeurs: {} },
   {
     id: 'teinte-unifie',
     nom: 'Chrome teinté unifié',
@@ -191,39 +136,6 @@ export const CHROME: LevierOption[] = [
   },
 ]
 
-function animations(entree: string, sortie: string): Valeurs {
-  return {
-    '--csp-motion-drawer-enter': `csp-drawer-enter ${entree}`,
-    '--csp-motion-drawer-exit': `csp-drawer-exit ${sortie}`,
-    '--csp-motion-dialog-enter': `csp-fade-in ${entree}`,
-    '--csp-motion-dialog-exit': `csp-fade-out ${sortie}`,
-    '--csp-motion-scrim-enter': `csp-fade-in ${entree}`,
-    '--csp-motion-scrim-exit': `csp-fade-out ${sortie}`,
-  }
-}
-
-// Durations and curves of the panel and dialogs, and the highlight of a card dropped in another column
-export const MOUVEMENT: LevierOption[] = [
-  { id: 'instantane', nom: 'Instantané, kit actuel', valeurs: {} },
-  {
-    id: 'dsfr',
-    nom: '300 ms du DSFR',
-    valeurs: {
-      ...animations('300ms ease', '300ms ease'),
-      '--csp-motion-raised-drop': 'csp-raised-outline-drop 300ms ease-in',
-    },
-  },
-  {
-    id: 'roles',
-    nom: 'Durées par rôle',
-    valeurs: {
-      '--csp-motion-duration-state': '100ms',
-      ...animations('300ms cubic-bezier(0, 0, 0.38, 0.9)', '200ms cubic-bezier(0.2, 0, 1, 0.9)'),
-      '--csp-motion-raised-drop': 'csp-raised-drop 700ms cubic-bezier(0.2, 0, 1, 0.9)',
-    },
-  },
-]
-
 function role(nom: string, taille: string, interligne: string, graisse: number): Valeurs {
   return {
     [`--csp-text-${nom}-size`]: taille,
@@ -232,13 +144,13 @@ function role(nom: string, taille: string, interligne: string, graisse: number):
   }
 }
 
-// Text roles of Les entreprises s'engagent, on the DSFR scale: h3, h5, h6, then the sm and xs text sizes; CspCard keeps
+// Text roles on the DSFR scale: h3, h5, h6, then the sm and xs text sizes; CspCard keeps
 // the title size set by its size prop
 export const TYPOGRAPHIE: LevierOption[] = [
   { id: 'kit', nom: 'Kit actuel', valeurs: {} },
   {
-    id: 'roles-lee',
-    nom: 'Rôles de texte de LEE',
+    id: 'roles',
+    nom: 'Rôles de texte sur l\'échelle du DSFR',
     valeurs: {
       ...role('page-title', '1.75rem', '2.25rem', 700),
       ...role('section-title', '1.25rem', '1.75rem', 700),
@@ -250,12 +162,12 @@ export const TYPOGRAPHIE: LevierOption[] = [
   },
 ]
 
-// Les entreprises s'engagent: a message is a frame in the colour of its tone, without side bar; an empty state is a card with a medallion, a section title and a description in metadata size
+// A message is a frame in the colour of its tone, without side bar; an empty state is a card with a medallion, a section title and a description in metadata size
 export const MESSAGES: LevierOption[] = [
   { id: 'kit', nom: 'Kit actuel', valeurs: {} },
   {
-    id: 'cadres-lee',
-    nom: 'Cadre du ton et état vide en carte, LEE',
+    id: 'cadres',
+    nom: 'Cadre du ton et état vide en carte',
     valeurs: {
       '--csp-message-bar-width': '0px',
       '--csp-message-border-width': '0px',
@@ -276,12 +188,12 @@ export const MESSAGES: LevierOption[] = [
   },
 ]
 
-// Les entreprises s'engagent: a table lies flat on its card, with column headers as small capitals in mention grey
+// A table lies flat on its card, with column headers as small capitals in mention grey
 export const COLLECTIONS: LevierOption[] = [
   { id: 'kit', nom: 'Kit actuel', valeurs: {} },
   {
-    id: 'table-lee',
-    nom: 'En-têtes en petites capitales et filets doux, LEE',
+    id: 'petites-capitales',
+    nom: 'En-têtes en petites capitales et filets doux',
     valeurs: {
       '--csp-table-head-background': 'transparent',
       '--csp-table-footer-background': 'transparent',
@@ -293,9 +205,9 @@ export const COLLECTIONS: LevierOption[] = [
   },
 ]
 
-// Les entreprises s'engagent: the list and the detail are two surfaces side by side, and the selected element takes
+// The list and the detail are two surfaces side by side, and the selected element takes
 // a tinted background
-const OUVERTE_LEE: Valeurs = {
+const OUVERTE: Valeurs = {
   '--csp-raised-background-current': 'var(--background-alt-blue-france)',
   '--csp-raised-border-width-current': '1px',
   '--csp-raised-border-color-current': 'var(--border-default-blue-france)',
@@ -303,12 +215,12 @@ const OUVERTE_LEE: Valeurs = {
 
 export const PARCOURS: LevierOption[] = [
   { id: 'kit', nom: 'Kit actuel', valeurs: {} },
-  { id: 'carte-ouverte-lee', nom: 'Carte ouverte teintée, LEE', valeurs: OUVERTE_LEE },
+  { id: 'carte-ouverte', nom: 'Carte ouverte teintée', valeurs: OUVERTE },
   {
-    id: 'cote-a-cote-lee',
-    nom: 'Panneau à côté du kanban, LEE',
+    id: 'cote-a-cote',
+    nom: 'Panneau à côté du kanban',
     valeurs: {
-      ...OUVERTE_LEE,
+      ...OUVERTE,
       '--csp-panel-width-wide': '42rem',
       '--csp-panel-page-offset': '42rem',
       '--csp-panel-shadow-docked': SANS_OMBRE,
@@ -316,13 +228,13 @@ export const PARCOURS: LevierOption[] = [
   },
 ]
 
-// Les entreprises s'engagent: the colour of a category tints the header of its container, never the page;
+// The colour of a category tints the header of its container, never the page;
 // the contrast backgrounds of the DSFR give the tint of each category
 export const CATEGORIES: LevierOption[] = [
   { id: 'kit', nom: 'Kit actuel', valeurs: {} },
   {
     id: 'en-tete-teinte',
-    nom: 'En-tête de colonne teinté, LEE',
+    nom: 'En-tête de colonne teinté',
     valeurs: {
       '--csp-category-neutral-background': 'var(--background-contrast-grey)',
       '--csp-category-progress-background': 'var(--background-contrast-info)',
@@ -419,7 +331,8 @@ export const HABILLAGES: LevierOption[] = [
 ]
 
 export function valeursOf(option: LevierOption, theme: string): Valeurs {
-  return theme === 'dark' ? { ...option.valeurs, ...option.sombre } : option.valeurs
+  const reduit = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? option.reduit : undefined
+  return { ...option.valeurs, ...(theme === 'dark' ? option.sombre : undefined), ...reduit }
 }
 
 // Writes the option named by parameters.option on the root element, for the story only

@@ -60,6 +60,7 @@ function handleRefuser(): void {
   margin-bottom: var(--csp-space-4);
   background-color: var(--background-default-grey);
   border: 1px solid var(--border-default-grey);
+  border-radius: var(--csp-frame-radius, 0);
 }
 
 .selection-action-bar__count {

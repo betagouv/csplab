@@ -13,7 +13,7 @@ const meta = {
     appRoute: `/organismes/${DEMO_ORGANISME.uuid}/recrutements/${DEMO_RECRUTEMENT_UUID}`,
   },
   globals: { interfaceTheme: 'kit' },
-  render: () => ({ components: { LeviersDetail }, template: '<LeviersDetail variante="arrondis" />' }),
+  render: () => ({ components: { LeviersDetail }, template: '<LeviersDetail />' }),
 } satisfies Meta
 
 export default meta
@@ -32,4 +32,4 @@ export const Droits: Story = { name: '0 et 4 px, kit actuel', parameters: { opti
 export const Legers: Story = { name: '2 et 4 px', parameters: { option: 'legers' } }
 export const Moyens: Story = { name: '4 et 8 px', parameters: { option: 'moyens' } }
 export const Marques: Story = { name: '8 et 12 px', parameters: { option: 'marques' } }
-export const RolesLee: Story = { name: 'Rayons par rôle de LEE', parameters: { option: 'roles-lee' } }
+export const Roles: Story = { name: 'Rayons par rôle', parameters: { option: 'roles' } }

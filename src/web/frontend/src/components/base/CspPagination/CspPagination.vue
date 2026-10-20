@@ -157,6 +157,7 @@ const page = defineModel<number>('page', { required: true })
   height: 2rem;
   padding: 0 var(--csp-space-1);
   border: none;
+  border-radius: var(--csp-nav-control-radius, 0);
   background: none;
   font-size: var(--csp-font-size-sm);
   font-weight: 500;
@@ -171,8 +172,8 @@ const page = defineModel<number>('page', { required: true })
   }
 
   &:focus-visible {
-    outline: 2px solid var(--csp-focus-ring-color);
-    outline-offset: 2px;
+    outline: var(--csp-focus-ring-width) solid var(--csp-focus-ring-color);
+    outline-offset: var(--csp-focus-ring-offset);
   }
 
   &:disabled {

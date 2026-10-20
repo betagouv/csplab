@@ -1,10 +1,7 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
-import { markKanbanCardMoved } from '@/composables/dnd/useKanbanDnd'
-import { demoKanban } from '@/features/candidatures/__mocks__/demo'
-import CandidatureKanbanCard from '@/features/candidatures/components/CandidatureKanbanCard.vue'
 
-export type DeckInterfacePlanche = 'ecran' | 'etats'
+export type DeckInterfacePlanche = 'ecran'
 
 export interface DeckInterfaceCadre {
   x: number
@@ -29,20 +26,6 @@ const props = withDefaults(defineProps<{
   hauteur: 900,
   cadre: undefined,
 })
-
-const BOARD_ID = 'deck'
-
-const ETAPE = demoKanban().etapes[0]!
-
-const ETATS = [
-  { id: 'repos', legende: 'Au repos', candidature: ETAPE.candidatures[0]! },
-  { id: 'survol', legende: 'Au survol', candidature: ETAPE.candidatures[1]! },
-  { id: 'depot', legende: 'Après un dépôt', candidature: ETAPE.candidatures[2]! },
-] as const
-
-if (props.planche === 'etats') {
-  markKanbanCardMoved(BOARD_ID, ETATS[2].candidature.uuid)
-}
 
 // The framed screen takes the globals of this story, which the preview decorator writes on the root element
 function currentGlobals(): string {
@@ -72,6 +55,17 @@ onMounted(() => {
 })
 
 onBeforeUnmount(() => observer?.disconnect())
+
+// A part of a screen leaves out the scrollbars, which the browser draws over the edges of the window and of the lists
+function sansBarres(event: Event): void {
+  const ecran = (event.target as HTMLIFrameElement).contentDocument
+  if (!props.cadre || !ecran) {
+    return
+  }
+  const style = ecran.createElement('style')
+  style.textContent = '* { scrollbar-width: none !important; }'
+  ecran.head.append(style)
+}
 
 const ecranStyle = computed(() => {
   const { width, height } = taille.value
@@ -106,27 +100,8 @@ const ecranStyle = computed(() => {
       :style="ecranStyle"
       title="Écran de l'application"
       tabindex="-1"
+      @load="sansBarres"
     />
-
-    <div
-      v-else-if="planche === 'etats'"
-      class="deck-interface__etats"
-    >
-      <template
-        v-for="(etat, index) in ETATS"
-        :key="etat.id"
-      >
-        <span class="deck-interface__legende">{{ etat.legende }}</span>
-        <div :class="`deck-interface__etat--${etat.id}`">
-          <CandidatureKanbanCard
-            :candidature="etat.candidature"
-            :board-id="BOARD_ID"
-            :column-id="ETAPE.uuid"
-            :card-index="index"
-          />
-        </div>
-      </template>
-    </div>
   </div>
 </template>
 
@@ -141,10 +116,6 @@ const ecranStyle = computed(() => {
   color: var(--text-default-grey);
 }
 
-.deck-interface--etats {
-  background-color: var(--csp-region-background);
-}
-
 .deck-interface__ecran {
   position: absolute;
   top: 0;
@@ -152,29 +123,5 @@ const ecranStyle = computed(() => {
   border: 0;
   transform-origin: top left;
   pointer-events: none;
-}
-
-.deck-interface__legende {
-  font-size: var(--csp-font-size-sm);
-  color: var(--text-mention-grey);
-}
-
-.deck-interface__etats {
-  display: grid;
-  grid-template-columns: auto var(--csp-kanban-column-width);
-  align-items: center;
-  gap: var(--csp-space-6) var(--csp-space-6);
-}
-
-/* Variables of the hover state, set on an ancestor of a card that the pointer does not reach */
-.deck-interface__etat--survol {
-  --csp-raised-shadow: var(--csp-raised-shadow-hover, 0 1px 2px rgb(0 0 0 / 6%));
-  --csp-raised-background: var(--csp-raised-background-hover, var(--background-alt-grey));
-  --csp-raised-border-color: var(--csp-raised-border-color-hover, var(--border-default-grey));
-}
-
-/* The highlight of a dropped card stays on its first frame */
-.deck-interface__etat--depot :deep(.candidature-kanban-card--moved) {
-  animation-play-state: paused;
 }
 </style>

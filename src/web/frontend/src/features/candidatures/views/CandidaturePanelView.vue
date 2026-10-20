@@ -99,20 +99,34 @@ const isMessagesTab = computed(() => activeTab.value === 'messages')
 const isNotesTab = computed(() => activeTab.value === 'notes')
 const showAside = computed(() => !TABS_WITHOUT_ASIDE.includes(activeTab.value))
 
-function close(): void {
-  void router.push({ name: parentName.value })
-}
-
 const unsavedChanges = useUnsavedChangesGuard({
   ignore: to => to.params.candidatureUuid === props.candidatureUuid,
 })
+
+// The drawer plays its exit animation, then reka-ui unmounts its content and emits close-auto-focus
+const isOpen = ref(true)
+watch(() => props.candidatureUuid, () => {
+  isOpen.value = true
+})
+
+async function close(): Promise<void> {
+  if (await unsavedChanges.confirmLeave()) {
+    isOpen.value = false
+  }
+}
+
+function leaveAfterExit(): void {
+  if (!isOpen.value) {
+    void router.push({ name: parentName.value })
+  }
+}
 
 function leaveMovedCandidature(): void {
   if (position.value?.nextUuid) {
     navigation.navigateTo(position.value.nextUuid)
   }
   else {
-    close()
+    void close()
   }
 }
 
@@ -130,19 +144,20 @@ async function requestEtapeChange(targetEtapeUuid: string): Promise<void> {
 
 function handleUpdateOpen(open: boolean): void {
   if (!open) {
-    close()
+    void close()
   }
 }
 </script>
 
 <template>
   <CspDrawer
-    :open="true"
+    :open="isOpen"
     :overlay="false"
     aria-label="Candidature"
     close-label="Fermer la candidature"
     class="candidature-panel"
     @update:open="handleUpdateOpen"
+    @close-auto-focus="leaveAfterExit"
   >
     <template
       v-if="candidature && etape"
@@ -208,6 +223,7 @@ function handleUpdateOpen(open: boolean): void {
       <CspEmptyState
         v-else
         icon="ri:search-line"
+        pictogram="system/padlock"
         title="Cette candidature n'est pas accessible."
         description="Elle n'existe pas ou ne vous est pas accessible. Contactez le superviseur de votre organisme si besoin."
       />
@@ -358,6 +374,22 @@ function handleUpdateOpen(open: boolean): void {
   .csp-drawer.candidature-panel {
     box-shadow: var(--csp-panel-shadow-docked);
   }
+
+  .csp-drawer.candidature-panel.csp-drawer--right {
+    --base-drawer-width: var(--csp-panel-width-docked);
+
+    background-color: var(--csp-panel-background-docked);
+    top: var(--csp-panel-inset-docked);
+    right: var(--csp-panel-inset-docked);
+    bottom: var(--csp-panel-inset-docked);
+    border-style: solid;
+    border-width: var(--csp-panel-border-width-docked);
+  }
+}
+
+/* above tabs the line under the header takes its own width, and framed tabs draw it themselves */
+.csp-drawer.candidature-panel:has(.candidature-panel__tabs) {
+  --csp-drawer-header-border-width: calc((1 - var(--csp-tabs-framed)) * var(--csp-panel-header-border-width-tabs));
 }
 
 /* unscoped: the drawer content is portaled */
@@ -366,6 +398,12 @@ function handleUpdateOpen(open: boolean): void {
   --csp-drawer-padding-inline: var(--csp-page-container-padding-inline);
   --csp-tabs-content-padding-inline: var(--csp-drawer-padding-inline);
   --candidature-panel-aside-padding-start: var(--csp-space-6);
+  --csp-drawer-background: var(--csp-panel-chrome-background);
+  --csp-drawer-header-backdrop: var(--csp-panel-header-backdrop);
+
+  @include bp.from(bp.$md) {
+    --csp-tabs-list-divider-box: var(--csp-page-tabs-divider-box);
+  }
 
   @include bp.from(bp.$lg) {
     --base-drawer-width: calc(100vw - 15rem);
@@ -373,6 +411,16 @@ function handleUpdateOpen(open: boolean): void {
 
   @include bp.from(bp.$xl) {
     --base-drawer-width: var(--csp-panel-width-wide);
+  }
+
+  @include bp.from(bp.$md) {
+    --csp-tabs-content-padding-inline: calc(var(--csp-drawer-padding-inline) - var(--csp-panel-tabs-inset));
+  }
+
+  .candidature-panel__tabs > .csp-tabs__list {
+    @include bp.from(bp.$md) {
+      margin-inline: var(--csp-panel-tabs-inset);
+    }
   }
 
   .csp-drawer__body {
@@ -389,6 +437,9 @@ function handleUpdateOpen(open: boolean): void {
 </style>
 
 <style scoped lang="scss">
+@use '@/styles/breakpoints' as bp;
+@use '@/styles/scroll-edges.scss' as edges;
+
 .candidature-panel__etape {
   align-self: center;
   margin: 0;
@@ -412,6 +463,8 @@ function handleUpdateOpen(open: boolean): void {
   overflow-y: auto;
   overscroll-behavior: contain;
   background-color: var(--csp-panel-background);
+
+  @include edges.scroll-edges($rule: false);
 }
 
 .candidature-panel__layout {
@@ -422,6 +475,13 @@ function handleUpdateOpen(open: boolean): void {
 
 .candidature-panel__layout--full {
   grid-template-columns: minmax(0, 1fr);
+}
+
+/* forced colours remove the gradient line under framed tabs */
+@media (forced-colors: active) {
+  .candidature-panel__scroll {
+    border-top: calc(var(--csp-tabs-framed) * 1px) solid;
+  }
 }
 
 .candidature-panel__scroll--bounded {
@@ -464,6 +524,11 @@ function handleUpdateOpen(open: boolean): void {
     padding-inline: var(--csp-drawer-padding-inline);
     border-top: 1px solid var(--csp-aside-border-color);
     border-left: 0;
+
+    @include bp.from(bp.$md) {
+      margin-inline: var(--csp-panel-aside-inset);
+      padding-inline: calc(var(--csp-drawer-padding-inline) - var(--csp-panel-aside-inset));
+    }
   }
 }
 </style>

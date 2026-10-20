@@ -68,6 +68,7 @@ function author(activite: Activite): string {
     <CspEmptyState
       v-if="activites.length === 0"
       icon="ri:history-line"
+      pictogram="digital/calendar"
       title="La candidature n'a aucune activité"
     />
     <ol

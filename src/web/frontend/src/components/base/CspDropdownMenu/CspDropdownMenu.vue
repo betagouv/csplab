@@ -71,11 +71,12 @@ const open = defineModel<boolean | undefined>('open')
   background-color: var(--background-overlap-grey);
   border-radius: var(--csp-overlap-radius, 0);
   box-shadow:
-    inset 0 0 0 1px var(--border-default-grey),
+    inset 0 0 0 1px var(--csp-overlap-border-color),
     var(--csp-overlap-shadow, var(--csp-shadow-lg));
   padding: var(--csp-menu-padding);
   z-index: var(--csp-z-dropdown);
   outline: none;
+  transform-origin: var(--reka-popper-transform-origin);
 
   &[data-state='open'] {
     animation: var(--csp-motion-overlap-enter);
@@ -97,6 +98,7 @@ const open = defineModel<boolean | undefined>('open')
   align-items: center;
   gap: var(--csp-menu-item-gap);
   padding: var(--csp-menu-item-padding);
+  border-radius: var(--csp-menu-item-radius, 0);
   cursor: pointer;
   outline: none;
   color: var(--text-default-grey);

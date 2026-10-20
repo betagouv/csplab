@@ -21,6 +21,7 @@ useDocumentTitle(TITLE)
   <CspPageHeader
     :breadcrumb="breadcrumb"
     :title="TITLE"
+    pictogram="buildings/companie"
     subtitle="Les organismes permettent d'organiser les recrutements. Chaque organisme dispose de ses propres utilisateurs, offres et paramètres."
   />
   <CspPageContainer width="large">

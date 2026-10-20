@@ -21,4 +21,4 @@ export default meta
 type Story = StoryObj<typeof meta>
 
 export const Kit: Story = { name: 'Kit actuel', parameters: { option: 'kit' } }
-export const RolesLee: Story = { name: 'Rôles de texte de LEE', parameters: { option: 'roles-lee' } }
+export const Roles: Story = { name: 'Rôles de texte sur l\'échelle du DSFR', parameters: { option: 'roles' } }

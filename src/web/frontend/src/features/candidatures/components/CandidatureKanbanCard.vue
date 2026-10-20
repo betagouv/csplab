@@ -42,8 +42,11 @@ const { isDragging, isJustMoved, settleMove } = useDraggableKanbanCard({
   cardId: props.candidature.uuid,
 })
 
+// A drop animation can list several animations: the move settles when the last one ends
 function handleAnimationEnd(event: AnimationEvent): void {
-  if (event.target === event.currentTarget) {
+  const card = event.currentTarget as HTMLElement
+  const isAnimating = card.getAnimations?.().some(animation => 'animationName' in animation) ?? false
+  if (event.target === card && !isAnimating) {
     settleMove()
   }
 }
@@ -132,11 +135,16 @@ function handleAnimationEnd(event: AnimationEvent): void {
     inset 0 0 0 var(--csp-raised-border-width-current) var(--csp-raised-border-color-current);
 }
 
+/* Above its neighbours while it moves to its place */
 .candidature-kanban-card--moved {
+  position: relative;
+  z-index: 1;
   animation: var(--csp-motion-raised-drop);
 }
 
-.candidature-kanban-card--dragging {
+/* the pointer stays over the card it picks up: the drag state wins over the hover state */
+.candidature-kanban-card--dragging,
+.candidature-kanban-card--dragging:hover {
   --candidature-kanban-card-shadow: var(--csp-raised-shadow-drag, var(--candidature-kanban-card-shadow-rest));
 
   opacity: var(--csp-raised-opacity-drag);

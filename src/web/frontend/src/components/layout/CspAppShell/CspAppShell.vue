@@ -101,7 +101,7 @@ function isItemActive(item: NavItem): boolean {
   height: 100dvh;
   overflow: hidden;
   background: var(--csp-nav-background);
-  border-right: 1px solid var(--csp-chrome-border-color);
+  border-right: var(--csp-chrome-border-width) solid var(--csp-chrome-border-color);
 
   @include bp.below(bp.$lg) {
     display: none;
@@ -122,8 +122,8 @@ function isItemActive(item: NavItem): boolean {
   flex-shrink: 0;
   padding-block: var(--csp-space-3);
   padding-inline: var(--csp-page-container-padding-inline);
-  background: var(--csp-chrome-background);
-  border-bottom: 1px solid var(--csp-chrome-border-color);
+  background: var(--csp-app-shell-topbar-background);
+  border-bottom: var(--csp-chrome-border-width) solid var(--csp-chrome-border-color);
 
   @include bp.below(bp.$lg) {
     display: flex;
@@ -139,6 +139,10 @@ function isItemActive(item: NavItem): boolean {
   flex-direction: column;
   flex: 1;
   min-height: 0;
+  margin: var(--csp-app-shell-main-inset);
   overflow-x: auto;
+  background: var(--csp-app-shell-main-background);
+  border: var(--csp-app-shell-main-border-width) solid var(--csp-app-shell-main-border-color);
+  box-shadow: var(--csp-app-shell-main-shadow);
 }
 </style>

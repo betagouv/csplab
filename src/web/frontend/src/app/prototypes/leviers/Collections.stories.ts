@@ -20,4 +20,4 @@ export default meta
 type Story = StoryObj<typeof meta>
 
 export const Kit: Story = { name: 'Kit actuel', parameters: { option: 'kit' } }
-export const TableLee: Story = { name: 'En-têtes en petites capitales et filets doux, LEE', parameters: { option: 'table-lee' } }
+export const PetitesCapitales: Story = { name: 'En-têtes en petites capitales et filets doux', parameters: { option: 'petites-capitales' } }

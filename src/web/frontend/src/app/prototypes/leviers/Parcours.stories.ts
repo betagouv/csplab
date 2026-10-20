@@ -21,5 +21,5 @@ export default meta
 type Story = StoryObj<typeof meta>
 
 export const Kit: Story = { name: 'Kit actuel', parameters: { option: 'kit' } }
-export const CarteOuverteLee: Story = { name: 'Carte ouverte teintée, LEE', parameters: { option: 'carte-ouverte-lee' } }
-export const CoteACoteLee: Story = { name: 'Panneau à côté du kanban, LEE', parameters: { option: 'cote-a-cote-lee' } }
+export const CarteOuverte: Story = { name: 'Carte ouverte teintée', parameters: { option: 'carte-ouverte' } }
+export const CoteACote: Story = { name: 'Panneau à côté du kanban', parameters: { option: 'cote-a-cote' } }

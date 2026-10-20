@@ -20,4 +20,4 @@ export default meta
 type Story = StoryObj<typeof meta>
 
 export const Kit: Story = { name: 'Kit actuel', parameters: { option: 'kit' } }
-export const EnTeteTeinte: Story = { name: 'En-tête de colonne teinté, LEE', parameters: { option: 'en-tete-teinte' } }
+export const EnTeteTeinte: Story = { name: 'En-tête de colonne teinté', parameters: { option: 'en-tete-teinte' } }

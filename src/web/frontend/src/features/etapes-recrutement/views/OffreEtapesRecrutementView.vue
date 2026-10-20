@@ -39,6 +39,7 @@ const breadcrumb = computed<CspBreadcrumbItem[]>(() => [
     :breadcrumb="breadcrumb"
     title="Personnaliser les étapes de recrutement de l'offre"
     :back-link="{ to: candidaturesRoute, label: 'Retour à l’offre' }"
+    pictogram="system/flow-settings"
   />
   <CspPageContainer width="reading">
     <EtapesRecrutementList

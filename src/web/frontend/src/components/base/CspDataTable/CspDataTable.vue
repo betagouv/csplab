@@ -455,9 +455,9 @@ function onActivate(id: string): void {
 
 .csp-table-wrapper {
   width: 100%;
-  border: 1px solid var(--border-default-grey);
+  border: var(--csp-table-border-width) solid var(--csp-surface-border-color, var(--border-default-grey));
   border-radius: var(--csp-surface-radius, 0);
-  background: var(--background-default-grey);
+  background: var(--csp-surface-background, var(--background-default-grey));
   overflow: hidden;
 
   @include table.sizes;
@@ -466,10 +466,11 @@ function onActivate(id: string): void {
 .csp-table__scroll {
   width: 100%;
   overflow-x: auto;
+  border-radius: var(--csp-frame-radius, 0);
 
   &:focus-visible {
-    outline: 2px solid var(--csp-focus-ring-color);
-    outline-offset: -2px;
+    outline: var(--csp-focus-ring-width) solid var(--csp-focus-ring-color);
+    outline-offset: calc(-1 * var(--csp-focus-ring-width));
   }
 }
 
@@ -524,8 +525,8 @@ function onActivate(id: string): void {
   }
 
   &:focus-visible {
-    outline: 2px solid var(--csp-focus-ring-color);
-    outline-offset: 2px;
+    outline: var(--csp-focus-ring-width) solid var(--csp-focus-ring-color);
+    outline-offset: var(--csp-focus-ring-offset);
     border-radius: var(--csp-indicator-radius);
   }
 }
@@ -560,8 +561,8 @@ function onActivate(id: string): void {
   }
 
   &:focus-visible {
-    outline: 2px solid var(--csp-focus-ring-color);
-    outline-offset: -2px;
+    outline: var(--csp-focus-ring-width) solid var(--csp-focus-ring-color);
+    outline-offset: calc(-1 * var(--csp-focus-ring-width));
   }
 }
 

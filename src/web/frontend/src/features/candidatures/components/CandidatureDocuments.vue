@@ -77,6 +77,7 @@ const title = computed(() => `${total.value} ${pluralize(total.value, 'document'
       <CspEmptyState
         v-if="documents.length === 0"
         icon="ri:file-list-line"
+        pictogram="document/archive"
         title="La candidature ne contient aucun document"
       />
       <h3
@@ -150,6 +151,8 @@ const title = computed(() => `${total.value} ${pluralize(total.value, 'document'
   padding: 0;
   list-style: none;
   border: 1px solid var(--border-default-grey);
+  border-radius: var(--csp-frame-radius, 0);
+  overflow: clip;
 }
 
 .candidature-documents__item {

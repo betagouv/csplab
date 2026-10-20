@@ -78,10 +78,10 @@ const resolvedIcon = computed(() => {
   display: inline-flex;
   align-items: center;
   align-self: flex-start;
-  border-radius: 0.25rem;
+  border-radius: var(--csp-badge-radius);
   font-weight: bold;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  text-transform: var(--csp-badge-text-transform);
+  letter-spacing: var(--csp-badge-letter-spacing);
 
   font-size: var(--badge-font-size);
   padding: var(--badge-padding-y) var(--badge-padding-x);

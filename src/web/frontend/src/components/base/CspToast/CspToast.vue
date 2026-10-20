@@ -165,7 +165,7 @@ const resolvedIcon = computed(() => iconByVariant[props.variant])
   background-color: var(--csp-toast-bg);
   border: var(--csp-message-border-width) solid var(--csp-toast-border);
   border-left: var(--csp-message-bar-width) solid var(--csp-toast-accent);
-  border-radius: var(--csp-overlap-radius, 0);
+  border-radius: var(--csp-message-radius, var(--csp-overlap-radius, 0));
   color: var(--csp-toast-text);
   box-shadow:
     var(--csp-overlap-shadow, var(--csp-shadow-md)),
@@ -175,11 +175,11 @@ const resolvedIcon = computed(() => iconByVariant[props.variant])
 }
 
 .csp-toast[data-state='open'] {
-  animation: csp-toast-enter 160ms ease-out;
+  animation: var(--csp-motion-message-enter, csp-toast-enter 160ms ease-out);
 }
 
 .csp-toast[data-state='closed'] {
-  animation: csp-toast-exit 120ms ease-in forwards;
+  animation: var(--csp-motion-message-exit, csp-toast-exit 120ms ease-in) forwards;
 }
 
 .csp-toast[data-swipe='move'] {
@@ -252,8 +252,8 @@ const resolvedIcon = computed(() => iconByVariant[props.variant])
   }
 
   &:focus-visible {
-    outline: 2px solid var(--csp-focus-ring-color);
-    outline-offset: 2px;
+    outline: var(--csp-focus-ring-width) solid var(--csp-focus-ring-color);
+    outline-offset: var(--csp-focus-ring-offset);
   }
 }
 

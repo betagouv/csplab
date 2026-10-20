@@ -160,9 +160,9 @@ const hasFooter = computed(() => Boolean(slots.footer))
   outline: none;
   background-color: var(--background-overlap-grey);
   color: var(--text-default-grey);
-  border-radius: var(--csp-overlap-radius, 0.25rem);
+  border-radius: var(--csp-lifted-radius, var(--csp-overlap-radius, 0.25rem));
   box-shadow:
-    inset 0 0 0 1px var(--border-default-grey),
+    inset 0 0 0 1px var(--csp-lifted-border-color),
     var(--csp-lifted-shadow);
 
   z-index: var(--csp-z-modal);

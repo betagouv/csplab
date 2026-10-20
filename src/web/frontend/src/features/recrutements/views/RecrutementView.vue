@@ -88,6 +88,7 @@ const headerMenuSections = [{
       :back-link="{ to: recrutementsListLink, label: 'Retour aux recrutements' }"
       :show-title-skeleton="showTitleSkeleton"
       :show-subtitle-skeleton="showSubtitleSkeleton"
+      pictogram="document/document-search"
     >
       <template #actions>
         <CspDropdownMenu

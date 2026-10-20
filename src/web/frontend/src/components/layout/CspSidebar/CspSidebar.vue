@@ -171,7 +171,7 @@ const { state, isExpanded, isMobile, isMobileOpen, setMobileOpen, toggle } = use
   align-items: center;
   padding: var(--csp-sidebar-padding);
   padding-bottom: 0;
-  border-top: 1px solid var(--csp-divider-color);
+  border-top: var(--csp-nav-divider-width) solid var(--csp-nav-divider-color);
 
   .csp-sidebar--expanded &,
   .csp-sidebar--mobile & {
@@ -195,7 +195,7 @@ const { state, isExpanded, isMobile, isMobileOpen, setMobileOpen, toggle } = use
   flex-shrink: 0;
   padding: 0;
   border: none;
-  border-radius: 0.375rem;
+  border-radius: var(--csp-nav-control-radius, 0.375rem);
   background: transparent;
   color: var(--text-mention-grey);
   cursor: pointer;
@@ -242,7 +242,7 @@ const { state, isExpanded, isMobile, isMobileOpen, setMobileOpen, toggle } = use
   align-items: center;
   flex-shrink: 0;
   padding: var(--csp-sidebar-padding);
-  border-top: 1px solid var(--csp-divider-color);
+  border-top: var(--csp-nav-divider-width) solid var(--csp-nav-divider-color);
 
   .csp-sidebar--expanded &,
   .csp-sidebar--mobile & {

@@ -1,0 +1,20 @@
+/* Keyframes of the scroll edges drawn by the scroll-edges mixin */
+@keyframes csp-scroll-edge-start {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes csp-scroll-edge-end {
+  from {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 0;
+  }
+}

@@ -49,6 +49,7 @@ const metaItems = computed<CspMetaItem[]>(() =>
     <CspPageHeader
       :title="TITLE"
       :breadcrumb="breadcrumb"
+      pictogram="buildings/city-hall"
     >
       <template #subtitle>
         <CspMetaList :items="metaItems" />

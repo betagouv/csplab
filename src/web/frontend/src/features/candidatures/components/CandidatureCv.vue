@@ -81,12 +81,14 @@ const titleId = useId()
         v-if="!cv"
         icon="ri:file-list-line"
         title="La candidature ne contient pas de CV"
+        pictogram="document/document"
         description="Les autres pièces du dossier sont consultables dans l'onglet Documents."
       />
       <CspEmptyState
         v-else-if="!cvUrl"
         icon="ri:file-list-line"
         title="Le CV ne peut pas être affiché ici."
+        pictogram="system/technical-error"
       />
       <iframe
         v-else

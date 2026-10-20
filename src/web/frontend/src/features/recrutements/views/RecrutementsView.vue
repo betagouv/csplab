@@ -202,6 +202,7 @@ const archivesCountLabel = computed(() => {
       title="Recrutements"
       subtitle="Retrouvez ici l’ensemble des recrutements en cours et terminés."
       :breadcrumb="BREADCRUMB"
+      pictogram="document/binders"
     />
     <CspPageContainer
       v-model:active-tab="activeTab"
@@ -223,6 +224,7 @@ const archivesCountLabel = computed(() => {
         <CspEmptyState
           v-if="aucunRecrutementActif"
           icon="ri:briefcase-line"
+          pictogram="document/contract"
           title="Vous n’avez pas de recrutement en cours"
           :description="AUCUN_RECRUTEMENT_EN_COURS_DESCRIPTION"
         />
@@ -332,6 +334,7 @@ const archivesCountLabel = computed(() => {
         <CspEmptyState
           v-if="aucuneOffreArchivee"
           icon="ri:archive-line"
+          pictogram="document/conclusion"
           title="Aucun recrutement terminé"
         />
         <template v-else>

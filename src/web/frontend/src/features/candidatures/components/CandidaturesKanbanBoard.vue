@@ -67,10 +67,17 @@ watch(() => props.etapes, (etapes, previousEtapes) => {
 
 <style scoped lang="scss">
 .candidatures-kanban-board {
+  --candidatures-kanban-board-inset: calc(var(--csp-kanban-scroll-to-edge) * var(--csp-page-container-padding-inline));
+
   display: flex;
   flex: 1;
   gap: var(--csp-kanban-gap);
   overflow-x: auto;
+  margin-inline: calc(-1 * var(--candidatures-kanban-board-inset))
+    calc(-1 * (var(--candidatures-kanban-board-inset) + var(--csp-kanban-bleed-inline-end)));
+  padding-inline: var(--candidatures-kanban-board-inset)
+    calc(var(--candidatures-kanban-board-inset) + var(--csp-kanban-bleed-inline-end));
+  scroll-padding-inline: var(--candidatures-kanban-board-inset);
   padding-bottom: var(--csp-kanban-padding-bottom);
   min-height: 0;
 }

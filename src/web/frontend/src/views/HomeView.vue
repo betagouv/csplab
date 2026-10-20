@@ -12,6 +12,8 @@ useDocumentTitle(TITLE)
   <CspPageHeader
     :title="TITLE"
     subtitle="Bienvenue sur l'application de gestion des candidatures CSPLab."
+    pictogram="digital/application"
+    highlighted
   />
   <CspPageContainer />
 </template>

@@ -1,0 +1,69 @@
+// Draws a rule of --csp-scroll-edge-rule-color and the --csp-scroll-edge-shadow at the top edge of a scroll container
+// once its content passes under that edge, and at the bottom edge while content remains below it. The keyframes are
+// in scroll-edge-keyframes.css.
+// $padding-block and $padding-inline: padding of the scroll container, that the edges cross to reach its borders.
+// $gap: gap between the items of a flex container, that the edges take back.
+// $rule: draws the rule; a scroll area under a tab list leaves it out, since the divider of the tabs runs there.
+// $rule-inset: distance between each side of the scroll container and the rule; the shadow keeps the whole width.
+// $end: draws the bottom edge, which needs content that keeps its height, as in a block container; a flex item that
+// shrinks below its content would leave the bottom edge in the middle of the scroll area.
+// A browser without scroll-driven animations draws no edge: a fixed footer below a scroll area then keeps its divider.
+@mixin scroll-edges($padding-block: 0px, $padding-inline: 0px, $gap: 0px, $rule: true, $rule-inset: 0px, $end: true) {
+  &::before {
+    @include -edge($rule, $rule-inset);
+
+    top: 0;
+    margin-inline: calc(-1 * #{$padding-inline});
+    margin-top: calc(-1 * #{$padding-block});
+    margin-bottom: calc(#{$padding-block} - 1px - #{$gap});
+  }
+
+  @if $end {
+    // Mirrored, so that the shadow falls above the bottom edge
+    &::after {
+      @include -edge($rule, $rule-inset);
+
+      bottom: 0;
+      margin-inline: calc(-1 * #{$padding-inline});
+      margin-top: calc(#{$padding-block} - 1px - #{$gap});
+      margin-bottom: calc(-1 * #{$padding-block});
+      scale: 1 -1;
+    }
+  }
+
+  @supports (animation-timeline: scroll()) {
+    &::before {
+      animation: csp-scroll-edge-start linear both;
+      animation-timeline: scroll();
+      animation-range: 0 1px;
+    }
+
+    @if $end {
+      &::after {
+        animation: csp-scroll-edge-end linear both;
+        animation-timeline: scroll();
+        animation-range: calc(100% - 1px) 100%;
+      }
+    }
+  }
+}
+
+// The edge is the first pixel row of the scrollport: its background draws the rule, and its shadow falls below it
+@mixin -edge($rule, $rule-inset) {
+  content: '';
+  position: sticky;
+  z-index: var(--csp-z-sticky);
+  display: block;
+  flex-shrink: 0;
+  height: 1px;
+  pointer-events: none;
+  @if $rule {
+    background: linear-gradient(var(--csp-scroll-edge-rule-color), var(--csp-scroll-edge-rule-color))
+      center /
+      calc(100% - 2 * #{$rule-inset})
+      100%
+      no-repeat;
+  }
+  box-shadow: var(--csp-scroll-edge-shadow);
+  opacity: 0;
+}

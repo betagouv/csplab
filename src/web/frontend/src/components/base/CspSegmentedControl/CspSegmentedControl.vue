@@ -155,7 +155,7 @@ const groupName = props.name ?? useId()
   content: '';
   position: absolute;
   inset: var(--csp-space-1);
-  border-radius: var(--csp-field-radius);
+  border-radius: var(--csp-segmented-highlight-radius);
   z-index: -1;
 }
 

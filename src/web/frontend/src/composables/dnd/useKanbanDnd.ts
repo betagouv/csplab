@@ -12,10 +12,17 @@ export interface KanbanCardData {
   cardId: string
 }
 
+// Top left corner of the drag preview when the pointer released it, in viewport pixels
+export interface KanbanPoint {
+  x: number
+  y: number
+}
+
 export interface KanbanDropEvent {
   sourceColumnId: string
   targetColumnId: string
   cardId: string
+  releasedAt: KanbanPoint
 }
 
 interface UseDraggableKanbanCardOptions {
@@ -27,21 +34,22 @@ interface UseDraggableKanbanCardOptions {
 }
 
 // Card moved last to another column, read by the card that mounts in that column
-const lastMovedCard = ref<string | null>(null)
+const lastMovedCard = ref<{ key: string, releasedAt?: KanbanPoint } | null>(null)
 
-export function markKanbanCardMoved(boardId: string, cardId: string): void {
-  lastMovedCard.value = `${boardId}/${cardId}`
+export function markKanbanCardMoved(boardId: string, cardId: string, releasedAt?: KanbanPoint): void {
+  lastMovedCard.value = { key: `${boardId}/${cardId}`, releasedAt }
 }
 
 export function useDraggableKanbanCard(options: UseDraggableKanbanCardOptions) {
   const isDragging = ref(false)
   const enabled = options.enabled ?? ref(true)
   const cardKey = `${options.boardId}/${options.cardId}`
-  const isJustMoved = ref(lastMovedCard.value === cardKey)
+  const move = lastMovedCard.value?.key === cardKey ? lastMovedCard.value : null
+  const isJustMoved = ref(move !== null)
 
   function settleMove(): void {
     isJustMoved.value = false
-    if (lastMovedCard.value === cardKey) {
+    if (lastMovedCard.value?.key === cardKey) {
       lastMovedCard.value = null
     }
   }
@@ -56,6 +64,12 @@ export function useDraggableKanbanCard(options: UseDraggableKanbanCardOptions) {
       // Without a drop animation, no animationend event settles the move
       if (isJustMoved.value && getComputedStyle(element).animationName === 'none') {
         settleMove()
+      }
+      // Offset of the released preview from the place of the card, that a drop animation can start from
+      else if (isJustMoved.value && move?.releasedAt) {
+        const { left, top } = element.getBoundingClientRect()
+        element.style.setProperty('--csp-drop-offset-x', `${move.releasedAt.x - left}px`)
+        element.style.setProperty('--csp-drop-offset-y', `${move.releasedAt.y - top}px`)
       }
 
       const cleanup = draggable({
@@ -154,12 +168,18 @@ interface UseKanbanBoardMonitorOptions {
 
 export function useKanbanBoardMonitor(options: UseKanbanBoardMonitorOptions) {
   let cleanup: (() => void) | null = null
+  // Position of the pointer in the dragged card, which the drag preview keeps
+  let grab: KanbanPoint = { x: 0, y: 0 }
 
   onMounted(() => {
     cleanup = monitorForElements({
       canMonitor: ({ source }) => {
         const data = source.data as unknown as KanbanCardData
         return data.type === KANBAN_CARD_TYPE && data.boardId === options.boardId
+      },
+      onDragStart: ({ source, location }) => {
+        const { left, top } = source.element.getBoundingClientRect()
+        grab = { x: location.initial.input.clientX - left, y: location.initial.input.clientY - top }
       },
       onDrop: ({ source, location }) => {
         const destination = location.current.dropTargets[0]
@@ -178,6 +198,7 @@ export function useKanbanBoardMonitor(options: UseKanbanBoardMonitorOptions) {
           sourceColumnId: sourceData.columnId,
           targetColumnId,
           cardId: sourceData.cardId,
+          releasedAt: { x: location.current.input.clientX - grab.x, y: location.current.input.clientY - grab.y },
         })
       },
     })

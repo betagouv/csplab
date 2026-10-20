@@ -68,38 +68,31 @@ const isDisabled = computed(() => props.disabled || !props.content)
 
 <style scoped lang="scss">
 .csp-tooltip {
-  --csp-tooltip-bg: var(--background-action-high-grey);
-  --csp-tooltip-text: var(--text-inverted-grey);
-
   z-index: var(--csp-z-tooltip);
   max-width: 16rem;
   padding: var(--csp-space-1) var(--csp-space-2);
-  border-radius: var(--csp-overlap-radius, 0.25rem);
-  background-color: var(--csp-tooltip-bg);
-  color: var(--csp-tooltip-text);
+  border-radius: var(--csp-tooltip-radius);
+  background-color: var(--csp-tooltip-background);
+  color: var(--csp-tooltip-color);
   font-size: var(--csp-font-size-xs);
   font-weight: var(--csp-font-weight-medium);
   line-height: var(--csp-line-height-tight);
-  box-shadow: var(--csp-overlap-shadow, var(--csp-shadow-md));
+  box-shadow:
+    var(--csp-overlap-shadow, var(--csp-shadow-md)),
+    inset 0 0 0 1px var(--csp-tooltip-border-color);
   outline: none;
   pointer-events: none;
   user-select: none;
   overflow-wrap: anywhere;
-  animation: csp-tooltip-fade-in 0.12s ease-out;
+  transform-origin: var(--reka-popper-transform-origin);
+  animation: var(--csp-motion-overlap-enter, csp-fade-in 0.12s ease-out);
+
+  &[data-state='closed'] {
+    animation: var(--csp-motion-overlap-exit);
+  }
 }
 
 :deep(.csp-tooltip__arrow) {
-  fill: var(--background-action-high-grey);
-  animation: csp-tooltip-fade-in 0.12s ease-out;
-}
-
-@keyframes csp-tooltip-fade-in {
-  from {
-    opacity: 0;
-  }
-
-  to {
-    opacity: 1;
-  }
+  fill: var(--csp-tooltip-background);
 }
 </style>

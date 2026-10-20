@@ -57,11 +57,12 @@ const hasTrigger = Boolean(slots.trigger)
   background-color: var(--background-overlap-grey);
   border-radius: var(--csp-overlap-radius, 0);
   box-shadow:
-    inset 0 0 0 1px var(--border-default-grey),
+    inset 0 0 0 1px var(--csp-overlap-border-color),
     var(--csp-overlap-shadow, var(--csp-shadow-lg));
   padding: var(--csp-space-4);
   z-index: var(--csp-z-dropdown);
   outline: none;
+  transform-origin: var(--reka-popper-transform-origin);
 
   &[data-state='open'] {
     animation: var(--csp-motion-overlap-enter);
@@ -72,8 +73,8 @@ const hasTrigger = Boolean(slots.trigger)
   }
 
   &:focus-visible {
-    outline: 2px solid var(--csp-focus-ring-color);
-    outline-offset: 2px;
+    outline: var(--csp-focus-ring-width) solid var(--csp-focus-ring-color);
+    outline-offset: var(--csp-focus-ring-offset);
   }
 }
 </style>

@@ -64,6 +64,7 @@ const currentView = computed(() => route.meta.candidaturesView ?? 'kanban')
   <CspEmptyState
     v-else-if="isNotFound"
     icon="ri:search-line"
+    pictogram="digital/search"
     title="Recrutement introuvable"
     description="Ce recrutement n'existe pas ou n'est plus accessible."
   />

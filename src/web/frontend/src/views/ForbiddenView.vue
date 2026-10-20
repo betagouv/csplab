@@ -10,7 +10,10 @@ useDocumentTitle(TITLE)
 </script>
 
 <template>
-  <CspPageHeader :title="TITLE" />
+  <CspPageHeader
+    class="error-page-header"
+    :title="TITLE"
+  />
   <CspPageContainer>
     <CspErrorState
       title="Vous n’avez pas accès à cette page."
@@ -19,3 +22,9 @@ useDocumentTitle(TITLE)
     />
   </CspPageContainer>
 </template>
+
+<style scoped>
+.error-page-header {
+  --csp-page-header-backdrop: var(--csp-error-page-header-backdrop);
+}
+</style>

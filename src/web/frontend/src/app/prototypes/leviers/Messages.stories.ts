@@ -16,4 +16,4 @@ export default meta
 type Story = StoryObj<typeof meta>
 
 export const Kit: Story = { name: 'Kit actuel', parameters: { option: 'kit' } }
-export const CadresLee: Story = { name: 'Cadre du ton et état vide en carte, LEE', parameters: { option: 'cadres-lee' } }
+export const Cadres: Story = { name: 'Cadre du ton et état vide en carte', parameters: { option: 'cadres' } }

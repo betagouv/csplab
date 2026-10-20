@@ -36,7 +36,7 @@ Les rôles désignent ces éléments :
 - `text-<rôle>` : les textes, du titre de page à la légende.
 - `category-<catégorie>` : les catégories d'étape d'un recrutement.
 - `message` : les encarts et les notifications.
-- `motion` : l'animation d'entrée et de sortie des tiroirs, des dialogues, des couches `overlap` qui en ont une (listes de choix, menus, popovers) et du voile, le fondu d'une carte du kanban déposée dans une autre colonne, et la durée du changement d'état des boutons, des éléments de la barre latérale et des cartes du kanban. Le kit les laisse instantanées, comme le demande la décision « Pas de transitions décoratives » ; un thème peut les régler.
+- `motion` : l'animation d'entrée et de sortie des tiroirs, des dialogues, des couches `overlap` (listes de choix, menus, popovers, bulles d'aide), des notifications et du voile, les animations d'une carte du kanban déposée dans une autre colonne, et la durée du changement d'état des boutons, des éléments de la barre latérale et des cartes du kanban. Une couche `overlap` grandit depuis le côté de son déclencheur ; une carte déposée peut partir du point où on l'a lâchée, que `--csp-drop-offset-x` et `--csp-drop-offset-y` donnent. Le kit laisse ces animations instantanées, comme le demande la décision « Pas de transitions décoratives », sauf le fondu de la bulle d'aide et l'arrivée des notifications ; un thème peut les régler.
 
 Un composant lit un rôle quand la valeur a le même sens ailleurs dans l'interface, et une variable de composant quand elle lui est propre. Un composant qui propose plusieurs tailles garde ses propres tailles de texte.
 

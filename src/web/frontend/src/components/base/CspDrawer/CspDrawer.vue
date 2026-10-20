@@ -173,6 +173,7 @@ const hasFooter = computed(() => Boolean(slots.footer))
 
 <style scoped lang="scss">
 @use '@/styles/breakpoints' as bp;
+@use '@/styles/scroll-edges.scss' as edges;
 
 .csp-drawer__overlay {
   position: fixed;
@@ -199,7 +200,7 @@ const hasFooter = computed(() => Boolean(slots.footer))
   width: min(calc(100vw - var(--csp-space-4)), var(--base-drawer-width));
 
   outline: none;
-  background-color: var(--background-overlap-grey);
+  background-color: var(--csp-drawer-background);
   color: var(--text-default-grey);
   box-shadow: var(--csp-lifted-shadow);
   z-index: var(--csp-z-modal);
@@ -220,14 +221,14 @@ const hasFooter = computed(() => Boolean(slots.footer))
   --csp-drawer-offset: 100%;
 
   right: 0;
-  border-left: 1px solid var(--border-default-grey);
+  border-left: 1px solid var(--csp-lifted-border-color);
 }
 
 .csp-drawer--left {
   --csp-drawer-offset: -100%;
 
   left: 0;
-  border-right: 1px solid var(--border-default-grey);
+  border-right: 1px solid var(--csp-lifted-border-color);
 }
 
 .csp-drawer--xs {
@@ -277,7 +278,7 @@ const hasFooter = computed(() => Boolean(slots.footer))
   gap: var(--csp-space-4);
   padding-block: var(--csp-space-6);
   padding-inline: var(--csp-drawer-padding-inline, var(--csp-space-6));
-  border-bottom: 1px solid var(--csp-divider-color);
+  border-bottom: var(--csp-drawer-header-border-width) solid var(--csp-drawer-header-border-color);
   background: var(--csp-drawer-header-backdrop);
 }
 
@@ -299,9 +300,21 @@ const hasFooter = computed(() => Boolean(slots.footer))
   margin-block: calc(-1 * var(--csp-space-1));
 }
 
+/* on a phone, a theme can put the actions on a row of their own under the title, beside which the close button stays */
+@include bp.below(bp.$sm) {
+  .csp-drawer__header {
+    flex-wrap: wrap;
+  }
+
+  .csp-drawer__end {
+    order: calc(2 * var(--csp-drawer-actions-row-narrow));
+    min-width: calc(100% * var(--csp-drawer-actions-row-narrow));
+  }
+}
+
 .csp-drawer__close {
   margin-block: calc(-1 * var(--csp-space-1));
-  margin-inline-end: calc(-1 * var(--csp-btn-icon-inset));
+  margin-inline-end: calc(-1 * var(--csp-drawer-close-bleed) * var(--csp-btn-icon-inset));
 }
 
 .csp-drawer__heading {
@@ -345,15 +358,24 @@ const hasFooter = computed(() => Boolean(slots.footer))
   padding-inline: var(--csp-drawer-padding-inline, var(--csp-space-6));
   font-size: 0.875rem;
   line-height: 1.5;
+
+  @include edges.scroll-edges(
+    $padding-block: var(--csp-space-6),
+    $padding-inline: var(--csp-drawer-padding-inline, var(--csp-space-6))
+  );
 }
 
 .csp-drawer__footer {
   padding-block: var(--csp-space-6);
   padding-inline: var(--csp-drawer-padding-inline, var(--csp-space-6));
-  border-top: 1px solid var(--csp-divider-color);
+  border-top: 1px solid var(--csp-drawer-divider-color);
   display: flex;
   flex-wrap: wrap;
   justify-content: flex-end;
   gap: var(--csp-space-3);
+
+  @supports not (animation-timeline: scroll()) {
+    border-top-color: var(--csp-divider-color);
+  }
 }
 </style>

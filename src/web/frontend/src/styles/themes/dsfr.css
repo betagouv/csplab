@@ -1,54 +1,158 @@
-/* Tokens of the DSFR only: its colors, its shadows, its radii and its 300 ms transition */
+/*
+ * The DSFR and its tokens: its tab component, its pictograms, its palette, its shadows and its 300 ms transition. The
+ * radii follow the 4 px of its fields, and the layers that rise take two soft layers in the colour of its shadows.
+ */
 :root[data-csp-theme='dsfr'] {
-  /* Neutral greys of the DSFR for the page and the groups, white working surfaces; blue France marks states only */
-  --csp-canvas-background: var(--background-alt-grey);
-  --csp-nav-background: var(--background-alt-grey);
-  --csp-region-background: var(--background-contrast-grey);
+  /* Tabs of the DSFR: framed triggers on the low blue France background, the current one on the page background with a
+     2 px top line, 1 rem bold labels, 0.5 rem between triggers and a focus ring outside the trigger */
+  --csp-tabs-framed: 1;
+  --csp-tabs-gap: var(--csp-space-2);
+  --csp-tabs-focus-offset: 2px;
+  --csp-tabs-underline-width: 0px;
+  --csp-tabs-overline-width: 2px;
+  --csp-tabs-trigger-padding-block: var(--csp-space-2);
+  --csp-tabs-trigger-size: var(--csp-font-size-md);
+  --csp-tabs-trigger-line-height: 1.5rem;
+  --csp-tabs-trigger-weight: var(--csp-font-weight-bold);
+  --csp-tabs-trigger-background: var(--background-action-low-blue-france);
+  --csp-tabs-trigger-background-hover: var(--background-action-low-blue-france-hover);
+  --csp-tabs-trigger-background-active: var(--background-action-low-blue-france-active);
+  --csp-tabs-trigger-background-current: var(--background-default-grey);
+  --csp-tabs-trigger-background-disabled: var(--background-disabled-grey);
+  /* colour and opacity of the shadow that the script of the DSFR draws on an overflowing tab list */
+  --csp-tabs-overflow-shadow-color: rgb(22 22 22 / 80%);
+  --csp-tabs-trigger-border-bottom-color-current-forced: Canvas;
+  --csp-tabs-trigger-color-current-forced: Highlight;
+
+  /* The tab panel stays open: from md, the line under the tabs runs from the first tab to the same distance from the
+     right edge, and the content keeps the column of the title with the 2 rem padding of the DSFR panel above it */
+  --csp-page-container-frame-closed: 0;
+  --csp-page-container-frame-margin-inline: calc(var(--csp-page-container-padding-inline) - var(--csp-space-4));
+  --csp-page-container-frame-margin-bottom: 0px;
+  --csp-page-container-frame-padding: var(--csp-space-8);
+  --csp-page-container-frame-padding-inline: var(--csp-space-4);
+  --csp-table-toolbar-border-outset: var(--csp-space-4);
+  --csp-kanban-scroll-to-edge: 1;
+  /* on a phone the title of the panel keeps the width of the screen, and its actions go under it */
+  --csp-drawer-actions-row-narrow: 1;
+
+  /* Grey columns without border, white cards raised by the card shadow of the DSFR, without border either */
   --csp-region-border-color: transparent;
   --csp-region-background-drop: var(--background-action-low-blue-france);
-  --csp-region-badge-background: var(--background-overlap-grey);
+  --csp-region-border-color-drop: var(--border-default-grey);
   --csp-aside-background: var(--background-alt-grey);
-
-  /* Cards raised by the shadows of the DSFR, without border */
-  --csp-raised-background: var(--background-overlap-grey);
-  --csp-raised-background-hover: var(--background-overlap-grey-hover);
+  --csp-raised-background-hover: var(--background-default-grey-hover);
   --csp-raised-border-color: transparent;
-  --csp-raised-shadow: var(--raised-shadow);
-  --csp-raised-shadow-hover: var(--overlap-shadow);
-  --csp-overlap-shadow: var(--overlap-shadow);
-  --csp-lifted-shadow: var(--lifted-shadow);
 
-  /* Categories of a process step: plain borders of the illustrative colors of the DSFR */
-  --csp-category-accent-width: 0.25rem;
+  /* Categories of a process step: plain borders of the illustrative colours of the DSFR, apart from the status colours */
   --csp-category-neutral-accent: var(--border-plain-beige-gris-galet);
   --csp-category-progress-accent: var(--border-plain-blue-cumulus);
   --csp-category-negative-accent: var(--border-plain-pink-tuile);
   --csp-category-positive-accent: var(--border-plain-green-emeraude);
 
-  /* Radii: 4 px on fields and checkmarks, square elsewhere */
-  --csp-surface-radius: 0;
-  --csp-overlap-radius: 0;
-  --csp-indicator-radius: 0.25rem;
+  /* Shadows: the card at rest has the raised shadow of the DSFR; what rises adds a wide diffuse layer to a close one, in
+     the shadow colour of the DSFR, whose single short layers draw no height; the place a dragged card leaves lies flat */
+  --dsfr-shadow-close: 0 1px 2px color-mix(in srgb, var(--shadow-color) 40%, transparent);
+  --csp-raised-shadow: var(--raised-shadow);
+  --csp-raised-shadow-hover: var(--dsfr-shadow-close), 0 10px 24px -6px var(--shadow-color);
+  --csp-raised-shadow-drag: 0 0 #0000;
+  --csp-overlap-shadow: var(--csp-raised-shadow-hover);
+  --csp-lifted-shadow:
+    0 8px 16px -4px color-mix(in srgb, var(--shadow-color) 60%, transparent), 0 24px 48px -12px var(--shadow-color);
+
+  /* Radii: what one holds or touches takes the 4 px of the fields of the DSFR, a large container 6 px, an element inset
+     in a narrower gap 2 px; messages keep the square corners of the alerts of the DSFR, and tabs those of its tabs */
+  --csp-indicator-radius: 0.125rem;
+  --csp-action-radius: 0.25rem;
+  --csp-nav-control-radius: var(--csp-action-radius);
+  --csp-field-radius: 0.25rem;
+  --csp-surface-radius: 0.25rem;
+  --csp-frame-radius: var(--csp-surface-radius);
+  --csp-overlap-radius: 0.25rem;
+  --csp-region-radius: 0.375rem;
+  --csp-lifted-radius: 0.375rem;
+  --csp-message-radius: 0;
+  --csp-menu-item-radius: var(--csp-indicator-radius);
+  --csp-segmented-highlight-radius: var(--csp-indicator-radius);
+  --csp-kanban-column-accent-radius: var(--csp-category-accent-width);
+
+  /* Pictograms of the DSFR, in blue France tones: a pale one in the page header, the classic one in the empty states,
+     on blue France in the header of the home page; the dots of their decorative layer make the texture of the page */
+  --csp-canvas-backdrop:
+    radial-gradient(circle at 75px 61px, var(--artwork-decorative-blue-france) 1px, transparent 1.5px) 0 0 / 80px 80px,
+    radial-gradient(circle at 3px 53px, var(--artwork-decorative-blue-france) 1px, transparent 1.5px) 0 0 / 80px 80px,
+    radial-gradient(circle at 55px 3px, var(--artwork-decorative-blue-france) 1px, transparent 1.5px) 0 0 / 80px 80px;
+  /* the 80 px pictogram of the DSFR, whole, its bottom on the bottom of the subtitle, without growing the header */
+  --csp-page-header-pictogram-display: block;
+  --csp-page-header-pictogram-margin-block: calc(
+      var(--csp-page-header-title-height) + var(--csp-page-header-subtitle-gap) +
+        var(--csp-page-header-subtitle-height) - var(--csp-page-header-pictogram-size)
+    )
+    0;
+  --csp-page-header-pictogram-major-color: var(--artwork-motif-blue-france);
+  --csp-page-header-pictogram-minor-color: var(--artwork-motif-blue-france);
+  --csp-page-header-pictogram-decorative-color: var(--artwork-background-blue-france);
+  --csp-empty-state-pictogram-display: block;
+  --csp-empty-state-pictogram-size: 4rem;
+  --csp-empty-state-icon-display-with-pictogram: none;
+  --csp-pictogram-major-color: var(--border-action-low-blue-france);
+  --csp-pictogram-minor-color: var(--artwork-minor-blue-france);
+  --csp-pictogram-decorative-color: var(--artwork-decorative-blue-france);
+  --csp-page-header-background-highlighted: var(--background-action-high-blue-france);
+  --csp-page-header-color-highlighted: var(--text-inverted-blue-france);
+  --csp-page-header-subtitle-color-highlighted: var(--text-inverted-blue-france);
+  --csp-page-header-pictogram-major-color-highlighted: var(--border-default-blue-france);
+  --csp-page-header-pictogram-minor-color-highlighted: var(--border-default-blue-france);
+  --csp-page-header-pictogram-decorative-color-highlighted: var(--border-default-blue-france);
 }
 
-/* In dark mode, a lighter surface is a higher one: page and navigation, then columns, then cards */
+/* In dark mode a shadow barely shows: a higher layer is a lighter grey, as in the DSFR */
 :root[data-csp-theme='dsfr'][data-fr-theme='dark'] {
-  --csp-canvas-background: var(--background-default-grey);
-  --csp-nav-background: var(--background-default-grey);
-  --csp-region-background: var(--background-alt-grey);
-  --csp-raised-background-hover: var(--background-contrast-raised-grey);
+  --csp-tabs-overflow-shadow-color: #161616;
+  --csp-raised-background: var(--background-overlap-grey);
+  --csp-raised-background-hover: var(--background-overlap-grey-hover);
   --csp-raised-border-color: var(--border-default-grey);
-  --csp-raised-border-color-hover: var(--border-plain-grey);
+  --csp-drawer-background: var(--background-lifted-grey);
+  /* the content of the panel takes the background of the current tab that opens onto it */
+  --csp-panel-background: var(--background-default-grey);
+  --csp-aside-background: var(--background-alt-grey);
+  /* the DSFR turns the action background of blue France light in dark mode; the header keeps the blue France of the
+     light mode, that the DSFR gives in dark mode to its inverted text token */
+  --csp-page-header-background-highlighted: var(--text-inverted-blue-france);
+  --csp-page-header-color-highlighted: var(--text-title-grey);
+  --csp-page-header-subtitle-color-highlighted: var(--text-title-grey);
 }
 
-/* Motion: the 300 ms of the DSFR with the default easing of CSS, on drawers, dialogs and the scrim */
+/* Motion: the single 300 ms of the DSFR with the default easing of CSS, on everything that appears, and an outline of
+   blue France that fades out on a card moved to another column */
+:root[data-csp-theme='dsfr'] {
+  --csp-motion-raised-drop: csp-raised-outline-drop 300ms ease;
+}
+
 @media (prefers-reduced-motion: no-preference) {
   :root[data-csp-theme='dsfr'] {
-    --csp-motion-drawer-enter: csp-drawer-enter 300ms ease;
-    --csp-motion-drawer-exit: csp-drawer-exit 300ms ease;
+    --csp-motion-overlap-enter: csp-fade-in 300ms ease;
+    --csp-motion-overlap-exit: csp-fade-out 300ms ease;
     --csp-motion-dialog-enter: csp-fade-in 300ms ease;
     --csp-motion-dialog-exit: csp-fade-out 300ms ease;
+    --csp-motion-drawer-enter: csp-drawer-enter 300ms ease;
+    --csp-motion-drawer-exit: csp-drawer-exit 300ms ease;
     --csp-motion-scrim-enter: csp-fade-in 300ms ease;
     --csp-motion-scrim-exit: csp-fade-out 300ms ease;
+  }
+}
+
+/* Under reduced motion nothing slides: layers fade in 200 ms at most; the outline of a moved card, a change of colour
+   alone, stays */
+@media (prefers-reduced-motion: reduce) {
+  :root[data-csp-theme='dsfr'] {
+    --csp-motion-overlap-enter: csp-fade-in 200ms ease;
+    --csp-motion-overlap-exit: csp-fade-out 200ms ease;
+    --csp-motion-dialog-enter: csp-fade-in 200ms ease;
+    --csp-motion-dialog-exit: csp-fade-out 200ms ease;
+    --csp-motion-drawer-enter: csp-fade-in 200ms ease;
+    --csp-motion-drawer-exit: csp-fade-out 200ms ease;
+    --csp-motion-scrim-enter: csp-fade-in 200ms ease;
+    --csp-motion-scrim-exit: csp-fade-out 200ms ease;
   }
 }

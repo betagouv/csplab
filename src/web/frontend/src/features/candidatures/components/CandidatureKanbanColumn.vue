@@ -101,6 +101,8 @@ function handleCheckboxChange(): void {
 </template>
 
 <style scoped lang="scss">
+@use '@/styles/scroll-edges.scss' as edges;
+
 .candidature-kanban-column {
   --candidature-kanban-column-accent: var(--csp-category-neutral-accent);
   --candidature-kanban-column-header-background: var(--csp-category-neutral-background);
@@ -117,7 +119,9 @@ function handleCheckboxChange(): void {
   padding: var(--csp-kanban-column-padding);
   background-color: var(--csp-region-background);
   box-shadow: inset 0 0 0 var(--candidature-kanban-column-rule-width) var(--csp-region-border-color);
-  border-radius: var(--csp-region-radius);
+  border-radius: var(--csp-region-radius) var(--csp-region-radius) var(--csp-region-radius) var(--csp-region-radius) /
+    var(--csp-kanban-column-accent-radius) var(--csp-kanban-column-accent-radius) var(--csp-region-radius)
+    var(--csp-region-radius);
   border-top: var(--csp-category-accent-width) solid var(--candidature-kanban-column-accent);
   overflow: clip;
 }
@@ -198,6 +202,8 @@ function handleCheckboxChange(): void {
   list-style: none;
   overflow-y: auto;
   min-height: 0;
+
+  @include edges.scroll-edges($gap: var(--csp-kanban-column-gap), $end: false);
 
   @media (prefers-reduced-motion: no-preference) {
     scroll-behavior: smooth;

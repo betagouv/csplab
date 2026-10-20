@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import type { RouteLocationRaw } from 'vue-router'
 import type { CspBreadcrumbItem } from '@/components/base/CspBreadcrumb/CspBreadcrumb.vue'
-import { computed } from 'vue'
+import type { CspPictogramName } from '@/components/base/CspPictogram/pictograms'
+import { computed, useSlots } from 'vue'
 import CspBreadcrumb from '@/components/base/CspBreadcrumb/CspBreadcrumb.vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
+import CspPictogram from '@/components/base/CspPictogram/CspPictogram.vue'
 import CspSkeleton from '@/components/base/CspSkeleton/CspSkeleton.vue'
 
 const props = defineProps<{
@@ -13,15 +15,20 @@ const props = defineProps<{
   backLink?: { to: RouteLocationRaw, label: string }
   showTitleSkeleton?: boolean
   showSubtitleSkeleton?: boolean
+  pictogram?: CspPictogramName
+  highlighted?: boolean
 }>()
 
+const slots = useSlots()
+
 const hasBreadcrumb = computed(() => Boolean(props.breadcrumb?.length))
+const hasSubtitle = computed(() => Boolean(props.subtitle || slots.subtitle || props.showSubtitleSkeleton))
 </script>
 
 <template>
   <header
     class="csp-page-header"
-    :class="{ 'csp-page-header--has-back-link': Boolean(backLink) }"
+    :class="{ 'csp-page-header--has-back-link': Boolean(backLink), 'csp-page-header--highlighted': highlighted }"
   >
     <div class="csp-page-header__top-row">
       <div
@@ -66,7 +73,10 @@ const hasBreadcrumb = computed(() => Boolean(props.breadcrumb?.length))
               {{ title }}
             </h1>
           </div>
-          <div class="csp-page-header__subtitle">
+          <div
+            class="csp-page-header__subtitle"
+            :class="{ 'csp-page-header__subtitle--empty': !hasSubtitle }"
+          >
             <CspSkeleton
               v-if="showSubtitleSkeleton"
               width="28rem"
@@ -85,6 +95,12 @@ const hasBreadcrumb = computed(() => Boolean(props.breadcrumb?.length))
             </slot>
           </div>
         </div>
+      </div>
+      <div
+        v-if="pictogram"
+        class="csp-page-header__pictogram"
+      >
+        <CspPictogram :name="pictogram" />
       </div>
       <div
         v-if="$slots.actions"
@@ -109,6 +125,16 @@ const hasBreadcrumb = computed(() => Boolean(props.breadcrumb?.length))
     --csp-page-header-back-link-size: 2rem;
     --csp-page-header-back-link-gap: var(--csp-space-2);
   }
+
+  &.csp-page-header--highlighted {
+    --csp-page-header-backdrop: var(--csp-page-header-backdrop-highlighted);
+    --csp-chrome-background: var(--csp-page-header-background-highlighted);
+    --csp-page-header-pictogram-major-color: var(--csp-page-header-pictogram-major-color-highlighted);
+    --csp-page-header-pictogram-minor-color: var(--csp-page-header-pictogram-minor-color-highlighted);
+    --csp-page-header-pictogram-decorative-color: var(--csp-page-header-pictogram-decorative-color-highlighted);
+
+    color: var(--csp-page-header-color-highlighted);
+  }
 }
 
 .csp-page-header__top-row {
@@ -127,8 +153,18 @@ const hasBreadcrumb = computed(() => Boolean(props.breadcrumb?.length))
   justify-content: space-between;
   gap: var(--csp-space-4);
   padding-bottom: var(--csp-page-header-padding-bottom);
-  border-bottom: 1px solid var(--csp-chrome-border-color);
+  border-bottom: var(--csp-chrome-border-width) solid var(--csp-page-header-border-color);
   padding-inline: var(--csp-page-container-padding-inline);
+
+  @include bp.from(bp.$md) {
+    margin-inline: var(--csp-page-header-border-inset);
+    padding-inline: calc(var(--csp-page-container-padding-inline) - var(--csp-page-header-border-inset));
+  }
+}
+
+/* above tabs the line under the header takes its own width, and framed tabs draw it themselves */
+.csp-page-header:has(+ .csp-page-container--tabs) .csp-page-header__main-row {
+  border-bottom-width: calc((1 - var(--csp-tabs-framed)) * var(--csp-page-header-border-width-tabs));
 }
 
 .csp-page-header__hgroup-wrapper {
@@ -175,9 +211,40 @@ const hasBreadcrumb = computed(() => Boolean(props.breadcrumb?.length))
   min-height: var(--csp-page-header-subtitle-height);
 }
 
+.csp-page-header__subtitle--empty {
+  min-height: var(--csp-page-header-subtitle-height-empty);
+}
+
 .csp-page-header__subtitle-text {
   margin: 0;
   color: var(--text-mention-grey);
+
+  .csp-page-header--highlighted & {
+    color: var(--csp-page-header-subtitle-color-highlighted);
+  }
+}
+
+.csp-page-header__pictogram {
+  --csp-pictogram-major-color: var(--csp-page-header-pictogram-major-color);
+  --csp-pictogram-minor-color: var(--csp-page-header-pictogram-minor-color);
+  --csp-pictogram-decorative-color: var(--csp-page-header-pictogram-decorative-color);
+
+  display: var(--csp-page-header-pictogram-display);
+  flex-shrink: 0;
+  height: var(--csp-page-header-pictogram-height);
+  margin-block: var(--csp-page-header-pictogram-margin-block);
+  margin-inline-start: auto;
+  overflow: hidden;
+
+  .csp-pictogram {
+    width: var(--csp-page-header-pictogram-size);
+    height: var(--csp-page-header-pictogram-size);
+  }
+
+  /* the title wraps over several lines on a phone, and the pictogram would take its width */
+  @include bp.below(bp.$md) {
+    display: none;
+  }
 }
 
 .csp-page-header__actions {

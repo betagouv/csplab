@@ -9,6 +9,7 @@
   --lasuite-gray-400: #8891a4;
   --lasuite-gray-450: #7b8498;
   --lasuite-gray-500: #6d778c;
+  --lasuite-gray-550: #626a80;
   --lasuite-gray-600: #555e74;
   --lasuite-gray-650: #4a5267;
   --lasuite-gray-700: #3f4759;
@@ -96,12 +97,45 @@
   --csp-control-border-color: var(--lasuite-gray-150);
   --csp-field-border-color: var(--lasuite-gray-450);
 
+  /* Focus ring of the buttons of the ui-kit: 3 px of the action blue, 1 px off the element */
+  --csp-focus-ring-width: 3px;
+  --csp-focus-ring-offset: 1px;
+
+  /* Columns without a category bar: the status under each column names its category */
+  --csp-category-accent-width: 0px;
+
+  /* Alerts and toasts of the ui-kit, with 4 px corners and no side bar: an alert has a light frame of its tone on every
+     side, a toast lies on its shadow */
+  --csp-message-bar-width: 0px;
+  --csp-message-border-width: 0px;
+  --csp-callout-border-width: 1px;
+  --csp-callout-border-width-start: 1px;
+  --csp-message-radius: var(--csp-action-radius);
+
+  /* Badges of the ui-kit, in sentence case */
+  --csp-badge-text-transform: none;
+  --csp-badge-letter-spacing: normal;
+
+  /* Tabs of the ui-kit: grey until current */
+  --csp-tabs-trigger-color: var(--lasuite-gray-550);
+
+  /* Tooltip of the ui-kit: light grey, framed, grey text */
+  --csp-tooltip-background: var(--lasuite-gray-050);
+  --csp-tooltip-color: var(--lasuite-gray-550);
+  --csp-tooltip-border-color: var(--lasuite-gray-150);
+
+  /* Datagrid of the ui-kit: head on the surface of the table, column names in 12 px medium */
+  --csp-table-head-background: var(--background-default-grey);
+  --csp-table-header-size: 0.75rem;
+  --csp-table-header-weight: 500;
+
   /* Shadows: modal of the ui-kit, dropdown of Docs and Drive, raised control of Messages */
   --csp-overlap-shadow: 0 0 6px 0 rgba(0, 0, 145, 0.1);
   --csp-lifted-shadow: 0 6px 20px 0 rgba(0, 0, 18, 0.1);
   --csp-raised-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
   --csp-raised-shadow-hover: 0 0 6px 0 rgba(0, 0, 145, 0.1), 0 4px 12px rgba(0, 0, 18, 0.08);
-  --csp-raised-shadow-drag: none;
+  /* A transparent shadow: the card lists it with its border, where none is invalid */
+  --csp-raised-shadow-drag: 0 0 #0000;
   --csp-overlay-scrim: rgba(0, 0, 0, 0.6);
 
   /* Radii: 4px for controls, 8px for cards, groups and floating layers */
@@ -109,6 +143,12 @@
   --csp-surface-radius: 0.5rem;
   --csp-overlap-radius: 0.5rem;
   --csp-region-radius: 0.5rem;
+  --csp-frame-radius: var(--csp-surface-radius);
+  --csp-nav-control-radius: var(--csp-action-radius);
+
+  /* A dropped card: the 2 px ring of a message that Messages brings into view, fading in 1.2 s. A change of colour
+     alone, it stays under reduced motion, as in Messages */
+  --csp-motion-raised-drop: csp-raised-outline-drop 1200ms ease-out;
 }
 
 :root[data-csp-theme='lasuite'][data-fr-theme='dark'] {
@@ -168,6 +208,10 @@
   --csp-action-secondary-background: var(--lasuite-brand-800);
   --csp-action-secondary-background-hover: var(--lasuite-brand-750);
   --csp-action-secondary-background-active: var(--lasuite-brand-700);
+  --csp-tabs-trigger-color: var(--lasuite-gray-250);
+  --csp-tooltip-background: var(--lasuite-gray-750);
+  --csp-tooltip-color: var(--lasuite-gray-250);
+  --csp-tooltip-border-color: var(--lasuite-gray-700);
 
   --csp-overlap-shadow: 0 0 6px 0 rgba(0, 0, 0, 0.5);
   --csp-lifted-shadow: 0 6px 20px 0 rgba(0, 0, 0, 0.5);

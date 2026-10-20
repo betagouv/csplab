@@ -195,8 +195,8 @@
 }
 
 :root[data-csp-etiquettes='libre'] .csp-tooltip:has(.csp-label-list__hidden-labels) {
-  --csp-tooltip-bg: var(--background-overlap-grey);
-  --csp-tooltip-text: var(--text-default-grey);
+  --csp-tooltip-background: var(--background-overlap-grey);
+  --csp-tooltip-color: var(--text-default-grey);
 
   padding: var(--csp-space-2);
   border-radius: 0.5rem;

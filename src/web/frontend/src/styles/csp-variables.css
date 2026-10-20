@@ -46,12 +46,17 @@
 
   /* Surfaces, from the page to the floating layers */
   --csp-canvas-background: var(--background-default-grey);
+  /* image layers drawn over the page background, each with its position, size and repeat, such as a texture */
+  --csp-canvas-backdrop: none;
   --csp-chrome-background: var(--csp-canvas-background);
   --csp-chrome-border-color: var(--border-default-grey);
+  --csp-chrome-border-width: 1px;
   --csp-nav-background: var(--background-alt-grey);
   --csp-nav-background-current: transparent;
   --csp-nav-marker-width-current: 2px;
   --csp-nav-weight-current: var(--csp-font-weight-medium);
+  --csp-nav-divider-width: 1px;
+  --csp-nav-divider-color: var(--csp-divider-color);
   --csp-region-background: var(--background-alt-grey);
   --csp-region-border-color: var(--border-default-grey);
   --csp-region-radius: 0;
@@ -62,6 +67,13 @@
   --csp-aside-background: transparent;
   --csp-aside-border-color: var(--border-default-grey);
   --csp-surface-radius: initial;
+  /* blocks with a 1px border that the kit and its themes keep square, such as the list of documents, the messaging,
+     the selection bar or a framed empty state, and the scroll area of a table, which then clips its rows to the
+     corners of the table; a radius option points it at the surface radius */
+  --csp-frame-radius: initial;
+  --csp-surface-background: initial;
+  --csp-surface-border-color: initial;
+  --csp-surface-shadow: initial;
   --csp-raised-background: var(--background-default-grey);
   --csp-raised-background-hover: initial;
   --csp-raised-border-color: var(--border-default-grey);
@@ -77,14 +89,20 @@
   --csp-raised-outline-color-drop: var(--border-action-high-blue-france);
   --csp-overlap-radius: initial;
   --csp-overlap-shadow: initial;
+  --csp-overlap-border-color: var(--border-default-grey);
+  --csp-lifted-radius: initial;
   --csp-lifted-shadow: var(--csp-shadow-lg);
+  --csp-lifted-border-color: var(--border-default-grey);
 
   /* Rules inside a surface, and fill of a neutral badge, tag, avatar or loading placeholder */
   --csp-divider-color: var(--border-default-grey);
   --csp-neutral-background: var(--background-contrast-grey);
 
   /* Controls */
-  --csp-action-radius: 0;
+  --csp-action-radius: initial;
+  /* navigation controls without a fill: the links of a pagination, the collapse button and the context switcher of the
+     sidebar; each keeps its kit radius until a radius option points it at the action radius */
+  --csp-nav-control-radius: initial;
   --csp-action-secondary-background: transparent;
   --csp-action-secondary-background-hover: var(--background-default-grey-hover);
   --csp-action-secondary-background-active: var(--background-default-grey-active);
@@ -131,11 +149,15 @@
   --csp-message-bar-width: 4px;
   --csp-message-border-width: 1px;
   --csp-message-frame-width: 0;
+  --csp-message-radius: initial;
+  --csp-callout-border-width: var(--csp-message-border-width);
+  /* the start side of a callout, where the kit draws its bar */
+  --csp-callout-border-width-start: 0px;
 
-  /* Motion: instant changes and no animation until a theme sets them */
+  /* Motion: instant changes and no animation until a theme sets them; the tooltip and the notifications keep their own */
   --csp-motion-duration-state: 0ms;
-  --csp-motion-overlap-enter: none;
-  --csp-motion-overlap-exit: none;
+  --csp-motion-overlap-enter: initial;
+  --csp-motion-overlap-exit: initial;
   --csp-motion-dialog-enter: none;
   --csp-motion-dialog-exit: none;
   --csp-motion-drawer-enter: none;
@@ -143,6 +165,8 @@
   --csp-motion-scrim-enter: none;
   --csp-motion-scrim-exit: none;
   --csp-motion-raised-drop: none;
+  --csp-motion-message-enter: initial;
+  --csp-motion-message-exit: initial;
 
   /* Overlay scrim (dialog / drawer) */
   --csp-overlay-scrim: rgba(22, 22, 22, 0.64);
@@ -163,6 +187,32 @@
   --csp-page-container-large-width: 110rem;
   --csp-page-content-padding-block: var(--csp-space-6);
 
+  /* Content of a page or of a tab: a theme draws it as a surface by pointing its background and shadow to the surface
+     role and giving it a border width; its border takes the color of the surface role */
+  --csp-page-content-background: transparent;
+  --csp-page-content-border-width: 0px;
+  --csp-page-content-shadow: none;
+  --csp-page-content-inset: 0px;
+  --csp-page-content-inset-bottom: 0px;
+  --csp-page-content-grow: 0;
+  --csp-page-content-max-width: initial;
+
+  /* Tab row of a page: its inset, its rule, the backgrounds of its tabs and its bottom margin over the content; the
+     backgrounds default to those of every tab list */
+  --csp-page-tabs-inset: 0px;
+  /* box that the divider of the tab row of a page or of the candidature panel spans from the md breakpoint; below, the
+     triggers scroll across the whole row and the divider spans the padding box */
+  --csp-page-tabs-divider-box: padding-box;
+  --csp-page-tabs-border-width: 1px;
+  --csp-page-tabs-margin-bottom: 0px;
+  --csp-page-tabs-position: static;
+  --csp-page-tabs-background-clip: border-box;
+  --csp-page-tabs-background-hover: var(--csp-tabs-trigger-background-hover);
+  --csp-page-tabs-background-active: var(--csp-tabs-trigger-background-active);
+  --csp-page-tabs-background-current: var(--csp-tabs-trigger-background-current);
+  --csp-page-tabs-background-current-hover: var(--csp-tabs-trigger-background-current-hover);
+  --csp-page-tabs-border-color-current: var(--border-action-high-blue-france);
+
   /* Page header rows, mirrored by the sidebar header */
   --csp-page-header-padding-top: var(--csp-space-3);
   --csp-page-header-breadcrumb-height: var(--csp-space-6);
@@ -170,17 +220,110 @@
   --csp-page-header-title-height: var(--csp-space-10);
   --csp-page-header-subtitle-gap: var(--csp-space-1);
   --csp-page-header-subtitle-height: var(--csp-space-6);
+  --csp-page-header-subtitle-height-empty: var(--csp-page-header-subtitle-height);
   --csp-page-header-padding-bottom: var(--csp-space-5);
   --csp-page-header-backdrop: none;
+  --csp-page-header-border-color: var(--csp-chrome-border-color);
+  /* a highlighted page header, such as the one of the home page, takes these background, backdrop, text and
+     pictogram colours */
+  --csp-page-header-background-highlighted: var(--csp-chrome-background);
+  --csp-page-header-backdrop-highlighted: var(--csp-page-header-backdrop);
+  --csp-page-header-color-highlighted: currentcolor;
+  --csp-page-header-subtitle-color-highlighted: var(--text-mention-grey);
+  --csp-page-header-pictogram-major-color-highlighted: var(--csp-page-header-pictogram-major-color);
+  --csp-page-header-pictogram-minor-color-highlighted: var(--csp-page-header-pictogram-minor-color);
+  --csp-page-header-pictogram-decorative-color-highlighted: var(--csp-page-header-pictogram-decorative-color);
+  /* the header of the pages that report an error, such as a page not found */
+  --csp-error-page-header-backdrop: var(--csp-page-header-backdrop);
+  /* DSFR pictogram of the subject of the page, before the actions, from the md breakpoint; the box shows its top part
+     over the height set here */
+  --csp-page-header-pictogram-display: none;
+  --csp-page-header-pictogram-size: 5rem;
+  --csp-page-header-pictogram-height: var(--csp-page-header-pictogram-size);
+  --csp-page-header-pictogram-margin-block: 0px;
+  --csp-page-header-pictogram-major-color: var(--csp-pictogram-major-color);
+  --csp-page-header-pictogram-minor-color: var(--csp-pictogram-minor-color);
+  --csp-page-header-pictogram-decorative-color: var(--csp-pictogram-decorative-color);
+  /* from md, the line under the title row starts and ends this far inside the header; above a tab row, it takes the
+     width below */
+  --csp-page-header-border-inset: 0px;
+  --csp-page-header-border-width-tabs: var(--csp-chrome-border-width);
+
+  /*
+   * Tab list and the frame of its panel. --csp-tabs-framed is 0 or 1; at 1 the list draws the framed tabs of the DSFR:
+   * a line of --csp-tabs-frame-width runs under the triggers, the current trigger opens onto its panel, the headers
+   * above the list drop their own line, and the page container closes the frame around the panel from the md
+   * breakpoint, with the margins, padding and background below. --csp-tabs-focus-offset at 2px or more reserves room
+   * around the list for a focus ring drawn outside the triggers.
+   */
+  --csp-tabs-framed: 0;
+  /* the divider of an unframed list spans the box set here: the padding box for the whole row, or the content box,
+     between the inline paddings that align the labels with the content */
+  --csp-tabs-list-divider-box: padding-box;
+  --csp-tabs-frame-width: 1px;
+  --csp-tabs-gap: var(--csp-space-1);
+  --csp-tabs-underline-width: 2px;
+  --csp-tabs-overline-width: 0px;
+  --csp-tabs-focus-offset: -2px;
+  --csp-tabs-trigger-padding-block: var(--csp-space-3);
+  --csp-tabs-trigger-padding-inline: var(--csp-space-4);
+  --csp-tabs-trigger-size: 0.875rem;
+  --csp-tabs-trigger-line-height: 1.25;
+  --csp-tabs-trigger-weight: var(--csp-font-weight-medium);
+  --csp-tabs-trigger-color: var(--text-action-high-grey);
+  --csp-tabs-trigger-background: transparent;
+  --csp-tabs-trigger-background-hover: var(--background-default-grey-hover);
+  --csp-tabs-trigger-background-active: var(--background-default-grey-active);
+  --csp-tabs-trigger-background-current: transparent;
+  --csp-tabs-trigger-background-current-hover: var(--background-default-grey-hover);
+  --csp-tabs-trigger-background-disabled: transparent;
+  /* top corners of a trigger, whose bottom edge lies on the divider */
+  --csp-tabs-trigger-radius: 0px;
+  /* underline of a trigger under the pointer, other than the current one */
+  --csp-tabs-trigger-border-color-hover: transparent;
+  --csp-tabs-overflow-shadow-color: transparent;
+  /* system colours of the current trigger in forced colours mode */
+  --csp-tabs-trigger-border-bottom-color-current-forced: CanvasText;
+  --csp-tabs-trigger-color-current-forced: CanvasText;
+  /* system colour of the bottom border of the other triggers in forced colours mode */
+  --csp-tabs-trigger-border-bottom-color-forced: CanvasText;
+  --csp-page-container-frame-margin-inline: 0px;
+  --csp-page-container-frame-margin-bottom: 0px;
+  --csp-page-container-frame-padding: var(--csp-page-container-padding-inline);
+  --csp-page-container-frame-padding-inline: var(--csp-page-container-frame-padding);
+  /* 0 leaves the frame without sides and bottom: the line under the tabs runs along the top of the content, like the
+     full viewport width tabs of the DSFR */
+  --csp-page-container-frame-closed: 1;
+  --csp-page-container-frame-background: transparent;
+  --csp-page-container-background: transparent;
 
   /* Sidebar */
   --csp-sidebar-padding: var(--csp-space-1);
+
+  /* Top bar of the application on a phone, which holds the button of the sidebar */
+  --csp-app-shell-topbar-background: var(--csp-chrome-background);
+
+  /* Main column beside the sidebar, drawn as a surface in the same way as the content of a page */
+  --csp-app-shell-main-background: transparent;
+  --csp-app-shell-main-border-width: 0px;
+  --csp-app-shell-main-border-color: var(--csp-surface-border-color, var(--border-default-grey));
+  --csp-app-shell-main-shadow: none;
+  --csp-app-shell-main-inset: 0px;
+
+  /* Rule and shadow at the edges of a scroll area once content passes under them */
+  --csp-scroll-edge-rule-color: transparent;
+  --csp-scroll-edge-shadow: 0 0 #0000;
 
   /* Menus: dropdown menu, select and combobox lists */
   --csp-menu-padding: var(--csp-space-1);
   --csp-menu-item-padding: var(--csp-space-2) var(--csp-space-3);
   --csp-menu-item-gap: var(--csp-space-2);
-  --csp-menu-item-radius: calc(var(--csp-overlap-radius, 0.25rem) / 2);
+  /* the kit rounds the items of a list of choices by half the radius of the list, and leaves square the items of a
+     dropdown menu */
+  --csp-menu-item-radius: initial;
+
+  /* Segmented control: the background of the option under the pointer, inset in the option */
+  --csp-segmented-highlight-radius: var(--csp-field-radius);
 
   /* Form fields */
   --csp-field-label-gap: var(--csp-space-2);
@@ -199,6 +342,34 @@
   --csp-kanban-column-header-padding-inline: var(--csp-space-1);
   --csp-kanban-column-header-padding-bottom: 0;
   --csp-kanban-column-header-divider-width: 0;
+  /* vertical radius of the top corners of a column, along which its category accent runs */
+  --csp-kanban-column-accent-radius: var(--csp-region-radius);
+  /* 1 extends the horizontal scroll area of the board over the inline padding of its page content */
+  --csp-kanban-scroll-to-edge: 0;
+  --csp-kanban-bleed-inline-end: 0px;
+
+  /* Badges, and the labels whose theme sets no radius */
+  --csp-badge-radius: 0.25rem;
+  --csp-badge-text-transform: uppercase;
+  --csp-badge-letter-spacing: 0.05em;
+
+  /* Tooltips, rounded like the other floating layers, in inverted colours */
+  --csp-tooltip-radius: var(--csp-overlap-radius, 0.25rem);
+  --csp-tooltip-background: var(--background-action-high-grey);
+  --csp-tooltip-color: var(--text-inverted-grey);
+  --csp-tooltip-border-color: transparent;
+
+  /* Loading placeholders, rounded like a surface */
+  --csp-skeleton-radius: var(--csp-surface-radius, 0.25rem);
+
+  /* Sortable lists */
+  --csp-sortable-list-item-alt-background: var(--background-alt-grey);
+
+  /* DSFR pictograms, in the colours of the DSFR: blue France for the major and decorative layers, and for the minor
+     layer one of the -main illustrative colours, the choice that the DSFR leaves to a service */
+  --csp-pictogram-major-color: var(--artwork-major-blue-france);
+  --csp-pictogram-minor-color: var(--artwork-minor-red-marianne);
+  --csp-pictogram-decorative-color: var(--artwork-decorative-blue-france);
 
   /* Empty states */
   --csp-empty-state-background: transparent;
@@ -206,6 +377,10 @@
   --csp-empty-state-frame-width: 0;
   --csp-empty-state-gap: var(--csp-space-2);
   --csp-empty-state-padding-block: var(--csp-space-10);
+  /* a DSFR pictogram, when the empty state has one, takes the place of its icon */
+  --csp-empty-state-pictogram-display: none;
+  --csp-empty-state-pictogram-size: 5rem;
+  --csp-empty-state-icon-display-with-pictogram: block;
   --csp-empty-state-icon-background: transparent;
   --csp-empty-state-icon-color: var(--text-mention-grey);
   --csp-empty-state-icon-padding: 0;
@@ -215,6 +390,10 @@
   --csp-empty-state-description-size: var(--csp-font-size-sm);
 
   /* Data tables */
+  --csp-table-toolbar-divider-color: var(--csp-divider-color);
+  --csp-table-border-width: 1px;
+  /* from md, the top rule of a table toolbar runs this far past the toolbar on each side */
+  --csp-table-toolbar-border-outset: 0px;
   --csp-table-head-background: var(--background-alt-grey);
   --csp-table-footer-background: var(--background-alt-grey);
   --csp-table-divider-color: var(--csp-divider-color);
@@ -223,11 +402,29 @@
   --csp-table-header-transform: none;
 
   /* Drawers, side panels and document frames */
+  --csp-drawer-background: var(--background-overlap-grey);
+  --csp-drawer-divider-color: var(--csp-divider-color);
   --csp-drawer-header-backdrop: none;
+  --csp-panel-header-backdrop: var(--csp-drawer-header-backdrop);
+  --csp-drawer-header-border-color: var(--csp-drawer-divider-color);
+  --csp-drawer-header-border-width: 1px;
+  --csp-panel-header-border-width-tabs: var(--csp-drawer-header-border-width);
+  /* from md, the tab row and the stacked aside of the candidature panel start and end this far inside the drawer */
+  --csp-panel-tabs-inset: 0px;
+  --csp-panel-aside-inset: 0px;
+  /* 1 pulls the close button of a drawer outwards by the inset of its icon */
+  --csp-drawer-close-bleed: 1;
+  /* 1 puts the actions of a drawer header on a row of their own under the title on a phone */
+  --csp-drawer-actions-row-narrow: 0;
   --csp-panel-background: transparent;
+  --csp-panel-chrome-background: var(--csp-drawer-background);
   --csp-panel-width-wide: clamp(42rem, 100vw - 36rem, 90rem);
   --csp-panel-page-offset: 0;
   --csp-panel-shadow-docked: var(--csp-lifted-shadow);
+  --csp-panel-width-docked: var(--csp-panel-width-wide);
+  --csp-panel-background-docked: var(--csp-panel-chrome-background);
+  --csp-panel-inset-docked: 0px;
+  --csp-panel-border-width-docked: 0 0 0 1px;
   --csp-document-frame-header-background: var(--background-alt-grey);
 
   @variant xxl {
