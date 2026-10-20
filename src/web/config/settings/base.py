@@ -124,6 +124,7 @@ INSTALLED_APPS = [
     "infrastructure.django_apps.candidate",
     "infrastructure.django_apps.recruteur",
     "infrastructure.django_apps.messagerie",
+    "infrastructure.django_apps.tag",
     "infrastructure.django_apps.users",
     "infrastructure.django_apps.commons",
     "presentation.ingestion",
