@@ -9,11 +9,11 @@ const meta = {
   tags: ['autodocs'],
   parameters: {
     controls: {
-      include: ['name', 'size'],
+      include: ['name', 'icon', 'size', 'shape'],
     },
     docs: {
       description: {
-        component: 'Avatar générique affichant les initiales dérivées du nom fourni. Affiche `?` quand aucun nom n\'est donné.',
+        component: 'Avatar générique affichant les initiales dérivées du nom fourni, ou une icône décorative. Affiche `?` quand aucun nom n\'est donné. Rond pour une personne, carré pour une structure.',
       },
     },
   },
@@ -23,6 +23,22 @@ const meta = {
       description: 'Nom complet utilisé pour générer les initiales et comme aria-label accessible.',
       table: {
         type: { summary: 'string' },
+      },
+    },
+    icon: {
+      control: { type: 'text' },
+      description: 'Icône affichée à la place des initiales. L\'avatar devient décoratif.',
+      table: {
+        type: { summary: 'string' },
+      },
+    },
+    shape: {
+      control: { type: 'radio' },
+      options: ['circle', 'square'] satisfies NonNullable<CspAvatarProps['shape']>[],
+      description: 'Forme de l\'avatar.',
+      table: {
+        type: { summary: 'circle | square' },
+        defaultValue: { summary: 'circle' },
       },
     },
     size: {
@@ -66,6 +82,14 @@ export const SingleWordName: Story = {
 
 export const Anonymous: Story = {
   args: { name: null },
+}
+
+export const Square: Story = {
+  args: { name: 'Structure exemple', shape: 'square' },
+}
+
+export const WithIcon: Story = {
+  args: { name: undefined, icon: 'ri:government-line', shape: 'square' },
 }
 
 export const Sizes: Story = {

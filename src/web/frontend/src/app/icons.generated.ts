@@ -56,6 +56,7 @@ import riLightbulbLine from '@iconify-icons/ri/lightbulb-line'
 import riListCheck from '@iconify-icons/ri/list-check'
 import riListUnordered from '@iconify-icons/ri/list-unordered'
 import riLockLine from '@iconify-icons/ri/lock-line'
+import riLoginBoxLine from '@iconify-icons/ri/login-box-line'
 import riLogoutBoxRLine from '@iconify-icons/ri/logout-box-r-line'
 import riMailAddLine from '@iconify-icons/ri/mail-add-line'
 import riMailCloseLine from '@iconify-icons/ri/mail-close-line'
@@ -144,6 +145,7 @@ addIcon('ri:lightbulb-line', riLightbulbLine)
 addIcon('ri:list-check', riListCheck)
 addIcon('ri:list-unordered', riListUnordered)
 addIcon('ri:lock-line', riLockLine)
+addIcon('ri:login-box-line', riLoginBoxLine)
 addIcon('ri:logout-box-r-line', riLogoutBoxRLine)
 addIcon('ri:mail-add-line', riMailAddLine)
 addIcon('ri:mail-close-line', riMailCloseLine)

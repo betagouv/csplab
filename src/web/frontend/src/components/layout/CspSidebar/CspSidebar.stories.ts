@@ -1,12 +1,15 @@
 import type { Meta, StoryObj } from '@storybook/vue3-vite'
+import type { CspSidebarSwitcherGroup } from './CspSidebarSwitcher.vue'
+import { computed, ref } from 'vue'
 import { useRoute } from 'vue-router'
-import CspSelect from '@/components/base/CspSelect/CspSelect.vue'
+import CspAvatar from '@/components/base/CspAvatar/CspAvatar.vue'
 import CspPageHeader from '@/components/layout/CspPageHeader/CspPageHeader.vue'
 import CspSidebar from './CspSidebar.vue'
 import CspSidebarGroup from './CspSidebarGroup.vue'
 import CspSidebarItem from './CspSidebarItem.vue'
 import CspSidebarLogo from './CspSidebarLogo.vue'
 import CspSidebarProvider from './CspSidebarProvider.vue'
+import CspSidebarSwitcher from './CspSidebarSwitcher.vue'
 import CspSidebarTrigger from './CspSidebarTrigger.vue'
 import CspSidebarUser from './CspSidebarUser.vue'
 
@@ -26,6 +29,7 @@ Sidebar de navigation adaptée au DSFR.
 - \`CspSidebar\` : panneau de navigation
 - \`CspSidebarTrigger\` : bouton hamburger mobile (dans le header)
 - \`CspSidebarGroup\`, \`CspSidebarItem\`, \`CspSidebarLogo\`, \`CspSidebarUser\`
+- \`CspSidebarSwitcher\` : sélecteur d'espace, avec recherche facultative ; un bloc fixe quand la liste a un seul choix et aucune recherche
 
 ## Slots
 
@@ -232,71 +236,130 @@ export const WithRouterLinks: Story = {
   }),
 }
 
-export const WithContext: Story = {
-  name: 'Avec sélecteur de contexte',
-  args: {
-    defaultExpanded: true,
-    persistState: false,
-  },
-  parameters: {
-    docs: {
-      description: {
-        story: 'Le slot `context` reçoit un sélecteur d\'espace ou d\'organisme, à la hauteur du titre de la page ; la navigation commence sous la ligne de l\'en-tête. La zone est réservée même sans contenu.',
+const ATELIER = { value: 'atelier', label: 'Atelier des Hautes-Alpes' }
+const COOPERATIVE = { value: 'cooperative', label: 'Coopérative des producteurs de la vallée de la Haute-Durance' }
+const ASSOCIATION = { value: 'association', label: 'Association des usagers du réseau de transport' }
+const ESPACES = [ATELIER, COOPERATIVE, ASSOCIATION]
+
+function contextStory(switcher: {
+  title: string
+  selected: string
+  groupsFor: (search: string) => CspSidebarSwitcherGroup[]
+  filterLabel?: string
+}, description: string): Story {
+  return {
+    args: {
+      defaultExpanded: true,
+      persistState: false,
+    },
+    parameters: {
+      docs: {
+        description: { story: description },
       },
     },
-  },
-  render: args => ({
-    components: { ...components, CspSelect, CspPageHeader },
-    setup() {
-      const options = [
-        { value: 'a', label: 'Premier espace' },
-        { value: 'b', label: 'Deuxième espace' },
-      ]
-      const breadcrumb = [{ label: 'Accueil', to: '/' }, { label: 'Page' }]
-      return {
-        defaultExpanded: args.defaultExpanded,
-        persistState: args.persistState,
-        options,
-        breadcrumb,
-      }
-    },
-    template: `
-      <CspSidebarProvider :default-expanded="defaultExpanded" :persist-state="persistState">
-        <div style="display: flex; min-height: 100vh;">
-          <aside style="flex-shrink: 0; border-right: 1px solid var(--border-default-grey);">
-            <CspSidebar>
-              <template #logo>
-                <CspSidebarLogo />
-              </template>
+    render: args => ({
+      components: { ...components, CspAvatar, CspSidebarSwitcher, CspPageHeader },
+      setup() {
+        const search = ref('')
+        const groups = computed(() => switcher.groupsFor(search.value))
+        const breadcrumb = [{ label: 'Accueil', to: '/' }, { label: 'Page' }]
+        const ariaLabel = `${switcher.title}. Changer d'espace`
+        return {
+          defaultExpanded: args.defaultExpanded,
+          persistState: args.persistState,
+          switcher,
+          ariaLabel,
+          search,
+          groups,
+          breadcrumb,
+        }
+      },
+      template: `
+        <CspSidebarProvider :default-expanded="defaultExpanded" :persist-state="persistState">
+          <div style="display: flex; min-height: 100vh;">
+            <aside style="flex-shrink: 0; border-right: 1px solid var(--border-default-grey);">
+              <CspSidebar>
+                <template #logo>
+                  <CspSidebarLogo />
+                </template>
 
-              <template #context>
-                <CspSelect :options="options" model-value="a" aria-label="Espace" />
-              </template>
+                <template #context>
+                  <CspSidebarSwitcher
+                    v-model:search="search"
+                    :title="switcher.title"
+                    :groups="groups"
+                    :selected="switcher.selected"
+                    :filter-label="switcher.filterLabel"
+                    :aria-label="ariaLabel"
+                  >
+                    <template #leading>
+                      <CspAvatar icon="ri:government-line" shape="square" />
+                    </template>
+                  </CspSidebarSwitcher>
+                </template>
 
-              <CspSidebarGroup>
-                <CspSidebarItem icon="ri:briefcase-line" label="Entrée active" :to="{ path: '/active' }" :is-active="true" />
-                <CspSidebarItem icon="ri:group-line" label="Deuxième entrée" :to="{ path: '/deuxieme' }" />
-              </CspSidebarGroup>
+                <CspSidebarGroup>
+                  <CspSidebarItem icon="ri:briefcase-line" label="Entrée active" :to="{ path: '/active' }" :is-active="true" />
+                  <CspSidebarItem icon="ri:group-line" label="Deuxième entrée" :to="{ path: '/deuxieme' }" />
+                </CspSidebarGroup>
 
-              <CspSidebarGroup>
-                <CspSidebarItem icon="ri:settings-3-line" label="Troisième entrée" :to="{ path: '/troisieme' }" />
-              </CspSidebarGroup>
+                <CspSidebarGroup>
+                  <CspSidebarItem icon="ri:settings-3-line" label="Troisième entrée" :to="{ path: '/troisieme' }" />
+                </CspSidebarGroup>
 
-              <template #footer>
-                <CspSidebarUser name="Prénom Nom" role="Rôle" />
-              </template>
-            </CspSidebar>
-          </aside>
+                <template #footer>
+                  <CspSidebarUser name="Prénom Nom" role="Rôle" />
+                </template>
+              </CspSidebar>
+            </aside>
 
-          <div style="flex: 1; min-width: 0;">
-            <CspPageHeader title="Titre de la page" :breadcrumb="breadcrumb">
-              <template #subtitle>
-                <p style="margin: 0; color: var(--text-mention-grey);">Sous-titre de la page</p>
-              </template>
-            </CspPageHeader>
+            <div style="flex: 1; min-width: 0;">
+              <CspPageHeader title="Titre de la page" :breadcrumb="breadcrumb">
+                <template #subtitle>
+                  <p style="margin: 0; color: var(--text-mention-grey);">Sous-titre de la page</p>
+                </template>
+              </CspPageHeader>
+            </div>
           </div>
-        </div>
-      </CspSidebarProvider>
-    `,
-  }),
+        </CspSidebarProvider>
+      `,
+    }),
+  }
+}
+
+export const WithContext: Story = {
+  name: 'Avec sélecteur de contexte',
+  ...contextStory({
+    title: COOPERATIVE.label,
+    selected: COOPERATIVE.value,
+    groupsFor: () => [{ label: 'Changer d\'espace', options: ESPACES }],
+  }, 'Le slot `context` reçoit un sélecteur d\'espace ou d\'organisme, à la hauteur du titre de la page ; la navigation commence sous la ligne de l\'en-tête. La zone est réservée même sans contenu.'),
+}
+
+export const WithSearchableContext: Story = {
+  name: 'Avec sélecteur de contexte et recherche',
+  ...contextStory({
+    title: 'Vue d\'ensemble',
+    selected: 'ensemble',
+    filterLabel: 'Rechercher un espace',
+    groupsFor: (search) => {
+      const term = search.trim().toLowerCase()
+      if (term) {
+        return [{ options: ESPACES.filter(espace => espace.label.toLowerCase().includes(term)) }]
+      }
+      return [
+        { options: [{ value: 'ensemble', label: 'Vue d\'ensemble' }] },
+        { label: 'Récents', options: [ATELIER, COOPERATIVE] },
+      ]
+    },
+  }, 'Avec `filterLabel`, le menu commence par un champ de recherche ; le parent filtre les groupes à partir de `v-model:search`. Le sélecteur vide la recherche à la fermeture.'),
+}
+
+export const WithSingleContext: Story = {
+  name: 'Avec un seul contexte',
+  ...contextStory({
+    title: ATELIER.label,
+    selected: ATELIER.value,
+    groupsFor: () => [{ options: [ATELIER] }],
+  }, 'Avec un seul choix et sans recherche, le sélecteur devient un bloc fixe, sans menu.'),
 }

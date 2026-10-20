@@ -1,0 +1,25 @@
+@mixin item {
+  display: flex;
+  align-items: center;
+  gap: var(--csp-menu-item-gap);
+  padding: var(--csp-menu-item-padding);
+  cursor: pointer;
+  outline: none;
+  color: var(--text-default-grey);
+  user-select: none;
+
+  &[data-highlighted] {
+    background-color: var(--background-default-grey-hover);
+  }
+
+  &[data-disabled] {
+    cursor: not-allowed;
+    color: var(--text-disabled-grey);
+  }
+}
+
+@mixin separator {
+  height: 1px;
+  background-color: var(--border-default-grey);
+  margin-block: var(--csp-menu-padding);
+}

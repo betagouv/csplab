@@ -7,15 +7,15 @@ import {
 } from '@/router/names'
 
 const ORGANISMES_ITEM: NavItem = {
-  icon: 'ri:settings-3-line',
+  icon: 'ri:government-line',
   label: 'Gestion des organismes',
   to: ORGANISMES_ROUTE_NAME,
 }
 
-function recrutementsItem(organismeUuid: string): NavItem {
+function recrutementsItem(organismeUuid: string, label: string): NavItem {
   return {
     icon: 'ri:briefcase-line',
-    label: 'Recrutements',
+    label,
     to: RECRUTEMENTS_TAB_ROUTE_NAMES.actifs,
     params: { organismeUuid },
     match: [ORGANISME_SECTION_ROUTE_NAMES.recrutements],
@@ -24,7 +24,7 @@ function recrutementsItem(organismeUuid: string): NavItem {
 
 function parametresItem(organismeUuid: string): NavItem {
   return {
-    icon: 'ri:government-line',
+    icon: 'ri:settings-3-line',
     label: 'Paramètres de l\'organisme',
     to: ORGANISME_TAB_ROUTE_NAMES.membres,
     params: { organismeUuid },
@@ -44,19 +44,13 @@ export function navigationFor(options: {
 }): NavItem[] {
   const { isStaff, organismeUuid, canManageOrganisme } = options
 
-  const items: NavItem[] = []
-
-  if (isStaff) {
-    items.push(ORGANISMES_ITEM)
+  if (!organismeUuid) {
+    return isStaff ? [ORGANISMES_ITEM] : []
   }
 
-  if (organismeUuid) {
-    items.push(recrutementsItem(organismeUuid))
-
-    if (canManageOrganisme) {
-      items.push(parametresItem(organismeUuid))
-    }
+  if (!canManageOrganisme) {
+    return [recrutementsItem(organismeUuid, 'Mes recrutements')]
   }
 
-  return items
+  return [recrutementsItem(organismeUuid, 'Recrutements'), parametresItem(organismeUuid)]
 }

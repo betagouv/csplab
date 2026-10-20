@@ -13,12 +13,14 @@ export function useCurrentUser() {
   })
 
   const user = computed(() => query.data.value ?? null)
+  const isStaff = computed(() => user.value?.is_staff ?? false)
   const displayName = computed(() =>
     user.value ? `${user.value.prenom} ${user.value.nom}` : '',
   )
 
   return {
     user,
+    isStaff,
     displayName,
     status: query.status,
     isPending: query.isPending,
