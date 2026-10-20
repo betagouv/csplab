@@ -2,7 +2,6 @@ import logging
 
 from django.conf import settings
 from django.http import Http404
-from django.shortcuts import get_object_or_404
 from django.urls import reverse
 from django.utils.functional import cached_property
 from django.utils.html import format_html
@@ -13,6 +12,7 @@ from application.ingestion.errors.application_errors_ingestion import (
     SourceIntrouvable,
 )
 from application.ingestion.services.get_offer_by_source import get_offer_by_source
+from application.ingestion.services.get_source import get_source
 from application.ingestion.services.list_offers_by_source import list_offers_by_source
 from application.ingestion.services.list_sources import list_sources
 from config.logger_names import LoggerName
@@ -58,17 +58,7 @@ class SourceListView(FretEnabledMixin, ListView):
         return context
 
 
-class SourceFromUrlMixin:
-    @cached_property
-    def source(self):
-        try:
-            return get_object_or_404(list_sources(), source_id=self.kwargs["source_id"])
-        except Http404:
-            logger.warning("Source %s introuvable", self.kwargs["source_id"])
-            raise
-
-
-class OffreListView(FretEnabledMixin, SourceFromUrlMixin, ListView):
+class OffreListView(FretEnabledMixin, ListView):
     template_name = "fret/offres.html"
     context_object_name = "offres"
     paginate_by = PAGINATE_BY
@@ -79,10 +69,11 @@ class OffreListView(FretEnabledMixin, SourceFromUrlMixin, ListView):
 
     def get_queryset(self):
         try:
-            return list_offers_by_source(self.source.source_id, self.search)
+            self.source = get_source(self.kwargs["source_id"])
         except SourceIntrouvable as e:
             logger.warning("%s", e)
             raise Http404 from e
+        return list_offers_by_source(self.source.source_id, self.search)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -115,13 +106,15 @@ class OffreListView(FretEnabledMixin, SourceFromUrlMixin, ListView):
         return context
 
 
-class OffreDetailView(FretEnabledMixin, SourceFromUrlMixin, DetailView):
+class OffreDetailView(FretEnabledMixin, DetailView):
     template_name = "fret/offre_detail.html"
     context_object_name = "offre"
 
     def get_object(self, queryset=None):
         try:
-            return get_offer_by_source(self.source.source_id, self.kwargs["offre_id"])
+            return get_offer_by_source(
+                self.kwargs["source_id"], self.kwargs["offre_id"]
+            )
         except SourceIntrouvable as e:
             logger.warning("%s", e)
             raise Http404 from e
@@ -129,7 +122,7 @@ class OffreDetailView(FretEnabledMixin, SourceFromUrlMixin, DetailView):
             logger.warning(
                 "Offre %s introuvable dans la source %s",
                 self.kwargs["offre_id"],
-                self.source.source_id,
+                self.kwargs["source_id"],
             )
             raise Http404 from e
 
@@ -137,13 +130,13 @@ class OffreDetailView(FretEnabledMixin, SourceFromUrlMixin, DetailView):
         context = super().get_context_data(**kwargs)
         offre = context["offre"]
         context.update(
-            source=self.source,
+            source=offre.source,
             breadcrumb_data={
                 "links": [
                     {"url": reverse("fret:sources"), "title": "Sources"},
                     {
-                        "url": reverse("fret:offres", args=[self.source.source_id]),
-                        "title": self.source.slug,
+                        "url": reverse("fret:offres", args=[offre.source.source_id]),
+                        "title": offre.source.slug,
                     },
                 ],
                 "current": offre.reference,

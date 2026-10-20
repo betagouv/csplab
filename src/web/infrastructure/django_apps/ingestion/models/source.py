@@ -9,10 +9,6 @@ from referentiel.value_objects.source_type import SourceType
 from infrastructure.django_apps.utils.models import BaseDatedModel
 
 
-class SourceQuerySet(models.QuerySet):
-    pass
-
-
 class SourceModel(BaseDatedModel):
     id = models.UUIDField(primary_key=True, default=uuid4)
     source_id = models.UUIDField(unique=True, default=uuid4)
@@ -24,8 +20,6 @@ class SourceModel(BaseDatedModel):
     client_id_back = models.CharField(max_length=255, blank=True, null=True)
     base_url_front = models.URLField(blank=True, null=True)
     base_url_back = models.URLField(blank=True, null=True)
-
-    objects = SourceQuerySet.as_manager()
 
     class Meta:
         db_table = "sources"
