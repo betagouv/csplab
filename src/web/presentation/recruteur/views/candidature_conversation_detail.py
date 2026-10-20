@@ -32,7 +32,6 @@ from infrastructure.django_apps.messagerie.models import MessageModel
 from presentation.api.authentication import SessionApiMixin
 from presentation.api.serializers import GenericErrorSerializer, generic_response_format
 from presentation.commons.pagination import LatestMessagesCursorPagination
-from presentation.recruteur.mappers import UtilisateurMapper
 from presentation.recruteur.serializers import (
     ConversationMessageSerializer,
     CreateMessageSerializer,
@@ -72,7 +71,7 @@ class CandidatureConversationDetailView(SessionApiMixin, ListAPIView):
             recrutement_id=self.kwargs["recrutement_uuid"],
             candidature_id=self.kwargs["candidature_uuid"],
             conversation_id=self.kwargs["conversation_uuid"],
-            utilisateur=UtilisateurMapper().to_domain(self.request),
+            utilisateur=self.request.user,
         )
 
     def list(self, request: Request, *args: Any, **kwargs: Any) -> Response:
@@ -83,7 +82,7 @@ class CandidatureConversationDetailView(SessionApiMixin, ListAPIView):
         if request.method == "GET" and "cursor" not in request.query_params and page:
             mark_as_read(
                 conversation_id=self.kwargs["conversation_uuid"],
-                utilisateur=UtilisateurMapper().to_domain(request),
+                utilisateur=request.user,
                 read_up_to=page[0].created_at,
             )
         return response

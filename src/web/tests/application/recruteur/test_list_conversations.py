@@ -21,11 +21,9 @@ from infrastructure.factories.identite.organisme_django_factory import (
     OrganismeDjangoFactory,
     create_organisme_with_agent,
 )
-from infrastructure.factories.identite.utilisateur_factory import UtilisateurFactory
-
-
-def _utilisateur(entity_id):
-    return UtilisateurFactory.create_entity(entity_id=entity_id)
+from infrastructure.factories.identite.utilisateur_django_factory import (
+    UtilisateurDjangoFactory,
+)
 
 
 def _without_organisme_role():
@@ -36,7 +34,7 @@ def _without_organisme_role():
         recrutement.organisme_id,
         recrutement.pk,
         candidature.pk,
-        _utilisateur(uuid4()),
+        UtilisateurDjangoFactory(),
     )
 
 
@@ -48,12 +46,12 @@ def _without_recrutement_role():
         organisme.id,
         recrutement.pk,
         candidature.pk,
-        _utilisateur(agent.utilisateur_id),
+        agent.utilisateur,
     )
 
 
 def _unknown_organisme():
-    return uuid4(), uuid4(), uuid4(), _utilisateur(uuid4())
+    return uuid4(), uuid4(), uuid4(), UtilisateurDjangoFactory()
 
 
 def _recrutement_from_another_organisme():
@@ -65,7 +63,7 @@ def _recrutement_from_another_organisme():
         organisme.id,
         other_recrutement.pk,
         other_candidature.pk,
-        _utilisateur(agent.utilisateur_id),
+        agent.utilisateur,
     )
 
 
@@ -77,7 +75,7 @@ def _candidature_from_another_recrutement():
         organisme.id,
         recrutement.pk,
         other_candidature.pk,
-        _utilisateur(agent.utilisateur_id),
+        agent.utilisateur,
     )
 
 

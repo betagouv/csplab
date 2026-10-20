@@ -11,9 +11,9 @@ from application.recruteur.context_services.candidature_agent_service import (
 from application.recruteur.context_services.recrutement_agent_service import (
     RecrutementAgentService,
 )
-from domain.identite.entities.utilisateurs import Utilisateur
 from domain.identite.value_objects.organisme_action import OrganismeAction
 from infrastructure.django_apps.messagerie.models import ConversationModel
+from infrastructure.django_apps.users.models import UserModel
 
 
 def list_conversations(
@@ -21,7 +21,7 @@ def list_conversations(
     organisme_id: UUID,
     recrutement_id: UUID,
     candidature_id: UUID,
-    utilisateur: Utilisateur,
+    utilisateur: UserModel,
 ) -> QuerySet[ConversationModel]:
     OrganismePermissionService().can_execute(
         action=OrganismeAction.LIST_CONVERSATIONS,
@@ -41,5 +41,5 @@ def list_conversations(
     return (
         ConversationModel.objects.by_candidature(candidature_id)
         .with_message_summary()
-        .with_is_unread(utilisateur.entity_id)
+        .with_is_unread(utilisateur.username)
     )
