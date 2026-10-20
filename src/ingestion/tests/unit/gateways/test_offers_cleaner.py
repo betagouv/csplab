@@ -1285,6 +1285,86 @@ def test_clean_returns_empty_custom_field_texts_when_absent(cleaner):
     assert offer.application_deadline is None
 
 
+def test_clean_prefers_formatted_texts_converted_to_markdown(cleaner):
+    raw_offer = _make_raw_offer(
+        description1="Missions brut",
+        description1Formatted="<p><strong>Missions</strong></p><ul><li>Une</li></ul>",
+        description2="Profil brut",
+        description2Formatted='<p><u style="color: red">Profil</u></p>',
+        customFields=TalentsoftCustomFieldsFactory.build(
+            description=TalentsoftDynamicField(
+                longText1="Employeur brut",
+                longText1Formatted=(
+                    '<p>Voir <a href="https://www.ac-dijon.fr">le site</a></p>'
+                ),
+                longText2="Conditions brut",
+                longText2Formatted="<p><em>Conditions</em></p>",
+                longText3="Service brut",
+                longText3Formatted='<p>Service</p><img src="https://x.force.com/a.png">',
+            ),
+            offerCustomBlock1=TalentsoftDynamicField(
+                longText1="Compléments brut",
+                longText1Formatted="<p>Ligne 1<br>Ligne 2</p>",
+            ),
+        ),
+    )
+
+    offer = cleaner.clean(raw_offer)
+
+    assert offer.mission == "**Missions**\n\n- Une"
+    assert offer.profile == "**Profil**"
+    assert offer.employer_description == "Voir [le site](https://www.ac-dijon.fr)"
+    assert offer.exercise_conditions == "*Conditions*"
+    assert offer.service_description == "Service"
+    assert offer.complements == "Ligne 1\\\nLigne 2"
+
+
+@pytest.mark.parametrize("formatted", [None, "", "<p> </p>", "<p>&nbsp;</p>"])
+def test_clean_falls_back_on_raw_texts_when_formatted_is_blank(cleaner, formatted):
+    raw_offer = _make_raw_offer(
+        description1="Missions brut",
+        description1Formatted=formatted,
+        description2="Profil brut",
+        description2Formatted=formatted,
+        customFields=TalentsoftCustomFieldsFactory.build(
+            description=TalentsoftDynamicField(
+                longText1="Employeur brut",
+                longText1Formatted=formatted,
+                longText2="Conditions brut",
+                longText2Formatted=formatted,
+                longText3="Service brut",
+                longText3Formatted=formatted,
+            ),
+            offerCustomBlock1=TalentsoftDynamicField(
+                longText1="Compléments brut", longText1Formatted=formatted
+            ),
+        ),
+    )
+
+    offer = cleaner.clean(raw_offer)
+
+    assert offer.mission == "Missions brut"
+    assert offer.profile == "Profil brut"
+    assert offer.employer_description == "Employeur brut"
+    assert offer.exercise_conditions == "Conditions brut"
+    assert offer.service_description == "Service brut"
+    assert offer.complements == "Compléments brut"
+
+
+def test_clean_returns_empty_texts_when_formatted_and_raw_are_blank(cleaner):
+    raw_offer = _make_raw_offer(
+        description1=None,
+        description1Formatted="<p> </p>",
+        description2=None,
+        description2Formatted=None,
+    )
+
+    offer = cleaner.clean(raw_offer)
+
+    assert offer.mission == ""
+    assert offer.profile == ""
+
+
 def test_clean_maps_application_deadline(cleaner):
     raw_offer = _make_raw_offer(
         customFields=TalentsoftCustomFieldsFactory.build(
