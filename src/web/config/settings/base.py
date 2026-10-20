@@ -48,6 +48,7 @@ env = environ.Env(
     WEB_REDIS_DB=(str, "0"),
     WEB_REDIS_CACHE_DB=(str, "2"),
     WEB_ROBOTS_INDEXING=(bool, True),
+    WEB_FRET_ENABLED=(bool, False),
     WEB_S3_ENDPOINT_URL=(str, "http://localhost:9000"),
     WEB_S3_REGION_NAME=(str, "us-east-1"),
     WEB_S3_ACCESS_KEY_ID=(str, "rustfsadmin"),
@@ -339,6 +340,10 @@ MATOMO_SITE_ID = env.int("MATOMO_SITE_ID")
 # ROBOTS
 # ---------------------------------------
 ROBOTS_INDEXING = env.bool("ROBOTS_INDEXING")
+
+# FRET
+# ---------------------------------------
+FRET_ENABLED = env.bool("FRET_ENABLED")
 
 # CSP
 # ---------------------------------------

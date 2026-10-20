@@ -116,8 +116,8 @@ _ORGANISMES_SPECS = [
     },
 ]
 
-# Sources des offres du seed (visibles dans /fret/) : Marie n'a que la première,
-# Marc les deux, les autres agents aucune.
+# Sources des offres du seed (toutes visibles dans /fret/, sans authentification) :
+# Marie est rattachée à la première, Marc aux deux, les autres agents à aucune.
 _SOURCE_MTE_UUID = UUID("00000000-0000-0000-0000-0000000000a1")
 _SOURCE_BRIANCON_UUID = UUID("00000000-0000-0000-0000-0000000000a2")
 _SOURCES_SPECS = {
@@ -537,7 +537,7 @@ def seed_recruteur_datas(force: bool = False) -> dict:
         )
 
         # -------------------------------------------------------------- #
-        # Sources (rattachées aux agents pour les pages /fret/)          #
+        # Sources (rattachées aux agents)                                #
         # -------------------------------------------------------------- #
         sources = {
             source_id: SourceDjangoFactory(source_id=source_id, slug=slug)
