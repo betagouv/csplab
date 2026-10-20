@@ -293,7 +293,7 @@ function contextStory(switcher: {
                     :aria-label="ariaLabel"
                   >
                     <template #leading>
-                      <CspAvatar icon="ri:government-line" shape="square" />
+                      <CspAvatar icon="ri:government-fill" />
                     </template>
                   </CspSidebarSwitcher>
                 </template>

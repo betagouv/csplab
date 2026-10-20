@@ -99,8 +99,7 @@ function select(value: string) {
   >
     <template #leading>
       <CspAvatar
-        :icon="organismeUuid ? 'ri:government-line' : 'ri:shield-user-line'"
-        shape="square"
+        :icon="organismeUuid ? 'ri:government-fill' : 'ri:shield-user-fill'"
       />
     </template>
   </CspSidebarSwitcher>

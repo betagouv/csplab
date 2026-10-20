@@ -7,13 +7,11 @@ export interface CspAvatarProps {
   name?: string | null
   icon?: string
   size?: 'sm' | 'md' | 'lg'
-  shape?: 'circle' | 'square'
 }
 
 const props = withDefaults(defineProps<CspAvatarProps>(), {
   icon: undefined,
   size: 'md',
-  shape: 'circle',
 })
 
 const initials = computed(() => {
@@ -24,7 +22,7 @@ const initials = computed(() => {
 <template>
   <div
     class="csp-avatar"
-    :class="[`csp-avatar--${size}`, `csp-avatar--${shape}`]"
+    :class="`csp-avatar--${size}`"
     :role="icon ? undefined : 'img'"
     :aria-label="icon ? undefined : name ?? undefined"
     :aria-hidden="icon ? 'true' : undefined"
@@ -48,6 +46,7 @@ const initials = computed(() => {
 .csp-avatar {
   width: var(--csp-avatar-size);
   height: var(--csp-avatar-size);
+  border-radius: 9999px;
   overflow: hidden;
 
   display: inline-flex;
@@ -72,10 +71,6 @@ const initials = computed(() => {
 .csp-avatar__icon {
   width: 50%;
   height: 50%;
-}
-
-.csp-avatar--circle {
-  border-radius: 9999px;
 }
 
 .csp-avatar--sm {

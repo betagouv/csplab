@@ -43,6 +43,7 @@ import riFilter3Line from '@iconify-icons/ri/filter-3-line'
 import riFilterLine from '@iconify-icons/ri/filter-line'
 import riFlashlightFill from '@iconify-icons/ri/flashlight-fill'
 import riFullscreenLine from '@iconify-icons/ri/fullscreen-line'
+import riGovernmentFill from '@iconify-icons/ri/government-fill'
 import riGovernmentLine from '@iconify-icons/ri/government-line'
 import riGroupLine from '@iconify-icons/ri/group-line'
 import riHistoryLine from '@iconify-icons/ri/history-line'
@@ -77,6 +78,7 @@ import riRouteLine from '@iconify-icons/ri/route-line'
 import riSearchLine from '@iconify-icons/ri/search-line'
 import riSendPlaneFill from '@iconify-icons/ri/send-plane-fill'
 import riSettings3Line from '@iconify-icons/ri/settings-3-line'
+import riShieldUserFill from '@iconify-icons/ri/shield-user-fill'
 import riShieldUserLine from '@iconify-icons/ri/shield-user-line'
 import riSpamFill from '@iconify-icons/ri/spam-fill'
 import riStickyNoteLine from '@iconify-icons/ri/sticky-note-line'
@@ -132,6 +134,7 @@ addIcon('ri:filter-3-line', riFilter3Line)
 addIcon('ri:filter-line', riFilterLine)
 addIcon('ri:flashlight-fill', riFlashlightFill)
 addIcon('ri:fullscreen-line', riFullscreenLine)
+addIcon('ri:government-fill', riGovernmentFill)
 addIcon('ri:government-line', riGovernmentLine)
 addIcon('ri:group-line', riGroupLine)
 addIcon('ri:history-line', riHistoryLine)
@@ -166,6 +169,7 @@ addIcon('ri:route-line', riRouteLine)
 addIcon('ri:search-line', riSearchLine)
 addIcon('ri:send-plane-fill', riSendPlaneFill)
 addIcon('ri:settings-3-line', riSettings3Line)
+addIcon('ri:shield-user-fill', riShieldUserFill)
 addIcon('ri:shield-user-line', riShieldUserLine)
 addIcon('ri:spam-fill', riSpamFill)
 addIcon('ri:sticky-note-line', riStickyNoteLine)
