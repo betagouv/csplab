@@ -1,6 +1,6 @@
 # Correspondance offre Talentsoft → offre API v1
 
-_Dernière mise à jour : 2026-10-19_
+_Dernière mise à jour : 2026-10-20_
 
 Conversion d'une offre au format Talentsoft en offre envoyée à l'API.
 L'API fake-ts (`/api/fake-ts/`, `OfferSummaryOutputMapper` et `OfferDetailOutputMapper` dans `src/web/presentation/ingestion/mappers.py`) expose les offres du web au format Talentsoft : les notes « API fake-ts » décrivent ce qu'elle renvoie.
@@ -20,12 +20,12 @@ Notation : `a.b` désigne un objet imbriqué, `a[]` une liste, `a[0]` son premie
 | `contractType.clientCode` | `nature_offre` | Traduit par le transcodeur de la source. |
 | `professionalCategory.clientCode` | `vacance_poste` | `STATUT01` → `OUI` (poste vacant), `STATUT02` → `NON` (poste susceptible d'être vacant), sinon vide. Malgré son nom, c'est le « Statut du poste » affiché par l'ancien site WordPress. API fake-ts : `OUI` → `STATUT01`, `NON` → `STATUT02`, sinon `null`. |
 | `offerFamilyCategory.clientCode` | `profession.metier` | `profession.domaine` correspond à ses 3 premiers caractères, après retrait d'un `ER` initial. |
-| `description1` | `description.mission` | |
-| `description2` | `description.profil` | |
-| `customFields.description.longText1` | `description.employeur` | |
-| `customFields.description.longText2` | `description.conditions_exercice` | |
-| `customFields.description.longText3` | `description.descriptif_service` | |
-| `customFields.offerCustomBlock1.longText1` | `description.complements` | |
+| `description1Formatted` | `description.mission` | Converti en Markdown, repli sur le texte brut `description1` s'il est vide (voir sous le tableau). |
+| `description2Formatted` | `description.profil` | Converti en Markdown, repli sur le texte brut `description2` s'il est vide (voir sous le tableau). |
+| `customFields.description.longText1Formatted` | `description.employeur` | Converti en Markdown, repli sur le texte brut `customFields.description.longText1` s'il est vide (voir sous le tableau). |
+| `customFields.description.longText2Formatted` | `description.conditions_exercice` | Converti en Markdown, repli sur le texte brut `customFields.description.longText2` s'il est vide (voir sous le tableau). |
+| `customFields.description.longText3Formatted` | `description.descriptif_service` | Converti en Markdown, repli sur le texte brut `customFields.description.longText3` s'il est vide (voir sous le tableau). |
+| `customFields.offerCustomBlock1.longText1Formatted` | `description.complements` | Converti en Markdown, repli sur le texte brut `customFields.offerCustomBlock1.longText1` s'il est vide (voir sous le tableau). |
 | `offerUrl` | `url_offre` | |
 | `urlRedirectionApplicant` | `url_candidature` | Prioritaire sur `customFields.origin.shortText1` et `applicationUrl`. |
 | `customFields.origin.shortText1` | `email_candidature` | Texte libre (« adresse de candidature »). Lu seulement si `urlRedirectionApplicant` est vide : le premier e-mail valide trouvé devient `email_candidature`, et `url_candidature` reste vide. API fake-ts : reprend `email_candidature`, `null` si l'offre se candidate par lien. |
@@ -50,6 +50,13 @@ Notation : `a.b` désigne un objet imbriqué, `a[]` une liste, `a[0]` son premie
 | `languages[].languageName.clientCode` | `criteres.langues[].iso_code` | |
 | `languages[].languageLevel.clientCode` | `criteres.langues[].niveau` | |
 
+Les six champs `description.*` contiennent du Markdown (CommonMark), converti par `infrastructure/gateways/html_to_markdown.py` :
+- gras, italique, listes, titres et sauts de ligne sont conservés ; le souligné devient du gras (sans doubler un gras existant) ;
+- les styles, classes, `span` et `script` sont retirés, les images supprimées, les tableaux aplatis en texte et les exposants rendus en texte simple ;
+- les liens ne sont gardés qu'en `http:`, `https:` (avec un hôte, intranet compris) ou `mailto:` (avec un `@`) ; le `href` est coupé au premier espace, les autres liens deviennent du texte simple.
+
+Le Markdown ne contient jamais de balise HTML : tout `<` du texte (ex. `&lt;script&gt;` dans le HTML Talentsoft) est écrit `&lt;`, et les liens sont toujours au format `[libellé](url)`.
+
 `criteres` n'est envoyé que si au moins un des champs niveau de diplôme, diplôme, expérience, spécialisations ou langues est renseigné.
 
 ## 2. Champs Talentsoft sans équivalent dans l'API v1
@@ -62,8 +69,6 @@ Notation : `a.b` désigne un objet imbriqué, `a[]` une liste, `a[0]` son premie
 | `contractTypeCountry` | |
 | `organisationDescription` | Capturé nulle part dans la chaîne. |
 | `organisationLogoUrl` | |
-| `description1Formatted` | Variante HTML de `description1`, non utilisée. |
-| `description2Formatted` | Variante HTML de `description2`, non utilisée. |
 | `_links` | Métadonnées de transport. |
 | `_format` | Métadonnées de transport. |
 | `_metadata` | Métadonnées de transport. |

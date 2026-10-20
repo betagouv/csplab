@@ -37,6 +37,7 @@ from infrastructure.external_gateways.dtos.talentsoft_dtos import (
     TalentsoftLanguage,
     TalentsoftOrganisation,
 )
+from infrastructure.gateways.html_to_markdown import html_to_markdown
 from infrastructure.gateways.transcoding import (
     SourceTranscoder,
     load_transcoders_by_slug,
@@ -431,8 +432,12 @@ class OffersCleaner:
             else talentsoft_offer.reference,
             verse=verse,
             title=talentsoft_offer.title,
-            profile=talentsoft_offer.description2 or "",
-            mission=talentsoft_offer.description1 or "",
+            profile=self._map_rich_text(
+                talentsoft_offer.description2Formatted, talentsoft_offer.description2
+            ),
+            mission=self._map_rich_text(
+                talentsoft_offer.description1Formatted, talentsoft_offer.description1
+            ),
             category=category,
             offer_nature=offer_nature,
             contract_kind=contract_kind,
@@ -446,10 +451,18 @@ class OffersCleaner:
             beginning_date=beginning_date,
             application_deadline=application_deadline,
             contract_duration=talentsoft_offer.contractDuration or None,
-            employer_description=description_fields.longText1 or "",
-            exercise_conditions=description_fields.longText2 or "",
-            service_description=description_fields.longText3 or "",
-            complements=offer_block_1.longText1 or "",
+            employer_description=self._map_rich_text(
+                description_fields.longText1Formatted, description_fields.longText1
+            ),
+            exercise_conditions=self._map_rich_text(
+                description_fields.longText2Formatted, description_fields.longText2
+            ),
+            service_description=self._map_rich_text(
+                description_fields.longText3Formatted, description_fields.longText3
+            ),
+            complements=self._map_rich_text(
+                offer_block_1.longText1Formatted, offer_block_1.longText1
+            ),
             education_level=education_level,
             experience=experience,
             diploma=diploma,
@@ -463,6 +476,9 @@ class OffersCleaner:
             talentsoft_organisme_entity_code=organisme_entity_code,
             contacts=self._map_contacts(origin_fields),
         )
+
+    def _map_rich_text(self, formatted: Optional[str], raw: Optional[str]) -> str:
+        return html_to_markdown(formatted or "") or raw or ""
 
     def _map_verse(
         self,
