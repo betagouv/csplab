@@ -41,6 +41,9 @@ class LatestMessagesCursorPagination(CursorPagination):
 
     def get_paginated_response(self, data: list[Any]) -> Response:
         return super().get_paginated_response(list(reversed(data)))
+class TaillePageNumberPagination(PageNumberPagination):
+    page_size_query_param = "taille"
+    max_page_size = MAX_PAGE_SIZE
 
 
 class WebPagination(BasePagination):

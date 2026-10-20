@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from django.conf import settings
 from drf_spectacular.utils import extend_schema_field
 from referentiel.value_objects.category import Category
@@ -13,6 +15,7 @@ from domain.recruteur.value_objects.roles import (
     AgentRecrutementRole,
 )
 from infrastructure.django_apps.candidate.enums.type_document import TypeDocument
+from infrastructure.django_apps.candidate.models.candidature import CandidatureModel
 from infrastructure.django_apps.candidate.models.document import DocumentModel
 from infrastructure.django_apps.commons.models import AuditLogModel
 from infrastructure.django_apps.messagerie.models import (
@@ -308,12 +311,60 @@ class RecrutementDetailKanbanSerializer(serializers.Serializer):
     etapes = EtapeRecrutementDetailedCandidaturesSerializer(many=True)
 
 
-class CandidatureListeSerializer(UnreadConversationsSerializer):
-    uuid = serializers.UUIDField()
-    date_soumission = serializers.DateTimeField()
-    candidat = CandidatSerializer()
-    date_derniere_activite = serializers.DateTimeField()
-    etape = EtapeRecrutementSerializer()
+# Computed fields of CandidatureListeSerializer: plain fields overriding get_attribute
+# (not SerializerMethodField) so the generated schema stays identical, see above.
+@extend_schema_field(CandidatSerializer())
+class CandidatureCandidatField(serializers.Field):
+    def get_attribute(self, instance: CandidatureModel) -> dict:
+        utilisateur = instance.candidat.utilisateur
+        return {
+            "uuid": instance.candidat_id,
+            "nom": utilisateur.last_name,
+            "prenom": utilisateur.first_name,
+        }
+
+    def to_representation(self, value: dict) -> dict:
+        return CandidatSerializer(value).data
+
+
+@extend_schema_field(EtapeRecrutementSerializer())
+class CandidatureEtapeField(serializers.Field):
+    def get_attribute(self, instance: CandidatureModel) -> dict:
+        etape = instance.etape
+        return {
+            "etape_uuid": etape.id,
+            "nom": etape.nom,
+            "categorie": CategorieEtapeRecrutement(etape.categorie).name,
+        }
+
+    def to_representation(self, value: dict) -> dict:
+        return EtapeRecrutementSerializer(value).data
+
+
+class DerniereActiviteField(serializers.DateTimeField):
+    def get_attribute(self, instance: CandidatureModel) -> datetime:
+        return instance.updated_by_recruteur or instance.updated_at
+
+
+class CandidatureListeSerializer(
+    UnreadConversationsSerializer, serializers.ModelSerializer
+):
+    uuid = serializers.UUIDField(source="id")
+    date_soumission = serializers.DateTimeField(source="created_at")
+    candidat = CandidatureCandidatField()
+    date_derniere_activite = DerniereActiviteField()
+    etape = CandidatureEtapeField()
+
+    class Meta:
+        model = CandidatureModel
+        fields = [
+            "unread_conversations",
+            "uuid",
+            "date_soumission",
+            "candidat",
+            "date_derniere_activite",
+            "etape",
+        ]
 
 
 # ---------------------------------------------------------------------------

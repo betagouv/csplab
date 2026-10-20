@@ -13,6 +13,13 @@ class CandidatureQuerySet(models.QuerySet):
     ) -> "CandidatureQuerySet":
         return self.filter(etape__recrutement_id=recrutement_id, pk=candidature_id)
 
+    def by_recrutement(self, recrutement_id) -> "CandidatureQuerySet":
+        return (
+            self.filter(etape__recrutement_id=recrutement_id)
+            .select_related("candidat__utilisateur", "etape")
+            .order_by("etape__updated_at", "created_at")
+        )
+
     def by_etape(self, etape_id) -> "CandidatureQuerySet":
         return self.filter(etape_id=etape_id).order_by("created_at")
 

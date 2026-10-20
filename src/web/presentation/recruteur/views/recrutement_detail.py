@@ -1,7 +1,10 @@
 from uuid import UUID
 
+from django.db.models import QuerySet
+from django.http import Http404
 from drf_spectacular.utils import extend_schema
-from rest_framework import status
+from rest_framework import exceptions, status
+from rest_framework.generics import ListAPIView
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -9,17 +12,19 @@ from rest_framework.views import APIView
 from application.recruteur.services.get_recrutement_detail import (
     get_recrutement_detail,
 )
+from application.recruteur.services.list_candidatures import list_candidatures
 from application.recruteur.usecases.changer_etape_candidatures import (
     ChangerEtapeCandidaturesCommand,
 )
 from application.recruteur.usecases.get_recrutement_kanban import (
     GetRecrutementKanbanQuery,
 )
-from application.recruteur.usecases.get_recrutement_liste import (
-    GetRecrutementListeQuery,
-)
 from domain.commons.errors.organisme_errors import OrganismeNexistePas
 from domain.identite.errors.organisme_permission_errors import (
+    AccesOrganismeRefuse,
+    AccesRecrutementInconnu,
+    AccesRecrutementRefuse,
+    OperationOrganismeRefusee,
     OrganismePermissionError,
 )
 from domain.recruteur.errors.recrutement_errors import (
@@ -29,9 +34,10 @@ from domain.recruteur.errors.recrutement_errors import (
     RecrutementInexistant,
 )
 from infrastructure.di.recruteur.recruteur_factory import recruteur_container
+from infrastructure.django_apps.candidate.models.candidature import CandidatureModel
 from presentation.api.authentication import SessionApiMixin
 from presentation.api.serializers import GenericErrorSerializer, TokenErrorSerializer
-from presentation.commons.pagination import WebPagination
+from presentation.commons.pagination import TaillePageNumberPagination
 from presentation.recruteur.mappers import UtilisateurMapper
 from presentation.recruteur.serializers import (
     CandidatureListeSerializer,
@@ -147,52 +153,42 @@ class RecrutementKanbanView(SessionApiMixin, APIView):
         500: GenericErrorSerializer,
     },
 )
-class RecrutementListeView(SessionApiMixin, APIView):
-    pagination_class = WebPagination
+class RecrutementListeView(SessionApiMixin, ListAPIView):
+    serializer_class = CandidatureListeSerializer
+    pagination_class = TaillePageNumberPagination
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.container = recruteur_container()
-        self.user_mapper = UtilisateurMapper()
+    def get_queryset(self) -> QuerySet[CandidatureModel]:
+        return list_candidatures(
+            organisme_id=self.kwargs["organisme_uuid"],
+            recrutement_id=self.kwargs["recrutement_uuid"],
+            utilisateur=self.request.user,
+        )
 
-    def get(
-        self, request: Request, organisme_uuid: UUID, recrutement_uuid: UUID
-    ) -> Response:
-        try:
-            usecase = self.container.get_recrutement_liste_usecase()
-            result = usecase.execute(
-                GetRecrutementListeQuery(
-                    organisme_id=organisme_uuid,
-                    recrutement_id=recrutement_uuid,
-                    utilisateur=self.user_mapper.to_domain(request),
-                )
-            )
-            if result is None:
-                return Response(
-                    GenericErrorSerializer({"error": "Not found."}).data,
-                    status=status.HTTP_404_NOT_FOUND,
-                )
-
-            paginator = WebPagination()
-            items = paginator.paginate(result, request)
-            return paginator.get_paginated_response(
-                CandidatureListeSerializer(items, many=True).data
-            )
-        except OrganismePermissionError:
+    def handle_exception(self, exc: Exception) -> Response:
+        if isinstance(
+            exc,
+            (
+                AccesOrganismeRefuse,
+                OperationOrganismeRefusee,
+                AccesRecrutementRefuse,
+                AccesRecrutementInconnu,
+            ),
+        ):
             return Response(
                 GenericErrorSerializer({"error": "Forbidden."}).data,
                 status=status.HTTP_403_FORBIDDEN,
             )
-        except OrganismeNexistePas:
+        if isinstance(exc, (OrganismeNexistePas, RecrutementInexistant)):
             return Response(
                 GenericErrorSerializer({"error": "Not found."}).data,
                 status=status.HTTP_404_NOT_FOUND,
             )
-        except Exception:
-            serializer = GenericErrorSerializer({"error": "Unexpected error"})
-            return Response(
-                serializer.data, status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
+        if isinstance(exc, (exceptions.APIException, Http404)):
+            return super().handle_exception(exc)
+        return Response(
+            GenericErrorSerializer({"error": "Unexpected error"}).data,
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )
 
 
 @extend_schema(
