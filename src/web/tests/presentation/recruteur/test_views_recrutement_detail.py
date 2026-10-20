@@ -477,9 +477,11 @@ class TestRecrutementListeView:
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
     def test_candidature_structure(self, authenticated_client, recrutement_liste):
-        etape = EtapeModel.objects.filter(recrutement=recrutement_liste).first()
+        etape = EtapeModel.objects.get(
+            recrutement=recrutement_liste,
+            categorie=CategorieEtapeRecrutement.ENTREE.value,
+        )
         candidature = CandidatureDjangoFactory(etape=etape)
-        candidature.refresh_from_db()
 
         response = authenticated_client.get(RECRUTEMENT_LISTE_URL)
 
