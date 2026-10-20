@@ -230,7 +230,7 @@ def test_agent_authorized_actions_exclude_recrutement_level(
     response = authenticated_client.get(URL)
 
     assert response.json()["organismes"][0]["authorized_actions"] == [
-        "lister_mes_recrutements",
+        "list_recrutements",
         "get_motifs_refus",
     ]
 

@@ -46,7 +46,7 @@ _ROLES_REQUIS: dict[OrganismeAction, frozenset[AgentOrganismeRole]] = {
         {AgentOrganismeRole.SUPERVISEUR}
     ),
     OrganismeAction.UPDATE_ORGANISME_STEPS: frozenset({AgentOrganismeRole.SUPERVISEUR}),
-    OrganismeAction.LISTER_MES_RECRUTEMENTS: frozenset(
+    OrganismeAction.LIST_RECRUTEMENTS: frozenset(
         {AgentOrganismeRole.SUPERVISEUR, AgentOrganismeRole.AGENT}
     ),
     OrganismeAction.VOIR_DETAIL_RECRUTEMENT: frozenset(
@@ -132,7 +132,7 @@ _ROLES_REQUIS: dict[OrganismeAction, frozenset[AgentOrganismeRole]] = {
 # -------------------------------------
 # Actions pour lesquelles un MEMBRE n'a besoin d'aucun rôle sur le recrutement
 _SANS_ROLE_RECRUTEMENT_REQUIS: frozenset[OrganismeAction] = frozenset(
-    {OrganismeAction.LISTER_MES_RECRUTEMENTS, OrganismeAction.GET_MOTIFS_REFUS}
+    {OrganismeAction.LIST_RECRUTEMENTS, OrganismeAction.GET_MOTIFS_REFUS}
 )
 
 # Actions sans recrutement ciblé : un MEMBRE doit être RESPONSABLE d'au moins un
@@ -295,7 +295,7 @@ class OrganismePermissionService:
         if action not in _ROLES_REQUIS:
             raise OperationOrganismeRefusee()
 
-        # Le staff agit en superviseur : lister_mes_recrutements lève le filtre agent
+        # Le staff agit en superviseur : list_recrutements lève le filtre agent
         if (
             utilisateur.is_staff
             and organisme_id

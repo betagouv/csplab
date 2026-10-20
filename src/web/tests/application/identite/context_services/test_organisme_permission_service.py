@@ -65,7 +65,7 @@ SUPERVISEUR_OU_AGENT_RESPONSABLE_D_UN_RECRUTEMENT_ACTIONS = [
 ]
 
 SUPERVISEUR_OU_AGENT_SANS_RECRUTEMENT_ACTIONS = [
-    OrganismeAction.LISTER_MES_RECRUTEMENTS,
+    OrganismeAction.LIST_RECRUTEMENTS,
     OrganismeAction.GET_MOTIFS_REFUS,
 ]
 
@@ -876,7 +876,7 @@ class TestAuthorizedActions:
             organisme_id=uuid4(),
             organisme_ids_responsable={uuid4()},
         ) == [
-            OrganismeAction.LISTER_MES_RECRUTEMENTS,
+            OrganismeAction.LIST_RECRUTEMENTS,
             OrganismeAction.GET_MOTIFS_REFUS,
         ]
 
@@ -899,7 +899,7 @@ class TestAuthorizedActions:
             organisme_id=organisme_id,
             organisme_ids_responsable={organisme_id},
         ) == [
-            OrganismeAction.LISTER_MES_RECRUTEMENTS,
+            OrganismeAction.LIST_RECRUTEMENTS,
             OrganismeAction.SEARCH_AGENT,
             OrganismeAction.CREATE_AGENT,
             OrganismeAction.GET_MOTIFS_REFUS,
