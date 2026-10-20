@@ -54,15 +54,6 @@ class EtapeDto:
 
 
 @dataclass(frozen=True, kw_only=True)
-class CandidatureListeReadModel:
-    uuid: UUID
-    date_soumission: datetime
-    date_derniere_activite: datetime
-    candidat: CandidatDto
-    etape: EtapeDto
-
-
-@dataclass(frozen=True, kw_only=True)
 class CandidatureKanbanDto:
     uuid: UUID
     date_soumission: datetime
