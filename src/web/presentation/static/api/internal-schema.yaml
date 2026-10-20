@@ -4799,6 +4799,80 @@ components:
       - utilisateur_id
       - utilisateur_nom
       - utilisateur_prenom
+    AuthorizedActionsEnum:
+      enum:
+      - get_organisme
+      - initialize_organisme_steps
+      - update_organisme_steps
+      - lister_mes_recrutements
+      - voir_detail_recrutement
+      - get_candidature_detail
+      - changer_etape_candidatures
+      - get_recrutement_etapes
+      - update_recrutement_etapes
+      - init_recrutement_etapes
+      - creer_organisme
+      - lister_organismes
+      - modifier_organisme
+      - list_organisme_agents
+      - search_agent
+      - attach_organisme_agent
+      - update_organisme_agent
+      - revoke_organisme_agent
+      - create_agent
+      - list_recrutement_agents
+      - add_recrutement_agent
+      - update_recrutement_agent
+      - revoke_recrutement_agent
+      - set_recrutements_responsable
+      - get_motifs_refus
+      - read_document
+      - list_documents
+      - list_notes
+      - create_note
+      - update_note
+      - delete_note
+      - list_conversations
+      - read_conversation
+      - create_conversation
+      - reply_conversation
+      type: string
+      description: |-
+        * `get_organisme` - get_organisme
+        * `initialize_organisme_steps` - initialize_organisme_steps
+        * `update_organisme_steps` - update_organisme_steps
+        * `lister_mes_recrutements` - lister_mes_recrutements
+        * `voir_detail_recrutement` - voir_detail_recrutement
+        * `get_candidature_detail` - get_candidature_detail
+        * `changer_etape_candidatures` - changer_etape_candidatures
+        * `get_recrutement_etapes` - get_recrutement_etapes
+        * `update_recrutement_etapes` - update_recrutement_etapes
+        * `init_recrutement_etapes` - init_recrutement_etapes
+        * `creer_organisme` - creer_organisme
+        * `lister_organismes` - lister_organismes
+        * `modifier_organisme` - modifier_organisme
+        * `list_organisme_agents` - list_organisme_agents
+        * `search_agent` - search_agent
+        * `attach_organisme_agent` - attach_organisme_agent
+        * `update_organisme_agent` - update_organisme_agent
+        * `revoke_organisme_agent` - revoke_organisme_agent
+        * `create_agent` - create_agent
+        * `list_recrutement_agents` - list_recrutement_agents
+        * `add_recrutement_agent` - add_recrutement_agent
+        * `update_recrutement_agent` - update_recrutement_agent
+        * `revoke_recrutement_agent` - revoke_recrutement_agent
+        * `set_recrutements_responsable` - set_recrutements_responsable
+        * `get_motifs_refus` - get_motifs_refus
+        * `read_document` - read_document
+        * `list_documents` - list_documents
+        * `list_notes` - list_notes
+        * `create_note` - create_note
+        * `update_note` - update_note
+        * `delete_note` - delete_note
+        * `list_conversations` - list_conversations
+        * `read_conversation` - read_conversation
+        * `create_conversation` - create_conversation
+        * `reply_conversation` - reply_conversation
     BlankEnum:
       enum:
       - ''
@@ -6310,12 +6384,38 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/OrganismeRole'
+        authorized_actions:
+          type: array
+          items:
+            $ref: '#/components/schemas/AuthorizedActionsEnum'
+        organismes:
+          type: array
+          items:
+            $ref: '#/components/schemas/UtilisateurOrganisme'
       required:
+      - authorized_actions
       - email
       - is_staff
       - nom
       - organisme_roles
+      - organismes
       - prenom
+    UtilisateurOrganisme:
+      type: object
+      properties:
+        uuid:
+          type: string
+          format: uuid
+        nom:
+          type: string
+        authorized_actions:
+          type: array
+          items:
+            $ref: '#/components/schemas/AuthorizedActionsEnum'
+      required:
+      - authorized_actions
+      - nom
+      - uuid
     VersantEnum:
       enum:
       - FPT
