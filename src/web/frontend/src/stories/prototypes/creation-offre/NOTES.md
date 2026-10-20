@@ -1,5 +1,65 @@
 # Notes — Prototype création d'offre
 
+## Itération 4 — la DAR validée comme source de l'offre (20 octobre 2026)
+
+Organisation observée (CSP uniquement) : fiche de poste → DAR → validation de la DAR → offre créée à partir
+de la DAR → quelques champs propres à l'offre → publication activée ou non. Le prototype suit ce fil sans en
+faire un modèle universel (story 5 : une autre organisation fait aussi valider l'offre).
+
+**Trois objets distincts** : la fiche de poste (source) → la DAR (contenu figé à la soumission, validé tel
+quel) → l'offre (reprend la DAR, contenu éditorial retravaillable). **Cinq états non confondus**, affichés
+séparément dans la barre et la liste : DAR en brouillon · DAR soumise · DAR validée · offre créée
+(publication désactivée) · publication activée.
+
+Scénario principal (story 1, ou ligne DAR-2026-0331 de la liste) : DAR validée le 15 octobre par
+Hélène Robert pour 3 postes de gestionnaire de paie. Ouvrir la DAR démarre l'offre, préremplie. Le texte
+repris est brut (BRH/SG, EVS, IJ, « ; ») : « Mettre en forme » le passe en puces sans changer un mot,
+« Proposer une reformulation » propose un texte candidat, « Comparer avec la DAR » montre la version
+validée, inchangée. On quitte, on reprend (rien n'est perdu, même après rechargement), on crée l'offre :
+la publication reste désactivée jusqu'à ce qu'on l'active (date limite requise).
+
+### Changements
+
+- **Liste « Recrutements »** : une ligne par DAR, colonnes « État DAR » et « État offre » (« À créer »,
+  « En rédaction », « Créée, non publiée », « Publiée ») ; filtre « Offres à créer ». Colonnes toujours
+  personnalisables (code poste, réf. offre…).
+- **Étape 1 « Préparer le besoin »** : si la DAR est soumise ou validée, simple fiche de consultation en
+  lecture seule (intitulé, service, localisation, catégorie, postes, texte de la DAR repliable). Rien à
+  ressaisir. Si la DAR est en brouillon, formulaire de l'itération 3 + « Soumettre la DAR à validation ».
+- **Étape 2 « Rédiger l'offre »** : titre de l'annonce (éditorial) distinct de l'intitulé de la DAR ;
+  sections préremplies avec le texte brut de la DAR (« Texte repris de la DAR — à adapter ») ;
+  « Mettre en forme », reformulations propres au scénario paie, comparaison en ligne avec la DAR ;
+  aperçu candidat. Aucun écran de comparaison dédié.
+- **Étape 3 « Compléter l'offre »** : nombre de postes (prérempli depuis la DAR, rappel « DAR : 3 »),
+  codes poste, date limite, prise de poste, contact candidats, publication sur Choisir le Service Public
+  (autres canaux derrière un lien) ; qui peut candidater ; critères, questions et évaluation repliés.
+- **Étape 4 « Vérifier et créer »** : action selon l'état — « Soumettre la DAR » (DAR en brouillon),
+  attente (DAR soumise), « Soumettre l'offre » (organisation qui valide l'offre), sinon « Créer l'offre ».
+  Après création : interrupteur « Publication » désactivé par défaut ; activation refusée avec la liste de
+  ce qui manque (date limite, canal) ; notifications ; duplication.
+- **Suivi** : validation de la DAR simulée (« Réponse d'Hélène »), contenu de la DAR figé, historique
+  incluant les événements de la DAR (création, soumission, validation) et de l'offre.
+
+### Hypothèses retenues pour le prototype
+
+- L'offre peut être **préparée** pendant que la DAR est en validation, mais **créée** seulement après
+  validation de la DAR.
+- Les informations communes (intitulé, service, localisation, catégorie, statuts) viennent de la DAR et
+  ne se modifient pas depuis l'offre ; seuls le titre de l'annonce et les textes sont éditoriaux.
+  Le **nombre de postes** et les **codes poste** sont modifiables dans l'offre (rappel de la valeur DAR).
+- La date limite et un canal sont nécessaires pour **activer la publication**, pas pour **créer** l'offre.
+- Les modalités de candidature viennent d'un modèle de l'organisme (absent de la DAR).
+- Une offre créée reste modifiable tant que la publication n'est pas activée.
+
+### Questions métier à trancher
+
+1. Règles de modification des champs administratifs communs après validation de la DAR (intitulé,
+   localisation, nombre de postes…) : nouvelle version de DAR, simple correction, ou libre dans l'offre ?
+2. Si la DAR est modifiée après création de l'offre, faut-il répercuter, signaler, ou ignorer ?
+3. Conditions supplémentaires qui empêcheraient de publier (au-delà de la date limite) ?
+4. Détail à gérer par poste quand une offre en couvre plusieurs (codes, dates, lieux différents ?).
+5. Une offre publiée peut-elle être modifiée ? Avec quelle traçabilité vis-à-vis de la DAR ?
+
 ## Itération 3 — enseignements complémentaires (20 octobre 2026)
 
 Même parcours en 4 étapes, sans nouvelle étape ni nouvel écran de création. Ajouts : une **liste des offres**

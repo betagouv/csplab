@@ -6,7 +6,8 @@ export type Origine = 'dar' | 'fiche' | 'offre' | 'contribution'
 
 export type StartMode = 'besoin' | 'fiche' | 'duplication' | 'vierge'
 
-export type StatutOffre = 'brouillon' | 'a_valider' | 'a_corriger' | 'validee' | 'publiee'
+/** `creee` : offre créée, publication désactivée ; `publiee` : publication activée. */
+export type StatutOffre = 'brouillon' | 'a_valider' | 'a_corriger' | 'validee' | 'creee' | 'publiee'
 
 export type StepId
   = | 'besoin'
@@ -176,6 +177,13 @@ export interface ContenuDar {
   missions: string
   activites: string[]
   competences: string[]
+  reference?: string
+  validePar?: string
+  categories?: string[]
+  statuts?: string[]
+  conditions?: string
+  profil?: string
+  environnement?: string
 }
 
 export interface OffreState {
@@ -205,6 +213,11 @@ export interface OffreState {
   modifieLe: string
   /** Étape où l'utilisateur s'est arrêté, pour reprendre au même endroit. */
   derniereEtape: string
+  /** Titre de l'annonce (éditorial), distinct de l'intitulé administratif de la DAR. */
+  titreAnnonce: string
+  /** Faux tant que seule la DAR existe : l'offre n'a pas encore été démarrée. */
+  offreDemarree: boolean
+  contactCandidats: string
   /** Paramétrage (fictif) de l'organisation : circuit de validation appliqué en arrière-plan. */
-  organisation: 'avec_dar' | 'sans_dar' | 'sans_validation'
+  organisation: 'avec_dar' | 'sans_dar' | 'sans_validation' | 'dar_csp'
 }

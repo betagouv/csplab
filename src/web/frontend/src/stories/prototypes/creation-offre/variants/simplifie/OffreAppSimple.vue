@@ -7,6 +7,7 @@ import { ranger } from '../../data/dossiers'
 import { clone } from '../../data/scenario'
 import { provideOffre } from '../../data/useOffre'
 import { ORIGINES_DISCRETES } from '../../shared/origines'
+import EtapeBesoinDar from './EtapeBesoinDar.vue'
 import EtapeCandidature from './EtapeCandidature.vue'
 import EtapeFinaliser from './EtapeFinaliser.vue'
 import EtapeOffre from './EtapeOffre.vue'
@@ -38,12 +39,13 @@ const PAR_STATUT: Record<OffreState['statut'], EtapeId> = {
   a_corriger: 'offre',
   a_valider: 'finaliser',
   validee: 'finaliser',
+  creee: 'finaliser',
   publiee: 'finaliser',
 }
 const derniere = store.state.derniereEtape as EtapeId
 const depart: EtapeId = ETAPES.some(e => e.id === derniere) && store.state.statut === 'brouillon'
   ? derniere
-  : props.init ? PAR_STATUT[store.state.statut] : ({ a_valider: 'finaliser', a_corriger: 'offre', pret: 'finaliser' } as Partial<Record<Preset, EtapeId>>)[props.preset] ?? 'poste'
+  : props.init ? PAR_STATUT[store.state.statut] : ({ a_valider: 'finaliser', a_corriger: 'offre', pret: 'finaliser', dar_paie: 'offre' } as Partial<Record<Preset, EtapeId>>)[props.preset] ?? 'poste'
 const nav = provideEtapes(depart)
 if (props.init?.besoin.intitule || !['nouveau', 'sans_dar', 'sans_validation'].includes(props.preset)) {
   ETAPES.forEach(e => nav.visitees.value.add(e.id))
@@ -63,8 +65,9 @@ provideApp({
 
 <template>
   <ShellSimple>
+    <EtapeBesoinDar v-if="nav.etape.value === 'poste' && store.darFigee.value" />
     <EtapePoste
-      v-if="nav.etape.value === 'poste'"
+      v-else-if="nav.etape.value === 'poste'"
       @reprendre="r => emit('reprendre', r)"
     />
     <EtapeOffre v-else-if="nav.etape.value === 'offre'" />

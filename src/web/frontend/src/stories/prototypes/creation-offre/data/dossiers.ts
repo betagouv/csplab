@@ -3,10 +3,10 @@
 
 import type { OffreState } from './types'
 import { reactive } from 'vue'
-import { clone, etatInitial, etatPreset } from './scenario'
+import { clone, etatDarBrouillon, etatDarPaie, etatDarRh, etatInitial, etatPreset } from './scenario'
 
-const CLE = 'csplab-proto-creation-offre-dossiers-v3'
-const CLE_COLONNES = 'csplab-proto-creation-offre-colonnes-v3'
+const CLE = 'csplab-proto-creation-offre-dossiers-v4'
+const CLE_COLONNES = 'csplab-proto-creation-offre-colonnes-v4'
 
 function lire<T>(cle: string): T | null {
   try {
@@ -27,24 +27,33 @@ function ecrire(cle: string, valeur: unknown) {
   }
 }
 
+function offreExistante(reference: string, intitule: string, code: string, statut: 'creee' | 'publiee', le: string, dar: string): OffreState {
+  const s = etatPreset('pret')
+  s.besoin.darRef = dar
+  s.organisation = 'dar_csp'
+  s.circuit = []
+  s.reference = reference
+  s.statut = statut
+  s.besoin.intitule = intitule
+  s.titreAnnonce = intitule
+  s.besoin.codesPostes = [code]
+  s.modifieLe = le
+  s.journal = [
+    { date: '2 octobre 2026', texte: `DAR ${s.besoin.darRef} validée par Hélène Robert` },
+    { date: le, texte: 'Offre créée — publication non activée' },
+    ...(statut === 'publiee' ? [{ date: le, texte: 'Publication activée — 3 canal(aux)' }] : []),
+  ]
+  return s
+}
+
 function dossiersInitiaux(): OffreState[] {
-  const soumise = etatPreset('a_valider')
-  soumise.reference = 'OFF-2026-0141'
-  soumise.modifieLe = 'Hier, 11:20'
-  soumise.besoin.codesPostes = ['31-SECL-0412']
-  const aCorriger = etatPreset('a_corriger')
-  aCorriger.reference = 'OFF-2026-0139'
-  aCorriger.besoin.intitule = 'Chargé·e d\'études énergie-climat'
-  aCorriger.besoin.codesPostes = ['31-SECL-0388']
-  aCorriger.modifieLe = 'Hier, 17:44'
-  const publiee = etatPreset('pret')
-  publiee.reference = 'OFF-2026-0118'
-  publiee.statut = 'publiee'
-  publiee.besoin.intitule = 'Chargé·e de mission mobilité durable'
-  publiee.besoin.codesPostes = ['31-SA-0207']
-  publiee.modifieLe = '12 octobre 2026'
-  publiee.journal.push({ date: '12 octobre 2026', texte: 'Offre publiée' })
-  return [etatPreset('paie'), soumise, aCorriger, publiee]
+  return [
+    etatDarPaie(),
+    etatDarRh(),
+    etatDarBrouillon(),
+    offreExistante('OFF-2026-0141', 'Chargé·e de mission rénovation énergétique des collectivités', '31-SECL-0412', 'creee', 'Hier, 11:20', 'DAR-2026-0318'),
+    offreExistante('OFF-2026-0118', 'Chargé·e de mission mobilité durable', '31-SA-0207', 'publiee', '12 octobre 2026', 'DAR-2026-0274'),
+  ]
 }
 
 export const dossiers = reactive<OffreState[]>(lire<OffreState[]>(CLE) ?? dossiersInitiaux())
@@ -58,6 +67,12 @@ export function ranger(s: OffreState) {
     dossiers.unshift(clone(s))
   }
   ecrire(CLE, dossiers)
+}
+
+/** Retrouve un recrutement par sa DAR (une DAR = une offre dans ce prototype). */
+export function trouverParDar(darRef: string): OffreState | undefined {
+  const d = dossiers.find(x => x.besoin.darRef === darRef)
+  return d ? clone(d) : undefined
 }
 
 export function trouver(reference: string): OffreState | undefined {
@@ -79,7 +94,7 @@ export function reinitialiserDossiers() {
 }
 
 // --- Colonnes du tableau, conservées pendant la session ---
-export const COLONNES_PAR_DEFAUT = ['reference', 'intitule', 'postes', 'statut', 'modifie']
+export const COLONNES_PAR_DEFAUT = ['dar', 'intitule', 'postes', 'etatDar', 'statut', 'modifie']
 export const colonnes = reactive<{ visibles: string[] }>({ visibles: lire<string[]>(CLE_COLONNES) ?? [...COLONNES_PAR_DEFAUT] })
 export function enregistrerColonnes() {
   ecrire(CLE_COLONNES, colonnes.visibles)

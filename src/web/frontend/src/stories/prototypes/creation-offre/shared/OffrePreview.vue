@@ -78,7 +78,7 @@ const sections = computed(() => SECTIONS_OFFRE.map(s => ({ ...s, texte: state.of
         {{ organisme }}
       </p>
       <h2 class="preview__title">
-        {{ state.besoin.intitule || 'Intitulé du poste' }}
+        {{ state.titreAnnonce || state.besoin.intitule || 'Intitulé du poste' }}
       </h2>
       <p class="preview__meta">
         <span v-if="state.besoin.localisation">
@@ -207,6 +207,11 @@ const sections = computed(() => SECTIONS_OFFRE.map(s => ({ ...s, texte: state.of
 }
 
 .preview__section {
+  ul {
+    padding-left: var(--csp-space-6);
+    list-style: disc;
+  }
+
   h3 {
     margin: var(--csp-space-5) 0 var(--csp-space-2);
     font-size: var(--csp-font-size-md);

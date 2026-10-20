@@ -45,7 +45,7 @@ function voir(stepId: keyof typeof ETAPE_DE) {
 }
 
 // --- DAR ---
-const avecDar = computed(() => state.organisation === 'avec_dar' && state.besoin.darApplicable === 'oui' && Boolean(state.besoin.darRef))
+const avecDar = computed(() => state.besoin.darApplicable === 'oui' && Boolean(state.besoin.darRef))
 const darOuverte = ref(false)
 
 // --- Notifications (simulées : aucun courriel envoyé) ---
@@ -116,7 +116,9 @@ const ajoutables = computed(() => PERSONNES.filter(p => !state.equipe.some(m => 
           v-if="!circuit.length"
           class="suivi__muted"
         >
-          Votre organisation ne prévoit pas de validation pour ce type de recrutement : l'offre peut être publiée directement.
+          Pas de validation de l'offre prévue par votre organisation<template v-if="state.besoin.darApplicable === 'oui'">
+            : la validation porte sur la DAR
+          </template>.
         </p>
         <template v-else>
           <p class="suivi__muted">
@@ -137,7 +139,7 @@ const ajoutables = computed(() => PERSONNES.filter(p => !state.equipe.some(m => 
                 <strong>{{ e.libelle }}</strong>
                 <small>{{ personne(e.personneId).nom }} · {{ ICONES[e.statut].label }}<template v-if="e.externe"> avant la création de l'offre</template><template v-else-if="e.date"> · {{ e.date }}</template></small>
                 <SimulationNote
-                  v-if="etapeEnCours?.id === e.id && state.statut === 'a_valider'"
+                  v-if="etapeEnCours?.id === e.id && (state.statut === 'a_valider' || e.id === 'dar')"
                   :titre="`Réponse de ${personne(e.personneId).nom.split(' ')[0]}`"
                 >
                   <CspButton
@@ -146,6 +148,7 @@ const ajoutables = computed(() => PERSONNES.filter(p => !state.equipe.some(m => 
                     @click="repondre(e.id, 'approuve')"
                   />
                   <CspButton
+                    v-if="e.id !== 'dar'"
                     label="Demander une correction"
                     size="sm"
                     variant="secondary"
@@ -183,7 +186,9 @@ const ajoutables = computed(() => PERSONNES.filter(p => !state.equipe.some(m => 
         </h3>
         <p class="suivi__muted">
           <template v-if="state.darContenu">
-            {{ state.darContenu.statut === 'validee' ? 'Validée' : 'Soumise' }} — {{ state.darContenu.date.toLowerCase() }}. Ce contenu n'est plus modifié ; l'offre pour les candidats se rédige à part.
+            {{ state.darContenu.statut === 'validee' ? 'Validée' : 'Soumise' }} — {{ state.darContenu.date.toLowerCase() }}<template v-if="state.darContenu.validePar">
+              , par {{ personne(state.darContenu.validePar).nom }}
+            </template>. Ce contenu n'est plus modifié ; l'offre pour les candidats se rédige à part.
           </template>
           <template v-else-if="state.besoin.darStatut === 'validee'">
             Validée avant la création de ce dossier.

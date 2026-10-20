@@ -18,6 +18,14 @@ const { state, dirty, saving, lastSaved, enregistrer, notifier, flash, etapeEnCo
 const { quitter } = useApp()
 const suivi = ref(false)
 const statut = computed(() => LIBELLES_STATUT[state.statut])
+/** État de la DAR, affiché à côté de celui de l'offre : deux objets, deux statuts. */
+const etatDar = computed(() => {
+  const b = state.besoin
+  if (b.darApplicable !== 'oui' || !b.darRef) {
+    return ''
+  }
+  return { 'validee': 'DAR validée', 'en_cours': 'DAR soumise', 'a_demander': 'DAR en brouillon', '': 'DAR en brouillon' }[b.darStatut]
+})
 const remarquesOuvertes = computed(() => state.remarques.filter(r => !r.resolue).length)
 
 async function sauver() {
@@ -40,7 +48,7 @@ async function sauver() {
                 class="cs-bar__back"
                 @click="quitter()"
               >
-                Offres
+                Recrutements
               </button>
               <span aria-hidden="true">›</span> {{ state.reference }}
             </p>
@@ -49,8 +57,12 @@ async function sauver() {
             </h1>
           </div>
           <div class="cs-bar__right">
+            <span
+              v-if="etatDar"
+              class="cs-bar__dar"
+            >{{ state.besoin.darRef }} · {{ etatDar }}</span>
             <CspBadge
-              :label="statut.label"
+              :label="state.statut === 'brouillon' ? 'Offre en brouillon' : statut.label"
               :type="state.statut === 'a_corriger' ? 'warning' : statut.type"
               variant="soft"
               size="sm"
@@ -244,6 +256,15 @@ async function sauver() {
   gap: var(--csp-space-1);
   font-size: var(--csp-font-size-xs);
   color: var(--text-mention-grey);
+}
+
+.cs-bar__dar {
+  padding: 0 var(--csp-space-2);
+  border: 1px solid var(--border-default-grey);
+  border-radius: 1rem;
+  font-size: var(--csp-font-size-xs);
+  color: var(--text-mention-grey);
+  white-space: nowrap;
 }
 
 .cs-bar__back {

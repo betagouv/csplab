@@ -10,8 +10,7 @@ import CspPopover from '@/components/base/CspPopover/CspPopover.vue'
 import CspTableToolbar from '@/components/base/CspTableToolbar/CspTableToolbar.vue'
 import CspSidebarProvider from '@/components/layout/CspSidebar/CspSidebarProvider.vue'
 import { colonnes, COLONNES_PAR_DEFAUT, dossiers, enregistrerColonnes, reinitialiserDossiers } from '../../data/dossiers'
-import { libelleMetier, personne } from '../../data/referentiels'
-import { LIBELLES_STATUT } from '../../data/useOffre'
+import { libelleMetier } from '../../data/referentiels'
 import AppSidebar from './AppSidebar.vue'
 
 // Liste des dossiers d'offre : consultation et suivi. Les colonnes sont personnalisables
@@ -19,35 +18,40 @@ import AppSidebar from './AppSidebar.vue'
 const props = defineProps<{ message?: string }>()
 const emit = defineEmits<{ ouvrir: [reference: string], nouvelle: [] }>()
 
-function etapeEnCours(s: OffreState) {
-  if (s.statut === 'a_valider') {
-    if (s.besoin.darApplicable === 'oui' && s.besoin.darStatut === 'en_cours') {
-      return 'DAR en attente'
-    }
-    const e = s.circuit.find(x => x.statut === 'en_attente')
-    return e ? `Attente : ${personne(e.personneId).nom}` : 'En validation'
+function etatDar(s: OffreState) {
+  if (s.besoin.darApplicable !== 'oui' || !s.besoin.darRef) {
+    return '—'
   }
-  if (s.statut === 'a_corriger') {
-    return 'Corrections à apporter'
+  return { 'validee': 'Validée', 'en_cours': 'Soumise', 'a_demander': 'Brouillon', '': 'Brouillon' }[s.besoin.darStatut]
+}
+
+/** État de l'offre, distinct de celui de la DAR. */
+function etatOffre(s: OffreState) {
+  if (!s.offreDemarree) {
+    return s.besoin.darStatut === 'validee' ? 'À créer' : '—'
   }
-  if (s.statut === 'brouillon') {
-    return 'En rédaction'
-  }
-  return s.statut === 'validee' ? 'À publier' : 'Candidatures ouvertes'
+  return {
+    brouillon: 'En rédaction',
+    a_valider: 'En validation',
+    a_corriger: 'À corriger',
+    validee: 'Validée',
+    creee: 'Créée, non publiée',
+    publiee: 'Publiée',
+  }[s.statut]
 }
 
 const TOUTES: (CspColumnDef<OffreState> & { verrouillee?: boolean })[] = [
-  { id: 'reference', header: 'Référence', accessor: s => s.reference, width: '8.5rem', verrouillee: true },
-  { id: 'intitule', header: 'Intitulé', accessor: s => s.besoin.intitule || 'Sans intitulé', verrouillee: true },
+  { id: 'dar', header: 'DAR', accessor: s => s.besoin.darRef || '—', width: '8.5rem', verrouillee: true },
+  { id: 'intitule', header: 'Intitulé', accessor: s => s.titreAnnonce || s.besoin.intitule || 'Sans intitulé', verrouillee: true },
+  { id: 'reference', header: 'Réf. offre', accessor: s => (s.offreDemarree ? s.reference : '—'), width: '8.5rem' },
   { id: 'code', header: 'Code(s) poste', accessor: s => s.besoin.codesPostes.join(', ') || '—' },
   { id: 'postes', header: 'Postes', accessor: s => s.besoin.nbPostes || '1', align: 'end', width: '5rem' },
+  { id: 'etatDar', header: 'État DAR', accessor: s => etatDar(s), width: '7rem' },
+  { id: 'statut', header: 'État offre', accessor: s => etatOffre(s), width: '10rem' },
   { id: 'service', header: 'Service', accessor: s => s.besoin.service || '—' },
   { id: 'localisation', header: 'Localisation', accessor: s => s.besoin.localisation || '—' },
   { id: 'categorie', header: 'Catégorie', accessor: s => s.besoin.categories.join(', ') || '—', width: '6rem' },
   { id: 'metier', header: 'Métier', accessor: s => libelleMetier(s.besoin.metier) || '—' },
-  { id: 'dar', header: 'DAR', accessor: s => s.besoin.darRef || '—', width: '9rem' },
-  { id: 'statut', header: 'Statut', accessor: s => LIBELLES_STATUT[s.statut].label, width: '11rem' },
-  { id: 'etape', header: 'Étape', accessor: s => etapeEnCours(s) },
   { id: 'limite', header: 'Date limite', accessor: s => s.dateLimite || '—', width: '7rem' },
   { id: 'modifie', header: 'Modifié', accessor: s => s.modifieLe, width: '9rem' },
 ]
@@ -63,21 +67,25 @@ function parDefaut() {
   enregistrerColonnes()
 }
 
-const filtre = ref<'tous' | 'brouillon' | 'suivi'>('tous')
+const filtre = ref<'tous' | 'a_creer' | 'en_cours' | 'creees'>('tous')
 const lignes = computed(() => dossiers.filter((d) => {
-  if (filtre.value === 'brouillon') {
-    return d.statut === 'brouillon' || d.statut === 'a_corriger'
+  if (filtre.value === 'a_creer') {
+    return !d.offreDemarree && d.besoin.darStatut === 'validee'
   }
-  if (filtre.value === 'suivi') {
-    return ['a_valider', 'validee', 'publiee'].includes(d.statut)
+  if (filtre.value === 'en_cours') {
+    return (d.offreDemarree && ['brouillon', 'a_valider', 'a_corriger', 'validee'].includes(d.statut)) || (!d.offreDemarree && d.besoin.darStatut !== 'validee')
+  }
+  if (filtre.value === 'creees') {
+    return d.offreDemarree && ['creee', 'publiee'].includes(d.statut)
   }
   return true
 }))
-const FILTRES = [
-  { id: 'tous' as const, label: 'Toutes' },
-  { id: 'brouillon' as const, label: 'À travailler' },
-  { id: 'suivi' as const, label: 'En validation ou publiées' },
-]
+const FILTRES = computed(() => [
+  { id: 'tous' as const, label: 'Tous' },
+  { id: 'a_creer' as const, label: `Offres à créer (${dossiers.filter(d => !d.offreDemarree && d.besoin.darStatut === 'validee').length})` },
+  { id: 'en_cours' as const, label: 'En cours' },
+  { id: 'creees' as const, label: 'Offres créées' },
+])
 </script>
 
 <template>
@@ -88,10 +96,10 @@ const FILTRES = [
         <header class="liste__head">
           <div>
             <h1 class="liste__title">
-              Offres
+              Recrutements
             </h1>
             <p class="liste__desc">
-              Brouillons, demandes en validation et offres publiées de votre service.
+              Demandes d'autorisation (DAR) et offres de votre service. Une DAR validée permet de créer l'offre.
             </p>
           </div>
           <CspButton
@@ -127,7 +135,7 @@ const FILTRES = [
           </button>
         </div>
 
-        <CspTableToolbar :count="`${lignes.length} offre${lignes.length > 1 ? 's' : ''}`">
+        <CspTableToolbar :count="`${lignes.length} recrutement${lignes.length > 1 ? 's' : ''}`">
           <CspPopover align="end">
             <template #trigger>
               <CspButton
@@ -165,7 +173,7 @@ const FILTRES = [
           :rows="lignes"
           :columns="visibles"
           :row-key="r => r.reference"
-          caption="Offres du service"
+          caption="Recrutements du service"
           activation-mode="row"
           size="sm"
           empty-label="Aucune offre dans cette vue."
@@ -173,7 +181,7 @@ const FILTRES = [
         />
 
         <p class="liste__foot">
-          Cliquez sur une ligne pour ouvrir le dossier. Prototype : les dossiers sont conservés pendant la session, même après un rechargement de la page.
+          Cliquez sur une ligne pour ouvrir le recrutement ; une DAR validée sans offre ouvre directement la création de l'offre. Prototype : les dossiers sont conservés pendant la session, même après un rechargement de la page.
           <button
             type="button"
             class="link"

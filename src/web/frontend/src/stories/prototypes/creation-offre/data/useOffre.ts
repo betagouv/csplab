@@ -39,7 +39,8 @@ export const LIBELLES_STATUT: Record<OffreState['statut'], { label: string, type
   a_valider: { label: 'Soumise à validation', type: 'new' },
   a_corriger: { label: 'À corriger', type: 'error' },
   validee: { label: 'Validée — prête à publier', type: 'success' },
-  publiee: { label: 'Publiée', type: 'success' },
+  creee: { label: 'Offre créée — non publiée', type: 'info' },
+  publiee: { label: 'Publication activée', type: 'success' },
 }
 
 const LIBELLES_ORIGINE: Record<Origine, string> = {
@@ -94,6 +95,7 @@ export function createOffre(preset: Preset, { exclure = [], autosave = false, pe
     sans_dar: 'demarrer',
     sans_validation: 'demarrer',
     paie: 'poste',
+    dar_paie: 'poste',
     incomplet: 'poste',
     a_valider: 'validation',
     a_corriger: 'validation',
@@ -140,7 +142,7 @@ export function createOffre(preset: Preset, { exclure = [], autosave = false, pe
     persister?.(JSON.parse(JSON.stringify(state)))
   }
   // Les changements d'état (soumission, validation, remarques…) sont rangés immédiatement.
-  watch(() => [state.statut, state.circuit, state.remarques, state.equipe, state.notifications, state.contributions, state.derniereEtape], () => {
+  watch(() => [state.statut, state.circuit, state.remarques, state.equipe, state.notifications, state.contributions, state.derniereEtape, state.darContenu, state.offreDemarree, state.titreAnnonce, state.contactCandidats], () => {
     if (ready) {
       persist()
     }
@@ -430,6 +432,78 @@ export function createOffre(preset: Preset, { exclure = [], autosave = false, pe
     return true
   }
 
+  // --- DAR et offre : deux objets, deux cycles de vie (itération 4) ---
+  /** La DAR est soumise ou validée : son contenu ne se modifie plus depuis l'offre. */
+  const darFigee = computed(() => state.besoin.darApplicable === 'oui' && ['en_cours', 'validee'].includes(state.besoin.darStatut))
+  const darValidee = computed(() => state.besoin.darApplicable !== 'oui' || state.besoin.darStatut === 'validee')
+
+  function soumettreDar(): boolean {
+    if (manques.value.some(m => m.stepId === 'besoin' || m.stepId === 'poste')) {
+      afficherErreurs.value = true
+      return false
+    }
+    consignerModifications()
+    state.darContenu = {
+      statut: 'soumise',
+      date: `Aujourd'hui, ${heure()}`,
+      reference: state.besoin.darRef,
+      intitule: state.besoin.intitule,
+      service: state.besoin.service,
+      localisation: state.besoin.localisation,
+      nbPostes: state.besoin.nbPostes,
+      codesPostes: [...state.besoin.codesPostes],
+      categories: [...state.besoin.categories],
+      statuts: [...state.besoin.statuts],
+      missions: state.poste.missions,
+      activites: [...state.poste.activites],
+      competences: [...state.poste.competences],
+      profil: state.poste.profil,
+      environnement: state.poste.environnement,
+    }
+    state.besoin.darStatut = 'en_cours'
+    journaliser(`DAR ${state.besoin.darRef} soumise à validation`)
+    void enregistrer()
+    notifier('DAR soumise à validation. Vous pouvez continuer à préparer l\'offre.')
+    return true
+  }
+
+  /** Offre créée sans activer la publication (hypothèse : possible dès que la DAR est validée). */
+  const bloquantsCreation = computed(() => manques.value.filter(m => m.stepId !== 'diffusion'))
+  const peutCreer = computed(() =>
+    ['brouillon', 'validee'].includes(state.statut)
+    && darValidee.value
+    && bloquantsCreation.value.length === 0
+    && (state.statut === 'validee' || state.circuit.every(e => !e.obligatoire)),
+  )
+  function creer(): boolean {
+    if (!peutCreer.value) {
+      afficherErreurs.value = true
+      return false
+    }
+    consignerModifications()
+    state.statut = 'creee'
+    journaliser('Offre créée — publication non activée')
+    void enregistrer()
+    return true
+  }
+
+  const manquesPublication = computed(() => manques.value.filter(m => m.stepId === 'diffusion'))
+  function activerPublication(active: boolean): boolean {
+    if (active) {
+      if (manquesPublication.value.length) {
+        return false
+      }
+      state.statut = 'publiee'
+      journaliser(`Publication activée — ${state.canaux.filter(c => c.selectionne).length} canal(aux)`)
+    }
+    else {
+      state.statut = 'creee'
+      journaliser('Publication désactivée')
+    }
+    void enregistrer()
+    return true
+  }
+
   // --- Collaboration ---
   function demanderContribution(c: Omit<Contribution, 'id' | 'statut'>) {
     state.contributions.push({ ...c, id: nouvelId('k'), statut: 'en_attente' })
@@ -545,6 +619,14 @@ export function createOffre(preset: Preset, { exclure = [], autosave = false, pe
     simulerContribution,
     completerAvecFiche,
     persist,
+    darFigee,
+    darValidee,
+    soumettreDar,
+    bloquantsCreation,
+    peutCreer,
+    creer,
+    manquesPublication,
+    activerPublication,
     statutStep,
     progression,
     aller,

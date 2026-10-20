@@ -25,7 +25,7 @@ import SourcePanel from './SourcePanel.vue'
 // sont repliés, et les champs conditionnels n'apparaissent que si la situation les rend utiles.
 const emit = defineEmits<{ reprendre: [reference: string] }>()
 
-const { state, verrouille, afficherErreurs, demanderContribution, simulerContribution, completerAvecFiche } = useOffre()
+const { state, verrouille, afficherErreurs, demanderContribution, simulerContribution, completerAvecFiche, soumettreDar } = useOffre()
 const b = state.besoin
 const p = state.poste
 
@@ -36,7 +36,7 @@ const services = computed(() => (SERVICES[b.organisme] ?? []).map(s => ({ value:
 const territoriale = computed(() => versantDe(b.organisme).includes('territoriale'))
 
 // --- DAR : uniquement si l'organisation en utilise (paramétrage), jamais comme question réglementaire ---
-const organisationAvecDar = computed(() => state.organisation === 'avec_dar')
+const organisationAvecDar = computed(() => ['avec_dar', 'dar_csp'].includes(state.organisation))
 const darObtenue = computed(() => b.darStatut === 'validee' && Boolean(b.darRef))
 /** DAR préparée dans ce dossier (hypothèse : elle part en validation avec l'offre). */
 const darPreparee = computed(() => b.darApplicable === 'oui' && Boolean(b.darRef) && ['a_demander', 'en_cours'].includes(b.darStatut))
@@ -116,8 +116,14 @@ const intituleTropLong = computed(() => b.intitule.length > 120)
 <template>
   <header class="head">
     <h2 class="head__title">
-      Définir le poste
+      Préparer le besoin
     </h2>
+    <p
+      v-if="avecDar"
+      class="head__desc"
+    >
+      Les informations du poste et la fiche de poste forment la demande d'autorisation (DAR). L'offre se rédige ensuite, à part.
+    </p>
   </header>
 
   <SourcePanel @reprendre="pr => emit('reprendre', pr)" />
@@ -218,28 +224,6 @@ const intituleTropLong = computed(() => b.intitule.length > 120)
         </Field>
       </FieldRow>
 
-      <FieldRow :cols="2">
-        <Field path="besoin.nbPostes">
-          <CspInput
-            v-model="b.nbPostes"
-            type="number"
-            label="Nombre de postes à pourvoir"
-            :hint="Number(b.nbPostes) > 1 ? `Une seule offre publiée pour ${b.nbPostes} postes.` : 'Une offre peut couvrir plusieurs postes identiques.'"
-            :disabled="verrouille"
-            :error="Number(b.nbPostes) < 1"
-            :error-message="Number(b.nbPostes) < 1 ? 'Indiquez au moins 1 poste.' : undefined"
-          />
-        </Field>
-        <ListEditor
-          v-model="b.codesPostes"
-          :label="Number(b.nbPostes) > 1 ? 'Codes des postes concernés (facultatif)' : 'Code poste (facultatif)'"
-          :hint="Number(b.nbPostes) > 1 ? `${b.codesPostes.length} sur ${b.nbPostes} renseigné(s). Vous pourrez compléter plus tard.` : undefined"
-          placeholder="Ex. : SG-PAIE-012"
-          add-label="Ajouter"
-          :disabled="verrouille"
-        />
-      </FieldRow>
-
       <FieldRow
         v-if="b.statuts.includes('contractuel')"
         id="champ-contrat"
@@ -274,8 +258,17 @@ const intituleTropLong = computed(() => b.intitule.length > 120)
           v-else-if="darPreparee"
           class="dar-line"
         >
-          Demande d'autorisation <strong>{{ b.darRef }}</strong> :
-          {{ b.darStatut === 'en_cours' ? 'soumise, en attente de validation' : 'en préparation dans ce dossier, elle sera soumise avec l\'offre' }}.
+          Demande d'autorisation <strong>{{ b.darRef }}</strong> : brouillon, enregistré automatiquement.
+          <CspButton
+            v-if="!verrouille"
+            label="Soumettre la DAR à validation"
+            variant="secondary"
+            size="sm"
+            icon="ri:send-plane-line"
+            is-icon-left
+            class="dar-submit"
+            @click="soumettreDar"
+          />
         </p>
         <Field
           v-else
@@ -515,6 +508,15 @@ const intituleTropLong = computed(() => b.intitule.length > 120)
 .head__title {
   margin: 0;
   font-size: var(--csp-font-size-2xl);
+}
+
+.head__desc {
+  margin: var(--csp-space-1) 0 0;
+  color: var(--text-mention-grey);
+}
+
+.dar-submit {
+  margin-left: var(--csp-space-3);
 }
 
 .fields {

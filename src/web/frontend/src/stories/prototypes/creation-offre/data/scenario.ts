@@ -2,7 +2,7 @@
 // Camille Moreau (RH de proximité) crée l'offre ; Julien Lefèvre (manager) contribue ;
 // la DAR a été validée avant la création de l'offre.
 
-import type { Besoin, Conditions, EtapeCircuit, Evaluation, OffreState, Origine, Poste, SectionOffre, SectionOffreId } from './types'
+import type { Besoin, Conditions, ContenuDar, EtapeCircuit, Evaluation, OffreState, Origine, Poste, SectionOffre, SectionOffreId } from './types'
 import { CANAUX } from './referentiels'
 
 /** Copie profonde tolérante aux objets réactifs Vue (structuredClone refuse les proxys). */
@@ -236,7 +236,7 @@ function evaluationVide(): Evaluation {
 
 export function circuitPour(organisation: OffreState['organisation']): EtapeCircuit[] {
   const manager: EtapeCircuit = { id: 'manager', libelle: 'Validation du contenu par le manager', personneId: 'julien', obligatoire: true, statut: 'a_venir', date: null }
-  if (organisation === 'sans_validation') {
+  if (organisation === 'sans_validation' || organisation === 'dar_csp') {
     return []
   }
   if (organisation === 'sans_dar') {
@@ -277,6 +277,9 @@ export function etatInitial(organisation: OffreState['organisation'] = 'avec_dar
     notifications: 'chaque',
     modifieLe: 'Aujourd\'hui',
     derniereEtape: '',
+    titreAnnonce: '',
+    offreDemarree: true,
+    contactCandidats: '',
   }
 }
 
@@ -366,7 +369,7 @@ function remplirComplet(s: OffreState) {
   s.dateLimite = '2026-11-30'
 }
 
-export type Preset = 'nouveau' | 'incomplet' | 'a_valider' | 'a_corriger' | 'pret' | 'sans_dar' | 'sans_validation' | 'paie'
+export type Preset = 'nouveau' | 'incomplet' | 'a_valider' | 'a_corriger' | 'pret' | 'sans_dar' | 'sans_validation' | 'paie' | 'dar_paie'
 
 export function etatPreset(preset: Preset): OffreState {
   if (preset === 'nouveau') {
@@ -374,6 +377,11 @@ export function etatPreset(preset: Preset): OffreState {
   }
   if (preset === 'paie') {
     return etatPaie()
+  }
+  if (preset === 'dar_paie') {
+    const s = etatDarPaie()
+    s.offreDemarree = true
+    return s
   }
   if (preset === 'sans_validation') {
     const s = etatInitial('sans_validation')
@@ -475,4 +483,143 @@ export const COMPLEMENT_PAIE: Partial<Poste> = {
   competences: ['Réglementation de la rémunération dans la fonction publique', 'Maîtrise d\'un logiciel de paie', 'Rigueur et respect des échéances', 'Sens du service aux agents'],
   profil: 'Première expérience en paie ou en gestion administrative du personnel appréciée. Débutant·e accepté·e avec formation.',
   environnement: 'Bureau des ressources humaines de 12 agents, dont une cellule paie de 5 personnes. Pics d\'activité mensuels liés au calendrier de paie.',
+}
+
+// --- Itération 4 : la DAR validée est la source de l'offre ---
+
+/** Texte de la DAR tel que validé : fidèle à la fiche de poste, mais brut pour un candidat (sigles, « ; », abréviations). */
+export const DAR_PAIE: ContenuDar = {
+  statut: 'validee',
+  date: '15 octobre 2026',
+  reference: 'DAR-2026-0331',
+  validePar: 'helene',
+  intitule: 'Gestionnaire de paie',
+  service: 'Secrétariat général — Bureau des ressources humaines',
+  localisation: 'Toulouse (31)',
+  nbPostes: '3',
+  codesPostes: ['SG-PAIE-012', 'SG-PAIE-015', 'SG-PAIE-019'],
+  categories: ['B'],
+  statuts: ['titulaire', 'contractuel'],
+  missions: 'Au sein du BRH/SG, le titulaire du poste assure la pré-liquidation de la paie des agents (tit. et contr.) relevant du périmètre de gestion (env. 900 ag.) en lien avec le CSRH et la DRFiP ;\nsaisie et contrôle des EVS dans le SIRH ;\ncalcul des IJ, rappels et précomptes ;\nréponse aux sollicitations des agents ;\nparticipation aux travaux de fiabilisation des données de paie.',
+  activites: [],
+  competences: ['Connaissance de la réglementation statutaire et indemnitaire (RIFSEEP)', 'Maîtrise des outils bureautiques et du SIRH', 'Rigueur', 'Discrétion'],
+  profil: 'Agent de cat. B ou contractuel ; expérience paie souhaitée.',
+  environnement: 'BRH : 12 ETP dont cellule paie 5 ETP. Pics d\'activité liés au calendrier de paie (clôture à J-10).',
+  conditions: 'Cat. B ; ouvert aux titulaires et aux contractuels (CDD 3 ans).',
+}
+
+/** Reformulations proposées pour le scénario paie (fictives, sans IA). */
+export const SUGGESTIONS_PAIE: Partial<Record<SectionOffreId, string>> = {
+  poste: 'Rejoignez la cellule paie du bureau des ressources humaines : une équipe de 5 personnes qui garantit chaque mois la rémunération des 900 agents de la DREAL Occitanie.',
+  missions: 'Vous veillez à ce que chaque agent soit payé juste et à temps :\n- vous préparez et contrôlez les éléments de paie (primes, heures supplémentaires, absences)\n- vous calculez les indemnités et les régularisations\n- vous répondez aux questions des agents sur leur rémunération\n- vous participez à l\'amélioration de la qualité des données de paie',
+  profil: 'Vous connaissez les règles de rémunération de la fonction publique, ou vous avez envie de les apprendre. Vous êtes rigoureux·se, discret·e et à l\'aise avec les outils informatiques. Une première expérience en paie est un plus.',
+  conditions: 'Poste de catégorie B ouvert aux fonctionnaires et aux contractuels (contrat de 3 ans).',
+}
+
+export function suggestionsPour(s: OffreState): Partial<Record<SectionOffreId, string>> {
+  return s.besoin.darRef === 'DAR-2026-0331' ? SUGGESTIONS_PAIE : SUGGESTIONS
+}
+
+/** Offre préremplie depuis une DAR validée : informations communes et textes bruts repris tels quels. */
+function offreDepuisDar(s: OffreState, d: ContenuDar) {
+  s.besoin.intitule = d.intitule
+  s.besoin.service = d.service
+  s.besoin.localisation = d.localisation
+  s.besoin.categories = [...(d.categories ?? [])]
+  s.besoin.statuts = [...(d.statuts ?? [])]
+  s.besoin.typeContrat = d.statuts?.includes('contractuel') ? 'cdd' : ''
+  s.besoin.dureeContrat = d.statuts?.includes('contractuel') ? '3 ans' : ''
+  s.besoin.nbPostes = d.nbPostes
+  s.besoin.codesPostes = [...d.codesPostes]
+  s.besoin.darApplicable = 'oui'
+  s.besoin.darRef = d.reference ?? ''
+  s.besoin.darStatut = d.statut === 'validee' ? 'validee' : 'en_cours'
+  s.poste.missions = d.missions
+  s.poste.activites = [...d.activites]
+  s.poste.competences = [...d.competences]
+  s.poste.profil = d.profil ?? ''
+  s.poste.environnement = d.environnement ?? ''
+  s.darContenu = clone(d)
+  s.titreAnnonce = d.intitule
+  const reprise = (texte: string): SectionOffre => ({ texte, etat: texte ? 'reprise' : 'vide' })
+  s.offre.organisme = reprise(OFFRE_REDIGEE.organisme)
+  s.offre.poste = reprise(d.environnement ?? '')
+  s.offre.missions = reprise(d.missions)
+  s.offre.profil = reprise([d.competences.join(' ; '), d.profil].filter(Boolean).join('\n'))
+  s.offre.conditions = reprise(d.conditions ?? '')
+  s.offre.pratique = reprise(`Localisation : ${d.localisation}.`)
+  // Hypothèse : l'organisation dispose d'un modèle pour les modalités de candidature (absent de la DAR).
+  s.offre.candidature = reprise('Candidature (CV et lettre de motivation) à déposer via Choisir le Service Public avant la date limite.')
+  s.canaux.forEach((c) => {
+    c.selectionne = c.id === 'csp'
+  })
+  s.startMode = 'besoin'
+  s.sourceLibelle = `${d.reference} — ${d.intitule}`
+}
+
+export function etatDarPaie(): OffreState {
+  const s = etatInitial('dar_csp')
+  s.reference = 'OFF-2026-0151'
+  offreDepuisDar(s, DAR_PAIE)
+  s.offreDemarree = false
+  s.besoin.ficheRef = 'FP-SG-2026-007'
+  s.equipe[1] = { personneId: 'isabelle', acces: 'evaluation' }
+  s.modifieLe = '15 octobre 2026'
+  s.journal = [
+    { date: '8 octobre 2026, 10:14', texte: 'DAR créée à partir de la fiche de poste FP-SG-2026-007' },
+    { date: '9 octobre 2026, 16:40', texte: 'Modifications enregistrées — DAR', type: 'modification' },
+    { date: '10 octobre 2026, 09:02', texte: 'DAR DAR-2026-0331 soumise à validation' },
+    { date: '15 octobre 2026, 11:30', texte: 'DAR validée par Hélène Robert, telle que soumise' },
+  ]
+  return s
+}
+
+/** DAR soumise, pas encore validée : l'offre peut être préparée, pas créée. */
+export function etatDarRh(): OffreState {
+  const s = etatInitial('dar_csp')
+  s.reference = 'OFF-2026-0152'
+  offreDepuisDar(s, {
+    ...DAR_PAIE,
+    statut: 'soumise',
+    date: '17 octobre 2026',
+    reference: 'DAR-2026-0322',
+    validePar: undefined,
+    intitule: 'Gestionnaire RH — carrières',
+    nbPostes: '1',
+    codesPostes: ['SG-RH-004'],
+    missions: 'Gestion administrative des actes de carrière des agents du périmètre (avancements, promotions, mobilités) ; suivi des dossiers individuels ; relation avec le CSRH.',
+    competences: ['Réglementation statutaire', 'SIRH', 'Sens du service'],
+    profil: 'Agent de cat. B ou contractuel.',
+    environnement: 'BRH : 12 ETP.',
+  })
+  s.offreDemarree = false
+  s.modifieLe = '17 octobre 2026'
+  s.journal = [
+    { date: '16 octobre 2026, 14:05', texte: 'DAR créée à partir de la fiche de poste FP-SG-2026-003' },
+    { date: '17 octobre 2026, 10:20', texte: 'DAR DAR-2026-0322 soumise à validation' },
+  ]
+  return s
+}
+
+/** DAR encore en brouillon, préparée depuis une fiche de poste incomplète (itération 3). */
+export function etatDarBrouillon(): OffreState {
+  const s = etatPaie()
+  s.organisation = 'dar_csp'
+  s.circuit = []
+  s.reference = 'OFF-2026-0153'
+  s.besoin.intitule = 'Assistant·e de direction'
+  s.besoin.service = 'Secrétariat général — Bureau des ressources humaines'
+  s.besoin.darRef = 'DAR-2026-0335'
+  s.besoin.metier = 'm-assist'
+  s.besoin.nbPostes = '1'
+  s.besoin.codesPostes = []
+  s.besoin.categories = ['C']
+  s.poste.missions = 'Assurer le secrétariat de la secrétaire générale : agenda, accueil téléphonique, courrier, préparation des réunions.'
+  s.poste.activites = ['Gérer les agendas', 'Préparer les dossiers de réunion']
+  s.offreDemarree = false
+  s.journal = [
+    { date: 'Hier, 15:58', texte: 'DAR créée à partir de la fiche de poste FP-SG-2026-011' },
+    { date: 'Hier, 16:12', texte: 'Modifications enregistrées automatiquement — Poste', type: 'modification' },
+  ]
+  return s
 }

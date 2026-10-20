@@ -10,10 +10,10 @@ import { useOffre } from '../../data/useOffre'
 export type EtapeId = 'poste' | 'offre' | 'candidature' | 'finaliser'
 
 export const ETAPES: { id: EtapeId, libelle: string, court: string }[] = [
-  { id: 'poste', libelle: 'Définir le poste', court: 'Poste' },
+  { id: 'poste', libelle: 'Préparer le besoin', court: 'Besoin' },
   { id: 'offre', libelle: 'Rédiger l\'offre', court: 'Offre' },
-  { id: 'candidature', libelle: 'Conditions de candidature', court: 'Candidatures' },
-  { id: 'finaliser', libelle: 'Vérifier et finaliser', court: 'Finaliser' },
+  { id: 'candidature', libelle: 'Compléter l\'offre', court: 'Compléments' },
+  { id: 'finaliser', libelle: 'Vérifier et créer', court: 'Créer' },
 ]
 
 /** Correspondance entre les rubriques du modèle de données et les 4 étapes affichées. */
@@ -24,7 +24,7 @@ export const ETAPE_DE: Record<StepId, EtapeId> = {
   conditions: 'candidature',
   evaluation: 'candidature',
   validation: 'finaliser',
-  diffusion: 'finaliser',
+  diffusion: 'candidature',
   recap: 'finaliser',
 }
 
@@ -74,7 +74,11 @@ export function useEtapes() {
   /** Une étape est cochée quand elle a été ouverte et qu'il n'y manque rien : pas de compteur rouge. */
   function faite(id: EtapeId): boolean {
     if (id === 'finaliser') {
-      return ['validee', 'publiee'].includes(store.state.statut)
+      return ['creee', 'publiee'].includes(store.state.statut)
+    }
+    if (id === 'candidature') {
+      // La date limite et les canaux ne servent qu'à la publication : ils ne retiennent pas la coche.
+      return nav.visitees.value.has(id) && manquesDe(id).every(m => m.stepId === 'diffusion')
     }
     return nav.visitees.value.has(id) && manquesDe(id).length === 0
   }

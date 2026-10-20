@@ -1,9 +1,9 @@
 import type { StoryObj } from '@storybook/vue3-vite'
 import CreationOffreSimple from './variants/simplifie/CreationOffreSimple.vue'
 
-// Version simplifiée (itérations 2 et 3) : liste des offres, 4 étapes communes, options repliées,
-// sauvegarde automatique, validation et historique dans le volet « Suivi ».
-// Les dossiers ouverts depuis la liste sont conservés pendant la session (sessionStorage).
+// Version simplifiée (itérations 2 à 4) : la fiche de poste nourrit la DAR, la DAR validée nourrit l'offre,
+// l'offre se retravaille sans toucher à la DAR. 4 étapes, sauvegarde automatique, publication activable à part.
+// Les recrutements ouverts depuis la liste sont conservés pendant la session (sessionStorage).
 const meta = {
   title: 'Prototypes/Création d\'offre/Version simplifiée',
   id: 'prototypes-creation-offre',
@@ -12,8 +12,8 @@ const meta = {
     docs: {
       description: {
         component:
-          'Scénario : Camille prépare une offre pour 3 postes de gestionnaire de paie à partir d\'une fiche de poste incomplète, '
-          + 'est interrompue, reprend son brouillon, rédige l\'offre sans toucher à la DAR, puis la soumet. '
+          'Scénario principal : à partir de la DAR validée DAR-2026-0331 (3 postes de gestionnaire de paie), créer l\'offre, '
+          + 'reformuler le texte brut de la DAR, quitter puis reprendre, créer l\'offre sans activer la publication. '
           + 'Les encadrés « Simulation » remplacent les actions des autres personnes. Hypothèses : NOTES.md.',
       },
     },
@@ -32,31 +32,31 @@ function story(props: Record<string, unknown>): Story['render'] {
 }
 
 export const Liste: Story = {
-  name: '0. Liste des offres (point de départ du scénario)',
+  name: '0. Recrutements (liste, point de départ)',
   render: story({ liste: true }),
 }
 
-export const BrouillonPaie: Story = {
-  name: '1. Brouillon repris — gestionnaires de paie (3 postes)',
-  render: story({ ouvrir: 'OFF-2026-0150' }),
+export const DepuisDar: Story = {
+  name: '1. Scénario principal — offre depuis une DAR validée (paie, 3 postes)',
+  render: story({ depuisDar: 'DAR-2026-0331' }),
 }
 
-export const Soumise: Story = {
-  name: '2. Soumise à validation',
+export const DarSoumise: Story = {
+  name: '2. DAR soumise — préparer l\'offre en attendant la validation',
+  render: story({ depuisDar: 'DAR-2026-0322' }),
+}
+
+export const DarBrouillon: Story = {
+  name: '3. DAR en brouillon — préparée depuis la fiche de poste',
+  render: story({ depuisDar: 'DAR-2026-0335' }),
+}
+
+export const OffreCreee: Story = {
+  name: '4. Offre créée, publication désactivée',
   render: story({ ouvrir: 'OFF-2026-0141' }),
 }
 
-export const ACorriger: Story = {
-  name: '3. Corrections demandées',
-  render: story({ ouvrir: 'OFF-2026-0139' }),
-}
-
-export const PretAPublier: Story = {
-  name: '4. Validée, prête à publier (démo isolée)',
-  render: story({ preset: 'pret' }),
-}
-
-export const SansValidation: Story = {
-  name: '5. Organisation sans circuit de validation (démo isolée)',
-  render: story({ preset: 'sans_validation' }),
+export const ValidationOffre: Story = {
+  name: '5. Autre organisation — l\'offre est aussi validée (démo isolée)',
+  render: story({ preset: 'a_valider' }),
 }

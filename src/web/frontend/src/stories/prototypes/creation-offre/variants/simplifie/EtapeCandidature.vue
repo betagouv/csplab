@@ -1,11 +1,14 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import CspCheckboxGroup from '@/components/base/CspCheckboxGroup/CspCheckboxGroup.vue'
+import CspInput from '@/components/base/CspInput/CspInput.vue'
 import { PROFILS, STATUTS } from '../../data/referentiels'
 import { nouvelId, useOffre } from '../../data/useOffre'
 import CritereList from '../../shared/CritereList.vue'
 import Disclosure from '../../shared/Disclosure.vue'
 import EvaluationEditor from '../../shared/EvaluationEditor.vue'
+import FieldRow from '../../shared/FieldRow.vue'
+import ListEditor from '../../shared/ListEditor.vue'
 import Panel from '../../shared/Panel.vue'
 import QuestionsEditor from '../../shared/QuestionsEditor.vue'
 import EtapeFooter from './EtapeFooter.vue'
@@ -14,9 +17,26 @@ import { useEtapes } from './useEtapes'
 
 // Étape 3 — qui peut candidater et sur quoi les candidatures seront comparées.
 // Les profils sont déduits des statuts déjà saisis ; questions et grille d'évaluation sont repliées.
-const { state, verrouille, notifier } = useOffre()
-const { aller } = useEtapes()
+const { state, verrouille, notifier, afficherErreurs, canaux } = useOffre()
 const c = state.conditions
+const b = state.besoin
+
+// --- Informations propres à l'offre ---
+const postesDar = computed(() => state.darContenu?.nbPostes)
+const ISO = /^\d{4}-\d{2}-\d{2}$/
+const erreurLimite = computed(() => {
+  if (state.dateLimite && !ISO.test(state.dateLimite)) {
+    return 'Format attendu : AAAA-MM-JJ'
+  }
+  return undefined
+})
+const lignesCanaux = computed(() => canaux.map(c => ({ ...c, etat: state.canaux.find(x => x.id === c.id)! })))
+const autresCanaux = ref(state.canaux.some(c => c.selectionne && c.id !== 'csp'))
+const criteresOuverts = ref(c.indispensables.length + c.souhaites.length > 0)
+const resumeCriteres = computed(() => (c.indispensables.length + c.souhaites.length
+  ? `${c.indispensables.length} indispensable(s), ${c.souhaites.length} souhaité(s)`
+  : 'Préciser ce qui est indispensable et ce qui départage les candidatures'))
+const { aller } = useEtapes()
 
 /** Évite la double saisie : les profils autorisés sont proposés à partir des statuts ouverts à l'étape 1. */
 const deduits = ref(false)
@@ -69,10 +89,10 @@ const resumeEvaluation = computed(() => {
 <template>
   <header>
     <h2 class="title">
-      Conditions de candidature
+      Compléter l'offre
     </h2>
     <p class="desc">
-      Ces éléments seront repris dans le traitement des candidatures après publication.
+      Les quelques informations propres à l'offre. Ce qui vient de la DAR n'est pas redemandé.
     </p>
   </header>
 
@@ -82,6 +102,84 @@ const resumeEvaluation = computed(() => {
     class="fields"
     :disabled="verrouille"
   >
+    <Panel titre="Informations de l'offre">
+      <FieldRow :cols="2">
+        <CspInput
+          v-model="b.nbPostes"
+          type="number"
+          label="Nombre de postes à pourvoir"
+          :hint="postesDar ? `Une seule offre publiée pour ${b.nbPostes} poste(s). DAR : ${postesDar}.` : `Une seule offre publiée pour ${b.nbPostes} poste(s).`"
+          :disabled="verrouille"
+          :error="Number(b.nbPostes) < 1"
+          :error-message="Number(b.nbPostes) < 1 ? 'Indiquez au moins 1 poste.' : undefined"
+        />
+        <ListEditor
+          v-model="b.codesPostes"
+          :label="Number(b.nbPostes) > 1 ? 'Codes des postes (facultatif)' : 'Code poste (facultatif)'"
+          :hint="Number(b.nbPostes) > 1 ? `${b.codesPostes.length} sur ${b.nbPostes} renseigné(s)` : undefined"
+          placeholder="Ex. : SG-PAIE-012"
+          :disabled="verrouille"
+        />
+      </FieldRow>
+      <FieldRow
+        id="fin-dates"
+        :cols="2"
+      >
+        <CspInput
+          v-model="state.dateLimite"
+          label="Date limite de candidature"
+          hint="Nécessaire pour activer la publication."
+          placeholder="AAAA-MM-JJ"
+          :disabled="verrouille"
+          :error="Boolean(erreurLimite) || (afficherErreurs && !state.dateLimite && state.statut === 'creee')"
+          :error-message="erreurLimite ?? (afficherErreurs && !state.dateLimite && state.statut === 'creee' ? 'Indiquez une date limite pour publier.' : undefined)"
+        />
+        <CspInput
+          v-model="b.datePriseDePoste"
+          label="Prise de poste souhaitée (facultatif)"
+          placeholder="AAAA-MM-JJ"
+          :disabled="verrouille"
+        />
+      </FieldRow>
+      <CspInput
+        v-model="state.contactCandidats"
+        label="Contact pour les candidats (facultatif)"
+        placeholder="Ex. : Isabelle Fournier, cheffe du bureau RH — 05 00 00 00 00"
+        :disabled="verrouille"
+      />
+      <fieldset
+        id="fin-canaux"
+        class="canaux"
+      >
+        <legend class="canaux__legend">
+          Publication
+        </legend>
+        <label
+          v-for="l in lignesCanaux.filter(x => x.id === 'csp' || autresCanaux)"
+          :key="l.id"
+          class="canal"
+        >
+          <input
+            v-model="l.etat.selectionne"
+            type="checkbox"
+            :disabled="verrouille"
+          >
+          <span>
+            {{ l.nom }}
+            <small>{{ l.mode === 'connecteur' ? 'Transmission automatique (simulée)' : `Ensuite : ${l.actionsManuelles.join(', ').toLowerCase()}` }}</small>
+          </span>
+        </label>
+        <button
+          v-if="!autresCanaux"
+          type="button"
+          class="link link--block"
+          @click="autresCanaux = true"
+        >
+          Diffuser aussi ailleurs (site, intranet, LinkedIn…)
+        </button>
+      </fieldset>
+    </Panel>
+
     <Panel titre="Qui peut candidater ?">
       <p
         v-if="rappel"
@@ -110,41 +208,43 @@ const resumeEvaluation = computed(() => {
       </p>
     </Panel>
 
-    <Panel
-      titre="Critères de sélection"
-      description="Les critères indispensables écartent une candidature s'ils ne sont pas remplis ; les critères souhaités départagent."
-    >
-      <CritereList
-        v-model="c.indispensables"
-        titre="Indispensables"
-        aide="2 à 4 critères suffisent généralement."
-        vide="Aucun critère indispensable."
-        :disabled="verrouille"
-        @supprime="critereSupprime"
-      />
-      <CritereList
-        v-model="c.souhaites"
-        titre="Souhaités"
-        aide="Ils aident à comparer, sans écarter."
-        vide="Aucun critère souhaité."
-        :disabled="verrouille"
-      />
-      <p
-        v-if="competences.length && !verrouille"
-        class="hint"
-      >
-        {{ competences.length }} compétence(s) de la fiche de poste peuvent servir de critères.
-        <button
-          type="button"
-          class="link"
-          @click="ajouterCompetences"
-        >
-          Les ajouter aux critères souhaités
-        </button>
-      </p>
-    </Panel>
-
     <Panel>
+      <Disclosure
+        v-model:ouvert="criteresOuverts"
+        titre="Critères de sélection"
+        :resume="resumeCriteres"
+        icon="ri:filter-3-line"
+        facultatif
+      >
+        <CritereList
+          v-model="c.indispensables"
+          titre="Indispensables"
+          aide="2 à 4 critères suffisent généralement."
+          vide="Aucun critère indispensable."
+          :disabled="verrouille"
+          @supprime="critereSupprime"
+        />
+        <CritereList
+          v-model="c.souhaites"
+          titre="Souhaités"
+          aide="Ils aident à comparer, sans écarter."
+          vide="Aucun critère souhaité."
+          :disabled="verrouille"
+        />
+        <p
+          v-if="competences.length && !verrouille"
+          class="hint"
+        >
+          {{ competences.length }} compétence(s) de la fiche de poste peuvent servir de critères.
+          <button
+            type="button"
+            class="link"
+            @click="ajouterCompetences"
+          >
+            Les ajouter aux critères souhaités
+          </button>
+        </p>
+      </Disclosure>
       <Disclosure
         v-model:ouvert="questionsOuvertes"
         titre="Questions de présélection"
@@ -188,6 +288,46 @@ const resumeEvaluation = computed(() => {
   padding: 0;
   border: 0;
   min-width: 0;
+}
+
+.canaux {
+  display: flex;
+  flex-direction: column;
+  gap: var(--csp-space-2);
+  margin: 0;
+  padding: 0;
+  border: 0;
+  scroll-margin-top: var(--csp-space-6);
+}
+
+.canaux__legend {
+  margin-bottom: var(--csp-space-2);
+  color: var(--text-label-grey);
+}
+
+.canal {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--csp-space-2);
+  font-size: var(--csp-font-size-sm);
+  cursor: pointer;
+
+  input {
+    margin-top: 3px;
+    accent-color: var(--background-action-high-blue-france);
+  }
+
+  small {
+    display: block;
+    font-size: var(--csp-font-size-xs);
+    color: var(--text-mention-grey);
+  }
+}
+
+.link--block {
+  align-self: flex-start;
+  margin-left: 0;
+  font-size: var(--csp-font-size-sm);
 }
 
 .rappel {

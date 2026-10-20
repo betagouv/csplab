@@ -4,9 +4,9 @@ import { computed, reactive, ref } from 'vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspIcon from '@/components/base/CspIcon/CspIcon.vue'
 import CspSegmentedControl from '@/components/base/CspSegmentedControl/CspSegmentedControl.vue'
-import { texteDepuisPoste } from '../../data/redaction'
+import { aMettreEnForme, mettreEnForme, texteDepuisPoste } from '../../data/redaction'
 import { SECTIONS_OFFRE } from '../../data/referentiels'
-import { SUGGESTIONS } from '../../data/scenario'
+import { suggestionsPour } from '../../data/scenario'
 import { useOffre } from '../../data/useOffre'
 import OffrePreview from '../../shared/OffrePreview.vue'
 import EtapeFooter from './EtapeFooter.vue'
@@ -14,7 +14,8 @@ import RemarquesSection from './RemarquesSection.vue'
 
 // Étape 2 — rédiger l'offre pour les candidats, sur une seule page.
 // Un seul geste pour partir des informations du poste ; la reformulation reste une proposition.
-const { state, verrouille, afficherErreurs, notifier } = useOffre()
+const { state, verrouille, afficherErreurs, notifier, darFigee } = useOffre()
+const SUGGESTIONS = computed(() => suggestionsPour(state))
 
 const vue = ref<'edition' | 'apercu'>('edition')
 const VUES = [
@@ -38,7 +39,7 @@ function saisir(id: SectionOffreId, texte: string) {
 const suggestion = reactive<Record<string, { texte?: string, chargement?: boolean }>>({})
 function proposer(id: SectionOffreId) {
   suggestion[id] = { chargement: true }
-  setTimeout(() => (suggestion[id] = { texte: SUGGESTIONS[id] }), 800)
+  setTimeout(() => (suggestion[id] = { texte: SUGGESTIONS.value[id] }), 800)
 }
 function accepter(id: SectionOffreId) {
   saisir(id, suggestion[id]?.texte ?? '')
@@ -46,23 +47,28 @@ function accepter(id: SectionOffreId) {
 }
 
 // --- Texte source (fiche / DAR) consultable à côté, jamais modifié depuis cet écran ---
-const avecDar = computed(() => state.organisation === 'avec_dar' && state.besoin.darApplicable === 'oui')
+const avecDar = computed(() => state.besoin.darApplicable === 'oui' && Boolean(state.besoin.darRef))
 /** Si la DAR a été soumise, la source est sa version figée ; sinon la fiche de poste en cours. */
 const etatSource = computed<OffreState>(() => {
   const d = state.darContenu
   if (!d) {
     return state
   }
-  return { ...state, besoin: { ...state.besoin, intitule: d.intitule, service: d.service, localisation: d.localisation }, poste: { ...state.poste, missions: d.missions, activites: d.activites, competences: d.competences } }
+  return { ...state, besoin: { ...state.besoin, intitule: d.intitule, service: d.service, localisation: d.localisation }, poste: { ...state.poste, missions: d.missions, activites: d.activites, competences: d.competences, profil: d.profil ?? state.poste.profil, environnement: d.environnement ?? state.poste.environnement } }
 })
 const libelleSource = computed(() => {
   if (state.darContenu) {
-    return `Texte de la DAR ${state.besoin.darRef} — version ${state.darContenu.statut === 'validee' ? 'validée' : 'soumise'}, non modifiable`
+    return `DAR ${state.besoin.darRef} — version ${state.darContenu.statut === 'validee' ? 'validée' : 'soumise'}, inchangée`
   }
   return avecDar.value ? 'Contenu de la DAR en préparation (fiche de poste, étape 1)' : 'Informations du poste (étape 1)'
 })
 const sourceOuverte = reactive<Record<string, boolean>>({})
 const SECTIONS_SOURCEES: SectionOffreId[] = ['poste', 'missions', 'profil']
+
+function formater(id: SectionOffreId) {
+  saisir(id, mettreEnForme(state.offre[id].texte))
+  notifier('Mise en forme appliquée : les éléments séparés par « ; » sont devenus des puces. Aucun mot n\'a été changé.')
+}
 
 const enErreur = (id: SectionOffreId, requise: boolean) => afficherErreurs.value && requise && !state.offre[id].texte.trim()
 </script>
@@ -110,6 +116,24 @@ const enErreur = (id: SectionOffreId, requise: boolean) => afficherErreurs.value
     </div>
 
     <div class="editor">
+      <div class="titre">
+        <label
+          for="titre-annonce"
+          class="sec__label"
+        >Titre de l'annonce</label>
+        <p class="titre__hint">
+          Ce que verront les candidats en premier.<template v-if="darFigee">
+            L'intitulé de la DAR ({{ state.darContenu?.intitule ?? state.besoin.intitule }}) n'est pas modifié.
+          </template>
+        </p>
+        <input
+          id="titre-annonce"
+          v-model="state.titreAnnonce"
+          class="titre__input"
+          :placeholder="state.besoin.intitule"
+          :disabled="verrouille"
+        >
+      </div>
       <section
         v-for="s in SECTIONS_OFFRE"
         :id="`offre-${s.id}`"
@@ -129,7 +153,7 @@ const enErreur = (id: SectionOffreId, requise: boolean) => afficherErreurs.value
           <span
             v-if="state.offre[s.id].etat === 'reprise'"
             class="sec__tag"
-          >Repris du poste — à adapter</span>
+          >{{ darFigee && s.id !== 'organisme' ? 'Texte repris de la DAR — à adapter' : 'Repris — à adapter' }}</span>
         </div>
         <textarea
           :id="`ta-${s.id}`"
@@ -195,9 +219,18 @@ const enErreur = (id: SectionOffreId, requise: boolean) => afficherErreurs.value
           </div>
         </div>
         <div
-          v-else-if="state.offre[s.id].texte.trim() && (SECTIONS_SOURCEES.includes(s.id) || (!verrouille && SUGGESTIONS[s.id]))"
+          v-else-if="state.offre[s.id].texte.trim() && (SECTIONS_SOURCEES.includes(s.id) || (!verrouille && (SUGGESTIONS[s.id] || aMettreEnForme(state.offre[s.id].texte))))"
           class="sec__tools"
         >
+          <CspButton
+            v-if="!verrouille && aMettreEnForme(state.offre[s.id].texte)"
+            label="Mettre en forme"
+            size="sm"
+            variant="tertiary-no-outline"
+            icon="ri:list-unordered"
+            is-icon-left
+            @click="formater(s.id)"
+          />
           <CspButton
             v-if="SECTIONS_SOURCEES.includes(s.id) && texteDepuisPoste(etatSource, s.id)"
             :label="sourceOuverte[s.id] ? 'Masquer le texte source' : (avecDar ? 'Comparer avec la DAR' : 'Comparer avec la fiche de poste')"
@@ -266,6 +299,30 @@ const enErreur = (id: SectionOffreId, requise: boolean) => afficherErreurs.value
 
 .sec {
   scroll-margin-top: var(--csp-space-4);
+}
+
+.titre__hint {
+  margin: var(--csp-space-1) 0 var(--csp-space-2);
+  font-size: var(--csp-font-size-xs);
+  color: var(--text-mention-grey);
+}
+
+.titre__input {
+  width: 100%;
+  padding: var(--csp-space-2) var(--csp-space-3);
+  border: 0;
+  border-radius: 0.25rem 0.25rem 0 0;
+  box-shadow: inset 0 -2px 0 0 var(--border-plain-grey);
+  background: var(--background-contrast-grey);
+  font: inherit;
+  font-size: var(--csp-font-size-lg);
+  font-weight: var(--csp-font-weight-bold);
+  color: var(--text-default-grey);
+
+  &:focus-visible {
+    outline: 2px solid var(--csp-focus-ring-color, #0a76f6);
+    outline-offset: 2px;
+  }
 }
 
 .sec__head {

@@ -2,16 +2,17 @@
 import type { Preset } from '../../data/scenario'
 import type { OffreState, SectionOffreId } from '../../data/types'
 import { ref } from 'vue'
-import { nouveauDossier, ranger, trouver } from '../../data/dossiers'
+import { nouveauDossier, ranger, trouver, trouverParDar } from '../../data/dossiers'
 import { circuitPour } from '../../data/scenario'
 import ListeOffres from './ListeOffres.vue'
 import OffreAppSimple from './OffreAppSimple.vue'
 
 // Racine de la version simplifiée : liste des offres ⇄ édition d'une offre.
 // `ouvrir` ouvre un dossier de la session ; `preset` ouvre un état de démonstration isolé (non rangé).
-const props = withDefaults(defineProps<{ preset?: Preset, ouvrir?: string, liste?: boolean }>(), {
+const props = withDefaults(defineProps<{ preset?: Preset, ouvrir?: string, depuisDar?: string, liste?: boolean }>(), {
   preset: 'nouveau',
   ouvrir: undefined,
+  depuisDar: undefined,
   liste: false,
 })
 
@@ -22,13 +23,26 @@ function vueInitiale(): Vue {
   if (props.liste) {
     return { mode: 'liste' }
   }
-  const init = props.ouvrir ? trouver(props.ouvrir) : undefined
+  const trouve = props.depuisDar ? trouverParDar(props.depuisDar) : props.ouvrir ? trouver(props.ouvrir) : undefined
+  const init = trouve ? demarrer(trouve) : undefined
   return { mode: 'offre', key: key++, preset: init ? 'nouveau' : props.preset, init }
+}
+
+/** Ouvrir une DAR sans offre démarre l'offre, préremplie à partir de la DAR. */
+function demarrer(s: OffreState): OffreState {
+  if (!s.offreDemarree) {
+    s.offreDemarree = true
+    s.derniereEtape = ''
+    s.journal.push({ date: `Aujourd'hui, ${new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}`, texte: `Offre ${s.reference} démarrée à partir de la DAR ${s.besoin.darRef}` })
+    ranger(s)
+  }
+  return s
 }
 const vue = ref<Vue>(vueInitiale())
 
 function ouvrir(reference: string) {
-  vue.value = { mode: 'offre', key: key++, preset: 'nouveau', init: trouver(reference) }
+  const s = trouver(reference)
+  vue.value = { mode: 'offre', key: key++, preset: 'nouveau', init: s ? demarrer(s) : undefined }
 }
 
 function nouvelle() {
