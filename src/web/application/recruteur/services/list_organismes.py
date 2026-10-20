@@ -13,4 +13,6 @@ def list_organismes(*, utilisateur: UserModel) -> QuerySet[OrganismeModel]:
         action=OrganismeAction.LISTER_ORGANISMES,
         utilisateur=utilisateur,
     )
-    return OrganismeModel.objects.with_counts().with_superviseurs_actifs()
+    return (
+        OrganismeModel.objects.not_supprimes().with_counts().with_superviseurs_actifs()
+    )
