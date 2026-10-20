@@ -58,6 +58,8 @@ class CandidatureModel(BaseDatedModel):
 
     objects = CandidatureQuerySet.as_manager()
 
+    unread_conversations: int
+
     class Meta:
         db_table = "candidature"
         verbose_name = "Candidature"
