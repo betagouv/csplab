@@ -6,7 +6,10 @@ from rest_framework import status
 from application.identite.context_services.organisme_permission_service import (
     OrganismePermissionService,
 )
-from domain.recruteur.value_objects.roles import AgentOrganismeRole
+from domain.recruteur.value_objects.roles import (
+    AgentOrganismeRole,
+    AgentRecrutementRole,
+)
 from infrastructure.factories.identite.agent_django_factory import (
     AgentDjangoFactory,
 )
@@ -18,6 +21,10 @@ from infrastructure.factories.identite.organisme_django_factory import (
     OrganismeDjangoFactory,
     create_organisme_with_agent,
 )
+from infrastructure.factories.recruteur.recrutement_django_factory import (
+    RecrutementAgentDjangoFactory,
+    RecrutementDjangoFactory,
+)
 
 URL = reverse("identite:user_details")
 
@@ -25,6 +32,7 @@ NOMBRE_REQUETES_ATTENDU = (
     1  # session
     + 1  # authentification : utilisateur de la session
     + 1  # service : rattachements actifs, organisme joint
+    + 1  # service : organismes dont l'agent est responsable d'un recrutement
 )
 
 
@@ -43,7 +51,10 @@ def _organisme(organisme, role: AgentOrganismeRole, utilisateur) -> dict:
         "authorized_actions": [
             action.value
             for action in OrganismePermissionService().actions_autorisees_organisme(
-                role, utilisateur=utilisateur
+                role,
+                utilisateur=utilisateur,
+                organisme_id=organisme.id,
+                organisme_ids_responsable=set(),
             )
         ],
     }
@@ -222,6 +233,33 @@ def test_agent_authorized_actions_exclude_recrutement_level(
         "lister_mes_recrutements",
         "get_motifs_refus",
     ]
+
+
+def test_responsable_agent_gets_search_and_create_agent_in_its_organisme_only(
+    authenticated_client, test_user
+):
+    agent, organisme = create_organisme_with_agent(
+        role=AgentOrganismeRole.AGENT, utilisateur=test_user
+    )
+    other_organisme = OrganismeDjangoFactory(nom="Zzz")
+    OrganismeAgentDjangoFactory(
+        organisme=other_organisme, agent=agent, role=AgentOrganismeRole.AGENT.value
+    )
+    RecrutementAgentDjangoFactory(
+        recrutement=RecrutementDjangoFactory(organisme=organisme),
+        agent=agent,
+        role=AgentRecrutementRole.RESPONSABLE.value,
+    )
+
+    response = authenticated_client.get(URL)
+
+    actions_by_uuid = {
+        o["uuid"]: o["authorized_actions"] for o in response.json()["organismes"]
+    }
+    assert "search_agent" in actions_by_uuid[str(organisme.id)]
+    assert "create_agent" in actions_by_uuid[str(organisme.id)]
+    assert "search_agent" not in actions_by_uuid[str(other_organisme.id)]
+    assert "create_agent" not in actions_by_uuid[str(other_organisme.id)]
 
 
 def test_does_not_query_organisme_per_role(
