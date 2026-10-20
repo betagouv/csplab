@@ -55,7 +55,7 @@ Les six champs `description.*` contiennent du Markdown (CommonMark), converti pa
 - les styles, classes, `span` et `script` sont retirés, les images supprimées, les tableaux aplatis en texte et les exposants rendus en texte simple ;
 - les liens ne sont gardés qu'en `http:`, `https:` (avec un hôte, intranet compris) ou `mailto:` (avec un `@`) ; le `href` est coupé au premier espace, les autres liens deviennent du texte simple.
 
-Le Markdown ne contient jamais de balise HTML : tout `<` du texte (ex. `&lt;script&gt;` dans le HTML Talentsoft) est écrit `&lt;`, et les liens sont toujours au format `[libellé](url)`.
+Le Markdown ne contient jamais de balise HTML ni de lien ou d'image écrits dans le texte : la syntaxe Markdown et HTML du texte est échappée (ex. `&lt;script&gt;` dans le HTML Talentsoft devient `\<script\>`, `[clic](url)` devient `\[clic\](url)`). Seules les balises `<a>` converties produisent des liens, toujours au format `[libellé](url)`.
 
 `criteres` n'est envoyé que si au moins un des champs niveau de diplôme, diplôme, expérience, spécialisations ou langues est renseigné.
 

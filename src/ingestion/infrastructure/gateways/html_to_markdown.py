@@ -22,8 +22,9 @@ class _TalentsoftMarkdownConverter(MarkdownConverter):
       the first whitespace; the others become plain text.
     - Line breaks at the start or end of a block are dropped, as they would
       render as a literal backslash.
-    - Every `<` is written `&lt;`, so that decoded text (`&lt;script&gt;`)
-      never yields an HTML tag.
+    - Markdown and HTML syntax in the text is escaped (`[clic](url)`, `![](url)`,
+      decoded `&lt;script&gt;`), so that only the converted tags yield links
+      and no HTML tag is ever written.
     """
 
     def convert_a(self, el, text, parent_tags):
@@ -90,9 +91,12 @@ def _drop_dangling_line_breaks(lines: list[str]) -> list[str]:
 
 def html_to_markdown(html: str) -> str:
     markdown = _TalentsoftMarkdownConverter(
-        autolinks=False, heading_style=ATX, bullets="-", newline_style=BACKSLASH
+        autolinks=False,
+        escape_misc=True,
+        heading_style=ATX,
+        bullets="-",
+        newline_style=BACKSLASH,
     ).convert(html)
-    markdown = markdown.replace("<", "&lt;")
     lines = [line.rstrip(" \t\xa0") for line in markdown.splitlines()]
     markdown = "\n".join(_drop_dangling_line_breaks(lines))
     return _EXCESS_BLANK_LINES.sub("\n\n", markdown).strip(" \t\r\n\xa0")

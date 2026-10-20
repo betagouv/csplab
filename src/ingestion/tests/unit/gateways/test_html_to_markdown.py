@@ -166,16 +166,16 @@ def test_html_to_markdown_drops_script_tags():
     [
         (
             "<p>&lt;script&gt;alert(1)&lt;/script&gt;</p>",
-            "&lt;script>alert(1)&lt;/script>",
+            "\\<script\\>alert(1)\\</script\\>",
         ),
         (
             "<p>&lt;img src=x onerror=alert(1)&gt;</p>",
-            "&lt;img src=x onerror=alert(1)>",
+            "\\<img src\\=x onerror\\=alert(1)\\>",
         ),
-        ("<p><code>&lt;b&gt;</code></p>", "`&lt;b>`"),
+        ("<p><code>&lt;b&gt;</code></p>", "`<b>`"),
         (
             '<a href="https://a.fr">&lt;b&gt;lien&lt;/b&gt;</a>',
-            "[&lt;b>lien&lt;/b>](https://a.fr)",
+            "[\\<b\\>lien\\</b\\>](https://a.fr)",
         ),
     ],
 )
@@ -185,8 +185,31 @@ def test_html_to_markdown_never_outputs_html_tags(html, expected):
 
 def test_html_to_markdown_keeps_comparison_signs_readable():
     assert html_to_markdown("<p>Indice &lt; 400 et &gt; 300</p>") == (
-        "Indice &lt; 400 et > 300"
+        "Indice \\< 400 et \\> 300"
     )
+
+
+@pytest.mark.parametrize(
+    ("html", "expected"),
+    [
+        (
+            "<p>[clic](javascript:alert(1))</p>",
+            "\\[clic\\](javascript:alert(1))",
+        ),
+        (
+            "<p>![](https://tracker.fr/x.png)</p>",
+            "!\\[\\](https://tracker.fr/x.png)",
+        ),
+    ],
+)
+def test_html_to_markdown_escapes_markdown_written_as_text(html, expected):
+    assert html_to_markdown(html) == expected
+
+
+def test_html_to_markdown_escapes_brackets_in_link_label():
+    html = '<a href="https://a.fr">Voir [la fiche]</a>'
+
+    assert html_to_markdown(html) == "[Voir \\[la fiche\\]](https://a.fr)"
 
 
 def test_html_to_markdown_writes_link_whose_label_is_its_url_explicitly():
