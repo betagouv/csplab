@@ -1,3 +1,4 @@
+from collections.abc import Collection
 from typing import cast
 from uuid import UUID
 
@@ -253,10 +254,10 @@ _ROLES_RECRUTEMENT_REQUIS: dict[OrganismeAction, frozenset[AgentRecrutementRole]
 }
 
 
-# Actions dont l'autorisation dépend du recrutement : hors périmètre des actions
-# exposées au niveau de l'utilisateur et de l'organisme
-_ACTIONS_NIVEAU_RECRUTEMENT: frozenset[OrganismeAction] = (
-    frozenset(_ROLES_RECRUTEMENT_REQUIS) | _RESPONSABLE_D_UN_RECRUTEMENT_REQUIS
+# Actions ciblant un recrutement précis : hors périmètre des actions exposées au
+# niveau de l'utilisateur et de l'organisme
+_ACTIONS_NIVEAU_RECRUTEMENT: frozenset[OrganismeAction] = frozenset(
+    _ROLES_RECRUTEMENT_REQUIS
 )
 
 
@@ -358,14 +359,26 @@ class OrganismePermissionService:
         return _ordonnees(_ACTIONS_SANS_ORGANISME | _ACTIONS_STAFF_AVEC_ORGANISME)
 
     def actions_autorisees_organisme(
-        self, role: AgentOrganismeRole, *, utilisateur: UserModel
+        self,
+        role: AgentOrganismeRole,
+        *,
+        utilisateur: UserModel,
+        organisme_id: UUID,
+        organisme_ids_responsable: Collection[UUID],
     ) -> list[OrganismeAction]:
-        roles = {AgentOrganismeRole.SUPERVISEUR if utilisateur.is_staff else role}
+        if utilisateur.is_staff:
+            role = AgentOrganismeRole.SUPERVISEUR
+        exclues = _ACTIONS_NIVEAU_RECRUTEMENT
+        if (
+            role == AgentOrganismeRole.AGENT
+            and organisme_id not in organisme_ids_responsable
+        ):
+            exclues |= _RESPONSABLE_D_UN_RECRUTEMENT_REQUIS
         return _ordonnees(
             frozenset(
                 action
                 for action, roles_requis in _ROLES_REQUIS.items()
-                if roles & roles_requis
+                if role in roles_requis
             )
-            - _ACTIONS_NIVEAU_RECRUTEMENT
+            - exclues
         )

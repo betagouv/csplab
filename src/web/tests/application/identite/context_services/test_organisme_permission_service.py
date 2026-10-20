@@ -107,7 +107,9 @@ SUPERVISEUR_ACTIONS = (
 )
 
 SUPERVISEUR_ACTIONS_SANS_RECRUTEMENT = (
-    SUPERVISEUR_ET_STAFF_ACTIONS + SUPERVISEUR_OU_AGENT_SANS_RECRUTEMENT_ACTIONS
+    SUPERVISEUR_ET_STAFF_ACTIONS
+    + SUPERVISEUR_OU_AGENT_RESPONSABLE_D_UN_RECRUTEMENT_ACTIONS
+    + SUPERVISEUR_OU_AGENT_SANS_RECRUTEMENT_ACTIONS
 )
 
 RECRUTEMENT_ACTIONS = (
@@ -869,7 +871,10 @@ class TestAuthorizedActions:
 
     def test_agent_gets_actions_without_target_recrutement(self):
         assert OrganismePermissionService().actions_autorisees_organisme(
-            AgentOrganismeRole.AGENT, utilisateur=UserModel(is_staff=False)
+            AgentOrganismeRole.AGENT,
+            utilisateur=UserModel(is_staff=False),
+            organisme_id=uuid4(),
+            organisme_ids_responsable={uuid4()},
         ) == [
             OrganismeAction.LISTER_MES_RECRUTEMENTS,
             OrganismeAction.GET_MOTIFS_REFUS,
@@ -877,24 +882,62 @@ class TestAuthorizedActions:
 
     def test_superviseur_gets_actions_without_target_recrutement(self):
         assert OrganismePermissionService().actions_autorisees_organisme(
-            AgentOrganismeRole.SUPERVISEUR, utilisateur=UserModel(is_staff=False)
+            AgentOrganismeRole.SUPERVISEUR,
+            utilisateur=UserModel(is_staff=False),
+            organisme_id=uuid4(),
+            organisme_ids_responsable=set(),
         ) == sorted(
             SUPERVISEUR_ACTIONS_SANS_RECRUTEMENT, key=list(OrganismeAction).index
         )
 
-    def test_staff_acts_as_superviseur(self):
+    def test_responsable_agent_gets_search_and_create_agent(self):
+        organisme_id = uuid4()
+
         assert OrganismePermissionService().actions_autorisees_organisme(
-            AgentOrganismeRole.AGENT, utilisateur=UserModel(is_staff=True)
+            AgentOrganismeRole.AGENT,
+            utilisateur=UserModel(is_staff=False),
+            organisme_id=organisme_id,
+            organisme_ids_responsable={organisme_id},
+        ) == [
+            OrganismeAction.LISTER_MES_RECRUTEMENTS,
+            OrganismeAction.SEARCH_AGENT,
+            OrganismeAction.CREATE_AGENT,
+            OrganismeAction.GET_MOTIFS_REFUS,
+        ]
+
+    @pytest.mark.parametrize("is_responsable", [False, True])
+    def test_staff_acts_as_superviseur(self, is_responsable):
+        organisme_id = uuid4()
+
+        assert OrganismePermissionService().actions_autorisees_organisme(
+            AgentOrganismeRole.AGENT,
+            utilisateur=UserModel(is_staff=True),
+            organisme_id=organisme_id,
+            organisme_ids_responsable={organisme_id} if is_responsable else set(),
         ) == sorted(
             SUPERVISEUR_ACTIONS_SANS_RECRUTEMENT, key=list(OrganismeAction).index
         )
 
-    @pytest.mark.parametrize("role", list(AgentOrganismeRole))
-    def test_every_exposed_action_is_accepted_by_can_execute(self, role):
+    @pytest.mark.parametrize(
+        ("role", "is_responsable"),
+        [
+            (AgentOrganismeRole.SUPERVISEUR, False),
+            (AgentOrganismeRole.AGENT, False),
+            (AgentOrganismeRole.AGENT, True),
+        ],
+    )
+    def test_every_exposed_action_is_accepted_by_can_execute(
+        self, role, is_responsable
+    ):
         agent, organisme = create_organisme_with_agent(role=role)
+        if is_responsable:
+            _attach_recrutement_role(organisme, agent, AgentRecrutementRole.RESPONSABLE)
 
         for action in OrganismePermissionService().actions_autorisees_organisme(
-            role, utilisateur=agent.utilisateur
+            role,
+            utilisateur=agent.utilisateur,
+            organisme_id=organisme.id,
+            organisme_ids_responsable={organisme.id} if is_responsable else set(),
         ):
             OrganismePermissionService().can_execute(
                 action=action, utilisateur=agent.utilisateur, organisme_id=organisme.id
