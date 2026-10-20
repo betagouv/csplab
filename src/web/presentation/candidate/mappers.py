@@ -36,6 +36,7 @@ from presentation.candidate.types import (
     DrawerContext,
     OfferCard,
 )
+from presentation.commons.markdown import render_markdown
 
 
 class ConcoursToTemplateMapper:
@@ -123,9 +124,7 @@ class OfferToTemplateMapper:
                 {
                     "id": "drawer-mission-content",
                     "title": "Mission",
-                    "content": mark_safe(  # noqa: S308
-                        linebreaks(offer.mission, autoescape=True)
-                    ),
+                    "content": render_markdown(offer.mission, top_heading_level=4),
                 }
             )
         if offer.profile:
@@ -133,9 +132,7 @@ class OfferToTemplateMapper:
                 {
                     "id": "drawer-profile-content",
                     "title": "Profil recherch\u00e9",
-                    "content": mark_safe(  # noqa: S308
-                        linebreaks(offer.profile, autoescape=True)
-                    ),
+                    "content": render_markdown(offer.profile, top_heading_level=4),
                 }
             )
         if metiers:

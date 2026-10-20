@@ -173,6 +173,9 @@ comme pour la liste principale des offres (paramètres `page` et `taille`).
 Chaque offre renvoyée contient, en plus des informations de la liste principale
 (voir section précédente), le détail complet de l'offre. Les champs reprennent les
 noms utilisés par `POST /api/v1/offres/creer_modifier` (voir section 4) :
+`employeur`, `profil`, `mission`, `complements`, `conditions_exercice` et
+`descriptif_service` sont renvoyés tels qu'ils ont été transmis, en Markdown (voir
+le bloc « Description » de la section 4).
 
 | Champ | Signification | Peut être vide ? |
 |---|---|---|
@@ -329,6 +332,20 @@ longueur et de valeurs autorisées**.
 #### Bloc « Description » (`description`) — obligatoire
 Les champs `mission`, `profil`, `employeur` et `complements` sont obligatoires, mais
 peuvent être des textes vides.
+
+Les six champs du bloc acceptent du **Markdown** ([CommonMark](https://commonmark.org/help/)),
+pour conserver la mise en forme de l'offre : gras (`**texte**`), italique
+(`*texte*`), listes (`- élément`, `1. élément`), titres (`## Titre`), liens
+(`[libellé](https://…)`). Un texte brut reste valide, mais quelques caractères en
+début de ligne ou autour d'un mot (`*`, `_`, `#`, `1.`) sont interprétés : précédez-les
+d'une barre oblique inverse (`\*`) pour les garder tels quels. La limite de
+caractères s'applique au texte Markdown, syntaxe comprise.
+
+> **Règle métier :** une offre dont la description contient une balise HTML (`<b>`,
+> `<!-- … -->`…) ou un lien autre que `http`, `https` ou `mailto` (`javascript:`,
+> lien relatif…) est rejetée, avec un message qui cite l'élément refusé. Pour écrire
+> le caractère `<` devant une lettre, précédez-le d'une barre oblique inverse (`\<`).
+> Un `<` suivi d'une espace ou d'un chiffre (« salaire < 2000 € ») est accepté.
 
 | Champ | Règle |
 |---|---|
@@ -571,12 +588,12 @@ Notation : `a.b` désigne un objet imbriqué, `a[]` une liste, `a[0]` son premie
 | `contractType.clientCode` | `nature_offre` | Traduit par le transcodeur de la source. |
 | `professionalCategory.clientCode` | `vacance_poste` | `STATUT01` → `OUI` (poste vacant), `STATUT02` → `NON` (poste susceptible d'être vacant), sinon vide. Malgré son nom, c'est le « Statut du poste » affiché par l'ancien site WordPress. API fake-ts : `OUI` → `STATUT01`, `NON` → `STATUT02`, sinon `null`. |
 | `offerFamilyCategory.clientCode` | `profession.metier` | `profession.domaine` correspond à ses 3 premiers caractères, après retrait d'un `ER` initial. |
-| `description1` | `description.mission` | |
-| `description2` | `description.profil` | |
-| `customFields.description.longText1` | `description.employeur` | |
-| `customFields.description.longText2` | `description.conditions_exercice` | |
-| `customFields.description.longText3` | `description.descriptif_service` | |
-| `customFields.offerCustomBlock1.longText1` | `description.complements` | |
+| `description1Formatted` | `description.mission` | Converti du HTML en Markdown, repli sur le texte brut `description1` s'il est vide. API fake-ts : le Markdown est renvoyé dans `description1`, la variante `Formatted` reste `null`. |
+| `description2Formatted` | `description.profil` | Converti du HTML en Markdown, repli sur le texte brut `description2` s'il est vide. API fake-ts : le Markdown est renvoyé dans `description2`, la variante `Formatted` reste `null`. |
+| `customFields.description.longText1Formatted` | `description.employeur` | Converti du HTML en Markdown, repli sur le texte brut `customFields.description.longText1` s'il est vide. API fake-ts : le Markdown est renvoyé dans `customFields.description.longText1`, la variante `Formatted` reste `null`. |
+| `customFields.description.longText2Formatted` | `description.conditions_exercice` | Converti du HTML en Markdown, repli sur le texte brut `customFields.description.longText2` s'il est vide. API fake-ts : le Markdown est renvoyé dans `customFields.description.longText2`, la variante `Formatted` reste `null`. |
+| `customFields.description.longText3Formatted` | `description.descriptif_service` | Converti du HTML en Markdown, repli sur le texte brut `customFields.description.longText3` s'il est vide. API fake-ts : le Markdown est renvoyé dans `customFields.description.longText3`, la variante `Formatted` reste `null`. |
+| `customFields.offerCustomBlock1.longText1Formatted` | `description.complements` | Converti du HTML en Markdown, repli sur le texte brut `customFields.offerCustomBlock1.longText1` s'il est vide. API fake-ts : le Markdown est renvoyé dans `customFields.offerCustomBlock1.longText1`, la variante `Formatted` reste `null`. |
 | `offerUrl` | `url_offre` | |
 | `urlRedirectionApplicant` | `url_candidature` | Prioritaire sur `customFields.origin.shortText1` et `applicationUrl`. |
 | `customFields.origin.shortText1` | `email_candidature` | Texte libre (« adresse de candidature »). Lu seulement si `urlRedirectionApplicant` est vide : le premier e-mail valide trouvé devient `email_candidature`, et `url_candidature` reste vide. API fake-ts : reprend `email_candidature`, `null` si l'offre se candidate par lien. |
@@ -613,8 +630,6 @@ Notation : `a.b` désigne un objet imbriqué, `a[]` une liste, `a[0]` son premie
 | `contractTypeCountry` | |
 | `organisationDescription` | Capturé nulle part dans la chaîne. |
 | `organisationLogoUrl` | |
-| `description1Formatted` | Variante HTML de `description1`, non utilisée. |
-| `description2Formatted` | Variante HTML de `description2`, non utilisée. |
 | `_links` | Métadonnées de transport. |
 | `_format` | Métadonnées de transport. |
 | `_metadata` | Métadonnées de transport. |

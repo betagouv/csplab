@@ -28,6 +28,7 @@ from infrastructure.django_apps.ingestion.models.talentsoft_organisme import (
     TalentsoftOrganismeModel,
 )
 from presentation.api.serializers import GenericErrorSerializer
+from presentation.commons.markdown import forbidden_markdown
 from presentation.commons.serializers import LocalisationSerializer, OrganismeSerializer
 
 
@@ -723,16 +724,56 @@ class ProfessionInputSerializer(serializers.Serializer):
         return data
 
 
+_MARKDOWN_HELP_TEXT = (
+    "Markdown (CommonMark), syntaxe comprise dans la limite. Les balises HTML et "
+    "les liens autres que http, https et mailto sont refusés."
+)
+
+
+def _validate_markdown(value: str) -> None:
+    errors = forbidden_markdown(value)
+    if errors:
+        raise serializers.ValidationError(errors)
+
+
 class DescriptionInputSerializer(serializers.Serializer):
-    mission = serializers.CharField(max_length=10000, allow_blank=True)
-    profil = serializers.CharField(max_length=10000, allow_blank=True)
-    employeur = serializers.CharField(max_length=3000, allow_blank=True)
-    complements = serializers.CharField(max_length=5000, allow_blank=True)
+    mission = serializers.CharField(
+        max_length=10000,
+        allow_blank=True,
+        help_text=_MARKDOWN_HELP_TEXT,
+        validators=[_validate_markdown],
+    )
+    profil = serializers.CharField(
+        max_length=10000,
+        allow_blank=True,
+        help_text=_MARKDOWN_HELP_TEXT,
+        validators=[_validate_markdown],
+    )
+    employeur = serializers.CharField(
+        max_length=3000,
+        allow_blank=True,
+        help_text=_MARKDOWN_HELP_TEXT,
+        validators=[_validate_markdown],
+    )
+    complements = serializers.CharField(
+        max_length=5000,
+        allow_blank=True,
+        help_text=_MARKDOWN_HELP_TEXT,
+        validators=[_validate_markdown],
+    )
     conditions_exercice = serializers.CharField(
-        max_length=10000, allow_blank=True, required=False
+        max_length=10000,
+        allow_blank=True,
+        required=False,
+        help_text=_MARKDOWN_HELP_TEXT,
+        validators=[_validate_markdown],
     )
     descriptif_service = serializers.CharField(
-        max_length=10000, allow_blank=True, required=False
+        max_length=10000,
+        allow_blank=True,
+        required=False,
+        help_text=_MARKDOWN_HELP_TEXT,
+        validators=[_validate_markdown],
     )
 
 

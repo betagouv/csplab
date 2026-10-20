@@ -245,6 +245,33 @@ class TestOffreDetailView:
         ):
             assert expected in content, expected
 
+    def test_renders_markdown_descriptions(self, client, source):
+        offer = OfferDjangoFactory(
+            source=source,
+            mission="**Mission** du poste",
+            profile="# Qualités\n\n- rigueur\n- <b>autonomie</b>",
+            employer="[Site](https://exemple.gouv.fr)",
+            exercise_conditions="Ligne 1\nLigne 2",
+            service_description="## Service",
+            complements="_Compléments_",
+        )
+
+        content = client.get(self.url(source, offer)).content.decode()
+
+        for expected in (
+            "<p><strong>Mission</strong> du poste</p>",
+            "<h3>Qualités</h3>",
+            "<li>&lt;b&gt;autonomie&lt;/b&gt;</li>",
+            (
+                '<a href="https://exemple.gouv.fr" target="_blank" '
+                'rel="noopener noreferrer">Site</a>'
+            ),
+            "<p>Ligne 1<br>\nLigne 2</p>",
+            "<h2>Service</h2>",
+            "<p><em>Compléments</em></p>",
+        ):
+            assert expected in content, expected
+
     def test_shows_contacts_with_their_role_raw_text_and_emails(self, client, source):
         offer = OfferDjangoFactory(
             source=source,

@@ -660,6 +660,53 @@ def test_invalid_application_channels_are_rejected(
     ]
 
 
+def test_description_with_html_is_rejected_with_an_explicit_message(
+    authenticated_client_with_source, use_case
+):
+    offer = PayloadOfferFactory.create(
+        identification={"reference": "REF-010", "versant": "FPT"},
+    )
+    offer["description"]["mission"] = "Missions : <script>alert(1)</script>"
+    offer["description"]["profil"] = "[Fiche](javascript:alert(1))"
+
+    response = authenticated_client_with_source.post(
+        URL,
+        data={"source_id": SOURCE_UUID, "offres": [offer]},
+        content_type="application/json",
+    )
+
+    assert response.status_code == status.HTTP_201_CREATED
+    assert response.json()["errors"] == [
+        {
+            "index": 0,
+            "offre": {"reference": "REF-010", "versant": "FPT"},
+            "error": {
+                "description": {
+                    "mission": [
+                        (
+                            "Les balises HTML ne sont pas acceptées (<script>) : "
+                            "utilisez la syntaxe Markdown, ou écrivez \\< pour "
+                            "afficher le caractère <."
+                        ),
+                        (
+                            "Les balises HTML ne sont pas acceptées (</script>) : "
+                            "utilisez la syntaxe Markdown, ou écrivez \\< pour "
+                            "afficher le caractère <."
+                        ),
+                    ],
+                    "profil": [
+                        (
+                            "Lien non autorisé (javascript:alert(1)) : seuls les "
+                            "liens http, https et mailto sont acceptés."
+                        )
+                    ],
+                }
+            },
+        }
+    ]
+    assert use_case.execute.call_args.args[0].offers == []
+
+
 def test_returns_error_500(authenticated_client_with_source, use_case):
     use_case.execute.side_effect = Exception("db error")
 
