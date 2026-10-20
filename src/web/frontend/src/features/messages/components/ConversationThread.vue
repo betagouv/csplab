@@ -163,7 +163,7 @@ watch(
   background-color: var(--background-alt-grey);
 
   :deep(.csp-skeleton) {
-    background: var(--background-contrast-grey);
+    background: var(--csp-neutral-background);
   }
 }
 

@@ -10,5 +10,6 @@ def base(request):
         "ats/base.html",
         {
             "debug": settings.DEBUG,
+            "ui_theme": settings.UI_THEME,
         },
     )

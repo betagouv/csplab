@@ -184,7 +184,7 @@ function startNote(): void {
   --csp-card-border: transparent;
 
   :deep(.csp-skeleton) {
-    background: var(--background-contrast-grey);
+    background: var(--csp-neutral-background);
   }
 }
 

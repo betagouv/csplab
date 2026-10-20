@@ -62,7 +62,7 @@ const { showLabels } = useSidebar()
   padding-block: var(--csp-space-2);
   padding-inline: var(--sidebar-item-padding-inline);
   cursor: pointer;
-  background-color: var(--background-alt-grey);
+  background-color: var(--csp-nav-background);
 
   &:hover {
     background-color: var(--background-alt-grey-hover);

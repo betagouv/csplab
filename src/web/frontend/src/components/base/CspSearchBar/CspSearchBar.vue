@@ -185,10 +185,10 @@ function submit() {
   min-width: 0;
   appearance: none;
   border: none;
-  border-radius: 0.25rem 0 0 0.25rem;
+  border-radius: var(--csp-field-radius) 0 0 var(--csp-field-radius);
   background-color: var(--background-default-grey);
   color: var(--text-default-grey);
-  box-shadow: inset 0 0 0 1px var(--border-default-grey);
+  box-shadow: inset 0 0 0 1px var(--csp-field-border-color);
   font-size: 0.875rem;
   line-height: 1.25;
   padding: 0.625em 0.875em;
@@ -198,7 +198,7 @@ function submit() {
   }
 
   .csp-search-bar--live & {
-    border-radius: 0.25rem;
+    border-radius: var(--csp-field-radius);
     padding-left: 2.5em;
   }
 
@@ -228,9 +228,9 @@ function submit() {
   }
 }
 
-.csp-search-bar__button {
+.csp-search-bar .csp-search-bar__button {
   flex-shrink: 0;
-  border-radius: 0 0.25rem 0.25rem 0;
+  border-radius: 0 var(--csp-field-radius) var(--csp-field-radius) 0;
 }
 
 .csp-search-bar__messages:not(:empty) {

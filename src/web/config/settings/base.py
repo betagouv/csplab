@@ -43,11 +43,11 @@ env = environ.Env(
     WEB_MATOMO_SITE_ID=(int, 1),
     WEB_QDRANT_URL=(str, ""),
     WEB_QDRANT_API_KEY=(str, ""),
-    # SCALINGO_REDIS_URL is injected by the Scalingo redis addon (e.g. review apps)
-    WEB_REDIS_URL=(str, os.environ.get("SCALINGO_REDIS_URL", "redis://localhost:6379")),
+    WEB_REDIS_URL=(str, "redis://localhost:6379"),
     WEB_REDIS_DB=(str, "0"),
     WEB_REDIS_CACHE_DB=(str, "2"),
     WEB_ROBOTS_INDEXING=(bool, True),
+    WEB_UI_THEME=(str, ""),
     WEB_S3_ENDPOINT_URL=(str, "http://localhost:9000"),
     WEB_S3_REGION_NAME=(str, "us-east-1"),
     WEB_S3_ACCESS_KEY_ID=(str, "rustfsadmin"),
@@ -180,13 +180,7 @@ WSGI_APPLICATION = "config.wsgi.application"
 
 
 # Database
-# SCALINGO_POSTGRESQL_URL is injected by the Scalingo postgresql addon (review apps)
-DATABASES = {
-    "default": env.db(
-        "DATABASE_URL",
-        default=os.environ.get("SCALINGO_POSTGRESQL_URL", env.NOTSET),
-    )
-}
+DATABASES = {"default": env.db("DATABASE_URL")}
 
 
 # Password validation
@@ -338,6 +332,13 @@ MATOMO_SITE_ID = env.int("MATOMO_SITE_ID")
 # ROBOTS
 # ---------------------------------------
 ROBOTS_INDEXING = env.bool("ROBOTS_INDEXING")
+
+# UI THEME
+# ---------------------------------------
+# Default interface theme, set outside production only: an id of UI_THEMES in
+# frontend/src/composables/ui/useUiTheme.ts.
+# Without it, the interface shows no theme and no theme choice.
+UI_THEME = env.str("UI_THEME")
 
 # CSP
 # ---------------------------------------

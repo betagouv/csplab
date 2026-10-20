@@ -106,6 +106,7 @@ const titleId = useId()
   min-height: 24rem;
   overflow: hidden;
   border: 1px solid var(--border-default-grey);
+  border-radius: var(--csp-surface-radius, 0);
   background: var(--background-default-grey);
 }
 
@@ -117,14 +118,15 @@ const titleId = useId()
   gap: var(--csp-space-2);
   min-height: 2.75rem;
   padding: var(--csp-space-1) var(--csp-space-2) var(--csp-space-1) var(--csp-space-4);
-  background: var(--background-alt-grey);
-  border-bottom: 1px solid var(--border-default-grey);
+  background: var(--csp-document-frame-header-background);
+  border-bottom: 1px solid var(--csp-divider-color);
 }
 
 .candidature-cv__title {
   margin: 0;
-  font-size: 0.875rem;
-  font-weight: 700;
+  font-size: var(--csp-text-group-title-size, 0.875rem);
+  font-weight: var(--csp-text-group-title-weight, 700);
+  line-height: var(--csp-text-group-title-line-height, inherit);
   color: var(--text-title-grey);
 }
 

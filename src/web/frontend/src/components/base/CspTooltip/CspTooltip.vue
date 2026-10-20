@@ -65,13 +65,13 @@ const isDisabled = computed(() => props.disabled || !props.content)
   z-index: var(--csp-z-tooltip);
   max-width: 16rem;
   padding: var(--csp-space-1) var(--csp-space-2);
-  border-radius: 0.25rem;
+  border-radius: var(--csp-overlap-radius, 0.25rem);
   background-color: var(--csp-tooltip-bg);
   color: var(--csp-tooltip-text);
   font-size: var(--csp-font-size-xs);
   font-weight: var(--csp-font-weight-medium);
   line-height: var(--csp-line-height-tight);
-  box-shadow: var(--csp-shadow-md);
+  box-shadow: var(--csp-overlap-shadow, var(--csp-shadow-md));
   outline: none;
   pointer-events: none;
   user-select: none;

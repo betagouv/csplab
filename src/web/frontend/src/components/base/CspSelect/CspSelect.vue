@@ -150,9 +150,9 @@ const model = defineModel<string>()
   appearance: none;
   background-color: var(--background-default-grey);
   color: var(--text-default-grey);
-  box-shadow: inset 0 0 0 1px var(--border-default-grey);
+  box-shadow: inset 0 0 0 1px var(--csp-field-border-color);
   border: none;
-  border-radius: 0.25rem;
+  border-radius: var(--csp-field-radius);
   font-size: var(--csp-select-font-size);
   line-height: 1.25;
   padding: var(--csp-select-padding-y) var(--csp-select-padding-x);
@@ -258,12 +258,20 @@ const model = defineModel<string>()
   width: var(--reka-select-trigger-width);
   max-height: var(--reka-select-content-available-height);
   background-color: var(--background-overlap-grey);
-  border-radius: 0.25rem;
+  border-radius: var(--csp-overlap-radius, 0.25rem);
   box-shadow:
     inset 0 0 0 1px var(--border-default-grey),
-    var(--csp-shadow-md);
+    var(--csp-overlap-shadow, var(--csp-shadow-md));
   overflow: hidden;
   z-index: var(--csp-z-dropdown);
+
+  &[data-state='open'] {
+    animation: var(--csp-motion-overlap-enter);
+  }
+
+  &[data-state='closed'] {
+    animation: var(--csp-motion-overlap-exit);
+  }
 }
 
 :deep(.csp-select-content__viewport) {
@@ -278,7 +286,7 @@ const model = defineModel<string>()
   padding: var(--csp-menu-item-padding);
   font-size: 0.875rem;
   line-height: 1.25;
-  border-radius: 0.125rem;
+  border-radius: var(--csp-menu-item-radius);
   cursor: pointer;
   outline: none;
   color: var(--text-default-grey);

@@ -179,6 +179,14 @@ const hasFooter = computed(() => Boolean(slots.footer))
   inset: 0;
   background-color: var(--csp-overlay-scrim);
   z-index: var(--csp-z-overlay);
+
+  &[data-state='open'] {
+    animation: var(--csp-motion-scrim-enter);
+  }
+
+  &[data-state='closed'] {
+    animation: var(--csp-motion-scrim-exit);
+  }
 }
 
 .csp-drawer {
@@ -193,19 +201,31 @@ const hasFooter = computed(() => Boolean(slots.footer))
   outline: none;
   background-color: var(--background-overlap-grey);
   color: var(--text-default-grey);
-  box-shadow: var(--csp-shadow-lg);
+  box-shadow: var(--csp-lifted-shadow);
   z-index: var(--csp-z-modal);
 
   display: flex;
   flex-direction: column;
+
+  &[data-state='open'] {
+    animation: var(--csp-motion-drawer-enter);
+  }
+
+  &[data-state='closed'] {
+    animation: var(--csp-motion-drawer-exit);
+  }
 }
 
 .csp-drawer--right {
+  --csp-drawer-offset: 100%;
+
   right: 0;
   border-left: 1px solid var(--border-default-grey);
 }
 
 .csp-drawer--left {
+  --csp-drawer-offset: -100%;
+
   left: 0;
   border-right: 1px solid var(--border-default-grey);
 }
@@ -257,7 +277,8 @@ const hasFooter = computed(() => Boolean(slots.footer))
   gap: var(--csp-space-4);
   padding-block: var(--csp-space-6);
   padding-inline: var(--csp-drawer-padding-inline, var(--csp-space-6));
-  border-bottom: 1px solid var(--border-default-grey);
+  border-bottom: 1px solid var(--csp-divider-color);
+  background: var(--csp-drawer-header-backdrop);
 }
 
 .csp-drawer__start {
@@ -305,9 +326,9 @@ const hasFooter = computed(() => Boolean(slots.footer))
 
 .csp-drawer__title {
   color: var(--text-title-grey);
-  font-size: 1.125rem;
-  font-weight: 700;
-  line-height: 1.25;
+  font-size: var(--csp-text-section-title-size, 1.125rem);
+  font-weight: var(--csp-text-section-title-weight, 700);
+  line-height: var(--csp-text-section-title-line-height, 1.25);
 }
 
 .csp-drawer__description {
@@ -329,7 +350,7 @@ const hasFooter = computed(() => Boolean(slots.footer))
 .csp-drawer__footer {
   padding-block: var(--csp-space-6);
   padding-inline: var(--csp-drawer-padding-inline, var(--csp-space-6));
-  border-top: 1px solid var(--border-default-grey);
+  border-top: 1px solid var(--csp-divider-color);
   display: flex;
   flex-wrap: wrap;
   justify-content: flex-end;

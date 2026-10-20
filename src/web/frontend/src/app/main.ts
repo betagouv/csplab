@@ -4,10 +4,13 @@ import { createHead } from '@unhead/vue/client'
 import { createPinia } from 'pinia'
 import { createApp } from 'vue'
 import { createRouter, createWebHistory } from 'vue-router'
+import { initUiTheme } from '@/composables/ui/useUiTheme'
 import { routes } from '@/router/routes'
 import App from './App.vue'
 import '@/app/icons'
 import '@/styles/index.css'
+
+initUiTheme()
 
 const router = createRouter({
   history: createWebHistory('/ats/'),

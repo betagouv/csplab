@@ -76,10 +76,18 @@ const { isDragging } = useDraggableKanbanCard({
 
 <style scoped lang="scss">
 .candidature-kanban-card {
+  --candidature-kanban-card-shadow-rest: var(--csp-raised-shadow, 0 1px 2px rgba(0, 0, 0, 0.06));
+  --candidature-kanban-card-shadow: var(--candidature-kanban-card-shadow-rest);
+  --candidature-kanban-card-border: var(--csp-raised-border-color);
+  --csp-card-bg: var(--csp-raised-background);
+
   box-shadow:
-    0 1px 2px rgb(0 0 0 / 6%),
-    inset 0 0 0 1px var(--border-default-grey);
+    var(--candidature-kanban-card-shadow),
+    inset 0 0 0 1px var(--candidature-kanban-card-border);
   cursor: grab;
+  transition:
+    background-color var(--csp-motion-duration-state),
+    box-shadow var(--csp-motion-duration-state);
 
   &:active {
     cursor: grabbing;
@@ -87,23 +95,29 @@ const { isDragging } = useDraggableKanbanCard({
 }
 
 .candidature-kanban-card:hover {
-  --csp-card-bg: var(--background-alt-grey);
+  --csp-card-bg: var(--csp-raised-background-hover, var(--background-alt-grey));
+  --candidature-kanban-card-shadow: var(--csp-raised-shadow-hover, var(--candidature-kanban-card-shadow-rest));
+  --candidature-kanban-card-border: var(--csp-raised-border-color-hover, var(--csp-raised-border-color));
 }
 
 /* inset: the scrolling column clips an outline drawn outside the card */
 .candidature-kanban-card:has(.candidature-kanban-card__link:focus-visible) {
-  outline: 2px solid var(--csp-focus-ring-color);
-  outline-offset: -2px;
+  outline: var(--csp-focus-ring-width) solid var(--csp-focus-ring-color);
+  outline-offset: calc(-1 * var(--csp-focus-ring-width));
 }
 
 .candidature-kanban-card--current {
+  --csp-card-bg: var(--csp-raised-background-current);
+
   box-shadow:
-    0 1px 2px rgb(0 0 0 / 6%),
-    inset 0 0 0 2px var(--border-plain-info);
+    var(--candidature-kanban-card-shadow),
+    inset 0 0 0 var(--csp-raised-border-width-current) var(--csp-raised-border-color-current);
 }
 
 .candidature-kanban-card--dragging {
-  opacity: 0.5;
+  --candidature-kanban-card-shadow: var(--csp-raised-shadow-drag, var(--candidature-kanban-card-shadow-rest));
+
+  opacity: var(--csp-raised-opacity-drag);
 }
 
 .candidature-kanban-card__link {
@@ -125,7 +139,9 @@ const { isDragging } = useDraggableKanbanCard({
   align-items: center;
   gap: var(--csp-space-1);
   margin: var(--csp-space-2) 0 0;
-  font-size: var(--csp-font-size-sm);
+  font-size: var(--csp-text-meta-size, var(--csp-font-size-sm));
+  line-height: var(--csp-text-meta-line-height, inherit);
+  font-weight: var(--csp-text-meta-weight, inherit);
   color: var(--text-mention-grey);
 }
 

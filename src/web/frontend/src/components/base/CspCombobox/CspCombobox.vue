@@ -213,9 +213,9 @@ const announcedStatus = useDebounce(statusMessage, 1000)
   appearance: none;
   background-color: var(--background-default-grey);
   color: var(--text-default-grey);
-  box-shadow: inset 0 0 0 1px var(--border-default-grey);
+  box-shadow: inset 0 0 0 1px var(--csp-field-border-color);
   border: none;
-  border-radius: 0.25rem;
+  border-radius: var(--csp-field-radius);
   font-size: 0.875rem;
   line-height: 1.25;
   padding: 0.625em 0.875em 0.625em 2.5em;
@@ -245,12 +245,20 @@ const announcedStatus = useDebounce(statusMessage, 1000)
   width: var(--reka-combobox-trigger-width);
   max-height: var(--reka-combobox-content-available-height, 20rem);
   background-color: var(--background-overlap-grey);
-  border-radius: 0.25rem;
+  border-radius: var(--csp-overlap-radius, 0.25rem);
   box-shadow:
     inset 0 0 0 1px var(--border-default-grey),
-    var(--csp-shadow-md);
+    var(--csp-overlap-shadow, var(--csp-shadow-md));
   overflow: hidden;
   z-index: var(--csp-z-dropdown);
+
+  &[data-state='open'] {
+    animation: var(--csp-motion-overlap-enter);
+  }
+
+  &[data-state='closed'] {
+    animation: var(--csp-motion-overlap-exit);
+  }
 }
 
 .csp-combobox-content__viewport {
@@ -270,7 +278,7 @@ const announcedStatus = useDebounce(statusMessage, 1000)
   padding: var(--csp-menu-item-padding);
   font-size: 0.875rem;
   line-height: 1.25;
-  border-radius: 0.125rem;
+  border-radius: var(--csp-menu-item-radius);
   cursor: pointer;
   outline: none;
   color: var(--text-default-grey);
@@ -302,6 +310,6 @@ const announcedStatus = useDebounce(statusMessage, 1000)
 .csp-combobox-content__separator {
   height: 1px;
   margin-block: var(--csp-menu-padding);
-  background-color: var(--border-default-grey);
+  background-color: var(--csp-divider-color);
 }
 </style>

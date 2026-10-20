@@ -1,0 +1,193 @@
+/* Values from the DSFR flavour of the La Suite numérique ui-kit (@gouvfr-lasuite/ui-tokens 3.2.0, ui-components 1.2.0), the one Docs ships */
+:root[data-csp-theme='lasuite'] {
+  --lasuite-gray-000: #fff;
+  --lasuite-gray-025: #f8f8f9;
+  --lasuite-gray-050: #f0f0f3;
+  --lasuite-gray-100: #dfe2ea;
+  --lasuite-gray-150: #cfd5de;
+  --lasuite-gray-250: #b2b9c7;
+  --lasuite-gray-400: #8891a4;
+  --lasuite-gray-450: #7b8498;
+  --lasuite-gray-500: #6d778c;
+  --lasuite-gray-600: #555e74;
+  --lasuite-gray-650: #4a5267;
+  --lasuite-gray-700: #3f4759;
+  --lasuite-gray-750: #363b4c;
+  --lasuite-gray-800: #2b303d;
+  --lasuite-gray-850: #222631;
+  --lasuite-gray-900: #181b24;
+  --lasuite-gray-950: #0f1117;
+  --lasuite-brand-050: #edf0ff;
+  --lasuite-brand-100: #dae2ff;
+  --lasuite-brand-150: #c8d3ff;
+  --lasuite-brand-200: #b5c4ff;
+  --lasuite-brand-250: #a2b6ff;
+  --lasuite-brand-300: #90a7ff;
+  --lasuite-brand-350: #7e98ff;
+  --lasuite-brand-550: #3e5de7;
+  --lasuite-brand-650: #2845c1;
+  --lasuite-brand-700: #223e9e;
+  --lasuite-brand-750: #1f367d;
+  --lasuite-brand-800: #1b2e5f;
+  --lasuite-brand-850: #172446;
+
+  /* Neutral surfaces, lines and text */
+  --background-default-grey: var(--lasuite-gray-000);
+  --background-default-grey-hover: var(--lasuite-gray-050);
+  --background-default-grey-active: var(--lasuite-gray-100);
+  --background-alt-grey: var(--lasuite-gray-025);
+  --background-alt-grey-hover: var(--lasuite-gray-050);
+  --background-alt-grey-active: var(--lasuite-gray-100);
+  --background-contrast-grey: var(--lasuite-gray-100);
+  --background-contrast-grey-hover: var(--lasuite-gray-150);
+  --background-contrast-grey-active: var(--lasuite-gray-250);
+  --background-overlap-grey: var(--lasuite-gray-000);
+  --background-overlap-grey-hover: var(--lasuite-gray-050);
+  --background-overlap-grey-active: var(--lasuite-gray-100);
+  --background-disabled-grey: var(--lasuite-gray-050);
+  --border-default-grey: var(--lasuite-gray-100);
+  --border-disabled-grey: var(--lasuite-gray-100);
+  --text-title-grey: var(--lasuite-gray-900);
+  --text-label-grey: var(--lasuite-gray-900);
+  --text-action-high-grey: var(--lasuite-gray-900);
+  --text-default-grey: var(--lasuite-gray-850);
+  --text-mention-grey: var(--lasuite-gray-600);
+  --text-disabled-grey: var(--lasuite-gray-400);
+
+  /* Actions take the brand blue of La Suite */
+  --background-action-high-blue-france: var(--lasuite-brand-550);
+  --background-action-high-blue-france-hover: var(--lasuite-brand-650);
+  --background-action-high-blue-france-active: var(--lasuite-brand-700);
+  --background-action-low-blue-france: var(--lasuite-brand-100);
+  --background-action-low-blue-france-hover: var(--lasuite-brand-150);
+  --background-action-low-blue-france-active: var(--lasuite-brand-200);
+  --background-contrast-blue-france: var(--lasuite-brand-050);
+  --background-contrast-blue-france-hover: var(--lasuite-brand-100);
+  --background-contrast-blue-france-active: var(--lasuite-brand-150);
+  --background-open-blue-france: var(--lasuite-brand-050);
+  --text-action-high-blue-france: var(--lasuite-brand-650);
+  --text-active-blue-france: var(--lasuite-brand-650);
+  --border-action-high-blue-france: var(--lasuite-brand-550);
+  --border-active-blue-france: var(--lasuite-brand-550);
+  --csp-focus-ring-color: var(--lasuite-brand-550);
+
+  /* Composition: white navigation and header with hairlines, cool grey work area, sunken columns, white cards */
+  --csp-canvas-background: var(--lasuite-gray-025);
+  --csp-nav-background: var(--lasuite-gray-000);
+  --csp-chrome-background: var(--lasuite-gray-000);
+  --csp-region-background: var(--lasuite-gray-050);
+  --csp-region-border-color: transparent;
+  --csp-region-background-drop: var(--lasuite-brand-050);
+  --csp-region-border-color-drop: var(--lasuite-brand-550);
+  --csp-region-border-width-drop: 2px;
+  --csp-raised-background: var(--lasuite-gray-000);
+  --csp-raised-background-hover: var(--lasuite-gray-000);
+  --csp-raised-background-current: var(--lasuite-brand-050);
+  --csp-raised-border-color-current: var(--lasuite-brand-550);
+  --csp-nav-background-current: var(--lasuite-gray-100);
+  --csp-nav-weight-current: var(--csp-font-weight-bold);
+  --csp-nav-marker-width-current: 0;
+  --csp-action-secondary-background: var(--lasuite-brand-100);
+  --csp-action-secondary-background-hover: var(--lasuite-brand-150);
+  --csp-action-secondary-background-active: var(--lasuite-brand-200);
+  --csp-action-secondary-border-color: transparent;
+  --csp-action-secondary-background-disabled: var(--lasuite-gray-050);
+  --csp-action-secondary-border-color-disabled: transparent;
+  --csp-control-border-color: var(--lasuite-gray-150);
+  --csp-field-border-color: var(--lasuite-gray-450);
+
+  /* Shadows: modal of the ui-kit, dropdown of Docs and Drive, raised control of Messages */
+  --csp-overlap-shadow: 0 0 6px 0 rgba(0, 0, 145, 0.1);
+  --csp-lifted-shadow: 0 6px 20px 0 rgba(0, 0, 18, 0.1);
+  --csp-raised-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  --csp-raised-shadow-hover: 0 0 6px 0 rgba(0, 0, 145, 0.1), 0 4px 12px rgba(0, 0, 18, 0.08);
+  --csp-raised-shadow-drag: none;
+  --csp-overlay-scrim: rgba(0, 0, 0, 0.6);
+
+  /* Radii: 4px for controls, 8px for cards, groups and floating layers */
+  --csp-action-radius: 0.25rem;
+  --csp-surface-radius: 0.5rem;
+  --csp-overlap-radius: 0.5rem;
+  --csp-region-radius: 0.5rem;
+}
+
+:root[data-csp-theme='lasuite'][data-fr-theme='dark'] {
+  --background-default-grey: var(--lasuite-gray-850);
+  --background-default-grey-hover: var(--lasuite-gray-750);
+  --background-default-grey-active: var(--lasuite-gray-700);
+  --background-alt-grey: var(--lasuite-gray-900);
+  --background-alt-grey-hover: var(--lasuite-gray-800);
+  --background-alt-grey-active: var(--lasuite-gray-750);
+  --background-contrast-grey: var(--lasuite-gray-750);
+  --background-contrast-grey-hover: var(--lasuite-gray-700);
+  --background-contrast-grey-active: var(--lasuite-gray-650);
+  --background-overlap-grey: var(--lasuite-gray-800);
+  --background-overlap-grey-hover: var(--lasuite-gray-750);
+  --background-overlap-grey-active: var(--lasuite-gray-700);
+  --background-disabled-grey: var(--lasuite-gray-750);
+  --border-default-grey: var(--lasuite-gray-750);
+  --border-disabled-grey: var(--lasuite-gray-800);
+  --text-title-grey: var(--lasuite-gray-050);
+  --text-label-grey: var(--lasuite-gray-050);
+  --text-action-high-grey: var(--lasuite-gray-050);
+  --text-default-grey: var(--lasuite-gray-100);
+  --text-mention-grey: var(--lasuite-gray-250);
+  --text-disabled-grey: var(--lasuite-gray-500);
+
+  /* Light brand fill with dark text: the inverted text of the kit stays dark in this mode */
+  --background-action-high-blue-france: var(--lasuite-brand-300);
+  --background-action-high-blue-france-hover: var(--lasuite-brand-250);
+  --background-action-high-blue-france-active: var(--lasuite-brand-200);
+  --background-action-low-blue-france: var(--lasuite-brand-800);
+  --background-action-low-blue-france-hover: var(--lasuite-brand-750);
+  --background-action-low-blue-france-active: var(--lasuite-brand-700);
+  --background-contrast-blue-france: var(--lasuite-brand-850);
+  --background-contrast-blue-france-hover: var(--lasuite-brand-800);
+  --background-contrast-blue-france-active: var(--lasuite-brand-750);
+  --background-open-blue-france: var(--lasuite-brand-850);
+  --text-action-high-blue-france: var(--lasuite-brand-300);
+  --text-active-blue-france: var(--lasuite-brand-300);
+  --text-inverted-blue-france: var(--lasuite-gray-950);
+  --border-action-high-blue-france: var(--lasuite-brand-350);
+  --border-active-blue-france: var(--lasuite-brand-350);
+  --csp-focus-ring-color: var(--lasuite-brand-350);
+
+  --csp-canvas-background: var(--lasuite-gray-900);
+  --csp-nav-background: var(--lasuite-gray-850);
+  --csp-chrome-background: var(--lasuite-gray-850);
+  --csp-region-background: var(--lasuite-gray-950);
+  --csp-region-background-drop: var(--lasuite-brand-850);
+  --csp-region-border-color-drop: var(--lasuite-brand-350);
+  --csp-raised-background: var(--lasuite-gray-800);
+  --csp-raised-background-hover: var(--lasuite-gray-750);
+  --csp-raised-background-current: var(--lasuite-brand-850);
+  --csp-raised-border-color-current: var(--lasuite-brand-350);
+  --csp-nav-background-current: var(--lasuite-gray-750);
+  --csp-action-secondary-background-disabled: var(--lasuite-gray-800);
+  --csp-control-border-color: var(--lasuite-gray-700);
+  --csp-action-secondary-background: var(--lasuite-brand-800);
+  --csp-action-secondary-background-hover: var(--lasuite-brand-750);
+  --csp-action-secondary-background-active: var(--lasuite-brand-700);
+
+  --csp-overlap-shadow: 0 0 6px 0 rgba(0, 0, 0, 0.5);
+  --csp-lifted-shadow: 0 6px 20px 0 rgba(0, 0, 0, 0.5);
+  --csp-raised-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  --csp-raised-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+
+/* Motion: 250 ms with the ease-out cubic of the ui-kit, 200 ms for menus and the scrim */
+@media (prefers-reduced-motion: no-preference) {
+  :root[data-csp-theme='lasuite'] {
+    --lasuite-easing-enter: cubic-bezier(0.33, 1, 0.68, 1);
+    --lasuite-easing-exit: cubic-bezier(0.32, 0, 0.67, 0);
+    --csp-motion-duration-state: 150ms;
+    --csp-motion-drawer-enter: csp-drawer-enter 250ms var(--lasuite-easing-enter);
+    --csp-motion-drawer-exit: csp-drawer-exit 200ms var(--lasuite-easing-exit);
+    --csp-motion-dialog-enter: csp-dialog-enter 250ms var(--lasuite-easing-enter);
+    --csp-motion-dialog-exit: csp-dialog-exit 150ms var(--lasuite-easing-exit);
+    --csp-motion-overlap-enter: csp-overlap-enter 200ms var(--lasuite-easing-enter);
+    --csp-motion-overlap-exit: csp-fade-out 150ms var(--lasuite-easing-exit);
+    --csp-motion-scrim-enter: csp-fade-in 200ms var(--lasuite-easing-enter);
+    --csp-motion-scrim-exit: csp-fade-out 150ms var(--lasuite-easing-exit);
+  }
+}
