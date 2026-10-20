@@ -3,9 +3,7 @@ import type { LevierOption } from '../options'
 import { keepTheme } from '../../keepTheme'
 import CadrageGrille from '../CadrageGrille.vue'
 import { ONGLETS_ALIGNES } from './onglets-alignes'
-import { ONGLETS_DSFR } from './onglets-dsfr'
 import { SANS_FILET } from './sans-filet'
-import { SURFACE_CONTENU } from './surface-contenu'
 
 const meta = {
   title: 'Prototypes/Leviers/Chrome/Comparaison',
@@ -26,17 +24,13 @@ function ecran(fichier: string, options: LevierOption[], id: string): { story: s
 const ECRANS = [
   ecran('onglets-alignes', ONGLETS_ALIGNES, 'kit'),
   ecran('onglets-alignes', ONGLETS_ALIGNES, 'onglets-alignes'),
-  ecran('onglets-du-dsfr', ONGLETS_DSFR, 'cadre-fond-blanc'),
-  ecran('onglets-du-dsfr', ONGLETS_DSFR, 'cadre-fond-gris'),
-  ecran('onglets-du-dsfr', ONGLETS_DSFR, 'filet-contenu'),
-  ecran('contenu-posé-sur-la-page', SURFACE_CONTENU, 'onglet-ouvert'),
-  ecran('contenu-posé-sur-la-page', SURFACE_CONTENU, 'colonne-surface'),
   ecran('sans-filet', SANS_FILET, 'sans-filet'),
 ]
 
 // Top left corner of the kanban, in a 1280 x 800 window: the edge of the sidebar, the title row and the line under the
-// page header, the tabs, the toolbar and the top of the first column
-const COIN_DU_KANBAN = { x: 243, y: 60, width: 290, height: 298 }
+// page header, the tabs, the toolbar and the top of the first column. Three parts enlarged 1.35 times fill a 1280 x 720
+// slide
+const COIN_DU_KANBAN = { x: 243, y: 60, width: 290, height: 380 }
 
 const coin: Story = {
   render: () => ({
@@ -45,8 +39,8 @@ const coin: Story = {
     template: `<CadrageGrille
       :ecrans="ECRANS"
       :cadre="COIN_DU_KANBAN"
-      :echelle="1"
-      :colonnes="4"
+      :echelle="1.35"
+      :colonnes="3"
       :largeur="1280"
       :hauteur="800"
     />`,

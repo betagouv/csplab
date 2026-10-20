@@ -1,38 +1,19 @@
 /*
- * The DSFR and its tokens: its tab component, its pictograms, its palette, its shadows and its 300 ms transition. The
- * radii follow the 4 px of its fields, and the layers that rise take two soft layers in the colour of its shadows.
+ * The DSFR and its tokens: its tab component in the candidature panel, its pictograms, its palette, its shadows and its
+ * 300 ms transition. The radii follow the 4 px of its fields, and the layers that rise take two soft layers in the
+ * colour of its shadows.
  */
 :root[data-csp-theme='dsfr'] {
-  /* Tabs of the DSFR: framed triggers on the low blue France background, the current one on the page background with a
-     2 px top line, 1 rem bold labels, 0.5 rem between triggers and a focus ring outside the trigger */
-  --csp-tabs-framed: 1;
-  --csp-tabs-gap: var(--csp-space-2);
-  --csp-tabs-focus-offset: 2px;
-  --csp-tabs-underline-width: 0px;
-  --csp-tabs-overline-width: 2px;
-  --csp-tabs-trigger-padding-block: var(--csp-space-2);
-  --csp-tabs-trigger-size: var(--csp-font-size-md);
-  --csp-tabs-trigger-line-height: 1.5rem;
-  --csp-tabs-trigger-weight: var(--csp-font-weight-bold);
-  --csp-tabs-trigger-background: var(--background-action-low-blue-france);
-  --csp-tabs-trigger-background-hover: var(--background-action-low-blue-france-hover);
-  --csp-tabs-trigger-background-active: var(--background-action-low-blue-france-active);
-  --csp-tabs-trigger-background-current: var(--background-default-grey);
-  --csp-tabs-trigger-background-disabled: var(--background-disabled-grey);
-  /* colour and opacity of the shadow that the script of the DSFR draws on an overflowing tab list */
-  --csp-tabs-overflow-shadow-color: rgb(22 22 22 / 80%);
-  --csp-tabs-trigger-border-bottom-color-current-forced: Canvas;
-  --csp-tabs-trigger-color-current-forced: Highlight;
-
-  /* The tab panel stays open: from md, the line under the tabs runs from the first tab to the same distance from the
-     right edge, and the content keeps the column of the title with the 2 rem padding of the DSFR panel above it */
-  --csp-page-container-frame-closed: 0;
+  /* Tabs of the page: the tabs of the kit, aligned. From md, the line under the tabs, the line under the title of a page
+     without tabs and the top line of a table toolbar run from the first tab to the same distance from the right edge; a
+     header followed by tabs has no line of its own, and the content keeps the column of the title */
   --csp-page-container-frame-margin-inline: calc(var(--csp-page-container-padding-inline) - var(--csp-space-4));
-  --csp-page-container-frame-margin-bottom: 0px;
-  --csp-page-container-frame-padding: var(--csp-space-8);
   --csp-page-container-frame-padding-inline: var(--csp-space-4);
+  --csp-page-header-border-width-tabs: 0px;
+  --csp-page-header-border-inset: calc(var(--csp-page-container-padding-inline) - var(--csp-space-4));
   --csp-table-toolbar-border-outset: var(--csp-space-4);
-  --csp-kanban-scroll-to-edge: 1;
+  /* forced colours: only the current tab keeps its bottom border */
+  --csp-tabs-trigger-border-bottom-color-forced: Canvas;
   /* on a phone the title of the panel keeps the width of the screen, and its actions go under it */
   --csp-drawer-actions-row-narrow: 1;
 
@@ -106,9 +87,37 @@
   --csp-page-header-pictogram-decorative-color-highlighted: var(--border-default-blue-france);
 }
 
+/* Tabs of the candidature panel, those of the DSFR: framed triggers on the low blue France background, the current one
+   on the page background with a 2 px top line, 1 rem bold labels, 0.5 rem between triggers and a focus ring outside
+   the trigger */
+:root[data-csp-theme='dsfr'] .csp-drawer.candidature-panel {
+  --csp-tabs-framed: 1;
+  --csp-tabs-gap: var(--csp-space-2);
+  --csp-tabs-focus-offset: 2px;
+  --csp-tabs-underline-width: 0px;
+  --csp-tabs-overline-width: 2px;
+  --csp-tabs-trigger-padding-block: var(--csp-space-2);
+  --csp-tabs-trigger-size: var(--csp-font-size-md);
+  --csp-tabs-trigger-line-height: 1.5rem;
+  --csp-tabs-trigger-weight: var(--csp-font-weight-bold);
+  --csp-tabs-trigger-background: var(--background-action-low-blue-france);
+  --csp-tabs-trigger-background-hover: var(--background-action-low-blue-france-hover);
+  --csp-tabs-trigger-background-active: var(--background-action-low-blue-france-active);
+  --csp-tabs-trigger-background-current: var(--background-default-grey);
+  --csp-tabs-trigger-background-disabled: var(--background-disabled-grey);
+  /* colour and opacity of the shadow that the script of the DSFR draws on an overflowing tab list */
+  --csp-tabs-overflow-shadow-color: rgb(22 22 22 / 80%);
+  --csp-tabs-trigger-border-bottom-color-current-forced: Canvas;
+  --csp-tabs-trigger-color-current-forced: Highlight;
+  --csp-tabs-trigger-border-bottom-color-forced: CanvasText;
+}
+
+:root[data-csp-theme='dsfr'][data-fr-theme='dark'] .csp-drawer.candidature-panel {
+  --csp-tabs-overflow-shadow-color: #161616;
+}
+
 /* In dark mode a shadow barely shows: a higher layer is a lighter grey, as in the DSFR */
 :root[data-csp-theme='dsfr'][data-fr-theme='dark'] {
-  --csp-tabs-overflow-shadow-color: #161616;
   --csp-raised-background: var(--background-overlap-grey);
   --csp-raised-background-hover: var(--background-overlap-grey-hover);
   --csp-raised-border-color: var(--border-default-grey);
