@@ -16,7 +16,7 @@ const ETATS: { etat: OmbresEtat, legende: string }[] = [
 <template>
   <div class="ombres-etats">
     <div
-      v-for="({ etat, legende }, index) in ETATS"
+      v-for="{ etat, legende } in ETATS"
       :key="etat"
       class="ombres-etats__etat"
     >
@@ -24,7 +24,6 @@ const ETATS: { etat: OmbresEtat, legende: string }[] = [
       <OmbresCarte
         :etat="etat"
         :candidature="CANDIDATURE"
-        :card-index="index"
       />
     </div>
   </div>

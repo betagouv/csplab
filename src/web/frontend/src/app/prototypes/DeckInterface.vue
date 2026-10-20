@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { storyFrameSrc } from './storyFrame'
 
 export type DeckInterfacePlanche = 'ecran'
 
@@ -27,18 +28,8 @@ const props = withDefaults(defineProps<{
   cadre: undefined,
 })
 
-// The framed screen takes the globals of this story, which the preview decorator writes on the root element
-function currentGlobals(): string {
-  const root = document.documentElement
-  return [
-    `interfaceTheme:${root.getAttribute('data-csp-theme') ?? 'kit'}`,
-    `theme:${root.getAttribute('data-fr-theme') ?? 'light'}`,
-    `density:${root.getAttribute('data-csp-density') ?? 'compact'}`,
-    `etiquettes:${root.getAttribute('data-csp-etiquettes') ?? 'repli'}`,
-  ].join(';')
-}
-
-const ecranSrc = `${window.location.pathname}?id=${encodeURIComponent(props.ecran)}&viewMode=story&globals=${currentGlobals()}`
+// The framed screen takes the globals of this story
+const ecranSrc = storyFrameSrc(props.ecran)
 
 const racine = ref<HTMLElement | null>(null)
 const taille = ref({ width: 0, height: 0 })

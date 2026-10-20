@@ -7,7 +7,6 @@ export type OmbresEtat = 'repos' | 'survol' | 'focus' | 'glisser' | 'depose'
 defineProps<{
   etat: OmbresEtat
   candidature: Candidature
-  cardIndex: number
 }>()
 </script>
 
@@ -17,7 +16,6 @@ defineProps<{
       :candidature="candidature"
       board-id="ombres"
       column-id="ombres"
-      :card-index="cardIndex"
     />
   </div>
 </template>

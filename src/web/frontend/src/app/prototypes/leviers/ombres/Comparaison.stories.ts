@@ -3,6 +3,8 @@ import type { DeckInterfaceCadre } from '../../DeckInterface.vue'
 import { keepTheme } from '../../keepTheme'
 import CadrageGrille from '../CadrageGrille.vue'
 import { RECRUTEMENT_PATH } from './ecrans'
+import OmbresBanc from './OmbresBanc.vue'
+import OmbresCartes from './OmbresCartes.vue'
 import OmbresComparaison from './OmbresComparaison.vue'
 import { OMBRES } from './pistes'
 
@@ -33,10 +35,39 @@ export const CartesSombre: Story = { ...cartes, name: 'Carte du kanban, sombre',
 // Story files of the options, in the order of OMBRES
 const FICHIERS = ['kit-actuel', 'a-plat', 'dsfr', 'douces']
 
+function storyId(index: number, ecran: string): string {
+  return `prototypes-leviers-ombres-${FICHIERS[index]}--${ecran}`
+}
+
+// The screen with its shadows switched in place, so that one can hover and drag a card, open the menu of the job offer
+// or a candidature, and compare the options on the open layer
+const banc: Story = {
+  render: () => ({
+    components: { OmbresBanc },
+    setup: () => ({ OMBRES, ecran: storyId(0, 'kanban') }),
+    template: '<OmbresBanc :options="OMBRES" :ecran="ecran" />',
+  }),
+}
+
+export const Banc: Story = { ...banc, name: 'Écran à manipuler' }
+export const BancSombre: Story = { ...banc, name: 'Écran à manipuler, sombre', globals: SOMBRE }
+
+// Live cards of each option, to hover, focus and drag
+const cartesVivantes: Story = {
+  render: () => ({
+    components: { OmbresCartes },
+    setup: () => ({ OMBRES }),
+    template: '<OmbresCartes :options="OMBRES" />',
+  }),
+}
+
+export const CartesVivantes: Story = { ...cartesVivantes, name: 'Cartes à survoler' }
+export const CartesVivantesSombre: Story = { ...cartesVivantes, name: 'Cartes à survoler, sombre', globals: SOMBRE }
+
 // The same part of one screen story of each option, in a 1440 x 900 window
 function grille(ecran: string, cadre: DeckInterfaceCadre, echelle: number): Story {
   const ecrans = OMBRES.map((option, index) => ({
-    story: `prototypes-leviers-ombres-${FICHIERS[index]}--${ecran}`,
+    story: storyId(index, ecran),
     legende: option.nom,
   }))
   return {

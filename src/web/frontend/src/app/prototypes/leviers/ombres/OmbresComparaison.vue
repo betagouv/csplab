@@ -4,6 +4,7 @@ import type { OmbresEtat } from './OmbresCarte.vue'
 import { demoKanban } from '@/features/candidatures/__mocks__/demo'
 import { valeursOf } from '../options'
 import OmbresCarte from './OmbresCarte.vue'
+import OmbresLoupe from './OmbresLoupe.vue'
 
 defineProps<{
   options: LevierOption[]
@@ -40,23 +41,12 @@ const theme = document.documentElement.getAttribute('data-fr-theme') ?? 'light'
         :style="valeursOf(option, theme)"
       >
         <OmbresCarte
-          v-for="({ etat }, index) in ETATS"
+          v-for="{ etat } in ETATS"
           :key="etat"
           :etat="etat"
           :candidature="CANDIDATURE"
-          :card-index="index"
         />
-        <div
-          class="ombres-comparaison__loupe"
-          aria-hidden="true"
-        >
-          <OmbresCarte
-            class="ombres-comparaison__carte-agrandie"
-            etat="repos"
-            :candidature="CANDIDATURE"
-            :card-index="ETATS.length"
-          />
-        </div>
+        <OmbresLoupe :candidature="CANDIDATURE" />
       </div>
     </template>
   </div>
@@ -82,28 +72,6 @@ const theme = document.documentElement.getAttribute('data-fr-theme') ?? 'light'
   grid-template-columns: subgrid;
   grid-column: span 4;
   align-items: center;
-}
-
-/* The bottom right corner of the card at rest, four times larger, on the background of the column with room for the
-   shadow: the card keeps its width, and its content stays hidden */
-.ombres-comparaison__loupe {
-  position: relative;
-  height: 7rem;
-  overflow: hidden;
-  box-shadow: 0 0 0 1px var(--border-default-grey);
-}
-
-.ombres-comparaison__carte-agrandie {
-  position: absolute;
-  right: var(--csp-space-8);
-  bottom: var(--csp-space-8);
-  width: 14rem;
-  transform: scale(4);
-  transform-origin: bottom right;
-}
-
-.ombres-comparaison__carte-agrandie :deep(.candidature-kanban-card > *) {
-  visibility: hidden;
 }
 
 .ombres-comparaison__legende {
