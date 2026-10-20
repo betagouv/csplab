@@ -129,6 +129,24 @@ def test_revoked_organisme_is_not_in_organisme_roles(authenticated_client, test_
     ]
 
 
+def test_supprime_organisme_is_not_in_organisme_roles(authenticated_client, test_user):
+    agent, organisme_actif = create_organisme_with_agent(
+        role=AgentOrganismeRole.AGENT, utilisateur=test_user
+    )
+    OrganismeAgentDjangoFactory(
+        organisme=OrganismeDjangoFactory(supprime_le=timezone.now()),
+        agent=agent,
+        role=AgentOrganismeRole.SUPERVISEUR.value,
+    )
+
+    response = authenticated_client.get(URL)
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()["organisme_roles"] == [
+        _role(organisme_actif, AgentOrganismeRole.AGENT)
+    ]
+
+
 def test_returns_staff_flag(authenticated_client, test_user):
     test_user.is_staff = True
     test_user.save()

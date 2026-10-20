@@ -164,7 +164,9 @@ class OrganismeAgentQuerySet(models.QuerySet):
         return self.filter(date_revocation__isnull=True)
 
     def by_agent(self, agent_id) -> "OrganismeAgentQuerySet":
-        return self.active().filter(agent_id=agent_id)
+        return self.active().filter(
+            agent_id=agent_id, organisme__supprime_le__isnull=True
+        )
 
     def with_organisme(self) -> "OrganismeAgentQuerySet":
         return self.select_related("organisme")
