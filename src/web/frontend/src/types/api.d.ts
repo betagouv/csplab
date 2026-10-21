@@ -967,16 +967,16 @@ export interface components {
             results: components["schemas"]["AuditLog"][];
         };
         PaginatedCandidatureListeList: {
-            /** @example 1 */
+            /** @example 123 */
             count: number;
             /**
              * Format: uri
-             * @example null
+             * @example http://api.example.org/accounts/?page=4
              */
             next?: string | null;
             /**
              * Format: uri
-             * @example null
+             * @example http://api.example.org/accounts/?page=2
              */
             previous?: string | null;
             results: components["schemas"]["CandidatureListe"][];

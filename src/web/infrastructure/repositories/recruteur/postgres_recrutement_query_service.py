@@ -7,9 +7,7 @@ from django.db.models import Count, Max, Prefetch, Q
 from application.recruteur.dtos.recrutement_read_models import (
     CandidatDto,
     CandidatureKanbanDto,
-    CandidatureListeReadModel,
     CandidaturesCompteurDto,
-    EtapeDto,
     EtapeKanbanReadModel,
     RecrutementActifsReadModel,
     RecrutementArchivesReadModel,
@@ -171,42 +169,6 @@ class PostgresRecrutementQueryService(IRecrutementQueryService):
                 responsables=responsables,
                 finalise=finalise,
                 recrute=recrute,
-            )
-
-        return QuerySetPage(qs, mapper=_mapper)
-
-    def get_candidatures_by_recrutement(
-        self, organisme_id: UUID, recrutement_id: UUID
-    ) -> QuerySetPage[CandidatureListeReadModel] | None:
-        if not RecrutementModel.objects.filter(
-            pk=recrutement_id, organisme_id=organisme_id
-        ).exists():
-            return None
-
-        qs = (
-            CandidatureModel.objects.filter(etape__recrutement_id=recrutement_id)
-            .select_related("candidat__utilisateur", "etape")
-            .order_by("etape__updated_at", "created_at")
-        )
-
-        def _mapper(candidature: CandidatureModel) -> CandidatureListeReadModel:
-            return CandidatureListeReadModel(
-                uuid=candidature.id,
-                date_soumission=candidature.created_at,
-                date_derniere_activite=candidature.updated_by_recruteur
-                or candidature.updated_at,
-                candidat=CandidatDto(
-                    uuid=candidature.candidat_id,
-                    nom=candidature.candidat.utilisateur.last_name,
-                    prenom=candidature.candidat.utilisateur.first_name,
-                ),
-                etape=EtapeDto(
-                    etape_uuid=candidature.etape.id,
-                    nom=candidature.etape.nom,
-                    categorie=CategorieEtapeRecrutement(
-                        candidature.etape.categorie
-                    ).name,
-                ),
             )
 
         return QuerySetPage(qs, mapper=_mapper)
