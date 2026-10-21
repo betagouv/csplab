@@ -6,6 +6,34 @@ champs et de leurs règles se trouve dans le [guide de l'API](/pages/guide_api).
 
 Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/).
 
+## 2026-10-20
+
+### ⚠️ Changements non rétrocompatibles
+
+`POST /api/v1/offres/creer_modifier` : une offre dont un champ du bloc `description`
+contient une balise HTML ou un lien autre que `http`, `https` ou `mailto` est
+désormais rejetée. Elle apparaît dans `errors`, avec un message qui cite l'élément
+refusé. Jusqu'ici, ce texte était accepté tel quel.
+
+### Modifié
+
+- `POST /api/v1/offres/creer_modifier` : les six champs du bloc `description`
+  (`mission`, `profil`, `employeur`, `complements`, `conditions_exercice`,
+  `descriptif_service`) acceptent du Markdown (CommonMark), pour conserver la mise en
+  forme des offres (gras, listes, liens). Le détail se trouve dans le
+  [guide de l'API](/pages/guide_api).
+- `GET /api/v1/offres/sources/{source_id}` : ces mêmes champs sont renvoyés en
+  Markdown, tels qu'ils ont été transmis.
+- `GET /api/fake-ts/offers/getoffer` : `description1`, `description2` et les
+  `longTextN` correspondants contiennent ce Markdown. Les variantes `Formatted`
+  restent à `null`.
+
+### Compatibilité
+
+En dehors du rejet du HTML et des liens non autorisés, un texte brut reste un
+Markdown valide. Seuls quelques caractères (`*`, `_`, `#`, `1.` en début de ligne)
+sont désormais interprétés comme de la mise en forme.
+
 ## 2026-10-19
 
 ### Ajouté

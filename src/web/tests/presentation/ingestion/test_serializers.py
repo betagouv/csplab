@@ -1,5 +1,7 @@
 from unittest.mock import MagicMock
 
+import pytest
+
 from infrastructure.factories.ingestion.offer_payload_factory import PayloadOfferFactory
 from presentation.ingestion.serializers import (
     DescriptionInputSerializer,
@@ -55,6 +57,48 @@ def test_description_input_serializer_new_fields_are_optional():
     assert serializer.is_valid(), serializer.errors
     assert "conditions_exercice" not in serializer.validated_data
     assert "descriptif_service" not in serializer.validated_data
+
+
+@pytest.mark.parametrize(
+    "field,limit",
+    [
+        ("mission", 10000),
+        ("profil", 10000),
+        ("employeur", 3000),
+        ("complements", 5000),
+        ("conditions_exercice", 10000),
+        ("descriptif_service", 10000),
+    ],
+)
+def test_description_input_serializer_counts_markdown_syntax_in_the_limit(field, limit):
+    base = {"mission": "", "profil": "", "employeur": "", "complements": ""}
+    at_limit = "**gras**" + "a" * (limit - len("**gras**"))
+
+    assert DescriptionInputSerializer(data={**base, field: at_limit}).is_valid()
+
+    serializer = DescriptionInputSerializer(data={**base, field: at_limit + "a"})
+    assert not serializer.is_valid()
+    assert field in serializer.errors
+
+
+@pytest.mark.parametrize(
+    "field",
+    [
+        "mission",
+        "profil",
+        "employeur",
+        "complements",
+        "conditions_exercice",
+        "descriptif_service",
+    ],
+)
+def test_description_input_serializer_rejects_html(field):
+    base = {"mission": "", "profil": "", "employeur": "", "complements": ""}
+
+    serializer = DescriptionInputSerializer(data={**base, field: "<b>gras</b>"})
+
+    assert not serializer.is_valid()
+    assert field in serializer.errors
 
 
 def test_profession_input_serializer_defaults_referentiel_to_rmfpv2():

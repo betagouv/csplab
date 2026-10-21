@@ -16,6 +16,7 @@ from application.ingestion.services.get_source import get_source
 from application.ingestion.services.list_offers_by_source import list_offers_by_source
 from application.ingestion.services.list_sources import list_sources
 from config.logger_names import LoggerName
+from presentation.commons.markdown import render_markdown
 from presentation.fret.offre_rows import offre_rows
 
 logger = logging.getLogger(LoggerName.INGESTION.value)
@@ -131,6 +132,8 @@ class OffreDetailView(FretEnabledMixin, DetailView):
         offre = context["offre"]
         context.update(
             source=offre.source,
+            mission=render_markdown(offre.mission, top_heading_level=3),
+            profile=render_markdown(offre.profile, top_heading_level=3),
             breadcrumb_data={
                 "links": [
                     {"url": reverse("fret:sources"), "title": "Sources"},

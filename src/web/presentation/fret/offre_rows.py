@@ -23,6 +23,7 @@ from referentiel.value_objects.offer_nature import OfferNature
 from referentiel.value_objects.verse import Verse
 
 from infrastructure.django_apps.referentiel.models.offer import OfferModel
+from presentation.commons.markdown import render_markdown
 
 _LABELS = {
     "reference": "Référence",
@@ -66,6 +67,7 @@ _LABELS = {
     "updated_at": "Mise à jour le",
 }
 _HIDDEN = {"id", "source", "mission", "profile"}
+_MARKDOWN = {"employer", "exercise_conditions", "service_description", "complements"}
 _ENUM_LABELS = {
     "verse": lambda value: Verse(value).label,
     "category": lambda value: Category(value).label,
@@ -101,6 +103,8 @@ def _format(field: models.Field, value: Any) -> SafeString:
         )
     if field.name == "contacts" and isinstance(value, list):
         return _contacts(value)
+    if field.name in _MARKDOWN:
+        return render_markdown(value, top_heading_level=2)
     if isinstance(value, dict | list):
         dumped = json.dumps(value, ensure_ascii=False, indent=2)
         return format_html("<pre>{}</pre>", dumped)
