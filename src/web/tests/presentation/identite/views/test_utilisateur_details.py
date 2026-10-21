@@ -262,12 +262,48 @@ def test_responsable_agent_gets_search_and_create_agent_in_its_organisme_only(
     assert "create_agent" not in actions_by_uuid[str(other_organisme.id)]
 
 
+@pytest.mark.parametrize(
+    ("role", "revoquee"),
+    [
+        (AgentRecrutementRole.RECRUTEUR, False),
+        (AgentRecrutementRole.CONTRIBUTEUR, False),
+        (AgentRecrutementRole.RESPONSABLE, True),
+    ],
+    ids=["recruteur", "contributeur", "responsable_revoque"],
+)
+def test_agent_not_responsable_of_a_recrutement_gets_no_agent_management_actions(
+    authenticated_client, test_user, role, revoquee
+):
+    agent, organisme = create_organisme_with_agent(
+        role=AgentOrganismeRole.AGENT, utilisateur=test_user
+    )
+    RecrutementAgentDjangoFactory(
+        recrutement=RecrutementDjangoFactory(organisme=organisme),
+        agent=agent,
+        role=role.value,
+        date_revocation=timezone.now() if revoquee else None,
+    )
+
+    response = authenticated_client.get(URL)
+
+    assert response.json()["organismes"][0]["authorized_actions"] == [
+        "lister_mes_recrutements",
+        "get_motifs_refus",
+    ]
+
+
 def test_does_not_query_organisme_per_role(
     authenticated_client, test_user, django_assert_num_queries
 ):
     agent, organisme = create_organisme_with_agent(utilisateur=test_user)
     other_organisme = OrganismeDjangoFactory()
     OrganismeAgentDjangoFactory(organisme=other_organisme, agent=agent)
+    for responsable_de in (organisme, other_organisme):
+        RecrutementAgentDjangoFactory(
+            recrutement=RecrutementDjangoFactory(organisme=responsable_de),
+            agent=agent,
+            role=AgentRecrutementRole.RESPONSABLE.value,
+        )
 
     with django_assert_num_queries(NOMBRE_REQUETES_ATTENDU):
         response = authenticated_client.get(URL)
