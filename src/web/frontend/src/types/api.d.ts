@@ -4346,9 +4346,9 @@ export interface operations {
     recruteur_organismes_recrutements_liste_list: {
         parameters: {
             query?: {
-                /** @description Un numéro de page de l'ensemble des résultats. */
+                /** @description Numéro de la page. */
                 page?: number;
-                /** @description Nombre de résultats à retourner par page. */
+                /** @description Nombre d'éléments par page. */
                 taille?: number;
             };
             header?: never;

@@ -27,6 +27,30 @@ def _bounded_int(
     return value
 
 
+def _page_taille_parameters(page_size: int | None, max_page_size: int) -> list[dict]:
+    return [
+        {
+            "name": "page",
+            "required": False,
+            "in": "query",
+            "description": "Numéro de la page.",
+            "schema": {"type": "integer", "default": 1, "minimum": 1},
+        },
+        {
+            "name": "taille",
+            "required": False,
+            "in": "query",
+            "description": "Nombre d'éléments par page.",
+            "schema": {
+                "type": "integer",
+                "default": page_size,
+                "minimum": 1,
+                "maximum": max_page_size,
+            },
+        },
+    ]
+
+
 class PageNumberLimitPagination(PageNumberPagination):
     page_size_query_param = "limit"
 
@@ -41,9 +65,14 @@ class LatestMessagesCursorPagination(CursorPagination):
 
     def get_paginated_response(self, data: list[Any]) -> Response:
         return super().get_paginated_response(list(reversed(data)))
+
+
 class TaillePageNumberPagination(PageNumberPagination):
     page_size_query_param = "taille"
     max_page_size = MAX_PAGE_SIZE
+
+    def get_schema_operation_parameters(self, view) -> list[dict]:
+        return _page_taille_parameters(self.page_size, self.max_page_size)
 
 
 class WebPagination(BasePagination):
@@ -80,27 +109,7 @@ class WebPagination(BasePagination):
         )
 
     def get_schema_operation_parameters(self, view) -> list[dict]:
-        return [
-            {
-                "name": "page",
-                "required": False,
-                "in": "query",
-                "description": "Numéro de la page.",
-                "schema": {"type": "integer", "default": 1, "minimum": 1},
-            },
-            {
-                "name": "taille",
-                "required": False,
-                "in": "query",
-                "description": "Nombre d'éléments par page.",
-                "schema": {
-                    "type": "integer",
-                    "default": self.page_size,
-                    "minimum": self.min_page_size,
-                    "maximum": self.max_page_size,
-                },
-            },
-        ]
+        return _page_taille_parameters(self.page_size, self.max_page_size)
 
     def get_paginated_response_schema(self, schema: dict) -> dict:
         return {

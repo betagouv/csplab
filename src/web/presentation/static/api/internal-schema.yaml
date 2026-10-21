@@ -3966,9 +3966,11 @@ paths:
       - name: page
         required: false
         in: query
-        description: Un numéro de page de l'ensemble des résultats.
+        description: Numéro de la page.
         schema:
           type: integer
+          default: 1
+          minimum: 1
       - in: path
         name: recrutement_uuid
         schema:
@@ -3978,9 +3980,12 @@ paths:
       - name: taille
         required: false
         in: query
-        description: Nombre de résultats à retourner par page.
+        description: Nombre d'éléments par page.
         schema:
           type: integer
+          default: 100
+          minimum: 1
+          maximum: 1000
       tags:
       - recruteur
       security:
