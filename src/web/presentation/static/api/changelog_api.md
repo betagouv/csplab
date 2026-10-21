@@ -12,20 +12,9 @@ Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/).
 
 - `GET /api/fake-ts/offersummaries` et `GET /api/fake-ts/offers/getoffer` :
   `organisationDescription` reprend désormais la description de l'organisme Talentsoft
-  lié à l'offre, et vaut `null` si l'offre n'est liée à aucun organisme. Il reprenait
-  jusqu'ici la présentation de l'employeur (`description.employeur`), toujours
-  disponible dans `customFields.description.longText1`.
-- `GET /api/fake-ts/offers/getoffer` : quand l'offre n'est liée à aucun organisme
-  Talentsoft, `organisation` est un objet vide (`{}`). Jusqu'ici, `entityCode` valait
-  `""`, et `name`, `description`, `url` et `geolocation` reprenaient respectivement
-  l'organisation, la présentation de l'employeur, l'URL et les coordonnées de l'offre.
-  Ces informations restent disponibles dans `organisationName`,
-  `customFields.description.longText1`, `offerUrl` et `geolocation`.
-
-### Compatibilité
-
-Les champs de `organisation` ne sont plus garantis : ils sont tous absents quand
-l'offre n'est liée à aucun organisme Talentsoft.
+  lié à l'offre. Il reprenait jusqu'ici la présentation de l'employeur
+  (`description.employeur`), toujours disponible dans
+  `customFields.description.longText1`.
 
 ## 2026-10-20
 
