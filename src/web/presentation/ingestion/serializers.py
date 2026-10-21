@@ -660,7 +660,7 @@ class ListMetiersResponseSerializer(serializers.Serializer):
     offer_family_code = serializers.CharField(
         allow_null=True,
         help_text="Code métier à renseigner dans `profession.metier` de l'API "
-        "d'ingestion d'offres. Vaut `null` si le métier ne peut pas être utilisé "
+        "d'ingestion d'offres. Est vide si le métier ne peut pas être utilisé "
         "dans une offre.",
     )
 

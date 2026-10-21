@@ -4910,8 +4910,8 @@ components:
           type: string
           nullable: true
           description: Code métier à renseigner dans `profession.metier` de l'API
-            d'ingestion d'offres. Vaut `null` si le métier ne peut pas être utilisé
-            dans une offre.
+            d'ingestion d'offres. Est vide si le métier ne peut pas être utilisé dans
+            une offre.
       required:
       - activites
       - conditions_particulieres
