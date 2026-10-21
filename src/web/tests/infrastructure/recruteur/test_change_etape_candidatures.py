@@ -2,8 +2,8 @@ from uuid import UUID, uuid4
 
 import pytest
 
-from application.recruteur.usecases.changer_etape_candidatures import (
-    ChangerEtapeCandidaturesCommand,
+from application.recruteur.usecases.change_etape_candidatures import (
+    ChangeEtapeCandidaturesCommand,
 )
 from config.app_config import AppConfig
 from domain.identite.errors.organisme_permission_errors import (
@@ -53,10 +53,10 @@ def recrutement_mapper_fixture(recruteur_integration_container):
 
 @pytest.fixture(name="usecase")
 def usecase_fixture(recruteur_integration_container):
-    return recruteur_integration_container.changer_etape_candidatures_usecase()
+    return recruteur_integration_container.change_etape_candidatures_usecase()
 
 
-class TestChangerEtapeCandidaturesUsecase:
+class TestChangeEtapeCandidaturesUsecase:
     @pytest.mark.parametrize(
         ("role_organisme", "role_recrutement"),
         [
@@ -102,7 +102,7 @@ class TestChangerEtapeCandidaturesUsecase:
         candidatures = CandidatureDjangoFactory.create_batch(3, etape=etape_entree)
         etape_cible_id = UUID(recrutement.ordre_etapes[-1])
 
-        command = ChangerEtapeCandidaturesCommand(
+        command = ChangeEtapeCandidaturesCommand(
             organisme_id=recrutement.organisme_id,
             recrutement_id=recrutement.offre_id,
             utilisateur=UtilisateurFactory.create_entity(entity_id=agent_id),
@@ -139,7 +139,7 @@ class TestChangerEtapeCandidaturesUsecase:
         )
         candidatures = CandidatureDjangoFactory.create_batch(2, etape=etape_entree)
 
-        command = ChangerEtapeCandidaturesCommand(
+        command = ChangeEtapeCandidaturesCommand(
             organisme_id=recrutement.organisme_id,
             recrutement_id=recrutement.offre_id,
             utilisateur=UtilisateurFactory.create_entity(entity_id=agent_id),
@@ -172,7 +172,7 @@ class TestChangerEtapeCandidaturesUsecase:
         )
         candidatures = CandidatureDjangoFactory.create_batch(3, etape=etape_entree)
 
-        command = ChangerEtapeCandidaturesCommand(
+        command = ChangeEtapeCandidaturesCommand(
             organisme_id=recrutement.organisme_id,
             recrutement_id=recrutement.offre_id,
             utilisateur=UtilisateurFactory.create_entity(entity_id=agent_id),
@@ -201,7 +201,7 @@ class TestChangerEtapeCandidaturesUsecase:
 
         with pytest.raises(CandidatureInexistante):
             usecase.execute(
-                ChangerEtapeCandidaturesCommand(
+                ChangeEtapeCandidaturesCommand(
                     organisme_id=recrutement.organisme_id,
                     recrutement_id=recrutement.offre_id,
                     utilisateur=UtilisateurFactory.create_entity(

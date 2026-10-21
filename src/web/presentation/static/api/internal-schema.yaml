@@ -4807,7 +4807,7 @@ components:
       - list_recrutements
       - get_recrutement
       - get_candidature
-      - changer_etape_candidatures
+      - change_etape_candidatures
       - get_recrutement_etapes
       - update_recrutement_etapes
       - init_recrutement_etapes
@@ -4844,7 +4844,7 @@ components:
         * `list_recrutements` - list_recrutements
         * `get_recrutement` - get_recrutement
         * `get_candidature` - get_candidature
-        * `changer_etape_candidatures` - changer_etape_candidatures
+        * `change_etape_candidatures` - change_etape_candidatures
         * `get_recrutement_etapes` - get_recrutement_etapes
         * `update_recrutement_etapes` - update_recrutement_etapes
         * `init_recrutement_etapes` - init_recrutement_etapes

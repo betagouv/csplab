@@ -24,7 +24,7 @@ from domain.recruteur.repositories.recrutement_repository_interface import (
 
 
 @dataclass
-class ChangerEtapeCandidaturesCommand:
+class ChangeEtapeCandidaturesCommand:
     organisme_id: UUID
     recrutement_id: UUID
     utilisateur: Utilisateur
@@ -33,9 +33,9 @@ class ChangerEtapeCandidaturesCommand:
     motif_refus: str | None = None
 
 
-class ChangerEtapeCandidaturesUsecase(
+class ChangeEtapeCandidaturesUsecase(
     IUsecase[
-        ChangerEtapeCandidaturesCommand,
+        ChangeEtapeCandidaturesCommand,
         IBatchUpdate[CandidatureRecruteur, RecrutementError],
     ]
 ):
@@ -54,14 +54,14 @@ class ChangerEtapeCandidaturesUsecase(
         self.unit_of_work = unit_of_work
 
     def can_execute(
-        self, command: ChangerEtapeCandidaturesCommand
+        self, command: ChangeEtapeCandidaturesCommand
     ) -> tuple[Recrutement, List[CandidatureRecruteur]]:
         recrutement = self.recrutement_repository.get_by_id(command.recrutement_id)
         candidatures_recruteur = self.candidature_recruteur_repository.get_by_ids(
             command.candidatures
         )
         self.permission_service.can_execute(
-            action=OrganismeAction.CHANGER_ETAPE_CANDIDATURES,
+            action=OrganismeAction.CHANGE_ETAPE_CANDIDATURES,
             organisme_id=command.organisme_id,
             utilisateur=command.utilisateur,
             recrutement_id=command.recrutement_id,
@@ -69,7 +69,7 @@ class ChangerEtapeCandidaturesUsecase(
         return recrutement, candidatures_recruteur
 
     def execute(
-        self, command: ChangerEtapeCandidaturesCommand
+        self, command: ChangeEtapeCandidaturesCommand
     ) -> IBatchUpdate[CandidatureRecruteur, RecrutementError]:
         with self.unit_of_work.atomic():
             recrutement, candidatures_recruteur = self.can_execute(command)

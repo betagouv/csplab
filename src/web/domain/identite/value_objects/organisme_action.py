@@ -8,7 +8,7 @@ class OrganismeAction(Enum):
     LIST_RECRUTEMENTS = "list_recrutements"
     GET_RECRUTEMENT = "get_recrutement"
     GET_CANDIDATURE = "get_candidature"
-    CHANGER_ETAPE_CANDIDATURES = "changer_etape_candidatures"
+    CHANGE_ETAPE_CANDIDATURES = "change_etape_candidatures"
     GET_RECRUTEMENT_ETAPES = "get_recrutement_etapes"
     UPDATE_RECRUTEMENT_ETAPES = "update_recrutement_etapes"
     INIT_RECRUTEMENT_ETAPES = "init_recrutement_etapes"

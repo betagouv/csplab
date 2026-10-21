@@ -13,8 +13,8 @@ from application.recruteur.services.get_recrutement import (
     get_recrutement,
 )
 from application.recruteur.services.list_candidatures import list_candidatures
-from application.recruteur.usecases.changer_etape_candidatures import (
-    ChangerEtapeCandidaturesCommand,
+from application.recruteur.usecases.change_etape_candidatures import (
+    ChangeEtapeCandidaturesCommand,
 )
 from application.recruteur.usecases.get_recrutement_kanban import (
     GetRecrutementKanbanQuery,
@@ -206,9 +206,9 @@ class RecrutementCandidaturesEtapeView(SessionApiMixin, APIView):
 
         data = serializer.validated_data
         try:
-            usecase = self.container.changer_etape_candidatures_usecase()
+            usecase = self.container.change_etape_candidatures_usecase()
             resultat = usecase.execute(
-                ChangerEtapeCandidaturesCommand(
+                ChangeEtapeCandidaturesCommand(
                     organisme_id=organisme_uuid,
                     recrutement_id=recrutement_uuid,
                     etape_cible_id=data["etape_cible_uuid"],
