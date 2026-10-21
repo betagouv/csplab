@@ -5,7 +5,7 @@ import CreationOffre from './variants/parcours/CreationOffre.vue'
 // Prototype isolé : pas d'API, pas de router — données fictives dans data/scenario.ts.
 // Chaque story ouvre le même parcours dans un état différent ; tout reste manipulable.
 const meta = {
-  title: 'Prototypes/Création d\'offre/Itération 1 (archive)',
+  title: 'Prototypes/Création d\'offre/Archives/Itération 1',
   id: 'prototypes-creation-offre-v1',
   parameters: {
     layout: 'fullscreen',

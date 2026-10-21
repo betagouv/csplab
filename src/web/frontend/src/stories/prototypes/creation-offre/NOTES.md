@@ -1,5 +1,57 @@
 # Notes — Prototype création d'offre
 
+## Itération 7 — ATS : fiches de poste et offres d'emploi (21 octobre 2026)
+
+Nouvelle variante, code autonome : `variants/ats/` ; stories `Prototypes/Création d'offre/ATS — fiches de
+poste et offres`. Les itérations 1 à 6 sont rangées sous `Archives/`.
+
+**Deux objets distincts et reliés** : la **fiche de poste** (référentiel durable ; origine ATS, SIRH simulé
+ou document ajouté) et l'**offre d'emploi** (opération de recrutement + annonce). Toute offre est rattachée
+à une fiche ; une fiche peut avoir plusieurs offres, ou aucune.
+
+**Écrans** : 1 Tableau de bord (compteurs par état, offres à faire avancer) · 2 Fiches de poste (recherche,
+filtre par origine, actives/archivées, colonnes) · 3 Détail d'une fiche (contenu, origine, synchronisation
+simulée, offres rattachées, historique, modification avec enregistrement automatique, « Lancer un
+recrutement ») · 4 Créer une offre (4 modes, rattachement toujours affiché) · Espace d'une offre en 3 onglets :
+5 Rédaction, 6 Validation et publication, 7 Suivi · Offres d'emploi (filtre par état, colonnes).
+
+**Cycle de vie** : En cours de rédaction → En cours de validation (DAR) → À publier → Publiée → Archivée.
+La DAR est conditionnelle : le recruteur indique si elle est nécessaire ; sans DAR, la rédaction passe
+directement à « À publier ». Publier est une action distincte (canaux + date limite).
+
+**Rédaction** : formulaire de l'annonce (titre, présentation, nombre de postes, missions, profil,
+compétences indispensables / souhaitables, modalités, lieu, rémunération, télétravail, conditions, date
+limite, contact). À droite, au choix : **aperçu candidat** (mis à jour en direct) ou **fiche de poste source**
+(consultation seule). Chaque champ a un conseil court (et un exemple à la demande), au plus une alerte
+discrète (manque essentiel, sigles, phrase trop longue, trop de compétences indispensables, rémunération
+absente), et « Repris de la fiche » / « Reprendre le texte de la fiche ». « Mettre en forme » transforme
+une liste brute en puces sans changer les mots. Enregistrement automatique + « Enregistrer le brouillon ».
+
+**Quatre modes de création** : depuis une fiche (préremplie) · depuis un fichier (lecture simulée ; nouvelle
+fiche « issue d'un document » ou rattachement à une fiche existante) · saisie manuelle (l'essentiel saisi
+crée la fiche de référence) · depuis une ancienne offre publiée ou archivée (contenu copié, nouvelle offre
+indépendante, fiche de rattachement vérifiable). Chaque carte dit à quelle fiche l'offre sera rattachée.
+
+**Données** : fiches « Gestionnaire de paie » (ATS), « Chargé·e de recrutement » (SIRH), « Chef·fe de projet
+numérique » (document), « Assistant·e administratif·ve », « Responsable informatique » (SIRH, sans offre),
+« Chargé·e d'accueil » (archivée). Offres : paie en rédaction (3 postes), recrutement en validation DAR,
+chef de projet à publier (sans DAR), assistant publiée (base de duplication), accueil archivée.
+
+### Hypothèses
+- Le besoin de DAR est déclaré par le recruteur pour chaque offre (règles réelles inconnues).
+- Le contenu de l'offre est en lecture seule pendant la validation de la DAR ; « À publier » peut revenir en
+  rédaction sans nouvelle DAR (la DAR porte sur le besoin, pas sur le texte de l'annonce).
+- Une demande de correction sur la DAR renvoie l'offre en rédaction avec la remarque.
+- Modifier une fiche SIRH dans l'ATS est possible, mais pourrait être écrasé par la synchronisation (règle à définir).
+- Un document ajouté crée par défaut une nouvelle fiche ; l'extraction du contenu est simulée.
+
+### Points à confirmer
+1. Qui décide du besoin de DAR et sur quels critères ?
+2. Règles de synchronisation SIRH ↔ ATS (champs maîtres, conflits, fiches modifiées localement).
+3. Une offre publiée peut-elle être modifiée ? Avec quelle traçabilité ?
+4. Que devient une offre si sa fiche est archivée ou fortement modifiée ?
+5. Le texte de l'offre doit-il être revalidé si la DAR porte aussi sur le contenu de l'annonce ?
+
 ## Itération 6 — référentiel des fiches de poste (21 octobre 2026)
 
 Nouvelle hypothèse produit : **la fiche de poste est le point d'entrée**. Les RH maintiennent un

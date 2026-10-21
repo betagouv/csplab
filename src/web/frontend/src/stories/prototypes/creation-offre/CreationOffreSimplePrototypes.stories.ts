@@ -5,8 +5,8 @@ import CreationOffreSimple from './variants/simplifie/CreationOffreSimple.vue'
 // création directe) → création d'offre commune → publication distincte.
 // Données conservées pendant la session (sessionStorage). Hypothèses : NOTES.md.
 const meta = {
-  title: 'Prototypes/Création d\'offre/Version simplifiée',
-  id: 'prototypes-creation-offre',
+  title: 'Prototypes/Création d\'offre/Archives/Itérations 2 à 6',
+  id: 'prototypes-creation-offre-v6',
   parameters: {
     layout: 'fullscreen',
     docs: {
