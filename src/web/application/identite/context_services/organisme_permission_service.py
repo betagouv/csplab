@@ -34,7 +34,7 @@ _ACTIONS_SANS_ORGANISME: frozenset[OrganismeAction] = frozenset(
 
 # Actions sur un organisme existant réservées au staff, hors rôles d'organisme
 _ACTIONS_STAFF_AVEC_ORGANISME: frozenset[OrganismeAction] = frozenset(
-    {OrganismeAction.MODIFIER_ORGANISME}
+    {OrganismeAction.UPDATE_ORGANISME}
 )
 
 # -------------------------------------

@@ -214,7 +214,7 @@ def test_staff_has_staff_and_superviseur_actions(authenticated_client, test_user
     assert body["authorized_actions"] == [
         "create_organisme",
         "list_organismes",
-        "modifier_organisme",
+        "update_organisme",
     ]
     assert body["organismes"] == [
         _organisme(organisme, AgentOrganismeRole.AGENT, test_user)

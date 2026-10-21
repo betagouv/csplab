@@ -45,7 +45,7 @@ STAFF_SEULEMENT_SANS_ORGANISME_ACTIONS = [
 ]
 
 STAFF_SEULEMENT_AVEC_ORGANISME_ACTIONS = [
-    OrganismeAction.MODIFIER_ORGANISME,
+    OrganismeAction.UPDATE_ORGANISME,
 ]
 
 SUPERVISEUR_ET_STAFF_ACTIONS = [
@@ -855,7 +855,7 @@ class TestAuthorizedActions:
                 [
                     OrganismeAction.CREATE_ORGANISME,
                     OrganismeAction.LIST_ORGANISMES,
-                    OrganismeAction.MODIFIER_ORGANISME,
+                    OrganismeAction.UPDATE_ORGANISME,
                 ],
             ),
         ],
