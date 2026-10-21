@@ -1,4 +1,5 @@
 import logging
+import re
 from datetime import datetime
 from typing import List, Optional, cast
 from uuid import UUID
@@ -44,6 +45,8 @@ from infrastructure.gateways.transcoding import (
 )
 
 logger = logging.getLogger(__name__)
+
+_LIST_BULLET = re.compile(r"^[-–•·*▪●]\s*")
 
 _TALENTSOFT_TO_SPECIALISATIONS: dict[str, str] = {
     "_TS_CO_Specialisation_1": "Formations générales",
@@ -319,6 +322,9 @@ class OffersCleaner:
         location_fields = custom_fields.location or TalentsoftDynamicField()
         offer_block_1 = custom_fields.offerCustomBlock1 or TalentsoftDynamicField()
         origin_fields = custom_fields.origin or TalentsoftDynamicField()
+        applicant_criteria_fields = (
+            custom_fields.applicantCriteria or TalentsoftDynamicField()
+        )
 
         coordinates = self._extract_coordinates(talentsoft_offer)
 
@@ -463,6 +469,11 @@ class OffersCleaner:
             complements=self._map_rich_text(
                 offer_block_1.longText1Formatted, offer_block_1.longText1
             ),
+            required_skills=self._map_required_skills(
+                applicant_criteria_fields.longText1
+            ),
+            legal_basis=self._map_plain_text(offer_block_1.longText2),
+            vacancy_notice_url=self._map_vacancy_notice_url(offer_block_1.longText3),
             education_level=education_level,
             experience=experience,
             diploma=diploma,
@@ -479,6 +490,20 @@ class OffersCleaner:
 
     def _map_rich_text(self, formatted: Optional[str], raw: Optional[str]) -> str:
         return html_to_markdown(formatted or "") or raw or ""
+
+    def _map_plain_text(self, raw: Optional[str]) -> Optional[str]:
+        return (raw or "").strip() or None
+
+    def _map_required_skills(self, raw: Optional[str]) -> list[str]:
+        lines = (raw or "").splitlines()
+        skills = (_LIST_BULLET.sub("", line.strip()) for line in lines)
+        return [skill for skill in skills if skill]
+
+    def _map_vacancy_notice_url(self, raw: Optional[str]) -> Optional[HttpUrl]:
+        value = self._map_plain_text(raw)
+        if not value or not value.startswith("http"):
+            return None
+        return self._parse_url(value)
 
     def _map_verse(
         self,

@@ -2,7 +2,7 @@ from datetime import datetime, timezone
 from uuid import UUID
 
 import pytest
-from pydantic import ValidationError
+from pydantic import HttpUrl, ValidationError
 from referentiel.value_objects.category import Category
 from referentiel.value_objects.contract_kind import ContractKind
 from referentiel.value_objects.experience_level import ExperienceLevel
@@ -1283,6 +1283,87 @@ def test_clean_returns_empty_custom_field_texts_when_absent(cleaner):
     assert offer.service_description == ""
     assert offer.complements == ""
     assert offer.application_deadline is None
+
+
+def test_clean_maps_applicant_criteria_and_offer_block_texts(cleaner):
+    raw_offer = _make_raw_offer(
+        customFields=TalentsoftCustomFieldsFactory.build(
+            applicantCriteria=TalentsoftDynamicField(
+                longText1="  Savoir-faire : Travailler en équipe  "
+            ),
+            offerCustomBlock1=TalentsoftDynamicField(
+                longText2="Art. L332-2 du code général de la fonction publique",
+                longText3="https://www.legifrance.gouv.fr/jorf/id/1",
+            ),
+        )
+    )
+
+    offer = cleaner.clean(raw_offer)
+
+    assert offer.required_skills == ["Savoir-faire : Travailler en équipe"]
+    assert offer.legal_basis == "Art. L332-2 du code général de la fonction publique"
+    assert offer.vacancy_notice_url == HttpUrl(
+        "https://www.legifrance.gouv.fr/jorf/id/1"
+    )
+
+
+def test_clean_splits_required_skills_by_line(cleaner):
+    raw_offer = _make_raw_offer(
+        customFields=TalentsoftCustomFieldsFactory.build(
+            applicantCriteria=TalentsoftDynamicField(
+                longText1=(
+                    "Savoir-faire :\r\n"
+                    "- Travailler en équipe\n"
+                    " \n"
+                    "•\tFiabilité, rigueur et ponctualité.\n"
+                    "Savoir être : \n"
+                    "Discrétion professionnelle"
+                )
+            ),
+        )
+    )
+
+    offer = cleaner.clean(raw_offer)
+
+    assert offer.required_skills == [
+        "Savoir-faire :",
+        "Travailler en équipe",
+        "Fiabilité, rigueur et ponctualité.",
+        "Savoir être :",
+        "Discrétion professionnelle",
+    ]
+
+
+@pytest.mark.parametrize("value", [None, "", "   "])
+def test_clean_returns_empty_applicant_criteria_and_offer_block_texts_when_blank(
+    cleaner, value
+):
+    raw_offer = _make_raw_offer(
+        customFields=TalentsoftCustomFieldsFactory.build(
+            applicantCriteria=TalentsoftDynamicField(longText1=value),
+            offerCustomBlock1=TalentsoftDynamicField(longText2=value, longText3=value),
+        )
+    )
+
+    offer = cleaner.clean(raw_offer)
+
+    assert offer.required_skills == []
+    assert offer.legal_basis is None
+    assert offer.vacancy_notice_url is None
+
+
+def test_clean_ignores_vacancy_notice_that_is_not_an_url(cleaner):
+    raw_offer = _make_raw_offer(
+        customFields=TalentsoftCustomFieldsFactory.build(
+            offerCustomBlock1=TalentsoftDynamicField(
+                longText3="JO du 12 mars 2025, texte n° 45"
+            ),
+        )
+    )
+
+    offer = cleaner.clean(raw_offer)
+
+    assert offer.vacancy_notice_url is None
 
 
 def test_clean_prefers_formatted_texts_converted_to_markdown(cleaner):

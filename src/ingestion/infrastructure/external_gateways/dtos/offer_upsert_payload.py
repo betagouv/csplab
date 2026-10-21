@@ -82,6 +82,8 @@ class ConditionsPayload(BaseModel):
     management: Optional[str] = None
     duree_contrat: Optional[str] = None
     debut_contrat: Optional[datetime] = None
+    bases_legales: Optional[str] = None
+    note_ouverture_poste_url: Optional[HttpUrl] = None
 
     @model_serializer
     def serialize(self) -> dict:
@@ -187,6 +189,7 @@ class OfferUpsertPayload(BaseModel):
                 experience=offer.experience.name if offer.experience else None,
                 specialisations=offer.specialisations,
                 diplome=offer.diploma,
+                competences_requises=offer.required_skills,
                 langues=[
                     LanguagePayload.from_language(lang) for lang in offer.languages
                 ],
@@ -196,6 +199,7 @@ class OfferUpsertPayload(BaseModel):
             or offer.diploma
             or offer.specialisations
             or offer.languages
+            or offer.required_skills
             else None,
             conditions=ConditionsPayload(
                 temps_travail=offer.working_time.name,
@@ -205,6 +209,8 @@ class OfferUpsertPayload(BaseModel):
                 debut_contrat=offer.beginning_date.value
                 if offer.beginning_date
                 else None,
+                bases_legales=offer.legal_basis,
+                note_ouverture_poste_url=offer.vacancy_notice_url,
             ),
             contacts=contacts or None,
             publication=PublicationPayload(
