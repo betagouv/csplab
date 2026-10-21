@@ -2,8 +2,8 @@ from datetime import UTC, datetime
 
 import pytest
 
-from application.recruteur.usecases.lister_mes_recrutements import (
-    ListerMesRecrutementsQuery,
+from application.recruteur.usecases.list_recrutements import (
+    ListRecrutementsQuery,
 )
 from config.app_config import AppConfig
 from domain.identite.errors.organisme_permission_errors import AccesOrganismeRefuse
@@ -53,10 +53,10 @@ def recruteur_integration_container_fixture(db) -> RecruteurContainer:
 
 @pytest.fixture(name="usecase")
 def usecase_fixture(recruteur_integration_container):
-    return recruteur_integration_container.lister_mes_recrutements_usecase()
+    return recruteur_integration_container.list_recrutements_usecase()
 
 
-class TestListerMesRecrutements:
+class TestListRecrutements:
     def _create_agent_responsable(self):
         agent, organisme = create_organisme_with_agent(
             role=AgentOrganismeRole.SUPERVISEUR
@@ -65,7 +65,7 @@ class TestListerMesRecrutements:
 
     def _lister_recrutements(self, usecase, organisme, agent_id, statut):
         return usecase.execute(
-            ListerMesRecrutementsQuery(
+            ListRecrutementsQuery(
                 organisme_id=organisme.id,
                 statut=statut,
                 utilisateur=UtilisateurFactory.create_entity(entity_id=agent_id),
@@ -261,7 +261,7 @@ class TestListerMesRecrutements:
 
 
 @pytest.mark.parametrize("statut", [StatutRecrutement.ACTIF, StatutRecrutement.ARCHIVE])
-class TestListerMesRecrutementsRbac:
+class TestListRecrutementsRbac:
     def _create_recrutements(self, agent, organisme, statut):
         offre_archivee = statut == StatutRecrutement.ARCHIVE
 
@@ -291,7 +291,7 @@ class TestListerMesRecrutementsRbac:
 
     def _lister_recrutements(self, usecase, organisme, agent, statut, is_staff=False):
         return usecase.execute(
-            ListerMesRecrutementsQuery(
+            ListRecrutementsQuery(
                 organisme_id=organisme.id,
                 statut=statut,
                 utilisateur=UtilisateurFactory.create_entity(

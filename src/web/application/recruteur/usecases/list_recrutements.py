@@ -20,15 +20,15 @@ from domain.recruteur.value_objects.statut_recrutement import StatutRecrutement
 
 
 @dataclass
-class ListerMesRecrutementsQuery:
+class ListRecrutementsQuery:
     organisme_id: UUID
     statut: StatutRecrutement
     utilisateur: Utilisateur
 
 
-class ListerMesRecrutementsUsecase(
+class ListRecrutementsUsecase(
     IUsecase[
-        ListerMesRecrutementsQuery,
+        ListRecrutementsQuery,
         IPage[RecrutementActifsReadModel] | IPage[RecrutementArchivesReadModel],
     ]
 ):
@@ -43,14 +43,14 @@ class ListerMesRecrutementsUsecase(
         self.organisme_permission_service = organisme_permission_service
 
     def execute(
-        self, query: ListerMesRecrutementsQuery
+        self, query: ListRecrutementsQuery
     ) -> IPage[RecrutementActifsReadModel] | IPage[RecrutementArchivesReadModel]:
         self.logger.info(
             f"List mes recrutements pour l'organisme_id={query.organisme_id}",
         )
 
         role = self.organisme_permission_service.can_execute(
-            action=OrganismeAction.LISTER_MES_RECRUTEMENTS,
+            action=OrganismeAction.LIST_RECRUTEMENTS,
             organisme_id=query.organisme_id,
             utilisateur=query.utilisateur,
         )

@@ -4804,7 +4804,7 @@ components:
       - get_organisme
       - initialize_organisme_steps
       - update_organisme_steps
-      - lister_mes_recrutements
+      - list_recrutements
       - get_recrutement
       - get_candidature
       - changer_etape_candidatures
@@ -4841,7 +4841,7 @@ components:
         * `get_organisme` - get_organisme
         * `initialize_organisme_steps` - initialize_organisme_steps
         * `update_organisme_steps` - update_organisme_steps
-        * `lister_mes_recrutements` - lister_mes_recrutements
+        * `list_recrutements` - list_recrutements
         * `get_recrutement` - get_recrutement
         * `get_candidature` - get_candidature
         * `changer_etape_candidatures` - changer_etape_candidatures

@@ -287,7 +287,7 @@ def test_agent_not_responsable_of_a_recrutement_gets_no_agent_management_actions
     response = authenticated_client.get(URL)
 
     assert response.json()["organismes"][0]["authorized_actions"] == [
-        "lister_mes_recrutements",
+        "list_recrutements",
         "get_motifs_refus",
     ]
 
