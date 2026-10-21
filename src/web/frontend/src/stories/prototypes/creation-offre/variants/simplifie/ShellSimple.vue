@@ -16,7 +16,7 @@ import { useEtapes } from './useEtapes'
 // besoin → validation → offre → publication, puis les sous-étapes de l'offre quand on la rédige.
 const { state, dirty, saving, lastSaved, enregistrer, notifier, flash, etapeEnCours, retirerDeValidation, modifierApresValidation } = useOffre()
 
-const { quitter, origine } = useApp()
+const { quitter, origine, ouvrirFiche } = useApp()
 const { etape, aller } = useEtapes()
 const vueBesoin = computed(() => etape.value === 'poste')
 const suivi = ref(false)
@@ -24,6 +24,9 @@ const remarquesOuvertes = computed(() => state.remarques.filter(r => !r.resolue)
 
 function allerPhase(p: string) {
   if (p === 'besoin') {
+    ouvrirFiche(state.ficheId)
+  }
+  else if (p === 'validation') {
     aller('poste')
   }
   else {
@@ -54,10 +57,10 @@ async function sauver() {
               >
                 {{ LIBELLES_PAGE[origine] }}
               </button>
-              <span aria-hidden="true">›</span> {{ vueBesoin ? 'Besoin' : `Offre ${state.reference}` }}
+              <span aria-hidden="true">›</span> Recrutement {{ state.reference }} <span aria-hidden="true">›</span> {{ vueBesoin ? `DAR ${state.besoin.darRef}` : 'Offre' }}
             </p>
             <h1 class="cs-bar__title">
-              {{ vueBesoin ? (state.besoin.intitule || 'Nouveau besoin') : (state.titreAnnonce || state.besoin.intitule || 'Nouvelle offre') }}
+              {{ state.besoin.intitule || 'Recrutement' }}<span class="cs-bar__postes"> · {{ state.besoin.nbPostes }} poste{{ Number(state.besoin.nbPostes) > 1 ? 's' : '' }}</span>
             </h1>
           </div>
           <div class="cs-bar__right">
@@ -112,8 +115,8 @@ async function sauver() {
         <div class="cs-proc">
           <ProcessusBar
             :state="state"
-            :actif="vueBesoin ? 'besoin' : 'offre'"
-            :cliquables="state.offreDemarree ? ['besoin', 'offre'] : ['besoin']"
+            :actif="vueBesoin ? 'validation' : 'offre'"
+            :cliquables="[...(state.ficheId ? ['besoin' as const] : []), ...(state.besoin.darApplicable === 'oui' ? ['validation' as const] : []), ...(state.offreDemarree ? ['offre' as const] : [])]"
             @aller="allerPhase"
           />
         </div>
@@ -257,6 +260,11 @@ async function sauver() {
   align-items: center;
   gap: var(--csp-space-1);
   font-size: var(--csp-font-size-xs);
+  color: var(--text-mention-grey);
+}
+
+.cs-bar__postes {
+  font-weight: var(--csp-font-weight-regular);
   color: var(--text-mention-grey);
 }
 

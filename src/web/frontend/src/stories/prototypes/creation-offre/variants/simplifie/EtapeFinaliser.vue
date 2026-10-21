@@ -5,6 +5,7 @@ import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspIcon from '@/components/base/CspIcon/CspIcon.vue'
 import CspRadioGroup from '@/components/base/CspRadioGroup/CspRadioGroup.vue'
 import CspSwitch from '@/components/base/CspSwitch/CspSwitch.vue'
+import { quand } from '../../data/processus'
 import { nomOrganisme } from '../../data/redaction'
 import { personne, SECTIONS_OFFRE } from '../../data/referentiels'
 import { useOffre } from '../../data/useOffre'
@@ -149,7 +150,7 @@ const etatDar = computed(() => {
     return ''
   }
   if (b.darStatut === 'validee') {
-    return `validée${state.darContenu ? ` le ${state.darContenu.date}` : ''} — inchangée`
+    return `validée${state.darContenu ? ` ${quand(state.darContenu.date)}` : ''} — inchangée`
   }
   return b.darStatut === 'en_cours' ? 'soumise, en attente de validation' : 'brouillon'
 })
@@ -192,7 +193,7 @@ const FREQUENCES = [
             Offre créée
           </h2>
           <p class="muted">
-            {{ state.reference }} · {{ state.titreAnnonce || b.intitule }} · {{ b.nbPostes }} poste(s) à pourvoir.
+            {{ state.reference.replace('REC-', 'OFF-') }} · {{ state.titreAnnonce || b.intitule }} · {{ b.nbPostes }} poste(s) à pourvoir.
             <template v-if="etatDar">
               DAR {{ b.darRef }} {{ etatDar }}.
             </template>
@@ -273,7 +274,7 @@ const FREQUENCES = [
       </p>
       <div>
         <CspButton
-          label="Dupliquer cette offre"
+          label="Nouveau recrutement sur cette fiche"
           variant="secondary"
           size="sm"
           icon="ri:file-copy-2-line"

@@ -1,9 +1,9 @@
 import type { StoryObj } from '@storybook/vue3-vite'
 import CreationOffreSimple from './variants/simplifie/CreationOffreSimple.vue'
 
-// Processus rendu visible : déclaration du besoin (fiche de poste) → validation par DAR ou non
-// → rédaction de l'offre → publication. Deux pages : « Mes besoins en recrutement » et « Mes offres ».
-// Les données sont conservées pendant la session (sessionStorage). Hypothèses : NOTES.md.
+// La fiche de poste comme point d'entrée : référentiel durable → lancer un recrutement (avec DAR ou
+// création directe) → création d'offre commune → publication distincte.
+// Données conservées pendant la session (sessionStorage). Hypothèses : NOTES.md.
 const meta = {
   title: 'Prototypes/Création d\'offre/Version simplifiée',
   id: 'prototypes-creation-offre',
@@ -12,8 +12,8 @@ const meta = {
     docs: {
       description: {
         component:
-          'Partir de « Mes besoins en recrutement » : déclarer un besoin, le faire valider par une DAR ou non, rédiger l\'offre, '
-          + 'la créer puis activer ou non sa publication. Les encadrés « Simulation » remplacent les actions des autres personnes.',
+          'Scénario : ouvrir la fiche « Gestionnaire de paie », lancer un recrutement de 3 postes avec DAR, enregistrer, soumettre, '
+          + 'simuler la validation, créer l\'offre sans activer la publication. Second cas : création directe depuis la fiche « Responsable informatique ».',
       },
     },
   },
@@ -30,37 +30,37 @@ function story(props: Record<string, unknown>): Story['render'] {
   })
 }
 
-export const Besoins: Story = {
-  name: '0. Mes besoins en recrutement',
-  render: story({ page: 'besoins' }),
+export const Fiches: Story = {
+  name: '0. Fiches de poste (référentiel, point d\'entrée)',
+  render: story({ page: 'fiches' }),
+}
+
+export const FichePaie: Story = {
+  name: '1. Fiche « Gestionnaire de paie » → recrutement avec DAR',
+  render: story({ fiche: 'FP-SG-2026-007' }),
+}
+
+export const FicheInformatique: Story = {
+  name: '2. Fiche « Responsable informatique » → création directe de l\'offre',
+  render: story({ fiche: 'FP-SG-2024-031' }),
+}
+
+export const Recrutements: Story = {
+  name: '3. Recrutements (suivi)',
+  render: story({ page: 'recrutements' }),
 }
 
 export const Offres: Story = {
-  name: '1. Mes offres',
+  name: '4. Mes offres',
   render: story({ page: 'offres' }),
 }
 
-export const BesoinDarValidee: Story = {
-  name: '2. Besoin validé par DAR → rédiger l\'offre (paie, 3 postes)',
-  render: story({ ouvrir: 'OFF-2026-0151', vue: 'besoin' }),
-}
-
-export const BesoinSansDar: Story = {
-  name: '3. Besoin sans DAR → offre en rédaction',
-  render: story({ ouvrir: 'OFF-2026-0154', vue: 'offre' }),
-}
-
-export const BesoinEnDeclaration: Story = {
-  name: '4. Besoin en cours de déclaration (DAR en brouillon)',
-  render: story({ ouvrir: 'OFF-2026-0153', vue: 'besoin' }),
-}
-
 export const DarSoumise: Story = {
-  name: '5. DAR soumise, en attente de validation',
-  render: story({ ouvrir: 'OFF-2026-0152', vue: 'besoin' }),
+  name: '5. Recrutement — DAR soumise (validation à simuler)',
+  render: story({ ouvrir: 'REC-2026-0152', vue: 'besoin' }),
 }
 
 export const OffreNonPubliee: Story = {
-  name: '6. Offre créée, non publiée',
-  render: story({ ouvrir: 'OFF-2026-0141', vue: 'offre' }),
+  name: '6. Recrutement — offre créée, non publiée',
+  render: story({ ouvrir: 'REC-2026-0141', vue: 'offre' }),
 }

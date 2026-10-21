@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, ref } from 'vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspCheckboxGroup from '@/components/base/CspCheckboxGroup/CspCheckboxGroup.vue'
 import CspCombobox from '@/components/base/CspCombobox/CspCombobox.vue'
@@ -19,11 +19,9 @@ import Panel from '../../shared/Panel.vue'
 import SimulationNote from '../../shared/SimulationNote.vue'
 import BesoinActions from './BesoinActions.vue'
 import RemarquesSection from './RemarquesSection.vue'
-import SourcePanel from './SourcePanel.vue'
 
 // Étape 1 — définir le poste. L'essentiel d'abord ; la fiche de poste et les compléments
 // sont repliés, et les champs conditionnels n'apparaissent que si la situation les rend utiles.
-const emit = defineEmits<{ reprendre: [reference: string] }>()
 
 const { state, verrouille, afficherErreurs, demanderContribution, simulerContribution, completerAvecFiche } = useOffre()
 const b = state.besoin
@@ -37,24 +35,7 @@ const territoriale = computed(() => versantDe(b.organisme).includes('territorial
 
 // --- DAR : uniquement si l'organisation en utilise (paramétrage), jamais comme question réglementaire ---
 const organisationAvecDar = computed(() => ['avec_dar', 'dar_csp'].includes(state.organisation))
-/** DAR préparée dans ce dossier (hypothèse : elle part en validation avec l'offre). */
-const darPreparee = computed(() => b.darApplicable === 'oui' && Boolean(b.darRef) && ['a_demander', 'en_cours'].includes(b.darStatut))
 const avecDar = computed(() => organisationAvecDar.value && b.darApplicable === 'oui')
-
-// --- Deux chemins de validation du besoin : avec DAR ou sans (hypothèse : choix laissé au recruteur, selon les règles de l'organisation) ---
-const VALIDATION = [
-  { value: 'oui', label: 'Avec une demande d\'autorisation de recrutement (DAR)' },
-  { value: 'non', label: 'Sans DAR' },
-]
-watch(() => b.darApplicable, (v) => {
-  if (v === 'oui' && !b.darRef) {
-    b.darRef = `DAR-2026-0${340 + Math.floor(Math.random() * 50)}`
-    b.darStatut = 'a_demander'
-  }
-  if (v === 'non') {
-    b.darStatut = ''
-  }
-})
 
 // --- Fiche de poste ---
 const ficheDispo = computed(() => !p.missions && !b.ficheRef && !verrouille.value)
@@ -123,14 +104,13 @@ const intituleTropLong = computed(() => b.intitule.length > 120)
 <template>
   <header class="head">
     <h2 class="head__title">
-      Déclarer le besoin
+      Demande d'autorisation de recrutement
     </h2>
     <p class="head__desc">
-      Le besoin se décrit par sa fiche de poste. Elle sert de base à la DAR si le recrutement en nécessite une, puis à l'offre.
+      La DAR {{ b.darRef }} reprend la fiche {{ state.ficheId }} (version du {{ state.ficheVersion }}). Complétez ce qui manque : vos modifications concernent cette DAR, pas la fiche de poste.
     </p>
   </header>
 
-  <SourcePanel @reprendre="pr => emit('reprendre', pr)" />
   <RemarquesSection :step-ids="['besoin', 'poste']" />
 
   <fieldset
@@ -139,7 +119,7 @@ const intituleTropLong = computed(() => b.intitule.length > 120)
   >
     <Panel
       titre="Le poste"
-      description="Ces informations suffisent pour avancer. Le reste est facultatif et regroupé plus bas."
+      description="Repris de la fiche de poste. Les informations complémentaires, facultatives, sont regroupées plus bas."
     >
       <Field
         id="champ-intitule"
@@ -176,7 +156,7 @@ const intituleTropLong = computed(() => b.intitule.length > 120)
           />
         </Field>
       </FieldRow>
-      <FieldRow :cols="2">
+      <FieldRow :cols="3">
         <Field
           id="champ-localisation"
           path="besoin.localisation"
@@ -188,6 +168,14 @@ const intituleTropLong = computed(() => b.intitule.length > 120)
             :disabled="verrouille"
             :error="Boolean(err(!b.localisation, 'x'))"
             :error-message="err(!b.localisation, 'Indiquez où se situe le poste.')"
+          />
+        </Field>
+        <Field path="besoin.nbPostes">
+          <CspInput
+            v-model="b.nbPostes"
+            type="number"
+            label="Nombre de postes à pourvoir"
+            :disabled="verrouille"
           />
         </Field>
         <Field path="besoin.teletravail">
@@ -255,7 +243,7 @@ const intituleTropLong = computed(() => b.intitule.length > 120)
     <Panel>
       <Disclosure
         v-model:ouvert="ficheOuverte"
-        :titre="avecDar ? 'Fiche de poste — contenu de la DAR' : 'Fiche de poste'"
+        titre="Missions, compétences et profil"
         :resume="resumeFiche"
         icon="ri:file-text-line"
       >
@@ -464,30 +452,6 @@ const intituleTropLong = computed(() => b.intitule.length > 120)
           />
         </Field>
       </Disclosure>
-    </Panel>
-    <Panel
-      v-if="organisationAvecDar"
-      titre="Validation du besoin"
-      description="Selon votre organisation et le recrutement, le besoin est validé par une DAR ou non (règles à confirmer)."
-    >
-      <CspRadioGroup
-        v-model="b.darApplicable"
-        label="Comment ce besoin est-il validé ?"
-        :options="VALIDATION"
-        :disabled="verrouille || darPreparee && b.darStatut === 'en_cours'"
-      />
-      <p
-        v-if="darPreparee"
-        class="dar-line"
-      >
-        La fiche de poste ci-dessus constitue la DAR <strong>{{ b.darRef }}</strong> (brouillon, enregistré automatiquement). Elle sera figée au moment de la soumission.
-      </p>
-      <p
-        v-else-if="b.darApplicable === 'non'"
-        class="dar-line"
-      >
-        Pas de DAR : une fois la fiche de poste complète, vous pouvez rédiger l'offre.
-      </p>
     </Panel>
   </fieldset>
 

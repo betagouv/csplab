@@ -1,15 +1,17 @@
-// Navigation entre les pages (besoins, offres) et un dossier ouvert.
+// Navigation entre les espaces (fiches de poste, recrutements, offres), une fiche et un recrutement ouvert.
 
 import type { InjectionKey } from 'vue'
 import { inject, provide } from 'vue'
 
-export type Page = 'besoins' | 'offres'
+export type Page = 'fiches' | 'recrutements' | 'offres'
 
 export interface AppNav {
-  /** Page d'où l'on vient : sert au fil d'Ariane et au retour. */
+  /** Espace d'où l'on vient : sert au fil d'Ariane et au retour. */
   origine: Page
-  /** Revient à la page d'origine ; le travail est enregistré avant. */
+  /** Revient à l'espace d'origine ; le travail est enregistré avant. */
   quitter: (message?: string) => void
+  /** Ouvre la fiche de poste d'un recrutement (le travail est enregistré avant). */
+  ouvrirFiche: (id: string) => void
 }
 
 const KEY: InjectionKey<AppNav> = Symbol('app')
@@ -19,10 +21,11 @@ export function provideApp(nav: AppNav) {
 }
 
 export function useApp(): AppNav {
-  return inject(KEY, { origine: 'besoins', quitter: () => {} })
+  return inject(KEY, { origine: 'fiches', quitter: () => {}, ouvrirFiche: () => {} })
 }
 
 export const LIBELLES_PAGE: Record<Page, string> = {
-  besoins: 'Mes besoins en recrutement',
+  fiches: 'Fiches de poste',
+  recrutements: 'Recrutements',
   offres: 'Mes offres',
 }

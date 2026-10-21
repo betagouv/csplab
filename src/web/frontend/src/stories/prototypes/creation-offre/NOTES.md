@@ -1,5 +1,64 @@
 # Notes — Prototype création d'offre
 
+## Itération 6 — référentiel des fiches de poste (21 octobre 2026)
+
+Nouvelle hypothèse produit : **la fiche de poste est le point d'entrée**. Les RH maintiennent un
+référentiel de fiches durables ; depuis une fiche, ils **lancent un recrutement** avec DAR ou par
+**création directe de l'offre**. Les deux parcours convergent vers la même création d'offre ; la
+publication reste une action distincte.
+
+**Modèle** (dans `data/`) : `FichePoste` (référentiel, `fiches.ts`) → recrutement (`OffreState`,
+`dossiers.ts`, référence REC-…, lié par `ficheId` et `ficheVersion`) → DAR éventuelle (contenu figé à la
+soumission) → offre (OFF-…, même numéro). Au lancement, la fiche est **copiée** dans le recrutement :
+modifier la fiche ensuite n'écrase ni la DAR ni l'offre (vérifié dans le prototype).
+
+**Navigation** : Fiches de poste (point d'entrée) · Recrutements (suivi) · Mes offres.
+
+| Écran | Contenu |
+| --- | --- |
+| Fiches de poste | Recherche (intitulé, code poste, mot-clé), filtre service, actives / archivées, colonnes configurables (code poste, métier, recrutements, « à compléter »…), « Nouvelle fiche de poste » |
+| Fiche de poste | Consultation (poste, missions, compétences, environnement) ; « À compléter : … » en une ligne ; Modifier (sauvegarde automatique) ; Archiver / Réactiver ; recrutements associés (avancement, version reprise) ; historique ; « Lancer un recrutement » |
+| Lancer un recrutement | Fenêtre unique : nombre de postes + parcours (avec DAR / création directe), règle de choix affichée comme hypothèse |
+| DAR | Reprise de la fiche (modifications propres à la DAR), brouillon enregistré automatiquement, « Soumettre la DAR » ; une fois soumise : lecture seule, validations en cours (réponse simulée), puis « Poursuivre vers la création de l'offre » |
+| Création d'offre (commune) | Configurer le recrutement (rappel de ce qui est repris de la fiche et de la DAR, postes, codes, date limite, contact, canaux, conditions ; options repliées) → Rédiger l'offre (titre, textes, mise en forme, reformulation, comparaison avec la DAR, aperçu) → Vérifier et finaliser (créer l'offre, puis interrupteur de publication) |
+| Recrutements / Mes offres | Suivi avec avancement fiche → DAR / création directe → offre → publication ; colonnes configurables |
+
+Fil du processus en tête d'un recrutement : **Fiche de poste** (cliquable : ouvre la fiche) · **DAR** ou
+« Création directe » · **Offre** · **Publication**.
+
+Scénario testé : fiche « Gestionnaire de paie » → recrutement 3 postes avec DAR → soumission refusée tant
+que le type de contrat manque → brouillon enregistré → soumission → validation simulée → configuration →
+rédaction (préremplissage) → création de l'offre, publication désactivée. Second cas : fiche
+« Responsable informatique » → création directe → arrivée dans la même création d'offre.
+
+### Choix UX
+
+- Le référentiel est l'écran d'accueil ; la fiche se lit sans être ouverte en édition.
+- Lancer un recrutement tient dans une seule fenêtre (pas d'assistant) ; on arrive directement sur la
+  DAR ou sur la configuration de l'offre selon le parcours.
+- La DAR a sa propre vue ; l'offre ne la modifie jamais. Les informations reprises sont rappelées en tête
+  de la configuration plutôt que redemandées.
+- Création et publication restent deux actions ; la publication est désactivée par défaut.
+- Les recrutements d'une fiche indiquent la version de la fiche reprise.
+
+### Hypothèses
+
+- Le choix « avec DAR / création directe » est laissé au RH au lancement (règle réelle inconnue).
+- Un recrutement copie la fiche ; il n'y a pas de synchronisation automatique ensuite.
+- Une offre ne peut être créée qu'une fois la DAR validée (quand il y en a une) ; elle peut être préparée
+  pendant la validation.
+- Une fiche archivée ne permet plus de lancer de recrutement, mais reste consultable avec ses recrutements.
+- Les fiches sont créées dans l'ATS ; l'origine SIRH est seulement anticipée (mention « Origine »).
+
+### Points à confirmer
+
+1. Règles qui imposent une DAR (organisation, statut, catégorie, type de poste, montant ?).
+2. Une modification de la fiche doit-elle être proposée aux recrutements en cours (et à la DAR non soumise) ?
+3. Qui maintient le référentiel (RH de proximité, recrutement, manager) et avec quels droits ?
+4. Source de référence de chaque donnée quand un SIRH fournira des fiches.
+5. Niveau de détail par poste quand un recrutement en couvre plusieurs (codes, dates, lieux).
+6. Faut-il un statut « clôturé » pour un recrutement terminé (poste pourvu) ?
+
 ## Itération 5 — besoins et offres (21 octobre 2026)
 
 Retour d'Alice : le mot « recrutements » ne convient pas. Processus à rendre visible :

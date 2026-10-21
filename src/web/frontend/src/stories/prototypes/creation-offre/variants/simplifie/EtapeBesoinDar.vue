@@ -1,23 +1,31 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import CspBadge from '@/components/base/CspBadge/CspBadge.vue'
+import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspIcon from '@/components/base/CspIcon/CspIcon.vue'
+import { quand } from '../../data/processus'
 import { CATEGORIES, personne } from '../../data/referentiels'
 import { useOffre } from '../../data/useOffre'
 import Disclosure from '../../shared/Disclosure.vue'
 import Panel from '../../shared/Panel.vue'
+import SimulationNote from '../../shared/SimulationNote.vue'
 import BesoinActions from './BesoinActions.vue'
 import RemarquesSection from './RemarquesSection.vue'
 
 // Étape 1 quand la DAR est soumise ou validée : on la consulte, on ne la modifie pas.
 // Ses informations sont déjà reprises dans l'offre (étapes 2 et 3) ; rien à ressaisir.
-const { state, etapeEnCours } = useOffre()
+const { state, etapeEnCours, circuit, repondre, notifier } = useOffre()
+const etapesDar = computed(() => circuit.value.filter(e => e.id === 'dar'))
+function valider() {
+  repondre('dar', 'approuve')
+  notifier('DAR validée (simulation). Vous pouvez poursuivre vers la création de l\'offre.')
+}
 const b = state.besoin
 
 const d = computed(() => state.darContenu)
 const validee = computed(() => b.darStatut === 'validee')
 const texteOuvert = ref(false)
-const enAttente = computed(() => `Soumise le ${d.value?.date ?? ''}${etapeEnCours.value ? `, en attente de ${personne(etapeEnCours.value.personneId).nom}` : ''}.`)
+const enAttente = computed(() => `Soumise ${quand(d.value?.date)}${etapeEnCours.value ? `, en attente de ${personne(etapeEnCours.value.personneId).nom}` : ''}.`)
 
 const lignes = computed(() => {
   const src = d.value
@@ -38,10 +46,10 @@ const lignes = computed(() => {
 <template>
   <header>
     <h2 class="title">
-      Besoin
+      Demande d'autorisation de recrutement
     </h2>
     <p class="desc">
-      Le besoin a été déclaré et soumis à une demande d'autorisation de recrutement. Ses informations sont reprises dans l'offre : rien à ressaisir.
+      La DAR a été soumise telle que renseignée et n'est plus modifiable. Ses informations seront reprises dans l'offre : rien à ressaisir.
     </p>
   </header>
 
@@ -70,7 +78,7 @@ const lignes = computed(() => {
     </div>
     <p class="dar-meta">
       <template v-if="validee">
-        Validée le {{ d?.date ?? '2 octobre 2026' }}<template v-if="d?.validePar">
+        Validée {{ quand(d?.date ?? '2 octobre 2026') }}<template v-if="d?.validePar">
           par {{ personne(d.validePar).nom }}
         </template>, telle que soumise. Son contenu ne change pas quand vous rédigez l'offre.
       </template>
@@ -78,6 +86,29 @@ const lignes = computed(() => {
         {{ enAttente }} Vous pouvez préparer l'offre dès maintenant ; elle pourra être créée une fois la DAR validée.
       </template>
     </p>
+    <div
+      v-if="!validee && etapesDar.length"
+      class="valid"
+    >
+      <p class="valid__title">
+        Validations en cours
+      </p>
+      <div
+        v-for="e in etapesDar"
+        :key="e.id"
+        class="valid__row"
+      >
+        <span>{{ personne(e.personneId).nom }} · {{ personne(e.personneId).role }}</span>
+        <span class="valid__statut">En attente</span>
+        <SimulationNote :titre="`Réponse de ${personne(e.personneId).nom.split(' ')[0]}`">
+          <CspButton
+            label="Valider la DAR"
+            size="sm"
+            @click="valider"
+          />
+        </SimulationNote>
+      </div>
+    </div>
     <dl class="dar-dl">
       <div
         v-for="l in lignes"
@@ -212,6 +243,31 @@ const lignes = computed(() => {
 
 .dar-text__body {
   white-space: pre-line;
+}
+
+.valid {
+  display: flex;
+  flex-direction: column;
+  gap: var(--csp-space-2);
+  padding: var(--csp-space-3) var(--csp-space-4);
+  background: var(--background-alt-blue-france);
+  font-size: var(--csp-font-size-sm);
+}
+
+.valid__title {
+  margin: 0;
+  font-weight: var(--csp-font-weight-bold);
+}
+
+.valid__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--csp-space-3);
+}
+
+.valid__statut {
+  color: var(--text-action-high-blue-france);
 }
 
 .hypo {

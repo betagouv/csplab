@@ -43,17 +43,17 @@ function rediger() {
   }
   if (!state.offreDemarree) {
     state.offreDemarree = true
-    journaliser(b.darApplicable === 'oui' ? `Offre démarrée à partir de la DAR ${b.darRef}` : 'Offre démarrée à partir du besoin (sans DAR)')
+    journaliser(`Offre démarrée à partir de la DAR ${b.darRef} et de la fiche ${state.ficheId}`)
     notifier('Offre démarrée : elle reprend les informations du besoin.')
   }
-  aller('offre')
+  aller('candidature')
 }
 
 const texte = computed(() => ({
   choisir: 'Indiquez si ce besoin passe par une demande d\'autorisation (DAR) pour continuer.',
-  soumettre: 'La fiche de poste constitue la DAR. Une fois soumise, elle ne sera plus modifiée.',
+  soumettre: 'Brouillon de DAR enregistré automatiquement. Une fois soumise, la DAR ne sera plus modifiée.',
   attente: `DAR soumise${etapeEnCours.value ? `, en attente de ${personne(etapeEnCours.value.personneId).nom}` : ''}. Vous pouvez préparer l'offre en attendant ; elle sera créée une fois la DAR validée.`,
-  rediger: b.darApplicable === 'oui' ? 'Besoin validé par la DAR : vous pouvez rédiger l\'offre.' : 'Besoin sans DAR : vous pouvez rédiger l\'offre.',
+  rediger: 'DAR validée : vous pouvez poursuivre vers la création de l\'offre.',
 }[cas.value]))
 
 async function sauver() {
@@ -74,7 +74,7 @@ async function sauver() {
     <div class="actions__btns">
       <CspButton
         v-if="!verrouille && !darFigee && (cas === 'soumettre' || cas === 'choisir' || !state.offreDemarree)"
-        label="Enregistrer"
+        label="Enregistrer le brouillon"
         variant="tertiary-no-outline"
         :disabled="saving || !dirty"
         @click="sauver"
@@ -94,7 +94,7 @@ async function sauver() {
       />
       <CspButton
         v-else-if="cas === 'rediger'"
-        :label="state.offreDemarree ? 'Reprendre l\'offre' : 'Rédiger l\'offre'"
+        :label="state.offreDemarree ? 'Reprendre l\'offre' : 'Poursuivre vers la création de l\'offre'"
         icon="ri:arrow-right-line"
         @click="rediger"
       />

@@ -1,12 +1,13 @@
 <script setup lang="ts">
+import type { Page } from './useApp'
 import CspSidebar from '@/components/layout/CspSidebar/CspSidebar.vue'
 import CspSidebarGroup from '@/components/layout/CspSidebar/CspSidebarGroup.vue'
 import CspSidebarItem from '@/components/layout/CspSidebar/CspSidebarItem.vue'
 import CspSidebarLogo from '@/components/layout/CspSidebar/CspSidebarLogo.vue'
 import CspSidebarUser from '@/components/layout/CspSidebar/CspSidebarUser.vue'
 
-// Navigation principale : les deux pages du parcours. La racine du prototype suit la route.
-defineProps<{ page?: 'besoins' | 'offres' }>()
+// Navigation principale. Le référentiel des fiches de poste est le point d'entrée ; la racine suit la route.
+defineProps<{ page?: Page }>()
 </script>
 
 <template>
@@ -17,10 +18,16 @@ defineProps<{ page?: 'besoins' | 'offres' }>()
       </template>
       <CspSidebarGroup>
         <CspSidebarItem
-          icon="ri:file-list-3-line"
-          label="Mes besoins en recrutement"
-          :to="{ path: '/besoins' }"
-          :is-active="page === 'besoins'"
+          icon="ri:file-text-line"
+          label="Fiches de poste"
+          :to="{ path: '/fiches' }"
+          :is-active="page === 'fiches'"
+        />
+        <CspSidebarItem
+          icon="ri:route-line"
+          label="Recrutements"
+          :to="{ path: '/recrutements' }"
+          :is-active="page === 'recrutements'"
         />
         <CspSidebarItem
           icon="ri:briefcase-line"

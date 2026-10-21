@@ -22,9 +22,9 @@ import { ETAPES, provideEtapes, REGLES_EXCLUES } from './useEtapes'
 const props = withDefaults(defineProps<{ preset: Preset, init?: OffreState, vue?: 'besoin' | 'offre', origine?: Page }>(), {
   init: undefined,
   vue: 'besoin',
-  origine: 'besoins',
+  origine: 'recrutements',
 })
-const emit = defineEmits<{ reprendre: [reference: string], dupliquer: [state: OffreState], quitter: [origine: Page, message?: string] }>()
+const emit = defineEmits<{ dupliquer: [state: OffreState], quitter: [origine: Page, message?: string], fiche: [id: string] }>()
 
 const store = provideOffre(props.preset, {
   exclure: REGLES_EXCLUES,
@@ -41,7 +41,7 @@ provide(ORIGINES_DISCRETES, true)
 
 // Vue « besoin » : la fiche de poste et sa validation. Vue « offre » : reprise là où l'on s'était arrêté.
 const PAR_STATUT: Record<OffreState['statut'], EtapeId> = {
-  brouillon: 'offre',
+  brouillon: 'candidature',
   a_corriger: 'offre',
   a_valider: 'finaliser',
   validee: 'finaliser',
@@ -49,7 +49,8 @@ const PAR_STATUT: Record<OffreState['statut'], EtapeId> = {
   publiee: 'finaliser',
 }
 const derniere = store.state.derniereEtape as EtapeId
-const depart: EtapeId = props.vue === 'besoin' || !store.state.offreDemarree
+const avecDar = store.state.besoin.darApplicable === 'oui'
+const depart: EtapeId = (props.vue === 'besoin' && avecDar) || !store.state.offreDemarree
   ? 'poste'
   : ETAPES.some(e => e.id === derniere && e.id !== 'poste') && store.state.statut === 'brouillon'
     ? derniere
@@ -62,6 +63,10 @@ watch(nav.etape, e => (store.state.derniereEtape = e))
 
 provideApp({
   origine: props.origine,
+  ouvrirFiche: async (id: string) => {
+    await store.enregistrer()
+    emit('fiche', id)
+  },
   quitter: async () => {
     await store.enregistrer()
     const titre = store.state.titreAnnonce || store.state.besoin.intitule || store.state.reference
@@ -83,10 +88,7 @@ onBeforeUnmount(() => {
 <template>
   <ShellSimple>
     <EtapeBesoinDar v-if="nav.etape.value === 'poste' && store.darFigee.value" />
-    <EtapePoste
-      v-else-if="nav.etape.value === 'poste'"
-      @reprendre="r => emit('reprendre', r)"
-    />
+    <EtapePoste v-else-if="nav.etape.value === 'poste'" />
     <EtapeOffre v-else-if="nav.etape.value === 'offre'" />
     <EtapeCandidature v-else-if="nav.etape.value === 'candidature'" />
     <EtapeFinaliser

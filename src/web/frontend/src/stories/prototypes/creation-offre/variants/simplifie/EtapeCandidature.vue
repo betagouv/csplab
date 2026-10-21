@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import CspCheckboxGroup from '@/components/base/CspCheckboxGroup/CspCheckboxGroup.vue'
+import CspIcon from '@/components/base/CspIcon/CspIcon.vue'
 import CspInput from '@/components/base/CspInput/CspInput.vue'
 import { PROFILS, STATUTS } from '../../data/referentiels'
 import { nouvelId, useOffre } from '../../data/useOffre'
@@ -89,10 +90,10 @@ const resumeEvaluation = computed(() => {
 <template>
   <header>
     <h2 class="title">
-      Compléter l'offre
+      Configurer le recrutement
     </h2>
     <p class="desc">
-      Les quelques informations propres à l'offre. Ce qui vient de la DAR n'est pas redemandé.
+      Les informations propres à ce recrutement. Ce qui vient de la fiche de poste{{ state.besoin.darApplicable === 'oui' ? ' et de la DAR' : '' }} n'est pas redemandé.
     </p>
   </header>
 
@@ -102,6 +103,25 @@ const resumeEvaluation = computed(() => {
     class="fields"
     :disabled="verrouille"
   >
+    <section
+      class="repris"
+      aria-label="Informations reprises"
+    >
+      <p class="repris__title">
+        <CspIcon
+          name="ri:file-copy-2-line"
+          :size="14"
+        />
+        Repris de la fiche {{ state.ficheId }} (version du {{ state.ficheVersion }}){{ state.besoin.darApplicable === 'oui' ? ` et de la DAR ${b.darRef}` : '' }}
+      </p>
+      <p class="repris__body">
+        {{ [b.service, b.localisation, b.categories.length ? `Catégorie ${b.categories.join(', ')}` : '', b.statuts.length === 2 ? 'Fonctionnaires et contractuels' : b.statuts[0] === 'contractuel' ? 'Contractuels' : 'Fonctionnaires'].filter(Boolean).join(' · ') }}
+      </p>
+      <p class="repris__body">
+        Missions, activités et compétences : reprises pour la rédaction de l'offre (étape suivante).
+      </p>
+    </section>
+
     <Panel titre="Informations de l'offre">
       <FieldRow :cols="2">
         <CspInput
@@ -180,7 +200,7 @@ const resumeEvaluation = computed(() => {
       </fieldset>
     </Panel>
 
-    <Panel titre="Qui peut candidater ?">
+    <Panel titre="Modalités et conditions de candidature">
       <p
         v-if="rappel"
         class="rappel"
@@ -288,6 +308,29 @@ const resumeEvaluation = computed(() => {
   padding: 0;
   border: 0;
   min-width: 0;
+}
+
+.repris {
+  padding: var(--csp-space-3) var(--csp-space-4);
+  border: 1px dashed var(--border-default-grey);
+  background: var(--background-default-grey);
+  font-size: var(--csp-font-size-sm);
+
+  p {
+    margin: 0;
+  }
+}
+
+.repris__title {
+  display: flex;
+  align-items: center;
+  gap: var(--csp-space-1);
+  margin-bottom: var(--csp-space-1) !important;
+  font-weight: var(--csp-font-weight-bold);
+}
+
+.repris__body {
+  color: var(--text-mention-grey);
 }
 
 .canaux {

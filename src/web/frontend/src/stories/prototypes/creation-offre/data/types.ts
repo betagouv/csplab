@@ -218,6 +218,36 @@ export interface OffreState {
   /** Faux tant que seule la DAR existe : l'offre n'a pas encore été démarrée. */
   offreDemarree: boolean
   contactCandidats: string
+  /** Fiche de poste d'origine du recrutement, et date de la version reprise au lancement. */
+  ficheId: string
+  ficheVersion: string
   /** Paramétrage (fictif) de l'organisation : circuit de validation appliqué en arrière-plan. */
   organisation: 'avec_dar' | 'sans_dar' | 'sans_validation' | 'dar_csp'
+}
+
+/** Fiche de poste : objet durable du référentiel, base de plusieurs recrutements successifs. */
+export interface FichePoste {
+  id: string
+  statut: 'active' | 'archivee'
+  intitule: string
+  organisme: string
+  service: string
+  localisation: string
+  teletravail: string
+  categories: string[]
+  statuts: string[]
+  metier: string | null
+  codePoste: string
+  corps: string
+  missions: string
+  activites: string[]
+  competences: string[]
+  qualifications: string
+  profil: string
+  environnement: string
+  conditionsParticulieres: string
+  /** Hypothèse : origine de la fiche (aujourd'hui toujours l'ATS ; un SIRH pourra en fournir plus tard). */
+  origine: 'ats'
+  modifieLe: string
+  journal: Journal[]
 }

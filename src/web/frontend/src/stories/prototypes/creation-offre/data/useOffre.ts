@@ -368,6 +368,7 @@ export function createOffre(preset: Preset, { exclure = [], autosave = false, pe
         if (state.darContenu) {
           state.darContenu.statut = 'validee'
           state.darContenu.date = `Aujourd'hui, ${heure()}`
+          state.darContenu.validePar = circuit.value.find(e => e.id === 'dar')?.personneId
         }
         journaliser(`DAR validée par ${nom}, telle que soumise`)
         activerEtapeSuivante()

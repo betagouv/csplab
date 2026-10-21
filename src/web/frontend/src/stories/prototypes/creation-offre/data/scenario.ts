@@ -280,6 +280,8 @@ export function etatInitial(organisation: OffreState['organisation'] = 'avec_dar
     titreAnnonce: '',
     offreDemarree: true,
     contactCandidats: '',
+    ficheId: '',
+    ficheVersion: '',
   }
 }
 

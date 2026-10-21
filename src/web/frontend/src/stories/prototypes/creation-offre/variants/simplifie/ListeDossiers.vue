@@ -15,37 +15,39 @@ import { libelleMetier } from '../../data/referentiels'
 import AppSidebar from './AppSidebar.vue'
 import ProcessusCell from './ProcessusCell.vue'
 
-// Les deux pages de consultation : « Mes besoins en recrutement » et « Mes offres ».
+// Pages de suivi : « Recrutements » et « Mes offres ».
 // Colonnes personnalisables (dont le code poste), configuration conservée pendant la session.
-const props = defineProps<{ page: 'besoins' | 'offres', message?: string, filtreInitial?: string }>()
-const emit = defineEmits<{ ouvrir: [reference: string], nouveau: [], voirBesoins: [filtre: string] }>()
+const props = defineProps<{ page: 'recrutements' | 'offres', message?: string, filtreInitial?: string }>()
+const emit = defineEmits<{ ouvrir: [reference: string], voirFiches: [] }>()
 
 type Col = CspColumnDef<OffreState> & { verrouillee?: boolean }
 
-const validation = (s: OffreState) => (s.besoin.darApplicable === 'non' ? 'Sans DAR' : s.besoin.darApplicable === 'oui' ? s.besoin.darRef : 'À choisir')
+const validation = (s: OffreState) => (s.besoin.darApplicable === 'non' ? 'Création directe' : s.besoin.darApplicable === 'oui' ? s.besoin.darRef : '—')
 
-const COLONNES: Record<'besoins' | 'offres', Col[]> = {
-  besoins: [
-    { id: 'intitule', header: 'Besoin', accessor: s => s.besoin.intitule || 'Sans intitulé', verrouillee: true },
+const COLONNES: Record<'recrutements' | 'offres', Col[]> = {
+  recrutements: [
+    { id: 'intitule', header: 'Recrutement', accessor: s => `${s.besoin.intitule || 'Sans intitulé'} · ${s.reference}`, verrouillee: true },
+    { id: 'fiche', header: 'Fiche de poste', accessor: s => s.ficheId || '—', width: '9rem' },
     { id: 'avancement', header: 'Avancement', accessor: () => '', cellComponent: markRaw(ProcessusCell), width: '17rem' },
-    { id: 'validation', header: 'Validation', accessor: s => validation(s), width: '9rem' },
+    { id: 'parcours', header: 'Parcours', accessor: s => validation(s), width: '9rem' },
+    { id: 'offre', header: 'Offre', accessor: s => etatOffre(s), width: '10rem' },
     { id: 'postes', header: 'Postes', accessor: s => s.besoin.nbPostes || '1', align: 'end', width: '5rem' },
     { id: 'code', header: 'Code(s) poste', accessor: s => s.besoin.codesPostes.join(', ') || '—' },
     { id: 'service', header: 'Service', accessor: s => s.besoin.service || '—' },
     { id: 'localisation', header: 'Localisation', accessor: s => s.besoin.localisation || '—' },
     { id: 'categorie', header: 'Catégorie', accessor: s => s.besoin.categories.join(', ') || '—', width: '6rem' },
     { id: 'metier', header: 'Métier', accessor: s => libelleMetier(s.besoin.metier) || '—' },
-    { id: 'fiche', header: 'Fiche de poste', accessor: s => s.besoin.ficheRef || '—' },
     { id: 'modifie', header: 'Modifié', accessor: s => s.modifieLe, width: '9rem' },
   ],
   offres: [
     { id: 'titre', header: 'Offre', accessor: s => s.titreAnnonce || s.besoin.intitule || 'Sans titre', verrouillee: true },
     { id: 'etat', header: 'État', accessor: s => etatOffre(s), width: '10rem' },
-    { id: 'reference', header: 'Référence', accessor: s => s.reference, width: '8.5rem' },
+    { id: 'reference', header: 'Référence', accessor: s => s.reference.replace('REC-', 'OFF-'), width: '8.5rem' },
     { id: 'postes', header: 'Postes', accessor: s => s.besoin.nbPostes || '1', align: 'end', width: '5rem' },
     { id: 'code', header: 'Code(s) poste', accessor: s => s.besoin.codesPostes.join(', ') || '—' },
     { id: 'limite', header: 'Date limite', accessor: s => s.dateLimite || '—', width: '7rem' },
-    { id: 'besoin', header: 'Validation du besoin', accessor: s => validation(s), width: '9rem' },
+    { id: 'besoin', header: 'Parcours', accessor: s => validation(s), width: '9rem' },
+    { id: 'fiche', header: 'Fiche de poste', accessor: s => s.ficheId || '—', width: '9rem' },
     { id: 'service', header: 'Service', accessor: s => s.besoin.service || '—' },
     { id: 'localisation', header: 'Localisation', accessor: s => s.besoin.localisation || '—' },
     { id: 'modifie', header: 'Modifié', accessor: s => s.modifieLe, width: '9rem' },
@@ -66,12 +68,12 @@ function parDefaut() {
 // --- Filtres ---
 const aValider = (d: OffreState) => d.besoin.darApplicable !== 'non' && !(d.besoin.darApplicable === 'oui' && d.besoin.darStatut === 'validee')
 const pret = (d: OffreState) => pretPourOffre(d) && !d.offreDemarree && !aValider(d)
-const FILTRES = computed(() => props.page === 'besoins'
+const FILTRES = computed(() => props.page === 'recrutements'
   ? [
       { id: 'tous', label: 'Tous', test: () => true },
-      { id: 'validation', label: 'En cours de déclaration ou de validation', test: aValider },
+      { id: 'validation', label: 'DAR en préparation ou en validation', test: aValider },
       { id: 'prets', label: `Prêts pour l'offre (${dossiers.filter(pret).length})`, test: pret },
-      { id: 'offre', label: 'Avec une offre', test: (d: OffreState) => d.offreDemarree },
+      { id: 'offre', label: 'Offre en cours ou créée', test: (d: OffreState) => d.offreDemarree },
     ]
   : [
       { id: 'tous', label: 'Toutes', test: () => true },
@@ -84,15 +86,15 @@ const base = computed(() => (props.page === 'offres' ? dossiers.filter(d => d.of
 const lignes = computed(() => base.value.filter(FILTRES.value.find(f => f.id === filtre.value)?.test ?? (() => true)))
 
 const TEXTES = {
-  besoins: {
-    titre: 'Mes besoins en recrutement',
-    desc: 'Chaque besoin part d\'une fiche de poste. Selon le cas, il est validé par une demande d\'autorisation (DAR) ou non, avant la rédaction de l\'offre.',
-    unite: 'besoin',
-    vide: 'Aucun besoin dans cette vue.',
+  recrutements: {
+    titre: 'Recrutements',
+    desc: 'Les recrutements lancés à partir de vos fiches de poste : avec DAR ou par création directe de l\'offre.',
+    unite: 'recrutement',
+    vide: 'Aucun recrutement dans cette vue.',
   },
   offres: {
     titre: 'Mes offres',
-    desc: 'Les offres rédigées à partir de vos besoins : en rédaction, créées ou publiées.',
+    desc: 'Les offres de vos recrutements : en rédaction, créées ou publiées.',
     unite: 'offre',
     vide: 'Aucune offre dans cette vue.',
   },
@@ -115,18 +117,10 @@ const t = computed(() => TEXTES[props.page])
             </p>
           </div>
           <CspButton
-            v-if="page === 'besoins'"
-            label="Déclarer un besoin"
-            icon="ri:add-line"
-            is-icon-left
-            @click="emit('nouveau')"
-          />
-          <CspButton
-            v-else
-            :label="`Rédiger une offre (${dossiers.filter(pret).length} besoin(s) prêt(s))`"
+            label="Lancer un recrutement depuis une fiche"
             variant="secondary"
             icon="ri:arrow-right-line"
-            @click="emit('voirBesoins', 'prets')"
+            @click="emit('voirFiches')"
           />
         </header>
 
