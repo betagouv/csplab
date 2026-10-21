@@ -450,7 +450,6 @@ class FakeTsOfferSummarySerializer(serializers.Serializer):
 
 
 class FakeTsOrganisationSerializer(serializers.Serializer):
-    # Champs absents (objet vide) quand l'offre n'est liée à aucun organisme Talentsoft.
     entityCode = serializers.CharField(required=False)
     name = serializers.CharField(required=False)
     description = serializers.CharField(required=False, allow_null=True)
