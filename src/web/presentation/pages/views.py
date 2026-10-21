@@ -22,13 +22,13 @@ def _wrap_dsfr_tables(html: str) -> str:
 
 
 def _unique_id(slug: str, used_ids: set[str]) -> str:
-    candidate = slug
+    anchor = slug
     suffix = 0
-    while candidate in used_ids or not candidate:
+    while anchor in used_ids or not anchor:
         suffix += 1
-        candidate = f"{slug}_{suffix}"
-    used_ids.add(candidate)
-    return candidate
+        anchor = f"{slug}_{suffix}"
+    used_ids.add(anchor)
+    return anchor
 
 
 def _add_heading_ids_and_dsfr_classes(tokens: list) -> list[dict]:
@@ -59,6 +59,13 @@ def _add_heading_ids_and_dsfr_classes(tokens: list) -> list[dict]:
         parents.append((level, item.setdefault("items", [])))
     _drop_empty_items(menu)
     return menu
+
+
+def _render_guide(text: str) -> tuple[str, list[dict]]:
+    tokens = _markdown.parse(text)
+    toc_items = _add_heading_ids_and_dsfr_classes(tokens)
+    html = _markdown.renderer.render(tokens, _markdown.options, {})
+    return _wrap_dsfr_tables(html), toc_items
 
 
 def _drop_empty_items(items: list[dict]) -> None:
@@ -94,12 +101,9 @@ class ApiGuideView(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        tokens = _markdown.parse(
+        context["content"], context["toc_items"] = _render_guide(
             (settings.STATIC_DIR / "api" / "guide_api.md").read_text()
         )
-        context["toc_items"] = _add_heading_ids_and_dsfr_classes(tokens)
-        html = _markdown.renderer.render(tokens, _markdown.options, {})
-        context["content"] = _wrap_dsfr_tables(html)
         return context
 
 
