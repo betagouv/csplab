@@ -46,7 +46,7 @@ def get_utilisateur_details(*, utilisateur: UserModel) -> UtilisateurDetails:
         organisme_roles=liaisons,
         authorized_actions=[
             action.value
-            for action in permissions.actions_autorisees_utilisateur(utilisateur)
+            for action in permissions.authorized_actions_utilisateur(utilisateur)
         ],
         organismes=[
             OrganismeDetails(
@@ -54,7 +54,7 @@ def get_utilisateur_details(*, utilisateur: UserModel) -> UtilisateurDetails:
                 nom=liaison.organisme.nom,
                 authorized_actions=[
                     action.value
-                    for action in permissions.actions_autorisees_organisme(
+                    for action in permissions.authorized_actions_organisme(
                         AgentOrganismeRole(liaison.role),
                         utilisateur=utilisateur,
                         organisme_id=liaison.organisme_id,

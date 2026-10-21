@@ -863,14 +863,14 @@ class TestAuthorizedActions:
     )
     def test_user_authorized_actions(self, is_staff, expected):
         assert (
-            OrganismePermissionService().actions_autorisees_utilisateur(
+            OrganismePermissionService().authorized_actions_utilisateur(
                 UserModel(is_staff=is_staff)
             )
             == expected
         )
 
     def test_agent_gets_actions_without_target_recrutement(self):
-        assert OrganismePermissionService().actions_autorisees_organisme(
+        assert OrganismePermissionService().authorized_actions_organisme(
             AgentOrganismeRole.AGENT,
             utilisateur=UserModel(is_staff=False),
             organisme_id=uuid4(),
@@ -881,7 +881,7 @@ class TestAuthorizedActions:
         ]
 
     def test_superviseur_gets_actions_without_target_recrutement(self):
-        assert OrganismePermissionService().actions_autorisees_organisme(
+        assert OrganismePermissionService().authorized_actions_organisme(
             AgentOrganismeRole.SUPERVISEUR,
             utilisateur=UserModel(is_staff=False),
             organisme_id=uuid4(),
@@ -893,7 +893,7 @@ class TestAuthorizedActions:
     def test_responsable_agent_gets_search_and_create_agent(self):
         organisme_id = uuid4()
 
-        assert OrganismePermissionService().actions_autorisees_organisme(
+        assert OrganismePermissionService().authorized_actions_organisme(
             AgentOrganismeRole.AGENT,
             utilisateur=UserModel(is_staff=False),
             organisme_id=organisme_id,
@@ -909,7 +909,7 @@ class TestAuthorizedActions:
     def test_staff_acts_as_superviseur(self, is_responsable):
         organisme_id = uuid4()
 
-        assert OrganismePermissionService().actions_autorisees_organisme(
+        assert OrganismePermissionService().authorized_actions_organisme(
             AgentOrganismeRole.AGENT,
             utilisateur=UserModel(is_staff=True),
             organisme_id=organisme_id,
@@ -933,7 +933,7 @@ class TestAuthorizedActions:
         if is_responsable:
             _attach_recrutement_role(organisme, agent, AgentRecrutementRole.RESPONSABLE)
 
-        for action in OrganismePermissionService().actions_autorisees_organisme(
+        for action in OrganismePermissionService().authorized_actions_organisme(
             role,
             utilisateur=agent.utilisateur,
             organisme_id=organisme.id,

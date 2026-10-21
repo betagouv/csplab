@@ -50,7 +50,7 @@ def _organisme(organisme, role: AgentOrganismeRole, utilisateur) -> dict:
         "nom": organisme.nom,
         "authorized_actions": [
             action.value
-            for action in OrganismePermissionService().actions_autorisees_organisme(
+            for action in OrganismePermissionService().authorized_actions_organisme(
                 role,
                 utilisateur=utilisateur,
                 organisme_id=organisme.id,
