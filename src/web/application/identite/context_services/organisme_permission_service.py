@@ -27,7 +27,7 @@ from infrastructure.django_apps.users.models import UserModel
 # Actions sans organisme existant : seul le statut staff autorise l'opération
 _ACTIONS_SANS_ORGANISME: frozenset[OrganismeAction] = frozenset(
     {
-        OrganismeAction.CREER_ORGANISME,
+        OrganismeAction.CREATE_ORGANISME,
         OrganismeAction.LISTER_ORGANISMES,
     }
 )

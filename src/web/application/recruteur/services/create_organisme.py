@@ -34,7 +34,7 @@ def create_organisme(
     parent_id: UUID | None = None,
 ) -> OrganismeModel:
     OrganismePermissionService().can_execute(
-        action=OrganismeAction.CREER_ORGANISME,
+        action=OrganismeAction.CREATE_ORGANISME,
         utilisateur=utilisateur,
     )
     siret_code = SIRET(code=siret).code

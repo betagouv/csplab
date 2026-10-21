@@ -40,7 +40,7 @@ pytestmark = pytest.mark.django_db
 
 
 STAFF_SEULEMENT_SANS_ORGANISME_ACTIONS = [
-    OrganismeAction.CREER_ORGANISME,
+    OrganismeAction.CREATE_ORGANISME,
     OrganismeAction.LISTER_ORGANISMES,
 ]
 
@@ -853,7 +853,7 @@ class TestAuthorizedActions:
             (
                 True,
                 [
-                    OrganismeAction.CREER_ORGANISME,
+                    OrganismeAction.CREATE_ORGANISME,
                     OrganismeAction.LISTER_ORGANISMES,
                     OrganismeAction.MODIFIER_ORGANISME,
                 ],

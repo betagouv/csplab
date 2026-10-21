@@ -212,7 +212,7 @@ def test_staff_has_staff_and_superviseur_actions(authenticated_client, test_user
     assert response.status_code == status.HTTP_200_OK
     body = response.json()
     assert body["authorized_actions"] == [
-        "creer_organisme",
+        "create_organisme",
         "lister_organismes",
         "modifier_organisme",
     ]

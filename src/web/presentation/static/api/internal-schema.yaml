@@ -4811,7 +4811,7 @@ components:
       - get_recrutement_etapes
       - update_recrutement_etapes
       - init_recrutement_etapes
-      - creer_organisme
+      - create_organisme
       - lister_organismes
       - modifier_organisme
       - list_organisme_agents
@@ -4848,7 +4848,7 @@ components:
         * `get_recrutement_etapes` - get_recrutement_etapes
         * `update_recrutement_etapes` - update_recrutement_etapes
         * `init_recrutement_etapes` - init_recrutement_etapes
-        * `creer_organisme` - creer_organisme
+        * `create_organisme` - create_organisme
         * `lister_organismes` - lister_organismes
         * `modifier_organisme` - modifier_organisme
         * `list_organisme_agents` - list_organisme_agents
