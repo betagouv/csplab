@@ -1352,12 +1352,18 @@ def test_clean_returns_empty_applicant_criteria_and_offer_block_texts_when_blank
     assert offer.vacancy_notice_url is None
 
 
-def test_clean_ignores_vacancy_notice_that_is_not_an_url(cleaner):
+@pytest.mark.parametrize(
+    "value",
+    [
+        "JO du 12 mars 2025, texte n° 45",
+        "https://univ-reims.nous-recrutons.fr/nos-offres-demploi/",
+        "https://legifrance.example.com/jorf/id/1",
+    ],
+)
+def test_clean_ignores_vacancy_notice_that_is_not_a_legifrance_url(cleaner, value):
     raw_offer = _make_raw_offer(
         customFields=TalentsoftCustomFieldsFactory.build(
-            offerCustomBlock1=TalentsoftDynamicField(
-                longText3="JO du 12 mars 2025, texte n° 45"
-            ),
+            offerCustomBlock1=TalentsoftDynamicField(longText3=value),
         )
     )
 
