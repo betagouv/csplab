@@ -2,6 +2,7 @@ from datetime import datetime
 
 from django.db import models
 from django.db.models import (
+    Count,
     F,
     Max,
     OuterRef,
@@ -9,6 +10,7 @@ from django.db.models import (
     Q,
     Subquery,
 )
+from django.db.models.functions import Coalesce
 
 from infrastructure.django_apps.candidate.models.candidature import CandidatureModel
 from infrastructure.django_apps.candidate.models.document import DocumentModel
@@ -46,7 +48,8 @@ class ConversationQuerySet(models.QuerySet):
         )
 
     def with_is_unread(self, utilisateur_id) -> "ConversationQuerySet":
-        # Must be chained after with_message_summary (needs last_message_created_at)
+        # Single definition of "unread" (unread_by chains on it).
+        # Correlated subqueries only (no Max): usable inside another subquery.
         last_message = MessageModel.objects.filter(
             conversation=OuterRef("pk")
         ).order_by("-created_at")
@@ -55,11 +58,16 @@ class ConversationQuerySet(models.QuerySet):
         )
         return self.annotate(
             last_author=Subquery(last_message.values("auteur_id")[:1]),
+            last_message_at=Subquery(last_message.values("created_at")[:1]),
             read_at=Subquery(read_receipt.values("read_at")[:1]),
         ).annotate(
-            is_unread=~Q(last_author=utilisateur_id)
-            & (Q(read_at__isnull=True) | Q(last_message_created_at__gt=F("read_at")))
+            is_unread=Q(last_message_at__isnull=False)
+            & ~Q(last_author=utilisateur_id)
+            & (Q(read_at__isnull=True) | Q(last_message_at__gt=F("read_at")))
         )
+
+    def unread_by(self, utilisateur_id) -> "ConversationQuerySet":
+        return self.with_is_unread(utilisateur_id).filter(is_unread=True)
 
 
 class ConversationModel(BaseDatedModel):
@@ -90,6 +98,19 @@ class ConversationModel(BaseDatedModel):
 
     def __str__(self) -> str:
         return self.objet
+
+
+def unread_conversations_count(utilisateur_id) -> Coalesce:
+    """Annotation expression: Meant for a CandidatureModel qs"""
+    unread = (
+        ConversationModel.objects.filter(candidature=OuterRef("pk"))
+        .unread_by(utilisateur_id)
+        .order_by()
+        .values("candidature")
+        .annotate(total=Count("pk"))
+        .values("total")
+    )
+    return Coalesce(Subquery(unread), 0)
 
 
 class MessageQuerySet(models.QuerySet):

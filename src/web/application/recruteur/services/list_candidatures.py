@@ -10,6 +10,7 @@ from application.recruteur.context_services.recrutement_agent_service import (
 )
 from domain.identite.value_objects.organisme_action import OrganismeAction
 from infrastructure.django_apps.candidate.models.candidature import CandidatureModel
+from infrastructure.django_apps.messagerie.models import unread_conversations_count
 from infrastructure.django_apps.users.models import UserModel
 
 
@@ -29,4 +30,6 @@ def list_candidatures(
         organisme_id=organisme_id, recrutement_id=recrutement_id
     ).check_recrutement_belongs_to_organisme()
 
-    return CandidatureModel.objects.by_recrutement(recrutement_id)
+    return CandidatureModel.objects.by_recrutement(recrutement_id).annotate(
+        unread_conversations=unread_conversations_count(utilisateur.username)
+    )

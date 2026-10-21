@@ -347,9 +347,8 @@ class DerniereActiviteField(serializers.DateTimeField):
         return instance.updated_by_recruteur or instance.updated_at
 
 
-class CandidatureListeSerializer(
-    UnreadConversationsSerializer, serializers.ModelSerializer
-):
+class CandidatureListeSerializer(serializers.ModelSerializer):
+    unread_conversations = serializers.IntegerField(read_only=True)
     uuid = serializers.UUIDField(source="id")
     date_soumission = serializers.DateTimeField(source="created_at")
     candidat = CandidatureCandidatField()
