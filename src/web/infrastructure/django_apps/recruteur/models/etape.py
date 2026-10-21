@@ -1,12 +1,17 @@
 from collections.abc import Iterable
+from typing import TYPE_CHECKING
 
 from django.db import models
 
 from domain.recruteur.value_objects.categorie_etapes_recrutement import (
     CategorieEtapeRecrutement,
 )
-from infrastructure.django_apps.recruteur.models.recrutement import RecrutementModel
 from infrastructure.django_apps.utils.models import BaseDatedModel
+
+if TYPE_CHECKING:
+    from infrastructure.django_apps.recruteur.models.recrutement import (
+        RecrutementModel,
+    )
 
 
 class EtapeQuerySet(models.QuerySet):
@@ -16,7 +21,7 @@ class EtapeQuerySet(models.QuerySet):
 
 class EtapeModel(BaseDatedModel):
     recrutement = models.ForeignKey(
-        RecrutementModel,
+        "recruteur.RecrutementModel",
         on_delete=models.CASCADE,
         db_column="recrutement_id",
         related_name="etapes",
@@ -48,7 +53,7 @@ class EtapeModel(BaseDatedModel):
 
 
 def etapes_ordonnees(
-    recrutement: RecrutementModel, etapes: Iterable[EtapeModel] | None = None
+    recrutement: "RecrutementModel", etapes: Iterable[EtapeModel] | None = None
 ) -> list[EtapeModel]:
     if etapes is None:
         etapes = recrutement.etapes.all()
