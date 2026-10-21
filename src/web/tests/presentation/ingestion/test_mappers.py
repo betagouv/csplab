@@ -73,6 +73,33 @@ def test_summary_output_mapper_maps_unknown_job_vacancy_to_null(job_vacancy):
     assert result["professionalCategory"] is None
 
 
+def test_summary_output_mapper_maps_organisation_description_from_organisme():
+    offer = replace(
+        OfferFactory.create_entity(),
+        employer="Présentation de l'employeur",
+        talentsoft_organisme=TalentsoftOrganisme(
+            entity_code="ENT-1",
+            code=1,
+            name="Commune de Paris",
+            description="Description de la commune",
+        ),
+    )
+
+    result = OfferSummaryOutputMapper().to_dict(offer)
+
+    assert result["organisationDescription"] == "Description de la commune"
+
+
+def test_summary_output_mapper_maps_null_organisation_description_without_organisme():
+    offer = replace(
+        OfferFactory.create_entity(), employer="Présentation de l'employeur"
+    )
+
+    result = OfferSummaryOutputMapper().to_dict(offer)
+
+    assert result["organisationDescription"] is None
+
+
 def test_offer_input_mapper_maps_profession_referentiel_to_job_family_referential():
     payload = PayloadOfferFactory.create(
         identification={"reference": "REF-001", "versant": "FPT"},
@@ -386,6 +413,7 @@ class TestOfferDetailOutputMapper:
 
         assert result["organisation"]["entityCode"] == ""
         assert result["organisation"]["name"] == offer.organization
+        assert result["organisation"]["description"] is None
 
     def test_application_email_is_mapped_to_origin_short_text1(self):
         offer = replace(

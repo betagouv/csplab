@@ -219,7 +219,9 @@ class PostgresOffersRepository(IIngestionOffersRepository):
         radius_km: int | None = None,
         keywords: str | None = None,
     ) -> IPage[Offer]:
-        qs = OfferModel.objects.filter(archived_at__isnull=active)
+        qs = OfferModel.objects.select_related(
+            "talentsoft_organisme_entity_code"
+        ).filter(archived_at__isnull=active)
 
         qs = self._apply_field_filters(
             qs,

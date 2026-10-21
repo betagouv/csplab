@@ -200,7 +200,7 @@ class TestOfferDetailViewDbVerified:
                 "hasChildren": False,
             },
             "organisationName": "Ministère Test",
-            "organisationDescription": "Présentation de l'employeur",
+            "organisationDescription": None,
             "organisationLogoUrl": None,
             "contractDuration": "36 mois",
             "contractTypeCountry": None,
@@ -264,7 +264,7 @@ class TestOfferDetailViewDbVerified:
             "organisation": {
                 "entityCode": "",
                 "name": "Ministère Test",
-                "description": "Présentation de l'employeur",
+                "description": None,
                 "url": "https://exemple.gouv.fr/offres/e2e-1",
                 "phoneNumber": None,
                 "postCode": None,
@@ -411,6 +411,7 @@ class TestOfferDetailViewDbVerified:
         response = jwt_client.get(URL, {"reference": offer_model.reference})
 
         assert response.status_code == status.HTTP_200_OK
+        assert response.json()["organisationDescription"] == "Description de la commune"
         assert response.json()["organisation"] == {
             "entityCode": "ENT-1",
             "name": "Commune de Paris",

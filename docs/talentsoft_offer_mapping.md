@@ -1,6 +1,6 @@
 # Correspondance offre Talentsoft → offre API v1
 
-_Dernière mise à jour : 2026-10-20_
+_Dernière mise à jour : 2026-10-21_
 
 Conversion d'une offre au format Talentsoft en offre envoyée à l'API.
 L'API fake-ts (`/api/fake-ts/`, `OfferSummaryOutputMapper` et `OfferDetailOutputMapper` dans `src/web/presentation/ingestion/mappers.py`) expose les offres du web au format Talentsoft : les notes « API fake-ts » décrivent ce qu'elle renvoie.
@@ -67,7 +67,7 @@ Le Markdown ne contient jamais de balise HTML ni de lien ou d'image écrits dans
 | `location` | Libellé d'affichage ; le libellé repris vient de `customFields.location.shortText1`. |
 | `modificationDate` | |
 | `contractTypeCountry` | |
-| `organisationDescription` | Capturé nulle part dans la chaîne. |
+| `organisationDescription` | Capturé nulle part dans la chaîne. API fake-ts : reprend la description de l'organisme Talentsoft lié à l'offre (comme `organisation.description`), `null` si l'offre n'est liée à aucun organisme. |
 | `organisationLogoUrl` | |
 | `_links` | Métadonnées de transport. |
 | `_format` | Métadonnées de transport. |
@@ -77,7 +77,7 @@ Le Markdown ne contient jamais de balise HTML ni de lien ou d'image écrits dans
 | `isAnonymousOrganisation` | |
 | `numberOfVacancies` | Nombre de postes à pourvoir. Jamais renseigné par Talentsoft : toujours `null` dans les offres chargées par l'ingestion (vérifié le 2026-10-19). |
 | `organisation.name` | Données d'organisme, synchronisées par l'upsert séparé des organismes Talentsoft (`TalentsoftOrganismeUpsertInputSerializer`), pas par le payload d'offre. |
-| `organisation.description` | Données d'organisme, synchronisées par l'upsert séparé des organismes Talentsoft (`TalentsoftOrganismeUpsertInputSerializer`), pas par le payload d'offre. |
+| `organisation.description` | Données d'organisme, synchronisées par l'upsert séparé des organismes Talentsoft (`TalentsoftOrganismeUpsertInputSerializer`), pas par le payload d'offre. API fake-ts : `null` si l'offre n'est liée à aucun organisme. |
 | `organisation.url` | Données d'organisme, synchronisées par l'upsert séparé des organismes Talentsoft (`TalentsoftOrganismeUpsertInputSerializer`), pas par le payload d'offre. |
 | `organisation.phoneNumber` | Données d'organisme, synchronisées par l'upsert séparé des organismes Talentsoft (`TalentsoftOrganismeUpsertInputSerializer`), pas par le payload d'offre. |
 | `organisation.postCode` | Données d'organisme, synchronisées par l'upsert séparé des organismes Talentsoft (`TalentsoftOrganismeUpsertInputSerializer`), pas par le payload d'offre. |

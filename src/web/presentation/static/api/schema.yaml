@@ -6056,6 +6056,19 @@ tags:
 
     Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/).
 
+    ## 2026-10-21
+
+    ### Modifié
+
+    - `GET /api/fake-ts/offersummaries` et `GET /api/fake-ts/offers/getoffer` :
+      `organisationDescription` reprend désormais la description de l'organisme Talentsoft
+      lié à l'offre, et vaut `null` si l'offre n'est liée à aucun organisme. Il reprenait
+      jusqu'ici la présentation de l'employeur (`description.employeur`), toujours
+      disponible dans `customFields.description.longText1`.
+    - `GET /api/fake-ts/offers/getoffer` : `organisation.description` vaut `null` quand
+      l'offre n'est liée à aucun organisme Talentsoft, au lieu de reprendre
+      `description.employeur`.
+
     ## 2026-10-20
 
     ### ⚠️ Changements non rétrocompatibles

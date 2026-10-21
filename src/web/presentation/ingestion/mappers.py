@@ -149,7 +149,9 @@ class OfferSummaryOutputMapper:
             if offer.category
             else None,
             "organisationName": offer.organization,
-            "organisationDescription": offer.employer,
+            "organisationDescription": offer.talentsoft_organisme.description
+            if offer.talentsoft_organisme
+            else None,
             "organisationLogoUrl": None,
             "contractDuration": (offer.conditions or {}).get("duree_contrat") or None,
             "contractTypeCountry": None,
@@ -269,7 +271,7 @@ class OfferDetailOutputMapper(OfferSummaryOutputMapper):
             else {
                 "entityCode": "",
                 "name": offer.organization,
-                "description": offer.employer,
+                "description": None,
                 "url": str(offer.offer_url) if offer.offer_url else None,
                 "phoneNumber": None,
                 "postCode": None,

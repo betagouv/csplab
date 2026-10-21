@@ -331,10 +331,36 @@ class TestOfferSummariesViewDbVerified:
         references = {offer["reference"] for offer in response.json()["data"]}
         assert references == {"REF-A", "REF-B", "REF-C"}
 
+    def test_organisation_description_comes_from_talentsoft_organisme(self, jwt_client):
+        OfferDjangoFactory(
+            reference="REF-AVEC-ORGANISME",
+            employer="Présentation de l'employeur",
+            talentsoft_organisme_entity_code=TalentsoftOrganismeDjangoFactory(
+                description="Description de la commune"
+            ),
+        )
+        OfferDjangoFactory(
+            reference="REF-SANS-ORGANISME",
+            employer="Présentation de l'employeur",
+        )
+
+        response = jwt_client.get(URL)
+
+        assert response.status_code == status.HTTP_200_OK
+        descriptions = {
+            offer["reference"]: offer["organisationDescription"]
+            for offer in response.json()["data"]
+        }
+        assert descriptions == {
+            "REF-AVEC-ORGANISME": "Description de la commune",
+            "REF-SANS-ORGANISME": None,
+        }
+
     def test_does_not_trigger_n_plus_one_queries(
         self, jwt_client, django_assert_num_queries
     ):
-        OfferDjangoFactory.create_batch(5)
+        for organisme in TalentsoftOrganismeDjangoFactory.create_batch(5):
+            OfferDjangoFactory(talentsoft_organisme_entity_code=organisme)
 
         with django_assert_num_queries(NOMBRE_REQUETES_ATTENDU):
             response = jwt_client.get(URL)
