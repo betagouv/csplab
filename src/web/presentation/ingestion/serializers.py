@@ -450,19 +450,24 @@ class FakeTsOfferSummarySerializer(serializers.Serializer):
 
 
 class FakeTsOrganisationSerializer(serializers.Serializer):
-    entityCode = serializers.CharField()
-    name = serializers.CharField()
-    description = serializers.CharField(allow_null=True)
-    url = serializers.CharField(allow_null=True)
-    phoneNumber = serializers.CharField(allow_null=True)
-    postCode = serializers.CharField(allow_null=True)
-    geolocation = FakeTsGeolocationSerializer(allow_null=True)
-    parentName = serializers.CharField(allow_null=True)
-    logoUrl = serializers.CharField(allow_null=True)
-    maxDelayForConsent = serializers.IntegerField(allow_null=True)
-    retentionPeriod = serializers.IntegerField(allow_null=True)
-    generalConditions = serializers.CharField(allow_null=True)
-    personalDataConsent = serializers.CharField(allow_null=True)
+    entityCode = serializers.CharField(required=False)
+    name = serializers.CharField(required=False)
+    description = serializers.CharField(required=False, allow_null=True)
+    url = serializers.CharField(required=False, allow_null=True)
+    phoneNumber = serializers.CharField(required=False, allow_null=True)
+    postCode = serializers.CharField(required=False, allow_null=True)
+    geolocation = FakeTsGeolocationSerializer(required=False, allow_null=True)
+    parentName = serializers.CharField(required=False, allow_null=True)
+    logoUrl = serializers.CharField(required=False, allow_null=True)
+    maxDelayForConsent = serializers.IntegerField(required=False, allow_null=True)
+    retentionPeriod = serializers.IntegerField(required=False, allow_null=True)
+    generalConditions = serializers.CharField(required=False, allow_null=True)
+    personalDataConsent = serializers.CharField(required=False, allow_null=True)
+
+    def to_representation(self, instance):
+        if not instance:
+            return {}
+        return super().to_representation(instance)
 
 
 class FakeTsTalentsoftOrganismeSerializer(serializers.Serializer):

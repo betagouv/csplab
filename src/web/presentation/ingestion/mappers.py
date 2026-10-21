@@ -149,7 +149,9 @@ class OfferSummaryOutputMapper:
             if offer.category
             else None,
             "organisationName": offer.organization,
-            "organisationDescription": offer.employer,
+            "organisationDescription": offer.talentsoft_organisme.description
+            if offer.talentsoft_organisme
+            else None,
             "organisationLogoUrl": None,
             "contractDuration": (offer.conditions or {}).get("duree_contrat") or None,
             "contractTypeCountry": None,
@@ -266,21 +268,7 @@ class OfferDetailOutputMapper(OfferSummaryOutputMapper):
             "isAnonymousOrganisation": False,
             "organisation": self._talentsoft_organisation(offer.talentsoft_organisme)
             if offer.talentsoft_organisme
-            else {
-                "entityCode": "",
-                "name": offer.organization,
-                "description": offer.employer,
-                "url": str(offer.offer_url) if offer.offer_url else None,
-                "phoneNumber": None,
-                "postCode": None,
-                "geolocation": geolocation,
-                "parentName": None,
-                "logoUrl": None,
-                "maxDelayForConsent": None,
-                "retentionPeriod": None,
-                "generalConditions": None,
-                "personalDataConsent": None,
-            },
+            else {},
             "operationalManager": None,
             "educationLevel": self._coded_object(
                 str(criteria.diploma_level.value),

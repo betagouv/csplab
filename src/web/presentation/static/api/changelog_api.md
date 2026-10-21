@@ -6,6 +6,16 @@ champs et de leurs règles se trouve dans le [guide de l'API](/pages/guide_api).
 
 Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/).
 
+## 2026-10-21
+
+### Modifié
+
+- `GET /api/fake-ts/offersummaries` et `GET /api/fake-ts/offers/getoffer` :
+  `organisationDescription` reprend désormais la description de l'organisme Talentsoft
+  lié à l'offre. Il reprenait jusqu'ici la présentation de l'employeur
+  (`description.employeur`), toujours disponible dans
+  `customFields.description.longText1`.
+
 ## 2026-10-20
 
 ### ⚠️ Changements non rétrocompatibles
