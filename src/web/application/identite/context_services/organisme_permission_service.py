@@ -253,6 +253,17 @@ _ROLES_RECRUTEMENT_REQUIS: dict[OrganismeAction, frozenset[AgentRecrutementRole]
 }
 
 
+# Actions dont l'autorisation dépend du recrutement : hors périmètre des actions
+# exposées au niveau de l'utilisateur et de l'organisme
+_ACTIONS_NIVEAU_RECRUTEMENT: frozenset[OrganismeAction] = (
+    frozenset(_ROLES_RECRUTEMENT_REQUIS) | _RESPONSABLE_D_UN_RECRUTEMENT_REQUIS
+)
+
+
+def _ordonnees(actions: frozenset[OrganismeAction]) -> list[OrganismeAction]:
+    return [action for action in OrganismeAction if action in actions]
+
+
 def _agent_id(utilisateur: UserModel | Utilisateur) -> UUID:
     if isinstance(utilisateur, UserModel):
         return utilisateur.username
@@ -338,3 +349,23 @@ class OrganismePermissionService:
                 raise AccesRecrutementRefuse(recrutement_id)
 
         return role
+
+    def actions_autorisees_utilisateur(
+        self, utilisateur: UserModel
+    ) -> list[OrganismeAction]:
+        if not utilisateur.is_staff:
+            return []
+        return _ordonnees(_ACTIONS_SANS_ORGANISME | _ACTIONS_STAFF_AVEC_ORGANISME)
+
+    def actions_autorisees_organisme(
+        self, role: AgentOrganismeRole, *, utilisateur: UserModel
+    ) -> list[OrganismeAction]:
+        roles = {AgentOrganismeRole.SUPERVISEUR if utilisateur.is_staff else role}
+        return _ordonnees(
+            frozenset(
+                action
+                for action, roles_requis in _ROLES_REQUIS.items()
+                if roles & roles_requis
+            )
+            - _ACTIONS_NIVEAU_RECRUTEMENT
+        )

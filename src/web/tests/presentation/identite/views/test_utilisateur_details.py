@@ -3,6 +3,9 @@ from django.urls import reverse
 from django.utils import timezone
 from rest_framework import status
 
+from application.identite.context_services.organisme_permission_service import (
+    OrganismePermissionService,
+)
 from domain.recruteur.value_objects.roles import AgentOrganismeRole
 from infrastructure.factories.identite.agent_django_factory import (
     AgentDjangoFactory,
@@ -33,6 +36,19 @@ def _role(organisme, role: AgentOrganismeRole) -> dict:
     }
 
 
+def _organisme(organisme, role: AgentOrganismeRole, utilisateur) -> dict:
+    return {
+        "uuid": str(organisme.id),
+        "nom": organisme.nom,
+        "authorized_actions": [
+            action.value
+            for action in OrganismePermissionService().actions_autorisees_organisme(
+                role, utilisateur=utilisateur
+            )
+        ],
+    }
+
+
 def test_anonymous_returns_401(api_client):
     response = api_client.get(URL)
 
@@ -59,6 +75,8 @@ def test_user_without_organisme_role_has_no_organisme_roles(
         "nom": test_user.last_name,
         "is_staff": False,
         "organisme_roles": [],
+        "authorized_actions": [],
+        "organismes": [],
     }
 
 
@@ -83,6 +101,10 @@ def test_agent_with_role_has_organisme_roles(
         "nom": test_user.last_name,
         "is_staff": False,
         "organisme_roles": [_role(organisme, AgentOrganismeRole.SUPERVISEUR)],
+        "authorized_actions": [],
+        "organismes": [
+            _organisme(organisme, AgentOrganismeRole.SUPERVISEUR, test_user)
+        ],
     }
 
 
@@ -108,6 +130,10 @@ def test_agent_with_multiple_roles(authenticated_client, test_user):
         _role(other_organisme, AgentOrganismeRole.SUPERVISEUR),
         _role(organisme, AgentOrganismeRole.AGENT),
     ]
+    assert [o["uuid"] for o in response.json()["organismes"]] == [
+        str(other_organisme.id),
+        str(organisme.id),
+    ]
 
 
 def test_revoked_organisme_is_not_in_organisme_roles(authenticated_client, test_user):
@@ -127,6 +153,9 @@ def test_revoked_organisme_is_not_in_organisme_roles(authenticated_client, test_
     assert response.json()["organisme_roles"] == [
         _role(organisme_actif, AgentOrganismeRole.AGENT)
     ]
+    assert response.json()["organismes"] == [
+        _organisme(organisme_actif, AgentOrganismeRole.AGENT, test_user)
+    ]
 
 
 def test_supprime_organisme_is_not_in_organisme_roles(authenticated_client, test_user):
@@ -145,6 +174,9 @@ def test_supprime_organisme_is_not_in_organisme_roles(authenticated_client, test
     assert response.json()["organisme_roles"] == [
         _role(organisme_actif, AgentOrganismeRole.AGENT)
     ]
+    assert response.json()["organismes"] == [
+        _organisme(organisme_actif, AgentOrganismeRole.AGENT, test_user)
+    ]
 
 
 def test_returns_staff_flag(authenticated_client, test_user):
@@ -155,6 +187,41 @@ def test_returns_staff_flag(authenticated_client, test_user):
 
     assert response.status_code == status.HTTP_200_OK
     assert response.json()["is_staff"] is True
+
+
+def test_staff_has_staff_and_superviseur_actions(authenticated_client, test_user):
+    test_user.is_staff = True
+    test_user.save()
+    _, organisme = create_organisme_with_agent(
+        role=AgentOrganismeRole.AGENT, utilisateur=test_user
+    )
+
+    response = authenticated_client.get(URL)
+
+    assert response.status_code == status.HTTP_200_OK
+    body = response.json()
+    assert body["authorized_actions"] == [
+        "creer_organisme",
+        "lister_organismes",
+        "modifier_organisme",
+    ]
+    assert body["organismes"] == [
+        _organisme(organisme, AgentOrganismeRole.AGENT, test_user)
+    ]
+    assert "get_organisme" in body["organismes"][0]["authorized_actions"]
+
+
+def test_agent_authorized_actions_exclude_recrutement_level(
+    authenticated_client, test_user
+):
+    create_organisme_with_agent(role=AgentOrganismeRole.AGENT, utilisateur=test_user)
+
+    response = authenticated_client.get(URL)
+
+    assert response.json()["organismes"][0]["authorized_actions"] == [
+        "lister_mes_recrutements",
+        "get_motifs_refus",
+    ]
 
 
 def test_does_not_query_organisme_per_role(

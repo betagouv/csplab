@@ -106,6 +106,10 @@ SUPERVISEUR_ACTIONS = (
     + SUPERVISEUR_OU_AGENT_AVEC_RESPONSABLE_OU_RECRUTEUR_ACTIONS
 )
 
+SUPERVISEUR_ACTIONS_SANS_RECRUTEMENT = (
+    SUPERVISEUR_ET_STAFF_ACTIONS + SUPERVISEUR_OU_AGENT_SANS_RECRUTEMENT_ACTIONS
+)
+
 RECRUTEMENT_ACTIONS = (
     SUPERVISEUR_OU_AGENT_AVEC_RECRUTEMENT_ACTIONS
     + SUPERVISEUR_OU_AGENT_AVEC_RESPONSABLE_ACTIONS
@@ -837,3 +841,61 @@ def test_superviseur_of_another_organisme_is_denied(
             organisme_id=organisme.id,  # type: ignore[arg-type]
             utilisateur=utilisateur_de(agent.utilisateur_id),
         )
+
+
+class TestAuthorizedActions:
+    @pytest.mark.parametrize(
+        ("is_staff", "expected"),
+        [
+            (False, []),
+            (
+                True,
+                [
+                    OrganismeAction.CREER_ORGANISME,
+                    OrganismeAction.LISTER_ORGANISMES,
+                    OrganismeAction.MODIFIER_ORGANISME,
+                ],
+            ),
+        ],
+        ids=["non_staff", "staff"],
+    )
+    def test_user_authorized_actions(self, is_staff, expected):
+        assert (
+            OrganismePermissionService().actions_autorisees_utilisateur(
+                UserModel(is_staff=is_staff)
+            )
+            == expected
+        )
+
+    def test_agent_gets_actions_without_target_recrutement(self):
+        assert OrganismePermissionService().actions_autorisees_organisme(
+            AgentOrganismeRole.AGENT, utilisateur=UserModel(is_staff=False)
+        ) == [
+            OrganismeAction.LISTER_MES_RECRUTEMENTS,
+            OrganismeAction.GET_MOTIFS_REFUS,
+        ]
+
+    def test_superviseur_gets_actions_without_target_recrutement(self):
+        assert OrganismePermissionService().actions_autorisees_organisme(
+            AgentOrganismeRole.SUPERVISEUR, utilisateur=UserModel(is_staff=False)
+        ) == sorted(
+            SUPERVISEUR_ACTIONS_SANS_RECRUTEMENT, key=list(OrganismeAction).index
+        )
+
+    def test_staff_acts_as_superviseur(self):
+        assert OrganismePermissionService().actions_autorisees_organisme(
+            AgentOrganismeRole.AGENT, utilisateur=UserModel(is_staff=True)
+        ) == sorted(
+            SUPERVISEUR_ACTIONS_SANS_RECRUTEMENT, key=list(OrganismeAction).index
+        )
+
+    @pytest.mark.parametrize("role", list(AgentOrganismeRole))
+    def test_every_exposed_action_is_accepted_by_can_execute(self, role):
+        agent, organisme = create_organisme_with_agent(role=role)
+
+        for action in OrganismePermissionService().actions_autorisees_organisme(
+            role, utilisateur=agent.utilisateur
+        ):
+            OrganismePermissionService().can_execute(
+                action=action, utilisateur=agent.utilisateur, organisme_id=organisme.id
+            )

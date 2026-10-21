@@ -530,6 +530,45 @@ export interface components {
             occurred_at: string;
             event_name: string;
         };
+        /**
+         * @description * `get_organisme` - get_organisme
+         *     * `initialize_organisme_steps` - initialize_organisme_steps
+         *     * `update_organisme_steps` - update_organisme_steps
+         *     * `lister_mes_recrutements` - lister_mes_recrutements
+         *     * `voir_detail_recrutement` - voir_detail_recrutement
+         *     * `get_candidature_detail` - get_candidature_detail
+         *     * `changer_etape_candidatures` - changer_etape_candidatures
+         *     * `get_recrutement_etapes` - get_recrutement_etapes
+         *     * `update_recrutement_etapes` - update_recrutement_etapes
+         *     * `init_recrutement_etapes` - init_recrutement_etapes
+         *     * `creer_organisme` - creer_organisme
+         *     * `lister_organismes` - lister_organismes
+         *     * `modifier_organisme` - modifier_organisme
+         *     * `list_organisme_agents` - list_organisme_agents
+         *     * `search_agent` - search_agent
+         *     * `attach_organisme_agent` - attach_organisme_agent
+         *     * `update_organisme_agent` - update_organisme_agent
+         *     * `revoke_organisme_agent` - revoke_organisme_agent
+         *     * `create_agent` - create_agent
+         *     * `list_recrutement_agents` - list_recrutement_agents
+         *     * `add_recrutement_agent` - add_recrutement_agent
+         *     * `update_recrutement_agent` - update_recrutement_agent
+         *     * `revoke_recrutement_agent` - revoke_recrutement_agent
+         *     * `set_recrutements_responsable` - set_recrutements_responsable
+         *     * `get_motifs_refus` - get_motifs_refus
+         *     * `read_document` - read_document
+         *     * `list_documents` - list_documents
+         *     * `list_notes` - list_notes
+         *     * `create_note` - create_note
+         *     * `update_note` - update_note
+         *     * `delete_note` - delete_note
+         *     * `list_conversations` - list_conversations
+         *     * `read_conversation` - read_conversation
+         *     * `create_conversation` - create_conversation
+         *     * `reply_conversation` - reply_conversation
+         * @enum {string}
+         */
+        AuthorizedActionsEnum: "get_organisme" | "initialize_organisme_steps" | "update_organisme_steps" | "lister_mes_recrutements" | "voir_detail_recrutement" | "get_candidature_detail" | "changer_etape_candidatures" | "get_recrutement_etapes" | "update_recrutement_etapes" | "init_recrutement_etapes" | "creer_organisme" | "lister_organismes" | "modifier_organisme" | "list_organisme_agents" | "search_agent" | "attach_organisme_agent" | "update_organisme_agent" | "revoke_organisme_agent" | "create_agent" | "list_recrutement_agents" | "add_recrutement_agent" | "update_recrutement_agent" | "revoke_recrutement_agent" | "set_recrutements_responsable" | "get_motifs_refus" | "read_document" | "list_documents" | "list_notes" | "create_note" | "update_note" | "delete_note" | "list_conversations" | "read_conversation" | "create_conversation" | "reply_conversation";
         /** @enum {unknown} */
         BlankEnum: "";
         Candidat: {
@@ -1225,6 +1264,14 @@ export interface components {
             nom: string;
             is_staff: boolean;
             organisme_roles: components["schemas"]["OrganismeRole"][];
+            authorized_actions: components["schemas"]["AuthorizedActionsEnum"][];
+            organismes: components["schemas"]["UtilisateurOrganisme"][];
+        };
+        UtilisateurOrganisme: {
+            /** Format: uuid */
+            uuid: string;
+            nom: string;
+            authorized_actions: components["schemas"]["AuthorizedActionsEnum"][];
         };
         /**
          * @description * `FPT` - FPT

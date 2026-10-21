@@ -29,6 +29,8 @@ function makeUser(
     prenom: 'Marie',
     nom: 'Dupont',
     is_staff: isStaff,
+    authorized_actions: [],
+    organismes: [],
     organisme_roles: organismeRoles,
   }
 }
