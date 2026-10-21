@@ -4812,7 +4812,7 @@ components:
       - update_recrutement_etapes
       - init_recrutement_etapes
       - create_organisme
-      - lister_organismes
+      - list_organismes
       - modifier_organisme
       - list_organisme_agents
       - search_agent
@@ -4849,7 +4849,7 @@ components:
         * `update_recrutement_etapes` - update_recrutement_etapes
         * `init_recrutement_etapes` - init_recrutement_etapes
         * `create_organisme` - create_organisme
-        * `lister_organismes` - lister_organismes
+        * `list_organismes` - list_organismes
         * `modifier_organisme` - modifier_organisme
         * `list_organisme_agents` - list_organisme_agents
         * `search_agent` - search_agent

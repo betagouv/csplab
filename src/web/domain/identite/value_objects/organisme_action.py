@@ -13,7 +13,7 @@ class OrganismeAction(Enum):
     UPDATE_RECRUTEMENT_ETAPES = "update_recrutement_etapes"
     INIT_RECRUTEMENT_ETAPES = "init_recrutement_etapes"
     CREATE_ORGANISME = "create_organisme"
-    LISTER_ORGANISMES = "lister_organismes"
+    LIST_ORGANISMES = "list_organismes"
     MODIFIER_ORGANISME = "modifier_organisme"
     LIST_ORGANISME_AGENTS = "list_organisme_agents"
     SEARCH_AGENT = "search_agent"

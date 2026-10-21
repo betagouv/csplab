@@ -10,7 +10,7 @@ from infrastructure.django_apps.users.models import UserModel
 
 def list_organismes(*, utilisateur: UserModel) -> QuerySet[OrganismeModel]:
     OrganismePermissionService().can_execute(
-        action=OrganismeAction.LISTER_ORGANISMES,
+        action=OrganismeAction.LIST_ORGANISMES,
         utilisateur=utilisateur,
     )
     return (

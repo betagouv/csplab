@@ -28,7 +28,7 @@ from infrastructure.django_apps.users.models import UserModel
 _ACTIONS_SANS_ORGANISME: frozenset[OrganismeAction] = frozenset(
     {
         OrganismeAction.CREATE_ORGANISME,
-        OrganismeAction.LISTER_ORGANISMES,
+        OrganismeAction.LIST_ORGANISMES,
     }
 )
 

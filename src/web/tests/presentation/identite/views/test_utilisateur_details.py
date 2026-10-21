@@ -213,7 +213,7 @@ def test_staff_has_staff_and_superviseur_actions(authenticated_client, test_user
     body = response.json()
     assert body["authorized_actions"] == [
         "create_organisme",
-        "lister_organismes",
+        "list_organismes",
         "modifier_organisme",
     ]
     assert body["organismes"] == [
