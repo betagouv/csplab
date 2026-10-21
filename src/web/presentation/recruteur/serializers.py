@@ -311,8 +311,9 @@ class RecrutementDetailKanbanSerializer(serializers.Serializer):
     etapes = EtapeRecrutementDetailedCandidaturesSerializer(many=True)
 
 
-# Computed fields of CandidatureListeSerializer: plain fields overriding get_attribute
-# (not SerializerMethodField) so the generated schema stays identical, see above.
+# Computed fields of CandidatureListeSerializer: plain fields overriding get_attribute,
+# not SerializerMethodField, so drf-spectacular does not flag them `readOnly` and the
+# schema stays identical to the former plain Serializer (see OffreArchiveeField).
 @extend_schema_field(CandidatSerializer())
 class CandidatureCandidatField(serializers.Field):
     def get_attribute(self, instance: CandidatureModel) -> dict:
