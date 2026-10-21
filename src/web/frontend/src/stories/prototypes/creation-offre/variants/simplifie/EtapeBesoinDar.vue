@@ -6,7 +6,7 @@ import { CATEGORIES, personne } from '../../data/referentiels'
 import { useOffre } from '../../data/useOffre'
 import Disclosure from '../../shared/Disclosure.vue'
 import Panel from '../../shared/Panel.vue'
-import EtapeFooter from './EtapeFooter.vue'
+import BesoinActions from './BesoinActions.vue'
 import RemarquesSection from './RemarquesSection.vue'
 
 // Étape 1 quand la DAR est soumise ou validée : on la consulte, on ne la modifie pas.
@@ -38,10 +38,10 @@ const lignes = computed(() => {
 <template>
   <header>
     <h2 class="title">
-      Préparer le besoin
+      Besoin
     </h2>
     <p class="desc">
-      L'offre part de la demande d'autorisation de recrutement. Ses informations sont déjà reprises : vous n'avez rien à ressaisir.
+      Le besoin a été déclaré et soumis à une demande d'autorisation de recrutement. Ses informations sont reprises dans l'offre : rien à ressaisir.
     </p>
   </header>
 
@@ -132,7 +132,7 @@ const lignes = computed(() => {
     Hypothèse à confirmer : modifier une information de la DAR (intitulé, localisation, nombre de postes…) passerait par une nouvelle version de la DAR, pas par l'offre.
   </p>
 
-  <EtapeFooter />
+  <BesoinActions />
 </template>
 
 <style scoped lang="scss">

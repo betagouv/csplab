@@ -10,10 +10,10 @@ import { useOffre } from '../../data/useOffre'
 export type EtapeId = 'poste' | 'offre' | 'candidature' | 'finaliser'
 
 export const ETAPES: { id: EtapeId, libelle: string, court: string }[] = [
-  { id: 'poste', libelle: 'Préparer le besoin', court: 'Besoin' },
+  { id: 'poste', libelle: 'Besoin', court: 'Besoin' },
   { id: 'offre', libelle: 'Rédiger l\'offre', court: 'Offre' },
   { id: 'candidature', libelle: 'Compléter l\'offre', court: 'Compléments' },
-  { id: 'finaliser', libelle: 'Vérifier et créer', court: 'Créer' },
+  { id: 'finaliser', libelle: 'Vérifier et publier', court: 'Publier' },
 ]
 
 /** Correspondance entre les rubriques du modèle de données et les 4 étapes affichées. */

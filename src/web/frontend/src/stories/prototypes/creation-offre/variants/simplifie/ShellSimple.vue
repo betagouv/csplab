@@ -1,43 +1,47 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import CspBadge from '@/components/base/CspBadge/CspBadge.vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspIcon from '@/components/base/CspIcon/CspIcon.vue'
 import CspSidebarProvider from '@/components/layout/CspSidebar/CspSidebarProvider.vue'
 import { personne } from '../../data/referentiels'
-import { LIBELLES_STATUT, useOffre } from '../../data/useOffre'
+import { useOffre } from '../../data/useOffre'
 import AppSidebar from './AppSidebar.vue'
 import EtapesNav from './EtapesNav.vue'
+import ProcessusBar from './ProcessusBar.vue'
 import SuiviDrawer from './SuiviDrawer.vue'
-import { useApp } from './useApp'
+import { LIBELLES_PAGE, useApp } from './useApp'
+import { useEtapes } from './useEtapes'
 
-// Cadre de la version simplifiée : une barre d'offre (statut, enregistrement, suivi),
-// 4 étapes en onglets, un seul bandeau d'état quand il y a vraiment quelque chose à savoir.
+// Cadre d'un dossier : barre (titre, enregistrement, suivi), fil du processus
+// besoin → validation → offre → publication, puis les sous-étapes de l'offre quand on la rédige.
 const { state, dirty, saving, lastSaved, enregistrer, notifier, flash, etapeEnCours, retirerDeValidation, modifierApresValidation } = useOffre()
 
-const { quitter } = useApp()
+const { quitter, origine } = useApp()
+const { etape, aller } = useEtapes()
+const vueBesoin = computed(() => etape.value === 'poste')
 const suivi = ref(false)
-const statut = computed(() => LIBELLES_STATUT[state.statut])
-/** État de la DAR, affiché à côté de celui de l'offre : deux objets, deux statuts. */
-const etatDar = computed(() => {
-  const b = state.besoin
-  if (b.darApplicable !== 'oui' || !b.darRef) {
-    return ''
-  }
-  return { 'validee': 'DAR validée', 'en_cours': 'DAR soumise', 'a_demander': 'DAR en brouillon', '': 'DAR en brouillon' }[b.darStatut]
-})
 const remarquesOuvertes = computed(() => state.remarques.filter(r => !r.resolue).length)
+
+function allerPhase(p: string) {
+  if (p === 'besoin') {
+    aller('poste')
+  }
+  else {
+    const derniere = state.derniereEtape
+    aller(derniere && derniere !== 'poste' ? derniere as 'offre' : 'offre')
+  }
+}
 
 async function sauver() {
   await enregistrer()
-  notifier('Brouillon enregistré. Vous pouvez quitter et le reprendre depuis « Offres ».')
+  notifier('Enregistré. Vous pouvez quitter et reprendre plus tard.')
 }
 </script>
 
 <template>
-  <CspSidebarProvider :default-expanded="false">
+  <CspSidebarProvider :default-expanded="true">
     <div class="cs-app">
-      <AppSidebar />
+      <AppSidebar :page="origine" />
 
       <div class="cs-app__content">
         <header class="cs-bar">
@@ -48,25 +52,15 @@ async function sauver() {
                 class="cs-bar__back"
                 @click="quitter()"
               >
-                Recrutements
+                {{ LIBELLES_PAGE[origine] }}
               </button>
-              <span aria-hidden="true">›</span> {{ state.reference }}
+              <span aria-hidden="true">›</span> {{ vueBesoin ? 'Besoin' : `Offre ${state.reference}` }}
             </p>
             <h1 class="cs-bar__title">
-              {{ state.besoin.intitule || 'Nouvelle offre' }}
+              {{ vueBesoin ? (state.besoin.intitule || 'Nouveau besoin') : (state.titreAnnonce || state.besoin.intitule || 'Nouvelle offre') }}
             </h1>
           </div>
           <div class="cs-bar__right">
-            <span
-              v-if="etatDar"
-              class="cs-bar__dar"
-            >{{ state.besoin.darRef }} · {{ etatDar }}</span>
-            <CspBadge
-              :label="state.statut === 'brouillon' ? 'Offre en brouillon' : statut.label"
-              :type="state.statut === 'a_corriger' ? 'warning' : statut.type"
-              variant="soft"
-              size="sm"
-            />
             <span
               class="cs-bar__save"
               aria-live="polite"
@@ -115,7 +109,15 @@ async function sauver() {
           </div>
         </header>
 
-        <EtapesNav />
+        <div class="cs-proc">
+          <ProcessusBar
+            :state="state"
+            :actif="vueBesoin ? 'besoin' : 'offre'"
+            :cliquables="state.offreDemarree ? ['besoin', 'offre'] : ['besoin']"
+            @aller="allerPhase"
+          />
+        </div>
+        <EtapesNav v-if="!vueBesoin" />
 
         <main class="cs-main">
           <div class="cs-main__inner">
@@ -256,6 +258,12 @@ async function sauver() {
   gap: var(--csp-space-1);
   font-size: var(--csp-font-size-xs);
   color: var(--text-mention-grey);
+}
+
+.cs-proc {
+  padding: var(--csp-space-1) var(--csp-space-6);
+  border-bottom: 1px solid var(--border-default-grey);
+  background: var(--background-default-grey);
 }
 
 .cs-bar__dar {

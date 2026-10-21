@@ -623,3 +623,38 @@ export function etatDarBrouillon(): OffreState {
   ]
   return s
 }
+
+/** Besoin validé sans DAR (renfort contractuel) : l'offre est déjà en rédaction. */
+export function etatSansDar(): OffreState {
+  const s = etatInitial('dar_csp')
+  s.reference = 'OFF-2026-0154'
+  s.besoin.intitule = 'Chargé·e de communication interne'
+  s.besoin.service = 'Secrétariat général — Bureau des ressources humaines'
+  s.besoin.localisation = 'Toulouse (31)'
+  s.besoin.categories = ['A']
+  s.besoin.statuts = ['contractuel']
+  s.besoin.typeContrat = 'cdd'
+  s.besoin.dureeContrat = '1 an'
+  s.besoin.motif = 'renfort'
+  s.besoin.metier = 'm-com'
+  s.besoin.darApplicable = 'non'
+  s.poste.missions = 'Concevoir et animer la communication interne pendant la réorganisation des services : lettre interne, intranet, événements.'
+  s.poste.activites = ['Rédiger la lettre interne mensuelle', 'Animer l\'intranet', 'Organiser les temps d\'échange avec les agents']
+  s.poste.competences = ['Rédaction', 'Gestion de projet', 'Outils de publication web']
+  s.titreAnnonce = 'Chargé·e de communication interne (CDD 1 an)'
+  s.offre.organisme = { texte: OFFRE_REDIGEE.organisme, etat: 'redige' }
+  s.offre.poste = { texte: 'Vous accompagnez les 900 agents de la DREAL pendant une année de transformation : il s\'agit de garder chacun informé et impliqué.', etat: 'redige' }
+  s.offreDemarree = true
+  s.derniereEtape = 'offre'
+  s.canaux.forEach((c) => {
+    c.selectionne = c.id === 'csp'
+  })
+  s.modifieLe = 'Hier, 18:05'
+  s.journal = [
+    { date: '18 octobre 2026, 09:30', texte: 'Besoin déclaré par Camille Moreau (fiche de poste)' },
+    { date: '18 octobre 2026, 09:31', texte: 'Validation : sans DAR (renfort temporaire)' },
+    { date: 'Hier, 17:40', texte: 'Offre démarrée à partir du besoin' },
+    { date: 'Hier, 18:05', texte: 'Modifications enregistrées automatiquement — Offre', type: 'modification' },
+  ]
+  return s
+}

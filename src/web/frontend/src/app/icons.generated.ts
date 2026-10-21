@@ -60,6 +60,7 @@ import riGroupLine from '@iconify-icons/ri/group-line'
 import riHistoryLine from '@iconify-icons/ri/history-line'
 import riHomeLine from '@iconify-icons/ri/home-line'
 import riInbox2Line from '@iconify-icons/ri/inbox-2-line'
+import riIndeterminateCircleLine from '@iconify-icons/ri/indeterminate-circle-line'
 import riInformationFill from '@iconify-icons/ri/information-fill'
 import riInformationLine from '@iconify-icons/ri/information-line'
 import riLayoutColumnLine from '@iconify-icons/ri/layout-column-line'
@@ -174,6 +175,7 @@ addIcon('ri:group-line', riGroupLine)
 addIcon('ri:history-line', riHistoryLine)
 addIcon('ri:home-line', riHomeLine)
 addIcon('ri:inbox-2-line', riInbox2Line)
+addIcon('ri:indeterminate-circle-line', riIndeterminateCircleLine)
 addIcon('ri:information-fill', riInformationFill)
 addIcon('ri:information-line', riInformationLine)
 addIcon('ri:layout-column-line', riLayoutColumnLine)

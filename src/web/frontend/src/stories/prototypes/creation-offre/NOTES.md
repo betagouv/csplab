@@ -1,5 +1,36 @@
 # Notes — Prototype création d'offre
 
+## Itération 5 — besoins et offres (21 octobre 2026)
+
+Retour d'Alice : le mot « recrutements » ne convient pas. Processus à rendre visible :
+**déclaration du besoin (= rédaction de la fiche de poste) → validation par DAR ou non → rédaction de
+l'offre → publication.** Deux pages : **Mes besoins en recrutement** et **Mes offres**.
+
+- **Menu latéral** : « Mes besoins en recrutement » · « Mes offres » (déplié, libellés visibles).
+- **Mes besoins en recrutement** : une ligne par besoin ; colonne « Avancement » (4 pastilles
+  besoin · validation · offre · publication + l'étape en clair), colonne « Validation » (référence DAR ou
+  « Sans DAR ») ; filtres « En cours de déclaration ou de validation », « Prêts pour l'offre », « Avec une
+  offre » ; bouton « Déclarer un besoin ». Colonnes personnalisables (dont code poste).
+- **Mes offres** : les offres démarrées ; état « En rédaction / Créée, non publiée / Publiée », date
+  limite… ; bouton « Rédiger une offre » qui renvoie aux besoins prêts. Colonnes personnalisables.
+- **Fil du processus** en tête de chaque dossier : Besoin · Validation · Offre · Publication, avec l'état
+  de chacun (« DAR soumise », « Sans DAR », « À rédiger », « Non publiée »…). « Besoin » et « Offre » sont
+  cliquables ; les sous-étapes de l'offre (Rédiger · Compléter · Vérifier et publier) n'apparaissent
+  qu'en vue offre. Remplace les badges de statut.
+- **Vue « Besoin »** : « Déclarer le besoin » = fiche de poste (au premier plan, plus repliée), puis
+  « Validation du besoin » : *Avec une DAR* ou *Sans DAR*. Action de fin selon le cas : « Soumettre la DAR
+  à validation », « Préparer l'offre en attendant » (DAR soumise), « Rédiger l'offre » (DAR validée ou
+  sans DAR). Si la DAR est soumise ou validée, la vue est une fiche de consultation en lecture seule.
+- Ouvrir une ligne de « Mes besoins » ouvre la vue besoin ; une ligne de « Mes offres » ouvre l'offre là
+  où on s'était arrêté. Le fil d'Ariane et « Quitter » ramènent à la page d'origine.
+- Nouveau cas de démonstration : besoin **sans DAR** (chargé·e de communication interne, CDD 1 an) avec
+  offre en rédaction.
+
+Hypothèses : le choix DAR / sans DAR est fait par le recruteur pour chaque besoin (à confirmer : règle de
+l'organisation, du type de recrutement ou du statut ?) ; une offre peut être préparée pendant la
+validation de la DAR mais créée seulement après ; sans DAR, l'offre peut être rédigée dès que les
+informations essentielles du besoin sont renseignées.
+
 ## Itération 4 — la DAR validée comme source de l'offre (20 octobre 2026)
 
 Organisation observée (CSP uniquement) : fiche de poste → DAR → validation de la DAR → offre créée à partir

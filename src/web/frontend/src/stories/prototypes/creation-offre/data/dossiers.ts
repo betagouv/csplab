@@ -3,10 +3,10 @@
 
 import type { OffreState } from './types'
 import { reactive } from 'vue'
-import { clone, etatDarBrouillon, etatDarPaie, etatDarRh, etatInitial, etatPreset } from './scenario'
+import { clone, etatDarBrouillon, etatDarPaie, etatDarRh, etatInitial, etatPreset, etatSansDar } from './scenario'
 
-const CLE = 'csplab-proto-creation-offre-dossiers-v4'
-const CLE_COLONNES = 'csplab-proto-creation-offre-colonnes-v4'
+const CLE = 'csplab-proto-creation-offre-dossiers-v5'
+const CLE_COLONNES = 'csplab-proto-creation-offre-colonnes-v5'
 
 function lire<T>(cle: string): T | null {
   try {
@@ -51,6 +51,7 @@ function dossiersInitiaux(): OffreState[] {
     etatDarPaie(),
     etatDarRh(),
     etatDarBrouillon(),
+    etatSansDar(),
     offreExistante('OFF-2026-0141', 'Chargé·e de mission rénovation énergétique des collectivités', '31-SECL-0412', 'creee', 'Hier, 11:20', 'DAR-2026-0318'),
     offreExistante('OFF-2026-0118', 'Chargé·e de mission mobilité durable', '31-SA-0207', 'publiee', '12 octobre 2026', 'DAR-2026-0274'),
   ]
@@ -81,10 +82,11 @@ export function trouver(reference: string): OffreState | undefined {
 }
 
 export function nouveauDossier(): OffreState {
-  const s = etatInitial()
+  const s = etatInitial('dar_csp')
+  s.offreDemarree = false
   const max = Math.max(150, ...dossiers.map(d => Number(d.reference.slice(-4)) || 0))
   s.reference = `OFF-2026-${String(max + 1).padStart(4, '0')}`
-  s.journal = [{ date: 'Aujourd\'hui', texte: 'Dossier créé par Camille Moreau' }]
+  s.journal = [{ date: 'Aujourd\'hui', texte: 'Besoin déclaré par Camille Moreau' }]
   return s
 }
 
@@ -93,9 +95,12 @@ export function reinitialiserDossiers() {
   ecrire(CLE, dossiers)
 }
 
-// --- Colonnes du tableau, conservées pendant la session ---
-export const COLONNES_PAR_DEFAUT = ['dar', 'intitule', 'postes', 'etatDar', 'statut', 'modifie']
-export const colonnes = reactive<{ visibles: string[] }>({ visibles: lire<string[]>(CLE_COLONNES) ?? [...COLONNES_PAR_DEFAUT] })
+// --- Colonnes des tableaux, conservées pendant la session (une configuration par page) ---
+export const COLONNES_PAR_DEFAUT = {
+  besoins: ['avancement', 'validation', 'postes', 'modifie'],
+  offres: ['etat', 'postes', 'limite', 'modifie'],
+}
+export const colonnes = reactive<Record<'besoins' | 'offres', string[]>>(lire(CLE_COLONNES) ?? { besoins: [...COLONNES_PAR_DEFAUT.besoins], offres: [...COLONNES_PAR_DEFAUT.offres] })
 export function enregistrerColonnes() {
-  ecrire(CLE_COLONNES, colonnes.visibles)
+  ecrire(CLE_COLONNES, colonnes)
 }

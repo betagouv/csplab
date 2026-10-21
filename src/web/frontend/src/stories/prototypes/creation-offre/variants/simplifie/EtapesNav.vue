@@ -1,20 +1,23 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import CspIcon from '@/components/base/CspIcon/CspIcon.vue'
 import { ETAPES, useEtapes } from './useEtapes'
 
-// 4 étapes cliquables dans n'importe quel ordre. Progression discrète : une coche quand
+// Sous-étapes de l'offre, cliquables dans n'importe quel ordre. Progression discrète : une coche quand
 // l'étape a été vue et ne manque de rien ; aucun compteur d'erreurs.
-const { etape, aller, faite, index } = useEtapes()
+const { etape, aller, faite } = useEtapes()
+const OFFRE = ETAPES.filter(e => e.id !== 'poste')
+const index = computed(() => OFFRE.findIndex(e => e.id === etape.value))
 </script>
 
 <template>
   <nav
     class="etapes"
-    aria-label="Étapes de création de l'offre"
+    aria-label="Étapes de l'offre"
   >
     <ol class="etapes__list">
       <li
-        v-for="(e, i) in ETAPES"
+        v-for="(e, i) in OFFRE"
         :key="e.id"
       >
         <button
@@ -47,7 +50,7 @@ const { etape, aller, faite, index } = useEtapes()
       class="etapes__count"
       aria-hidden="true"
     >
-      Étape {{ index + 1 }} sur {{ ETAPES.length }}
+      Offre : étape {{ index + 1 }} sur {{ OFFRE.length }}
     </p>
   </nav>
 </template>

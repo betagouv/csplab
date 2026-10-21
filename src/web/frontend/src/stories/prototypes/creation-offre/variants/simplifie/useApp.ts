@@ -1,10 +1,14 @@
-// Navigation entre la liste des offres et l'édition d'une offre (racine de la version simplifiée).
+// Navigation entre les pages (besoins, offres) et un dossier ouvert.
 
 import type { InjectionKey } from 'vue'
 import { inject, provide } from 'vue'
 
+export type Page = 'besoins' | 'offres'
+
 export interface AppNav {
-  /** Revient à la liste ; le brouillon est enregistré avant. */
+  /** Page d'où l'on vient : sert au fil d'Ariane et au retour. */
+  origine: Page
+  /** Revient à la page d'origine ; le travail est enregistré avant. */
   quitter: (message?: string) => void
 }
 
@@ -15,5 +19,10 @@ export function provideApp(nav: AppNav) {
 }
 
 export function useApp(): AppNav {
-  return inject(KEY, { quitter: () => {} })
+  return inject(KEY, { origine: 'besoins', quitter: () => {} })
+}
+
+export const LIBELLES_PAGE: Record<Page, string> = {
+  besoins: 'Mes besoins en recrutement',
+  offres: 'Mes offres',
 }

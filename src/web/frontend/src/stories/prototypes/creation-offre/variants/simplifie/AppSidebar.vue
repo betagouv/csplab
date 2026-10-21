@@ -5,7 +5,8 @@ import CspSidebarItem from '@/components/layout/CspSidebar/CspSidebarItem.vue'
 import CspSidebarLogo from '@/components/layout/CspSidebar/CspSidebarLogo.vue'
 import CspSidebarUser from '@/components/layout/CspSidebar/CspSidebarUser.vue'
 
-// Navigation principale de l'ATS (décor : seule l'entrée « Offres » est active dans le prototype).
+// Navigation principale : les deux pages du parcours. La racine du prototype suit la route.
+defineProps<{ page?: 'besoins' | 'offres' }>()
 </script>
 
 <template>
@@ -16,20 +17,16 @@ import CspSidebarUser from '@/components/layout/CspSidebar/CspSidebarUser.vue'
       </template>
       <CspSidebarGroup>
         <CspSidebarItem
-          icon="ri:dashboard-line"
-          label="Tableau de bord"
-          :to="{ path: '/tableau-de-bord' }"
+          icon="ri:file-list-3-line"
+          label="Mes besoins en recrutement"
+          :to="{ path: '/besoins' }"
+          :is-active="page === 'besoins'"
         />
         <CspSidebarItem
           icon="ri:briefcase-line"
-          label="Offres"
+          label="Mes offres"
           :to="{ path: '/offres' }"
-          :is-active="true"
-        />
-        <CspSidebarItem
-          icon="ri:team-line"
-          label="Candidatures"
-          :to="{ path: '/candidatures' }"
+          :is-active="page === 'offres'"
         />
       </CspSidebarGroup>
       <template #footer>

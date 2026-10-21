@@ -1,56 +1,67 @@
 <script setup lang="ts">
 import type { Preset } from '../../data/scenario'
 import type { OffreState, SectionOffreId } from '../../data/types'
-import { ref } from 'vue'
-import { nouveauDossier, ranger, trouver, trouverParDar } from '../../data/dossiers'
+import type { Page } from './useApp'
+import { ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { nouveauDossier, ranger, trouver } from '../../data/dossiers'
 import { circuitPour } from '../../data/scenario'
-import ListeOffres from './ListeOffres.vue'
+import ListeDossiers from './ListeDossiers.vue'
 import OffreAppSimple from './OffreAppSimple.vue'
 
-// Racine de la version simplifiée : liste des offres ⇄ édition d'une offre.
-// `ouvrir` ouvre un dossier de la session ; `preset` ouvre un état de démonstration isolé (non rangé).
-const props = withDefaults(defineProps<{ preset?: Preset, ouvrir?: string, depuisDar?: string, liste?: boolean }>(), {
-  preset: 'nouveau',
-  ouvrir: undefined,
-  depuisDar: undefined,
-  liste: false,
-})
+// Racine : « Mes besoins en recrutement » ⇄ « Mes offres » ⇄ dossier ouvert (vue besoin ou vue offre).
+// Le menu latéral change la route ; la racine la suit.
+const props = withDefaults(defineProps<{
+  page?: Page
+  ouvrir?: string
+  vue?: 'besoin' | 'offre'
+  preset?: Preset
+}>(), { page: 'besoins', ouvrir: undefined, vue: 'besoin', preset: undefined })
 
-type Vue = { mode: 'liste', message?: string } | { mode: 'offre', key: number, preset: Preset, init?: OffreState }
+type Ecran
+  = | { mode: 'liste', page: Page, message?: string, filtre?: string }
+    | { mode: 'dossier', key: number, origine: Page, vue: 'besoin' | 'offre', preset: Preset, init?: OffreState }
 let key = 0
 
-function vueInitiale(): Vue {
-  if (props.liste) {
-    return { mode: 'liste' }
+function initial(): Ecran {
+  if (props.preset) {
+    return { mode: 'dossier', key: key++, origine: props.page, vue: props.vue, preset: props.preset }
   }
-  const trouve = props.depuisDar ? trouverParDar(props.depuisDar) : props.ouvrir ? trouver(props.ouvrir) : undefined
-  const init = trouve ? demarrer(trouve) : undefined
-  return { mode: 'offre', key: key++, preset: init ? 'nouveau' : props.preset, init }
-}
-
-/** Ouvrir une DAR sans offre démarre l'offre, préremplie à partir de la DAR. */
-function demarrer(s: OffreState): OffreState {
-  if (!s.offreDemarree) {
-    s.offreDemarree = true
-    s.derniereEtape = ''
-    s.journal.push({ date: `Aujourd'hui, ${new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}`, texte: `Offre ${s.reference} démarrée à partir de la DAR ${s.besoin.darRef}` })
-    ranger(s)
+  const s = props.ouvrir ? trouver(props.ouvrir) : undefined
+  if (s) {
+    return { mode: 'dossier', key: key++, origine: props.vue === 'offre' ? 'offres' : 'besoins', vue: props.vue, preset: 'nouveau', init: s }
   }
-  return s
+  return { mode: 'liste', page: props.page }
 }
-const vue = ref<Vue>(vueInitiale())
+const ecran = ref<Ecran>(initial())
 
-function ouvrir(reference: string) {
-  const s = trouver(reference)
-  vue.value = { mode: 'offre', key: key++, preset: 'nouveau', init: s ? demarrer(s) : undefined }
+const router = useRouter()
+const route = useRoute()
+/** En ouvrant un dossier, on quitte la route de la liste : un clic dans le menu y ramène toujours. */
+function versDossier() {
+  void router.replace('/dossier')
+}
+watch(() => route.path, (path) => {
+  if (path === '/besoins' || path === '/offres') {
+    ecran.value = { mode: 'liste', page: path.slice(1) as Page }
+  }
+})
+
+function ouvrir(reference: string, vue: 'besoin' | 'offre') {
+  const origine = ecran.value.mode === 'liste' ? ecran.value.page : 'besoins'
+  ecran.value = { mode: 'dossier', key: key++, origine, vue, preset: 'nouveau', init: trouver(reference) }
+  versDossier()
 }
 
-function nouvelle() {
-  vue.value = { mode: 'offre', key: key++, preset: 'nouveau', init: nouveauDossier() }
+function nouveau() {
+  const s = nouveauDossier()
+  ranger(s)
+  ecran.value = { mode: 'dossier', key: key++, origine: 'besoins', vue: 'besoin', preset: 'nouveau', init: s }
+  versDossier()
 }
 
-function quitter(message?: string) {
-  vue.value = { mode: 'liste', message }
+function quitter(origine: Page, message?: string) {
+  ecran.value = { mode: 'liste', page: origine, message }
 }
 
 function dupliquer(s: OffreState) {
@@ -60,7 +71,7 @@ function dupliquer(s: OffreState) {
     reference: neuf.reference,
     statut: 'brouillon',
     startMode: 'duplication',
-    sourceLibelle: `${source} — ${s.besoin.intitule}`,
+    sourceLibelle: `${source} — ${s.titreAnnonce || s.besoin.intitule}`,
     circuit: circuitPour(s.organisation),
     remarques: [],
     contributions: [],
@@ -68,8 +79,9 @@ function dupliquer(s: OffreState) {
     dateLimite: '',
     darContenu: null,
     origines: {},
-    derniereEtape: 'poste',
-    journal: [{ date: 'Aujourd\'hui', texte: `Dossier créé par duplication de ${source}` }],
+    offreDemarree: false,
+    derniereEtape: '',
+    journal: [{ date: 'Aujourd\'hui', texte: `Besoin créé par duplication de ${source}` }],
   })
   s.canaux.forEach(c => (c.fait = []))
   s.besoin.darRef = ''
@@ -82,24 +94,30 @@ function dupliquer(s: OffreState) {
     }
   }
   ranger(s)
-  vue.value = { mode: 'offre', key: key++, preset: 'nouveau', init: s }
+  ecran.value = { mode: 'dossier', key: key++, origine: 'besoins', vue: 'besoin', preset: 'nouveau', init: s }
 }
 </script>
 
 <template>
-  <ListeOffres
-    v-if="vue.mode === 'liste'"
-    :message="vue.message"
-    @ouvrir="ouvrir"
-    @nouvelle="nouvelle"
+  <ListeDossiers
+    v-if="ecran.mode === 'liste'"
+    :key="`${ecran.page}-${ecran.filtre ?? ''}`"
+    :page="ecran.page"
+    :message="ecran.message"
+    :filtre-initial="ecran.filtre"
+    @ouvrir="r => ouvrir(r, ecran.mode === 'liste' && ecran.page === 'offres' ? 'offre' : 'besoin')"
+    @nouveau="nouveau"
+    @voir-besoins="f => (ecran = { mode: 'liste', page: 'besoins', filtre: f })"
   />
   <OffreAppSimple
     v-else
-    :key="vue.key"
-    :preset="vue.preset"
-    :init="vue.init"
-    @reprendre="ouvrir"
+    :key="ecran.key"
+    :preset="ecran.preset"
+    :init="ecran.init"
+    :vue="ecran.vue"
+    :origine="ecran.origine"
+    @reprendre="r => ouvrir(r, 'besoin')"
     @dupliquer="dupliquer"
-    @quitter="quitter"
+    @quitter="(o, m) => quitter(o, m)"
   />
 </template>
