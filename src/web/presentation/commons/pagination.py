@@ -53,6 +53,7 @@ def _page_taille_parameters(page_size: int | None, max_page_size: int) -> list[d
 
 class PageNumberLimitPagination(PageNumberPagination):
     page_size_query_param = "limit"
+    max_page_size = MAX_PAGE_SIZE
 
 
 class LatestMessagesCursorPagination(CursorPagination):

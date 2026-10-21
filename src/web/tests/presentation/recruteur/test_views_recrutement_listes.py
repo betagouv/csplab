@@ -40,6 +40,7 @@ from infrastructure.factories.recruteur.recrutement_django_factory import (
 from infrastructure.factories.referentiel.offer_django_factory import (
     OfferDjangoFactory,
 )
+from presentation.commons.pagination import PageNumberLimitPagination
 
 fake = Faker()
 
@@ -192,6 +193,23 @@ class TestRecrutementsListViews:
         response = authenticated_client.get(
             _url(name, organisme.id), {"limit": PAGE_SIZE}
         )
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["count"] == TOTAL
+        assert len(data["results"]) == PAGE_SIZE
+
+    def test_limit_query_param_is_capped(
+        self, authenticated_client, organisme, name, archived
+    ):
+        RecrutementDjangoFactory.create_batch(
+            TOTAL, organisme=organisme, offre_archivee=archived
+        )
+
+        with patch.object(PageNumberLimitPagination, "max_page_size", PAGE_SIZE):
+            response = authenticated_client.get(
+                _url(name, organisme.id), {"limit": TOTAL}
+            )
 
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
