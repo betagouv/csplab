@@ -8,6 +8,9 @@ from application.identite.context_services.organisme_permission_service import (
 )
 from domain.recruteur.value_objects.roles import AgentOrganismeRole
 from infrastructure.django_apps.recruteur.models.organisme import OrganismeAgentModel
+from infrastructure.django_apps.recruteur.models.recrutement import (
+    RecrutementAgentModel,
+)
 from infrastructure.django_apps.users.models import UserModel
 
 
@@ -32,6 +35,12 @@ def get_utilisateur_details(*, utilisateur: UserModel) -> UtilisateurDetails:
         .with_organisme()
         .order_by("organisme__nom", "organisme_id")
     )
+    organisme_ids_responsable = {
+        liaison.recrutement.organisme_id
+        for liaison in RecrutementAgentModel.objects.organisme_as_responsable(
+            utilisateur.username
+        )
+    }
     return UtilisateurDetails(
         utilisateur=utilisateur,
         organisme_roles=liaisons,
@@ -48,6 +57,8 @@ def get_utilisateur_details(*, utilisateur: UserModel) -> UtilisateurDetails:
                     for action in permissions.actions_autorisees_organisme(
                         AgentOrganismeRole(liaison.role),
                         utilisateur=utilisateur,
+                        organisme_id=liaison.organisme_id,
+                        organisme_ids_responsable=organisme_ids_responsable,
                     )
                 ],
             )

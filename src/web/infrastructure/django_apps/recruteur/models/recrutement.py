@@ -92,6 +92,11 @@ class RecrutementAgentQuerySet(models.QuerySet):
             .exists()
         )
 
+    def organisme_as_responsable(self, agent_id) -> "RecrutementAgentQuerySet":
+        return (
+            self.responsables().filter(agent_id=agent_id).select_related("recrutement")
+        )
+
     def by_recrutement(self, recrutement_id) -> "RecrutementAgentQuerySet":
         return (
             self.select_related("agent__utilisateur")
