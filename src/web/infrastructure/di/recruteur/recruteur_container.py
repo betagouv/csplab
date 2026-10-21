@@ -15,9 +15,6 @@ from application.recruteur.usecases.get_recrutement_kanban import (
 from application.recruteur.usecases.list_organisme_agents import (
     ListOrganismeAgentsUsecase,
 )
-from application.recruteur.usecases.list_recrutements import (
-    ListRecrutementsUsecase,
-)
 from application.recruteur.usecases.revoke_organisme_agent import (
     RevokeOrganismeAgentUsecase,
 )
@@ -132,12 +129,6 @@ class RecruteurContainer(containers.DeclarativeContainer):
         organisme_agent_query_service=postgres_organisme_agent_query_service,
         organisme_permission_service=organisme_permission_service,
         audit_log_writer=audit_log_writer,
-    )
-    list_recrutements_usecase = providers.Factory(
-        ListRecrutementsUsecase,
-        recrutement_query_service=postgres_recrutement_query_service,
-        organisme_permission_service=organisme_permission_service,
-        logger=logger_service,
     )
 
     get_recrutement_kanban_usecase = providers.Factory(
