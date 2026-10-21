@@ -863,7 +863,7 @@ class TestAuthorizedActions:
     )
     def test_user_authorized_actions(self, is_staff, expected):
         assert (
-            OrganismePermissionService().authorized_actions_utilisateur(
+            OrganismePermissionService().authorized_actions_user(
                 UserModel(is_staff=is_staff)
             )
             == expected

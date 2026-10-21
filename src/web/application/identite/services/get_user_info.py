@@ -28,7 +28,7 @@ class UtilisateurDetails(NamedTuple):
     organismes: list[OrganismeDetails]
 
 
-def get_utilisateur_details(*, utilisateur: UserModel) -> UtilisateurDetails:
+def get_user_info(*, utilisateur: UserModel) -> UtilisateurDetails:
     permissions = OrganismePermissionService()
     liaisons = (
         OrganismeAgentModel.objects.by_agent(utilisateur.username)
@@ -45,8 +45,7 @@ def get_utilisateur_details(*, utilisateur: UserModel) -> UtilisateurDetails:
         utilisateur=utilisateur,
         organisme_roles=liaisons,
         authorized_actions=[
-            action.value
-            for action in permissions.authorized_actions_utilisateur(utilisateur)
+            action.value for action in permissions.authorized_actions_user(utilisateur)
         ],
         organismes=[
             OrganismeDetails(

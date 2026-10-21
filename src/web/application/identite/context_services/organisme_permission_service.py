@@ -351,9 +351,7 @@ class OrganismePermissionService:
 
         return role
 
-    def authorized_actions_utilisateur(
-        self, utilisateur: UserModel
-    ) -> list[OrganismeAction]:
+    def authorized_actions_user(self, utilisateur: UserModel) -> list[OrganismeAction]:
         if not utilisateur.is_staff:
             return []
         return _ordonnees(_ACTIONS_SANS_ORGANISME | _ACTIONS_STAFF_AVEC_ORGANISME)
