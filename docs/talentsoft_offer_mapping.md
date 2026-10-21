@@ -57,6 +57,8 @@ Les six champs `description.*` contiennent du Markdown (CommonMark), converti pa
 
 Le Markdown ne contient jamais de balise HTML ni de lien ou d'image écrits dans le texte : la syntaxe Markdown et HTML du texte est échappée (ex. `&lt;script&gt;` dans le HTML Talentsoft devient `\<script\>`, `[clic](url)` devient `\[clic\](url)`). Seules les balises `<a>` converties produisent des liens, toujours au format `[libellé](url)`.
 
+L'API fake-ts fait le chemin inverse : elle laisse les champs texte brut (`description1`, `longText1`…) à `null` et convertit le Markdown en HTML dans les variantes `Formatted` (`render_markdown_without_headings` dans `src/web/presentation/commons/markdown.py`), `null` si le champ est vide. Le WordPress BIEP ne lit que ces variantes `Formatted` et retire les titres : ils sont donc rendus en paragraphes en gras.
+
 `criteres` n'est envoyé que si au moins un des champs niveau de diplôme, diplôme, expérience, spécialisations ou langues est renseigné.
 
 ## 2. Champs Talentsoft sans équivalent dans l'API v1

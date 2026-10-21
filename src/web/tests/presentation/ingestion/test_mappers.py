@@ -100,6 +100,38 @@ def test_summary_output_mapper_maps_null_organisation_description_without_organi
     assert result["organisationDescription"] is None
 
 
+@pytest.mark.parametrize(
+    "markdown,expected",
+    [
+        (None, None),
+        ("", None),
+        ("**Activités :**", "<p><strong>Activités :</strong></p>"),
+        (
+            "- adapter\n- créer",
+            "<ul>\n<li>adapter</li>\n<li>créer</li>\n</ul>",
+        ),
+        (
+            "[Site](https://exemple.gouv.fr)",
+            (
+                '<p><a href="https://exemple.gouv.fr" target="_blank" '
+                'rel="noopener noreferrer">Site</a></p>'
+            ),
+        ),
+        ("## Missions", "<p><strong>Missions</strong></p>"),
+        ("<b>gras</b>", "<p>&lt;b&gt;gras&lt;/b&gt;</p>"),
+    ],
+)
+def test_summary_output_mapper_renders_descriptions_in_html_only(markdown, expected):
+    offer = replace(OfferFactory.create_entity(), mission=markdown, profile=markdown)
+
+    result = OfferSummaryOutputMapper().to_dict(offer)
+
+    assert result["description1"] is None
+    assert result["description2"] is None
+    assert result["description1Formatted"] == expected
+    assert result["description2Formatted"] == expected
+
+
 def test_offer_input_mapper_maps_profession_referentiel_to_job_family_referential():
     payload = PayloadOfferFactory.create(
         identification={"reference": "REF-001", "versant": "FPT"},
@@ -423,3 +455,57 @@ class TestOfferDetailOutputMapper:
         assert result["customFields"]["origin"]["shortText1"] == "rh@exemple.gouv.fr"
         assert result["applicationUrl"] is None
         assert result["urlRedirectionApplicant"] is None
+
+    def test_custom_field_descriptions_are_rendered_in_html_only(self):
+        offer = replace(
+            OfferFactory.create_entity(),
+            employer="**Employeur**",
+            exercise_conditions="- télétravail",
+            service_description="## Service RH",
+            complements="[Site](https://exemple.gouv.fr)",
+        )
+
+        custom_fields = OfferDetailOutputMapper().to_dict(offer)["customFields"]
+
+        assert custom_fields["description"]["longText1"] is None
+        assert custom_fields["description"]["longText2"] is None
+        assert custom_fields["description"]["longText3"] is None
+        assert custom_fields["offerCustomBlock1"]["longText1"] is None
+        assert custom_fields["description"]["longText1Formatted"] == (
+            "<p><strong>Employeur</strong></p>"
+        )
+        assert custom_fields["description"]["longText2Formatted"] == (
+            "<ul>\n<li>télétravail</li>\n</ul>"
+        )
+        assert custom_fields["description"]["longText3Formatted"] == (
+            "<p><strong>Service RH</strong></p>"
+        )
+        assert custom_fields["offerCustomBlock1"]["longText1Formatted"] == (
+            '<p><a href="https://exemple.gouv.fr" target="_blank" '
+            'rel="noopener noreferrer">Site</a></p>'
+        )
+
+    def test_fields_without_offer_equivalent_are_null(self):
+        custom_fields = OfferDetailOutputMapper().to_dict(OfferFactory.create_entity())[
+            "customFields"
+        ]
+
+        assert custom_fields["applicantCriteria"]["longText1Formatted"] is None
+        assert custom_fields["offerCustomBlock1"]["longText2Formatted"] is None
+        assert custom_fields["offerCustomBlock1"]["longText3Formatted"] is None
+
+    def test_empty_custom_field_descriptions_are_null(self):
+        offer = replace(
+            OfferFactory.create_entity(),
+            employer=None,
+            exercise_conditions=None,
+            service_description=None,
+            complements=None,
+        )
+
+        custom_fields = OfferDetailOutputMapper().to_dict(offer)["customFields"]
+
+        assert custom_fields["description"]["longText1Formatted"] is None
+        assert custom_fields["description"]["longText2Formatted"] is None
+        assert custom_fields["description"]["longText3Formatted"] is None
+        assert custom_fields["offerCustomBlock1"]["longText1Formatted"] is None

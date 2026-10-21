@@ -2,6 +2,7 @@ import nh3
 from django.utils.safestring import SafeString, mark_safe
 from markdown_it import MarkdownIt
 from markdown_it.common.utils import escapeHtml
+from markdown_it.token import Token
 
 _ALLOWED_TAGS = {
     "a",
@@ -54,9 +55,23 @@ def _shift_headings(tokens: list, top_level: int) -> None:
         token.tag = f"h{level}"
 
 
-def render_markdown(text: str | None, top_heading_level: int) -> SafeString:
-    tokens = _markdown.parse(text or "")
-    _shift_headings(tokens, top_heading_level)
+def _headings_to_bold_paragraphs(tokens: list) -> None:
+    for index, token in enumerate(tokens):
+        if token.type not in ("heading_open", "heading_close"):
+            continue
+        token.type = token.type.replace("heading", "paragraph")
+        token.tag = "p"
+        token.markup = ""
+        if token.type == "paragraph_open":
+            inline = tokens[index + 1]
+            inline.children = [
+                Token("strong_open", "strong", 1),
+                *(inline.children or []),
+                Token("strong_close", "strong", -1),
+            ]
+
+
+def _render(tokens: list) -> SafeString:
     html = _markdown.renderer.render(tokens, _markdown.options, {})
     # Defense in depth: markdown-it output is already safe.
     cleaned = nh3.clean(
@@ -69,6 +84,18 @@ def render_markdown(text: str | None, top_heading_level: int) -> SafeString:
         set_tag_attribute_values={"a": {"target": "_blank"}},
     )
     return mark_safe(cleaned.strip())  # noqa: S308
+
+
+def render_markdown(text: str | None, top_heading_level: int) -> SafeString:
+    tokens = _markdown.parse(text or "")
+    _shift_headings(tokens, top_heading_level)
+    return _render(tokens)
+
+
+def render_markdown_without_headings(text: str | None) -> SafeString:
+    tokens = _markdown.parse(text or "")
+    _headings_to_bold_paragraphs(tokens)
+    return _render(tokens)
 
 
 # Parses HTML and every link, so that they can be reported.

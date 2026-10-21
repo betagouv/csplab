@@ -1,7 +1,10 @@
 import pytest
 from django.utils.safestring import SafeString
 
-from presentation.commons.markdown import forbidden_markdown
+from presentation.commons.markdown import (
+    forbidden_markdown,
+    render_markdown_without_headings,
+)
 from presentation.commons.markdown import render_markdown as _render_markdown
 
 
@@ -46,6 +49,28 @@ def test_keeps_single_line_breaks_of_plain_text(text):
 )
 def test_headings_start_at_the_given_level_and_keep_their_hierarchy(text, expected):
     assert render_markdown(text) == expected
+
+
+@pytest.mark.parametrize(
+    "text,expected",
+    [
+        ("# Titre", "<p><strong>Titre</strong></p>"),
+        (
+            "## Titre *accentué*\n\ntexte",
+            "<p><strong>Titre <em>accentué</em></strong></p>\n<p>texte</p>",
+        ),
+        ("Titre\n=====", "<p><strong>Titre</strong></p>"),
+        ("#", "<p><strong></strong></p>"),
+    ],
+)
+def test_without_headings_renders_headings_as_bold_paragraphs(text, expected):
+    assert render_markdown_without_headings(text) == expected
+
+
+def test_without_headings_keeps_the_rest_of_the_rendering():
+    text = "**gras**\n\n- un\n\n<script>alert(1)</script>"
+
+    assert render_markdown_without_headings(text) == render_markdown(text)
 
 
 @pytest.mark.parametrize(
