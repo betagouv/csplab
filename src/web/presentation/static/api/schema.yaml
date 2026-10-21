@@ -1685,6 +1685,9 @@ paths:
         Cette API retourne la liste paginée des métiers. Les métiers peuvent être filtrés
         selon leur code de domaine fonctionnel (`domaine`).
 
+        Le champ `offer_family_code` d'un métier est la valeur à renseigner dans
+        `profession.metier` de l'API d'ingestion d'offres.
+
 
         Cette API est à l'usage exclusif des personnes autorisées.
 
@@ -4906,6 +4909,9 @@ components:
         offer_family_code:
           type: string
           nullable: true
+          description: Code métier à renseigner dans `profession.metier` de l'API
+            d'ingestion d'offres. Vaut `null` si le métier ne peut pas être utilisé
+            dans une offre.
       required:
       - activites
       - conditions_particulieres
@@ -5543,6 +5549,9 @@ components:
           maxLength: 3
         metier:
           type: string
+          description: 'Code métier, vérifié uniquement si referentiel=RMFPv2 : valeur
+            du champ `offer_family_code` d''un métier renvoyé par l''API `/api/v1/metiers`
+            (exemple : `ERAMT001`).'
           maxLength: 8
         code_emploi_local:
           type: string

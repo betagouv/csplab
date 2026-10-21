@@ -322,7 +322,7 @@ longueur et de valeurs autorisées**.
 |---|---|
 | `referentiel` | Référentiel utilisé. Valeur par défaut : **RMFPv2**. |
 | `domaine` | Obligatoire. Code du domaine fonctionnel (vérifié uniquement si `referentiel=RMFPv2`). **3 caractères maximum.** |
-| `metier` | Obligatoire. Code métier. **8 caractères maximum.** |
+| `metier` | Obligatoire. Code métier : valeur du champ `offer_family_code` d'un métier renvoyé par [`GET /api/v1/metiers/`](#5-consulter-les-metiers-get-apiv1metiers), par exemple `ERAMT001` (vérifié uniquement si `referentiel=RMFPv2`). **8 caractères maximum.** |
 | `code_emploi_local` | Code emploi local propre au partenaire. Peut être vide. **50 caractères maximum.** |
 
 #### Catégorie et contrat
@@ -459,7 +459,7 @@ Chaque métier renvoyé contient :
 | `versants` | Versants concernés (FPE, FPT, FPH) |
 | `activites` | Liste des activités (peut être vide) |
 | `conditions_particulieres` | Conditions particulières (peut être vide) |
-| `offer_family_code` | Code de la famille d'offres (peut être vide) |
+| `offer_family_code` | Code métier à renseigner dans `profession.metier` lors de l'envoi d'une offre. Un métier dont ce code est vide ne peut pas être utilisé dans une offre. |
 
 
 

@@ -354,6 +354,9 @@ LIST_METIERS_DESCRIPTION = (
 Cette API retourne la liste paginée des métiers. Les métiers peuvent être filtrés
 selon leur code de domaine fonctionnel (`domaine`).
 
+Le champ `offer_family_code` d'un métier est la valeur à renseigner dans
+`profession.metier` de l'API d'ingestion d'offres.
+
 """
     + _API_COMMON_FOOTER
 )
