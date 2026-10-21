@@ -536,7 +536,7 @@ export interface components {
          *     * `update_organisme_steps` - update_organisme_steps
          *     * `lister_mes_recrutements` - lister_mes_recrutements
          *     * `voir_detail_recrutement` - voir_detail_recrutement
-         *     * `get_candidature_detail` - get_candidature_detail
+         *     * `get_candidature` - get_candidature
          *     * `changer_etape_candidatures` - changer_etape_candidatures
          *     * `get_recrutement_etapes` - get_recrutement_etapes
          *     * `update_recrutement_etapes` - update_recrutement_etapes
@@ -568,7 +568,7 @@ export interface components {
          *     * `reply_conversation` - reply_conversation
          * @enum {string}
          */
-        AuthorizedActionsEnum: "get_organisme" | "initialize_organisme_steps" | "update_organisme_steps" | "lister_mes_recrutements" | "voir_detail_recrutement" | "get_candidature_detail" | "changer_etape_candidatures" | "get_recrutement_etapes" | "update_recrutement_etapes" | "init_recrutement_etapes" | "creer_organisme" | "lister_organismes" | "modifier_organisme" | "list_organisme_agents" | "search_agent" | "attach_organisme_agent" | "update_organisme_agent" | "revoke_organisme_agent" | "create_agent" | "list_recrutement_agents" | "add_recrutement_agent" | "update_recrutement_agent" | "revoke_recrutement_agent" | "set_recrutements_responsable" | "get_motifs_refus" | "read_document" | "list_documents" | "list_notes" | "create_note" | "update_note" | "delete_note" | "list_conversations" | "read_conversation" | "create_conversation" | "reply_conversation";
+        AuthorizedActionsEnum: "get_organisme" | "initialize_organisme_steps" | "update_organisme_steps" | "lister_mes_recrutements" | "voir_detail_recrutement" | "get_candidature" | "changer_etape_candidatures" | "get_recrutement_etapes" | "update_recrutement_etapes" | "init_recrutement_etapes" | "creer_organisme" | "lister_organismes" | "modifier_organisme" | "list_organisme_agents" | "search_agent" | "attach_organisme_agent" | "update_organisme_agent" | "revoke_organisme_agent" | "create_agent" | "list_recrutement_agents" | "add_recrutement_agent" | "update_recrutement_agent" | "revoke_recrutement_agent" | "set_recrutements_responsable" | "get_motifs_refus" | "read_document" | "list_documents" | "list_notes" | "create_note" | "update_note" | "delete_note" | "list_conversations" | "read_conversation" | "create_conversation" | "reply_conversation";
         /** @enum {unknown} */
         BlankEnum: "";
         Candidat: {

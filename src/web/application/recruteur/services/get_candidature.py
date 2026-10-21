@@ -27,7 +27,7 @@ class CandidatureDetail(NamedTuple):
     navigation_candidature_uuids: list[UUID]
 
 
-def get_candidature_detail(
+def get_candidature(
     *,
     organisme_id: UUID,
     recrutement_id: UUID,
@@ -35,7 +35,7 @@ def get_candidature_detail(
     utilisateur: UserModel,
 ) -> CandidatureDetail:
     OrganismePermissionService().can_execute(
-        action=OrganismeAction.GET_CANDIDATURE_DETAIL,
+        action=OrganismeAction.GET_CANDIDATURE,
         utilisateur=utilisateur,
         organisme_id=organisme_id,
         recrutement_id=recrutement_id,

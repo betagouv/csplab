@@ -4806,7 +4806,7 @@ components:
       - update_organisme_steps
       - lister_mes_recrutements
       - voir_detail_recrutement
-      - get_candidature_detail
+      - get_candidature
       - changer_etape_candidatures
       - get_recrutement_etapes
       - update_recrutement_etapes
@@ -4843,7 +4843,7 @@ components:
         * `update_organisme_steps` - update_organisme_steps
         * `lister_mes_recrutements` - lister_mes_recrutements
         * `voir_detail_recrutement` - voir_detail_recrutement
-        * `get_candidature_detail` - get_candidature_detail
+        * `get_candidature` - get_candidature
         * `changer_etape_candidatures` - changer_etape_candidatures
         * `get_recrutement_etapes` - get_recrutement_etapes
         * `update_recrutement_etapes` - update_recrutement_etapes

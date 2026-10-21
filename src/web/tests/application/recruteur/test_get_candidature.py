@@ -4,7 +4,7 @@ from uuid import uuid4
 import pytest
 from django.utils import timezone
 
-from application.recruteur.services.candidature_detail import get_candidature_detail
+from application.recruteur.services.get_candidature import get_candidature
 from domain.commons.errors.organisme_errors import OrganismeNexistePas
 from domain.identite.errors.organisme_permission_errors import (
     AccesOrganismeRefuse,
@@ -43,7 +43,7 @@ from infrastructure.factories.recruteur.recrutement_django_factory import (
 
 
 def _get_detail(agent, organisme, recrutement, candidature):
-    return get_candidature_detail(
+    return get_candidature(
         organisme_id=organisme.id,
         recrutement_id=recrutement.pk,
         candidature_id=candidature.pk,
@@ -214,4 +214,4 @@ def _candidature_of_another_recrutement():
 )
 def test_access_is_denied(db, build_kwargs, expected_error):
     with pytest.raises(expected_error):
-        get_candidature_detail(**build_kwargs())
+        get_candidature(**build_kwargs())

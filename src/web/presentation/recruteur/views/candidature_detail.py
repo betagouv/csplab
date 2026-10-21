@@ -7,7 +7,7 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from application.recruteur.services.candidature_detail import get_candidature_detail
+from application.recruteur.services.get_candidature import get_candidature
 from domain.commons.errors.organisme_errors import OrganismeNexistePas
 from domain.identite.errors.organisme_permission_errors import (
     AccesOrganismeRefuse,
@@ -40,7 +40,7 @@ class CandidatureDetailView(SessionApiMixin, APIView):
         recrutement_uuid: UUID,
         candidature_uuid: UUID,
     ) -> Response:
-        result = get_candidature_detail(
+        result = get_candidature(
             organisme_id=organisme_uuid,
             recrutement_id=recrutement_uuid,
             candidature_id=candidature_uuid,
