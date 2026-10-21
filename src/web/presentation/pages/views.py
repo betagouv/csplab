@@ -21,16 +21,6 @@ def _wrap_dsfr_tables(html: str) -> str:
     return html.replace("</table>", "</table></div></div></div></div>")
 
 
-def _strip_sommaire_section(markdown_text: str) -> str:
-    return re.sub(
-        r"^## Sommaire\n.*?\n---\n",
-        "",
-        markdown_text,
-        count=1,
-        flags=re.DOTALL | re.MULTILINE,
-    )
-
-
 def _unique_id(slug: str, used_ids: set[str]) -> str:
     candidate = slug
     suffix = 0
@@ -104,10 +94,9 @@ class ApiGuideView(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        markdown_text = _strip_sommaire_section(
+        tokens = _markdown.parse(
             (settings.STATIC_DIR / "api" / "guide_api.md").read_text()
         )
-        tokens = _markdown.parse(markdown_text)
         context["toc_items"] = _add_heading_ids_and_dsfr_classes(tokens)
         html = _markdown.renderer.render(tokens, _markdown.options, {})
         context["content"] = _wrap_dsfr_tables(html)
