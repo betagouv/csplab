@@ -21,7 +21,7 @@ def list_candidatures(
     utilisateur: UserModel,
 ) -> QuerySet[CandidatureModel]:
     OrganismePermissionService().can_execute(
-        action=OrganismeAction.VOIR_DETAIL_RECRUTEMENT,
+        action=OrganismeAction.GET_RECRUTEMENT,
         utilisateur=utilisateur,
         organisme_id=organisme_id,
         recrutement_id=recrutement_id,

@@ -70,7 +70,7 @@ SUPERVISEUR_OU_AGENT_SANS_RECRUTEMENT_ACTIONS = [
 ]
 
 SUPERVISEUR_OU_AGENT_AVEC_RECRUTEMENT_ACTIONS = [
-    OrganismeAction.VOIR_DETAIL_RECRUTEMENT,
+    OrganismeAction.GET_RECRUTEMENT,
     OrganismeAction.GET_CANDIDATURE,
     OrganismeAction.READ_DOCUMENT,
     OrganismeAction.LIST_DOCUMENTS,
@@ -309,7 +309,7 @@ def test_revocation_is_scoped_to_organisme(
     )
 
     result = OrganismePermissionService().can_execute(
-        action=OrganismeAction.VOIR_DETAIL_RECRUTEMENT,
+        action=OrganismeAction.GET_RECRUTEMENT,
         organisme_id=organisme_b.id,  # type: ignore[arg-type]
         utilisateur=utilisateur_de(agent.utilisateur_id),  # type: ignore[attr-defined]
         recrutement_id=recrutement_b.pk,
@@ -318,7 +318,7 @@ def test_revocation_is_scoped_to_organisme(
     assert result == AgentOrganismeRole.AGENT
     with pytest.raises(AccesOrganismeRefuse):
         OrganismePermissionService().can_execute(
-            action=OrganismeAction.VOIR_DETAIL_RECRUTEMENT,
+            action=OrganismeAction.GET_RECRUTEMENT,
             organisme_id=organisme_a.id,  # type: ignore[arg-type]
             utilisateur=utilisateur_de(agent.utilisateur_id),  # type: ignore[attr-defined]
             recrutement_id=recrutement_a.pk,

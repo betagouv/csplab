@@ -9,8 +9,8 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from application.recruteur.services.get_recrutement_detail import (
-    get_recrutement_detail,
+from application.recruteur.services.get_recrutement import (
+    get_recrutement,
 )
 from application.recruteur.services.list_candidatures import list_candidatures
 from application.recruteur.usecases.changer_etape_candidatures import (
@@ -60,7 +60,7 @@ class RecrutementDetailView(SessionApiMixin, APIView):
         self, request: Request, organisme_uuid: UUID, recrutement_uuid: UUID
     ) -> Response:
         try:
-            recrutement = get_recrutement_detail(
+            recrutement = get_recrutement(
                 organisme_id=organisme_uuid,
                 recrutement_id=recrutement_uuid,
                 utilisateur=request.user,
