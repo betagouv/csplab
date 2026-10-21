@@ -1,8 +1,10 @@
+from dataclasses import replace
 from datetime import UTC, datetime
 from unittest.mock import MagicMock
 
 from django.urls import reverse
 from pydantic import HttpUrl
+from referentiel.entities.talentsoft_organisme import TalentsoftOrganisme
 from referentiel.exceptions.offer_errors import OfferDoesNotExist
 from referentiel.value_objects.category import Category
 from referentiel.value_objects.diploma import Diploma
@@ -96,7 +98,7 @@ def test_returns_offer_detail(mock_offer_detail_container, jwt_client):
     data = response.json()
     assert data["reference"] == offer.reference
     assert data["title"] == offer.title
-    assert data["organisation"]["name"] == offer.organization
+    assert data["organisation"] == {}
     assert data["isAnonymousOrganisation"] is False
 
 
@@ -112,7 +114,12 @@ def test_response_matches_openapi_schema(mock_offer_detail_container, jwt_client
 
 
 def test_response_has_no_undeclared_fields(mock_offer_detail_container, jwt_client):
-    offer = OfferFactory.create_entity()
+    offer = replace(
+        OfferFactory.create_entity(),
+        talentsoft_organisme=TalentsoftOrganisme(
+            entity_code="ENT-1", code=1, name="Commune de Paris"
+        ),
+    )
     _make_usecase(mock_offer_detail_container, offer=offer)
 
     response = jwt_client.get(URL, {"reference": offer.reference})
@@ -261,21 +268,7 @@ class TestOfferDetailViewDbVerified:
             "applicationUrl": None,
             "endPublicationDate": "2024-09-30T00:00:00",
             "isAnonymousOrganisation": False,
-            "organisation": {
-                "entityCode": "",
-                "name": "Ministère Test",
-                "description": None,
-                "url": "https://exemple.gouv.fr/offres/e2e-1",
-                "phoneNumber": None,
-                "postCode": None,
-                "geolocation": {"latitude": 48.8566, "longitude": 2.3522},
-                "parentName": None,
-                "logoUrl": None,
-                "maxDelayForConsent": None,
-                "retentionPeriod": None,
-                "generalConditions": None,
-                "personalDataConsent": None,
-            },
+            "organisation": {},
             "operationalManager": None,
             "educationLevel": {
                 "code": None,

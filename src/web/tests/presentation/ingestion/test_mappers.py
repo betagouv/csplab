@@ -406,14 +406,12 @@ class TestOfferDetailOutputMapper:
 
         assert result["organisation"]["geolocation"] is None
 
-    def test_organisation_falls_back_to_offer_without_talentsoft_organisme(self):
+    def test_organisation_is_null_without_talentsoft_organisme(self):
         offer = OfferFactory.create_entity()
 
         result = OfferDetailOutputMapper().to_dict(offer)
 
-        assert result["organisation"]["entityCode"] == ""
-        assert result["organisation"]["name"] == offer.organization
-        assert result["organisation"]["description"] is None
+        assert result["organisation"] == {}
 
     def test_application_email_is_mapped_to_origin_short_text1(self):
         offer = replace(
