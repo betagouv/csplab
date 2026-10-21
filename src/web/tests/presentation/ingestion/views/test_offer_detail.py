@@ -383,7 +383,7 @@ class TestOfferDetailViewDbVerified:
             entity_code="ENT-1",
             code=1,
             name="Commune de Paris",
-            description="Description de la commune",
+            description="Description de l'organisme",
             url="https://paris.fr",
             phone_number="0102030405",
             post_code="75001",
@@ -404,11 +404,13 @@ class TestOfferDetailViewDbVerified:
         response = jwt_client.get(URL, {"reference": offer_model.reference})
 
         assert response.status_code == status.HTTP_200_OK
-        assert response.json()["organisationDescription"] == "Description de la commune"
+        assert (
+            response.json()["organisationDescription"] == "Description de l'organisme"
+        )
         assert response.json()["organisation"] == {
             "entityCode": "ENT-1",
             "name": "Commune de Paris",
-            "description": "Description de la commune",
+            "description": "Description de l'organisme",
             "url": "https://paris.fr",
             "phoneNumber": "0102030405",
             "postCode": "75001",

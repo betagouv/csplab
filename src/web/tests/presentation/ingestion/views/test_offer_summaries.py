@@ -336,7 +336,7 @@ class TestOfferSummariesViewDbVerified:
             reference="REF-AVEC-ORGANISME",
             employer="Présentation de l'employeur",
             talentsoft_organisme_entity_code=TalentsoftOrganismeDjangoFactory(
-                description="Description de la commune"
+                description="Description de l'organisme"
             ),
         )
         OfferDjangoFactory(
@@ -352,7 +352,7 @@ class TestOfferSummariesViewDbVerified:
             for offer in response.json()["data"]
         }
         assert descriptions == {
-            "REF-AVEC-ORGANISME": "Description de la commune",
+            "REF-AVEC-ORGANISME": "Description de l'organisme",
             "REF-SANS-ORGANISME": None,
         }
 
