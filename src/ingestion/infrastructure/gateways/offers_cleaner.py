@@ -48,7 +48,7 @@ logger = logging.getLogger(__name__)
 
 _LIST_BULLET = re.compile(r"^[-–•·*▪●]\s*")
 
-_LEGIFRANCE_HOSTS = {"www.legifrance.gouv.fr", "legifrance.gouv.fr"}
+_LEGIFRANCE_URL = re.compile(r"https?://(?:www\.)?legifrance\.gouv\.fr/\S+")
 
 _TALENTSOFT_TO_SPECIALISATIONS: dict[str, str] = {
     "_TS_CO_Specialisation_1": "Formations générales",
@@ -502,11 +502,10 @@ class OffersCleaner:
         return [skill for skill in skills if skill]
 
     def _map_vacancy_notice_url(self, raw: Optional[str]) -> Optional[HttpUrl]:
-        value = self._map_plain_text(raw)
-        url = self._parse_url(value) if value else None
-        if url is None or url.host not in _LEGIFRANCE_HOSTS:
+        match = _LEGIFRANCE_URL.search(raw or "")
+        if match is None:
             return None
-        return url
+        return self._parse_url(match.group().rstrip(".,;"))
 
     def _map_verse(
         self,

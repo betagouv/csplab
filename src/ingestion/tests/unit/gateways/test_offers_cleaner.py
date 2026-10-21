@@ -1355,6 +1355,31 @@ def test_clean_returns_empty_applicant_criteria_and_offer_block_texts_when_blank
 @pytest.mark.parametrize(
     "value",
     [
+        (
+            "L'avis de vacance de cet emploi est publié au Journal Officiel en date "
+            "du 25/09/2026 et peut être consulté à l'adresse suivante :"
+            "https://www.legifrance.gouv.fr/jorf/id/1"
+        ),
+        "Avis publié au JO : https://www.legifrance.gouv.fr/jorf/id/1.",
+    ],
+)
+def test_clean_extracts_legifrance_url_from_vacancy_notice_text(cleaner, value):
+    raw_offer = _make_raw_offer(
+        customFields=TalentsoftCustomFieldsFactory.build(
+            offerCustomBlock1=TalentsoftDynamicField(longText3=value),
+        )
+    )
+
+    offer = cleaner.clean(raw_offer)
+
+    assert offer.vacancy_notice_url == HttpUrl(
+        "https://www.legifrance.gouv.fr/jorf/id/1"
+    )
+
+
+@pytest.mark.parametrize(
+    "value",
+    [
         "JO du 12 mars 2025, texte n° 45",
         "https://univ-reims.nous-recrutons.fr/nos-offres-demploi/",
         "https://legifrance.example.com/jorf/id/1",
