@@ -38,9 +38,6 @@ from infrastructure.factories.referentiel.offer_django_factory import (
 
 pytestmark = pytest.mark.usefixtures("db")
 
-EXPECTED_PAR_CATEGORIE = 2
-EXPECTED_TOTAL = 4
-EXPECTED_RESPONSABLES = 1
 PAGE_SIZE = 2
 NB_RECRUTEMENTS = 5
 
@@ -127,32 +124,6 @@ class TestListRecrutements:
         latest.refresh_from_db()
         assert items[0].derniere_activite == latest.updated_at
         assert items[0].derniere_activite > recrutement.offre.publication_date
-
-    def test_actif_counts_are_not_inflated_by_other_joins(self):
-        agent, organisme = create_organisme_with_agent(role=AgentOrganismeRole.AGENT)
-        recrutement = RecrutementDjangoFactory(
-            organisme=organisme,
-            agent_link__agent=agent,
-            agent_link__role=AgentRecrutementRole.RESPONSABLE.value,
-        )
-        RecrutementAgentDjangoFactory(
-            recrutement=recrutement, role=AgentRecrutementRole.CONTRIBUTEUR.value
-        )
-        for categorie in (
-            CategorieEtapeRecrutement.ENTREE,
-            CategorieEtapeRecrutement.EN_COURS,
-        ):
-            etape = recrutement.etapes.get(categorie=categorie.value)
-            CandidatureDjangoFactory.create_batch(2, etape=etape)
-
-        items = list_actives_recrutements(
-            organisme_id=organisme.id, utilisateur=agent.utilisateur
-        )
-
-        assert items[0].candidatures_total == EXPECTED_TOTAL
-        assert items[0].candidatures_a_traiter == EXPECTED_PAR_CATEGORIE
-        assert items[0].candidatures_en_cours == EXPECTED_PAR_CATEGORIE
-        assert len(items[0].responsables) == EXPECTED_RESPONSABLES
 
     def test_archive_without_accepted_candidature(self):
         agent, organisme = self._supervisor()

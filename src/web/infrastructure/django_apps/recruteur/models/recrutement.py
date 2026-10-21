@@ -80,16 +80,14 @@ class RecrutementQuerySet(models.QuerySet):
             derniere_activite=Coalesce(
                 Max("etapes__candidatures__updated_at"), F("offre__publication_date")
             ),
-            candidatures_total=Count("etapes__candidatures", distinct=True),
+            candidatures_total=Count("etapes__candidatures"),
             candidatures_a_traiter=Count(
                 "etapes__candidatures",
                 filter=Q(etapes__categorie=CategorieEtapeRecrutement.ENTREE.value),
-                distinct=True,
             ),
             candidatures_en_cours=Count(
                 "etapes__candidatures",
                 filter=Q(etapes__categorie=CategorieEtapeRecrutement.EN_COURS.value),
-                distinct=True,
             ),
         )
 
