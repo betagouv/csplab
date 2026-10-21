@@ -156,6 +156,7 @@ class TestRecrutementsListViews:
             offre_archivee=archived,
             agent_link__agent=agents[demandeur],
         )
+        RecrutementDjangoFactory(organisme=organisme, offre_archivee=archived)
 
         response = _client_for(agents[demandeur].utilisateur).get(
             _url(name, organisme.id)
