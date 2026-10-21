@@ -701,4 +701,4 @@ Notation : `a.b` désigne un objet imbriqué, `a[]` une liste, `a[0]` son premie
 
 
 
-*Document généré à partir du [schéma OpenAPI officiel](`/static/api/schema.yaml`). En cas de divergence, le schéma fait foi.*
+*Document généré à partir du [schéma OpenAPI officiel](/static/api/schema.yaml). En cas de divergence, le schéma fait foi.*
