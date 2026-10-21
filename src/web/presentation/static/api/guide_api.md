@@ -280,6 +280,10 @@ Exemple de réponse :
 > Vous partez d'une offre au format Talentsoft ? Consultez l'[annexe de correspondance
 > entre le format Talentsoft et l'API v1](#annexe-correspondance-entre-le-format-talentsoft-et-lapi-v1).
 
+> **Consulter les offres transmises :** sur l'environnement de démonstration
+> uniquement, les offres transmises peuvent être consultées dans l'interface « Fret » :
+> [https://demo.csplab.beta.gouv.fr/fret](https://demo.csplab.beta.gouv.fr/fret).
+
 ### Structure d'une offre et contraintes sur les champs
 
 Une offre est composée de plusieurs blocs. Voici le détail, avec les **contraintes de
