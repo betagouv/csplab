@@ -119,8 +119,8 @@ def test_call_without_arg(mock_offer_summaries_container, jwt_client):
     assert result["reference"] == offer.reference
     assert result["title"] == offer.title
     assert result["organisationName"] == offer.organization
-    assert result["description1"] is None
-    assert result["description2"] is None
+    assert result["description1"] == offer.mission
+    assert result["description2"] == offer.profile
     assert result["contractType"]["clientCode"] == offer.offer_nature.name
     assert result["contractType"]["label"] == offer.offer_nature.value
     assert result["offerFamilyCategory"]["clientCode"] == offer.category.name
@@ -239,8 +239,8 @@ class TestOfferSummariesViewDbVerified:
                     "organisationLogoUrl": None,
                     "contractDuration": "36 mois",
                     "contractTypeCountry": None,
-                    "description1": None,
-                    "description2": None,
+                    "description1": "Mission du poste",
+                    "description2": "Profil recherché",
                     "description1Formatted": "<p>Mission du poste</p>",
                     "description2Formatted": "<p>Profil recherché</p>",
                     "salaryRange": None,

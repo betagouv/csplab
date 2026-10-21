@@ -156,8 +156,8 @@ class OfferSummaryOutputMapper:
             "organisationLogoUrl": None,
             "contractDuration": (offer.conditions or {}).get("duree_contrat") or None,
             "contractTypeCountry": None,
-            "description1": None,
-            "description2": None,
+            "description1": offer.mission,
+            "description2": offer.profile,
             "description1Formatted": self._formatted(offer.mission),
             "description2Formatted": self._formatted(offer.profile),
             "salaryRange": None,
@@ -313,6 +313,9 @@ class OfferDetailOutputMapper(OfferSummaryOutputMapper):
                 date1=self._isoformat(offer.application_deadline)
             ),
             "description": self._dynamic_field(
+                longText1=offer.employer,
+                longText2=offer.exercise_conditions,
+                longText3=offer.service_description,
                 longText1Formatted=self._formatted(offer.employer),
                 longText2Formatted=self._formatted(offer.exercise_conditions),
                 longText3Formatted=self._formatted(offer.service_description),
@@ -322,6 +325,7 @@ class OfferDetailOutputMapper(OfferSummaryOutputMapper):
                 shortText1=offer.localisation.label if offer.localisation else None
             ),
             "offerCustomBlock1": self._dynamic_field(
+                longText1=offer.complements,
                 longText1Formatted=self._formatted(offer.complements),
             ),
             "origin": self._dynamic_field(shortText1=offer.application_email),

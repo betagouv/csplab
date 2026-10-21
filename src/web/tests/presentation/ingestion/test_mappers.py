@@ -121,13 +121,13 @@ def test_summary_output_mapper_maps_null_organisation_description_without_organi
         ("<b>gras</b>", "<p>&lt;b&gt;gras&lt;/b&gt;</p>"),
     ],
 )
-def test_summary_output_mapper_renders_descriptions_in_html_only(markdown, expected):
+def test_summary_output_mapper_renders_descriptions_in_html(markdown, expected):
     offer = replace(OfferFactory.create_entity(), mission=markdown, profile=markdown)
 
     result = OfferSummaryOutputMapper().to_dict(offer)
 
-    assert result["description1"] is None
-    assert result["description2"] is None
+    assert result["description1"] == markdown
+    assert result["description2"] == markdown
     assert result["description1Formatted"] == expected
     assert result["description2Formatted"] == expected
 
@@ -456,7 +456,7 @@ class TestOfferDetailOutputMapper:
         assert result["applicationUrl"] is None
         assert result["urlRedirectionApplicant"] is None
 
-    def test_custom_field_descriptions_are_rendered_in_html_only(self):
+    def test_custom_field_descriptions_are_rendered_in_html(self):
         offer = replace(
             OfferFactory.create_entity(),
             employer="**Employeur**",
@@ -467,10 +467,12 @@ class TestOfferDetailOutputMapper:
 
         custom_fields = OfferDetailOutputMapper().to_dict(offer)["customFields"]
 
-        assert custom_fields["description"]["longText1"] is None
-        assert custom_fields["description"]["longText2"] is None
-        assert custom_fields["description"]["longText3"] is None
-        assert custom_fields["offerCustomBlock1"]["longText1"] is None
+        assert custom_fields["description"]["longText1"] == "**Employeur**"
+        assert custom_fields["description"]["longText2"] == "- télétravail"
+        assert custom_fields["description"]["longText3"] == "## Service RH"
+        assert custom_fields["offerCustomBlock1"]["longText1"] == (
+            "[Site](https://exemple.gouv.fr)"
+        )
         assert custom_fields["description"]["longText1Formatted"] == (
             "<p><strong>Employeur</strong></p>"
         )
