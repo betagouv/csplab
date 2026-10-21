@@ -9,6 +9,9 @@ from django.urls import reverse
 from faker import Faker
 from rest_framework import serializers, status
 
+from application.identite.context_services.organisme_permission_service import (
+    OrganismePermissionService,
+)
 from application.recruteur.dtos.recrutement_read_models import (
     CandidatDto,
     CandidatureKanbanDto,
@@ -655,8 +658,9 @@ class TestRecrutementListeView:
     def test_returns_500_on_unexpected_error(
         self, authenticated_client, recrutement_liste
     ):
-        with patch(
-            "presentation.recruteur.views.recrutement_detail.list_candidatures",
+        with patch.object(
+            OrganismePermissionService,
+            "can_execute",
             side_effect=Exception("unexpected"),
         ):
             response = authenticated_client.get(RECRUTEMENT_LISTE_URL)
