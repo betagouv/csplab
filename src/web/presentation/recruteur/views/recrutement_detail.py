@@ -21,10 +21,6 @@ from application.recruteur.usecases.get_recrutement_kanban import (
 )
 from domain.commons.errors.organisme_errors import OrganismeNexistePas
 from domain.identite.errors.organisme_permission_errors import (
-    AccesOrganismeRefuse,
-    AccesRecrutementInconnu,
-    AccesRecrutementRefuse,
-    OperationOrganismeRefusee,
     OrganismePermissionError,
 )
 from domain.recruteur.errors.recrutement_errors import (
@@ -165,15 +161,7 @@ class RecrutementListeView(SessionApiMixin, ListAPIView):
         )
 
     def handle_exception(self, exc: Exception) -> Response:
-        if isinstance(
-            exc,
-            (
-                AccesOrganismeRefuse,
-                OperationOrganismeRefusee,
-                AccesRecrutementRefuse,
-                AccesRecrutementInconnu,
-            ),
-        ):
+        if isinstance(exc, OrganismePermissionError):
             return Response(
                 GenericErrorSerializer({"error": "Forbidden."}).data,
                 status=status.HTTP_403_FORBIDDEN,
