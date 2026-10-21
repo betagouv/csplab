@@ -3280,6 +3280,10 @@ paths:
 
         Le format `CSP-AAAA-NNNNNN` est réservé aux références générées par CSPLab. Une référence à ce format n'est acceptée que pour mettre à jour une offre existante de la source. Sinon, l'offre est rejetée dans `errors`.
 
+        # Consulter les offres transmises
+
+        Sur l'environnement de démonstration uniquement, les offres transmises peuvent être consultées dans l'interface « Fret » : https://demo.csplab.beta.gouv.fr/fret
+
         # Permissions
 
         L'utilisation de cette API nécessite un token d'autorisation spécifique à chaque utilisateur.
