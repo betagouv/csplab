@@ -210,10 +210,21 @@ class RecrutementsActifsSerializer(RecrutementsSerializer):
         ]
 
 
+class RecruteField(serializers.CharField):
+    def get_attribute(self, instance: RecrutementModel) -> str | None:
+        etapes_acceptees = instance.etapes_acceptees  # type: ignore[attr-defined]
+        if not etapes_acceptees:
+            return None
+        candidatures = etapes_acceptees[0].candidatures.all()
+        if not candidatures:
+            return None
+        return candidatures[0].candidat.utilisateur.get_full_name()
+
+
 class RecrutementsArchivesSerializer(RecrutementsSerializer):
     date_archivage = serializers.DateTimeField(source="offre.archived_at")
     finalise = serializers.BooleanField()
-    recrute = serializers.CharField(source="nom_candidat_recrute", allow_null=True)
+    recrute = RecruteField(allow_null=True)
 
     class Meta:
         model = RecrutementModel

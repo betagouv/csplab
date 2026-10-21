@@ -327,3 +327,15 @@ class TestRecrutementsArchivesView:
         assert result["recrute"] == candidature.candidat.utilisateur.get_full_name()
         assert result["unread_conversations"] == 0
         assert result["date_archivage"].startswith("2025-06-01")
+
+    def test_recrute_is_null_without_accepted_candidature(
+        self, authenticated_client, organisme
+    ):
+        RecrutementDjangoFactory(organisme=organisme, offre_archivee=True)
+
+        response = authenticated_client.get(RECRUTEMENTS_ARCHIVES_URL)
+
+        assert response.status_code == status.HTTP_200_OK
+        result = response.json()["results"][0]
+        assert result["finalise"] is False
+        assert result["recrute"] is None

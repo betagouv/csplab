@@ -165,16 +165,6 @@ class RecrutementModel(models.Model):
     def __str__(self) -> str:
         return str(self.offre)
 
-    @property
-    def nom_candidat_recrute(self) -> str | None:
-        etapes_acceptees = self.etapes_acceptees  # type: ignore[attr-defined]
-        if not etapes_acceptees:
-            return None
-        candidatures = etapes_acceptees[0].candidatures.all()
-        if not candidatures:
-            return None
-        return candidatures[0].candidat.utilisateur.get_full_name()
-
 
 class RecrutementAgentQuerySet(models.QuerySet):
     def active(self) -> "RecrutementAgentQuerySet":

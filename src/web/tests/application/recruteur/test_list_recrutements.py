@@ -136,7 +136,6 @@ class TestListRecrutements:
         )
 
         assert items[0].finalise is False
-        assert items[0].nom_candidat_recrute is None
 
     def test_unknown_organisme_raises(self):
         agent, _ = self._supervisor()
