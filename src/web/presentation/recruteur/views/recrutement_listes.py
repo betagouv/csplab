@@ -1,26 +1,46 @@
-from uuid import UUID
-
+from django.db.models import QuerySet
+from django.http import Http404
 from drf_spectacular.utils import extend_schema, extend_schema_view
-from rest_framework import status
-from rest_framework.request import Request
+from rest_framework import exceptions, status
+from rest_framework.generics import ListAPIView
 from rest_framework.response import Response
-from rest_framework.views import APIView
 
-from application.recruteur.usecases.list_recrutements import (
-    ListRecrutementsQuery,
+from application.recruteur.services.list_recrutements import (
+    list_actives_recrutements,
+    list_archived_recrutements,
 )
 from domain.commons.errors.organisme_errors import OrganismeNexistePas
-from domain.identite.errors.organisme_permission_errors import AccesOrganismeRefuse
-from domain.recruteur.value_objects.statut_recrutement import StatutRecrutement
-from infrastructure.di.recruteur.recruteur_factory import recruteur_container
+from domain.identite.errors.organisme_permission_errors import OrganismePermissionError
+from infrastructure.django_apps.recruteur.models.recrutement import RecrutementModel
 from presentation.api.authentication import SessionApiMixin
 from presentation.api.serializers import GenericErrorSerializer, TokenErrorSerializer
-from presentation.commons.pagination import WebPagination
-from presentation.recruteur.mappers import UtilisateurMapper
+from presentation.commons.pagination import PageNumberLimitPagination
 from presentation.recruteur.serializers import (
     RecrutementsActifsSerializer,
     RecrutementsArchivesSerializer,
 )
+
+
+class RecrutementsListView(SessionApiMixin, ListAPIView):
+    pagination_class = PageNumberLimitPagination
+
+    def handle_exception(self, exc: Exception) -> Response:
+        if isinstance(exc, OrganismePermissionError):
+            return Response(
+                GenericErrorSerializer({"error": "Forbidden."}).data,
+                status=status.HTTP_403_FORBIDDEN,
+            )
+        if isinstance(exc, OrganismeNexistePas):
+            return Response(
+                GenericErrorSerializer({"error": "Not found."}).data,
+                status=status.HTTP_404_NOT_FOUND,
+            )
+        if isinstance(exc, (exceptions.APIException, Http404)):
+            return super().handle_exception(exc)
+        return Response(
+            GenericErrorSerializer({"error": "Unexpected error"}).data,
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )
 
 
 @extend_schema_view(
@@ -38,45 +58,13 @@ from presentation.recruteur.serializers import (
         },
     ),
 )
-class RecrutementsActifsView(SessionApiMixin, APIView):
-    pagination_class = WebPagination
+class RecrutementsActifsView(RecrutementsListView):
+    serializer_class = RecrutementsActifsSerializer
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.container = recruteur_container()
-        self.user_mapper = UtilisateurMapper()
-
-    def get(self, request: Request, organisme_uuid: UUID) -> Response:
-        try:
-            list_usecase = self.container.list_recrutements_usecase()
-            result = list_usecase.execute(
-                ListRecrutementsQuery(
-                    organisme_id=organisme_uuid,
-                    statut=StatutRecrutement.ACTIF,
-                    utilisateur=self.user_mapper.to_domain(request),
-                )
-            )
-
-            paginator = WebPagination()
-            items = paginator.paginate(result, request)
-            return paginator.get_paginated_response(
-                RecrutementsActifsSerializer(items, many=True).data
-            )
-        except AccesOrganismeRefuse:
-            return Response(
-                GenericErrorSerializer({"error": "Forbidden."}).data,
-                status=status.HTTP_403_FORBIDDEN,
-            )
-        except OrganismeNexistePas:
-            return Response(
-                GenericErrorSerializer({"error": "Not found."}).data,
-                status=status.HTTP_404_NOT_FOUND,
-            )
-        except Exception:
-            serializer = GenericErrorSerializer({"error": "Unexpected error"})
-            return Response(
-                serializer.data, status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
+    def get_queryset(self) -> QuerySet[RecrutementModel]:
+        return list_actives_recrutements(
+            organisme_id=self.kwargs["organisme_uuid"], utilisateur=self.request.user
+        )
 
 
 @extend_schema_view(
@@ -96,43 +84,10 @@ class RecrutementsActifsView(SessionApiMixin, APIView):
         },
     ),
 )
-class RecrutementsArchivesView(SessionApiMixin, APIView):
-    pagination_class = WebPagination
+class RecrutementsArchivesView(RecrutementsListView):
+    serializer_class = RecrutementsArchivesSerializer
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.container = recruteur_container()
-        self.user_mapper = UtilisateurMapper()
-
-    def get(self, request: Request, organisme_uuid: UUID) -> Response:
-        try:
-            list_usecase = self.container.list_recrutements_usecase()
-            result = list_usecase.execute(
-                ListRecrutementsQuery(
-                    organisme_id=organisme_uuid,
-                    statut=StatutRecrutement.ARCHIVE,
-                    utilisateur=self.user_mapper.to_domain(request),
-                )
-            )
-
-            paginator = WebPagination()
-            items = paginator.paginate(result, request)
-            return paginator.get_paginated_response(
-                RecrutementsArchivesSerializer(items, many=True).data
-            )
-
-        except AccesOrganismeRefuse:
-            return Response(
-                GenericErrorSerializer({"error": "Forbidden."}).data,
-                status=status.HTTP_403_FORBIDDEN,
-            )
-        except OrganismeNexistePas:
-            return Response(
-                GenericErrorSerializer({"error": "Not found."}).data,
-                status=status.HTTP_404_NOT_FOUND,
-            )
-        except Exception:
-            serializer = GenericErrorSerializer({"error": "Unexpected error"})
-            return Response(
-                serializer.data, status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
+    def get_queryset(self) -> QuerySet[RecrutementModel]:
+        return list_archived_recrutements(
+            organisme_id=self.kwargs["organisme_uuid"], utilisateur=self.request.user
+        )
