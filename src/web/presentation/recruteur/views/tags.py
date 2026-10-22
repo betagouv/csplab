@@ -9,6 +9,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from application.recruteur.services.create_tag import create_tag
+from application.recruteur.services.delete_tag import delete_tag
 from application.recruteur.services.list_tags import list_tags
 from application.recruteur.services.update_tag import update_tag
 from domain.commons.errors.organisme_errors import OrganismeNexistePas
@@ -118,6 +119,14 @@ class OrganismeTagsView(TagBaseView, ListAPIView):
             409: GenericErrorSerializer,
         },
     ),
+    delete=extend_schema(
+        summary="Supprimer une étiquette d'un organisme",
+        tags=["recruteur"],
+        responses={
+            **generic_response_format,
+            204: None,
+        },
+    ),
 )
 class OrganismeTagDetailView(TagBaseView):
     def put(self, request: Request, organisme_uuid: UUID, tag_uuid: UUID) -> Response:
@@ -133,3 +142,11 @@ class OrganismeTagDetailView(TagBaseView):
             color=serializer.validated_data["color"],
         )
         return Response(TagSerializer(tag).data)
+
+    def delete(
+        self, request: Request, organisme_uuid: UUID, tag_uuid: UUID
+    ) -> Response:
+        delete_tag(
+            organisme_id=organisme_uuid, tag_id=tag_uuid, utilisateur=request.user
+        )
+        return Response(status=status.HTTP_204_NO_CONTENT)
