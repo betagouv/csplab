@@ -434,6 +434,10 @@ SPECTACULAR_SETTINGS = {
     "DESCRIPTION": "API for CSPLab",
     "VERSION": "0.0.1",
     "SERVE_INCLUDE_SCHEMA": False,
+    "ENUM_NAME_OVERRIDES": {
+        "ReferentielEnum": ["RMFPv2"],
+        "OrganismeReferentielEnum": ["FINESS", "GIPCDG", "DILA"],
+    },
     "PREPROCESSING_HOOKS": [
         "drf_spectacular.hooks.preprocess_exclude_path_format",
         "presentation.api.openapi_hooks.preprocess_public_only",

@@ -1061,6 +1061,9 @@ class UpsertOrganismesResponseSerializer(serializers.Serializer):
     errors = serializers.ListField(child=serializers.DictField())
 
 
+ORGANISME_REFERENTIELS = ["FINESS", "GIPCDG", "DILA"]
+
+
 class ListOrganismesFiltersSerializer(serializers.Serializer):
     versant = _CommaSeparatedEnumField(
         Verse,
@@ -1086,10 +1089,10 @@ class ListOrganismesFiltersSerializer(serializers.Serializer):
         help_text="Code du département de l'organisme (ex. `75`, `2A`, `971`).",
         source="department",
     )
-    referentiel = serializers.CharField(
+    referentiel = serializers.ChoiceField(
+        choices=ORGANISME_REFERENTIELS,
         required=False,
-        max_length=50,
-        help_text="Référentiel source de l'organisme : `FINESS`, `GIPCDG` ou `DILA`.",
+        help_text="Référentiel source de l'organisme.",
     )
 
 
@@ -1112,9 +1115,10 @@ class OrganismePublicSerializer(serializers.ModelSerializer):
     parent_id = serializers.UUIDField(
         allow_null=True, help_text="Identifiant de l'organisme parent."
     )
-    referentiel = serializers.CharField(
+    referentiel = serializers.ChoiceField(
+        choices=ORGANISME_REFERENTIELS,
         allow_null=True,
-        help_text="Référentiel source : `FINESS`, `GIPCDG` ou `DILA`. Avec "
+        help_text="Référentiel source. Avec "
         "`external_id`, identifie l'organisme pour la création, la mise à jour et "
         "la suppression.",
     )

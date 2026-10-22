@@ -26,8 +26,6 @@ class PublicApiKeyOnlyMixin:
 
 
 class PublicJwtReadApiKeyWriteMixin:
-    """Reads (GET, HEAD, OPTIONS) by JWT, writes by API key."""
-
     permission_classes = [IsAuthenticated]
 
     def get_authenticators(self):

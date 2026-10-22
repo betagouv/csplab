@@ -178,6 +178,11 @@ def test_filters_by_referentiel(jwt_client):
     assert _noms(response) == ["Dila"]
 
 
+def test_invalid_referentiel_returns_400(jwt_client):
+    response = jwt_client.get(URL, {"referentiel": "INSEE"})
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+
 def test_stable_order_and_pagination(jwt_client):
     homonymes = sorted(
         (OrganismeDjangoFactory(nom="Mairie") for _ in range(2)),

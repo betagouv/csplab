@@ -3826,10 +3826,18 @@ paths:
       - in: query
         name: referentiel
         schema:
+          enum:
+          - FINESS
+          - GIPCDG
+          - DILA
           type: string
-          maxLength: 50
           minLength: 1
-        description: 'Référentiel source de l''organisme : `FINESS`, `GIPCDG` ou `DILA`.'
+        description: |-
+          Référentiel source de l'organisme.
+
+          * `FINESS` - FINESS
+          * `GIPCDG` - GIPCDG
+          * `DILA` - DILA
       - in: query
         name: siret
         schema:
@@ -5868,10 +5876,16 @@ components:
           nullable: true
           description: Identifiant de l'organisme parent.
         referentiel:
-          type: string
           nullable: true
-          description: 'Référentiel source : `FINESS`, `GIPCDG` ou `DILA`. Avec `external_id`,
-            identifie l''organisme pour la création, la mise à jour et la suppression.'
+          description: |-
+            Référentiel source. Avec `external_id`, identifie l'organisme pour la création, la mise à jour et la suppression.
+
+            * `FINESS` - FINESS
+            * `GIPCDG` - GIPCDG
+            * `DILA` - DILA
+          oneOf:
+          - $ref: '#/components/schemas/OrganismeReferentielEnum'
+          - $ref: '#/components/schemas/NullEnum'
         external_id:
           type: string
           nullable: true
@@ -5894,6 +5908,16 @@ components:
       - referentiel
       - siret
       - versant
+    OrganismeReferentielEnum:
+      enum:
+      - FINESS
+      - GIPCDG
+      - DILA
+      type: string
+      description: |-
+        * `FINESS` - FINESS
+        * `GIPCDG` - GIPCDG
+        * `DILA` - DILA
     OrganismeUpsertInput:
       type: object
       properties:
