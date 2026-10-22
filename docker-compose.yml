@@ -28,7 +28,7 @@ services:
       retries: 5
 
   qdrant:
-    image: qdrant/qdrant:v1.19
+    image: qdrant/qdrant:v1.20
     restart: always
     container_name: csp_qdrant
     ports:

@@ -10,7 +10,10 @@ runs:
     - name: Read the mise version from mise.toml
       id: mise
       shell: bash
-      run: echo "version=$(sed -nE 's/^min_version = "([^"]+)"/\1/p' mise.toml)" >> "$GITHUB_OUTPUT"
+      run: |
+        version=$(sed -nE 's/^min_version = "([^"]+)"/\1/p' mise.toml)
+        test -n "$version" || { echo "::error::min_version introuvable dans mise.toml"; exit 1; }
+        echo "version=$version" >> "$GITHUB_OUTPUT"
     - name: Install mise and the toolchain
       uses: jdx/mise-action@c2a87611a18de5b3828c5652fe268e992400cb5c # v4.3.0
       with:
