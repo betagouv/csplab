@@ -68,7 +68,7 @@ class CriteresPayload(BaseModel):
     specialisations: list[str] = []
     diplome: Optional[str] = None
     documents_requis: list[str] = []
-    competences_requises: list[str] = []
+    competences_requises: Optional[str] = None
     langues: list[LanguagePayload] = []
 
     @model_serializer

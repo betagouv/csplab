@@ -47,7 +47,7 @@ class Offer:
     exercise_conditions: str = ""
     service_description: str = ""
     complements: str = ""
-    required_skills: list[str] = field(default_factory=list)
+    required_skills: Optional[str] = None
     legal_basis: Optional[str] = None
     vacancy_notice_url: Optional[HttpUrl] = None
     contract_kind: Optional[ContractKind] = None

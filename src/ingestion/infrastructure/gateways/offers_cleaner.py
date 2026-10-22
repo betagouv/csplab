@@ -46,8 +46,6 @@ from infrastructure.gateways.transcoding import (
 
 logger = logging.getLogger(__name__)
 
-_LIST_BULLET = re.compile(r"^[-–•·*▪●]\s*")
-
 _LEGIFRANCE_URL = re.compile(r"https?://((?:www\.)?legifrance\.gouv\.fr/\S+)")
 
 _TALENTSOFT_TO_SPECIALISATIONS: dict[str, str] = {
@@ -471,9 +469,7 @@ class OffersCleaner:
             complements=self._map_rich_text(
                 offer_block_1.longText1Formatted, offer_block_1.longText1
             ),
-            required_skills=self._map_required_skills(
-                applicant_criteria_fields.longText1
-            ),
+            required_skills=self._map_plain_text(applicant_criteria_fields.longText1),
             legal_basis=self._map_plain_text(offer_block_1.longText2),
             vacancy_notice_url=self._map_vacancy_notice_url(offer_block_1.longText3),
             education_level=education_level,
@@ -495,11 +491,6 @@ class OffersCleaner:
 
     def _map_plain_text(self, raw: Optional[str]) -> Optional[str]:
         return (raw or "").strip() or None
-
-    def _map_required_skills(self, raw: Optional[str]) -> list[str]:
-        lines = (raw or "").splitlines()
-        skills = (_LIST_BULLET.sub("", line.strip()) for line in lines)
-        return [skill for skill in skills if skill]
 
     def _map_vacancy_notice_url(self, raw: Optional[str]) -> Optional[HttpUrl]:
         match = _LEGIFRANCE_URL.search(raw or "")

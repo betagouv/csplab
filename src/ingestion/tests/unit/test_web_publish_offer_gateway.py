@@ -553,14 +553,14 @@ async def test_publish_serializes_criteres_with_required_skills(
 ):
     httpx_mock.add_response(method="POST", url=PUBLISH_URL, status_code=201)
     offer = Offer(
-        **{**MINIMAL_OFFER.__dict__, "required_skills": ["Travailler en équipe"]}
+        **{**MINIMAL_OFFER.__dict__, "required_skills": "Travailler en équipe"}
     )
 
     await gateway.publish(PublishOfferInput(source_id=SOURCE_ID, offer=offer))
 
     body = json.loads(httpx_mock.get_requests()[0].content)
     assert body["offres"][0]["criteres"] == {
-        "competences_requises": ["Travailler en équipe"]
+        "competences_requises": "Travailler en équipe"
     }
 
 

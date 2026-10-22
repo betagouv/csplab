@@ -1300,38 +1300,29 @@ def test_clean_maps_applicant_criteria_and_offer_block_texts(cleaner):
 
     offer = cleaner.clean(raw_offer)
 
-    assert offer.required_skills == ["Savoir-faire : Travailler en équipe"]
+    assert offer.required_skills == "Savoir-faire : Travailler en équipe"
     assert offer.legal_basis == "Art. L332-2 du code général de la fonction publique"
     assert offer.vacancy_notice_url == HttpUrl(
         "https://www.legifrance.gouv.fr/jorf/id/1"
     )
 
 
-def test_clean_splits_required_skills_by_line(cleaner):
+def test_clean_keeps_required_skills_as_raw_text(cleaner):
+    raw_text = (
+        "Savoir-faire :\n"
+        "- Travailler en équipe\n"
+        "\n"
+        "•\tFiabilité, rigueur et ponctualité."
+    )
     raw_offer = _make_raw_offer(
         customFields=TalentsoftCustomFieldsFactory.build(
-            applicantCriteria=TalentsoftDynamicField(
-                longText1=(
-                    "Savoir-faire :\r\n"
-                    "- Travailler en équipe\n"
-                    " \n"
-                    "•\tFiabilité, rigueur et ponctualité.\n"
-                    "Savoir être : \n"
-                    "Discrétion professionnelle"
-                )
-            ),
+            applicantCriteria=TalentsoftDynamicField(longText1=raw_text),
         )
     )
 
     offer = cleaner.clean(raw_offer)
 
-    assert offer.required_skills == [
-        "Savoir-faire :",
-        "Travailler en équipe",
-        "Fiabilité, rigueur et ponctualité.",
-        "Savoir être :",
-        "Discrétion professionnelle",
-    ]
+    assert offer.required_skills == raw_text
 
 
 @pytest.mark.parametrize("value", [None, "", "   "])
@@ -1347,7 +1338,7 @@ def test_clean_returns_empty_applicant_criteria_and_offer_block_texts_when_blank
 
     offer = cleaner.clean(raw_offer)
 
-    assert offer.required_skills == []
+    assert offer.required_skills is None
     assert offer.legal_basis is None
     assert offer.vacancy_notice_url is None
 
