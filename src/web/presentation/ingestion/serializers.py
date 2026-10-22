@@ -669,11 +669,12 @@ class ListMetiersResponseSerializer(serializers.Serializer):
     conditions_particulieres = serializers.ListField(
         child=serializers.CharField(), allow_null=True
     )
-    offer_family_code = serializers.CharField(
+    code_emploi_csp = serializers.CharField(
+        source="offer_family_code",
         allow_null=True,
-        help_text="Code métier à renseigner dans `profession.metier` de l'API "
-        "d'ingestion d'offres. Est vide si le métier ne peut pas être utilisé "
-        "dans une offre.",
+        help_text="Code CSP du RMFP, à renseigner dans `profession.metier` de "
+        "l'API d'ingestion d'offres. Plusieurs métiers peuvent partager le même "
+        "code. Est vide si le métier ne peut pas être utilisé dans une offre.",
     )
 
 
@@ -718,7 +719,7 @@ class ProfessionInputSerializer(serializers.Serializer):
         max_length=8,
         help_text="Code métier, vérifié uniquement si "
         f"referentiel={JobFamilyReferential.RMFPV2.value} : valeur du champ "
-        "`offer_family_code` d'un métier renvoyé par l'API `/api/v1/metiers` "
+        "`code_emploi_csp` d'un métier renvoyé par l'API `/api/v1/metiers` "
         "(exemple : `ERAMT001`).",
     )
     code_emploi_local = serializers.CharField(

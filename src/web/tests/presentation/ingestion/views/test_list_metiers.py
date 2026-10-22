@@ -81,7 +81,7 @@ def test_call_without_arg(mock_metiers_container, jwt_client):
         assert result["libelle"] == metier.libelle
         assert result["description"] == metier.description
         assert result["domaine_fonctionnel_code"] == metier.domaine_fonctionnel_code
-        assert result["offer_family_code"] == metier.offer_family_code
+        assert result["code_emploi_csp"] == metier.offer_family_code
         assert result["versants"] == [versant.value for versant in metier.versants]
         assert result["activites"] == metier.activites
         assert result["conditions_particulieres"] == metier.conditions_particulieres
@@ -199,7 +199,7 @@ class TestMetiersListViewDbVerified:
                 "versants": metier.versants,
                 "activites": metier.activites,
                 "conditions_particulieres": metier.conditions_particulieres,
-                "offer_family_code": metier.offer_family_code,
+                "code_emploi_csp": metier.offer_family_code,
             }
         ]
 
