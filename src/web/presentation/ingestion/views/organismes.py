@@ -55,6 +55,8 @@ from presentation.ingestion.serializers import (
 logger = logging.getLogger(LoggerName.INGESTION.value)
 
 
+# TODO : extract into a shared helper once we tackle form errors returned
+# to the Vue front.
 def _validation_message(exc: DRFValidationError) -> str:
     detail = exc.detail
     if isinstance(detail, dict):

@@ -3,6 +3,7 @@ from referentiel.value_objects.verse import Verse
 
 from infrastructure.django_apps.recruteur.models.organisme import OrganismeModel
 
+# TODO : move to application/referentiel once the RMFP is stable and exposed.
 PUBLIC_ORGANISME_REFERENTIELS = ("FINESS", "GIPCDG", "DILA")
 
 
