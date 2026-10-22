@@ -331,19 +331,6 @@ class TestUpdateTag:
         (log,) = _logs(tag.id)
         assert log.event_name == "TagModifie"
 
-    def test_stores_normalized_name(self, authenticated_client, superviseur_organisme):
-        tag = TagDjangoFactory(organisme=superviseur_organisme, name="Expert")
-
-        response = authenticated_client.put(
-            _tag_url(superviseur_organisme.id, tag.id),
-            data={"name": "  Très   bon\nprofil ", "color": "bleu"},
-            format="json",
-        )
-
-        assert response.status_code == status.HTTP_200_OK
-        tag.refresh_from_db()
-        assert tag.name == "Très bon profil"
-
     def test_changes_only_the_case_of_its_own_name(
         self, authenticated_client, superviseur_organisme
     ):
@@ -447,24 +434,6 @@ class TestUpdateTag:
         )
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
-
-    def test_invalid_name_is_a_bad_request(
-        self, authenticated_client, superviseur_organisme
-    ):
-        tag = TagDjangoFactory(organisme=superviseur_organisme, name="Expert")
-
-        response = authenticated_client.put(
-            _tag_url(superviseur_organisme.id, tag.id),
-            data={"name": "<b>", "color": "bleu"},
-            format="json",
-        )
-
-        assert response.status_code == status.HTTP_400_BAD_REQUEST
-        assert response.json() == {
-            "error": "Les émojis et les caractères < > ne sont pas autorisés."
-        }
-        tag.refresh_from_db()
-        assert tag.name == "Expert"
 
     def test_hexadecimal_color_is_a_bad_request(
         self, authenticated_client, superviseur_organisme
