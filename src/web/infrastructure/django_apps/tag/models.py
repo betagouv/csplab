@@ -1,6 +1,7 @@
 from django.db import models
 from django.db.models.functions import Lower, Trim
 
+from domain.recruteur.tag_rules import TAG_NAME_MAX_LENGTH
 from infrastructure.django_apps.candidate.models.candidature import CandidatureModel
 from infrastructure.django_apps.recruteur.models.note import NoteModel
 from infrastructure.django_apps.recruteur.models.organisme import OrganismeModel
@@ -28,6 +29,17 @@ class TagColor(models.TextChoices):
     GRIS = "gris", "Gris"
 
 
+class TagQuerySet(models.QuerySet):
+    def by_organisme(self, organisme_id) -> "TagQuerySet":
+        return self.filter(organisme_id=organisme_id)
+
+    def by_category(self, category: TagCategory) -> "TagQuerySet":
+        return self.filter(category=category)
+
+    def alphabetical(self) -> "TagQuerySet":
+        return self.order_by(Lower("name"), "category")
+
+
 class TagModel(BaseDatedModel):
     organisme = models.ForeignKey(
         OrganismeModel,
@@ -35,11 +47,13 @@ class TagModel(BaseDatedModel):
         db_column="organisme_id",
         related_name="tags",
     )
-    name = models.CharField(max_length=25)
+    name = models.CharField(max_length=TAG_NAME_MAX_LENGTH)
     category = models.CharField(max_length=20, choices=TagCategory.choices)
     color = models.CharField(
         max_length=20, choices=TagColor.choices, default=TagColor.BLEU
     )
+
+    objects = TagQuerySet.as_manager()
 
     class Meta:
         db_table = "tag"
