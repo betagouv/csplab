@@ -541,6 +541,20 @@ export function verrouilleParDar(o: Offre, champ: string): boolean {
   return determinant(o, champ) && o.darStatut === 'validee'
 }
 
+const MOIS = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre']
+
+/** Clé de tri d'une date affichée (« 12 octobre 2026 », « Hier, 16:12 », « Aujourd'hui, 14:25 »). */
+export function dateTri(date: string): string {
+  if (date.startsWith('Aujourd')) {
+    return `9-${date.slice(-5)}`
+  }
+  if (date.startsWith('Hier')) {
+    return `8-${date.slice(-5)}`
+  }
+  const [j, m, a] = date.split(' ')
+  return `${a}-${String(MOIS.indexOf(m ?? '') + 1).padStart(2, '0')}-${(j ?? '').padStart(2, '0')}`
+}
+
 export function maintenant(): string {
   return `Aujourd'hui, ${heure()}`
 }

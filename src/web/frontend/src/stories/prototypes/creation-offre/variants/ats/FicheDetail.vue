@@ -101,17 +101,21 @@ const infos = computed(() => [
   <PageAts
     actif="fiches"
     :titre="f.intitule || 'Nouvelle fiche de poste'"
-    :fil="[{ label: 'Fiches de poste', action: () => aller({ nom: 'fiches' }) }, { label: f.id }]"
+    :fil="[{ label: 'Fiches de poste', to: '/fiches' }, { label: f.intitule || f.id }]"
+    :retour="{ to: '/fiches', label: 'Retour aux fiches de poste' }"
   >
-    <template #titre-fin>
-      <OrigineBadge :origine="f.origine" />
-      <CspBadge
-        v-if="f.statut === 'archivee'"
-        label="Archivée"
-        type="info"
-        variant="outline"
-        size="sm"
-      />
+    <template #meta>
+      <span class="meta">
+        <OrigineBadge :origine="f.origine" />
+        <span class="meta__ref">{{ f.id }}<template v-if="f.service"> · {{ f.service }}</template></span>
+        <CspBadge
+          v-if="f.statut === 'archivee'"
+          label="Archivée"
+          type="info"
+          variant="outline"
+          size="sm"
+        />
+      </span>
     </template>
     <template #actions>
       <span
@@ -407,6 +411,18 @@ const infos = computed(() => [
 </template>
 
 <style scoped lang="scss">
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--csp-space-2);
+}
+
+.meta__ref {
+  font-size: var(--csp-font-size-sm);
+  color: var(--text-mention-grey);
+}
+
 .grille {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 21rem;

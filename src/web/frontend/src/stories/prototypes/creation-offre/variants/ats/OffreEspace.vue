@@ -1,13 +1,15 @@
 <script setup lang="ts">
 import type { Onglet } from './nav'
 import { computed, ref, watch } from 'vue'
+import CspButton from '@/components/base/CspButton/CspButton.vue'
+import CspDropdownMenu from '@/components/base/CspDropdownMenu/CspDropdownMenu.vue'
 import CspIcon from '@/components/base/CspIcon/CspIcon.vue'
+import CspMetaList from '@/components/base/CspMeta/CspMetaList.vue'
 import EtatBadge from './EtatBadge.vue'
 import { useNav } from './nav'
 import OffrePublication from './OffrePublication.vue'
 import OffreRedaction from './OffreRedaction.vue'
 import OffreSuivi from './OffreSuivi.vue'
-import OrigineBadge from './OrigineBadge.vue'
 import PageAts from './PageAts.vue'
 import { db, heure, maintenant, sauvegarder } from './store'
 
@@ -21,11 +23,26 @@ const onglet = ref(props.onglet ?? 'suivi')
 watch(() => props.onglet, v => v && (onglet.value = v))
 
 // Un seul formulaire pour l'offre ; la validation (DAR) s'y affiche quand l'organisme l'exige.
-const ONGLETS = [
-  { id: 'suivi' as const, label: 'Suivi' },
-  { id: 'redaction' as const, label: 'Formulaire de l\'offre' },
-  { id: 'publication' as const, label: 'Publication' },
+const ONGLETS: { value: Onglet, label: string, icon: string }[] = [
+  { value: 'suivi', label: 'Suivi', icon: 'ri:dashboard-line' },
+  { value: 'redaction', label: 'Formulaire de l\'offre', icon: 'ri:file-edit-line' },
+  { value: 'publication', label: 'Publication', icon: 'ri:megaphone-line' },
 ]
+
+// Informations sous le titre, comme sur la page d'un recrutement de l'application.
+const meta = computed(() => [
+  { icon: 'ri:calendar-line', srLabel: 'Date de création', label: `Créée ${/^\d/.test(o.value.creeLe) ? `le ${o.value.creeLe}` : o.value.creeLe.toLowerCase()}` },
+  { icon: 'ri:map-pin-2-line', srLabel: 'Localisation', label: o.value.lieu || 'Lieu à préciser' },
+  { icon: 'ri:government-line', srLabel: 'Organisme', label: db.organisme.nom },
+  ...(o.value.categorie ? [{ icon: 'ri:price-tag-3-line', srLabel: 'Catégorie', label: `Catégorie ${o.value.categorie}` }] : []),
+  { icon: 'ri:group-line', srLabel: 'Postes', label: `${o.value.nbPostes} poste${Number(o.value.nbPostes) > 1 ? 's' : ''}` },
+])
+const menu = computed(() => [{
+  items: [
+    { label: 'Voir la fiche de poste', icon: 'ri:file-text-line', onSelect: () => aller({ nom: 'fiche', id: f.value.id }) },
+    { label: 'Dupliquer l’offre', icon: 'ri:file-copy-2-line', onSelect: () => aller({ nom: 'creation', mode: 'duplication', offreId: o.value.id }) },
+  ],
+}])
 
 // --- Sauvegarde automatique du contenu éditorial ---
 const sauvegarde = ref<'' | 'modif' | 'ok'>('')
@@ -63,12 +80,19 @@ function enregistrer() {
 
 <template>
   <PageAts
+    v-model:onglet="onglet"
     actif="offres"
+    largeur="full"
     :titre="o.titre || 'Offre sans titre'"
-    :fil="[{ label: 'Offres d\'emploi', action: () => aller({ nom: 'offres' }) }, { label: o.id }]"
+    :fil="[{ label: 'Offres d\'emploi', to: '/offres' }, { label: o.titre || o.id }]"
+    :retour="{ to: '/offres', label: 'Retour aux offres d\'emploi' }"
+    :onglets="ONGLETS"
   >
-    <template #titre-fin>
-      <EtatBadge :etat="o.etat" />
+    <template #meta>
+      <div class="meta">
+        <EtatBadge :etat="o.etat" />
+        <CspMetaList :items="meta" />
+      </div>
     </template>
     <template #actions>
       <span
@@ -82,44 +106,20 @@ function enregistrer() {
         /> Enregistré à {{ heureOk }}</template>
         <template v-else>Modifiée {{ o.modifieLe.toLowerCase() }}</template>
       </span>
-    </template>
-    <template #sous-entete>
-      <div class="sous">
-        <nav
-          class="onglets"
-          aria-label="Sections de l'offre"
-        >
-          <button
-            v-for="t in ONGLETS"
-            :key="t.id"
-            type="button"
-            class="onglet"
-            :aria-current="onglet === t.id ? 'page' : undefined"
-            @click="onglet = t.id"
-          >
-            {{ t.label }}
-          </button>
-        </nav>
-        <p class="lien-fiche">
-          <CspIcon
-            name="ri:link"
-            :size="14"
+      <CspDropdownMenu
+        :sections="menu"
+        side="bottom"
+        align="end"
+      >
+        <template #trigger>
+          <CspButton
+            icon="ri:more-fill"
+            variant="tertiary"
+            size="sm"
+            aria-label="Actions sur l’offre"
           />
-          Fiche de poste :
-          <button
-            type="button"
-            class="lien"
-            @click="aller({ nom: 'fiche', id: f.id })"
-          >
-            {{ f.intitule }} ({{ f.id }})
-          </button>
-          <OrigineBadge
-            :origine="f.origine"
-            court
-          />
-          · {{ o.nbPostes }} poste{{ Number(o.nbPostes) > 1 ? 's' : '' }}
-        </p>
-      </div>
+        </template>
+      </CspDropdownMenu>
     </template>
 
     <OffreSuivi
@@ -153,63 +153,13 @@ function enregistrer() {
   color: var(--text-mention-grey);
 }
 
-.sous {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: var(--csp-space-4);
-  padding: 0 var(--csp-space-8);
-  border-bottom: 1px solid var(--border-default-grey);
-  background: var(--background-default-grey);
-}
-
-.onglets {
-  display: flex;
-  gap: var(--csp-space-1);
-}
-
-.onglet {
-  padding: var(--csp-space-3) var(--csp-space-3);
-  border: 0;
-  border-bottom: 2px solid transparent;
-  background: none;
-  font: inherit;
-  font-size: var(--csp-font-size-sm);
-  color: var(--text-mention-grey);
-  cursor: pointer;
-
-  &:hover {
-    color: var(--text-default-grey);
-  }
-
-  &:focus-visible {
-    outline: 2px solid var(--csp-focus-ring-color, #0a76f6);
-    outline-offset: -2px;
-  }
-
-  &[aria-current='page'] {
-    border-bottom-color: var(--border-active-blue-france);
-    color: var(--text-action-high-blue-france);
-    font-weight: var(--csp-font-weight-bold);
-  }
-}
-
-.lien-fiche {
+.meta {
   display: flex;
   align-items: center;
-  gap: var(--csp-space-1);
-  margin: 0;
-  font-size: var(--csp-font-size-sm);
-  color: var(--text-mention-grey);
-}
+  gap: var(--csp-space-3);
 
-.lien {
-  padding: 0;
-  border: 0;
-  background: none;
-  font: inherit;
-  color: var(--text-action-high-blue-france);
-  text-decoration: underline;
-  cursor: pointer;
+  > :last-child {
+    flex: 1;
+  }
 }
 </style>

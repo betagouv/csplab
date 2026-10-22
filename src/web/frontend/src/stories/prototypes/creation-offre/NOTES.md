@@ -1,5 +1,23 @@
 # Notes — Prototype création d'offre
 
+## Itération 10 — structure des pages de l'application (22 octobre 2026)
+
+Demande d'Alice : reprendre la structure des pages actuelles de l'ATS (capture « Nom de l'offre » /
+Candidatures), notamment tableaux, recherche et filtres. Les écrans réels (`features/recrutements`,
+`features/candidatures`) servent de référence ; le proto réutilise les mêmes composants et composables.
+
+- **En-tête** `CspPageHeader` : fil d'Ariane (Accueil › …), bouton retour, titre, métadonnées
+  `CspMetaList` (date de création, lieu, organisme, catégorie, postes), menu « … » `CspDropdownMenu`.
+- **Onglets avec icônes** `CspPageContainer` : listes « en cours / archivées », offre « Suivi /
+  Formulaire de l'offre / Publication ».
+- **Barre de tableau** `CspTableToolbar` : nombre de résultats à gauche ; recherche `CspSearchBar`
+  (en direct), bouton « Filtres (n) » et choix des colonnes à droite ; actions de sélection groupée.
+- **Filtres** dans un tiroir `CspFiltersDrawer` (brouillon puis « Appliquer les filtres »,
+  « Réinitialiser »), avec `useDraft`, `useTextSearch`, `useTableSelection` de l'application.
+- **Tableau** `CspDataTable` : cases à cocher, intitulé cliquable en gras, états et étiquettes en badges,
+  colonnes triables, menu « … » par ligne, pagination « Affichage de 1 à n sur N ».
+- Les actions groupées (« Assigner un responsable », « Archiver ») sont simulées.
+
 ## Itération 9 — formulaire unique et circuit de validation (22 octobre 2026)
 
 Demande d'Alice : un seul formulaire pour l'offre ; les champs déterminants pour la DAR y sont

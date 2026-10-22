@@ -29,10 +29,16 @@ const router = useRouter()
 const route = useRoute()
 const LISTES: Record<string, Ecran> = { '/accueil': { nom: 'accueil' }, '/fiches': { nom: 'fiches' }, '/offres': { nom: 'offres' }, '/parametres': { nom: 'parametres' } }
 
+function suivreRoute(e: Ecran) {
+  // Hors des listes, on quitte leur route : un clic dans le menu ou le fil d'Ariane y ramène toujours.
+  void router.replace(['accueil', 'fiches', 'offres', 'parametres'].includes(e.nom) ? `/${e.nom}` : `/detail-${Date.now()}`)
+}
+// Le routeur de Storybook est partagé entre les stories : on l'aligne sur l'écran de départ.
+suivreRoute(props.depart)
+
 function aller(e: Ecran) {
   ecran.value = e
-  // Hors des listes, on quitte leur route : un clic dans le menu y ramène toujours.
-  void router.replace(['accueil', 'fiches', 'offres', 'parametres'].includes(e.nom) ? `/${e.nom}` : `/detail-${Date.now()}`)
+  suivreRoute(e)
   document.querySelector('.ats__main')?.scrollTo({ top: 0 })
 }
 

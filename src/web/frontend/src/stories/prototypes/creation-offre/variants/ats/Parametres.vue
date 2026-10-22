@@ -58,6 +58,7 @@ function basculerDar(v: boolean) {
 <template>
   <PageAts
     actif="parametres"
+    :fil="[{ label: 'Paramètres de l\'organisme' }]"
     titre="Paramètres de l'organisme"
     :sous-titre="`${db.organisme.nom} · administrés par le superviseur, ${db.organisme.superviseur}`"
   >

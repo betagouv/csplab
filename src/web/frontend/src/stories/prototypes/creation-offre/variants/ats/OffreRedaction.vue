@@ -677,11 +677,11 @@ function creer() {
 
 .cote {
   position: sticky;
-  top: 9rem;
+  top: var(--csp-space-4);
   display: flex;
   flex-direction: column;
   gap: var(--csp-space-3);
-  max-height: calc(100vh - 11rem);
+  max-height: calc(100vh - 2rem);
   overflow-y: auto;
 }
 

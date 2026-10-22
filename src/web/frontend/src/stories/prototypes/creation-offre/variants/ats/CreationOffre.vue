@@ -102,7 +102,8 @@ function creer() {
     actif="offres"
     titre="Lancer un recrutement"
     sous-titre="Créez l'offre à partir de la source la plus adaptée. Elle reste toujours rattachée à une fiche de poste."
-    :fil="[{ label: 'Offres d\'emploi', action: () => aller({ nom: 'offres' }) }, { label: 'Lancer un recrutement' }]"
+    :fil="[{ label: 'Offres d\'emploi', to: '/offres' }, { label: 'Lancer un recrutement' }]"
+    :retour="{ to: '/offres', label: 'Retour aux offres d\'emploi' }"
   >
     <div
       class="modes"
