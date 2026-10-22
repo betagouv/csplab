@@ -496,7 +496,6 @@ class OffersCleaner:
         match = _LEGIFRANCE_URL.search(raw or "")
         if match is None:
             return None
-        # web n'accepte que des liens https
         return self._parse_url("https://" + match.group(1).rstrip(".,;"))
 
     def _map_verse(
