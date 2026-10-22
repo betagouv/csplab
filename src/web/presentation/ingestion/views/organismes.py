@@ -162,8 +162,8 @@ class OrganismesUpsertView(PublicApiKeyOnlyMixin, APIView):
             result = usecase.execute(UpsertOrganismesInput(organismes=valid_organismes))
             result["errors"].extend(errors)
             return Response(result, status=status.HTTP_201_CREATED)
-        except Exception as e:
-            logger.error("OrganismesUpsertView: unexpected error %s", str(e))
+        except Exception:
+            logger.exception("OrganismesUpsertView: unexpected error")
             return Response(
                 {"error": "Unexpected error"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -222,7 +222,7 @@ class OrganismesView(PublicJwtReadApiKeyWriteMixin, ListAPIView):
             )
         if isinstance(exc, (APIException, Http404)):
             return super().handle_exception(exc)
-        logger.error("OrganismesView: unexpected error %s", str(exc))
+        logger.error("OrganismesView: unexpected error", exc_info=exc)
         return Response(
             GenericErrorSerializer({"error": "Unexpected error"}).data,
             status=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -248,8 +248,8 @@ class OrganismesView(PublicJwtReadApiKeyWriteMixin, ListAPIView):
             )
             result = usecase.execute(SupprimerOrganismesInput(organismes=organismes))
             return Response(result, status=status.HTTP_200_OK)
-        except Exception as e:
-            logger.error("OrganismesView: unexpected error %s", str(e))
+        except Exception:
+            logger.exception("OrganismesView: unexpected error")
             return Response(
                 {"error": "Unexpected error"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,

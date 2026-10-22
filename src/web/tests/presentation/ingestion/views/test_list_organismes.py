@@ -1,8 +1,11 @@
+import logging
 from datetime import datetime, timezone
+from unittest.mock import patch
 
 from django.urls import reverse
 from rest_framework import status
 
+from config.logger_names import LoggerName
 from infrastructure.django_apps.recruteur.models.organisme import OrganismeModel
 from infrastructure.factories.identite.organisme_django_factory import (
     OrganismeDjangoFactory,
@@ -11,6 +14,7 @@ from infrastructure.factories.identite.organisme_django_factory import (
 
 def _organisme(**kwargs) -> OrganismeModel:
     return OrganismeDjangoFactory(**{"referentiel": "FINESS", **kwargs})
+
 
 URL = reverse("ingestion:organismes")
 
@@ -104,9 +108,7 @@ def test_localisation_is_null_when_unknown(jwt_client):
 
 def test_excludes_deleted_organismes(jwt_client):
     _organisme(nom="Actif")
-    _organisme(
-        nom="Supprimé", supprime_le=datetime(2026, 1, 1, tzinfo=timezone.utc)
-    )
+    _organisme(nom="Supprimé", supprime_le=datetime(2026, 1, 1, tzinfo=timezone.utc))
 
     response = jwt_client.get(URL)
 
@@ -227,3 +229,19 @@ def test_page_out_of_range_returns_404(jwt_client):
     response = jwt_client.get(URL, {"page": 2})
 
     assert response.status_code == status.HTTP_404_NOT_FOUND
+
+
+def test_unexpected_error_returns_500_and_logs_traceback(jwt_client, caplog):
+    with (
+        caplog.at_level(logging.ERROR),
+        patch(
+            "presentation.ingestion.views.organismes.list_public_organismes",
+            side_effect=KeyError("siret"),
+        ),
+    ):
+        response = jwt_client.get(URL)
+
+    assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
+    assert response.json() == {"error": "Unexpected error"}
+    [record] = [r for r in caplog.records if r.name == LoggerName.INGESTION.value]
+    assert record.exc_info[0] is KeyError
