@@ -40,3 +40,4 @@ class OrganismeAction(Enum):
     LIST_TAGS = "list_tags"
     CREATE_TAG = "create_tag"
     UPDATE_TAG = "update_tag"
+    DELETE_TAG = "delete_tag"
