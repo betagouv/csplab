@@ -1,0 +1,37 @@
+import{n as e}from"./rolldown-runtime-DkW27tQK.js";import{D as t,K as n,M as r,Mt as i,O as a,T as o,Y as s,j as c,l}from"./iframe-CwPtnP3Q.js";import{n as u,t as d}from"./CspIcon-BDrg5P-C.js";import{n as f,t as p}from"./_plugin-vue_export-helper-BqBa3wPr.js";import{n as m,t as h}from"./CspButton-Deh6CqzE.js";var g,_,v,y,b;function x(){return(x=e((()=>{l(),u(),g={class:`csp-empty-state`},_={class:`csp-empty-state__title`},v={key:0,class:`csp-empty-state__description`},y={key:1,class:`csp-empty-state__action`},b=r({__name:`CspEmptyState`,props:{title:{},description:{default:void 0},icon:{default:`ri:inbox-2-line`}},setup(e){return(r,l)=>(n(),a(`div`,g,[c(d,{name:e.icon,size:24,class:`csp-empty-state__icon`},null,8,[`name`]),o(`p`,_,i(e.title),1),e.description?(n(),a(`p`,v,i(e.description),1)):t(``,!0),r.$slots.action?(n(),a(`div`,y,[s(r.$slots,`action`,{},void 0,!0)])):t(``,!0)]))}})})))()}var S;function C(){return(C=e((()=>{x(),f(),S=p(b,[[`__scopeId`,`data-v-5e75edfd`]]),b.__docgenInfo=Object.assign({displayName:b.name??b.__name},{exportName:`default`,displayName:`CspEmptyState`,type:1,props:[{name:`title`,global:!1,description:``,tags:[],required:!0,type:`string`,schema:`string`,declarations:[]},{name:`description`,global:!1,default:`undefined`,description:``,tags:[],required:!1,type:`string | undefined`,schema:{kind:`enum`,type:`string | undefined`,schema:[`undefined`,`string`]},declarations:[]},{name:`icon`,global:!1,default:`"ri:inbox-2-line"`,description:``,tags:[],required:!1,type:`string | undefined`,schema:{kind:`enum`,type:`string | undefined`,schema:[`undefined`,`string`]},declarations:[]},{name:`key`,global:!0,description:``,tags:[],required:!1,type:`PropertyKey | undefined`,schema:{kind:`enum`,type:`PropertyKey | undefined`,schema:[`undefined`,`string`,`number`,`symbol`]},declarations:[]},{name:`ref`,global:!0,description:``,tags:[],required:!1,type:`VNodeRef | undefined`,schema:{kind:`enum`,type:`VNodeRef | undefined`,schema:[`undefined`,`string`,`Ref<any, any>`,{kind:`event`,type:`(ref: Element | ComponentPublicInstance<{}, {}, {}, {}, {}, {}, {}, {}, false, ComponentOptionsBase<any, any, any, any, any, any, any, any, any, {}, {}, string, {}, {}, {}, string, ComponentProvideOptions>, ... 4 more ..., any> | null, refs: Record<...>): void`}]},declarations:[]},{name:`ref_for`,global:!0,description:``,tags:[],required:!1,type:`boolean | undefined`,schema:{kind:`enum`,type:`boolean | undefined`,schema:[`undefined`,`false`,`true`]},declarations:[]},{name:`ref_key`,global:!0,description:``,tags:[],required:!1,type:`string | undefined`,schema:{kind:`enum`,type:`string | undefined`,schema:[`undefined`,`string`]},declarations:[]},{name:`onVue:beforeMount`,global:!0,description:``,tags:[],required:!1,type:`VNodeMountHook | VNodeMountHook[] | undefined`,schema:{kind:`enum`,type:`VNodeMountHook | VNodeMountHook[] | undefined`,schema:[`undefined`,{kind:`event`,type:`(vnode: VNode<RendererNode, RendererElement, { [key: string]: any; }>): void`},{kind:`array`,type:`VNodeMountHook[]`}]},declarations:[]},{name:`onVue:mounted`,global:!0,description:``,tags:[],required:!1,type:`VNodeMountHook | VNodeMountHook[] | undefined`,schema:{kind:`enum`,type:`VNodeMountHook | VNodeMountHook[] | undefined`,schema:[`undefined`,{kind:`event`,type:`(vnode: VNode<RendererNode, RendererElement, { [key: string]: any; }>): void`},{kind:`array`,type:`VNodeMountHook[]`}]},declarations:[]},{name:`onVue:beforeUpdate`,global:!0,description:``,tags:[],required:!1,type:`VNodeUpdateHook | VNodeUpdateHook[] | undefined`,schema:{kind:`enum`,type:`VNodeUpdateHook | VNodeUpdateHook[] | undefined`,schema:[`undefined`,{kind:`event`,type:`(vnode: VNode<RendererNode, RendererElement, { [key: string]: any; }>, oldVNode: VNode<RendererNode, RendererElement, { ...; }>): void`},{kind:`array`,type:`VNodeUpdateHook[]`}]},declarations:[]},{name:`onVue:updated`,global:!0,description:``,tags:[],required:!1,type:`VNodeUpdateHook | VNodeUpdateHook[] | undefined`,schema:{kind:`enum`,type:`VNodeUpdateHook | VNodeUpdateHook[] | undefined`,schema:[`undefined`,{kind:`event`,type:`(vnode: VNode<RendererNode, RendererElement, { [key: string]: any; }>, oldVNode: VNode<RendererNode, RendererElement, { ...; }>): void`},{kind:`array`,type:`VNodeUpdateHook[]`}]},declarations:[]},{name:`onVue:beforeUnmount`,global:!0,description:``,tags:[],required:!1,type:`VNodeMountHook | VNodeMountHook[] | undefined`,schema:{kind:`enum`,type:`VNodeMountHook | VNodeMountHook[] | undefined`,schema:[`undefined`,{kind:`event`,type:`(vnode: VNode<RendererNode, RendererElement, { [key: string]: any; }>): void`},{kind:`array`,type:`VNodeMountHook[]`}]},declarations:[]},{name:`onVue:unmounted`,global:!0,description:``,tags:[],required:!1,type:`VNodeMountHook | VNodeMountHook[] | undefined`,schema:{kind:`enum`,type:`VNodeMountHook | VNodeMountHook[] | undefined`,schema:[`undefined`,{kind:`event`,type:`(vnode: VNode<RendererNode, RendererElement, { [key: string]: any; }>): void`},{kind:`array`,type:`VNodeMountHook[]`}]},declarations:[]},{name:`class`,global:!0,description:``,tags:[],required:!1,type:`unknown`,schema:`unknown`,declarations:[]},{name:`style`,global:!0,description:``,tags:[],required:!1,type:`unknown`,schema:`unknown`,declarations:[]}],events:[],slots:[{name:`action`,type:`{}`,description:``,tags:[],schema:{kind:`object`,type:`{}`},declarations:[]}],exposed:[],sourceFiles:`/home/runner/work/csplab/csplab/src/web/frontend/src/components/base/CspEmptyState/CspEmptyState.vue`})})))()}var w,T,E,D;function O(){return(O=e((()=>{m(),C(),w={title:`Éléments/Génériques/CspEmptyState`,component:S,tags:[`autodocs`],parameters:{controls:{include:[`title`,`description`,`icon`]},docs:{description:{component:`État vide partagé : icône, titre, description et action optionnelles. À utiliser partout où une zone n'a pas encore de contenu.`}}}},T={name:`Par défaut`,args:{title:`Aucun élément`,description:`Les éléments créés apparaîtront ici.`}},E={name:`Avec action`,args:{title:`Aucun résultat`,icon:`ri:search-line`},render:e=>({components:{CspEmptyState:S,CspButton:h},setup(){return{args:e}},template:`
+      <CspEmptyState v-bind="args">
+        <template #action>
+          <CspButton label="Réinitialiser les filtres" variant="secondary" />
+        </template>
+      </CspEmptyState>
+    `})},D=[`Default`,`AvecAction`],T.parameters={...T.parameters,docs:{...T.parameters?.docs,source:{originalSource:`{
+  name: 'Par défaut',
+  args: {
+    title: 'Aucun élément',
+    description: 'Les éléments créés apparaîtront ici.'
+  }
+}`,...T.parameters?.docs?.source}}},E.parameters={...E.parameters,docs:{...E.parameters?.docs,source:{originalSource:`{
+  name: 'Avec action',
+  args: {
+    title: 'Aucun résultat',
+    icon: 'ri:search-line'
+  },
+  render: (args: CspEmptyStateProps) => ({
+    components: {
+      CspEmptyState,
+      CspButton
+    },
+    setup() {
+      return {
+        args
+      };
+    },
+    template: \`
+      <CspEmptyState v-bind="args">
+        <template #action>
+          <CspButton label="Réinitialiser les filtres" variant="secondary" />
+        </template>
+      </CspEmptyState>
+    \`
+  })
+}`,...E.parameters?.docs?.source}}}})))()}O();export{E as AvecAction,T as Default,D as __namedExportsOrder,w as default};
