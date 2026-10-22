@@ -3,12 +3,14 @@ from unittest.mock import Mock, patch
 import pytest
 
 from application.recruteur.services.create_tag import create_tag
+from application.recruteur.services.update_tag import update_tag
 from domain.commons.services.audit_log_writer import AuditLogWriter
 from domain.recruteur.value_objects.roles import AgentOrganismeRole
 from infrastructure.django_apps.tag.models import TagCategory, TagModel
 from infrastructure.factories.identite.organisme_django_factory import (
     create_organisme_with_agent,
 )
+from infrastructure.factories.tag.tag_django_factory import TagDjangoFactory
 
 
 @pytest.fixture(name="superviseur")
@@ -33,3 +35,24 @@ def test_rolls_back_when_audit_log_fails(superviseur):
         )
 
     assert not TagModel.objects.exists()
+
+
+@patch.object(
+    AuditLogWriter,
+    "log_action",
+    new=Mock(side_effect=RuntimeError("audit log write failed")),
+)
+def test_update_rolls_back_when_audit_log_fails(superviseur):
+    agent, organisme = superviseur
+    tag = TagDjangoFactory(organisme=organisme, name="Expert")
+
+    with pytest.raises(RuntimeError):
+        update_tag(
+            organisme_id=organisme.id,
+            tag_id=tag.id,
+            utilisateur=agent.utilisateur,
+            name="Bon profil",
+        )
+
+    tag.refresh_from_db()
+    assert tag.name == "Expert"

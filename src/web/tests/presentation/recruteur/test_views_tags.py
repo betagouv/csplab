@@ -28,6 +28,13 @@ def _tags_url(organisme_id) -> str:
     )
 
 
+def _tag_url(organisme_id, tag_id) -> str:
+    return reverse(
+        "recruteur:organisme_parametres_tag",
+        kwargs={"organisme_uuid": str(organisme_id), "tag_uuid": str(tag_id)},
+    )
+
+
 def _logs(tag_id):
     return PostgresAuditLogRepository().get_logs_for_ressource("Tag", tag_id)
 
@@ -284,3 +291,248 @@ class TestCreateTag:
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert not TagModel.objects.exists()
+
+
+class TestUpdateTag:
+    def test_anonymous_access_is_unauthorized(self, api_client):
+        response = api_client.patch(
+            _tag_url(uuid4(), uuid4()), data={"name": "Expert"}, format="json"
+        )
+
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+    def test_superviseur_updates_name_and_color(
+        self, authenticated_client, superviseur_organisme
+    ):
+        tag = TagDjangoFactory(
+            organisme=superviseur_organisme,
+            name="Expert",
+            category=TagCategory.NOTE,
+            color="bleu",
+        )
+
+        response = authenticated_client.patch(
+            _tag_url(superviseur_organisme.id, tag.id),
+            data={"name": "Profil expert", "color": "rose"},
+            format="json",
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json() == {
+            "uuid": str(tag.id),
+            "name": "Profil expert",
+            "category": "note",
+            "color": "rose",
+        }
+        tag.refresh_from_db()
+        assert (tag.name, tag.category, tag.color) == ("Profil expert", "note", "rose")
+        (log,) = _logs(tag.id)
+        assert log.event_name == "TagModifie"
+
+    def test_stores_normalized_name(self, authenticated_client, superviseur_organisme):
+        tag = TagDjangoFactory(organisme=superviseur_organisme, name="Expert")
+
+        response = authenticated_client.patch(
+            _tag_url(superviseur_organisme.id, tag.id),
+            data={"name": "  Très   bon\nprofil "},
+            format="json",
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        tag.refresh_from_db()
+        assert tag.name == "Très bon profil"
+
+    def test_changes_only_the_case_of_its_own_name(
+        self, authenticated_client, superviseur_organisme
+    ):
+        tag = TagDjangoFactory(organisme=superviseur_organisme, name="expert")
+
+        response = authenticated_client.patch(
+            _tag_url(superviseur_organisme.id, tag.id),
+            data={"name": "Expert"},
+            format="json",
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        tag.refresh_from_db()
+        assert tag.name == "Expert"
+
+    def test_only_sent_fields_change(self, authenticated_client, superviseur_organisme):
+        tag = TagDjangoFactory(
+            organisme=superviseur_organisme,
+            name="Expert",
+            category=TagCategory.CANDIDATURE,
+            color="bleu",
+        )
+
+        response = authenticated_client.patch(
+            _tag_url(superviseur_organisme.id, tag.id),
+            data={"color": "vert"},
+            format="json",
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        tag.refresh_from_db()
+        assert (tag.name, tag.category, tag.color) == (
+            "Expert",
+            "candidature",
+            "vert",
+        )
+
+    def test_name_taken_in_category_ignoring_case_is_a_conflict(
+        self, authenticated_client, superviseur_organisme
+    ):
+        TagDjangoFactory(
+            organisme=superviseur_organisme,
+            name="Expert",
+            category=TagCategory.CANDIDATURE,
+        )
+        tag = TagDjangoFactory(
+            organisme=superviseur_organisme,
+            name="Bon profil",
+            category=TagCategory.CANDIDATURE,
+        )
+
+        response = authenticated_client.patch(
+            _tag_url(superviseur_organisme.id, tag.id),
+            data={"name": "EXPERT"},
+            format="json",
+        )
+
+        assert response.status_code == status.HTTP_409_CONFLICT
+        tag.refresh_from_db()
+        assert tag.name == "Bon profil"
+        assert not AuditLogModel.objects.exists()
+
+    def test_category_is_not_updatable(
+        self, authenticated_client, superviseur_organisme
+    ):
+        tag = TagDjangoFactory(
+            organisme=superviseur_organisme,
+            name="Expert",
+            category=TagCategory.CANDIDATURE,
+        )
+
+        response = authenticated_client.patch(
+            _tag_url(superviseur_organisme.id, tag.id),
+            data={"name": "Bon profil", "category": "note"},
+            format="json",
+        )
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert "category" in response.json()
+        tag.refresh_from_db()
+        assert (tag.name, tag.category) == ("Expert", "candidature")
+        assert not AuditLogModel.objects.exists()
+
+    def test_agent_is_forbidden(self, authenticated_client, agent_organisme):
+        tag = TagDjangoFactory(organisme=agent_organisme, name="Expert")
+
+        response = authenticated_client.patch(
+            _tag_url(agent_organisme.id, tag.id),
+            data={"name": "Bon profil"},
+            format="json",
+        )
+
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        tag.refresh_from_db()
+        assert tag.name == "Expert"
+        assert not AuditLogModel.objects.exists()
+
+    def test_staff_updates_tag(self, staff_client):
+        _, organisme = create_organisme_with_agent()
+        tag = TagDjangoFactory(organisme=organisme, name="Expert")
+
+        response = staff_client.patch(
+            _tag_url(organisme.id, tag.id), data={"name": "Bon profil"}, format="json"
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        tag.refresh_from_db()
+        assert tag.name == "Bon profil"
+
+    def test_tag_of_another_organisme_is_not_found(
+        self, authenticated_client, superviseur_organisme
+    ):
+        other_tag = TagDjangoFactory(name="Expert")
+
+        response = authenticated_client.patch(
+            _tag_url(superviseur_organisme.id, other_tag.id),
+            data={"name": "Bon profil"},
+            format="json",
+        )
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+        other_tag.refresh_from_db()
+        assert other_tag.name == "Expert"
+        assert not AuditLogModel.objects.exists()
+
+    def test_unknown_tag_is_not_found(
+        self, authenticated_client, superviseur_organisme
+    ):
+        response = authenticated_client.patch(
+            _tag_url(superviseur_organisme.id, uuid4()),
+            data={"name": "Bon profil"},
+            format="json",
+        )
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    def test_unknown_organisme_is_not_found(self, authenticated_client):
+        response = authenticated_client.patch(
+            _tag_url(uuid4(), uuid4()), data={"name": "Bon profil"}, format="json"
+        )
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    def test_empty_payload_is_a_bad_request(
+        self, authenticated_client, superviseur_organisme
+    ):
+        tag = TagDjangoFactory(organisme=superviseur_organisme)
+
+        response = authenticated_client.patch(
+            _tag_url(superviseur_organisme.id, tag.id), data={}, format="json"
+        )
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert not AuditLogModel.objects.exists()
+
+    @pytest.mark.parametrize(
+        ("name", "error"),
+        [
+            ("", "Le libellé de l'étiquette est obligatoire"),
+            ("   ", "Le libellé de l'étiquette est obligatoire"),
+            ("<b>", "Les émojis et les caractères < > ne sont pas autorisés."),
+        ],
+        ids=["vide", "espaces", "chevrons"],
+    )
+    def test_invalid_name_is_a_bad_request(
+        self, authenticated_client, superviseur_organisme, name, error
+    ):
+        tag = TagDjangoFactory(organisme=superviseur_organisme, name="Expert")
+
+        response = authenticated_client.patch(
+            _tag_url(superviseur_organisme.id, tag.id),
+            data={"name": name},
+            format="json",
+        )
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert response.json() == {"error": error}
+        tag.refresh_from_db()
+        assert tag.name == "Expert"
+
+    def test_hexadecimal_color_is_a_bad_request(
+        self, authenticated_client, superviseur_organisme
+    ):
+        tag = TagDjangoFactory(organisme=superviseur_organisme, color="bleu")
+
+        response = authenticated_client.patch(
+            _tag_url(superviseur_organisme.id, tag.id),
+            data={"color": "#000091"},
+            format="json",
+        )
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        tag.refresh_from_db()
+        assert tag.color == "bleu"
