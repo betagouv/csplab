@@ -22,32 +22,26 @@ def update_tag(
     organisme_id: UUID,
     tag_id: UUID,
     utilisateur: UserModel,
-    name: str | None = None,
-    color: TagColor | None = None,
+    name: str,
+    color: TagColor,
 ) -> TagModel:
     OrganismePermissionService().can_execute(
         action=OrganismeAction.UPDATE_TAG,
         utilisateur=utilisateur,
         organisme_id=organisme_id,
     )
-    if name is not None:
-        name = normalize_tag_name(name)
+    name = normalize_tag_name(name)
 
     with transaction.atomic():
         try:
-            tag = TagModel.objects.by_id(organisme_id, tag_id).get()
+            tag = TagModel.objects.by_id(organisme_id, tag_id).select_for_update().get()
         except TagModel.DoesNotExist as exc:
             raise TagNotFound(tag_id) from exc
 
-        update_fields = ["updated_at"]
-        if name is not None:
-            tag.name = name
-            update_fields.append("name")
-        if color is not None:
-            tag.color = color
-            update_fields.append("color")
+        tag.name = name
+        tag.color = color
         try:
-            tag.save(update_fields=update_fields)
+            tag.save(update_fields=["updated_at", "name", "color"])
         except IntegrityError as exc:
             raise TagAlreadyExists(tag.name) from exc
         AuditLogWriter(repository=PostgresAuditLogRepository()).log_action(

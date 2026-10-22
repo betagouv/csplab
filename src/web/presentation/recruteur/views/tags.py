@@ -19,11 +19,7 @@ from domain.identite.errors.organisme_permission_errors import (
 )
 from domain.recruteur.errors.tag_errors import TagAlreadyExists, TagNotFound
 from presentation.api.authentication import SessionApiMixin
-from presentation.api.serializers import (
-    GenericErrorSerializer,
-    TokenErrorSerializer,
-    generic_response_format,
-)
+from presentation.api.serializers import GenericErrorSerializer, generic_response_format
 from presentation.recruteur.serializers import (
     CreateTagSerializer,
     TagListQuerySerializer,
@@ -111,23 +107,20 @@ class OrganismeTagsView(TagBaseView, ListAPIView):
 
 
 @extend_schema_view(
-    patch=extend_schema(
+    put=extend_schema(
         summary="Modifier une étiquette d'un organisme",
         tags=["recruteur"],
         request=UpdateTagSerializer,
         responses={
+            **generic_response_format,
             200: TagSerializer,
             400: GenericErrorSerializer,
-            401: TokenErrorSerializer,
-            403: GenericErrorSerializer,
-            404: GenericErrorSerializer,
             409: GenericErrorSerializer,
-            500: GenericErrorSerializer,
         },
     ),
 )
 class OrganismeTagDetailView(TagBaseView):
-    def patch(self, request: Request, organisme_uuid: UUID, tag_uuid: UUID) -> Response:
+    def put(self, request: Request, organisme_uuid: UUID, tag_uuid: UUID) -> Response:
         serializer = UpdateTagSerializer(data=request.data)
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -136,7 +129,7 @@ class OrganismeTagDetailView(TagBaseView):
             organisme_id=organisme_uuid,
             tag_id=tag_uuid,
             utilisateur=request.user,
-            name=serializer.validated_data.get("name"),
-            color=serializer.validated_data.get("color"),
+            name=serializer.validated_data["name"],
+            color=serializer.validated_data["color"],
         )
         return Response(TagSerializer(tag).data)

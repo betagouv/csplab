@@ -171,13 +171,13 @@ export interface paths {
             cookie?: never;
         };
         get?: never;
-        put?: never;
+        /** Modifier une étiquette d'un organisme */
+        put: operations["recruteur_organismes_parametres_tags_update"];
         post?: never;
         delete?: never;
         options?: never;
         head?: never;
-        /** Modifier une étiquette d'un organisme */
-        patch: operations["recruteur_organismes_parametres_tags_partial_update"];
+        patch?: never;
         trace?: never;
     };
     "/recruteur/organismes/{organisme_uuid}/recrutements-actifs": {
@@ -1172,10 +1172,6 @@ export interface components {
         PatchedUpdateNote: {
             message?: string;
         };
-        PatchedUpdateTag: {
-            name?: string;
-            color?: components["schemas"]["ColorEnum"];
-        };
         RecrutementAgent: {
             /** Format: uuid */
             uuid: string;
@@ -1346,6 +1342,10 @@ export interface components {
             nom: string;
             versant: components["schemas"]["VersantEnum"];
             gestion_ats: boolean;
+        };
+        UpdateTag: {
+            name: string;
+            color: components["schemas"]["ColorEnum"];
         };
         Utilisateur: {
             /** Format: email */
@@ -2827,7 +2827,7 @@ export interface operations {
             };
         };
     };
-    recruteur_organismes_parametres_tags_partial_update: {
+    recruteur_organismes_parametres_tags_update: {
         parameters: {
             query?: never;
             header?: never;
@@ -2837,11 +2837,11 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: {
+        requestBody: {
             content: {
-                "application/json": components["schemas"]["PatchedUpdateTag"];
-                "application/x-www-form-urlencoded": components["schemas"]["PatchedUpdateTag"];
-                "multipart/form-data": components["schemas"]["PatchedUpdateTag"];
+                "application/json": components["schemas"]["UpdateTag"];
+                "application/x-www-form-urlencoded": components["schemas"]["UpdateTag"];
+                "multipart/form-data": components["schemas"]["UpdateTag"];
             };
         };
         responses: {
