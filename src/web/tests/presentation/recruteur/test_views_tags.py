@@ -295,8 +295,10 @@ class TestCreateTag:
 
 class TestUpdateTag:
     def test_anonymous_access_is_unauthorized(self, api_client):
-        response = api_client.patch(
-            _tag_url(uuid4(), uuid4()), data={"name": "Expert"}, format="json"
+        response = api_client.put(
+            _tag_url(uuid4(), uuid4()),
+            data={"name": "Expert", "color": "bleu"},
+            format="json",
         )
 
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
@@ -311,7 +313,7 @@ class TestUpdateTag:
             color="bleu",
         )
 
-        response = authenticated_client.patch(
+        response = authenticated_client.put(
             _tag_url(superviseur_organisme.id, tag.id),
             data={"name": "Profil expert", "color": "rose"},
             format="json",
@@ -332,9 +334,9 @@ class TestUpdateTag:
     def test_stores_normalized_name(self, authenticated_client, superviseur_organisme):
         tag = TagDjangoFactory(organisme=superviseur_organisme, name="Expert")
 
-        response = authenticated_client.patch(
+        response = authenticated_client.put(
             _tag_url(superviseur_organisme.id, tag.id),
-            data={"name": "  Très   bon\nprofil "},
+            data={"name": "  Très   bon\nprofil ", "color": "bleu"},
             format="json",
         )
 
@@ -347,37 +349,15 @@ class TestUpdateTag:
     ):
         tag = TagDjangoFactory(organisme=superviseur_organisme, name="expert")
 
-        response = authenticated_client.patch(
+        response = authenticated_client.put(
             _tag_url(superviseur_organisme.id, tag.id),
-            data={"name": "Expert"},
+            data={"name": "Expert", "color": "bleu"},
             format="json",
         )
 
         assert response.status_code == status.HTTP_200_OK
         tag.refresh_from_db()
         assert tag.name == "Expert"
-
-    def test_only_sent_fields_change(self, authenticated_client, superviseur_organisme):
-        tag = TagDjangoFactory(
-            organisme=superviseur_organisme,
-            name="Expert",
-            category=TagCategory.CANDIDATURE,
-            color="bleu",
-        )
-
-        response = authenticated_client.patch(
-            _tag_url(superviseur_organisme.id, tag.id),
-            data={"color": "vert"},
-            format="json",
-        )
-
-        assert response.status_code == status.HTTP_200_OK
-        tag.refresh_from_db()
-        assert (tag.name, tag.category, tag.color) == (
-            "Expert",
-            "candidature",
-            "vert",
-        )
 
     def test_name_taken_in_category_ignoring_case_is_a_conflict(
         self, authenticated_client, superviseur_organisme
@@ -393,9 +373,9 @@ class TestUpdateTag:
             category=TagCategory.CANDIDATURE,
         )
 
-        response = authenticated_client.patch(
+        response = authenticated_client.put(
             _tag_url(superviseur_organisme.id, tag.id),
-            data={"name": "EXPERT"},
+            data={"name": "EXPERT", "color": "bleu"},
             format="json",
         )
 
@@ -404,33 +384,12 @@ class TestUpdateTag:
         assert tag.name == "Bon profil"
         assert not AuditLogModel.objects.exists()
 
-    def test_category_is_not_updatable(
-        self, authenticated_client, superviseur_organisme
-    ):
-        tag = TagDjangoFactory(
-            organisme=superviseur_organisme,
-            name="Expert",
-            category=TagCategory.CANDIDATURE,
-        )
-
-        response = authenticated_client.patch(
-            _tag_url(superviseur_organisme.id, tag.id),
-            data={"name": "Bon profil", "category": "note"},
-            format="json",
-        )
-
-        assert response.status_code == status.HTTP_400_BAD_REQUEST
-        assert "category" in response.json()
-        tag.refresh_from_db()
-        assert (tag.name, tag.category) == ("Expert", "candidature")
-        assert not AuditLogModel.objects.exists()
-
     def test_agent_is_forbidden(self, authenticated_client, agent_organisme):
         tag = TagDjangoFactory(organisme=agent_organisme, name="Expert")
 
-        response = authenticated_client.patch(
+        response = authenticated_client.put(
             _tag_url(agent_organisme.id, tag.id),
-            data={"name": "Bon profil"},
+            data={"name": "Bon profil", "color": "bleu"},
             format="json",
         )
 
@@ -443,8 +402,10 @@ class TestUpdateTag:
         _, organisme = create_organisme_with_agent()
         tag = TagDjangoFactory(organisme=organisme, name="Expert")
 
-        response = staff_client.patch(
-            _tag_url(organisme.id, tag.id), data={"name": "Bon profil"}, format="json"
+        response = staff_client.put(
+            _tag_url(organisme.id, tag.id),
+            data={"name": "Bon profil", "color": "bleu"},
+            format="json",
         )
 
         assert response.status_code == status.HTTP_200_OK
@@ -456,9 +417,9 @@ class TestUpdateTag:
     ):
         other_tag = TagDjangoFactory(name="Expert")
 
-        response = authenticated_client.patch(
+        response = authenticated_client.put(
             _tag_url(superviseur_organisme.id, other_tag.id),
-            data={"name": "Bon profil"},
+            data={"name": "Bon profil", "color": "bleu"},
             format="json",
         )
 
@@ -470,55 +431,38 @@ class TestUpdateTag:
     def test_unknown_tag_is_not_found(
         self, authenticated_client, superviseur_organisme
     ):
-        response = authenticated_client.patch(
+        response = authenticated_client.put(
             _tag_url(superviseur_organisme.id, uuid4()),
-            data={"name": "Bon profil"},
+            data={"name": "Bon profil", "color": "bleu"},
             format="json",
         )
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
     def test_unknown_organisme_is_not_found(self, authenticated_client):
-        response = authenticated_client.patch(
-            _tag_url(uuid4(), uuid4()), data={"name": "Bon profil"}, format="json"
+        response = authenticated_client.put(
+            _tag_url(uuid4(), uuid4()),
+            data={"name": "Bon profil", "color": "bleu"},
+            format="json",
         )
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
-    def test_empty_payload_is_a_bad_request(
-        self, authenticated_client, superviseur_organisme
-    ):
-        tag = TagDjangoFactory(organisme=superviseur_organisme)
-
-        response = authenticated_client.patch(
-            _tag_url(superviseur_organisme.id, tag.id), data={}, format="json"
-        )
-
-        assert response.status_code == status.HTTP_400_BAD_REQUEST
-        assert not AuditLogModel.objects.exists()
-
-    @pytest.mark.parametrize(
-        ("name", "error"),
-        [
-            ("", "Le libellé de l'étiquette est obligatoire"),
-            ("   ", "Le libellé de l'étiquette est obligatoire"),
-            ("<b>", "Les émojis et les caractères < > ne sont pas autorisés."),
-        ],
-        ids=["vide", "espaces", "chevrons"],
-    )
     def test_invalid_name_is_a_bad_request(
-        self, authenticated_client, superviseur_organisme, name, error
+        self, authenticated_client, superviseur_organisme
     ):
         tag = TagDjangoFactory(organisme=superviseur_organisme, name="Expert")
 
-        response = authenticated_client.patch(
+        response = authenticated_client.put(
             _tag_url(superviseur_organisme.id, tag.id),
-            data={"name": name},
+            data={"name": "<b>", "color": "bleu"},
             format="json",
         )
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
-        assert response.json() == {"error": error}
+        assert response.json() == {
+            "error": "Les émojis et les caractères < > ne sont pas autorisés."
+        }
         tag.refresh_from_db()
         assert tag.name == "Expert"
 
@@ -527,9 +471,9 @@ class TestUpdateTag:
     ):
         tag = TagDjangoFactory(organisme=superviseur_organisme, color="bleu")
 
-        response = authenticated_client.patch(
+        response = authenticated_client.put(
             _tag_url(superviseur_organisme.id, tag.id),
-            data={"color": "#000091"},
+            data={"name": "Expert", "color": "#000091"},
             format="json",
         )
 

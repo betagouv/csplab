@@ -837,18 +837,5 @@ class CreateTagSerializer(serializers.Serializer):
 
 
 class UpdateTagSerializer(serializers.Serializer):
-    name = serializers.CharField(
-        trim_whitespace=False, allow_blank=True, required=False
-    )
-    color = serializers.ChoiceField(choices=TagColor.choices, required=False)
-
-    def validate(self, attrs):
-        if "category" in self.initial_data:
-            raise serializers.ValidationError(
-                {"category": "La catégorie d'une étiquette n'est pas modifiable."}
-            )
-        if not attrs:
-            raise serializers.ValidationError(
-                "Au moins un champ parmi name et color est attendu."
-            )
-        return attrs
+    name = serializers.CharField()
+    color = serializers.ChoiceField(choices=TagColor.choices)

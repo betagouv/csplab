@@ -6,7 +6,7 @@ from application.recruteur.services.create_tag import create_tag
 from application.recruteur.services.update_tag import update_tag
 from domain.commons.services.audit_log_writer import AuditLogWriter
 from domain.recruteur.value_objects.roles import AgentOrganismeRole
-from infrastructure.django_apps.tag.models import TagCategory, TagModel
+from infrastructure.django_apps.tag.models import TagCategory, TagColor, TagModel
 from infrastructure.factories.identite.organisme_django_factory import (
     create_organisme_with_agent,
 )
@@ -52,6 +52,7 @@ def test_update_rolls_back_when_audit_log_fails(superviseur):
             tag_id=tag.id,
             utilisateur=agent.utilisateur,
             name="Bon profil",
+            color=TagColor.BLEU,
         )
 
     tag.refresh_from_db()

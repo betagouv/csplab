@@ -1748,8 +1748,8 @@ paths:
             X-RateLimit-Reset:
               $ref: '#/components/headers/X-RateLimit-Reset'
   /recruteur/organismes/{organisme_uuid}/parametres/tags/{tag_uuid}:
-    patch:
-      operationId: recruteur_organismes_parametres_tags_partial_update
+    put:
+      operationId: recruteur_organismes_parametres_tags_update
       summary: Modifier une étiquette d'un organisme
       parameters:
       - in: path
@@ -1770,42 +1770,17 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PatchedUpdateTag'
+              $ref: '#/components/schemas/UpdateTag'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/PatchedUpdateTag'
+              $ref: '#/components/schemas/UpdateTag'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/PatchedUpdateTag'
+              $ref: '#/components/schemas/UpdateTag'
+        required: true
       security:
       - cookieAuth: []
       responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Tag'
-          description: ''
-          headers:
-            X-RateLimit-Limit:
-              $ref: '#/components/headers/X-RateLimit-Limit'
-            X-RateLimit-Remaining:
-              $ref: '#/components/headers/X-RateLimit-Remaining'
-            X-RateLimit-Reset:
-              $ref: '#/components/headers/X-RateLimit-Reset'
-        '400':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/GenericError'
-          description: ''
-          headers:
-            X-RateLimit-Limit:
-              $ref: '#/components/headers/X-RateLimit-Limit'
-            X-RateLimit-Remaining:
-              $ref: '#/components/headers/X-RateLimit-Remaining'
-            X-RateLimit-Reset:
-              $ref: '#/components/headers/X-RateLimit-Reset'
         '401':
           content:
             application/json:
@@ -1845,7 +1820,7 @@ paths:
               $ref: '#/components/headers/X-RateLimit-Remaining'
             X-RateLimit-Reset:
               $ref: '#/components/headers/X-RateLimit-Reset'
-        '409':
+        '500':
           content:
             application/json:
               schema:
@@ -1858,7 +1833,33 @@ paths:
               $ref: '#/components/headers/X-RateLimit-Remaining'
             X-RateLimit-Reset:
               $ref: '#/components/headers/X-RateLimit-Reset'
-        '500':
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Tag'
+          description: ''
+          headers:
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+          description: ''
+          headers:
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
+        '409':
           content:
             application/json:
               schema:
@@ -6468,13 +6469,6 @@ components:
       properties:
         message:
           type: string
-    PatchedUpdateTag:
-      type: object
-      properties:
-        name:
-          type: string
-        color:
-          $ref: '#/components/schemas/ColorEnum'
     RecrutementAgent:
       type: object
       properties:
@@ -6870,6 +6864,16 @@ components:
       - gestion_ats
       - nom
       - versant
+    UpdateTag:
+      type: object
+      properties:
+        name:
+          type: string
+        color:
+          $ref: '#/components/schemas/ColorEnum'
+      required:
+      - color
+      - name
     Utilisateur:
       type: object
       properties:
