@@ -7,6 +7,10 @@ from referentiel.value_objects.offer_nature import OfferNature
 from referentiel.value_objects.verse import Verse
 from rest_framework import serializers
 
+from application.identite.context_services.organisme_permission_service import (
+    OrganismePermissionService,
+)
+from domain.identite.value_objects.organisme_action import OrganismeAction
 from domain.recruteur.value_objects.categorie_etapes_recrutement import (
     CategorieEtapeRecrutement,
 )
@@ -170,6 +174,22 @@ class UnreadConversationsSerializer(serializers.Serializer):
         return 0
 
 
+class RecrutementAuthorizedActionsField(serializers.ListField):
+    child = serializers.ChoiceField(
+        choices=[(a.value, a.value) for a in OrganismeAction]
+    )
+
+    def get_attribute(self, instance: RecrutementModel) -> list[str]:
+        recrutement_role = instance.recrutement_role  # type: ignore[attr-defined]
+        actions = OrganismePermissionService().authorized_actions_recrutement(
+            AgentOrganismeRole(instance.organisme_role),  # type: ignore[attr-defined]
+            recrutement_role=(
+                AgentRecrutementRole(recrutement_role) if recrutement_role else None
+            ),
+        )
+        return [action.value for action in actions]
+
+
 class RecrutementsSerializer(
     UnreadConversationsSerializer, serializers.ModelSerializer
 ):
@@ -182,6 +202,7 @@ class RecrutementsSerializer(
         allow_null=True,
     )
     responsables = ResponsableSerializer(many=True)
+    authorized_actions = RecrutementAuthorizedActionsField()
 
     def to_representation(self, instance: RecrutementModel) -> dict:
         data = super().to_representation(instance)
@@ -204,6 +225,7 @@ class RecrutementsActifsSerializer(RecrutementsSerializer):
             "reference_csp",
             "nature_offre",
             "responsables",
+            "authorized_actions",
             "date_publication",
             "candidatures",
             "derniere_activite",
@@ -235,6 +257,7 @@ class RecrutementsArchivesSerializer(RecrutementsSerializer):
             "reference_csp",
             "nature_offre",
             "responsables",
+            "authorized_actions",
             "date_archivage",
             "finalise",
             "recrute",

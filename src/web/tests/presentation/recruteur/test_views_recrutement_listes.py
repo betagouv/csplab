@@ -11,6 +11,7 @@ from rest_framework import status
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.test import APIClient
 
+from domain.identite.value_objects.organisme_action import OrganismeAction
 from domain.recruteur.value_objects.categorie_etapes_recrutement import (
     CategorieEtapeRecrutement,
 )
@@ -216,6 +217,55 @@ class TestRecrutementsListViews:
         data = response.json()
         assert data["count"] == TOTAL
         assert len(data["results"]) == PAGE_SIZE
+
+    def test_superviseur_gets_every_recrutement_action(
+        self, authenticated_client, organisme, name, archived
+    ):
+        RecrutementDjangoFactory(organisme=organisme, offre_archivee=archived)
+
+        response = authenticated_client.get(_url(name, organisme.id))
+
+        assert response.status_code == status.HTTP_200_OK
+        actions = response.json()["results"][0]["authorized_actions"]
+        assert OrganismeAction.REVOKE_RECRUTEMENT_AGENT.value in actions
+        assert OrganismeAction.REPLY_CONVERSATION.value in actions
+        assert OrganismeAction.LIST_RECRUTEMENTS.value not in actions
+        assert actions == sorted(
+            actions, key=[action.value for action in OrganismeAction].index
+        )
+
+    def test_agent_actions_depend_on_the_role_on_each_recrutement(
+        self, db, name, archived
+    ):
+        organisme = OrganismeDjangoFactory()
+        agent = OrganismeAgentDjangoFactory(organisme=organisme).agent
+        as_responsable = RecrutementDjangoFactory(
+            organisme=organisme,
+            offre_archivee=archived,
+            agent_link__agent=agent,
+            agent_link__role=AgentRecrutementRole.RESPONSABLE.value,
+        )
+        as_contributeur = RecrutementDjangoFactory(
+            organisme=organisme,
+            offre_archivee=archived,
+            agent_link__agent=agent,
+            agent_link__role=AgentRecrutementRole.CONTRIBUTEUR.value,
+        )
+
+        response = _client_for(agent.utilisateur).get(_url(name, organisme.id))
+
+        assert response.status_code == status.HTTP_200_OK
+        actions = {
+            result["uuid"]: result["authorized_actions"]
+            for result in response.json()["results"]
+        }
+        responsable_actions = actions[str(as_responsable.offre_id)]
+        contributeur_actions = actions[str(as_contributeur.offre_id)]
+        assert OrganismeAction.UPDATE_RECRUTEMENT_ETAPES.value in responsable_actions
+        assert (
+            OrganismeAction.UPDATE_RECRUTEMENT_ETAPES.value not in contributeur_actions
+        )
+        assert OrganismeAction.GET_RECRUTEMENT.value in contributeur_actions
 
 
 class TestRecrutementsActifsView:
