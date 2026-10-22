@@ -11,7 +11,7 @@ Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/).
 ### ⚠️ Changements non rétrocompatibles
 
 `GET /api/v1/metiers` : le champ `offer_family_code` de chaque métier renvoyé devient
-`code_famille_offre`. Sa valeur ne change pas : c'est toujours le code à renseigner
+`code_metier`. Sa valeur ne change pas : c'est toujours le code à renseigner
 dans `profession.metier` de `POST /api/v1/offres/creer_modifier`. Les autres champs
 d'un métier ne changent pas.
 
@@ -23,7 +23,7 @@ n'importe quel lien web était accepté.
 
 ### Compatibilité
 
-Lisez désormais le code métier dans `code_famille_offre` : `offer_family_code` n'est
+Lisez désormais le code métier dans `code_metier` : `offer_family_code` n'est
 plus renvoyé.
 
 `conditions.note_ouverture_poste_url` doit contenir le lien vers l'avis de vacance
