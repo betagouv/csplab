@@ -91,10 +91,7 @@ class TestListOrganismes:
             "nom": organisme.nom,
             "versant": organisme.versant,
             "siret": organisme.siret,
-            "superviseurs": (
-                f"{superviseur.agent.utilisateur.last_name} "
-                f"{superviseur.agent.utilisateur.first_name}"
-            ),
+            "superviseurs": superviseur.agent.utilisateur.get_full_name(),
             "gestion_ats": True,
             "date_creation": datetime_to_drf_representation(organisme.created_at),
             "date_derniere_activite": datetime_to_drf_representation(last_activity),
