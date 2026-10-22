@@ -1,0 +1,1 @@
+import{n as e}from"./rolldown-runtime-DkW27tQK.js";function t(e){let{etiquettes:t=[]}=e;return t.map(({libelle:e,couleur:t})=>({label:e,color:t}))}function n(){return(n=e((()=>{})))()}export{n,t};

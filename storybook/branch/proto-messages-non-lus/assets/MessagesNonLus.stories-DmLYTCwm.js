@@ -1,0 +1,6 @@
+import{n as e}from"./rolldown-runtime-DkW27tQK.js";import{i as t,n,s as r}from"./demo-BEeg1FQX.js";import{n as i,t as a}from"./MessagesNonLusComparaison-_acsCUJ9.js";var o,s,c,l;function u(){return(u=e((()=>{r(),i(),o={title:`Prototypes/Messages non lus`,component:a,parameters:{layout:`fullscreen`,appRoute:`/organismes/${n.uuid}/recrutements/${t}`,docs:{description:{component:"Les mêmes cartes du kanban avec chaque façon de signaler une conversation non lue. Le réglage « Non lus » de la barre d’outils applique une variante aux écrans de `Prototypes/Écrans`."}}}},s={},c={name:`Comparaison, signal rouge`,globals:{nonLusCouleur:`rouge`}},l=[`Comparaison`,`ComparaisonRouge`],s.parameters={...s.parameters,docs:{...s.parameters?.docs,source:{originalSource:`{}`,...s.parameters?.docs?.source}}},c.parameters={...c.parameters,docs:{...c.parameters?.docs,source:{originalSource:`{
+  name: 'Comparaison, signal rouge',
+  globals: {
+    nonLusCouleur: 'rouge'
+  }
+}`,...c.parameters?.docs?.source}}}})))()}u();export{s as Comparaison,c as ComparaisonRouge,l as __namedExportsOrder,o as default};

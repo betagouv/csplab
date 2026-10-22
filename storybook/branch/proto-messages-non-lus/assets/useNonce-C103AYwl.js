@@ -1,0 +1,1 @@
+import{n as e}from"./rolldown-runtime-DkW27tQK.js";import{g as t,t as n,yt as r}from"./vue.esm-bundler-BdiU-5Kf.js";import{i,r as a}from"./useId-DaS67-Qj.js";function o(e){let n=i({nonce:r()});return t(()=>e?.value||n.nonce?.value)}function s(){return(s=e((()=>{a(),n()})))()}export{o as n,s as t};
