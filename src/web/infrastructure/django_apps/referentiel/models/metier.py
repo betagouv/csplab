@@ -24,3 +24,9 @@ class MetierModel(BaseDatedModel):
         indexes = [
             models.Index(fields=["external_id"]),
         ]
+        constraints = [
+            models.CheckConstraint(
+                condition=~models.Q(offer_family_code=""),
+                name="metiers_offer_family_code_not_empty",
+            ),
+        ]

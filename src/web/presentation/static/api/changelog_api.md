@@ -30,6 +30,14 @@ plus renvoyé.
 publié au Journal officiel. Ne le renseignez pas si l'offre n'a pas d'avis de vacance :
 la page de candidature se transmet dans `url_candidature`.
 
+### Corrigé
+
+- `GET /api/v1/metiers` : `code_emploi_csp` est désormais toujours renseigné. Les
+  métiers qui n'avaient pas de code ne sont plus renvoyés : ils ne pouvaient pas être
+  utilisés dans `profession.metier` de `POST /api/v1/offres/creer_modifier`. L'enquête
+  sur les 8 métiers concernés est suivie dans
+  [l'issue #2035](https://github.com/betagouv/csplab/issues/2035).
+
 ## 2026-10-21
 
 ### Modifié

@@ -4912,10 +4912,9 @@ components:
           nullable: true
         code_emploi_csp:
           type: string
-          nullable: true
           description: Code CSP du RMFP, à renseigner dans `profession.metier` de
             l'API d'ingestion d'offres. Plusieurs métiers peuvent partager le même
-            code. Est vide si le métier ne peut pas être utilisé dans une offre.
+            code. Toujours renseigné.
       required:
       - activites
       - code_emploi_csp
@@ -6092,6 +6091,14 @@ tags:
     `conditions.note_ouverture_poste_url` doit contenir le lien vers l'avis de vacance
     publié au Journal officiel. Ne le renseignez pas si l'offre n'a pas d'avis de vacance :
     la page de candidature se transmet dans `url_candidature`.
+
+    ### Corrigé
+
+    - `GET /api/v1/metiers` : `code_emploi_csp` est désormais toujours renseigné. Les
+      métiers qui n'avaient pas de code ne sont plus renvoyés : ils ne pouvaient pas être
+      utilisés dans `profession.metier` de `POST /api/v1/offres/creer_modifier`. L'enquête
+      sur les 8 métiers concernés est suivie dans
+      [l'issue #2035](https://github.com/betagouv/csplab/issues/2035).
 
     ## 2026-10-21
 

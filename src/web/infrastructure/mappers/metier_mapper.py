@@ -38,7 +38,7 @@ class MetierMapper(
             libelle_long=entity.libelle,
             definition_synthetique=entity.description,
             domaine_fonctionnel_code=entity.domaine_fonctionnel_code,
-            offer_family_code=entity.offer_family_code or "",
+            offer_family_code=entity.offer_family_code,
             versants=versants,
             activites=entity.activites,
             conditions_particulieres=entity.conditions_particulieres,

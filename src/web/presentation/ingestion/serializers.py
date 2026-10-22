@@ -671,10 +671,9 @@ class ListMetiersResponseSerializer(serializers.Serializer):
     )
     code_emploi_csp = serializers.CharField(
         source="offer_family_code",
-        allow_null=True,
         help_text="Code CSP du RMFP, à renseigner dans `profession.metier` de "
         "l'API d'ingestion d'offres. Plusieurs métiers peuvent partager le même "
-        "code. Est vide si le métier ne peut pas être utilisé dans une offre.",
+        "code. Toujours renseigné.",
     )
 
 

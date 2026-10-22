@@ -459,7 +459,7 @@ Chaque métier renvoyé contient :
 | `versants` | Versants concernés (FPE, FPT, FPH) |
 | `activites` | Liste des activités (peut être vide) |
 | `conditions_particulieres` | Conditions particulières (peut être vide) |
-| `code_emploi_csp` | Code CSP du RMFP, à renseigner dans `profession.metier` lors de l'envoi d'une offre. Plusieurs métiers peuvent partager le même code. Un métier dont ce code est vide ne peut pas être utilisé dans une offre. |
+| `code_emploi_csp` | Code CSP du RMFP, à renseigner dans `profession.metier` lors de l'envoi d'une offre. Plusieurs métiers peuvent partager le même code. Toujours renseigné. |
 
 
 
