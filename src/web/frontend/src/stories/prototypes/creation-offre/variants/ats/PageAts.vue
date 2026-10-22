@@ -6,7 +6,7 @@ import { useNav } from './nav'
 
 // Cadre commun d'une page : navigation, fil d'Ariane, titre et actions, contenu, notification.
 defineProps<{
-  actif: 'accueil' | 'fiches' | 'offres'
+  actif: 'accueil' | 'fiches' | 'offres' | 'parametres'
   titre: string
   sousTitre?: string
   fil?: { label: string, action?: () => void }[]

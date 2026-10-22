@@ -39,6 +39,21 @@ export interface Fiche {
   historique: Evenement[]
 }
 
+/** Formulaire de DAR, prérempli à partir de la fiche de poste. Figé à la soumission. */
+export interface FormulaireDar {
+  entite: string
+  type: string
+  employeur: string
+  descriptifEmployeur: string
+  descriptifService: string
+  intitule: string
+  categorie: string
+  nbPostes: string
+  description: string
+  motif: string
+  piecesJointes: string[]
+}
+
 export interface Offre {
   id: string
   ficheId: string
@@ -46,14 +61,16 @@ export interface Offre {
   origineContenu: OrigineContenu
   sourceOffreId?: string
   nbPostes: string
-  /** DAR : `non_definie` tant que le recruteur n'a pas indiqué si elle est nécessaire. */
-  dar: 'non_definie' | 'requise' | 'non_requise'
+  /** Fixé par les paramètres de l'organisme, jamais choisi à la création de l'offre. */
+  dar: 'requise' | 'non_requise'
+  darStatut?: 'brouillon' | 'soumise' | 'validee' | 'refusee'
   darRef?: string
   darSoumiseLe?: string
   darValideeLe?: string
-  /** Contenu de la DAR figé à la soumission (hypothèse : validée telle que soumise). */
-  darContenu?: { intitule: string, service: string, nbPostes: string, missions: string }
+  darForm?: FormulaireDar
   remarqueDar?: string
+  /** Publication par support : état et dates (simulées). */
+  publications: Record<string, { etat: 'publiee' | 'arretee', debut: string, fin: string }>
   // Contenu éditorial de l'annonce
   titre: string
   presentation: string
@@ -98,11 +115,28 @@ export const LIBELLES_CONTENU: Record<OrigineContenu, string> = {
 }
 
 export const CANAUX_DIFFUSION = [
-  { id: 'csp', nom: 'Choisir le Service Public', detail: 'Transmission automatique (simulée)' },
-  { id: 'site', nom: 'Site internet de l\'organisme', detail: 'Mise en ligne par l\'équipe web' },
-  { id: 'intranet', nom: 'Intranet', detail: 'Visible des agents' },
-  { id: 'linkedin', nom: 'LinkedIn', detail: 'Publication par la communication' },
+  { id: 'csp', groupe: 'Sites web', nom: 'Choisir le Service Public', detail: 'Support de publication maître', maitre: true },
+  { id: 'intranet', groupe: 'Sites web', nom: 'Intranet ministériel', detail: 'Visible des agents', maitre: false },
+  { id: 'jobboard', groupe: 'Jobboards', nom: 'Jobboard emploi public (fictif)', detail: 'Diffusion ciblée', maitre: false },
+  { id: 'multi', groupe: 'Multi-diffuseurs', nom: 'Multi-diffuseur (fictif)', detail: 'Relais vers plusieurs sites d\'emploi', maitre: false },
 ]
+
+/** Paramètres de l'organisme (simulés). La nécessité d'une DAR y est définie une fois pour toutes. */
+export interface Organisme {
+  nom: string
+  darObligatoire: boolean
+  entite: string
+  typeDar: string
+  valideur: string
+}
+
+export const ENTITES = [
+  'Premier ministre › Secrétariat général pour l\'investissement (SGPI)',
+  'Premier ministre › Direction des services administratifs et financiers (DSAF)',
+  'Premier ministre › Direction interministérielle du numérique (DINUM)',
+  'Transition écologique › DREAL Occitanie',
+]
+export const TYPES_DAR = ['Formulaire DAR', 'Formulaire de demande d\'autorisation']
 
 // --- Données fictives ---
 
@@ -237,6 +271,7 @@ const VIDE = {
   contact: '',
   canaux: ['csp'],
   notifications: 'chaque' as const,
+  publications: {} as Offre['publications'],
 }
 
 function offresInitiales(f: Fiche[]): Offre[] {
@@ -251,7 +286,7 @@ function offresInitiales(f: Fiche[]): Offre[] {
       etat: 'redaction',
       origineContenu: 'fiche',
       nbPostes: '3',
-      dar: 'non_definie',
+      dar: 'requise',
       creeLe: 'Hier',
       modifieLe: 'Hier, 16:12',
       historique: [{ date: 'Hier, 15:58', texte: 'Offre créée depuis la fiche FP-SG-2026-007 (3 postes)' }, { date: 'Hier, 16:12', texte: 'Brouillon enregistré' }],
@@ -268,8 +303,9 @@ function offresInitiales(f: Fiche[]): Offre[] {
       nbPostes: '1',
       dar: 'requise',
       darRef: 'DAR-2026-0330',
+      darStatut: 'soumise',
       darSoumiseLe: '17 octobre 2026',
-      darContenu: { intitule: 'Chargé·e de recrutement', service: 'Secrétariat général — Bureau des ressources humaines', nbPostes: '1', missions: fiche('FP-SIRH-48213').missions },
+      darForm: formulaireDarDepuis(fiche('FP-SIRH-48213'), '1'),
       remuneration: 'Selon expérience et grille indiciaire',
       creeLe: '15 octobre 2026',
       modifieLe: '17 octobre 2026',
@@ -287,17 +323,23 @@ function offresInitiales(f: Fiche[]): Offre[] {
       id: 'OFF-2026-0145',
       ficheId: 'FP-DOC-2026-002',
       etat: 'a_publier',
-      origineContenu: 'fichier',
+      origineContenu: 'fiche',
       nbPostes: '1',
-      dar: 'non_requise',
+      dar: 'requise',
+      darStatut: 'validee',
+      darRef: 'DAR-2026-0311',
+      darSoumiseLe: '9 octobre 2026',
+      darValideeLe: '15 octobre 2026',
+      darForm: formulaireDarDepuis(fiche('FP-DOC-2026-002'), '1'),
       remuneration: 'Selon expérience, de 2 600 à 3 400 € brut mensuel',
       dateLimite: '2026-11-20',
       contact: 'Pôle numérique — recrutement.num@exemple.gouv.fr',
       creeLe: '14 octobre 2026',
       modifieLe: '16 octobre 2026',
       historique: [
-        { date: '14 octobre 2026', texte: 'Offre créée depuis un fichier (fiche FP-DOC-2026-002 constituée)' },
-        { date: '16 octobre 2026', texte: 'Pas de DAR nécessaire — état : À publier' },
+        { date: '8 octobre 2026', texte: 'Offre créée depuis la fiche FP-DOC-2026-002' },
+        { date: '9 octobre 2026', texte: 'DAR DAR-2026-0311 soumise — état : En cours de validation (DAR)' },
+        { date: '15 octobre 2026', texte: 'DAR validée par Hélène Robert — état : À publier' },
       ],
     },
     {
@@ -314,6 +356,12 @@ function offresInitiales(f: Fiche[]): Offre[] {
       darRef: 'DAR-2026-0274',
       darSoumiseLe: '22 septembre 2026',
       darValideeLe: '29 septembre 2026',
+      darStatut: 'validee',
+      darForm: formulaireDarDepuis(fiche('FP-SG-2025-031'), '1'),
+      publications: {
+        csp: { etat: 'publiee', debut: '12 octobre 2026', fin: '2026-11-15' },
+        intranet: { etat: 'publiee', debut: '12 octobre 2026', fin: '2026-11-15' },
+      },
       remuneration: 'Grille indiciaire de catégorie C',
       dateLimite: '2026-11-15',
       contact: 'Nadia Benali, responsable recrutement',
@@ -337,7 +385,10 @@ function offresInitiales(f: Fiche[]): Offre[] {
       etat: 'archivee',
       origineContenu: 'manuel',
       nbPostes: '2',
-      dar: 'non_requise',
+      dar: 'requise',
+      darStatut: 'validee',
+      darRef: 'DAR-2025-0102',
+      publications: { csp: { etat: 'arretee', debut: '20 mai 2025', fin: '2025-06-30' } },
       dateLimite: '2025-06-30',
       creeLe: '2 mai 2025',
       modifieLe: '15 juillet 2025',
@@ -367,6 +418,22 @@ export function contenuDepuisFiche(f: Fiche): Pick<Offre, 'titre' | 'presentatio
   }
 }
 
+export function formulaireDarDepuis(f: Fiche, nbPostes: string): FormulaireDar {
+  return {
+    entite: 'Transition écologique › DREAL Occitanie',
+    type: 'Formulaire DAR',
+    employeur: 'DREAL Occitanie',
+    descriptifEmployeur: 'La DREAL Occitanie met en œuvre les politiques de l\'État en matière de transition écologique, d\'énergie et de logement.',
+    descriptifService: f.service,
+    intitule: f.intitule,
+    categorie: f.categories.length ? `Catégorie ${f.categories.join(' ou ')}` : '',
+    nbPostes,
+    description: [f.missions, ...f.activites.map(a => `- ${a}`)].filter(Boolean).join('\n'),
+    motif: '',
+    piecesJointes: [],
+  }
+}
+
 export function modalitesDepuisFiche(f: Fiche): string {
   if (!f.statuts.length) {
     return ''
@@ -377,9 +444,9 @@ export function modalitesDepuisFiche(f: Fiche): string {
 
 // --- Stockage de session ---
 
-const CLE = 'csplab-proto-ats-v7'
+const CLE = 'csplab-proto-ats-v8'
 
-function lire(): { fiches: Fiche[], offres: Offre[] } | null {
+function lire(): { fiches: Fiche[], offres: Offre[], organisme: Organisme } | null {
   try {
     const brut = sessionStorage.getItem(CLE)
     return brut ? JSON.parse(brut) : null
@@ -389,9 +456,13 @@ function lire(): { fiches: Fiche[], offres: Offre[] } | null {
   }
 }
 
+function organismeInitial(): Organisme {
+  return { nom: 'DREAL Occitanie', darObligatoire: true, entite: ENTITES[3]!, typeDar: TYPES_DAR[0]!, valideur: 'Hélène Robert, secrétaire générale' }
+}
+
 function initial() {
   const fiches = fichesInitiales()
-  return { fiches, offres: offresInitiales(fiches) }
+  return { fiches, offres: offresInitiales(fiches), organisme: organismeInitial() }
 }
 
 export const db = reactive(lire() ?? initial())
@@ -409,6 +480,20 @@ export function reinitialiser() {
   const neuf = initial()
   db.fiches.splice(0, db.fiches.length, ...neuf.fiches)
   db.offres.splice(0, db.offres.length, ...neuf.offres)
+  Object.assign(db.organisme, neuf.organisme)
+  sauvegarder()
+}
+
+/**
+ * Applique le paramètre DAR de l'organisme aux offres en rédaction dont la DAR n'est pas engagée.
+ * Hypothèse : les offres déjà soumises ou au-delà gardent leur parcours.
+ */
+export function appliquerParametreDar() {
+  for (const o of db.offres) {
+    if (o.etat === 'redaction' && (!o.darStatut || o.darStatut === 'brouillon')) {
+      o.dar = db.organisme.darObligatoire ? 'requise' : 'non_requise'
+    }
+  }
   sauvegarder()
 }
 
@@ -467,7 +552,7 @@ export function nouvelleFiche(partiel: Partial<Fiche>, origine: OrigineFiche, ev
   return f
 }
 
-export function nouvelleOffre(f: Fiche, origineContenu: OrigineContenu, nbPostes: string, depuis?: Offre): Offre {
+export function nouvelleOffre(f: Fiche, origineContenu: OrigineContenu, depuis?: Offre): Offre {
   const contenu = depuis
     ? {
         titre: depuis.titre,
@@ -483,6 +568,7 @@ export function nouvelleOffre(f: Fiche, origineContenu: OrigineContenu, nbPostes
         remuneration: depuis.remuneration,
         contact: depuis.contact,
         canaux: [...depuis.canaux],
+        nbPostes: depuis.nbPostes,
       }
     : contenuDepuisFiche(f)
   const texte = {
@@ -499,12 +585,13 @@ export function nouvelleOffre(f: Fiche, origineContenu: OrigineContenu, nbPostes
     etat: 'redaction',
     origineContenu,
     sourceOffreId: depuis?.id,
-    nbPostes,
-    dar: 'non_definie',
+    nbPostes: depuis?.nbPostes ?? '1',
+    dar: db.organisme.darObligatoire ? 'requise' : 'non_requise',
+    publications: {},
     dateLimite: '',
     creeLe: maintenant(),
     modifieLe: maintenant(),
-    historique: [{ date: maintenant(), texte: `${texte} — ${nbPostes} poste${Number(nbPostes) > 1 ? 's' : ''}` }],
+    historique: [{ date: maintenant(), texte }],
   }
   db.offres.unshift(o)
   f.historique.push({ date: maintenant(), texte: `Offre ${o.id} rattachée` })

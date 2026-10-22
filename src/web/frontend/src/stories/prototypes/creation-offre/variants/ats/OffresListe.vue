@@ -50,7 +50,7 @@ const compte = (e: 'tous' | EtatOffre) => (e === 'tous' ? db.offres.length : db.
   >
     <template #actions>
       <CspButton
-        label="Créer une offre"
+        label="Lancer un recrutement"
         icon="ri:add-line"
         is-icon-left
         @click="aller({ nom: 'creation' })"

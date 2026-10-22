@@ -12,8 +12,8 @@ const etapes = computed(() => {
   const sansDar = props.offre.dar === 'non_requise'
   return [
     { id: 'redaction', label: 'Rédaction', detail: '' },
-    { id: 'validation', label: 'Validation (DAR)', detail: sansDar ? 'Non nécessaire' : props.offre.dar === 'non_definie' ? 'Si nécessaire' : props.offre.darRef ?? '' },
-    { id: 'a_publier', label: 'À publier', detail: '' },
+    { id: 'validation', label: 'Validation (DAR)', detail: sansDar ? 'Non requise par l\'organisme' : props.offre.darRef ?? '' },
+    { id: 'a_publier', label: 'À publier', detail: 'Préparation' },
     { id: 'publiee', label: 'Publiée', detail: props.offre.publieeLe ?? '' },
     { id: 'archivee', label: 'Archivée', detail: '' },
   ].map((e, j) => ({

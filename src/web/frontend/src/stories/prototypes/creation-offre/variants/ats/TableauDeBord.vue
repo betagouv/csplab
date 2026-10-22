@@ -32,7 +32,7 @@ const aTraiter = computed(() => db.offres.filter(o => ['redaction', 'a_publier']
   >
     <template #actions>
       <CspButton
-        label="Créer une offre"
+        label="Lancer un recrutement"
         icon="ri:add-line"
         is-icon-left
         @click="aller({ nom: 'creation' })"

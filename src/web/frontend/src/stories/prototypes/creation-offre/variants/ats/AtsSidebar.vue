@@ -6,7 +6,7 @@ import CspSidebarLogo from '@/components/layout/CspSidebar/CspSidebarLogo.vue'
 import CspSidebarUser from '@/components/layout/CspSidebar/CspSidebarUser.vue'
 
 // Navigation principale : tableau de bord, fiches de poste, offres d'emploi. La racine suit la route.
-defineProps<{ actif: 'accueil' | 'fiches' | 'offres' }>()
+defineProps<{ actif: 'accueil' | 'fiches' | 'offres' | 'parametres' }>()
 </script>
 
 <template>
@@ -33,6 +33,14 @@ defineProps<{ actif: 'accueil' | 'fiches' | 'offres' }>()
           label="Offres d'emploi"
           :to="{ path: '/offres' }"
           :is-active="actif === 'offres'"
+        />
+      </CspSidebarGroup>
+      <CspSidebarGroup>
+        <CspSidebarItem
+          icon="ri:settings-3-line"
+          label="Paramètres de l'organisme"
+          :to="{ path: '/parametres' }"
+          :is-active="actif === 'parametres'"
         />
       </CspSidebarGroup>
       <template #footer>

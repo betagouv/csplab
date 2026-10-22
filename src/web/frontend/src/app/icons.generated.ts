@@ -113,7 +113,6 @@ import riTaskLine from '@iconify-icons/ri/task-line'
 import riTeamLine from '@iconify-icons/ri/team-line'
 import riTimeLine from '@iconify-icons/ri/time-line'
 import riUpload2Line from '@iconify-icons/ri/upload-2-line'
-import riUploadCloud2Line from '@iconify-icons/ri/upload-cloud-2-line'
 import riUserAddLine from '@iconify-icons/ri/user-add-line'
 import riUserLine from '@iconify-icons/ri/user-line'
 import riUserSharedLine from '@iconify-icons/ri/user-shared-line'
@@ -234,7 +233,6 @@ addIcon('ri:task-line', riTaskLine)
 addIcon('ri:team-line', riTeamLine)
 addIcon('ri:time-line', riTimeLine)
 addIcon('ri:upload-2-line', riUpload2Line)
-addIcon('ri:upload-cloud-2-line', riUploadCloud2Line)
 addIcon('ri:user-add-line', riUserAddLine)
 addIcon('ri:user-line', riUserLine)
 addIcon('ri:user-shared-line', riUserSharedLine)

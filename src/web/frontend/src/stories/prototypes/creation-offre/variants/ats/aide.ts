@@ -105,21 +105,37 @@ export function alerte(o: Offre, champ: Champ): { niveau: 'info' | 'attention', 
   }
 }
 
-/** Ce qui empêche de passer la rédaction (vers la DAR ou « À publier »). */
+/** Ce qui empêche de terminer la rédaction (vers la DAR ou « À publier »). */
 export function manquesRedaction(o: Offre): string[] {
   return [
     !o.titre.trim() && 'titre',
     !o.missions.trim() && 'missions',
     !o.lieu.trim() && 'lieu',
-    !(Number(o.nbPostes) >= 1) && 'nombre de postes',
   ].filter(Boolean) as string[]
 }
 
-/** Ce qui empêche de publier. */
+/** Ce qui empêche de soumettre la DAR. */
+export function manquesDar(o: Offre): string[] {
+  const f = o.darForm
+  if (!f) {
+    return ['formulaire']
+  }
+  return [
+    !f.entite && 'entité',
+    !f.intitule.trim() && 'intitulé du poste',
+    !f.categorie.trim() && 'catégorie',
+    !(Number(f.nbPostes) >= 1) && 'nombre de postes',
+    !f.description.trim() && 'description du poste',
+  ].filter(Boolean) as string[]
+}
+
+/** Ce qui empêche de publier : préparation (postes, modalités, date limite) et au moins un support. */
 export function manquesPublication(o: Offre): string[] {
   return [
+    !(Number(o.nbPostes) >= 1) && 'nombre de postes',
+    !o.modalites.trim() && 'modalités de recrutement',
     !o.dateLimite && 'date limite de candidature',
-    !o.canaux.length && 'au moins un canal de diffusion',
+    !o.canaux.length && 'au moins un support de publication',
   ].filter(Boolean) as string[]
 }
 

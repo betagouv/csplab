@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { Onglet } from './nav'
 import type { Fiche, Offre } from './store'
 import { computed, ref } from 'vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
@@ -9,7 +10,7 @@ import CspTextarea from '@/components/base/CspTextarea/CspTextarea.vue'
 import FieldRow from '../../shared/FieldRow.vue'
 import ListEditor from '../../shared/ListEditor.vue'
 import Panel from '../../shared/Panel.vue'
-import { aMettreEnForme, mettreEnForme } from './aide'
+import { aMettreEnForme, manquesRedaction, mettreEnForme } from './aide'
 import ApercuCandidat from './ApercuCandidat.vue'
 import ChampOffre from './ChampOffre.vue'
 import { useNav } from './nav'
@@ -19,7 +20,7 @@ import { changerEtat, contenuDepuisFiche, LIBELLES_CONTENU } from './store'
 // Écran 5 — rédaction de l'offre. Le formulaire édite le contenu destiné aux candidats ;
 // la fiche de poste source se consulte à côté, sans jamais être modifiée d'ici. L'aperçu suit la saisie.
 const props = defineProps<{ offre: Offre, fiche: Fiche }>()
-const emit = defineEmits<{ enregistrer: [], onglet: [t: 'suivi' | 'redaction' | 'publication'] }>()
+const emit = defineEmits<{ enregistrer: [], onglet: [t: Onglet] }>()
 const { notifier } = useNav()
 const o = computed(() => props.offre)
 
@@ -57,6 +58,27 @@ function enregistrer() {
   notifier('Brouillon enregistré. Vous pouvez revenir à la rédaction à tout moment.')
 }
 
+// --- Fin de rédaction : le parcours dépend du paramètre DAR de l'organisme ---
+const tentative = ref(false)
+const manques = computed(() => manquesRedaction(o.value))
+function continuerDar() {
+  if (manques.value.length) {
+    tentative.value = true
+    return
+  }
+  emit('enregistrer')
+  emit('onglet', 'dar')
+}
+function terminer() {
+  if (manques.value.length) {
+    tentative.value = true
+    return
+  }
+  changerEtat(o.value, 'a_publier', 'Rédaction terminée (pas de DAR pour cet organisme)')
+  notifier('Rédaction terminée. Préparez maintenant la publication.')
+  emit('onglet', 'publication')
+}
+
 function revenirEnRedaction() {
   changerEtat(o.value, 'redaction', 'Retour en rédaction pour modifier le contenu')
 }
@@ -90,7 +112,7 @@ function revenirEnRedaction() {
       name="ri:chat-1-line"
       :size="16"
     />
-    <span>Correction demandée lors de la validation : « {{ o.remarqueDar }} »</span>
+    <span>DAR refusée : « {{ o.remarqueDar }} ». Corrigez puis soumettez à nouveau la DAR.</span>
   </p>
 
   <div class="redac">
@@ -134,20 +156,6 @@ function revenirEnRedaction() {
             id="o-presentation"
             v-model="o.presentation"
             :rows="3"
-            :disabled="!modifiable"
-          />
-        </ChampOffre>
-        <ChampOffre
-          :offre="o"
-          champ="nbPostes"
-          label="Nombre de postes à pourvoir"
-          for-id="o-postes"
-        >
-          <CspInput
-            id="o-postes"
-            v-model="o.nbPostes"
-            type="number"
-            class="court"
             :disabled="!modifiable"
           />
         </ChampOffre>
@@ -226,23 +234,7 @@ function revenirEnRedaction() {
         </ChampOffre>
       </Panel>
 
-      <Panel titre="Modalités et conditions">
-        <ChampOffre
-          :offre="o"
-          champ="modalites"
-          label="Modalités de recrutement"
-          for-id="o-modalites"
-          :repris="repris('modalites')"
-          :modifie="modifie('modalites')"
-          @restaurer="restaurer('modalites')"
-        >
-          <CspTextarea
-            id="o-modalites"
-            v-model="o.modalites"
-            :rows="2"
-            :disabled="!modifiable"
-          />
-        </ChampOffre>
+      <Panel titre="Lieu et conditions d'exercice">
         <FieldRow :cols="2">
           <ChampOffre
             :offre="o"
@@ -286,29 +278,6 @@ function revenirEnRedaction() {
         </FieldRow>
       </Panel>
 
-      <Panel titre="Candidature">
-        <FieldRow :cols="2">
-          <ChampOffre
-            :offre="o"
-            champ="dateLimite"
-            label="Date limite de candidature"
-            for-id="o-limite"
-          >
-            <CspInput
-              id="o-limite"
-              v-model="o.dateLimite"
-              placeholder="AAAA-MM-JJ"
-              :disabled="!modifiable"
-            />
-          </ChampOffre>
-          <CspInput
-            v-model="o.contact"
-            label="Contact (facultatif)"
-            :disabled="!modifiable"
-          />
-        </FieldRow>
-      </Panel>
-
       <div
         v-if="modifiable"
         class="pied"
@@ -320,10 +289,24 @@ function revenirEnRedaction() {
           is-icon-left
           @click="enregistrer"
         />
+        <p
+          v-if="tentative && manques.length"
+          class="manque"
+          role="alert"
+        >
+          À compléter : {{ manques.join(', ') }}.
+        </p>
         <CspButton
-          label="Continuer : validation et publication"
+          v-if="o.dar === 'requise'"
+          label="Continuer : saisir la DAR"
           icon="ri:arrow-right-line"
-          @click="emit('onglet', 'publication')"
+          @click="continuerDar"
+        />
+        <CspButton
+          v-else
+          label="Terminer la rédaction"
+          icon="ri:arrow-right-line"
+          @click="terminer"
         />
       </div>
     </fieldset>
@@ -451,6 +434,14 @@ function revenirEnRedaction() {
 
 .outil {
   margin: calc(-1 * var(--csp-space-3)) 0 0 calc(-1 * var(--csp-space-2));
+}
+
+.manque {
+  flex: 1;
+  margin: 0;
+  align-self: center;
+  font-size: var(--csp-font-size-sm);
+  color: var(--text-default-error);
 }
 
 .pied {

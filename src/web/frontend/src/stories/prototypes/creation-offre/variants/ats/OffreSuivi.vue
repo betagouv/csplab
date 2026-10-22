@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { Onglet } from './nav'
 import type { Fiche, Offre } from './store'
 import { computed, ref } from 'vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
@@ -12,15 +13,19 @@ import { LIBELLES_CONTENU, sauvegarder } from './store'
 
 // Écran 7 — détail et suivi : informations principales, fiche rattachée, historique, actions selon l'état.
 const props = defineProps<{ offre: Offre, fiche: Fiche }>()
-const emit = defineEmits<{ onglet: [t: 'suivi' | 'redaction' | 'publication'] }>()
+const emit = defineEmits<{ onglet: [t: Onglet] }>()
 const { aller } = useNav()
 const o = computed(() => props.offre)
 const apercu = ref(false)
 
 const prochaine = computed(() => ({
-  redaction: { texte: 'Terminer la rédaction, puis indiquer si une DAR est nécessaire.', action: 'Reprendre la rédaction', onglet: 'redaction' as const },
-  validation: { texte: `La DAR ${o.value.darRef} attend sa validation.`, action: 'Voir la validation', onglet: 'publication' as const },
-  a_publier: { texte: 'L\'offre est prête : choisissez où la publier.', action: 'Publier', onglet: 'publication' as const },
+  redaction: o.value.dar === 'requise'
+    ? (o.value.darStatut === 'refusee'
+        ? { texte: 'La DAR a été refusée : corrigez-la puis soumettez-la à nouveau.', action: 'Corriger la DAR', onglet: 'dar' as const }
+        : { texte: 'Terminer la rédaction puis saisir la DAR (votre organisme l\'exige).', action: 'Reprendre la rédaction', onglet: 'redaction' as const })
+    : { texte: 'Terminer la rédaction, puis préparer la publication.', action: 'Reprendre la rédaction', onglet: 'redaction' as const },
+  validation: { texte: `La DAR ${o.value.darRef} attend sa validation.`, action: 'Voir la DAR', onglet: 'dar' as const },
+  a_publier: { texte: 'Préparez l\'offre (postes, modalités, date limite) puis publiez-la.', action: 'Préparer et publier', onglet: 'publication' as const },
   publiee: { texte: `Candidatures ouvertes jusqu'au ${o.value.dateLimite}.`, action: 'Gérer la publication', onglet: 'publication' as const },
   archivee: { texte: 'Offre archivée.', action: '', onglet: 'suivi' as const },
 }[o.value.etat]))
@@ -30,7 +35,7 @@ const infos = computed(() => [
   { k: 'Lieu', v: o.value.lieu },
   { k: 'Date limite', v: o.value.dateLimite },
   { k: 'Origine du contenu', v: `${LIBELLES_CONTENU[o.value.origineContenu]}${o.value.sourceOffreId ? ` (${o.value.sourceOffreId})` : ''}` },
-  { k: 'DAR', v: o.value.dar === 'requise' ? o.value.darRef ?? 'À soumettre' : o.value.dar === 'non_requise' ? 'Non nécessaire' : 'À préciser' },
+  { k: 'DAR', v: o.value.dar === 'requise' ? (o.value.darRef ? `${o.value.darRef} (${{ brouillon: 'brouillon', soumise: 'soumise', validee: 'validée', refusee: 'refusée' }[o.value.darStatut ?? 'brouillon']})` : 'À saisir') : 'Non requise par l\'organisme' },
   { k: 'Créée', v: o.value.creeLe },
   { k: 'Dernière modification', v: o.value.modifieLe },
 ])

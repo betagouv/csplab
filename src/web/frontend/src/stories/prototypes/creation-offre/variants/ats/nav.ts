@@ -8,8 +8,11 @@ export type Ecran
     | { nom: 'fiches' }
     | { nom: 'fiche', id: string, edition?: boolean }
     | { nom: 'offres', filtre?: string }
-    | { nom: 'creation', mode?: 'fiche' | 'fichier' | 'manuel' | 'duplication', ficheId?: string, offreId?: string }
-    | { nom: 'offre', id: string, onglet?: 'suivi' | 'redaction' | 'publication' }
+    | { nom: 'creation', mode?: 'fiche' | 'manuel' | 'duplication', ficheId?: string, offreId?: string }
+    | { nom: 'offre', id: string, onglet?: Onglet }
+    | { nom: 'parametres' }
+
+export type Onglet = 'suivi' | 'redaction' | 'dar' | 'publication'
 
 export interface Nav {
   ecran: Ref<Ecran>

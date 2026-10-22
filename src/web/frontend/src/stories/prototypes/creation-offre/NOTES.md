@@ -1,5 +1,44 @@
 # Notes — Prototype création d'offre
 
+## Itération 8 — parcours cible et DAR paramétrée par l'organisme (22 octobre 2026)
+
+Alignement sur le schéma « Parcours de création d'un recrutement » fourni par Alice, et sur les captures de
+l'outil actuel (Choisir le Service Public : création et détail d'une DAR, publication d'une offre).
+
+**Parcours** : Référentiel des fiches → **Lancer un recrutement** (3 sources : fiche de poste, offre existante,
+saisie manuelle — le mode « fichier » est retiré de la création ; les fiches « issues d'un document » restent
+dans le référentiel) → **Offre rédigée** (contenu candidat + aperçu) → **DAR** si l'organisme l'exige →
+**Préparer l'offre pour la publication** (nombre de postes, modalités de recrutement, date limite, contact) →
+**Publication** (supports).
+
+**La DAR n'est plus un choix à la création** : c'est un paramètre de l'organisme (nouvelle page
+« Paramètres de l'organisme », simulée). Le parcours s'adapte : avec DAR, l'offre a un onglet « DAR » et le
+bouton de fin de rédaction mène à la saisie de la DAR ; sans DAR, « Terminer la rédaction » mène directement
+à la préparation. Le changement de paramètre s'applique aux offres en rédaction dont la DAR n'est pas soumise.
+
+**Onglet DAR** (inspiré des sections CSP, en plus sobre) : entité, type de DAR, employeur, descriptif employeur
+et service, intitulé, catégorie, **nombre de postes**, description, motif (pour éviter les appels des valideurs),
+pièces jointes. Préremplie depuis la fiche. **Vrai état « Brouillon »** (fini « BROUILLON » dans l'intitulé),
+enregistrement automatique, soumission (contenu figé), décision simulée Valider / Refuser avec motif ;
+historique propre à la DAR. Refus → la DAR redevient modifiable, l'offre revient en rédaction.
+
+**Préparer et publier** : nombre de postes repris de la DAR (écart signalé), modalités proposées depuis la
+fiche, date limite ; tableau des supports groupés comme dans CSP (sites web avec CSP en support maître,
+jobboards, multi-diffuseurs) avec état, début, fin ; après publication, Publier / Arrêter par support ;
+« Arrêter les publications et archiver ».
+
+### Hypothèses
+- Le paramètre DAR vaut pour tous les recrutements de l'organisme (pas de variation par type de poste).
+- La DAR reprend le nombre de postes ; l'offre peut le modifier à la préparation, avec un signalement d'écart
+  (règle de revalidation à confirmer).
+- La DAR est saisie après la rédaction de l'offre (ordre du schéma) mais peut être commencée dès la rédaction.
+
+### Points à confirmer
+1. Qui administre les paramètres de l'organisme ? Le paramètre peut-il dépendre du type de recrutement ?
+2. Champs exacts de la DAR selon le type (« Formulaire DAR » / « Formulaire de demande d'autorisation »).
+3. Un écart de nombre de postes entre DAR et offre impose-t-il une nouvelle DAR ?
+4. La DAR validée doit-elle être publiée telle quelle quelque part (obligation légale) ?
+
 ## Itération 7 — ATS : fiches de poste et offres d'emploi (21 octobre 2026)
 
 Nouvelle variante, code autonome : `variants/ats/` ; stories `Prototypes/Création d'offre/ATS — fiches de

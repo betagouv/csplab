@@ -13,23 +13,22 @@ import EtatBadge from './EtatBadge.vue'
 import { useNav } from './nav'
 import OrigineBadge from './OrigineBadge.vue'
 import PageAts from './PageAts.vue'
-import { db, fiche, le, maintenant, nouvelleFiche, nouvelleOffre, offresDe } from './store'
+import { db, fiche, le, nouvelleFiche, nouvelleOffre, offresDe } from './store'
 
-// Écran 4 — choisir le mode de création. Quel que soit le mode, l'offre est rattachée à une fiche
-// de poste : existante, constituée à partir d'un document, créée à partir de la saisie, ou celle de l'offre reprise.
-type Mode = 'fiche' | 'fichier' | 'manuel' | 'duplication'
+// Lancer un recrutement : 3 sources (fiche de poste, offre existante, saisie manuelle). Quelle que soit la source,
+// l'offre est rattachée à une fiche de poste : existante, créée à partir de la saisie, ou celle de l'offre reprise.
+// Le nombre de postes se renseigne plus tard (DAR et préparation de la publication).
+type Mode = 'fiche' | 'manuel' | 'duplication'
 const props = defineProps<{ mode?: Mode, ficheId?: string, offreId?: string }>()
 const { aller, notifier } = useNav()
 
 const MODES: { id: Mode, titre: string, desc: string, rattachement: string, icon: string }[] = [
   { id: 'fiche', titre: 'Depuis une fiche de poste', desc: 'Les informations de la fiche préremplissent l\'offre.', rattachement: 'Rattachée à la fiche choisie', icon: 'ri:file-text-line' },
-  { id: 'fichier', titre: 'Depuis un fichier', desc: 'Ajoutez un document (fiche de poste, ancienne annonce) qui sert de référence.', rattachement: 'Une fiche est constituée à partir du document', icon: 'ri:upload-2-line' },
-  { id: 'manuel', titre: 'Par saisie manuelle', desc: 'Saisissez l\'essentiel du poste, sans document de départ.', rattachement: 'Une fiche de référence est créée avec votre saisie', icon: 'ri:edit-line' },
-  { id: 'duplication', titre: 'Depuis une ancienne offre', desc: 'Le contenu d\'une offre publiée est copié dans une nouvelle offre indépendante.', rattachement: 'Rattachée à la fiche de l\'offre reprise (modifiable)', icon: 'ri:file-copy-2-line' },
+  { id: 'manuel', titre: 'Saisie manuelle', desc: 'Sans fiche de poste préexistante : saisissez l\'essentiel du poste.', rattachement: 'Une fiche de référence est créée avec votre saisie', icon: 'ri:edit-line' },
+  { id: 'duplication', titre: 'Depuis une offre existante', desc: 'Dupliquer un recrutement similaire : le contenu est copié dans une nouvelle offre indépendante.', rattachement: 'Rattachée à la fiche de l\'offre reprise (modifiable)', icon: 'ri:file-copy-2-line' },
 ]
 
 const mode = ref<Mode | null>(props.mode ?? null)
-const nbPostes = ref('1')
 const erreur = ref('')
 
 // 1. Fiche existante
@@ -39,27 +38,6 @@ const fichesActives = computed(() => {
   const q = recherche.value.toLowerCase().trim()
   return db.fiches.filter(f => f.statut === 'active' && (!q || [f.intitule, f.codePoste, f.id].join(' ').toLowerCase().includes(q)))
 })
-
-// 2. Fichier
-const fichier = ref<string | null>(null)
-const analyse = ref(false)
-const extrait = ref({ intitule: '', service: '', localisation: '' })
-const rattachementFichier = ref<'nouvelle' | 'existante'>('nouvelle')
-const ficheExistanteFichier = ref<string>()
-function choisirFichier(e: Event) {
-  const f = (e.target as HTMLInputElement).files?.[0]
-  if (!f) {
-    return
-  }
-  fichier.value = f.name
-  analyse.value = true
-  setTimeout(() => {
-    analyse.value = false
-    // Extraction simulée : l'intitulé est déduit du nom du fichier, à vérifier.
-    const nom = f.name.replace(/\.[^.]+$/, '').replace(/[_-]+/g, ' ').replace(/\b(?:fiche|poste|de|v\d+)\b/gi, ' ').replace(/\s+/g, ' ').trim()
-    extrait.value = { intitule: nom.length > 3 ? nom.charAt(0).toUpperCase() + nom.slice(1) : 'Chargé·e de communication', service: 'Secrétariat général', localisation: 'Toulouse (31)' }
-  }, 1300)
-}
 
 // 3. Saisie manuelle
 const manuel = ref({ intitule: '', service: '', localisation: '', categories: [] as string[] })
@@ -78,7 +56,6 @@ const optionsFiches = computed(() => db.fiches.filter(f => f.statut === 'active'
 const rattachement = computed(() => {
   switch (mode.value) {
     case 'fiche': return ficheChoisie.value ? `${fiche(ficheChoisie.value)?.intitule} (${ficheChoisie.value})` : 'choisissez une fiche'
-    case 'fichier': return rattachementFichier.value === 'nouvelle' ? (fichier.value ? 'une nouvelle fiche constituée à partir du document' : 'ajoutez un document') : (ficheExistanteFichier.value ? `${fiche(ficheExistanteFichier.value)?.intitule} (${ficheExistanteFichier.value})` : 'choisissez une fiche')
     case 'manuel': return manuel.value.intitule ? `une nouvelle fiche « ${manuel.value.intitule} » (à compléter dans le référentiel)` : 'une nouvelle fiche créée à partir de votre saisie'
     case 'duplication': return ficheDuplication.value ? `${fiche(ficheDuplication.value)?.intitule} (${ficheDuplication.value})` : 'choisissez une offre'
     default: return ''
@@ -87,10 +64,6 @@ const rattachement = computed(() => {
 
 function creer() {
   erreur.value = ''
-  if (!(Number(nbPostes.value) >= 1)) {
-    erreur.value = 'Indiquez au moins 1 poste.'
-    return
-  }
   let f: Fiche | undefined
   let source: Offre | undefined
   if (mode.value === 'fiche') {
@@ -98,26 +71,6 @@ function creer() {
     if (!f) {
       erreur.value = 'Choisissez la fiche de poste.'
       return
-    }
-  }
-  else if (mode.value === 'fichier') {
-    if (!fichier.value) {
-      erreur.value = 'Ajoutez un document.'
-      return
-    }
-    if (rattachementFichier.value === 'existante') {
-      f = ficheExistanteFichier.value ? fiche(ficheExistanteFichier.value) : undefined
-      if (!f) {
-        erreur.value = 'Choisissez la fiche à laquelle rattacher le document.'
-        return
-      }
-    }
-    else {
-      if (!extrait.value.intitule.trim()) {
-        erreur.value = 'Vérifiez l\'intitulé détecté.'
-        return
-      }
-      f = nouvelleFiche({ ...extrait.value, document: { nom: fichier.value, ajouteLe: maintenant() } }, 'document', `Fiche constituée à partir du document ${fichier.value} (extraction simulée)`)
     }
   }
   else if (mode.value === 'manuel') {
@@ -138,7 +91,7 @@ function creer() {
   if (!f || !mode.value) {
     return
   }
-  const o = nouvelleOffre(f, mode.value, nbPostes.value, source)
+  const o = nouvelleOffre(f, mode.value, source)
   notifier(`Offre ${o.id} créée et rattachée à la fiche ${f.id}.`)
   aller({ nom: 'offre', id: o.id, onglet: 'redaction' })
 }
@@ -147,9 +100,9 @@ function creer() {
 <template>
   <PageAts
     actif="offres"
-    titre="Créer une offre d'emploi"
-    sous-titre="Une offre est toujours rattachée à une fiche de poste. Choisissez d'où part son contenu."
-    :fil="[{ label: 'Offres d\'emploi', action: () => aller({ nom: 'offres' }) }, { label: 'Nouvelle offre' }]"
+    titre="Lancer un recrutement"
+    sous-titre="Créez l'offre à partir de la source la plus adaptée. Elle reste toujours rattachée à une fiche de poste."
+    :fil="[{ label: 'Offres d\'emploi', action: () => aller({ nom: 'offres' }) }, { label: 'Lancer un recrutement' }]"
   >
     <div
       class="modes"
@@ -222,83 +175,6 @@ function creer() {
     </Panel>
 
     <Panel
-      v-else-if="mode === 'fichier'"
-      titre="Ajouter un document"
-      description="Fiche de poste, ancienne annonce… Prototype : le document n'est pas envoyé, son contenu est simulé."
-    >
-      <label class="depot">
-        <CspIcon
-          name="ri:upload-cloud-2-line"
-          :size="24"
-        />
-        <span>{{ fichier ? `Document : ${fichier}` : 'Choisir un fichier (.docx, .pdf, .odt)' }}</span>
-        <input
-          type="file"
-          accept=".doc,.docx,.pdf,.odt,.txt"
-          class="sr-only"
-          @change="choisirFichier"
-        >
-      </label>
-      <p
-        v-if="analyse"
-        class="mention"
-      >
-        <CspIcon
-          name="ri:loader-4-line"
-          :size="14"
-          class="spin"
-        /> Lecture du document…
-      </p>
-      <template v-else-if="fichier">
-        <fieldset class="choix">
-          <legend class="legende">
-            Fiche de poste de rattachement
-          </legend>
-          <label class="choix__ligne choix__ligne--simple">
-            <input
-              v-model="rattachementFichier"
-              type="radio"
-              value="nouvelle"
-            >
-            <span>Constituer une nouvelle fiche à partir du document</span>
-          </label>
-          <label class="choix__ligne choix__ligne--simple">
-            <input
-              v-model="rattachementFichier"
-              type="radio"
-              value="existante"
-            >
-            <span>Rattacher le document à une fiche existante</span>
-          </label>
-        </fieldset>
-        <FieldRow
-          v-if="rattachementFichier === 'nouvelle'"
-          :cols="3"
-        >
-          <CspInput
-            v-model="extrait.intitule"
-            label="Intitulé détecté"
-          />
-          <CspInput
-            v-model="extrait.service"
-            label="Service"
-          />
-          <CspInput
-            v-model="extrait.localisation"
-            label="Localisation"
-          />
-        </FieldRow>
-        <CspSelect
-          v-else
-          v-model="ficheExistanteFichier"
-          label="Fiche existante"
-          placeholder="Choisir…"
-          :options="db.fiches.filter(f => f.statut === 'active').map(f => ({ value: f.id, label: `${f.intitule} (${f.id})` }))"
-        />
-      </template>
-    </Panel>
-
-    <Panel
       v-else-if="mode === 'manuel'"
       titre="L'essentiel du poste"
       description="Ces informations créent la fiche de poste de référence ; vous rédigerez l'annonce à l'étape suivante."
@@ -367,12 +243,6 @@ function creer() {
       class="final"
     >
       <div class="final__infos">
-        <CspInput
-          v-model="nbPostes"
-          type="number"
-          label="Postes à pourvoir"
-          class="final__postes"
-        />
         <p class="final__ratt">
           <CspIcon
             name="ri:link"
@@ -390,7 +260,7 @@ function creer() {
           {{ erreur }}
         </p>
         <CspButton
-          label="Créer l'offre et rédiger"
+          label="Créer l'offre et la rédiger"
           icon="ri:arrow-right-line"
           @click="creer"
         />
@@ -402,7 +272,7 @@ function creer() {
 <style scoped lang="scss">
 .modes {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: var(--csp-space-3);
 }
 

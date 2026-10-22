@@ -1,86 +1,92 @@
 <script setup lang="ts">
+import type { Onglet } from './nav'
 import type { Fiche, Offre } from './store'
 import { computed, ref } from 'vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspIcon from '@/components/base/CspIcon/CspIcon.vue'
 import CspInput from '@/components/base/CspInput/CspInput.vue'
-import CspRadioGroup from '@/components/base/CspRadioGroup/CspRadioGroup.vue'
 import CspTextarea from '@/components/base/CspTextarea/CspTextarea.vue'
+import FieldRow from '../../shared/FieldRow.vue'
 import Panel from '../../shared/Panel.vue'
-import SimulationNote from '../../shared/SimulationNote.vue'
 import { manquesPublication, manquesRedaction } from './aide'
 import CycleOffre from './CycleOffre.vue'
 import { useNav } from './nav'
-import { CANAUX_DIFFUSION, changerEtat, le, maintenant, sauvegarder } from './store'
+import { CANAUX_DIFFUSION, changerEtat, le, maintenant, modalitesDepuisFiche, sauvegarder } from './store'
 
-// Écran 6 — validation et publication : état administratif, DAR quand elle est nécessaire,
-// passage à « À publier », puis publication (action distincte), et archivage.
+// Préparer l'offre pour la publication (postes, modalités, date limite), puis publier sur les supports choisis.
+// Publier est une action distincte. Le parcours avec ou sans DAR est fixé par l'organisme.
 const props = defineProps<{ offre: Offre, fiche: Fiche }>()
-const emit = defineEmits<{ onglet: [t: 'suivi' | 'redaction' | 'publication'] }>()
+const emit = defineEmits<{ onglet: [t: Onglet] }>()
 const { aller, notifier } = useNav()
 const o = computed(() => props.offre)
 
-const manques = computed(() => manquesRedaction(o.value))
-const manquesPub = computed(() => manquesPublication(o.value))
+// Les modalités sont proposées à partir de la fiche si elles n'ont pas encore été écrites.
+if (!o.value.modalites) {
+  o.value.modalites = modalitesDepuisFiche(props.fiche)
+}
+
 const tentative = ref(false)
+const manques = computed(() => manquesPublication(o.value))
+const ecartDar = computed(() => o.value.dar === 'requise' && o.value.darForm && o.value.darForm.nbPostes !== o.value.nbPostes)
+const prete = computed(() => ['a_publier', 'publiee'].includes(o.value.etat))
 
-const DAR = [
-  { value: 'requise', label: 'Oui, une DAR doit être validée avant la publication' },
-  { value: 'non_requise', label: 'Non, pas de DAR pour ce recrutement' },
-]
-
-function soumettreDar() {
-  if (manques.value.length) {
-    tentative.value = true
+function terminerRedaction() {
+  if (manquesRedaction(o.value).length) {
+    notifier(`À compléter dans la rédaction : ${manquesRedaction(o.value).join(', ')}.`)
+    emit('onglet', 'redaction')
     return
   }
-  o.value.darRef = o.value.darRef ?? `DAR-2026-0${330 + Math.floor(Math.random() * 60)}`
-  o.value.darSoumiseLe = maintenant()
-  o.value.darContenu = { intitule: props.fiche.intitule, service: props.fiche.service, nbPostes: o.value.nbPostes, missions: props.fiche.missions }
-  o.value.remarqueDar = undefined
-  changerEtat(o.value, 'validation', `DAR ${o.value.darRef} soumise`)
-  notifier('DAR soumise. L\'offre est en cours de validation.')
+  changerEtat(o.value, 'a_publier', 'Rédaction terminée (pas de DAR pour cet organisme)')
 }
 
-function passerAPublier() {
-  if (manques.value.length) {
-    tentative.value = true
-    return
-  }
-  changerEtat(o.value, 'a_publier', 'Rédaction terminée, pas de DAR nécessaire')
-  notifier('L\'offre est prête à publier. Elle n\'est pas encore visible des candidats.')
-}
-
-// --- Simulation de la décision sur la DAR ---
-const correction = ref(false)
-const texteCorrection = ref('Merci de préciser le nombre de postes et les codes correspondants.')
-function validerDar() {
-  o.value.darValideeLe = maintenant()
-  changerEtat(o.value, 'a_publier', `DAR ${o.value.darRef} validée par Hélène Robert`)
-  notifier('DAR validée (simulation). L\'offre peut être publiée.')
-}
-function corrigerDar() {
-  o.value.remarqueDar = texteCorrection.value
-  changerEtat(o.value, 'redaction', `Correction demandée sur la DAR ${o.value.darRef}`)
-  correction.value = false
-  notifier('Correction demandée : l\'offre revient en rédaction.')
-}
-
-function basculerCanal(id: string) {
+// --- Supports ---
+const groupes = computed(() => [...new Set(CANAUX_DIFFUSION.map(c => c.groupe))].map(g => ({ nom: g, supports: CANAUX_DIFFUSION.filter(c => c.groupe === g) })))
+function inclure(id: string) {
   o.value.canaux = o.value.canaux.includes(id) ? o.value.canaux.filter(c => c !== id) : [...o.value.canaux, id]
 }
+function etatSupport(id: string) {
+  const p = o.value.publications[id]
+  if (!p) {
+    return o.value.canaux.includes(id) ? 'À publier' : '—'
+  }
+  return p.etat === 'publiee' ? 'Publiée' : 'Arrêtée'
+}
+
 function publier() {
-  if (manquesPub.value.length) {
+  if (manques.value.length) {
     tentative.value = true
     return
+  }
+  for (const id of o.value.canaux) {
+    o.value.publications[id] = { etat: 'publiee', debut: maintenant(), fin: o.value.dateLimite }
   }
   o.value.publieeLe = maintenant()
   const noms = CANAUX_DIFFUSION.filter(c => o.value.canaux.includes(c.id)).map(c => c.nom).join(', ')
   changerEtat(o.value, 'publiee', `Offre publiée sur ${noms}`)
   notifier('Offre publiée (simulation : rien n\'est envoyé).')
 }
+
+function publierSupport(id: string) {
+  o.value.publications[id] = { etat: 'publiee', debut: maintenant(), fin: o.value.dateLimite }
+  if (!o.value.canaux.includes(id)) {
+    o.value.canaux = [...o.value.canaux, id]
+  }
+  o.value.historique.push({ date: maintenant(), texte: `Publication ajoutée : ${CANAUX_DIFFUSION.find(c => c.id === id)?.nom}` })
+  sauvegarder()
+}
+function arreterSupport(id: string) {
+  const p = o.value.publications[id]
+  if (p) {
+    p.etat = 'arretee'
+    o.value.historique.push({ date: maintenant(), texte: `Publication arrêtée : ${CANAUX_DIFFUSION.find(c => c.id === id)?.nom}` })
+    sauvegarder()
+  }
+}
 function archiver() {
-  changerEtat(o.value, 'archivee', 'Offre archivée')
+  for (const p of Object.values(o.value.publications)) {
+    p.etat = 'arretee'
+  }
+  changerEtat(o.value, 'archivee', 'Toutes les publications arrêtées, offre archivée')
   notifier('Offre archivée. Elle reste consultable et peut être dupliquée.')
 }
 function retour() {
@@ -92,154 +98,199 @@ function retour() {
 <template>
   <CycleOffre :offre="o" />
 
-  <div class="grille">
-    <div class="col">
-      <!-- Rédaction : DAR ou non -->
-      <Panel
-        v-if="o.etat === 'redaction'"
-        titre="Validation administrative"
-        description="Selon votre organisation et ce recrutement, une demande d'autorisation (DAR) peut être nécessaire avant la publication."
-      >
-        <CspRadioGroup
-          :model-value="o.dar === 'non_definie' ? '' : o.dar"
-          label="Ce recrutement nécessite-t-il une DAR ?"
-          :options="DAR"
-          @update:model-value="v => { o.dar = v as Offre['dar']; sauvegarder() }"
+  <!-- Pas encore prête -->
+  <Panel
+    v-if="o.etat === 'redaction'"
+    titre="Pas encore prête à publier"
+  >
+    <template v-if="o.dar === 'requise'">
+      <p class="texte">
+        Votre organisme fait valider les recrutements par une DAR. La publication sera possible une fois la DAR validée.
+      </p>
+      <div>
+        <CspButton
+          label="Aller à la DAR"
+          icon="ri:arrow-right-line"
+          @click="emit('onglet', 'dar')"
         />
-        <p class="mention">
-          Hypothèse à confirmer : les règles qui imposent une DAR varient selon les organisations ; le prototype laisse le choix.
-        </p>
-        <div
-          v-if="tentative && manques.length"
-          class="manques"
-          role="alert"
-        >
-          Avant de continuer, complétez : {{ manques.join(', ') }}.
-          <button
-            type="button"
-            class="lien"
-            @click="emit('onglet', 'redaction')"
-          >
-            Revenir à la rédaction
-          </button>
-        </div>
-        <div class="actions">
-          <CspButton
-            v-if="o.dar === 'requise'"
-            label="Soumettre la DAR"
-            icon="ri:send-plane-line"
-            is-icon-left
-            @click="soumettreDar"
-          />
-          <CspButton
-            v-else-if="o.dar === 'non_requise'"
-            label="Passer à « À publier »"
-            icon="ri:arrow-right-line"
-            @click="passerAPublier"
-          />
-        </div>
-      </Panel>
+      </div>
+    </template>
+    <template v-else>
+      <p class="texte">
+        Votre organisme ne demande pas de DAR. Terminez la rédaction pour préparer la publication.
+      </p>
+      <div>
+        <CspButton
+          label="Terminer la rédaction"
+          icon="ri:arrow-right-line"
+          @click="terminerRedaction"
+        />
+      </div>
+    </template>
+  </Panel>
 
-      <!-- Validation en cours -->
-      <Panel
-        v-else-if="o.etat === 'validation'"
-        :titre="`DAR ${o.darRef} — en cours de validation`"
-        :description="`Soumise ${le(o.darSoumiseLe)}. En attente de Hélène Robert, autorité de validation.`"
-      >
-        <dl
-          v-if="o.darContenu"
-          class="dl"
-        >
-          <dt>Intitulé</dt>
-          <dd>{{ o.darContenu.intitule }}</dd>
-          <dt>Service</dt>
-          <dd>{{ o.darContenu.service }}</dd>
-          <dt>Postes</dt>
-          <dd>{{ o.darContenu.nbPostes }}</dd>
-          <dt>Missions</dt>
-          <dd>{{ o.darContenu.missions }}</dd>
-        </dl>
-        <p class="mention">
-          Contenu de la DAR figé à la soumission, repris de la fiche de poste. Le texte de l'annonce est distinct.
-        </p>
-        <SimulationNote titre="Décision du valideur">
-          <CspButton
-            label="Valider la DAR"
-            size="sm"
-            @click="validerDar"
-          />
-          <CspButton
-            label="Demander une correction"
-            size="sm"
-            variant="secondary"
-            @click="correction = !correction"
-          />
-        </SimulationNote>
-        <div
-          v-if="correction"
-          class="correction"
-        >
-          <CspTextarea
-            v-model="texteCorrection"
-            label="Remarque"
-            :rows="2"
-          />
-          <div>
-            <CspButton
-              label="Envoyer la demande de correction"
-              size="sm"
-              @click="corrigerDar"
-            />
-          </div>
-        </div>
-      </Panel>
+  <Panel
+    v-else-if="o.etat === 'validation'"
+    titre="DAR en cours de validation"
+    :description="`La DAR ${o.darRef} a été soumise ${le(o.darSoumiseLe)}. La publication sera possible après sa validation.`"
+  >
+    <div>
+      <CspButton
+        label="Voir la DAR"
+        variant="secondary"
+        @click="emit('onglet', 'dar')"
+      />
+    </div>
+  </Panel>
 
-      <!-- À publier -->
-      <Panel
-        v-else-if="o.etat === 'a_publier'"
-        titre="Publication"
-        description="L'offre est prête mais pas encore visible des candidats. Publier est une action distincte."
-      >
-        <p class="mention">
-          <CspIcon
-            name="ri:checkbox-circle-line"
-            :size="14"
-          />
-          {{ o.dar === 'requise' ? `DAR ${o.darRef} validée ${le(o.darValideeLe)}` : 'Pas de DAR nécessaire pour ce recrutement' }}.
-        </p>
-        <fieldset class="canaux">
-          <legend class="legende">
-            Où publier ?
-          </legend>
-          <label
-            v-for="c in CANAUX_DIFFUSION"
-            :key="c.id"
-            class="canal"
-          >
-            <input
-              type="checkbox"
-              :checked="o.canaux.includes(c.id)"
-              @change="basculerCanal(c.id)"
-            >
-            <span>{{ c.nom }}<small>{{ c.detail }}</small></span>
-          </label>
-        </fieldset>
+  <template v-else-if="prete">
+    <Panel
+      titre="Préparer l'offre pour la publication"
+      :description="o.dar === 'requise' ? `DAR ${o.darRef} validée ${le(o.darValideeLe)}.` : 'Pas de DAR pour cet organisme.'"
+    >
+      <FieldRow :cols="2">
+        <CspInput
+          v-model="o.nbPostes"
+          type="number"
+          label="Nombre de postes à pourvoir"
+          :hint="o.dar === 'requise' ? `Repris de la DAR (${o.darForm?.nbPostes} poste${Number(o.darForm?.nbPostes) > 1 ? 's' : ''}). Une seule offre pour tous les postes.` : 'Une seule offre pour tous les postes.'"
+          :disabled="o.etat === 'publiee'"
+          :error="tentative && !(Number(o.nbPostes) >= 1)"
+          :error-message="tentative && !(Number(o.nbPostes) >= 1) ? 'Au moins 1 poste.' : undefined"
+        />
         <CspInput
           v-model="o.dateLimite"
           label="Date limite de candidature"
           placeholder="AAAA-MM-JJ"
-          class="date"
+          :disabled="o.etat === 'publiee'"
           :error="tentative && !o.dateLimite"
-          :error-message="tentative && !o.dateLimite ? 'Indiquez la date limite pour publier.' : undefined"
+          :error-message="tentative && !o.dateLimite ? 'Indiquez la date limite.' : undefined"
         />
-        <p
-          v-if="tentative && !o.canaux.length"
-          class="manques"
-          role="alert"
+      </FieldRow>
+      <p
+        v-if="ecartDar"
+        class="ecart"
+      >
+        <CspIcon
+          name="ri:information-line"
+          :size="14"
+        />
+        La DAR validée porte sur {{ o.darForm?.nbPostes }} poste(s). Hypothèse à confirmer : un écart pourrait nécessiter une nouvelle DAR.
+      </p>
+      <CspTextarea
+        v-model="o.modalites"
+        label="Modalités de recrutement"
+        hint="Proposées à partir de la fiche : à qui le poste est ouvert, type de contrat."
+        :rows="2"
+        :disabled="o.etat === 'publiee'"
+        :error="tentative && !o.modalites.trim()"
+        :error-message="tentative && !o.modalites.trim() ? 'Précisez les modalités de recrutement.' : undefined"
+      />
+      <CspInput
+        v-model="o.contact"
+        label="Contact pour les candidats (facultatif)"
+        :disabled="o.etat === 'publiee'"
+      />
+    </Panel>
+
+    <Panel
+      titre="Publication"
+      description="Choisissez les supports. Choisir le Service Public est le support de publication maître."
+    >
+      <table class="supports">
+        <thead>
+          <tr>
+            <th
+              v-if="o.etat === 'a_publier'"
+              scope="col"
+            >
+              <span class="sr-only">Inclure</span>
+            </th>
+            <th scope="col">
+              Support
+            </th>
+            <th scope="col">
+              État
+            </th>
+            <th scope="col">
+              Début
+            </th>
+            <th scope="col">
+              Fin
+            </th>
+            <th
+              v-if="o.etat === 'publiee'"
+              scope="col"
+            >
+              <span class="sr-only">Action</span>
+            </th>
+          </tr>
+        </thead>
+        <template
+          v-for="g in groupes"
+          :key="g.nom"
         >
-          Choisissez au moins un canal.
-        </p>
-        <div class="actions">
+          <tbody>
+            <tr class="supports__groupe">
+              <th
+                :colspan="6"
+                scope="rowgroup"
+              >
+                {{ g.nom }}
+              </th>
+            </tr>
+            <tr
+              v-for="c in g.supports"
+              :key="c.id"
+            >
+              <td v-if="o.etat === 'a_publier'">
+                <input
+                  type="checkbox"
+                  :checked="o.canaux.includes(c.id)"
+                  :aria-label="`Publier sur ${c.nom}`"
+                  @change="inclure(c.id)"
+                >
+              </td>
+              <td>
+                {{ c.nom }}<small>{{ c.detail }}</small>
+              </td>
+              <td>
+                <span
+                  class="etat"
+                  :class="[{ 'etat--on': o.publications[c.id]?.etat === 'publiee' }]"
+                >{{ etatSupport(c.id) }}</span>
+              </td>
+              <td>{{ o.publications[c.id]?.debut ?? '—' }}</td>
+              <td>{{ o.publications[c.id]?.fin ?? (o.canaux.includes(c.id) ? o.dateLimite || '—' : '—') }}</td>
+              <td v-if="o.etat === 'publiee'">
+                <CspButton
+                  v-if="o.publications[c.id]?.etat === 'publiee'"
+                  label="Arrêter"
+                  size="sm"
+                  variant="tertiary-no-outline"
+                  @click="arreterSupport(c.id)"
+                />
+                <CspButton
+                  v-else
+                  label="Publier"
+                  size="sm"
+                  variant="tertiary-no-outline"
+                  @click="publierSupport(c.id)"
+                />
+              </td>
+            </tr>
+          </tbody>
+        </template>
+      </table>
+      <p
+        v-if="tentative && manques.length"
+        class="manque"
+        role="alert"
+      >
+        Pour publier, complétez : {{ manques.join(', ') }}.
+      </p>
+      <div class="actions">
+        <template v-if="o.etat === 'a_publier'">
           <CspButton
             label="Revenir en rédaction"
             variant="tertiary-no-outline"
@@ -251,104 +302,101 @@ function retour() {
             is-icon-left
             @click="publier"
           />
-        </div>
-      </Panel>
-
-      <!-- Publiée -->
-      <Panel
-        v-else-if="o.etat === 'publiee'"
-        titre="Offre publiée"
-        :description="`Publiée ${le(o.publieeLe)} — candidatures jusqu'au ${o.dateLimite}.`"
-      >
-        <ul class="liste">
-          <li
-            v-for="c in CANAUX_DIFFUSION.filter(x => o.canaux.includes(x.id))"
-            :key="c.id"
-          >
-            {{ c.nom }} <small>— {{ c.detail.toLowerCase() }}</small>
-          </li>
-        </ul>
-        <div class="actions">
-          <CspButton
-            label="Archiver l'offre"
-            variant="secondary"
-            icon="ri:archive-line"
-            is-icon-left
-            @click="archiver"
-          />
-        </div>
-      </Panel>
-
-      <!-- Archivée -->
-      <Panel
-        v-else
-        titre="Offre archivée"
-        description="Elle n'est plus visible des candidats. Son contenu peut servir de base à une nouvelle offre."
-      >
-        <div class="actions">
-          <CspButton
-            label="Dupliquer cette offre"
-            variant="secondary"
-            icon="ri:file-copy-2-line"
-            is-icon-left
-            @click="aller({ nom: 'creation', mode: 'duplication', offreId: o.id })"
-          />
-        </div>
-      </Panel>
-    </div>
-
-    <aside class="col">
-      <Panel titre="Rappel">
-        <dl class="dl">
-          <dt>Fiche</dt>
-          <dd>{{ fiche.intitule }} ({{ fiche.id }})</dd>
-          <dt>Postes</dt>
-          <dd>{{ o.nbPostes }}</dd>
-          <dt>Lieu</dt>
-          <dd>{{ o.lieu || '—' }}</dd>
-          <dt>Date limite</dt>
-          <dd>{{ o.dateLimite || '—' }}</dd>
-        </dl>
+        </template>
         <CspButton
-          label="Voir l'aperçu candidat"
-          variant="tertiary-no-outline"
-          size="sm"
-          @click="emit('onglet', 'redaction')"
+          v-else
+          label="Arrêter les publications et archiver"
+          variant="secondary"
+          icon="ri:archive-line"
+          is-icon-left
+          @click="archiver"
         />
-      </Panel>
-    </aside>
-  </div>
+      </div>
+    </Panel>
+  </template>
+
+  <Panel
+    v-else
+    titre="Offre archivée"
+    description="Elle n'est plus visible des candidats. Son contenu peut servir de base à un nouveau recrutement."
+  >
+    <div>
+      <CspButton
+        label="Dupliquer cette offre"
+        variant="secondary"
+        icon="ri:file-copy-2-line"
+        is-icon-left
+        @click="aller({ nom: 'creation', mode: 'duplication', offreId: o.id })"
+      />
+    </div>
+  </Panel>
 </template>
 
 <style scoped lang="scss">
-.grille {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 20rem;
-  gap: var(--csp-space-5);
-  align-items: start;
+.texte {
+  margin: 0;
+  font-size: var(--csp-font-size-sm);
 }
 
-.col {
-  display: flex;
-  flex-direction: column;
-  gap: var(--csp-space-4);
-}
-
-.mention {
+.ecart {
   display: flex;
   align-items: center;
   gap: var(--csp-space-1);
   margin: 0;
+  padding: var(--csp-space-2) var(--csp-space-3);
+  background: var(--background-alt-blue-france);
   font-size: var(--csp-font-size-sm);
-  color: var(--text-mention-grey);
 }
 
-.manques {
-  margin: 0;
-  padding: var(--csp-space-3) var(--csp-space-4);
-  border-left: 3px solid var(--border-plain-error);
-  background: var(--background-default-grey);
+.supports {
+  width: 100%;
+  border-collapse: collapse;
   font-size: var(--csp-font-size-sm);
+
+  th,
+  td {
+    padding: var(--csp-space-2);
+    border-bottom: 1px solid var(--border-default-grey);
+    text-align: left;
+    vertical-align: middle;
+  }
+
+  thead th {
+    font-size: var(--csp-font-size-xs);
+    font-weight: var(--csp-font-weight-medium);
+    color: var(--text-mention-grey);
+  }
+
+  small {
+    display: block;
+    font-size: var(--csp-font-size-xs);
+    color: var(--text-mention-grey);
+  }
+
+  input {
+    accent-color: var(--background-action-high-blue-france);
+  }
+}
+
+.supports__groupe th {
+  padding-top: var(--csp-space-4);
+  background: var(--background-alt-grey);
+  font-weight: var(--csp-font-weight-bold);
+}
+
+.etat {
+  color: var(--text-mention-grey);
+
+  &--on {
+    color: var(--text-default-success);
+    font-weight: var(--csp-font-weight-bold);
+  }
+}
+
+.manque {
+  margin: 0;
+  font-size: var(--csp-font-size-sm);
+  color: var(--text-default-error);
 }
 
 .actions {
@@ -357,84 +405,11 @@ function retour() {
   gap: var(--csp-space-2);
 }
 
-.dl {
-  display: grid;
-  grid-template-columns: 6rem 1fr;
-  gap: var(--csp-space-1) var(--csp-space-3);
-  margin: 0;
-  font-size: var(--csp-font-size-sm);
-
-  dt {
-    color: var(--text-mention-grey);
-  }
-
-  dd {
-    margin: 0;
-  }
-}
-
-.correction {
-  display: flex;
-  flex-direction: column;
-  gap: var(--csp-space-2);
-}
-
-.canaux {
-  display: flex;
-  flex-direction: column;
-  gap: var(--csp-space-2);
-  margin: 0;
-  padding: 0;
-  border: 0;
-}
-
-.legende {
-  margin-bottom: var(--csp-space-2);
-  color: var(--text-label-grey);
-}
-
-.canal {
-  display: flex;
-  align-items: flex-start;
-  gap: var(--csp-space-2);
-  font-size: var(--csp-font-size-sm);
-  cursor: pointer;
-
-  input {
-    margin-top: 3px;
-    accent-color: var(--background-action-high-blue-france);
-  }
-
-  small {
-    display: block;
-    font-size: var(--csp-font-size-xs);
-    color: var(--text-mention-grey);
-  }
-}
-
-.date {
-  max-width: 16rem;
-}
-
-.liste {
-  margin: 0;
-  padding-left: var(--csp-space-5);
-  list-style: disc;
-  font-size: var(--csp-font-size-sm);
-
-  small {
-    color: var(--text-mention-grey);
-  }
-}
-
-.lien {
-  margin-left: var(--csp-space-1);
-  padding: 0;
-  border: 0;
-  background: none;
-  font: inherit;
-  color: var(--text-action-high-blue-france);
-  text-decoration: underline;
-  cursor: pointer;
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
 }
 </style>
