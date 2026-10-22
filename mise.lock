@@ -116,50 +116,50 @@ url = "https://github.com/scaleway/scaleway-cli/releases/download/v2.62.0/scalew
 url_api = "https://api.github.com/repos/scaleway/scaleway-cli/releases/assets/539383805"
 
 [[tools.uv]]
-version = "0.9.30"
+version = "0.13.4"
 backend = "aqua:astral-sh/uv"
-specifiers = ["0.9"]
+specifiers = ["0.13"]
 
 [tools.uv."platforms.linux-arm64"]
-checksum = "sha256:6aadf3c71600d594e16dabf382cc15282ead4c5ca768599b6bcb43c5004d9aa8"
-url = "https://github.com/astral-sh/uv/releases/download/0.9.30/uv-aarch64-unknown-linux-gnu.tar.gz"
-url_api = "https://api.github.com/repos/astral-sh/uv/releases/assets/350792448"
+checksum = "sha256:1ae72b4718729e2ccc4f1ae2c6d1e531ca8467800e0546e9130b3886023a60ab"
+url = "https://github.com/astral-sh/uv/releases/download/0.13.4/uv-aarch64-unknown-linux-gnu.tar.gz"
+url_api = "https://api.github.com/repos/astral-sh/uv/releases/assets/659693320"
 provenance = "github-attestations"
 
 [tools.uv."platforms.linux-arm64-musl"]
-checksum = "sha256:b658b56957bceea742ca14f3ef28fb3542adbcedfb8bd5bd718ae255394ccd09"
-url = "https://github.com/astral-sh/uv/releases/download/0.9.30/uv-aarch64-unknown-linux-musl.tar.gz"
-url_api = "https://api.github.com/repos/astral-sh/uv/releases/assets/350792451"
+checksum = "sha256:253a17cadcb659ae77a0fe3b9a2f1c14297528d480c421899e61e64d64f24e8f"
+url = "https://github.com/astral-sh/uv/releases/download/0.13.4/uv-aarch64-unknown-linux-musl.tar.gz"
+url_api = "https://api.github.com/repos/astral-sh/uv/releases/assets/659693337"
 provenance = "github-attestations"
 
 [tools.uv."platforms.linux-x64"]
-checksum = "sha256:8b3762374972daa7a74bbc6896cc73229ca69a07403dd9f9ea3805a51ffd7582"
-url = "https://github.com/astral-sh/uv/releases/download/0.9.30/uv-x86_64-unknown-linux-gnu.tar.gz"
-url_api = "https://api.github.com/repos/astral-sh/uv/releases/assets/350792496"
+checksum = "sha256:2b428396f12572d4429cf210ca234dd599a33b3af0958a4d5ed569d63e3f344f"
+url = "https://github.com/astral-sh/uv/releases/download/0.13.4/uv-x86_64-unknown-linux-gnu.tar.gz"
+url_api = "https://api.github.com/repos/astral-sh/uv/releases/assets/659693663"
 provenance = "github-attestations"
 
 [tools.uv."platforms.linux-x64-musl"]
-checksum = "sha256:1caf8fe092e2005dd4c134ba515c1aa3eea3d3c143f8a1903bcb58fcdf169365"
-url = "https://github.com/astral-sh/uv/releases/download/0.9.30/uv-x86_64-unknown-linux-musl.tar.gz"
-url_api = "https://api.github.com/repos/astral-sh/uv/releases/assets/350792501"
+checksum = "sha256:28d4385f9f9d1d1c7654d85b3855e0e2615b2f6cc13136a2edff858bbdc16ff1"
+url = "https://github.com/astral-sh/uv/releases/download/0.13.4/uv-x86_64-unknown-linux-musl.tar.gz"
+url_api = "https://api.github.com/repos/astral-sh/uv/releases/assets/659693713"
 provenance = "github-attestations"
 
 [tools.uv."platforms.macos-arm64"]
-checksum = "sha256:03a5d9ec7f7d588446b2ec226d13ff6300055e55365eca8f3fab39f342b0e805"
-url = "https://github.com/astral-sh/uv/releases/download/0.9.30/uv-aarch64-apple-darwin.tar.gz"
-url_api = "https://api.github.com/repos/astral-sh/uv/releases/assets/350792440"
+checksum = "sha256:e0b1d4743ce64c55d9f0f4a444afa6b81125680070ee04e853fcd0f6c1ebf8f1"
+url = "https://github.com/astral-sh/uv/releases/download/0.13.4/uv-aarch64-apple-darwin.tar.gz"
+url_api = "https://api.github.com/repos/astral-sh/uv/releases/assets/659693291"
 provenance = "github-attestations"
 
 [tools.uv."platforms.macos-x64"]
-checksum = "sha256:ce069bf750567e9a4a31d6e285d1eae75d444d8a281409b641235903943b7681"
-url = "https://github.com/astral-sh/uv/releases/download/0.9.30/uv-x86_64-apple-darwin.tar.gz"
-url_api = "https://api.github.com/repos/astral-sh/uv/releases/assets/350792488"
+checksum = "sha256:7be2dcd316122f4b3e5a0a7889f6248266c14425374e105ff7dc9779184603a6"
+url = "https://github.com/astral-sh/uv/releases/download/0.13.4/uv-x86_64-apple-darwin.tar.gz"
+url_api = "https://api.github.com/repos/astral-sh/uv/releases/assets/659693620"
 provenance = "github-attestations"
 
 [tools.uv."platforms.windows-x64"]
-checksum = "sha256:875981be7908295937dee09532bb66d576986d4f223259e171b0c767c885897a"
-url = "https://github.com/astral-sh/uv/releases/download/0.9.30/uv-x86_64-pc-windows-msvc.zip"
-url_api = "https://api.github.com/repos/astral-sh/uv/releases/assets/350792491"
+checksum = "sha256:ccec7508a07d9933d7cb1261880633efcf1f30d6e6eddab21823f1dae6f23225"
+url = "https://github.com/astral-sh/uv/releases/download/0.13.4/uv-x86_64-pc-windows-msvc.zip"
+url_api = "https://api.github.com/repos/astral-sh/uv/releases/assets/659693635"
 provenance = "github-attestations"
 
 [[tools.yq]]
