@@ -1,9 +1,17 @@
 <script setup lang="ts">
+import type { UnreadVariant } from './variants'
+import { computed } from 'vue'
 import { DEMO_RECRUTEMENT_UUID } from '@/api/__mocks__/demo'
 import { demoKanban } from '@/features/candidatures/__mocks__/demo'
 import CandidatureKanbanCard from '@/features/candidatures/components/CandidatureKanbanCard.vue'
 import UnreadVariantProvider from './UnreadVariantProvider.vue'
 import { UNREAD_VARIANTS } from './variants'
+
+const props = defineProps<{ variants?: UnreadVariant[] }>()
+
+const shownVariants = computed(() => props.variants
+  ? UNREAD_VARIANTS.filter(({ id }) => props.variants!.includes(id))
+  : UNREAD_VARIANTS)
 
 const NOMS = ['Fontaine', 'Moreau', 'Benali', 'Leroy']
 
@@ -13,7 +21,7 @@ const candidatures = demoKanban().etapes.flatMap(({ candidatures }) => candidatu
 <template>
   <div class="messages-non-lus-comparaison">
     <UnreadVariantProvider
-      v-for="variant in UNREAD_VARIANTS"
+      v-for="variant in shownVariants"
       :key="variant.id"
       :variant="variant.id"
     >
