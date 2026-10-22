@@ -25,6 +25,9 @@ from referentiel.value_objects.region import Region
 from referentiel.value_objects.verse import Verse
 from rest_framework import serializers
 
+from application.ingestion.services.list_public_organismes import (
+    PUBLIC_ORGANISME_REFERENTIELS,
+)
 from infrastructure.django_apps.ingestion.models.talentsoft_organisme import (
     TalentsoftOrganismeModel,
 )
@@ -1061,9 +1064,6 @@ class UpsertOrganismesResponseSerializer(serializers.Serializer):
     errors = serializers.ListField(child=serializers.DictField())
 
 
-ORGANISME_REFERENTIELS = ["FINESS", "GIPCDG", "DILA"]
-
-
 class ListOrganismesFiltersSerializer(serializers.Serializer):
     versant = _CommaSeparatedEnumField(
         Verse,
@@ -1090,7 +1090,7 @@ class ListOrganismesFiltersSerializer(serializers.Serializer):
         source="department",
     )
     referentiel = serializers.ChoiceField(
-        choices=ORGANISME_REFERENTIELS,
+        choices=PUBLIC_ORGANISME_REFERENTIELS,
         required=False,
         help_text="Référentiel source de l'organisme.",
     )
@@ -1116,7 +1116,7 @@ class OrganismePublicSerializer(serializers.ModelSerializer):
         allow_null=True, help_text="Identifiant de l'organisme parent."
     )
     referentiel = serializers.ChoiceField(
-        choices=ORGANISME_REFERENTIELS,
+        choices=PUBLIC_ORGANISME_REFERENTIELS,
         allow_null=True,
         help_text="Référentiel source. Avec "
         "`external_id`, identifie l'organisme pour la création, la mise à jour et "

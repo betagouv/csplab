@@ -77,6 +77,9 @@ class OrganismeQuerySet(models.QuerySet):
             return self
         return self.filter(localisation__department=department)
 
+    def by_referentiels(self, referentiels: Sequence[str]) -> "OrganismeQuerySet":
+        return self.filter(referentiel__in=referentiels)
+
     def by_referentiel(self, referentiel: str | None) -> "OrganismeQuerySet":
         if not referentiel:
             return self

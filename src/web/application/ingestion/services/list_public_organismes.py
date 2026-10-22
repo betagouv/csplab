@@ -3,6 +3,8 @@ from referentiel.value_objects.verse import Verse
 
 from infrastructure.django_apps.recruteur.models.organisme import OrganismeModel
 
+PUBLIC_ORGANISME_REFERENTIELS = ("FINESS", "GIPCDG", "DILA")
+
 
 def list_public_organismes(
     *,
@@ -14,6 +16,7 @@ def list_public_organismes(
 ) -> QuerySet[OrganismeModel]:
     return (
         OrganismeModel.objects.not_supprimes()
+        .by_referentiels(PUBLIC_ORGANISME_REFERENTIELS)
         .by_versants(versants)
         .by_siret(siret)
         .search_name(name)

@@ -3,9 +3,14 @@ from datetime import datetime, timezone
 from django.urls import reverse
 from rest_framework import status
 
+from infrastructure.django_apps.recruteur.models.organisme import OrganismeModel
 from infrastructure.factories.identite.organisme_django_factory import (
     OrganismeDjangoFactory,
 )
+
+
+def _organisme(**kwargs) -> OrganismeModel:
+    return OrganismeDjangoFactory(**{"referentiel": "FINESS", **kwargs})
 
 URL = reverse("ingestion:organismes")
 
@@ -43,8 +48,8 @@ def test_put_remains_api_key_only(jwt_client):
 
 
 def test_returns_public_fields(jwt_client):
-    parent = OrganismeDjangoFactory(nom="ARS Corse")
-    organisme = OrganismeDjangoFactory(
+    parent = _organisme(nom="ARS Corse")
+    organisme = _organisme(
         nom="Centre hospitalier de Bastia",
         versant="FPH",
         siret="26200017900016",
@@ -90,7 +95,7 @@ def test_returns_public_fields(jwt_client):
 
 
 def test_localisation_is_null_when_unknown(jwt_client):
-    OrganismeDjangoFactory(localisation=None)
+    _organisme(localisation=None)
 
     response = jwt_client.get(URL)
 
@@ -98,8 +103,8 @@ def test_localisation_is_null_when_unknown(jwt_client):
 
 
 def test_excludes_deleted_organismes(jwt_client):
-    OrganismeDjangoFactory(nom="Actif")
-    OrganismeDjangoFactory(
+    _organisme(nom="Actif")
+    _organisme(
         nom="Supprimé", supprime_le=datetime(2026, 1, 1, tzinfo=timezone.utc)
     )
 
@@ -108,10 +113,22 @@ def test_excludes_deleted_organismes(jwt_client):
     assert _noms(response) == ["Actif"]
 
 
+def test_excludes_organismes_outside_public_referentiels(jwt_client):
+    _organisme(nom="Finess", referentiel="FINESS")
+    _organisme(nom="Gipcdg", referentiel="GIPCDG")
+    _organisme(nom="Dila", referentiel="DILA")
+    OrganismeDjangoFactory(nom="Créé par un recruteur", referentiel=None)
+    OrganismeDjangoFactory(nom="Autre référentiel", referentiel="INSEE")
+
+    response = jwt_client.get(URL)
+
+    assert _noms(response) == ["Dila", "Finess", "Gipcdg"]
+
+
 def test_filters_by_several_versants(jwt_client):
-    OrganismeDjangoFactory(nom="Etat", versant="FPE")
-    OrganismeDjangoFactory(nom="Territoriale", versant="FPT")
-    OrganismeDjangoFactory(nom="Hospitaliere", versant="FPH")
+    _organisme(nom="Etat", versant="FPE")
+    _organisme(nom="Territoriale", versant="FPT")
+    _organisme(nom="Hospitaliere", versant="FPH")
 
     response = jwt_client.get(URL, {"versant": "FPE,FPH"})
 
@@ -126,8 +143,8 @@ def test_invalid_versant_returns_400(jwt_client):
 
 
 def test_filters_by_siret(jwt_client):
-    OrganismeDjangoFactory(nom="Cherché", siret="11111111111111")
-    OrganismeDjangoFactory(nom="Autre", siret="22222222222222")
+    _organisme(nom="Cherché", siret="11111111111111")
+    _organisme(nom="Autre", siret="22222222222222")
 
     response = jwt_client.get(URL, {"siret": "11111111111111"})
 
@@ -140,8 +157,8 @@ def test_siret_must_have_14_characters(jwt_client):
 
 
 def test_filters_by_name_case_insensitive(jwt_client):
-    OrganismeDjangoFactory(nom="Centre Hospitalier de Bastia")
-    OrganismeDjangoFactory(nom="Mairie de Bastia")
+    _organisme(nom="Centre Hospitalier de Bastia")
+    _organisme(nom="Mairie de Bastia")
 
     response = jwt_client.get(URL, {"nom": "hospitalier"})
 
@@ -149,15 +166,15 @@ def test_filters_by_name_case_insensitive(jwt_client):
 
 
 def test_filters_by_departement(jwt_client):
-    OrganismeDjangoFactory(
+    _organisme(
         nom="Bastia",
         localisation=_localisation("2B"),
     )
-    OrganismeDjangoFactory(
+    _organisme(
         nom="Ajaccio",
         localisation=_localisation("2A"),
     )
-    OrganismeDjangoFactory(nom="Sans localisation", localisation=None)
+    _organisme(nom="Sans localisation", localisation=None)
 
     response = jwt_client.get(URL, {"departement": "2B"})
 
@@ -170,8 +187,8 @@ def test_invalid_departement_returns_400(jwt_client):
 
 
 def test_filters_by_referentiel(jwt_client):
-    OrganismeDjangoFactory(nom="Finess", referentiel="FINESS")
-    OrganismeDjangoFactory(nom="Dila", referentiel="DILA")
+    _organisme(nom="Finess", referentiel="FINESS")
+    _organisme(nom="Dila", referentiel="DILA")
 
     response = jwt_client.get(URL, {"referentiel": "DILA"})
 
@@ -185,11 +202,11 @@ def test_invalid_referentiel_returns_400(jwt_client):
 
 def test_stable_order_and_pagination(jwt_client):
     homonymes = sorted(
-        (OrganismeDjangoFactory(nom="Mairie") for _ in range(2)),
+        (_organisme(nom="Mairie") for _ in range(2)),
         key=lambda organisme: organisme.id,
     )
 
-    abbaye = OrganismeDjangoFactory(nom="Abbaye")
+    abbaye = _organisme(nom="Abbaye")
 
     first_page = jwt_client.get(URL, {"taille": 2, "page": 1}).json()
     second_page = jwt_client.get(URL, {"taille": 2, "page": 2}).json()
@@ -205,7 +222,7 @@ def test_stable_order_and_pagination(jwt_client):
 
 
 def test_page_out_of_range_returns_404(jwt_client):
-    OrganismeDjangoFactory()
+    _organisme()
 
     response = jwt_client.get(URL, {"page": 2})
 
