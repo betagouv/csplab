@@ -3,6 +3,7 @@ import type { InjectionKey, Ref } from 'vue'
 export const UNREAD_VARIANTS = [
   { id: 'maquette', name: 'Ligne de la maquette' },
   { id: 'maquette-icone', name: 'Ligne de la maquette, avec une icône' },
+  { id: 'nom-gras', name: 'Nom en gras' },
   { id: 'point-nom', name: 'Point à côté du nom' },
   { id: 'compteur-nom', name: 'Compteur à côté du nom' },
   { id: 'icone-date', name: 'Icône sur la ligne de la date' },

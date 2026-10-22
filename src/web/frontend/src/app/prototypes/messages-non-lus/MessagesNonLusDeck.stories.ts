@@ -39,7 +39,7 @@ export const LigneDeLaDateRouge: Story = {
 
 export const LigneDuNom: Story = {
   name: 'Ligne du nom',
-  args: { variants: ['point-nom', 'compteur-nom'] },
+  args: { variants: ['nom-gras', 'point-nom', 'compteur-nom'] },
 }
 
 export const LigneDuNomRouge: Story = {

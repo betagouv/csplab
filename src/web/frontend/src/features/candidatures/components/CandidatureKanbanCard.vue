@@ -65,6 +65,8 @@ const { isDragging } = useDraggableKanbanCard({
     :class="{
       'candidature-kanban-card--dragging': isDragging,
       'candidature-kanban-card--current': isCurrent,
+      'candidature-kanban-card--weight-signal': unreadVariant === 'nom-gras',
+      'candidature-kanban-card--unread': unreadCount > 0,
     }"
     :aria-current="isCurrent ? 'true' : undefined"
   >
@@ -86,6 +88,7 @@ const { isDragging } = useDraggableKanbanCard({
           draggable="false"
           class="candidature-kanban-card__link"
           :data-candidature-uuid="candidature.uuid"
+          :aria-label="unreadCount && unreadVariant === 'nom-gras' ? `${formatCandidatName(candidature.candidat)}, nouveau message` : undefined"
         >
           {{ formatCandidatName(candidature.candidat) }}
         </RouterLink>
@@ -329,6 +332,15 @@ const { isDragging } = useDraggableKanbanCard({
 /* the date and the line of the mock-up form one block */
 .candidature-kanban-card__date:has(+ .candidature-kanban-card__unread-line) {
   line-height: 1.25rem;
+}
+
+/* the weight of the name tells the cards with an unread conversation */
+.candidature-kanban-card--weight-signal :deep(.csp-card__title) {
+  font-weight: var(--csp-font-weight-regular);
+}
+
+.candidature-kanban-card--weight-signal.candidature-kanban-card--unread :deep(.csp-card__title) {
+  font-weight: var(--csp-font-weight-bold);
 }
 
 /* above the link overlay, so that the link to the messages takes the pointer */
