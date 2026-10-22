@@ -829,6 +829,6 @@ class TagListQuerySerializer(serializers.Serializer):
 
 
 class CreateTagSerializer(serializers.Serializer):
-    name = serializers.CharField(trim_whitespace=False, allow_blank=True)
+    name = serializers.CharField()
     category = serializers.ChoiceField(choices=TagCategory.choices)
     color = serializers.ChoiceField(choices=TagColor.choices, default=TagColor.BLEU)

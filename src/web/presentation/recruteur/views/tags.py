@@ -17,7 +17,7 @@ from domain.identite.errors.organisme_permission_errors import (
 )
 from domain.recruteur.errors.tag_errors import InvalidTagName, TagAlreadyExists
 from presentation.api.authentication import SessionApiMixin
-from presentation.api.serializers import GenericErrorSerializer, TokenErrorSerializer
+from presentation.api.serializers import GenericErrorSerializer, generic_response_format
 from presentation.recruteur.serializers import (
     CreateTagSerializer,
     TagListQuerySerializer,
@@ -31,12 +31,9 @@ from presentation.recruteur.serializers import (
         tags=["recruteur"],
         parameters=[TagListQuerySerializer],
         responses={
+            **generic_response_format,
             200: TagSerializer(many=True),
             400: GenericErrorSerializer,
-            401: TokenErrorSerializer,
-            403: GenericErrorSerializer,
-            404: GenericErrorSerializer,
-            500: GenericErrorSerializer,
         },
     ),
     post=extend_schema(
@@ -44,13 +41,10 @@ from presentation.recruteur.serializers import (
         tags=["recruteur"],
         request=CreateTagSerializer,
         responses={
+            **generic_response_format,
             201: TagSerializer,
             400: GenericErrorSerializer,
-            401: TokenErrorSerializer,
-            403: GenericErrorSerializer,
-            404: GenericErrorSerializer,
             409: GenericErrorSerializer,
-            500: GenericErrorSerializer,
         },
     ),
 )

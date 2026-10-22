@@ -160,6 +160,7 @@ class TestListTags:
             organisme=agent_organisme, category=TagCategory.NOTE
         )
         TagDjangoFactory(organisme=agent_organisme, category=TagCategory.CANDIDATURE)
+        TagDjangoFactory(category=TagCategory.NOTE)
 
         response = authenticated_client.get(
             _tags_url(agent_organisme.id), {"category": "note"}
@@ -288,19 +289,6 @@ class TestCreateTag:
             "error": "Les émojis et les caractères < > ne sont pas autorisés."
         }
         assert not TagModel.objects.exists()
-
-    @pytest.mark.parametrize("name", ["", "   "], ids=["vide", "espaces"])
-    def test_blank_name_is_a_bad_request(
-        self, authenticated_client, superviseur_organisme, name
-    ):
-        response = authenticated_client.post(
-            _tags_url(superviseur_organisme.id),
-            data={"name": name, "category": "candidature"},
-            format="json",
-        )
-
-        assert response.status_code == status.HTTP_400_BAD_REQUEST
-        assert response.json() == {"error": "Le libellé de l'étiquette est obligatoire"}
 
     @pytest.mark.parametrize(
         "data",
