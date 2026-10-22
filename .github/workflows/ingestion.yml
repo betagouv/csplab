@@ -25,6 +25,7 @@ jobs:
               - "src/ingestion/**"
               - "mise.toml"
               - "mise.ci.toml"
+              - "mise.lock"
               - ".github/workflows/ingestion.yml"
               - ".github/actions/**"
 

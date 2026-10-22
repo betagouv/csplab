@@ -25,6 +25,7 @@ jobs:
               - "src/ocr/**"
               - "mise.toml"
               - "mise.ci.toml"
+              - "mise.lock"
               - ".github/workflows/ocr.yml"
               - ".github/actions/**"
 

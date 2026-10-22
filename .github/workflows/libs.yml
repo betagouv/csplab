@@ -25,6 +25,7 @@ jobs:
               - "libs/**"
               - "mise.toml"
               - "mise.ci.toml"
+              - "mise.lock"
               - ".github/workflows/libs.yml"
               - ".github/actions/**"
 
