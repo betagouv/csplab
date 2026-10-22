@@ -107,7 +107,6 @@ class OrganismeModel(BaseDatedModel):
     versant = models.CharField(
         max_length=10,
         choices=[(v.value, v.value) for v in Verse],
-        db_index=True,
     )
     siret = models.CharField(max_length=14, unique=True)
     external_id = models.CharField(max_length=50, null=True, blank=True)
