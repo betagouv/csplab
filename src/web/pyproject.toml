@@ -36,7 +36,7 @@ dependencies = [
     "django-otp>=1.5.4,<2.0.0",
     "qrcode>=8.0,<9.0",
     "redis>=7.4.0",
-    "requests>=2.32.5,<2.33.0",
+    "requests>=2.32.5,<2.35.0",
     "scaleway_secrets",
     "sentry-sdk[django]>=2.43.0,<3.0.0",
     "whitenoise>=6.11.0",
