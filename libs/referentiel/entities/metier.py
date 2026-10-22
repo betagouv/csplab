@@ -14,9 +14,7 @@ class Metier(IEntity):
     description: str
     domaine_fonctionnel_code: str
     versants: List[Verse]
+    offer_family_code: str  # not unique by metier, links an offer to some metiers
     activites: Optional[List[str]] = None
     conditions_particulieres: Optional[List[str]] = None
-    offer_family_code: Optional[str] = (
-        None  # not unique by metier, but can be used to link an offer to some metiers
-    )
     id: UUID = field(default_factory=uuid4)

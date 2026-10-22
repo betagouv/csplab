@@ -1,10 +1,14 @@
+from datetime import datetime
 from unittest.mock import MagicMock
+from uuid import uuid4
 
 import pytest
 
+from domain.ingestion.entities.document import Document, DocumentType
 from infrastructure.external_gateways.dtos.ingres_metiers_dtos import (
     ConditionsParticulieresDExerciceDAcces,
     DefinitionSynthetiqueDeLEr,
+    EmploiDeReferenceCSP,
 )
 from infrastructure.factories.ingestion.ingres_metiers_factories import (
     CompetencesFactory,
@@ -109,3 +113,38 @@ def test_conditions_particulieres_empty_when_none(cleaner):
     metier = cleaner._dto_to_entity(document)
 
     assert metier.conditions_particulieres == []
+
+
+def _raw_document(document) -> Document:
+    return Document(
+        entity_id=uuid4(),
+        raw_data=document.model_dump(),
+        type=DocumentType.METIERS,
+        created_at=datetime.now(),
+    )
+
+
+def test_offer_family_code_comes_from_code_emploi_csp(cleaner):
+    document = _make_document()
+
+    metier = cleaner._dto_to_entity(document)
+
+    assert metier.offer_family_code == "ERACH001"
+
+
+@pytest.mark.parametrize("code_emploi_csp", [None, ""])
+def test_metier_without_code_emploi_csp_is_rejected(cleaner, code_emploi_csp):
+    definitions = DefinitionsFactory.build().model_copy(
+        update={
+            "emploiDeReferenceCSP": EmploiDeReferenceCSP(codeEmploiCSP=code_emploi_csp)
+        }
+    )
+    rejected = _make_document(identifiant="FPDIR016", definitions=definitions)
+    kept = _make_document(identifiant="FPACH001")
+
+    result = cleaner.clean([_raw_document(rejected), _raw_document(kept)])
+
+    assert [m.external_id for m in result.entities] == ["FPACH001"]
+    assert len(result.cleaning_errors) == 1
+    assert "FPDIR016" in result.cleaning_errors[0]["error"]
+    assert "codeEmploiCSP" in result.cleaning_errors[0]["error"]
