@@ -11,10 +11,10 @@ Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/).
 ### ⚠️ Changements non rétrocompatibles
 
 `POST /api/v1/offres/creer_modifier` : une offre dont `conditions.note_ouverture_poste_url`
-ne pointe pas vers `legifrance.gouv.fr` ou `www.legifrance.gouv.fr` est désormais
-rejetée. Elle apparaît dans `errors`, avec le message « Le lien doit pointer vers
-l'avis de vacance publié sur legifrance.gouv.fr. ». Jusqu'ici, n'importe quel lien
-web était accepté.
+n'est pas un lien `https` vers `legifrance.gouv.fr` ou `www.legifrance.gouv.fr` est
+désormais rejetée. Elle apparaît dans `errors`, avec le message « Le lien doit être en
+https et pointer vers l'avis de vacance publié sur legifrance.gouv.fr. ». Jusqu'ici,
+n'importe quel lien web était accepté.
 
 ### Compatibilité
 

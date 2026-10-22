@@ -110,7 +110,6 @@ CONDITIONS = {"temps_travail": "TEMPS_PLEIN", "lieu_de_travail": "SUR_SITE"}
     [
         "https://www.legifrance.gouv.fr/jorf/id/JORFTEXT000050000000",
         "https://legifrance.gouv.fr/jorf/id/JORFTEXT000050000000",
-        "http://www.legifrance.gouv.fr/jorf/id/JORFTEXT000050000000",
     ],
 )
 def test_conditions_input_serializer_accepts_legifrance_vacancy_notice(url):
@@ -125,6 +124,7 @@ def test_conditions_input_serializer_accepts_legifrance_vacancy_notice(url):
 @pytest.mark.parametrize(
     "url",
     [
+        "http://www.legifrance.gouv.fr/jorf/id/JORFTEXT000050000000",
         "https://exemple.teamtailor.com/jobs/123-gestionnaire-rh",
         "https://www.legifrance.gouv.fr.exemple.com/jorf/id/JORFTEXT000050000000",
         "https://exemple.com/?u=https://www.legifrance.gouv.fr/jorf",
@@ -139,8 +139,8 @@ def test_conditions_input_serializer_rejects_vacancy_notice_outside_legifrance(u
     assert serializer.errors == {
         "note_ouverture_poste_url": [
             (
-                "Le lien doit pointer vers l'avis de vacance publié sur "
-                "legifrance.gouv.fr."
+                "Le lien doit être en https et pointer vers l'avis de vacance "
+                "publié sur legifrance.gouv.fr."
             )
         ]
     }

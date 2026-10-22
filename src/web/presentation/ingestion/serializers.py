@@ -843,14 +843,15 @@ class ConditionsInputSerializer(serializers.Serializer):
     note_ouverture_poste_url = serializers.URLField(
         required=False,
         help_text="Lien vers l'avis de vacance publié au Journal officiel, "
-        "sur `legifrance.gouv.fr`.",
+        "en `https` sur `legifrance.gouv.fr`.",
     )
 
     def validate_note_ouverture_poste_url(self, value):
-        if urlparse(value).hostname not in LEGIFRANCE_HOSTS:
+        url = urlparse(value)
+        if url.scheme != "https" or url.hostname not in LEGIFRANCE_HOSTS:
             raise serializers.ValidationError(
-                "Le lien doit pointer vers l'avis de vacance publié sur "
-                "legifrance.gouv.fr."
+                "Le lien doit être en https et pointer vers l'avis de vacance "
+                "publié sur legifrance.gouv.fr."
             )
         return value
 
