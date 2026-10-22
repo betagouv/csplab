@@ -893,7 +893,7 @@ class TestAuthorizedActions:
             SUPERVISEUR_ACTIONS_SANS_RECRUTEMENT, key=list(OrganismeAction).index
         )
 
-    def test_responsable_agent_gets_search_and_create_agent(self):
+    def test_responsable_agent_also_gets_search_and_create_agent(self):
         organisme_id = uuid4()
 
         assert OrganismePermissionService().authorized_actions_organisme(

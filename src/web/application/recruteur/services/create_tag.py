@@ -16,8 +16,6 @@ from infrastructure.repositories.commons.postgres_audit_log_repository import (
     PostgresAuditLogRepository,
 )
 
-TAG_NAME_UNIQUE_CONSTRAINT = "tag_unique_name_per_organisme_category"
-
 
 def create_tag(
     *,
@@ -44,9 +42,7 @@ def create_tag(
                 color=color,
             )
         except IntegrityError as exc:
-            if TAG_NAME_UNIQUE_CONSTRAINT in str(exc):
-                raise TagAlreadyExists(name) from exc
-            raise
+            raise TagAlreadyExists(name) from exc
         AuditLogWriter(repository=PostgresAuditLogRepository()).log_action(
             utilisateur_id=utilisateur.username,
             entity=Entity(entity_id=tag.id),

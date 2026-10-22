@@ -1,7 +1,6 @@
 from django.db import models
 from django.db.models.functions import Lower, Trim
 
-from domain.recruteur.tag_rules import TAG_NAME_MAX_LENGTH
 from infrastructure.django_apps.candidate.models.candidature import CandidatureModel
 from infrastructure.django_apps.recruteur.models.note import NoteModel
 from infrastructure.django_apps.recruteur.models.organisme import OrganismeModel
@@ -33,11 +32,11 @@ class TagQuerySet(models.QuerySet):
     def by_organisme(self, organisme_id) -> "TagQuerySet":
         return self.filter(organisme_id=organisme_id)
 
-    def by_category(self, category: TagCategory) -> "TagQuerySet":
-        return self.filter(category=category)
+    def alphabetical(self, organisme_id) -> "TagQuerySet":
+        return self.by_organisme(organisme_id).order_by(Lower("name"), "category")
 
-    def alphabetical(self) -> "TagQuerySet":
-        return self.order_by(Lower("name"), "category")
+    def by_category(self, organisme_id, category: TagCategory) -> "TagQuerySet":
+        return self.alphabetical(organisme_id).filter(category=category)
 
 
 class TagModel(BaseDatedModel):
@@ -47,7 +46,7 @@ class TagModel(BaseDatedModel):
         db_column="organisme_id",
         related_name="tags",
     )
-    name = models.CharField(max_length=TAG_NAME_MAX_LENGTH)
+    name = models.CharField(max_length=25)
     category = models.CharField(max_length=20, choices=TagCategory.choices)
     color = models.CharField(
         max_length=20, choices=TagColor.choices, default=TagColor.BLEU
@@ -66,6 +65,8 @@ class TagModel(BaseDatedModel):
                 "category",
                 name="tag_unique_name_per_organisme_category",
             ),
+            # TODO : renommer (couvre aussi les noms non trimés), lors d'une
+            # prochaine migration
             models.CheckConstraint(
                 condition=models.Q(name=Trim("name")) & ~models.Q(name=""),
                 name="tag_name_non_vide",

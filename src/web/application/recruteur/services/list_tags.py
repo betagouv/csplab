@@ -21,7 +21,6 @@ def list_tags(
         utilisateur=utilisateur,
         organisme_id=organisme_id,
     )
-    tags = TagModel.objects.by_organisme(organisme_id)
-    if category is not None:
-        tags = tags.by_category(category)
-    return tags.alphabetical()
+    if category:
+        return TagModel.objects.by_category(organisme_id, category)
+    return TagModel.objects.alphabetical(organisme_id)
