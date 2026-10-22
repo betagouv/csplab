@@ -4826,6 +4826,8 @@ components:
       - read_conversation
       - create_conversation
       - reply_conversation
+      - list_tags
+      - create_tag
       type: string
       description: |-
         * `get_organisme` - get_organisme
@@ -4863,6 +4865,8 @@ components:
         * `read_conversation` - read_conversation
         * `create_conversation` - create_conversation
         * `reply_conversation` - reply_conversation
+        * `list_tags` - list_tags
+        * `create_tag` - create_tag
     BlankEnum:
       enum:
       - ''

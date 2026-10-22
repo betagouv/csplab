@@ -125,6 +125,10 @@ _ROLES_REQUIS: dict[OrganismeAction, frozenset[AgentOrganismeRole]] = {
     OrganismeAction.REPLY_CONVERSATION: frozenset(
         {AgentOrganismeRole.SUPERVISEUR, AgentOrganismeRole.AGENT}
     ),
+    OrganismeAction.LIST_TAGS: frozenset(
+        {AgentOrganismeRole.SUPERVISEUR, AgentOrganismeRole.AGENT}
+    ),
+    OrganismeAction.CREATE_TAG: frozenset({AgentOrganismeRole.SUPERVISEUR}),
 }
 
 # -------------------------------------
@@ -132,7 +136,11 @@ _ROLES_REQUIS: dict[OrganismeAction, frozenset[AgentOrganismeRole]] = {
 # -------------------------------------
 # Actions pour lesquelles un MEMBRE n'a besoin d'aucun rôle sur le recrutement
 _SANS_ROLE_RECRUTEMENT_REQUIS: frozenset[OrganismeAction] = frozenset(
-    {OrganismeAction.LIST_RECRUTEMENTS, OrganismeAction.GET_MOTIFS_REFUS}
+    {
+        OrganismeAction.LIST_RECRUTEMENTS,
+        OrganismeAction.GET_MOTIFS_REFUS,
+        OrganismeAction.LIST_TAGS,
+    }
 )
 
 # Actions sans recrutement ciblé : un MEMBRE doit être RESPONSABLE d'au moins un
