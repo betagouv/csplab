@@ -57,6 +57,37 @@ class OrganismeQuerySet(models.QuerySet):
             )
         )
 
+    def by_versants(self, versants: Sequence[Verse] | None) -> "OrganismeQuerySet":
+        if not versants:
+            return self
+        return self.filter(versant__in=[versant.value for versant in versants])
+
+    def by_siret(self, siret: str | None) -> "OrganismeQuerySet":
+        if not siret:
+            return self
+        return self.filter(siret=siret)
+
+    def search_name(self, name: str | None) -> "OrganismeQuerySet":
+        if not name:
+            return self
+        return self.filter(nom__icontains=name)
+
+    def by_department(self, department: str | None) -> "OrganismeQuerySet":
+        if not department:
+            return self
+        return self.filter(localisation__department=department)
+
+    def by_referentiels(self, referentiels: Sequence[str]) -> "OrganismeQuerySet":
+        return self.filter(referentiel__in=referentiels)
+
+    def by_referentiel(self, referentiel: str | None) -> "OrganismeQuerySet":
+        if not referentiel:
+            return self
+        return self.filter(referentiel=referentiel)
+
+    def stable_order(self) -> "OrganismeQuerySet":
+        return self.order_by("nom", "id")
+
     def etapes_of(self, organisme_id) -> "OrganismeQuerySet":
         return self.filter(pk=organisme_id).only("id", "etapes")
 

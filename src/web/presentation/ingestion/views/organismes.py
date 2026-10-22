@@ -1,7 +1,11 @@
 import logging
 
-from drf_spectacular.utils import extend_schema, inline_serializer
+from django.http import Http404
+from drf_spectacular.utils import extend_schema, extend_schema_view, inline_serializer
 from rest_framework import serializers, status
+from rest_framework.exceptions import APIException
+from rest_framework.exceptions import ValidationError as DRFValidationError
+from rest_framework.generics import ListAPIView
 from rest_framework.parsers import JSONParser
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -13,6 +17,9 @@ from application.ingestion.interfaces.supprimer_organismes_input import (
 from application.ingestion.interfaces.upsert_organismes_input import (
     UpsertOrganismesInput,
 )
+from application.ingestion.services.list_public_organismes import (
+    list_public_organismes,
+)
 from application.ingestion.usecases.supprimer_organismes import (
     SupprimerOrganismesUsecase,
 )
@@ -21,10 +28,24 @@ from infrastructure.di.ingestion.ingestion_factory import create_ingestion_conta
 from infrastructure.repositories.identite.postgres_organisme_repository import (
     PostgresOrganismeRepository,
 )
-from presentation.api.authentication import PublicApiKeyOnlyMixin
-from presentation.api.serializers import GenericErrorSerializer
+from presentation.api.authentication import (
+    PublicApiKeyOnlyMixin,
+    PublicJwtReadApiKeyWriteMixin,
+)
+from presentation.api.serializers import (
+    DetailErrorSerializer,
+    GenericErrorSerializer,
+    TokenErrorSerializer,
+)
+from presentation.commons.pagination import TaillePageNumberPagination
 from presentation.ingestion.mappers import OrganismeInputMapper
+from presentation.ingestion.openapi import (
+    LIST_ORGANISMES_DESCRIPTION,
+    LIST_ORGANISMES_EXAMPLES,
+)
 from presentation.ingestion.serializers import (
+    ListOrganismesFiltersSerializer,
+    OrganismePublicSerializer,
     OrganismeUpsertInputSerializer,
     SupprimerOrganismesRequestSerializer,
     SupprimerOrganismesResponseSerializer,
@@ -32,6 +53,22 @@ from presentation.ingestion.serializers import (
 )
 
 logger = logging.getLogger(LoggerName.INGESTION.value)
+
+
+# TODO : extract into a shared helper once we tackle form errors returned
+# to the Vue front.
+def _validation_message(exc: DRFValidationError) -> str:
+    detail = exc.detail
+    if isinstance(detail, dict):
+        return " ".join(
+            f"{field} : {message}"
+            for field, messages in detail.items()
+            for message in (messages if isinstance(messages, list) else [messages])
+        )
+    if isinstance(detail, list):
+        return " ".join(str(message) for message in detail)
+    return str(detail)
+
 
 UPSERT_ORGANISMES_DESCRIPTION = (
     "Créer ou mettre à jour, entre 1 et 100 organismes à la fois, via un payload "
@@ -127,8 +164,8 @@ class OrganismesUpsertView(PublicApiKeyOnlyMixin, APIView):
             result = usecase.execute(UpsertOrganismesInput(organismes=valid_organismes))
             result["errors"].extend(errors)
             return Response(result, status=status.HTTP_201_CREATED)
-        except Exception as e:
-            logger.error("OrganismesUpsertView: unexpected error %s", str(e))
+        except Exception:
+            logger.exception("OrganismesUpsertView: unexpected error")
             return Response(
                 {"error": "Unexpected error"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -141,28 +178,62 @@ SUPPRIMER_ORGANISMES_DESCRIPTION = (
 )
 
 
-@extend_schema(
-    summary="Supprimer des organismes",
-    description=SUPPRIMER_ORGANISMES_DESCRIPTION,
-    tags=["organismes"],
-    request=SupprimerOrganismesRequestSerializer,
-    responses={
-        200: SupprimerOrganismesResponseSerializer,
-        400: GenericErrorSerializer,
-        401: GenericErrorSerializer,
-        500: GenericErrorSerializer,
-    },
+@extend_schema_view(
+    get=extend_schema(
+        summary="Liste des organismes",
+        description=LIST_ORGANISMES_DESCRIPTION,
+        examples=LIST_ORGANISMES_EXAMPLES,
+        tags=["organismes"],
+        parameters=[ListOrganismesFiltersSerializer],
+        responses={
+            200: OrganismePublicSerializer(many=True),
+            400: GenericErrorSerializer,
+            401: TokenErrorSerializer,
+            404: DetailErrorSerializer,
+            500: GenericErrorSerializer,
+        },
+    ),
+    put=extend_schema(
+        summary="Supprimer des organismes",
+        description=SUPPRIMER_ORGANISMES_DESCRIPTION,
+        tags=["organismes"],
+        request=SupprimerOrganismesRequestSerializer,
+        responses={
+            200: SupprimerOrganismesResponseSerializer,
+            400: GenericErrorSerializer,
+            401: GenericErrorSerializer,
+            500: GenericErrorSerializer,
+        },
+    ),
 )
-class OrganismesSupprimerView(PublicApiKeyOnlyMixin, APIView):
+class OrganismesView(PublicJwtReadApiKeyWriteMixin, ListAPIView):
     parser_classes = [JSONParser]
-    serializer_class = SupprimerOrganismesRequestSerializer
+    serializer_class = OrganismePublicSerializer
+    pagination_class = TaillePageNumberPagination
+
+    def get_queryset(self):
+        filters = ListOrganismesFiltersSerializer(data=self.request.query_params)
+        filters.is_valid(raise_exception=True)
+        return list_public_organismes(**filters.validated_data)
+
+    def handle_exception(self, exc: Exception) -> Response:
+        if isinstance(exc, DRFValidationError) and self.request.method == "GET":
+            return Response(
+                GenericErrorSerializer({"error": _validation_message(exc)}).data,
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        if isinstance(exc, (APIException, Http404)):
+            return super().handle_exception(exc)
+        logger.error("OrganismesView: unexpected error", exc_info=exc)
+        return Response(
+            GenericErrorSerializer({"error": "Unexpected error"}).data,
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )
 
     def put(self, request):
         serializer = SupprimerOrganismesRequestSerializer(data=request.data)
         if not serializer.is_valid():
-            logger.warning(
-                "OrganismesSupprimerView: validation errors %s", serializer.errors
-            )
+            logger.warning("OrganismesView: validation errors %s", serializer.errors)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
         organismes = [
@@ -179,8 +250,8 @@ class OrganismesSupprimerView(PublicApiKeyOnlyMixin, APIView):
             )
             result = usecase.execute(SupprimerOrganismesInput(organismes=organismes))
             return Response(result, status=status.HTTP_200_OK)
-        except Exception as e:
-            logger.error("OrganismesSupprimerView: unexpected error %s", str(e))
+        except Exception:
+            logger.exception("OrganismesView: unexpected error")
             return Response(
                 {"error": "Unexpected error"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
