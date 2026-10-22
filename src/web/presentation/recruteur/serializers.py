@@ -34,6 +34,7 @@ from infrastructure.django_apps.recruteur.models.recrutement import (
     RecrutementAgentModel,
     RecrutementModel,
 )
+from infrastructure.django_apps.tag.models import TagCategory, TagColor, TagModel
 from infrastructure.django_apps.users.models import ProfilAgentModel
 from presentation.commons.serializers import LocalisationSerializer, OrganismeSerializer
 
@@ -810,3 +811,26 @@ class CreateMessageSerializer(serializers.Serializer):
 
 class CreateConversationSerializer(CreateMessageSerializer):
     objet = serializers.CharField(max_length=settings.CONVERSATION_OBJET_MAX_LENGTH)
+
+
+# ---------------------------------------------------------------------------
+# Serializers pour les étiquettes d'un organisme
+# ---------------------------------------------------------------------------
+
+
+class TagSerializer(serializers.ModelSerializer):
+    uuid = serializers.UUIDField(source="id")
+
+    class Meta:
+        model = TagModel
+        fields = ["uuid", "name", "category", "color"]
+
+
+class TagListQuerySerializer(serializers.Serializer):
+    category = serializers.ChoiceField(choices=TagCategory.choices, required=False)
+
+
+class CreateTagSerializer(serializers.Serializer):
+    name = serializers.CharField(trim_whitespace=False, allow_blank=True)
+    category = serializers.ChoiceField(choices=TagCategory.choices)
+    color = serializers.ChoiceField(choices=TagColor.choices, default=TagColor.BLEU)
