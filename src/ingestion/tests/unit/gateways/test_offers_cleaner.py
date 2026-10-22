@@ -1397,6 +1397,20 @@ def test_clean_ignores_vacancy_notice_that_is_not_a_legifrance_url(cleaner, valu
     assert offer.vacancy_notice_url is None
 
 
+def test_clean_ignores_vacancy_notice_when_legifrance_url_is_invalid(cleaner):
+    raw_offer = _make_raw_offer(
+        customFields=TalentsoftCustomFieldsFactory.build(
+            offerCustomBlock1=TalentsoftDynamicField(
+                longText3="https://www.legifrance.gouv.fr/jorf/id/" + "A" * 2100
+            ),
+        )
+    )
+
+    offer = cleaner.clean(raw_offer)
+
+    assert offer.vacancy_notice_url is None
+
+
 def test_clean_prefers_formatted_texts_converted_to_markdown(cleaner):
     raw_offer = _make_raw_offer(
         description1="Missions brut",
