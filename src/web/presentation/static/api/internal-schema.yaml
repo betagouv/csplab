@@ -5527,6 +5527,7 @@ components:
       properties:
         name:
           type: string
+          maxLength: 25
         category:
           $ref: '#/components/schemas/CategoryEnum'
         color:

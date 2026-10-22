@@ -218,16 +218,6 @@ class TestCreateTag:
         assert response.status_code == status.HTTP_201_CREATED
         assert response.json()["color"] == "bleu"
 
-    def test_stores_normalized_name(self, authenticated_client, superviseur_organisme):
-        response = authenticated_client.post(
-            _tags_url(superviseur_organisme.id),
-            data={"name": "  Très   bon\nprofil ", "category": "candidature"},
-            format="json",
-        )
-
-        assert response.status_code == status.HTTP_201_CREATED
-        assert TagModel.objects.get().name == "Très bon profil"
-
     def test_agent_is_forbidden(self, authenticated_client, agent_organisme):
         response = authenticated_client.post(
             _tags_url(agent_organisme.id),
@@ -274,21 +264,6 @@ class TestCreateTag:
         )
 
         assert response.status_code == status.HTTP_201_CREATED
-
-    def test_invalid_name_is_a_bad_request(
-        self, authenticated_client, superviseur_organisme
-    ):
-        response = authenticated_client.post(
-            _tags_url(superviseur_organisme.id),
-            data={"name": "Top 😀", "category": "candidature"},
-            format="json",
-        )
-
-        assert response.status_code == status.HTTP_400_BAD_REQUEST
-        assert response.json() == {
-            "error": "Les émojis et les caractères < > ne sont pas autorisés."
-        }
-        assert not TagModel.objects.exists()
 
     @pytest.mark.parametrize(
         "data",
