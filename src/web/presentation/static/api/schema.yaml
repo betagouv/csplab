@@ -3917,8 +3917,8 @@ paths:
               examples:
                 Error-InvalidFilter:
                   value:
-                    error: 'Valeurs de versant invalides : FPX. Valeurs autorisées
-                      : FPE, FPH, FPT.'
+                    error: 'versant : Valeurs de versant invalides : FPX. Valeurs
+                      autorisées : FPE, FPH, FPT.'
                   summary: Filtre invalide
                   description: Un des filtres passés en paramètre est incorrect.
           description: ''

@@ -494,7 +494,7 @@ LIST_ORGANISMES_EXAMPLES = [
         summary="Filtre invalide",
         description="Un des filtres passés en paramètre est incorrect.",
         value={
-            "error": "Valeurs de versant invalides : FPX. "
+            "error": "versant : Valeurs de versant invalides : FPX. "
             "Valeurs autorisées : FPE, FPH, FPT."
         },
         response_only=True,

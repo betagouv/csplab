@@ -141,7 +141,10 @@ def test_invalid_versant_returns_400(jwt_client):
     response = jwt_client.get(URL, {"versant": "FPX"})
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert "FPX" in response.json()["error"]
+    assert response.json() == {
+        "error": "versant : Valeurs de versant invalides : FPX. "
+        "Valeurs autorisées : FPE, FPH, FPT."
+    }
 
 
 def test_filters_by_siret(jwt_client):
