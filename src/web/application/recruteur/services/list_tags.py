@@ -21,6 +21,9 @@ def list_tags(
         utilisateur=utilisateur,
         organisme_id=organisme_id,
     )
-    if category:
-        return TagModel.objects.by_category(organisme_id, category)
-    return TagModel.objects.alphabetical(organisme_id)
+    tags = (
+        TagModel.objects.by_category(organisme_id, category)
+        if category
+        else TagModel.objects.alphabetical(organisme_id)
+    )
+    return tags.with_usage_count()
