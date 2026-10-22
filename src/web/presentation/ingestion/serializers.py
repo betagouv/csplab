@@ -28,6 +28,7 @@ from rest_framework import serializers
 from infrastructure.django_apps.ingestion.models.talentsoft_organisme import (
     TalentsoftOrganismeModel,
 )
+from infrastructure.django_apps.recruteur.models.organisme import OrganismeModel
 from presentation.api.serializers import GenericErrorSerializer
 from presentation.commons.markdown import forbidden_markdown
 from presentation.commons.serializers import LocalisationSerializer, OrganismeSerializer
@@ -692,7 +693,16 @@ class IdentityInputSerializer(serializers.Serializer):
 
 
 class OrganismeInputSerializer(OrganismeSerializer):
-    siret = serializers.CharField(max_length=14, allow_blank=True)
+    nom = serializers.CharField(
+        help_text="Nom de l'organisme. Reprendre de préférence le `nom` renvoyé par "
+        "`GET /api/v1/organismes`."
+    )
+    siret = serializers.CharField(
+        max_length=14,
+        allow_blank=True,
+        help_text="SIRET de l'organisme, à retrouver avec `GET /api/v1/organismes` "
+        "(filtres `nom` et `siret`).",
+    )
     talentsoft_organisme_entity_code = serializers.CharField(
         max_length=50,
         required=False,
@@ -1049,6 +1059,88 @@ class UpsertOrganismesResponseSerializer(serializers.Serializer):
     created = serializers.IntegerField()
     updated = serializers.IntegerField()
     errors = serializers.ListField(child=serializers.DictField())
+
+
+class ListOrganismesFiltersSerializer(serializers.Serializer):
+    versant = _CommaSeparatedEnumField(
+        Verse,
+        "versant",
+        help_text="Valeurs séparées par une virgule (ex. `FPE,FPT`).",
+        source="versants",
+    )
+    siret = serializers.CharField(
+        required=False,
+        min_length=14,
+        max_length=14,
+        help_text="SIRET exact de l'organisme (14 caractères).",
+    )
+    nom = serializers.CharField(
+        required=False,
+        max_length=255,
+        help_text="Recherche partielle sur le nom, insensible à la casse.",
+        source="name",
+    )
+    departement = serializers.ChoiceField(
+        choices=sorted(Department.VALID_CODES),
+        required=False,
+        help_text="Code du département de l'organisme (ex. `75`, `2A`, `971`).",
+        source="department",
+    )
+    referentiel = serializers.CharField(
+        required=False,
+        max_length=50,
+        help_text="Référentiel source de l'organisme : `FINESS`, `GIPCDG` ou `DILA`.",
+    )
+
+
+class OrganismeLocalisationPublicSerializer(serializers.Serializer):
+    zone_geographique = serializers.CharField(source="area")
+    pays = serializers.CharField(source="country")
+    region = serializers.CharField()
+    departement = serializers.CharField(source="department")
+
+
+class OrganismePublicSerializer(serializers.ModelSerializer):
+    nom = serializers.CharField(
+        help_text="Nom de référence, à reprendre dans `organisation.nom` de l'API "
+        "d'ingestion d'offres."
+    )
+    siret = serializers.CharField(
+        help_text="SIRET à renseigner dans `organisation.siret` de l'API "
+        "d'ingestion d'offres."
+    )
+    parent_id = serializers.UUIDField(
+        allow_null=True, help_text="Identifiant de l'organisme parent."
+    )
+    referentiel = serializers.CharField(
+        allow_null=True,
+        help_text="Référentiel source : `FINESS`, `GIPCDG` ou `DILA`. Avec "
+        "`external_id`, identifie l'organisme pour la création, la mise à jour et "
+        "la suppression.",
+    )
+    external_id = serializers.CharField(
+        allow_null=True, help_text="Identifiant dans le référentiel source."
+    )
+    millesime = serializers.CharField(
+        allow_null=True,
+        help_text="Version du référentiel source dont provient l'organisme.",
+    )
+    localisation = OrganismeLocalisationPublicSerializer(allow_null=True)
+
+    class Meta:
+        model = OrganismeModel
+        fields = [
+            "id",
+            "nom",
+            "versant",
+            "siret",
+            "parent_id",
+            "referentiel",
+            "external_id",
+            "millesime",
+            "localisation",
+        ]
+        read_only_fields = fields
 
 
 class OrganismeDeleteInputSerializer(serializers.Serializer):

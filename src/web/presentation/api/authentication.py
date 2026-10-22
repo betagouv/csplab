@@ -1,5 +1,5 @@
 from rest_framework.authentication import BaseAuthentication
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.permissions import SAFE_METHODS, AllowAny, IsAuthenticated
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from infrastructure.authentication.api_key_authentication import (
@@ -23,6 +23,18 @@ class PublicJwtOnlyMixin:
 class PublicApiKeyOnlyMixin:
     authentication_classes = [ApiKeyAuthentication]
     permission_classes = [IsAuthenticated]
+
+
+class PublicJwtReadApiKeyWriteMixin:
+    """Reads (GET, HEAD, OPTIONS) by JWT, writes by API key."""
+
+    permission_classes = [IsAuthenticated]
+
+    def get_authenticators(self):
+        request = getattr(self, "request", None)
+        if request is not None and request.method not in SAFE_METHODS:
+            return [ApiKeyAuthentication()]
+        return [JWTAuthentication()]
 
 
 class SessionApiMixin:
