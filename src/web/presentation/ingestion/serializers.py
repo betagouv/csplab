@@ -669,7 +669,8 @@ class ListMetiersResponseSerializer(serializers.Serializer):
     conditions_particulieres = serializers.ListField(
         child=serializers.CharField(), allow_null=True
     )
-    offer_family_code = serializers.CharField(
+    code_famille_offre = serializers.CharField(
+        source="offer_family_code",
         allow_null=True,
         help_text="Code métier à renseigner dans `profession.metier` de l'API "
         "d'ingestion d'offres. Est vide si le métier ne peut pas être utilisé "
@@ -718,7 +719,7 @@ class ProfessionInputSerializer(serializers.Serializer):
         max_length=8,
         help_text="Code métier, vérifié uniquement si "
         f"referentiel={JobFamilyReferential.RMFPV2.value} : valeur du champ "
-        "`offer_family_code` d'un métier renvoyé par l'API `/api/v1/metiers` "
+        "`code_famille_offre` d'un métier renvoyé par l'API `/api/v1/metiers` "
         "(exemple : `ERAMT001`).",
     )
     code_emploi_local = serializers.CharField(

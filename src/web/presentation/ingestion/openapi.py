@@ -354,7 +354,7 @@ LIST_METIERS_DESCRIPTION = (
 Cette API retourne la liste paginée des métiers. Les métiers peuvent être filtrés
 selon leur code de domaine fonctionnel (`domaine`).
 
-Le champ `offer_family_code` d'un métier est la valeur à renseigner dans
+Le champ `code_famille_offre` d'un métier est la valeur à renseigner dans
 `profession.metier` de l'API d'ingestion d'offres.
 
 """
@@ -390,7 +390,7 @@ LIST_METIERS_EXAMPLES = [
                 ),
             ],
             "conditions_particulieres": [],
-            "offer_family_code": "ERAMT001",
+            "code_famille_offre": "ERAMT001",
         },
         response_only=True,
         status_codes=["200"],
@@ -423,7 +423,7 @@ LIST_METIERS_EXAMPLES = [
                 ),
             ],
             "conditions_particulieres": ["Déplacements nationaux et internationaux"],
-            "offer_family_code": "ERAGR001",
+            "code_famille_offre": "ERAGR001",
         },
         response_only=True,
         status_codes=["200"],
