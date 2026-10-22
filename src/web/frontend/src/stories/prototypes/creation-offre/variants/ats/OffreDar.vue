@@ -54,6 +54,7 @@ function soumettre() {
   o.value.remarqueDar = undefined
   // La DAR porte le nombre de postes : l'offre le reprend.
   o.value.nbPostes = d.value.nbPostes
+  o.value.lieu = d.value.localisation || o.value.lieu
   changerEtat(o.value, 'validation', `DAR ${o.value.darRef} soumise (${d.value.nbPostes} poste${Number(d.value.nbPostes) > 1 ? 's' : ''})`)
   notifier('DAR soumise. Son contenu est désormais figé.')
 }
@@ -124,6 +125,7 @@ const evenementsDar = computed(() => [...o.value.historique].reverse().filter(h 
       >
         Préremplie depuis la fiche {{ fiche.id }}. Brouillon enregistré automatiquement : vous pouvez quitter et revenir.
         Ces informations concernent la DAR ; elles ne modifient ni la fiche ni l'annonce.
+        <em>Champs indicatifs : la liste des champs et ceux qui sont obligatoires restent à définir.</em>
       </p>
       <p
         v-else
@@ -133,7 +135,7 @@ const evenementsDar = computed(() => [...o.value.historique].reverse().filter(h 
           name="ri:lock-line"
           :size="14"
         />
-        Soumise {{ le(o.darSoumiseLe) }} : contenu figé, validé tel qu'il a été renseigné.
+        Soumise {{ le(o.darSoumiseLe) }} : contenu figé, validé tel qu'il a été renseigné. Dans l'offre, le nombre de postes et le lieu sont verrouillés.
       </p>
 
       <fieldset
@@ -193,11 +195,17 @@ const evenementsDar = computed(() => [...o.value.historique].reverse().filter(h 
               v-model="d.nbPostes"
               type="number"
               label="Nombre de postes"
+              hint="Une DAR peut valider plusieurs postes identiques en une fois."
               :disabled="!modifiable"
               :error="Number(d.nbPostes) < 1"
               :error-message="Number(d.nbPostes) < 1 ? 'Au moins 1 poste.' : undefined"
             />
           </FieldRow>
+          <CspInput
+            v-model="d.localisation"
+            label="Localisation"
+            :disabled="!modifiable"
+          />
           <CspTextarea
             v-model="d.description"
             label="Description du poste"

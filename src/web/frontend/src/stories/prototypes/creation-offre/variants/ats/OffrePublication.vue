@@ -3,7 +3,6 @@ import type { Onglet } from './nav'
 import type { Fiche, Offre } from './store'
 import { computed, ref } from 'vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
-import CspIcon from '@/components/base/CspIcon/CspIcon.vue'
 import CspInput from '@/components/base/CspInput/CspInput.vue'
 import CspTextarea from '@/components/base/CspTextarea/CspTextarea.vue'
 import FieldRow from '../../shared/FieldRow.vue'
@@ -11,7 +10,7 @@ import Panel from '../../shared/Panel.vue'
 import { manquesPublication, manquesRedaction } from './aide'
 import CycleOffre from './CycleOffre.vue'
 import { useNav } from './nav'
-import { CANAUX_DIFFUSION, changerEtat, le, maintenant, modalitesDepuisFiche, sauvegarder } from './store'
+import { CANAUX_DIFFUSION, changerEtat, le, maintenant, modalitesDepuisFiche, sauvegarder, verrouilleParDar } from './store'
 
 // Préparer l'offre pour la publication (postes, modalités, date limite), puis publier sur les supports choisis.
 // Publier est une action distincte. Le parcours avec ou sans DAR est fixé par l'organisme.
@@ -27,7 +26,7 @@ if (!o.value.modalites) {
 
 const tentative = ref(false)
 const manques = computed(() => manquesPublication(o.value))
-const ecartDar = computed(() => o.value.dar === 'requise' && o.value.darForm && o.value.darForm.nbPostes !== o.value.nbPostes)
+const postesVerrouilles = computed(() => verrouilleParDar(o.value, 'nbPostes'))
 const prete = computed(() => ['a_publier', 'publiee'].includes(o.value.etat))
 
 function terminerRedaction() {
@@ -89,10 +88,6 @@ function archiver() {
   changerEtat(o.value, 'archivee', 'Toutes les publications arrêtées, offre archivée')
   notifier('Offre archivée. Elle reste consultable et peut être dupliquée.')
 }
-function retour() {
-  changerEtat(o.value, 'redaction', 'Retour en rédaction')
-  emit('onglet', 'redaction')
-}
 </script>
 
 <template>
@@ -146,15 +141,15 @@ function retour() {
   <template v-else-if="prete">
     <Panel
       titre="Préparer l'offre pour la publication"
-      :description="o.dar === 'requise' ? `DAR ${o.darRef} validée ${le(o.darValideeLe)}.` : 'Pas de DAR pour cet organisme.'"
+      :description="o.dar === 'requise' ? `DAR ${o.darRef} validée ${le(o.darValideeLe)}. L'offre n'est pas publiée automatiquement : relisez-la, puis publiez-la.` : 'Pas de DAR pour cet organisme. Relisez l\'offre, puis publiez-la.'"
     >
       <FieldRow :cols="2">
         <CspInput
           v-model="o.nbPostes"
           type="number"
           label="Nombre de postes à pourvoir"
-          :hint="o.dar === 'requise' ? `Repris de la DAR (${o.darForm?.nbPostes} poste${Number(o.darForm?.nbPostes) > 1 ? 's' : ''}). Une seule offre pour tous les postes.` : 'Une seule offre pour tous les postes.'"
-          :disabled="o.etat === 'publiee'"
+          :hint="postesVerrouilles ? 'Validé par la DAR — non modifiable. Une seule offre pour tous les postes.' : 'Une seule offre pour tous les postes.'"
+          :disabled="o.etat === 'publiee' || postesVerrouilles"
           :error="tentative && !(Number(o.nbPostes) >= 1)"
           :error-message="tentative && !(Number(o.nbPostes) >= 1) ? 'Au moins 1 poste.' : undefined"
         />
@@ -167,16 +162,6 @@ function retour() {
           :error-message="tentative && !o.dateLimite ? 'Indiquez la date limite.' : undefined"
         />
       </FieldRow>
-      <p
-        v-if="ecartDar"
-        class="ecart"
-      >
-        <CspIcon
-          name="ri:information-line"
-          :size="14"
-        />
-        La DAR validée porte sur {{ o.darForm?.nbPostes }} poste(s). Hypothèse à confirmer : un écart pourrait nécessiter une nouvelle DAR.
-      </p>
       <CspTextarea
         v-model="o.modalites"
         label="Modalités de recrutement"
@@ -292,9 +277,11 @@ function retour() {
       <div class="actions">
         <template v-if="o.etat === 'a_publier'">
           <CspButton
-            label="Revenir en rédaction"
+            label="Relire l'annonce"
             variant="tertiary-no-outline"
-            @click="retour"
+            icon="ri:eye-line"
+            is-icon-left
+            @click="emit('onglet', 'redaction')"
           />
           <CspButton
             label="Publier l'offre"
@@ -335,16 +322,6 @@ function retour() {
 <style scoped lang="scss">
 .texte {
   margin: 0;
-  font-size: var(--csp-font-size-sm);
-}
-
-.ecart {
-  display: flex;
-  align-items: center;
-  gap: var(--csp-space-1);
-  margin: 0;
-  padding: var(--csp-space-2) var(--csp-space-3);
-  background: var(--background-alt-blue-france);
   font-size: var(--csp-font-size-sm);
 }
 

@@ -49,6 +49,7 @@ export interface FormulaireDar {
   intitule: string
   categorie: string
   nbPostes: string
+  localisation: string
   description: string
   motif: string
   piecesJointes: string[]
@@ -124,7 +125,9 @@ export const CANAUX_DIFFUSION = [
 /** Paramètres de l'organisme (simulés). La nécessité d'une DAR y est définie une fois pour toutes. */
 export interface Organisme {
   nom: string
+  /** Défini par le superviseur de l'organisme, commun à tous les recrutements (dans un premier temps). */
   darObligatoire: boolean
+  superviseur: string
   entite: string
   typeDar: string
   valideur: string
@@ -428,6 +431,7 @@ export function formulaireDarDepuis(f: Fiche, nbPostes: string): FormulaireDar {
     intitule: f.intitule,
     categorie: f.categories.length ? `Catégorie ${f.categories.join(' ou ')}` : '',
     nbPostes,
+    localisation: f.localisation,
     description: [f.missions, ...f.activites.map(a => `- ${a}`)].filter(Boolean).join('\n'),
     motif: '',
     piecesJointes: [],
@@ -444,9 +448,9 @@ export function modalitesDepuisFiche(f: Fiche): string {
 
 // --- Stockage de session ---
 
-const CLE = 'csplab-proto-ats-v8'
+const CLE = 'csplab-proto-ats-v9'
 
-function lire(): { fiches: Fiche[], offres: Offre[], organisme: Organisme } | null {
+function lire(): { fiches: Fiche[], offres: Offre[], organisme: Organisme, role: 'recruteur' | 'superviseur' } | null {
   try {
     const brut = sessionStorage.getItem(CLE)
     return brut ? JSON.parse(brut) : null
@@ -457,12 +461,12 @@ function lire(): { fiches: Fiche[], offres: Offre[], organisme: Organisme } | nu
 }
 
 function organismeInitial(): Organisme {
-  return { nom: 'DREAL Occitanie', darObligatoire: true, entite: ENTITES[3]!, typeDar: TYPES_DAR[0]!, valideur: 'Hélène Robert, secrétaire générale' }
+  return { nom: 'DREAL Occitanie', darObligatoire: true, superviseur: 'Isabelle Fournier', entite: ENTITES[3]!, typeDar: TYPES_DAR[0]!, valideur: 'Hélène Robert, secrétaire générale' }
 }
 
 function initial() {
   const fiches = fichesInitiales()
-  return { fiches, offres: offresInitiales(fiches), organisme: organismeInitial() }
+  return { fiches, offres: offresInitiales(fiches), organisme: organismeInitial(), role: 'recruteur' as 'recruteur' | 'superviseur' }
 }
 
 export const db = reactive(lire() ?? initial())
@@ -481,6 +485,7 @@ export function reinitialiser() {
   db.fiches.splice(0, db.fiches.length, ...neuf.fiches)
   db.offres.splice(0, db.offres.length, ...neuf.offres)
   Object.assign(db.organisme, neuf.organisme)
+  db.role = 'recruteur'
   sauvegarder()
 }
 
@@ -507,6 +512,15 @@ export function le(date: string | undefined): string {
     return ''
   }
   return /^(?:Aujourd'hui|Hier)/.test(date) ? date.charAt(0).toLowerCase() + date.slice(1) : `le ${date}`
+}
+
+/**
+ * Champs de l'offre garantis par la DAR une fois soumise : verrouillés pour préserver sa validité.
+ * Hypothèse : liste à confirmer (nombre de postes et lieu pour l'instant ; intitulé et catégorie sont dans la DAR).
+ */
+export const CHAMPS_DAR = ['nbPostes', 'lieu'] as const
+export function verrouilleParDar(o: Offre, champ: (typeof CHAMPS_DAR)[number]): boolean {
+  return o.dar === 'requise' && (o.darStatut === 'soumise' || o.darStatut === 'validee') && CHAMPS_DAR.includes(champ)
 }
 
 export function maintenant(): string {

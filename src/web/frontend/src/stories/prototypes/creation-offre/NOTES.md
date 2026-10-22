@@ -27,17 +27,26 @@ fiche, date limite ; tableau des supports groupés comme dans CSP (sites web ave
 jobboards, multi-diffuseurs) avec état, début, fin ; après publication, Publier / Arrêter par support ;
 « Arrêter les publications et archiver ».
 
-### Hypothèses
-- Le paramètre DAR vaut pour tous les recrutements de l'organisme (pas de variation par type de poste).
-- La DAR reprend le nombre de postes ; l'offre peut le modifier à la préparation, avec un signalement d'écart
-  (règle de revalidation à confirmer).
-- La DAR est saisie après la rédaction de l'offre (ordre du schéma) mais peut être commencée dès la rédaction.
+### Décisions d'Alice (22 octobre 2026)
+- **Superviseur** : le besoin de DAR est paramétré par le superviseur de l'organisme, commun à tout l'organisme
+  (dans un premier temps). La page « Paramètres de l'organisme » est en lecture seule pour le responsable du
+  recrutement ; une simulation permet d'agir en superviseur.
+- **Nombre de postes** : une DAR peut valider en une fois le besoin pour plusieurs postes identiques ; l'offre
+  reprend ce nombre, qui devient non modifiable.
+- **Après validation** : certains champs de l'offre sont verrouillés pour garantir la validité de la DAR
+  (prototype : nombre de postes et lieu, rappelés « validé par la DAR »). Le texte éditorial reste modifiable
+  pendant la relecture, et la publication reste une action manuelle du responsable du recrutement.
+- **Champs de la DAR** : liste et caractère obligatoire non connus ; le formulaire est présenté comme indicatif.
+
+### Hypothèses restantes
+- Liste exacte des champs verrouillés après validation (nombre de postes et lieu dans le prototype).
+- La DAR est saisie après la rédaction de l'offre (ordre du schéma) ; le contenu est en lecture seule pendant
+  la validation.
 
 ### Points à confirmer
-1. Qui administre les paramètres de l'organisme ? Le paramètre peut-il dépendre du type de recrutement ?
-2. Champs exacts de la DAR selon le type (« Formulaire DAR » / « Formulaire de demande d'autorisation »).
-3. Un écart de nombre de postes entre DAR et offre impose-t-il une nouvelle DAR ?
-4. La DAR validée doit-elle être publiée telle quelle quelque part (obligation légale) ?
+1. Champs du formulaire de DAR et champs obligatoires, selon le type de DAR.
+2. Liste des champs de l'offre verrouillés par une DAR validée.
+3. Que faire si un champ verrouillé doit changer (nouvelle DAR, demande de modification) ?
 
 ## Itération 7 — ATS : fiches de poste et offres d'emploi (21 octobre 2026)
 

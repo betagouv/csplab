@@ -15,7 +15,7 @@ import ApercuCandidat from './ApercuCandidat.vue'
 import ChampOffre from './ChampOffre.vue'
 import { useNav } from './nav'
 import OrigineBadge from './OrigineBadge.vue'
-import { changerEtat, contenuDepuisFiche, LIBELLES_CONTENU } from './store'
+import { changerEtat, contenuDepuisFiche, LIBELLES_CONTENU, verrouilleParDar } from './store'
 
 // Écran 5 — rédaction de l'offre. Le formulaire édite le contenu destiné aux candidats ;
 // la fiche de poste source se consulte à côté, sans jamais être modifiée d'ici. L'aperçu suit la saisie.
@@ -24,7 +24,9 @@ const emit = defineEmits<{ enregistrer: [], onglet: [t: Onglet] }>()
 const { notifier } = useNav()
 const o = computed(() => props.offre)
 
-const modifiable = computed(() => o.value.etat === 'redaction')
+// Modifiable en rédaction et pendant la relecture avant publication ; jamais pendant la validation de la DAR.
+const modifiable = computed(() => o.value.etat === 'redaction' || o.value.etat === 'a_publier')
+const lieuVerrouille = computed(() => verrouilleParDar(o.value, 'lieu'))
 const vue = ref<'apercu' | 'fiche'>('apercu')
 const VUES = [
   { value: 'apercu' as const, label: 'Aperçu candidat', icon: 'ri:eye-line' },
@@ -78,10 +80,6 @@ function terminer() {
   notifier('Rédaction terminée. Préparez maintenant la publication.')
   emit('onglet', 'publication')
 }
-
-function revenirEnRedaction() {
-  changerEtat(o.value, 'redaction', 'Retour en rédaction pour modifier le contenu')
-}
 </script>
 
 <template>
@@ -94,15 +92,20 @@ function revenirEnRedaction() {
       :size="16"
     />
     <span v-if="o.etat === 'validation'">Contenu en lecture seule pendant la validation de la DAR (hypothèse).</span>
-    <span v-else-if="o.etat === 'a_publier'">Offre prête à publier.</span>
     <span v-else>Offre {{ o.etat === 'publiee' ? 'publiée' : 'archivée' }} : contenu en lecture seule.</span>
-    <CspButton
-      v-if="o.etat === 'a_publier'"
-      label="Revenir en rédaction pour modifier"
-      variant="tertiary-no-outline"
-      size="sm"
-      @click="revenirEnRedaction"
+  </p>
+  <p
+    v-else-if="o.etat === 'a_publier'"
+    class="bandeau"
+  >
+    <CspIcon
+      name="ri:eye-line"
+      :size="16"
     />
+    <span>
+      Relecture avant publication : l'offre ne sera publiée que lorsque vous le déciderez.
+      <template v-if="o.dar === 'requise'">Le nombre de postes et le lieu, validés par la DAR, ne sont plus modifiables.</template>
+    </span>
   </p>
   <p
     v-else-if="o.remarqueDar"
@@ -246,7 +249,8 @@ function revenirEnRedaction() {
             <CspInput
               id="o-lieu"
               v-model="o.lieu"
-              :disabled="!modifiable"
+              :disabled="!modifiable || lieuVerrouille"
+              :hint="lieuVerrouille ? 'Validé par la DAR — non modifiable' : undefined"
             />
           </ChampOffre>
           <ChampOffre
@@ -279,7 +283,7 @@ function revenirEnRedaction() {
       </Panel>
 
       <div
-        v-if="modifiable"
+        v-if="o.etat === 'redaction'"
         class="pied"
       >
         <CspButton
