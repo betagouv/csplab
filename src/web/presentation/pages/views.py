@@ -1,9 +1,14 @@
 import re
 
-import markdown
 from django.conf import settings
 from django.http import HttpResponse
+from django.utils.text import slugify
 from django.views.generic import TemplateView
+from markdown_it import MarkdownIt
+
+_TOC_MAX_LEVEL = 3
+
+_markdown = MarkdownIt("commonmark", {"html": False}).enable("table")
 
 
 def _wrap_dsfr_tables(html: str) -> str:
@@ -16,37 +21,59 @@ def _wrap_dsfr_tables(html: str) -> str:
     return html.replace("</table>", "</table></div></div></div></div>")
 
 
-def _add_dsfr_heading_classes(html: str) -> str:
-    return re.sub(r"<h([1-3])([^>]*)>", r'<h\1\2 class="fr-h\1">', html)
+def _unique_id(slug: str, used_ids: set[str]) -> str:
+    anchor = slug
+    suffix = 0
+    while anchor in used_ids or not anchor:
+        suffix += 1
+        anchor = f"{slug}_{suffix}"
+    used_ids.add(anchor)
+    return anchor
 
 
-def _add_dsfr_hr_class(html: str) -> str:
-    return html.replace("<hr />", '<hr class="fr-hr fr-my-4w" />')
+def _add_heading_ids_and_dsfr_classes(tokens: list) -> list[dict]:
+    """Adds anchors and DSFR classes to headings, returns the side menu items."""
+    used_ids: set[str] = set()
+    menu: list[dict] = []
+    parents: list[tuple[int, list[dict]]] = [(0, menu)]
+    for index, token in enumerate(tokens):
+        if token.type == "hr":
+            token.attrSet("class", "fr-hr fr-my-4w")
+        if token.type != "heading_open":
+            continue
+        level = int(token.tag[1])
+        label = "".join(
+            child.content
+            for child in tokens[index + 1].children or []
+            if child.type in ("text", "code_inline")
+        )
+        anchor = _unique_id(slugify(label), used_ids)
+        token.attrSet("id", anchor)
+        if level > _TOC_MAX_LEVEL:
+            continue
+        token.attrSet("class", f"fr-h{level}")
+        while parents[-1][0] >= level:
+            parents.pop()
+        item: dict = {"label": label, "link": f"#{anchor}"}
+        parents[-1][1].append(item)
+        parents.append((level, item.setdefault("items", [])))
+    _drop_empty_items(menu)
+    return menu
 
 
-def _strip_sommaire_section(markdown_text: str) -> str:
-    return re.sub(
-        r"^## Sommaire\n.*?\n---\n",
-        "",
-        markdown_text,
-        count=1,
-        flags=re.DOTALL | re.MULTILINE,
-    )
+def _render_guide(text: str) -> tuple[str, list[dict]]:
+    tokens = _markdown.parse(text)
+    toc_items = _add_heading_ids_and_dsfr_classes(tokens)
+    html = _markdown.renderer.render(tokens, _markdown.options, {})
+    return _wrap_dsfr_tables(html), toc_items
 
 
-def _toc_to_sidemenu_items(tokens: list[dict]) -> list[dict]:
-    return [
-        {
-            "label": token["name"],
-            "link": f"#{token['id']}",
-            **(
-                {"items": _toc_to_sidemenu_items(token["children"])}
-                if token["children"]
-                else {}
-            ),
-        }
-        for token in tokens
-    ]
+def _drop_empty_items(items: list[dict]) -> None:
+    for item in items:
+        if item["items"]:
+            _drop_empty_items(item["items"])
+        else:
+            del item["items"]
 
 
 class HomeView(TemplateView):
@@ -74,17 +101,9 @@ class ApiGuideView(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        markdown_text = _strip_sommaire_section(
+        context["content"], context["toc_items"] = _render_guide(
             (settings.STATIC_DIR / "api" / "guide_api.md").read_text()
         )
-        md = markdown.Markdown(
-            extensions=["tables", "fenced_code", "toc"],
-            extension_configs={"toc": {"toc_depth": "1-3"}},
-        )
-        html = _add_dsfr_heading_classes(md.convert(markdown_text))
-        html = _add_dsfr_hr_class(html)
-        context["content"] = _wrap_dsfr_tables(html)
-        context["toc_items"] = _toc_to_sidemenu_items(md.toc_tokens)
         return context
 
 
