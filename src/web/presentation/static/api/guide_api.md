@@ -696,7 +696,7 @@ Notation : `a.b` désigne un objet imbriqué, `a[]` une liste, `a[0]` son premie
 | `conditions.ouvert_aux_militaires` | Jamais renseigné par l'ingestion. |
 | `conditions.complements` | Jamais renseigné par l'ingestion. |
 | `conditions.bases_legales` | Jamais renseigné par l'ingestion. |
-| `conditions.note_ouverture_poste_url` | Jamais renseigné par l'ingestion. |
+| `conditions.note_ouverture_poste_url` | Lu dans `customFields.offerCustomBlock1.longText3` (« Avis de vacance au JO », absent de l'API fake-ts) : premier lien `legifrance.gouv.fr` présent dans le texte. `null` si le texte ne contient aucun lien Legifrance (les liens vers une page de candidature sont ignorés). |
 | `contacts` | Lu dans `customFields.origin.shortText2` et `customFields.origin.shortText3` (absents de l'API fake-ts) : `shortText2` (« Personnes à contacter ») → contact `principal`, `shortText3` (« Autre personne à contacter ») → contact `autre`. `texte` reprend la valeur sans les espaces en début et fin ; une valeur sans lettre ni chiffre est ignorée. `emails` contient les adresses email présentes dans le texte, dédoublonnées, dans l'ordre d'apparition. `null` si aucun contact. |
 
 
