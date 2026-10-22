@@ -548,6 +548,47 @@ async def test_publish_serializes_criteres_with_languages(
 
 
 @pytest.mark.asyncio
+async def test_publish_serializes_criteres_with_required_skills(
+    gateway, httpx_mock: HTTPXMock
+):
+    httpx_mock.add_response(method="POST", url=PUBLISH_URL, status_code=201)
+    offer = Offer(
+        **{**MINIMAL_OFFER.__dict__, "required_skills": "Travailler en équipe"}
+    )
+
+    await gateway.publish(PublishOfferInput(source_id=SOURCE_ID, offer=offer))
+
+    body = json.loads(httpx_mock.get_requests()[0].content)
+    assert body["offres"][0]["criteres"] == {
+        "competences_requises": "Travailler en équipe"
+    }
+
+
+@pytest.mark.asyncio
+async def test_publish_serializes_legal_basis_and_vacancy_notice_url(
+    gateway, httpx_mock: HTTPXMock
+):
+    httpx_mock.add_response(method="POST", url=PUBLISH_URL, status_code=201)
+    offer = Offer(
+        **{
+            **MINIMAL_OFFER.__dict__,
+            "legal_basis": "Art. L332-2 du code général de la fonction publique",
+            "vacancy_notice_url": HttpUrl("https://www.legifrance.gouv.fr/jorf/id/1"),
+        }
+    )
+
+    await gateway.publish(PublishOfferInput(source_id=SOURCE_ID, offer=offer))
+
+    body = json.loads(httpx_mock.get_requests()[0].content)
+    assert body["offres"][0]["conditions"] == {
+        "temps_travail": "NON_DEFINI",
+        "lieu_de_travail": "NON_DEFINI",
+        "bases_legales": "Art. L332-2 du code général de la fonction publique",
+        "note_ouverture_poste_url": "https://www.legifrance.gouv.fr/jorf/id/1",
+    }
+
+
+@pytest.mark.asyncio
 async def test_publish_serializes_criteres_as_none_when_no_education_level(
     gateway, httpx_mock: HTTPXMock
 ):
