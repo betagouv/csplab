@@ -20,18 +20,15 @@ jobs:
         )
       )
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version: [20.x]
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
           fetch-depth: 0
 
       - name: Get latest version
-        uses: orhun/git-cliff-action@v4
+        uses: orhun/git-cliff-action@a9a95522b26fe6403f7bb24031f21fb573d0f5ff # v4.9.1
         id: git_cliff
         with:
           config: src/web/cliff.toml
@@ -55,7 +52,7 @@ jobs:
 
       - name: Create release
         if: steps.tag_creation.outputs.tag_created
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2.6.2
         with:
           tag_name: ${{ steps.git_cliff.outputs.version }}
           body: ${{ steps.git_cliff.outputs.content }}

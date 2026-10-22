@@ -16,8 +16,8 @@ jobs:
     outputs:
       relevant: ${{ steps.filter.outputs.relevant }}
     steps:
-      - uses: actions/checkout@v6
-      - uses: dorny/paths-filter@fbd0ab8f3e69293af611ebaee6363fc25e6d187d
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+      - uses: dorny/paths-filter@fbd0ab8f3e69293af611ebaee6363fc25e6d187d # v4.0.1
         id: filter
         with:
           filters: |
@@ -43,7 +43,7 @@ jobs:
           - lib: scaleway_secrets
             alias: scaleway-secrets
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
       - uses: ./.github/actions/setup-mise
       - name: Install ${{ matrix.lib }} dependencies
         run: mise run ${{ matrix.alias }}:install
@@ -58,7 +58,7 @@ jobs:
       matrix:
         lib: [ddd, referentiel]
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
       - uses: ./.github/actions/setup-mise
       - name: Install ${{ matrix.lib }} dependencies
         run: mise run ${{ matrix.lib }}:install
