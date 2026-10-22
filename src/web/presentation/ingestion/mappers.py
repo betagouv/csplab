@@ -23,6 +23,7 @@ from referentiel.value_objects.verse import Verse
 from application.ingestion.interfaces.upsert_organismes_input import (
     OrganismeUpsertData,
 )
+from presentation.commons.markdown import render_markdown_without_headings
 
 
 class LocalisationInputMapper(IToDomainMapper[dict, Localisation]):
@@ -157,8 +158,8 @@ class OfferSummaryOutputMapper:
             "contractTypeCountry": None,
             "description1": offer.mission,
             "description2": offer.profile,
-            "description1Formatted": None,
-            "description2Formatted": None,
+            "description1Formatted": self._formatted(offer.mission),
+            "description2Formatted": self._formatted(offer.profile),
             "salaryRange": None,
             "geographicalLocation": [],
             "country": [
@@ -216,6 +217,10 @@ class OfferSummaryOutputMapper:
             vacancy.value,
             "professionalCategory",
         )
+
+    @staticmethod
+    def _formatted(markdown: Optional[str]) -> Optional[str]:
+        return str(render_markdown_without_headings(markdown)) or None
 
     @staticmethod
     def _isoformat(value: Optional[datetime]) -> Optional[str]:
@@ -311,11 +316,18 @@ class OfferDetailOutputMapper(OfferSummaryOutputMapper):
                 longText1=offer.employer,
                 longText2=offer.exercise_conditions,
                 longText3=offer.service_description,
+                longText1Formatted=self._formatted(offer.employer),
+                longText2Formatted=self._formatted(offer.exercise_conditions),
+                longText3Formatted=self._formatted(offer.service_description),
             ),
+            "applicantCriteria": self._dynamic_field(),
             "location": self._dynamic_field(
                 shortText1=offer.localisation.label if offer.localisation else None
             ),
-            "offerCustomBlock1": self._dynamic_field(longText1=offer.complements),
+            "offerCustomBlock1": self._dynamic_field(
+                longText1=offer.complements,
+                longText1Formatted=self._formatted(offer.complements),
+            ),
             "origin": self._dynamic_field(shortText1=offer.application_email),
         }
 
@@ -327,6 +339,9 @@ class OfferDetailOutputMapper(OfferSummaryOutputMapper):
             "longText1": None,
             "longText2": None,
             "longText3": None,
+            "longText1Formatted": None,
+            "longText2Formatted": None,
+            "longText3Formatted": None,
             **values,
         }
 

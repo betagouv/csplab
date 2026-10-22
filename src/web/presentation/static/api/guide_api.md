@@ -592,12 +592,12 @@ Notation : `a.b` désigne un objet imbriqué, `a[]` une liste, `a[0]` son premie
 | `contractType.clientCode` | `nature_offre` | Traduit par le transcodeur de la source. |
 | `professionalCategory.clientCode` | `vacance_poste` | `STATUT01` → `OUI` (poste vacant), `STATUT02` → `NON` (poste susceptible d'être vacant), sinon vide. Malgré son nom, c'est le « Statut du poste » affiché par l'ancien site WordPress. API fake-ts : `OUI` → `STATUT01`, `NON` → `STATUT02`, sinon `null`. |
 | `offerFamilyCategory.clientCode` | `profession.metier` | `profession.domaine` correspond à ses 3 premiers caractères, après retrait d'un `ER` initial. |
-| `description1Formatted` | `description.mission` | Converti du HTML en Markdown, repli sur le texte brut `description1` s'il est vide. API fake-ts : le Markdown est renvoyé dans `description1`, la variante `Formatted` reste `null`. |
-| `description2Formatted` | `description.profil` | Converti du HTML en Markdown, repli sur le texte brut `description2` s'il est vide. API fake-ts : le Markdown est renvoyé dans `description2`, la variante `Formatted` reste `null`. |
-| `customFields.description.longText1Formatted` | `description.employeur` | Converti du HTML en Markdown, repli sur le texte brut `customFields.description.longText1` s'il est vide. API fake-ts : le Markdown est renvoyé dans `customFields.description.longText1`, la variante `Formatted` reste `null`. |
-| `customFields.description.longText2Formatted` | `description.conditions_exercice` | Converti du HTML en Markdown, repli sur le texte brut `customFields.description.longText2` s'il est vide. API fake-ts : le Markdown est renvoyé dans `customFields.description.longText2`, la variante `Formatted` reste `null`. |
-| `customFields.description.longText3Formatted` | `description.descriptif_service` | Converti du HTML en Markdown, repli sur le texte brut `customFields.description.longText3` s'il est vide. API fake-ts : le Markdown est renvoyé dans `customFields.description.longText3`, la variante `Formatted` reste `null`. |
-| `customFields.offerCustomBlock1.longText1Formatted` | `description.complements` | Converti du HTML en Markdown, repli sur le texte brut `customFields.offerCustomBlock1.longText1` s'il est vide. API fake-ts : le Markdown est renvoyé dans `customFields.offerCustomBlock1.longText1`, la variante `Formatted` reste `null`. |
+| `description1Formatted` | `description.mission` | Converti du HTML en Markdown, repli sur le texte brut `description1` s'il est vide. API fake-ts : `description1` contient le Markdown, la variante `Formatted` le HTML (titres rendus en paragraphes en gras), `null` si le champ est vide. |
+| `description2Formatted` | `description.profil` | Converti du HTML en Markdown, repli sur le texte brut `description2` s'il est vide. API fake-ts : `description2` contient le Markdown, la variante `Formatted` le HTML (titres rendus en paragraphes en gras), `null` si le champ est vide. |
+| `customFields.description.longText1Formatted` | `description.employeur` | Converti du HTML en Markdown, repli sur le texte brut `customFields.description.longText1` s'il est vide. API fake-ts : `customFields.description.longText1` contient le Markdown, la variante `Formatted` le HTML (titres rendus en paragraphes en gras), `null` si le champ est vide. |
+| `customFields.description.longText2Formatted` | `description.conditions_exercice` | Converti du HTML en Markdown, repli sur le texte brut `customFields.description.longText2` s'il est vide. API fake-ts : `customFields.description.longText2` contient le Markdown, la variante `Formatted` le HTML (titres rendus en paragraphes en gras), `null` si le champ est vide. |
+| `customFields.description.longText3Formatted` | `description.descriptif_service` | Converti du HTML en Markdown, repli sur le texte brut `customFields.description.longText3` s'il est vide. API fake-ts : `customFields.description.longText3` contient le Markdown, la variante `Formatted` le HTML (titres rendus en paragraphes en gras), `null` si le champ est vide. |
+| `customFields.offerCustomBlock1.longText1Formatted` | `description.complements` | Converti du HTML en Markdown, repli sur le texte brut `customFields.offerCustomBlock1.longText1` s'il est vide. API fake-ts : `customFields.offerCustomBlock1.longText1` contient le Markdown, la variante `Formatted` le HTML (titres rendus en paragraphes en gras), `null` si le champ est vide. |
 | `offerUrl` | `url_offre` | |
 | `urlRedirectionApplicant` | `url_candidature` | Prioritaire sur `customFields.origin.shortText1` et `applicationUrl`. |
 | `customFields.origin.shortText1` | `email_candidature` | Texte libre (« adresse de candidature »). Lu seulement si `urlRedirectionApplicant` est vide : le premier e-mail valide trouvé devient `email_candidature`, et `url_candidature` reste vide. API fake-ts : reprend `email_candidature`, `null` si l'offre se candidate par lien. |
@@ -668,6 +668,9 @@ Notation : `a.b` désigne un objet imbriqué, `a[]` une liste, `a[0]` son premie
 | `customFields.offerCustomBlock1.shortText1` | |
 | `customFields.offerCustomBlock1.longText2` | |
 | `customFields.offerCustomBlock1.longText3` | |
+| `customFields.applicantCriteria.longText1Formatted` | API fake-ts : toujours `null` (non ingéré). |
+| `customFields.offerCustomBlock1.longText2Formatted` | API fake-ts : toujours `null` (non ingéré). |
+| `customFields.offerCustomBlock1.longText3Formatted` | API fake-ts : toujours `null` (non ingéré). |
 | `code` | Clé de tout objet codé : seul `clientCode` est lu. |
 | `label` | Clé de tout objet codé : seul `clientCode` est lu. |
 | `active` | Clé de tout objet codé : seul `clientCode` est lu. |

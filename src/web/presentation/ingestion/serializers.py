@@ -511,11 +511,15 @@ class FakeTsDynamicFieldSerializer(serializers.Serializer):
     longText1 = serializers.CharField(allow_null=True)
     longText2 = serializers.CharField(allow_null=True)
     longText3 = serializers.CharField(allow_null=True)
+    longText1Formatted = serializers.CharField(allow_null=True)
+    longText2Formatted = serializers.CharField(allow_null=True)
+    longText3Formatted = serializers.CharField(allow_null=True)
 
 
 class FakeTsCustomFieldsSerializer(serializers.Serializer):
     offer = FakeTsDynamicFieldSerializer()
     description = FakeTsDynamicFieldSerializer()
+    applicantCriteria = FakeTsDynamicFieldSerializer()
     location = FakeTsDynamicFieldSerializer()
     offerCustomBlock1 = FakeTsDynamicFieldSerializer()
     origin = FakeTsDynamicFieldSerializer()

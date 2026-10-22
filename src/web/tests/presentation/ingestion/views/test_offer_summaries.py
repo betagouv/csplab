@@ -241,8 +241,8 @@ class TestOfferSummariesViewDbVerified:
                     "contractTypeCountry": None,
                     "description1": "Mission du poste",
                     "description2": "Profil recherché",
-                    "description1Formatted": None,
-                    "description2Formatted": None,
+                    "description1Formatted": "<p>Mission du poste</p>",
+                    "description2Formatted": "<p>Profil recherché</p>",
                     "salaryRange": None,
                     "geographicalLocation": [],
                     "country": [
