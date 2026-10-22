@@ -5097,6 +5097,7 @@ components:
       - reply_conversation
       - list_tags
       - create_tag
+      - update_tag
       type: string
       description: |-
         * `get_organisme` - get_organisme
@@ -5136,6 +5137,7 @@ components:
         * `reply_conversation` - reply_conversation
         * `list_tags` - list_tags
         * `create_tag` - create_tag
+        * `update_tag` - update_tag
     BlankEnum:
       enum:
       - ''
