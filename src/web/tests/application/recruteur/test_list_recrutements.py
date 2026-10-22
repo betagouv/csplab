@@ -11,9 +11,9 @@ from application.identite.context_services.organisme_permission_service import (
 from application.recruteur.services.recrutement_query_service_interface import (
     IRecrutementQueryService,
 )
-from application.recruteur.usecases.lister_mes_recrutements import (
-    ListerMesRecrutementsQuery,
-    ListerMesRecrutementsUsecase,
+from application.recruteur.usecases.list_recrutements import (
+    ListRecrutementsQuery,
+    ListRecrutementsUsecase,
 )
 from domain.identite.errors.organisme_permission_errors import AccesOrganismeRefuse
 from domain.recruteur.value_objects.roles import AgentOrganismeRole
@@ -39,15 +39,15 @@ def organisme_permission_service_fixture():
 
 @pytest.fixture(name="usecase")
 def usecase_fixture(service, organisme_permission_service):
-    return ListerMesRecrutementsUsecase(
+    return ListRecrutementsUsecase(
         recrutement_query_service=service,
         organisme_permission_service=organisme_permission_service,
         logger=MagicMock(),
     )
 
 
-class TestListerMesRecrutements:
-    def test_lister_mes_recrutements_actifs(self, service, usecase):
+class TestListRecrutements:
+    def test_list_recrutements_actifs(self, service, usecase):
         organisme_id = uuid4()
         recrutements_actifs = [
             RecrutementFactory.create_actif_read_model(
@@ -57,7 +57,7 @@ class TestListerMesRecrutements:
         service.get_actifs_by_organisme = MagicMock(return_value=recrutements_actifs)
 
         result = usecase.execute(
-            ListerMesRecrutementsQuery(
+            ListRecrutementsQuery(
                 organisme_id=organisme_id,
                 statut=StatutRecrutement.ACTIF,
                 utilisateur=UtilisateurFactory.create_entity(),
@@ -67,7 +67,7 @@ class TestListerMesRecrutements:
         assert result == recrutements_actifs
         service.get_actifs_by_organisme.assert_called_once_with(organisme_id, None)
 
-    def test_lister_mes_recrutements_archives(self, service, usecase):
+    def test_list_recrutements_archives(self, service, usecase):
         organisme_id = uuid4()
         recrutements_archives = [RecrutementFactory.create_archive_read_model()]
         service.get_archives_by_organisme = MagicMock(
@@ -75,7 +75,7 @@ class TestListerMesRecrutements:
         )
 
         result = usecase.execute(
-            ListerMesRecrutementsQuery(
+            ListRecrutementsQuery(
                 organisme_id=organisme_id,
                 statut=StatutRecrutement.ARCHIVE,
                 utilisateur=UtilisateurFactory.create_entity(),
@@ -85,7 +85,7 @@ class TestListerMesRecrutements:
         assert result == recrutements_archives
         service.get_archives_by_organisme.assert_called_once_with(organisme_id, None)
 
-    def test_lister_mes_recrutements_actifs_filtre_par_agent_quand_membre(
+    def test_list_recrutements_actifs_filtre_par_agent_quand_membre(
         self, service, organisme_permission_service, usecase
     ):
         organisme_id = uuid4()
@@ -95,7 +95,7 @@ class TestListerMesRecrutements:
         service.get_actifs_by_organisme = MagicMock(return_value=recrutements_actifs)
 
         result = usecase.execute(
-            ListerMesRecrutementsQuery(
+            ListRecrutementsQuery(
                 organisme_id=organisme_id,
                 statut=StatutRecrutement.ACTIF,
                 utilisateur=UtilisateurFactory.create_entity(entity_id=utilisateur_id),
@@ -107,7 +107,7 @@ class TestListerMesRecrutements:
             organisme_id, utilisateur_id
         )
 
-    def test_lister_mes_recrutements_archives_filtre_par_agent_quand_membre(
+    def test_list_recrutements_archives_filtre_par_agent_quand_membre(
         self, service, organisme_permission_service, usecase
     ):
         organisme_id = uuid4()
@@ -119,7 +119,7 @@ class TestListerMesRecrutements:
         )
 
         result = usecase.execute(
-            ListerMesRecrutementsQuery(
+            ListRecrutementsQuery(
                 organisme_id=organisme_id,
                 statut=StatutRecrutement.ARCHIVE,
                 utilisateur=UtilisateurFactory.create_entity(entity_id=utilisateur_id),
@@ -139,7 +139,7 @@ class TestListerMesRecrutements:
 
         with pytest.raises(AccesOrganismeRefuse):
             usecase.execute(
-                ListerMesRecrutementsQuery(
+                ListRecrutementsQuery(
                     organisme_id=organisme_id,
                     statut=StatutRecrutement.ACTIF,
                     utilisateur=UtilisateurFactory.create_entity(),

@@ -9,11 +9,11 @@ from infrastructure.django_apps.recruteur.models.recrutement import RecrutementM
 from infrastructure.django_apps.users.models import UserModel
 
 
-def get_recrutement_detail(
+def get_recrutement(
     *, organisme_id: UUID, recrutement_id: UUID, utilisateur: UserModel
 ) -> RecrutementModel:
     OrganismePermissionService().can_execute(
-        action=OrganismeAction.VOIR_DETAIL_RECRUTEMENT,
+        action=OrganismeAction.GET_RECRUTEMENT,
         utilisateur=utilisateur,
         organisme_id=organisme_id,
         recrutement_id=recrutement_id,

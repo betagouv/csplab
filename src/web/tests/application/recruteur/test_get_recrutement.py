@@ -3,8 +3,8 @@ from uuid import uuid4
 import pytest
 from django.utils import timezone
 
-from application.recruteur.services.get_recrutement_detail import (
-    get_recrutement_detail,
+from application.recruteur.services.get_recrutement import (
+    get_recrutement,
 )
 from domain.commons.errors.organisme_errors import OrganismeNexistePas
 from domain.identite.errors.organisme_permission_errors import (
@@ -135,7 +135,7 @@ def test_raises(scenario, expected_error):
     agent, organisme_id, recrutement_id = scenario()
 
     with pytest.raises(expected_error):
-        get_recrutement_detail(
+        get_recrutement(
             organisme_id=organisme_id,
             recrutement_id=recrutement_id,
             utilisateur=_utilisateur(agent),
@@ -155,7 +155,7 @@ def test_offre_with_nullable_columns_is_returned():
     )
     recrutement = RecrutementDjangoFactory(organisme=organisme, offre=offre)
 
-    result = get_recrutement_detail(
+    result = get_recrutement(
         organisme_id=organisme.id,
         recrutement_id=recrutement.pk,
         utilisateur=_utilisateur(agent),
@@ -172,7 +172,7 @@ def test_etapes_ordonnees_ignores_stale_and_missing_ids():
     recrutement.ordre_etapes = [str(uuid4()), str(etapes[0].id)]
     recrutement.save(update_fields=["ordre_etapes"])
 
-    result = get_recrutement_detail(
+    result = get_recrutement(
         organisme_id=organisme.id,
         recrutement_id=recrutement.pk,
         utilisateur=_utilisateur(agent),
@@ -191,7 +191,7 @@ def test_recrutement_role_ignores_revoked_link():
         date_revocation=timezone.now(),
     )
 
-    result = get_recrutement_detail(
+    result = get_recrutement(
         organisme_id=organisme.id,
         recrutement_id=recrutement.pk,
         utilisateur=_utilisateur(agent),

@@ -50,7 +50,7 @@ def _organisme(organisme, role: AgentOrganismeRole, utilisateur) -> dict:
         "nom": organisme.nom,
         "authorized_actions": [
             action.value
-            for action in OrganismePermissionService().actions_autorisees_organisme(
+            for action in OrganismePermissionService().authorized_actions_organisme(
                 role,
                 utilisateur=utilisateur,
                 organisme_id=organisme.id,
@@ -212,9 +212,9 @@ def test_staff_has_staff_and_superviseur_actions(authenticated_client, test_user
     assert response.status_code == status.HTTP_200_OK
     body = response.json()
     assert body["authorized_actions"] == [
-        "creer_organisme",
-        "lister_organismes",
-        "modifier_organisme",
+        "create_organisme",
+        "list_organismes",
+        "update_organisme",
     ]
     assert body["organismes"] == [
         _organisme(organisme, AgentOrganismeRole.AGENT, test_user)
@@ -230,7 +230,7 @@ def test_agent_authorized_actions_exclude_recrutement_level(
     response = authenticated_client.get(URL)
 
     assert response.json()["organismes"][0]["authorized_actions"] == [
-        "lister_mes_recrutements",
+        "list_recrutements",
         "get_motifs_refus",
     ]
 
@@ -287,7 +287,7 @@ def test_agent_not_responsable_of_a_recrutement_gets_no_agent_management_actions
     response = authenticated_client.get(URL)
 
     assert response.json()["organismes"][0]["authorized_actions"] == [
-        "lister_mes_recrutements",
+        "list_recrutements",
         "get_motifs_refus",
     ]
 

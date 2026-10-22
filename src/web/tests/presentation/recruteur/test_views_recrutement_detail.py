@@ -738,7 +738,7 @@ class TestRecrutementCandidaturesEtapeView:
 
     def test_echoes_candidatures_as_reussites(self, container, authenticated_client):
         candidatures = CandidatureRecruteurFactory.create_entity_batch(3)
-        mock_usecase = container.changer_etape_candidatures_usecase.return_value
+        mock_usecase = container.change_etape_candidatures_usecase.return_value
         mock_usecase.execute.return_value = {
             "successes": candidatures,
             "failures": [],
@@ -794,7 +794,7 @@ class TestRecrutementCandidaturesEtapeView:
     def test_returns_404_for_unknown(
         self, container, authenticated_client, entity_id, domain_error
     ):
-        mock_usecase = container.changer_etape_candidatures_usecase.return_value
+        mock_usecase = container.change_etape_candidatures_usecase.return_value
         mock_usecase.execute.side_effect = domain_error(entity_id)
 
         response = authenticated_client.patch(
@@ -807,7 +807,7 @@ class TestRecrutementCandidaturesEtapeView:
         assert response.json() == {"error": domain_error(entity_id).message}
 
     def test_returns_400_for_unknown_etape(self, container, authenticated_client):
-        mock_usecase = container.changer_etape_candidatures_usecase.return_value
+        mock_usecase = container.change_etape_candidatures_usecase.return_value
         uuid = fake.uuid4()
         mock_usecase.execute.side_effect = RecrutementEtapeInexistante(
             uuid, RECRUTEMENT_UUID
@@ -825,7 +825,7 @@ class TestRecrutementCandidaturesEtapeView:
         }
 
     def test_returns_500_on_unexpected_error(self, container, authenticated_client):
-        mock_usecase = container.changer_etape_candidatures_usecase.return_value
+        mock_usecase = container.change_etape_candidatures_usecase.return_value
         mock_usecase.execute.side_effect = Exception("unexpected")
 
         response = authenticated_client.patch(
@@ -851,7 +851,7 @@ class TestRecrutementCandidaturesEtapeView:
     def test_returns_400_when_motif_refus_required(
         self, container, authenticated_client
     ):
-        mock_usecase = container.changer_etape_candidatures_usecase.return_value
+        mock_usecase = container.change_etape_candidatures_usecase.return_value
         uuid = fake.uuid4()
         mock_usecase.execute.side_effect = MotifRefusRequis(uuid)
 

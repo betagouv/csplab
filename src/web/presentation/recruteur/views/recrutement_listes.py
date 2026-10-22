@@ -6,8 +6,8 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from application.recruteur.usecases.lister_mes_recrutements import (
-    ListerMesRecrutementsQuery,
+from application.recruteur.usecases.list_recrutements import (
+    ListRecrutementsQuery,
 )
 from domain.commons.errors.organisme_errors import OrganismeNexistePas
 from domain.identite.errors.organisme_permission_errors import AccesOrganismeRefuse
@@ -48,9 +48,9 @@ class RecrutementsActifsView(SessionApiMixin, APIView):
 
     def get(self, request: Request, organisme_uuid: UUID) -> Response:
         try:
-            list_usecase = self.container.lister_mes_recrutements_usecase()
+            list_usecase = self.container.list_recrutements_usecase()
             result = list_usecase.execute(
-                ListerMesRecrutementsQuery(
+                ListRecrutementsQuery(
                     organisme_id=organisme_uuid,
                     statut=StatutRecrutement.ACTIF,
                     utilisateur=self.user_mapper.to_domain(request),
@@ -106,9 +106,9 @@ class RecrutementsArchivesView(SessionApiMixin, APIView):
 
     def get(self, request: Request, organisme_uuid: UUID) -> Response:
         try:
-            list_usecase = self.container.lister_mes_recrutements_usecase()
+            list_usecase = self.container.list_recrutements_usecase()
             result = list_usecase.execute(
-                ListerMesRecrutementsQuery(
+                ListRecrutementsQuery(
                     organisme_id=organisme_uuid,
                     statut=StatutRecrutement.ARCHIVE,
                     utilisateur=self.user_mapper.to_domain(request),

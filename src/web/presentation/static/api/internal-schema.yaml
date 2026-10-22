@@ -4804,16 +4804,16 @@ components:
       - get_organisme
       - initialize_organisme_steps
       - update_organisme_steps
-      - lister_mes_recrutements
-      - voir_detail_recrutement
-      - get_candidature_detail
-      - changer_etape_candidatures
+      - list_recrutements
+      - get_recrutement
+      - get_candidature
+      - change_etape_candidatures
       - get_recrutement_etapes
       - update_recrutement_etapes
       - init_recrutement_etapes
-      - creer_organisme
-      - lister_organismes
-      - modifier_organisme
+      - create_organisme
+      - list_organismes
+      - update_organisme
       - list_organisme_agents
       - search_agent
       - attach_organisme_agent
@@ -4841,16 +4841,16 @@ components:
         * `get_organisme` - get_organisme
         * `initialize_organisme_steps` - initialize_organisme_steps
         * `update_organisme_steps` - update_organisme_steps
-        * `lister_mes_recrutements` - lister_mes_recrutements
-        * `voir_detail_recrutement` - voir_detail_recrutement
-        * `get_candidature_detail` - get_candidature_detail
-        * `changer_etape_candidatures` - changer_etape_candidatures
+        * `list_recrutements` - list_recrutements
+        * `get_recrutement` - get_recrutement
+        * `get_candidature` - get_candidature
+        * `change_etape_candidatures` - change_etape_candidatures
         * `get_recrutement_etapes` - get_recrutement_etapes
         * `update_recrutement_etapes` - update_recrutement_etapes
         * `init_recrutement_etapes` - init_recrutement_etapes
-        * `creer_organisme` - creer_organisme
-        * `lister_organismes` - lister_organismes
-        * `modifier_organisme` - modifier_organisme
+        * `create_organisme` - create_organisme
+        * `list_organismes` - list_organismes
+        * `update_organisme` - update_organisme
         * `list_organisme_agents` - list_organisme_agents
         * `search_agent` - search_agent
         * `attach_organisme_agent` - attach_organisme_agent

@@ -78,7 +78,7 @@ def test_update_organisme_success(
 
     result = usecase.execute(command)
     permission_service.can_execute.assert_called_once_with(
-        action=OrganismeAction.MODIFIER_ORGANISME,
+        action=OrganismeAction.UPDATE_ORGANISME,
         utilisateur=utilisateur,
         organisme_id=organisme.entity_id,
     )

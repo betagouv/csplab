@@ -26,14 +26,14 @@ from infrastructure.repositories.commons.postgres_audit_log_repository import (
 )
 
 
-class RecrutementResponsableEchec(TypedDict):
+class RecrutementResponsableFailure(TypedDict):
     recrutement_id: UUID
     raison: str
 
 
-class SetRecrutementsResponsableResultat(TypedDict):
+class SetRecrutementsResponsableResult(TypedDict):
     reussites: list[UUID]
-    echecs: list[RecrutementResponsableEchec]
+    echecs: list[RecrutementResponsableFailure]
 
 
 def set_recrutements_responsable(
@@ -42,7 +42,7 @@ def set_recrutements_responsable(
     recrutement_ids: list[UUID],
     agent_id: UUID,
     utilisateur: UserModel,
-) -> SetRecrutementsResponsableResultat:
+) -> SetRecrutementsResponsableResult:
     OrganismePermissionService().can_execute(
         action=OrganismeAction.SET_RECRUTEMENTS_RESPONSABLE,
         utilisateur=utilisateur,
@@ -72,7 +72,7 @@ def set_recrutements_responsable(
             )
         }
 
-        failures: list[RecrutementResponsableEchec] = [
+        failures: list[RecrutementResponsableFailure] = [
             {"recrutement_id": rid, "raison": str(RecrutementInexistant(rid))}
             for rid in recrutement_ids
             if rid not in existing_recrutement_ids

@@ -40,12 +40,12 @@ pytestmark = pytest.mark.django_db
 
 
 STAFF_SEULEMENT_SANS_ORGANISME_ACTIONS = [
-    OrganismeAction.CREER_ORGANISME,
-    OrganismeAction.LISTER_ORGANISMES,
+    OrganismeAction.CREATE_ORGANISME,
+    OrganismeAction.LIST_ORGANISMES,
 ]
 
 STAFF_SEULEMENT_AVEC_ORGANISME_ACTIONS = [
-    OrganismeAction.MODIFIER_ORGANISME,
+    OrganismeAction.UPDATE_ORGANISME,
 ]
 
 SUPERVISEUR_ET_STAFF_ACTIONS = [
@@ -65,13 +65,13 @@ SUPERVISEUR_OU_AGENT_RESPONSABLE_D_UN_RECRUTEMENT_ACTIONS = [
 ]
 
 SUPERVISEUR_OU_AGENT_SANS_RECRUTEMENT_ACTIONS = [
-    OrganismeAction.LISTER_MES_RECRUTEMENTS,
+    OrganismeAction.LIST_RECRUTEMENTS,
     OrganismeAction.GET_MOTIFS_REFUS,
 ]
 
 SUPERVISEUR_OU_AGENT_AVEC_RECRUTEMENT_ACTIONS = [
-    OrganismeAction.VOIR_DETAIL_RECRUTEMENT,
-    OrganismeAction.GET_CANDIDATURE_DETAIL,
+    OrganismeAction.GET_RECRUTEMENT,
+    OrganismeAction.GET_CANDIDATURE,
     OrganismeAction.READ_DOCUMENT,
     OrganismeAction.LIST_DOCUMENTS,
     OrganismeAction.LIST_NOTES,
@@ -94,7 +94,7 @@ SUPERVISEUR_OU_AGENT_AVEC_RESPONSABLE_ACTIONS = [
 ]
 
 SUPERVISEUR_OU_AGENT_AVEC_RESPONSABLE_OU_RECRUTEUR_ACTIONS = [
-    OrganismeAction.CHANGER_ETAPE_CANDIDATURES,
+    OrganismeAction.CHANGE_ETAPE_CANDIDATURES,
 ]
 
 SUPERVISEUR_ACTIONS = (
@@ -309,7 +309,7 @@ def test_revocation_is_scoped_to_organisme(
     )
 
     result = OrganismePermissionService().can_execute(
-        action=OrganismeAction.VOIR_DETAIL_RECRUTEMENT,
+        action=OrganismeAction.GET_RECRUTEMENT,
         organisme_id=organisme_b.id,  # type: ignore[arg-type]
         utilisateur=utilisateur_de(agent.utilisateur_id),  # type: ignore[attr-defined]
         recrutement_id=recrutement_b.pk,
@@ -318,7 +318,7 @@ def test_revocation_is_scoped_to_organisme(
     assert result == AgentOrganismeRole.AGENT
     with pytest.raises(AccesOrganismeRefuse):
         OrganismePermissionService().can_execute(
-            action=OrganismeAction.VOIR_DETAIL_RECRUTEMENT,
+            action=OrganismeAction.GET_RECRUTEMENT,
             organisme_id=organisme_a.id,  # type: ignore[arg-type]
             utilisateur=utilisateur_de(agent.utilisateur_id),  # type: ignore[attr-defined]
             recrutement_id=recrutement_a.pk,
@@ -853,9 +853,9 @@ class TestAuthorizedActions:
             (
                 True,
                 [
-                    OrganismeAction.CREER_ORGANISME,
-                    OrganismeAction.LISTER_ORGANISMES,
-                    OrganismeAction.MODIFIER_ORGANISME,
+                    OrganismeAction.CREATE_ORGANISME,
+                    OrganismeAction.LIST_ORGANISMES,
+                    OrganismeAction.UPDATE_ORGANISME,
                 ],
             ),
         ],
@@ -863,25 +863,25 @@ class TestAuthorizedActions:
     )
     def test_user_authorized_actions(self, is_staff, expected):
         assert (
-            OrganismePermissionService().actions_autorisees_utilisateur(
+            OrganismePermissionService().authorized_actions_user(
                 UserModel(is_staff=is_staff)
             )
             == expected
         )
 
     def test_agent_gets_actions_without_target_recrutement(self):
-        assert OrganismePermissionService().actions_autorisees_organisme(
+        assert OrganismePermissionService().authorized_actions_organisme(
             AgentOrganismeRole.AGENT,
             utilisateur=UserModel(is_staff=False),
             organisme_id=uuid4(),
             organisme_ids_responsable={uuid4()},
         ) == [
-            OrganismeAction.LISTER_MES_RECRUTEMENTS,
+            OrganismeAction.LIST_RECRUTEMENTS,
             OrganismeAction.GET_MOTIFS_REFUS,
         ]
 
     def test_superviseur_gets_actions_without_target_recrutement(self):
-        assert OrganismePermissionService().actions_autorisees_organisme(
+        assert OrganismePermissionService().authorized_actions_organisme(
             AgentOrganismeRole.SUPERVISEUR,
             utilisateur=UserModel(is_staff=False),
             organisme_id=uuid4(),
@@ -893,13 +893,13 @@ class TestAuthorizedActions:
     def test_responsable_agent_gets_search_and_create_agent(self):
         organisme_id = uuid4()
 
-        assert OrganismePermissionService().actions_autorisees_organisme(
+        assert OrganismePermissionService().authorized_actions_organisme(
             AgentOrganismeRole.AGENT,
             utilisateur=UserModel(is_staff=False),
             organisme_id=organisme_id,
             organisme_ids_responsable={organisme_id},
         ) == [
-            OrganismeAction.LISTER_MES_RECRUTEMENTS,
+            OrganismeAction.LIST_RECRUTEMENTS,
             OrganismeAction.SEARCH_AGENT,
             OrganismeAction.CREATE_AGENT,
             OrganismeAction.GET_MOTIFS_REFUS,
@@ -909,7 +909,7 @@ class TestAuthorizedActions:
     def test_staff_acts_as_superviseur(self, is_responsable):
         organisme_id = uuid4()
 
-        assert OrganismePermissionService().actions_autorisees_organisme(
+        assert OrganismePermissionService().authorized_actions_organisme(
             AgentOrganismeRole.AGENT,
             utilisateur=UserModel(is_staff=True),
             organisme_id=organisme_id,
@@ -933,7 +933,7 @@ class TestAuthorizedActions:
         if is_responsable:
             _attach_recrutement_role(organisme, agent, AgentRecrutementRole.RESPONSABLE)
 
-        for action in OrganismePermissionService().actions_autorisees_organisme(
+        for action in OrganismePermissionService().authorized_actions_organisme(
             role,
             utilisateur=agent.utilisateur,
             organisme_id=organisme.id,

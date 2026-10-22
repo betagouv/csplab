@@ -78,7 +78,7 @@ class TestRecrutementsActifsView:
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
     def test_pagination_second_page(self, container, authenticated_client):
-        mock_usecase = container.lister_mes_recrutements_usecase.return_value
+        mock_usecase = container.list_recrutements_usecase.return_value
         mock_usecase.execute.return_value = MagicMock()
         mock_usecase.execute.return_value.count.return_value = 6
         mock_usecase.execute.return_value.slice.return_value = [
@@ -95,7 +95,7 @@ class TestRecrutementsActifsView:
         assert data["previous"] is not None
 
     def test_candidatures_structure(self, container, authenticated_client):
-        mock_usecase = container.lister_mes_recrutements_usecase.return_value
+        mock_usecase = container.list_recrutements_usecase.return_value
         mock_usecase.execute.return_value = MagicMock()
         mock_usecase.execute.return_value.count.return_value = 1
         mock_usecase.execute.return_value.slice.return_value = [
@@ -112,7 +112,7 @@ class TestRecrutementsActifsView:
         assert "en_cours" in candidatures
 
     def test_returns_actifs(self, container, authenticated_client):
-        mock_usecase = container.lister_mes_recrutements_usecase.return_value
+        mock_usecase = container.list_recrutements_usecase.return_value
         mock_usecase.execute.return_value = MagicMock()
         mock_usecase.execute.return_value.count.return_value = 1
         mock_usecase.execute.return_value.slice.return_value = [
@@ -141,7 +141,7 @@ class TestRecrutementsActifsView:
     def test_returns_404_for_unknown_organisme(self, container, authenticated_client):
         mock_usecase = MagicMock()
         mock_usecase.execute.side_effect = OrganismeNexistePas("not found")
-        container.lister_mes_recrutements_usecase.return_value = mock_usecase
+        container.list_recrutements_usecase.return_value = mock_usecase
 
         response = authenticated_client.get(RECRUTEMENTS_ACTIFS_URL)
         assert response.status_code == status.HTTP_404_NOT_FOUND
@@ -155,7 +155,7 @@ class TestRecrutementsActifsView:
         mock_usecase.execute.side_effect = AccesOrganismeRefuse(UUID(fake.uuid4()))
 
         mock_container = MagicMock()
-        mock_container.lister_mes_recrutements_usecase.return_value = mock_usecase
+        mock_container.list_recrutements_usecase.return_value = mock_usecase
         mock_recruteur_container.return_value = mock_container
 
         response = authenticated_client.get(RECRUTEMENTS_ACTIFS_URL)
@@ -170,7 +170,7 @@ class TestRecrutementsActifsView:
         mock_usecase.execute.side_effect = Exception("unexpected")
 
         mock_container = MagicMock()
-        mock_container.lister_mes_recrutements_usecase.return_value = mock_usecase
+        mock_container.list_recrutements_usecase.return_value = mock_usecase
         mock_recruteur_container.return_value = mock_container
 
         response = authenticated_client.get(RECRUTEMENTS_ACTIFS_URL)
@@ -184,7 +184,7 @@ class TestRecrutementsArchivesView:
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
     def test_pagination_second_page(self, container, authenticated_client):
-        mock_usecase = container.lister_mes_recrutements_usecase.return_value
+        mock_usecase = container.list_recrutements_usecase.return_value
         mock_usecase.execute.return_value = MagicMock()
         mock_usecase.execute.return_value.count.return_value = 3
         mock_usecase.execute.return_value.slice.return_value = [
@@ -201,7 +201,7 @@ class TestRecrutementsArchivesView:
         assert data["previous"] is None
 
     def test_returns_archives(self, container, authenticated_client):
-        mock_usecase = container.lister_mes_recrutements_usecase.return_value
+        mock_usecase = container.list_recrutements_usecase.return_value
         mock_usecase.execute.return_value = MagicMock()
         mock_usecase.execute.return_value.count.return_value = 1
         mock_usecase.execute.return_value.slice.return_value = [
@@ -232,7 +232,7 @@ class TestRecrutementsArchivesView:
     def test_returns_404_for_unknown_organisme(self, container, authenticated_client):
         mock_usecase = MagicMock()
         mock_usecase.execute.side_effect = OrganismeNexistePas("not found")
-        container.lister_mes_recrutements_usecase.return_value = mock_usecase
+        container.list_recrutements_usecase.return_value = mock_usecase
 
         response = authenticated_client.get(RECRUTEMENTS_ARCHIVES_URL)
         assert response.status_code == status.HTTP_404_NOT_FOUND
@@ -246,7 +246,7 @@ class TestRecrutementsArchivesView:
         mock_usecase.execute.side_effect = AccesOrganismeRefuse(UUID(fake.uuid4()))
 
         mock_container = MagicMock()
-        mock_container.lister_mes_recrutements_usecase.return_value = mock_usecase
+        mock_container.list_recrutements_usecase.return_value = mock_usecase
         mock_recruteur_container.return_value = mock_container
 
         response = authenticated_client.get(RECRUTEMENTS_ARCHIVES_URL)
@@ -261,7 +261,7 @@ class TestRecrutementsArchivesView:
         mock_usecase.execute.side_effect = Exception("unexpected")
 
         mock_container = MagicMock()
-        mock_container.lister_mes_recrutements_usecase.return_value = mock_usecase
+        mock_container.list_recrutements_usecase.return_value = mock_usecase
         mock_recruteur_container.return_value = mock_container
 
         response = authenticated_client.get(RECRUTEMENTS_ARCHIVES_URL)

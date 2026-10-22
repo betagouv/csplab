@@ -8,9 +8,9 @@ from ddd.unit_of_work import IUnitOfWork
 from application.identite.context_services.organisme_permission_service import (
     OrganismePermissionService,
 )
-from application.recruteur.usecases.changer_etape_candidatures import (
-    ChangerEtapeCandidaturesCommand,
-    ChangerEtapeCandidaturesUsecase,
+from application.recruteur.usecases.change_etape_candidatures import (
+    ChangeEtapeCandidaturesCommand,
+    ChangeEtapeCandidaturesUsecase,
 )
 from domain.commons.errors.organisme_errors import OrganismeNexistePas
 from domain.commons.services.audit_log_writer import AuditLogWriter
@@ -105,7 +105,7 @@ def usecase_fixture(
     permission_service,
     unit_of_work,
 ):
-    return ChangerEtapeCandidaturesUsecase(
+    return ChangeEtapeCandidaturesUsecase(
         candidature_recruteur_repository=candidature_recruteur_repository,
         recrutement_repository=recrutement_repository,
         permission_service=permission_service,
@@ -114,7 +114,7 @@ def usecase_fixture(
     )
 
 
-class TestChangerEtapeCandidaturesUsecase:
+class TestChangeEtapeCandidaturesUsecase:
     def test_echoes_all_candidatures_as_reussites(
         self,
         recrutement,
@@ -122,7 +122,7 @@ class TestChangerEtapeCandidaturesUsecase:
         candidatures_recruteur_changees,
         usecase,
     ):
-        command = ChangerEtapeCandidaturesCommand(
+        command = ChangeEtapeCandidaturesCommand(
             organisme_id=recrutement.organisme_id,
             recrutement_id=recrutement.entity_id,
             utilisateur=UtilisateurFactory.create_entity(),
@@ -156,7 +156,7 @@ class TestChangerEtapeCandidaturesUsecase:
 
         with pytest.raises(RecrutementInexistant):
             usecase.execute(
-                ChangerEtapeCandidaturesCommand(
+                ChangeEtapeCandidaturesCommand(
                     organisme_id=uuid4(),
                     recrutement_id=recrutement_id,
                     utilisateur=UtilisateurFactory.create_entity(),
@@ -177,7 +177,7 @@ class TestChangerEtapeCandidaturesUsecase:
             match=f"Rôle non autorisé sur le recrutement {recrutement.entity_id}",
         ):
             usecase.execute(
-                ChangerEtapeCandidaturesCommand(
+                ChangeEtapeCandidaturesCommand(
                     organisme_id=recrutement.organisme_id,
                     recrutement_id=recrutement.entity_id,
                     utilisateur=UtilisateurFactory.create_entity(),
@@ -198,7 +198,7 @@ class TestChangerEtapeCandidaturesUsecase:
             match=(f"Organisme introuvable : {organisme_id}"),
         ):
             usecase.execute(
-                ChangerEtapeCandidaturesCommand(
+                ChangeEtapeCandidaturesCommand(
                     organisme_id=organisme_id,
                     recrutement_id=recrutement.entity_id,
                     utilisateur=UtilisateurFactory.create_entity(),
@@ -218,7 +218,7 @@ class TestChangerEtapeCandidaturesUsecase:
             f" {recrutement.entity_id}",
         ):
             usecase.execute(
-                ChangerEtapeCandidaturesCommand(
+                ChangeEtapeCandidaturesCommand(
                     organisme_id=recrutement.organisme_id,
                     recrutement_id=recrutement.entity_id,
                     utilisateur=UtilisateurFactory.create_entity(),
@@ -234,7 +234,7 @@ class TestChangerEtapeCandidaturesUsecase:
 
         with pytest.raises(MotifRefusRequis):
             usecase.execute(
-                ChangerEtapeCandidaturesCommand(
+                ChangeEtapeCandidaturesCommand(
                     organisme_id=recrutement.organisme_id,
                     recrutement_id=recrutement.entity_id,
                     utilisateur=UtilisateurFactory.create_entity(),
@@ -249,7 +249,7 @@ class TestChangerEtapeCandidaturesUsecase:
         etape_refus_id = recrutement.etapes[-2].entity_id
 
         resultat = usecase.execute(
-            ChangerEtapeCandidaturesCommand(
+            ChangeEtapeCandidaturesCommand(
                 organisme_id=recrutement.organisme_id,
                 recrutement_id=recrutement.entity_id,
                 utilisateur=UtilisateurFactory.create_entity(),
@@ -273,7 +273,7 @@ class TestChangerEtapeCandidaturesUsecase:
             "failures": [],
         }
         result = usecase.execute(
-            ChangerEtapeCandidaturesCommand(
+            ChangeEtapeCandidaturesCommand(
                 organisme_id=recrutement.organisme_id,
                 recrutement_id=recrutement.entity_id,
                 utilisateur=UtilisateurFactory.create_entity(),

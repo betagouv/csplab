@@ -6,8 +6,8 @@ from application.identite.context_services.organisme_permission_service import (
 from application.recruteur.usecases.attach_organisme_agent import (
     AttachOrganismeAgentUsecase,
 )
-from application.recruteur.usecases.changer_etape_candidatures import (
-    ChangerEtapeCandidaturesUsecase,
+from application.recruteur.usecases.change_etape_candidatures import (
+    ChangeEtapeCandidaturesUsecase,
 )
 from application.recruteur.usecases.get_recrutement_kanban import (
     GetRecrutementKanbanUsecase,
@@ -15,8 +15,8 @@ from application.recruteur.usecases.get_recrutement_kanban import (
 from application.recruteur.usecases.list_organisme_agents import (
     ListOrganismeAgentsUsecase,
 )
-from application.recruteur.usecases.lister_mes_recrutements import (
-    ListerMesRecrutementsUsecase,
+from application.recruteur.usecases.list_recrutements import (
+    ListRecrutementsUsecase,
 )
 from application.recruteur.usecases.revoke_organisme_agent import (
     RevokeOrganismeAgentUsecase,
@@ -133,8 +133,8 @@ class RecruteurContainer(containers.DeclarativeContainer):
         organisme_permission_service=organisme_permission_service,
         audit_log_writer=audit_log_writer,
     )
-    lister_mes_recrutements_usecase = providers.Factory(
-        ListerMesRecrutementsUsecase,
+    list_recrutements_usecase = providers.Factory(
+        ListRecrutementsUsecase,
         recrutement_query_service=postgres_recrutement_query_service,
         organisme_permission_service=organisme_permission_service,
         logger=logger_service,
@@ -154,8 +154,8 @@ class RecruteurContainer(containers.DeclarativeContainer):
         audit_log_writer=audit_log_writer,
     )
 
-    changer_etape_candidatures_usecase = providers.Factory(
-        ChangerEtapeCandidaturesUsecase,
+    change_etape_candidatures_usecase = providers.Factory(
+        ChangeEtapeCandidaturesUsecase,
         permission_service=organisme_permission_service,
         recrutement_repository=postgres_recrutement_repository,
         candidature_recruteur_repository=postgres_candidature_repository,
