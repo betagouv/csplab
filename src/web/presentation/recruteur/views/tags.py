@@ -15,7 +15,7 @@ from domain.identite.errors.organisme_permission_errors import (
     AccesRecrutementInconnu,
     OperationOrganismeRefusee,
 )
-from domain.recruteur.errors.tag_errors import InvalidTagName, TagAlreadyExists
+from domain.recruteur.errors.tag_errors import TagAlreadyExists
 from presentation.api.authentication import SessionApiMixin
 from presentation.api.serializers import GenericErrorSerializer, generic_response_format
 from presentation.recruteur.serializers import (
@@ -64,11 +64,6 @@ class OrganismeTagsView(SessionApiMixin, ListAPIView):
             return Response(
                 GenericErrorSerializer({"error": str(exc)}).data,
                 status=status.HTTP_404_NOT_FOUND,
-            )
-        if isinstance(exc, InvalidTagName):
-            return Response(
-                GenericErrorSerializer({"error": str(exc)}).data,
-                status=status.HTTP_400_BAD_REQUEST,
             )
         if isinstance(exc, TagAlreadyExists):
             return Response(
