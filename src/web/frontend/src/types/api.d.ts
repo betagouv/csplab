@@ -1055,31 +1055,31 @@ export interface components {
             results: components["schemas"]["RecrutementAgent"][];
         };
         PaginatedRecrutementsActifsList: {
-            /** @example 1 */
+            /** @example 123 */
             count: number;
             /**
              * Format: uri
-             * @example null
+             * @example http://api.example.org/accounts/?page=4
              */
             next?: string | null;
             /**
              * Format: uri
-             * @example null
+             * @example http://api.example.org/accounts/?page=2
              */
             previous?: string | null;
             results: components["schemas"]["RecrutementsActifs"][];
         };
         PaginatedRecrutementsArchivesList: {
-            /** @example 1 */
+            /** @example 123 */
             count: number;
             /**
              * Format: uri
-             * @example null
+             * @example http://api.example.org/accounts/?page=4
              */
             next?: string | null;
             /**
              * Format: uri
-             * @example null
+             * @example http://api.example.org/accounts/?page=2
              */
             previous?: string | null;
             results: components["schemas"]["RecrutementsArchives"][];
@@ -2524,10 +2524,10 @@ export interface operations {
     recruteur_organismes_recrutements_actifs_list: {
         parameters: {
             query?: {
-                /** @description Numéro de la page. */
+                /** @description Nombre de résultats à retourner par page. */
+                limit?: number;
+                /** @description Un numéro de page de l'ensemble des résultats. */
                 page?: number;
-                /** @description Nombre d'éléments par page. */
-                taille?: number;
             };
             header?: never;
             path: {
@@ -2624,10 +2624,10 @@ export interface operations {
     recruteur_organismes_recrutements_archives_list: {
         parameters: {
             query?: {
-                /** @description Numéro de la page. */
+                /** @description Nombre de résultats à retourner par page. */
+                limit?: number;
+                /** @description Un numéro de page de l'ensemble des résultats. */
                 page?: number;
-                /** @description Nombre d'éléments par page. */
-                taille?: number;
             };
             header?: never;
             path: {

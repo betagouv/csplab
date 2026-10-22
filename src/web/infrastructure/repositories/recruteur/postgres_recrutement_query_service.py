@@ -1,18 +1,12 @@
-from datetime import datetime
-from typing import cast
 from uuid import UUID
 
-from django.db.models import Count, Max, Prefetch, Q
+from django.db.models import Prefetch
 
 from application.recruteur.dtos.recrutement_read_models import (
     CandidatDto,
     CandidatureKanbanDto,
-    CandidaturesCompteurDto,
     EtapeKanbanReadModel,
-    RecrutementActifsReadModel,
-    RecrutementArchivesReadModel,
     RecrutementKanbanReadModel,
-    ResponsableDto,
 )
 from application.recruteur.services.recrutement_query_service_interface import (
     IRecrutementQueryService,
@@ -23,156 +17,11 @@ from domain.recruteur.value_objects.categorie_etapes_recrutement import (
 from infrastructure.django_apps.candidate.models.candidature import CandidatureModel
 from infrastructure.django_apps.recruteur.models.etape import EtapeModel
 from infrastructure.django_apps.recruteur.models.recrutement import (
-    RecrutementAgentModel,
     RecrutementModel,
 )
-from infrastructure.mappers.queryset_page import QuerySetPage
 
 
 class PostgresRecrutementQueryService(IRecrutementQueryService):
-    def get_actifs_by_organisme(
-        self, organisme_id: UUID, agent_id: UUID | None = None
-    ) -> QuerySetPage[RecrutementActifsReadModel]:
-        filters: dict = {
-            "organisme_id": organisme_id,
-            "offre__archived_at__isnull": True,
-        }
-        if agent_id is not None:
-            filters["agents_liaisons__agent_id"] = str(agent_id)
-            filters["agents_liaisons__date_revocation__isnull"] = True
-
-        qs = (
-            RecrutementModel.objects.filter(**filters)
-            .select_related("offre")
-            .prefetch_related(
-                Prefetch(
-                    "agents_liaisons",
-                    queryset=RecrutementAgentModel.objects.responsables().select_related(
-                        "agent__utilisateur"
-                    ),
-                )
-            )
-            .annotate(
-                derniere_activite=Max(  # todo extract business rules
-                    "etapes__candidatures__updated_at"
-                ),
-                candidatures_total=Count("etapes__candidatures"),
-                candidatures_a_traiter=Count(
-                    "etapes__candidatures",
-                    filter=Q(etapes__categorie=CategorieEtapeRecrutement.ENTREE.value),
-                ),
-                candidatures_en_cours=Count(
-                    "etapes__candidatures",
-                    filter=Q(
-                        etapes__categorie=CategorieEtapeRecrutement.EN_COURS.value
-                    ),
-                ),
-            )
-        )
-
-        def _mapper(model: RecrutementModel) -> RecrutementActifsReadModel:
-            responsables = [
-                ResponsableDto(
-                    nom=liaison.agent.utilisateur.get_full_name()
-                    or liaison.agent.utilisateur.email
-                )
-                for liaison in model.agents_liaisons.all()  # type: ignore[attr-defined]
-            ]
-            return RecrutementActifsReadModel(
-                offer_id=model.offre_id,  # type: ignore[attr-defined]
-                intitule=model.offre.title,
-                reference_csp=model.offre.code_emploi_csp or "",
-                nature_offre=model.offre.offer_nature or "",
-                date_publication=model.offre.publication_date,
-                responsables=responsables,
-                derniere_activite=model.derniere_activite  # type: ignore[attr-defined]
-                or model.offre.publication_date,
-                candidatures=CandidaturesCompteurDto(
-                    total=cast(int, model.candidatures_total) or 0,  # type: ignore[attr-defined]
-                    a_traiter=cast(int, model.candidatures_a_traiter) or 0,  # type: ignore[attr-defined]
-                    en_cours=cast(int, model.candidatures_en_cours) or 0,  # type: ignore[attr-defined]
-                ),
-            )
-
-        return QuerySetPage(qs, mapper=_mapper)
-
-    def get_archives_by_organisme(
-        self, organisme_id: UUID, agent_id: UUID | None = None
-    ) -> QuerySetPage[RecrutementArchivesReadModel]:
-        filters: dict = {
-            "organisme_id": organisme_id,
-            "offre__archived_at__isnull": False,
-        }
-        if agent_id is not None:
-            filters["agents_liaisons__agent_id"] = str(agent_id)
-            filters["agents_liaisons__date_revocation__isnull"] = True
-
-        qs = (
-            RecrutementModel.objects.filter(**filters)
-            .select_related("offre")
-            .prefetch_related(
-                Prefetch(
-                    "agents_liaisons",
-                    queryset=RecrutementAgentModel.objects.responsables().select_related(
-                        "agent__utilisateur"
-                    ),
-                ),
-                Prefetch(
-                    "etapes",
-                    queryset=EtapeModel.objects.filter(
-                        categorie=CategorieEtapeRecrutement.ACCEPTE.value
-                    ).prefetch_related(
-                        Prefetch(
-                            "candidatures",
-                            queryset=CandidatureModel.objects.select_related(
-                                "candidat__utilisateur"
-                            ),
-                        )
-                    ),
-                    to_attr="etapes_acceptees",
-                ),
-            )
-            .annotate(
-                nb_candidatures_acceptees=Count(
-                    "etapes__candidatures",
-                    filter=Q(etapes__categorie=CategorieEtapeRecrutement.ACCEPTE.value),
-                ),
-            )
-        )
-
-        def _mapper(model: RecrutementModel) -> RecrutementArchivesReadModel:
-            responsables = [
-                ResponsableDto(
-                    nom=liaison.agent.utilisateur.get_full_name()
-                    or liaison.agent.utilisateur.email
-                )
-                for liaison in model.agents_liaisons.all()  # type: ignore[attr-defined]
-            ]
-            finalise = cast(int, model.nb_candidatures_acceptees) > 0  # type: ignore[attr-defined]
-            etapes_acceptees = model.etapes_acceptees  # type: ignore[attr-defined]
-            recrute = None
-            if etapes_acceptees:
-                candidatures = etapes_acceptees[0].candidatures.all()
-                if candidatures:
-                    candidat = candidatures[0].candidat
-                    recrute = (
-                        f"{candidat.utilisateur.first_name} "
-                        f"{candidat.utilisateur.last_name}"
-                    ).strip()
-
-            return RecrutementArchivesReadModel(
-                offer_id=model.offre_id,  # type: ignore[attr-defined]
-                intitule=model.offre.title,
-                reference_csp=model.offre.code_emploi_csp or "",
-                nature_offre=model.offre.offer_nature or "",
-                date_archivage=cast(datetime, model.offre.archived_at),
-                responsables=responsables,
-                finalise=finalise,
-                recrute=recrute,
-            )
-
-        return QuerySetPage(qs, mapper=_mapper)
-
     def get_kanban_by_recrutement(
         self, organisme_id: UUID, recrutement_id: UUID
     ) -> RecrutementKanbanReadModel | None:

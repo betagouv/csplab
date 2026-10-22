@@ -1,24 +1,27 @@
-from datetime import datetime, timezone
-from unittest.mock import MagicMock, patch
-from uuid import UUID
+from datetime import UTC, datetime
+from unittest.mock import patch
+from uuid import UUID, uuid4
 
 import pytest
 from django.urls import reverse
-from django.utils import timezone as django_timezone
+from django.utils import timezone
 from faker import Faker
 from referentiel.value_objects.offer_nature import OfferNature
 from rest_framework import status
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.test import APIClient
 
-from application.recruteur.dtos.recrutement_read_models import (
-    CandidaturesCompteurDto,
-    ResponsableDto,
+from domain.recruteur.value_objects.categorie_etapes_recrutement import (
+    CategorieEtapeRecrutement,
 )
-from domain.commons.errors.organisme_errors import OrganismeNexistePas
-from domain.identite.errors.organisme_permission_errors import AccesOrganismeRefuse
 from domain.recruteur.value_objects.roles import (
     AgentOrganismeRole,
     AgentRecrutementRole,
+)
+from infrastructure.django_apps.recruteur.models.etape import EtapeModel
+from infrastructure.django_apps.recruteur.models.recrutement import RecrutementQuerySet
+from infrastructure.factories.candidate.candidature_django_factory import (
+    CandidatureDjangoFactory,
 )
 from infrastructure.factories.identite.agent_django_factory import (
     AgentDjangoFactory,
@@ -28,13 +31,16 @@ from infrastructure.factories.identite.organisme_django_factory import (
     OrganismeDjangoFactory,
     create_organisme_with_agent,
 )
+from infrastructure.factories.recruteur.etapes_recrutement_factory import (
+    EtapeRecrutementFactory,
+)
 from infrastructure.factories.recruteur.recrutement_django_factory import (
     RecrutementDjangoFactory,
 )
-from infrastructure.factories.recruteur.recrutement_factory import RecrutementFactory
 from infrastructure.factories.referentiel.offer_django_factory import (
     OfferDjangoFactory,
 )
+from presentation.commons.pagination import PageNumberLimitPagination
 
 fake = Faker()
 
@@ -60,328 +66,28 @@ NOMBRE_REQUETES_ARCHIVES_ATTENDU = (
     NOMBRE_REQUETES_ACTIFS_ATTENDU
     + 2  # prefetch etapes_acceptees + nested candidatures
 )
+NB_RECRUTEMENTS_REQUETES = 5
 
+TOTAL = 6
+PAGE_SIZE = 2
 
-@pytest.fixture
-def container():
-    with patch(
-        "presentation.recruteur.views.recrutement_listes.recruteur_container"
-    ) as mock:
-        instance = MagicMock()
-        mock.return_value = instance
-        yield instance
-
-
-class TestRecrutementsActifsView:
-    def test_anonymous_access_is_unauthorized(self, api_client):
-        response = api_client.get(RECRUTEMENTS_ACTIFS_URL)
-        assert response.status_code == status.HTTP_401_UNAUTHORIZED
-
-    def test_pagination_second_page(self, container, authenticated_client):
-        mock_usecase = container.list_recrutements_usecase.return_value
-        mock_usecase.execute.return_value = MagicMock()
-        mock_usecase.execute.return_value.count.return_value = 6
-        mock_usecase.execute.return_value.slice.return_value = [
-            RecrutementFactory.create_actif_read_model() for _ in range(2)
-        ]
-
-        response = authenticated_client.get(
-            RECRUTEMENTS_ACTIFS_URL + "?taille=2&page=2"
-        )
-        assert response.status_code == status.HTTP_200_OK
-        data = response.json()
-        assert len(data["results"]) == 2  # noqa
-        assert data["next"] is not None
-        assert data["previous"] is not None
-
-    def test_candidatures_structure(self, container, authenticated_client):
-        mock_usecase = container.list_recrutements_usecase.return_value
-        mock_usecase.execute.return_value = MagicMock()
-        mock_usecase.execute.return_value.count.return_value = 1
-        mock_usecase.execute.return_value.slice.return_value = [
-            RecrutementFactory.create_actif_read_model(
-                candidatures=CandidaturesCompteurDto(total=5, a_traiter=2, en_cours=1),
-            )
-        ]
-
-        response = authenticated_client.get(RECRUTEMENTS_ACTIFS_URL)
-        data = response.json()
-        candidatures = data["results"][0]["candidatures"]
-        assert "total" in candidatures
-        assert "a_traiter" in candidatures
-        assert "en_cours" in candidatures
-
-    def test_returns_actifs(self, container, authenticated_client):
-        mock_usecase = container.list_recrutements_usecase.return_value
-        mock_usecase.execute.return_value = MagicMock()
-        mock_usecase.execute.return_value.count.return_value = 1
-        mock_usecase.execute.return_value.slice.return_value = [
-            RecrutementFactory.create_actif_read_model(
-                intitule="Chargé de mission numérique",
-                reference_csp="REF-2025-001",
-                nature_offre="TITULAIRE_CONTRACTUEL",
-                responsables=[ResponsableDto(nom="Marie Dupont")],
-            )
-        ]
-
-        response = authenticated_client.get(RECRUTEMENTS_ACTIFS_URL)
-        assert response.status_code == status.HTTP_200_OK
-        data = response.json()
-        assert data["count"] == 1
-        first = data["results"][0]
-        assert "uuid" in first
-        assert "intitule" in first
-        assert "reference_csp" in first
-        assert "nature_offre" in first
-        assert "date_publication" in first
-        assert "responsables" in first
-        assert "derniere_activite" in first
-        assert "candidatures" in first
-
-    def test_returns_404_for_unknown_organisme(self, container, authenticated_client):
-        mock_usecase = MagicMock()
-        mock_usecase.execute.side_effect = OrganismeNexistePas("not found")
-        container.list_recrutements_usecase.return_value = mock_usecase
-
-        response = authenticated_client.get(RECRUTEMENTS_ACTIFS_URL)
-        assert response.status_code == status.HTTP_404_NOT_FOUND
-        assert response.json() == {"error": "Not found."}
-
-    @patch("presentation.recruteur.views.recrutement_listes.recruteur_container")
-    def test_returns_403_when_not_responsable(
-        self, mock_recruteur_container, authenticated_client
-    ):
-        mock_usecase = MagicMock()
-        mock_usecase.execute.side_effect = AccesOrganismeRefuse(UUID(fake.uuid4()))
-
-        mock_container = MagicMock()
-        mock_container.list_recrutements_usecase.return_value = mock_usecase
-        mock_recruteur_container.return_value = mock_container
-
-        response = authenticated_client.get(RECRUTEMENTS_ACTIFS_URL)
-        assert response.status_code == status.HTTP_403_FORBIDDEN
-        assert response.json() == {"error": "Forbidden."}
-
-    @patch("presentation.recruteur.views.recrutement_listes.recruteur_container")
-    def test_returns_500_on_unexpected_error(
-        self, mock_recruteur_container, authenticated_client
-    ):
-        mock_usecase = MagicMock()
-        mock_usecase.execute.side_effect = Exception("unexpected")
-
-        mock_container = MagicMock()
-        mock_container.list_recrutements_usecase.return_value = mock_usecase
-        mock_recruteur_container.return_value = mock_container
-
-        response = authenticated_client.get(RECRUTEMENTS_ACTIFS_URL)
-        assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
-        assert response.json() == {"error": "Unexpected error"}
-
-
-class TestRecrutementsArchivesView:
-    def test_anonymous_access_is_unauthorized(self, api_client):
-        response = api_client.get(RECRUTEMENTS_ARCHIVES_URL)
-        assert response.status_code == status.HTTP_401_UNAUTHORIZED
-
-    def test_pagination_second_page(self, container, authenticated_client):
-        mock_usecase = container.list_recrutements_usecase.return_value
-        mock_usecase.execute.return_value = MagicMock()
-        mock_usecase.execute.return_value.count.return_value = 3
-        mock_usecase.execute.return_value.slice.return_value = [
-            RecrutementFactory.create_archive_read_model() for _ in range(2)
-        ]
-
-        response = authenticated_client.get(
-            RECRUTEMENTS_ARCHIVES_URL + "?taille=2&page=1"
-        )
-        assert response.status_code == status.HTTP_200_OK
-        data = response.json()
-        assert len(data["results"]) == 2  # noqa
-        assert data["next"] is not None
-        assert data["previous"] is None
-
-    def test_returns_archives(self, container, authenticated_client):
-        mock_usecase = container.list_recrutements_usecase.return_value
-        mock_usecase.execute.return_value = MagicMock()
-        mock_usecase.execute.return_value.count.return_value = 1
-        mock_usecase.execute.return_value.slice.return_value = [
-            RecrutementFactory.create_archive_read_model(
-                intitule="Directeur des systèmes d'information",
-                reference_csp="REF-2024-A01",
-                nature_offre="TITULAIRE_CONTRACTUEL",
-                responsables=[ResponsableDto(nom="Marie Dupont")],
-                finalise=True,
-                recrute="Sophie Leblanc",
-            )
-        ]
-
-        response = authenticated_client.get(RECRUTEMENTS_ARCHIVES_URL)
-        assert response.status_code == status.HTTP_200_OK
-        data = response.json()
-        assert data["count"] == 1
-        first = data["results"][0]
-        assert "uuid" in first
-        assert "intitule" in first
-        assert "reference_csp" in first
-        assert "nature_offre" in first
-        assert "date_archivage" in first
-        assert "responsables" in first
-        assert "finalise" in first
-        assert "recrute" in first
-
-    def test_returns_404_for_unknown_organisme(self, container, authenticated_client):
-        mock_usecase = MagicMock()
-        mock_usecase.execute.side_effect = OrganismeNexistePas("not found")
-        container.list_recrutements_usecase.return_value = mock_usecase
-
-        response = authenticated_client.get(RECRUTEMENTS_ARCHIVES_URL)
-        assert response.status_code == status.HTTP_404_NOT_FOUND
-        assert response.json() == {"error": "Not found."}
-
-    @patch("presentation.recruteur.views.recrutement_listes.recruteur_container")
-    def test_returns_403_when_not_responsable(
-        self, mock_recruteur_container, authenticated_client
-    ):
-        mock_usecase = MagicMock()
-        mock_usecase.execute.side_effect = AccesOrganismeRefuse(UUID(fake.uuid4()))
-
-        mock_container = MagicMock()
-        mock_container.list_recrutements_usecase.return_value = mock_usecase
-        mock_recruteur_container.return_value = mock_container
-
-        response = authenticated_client.get(RECRUTEMENTS_ARCHIVES_URL)
-        assert response.status_code == status.HTTP_403_FORBIDDEN
-        assert response.json() == {"error": "Forbidden."}
-
-    @patch("presentation.recruteur.views.recrutement_listes.recruteur_container")
-    def test_returns_500_on_unexpected_error(
-        self, mock_recruteur_container, authenticated_client
-    ):
-        mock_usecase = MagicMock()
-        mock_usecase.execute.side_effect = Exception("unexpected")
-
-        mock_container = MagicMock()
-        mock_container.list_recrutements_usecase.return_value = mock_usecase
-        mock_recruteur_container.return_value = mock_container
-
-        response = authenticated_client.get(RECRUTEMENTS_ARCHIVES_URL)
-        assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
-        assert response.json() == {"error": "Unexpected error"}
-
-
-class TestRecrutementsActifsViewDbVerified:
-    def test_returns_persisted_actifs(self, authenticated_client, test_user):
-        _, organisme = create_organisme_with_agent(
-            role=AgentOrganismeRole.SUPERVISEUR,
-            utilisateur=test_user,
-            id=UUID(ORGANISME_UUID),
-        )
-        offer = OfferDjangoFactory(
-            archived_at=None, offer_nature=OfferNature.TERRITORIAL.value
-        )
-        recrutement = RecrutementDjangoFactory(
-            organisme=organisme,
-            offre=offer,
-            agent_link__role=AgentRecrutementRole.RESPONSABLE.value,
-        )
-        membre = recrutement.agents_liaisons.get().agent
-
-        response = authenticated_client.get(RECRUTEMENTS_ACTIFS_URL)
-
-        assert response.status_code == status.HTTP_200_OK
-        data = response.json()
-        assert data["count"] == 1
-        result = data["results"][0]
-        assert result["uuid"] == str(offer.id)
-        assert result["intitule"] == offer.title
-        assert result["reference_csp"] == (offer.code_emploi_csp or "")
-        assert result["nature_offre"] == offer.offer_nature
-        assert result["responsables"] == [
-            {
-                "nom": (
-                    f"{membre.utilisateur.first_name} {membre.utilisateur.last_name}"
-                ).strip()
-            }
-        ]
-        assert result["candidatures"] == {"total": 0, "a_traiter": 0, "en_cours": 0}
-
-    def test_does_not_trigger_n_plus_one_queries(
-        self, authenticated_client, test_user, django_assert_num_queries
-    ):
-        _, organisme = create_organisme_with_agent(
-            role=AgentOrganismeRole.SUPERVISEUR,
-            utilisateur=test_user,
-            id=UUID(ORGANISME_UUID),
-        )
-        RecrutementDjangoFactory.create_batch(5, organisme=organisme)
-
-        with django_assert_num_queries(NOMBRE_REQUETES_ACTIFS_ATTENDU):
-            response = authenticated_client.get(RECRUTEMENTS_ACTIFS_URL)
-
-        assert response.status_code == status.HTTP_200_OK
-
-
-class TestRecrutementsArchivesViewDbVerified:
-    def test_returns_persisted_archives(self, authenticated_client, test_user):
-        _, organisme = create_organisme_with_agent(
-            role=AgentOrganismeRole.SUPERVISEUR,
-            utilisateur=test_user,
-            id=UUID(ORGANISME_UUID),
-        )
-        offer = OfferDjangoFactory(
-            archived_at=datetime(2025, 6, 1, tzinfo=timezone.utc),
-            offer_nature=OfferNature.TERRITORIAL.value,
-        )
-        recrutement = RecrutementDjangoFactory(
-            organisme=organisme,
-            offre=offer,
-            agent_link__role=AgentRecrutementRole.RESPONSABLE.value,
-        )
-        membre = recrutement.agents_liaisons.get().agent
-
-        response = authenticated_client.get(RECRUTEMENTS_ARCHIVES_URL)
-
-        assert response.status_code == status.HTTP_200_OK
-        data = response.json()
-        assert data["count"] == 1
-        result = data["results"][0]
-        assert result["uuid"] == str(offer.id)
-        assert result["intitule"] == offer.title
-        assert result["reference_csp"] == (offer.code_emploi_csp or "")
-        assert result["nature_offre"] == offer.offer_nature
-        assert result["responsables"] == [
-            {
-                "nom": (
-                    f"{membre.utilisateur.first_name} {membre.utilisateur.last_name}"
-                ).strip()
-            }
-        ]
-        assert result["finalise"] is False
-        assert result["recrute"] is None
-
-    def test_does_not_trigger_n_plus_one_queries(
-        self, authenticated_client, test_user, django_assert_num_queries
-    ):
-        _, organisme = create_organisme_with_agent(
-            role=AgentOrganismeRole.SUPERVISEUR,
-            utilisateur=test_user,
-            id=UUID(ORGANISME_UUID),
-        )
-        RecrutementDjangoFactory.create_batch(
-            5, organisme=organisme, offre_archivee=True
-        )
-
-        with django_assert_num_queries(NOMBRE_REQUETES_ARCHIVES_ATTENDU):
-            response = authenticated_client.get(RECRUTEMENTS_ARCHIVES_URL)
-
-        assert response.status_code == status.HTTP_200_OK
-
-
-def _archives_url(organisme_id) -> str:
-    return reverse(
+# (url name, archived)
+LISTS = [
+    pytest.param(
+        "recruteur:organisme_recrutements_actifs",
+        False,
+        id="actifs",
+    ),
+    pytest.param(
         "recruteur:organisme_recrutements_archives",
-        kwargs={"organisme_uuid": str(organisme_id)},
-    )
+        True,
+        id="archives",
+    ),
+]
+
+
+def _url(name: str, organisme_id) -> str:
+    return reverse(name, kwargs={"organisme_uuid": str(organisme_id)})
 
 
 def _client_for(utilisateur) -> APIClient:
@@ -390,9 +96,42 @@ def _client_for(utilisateur) -> APIClient:
     return client
 
 
-class TestRecrutementsArchivesViewRattachement:
+@pytest.fixture(name="organisme")
+def organisme_fixture(test_user):
+    _, organisme = create_organisme_with_agent(
+        role=AgentOrganismeRole.SUPERVISEUR,
+        utilisateur=test_user,
+        id=UUID(ORGANISME_UUID),
+    )
+    return organisme
+
+
+@pytest.mark.parametrize(("name", "archived"), LISTS)
+class TestRecrutementsListViews:
+    def test_anonymous_access_is_unauthorized(self, api_client, name, archived):
+        response = api_client.get(_url(name, ORGANISME_UUID))
+
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+    def test_unknown_organisme_returns_404(self, authenticated_client, name, archived):
+        response = authenticated_client.get(_url(name, uuid4()))
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+        assert response.json() == {"error": "Not found."}
+
+    def test_unexpected_error_returns_500(
+        self, authenticated_client, organisme, name, archived
+    ):
+        with patch.object(
+            RecrutementQuerySet, "with_responsables", side_effect=Exception("boom")
+        ):
+            response = authenticated_client.get(_url(name, organisme.id))
+
+        assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
+        assert response.json() == {"error": "Unexpected error"}
+
     @pytest.mark.parametrize(
-        ("demandeur", "statut_attendu"),
+        ("demandeur", "expected_status"),
         [
             ("actif", status.HTTP_200_OK),
             ("revoque", status.HTTP_403_FORBIDDEN),
@@ -400,26 +139,203 @@ class TestRecrutementsArchivesViewRattachement:
         ],
         ids=["actif", "revoque", "jamais_rattache"],
     )
-    def test_archives_require_active_liaison(self, db, demandeur, statut_attendu):
+    def test_requires_active_organisme_liaison(
+        self, db, name, archived, demandeur, expected_status
+    ):
         organisme = OrganismeDjangoFactory()
         agents = {
             "actif": OrganismeAgentDjangoFactory(organisme=organisme).agent,
             "revoque": OrganismeAgentDjangoFactory(
-                organisme=organisme, date_revocation=django_timezone.now()
+                organisme=organisme, date_revocation=timezone.now()
             ).agent,
             "jamais_rattache": AgentDjangoFactory(),
         }
         # Rôle de recrutement pour tous : sans liaison active, il ne suffit pas.
         RecrutementDjangoFactory(
             organisme=organisme,
-            offre_archivee=True,
+            offre_archivee=archived,
             agent_link__agent=agents[demandeur],
         )
+        RecrutementDjangoFactory(organisme=organisme, offre_archivee=archived)
 
-        reponse = _client_for(agents[demandeur].utilisateur).get(
-            _archives_url(organisme.id)
+        response = _client_for(agents[demandeur].utilisateur).get(
+            _url(name, organisme.id)
         )
 
-        assert reponse.status_code == statut_attendu
-        if statut_attendu == status.HTTP_200_OK:
-            assert reponse.json()["count"] == 1
+        assert response.status_code == expected_status
+        if expected_status == status.HTTP_200_OK:
+            assert response.json()["count"] == 1
+        else:
+            assert response.json() == {"error": "Forbidden."}
+
+    def test_pagination_second_page(
+        self, authenticated_client, organisme, name, archived
+    ):
+        for _ in range(TOTAL):
+            RecrutementDjangoFactory(offre_archivee=archived, organisme=organisme)
+
+        with patch.object(PageNumberPagination, "page_size", PAGE_SIZE):
+            response = authenticated_client.get(_url(name, organisme.id) + "?page=2")
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["count"] == TOTAL
+        assert len(data["results"]) == PAGE_SIZE
+        assert data["next"] is not None
+        assert data["previous"] is not None
+
+    def test_limit_query_param_sets_page_size(
+        self, authenticated_client, organisme, name, archived
+    ):
+        RecrutementDjangoFactory.create_batch(
+            TOTAL, organisme=organisme, offre_archivee=archived
+        )
+
+        response = authenticated_client.get(
+            _url(name, organisme.id), {"limit": PAGE_SIZE}
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["count"] == TOTAL
+        assert len(data["results"]) == PAGE_SIZE
+
+    def test_limit_query_param_is_capped(
+        self, authenticated_client, organisme, name, archived
+    ):
+        RecrutementDjangoFactory.create_batch(
+            TOTAL, organisme=organisme, offre_archivee=archived
+        )
+
+        with patch.object(PageNumberLimitPagination, "max_page_size", PAGE_SIZE):
+            response = authenticated_client.get(
+                _url(name, organisme.id), {"limit": TOTAL}
+            )
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["count"] == TOTAL
+        assert len(data["results"]) == PAGE_SIZE
+
+
+class TestRecrutementsActifsView:
+    def test_does_not_trigger_n_plus_one_queries(
+        self, authenticated_client, organisme, django_assert_num_queries
+    ):
+        RecrutementDjangoFactory.create_batch(
+            NB_RECRUTEMENTS_REQUETES, organisme=organisme
+        )
+
+        with django_assert_num_queries(NOMBRE_REQUETES_ACTIFS_ATTENDU):
+            response = authenticated_client.get(RECRUTEMENTS_ACTIFS_URL)
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json()["count"] == NB_RECRUTEMENTS_REQUETES
+
+    def test_returns_persisted_actifs(self, authenticated_client, organisme):
+        offer = OfferDjangoFactory(
+            archived_at=None, offer_nature=OfferNature.TERRITORIAL.value
+        )
+        recrutement = RecrutementDjangoFactory(
+            organisme=organisme,
+            offre=offer,
+            agent_link__role=AgentRecrutementRole.RESPONSABLE.value,
+            etapes=EtapeRecrutementFactory.create_entity_batch(),
+        )
+        membre = recrutement.agents_liaisons.get().agent
+        RecrutementDjangoFactory(offre_archivee=True, organisme=organisme)
+        for categorie in (
+            CategorieEtapeRecrutement.ENTREE,
+            CategorieEtapeRecrutement.EN_COURS,
+        ):
+            CandidatureDjangoFactory(
+                etape=EtapeModel.objects.filter(
+                    recrutement_id=recrutement.offre_id, categorie=categorie.value
+                ).first()
+            )
+
+        response = authenticated_client.get(RECRUTEMENTS_ACTIFS_URL)
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["count"] == 1
+        result = data["results"][0]
+        assert result["uuid"] == str(offer.id)
+        assert result["intitule"] == offer.title
+        assert result["reference_csp"] == (offer.code_emploi_csp or "")
+        assert result["nature_offre"] == offer.offer_nature
+        assert result["responsables"] == [{"nom": membre.utilisateur.get_full_name()}]
+        assert result["candidatures"] == {"total": 2, "a_traiter": 1, "en_cours": 1}
+        assert result["unread_conversations"] == 0
+        assert "date_publication" in result
+        assert "derniere_activite" in result
+
+
+class TestRecrutementsArchivesView:
+    def test_does_not_trigger_n_plus_one_queries(
+        self, authenticated_client, organisme, django_assert_num_queries
+    ):
+        recrutements = RecrutementDjangoFactory.create_batch(
+            NB_RECRUTEMENTS_REQUETES, organisme=organisme, offre_archivee=True
+        )
+        for recrutement in recrutements:
+            CandidatureDjangoFactory(
+                etape=recrutement.etapes.get(
+                    categorie=CategorieEtapeRecrutement.ACCEPTE.value
+                )
+            )
+
+        with django_assert_num_queries(NOMBRE_REQUETES_ARCHIVES_ATTENDU):
+            response = authenticated_client.get(RECRUTEMENTS_ARCHIVES_URL)
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["count"] == NB_RECRUTEMENTS_REQUETES
+        assert all(result["recrute"] for result in data["results"])
+
+    def test_returns_persisted_archives(self, authenticated_client, organisme):
+        offer = OfferDjangoFactory(
+            archived_at=datetime(2025, 6, 1, tzinfo=UTC),
+            offer_nature=OfferNature.TERRITORIAL.value,
+        )
+        recrutement = RecrutementDjangoFactory(
+            organisme=organisme,
+            offre=offer,
+            agent_link__role=AgentRecrutementRole.RESPONSABLE.value,
+        )
+        membre = recrutement.agents_liaisons.get().agent
+        RecrutementDjangoFactory(organisme=organisme)
+        candidature = CandidatureDjangoFactory(
+            etape=EtapeModel.objects.filter(
+                recrutement_id=recrutement.offre_id,
+                categorie=CategorieEtapeRecrutement.ACCEPTE.value,
+            ).first()
+        )
+
+        response = authenticated_client.get(RECRUTEMENTS_ARCHIVES_URL)
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["count"] == 1
+        result = data["results"][0]
+        assert result["uuid"] == str(offer.id)
+        assert result["intitule"] == offer.title
+        assert result["reference_csp"] == (offer.code_emploi_csp or "")
+        assert result["nature_offre"] == offer.offer_nature
+        assert result["responsables"] == [{"nom": membre.utilisateur.get_full_name()}]
+        assert result["finalise"] is True
+        assert result["recrute"] == candidature.candidat.utilisateur.get_full_name()
+        assert result["unread_conversations"] == 0
+        assert result["date_archivage"].startswith("2025-06-01")
+
+    def test_recrute_is_null_without_accepted_candidature(
+        self, authenticated_client, organisme
+    ):
+        RecrutementDjangoFactory(organisme=organisme, offre_archivee=True)
+
+        response = authenticated_client.get(RECRUTEMENTS_ARCHIVES_URL)
+
+        assert response.status_code == status.HTTP_200_OK
+        result = response.json()["results"][0]
+        assert result["finalise"] is False
+        assert result["recrute"] is None

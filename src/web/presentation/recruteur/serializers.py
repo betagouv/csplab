@@ -156,9 +156,11 @@ class ResponsableSerializer(serializers.Serializer):
 
 
 class CandidaturesActivesSerializer(serializers.Serializer):
-    total = serializers.IntegerField(allow_null=True)
-    a_traiter = serializers.IntegerField(allow_null=True)
-    en_cours = serializers.IntegerField(allow_null=True)
+    total = serializers.IntegerField(source="candidatures_total", allow_null=True)
+    a_traiter = serializers.IntegerField(
+        source="candidatures_a_traiter", allow_null=True
+    )
+    en_cours = serializers.IntegerField(source="candidatures_en_cours", allow_null=True)
 
 
 class UnreadConversationsSerializer(serializers.Serializer):
@@ -168,27 +170,75 @@ class UnreadConversationsSerializer(serializers.Serializer):
         return 0
 
 
-class RecrutementsSerializer(UnreadConversationsSerializer):
-    uuid = serializers.UUIDField(source="offer_id")
-    intitule = serializers.CharField()
-    reference_csp = serializers.CharField()
+class RecrutementsSerializer(
+    UnreadConversationsSerializer, serializers.ModelSerializer
+):
+    uuid = serializers.UUIDField(source="offre_id")
+    intitule = serializers.CharField(source="offre.title")
+    reference_csp = serializers.CharField(source="offre.code_emploi_csp")
     nature_offre = serializers.ChoiceField(
+        source="offre.offer_nature",
         choices=[(c.name, c.value) for c in OfferNature],
         allow_null=True,
     )
     responsables = ResponsableSerializer(many=True)
 
+    def to_representation(self, instance: RecrutementModel) -> dict:
+        data = super().to_representation(instance)
+        data["reference_csp"] = data["reference_csp"] or ""
+        data["nature_offre"] = data["nature_offre"] or ""
+        return data
+
 
 class RecrutementsActifsSerializer(RecrutementsSerializer):
-    date_publication = serializers.DateTimeField()
-    candidatures = CandidaturesActivesSerializer(allow_null=True)
+    date_publication = serializers.DateTimeField(source="offre.publication_date")
+    candidatures = CandidaturesActivesSerializer(source="*", allow_null=True)
     derniere_activite = serializers.DateTimeField()
+
+    class Meta:
+        model = RecrutementModel
+        fields = [
+            "unread_conversations",
+            "uuid",
+            "intitule",
+            "reference_csp",
+            "nature_offre",
+            "responsables",
+            "date_publication",
+            "candidatures",
+            "derniere_activite",
+        ]
+
+
+class RecruteField(serializers.CharField):
+    def get_attribute(self, instance: RecrutementModel) -> str | None:
+        etapes_acceptees = instance.etapes_acceptees  # type: ignore[attr-defined]
+        if not etapes_acceptees:
+            return None
+        candidatures = etapes_acceptees[0].candidatures.all()
+        if not candidatures:
+            return None
+        return candidatures[0].candidat.utilisateur.get_full_name()
 
 
 class RecrutementsArchivesSerializer(RecrutementsSerializer):
-    date_archivage = serializers.DateTimeField()
+    date_archivage = serializers.DateTimeField(source="offre.archived_at")
     finalise = serializers.BooleanField()
-    recrute = serializers.CharField(allow_null=True)
+    recrute = RecruteField(allow_null=True)
+
+    class Meta:
+        model = RecrutementModel
+        fields = [
+            "unread_conversations",
+            "uuid",
+            "intitule",
+            "reference_csp",
+            "nature_offre",
+            "responsables",
+            "date_archivage",
+            "finalise",
+            "recrute",
+        ]
 
 
 # ---------------------------------------------------------------------------
