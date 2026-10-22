@@ -1361,6 +1361,7 @@ def test_clean_returns_empty_applicant_criteria_and_offer_block_texts_when_blank
             "https://www.legifrance.gouv.fr/jorf/id/1"
         ),
         "Avis publié au JO : https://www.legifrance.gouv.fr/jorf/id/1.",
+        "http://www.legifrance.gouv.fr/jorf/id/1",
     ],
 )
 def test_clean_extracts_legifrance_url_from_vacancy_notice_text(cleaner, value):

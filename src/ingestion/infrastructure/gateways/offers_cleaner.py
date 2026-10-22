@@ -48,7 +48,7 @@ logger = logging.getLogger(__name__)
 
 _LIST_BULLET = re.compile(r"^[-–•·*▪●]\s*")
 
-_LEGIFRANCE_URL = re.compile(r"https?://(?:www\.)?legifrance\.gouv\.fr/\S+")
+_LEGIFRANCE_URL = re.compile(r"https?://((?:www\.)?legifrance\.gouv\.fr/\S+)")
 
 _TALENTSOFT_TO_SPECIALISATIONS: dict[str, str] = {
     "_TS_CO_Specialisation_1": "Formations générales",
@@ -505,7 +505,8 @@ class OffersCleaner:
         match = _LEGIFRANCE_URL.search(raw or "")
         if match is None:
             return None
-        return self._parse_url(match.group().rstrip(".,;"))
+        # web n'accepte que des liens https
+        return self._parse_url("https://" + match.group(1).rstrip(".,;"))
 
     def _map_verse(
         self,
