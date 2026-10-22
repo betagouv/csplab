@@ -10,6 +10,8 @@ on:
     paths:
       - "src/notebook/**"
       - "mise.toml"
+      - "mise.ci.toml"
+      - "mise.lock"
       - ".github/workflows/notebook.yml"
       - ".github/actions/**"
 
