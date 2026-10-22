@@ -28,7 +28,7 @@ services:
       retries: 5
 
   qdrant:
-    image: qdrant/qdrant:latest
+    image: qdrant/qdrant:v1.19
     restart: always
     container_name: csp_qdrant
     ports:
@@ -42,7 +42,7 @@ services:
       - qdrant_data:/qdrant/storage
 
   redis:
-    image: redis
+    image: redis:8
     container_name: csp_redis
     restart: unless-stopped
     # settings/test.py alloue une base Redis par worker pytest-xdist ; 16 ne suffisent plus
@@ -53,7 +53,7 @@ services:
       - "127.0.0.1:${REDIS_PORT:-6379}:6379"
 
   rustfs:
-    image: rustfs/rustfs:latest
+    image: rustfs/rustfs:1.0.3
     container_name: csp_rustfs
     env_file:
       - env.d/rustfs
