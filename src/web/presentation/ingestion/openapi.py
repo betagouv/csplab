@@ -354,8 +354,9 @@ LIST_METIERS_DESCRIPTION = (
 Cette API retourne la liste paginée des métiers. Les métiers peuvent être filtrés
 selon leur code de domaine fonctionnel (`domaine`).
 
-Le champ `code_metier` d'un métier est la valeur à renseigner dans
-`profession.metier` de l'API d'ingestion d'offres.
+Le champ `code_emploi_csp` d'un métier est la valeur à renseigner dans
+`profession.metier` de l'API d'ingestion d'offres. Ce code vient du RMFP
+(« Code CSP ») : plusieurs métiers peuvent partager le même code.
 
 """
     + _API_COMMON_FOOTER
@@ -390,7 +391,7 @@ LIST_METIERS_EXAMPLES = [
                 ),
             ],
             "conditions_particulieres": [],
-            "code_metier": "ERAMT001",
+            "code_emploi_csp": "ERAMT001",
         },
         response_only=True,
         status_codes=["200"],
@@ -423,7 +424,7 @@ LIST_METIERS_EXAMPLES = [
                 ),
             ],
             "conditions_particulieres": ["Déplacements nationaux et internationaux"],
-            "code_metier": "ERAGR001",
+            "code_emploi_csp": "ERAGR001",
         },
         response_only=True,
         status_codes=["200"],

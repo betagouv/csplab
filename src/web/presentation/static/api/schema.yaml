@@ -1685,8 +1685,9 @@ paths:
         Cette API retourne la liste paginée des métiers. Les métiers peuvent être filtrés
         selon leur code de domaine fonctionnel (`domaine`).
 
-        Le champ `code_metier` d'un métier est la valeur à renseigner dans
-        `profession.metier` de l'API d'ingestion d'offres.
+        Le champ `code_emploi_csp` d'un métier est la valeur à renseigner dans
+        `profession.metier` de l'API d'ingestion d'offres. Ce code vient du RMFP
+        (« Code CSP ») : plusieurs métiers peuvent partager le même code.
 
 
         Cette API est à l'usage exclusif des personnes autorisées.
@@ -1757,7 +1758,7 @@ paths:
                       - Assurer un rôle de conseil et d'information auprèsdes différents
                         interlocuteurs
                       conditions_particulieres: []
-                      code_metier: ERAMT001
+                      code_emploi_csp: ERAMT001
                   summary: Liste de tous les métiers
                   description: Les métiers sont retournés paginés
                 Success-Filtered:
@@ -1781,7 +1782,7 @@ paths:
                         et des méthodes d'inspection
                       conditions_particulieres:
                       - Déplacements nationaux et internationaux
-                      code_metier: ERAGR001
+                      code_emploi_csp: ERAGR001
                   summary: Liste des métiers correspondants à un code domaine fonctionnel
                   description: Les métiers possédant ce code domaine fonctionnel sont
                     retournés paginés
@@ -4909,15 +4910,15 @@ components:
           items:
             type: string
           nullable: true
-        code_metier:
+        code_emploi_csp:
           type: string
           nullable: true
-          description: Code métier à renseigner dans `profession.metier` de l'API
-            d'ingestion d'offres. Est vide si le métier ne peut pas être utilisé dans
-            une offre.
+          description: Code CSP du RMFP, à renseigner dans `profession.metier` de
+            l'API d'ingestion d'offres. Plusieurs métiers peuvent partager le même
+            code. Est vide si le métier ne peut pas être utilisé dans une offre.
       required:
       - activites
-      - code_metier
+      - code_emploi_csp
       - conditions_particulieres
       - description
       - domaine_fonctionnel_code
@@ -5553,7 +5554,7 @@ components:
         metier:
           type: string
           description: 'Code métier, vérifié uniquement si referentiel=RMFPv2 : valeur
-            du champ `code_metier` d''un métier renvoyé par l''API `/api/v1/metiers`
+            du champ `code_emploi_csp` d''un métier renvoyé par l''API `/api/v1/metiers`
             (exemple : `ERAMT001`).'
           maxLength: 8
         code_emploi_local:
@@ -6073,9 +6074,9 @@ tags:
     ### ⚠️ Changements non rétrocompatibles
 
     `GET /api/v1/metiers` : le champ `offer_family_code` de chaque métier renvoyé devient
-    `code_metier`. Sa valeur ne change pas : c'est toujours le code à renseigner
-    dans `profession.metier` de `POST /api/v1/offres/creer_modifier`. Les autres champs
-    d'un métier ne changent pas.
+    `code_emploi_csp`, du nom du « Code CSP » du RMFP. Sa valeur ne change pas : c'est
+    toujours le code à renseigner dans `profession.metier` de
+    `POST /api/v1/offres/creer_modifier`. Les autres champs d'un métier ne changent pas.
 
     `POST /api/v1/offres/creer_modifier` : une offre dont `conditions.note_ouverture_poste_url`
     n'est pas un lien `https` vers `legifrance.gouv.fr` ou `www.legifrance.gouv.fr` est
@@ -6085,7 +6086,7 @@ tags:
 
     ### Compatibilité
 
-    Lisez désormais le code métier dans `code_metier` : `offer_family_code` n'est
+    Lisez désormais le code dans `code_emploi_csp` : `offer_family_code` n'est
     plus renvoyé.
 
     `conditions.note_ouverture_poste_url` doit contenir le lien vers l'avis de vacance
