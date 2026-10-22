@@ -9,7 +9,6 @@ from application.identite.context_services.organisme_permission_service import (
 from domain.commons.services.audit_log_writer import AuditLogWriter
 from domain.identite.value_objects.organisme_action import OrganismeAction
 from domain.recruteur.errors.tag_errors import TagAlreadyExists, TagNotFound
-from domain.recruteur.tag_rules import normalize_tag_name
 from infrastructure.django_apps.tag.models import TagColor, TagModel
 from infrastructure.django_apps.users.models import UserModel
 from infrastructure.repositories.commons.postgres_audit_log_repository import (
@@ -30,7 +29,6 @@ def update_tag(
         utilisateur=utilisateur,
         organisme_id=organisme_id,
     )
-    name = normalize_tag_name(name)
 
     with transaction.atomic():
         try:

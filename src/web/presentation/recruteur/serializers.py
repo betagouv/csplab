@@ -837,5 +837,5 @@ class CreateTagSerializer(serializers.Serializer):
 
 
 class UpdateTagSerializer(serializers.Serializer):
-    name = serializers.CharField()
+    name = serializers.CharField(max_length=25)
     color = serializers.ChoiceField(choices=TagColor.choices)

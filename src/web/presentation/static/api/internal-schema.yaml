@@ -6869,6 +6869,7 @@ components:
       properties:
         name:
           type: string
+          maxLength: 25
         color:
           $ref: '#/components/schemas/ColorEnum'
       required:
