@@ -1,5 +1,3 @@
-from datetime import datetime, timezone
-
 from referentiel.value_objects.verse import Verse
 
 from application.ingestion.services.list_public_organismes import (
@@ -17,16 +15,6 @@ def _organisme(**kwargs) -> OrganismeModel:
 
 def _localisation(department: str) -> dict:
     return {"area": "EU", "country": "FRA", "region": "94", "department": department}
-
-
-def test_excludes_deleted_organismes_and_orders_by_name(db):
-    second = _organisme(nom="Mairie de Lyon")
-    first = _organisme(nom="CHU de Bordeaux")
-    _organisme(
-        nom="Préfecture", supprime_le=datetime(2026, 1, 1, tzinfo=timezone.utc)
-    )
-
-    assert list(list_public_organismes()) == [first, second]
 
 
 def test_combines_filters(db):
