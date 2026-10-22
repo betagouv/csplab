@@ -8,14 +8,21 @@ from rest_framework import status
 from domain.recruteur.value_objects.roles import AgentOrganismeRole
 from infrastructure.django_apps.commons.models import AuditLogModel
 from infrastructure.django_apps.recruteur.models.organisme import OrganismeAgentModel
-from infrastructure.django_apps.tag.models import TagCategory, TagModel
+from infrastructure.django_apps.tag.models import (
+    CandidatureTagModel,
+    TagCategory,
+    TagModel,
+)
 from infrastructure.factories.identite.organisme_django_factory import (
     create_organisme_with_agent,
 )
 from infrastructure.factories.identite.utilisateur_django_factory import (
     UtilisateurDjangoFactory,
 )
-from infrastructure.factories.tag.tag_django_factory import TagDjangoFactory
+from infrastructure.factories.tag.tag_django_factory import (
+    CandidatureTagDjangoFactory,
+    TagDjangoFactory,
+)
 from infrastructure.repositories.commons.postgres_audit_log_repository import (
     PostgresAuditLogRepository,
 )
@@ -449,3 +456,70 @@ class TestUpdateTag:
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         tag.refresh_from_db()
         assert tag.color == "bleu"
+
+
+class TestDeleteTag:
+    def test_anonymous_access_is_unauthorized(self, api_client):
+        response = api_client.delete(_tag_url(uuid4(), uuid4()))
+
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+    def test_superviseur_deletes_tag_and_its_usages(
+        self, authenticated_client, superviseur_organisme
+    ):
+        tag = CandidatureTagDjangoFactory(tag__organisme=superviseur_organisme).tag
+
+        response = authenticated_client.delete(
+            _tag_url(superviseur_organisme.id, tag.id)
+        )
+
+        assert response.status_code == status.HTTP_204_NO_CONTENT
+        assert not TagModel.objects.filter(pk=tag.pk).exists()
+        assert not CandidatureTagModel.objects.exists()
+        (log,) = _logs(tag.id)
+        assert log.event_name == "TagSupprime"
+
+    def test_agent_is_forbidden(self, authenticated_client, agent_organisme):
+        tag = TagDjangoFactory(organisme=agent_organisme)
+
+        response = authenticated_client.delete(_tag_url(agent_organisme.id, tag.id))
+
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert TagModel.objects.filter(pk=tag.pk).exists()
+        assert not AuditLogModel.objects.exists()
+
+    def test_staff_deletes_tag(self, staff_client):
+        _, organisme = create_organisme_with_agent()
+        tag = TagDjangoFactory(organisme=organisme)
+
+        response = staff_client.delete(_tag_url(organisme.id, tag.id))
+
+        assert response.status_code == status.HTTP_204_NO_CONTENT
+        assert not TagModel.objects.filter(pk=tag.pk).exists()
+
+    def test_tag_of_another_organisme_is_not_found(
+        self, authenticated_client, superviseur_organisme
+    ):
+        other_tag = TagDjangoFactory()
+
+        response = authenticated_client.delete(
+            _tag_url(superviseur_organisme.id, other_tag.id)
+        )
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+        assert TagModel.objects.filter(pk=other_tag.pk).exists()
+        assert not AuditLogModel.objects.exists()
+
+    def test_unknown_tag_is_not_found(
+        self, authenticated_client, superviseur_organisme
+    ):
+        response = authenticated_client.delete(
+            _tag_url(superviseur_organisme.id, uuid4())
+        )
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    def test_unknown_organisme_is_not_found(self, authenticated_client):
+        response = authenticated_client.delete(_tag_url(uuid4(), uuid4()))
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND
