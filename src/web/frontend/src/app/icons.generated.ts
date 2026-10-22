@@ -60,6 +60,7 @@ import riLogoutBoxRLine from '@iconify-icons/ri/logout-box-r-line'
 import riMailAddLine from '@iconify-icons/ri/mail-add-line'
 import riMailCloseLine from '@iconify-icons/ri/mail-close-line'
 import riMailLine from '@iconify-icons/ri/mail-line'
+import riMailUnreadFill from '@iconify-icons/ri/mail-unread-fill'
 import riMapPin2Line from '@iconify-icons/ri/map-pin-2-line'
 import riMenuLine from '@iconify-icons/ri/menu-line'
 import riMoonLine from '@iconify-icons/ri/moon-line'
@@ -149,6 +150,7 @@ addIcon('ri:logout-box-r-line', riLogoutBoxRLine)
 addIcon('ri:mail-add-line', riMailAddLine)
 addIcon('ri:mail-close-line', riMailCloseLine)
 addIcon('ri:mail-line', riMailLine)
+addIcon('ri:mail-unread-fill', riMailUnreadFill)
 addIcon('ri:map-pin-2-line', riMapPin2Line)
 addIcon('ri:menu-line', riMenuLine)
 addIcon('ri:moon-line', riMoonLine)

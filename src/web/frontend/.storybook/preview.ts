@@ -4,7 +4,9 @@ import { setup } from '@storybook/vue3'
 import { createHead } from '@unhead/vue/client'
 import { createPinia } from 'pinia'
 import { sb } from 'storybook/test'
+import { computed, provide } from 'vue'
 import { createMemoryHistory, createRouter } from 'vue-router'
+import { DEFAULT_UNREAD_VARIANT, UNREAD_VARIANT_KEY, UNREAD_VARIANTS } from '../src/app/prototypes/messages-non-lus/variants'
 import { routes } from '../src/router/routes'
 import { applyScenario, DEFAULT_SCENARIO, SCENARIOS } from '../src/styles/etiquettes/scenarios'
 import '../src/app/icons'
@@ -49,6 +51,7 @@ const preview: Preview = {
   initialGlobals: {
     theme: 'light',
     etiquettes: DEFAULT_SCENARIO ?? NO_SCENARIO,
+    nonLus: DEFAULT_UNREAD_VARIANT,
   },
   globalTypes: {
     theme: {
@@ -75,6 +78,15 @@ const preview: Preview = {
         dynamicTitle: true,
       },
     },
+    nonLus: {
+      description: 'Signalement des messages non lus sur les cartes du kanban',
+      toolbar: {
+        title: 'Non lus',
+        icon: 'email',
+        items: UNREAD_VARIANTS.map(({ id, name }) => ({ value: id, title: name })),
+        dynamicTitle: true,
+      },
+    },
   },
   decorators: [
     (story, context) => {
@@ -82,7 +94,14 @@ const preview: Preview = {
       applyScenario(document.documentElement, context.globals.etiquettes)
       // The Vue renderer keeps the story mounted when a global changes: the key remounts it for another scenario,
       // so that label lists measure the labels again and creation panels take the color of the scenario.
-      return { components: { story }, setup: () => ({ globals: context.globals }), template: '<story :key="globals.etiquettes" />' }
+      return {
+        components: { story },
+        setup: () => {
+          provide(UNREAD_VARIANT_KEY, computed(() => context.globals.nonLus ?? DEFAULT_UNREAD_VARIANT))
+          return { globals: context.globals }
+        },
+        template: '<story :key="globals.etiquettes" />',
+      }
     },
   ],
   parameters: {

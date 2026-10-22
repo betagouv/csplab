@@ -49,20 +49,21 @@ interface DemoCandidat {
   etape: number
   jours: number
   etiquettes: Etiquette[]
+  nonLues?: number
 }
 
 const E = ETIQUETTES_CANDIDATURE
 
 const CANDIDATS: DemoCandidat[] = [
-  { prenom: 'Inès', nom: 'Moreau', etape: 0, jours: 1, etiquettes: [E.mobilite, E.titulaire] },
+  { prenom: 'Inès', nom: 'Moreau', etape: 0, jours: 1, etiquettes: [E.mobilite, E.titulaire], nonLues: 1 },
   { prenom: 'Thomas', nom: 'Leroy', etape: 0, jours: 1, etiquettes: [E.contractuel] },
-  { prenom: DEMO_CANDIDATURE.prenom, nom: DEMO_CANDIDATURE.nom, etape: 0, jours: 2, etiquettes: [E.prioritaire, E.laureate, E.titulaire, E.teletravail, E.rappeler] },
-  { prenom: 'Mehdi', nom: 'Benali', etape: 0, jours: 2, etiquettes: [] },
-  { prenom: 'Sophie', nom: 'Garnier', etape: 0, jours: 3, etiquettes: [E.encadrement, E.vivier] },
+  { prenom: DEMO_CANDIDATURE.prenom, nom: DEMO_CANDIDATURE.nom, etape: 0, jours: 2, etiquettes: [E.prioritaire, E.laureate, E.titulaire, E.teletravail, E.rappeler], nonLues: 2 },
+  { prenom: 'Mehdi', nom: 'Benali', etape: 0, jours: 2, etiquettes: [], nonLues: 1 },
+  { prenom: 'Sophie', nom: 'Garnier', etape: 0, jours: 3, etiquettes: [E.encadrement, E.vivier], nonLues: 1 },
   { prenom: 'Lucas', nom: 'Petit', etape: 0, jours: 3, etiquettes: [] },
   { prenom: 'Aïcha', nom: 'Diallo', etape: 0, jours: 4, etiquettes: [E.laureate] },
   { prenom: 'Antoine', nom: 'Mercier', etape: 0, jours: 4, etiquettes: [E.delai] },
-  { prenom: 'Julie', nom: 'Robin', etape: 0, jours: 5, etiquettes: [E.teletravail, E.rappeler] },
+  { prenom: 'Julie', nom: 'Robin', etape: 0, jours: 5, etiquettes: [E.teletravail, E.rappeler], nonLues: 3 },
   { prenom: 'Nicolas', nom: 'Faure', etape: 0, jours: 5, etiquettes: [E.contractuel, E.vivier] },
   { prenom: 'Manon', nom: 'Rousseau', etape: 0, jours: 6, etiquettes: [] },
   { prenom: 'Karim', nom: 'Saïdi', etape: 0, jours: 6, etiquettes: [E.titulaire, E.mobilite, E.senior] },
@@ -74,18 +75,18 @@ const CANDIDATS: DemoCandidat[] = [
   { prenom: 'Maxime', nom: 'Perrin', etape: 0, jours: 11, etiquettes: [] },
   { prenom: 'Élodie', nom: 'Marchand', etape: 0, jours: 12, etiquettes: [E.vivier, E.teletravail] },
   { prenom: 'Paul', nom: 'Dumas', etape: 0, jours: 13, etiquettes: [E.titulaire] },
-  { prenom: 'Lucie', nom: 'Morel', etape: 1, jours: 14, etiquettes: [E.titulaire, E.senior] },
+  { prenom: 'Lucie', nom: 'Morel', etape: 1, jours: 14, etiquettes: [E.titulaire, E.senior], nonLues: 1 },
   { prenom: 'Nadia', nom: 'Haddad', etape: 1, jours: 15, etiquettes: [E.mobilite, E.prioritaire, E.teletravail] },
   { prenom: 'Julien', nom: 'Roux', etape: 1, jours: 15, etiquettes: [E.contractuel, E.rappeler] },
   { prenom: 'Emma', nom: 'Girard', etape: 1, jours: 16, etiquettes: [E.apprentissage, E.delai, E.vivier] },
-  { prenom: 'Camille', nom: 'Martin', etape: 2, jours: 17, etiquettes: [E.laureate, E.titulaire] },
+  { prenom: 'Camille', nom: 'Martin', etape: 2, jours: 17, etiquettes: [E.laureate, E.titulaire], nonLues: 1 },
   { prenom: 'Yanis', nom: 'Boucher', etape: 2, jours: 18, etiquettes: [] },
   { prenom: 'Pauline', nom: 'Lemoine', etape: 2, jours: 18, etiquettes: [E.mobilite] },
   { prenom: 'Olivier', nom: 'Fabre', etape: 3, jours: 19, etiquettes: [E.senior, E.vivier] },
-  { prenom: 'Fatou', nom: 'Ndiaye', etape: 3, jours: 20, etiquettes: [E.encadrement, E.prioritaire] },
+  { prenom: 'Fatou', nom: 'Ndiaye', etape: 3, jours: 20, etiquettes: [E.encadrement, E.prioritaire], nonLues: 2 },
   { prenom: 'Marion', nom: 'Leclerc', etape: 4, jours: 21, etiquettes: [E.titulaire] },
   { prenom: 'Damien', nom: 'Caron', etape: 5, jours: 21, etiquettes: [E.delai] },
-  { prenom: 'Laura', nom: 'Vidal', etape: 5, jours: 22, etiquettes: [] },
+  { prenom: 'Laura', nom: 'Vidal', etape: 5, jours: 22, etiquettes: [], nonLues: 1 },
 ]
 
 function demoUuid(prefix: string, index: number): string {
@@ -102,7 +103,7 @@ const CANDIDATURES: (Candidature & WithEtiquettes)[] = CANDIDATS.map((candidat, 
   date_derniere_activite: demoDate(Math.max(1, candidat.jours - 1), 15, 30),
   candidat: { uuid: demoUuid('e', index), prenom: candidat.prenom, nom: candidat.nom },
   etiquettes: candidat.etiquettes,
-  unread_conversations: 0,
+  unread_conversations: candidat.nonLues ?? 0,
 }))
 
 const etapeOfCandidature = new Map(CANDIDATURES.map((candidature, index) => [candidature.uuid, DEMO_ETAPES[CANDIDATS[index]!.etape]!]))
