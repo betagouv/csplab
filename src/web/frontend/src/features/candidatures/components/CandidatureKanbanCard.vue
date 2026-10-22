@@ -125,14 +125,22 @@ const { isDragging } = useDraggableKanbanCard({
       </span>
     </p>
     <p
-      v-if="unreadCount && unreadVariant === 'maquette'"
+      v-if="unreadCount && (unreadVariant === 'maquette' || unreadVariant === 'maquette-icone')"
       class="candidature-kanban-card__unread-line"
     >
+      <CspIcon
+        v-if="unreadVariant === 'maquette-icone'"
+        name="ri:chat-new-line"
+        class="candidature-kanban-card__unread-line-icon"
+        :size="12"
+        aria-hidden="true"
+      />
       <span
+        v-else
         class="candidature-kanban-card__unread-line-dot"
         aria-hidden="true"
       />
-      Nouveau message
+      {{ unreadCount > 1 ? `${unreadCount} nouveaux messages` : 'Nouveau message' }}
     </p>
     <CspLabelList
       v-if="etiquettes.length"
@@ -151,6 +159,7 @@ const { isDragging } = useDraggableKanbanCard({
       >
         <CspIcon
           name="ri:mail-unread-fill"
+          class="candidature-kanban-card__unread-icon"
           :size="16"
           aria-hidden="true"
         />
@@ -262,7 +271,7 @@ const { isDragging } = useDraggableKanbanCard({
   width: 0.625rem;
   height: 0.625rem;
   border-radius: 50%;
-  background-color: var(--background-action-high-blue-france);
+  background-color: var(--csp-unread-signal, var(--background-action-high-blue-france));
 }
 
 .candidature-kanban-card__unread-count {
@@ -274,8 +283,8 @@ const { isDragging } = useDraggableKanbanCard({
   height: 1.25rem;
   padding: 0 var(--csp-space-1);
   border-radius: 0.625rem;
-  background-color: var(--background-action-high-blue-france);
-  color: var(--text-inverted-blue-france);
+  background-color: var(--csp-unread-signal, var(--background-action-high-blue-france));
+  color: var(--csp-unread-on-signal, var(--text-inverted-blue-france));
   font-size: 0.75rem;
   font-weight: 700;
   line-height: 1;
@@ -291,24 +300,35 @@ const { isDragging } = useDraggableKanbanCard({
 }
 
 .candidature-kanban-card__unread-icon {
-  color: var(--text-action-high-blue-france);
+  color: var(--csp-unread-signal, var(--text-action-high-blue-france));
 }
 
 .candidature-kanban-card__unread-line {
   display: flex;
   align-items: center;
   gap: var(--csp-space-1);
-  margin: var(--csp-space-1) 0 0;
-  color: var(--text-action-high-blue-france);
-  font-size: var(--csp-text-meta-size, var(--csp-font-size-sm));
-  line-height: var(--csp-text-meta-line-height, inherit);
+  margin: 0;
+  color: var(--csp-unread-signal-text, var(--background-action-high-blue-france-active));
+  font-size: 0.75rem;
+  line-height: 1.25rem;
 }
 
 .candidature-kanban-card__unread-line-dot {
-  width: 0.5rem;
-  height: 0.5rem;
+  flex-shrink: 0;
+  width: 0.625rem;
+  height: 0.625rem;
   border-radius: 50%;
-  background-color: var(--background-action-high-blue-france);
+  background-color: var(--csp-unread-signal, var(--background-action-high-blue-france-active));
+}
+
+.candidature-kanban-card__unread-line-icon {
+  flex-shrink: 0;
+  color: var(--csp-unread-signal, currentColor);
+}
+
+/* the date and the line of the mock-up form one block */
+.candidature-kanban-card__date:has(+ .candidature-kanban-card__unread-line) {
+  line-height: 1.25rem;
 }
 
 /* above the link overlay, so that the link to the messages takes the pointer */

@@ -1,0 +1,6 @@
+/* The signal of an unread conversation keeps the color of each variant in blue, and turns red with this setting */
+:root[data-csp-unread-color='rouge'] {
+  --csp-unread-signal: var(--background-action-high-red-marianne);
+  --csp-unread-signal-text: var(--text-default-grey);
+  --csp-unread-on-signal: var(--text-inverted-red-marianne);
+}

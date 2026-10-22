@@ -6,10 +6,11 @@ import { createPinia } from 'pinia'
 import { sb } from 'storybook/test'
 import { computed, provide } from 'vue'
 import { createMemoryHistory, createRouter } from 'vue-router'
-import { DEFAULT_UNREAD_VARIANT, UNREAD_VARIANT_KEY, UNREAD_VARIANTS } from '../src/app/prototypes/messages-non-lus/variants'
+import { applyUnreadColor, DEFAULT_UNREAD_COLOR, DEFAULT_UNREAD_VARIANT, UNREAD_COLORS, UNREAD_VARIANT_KEY, UNREAD_VARIANTS } from '../src/app/prototypes/messages-non-lus/variants'
 import { routes } from '../src/router/routes'
 import { applyScenario, DEFAULT_SCENARIO, SCENARIOS } from '../src/styles/etiquettes/scenarios'
 import '../src/app/icons'
+import '../src/app/prototypes/messages-non-lus/couleurs.css'
 import '../src/styles/index.css'
 import './storybook.css'
 
@@ -52,6 +53,7 @@ const preview: Preview = {
     theme: 'light',
     etiquettes: DEFAULT_SCENARIO ?? NO_SCENARIO,
     nonLus: DEFAULT_UNREAD_VARIANT,
+    nonLusCouleur: DEFAULT_UNREAD_COLOR,
   },
   globalTypes: {
     theme: {
@@ -87,11 +89,21 @@ const preview: Preview = {
         dynamicTitle: true,
       },
     },
+    nonLusCouleur: {
+      description: 'Couleur du signal des messages non lus',
+      toolbar: {
+        title: 'Couleur des non-lus',
+        icon: 'circle',
+        items: UNREAD_COLORS.map(({ id, name }) => ({ value: id, title: name })),
+        dynamicTitle: true,
+      },
+    },
   },
   decorators: [
     (story, context) => {
       applyTheme(context.globals.theme ?? 'light')
       applyScenario(document.documentElement, context.globals.etiquettes)
+      applyUnreadColor(document.documentElement, context.globals.nonLusCouleur ?? DEFAULT_UNREAD_COLOR)
       // The Vue renderer keeps the story mounted when a global changes: the key remounts it for another scenario,
       // so that label lists measure the labels again and creation panels take the color of the scenario.
       return {

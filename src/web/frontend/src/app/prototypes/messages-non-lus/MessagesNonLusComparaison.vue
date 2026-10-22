@@ -39,7 +39,7 @@ const candidatures = demoKanban().etapes.flatMap(({ candidatures }) => candidatu
   flex-wrap: wrap;
   align-items: flex-start;
   gap: var(--csp-space-6);
-  max-width: calc(3 * var(--csp-kanban-column-width) + 4 * var(--csp-space-6));
+  max-width: calc(4 * var(--csp-kanban-column-width) + 5 * var(--csp-space-6));
   padding: var(--csp-space-6);
   background-color: var(--background-default-grey);
 }

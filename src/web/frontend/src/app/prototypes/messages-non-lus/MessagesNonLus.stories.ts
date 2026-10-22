@@ -21,3 +21,8 @@ export default meta
 type Story = StoryObj<typeof meta>
 
 export const Comparaison: Story = {}
+
+export const ComparaisonRouge: Story = {
+  name: 'Comparaison, signal rouge',
+  globals: { nonLusCouleur: 'rouge' },
+}
