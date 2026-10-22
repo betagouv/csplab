@@ -6,13 +6,12 @@ from django.urls import reverse
 from rest_framework import status
 
 from config.logger_names import LoggerName
-from infrastructure.django_apps.recruteur.models.organisme import OrganismeModel
 from infrastructure.factories.identite.organisme_django_factory import (
     OrganismeDjangoFactory,
 )
 
 
-def _organisme(**kwargs) -> OrganismeModel:
+def _organisme(**kwargs):
     return OrganismeDjangoFactory(**{"referentiel": "FINESS", **kwargs})
 
 

@@ -3,13 +3,12 @@ from referentiel.value_objects.verse import Verse
 from application.ingestion.services.list_public_organismes import (
     list_public_organismes,
 )
-from infrastructure.django_apps.recruteur.models.organisme import OrganismeModel
 from infrastructure.factories.identite.organisme_django_factory import (
     OrganismeDjangoFactory,
 )
 
 
-def _organisme(**kwargs) -> OrganismeModel:
+def _organisme(**kwargs):
     return OrganismeDjangoFactory(**{"referentiel": "FINESS", **kwargs})
 
 
