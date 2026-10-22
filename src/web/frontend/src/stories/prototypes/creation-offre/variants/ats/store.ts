@@ -91,6 +91,7 @@ export interface Offre {
   dateLimite: string
   contact: string
   canaux: string[]
+  diffusion?: 'simple' | 'multi'
   notifications: 'chaque' | 'cinq' | 'quotidien' | 'aucune'
   creeLe: string
   modifieLe: string
@@ -119,12 +120,17 @@ export const LIBELLES_CONTENU: Record<OrigineContenu, string> = {
   duplication: 'Duplication d\'une offre',
 }
 
-export const CANAUX_DIFFUSION = [
-  { id: 'csp', groupe: 'Sites web', nom: 'Choisir le Service Public', detail: 'Support de publication maître', maitre: true },
-  { id: 'intranet', groupe: 'Sites web', nom: 'Intranet ministériel', detail: 'Visible des agents', maitre: false },
-  { id: 'jobboard', groupe: 'Jobboards', nom: 'Jobboard emploi public (fictif)', detail: 'Diffusion ciblée', maitre: false },
-  { id: 'multi', groupe: 'Multi-diffuseurs', nom: 'Multi-diffuseur (fictif)', detail: 'Relais vers plusieurs sites d\'emploi', maitre: false },
+/** Support maître : toute publication passe par lui (simple diffusion). */
+export const SUPPORT_MAITRE = { id: 'csp', nom: 'Choisir le Service Public', detail: 'Support de publication maître' }
+/** Sites partenaires proposés en multi-diffusion (liste indicative, simulée). */
+export const SITES_PARTENAIRES = [
+  { id: 'intranet', nom: 'Intranet ministériel', detail: 'Visible des agents du ministère' },
+  { id: 'pep', nom: 'Place de l\'emploi public', detail: 'Emploi public, tous versants' },
+  { id: 'francetravail', nom: 'France Travail', detail: 'Site d\'emploi généraliste' },
+  { id: 'apec', nom: 'Apec', detail: 'Postes de cadres' },
+  { id: 'linkedin', nom: 'LinkedIn', detail: 'Réseau professionnel' },
 ]
+export const CANAUX_DIFFUSION = [SUPPORT_MAITRE, ...SITES_PARTENAIRES]
 
 /** Paramètres de l'organisme (simulés). La nécessité d'une DAR y est définie une fois pour toutes. */
 export interface Organisme {
@@ -392,6 +398,7 @@ function offresInitiales(f: Fiche[]): Offre[] {
       dateLimite: '2026-11-15',
       contact: 'Nadia Benali, responsable recrutement',
       canaux: ['csp', 'intranet'],
+      diffusion: 'multi',
       creeLe: '18 septembre 2026',
       modifieLe: '12 octobre 2026',
       publieeLe: '12 octobre 2026',
@@ -697,4 +704,33 @@ export function decider(o: Offre, i: number, decision: 'validee' | 'refusee', mo
     o.historique.push({ date: maintenant(), texte: `Validée par ${v.nom}` })
     sauvegarder()
   }
+}
+
+// --- Publication (toujours décidée par le responsable du recrutement) ---
+
+export function publier(o: Offre, diffusion: 'simple' | 'multi', partenaires: string[]) {
+  o.diffusion = diffusion
+  o.canaux = [SUPPORT_MAITRE.id, ...(diffusion === 'multi' ? partenaires : [])]
+  for (const id of o.canaux) {
+    o.publications[id] = { etat: 'publiee', debut: maintenant(), fin: o.dateLimite }
+  }
+  o.publieeLe = maintenant()
+  const noms = CANAUX_DIFFUSION.filter(c => o.canaux.includes(c.id)).map(c => c.nom).join(', ')
+  changerEtat(o, 'publiee', `Offre publiée (${diffusion === 'multi' ? 'multi-diffusion' : 'simple diffusion'}) sur ${noms}`)
+}
+
+export function arreterSupport(o: Offre, id: string) {
+  const p = o.publications[id]
+  if (p) {
+    p.etat = 'arretee'
+    o.historique.push({ date: maintenant(), texte: `Publication arrêtée : ${CANAUX_DIFFUSION.find(c => c.id === id)?.nom}` })
+    sauvegarder()
+  }
+}
+
+export function archiverOffre(o: Offre) {
+  for (const p of Object.values(o.publications)) {
+    p.etat = 'arretee'
+  }
+  changerEtat(o, 'archivee', 'Toutes les publications arrêtées, offre archivée')
 }

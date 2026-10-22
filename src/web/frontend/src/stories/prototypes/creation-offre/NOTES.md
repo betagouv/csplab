@@ -1,5 +1,23 @@
 # Notes — Prototype création d'offre
 
+## Itération 11 — page de l'offre, formulaire en page entière, publication (22 octobre 2026)
+
+Retours d'Alice :
+- **Plus d'onglets sur l'offre.** La page de l'offre est son suivi : l'offre affichée remplie, les boutons
+  « Modifier » et « Afficher comme les candidats », et un encart selon l'étape (brouillon, refus,
+  attente de validation avec le circuit, prête à être publiée, publication en cours, archivée).
+- **Le formulaire est une page entière** sur laquelle on arrive en créant une offre (« Créer une offre »),
+  ou via « Modifier » (« Modifier l'offre »). Après « Envoyer pour validation » / « Créer l'offre »,
+  retour sur la page de l'offre. Modalités de recrutement et contact rejoignent le formulaire.
+- **Publication** depuis l'encart « Prête à être publiée » : bouton « Publier » → page avec l'offre telle
+  que la voient les candidats, choix simple diffusion (Choisir le Service Public seul) ou multi-diffusion
+  (sites partenaires à cocher), date limite de candidature, puis « Publier l'offre » → état Publiée.
+- **Barre d'état** purement informative : points et traits gris, étape en cours en gras, rien de cliquable.
+- Chaque écran a son chemin (/offre/…, /formulaire/…, /apercu/…) : fil d'Ariane et retour fonctionnent partout.
+
+Hypothèses : liste des sites partenaires indicative ; la date limite se saisit au moment de publier ;
+une offre publiée n'est plus modifiable dans le prototype (arrêt par site ou archivage).
+
 ## Itération 10 — structure des pages de l'application (22 octobre 2026)
 
 Demande d'Alice : reprendre la structure des pages actuelles de l'ATS (capture « Nom de l'offre » /

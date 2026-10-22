@@ -11,8 +11,8 @@ const { aller } = useNav()
 
 const sections = [{
   items: [
-    { label: 'Voir le détail de l’offre', icon: 'ri:eye-line', onSelect: () => aller({ nom: 'offre', id: props.row.id }) },
-    { label: 'Ouvrir le formulaire', icon: 'ri:file-edit-line', onSelect: () => aller({ nom: 'offre', id: props.row.id, onglet: 'redaction' }) },
+    { label: 'Voir l’offre', icon: 'ri:file-list-3-line', onSelect: () => aller({ nom: 'offre', id: props.row.id }) },
+    { label: 'Afficher comme les candidats', icon: 'ri:eye-line', onSelect: () => aller({ nom: 'apercu', id: props.row.id }) },
     { label: 'Voir la fiche de poste', icon: 'ri:file-text-line', onSelect: () => aller({ nom: 'fiche', id: props.row.ficheId }) },
     { label: 'Dupliquer l’offre', icon: 'ri:file-copy-2-line', onSelect: () => aller({ nom: 'creation', mode: 'duplication', offreId: props.row.id }) },
   ],

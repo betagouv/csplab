@@ -2,11 +2,13 @@
 import type { Ecran } from './nav'
 import { provide, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import ApercuOffre from './ApercuOffre.vue'
 import CreationOffre from './CreationOffre.vue'
 import FicheDetail from './FicheDetail.vue'
 import FichesListe from './FichesListe.vue'
 import { NAV } from './nav'
 import OffreEspace from './OffreEspace.vue'
+import OffreFormulaire from './OffreFormulaire.vue'
 import OffresListe from './OffresListe.vue'
 import Parametres from './Parametres.vue'
 import { appliquerParametreDar, db } from './store'
@@ -29,9 +31,15 @@ const router = useRouter()
 const route = useRoute()
 const LISTES: Record<string, Ecran> = { '/accueil': { nom: 'accueil' }, '/fiches': { nom: 'fiches' }, '/offres': { nom: 'offres' }, '/parametres': { nom: 'parametres' } }
 
+// Chaque écran a son chemin : le menu, le fil d'Ariane et les boutons retour passent par la route.
+function chemin(e: Ecran): string {
+  if ('id' in e) {
+    return `/${e.nom}/${e.id}`
+  }
+  return e.nom === 'creation' ? `/creation-${Date.now()}` : `/${e.nom}`
+}
 function suivreRoute(e: Ecran) {
-  // Hors des listes, on quitte leur route : un clic dans le menu ou le fil d'Ariane y ramène toujours.
-  void router.replace(['accueil', 'fiches', 'offres', 'parametres'].includes(e.nom) ? `/${e.nom}` : `/detail-${Date.now()}`)
+  void router.replace(chemin(e))
 }
 // Le routeur de Storybook est partagé entre les stories : on l'aligne sur l'écran de départ.
 suivreRoute(props.depart)
@@ -42,9 +50,11 @@ function aller(e: Ecran) {
   document.querySelector('.ats__main')?.scrollTo({ top: 0 })
 }
 
+const DETAILS = /^\/(offre|fiche|formulaire|apercu)\/(.+)$/
 watch(() => route.path, (p) => {
-  const e = LISTES[p]
-  if (e && e.nom !== ecran.value.nom) {
+  const d = DETAILS.exec(p)
+  const e = LISTES[p] ?? (d ? { nom: d[1], id: d[2] } as Ecran : undefined)
+  if (e && chemin(e) !== chemin(ecran.value)) {
     ecran.value = e
   }
 })
@@ -83,7 +93,17 @@ provide(NAV, { ecran, aller, notifier, flash })
   <OffreEspace
     v-else-if="ecran.nom === 'offre'"
     :id="ecran.id"
-    :key="ecran.id"
-    :onglet="ecran.onglet"
+    :key="`o-${ecran.id}`"
+  />
+  <OffreFormulaire
+    v-else-if="ecran.nom === 'formulaire'"
+    :id="ecran.id"
+    :key="`f-${ecran.id}`"
+  />
+  <ApercuOffre
+    v-else-if="ecran.nom === 'apercu'"
+    :id="ecran.id"
+    :key="`a-${ecran.id}-${ecran.publier}`"
+    :publier="ecran.publier"
   />
 </template>

@@ -1,9 +1,8 @@
 <script setup lang="ts">
 import type { Offre } from './store'
 import { computed } from 'vue'
-import CspIcon from '@/components/base/CspIcon/CspIcon.vue'
 
-// Le cycle de vie de l'offre, avec la DAR comme étape conditionnelle.
+// Où en est l'offre : repère visuel et informatif, rien n'y est cliquable. La validation est conditionnelle (DAR).
 const props = defineProps<{ offre: Offre }>()
 
 const ORDRE = ['redaction', 'validation', 'a_publier', 'publiee', 'archivee'] as const
@@ -24,63 +23,88 @@ const etapes = computed(() => {
 </script>
 
 <template>
-  <ol
+  <div
     class="cycle"
-    aria-label="Cycle de vie de l'offre"
+    role="img"
+    :aria-label="`Étape de l'offre : ${etapes.find(e => e.etat === 'courant')?.label ?? ''}`"
   >
-    <li
-      v-for="e in etapes"
+    <template
+      v-for="(e, i) in etapes"
       :key="e.id"
-      class="cycle__etape"
-      :class="`cycle__etape--${e.etat}`"
-      :aria-current="e.etat === 'courant' ? 'step' : undefined"
     >
-      <CspIcon
-        :name="e.etat === 'fait' ? 'ri:checkbox-circle-fill' : e.etat === 'courant' ? 'ri:record-circle-fill' : e.etat === 'saute' ? 'ri:indeterminate-circle-line' : 'ri:checkbox-blank-circle-line'"
-        :size="16"
+      <span
+        v-if="i > 0"
+        class="cycle__trait"
+        :class="{ 'cycle__trait--fait': e.etat === 'fait' || e.etat === 'courant' }"
+        aria-hidden="true"
       />
-      <span>
-        <strong>{{ e.label }}</strong>
-        <small v-if="e.detail">{{ e.detail }}</small>
+      <span
+        class="cycle__etape"
+        :class="`cycle__etape--${e.etat}`"
+        aria-hidden="true"
+      >
+        <span class="cycle__point" />
+        <span class="cycle__texte">
+          {{ e.label }}<template v-if="e.detail"> · {{ e.detail }}</template>
+        </span>
       </span>
-    </li>
-  </ol>
+    </template>
+  </div>
 </template>
 
 <style scoped lang="scss">
 .cycle {
   display: flex;
+  align-items: center;
   gap: var(--csp-space-2);
-  margin: 0;
-  padding: var(--csp-space-3) var(--csp-space-4);
-  border: 1px solid var(--border-default-grey);
-  background: var(--background-default-grey);
-  list-style: none;
+  font-size: var(--csp-font-size-xs);
+  color: var(--text-mention-grey);
+  cursor: default;
+  user-select: none;
 }
 
 .cycle__etape {
-  display: flex;
-  flex: 1;
-  align-items: flex-start;
-  gap: var(--csp-space-2);
-  font-size: var(--csp-font-size-sm);
-  color: var(--text-mention-grey);
-
-  small {
-    display: block;
-    font-size: var(--csp-font-size-xs);
-  }
-
-  &--fait :deep(.csp-icon) {
-    color: var(--text-default-success);
-  }
+  display: inline-flex;
+  align-items: center;
+  gap: var(--csp-space-1);
+  white-space: nowrap;
 
   &--courant {
-    color: var(--text-action-high-blue-france);
+    color: var(--text-default-grey);
+    font-weight: var(--csp-font-weight-bold);
   }
 
   &--saute {
+    text-decoration: line-through;
     opacity: 0.6;
+  }
+}
+
+.cycle__point {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: var(--border-default-grey);
+
+  .cycle__etape--fait & {
+    background: var(--text-mention-grey);
+  }
+
+  .cycle__etape--courant & {
+    width: 0.625rem;
+    height: 0.625rem;
+    background: var(--text-default-grey);
+  }
+}
+
+.cycle__trait {
+  flex: 1;
+  max-width: 4rem;
+  height: 1px;
+  background: var(--border-default-grey);
+
+  &--fait {
+    background: var(--text-mention-grey);
   }
 }
 </style>

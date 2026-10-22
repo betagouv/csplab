@@ -9,10 +9,10 @@ export type Ecran
     | { nom: 'fiche', id: string, edition?: boolean }
     | { nom: 'offres', filtre?: string }
     | { nom: 'creation', mode?: 'fiche' | 'manuel' | 'duplication', ficheId?: string, offreId?: string }
-    | { nom: 'offre', id: string, onglet?: Onglet }
+    | { nom: 'offre', id: string }
+    | { nom: 'formulaire', id: string }
+    | { nom: 'apercu', id: string, publier?: boolean }
     | { nom: 'parametres' }
-
-export type Onglet = 'suivi' | 'redaction' | 'publication'
 
 export interface Nav {
   ecran: Ref<Ecran>

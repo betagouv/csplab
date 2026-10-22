@@ -93,7 +93,7 @@ function creer() {
   }
   const o = nouvelleOffre(f, mode.value, source)
   notifier(`Offre ${o.id} créée et rattachée à la fiche ${f.id}.`)
-  aller({ nom: 'offre', id: o.id, onglet: 'redaction' })
+  aller({ nom: 'formulaire', id: o.id })
 }
 </script>
 
