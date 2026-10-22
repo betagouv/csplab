@@ -3958,7 +3958,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PageNotFound'
+                $ref: '#/components/schemas/DetailError'
           description: ''
           headers:
             X-RateLimit-Limit:
@@ -4739,6 +4739,13 @@ components:
       - employeur
       - mission
       - profil
+    DetailError:
+      type: object
+      properties:
+        detail:
+          type: string
+      required:
+      - detail
     ExperienceEnum:
       enum:
       - DEBUTANT
@@ -5960,13 +5967,6 @@ components:
       description: |-
         * `NON` - Non
         * `OUI` - Oui
-    PageNotFound:
-      type: object
-      properties:
-        detail:
-          type: string
-      required:
-      - detail
     PaginatedFakeTsOfferSummaryList:
       type: object
       required:

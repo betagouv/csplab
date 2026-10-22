@@ -32,7 +32,11 @@ from presentation.api.authentication import (
     PublicApiKeyOnlyMixin,
     PublicJwtReadApiKeyWriteMixin,
 )
-from presentation.api.serializers import GenericErrorSerializer, TokenErrorSerializer
+from presentation.api.serializers import (
+    DetailErrorSerializer,
+    GenericErrorSerializer,
+    TokenErrorSerializer,
+)
 from presentation.commons.pagination import TaillePageNumberPagination
 from presentation.ingestion.mappers import OrganismeInputMapper
 from presentation.ingestion.openapi import (
@@ -183,10 +187,7 @@ SUPPRIMER_ORGANISMES_DESCRIPTION = (
             200: OrganismePublicSerializer(many=True),
             400: GenericErrorSerializer,
             401: TokenErrorSerializer,
-            404: inline_serializer(
-                name="PageNotFound",
-                fields={"detail": serializers.CharField()},
-            ),
+            404: DetailErrorSerializer,
             500: GenericErrorSerializer,
         },
     ),

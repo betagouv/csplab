@@ -5,6 +5,10 @@ class GenericErrorSerializer(serializers.Serializer):
     error = serializers.CharField()
 
 
+class DetailErrorSerializer(serializers.Serializer):
+    detail = serializers.CharField()
+
+
 class TokenErrorMessageSerializer(serializers.Serializer):
     token_class = serializers.CharField()
     token_type = serializers.CharField()
