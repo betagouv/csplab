@@ -6,6 +6,22 @@ champs et de leurs règles se trouve dans le [guide de l'API](/pages/guide_api).
 
 Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/).
 
+## 2026-10-22
+
+### ⚠️ Changements non rétrocompatibles
+
+`POST /api/v1/offres/creer_modifier` : une offre dont `conditions.note_ouverture_poste_url`
+ne pointe pas vers `legifrance.gouv.fr` ou `www.legifrance.gouv.fr` est désormais
+rejetée. Elle apparaît dans `errors`, avec le message « Le lien doit pointer vers
+l'avis de vacance publié sur legifrance.gouv.fr. ». Jusqu'ici, n'importe quel lien
+web était accepté.
+
+### Compatibilité
+
+Ce champ doit contenir le lien vers l'avis de vacance publié au Journal officiel.
+Ne le renseignez pas si l'offre n'a pas d'avis de vacance : la page de candidature
+se transmet dans `url_candidature`.
+
 ## 2026-10-21
 
 ### Modifié

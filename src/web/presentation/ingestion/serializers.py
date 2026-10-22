@@ -1,4 +1,5 @@
 import gettext
+from urllib.parse import urlparse
 
 import pycountry
 from drf_spectacular.utils import extend_schema_field
@@ -30,6 +31,8 @@ from infrastructure.django_apps.ingestion.models.talentsoft_organisme import (
 from presentation.api.serializers import GenericErrorSerializer
 from presentation.commons.markdown import forbidden_markdown
 from presentation.commons.serializers import LocalisationSerializer, OrganismeSerializer
+
+LEGIFRANCE_HOSTS = frozenset({"legifrance.gouv.fr", "www.legifrance.gouv.fr"})
 
 
 def _parse_enum_list(value, enum_cls, error_label, excluded=frozenset()):
@@ -837,7 +840,19 @@ class ConditionsInputSerializer(serializers.Serializer):
     )
     complements = serializers.CharField(max_length=1500, required=False)
     bases_legales = serializers.CharField(max_length=1500, required=False)
-    note_ouverture_poste_url = serializers.URLField(required=False)
+    note_ouverture_poste_url = serializers.URLField(
+        required=False,
+        help_text="Lien vers l'avis de vacance publié au Journal officiel, "
+        "sur `legifrance.gouv.fr`.",
+    )
+
+    def validate_note_ouverture_poste_url(self, value):
+        if urlparse(value).hostname not in LEGIFRANCE_HOSTS:
+            raise serializers.ValidationError(
+                "Le lien doit pointer vers l'avis de vacance publié sur "
+                "legifrance.gouv.fr."
+            )
+        return value
 
 
 class ContactsInputSerializer(serializers.Serializer):

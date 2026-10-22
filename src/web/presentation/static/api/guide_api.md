@@ -394,7 +394,7 @@ caractères s'applique au texte Markdown, syntaxe comprise.
 | `management` | Obligatoire. **AVEC** ou **SANS** management. |
 | `complements` | **1 500 caractères maximum.** |
 | `bases_legales` | **1 500 caractères maximum.** |
-| `note_ouverture_poste_url` | Lien web. |
+| `note_ouverture_poste_url` | Lien vers l'avis de vacance publié au Journal officiel, sur **`legifrance.gouv.fr`** ou **`www.legifrance.gouv.fr`** (ex. `https://www.legifrance.gouv.fr/jorf/id/JORFTEXT…`). Une offre avec un lien vers un autre site est rejetée. |
 
 #### Bloc « Contacts » (`contacts`) — liste, peut être vide
 Au plus un contact par rôle. Les contacts sont renvoyés dans l'ordre `principal` puis `autre`.
