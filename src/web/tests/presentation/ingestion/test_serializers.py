@@ -4,6 +4,7 @@ import pytest
 
 from infrastructure.factories.ingestion.offer_payload_factory import PayloadOfferFactory
 from presentation.ingestion.serializers import (
+    ConditionsInputSerializer,
     DescriptionInputSerializer,
     OffersInputSerializer,
     ProfessionInputSerializer,
@@ -99,6 +100,50 @@ def test_description_input_serializer_rejects_html(field):
 
     assert not serializer.is_valid()
     assert field in serializer.errors
+
+
+CONDITIONS = {"temps_travail": "TEMPS_PLEIN", "lieu_de_travail": "SUR_SITE"}
+
+
+@pytest.mark.parametrize(
+    "url",
+    [
+        "https://www.legifrance.gouv.fr/jorf/id/JORFTEXT000050000000",
+        "https://legifrance.gouv.fr/jorf/id/JORFTEXT000050000000",
+    ],
+)
+def test_conditions_input_serializer_accepts_legifrance_vacancy_notice(url):
+    serializer = ConditionsInputSerializer(
+        data={**CONDITIONS, "note_ouverture_poste_url": url}
+    )
+
+    assert serializer.is_valid(), serializer.errors
+    assert serializer.validated_data["note_ouverture_poste_url"] == url
+
+
+@pytest.mark.parametrize(
+    "url",
+    [
+        "http://www.legifrance.gouv.fr/jorf/id/JORFTEXT000050000000",
+        "https://exemple.teamtailor.com/jobs/123-gestionnaire-rh",
+        "https://www.legifrance.gouv.fr.exemple.com/jorf/id/JORFTEXT000050000000",
+        "https://exemple.com/?u=https://www.legifrance.gouv.fr/jorf",
+    ],
+)
+def test_conditions_input_serializer_rejects_vacancy_notice_outside_legifrance(url):
+    serializer = ConditionsInputSerializer(
+        data={**CONDITIONS, "note_ouverture_poste_url": url}
+    )
+
+    assert not serializer.is_valid()
+    assert serializer.errors == {
+        "note_ouverture_poste_url": [
+            (
+                "Le lien doit être en https et pointer vers l'avis de vacance "
+                "publié sur legifrance.gouv.fr."
+            )
+        ]
+    }
 
 
 def test_profession_input_serializer_defaults_referentiel_to_rmfpv2():
