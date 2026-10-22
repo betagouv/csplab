@@ -39,21 +39,20 @@ export interface Fiche {
   historique: Evenement[]
 }
 
-/** Formulaire de DAR, prérempli à partir de la fiche de poste. Figé à la soumission. */
-export interface FormulaireDar {
-  entite: string
-  type: string
-  employeur: string
-  descriptifEmployeur: string
-  descriptifService: string
-  intitule: string
-  categorie: string
-  nbPostes: string
-  localisation: string
-  description: string
-  motif: string
-  piecesJointes: string[]
+/** Un valideur du circuit, défini par le superviseur de l'organisme. */
+export interface Valideur {
+  nom: string
+  fonction: string
 }
+
+/** Décision d'un valideur sur une offre envoyée pour validation (circuit figé à l'envoi). */
+export interface Validation extends Valideur {
+  decision: 'attente' | 'validee' | 'refusee'
+  le?: string
+  motif?: string
+}
+
+export type Circuit = 'successif' | 'simultane'
 
 export interface Offre {
   id: string
@@ -64,16 +63,21 @@ export interface Offre {
   nbPostes: string
   /** Fixé par les paramètres de l'organisme, jamais choisi à la création de l'offre. */
   dar: 'requise' | 'non_requise'
-  darStatut?: 'brouillon' | 'soumise' | 'validee' | 'refusee'
+  darStatut?: 'soumise' | 'validee' | 'refusee'
   darRef?: string
   darSoumiseLe?: string
   darValideeLe?: string
-  darForm?: FormulaireDar
   remarqueDar?: string
+  /** Circuit de validation copié des paramètres de l'organisme au moment de l'envoi. */
+  circuit?: Circuit
+  validations?: Validation[]
   /** Publication par support : état et dates (simulées). */
   publications: Record<string, { etat: 'publiee' | 'arretee', debut: string, fin: string }>
   // Contenu éditorial de l'annonce
   titre: string
+  categorie: string
+  /** Contexte du recrutement, à l'attention des valideurs. */
+  motif: string
   presentation: string
   missions: string
   profil: string
@@ -95,8 +99,8 @@ export interface Offre {
 }
 
 export const LIBELLES_ETAT: Record<EtatOffre, string> = {
-  redaction: 'En cours de rédaction',
-  validation: 'En cours de validation (DAR)',
+  redaction: 'Brouillon',
+  validation: 'En attente de validation',
   a_publier: 'À publier',
   publiee: 'Publiée',
   archivee: 'Archivée',
@@ -130,7 +134,9 @@ export interface Organisme {
   superviseur: string
   entite: string
   typeDar: string
-  valideur: string
+  /** Valideurs des demandes, dans l'ordre du circuit. */
+  valideurs: Valideur[]
+  circuit: Circuit
 }
 
 export const ENTITES = [
@@ -140,8 +146,14 @@ export const ENTITES = [
   'Transition écologique › DREAL Occitanie',
 ]
 export const TYPES_DAR = ['Formulaire DAR', 'Formulaire de demande d\'autorisation']
+export const CATEGORIES = ['A', 'B', 'C']
 
 // --- Données fictives ---
+
+const VALIDEURS: Valideur[] = [
+  { nom: 'Hélène Robert', fonction: 'Secrétaire générale' },
+  { nom: 'Paul Lefèvre', fonction: 'Responsable du contrôle de gestion' },
+]
 
 function fichesInitiales(): Fiche[] {
   const base = { statut: 'active' as const, teletravail: '', conditions: '', environnement: '', codePoste: '' }
@@ -260,6 +272,7 @@ function fichesInitiales(): Fiche[] {
 }
 
 const VIDE = {
+  motif: '',
   presentation: '',
   missions: '',
   profil: '',
@@ -290,6 +303,7 @@ function offresInitiales(f: Fiche[]): Offre[] {
       origineContenu: 'fiche',
       nbPostes: '3',
       dar: 'requise',
+      motif: 'Deux départs à la retraite et une mutation au 1er janvier.',
       creeLe: 'Hier',
       modifieLe: 'Hier, 16:12',
       historique: [{ date: 'Hier, 15:58', texte: 'Offre créée depuis la fiche FP-SG-2026-007 (3 postes)' }, { date: 'Hier, 16:12', texte: 'Brouillon enregistré' }],
@@ -308,13 +322,19 @@ function offresInitiales(f: Fiche[]): Offre[] {
       darRef: 'DAR-2026-0330',
       darStatut: 'soumise',
       darSoumiseLe: '17 octobre 2026',
-      darForm: formulaireDarDepuis(fiche('FP-SIRH-48213'), '1'),
+      motif: 'Remplacement d\'un agent muté.',
+      circuit: 'successif',
+      validations: [
+        { ...VALIDEURS[0]!, decision: 'validee', le: '20 octobre 2026' },
+        { ...VALIDEURS[1]!, decision: 'attente' },
+      ],
       remuneration: 'Selon expérience et grille indiciaire',
       creeLe: '15 octobre 2026',
       modifieLe: '17 octobre 2026',
       historique: [
         { date: '15 octobre 2026', texte: 'Offre créée depuis la fiche FP-SIRH-48213' },
-        { date: '17 octobre 2026', texte: 'DAR DAR-2026-0330 soumise — état : En cours de validation (DAR)' },
+        { date: '17 octobre 2026', texte: 'Envoyée pour validation (DAR-2026-0330) — état : En attente de validation' },
+        { date: '20 octobre 2026', texte: 'Validée par Hélène Robert' },
       ],
     },
     {
@@ -333,7 +353,8 @@ function offresInitiales(f: Fiche[]): Offre[] {
       darRef: 'DAR-2026-0311',
       darSoumiseLe: '9 octobre 2026',
       darValideeLe: '15 octobre 2026',
-      darForm: formulaireDarDepuis(fiche('FP-DOC-2026-002'), '1'),
+      circuit: 'successif',
+      validations: VALIDEURS.map((v, i) => ({ ...v, decision: 'validee' as const, le: i ? '15 octobre 2026' : '12 octobre 2026' })),
       remuneration: 'Selon expérience, de 2 600 à 3 400 € brut mensuel',
       dateLimite: '2026-11-20',
       contact: 'Pôle numérique — recrutement.num@exemple.gouv.fr',
@@ -341,8 +362,9 @@ function offresInitiales(f: Fiche[]): Offre[] {
       modifieLe: '16 octobre 2026',
       historique: [
         { date: '8 octobre 2026', texte: 'Offre créée depuis la fiche FP-DOC-2026-002' },
-        { date: '9 octobre 2026', texte: 'DAR DAR-2026-0311 soumise — état : En cours de validation (DAR)' },
-        { date: '15 octobre 2026', texte: 'DAR validée par Hélène Robert — état : À publier' },
+        { date: '9 octobre 2026', texte: 'Envoyée pour validation (DAR-2026-0311) — état : En attente de validation' },
+        { date: '12 octobre 2026', texte: 'Validée par Hélène Robert' },
+        { date: '15 octobre 2026', texte: 'Validée par Paul Lefèvre — validation terminée — état : À publier' },
       ],
     },
     {
@@ -360,7 +382,8 @@ function offresInitiales(f: Fiche[]): Offre[] {
       darSoumiseLe: '22 septembre 2026',
       darValideeLe: '29 septembre 2026',
       darStatut: 'validee',
-      darForm: formulaireDarDepuis(fiche('FP-SG-2025-031'), '1'),
+      circuit: 'successif',
+      validations: VALIDEURS.map(v => ({ ...v, decision: 'validee' as const, le: '29 septembre 2026' })),
       publications: {
         csp: { etat: 'publiee', debut: '12 octobre 2026', fin: '2026-11-15' },
         intranet: { etat: 'publiee', debut: '12 octobre 2026', fin: '2026-11-15' },
@@ -374,8 +397,8 @@ function offresInitiales(f: Fiche[]): Offre[] {
       publieeLe: '12 octobre 2026',
       historique: [
         { date: '18 septembre 2026', texte: 'Offre créée depuis la fiche FP-SG-2025-031' },
-        { date: '22 septembre 2026', texte: 'DAR DAR-2026-0274 soumise — état : En cours de validation (DAR)' },
-        { date: '29 septembre 2026', texte: 'DAR validée — état : À publier' },
+        { date: '22 septembre 2026', texte: 'Envoyée pour validation (DAR-2026-0274) — état : En attente de validation' },
+        { date: '29 septembre 2026', texte: 'Validation terminée — état : À publier' },
         { date: '12 octobre 2026', texte: 'Offre publiée sur Choisir le Service Public et l\'intranet' },
       ],
     },
@@ -406,9 +429,10 @@ function offresInitiales(f: Fiche[]): Offre[] {
 }
 
 /** Contenu de l'annonce proposé à partir d'une fiche : repris tel quel, à adapter pour les candidats. */
-export function contenuDepuisFiche(f: Fiche): Pick<Offre, 'titre' | 'presentation' | 'missions' | 'profil' | 'indispensables' | 'souhaitables' | 'modalites' | 'lieu' | 'teletravail' | 'conditions'> {
+export function contenuDepuisFiche(f: Fiche): Pick<Offre, 'titre' | 'categorie' | 'presentation' | 'missions' | 'profil' | 'indispensables' | 'souhaitables' | 'modalites' | 'lieu' | 'teletravail' | 'conditions'> {
   return {
     titre: f.intitule,
+    categorie: f.categories[0] ?? '',
     presentation: f.environnement,
     missions: [f.missions, ...f.activites.map(a => `- ${a}`)].filter(Boolean).join('\n'),
     profil: f.profil,
@@ -418,23 +442,6 @@ export function contenuDepuisFiche(f: Fiche): Pick<Offre, 'titre' | 'presentatio
     lieu: f.localisation,
     teletravail: f.teletravail,
     conditions: f.conditions,
-  }
-}
-
-export function formulaireDarDepuis(f: Fiche, nbPostes: string): FormulaireDar {
-  return {
-    entite: 'Transition écologique › DREAL Occitanie',
-    type: 'Formulaire DAR',
-    employeur: 'DREAL Occitanie',
-    descriptifEmployeur: 'La DREAL Occitanie met en œuvre les politiques de l\'État en matière de transition écologique, d\'énergie et de logement.',
-    descriptifService: f.service,
-    intitule: f.intitule,
-    categorie: f.categories.length ? `Catégorie ${f.categories.join(' ou ')}` : '',
-    nbPostes,
-    localisation: f.localisation,
-    description: [f.missions, ...f.activites.map(a => `- ${a}`)].filter(Boolean).join('\n'),
-    motif: '',
-    piecesJointes: [],
   }
 }
 
@@ -448,7 +455,7 @@ export function modalitesDepuisFiche(f: Fiche): string {
 
 // --- Stockage de session ---
 
-const CLE = 'csplab-proto-ats-v9'
+const CLE = 'csplab-proto-ats-v10'
 
 function lire(): { fiches: Fiche[], offres: Offre[], organisme: Organisme, role: 'recruteur' | 'superviseur' } | null {
   try {
@@ -461,7 +468,7 @@ function lire(): { fiches: Fiche[], offres: Offre[], organisme: Organisme, role:
 }
 
 function organismeInitial(): Organisme {
-  return { nom: 'DREAL Occitanie', darObligatoire: true, superviseur: 'Isabelle Fournier', entite: ENTITES[3]!, typeDar: TYPES_DAR[0]!, valideur: 'Hélène Robert, secrétaire générale' }
+  return { nom: 'DREAL Occitanie', darObligatoire: true, superviseur: 'Isabelle Fournier', entite: ENTITES[3]!, typeDar: TYPES_DAR[0]!, valideurs: VALIDEURS.map(v => ({ ...v })), circuit: 'successif' }
 }
 
 function initial() {
@@ -495,7 +502,7 @@ export function reinitialiser() {
  */
 export function appliquerParametreDar() {
   for (const o of db.offres) {
-    if (o.etat === 'redaction' && (!o.darStatut || o.darStatut === 'brouillon')) {
+    if (o.etat === 'redaction' && !o.darStatut) {
       o.dar = db.organisme.darObligatoire ? 'requise' : 'non_requise'
     }
   }
@@ -515,12 +522,23 @@ export function le(date: string | undefined): string {
 }
 
 /**
- * Champs de l'offre garantis par la DAR une fois soumise : verrouillés pour préserver sa validité.
- * Hypothèse : liste à confirmer (nombre de postes et lieu pour l'instant ; intitulé et catégorie sont dans la DAR).
+ * Champs déterminants pour la demande de validation (DAR) : obligatoires pour envoyer l'offre,
+ * puis verrouillés une fois la validation obtenue pour garantir sa validité.
+ * Hypothèse : liste à confirmer (les champs exacts de la DAR ne sont pas encore connus).
  */
-export const CHAMPS_DAR = ['nbPostes', 'lieu'] as const
-export function verrouilleParDar(o: Offre, champ: (typeof CHAMPS_DAR)[number]): boolean {
-  return o.dar === 'requise' && (o.darStatut === 'soumise' || o.darStatut === 'validee') && CHAMPS_DAR.includes(champ)
+export const CHAMPS_DETERMINANTS = {
+  titre: 'intitulé',
+  categorie: 'catégorie',
+  nbPostes: 'nombre de postes',
+  lieu: 'lieu',
+  missions: 'missions',
+} as const
+export type ChampDeterminant = keyof typeof CHAMPS_DETERMINANTS
+export function determinant(o: Offre, champ: string): champ is ChampDeterminant {
+  return o.dar === 'requise' && champ in CHAMPS_DETERMINANTS
+}
+export function verrouilleParDar(o: Offre, champ: string): boolean {
+  return determinant(o, champ) && o.darStatut === 'validee'
 }
 
 export function maintenant(): string {
@@ -570,6 +588,8 @@ export function nouvelleOffre(f: Fiche, origineContenu: OrigineContenu, depuis?:
   const contenu = depuis
     ? {
         titre: depuis.titre,
+        categorie: depuis.categorie,
+        motif: '',
         presentation: depuis.presentation,
         missions: depuis.missions,
         profil: depuis.profil,
@@ -618,4 +638,49 @@ export function changerEtat(o: Offre, etat: EtatOffre, texte: string) {
   o.modifieLe = maintenant()
   o.historique.push({ date: maintenant(), texte: `${texte} — état : ${LIBELLES_ETAT[etat]}` })
   sauvegarder()
+}
+
+// --- Circuit de validation ---
+
+export function envoyerPourValidation(o: Offre) {
+  o.darRef ??= `DAR-2026-0${340 + db.offres.filter(x => x.darRef).length}`
+  o.darStatut = 'soumise'
+  o.darSoumiseLe = maintenant()
+  o.remarqueDar = undefined
+  o.circuit = db.organisme.circuit
+  o.validations = db.organisme.valideurs.map(v => ({ ...v, decision: 'attente' }))
+  const noms = o.validations.map(v => v.nom).join(o.circuit === 'successif' ? ' puis ' : ' et ')
+  changerEtat(o, 'validation', `Envoyée pour validation (${o.darRef}) à ${noms}`)
+}
+
+/** Successif : seul le premier valideur en attente peut décider. Simultané : tous ceux en attente. */
+export function peutDecider(o: Offre, i: number): boolean {
+  const v = o.validations?.[i]
+  if (o.etat !== 'validation' || v?.decision !== 'attente') {
+    return false
+  }
+  return o.circuit === 'simultane' || o.validations!.findIndex(x => x.decision === 'attente') === i
+}
+
+/** Un refus renvoie l'offre en brouillon ; la dernière validation la rend publiable. */
+export function decider(o: Offre, i: number, decision: 'validee' | 'refusee', motif?: string) {
+  const v = o.validations![i]!
+  v.decision = decision
+  v.le = maintenant()
+  v.motif = motif
+  if (decision === 'refusee') {
+    o.darStatut = 'refusee'
+    o.remarqueDar = `${v.nom} : « ${motif} »`
+    changerEtat(o, 'redaction', `Refusée par ${v.nom}`)
+  }
+  else if (o.validations!.every(x => x.decision === 'validee')) {
+    o.darStatut = 'validee'
+    o.darValideeLe = maintenant()
+    changerEtat(o, 'a_publier', `Validée par ${v.nom} — validation terminée`)
+  }
+  else {
+    o.modifieLe = maintenant()
+    o.historique.push({ date: maintenant(), texte: `Validée par ${v.nom}` })
+    sauvegarder()
+  }
 }

@@ -1,6 +1,9 @@
 <script setup lang="ts">
+import { computed, ref } from 'vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspIcon from '@/components/base/CspIcon/CspIcon.vue'
+import CspInput from '@/components/base/CspInput/CspInput.vue'
+import CspRadioGroup from '@/components/base/CspRadioGroup/CspRadioGroup.vue'
 import CspSelect from '@/components/base/CspSelect/CspSelect.vue'
 import CspSwitch from '@/components/base/CspSwitch/CspSwitch.vue'
 import Panel from '../../shared/Panel.vue'
@@ -18,6 +21,32 @@ function changerRole() {
   sauvegarder()
   notifier(db.role === 'superviseur' ? `Vous agissez en tant que superviseur (${db.organisme.superviseur}).` : 'Retour au profil responsable du recrutement.')
 }
+
+// Circuit de validation : un ou plusieurs valideurs, l'un après l'autre ou en parallèle.
+// Hypothèse : une modification s'applique aux prochains envois, pas aux offres déjà en attente.
+const CIRCUITS = [
+  { value: 'successif', label: 'L\'un après l\'autre, dans l\'ordre de la liste' },
+  { value: 'simultane', label: 'Tous en même temps' },
+]
+const nouveau = ref({ nom: '', fonction: '' })
+function ajouterValideur() {
+  if (!nouveau.value.nom.trim()) {
+    return
+  }
+  db.organisme.valideurs.push({ nom: nouveau.value.nom.trim(), fonction: nouveau.value.fonction.trim() })
+  nouveau.value = { nom: '', fonction: '' }
+  sauvegarder()
+}
+function retirer(i: number) {
+  db.organisme.valideurs.splice(i, 1)
+  sauvegarder()
+}
+function monter(i: number) {
+  const [v] = db.organisme.valideurs.splice(i, 1)
+  db.organisme.valideurs.splice(i - 1, 0, v!)
+  sauvegarder()
+}
+const lecture = computed(() => db.role !== 'superviseur')
 
 function basculerDar(v: boolean) {
   db.organisme.darObligatoire = v
@@ -68,18 +97,23 @@ function basculerDar(v: boolean) {
           Parcours appliqué aux offres
         </p>
         <ol class="parcours__etapes">
-          <li>Rédaction</li>
-          <li :class="{ barre: !db.organisme.darObligatoire }">
-            DAR : saisie, enregistrement, validation
+          <li>Formulaire de l'offre{{ db.organisme.darObligatoire ? ' (champs DAR obligatoires)' : '' }}</li>
+          <li v-if="db.organisme.darObligatoire">
+            « Envoyer pour validation » : offre en attente et verrouillée
           </li>
-          <li>Préparation (postes, modalités)</li>
-          <li>Publication</li>
+          <li v-else>
+            « Créer l'offre »
+          </li>
+          <li :class="{ barre: !db.organisme.darObligatoire }">
+            Validation par les valideurs
+          </li>
+          <li>Relecture et publication</li>
         </ol>
       </div>
       <template v-if="db.organisme.darObligatoire">
         <CspSelect
           v-model="db.organisme.entite"
-          label="Entité préremplie dans les DAR"
+          label="Entité de rattachement des demandes"
           :options="ENTITES.map(e => ({ value: e, label: e }))"
           :disabled="db.role !== 'superviseur'"
           @update:model-value="sauvegarder"
@@ -91,16 +125,79 @@ function basculerDar(v: boolean) {
           :disabled="db.role !== 'superviseur'"
           @update:model-value="sauvegarder"
         />
-        <p class="mention">
-          <CspIcon
-            name="ri:user-line"
-            :size="14"
-          />
-          Validation des DAR : {{ db.organisme.valideur }} (simulation).
-        </p>
       </template>
       <p class="mention">
-        Paramètre commun à tout l'organisme dans un premier temps. Hypothèse : un changement s'applique aux nouvelles offres et à celles en rédaction dont la DAR n'est pas encore soumise.
+        Paramètre commun à tout l'organisme dans un premier temps. Hypothèse : un changement s'applique aux nouvelles offres et aux brouillons pas encore envoyés pour validation.
+      </p>
+    </Panel>
+
+    <Panel
+      v-if="db.organisme.darObligatoire"
+      titre="Circuit de validation"
+      description="Les personnes qui valident les offres envoyées pour validation. Tant que la validation n'est pas terminée, l'offre ne peut être ni modifiée ni publiée."
+    >
+      <ol class="valideurs">
+        <li
+          v-for="(v, i) in db.organisme.valideurs"
+          :key="`${v.nom}-${i}`"
+          class="valideur"
+        >
+          <span class="valideur__rang">{{ db.organisme.circuit === 'successif' ? i + 1 : '•' }}</span>
+          <span class="valideur__nom">
+            <strong>{{ v.nom }}</strong>
+            <small>{{ v.fonction }}</small>
+          </span>
+          <template v-if="!lecture">
+            <CspButton
+              v-if="db.organisme.circuit === 'successif' && i > 0"
+              label="Monter"
+              size="sm"
+              variant="tertiary-no-outline"
+              @click="monter(i)"
+            />
+            <CspButton
+              label="Retirer"
+              size="sm"
+              variant="tertiary-no-outline"
+              :disabled="db.organisme.valideurs.length === 1"
+              @click="retirer(i)"
+            />
+          </template>
+        </li>
+      </ol>
+      <div
+        v-if="!lecture"
+        class="ajout"
+      >
+        <CspInput
+          v-model="nouveau.nom"
+          label="Nom du valideur"
+          size="sm"
+        />
+        <CspInput
+          v-model="nouveau.fonction"
+          label="Fonction"
+          size="sm"
+        />
+        <CspButton
+          label="Ajouter"
+          size="sm"
+          variant="secondary"
+          icon="ri:add-line"
+          is-icon-left
+          @click="ajouterValideur"
+        />
+      </div>
+      <CspRadioGroup
+        v-model="db.organisme.circuit"
+        label="Ordre de validation"
+        :options="CIRCUITS"
+        :disabled="lecture"
+        size="sm"
+        @update:model-value="sauvegarder"
+      />
+      <p class="mention">
+        Il faut au moins un valideur. Un refus renvoie l'offre en brouillon ; elle devient publiable quand tous les valideurs ont validé.
       </p>
     </Panel>
   </PageAts>
@@ -154,6 +251,47 @@ function basculerDar(v: boolean) {
     content: '→ ';
     color: var(--text-mention-grey);
   }
+}
+
+.valideurs {
+  display: flex;
+  flex-direction: column;
+  gap: var(--csp-space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.valideur {
+  display: flex;
+  align-items: center;
+  gap: var(--csp-space-3);
+  padding: var(--csp-space-2) var(--csp-space-3);
+  border: 1px solid var(--border-default-grey);
+  font-size: var(--csp-font-size-sm);
+}
+
+.valideur__rang {
+  width: 1.5rem;
+  font-weight: var(--csp-font-weight-bold);
+  color: var(--text-action-high-blue-france);
+}
+
+.valideur__nom {
+  flex: 1;
+
+  small {
+    display: block;
+    font-size: var(--csp-font-size-xs);
+    color: var(--text-mention-grey);
+  }
+}
+
+.ajout {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: var(--csp-space-3);
+  align-items: end;
 }
 
 .barre {

@@ -2,13 +2,21 @@
 // et au plus une alerte discrète quand une information essentielle manque ou qu'un texte est difficile.
 
 import type { Offre } from './store'
+import { CHAMPS_DETERMINANTS } from './store'
 
-export type Champ = 'titre' | 'presentation' | 'missions' | 'profil' | 'indispensables' | 'souhaitables' | 'modalites' | 'nbPostes' | 'lieu' | 'remuneration' | 'dateLimite'
+export type Champ = 'titre' | 'categorie' | 'motif' | 'presentation' | 'missions' | 'profil' | 'indispensables' | 'souhaitables' | 'modalites' | 'nbPostes' | 'lieu' | 'remuneration' | 'dateLimite'
 
 export const CONSEILS: Record<Champ, { conseil: string, exemple?: string }> = {
   titre: {
     conseil: 'Un intitulé compris hors de l\'administration, sans sigle ni code interne.',
     exemple: '« Gestionnaire de paie (H/F) » plutôt que « Gest. paie BRH/SG ».',
+  },
+  categorie: {
+    conseil: 'Catégorie statutaire du poste (A, B ou C).',
+  },
+  motif: {
+    conseil: 'Vacance, remplacement, création… Quelques mots évitent aux valideurs de rappeler le service.',
+    exemple: '« Remplacement d\'un départ à la retraite au 1er janvier. »',
   },
   presentation: {
     conseil: '2 ou 3 phrases : l\'équipe, la finalité du poste, ce qui le rend intéressant.',
@@ -31,7 +39,7 @@ export const CONSEILS: Record<Champ, { conseil: string, exemple?: string }> = {
     conseil: 'À qui le poste est ouvert (fonctionnaires, contractuels) et type de contrat.',
   },
   nbPostes: {
-    conseil: 'Une seule offre peut couvrir plusieurs postes identiques.',
+    conseil: 'Une seule offre, et une seule validation, peut couvrir plusieurs postes identiques.',
   },
   lieu: {
     conseil: 'Ville et site, accès, télétravail : des informations décisives pour les candidats.',
@@ -105,34 +113,25 @@ export function alerte(o: Offre, champ: Champ): { niveau: 'info' | 'attention', 
   }
 }
 
-/** Ce qui empêche de terminer la rédaction (vers la DAR ou « À publier »). */
-export function manquesRedaction(o: Offre): string[] {
-  return [
-    !o.titre.trim() && 'titre',
-    !o.missions.trim() && 'missions',
-    !o.lieu.trim() && 'lieu',
-  ].filter(Boolean) as string[]
-}
-
-/** Ce qui empêche de soumettre la DAR. */
-export function manquesDar(o: Offre): string[] {
-  const f = o.darForm
-  if (!f) {
-    return ['formulaire']
+/**
+ * Ce qui empêche d'envoyer pour validation (organisme avec DAR : tous les champs déterminants)
+ * ou de créer l'offre (sans DAR : titre, missions, lieu).
+ */
+export function manquesCreation(o: Offre): string[] {
+  const vide = {
+    titre: !o.titre.trim(),
+    categorie: !o.categorie,
+    nbPostes: !(Number(o.nbPostes) >= 1),
+    lieu: !o.lieu.trim(),
+    missions: !o.missions.trim(),
   }
-  return [
-    !f.entite && 'entité',
-    !f.intitule.trim() && 'intitulé du poste',
-    !f.categorie.trim() && 'catégorie',
-    !(Number(f.nbPostes) >= 1) && 'nombre de postes',
-    !f.description.trim() && 'description du poste',
-  ].filter(Boolean) as string[]
+  const requis = o.dar === 'requise' ? Object.keys(CHAMPS_DETERMINANTS) as (keyof typeof vide)[] : ['titre', 'missions', 'lieu'] as const
+  return requis.filter(c => vide[c]).map(c => CHAMPS_DETERMINANTS[c])
 }
 
-/** Ce qui empêche de publier : préparation (postes, modalités, date limite) et au moins un support. */
+/** Ce qui empêche de publier : préparation (modalités, date limite) et au moins un support. */
 export function manquesPublication(o: Offre): string[] {
   return [
-    !(Number(o.nbPostes) >= 1) && 'nombre de postes',
     !o.modalites.trim() && 'modalités de recrutement',
     !o.dateLimite && 'date limite de candidature',
     !o.canaux.length && 'au moins un support de publication',

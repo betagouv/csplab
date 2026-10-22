@@ -1,5 +1,43 @@
 # Notes — Prototype création d'offre
 
+## Itération 9 — formulaire unique et circuit de validation (22 octobre 2026)
+
+Demande d'Alice : un seul formulaire pour l'offre ; les champs déterminants pour la DAR y sont
+obligatoires ; le bouton final est « Envoyer pour validation » (organisme avec DAR) au lieu de
+« Créer l'offre » ; l'offre est alors en attente, ni modifiable ni publiable, jusqu'à la décision
+d'un ou plusieurs valideurs définis par le superviseur.
+
+### Changements
+
+- **Plus d'onglet ni de formulaire DAR séparé.** Onglets : Suivi · Formulaire de l'offre · Publication.
+- **Formulaire unique** : catégorie et nombre de postes rejoignent le formulaire (« L'essentiel »).
+  Avec DAR, les champs déterminants portent la mention « Requis pour la validation » et un bloc
+  « Pour les valideurs » (motif, facultatif) rappelle le circuit.
+- **Bouton final** : « Envoyer pour validation » (confirmation qui liste les valideurs et prévient du
+  verrouillage) ou « Créer l'offre » (sans DAR → À publier).
+- **En attente de validation** : formulaire entièrement en lecture seule, publication impossible,
+  circuit affiché en tête du formulaire et dans le Suivi. Décisions des valideurs simulées.
+- **Refus** : retour en brouillon avec le motif, bouton « Renvoyer pour validation ».
+- **Après validation** : les champs déterminants restent verrouillés (« Validé · non modifiable ») ;
+  les autres restent modifiables pendant la relecture ; la publication reste manuelle.
+- **Paramètres (superviseur)** : liste des valideurs (ajouter, retirer, réordonner ; au moins un) et
+  ordre de validation (l'un après l'autre / tous en même temps).
+- États renommés : « Brouillon », « En attente de validation ».
+
+### Hypothèses
+
+- Champs déterminants : intitulé, catégorie, nombre de postes, lieu, missions (liste indicative).
+- Circuit figé au moment de l'envoi : une modification des paramètres vaut pour les envois suivants.
+- Un seul refus suffit à renvoyer l'offre en brouillon ; la validation est terminée quand tous ont validé.
+- Ordre par défaut : l'un après l'autre.
+
+### Points à confirmer
+
+- Liste exacte des champs déterminants et des champs de la DAR qui ne sont pas dans l'annonce.
+- Valideurs nommés ou rôles (ex. « contrôle de gestion ») ? Un circuit différent selon le service ?
+- Après un refus, faut-il repasser par tous les valideurs ou seulement par celui qui a refusé ?
+- Le valideur peut-il proposer des modifications plutôt que refuser ?
+
 ## Itération 8 — parcours cible et DAR paramétrée par l'organisme (22 octobre 2026)
 
 Alignement sur le schéma « Parcours de création d'un recrutement » fourni par Alice, et sur les captures de

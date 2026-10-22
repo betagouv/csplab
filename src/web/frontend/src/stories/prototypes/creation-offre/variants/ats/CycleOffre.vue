@@ -11,9 +11,9 @@ const etapes = computed(() => {
   const i = ORDRE.indexOf(props.offre.etat)
   const sansDar = props.offre.dar === 'non_requise'
   return [
-    { id: 'redaction', label: 'Rédaction', detail: '' },
-    { id: 'validation', label: 'Validation (DAR)', detail: sansDar ? 'Non requise par l\'organisme' : props.offre.darRef ?? '' },
-    { id: 'a_publier', label: 'À publier', detail: 'Préparation' },
+    { id: 'redaction', label: 'Brouillon', detail: '' },
+    { id: 'validation', label: 'Validation', detail: sansDar ? 'Non requise par l\'organisme' : props.offre.validations ? `${props.offre.validations.filter(v => v.decision === 'validee').length}/${props.offre.validations.length} valideurs` : '' },
+    { id: 'a_publier', label: 'À publier', detail: 'Relecture' },
     { id: 'publiee', label: 'Publiée', detail: props.offre.publieeLe ?? '' },
     { id: 'archivee', label: 'Archivée', detail: '' },
   ].map((e, j) => ({

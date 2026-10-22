@@ -3,30 +3,42 @@ import type { Onglet } from './nav'
 import type { Fiche, Offre } from './store'
 import { computed, ref } from 'vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
+import CspDialog from '@/components/base/CspDialog/CspDialog.vue'
 import CspIcon from '@/components/base/CspIcon/CspIcon.vue'
 import CspInput from '@/components/base/CspInput/CspInput.vue'
 import CspSegmentedControl from '@/components/base/CspSegmentedControl/CspSegmentedControl.vue'
+import CspSelect from '@/components/base/CspSelect/CspSelect.vue'
 import CspTextarea from '@/components/base/CspTextarea/CspTextarea.vue'
 import FieldRow from '../../shared/FieldRow.vue'
 import ListEditor from '../../shared/ListEditor.vue'
 import Panel from '../../shared/Panel.vue'
-import { aMettreEnForme, manquesRedaction, mettreEnForme } from './aide'
+import { aMettreEnForme, manquesCreation, mettreEnForme } from './aide'
 import ApercuCandidat from './ApercuCandidat.vue'
 import ChampOffre from './ChampOffre.vue'
+import CircuitValidation from './CircuitValidation.vue'
 import { useNav } from './nav'
 import OrigineBadge from './OrigineBadge.vue'
-import { changerEtat, contenuDepuisFiche, LIBELLES_CONTENU, verrouilleParDar } from './store'
+import { CATEGORIES, CHAMPS_DETERMINANTS, changerEtat, contenuDepuisFiche, db, determinant, envoyerPourValidation, LIBELLES_CONTENU, verrouilleParDar } from './store'
 
-// Écran 5 — rédaction de l'offre. Le formulaire édite le contenu destiné aux candidats ;
-// la fiche de poste source se consulte à côté, sans jamais être modifiée d'ici. L'aperçu suit la saisie.
+// Écran 5 — formulaire unique de l'offre. Si l'organisme fait valider ses recrutements (DAR), les champs
+// déterminants pour la demande y sont obligatoires et le bouton final est « Envoyer pour validation » ;
+// sinon « Créer l'offre ». La fiche de poste source se consulte à côté. L'aperçu suit la saisie.
 const props = defineProps<{ offre: Offre, fiche: Fiche }>()
 const emit = defineEmits<{ enregistrer: [], onglet: [t: Onglet] }>()
 const { notifier } = useNav()
 const o = computed(() => props.offre)
 
-// Modifiable en rédaction et pendant la relecture avant publication ; jamais pendant la validation de la DAR.
+// Modifiable en brouillon et pendant la relecture avant publication ; jamais pendant la validation.
+// Après validation, les champs déterminants restent verrouillés pour garantir la validité de la DAR.
 const modifiable = computed(() => o.value.etat === 'redaction' || o.value.etat === 'a_publier')
-const lieuVerrouille = computed(() => verrouilleParDar(o.value, 'lieu'))
+const avecDar = computed(() => o.value.dar === 'requise')
+function bloque(champ: string) {
+  return !modifiable.value || verrouilleParDar(o.value, champ)
+}
+function requis(champ: string) {
+  return determinant(o.value, champ) && o.value.etat === 'redaction'
+}
+const CATEGORIES_OPTIONS = CATEGORIES.map(c => ({ value: c, label: `Catégorie ${c}` }))
 const vue = ref<'apercu' | 'fiche'>('apercu')
 const VUES = [
   { value: 'apercu' as const, label: 'Aperçu candidat', icon: 'ri:eye-line' },
@@ -60,24 +72,43 @@ function enregistrer() {
   notifier('Brouillon enregistré. Vous pouvez revenir à la rédaction à tout moment.')
 }
 
-// --- Fin de rédaction : le parcours dépend du paramètre DAR de l'organisme ---
+// --- Fin du formulaire : le bouton dépend du paramètre DAR de l'organisme ---
 const tentative = ref(false)
-const manques = computed(() => manquesRedaction(o.value))
-function continuerDar() {
+const manques = computed(() => manquesCreation(o.value))
+const MESSAGES: Record<string, string> = {
+  titre: 'Indiquez l\'intitulé.',
+  categorie: 'Choisissez la catégorie.',
+  nbPostes: 'Au moins 1 poste.',
+  lieu: 'Indiquez le lieu.',
+  missions: 'Décrivez les missions.',
+}
+function erreur(champ: keyof typeof CHAMPS_DETERMINANTS) {
+  return tentative.value && manques.value.includes(CHAMPS_DETERMINANTS[champ]) ? MESSAGES[champ] : undefined
+}
+
+const confirmation = ref(false)
+const sansValideur = computed(() => !db.organisme.valideurs.length)
+function demanderEnvoi() {
+  if (manques.value.length) {
+    tentative.value = true
+    return
+  }
+  confirmation.value = true
+}
+function envoyer() {
+  confirmation.value = false
+  emit('enregistrer')
+  envoyerPourValidation(o.value)
+  notifier('Offre envoyée pour validation. Elle n\'est plus modifiable jusqu\'à la décision des valideurs.')
+}
+function creer() {
   if (manques.value.length) {
     tentative.value = true
     return
   }
   emit('enregistrer')
-  emit('onglet', 'dar')
-}
-function terminer() {
-  if (manques.value.length) {
-    tentative.value = true
-    return
-  }
-  changerEtat(o.value, 'a_publier', 'Rédaction terminée (pas de DAR pour cet organisme)')
-  notifier('Rédaction terminée. Préparez maintenant la publication.')
+  changerEtat(o.value, 'a_publier', 'Offre créée (pas de validation pour cet organisme)')
+  notifier('Offre créée. Relisez-la et publiez-la quand vous le souhaitez.')
   emit('onglet', 'publication')
 }
 </script>
@@ -91,7 +122,7 @@ function terminer() {
       name="ri:lock-line"
       :size="16"
     />
-    <span v-if="o.etat === 'validation'">Contenu en lecture seule pendant la validation de la DAR (hypothèse).</span>
+    <span v-if="o.etat === 'validation'">En attente de validation : l'offre ne peut être ni modifiée ni publiée tant que la validation n'est pas terminée.</span>
     <span v-else>Offre {{ o.etat === 'publiee' ? 'publiée' : 'archivée' }} : contenu en lecture seule.</span>
   </p>
   <p
@@ -104,7 +135,7 @@ function terminer() {
     />
     <span>
       Relecture avant publication : l'offre ne sera publiée que lorsque vous le déciderez.
-      <template v-if="o.dar === 'requise'">Le nombre de postes et le lieu, validés par la DAR, ne sont plus modifiables.</template>
+      <template v-if="o.darStatut === 'validee'">Les champs validés ({{ Object.values(CHAMPS_DETERMINANTS).join(', ') }}) ne sont plus modifiables.</template>
     </span>
   </p>
   <p
@@ -115,8 +146,18 @@ function terminer() {
       name="ri:chat-1-line"
       :size="16"
     />
-    <span>DAR refusée : « {{ o.remarqueDar }} ». Corrigez puis soumettez à nouveau la DAR.</span>
+    <span>Refusée par {{ o.remarqueDar }}. Corrigez puis renvoyez l'offre pour validation.</span>
   </p>
+
+  <div
+    v-if="o.etat === 'validation'"
+    class="attente"
+  >
+    <p class="attente__titre">
+      Validation en cours
+    </p>
+    <CircuitValidation :offre="o" />
+  </div>
 
   <div class="redac">
     <fieldset
@@ -129,6 +170,14 @@ function terminer() {
         </template>.
         Vos modifications concernent l'annonce uniquement : la fiche {{ fiche.id }} n'est pas modifiée.
       </p>
+      <p
+        v-if="avecDar && o.etat === 'redaction'"
+        class="legende"
+      >
+        Votre organisme fait valider ses recrutements (DAR). Les champs <span class="legende__tag">Requis pour la validation</span>
+        doivent être remplis pour envoyer l'offre ; les autres peuvent être complétés jusqu'à la publication.
+        <em>Liste des champs indicative.</em>
+      </p>
 
       <Panel titre="L'essentiel">
         <ChampOffre
@@ -137,15 +186,56 @@ function terminer() {
           label="Titre de l'offre"
           for-id="o-titre"
           :repris="repris('titre')"
-          :modifie="modifie('titre')"
+          :modifie="modifie('titre') && !bloque('titre')"
+          :requis="requis('titre')"
+          :valide="verrouilleParDar(o, 'titre')"
+          :erreur="erreur('titre')"
           @restaurer="restaurer('titre')"
         >
           <CspInput
             id="o-titre"
             v-model="o.titre"
-            :disabled="!modifiable"
+            :disabled="bloque('titre')"
           />
         </ChampOffre>
+        <FieldRow :cols="2">
+          <ChampOffre
+            :offre="o"
+            champ="categorie"
+            label="Catégorie"
+            for-id="o-categorie"
+            :requis="requis('categorie')"
+            :valide="verrouilleParDar(o, 'categorie')"
+            :erreur="erreur('categorie')"
+          >
+            <div class="sans-label">
+              <CspSelect
+                id="o-categorie"
+                v-model="o.categorie"
+                label="Catégorie"
+                placeholder="Choisir"
+                :options="CATEGORIES_OPTIONS"
+                :disabled="bloque('categorie')"
+              />
+            </div>
+          </ChampOffre>
+          <ChampOffre
+            :offre="o"
+            champ="nbPostes"
+            label="Nombre de postes"
+            for-id="o-postes"
+            :requis="requis('nbPostes')"
+            :valide="verrouilleParDar(o, 'nbPostes')"
+            :erreur="erreur('nbPostes')"
+          >
+            <CspInput
+              id="o-postes"
+              v-model="o.nbPostes"
+              type="number"
+              :disabled="bloque('nbPostes')"
+            />
+          </ChampOffre>
+        </FieldRow>
         <ChampOffre
           :offre="o"
           champ="presentation"
@@ -171,18 +261,21 @@ function terminer() {
           label="Vos missions"
           for-id="o-missions"
           :repris="repris('missions')"
-          :modifie="modifie('missions')"
+          :modifie="modifie('missions') && !bloque('missions')"
+          :requis="requis('missions')"
+          :valide="verrouilleParDar(o, 'missions')"
+          :erreur="erreur('missions')"
           @restaurer="restaurer('missions')"
         >
           <CspTextarea
             id="o-missions"
             v-model="o.missions"
             :rows="6"
-            :disabled="!modifiable"
+            :disabled="bloque('missions')"
           />
         </ChampOffre>
         <div
-          v-if="modifiable && aMettreEnForme(o.missions)"
+          v-if="!bloque('missions') && aMettreEnForme(o.missions)"
           class="outil"
         >
           <CspButton
@@ -245,12 +338,14 @@ function terminer() {
             label="Lieu"
             for-id="o-lieu"
             :repris="repris('lieu')"
+            :requis="requis('lieu')"
+            :valide="verrouilleParDar(o, 'lieu')"
+            :erreur="erreur('lieu')"
           >
             <CspInput
               id="o-lieu"
               v-model="o.lieu"
-              :disabled="!modifiable || lieuVerrouille"
-              :hint="lieuVerrouille ? 'Validé par la DAR — non modifiable' : undefined"
+              :disabled="bloque('lieu')"
             />
           </ChampOffre>
           <ChampOffre
@@ -282,6 +377,30 @@ function terminer() {
         </FieldRow>
       </Panel>
 
+      <Panel
+        v-if="avecDar"
+        titre="Pour les valideurs"
+        description="Ces informations accompagnent la demande ; elles ne figurent pas dans l'annonce."
+      >
+        <ChampOffre
+          :offre="o"
+          champ="motif"
+          label="Motif du recrutement (facultatif)"
+          for-id="o-motif"
+        >
+          <CspTextarea
+            id="o-motif"
+            v-model="o.motif"
+            :rows="2"
+            :disabled="!modifiable || o.darStatut === 'validee'"
+          />
+        </ChampOffre>
+        <p class="mention">
+          Circuit défini par le superviseur :
+          {{ db.organisme.valideurs.map(v => `${v.nom} (${v.fonction})`).join(db.organisme.circuit === 'successif' ? ' puis ' : ' et ') || 'aucun valideur' }}.
+        </p>
+      </Panel>
+
       <div
         v-if="o.etat === 'redaction'"
         class="pied"
@@ -300,19 +419,63 @@ function terminer() {
         >
           À compléter : {{ manques.join(', ') }}.
         </p>
+        <p
+          v-else-if="avecDar && sansValideur"
+          class="manque"
+          role="alert"
+        >
+          Aucun valideur n'est défini : contactez le superviseur de l'organisme.
+        </p>
         <CspButton
-          v-if="o.dar === 'requise'"
-          label="Continuer : saisir la DAR"
-          icon="ri:arrow-right-line"
-          @click="continuerDar"
+          v-if="avecDar"
+          :label="o.darStatut === 'refusee' ? 'Renvoyer pour validation' : 'Envoyer pour validation'"
+          icon="ri:send-plane-line"
+          is-icon-left
+          :disabled="sansValideur"
+          @click="demanderEnvoi"
         />
         <CspButton
           v-else
-          label="Terminer la rédaction"
-          icon="ri:arrow-right-line"
-          @click="terminer"
+          label="Créer l'offre"
+          icon="ri:check-line"
+          is-icon-left
+          @click="creer"
         />
       </div>
+      <CspDialog
+        v-model:open="confirmation"
+        title="Envoyer l'offre pour validation ?"
+        size="sm"
+      >
+        <p class="dialogue">
+          Jusqu'à la fin de la validation, l'offre ne pourra être <strong>ni modifiée ni publiée</strong>.
+          Après validation, les champs déterminants resteront verrouillés.
+        </p>
+        <p class="dialogue">
+          {{ db.organisme.circuit === 'successif' ? 'Valideurs, dans l\'ordre :' : 'Valideurs, en parallèle :' }}
+        </p>
+        <ol class="dialogue__liste">
+          <li
+            v-for="v in db.organisme.valideurs"
+            :key="v.nom"
+          >
+            {{ v.nom }} — {{ v.fonction }}
+          </li>
+        </ol>
+        <template #footer>
+          <CspButton
+            label="Annuler"
+            variant="secondary"
+            @click="confirmation = false"
+          />
+          <CspButton
+            label="Envoyer pour validation"
+            icon="ri:send-plane-line"
+            is-icon-left
+            @click="envoyer"
+          />
+        </template>
+      </CspDialog>
     </fieldset>
 
     <aside class="cote">
@@ -407,6 +570,58 @@ function terminer() {
   &--remarque {
     background: var(--background-alt-blue-france);
   }
+}
+
+.attente {
+  display: flex;
+  flex-direction: column;
+  gap: var(--csp-space-2);
+  padding: var(--csp-space-4);
+  border: 1px solid var(--border-default-grey);
+  background: var(--background-default-grey);
+}
+
+.attente__titre {
+  margin: 0;
+  font-weight: var(--csp-font-weight-bold);
+}
+
+.legende {
+  margin: 0;
+  font-size: var(--csp-font-size-sm);
+}
+
+.legende__tag {
+  padding: 0 var(--csp-space-1);
+  background: var(--background-alt-blue-france);
+  font-size: var(--csp-font-size-xs);
+  color: var(--text-action-high-blue-france);
+  white-space: nowrap;
+}
+
+.sans-label :deep(.csp-select-group__label) {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}
+
+.mention {
+  margin: 0;
+  font-size: var(--csp-font-size-xs);
+  color: var(--text-mention-grey);
+}
+
+.dialogue {
+  margin: 0 0 var(--csp-space-2);
+  font-size: var(--csp-font-size-sm);
+}
+
+.dialogue__liste {
+  margin: 0;
+  padding-left: var(--csp-space-5);
+  font-size: var(--csp-font-size-sm);
 }
 
 .redac {

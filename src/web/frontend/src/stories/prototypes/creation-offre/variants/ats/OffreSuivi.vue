@@ -6,6 +6,7 @@ import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspRadioGroup from '@/components/base/CspRadioGroup/CspRadioGroup.vue'
 import Panel from '../../shared/Panel.vue'
 import ApercuCandidat from './ApercuCandidat.vue'
+import CircuitValidation from './CircuitValidation.vue'
 import CycleOffre from './CycleOffre.vue'
 import { useNav } from './nav'
 import OrigineBadge from './OrigineBadge.vue'
@@ -21,11 +22,11 @@ const apercu = ref(false)
 const prochaine = computed(() => ({
   redaction: o.value.dar === 'requise'
     ? (o.value.darStatut === 'refusee'
-        ? { texte: 'La DAR a été refusée : corrigez-la puis soumettez-la à nouveau.', action: 'Corriger la DAR', onglet: 'dar' as const }
-        : { texte: 'Terminer la rédaction puis saisir la DAR (votre organisme l\'exige).', action: 'Reprendre la rédaction', onglet: 'redaction' as const })
-    : { texte: 'Terminer la rédaction, puis préparer la publication.', action: 'Reprendre la rédaction', onglet: 'redaction' as const },
-  validation: { texte: `La DAR ${o.value.darRef} attend sa validation.`, action: 'Voir la DAR', onglet: 'dar' as const },
-  a_publier: { texte: 'Préparez l\'offre (postes, modalités, date limite) puis publiez-la.', action: 'Préparer et publier', onglet: 'publication' as const },
+        ? { texte: 'L\'offre a été refusée : corrigez-la puis renvoyez-la pour validation.', action: 'Corriger l\'offre', onglet: 'redaction' as const }
+        : { texte: 'Complétez le formulaire puis envoyez l\'offre pour validation (votre organisme l\'exige).', action: 'Compléter le formulaire', onglet: 'redaction' as const })
+    : { texte: 'Complétez le formulaire puis créez l\'offre.', action: 'Compléter le formulaire', onglet: 'redaction' as const },
+  validation: { texte: 'En attente de validation : l\'offre ne peut être ni modifiée ni publiée pour l\'instant.', action: '', onglet: 'suivi' as const },
+  a_publier: { texte: 'Relisez l\'offre, complétez la date limite et les modalités, puis publiez-la.', action: 'Préparer et publier', onglet: 'publication' as const },
   publiee: { texte: `Candidatures ouvertes jusqu'au ${o.value.dateLimite}.`, action: 'Gérer la publication', onglet: 'publication' as const },
   archivee: { texte: 'Offre archivée.', action: '', onglet: 'suivi' as const },
 }[o.value.etat]))
@@ -35,7 +36,8 @@ const infos = computed(() => [
   { k: 'Lieu', v: o.value.lieu },
   { k: 'Date limite', v: o.value.dateLimite },
   { k: 'Origine du contenu', v: `${LIBELLES_CONTENU[o.value.origineContenu]}${o.value.sourceOffreId ? ` (${o.value.sourceOffreId})` : ''}` },
-  { k: 'DAR', v: o.value.dar === 'requise' ? (o.value.darRef ? `${o.value.darRef} (${{ brouillon: 'brouillon', soumise: 'soumise', validee: 'validée', refusee: 'refusée' }[o.value.darStatut ?? 'brouillon']})` : 'À saisir') : 'Non requise par l\'organisme' },
+  { k: 'Catégorie', v: o.value.categorie },
+  { k: 'Validation (DAR)', v: o.value.dar === 'requise' ? (o.value.darStatut ? `${o.value.darRef} — ${{ soumise: 'en attente', validee: 'validée', refusee: 'refusée' }[o.value.darStatut]}` : 'À envoyer') : 'Non requise par l\'organisme' },
   { k: 'Créée', v: o.value.creeLe },
   { k: 'Dernière modification', v: o.value.modifieLe },
 ])
@@ -124,6 +126,13 @@ const FREQ = [
             @click="aller({ nom: 'creation', mode: 'duplication', offreId: o.id })"
           />
         </div>
+      </Panel>
+
+      <Panel
+        v-if="o.validations?.length"
+        titre="Circuit de validation"
+      >
+        <CircuitValidation :offre="o" />
       </Panel>
 
       <Panel

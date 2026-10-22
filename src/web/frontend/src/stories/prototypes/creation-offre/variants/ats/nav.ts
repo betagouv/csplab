@@ -12,7 +12,7 @@ export type Ecran
     | { nom: 'offre', id: string, onglet?: Onglet }
     | { nom: 'parametres' }
 
-export type Onglet = 'suivi' | 'redaction' | 'dar' | 'publication'
+export type Onglet = 'suivi' | 'redaction' | 'publication'
 
 export interface Nav {
   ecran: Ref<Ecran>

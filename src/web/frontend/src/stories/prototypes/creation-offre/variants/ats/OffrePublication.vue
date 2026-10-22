@@ -7,12 +7,12 @@ import CspInput from '@/components/base/CspInput/CspInput.vue'
 import CspTextarea from '@/components/base/CspTextarea/CspTextarea.vue'
 import FieldRow from '../../shared/FieldRow.vue'
 import Panel from '../../shared/Panel.vue'
-import { manquesPublication, manquesRedaction } from './aide'
+import { manquesPublication } from './aide'
 import CycleOffre from './CycleOffre.vue'
 import { useNav } from './nav'
-import { CANAUX_DIFFUSION, changerEtat, le, maintenant, modalitesDepuisFiche, sauvegarder, verrouilleParDar } from './store'
+import { CANAUX_DIFFUSION, changerEtat, le, maintenant, modalitesDepuisFiche, sauvegarder } from './store'
 
-// Préparer l'offre pour la publication (postes, modalités, date limite), puis publier sur les supports choisis.
+// Préparer l'offre pour la publication (modalités, date limite), puis publier sur les supports choisis.
 // Publier est une action distincte. Le parcours avec ou sans DAR est fixé par l'organisme.
 const props = defineProps<{ offre: Offre, fiche: Fiche }>()
 const emit = defineEmits<{ onglet: [t: Onglet] }>()
@@ -26,17 +26,7 @@ if (!o.value.modalites) {
 
 const tentative = ref(false)
 const manques = computed(() => manquesPublication(o.value))
-const postesVerrouilles = computed(() => verrouilleParDar(o.value, 'nbPostes'))
 const prete = computed(() => ['a_publier', 'publiee'].includes(o.value.etat))
-
-function terminerRedaction() {
-  if (manquesRedaction(o.value).length) {
-    notifier(`À compléter dans la rédaction : ${manquesRedaction(o.value).join(', ')}.`)
-    emit('onglet', 'redaction')
-    return
-  }
-  changerEtat(o.value, 'a_publier', 'Rédaction terminée (pas de DAR pour cet organisme)')
-}
 
 // --- Supports ---
 const groupes = computed(() => [...new Set(CANAUX_DIFFUSION.map(c => c.groupe))].map(g => ({ nom: g, supports: CANAUX_DIFFUSION.filter(c => c.groupe === g) })))
@@ -98,42 +88,30 @@ function archiver() {
     v-if="o.etat === 'redaction'"
     titre="Pas encore prête à publier"
   >
-    <template v-if="o.dar === 'requise'">
-      <p class="texte">
-        Votre organisme fait valider les recrutements par une DAR. La publication sera possible une fois la DAR validée.
-      </p>
-      <div>
-        <CspButton
-          label="Aller à la DAR"
-          icon="ri:arrow-right-line"
-          @click="emit('onglet', 'dar')"
-        />
-      </div>
-    </template>
-    <template v-else>
-      <p class="texte">
-        Votre organisme ne demande pas de DAR. Terminez la rédaction pour préparer la publication.
-      </p>
-      <div>
-        <CspButton
-          label="Terminer la rédaction"
-          icon="ri:arrow-right-line"
-          @click="terminerRedaction"
-        />
-      </div>
-    </template>
+    <p class="texte">
+      {{ o.dar === 'requise'
+        ? 'Votre organisme fait valider ses recrutements (DAR) : complétez le formulaire puis envoyez l\'offre pour validation. La publication sera possible une fois la validation terminée.'
+        : 'Complétez le formulaire puis créez l\'offre pour pouvoir la publier.' }}
+    </p>
+    <div>
+      <CspButton
+        label="Aller au formulaire"
+        icon="ri:arrow-right-line"
+        @click="emit('onglet', 'redaction')"
+      />
+    </div>
   </Panel>
 
   <Panel
     v-else-if="o.etat === 'validation'"
-    titre="DAR en cours de validation"
-    :description="`La DAR ${o.darRef} a été soumise ${le(o.darSoumiseLe)}. La publication sera possible après sa validation.`"
+    titre="En attente de validation"
+    :description="`Envoyée pour validation ${le(o.darSoumiseLe)}. L'offre ne peut pas être publiée tant que la validation n'est pas terminée.`"
   >
     <div>
       <CspButton
-        label="Voir la DAR"
+        label="Voir le circuit de validation"
         variant="secondary"
-        @click="emit('onglet', 'dar')"
+        @click="emit('onglet', 'suivi')"
       />
     </div>
   </Panel>
@@ -141,18 +119,9 @@ function archiver() {
   <template v-else-if="prete">
     <Panel
       titre="Préparer l'offre pour la publication"
-      :description="o.dar === 'requise' ? `DAR ${o.darRef} validée ${le(o.darValideeLe)}. L'offre n'est pas publiée automatiquement : relisez-la, puis publiez-la.` : 'Pas de DAR pour cet organisme. Relisez l\'offre, puis publiez-la.'"
+      :description="o.dar === 'requise' ? `Validation terminée ${le(o.darValideeLe)}. L'offre n'est pas publiée automatiquement : relisez-la, puis publiez-la.` : 'Pas de DAR pour cet organisme. Relisez l\'offre, puis publiez-la.'"
     >
       <FieldRow :cols="2">
-        <CspInput
-          v-model="o.nbPostes"
-          type="number"
-          label="Nombre de postes à pourvoir"
-          :hint="postesVerrouilles ? 'Validé par la DAR — non modifiable. Une seule offre pour tous les postes.' : 'Une seule offre pour tous les postes.'"
-          :disabled="o.etat === 'publiee' || postesVerrouilles"
-          :error="tentative && !(Number(o.nbPostes) >= 1)"
-          :error-message="tentative && !(Number(o.nbPostes) >= 1) ? 'Au moins 1 poste.' : undefined"
-        />
         <CspInput
           v-model="o.dateLimite"
           label="Date limite de candidature"
@@ -160,6 +129,11 @@ function archiver() {
           :disabled="o.etat === 'publiee'"
           :error="tentative && !o.dateLimite"
           :error-message="tentative && !o.dateLimite ? 'Indiquez la date limite.' : undefined"
+        />
+        <CspInput
+          v-model="o.contact"
+          label="Contact pour les candidats (facultatif)"
+          :disabled="o.etat === 'publiee'"
         />
       </FieldRow>
       <CspTextarea
@@ -170,11 +144,6 @@ function archiver() {
         :disabled="o.etat === 'publiee'"
         :error="tentative && !o.modalites.trim()"
         :error-message="tentative && !o.modalites.trim() ? 'Précisez les modalités de recrutement.' : undefined"
-      />
-      <CspInput
-        v-model="o.contact"
-        label="Contact pour les candidats (facultatif)"
-        :disabled="o.etat === 'publiee'"
       />
     </Panel>
 

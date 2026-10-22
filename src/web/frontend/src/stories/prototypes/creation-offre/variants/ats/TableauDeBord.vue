@@ -12,7 +12,7 @@ const { aller } = useNav()
 
 const COMPTEURS: { etat: EtatOffre, aide: string }[] = [
   { etat: 'redaction', aide: 'à terminer' },
-  { etat: 'validation', aide: 'DAR en attente' },
+  { etat: 'validation', aide: 'Ni modifiables ni publiables' },
   { etat: 'a_publier', aide: 'prêtes, non visibles' },
   { etat: 'publiee', aide: 'en ligne' },
 ]
