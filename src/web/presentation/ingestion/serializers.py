@@ -1115,8 +1115,9 @@ class OrganismePublicSerializer(serializers.ModelSerializer):
     parent_id = serializers.UUIDField(
         allow_null=True, help_text="Identifiant de l'organisme parent."
     )
-    referentiel = serializers.CharField(
-        help_text="Référentiel source : `FINESS`, `GIPCDG` ou `DILA`. Avec "
+    referentiel = serializers.ChoiceField(
+        choices=PUBLIC_ORGANISME_REFERENTIELS,
+        help_text="Référentiel source. Avec "
         "`external_id`, identifie l'organisme pour la création, la mise à jour et "
         "la suppression.",
     )

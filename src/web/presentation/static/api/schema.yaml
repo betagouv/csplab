@@ -5883,9 +5883,14 @@ components:
           nullable: true
           description: Identifiant de l'organisme parent.
         referentiel:
-          type: string
-          description: 'Référentiel source : `FINESS`, `GIPCDG` ou `DILA`. Avec `external_id`,
-            identifie l''organisme pour la création, la mise à jour et la suppression.'
+          allOf:
+          - $ref: '#/components/schemas/OrganismePublicReferentielEnum'
+          description: |-
+            Référentiel source. Avec `external_id`, identifie l'organisme pour la création, la mise à jour et la suppression.
+
+            * `FINESS` - FINESS
+            * `GIPCDG` - GIPCDG
+            * `DILA` - DILA
         external_id:
           type: string
           nullable: true
@@ -5908,6 +5913,16 @@ components:
       - referentiel
       - siret
       - versant
+    OrganismePublicReferentielEnum:
+      enum:
+      - FINESS
+      - GIPCDG
+      - DILA
+      type: string
+      description: |-
+        * `FINESS` - FINESS
+        * `GIPCDG` - GIPCDG
+        * `DILA` - DILA
     OrganismeUpsertInput:
       type: object
       properties:
@@ -6092,7 +6107,7 @@ components:
       properties:
         referentiel:
           allOf:
-          - $ref: '#/components/schemas/ReferentielEnum'
+          - $ref: '#/components/schemas/ProfessionInputReferentielEnum'
           default: RMFPv2
         domaine:
           type: string
@@ -6123,6 +6138,11 @@ components:
       required:
       - domaine
       - metier
+    ProfessionInputReferentielEnum:
+      enum:
+      - RMFPv2
+      type: string
+      description: '* `RMFPv2` - RMFPv2'
     PublicationInput:
       type: object
       properties:
@@ -6143,11 +6163,6 @@ components:
       required:
       - debut_publication
       - fin_publication
-    ReferentielEnum:
-      enum:
-      - RMFPv2
-      type: string
-      description: '* `RMFPv2` - RMFPv2'
     RegionEnum:
       enum:
       - '01'
