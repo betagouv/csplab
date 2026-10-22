@@ -41,11 +41,10 @@ On ne renomme pas l'API publique, que des systèmes externes appellent : ces rè
 - Le nom vient avant son complément : `url_offre`, `nature_offre`, `type_contrat`, `titre_long`.
 - Une date porte le nom de l'événement qu'elle marque : `debut_publication`, `debut_contrat`, `fin_candidature`, `date_archivage`.
 - On accorde avec la ressource : `creees` et `mises_a_jour` pour des offres, valeurs `creee` et `mise_a_jour`. Un champ à une seule valeur reste au singulier : `categorie`.
-- Les erreurs écrites par nos vues ont la forme `{"erreur": "…"}`, et les upserts renvoient `erreurs[].erreur`.
 
 On garde tels quels :
 
-- l'enveloppe de pagination de DRF (`count`, `next`, `previous`, `results`) et les erreurs que génèrent DRF et simplejwt (`detail`) : les franciser sur `/api/v1` seulement mélangerait deux formats ;
+- l'enveloppe de pagination de DRF (`count`, `next`, `previous`, `results`) et les erreurs, qu'elles soient écrites par nos vues (`error`, `errors[].error`) ou générées par DRF et simplejwt (`detail`) : les franciser sur `/api/v1` seulement mélangerait deux formats ;
 - les messages de validation par nom de champ ;
 - les noms que les partenaires emploient déjà et qui se lisent dans les deux langues : `reference`, `source_id`, la valeur `ok` ;
 - un champ d'un sérialiseur partagé avec l'entrée, comme `localisation.localisation_label`.
