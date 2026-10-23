@@ -12,9 +12,11 @@ defineOptions({ inheritAttrs: false })
 withDefaults(defineProps<{
   side?: 'top' | 'right' | 'bottom' | 'left'
   align?: 'start' | 'center' | 'end'
+  padding?: 'default' | 'menu'
 }>(), {
   side: 'bottom',
   align: 'start',
+  padding: 'default',
 })
 
 const open = defineModel<boolean | undefined>('open')
@@ -38,6 +40,7 @@ const hasTrigger = Boolean(slots.trigger)
     <PopoverPortal>
       <PopoverContent
         class="csp-popover"
+        :class="{ 'csp-popover--menu': padding === 'menu' }"
         :side="side"
         :align="align"
         :side-offset="6"
@@ -64,5 +67,9 @@ const hasTrigger = Boolean(slots.trigger)
     outline: 2px solid var(--csp-focus-ring-color);
     outline-offset: 2px;
   }
+}
+
+.csp-popover--menu {
+  padding: var(--csp-menu-padding);
 }
 </style>
