@@ -1,5 +1,5 @@
 version = 1
-revision = 3
+revision = 5
 requires-python = "==3.12.*"
 
 [[package]]
@@ -193,7 +193,7 @@ wheels = [
 
 [[package]]
 name = "referentiel"
-version = "0.2.22"
+version = "0.2.23"
 source = { editable = "." }
 dependencies = [
     { name = "ddd" },

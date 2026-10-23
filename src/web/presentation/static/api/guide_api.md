@@ -365,8 +365,8 @@ caractères s'applique au texte Markdown, syntaxe comprise.
 |---|---|
 | `zone_geographique` | Obligatoire dans chaque localisation. Valeurs : **AF** (Afrique), **EU** (Europe), **AS** (Asie), **AM** (Amérique), **OC** (Océanie), **AN** (Antarctique). |
 | `pays` | Obligatoire. Code pays sur **exactement 3 caractères**. |
-| `region` | Code région officiel, ou vide. |
-| `departement` | Code département officiel (`01` à `95`, `2A`, `2B`, DOM-TOM, `SPM`, `WLF`…), ou vide. |
+| `region` | Code région INSEE officiel, `DOM`, `TOM`, ou vide. Si `departement` est renseigné, doit être la région de ce département : code INSEE de la région ou `DOM` pour `971` à `974` et `976`, `TOM` pour `975`, `986`, `987`, `988`, `SPM` et `WLF`. |
+| `departement` | Code département officiel (`01` à `95`, `2A`, `2B`, DOM-TOM, `SPM`, `WLF`…), ou vide. Doit appartenir à `region`. |
 | `localisation_label` | Libellé du lieu. **500 caractères maximum.** |
 | `latitude` / `longitude` | Coordonnées géographiques. Peuvent être vides. |
 
