@@ -4,6 +4,141 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.0] - 2026-10-23
+
+### Candidatures
+
+#### <!-- 2 --> Modified
+
+- Centralise le passage par le motif de refus ([#1926](https://github.com/betagouv/csplab/pull/1926))
+- Déplace la clé des activités dans queryKeys ([#1978](https://github.com/betagouv/csplab/pull/1978))
+- Formateur nom candidat ([#1979](https://github.com/betagouv/csplab/pull/1979))
+
+
+### Identite
+
+#### <!-- 1 --> Added
+
+- Lister les actions autorisées pour un agent (partie 1) ([#2007](https://github.com/betagouv/csplab/pull/2007))
+- Lister les actions autorisées pour un agent (partie 2) ([#2011](https://github.com/betagouv/csplab/pull/2011))
+
+#### <!-- 2 --> Modified
+
+- Convertit create_candidat (ADR-009) ([#1922](https://github.com/betagouv/csplab/pull/1922))
+- Convertit create_agent (ADR-009) ([#1940](https://github.com/betagouv/csplab/pull/1940))
+- Convertit get_utilisateur_details (ADR-009) ([#1877](https://github.com/betagouv/csplab/pull/1877))
+- Retire la chaîne OrganismeRole devenue morte ([#1928](https://github.com/betagouv/csplab/pull/1928))
+- Retire la chaîne de création du candidat morte ([#1931](https://github.com/betagouv/csplab/pull/1931))
+
+#### <!-- 3 --> Fixed
+
+- Limite les requêtes anonymes par X-Real-IP ([#1964](https://github.com/betagouv/csplab/pull/1964))
+- N'émet les en-têtes X-RateLimit-* que pour les vues limitées ([#1966](https://github.com/betagouv/csplab/pull/1966))
+- Set session lifetime to 24h for RGAA 13.1 ([#1970](https://github.com/betagouv/csplab/pull/1970))
+- Retire les organismes supprimés de /utilisateur/me ([#1998](https://github.com/betagouv/csplab/pull/1998))
+
+
+### Ingestion
+
+#### <!-- 0 --> Breaking Changes
+
+- Affiche les descriptions des offres en Markdown ([#2008](https://github.com/betagouv/csplab/pull/2008))
+- Exige un lien Legifrance pour l'avis de vacance de l'API ([#2043](https://github.com/betagouv/csplab/pull/2043))
+- Franciser le champ code_emploi_csp de GET /api/v1/metiers ([#2051](https://github.com/betagouv/csplab/pull/2051))
+
+#### <!-- 1 --> Added
+
+- Change le format des contacts de l'offre ([#1935](https://github.com/betagouv/csplab/pull/1935))
+- Renseigne les contacts de l'offre depuis Talentsoft ([#1936](https://github.com/betagouv/csplab/pull/1936))
+- Ajoute le champ email_candidature à l'offre ([#1944](https://github.com/betagouv/csplab/pull/1944))
+- Renseigne email_candidature depuis Talentsoft ([#1946](https://github.com/betagouv/csplab/pull/1946))
+- Fait passer les appels ingestion → web par le réseau privé Scalingo ([#1974](https://github.com/betagouv/csplab/pull/1974))
+- Enregistre et expose la date de fin de publication des offres ([#1990](https://github.com/betagouv/csplab/pull/1990))
+- Conserve la mise en forme des descriptions en Markdown ([#1996](https://github.com/betagouv/csplab/pull/1996))
+- Ouvre /fret sans authentification derrière un feature flag ([#2004](https://github.com/betagouv/csplab/pull/2004))
+- Renvoie les descriptions en HTML dans l'API fake-ts ([#2024](https://github.com/betagouv/csplab/pull/2024))
+- Ingère trois champs personnalisés Talentsoft lus par WordPress ([#2032](https://github.com/betagouv/csplab/pull/2032))
+
+#### <!-- 2 --> Modified
+
+- Rend le guide API avec markdown-it-py et retire la dépendance markdown ([#2026](https://github.com/betagouv/csplab/pull/2026))
+
+#### <!-- 3 --> Fixed
+
+- Renvoie une 403 pour une source non autorisée ([#1941](https://github.com/betagouv/csplab/pull/1941))
+- Rend Qdrant optionnel et fiabilise l'archivage d'offre ([#1955](https://github.com/betagouv/csplab/pull/1955))
+- Fiabilise l'adresse IP des journaux d'API ([#1963](https://github.com/betagouv/csplab/pull/1963))
+- Plafonne la taille de page des API paginées ([#1967](https://github.com/betagouv/csplab/pull/1967))
+- Écoute sur 0.0.0.0 pour le réseau privé Scalingo ([#1989](https://github.com/betagouv/csplab/pull/1989))
+- Renvoie la description de l'organisme dans l'API fake-ts ([#2028](https://github.com/betagouv/csplab/pull/2028))
+
+#### <!-- 4 --> Documentation
+
+- Documente le nombre de postes Talentsoft jamais renseigné ([#1983](https://github.com/betagouv/csplab/pull/1983))
+- Documente les compétences Talentsoft jamais renseignées ([#1984](https://github.com/betagouv/csplab/pull/1984))
+- Indique l'interface Fret de démo dans la documentation de l'API des offres ([#2019](https://github.com/betagouv/csplab/pull/2019))
+
+
+### Messages
+
+#### <!-- 1 --> Added
+
+- Expose les conversations non lues dans l'API ([#1971](https://github.com/betagouv/csplab/pull/1971))
+- Calcule le marqueur lu/non lu des conversations ([#1981](https://github.com/betagouv/csplab/pull/1981))
+- Marque une conversation comme lue lors de l'affichage des messages ([#1973](https://github.com/betagouv/csplab/pull/1973))
+
+
+### Recruteur
+
+#### <!-- 1 --> Added
+
+- Ajoute un seed de démo sur un organisme existant ([#1949](https://github.com/betagouv/csplab/pull/1949))
+- Alimente la liste des superviseurs des organismes ([#1917](https://github.com/betagouv/csplab/pull/1917))
+- Ajoute le modèle des étiquettes et leurs liaisons ([#1993](https://github.com/betagouv/csplab/pull/1993))
+- Calcule les conversations non lues par candidature ([#1999](https://github.com/betagouv/csplab/pull/1999))
+
+#### <!-- 2 --> Modified
+
+- Convertit le service get_recrutement_detail dans le style ADR-009 ([#1808](https://github.com/betagouv/csplab/pull/1808))
+- Convertit le service `list_organismes` en style ADR-009 ([#1916](https://github.com/betagouv/csplab/pull/1916))
+- Mutualise l'ajout d'un agent trouvé par email ([#1882](https://github.com/betagouv/csplab/pull/1882))
+- Retire le code redondant ([#1976](https://github.com/betagouv/csplab/pull/1976))
+- Formateurs nom agent ([#1980](https://github.com/betagouv/csplab/pull/1980))
+- Les services ADR-009 reçoivent request.user ([#1988](https://github.com/betagouv/csplab/pull/1988))
+- Convertit le service create_organisme en style ADR-009 ([#1923](https://github.com/betagouv/csplab/pull/1923))
+- Les services de messagerie reçoivent request.user ([#2005](https://github.com/betagouv/csplab/pull/2005))
+- Handle OrganismeView exception in ADR-009 style ([#2003](https://github.com/betagouv/csplab/pull/2003))
+- Convertir le service de liste des candidatures en ADR-009 ([#1995](https://github.com/betagouv/csplab/pull/1995))
+- Nomme usecases et services en anglais (ADR-011) ([#2021](https://github.com/betagouv/csplab/pull/2021))
+- Migre les listes de recrutements vers ADR-009 ([#2017](https://github.com/betagouv/csplab/pull/2017))
+
+#### <!-- 3 --> Fixed
+
+- Un agent avec rôle recrutement peut gérer les agents de son recrutement ([#1809](https://github.com/betagouv/csplab/pull/1809))
+- Corrige le style du sous-titre des recrutements ([#1977](https://github.com/betagouv/csplab/pull/1977))
+- Exclut les organismes supprimés de la liste ([#1997](https://github.com/betagouv/csplab/pull/1997))
+- Revert first name - last name in the superviseurs' organisme list ([#2001](https://github.com/betagouv/csplab/pull/2001))
+
+
+### Referentiel
+
+#### <!-- 3 --> Fixed
+
+- Exclut les métiers sans code_emploi_csp ([#2046](https://github.com/betagouv/csplab/pull/2046))
+
+#### <!-- 4 --> Documentation
+
+- Documente le lien entre metier et offer_family_code ([#2034](https://github.com/betagouv/csplab/pull/2034))
+
+
+### Tooling
+
+#### <!-- 4 --> Documentation
+
+- Met à jour le gabarit des Pull Requests ([#1934](https://github.com/betagouv/csplab/pull/1934))
+- Ajoute l'ADR 011 sur la langue des identifiants et un glossaire métier ([#1893](https://github.com/betagouv/csplab/pull/1893))
+
+
 ## [0.4.0] - 2026-10-13
 
 ### Candidatures
