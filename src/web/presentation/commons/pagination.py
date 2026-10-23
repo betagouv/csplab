@@ -1,5 +1,4 @@
 from typing import Any
-from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
 
 from ddd.page_interface import IPage
 from rest_framework.pagination import (
@@ -8,7 +7,6 @@ from rest_framework.pagination import (
     PageNumberPagination,
 )
 from rest_framework.response import Response
-from rest_framework.settings import api_settings
 
 MAX_PAGE_SIZE = 1_000
 
@@ -74,85 +72,6 @@ class TaillePageNumberPagination(PageNumberPagination):
 
     def get_schema_operation_parameters(self, view) -> list[dict]:
         return _page_taille_parameters(self.page_size, self.max_page_size)
-
-
-class WebPagination(BasePagination):
-    page_size = api_settings.PAGE_SIZE
-    min_page_size = 1
-    max_page_size = MAX_PAGE_SIZE
-
-    def paginate(self, page: IPage, request) -> list[Any]:
-        self.request = request
-        self.count = page.count()
-        self.page_size = _bounded_int(
-            request.query_params.get("taille"),
-            default=self.page_size,
-            minimum=self.min_page_size,
-            maximum=self.max_page_size,
-        )
-        self.page_num = _bounded_int(
-            request.query_params.get("page"), default=1, minimum=1, maximum=None
-        )
-
-        offset = (self.page_num - 1) * self.page_size
-        self.results = list(page.slice(offset, self.page_size))
-
-        return self.results
-
-    def get_paginated_response(self, data: list[Any]) -> Response:
-        return Response(
-            {
-                "count": self.count,
-                "next": self._get_next_url(),
-                "previous": self._get_previous_url(),
-                "results": data,
-            }
-        )
-
-    def get_schema_operation_parameters(self, view) -> list[dict]:
-        return _page_taille_parameters(self.page_size, self.max_page_size)
-
-    def get_paginated_response_schema(self, schema: dict) -> dict:
-        return {
-            "type": "object",
-            "required": ["count", "results"],
-            "properties": {
-                "count": {"type": "integer", "example": 1},
-                "next": {
-                    "type": "string",
-                    "format": "uri",
-                    "nullable": True,
-                    "example": None,
-                },
-                "previous": {
-                    "type": "string",
-                    "format": "uri",
-                    "nullable": True,
-                    "example": None,
-                },
-                "results": schema,
-            },
-        }
-
-    def _get_next_url(self):
-        if self.page_num * self.page_size >= self.count:
-            return None
-        return self._build_url(self.page_num + 1)
-
-    def _get_previous_url(self):
-        if self.page_num <= 1:
-            return None
-        return self._build_url(self.page_num - 1)
-
-    def _build_url(self, page_num):
-        request = self.request
-        url = request.build_absolute_uri()
-        parsed = urlparse(url)
-        params = parse_qs(parsed.query, keep_blank_values=True)
-        params["page"] = [page_num]
-        params["taille"] = [self.page_size]
-        new_query = urlencode({k: v[0] for k, v in params.items()})
-        return urlunparse(parsed._replace(query=new_query))
 
 
 class TalentsoftPagination(BasePagination):

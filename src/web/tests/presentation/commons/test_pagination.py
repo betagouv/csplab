@@ -6,8 +6,8 @@ from rest_framework.test import APIRequestFactory
 
 from presentation.commons.pagination import (
     MAX_PAGE_SIZE,
+    TaillePageNumberPagination,
     TalentsoftPagination,
-    WebPagination,
 )
 
 
@@ -23,7 +23,7 @@ def _page(total: int = 5_000) -> MagicMock:
 
 
 def test_get_schema_operation_parameters_exposes_page_and_size():
-    parameters = WebPagination().get_schema_operation_parameters(view=None)
+    parameters = TaillePageNumberPagination().get_schema_operation_parameters(view=None)
 
     assert parameters == [
         {
@@ -40,39 +40,12 @@ def test_get_schema_operation_parameters_exposes_page_and_size():
             "description": "Nombre d'éléments par page.",
             "schema": {
                 "type": "integer",
-                "default": WebPagination.page_size,
-                "minimum": WebPagination.min_page_size,
-                "maximum": WebPagination.max_page_size,
+                "default": TaillePageNumberPagination.page_size,
+                "minimum": 1,
+                "maximum": MAX_PAGE_SIZE,
             },
         },
     ]
-
-
-def test_get_paginated_response_schema_wraps_results():
-    results_schema = {"type": "string"}
-
-    schema = WebPagination().get_paginated_response_schema(results_schema)
-
-    assert schema == {
-        "type": "object",
-        "required": ["count", "results"],
-        "properties": {
-            "count": {"type": "integer", "example": 1},
-            "next": {
-                "type": "string",
-                "format": "uri",
-                "nullable": True,
-                "example": None,
-            },
-            "previous": {
-                "type": "string",
-                "format": "uri",
-                "nullable": True,
-                "example": None,
-            },
-            "results": results_schema,
-        },
-    }
 
 
 def test_talentsoft_get_schema_operation_parameters_exposes_start_and_count():
@@ -123,42 +96,6 @@ def test_talentsoft_get_paginated_response_schema_wraps_results():
             },
         },
     }
-
-
-@pytest.mark.parametrize(
-    "query,expected_size,expected_page",
-    [
-        ("", WebPagination.page_size, 1),
-        ("taille=50&page=3", 50, 3),
-        (f"taille={MAX_PAGE_SIZE}", MAX_PAGE_SIZE, 1),
-        ("taille=1000000", MAX_PAGE_SIZE, 1),
-        ("taille=0", WebPagination.page_size, 1),
-        ("taille=-5", WebPagination.page_size, 1),
-        ("taille=abc", WebPagination.page_size, 1),
-        ("page=0", WebPagination.page_size, 1),
-        ("page=-2", WebPagination.page_size, 1),
-        ("page=abc", WebPagination.page_size, 1),
-    ],
-)
-def test_web_pagination_bounds_size_and_page(query, expected_size, expected_page):
-    paginator = WebPagination()
-    page = _page()
-
-    paginator.paginate(page, _request(query))
-
-    assert paginator.page_size == expected_size
-    assert paginator.page_num == expected_page
-    page.slice.assert_called_once_with(
-        (expected_page - 1) * expected_size, expected_size
-    )
-
-
-def test_web_pagination_next_url_uses_capped_size():
-    paginator = WebPagination()
-
-    paginator.paginate(_page(), _request("taille=1000000"))
-
-    assert f"taille={MAX_PAGE_SIZE}" in paginator._get_next_url()
 
 
 @pytest.mark.parametrize(

@@ -1,4 +1,4 @@
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 from urllib.parse import parse_qs, urlparse
 
 import pytest
@@ -34,20 +34,16 @@ def test_post_not_allowed(jwt_client):
     assert response.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
 
 
-def _make_paginated_mock(mock_metiers_container, num_metiers, metiers_slice):
-    mock_page = MagicMock()
-    mock_page.count.return_value = num_metiers
-    mock_page.slice.return_value = iter(metiers_slice)
-
+def _make_paginated_mock(mock_metiers_container, metiers):
     mock_usecase = MagicMock()
-    mock_usecase.execute.return_value = mock_page
+    mock_usecase.execute.return_value = metiers
     mock_metiers_container.list_metiers_usecase.return_value = mock_usecase
 
     return mock_usecase
 
 
 def test_empty_result(mock_metiers_container, jwt_client):
-    _make_paginated_mock(mock_metiers_container, num_metiers=0, metiers_slice=[])
+    _make_paginated_mock(mock_metiers_container, metiers=[])
 
     response = jwt_client.get(URL)
 
@@ -63,9 +59,7 @@ def test_empty_result(mock_metiers_container, jwt_client):
 def test_call_without_arg(mock_metiers_container, jwt_client):
     metiers = [MetierFactory.create_entity() for _ in range(2)]
 
-    _make_paginated_mock(
-        mock_metiers_container, num_metiers=len(metiers), metiers_slice=metiers
-    )
+    _make_paginated_mock(mock_metiers_container, metiers=metiers)
 
     response = jwt_client.get(URL, {})
 
@@ -89,7 +83,7 @@ def test_call_without_arg(mock_metiers_container, jwt_client):
 
 @pytest.mark.parametrize("domain", [None, "TRE"])
 def test_call_with_args(mock_metiers_container, jwt_client, domain):
-    _make_paginated_mock(mock_metiers_container, num_metiers=0, metiers_slice=[])
+    _make_paginated_mock(mock_metiers_container, metiers=[])
 
     params = {"domaine": domain} if domain else {}
     jwt_client.get(URL, params)
@@ -108,27 +102,21 @@ def test_returns_error_500(mock_metiers_container, jwt_client):
     assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
 
 
-@patch("presentation.ingestion.views.metiers.WebPagination.page_size", new=2)
 def test_pagination_page_arg(mock_metiers_container, jwt_client):
-    num_metiers = 5
-    metiers = [MetierFactory.create_entity() for _ in range(num_metiers)]
+    metiers = [MetierFactory.create_entity() for _ in range(5)]
+    _make_paginated_mock(mock_metiers_container, metiers=metiers)
 
-    _make_paginated_mock(
-        mock_metiers_container, num_metiers=len(metiers), metiers_slice=metiers[2:4]
-    )
-
-    response = jwt_client.get(URL, {"page": 2, "dummy": "arg"})
+    response = jwt_client.get(URL, {"page": 2, "taille": 2, "dummy": "arg"})
 
     assert response.status_code == status.HTTP_200_OK
     data = response.json()
 
-    assert data["count"] == num_metiers
+    assert data["count"] == len(metiers)
     assert len(data["results"]) == 2  # noqa
 
     parsed_previous = urlparse(data["previous"])
     assert parsed_previous.path == URL
     assert parse_qs(parsed_previous.query) == {
-        "page": ["1"],
         "dummy": ["arg"],
         "taille": ["2"],
     }
@@ -142,34 +130,56 @@ def test_pagination_page_arg(mock_metiers_container, jwt_client):
     }
 
 
-@patch("presentation.ingestion.views.metiers.WebPagination.page_size", new=2)
-def test_pagination_out_of_bond(mock_metiers_container, jwt_client):
-    num_metiers = 3
-    metiers = [MetierFactory.create_entity() for _ in range(num_metiers)]
-
+def test_pagination_out_of_bounds_returns_404(mock_metiers_container, jwt_client):
     _make_paginated_mock(
-        mock_metiers_container, num_metiers=len(metiers), metiers_slice=[]
+        mock_metiers_container,
+        metiers=[MetierFactory.create_entity() for _ in range(3)],
     )
 
-    response = jwt_client.get(URL, {"page": 3})
+    response = jwt_client.get(URL, {"page": 3, "taille": 2})
+
+    assert response.status_code == status.HTTP_404_NOT_FOUND
+    assert "detail" in response.json()
+
+
+@pytest.mark.parametrize("page", ["0", "-1", "abc"])
+def test_pagination_invalid_page_returns_404(mock_metiers_container, jwt_client, page):
+    _make_paginated_mock(mock_metiers_container, metiers=[])
+
+    response = jwt_client.get(URL, {"page": page})
+
+    assert response.status_code == status.HTTP_404_NOT_FOUND
+
+
+@pytest.mark.parametrize("taille", ["0", "-5", "abc"])
+def test_pagination_invalid_taille_falls_back_to_default(
+    mock_metiers_container, jwt_client, taille
+):
+    _make_paginated_mock(
+        mock_metiers_container,
+        metiers=[MetierFactory.create_entity() for _ in range(3)],
+    )
+
+    response = jwt_client.get(URL, {"taille": taille})
+
     assert response.status_code == status.HTTP_200_OK
-    data = response.json()
+    assert len(response.json()["results"]) == 3  # noqa
 
-    assert data["count"] == num_metiers
-    assert data["results"] == []
 
-    parsed = urlparse(data["previous"])
-    assert parsed.path == URL
-    assert parse_qs(parsed.query) == {
-        "page": ["2"],
-        "taille": ["2"],
-    }
+def test_pagination_taille_is_capped(mock_metiers_container, jwt_client):
+    _make_paginated_mock(
+        mock_metiers_container,
+        metiers=[MetierFactory.create_entity() for _ in range(3)],
+    )
 
-    assert data["next"] is None
+    response = jwt_client.get(URL, {"taille": 1_000_000, "page": 1})
+
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.json()["results"]) == 3  # noqa
 
 
 def test_invalid_payload(mock_metiers_container, jwt_client):
-    _make_paginated_mock(mock_metiers_container, num_metiers=0, metiers_slice=[])
+    _make_paginated_mock(mock_metiers_container, metiers=[])
 
     response = jwt_client.get(URL, {"domaine": "ABCD"})
 
