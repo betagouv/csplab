@@ -302,11 +302,15 @@ class OffersUpsertView(PublicApiMixin, APIView):
         valid_indexes = []
         errors = []
         offer_mapper = OfferInputMapper()
+        jwt_authenticated = isinstance(request.user, UserModel)
 
         for index, offer_data in enumerate(request.data["offres"]):
             serializer = OffersInputSerializer(
                 data=offer_data,
-                context={"metiers_repository": container.metiers_repository()},
+                context={
+                    "metiers_repository": container.metiers_repository(),
+                    "allow_talentsoft_organisme": not jwt_authenticated,
+                },
             )
             if not serializer.is_valid():
                 errors.append(
@@ -350,9 +354,7 @@ class OffersUpsertView(PublicApiMixin, APIView):
             valid_indexes = [index for index, _ in kept]
             valid_offers = [offer for _, offer in kept]
 
-        utilisateur_username = (
-            request.user.username if isinstance(request.user, UserModel) else None
-        )
+        utilisateur_username = request.user.username if jwt_authenticated else None
         try:
             usecase = container.upsert_offers_usecase()
             result = usecase.execute(
