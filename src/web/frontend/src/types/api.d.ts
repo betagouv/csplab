@@ -1308,6 +1308,8 @@ export interface components {
             name: string;
             category: components["schemas"]["CategoryEnum"];
             color?: components["schemas"]["ColorEnum"];
+            /** @default 0 */
+            readonly usage_count: number;
         };
         TokenError: {
             detail: string;

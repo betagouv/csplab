@@ -6883,9 +6883,14 @@ components:
           $ref: '#/components/schemas/CategoryEnum'
         color:
           $ref: '#/components/schemas/ColorEnum'
+        usage_count:
+          type: integer
+          readOnly: true
+          default: 0
       required:
       - category
       - name
+      - usage_count
       - uuid
     TokenError:
       type: object
