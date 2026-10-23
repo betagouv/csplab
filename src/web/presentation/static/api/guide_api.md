@@ -364,7 +364,7 @@ caractères s'applique au texte Markdown, syntaxe comprise.
 | Champ | Règle |
 |---|---|
 | `zone_geographique` | Obligatoire dans chaque localisation. Valeurs : **AF** (Afrique), **EU** (Europe), **AS** (Asie), **AM** (Amérique), **OC** (Océanie), **AN** (Antarctique). |
-| `pays` | Obligatoire. Code pays sur **exactement 3 caractères**. |
+| `pays` | Obligatoire. Code pays ISO 3166-1 alpha-3, **en majuscules** (ex. `FRA`). Un code en minuscules (`fra`) est rejeté. Pour `FRA`, `region` et `departement` sont obligatoires. |
 | `region` | Code région officiel, ou vide. |
 | `departement` | Code département officiel (`01` à `95`, `2A`, `2B`, DOM-TOM, `SPM`, `WLF`…), ou vide. |
 | `localisation_label` | Libellé du lieu. **500 caractères maximum.** |

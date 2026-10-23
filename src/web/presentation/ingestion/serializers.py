@@ -546,6 +546,12 @@ class FakeTsOfferDetailSerializer(FakeTsOfferSummarySerializer):
 
 
 class LocalisationInputSerializer(LocalisationSerializer):
+    pays = serializers.CharField(
+        max_length=3,
+        min_length=3,
+        help_text="Code pays ISO 3166-1 alpha-3, en majuscules (ex. `FRA`).",
+    )
+
     def validate(self, data):
         if data.get("pays") == "FRA" and not (
             data.get("region") and data.get("departement")
