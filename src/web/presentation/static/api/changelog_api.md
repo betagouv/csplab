@@ -6,6 +6,26 @@ champs et de leurs règles se trouve dans le [guide de l'API](/pages/guide_api).
 
 Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/).
 
+## 2026-10-23
+
+### ⚠️ Changements non rétrocompatibles
+
+`POST /api/v1/offres/creer_modifier` : une offre dont
+`organisation.talentsoft_organisme_entity_code` est renseigné est désormais rejetée
+avec une authentification par JWT. Elle apparaît dans `errors`, avec le message
+« Champ réservé au service ingestion de CSPLab. ». Ce champ n'a jamais été destiné aux
+partenaires.
+
+### Compatibilité
+
+Laissez `organisation.talentsoft_organisme_entity_code` vide ou ne l'envoyez pas.
+
+### Corrigé
+
+- `POST /api/v1/offres/creer_modifier` : un code `talentsoft_organisme_entity_code`
+  inconnu ne fait plus échouer toute la requête avec une erreur 500. Seule l'offre
+  concernée est rejetée, dans `errors`, et les autres offres du lot sont enregistrées.
+
 ## 2026-10-22
 
 ### ⚠️ Changements non rétrocompatibles

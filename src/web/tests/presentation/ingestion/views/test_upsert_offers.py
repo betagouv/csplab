@@ -37,6 +37,9 @@ from infrastructure.factories.ingestion.offer_payload_factory import (
 from infrastructure.factories.ingestion.source_django_factory import (
     SourceDjangoFactory,
 )
+from infrastructure.factories.ingestion.talentsoft_organisme_django_factory import (
+    TalentsoftOrganismeDjangoFactory,
+)
 from infrastructure.factories.referentiel.metier_django_factory import (
     MetierDjangoFactory,
 )
@@ -453,6 +456,114 @@ def test_unknown_metier_returns_error_in_payload(
             },
         }
     ]
+
+
+def _offer_with_talentsoft_organisme(entity_code):
+    return PayloadOfferFactory.create(
+        identification={"reference": "REF-001", "versant": "FPT"},
+        organisation={
+            "nom": fake.company(),
+            "siret": "",
+            "talentsoft_organisme_entity_code": entity_code,
+        },
+    )
+
+
+def test_talentsoft_organisme_is_rejected_with_jwt_authentication(
+    authenticated_client_with_source, use_case, db
+):
+    entity_code = TalentsoftOrganismeDjangoFactory().entity_code
+
+    response = authenticated_client_with_source.post(
+        URL,
+        data={
+            "source_id": SOURCE_UUID,
+            "offres": [_offer_with_talentsoft_organisme(entity_code)],
+        },
+        content_type="application/json",
+    )
+
+    assert response.status_code == status.HTTP_201_CREATED
+    assert response.json()["errors"] == [
+        {
+            "index": 0,
+            "offre": {"reference": "REF-001", "versant": "FPT"},
+            "error": {
+                "organisation": {
+                    "talentsoft_organisme_entity_code": [
+                        "Champ réservé au service ingestion de CSPLab."
+                    ]
+                }
+            },
+        }
+    ]
+    assert use_case.execute.call_args.args[0].offers == []
+
+
+def test_unknown_talentsoft_organisme_is_rejected_with_api_key_authentication(
+    api_key_client, use_case, db
+):
+    use_case.execute.return_value = {
+        "created": 1,
+        "updated": 0,
+        "errors": [],
+        "offres": [{"reference": "REF-002", "statut": "created"}],
+    }
+    response = api_key_client.post(
+        URL,
+        data={
+            "source_id": SOURCE_UUID,
+            "offres": [
+                _offer_with_talentsoft_organisme("string"),
+                MINIMAL_VALID_OFFER
+                | {"identification": {"reference": "REF-002", "versant": "FPT"}},
+            ],
+        },
+        content_type="application/json",
+    )
+
+    assert response.status_code == status.HTTP_201_CREATED
+    assert response.json()["errors"] == [
+        {
+            "index": 0,
+            "offre": {"reference": "REF-001", "versant": "FPT"},
+            "error": {
+                "organisation": {
+                    "talentsoft_organisme_entity_code": [
+                        "Organisme Talentsoft inconnu : string."
+                    ]
+                }
+            },
+        }
+    ]
+    offers = use_case.execute.call_args.args[0].offers
+    assert [offer.reference for offer in offers] == ["REF-002"]
+
+
+def test_known_talentsoft_organisme_is_accepted_with_api_key_authentication(
+    api_key_client, use_case, db
+):
+    use_case.execute.return_value = {
+        "created": 1,
+        "updated": 0,
+        "errors": [],
+        "offres": [{"reference": "REF-001", "statut": "created"}],
+    }
+    entity_code = TalentsoftOrganismeDjangoFactory().entity_code
+
+    response = api_key_client.post(
+        URL,
+        data={
+            "source_id": SOURCE_UUID,
+            "offres": [_offer_with_talentsoft_organisme(entity_code)],
+        },
+        content_type="application/json",
+    )
+
+    assert response.status_code == status.HTTP_201_CREATED
+    assert response.json()["errors"] == []
+    (offer,) = use_case.execute.call_args.args[0].offers
+    assert offer.talentsoft_organisme_entity_code == entity_code
 
 
 def test_contacts_are_sorted_by_role_with_deduplicated_emails(

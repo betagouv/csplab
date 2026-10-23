@@ -5332,7 +5332,8 @@ components:
         talentsoft_organisme_entity_code:
           type: string
           nullable: true
-          description: Ne doit être renseigné que par le service ingestion de CSPLab.
+          description: 'Ne doit être renseigné que par le service ingestion de CSPLab
+            : refusé pour une authentification par JWT.'
           maxLength: 50
       required:
       - nom
