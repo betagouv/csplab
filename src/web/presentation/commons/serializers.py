@@ -31,7 +31,6 @@ class LocalisationSerializer(serializers.Serializer):
 
     def validate_pays(self, value: str) -> str:
         error = serializers.ValidationError(INVALID_COUNTRY_CODE)
-        # La validation pydantic ignore la casse : "fra" serait accepté.
         if value != value.upper():
             raise error
         try:
