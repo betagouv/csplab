@@ -44,6 +44,7 @@ from infrastructure.factories.referentiel.offer_django_factory import (
     OfferDjangoFactory,
 )
 from infrastructure.mappers.offer_mapper import OfferMapper
+from presentation.commons.serializers import INVALID_COUNTRY_CODE
 from presentation.ingestion.views.offers import UNKNOWN_GENERATED_REFERENCE
 
 fake = Faker("fr_FR")
@@ -705,6 +706,48 @@ def test_description_with_html_is_rejected_with_an_explicit_message(
         }
     ]
     assert use_case.execute.call_args.args[0].offers == []
+
+
+def test_country_code_not_in_uppercase_is_rejected(
+    authenticated_client_with_source, use_case
+):
+    offer = PayloadOfferFactory.create(
+        identification={"reference": "REF-011", "versant": "FPT"},
+        localisation=[
+            {
+                "zone_geographique": "EU",
+                "pays": "fra",
+                "region": "",
+                "departement": "",
+                "localisation_label": "",
+                "latitude": None,
+                "longitude": None,
+            }
+        ],
+    )
+    use_case.execute.return_value = {
+        "created": 1,
+        "updated": 0,
+        "errors": [],
+        "offres": [{"reference": "REF-001", "statut": "created"}],
+    }
+
+    response = authenticated_client_with_source.post(
+        URL,
+        data={"source_id": SOURCE_UUID, "offres": [offer, MINIMAL_VALID_OFFER]},
+        content_type="application/json",
+    )
+
+    assert response.status_code == status.HTTP_201_CREATED
+    assert response.json()["errors"] == [
+        {
+            "index": 0,
+            "offre": {"reference": "REF-011", "versant": "FPT"},
+            "error": {"localisation": {"0": {"pays": [INVALID_COUNTRY_CODE]}}},
+        }
+    ]
+    offers = use_case.execute.call_args.args[0].offers
+    assert [offer.reference for offer in offers] == ["REF-001"]
 
 
 def test_returns_error_500(authenticated_client_with_source, use_case):
