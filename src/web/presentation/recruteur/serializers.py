@@ -35,7 +35,11 @@ from infrastructure.django_apps.recruteur.models.recrutement import (
     RecrutementModel,
 )
 from infrastructure.django_apps.users.models import ProfilAgentModel
-from presentation.commons.serializers import LocalisationSerializer, OrganismeSerializer
+from presentation.commons.serializers import (
+    LocalisationSerializer,
+    OrganismeSerializer,
+    authorized_actions_field,
+)
 
 # Single source of choices for every `categorie` field of an etape. drf-spectacular
 # names enums after the field, so serializers declaring the same field with different
@@ -180,6 +184,7 @@ class RecrutementsSerializer(
         allow_null=True,
     )
     responsables = ResponsableSerializer(many=True)
+    authorized_actions = authorized_actions_field()
 
     def to_representation(self, instance: RecrutementModel) -> dict:
         data = super().to_representation(instance)
@@ -202,6 +207,7 @@ class RecrutementsActifsSerializer(RecrutementsSerializer):
             "reference_csp",
             "nature_offre",
             "responsables",
+            "authorized_actions",
             "date_publication",
             "candidatures",
             "derniere_activite",
@@ -233,6 +239,7 @@ class RecrutementsArchivesSerializer(RecrutementsSerializer):
             "reference_csp",
             "nature_offre",
             "responsables",
+            "authorized_actions",
             "date_archivage",
             "finalise",
             "recrute",
