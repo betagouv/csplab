@@ -129,6 +129,7 @@ _ROLES_REQUIS: dict[OrganismeAction, frozenset[AgentOrganismeRole]] = {
         {AgentOrganismeRole.SUPERVISEUR, AgentOrganismeRole.AGENT}
     ),
     OrganismeAction.CREATE_TAG: frozenset({AgentOrganismeRole.SUPERVISEUR}),
+    OrganismeAction.UPDATE_TAG: frozenset({AgentOrganismeRole.SUPERVISEUR}),
 }
 
 # -------------------------------------
