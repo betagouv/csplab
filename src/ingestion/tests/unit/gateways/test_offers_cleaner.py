@@ -1,4 +1,6 @@
+import csv
 from datetime import datetime, timezone
+from pathlib import Path
 from uuid import UUID
 
 import pytest
@@ -40,6 +42,7 @@ from tests.factories.talentsoft_factories import (
 REFERENCE = "2024-OFFER-001"
 SOURCE_ID = "11111111-2222-3333-4444-555555555555"
 OTHER_SOURCE_ID = "99999999-8888-7777-6666-555555555555"
+DATA_DIR = Path(__file__).resolve().parents[3] / "data"
 _SOURCE_ID_BY_SLUG = {"ars": SOURCE_ID, "talentsoft-main": OTHER_SOURCE_ID}
 
 
@@ -228,7 +231,7 @@ def test_clean_maps_category_from_custom_fields(
             "R84",
             "_TS_CO_Department_NouvelleCaldonie988",
             "OC",
-            "84",
+            "TOM",
             "988",
         ),
         (
@@ -342,6 +345,107 @@ def test_clean_maps_ars_overseas_region_code(cleaner):
     assert offer.localisation is not None
     assert offer.localisation.region.code == "DOM"
     assert offer.localisation.department.code == "971"
+
+
+def _transcoded_codes(field: str) -> list:
+    return [
+        pytest.param(directory.name, row["code_client"], id=row["code_client"])
+        for directory in sorted(DATA_DIR.iterdir())
+        if (directory / f"{field}.csv").exists()
+        for row in csv.DictReader(
+            (directory / f"{field}.csv").open(encoding="utf-8"), delimiter=";"
+        )
+    ]
+
+
+def _make_localised_raw_offer(region: str, department: str) -> RawOffer:
+    return _make_raw_offer(
+        geographicalLocation=[
+            TalentsoftCodedObjectFactory.build(
+                clientCode="_TS_CO_GeographicalArea_Europe",
+                type="offerGeographicalLocation",
+            )
+        ],
+        country=[
+            TalentsoftCodedObjectFactory.build(clientCode="FRA", type="offerCountry")
+        ],
+        region=[
+            TalentsoftCodedObjectFactory.build(clientCode=region, type="offerRegion")
+        ],
+        department=[
+            TalentsoftCodedObjectFactory.build(
+                clientCode=department, type="offerDepartment"
+            )
+        ],
+    )
+
+
+@pytest.mark.parametrize(("slug", "region"), _transcoded_codes("regions"))
+def test_clean_maps_every_transcoded_region(sources_repository, slug, region):
+    cleaner = OffersCleaner(
+        sources_repository=sources_repository,
+        transcoders_by_slug={"ars": SourceTranscoder.from_directory(DATA_DIR / slug)},
+    )
+
+    offer = cleaner.clean(_make_localised_raw_offer(region=region, department="75"))
+
+    assert offer.localisation is not None
+
+
+@pytest.mark.parametrize(("slug", "department"), _transcoded_codes("departements"))
+def test_clean_maps_every_transcoded_department(sources_repository, slug, department):
+    cleaner = OffersCleaner(
+        sources_repository=sources_repository,
+        transcoders_by_slug={"ars": SourceTranscoder.from_directory(DATA_DIR / slug)},
+    )
+
+    offer = cleaner.clean(
+        _make_localised_raw_offer(region="R11", department=department)
+    )
+
+    assert offer.localisation is not None
+
+
+@pytest.mark.parametrize(
+    ("region", "department", "expected_region"),
+    [
+        ("_TS_CO_Region_TOM", "971", "DOM"),
+        ("_TS_CO_Region_TOM", "972", "DOM"),
+        ("_TS_CO_Region_TOM", "973", "DOM"),
+        ("_TS_CO_Region_TOM", "974", "DOM"),
+        ("_TS_CO_Region_TOM", "976", "DOM"),
+        ("_TS_CO_Region_DOM", "975", "TOM"),
+        ("R11", "987", "TOM"),
+    ],
+)
+def test_clean_deduces_overseas_region_from_department(
+    cleaner, region, department, expected_region
+):
+    raw_offer = _make_raw_offer(
+        geographicalLocation=[
+            TalentsoftCodedObjectFactory.build(
+                clientCode="_TS_CO_GeographicalArea_AmriquesCaraibe",
+                type="offerGeographicalLocation",
+            )
+        ],
+        country=[
+            TalentsoftCodedObjectFactory.build(clientCode="FRA", type="offerCountry")
+        ],
+        region=[
+            TalentsoftCodedObjectFactory.build(clientCode=region, type="offerRegion")
+        ],
+        department=[
+            TalentsoftCodedObjectFactory.build(
+                clientCode=department, type="offerDepartment"
+            )
+        ],
+    )
+
+    offer = cleaner.clean(raw_offer)
+
+    assert offer.localisation is not None
+    assert offer.localisation.region.code == expected_region
+    assert offer.localisation.department.code == department
 
 
 def test_clean_returns_none_localisation_when_area_missing(cleaner):

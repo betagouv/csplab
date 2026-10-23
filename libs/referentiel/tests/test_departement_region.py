@@ -3,6 +3,7 @@ import pytest
 from referentiel.value_objects.area import GeographicalArea
 from referentiel.value_objects.departement_region import (
     department_belongs_to_region,
+    overseas_region_for_department,
     region_et_zone_pour_departement,
 )
 from referentiel.value_objects.department import Department
@@ -67,3 +68,29 @@ def test_department_does_not_belong_to_region(department_code, region_code):
     assert not department_belongs_to_region(
         Department(code=department_code), Region(code=region_code)
     )
+
+
+@pytest.mark.parametrize(
+    ("department_code", "region_code"),
+    [
+        ("971", "DOM"),
+        ("972", "DOM"),
+        ("973", "DOM"),
+        ("974", "DOM"),
+        ("976", "DOM"),
+        ("975", "TOM"),
+        ("986", "TOM"),
+        ("987", "TOM"),
+        ("988", "TOM"),
+        ("SPM", "TOM"),
+        ("WLF", "TOM"),
+    ],
+)
+def test_overseas_region_for_department(department_code, region_code):
+    region = overseas_region_for_department(Department(code=department_code))
+
+    assert region == Region(code=region_code)
+
+
+def test_overseas_region_for_metropolitan_department():
+    assert overseas_region_for_department(Department(code="75")) is None
