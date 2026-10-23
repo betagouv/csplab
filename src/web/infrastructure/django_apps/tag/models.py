@@ -28,6 +28,17 @@ class TagColor(models.TextChoices):
     GRIS = "gris", "Gris"
 
 
+class TagQuerySet(models.QuerySet):
+    def by_organisme(self, organisme_id) -> "TagQuerySet":
+        return self.filter(organisme_id=organisme_id)
+
+    def alphabetical(self, organisme_id) -> "TagQuerySet":
+        return self.by_organisme(organisme_id).order_by(Lower("name"), "category")
+
+    def by_category(self, organisme_id, category: TagCategory) -> "TagQuerySet":
+        return self.alphabetical(organisme_id).filter(category=category)
+
+
 class TagModel(BaseDatedModel):
     organisme = models.ForeignKey(
         OrganismeModel,
@@ -41,6 +52,8 @@ class TagModel(BaseDatedModel):
         max_length=20, choices=TagColor.choices, default=TagColor.BLEU
     )
 
+    objects = TagQuerySet.as_manager()
+
     class Meta:
         db_table = "tag"
         verbose_name = "Étiquette"
@@ -52,6 +65,8 @@ class TagModel(BaseDatedModel):
                 "category",
                 name="tag_unique_name_per_organisme_category",
             ),
+            # TODO : renommer (couvre aussi les noms non trimés), lors d'une
+            # prochaine migration
             models.CheckConstraint(
                 condition=models.Q(name=Trim("name")) & ~models.Q(name=""),
                 name="tag_name_non_vide",
