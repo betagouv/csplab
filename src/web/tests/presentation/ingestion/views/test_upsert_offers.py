@@ -92,7 +92,7 @@ COMPLETE_VALID_OFFER = PayloadOfferFactory.create(
         {
             "zone_geographique": "EU",
             "pays": "FRA",
-            "region": "03",
+            "region": "28",
             "departement": "14",
             "localisation_label": fake.text(max_nb_chars=500),
             "latitude": fake.pyfloat(min_value=-90, max_value=90),
@@ -658,6 +658,106 @@ def test_invalid_application_channels_are_rejected(
             "error": expected_error,
         }
     ]
+
+
+@pytest.mark.parametrize(
+    ("region", "departement", "expected_message"),
+    [
+        (
+            "11",
+            "13",
+            (
+                "Le département 13 (Bouches-du-Rhône) n'appartient pas à la "
+                "région 11 (Île-de-France)."
+            ),
+        ),
+        (
+            "01",
+            "01",
+            "Le département 01 (Ain) n'appartient pas à la région 01 (Guadeloupe).",
+        ),
+        (
+            "DOM",
+            "988",
+            (
+                "Le département 988 (Nouvelle-Calédonie) n'appartient pas à la "
+                "région DOM."
+            ),
+        ),
+    ],
+)
+def test_inconsistent_region_and_department_are_rejected(
+    authenticated_client_with_source, use_case, region, departement, expected_message
+):
+    offer = PayloadOfferFactory.create(
+        identification={"reference": "REF-011", "versant": "FPT"},
+        localisation=[
+            {
+                "zone_geographique": "EU",
+                "pays": "FRA",
+                "region": region,
+                "departement": departement,
+                "localisation_label": "",
+                "latitude": None,
+                "longitude": None,
+            }
+        ],
+    )
+
+    response = authenticated_client_with_source.post(
+        URL,
+        data={"source_id": SOURCE_UUID, "offres": [offer]},
+        content_type="application/json",
+    )
+
+    assert response.status_code == status.HTTP_201_CREATED
+    assert response.json()["errors"] == [
+        {
+            "index": 0,
+            "offre": {"reference": "REF-011", "versant": "FPT"},
+            "error": {"localisation": {"0": {"non_field_errors": [expected_message]}}},
+        }
+    ]
+    assert use_case.execute.call_args.args[0].offers == []
+
+
+@pytest.mark.parametrize(
+    ("region", "departement"),
+    [("93", "13"), ("01", "971"), ("DOM", "971"), ("TOM", "988")],
+)
+def test_consistent_region_and_department_are_accepted(
+    authenticated_client_with_source, use_case, region, departement
+):
+    offer = PayloadOfferFactory.create(
+        identification={"reference": "REF-012", "versant": "FPT"},
+        localisation=[
+            {
+                "zone_geographique": "EU",
+                "pays": "FRA",
+                "region": region,
+                "departement": departement,
+                "localisation_label": "",
+                "latitude": None,
+                "longitude": None,
+            }
+        ],
+    )
+    use_case.execute.return_value = {
+        "created": 1,
+        "updated": 0,
+        "errors": [],
+        "offres": [{"reference": "REF-012", "statut": "created"}],
+    }
+
+    response = authenticated_client_with_source.post(
+        URL,
+        data={"source_id": SOURCE_UUID, "offres": [offer]},
+        content_type="application/json",
+    )
+
+    assert response.status_code == status.HTTP_201_CREATED
+    assert response.json()["errors"] == []
+    assert len(use_case.execute.call_args.args[0].offers) == 1
 
 
 def test_description_with_html_is_rejected_with_an_explicit_message(
