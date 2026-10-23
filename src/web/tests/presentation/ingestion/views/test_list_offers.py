@@ -81,7 +81,7 @@ def test_repeated_invalid_api_key_is_throttled(api_client, db):
 
 
 def test_api_key_authentication_access(mock_offers_container, api_key_client):
-    _make_paginated_mock(mock_offers_container, num_offers=0, offers_slice=[])
+    _make_paginated_mock(mock_offers_container, offers=[])
     response = api_key_client.get(URL)
     assert response.status_code == status.HTTP_200_OK
 
@@ -91,20 +91,16 @@ def test_post_not_allowed(jwt_client):
     assert response.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
 
 
-def _make_paginated_mock(mock_offers_container, num_offers, offers_slice):
-    mock_page = MagicMock()
-    mock_page.count.return_value = num_offers
-    mock_page.slice.return_value = iter(offers_slice)
-
+def _make_paginated_mock(mock_offers_container, offers):
     mock_usecase = MagicMock()
-    mock_usecase.execute.return_value = mock_page
+    mock_usecase.execute.return_value = offers
     mock_offers_container.list_offers_usecase.return_value = mock_usecase
 
     return mock_usecase
 
 
 def test_empty_result(mock_offers_container, jwt_client, list_offers_usecase):
-    _make_paginated_mock(mock_offers_container, num_offers=0, offers_slice=[])
+    _make_paginated_mock(mock_offers_container, offers=[])
 
     response = jwt_client.get(URL)
 
@@ -126,9 +122,7 @@ def test_call_without_arg(mock_offers_container, jwt_client):
     second_offer = OfferFactory.create_entity()
     offers = [first_offer, second_offer]
 
-    _make_paginated_mock(
-        mock_offers_container, num_offers=len(offers), offers_slice=offers
-    )
+    _make_paginated_mock(mock_offers_container, offers=offers)
 
     response = jwt_client.get(URL)
 
@@ -161,7 +155,7 @@ def test_call_without_arg(mock_offers_container, jwt_client):
 
 @pytest.mark.parametrize("active", [True, False])
 def test_call_with_args(mock_offers_container, jwt_client, active):
-    _make_paginated_mock(mock_offers_container, num_offers=0, offers_slice=[])
+    _make_paginated_mock(mock_offers_container, offers=[])
 
     jwt_client.get(URL, {"actif": active})
 
@@ -171,7 +165,7 @@ def test_call_with_args(mock_offers_container, jwt_client, active):
 
 
 def test_external_id_contains_is_not_accepted(mock_offers_container, jwt_client):
-    _make_paginated_mock(mock_offers_container, num_offers=0, offers_slice=[])
+    _make_paginated_mock(mock_offers_container, offers=[])
 
     jwt_client.get(URL, {"external_id_contains": "123"})
 
@@ -181,7 +175,7 @@ def test_external_id_contains_is_not_accepted(mock_offers_container, jwt_client)
 
 
 def test_category_filter_is_forwarded_to_usecase(mock_offers_container, jwt_client):
-    _make_paginated_mock(mock_offers_container, num_offers=0, offers_slice=[])
+    _make_paginated_mock(mock_offers_container, offers=[])
 
     jwt_client.get(URL, {"categorie": "A,B"})
 
@@ -194,7 +188,7 @@ def test_category_filter_is_forwarded_to_usecase(mock_offers_container, jwt_clie
 
 
 def test_invalid_category_returns_400(mock_offers_container, jwt_client):
-    _make_paginated_mock(mock_offers_container, num_offers=0, offers_slice=[])
+    _make_paginated_mock(mock_offers_container, offers=[])
 
     response = jwt_client.get(URL, {"categorie": "INVALID"})
 
@@ -204,7 +198,7 @@ def test_invalid_category_returns_400(mock_offers_container, jwt_client):
 
 
 def test_verse_filter_is_forwarded_to_usecase(mock_offers_container, jwt_client):
-    _make_paginated_mock(mock_offers_container, num_offers=0, offers_slice=[])
+    _make_paginated_mock(mock_offers_container, offers=[])
 
     jwt_client.get(URL, {"versant": "FPE,FPT"})
 
@@ -217,7 +211,7 @@ def test_verse_filter_is_forwarded_to_usecase(mock_offers_container, jwt_client)
 
 
 def test_invalid_verse_returns_400(mock_offers_container, jwt_client):
-    _make_paginated_mock(mock_offers_container, num_offers=0, offers_slice=[])
+    _make_paginated_mock(mock_offers_container, offers=[])
 
     response = jwt_client.get(URL, {"versant": "INVALID"})
 
@@ -227,7 +221,7 @@ def test_invalid_verse_returns_400(mock_offers_container, jwt_client):
 
 
 def test_offer_nature_filter_is_forwarded_to_usecase(mock_offers_container, jwt_client):
-    _make_paginated_mock(mock_offers_container, num_offers=0, offers_slice=[])
+    _make_paginated_mock(mock_offers_container, offers=[])
 
     jwt_client.get(URL, {"nature_offre": "CONTRACTUEL,TERRITORIAL"})
 
@@ -240,7 +234,7 @@ def test_offer_nature_filter_is_forwarded_to_usecase(mock_offers_container, jwt_
 
 
 def test_invalid_offer_nature_returns_400(mock_offers_container, jwt_client):
-    _make_paginated_mock(mock_offers_container, num_offers=0, offers_slice=[])
+    _make_paginated_mock(mock_offers_container, offers=[])
 
     response = jwt_client.get(URL, {"nature_offre": "INVALID"})
 
@@ -252,7 +246,7 @@ def test_invalid_offer_nature_returns_400(mock_offers_container, jwt_client):
 def test_experience_level_filter_is_forwarded_to_usecase(
     mock_offers_container, jwt_client
 ):
-    _make_paginated_mock(mock_offers_container, num_offers=0, offers_slice=[])
+    _make_paginated_mock(mock_offers_container, offers=[])
 
     jwt_client.get(URL, {"niveau_experience": "DEBUTANT,EXPERT"})
 
@@ -265,7 +259,7 @@ def test_experience_level_filter_is_forwarded_to_usecase(
 
 
 def test_invalid_experience_level_returns_400(mock_offers_container, jwt_client):
-    _make_paginated_mock(mock_offers_container, num_offers=0, offers_slice=[])
+    _make_paginated_mock(mock_offers_container, offers=[])
 
     response = jwt_client.get(URL, {"niveau_experience": "INVALID"})
 
@@ -275,7 +269,7 @@ def test_invalid_experience_level_returns_400(mock_offers_container, jwt_client)
 
 
 def test_management_filter_is_forwarded_to_usecase(mock_offers_container, jwt_client):
-    _make_paginated_mock(mock_offers_container, num_offers=0, offers_slice=[])
+    _make_paginated_mock(mock_offers_container, offers=[])
 
     jwt_client.get(URL, {"management": "SANS,AVEC"})
 
@@ -288,7 +282,7 @@ def test_management_filter_is_forwarded_to_usecase(mock_offers_container, jwt_cl
 
 
 def test_invalid_management_returns_400(mock_offers_container, jwt_client):
-    _make_paginated_mock(mock_offers_container, num_offers=0, offers_slice=[])
+    _make_paginated_mock(mock_offers_container, offers=[])
 
     response = jwt_client.get(URL, {"management": "INVALID"})
 
@@ -300,7 +294,7 @@ def test_invalid_management_returns_400(mock_offers_container, jwt_client):
 def test_working_place_filter_is_forwarded_to_usecase(
     mock_offers_container, jwt_client
 ):
-    _make_paginated_mock(mock_offers_container, num_offers=0, offers_slice=[])
+    _make_paginated_mock(mock_offers_container, offers=[])
 
     jwt_client.get(URL, {"lieu_de_travail": "SUR_SITE,TELETRAVAIL"})
 
@@ -313,7 +307,7 @@ def test_working_place_filter_is_forwarded_to_usecase(
 
 
 def test_invalid_working_place_returns_400(mock_offers_container, jwt_client):
-    _make_paginated_mock(mock_offers_container, num_offers=0, offers_slice=[])
+    _make_paginated_mock(mock_offers_container, offers=[])
 
     response = jwt_client.get(URL, {"lieu_de_travail": "INVALID"})
 
@@ -323,7 +317,7 @@ def test_invalid_working_place_returns_400(mock_offers_container, jwt_client):
 
 
 def test_region_filter_is_forwarded_to_usecase(mock_offers_container, jwt_client):
-    _make_paginated_mock(mock_offers_container, num_offers=0, offers_slice=[])
+    _make_paginated_mock(mock_offers_container, offers=[])
 
     jwt_client.get(URL, {"region": "11,84"})
 
@@ -336,7 +330,7 @@ def test_region_filter_is_forwarded_to_usecase(mock_offers_container, jwt_client
 
 
 def test_invalid_region_returns_400(mock_offers_container, jwt_client):
-    _make_paginated_mock(mock_offers_container, num_offers=0, offers_slice=[])
+    _make_paginated_mock(mock_offers_container, offers=[])
 
     response = jwt_client.get(URL, {"region": "INVALID"})
 
@@ -345,7 +339,7 @@ def test_invalid_region_returns_400(mock_offers_container, jwt_client):
 
 
 def test_departement_filter_is_forwarded_to_usecase(mock_offers_container, jwt_client):
-    _make_paginated_mock(mock_offers_container, num_offers=0, offers_slice=[])
+    _make_paginated_mock(mock_offers_container, offers=[])
 
     jwt_client.get(URL, {"departement": "75,69"})
 
@@ -358,7 +352,7 @@ def test_departement_filter_is_forwarded_to_usecase(mock_offers_container, jwt_c
 
 
 def test_invalid_departement_returns_400(mock_offers_container, jwt_client):
-    _make_paginated_mock(mock_offers_container, num_offers=0, offers_slice=[])
+    _make_paginated_mock(mock_offers_container, offers=[])
 
     response = jwt_client.get(URL, {"departement": "INVALID"})
 
@@ -367,7 +361,7 @@ def test_invalid_departement_returns_400(mock_offers_container, jwt_client):
 
 
 def test_pays_filter_is_forwarded_to_usecase(mock_offers_container, jwt_client):
-    _make_paginated_mock(mock_offers_container, num_offers=0, offers_slice=[])
+    _make_paginated_mock(mock_offers_container, offers=[])
 
     jwt_client.get(URL, {"pays": "fra,bel"})
 
@@ -380,7 +374,7 @@ def test_pays_filter_is_forwarded_to_usecase(mock_offers_container, jwt_client):
 
 
 def test_invalid_pays_returns_400(mock_offers_container, jwt_client):
-    _make_paginated_mock(mock_offers_container, num_offers=0, offers_slice=[])
+    _make_paginated_mock(mock_offers_container, offers=[])
 
     response = jwt_client.get(URL, {"pays": "INVALID"})
 
@@ -389,7 +383,7 @@ def test_invalid_pays_returns_400(mock_offers_container, jwt_client):
 
 
 def test_zone_filter_is_forwarded_to_usecase(mock_offers_container, jwt_client):
-    _make_paginated_mock(mock_offers_container, num_offers=0, offers_slice=[])
+    _make_paginated_mock(mock_offers_container, offers=[])
 
     jwt_client.get(URL, {"zone": "EUROPE,AFRIQUE"})
 
@@ -402,7 +396,7 @@ def test_zone_filter_is_forwarded_to_usecase(mock_offers_container, jwt_client):
 
 
 def test_invalid_zone_returns_400(mock_offers_container, jwt_client):
-    _make_paginated_mock(mock_offers_container, num_offers=0, offers_slice=[])
+    _make_paginated_mock(mock_offers_container, offers=[])
 
     response = jwt_client.get(URL, {"zone": "INVALID"})
 
@@ -411,7 +405,7 @@ def test_invalid_zone_returns_400(mock_offers_container, jwt_client):
 
 
 def test_domaine_filter_is_forwarded_to_usecase(mock_offers_container, jwt_client):
-    _make_paginated_mock(mock_offers_container, num_offers=0, offers_slice=[])
+    _make_paginated_mock(mock_offers_container, offers=[])
 
     jwt_client.get(URL, {"domaine": "NUM,ACH"})
 
@@ -424,7 +418,7 @@ def test_domaine_filter_is_forwarded_to_usecase(mock_offers_container, jwt_clien
 
 
 def test_invalid_domaine_returns_400(mock_offers_container, jwt_client):
-    _make_paginated_mock(mock_offers_container, num_offers=0, offers_slice=[])
+    _make_paginated_mock(mock_offers_container, offers=[])
 
     response = jwt_client.get(URL, {"domaine": "INVALID"})
 
@@ -433,7 +427,7 @@ def test_invalid_domaine_returns_400(mock_offers_container, jwt_client):
 
 
 def test_organisation_filter_is_forwarded_to_usecase(mock_offers_container, jwt_client):
-    _make_paginated_mock(mock_offers_container, num_offers=0, offers_slice=[])
+    _make_paginated_mock(mock_offers_container, offers=[])
 
     jwt_client.get(URL, [("organisation", "ORG1")])
 
@@ -448,7 +442,7 @@ def test_organisation_filter_is_forwarded_to_usecase(mock_offers_container, jwt_
 def test_organisation_filter_with_multiple_values_is_forwarded_to_usecase(
     mock_offers_container, jwt_client
 ):
-    _make_paginated_mock(mock_offers_container, num_offers=0, offers_slice=[])
+    _make_paginated_mock(mock_offers_container, offers=[])
 
     jwt_client.get(
         URL,
@@ -467,7 +461,7 @@ def test_organisation_filter_with_multiple_values_is_forwarded_to_usecase(
 
 
 def test_keywords_filter_is_forwarded_to_usecase(mock_offers_container, jwt_client):
-    _make_paginated_mock(mock_offers_container, num_offers=0, offers_slice=[])
+    _make_paginated_mock(mock_offers_container, offers=[])
 
     jwt_client.get(URL, {"mots_cles": "développeur informatique"})
 
@@ -480,7 +474,7 @@ def test_keywords_filter_is_forwarded_to_usecase(mock_offers_container, jwt_clie
 
 
 def test_blank_keywords_is_treated_as_not_provided(mock_offers_container, jwt_client):
-    _make_paginated_mock(mock_offers_container, num_offers=0, offers_slice=[])
+    _make_paginated_mock(mock_offers_container, offers=[])
 
     response = jwt_client.get(URL, {"mots_cles": ""})
 
@@ -493,7 +487,7 @@ def test_blank_keywords_is_treated_as_not_provided(mock_offers_container, jwt_cl
 def test_debut_publication_filter_is_forwarded_to_usecase(
     mock_offers_container, jwt_client
 ):
-    _make_paginated_mock(mock_offers_container, num_offers=0, offers_slice=[])
+    _make_paginated_mock(mock_offers_container, offers=[])
 
     jwt_client.get(URL, {"debut_publication": "-7"})
 
@@ -506,7 +500,7 @@ def test_debut_publication_filter_is_forwarded_to_usecase(
 
 
 def test_positive_debut_publication_returns_400(mock_offers_container, jwt_client):
-    _make_paginated_mock(mock_offers_container, num_offers=0, offers_slice=[])
+    _make_paginated_mock(mock_offers_container, offers=[])
 
     response = jwt_client.get(URL, {"debut_publication": "7"})
 
@@ -514,7 +508,7 @@ def test_positive_debut_publication_returns_400(mock_offers_container, jwt_clien
 
 
 def test_geo_filter_is_forwarded_to_usecase(mock_offers_container, jwt_client):
-    _make_paginated_mock(mock_offers_container, num_offers=0, offers_slice=[])
+    _make_paginated_mock(mock_offers_container, offers=[])
 
     jwt_client.get(URL, {"latitude": "48.8566", "longitude": "2.3522", "radius": "10"})
 
@@ -540,7 +534,7 @@ def test_geo_filter_is_forwarded_to_usecase(mock_offers_container, jwt_client):
     ],
 )
 def test_partial_geo_filter_returns_400(mock_offers_container, jwt_client, params):
-    _make_paginated_mock(mock_offers_container, num_offers=0, offers_slice=[])
+    _make_paginated_mock(mock_offers_container, offers=[])
 
     response = jwt_client.get(URL, params)
 
@@ -548,7 +542,7 @@ def test_partial_geo_filter_returns_400(mock_offers_container, jwt_client, param
 
 
 def test_radius_below_one_returns_400(mock_offers_container, jwt_client):
-    _make_paginated_mock(mock_offers_container, num_offers=0, offers_slice=[])
+    _make_paginated_mock(mock_offers_container, offers=[])
 
     response = jwt_client.get(
         URL, {"latitude": "48.8566", "longitude": "2.3522", "radius": "0"}
@@ -558,7 +552,7 @@ def test_radius_below_one_returns_400(mock_offers_container, jwt_client):
 
 
 def test_non_integer_radius_returns_400(mock_offers_container, jwt_client):
-    _make_paginated_mock(mock_offers_container, num_offers=0, offers_slice=[])
+    _make_paginated_mock(mock_offers_container, offers=[])
 
     response = jwt_client.get(
         URL, {"latitude": "48.8566", "longitude": "2.3522", "radius": "10.5"}
@@ -575,7 +569,7 @@ def test_non_integer_radius_returns_400(mock_offers_container, jwt_client):
     ],
 )
 def test_out_of_range_lat_lon_returns_400(mock_offers_container, jwt_client, params):
-    _make_paginated_mock(mock_offers_container, num_offers=0, offers_slice=[])
+    _make_paginated_mock(mock_offers_container, offers=[])
 
     response = jwt_client.get(URL, params)
 
@@ -591,27 +585,21 @@ def test_returns_error_500(mock_offers_container, jwt_client):
     assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
 
 
-@patch("presentation.ingestion.views.offers.WebPagination.page_size", new=2)
 def test_pagination_page_arg(mock_offers_container, jwt_client):
-    num_offers = 5
-    offers = [OfferFactory.create_entity() for _ in range(num_offers)]
+    offers = [OfferFactory.create_entity() for _ in range(5)]
+    _make_paginated_mock(mock_offers_container, offers=offers)
 
-    _make_paginated_mock(
-        mock_offers_container, num_offers=len(offers), offers_slice=offers[2:4]
-    )
-
-    response = jwt_client.get(URL, {"page": 2, "dummy": "arg", "actif": 1})
+    response = jwt_client.get(URL, {"page": 2, "taille": 2, "dummy": "arg", "actif": 1})
 
     assert response.status_code == status.HTTP_200_OK
     data = response.json()
 
-    assert data["count"] == num_offers
+    assert data["count"] == len(offers)
     assert len(data["results"]) == 2  # noqa
 
     parsed_previous = urlparse(data["previous"])
     assert parsed_previous.path == URL
     assert parse_qs(parsed_previous.query) == {
-        "page": ["1"],
         "dummy": ["arg"],
         "actif": ["1"],
         "taille": ["2"],
@@ -627,28 +615,49 @@ def test_pagination_page_arg(mock_offers_container, jwt_client):
     }
 
 
-@patch("presentation.ingestion.views.offers.WebPagination.page_size", new=2)
-def test_pagination_out_of_bond(mock_offers_container, jwt_client):
-    num_offers = 3
-    offers = [OfferFactory.create_entity() for _ in range(num_offers)]
+def test_pagination_out_of_bounds_returns_404(mock_offers_container, jwt_client):
+    _make_paginated_mock(
+        mock_offers_container, offers=[OfferFactory.create_entity() for _ in range(3)]
+    )
 
-    _make_paginated_mock(mock_offers_container, num_offers=len(offers), offers_slice=[])
+    response = jwt_client.get(URL, {"page": 3, "taille": 2})
 
-    response = jwt_client.get(URL, {"page": 3})
+    assert response.status_code == status.HTTP_404_NOT_FOUND
+    assert "detail" in response.json()
+
+
+@pytest.mark.parametrize("page", ["0", "-1", "abc"])
+def test_pagination_invalid_page_returns_404(mock_offers_container, jwt_client, page):
+    _make_paginated_mock(mock_offers_container, offers=[])
+
+    response = jwt_client.get(URL, {"page": page})
+
+    assert response.status_code == status.HTTP_404_NOT_FOUND
+
+
+@pytest.mark.parametrize("taille", ["0", "-5", "abc"])
+def test_pagination_invalid_taille_falls_back_to_default(
+    mock_offers_container, jwt_client, taille
+):
+    _make_paginated_mock(
+        mock_offers_container, offers=[OfferFactory.create_entity() for _ in range(3)]
+    )
+
+    response = jwt_client.get(URL, {"taille": taille})
+
     assert response.status_code == status.HTTP_200_OK
-    data = response.json()
+    assert len(response.json()["results"]) == 3  # noqa
 
-    assert data["count"] == num_offers
-    assert data["results"] == []
 
-    parsed = urlparse(data["previous"])
-    assert parsed.path == URL
-    assert parse_qs(parsed.query) == {
-        "page": ["2"],
-        "taille": ["2"],
-    }
+def test_pagination_taille_is_capped(mock_offers_container, jwt_client):
+    _make_paginated_mock(
+        mock_offers_container, offers=[OfferFactory.create_entity() for _ in range(3)]
+    )
 
-    assert data["next"] is None
+    response = jwt_client.get(URL, {"taille": 1_000_000, "page": 1})
+
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.json()["results"]) == 3  # noqa
 
 
 class TestOffersListViewDbVerified:

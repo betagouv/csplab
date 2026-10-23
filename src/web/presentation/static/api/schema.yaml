@@ -1739,9 +1739,9 @@ paths:
               examples:
                 Success-All:
                   value:
-                    count: 1
-                    next: null
-                    previous: null
+                    count: 123
+                    next: http://api.example.org/accounts/?page=4
+                    previous: http://api.example.org/accounts/?page=2
                     results:
                     - libelle: Cheffe / Chef de projet politique de la ville
                       description: Mettre en oeuvre les orientations stratégiques
@@ -1763,9 +1763,9 @@ paths:
                   description: Les métiers sont retournés paginés
                 Success-Filtered:
                   value:
-                    count: 1
-                    next: null
-                    previous: null
+                    count: 123
+                    next: http://api.example.org/accounts/?page=4
+                    previous: http://api.example.org/accounts/?page=2
                     results:
                     - libelle: Personne ressource en santé et protection animales
                       description: Mobilise sa compétence dans la gestion et le suivi
@@ -1830,6 +1830,19 @@ paths:
                   summary: Token JWT invalide ou expiré
                   description: Le token dans le header `Authorization` est invalide
                     ou expiré.
+          description: ''
+          headers:
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListMetiersNotFound'
           description: ''
           headers:
             X-RateLimit-Limit:
@@ -2971,9 +2984,9 @@ paths:
               examples:
                 Success-ActiveOffers:
                   value:
-                    count: 1
-                    next: null
-                    previous: null
+                    count: 123
+                    next: http://api.example.org/accounts/?page=4
+                    previous: http://api.example.org/accounts/?page=2
                     results:
                     - reference: 2026-999999
                       source_id: 12345678-1234-4234-b234-123456789abc
@@ -2990,9 +3003,9 @@ paths:
                     paginées
                 Success-ArchivedOffers:
                   value:
-                    count: 1
-                    next: null
-                    previous: null
+                    count: 123
+                    next: http://api.example.org/accounts/?page=4
+                    previous: http://api.example.org/accounts/?page=2
                     results:
                     - reference: 2026-999999
                       source_id: 12345678-1234-4234-b234-123456789abc
@@ -3045,6 +3058,19 @@ paths:
                   summary: Token JWT invalide ou expiré
                   description: Le token dans le header `Authorization` est invalide
                     ou expiré.
+          description: ''
+          headers:
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListOffersNotFound'
           description: ''
           headers:
             X-RateLimit-Limit:
@@ -3505,6 +3531,19 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OffersBySourceForbidden'
+          description: ''
+          headers:
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OffersBySourceNotFound'
           description: ''
           headers:
             X-RateLimit-Limit:
@@ -4887,6 +4926,13 @@ components:
         * `NON_DEFINI` - Non défini
         * `SUR_SITE` - Sur site
         * `TELETRAVAIL` - Télétravail
+    ListMetiersNotFound:
+      type: object
+      properties:
+        detail:
+          type: string
+      required:
+      - detail
     ListMetiersResponse:
       type: object
       properties:
@@ -4923,6 +4969,13 @@ components:
       - domaine_fonctionnel_code
       - libelle
       - versants
+    ListOffersNotFound:
+      type: object
+      properties:
+        detail:
+          type: string
+      required:
+      - detail
     ListOffersResponse:
       type: object
       properties:
@@ -5226,6 +5279,13 @@ components:
           type: string
       required:
       - detail
+    OffersBySourceNotFound:
+      type: object
+      properties:
+        detail:
+          type: string
+      required:
+      - detail
     OffersInput:
       type: object
       properties:
@@ -5466,17 +5526,17 @@ components:
       properties:
         count:
           type: integer
-          example: 1
+          example: 123
         next:
           type: string
-          format: uri
           nullable: true
-          example: null
+          format: uri
+          example: http://api.example.org/accounts/?page=4
         previous:
           type: string
-          format: uri
           nullable: true
-          example: null
+          format: uri
+          example: http://api.example.org/accounts/?page=2
         results:
           type: array
           items:
@@ -5489,17 +5549,17 @@ components:
       properties:
         count:
           type: integer
-          example: 1
+          example: 123
         next:
           type: string
-          format: uri
           nullable: true
-          example: null
+          format: uri
+          example: http://api.example.org/accounts/?page=4
         previous:
           type: string
-          format: uri
           nullable: true
-          example: null
+          format: uri
+          example: http://api.example.org/accounts/?page=2
         results:
           type: array
           items:
@@ -5512,17 +5572,17 @@ components:
       properties:
         count:
           type: integer
-          example: 1
+          example: 123
         next:
           type: string
-          format: uri
           nullable: true
-          example: null
+          format: uri
+          example: http://api.example.org/accounts/?page=4
         previous:
           type: string
-          format: uri
           nullable: true
-          example: null
+          format: uri
+          example: http://api.example.org/accounts/?page=2
         results:
           type: array
           items:
@@ -6067,6 +6127,29 @@ tags:
     champs et de leurs règles se trouve dans le [guide de l'API](/pages/guide_api).
 
     Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/).
+
+    ## 2026-10-23
+
+    ### ⚠️ Changements non rétrocompatibles
+
+    `GET /api/v1/offres`, `GET /api/v1/offres/sources/{source_id}` et `GET /api/v1/metiers`
+    changent de comportement de pagination :
+
+    - une `page` au-delà de la dernière renvoie une erreur `404`, au lieu d'une liste
+      `results` vide ;
+    - une `page` non numérique ou inférieure à `1` renvoie une erreur `404`, au lieu de la
+      première page ;
+    - les liens `next` et `previous` ne contiennent `taille` que s'il est passé dans la
+      requête, et le lien vers la première page ne contient plus `page`.
+
+    Le format de la réponse (`count`, `next`, `previous`, `results`) ne change pas. Une
+    `taille` invalide est toujours remplacée par la valeur par défaut, et une `taille`
+    supérieure à `1000` toujours ramenée à `1000`.
+
+    ### Compatibilité
+
+    Pour parcourir une liste, suivez le lien `next` jusqu'à ce qu'il vaille `null`, plutôt
+    que d'incrémenter `page` jusqu'à obtenir une liste vide.
 
     ## 2026-10-22
 
