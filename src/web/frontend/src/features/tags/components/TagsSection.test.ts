@@ -73,6 +73,17 @@ describe('tagsSection', () => {
     expect(await within(block('Note')).findByText('2 étiquettes')).toBeInTheDocument()
   })
 
+  it('starts from an empty form each time the drawer opens', async () => {
+    const user = await openDrawerFrom('Note')
+    await user.type(screen.getByRole('textbox', { name: /Libellé/ }), 'Synthèse')
+    await user.click(screen.getByRole('button', { name: 'Annuler' }))
+
+    await user.click(within(block('Candidature')).getByRole('button', { name: 'Ajouter une étiquette' }))
+
+    expect(await screen.findByRole('textbox', { name: /Libellé/ })).toHaveValue('')
+    expect(screen.getByRole('radio', { name: 'Candidature' })).toBeChecked()
+  })
+
   it('refuses emojis and angle brackets', async () => {
     const user = await openDrawerFrom('Candidature')
 
@@ -94,5 +105,18 @@ describe('tagsSection', () => {
 
     expect(await screen.findByText(message)).toBeInTheDocument()
     expect(screen.getByRole('dialog')).toBeInTheDocument()
+  })
+
+  it('clears the duplicate error once the type changes', async () => {
+    vi.mocked(createTag).mockRejectedValue(new HttpError(409, 'Conflict'))
+    const user = await openDrawerFrom('Candidature')
+
+    await user.type(screen.getByRole('textbox', { name: /Libellé/ }), 'À rappeler')
+    await user.click(screen.getByRole('button', { name: 'Enregistrer' }))
+    await screen.findByText('Une étiquette de ce type porte déjà ce libellé.')
+    await user.click(screen.getByRole('radio', { name: 'Note' }))
+
+    expect(screen.queryByText('Une étiquette de ce type porte déjà ce libellé.')).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Enregistrer' })).toBeEnabled()
   })
 })

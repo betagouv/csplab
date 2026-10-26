@@ -1,16 +1,17 @@
 <script setup lang="ts">
 import type { CreateTagPayload, Tag, TagCategory } from '../types'
-import { computed, ref, useTemplateRef } from 'vue'
+import { computed, ref } from 'vue'
 import { isHttpStatus } from '@/api/errors'
 import CspAsyncSection from '@/components/base/CspAsyncSection/CspAsyncSection.vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
+import CspDrawer from '@/components/base/CspDrawer/CspDrawer.vue'
 import CspTag from '@/components/base/CspTag/CspTag.vue'
 import { useMinimumPending } from '@/composables/async/useMinimumPending'
 import { useToast } from '@/composables/ui/useToast'
 import { pluralize } from '@/utils/format'
 import { useTags } from '../composables/useTags'
 import { DEFAULT_TAG_COLOR, TAG_CATEGORIES, TAG_CATEGORY_TEXTS, TAG_COLOR_ACCENTS } from '../constants/tag'
-import TagFormDrawer from './TagFormDrawer.vue'
+import TagForm from './TagForm.vue'
 
 const props = defineProps<{
   organismeUuid: string
@@ -23,7 +24,7 @@ const showSkeleton = useMinimumPending(pending)
 
 const drawerOpen = ref(false)
 const drawerCategory = ref<TagCategory>('candidature')
-const drawer = useTemplateRef('drawer')
+const duplicate = ref<CreateTagPayload | null>(null)
 
 const tagsByCategory = computed(() => {
   const groups = Object.fromEntries(TAG_CATEGORIES.map(category => [category, [] as Tag[]])) as Record<TagCategory, Tag[]>
@@ -35,6 +36,7 @@ const tagsByCategory = computed(() => {
 
 function openDrawer(category: TagCategory): void {
   drawerCategory.value = category
+  duplicate.value = null
   drawerOpen.value = true
 }
 
@@ -46,7 +48,7 @@ async function handleCreate(payload: CreateTagPayload): Promise<void> {
   }
   catch (submitError) {
     if (isHttpStatus(submitError, 409)) {
-      drawer.value?.setNameError('Une étiquette de ce type porte déjà ce libellé.')
+      duplicate.value = payload
       return
     }
     addToast({ variant: 'error', title: 'L\'ajout de l\'étiquette a échoué' })
@@ -116,13 +118,19 @@ async function handleCreate(payload: CreateTagPayload): Promise<void> {
       </div>
     </CspAsyncSection>
 
-    <TagFormDrawer
-      ref="drawer"
+    <CspDrawer
       v-model:open="drawerOpen"
-      :category="drawerCategory"
-      :saving="creatingTag"
-      @create="handleCreate"
-    />
+      title="Ajouter une étiquette"
+      size="md"
+    >
+      <TagForm
+        :category="drawerCategory"
+        :saving="creatingTag"
+        :duplicate="duplicate"
+        @create="handleCreate"
+        @cancel="drawerOpen = false"
+      />
+    </CspDrawer>
   </section>
 </template>
 
