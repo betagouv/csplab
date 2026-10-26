@@ -1,5 +1,5 @@
 import type { ActivitesParams, CandidatureDetail, ChangerEtapeResultat, MotifRefus, MotifRefusOption, PaginatedActiviteList, PaginatedCandidatureListeList, PaginatedDocumentListeList, PaginatedNoteList, RecrutementDetailKanban } from './types'
-import type { CandidatureParams, DocumentParams, OrganismeParams, RecrutementParams } from '@/api/params'
+import type { CandidatureParams, DocumentParams, NoteParams, OrganismeParams, RecrutementParams } from '@/api/params'
 import { api } from '@/api/client'
 
 export async function getRecrutementKanban({ organismeUuid, recrutementUuid }: RecrutementParams): Promise<RecrutementDetailKanban> {
@@ -145,4 +145,11 @@ export async function getCandidatureActivites(params: ActivitesParams): Promise<
     { params: { path: candidaturePath(params), query: { limit: params.limit } } },
   )
   return data!
+}
+
+export async function updateCandidatureNote(params: NoteParams, message: string): Promise<void> {
+  await api.PATCH(
+    '/recruteur/organismes/{organisme_uuid}/recrutements/{recrutement_uuid}/candidatures/{candidature_uuid}/notes/{note_uuid}',
+    { params: { path: { ...candidaturePath(params), note_uuid: params.noteUuid } }, body: { message } },
+  )
 }
