@@ -1,17 +1,19 @@
 <script setup lang="ts">
-import type { NoteRouteNames } from '../types'
+import type { Note, NoteRouteNames } from '../types'
 import type { CandidatureParams } from '@/api/params'
 import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import CspAsyncSection from '@/components/base/CspAsyncSection/CspAsyncSection.vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspCard from '@/components/base/CspCard/CspCard.vue'
+import CspDropdownMenu from '@/components/base/CspDropdownMenu/CspDropdownMenu.vue'
 import CspEmptyState from '@/components/base/CspEmptyState/CspEmptyState.vue'
 import CspSkeleton from '@/components/base/CspSkeleton/CspSkeleton.vue'
 import { useMinimumPending } from '@/composables/async/useMinimumPending'
 import { formatDateTime } from '@/utils/date'
 import { pluralize } from '@/utils/format'
 import { useCandidatureNotes } from '../composables/useCandidatureNotes'
+import CandidatureEditNoteForm from './CandidatureEditNoteForm.vue'
 import CandidatureNewNoteForm from './CandidatureNewNoteForm.vue'
 import CandidatureNoteMessage from './CandidatureNoteMessage.vue'
 
@@ -30,6 +32,11 @@ const title = computed(() => `${total.value} ${pluralize(total.value, 'note')}`)
 
 const route = useRoute()
 const isCreatingNote = computed(() => route.name === props.routes.create)
+const editedNote = computed(() =>
+  route.name === props.routes.edit
+    ? notes.value.find(({ uuid }) => uuid === route.params.noteUuid)
+    : undefined,
+)
 
 const router = useRouter()
 
@@ -40,6 +47,28 @@ function startNote(): void {
     params: { organismeUuid, recrutementUuid, candidatureUuid },
   })
 }
+
+function editNote(noteUuid: string): void {
+  const { organismeUuid, recrutementUuid, candidatureUuid } = props.candidature
+  void router.push({
+    name: props.routes.edit,
+    params: { organismeUuid, recrutementUuid, candidatureUuid, noteUuid },
+  })
+}
+
+function noteActions(note: Note) {
+  return [
+    {
+      items: [
+        {
+          label: 'Modifier la note',
+          icon: 'ri:pencil-line',
+          onSelect: () => editNote(note.uuid),
+        },
+      ],
+    },
+  ]
+}
 </script>
 
 <template>
@@ -47,6 +76,13 @@ function startNote(): void {
     v-if="isCreatingNote"
     :candidature="candidature"
     :routes="routes"
+  />
+  <CandidatureEditNoteForm
+    v-else-if="editedNote"
+    :key="editedNote.uuid"
+    :candidature="candidature"
+    :routes="routes"
+    :note="editedNote"
   />
   <section
     v-else
@@ -131,17 +167,34 @@ function startNote(): void {
             class="candidature-notes__item"
           >
             <template #start>
-              <span class="candidature-notes__auteur">{{ note.publie_par_prenom }} {{ note.publie_par_nom }}</span>
-              <span
-                class="candidature-notes__separator"
-                aria-hidden="true"
-              >•</span>
-              <time
-                :datetime="note.publie_le"
-                class="candidature-notes__horodatage"
-              >
-                {{ formatDateTime(note.publie_le) }}
-              </time>
+              <div class="candidature-notes__entete">
+                <span class="candidature-notes__auteur">{{ note.publie_par_prenom }} {{ note.publie_par_nom }}</span>
+                <span
+                  class="candidature-notes__separator"
+                  aria-hidden="true"
+                >•</span>
+                <time
+                  :datetime="note.publie_le"
+                  class="candidature-notes__horodatage"
+                >
+                  {{ formatDateTime(note.publie_le) }}
+                </time>
+                <CspDropdownMenu
+                  :sections="noteActions(note)"
+                  side="bottom"
+                  align="end"
+                >
+                  <template #trigger>
+                    <CspButton
+                      icon="ri:more-fill"
+                      variant="tertiary-no-outline"
+                      size="sm"
+                      class="candidature-notes__actions"
+                      :aria-label="`Actions sur la note de ${note.publie_par_prenom} ${note.publie_par_nom}`"
+                    />
+                  </template>
+                </CspDropdownMenu>
+              </div>
             </template>
             <CandidatureNoteMessage :message="note.message" />
           </CspCard>
@@ -186,6 +239,17 @@ function startNote(): void {
   :deep(.csp-skeleton) {
     background: var(--background-contrast-grey);
   }
+}
+
+.candidature-notes__entete {
+  display: flex;
+  flex: 1;
+  gap: var(--csp-space-2);
+  align-items: center;
+}
+
+.candidature-notes__actions {
+  margin-left: auto;
 }
 
 .candidature-notes__auteur {

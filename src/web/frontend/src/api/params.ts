@@ -14,6 +14,10 @@ export interface DocumentParams extends CandidatureParams {
   documentUuid: string
 }
 
+export interface NoteParams extends CandidatureParams {
+  noteUuid: string
+}
+
 export interface ConversationParams extends CandidatureParams {
   conversationUuid: string
 }
