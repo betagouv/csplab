@@ -135,6 +135,17 @@ class TestOffersBySourceView:
         response = jwt_client.get(URL)
         assert response.status_code == status.HTTP_403_FORBIDDEN
 
+    def test_pagination_out_of_bounds_returns_404(
+        self, authenticated_client_with_source, use_case
+    ):
+        offers = [OfferFactory.create_entity(source_id=SOURCE_ID) for _ in range(3)]
+        _make_paginated_mock(use_case, offers=offers)
+
+        response = authenticated_client_with_source.get(URL, {"page": 3, "taille": 2})
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+        assert "detail" in response.json()
+
     def test_returns_error_500(self, jwt_client, use_case):
         use_case.execute.side_effect = Exception("db error")
 
