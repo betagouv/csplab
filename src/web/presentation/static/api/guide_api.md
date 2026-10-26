@@ -368,7 +368,7 @@ caractères s'applique au texte Markdown, syntaxe comprise.
 | `region` | Code région officiel, ou vide. |
 | `departement` | Code département officiel (`01` à `95`, `2A`, `2B`, DOM-TOM, `SPM`, `WLF`…), ou vide. |
 | `localisation_label` | Libellé du lieu. **500 caractères maximum.** |
-| `latitude` / `longitude` | Coordonnées géographiques. Peuvent être vides. |
+| `latitude` / `longitude` | Coordonnées géographiques. Facultatives : peuvent être absentes ou `null`. |
 
 #### Bloc « Critères » (`criteres`) — peut être vide
 | Champ | Règle |
