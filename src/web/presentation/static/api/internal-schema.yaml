@@ -5750,6 +5750,9 @@ components:
       properties:
         message:
           type: string
+        est_privee:
+          type: boolean
+          default: false
       required:
       - message
     CreateOrganisme:
@@ -6191,8 +6194,11 @@ components:
         publie_le:
           type: string
           format: date-time
+        est_privee:
+          type: boolean
       required:
       - candidature_id
+      - est_privee
       - message
       - publie_le
       - publie_par_id
@@ -6213,8 +6219,11 @@ components:
         publie_par_id:
           type: string
           format: uuid
+        est_privee:
+          type: boolean
       required:
       - candidature_id
+      - est_privee
       - message
       - publie_par_id
       - uuid
@@ -6572,6 +6581,8 @@ components:
       properties:
         message:
           type: string
+        est_privee:
+          type: boolean
     RecrutementAgent:
       type: object
       properties:

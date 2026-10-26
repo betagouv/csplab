@@ -24,6 +24,7 @@ function note(overrides: Partial<Note>): Note {
     publie_par_prenom: 'Marie',
     publie_par_nom: 'Dupont',
     publie_le: '2025-06-10T09:15:00',
+    est_privee: false,
     ...overrides,
   }
 }
