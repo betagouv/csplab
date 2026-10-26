@@ -57,6 +57,7 @@ SUPERVISEUR_ET_STAFF_ACTIONS = [
     OrganismeAction.UPDATE_ORGANISME_AGENT,
     OrganismeAction.REVOKE_ORGANISME_AGENT,
     OrganismeAction.SET_RECRUTEMENTS_RESPONSABLE,
+    OrganismeAction.CREATE_TAG,
 ]
 
 SUPERVISEUR_OU_AGENT_RESPONSABLE_D_UN_RECRUTEMENT_ACTIONS = [
@@ -67,6 +68,7 @@ SUPERVISEUR_OU_AGENT_RESPONSABLE_D_UN_RECRUTEMENT_ACTIONS = [
 SUPERVISEUR_OU_AGENT_SANS_RECRUTEMENT_ACTIONS = [
     OrganismeAction.LIST_RECRUTEMENTS,
     OrganismeAction.GET_MOTIFS_REFUS,
+    OrganismeAction.LIST_TAGS,
 ]
 
 SUPERVISEUR_OU_AGENT_AVEC_RECRUTEMENT_ACTIONS = [
@@ -878,6 +880,7 @@ class TestAuthorizedActions:
         ) == [
             OrganismeAction.LIST_RECRUTEMENTS,
             OrganismeAction.GET_MOTIFS_REFUS,
+            OrganismeAction.LIST_TAGS,
         ]
 
     def test_superviseur_gets_actions_without_target_recrutement(self):
@@ -890,7 +893,7 @@ class TestAuthorizedActions:
             SUPERVISEUR_ACTIONS_SANS_RECRUTEMENT, key=list(OrganismeAction).index
         )
 
-    def test_responsable_agent_gets_search_and_create_agent(self):
+    def test_responsable_agent_also_gets_search_and_create_agent(self):
         organisme_id = uuid4()
 
         assert OrganismePermissionService().authorized_actions_organisme(
@@ -903,6 +906,7 @@ class TestAuthorizedActions:
             OrganismeAction.SEARCH_AGENT,
             OrganismeAction.CREATE_AGENT,
             OrganismeAction.GET_MOTIFS_REFUS,
+            OrganismeAction.LIST_TAGS,
         ]
 
     @pytest.mark.parametrize("is_responsable", [False, True])
