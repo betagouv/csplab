@@ -73,6 +73,28 @@ class TaillePageNumberPagination(PageNumberPagination):
     def get_schema_operation_parameters(self, view) -> list[dict]:
         return _page_taille_parameters(self.page_size, self.max_page_size)
 
+    def get_paginated_response_schema(self, schema: dict) -> dict:
+        return {
+            "type": "object",
+            "required": ["count", "results"],
+            "properties": {
+                "count": {"type": "integer", "example": 1},
+                "next": {
+                    "type": "string",
+                    "format": "uri",
+                    "nullable": True,
+                    "example": None,
+                },
+                "previous": {
+                    "type": "string",
+                    "format": "uri",
+                    "nullable": True,
+                    "example": None,
+                },
+                "results": schema,
+            },
+        }
+
 
 class TalentsoftPagination(BasePagination):
     start_default = 0

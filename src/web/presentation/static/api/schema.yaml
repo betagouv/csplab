@@ -1739,9 +1739,9 @@ paths:
               examples:
                 Success-All:
                   value:
-                    count: 123
-                    next: http://api.example.org/accounts/?page=4
-                    previous: http://api.example.org/accounts/?page=2
+                    count: 1
+                    next: null
+                    previous: null
                     results:
                     - libelle: Cheffe / Chef de projet politique de la ville
                       description: Mettre en oeuvre les orientations stratégiques
@@ -1763,9 +1763,9 @@ paths:
                   description: Les métiers sont retournés paginés
                 Success-Filtered:
                   value:
-                    count: 123
-                    next: http://api.example.org/accounts/?page=4
-                    previous: http://api.example.org/accounts/?page=2
+                    count: 1
+                    next: null
+                    previous: null
                     results:
                     - libelle: Personne ressource en santé et protection animales
                       description: Mobilise sa compétence dans la gestion et le suivi
@@ -2984,9 +2984,9 @@ paths:
               examples:
                 Success-ActiveOffers:
                   value:
-                    count: 123
-                    next: http://api.example.org/accounts/?page=4
-                    previous: http://api.example.org/accounts/?page=2
+                    count: 1
+                    next: null
+                    previous: null
                     results:
                     - reference: 2026-999999
                       source_id: 12345678-1234-4234-b234-123456789abc
@@ -3003,9 +3003,9 @@ paths:
                     paginées
                 Success-ArchivedOffers:
                   value:
-                    count: 123
-                    next: http://api.example.org/accounts/?page=4
-                    previous: http://api.example.org/accounts/?page=2
+                    count: 1
+                    next: null
+                    previous: null
                     results:
                     - reference: 2026-999999
                       source_id: 12345678-1234-4234-b234-123456789abc
@@ -5526,17 +5526,17 @@ components:
       properties:
         count:
           type: integer
-          example: 123
+          example: 1
         next:
           type: string
-          nullable: true
           format: uri
-          example: http://api.example.org/accounts/?page=4
+          nullable: true
+          example: null
         previous:
           type: string
-          nullable: true
           format: uri
-          example: http://api.example.org/accounts/?page=2
+          nullable: true
+          example: null
         results:
           type: array
           items:
@@ -5549,17 +5549,17 @@ components:
       properties:
         count:
           type: integer
-          example: 123
+          example: 1
         next:
           type: string
-          nullable: true
           format: uri
-          example: http://api.example.org/accounts/?page=4
+          nullable: true
+          example: null
         previous:
           type: string
-          nullable: true
           format: uri
-          example: http://api.example.org/accounts/?page=2
+          nullable: true
+          example: null
         results:
           type: array
           items:
@@ -5572,17 +5572,17 @@ components:
       properties:
         count:
           type: integer
-          example: 123
+          example: 1
         next:
           type: string
-          nullable: true
           format: uri
-          example: http://api.example.org/accounts/?page=4
+          nullable: true
+          example: null
         previous:
           type: string
-          nullable: true
           format: uri
-          example: http://api.example.org/accounts/?page=2
+          nullable: true
+          example: null
         results:
           type: array
           items:
