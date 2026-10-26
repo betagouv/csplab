@@ -5,13 +5,14 @@ import { HttpError } from '@/api/errors'
 import { CANDIDATURE_PANEL_ROUTE_NAMES } from '@/router/names'
 import { CANDIDATURE_PARAMS, KANBAN_PATH } from '@/test/fixtures/candidatures'
 import { renderWithApp, setupUser } from '@/test/render'
-import { getCandidatureNotes, updateCandidatureNote } from '../api'
+import { deleteCandidatureNote, getCandidatureNotes, updateCandidatureNote } from '../api'
 import CandidatureNotes from './CandidatureNotes.vue'
 
 vi.mock('../api', async importOriginal => ({
   ...await importOriginal<typeof import('../api')>(),
   getCandidatureNotes: vi.fn(),
   updateCandidatureNote: vi.fn(),
+  deleteCandidatureNote: vi.fn(),
 }))
 
 function note(overrides: Partial<Note>): Note {
@@ -123,5 +124,24 @@ describe('candidatureNotes', () => {
 
     await vi.waitFor(() => expect(router.currentRoute.value.path).toBe(`${NOTES_PATH}/ffffffff-0001-0001-0001-000000000002/modifier`))
     expect(await screen.findByRole('textbox', { name: 'Modifier la note' })).toHaveValue('À recontacter')
+  })
+
+  it('deletes the note picked from its menu once confirmed', async () => {
+    const results = [
+      note({}),
+      note({ uuid: 'ffffffff-0001-0001-0001-000000000002', publie_par_prenom: 'Paul', publie_par_nom: 'Bernard' }),
+    ]
+    vi.mocked(getCandidatureNotes).mockResolvedValue({ count: 2, results })
+    vi.mocked(deleteCandidatureNote).mockResolvedValue()
+    const user = setupUser()
+    await renderNotes()
+
+    await user.click(await screen.findByRole('button', { name: 'Actions sur la note de Paul Bernard' }))
+    await user.click(await screen.findByRole('menuitem', { name: 'Supprimer la note' }))
+    const dialog = await screen.findByRole('dialog', { name: 'Supprimer la note' })
+    await user.click(within(dialog).getByRole('button', { name: 'Supprimer la note' }))
+
+    expect(deleteCandidatureNote).toHaveBeenCalledWith({ ...CANDIDATURE_PARAMS, noteUuid: 'ffffffff-0001-0001-0001-000000000002' })
+    await vi.waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
   })
 })

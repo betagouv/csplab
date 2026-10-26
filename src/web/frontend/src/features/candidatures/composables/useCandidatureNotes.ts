@@ -4,7 +4,7 @@ import type { CandidatureParams, NoteParams } from '@/api/params'
 import { useMutation, useQuery, useQueryCache } from '@pinia/colada'
 import { computed, toValue } from 'vue'
 import { candidatureKeys } from '@/api/queryKeys'
-import { createCandidatureNote, updateCandidatureNote } from '../api'
+import { createCandidatureNote, deleteCandidatureNote, updateCandidatureNote } from '../api'
 import { candidatureNotesQuery } from '../queries'
 
 export function useCandidatureNotes(candidature: MaybeRefOrGetter<CandidatureParams>) {
@@ -50,5 +50,22 @@ export function useUpdateCandidatureNote(candidature: MaybeRefOrGetter<Candidatu
   return {
     update: mutation.mutateAsync,
     updating: mutation.isLoading,
+  }
+}
+
+export function useDeleteCandidatureNote(candidature: MaybeRefOrGetter<CandidatureParams>) {
+  const queryCache = useQueryCache()
+
+  const mutation = useMutation({
+    mutation: (noteUuid: string) => deleteCandidatureNote({ ...toValue(candidature), noteUuid }),
+    onSuccess: () => {
+      queryCache.invalidateQueries({ key: candidatureKeys.notes(toValue(candidature)) })
+      queryCache.invalidateQueries({ key: candidatureKeys.activites(toValue(candidature)) })
+    },
+  })
+
+  return {
+    remove: mutation.mutateAsync,
+    removing: mutation.isLoading,
   }
 }
