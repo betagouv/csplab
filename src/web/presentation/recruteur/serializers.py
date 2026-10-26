@@ -579,6 +579,7 @@ class NoteSerializer(serializers.ModelSerializer):
     )
     publie_par_nom = serializers.CharField(source="publie_par.utilisateur.last_name")
     publie_le = serializers.DateTimeField(source="created_at")
+    est_privee = serializers.BooleanField()
 
     class Meta:
         model = NoteModel
@@ -590,6 +591,7 @@ class NoteSerializer(serializers.ModelSerializer):
             "publie_par_prenom",
             "publie_par_nom",
             "publie_le",
+            "est_privee",
         ]
 
 
@@ -598,18 +600,21 @@ class NoteDetailSerializer(serializers.ModelSerializer):
     candidature_id = serializers.UUIDField()
     message = serializers.CharField()
     publie_par_id = serializers.UUIDField()
+    est_privee = serializers.BooleanField()
 
     class Meta:
         model = NoteModel
-        fields = ["uuid", "candidature_id", "message", "publie_par_id"]
+        fields = ["uuid", "candidature_id", "message", "publie_par_id", "est_privee"]
 
 
 class CreateNoteSerializer(serializers.Serializer):
     message = serializers.CharField()
+    est_privee = serializers.BooleanField(required=False, default=False)
 
 
 class UpdateNoteSerializer(serializers.Serializer):
     message = serializers.CharField()
+    est_privee = serializers.BooleanField(required=False)
 
 
 # ---------------------------------------------------------------------------

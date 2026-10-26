@@ -122,8 +122,8 @@ class CandidatureNotesView(NoteBaseView, ListAPIView):
             organisme_id=organisme_uuid,
             recrutement_id=recrutement_uuid,
             candidature_id=candidature_uuid,
-            message=serializer.validated_data["message"],
             utilisateur=request.user,
+            **serializer.validated_data,
         )
         return Response(
             NoteDetailSerializer(note).data,
@@ -174,8 +174,8 @@ class CandidatureNoteDetailView(NoteBaseView):
             recrutement_id=recrutement_uuid,
             candidature_id=candidature_uuid,
             note_id=note_uuid,
-            message=serializer.validated_data["message"],
             utilisateur=request.user,
+            **serializer.validated_data,
         )
         return Response(NoteDetailSerializer(note).data)
 
