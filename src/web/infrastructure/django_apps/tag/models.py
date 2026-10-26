@@ -32,6 +32,9 @@ class TagQuerySet(models.QuerySet):
     def by_organisme(self, organisme_id) -> "TagQuerySet":
         return self.filter(organisme_id=organisme_id)
 
+    def by_id(self, organisme_id, tag_id) -> "TagQuerySet":
+        return self.by_organisme(organisme_id).filter(pk=tag_id)
+
     def alphabetical(self, organisme_id) -> "TagQuerySet":
         return self.by_organisme(organisme_id).order_by(Lower("name"), "category")
 

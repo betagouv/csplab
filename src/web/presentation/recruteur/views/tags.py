@@ -6,23 +6,54 @@ from rest_framework import exceptions, status
 from rest_framework.generics import ListAPIView
 from rest_framework.request import Request
 from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from application.recruteur.services.create_tag import create_tag
 from application.recruteur.services.list_tags import list_tags
+from application.recruteur.services.update_tag import update_tag
 from domain.commons.errors.organisme_errors import OrganismeNexistePas
 from domain.identite.errors.organisme_permission_errors import (
     AccesOrganismeRefuse,
     AccesRecrutementInconnu,
     OperationOrganismeRefusee,
 )
-from domain.recruteur.errors.tag_errors import TagAlreadyExists
+from domain.recruteur.errors.tag_errors import TagAlreadyExists, TagNotFound
 from presentation.api.authentication import SessionApiMixin
 from presentation.api.serializers import GenericErrorSerializer, generic_response_format
 from presentation.recruteur.serializers import (
     CreateTagSerializer,
     TagListQuerySerializer,
     TagSerializer,
+    UpdateTagSerializer,
 )
+
+
+class TagBaseView(SessionApiMixin, APIView):
+    def handle_exception(self, exc: Exception) -> Response:
+        if isinstance(
+            exc,
+            (AccesOrganismeRefuse, OperationOrganismeRefusee, AccesRecrutementInconnu),
+        ):
+            return Response(
+                GenericErrorSerializer({"error": str(exc)}).data,
+                status=status.HTTP_403_FORBIDDEN,
+            )
+        if isinstance(exc, (OrganismeNexistePas, TagNotFound)):
+            return Response(
+                GenericErrorSerializer({"error": str(exc)}).data,
+                status=status.HTTP_404_NOT_FOUND,
+            )
+        if isinstance(exc, TagAlreadyExists):
+            return Response(
+                GenericErrorSerializer({"error": str(exc)}).data,
+                status=status.HTTP_409_CONFLICT,
+            )
+        if isinstance(exc, (exceptions.APIException, Http404)):
+            return super().handle_exception(exc)
+        return Response(
+            GenericErrorSerializer({"error": "Unexpected error"}).data,
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )
 
 
 @extend_schema_view(
@@ -48,34 +79,8 @@ from presentation.recruteur.serializers import (
         },
     ),
 )
-class OrganismeTagsView(SessionApiMixin, ListAPIView):
+class OrganismeTagsView(TagBaseView, ListAPIView):
     serializer_class = TagSerializer
-
-    def handle_exception(self, exc: Exception) -> Response:
-        if isinstance(
-            exc,
-            (AccesOrganismeRefuse, OperationOrganismeRefusee, AccesRecrutementInconnu),
-        ):
-            return Response(
-                GenericErrorSerializer({"error": str(exc)}).data,
-                status=status.HTTP_403_FORBIDDEN,
-            )
-        if isinstance(exc, OrganismeNexistePas):
-            return Response(
-                GenericErrorSerializer({"error": str(exc)}).data,
-                status=status.HTTP_404_NOT_FOUND,
-            )
-        if isinstance(exc, TagAlreadyExists):
-            return Response(
-                GenericErrorSerializer({"error": str(exc)}).data,
-                status=status.HTTP_409_CONFLICT,
-            )
-        if isinstance(exc, (exceptions.APIException, Http404)):
-            return super().handle_exception(exc)
-        return Response(
-            GenericErrorSerializer({"error": "Unexpected error"}).data,
-            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-        )
 
     def get_queryset(self):
         query = TagListQuerySerializer(data=self.request.query_params)
@@ -99,3 +104,32 @@ class OrganismeTagsView(SessionApiMixin, ListAPIView):
             color=serializer.validated_data["color"],
         )
         return Response(TagSerializer(tag).data, status=status.HTTP_201_CREATED)
+
+
+@extend_schema_view(
+    put=extend_schema(
+        summary="Modifier une étiquette d'un organisme",
+        tags=["recruteur"],
+        request=UpdateTagSerializer,
+        responses={
+            **generic_response_format,
+            200: TagSerializer,
+            400: GenericErrorSerializer,
+            409: GenericErrorSerializer,
+        },
+    ),
+)
+class OrganismeTagDetailView(TagBaseView):
+    def put(self, request: Request, organisme_uuid: UUID, tag_uuid: UUID) -> Response:
+        serializer = UpdateTagSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        tag = update_tag(
+            organisme_id=organisme_uuid,
+            tag_id=tag_uuid,
+            utilisateur=request.user,
+            name=serializer.validated_data["name"],
+            color=serializer.validated_data["color"],
+        )
+        return Response(TagSerializer(tag).data)
