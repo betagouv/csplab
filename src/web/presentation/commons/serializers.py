@@ -9,6 +9,11 @@ from domain.identite.value_objects.organisme_action import OrganismeAction
 
 _country_adapter = TypeAdapter(Country)
 
+INVALID_COUNTRY_CODE = (
+    "Code pays invalide, un code ISO 3166-1 alpha-3 en majuscules "
+    "est attendu (ex. FRA)."
+)
+
 
 class LocalisationSerializer(serializers.Serializer):
     zone_geographique = serializers.ChoiceField(
@@ -27,12 +32,13 @@ class LocalisationSerializer(serializers.Serializer):
     longitude = serializers.FloatField(allow_null=True, min_value=-180, max_value=180)
 
     def validate_pays(self, value: str) -> str:
+        error = serializers.ValidationError(INVALID_COUNTRY_CODE)
+        if value != value.upper():
+            raise error
         try:
             _country_adapter.validate_python(value)
         except ValidationError as e:
-            raise serializers.ValidationError(
-                "Code pays invalide, un code ISO 3166-1 alpha-3 est attendu."
-            ) from e
+            raise error from e
         return value
 
 

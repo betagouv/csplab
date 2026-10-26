@@ -549,6 +549,11 @@ class FakeTsOfferDetailSerializer(FakeTsOfferSummarySerializer):
 
 
 class LocalisationInputSerializer(LocalisationSerializer):
+    pays = serializers.CharField(
+        max_length=3,
+        min_length=3,
+        help_text="Code pays ISO 3166-1 alpha-3, en majuscules (ex. `FRA`).",
+    )
     region = serializers.ChoiceField(
         choices=sorted(Region.VALID_CODES, key=lambda x: x),
         allow_blank=True,
@@ -570,7 +575,7 @@ class LocalisationInputSerializer(LocalisationSerializer):
             data.get("region") and data.get("departement")
         ):
             raise serializers.ValidationError(
-                "La région et le département sont obligatoires"
+                "La région et le département sont obligatoires "
                 "pour une offre localisée en France."
             )
         if data.get("region") and data.get("departement"):

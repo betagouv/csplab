@@ -17,6 +17,12 @@ un message du type « Le département 13 (Bouches-du-Rhône) n'appartient pas à
 séparément : `region` `01` (Guadeloupe) et `departement` `01` (Ain) étaient acceptés
 ensemble.
 
+`POST /api/v1/offres/creer_modifier` : une offre dont `localisation[].pays` n'est pas
+en majuscules (`fra`, `Fra`…) est désormais rejetée. Elle apparaît dans `errors`, avec
+le message « Code pays invalide, un code ISO 3166-1 alpha-3 en majuscules est attendu
+(ex. FRA). ». Jusqu'ici, le code était enregistré tel quel et la règle « région et
+département obligatoires pour une offre en France » ne s'appliquait pas.
+
 ### Compatibilité
 
 Renseignez dans `region` le code INSEE de la région du département, et non le code du
@@ -25,6 +31,8 @@ département. Pour l'outre-mer :
 - départements et régions d'outre-mer (`971` à `974`, `976`) : le code INSEE de la
   région (`01` à `04`, `06`) ou `DOM` ;
 - collectivités d'outre-mer (`975`, `986`, `987`, `988`, `SPM`, `WLF`) : `TOM`.
+
+Envoyez le code pays en majuscules (`FRA`, `BEL`…).
 
 ### Corrigé
 
