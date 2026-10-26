@@ -8,6 +8,7 @@ from referentiel.value_objects.diploma import Diploma
 from referentiel.value_objects.experience_level import ExperienceLevel
 from referentiel.value_objects.language_level import LanguageLevel
 from referentiel.value_objects.offer_criteria import OfferCriteria, OfferLanguage
+from referentiel.value_objects.required_document import RequiredDocument
 
 from infrastructure.factories.ingestion.offer_payload_factory import PayloadOfferFactory
 from infrastructure.factories.referentiel.offer_factory import OfferFactory
@@ -175,7 +176,7 @@ def test_offer_input_mapper_maps_criteres_to_offer_criteria():
         diploma="Master",
         experience_level=ExperienceLevel.CONFIRME,
         specialisations=["Droit public"],
-        documents_requis=["CV"],
+        documents_requis=[RequiredDocument.CV],
         competences_requises=["Rigueur"],
         languages=[OfferLanguage(iso_code="en", level=LanguageLevel.B2)],
     )
@@ -511,3 +512,78 @@ class TestOfferDetailOutputMapper:
         assert custom_fields["description"]["longText2Formatted"] is None
         assert custom_fields["description"]["longText3Formatted"] is None
         assert custom_fields["offerCustomBlock1"]["longText1Formatted"] is None
+
+    @pytest.mark.parametrize(
+        "documents,client_code,label",
+        [
+            (
+                [RequiredDocument.CV],
+                "Doc_CV",
+                "L'envoi du CV est obligatoire",
+            ),
+            (
+                [RequiredDocument.LETTRE_MOTIVATION, RequiredDocument.CV],
+                "Doc_CV_LM",
+                "L'envoi du CV et d'une lettre de motivation est obligatoire",
+            ),
+            (
+                [RequiredDocument.CV, RequiredDocument.PORTFOLIO],
+                "Doc_CV_PF",
+                "L'envoi du CV et d'un portfolio est obligatoire",
+            ),
+            (
+                [
+                    RequiredDocument.CV,
+                    RequiredDocument.LETTRE_MOTIVATION,
+                    RequiredDocument.PORTFOLIO,
+                ],
+                "Doc_CV_LM_PF",
+                (
+                    "L'envoi du CV, d'une lettre de motivation et d'un portfolio est "
+                    "obligatoire"
+                ),
+            ),
+        ],
+        ids=["cv", "cv-lm-in-any-order", "cv-pf", "cv-lm-pf"],
+    )
+    def test_required_documents_are_mapped_to_talentsoft_value(
+        self, documents, client_code, label
+    ):
+        offer = OfferFactory.create_entity(
+            criteria=OfferCriteria(documents_requis=documents)
+        )
+
+        custom_fields = OfferDetailOutputMapper().to_dict(offer)["customFields"]
+
+        assert custom_fields["applicantCriteria"]["customCodeTable1"] == {
+            "code": None,
+            "clientCode": client_code,
+            "label": label,
+            "active": True,
+            "parentCode": None,
+            "type": "Documents à transmettre",
+            "parentType": "",
+            "hasChildren": False,
+        }
+
+    @pytest.mark.parametrize(
+        "criteria",
+        [
+            None,
+            OfferCriteria(),
+            OfferCriteria(documents_requis=[RequiredDocument.LETTRE_MOTIVATION]),
+            OfferCriteria(
+                documents_requis=[
+                    RequiredDocument.LETTRE_MOTIVATION,
+                    RequiredDocument.PORTFOLIO,
+                ]
+            ),
+        ],
+        ids=["no-criteria", "no-documents", "lm-without-cv", "lm-pf-without-cv"],
+    )
+    def test_required_documents_without_talentsoft_value_are_null(self, criteria):
+        offer = OfferFactory.create_entity(criteria=criteria)
+
+        custom_fields = OfferDetailOutputMapper().to_dict(offer)["customFields"]
+
+        assert custom_fields["applicantCriteria"]["customCodeTable1"] is None

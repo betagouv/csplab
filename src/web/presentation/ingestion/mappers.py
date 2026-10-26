@@ -17,6 +17,7 @@ from referentiel.value_objects.offer_conditions import JobVacancy
 from referentiel.value_objects.offer_criteria import OfferCriteria, OfferLanguage
 from referentiel.value_objects.offer_nature import OfferNature
 from referentiel.value_objects.region import Region
+from referentiel.value_objects.required_document import RequiredDocument
 from referentiel.value_objects.siret import SIRET
 from referentiel.value_objects.verse import Verse
 
@@ -249,6 +250,32 @@ class OfferSummaryOutputMapper:
         }
 
 
+_TALENTSOFT_REQUIRED_DOCUMENTS = {
+    frozenset({RequiredDocument.CV}): (
+        "Doc_CV",
+        "L'envoi du CV est obligatoire",
+    ),
+    frozenset({RequiredDocument.CV, RequiredDocument.LETTRE_MOTIVATION}): (
+        "Doc_CV_LM",
+        "L'envoi du CV et d'une lettre de motivation est obligatoire",
+    ),
+    frozenset({RequiredDocument.CV, RequiredDocument.PORTFOLIO}): (
+        "Doc_CV_PF",
+        "L'envoi du CV et d'un portfolio est obligatoire",
+    ),
+    frozenset(
+        {
+            RequiredDocument.CV,
+            RequiredDocument.LETTRE_MOTIVATION,
+            RequiredDocument.PORTFOLIO,
+        }
+    ): (
+        "Doc_CV_LM_PF",
+        ("L'envoi du CV, d'une lettre de motivation et d'un portfolio est obligatoire"),
+    ),
+}
+
+
 class OfferDetailOutputMapper(OfferSummaryOutputMapper):
     def to_dict(self, offer: Offer) -> dict:
         criteria = offer.criteria
@@ -320,7 +347,10 @@ class OfferDetailOutputMapper(OfferSummaryOutputMapper):
                 longText2Formatted=self._formatted(offer.exercise_conditions),
                 longText3Formatted=self._formatted(offer.service_description),
             ),
-            "applicantCriteria": self._dynamic_field(),
+            "applicantCriteria": {
+                **self._dynamic_field(),
+                "customCodeTable1": self._required_documents(offer.criteria),
+            },
             "location": self._dynamic_field(
                 shortText1=offer.localisation.label if offer.localisation else None
             ),
@@ -330,6 +360,17 @@ class OfferDetailOutputMapper(OfferSummaryOutputMapper):
             ),
             "origin": self._dynamic_field(shortText1=offer.application_email),
         }
+
+    def _required_documents(self, criteria: Optional[OfferCriteria]) -> Optional[dict]:
+        if not criteria:
+            return None
+        talentsoft_value = _TALENTSOFT_REQUIRED_DOCUMENTS.get(
+            frozenset(criteria.documents_requis)
+        )
+        if not talentsoft_value:
+            return None
+        client_code, label = talentsoft_value
+        return self._coded_object(client_code, label, "Documents à transmettre")
 
     @staticmethod
     def _dynamic_field(**values: Optional[str]) -> dict:

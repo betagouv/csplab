@@ -380,7 +380,7 @@ caractères s'applique au texte Markdown, syntaxe comprise.
 | `experience` | Valeurs : **DEBUTANT, CONFIRME, EXPERT**. |
 | `specialisations` | Liste de textes. |
 | `diplome` | Texte. |
-| `documents_requis` | Liste de textes. |
+| `documents_requis` | Liste de documents à transmettre pour candidater. Valeurs : **CV, LETTRE_MOTIVATION, PORTFOLIO**. Chaque document ne peut être cité qu'une fois. |
 | `competences_requises` | Liste de textes. |
 | `langues` | Liste de langues, chacune avec un **code ISO sur 2 caractères** et un **niveau** (**A1, A2, B1, B2, C1, C2**). |
 
@@ -572,6 +572,7 @@ invalides, lignes créées, lignes mises à jour, et la liste éventuelle des er
 | **Type de contrat** | CDD, CDI, CDD_CDI (CDD ou CDI), CONTRAT_PROJET (contrat de projet), VACATION (payés à l'acte) |
 | **Vacance de poste** | OUI (vacant), NON (susceptible d'être vacant) |
 | **Expérience** | DEBUTANT, CONFIRME, EXPERT |
+| **Documents requis** | CV, LETTRE_MOTIVATION (lettre de motivation), PORTFOLIO |
 | **Niveau de langue** | A1, A2, B1, B2, C1, C2 |
 | **Temps de travail** | NON_DEFINI, TEMPS_PLEIN, TEMPS_PARTIEL |
 | **Lieu de travail** | NON_DEFINI, SUR_SITE, TELETRAVAIL |
@@ -734,7 +735,7 @@ Notation : `a.b` désigne un objet imbriqué, `a[]` une liste, `a[0]` son premie
 | `organisation.siret` | Jamais renseigné par l'ingestion (vide) ; le rapprochement d'organisme passe par `talentsoft_organisme_entity_code`. |
 | `profession.referentiel` | Constante `RMFPv2`. |
 | `profession.code_emploi_local` | Jamais renseigné, `local_job_code` reste à `null`. |
-| `criteres.documents_requis` | Jamais renseigné par l'ingestion. |
+| `criteres.documents_requis` | Jamais renseigné par l'ingestion. API fake-ts : renvoyé dans `customFields.applicantCriteria.customCodeTable1`, valeur du référentiel Talentsoft « Documents à transmettre » : `[CV]` → `Doc_CV`, `[CV, LETTRE_MOTIVATION]` → `Doc_CV_LM`, `[CV, PORTFOLIO]` → `Doc_CV_PF`, `[CV, LETTRE_MOTIVATION, PORTFOLIO]` → `Doc_CV_LM_PF`, quel que soit l'ordre. `null` pour une liste vide ou une autre combinaison. Le `label` reprend le libellé Talentsoft, que le WordPress BIEP affiche après « Pour postuler à cette offre, ». |
 | `criteres.competences_requises` | Jamais renseigné par l'ingestion. |
 | `conditions.temps_travail` | Lu dans `customFields.description.customCodeTable3` (absent de l'API fake-ts) : `reponse_oui` → `TEMPS_PLEIN`, `reponse_non` → `TEMPS_PARTIEL`, sinon `NON_DEFINI`. |
 | `conditions.lieu_de_travail` | Lu dans `customFields.offerCustomBlock1.customCodeTable2` (absent de l'API fake-ts) : `reponse_oui` → `TELETRAVAIL`, `reponse_non` → `SUR_SITE`, sinon `NON_DEFINI`. |

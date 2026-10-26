@@ -4514,7 +4514,8 @@ components:
         documents_requis:
           type: array
           items:
-            type: string
+            $ref: '#/components/schemas/DocumentsRequisEnum'
+          description: Documents à transmettre pour candidater, sans doublon.
         competences_requises:
           type: array
           items:
@@ -4786,6 +4787,16 @@ components:
           type: string
       required:
       - detail
+    DocumentsRequisEnum:
+      enum:
+      - CV
+      - LETTRE_MOTIVATION
+      - PORTFOLIO
+      type: string
+      description: |-
+        * `CV` - CV
+        * `LETTRE_MOTIVATION` - Lettre de motivation
+        * `PORTFOLIO` - Portfolio
     ExperienceEnum:
       enum:
       - DEBUTANT
@@ -4796,6 +4807,49 @@ components:
         * `DEBUTANT` - Débutant
         * `CONFIRME` - Confirmé
         * `EXPERT` - Expert
+    FakeTsApplicantCriteria:
+      type: object
+      properties:
+        date1:
+          type: string
+          nullable: true
+        shortText1:
+          type: string
+          nullable: true
+        longText1:
+          type: string
+          nullable: true
+        longText2:
+          type: string
+          nullable: true
+        longText3:
+          type: string
+          nullable: true
+        longText1Formatted:
+          type: string
+          nullable: true
+        longText2Formatted:
+          type: string
+          nullable: true
+        longText3Formatted:
+          type: string
+          nullable: true
+        customCodeTable1:
+          allOf:
+          - $ref: '#/components/schemas/FakeTsCodedObject'
+          nullable: true
+          description: Documents à transmettre. `null` si l'offre n'en demande aucun
+            ou si la combinaison n'existe pas dans le référentiel Talentsoft.
+      required:
+      - customCodeTable1
+      - date1
+      - longText1
+      - longText1Formatted
+      - longText2
+      - longText2Formatted
+      - longText3
+      - longText3Formatted
+      - shortText1
     FakeTsCodedObject:
       type: object
       properties:
@@ -4834,7 +4888,7 @@ components:
         description:
           $ref: '#/components/schemas/FakeTsDynamicField'
         applicantCriteria:
-          $ref: '#/components/schemas/FakeTsDynamicField'
+          $ref: '#/components/schemas/FakeTsApplicantCriteria'
         location:
           $ref: '#/components/schemas/FakeTsDynamicField'
         offerCustomBlock1:
