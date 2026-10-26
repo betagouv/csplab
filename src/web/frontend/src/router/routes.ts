@@ -139,10 +139,10 @@ const organismeRoutes: RouteRecordRaw[] = [
           },
           {
             path: 'etiquettes',
-            name: ORGANISME_TAB_ROUTE_NAMES.etiquettes,
+            name: ORGANISME_TAB_ROUTE_NAMES.tags,
             component: () => import('@/features/tags/components/TagsSection.vue'),
             props: true,
-            meta: organismeTabMeta('etiquettes'),
+            meta: organismeTabMeta('tags'),
           },
         ],
       },

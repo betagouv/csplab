@@ -15,7 +15,7 @@ describe('organisme scoped routes', () => {
     ['/organismes', 'organismes'],
     [`/organismes/${ORGANISME_UUID}`, 'organisme'],
     [`/organismes/${ORGANISME_UUID}/etapes`, 'organisme-etapes'],
-    [`/organismes/${ORGANISME_UUID}/etiquettes`, 'organisme-etiquettes'],
+    [`/organismes/${ORGANISME_UUID}/etiquettes`, 'organisme-tags'],
     [`/organismes/${ORGANISME_UUID}/recrutements`, 'recrutements'],
     [`/organismes/${ORGANISME_UUID}/recrutements/archives`, 'recrutements-archives'],
     [`/organismes/${ORGANISME_UUID}/recrutements/${RECRUTEMENT_UUID}`, 'recrutement-candidatures-kanban'],

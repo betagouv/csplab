@@ -12,7 +12,7 @@ export const ORGANISME_SECTION_ROUTE_NAMES = {
 export const ORGANISME_TAB_ROUTE_NAMES = {
   membres: 'organisme',
   etapes: 'organisme-etapes',
-  etiquettes: 'organisme-etiquettes',
+  tags: 'organisme-tags',
 } as const
 
 export const RECRUTEMENTS_TAB_ROUTE_NAMES = {
