@@ -6,6 +6,20 @@ champs et de leurs règles se trouve dans le [guide de l'API](/pages/guide_api).
 
 Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/).
 
+## 2026-10-26
+
+### ⚠️ Changements non rétrocompatibles
+
+`POST /api/v1/organismes/creer_modifier` : un organisme dont `localisation.pays` n'est pas
+un code ISO 3166-1 alpha-3 en majuscules (`fra`, `XXX`…) est désormais rejeté. Il
+apparaît dans `errors`, avec le message « Code pays invalide, un code ISO 3166-1 alpha-3
+en majuscules est attendu (ex. FRA). ». Jusqu'ici, tout code de 3 caractères était
+enregistré tel quel.
+
+### Compatibilité
+
+Envoyez un code pays ISO 3166-1 alpha-3 existant, en majuscules (`FRA`, `BEL`…).
+
 ## 2026-10-23
 
 ### ⚠️ Changements non rétrocompatibles
