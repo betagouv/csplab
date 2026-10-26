@@ -29,6 +29,12 @@ describe('cspTag: root element per variant', () => {
     expect(root).toHaveTextContent('Cat')
   })
 
+  it('static variant reads the DSFR tokens of its accent', () => {
+    const { root } = renderTag({ label: 'Cat', accent: 'green-emeraude' })
+    expect(root.style.getPropertyValue('--csp-tag-accent-background')).toBe('var(--background-action-low-green-emeraude)')
+    expect(root.style.getPropertyValue('--csp-tag-accent-text')).toBe('var(--text-action-high-green-emeraude)')
+  })
+
   it('clickable variant with href renders a link', () => {
     const { getByRole } = renderTag({ variant: 'clickable', label: 'Lien', href: '/x' })
     expect(getByRole('link', { name: 'Lien' })).toHaveAttribute('href', '/x')

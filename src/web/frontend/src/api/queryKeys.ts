@@ -17,6 +17,9 @@ export const organismeKeys = {
   etapes: (params: OrganismeParams) => {
     return [...organismeKeys.root(params), 'parametres', 'etapes'] as const
   },
+  tags: (params: OrganismeParams) => {
+    return [...organismeKeys.root(params), 'parametres', 'tags'] as const
+  },
   motifsRefus: (params: OrganismeParams) => {
     return [...organismeKeys.root(params), 'parametres', 'motifs-refus'] as const
   },

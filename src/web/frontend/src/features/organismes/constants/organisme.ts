@@ -19,11 +19,13 @@ export const ROLE_LABELS: Record<Role, string> = {
 export const ORGANISME_TAB_LABELS = {
   membres: 'Membres',
   etapes: 'Étapes de recrutement',
+  tags: 'Étiquettes',
 } as const
 
 export const ORGANISME_TAB_ICONS = {
   membres: 'ri:group-line',
   etapes: 'ri:route-line',
+  tags: 'ri:price-tag-3-line',
 } as const
 
 export type OrganismeTabKey = keyof typeof ORGANISME_TAB_LABELS
