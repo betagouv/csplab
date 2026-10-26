@@ -793,6 +793,39 @@ class TestOffersUpsertViewDbVerified:
         for attr in COMPARABLE_OFFER_ATTRS:
             assert getattr(persisted, attr) == getattr(expected, attr)
 
+    def test_localisation_without_coordinates_is_persisted_with_null_coordinates(
+        self, authenticated_client_with_source
+    ):
+        MetierDjangoFactory(offer_family_code="ERNUM001")
+        offer = PayloadOfferFactory.create(
+            identification={"reference": "REF-SANS-GPS", "versant": "FPT"},
+            localisation=[
+                {
+                    "zone_geographique": "EU",
+                    "pays": "FRA",
+                    "region": "03",
+                    "departement": "14",
+                    "localisation_label": "Caen",
+                }
+            ],
+        )
+
+        response = authenticated_client_with_source.post(
+            URL,
+            data={"source_id": SOURCE_UUID, "offres": [offer]},
+            content_type="application/json",
+        )
+
+        assert response.status_code == status.HTTP_201_CREATED
+        assert response.json()["errors"] == []
+        offer_model = OfferModel.objects.get(
+            reference="REF-SANS-GPS", source_id=UUID(SOURCE_UUID)
+        )
+        localisation = OfferMapper().to_domain(offer_model).localisation
+        assert localisation.label == "Caen"
+        assert localisation.latitude is None
+        assert localisation.longitude is None
+
     def test_auto_references_are_generated_and_returned_with_their_index(
         self, authenticated_client_with_source
     ):

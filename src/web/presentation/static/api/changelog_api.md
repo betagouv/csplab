@@ -6,7 +6,7 @@ champs et de leurs règles se trouve dans le [guide de l'API](/pages/guide_api).
 
 Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/).
 
-## 2026-10-23
+## 2026-10-26
 
 ### ⚠️ Changements non rétrocompatibles
 
@@ -19,6 +19,14 @@ département obligatoires pour une offre en France » ne s'appliquait pas.
 ### Compatibilité
 
 Envoyez le code pays en majuscules (`FRA`, `BEL`…).
+
+### Corrigé
+
+- `POST /api/v1/offres/creer_modifier` : `latitude` et `longitude` peuvent désormais
+  être omises dans un élément de `localisation`, comme l'indique le guide de l'API.
+  Jusqu'ici, une offre sans ces clés était rejetée avec « Ce champ est obligatoire. »,
+  et il fallait les envoyer à `null`. Les deux écritures sont acceptées et donnent une
+  localisation sans coordonnées.
 
 ## 2026-10-22
 

@@ -232,6 +232,7 @@ def test_agent_authorized_actions_exclude_recrutement_level(
     assert response.json()["organismes"][0]["authorized_actions"] == [
         "list_recrutements",
         "get_motifs_refus",
+        "list_tags",
     ]
 
 
@@ -289,6 +290,7 @@ def test_agent_not_responsable_of_a_recrutement_gets_no_agent_management_actions
     assert response.json()["organismes"][0]["authorized_actions"] == [
         "list_recrutements",
         "get_motifs_refus",
+        "list_tags",
     ]
 
 
