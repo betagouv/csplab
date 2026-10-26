@@ -3,7 +3,7 @@ import type { EtapeRecrutement } from '../types'
 import { ref } from 'vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspPopover from '@/components/base/CspPopover/CspPopover.vue'
-import ChangerEtapeForm from './ChangerEtapeForm.vue'
+import EtapeChangeForm from './EtapeChangeForm.vue'
 
 defineProps<{
   etapes: EtapeRecrutement[]
@@ -36,7 +36,7 @@ function handleConfirm(targetEtapeUuid: string): void {
         size="sm"
       />
     </template>
-    <ChangerEtapeForm
+    <EtapeChangeForm
       :etapes="etapes"
       :current-etape-uuid="currentEtapeUuid"
       @confirm="handleConfirm"

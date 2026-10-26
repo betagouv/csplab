@@ -2,15 +2,15 @@ import { render, screen } from '@testing-library/vue'
 import { describe, expect, it } from 'vitest'
 import { AGENT_RECHERCHE } from '@/test/fixtures/organismes'
 import { setupUser } from '@/test/render'
-import AjoutMembreEquipeForm from './AjoutMembreEquipeForm.vue'
+import AddTeamMemberForm from './AddTeamMemberForm.vue'
 
 function renderForm(props: Record<string, unknown> = {}) {
-  return render(AjoutMembreEquipeForm, {
+  return render(AddTeamMemberForm, {
     props: { status: 'idle', ...props },
   })
 }
 
-describe('ajoutMembreEquipeForm', () => {
+describe('addTeamMemberForm', () => {
   it('offers no role and no submission before the search has answered', () => {
     renderForm()
 

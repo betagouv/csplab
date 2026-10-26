@@ -32,7 +32,7 @@ import { useRouteOrganisme } from '@/stores/routeOrganisme'
 import { pluralize } from '@/utils/format'
 import ForbiddenView from '@/views/ForbiddenView.vue'
 import { RECRUTEMENTS_ACTIFS_COLUMNS, RECRUTEMENTS_ARCHIVES_COLUMNS } from '../columns'
-import AssignationResponsableForm from '../components/AssignationResponsableForm.vue'
+import AssignResponsableForm from '../components/AssignResponsableForm.vue'
 import RecrutementsActifsFiltersDrawer from '../components/RecrutementsActifsFiltersDrawer.vue'
 import RecrutementsArchivesFiltersDrawer from '../components/RecrutementsArchivesFiltersDrawer.vue'
 import { useAssignResponsable } from '../composables/useAssignResponsable'
@@ -142,12 +142,12 @@ function assignationErrorTitle(assignationError: unknown): string {
   return 'L\'assignation du responsable a échoué'
 }
 
-function openAssignation() {
+function openAssignment() {
   resetResponsable()
   assignationDrawer.open()
 }
 
-function removeFromAssignation(recrutementUuid: string) {
+function removeFromAssignment(recrutementUuid: string) {
   selection.toggle(recrutementUuid)
   if (selection.count.value === 0) {
     assignationDrawer.close()
@@ -248,7 +248,7 @@ const archivesCountLabel = computed(() => {
             <template #selection-actions>
               <CspButton
                 label="Assigner un responsable"
-                @click="openAssignation"
+                @click="openAssignment"
               />
             </template>
             <template #status>
@@ -292,13 +292,13 @@ const archivesCountLabel = computed(() => {
             title="Assigner un responsable"
             size="md"
           >
-            <AssignationResponsableForm
+            <AssignResponsableForm
               :recrutements="selection.selected.value"
               :status="responsableStatus"
               :agent="foundAgent"
               :searching="searching"
               :submitting="submitting"
-              @remove="removeFromAssignation"
+              @remove="removeFromAssignment"
               @search="searchResponsable"
               @assign="handleAssign"
               @reset="resetResponsable"

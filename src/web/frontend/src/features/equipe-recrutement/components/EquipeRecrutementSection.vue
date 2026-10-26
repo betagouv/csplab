@@ -21,7 +21,7 @@ import { useAddAgentToRecrutement } from '../composables/useAddAgentToRecrutemen
 import { useEquipeRecrutement } from '../composables/useEquipeRecrutement'
 import { provideMembreEquipeActions } from '../composables/useMembreEquipeActions'
 import { RECRUTEMENT_ROLE_LABELS } from '../constants/equipe-recrutement'
-import AjoutMembreEquipeForm from './AjoutMembreEquipeForm.vue'
+import AddTeamMemberForm from './AddTeamMemberForm.vue'
 
 const props = defineProps<{
   organismeUuid: string
@@ -50,8 +50,8 @@ const { addToast } = useToast()
 const showSkeleton = useMinimumPending(pending)
 
 const page = ref(1)
-const ajoutDrawerOpen = ref(false)
-const ajoutEmailError = ref('')
+const addMemberDrawerOpen = ref(false)
+const addMemberEmailError = ref('')
 const revocationDialogOpen = ref(false)
 
 const columns = computed(() =>
@@ -61,13 +61,13 @@ const columns = computed(() =>
 )
 
 function resetAgentSearch(): void {
-  ajoutEmailError.value = ''
+  addMemberEmailError.value = ''
   resetAgent()
 }
 
-function openAjoutDrawer(): void {
+function openAddMemberDrawer(): void {
   resetAgentSearch()
-  ajoutDrawerOpen.value = true
+  addMemberDrawerOpen.value = true
 }
 
 async function handleAdd(role: RecrutementRole) {
@@ -78,11 +78,11 @@ async function handleAdd(role: RecrutementRole) {
       title: 'Membre ajouté',
       description: `${formatAgentLabel(membre)} a rejoint l'équipe de recrutement.`,
     })
-    ajoutDrawerOpen.value = false
+    addMemberDrawerOpen.value = false
   }
   catch (submitError) {
     if (isHttpStatus(submitError, 409)) {
-      ajoutEmailError.value = 'Cette personne fait déjà partie de l\'équipe.'
+      addMemberEmailError.value = 'Cette personne fait déjà partie de l\'équipe.'
       return
     }
     addToast({ variant: 'error', title: 'L\'ajout du membre a échoué' })
@@ -194,7 +194,7 @@ const countLabel = computed(() => {
           label="Ajouter un membre"
           icon="ri:user-add-line"
           is-icon-left
-          @click="openAjoutDrawer"
+          @click="openAddMemberDrawer"
         />
       </CspTableToolbar>
       <CspDataTable
@@ -221,20 +221,20 @@ const countLabel = computed(() => {
     </CspAsyncSection>
 
     <CspDrawer
-      v-model:open="ajoutDrawerOpen"
+      v-model:open="addMemberDrawerOpen"
       title="Ajouter un membre"
       size="md"
     >
-      <AjoutMembreEquipeForm
+      <AddTeamMemberForm
         :status="agentStatus"
         :agent="foundAgent"
         :searching="searching"
         :submitting="submitting"
-        :email-error="ajoutEmailError"
+        :email-error="addMemberEmailError"
         @search="searchAgent"
         @add="handleAdd"
         @reset="resetAgentSearch"
-        @cancel="ajoutDrawerOpen = false"
+        @cancel="addMemberDrawerOpen = false"
       />
     </CspDrawer>
 

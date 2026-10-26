@@ -12,7 +12,7 @@ vi.mock('../api', () => ({
 }))
 
 const SIRET = '11004601800021'
-const SIRET_REFUSE = 'Ce SIRET est déjà utilisé ou n\'est pas valide.'
+const REJECTED_SIRET_MESSAGE = 'Ce SIRET est déjà utilisé ou n\'est pas valide.'
 
 describe('organismesSection', () => {
   beforeEach(() => {
@@ -29,7 +29,7 @@ describe('organismesSection', () => {
     await user.type(screen.getByRole('textbox', { name: 'SIRET de l\'organisme' }), SIRET)
     await user.click(screen.getByRole('radio', { name: 'Fonction Publique d\'État' }))
     await user.click(screen.getByRole('button', { name: 'Créer l\'organisme' }))
-    expect(await screen.findByText(SIRET_REFUSE)).toBeInTheDocument()
+    expect(await screen.findByText(REJECTED_SIRET_MESSAGE)).toBeInTheDocument()
 
     await user.click(screen.getByRole('button', { name: 'Annuler' }))
     await user.click(screen.getByRole('button', { name: 'Ajouter un organisme' }))
@@ -37,6 +37,6 @@ describe('organismesSection', () => {
     expect(siret).toHaveValue('')
     await user.type(siret, SIRET)
 
-    expect(screen.queryByText(SIRET_REFUSE)).not.toBeInTheDocument()
+    expect(screen.queryByText(REJECTED_SIRET_MESSAGE)).not.toBeInTheDocument()
   })
 })

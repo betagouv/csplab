@@ -48,7 +48,7 @@ function handleSubmit(): void {
 
 <template>
   <form
-    class="ajout-membre-equipe-form"
+    class="add-team-member-form"
     novalidate
     @submit.prevent="handleSubmit"
   >
@@ -70,7 +70,7 @@ function handleSubmit(): void {
       :options="ROLE_OPTIONS"
     />
 
-    <div class="ajout-membre-equipe-form__actions">
+    <div class="add-team-member-form__actions">
       <CspButton
         variant="secondary"
         type="button"
@@ -90,13 +90,13 @@ function handleSubmit(): void {
 </template>
 
 <style scoped lang="scss">
-.ajout-membre-equipe-form {
+.add-team-member-form {
   display: flex;
   flex-direction: column;
   gap: var(--csp-drawer-body-gap);
 }
 
-.ajout-membre-equipe-form__actions {
+.add-team-member-form__actions {
   display: flex;
   justify-content: flex-end;
   gap: var(--csp-space-3);

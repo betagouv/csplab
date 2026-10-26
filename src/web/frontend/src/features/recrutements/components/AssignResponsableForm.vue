@@ -48,18 +48,18 @@ function handleSubmit(): void {
 
 <template>
   <form
-    class="assignation-responsable-form"
+    class="assign-responsable-form"
     novalidate
     @submit.prevent="handleSubmit"
   >
     <section>
-      <p class="assignation-responsable-form__count">
+      <p class="assign-responsable-form__count">
         {{ offresLabel }}
       </p>
-      <p class="assignation-responsable-form__lead">
+      <p class="assign-responsable-form__lead">
         Le responsable sélectionné sera affecté à l'ensemble des offres sélectionnées.
       </p>
-      <ul class="assignation-responsable-form__tags">
+      <ul class="assign-responsable-form__tags">
         <li
           v-for="recrutement in recrutements"
           :key="recrutement.uuid"
@@ -84,7 +84,7 @@ function handleSubmit(): void {
       @reset="emit('reset')"
     />
 
-    <div class="assignation-responsable-form__actions">
+    <div class="assign-responsable-form__actions">
       <CspButton
         variant="secondary"
         type="button"
@@ -102,25 +102,25 @@ function handleSubmit(): void {
 </template>
 
 <style scoped lang="scss">
-.assignation-responsable-form {
+.assign-responsable-form {
   display: flex;
   flex-direction: column;
   gap: var(--csp-drawer-body-gap);
 }
 
-.assignation-responsable-form__count {
+.assign-responsable-form__count {
   margin: 0;
   font-size: 0.9375rem;
   color: var(--text-mention-grey);
 }
 
-.assignation-responsable-form__lead {
+.assign-responsable-form__lead {
   margin: var(--csp-space-1) 0 var(--csp-space-3);
   color: var(--text-mention-grey);
   font-size: 0.875rem;
 }
 
-.assignation-responsable-form__tags {
+.assign-responsable-form__tags {
   display: flex;
   flex-wrap: wrap;
   gap: var(--csp-space-2);
@@ -129,7 +129,7 @@ function handleSubmit(): void {
   list-style: none;
 }
 
-.assignation-responsable-form__actions {
+.assign-responsable-form__actions {
   display: flex;
   justify-content: flex-end;
   gap: var(--csp-space-3);

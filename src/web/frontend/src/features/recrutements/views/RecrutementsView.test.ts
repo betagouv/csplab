@@ -26,11 +26,11 @@ vi.mock('@/api/utilisateur', () => ({
 }))
 
 const RECRUTEMENTS_PATH = `/organismes/${ORGANISME_UUID}/recrutements`
-const [PREMIER] = RECRUTEMENTS_ACTIFS
+const [FIRST_RECRUTEMENT] = RECRUTEMENTS_ACTIFS
 
-async function openAssignationFor(user: ReturnType<typeof setupUser>) {
+async function openAssignmentFor(user: ReturnType<typeof setupUser>) {
   await renderWithApp(RouterView, { route: RECRUTEMENTS_PATH })
-  await user.click(await screen.findByRole('checkbox', { name: `Sélectionner ${PREMIER.intitule}` }))
+  await user.click(await screen.findByRole('checkbox', { name: `Sélectionner ${FIRST_RECRUTEMENT.intitule}` }))
   await user.click(screen.getByRole('button', { name: 'Assigner un responsable' }))
 }
 
@@ -44,7 +44,7 @@ describe('recrutementsView', () => {
 
   it('starts a new search each time the assignation drawer opens', async () => {
     const user = setupUser()
-    await openAssignationFor(user)
+    await openAssignmentFor(user)
 
     await user.type(await screen.findByRole('searchbox', { name: /Responsable/ }), `${AGENT_RECHERCHE.email}{Enter}`)
     await screen.findByText('Jeanne Dupont')
@@ -57,9 +57,9 @@ describe('recrutementsView', () => {
 
   it('closes the assignation drawer once the last offer is removed', async () => {
     const user = setupUser()
-    await openAssignationFor(user)
+    await openAssignmentFor(user)
 
-    await user.click(await screen.findByRole('button', { name: `Retirer ${PREMIER.intitule} de la sélection` }))
+    await user.click(await screen.findByRole('button', { name: `Retirer ${FIRST_RECRUTEMENT.intitule} de la sélection` }))
 
     await vi.waitFor(() => expect(screen.queryByRole('dialog', { name: 'Assigner un responsable' })).not.toBeInTheDocument())
   })

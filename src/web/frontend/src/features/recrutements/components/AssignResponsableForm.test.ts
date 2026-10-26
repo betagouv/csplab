@@ -3,12 +3,12 @@ import { describe, expect, it } from 'vitest'
 import { AGENT_RECHERCHE } from '@/test/fixtures/organismes'
 import { RECRUTEMENTS_ACTIFS } from '@/test/fixtures/recrutements'
 import { setupUser } from '@/test/render'
-import AssignationResponsableForm from './AssignationResponsableForm.vue'
+import AssignResponsableForm from './AssignResponsableForm.vue'
 
 const RECRUTEMENTS = RECRUTEMENTS_ACTIFS.slice(0, 2)
 
 function renderForm(props: Record<string, unknown> = {}) {
-  return render(AssignationResponsableForm, {
+  return render(AssignResponsableForm, {
     props: { recrutements: RECRUTEMENTS, status: 'idle', ...props },
   })
 }
@@ -17,7 +17,7 @@ function dismissButton(intitule: string) {
   return screen.getByRole('button', { name: `Retirer ${intitule} de la sélection` })
 }
 
-describe('assignationResponsableForm', () => {
+describe('assignResponsableForm', () => {
   it('assigns the agent found for that email', async () => {
     const user = setupUser()
     const { emitted } = renderForm({ status: 'found', agent: AGENT_RECHERCHE })

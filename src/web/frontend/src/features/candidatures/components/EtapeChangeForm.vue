@@ -32,7 +32,7 @@ function handleConfirm(): void {
 </script>
 
 <template>
-  <div class="changer-etape-form">
+  <div class="etape-change-form">
     <CspRadioGroup
       v-model="selectedEtapeUuid"
       label="Nouvelle étape"
@@ -49,7 +49,7 @@ function handleConfirm(): void {
 </template>
 
 <style scoped lang="scss">
-.changer-etape-form {
+.etape-change-form {
   display: flex;
   flex-direction: column;
   gap: var(--csp-space-4);
