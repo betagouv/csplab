@@ -5,12 +5,13 @@ import { HttpError } from '@/api/errors'
 import { CANDIDATURE_PANEL_ROUTE_NAMES } from '@/router/names'
 import { CANDIDATURE_PARAMS, KANBAN_PATH } from '@/test/fixtures/candidatures'
 import { renderWithApp, setupUser } from '@/test/render'
-import { getCandidatureNotes } from '../api'
+import { getCandidatureNotes, updateCandidatureNote } from '../api'
 import CandidatureNotes from './CandidatureNotes.vue'
 
 vi.mock('../api', async importOriginal => ({
   ...await importOriginal<typeof import('../api')>(),
   getCandidatureNotes: vi.fn(),
+  updateCandidatureNote: vi.fn(),
 }))
 
 function note(overrides: Partial<Note>): Note {
@@ -28,9 +29,9 @@ function note(overrides: Partial<Note>): Note {
 
 const NOTES_PATH = `${KANBAN_PATH}/candidatures/${CANDIDATURE_PARAMS.candidatureUuid}/notes`
 
-function renderNotes() {
+function renderNotes(route = NOTES_PATH) {
   return renderWithApp(CandidatureNotes, {
-    route: NOTES_PATH,
+    route,
     props: { candidature: CANDIDATURE_PARAMS, routes: CANDIDATURE_PANEL_ROUTE_NAMES.kanban.notes },
   })
 }
@@ -83,5 +84,28 @@ describe('candidatureNotes', () => {
     await renderNotes()
 
     expect(await screen.findByText('Les notes n\'ont pas pu être chargées.')).toBeInTheDocument()
+  })
+
+  it('edits the note targeted by the route', async () => {
+    const results = [
+      note({}),
+      note({ uuid: 'ffffffff-0001-0001-0001-000000000002', message: 'À recontacter' }),
+    ]
+    vi.mocked(getCandidatureNotes).mockResolvedValue({ count: 2, results })
+    vi.mocked(updateCandidatureNote).mockResolvedValue()
+    const user = setupUser()
+    const { router } = await renderNotes(`${NOTES_PATH}/ffffffff-0001-0001-0001-000000000002/modifier`)
+
+    const field = await screen.findByRole('textbox', { name: 'Modifier la note' })
+    expect(field).toHaveValue('À recontacter')
+
+    await user.type(field, ' demain')
+    await user.click(screen.getByRole('button', { name: 'Enregistrer la note' }))
+
+    expect(updateCandidatureNote).toHaveBeenCalledWith(
+      { ...CANDIDATURE_PARAMS, noteUuid: 'ffffffff-0001-0001-0001-000000000002' },
+      'À recontacter demain',
+    )
+    await vi.waitFor(() => expect(router.currentRoute.value.path).toBe(NOTES_PATH))
   })
 })

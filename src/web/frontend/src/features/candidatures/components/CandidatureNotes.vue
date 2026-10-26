@@ -12,6 +12,7 @@ import { useMinimumPending } from '@/composables/async/useMinimumPending'
 import { formatDateTime } from '@/utils/date'
 import { pluralize } from '@/utils/format'
 import { useCandidatureNotes } from '../composables/useCandidatureNotes'
+import CandidatureEditNoteForm from './CandidatureEditNoteForm.vue'
 import CandidatureNewNoteForm from './CandidatureNewNoteForm.vue'
 import CandidatureNoteMessage from './CandidatureNoteMessage.vue'
 
@@ -30,6 +31,11 @@ const title = computed(() => `${total.value} ${pluralize(total.value, 'note')}`)
 
 const route = useRoute()
 const isCreatingNote = computed(() => route.name === props.routes.create)
+const editedNote = computed(() =>
+  route.name === props.routes.edit
+    ? notes.value.find(({ uuid }) => uuid === route.params.noteUuid)
+    : undefined,
+)
 
 const router = useRouter()
 
@@ -47,6 +53,13 @@ function startNote(): void {
     v-if="isCreatingNote"
     :candidature="candidature"
     :routes="routes"
+  />
+  <CandidatureEditNoteForm
+    v-else-if="editedNote"
+    :key="editedNote.uuid"
+    :candidature="candidature"
+    :routes="routes"
+    :note="editedNote"
   />
   <section
     v-else
