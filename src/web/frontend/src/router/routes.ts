@@ -137,6 +137,13 @@ const organismeRoutes: RouteRecordRaw[] = [
             }),
             meta: organismeTabMeta('etapes'),
           },
+          {
+            path: 'etiquettes',
+            name: ORGANISME_TAB_ROUTE_NAMES.etiquettes,
+            component: () => import('@/features/tags/components/TagsSection.vue'),
+            props: true,
+            meta: organismeTabMeta('etiquettes'),
+          },
         ],
       },
     ],
