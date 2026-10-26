@@ -108,4 +108,20 @@ describe('candidatureNotes', () => {
     )
     await vi.waitFor(() => expect(router.currentRoute.value.path).toBe(NOTES_PATH))
   })
+
+  it('opens the edition of the note picked from its menu', async () => {
+    const results = [
+      note({}),
+      note({ uuid: 'ffffffff-0001-0001-0001-000000000002', message: 'À recontacter', publie_par_prenom: 'Paul', publie_par_nom: 'Bernard' }),
+    ]
+    vi.mocked(getCandidatureNotes).mockResolvedValue({ count: 2, results })
+    const user = setupUser()
+    const { router } = await renderNotes()
+
+    await user.click(await screen.findByRole('button', { name: 'Actions sur la note de Paul Bernard' }))
+    await user.click(await screen.findByRole('menuitem', { name: 'Modifier la note' }))
+
+    await vi.waitFor(() => expect(router.currentRoute.value.path).toBe(`${NOTES_PATH}/ffffffff-0001-0001-0001-000000000002/modifier`))
+    expect(await screen.findByRole('textbox', { name: 'Modifier la note' })).toHaveValue('À recontacter')
+  })
 })
