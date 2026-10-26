@@ -3,9 +3,8 @@ import type { RecrutementRole } from '../types'
 import type { CspRadioGroupOption } from '@/components/base/CspRadioGroup/CspRadioGroup.vue'
 import type { AgentSearchStatus } from '@/features/agents/composables/useFindOrCreateAgent'
 import type { AgentRecherche } from '@/features/agents/types'
-import { computed, ref, watch } from 'vue'
+import { computed, ref } from 'vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
-import CspDrawer from '@/components/base/CspDrawer/CspDrawer.vue'
 import CspRadioGroup from '@/components/base/CspRadioGroup/CspRadioGroup.vue'
 import AgentRechercheForm from '@/features/agents/components/AgentRechercheForm.vue'
 import { RECRUTEMENT_ROLE_LABELS } from '../constants/equipe-recrutement'
@@ -15,15 +14,15 @@ const props = defineProps<{
   agent?: AgentRecherche | null
   searching?: boolean
   submitting?: boolean
+  emailError?: string
 }>()
 
 const emit = defineEmits<{
   search: [email: string]
   add: [role: RecrutementRole]
   reset: []
+  cancel: []
 }>()
-
-const open = defineModel<boolean>('open', { required: true })
 
 const DEFAULT_ROLE: RecrutementRole = 'contributeur'
 
@@ -33,7 +32,6 @@ const ROLE_OPTIONS: CspRadioGroupOption[] = (
 
 const email = ref('')
 const role = ref<RecrutementRole>(DEFAULT_ROLE)
-const error = ref('')
 
 const isFound = computed(() => props.status === 'found')
 
@@ -41,89 +39,64 @@ const isSearched = computed(() => props.status !== 'idle')
 
 const submitLabel = computed(() => isFound.value ? 'Ajouter le membre' : 'Créer et ajouter')
 
-watch(open, (isOpen) => {
-  if (!isOpen) {
-    email.value = ''
-    role.value = DEFAULT_ROLE
-    error.value = ''
-  }
-})
-
-function handleReset(): void {
-  error.value = ''
-  emit('reset')
-}
-
 function handleSubmit(): void {
   if (isSearched.value) {
     emit('add', role.value)
   }
 }
-
-function setEmailError(message: string): void {
-  error.value = message
-}
-
-defineExpose({ setEmailError })
 </script>
 
 <template>
-  <CspDrawer
-    v-model:open="open"
-    title="Ajouter un membre"
-    size="md"
+  <form
+    class="ajout-membre-equipe-form"
+    novalidate
+    @submit.prevent="handleSubmit"
   >
-    <form
-      class="ajout-membre-equipe-drawer"
-      novalidate
-      @submit.prevent="handleSubmit"
-    >
-      <AgentRechercheForm
-        v-model="email"
-        :status="status"
-        :agent="agent"
-        :searching="searching"
-        :error-message="error"
-        @search="emit('search', $event)"
-        @reset="handleReset"
-      />
+    <AgentRechercheForm
+      v-model="email"
+      :status="status"
+      :agent="agent"
+      :searching="searching"
+      :error-message="emailError"
+      @search="emit('search', $event)"
+      @reset="emit('reset')"
+    />
 
-      <CspRadioGroup
+    <CspRadioGroup
+      v-if="isSearched"
+      v-model="role"
+      label="Rôle dans le recrutement"
+      name="recrutement_role"
+      :options="ROLE_OPTIONS"
+    />
+
+    <div class="ajout-membre-equipe-form__actions">
+      <CspButton
+        variant="secondary"
+        type="button"
+        label="Annuler"
+        @click="emit('cancel')"
+      />
+      <CspButton
         v-if="isSearched"
-        v-model="role"
-        label="Rôle dans le recrutement"
-        name="recrutement_role"
-        :options="ROLE_OPTIONS"
+        type="submit"
+        :label="submitLabel"
+        icon="ri:user-add-line"
+        is-icon-left
+        :disabled="submitting"
       />
-
-      <div class="ajout-membre-equipe-drawer__actions">
-        <CspButton
-          variant="secondary"
-          type="button"
-          label="Annuler"
-          @click="open = false"
-        />
-        <CspButton
-          v-if="isSearched"
-          type="submit"
-          :label="submitLabel"
-          icon="ri:user-add-line"
-          is-icon-left
-          :disabled="submitting"
-        />
-      </div>
-    </form>
-  </CspDrawer>
+    </div>
+  </form>
 </template>
 
 <style scoped lang="scss">
-.ajout-membre-equipe-drawer {
+.ajout-membre-equipe-form {
   display: flex;
   flex-direction: column;
   gap: var(--csp-drawer-body-gap);
 }
 
-.ajout-membre-equipe-drawer__actions {
+.ajout-membre-equipe-form__actions {
   display: flex;
   justify-content: flex-end;
   gap: var(--csp-space-3);

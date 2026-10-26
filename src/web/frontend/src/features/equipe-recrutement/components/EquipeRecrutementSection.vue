@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import type { RecrutementRole } from '../types'
-import { computed, ref, useTemplateRef, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { isHttpStatus } from '@/api/errors'
 import CspAsyncSection from '@/components/base/CspAsyncSection/CspAsyncSection.vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspDataTable from '@/components/base/CspDataTable/CspDataTable.vue'
 import CspDialog from '@/components/base/CspDialog/CspDialog.vue'
+import CspDrawer from '@/components/base/CspDrawer/CspDrawer.vue'
 import CspSearchBar from '@/components/base/CspSearchBar/CspSearchBar.vue'
 import CspSkeletonTable from '@/components/base/CspSkeleton/CspSkeletonTable.vue'
 import CspTableToolbar from '@/components/base/CspTableToolbar/CspTableToolbar.vue'
@@ -20,7 +21,7 @@ import { useAddAgentToRecrutement } from '../composables/useAddAgentToRecrutemen
 import { useEquipeRecrutement } from '../composables/useEquipeRecrutement'
 import { provideMembreEquipeActions } from '../composables/useMembreEquipeActions'
 import { RECRUTEMENT_ROLE_LABELS } from '../constants/equipe-recrutement'
-import AjoutMembreEquipeDrawer from './AjoutMembreEquipeDrawer.vue'
+import AjoutMembreEquipeForm from './AjoutMembreEquipeForm.vue'
 
 const props = defineProps<{
   organismeUuid: string
@@ -50,7 +51,7 @@ const showSkeleton = useMinimumPending(pending)
 
 const page = ref(1)
 const ajoutDrawerOpen = ref(false)
-const ajoutDrawer = useTemplateRef('ajoutDrawer')
+const ajoutEmailError = ref('')
 const revocationDialogOpen = ref(false)
 
 const columns = computed(() =>
@@ -58,6 +59,16 @@ const columns = computed(() =>
     ? [...EQUIPE_RECRUTEMENT_COLUMNS, EQUIPE_RECRUTEMENT_ACTIONS_COLUMN]
     : EQUIPE_RECRUTEMENT_COLUMNS,
 )
+
+function resetAgentSearch(): void {
+  ajoutEmailError.value = ''
+  resetAgent()
+}
+
+function openAjoutDrawer(): void {
+  resetAgentSearch()
+  ajoutDrawerOpen.value = true
+}
 
 async function handleAdd(role: RecrutementRole) {
   try {
@@ -71,7 +82,7 @@ async function handleAdd(role: RecrutementRole) {
   }
   catch (submitError) {
     if (isHttpStatus(submitError, 409)) {
-      ajoutDrawer.value?.setEmailError('Cette personne fait déjà partie de l\'équipe.')
+      ajoutEmailError.value = 'Cette personne fait déjà partie de l\'équipe.'
       return
     }
     addToast({ variant: 'error', title: 'L\'ajout du membre a échoué' })
@@ -183,7 +194,7 @@ const countLabel = computed(() => {
           label="Ajouter un membre"
           icon="ri:user-add-line"
           is-icon-left
-          @click="ajoutDrawerOpen = true"
+          @click="openAjoutDrawer"
         />
       </CspTableToolbar>
       <CspDataTable
@@ -209,17 +220,23 @@ const countLabel = computed(() => {
       </CspDataTable>
     </CspAsyncSection>
 
-    <AjoutMembreEquipeDrawer
-      ref="ajoutDrawer"
+    <CspDrawer
       v-model:open="ajoutDrawerOpen"
-      :status="agentStatus"
-      :agent="foundAgent"
-      :searching="searching"
-      :submitting="submitting"
-      @search="searchAgent"
-      @add="handleAdd"
-      @reset="resetAgent"
-    />
+      title="Ajouter un membre"
+      size="md"
+    >
+      <AjoutMembreEquipeForm
+        :status="agentStatus"
+        :agent="foundAgent"
+        :searching="searching"
+        :submitting="submitting"
+        :email-error="ajoutEmailError"
+        @search="searchAgent"
+        @add="handleAdd"
+        @reset="resetAgentSearch"
+        @cancel="ajoutDrawerOpen = false"
+      />
+    </CspDrawer>
 
     <CspDialog
       v-model:open="revocationDialogOpen"

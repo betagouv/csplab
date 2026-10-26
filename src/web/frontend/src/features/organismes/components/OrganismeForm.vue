@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import type { CreateOrganismePayload, OrganismesList, UpdateOrganismePayload, Versant } from '../types'
-import { computed, ref, watch } from 'vue'
+import { computed, ref } from 'vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
-import CspDrawer from '@/components/base/CspDrawer/CspDrawer.vue'
 import CspInput from '@/components/base/CspInput/CspInput.vue'
 import CspRadioGroup from '@/components/base/CspRadioGroup/CspRadioGroup.vue'
 import { SIRET_LENGTH, VERSANT_LABELS } from '../constants/organisme'
@@ -11,41 +10,37 @@ import { isSiretValid } from '../siret'
 const props = defineProps<{
   organisme?: OrganismesList | null
   saving?: boolean
+  rejectedSiret?: string | null
 }>()
 
 const emit = defineEmits<{
   create: [payload: CreateOrganismePayload]
   update: [payload: UpdateOrganismePayload]
+  cancel: []
 }>()
-
-const open = defineModel<boolean>('open', { required: true })
 
 const isEdition = computed(() => Boolean(props.organisme))
 
-const nom = ref('')
-const siret = ref('')
-const versant = ref<string>('')
-const gestionAts = ref<'oui' | 'non'>('oui')
-const siretError = ref<string | null>(null)
+const nom = ref(props.organisme?.nom ?? '')
+const siret = ref(props.organisme?.siret ?? '')
+const versant = ref<string>(props.organisme?.versant ?? '')
+const gestionAts = ref<'oui' | 'non'>((props.organisme?.gestion_ats ?? true) ? 'oui' : 'non')
+const siretValidationError = ref<string | null>(null)
 
-watch(open, (isOpen) => {
-  if (!isOpen) {
-    return
+const siretError = computed(() => {
+  if (siretValidationError.value) {
+    return siretValidationError.value
   }
-  nom.value = props.organisme?.nom ?? ''
-  siret.value = props.organisme?.siret ?? ''
-  versant.value = props.organisme?.versant ?? ''
-  gestionAts.value = (props.organisme?.gestion_ats ?? true) ? 'oui' : 'non'
-  siretError.value = null
-}, { immediate: true })
-
-watch(siret, (value) => {
-  siretError.value = null
-  const digits = value.replace(/\D/g, '')
-  if (digits !== value) {
-    siret.value = digits
+  if (props.rejectedSiret && props.rejectedSiret === siret.value) {
+    return 'Ce SIRET est déjà utilisé ou n\'est pas valide.'
   }
+  return null
 })
+
+function handleSiretInput(value: string): void {
+  siretValidationError.value = null
+  siret.value = value.replace(/\D/g, '')
+}
 
 const VERSANT_OPTIONS = Object.entries(VERSANT_LABELS).map(
   ([value, label]) => ({ value, label }),
@@ -76,89 +71,78 @@ function handleSubmit(): void {
     return
   }
   if (siret.value.length !== SIRET_LENGTH) {
-    siretError.value = `Le SIRET doit comporter ${SIRET_LENGTH} chiffres.`
+    siretValidationError.value = `Le SIRET doit comporter ${SIRET_LENGTH} chiffres.`
     return
   }
   if (!isSiretValid(siret.value)) {
-    siretError.value = 'Ce SIRET n\'est pas valide, vérifiez votre saisie.'
+    siretValidationError.value = 'Ce SIRET n\'est pas valide, vérifiez votre saisie.'
     return
   }
   emit('create', { ...commonFields, siret: siret.value })
 }
-
-function setSiretError(message: string): void {
-  siretError.value = message
-}
-
-defineExpose({ setSiretError })
 </script>
 
 <template>
-  <CspDrawer
-    v-model:open="open"
-    :title="isEdition ? 'Modifier l\'organisme' : 'Ajouter un organisme'"
-    size="md"
+  <form
+    class="organisme-form"
+    @submit.prevent="handleSubmit"
   >
-    <form
-      class="organisme-form"
-      @submit.prevent="handleSubmit"
-    >
-      <p class="organisme-form__section-title">
-        Détail de l'organisme
-        <span class="organisme-form__required-hint">Champs obligatoires</span>
-      </p>
+    <p class="organisme-form__section-title">
+      Détail de l'organisme
+      <span class="organisme-form__required-hint">Champs obligatoires</span>
+    </p>
 
-      <CspInput
-        v-model="nom"
-        label="Nom de l'organisme"
-        name="nom"
-      />
+    <CspInput
+      v-model="nom"
+      label="Nom de l'organisme"
+      name="nom"
+    />
 
-      <CspInput
-        v-model="siret"
-        label="SIRET de l'organisme"
-        name="siret"
-        :disabled="isEdition"
-        :error="Boolean(siretError)"
-        :error-message="siretError ?? undefined"
-      />
+    <CspInput
+      :model-value="siret"
+      label="SIRET de l'organisme"
+      name="siret"
+      :disabled="isEdition"
+      :error="Boolean(siretError)"
+      :error-message="siretError ?? undefined"
+      @update:model-value="handleSiretInput"
+    />
 
+    <CspRadioGroup
+      v-model="versant"
+      label="Versant"
+      name="versant"
+      :options="VERSANT_OPTIONS"
+    />
+
+    <div>
       <CspRadioGroup
-        v-model="versant"
-        label="Versant"
-        name="versant"
-        :options="VERSANT_OPTIONS"
+        v-model="gestionAts"
+        label="Gestion des candidatures sur l'outil"
+        name="gestion_ats"
+        :options="GESTION_OPTIONS"
       />
+      <p class="organisme-form__hint">
+        L'organisme reçoit ses candidatures et traite ses recrutements sur l'outil
+      </p>
+    </div>
 
-      <div>
-        <CspRadioGroup
-          v-model="gestionAts"
-          label="Gestion des candidatures sur l'outil"
-          name="gestion_ats"
-          :options="GESTION_OPTIONS"
-        />
-        <p class="organisme-form__hint">
-          L'organisme reçoit ses candidatures et traite ses recrutements sur l'outil
-        </p>
-      </div>
-
-      <div class="organisme-form__actions">
-        <CspButton
-          type="submit"
-          :label="isEdition ? 'Enregistrer les modifications' : 'Créer l\'organisme'"
-          :icon="isEdition ? undefined : 'ri:add-line'"
-          is-icon-left
-          :disabled="!canSubmit || saving"
-        />
-        <CspButton
-          variant="secondary"
-          type="button"
-          label="Annuler"
-          @click="open = false"
-        />
-      </div>
-    </form>
-  </CspDrawer>
+    <div class="organisme-form__actions">
+      <CspButton
+        type="submit"
+        :label="isEdition ? 'Enregistrer les modifications' : 'Créer l\'organisme'"
+        :icon="isEdition ? undefined : 'ri:add-line'"
+        is-icon-left
+        :disabled="!canSubmit || saving"
+      />
+      <CspButton
+        variant="secondary"
+        type="button"
+        label="Annuler"
+        @click="emit('cancel')"
+      />
+    </div>
+  </form>
 </template>
 
 <style scoped lang="scss">
