@@ -1,18 +1,20 @@
 <script setup lang="ts">
 import type { Note, NoteRouteNames } from '../types'
 import type { CandidatureParams } from '@/api/params'
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import CspAsyncSection from '@/components/base/CspAsyncSection/CspAsyncSection.vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspCard from '@/components/base/CspCard/CspCard.vue'
+import CspDialog from '@/components/base/CspDialog/CspDialog.vue'
 import CspDropdownMenu from '@/components/base/CspDropdownMenu/CspDropdownMenu.vue'
 import CspEmptyState from '@/components/base/CspEmptyState/CspEmptyState.vue'
 import CspSkeleton from '@/components/base/CspSkeleton/CspSkeleton.vue'
 import { useMinimumPending } from '@/composables/async/useMinimumPending'
+import { useToast } from '@/composables/ui/useToast'
 import { formatDateTime } from '@/utils/date'
 import { pluralize } from '@/utils/format'
-import { useCandidatureNotes } from '../composables/useCandidatureNotes'
+import { useCandidatureNotes, useDeleteCandidatureNote } from '../composables/useCandidatureNotes'
 import CandidatureEditNoteForm from './CandidatureEditNoteForm.vue'
 import CandidatureNewNoteForm from './CandidatureNewNoteForm.vue'
 import CandidatureNoteMessage from './CandidatureNoteMessage.vue'
@@ -56,6 +58,33 @@ function editNote(noteUuid: string): void {
   })
 }
 
+const { remove, removing } = useDeleteCandidatureNote(() => props.candidature)
+const { addToast } = useToast()
+
+const noteToDelete = ref<Note | null>(null)
+const deletionDialogOpen = computed({
+  get: () => noteToDelete.value !== null,
+  set: (open) => {
+    if (!open) {
+      noteToDelete.value = null
+    }
+  },
+})
+
+async function confirmDeletion(): Promise<void> {
+  if (!noteToDelete.value) {
+    return
+  }
+  try {
+    await remove(noteToDelete.value.uuid)
+    addToast({ variant: 'success', title: 'Note supprimée' })
+    noteToDelete.value = null
+  }
+  catch {
+    addToast({ variant: 'error', title: 'La suppression de la note a échoué' })
+  }
+}
+
 function noteActions(note: Note) {
   return [
     {
@@ -64,6 +93,18 @@ function noteActions(note: Note) {
           label: 'Modifier la note',
           icon: 'ri:pencil-line',
           onSelect: () => editNote(note.uuid),
+        },
+      ],
+    },
+    {
+      items: [
+        {
+          label: 'Supprimer la note',
+          icon: 'ri:delete-bin-line',
+          destructive: true,
+          onSelect: () => {
+            noteToDelete.value = note
+          },
         },
       ],
     },
@@ -201,6 +242,27 @@ function noteActions(note: Note) {
         </ul>
       </template>
     </CspAsyncSection>
+
+    <CspDialog
+      v-model:open="deletionDialogOpen"
+      title="Supprimer la note"
+      size="sm"
+    >
+      Cette note sera supprimée définitivement.
+
+      <template #footer>
+        <CspButton
+          label="Annuler"
+          variant="secondary"
+          @click="deletionDialogOpen = false"
+        />
+        <CspButton
+          label="Supprimer la note"
+          :disabled="removing"
+          @click="confirmDeletion"
+        />
+      </template>
+    </CspDialog>
   </section>
 </template>
 
