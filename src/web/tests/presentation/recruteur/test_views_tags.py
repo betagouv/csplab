@@ -21,6 +21,8 @@ from infrastructure.factories.identite.utilisateur_django_factory import (
 )
 from infrastructure.factories.tag.tag_django_factory import (
     CandidatureTagDjangoFactory,
+    NoteTagDjangoFactory,
+    RecrutementAgentTagDjangoFactory,
     TagDjangoFactory,
 )
 from infrastructure.repositories.commons.postgres_audit_log_repository import (
@@ -166,13 +168,66 @@ class TestListTags:
                 "name": "Expert",
                 "category": "recrutement_agent",
                 "color": "violet",
+                "usage_count": 0,
             }
         ]
 
-    def test_filters_by_category(self, authenticated_client, agent_organisme):
-        note_tag = TagDjangoFactory(
-            organisme=agent_organisme, category=TagCategory.NOTE
+    @pytest.mark.parametrize(
+        "link_factory",
+        [
+            CandidatureTagDjangoFactory,
+            RecrutementAgentTagDjangoFactory,
+            NoteTagDjangoFactory,
+        ],
+        ids=["candidature", "recrutement_agent", "note"],
+    )
+    def test_counts_tag_usages(
+        self, authenticated_client, agent_organisme, link_factory
+    ):
+        tag = link_factory(tag__organisme=agent_organisme).tag
+        link_factory(tag=tag)
+
+        response = authenticated_client.get(_tags_url(agent_organisme.id))
+
+        assert [t["usage_count"] for t in response.json()["results"]] == [2]
+
+    def test_does_not_count_deleted_notes(self, authenticated_client, agent_organisme):
+        tag = TagDjangoFactory(organisme=agent_organisme, category=TagCategory.NOTE)
+        NoteTagDjangoFactory(tag=tag)
+        NoteTagDjangoFactory(tag=tag, note__supprimee_le=datetime.now(UTC))
+
+        response = authenticated_client.get(_tags_url(agent_organisme.id))
+
+        assert [t["usage_count"] for t in response.json()["results"]] == [1]
+
+    def test_does_not_count_revoked_recrutement_agents(
+        self, authenticated_client, agent_organisme
+    ):
+        tag = TagDjangoFactory(
+            organisme=agent_organisme, category=TagCategory.RECRUTEMENT_AGENT
         )
+        RecrutementAgentTagDjangoFactory(tag=tag)
+        RecrutementAgentTagDjangoFactory(
+            tag=tag, recrutement_agent__date_revocation=datetime.now(UTC)
+        )
+
+        response = authenticated_client.get(_tags_url(agent_organisme.id))
+
+        assert [t["usage_count"] for t in response.json()["results"]] == [1]
+
+    def test_query_count_does_not_grow_with_tags(
+        self, authenticated_client, agent_organisme, django_assert_num_queries
+    ):
+        for _ in range(4):
+            CandidatureTagDjangoFactory(tag__organisme=agent_organisme)
+
+        with django_assert_num_queries(6):
+            response = authenticated_client.get(_tags_url(agent_organisme.id))
+
+        assert response.status_code == status.HTTP_200_OK
+
+    def test_filters_by_category(self, authenticated_client, agent_organisme):
+        note_tag = NoteTagDjangoFactory(tag__organisme=agent_organisme).tag
         TagDjangoFactory(organisme=agent_organisme, category=TagCategory.CANDIDATURE)
         TagDjangoFactory(category=TagCategory.NOTE)
 
@@ -181,7 +236,9 @@ class TestListTags:
         )
 
         assert response.status_code == status.HTTP_200_OK
-        assert [t["uuid"] for t in response.json()["results"]] == [str(note_tag.id)]
+        assert [(t["uuid"], t["usage_count"]) for t in response.json()["results"]] == [
+            (str(note_tag.id), 1)
+        ]
 
     def test_unknown_category_is_a_bad_request(
         self, authenticated_client, agent_organisme
@@ -217,6 +274,7 @@ class TestCreateTag:
             "name": "Expert",
             "category": "note",
             "color": "rose",
+            "usage_count": 0,
         }
         assert tag.organisme_id == superviseur_organisme.id
         (log,) = _logs(tag.id)
@@ -332,11 +390,25 @@ class TestUpdateTag:
             "name": "Profil expert",
             "category": "note",
             "color": "rose",
+            "usage_count": 0,
         }
         tag.refresh_from_db()
         assert (tag.name, tag.category, tag.color) == ("Profil expert", "note", "rose")
         (log,) = _logs(tag.id)
         assert log.event_name == "TagModifie"
+
+    def test_returns_usage_count_of_updated_tag(
+        self, authenticated_client, superviseur_organisme
+    ):
+        tag = CandidatureTagDjangoFactory(tag__organisme=superviseur_organisme).tag
+
+        response = authenticated_client.put(
+            _tag_url(superviseur_organisme.id, tag.id),
+            data={"name": "Profil expert", "color": "rose"},
+            format="json",
+        )
+
+        assert response.json()["usage_count"] == 1
 
     def test_changes_only_the_case_of_its_own_name(
         self, authenticated_client, superviseur_organisme
