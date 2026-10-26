@@ -389,3 +389,21 @@ class OrganismePermissionService:
             )
             - exclues
         )
+
+    def authorized_actions_recrutement(
+        self,
+        role: AgentOrganismeRole,
+        *,
+        recrutement_role: AgentRecrutementRole | None,
+    ) -> list[OrganismeAction]:
+        return _ordonnees(
+            frozenset(
+                action
+                for action in _ACTIONS_NIVEAU_RECRUTEMENT
+                if role in _ROLES_REQUIS[action]
+                and (
+                    role == AgentOrganismeRole.SUPERVISEUR
+                    or recrutement_role in _ROLES_RECRUTEMENT_REQUIS[action]
+                )
+            )
+        )

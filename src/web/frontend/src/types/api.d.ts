@@ -1234,6 +1234,7 @@ export interface components {
             reference_csp: string;
             nature_offre: (components["schemas"]["NatureOffreEnum"] | components["schemas"]["NullEnum"]) | null;
             responsables: components["schemas"]["Responsable"][];
+            authorized_actions: components["schemas"]["AuthorizedActionsEnum"][];
             /** Format: date-time */
             date_publication: string;
             candidatures: components["schemas"]["CandidaturesActives"] | null;
@@ -1248,6 +1249,7 @@ export interface components {
             reference_csp: string;
             nature_offre: (components["schemas"]["NatureOffreEnum"] | components["schemas"]["NullEnum"]) | null;
             responsables: components["schemas"]["Responsable"][];
+            authorized_actions: components["schemas"]["AuthorizedActionsEnum"][];
             /** Format: date-time */
             date_archivage: string;
             finalise: boolean;

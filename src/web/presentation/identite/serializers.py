@@ -1,16 +1,8 @@
 from rest_framework import serializers
 
-from domain.identite.value_objects.organisme_action import OrganismeAction
 from domain.recruteur.value_objects.roles import AgentOrganismeRole
 from infrastructure.django_apps.recruteur.models.organisme import OrganismeAgentModel
-
-
-def _authorized_actions_field() -> serializers.ListField:
-    return serializers.ListField(
-        child=serializers.ChoiceField(
-            choices=[(a.value, a.value) for a in OrganismeAction]
-        )
-    )
+from presentation.commons.serializers import authorized_actions_field
 
 
 # TODO(#1930): remove OrganismeRoleSerializer once the Vue front reads `organismes`
@@ -29,7 +21,7 @@ class OrganismeRoleSerializer(serializers.ModelSerializer):
 class UtilisateurOrganismeSerializer(serializers.Serializer):
     uuid = serializers.UUIDField()
     nom = serializers.CharField()
-    authorized_actions = _authorized_actions_field()
+    authorized_actions = authorized_actions_field()
 
 
 class UtilisateurSerializer(serializers.Serializer):
@@ -40,5 +32,5 @@ class UtilisateurSerializer(serializers.Serializer):
     # authorized_actions and organismes
     is_staff = serializers.BooleanField(source="utilisateur.is_staff")
     organisme_roles = OrganismeRoleSerializer(many=True)
-    authorized_actions = _authorized_actions_field()
+    authorized_actions = authorized_actions_field()
     organismes = UtilisateurOrganismeSerializer(many=True)

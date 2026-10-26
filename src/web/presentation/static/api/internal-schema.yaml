@@ -6608,6 +6608,10 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Responsable'
+        authorized_actions:
+          type: array
+          items:
+            $ref: '#/components/schemas/AuthorizedActionsEnum'
         date_publication:
           type: string
           format: date-time
@@ -6619,6 +6623,7 @@ components:
           type: string
           format: date-time
       required:
+      - authorized_actions
       - candidatures
       - date_publication
       - derniere_activite
@@ -6650,6 +6655,10 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Responsable'
+        authorized_actions:
+          type: array
+          items:
+            $ref: '#/components/schemas/AuthorizedActionsEnum'
         date_archivage:
           type: string
           format: date-time
@@ -6659,6 +6668,7 @@ components:
           type: string
           nullable: true
       required:
+      - authorized_actions
       - date_archivage
       - finalise
       - intitule

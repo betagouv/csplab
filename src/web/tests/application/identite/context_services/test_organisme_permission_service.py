@@ -947,3 +947,116 @@ class TestAuthorizedActions:
             OrganismePermissionService().can_execute(
                 action=action, utilisateur=agent.utilisateur, organisme_id=organisme.id
             )
+
+
+RECRUTEUR_ACTIONS_RECRUTEMENT = [
+    OrganismeAction.GET_RECRUTEMENT,
+    OrganismeAction.GET_CANDIDATURE,
+    OrganismeAction.CHANGE_ETAPE_CANDIDATURES,
+    OrganismeAction.READ_DOCUMENT,
+    OrganismeAction.LIST_DOCUMENTS,
+    OrganismeAction.LIST_NOTES,
+    OrganismeAction.CREATE_NOTE,
+    OrganismeAction.UPDATE_NOTE,
+    OrganismeAction.DELETE_NOTE,
+    OrganismeAction.LIST_CONVERSATIONS,
+    OrganismeAction.READ_CONVERSATION,
+    OrganismeAction.CREATE_CONVERSATION,
+    OrganismeAction.REPLY_CONVERSATION,
+]
+CONTRIBUTEUR_ACTIONS_RECRUTEMENT = [
+    action
+    for action in RECRUTEUR_ACTIONS_RECRUTEMENT
+    if action != OrganismeAction.CHANGE_ETAPE_CANDIDATURES
+]
+RESPONSABLE_ACTIONS_RECRUTEMENT = [
+    OrganismeAction.GET_RECRUTEMENT,
+    OrganismeAction.GET_CANDIDATURE,
+    OrganismeAction.CHANGE_ETAPE_CANDIDATURES,
+    OrganismeAction.GET_RECRUTEMENT_ETAPES,
+    OrganismeAction.UPDATE_RECRUTEMENT_ETAPES,
+    OrganismeAction.INIT_RECRUTEMENT_ETAPES,
+    OrganismeAction.LIST_RECRUTEMENT_AGENTS,
+    OrganismeAction.ADD_RECRUTEMENT_AGENT,
+    OrganismeAction.UPDATE_RECRUTEMENT_AGENT,
+    OrganismeAction.REVOKE_RECRUTEMENT_AGENT,
+    *RECRUTEUR_ACTIONS_RECRUTEMENT[3:],
+]
+
+
+class TestAuthorizedActionsRecrutement:
+    @pytest.mark.parametrize(
+        ("role", "recrutement_role", "expected"),
+        [
+            (AgentOrganismeRole.SUPERVISEUR, None, RESPONSABLE_ACTIONS_RECRUTEMENT),
+            (
+                AgentOrganismeRole.SUPERVISEUR,
+                AgentRecrutementRole.CONTRIBUTEUR,
+                RESPONSABLE_ACTIONS_RECRUTEMENT,
+            ),
+            (
+                AgentOrganismeRole.AGENT,
+                AgentRecrutementRole.RESPONSABLE,
+                RESPONSABLE_ACTIONS_RECRUTEMENT,
+            ),
+            (
+                AgentOrganismeRole.AGENT,
+                AgentRecrutementRole.RECRUTEUR,
+                RECRUTEUR_ACTIONS_RECRUTEMENT,
+            ),
+            (
+                AgentOrganismeRole.AGENT,
+                AgentRecrutementRole.CONTRIBUTEUR,
+                CONTRIBUTEUR_ACTIONS_RECRUTEMENT,
+            ),
+            (AgentOrganismeRole.AGENT, None, []),
+        ],
+        ids=[
+            "superviseur_sans_role",
+            "superviseur_contributeur",
+            "agent_responsable",
+            "agent_recruteur",
+            "agent_contributeur",
+            "agent_sans_role",
+        ],
+    )
+    def test_authorized_actions_recrutement(self, role, recrutement_role, expected):
+        assert (
+            OrganismePermissionService().authorized_actions_recrutement(
+                role, recrutement_role=recrutement_role
+            )
+            == expected
+        )
+
+    @pytest.mark.parametrize(
+        "recrutement_role",
+        [
+            AgentRecrutementRole.RESPONSABLE,
+            AgentRecrutementRole.RECRUTEUR,
+            AgentRecrutementRole.CONTRIBUTEUR,
+        ],
+    )
+    def test_actions_match_can_execute(self, recrutement_role):
+        agent, organisme = create_organisme_with_agent(role=AgentOrganismeRole.AGENT)
+        recrutement = _attach_recrutement_role(organisme, agent, recrutement_role)
+        authorized = OrganismePermissionService().authorized_actions_recrutement(
+            AgentOrganismeRole.AGENT, recrutement_role=recrutement_role
+        )
+
+        for action in RESPONSABLE_ACTIONS_RECRUTEMENT:
+            call = OrganismePermissionService().can_execute
+            if action in authorized:
+                call(
+                    action=action,
+                    utilisateur=agent.utilisateur,
+                    organisme_id=organisme.id,
+                    recrutement_id=recrutement.pk,
+                )
+            else:
+                with pytest.raises(AccesRecrutementRefuse):
+                    call(
+                        action=action,
+                        utilisateur=agent.utilisateur,
+                        organisme_id=organisme.id,
+                        recrutement_id=recrutement.pk,
+                    )
