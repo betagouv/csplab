@@ -5012,6 +5012,29 @@ components:
           maxLength: 3
           minLength: 3
         region:
+          description: |-
+            Code INSEE de la région, `DOM` ou `TOM`. Le département doit appartenir à cette région : `DOM` avec un département d'outre-mer, `TOM` avec une collectivité d'outre-mer.
+
+            * `01` - 01
+            * `02` - 02
+            * `03` - 03
+            * `04` - 04
+            * `06` - 06
+            * `11` - 11
+            * `24` - 24
+            * `27` - 27
+            * `28` - 28
+            * `32` - 32
+            * `44` - 44
+            * `52` - 52
+            * `53` - 53
+            * `75` - 75
+            * `76` - 76
+            * `84` - 84
+            * `93` - 93
+            * `94` - 94
+            * `DOM` - DOM
+            * `TOM` - TOM
           oneOf:
           - $ref: '#/components/schemas/RegionEnum'
           - $ref: '#/components/schemas/BlankEnum'
@@ -6072,6 +6095,13 @@ tags:
 
     ### ⚠️ Changements non rétrocompatibles
 
+    `POST /api/v1/offres/creer_modifier` : une offre dont le `departement` d'une localisation
+    n'appartient pas à sa `region` est désormais rejetée. Elle apparaît dans `errors`, avec
+    un message du type « Le département 13 (Bouches-du-Rhône) n'appartient pas à la région
+    11 (Île-de-France). ». Jusqu'ici, la région et le département étaient vérifiés
+    séparément : `region` `01` (Guadeloupe) et `departement` `01` (Ain) étaient acceptés
+    ensemble.
+
     `POST /api/v1/offres/creer_modifier` : une offre dont `localisation[].pays` n'est pas
     en majuscules (`fra`, `Fra`…) est désormais rejetée. Elle apparaît dans `errors`, avec
     le message « Code pays invalide, un code ISO 3166-1 alpha-3 en majuscules est attendu
@@ -6085,6 +6115,13 @@ tags:
     enregistré tel quel.
 
     ### Compatibilité
+
+    Renseignez dans `region` le code INSEE de la région du département, et non le code du
+    département. Pour l'outre-mer :
+
+    - départements et régions d'outre-mer (`971` à `974`, `976`) : le code INSEE de la
+      région (`01` à `04`, `06`) ou `DOM` ;
+    - collectivités d'outre-mer (`975`, `986`, `987`, `988`, `SPM`, `WLF`) : `TOM`.
 
     Envoyez un code pays ISO 3166-1 alpha-3 existant, en majuscules (`FRA`, `BEL`…).
 
