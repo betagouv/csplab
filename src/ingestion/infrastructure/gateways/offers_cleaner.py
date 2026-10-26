@@ -26,6 +26,7 @@ from referentiel.value_objects.offer_conditions import (
 )
 from referentiel.value_objects.offer_nature import OfferNature
 from referentiel.value_objects.region import Region
+from referentiel.value_objects.required_document import RequiredDocument
 from referentiel.value_objects.verse import Verse
 
 from domain.entities.offer import Offer
@@ -243,6 +244,17 @@ _TALENTSOFT_TO_SPECIALISATIONS: dict[str, str] = {
         "Développement personnel : Vie familiale, vie sociale et autres "
         "formations au développement personnel"
     ),
+}
+
+_TALENTSOFT_TO_REQUIRED_DOCUMENTS: dict[str, list[RequiredDocument]] = {
+    "Doc_CV": [RequiredDocument.CV],
+    "Doc_CV_LM": [RequiredDocument.CV, RequiredDocument.LETTRE_MOTIVATION],
+    "Doc_CV_PF": [RequiredDocument.CV, RequiredDocument.PORTFOLIO],
+    "Doc_CV_LM_PF": [
+        RequiredDocument.CV,
+        RequiredDocument.LETTRE_MOTIVATION,
+        RequiredDocument.PORTFOLIO,
+    ],
 }
 
 _TALENTSOFT_TO_AREA: dict[str, GeographicalArea] = {
@@ -473,6 +485,12 @@ class OffersCleaner:
                 offer_block_1.longText1Formatted, offer_block_1.longText1
             ),
             required_skills=self._map_plain_text(applicant_criteria_fields.longText1),
+            required_documents=self._map_required_documents(
+                applicant_criteria_fields.customCodeTable1.clientCode
+                if applicant_criteria_fields.customCodeTable1
+                else None,
+                raw_offer.reference,
+            ),
             legal_basis=self._map_plain_text(offer_block_1.longText2),
             vacancy_notice_url=self._map_vacancy_notice_url(offer_block_1.longText3),
             education_level=education_level,
@@ -494,6 +512,22 @@ class OffersCleaner:
 
     def _map_plain_text(self, raw: Optional[str]) -> Optional[str]:
         return (raw or "").strip() or None
+
+    def _map_required_documents(
+        self, client_code: Optional[str], reference: str
+    ) -> list[RequiredDocument]:
+        if not client_code:
+            return []
+
+        documents = _TALENTSOFT_TO_REQUIRED_DOCUMENTS.get(client_code)
+        if documents is None:
+            logger.warning(
+                "Unknown required documents code %r for offer %s",
+                client_code,
+                reference,
+            )
+            return []
+        return list(documents)
 
     def _map_vacancy_notice_url(self, raw: Optional[str]) -> Optional[HttpUrl]:
         match = _LEGIFRANCE_URL.search(raw or "")

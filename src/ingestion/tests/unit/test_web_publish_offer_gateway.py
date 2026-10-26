@@ -25,6 +25,7 @@ from referentiel.value_objects.offer_conditions import (
 )
 from referentiel.value_objects.offer_nature import OfferNature
 from referentiel.value_objects.region import Region
+from referentiel.value_objects.required_document import RequiredDocument
 from referentiel.value_objects.verse import Verse
 
 from domain.entities.offer import Offer
@@ -561,6 +562,29 @@ async def test_publish_serializes_criteres_with_required_skills(
     body = json.loads(httpx_mock.get_requests()[0].content)
     assert body["offres"][0]["criteres"] == {
         "competences_requises": "Travailler en équipe"
+    }
+
+
+@pytest.mark.asyncio
+async def test_publish_serializes_criteres_with_required_documents(
+    gateway, httpx_mock: HTTPXMock
+):
+    httpx_mock.add_response(method="POST", url=PUBLISH_URL, status_code=201)
+    offer = Offer(
+        **{
+            **MINIMAL_OFFER.__dict__,
+            "required_documents": [
+                RequiredDocument.CV,
+                RequiredDocument.LETTRE_MOTIVATION,
+            ],
+        }
+    )
+
+    await gateway.publish(PublishOfferInput(source_id=SOURCE_ID, offer=offer))
+
+    body = json.loads(httpx_mock.get_requests()[0].content)
+    assert body["offres"][0]["criteres"] == {
+        "documents_requis": ["CV", "LETTRE_MOTIVATION"]
     }
 
 
