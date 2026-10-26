@@ -978,7 +978,9 @@ class TestOffersUpsertViewDbVerified:
         return None
 
     def test_creates_and_persists_the_offer(self, authenticated_client_with_source):
-        MetierDjangoFactory(offer_family_code="ERNUM001")
+        MetierDjangoFactory(
+            offer_family_code="ERNUM001", domaine_fonctionnel_code="NUM"
+        )
 
         response = authenticated_client_with_source.post(
             URL,
@@ -1007,7 +1009,9 @@ class TestOffersUpsertViewDbVerified:
     def test_localisation_without_coordinates_is_persisted_with_null_coordinates(
         self, authenticated_client_with_source
     ):
-        MetierDjangoFactory(offer_family_code="ERNUM001")
+        MetierDjangoFactory(
+            offer_family_code="ERNUM001", domaine_fonctionnel_code="NUM"
+        )
         offer = PayloadOfferFactory.create(
             identification={"reference": "REF-SANS-GPS", "versant": "FPT"},
             localisation=[
@@ -1040,7 +1044,9 @@ class TestOffersUpsertViewDbVerified:
     def test_auto_references_are_generated_and_returned_with_their_index(
         self, authenticated_client_with_source
     ):
-        MetierDjangoFactory(offer_family_code="ERNUM001")
+        MetierDjangoFactory(
+            offer_family_code="ERNUM001", domaine_fonctionnel_code="NUM"
+        )
         auto_offer = PayloadOfferFactory.create(
             identification={"reference": "auto", "versant": "FPT"}
         )
@@ -1076,7 +1082,9 @@ class TestOffersUpsertViewDbVerified:
     def test_generated_reference_can_be_used_to_update_the_offer(
         self, authenticated_client_with_source
     ):
-        MetierDjangoFactory(offer_family_code="ERNUM001")
+        MetierDjangoFactory(
+            offer_family_code="ERNUM001", domaine_fonctionnel_code="NUM"
+        )
         auto_offer = PayloadOfferFactory.create(
             identification={"reference": "auto", "versant": "FPT"}
         )
@@ -1108,7 +1116,9 @@ class TestOffersUpsertViewDbVerified:
     def test_sources_share_the_reference_sequence(
         self, authenticated_client_with_source, test_user
     ):
-        MetierDjangoFactory(offer_family_code="ERNUM001")
+        MetierDjangoFactory(
+            offer_family_code="ERNUM001", domaine_fonctionnel_code="NUM"
+        )
         other_source = SourceDjangoFactory()
         test_user.sources.add(other_source)
         auto_offer = PayloadOfferFactory.create(
@@ -1129,7 +1139,9 @@ class TestOffersUpsertViewDbVerified:
     def test_unknown_generated_reference_is_rejected(
         self, authenticated_client_with_source
     ):
-        MetierDjangoFactory(offer_family_code="ERNUM001")
+        MetierDjangoFactory(
+            offer_family_code="ERNUM001", domaine_fonctionnel_code="NUM"
+        )
         explicit_reference = f"CSP-{datetime.now(ZoneInfo('Europe/Paris')).year}-000001"
         auto_offer = PayloadOfferFactory.create(
             identification={"reference": "auto", "versant": "FPT"}
@@ -1159,7 +1171,9 @@ class TestOffersUpsertViewDbVerified:
     def test_generated_reference_of_another_source_is_rejected(
         self, authenticated_client_with_source
     ):
-        MetierDjangoFactory(offer_family_code="ERNUM001")
+        MetierDjangoFactory(
+            offer_family_code="ERNUM001", domaine_fonctionnel_code="NUM"
+        )
         reference = OfferDjangoFactory(reference="CSP-2026-000042").reference
         offer = PayloadOfferFactory.create(
             identification={"reference": reference, "versant": "FPT"}
@@ -1174,3 +1188,92 @@ class TestOffersUpsertViewDbVerified:
         assert response.json()["offres"] == []
         assert [e["index"] for e in response.json()["errors"]] == [0]
         assert not OfferModel.objects.filter(source_id=UUID(SOURCE_UUID)).exists()
+
+    def _upsert(self, client, professions):
+        offres = []
+        for index, profession in enumerate(professions):
+            offre = PayloadOfferFactory.create(
+                identification={"reference": f"REF-{index}", "versant": "FPT"}
+            )
+            offre["profession"] = profession
+            offres.append(offre)
+        return client.post(
+            URL,
+            data={"source_id": SOURCE_UUID, "offres": offres},
+            content_type="application/json",
+        )
+
+    def test_offer_without_domaine_is_created_with_metier_domaine(
+        self, authenticated_client_with_source
+    ):
+        MetierDjangoFactory(
+            offer_family_code="ERACH001", domaine_fonctionnel_code="ACH"
+        )
+
+        response = self._upsert(
+            authenticated_client_with_source, [{"metier": "ERACH001"}]
+        )
+
+        assert response.json()["errors"] == []
+        offre = OfferModel.objects.get(reference="REF-0")
+        assert offre.functional_area_code == "ACH"
+
+    def test_offer_with_mismatching_domaine_is_rejected_and_others_saved(
+        self, authenticated_client_with_source
+    ):
+        MetierDjangoFactory(
+            offer_family_code="ERACH001", domaine_fonctionnel_code="ACH"
+        )
+
+        response = self._upsert(
+            authenticated_client_with_source,
+            [
+                {"domaine": "COM", "metier": "ERACH001"},
+                {"domaine": "ACH", "metier": "ERACH001"},
+            ],
+        )
+
+        body = response.json()
+        assert body["offres"] == [{"index": 1, "reference": "REF-1", "statut": "creee"}]
+        assert body["errors"] == [
+            {
+                "index": 0,
+                "offre": {"reference": "REF-0", "versant": "FPT"},
+                "error": {
+                    "profession": {
+                        "domaine": [
+                            "Le domaine COM ne correspond pas au métier ERACH001 (ACH)."
+                        ]
+                    }
+                },
+            }
+        ]
+
+    def test_ambiguous_metier_requires_one_of_its_domaines(
+        self, authenticated_client_with_source
+    ):
+        MetierDjangoFactory(
+            offer_family_code="ERTRA007", domaine_fonctionnel_code="SEC"
+        )
+        MetierDjangoFactory(
+            offer_family_code="ERTRA007", domaine_fonctionnel_code="TRA"
+        )
+
+        response = self._upsert(
+            authenticated_client_with_source,
+            [{"metier": "ERTRA007"}, {"domaine": "SEC", "metier": "ERTRA007"}],
+        )
+
+        body = response.json()
+        assert body["offres"] == [{"index": 1, "reference": "REF-1", "statut": "creee"}]
+        assert body["errors"][0]["error"] == {
+            "profession": {
+                "domaine": [
+                    (
+                        "Le métier ERTRA007 relève de plusieurs domaines (SEC, TRA) : "
+                        "renseigner l'un d'eux."
+                    )
+                ]
+            }
+        }
+        assert OfferModel.objects.get(reference="REF-1").functional_area_code == "SEC"
