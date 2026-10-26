@@ -28,6 +28,7 @@ def create_note(
     candidature_id: UUID,
     message: str,
     utilisateur: UserModel,
+    est_privee: bool = False,
 ) -> NoteModel:
     OrganismePermissionService().can_execute(
         action=OrganismeAction.CREATE_NOTE,
@@ -52,11 +53,13 @@ def create_note(
             candidature_id=candidature_id,
             publie_par_id=publie_par_id,
             message=message,
+            est_privee=est_privee,
         )
-        AuditLogWriter(repository=PostgresAuditLogRepository()).log_action(
-            utilisateur_id=publie_par_id,
-            entity=Entity(entity_id=note.id),
-            ressource_kind="Note",
-            event_name="NoteAjoutee",
-        )
+        if not note.est_privee:
+            AuditLogWriter(repository=PostgresAuditLogRepository()).log_action(
+                utilisateur_id=publie_par_id,
+                entity=Entity(entity_id=note.id),
+                ressource_kind="Note",
+                event_name="NoteAjoutee",
+            )
     return note

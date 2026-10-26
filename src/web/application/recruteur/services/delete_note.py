@@ -46,19 +46,24 @@ def delete_note(
     )
     candidature_service.check_candidature_belongs_to_recrutement()
 
-    try:
-        note = NoteModel.objects.by_candidature_author_and_id(
-            candidature_id, utilisateur.username, note_id
-        ).get()
-    except NoteModel.DoesNotExist as error:
-        raise NoteIntrouvable(note_id) from error
-
     with transaction.atomic():
+        try:
+            note = (
+                NoteModel.objects.by_candidature_author_and_id(
+                    candidature_id, utilisateur.username, note_id
+                )
+                .select_for_update(of=("self",))
+                .get()
+            )
+        except NoteModel.DoesNotExist as error:
+            raise NoteIntrouvable(note_id) from error
+
         note.supprimee_le = timezone.now()
         note.save(update_fields=["supprimee_le", "updated_at"])
-        AuditLogWriter(repository=PostgresAuditLogRepository()).log_action(
-            utilisateur_id=utilisateur.username,
-            entity=Entity(entity_id=note.id),
-            ressource_kind="Note",
-            event_name="NoteSupprimee",
-        )
+        if not note.est_privee:
+            AuditLogWriter(repository=PostgresAuditLogRepository()).log_action(
+                utilisateur_id=utilisateur.username,
+                entity=Entity(entity_id=note.id),
+                ressource_kind="Note",
+                event_name="NoteSupprimee",
+            )
