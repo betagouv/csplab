@@ -7,6 +7,9 @@ from referentiel.value_objects.area import GeographicalArea
 from referentiel.value_objects.category import Category
 from referentiel.value_objects.contract_kind import ContractKind
 from referentiel.value_objects.country import Country
+from referentiel.value_objects.departement_region import (
+    department_belongs_to_region,
+)
 from referentiel.value_objects.department import Department
 from referentiel.value_objects.diploma import Diploma
 from referentiel.value_objects.domaine_fonctionnel import DomaineFonctionnel
@@ -551,6 +554,15 @@ class LocalisationInputSerializer(LocalisationSerializer):
         min_length=3,
         help_text="Code pays ISO 3166-1 alpha-3, en majuscules (ex. `FRA`).",
     )
+    region = serializers.ChoiceField(
+        choices=sorted(Region.VALID_CODES, key=lambda x: x),
+        allow_blank=True,
+        help_text=(
+            "Code INSEE de la région, `DOM` ou `TOM`. Le département doit "
+            "appartenir à cette région : `DOM` avec un département d'outre-mer, "
+            "`TOM` avec une collectivité d'outre-mer."
+        ),
+    )
     latitude = serializers.FloatField(
         allow_null=True, required=False, min_value=-90, max_value=90
     )
@@ -566,7 +578,21 @@ class LocalisationInputSerializer(LocalisationSerializer):
                 "La région et le département sont obligatoires "
                 "pour une offre localisée en France."
             )
+        if data.get("region") and data.get("departement"):
+            region = Region(code=data["region"])
+            department = Department(code=data["departement"])
+            if not department_belongs_to_region(department, region):
+                raise serializers.ValidationError(
+                    f"Le département {_code_and_name(department)} "
+                    f"n'appartient pas à la région {_code_and_name(region)}."
+                )
         return data
+
+
+def _code_and_name(value: Region | Department) -> str:
+    if value.name == value.code:
+        return value.code
+    return f"{value.code} ({value.name})"
 
 
 CONTACT_ROLES = ["principal", "autre"]
