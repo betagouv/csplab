@@ -153,3 +153,10 @@ export async function updateCandidatureNote(params: NoteParams, message: string)
     { params: { path: { ...candidaturePath(params), note_uuid: params.noteUuid } }, body: { message } },
   )
 }
+
+export async function deleteCandidatureNote(params: NoteParams): Promise<void> {
+  await api.DELETE(
+    '/recruteur/organismes/{organisme_uuid}/recrutements/{recrutement_uuid}/candidatures/{candidature_uuid}/notes/{note_uuid}',
+    { params: { path: { ...candidaturePath(params), note_uuid: params.noteUuid } } },
+  )
+}
