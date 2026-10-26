@@ -141,6 +141,8 @@ const model = defineModel<string>()
 </template>
 
 <style scoped lang="scss">
+@use '@/styles/menu';
+
 .csp-select {
   display: flex;
   width: 100%;
@@ -271,27 +273,14 @@ const model = defineModel<string>()
 }
 
 :deep(.csp-select-content__item) {
-  display: flex;
-  align-items: center;
+  @include menu.item;
+
   justify-content: space-between;
-  gap: var(--csp-menu-item-gap);
-  padding: var(--csp-menu-item-padding);
   font-size: 0.875rem;
   line-height: 1.25;
-  border-radius: 0.125rem;
-  cursor: pointer;
-  outline: none;
-  color: var(--text-default-grey);
-  user-select: none;
-
-  &[data-highlighted] {
-    background-color: var(--background-default-grey-hover);
-    color: var(--text-action-high-blue-france);
-  }
 
   &[data-disabled] {
     pointer-events: none;
-    color: var(--text-disabled-grey);
   }
 }
 
