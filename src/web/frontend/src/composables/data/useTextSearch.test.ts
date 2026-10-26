@@ -54,4 +54,14 @@ describe('useTextSearch', () => {
 
     expect(filtered.value).toEqual([ROWS[2]])
   })
+
+  it('filters at once without a delay', () => {
+    const { search, filtered } = withScope(() =>
+      useTextSearch(ROWS, row => [row.nom, row.siret], 0),
+    )
+
+    search.value = 'lyon'
+
+    expect(filtered.value).toEqual([ROWS[2]])
+  })
 })

@@ -555,13 +555,19 @@ class LocalisationInputSerializer(LocalisationSerializer):
         min_length=3,
         help_text="Code pays ISO 3166-1 alpha-3, en majuscules (ex. `FRA`).",
     )
+    latitude = serializers.FloatField(
+        allow_null=True, required=False, min_value=-90, max_value=90
+    )
+    longitude = serializers.FloatField(
+        allow_null=True, required=False, min_value=-180, max_value=180
+    )
 
     def validate(self, data):
         if data.get("pays") == "FRA" and not (
             data.get("region") and data.get("departement")
         ):
             raise serializers.ValidationError(
-                "La région et le département sont obligatoires"
+                "La région et le département sont obligatoires "
                 "pour une offre localisée en France."
             )
         return data

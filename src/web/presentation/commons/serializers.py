@@ -5,6 +5,8 @@ from referentiel.value_objects.department import Department
 from referentiel.value_objects.region import Region
 from rest_framework import serializers
 
+from domain.identite.value_objects.organisme_action import OrganismeAction
+
 _country_adapter = TypeAdapter(Country)
 
 INVALID_COUNTRY_CODE = (
@@ -47,3 +49,11 @@ class LocalisationSerializer(serializers.Serializer):
 class OrganismeSerializer(serializers.Serializer):
     nom = serializers.CharField()
     siret = serializers.CharField(max_length=14)
+
+
+def authorized_actions_field() -> serializers.ListField:
+    return serializers.ListField(
+        child=serializers.ChoiceField(
+            choices=[(a.value, a.value) for a in OrganismeAction]
+        )
+    )

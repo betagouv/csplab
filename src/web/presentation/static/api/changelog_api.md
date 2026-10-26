@@ -10,6 +10,12 @@ Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/).
 
 ### ⚠️ Changements non rétrocompatibles
 
+`POST /api/v1/offres/creer_modifier` : une offre dont `localisation[].pays` n'est pas
+en majuscules (`fra`, `Fra`…) est désormais rejetée. Elle apparaît dans `errors`, avec
+le message « Code pays invalide, un code ISO 3166-1 alpha-3 en majuscules est attendu
+(ex. FRA). ». Jusqu'ici, le code était enregistré tel quel et la règle « région et
+département obligatoires pour une offre en France » ne s'appliquait pas.
+
 `POST /api/v1/organismes/creer_modifier` : un organisme dont `localisation.pays` n'est pas
 un code ISO 3166-1 alpha-3 en majuscules (`fra`, `XXX`…) est désormais rejeté. Il
 apparaît dans `errors`, avec le message « Code pays invalide, un code ISO 3166-1 alpha-3
@@ -20,19 +26,13 @@ enregistré tel quel.
 
 Envoyez un code pays ISO 3166-1 alpha-3 existant, en majuscules (`FRA`, `BEL`…).
 
-## 2026-10-23
+### Corrigé
 
-### ⚠️ Changements non rétrocompatibles
-
-`POST /api/v1/offres/creer_modifier` : une offre dont `localisation[].pays` n'est pas
-en majuscules (`fra`, `Fra`…) est désormais rejetée. Elle apparaît dans `errors`, avec
-le message « Code pays invalide, un code ISO 3166-1 alpha-3 en majuscules est attendu
-(ex. FRA). ». Jusqu'ici, le code était enregistré tel quel et la règle « région et
-département obligatoires pour une offre en France » ne s'appliquait pas.
-
-### Compatibilité
-
-Envoyez le code pays en majuscules (`FRA`, `BEL`…).
+- `POST /api/v1/offres/creer_modifier` : `latitude` et `longitude` peuvent désormais
+  être omises dans un élément de `localisation`, comme l'indique le guide de l'API.
+  Jusqu'ici, une offre sans ces clés était rejetée avec « Ce champ est obligatoire. »,
+  et il fallait les envoyer à `null`. Les deux écritures sont acceptées et donnent une
+  localisation sans coordonnées.
 
 ## 2026-10-22
 
