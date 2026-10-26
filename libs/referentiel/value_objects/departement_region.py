@@ -110,6 +110,14 @@ def region_et_zone_pour_departement(departement: Department) -> RegionEtZone | N
     return _DEPARTEMENT_VERS_REGION_ET_ZONE.get(departement.code)
 
 
+def overseas_region_for_department(department: Department) -> Region | None:
+    if department.code in _DOM_DEPARTMENTS:
+        return _REGION_DOM
+    if department.code in _TOM_DEPARTMENTS:
+        return _REGION_TOM
+    return None
+
+
 def department_belongs_to_region(department: Department, region: Region) -> bool:
     if department.code in _TOM_DEPARTMENTS:
         return region == _REGION_TOM
