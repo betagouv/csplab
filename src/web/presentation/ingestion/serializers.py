@@ -549,6 +549,15 @@ class FakeTsOfferDetailSerializer(FakeTsOfferSummarySerializer):
 
 
 class LocalisationInputSerializer(LocalisationSerializer):
+    region = serializers.ChoiceField(
+        choices=sorted(Region.VALID_CODES, key=lambda x: x),
+        allow_blank=True,
+        help_text=(
+            "Code INSEE de la région, `DOM` ou `TOM`. Le département doit "
+            "appartenir à cette région : `DOM` avec un département d'outre-mer, "
+            "`TOM` avec une collectivité d'outre-mer."
+        ),
+    )
     latitude = serializers.FloatField(
         allow_null=True, required=False, min_value=-90, max_value=90
     )
