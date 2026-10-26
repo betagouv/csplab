@@ -8,6 +8,9 @@ export const VERSANT_LABELS: Record<Versant, string> = {
 
 export const SIRET_LENGTH = 14
 
+export const ESPACE_ADMINISTRATEUR_LABEL = 'Espace administrateur'
+export const ORGANISME_LABEL = 'Organisme'
+
 export const ROLE_LABELS: Record<Role, string> = {
   superviseur: 'Superviseur',
   agent: 'Membre',

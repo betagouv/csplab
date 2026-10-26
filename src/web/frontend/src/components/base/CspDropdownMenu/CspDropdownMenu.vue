@@ -66,6 +66,8 @@ const open = defineModel<boolean | undefined>('open')
 </template>
 
 <style lang="scss">
+@use '@/styles/menu';
+
 .csp-dropdown {
   min-width: 10rem;
   background-color: var(--background-overlap-grey);
@@ -78,29 +80,13 @@ const open = defineModel<boolean | undefined>('open')
 }
 
 .csp-dropdown__separator {
-  height: 1px;
-  background-color: var(--border-default-grey);
-  margin-block: var(--csp-menu-padding);
+  @include menu.separator;
 }
 
 .csp-dropdown__item {
-  display: flex;
-  align-items: center;
-  gap: var(--csp-menu-item-gap);
-  padding: var(--csp-menu-item-padding);
-  cursor: pointer;
-  outline: none;
-  color: var(--text-default-grey);
-  user-select: none;
-
-  &[data-highlighted] {
-    background-color: var(--background-default-grey-hover);
-  }
+  @include menu.item;
 
   &[data-disabled] {
-    cursor: not-allowed;
-    color: var(--text-disabled-grey);
-
     .csp-dropdown__item-icon {
       color: var(--text-disabled-grey);
     }
