@@ -42,7 +42,7 @@ describe('recrutementsView', () => {
     vi.mocked(searchAgentByEmail).mockReset().mockResolvedValue(AGENT_RECHERCHE)
   })
 
-  it('starts a new search each time the assignation drawer opens', async () => {
+  it('starts a new search each time the assignment drawer opens', async () => {
     const user = setupUser()
     await openAssignmentFor(user)
 
@@ -55,7 +55,7 @@ describe('recrutementsView', () => {
     expect(screen.queryByText('Jeanne Dupont')).not.toBeInTheDocument()
   })
 
-  it('closes the assignation drawer once the last offer is removed', async () => {
+  it('closes the assignment drawer once the last offer is removed', async () => {
     const user = setupUser()
     await openAssignmentFor(user)
 

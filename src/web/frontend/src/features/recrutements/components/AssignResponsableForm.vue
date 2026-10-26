@@ -17,7 +17,7 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  remove: [offerId: string]
+  remove: [recrutementUuid: string]
   search: [email: string]
   assign: []
   reset: []
