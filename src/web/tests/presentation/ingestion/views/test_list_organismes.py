@@ -6,6 +6,7 @@ from django.urls import reverse
 from rest_framework import status
 
 from config.logger_names import LoggerName
+from infrastructure.django_apps.recruteur.models.organisme import OrganismeQuerySet
 from infrastructure.factories.identite.organisme_django_factory import (
     OrganismeDjangoFactory,
 )
@@ -236,10 +237,7 @@ def test_page_out_of_range_returns_404(jwt_client):
 def test_unexpected_error_returns_500_and_logs_traceback(jwt_client, caplog):
     with (
         caplog.at_level(logging.ERROR),
-        patch(
-            "presentation.ingestion.views.organismes.list_public_organismes",
-            side_effect=KeyError("siret"),
-        ),
+        patch.object(OrganismeQuerySet, "stable_order", side_effect=KeyError("siret")),
     ):
         response = jwt_client.get(URL)
 
