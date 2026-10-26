@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import type { CreateOrganismePayload, UpdateOrganismePayload } from '../types'
-import { computed, ref, useTemplateRef } from 'vue'
+import { computed, ref } from 'vue'
 import { ValidationError } from '@/api/errors'
 import CspAsyncSection from '@/components/base/CspAsyncSection/CspAsyncSection.vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspDataTable from '@/components/base/CspDataTable/CspDataTable.vue'
+import CspDrawer from '@/components/base/CspDrawer/CspDrawer.vue'
 import CspSearchBar from '@/components/base/CspSearchBar/CspSearchBar.vue'
 import CspSkeletonTable from '@/components/base/CspSkeleton/CspSkeletonTable.vue'
 import CspTableToolbar from '@/components/base/CspTableToolbar/CspTableToolbar.vue'
@@ -15,7 +16,7 @@ import { pluralize } from '@/utils/format'
 import { ORGANISMES_LIST_COLUMNS } from '../columns'
 import { provideOrganismeEdition } from '../composables/useOrganismeEdition'
 import { useOrganismes } from '../composables/useOrganismes'
-import OrganismeFormDrawer from './OrganismeFormDrawer.vue'
+import OrganismeForm from './OrganismeForm.vue'
 
 const PAGE_SIZE = 8
 
@@ -26,20 +27,20 @@ const showSkeleton = useMinimumPending(pending)
 
 const page = ref(1)
 const creationOpen = ref(false)
+const rejectedSiret = ref<string | null>(null)
 
 const drawerOpen = computed({
   get: () => creationOpen.value || edition.requested !== null,
   set: (value) => {
     if (!value) {
       creationOpen.value = false
+      rejectedSiret.value = null
       edition.clear()
     }
   },
 })
 
 const saving = computed(() => creating.value || updating.value)
-
-const formDrawer = useTemplateRef('formDrawer')
 
 const rows = computed(() => organismesList.value ?? [])
 
@@ -60,7 +61,7 @@ async function handleCreate(payload: CreateOrganismePayload): Promise<void> {
   }
   catch (submitError) {
     if (submitError instanceof ValidationError) {
-      formDrawer.value?.setSiretError('Ce SIRET est déjà utilisé ou n\'est pas valide.')
+      rejectedSiret.value = payload.siret
       return
     }
     addToast({ variant: 'error', title: 'La création de l\'organisme a échoué' })
@@ -125,14 +126,20 @@ async function handleUpdate(payload: UpdateOrganismePayload): Promise<void> {
       />
     </CspAsyncSection>
 
-    <OrganismeFormDrawer
-      ref="formDrawer"
+    <CspDrawer
       v-model:open="drawerOpen"
-      :organisme="edition.requested"
-      :saving="saving"
-      @create="handleCreate"
-      @update="handleUpdate"
-    />
+      :title="edition.requested ? 'Modifier l\'organisme' : 'Ajouter un organisme'"
+      size="md"
+    >
+      <OrganismeForm
+        :organisme="edition.requested"
+        :saving="saving"
+        :rejected-siret="rejectedSiret"
+        @create="handleCreate"
+        @update="handleUpdate"
+        @cancel="drawerOpen = false"
+      />
+    </CspDrawer>
   </section>
 </template>
 
