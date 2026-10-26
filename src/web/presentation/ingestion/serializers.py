@@ -546,6 +546,13 @@ class FakeTsOfferDetailSerializer(FakeTsOfferSummarySerializer):
 
 
 class LocalisationInputSerializer(LocalisationSerializer):
+    latitude = serializers.FloatField(
+        allow_null=True, required=False, min_value=-90, max_value=90
+    )
+    longitude = serializers.FloatField(
+        allow_null=True, required=False, min_value=-180, max_value=180
+    )
+
     def validate(self, data):
         if data.get("pays") == "FRA" and not (
             data.get("region") and data.get("departement")
