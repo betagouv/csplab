@@ -557,7 +557,7 @@ class LocalisationInputSerializer(LocalisationSerializer):
             data.get("region") and data.get("departement")
         ):
             raise serializers.ValidationError(
-                "La région et le département sont obligatoires"
+                "La région et le département sont obligatoires "
                 "pour une offre localisée en France."
             )
         return data
