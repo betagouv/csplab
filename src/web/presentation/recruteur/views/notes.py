@@ -12,6 +12,9 @@ from application.recruteur.services.create_note import create_note
 from application.recruteur.services.delete_note import delete_note
 from application.recruteur.services.list_notes import list_notes
 from application.recruteur.services.update_note import update_note
+from application.recruteur.services.update_note_visibility import (
+    update_note_visibility,
+)
 from domain.commons.errors.organisme_errors import OrganismeNexistePas
 from domain.identite.errors.organisme_permission_errors import (
     AccesOrganismeRefuse,
@@ -25,11 +28,16 @@ from domain.recruteur.errors.recrutement_errors import (
     RecrutementInexistant,
 )
 from presentation.api.authentication import SessionApiMixin
-from presentation.api.serializers import GenericErrorSerializer, TokenErrorSerializer
+from presentation.api.serializers import (
+    GenericErrorSerializer,
+    TokenErrorSerializer,
+    generic_response_format,
+)
 from presentation.recruteur.serializers import (
     CreateNoteSerializer,
     NoteDetailSerializer,
     NoteSerializer,
+    NoteVisibiliteSerializer,
     UpdateNoteSerializer,
 )
 
@@ -195,3 +203,39 @@ class CandidatureNoteDetailView(NoteBaseView):
             utilisateur=request.user,
         )
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+@extend_schema_view(
+    put=extend_schema(
+        summary="Modifier la visibilité d'une note d'une candidature",
+        tags=["recruteur"],
+        request=NoteVisibiliteSerializer,
+        responses={
+            **generic_response_format,
+            200: NoteDetailSerializer,
+            400: GenericErrorSerializer,
+        },
+    ),
+)
+class CandidatureNoteVisibiliteView(NoteBaseView):
+    def put(
+        self,
+        request: Request,
+        organisme_uuid: UUID,
+        recrutement_uuid: UUID,
+        candidature_uuid: UUID,
+        note_uuid: UUID,
+    ) -> Response:
+        serializer = NoteVisibiliteSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        note = update_note_visibility(
+            organisme_id=organisme_uuid,
+            recrutement_id=recrutement_uuid,
+            candidature_id=candidature_uuid,
+            note_id=note_uuid,
+            utilisateur=request.user,
+            **serializer.validated_data,
+        )
+        return Response(NoteDetailSerializer(note).data)
