@@ -107,6 +107,21 @@ describe('tagsSection', () => {
     expect(screen.getByRole('dialog')).toBeInTheDocument()
   })
 
+  it('keeps the duplicate error when only the case changes', async () => {
+    vi.mocked(createTag).mockRejectedValue(new HttpError(409, 'Conflict'))
+    const user = await openDrawerFrom('Candidature')
+    const name = screen.getByRole('textbox', { name: /Libellé/ })
+
+    await user.type(name, 'À rappeler')
+    await user.click(screen.getByRole('button', { name: 'Enregistrer' }))
+    await screen.findByText('Une étiquette de ce type porte déjà ce libellé.')
+    await user.clear(name)
+    await user.type(name, 'à RAPPELER')
+
+    expect(screen.getByText('Une étiquette de ce type porte déjà ce libellé.')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Enregistrer' })).toBeDisabled()
+  })
+
   it('clears the duplicate error once the type changes', async () => {
     vi.mocked(createTag).mockRejectedValue(new HttpError(409, 'Conflict'))
     const user = await openDrawerFrom('Candidature')

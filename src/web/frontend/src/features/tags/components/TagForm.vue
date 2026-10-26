@@ -35,7 +35,7 @@ const nameError = computed(() => {
   if (FORBIDDEN_CHARACTERS.test(name.value)) {
     return 'Les émojis et les caractères < > ne sont pas autorisés.'
   }
-  if (props.duplicate?.name === trimmedName.value && props.duplicate.category === category.value) {
+  if (props.duplicate?.name.toLocaleLowerCase() === trimmedName.value.toLocaleLowerCase() && props.duplicate.category === category.value) {
     return 'Une étiquette de ce type porte déjà ce libellé.'
   }
   return null
