@@ -617,6 +617,10 @@ class UpdateNoteSerializer(serializers.Serializer):
     est_privee = serializers.BooleanField(required=False)
 
 
+class NoteVisibiliteSerializer(serializers.Serializer):
+    est_privee = serializers.BooleanField()
+
+
 # ---------------------------------------------------------------------------
 # Serializers pour le changement d'étape (batch) de candidatures
 # ---------------------------------------------------------------------------

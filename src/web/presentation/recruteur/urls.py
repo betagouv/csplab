@@ -17,6 +17,7 @@ from presentation.recruteur.views.documents import (
 from presentation.recruteur.views.notes import (
     CandidatureNoteDetailView,
     CandidatureNotesView,
+    CandidatureNoteVisibiliteView,
 )
 from presentation.recruteur.views.organisme_agents import (
     OrganismeAgentsView,
@@ -170,6 +171,11 @@ urlpatterns = [
         "organismes/<uuid:organisme_uuid>/recrutements/<uuid:recrutement_uuid>/candidatures/<uuid:candidature_uuid>/notes/<uuid:note_uuid>",
         CandidatureNoteDetailView.as_view(),
         name="candidature_note_detail",
+    ),
+    path(
+        "organismes/<uuid:organisme_uuid>/recrutements/<uuid:recrutement_uuid>/candidatures/<uuid:candidature_uuid>/notes/<uuid:note_uuid>/visibilite",
+        CandidatureNoteVisibiliteView.as_view(),
+        name="candidature_note_visibilite",
     ),
     path(
         "organismes/<uuid:organisme_uuid>/recrutements/<uuid:recrutement_uuid>/candidatures/<uuid:candidature_uuid>/documents",
