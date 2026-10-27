@@ -23,15 +23,20 @@ function withDropMotion(value: string) {
   vi.spyOn(window, 'getComputedStyle').mockReturnValue({ getPropertyValue: () => value } as unknown as CSSStyleDeclaration)
 }
 
-// The card is visible as soon as it is observed
-class VisibleObserver {
-  constructor(private readonly callback: IntersectionObserverCallback) {}
-  observe() {
-    this.callback([{ isIntersecting: true } as IntersectionObserverEntry], this as unknown as IntersectionObserver)
-  }
+// Each observed card is visible at this ratio
+function observerAt(intersectionRatio: number) {
+  return class {
+    constructor(private readonly callback: IntersectionObserverCallback) {}
+    observe() {
+      this.callback([{ isIntersecting: true, intersectionRatio } as IntersectionObserverEntry], this as unknown as IntersectionObserver)
+    }
 
-  disconnect() {}
+    disconnect() {}
+  }
 }
+
+// The card is visible as soon as it is observed
+const VisibleObserver = observerAt(1)
 
 describe('useDraggableKanbanCard', () => {
   afterEach(() => {
@@ -52,12 +57,9 @@ describe('useDraggableKanbanCard', () => {
     expect(bruno.state.isJustMoved.value).toBe(false)
   })
 
-  it('holds the drop motion on its first frame while the card is out of view', async () => {
+  it('holds the drop motion on its first frame while the card is mostly out of view', async () => {
     withDropMotion('csp-raised-outline-drop 1200ms ease-out')
-    vi.stubGlobal('IntersectionObserver', class {
-      observe() {}
-      disconnect() {}
-    })
+    vi.stubGlobal('IntersectionObserver', observerAt(0.2))
     markKanbanCardMoved(BOARD, 'alice')
     const { state } = renderCard('alice')
     await nextTick()
