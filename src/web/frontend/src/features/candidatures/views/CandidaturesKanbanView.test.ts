@@ -176,8 +176,9 @@ describe('candidaturesKanbanView', () => {
     expect(dialog.getByText(/Vous êtes sur le point de refuser la candidature de Alice/)).toBeInTheDocument()
   })
 
-  it('lists in the stage drawer only the selected candidatures shown by the search', async () => {
+  it('hides the candidatures count and lists in the stage drawer only the selected candidatures shown by the search', async () => {
     const user = await selectColumns(['Réception des candidatures'], 'Alice')
+    expect(screen.queryByText(/^\d+ candidatures?$/)).not.toBeInTheDocument()
     await user.click(await screen.findByRole('button', { name: 'Changer d\'étape' }))
 
     const drawer = within(await screen.findByRole('dialog', { name: /Changer d'étape/ }))
