@@ -7,6 +7,7 @@ from drf_spectacular.utils import (
 from referentiel.exceptions.offer_errors import OfferDoesNotExist
 from rest_framework import serializers, status
 from rest_framework import serializers as drf_serializers
+from rest_framework.exceptions import NotFound
 from rest_framework.exceptions import ValidationError as DRFValidationError
 from rest_framework.parsers import JSONParser
 from rest_framework.response import Response
@@ -31,7 +32,7 @@ from infrastructure.di.ingestion.ingestion_factory import create_ingestion_conta
 from infrastructure.django_apps.users.models import UserModel
 from presentation.api.authentication import PublicApiMixin
 from presentation.api.serializers import GenericErrorSerializer, TokenErrorSerializer
-from presentation.commons.pagination import WebPagination
+from presentation.commons.pagination import TaillePageNumberPagination
 from presentation.ingestion.mappers import OfferInputMapper
 from presentation.ingestion.openapi import (
     ARCHIVE_OFFER_DESCRIPTION,
@@ -72,12 +73,16 @@ STATUTS_OFFRE = {"created": "creee", "updated": "mise_a_jour"}
         200: ListOffersResponseSerializer(many=True),
         400: GenericErrorSerializer,
         401: TokenErrorSerializer,
+        404: inline_serializer(
+            name="ListOffersNotFound",
+            fields={"detail": drf_serializers.CharField()},
+        ),
         500: GenericErrorSerializer,
     },
 )
 class OffersListView(PublicApiMixin, APIView):
     serializer_class = ListOffersResponseSerializer
-    pagination_class = WebPagination
+    pagination_class = TaillePageNumberPagination
     usecase = None
 
     def __init__(self, **kwargs):
@@ -95,8 +100,8 @@ class OffersListView(PublicApiMixin, APIView):
 
             result = self.usecase.execute(input_data)
 
-            paginator = WebPagination()
-            items = paginator.paginate(result, request)
+            paginator = TaillePageNumberPagination()
+            items = paginator.paginate_queryset(result, request, view=self)
             return paginator.get_paginated_response(
                 ListOffersResponseSerializer(items, many=True).data
             )
@@ -106,6 +111,8 @@ class OffersListView(PublicApiMixin, APIView):
                 serializer.data,
                 status=status.HTTP_400_BAD_REQUEST,
             )
+        except NotFound:
+            raise
         except Exception as e:
             self.logger.error("Unexpected error in OffersListView: %s", str(e))
             serializer = GenericErrorSerializer({"error": "Unexpected error"})
@@ -125,12 +132,16 @@ class OffersListView(PublicApiMixin, APIView):
             name="OffersBySourceForbidden",
             fields={"detail": drf_serializers.CharField()},
         ),
+        404: inline_serializer(
+            name="OffersBySourceNotFound",
+            fields={"detail": drf_serializers.CharField()},
+        ),
         500: GenericErrorSerializer,
     },
 )
 class OffersBySourceView(PublicApiMixin, APIView):
     serializer_class = OfferDetailResponseSerializer
-    pagination_class = WebPagination
+    pagination_class = TaillePageNumberPagination
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -149,8 +160,8 @@ class OffersBySourceView(PublicApiMixin, APIView):
                     utilisateur_username=utilisateur_username,
                 )
             )
-            paginator = WebPagination()
-            items = paginator.paginate(result, request)
+            paginator = TaillePageNumberPagination()
+            items = paginator.paginate_queryset(result, request, view=self)
             return paginator.get_paginated_response(
                 OfferDetailResponseSerializer(items, many=True).data
             )
@@ -160,6 +171,8 @@ class OffersBySourceView(PublicApiMixin, APIView):
                 {"detail": f"Not authorized to access this source: {source_ids}."},
                 status=status.HTTP_403_FORBIDDEN,
             )
+        except NotFound:
+            raise
         except Exception as e:
             self.logger.error("Unexpected error in OffersBySourceView: %s", str(e))
             return Response(

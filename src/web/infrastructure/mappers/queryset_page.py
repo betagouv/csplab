@@ -13,6 +13,9 @@ class QuerySetPage(IPage[T], Generic[T]):
     def count(self) -> int:
         return self._qs.count()
 
+    def __getitem__(self, index: slice) -> list[T]:
+        return [self._mapper(m) for m in self._qs[index]]
+
     def slice(self, offset: int, limit: int):
         sliced_qs = self._qs[offset : offset + limit]
         return (self._mapper(m) for m in sliced_qs)

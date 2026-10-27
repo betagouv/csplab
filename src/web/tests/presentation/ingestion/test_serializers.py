@@ -6,6 +6,7 @@ from infrastructure.factories.ingestion.offer_payload_factory import PayloadOffe
 from presentation.ingestion.serializers import (
     ConditionsInputSerializer,
     DescriptionInputSerializer,
+    LocalisationInputSerializer,
     OffersInputSerializer,
     ProfessionInputSerializer,
 )
@@ -233,3 +234,27 @@ def test_profession_input_serializer_skips_checks_for_other_referentiel():
 
     assert validated == data
     metiers_repository.get_filtered.assert_not_called()
+
+
+def test_localisation_input_serializer_requires_region_and_departement_in_france():
+    serializer = LocalisationInputSerializer(
+        data={
+            "zone_geographique": "EU",
+            "pays": "FRA",
+            "region": "",
+            "departement": "",
+            "localisation_label": "",
+            "latitude": None,
+            "longitude": None,
+        }
+    )
+
+    assert not serializer.is_valid()
+    assert serializer.errors == {
+        "non_field_errors": [
+            (
+                "La région et le département sont obligatoires "
+                "pour une offre localisée en France."
+            )
+        ]
+    }

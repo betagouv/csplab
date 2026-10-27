@@ -161,7 +161,7 @@ const announcedStatus = useDebounce(statusMessage, 1000)
     </ComboboxPortal>
 
     <span
-      class="csp-combobox__status"
+      class="sr-only"
       role="status"
     >
       {{ announcedStatus }}
@@ -170,6 +170,8 @@ const announcedStatus = useDebounce(statusMessage, 1000)
 </template>
 
 <style scoped lang="scss">
+@use '@/styles/search';
+
 // ComboboxRoot's DOM element does not receive Vue's scoped attribute, so the
 // root layout rule must be global to apply.
 :global(.csp-combobox) {
@@ -194,53 +196,26 @@ const announcedStatus = useDebounce(statusMessage, 1000)
 }
 
 .csp-combobox__anchor {
-  position: relative;
-  display: flex;
-  align-items: center;
+  @include search.field;
 }
 
 .csp-combobox__search-icon {
-  position: absolute;
-  left: 0.75rem;
+  @include search.icon;
+
   width: 1rem;
   height: 1rem;
-  color: var(--text-mention-grey);
-  pointer-events: none;
 }
 
 .csp-combobox__input {
+  @include search.input;
+
   width: 100%;
-  appearance: none;
-  background-color: var(--background-default-grey);
-  color: var(--text-default-grey);
-  box-shadow: inset 0 0 0 1px var(--border-default-grey);
-  border: none;
-  border-radius: 0.25rem;
-  font-size: 0.875rem;
-  line-height: 1.25;
-  padding: 0.625em 0.875em 0.625em 2.5em;
-
-  &::placeholder {
-    color: var(--text-mention-grey);
-  }
-
-  &:focus-visible {
-    outline: 2px solid var(--csp-focus-ring-color);
-    outline-offset: 2px;
-  }
-}
-
-.csp-combobox__status {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  clip-path: inset(50%);
-  white-space: nowrap;
 }
 </style>
 
 <style lang="scss">
+@use '@/styles/menu';
+
 .csp-combobox-content {
   width: var(--reka-combobox-trigger-width);
   max-height: var(--reka-combobox-content-available-height, 20rem);
@@ -264,22 +239,13 @@ const announcedStatus = useDebounce(statusMessage, 1000)
 }
 
 .csp-combobox-content__item {
-  display: flex;
+  @include menu.item;
+
   flex-direction: column;
+  align-items: stretch;
   gap: 0.125rem;
-  padding: var(--csp-menu-item-padding);
   font-size: 0.875rem;
   line-height: 1.25;
-  border-radius: 0.125rem;
-  cursor: pointer;
-  outline: none;
-  color: var(--text-default-grey);
-  user-select: none;
-
-  &[data-highlighted] {
-    background-color: var(--background-default-grey-hover);
-    color: var(--text-action-high-blue-france);
-  }
 }
 
 .csp-combobox-content__item-label {
@@ -300,8 +266,6 @@ const announcedStatus = useDebounce(statusMessage, 1000)
 }
 
 .csp-combobox-content__separator {
-  height: 1px;
-  margin-block: var(--csp-menu-padding);
-  background-color: var(--border-default-grey);
+  @include menu.separator;
 }
 </style>

@@ -9,6 +9,9 @@ from referentiel.value_objects.area import GeographicalArea
 from referentiel.value_objects.category import Category
 from referentiel.value_objects.contract_kind import ContractKind
 from referentiel.value_objects.country import Country
+from referentiel.value_objects.departement_region import (
+    overseas_region_for_department,
+)
 from referentiel.value_objects.department import Department
 from referentiel.value_objects.experience_level import ExperienceLevel
 from referentiel.value_objects.language import Language
@@ -723,11 +726,15 @@ class OffersCleaner:
             insee_department_code = department_code
 
         try:
+            department = Department(code=insee_department_code)
+            region = overseas_region_for_department(department) or Region(
+                code=insee_region_code
+            )
             return Localisation(
                 area=area,
                 country=Country(country_code),
-                region=Region(code=insee_region_code),
-                department=Department(code=insee_department_code),
+                region=region,
+                department=department,
                 label=label,
                 latitude=latitude,
                 longitude=longitude,

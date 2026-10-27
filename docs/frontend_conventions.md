@@ -179,6 +179,13 @@ The `Csp` prefix is reserved for UI "ingredients" and design system components. 
 - Optional props with `?` and default value if needed
 - Emits: name the action, not the DOM event (`save` not `click`)
 
+### Forms in a drawer or popover
+
+- Put the form in its own component, placed in the slot of `CspDrawer` or `CspPopover`. The slot content is unmounted on close, so the form starts from its props at each opening.
+- The parent resets the state it owns, such as a search status or a server error, in the function that opens or closes the drawer.
+- Derive errors with `computed`. The parent passes a server rejection to the form as a prop (`emailError`, `rejectedSiret`).
+- A test reopens the drawer and checks that the form is empty.
+
 ## Composables
 
 A composable encapsulates reusable logic with reactive state.

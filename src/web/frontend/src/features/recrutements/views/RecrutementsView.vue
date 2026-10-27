@@ -9,6 +9,7 @@ import { isHttpStatus } from '@/api/errors'
 import CspAsyncSection from '@/components/base/CspAsyncSection/CspAsyncSection.vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspDataTable from '@/components/base/CspDataTable/CspDataTable.vue'
+import CspDrawer from '@/components/base/CspDrawer/CspDrawer.vue'
 import CspEmptyState from '@/components/base/CspEmptyState/CspEmptyState.vue'
 import CspErrorState from '@/components/base/CspErrorState/CspErrorState.vue'
 import CspSearchBar from '@/components/base/CspSearchBar/CspSearchBar.vue'
@@ -31,7 +32,7 @@ import { useRouteOrganisme } from '@/stores/routeOrganisme'
 import { pluralize } from '@/utils/format'
 import ForbiddenView from '@/views/ForbiddenView.vue'
 import { RECRUTEMENTS_ACTIFS_COLUMNS, RECRUTEMENTS_ARCHIVES_COLUMNS } from '../columns'
-import AssignationResponsableDrawer from '../components/AssignationResponsableDrawer.vue'
+import AssignResponsableForm from '../components/AssignResponsableForm.vue'
 import RecrutementsActifsFiltersDrawer from '../components/RecrutementsActifsFiltersDrawer.vue'
 import RecrutementsArchivesFiltersDrawer from '../components/RecrutementsArchivesFiltersDrawer.vue'
 import { useAssignResponsable } from '../composables/useAssignResponsable'
@@ -141,6 +142,18 @@ function assignationErrorTitle(assignationError: unknown): string {
   return 'L\'assignation du responsable a échoué'
 }
 
+function openAssignment() {
+  resetResponsable()
+  assignationDrawer.open()
+}
+
+function removeFromAssignment(recrutementUuid: string) {
+  selection.toggle(recrutementUuid)
+  if (selection.count.value === 0) {
+    assignationDrawer.close()
+  }
+}
+
 async function handleAssign() {
   const recrutementIds = selection.selected.value.map(row => row.uuid)
 
@@ -235,7 +248,7 @@ const archivesCountLabel = computed(() => {
             <template #selection-actions>
               <CspButton
                 label="Assigner un responsable"
-                @click="assignationDrawer.open()"
+                @click="openAssignment"
               />
             </template>
             <template #status>
@@ -274,18 +287,24 @@ const archivesCountLabel = computed(() => {
             @apply="applyActifsFilters"
             @reset="actifsFilters.reset()"
           />
-          <AssignationResponsableDrawer
+          <CspDrawer
             v-model:open="assignationDrawer.isOpen.value"
-            :recrutements="selection.selected.value"
-            :status="responsableStatus"
-            :agent="foundAgent"
-            :searching="searching"
-            :submitting="submitting"
-            @remove="selection.toggle"
-            @search="searchResponsable"
-            @assign="handleAssign"
-            @reset="resetResponsable"
-          />
+            title="Assigner un responsable"
+            size="md"
+          >
+            <AssignResponsableForm
+              :recrutements="selection.selected.value"
+              :status="responsableStatus"
+              :agent="foundAgent"
+              :searching="searching"
+              :submitting="submitting"
+              @remove="removeFromAssignment"
+              @search="searchResponsable"
+              @assign="handleAssign"
+              @reset="resetResponsable"
+              @cancel="assignationDrawer.close()"
+            />
+          </CspDrawer>
           <CspAsyncSection
             :pending="showActifsSkeleton"
             loading-label="Chargement des recrutements en cours"

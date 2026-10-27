@@ -7,6 +7,9 @@ from referentiel.value_objects.area import GeographicalArea
 from referentiel.value_objects.category import Category
 from referentiel.value_objects.contract_kind import ContractKind
 from referentiel.value_objects.country import Country
+from referentiel.value_objects.departement_region import (
+    department_belongs_to_region,
+)
 from referentiel.value_objects.department import Department
 from referentiel.value_objects.diploma import Diploma
 from referentiel.value_objects.domaine_fonctionnel import DomaineFonctionnel
@@ -25,12 +28,20 @@ from referentiel.value_objects.region import Region
 from referentiel.value_objects.verse import Verse
 from rest_framework import serializers
 
+from application.ingestion.services.list_public_organismes import (
+    PUBLIC_ORGANISME_REFERENTIELS,
+)
 from infrastructure.django_apps.ingestion.models.talentsoft_organisme import (
     TalentsoftOrganismeModel,
 )
+from infrastructure.django_apps.recruteur.models.organisme import OrganismeModel
 from presentation.api.serializers import GenericErrorSerializer
 from presentation.commons.markdown import forbidden_markdown
-from presentation.commons.serializers import LocalisationSerializer, OrganismeSerializer
+from presentation.commons.serializers import (
+    LocalisationSerializer,
+    OrganismeSerializer,
+    validate_country_code,
+)
 
 LEGIFRANCE_HOSTS = frozenset({"legifrance.gouv.fr", "www.legifrance.gouv.fr"})
 
@@ -546,15 +557,50 @@ class FakeTsOfferDetailSerializer(FakeTsOfferSummarySerializer):
 
 
 class LocalisationInputSerializer(LocalisationSerializer):
+    pays = serializers.CharField(
+        max_length=3,
+        min_length=3,
+        help_text="Code pays ISO 3166-1 alpha-3, en majuscules (ex. `FRA`).",
+    )
+    region = serializers.ChoiceField(
+        choices=sorted(Region.VALID_CODES, key=lambda x: x),
+        allow_blank=True,
+        help_text=(
+            "Code INSEE de la région, `DOM` ou `TOM`. Le département doit "
+            "appartenir à cette région : `DOM` avec un département d'outre-mer, "
+            "`TOM` avec une collectivité d'outre-mer."
+        ),
+    )
+    latitude = serializers.FloatField(
+        allow_null=True, required=False, min_value=-90, max_value=90
+    )
+    longitude = serializers.FloatField(
+        allow_null=True, required=False, min_value=-180, max_value=180
+    )
+
     def validate(self, data):
         if data.get("pays") == "FRA" and not (
             data.get("region") and data.get("departement")
         ):
             raise serializers.ValidationError(
-                "La région et le département sont obligatoires"
+                "La région et le département sont obligatoires "
                 "pour une offre localisée en France."
             )
+        if data.get("region") and data.get("departement"):
+            region = Region(code=data["region"])
+            department = Department(code=data["departement"])
+            if not department_belongs_to_region(department, region):
+                raise serializers.ValidationError(
+                    f"Le département {_code_and_name(department)} "
+                    f"n'appartient pas à la région {_code_and_name(region)}."
+                )
         return data
+
+
+def _code_and_name(value: Region | Department) -> str:
+    if value.name == value.code:
+        return value.code
+    return f"{value.code} ({value.name})"
 
 
 CONTACT_ROLES = ["principal", "autre"]
@@ -692,7 +738,16 @@ class IdentityInputSerializer(serializers.Serializer):
 
 
 class OrganismeInputSerializer(OrganismeSerializer):
-    siret = serializers.CharField(max_length=14, allow_blank=True)
+    nom = serializers.CharField(
+        help_text="Nom de l'organisme. Reprendre de préférence le `nom` renvoyé par "
+        "`GET /api/v1/organismes`."
+    )
+    siret = serializers.CharField(
+        max_length=14,
+        allow_blank=True,
+        help_text="SIRET de l'organisme, à retrouver avec `GET /api/v1/organismes` "
+        "(filtres `nom` et `siret`).",
+    )
     talentsoft_organisme_entity_code = serializers.CharField(
         max_length=50,
         required=False,
@@ -1020,7 +1075,11 @@ class OrganismeLocalisationInputSerializer(serializers.Serializer):
     zone_geographique = serializers.ChoiceField(
         choices=[(c.value, c.name) for c in GeographicalArea]
     )
-    pays = serializers.CharField(max_length=3, min_length=3)
+    pays = serializers.CharField(
+        max_length=3,
+        min_length=3,
+        help_text="Code pays ISO 3166-1 alpha-3, en majuscules (ex. `FRA`).",
+    )
     region = serializers.ChoiceField(
         choices=sorted(Region.VALID_CODES, key=lambda x: x),
         allow_blank=True,
@@ -1034,6 +1093,9 @@ class OrganismeLocalisationInputSerializer(serializers.Serializer):
     longitude = serializers.FloatField(
         allow_null=True, required=False, min_value=-180, max_value=180
     )
+
+    def validate_pays(self, value: str) -> str:
+        return validate_country_code(value)
 
 
 class OrganismeUpsertInputSerializer(serializers.Serializer):
@@ -1063,6 +1125,88 @@ class UpsertOrganismesResponseSerializer(serializers.Serializer):
     created = serializers.IntegerField()
     updated = serializers.IntegerField()
     errors = serializers.ListField(child=serializers.DictField())
+
+
+class ListOrganismesFiltersSerializer(serializers.Serializer):
+    versant = _CommaSeparatedEnumField(
+        Verse,
+        "versant",
+        help_text="Valeurs séparées par une virgule (ex. `FPE,FPT`).",
+        source="versants",
+    )
+    siret = serializers.CharField(
+        required=False,
+        min_length=14,
+        max_length=14,
+        help_text="SIRET exact de l'organisme (14 caractères).",
+    )
+    nom = serializers.CharField(
+        required=False,
+        max_length=255,
+        help_text="Recherche partielle sur le nom, insensible à la casse.",
+        source="name",
+    )
+    departement = serializers.ChoiceField(
+        choices=sorted(Department.VALID_CODES),
+        required=False,
+        help_text="Code du département de l'organisme (ex. `75`, `2A`, `971`).",
+        source="department",
+    )
+    referentiel = serializers.ChoiceField(
+        choices=PUBLIC_ORGANISME_REFERENTIELS,
+        required=False,
+        help_text="Référentiel source de l'organisme.",
+    )
+
+
+class OrganismeLocalisationPublicSerializer(serializers.Serializer):
+    zone_geographique = serializers.CharField(source="area")
+    pays = serializers.CharField(source="country")
+    region = serializers.CharField()
+    departement = serializers.CharField(source="department")
+
+
+class OrganismePublicSerializer(serializers.ModelSerializer):
+    nom = serializers.CharField(
+        help_text="Nom de référence, à reprendre dans `organisation.nom` de l'API "
+        "d'ingestion d'offres."
+    )
+    siret = serializers.CharField(
+        help_text="SIRET à renseigner dans `organisation.siret` de l'API "
+        "d'ingestion d'offres."
+    )
+    parent_id = serializers.UUIDField(
+        allow_null=True, help_text="Identifiant de l'organisme parent."
+    )
+    referentiel = serializers.ChoiceField(
+        choices=PUBLIC_ORGANISME_REFERENTIELS,
+        help_text="Référentiel source. Avec "
+        "`external_id`, identifie l'organisme pour la création, la mise à jour et "
+        "la suppression.",
+    )
+    external_id = serializers.CharField(
+        allow_null=True, help_text="Identifiant dans le référentiel source."
+    )
+    millesime = serializers.CharField(
+        allow_null=True,
+        help_text="Version du référentiel source dont provient l'organisme.",
+    )
+    localisation = OrganismeLocalisationPublicSerializer(allow_null=True)
+
+    class Meta:
+        model = OrganismeModel
+        fields = [
+            "id",
+            "nom",
+            "versant",
+            "siret",
+            "parent_id",
+            "referentiel",
+            "external_id",
+            "millesime",
+            "localisation",
+        ]
+        read_only_fields = fields
 
 
 class OrganismeDeleteInputSerializer(serializers.Serializer):

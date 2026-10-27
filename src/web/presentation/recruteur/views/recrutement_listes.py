@@ -8,6 +8,7 @@ from rest_framework.response import Response
 from application.recruteur.services.list_recrutements import (
     list_actives_recrutements,
     list_archived_recrutements,
+    with_authorized_actions,
 )
 from domain.commons.errors.organisme_errors import OrganismeNexistePas
 from domain.identite.errors.organisme_permission_errors import OrganismePermissionError
@@ -23,6 +24,10 @@ from presentation.recruteur.serializers import (
 
 class RecrutementsListView(SessionApiMixin, ListAPIView):
     pagination_class = PageNumberLimitPagination
+
+    def paginate_queryset(self, queryset: QuerySet[RecrutementModel]) -> list | None:
+        page = super().paginate_queryset(queryset)
+        return None if page is None else with_authorized_actions(page)
 
     def handle_exception(self, exc: Exception) -> Response:
         if isinstance(exc, OrganismePermissionError):

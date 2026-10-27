@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { AgentSearchStatus } from '../composables/useFindOrCreateAgent'
 import type { AgentRecherche } from '../types'
-import { computed, ref, watch } from 'vue'
+import { computed, ref } from 'vue'
 import CspSearchBar from '@/components/base/CspSearchBar/CspSearchBar.vue'
 import { formatAgentLabel } from '../format'
 
@@ -30,12 +30,13 @@ const formatError = ref('')
 
 const error = computed(() => props.errorMessage || formatError.value)
 
-watch(email, () => {
+function handleInput(value: string): void {
+  email.value = value
   formatError.value = ''
   if (props.status !== 'idle') {
     emit('reset')
   }
-})
+}
 
 function handleSearch(value: string): void {
   if (!EMAIL_PATTERN.test(value)) {
@@ -49,7 +50,7 @@ function handleSearch(value: string): void {
 
 <template>
   <CspSearchBar
-    v-model="email"
+    :model-value="email"
     :label="label"
     hint="Saisissez l'adresse complète du compte de l'agent."
     name="email"
@@ -57,6 +58,7 @@ function handleSearch(value: string): void {
     :disabled="searching"
     :error="Boolean(error)"
     :error-message="error"
+    @update:model-value="handleInput"
     @search="handleSearch"
   />
 

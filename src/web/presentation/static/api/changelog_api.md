@@ -6,9 +6,23 @@ champs et de leurs règles se trouve dans le [guide de l'API](/pages/guide_api).
 
 Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/).
 
-## 2026-10-23
+## 2026-10-27
 
 ### ⚠️ Changements non rétrocompatibles
+
+`GET /api/v1/offres`, `GET /api/v1/offres/sources/{source_id}` et `GET /api/v1/metiers`
+changent de comportement de pagination :
+
+- une `page` au-delà de la dernière renvoie une erreur `404`, au lieu d'une liste
+  `results` vide ;
+- une `page` non numérique ou inférieure à `1` renvoie une erreur `404`, au lieu de la
+  première page ;
+- les liens `next` et `previous` ne contiennent `taille` que s'il est passé dans la
+  requête, et le lien vers la première page ne contient plus `page`.
+
+Le format de la réponse (`count`, `next`, `previous`, `results`) ne change pas. Une
+`taille` invalide est toujours remplacée par la valeur par défaut, et une `taille`
+supérieure à `1000` toujours ramenée à `1000`.
 
 `POST /api/v1/offres/creer_modifier` : une offre dont
 `organisation.talentsoft_organisme_entity_code` est renseigné est désormais rejetée
@@ -18,6 +32,9 @@ partenaires.
 
 ### Compatibilité
 
+Pour parcourir une liste, suivez le lien `next` jusqu'à ce qu'il vaille `null`, plutôt
+que d'incrémenter `page` jusqu'à obtenir une liste vide.
+
 Laissez `organisation.talentsoft_organisme_entity_code` vide ou ne l'envoyez pas.
 
 ### Corrigé
@@ -26,7 +43,60 @@ Laissez `organisation.talentsoft_organisme_entity_code` vide ou ne l'envoyez pas
   inconnu ne fait plus échouer toute la requête avec une erreur 500. Seule l'offre
   concernée est rejetée, dans `errors`, et les autres offres du lot sont enregistrées.
 
+## 2026-10-26
+
+### ⚠️ Changements non rétrocompatibles
+
+`POST /api/v1/offres/creer_modifier` : une offre dont le `departement` d'une localisation
+n'appartient pas à sa `region` est désormais rejetée. Elle apparaît dans `errors`, avec
+un message du type « Le département 13 (Bouches-du-Rhône) n'appartient pas à la région
+11 (Île-de-France). ». Jusqu'ici, la région et le département étaient vérifiés
+séparément : `region` `01` (Guadeloupe) et `departement` `01` (Ain) étaient acceptés
+ensemble.
+
+`POST /api/v1/offres/creer_modifier` : une offre dont `localisation[].pays` n'est pas
+en majuscules (`fra`, `Fra`…) est désormais rejetée. Elle apparaît dans `errors`, avec
+le message « Code pays invalide, un code ISO 3166-1 alpha-3 en majuscules est attendu
+(ex. FRA). ». Jusqu'ici, le code était enregistré tel quel et la règle « région et
+département obligatoires pour une offre en France » ne s'appliquait pas.
+
+`POST /api/v1/organismes/creer_modifier` : un organisme dont `localisation.pays` n'est pas
+un code ISO 3166-1 alpha-3 en majuscules (`fra`, `XXX`…) est désormais rejeté. Il
+apparaît dans `errors`, avec le message « Code pays invalide, un code ISO 3166-1 alpha-3
+en majuscules est attendu (ex. FRA). ». Jusqu'ici, tout code de 3 caractères était
+enregistré tel quel.
+
+### Compatibilité
+
+Renseignez dans `region` le code INSEE de la région du département, et non le code du
+département. Pour l'outre-mer :
+
+- départements et régions d'outre-mer (`971` à `974`, `976`) : le code INSEE de la
+  région (`01` à `04`, `06`) ou `DOM` ;
+- collectivités d'outre-mer (`975`, `986`, `987`, `988`, `SPM`, `WLF`) : `TOM`.
+
+Envoyez un code pays ISO 3166-1 alpha-3 existant, en majuscules (`FRA`, `BEL`…).
+
+### Corrigé
+
+- `POST /api/v1/offres/creer_modifier` : `latitude` et `longitude` peuvent désormais
+  être omises dans un élément de `localisation`, comme l'indique le guide de l'API.
+  Jusqu'ici, une offre sans ces clés était rejetée avec « Ce champ est obligatoire. »,
+  et il fallait les envoyer à `null`. Les deux écritures sont acceptées et donnent une
+  localisation sans coordonnées.
+
 ## 2026-10-22
+
+### Ajouté
+
+- `GET /api/v1/organismes` : liste paginée (`page`, `taille`) des organismes du
+  référentiel CSPLab (FINESS, GIPCDG et DILA), triée par nom. Accessible avec un jeton
+  JWT uniquement. Filtres : `versant` (plusieurs valeurs séparées par une virgule),
+  `siret`, `nom` (recherche partielle), `departement` et `referentiel`. Chaque
+  organisme contient `id`, `nom`, `versant`, `siret`, `parent_id`, `referentiel`,
+  `external_id`, `millesime` et `localisation`. Les valeurs `nom` et `siret` sont
+  celles à reprendre dans le bloc `organisation` de
+  `POST /api/v1/offres/creer_modifier`.
 
 ### ⚠️ Changements non rétrocompatibles
 
