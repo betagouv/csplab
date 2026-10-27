@@ -9,7 +9,7 @@ const meta = {
   tags: ['autodocs'],
   parameters: {
     controls: {
-      include: ['value', 'label', 'size', 'disabled', 'error'],
+      include: ['value', 'label', 'hint', 'size', 'disabled', 'error'],
     },
     docs: {
       description: {
@@ -28,6 +28,13 @@ const meta = {
     label: {
       control: { type: 'text' },
       description: 'Libellé texte visible associé au bouton radio.',
+      table: {
+        type: { summary: 'string' },
+      },
+    },
+    hint: {
+      control: { type: 'text' },
+      description: 'Aide affichée sous le libellé, dont elle fait partie et qui la porte dans le nom accessible.',
       table: {
         type: { summary: 'string' },
       },

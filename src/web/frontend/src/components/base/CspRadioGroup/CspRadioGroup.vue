@@ -8,6 +8,7 @@ import CspRadio from '@/components/base/CspRadio/CspRadio.vue'
 export interface CspRadioGroupOption {
   value: string
   label: string
+  hint?: string
   disabled?: boolean
 }
 
@@ -66,6 +67,7 @@ function updateModel(val: unknown): void {
         :key="option.value"
         :value="option.value"
         :label="option.label"
+        :hint="option.hint"
         :disabled="disabled || option.disabled"
         :size="size"
         :error="error"
