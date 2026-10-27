@@ -366,6 +366,7 @@ def _cv(
     experiences = rng.sample(corpus["experiences_directes"], nb_directes) + rng.sample(
         corpus["experiences_voisines"], 3 - nb_directes
     )
+    rng.shuffle(experiences)
     competences = rng.sample(
         corpus["competences_poste"], nb_competences_poste
     ) + rng.sample(corpus["competences_voisines"], 6 - nb_competences_poste)

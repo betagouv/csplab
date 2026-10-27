@@ -428,3 +428,32 @@ class TestSeedDemoOrganisme:
 
             pdf = PdfReader(BytesIO(_pdf_texte(cv.lignes, None)))
             assert "Camille Durand" in "".join(p.extract_text() for p in pdf.pages)
+
+    def test_direct_experiences_are_not_always_listed_first(self):
+        candidature = _CandidaturePlan(
+            etape="Présélection",
+            prenom="Camille",
+            nom="Durand",
+            proximite=0.4,
+            note=False,
+            conversation=False,
+            lecture=False,
+            avatar=None,
+        )
+        directes = {
+            f"{experience['titre']}, {experience['employeur']}"
+            for experience in CORPUS["finances"]["experiences_directes"]
+        }
+
+        premiere_directe = {
+            _cv(
+                random.Random(graine),
+                CORPUS["finances"],
+                candidature,
+                "camille.durand@demo.candidat.fr",
+            ).experience
+            in directes
+            for graine in range(10)
+        }
+
+        assert premiere_directe == {True, False}
