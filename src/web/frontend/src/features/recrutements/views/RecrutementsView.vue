@@ -309,7 +309,7 @@ const archivesCountLabel = computed(() => {
           >
             <template #skeleton>
               <CspSkeletonTable
-                :columns="canManageOrganisme ? 7 : 6"
+                :columns="canManageOrganisme ? 8 : 7"
               />
             </template>
             <CspDataTable
@@ -328,16 +328,7 @@ const archivesCountLabel = computed(() => {
               @activate="openOffre"
               @toggle-row="selection.toggle"
               @toggle-all="selection.toggleVisible"
-            >
-              <template #header-candidatures="{ label }">
-                <div class="mes-recrutement-view__candidatures-head">
-                  <span>{{ label }}</span>
-                  <span class="mes-recrutement-view__candidatures-legend">
-                    # · À traiter · En cours
-                  </span>
-                </div>
-              </template>
-            </CspDataTable>
+            />
           </CspAsyncSection>
         </template>
       </template>
@@ -406,20 +397,3 @@ const archivesCountLabel = computed(() => {
     </CspPageContainer>
   </template>
 </template>
-
-<style scoped lang="scss">
-.mes-recrutement-view__candidatures-head {
-  display: flex;
-  flex-direction: column;
-  max-height: 1rem;
-  & > span:first-child {
-    margin-top: -0.75rem;
-  }
-}
-
-.mes-recrutement-view__candidatures-legend {
-  font-weight: 400;
-  font-size: 0.75rem;
-  color: var(--text-mention-grey);
-}
-</style>
