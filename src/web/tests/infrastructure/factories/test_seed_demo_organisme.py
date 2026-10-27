@@ -237,6 +237,26 @@ class TestSeedDemoOrganisme:
         assert nom_complet in texte
         assert "l’État" in texte
         assert nom_complet in candidature_etat.candidat.resume  # type: ignore[union-attr]
+        avec_avatar = set()
+        for candidature in candidatures.select_related(
+            "candidat__utilisateur", "etape__recrutement__offre"
+        ):
+            utilisateur = candidature.candidat.utilisateur
+            cv = DocumentModel.objects.get(candidature=candidature)
+            with cv.fichier.open("rb") as fichier:
+                premiere_page = PdfReader(BytesIO(fichier.read())).pages[0]
+            initiales = f"{utilisateur.first_name[0]}{utilisateur.last_name[0]}"
+            avec_avatar.add(
+                premiere_page.extract_text().split()[0] == initiales.upper()
+            )
+            reference = candidature.etape.recrutement.offre.reference
+            famille = _RECRUTEMENTS_REDUITS[int(reference[-2:]) - 1]["famille"]
+            assert any(
+                f"{experience['titre']}, {experience['employeur']}"
+                in candidature.candidat.resume
+                for experience in CORPUS[famille]["experiences_directes"]
+            )
+        assert avec_avatar == {True, False}
 
         simulation = seed_demo_organisme(cibles, dry_run=True)
         assert [o["a_supprimer"] for o in simulation["organismes"]] == [
@@ -354,7 +374,8 @@ class TestSeedDemoOrganisme:
         ],
     )
     def test_generates_a_pdf_cv_for_each_famille(self, famille):
-        for proximite in (0.0, 1.0):
+        # miroir des bornes de _APPRECIATIONS au 27/10
+        for proximite in (0.4, 0.9):
             candidature = _CandidaturePlan(
                 etape="Présélection",
                 prenom="Camille",
@@ -363,6 +384,7 @@ class TestSeedDemoOrganisme:
                 note=False,
                 conversation=False,
                 lecture=False,
+                avatar=None,
             )
 
             cv = _cv(
@@ -372,5 +394,5 @@ class TestSeedDemoOrganisme:
                 "camille.durand@demo.candidat.fr",
             )
 
-            pdf = PdfReader(BytesIO(_pdf_texte(cv.lignes)))
+            pdf = PdfReader(BytesIO(_pdf_texte(cv.lignes, None)))
             assert "Camille Durand" in "".join(p.extract_text() for p in pdf.pages)

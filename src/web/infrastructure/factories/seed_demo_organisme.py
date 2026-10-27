@@ -83,6 +83,24 @@ _CRENEAUX = ((3, "10 h"), (5, "14 h 30"), (8, "11 h"))
 _CANDIDATURES_ETALEES_SUR = timedelta(days=30)
 _DEMANDE_ENVOYEE_A = time(9, 30)
 _REPONSE_ENVOYEE_A = time(16, 30)
+_APPRECIATIONS = {
+    0.4: "Parcours voisin du poste, adéquation à confirmer en entretien.",
+    0.65: "Parcours en partie aligné sur le poste, expériences voisines utiles.",
+    0.9: "Parcours en adéquation directe avec les missions du poste.",
+}
+_PART_AVATAR = 0.5
+_COULEURS_AVATAR = (
+    (0.0, 0.0, 0.57),
+    (0.88, 0.0, 0.06),
+    (0.0, 0.45, 0.4),
+    (0.42, 0.25, 0.6),
+)
+
+
+@dataclass
+class _Avatar:
+    initiales: str
+    couleur: tuple[float, float, float]
 
 
 @dataclass
@@ -94,6 +112,7 @@ class _CandidaturePlan:
     note: bool
     conversation: bool
     lecture: bool
+    avatar: _Avatar | None
 
 
 @dataclass
@@ -132,15 +151,23 @@ def _planifier(
                 if conversation:
                     lecture = nb_conversations % 2 == 0
                     nb_conversations += 1
+                prenom, nom = fake.first_name(), fake.last_name()
+                avatar = None
+                if rng.random() < _PART_AVATAR:
+                    avatar = _Avatar(
+                        initiales=f"{prenom[0]}{nom[0]}".upper(),
+                        couleur=rng.choice(_COULEURS_AVATAR),
+                    )
                 candidatures.append(
                     _CandidaturePlan(
                         etape=etape,
-                        prenom=fake.first_name(),
-                        nom=fake.last_name(),
-                        proximite=rng.random(),
+                        prenom=prenom,
+                        nom=nom,
+                        proximite=rng.choice(list(_APPRECIATIONS)),
                         note=note,
                         conversation=conversation,
                         lecture=lecture,
+                        avatar=avatar,
                     )
                 )
         plans.append(
@@ -227,6 +254,32 @@ _MARGE = 56
 _INTERLIGNE = 13
 _LIGNES_PAR_PAGE = (_PAGE[1] - 2 * _MARGE) // _INTERLIGNE
 _CARACTERES_PAR_LIGNE = 90
+_RAYON_AVATAR = 28
+_KAPPA_CERCLE = 0.5523
+_LIGNES_AVATAR = 6
+
+
+def _flux_avatar(avatar: _Avatar) -> bytes:
+    r, k = _RAYON_AVATAR, _RAYON_AVATAR * _KAPPA_CERCLE
+    x, y = _MARGE + r, _PAGE[1] - _MARGE - r
+    courbes = [
+        (x + r, y + k, x + k, y + r, x, y + r),
+        (x - k, y + r, x - r, y + k, x - r, y),
+        (x - r, y - k, x - k, y - r, x, y - r),
+        (x + k, y - r, x + r, y - k, x + r, y),
+    ]
+    return b"\n".join(
+        [
+            b"q",
+            b"%.2f %.2f %.2f rg" % avatar.couleur,
+            b"%.1f %.1f m" % (x + r, y),
+            *(b"%.1f %.1f %.1f %.1f %.1f %.1f c" % courbe for courbe in courbes),
+            b"f",
+            b"BT /F2 18 Tf 1 1 1 rg %.1f %.1f Td (%s) Tj ET"
+            % (x - 12, y - 6, _echapper(avatar.initiales)),
+            b"Q",
+        ]
+    )
 
 
 def _flux_page(lignes: list[tuple[str, bool]]) -> bytes:
@@ -246,12 +299,14 @@ def _flux_page(lignes: list[tuple[str, bool]]) -> bytes:
     return b"\n".join(morceaux)
 
 
-def _pdf_texte(lignes: list[tuple[str, bool]]) -> bytes:
+def _pdf_texte(lignes: list[tuple[str, bool]], avatar: _Avatar | None) -> bytes:
     coupees = [
         (morceau, gras)
         for texte, gras in lignes
         for morceau in textwrap.wrap(texte, width=_CARACTERES_PAR_LIGNE) or [""]
     ]
+    if avatar is not None:
+        coupees = [("", False)] * _LIGNES_AVATAR + coupees
     pages = [
         coupees[debut : debut + _LIGNES_PAR_PAGE]
         for debut in range(0, len(coupees), _LIGNES_PAR_PAGE)
@@ -272,6 +327,8 @@ def _pdf_texte(lignes: list[tuple[str, bool]]) -> bytes:
     ]
     for page_id, page in zip(pages_ids, pages, strict=True):
         flux = _flux_page(page)
+        if avatar is not None and page_id == pages_ids[0]:
+            flux = _flux_avatar(avatar) + b"\n" + flux
         objets.append(
             b"<< /Type /Page /Parent 2 0 R /MediaBox [0 0 %d %d] "
             b"/Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> "
@@ -346,14 +403,6 @@ def _cv(
     )
 
 
-def _appreciation(proximite: float) -> str:
-    if proximite >= 2 / 3:
-        return "Parcours en adéquation directe avec les missions du poste."
-    if proximite >= 1 / 3:
-        return "Parcours en partie aligné sur le poste, expériences voisines utiles."
-    return "Parcours voisin du poste, adéquation à confirmer en entretien."
-
-
 def _note(candidature: _CandidaturePlan, intitule: str, cv: _Cv) -> str:
     return "\n".join(
         [
@@ -365,7 +414,7 @@ def _note(candidature: _CandidaturePlan, intitule: str, cv: _Cv) -> str:
                     intitule=intitule,
                     experience=cv.experience,
                     competence=cv.competence,
-                    appreciation=_appreciation(candidature.proximite),
+                    appreciation=_APPRECIATIONS[candidature.proximite],
                 )
                 for ligne in NOTE_LIGNES
             ),
@@ -571,7 +620,11 @@ def _ecrire(
                 if candidature_plan.etape == _REFUS
                 else None,
             )
-            _seed_cv(candidature, candidat.utilisateur, _pdf_texte(cv.lignes))
+            _seed_cv(
+                candidature,
+                candidat.utilisateur,
+                _pdf_texte(cv.lignes, candidature_plan.avatar),
+            )
             if candidature_plan.note:
                 NoteDjangoFactory(
                     candidature=candidature,
