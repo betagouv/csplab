@@ -85,6 +85,28 @@ _EXPERIENCES_TRANSVERSES = [
         "Pilotage du planning, coordination des prestataires et relation "
         "avec les partenaires institutionnels.",
     ),
+    _exp(
+        "Chargé(e) de mission",
+        "Communauté urbaine de Dunkerque",
+        "Suivi de projets transversaux et préparation des conseils communautaires.",
+    ),
+    _exp(
+        "Gestionnaire administratif(ve)",
+        "Ville de Nantes",
+        "Instruction de dossiers, accueil des usagers et suivi budgétaire "
+        "d'un service municipal.",
+    ),
+    _exp(
+        "Chargé(e) d'études",
+        "Caisse des dépôts et consignations",
+        "Études territoriales et appui aux collectivités dans leurs projets "
+        "d'investissement.",
+    ),
+    _exp(
+        "Responsable administratif(ve)",
+        "Université de Lille",
+        "Pilotage d'un service administratif et gestion des moyens d'une composante.",
+    ),
 ]
 
 _COMPETENCES_TRANSVERSES = [
@@ -94,6 +116,10 @@ _COMPETENCES_TRANSVERSES = [
     "Maîtrise des outils bureautiques et collaboratifs",
     "Sens du service public et devoir de réserve",
     "Capacité d'analyse et esprit de synthèse",
+    "Gestion des priorités et respect des délais",
+    "Aisance à l'oral et prise de parole en public",
+    "Accueil et relation avec les usagers",
+    "Travail en réseau et en partenariat",
 ]
 
 CORPUS: Corpus = {
@@ -116,6 +142,14 @@ CORPUS: Corpus = {
                 "Manager des fonctions support, attaché(e) à la qualité du "
                 "dialogue social et à la maîtrise de la dépense."
             ),
+            (
+                "Assistant(e) de direction expérimenté(e), je coordonne depuis "
+                "cinq ans l'agenda et les dossiers d'un comité de direction."
+            ),
+            (
+                "Chef(fe) de projet transformation, j'ai mené plusieurs chantiers "
+                "de simplification des démarches internes."
+            ),
         ],
         "formations": [
             _form(
@@ -126,6 +160,11 @@ CORPUS: Corpus = {
             ),
             _form("Master Gestion des ressources humaines", "IAE de Lyon"),
             _form("Diplôme de Sciences Po", "Sciences Po Bordeaux"),
+            _form("Master Management public", "Université de Strasbourg"),
+            _form(
+                "Classe préparatoire aux concours administratifs",
+                "Institut régional d'administration de Lille",
+            ),
         ],
         "experiences_directes": [
             _exp(
@@ -155,6 +194,30 @@ CORPUS: Corpus = {
                 "Pilotage de la masse salariale, de la GPEC et des relations "
                 "avec les organisations syndicales.",
             ),
+            _exp(
+                "Chargé(e) de mission auprès du directeur",
+                "Direction départementale des territoires de l'Isère",
+                "Préparation des comités de direction, suivi des tableaux de "
+                "bord et coordination des chefs de service.",
+            ),
+            _exp(
+                "Assistant(e) de direction",
+                "Rectorat de l'académie de Versailles",
+                "Gestion de l'agenda, organisation des réunions et suivi du "
+                "courrier du recteur.",
+            ),
+            _exp(
+                "Chef(fe) de projet transformation",
+                "Direction interministérielle de la transformation publique",
+                "Conduite de projets de simplification et animation de réseaux "
+                "de porteurs de projets.",
+            ),
+            _exp(
+                "Responsable des services généraux",
+                "Office national des forêts",
+                "Gestion des bâtiments, de la flotte automobile et des contrats "
+                "de maintenance.",
+            ),
         ],
         "experiences_voisines": _EXPERIENCES_TRANSVERSES,
         "competences_poste": [
@@ -164,6 +227,10 @@ CORPUS: Corpus = {
             "Gestion des ressources humaines et dialogue social",
             "Contrôle interne et maîtrise des risques",
             "Conduite de réorganisations",
+            "Préparation des arbitrages de la direction",
+            "Organisation logistique de déplacements et d'événements",
+            "Suivi de tableaux de bord et d'indicateurs",
+            "Conduite du changement",
         ],
         "competences_voisines": _COMPETENCES_TRANSVERSES,
     },
@@ -186,6 +253,14 @@ CORPUS: Corpus = {
                 "Conseiller(ère) en ressources humaines, attaché(e) à "
                 "l'accompagnement des parcours et au dialogue social."
             ),
+            (
+                "Gestionnaire paie rigoureux(se), habitué(e) aux contrôles de fin "
+                "d'exercice et aux évolutions réglementaires."
+            ),
+            (
+                "Chargé(e) de recrutement, je conduis chaque année plus de deux "
+                "cents entretiens pour des postes très variés."
+            ),
         ],
         "formations": [
             _form("Master Gestion des ressources humaines", "IAE de Paris"),
@@ -194,8 +269,15 @@ CORPUS: Corpus = {
                 "Université de Bordeaux",
             ),
             _form(
-                "Licence Administration économique et sociale", "Université de Nantes"
+                "Licence Administration économique et sociale",
+                "Université de Nantes",
             ),
+            _form(
+                "Master Ressources humaines et relations du travail",
+                "Université de Montpellier",
+            ),
+            _form("Licence professionnelle Gestion de la paie", "IUT de Tours"),
+            _form("Master Psychologie du travail", "Université de Lorraine"),
         ],
         "experiences_directes": [
             _exp(
@@ -222,6 +304,30 @@ CORPUS: Corpus = {
                 "Élaboration du plan de formation, suivi des budgets et "
                 "évaluation des actions.",
             ),
+            _exp(
+                "Gestionnaire paie",
+                "Centre hospitalier universitaire de Rennes",
+                "Préparation et contrôle de la paie mensuelle, gestion des "
+                "absences et des cotisations.",
+            ),
+            _exp(
+                "Chargé(e) de mission égalité professionnelle",
+                "Région Auvergne-Rhône-Alpes",
+                "Pilotage du plan d'action égalité, suivi des indicateurs et "
+                "animation du réseau de référents.",
+            ),
+            _exp(
+                "Conseiller(ère) en prévention",
+                "Service départemental d'incendie et de secours",
+                "Analyse des risques professionnels, mise à jour du document "
+                "unique et accompagnement des encadrants.",
+            ),
+            _exp(
+                "Responsable du dialogue social",
+                "Météo-France",
+                "Préparation des instances, rédaction des procès-verbaux et "
+                "suivi des accords.",
+            ),
         ],
         "experiences_voisines": _EXPERIENCES_TRANSVERSES,
         "competences_poste": [
@@ -231,6 +337,10 @@ CORPUS: Corpus = {
             "Ingénierie de formation",
             "Dialogue social et instances représentatives",
             "Maîtrise d'un SIRH",
+            "Gestion prévisionnelle des emplois et des compétences",
+            "Prévention des risques professionnels",
+            "Accompagnement des mobilités",
+            "Politique d'égalité professionnelle",
         ],
         "competences_voisines": _COMPETENCES_TRANSVERSES,
     },
@@ -253,6 +363,14 @@ CORPUS: Corpus = {
                 "Conseiller(ère) juridique, à l'aise avec la procédure "
                 "parlementaire et la sécurisation des actes administratifs."
             ),
+            (
+                "Ancien(ne) avocat(e), j'ai plaidé en contentieux administratif "
+                "avant de rejoindre une administration."
+            ),
+            (
+                "Juriste spécialisé(e) en droit économique, à l'aise avec "
+                "l'analyse de marchés et de contrats."
+            ),
         ],
         "formations": [
             _form(
@@ -263,6 +381,9 @@ CORPUS: Corpus = {
                 "Certificat d'aptitude à la profession d'avocat",
                 "École de formation du barreau",
             ),
+            _form("Master Droit de l'environnement", "Université de Strasbourg"),
+            _form("Master Propriété intellectuelle", "Université de Poitiers"),
+            _form("Diplôme de Sciences Po", "Sciences Po Grenoble"),
         ],
         "experiences_directes": [
             _exp(
@@ -289,6 +410,29 @@ CORPUS: Corpus = {
                 "Préparation des travaux de commission et rédaction de "
                 "rapports législatifs.",
             ),
+            _exp(
+                "Juriste",
+                "Agence de l'eau Seine-Normandie",
+                "Instruction juridique des aides et sécurisation des actes de "
+                "l'agence.",
+            ),
+            _exp(
+                "Juriste propriété intellectuelle",
+                "Institut national de la propriété industrielle",
+                "Conseil sur le droit des marques et des brevets et rédaction de "
+                "contrats de licence.",
+            ),
+            _exp(
+                "Avocat(e) collaborateur(trice)",
+                "Cabinet d'avocats en droit public",
+                "Contentieux des contrats publics et de la fonction publique.",
+            ),
+            _exp(
+                "Rapporteur(e)",
+                "Autorité de la concurrence",
+                "Instruction de dossiers de concentration et rédaction de "
+                "projets de décision.",
+            ),
         ],
         "experiences_voisines": _EXPERIENCES_TRANSVERSES,
         "competences_poste": [
@@ -298,6 +442,10 @@ CORPUS: Corpus = {
             "Veille juridique",
             "Sécurisation des actes et des marchés",
             "Droit de la commande publique",
+            "Droit de la propriété intellectuelle",
+            "Droit de la concurrence",
+            "Droit de l'environnement",
+            "Rédaction de contrats et de conventions",
         ],
         "competences_voisines": _COMPETENCES_TRANSVERSES,
     },
@@ -320,11 +468,22 @@ CORPUS: Corpus = {
                 "Analyste budgétaire, habitué(e) au dialogue avec la direction du "
                 "budget et au suivi des risques financiers de l’État."
             ),
+            (
+                "Économiste, je produis depuis six ans des analyses "
+                "conjoncturelles et sectorielles pour l’État."
+            ),
+            (
+                "Contrôleur(se) de gestion, soucieux(se) de la fiabilité des données "
+                "et du dialogue de gestion avec les services de l’État."
+            ),
         ],
         "formations": [
             _form("Master Finances publiques", "Université Paris 1 Panthéon-Sorbonne"),
             _form("Master Contrôle de gestion et audit", "IAE d'Aix-Marseille"),
             _form("Diplôme de l'ESSEC, majeure finance", "ESSEC Business School"),
+            _form("Master Économie appliquée", "Toulouse School of Economics"),
+            _form("Diplôme d'ingénieur statisticien économiste", "ENSAE Paris"),
+            _form("Master Banque et finance", "Université de Lille"),
         ],
         "experiences_directes": [
             _exp(
@@ -351,6 +510,29 @@ CORPUS: Corpus = {
                 "Analyse conjoncturelle, prévisions macroéconomiques et "
                 "rédaction de notes de conjoncture.",
             ),
+            _exp(
+                "Inspecteur(trice) des finances publiques",
+                "Direction générale des finances publiques",
+                "Contrôle fiscal des entreprises et analyse de leurs comptes.",
+            ),
+            _exp(
+                "Analyste financier(ère)",
+                "Bpifrance",
+                "Analyse de dossiers de financement et suivi d'un portefeuille "
+                "d'entreprises.",
+            ),
+            _exp(
+                "Responsable budgétaire",
+                "Université de Bordeaux",
+                "Préparation du budget, dialogue de gestion avec les "
+                "composantes et suivi de l'exécution.",
+            ),
+            _exp(
+                "Chargé(e) de mission participations",
+                "Agence des participations de l'État",
+                "Suivi d'entreprises du portefeuille public et préparation des "
+                "conseils d'administration.",
+            ),
         ],
         "experiences_voisines": _EXPERIENCES_TRANSVERSES,
         "competences_poste": [
@@ -360,6 +542,10 @@ CORPUS: Corpus = {
             "Analyse économique et conjoncturelle",
             "Contrôle de gestion",
             "Modélisation financière sous tableur",
+            "Fiscalité des entreprises",
+            "Analyse de bilans et de comptes",
+            "Prévision macroéconomique",
+            "Suivi de la performance des opérateurs",
         ],
         "competences_voisines": _COMPETENCES_TRANSVERSES,
     },
@@ -382,11 +568,22 @@ CORPUS: Corpus = {
                 "Spécialiste de la commande publique, attaché(e) à l'achat "
                 "responsable et à la performance économique."
             ),
+            (
+                "Acheteur(se) informatique, habitué(e) aux marchés complexes et à "
+                "la négociation avec les éditeurs."
+            ),
+            (
+                "Ancien(ne) juriste, je sécurise les procédures de passation et "
+                "l'exécution des marchés."
+            ),
         ],
         "formations": [
             _form("Master Achats publics", "Université de Lille"),
             _form("Master Droit des contrats publics", "Université Jean Moulin Lyon 3"),
             _form("Licence professionnelle Achats", "IUT de Bordeaux"),
+            _form("Master Management des achats", "IAE de Grenoble"),
+            _form("Master Droit public des affaires", "Université de Rennes"),
+            _form("Licence Administration publique", "Université de Nantes"),
         ],
         "experiences_directes": [
             _exp(
@@ -413,6 +610,29 @@ CORPUS: Corpus = {
                 "Conseil aux acheteurs publics et rédaction de clauses "
                 "environnementales et sociales.",
             ),
+            _exp(
+                "Acheteur(se) informatique",
+                "Centre hospitalier régional universitaire de Lille",
+                "Achats de matériels et de prestations informatiques, mise en "
+                "concurrence et suivi des fournisseurs.",
+            ),
+            _exp(
+                "Responsable des achats",
+                "Ville de Toulouse",
+                "Animation de la fonction achat et élaboration de la "
+                "cartographie des achats.",
+            ),
+            _exp(
+                "Chargé(e) de l'exécution des marchés",
+                "Voies navigables de France",
+                "Suivi financier des marchés, gestion des pénalités et des "
+                "reconductions.",
+            ),
+            _exp(
+                "Acheteur(se) prestations intellectuelles",
+                "Ministère des Armées, plateforme achats",
+                "Passation de marchés d'études et de conseil, analyse des offres.",
+            ),
         ],
         "experiences_voisines": _EXPERIENCES_TRANSVERSES,
         "competences_poste": [
@@ -422,6 +642,10 @@ CORPUS: Corpus = {
             "Achat public responsable",
             "Suivi de l'exécution des marchés",
             "Maîtrise des plateformes de dématérialisation",
+            "Sourcing et connaissance des marchés fournisseurs",
+            "Cartographie des achats",
+            "Gestion des avenants et des reconductions",
+            "Suivi de la relation fournisseurs",
         ],
         "competences_voisines": _COMPETENCES_TRANSVERSES,
     },
@@ -443,13 +667,28 @@ CORPUS: Corpus = {
                 "Chef(fe) de projet SI, à l'aise entre les équipes techniques, "
                 "les métiers et les prestataires."
             ),
+            (
+                "Data scientist, j'aime transformer des données publiques en "
+                "outils utiles aux agents."
+            ),
+            (
+                "Administrateur(trice) systèmes, j'assure depuis cinq ans "
+                "l'exploitation de services critiques."
+            ),
         ],
         "formations": [
             _form("Diplôme d'ingénieur informatique", "INSA Rennes"),
             _form("Master Science des données", "Université Paris Cité"),
             _form(
-                "Master Sécurité des systèmes d'information", "Université de Limoges"
+                "Master Sécurité des systèmes d'information",
+                "Université de Limoges",
             ),
+            _form(
+                "Licence professionnelle Administration de systèmes",
+                "IUT de Lannion",
+            ),
+            _form("Master MIAGE", "Université Paris-Dauphine"),
+            _form("Diplôme d'ingénieur", "EPITA"),
         ],
         "experiences_directes": [
             _exp(
@@ -476,6 +715,29 @@ CORPUS: Corpus = {
                 "Analyses de risques, homologation des systèmes et réponse "
                 "aux incidents de sécurité.",
             ),
+            _exp(
+                "Administrateur(trice) systèmes et réseaux",
+                "Université Grenoble Alpes",
+                "Exploitation de serveurs Linux, supervision et sauvegardes.",
+            ),
+            _exp(
+                "Chef(fe) de produit numérique",
+                "Incubateur de services numériques de l'État",
+                "Pilotage d'un produit par l'usage, priorisation et suivi des "
+                "indicateurs d'impact.",
+            ),
+            _exp(
+                "Data scientist",
+                "Caisse nationale de l'assurance maladie",
+                "Modèles statistiques de détection des fraudes et visualisation "
+                "de données de santé.",
+            ),
+            _exp(
+                "Développeur(se) back-end",
+                "Entreprise de services numériques",
+                "Développement d'API et maintenance d'applications pour des "
+                "clients publics.",
+            ),
         ],
         "experiences_voisines": _EXPERIENCES_TRANSVERSES,
         "competences_poste": [
@@ -485,6 +747,10 @@ CORPUS: Corpus = {
             "Sécurité des systèmes d'information",
             "Administration de bases de données",
             "Accessibilité numérique (RGAA)",
+            "Administration de systèmes Linux",
+            "Conception d'API",
+            "Recherche utilisateur et tests d'usage",
+            "Modélisation statistique et apprentissage automatique",
         ],
         "competences_voisines": _COMPETENCES_TRANSVERSES,
     },
@@ -507,11 +773,33 @@ CORPUS: Corpus = {
                 "Spécialiste des réseaux sociaux et des relations presse, "
                 "attaché(e) à une information claire et accessible."
             ),
+            (
+                "Rédacteur(trice) web, je conçois depuis quatre ans des contenus "
+                "pour des sites institutionnels."
+            ),
+            (
+                "Chargé(e) de veille, habitué(e) à repérer les signaux faibles "
+                "dans les médias et sur les réseaux."
+            ),
         ],
         "formations": [
             _form("Master Communication publique et politique", "CELSA Sorbonne"),
-            _form("Diplôme de journalisme", "École supérieure de journalisme de Lille"),
-            _form("Master Communication des organisations", "Université de Toulouse"),
+            _form(
+                "Diplôme de journalisme",
+                "École supérieure de journalisme de Lille",
+            ),
+            _form(
+                "Master Communication des organisations",
+                "Université de Toulouse",
+            ),
+            _form(
+                "Licence Information-communication",
+                "Université Bordeaux Montaigne",
+            ),
+            _form("Master Communication numérique", "Université de Lorraine"),
+            _form(
+                "Master Médias et communication", "Université Paris 2 Panthéon-Assas"
+            ),
         ],
         "experiences_directes": [
             _exp(
@@ -537,6 +825,29 @@ CORPUS: Corpus = {
                 "Musée national",
                 "Prospection d'entreprises mécènes et suivi des contreparties.",
             ),
+            _exp(
+                "Chargé(e) de communication éditoriale",
+                "Bibliothèque nationale de France",
+                "Rédaction de contenus pour le site et les réseaux, "
+                "coordination des publications.",
+            ),
+            _exp(
+                "Responsable de la communication",
+                "Communauté de communes du Pays de Gex",
+                "Conception des campagnes locales et gestion du magazine "
+                "intercommunal.",
+            ),
+            _exp(
+                "Chargé(e) de relations presse",
+                "Agence de communication publique",
+                "Gestion de fichiers presse et organisation de voyages de "
+                "presse pour des institutions.",
+            ),
+            _exp(
+                "Chargé(e) de veille médias",
+                "Préfecture de police",
+                "Revue de presse quotidienne et analyse des réseaux sociaux.",
+            ),
         ],
         "experiences_voisines": _EXPERIENCES_TRANSVERSES,
         "competences_poste": [
@@ -546,6 +857,10 @@ CORPUS: Corpus = {
             "Relations presse",
             "Communication de crise",
             "Création graphique et outils PAO",
+            "Veille médias et réseaux sociaux",
+            "Gestion de site web et de CMS",
+            "Organisation d'événements",
+            "Communication accessible (FALC)",
         ],
         "competences_voisines": _COMPETENCES_TRANSVERSES,
     },
@@ -568,11 +883,25 @@ CORPUS: Corpus = {
                 "Médiateur(trice) culturel(le), attaché(e) à l'ouverture des "
                 "institutions à tous les publics."
             ),
+            (
+                "Archiviste, j'ai mené des opérations de classement "
+                "et de valorisation de fonds publics."
+            ),
+            (
+                "Chargé(e) de programmation, je construis des saisons qui relient "
+                "artistes, territoires et publics."
+            ),
         ],
         "formations": [
             _form("Diplôme de l'École du Louvre", "École du Louvre"),
             _form("Master Histoire de l'art", "Université Paris 1 Panthéon-Sorbonne"),
             _form("Master Médiation culturelle", "Université Sorbonne Nouvelle"),
+            _form("Master Archives", "École nationale des chartes"),
+            _form("Master Archéologie", "Université Toulouse - Jean Jaurès"),
+            _form(
+                "Diplôme de conservateur du patrimoine",
+                "Institut national du patrimoine",
+            ),
         ],
         "experiences_directes": [
             _exp(
@@ -599,6 +928,27 @@ CORPUS: Corpus = {
                 "Instruction des demandes de protection et suivi des "
                 "chantiers sur monuments historiques.",
             ),
+            _exp(
+                "Archiviste",
+                "Archives départementales du Rhône",
+                "Classement de fonds, rédaction d'inventaires et accueil des lecteurs.",
+            ),
+            _exp(
+                "Chargé(e) de programmation",
+                "Scène nationale",
+                "Programmation, accueil des compagnies et développement des publics.",
+            ),
+            _exp(
+                "Bibliothécaire",
+                "Médiathèque intercommunale",
+                "Politique documentaire, animations autour du livre et "
+                "partenariats scolaires.",
+            ),
+            _exp(
+                "Chargé(e) d'études archéologiques",
+                "Institut national de recherches archéologiques préventives",
+                "Diagnostics de terrain, études de mobilier et rédaction de rapports.",
+            ),
         ],
         "experiences_voisines": _EXPERIENCES_TRANSVERSES,
         "competences_poste": [
@@ -608,6 +958,10 @@ CORPUS: Corpus = {
             "Droit du patrimoine",
             "Régie et conditionnement d'œuvres",
             "Montage de projets culturels",
+            "Classement et description d'archives",
+            "Programmation artistique",
+            "Politique documentaire",
+            "Archéologie préventive",
         ],
         "competences_voisines": _COMPETENCES_TRANSVERSES,
     },
@@ -629,11 +983,25 @@ CORPUS: Corpus = {
                 "Chargé(e) d'évaluation, attaché(e) à éclairer la décision "
                 "publique par des analyses étayées."
             ),
+            (
+                "Ancien(ne) inspecteur(trice), rompu(e) aux missions "
+                "d'évaluation interministérielles."
+            ),
+            (
+                "Contrôleur(se) interne, j'ai déployé des plans de contrôle dans "
+                "deux agences publiques."
+            ),
         ],
         "formations": [
             _form("Master Audit et contrôle", "Université Paris-Dauphine"),
             _form("Master Évaluation des politiques publiques", "Sciences Po Lyon"),
             _form("Diplôme d'expertise comptable", "Ordre des experts-comptables"),
+            _form("Master Comptabilité, contrôle, audit", "IAE de Bordeaux"),
+            _form("Master Politiques publiques", "Sciences Po Paris"),
+            _form(
+                "Diplôme supérieur de comptabilité et de gestion",
+                "Institut national des techniques économiques et comptables",
+            ),
         ],
         "experiences_directes": [
             _exp(
@@ -658,6 +1026,27 @@ CORPUS: Corpus = {
                 "Cabinet d'audit",
                 "Certification des comptes d'établissements publics et d'associations.",
             ),
+            _exp(
+                "Inspecteur(trice)",
+                "Inspection générale de l'administration",
+                "Missions d'inspection et d'évaluation, rédaction de rapports "
+                "au ministre.",
+            ),
+            _exp(
+                "Contrôleur(se) interne comptable",
+                "Agence de services et de paiement",
+                "Cartographie des risques comptables et plans de contrôle.",
+            ),
+            _exp(
+                "Auditeur(trice) des fonds européens",
+                "Commission interministérielle de coordination des contrôles",
+                "Audits d'opérations cofinancées et suivi des recommandations.",
+            ),
+            _exp(
+                "Auditeur(trice) des systèmes d'information",
+                "Société de conseil en cybersécurité",
+                "Revue des contrôles généraux informatiques et des habilitations.",
+            ),
         ],
         "experiences_voisines": _EXPERIENCES_TRANSVERSES,
         "competences_poste": [
@@ -667,6 +1056,10 @@ CORPUS: Corpus = {
             "Cartographie des risques",
             "Rédaction de rapports et de recommandations",
             "Procédure contradictoire",
+            "Contrôle interne comptable",
+            "Audit des fonds européens",
+            "Audit des systèmes d'information",
+            "Conduite d'entretiens d'audit",
         ],
         "competences_voisines": _COMPETENCES_TRANSVERSES,
     },
@@ -689,11 +1082,22 @@ CORPUS: Corpus = {
                 "Ingénieur(e) environnement, habitué(e) au dialogue entre "
                 "services de l'État, collectivités et acteurs locaux."
             ),
+            (
+                "Écologue, j'accompagne depuis sept ans des projets "
+                "de protection de la biodiversité."
+            ),
+            (
+                "Inspecteur(trice) de l'environnement, j'ai contrôlé une "
+                "centaine de sites industriels."
+            ),
         ],
         "formations": [
             _form("Master Transition écologique", "AgroParisTech"),
             _form("Diplôme d'ingénieur environnement", "Mines Paris"),
             _form("Master Transport et mobilité", "École d'urbanisme de Paris"),
+            _form("Master Écologie et biodiversité", "Université de Montpellier"),
+            _form("Master Gestion des risques", "Université Grenoble Alpes"),
+            _form("Diplôme d'ingénieur des travaux publics de l'État", "ENTPE"),
         ],
         "experiences_directes": [
             _exp(
@@ -718,6 +1122,29 @@ CORPUS: Corpus = {
                 "Conception de plans de mobilité et coordination des "
                 "opérateurs ferroviaires et de bus.",
             ),
+            _exp(
+                "Inspecteur(trice) des installations classées",
+                "Unité départementale de la DREAL des Hauts-de-France",
+                "Inspection de sites industriels et instruction des dossiers "
+                "d'autorisation.",
+            ),
+            _exp(
+                "Chargé(e) de mission biodiversité",
+                "Office français de la biodiversité",
+                "Animation de plans d'action pour les espèces protégées et "
+                "suivi des aires protégées.",
+            ),
+            _exp(
+                "Chargé(e) d'études risques naturels",
+                "Bureau de recherches géologiques et minières",
+                "Cartographie des aléas et appui aux plans de prévention.",
+            ),
+            _exp(
+                "Chargé(e) de mission économie circulaire",
+                "Métropole Rouen Normandie",
+                "Plan de réduction des déchets et accompagnement des "
+                "entreprises du territoire.",
+            ),
         ],
         "experiences_voisines": _EXPERIENCES_TRANSVERSES,
         "competences_poste": [
@@ -727,6 +1154,10 @@ CORPUS: Corpus = {
             "Réglementation environnementale",
             "Planification des transports",
             "Contractualisation État-collectivités",
+            "Inspection des installations classées",
+            "Gestion des espaces naturels protégés",
+            "Prévention des risques naturels",
+            "Évaluation environnementale des projets",
         ],
         "competences_voisines": _COMPETENCES_TRANSVERSES,
     },
@@ -749,11 +1180,25 @@ CORPUS: Corpus = {
                 "Spécialiste des politiques sociales, attaché(e) à l'accès aux "
                 "droits et à la lutte contre la pauvreté."
             ),
+            (
+                "Conseiller(ère) en insertion, j'accompagne depuis huit ans des "
+                "publics éloignés de l'emploi."
+            ),
+            (
+                "Statisticien(ne) de l'emploi, je produis des indicateurs pour "
+                "éclairer les politiques publiques."
+            ),
         ],
         "formations": [
             _form("Master Politiques sociales", "Université de Strasbourg"),
             _form("Master Droit social", "Université Paris Nanterre"),
             _form("Master Économie du travail", "Université Lumière Lyon 2"),
+            _form(
+                "Diplôme d'État d'assistant de service social",
+                "Institut régional du travail social d'Île-de-France",
+            ),
+            _form("Master Statistique et économétrie", "Université de Rennes"),
+            _form("Master Sociologie", "Université de Nantes"),
         ],
         "experiences_directes": [
             _exp(
@@ -782,6 +1227,29 @@ CORPUS: Corpus = {
                 "Suivi des plans d'aide aux personnes âgées et handicapées et "
                 "animation des départements.",
             ),
+            _exp(
+                "Conseiller(ère) en insertion professionnelle",
+                "France Travail",
+                "Accompagnement de demandeurs d'emploi et relation avec les "
+                "entreprises.",
+            ),
+            _exp(
+                "Chargé(e) de mission handicap",
+                "Association de gestion du fonds pour l'insertion des personnes "
+                "handicapées",
+                "Accompagnement des employeurs dans l'emploi des travailleurs "
+                "handicapés.",
+            ),
+            _exp(
+                "Contrôleur(se) du travail",
+                "Unité départementale de l'inspection du travail",
+                "Enquêtes en entreprise et suivi des accidents du travail.",
+            ),
+            _exp(
+                "Chargé(e) de mission accès aux droits",
+                "Union nationale des centres communaux d'action sociale",
+                "Animation du réseau et appui aux projets d'accès aux droits.",
+            ),
         ],
         "experiences_voisines": _EXPERIENCES_TRANSVERSES,
         "competences_poste": [
@@ -791,6 +1259,10 @@ CORPUS: Corpus = {
             "Analyse statistique de l'emploi",
             "Animation de partenariats institutionnels",
             "Dialogue avec les partenaires sociaux",
+            "Accompagnement vers l'emploi",
+            "Accès aux droits sociaux",
+            "Emploi des personnes handicapées",
+            "Enquêtes et contrôles en entreprise",
         ],
         "competences_voisines": _COMPETENCES_TRANSVERSES,
     },
