@@ -2,8 +2,9 @@
 import type { RecrutementsActifs } from '../types'
 import type { AgentSearchStatus } from '@/features/agents/composables/useFindOrCreateAgent'
 import type { AgentRecherche } from '@/features/agents/types'
-import { computed, ref } from 'vue'
+import { computed, ref, useId } from 'vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
+import CspDrawerFooter from '@/components/base/CspDrawer/CspDrawerFooter.vue'
 import CspTag from '@/components/base/CspTag/CspTag.vue'
 import AgentRechercheForm from '@/features/agents/components/AgentRechercheForm.vue'
 import { pluralize } from '@/utils/format'
@@ -44,10 +45,13 @@ function handleSubmit(): void {
     emit('assign')
   }
 }
+
+const formId = useId()
 </script>
 
 <template>
   <form
+    :id="formId"
     class="assign-responsable-form"
     novalidate
     @submit.prevent="handleSubmit"
@@ -83,22 +87,23 @@ function handleSubmit(): void {
       @search="emit('search', $event)"
       @reset="emit('reset')"
     />
-
-    <div class="assign-responsable-form__actions">
-      <CspButton
-        variant="secondary"
-        type="button"
-        label="Annuler"
-        @click="emit('cancel')"
-      />
-      <CspButton
-        v-if="isSearched"
-        type="submit"
-        :label="submitLabel"
-        :disabled="submitting"
-      />
-    </div>
   </form>
+
+  <CspDrawerFooter>
+    <CspButton
+      variant="secondary"
+      type="button"
+      label="Annuler"
+      @click="emit('cancel')"
+    />
+    <CspButton
+      v-if="isSearched"
+      type="submit"
+      :form="formId"
+      :label="submitLabel"
+      :disabled="submitting"
+    />
+  </CspDrawerFooter>
 </template>
 
 <style scoped lang="scss">
@@ -127,11 +132,5 @@ function handleSubmit(): void {
   margin: 0;
   padding: 0;
   list-style: none;
-}
-
-.assign-responsable-form__actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: var(--csp-space-3);
 }
 </style>

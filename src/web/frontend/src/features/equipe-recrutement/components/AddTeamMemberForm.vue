@@ -3,8 +3,9 @@ import type { RecrutementRole } from '../types'
 import type { CspRadioGroupOption } from '@/components/base/CspRadioGroup/CspRadioGroup.vue'
 import type { AgentSearchStatus } from '@/features/agents/composables/useFindOrCreateAgent'
 import type { AgentRecherche } from '@/features/agents/types'
-import { computed, ref } from 'vue'
+import { computed, ref, useId } from 'vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
+import CspDrawerFooter from '@/components/base/CspDrawer/CspDrawerFooter.vue'
 import CspRadioGroup from '@/components/base/CspRadioGroup/CspRadioGroup.vue'
 import AgentRechercheForm from '@/features/agents/components/AgentRechercheForm.vue'
 import { RECRUTEMENT_ROLE_LABELS } from '../constants/equipe-recrutement'
@@ -44,10 +45,13 @@ function handleSubmit(): void {
     emit('add', role.value)
   }
 }
+
+const formId = useId()
 </script>
 
 <template>
   <form
+    :id="formId"
     class="add-team-member-form"
     novalidate
     @submit.prevent="handleSubmit"
@@ -69,24 +73,25 @@ function handleSubmit(): void {
       name="recrutement_role"
       :options="ROLE_OPTIONS"
     />
-
-    <div class="add-team-member-form__actions">
-      <CspButton
-        variant="secondary"
-        type="button"
-        label="Annuler"
-        @click="emit('cancel')"
-      />
-      <CspButton
-        v-if="isSearched"
-        type="submit"
-        :label="submitLabel"
-        icon="ri:user-add-line"
-        is-icon-left
-        :disabled="submitting"
-      />
-    </div>
   </form>
+
+  <CspDrawerFooter>
+    <CspButton
+      variant="secondary"
+      type="button"
+      label="Annuler"
+      @click="emit('cancel')"
+    />
+    <CspButton
+      v-if="isSearched"
+      type="submit"
+      :form="formId"
+      :label="submitLabel"
+      icon="ri:user-add-line"
+      is-icon-left
+      :disabled="submitting"
+    />
+  </CspDrawerFooter>
 </template>
 
 <style scoped lang="scss">
@@ -94,11 +99,5 @@ function handleSubmit(): void {
   display: flex;
   flex-direction: column;
   gap: var(--csp-drawer-body-gap);
-}
-
-.add-team-member-form__actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: var(--csp-space-3);
 }
 </style>

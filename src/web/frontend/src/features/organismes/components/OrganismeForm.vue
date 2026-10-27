@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import type { CreateOrganismePayload, OrganismesList, UpdateOrganismePayload, Versant } from '../types'
-import { computed, ref } from 'vue'
+import { computed, ref, useId } from 'vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
+import CspDrawerFooter from '@/components/base/CspDrawer/CspDrawerFooter.vue'
 import CspInput from '@/components/base/CspInput/CspInput.vue'
 import CspRadioGroup from '@/components/base/CspRadioGroup/CspRadioGroup.vue'
 import { SIRET_LENGTH, VERSANT_LABELS } from '../constants/organisme'
@@ -80,10 +81,13 @@ function handleSubmit(): void {
   }
   emit('create', { ...commonFields, siret: siret.value })
 }
+
+const formId = useId()
 </script>
 
 <template>
   <form
+    :id="formId"
     class="organisme-form"
     @submit.prevent="handleSubmit"
   >
@@ -126,23 +130,24 @@ function handleSubmit(): void {
         L'organisme reçoit ses candidatures et traite ses recrutements sur l'outil
       </p>
     </div>
-
-    <div class="organisme-form__actions">
-      <CspButton
-        type="submit"
-        :label="isEdition ? 'Enregistrer les modifications' : 'Créer l\'organisme'"
-        :icon="isEdition ? undefined : 'ri:add-line'"
-        is-icon-left
-        :disabled="!canSubmit || saving"
-      />
-      <CspButton
-        variant="secondary"
-        type="button"
-        label="Annuler"
-        @click="emit('cancel')"
-      />
-    </div>
   </form>
+
+  <CspDrawerFooter>
+    <CspButton
+      variant="secondary"
+      type="button"
+      label="Annuler"
+      @click="emit('cancel')"
+    />
+    <CspButton
+      type="submit"
+      :form="formId"
+      :label="isEdition ? 'Enregistrer les modifications' : 'Créer l\'organisme'"
+      :icon="isEdition ? undefined : 'ri:add-line'"
+      is-icon-left
+      :disabled="!canSubmit || saving"
+    />
+  </CspDrawerFooter>
 </template>
 
 <style scoped lang="scss">
@@ -150,7 +155,6 @@ function handleSubmit(): void {
   display: flex;
   flex-direction: column;
   gap: var(--csp-drawer-body-gap);
-  height: 100%;
 }
 
 .organisme-form__section-title {
@@ -171,14 +175,5 @@ function handleSubmit(): void {
   margin: var(--csp-space-1) 0 0;
   font-size: 0.75rem;
   color: var(--text-mention-grey);
-}
-
-.organisme-form__actions {
-  margin-top: auto;
-  display: flex;
-  justify-content: flex-end;
-  gap: var(--csp-space-3);
-  padding-top: var(--csp-space-4);
-  border-top: 1px solid var(--border-default-grey);
 }
 </style>
