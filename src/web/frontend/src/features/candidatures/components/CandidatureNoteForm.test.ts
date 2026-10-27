@@ -47,7 +47,7 @@ describe('candidatureNoteForm', () => {
     await user.type(field, '  Profil solide  ')
     await user.click(submit)
 
-    expect(createCandidatureNote).toHaveBeenCalledWith(CANDIDATURE_PARAMS, 'Profil solide')
+    expect(createCandidatureNote).toHaveBeenCalledWith(CANDIDATURE_PARAMS, { message: 'Profil solide', est_privee: false })
     await vi.waitFor(() => expect(field).toHaveValue(''))
     expect(useToast().toasts.value.at(-1)?.title).toBe('Note enregistrée')
   })

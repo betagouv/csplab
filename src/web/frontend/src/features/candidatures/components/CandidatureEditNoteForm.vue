@@ -16,7 +16,7 @@ const { addToast } = useToast()
 
 async function submit(message: string): Promise<void> {
   try {
-    await update({ noteUuid: props.note.uuid, message })
+    await update({ noteUuid: props.note.uuid, message, est_privee: props.note.est_privee })
   }
   catch (error) {
     addToast({ variant: 'error', title: 'La modification de la note a échoué' })

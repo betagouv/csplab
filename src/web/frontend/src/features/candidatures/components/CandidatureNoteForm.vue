@@ -27,7 +27,7 @@ async function submit(): Promise<void> {
     return
   }
   try {
-    await create(message.value.trim())
+    await create({ message: message.value.trim(), est_privee: false })
     message.value = ''
     addToast({ variant: 'success', title: 'Note enregistrée' })
   }

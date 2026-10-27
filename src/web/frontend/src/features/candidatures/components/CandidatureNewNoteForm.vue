@@ -15,7 +15,7 @@ const { addToast } = useToast()
 
 async function submit(message: string): Promise<void> {
   try {
-    await create(message)
+    await create({ message, est_privee: false })
   }
   catch (error) {
     addToast({ variant: 'error', title: 'L\'enregistrement de la note a échoué' })

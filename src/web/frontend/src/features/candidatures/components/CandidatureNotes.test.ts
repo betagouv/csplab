@@ -106,7 +106,7 @@ describe('candidatureNotes', () => {
 
     expect(updateCandidatureNote).toHaveBeenCalledWith(
       { ...CANDIDATURE_PARAMS, noteUuid: 'ffffffff-0001-0001-0001-000000000002' },
-      'À recontacter demain',
+      { message: 'À recontacter demain', est_privee: false },
     )
     await vi.waitFor(() => expect(router.currentRoute.value.path).toBe(NOTES_PATH))
   })

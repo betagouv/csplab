@@ -31,6 +31,12 @@ export type Note = components['schemas']['Note']
 
 export type PaginatedNoteList = components['schemas']['PaginatedNoteList']
 
+export type CreateNotePayload = components['schemas']['CreateNote']
+
+export type UpdateNotePayload = Required<components['schemas']['PatchedUpdateNote']>
+
+export type NoteVisibilitePayload = components['schemas']['NoteVisibilite']
+
 export interface NoteRouteNames {
   notes: string
   create: string
