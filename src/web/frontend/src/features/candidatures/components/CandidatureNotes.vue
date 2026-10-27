@@ -4,6 +4,7 @@ import type { CandidatureParams } from '@/api/params'
 import { computed, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import CspAsyncSection from '@/components/base/CspAsyncSection/CspAsyncSection.vue'
+import CspBadge from '@/components/base/CspBadge/CspBadge.vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspCard from '@/components/base/CspCard/CspCard.vue'
 import CspDialog from '@/components/base/CspDialog/CspDialog.vue'
@@ -220,6 +221,13 @@ function noteActions(note: Note) {
                 >
                   {{ formatDateTime(note.publie_le) }}
                 </time>
+                <CspBadge
+                  v-if="note.est_privee"
+                  label="Privée"
+                  size="sm"
+                  color="var(--text-label-purple-glycine)"
+                  class="candidature-notes__badge"
+                />
                 <CspDropdownMenu
                   :sections="noteActions(note)"
                   side="bottom"
@@ -308,6 +316,10 @@ function noteActions(note: Note) {
   flex: 1;
   gap: var(--csp-space-2);
   align-items: center;
+}
+
+.candidature-notes__entete .candidature-notes__badge {
+  align-self: center;
 }
 
 .candidature-notes__actions {
