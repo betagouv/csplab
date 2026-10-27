@@ -83,32 +83,20 @@ const ETATS_VIDES: Valeurs = {
   '--csp-empty-state-icon-display-with-pictogram': 'none',
 }
 
-// The dots of the decorative layer of the DSFR pictograms, at their place in a pictogram of 80 px, repeated over the
-// background of the page in the decorative colour
-const POINTS = [[75, 61], [3, 53], [55, 3]]
-const TEXTURE: Valeurs = {
-  '--csp-canvas-backdrop': POINTS
-    .map(([x, y]) => `radial-gradient(circle at ${x}px ${y}px, var(--artwork-decorative-blue-france) 1px, transparent 1.5px) 0 0 / 80px 80px`)
-    .join(', '),
-}
-
-// The texture of the page comes from the discrete variant, the empty states take the classic one and the home page
-// header the contrast one; the other page headers take the classic variant, or the discrete one in the first option
-const COMMUN: Valeurs = { ...TEXTURE, ...EN_TETE, ...ETATS_VIDES, ...pictogrammes(CLASSIQUE), ...CONTRASTE }
-
 export const PICTOGRAMMES: LevierOption[] = [
   { id: 'kit', nom: 'Aujourd’hui', valeurs: {} },
+  // Both options write the pictograms background of styles/themes/backdrops.css, that the DSFR theme takes as well
   {
     id: 'pictogrammes-discret',
     nom: 'Pictogrammes, en-têtes discrets',
-    valeurs: { ...COMMUN, ...enTete(DISCRETE) },
-    sombre: CONTRASTE_SOMBRE,
+    valeurs: enTete(DISCRETE),
+    attributs: { 'data-csp-backdrop': 'pictograms' },
   },
   {
     id: 'pictogrammes',
     nom: 'Pictogrammes, en-têtes classiques',
-    valeurs: COMMUN,
-    sombre: CONTRASTE_SOMBRE,
+    valeurs: {},
+    attributs: { 'data-csp-backdrop': 'pictograms' },
   },
 ]
 

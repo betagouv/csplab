@@ -1,0 +1,58 @@
+/*
+ * Radii of the interface, one value of data-csp-shape each. A theme takes one of them by its own selector. In both, an
+ * element inset in a container whose padding is narrower than the container's radius takes a smaller radius, and what
+ * touches an edge of the screen stays square.
+ */
+
+/* Discreet: what one holds or touches takes the 4 px of the fields of the DSFR, a large container 6 px, an inset element
+   2 px; messages keep the square corners of the alerts of the DSFR */
+:root[data-csp-shape='discreet'],
+:root[data-csp-theme='dsfr'],
+:root[data-csp-theme='greige'] {
+  --csp-indicator-radius: 0.125rem;
+  --csp-action-radius: 0.25rem;
+  --csp-nav-control-radius: var(--csp-action-radius);
+  --csp-field-radius: 0.25rem;
+  --csp-surface-radius: 0.25rem;
+  --csp-frame-radius: var(--csp-surface-radius);
+  --csp-overlap-radius: 0.25rem;
+  --csp-region-radius: 0.375rem;
+  --csp-lifted-radius: 0.375rem;
+  --csp-message-radius: 0;
+  --csp-menu-item-radius: var(--csp-indicator-radius);
+  --csp-segmented-highlight-radius: var(--csp-indicator-radius);
+  /* the category accent keeps its width up to the rounded corners of a column */
+  --csp-kanban-column-accent-radius: var(--csp-category-accent-width);
+}
+
+/* Marked: 4 px for an indicator, 6 px for a control, 10 px for a surface or a floating layer, 16 px for a region. A
+   thick bar does not follow a curve: a message takes a frame in the colour of its tone, and the category of a kanban
+   column tints its header */
+:root[data-csp-shape='marked'] {
+  --csp-indicator-radius: 0.25rem;
+  --csp-badge-radius: var(--csp-indicator-radius);
+  --csp-skeleton-radius: var(--csp-indicator-radius);
+  --csp-action-radius: 0.375rem;
+  --csp-nav-control-radius: var(--csp-action-radius);
+  --csp-field-radius: 0.375rem;
+  --csp-tooltip-radius: var(--csp-action-radius);
+  --csp-tabs-trigger-radius: var(--csp-action-radius);
+  --csp-segmented-highlight-radius: max(0px, var(--csp-field-radius) - var(--csp-space-1));
+  --csp-surface-radius: 0.625rem;
+  --csp-frame-radius: var(--csp-surface-radius);
+  --csp-overlap-radius: 0.625rem;
+  --csp-message-radius: var(--csp-surface-radius);
+  --csp-menu-item-radius: max(0px, var(--csp-overlap-radius) - var(--csp-menu-padding));
+  --csp-region-radius: 1rem;
+  --csp-lifted-radius: 1rem;
+  --csp-message-bar-width: 0px;
+  --csp-message-border-width: 0px;
+  --csp-message-frame-width: 1px;
+  --csp-category-accent-width: 0px;
+  --csp-category-neutral-background: var(--background-contrast-grey);
+  --csp-category-progress-background: var(--background-contrast-info);
+  --csp-category-negative-background: var(--background-contrast-error);
+  --csp-category-positive-background: var(--background-contrast-success);
+  --csp-region-badge-background: var(--background-default-grey);
+  --csp-kanban-column-header-padding-bottom: var(--csp-kanban-column-padding);
+}

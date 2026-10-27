@@ -13,6 +13,8 @@ export interface LevierOption {
   sombre?: Valeurs
   // Values that replace those of valeurs when the system asks for reduced motion
   reduit?: Valeurs
+  // Attributes of the root element that select a setting of styles/themes, such as data-csp-backdrop
+  attributs?: Record<`data-csp-${string}`, string>
 }
 
 // Controls (button, field), indicators (checkbox), surfaces (card, table), floating layers (menu, toast), regions (kanban column)
@@ -346,12 +348,19 @@ export function withLevierOption(options: LevierOption[]): Decorator {
       }
       const root = document.documentElement
       const valeurs = valeursOf(option, context.globals.theme)
+      const attributs = option.attributs ?? {}
       for (const [name, value] of Object.entries(valeurs)) {
         root.style.setProperty(name, value)
+      }
+      for (const [name, value] of Object.entries(attributs)) {
+        root.setAttribute(name, value)
       }
       onBeforeUnmount(() => {
         for (const name of Object.keys(valeurs)) {
           root.style.removeProperty(name)
+        }
+        for (const name of Object.keys(attributs)) {
+          root.removeAttribute(name)
         }
       })
     },

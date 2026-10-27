@@ -57,12 +57,6 @@ interface Variantes {
   sombre: Variante
 }
 
-// Discreet: dots of --artwork-motif-beige-gris-galet (925-125, #eee4d9 and #2e2924) on the background of the surface
-const DISCRETE: Variantes = {
-  clair: { points: '#eee4d9' },
-  sombre: { points: '#2e2924' },
-}
-
 // Classic: the same dots on the alt background of the family, --background-alt-beige-gris-galet (975-75)
 const CLASSIQUE: Variantes = {
   clair: { fond: 'var(--background-alt-beige-gris-galet)', points: '#eee4d9' },
@@ -93,37 +87,8 @@ function enTetePage({ fond, points }: Variante): Valeurs {
   return valeurs
 }
 
-function enTetePanneau({ fond, points }: Variante): Valeurs {
-  return { '--csp-drawer-header-backdrop': calques(trameEnTete(points), fond) }
-}
-
 function etatVide({ fond, points }: Variante): Valeurs {
   return { '--csp-empty-state-backdrop': calques(trameEtatVide(points), fond) }
-}
-
-// The tabs of the page lie on the chrome: on the classic fill, they take the hover and active states of that fill
-const ONGLETS_CLASSIQUES: Valeurs = {
-  '--csp-page-tabs-background-hover': 'var(--background-alt-beige-gris-galet-hover)',
-  '--csp-page-tabs-background-active': 'var(--background-alt-beige-gris-galet-active)',
-  '--csp-page-tabs-background-current-hover': 'var(--background-alt-beige-gris-galet-hover)',
-}
-
-// Background of the application: the grid of the greige theme without halftone, in the lightest step of the family,
-// --artwork-background-beige-gris-galet (975-75), over the default background
-const FOND_APPLICATION: Valeurs = {
-  '--csp-canvas-backdrop': `radial-gradient(circle at ${PAS / 2}px ${PAS / 2}px, var(--artwork-background-beige-gris-galet) 0.9px, transparent 1.4px) 0 0 / ${PAS}px ${PAS}px repeat`,
-}
-
-// The neutral of the greige theme for the navigation and the kanban columns: the DSFR has no warm grey, and a quarter
-// of beige-gris-galet in the grey of the same rank gives the warmth without a beige fill
-const NEUTRE_RECHAUFFE: Valeurs = {
-  '--background-alt-grey': 'color-mix(in oklab, var(--grey-975-75) 75%, var(--beige-gris-galet-950-100))',
-  '--background-alt-grey-hover': 'color-mix(in oklab, var(--grey-975-75-hover) 75%, var(--beige-gris-galet-950-100-hover))',
-  '--background-alt-grey-active': 'color-mix(in oklab, var(--grey-975-75-active) 75%, var(--beige-gris-galet-950-100-active))',
-}
-
-function toutes(variante: Variante): Valeurs {
-  return { ...enTetePage(variante), ...enTetePanneau(variante), ...etatVide(variante) }
 }
 
 // Text on the contrast background: white in both themes, 6.1:1 on #6a6156
@@ -171,23 +136,13 @@ export const PLANCHE_GREIGE: FondsPlanche = {
     sombre: enTetePage(CLASSIQUE.sombre),
     cadre: EN_TETE_ET_ONGLETS,
   },
-  panneau: { variante: 'discrete', usage: 'en-tête du panneau' },
-  etatVide: { variante: 'discrete', usage: 'états vides', valeurs: etatVide(DISCRETE.clair), sombre: etatVide(DISCRETE.sombre) },
+  panneau: { variante: 'classique', usage: 'en-tête du panneau' },
+  etatVide: { variante: 'classique', usage: 'états vides', valeurs: etatVide(CLASSIQUE.clair), sombre: etatVide(CLASSIQUE.sombre) },
   application: { usage: 'fond de l’application, trame de points' },
 }
 
+// The option writes the greige background of styles/themes/backdrops.css, that the greige theme takes as well
 export const GREIGE: LevierOption[] = [
   { id: 'kit', nom: 'Aujourd’hui', valeurs: {} },
-  {
-    id: 'greige',
-    nom: 'Greige classique',
-    valeurs: { ...FOND_APPLICATION, ...NEUTRE_RECHAUFFE, ...toutes(CLASSIQUE.clair), ...ONGLETS_CLASSIQUES },
-    sombre: toutes(CLASSIQUE.sombre),
-  },
-  {
-    id: 'greige-discret',
-    nom: 'Greige discret',
-    valeurs: { ...FOND_APPLICATION, ...NEUTRE_RECHAUFFE, ...toutes(DISCRETE.clair) },
-    sombre: toutes(DISCRETE.sombre),
-  },
+  { id: 'greige', nom: 'Greige', valeurs: {}, attributs: { 'data-csp-backdrop': 'greige' } },
 ]

@@ -50,10 +50,11 @@ function applyTheme(theme: string) {
 const NO_SCENARIO = 'repli'
 const COMPACT = 'compact'
 const COMFORTABLE = 'comfortable'
+const LARGE = 'large'
 
 function applyDensity(density: string) {
-  if (density === COMFORTABLE) {
-    document.documentElement.setAttribute('data-csp-density', COMFORTABLE)
+  if (density === COMFORTABLE || density === LARGE) {
+    document.documentElement.setAttribute('data-csp-density', density)
   }
   else {
     document.documentElement.removeAttribute('data-csp-density')
@@ -97,6 +98,7 @@ const preview: Preview = {
         items: [
           { value: COMPACT, title: 'Compacte, texte à 14 px' },
           { value: COMFORTABLE, title: 'Confortable, texte à 16 px' },
+          { value: LARGE, title: 'Grande, texte à 18 px' },
         ],
         dynamicTitle: true,
       },

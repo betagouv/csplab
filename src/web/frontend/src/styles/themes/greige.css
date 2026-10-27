@@ -1,59 +1,9 @@
 /*
- * The kit with the beige-gris-galet family of the DSFR in its secondary neutrals: a quarter for the navigation, the
- * kanban columns, the neutral fills and the hover and pressed states, a fifth for rules and secondary text. Each mix
- * pairs a grey and a beige-gris-galet option token of the DSFR, which switch together between light and dark. A band of
- * dots marks the bottom of the page and panel headers and the top of empty states, under no text. Shadows are those of
- * the DSFR, radii are 4 and 8 px, and messages are framed in the colour of their tone.
+ * The greige background and the discreet radii (backdrops.css, shapes.css), the shadows of the DSFR, and a motion whose
+ * entries decelerate and whose exits are shorter and accelerate.
  */
 :root[data-csp-theme='greige'] {
-  --background-alt-grey: color-mix(in oklab, var(--grey-975-75) 75%, var(--beige-gris-galet-950-100));
-  --background-alt-grey-hover: color-mix(in oklab, var(--grey-975-75-hover) 75%, var(--beige-gris-galet-950-100-hover));
-  --background-alt-grey-active: color-mix(
-    in oklab,
-    var(--grey-975-75-active) 75%,
-    var(--beige-gris-galet-950-100-active)
-  );
-  /* Hover and pressed states of white surfaces (buttons, tabs, menu items, table rows), with the step of the same value */
-  --background-default-grey-hover: color-mix(in oklab, var(--grey-1000-50-hover) 75%, var(--beige-gris-galet-950-100));
-  --background-default-grey-active: color-mix(
-    in oklab,
-    var(--grey-1000-50-active) 75%,
-    var(--beige-gris-galet-925-125)
-  );
-  --border-default-grey: color-mix(in oklab, var(--grey-900-175) 80%, var(--beige-gris-galet-850-200));
-  --text-mention-grey: color-mix(in oklab, var(--grey-425-625) 80%, var(--beige-gris-galet-sun-407-moon-821));
-  --csp-neutral-background: color-mix(in oklab, var(--grey-950-100) 75%, var(--beige-gris-galet-925-125));
   --csp-region-background-drop: color-mix(in oklab, var(--background-alt-grey) 60%, var(--background-alt-grey-hover));
-
-  /*
-   * Rows of 2.4 px dots every 6 px in beige-gris-galet 702 (--artwork-minor-beige-gris-galet): an SVG drawn as a
-   * background cannot read a variable, and takes the value of the token and an opacity. The band of the headers fades
-   * in from the start of the line, the short band over an empty state fades out towards both ends.
-   */
-  --greige-dots-band: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100%' height='100%'%3E%3Cdefs%3E%3Cpattern id='d' width='6' height='6' patternUnits='userSpaceOnUse'%3E%3Ccircle cx='3' cy='3' r='1.2' fill='%23aea397' fill-opacity='0.7'/%3E%3C/pattern%3E%3ClinearGradient id='g'%3E%3Cstop stop-color='white' stop-opacity='0'/%3E%3Cstop offset='0.15' stop-color='white'/%3E%3C/linearGradient%3E%3Cmask id='m'%3E%3Crect width='100%' height='100%' fill='url(%23g)'/%3E%3C/mask%3E%3C/defs%3E%3Crect width='100%' height='100%' fill='url(%23d)' mask='url(%23m)'/%3E%3C/svg%3E");
-  --greige-dots-short: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100%' height='100%'%3E%3Cdefs%3E%3Cpattern id='d' width='6' height='6' patternUnits='userSpaceOnUse'%3E%3Ccircle cx='3' cy='3' r='1.2' fill='%23aea397' fill-opacity='0.7'/%3E%3C/pattern%3E%3ClinearGradient id='g'%3E%3Cstop stop-color='white' stop-opacity='0'/%3E%3Cstop offset='0.35' stop-color='white'/%3E%3Cstop offset='0.65' stop-color='white'/%3E%3Cstop offset='1' stop-color='white' stop-opacity='0'/%3E%3C/linearGradient%3E%3Cmask id='m'%3E%3Crect width='100%' height='100%' fill='url(%23g)'/%3E%3C/mask%3E%3C/defs%3E%3Crect width='100%' height='100%' fill='url(%23d)' mask='url(%23m)'/%3E%3C/svg%3E");
-  --csp-page-header-backdrop: var(--greige-dots-band) right bottom / 100% var(--csp-page-header-padding-bottom)
-    no-repeat;
-  --csp-panel-header-backdrop: var(--greige-dots-band) right bottom / 100% var(--csp-space-6) no-repeat;
-  --csp-empty-state-backdrop: var(--greige-dots-short) center var(--csp-space-2) / 12rem 1.125rem no-repeat;
-
-  /* Radii: 4 px for controls, 8 px for cards, frames, floating layers and columns, half of it for the items of a menu */
-  --csp-action-radius: 0.25rem;
-  --csp-nav-control-radius: var(--csp-action-radius);
-  --csp-indicator-radius: 0.25rem;
-  --csp-surface-radius: 0.5rem;
-  --csp-frame-radius: var(--csp-surface-radius);
-  --csp-overlap-radius: 0.5rem;
-  --csp-menu-item-radius: 0.25rem;
-  --csp-region-radius: 0.5rem;
-  /* the stage accent keeps its width along the rounded top corners of a column */
-  --csp-kanban-column-accent-radius: var(--csp-category-accent-width);
-
-  /* A frame of 1 px in the colour of the tone: a thick bar does not follow a rounded corner */
-  --csp-message-bar-width: 0px;
-  --csp-message-border-width: 0px;
-  --csp-message-frame-width: 1px;
-  --csp-message-radius: var(--csp-surface-radius);
 
   --csp-overlap-shadow: var(--overlap-shadow);
   --csp-lifted-shadow: var(--overlap-shadow);
@@ -76,12 +26,10 @@
 }
 
 /*
- * Dark mode: fainter dots on the dark surfaces. A lighter surface is a higher one: the cards take the overlap grey of
- * the DSFR, a step above the columns, and their hover and drop states the lighter hover grey.
+ * Dark mode: a lighter surface is a higher one. The cards take the overlap grey of the DSFR, a step above the columns,
+ * and their hover and drop states the lighter hover grey.
  */
 :root[data-csp-theme='greige'][data-fr-theme='dark'] {
-  --greige-dots-band: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100%' height='100%'%3E%3Cdefs%3E%3Cpattern id='d' width='6' height='6' patternUnits='userSpaceOnUse'%3E%3Ccircle cx='3' cy='3' r='1.2' fill='%23aea397' fill-opacity='0.35'/%3E%3C/pattern%3E%3ClinearGradient id='g'%3E%3Cstop stop-color='white' stop-opacity='0'/%3E%3Cstop offset='0.15' stop-color='white'/%3E%3C/linearGradient%3E%3Cmask id='m'%3E%3Crect width='100%' height='100%' fill='url(%23g)'/%3E%3C/mask%3E%3C/defs%3E%3Crect width='100%' height='100%' fill='url(%23d)' mask='url(%23m)'/%3E%3C/svg%3E");
-  --greige-dots-short: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100%' height='100%'%3E%3Cdefs%3E%3Cpattern id='d' width='6' height='6' patternUnits='userSpaceOnUse'%3E%3Ccircle cx='3' cy='3' r='1.2' fill='%23aea397' fill-opacity='0.35'/%3E%3C/pattern%3E%3ClinearGradient id='g'%3E%3Cstop stop-color='white' stop-opacity='0'/%3E%3Cstop offset='0.35' stop-color='white'/%3E%3Cstop offset='0.65' stop-color='white'/%3E%3Cstop offset='1' stop-color='white' stop-opacity='0'/%3E%3C/linearGradient%3E%3Cmask id='m'%3E%3Crect width='100%' height='100%' fill='url(%23g)'/%3E%3C/mask%3E%3C/defs%3E%3Crect width='100%' height='100%' fill='url(%23d)' mask='url(%23m)'/%3E%3C/svg%3E");
   --csp-raised-background: var(--background-overlap-grey);
   --csp-raised-background-hover: var(--background-default-grey-hover);
   --csp-raised-background-drop: var(--background-default-grey-hover);

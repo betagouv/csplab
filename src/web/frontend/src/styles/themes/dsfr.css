@@ -1,7 +1,7 @@
 /*
- * The DSFR and its tokens: its tab component in the candidature panel, its pictograms, its palette, its shadows and its
- * 300 ms transition. The radii follow the 4 px of its fields, and the layers that rise take two soft layers in the
- * colour of its shadows.
+ * The DSFR and its tokens: its tab component in the candidature panel, its palette, its shadows and its 300 ms
+ * transition, with the pictograms background and the discreet radii (backdrops.css, shapes.css). The layers that rise
+ * take two soft layers in the colour of its shadows.
  */
 :root[data-csp-theme='dsfr'] {
   /* Tabs of the page: the tabs of the kit, aligned. From md, the line under the tabs, the line under the title of a page
@@ -40,51 +40,6 @@
   --csp-overlap-shadow: var(--csp-raised-shadow-hover);
   --csp-lifted-shadow:
     0 8px 16px -4px color-mix(in srgb, var(--shadow-color) 60%, transparent), 0 24px 48px -12px var(--shadow-color);
-
-  /* Radii: what one holds or touches takes the 4 px of the fields of the DSFR, a large container 6 px, an element inset
-     in a narrower gap 2 px; messages keep the square corners of the alerts of the DSFR, and tabs those of its tabs */
-  --csp-indicator-radius: 0.125rem;
-  --csp-action-radius: 0.25rem;
-  --csp-nav-control-radius: var(--csp-action-radius);
-  --csp-field-radius: 0.25rem;
-  --csp-surface-radius: 0.25rem;
-  --csp-frame-radius: var(--csp-surface-radius);
-  --csp-overlap-radius: 0.25rem;
-  --csp-region-radius: 0.375rem;
-  --csp-lifted-radius: 0.375rem;
-  --csp-message-radius: 0;
-  --csp-menu-item-radius: var(--csp-indicator-radius);
-  --csp-segmented-highlight-radius: var(--csp-indicator-radius);
-  --csp-kanban-column-accent-radius: var(--csp-category-accent-width);
-
-  /* Pictograms of the DSFR, in blue France tones: a pale one in the page header, the classic one in the empty states,
-     on blue France in the header of the home page; the dots of their decorative layer make the texture of the page */
-  --csp-canvas-backdrop:
-    radial-gradient(circle at 75px 61px, var(--artwork-decorative-blue-france) 1px, transparent 1.5px) 0 0 / 80px 80px,
-    radial-gradient(circle at 3px 53px, var(--artwork-decorative-blue-france) 1px, transparent 1.5px) 0 0 / 80px 80px,
-    radial-gradient(circle at 55px 3px, var(--artwork-decorative-blue-france) 1px, transparent 1.5px) 0 0 / 80px 80px;
-  /* the 80 px pictogram of the DSFR, whole, its bottom on the bottom of the subtitle, without growing the header */
-  --csp-page-header-pictogram-display: block;
-  --csp-page-header-pictogram-margin-block: calc(
-      var(--csp-page-header-title-height) + var(--csp-page-header-subtitle-gap) +
-        var(--csp-page-header-subtitle-height) - var(--csp-page-header-pictogram-size)
-    )
-    0;
-  --csp-page-header-pictogram-major-color: var(--artwork-motif-blue-france);
-  --csp-page-header-pictogram-minor-color: var(--artwork-motif-blue-france);
-  --csp-page-header-pictogram-decorative-color: var(--artwork-background-blue-france);
-  --csp-empty-state-pictogram-display: block;
-  --csp-empty-state-pictogram-size: 4rem;
-  --csp-empty-state-icon-display-with-pictogram: none;
-  --csp-pictogram-major-color: var(--border-action-low-blue-france);
-  --csp-pictogram-minor-color: var(--artwork-minor-blue-france);
-  --csp-pictogram-decorative-color: var(--artwork-decorative-blue-france);
-  --csp-page-header-background-highlighted: var(--background-action-high-blue-france);
-  --csp-page-header-color-highlighted: var(--text-inverted-blue-france);
-  --csp-page-header-subtitle-color-highlighted: var(--text-inverted-blue-france);
-  --csp-page-header-pictogram-major-color-highlighted: var(--border-default-blue-france);
-  --csp-page-header-pictogram-minor-color-highlighted: var(--border-default-blue-france);
-  --csp-page-header-pictogram-decorative-color-highlighted: var(--border-default-blue-france);
 }
 
 /* Tabs of the candidature panel, those of the DSFR: framed triggers on the low blue France background, the current one
@@ -125,11 +80,6 @@
   /* the content of the panel takes the background of the current tab that opens onto it */
   --csp-panel-background: var(--background-default-grey);
   --csp-aside-background: var(--background-alt-grey);
-  /* the DSFR turns the action background of blue France light in dark mode; the header keeps the blue France of the
-     light mode, that the DSFR gives in dark mode to its inverted text token */
-  --csp-page-header-background-highlighted: var(--text-inverted-blue-france);
-  --csp-page-header-color-highlighted: var(--text-title-grey);
-  --csp-page-header-subtitle-color-highlighted: var(--text-title-grey);
 }
 
 /* Motion: the single 300 ms of the DSFR with the default easing of CSS, on everything that appears, and an outline of
