@@ -763,6 +763,8 @@ export interface components {
         };
         CreateNote: {
             message: string;
+            /** @default false */
+            est_privee: boolean;
         };
         CreateOrganisme: {
             nom: string;
@@ -967,6 +969,7 @@ export interface components {
             publie_par_nom: string;
             /** Format: date-time */
             publie_le: string;
+            est_privee: boolean;
         };
         NoteDetail: {
             /** Format: uuid */
@@ -976,6 +979,7 @@ export interface components {
             message: string;
             /** Format: uuid */
             publie_par_id: string;
+            est_privee: boolean;
         };
         /** @enum {unknown} */
         NullEnum: null;
@@ -1173,6 +1177,7 @@ export interface components {
         };
         PatchedUpdateNote: {
             message?: string;
+            est_privee?: boolean;
         };
         RecrutementAgent: {
             /** Format: uuid */

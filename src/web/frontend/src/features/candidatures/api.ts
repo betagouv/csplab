@@ -135,7 +135,7 @@ export async function getCandidatureNotes(candidature: CandidatureParams): Promi
 export async function createCandidatureNote(candidature: CandidatureParams, message: string): Promise<void> {
   await api.POST(
     '/recruteur/organismes/{organisme_uuid}/recrutements/{recrutement_uuid}/candidatures/{candidature_uuid}/notes',
-    { params: { path: candidaturePath(candidature) }, body: { message } },
+    { params: { path: candidaturePath(candidature) }, body: { message, est_privee: false } },
   )
 }
 

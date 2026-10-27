@@ -30,6 +30,7 @@ def update_note(
     note_id: UUID,
     message: str,
     utilisateur: UserModel,
+    est_privee: bool | None = None,
 ) -> NoteModel:
     OrganismePermissionService().can_execute(
         action=OrganismeAction.UPDATE_NOTE,
@@ -46,20 +47,29 @@ def update_note(
     )
     candidature_service.check_candidature_belongs_to_recrutement()
 
-    try:
-        note = NoteModel.objects.by_candidature_author_and_id(
-            candidature_id, utilisateur.username, note_id
-        ).get()
-    except NoteModel.DoesNotExist as error:
-        raise NoteIntrouvable(note_id) from error
-
     with transaction.atomic():
+        try:
+            note = (
+                NoteModel.objects.by_candidature_author_and_id(
+                    candidature_id, utilisateur.username, note_id
+                )
+                .select_for_update(of=("self",))
+                .get()
+            )
+        except NoteModel.DoesNotExist as error:
+            raise NoteIntrouvable(note_id) from error
+
+        was_private = note.est_privee
         note.message = message
-        note.save(update_fields=["message", "updated_at"])
+        if est_privee is not None:
+            note.est_privee = est_privee
+        note.save(update_fields=["message", "est_privee", "updated_at"])
         AuditLogWriter(repository=PostgresAuditLogRepository()).log_action(
             utilisateur_id=utilisateur.username,
             entity=Entity(entity_id=note.id),
             ressource_kind="Note",
-            event_name="NoteEditee",
+            event_name="NotePartagee"
+            if was_private and not note.est_privee
+            else "NoteEditee",
         )
     return note
