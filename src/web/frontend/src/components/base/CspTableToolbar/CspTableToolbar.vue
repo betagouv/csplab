@@ -8,12 +8,14 @@ const props = withDefaults(defineProps<{
   pending?: boolean
   selectionCount?: number
   selectionLabel?: string
+  selectionHint?: string
   bordered?: boolean
 }>(), {
   count: undefined,
   pending: false,
   selectionCount: 0,
   selectionLabel: undefined,
+  selectionHint: undefined,
   bordered: true,
 })
 
@@ -33,12 +35,17 @@ const selectionCountLabel = computed(
   >
     <div class="csp-table-toolbar__status">
       <slot name="start" />
-      <p
-        v-if="selectionCount > 0"
-        class="csp-table-toolbar__count"
-      >
-        {{ selectionCountLabel }}
-      </p>
+      <template v-if="selectionCount > 0">
+        <p class="csp-table-toolbar__count">
+          {{ selectionCountLabel }}
+        </p>
+        <p
+          v-if="selectionHint"
+          class="csp-table-toolbar__hint"
+        >
+          {{ selectionHint }}
+        </p>
+      </template>
       <p
         v-else
         class="csp-table-toolbar__count"
@@ -83,7 +90,7 @@ const selectionCountLabel = computed(
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--csp-space-4);
+  gap: var(--csp-space-2) var(--csp-space-4);
 }
 
 .csp-table-toolbar__count {
@@ -97,6 +104,13 @@ const selectionCountLabel = computed(
   font-size: 1rem;
   font-weight: 700;
   color: var(--text-title-grey);
+}
+
+.csp-table-toolbar__hint {
+  margin: 0;
+  font-size: 0.75rem;
+  line-height: 1.25rem;
+  color: var(--text-mention-grey);
 }
 
 .csp-table-toolbar__actions {

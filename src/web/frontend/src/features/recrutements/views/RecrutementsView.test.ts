@@ -2,6 +2,7 @@ import { screen } from '@testing-library/vue'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { RouterView } from 'vue-router'
 import { getMe } from '@/api/utilisateur'
+import { TABLE_PAGE_SIZE } from '@/components/base/CspDataTable/table'
 import { searchAgentByEmail } from '@/features/agents/api'
 import { ORGANISME_UUID, roleOnOrganisme } from '@/test/fixtures/candidatures'
 import { AGENT_RECHERCHE } from '@/test/fixtures/organismes'
@@ -27,6 +28,11 @@ vi.mock('@/api/utilisateur', () => ({
 
 const RECRUTEMENTS_PATH = `/organismes/${ORGANISME_UUID}/recrutements`
 const [FIRST_RECRUTEMENT] = RECRUTEMENTS_ACTIFS
+const TWO_PAGES_OF_RECRUTEMENTS = Array.from({ length: TABLE_PAGE_SIZE + 1 }, (_, index) => ({
+  ...FIRST_RECRUTEMENT,
+  uuid: `rec-page-${index}`,
+  intitule: `Recrutement ${index}`,
+}))
 
 async function openAssignmentFor(user: ReturnType<typeof setupUser>) {
   await renderWithApp(RouterView, { route: RECRUTEMENTS_PATH })
@@ -62,5 +68,18 @@ describe('recrutementsView', () => {
     await user.click(await screen.findByRole('button', { name: `Retirer ${FIRST_RECRUTEMENT.intitule} de la sélection` }))
 
     await vi.waitFor(() => expect(screen.queryByRole('dialog', { name: 'Assigner un responsable' })).not.toBeInTheDocument())
+  })
+
+  it('counts the selected offers kept on other pages', async () => {
+    vi.mocked(getRecrutementsActifs).mockResolvedValue({ count: TWO_PAGES_OF_RECRUTEMENTS.length, results: TWO_PAGES_OF_RECRUTEMENTS })
+    const user = setupUser()
+    await renderWithApp(RouterView, { route: RECRUTEMENTS_PATH })
+    await user.click(await screen.findByRole('checkbox', { name: 'Sélectionner Recrutement 0' }))
+    await user.click(screen.getByRole('checkbox', { name: 'Sélectionner Recrutement 1' }))
+    expect(screen.queryByText(/sur d’autres pages/)).not.toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: 'Page suivante' }))
+
+    expect(await screen.findByText('dont 2 sur d’autres pages')).toBeInTheDocument()
   })
 })

@@ -149,7 +149,7 @@ watch(() => props.currentId, (id) => {
   }
 }, { immediate: true })
 
-defineExpose({ sortedRowIds })
+defineExpose({ sortedRowIds, visibleIds })
 const hasRowSelection = computed(() => props.selectionMode === 'row')
 const hasSelectionColumn = computed(() => props.selectionMode !== 'none')
 
