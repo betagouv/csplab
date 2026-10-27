@@ -1,41 +1,30 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
-import CspCheckboxGroup from '@/components/base/CspCheckboxGroup/CspCheckboxGroup.vue'
-import CspInput from '@/components/base/CspInput/CspInput.vue'
-import CspRadioGroup from '@/components/base/CspRadioGroup/CspRadioGroup.vue'
 import Panel from '../../shared/Panel.vue'
+import { manquesPublication } from './aide'
 import ApercuCandidat from './ApercuCandidat.vue'
+import ChampsPublication from './ChampsPublication.vue'
 import { useNav } from './nav'
 import PageAts from './PageAts.vue'
-import { db, publier as publierOffre, SITES_PARTENAIRES, SUPPORT_MAITRE } from './store'
+import { db, publier as publierOffre, SUPPORT_MAITRE, validationManquante } from './store'
 
-// L'offre telle que la voient les candidats. Depuis l'encart « Prête à être publiée », la même page
-// propose la diffusion : simple (support maître seul) ou multi-diffusion (sites partenaires au choix).
+// L'offre telle que la voient les candidats. Depuis « Publier », la même page propose les dates
+// et la diffusion : simple (support maître seul) ou multi-diffusion (sites partenaires au choix).
 const props = defineProps<{ id: string, publier?: boolean }>()
 const { aller, notifier } = useNav()
 
 const o = computed(() => db.offres.find(x => x.id === props.id)!)
-const avecPublication = computed(() => props.publier && o.value.etat === 'a_publier')
-
-const diffusion = ref<'simple' | 'multi'>('simple')
-const DIFFUSIONS = [
-  { value: 'simple', label: `Simple diffusion — ${SUPPORT_MAITRE.nom} uniquement` },
-  { value: 'multi', label: 'Multi-diffusion — Choisir le Service Public et des sites partenaires' },
-]
-const partenaires = ref<string[]>([])
-const OPTIONS_PARTENAIRES = SITES_PARTENAIRES.map(s => ({ value: s.id, label: `${s.nom} — ${s.detail}` }))
-
+const avecPublication = computed(() => props.publier && o.value.etat === 'brouillon' && !validationManquante(o.value))
 const tentative = ref(false)
-const erreurDate = computed(() => tentative.value && !o.value.dateLimite)
-const erreurSites = computed(() => tentative.value && diffusion.value === 'multi' && !partenaires.value.length)
+const manques = computed(() => manquesPublication(o.value))
 
 function publier() {
   tentative.value = true
-  if (erreurDate.value || erreurSites.value) {
+  if (manques.value.length || (o.value.diffusion === 'multi' && o.value.canaux.length < 2)) {
     return
   }
-  publierOffre(o.value, diffusion.value, partenaires.value)
+  publierOffre(o.value, o.value.diffusion ?? 'simple', o.value.canaux.filter(c => c !== SUPPORT_MAITRE.id))
   notifier('Offre publiée (simulation : rien n\'est envoyé).')
   aller({ nom: 'offre', id: o.value.id })
 }
@@ -66,30 +55,28 @@ function publier() {
         class="diffusion"
       >
         <Panel
-          titre="Diffusion"
+          titre="Dates et diffusion"
           description="Choisir le Service Public est le support de publication maître : l'offre y est toujours publiée."
         >
-          <CspRadioGroup
-            v-model="diffusion"
-            label="Type de diffusion"
-            :options="DIFFUSIONS"
-          />
-          <CspCheckboxGroup
-            v-if="diffusion === 'multi'"
-            v-model="partenaires"
-            label="Sites partenaires"
-            :options="OPTIONS_PARTENAIRES"
-            :error="erreurSites"
-            :error-message="erreurSites ? 'Choisissez au moins un site partenaire.' : undefined"
-          />
-          <CspInput
-            v-model="o.dateLimite"
-            label="Date limite de candidature"
-            placeholder="AAAA-MM-JJ"
-            :error="erreurDate"
-            :error-message="erreurDate ? 'Indiquez la date limite de candidature.' : undefined"
+          <ChampsPublication
+            :offre="o"
+            :tentative="tentative"
           />
         </Panel>
+        <p
+          v-if="tentative && manques.filter(m => m.etape !== 'publication').length"
+          class="manque"
+          role="alert"
+        >
+          Pour publier, complétez : {{ manques.filter(m => m.etape !== 'publication').map(m => m.label).join(', ') }}.
+          <button
+            type="button"
+            class="lien"
+            @click="aller({ nom: 'formulaire', id: o.id, etape: manques[0]!.etape })"
+          >
+            Ouvrir le formulaire
+          </button>
+        </p>
         <div class="actions">
           <CspButton
             label="Annuler"
@@ -134,6 +121,22 @@ function publier() {
   display: flex;
   flex-direction: column;
   gap: var(--csp-space-4);
+}
+
+.manque {
+  margin: 0;
+  font-size: var(--csp-font-size-sm);
+  color: var(--text-default-error);
+}
+
+.lien {
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: var(--text-action-high-blue-france);
+  text-decoration: underline;
+  cursor: pointer;
 }
 
 .actions {

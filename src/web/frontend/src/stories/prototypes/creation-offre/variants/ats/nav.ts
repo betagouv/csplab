@@ -1,6 +1,7 @@
 // Navigation de la variante ATS : un petit routeur d'écrans, partagé par provide/inject.
 
 import type { InjectionKey, Ref } from 'vue'
+import type { EtapeFormulaire } from './aide'
 import { inject } from 'vue'
 
 export type Ecran
@@ -10,7 +11,7 @@ export type Ecran
     | { nom: 'offres', filtre?: string }
     | { nom: 'creation', mode?: 'fiche' | 'manuel' | 'duplication', ficheId?: string, offreId?: string }
     | { nom: 'offre', id: string }
-    | { nom: 'formulaire', id: string }
+    | { nom: 'formulaire', id: string, etape?: EtapeFormulaire }
     | { nom: 'apercu', id: string, publier?: boolean }
     | { nom: 'parametres' }
 

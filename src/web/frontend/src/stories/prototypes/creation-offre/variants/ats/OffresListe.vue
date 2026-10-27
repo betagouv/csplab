@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { EtatOffre, Offre } from './store'
+import type { EtatOffre, EtatValidation, Offre } from './store'
 import type { CspColumnDef } from '@/components/base/CspDataTable/table'
 import { computed, ref } from 'vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
@@ -12,18 +12,21 @@ import { useTableSelection } from '@/composables/data/useTableSelection'
 import { useTextSearch } from '@/composables/data/useTextSearch'
 import { useDraft } from '@/composables/storage/useDraft'
 import { useDisclosure } from '@/composables/ui/useDisclosure'
+import { manquesPublication } from './aide'
 import ActionsOffreCell from './cellules/ActionsOffreCell.vue'
 import EtatCell from './cellules/EtatCell.vue'
 import ModifieCell from './cellules/ModifieCell.vue'
 import TagCell from './cellules/TagCell.vue'
 import TitreCell from './cellules/TitreCell.vue'
+import ValidationCell from './cellules/ValidationCell.vue'
 import Colonnes from './Colonnes.vue'
 import { useNav } from './nav'
 import PageAts from './PageAts.vue'
-import { CATEGORIES, dateTri, db, fiche, LIBELLES_CONTENU, LIBELLES_ETAT } from './store'
+import { CATEGORIES, dateTri, db, fiche, LIBELLES_CONTENU, LIBELLES_ETAT, LIBELLES_VALIDATION, termineBientot, validationManquante } from './store'
 
 // Liste des offres d'emploi, sur le modèle de la page « Recrutements » de l'application :
 // onglets en cours / archivées, nombre de résultats, recherche, filtres dans un tiroir, sélection, tri, pagination.
+// Les brouillons y apparaissent ; statut et état de la validation sont deux colonnes distinctes.
 const props = defineProps<{ filtre?: string }>()
 const { aller, notifier } = useNav()
 
@@ -38,24 +41,35 @@ type Col = CspColumnDef<Offre> & { verrouillee?: boolean }
 const TOUTES: Col[] = [
   { id: 'titre', header: 'Intitulé de l\'offre', accessor: o => o.titre || 'Sans titre', cellComponent: TitreCell, verrouillee: true },
   { id: 'reference', header: 'Référence', accessor: o => o.id, width: '9rem' },
-  { id: 'etat', header: 'État', sortable: true, accessor: o => LIBELLES_ETAT[o.etat], cellComponent: EtatCell, width: '13rem' },
+  { id: 'etat', header: 'Statut', sortable: true, accessor: o => LIBELLES_ETAT[o.etat], cellComponent: EtatCell, width: '8rem' },
+  { id: 'validation', header: 'Validation', sortable: true, accessor: o => LIBELLES_VALIDATION[o.validationEtat], cellComponent: ValidationCell, width: '13rem' },
   { id: 'fiche', header: 'Fiche de poste', accessor: o => fiche(o.ficheId)?.intitule ?? '—' },
   { id: 'categorie', header: 'Catégorie', accessor: o => o.categorie, cellComponent: TagCell, width: '7rem' },
   { id: 'postes', header: 'Postes', sortable: true, accessor: o => Number(o.nbPostes), align: 'end', width: '6rem' },
   { id: 'contenu', header: 'Origine du contenu', accessor: o => LIBELLES_CONTENU[o.origineContenu] },
-  { id: 'limite', header: 'Date limite', sortable: true, accessor: o => o.dateLimite || '-', width: '8rem' },
+  { id: 'debut', header: 'Début', sortable: true, accessor: o => o.dateDebut ? o.dateDebut.split('-').reverse().join('/') : '-', width: '7rem' },
+  { id: 'fin', header: 'Fin', sortable: true, accessor: o => o.dateFin ? o.dateFin.split('-').reverse().join('/') : '-', width: '7rem' },
   { id: 'modifie', header: 'Dernière modification', sortable: true, accessor: o => dateTri(o.modifieLe), cellComponent: ModifieCell, width: '11rem' },
 ]
 const ACTIONS: Col = { id: 'actions', header: '', align: 'end', width: '3.5rem', cellComponent: ActionsOffreCell, verrouillee: true }
-const DEFAUT = ['reference', 'etat', 'fiche', 'postes', 'modifie']
+const DEFAUT = ['reference', 'etat', 'validation', 'debut', 'fin', 'modifie']
 const visiblesIds = ref([...DEFAUT])
 const visibles = computed(() => [...TOUTES, ACTIONS].filter(c => c.verrouillee || visiblesIds.value.includes(c.id)))
 
 // --- Recherche et filtres (brouillon dans le tiroir, appliqués au clic) ---
 const TOUS = 'tous'
-const filtres = useDraft(() => ({ etat: TOUS, categorie: TOUS, contenu: TOUS }))
+// Filtres rapides depuis l'accueil : « À valider », « À publier », « Se terminent sous 7 jours ».
+const filtres = useDraft(() => ({ etat: TOUS, validation: TOUS, delai: TOUS, categorie: TOUS }))
 if (props.filtre && props.filtre !== 'archivee') {
-  filtres.draft.etat = props.filtre
+  if (props.filtre === 'bientot' || props.filtre === 'a_publier') {
+    filtres.draft.delai = props.filtre
+  }
+  else if (props.filtre in LIBELLES_VALIDATION) {
+    filtres.draft.validation = props.filtre
+  }
+  else {
+    filtres.draft.etat = props.filtre
+  }
   filtres.apply()
 }
 const tiroir = useDisclosure()
@@ -69,17 +83,20 @@ function appliquer() {
 }
 const nbFiltres = computed(() => Object.values(filtres.applied).filter(v => v !== TOUS).length)
 
-const ETATS_EN_COURS: EtatOffre[] = ['redaction', 'validation', 'a_publier', 'publiee']
-const OPTIONS_ETAT = [{ value: TOUS, label: 'Tous les états' }, ...ETATS_EN_COURS.map(e => ({ value: e, label: LIBELLES_ETAT[e] }))]
+const ETATS_EN_COURS: EtatOffre[] = ['brouillon', 'publiee', 'retiree']
+const OPTIONS_ETAT = [{ value: TOUS, label: 'Tous les statuts' }, ...ETATS_EN_COURS.map(e => ({ value: e, label: LIBELLES_ETAT[e] }))]
+const OPTIONS_VALIDATION = [{ value: TOUS, label: 'Tous les états' }, ...(Object.keys(LIBELLES_VALIDATION) as EtatValidation[]).map(e => ({ value: e, label: LIBELLES_VALIDATION[e] }))]
+const OPTIONS_DELAI = [{ value: TOUS, label: 'Toutes' }, { value: 'a_publier', label: 'Prêtes à être publiées' }, { value: 'bientot', label: 'Se terminent sous 7 jours' }]
 const OPTIONS_CATEGORIE = [{ value: TOUS, label: 'Toutes les catégories' }, ...CATEGORIES.map(c => ({ value: c, label: `Catégorie ${c}` }))]
-const OPTIONS_CONTENU = [{ value: TOUS, label: 'Toutes les origines' }, ...Object.entries(LIBELLES_CONTENU).map(([value, label]) => ({ value, label }))]
 
 const deLOnglet = computed(() => db.offres.filter(o => (onglet.value === 'archivees') === (o.etat === 'archivee')))
 const { search, filtered: trouvees } = useTextSearch(deLOnglet, o => [o.titre, o.id, o.ficheId, fiche(o.ficheId)?.intitule])
 const lignes = computed(() => trouvees.value.filter(o =>
   (filtres.applied.etat === TOUS || o.etat === filtres.applied.etat)
-  && (filtres.applied.categorie === TOUS || o.categorie === filtres.applied.categorie)
-  && (filtres.applied.contenu === TOUS || o.origineContenu === filtres.applied.contenu)))
+  && (filtres.applied.validation === TOUS || o.validationEtat === filtres.applied.validation)
+  && (filtres.applied.delai !== 'bientot' || termineBientot(o))
+  && (filtres.applied.delai !== 'a_publier' || (o.etat === 'brouillon' && !validationManquante(o) && !manquesPublication(o).length))
+  && (filtres.applied.categorie === TOUS || o.categorie === filtres.applied.categorie)))
 
 const compte = computed(() => {
   const n = lignes.value.length
@@ -175,18 +192,24 @@ const page = ref(1)
       <CspSelect
         v-if="onglet === 'en_cours'"
         v-model="filtres.draft.etat"
-        label="État"
+        label="Statut"
         :options="OPTIONS_ETAT"
+      />
+      <CspSelect
+        v-model="filtres.draft.validation"
+        label="État de la validation"
+        :options="OPTIONS_VALIDATION"
+      />
+      <CspSelect
+        v-if="onglet === 'en_cours'"
+        v-model="filtres.draft.delai"
+        label="Échéance"
+        :options="OPTIONS_DELAI"
       />
       <CspSelect
         v-model="filtres.draft.categorie"
         label="Catégorie"
         :options="OPTIONS_CATEGORIE"
-      />
-      <CspSelect
-        v-model="filtres.draft.contenu"
-        label="Origine du contenu"
-        :options="OPTIONS_CONTENU"
       />
     </CspFiltersDrawer>
   </PageAts>

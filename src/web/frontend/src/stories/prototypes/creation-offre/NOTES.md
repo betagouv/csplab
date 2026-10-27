@@ -1,5 +1,38 @@
 # Notes — Prototype création d'offre
 
+## Itération 12 — alignement sur le cadrage « Offres » de la PO (27 octobre 2026)
+
+Source : document de cadrage « Offres » (PO). Arbitrages d'Alice : on suit le cadrage sur la validation
+(offre modifiable pendant la validation, aucun champ minimum pour la demander) et sur le formulaire en
+6 étapes ; on garde les fiches de poste, l'aperçu candidat et la multi-diffusion, sans les signaler « plus tard ».
+
+- **Formulaire en 6 étapes**, navigation libre, enregistrement automatique : Informations internes · Annonce ·
+  Formulaire de candidature · Processus · Équipe · Publication. Chaque étape indique ce qu'il reste à compléter
+  pour publier. Champs facultatifs signalés « (facultatif) » ; les obligatoires ne sont contrôlés qu'à la publication.
+- **Informations internes** (jamais publiées) : référence interne, code poste, nombre de postes, motif de
+  recrutement, agent remplacé, motif de départ, groupe RIFSEEP, cycle de travail, commentaire pour les valideurs,
+  fiche de poste jointe. **Données de contexte jamais reprises** (fiche ou duplication).
+- **Annonce** : catégorie unique, statut du poste, date de vacance, emploi ouvert aux fonctionnaires / contractuels
+  (+ fondement juridique), métier RMFP+ (compétences pré-cochées, ajout libre), temps de travail, lieu, etc.
+- **Formulaire de candidature** : mode (ATS par défaut, courriel, site externe), pièces CV / LM / portfolio /
+  bande démo (non demandée, facultative, obligatoire), questions libres (seulement dans l'ATS).
+- **Processus** (personnalisable pour l'offre) et **Équipe** (facultative, le créateur est Responsable).
+- **Validation** : « Demander la validation » à tout moment ; validations en parallèle, toutes requises, l'accord
+  d'un seul valideur suffit par validation ; refus avec commentaire obligatoire ; accords acquis conservés ;
+  « Modifiée depuis la validation » sans relance ; validation forcée par le superviseur (simulée).
+- **Statuts** : Brouillon, Publiée, Retirée, Archivée ; l'état de la validation est suivi à part.
+- **Publication** : date de début et date de fin (= date limite, un mois par défaut, un mois minimum sauf urgence),
+  retrait automatique à la date limite, « Prolonger » sans nouvelle validation, « Retirer » (urgence si moins
+  d'un mois ; les candidatures restent à traiter).
+- **Liste** : colonnes statut, validation, début, fin ; filtres statut, validation, échéance (« se termine sous
+  7 jours », « prêtes à être publiées »). **Accueil** : brouillons, à valider, à publier, se terminent sous 7 jours.
+- **Paramètres › Processus de recrutement** : circuit (activer, ajouter / renommer / supprimer une validation,
+  choisir ses valideurs, anomalie « aucun valideur »), étapes de recrutement, droits « Créer » / « Publier »
+  par agent, journal de l'organisme.
+
+Points ouverts (cadrage) : liste exacte des champs D311-8 à confirmer avec la DGAFP ; dates par plateforme en
+multi-diffusion (non prototypé) ; qui peut retirer avant un mois (superviseur seulement ?).
+
 ## Itération 11 — page de l'offre, formulaire en page entière, publication (22 octobre 2026)
 
 Retours d'Alice :

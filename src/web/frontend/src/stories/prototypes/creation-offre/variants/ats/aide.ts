@@ -2,9 +2,11 @@
 // et au plus une alerte discrète quand une information essentielle manque ou qu'un texte est difficile.
 
 import type { Offre } from './store'
-import { CHAMPS_DETERMINANTS } from './store'
+import { plusUnMois } from './store'
 
-export type Champ = 'titre' | 'categorie' | 'motif' | 'presentation' | 'missions' | 'profil' | 'indispensables' | 'souhaitables' | 'modalites' | 'nbPostes' | 'lieu' | 'remuneration' | 'dateLimite'
+export type EtapeFormulaire = 'internes' | 'annonce' | 'candidature' | 'processus' | 'equipe' | 'publication'
+
+export type Champ = 'titre' | 'categorie' | 'presentation' | 'missions' | 'profil' | 'competences' | 'conditions' | 'lieu' | 'remuneration' | 'metier' | 'commentaireValideurs' | 'cycleTravail'
 
 export const CONSEILS: Record<Champ, { conseil: string, exemple?: string }> = {
   titre: {
@@ -13,10 +15,6 @@ export const CONSEILS: Record<Champ, { conseil: string, exemple?: string }> = {
   },
   categorie: {
     conseil: 'Catégorie statutaire du poste (A, B ou C).',
-  },
-  motif: {
-    conseil: 'Vacance, remplacement, création… Quelques mots évitent aux valideurs de rappeler le service.',
-    exemple: '« Remplacement d\'un départ à la retraite au 1er janvier. »',
   },
   presentation: {
     conseil: '2 ou 3 phrases : l\'équipe, la finalité du poste, ce qui le rend intéressant.',
@@ -29,26 +27,27 @@ export const CONSEILS: Record<Champ, { conseil: string, exemple?: string }> = {
   profil: {
     conseil: 'Décrivez la personne recherchée plutôt que la fiche de poste ; restez ouvert aux parcours variés.',
   },
-  indispensables: {
-    conseil: 'Ce sans quoi la candidature ne peut pas aboutir. 2 à 4 suffisent.',
+  competences: {
+    conseil: 'Proposées par le métier choisi : retirez celles qui ne s\'appliquent pas, ajoutez les autres.',
   },
-  souhaitables: {
-    conseil: 'Ce qui est un plus et départage, sans décourager.',
+  conditions: {
+    conseil: 'Horaires, déplacements, et toute sujétion liée au cycle de travail (nuit, week-end, astreintes).',
   },
-  modalites: {
-    conseil: 'À qui le poste est ouvert (fonctionnaires, contractuels) et type de contrat.',
+  metier: {
+    conseil: 'Un seul métier, choisi dans le référentiel RMFP+. Ses compétences s\'ajoutent à l\'annonce.',
   },
-  nbPostes: {
-    conseil: 'Une seule offre, et une seule validation, peut couvrir plusieurs postes identiques.',
+  commentaireValideurs: {
+    conseil: 'Contexte utile aux valideurs ; il n\'est jamais publié.',
+    exemple: '« Remplacement à l\'identique, poste budgété sur le BOP 217. »',
+  },
+  cycleTravail: {
+    conseil: 'Reste interne. S\'il crée des sujétions (nuit, week-end, astreintes), indiquez-les aussi dans les conditions particulières de l\'annonce.',
   },
   lieu: {
     conseil: 'Ville et site, accès, télétravail : des informations décisives pour les candidats.',
   },
   remuneration: {
     conseil: 'Une fourchette ou une indication : c\'est l\'une des informations les plus recherchées.',
-  },
-  dateLimite: {
-    conseil: 'Nécessaire pour publier.',
   },
 }
 
@@ -96,46 +95,54 @@ export function alerte(o: Offre, champ: Champ): { niveau: 'info' | 'attention', 
       }
       return phrasesLongues(o.missions) ? { niveau: 'info', texte: 'Phrase très longue : découpez-la en missions courtes.' } : null
     }
-    case 'indispensables':
-      return o.indispensables.length > 5 ? { niveau: 'info', texte: `${o.indispensables.length} compétences indispensables : vous risquez d'écarter de bons profils.` } : null
-    case 'souhaitables':
-      return !o.souhaitables.length && o.indispensables.length > 3 ? { niveau: 'info', texte: 'Certaines compétences indispensables sont peut-être seulement souhaitables ?' } : null
-    case 'nbPostes':
-      return Number(o.nbPostes) >= 1 ? null : { niveau: 'attention', texte: 'Indiquez au moins 1 poste.' }
+    case 'competences':
+      return o.competences.length > 8 ? { niveau: 'info', texte: `${o.competences.length} compétences : gardez les plus importantes pour ne pas décourager.` } : null
     case 'lieu':
       return o.lieu.trim() ? null : { niveau: 'attention', texte: 'Le lieu est nécessaire.' }
     case 'remuneration':
       return o.remuneration.trim() ? null : { niveau: 'info', texte: 'Information très attendue par les candidats.' }
-    case 'dateLimite':
-      return o.dateLimite ? null : { niveau: 'info', texte: 'À renseigner avant de publier.' }
     default:
       return null
   }
 }
 
 /**
- * Ce qui empêche d'envoyer pour validation (organisme avec DAR : tous les champs déterminants)
- * ou de créer l'offre (sans DAR : titre, missions, lieu).
+ * Ce qui empêche de publier : l'annonce complète (article D311-8), le mode de candidature et des dates
+ * valides. C'est le seul moment où les champs obligatoires sont contrôlés.
  */
-export function manquesCreation(o: Offre): string[] {
-  const vide = {
-    titre: !o.titre.trim(),
-    categorie: !o.categorie,
-    nbPostes: !(Number(o.nbPostes) >= 1),
-    lieu: !o.lieu.trim(),
-    missions: !o.missions.trim(),
-  }
-  const requis = o.dar === 'requise' ? Object.keys(CHAMPS_DETERMINANTS) as (keyof typeof vide)[] : ['titre', 'missions', 'lieu'] as const
-  return requis.filter(c => vide[c]).map(c => CHAMPS_DETERMINANTS[c])
+export function manquesPublication(o: Offre): { etape: EtapeFormulaire, label: string }[] {
+  const annonce: [boolean, string][] = [
+    [!o.titre.trim(), 'intitulé'],
+    [!o.categorie, 'catégorie'],
+    [!o.statutPoste, 'statut du poste'],
+    [!o.metier, 'métier'],
+    [!o.missions.trim(), 'missions'],
+    [!o.profil.trim(), 'profil recherché'],
+    [!o.tempsTravail, 'temps de travail'],
+    [!o.lieu.trim(), 'lieu'],
+    [!o.dateVacance, 'date de vacance'],
+    [o.ouvertA.includes('contractuel') && !o.fondementJuridique, 'fondement juridique (emploi ouvert aux contractuels)'],
+  ]
+  const candidature: [boolean, string][] = [
+    [o.modeCandidature === 'courriel' && !o.courrielCandidature.trim(), 'adresse de réception des candidatures'],
+    [o.modeCandidature === 'externe' && !o.urlCandidature.trim(), 'lien du site de candidature'],
+  ]
+  return [
+    ...annonce.filter(([vide]) => vide).map(([, label]) => ({ etape: 'annonce' as const, label })),
+    ...candidature.filter(([vide]) => vide).map(([, label]) => ({ etape: 'candidature' as const, label })),
+    ...manquesDates(o).map(label => ({ etape: 'publication' as const, label })),
+  ]
 }
 
-/** Ce qui empêche de publier : préparation (modalités, date limite) et au moins un support. */
-export function manquesPublication(o: Offre): string[] {
-  return [
-    !o.modalites.trim() && 'modalités de recrutement',
-    !o.dateLimite && 'date limite de candidature',
-    !o.canaux.length && 'au moins un support de publication',
-  ].filter(Boolean) as string[]
+/** Date de fin au moins un mois après le début, sauf urgence (D311-2). */
+export function manquesDates(o: Offre): string[] {
+  if (!o.dateDebut || !o.dateFin) {
+    return ['dates de publication']
+  }
+  if (!o.urgence && o.dateFin < plusUnMois(o.dateDebut)) {
+    return ['date de fin au moins un mois après le début (sauf urgence)']
+  }
+  return []
 }
 
 /** Mise en forme sans changer les mots : éléments séparés par « ; » → puces. */

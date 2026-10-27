@@ -3,14 +3,13 @@ import type { EtatOffre } from './store'
 import CspBadge from '@/components/base/CspBadge/CspBadge.vue'
 import { LIBELLES_ETAT } from './store'
 
-// État d'une offre, toujours présenté de la même façon (listes, détail, en-tête).
+// Statut d'une offre, toujours présenté de la même façon (listes, détail, en-tête).
 defineProps<{ etat: EtatOffre, size?: 'sm' | 'md' }>()
 
 const TYPES: Record<EtatOffre, 'info' | 'new' | 'warning' | 'error' | 'success'> = {
-  redaction: 'info',
-  validation: 'new',
-  a_publier: 'warning',
+  brouillon: 'info',
   publiee: 'success',
+  retiree: 'warning',
   archivee: 'info',
 }
 </script>

@@ -1,27 +1,29 @@
 <script setup lang="ts">
-import type { EtatOffre } from './store'
 import { computed } from 'vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
+import { manquesPublication } from './aide'
 import EtatBadge from './EtatBadge.vue'
 import { useNav } from './nav'
 import PageAts from './PageAts.vue'
-import { db, fiche, LIBELLES_ETAT, nouvelleFiche } from './store'
+import { db, fiche, nouvelleFiche, termineBientot, validationManquante } from './store'
 
 // Écran 1 — tableau de bord : accès aux deux espaces et quelques compteurs, sans analytique.
 const { aller } = useNav()
 
-const COMPTEURS: { etat: EtatOffre, aide: string }[] = [
-  { etat: 'redaction', aide: 'à terminer' },
-  { etat: 'validation', aide: 'Ni modifiables ni publiables' },
-  { etat: 'a_publier', aide: 'prêtes, non visibles' },
-  { etat: 'publiee', aide: 'en ligne' },
-]
-const n = (e: EtatOffre) => db.offres.filter(o => o.etat === e).length
+// Bloc « À traiter » : à valider (pour les valideurs), à publier (brouillons validés et complets),
+// et les publications qui se terminent sous 7 jours.
+const aPublier = (o: (typeof db.offres)[number]) => o.etat === 'brouillon' && !validationManquante(o) && !manquesPublication(o).length
+const COMPTEURS = computed(() => [
+  { filtre: 'brouillon', lib: 'Brouillons', aide: 'en cours de rédaction', n: db.offres.filter(o => o.etat === 'brouillon').length },
+  { filtre: 'en_attente', lib: 'À valider', aide: 'validation en attente', n: db.offres.filter(o => o.etat === 'brouillon' && o.validationEtat === 'en_attente').length },
+  { filtre: 'a_publier', lib: 'À publier', aide: 'validées et complètes', n: db.offres.filter(aPublier).length },
+  { filtre: 'bientot', lib: 'Se terminent sous 7 jours', aide: 'à prolonger ou laisser se retirer', n: db.offres.filter(termineBientot).length },
+])
 function creerFiche() {
   const f = nouvelleFiche({}, 'ats', 'Fiche créée dans l\'ATS par Camille Moreau')
   aller({ nom: 'fiche', id: f.id, edition: true })
 }
-const aTraiter = computed(() => db.offres.filter(o => ['redaction', 'a_publier'].includes(o.etat)))
+const aTraiter = computed(() => db.offres.filter(o => o.etat === 'brouillon' || termineBientot(o)))
 </script>
 
 <template>
@@ -41,17 +43,17 @@ const aTraiter = computed(() => db.offres.filter(o => ['redaction', 'a_publier']
 
     <section
       class="tdb__compteurs"
-      aria-label="Offres par état"
+      aria-label="À traiter"
     >
       <button
         v-for="c in COMPTEURS"
-        :key="c.etat"
+        :key="c.filtre"
         type="button"
         class="tdb__compteur"
-        @click="aller({ nom: 'offres', filtre: c.etat })"
+        @click="aller({ nom: 'offres', filtre: c.filtre })"
       >
-        <span class="tdb__nb">{{ n(c.etat) }}</span>
-        <span class="tdb__lib">{{ LIBELLES_ETAT[c.etat] }}</span>
+        <span class="tdb__nb">{{ c.n }}</span>
+        <span class="tdb__lib">{{ c.lib }}</span>
         <small>{{ c.aide }}</small>
       </button>
     </section>

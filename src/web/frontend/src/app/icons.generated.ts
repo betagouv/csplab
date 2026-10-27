@@ -94,7 +94,6 @@ import riPlayCircleLine from '@iconify-icons/ri/play-circle-line'
 import riPriceTag3Line from '@iconify-icons/ri/price-tag-3-line'
 import riQuestionAnswerLine from '@iconify-icons/ri/question-answer-line'
 import riQuestionLine from '@iconify-icons/ri/question-line'
-import riRecordCircleFill from '@iconify-icons/ri/record-circle-fill'
 import riRefreshLine from '@iconify-icons/ri/refresh-line'
 import riRestartLine from '@iconify-icons/ri/restart-line'
 import riRouteLine from '@iconify-icons/ri/route-line'
@@ -107,6 +106,7 @@ import riShieldCheckLine from '@iconify-icons/ri/shield-check-line'
 import riShieldUserLine from '@iconify-icons/ri/shield-user-line'
 import riSpamFill from '@iconify-icons/ri/spam-fill'
 import riStickyNoteLine from '@iconify-icons/ri/sticky-note-line'
+import riStopCircleLine from '@iconify-icons/ri/stop-circle-line'
 import riSunLine from '@iconify-icons/ri/sun-line'
 import riTableLine from '@iconify-icons/ri/table-line'
 import riTaskLine from '@iconify-icons/ri/task-line'
@@ -214,7 +214,6 @@ addIcon('ri:play-circle-line', riPlayCircleLine)
 addIcon('ri:price-tag-3-line', riPriceTag3Line)
 addIcon('ri:question-answer-line', riQuestionAnswerLine)
 addIcon('ri:question-line', riQuestionLine)
-addIcon('ri:record-circle-fill', riRecordCircleFill)
 addIcon('ri:refresh-line', riRefreshLine)
 addIcon('ri:restart-line', riRestartLine)
 addIcon('ri:route-line', riRouteLine)
@@ -227,6 +226,7 @@ addIcon('ri:shield-check-line', riShieldCheckLine)
 addIcon('ri:shield-user-line', riShieldUserLine)
 addIcon('ri:spam-fill', riSpamFill)
 addIcon('ri:sticky-note-line', riStickyNoteLine)
+addIcon('ri:stop-circle-line', riStopCircleLine)
 addIcon('ri:sun-line', riSunLine)
 addIcon('ri:table-line', riTableLine)
 addIcon('ri:task-line', riTaskLine)

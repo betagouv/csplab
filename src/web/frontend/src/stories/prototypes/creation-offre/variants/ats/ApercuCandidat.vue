@@ -2,6 +2,7 @@
 import type { Offre } from './store'
 import { computed } from 'vue'
 import CspIcon from '@/components/base/CspIcon/CspIcon.vue'
+import { PIECES } from './store'
 
 // Aperçu de l'annonce côté candidat. Il n'affiche que le contenu éditorial de l'offre :
 // la fiche de poste et les informations administratives n'y apparaissent pas telles quelles.
@@ -23,6 +24,7 @@ function blocs(texte: string) {
 }
 
 const dateFr = (iso: string) => (iso ? new Date(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : '')
+const pieces = computed(() => PIECES.filter(p => props.offre.pieces[p.id] !== 'non').map(p => `${p.label}${props.offre.pieces[p.id] === 'facultatif' ? ' (facultatif)' : ''}`))
 const etiquettes = computed(() => [
   Number(props.offre.nbPostes) > 1 ? `${props.offre.nbPostes} postes à pourvoir` : '',
   props.offre.teletravail ? `Télétravail : ${props.offre.teletravail}` : '',
@@ -53,10 +55,10 @@ const etiquettes = computed(() => [
         name="ri:map-pin-line"
         :size="14"
       />{{ offre.lieu }}</span>
-      <span v-if="offre.dateLimite"><CspIcon
+      <span v-if="offre.dateFin"><CspIcon
         name="ri:calendar-line"
         :size="14"
-      />Candidature avant le {{ dateFr(offre.dateLimite) }}</span>
+      />Candidature avant le {{ dateFr(offre.dateFin) }}</span>
     </p>
     <ul
       v-if="etiquettes.length"
@@ -103,31 +105,18 @@ const etiquettes = computed(() => [
       Missions — à rédiger
     </p>
 
-    <section v-if="offre.profil || offre.indispensables.length || offre.souhaitables.length">
+    <section v-if="offre.profil || offre.competences.length">
       <h3>Votre profil</h3>
       <p v-if="offre.profil">
         {{ offre.profil }}
       </p>
-      <template v-if="offre.indispensables.length">
+      <template v-if="offre.competences.length">
         <p class="apercu__sous">
-          Indispensable
+          Compétences
         </p>
         <ul>
           <li
-            v-for="c in offre.indispensables"
-            :key="c"
-          >
-            {{ c }}
-          </li>
-        </ul>
-      </template>
-      <template v-if="offre.souhaitables.length">
-        <p class="apercu__sous">
-          Apprécié
-        </p>
-        <ul>
-          <li
-            v-for="c in offre.souhaitables"
+            v-for="c in offre.competences"
             :key="c"
           >
             {{ c }}
@@ -136,10 +125,14 @@ const etiquettes = computed(() => [
       </template>
     </section>
 
-    <section v-if="offre.modalites || offre.conditions || offre.remuneration">
+    <section>
       <h3>Conditions</h3>
-      <p v-if="offre.modalites">
-        {{ offre.modalites }}
+      <p>
+        Poste {{ offre.categorie ? `de catégorie ${offre.categorie} ` : '' }}ouvert aux {{ offre.ouvertA.map(x => (x === 'titulaire' ? 'fonctionnaires' : 'contractuels')).join(' et ') || '-' }}<template v-if="offre.statutPoste">
+          · {{ offre.statutPoste.toLowerCase() }}
+        </template><template v-if="offre.tempsTravail">
+          · {{ { complet: 'temps complet', non_complet: 'temps non complet', incomplet: 'temps incomplet' }[offre.tempsTravail] }}
+        </template>
       </p>
       <p v-if="offre.conditions">
         {{ offre.conditions }}
@@ -149,9 +142,14 @@ const etiquettes = computed(() => [
       </p>
     </section>
 
-    <section v-if="offre.contact">
+    <section>
       <h3>Pour candidater</h3>
-      <p>Contact : {{ offre.contact }}</p>
+      <p v-if="pieces.length">
+        Pièces demandées : {{ pieces.join(', ') }}.
+      </p>
+      <p v-if="offre.contact">
+        Contact : {{ offre.contact }}
+      </p>
     </section>
 
     <div class="apercu__cta">

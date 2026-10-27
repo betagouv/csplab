@@ -1,13 +1,16 @@
-// Modèle et données de la variante « ATS — fiches et offres ».
-// Deux objets distincts et reliés : la fiche de poste (référentiel durable) et l'offre d'emploi
-// (opération de recrutement + annonce). Une offre est toujours rattachée à une fiche.
-// Tout est local et fictif ; conservé pendant la session (sessionStorage).
+// Modèle et données de la variante « ATS — fiches et offres », aligné sur le cadrage « Offres ».
+// Trois objets : la fiche de poste (référentiel), l'offre (informations internes, annonce, publication)
+// et son formulaire de candidature. Tout est local et fictif ; conservé pendant la session (sessionStorage).
 
 import { reactive } from 'vue'
 
 export type OrigineFiche = 'ats' | 'sirh' | 'document'
-export type EtatOffre = 'redaction' | 'validation' | 'a_publier' | 'publiee' | 'archivee'
+/** Statut de l'offre. La validation n'est pas un statut : elle se suit à part (voir EtatValidation). */
+export type EtatOffre = 'brouillon' | 'publiee' | 'retiree' | 'archivee'
+export type EtatValidation = 'non_demandee' | 'en_attente' | 'validee' | 'refusee'
 export type OrigineContenu = 'fiche' | 'fichier' | 'manuel' | 'duplication'
+export type Piece = 'cv' | 'lm' | 'portfolio' | 'demo'
+export type Exigence = 'non' | 'facultatif' | 'obligatoire'
 
 export interface Evenement {
   date: string
@@ -39,20 +42,25 @@ export interface Fiche {
   historique: Evenement[]
 }
 
-/** Un valideur du circuit, défini par le superviseur de l'organisme. */
-export interface Valideur {
+/** Une validation du circuit : un nom et un ou plusieurs valideurs ; l'accord d'un seul suffit. */
+export interface GroupeValidation {
   nom: string
-  fonction: string
+  valideurs: string[]
 }
 
-/** Décision d'un valideur sur une offre envoyée pour validation (circuit figé à l'envoi). */
-export interface Validation extends Valideur {
-  decision: 'attente' | 'validee' | 'refusee'
+/** Réponse d'une validation sur une offre (circuit figé à la demande). */
+export interface ValidationOffre extends GroupeValidation {
+  decision: 'attente' | 'accord' | 'refus'
+  par?: string
   le?: string
-  motif?: string
+  commentaire?: string
+  forcee?: boolean
 }
 
-export type Circuit = 'successif' | 'simultane'
+export interface Membre {
+  nom: string
+  role: 'Responsable' | 'Recruteur' | 'Contributeur'
+}
 
 export interface Offre {
   id: string
@@ -60,51 +68,86 @@ export interface Offre {
   etat: EtatOffre
   origineContenu: OrigineContenu
   sourceOffreId?: string
+
+  // 1. Informations internes — jamais publiées. Les données de contexte ne sont jamais recopiées.
+  referenceInterne: string
   nbPostes: string
-  /** Fixé par les paramètres de l'organisme, jamais choisi à la création de l'offre. */
-  dar: 'requise' | 'non_requise'
-  darStatut?: 'soumise' | 'validee' | 'refusee'
-  darRef?: string
-  darSoumiseLe?: string
-  darValideeLe?: string
-  remarqueDar?: string
-  /** Circuit de validation copié des paramètres de l'organisme au moment de l'envoi. */
-  circuit?: Circuit
-  validations?: Validation[]
-  /** Publication par support : état et dates (simulées). */
-  publications: Record<string, { etat: 'publiee' | 'arretee', debut: string, fin: string }>
-  // Contenu éditorial de l'annonce
+  dateVacance: string
+  motifRecrutement: string
+  agentRemplace: string
+  motifDepart: string
+  codePoste: string
+  groupeRifseep: string
+  cycleTravail: string
+  commentaireValideurs: string
+  ficheJointe?: string
+
+  // 2. Annonce — ce que lit le candidat (article D311-8 du CGFP)
   titre: string
   categorie: string
-  /** Contexte du recrutement, à l'attention des valideurs. */
-  motif: string
+  statutPoste: string
+  ouvertA: string[]
+  fondementJuridique: string
+  metier: string
+  competences: string[]
+  descriptifEmployeur: string
   presentation: string
   missions: string
   profil: string
-  indispensables: string[]
-  souhaitables: string[]
-  modalites: string
-  lieu: string
-  teletravail: string
   conditions: string
+  tempsTravail: string
   remuneration: string
-  dateLimite: string
+  teletravail: string
+  lieu: string
   contact: string
-  canaux: string[]
+
+  // 3. Formulaire de candidature
+  modeCandidature: 'ats' | 'courriel' | 'externe'
+  courrielCandidature: string
+  urlCandidature: string
+  pieces: Record<Piece, Exigence>
+  questions: string[]
+
+  // 4. Processus et 5. Équipe
+  processusPersonnalise: boolean
+  etapesProcessus: string[]
+  equipe: Membre[]
+
+  // 6. Publication : une seule date de fin, qui est aussi la date limite de candidature
+  dateDebut: string
+  dateFin: string
+  urgence: boolean
   diffusion?: 'simple' | 'multi'
+  canaux: string[]
+  publications: Record<string, { etat: 'publiee' | 'arretee', debut: string, fin: string }>
+
+  // Validation (ancienne DAR)
+  validationEtat: EtatValidation
+  validations?: ValidationOffre[]
+  validationDemandeeLe?: string
+  validationObtenueLe?: string
+  modifieeDepuisValidation?: boolean
+
   notifications: 'chaque' | 'cinq' | 'quotidien' | 'aucune'
   creeLe: string
   modifieLe: string
   publieeLe?: string
+  retireeLe?: string
   historique: Evenement[]
 }
 
 export const LIBELLES_ETAT: Record<EtatOffre, string> = {
-  redaction: 'Brouillon',
-  validation: 'En attente de validation',
-  a_publier: 'À publier',
+  brouillon: 'Brouillon',
   publiee: 'Publiée',
+  retiree: 'Retirée',
   archivee: 'Archivée',
+}
+
+export const LIBELLES_VALIDATION: Record<EtatValidation, string> = {
+  non_demandee: 'Non demandée',
+  en_attente: 'En attente',
+  validee: 'Validée',
+  refusee: 'Refusée',
 }
 
 export const LIBELLES_ORIGINE: Record<OrigineFiche, string> = {
@@ -116,9 +159,38 @@ export const LIBELLES_ORIGINE: Record<OrigineFiche, string> = {
 export const LIBELLES_CONTENU: Record<OrigineContenu, string> = {
   fiche: 'Depuis la fiche de poste',
   fichier: 'Depuis un fichier',
-  manuel: 'Saisie manuelle',
+  manuel: 'Formulaire vide',
   duplication: 'Duplication d\'une offre',
 }
+
+export const PIECES: { id: Piece, label: string }[] = [
+  { id: 'cv', label: 'CV' },
+  { id: 'lm', label: 'Lettre de motivation' },
+  { id: 'portfolio', label: 'Portfolio' },
+  { id: 'demo', label: 'Bande démo' },
+]
+
+export const CATEGORIES = ['A', 'B', 'C']
+export const STATUTS_POSTE = ['Création de poste', 'Poste vacant', 'Poste susceptible d\'être vacant']
+export const MOTIFS_RECRUTEMENT = ['Création de poste', 'Remplacement', 'Renouvellement', 'Vacance de poste']
+export const MOTIFS_DEPART = ['Mutation', 'Départ à la retraite', 'Fin de contrat', 'Disponibilité', 'Démission']
+export const TEMPS_TRAVAIL = [
+  { value: 'complet', label: 'Temps complet' },
+  { value: 'non_complet', label: 'Temps non complet' },
+  { value: 'incomplet', label: 'Temps incomplet' },
+]
+
+/** Extrait fictif du référentiel RMFP+ : le métier choisi propose ses compétences, déjà cochées. */
+export const METIERS = [
+  { id: 'gest-paie', libelle: 'Gestionnaire paie', domaine: 'Ressources humaines', competences: ['Réglementation statutaire et indemnitaire', 'Maîtrise des outils de paie', 'Contrôle des éléments variables', 'Rigueur et confidentialité'] },
+  { id: 'charge-recrut', libelle: 'Chargé·e de recrutement', domaine: 'Ressources humaines', competences: ['Techniques de recrutement', 'Statut de la fonction publique', 'Conduite d\'entretien', 'Sens de la relation'] },
+  { id: 'cp-si', libelle: 'Chef·fe de projet maîtrise d\'ouvrage SI', domaine: 'Numérique et systèmes d\'information', competences: ['Gestion de projet', 'Expression de besoins', 'Pilotage de prestataires', 'Conduite du changement'] },
+  { id: 'assist-admin', libelle: 'Assistant·e administratif·ve', domaine: 'Administration générale', competences: ['Outils bureautiques', 'Organisation', 'Accueil du public', 'Rédaction de courriers'] },
+  { id: 'accueil', libelle: 'Chargé·e d\'accueil', domaine: 'Administration générale', competences: ['Accueil physique et téléphonique', 'Orientation du public', 'Gestion des situations difficiles'] },
+  { id: 'resp-si', libelle: 'Responsable des systèmes d\'information', domaine: 'Numérique et systèmes d\'information', competences: ['Management d\'équipe', 'Architecture des SI', 'Sécurité des SI', 'Pilotage budgétaire'] },
+]
+export const metier = (id: string) => METIERS.find(m => m.id === id)
+const MOTS_METIER: [string, string][] = [['paie', 'gest-paie'], ['recrutement', 'charge-recrut'], ['projet', 'cp-si'], ['assistant', 'assist-admin'], ['accueil', 'accueil'], ['informatique', 'resp-si']]
 
 /** Support maître : toute publication passe par lui (simple diffusion). */
 export const SUPPORT_MAITRE = { id: 'csp', nom: 'Choisir le Service Public', detail: 'Support de publication maître' }
@@ -132,34 +204,52 @@ export const SITES_PARTENAIRES = [
 ]
 export const CANAUX_DIFFUSION = [SUPPORT_MAITRE, ...SITES_PARTENAIRES]
 
-/** Paramètres de l'organisme (simulés). La nécessité d'une DAR y est définie une fois pour toutes. */
+/** Paramètres de l'organisme, administrés par le superviseur. */
 export interface Organisme {
   nom: string
-  /** Défini par le superviseur de l'organisme, commun à tous les recrutements (dans un premier temps). */
-  darObligatoire: boolean
   superviseur: string
-  entite: string
-  typeDar: string
-  /** Valideurs des demandes, dans l'ordre du circuit. */
-  valideurs: Valideur[]
-  circuit: Circuit
+  /** « Faire valider les offres avant publication » : désactivé par défaut. */
+  validationActive: boolean
+  groupes: GroupeValidation[]
+  etapesRecrutement: string[]
+  agents: { nom: string, creer: boolean, publier: boolean }[]
+  journal: Evenement[]
 }
 
-export const ENTITES = [
-  'Premier ministre › Secrétariat général pour l\'investissement (SGPI)',
-  'Premier ministre › Direction des services administratifs et financiers (DSAF)',
-  'Premier ministre › Direction interministérielle du numérique (DINUM)',
-  'Transition écologique › DREAL Occitanie',
-]
-export const TYPES_DAR = ['Formulaire DAR', 'Formulaire de demande d\'autorisation']
-export const CATEGORIES = ['A', 'B', 'C']
+export const UTILISATEUR = 'Camille Moreau'
+
+// --- Dates (ISO, relatives à aujourd'hui pour que la démonstration reste juste) ---
+
+export function aujourdhui(): string {
+  return iso(new Date())
+}
+function iso(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
+export function plusJours(date: string, n: number): string {
+  const d = new Date(`${date}T12:00:00`)
+  d.setDate(d.getDate() + n)
+  return iso(d)
+}
+export function plusUnMois(date: string): string {
+  const d = new Date(`${date}T12:00:00`)
+  d.setMonth(d.getMonth() + 1)
+  return iso(d)
+}
+const J = (n: number) => plusJours(aujourdhui(), n)
+/** « 12 novembre 2026 » */
+export function dateLongue(date: string): string {
+  return date ? new Date(`${date}T12:00:00`).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : ''
+}
+export function joursRestants(date: string): number {
+  return Math.round((new Date(`${date}T12:00:00`).getTime() - new Date(`${aujourdhui()}T12:00:00`).getTime()) / 86400000)
+}
+/** Publiée et se termine sous 7 jours. */
+export function termineBientot(o: Offre): boolean {
+  return o.etat === 'publiee' && Boolean(o.dateFin) && joursRestants(o.dateFin) <= 7
+}
 
 // --- Données fictives ---
-
-const VALIDEURS: Valideur[] = [
-  { nom: 'Hélène Robert', fonction: 'Secrétaire générale' },
-  { nom: 'Paul Lefèvre', fonction: 'Responsable du contrôle de gestion' },
-]
 
 function fichesInitiales(): Fiche[] {
   const base = { statut: 'active' as const, teletravail: '', conditions: '', environnement: '', codePoste: '' }
@@ -277,104 +367,144 @@ function fichesInitiales(): Fiche[] {
   ]
 }
 
-const VIDE = {
-  motif: '',
-  presentation: '',
-  missions: '',
-  profil: '',
-  indispensables: [] as string[],
-  souhaitables: [] as string[],
-  modalites: '',
-  lieu: '',
-  teletravail: '',
-  conditions: '',
-  remuneration: '',
-  dateLimite: '',
-  contact: '',
-  canaux: ['csp'],
-  notifications: 'chaque' as const,
-  publications: {} as Offre['publications'],
+const ETAPES_RECRUTEMENT = ['Candidature reçue', 'Présélection', 'Entretien', 'Proposition', 'Recrutement']
+
+/** Champs de contexte : propres à un recrutement, jamais recopiés (ni depuis une fiche, ni en dupliquant). */
+function contexteVide() {
+  return {
+    referenceInterne: '',
+    nbPostes: '1',
+    dateVacance: '',
+    motifRecrutement: '',
+    agentRemplace: '',
+    motifDepart: '',
+    codePoste: '',
+    groupeRifseep: '',
+    cycleTravail: '',
+    commentaireValideurs: '',
+    ficheJointe: undefined as string | undefined,
+    dateDebut: '',
+    dateFin: '',
+    urgence: false,
+  }
 }
+
+function socle() {
+  return {
+    ...contexteVide(),
+    ouvertA: ['titulaire', 'contractuel'],
+    fondementJuridique: '',
+    descriptifEmployeur: 'La DREAL Occitanie met en œuvre les politiques de l\'État en matière de transition écologique, d\'énergie et de logement.',
+    conditions: '',
+    tempsTravail: 'complet',
+    remuneration: '',
+    teletravail: '',
+    contact: '',
+    modeCandidature: 'ats' as const,
+    courrielCandidature: '',
+    urlCandidature: '',
+    pieces: { cv: 'obligatoire', lm: 'facultatif', portfolio: 'non', demo: 'non' } as Record<Piece, Exigence>,
+    questions: [] as string[],
+    processusPersonnalise: false,
+    etapesProcessus: [...ETAPES_RECRUTEMENT],
+    equipe: [{ nom: UTILISATEUR, role: 'Responsable' as const }],
+    canaux: ['csp'],
+    publications: {} as Offre['publications'],
+    validationEtat: 'non_demandee' as EtatValidation,
+    notifications: 'chaque' as const,
+  }
+}
+
+const BUDGET: GroupeValidation = { nom: 'Bureau budget', valideurs: ['Anne Dubois', 'Paul Martin'] }
+const RECRUTEMENT: GroupeValidation = { nom: 'Bureau recrutement', valideurs: ['Claire Morel'] }
 
 function offresInitiales(f: Fiche[]): Offre[] {
   const fiche = (id: string) => f.find(x => x.id === id)!
-  const paie = { ...contenuDepuisFiche(fiche('FP-SG-2026-007')), titre: 'Gestionnaire de paie' }
   return [
     {
-      ...VIDE,
-      ...paie,
+      ...socle(),
+      ...contenuDepuisFiche(fiche('FP-SG-2026-007')),
       id: 'OFF-2026-0151',
       ficheId: 'FP-SG-2026-007',
-      etat: 'redaction',
+      etat: 'brouillon',
       origineContenu: 'fiche',
       nbPostes: '3',
-      dar: 'requise',
-      motif: 'Deux départs à la retraite et une mutation au 1er janvier.',
+      motifRecrutement: 'Remplacement',
+      motifDepart: 'Départ à la retraite',
+      codePoste: 'SG-PAIE',
       creeLe: 'Hier',
       modifieLe: 'Hier, 16:12',
-      historique: [{ date: 'Hier, 15:58', texte: 'Offre créée depuis la fiche FP-SG-2026-007 (3 postes)' }, { date: 'Hier, 16:12', texte: 'Brouillon enregistré' }],
+      historique: [{ date: 'Hier, 15:58', texte: 'Offre créée depuis la fiche FP-SG-2026-007' }, { date: 'Hier, 16:12', texte: 'Brouillon enregistré' }],
     },
     {
-      ...VIDE,
+      ...socle(),
       ...contenuDepuisFiche(fiche('FP-SIRH-48213')),
-      titre: 'Chargé·e de recrutement',
       presentation: 'Vous rejoignez la cellule recrutement de la DREAL Occitanie et accompagnez les managers pour attirer les bons profils.',
       id: 'OFF-2026-0148',
       ficheId: 'FP-SIRH-48213',
-      etat: 'validation',
+      etat: 'brouillon',
       origineContenu: 'fiche',
-      nbPostes: '1',
-      dar: 'requise',
-      darRef: 'DAR-2026-0330',
-      darStatut: 'soumise',
-      darSoumiseLe: '17 octobre 2026',
-      motif: 'Remplacement d\'un agent muté.',
-      circuit: 'successif',
-      validations: [
-        { ...VALIDEURS[0]!, decision: 'validee', le: '20 octobre 2026' },
-        { ...VALIDEURS[1]!, decision: 'attente' },
-      ],
+      statutPoste: 'Poste vacant',
+      dateVacance: J(30),
+      motifRecrutement: 'Remplacement',
+      agentRemplace: 'Martine Leroy',
+      motifDepart: 'Mutation',
+      codePoste: 'RH-RECR-02',
+      groupeRifseep: 'Groupe 2',
+      commentaireValideurs: 'Remplacement à l\'identique, poste budgété.',
       remuneration: 'Selon expérience et grille indiciaire',
+      validationEtat: 'en_attente',
+      validationDemandeeLe: '17 octobre 2026',
+      validations: [
+        { ...BUDGET, decision: 'accord', par: 'Anne Dubois', le: '20 octobre 2026' },
+        { ...RECRUTEMENT, decision: 'attente' },
+      ],
       creeLe: '15 octobre 2026',
-      modifieLe: '17 octobre 2026',
+      modifieLe: '20 octobre 2026',
       historique: [
         { date: '15 octobre 2026', texte: 'Offre créée depuis la fiche FP-SIRH-48213' },
-        { date: '17 octobre 2026', texte: 'Envoyée pour validation (DAR-2026-0330) — état : En attente de validation' },
-        { date: '20 octobre 2026', texte: 'Validée par Hélène Robert' },
+        { date: '17 octobre 2026', texte: 'Validation demandée (Bureau budget, Bureau recrutement)' },
+        { date: '20 octobre 2026', texte: 'Accord du Bureau budget (Anne Dubois)' },
       ],
     },
     {
-      ...VIDE,
+      ...socle(),
       ...contenuDepuisFiche(fiche('FP-DOC-2026-002')),
       titre: 'Chef·fe de projet numérique — démarches en ligne',
       presentation: 'Vous faites entrer les démarches de la DREAL dans l\'ère du numérique : vos projets simplifient la vie des usagers et des agents.',
       profil: 'Vous avez conduit des projets numériques et savez faire travailler ensemble métiers et prestataires.',
       id: 'OFF-2026-0145',
       ficheId: 'FP-DOC-2026-002',
-      etat: 'a_publier',
+      etat: 'brouillon',
       origineContenu: 'fiche',
-      nbPostes: '1',
-      dar: 'requise',
-      darStatut: 'validee',
-      darRef: 'DAR-2026-0311',
-      darSoumiseLe: '9 octobre 2026',
-      darValideeLe: '15 octobre 2026',
-      circuit: 'successif',
-      validations: VALIDEURS.map((v, i) => ({ ...v, decision: 'validee' as const, le: i ? '15 octobre 2026' : '12 octobre 2026' })),
+      statutPoste: 'Création de poste',
+      dateVacance: J(45),
+      fondementJuridique: 'Article L332-2 (besoins permanents)',
+      motifRecrutement: 'Création de poste',
       remuneration: 'Selon expérience, de 2 600 à 3 400 € brut mensuel',
-      dateLimite: '2026-11-20',
       contact: 'Pôle numérique — recrutement.num@exemple.gouv.fr',
-      creeLe: '14 octobre 2026',
+      questions: ['Quel projet numérique vous a le plus appris, et pourquoi ?'],
+      equipe: [{ nom: UTILISATEUR, role: 'Responsable' }, { nom: 'Julien Lefèvre', role: 'Recruteur' }],
+      dateDebut: J(1),
+      dateFin: plusUnMois(J(1)),
+      validationEtat: 'validee',
+      validationDemandeeLe: '9 octobre 2026',
+      validationObtenueLe: '15 octobre 2026',
+      validations: [
+        { ...BUDGET, decision: 'accord', par: 'Paul Martin', le: '12 octobre 2026' },
+        { ...RECRUTEMENT, decision: 'accord', par: 'Claire Morel', le: '15 octobre 2026' },
+      ],
+      creeLe: '8 octobre 2026',
       modifieLe: '16 octobre 2026',
       historique: [
         { date: '8 octobre 2026', texte: 'Offre créée depuis la fiche FP-DOC-2026-002' },
-        { date: '9 octobre 2026', texte: 'Envoyée pour validation (DAR-2026-0311) — état : En attente de validation' },
-        { date: '12 octobre 2026', texte: 'Validée par Hélène Robert' },
-        { date: '15 octobre 2026', texte: 'Validée par Paul Lefèvre — validation terminée — état : À publier' },
+        { date: '9 octobre 2026', texte: 'Validation demandée (Bureau budget, Bureau recrutement)' },
+        { date: '12 octobre 2026', texte: 'Accord du Bureau budget (Paul Martin)' },
+        { date: '15 octobre 2026', texte: 'Accord du Bureau recrutement (Claire Morel) — validation obtenue' },
       ],
     },
     {
-      ...VIDE,
+      ...socle(),
       ...contenuDepuisFiche(fiche('FP-SG-2025-031')),
       titre: 'Assistant·e administratif·ve au service Aménagement',
       presentation: 'Au cœur d\'un service de 25 personnes, vous êtes le premier contact des usagers et le point d\'appui de l\'équipe.',
@@ -382,53 +512,56 @@ function offresInitiales(f: Fiche[]): Offre[] {
       ficheId: 'FP-SG-2025-031',
       etat: 'publiee',
       origineContenu: 'fiche',
-      nbPostes: '1',
-      dar: 'requise',
-      darRef: 'DAR-2026-0274',
-      darSoumiseLe: '22 septembre 2026',
-      darValideeLe: '29 septembre 2026',
-      darStatut: 'validee',
-      circuit: 'successif',
-      validations: VALIDEURS.map(v => ({ ...v, decision: 'validee' as const, le: '29 septembre 2026' })),
-      publications: {
-        csp: { etat: 'publiee', debut: '12 octobre 2026', fin: '2026-11-15' },
-        intranet: { etat: 'publiee', debut: '12 octobre 2026', fin: '2026-11-15' },
-      },
+      statutPoste: 'Poste vacant',
+      dateVacance: J(-10),
+      fondementJuridique: 'Article L332-2 (besoins permanents)',
+      motifRecrutement: 'Vacance de poste',
       remuneration: 'Grille indiciaire de catégorie C',
-      dateLimite: '2026-11-15',
       contact: 'Nadia Benali, responsable recrutement',
-      canaux: ['csp', 'intranet'],
+      dateDebut: J(-26),
+      dateFin: J(4),
       diffusion: 'multi',
+      canaux: ['csp', 'intranet'],
+      publications: {
+        csp: { etat: 'publiee', debut: dateLongue(J(-26)), fin: J(4) },
+        intranet: { etat: 'publiee', debut: dateLongue(J(-26)), fin: J(4) },
+      },
+      validationEtat: 'validee',
+      validationObtenueLe: '29 septembre 2026',
+      validations: [
+        { ...BUDGET, decision: 'accord', par: 'Anne Dubois', le: '25 septembre 2026' },
+        { ...RECRUTEMENT, decision: 'accord', par: 'Claire Morel', le: '29 septembre 2026' },
+      ],
       creeLe: '18 septembre 2026',
-      modifieLe: '12 octobre 2026',
-      publieeLe: '12 octobre 2026',
+      modifieLe: dateLongue(J(-26)),
+      publieeLe: dateLongue(J(-26)),
       historique: [
         { date: '18 septembre 2026', texte: 'Offre créée depuis la fiche FP-SG-2025-031' },
-        { date: '22 septembre 2026', texte: 'Envoyée pour validation (DAR-2026-0274) — état : En attente de validation' },
-        { date: '29 septembre 2026', texte: 'Validation terminée — état : À publier' },
-        { date: '12 octobre 2026', texte: 'Offre publiée sur Choisir le Service Public et l\'intranet' },
+        { date: '22 septembre 2026', texte: 'Validation demandée (Bureau budget, Bureau recrutement)' },
+        { date: '29 septembre 2026', texte: 'Validation obtenue' },
+        { date: dateLongue(J(-26)), texte: 'Offre publiée sur Choisir le Service Public et l\'intranet' },
       ],
     },
     {
-      ...VIDE,
+      ...socle(),
       ...contenuDepuisFiche(fiche('FP-SG-2023-010')),
-      titre: 'Chargé·e d\'accueil',
       id: 'OFF-2025-0087',
       ficheId: 'FP-SG-2023-010',
       etat: 'archivee',
       origineContenu: 'manuel',
       nbPostes: '2',
-      dar: 'requise',
-      darStatut: 'validee',
-      darRef: 'DAR-2025-0102',
+      dateDebut: '2025-05-20',
+      dateFin: '2025-06-30',
       publications: { csp: { etat: 'arretee', debut: '20 mai 2025', fin: '2025-06-30' } },
-      dateLimite: '2025-06-30',
+      validationEtat: 'validee',
       creeLe: '2 mai 2025',
       modifieLe: '15 juillet 2025',
       publieeLe: '20 mai 2025',
+      retireeLe: '30 juin 2025',
       historique: [
-        { date: '2 mai 2025', texte: 'Offre créée par saisie manuelle (fiche FP-SG-2023-010 constituée)' },
+        { date: '2 mai 2025', texte: 'Offre créée (formulaire vide)' },
         { date: '20 mai 2025', texte: 'Offre publiée' },
+        { date: '30 juin 2025', texte: 'Retrait automatique à la date limite' },
         { date: '15 juillet 2025', texte: 'Offre archivée (2 postes pourvus)' },
       ],
     },
@@ -436,35 +569,31 @@ function offresInitiales(f: Fiche[]): Offre[] {
 }
 
 /** Contenu de l'annonce proposé à partir d'une fiche : repris tel quel, à adapter pour les candidats. */
-export function contenuDepuisFiche(f: Fiche): Pick<Offre, 'titre' | 'categorie' | 'presentation' | 'missions' | 'profil' | 'indispensables' | 'souhaitables' | 'modalites' | 'lieu' | 'teletravail' | 'conditions'> {
+export function contenuDepuisFiche(f: Fiche): Pick<Offre, 'titre' | 'categorie' | 'statutPoste' | 'metier' | 'competences' | 'presentation' | 'missions' | 'profil' | 'lieu' | 'teletravail' | 'conditions'> {
+  const cle = MOTS_METIER.find(([mot]) => f.intitule.toLowerCase().includes(mot))?.[1]
+  const m = METIERS.find(x => x.id === cle)
   return {
     titre: f.intitule,
     categorie: f.categories[0] ?? '',
+    statutPoste: '',
+    metier: m?.id ?? '',
+    competences: [...(m?.competences ?? []), ...f.competences.filter(c => !m?.competences.includes(c))],
     presentation: f.environnement,
     missions: [f.missions, ...f.activites.map(a => `- ${a}`)].filter(Boolean).join('\n'),
     profil: f.profil,
-    indispensables: [...f.competences],
-    souhaitables: [],
-    modalites: modalitesDepuisFiche(f),
     lieu: f.localisation,
     teletravail: f.teletravail,
     conditions: f.conditions,
   }
 }
 
-export function modalitesDepuisFiche(f: Fiche): string {
-  if (!f.statuts.length) {
-    return ''
-  }
-  const qui = f.statuts.length === 2 ? 'aux fonctionnaires et aux contractuels' : f.statuts[0] === 'titulaire' ? 'aux fonctionnaires' : 'aux contractuels'
-  return `Poste de catégorie ${f.categories.join(' ou ') || '—'} ouvert ${qui}.`
-}
-
 // --- Stockage de session ---
 
-const CLE = 'csplab-proto-ats-v10'
+const CLE = 'csplab-proto-ats-v11'
 
-function lire(): { fiches: Fiche[], offres: Offre[], organisme: Organisme, role: 'recruteur' | 'superviseur' } | null {
+interface Base { fiches: Fiche[], offres: Offre[], organisme: Organisme, role: 'recruteur' | 'superviseur' }
+
+function lire(): Base | null {
   try {
     const brut = sessionStorage.getItem(CLE)
     return brut ? JSON.parse(brut) : null
@@ -475,12 +604,31 @@ function lire(): { fiches: Fiche[], offres: Offre[], organisme: Organisme, role:
 }
 
 function organismeInitial(): Organisme {
-  return { nom: 'DREAL Occitanie', darObligatoire: true, superviseur: 'Isabelle Fournier', entite: ENTITES[3]!, typeDar: TYPES_DAR[0]!, valideurs: VALIDEURS.map(v => ({ ...v })), circuit: 'successif' }
+  return {
+    nom: 'DREAL Occitanie',
+    superviseur: 'Isabelle Fournier',
+    validationActive: true,
+    groupes: [{ ...BUDGET, valideurs: [...BUDGET.valideurs] }, { ...RECRUTEMENT, valideurs: [...RECRUTEMENT.valideurs] }],
+    etapesRecrutement: [...ETAPES_RECRUTEMENT],
+    agents: [
+      { nom: 'Camille Moreau', creer: true, publier: true },
+      { nom: 'Nadia Benali', creer: true, publier: true },
+      { nom: 'Julien Lefèvre', creer: true, publier: false },
+      { nom: 'Anne Dubois', creer: false, publier: false },
+      { nom: 'Paul Martin', creer: false, publier: false },
+      { nom: 'Claire Morel', creer: true, publier: true },
+      { nom: 'Hélène Robert', creer: false, publier: false },
+    ],
+    journal: [
+      { date: '3 septembre 2026', texte: 'Circuit de validation activé par Isabelle Fournier' },
+      { date: '3 septembre 2026', texte: 'Validations « Bureau budget » et « Bureau recrutement » ajoutées' },
+    ],
+  }
 }
 
-function initial() {
+function initial(): Base {
   const fiches = fichesInitiales()
-  return { fiches, offres: offresInitiales(fiches), organisme: organismeInitial(), role: 'recruteur' as 'recruteur' | 'superviseur' }
+  return { fiches, offres: offresInitiales(fiches), organisme: organismeInitial(), role: 'recruteur' }
 }
 
 export const db = reactive(lire() ?? initial())
@@ -503,19 +651,6 @@ export function reinitialiser() {
   sauvegarder()
 }
 
-/**
- * Applique le paramètre DAR de l'organisme aux offres en rédaction dont la DAR n'est pas engagée.
- * Hypothèse : les offres déjà soumises ou au-delà gardent leur parcours.
- */
-export function appliquerParametreDar() {
-  for (const o of db.offres) {
-    if (o.etat === 'redaction' && !o.darStatut) {
-      o.dar = db.organisme.darObligatoire ? 'requise' : 'non_requise'
-    }
-  }
-  sauvegarder()
-}
-
 export function heure(): string {
   return new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
 }
@@ -526,26 +661,6 @@ export function le(date: string | undefined): string {
     return ''
   }
   return /^(?:Aujourd'hui|Hier)/.test(date) ? date.charAt(0).toLowerCase() + date.slice(1) : `le ${date}`
-}
-
-/**
- * Champs déterminants pour la demande de validation (DAR) : obligatoires pour envoyer l'offre,
- * puis verrouillés une fois la validation obtenue pour garantir sa validité.
- * Hypothèse : liste à confirmer (les champs exacts de la DAR ne sont pas encore connus).
- */
-export const CHAMPS_DETERMINANTS = {
-  titre: 'intitulé',
-  categorie: 'catégorie',
-  nbPostes: 'nombre de postes',
-  lieu: 'lieu',
-  missions: 'missions',
-} as const
-export type ChampDeterminant = keyof typeof CHAMPS_DETERMINANTS
-export function determinant(o: Offre, champ: string): champ is ChampDeterminant {
-  return o.dar === 'requise' && champ in CHAMPS_DETERMINANTS
-}
-export function verrouilleParDar(o: Offre, champ: string): boolean {
-  return determinant(o, champ) && o.darStatut === 'validee'
 }
 
 const MOIS = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre']
@@ -569,6 +684,12 @@ export function maintenant(): string {
 export const fiche = (id: string) => db.fiches.find(f => f.id === id)
 export const offre = (id: string) => db.offres.find(o => o.id === id)
 export const offresDe = (ficheId: string) => db.offres.filter(o => o.ficheId === ficheId)
+
+function journal(o: Offre, texte: string) {
+  o.modifieLe = maintenant()
+  o.historique.push({ date: maintenant(), texte })
+  sauvegarder()
+}
 
 function prochainNumero(prefixe: string, liste: { id: string }[], min = 150) {
   const max = Math.max(min, ...liste.map(x => Number(x.id.slice(-3)) || 0))
@@ -605,45 +726,48 @@ export function nouvelleFiche(partiel: Partial<Fiche>, origine: OrigineFiche, ev
   return f
 }
 
+/** Les données de contexte (informations internes, dates de publication) ne sont jamais reprises. */
 export function nouvelleOffre(f: Fiche, origineContenu: OrigineContenu, depuis?: Offre): Offre {
-  const contenu = depuis
+  const annonce = depuis
     ? {
         titre: depuis.titre,
         categorie: depuis.categorie,
-        motif: '',
+        statutPoste: depuis.statutPoste,
+        ouvertA: [...depuis.ouvertA],
+        fondementJuridique: depuis.fondementJuridique,
+        metier: depuis.metier,
+        competences: [...depuis.competences],
+        descriptifEmployeur: depuis.descriptifEmployeur,
         presentation: depuis.presentation,
         missions: depuis.missions,
         profil: depuis.profil,
-        indispensables: [...depuis.indispensables],
-        souhaitables: [...depuis.souhaitables],
-        modalites: depuis.modalites,
-        lieu: depuis.lieu,
-        teletravail: depuis.teletravail,
         conditions: depuis.conditions,
+        tempsTravail: depuis.tempsTravail,
         remuneration: depuis.remuneration,
+        teletravail: depuis.teletravail,
+        lieu: depuis.lieu,
         contact: depuis.contact,
-        canaux: [...depuis.canaux],
-        nbPostes: depuis.nbPostes,
+        modeCandidature: depuis.modeCandidature,
+        courrielCandidature: depuis.courrielCandidature,
+        urlCandidature: depuis.urlCandidature,
+        pieces: { ...depuis.pieces },
+        questions: [...depuis.questions],
       }
     : contenuDepuisFiche(f)
   const texte = {
     fiche: `Offre créée depuis la fiche ${f.id}`,
     fichier: `Offre créée depuis un fichier (fiche ${f.id})`,
-    manuel: `Offre créée par saisie manuelle (fiche ${f.id})`,
-    duplication: `Offre créée par duplication de ${depuis?.id} (fiche ${f.id})`,
+    manuel: `Offre créée depuis un formulaire vide (fiche ${f.id})`,
+    duplication: `Offre créée par duplication de ${depuis?.id} — données de contexte non reprises`,
   }[origineContenu]
   const o: Offre = {
-    ...VIDE,
-    ...contenu,
+    ...socle(),
+    ...annonce,
     id: `OFF-2026-0${prochainNumero('', db.offres.filter(x => x.id.startsWith('OFF-2026-')))}`,
     ficheId: f.id,
-    etat: 'redaction',
+    etat: 'brouillon',
     origineContenu,
     sourceOffreId: depuis?.id,
-    nbPostes: depuis?.nbPostes ?? '1',
-    dar: db.organisme.darObligatoire ? 'requise' : 'non_requise',
-    publications: {},
-    dateLimite: '',
     creeLe: maintenant(),
     modifieLe: maintenant(),
     historique: [{ date: maintenant(), texte }],
@@ -654,77 +778,107 @@ export function nouvelleOffre(f: Fiche, origineContenu: OrigineContenu, depuis?:
   return o
 }
 
-export function changerEtat(o: Offre, etat: EtatOffre, texte: string) {
-  o.etat = etat
-  o.modifieLe = maintenant()
-  o.historique.push({ date: maintenant(), texte: `${texte} — état : ${LIBELLES_ETAT[etat]}` })
-  sauvegarder()
+// --- Circuit de validation (ancienne DAR) ---
+
+/** Disponible à tout moment, dès le brouillon, sans champ minimum. Les accords déjà donnés restent acquis. */
+export function demanderValidation(o: Offre) {
+  const avant = o.validations ?? []
+  o.validations = db.organisme.groupes.map((g) => {
+    const acquis = avant.find(v => v.nom === g.nom && v.decision === 'accord')
+    return acquis ?? { nom: g.nom, valideurs: [...g.valideurs], decision: 'attente' }
+  })
+  o.validationEtat = o.validations.every(v => v.decision === 'accord') ? 'validee' : 'en_attente'
+  o.validationDemandeeLe = maintenant()
+  o.modifieeDepuisValidation = false
+  journal(o, `Validation demandée (${o.validations.map(v => v.nom).join(', ')})`)
 }
 
-// --- Circuit de validation ---
-
-export function envoyerPourValidation(o: Offre) {
-  o.darRef ??= `DAR-2026-0${340 + db.offres.filter(x => x.darRef).length}`
-  o.darStatut = 'soumise'
-  o.darSoumiseLe = maintenant()
-  o.remarqueDar = undefined
-  o.circuit = db.organisme.circuit
-  o.validations = db.organisme.valideurs.map(v => ({ ...v, decision: 'attente' }))
-  const noms = o.validations.map(v => v.nom).join(o.circuit === 'successif' ? ' puis ' : ' et ')
-  changerEtat(o, 'validation', `Envoyée pour validation (${o.darRef}) à ${noms}`)
-}
-
-/** Successif : seul le premier valideur en attente peut décider. Simultané : tous ceux en attente. */
-export function peutDecider(o: Offre, i: number): boolean {
-  const v = o.validations?.[i]
-  if (o.etat !== 'validation' || v?.decision !== 'attente') {
-    return false
-  }
-  return o.circuit === 'simultane' || o.validations!.findIndex(x => x.decision === 'attente') === i
-}
-
-/** Un refus renvoie l'offre en brouillon ; la dernière validation la rend publiable. */
-export function decider(o: Offre, i: number, decision: 'validee' | 'refusee', motif?: string) {
+/** Un refus demande un commentaire. Toutes les validations sont requises ; elles se font en parallèle. */
+export function repondre(o: Offre, i: number, decision: 'accord' | 'refus', par: string, commentaire?: string) {
   const v = o.validations![i]!
   v.decision = decision
+  v.par = par
   v.le = maintenant()
-  v.motif = motif
-  if (decision === 'refusee') {
-    o.darStatut = 'refusee'
-    o.remarqueDar = `${v.nom} : « ${motif} »`
-    changerEtat(o, 'redaction', `Refusée par ${v.nom}`)
+  v.commentaire = commentaire
+  if (decision === 'refus') {
+    o.validationEtat = 'refusee'
+    journal(o, `Refus du ${v.nom} (${par}) : « ${commentaire} »`)
   }
-  else if (o.validations!.every(x => x.decision === 'validee')) {
-    o.darStatut = 'validee'
-    o.darValideeLe = maintenant()
-    changerEtat(o, 'a_publier', `Validée par ${v.nom} — validation terminée`)
+  else if (o.validations!.every(x => x.decision === 'accord')) {
+    o.validationEtat = 'validee'
+    o.validationObtenueLe = maintenant()
+    journal(o, `Accord du ${v.nom} (${par}) — validation obtenue`)
   }
   else {
-    o.modifieLe = maintenant()
-    o.historique.push({ date: maintenant(), texte: `Validée par ${v.nom}` })
-    sauvegarder()
+    journal(o, `Accord du ${v.nom} (${par})`)
   }
 }
 
-// --- Publication (toujours décidée par le responsable du recrutement) ---
+/** Le superviseur peut valider à la place des valideurs : « validation forcée ». */
+export function forcerValidation(o: Offre) {
+  for (const v of o.validations ?? []) {
+    if (v.decision !== 'accord') {
+      Object.assign(v, { decision: 'accord', par: db.organisme.superviseur, le: maintenant(), forcee: true })
+    }
+  }
+  o.validationEtat = 'validee'
+  o.validationObtenueLe = maintenant()
+  journal(o, `Validation forcée par ${db.organisme.superviseur} (superviseur)`)
+}
+
+/** Une modification après validation ne relance pas le circuit : elle est signalée et journalisée. */
+export function signalerModification(o: Offre) {
+  if (o.validationEtat === 'validee' && o.etat === 'brouillon' && !o.modifieeDepuisValidation) {
+    o.modifieeDepuisValidation = true
+    o.historique.push({ date: maintenant(), texte: 'Offre modifiée depuis la validation' })
+  }
+}
+
+/** Validation requise par l'organisme et pas encore obtenue. */
+export function validationManquante(o: Offre): boolean {
+  return db.organisme.validationActive && o.validationEtat !== 'validee'
+}
+
+// --- Publication (toujours décidée par une personne qui a le droit « Publier ») ---
 
 export function publier(o: Offre, diffusion: 'simple' | 'multi', partenaires: string[]) {
   o.diffusion = diffusion
   o.canaux = [SUPPORT_MAITRE.id, ...(diffusion === 'multi' ? partenaires : [])]
   for (const id of o.canaux) {
-    o.publications[id] = { etat: 'publiee', debut: maintenant(), fin: o.dateLimite }
+    o.publications[id] = { etat: 'publiee', debut: dateLongue(o.dateDebut), fin: o.dateFin }
   }
+  o.etat = 'publiee'
   o.publieeLe = maintenant()
   const noms = CANAUX_DIFFUSION.filter(c => o.canaux.includes(c.id)).map(c => c.nom).join(', ')
-  changerEtat(o, 'publiee', `Offre publiée (${diffusion === 'multi' ? 'multi-diffusion' : 'simple diffusion'}) sur ${noms}`)
+  journal(o, `Offre publiée du ${dateLongue(o.dateDebut)} au ${dateLongue(o.dateFin)} sur ${noms}`)
+}
+
+/** Prolonger : nouvelle date limite, sans nouvelle validation. */
+export function prolonger(o: Offre, nouvelleFin: string) {
+  o.dateFin = nouvelleFin
+  for (const p of Object.values(o.publications)) {
+    if (p.etat === 'publiee') {
+      p.fin = nouvelleFin
+    }
+  }
+  journal(o, `Publication prolongée jusqu'au ${dateLongue(nouvelleFin)}`)
+}
+
+/** Retirer ne clôt pas le recrutement : les candidatures restent à traiter. */
+export function retirer(o: Offre, mode: 'automatique' | 'manuel' | 'urgence') {
+  for (const p of Object.values(o.publications)) {
+    p.etat = 'arretee'
+  }
+  o.etat = 'retiree'
+  o.retireeLe = maintenant()
+  journal(o, { automatique: 'Retrait automatique à la date limite', manuel: 'Offre retirée', urgence: 'Offre retirée en urgence (avant un mois)' }[mode])
 }
 
 export function arreterSupport(o: Offre, id: string) {
   const p = o.publications[id]
   if (p) {
     p.etat = 'arretee'
-    o.historique.push({ date: maintenant(), texte: `Publication arrêtée : ${CANAUX_DIFFUSION.find(c => c.id === id)?.nom}` })
-    sauvegarder()
+    journal(o, `Publication arrêtée : ${CANAUX_DIFFUSION.find(c => c.id === id)?.nom}`)
   }
 }
 
@@ -732,5 +886,15 @@ export function archiverOffre(o: Offre) {
   for (const p of Object.values(o.publications)) {
     p.etat = 'arretee'
   }
-  changerEtat(o, 'archivee', 'Toutes les publications arrêtées, offre archivée')
+  o.etat = 'archivee'
+  journal(o, 'Offre archivée')
+}
+
+/** Simule le retrait automatique des offres dont la date limite est passée. */
+export function retraitsAutomatiques() {
+  for (const o of db.offres) {
+    if (o.etat === 'publiee' && o.dateFin && joursRestants(o.dateFin) < 0) {
+      retirer(o, 'automatique')
+    }
+  }
 }

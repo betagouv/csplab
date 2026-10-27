@@ -11,17 +11,17 @@ import OffreEspace from './OffreEspace.vue'
 import OffreFormulaire from './OffreFormulaire.vue'
 import OffresListe from './OffresListe.vue'
 import Parametres from './Parametres.vue'
-import { appliquerParametreDar, db } from './store'
+import { db, retraitsAutomatiques } from './store'
 import TableauDeBord from './TableauDeBord.vue'
 
 // Racine de la variante « ATS — fiches et offres ». Le menu latéral change la route ; la racine la suit.
-const props = withDefaults(defineProps<{ depart?: Ecran, darObligatoire?: boolean }>(), { depart: () => ({ nom: 'accueil' }), darObligatoire: undefined })
+const props = withDefaults(defineProps<{ depart?: Ecran, validation?: boolean }>(), { depart: () => ({ nom: 'accueil' }), validation: undefined })
 
-// Démonstration : une story peut fixer le paramètre DAR de l'organisme.
-if (props.darObligatoire !== undefined && db.organisme.darObligatoire !== props.darObligatoire) {
-  db.organisme.darObligatoire = props.darObligatoire
-  appliquerParametreDar()
+// Démonstration : une story peut activer ou non le circuit de validation de l'organisme.
+if (props.validation !== undefined) {
+  db.organisme.validationActive = props.validation
 }
+retraitsAutomatiques()
 
 const ecran = ref<Ecran>(props.depart)
 const flash = ref<string | null>(null)
@@ -98,7 +98,8 @@ provide(NAV, { ecran, aller, notifier, flash })
   <OffreFormulaire
     v-else-if="ecran.nom === 'formulaire'"
     :id="ecran.id"
-    :key="`f-${ecran.id}`"
+    :key="`f-${ecran.id}-${ecran.etape}`"
+    :etape="ecran.etape"
   />
   <ApercuOffre
     v-else-if="ecran.nom === 'apercu'"
