@@ -39,34 +39,37 @@
   --csp-shadow-md: 0 4px 6px -1px rgba(0, 0, 18, 0.1), 0 2px 4px -1px rgba(0, 0, 18, 0.06);
   --csp-shadow-lg: 0 10px 15px -3px rgba(0, 0, 18, 0.1), 0 4px 6px -2px rgba(0, 0, 18, 0.05);
 
-  /* Shadows by role. Raised: an element that one moves, such as a kanban card or a sortable list item. Overlap: a menu,
-     a list of options, a tooltip or a notification. Lifted: a dialog, a drawer or the sidebar on a phone. With the
-     value initial, each component uses its own shadow */
-  --csp-raised-shadow: initial;
-  --csp-raised-shadow-hover: initial;
-  --csp-raised-shadow-drag: initial;
+  /* Shadows by role, from the ui-kit of La Suite numérique. Raised: an element that one moves, such as a kanban card
+     or a sortable list item; on hover it takes the hover shadow, and while dragged the element left in place has no
+     shadow and half opacity. Overlap: a menu, a list of options, a tooltip or a notification. Lifted: a dialog, a
+     drawer or the sidebar on a phone */
+  --csp-raised-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  --csp-raised-shadow-hover: 0 0 6px 0 rgba(0, 0, 145, 0.1), 0 4px 12px rgba(0, 0, 18, 0.08);
+  --csp-raised-shadow-drag: 0 0 #0000;
   --csp-raised-opacity-drag: 0.5;
-  --csp-raised-background-hover: initial;
+  --csp-raised-background-hover: var(--background-default-grey);
   /* colour of the outline at the start of the csp-raised-outline-drop keyframes, on a card dropped in another column */
   --csp-raised-outline-color-drop: var(--border-action-high-blue-france);
-  --csp-overlap-shadow: initial;
-  --csp-lifted-shadow: var(--csp-shadow-lg);
+  --csp-overlap-shadow: 0 0 6px 0 rgba(0, 0, 145, 0.1);
+  --csp-lifted-shadow: 0 6px 20px 0 rgba(0, 0, 18, 0.1);
 
-  /* Motion by role, with the keyframes of motion.css. By default, state changes are instant, and dialogs, drawers and
-     dropped cards have no animation; with the value initial, the tooltip and the notification use their own
-     animation */
+  /* Motion by role, with the keyframes of motion.css. The outline of a dropped card shows where it landed, so it
+     plays under reduced motion. The other roles take the durations and curves of La Suite numérique in the media query
+     below, and have no animation under reduced motion */
+  --csp-motion-easing-enter: cubic-bezier(0.33, 1, 0.68, 1);
+  --csp-motion-easing-exit: cubic-bezier(0.32, 0, 0.67, 0);
   --csp-motion-duration-state: 0ms;
-  --csp-motion-overlap-enter: initial;
-  --csp-motion-overlap-exit: initial;
+  --csp-motion-overlap-enter: none;
+  --csp-motion-overlap-exit: none;
   --csp-motion-dialog-enter: none;
   --csp-motion-dialog-exit: none;
   --csp-motion-drawer-enter: none;
   --csp-motion-drawer-exit: none;
   --csp-motion-scrim-enter: none;
   --csp-motion-scrim-exit: none;
-  --csp-motion-raised-drop: none;
-  --csp-motion-notification-enter: initial;
-  --csp-motion-notification-exit: initial;
+  --csp-motion-raised-drop: csp-raised-outline-drop 1200ms ease-out;
+  --csp-motion-notification-enter: none;
+  --csp-motion-notification-exit: none;
 
   /* Overlay scrim (dialog / drawer) */
   --csp-overlay-scrim: rgba(22, 22, 22, 0.64);
@@ -135,4 +138,28 @@
 
 :root[data-fr-theme='dark'] {
   --csp-overlay-scrim: rgba(0, 0, 0, 0.72);
+
+  /* shadows barely show on a dark surface, so dark mode uses black shadows with a higher opacity */
+  --csp-raised-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  --csp-raised-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.5);
+  --csp-raised-background-hover: var(--background-default-grey-hover);
+  --csp-overlap-shadow: 0 0 6px 0 rgba(0, 0, 0, 0.5);
+  --csp-lifted-shadow: 0 6px 20px 0 rgba(0, 0, 0, 0.5);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  :root {
+    --csp-motion-duration-state: 150ms;
+    --csp-motion-overlap-enter: csp-overlap-enter 200ms var(--csp-motion-easing-enter);
+    --csp-motion-overlap-exit: csp-fade-out 150ms var(--csp-motion-easing-exit);
+    --csp-motion-dialog-enter: csp-dialog-enter 250ms var(--csp-motion-easing-enter);
+    --csp-motion-dialog-exit: csp-dialog-exit 150ms var(--csp-motion-easing-exit);
+    --csp-motion-drawer-enter: csp-drawer-enter 250ms var(--csp-motion-easing-enter);
+    --csp-motion-drawer-exit: csp-drawer-exit 200ms var(--csp-motion-easing-exit);
+    --csp-motion-scrim-enter: csp-fade-in 200ms var(--csp-motion-easing-enter);
+    --csp-motion-scrim-exit: csp-fade-out 150ms var(--csp-motion-easing-exit);
+    /* initial: the notification uses its own animation */
+    --csp-motion-notification-enter: initial;
+    --csp-motion-notification-exit: initial;
+  }
 }
