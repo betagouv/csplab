@@ -15,7 +15,7 @@ import { useMinimumPending } from '@/composables/async/useMinimumPending'
 import { useToast } from '@/composables/ui/useToast'
 import { formatDateTime } from '@/utils/date'
 import { pluralize } from '@/utils/format'
-import { useCandidatureNotes, useDeleteCandidatureNote } from '../composables/useCandidatureNotes'
+import { useCandidatureNotes, useDeleteCandidatureNote, useUpdateCandidatureNoteVisibilite } from '../composables/useCandidatureNotes'
 import CandidatureEditNoteForm from './CandidatureEditNoteForm.vue'
 import CandidatureNewNoteForm from './CandidatureNewNoteForm.vue'
 import CandidatureNoteMessage from './CandidatureNoteMessage.vue'
@@ -59,8 +59,22 @@ function editNote(noteUuid: string): void {
   })
 }
 
-const { remove, removing } = useDeleteCandidatureNote(() => props.candidature)
 const { addToast } = useToast()
+
+const { updateVisibilite, updatingVisibilite } = useUpdateCandidatureNoteVisibilite(() => props.candidature)
+
+async function toggleVisibilite(note: Note): Promise<void> {
+  const estPrivee = !note.est_privee
+  try {
+    await updateVisibilite({ noteUuid: note.uuid, est_privee: estPrivee })
+    addToast({ variant: 'success', title: estPrivee ? 'Note rendue privée' : 'Note rendue publique' })
+  }
+  catch {
+    addToast({ variant: 'error', title: 'Le changement de visibilité de la note a échoué' })
+  }
+}
+
+const { remove, removing } = useDeleteCandidatureNote(() => props.candidature)
 
 const noteToDelete = ref<Note | null>(null)
 const deletionDialogOpen = computed({
@@ -94,6 +108,16 @@ function noteActions(note: Note) {
           label: 'Modifier la note',
           icon: 'ri:pencil-line',
           onSelect: () => editNote(note.uuid),
+        },
+      ],
+    },
+    {
+      items: [
+        {
+          label: note.est_privee ? 'Rendre la note publique' : 'Rendre la note privée',
+          icon: note.est_privee ? 'ri:eye-line' : 'ri:eye-off-line',
+          disabled: updatingVisibilite.value,
+          onSelect: () => toggleVisibilite(note),
         },
       ],
     },
