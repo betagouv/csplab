@@ -825,10 +825,11 @@ class CreateConversationSerializer(CreateMessageSerializer):
 
 class TagSerializer(serializers.ModelSerializer):
     uuid = serializers.UUIDField(source="id")
+    usage_count = serializers.IntegerField(read_only=True, default=0)
 
     class Meta:
         model = TagModel
-        fields = ["uuid", "name", "category", "color"]
+        fields = ["uuid", "name", "category", "color", "usage_count"]
 
 
 class TagListQuerySerializer(serializers.Serializer):

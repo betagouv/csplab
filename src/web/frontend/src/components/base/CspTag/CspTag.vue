@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { PrimitiveProps } from 'reka-ui'
-import type { CspTagSize } from './tag'
+import type { CspTagAccent, CspTagSize } from './tag'
 import { Primitive, Toggle, ToggleGroupItem } from 'reka-ui'
 import { computed } from 'vue'
 import CspIcon from '@/components/base/CspIcon/CspIcon.vue'
@@ -20,6 +20,7 @@ type CspTagProps = {
 } & (
   (CspTagIconProps & CspTagPolymorphicProps & {
     variant?: 'static'
+    accent?: CspTagAccent
   })
   | (CspTagIconProps & CspTagPolymorphicProps & {
     variant: 'clickable'
@@ -54,6 +55,13 @@ const isInteractive = computed(() => variant.value !== 'static' && variant.value
 const isGroupItem = computed(() => variant.value === 'selectable' && group !== null)
 
 const iconName = computed(() => ('icon' in props ? props.icon : undefined))
+const accent = computed(() => ('accent' in props ? props.accent : undefined))
+const accentStyle = computed(() => accent.value
+  ? {
+      '--csp-tag-accent-background': `var(--background-action-low-${accent.value})`,
+      '--csp-tag-accent-text': `var(--text-action-high-${accent.value})`,
+    }
+  : undefined)
 const href = computed(() => ('href' in props ? props.href : undefined))
 const polymorphicAs = computed(() => ('as' in props ? props.as : undefined))
 const polymorphicAsChild = computed(() => ('asChild' in props ? props.asChild : undefined))
@@ -137,8 +145,10 @@ const root = computed(() => {
       {
         'csp-tag--interactive': isInteractive,
         'csp-tag--dismissible': variant === 'dismissible',
+        'csp-tag--accent': Boolean(accent),
       },
     ]"
+    :style="accentStyle"
   >
     <CspIcon
       v-if="iconName"
@@ -199,6 +209,11 @@ const root = computed(() => {
   --csp-tag-padding-x: 1rem;
   --csp-tag-gap: 0.5rem;
   --csp-tag-check-size: 1.25rem;
+}
+
+.csp-tag--accent {
+  background-color: var(--csp-tag-accent-background);
+  color: var(--csp-tag-accent-text);
 }
 
 .csp-tag__icon {

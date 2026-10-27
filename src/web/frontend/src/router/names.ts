@@ -12,6 +12,7 @@ export const ORGANISME_SECTION_ROUTE_NAMES = {
 export const ORGANISME_TAB_ROUTE_NAMES = {
   membres: 'organisme',
   etapes: 'organisme-etapes',
+  tags: 'organisme-tags',
 } as const
 
 export const RECRUTEMENTS_TAB_ROUTE_NAMES = {
@@ -52,6 +53,7 @@ function panelRouteNames(prefix: string) {
     notes: {
       notes: tabs.notes,
       create: `${prefix}-nouvelle-note`,
+      edit: `${prefix}-modifier-note`,
     },
   }
 }

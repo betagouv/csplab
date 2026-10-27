@@ -34,6 +34,7 @@ export type PaginatedNoteList = components['schemas']['PaginatedNoteList']
 export interface NoteRouteNames {
   notes: string
   create: string
+  edit: string
 }
 
 export type Activite = components['schemas']['AuditLog']

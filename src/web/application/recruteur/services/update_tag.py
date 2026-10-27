@@ -32,7 +32,12 @@ def update_tag(
 
     with transaction.atomic():
         try:
-            tag = TagModel.objects.by_id(organisme_id, tag_id).select_for_update().get()
+            tag = (
+                TagModel.objects.by_id(organisme_id, tag_id)
+                .with_usage_count()
+                .select_for_update()
+                .get()
+            )
         except TagModel.DoesNotExist as exc:
             raise TagNotFound(tag_id) from exc
 

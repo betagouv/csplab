@@ -6,7 +6,7 @@ from infrastructure.factories.identite.organisme_django_factory import (
     OrganismeDjangoFactory,
 )
 
-URL = reverse("ingestion:organismes_delete")
+URL = reverse("ingestion:organismes")
 
 
 def _organisme_payload(**overrides) -> dict:
@@ -29,8 +29,8 @@ def test_jwt_authentication_is_rejected(jwt_client):
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
 
-def test_get_method_not_allowed(api_key_client):
-    response = api_key_client.get(URL)
+def test_post_method_not_allowed(api_key_client):
+    response = api_key_client.post(URL)
     assert response.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
 
 
