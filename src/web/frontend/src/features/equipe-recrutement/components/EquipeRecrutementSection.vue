@@ -173,9 +173,7 @@ const countLabel = computed(() => {
     >
       <template #skeleton>
         <CspSkeletonTable
-          :rows="TABLE_PAGE_SIZE"
           :columns="columns.length"
-          with-footer
         />
       </template>
 

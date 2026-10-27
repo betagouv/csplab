@@ -8,10 +8,10 @@ import CspSkeletonTable from '@/components/base/CspSkeleton/CspSkeletonTable.vue
 import { useMinimumPending } from '@/composables/async/useMinimumPending'
 import { pluralize } from '@/utils/format'
 import { CANDIDATURE_LISTE_COLUMNS } from '../columns'
-import CandidaturesToolbar from '../components/CandidaturesToolbar.vue'
 import { useCandidatureLinkFocus } from '../composables/useCandidatureLinkFocus'
 import { provideCandidatureSequence } from '../composables/useCandidatureNavigation'
 import { useCandidaturesFilters } from '../composables/useCandidaturesFilters'
+import { publishCandidaturesToolbar } from '../composables/useCandidaturesToolbar'
 import { candidatureListeQuery } from '../queries'
 
 const props = defineProps<{
@@ -36,16 +36,14 @@ const countLabel = computed(() => {
   const count = filteredCandidatures.value.length
   return `${count} ${pluralize(count, 'candidature')}`
 })
+
+publishCandidaturesToolbar(() => ({
+  count: liste.error.value ? '' : countLabel.value,
+  pending: showSkeleton.value,
+}))
 </script>
 
 <template>
-  <CandidaturesToolbar
-    :organisme-uuid="organismeUuid"
-    :recrutement-uuid="recrutementUuid"
-    :error="Boolean(liste.error.value)"
-    :count="countLabel"
-    :pending="showSkeleton"
-  />
   <CspAsyncSection
     :pending="showSkeleton"
     :error="liste.error.value"
@@ -54,9 +52,7 @@ const countLabel = computed(() => {
   >
     <template #skeleton>
       <CspSkeletonTable
-        :rows="TABLE_PAGE_SIZE"
         :columns="CANDIDATURE_LISTE_COLUMNS.length"
-        with-footer
       />
     </template>
 

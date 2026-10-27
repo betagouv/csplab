@@ -39,21 +39,19 @@ const selectionCountLabel = computed(
       >
         {{ selectionCountLabel }}
       </p>
-      <slot
+      <p
         v-else
-        name="status"
+        class="csp-table-toolbar__count"
       >
-        <p class="csp-table-toolbar__count">
-          <CspSkeleton
-            v-if="pending"
-            width="10rem"
-            variant="text"
-          />
-          <template v-else>
-            {{ count }}
-          </template>
-        </p>
-      </slot>
+        <CspSkeleton
+          v-if="pending"
+          width="10rem"
+          variant="text"
+        />
+        <template v-else>
+          {{ count }}
+        </template>
+      </p>
     </div>
     <div class="csp-table-toolbar__actions">
       <slot

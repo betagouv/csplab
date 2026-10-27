@@ -4,18 +4,17 @@ import type { KanbanDropEvent } from '@/composables/dnd/useKanbanDnd'
 import { useQuery } from '@pinia/colada'
 import { computed, ref, toRef } from 'vue'
 import CspAsyncSection from '@/components/base/CspAsyncSection/CspAsyncSection.vue'
-import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspSkeletonKanban from '@/components/base/CspSkeleton/CspSkeletonKanban.vue'
 import { useMinimumPending } from '@/composables/async/useMinimumPending'
 import { useRecrutementDetail } from '@/features/recrutements/composables/useRecrutementDetail'
 import { pluralize } from '@/utils/format'
 import CandidaturesKanbanBoard from '../components/CandidaturesKanbanBoard.vue'
-import CandidaturesToolbar from '../components/CandidaturesToolbar.vue'
 import ChangerEtapeDrawer from '../components/ChangerEtapeDrawer.vue'
 import RefusCandidatureDialog from '../components/RefusCandidatureDialog.vue'
 import { useCandidatureLinkFocus } from '../composables/useCandidatureLinkFocus'
 import { provideCandidatureSequence } from '../composables/useCandidatureNavigation'
 import { useCandidaturesFilters } from '../composables/useCandidaturesFilters'
+import { publishCandidaturesToolbar } from '../composables/useCandidaturesToolbar'
 import { useEtapeChangeMutation } from '../composables/useEtapeChangeMutation'
 import { useKanbanSelection } from '../composables/useKanbanSelection'
 import { useRefusCandidature } from '../composables/useRefusCandidature'
@@ -142,33 +141,20 @@ const countLabel = computed(() => {
 const selectionLabel = computed(() =>
   `${selectedCount.value} ${pluralize(selectedCount.value, 'candidat')} ${pluralize(selectedCount.value, 'sélectionné')}`,
 )
+
+publishCandidaturesToolbar(() => ({
+  count: kanban.error.value ? '' : countLabel.value,
+  pending: showSkeleton.value,
+  selectionCount: selectedCount.value,
+  selectionLabel: selectionLabel.value,
+  selectionActions: [
+    { label: 'Changer d\'étape', icon: 'ri:arrow-left-right-line', onClick: handleOpenChangerEtape },
+    { label: 'Refuser', icon: 'ri:close-line', onClick: handleRefuser },
+  ],
+}))
 </script>
 
 <template>
-  <CandidaturesToolbar
-    :organisme-uuid="organismeUuid"
-    :recrutement-uuid="recrutementUuid"
-    :error="Boolean(kanban.error.value)"
-    :count="countLabel"
-    :pending="showSkeleton"
-    :selection-count="selectedCount"
-    :selection-label="selectionLabel"
-  >
-    <template #selection-actions>
-      <CspButton
-        label="Changer d'étape"
-        icon="ri:arrow-left-right-line"
-        variant="secondary"
-        @click="handleOpenChangerEtape"
-      />
-      <CspButton
-        label="Refuser"
-        icon="ri:close-line"
-        variant="secondary"
-        @click="handleRefuser"
-      />
-    </template>
-  </CandidaturesToolbar>
   <CspAsyncSection
     fill
     :pending="showSkeleton"

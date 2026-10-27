@@ -3,8 +3,9 @@ import { computed } from 'vue'
 import CspEmptyState from '@/components/base/CspEmptyState/CspEmptyState.vue'
 import CspErrorState from '@/components/base/CspErrorState/CspErrorState.vue'
 import { useRecrutementDetail } from '@/features/recrutements/composables/useRecrutementDetail'
+import CandidaturesToolbar from '../components/CandidaturesToolbar.vue'
 import { provideCandidaturesFilters } from '../composables/useCandidaturesFilters'
-import { useViewSwitchFocus } from '../composables/useViewSwitchFocus'
+import { provideCandidaturesToolbar } from '../composables/useCandidaturesToolbar'
 
 const props = defineProps<{
   organismeUuid: string
@@ -14,7 +15,7 @@ const props = defineProps<{
 const { recrutementDetail, etapes, pending: pendingDetail, error } = useRecrutementDetail(() => props)
 
 provideCandidaturesFilters(etapes)
-useViewSwitchFocus()
+provideCandidaturesToolbar()
 
 const loadFailed = computed(() => !pendingDetail.value && Boolean(error.value))
 
@@ -36,5 +37,11 @@ const isNotFound = computed(() =>
     description="Ce recrutement n'existe pas ou n'est plus accessible."
   />
 
-  <router-view v-else />
+  <template v-else>
+    <CandidaturesToolbar
+      :organisme-uuid="organismeUuid"
+      :recrutement-uuid="recrutementUuid"
+    />
+    <router-view />
+  </template>
 </template>

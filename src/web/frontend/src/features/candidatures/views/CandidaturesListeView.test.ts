@@ -129,7 +129,7 @@ describe('candidaturesListeView', () => {
     await renderWithApp(RouterView, { route: LISTE_PATH })
 
     expect(await screen.findByText('Une erreur est survenue lors du chargement des candidatures.')).toBeInTheDocument()
-    expect(screen.queryByRole('searchbox', { name: 'Rechercher un candidat' })).not.toBeInTheDocument()
+    expect(screen.queryByText(/^\d+ candidatures?$/)).not.toBeInTheDocument()
     expect(screen.getByRole('radio', { name: /Liste/ })).toBeInTheDocument()
   })
 

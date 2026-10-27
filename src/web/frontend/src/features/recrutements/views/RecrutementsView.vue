@@ -298,9 +298,7 @@ const archivesCountLabel = computed(() => {
           >
             <template #skeleton>
               <CspSkeletonTable
-                :rows="TABLE_PAGE_SIZE"
                 :columns="canManageOrganisme ? 7 : 6"
-                with-footer
               />
             </template>
             <CspDataTable
@@ -376,9 +374,7 @@ const archivesCountLabel = computed(() => {
           >
             <template #skeleton>
               <CspSkeletonTable
-                :rows="TABLE_PAGE_SIZE"
                 :columns="6"
-                with-footer
               />
             </template>
             <CspDataTable

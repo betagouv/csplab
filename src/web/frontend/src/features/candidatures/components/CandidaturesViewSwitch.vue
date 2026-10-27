@@ -36,7 +36,6 @@ const view = computed({
 <template>
   <CspSegmentedControl
     v-model="view"
-    class="candidatures-view-switch"
     :options="OPTIONS"
     legend="Affichage des candidatures"
     hide-legend

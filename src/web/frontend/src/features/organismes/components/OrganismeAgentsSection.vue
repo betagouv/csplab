@@ -156,9 +156,7 @@ async function handleRevocation(): Promise<void> {
     >
       <template #skeleton>
         <CspSkeletonTable
-          :rows="TABLE_PAGE_SIZE"
           :columns="ORGANISME_AGENTS_COLUMNS.length"
-          with-footer
         />
       </template>
 

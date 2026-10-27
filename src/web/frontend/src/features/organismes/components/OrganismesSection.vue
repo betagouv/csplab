@@ -92,9 +92,7 @@ async function handleUpdate(payload: UpdateOrganismePayload): Promise<void> {
     >
       <template #skeleton>
         <CspSkeletonTable
-          :rows="TABLE_PAGE_SIZE"
           :columns="ORGANISMES_LIST_COLUMNS.length"
-          with-footer
         />
       </template>
 

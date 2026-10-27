@@ -6,23 +6,16 @@ import CspSearchBar from '@/components/base/CspSearchBar/CspSearchBar.vue'
 import CspTableToolbar from '@/components/base/CspTableToolbar/CspTableToolbar.vue'
 import { useDisclosure } from '@/composables/ui/useDisclosure'
 import { useCandidaturesFilters } from '../composables/useCandidaturesFilters'
+import { useCandidaturesToolbar } from '../composables/useCandidaturesToolbar'
 import CandidaturesFiltersDrawer from './CandidaturesFiltersDrawer.vue'
 import CandidaturesViewSwitch from './CandidaturesViewSwitch.vue'
 
-withDefaults(defineProps<{
+defineProps<{
   organismeUuid: string
   recrutementUuid: string
-  count: string
-  error?: boolean
-  pending?: boolean
-  selectionCount?: number
-  selectionLabel?: string
-}>(), {
-  error: false,
-  pending: false,
-  selectionCount: 0,
-  selectionLabel: undefined,
-})
+}>()
+
+const toolbar = useCandidaturesToolbar()
 
 const route = useRoute()
 const currentView = computed(() => route.meta.candidaturesView ?? 'kanban')
@@ -55,19 +48,12 @@ function applyFilters() {
 </script>
 
 <template>
-  <CandidaturesViewSwitch
-    v-if="error"
-    :organisme-uuid="organismeUuid"
-    :recrutement-uuid="recrutementUuid"
-    :current="currentView"
-  />
   <CspTableToolbar
-    v-else
     :bordered="false"
-    :count="count"
-    :pending="pending"
-    :selection-count="selectionCount"
-    :selection-label="selectionLabel"
+    :count="toolbar.count"
+    :pending="toolbar.pending"
+    :selection-count="toolbar.selectionCount"
+    :selection-label="toolbar.selectionLabel"
   >
     <template #start>
       <CandidaturesViewSwitch
@@ -77,7 +63,14 @@ function applyFilters() {
       />
     </template>
     <template #selection-actions>
-      <slot name="selection-actions" />
+      <CspButton
+        v-for="action in toolbar.selectionActions"
+        :key="action.label"
+        :label="action.label"
+        :icon="action.icon"
+        variant="secondary"
+        @click="action.onClick"
+      />
     </template>
     <CspSearchBar
       v-model="search"

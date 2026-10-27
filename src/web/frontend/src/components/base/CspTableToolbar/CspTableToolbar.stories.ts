@@ -21,7 +21,7 @@ const meta = {
   argTypes: {
     count: {
       control: { type: 'text' },
-      description: 'Libellé du compteur affiché à gauche (remplaçable par le slot `status`).',
+      description: 'Libellé du compteur affiché à gauche.',
       table: { type: { summary: 'string' } },
     },
     pending: {
@@ -113,7 +113,6 @@ export const ModeSelectionLibelleDedie: Story = {
 export const AvecChoixAffichage: Story = {
   args: {
     count: '12 éléments',
-    selectionCount: 0,
   },
   render: args => ({
     components: { CspTableToolbar, CspButton, CspSearchBar, CspSegmentedControl },
