@@ -73,7 +73,7 @@ const open = defineModel<boolean | undefined>('open')
   background-color: var(--background-overlap-grey);
   box-shadow:
     inset 0 0 0 1px var(--border-default-grey),
-    var(--csp-overlap-shadow, var(--csp-shadow-lg));
+    var(--csp-overlap-shadow);
   padding: var(--csp-menu-padding);
   z-index: var(--csp-z-dropdown);
   outline: none;

@@ -6,7 +6,7 @@ import { renderWithApp, setupUser } from '@/test/render'
 import CandidatureKanbanCard from './CandidatureKanbanCard.vue'
 
 vi.mock('@/composables/dnd/useKanbanDnd', () => ({
-  useDraggableKanbanCard: () => ({ isDragging: ref(false), isJustMoved: ref(false) }),
+  useDraggableKanbanCard: () => ({ isDragging: ref(false), isJustMoved: ref(false), isDropWaiting: ref(false) }),
 }))
 
 const KANBAN_PATH = '/organismes/00000000-0000-0000-0000-000000000000/recrutements/aaaaaaaa-0001-0001-0001-000000000001'

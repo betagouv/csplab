@@ -103,7 +103,7 @@ const model = defineModel<boolean>({ required: true })
   border: none;
   padding: 0;
   cursor: inherit;
-  transition: background-color 0.2s ease;
+  transition: background-color var(--csp-motion-duration-state) ease;
 
   &[data-state='checked'] {
     background: var(--background-action-high-blue-france);
@@ -126,7 +126,7 @@ const model = defineModel<boolean>({ required: true })
   border-radius: 50%;
   background: white;
   box-shadow: 0 1px 2px rgb(0 0 0 / 20%);
-  transition: transform 0.2s ease;
+  transition: transform var(--csp-motion-duration-state) ease;
   transform: translateX(calc((var(--csp-switch-track-height) - var(--csp-switch-thumb-size)) / 2));
   will-change: transform;
 
