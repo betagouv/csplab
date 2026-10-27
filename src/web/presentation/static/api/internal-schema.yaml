@@ -6360,17 +6360,17 @@ components:
       properties:
         count:
           type: integer
-          example: 123
+          example: 1
         next:
           type: string
-          nullable: true
           format: uri
-          example: http://api.example.org/accounts/?page=4
+          nullable: true
+          example: null
         previous:
           type: string
-          nullable: true
           format: uri
-          example: http://api.example.org/accounts/?page=2
+          nullable: true
+          example: null
         results:
           type: array
           items:

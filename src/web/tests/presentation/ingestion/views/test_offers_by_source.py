@@ -65,11 +65,8 @@ def authenticated_client_with_source(api_client, test_user, source):
     return api_client
 
 
-def _make_paginated_mock(use_case, num_offers, offers_slice):
-    mock_page = MagicMock()
-    mock_page.count.return_value = num_offers
-    mock_page.slice.return_value = iter(offers_slice)
-    use_case.execute.return_value = mock_page
+def _make_paginated_mock(use_case, offers):
+    use_case.execute.return_value = offers
     return use_case
 
 
@@ -85,7 +82,7 @@ class TestOffersBySourceView:
 
     def test_api_key_authentication_returns_offers(self, api_key_client, use_case):
         offer = OfferFactory.create_entity(source_id=SOURCE_ID)
-        _make_paginated_mock(use_case, num_offers=1, offers_slice=[offer])
+        _make_paginated_mock(use_case, offers=[offer])
 
         response = api_key_client.get(URL)
 
@@ -102,7 +99,7 @@ class TestOffersBySourceView:
         self, authenticated_client_with_source, test_user, use_case
     ):
         offer = OfferFactory.create_entity(source_id=SOURCE_ID)
-        _make_paginated_mock(use_case, num_offers=1, offers_slice=[offer])
+        _make_paginated_mock(use_case, offers=[offer])
 
         response = authenticated_client_with_source.get(URL)
 
@@ -124,7 +121,7 @@ class TestOffersBySourceView:
     ):
         offer = OfferFactory.create_entity(source_id=SOURCE_ID)
         offer.localisation = None
-        _make_paginated_mock(use_case, num_offers=1, offers_slice=[offer])
+        _make_paginated_mock(use_case, offers=[offer])
 
         response = authenticated_client_with_source.get(URL)
 
@@ -137,6 +134,17 @@ class TestOffersBySourceView:
         use_case.execute.side_effect = SourceAuthorizationError({SOURCE_ID})
         response = jwt_client.get(URL)
         assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    def test_pagination_out_of_bounds_returns_404(
+        self, authenticated_client_with_source, use_case
+    ):
+        offers = [OfferFactory.create_entity(source_id=SOURCE_ID) for _ in range(3)]
+        _make_paginated_mock(use_case, offers=offers)
+
+        response = authenticated_client_with_source.get(URL, {"page": 3, "taille": 2})
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+        assert "detail" in response.json()
 
     def test_returns_error_500(self, jwt_client, use_case):
         use_case.execute.side_effect = Exception("db error")
