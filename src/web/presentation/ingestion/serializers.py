@@ -37,7 +37,11 @@ from infrastructure.django_apps.ingestion.models.talentsoft_organisme import (
 from infrastructure.django_apps.recruteur.models.organisme import OrganismeModel
 from presentation.api.serializers import GenericErrorSerializer
 from presentation.commons.markdown import forbidden_markdown
-from presentation.commons.serializers import LocalisationSerializer, OrganismeSerializer
+from presentation.commons.serializers import (
+    LocalisationSerializer,
+    OrganismeSerializer,
+    validate_country_code,
+)
 
 LEGIFRANCE_HOSTS = frozenset({"legifrance.gouv.fr", "www.legifrance.gouv.fr"})
 
@@ -1057,7 +1061,11 @@ class OrganismeLocalisationInputSerializer(serializers.Serializer):
     zone_geographique = serializers.ChoiceField(
         choices=[(c.value, c.name) for c in GeographicalArea]
     )
-    pays = serializers.CharField(max_length=3, min_length=3)
+    pays = serializers.CharField(
+        max_length=3,
+        min_length=3,
+        help_text="Code pays ISO 3166-1 alpha-3, en majuscules (ex. `FRA`).",
+    )
     region = serializers.ChoiceField(
         choices=sorted(Region.VALID_CODES, key=lambda x: x),
         allow_blank=True,
@@ -1071,6 +1079,9 @@ class OrganismeLocalisationInputSerializer(serializers.Serializer):
     longitude = serializers.FloatField(
         allow_null=True, required=False, min_value=-180, max_value=180
     )
+
+    def validate_pays(self, value: str) -> str:
+        return validate_country_code(value)
 
 
 class OrganismeUpsertInputSerializer(serializers.Serializer):

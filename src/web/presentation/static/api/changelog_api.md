@@ -23,6 +23,12 @@ le message « Code pays invalide, un code ISO 3166-1 alpha-3 en majuscules est a
 (ex. FRA). ». Jusqu'ici, le code était enregistré tel quel et la règle « région et
 département obligatoires pour une offre en France » ne s'appliquait pas.
 
+`POST /api/v1/organismes/creer_modifier` : un organisme dont `localisation.pays` n'est pas
+un code ISO 3166-1 alpha-3 en majuscules (`fra`, `XXX`…) est désormais rejeté. Il
+apparaît dans `errors`, avec le message « Code pays invalide, un code ISO 3166-1 alpha-3
+en majuscules est attendu (ex. FRA). ». Jusqu'ici, tout code de 3 caractères était
+enregistré tel quel.
+
 ### Compatibilité
 
 Renseignez dans `region` le code INSEE de la région du département, et non le code du
@@ -32,7 +38,7 @@ département. Pour l'outre-mer :
   région (`01` à `04`, `06`) ou `DOM` ;
 - collectivités d'outre-mer (`975`, `986`, `987`, `988`, `SPM`, `WLF`) : `TOM`.
 
-Envoyez le code pays en majuscules (`FRA`, `BEL`…).
+Envoyez un code pays ISO 3166-1 alpha-3 existant, en majuscules (`FRA`, `BEL`…).
 
 ### Corrigé
 

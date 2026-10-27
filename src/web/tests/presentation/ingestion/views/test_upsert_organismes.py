@@ -5,6 +5,7 @@ from django.urls import reverse
 from rest_framework import status
 
 from infrastructure.django_apps.recruteur.models.organisme import OrganismeModel
+from presentation.commons.serializers import INVALID_COUNTRY_CODE
 
 URL = reverse("ingestion:organismes_upsert")
 
@@ -127,6 +128,45 @@ def test_mixed_valid_invalid_organismes_in_payload(api_key_client, use_case):
             "error": {"nom": ["Ce champ ne peut être nul."]},
         },
     ]
+
+
+def _localisation(**overrides) -> dict:
+    localisation = {
+        "zone_geographique": "EU",
+        "pays": "FRA",
+        "region": "11",
+        "departement": "75",
+    }
+    localisation.update(overrides)
+    return localisation
+
+
+@pytest.mark.parametrize("pays", ["fra", "Fra", "XXX"])
+def test_invalid_country_code_is_rejected(api_key_client, use_case, pays):
+    use_case.execute.return_value = {"created": 1, "updated": 0, "errors": []}
+
+    response = api_key_client.post(
+        URL,
+        data={
+            "organismes": [
+                _organisme_payload(
+                    external_id="ext-invalid", localisation=_localisation(pays=pays)
+                ),
+                _organisme_payload(localisation=_localisation()),
+            ]
+        },
+        content_type="application/json",
+    )
+
+    assert response.status_code == status.HTTP_201_CREATED
+    assert response.json()["errors"] == [
+        {
+            "organisme": {"referentiel": "FINESS", "external_id": "ext-invalid"},
+            "error": {"localisation": {"pays": [INVALID_COUNTRY_CODE]}},
+        }
+    ]
+    organismes = use_case.execute.call_args.args[0].organismes
+    assert [organisme.external_id for organisme in organismes] == ["ext-123"]
 
 
 def test_returns_error_500(api_key_client, use_case):

@@ -15,6 +15,17 @@ INVALID_COUNTRY_CODE = (
 )
 
 
+def validate_country_code(value: str) -> str:
+    error = serializers.ValidationError(INVALID_COUNTRY_CODE)
+    if value != value.upper():
+        raise error
+    try:
+        _country_adapter.validate_python(value)
+    except ValidationError as e:
+        raise error from e
+    return value
+
+
 class LocalisationSerializer(serializers.Serializer):
     zone_geographique = serializers.ChoiceField(
         choices=[(c.value, c.name) for c in GeographicalArea]
@@ -32,14 +43,7 @@ class LocalisationSerializer(serializers.Serializer):
     longitude = serializers.FloatField(allow_null=True, min_value=-180, max_value=180)
 
     def validate_pays(self, value: str) -> str:
-        error = serializers.ValidationError(INVALID_COUNTRY_CODE)
-        if value != value.upper():
-            raise error
-        try:
-            _country_adapter.validate_python(value)
-        except ValidationError as e:
-            raise error from e
-        return value
+        return validate_country_code(value)
 
 
 class OrganismeSerializer(serializers.Serializer):
