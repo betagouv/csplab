@@ -26,6 +26,9 @@ interface UseDraggableKanbanCardOptions {
   enabled?: Ref<boolean>
 }
 
+// Share of a dropped card visible in its column from which its drop motion plays
+const VISIBLE_RATIO = 0.9
+
 // Card moved last to another column, read by the card that mounts in that column
 const lastMovedCard = ref<string | null>(null)
 
@@ -38,6 +41,9 @@ export function useDraggableKanbanCard(options: UseDraggableKanbanCardOptions) {
   const enabled = options.enabled ?? ref(true)
   const cardKey = `${options.boardId}/${options.cardId}`
   let isMoved = lastMovedCard.value === cardKey
+  if (isMoved) {
+    lastMovedCard.value = null
+  }
   // True while the card shows its drop motion; the motion waits, on its first frame, until the card is visible
   const isJustMoved = ref(false)
   const isDropWaiting = ref(false)
@@ -58,7 +64,7 @@ export function useDraggableKanbanCard(options: UseDraggableKanbanCardOptions) {
         return
       }
 
-      // The column scrolls to a card dropped at its end: the drop motion shows its first frame at once and plays once
+      // The column scrolls to a card dropped at its end: the drop motion shows its first frame at once and plays when
       // the card is visible. Without a drop motion, the move settles at once; a drop motion can list several
       // animations, and the move settles when the last one ends
       let visibility: IntersectionObserver | null = null
@@ -69,11 +75,11 @@ export function useDraggableKanbanCard(options: UseDraggableKanbanCardOptions) {
         isJustMoved.value = true
         isDropWaiting.value = true
         visibility = new IntersectionObserver(([entry]) => {
-          if (entry?.isIntersecting) {
+          if (entry && entry.intersectionRatio >= VISIBLE_RATIO) {
             isDropWaiting.value = false
             visibility?.disconnect()
           }
-        }, { threshold: 0.9 })
+        }, { threshold: VISIBLE_RATIO })
         visibility.observe(element)
       }
       const handleAnimationEnd = (event: AnimationEvent) => {

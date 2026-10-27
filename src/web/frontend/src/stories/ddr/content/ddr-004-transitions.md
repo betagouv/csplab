@@ -14,7 +14,7 @@ status: accepté
 
 Le mouvement de l'interface signale un changement d'état ou une continuité : survol, ouverture d'un menu, d'un dialogue ou d'un panneau, dépôt d'une carte du kanban. On le règle globalement, par rôle, dans les variables `--csp-motion-*` de `src/styles/csp-variables.css`, avec les durées et les courbes du kit de La Suite numérique. La notification garde sa propre animation d'entrée et de sortie.
 
-Quand le système demande un mouvement réduit, on coupe les animations et les transitions. Le contour de la carte déposée reste, parce qu'il montre où la carte est arrivée, ainsi que le balayage qui ferme une notification, parce qu'il suit le geste de la personne.
+Quand le système demande un mouvement réduit, on coupe les animations et les transitions. Le contour de la carte déposée reste, parce qu'il montre où la carte est arrivée. Le balayage qui ferme une notification reste aussi, parce qu'il suit le geste de la personne.
 
 ## Conséquences
 
