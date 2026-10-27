@@ -213,7 +213,10 @@ class CandidatureNoteDetailView(NoteBaseView):
         responses={
             **generic_response_format,
             200: NoteDetailSerializer,
-            400: GenericErrorSerializer,
+            400: {
+                "type": "object",
+                "additionalProperties": {"type": "array", "items": {"type": "string"}},
+            },
         },
     ),
 )

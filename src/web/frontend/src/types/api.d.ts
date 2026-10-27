@@ -4515,7 +4515,9 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["GenericError"];
+                    "application/json": {
+                        [key: string]: string[];
+                    };
                 };
             };
             401: {

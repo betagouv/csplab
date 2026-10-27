@@ -3994,7 +3994,11 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/GenericError'
+                type: object
+                additionalProperties:
+                  type: array
+                  items:
+                    type: string
           description: ''
           headers:
             X-RateLimit-Limit:

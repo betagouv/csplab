@@ -1,6 +1,7 @@
 from datetime import timedelta
 from uuid import uuid4
 
+import pytest
 from django.urls import reverse
 from django.utils import timezone
 from rest_framework import status
@@ -493,6 +494,7 @@ class TestCandidatureNoteVisibiliteView:
         )
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert "est_privee" in response.json()
 
     def test_note_of_another_author_is_not_found(self, authenticated_client, test_user):
         _, organisme, recrutement, candidature = (
@@ -563,20 +565,25 @@ class TestCandidatureNoteVisibiliteView:
         assert NoteModel.objects.get(id=note.id).est_privee is False
         assert _note_events(note.id) == ["NotePartagee"]
 
-    def test_same_visibility_changes_nothing(self, authenticated_client, test_user):
+    @pytest.mark.parametrize("est_privee", [True, False])
+    def test_same_visibility_changes_nothing(
+        self, authenticated_client, test_user, est_privee
+    ):
         agent, organisme, recrutement, candidature = (
             create_recrutement_and_candidature_for_agent(utilisateur=test_user)
         )
-        note = NoteDjangoFactory(candidature=candidature, publie_par=agent)
+        note = NoteDjangoFactory(
+            candidature=candidature, publie_par=agent, est_privee=est_privee
+        )
         updated_at = NoteModel.objects.get(id=note.id).updated_at
 
         response = authenticated_client.put(
             _note_visibilite_url(organisme.id, recrutement.pk, candidature.id, note.id),
-            data={"est_privee": False},
+            data={"est_privee": est_privee},
             format="json",
         )
 
         assert response.status_code == status.HTTP_200_OK
-        assert response.json()["est_privee"] is False
+        assert response.json()["est_privee"] is est_privee
         assert NoteModel.objects.get(id=note.id).updated_at == updated_at
         assert _note_events(note.id) == []
