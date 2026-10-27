@@ -5,6 +5,7 @@ import { ValidationError } from '@/api/errors'
 import CspAsyncSection from '@/components/base/CspAsyncSection/CspAsyncSection.vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspDataTable from '@/components/base/CspDataTable/CspDataTable.vue'
+import { TABLE_PAGE_SIZE } from '@/components/base/CspDataTable/table'
 import CspDrawer from '@/components/base/CspDrawer/CspDrawer.vue'
 import CspSearchBar from '@/components/base/CspSearchBar/CspSearchBar.vue'
 import CspSkeletonTable from '@/components/base/CspSkeleton/CspSkeletonTable.vue'
@@ -17,8 +18,6 @@ import { ORGANISMES_LIST_COLUMNS } from '../columns'
 import { provideOrganismeEdition } from '../composables/useOrganismeEdition'
 import { useOrganismes } from '../composables/useOrganismes'
 import OrganismeForm from './OrganismeForm.vue'
-
-const PAGE_SIZE = 8
 
 const { organismesList, pending, error, create, creating, update, updating } = useOrganismes()
 const edition = provideOrganismeEdition()
@@ -93,7 +92,7 @@ async function handleUpdate(payload: UpdateOrganismePayload): Promise<void> {
     >
       <template #skeleton>
         <CspSkeletonTable
-          :rows="PAGE_SIZE"
+          :rows="TABLE_PAGE_SIZE"
           :columns="ORGANISMES_LIST_COLUMNS.length"
           with-footer
         />
@@ -106,7 +105,6 @@ async function handleUpdate(payload: UpdateOrganismePayload): Promise<void> {
           label="Rechercher un organisme, un siret"
           hide-label
           placeholder="Rechercher un organisme, un siret"
-          class="organismes-section__search"
         />
         <CspButton
           label="Ajouter un organisme"
@@ -122,7 +120,7 @@ async function handleUpdate(payload: UpdateOrganismePayload): Promise<void> {
         :row-key="row => row.uuid"
         caption="Organismes"
         empty-label="Aucun organisme"
-        :page-size="PAGE_SIZE"
+        :page-size="TABLE_PAGE_SIZE"
       />
     </CspAsyncSection>
 
@@ -142,9 +140,3 @@ async function handleUpdate(payload: UpdateOrganismePayload): Promise<void> {
     </CspDrawer>
   </section>
 </template>
-
-<style scoped lang="scss">
-.organismes-section__search {
-  min-width: 20rem;
-}
-</style>

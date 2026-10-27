@@ -3,11 +3,12 @@ import { useQuery } from '@pinia/colada'
 import { computed, ref, useTemplateRef } from 'vue'
 import CspAsyncSection from '@/components/base/CspAsyncSection/CspAsyncSection.vue'
 import CspDataTable from '@/components/base/CspDataTable/CspDataTable.vue'
-import CspSkeleton from '@/components/base/CspSkeleton/CspSkeleton.vue'
+import { TABLE_PAGE_SIZE } from '@/components/base/CspDataTable/table'
 import CspSkeletonTable from '@/components/base/CspSkeleton/CspSkeletonTable.vue'
 import { useMinimumPending } from '@/composables/async/useMinimumPending'
 import { pluralize } from '@/utils/format'
 import { CANDIDATURE_LISTE_COLUMNS } from '../columns'
+import CandidaturesToolbar from '../components/CandidaturesToolbar.vue'
 import { useCandidatureLinkFocus } from '../composables/useCandidatureLinkFocus'
 import { provideCandidatureSequence } from '../composables/useCandidatureNavigation'
 import { useCandidaturesFilters } from '../composables/useCandidaturesFilters'
@@ -29,7 +30,6 @@ const table = useTemplateRef('table')
 provideCandidatureSequence(() => table.value?.sortedRowIds ?? [])
 useCandidatureLinkFocus()
 
-const PAGE_SIZE = 6
 const candidatureListePage = ref(1)
 
 const countLabel = computed(() => {
@@ -39,6 +39,13 @@ const countLabel = computed(() => {
 </script>
 
 <template>
+  <CandidaturesToolbar
+    :organisme-uuid="organismeUuid"
+    :recrutement-uuid="recrutementUuid"
+    :error="Boolean(liste.error.value)"
+    :count="countLabel"
+    :pending="showSkeleton"
+  />
   <CspAsyncSection
     :pending="showSkeleton"
     :error="liste.error.value"
@@ -46,22 +53,13 @@ const countLabel = computed(() => {
     error-title="Une erreur est survenue lors du chargement des candidatures."
   >
     <template #skeleton>
-      <p class="candidatures-liste-content__count">
-        <CspSkeleton
-          width="8rem"
-          variant="text"
-        />
-      </p>
       <CspSkeletonTable
-        :rows="PAGE_SIZE"
+        :rows="TABLE_PAGE_SIZE"
         :columns="CANDIDATURE_LISTE_COLUMNS.length"
         with-footer
       />
     </template>
 
-    <p class="candidatures-liste-content__count">
-      {{ countLabel }}
-    </p>
     <CspDataTable
       ref="table"
       v-model:sort="listeSort"
@@ -72,17 +70,9 @@ const countLabel = computed(() => {
       :current-id="props.candidatureUuid"
       caption="Candidatures"
       empty-label="Aucune candidature"
-      :page-size="PAGE_SIZE"
+      :page-size="TABLE_PAGE_SIZE"
     />
   </CspAsyncSection>
 
   <router-view />
 </template>
-
-<style scoped lang="scss">
-.candidatures-liste-content__count {
-  margin: 0 0 var(--csp-space-4);
-  font-size: 0.9375rem;
-  color: var(--text-mention-grey);
-}
-</style>

@@ -83,13 +83,13 @@ async function selectColumns(columns: string[], search?: string) {
   const user = setupUser()
   await renderKanbanPage()
 
+  if (search) {
+    await user.type(await screen.findByRole('searchbox', { name: 'Rechercher un candidat' }), `${search}{Enter}`)
+  }
   for (const column of columns) {
     // CspCheckbox exposes both its reka button and its hidden native input as checkboxes.
     const [columnCheckbox] = await screen.findAllByRole('checkbox', { name: `Sélectionner la colonne ${column}` })
     await user.click(columnCheckbox!)
-  }
-  if (search) {
-    await user.type(screen.getByRole('searchbox', { name: 'Rechercher un candidat' }), `${search}{Enter}`)
   }
   return user
 }
@@ -134,11 +134,23 @@ describe('candidaturesKanbanView', () => {
     await vi.waitFor(() => expect(screen.getByRole('searchbox', { name: 'Rechercher un candidat' })).toHaveValue(''))
   })
 
+  it('keeps the focus on the view switch when the list opens', async () => {
+    const user = setupUser()
+    const { router } = await renderKanbanPage()
+
+    await user.click(await screen.findByRole('radio', { name: /Liste/ }))
+
+    await vi.waitFor(() => expect(router.currentRoute.value.path).toBe(`${KANBAN_PATH}/liste`))
+    await vi.waitFor(() => expect(screen.getByRole('radio', { name: /Liste/ })).toHaveFocus())
+  })
+
   it('shows an error when the kanban fails to load', async () => {
     vi.mocked(getRecrutementKanban).mockRejectedValue(new Error('boom'))
     await renderKanbanPage()
 
     expect(await screen.findByText('Une erreur est survenue lors du chargement des candidatures.')).toBeInTheDocument()
+    expect(screen.queryByRole('searchbox', { name: 'Rechercher un candidat' })).not.toBeInTheDocument()
+    expect(screen.getByRole('radio', { name: /Liste/ })).toBeInTheDocument()
   })
 
   it('asks for a motif before refusing a selection, and sends it', async () => {
@@ -158,13 +170,13 @@ describe('candidaturesKanbanView', () => {
     }))
   })
 
-  it('counts in the refusal the candidatures still shown once a search hides part of the selection', async () => {
+  it('counts in the refusal only the candidatures shown by the search', async () => {
     const { dialog } = await refuseSelectedColumn('Alice')
 
     expect(dialog.getByText(/Vous êtes sur le point de refuser la candidature de Alice/)).toBeInTheDocument()
   })
 
-  it('lists in the stage drawer the selected candidatures still shown after a search', async () => {
+  it('lists in the stage drawer only the selected candidatures shown by the search', async () => {
     const user = await selectColumns(['Réception des candidatures'], 'Alice')
     await user.click(await screen.findByRole('button', { name: 'Changer d\'étape' }))
 
@@ -183,7 +195,7 @@ describe('candidaturesKanbanView', () => {
     expect(patchEtapeCandidatures).not.toHaveBeenCalled()
   })
 
-  it('moves the shown selection to a stage, without the candidatures hidden by a search', async () => {
+  it('moves the selection to a stage, without the candidatures hidden by the search', async () => {
     vi.mocked(getRecrutementKanban).mockResolvedValue(KANBAN_WITH_ENTRETIEN)
     const user = await selectColumns(['Réception des candidatures', 'Entretien'], 'Alice')
     await user.click(await screen.findByRole('button', { name: 'Changer d\'étape' }))

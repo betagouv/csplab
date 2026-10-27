@@ -425,7 +425,7 @@ function onActivate(id: string): void {
     </div>
 
     <div
-      v-if="$slots.footer || pageSize"
+      v-if="$slots.footer || (pageSize && paginationContext.pageCount > 1)"
       class="csp-table__footer"
     >
       <slot
