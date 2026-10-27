@@ -1,3 +1,4 @@
+import random
 from io import BytesIO, StringIO
 from uuid import UUID, uuid4
 
@@ -33,25 +34,46 @@ from infrastructure.factories.identite.organisme_django_factory import (
     OrganismeAgentDjangoFactory,
     OrganismeDjangoFactory,
 )
-from infrastructure.factories.seed_demo_organisme import seed_demo_organisme
+from infrastructure.factories.seed_demo_cv_corpus import CORPUS
+from infrastructure.factories.seed_demo_organisme import (
+    _CandidaturePlan,
+    _cv,
+    _pdf_texte,
+    seed_demo_organisme,
+)
 from infrastructure.factories.seed_demo_specs import RecrutementSpec, SpecOrganisme
 
 # miroir de _SOURCE_DEMO_UUID au 27/10
 SOURCE_DEMO_ID = UUID("00000000-0000-0000-0000-000000001945")
 
+# miroir de SPECS_DEMO au 27/10
+CLES_DEMO = [
+    "transition-ecologique",
+    "culture",
+    "centre-pompidou",
+    "premier-ministre",
+    "cour-des-comptes",
+    "travail-solidarites",
+    "dgafp",
+    "economie-finances",
+]
+
 _RECRUTEMENTS_REDUITS: list[RecrutementSpec] = [
     {
         "intitule": "Conseiller(ère) finances et garanties de l’État",
+        "famille": "finances",
         "archive_depuis_jours": None,
         "repartition": (2, 1, 1, 0, 1, 0),
     },
     {
-        "intitule": "Chargé(e) de mission relations territoriales",
+        "intitule": "Chargé(e) de mission biodiversité",
+        "famille": "environnement",
         "archive_depuis_jours": 20,
         "repartition": (0, 0, 0, 0, 3, 1),
     },
     {
-        "intitule": "Chargé(e) de mission infrastructures",
+        "intitule": "Acheteur(se) public(que)",
+        "famille": "achats",
         "archive_depuis_jours": 45,
         "repartition": (1, 1, 1, 0, 1, 0),
     },
@@ -254,7 +276,7 @@ class TestSeedDemoOrganisme:
     )
     def test_stops_without_writing(self, db, monkeypatch, cas, motif):
         autre = _organisme_avec_agents()
-        cle = "dijop"
+        cle = "culture"
         cible_id = uuid4()
         if cas == "organisme_supprime":
             cible_id = OrganismeAgentDjangoFactory(
@@ -274,7 +296,7 @@ class TestSeedDemoOrganisme:
         with pytest.raises(CommandError, match=motif):
             _seed(
                 "--organisme",
-                f"dijop={autre.pk}",
+                f"culture={autre.pk}",
                 "--organisme",
                 f"{cle}={cible_id}",
                 "--force",
@@ -283,24 +305,72 @@ class TestSeedDemoOrganisme:
         _rien_ecrit()
 
     def test_dry_run_prints_the_full_spec_without_writing(self, db):
-        organisme = _organisme_avec_agents()
+        organismes = {cle: _organisme_avec_agents() for cle in CLES_DEMO}
         sortie = StringIO()
 
-        _seed("--organisme", f"dijop={organisme.pk}", "--dry-run", stdout=sortie)
+        _seed(
+            *[
+                option
+                for cle, organisme in organismes.items()
+                for option in ("--organisme", f"{cle}={organisme.pk}")
+            ],
+            "--dry-run",
+            stdout=sortie,
+        )
 
-        lignes = sortie.getvalue().splitlines()
-        # miroir de la spécification dijop au 27/10
-        for attendue in [
-            f"== dijop ({organisme.pk})",
-            "À supprimer avec --force : 0 offres, 0 candidatures, 0 candidats.",
-            "Offres : 11 (8 en cours, 3 archivées).",
-            "Candidatures : 303.",
-            "  Réception des candidatures : 144",
-            "  Présélection : 51",
-            "  Entretien : 35",
-            "  Proposition : 16",
-            "  Refus : 54",
-            "  Recrutement : 3",
-        ]:
-            assert attendue in lignes
+        blocs = [bloc.splitlines() for bloc in sortie.getvalue().split("== ")[1:]]
+        assert [bloc[0] for bloc in blocs] == [
+            f"{cle} ({organisme.pk})" for cle, organisme in organismes.items()
+        ]
+        for bloc in blocs:
+            assert bloc[1:10] == [
+                "À supprimer avec --force : 0 offres, 0 candidatures, 0 candidats.",
+                "Offres : 15 (10 en cours, 5 archivées).",
+                "Candidatures : 683.",
+                "  Réception des candidatures : 293",
+                "  Présélection : 111",
+                "  Entretien : 62",
+                "  Proposition : 27",
+                "  Refus : 187",
+                "  Recrutement : 3",
+            ]
         _rien_ecrit()
+
+    @pytest.mark.parametrize(
+        "famille",
+        # miroir de Famille au 27/10
+        [
+            "pilotage",
+            "rh",
+            "juridique",
+            "finances",
+            "achats",
+            "numerique",
+            "communication",
+            "culture",
+            "audit",
+            "environnement",
+            "solidarites",
+        ],
+    )
+    def test_generates_a_pdf_cv_for_each_famille(self, famille):
+        for proximite in (0.0, 1.0):
+            candidature = _CandidaturePlan(
+                etape="Présélection",
+                prenom="Camille",
+                nom="Durand",
+                proximite=proximite,
+                note=False,
+                conversation=False,
+                lecture=False,
+            )
+
+            cv = _cv(
+                random.Random(0),
+                CORPUS[famille],
+                candidature,
+                "camille.durand@demo.candidat.fr",
+            )
+
+            pdf = PdfReader(BytesIO(_pdf_texte(cv.lignes)))
+            assert "Camille Durand" in "".join(p.extract_text() for p in pdf.pages)

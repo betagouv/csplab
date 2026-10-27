@@ -100,6 +100,7 @@ class _CandidaturePlan:
 class _RecrutementPlan:
     reference: str
     spec: RecrutementSpec
+    corpus: PosteCorpus
     candidatures: list[_CandidaturePlan]
 
 
@@ -146,6 +147,7 @@ def _planifier(
             _RecrutementPlan(
                 reference=f"DEMO-{spec_organisme.cle}-{rang:02d}",
                 spec=spec,
+                corpus=CORPUS[spec["famille"]],
                 candidatures=candidatures,
             )
         )
@@ -451,7 +453,7 @@ def _seed_recrutement(
     maintenant: datetime,
 ) -> RecrutementModel:
     spec = plan.spec
-    corpus = CORPUS[spec["intitule"]]
+    corpus = plan.corpus
     offre = {
         "source": source,
         "reference": plan.reference,
@@ -553,7 +555,7 @@ def _ecrire(
                 f"{slugify(candidature_plan.prenom)}.{slugify(candidature_plan.nom)}"
                 f".{cle}-{len(candidatures_creees)}{_EMAIL_DOMAIN}"
             )
-            cv = _cv(rng, CORPUS[spec["intitule"]], candidature_plan, email)
+            cv = _cv(rng, plan.corpus, candidature_plan, email)
             candidat: ProfilCandidatModel = CandidatDjangoFactory(  # type: ignore[assignment]
                 utilisateur__first_name=candidature_plan.prenom,
                 utilisateur__last_name=candidature_plan.nom,
