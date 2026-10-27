@@ -118,6 +118,18 @@ describe('useKanbanSelection', () => {
       etapes.value = createEtapes()
       expect(selectedCount.value).toBe(1)
     })
+
+    it('replaces the selection of another column', () => {
+      const etapes = ref(createEtapes())
+      const { toggleColumnSelection, isColumnSelected, currentEtapeUuid } = useKanbanSelection(etapes)
+
+      toggleColumnSelection(etapes.value[0]!)
+      toggleColumnSelection(etapes.value[1]!)
+
+      expect(isColumnSelected(ETAPE_1_UUID)).toBe(false)
+      expect(isColumnSelected(ETAPE_2_UUID)).toBe(true)
+      expect(currentEtapeUuid.value).toBe(ETAPE_2_UUID)
+    })
   })
 
   describe('toggleCandidatureSelection', () => {
