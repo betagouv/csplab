@@ -153,6 +153,7 @@ const groupName = props.name ?? useId()
 
 .csp-segmented__element label::before {
   content: '';
+  transition: background-color var(--csp-motion-duration-state);
   position: absolute;
   inset: var(--csp-space-1);
   border-radius: 0.25rem;

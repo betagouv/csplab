@@ -112,6 +112,7 @@ function conversationLocation(conversationUuid: string) {
   color: inherit;
   text-decoration: none;
   background-image: none;
+  transition: background-color var(--csp-motion-duration-state);
 
   &:where([href]):hover {
     background-color: var(--background-alt-grey);

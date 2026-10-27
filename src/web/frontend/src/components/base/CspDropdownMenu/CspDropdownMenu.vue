@@ -73,10 +73,19 @@ const open = defineModel<boolean | undefined>('open')
   background-color: var(--background-overlap-grey);
   box-shadow:
     inset 0 0 0 1px var(--border-default-grey),
-    var(--csp-shadow-lg);
+    var(--csp-overlap-shadow, var(--csp-shadow-lg));
   padding: var(--csp-menu-padding);
   z-index: var(--csp-z-dropdown);
   outline: none;
+  transform-origin: var(--reka-popper-transform-origin);
+
+  &[data-state='open'] {
+    animation: var(--csp-motion-overlap-enter);
+  }
+
+  &[data-state='closed'] {
+    animation: var(--csp-motion-overlap-exit);
+  }
 }
 
 .csp-dropdown__separator {

@@ -124,6 +124,7 @@ const isLink = computed(() => Boolean(props.href))
   gap: var(--csp-card-gap);
 
   background-color: var(--csp-card-bg);
+  transition: background-color var(--csp-motion-duration-state);
   color: var(--csp-card-text);
   border-radius: var(--csp-card-radius);
   padding: var(--csp-card-padding);

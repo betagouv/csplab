@@ -73,6 +73,7 @@ const { showLabels } = useSidebar()
   padding: 0;
   border: none;
   background: var(--background-alt-grey);
+  transition: background-color var(--csp-motion-duration-state);
   text-decoration: none;
   cursor: pointer;
   flex-shrink: 0;

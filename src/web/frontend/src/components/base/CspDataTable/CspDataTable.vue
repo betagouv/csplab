@@ -539,6 +539,7 @@ function onActivate(id: string): void {
 .csp-table__row {
   height: var(--csp-table-row-height);
   border-bottom: 1px solid var(--border-default-grey);
+  transition: background-color var(--csp-motion-duration-state);
 
   &:last-child {
     border-bottom: none;

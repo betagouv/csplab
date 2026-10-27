@@ -161,6 +161,7 @@ const page = defineModel<number>('page', { required: true })
   font-size: var(--csp-font-size-sm);
   font-weight: 500;
   cursor: pointer;
+  transition: background-color var(--csp-motion-duration-state);
 
   &:hover:not(:disabled) {
     background: var(--background-default-grey-hover);
