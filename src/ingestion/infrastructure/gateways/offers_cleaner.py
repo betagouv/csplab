@@ -26,7 +26,10 @@ from referentiel.value_objects.offer_conditions import (
 )
 from referentiel.value_objects.offer_nature import OfferNature
 from referentiel.value_objects.region import Region
-from referentiel.value_objects.required_document import RequiredDocument
+from referentiel.value_objects.required_document import (
+    TALENTSOFT_REQUIRED_DOCUMENTS,
+    RequiredDocument,
+)
 from referentiel.value_objects.verse import Verse
 
 from domain.entities.offer import Offer
@@ -247,14 +250,7 @@ _TALENTSOFT_TO_SPECIALISATIONS: dict[str, str] = {
 }
 
 _TALENTSOFT_TO_REQUIRED_DOCUMENTS: dict[str, list[RequiredDocument]] = {
-    "Doc_CV": [RequiredDocument.CV],
-    "Doc_CV_LM": [RequiredDocument.CV, RequiredDocument.LETTRE_MOTIVATION],
-    "Doc_CV_PF": [RequiredDocument.CV, RequiredDocument.PORTFOLIO],
-    "Doc_CV_LM_PF": [
-        RequiredDocument.CV,
-        RequiredDocument.LETTRE_MOTIVATION,
-        RequiredDocument.PORTFOLIO,
-    ],
+    value.client_code: list(value.documents) for value in TALENTSOFT_REQUIRED_DOCUMENTS
 }
 
 _TALENTSOFT_TO_AREA: dict[str, GeographicalArea] = {
