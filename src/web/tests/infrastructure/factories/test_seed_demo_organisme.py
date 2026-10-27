@@ -487,15 +487,11 @@ class TestSeedDemoOrganisme:
             prenom="Camille",
             nom="Durand",
             proximite=0.4,
-            note=False,
+            notes=(),
             conversation=False,
             lecture=False,
             avatar=None,
         )
-        directes = {
-            f"{experience['titre']}, {experience['employeur']}"
-            for experience in CORPUS["finances"]["experiences_directes"]
-        }
 
         premiere_directe = {
             _cv(
@@ -503,8 +499,8 @@ class TestSeedDemoOrganisme:
                 CORPUS["finances"],
                 candidature,
                 "camille.durand@demo.candidat.fr",
-            ).experience
-            in directes
+            ).experiences[0][1]
+            in CORPUS["finances"]["experiences_directes"]
             for graine in range(10)
         }
 
