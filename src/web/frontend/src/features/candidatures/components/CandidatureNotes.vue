@@ -224,7 +224,6 @@ function noteActions(note: Note) {
                 <CspBadge
                   v-if="note.est_privee"
                   label="Privée"
-                  size="sm"
                   color="var(--text-label-purple-glycine)"
                   class="candidature-notes__badge"
                 />
@@ -319,6 +318,8 @@ function noteActions(note: Note) {
 }
 
 .candidature-notes__entete .candidature-notes__badge {
+  --badge-default-bg: var(--background-contrast-purple-glycine);
+
   align-self: center;
 }
 

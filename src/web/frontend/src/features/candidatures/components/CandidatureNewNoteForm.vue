@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { NoteRouteNames } from '../types'
+import type { CreateNotePayload, NoteRouteNames } from '../types'
 import type { CandidatureParams } from '@/api/params'
 import { useToast } from '@/composables/ui/useToast'
 import { useCreateCandidatureNote } from '../composables/useCandidatureNotes'
@@ -13,9 +13,9 @@ const props = defineProps<{
 const { create, creating } = useCreateCandidatureNote(() => props.candidature)
 const { addToast } = useToast()
 
-async function submit(message: string): Promise<void> {
+async function submit(payload: CreateNotePayload): Promise<void> {
   try {
-    await create({ message, est_privee: false })
+    await create(payload)
   }
   catch (error) {
     addToast({ variant: 'error', title: 'L\'enregistrement de la note a échoué' })

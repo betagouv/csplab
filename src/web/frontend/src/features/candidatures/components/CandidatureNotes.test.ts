@@ -88,10 +88,10 @@ describe('candidatureNotes', () => {
     expect(await screen.findByText('Les notes n\'ont pas pu être chargées.')).toBeInTheDocument()
   })
 
-  it('edits the note targeted by the route', async () => {
+  it('edits the note targeted by the route and keeps it private', async () => {
     const results = [
       note({}),
-      note({ uuid: 'ffffffff-0001-0001-0001-000000000002', message: 'À recontacter' }),
+      note({ uuid: 'ffffffff-0001-0001-0001-000000000002', message: 'À recontacter', est_privee: true }),
     ]
     vi.mocked(getCandidatureNotes).mockResolvedValue({ count: 2, results })
     vi.mocked(updateCandidatureNote).mockResolvedValue()
@@ -100,13 +100,14 @@ describe('candidatureNotes', () => {
 
     const field = await screen.findByRole('textbox', { name: 'Modifier la note' })
     expect(field).toHaveValue('À recontacter')
+    expect(screen.getByRole('checkbox', { name: 'Note privée' })).toBeChecked()
 
     await user.type(field, ' demain')
     await user.click(screen.getByRole('button', { name: 'Enregistrer la note' }))
 
     expect(updateCandidatureNote).toHaveBeenCalledWith(
       { ...CANDIDATURE_PARAMS, noteUuid: 'ffffffff-0001-0001-0001-000000000002' },
-      { message: 'À recontacter demain', est_privee: false },
+      { message: 'À recontacter demain', est_privee: true },
     )
     await vi.waitFor(() => expect(router.currentRoute.value.path).toBe(NOTES_PATH))
   })
