@@ -3,9 +3,9 @@
  */
 
 /*
- * Greige: a quarter of beige-gris-galet in the secondary neutrals of the DSFR, a fifth in rules and secondary text, the
- * alt beige-gris-galet background on the chrome and the panel header, and a halftone of 6 px dots whose dots grow
- * towards the actions of a header and towards the top of an empty state. An SVG drawn as a background cannot read a
+ * Greige: a quarter of beige-gris-galet in the secondary neutrals of the DSFR, a fifth in rules and secondary text,
+ * beige-gris-galet on the kanban columns and the empty states, and a halftone of 6 px dots whose dots grow towards the
+ * actions of a header and towards the top of an empty state. An SVG drawn as a background cannot read a
  * variable: the dots take the value of --artwork-motif-beige-gris-galet (925-125) in each theme.
  */
 :root[data-csp-backdrop='greige'],
@@ -33,12 +33,15 @@
     left top / 6px 40px repeat-x;
   --greige-fill: linear-gradient(var(--background-alt-beige-gris-galet) 0 0);
 
-  --csp-chrome-background: var(--background-alt-beige-gris-galet);
-  --csp-page-tabs-background-hover: var(--background-alt-beige-gris-galet-hover);
-  --csp-page-tabs-background-active: var(--background-alt-beige-gris-galet-active);
-  --csp-page-tabs-background-current-hover: var(--background-alt-beige-gris-galet-hover);
+  /* the navigation, the page header and the panel header share the warmed grey */
+  --csp-chrome-background: var(--background-alt-grey);
+  --csp-page-tabs-background-hover: var(--background-alt-grey-hover);
+  --csp-page-tabs-background-active: var(--background-alt-grey-active);
+  --csp-page-tabs-background-current-hover: var(--background-alt-grey-hover);
   --csp-page-header-backdrop: var(--greige-header-dots);
-  --csp-drawer-header-backdrop: var(--greige-header-dots), var(--greige-fill);
+  --csp-drawer-header-backdrop: var(--greige-header-dots), linear-gradient(var(--background-alt-grey) 0 0);
+  --csp-region-background: var(--background-contrast-beige-gris-galet);
+  --csp-region-background-drop: var(--background-contrast-beige-gris-galet-hover);
   --csp-empty-state-backdrop: var(--greige-empty-state-dots), var(--greige-fill);
   /* the same grid without halftone over the whole application, in the lightest step of the family */
   --csp-canvas-backdrop: radial-gradient(

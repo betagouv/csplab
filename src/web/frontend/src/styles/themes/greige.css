@@ -3,8 +3,6 @@
  * entries decelerate and whose exits are shorter and accelerate.
  */
 :root[data-csp-theme='greige'] {
-  --csp-region-background-drop: color-mix(in oklab, var(--background-alt-grey) 60%, var(--background-alt-grey-hover));
-
   --csp-overlap-shadow: var(--overlap-shadow);
   --csp-lifted-shadow: var(--overlap-shadow);
   --csp-raised-shadow-hover: var(--raised-shadow);
