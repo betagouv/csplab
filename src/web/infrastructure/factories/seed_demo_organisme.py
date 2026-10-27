@@ -130,6 +130,10 @@ class _Cv:
     competence: str
 
 
+def _reference(cle: str, rang: int) -> str:
+    return f"DEMO-{cle}-{rang:02d}"
+
+
 def _planifier(
     spec_organisme: SpecOrganisme, fake: Faker, rng: random.Random
 ) -> list[_RecrutementPlan]:
@@ -172,7 +176,7 @@ def _planifier(
                 )
         plans.append(
             _RecrutementPlan(
-                reference=f"DEMO-{spec_organisme.cle}-{rang:02d}",
+                reference=_reference(spec_organisme.cle, rang),
                 spec=spec,
                 corpus=CORPUS[spec["famille"]],
                 candidatures=candidatures,
@@ -540,8 +544,9 @@ class _SeedRefuse(Exception):
 
 
 def _cible(
-    organisme_id: UUID, cle: str
+    organisme_id: UUID, spec_organisme: SpecOrganisme
 ) -> tuple[OrganismeModel, list[ProfilAgentModel]]:
+    cle = spec_organisme.cle
     organisme = OrganismeModel.objects.by_id(organisme_id).first()
     if organisme is None:
         raise _SeedRefuse("organisme_absent", cle=cle, organisme_id=organisme_id)
@@ -554,6 +559,25 @@ def _cible(
     ]
     if not agents:
         raise _SeedRefuse("aucun_agent_actif", cle=cle, organisme_id=organisme_id)
+    autre_organisme_id = (
+        RecrutementModel.objects.filter(
+            offre__source_id=_SOURCE_DEMO_UUID,
+            offre__reference__in=[
+                _reference(cle, rang)
+                for rang in range(1, len(spec_organisme.recrutements) + 1)
+            ],
+        )
+        .exclude(organisme_id=organisme.pk)
+        .values_list("organisme_id", flat=True)
+        .first()
+    )
+    if autre_organisme_id is not None:
+        raise _SeedRefuse(
+            "cle_seedee_ailleurs",
+            cle=cle,
+            organisme_id=organisme_id,
+            autre_organisme_id=autre_organisme_id,
+        )
     return organisme, agents
 
 
@@ -691,9 +715,13 @@ def seed_demo_organisme(
 ) -> dict:
     if os.environ.get("SCALEWAY_ENV") == "prod":
         return {"status": "production"}
+    cles = {spec_organisme.cle for _, spec_organisme in cibles}
+    organismes_ids = {organisme_id for organisme_id, _ in cibles}
+    if len(cles) < len(cibles) or len(organismes_ids) < len(cibles):
+        return {"status": "cible_en_double"}
     try:
         ciblees = [
-            (spec_organisme, *_cible(organisme_id, spec_organisme.cle))
+            (spec_organisme, *_cible(organisme_id, spec_organisme))
             for organisme_id, spec_organisme in cibles
         ]
     except _SeedRefuse as refus:

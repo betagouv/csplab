@@ -13,6 +13,14 @@ _ERREURS = {
         "L'organisme {cle} ({organisme_id}) n'a aucun agent actif : rattacher au "
         "moins un agent avant de lancer le seed."
     ),
+    "cle_seedee_ailleurs": (
+        "La clé {cle} est déjà semée sur un autre organisme "
+        "({autre_organisme_id}) : impossible de la semer sur {organisme_id}."
+    ),
+    "cible_en_double": (
+        "Chaque clé et chaque organisme ne peuvent apparaître qu'une fois "
+        "dans --organisme."
+    ),
 }
 
 
@@ -20,9 +28,13 @@ def _cible(valeur: str) -> tuple[UUID, SpecOrganisme]:
     cle, _, organisme_id = valeur.partition("=")
     if cle not in SPECS_DEMO:
         raise ArgumentTypeError(
-            f"clé d'organisme inconnue : {cle} (clés connues : {', '.join(SPECS_DEMO)})"
+            f"clé d'organisme inconnue : {cle}, format attendu : CLE=UUID "
+            f"(clés connues : {', '.join(SPECS_DEMO)})"
         )
-    return UUID(organisme_id), SPECS_DEMO[cle]
+    try:
+        return UUID(organisme_id), SPECS_DEMO[cle]
+    except ValueError as exc:
+        raise ArgumentTypeError(f"UUID d'organisme invalide : {organisme_id}") from exc
 
 
 class Command(BaseCommand):

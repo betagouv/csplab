@@ -292,12 +292,17 @@ class TestSeedDemoOrganisme:
             ("aucun_agent_actif", "aucun agent actif"),
             ("production", "production"),
             ("cle_inconnue", "clé d'organisme inconnue : inconnue"),
+            ("sans_egal", "format attendu : CLE=UUID"),
+            ("uuid_invalide", "UUID d'organisme invalide : pas-un-uuid"),
+            ("cle_en_double", "qu'une fois dans --organisme"),
+            ("organisme_en_double", "qu'une fois dans --organisme"),
         ],
     )
     def test_stops_without_writing(self, db, monkeypatch, cas, motif):
         autre = _organisme_avec_agents()
-        cle = "culture"
+        cle = "dgafp"
         cible_id = uuid4()
+        cible: str | None = None
         if cas == "organisme_supprime":
             cible_id = OrganismeAgentDjangoFactory(
                 organisme=OrganismeDjangoFactory(supprime_le=timezone.now())
@@ -312,17 +317,44 @@ class TestSeedDemoOrganisme:
         elif cas == "cle_inconnue":
             cible_id = _organisme_avec_agents().pk
             cle = "inconnue"
+        elif cas == "sans_egal":
+            cible = str(_organisme_avec_agents().pk)
+        elif cas == "uuid_invalide":
+            cible = "dgafp=pas-un-uuid"
+        elif cas == "cle_en_double":
+            cle, cible_id = "culture", _organisme_avec_agents().pk
+        elif cas == "organisme_en_double":
+            cible_id = autre.pk
 
         with pytest.raises(CommandError, match=motif):
             _seed(
                 "--organisme",
                 f"culture={autre.pk}",
                 "--organisme",
-                f"{cle}={cible_id}",
+                cible or f"{cle}={cible_id}",
                 "--force",
             )
 
         _rien_ecrit()
+
+    def test_refuses_a_cle_already_seeded_on_another_organisme(self, db):
+        premier, second = _organisme_avec_agents(), _organisme_avec_agents()
+        seed_demo_organisme(
+            [
+                (
+                    premier.pk,
+                    SpecOrganisme(
+                        cle="culture", graine=1, recrutements=_RECRUTEMENTS_REDUITS
+                    ),
+                )
+            ]
+        )
+
+        with pytest.raises(CommandError, match="déjà semée sur un autre organisme"):
+            _seed("--organisme", f"culture={second.pk}", "--force")
+
+        assert _comptes(premier.pk) == _comptes_reduits("DEMO-culture-02")
+        assert not _candidatures_demo(second.pk).exists()
 
     def test_dry_run_prints_the_full_spec_without_writing(self, db):
         organismes = {cle: _organisme_avec_agents() for cle in CLES_DEMO}
