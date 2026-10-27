@@ -39,16 +39,19 @@ describe('candidatureNoteForm', () => {
     expect(submit).toBeDisabled()
   })
 
-  it('saves the note, empties the field and confirms', async () => {
+  it('saves the note with its visibility, empties the form and confirms', async () => {
     vi.mocked(createCandidatureNote).mockResolvedValue()
     const user = setupUser()
     const { field, submit } = renderForm()
+    const privee = screen.getByRole('checkbox', { name: 'Note privée' })
 
     await user.type(field, '  Profil solide  ')
+    await user.click(privee)
     await user.click(submit)
 
-    expect(createCandidatureNote).toHaveBeenCalledWith(CANDIDATURE_PARAMS, { message: 'Profil solide', est_privee: false })
+    expect(createCandidatureNote).toHaveBeenCalledWith(CANDIDATURE_PARAMS, { message: 'Profil solide', est_privee: true })
     await vi.waitFor(() => expect(field).toHaveValue(''))
+    expect(privee).not.toBeChecked()
     expect(useToast().toasts.value.at(-1)?.title).toBe('Note enregistrée')
   })
 
