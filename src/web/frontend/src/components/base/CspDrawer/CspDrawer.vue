@@ -9,8 +9,9 @@ import {
   DialogTitle,
   DialogTrigger,
 } from 'reka-ui'
-import { computed, useAttrs, useSlots } from 'vue'
+import { computed, useAttrs, useId, useSlots } from 'vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
+import { provideCspDrawerFooter } from './useCspDrawerFooter'
 
 export interface CspDrawerProps {
   open?: boolean
@@ -56,7 +57,8 @@ const hasTrigger = computed(() => Boolean(slots.trigger))
 const hasStart = computed(() => Boolean(slots.start))
 const hasTitle = computed(() => Boolean(slots.title) || Boolean(props.title))
 const hasDescription = computed(() => Boolean(slots.description) || Boolean(props.description))
-const hasFooter = computed(() => Boolean(slots.footer))
+const footerId = useId()
+provideCspDrawerFooter(footerId)
 </script>
 
 <template>
@@ -86,7 +88,6 @@ const hasFooter = computed(() => Boolean(slots.footer))
           `csp-drawer--${side}`,
           `csp-drawer--${size}`,
           {
-            'csp-drawer--has-footer': hasFooter,
             'csp-drawer--modal-no-overlay': modal && !overlay,
           },
         ]"
@@ -155,7 +156,7 @@ const hasFooter = computed(() => Boolean(slots.footer))
         </div>
 
         <footer
-          v-if="hasFooter"
+          :id="footerId"
           class="csp-drawer__footer"
         >
           <slot name="footer" />
@@ -324,6 +325,10 @@ const hasFooter = computed(() => Boolean(slots.footer))
   padding-inline: var(--csp-drawer-padding-inline, var(--csp-space-6));
   font-size: 0.875rem;
   line-height: 1.5;
+}
+
+.csp-drawer__footer:empty {
+  display: none;
 }
 
 .csp-drawer__footer {
