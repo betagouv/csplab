@@ -87,6 +87,9 @@ jobs:
         with:
           fetch-depth: 2
       - uses: ./.github/actions/setup-mise
+      # A separate step: mise resolves the .venv before its dependencies create it.
+      - name: Install web Python dependencies
+        run: mise run web:install:py
       - name: Check the API changelog fragments
         env:
           GH_TOKEN: ${{ github.token }}
