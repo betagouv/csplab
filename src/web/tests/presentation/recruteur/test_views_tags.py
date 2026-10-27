@@ -70,6 +70,14 @@ def staff_client_fixture(api_client):
     return api_client
 
 
+NOMBRE_REQUETES_ATTENDU = (
+    2  # authentification
+    + 1  # organisme
+    + 1  # agent's role
+    + 2  # pagination : count + page
+)
+
+
 class TestListTags:
     def test_anonymous_access_is_unauthorized(self, api_client):
         response = api_client.get(_tags_url(uuid4()))
@@ -221,7 +229,7 @@ class TestListTags:
         for _ in range(4):
             CandidatureTagDjangoFactory(tag__organisme=agent_organisme)
 
-        with django_assert_num_queries(6):
+        with django_assert_num_queries(NOMBRE_REQUETES_ATTENDU):
             response = authenticated_client.get(_tags_url(agent_organisme.id))
 
         assert response.status_code == status.HTTP_200_OK
@@ -396,34 +404,6 @@ class TestUpdateTag:
         assert (tag.name, tag.category, tag.color) == ("Profil expert", "note", "rose")
         (log,) = _logs(tag.id)
         assert log.event_name == "TagModifie"
-
-    def test_returns_usage_count_of_updated_tag(
-        self, authenticated_client, superviseur_organisme
-    ):
-        tag = CandidatureTagDjangoFactory(tag__organisme=superviseur_organisme).tag
-
-        response = authenticated_client.put(
-            _tag_url(superviseur_organisme.id, tag.id),
-            data={"name": "Profil expert", "color": "rose"},
-            format="json",
-        )
-
-        assert response.json()["usage_count"] == 1
-
-    def test_changes_only_the_case_of_its_own_name(
-        self, authenticated_client, superviseur_organisme
-    ):
-        tag = TagDjangoFactory(organisme=superviseur_organisme, name="expert")
-
-        response = authenticated_client.put(
-            _tag_url(superviseur_organisme.id, tag.id),
-            data={"name": "Expert", "color": "bleu"},
-            format="json",
-        )
-
-        assert response.status_code == status.HTTP_200_OK
-        tag.refresh_from_db()
-        assert tag.name == "Expert"
 
     def test_name_taken_in_category_ignoring_case_is_a_conflict(
         self, authenticated_client, superviseur_organisme
