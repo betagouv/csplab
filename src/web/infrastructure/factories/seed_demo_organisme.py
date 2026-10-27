@@ -22,6 +22,7 @@ from infrastructure.django_apps.candidate.models.candidature import CandidatureM
 from infrastructure.django_apps.ingestion.models.source import SourceModel
 from infrastructure.django_apps.messagerie.models import MessageModel
 from infrastructure.django_apps.recruteur.enums.motif_refus import MotifRefus
+from infrastructure.django_apps.recruteur.models.note import NoteModel
 from infrastructure.django_apps.recruteur.models.organisme import (
     OrganismeAgentModel,
     OrganismeModel,
@@ -58,8 +59,17 @@ from infrastructure.factories.referentiel.offer_django_factory import (
 from infrastructure.factories.seed_demo_cv_corpus import (
     CORPUS,
     LANGUES,
-    NOTE_LIGNES,
+    NOTE_CONCLUSIONS_APPEL,
+    NOTE_DISPONIBILITES,
+    NOTE_FORMATS,
+    NOTE_MOTIVATIONS,
+    NOTE_PRESENTS,
+    NOTE_QUALITES,
+    NOTE_SUITES,
+    NOTE_VIGILANCES,
     VILLES,
+    Experience,
+    Formation,
     PosteCorpus,
 )
 from infrastructure.factories.seed_demo_specs import RecrutementSpec, SpecOrganisme
@@ -76,18 +86,38 @@ _PROPOSITION = "Proposition"
 _REFUS = "Refus"
 _RECRUTEMENT = "Recrutement"
 _ETAPES = (_RECEPTION, _PRESELECTION, _ENTRETIEN, _PROPOSITION, _REFUS, _RECRUTEMENT)
-_ETAPES_AVEC_NOTE = (_PRESELECTION, _ENTRETIEN, _PROPOSITION, _RECRUTEMENT)
+
+_PREMIER_APPEL = "Premier appel"
+_COMPTE_RENDU = "Compte rendu d'entretien"
+_NOTES_PAR_ETAPE = {
+    _PRESELECTION: (_PREMIER_APPEL,),
+    _ENTRETIEN: (_COMPTE_RENDU,),
+    _RECRUTEMENT: (_PREMIER_APPEL, _COMPTE_RENDU),
+}
+_GRADES = ("A", "B", "C")
+_DUREES_ENTRETIEN = (30, 45, 60)
+_SUITE_SECOND_ENTRETIEN = "Proposer un créneau pour un second entretien"
 
 _SAMEDI = 5
 _CRENEAUX = ((3, "10 h"), (5, "14 h 30"), (8, "11 h"))
 _CANDIDATURES_ETALEES_SUR = timedelta(days=30)
 _DEMANDE_ENVOYEE_A = time(9, 30)
 _REPONSE_ENVOYEE_A = time(16, 30)
-_APPRECIATIONS = {
-    0.4: "Parcours voisin du poste, adéquation à confirmer en entretien.",
-    0.65: "Parcours en partie aligné sur le poste, expériences voisines utiles.",
-    0.9: "Parcours en adéquation directe avec les missions du poste.",
+_AVIS = {
+    0.4: (
+        "Réservé. Parcours voisin du poste, adéquation à confirmer.",
+        "Réservé. Expériences utiles mais éloignées des missions principales.",
+    ),
+    0.65: (
+        "Favorable avec réserves. Profil en partie aligné, à accompagner.",
+        "Favorable avec réserves. Bonnes bases, missions du poste à découvrir.",
+    ),
+    0.9: (
+        "Favorable. Profil solide, à revoir en second entretien avec la direction.",
+        "Favorable. Parcours en adéquation directe avec les missions du poste.",
+    ),
 }
+_PROXIMITE_RETENUE = 0.9
 _PART_AVATAR = 0.5
 _COULEURS_AVATAR = (
     (0.0, 0.0, 0.57),
@@ -109,7 +139,7 @@ class _CandidaturePlan:
     prenom: str
     nom: str
     proximite: float
-    note: bool
+    notes: tuple[str, ...]
     conversation: bool
     lecture: bool
     avatar: _Avatar | None
@@ -126,8 +156,9 @@ class _RecrutementPlan:
 @dataclass
 class _Cv:
     lignes: list[tuple[str, bool]]
-    experience: str
-    competence: str
+    experiences: list[tuple[int, Experience]]
+    formation: Formation
+    competences_poste: list[str]
 
 
 def _reference(cle: str, rang: int) -> str:
@@ -141,13 +172,14 @@ def _planifier(
     nb_conversations = 0
     for rang, spec in enumerate(spec_organisme.recrutements, start=1):
         candidatures = []
-        nb_suivies = 0
         for etape, nombre in zip(_ETAPES, spec["repartition"], strict=True):
-            for _ in range(nombre):
-                note = False
-                if etape in _ETAPES_AVEC_NOTE:
-                    note = nb_suivies % 3 == 0
-                    nb_suivies += 1
+            for rang_dans_l_etape in range(nombre):
+                notes = _NOTES_PAR_ETAPE.get(etape, ())
+                if etape != _RECRUTEMENT and rang_dans_l_etape % 2:
+                    notes = ()
+                proximite = rng.choice(list(_AVIS))
+                if etape == _RECRUTEMENT:
+                    proximite = _PROXIMITE_RETENUE
                 conversation = (
                     etape == _ENTRETIEN and spec["archive_depuis_jours"] is None
                 )
@@ -167,8 +199,8 @@ def _planifier(
                         etape=etape,
                         prenom=prenom,
                         nom=nom,
-                        proximite=rng.choice(list(_APPRECIATIONS)),
-                        note=note,
+                        proximite=proximite,
+                        notes=notes,
                         conversation=conversation,
                         lecture=lecture,
                         avatar=avatar,
@@ -199,7 +231,7 @@ def _comptes(plans: list[_RecrutementPlan]) -> dict:
         "par_etape": {
             etape: sum(c.etape == etape for c in candidatures) for etape in _ETAPES
         },
-        "notes": sum(c.note for c in candidatures),
+        "notes": sum(len(c.notes) for c in candidatures),
         "conversations": sum(c.conversation for c in candidatures),
         "conversations_lues": sum(c.lecture for c in candidatures),
     }
@@ -381,8 +413,11 @@ def _cv(
         ("Expériences professionnelles", True),
     ]
     fin = 2026
+    durees = []
     for experience in experiences:
-        debut = fin - rng.randint(2, 4)
+        duree = rng.randint(2, 4)
+        durees.append(duree)
+        debut = fin - duree
         lignes.append(
             (
                 f"{debut} - {fin} : {experience['titre']}, {experience['employeur']}",
@@ -393,7 +428,8 @@ def _cv(
         fin = debut
     lignes += [("", False), ("Formation", True)]
     annee = fin - rng.randint(0, 1)
-    for formation in rng.sample(corpus["formations"], 2):
+    formations = rng.sample(corpus["formations"], 2)
+    for formation in formations:
         lignes.append(
             (f"{annee} : {formation['diplome']}, {formation['etablissement']}", False)
         )
@@ -403,28 +439,84 @@ def _cv(
     lignes += [("", False), ("Langues", True), (rng.choice(LANGUES), False)]
     return _Cv(
         lignes=lignes,
-        experience=f"{experiences[0]['titre']}, {experiences[0]['employeur']}",
-        competence=competences[0],
+        experiences=list(zip(durees, experiences, strict=True)),
+        formation=formations[0],
+        competences_poste=competences[:nb_competences_poste],
     )
 
 
-def _note(candidature: _CandidaturePlan, intitule: str, cv: _Cv) -> str:
+def _jour(instant: datetime) -> str:
+    return timezone.localtime(instant).strftime("%d/%m/%Y")
+
+
+def _note_premier_appel(rng: random.Random, appel_le: datetime) -> str:
+    fonctionnaire = rng.choice(("Oui", "Non"))
+    grade = "sans objet, contractuel(le)"
+    if fonctionnaire == "Oui":
+        grade = rng.choice(_GRADES)
     return "\n".join(
         [
-            "Compte rendu de présélection",
-            *(
-                ligne.format(
-                    prenom=candidature.prenom,
-                    nom=candidature.nom,
-                    intitule=intitule,
-                    experience=cv.experience,
-                    competence=cv.competence,
-                    appreciation=_APPRECIATIONS[candidature.proximite],
-                )
-                for ligne in NOTE_LIGNES
-            ),
+            _PREMIER_APPEL,
+            f"Date de l'appel : {_jour(appel_le)}",
+            f"Fonctionnaire : {fonctionnaire}",
+            f"Grade : {grade}",
+            f"Disponibilité : {rng.choice(NOTE_DISPONIBILITES)}",
+            rng.choice(NOTE_CONCLUSIONS_APPEL),
         ]
     )
+
+
+def _note_compte_rendu(
+    rng: random.Random,
+    corpus: PosteCorpus,
+    candidature: _CandidaturePlan,
+    cv: _Cv,
+    entretien_le: datetime,
+) -> str:
+    parcours = [
+        f"- {duree} ans comme {experience['titre']}, {experience['employeur']}"
+        for duree, experience in cv.experiences[:2]
+    ]
+    a_approfondir = rng.choice(
+        [c for c in corpus["competences_poste"] if c not in cv.competences_poste]
+    )
+    duree = rng.choice(_DUREES_ENTRETIEN)
+    format_entretien = rng.choice(NOTE_FORMATS)
+    suites = rng.sample(NOTE_SUITES, 2)
+    if candidature.conversation:
+        suites[0] = _SUITE_SECOND_ENTRETIEN
+    return "\n".join(
+        [
+            _COMPTE_RENDU,
+            f"Entretien du {_jour(entretien_le)} – {duree} min, {format_entretien}",
+            f"Présents : {rng.choice(NOTE_PRESENTS)}",
+            "",
+            "Parcours",
+            *parcours,
+            f"- {cv.formation['diplome']}, {cv.formation['etablissement']}",
+            "",
+            "Motivations",
+            *(f"- {motivation}" for motivation in rng.sample(NOTE_MOTIVATIONS, 2)),
+            "",
+            "Points forts",
+            *(f"- {competence}" for competence in rng.sample(cv.competences_poste, 2)),
+            f"- {rng.choice(NOTE_QUALITES)}",
+            "",
+            "Points de vigilance",
+            f"- {a_approfondir} à approfondir",
+            f"- {rng.choice(NOTE_VIGILANCES)}",
+            "",
+            "Avis",
+            rng.choice(_AVIS[candidature.proximite]),
+            "",
+            "Suite",
+            *(f"- {suite}" for suite in suites),
+        ]
+    )
+
+
+def _instant_entre(rng: random.Random, debut: datetime, fin: datetime) -> datetime:
+    return debut + (fin - debut) * rng.random()
 
 
 def _jours_ouvres(depuis: date, rangs: list[int], pas: int = 1) -> dict[int, date]:
@@ -601,6 +693,7 @@ def _ecrire(
     motifs_refus = cycle(MotifRefus.values)
     responsables = cycle(agents)
     candidatures_creees: list[CandidatureModel] = []
+    notes_creees: list[NoteModel] = []
     nb_conversations = 0
 
     source, _ = SourceModel.objects.get_or_create(
@@ -610,6 +703,9 @@ def _ecrire(
     for plan in plans:
         spec = plan.spec
         responsable = next(responsables)
+        autre_agent = next(
+            (agent for agent in agents if agent.pk != responsable.pk), responsable
+        )
         recrutement = _seed_recrutement(
             plan, organisme, source, responsable, maintenant
         )
@@ -650,12 +746,34 @@ def _ecrire(
                 candidat.utilisateur,
                 _pdf_texte(cv.lignes, candidature_plan.avatar),
             )
-            if candidature_plan.note:
-                NoteDjangoFactory(
-                    candidature=candidature,
-                    publie_par=responsable,
-                    message=_note(candidature_plan, spec["intitule"], cv),
+            depose_au_plus_tard = fin
+            notes_au_plus_tard = fin
+            if candidature_plan.conversation:
+                depose_au_plus_tard = min(fin, envois[0] - timedelta(days=1))
+                notes_au_plus_tard = envois[0]
+            candidature.created_at = fake.date_time_between(
+                fin - _CANDIDATURES_ETALEES_SUR,
+                depose_au_plus_tard,
+                tzinfo=fin.tzinfo,
+            )
+            candidatures_creees.append(candidature)
+            publiee_le = candidature.created_at
+            for nature in candidature_plan.notes:
+                publiee_le = _instant_entre(rng, publiee_le, notes_au_plus_tard)
+                auteur = responsable
+                if nature == _PREMIER_APPEL:
+                    message = _note_premier_appel(rng, publiee_le)
+                    if candidature_plan.etape == _RECRUTEMENT:
+                        auteur = autre_agent
+                else:
+                    message = _note_compte_rendu(
+                        rng, plan.corpus, candidature_plan, cv, publiee_le
+                    )
+                note: NoteModel = NoteDjangoFactory(  # type: ignore[assignment]
+                    candidature=candidature, publie_par=auteur, message=message
                 )
+                note.created_at = publiee_le
+                notes_creees.append(note)
             if candidature_plan.conversation:
                 _seed_conversation(
                     candidature,
@@ -666,16 +784,8 @@ def _ecrire(
                     envois,
                 )
                 nb_conversations += 1
-            depose_au_plus_tard = fin
-            if candidature_plan.conversation:
-                depose_au_plus_tard = min(fin, envois[0] - timedelta(days=1))
-            candidature.created_at = fake.date_time_between(
-                fin - _CANDIDATURES_ETALEES_SUR,
-                depose_au_plus_tard,
-                tzinfo=fin.tzinfo,
-            )
-            candidatures_creees.append(candidature)
     CandidatureModel.objects.bulk_update(candidatures_creees, ["created_at"])
+    NoteModel.objects.bulk_update(notes_creees, ["created_at"])
 
 
 def _seed_un_organisme(

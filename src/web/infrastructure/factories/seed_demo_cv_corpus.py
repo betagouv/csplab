@@ -1296,20 +1296,62 @@ LANGUES = [
     "Anglais intermédiaire (B2), langue des signes française notions",
 ]
 
-NOTE_LIGNES = [
-    "Candidat(e) : {prenom} {nom}, poste de {intitule}.",
-    "Entretien de présélection téléphonique d'une trentaine de minutes.",
-    "Dernière expérience : {experience}.",
-    "{appreciation}",
-    "Point fort relevé : {competence}.",
-    "Motivation claire pour l'organisation des Jeux et le service public.",
-    "Bonne capacité à présenter ses réalisations de façon structurée.",
-    "Compréhension correcte des enjeux du poste et de son environnement.",
-    "Point de vigilance : expérience de l'interministériel à approfondir.",
-    "Disponibilité annoncée sous un mois, mobilité géographique possible.",
-    "Prétentions salariales compatibles avec la grille du poste.",
-    "Références professionnelles proposées, à contacter si poursuite.",
-    "Aisance à l'oral, propos précis et adaptés à l'interlocuteur.",
-    "Avis : favorable à un entretien avec le responsable du recrutement.",
-    "Prochaine étape : proposer trois créneaux d'entretien.",
+NOTE_PRESENTS = [
+    "responsable du recrutement, N+1, RZGE",
+    "responsable du recrutement, N+1",
+    "responsable du recrutement, chargé(e) de recrutement",
+    "N+1, RZGE",
+    "responsable du recrutement, N+1, chef(fe) de service",
+]
+
+NOTE_FORMATS = ["en visio", "en présentiel", "par téléphone"]
+
+NOTE_MOTIVATIONS = [
+    "Souhaite rejoindre la fonction publique d'État",
+    "Attiré(e) par le rôle de conseil auprès des services",
+    "Recherche un poste avec davantage de responsabilités",
+    "Souhaite mettre son expérience au service de l'intérêt général",
+    "Intéressé(e) par la dimension interministérielle du poste",
+    "Souhaite se rapprocher de sa famille, mobilité géographique",
+    "Veut élargir son expertise à un périmètre plus large",
+    "Attiré(e) par le travail en équipe pluridisciplinaire",
+]
+
+NOTE_QUALITES = [
+    "Expression claire et structurée",
+    "Bonne connaissance de l'environnement administratif",
+    "Encadrement d'une équipe de 2 personnes",
+    "Sens du service et de l'écoute",
+    "Rigueur dans le suivi des dossiers",
+    "Capacité à travailler en transversalité",
+    "Aisance rédactionnelle",
+]
+
+NOTE_VIGILANCES = [
+    "Ne connaît pas les outils internes du ministère",
+    "Préavis de 3 mois",
+    "Prétentions salariales au-dessus de la grille",
+    "Mobilité géographique à confirmer",
+]
+
+NOTE_DISPONIBILITES = [
+    "Immédiate",
+    "Sous un mois",
+    "Préavis de 2 mois",
+    "Préavis de 3 mois",
+]
+
+NOTE_CONCLUSIONS_APPEL = [
+    "CV à partager pour avis",
+    "Entretien à proposer",
+    "Profil à revoir avec le N+1",
+    "Lettre de motivation à demander",
+]
+
+NOTE_SUITES = [
+    "Vérifier les références",
+    "Transmettre le compte rendu au N+1",
+    "Faire un retour au candidat sous quinze jours",
+    "Comparer avec les autres profils reçus",
+    "Valider le niveau de rémunération avec le RH de proximité",
 ]
