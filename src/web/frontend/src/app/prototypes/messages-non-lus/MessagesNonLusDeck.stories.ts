@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/vue3-vite'
 import { DEMO_ORGANISME, DEMO_RECRUTEMENT_UUID } from '@/api/__mocks__/demo'
+import App from '@/app/App.vue'
 import MessagesNonLusComparaison from './MessagesNonLusComparaison.vue'
 
 const meta = {
@@ -57,4 +58,10 @@ export const BlocAPartRouge: Story = {
   name: 'Bloc à part, rouge',
   args: BlocAPart.args,
   globals: ROUGE,
+}
+
+export const KanbanPiedDeCarte: Story = {
+  name: 'Kanban, pied de carte vers les messages',
+  render: () => ({ components: { App }, template: '<App />' }),
+  globals: { nonLus: 'pied-lien' },
 }
