@@ -161,7 +161,7 @@ class PostgresOffersRepository(IIngestionOffersRepository):
 
         except Exception as e:
             self.logger.error("Database error during bulk upsert: %s", str(e))
-            raise DatabaseError("Database error during bulk upsert: %s", str(e)) from e
+            raise DatabaseError(f"Database error during bulk upsert: {e}") from e
 
     def get_by_id(self, offer_id: UUID) -> Offer:
         try:

@@ -753,8 +753,22 @@ class OrganismeInputSerializer(OrganismeSerializer):
         required=False,
         allow_null=True,
         allow_blank=True,
-        help_text="Ne doit être renseigné que par le service ingestion de CSPLab.",
+        help_text="Ne doit être renseigné que par le service ingestion de CSPLab : "
+        "refusé pour une authentification par JWT.",
     )
+
+    def validate_talentsoft_organisme_entity_code(self, value):
+        if not value:
+            return value
+        if not self.context.get("allow_talentsoft_organisme", False):
+            raise serializers.ValidationError(
+                "Champ réservé au service ingestion de CSPLab."
+            )
+        if not TalentsoftOrganismeModel.objects.by_entity_code(value).exists():
+            raise serializers.ValidationError(
+                f"Organisme Talentsoft inconnu : {value}."
+            )
+        return value
 
 
 class ProfessionInputSerializer(serializers.Serializer):
