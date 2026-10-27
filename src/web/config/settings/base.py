@@ -450,7 +450,7 @@ SPECTACULAR_SETTINGS = {
             "name": "changelog",
             "x-displayName": "Changelog",
             "x-traitTag": True,
-            "description": _doc_api_markdown("changelog_api.md"),
+            # Description added by PublicSchemaView from changelog_api.d/.
         },
         {"name": "token", "description": "Gestion de l'authentification"},
         {
