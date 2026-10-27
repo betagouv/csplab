@@ -1,32 +1,43 @@
+from argparse import ArgumentTypeError
 from uuid import UUID
 
 from django.core.management.base import BaseCommand, CommandError
 
 from infrastructure.factories.seed_demo_organisme import seed_demo_organisme
+from infrastructure.factories.seed_demo_specs import SPECS_DEMO, SpecOrganisme
 
 _ERREURS = {
     "production": "Seed de démo refusé en production (SCALEWAY_ENV=prod).",
-    "organisme_absent": "Organisme {organisme} introuvable ou supprimé.",
+    "organisme_absent": "Organisme {cle} ({organisme_id}) introuvable ou supprimé.",
     "aucun_agent_actif": (
-        "L'organisme {organisme} n'a aucun agent actif : rattacher au moins un "
-        "agent avant de lancer le seed."
-    ),
-    "deja_seede_ailleurs": (
-        "Les données de démo existent déjà sur un autre organisme "
-        "({autre_organisme_id}) : rien n'a été modifié."
+        "L'organisme {cle} ({organisme_id}) n'a aucun agent actif : rattacher au "
+        "moins un agent avant de lancer le seed."
     ),
 }
 
 
+def _cible(valeur: str) -> tuple[UUID, SpecOrganisme]:
+    cle, _, organisme_id = valeur.partition("=")
+    if cle not in SPECS_DEMO:
+        raise ArgumentTypeError(
+            f"clé d'organisme inconnue : {cle} (clés connues : {', '.join(SPECS_DEMO)})"
+        )
+    return UUID(organisme_id), SPECS_DEMO[cle]
+
+
 class Command(BaseCommand):
-    help = "Crée un jeu de données de démo sur un organisme existant"
+    help = "Crée un jeu de données de démo sur des organismes existants"
 
     def add_arguments(self, parser):
         parser.add_argument(
             "--organisme",
-            type=UUID,
+            type=_cible,
+            action="append",
             required=True,
-            help="UUID de l'organisme qui reçoit les données de démo.",
+            help=(
+                "CLE=UUID : spécification de démo et organisme qui la reçoit. "
+                "Répétable."
+            ),
         )
         parser.add_argument(
             "--force",
@@ -47,10 +58,15 @@ class Command(BaseCommand):
         )
         status = context["status"]
         if status in _ERREURS:
-            raise CommandError(
-                _ERREURS[status].format(organisme=options["organisme"], **context)
-            )
-        if status == "already_seeded":
+            raise CommandError(_ERREURS[status].format(**context))
+        if options["dry_run"]:
+            self.stdout.write("Simulation (--dry-run) : aucune écriture.")
+        for resultat in context["organismes"]:
+            self._ecrire_organisme(resultat)
+
+    def _ecrire_organisme(self, resultat):
+        self.stdout.write(f"== {resultat['cle']} ({resultat['organisme_id']})")
+        if resultat["status"] == "already_seeded":
             self.stdout.write(
                 self.style.WARNING(
                     "Données de démo déjà présentes, rien n'a été modifié "
@@ -58,15 +74,14 @@ class Command(BaseCommand):
                 )
             )
             return
-        if status == "dry_run":
-            self.stdout.write("Simulation (--dry-run) : aucune écriture.")
-            a_supprimer = context["a_supprimer"]
+        if resultat["status"] == "dry_run":
+            a_supprimer = resultat["a_supprimer"]
             self.stdout.write(
                 f"À supprimer avec --force : {a_supprimer['offres']} offres, "
                 f"{a_supprimer['candidatures']} candidatures, "
                 f"{a_supprimer['candidats']} candidats."
             )
-        self._ecrire_comptes(context["comptes"])
+        self._ecrire_comptes(resultat["comptes"])
 
     def _ecrire_comptes(self, comptes):
         self.stdout.write(
