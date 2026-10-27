@@ -158,7 +158,7 @@ class TestOfferDetailViewDbVerified:
             profile="Profil recherché",
             mission="Mission du poste",
             organization="Ministère Test",
-            category=Category.A,
+            categories=[Category.A],
             offer_nature=OfferNature.TERRITORIAL,
             offer_url=HttpUrl("https://exemple.gouv.fr/offres/e2e-1"),
             country="FRA",

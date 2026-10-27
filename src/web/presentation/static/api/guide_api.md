@@ -126,7 +126,7 @@ réponse jusqu'à ce qu'il vaille `null`.
 | Paramètre | Rôle | Format |
 |---|---|---|
 | `actif` | Ne retourner que les offres actives (`true`, valeur par défaut) ou archivées (`false`) | Booléen |
-| `categorie` | Filtrer par catégorie(s) | Liste séparée par virgules parmi APLUS, A, B, C |
+| `categorie` | Filtrer par catégorie(s) : une offre est retournée si l'une de ses catégories fait partie du filtre | Liste séparée par virgules parmi APLUS, A, B, C |
 | `versant` | Filtrer par versant(s) | Liste séparée par virgules parmi FPT, FPE, FPH |
 | `nature_offre` | Filtrer par nature(s) d'offre | Liste séparée par virgules parmi TITULAIRE_CONTRACTUEL, CONTRACTUEL, TERRITORIAL |
 | `niveau_experience` | Filtrer par niveau(x) d'expérience | Liste séparée par virgules parmi DEBUTANT, CONFIRME, EXPERT |
@@ -154,7 +154,7 @@ Chaque offre renvoyée contient notamment :
 | `titre` | Intitulé du poste | Non |
 | `organisation` | Organisme employeur | Non |
 | `nature_offre` | Nature de l'offre | Oui |
-| `categorie` | Catégorie (A+, A, B, C…) | Oui |
+| `categories` | Catégories (A+, A, B, C…), dans l'ordre d'envoi | Oui (liste vide) |
 | `debut_publication` | Date de début de publication | Non |
 | `url_offre` | Lien vers l'annonce | Oui |
 | `date_archivage` | Date d'archivage de l'offre | Oui |
@@ -331,7 +331,7 @@ longueur et de valeurs autorisées**.
 #### Catégorie et contrat
 | Champ | Règle |
 |---|---|
-| `categories` | Liste. Valeurs autorisées : **APLUS, A, B, C, HORS_CATEGORIE** (ou vide). |
+| `categories` | Obligatoire. Liste, éventuellement vide. Valeurs autorisées : **APLUS, A, B, C, HORS_CATEGORIE**. Toutes les catégories sont enregistrées, dans l'ordre d'envoi (doublons retirés). |
 | `nature_offre` | Obligatoire. Public visé par l'offre. Valeurs autorisées : **TITULAIRE_CONTRACTUEL, CONTRACTUEL, TERRITORIAL**. |
 | `type_contrat` | Facultatif. Une seule valeur parmi **CDD, CDI, CDD_CDI, CONTRAT_PROJET, VACATION** (ou vide / `null` si l'offre n'est pas soumise à contractualisation). |
 | `vacance_poste` | **OUI** = poste vacant ; **NON** = poste susceptible d'être vacant (ou vide). |
@@ -730,7 +730,7 @@ Notation : `a.b` désigne un objet imbriqué, `a[]` une liste, `a[0]` son premie
 
 | Offer API v1 | Note |
 |---|---|
-| `categories` | Lu par l'ingestion dans `customFields.description.customCodeTable1`, que l'API fake-ts n'expose pas (`CAT-A`/`B`/`C` ; `CAT-AEF`/`ESD`/`ES` → `APLUS`). Le web garde `sorted(categories)[0]`. |
+| `categories` | Lu par l'ingestion dans `customFields.description.customCodeTable1`, que l'API fake-ts n'expose pas (`CAT-A`/`B`/`C` ; `CAT-AEF`/`ESD`/`ES` → `APLUS`). API fake-ts : le filtre `category` de `offer_summaries` retourne une offre si l'une de ses catégories en fait partie. |
 | `type_contrat` | Lu dans `customFields.offer.customCodeTable2` (absent de l'API fake-ts) : `CDD*`, `CDI`. |
 | `organisation.siret` | Jamais renseigné par l'ingestion (vide) ; le rapprochement d'organisme passe par `talentsoft_organisme_entity_code`. |
 | `profession.referentiel` | Constante `RMFPv2`. |

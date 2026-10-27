@@ -52,10 +52,6 @@ class OfferInputMapper(IToDomainMapper[dict, Offer]):
         if not data:
             return None
 
-        # todo handle multiple categories offers later
-        category = (
-            Category(sorted(data["categories"])[0]) if data.get("categories") else None
-        )
         conditions = data.get("conditions") or None
         debut_contrat = conditions.get("debut_contrat") if conditions else None
 
@@ -71,7 +67,7 @@ class OfferInputMapper(IToDomainMapper[dict, Offer]):
             publication_date=data["publication"]["debut_publication"],
             end_publication_date=data["publication"]["fin_publication"],
             verse=Verse(data["identification"]["versant"]),
-            category=category,
+            categories=[Category(c) for c in data["categories"]],
             offer_nature=OfferNature(data["nature_offre"]),
             offer_url=data.get("url_offre"),
             localisation=self._localisation_mapper.to_domain(raw_localisation),
@@ -148,9 +144,11 @@ class OfferSummaryOutputMapper:
             if offer.offer_nature
             else None,
             "offerFamilyCategory": self._coded_object(
-                offer.category.name, offer.category.value, "offerFamilyCategory"
+                offer.main_category.name,
+                offer.main_category.value,
+                "offerFamilyCategory",
             )
-            if offer.category
+            if offer.main_category
             else None,
             "organisationName": offer.organization,
             "organisationDescription": offer.talentsoft_organisme.description

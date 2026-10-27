@@ -106,7 +106,7 @@ class PostgresOffersRepository(IIngestionOffersRepository):
                                 "title",
                                 "profile",
                                 "mission",
-                                "category",
+                                "categories",
                                 "offer_nature",
                                 "organization",
                                 "offer_url",
@@ -226,7 +226,7 @@ class PostgresOffersRepository(IIngestionOffersRepository):
         qs = self._apply_field_filters(
             qs,
             [
-                ("category__in", category, lambda c: c.value),
+                ("categories__overlap", category, lambda c: c.value),
                 ("verse__in", verse, lambda v: v.value),
                 ("offer_nature__in", offer_nature, lambda c: c.value),
                 ("criteria__experience__in", experience_level, lambda e: e.name),
