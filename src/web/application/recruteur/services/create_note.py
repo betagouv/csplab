@@ -55,11 +55,10 @@ def create_note(
             message=message,
             est_privee=est_privee,
         )
-        if not note.est_privee:
-            AuditLogWriter(repository=PostgresAuditLogRepository()).log_action(
-                utilisateur_id=publie_par_id,
-                entity=Entity(entity_id=note.id),
-                ressource_kind="Note",
-                event_name="NoteAjoutee",
-            )
+        AuditLogWriter(repository=PostgresAuditLogRepository()).log_action(
+            utilisateur_id=publie_par_id,
+            entity=Entity(entity_id=note.id),
+            ressource_kind="Note",
+            event_name="NoteAjoutee",
+        )
     return note

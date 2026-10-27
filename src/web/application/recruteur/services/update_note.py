@@ -64,11 +64,12 @@ def update_note(
         if est_privee is not None:
             note.est_privee = est_privee
         note.save(update_fields=["message", "est_privee", "updated_at"])
-        if not note.est_privee:
-            AuditLogWriter(repository=PostgresAuditLogRepository()).log_action(
-                utilisateur_id=utilisateur.username,
-                entity=Entity(entity_id=note.id),
-                ressource_kind="Note",
-                event_name="NotePartagee" if was_private else "NoteEditee",
-            )
+        AuditLogWriter(repository=PostgresAuditLogRepository()).log_action(
+            utilisateur_id=utilisateur.username,
+            entity=Entity(entity_id=note.id),
+            ressource_kind="Note",
+            event_name="NotePartagee"
+            if was_private and not note.est_privee
+            else "NoteEditee",
+        )
     return note

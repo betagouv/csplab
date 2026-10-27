@@ -198,7 +198,7 @@ class TestCandidatureNotesView:
             str(team_note.id): False,
         }
 
-    def test_post_creates_a_private_note_without_logging(
+    def test_post_creates_and_logs_a_private_note(
         self, authenticated_client, test_user
     ):
         _, organisme, recrutement, candidature = (
@@ -215,7 +215,7 @@ class TestCandidatureNotesView:
         assert response.json()["est_privee"] is True
         note_id = response.json()["uuid"]
         assert NoteModel.objects.get(id=note_id).est_privee is True
-        assert _note_events(note_id) == []
+        assert _note_events(note_id) == ["NoteAjoutee"]
 
 
 class TestCandidatureNoteDetailView:
@@ -350,7 +350,7 @@ class TestCandidatureNoteDetailView:
         assert response.status_code == status.HTTP_204_NO_CONTENT
         assert NoteModel.objects.get(id=note.id).supprimee_le is not None
 
-    def test_delete_private_note_without_logging(self, authenticated_client, test_user):
+    def test_delete_logs_a_private_note(self, authenticated_client, test_user):
         agent, organisme, recrutement, candidature = (
             create_recrutement_and_candidature_for_agent(utilisateur=test_user)
         )
@@ -364,7 +364,7 @@ class TestCandidatureNoteDetailView:
 
         assert response.status_code == status.HTTP_204_NO_CONTENT
         assert NoteModel.objects.get(id=note.id).supprimee_le is not None
-        assert _note_events(note.id) == []
+        assert _note_events(note.id) == ["NoteSupprimee"]
 
     def test_patch_without_est_privee_keeps_note_private(
         self, authenticated_client, test_user
@@ -385,7 +385,7 @@ class TestCandidatureNoteDetailView:
         assert response.status_code == status.HTTP_200_OK
         assert response.json()["est_privee"] is True
         assert NoteModel.objects.get(id=note.id).est_privee is True
-        assert _note_events(note.id) == []
+        assert _note_events(note.id) == ["NoteEditee"]
 
     def test_patch_shares_a_private_note(self, authenticated_client, test_user):
         agent, organisme, recrutement, candidature = (
@@ -406,7 +406,7 @@ class TestCandidatureNoteDetailView:
         assert NoteModel.objects.get(id=note.id).est_privee is False
         assert _note_events(note.id) == ["NotePartagee"]
 
-    def test_patch_keeps_a_team_note_for_me_without_logging(
+    def test_patch_keeps_a_team_note_for_me_and_logs_an_edit(
         self, authenticated_client, test_user
     ):
         agent, organisme, recrutement, candidature = (
@@ -423,7 +423,7 @@ class TestCandidatureNoteDetailView:
         assert response.status_code == status.HTTP_200_OK
         assert response.json()["est_privee"] is True
         assert NoteModel.objects.get(id=note.id).est_privee is True
-        assert _note_events(note.id) == []
+        assert _note_events(note.id) == ["NoteEditee"]
 
     def test_patch_team_note_staying_shared_logs_an_edit(
         self, authenticated_client, test_user
