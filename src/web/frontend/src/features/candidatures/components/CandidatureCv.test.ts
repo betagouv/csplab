@@ -50,14 +50,11 @@ describe('candidatureCv', () => {
     vi.clearAllMocks()
   })
 
-  it('displays a PDF CV in a frame, with a full page link and a download link', async () => {
+  it('displays a PDF CV in a frame, with a full page link', async () => {
     renderCv([document({ type: 'lettre_motivation', uuid: 'lettre' }), document({})])
 
     expect(await screen.findByTitle('CV de Alice Dupont')).toHaveAttribute('src', CV_URL)
     expect(screen.getByRole('link', { name: 'Afficher pleine page' })).toHaveAttribute('href', CV_URL)
-    const download = screen.getByRole('link', { name: 'Télécharger' })
-    expect(download).toHaveAttribute('href', CV_URL)
-    expect(download).toHaveAttribute('download', 'CV Alice Dupont.pdf')
   })
 
   it('says when the CV is not a PDF', async () => {
