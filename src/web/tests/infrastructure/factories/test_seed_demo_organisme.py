@@ -1,4 +1,5 @@
 import random
+from datetime import datetime
 from io import BytesIO, StringIO
 from uuid import UUID, uuid4
 
@@ -36,6 +37,7 @@ from infrastructure.factories.identite.organisme_django_factory import (
 )
 from infrastructure.factories.seed_demo_cv_corpus import CORPUS
 from infrastructure.factories.seed_demo_organisme import (
+    _au_poste,
     _CandidaturePlan,
     _cv,
     _pdf_texte,
@@ -63,7 +65,7 @@ _RECRUTEMENTS_REDUITS: list[RecrutementSpec] = [
         "intitule": "Conseiller(ère) finances et garanties de l’État",
         "famille": "finances",
         "archive_depuis_jours": None,
-        "repartition": (2, 1, 1, 0, 1, 0),
+        "repartition": (2, 1, 1, 1, 1, 0),
     },
     {
         "intitule": "Chargé(e) de mission biodiversité",
@@ -88,22 +90,26 @@ def _comptes_reduits(reference_finalisee):
         "recrutements_en_cours": 1,
         "recrutements_archives": 2,
         "responsables": 3,
-        "candidatures": 13,
-        "candidats": 13,
-        "cvs": 13,
+        "candidatures": 14,
+        "candidats": 14,
+        "cvs": 14,
         "par_etape": {
             "Réception des candidatures": 3,
             "Présélection": 2,
             "Entretien": 2,
+            "Proposition": 1,
             "Refus": 5,
             "Recrutement": 1,
         },
         "recrutements_finalises": [reference_finalisee],
         "notes": 6,
-        "conversations": 1,
-        "messages": 2,
-        "reponses_candidat": 1,
-        "lectures": 2,
+        "conversations": {
+            "Date d’entretien": 2,
+            "Demande de pièces justificatives": 2,
+        },
+        "messages": 8,
+        "reponses_candidat": 4,
+        "lectures": 8,
     }
 
 
@@ -163,9 +169,12 @@ def _comptes(organisme_id):
             )
         ),
         "notes": NoteModel.objects.filter(candidature__in=candidatures).count(),
-        "conversations": ConversationModel.objects.filter(
-            candidature__in=candidatures, objet="Date d’entretien"
-        ).count(),
+        "conversations": dict(
+            ConversationModel.objects.filter(candidature__in=candidatures)
+            .values("objet")
+            .annotate(n=Count("id"))
+            .values_list("objet", "n")
+        ),
         "messages": MessageModel.objects.filter(
             conversation__candidature__in=candidatures
         ).count(),
@@ -266,8 +275,8 @@ class TestSeedDemoOrganisme:
 
         simulation = seed_demo_organisme(cibles, dry_run=True)
         assert [o["a_supprimer"] for o in simulation["organismes"]] == [
-            {"offres": 3, "candidatures": 13, "candidats": 13},
-            {"offres": 3, "candidatures": 13, "candidats": 13},
+            {"offres": 3, "candidatures": 14, "candidats": 14},
+            {"offres": 3, "candidatures": 14, "candidats": 14},
         ]
 
         rejeu = seed_demo_organisme(cibles)
@@ -330,10 +339,69 @@ class TestSeedDemoOrganisme:
             )
             .filter(demande_le__isnull=False)
         )
-        assert comptes_rendus_avec_fil.count() == 1
+        assert sorted(
+            comptes_rendus_avec_fil.values_list("candidature__etape__nom", flat=True)
+        ) == ["Entretien", "Recrutement"]
         assert not comptes_rendus_avec_fil.filter(
             created_at__gte=F("demande_le")
         ).exists()
+
+    def test_seeds_ticket_conversations_each_answered_by_the_candidate(self, db):
+        organisme = _organisme_avec_agents()
+
+        seed_demo_organisme([(organisme.pk, SPEC_A)])
+
+        conversations = ConversationModel.objects.filter(
+            candidature__in=_candidatures_demo(organisme.pk)
+        ).select_related("candidature__etape__recrutement__offre")
+        objets: dict[str, set[str]] = {}
+        fils_retenue = {}
+        for conversation in conversations:
+            candidature = conversation.candidature
+            offre = candidature.etape.recrutement.offre
+            messages = list(conversation.messages.order_by("created_at"))
+            objets.setdefault(candidature.etape.nom, set()).add(conversation.objet)
+            assert [m.auteur_id == candidature.candidat_id for m in messages] == [
+                False,
+                True,
+            ]
+            if offre.archived_at is not None:
+                assert messages[-1].created_at < offre.archived_at
+            if conversation.objet == "Demande de pièces justificatives":
+                demande = messages[0]
+                limite = demande.contenu.split("avant le ", 1)[1][:10]
+                assert f"au poste de {offre.title}." in demande.contenu
+                assert (
+                    datetime.strptime(limite, "%d/%m/%Y").date()
+                    > timezone.localtime(demande.created_at).date()
+                )
+            if candidature.etape.nom == "Recrutement":
+                fils_retenue[conversation.objet] = messages
+        assert objets == {
+            "Entretien": {"Date d’entretien"},
+            "Proposition": {"Demande de pièces justificatives"},
+            "Recrutement": {"Date d’entretien", "Demande de pièces justificatives"},
+        }
+        assert (
+            fils_retenue["Date d’entretien"][-1].created_at
+            < fils_retenue["Demande de pièces justificatives"][0].created_at
+        )
+        retenue = conversations.filter(candidature__etape__nom="Recrutement")
+        equipe = RecrutementAgentModel.objects.filter(
+            recrutement=retenue.first().candidature.etape.recrutement
+        ).values_list("agent__utilisateur_id", flat=True)
+        assert [retenue.unread_by(agent).count() for agent in equipe] == [0, 0]
+
+    @pytest.mark.parametrize(
+        ("intitule", "attendu"),
+        [
+            ("Attaché(e) de presse", "au poste d'Attaché(e) de presse"),
+            ("Économiste", "au poste d'Économiste"),
+            ("Chargé(e) de recrutement", "au poste de Chargé(e) de recrutement"),
+        ],
+    )
+    def test_elides_au_poste_de_before_a_vowel(self, intitule, attendu):
+        assert _au_poste(intitule) == attendu
 
     @pytest.mark.parametrize(
         ("cas", "motif"),
@@ -437,7 +505,7 @@ class TestSeedDemoOrganisme:
                 "  Refus : 187",
                 "  Recrutement : 3",
             ]
-            assert bloc[10].startswith("Notes : 98,")
+            assert bloc[10] == "Notes : 98, conversations : 52 (dont 29 lues)."
         _rien_ecrit()
 
     @pytest.mark.parametrize(
@@ -466,7 +534,7 @@ class TestSeedDemoOrganisme:
                 nom="Durand",
                 proximite=proximite,
                 notes=(),
-                conversation=False,
+                fils=(),
                 lecture=False,
                 avatar=None,
             )
@@ -488,7 +556,7 @@ class TestSeedDemoOrganisme:
             nom="Durand",
             proximite=0.4,
             notes=(),
-            conversation=False,
+            fils=(),
             lecture=False,
             avatar=None,
         )
