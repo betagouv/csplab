@@ -34,8 +34,13 @@ from infrastructure.django_apps.recruteur.models.recrutement import (
     RecrutementAgentModel,
     RecrutementModel,
 )
+from infrastructure.django_apps.tag.models import TagCategory, TagColor, TagModel
 from infrastructure.django_apps.users.models import ProfilAgentModel
-from presentation.commons.serializers import LocalisationSerializer, OrganismeSerializer
+from presentation.commons.serializers import (
+    LocalisationSerializer,
+    OrganismeSerializer,
+    authorized_actions_field,
+)
 
 # Single source of choices for every `categorie` field of an etape. drf-spectacular
 # names enums after the field, so serializers declaring the same field with different
@@ -180,6 +185,7 @@ class RecrutementsSerializer(
         allow_null=True,
     )
     responsables = ResponsableSerializer(many=True)
+    authorized_actions = authorized_actions_field()
 
     def to_representation(self, instance: RecrutementModel) -> dict:
         data = super().to_representation(instance)
@@ -202,6 +208,7 @@ class RecrutementsActifsSerializer(RecrutementsSerializer):
             "reference_csp",
             "nature_offre",
             "responsables",
+            "authorized_actions",
             "date_publication",
             "candidatures",
             "derniere_activite",
@@ -233,6 +240,7 @@ class RecrutementsArchivesSerializer(RecrutementsSerializer):
             "reference_csp",
             "nature_offre",
             "responsables",
+            "authorized_actions",
             "date_archivage",
             "finalise",
             "recrute",
@@ -808,3 +816,32 @@ class CreateMessageSerializer(serializers.Serializer):
 
 class CreateConversationSerializer(CreateMessageSerializer):
     objet = serializers.CharField(max_length=settings.CONVERSATION_OBJET_MAX_LENGTH)
+
+
+# ---------------------------------------------------------------------------
+# Serializers pour les étiquettes d'un organisme
+# ---------------------------------------------------------------------------
+
+
+class TagSerializer(serializers.ModelSerializer):
+    uuid = serializers.UUIDField(source="id")
+    usage_count = serializers.IntegerField(read_only=True, default=0)
+
+    class Meta:
+        model = TagModel
+        fields = ["uuid", "name", "category", "color", "usage_count"]
+
+
+class TagListQuerySerializer(serializers.Serializer):
+    category = serializers.ChoiceField(choices=TagCategory.choices, required=False)
+
+
+class CreateTagSerializer(serializers.Serializer):
+    name = serializers.CharField(max_length=25)
+    category = serializers.ChoiceField(choices=TagCategory.choices)
+    color = serializers.ChoiceField(choices=TagColor.choices, default=TagColor.BLEU)
+
+
+class UpdateTagSerializer(serializers.Serializer):
+    name = serializers.CharField(max_length=25)
+    color = serializers.ChoiceField(choices=TagColor.choices)

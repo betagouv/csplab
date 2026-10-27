@@ -3310,6 +3310,10 @@ paths:
 
         Le format `CSP-AAAA-NNNNNN` est réservé aux références générées par CSPLab. Une référence à ce format n'est acceptée que pour mettre à jour une offre existante de la source. Sinon, l'offre est rejetée dans `errors`.
 
+        # Organisme de l'offre
+
+        Le bloc `organisation` attend le `nom` et le `siret` de l'organisme. Ces valeurs se retrouvent avec `GET /api/v1/organismes` (filtres `nom` et `siret`).
+
         # Consulter les offres transmises
 
         Sur l'environnement de démonstration uniquement, les offres transmises peuvent être consultées dans l'interface « Fret » : https://demo.csplab.beta.gouv.fr/fret
@@ -3585,6 +3589,462 @@ paths:
             X-RateLimit-Reset:
               $ref: '#/components/headers/X-RateLimit-Reset'
   /api/v1/organismes:
+    get:
+      operationId: v1_organismes_list
+      description: |2
+
+        # API de consultation des organismes de la Fonction Publique
+
+        Cette API retourne la liste paginée des organismes du référentiel CSPLab (FINESS,
+        GIPCDG et DILA). Les organismes supprimés ne sont pas renvoyés. La liste est triée
+        par `nom`, puis par `id`.
+
+        Filtres disponibles :
+
+        - `versant` — une ou plusieurs valeurs séparées par une virgule (ex. `FPE,FPT`).
+        - `siret` — SIRET exact, sur 14 caractères.
+        - `nom` — recherche partielle sur le nom, insensible à la casse.
+        - `departement` — code du département de l'organisme (ex. `75`, `2A`, `971`).
+        - `referentiel` — référentiel source : `FINESS`, `GIPCDG` ou `DILA`.
+
+        Les champs `nom` et `siret` d'un organisme sont les valeurs à reprendre dans le bloc
+        `organisation` de l'API d'ingestion d'offres.
+
+        Une page au-delà de la dernière renvoie une erreur 404.
+
+
+        Cette API est à l'usage exclusif des personnes autorisées.
+
+        # Permissions
+
+        L'utilisation de cette API nécessite un token d'autorisation spécifique à chaque
+        utilisateur.
+
+        # Limitations
+
+        L'interrogation de cette API est limitée à 120 appels par minute et par utilisateur.
+      summary: Liste des organismes
+      parameters:
+      - in: query
+        name: departement
+        schema:
+          enum:
+          - '01'
+          - '02'
+          - '03'
+          - '04'
+          - '05'
+          - '06'
+          - '07'
+          - 08
+          - 09
+          - '10'
+          - '11'
+          - '12'
+          - '13'
+          - '14'
+          - '15'
+          - '16'
+          - '17'
+          - '18'
+          - '19'
+          - '21'
+          - '22'
+          - '23'
+          - '24'
+          - '25'
+          - '26'
+          - '27'
+          - '28'
+          - '29'
+          - 2A
+          - 2B
+          - '30'
+          - '31'
+          - '32'
+          - '33'
+          - '34'
+          - '35'
+          - '36'
+          - '37'
+          - '38'
+          - '39'
+          - '40'
+          - '41'
+          - '42'
+          - '43'
+          - '44'
+          - '45'
+          - '46'
+          - '47'
+          - '48'
+          - '49'
+          - '50'
+          - '51'
+          - '52'
+          - '53'
+          - '54'
+          - '55'
+          - '56'
+          - '57'
+          - '58'
+          - '59'
+          - '60'
+          - '61'
+          - '62'
+          - '63'
+          - '64'
+          - '65'
+          - '66'
+          - '67'
+          - '68'
+          - '69'
+          - '70'
+          - '71'
+          - '72'
+          - '73'
+          - '74'
+          - '75'
+          - '76'
+          - '77'
+          - '78'
+          - '79'
+          - '80'
+          - '81'
+          - '82'
+          - '83'
+          - '84'
+          - '85'
+          - '86'
+          - '87'
+          - '88'
+          - '89'
+          - '90'
+          - '91'
+          - '92'
+          - '93'
+          - '94'
+          - '95'
+          - '971'
+          - '972'
+          - '973'
+          - '974'
+          - '975'
+          - '976'
+          - '986'
+          - '987'
+          - '988'
+          - SPM
+          - WLF
+          type: string
+          minLength: 1
+        description: |-
+          Code du département de l'organisme (ex. `75`, `2A`, `971`).
+
+          * `01` - 01
+          * `02` - 02
+          * `03` - 03
+          * `04` - 04
+          * `05` - 05
+          * `06` - 06
+          * `07` - 07
+          * `08` - 08
+          * `09` - 09
+          * `10` - 10
+          * `11` - 11
+          * `12` - 12
+          * `13` - 13
+          * `14` - 14
+          * `15` - 15
+          * `16` - 16
+          * `17` - 17
+          * `18` - 18
+          * `19` - 19
+          * `21` - 21
+          * `22` - 22
+          * `23` - 23
+          * `24` - 24
+          * `25` - 25
+          * `26` - 26
+          * `27` - 27
+          * `28` - 28
+          * `29` - 29
+          * `2A` - 2A
+          * `2B` - 2B
+          * `30` - 30
+          * `31` - 31
+          * `32` - 32
+          * `33` - 33
+          * `34` - 34
+          * `35` - 35
+          * `36` - 36
+          * `37` - 37
+          * `38` - 38
+          * `39` - 39
+          * `40` - 40
+          * `41` - 41
+          * `42` - 42
+          * `43` - 43
+          * `44` - 44
+          * `45` - 45
+          * `46` - 46
+          * `47` - 47
+          * `48` - 48
+          * `49` - 49
+          * `50` - 50
+          * `51` - 51
+          * `52` - 52
+          * `53` - 53
+          * `54` - 54
+          * `55` - 55
+          * `56` - 56
+          * `57` - 57
+          * `58` - 58
+          * `59` - 59
+          * `60` - 60
+          * `61` - 61
+          * `62` - 62
+          * `63` - 63
+          * `64` - 64
+          * `65` - 65
+          * `66` - 66
+          * `67` - 67
+          * `68` - 68
+          * `69` - 69
+          * `70` - 70
+          * `71` - 71
+          * `72` - 72
+          * `73` - 73
+          * `74` - 74
+          * `75` - 75
+          * `76` - 76
+          * `77` - 77
+          * `78` - 78
+          * `79` - 79
+          * `80` - 80
+          * `81` - 81
+          * `82` - 82
+          * `83` - 83
+          * `84` - 84
+          * `85` - 85
+          * `86` - 86
+          * `87` - 87
+          * `88` - 88
+          * `89` - 89
+          * `90` - 90
+          * `91` - 91
+          * `92` - 92
+          * `93` - 93
+          * `94` - 94
+          * `95` - 95
+          * `971` - 971
+          * `972` - 972
+          * `973` - 973
+          * `974` - 974
+          * `975` - 975
+          * `976` - 976
+          * `986` - 986
+          * `987` - 987
+          * `988` - 988
+          * `SPM` - SPM
+          * `WLF` - WLF
+      - in: query
+        name: nom
+        schema:
+          type: string
+          maxLength: 255
+          minLength: 1
+        description: Recherche partielle sur le nom, insensible à la casse.
+      - name: page
+        required: false
+        in: query
+        description: Numéro de la page.
+        schema:
+          type: integer
+          default: 1
+          minimum: 1
+      - in: query
+        name: referentiel
+        schema:
+          enum:
+          - FINESS
+          - GIPCDG
+          - DILA
+          type: string
+          minLength: 1
+        description: |-
+          Référentiel source de l'organisme.
+
+          * `FINESS` - FINESS
+          * `GIPCDG` - GIPCDG
+          * `DILA` - DILA
+      - in: query
+        name: siret
+        schema:
+          type: string
+          maxLength: 14
+          minLength: 14
+        description: SIRET exact de l'organisme (14 caractères).
+      - name: taille
+        required: false
+        in: query
+        description: Nombre d'éléments par page.
+        schema:
+          type: integer
+          default: 100
+          minimum: 1
+          maximum: 1000
+      - in: query
+        name: versant
+        schema:
+          type: array
+          items:
+            enum:
+            - FPT
+            - FPE
+            - FPH
+            type: string
+            description: |-
+              * `FPT` - FPT
+              * `FPE` - FPE
+              * `FPH` - FPH
+        description: Valeurs séparées par une virgule (ex. `FPE,FPT`).
+      tags:
+      - organismes
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedOrganismePublicList'
+              examples:
+                Success:
+                  value:
+                    count: 1
+                    next: null
+                    previous: null
+                    results:
+                    - id: 3f1c2a4e-8b7d-4c9a-9e2f-1a2b3c4d5e6f
+                      nom: Centre hospitalier de Bastia
+                      versant: FPH
+                      siret: '26200017900016'
+                      parent_id: null
+                      referentiel: FINESS
+                      external_id: 2B0000020
+                      millesime: 2026-10
+                      localisation:
+                        zone_geographique: EU
+                        pays: FRA
+                        region: '94'
+                        departement: 2B
+                  summary: Liste des organismes
+                  description: Les organismes sont retournés paginés.
+          description: ''
+          headers:
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+              examples:
+                Error-InvalidFilter:
+                  value:
+                    error: 'versant : Valeurs de versant invalides : FPX. Valeurs
+                      autorisées : FPE, FPH, FPT.'
+                  summary: Filtre invalide
+                  description: Un des filtres passés en paramètre est incorrect.
+          description: ''
+          headers:
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenError'
+              examples:
+                Error-InvalidToken:
+                  value:
+                    detail: Le jeton fourni n'est pas valide.
+                    code: token_not_valid
+                    messages:
+                    - token_class: AccessToken
+                      token_type: access
+                      message: Token is invalid or expired
+                  summary: Token JWT invalide ou expiré
+                  description: Le token dans le header `Authorization` est invalide
+                    ou expiré.
+          description: ''
+          headers:
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DetailError'
+          description: ''
+          headers:
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
+        '500':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+              examples:
+                Error-UnexpectedServerError:
+                  value:
+                    error: Unexpected error
+                  summary: Erreur serveur inattendue
+                  description: Une erreur inattendue s'est produite côté serveur.
+          description: ''
+          headers:
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
+        '429':
+          description: Nombre maximal d'appels autorisés dépassé.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
+                    example: Request was throttled. Expected available in 42 seconds.
+          headers:
+            Retry-After:
+              $ref: '#/components/headers/Retry-After'
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
     put:
       operationId: v1_organismes_update
       description: Supprimer (soft-delete), entre 1 et 100 organismes à la fois, via
@@ -4319,6 +4779,13 @@ components:
       - employeur
       - mission
       - profil
+    DetailError:
+      type: object
+      properties:
+        detail:
+          type: string
+      required:
+      - detail
     ExperienceEnum:
       enum:
       - DEBUTANT
@@ -5061,9 +5528,33 @@ components:
           $ref: '#/components/schemas/ZoneGeographiqueEnum'
         pays:
           type: string
+          description: Code pays ISO 3166-1 alpha-3, en majuscules (ex. `FRA`).
           maxLength: 3
           minLength: 3
         region:
+          description: |-
+            Code INSEE de la région, `DOM` ou `TOM`. Le département doit appartenir à cette région : `DOM` avec un département d'outre-mer, `TOM` avec une collectivité d'outre-mer.
+
+            * `01` - 01
+            * `02` - 02
+            * `03` - 03
+            * `04` - 04
+            * `06` - 06
+            * `11` - 11
+            * `24` - 24
+            * `27` - 27
+            * `28` - 28
+            * `32` - 32
+            * `44` - 44
+            * `52` - 52
+            * `53` - 53
+            * `75` - 75
+            * `76` - 76
+            * `84` - 84
+            * `93` - 93
+            * `94` - 94
+            * `DOM` - DOM
+            * `TOM` - TOM
           oneOf:
           - $ref: '#/components/schemas/RegionEnum'
           - $ref: '#/components/schemas/BlankEnum'
@@ -5088,9 +5579,7 @@ components:
           nullable: true
       required:
       - departement
-      - latitude
       - localisation_label
-      - longitude
       - pays
       - region
       - zone_geographique
@@ -5386,8 +5875,12 @@ components:
       properties:
         nom:
           type: string
+          description: Nom de l'organisme. Reprendre de préférence le `nom` renvoyé
+            par `GET /api/v1/organismes`.
         siret:
           type: string
+          description: SIRET de l'organisme, à retrouver avec `GET /api/v1/organismes`
+            (filtres `nom` et `siret`).
           maxLength: 14
         talentsoft_organisme_entity_code:
           type: string
@@ -5404,6 +5897,7 @@ components:
           $ref: '#/components/schemas/ZoneGeographiqueEnum'
         pays:
           type: string
+          description: Code pays ISO 3166-1 alpha-3, en majuscules (ex. `FRA`).
           maxLength: 3
           minLength: 3
         region:
@@ -5431,6 +5925,87 @@ components:
       - pays
       - region
       - zone_geographique
+    OrganismeLocalisationPublic:
+      type: object
+      properties:
+        zone_geographique:
+          type: string
+        pays:
+          type: string
+        region:
+          type: string
+        departement:
+          type: string
+      required:
+      - departement
+      - pays
+      - region
+      - zone_geographique
+    OrganismePublic:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        nom:
+          type: string
+          description: Nom de référence, à reprendre dans `organisation.nom` de l'API
+            d'ingestion d'offres.
+        versant:
+          allOf:
+          - $ref: '#/components/schemas/VersantEnum'
+          readOnly: true
+        siret:
+          type: string
+          description: SIRET à renseigner dans `organisation.siret` de l'API d'ingestion
+            d'offres.
+        parent_id:
+          type: string
+          format: uuid
+          nullable: true
+          description: Identifiant de l'organisme parent.
+        referentiel:
+          allOf:
+          - $ref: '#/components/schemas/OrganismePublicReferentielEnum'
+          description: |-
+            Référentiel source. Avec `external_id`, identifie l'organisme pour la création, la mise à jour et la suppression.
+
+            * `FINESS` - FINESS
+            * `GIPCDG` - GIPCDG
+            * `DILA` - DILA
+        external_id:
+          type: string
+          nullable: true
+          description: Identifiant dans le référentiel source.
+        millesime:
+          type: string
+          nullable: true
+          description: Version du référentiel source dont provient l'organisme.
+        localisation:
+          allOf:
+          - $ref: '#/components/schemas/OrganismeLocalisationPublic'
+          nullable: true
+      required:
+      - external_id
+      - id
+      - localisation
+      - millesime
+      - nom
+      - parent_id
+      - referentiel
+      - siret
+      - versant
+    OrganismePublicReferentielEnum:
+      enum:
+      - FINESS
+      - GIPCDG
+      - DILA
+      type: string
+      description: |-
+        * `FINESS` - FINESS
+        * `GIPCDG` - GIPCDG
+        * `DILA` - DILA
     OrganismeUpsertInput:
       type: object
       properties:
@@ -5587,12 +6162,35 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/OfferDetailResponse'
+    PaginatedOrganismePublicList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 1
+        next:
+          type: string
+          format: uri
+          nullable: true
+          example: null
+        previous:
+          type: string
+          format: uri
+          nullable: true
+          example: null
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrganismePublic'
     ProfessionInput:
       type: object
       properties:
         referentiel:
           allOf:
-          - $ref: '#/components/schemas/ReferentielEnum'
+          - $ref: '#/components/schemas/ProfessionInputReferentielEnum'
           default: RMFPv2
         domaine:
           type: string
@@ -5623,6 +6221,11 @@ components:
       required:
       - domaine
       - metier
+    ProfessionInputReferentielEnum:
+      enum:
+      - RMFPv2
+      type: string
+      description: '* `RMFPv2` - RMFPv2'
     PublicationInput:
       type: object
       properties:
@@ -5643,11 +6246,6 @@ components:
       required:
       - debut_publication
       - fin_publication
-    ReferentielEnum:
-      enum:
-      - RMFPv2
-      type: string
-      description: '* `RMFPv2` - RMFPv2'
     RegionEnum:
       enum:
       - '01'
@@ -6128,7 +6726,7 @@ tags:
 
     Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/).
 
-    ## 2026-10-23
+    ## 2026-10-27
 
     ### ⚠️ Changements non rétrocompatibles
 
@@ -6151,7 +6749,60 @@ tags:
     Pour parcourir une liste, suivez le lien `next` jusqu'à ce qu'il vaille `null`, plutôt
     que d'incrémenter `page` jusqu'à obtenir une liste vide.
 
+    ## 2026-10-26
+
+    ### ⚠️ Changements non rétrocompatibles
+
+    `POST /api/v1/offres/creer_modifier` : une offre dont le `departement` d'une localisation
+    n'appartient pas à sa `region` est désormais rejetée. Elle apparaît dans `errors`, avec
+    un message du type « Le département 13 (Bouches-du-Rhône) n'appartient pas à la région
+    11 (Île-de-France). ». Jusqu'ici, la région et le département étaient vérifiés
+    séparément : `region` `01` (Guadeloupe) et `departement` `01` (Ain) étaient acceptés
+    ensemble.
+
+    `POST /api/v1/offres/creer_modifier` : une offre dont `localisation[].pays` n'est pas
+    en majuscules (`fra`, `Fra`…) est désormais rejetée. Elle apparaît dans `errors`, avec
+    le message « Code pays invalide, un code ISO 3166-1 alpha-3 en majuscules est attendu
+    (ex. FRA). ». Jusqu'ici, le code était enregistré tel quel et la règle « région et
+    département obligatoires pour une offre en France » ne s'appliquait pas.
+
+    `POST /api/v1/organismes/creer_modifier` : un organisme dont `localisation.pays` n'est pas
+    un code ISO 3166-1 alpha-3 en majuscules (`fra`, `XXX`…) est désormais rejeté. Il
+    apparaît dans `errors`, avec le message « Code pays invalide, un code ISO 3166-1 alpha-3
+    en majuscules est attendu (ex. FRA). ». Jusqu'ici, tout code de 3 caractères était
+    enregistré tel quel.
+
+    ### Compatibilité
+
+    Renseignez dans `region` le code INSEE de la région du département, et non le code du
+    département. Pour l'outre-mer :
+
+    - départements et régions d'outre-mer (`971` à `974`, `976`) : le code INSEE de la
+      région (`01` à `04`, `06`) ou `DOM` ;
+    - collectivités d'outre-mer (`975`, `986`, `987`, `988`, `SPM`, `WLF`) : `TOM`.
+
+    Envoyez un code pays ISO 3166-1 alpha-3 existant, en majuscules (`FRA`, `BEL`…).
+
+    ### Corrigé
+
+    - `POST /api/v1/offres/creer_modifier` : `latitude` et `longitude` peuvent désormais
+      être omises dans un élément de `localisation`, comme l'indique le guide de l'API.
+      Jusqu'ici, une offre sans ces clés était rejetée avec « Ce champ est obligatoire. »,
+      et il fallait les envoyer à `null`. Les deux écritures sont acceptées et donnent une
+      localisation sans coordonnées.
+
     ## 2026-10-22
+
+    ### Ajouté
+
+    - `GET /api/v1/organismes` : liste paginée (`page`, `taille`) des organismes du
+      référentiel CSPLab (FINESS, GIPCDG et DILA), triée par nom. Accessible avec un jeton
+      JWT uniquement. Filtres : `versant` (plusieurs valeurs séparées par une virgule),
+      `siret`, `nom` (recherche partielle), `departement` et `referentiel`. Chaque
+      organisme contient `id`, `nom`, `versant`, `siret`, `parent_id`, `referentiel`,
+      `external_id`, `millesime` et `localisation`. Les valeurs `nom` et `siret` sont
+      celles à reprendre dans le bloc `organisation` de
+      `POST /api/v1/offres/creer_modifier`.
 
     ### ⚠️ Changements non rétrocompatibles
 

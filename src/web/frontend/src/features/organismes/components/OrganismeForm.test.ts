@@ -1,13 +1,12 @@
 import type { CreateOrganismePayload, UpdateOrganismePayload } from '../types'
 import { render, screen } from '@testing-library/vue'
 import { describe, expect, it } from 'vitest'
-import { defineComponent, h, ref } from 'vue'
 import { ORGANISME } from '@/test/fixtures/organismes'
 import { setupUser } from '@/test/render'
-import OrganismeFormDrawer from './OrganismeFormDrawer.vue'
+import OrganismeForm from './OrganismeForm.vue'
 
-function renderDrawer(organisme: typeof ORGANISME | null = null) {
-  return render(OrganismeFormDrawer, { props: { open: true, organisme } })
+function renderForm(props: Record<string, unknown> = {}) {
+  return render(OrganismeForm, { props: { organisme: null, ...props } })
 }
 
 function submitButton() {
@@ -24,12 +23,11 @@ async function fillForm(user: ReturnType<typeof setupUser>, { nom = 'Nouvel orga
   }
 }
 
-describe('organismeFormDrawer', () => {
+describe('organismeForm', () => {
   it('keeps the submit button disabled until required fields are filled', async () => {
     const user = setupUser()
-    renderDrawer()
+    renderForm()
 
-    await screen.findByRole('dialog', { name: 'Ajouter un organisme' })
     expect(submitButton()).toBeDisabled()
 
     await fillForm(user, { siret: '123' })
@@ -44,7 +42,7 @@ describe('organismeFormDrawer', () => {
     ['12345671234567', 'Ce SIRET n\'est pas valide, vérifiez votre saisie.'],
   ])('refuses the siret %s on submit', async (siret, message) => {
     const user = setupUser()
-    const { emitted } = renderDrawer()
+    const { emitted } = renderForm()
 
     await fillForm(user, { siret, versant: 'Fonction Publique d\'État' })
     await user.click(submitButton())
@@ -55,7 +53,7 @@ describe('organismeFormDrawer', () => {
 
   it('strips non digit characters from a pasted siret', async () => {
     const user = setupUser()
-    const { emitted } = renderDrawer()
+    const { emitted } = renderForm()
 
     await fillForm(user, { siret: '110 046 018 00021', versant: 'Fonction Publique Territoriale' })
     await user.click(submitButton())
@@ -65,7 +63,7 @@ describe('organismeFormDrawer', () => {
 
   it('emits the payload on create', async () => {
     const user = setupUser()
-    const { emitted } = renderDrawer()
+    const { emitted } = renderForm()
 
     await fillForm(user, { siret: '11004601800021', versant: 'Fonction Publique Territoriale' })
     await user.click(submitButton())
@@ -79,9 +77,8 @@ describe('organismeFormDrawer', () => {
   })
 
   it('prefills the form and locks the siret in edition', async () => {
-    renderDrawer(ORGANISME)
+    renderForm({ organisme: ORGANISME })
 
-    await screen.findByRole('dialog', { name: 'Modifier l\'organisme' })
     const siret = screen.getByRole('textbox', { name: 'SIRET de l\'organisme' })
     expect(siret).toHaveValue(ORGANISME.siret)
     expect(siret).toBeDisabled()
@@ -90,7 +87,7 @@ describe('organismeFormDrawer', () => {
 
   it('emits the payload without the siret on update', async () => {
     const user = setupUser()
-    const { emitted } = renderDrawer(ORGANISME)
+    const { emitted } = renderForm({ organisme: ORGANISME })
 
     const nom = await screen.findByRole('textbox', { name: 'Nom de l\'organisme' })
     await user.clear(nom)
@@ -104,23 +101,14 @@ describe('organismeFormDrawer', () => {
     })
   })
 
-  it('surfaces a siret conflict on the siret field', async () => {
-    const message = 'Ce SIRET est déjà utilisé par un autre organisme'
-    // the drawer stays closed unless a listener is bound to its open model
-    const Host = defineComponent({
-      setup() {
-        const drawer = ref<InstanceType<typeof OrganismeFormDrawer> | null>(null)
-        return () => h('div', [
-          h(OrganismeFormDrawer, { 'ref': drawer, 'open': true, 'organisme': null, 'onUpdate:open': () => {} }),
-          h('button', { onClick: () => drawer.value?.setSiretError(message) }, 'Signaler le conflit'),
-        ])
-      },
-    })
+  it('surfaces the siret refused by the server until it changes', async () => {
     const user = setupUser()
-    render(Host)
+    renderForm({ rejectedSiret: '11004601800021' })
 
-    await user.click(await screen.findByRole('button', { name: 'Signaler le conflit' }))
+    await fillForm(user, { siret: '11004601800021' })
+    expect(screen.getByText('Ce SIRET est déjà utilisé ou n\'est pas valide.')).toBeInTheDocument()
 
-    expect(await screen.findByText(message)).toBeInTheDocument()
+    await user.type(screen.getByRole('textbox', { name: 'SIRET de l\'organisme' }), '{Backspace}')
+    expect(screen.queryByText('Ce SIRET est déjà utilisé ou n\'est pas valide.')).not.toBeInTheDocument()
   })
 })

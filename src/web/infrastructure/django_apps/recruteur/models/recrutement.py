@@ -17,7 +17,10 @@ from django.db.models.functions import Coalesce
 from domain.recruteur.value_objects.categorie_etapes_recrutement import (
     CategorieEtapeRecrutement,
 )
-from domain.recruteur.value_objects.roles import AgentRecrutementRole
+from domain.recruteur.value_objects.roles import (
+    AgentOrganismeRole,
+    AgentRecrutementRole,
+)
 from infrastructure.django_apps.candidate.models.candidature import CandidatureModel
 from infrastructure.django_apps.recruteur.models.etape import EtapeModel
 from infrastructure.django_apps.recruteur.models.organisme import OrganismeModel
@@ -128,6 +131,9 @@ class RecrutementQuerySet(models.QuerySet):
                 ).values("role")[:1]
             )
         )
+
+    def with_organisme_role(self, role: AgentOrganismeRole) -> "RecrutementQuerySet":
+        return self.annotate(organisme_role=Value(role.value))
 
 
 class RecrutementModel(models.Model):

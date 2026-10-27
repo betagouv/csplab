@@ -25,7 +25,8 @@
     - [Structure d'une offre et contraintes sur les champs](#structure-dune-offre-et-contraintes-sur-les-champs)
     - [En cas de problème](#en-cas-de-probleme)
   - [5. Consulter les métiers — `GET /api/v1/metiers/`](#5-consulter-les-metiers-get-apiv1metiers)
-  - [6. Importer des concours (fichier CSV) — `POST /api/v1/concours/upload/`](#6-importer-des-concours-fichier-csv-post-apiv1concoursupload)
+  - [6. Consulter les organismes — `GET /api/v1/organismes/`](#6-consulter-les-organismes-get-apiv1organismes)
+  - [7. Importer des concours (fichier CSV) — `POST /api/v1/concours/upload/`](#7-importer-des-concours-fichier-csv-post-apiv1concoursupload)
     - [Format du fichier attendu](#format-du-fichier-attendu)
     - [Colonnes obligatoires](#colonnes-obligatoires)
     - [Comment se passe le traitement ?](#comment-se-passe-le-traitement)
@@ -45,7 +46,7 @@
 Une API est une « porte d'entrée » automatisée qui permet à deux logiciels de
 s'échanger des informations sans intervention humaine. Ici, l'API CSPLab permet à des
 partenaires autorisés (par exemple des plateformes d'emploi public) de **transmettre
-des offres d'emploi et des concours**, et de **consulter les offres et les métiers**
+des offres d'emploi et des concours**, et de **consulter les offres, les métiers et les organismes**
 de la Fonction Publique.
 
 
@@ -97,13 +98,14 @@ Pour préserver le service, le nombre d'appels est plafonné :
 
 # Les fonctionnalités de l'API
 
-L'API est organisée en quatre grands domaines :
+L'API est organisée en cinq grands domaines :
 
 | Domaine | À quoi ça sert |
 |---|---|
 | **Authentification** (`token`) | Obtenir et renouveler les jetons d'accès |
 | **Offres** (`offres`) | Consulter, créer/modifier et archiver des offres d'emploi |
 | **Métiers** (`metiers`) | Consulter le référentiel des métiers de la Fonction Publique |
+| **Organismes** (`organismes`) | Consulter le référentiel des organismes de la Fonction Publique |
 | **Concours** (`concours`) | Importer des données de concours via un fichier CSV |
 
 
@@ -315,8 +317,8 @@ longueur et de valeurs autorisées**.
 #### Bloc « Organisation » (`organisation`) — obligatoire
 | Champ | Règle |
 |---|---|
-| `nom` | Obligatoire. Nom de l'organisme. |
-| `siret` | Obligatoire. **14 caractères maximum.** |
+| `nom` | Obligatoire. Nom de l'organisme. Reprendre de préférence le `nom` renvoyé par [`GET /api/v1/organismes/`](#6-consulter-les-organismes-get-apiv1organismes). |
+| `siret` | Obligatoire. **14 caractères maximum.** Le SIRET se retrouve avec [`GET /api/v1/organismes/`](#6-consulter-les-organismes-get-apiv1organismes), grâce aux filtres `nom` et `siret`. |
 
 #### Bloc « Profession » (`profession`) — obligatoire
 | Champ | Règle |
@@ -365,11 +367,11 @@ caractères s'applique au texte Markdown, syntaxe comprise.
 | Champ | Règle |
 |---|---|
 | `zone_geographique` | Obligatoire dans chaque localisation. Valeurs : **AF** (Afrique), **EU** (Europe), **AS** (Asie), **AM** (Amérique), **OC** (Océanie), **AN** (Antarctique). |
-| `pays` | Obligatoire. Code pays sur **exactement 3 caractères**. |
-| `region` | Code région officiel, ou vide. |
-| `departement` | Code département officiel (`01` à `95`, `2A`, `2B`, DOM-TOM, `SPM`, `WLF`…), ou vide. |
+| `pays` | Obligatoire. Code pays ISO 3166-1 alpha-3, **en majuscules** (ex. `FRA`). Un code en minuscules (`fra`) est rejeté. Pour `FRA`, `region` et `departement` sont obligatoires. |
+| `region` | Code région INSEE officiel, `DOM`, `TOM`, ou vide. Si `departement` est renseigné, doit être la région de ce département : code INSEE de la région ou `DOM` pour `971` à `974` et `976`, `TOM` pour `975`, `986`, `987`, `988`, `SPM` et `WLF`. |
+| `departement` | Code département officiel (`01` à `95`, `2A`, `2B`, DOM-TOM, `SPM`, `WLF`…), ou vide. Doit appartenir à `region`. |
 | `localisation_label` | Libellé du lieu. **500 caractères maximum.** |
-| `latitude` / `longitude` | Coordonnées géographiques. Peuvent être vides. |
+| `latitude` / `longitude` | Coordonnées géographiques. Facultatives : peuvent être absentes ou `null`. |
 
 #### Bloc « Critères » (`criteres`) — peut être vide
 | Champ | Règle |
@@ -464,7 +466,50 @@ Chaque métier renvoyé contient :
 
 
 
-## 6. Importer des concours (fichier CSV) — `POST /api/v1/concours/upload/`
+## 6. Consulter les organismes — `GET /api/v1/organismes/`
+
+Retourne la liste **paginée** des organismes du référentiel CSPLab, alimenté par les
+référentiels FINESS, GIPCDG et DILA (paramètres `page` et `taille`). Les organismes
+supprimés ne sont pas renvoyés. La liste est triée par nom, puis par identifiant :
+l'ordre ne change pas d'un appel à l'autre.
+
+Cette route n'est accessible qu'avec un **jeton** (voir « Authentification »).
+
+> **Page hors limites :** contrairement à la liste des métiers, une page au-delà de la
+> dernière renvoie une erreur `404`.
+
+Les valeurs `nom` et `siret` d'un organisme sont celles à reprendre dans le bloc
+`organisation` d'une offre envoyée avec `POST /api/v1/offres/creer_modifier/`.
+
+### Filtres disponibles
+
+| Filtre | Effet | Contrainte |
+|---|---|---|
+| `versant` | Filtrer par versant | `FPE`, `FPT` ou `FPH`. Plusieurs valeurs séparées par une virgule (ex. `FPE,FPT`) |
+| `siret` | Retrouver un organisme par son SIRET, par exemple pour vérifier un SIRET avant d'envoyer une offre | Exactement **14 caractères** |
+| `nom` | Rechercher un organisme par une partie de son nom, sans tenir compte des majuscules | 255 caractères maximum |
+| `departement` | Filtrer par département de l'organisme | Code de département (ex. `75`, `2A`, `971`) |
+| `referentiel` | Filtrer par référentiel source | `FINESS`, `GIPCDG` ou `DILA` |
+
+Un filtre invalide (par exemple un versant inconnu) renvoie une erreur `400`.
+
+### Informations renvoyées
+
+| Information | Signification |
+|---|---|
+| `id` | Identifiant de l'organisme dans CSPLab |
+| `nom` | Nom de référence de l'organisme, à reprendre dans `organisation.nom` d'une offre |
+| `versant` | `FPE`, `FPT` ou `FPH` |
+| `siret` | SIRET de l'organisme, à renseigner dans `organisation.siret` d'une offre |
+| `parent_id` | Identifiant de l'organisme parent, ou vide |
+| `referentiel` | Référentiel source : `FINESS`, `GIPCDG` ou `DILA`. Avec `external_id`, c'est la clé utilisée pour créer, mettre à jour ou supprimer un organisme |
+| `external_id` | Identifiant de l'organisme dans le référentiel source |
+| `millesime` | Version du référentiel source dont provient l'organisme (peut être vide) |
+| `localisation` | Vide, ou `zone_geographique`, `pays`, `region` et `departement` de l'organisme |
+
+
+
+## 7. Importer des concours (fichier CSV) — `POST /api/v1/concours/upload/`
 
 Permet d'importer en masse des données de concours **GRECO** via un fichier CSV.
 

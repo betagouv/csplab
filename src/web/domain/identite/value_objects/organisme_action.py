@@ -37,3 +37,7 @@ class OrganismeAction(Enum):
     READ_CONVERSATION = "read_conversation"
     CREATE_CONVERSATION = "create_conversation"
     REPLY_CONVERSATION = "reply_conversation"
+    LIST_TAGS = "list_tags"
+    CREATE_TAG = "create_tag"
+    UPDATE_TAG = "update_tag"
+    DELETE_TAG = "delete_tag"
