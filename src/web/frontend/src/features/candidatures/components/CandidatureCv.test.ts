@@ -3,14 +3,19 @@ import { PiniaColada } from '@pinia/colada'
 import { render, screen } from '@testing-library/vue'
 import { createPinia } from 'pinia'
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import { checkCandidatureDocument } from '@/api/documents'
 import { HttpError } from '@/api/errors'
 import { CANDIDATURE_PARAMS } from '@/test/fixtures/candidatures'
-import { checkCandidatureDocument, getCandidatureDocuments } from '../api'
+import { getCandidatureDocuments } from '../api'
 import CandidatureCv from './CandidatureCv.vue'
 
 vi.mock('../api', async importOriginal => ({
   ...await importOriginal<typeof import('../api')>(),
   getCandidatureDocuments: vi.fn(),
+}))
+
+vi.mock('@/api/documents', async importOriginal => ({
+  ...await importOriginal<typeof import('@/api/documents')>(),
   checkCandidatureDocument: vi.fn(),
 }))
 
