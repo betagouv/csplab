@@ -525,7 +525,7 @@ class TestCandidatureNoteVisibiliteView:
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
-    def test_keeps_a_team_note_for_me_without_logging(
+    def test_keeps_a_team_note_for_me_and_logs_an_edit(
         self, authenticated_client, test_user
     ):
         agent, organisme, recrutement, candidature = (
@@ -542,7 +542,7 @@ class TestCandidatureNoteVisibiliteView:
         assert response.status_code == status.HTTP_200_OK
         assert response.json()["est_privee"] is True
         assert NoteModel.objects.get(id=note.id).est_privee is True
-        assert _note_events(note.id) == []
+        assert _note_events(note.id) == ["NoteEditee"]
 
     def test_shares_a_private_note(self, authenticated_client, test_user):
         agent, organisme, recrutement, candidature = (

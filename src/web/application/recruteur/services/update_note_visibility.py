@@ -63,11 +63,10 @@ def update_note_visibility(
 
         note.est_privee = est_privee
         note.save(update_fields=["est_privee", "updated_at"])
-        if not note.est_privee:
-            AuditLogWriter(repository=PostgresAuditLogRepository()).log_action(
-                utilisateur_id=utilisateur.username,
-                entity=Entity(entity_id=note.id),
-                ressource_kind="Note",
-                event_name="NotePartagee",
-            )
+        AuditLogWriter(repository=PostgresAuditLogRepository()).log_action(
+            utilisateur_id=utilisateur.username,
+            entity=Entity(entity_id=note.id),
+            ressource_kind="Note",
+            event_name="NoteEditee" if note.est_privee else "NotePartagee",
+        )
     return note
