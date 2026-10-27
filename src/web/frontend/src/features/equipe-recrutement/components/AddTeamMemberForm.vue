@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { RecrutementRole } from '../types'
-import type { CspRadioGroupOption } from '@/components/base/CspRadioGroup/CspRadioGroup.vue'
 import type { AgentSearchStatus } from '@/features/agents/composables/useFindOrCreateAgent'
 import type { AgentRecherche } from '@/features/agents/types'
 import { computed, ref, useId } from 'vue'
@@ -8,7 +7,7 @@ import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspDrawerFooter from '@/components/base/CspDrawer/CspDrawerFooter.vue'
 import CspRadioGroup from '@/components/base/CspRadioGroup/CspRadioGroup.vue'
 import AgentRechercheForm from '@/features/agents/components/AgentRechercheForm.vue'
-import { RECRUTEMENT_ROLE_LABELS } from '../constants/equipe-recrutement'
+import { RECRUTEMENT_ROLE_OPTIONS } from '../constants/equipe-recrutement'
 
 const props = defineProps<{
   status: AgentSearchStatus
@@ -26,10 +25,6 @@ const emit = defineEmits<{
 }>()
 
 const DEFAULT_ROLE: RecrutementRole = 'contributeur'
-
-const ROLE_OPTIONS: CspRadioGroupOption[] = (
-  Object.keys(RECRUTEMENT_ROLE_LABELS) as RecrutementRole[]
-).map(role => ({ value: role, label: RECRUTEMENT_ROLE_LABELS[role] }))
 
 const email = ref('')
 const role = ref<RecrutementRole>(DEFAULT_ROLE)
@@ -71,7 +66,7 @@ const formId = useId()
       v-model="role"
       label="Rôle dans le recrutement"
       name="recrutement_role"
-      :options="ROLE_OPTIONS"
+      :options="RECRUTEMENT_ROLE_OPTIONS"
     />
   </form>
 

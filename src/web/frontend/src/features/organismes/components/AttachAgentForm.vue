@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { Role } from '../types'
-import type { CspRadioGroupOption } from '@/components/base/CspRadioGroup/CspRadioGroup.vue'
 import type { AgentSearchStatus } from '@/features/agents/composables/useFindOrCreateAgent'
 import type { AgentRecherche } from '@/features/agents/types'
 import { computed, ref, useId } from 'vue'
@@ -8,7 +7,7 @@ import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspDrawerFooter from '@/components/base/CspDrawer/CspDrawerFooter.vue'
 import CspRadioGroup from '@/components/base/CspRadioGroup/CspRadioGroup.vue'
 import AgentRechercheForm from '@/features/agents/components/AgentRechercheForm.vue'
-import { ROLE_LABELS } from '../constants/organisme'
+import { ROLE_OPTIONS } from '../constants/organisme'
 
 const props = defineProps<{
   status: AgentSearchStatus
@@ -24,11 +23,6 @@ const emit = defineEmits<{
   reset: []
   cancel: []
 }>()
-
-const ROLE_OPTIONS: CspRadioGroupOption[] = [
-  { value: 'agent', label: ROLE_LABELS.agent },
-  { value: 'superviseur', label: ROLE_LABELS.superviseur },
-]
 
 const email = ref('')
 const role = ref<Role>('agent')
