@@ -58,12 +58,57 @@
 }
 
 /*
+ * Gradient and grain: a light of blue France on the end corner of a header, where the actions are, a rise of blue
+ * cumulus towards the end edge, under no text, and a grain of fractal noise on the page. The grain is mid grey, #808080,
+ * which darkens a light background and lightens a dark one by the same amount: an SVG image cannot read a variable. Its
+ * fixed attachment lines up the grain of the page header with the grain of the page around it. The light keeps a size
+ * in rem, so that it keeps its shape from a phone to a wide screen.
+ */
+:root[data-csp-backdrop='gradient'],
+:root[data-csp-theme='dsfr'] {
+  --gradient-grain: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20width%3D'200'%20height%3D'200'%3E%3Cfilter%20id%3D'g'%20x%3D'0'%20y%3D'0'%20width%3D'100%25'%20height%3D'100%25'%20color-interpolation-filters%3D'sRGB'%3E%3CfeTurbulence%20type%3D'fractalNoise'%20baseFrequency%3D'0.75'%20numOctaves%3D'2'%20stitchTiles%3D'stitch'%2F%3E%3CfeColorMatrix%20values%3D'0%200%200%200%200.5%200%200%200%200%200.5%200%200%200%200%200.5%200.3%200%200%200%20-0.12'%2F%3E%3C%2Ffilter%3E%3Crect%20width%3D'100%25'%20height%3D'100%25'%20filter%3D'url(%23g)'%2F%3E%3C%2Fsvg%3E")
+    0 0 / 200px 200px repeat fixed;
+  /* the tab row and the top bar on a phone show the grain of the page */
+  --csp-chrome-background: transparent;
+  --csp-canvas-backdrop: var(--gradient-grain);
+  --csp-page-header-backdrop:
+    var(--gradient-grain),
+    radial-gradient(min(40rem, 60vw) 10rem at 100% 0%, var(--blue-france-925-125), 50%, transparent) 0 0 / 100% 100%
+      no-repeat,
+    linear-gradient(90deg, transparent 35%, var(--blue-cumulus-950-100)) 0 0 / 100% 100% no-repeat,
+    linear-gradient(var(--csp-canvas-background), var(--csp-canvas-background)) 0 0 / 100% 100% no-repeat;
+  --csp-page-header-backdrop-highlighted:
+    var(--gradient-grain),
+    radial-gradient(min(40rem, 60vw) 10rem at 100% 0%, var(--blue-france-main-525), 12%, transparent) 0 0 / 100% 100%
+      no-repeat,
+    linear-gradient(var(--gradient-highlighted-fill), var(--gradient-highlighted-fill)) 0 0 / 100% 100% no-repeat;
+  --gradient-highlighted-fill: var(--background-action-high-blue-france);
+  --csp-page-header-color-highlighted: var(--text-inverted-blue-france);
+  --csp-page-header-subtitle-color-highlighted: var(--text-inverted-blue-france);
+  /* a drawer is a layer above the page and takes no grain */
+  --csp-drawer-header-backdrop:
+    radial-gradient(min(40rem, 60vw) 10rem at 100% 0%, var(--blue-france-950-100), 50%, transparent) 0 0 / 100% 100%
+      no-repeat,
+    linear-gradient(90deg, transparent 35%, var(--blue-cumulus-975-75)) 0 0 / 100% 100% no-repeat;
+  /* a light behind the icon and the title of an empty state, that fades out before its edges */
+  --csp-empty-state-backdrop: radial-gradient(closest-side, var(--blue-france-950-100), transparent) 0 0 / 100% 100%
+    no-repeat;
+}
+
+/* the DSFR turns blue France 113 into a light blue in the dark theme; blue-france-975-sun-113 keeps it dark */
+:root[data-csp-backdrop='gradient'][data-fr-theme='dark'],
+:root[data-csp-theme='dsfr'][data-fr-theme='dark'] {
+  --gradient-highlighted-fill: var(--blue-france-975-sun-113);
+  --csp-page-header-color-highlighted: var(--text-title-grey);
+  --csp-page-header-subtitle-color-highlighted: var(--text-default-grey);
+}
+
+/*
  * Pictograms of the DSFR: one in blue France tones down the whole height of a page header, by its actions, one in each
  * empty state, the dots of their decorative layer as the texture of the application, and the home page header on
  * blue France.
  */
-:root[data-csp-backdrop='pictograms'],
-:root[data-csp-theme='dsfr'] {
+:root[data-csp-backdrop='pictograms'] {
   --csp-canvas-backdrop:
     radial-gradient(circle at 75px 61px, var(--artwork-decorative-blue-france) 1px, transparent 1.5px) 0 0 / 80px 80px,
     radial-gradient(circle at 3px 53px, var(--artwork-decorative-blue-france) 1px, transparent 1.5px) 0 0 / 80px 80px,
@@ -98,8 +143,7 @@
 
 /* the DSFR turns the action background of blue France light in dark mode; the header keeps the blue France of the light
    mode, that the DSFR gives in dark mode to its inverted text token */
-:root[data-csp-backdrop='pictograms'][data-fr-theme='dark'],
-:root[data-csp-theme='dsfr'][data-fr-theme='dark'] {
+:root[data-csp-backdrop='pictograms'][data-fr-theme='dark'] {
   --csp-page-header-background-highlighted: var(--text-inverted-blue-france);
   --csp-page-header-color-highlighted: var(--text-title-grey);
   --csp-page-header-subtitle-color-highlighted: var(--text-title-grey);

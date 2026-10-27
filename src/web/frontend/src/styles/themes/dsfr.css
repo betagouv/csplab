@@ -1,6 +1,6 @@
 /*
  * The DSFR and its tokens: its tab component in the candidature panel, its palette, its shadows and its 300 ms
- * transition, with the pictograms background and the discreet radii (backdrops.css, shapes.css). The layers that rise
+ * transition, with the gradient background and the discreet radii (backdrops.css, shapes.css). The layers that rise
  * take two soft layers in the colour of its shadows.
  */
 :root[data-csp-theme='dsfr'] {

@@ -49,7 +49,7 @@ export const Themes: Story = {
   ...grille(
     [
       { legende: 'Aujourd’hui', story: 'panneau-kit' },
-      { legende: 'DSFR, pictogrammes et rayons discrets', story: 'panneau-dsfr' },
+      { legende: 'DSFR, dégradé, grain et rayons discrets', story: 'panneau-dsfr' },
       { legende: 'Greige, gris réchauffés, trame et rayons discrets', story: 'panneau-greige' },
       { legende: 'La Suite, couleurs et rayons de son kit', story: 'panneau-lasuite' },
     ],

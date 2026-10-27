@@ -52,11 +52,6 @@ function enTeteDePage(teintes: Teintes): string {
   return [GRAIN, ...degrade(teintes), calque(`linear-gradient(${fond}, ${fond})`)].join(', ')
 }
 
-// A drawer is a layer above the page and takes no grain
-function enTeteDeTiroir(teintes: Teintes): string {
-  return degrade(teintes).join(', ')
-}
-
 // Empty state: a light behind the icon and the title that fades out before the edges, so that the empty state does not
 // read as a box
 function etatVide({ lumiere }: Teintes): string {
@@ -73,26 +68,10 @@ function couleursDuTexte(titre: string, sousTitre: string): Valeurs {
 const TEXTE_CONTRASTE = couleursDuTexte('var(--text-inverted-blue-france)', 'var(--text-inverted-blue-france)')
 const TEXTE_CONTRASTE_SOMBRE = couleursDuTexte('var(--text-title-grey)', 'var(--text-default-grey)')
 
+// The option writes the gradient background of styles/themes/backdrops.css, that the DSFR theme takes as well
 export const DEGRADE: LevierOption[] = [
   { id: 'kit', nom: 'Aujourd’hui', valeurs: {} },
-  {
-    id: 'degrade',
-    nom: 'Dégradé et grain',
-    valeurs: {
-      '--csp-canvas-backdrop': GRAIN,
-      // The tab row and the top bar on a phone show the grain of the page
-      '--csp-chrome-background': 'transparent',
-      '--csp-page-header-backdrop': enTeteDePage(CLASSIQUE),
-      '--csp-page-header-backdrop-highlighted': enTeteDePage(CONTRASTE),
-      ...TEXTE_CONTRASTE,
-      '--csp-drawer-header-backdrop': enTeteDeTiroir(DISCRETE),
-      '--csp-empty-state-backdrop': etatVide(DISCRETE),
-    },
-    sombre: {
-      '--csp-page-header-backdrop-highlighted': enTeteDePage(CONTRASTE_SOMBRE),
-      ...TEXTE_CONTRASTE_SOMBRE,
-    },
-  },
+  { id: 'degrade', nom: 'Dégradé et grain', valeurs: {}, attributs: { 'data-csp-backdrop': 'gradient' } },
 ]
 
 // Each surface in the strength that the option gives it, for the board of the variants
