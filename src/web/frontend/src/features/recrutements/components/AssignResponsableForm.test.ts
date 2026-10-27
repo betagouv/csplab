@@ -18,6 +18,12 @@ function dismissButton(intitule: string) {
 }
 
 describe('assignResponsableForm', () => {
+  it('disables the assignment until the search has answered', () => {
+    renderForm()
+
+    expect(screen.getByRole('button', { name: 'Assigner un responsable' })).toBeDisabled()
+  })
+
   it('assigns the agent found for that email', async () => {
     const user = setupUser()
     const { emitted } = renderForm({ status: 'found', agent: AGENT_RECHERCHE })

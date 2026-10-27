@@ -62,10 +62,10 @@ describe('attachAgentForm', () => {
     expect(emitted().add).toEqual([['superviseur']])
   })
 
-  it('offers to add a member only once the search has answered', async () => {
+  it('disables the submission until the search has answered', () => {
     renderForm()
 
-    expect(screen.queryByRole('button', { name: /ajouter/i })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Ajouter le membre' })).toBeDisabled()
   })
 
   it('creates and adds the member when no account matches', async () => {

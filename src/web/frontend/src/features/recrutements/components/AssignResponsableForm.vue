@@ -28,10 +28,8 @@ const email = ref('')
 
 const isSearched = computed(() => props.status !== 'idle')
 
-const isFound = computed(() => props.status === 'found')
-
 const submitLabel = computed(() =>
-  isFound.value ? 'Assigner un responsable' : 'Créer et assigner',
+  props.status === 'not-found' ? 'Créer et assigner' : 'Assigner un responsable',
 )
 
 const recrutementsLabel = computed(() => {
@@ -93,10 +91,9 @@ function handleSubmit(): void {
         @click="emit('cancel')"
       />
       <CspButton
-        v-if="isSearched"
         type="submit"
         :label="submitLabel"
-        :disabled="submitting"
+        :disabled="!isSearched || submitting"
       />
     </div>
   </form>
