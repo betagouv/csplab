@@ -44,7 +44,7 @@ describe('assignResponsableForm', () => {
     for (const recrutement of RECRUTEMENTS) {
       expect(dismissButton(recrutement.intitule)).toBeInTheDocument()
     }
-    expect(screen.getByText('2 offres sélectionnées')).toBeInTheDocument()
+    expect(screen.getByText('2 recrutements sélectionnés')).toBeInTheDocument()
   })
 
   it('asks to remove the offer whose tag is dismissed', async () => {

@@ -106,7 +106,7 @@ const actifsTable = useTemplateRef<{ visibleIds: string[] }>('actifsTable')
 
 const selectionLabel = computed(() => {
   const count = selection.count.value
-  return `${count} ${pluralize(count, 'offre sélectionnée', 'offres sélectionnées')}`
+  return `${count} ${pluralize(count, 'recrutement sélectionné', 'recrutements sélectionnés')}`
 })
 
 const selectionHint = computed(() => {
@@ -123,7 +123,7 @@ function assignationToast(
 ): ToastOptions {
   const nom = agent ? formatAgentLabel(agent) : 'Le membre choisi'
   const reussites = resultat.reussites.length
-  const assignees = `${nom} est responsable de ${reussites} ${pluralize(reussites, 'offre')}`
+  const assignees = `${nom} est responsable de ${reussites} ${pluralize(reussites, 'recrutement')}`
 
   if (resultat.echecs.length === 0) {
     return {
@@ -136,7 +136,7 @@ function assignationToast(
   return {
     variant: 'warning',
     title: 'Assignation partielle',
-    description: `${assignees}, ${echecs} ${pluralize(echecs, 'offre ignorée', 'offres ignorées')}.`,
+    description: `${assignees}, ${echecs} ${pluralize(echecs, 'recrutement ignoré', 'recrutements ignorés')}.`,
   }
 }
 
