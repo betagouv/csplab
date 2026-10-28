@@ -621,6 +621,10 @@ class NoteVisibiliteSerializer(serializers.Serializer):
     est_privee = serializers.BooleanField()
 
 
+class AddNoteTagSerializer(serializers.Serializer):
+    tag_uuid = serializers.UUIDField()
+
+
 # ---------------------------------------------------------------------------
 # Serializers pour le changement d'étape (batch) de candidatures
 # ---------------------------------------------------------------------------
