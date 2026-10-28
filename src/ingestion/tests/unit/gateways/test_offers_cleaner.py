@@ -17,6 +17,7 @@ from referentiel.value_objects.offer_conditions import (
     WorkingTime,
 )
 from referentiel.value_objects.offer_nature import OfferNature
+from referentiel.value_objects.required_document import RequiredDocument
 from referentiel.value_objects.verse import Verse
 
 from domain.entities.raw_offer import RawOffer
@@ -1427,6 +1428,74 @@ def test_clean_keeps_required_skills_as_raw_text(cleaner):
     offer = cleaner.clean(raw_offer)
 
     assert offer.required_skills == raw_text
+
+
+@pytest.mark.parametrize(
+    "client_code, expected",
+    [
+        ("Doc_CV", [RequiredDocument.CV]),
+        ("Doc_CV_LM", [RequiredDocument.CV, RequiredDocument.LETTRE_MOTIVATION]),
+        ("Doc_CV_PF", [RequiredDocument.CV, RequiredDocument.PORTFOLIO]),
+        (
+            "Doc_CV_LM_PF",
+            [
+                RequiredDocument.CV,
+                RequiredDocument.LETTRE_MOTIVATION,
+                RequiredDocument.PORTFOLIO,
+            ],
+        ),
+    ],
+)
+def test_clean_maps_required_documents(cleaner, client_code, expected):
+    raw_offer = _make_raw_offer(
+        customFields=TalentsoftCustomFieldsFactory.build(
+            applicantCriteria=TalentsoftDynamicField(
+                customCodeTable1=TalentsoftCustomCodeTableFactory.build(
+                    clientCode=client_code
+                )
+            ),
+        )
+    )
+
+    offer = cleaner.clean(raw_offer)
+
+    assert offer.required_documents == expected
+
+
+@pytest.mark.parametrize(
+    "custom_fields",
+    [
+        None,
+        TalentsoftCustomFieldsFactory.build(applicantCriteria=None),
+        TalentsoftCustomFieldsFactory.build(
+            applicantCriteria=TalentsoftDynamicField(customCodeTable1=None)
+        ),
+    ],
+)
+def test_clean_returns_no_required_documents_when_absent(cleaner, custom_fields):
+    raw_offer = _make_raw_offer(customFields=custom_fields)
+
+    offer = cleaner.clean(raw_offer)
+
+    assert offer.required_documents == []
+
+
+def test_clean_logs_and_ignores_unknown_required_documents_code(cleaner, caplog):
+    raw_offer = _make_raw_offer(
+        customFields=TalentsoftCustomFieldsFactory.build(
+            applicantCriteria=TalentsoftDynamicField(
+                customCodeTable1=TalentsoftCustomCodeTableFactory.build(
+                    clientCode="Doc_CV_Diplome"
+                )
+            ),
+        )
+    )
+
+    with caplog.at_level("WARNING"):
+        offer = cleaner.clean(raw_offer)
+
+    assert offer.required_documents == []
+    assert any("Doc_CV_Diplome" in record.getMessage() for record in caplog.records)
 
 
 @pytest.mark.parametrize("value", [None, "", "   "])

@@ -17,7 +17,9 @@ from referentiel.value_objects.offer_conditions import JobVacancy
 from referentiel.value_objects.offer_criteria import OfferCriteria, OfferLanguage
 from referentiel.value_objects.offer_nature import OfferNature
 from referentiel.value_objects.region import Region
-from referentiel.value_objects.required_document import RequiredDocument
+from referentiel.value_objects.required_document import (
+    TALENTSOFT_REQUIRED_DOCUMENTS,
+)
 from referentiel.value_objects.siret import SIRET
 from referentiel.value_objects.verse import Verse
 
@@ -251,28 +253,7 @@ class OfferSummaryOutputMapper:
 
 
 _TALENTSOFT_REQUIRED_DOCUMENTS = {
-    frozenset({RequiredDocument.CV}): (
-        "Doc_CV",
-        "L'envoi du CV est obligatoire",
-    ),
-    frozenset({RequiredDocument.CV, RequiredDocument.LETTRE_MOTIVATION}): (
-        "Doc_CV_LM",
-        "L'envoi du CV et d'une lettre de motivation est obligatoire",
-    ),
-    frozenset({RequiredDocument.CV, RequiredDocument.PORTFOLIO}): (
-        "Doc_CV_PF",
-        "L'envoi du CV et d'un portfolio est obligatoire",
-    ),
-    frozenset(
-        {
-            RequiredDocument.CV,
-            RequiredDocument.LETTRE_MOTIVATION,
-            RequiredDocument.PORTFOLIO,
-        }
-    ): (
-        "Doc_CV_LM_PF",
-        ("L'envoi du CV, d'une lettre de motivation et d'un portfolio est obligatoire"),
-    ),
+    frozenset(value.documents): value for value in TALENTSOFT_REQUIRED_DOCUMENTS
 }
 
 
@@ -369,8 +350,11 @@ class OfferDetailOutputMapper(OfferSummaryOutputMapper):
         )
         if not talentsoft_value:
             return None
-        client_code, label = talentsoft_value
-        return self._coded_object(client_code, label, "Documents à transmettre")
+        return self._coded_object(
+            talentsoft_value.client_code,
+            talentsoft_value.label,
+            "Documents à transmettre",
+        )
 
     @staticmethod
     def _dynamic_field(**values: Optional[str]) -> dict:
