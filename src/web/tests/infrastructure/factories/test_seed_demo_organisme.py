@@ -1,5 +1,6 @@
+import random
 from io import BytesIO, StringIO
-from uuid import UUID
+from uuid import UUID, uuid4
 
 import pytest
 from django.core.management import CommandError, call_command
@@ -13,6 +14,7 @@ from domain.recruteur.value_objects.roles import (
 )
 from infrastructure.django_apps.candidate.models.candidature import CandidatureModel
 from infrastructure.django_apps.candidate.models.document import DocumentModel
+from infrastructure.django_apps.ingestion.models.source import SourceModel
 from infrastructure.django_apps.messagerie.models import (
     ConversationLectureModel,
     ConversationModel,
@@ -32,83 +34,111 @@ from infrastructure.factories.identite.organisme_django_factory import (
     OrganismeAgentDjangoFactory,
     OrganismeDjangoFactory,
 )
-from infrastructure.factories.recruteur.recrutement_django_factory import (
-    RecrutementDjangoFactory,
+from infrastructure.factories.seed_demo_cv_corpus import CORPUS
+from infrastructure.factories.seed_demo_organisme import (
+    _CandidaturePlan,
+    _cv,
+    _pdf_texte,
+    seed_demo_organisme,
 )
+from infrastructure.factories.seed_demo_specs import RecrutementSpec, SpecOrganisme
 
-DIJOP_ID = UUID("f38d4d0f-7c17-592a-a371-d9205fca97f6")
-DIJOP_SIRET = "93466293300019"
+# miroir de _SOURCE_DEMO_UUID au 27/10
+SOURCE_DEMO_ID = UUID("00000000-0000-0000-0000-000000001945")
 
-COMPTES_ATTENDUS = {
-    "offres": 11,
-    "recrutements_en_cours": 8,
-    "recrutements_archives": 3,
-    "responsables": 11,
-    "candidatures": 303,
-    "candidats": 303,
-    "cvs": 303,
-    "par_etape": {
-        "Réception des candidatures": 144,
-        "Présélection": 51,
-        "Entretien": 35,
-        "Proposition": 16,
-        "Refus": 54,
-        "Recrutement": 3,
+# miroir de SPECS_DEMO au 27/10
+CLES_DEMO = [
+    "transition-ecologique",
+    "culture",
+    "centre-pompidou",
+    "premier-ministre",
+    "cour-des-comptes",
+    "travail-solidarites",
+    "dgafp",
+    "economie-finances",
+]
+
+_RECRUTEMENTS_REDUITS: list[RecrutementSpec] = [
+    {
+        "intitule": "Conseiller(ère) finances et garanties de l’État",
+        "famille": "finances",
+        "archive_depuis_jours": None,
+        "repartition": (2, 1, 1, 0, 1, 0),
     },
-    "recrutements_finalises": [
-        "DEMO-1945-009",
-        "DEMO-1945-010",
-        "DEMO-1945-011",
-    ],
-    "notes": 38,
-    "conversations": 27,
-    "messages": 54,
-    "reponses_candidat": 27,
-    "lectures": 28,
-}
+    {
+        "intitule": "Chargé(e) de mission biodiversité",
+        "famille": "environnement",
+        "archive_depuis_jours": 20,
+        "repartition": (0, 0, 0, 0, 3, 1),
+    },
+    {
+        "intitule": "Acheteur(se) public(que)",
+        "famille": "achats",
+        "archive_depuis_jours": 45,
+        "repartition": (1, 1, 1, 0, 1, 0),
+    },
+]
+SPEC_A = SpecOrganisme(cle="a", graine=1, recrutements=_RECRUTEMENTS_REDUITS)
+SPEC_B = SpecOrganisme(cle="b", graine=2, recrutements=_RECRUTEMENTS_REDUITS)
 
 
-def _dijop(**kwargs):
-    return OrganismeDjangoFactory(id=DIJOP_ID, siret=DIJOP_SIRET, nom="DIJOP", **kwargs)
+def _comptes_reduits(reference_finalisee):
+    return {
+        "offres": 3,
+        "recrutements_en_cours": 1,
+        "recrutements_archives": 2,
+        "responsables": 3,
+        "candidatures": 13,
+        "candidats": 13,
+        "cvs": 13,
+        "par_etape": {
+            "Réception des candidatures": 3,
+            "Présélection": 2,
+            "Entretien": 2,
+            "Refus": 5,
+            "Recrutement": 1,
+        },
+        "recrutements_finalises": [reference_finalisee],
+        "notes": 3,
+        "conversations": 1,
+        "messages": 2,
+        "reponses_candidat": 1,
+        "lectures": 2,
+    }
 
 
-def _dijop_avec_agents():
-    dijop = _dijop()
+def _organisme_avec_agents():
+    organisme = OrganismeDjangoFactory()
     OrganismeAgentDjangoFactory(
-        organisme=dijop, role=AgentOrganismeRole.SUPERVISEUR.value
+        organisme=organisme, role=AgentOrganismeRole.SUPERVISEUR.value
     )
-    OrganismeAgentDjangoFactory(organisme=dijop)
-    return dijop
+    OrganismeAgentDjangoFactory(organisme=organisme)
+    return organisme
 
 
 def _seed(*options, stdout=None):
-    call_command(
-        "seed_demo_organisme",
-        "--organisme",
-        str(DIJOP_ID),
-        *options,
-        stdout=stdout or StringIO(),
-    )
+    call_command("seed_demo_organisme", *options, stdout=stdout or StringIO())
 
 
-def _candidatures_demo():
+def _candidatures_demo(organisme_id):
     return CandidatureModel.objects.filter(
-        etape__recrutement__offre__reference__startswith="DEMO-1945-"
+        etape__recrutement__organisme_id=organisme_id,
+        etape__recrutement__offre__source_id=SOURCE_DEMO_ID,
     )
 
 
-def _comptes():
-    candidatures = _candidatures_demo()
+def _comptes(organisme_id):
+    candidatures = _candidatures_demo(organisme_id)
     recrutements = RecrutementModel.objects.filter(
-        offre__reference__startswith="DEMO-1945-"
+        organisme_id=organisme_id, offre__source_id=SOURCE_DEMO_ID
     )
     return {
-        "offres": OfferModel.objects.filter(reference__startswith="DEMO-1945-").count(),
+        "offres": OfferModel.objects.filter(recrutement__in=recrutements).count(),
         "recrutements_en_cours": recrutements.filter(
-            offre__archived_at__isnull=True, organisme_id=DIJOP_ID
+            offre__archived_at__isnull=True
         ).count(),
         "recrutements_archives": recrutements.filter(
-            offre__archived_at__isnull=False, organisme_id=DIJOP_ID
+            offre__archived_at__isnull=False
         ).count(),
         "responsables": RecrutementAgentModel.objects.filter(
             recrutement__in=recrutements,
@@ -116,7 +146,8 @@ def _comptes():
         ).count(),
         "candidatures": candidatures.count(),
         "candidats": UserModel.objects.filter(
-            email__endswith="@demo.candidat.fr"
+            email__endswith="@demo.candidat.fr",
+            profil_candidat__candidatures__in=candidatures,
         ).count(),
         "cvs": DocumentModel.objects.filter(
             candidature__in=candidatures, type_document="cv"
@@ -148,61 +179,110 @@ def _comptes():
     }
 
 
+def _identites(organisme_id):
+    return sorted(
+        UserModel.objects.filter(
+            profil_candidat__candidatures__in=_candidatures_demo(organisme_id)
+        ).values_list("first_name", "last_name", "email")
+    )
+
+
+def _rien_ecrit():
+    assert not OfferModel.objects.filter(source_id=SOURCE_DEMO_ID).exists()
+    assert not SourceModel.objects.filter(source_id=SOURCE_DEMO_ID).exists()
+    assert not UserModel.objects.filter(email__endswith="@demo.candidat.fr").exists()
+
+
 class TestSeedDemoOrganisme:
-    def test_seeds_the_demo_and_force_only_removes_marked_data(self, db):
-        dijop = _dijop_avec_agents()
-        _, candidature_dijop = create_recrutement_with_candidature(organisme=dijop)
+    def test_seeds_each_organisme_and_force_only_removes_its_own(self, db):
+        organisme_a = _organisme_avec_agents()
+        organisme_b = _organisme_avec_agents()
+        _, candidature_a = create_recrutement_with_candidature(organisme=organisme_a)
         _, candidature_ailleurs = create_recrutement_with_candidature()
+        cibles = [(organisme_a.pk, SPEC_A), (organisme_b.pk, SPEC_B)]
 
-        _seed()
+        resultat = seed_demo_organisme(cibles)
 
-        assert _comptes() == COMPTES_ATTENDUS
-        assert (
-            not _candidatures_demo()
-            .filter(created_at__lt=F("etape__recrutement__offre__publication_date"))
-            .exists()
+        assert [o["status"] for o in resultat["organismes"]] == ["seeded", "seeded"]
+        assert _comptes(organisme_a.pk) == _comptes_reduits("DEMO-a-02")
+        assert _comptes(organisme_b.pk) == _comptes_reduits("DEMO-b-02")
+        identites_a, identites_b = (
+            _identites(organisme_a.pk),
+            _identites(organisme_b.pk),
         )
+        assert [nom for *nom, _ in identites_a] != [nom for *nom, _ in identites_b]
+        assert not {e for *_, e in identites_a} & {e for *_, e in identites_b}
+        candidatures = CandidatureModel.objects.filter(
+            etape__recrutement__offre__source_id=SOURCE_DEMO_ID
+        )
+        assert not candidatures.filter(
+            created_at__lt=F("etape__recrutement__offre__publication_date")
+        ).exists()
         assert not MessageModel.objects.filter(
-            conversation__candidature__in=_candidatures_demo(),
+            conversation__candidature__in=candidatures,
             created_at__lt=F("conversation__candidature__created_at"),
         ).exists()
-        simulation = StringIO()
-        _seed("--dry-run", stdout=simulation)
-        assert (
-            "À supprimer avec --force : 11 offres, 303 candidatures, 303 candidats."
-            in simulation.getvalue()
-        )
-        note = NoteModel.objects.filter(candidature__in=_candidatures_demo()).first()
+        note = NoteModel.objects.filter(candidature__in=candidatures).first()
         lignes = note.message.splitlines()  # type: ignore[union-attr]
         assert (lignes[0], len(lignes)) == ("Compte rendu de présélection", 16)
-        candidature_005 = (
-            _candidatures_demo()
-            .filter(etape__recrutement__offre__reference="DEMO-1945-005")
-            .first()
-        )
-        cv = DocumentModel.objects.get(candidature=candidature_005)
+        candidature_etat = candidatures.filter(
+            etape__recrutement__offre__reference="DEMO-a-01"
+        ).first()
+        cv = DocumentModel.objects.get(candidature=candidature_etat)
         with cv.fichier.open("rb") as fichier:
             texte = "".join(
                 page.extract_text() for page in PdfReader(BytesIO(fichier.read())).pages
             )
-        nom_complet = candidature_005.candidat.utilisateur.get_full_name()  # type: ignore[union-attr]
+        nom_complet = candidature_etat.candidat.utilisateur.get_full_name()  # type: ignore[union-attr]
         assert nom_complet in texte
         assert "l’État" in texte
-        assert nom_complet in candidature_005.candidat.resume  # type: ignore[union-attr]
+        assert nom_complet in candidature_etat.candidat.resume  # type: ignore[union-attr]
+        avec_avatar = set()
+        for candidature in candidatures.select_related(
+            "candidat__utilisateur", "etape__recrutement__offre"
+        ):
+            utilisateur = candidature.candidat.utilisateur
+            cv = DocumentModel.objects.get(candidature=candidature)
+            with cv.fichier.open("rb") as fichier:
+                premiere_page = PdfReader(BytesIO(fichier.read())).pages[0]
+            initiales = f"{utilisateur.first_name[0]}{utilisateur.last_name[0]}"
+            avec_avatar.add(
+                premiere_page.extract_text().split()[0] == initiales.upper()
+            )
+            reference = candidature.etape.recrutement.offre.reference
+            famille = _RECRUTEMENTS_REDUITS[int(reference[-2:]) - 1]["famille"]
+            assert any(
+                f"{experience['titre']}, {experience['employeur']}"
+                in candidature.candidat.resume
+                for experience in CORPUS[famille]["experiences_directes"]
+            )
+        assert avec_avatar == {True, False}
 
-        sortie = StringIO()
-        _seed(stdout=sortie)
-        assert "déjà" in sortie.getvalue()
-        assert _comptes() == COMPTES_ATTENDUS
+        simulation = seed_demo_organisme(cibles, dry_run=True)
+        assert [o["a_supprimer"] for o in simulation["organismes"]] == [
+            {"offres": 3, "candidatures": 13, "candidats": 13},
+            {"offres": 3, "candidatures": 13, "candidats": 13},
+        ]
 
-        _seed("--force")
+        rejeu = seed_demo_organisme(cibles)
 
-        assert _comptes() == COMPTES_ATTENDUS
+        assert [o["status"] for o in rejeu["organismes"]] == [
+            "already_seeded",
+            "already_seeded",
+        ]
+        assert _identites(organisme_a.pk) == identites_a
+
+        seed_demo_organisme([(organisme_a.pk, SPEC_A)], force=True)
+
+        assert _comptes(organisme_a.pk) == _comptes_reduits("DEMO-a-02")
+        assert _comptes(organisme_b.pk) == _comptes_reduits("DEMO-b-02")
+        assert _identites(organisme_a.pk) == identites_a
+        assert _identites(organisme_b.pk) == identites_b
         assert set(
             CandidatureModel.objects.filter(
-                pk__in=[candidature_dijop.pk, candidature_ailleurs.pk]
+                pk__in=[candidature_a.pk, candidature_ailleurs.pk]
             ).values_list("pk", flat=True)
-        ) == {candidature_dijop.pk, candidature_ailleurs.pk}
+        ) == {candidature_a.pk, candidature_ailleurs.pk}
 
     @pytest.mark.parametrize(
         ("cas", "motif"),
@@ -211,50 +291,169 @@ class TestSeedDemoOrganisme:
             ("organisme_supprime", "introuvable ou supprimé"),
             ("aucun_agent_actif", "aucun agent actif"),
             ("production", "production"),
-            ("demo_sur_un_autre_organisme", "autre organisme"),
+            ("cle_inconnue", "clé d'organisme inconnue : inconnue"),
+            ("sans_egal", "format attendu : CLE=UUID"),
+            ("uuid_invalide", "UUID d'organisme invalide : pas-un-uuid"),
+            ("cle_en_double", "qu'une fois dans --organisme"),
+            ("organisme_en_double", "qu'une fois dans --organisme"),
         ],
     )
     def test_stops_without_writing(self, db, monkeypatch, cas, motif):
+        autre = _organisme_avec_agents()
+        cle = "dgafp"
+        cible_id = uuid4()
+        cible: str | None = None
         if cas == "organisme_supprime":
-            OrganismeAgentDjangoFactory(organisme=_dijop(supprime_le=timezone.now()))
+            cible_id = OrganismeAgentDjangoFactory(
+                organisme=OrganismeDjangoFactory(supprime_le=timezone.now())
+            ).organisme_id
         elif cas == "aucun_agent_actif":
-            OrganismeAgentDjangoFactory(
-                organisme=_dijop(), date_revocation=timezone.now()
-            )
+            cible_id = OrganismeAgentDjangoFactory(
+                date_revocation=timezone.now()
+            ).organisme_id
         elif cas == "production":
-            _dijop_avec_agents()
+            cible_id = _organisme_avec_agents().pk
             monkeypatch.setenv("SCALEWAY_ENV", "prod")
-        elif cas == "demo_sur_un_autre_organisme":
-            _dijop_avec_agents()
-            RecrutementDjangoFactory(offre__reference="DEMO-1945-001")
+        elif cas == "cle_inconnue":
+            cible_id = _organisme_avec_agents().pk
+            cle = "inconnue"
+        elif cas == "sans_egal":
+            cible = str(_organisme_avec_agents().pk)
+        elif cas == "uuid_invalide":
+            cible = "dgafp=pas-un-uuid"
+        elif cas == "cle_en_double":
+            cle, cible_id = "culture", _organisme_avec_agents().pk
+        elif cas == "organisme_en_double":
+            cible_id = autre.pk
 
         with pytest.raises(CommandError, match=motif):
-            _seed("--force")
-
-        offres = OfferModel.objects.filter(reference__startswith="DEMO-1945-")
-        if cas == "demo_sur_un_autre_organisme":
-            assert list(offres.values_list("reference", flat=True)) == ["DEMO-1945-001"]
-            assert (
-                RecrutementModel.objects.exclude(organisme_id=DIJOP_ID)
-                .filter(offre__reference="DEMO-1945-001")
-                .exists()
+            _seed(
+                "--organisme",
+                f"culture={autre.pk}",
+                "--organisme",
+                cible or f"{cle}={cible_id}",
+                "--force",
             )
-        else:
-            assert not offres.exists()
-        assert not UserModel.objects.filter(
-            email__endswith="@demo.candidat.fr"
-        ).exists()
 
-    def test_dry_run_prints_counts_without_writing(self, db):
-        _dijop_avec_agents()
+        _rien_ecrit()
+
+    def test_refuses_a_cle_already_seeded_on_another_organisme(self, db):
+        premier, second = _organisme_avec_agents(), _organisme_avec_agents()
+        seed_demo_organisme(
+            [
+                (
+                    premier.pk,
+                    SpecOrganisme(
+                        cle="culture", graine=1, recrutements=_RECRUTEMENTS_REDUITS
+                    ),
+                )
+            ]
+        )
+
+        with pytest.raises(CommandError, match="déjà semée sur un autre organisme"):
+            _seed("--organisme", f"culture={second.pk}", "--force")
+
+        assert _comptes(premier.pk) == _comptes_reduits("DEMO-culture-02")
+        assert not _candidatures_demo(second.pk).exists()
+
+    def test_dry_run_prints_the_full_spec_without_writing(self, db):
+        organismes = {cle: _organisme_avec_agents() for cle in CLES_DEMO}
         sortie = StringIO()
 
-        _seed("--dry-run", stdout=sortie)
+        _seed(
+            *[
+                option
+                for cle, organisme in organismes.items()
+                for option in ("--organisme", f"{cle}={organisme.pk}")
+            ],
+            "--dry-run",
+            stdout=sortie,
+        )
 
-        assert "303" in sortie.getvalue()
-        assert not OfferModel.objects.filter(
-            reference__startswith="DEMO-1945-"
-        ).exists()
-        assert not UserModel.objects.filter(
-            email__endswith="@demo.candidat.fr"
-        ).exists()
+        blocs = [bloc.splitlines() for bloc in sortie.getvalue().split("== ")[1:]]
+        assert [bloc[0] for bloc in blocs] == [
+            f"{cle} ({organisme.pk})" for cle, organisme in organismes.items()
+        ]
+        for bloc in blocs:
+            assert bloc[1:10] == [
+                "À supprimer avec --force : 0 offres, 0 candidatures, 0 candidats.",
+                "Offres : 15 (10 en cours, 5 archivées).",
+                "Candidatures : 683.",
+                "  Réception des candidatures : 293",
+                "  Présélection : 111",
+                "  Entretien : 62",
+                "  Proposition : 27",
+                "  Refus : 187",
+                "  Recrutement : 3",
+            ]
+        _rien_ecrit()
+
+    @pytest.mark.parametrize(
+        "famille",
+        # miroir de Famille au 27/10
+        [
+            "pilotage",
+            "rh",
+            "juridique",
+            "finances",
+            "achats",
+            "numerique",
+            "communication",
+            "culture",
+            "audit",
+            "environnement",
+            "solidarites",
+        ],
+    )
+    def test_generates_a_pdf_cv_for_each_famille(self, famille):
+        # miroir des bornes de _APPRECIATIONS au 27/10
+        for proximite in (0.4, 0.9):
+            candidature = _CandidaturePlan(
+                etape="Présélection",
+                prenom="Camille",
+                nom="Durand",
+                proximite=proximite,
+                note=False,
+                conversation=False,
+                lecture=False,
+                avatar=None,
+            )
+
+            cv = _cv(
+                random.Random(0),
+                CORPUS[famille],
+                candidature,
+                "camille.durand@demo.candidat.fr",
+            )
+
+            pdf = PdfReader(BytesIO(_pdf_texte(cv.lignes, None)))
+            assert "Camille Durand" in "".join(p.extract_text() for p in pdf.pages)
+
+    def test_direct_experiences_are_not_always_listed_first(self):
+        candidature = _CandidaturePlan(
+            etape="Présélection",
+            prenom="Camille",
+            nom="Durand",
+            proximite=0.4,
+            note=False,
+            conversation=False,
+            lecture=False,
+            avatar=None,
+        )
+        directes = {
+            f"{experience['titre']}, {experience['employeur']}"
+            for experience in CORPUS["finances"]["experiences_directes"]
+        }
+
+        premiere_directe = {
+            _cv(
+                random.Random(graine),
+                CORPUS["finances"],
+                candidature,
+                "camille.durand@demo.candidat.fr",
+            ).experience
+            in directes
+            for graine in range(10)
+        }
+
+        assert premiere_directe == {True, False}

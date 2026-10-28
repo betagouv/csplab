@@ -1,4 +1,4 @@
-from typing import TypedDict
+from typing import Literal, TypedDict
 
 
 class Experience(TypedDict):
@@ -21,6 +21,35 @@ class PosteCorpus(TypedDict):
     experiences_voisines: list[Experience]
     competences_poste: list[str]
     competences_voisines: list[str]
+
+
+Famille = Literal[
+    "pilotage",
+    "rh",
+    "juridique",
+    "finances",
+    "achats",
+    "numerique",
+    "communication",
+    "culture",
+    "audit",
+    "environnement",
+    "solidarites",
+]
+
+
+class Corpus(TypedDict):
+    pilotage: PosteCorpus
+    rh: PosteCorpus
+    juridique: PosteCorpus
+    finances: PosteCorpus
+    achats: PosteCorpus
+    numerique: PosteCorpus
+    communication: PosteCorpus
+    culture: PosteCorpus
+    audit: PosteCorpus
+    environnement: PosteCorpus
+    solidarites: PosteCorpus
 
 
 def _exp(titre: str, employeur: str, description: str) -> Experience:
@@ -56,6 +85,28 @@ _EXPERIENCES_TRANSVERSES = [
         "Pilotage du planning, coordination des prestataires et relation "
         "avec les partenaires institutionnels.",
     ),
+    _exp(
+        "Chargé(e) de mission",
+        "Communauté urbaine de Dunkerque",
+        "Suivi de projets transversaux et préparation des conseils communautaires.",
+    ),
+    _exp(
+        "Gestionnaire administratif(ve)",
+        "Ville de Nantes",
+        "Instruction de dossiers, accueil des usagers et suivi budgétaire "
+        "d'un service municipal.",
+    ),
+    _exp(
+        "Chargé(e) d'études",
+        "Caisse des dépôts et consignations",
+        "Études territoriales et appui aux collectivités dans leurs projets "
+        "d'investissement.",
+    ),
+    _exp(
+        "Responsable administratif(ve)",
+        "Université de Lille",
+        "Pilotage d'un service administratif et gestion des moyens d'une composante.",
+    ),
 ]
 
 _COMPETENCES_TRANSVERSES = [
@@ -65,18 +116,22 @@ _COMPETENCES_TRANSVERSES = [
     "Maîtrise des outils bureautiques et collaboratifs",
     "Sens du service public et devoir de réserve",
     "Capacité d'analyse et esprit de synthèse",
+    "Gestion des priorités et respect des délais",
+    "Aisance à l'oral et prise de parole en public",
+    "Accueil et relation avec les usagers",
+    "Travail en réseau et en partenariat",
 ]
 
-CORPUS: dict[str, PosteCorpus] = {
-    "Secrétaire général(e)": {
+CORPUS: Corpus = {
+    "pilotage": {
         "mission": (
-            "Piloter les fonctions support de la délégation (ressources "
-            "humaines, budget, achats, logistique, affaires juridiques) et "
-            "garantir le bon fonctionnement de l'organisation."
+            "Appuyer la direction dans le pilotage de ses activités : "
+            "coordination des services, préparation des arbitrages, suivi des "
+            "projets transverses et des fonctions support."
         ),
         "profil_recherche": (
-            "Cadre expérimenté(e) des fonctions support, habitué(e) au "
-            "pilotage budgétaire et au management d'équipes."
+            "Expérience de l'appui à une direction ou de la coordination de "
+            "projets, sens de l'organisation et qualités rédactionnelles."
         ),
         "profil": [
             (
@@ -86,6 +141,14 @@ CORPUS: dict[str, PosteCorpus] = {
             (
                 "Manager des fonctions support, attaché(e) à la qualité du "
                 "dialogue social et à la maîtrise de la dépense."
+            ),
+            (
+                "Assistant(e) de direction expérimenté(e), je coordonne depuis "
+                "cinq ans l'agenda et les dossiers d'un comité de direction."
+            ),
+            (
+                "Chef(fe) de projet transformation, j'ai mené plusieurs chantiers "
+                "de simplification des démarches internes."
             ),
         ],
         "formations": [
@@ -97,6 +160,11 @@ CORPUS: dict[str, PosteCorpus] = {
             ),
             _form("Master Gestion des ressources humaines", "IAE de Lyon"),
             _form("Diplôme de Sciences Po", "Sciences Po Bordeaux"),
+            _form("Master Management public", "Université de Strasbourg"),
+            _form(
+                "Classe préparatoire aux concours administratifs",
+                "Institut régional d'administration de Lille",
+            ),
         ],
         "experiences_directes": [
             _exp(
@@ -121,10 +189,34 @@ CORPUS: dict[str, PosteCorpus] = {
                 "contrôle interne comptable.",
             ),
             _exp(
-                "Directeur(rice) des ressources humaines",
+                "Directeur(trice) des ressources humaines",
                 "Établissement public territorial",
                 "Pilotage de la masse salariale, de la GPEC et des relations "
                 "avec les organisations syndicales.",
+            ),
+            _exp(
+                "Chargé(e) de mission auprès du directeur",
+                "Direction départementale des territoires de l'Isère",
+                "Préparation des comités de direction, suivi des tableaux de "
+                "bord et coordination des chefs de service.",
+            ),
+            _exp(
+                "Assistant(e) de direction",
+                "Rectorat de l'académie de Versailles",
+                "Gestion de l'agenda, organisation des réunions et suivi du "
+                "courrier du recteur.",
+            ),
+            _exp(
+                "Chef(fe) de projet transformation",
+                "Direction interministérielle de la transformation publique",
+                "Conduite de projets de simplification et animation de réseaux "
+                "de porteurs de projets.",
+            ),
+            _exp(
+                "Responsable des services généraux",
+                "Office national des forêts",
+                "Gestion des bâtiments, de la flotte automobile et des contrats "
+                "de maintenance.",
             ),
         ],
         "experiences_voisines": _EXPERIENCES_TRANSVERSES,
@@ -135,138 +227,126 @@ CORPUS: dict[str, PosteCorpus] = {
             "Gestion des ressources humaines et dialogue social",
             "Contrôle interne et maîtrise des risques",
             "Conduite de réorganisations",
+            "Préparation des arbitrages de la direction",
+            "Organisation logistique de déplacements et d'événements",
+            "Suivi de tableaux de bord et d'indicateurs",
+            "Conduite du changement",
         ],
         "competences_voisines": _COMPETENCES_TRANSVERSES,
     },
-    "Conseiller(ère) héritage": {
+    "rh": {
         "mission": (
-            "Concevoir et suivre la stratégie d'héritage des Jeux : "
-            "pérennisation des équipements, programmes sportifs et impact "
-            "durable pour les territoires."
+            "Accompagner les agents et les services sur l'ensemble des sujets "
+            "de ressources humaines : carrière, paie, recrutement, formation "
+            "et dialogue social."
         ),
         "profil_recherche": (
-            "Expérience des politiques sportives ou de l'évaluation de "
-            "politiques publiques, goût du travail partenarial."
+            "Expérience de la gestion des ressources humaines dans le secteur "
+            "public, bonne connaissance du statut général."
         ),
         "profil": [
             (
-                "Spécialiste des politiques sportives, j'accompagne depuis huit "
-                "ans les territoires dans la valorisation de leurs équipements."
+                "Gestionnaire RH depuis sept ans, j'ai suivi la carrière et la "
+                "paie de plusieurs centaines d'agents."
             ),
             (
-                "Chargé(e) d'évaluation de politiques publiques, intéressé(e) par "
-                "l'impact durable des grands événements."
+                "Conseiller(ère) en ressources humaines, attaché(e) à "
+                "l'accompagnement des parcours et au dialogue social."
+            ),
+            (
+                "Gestionnaire paie rigoureux(se), habitué(e) aux contrôles de fin "
+                "d'exercice et aux évolutions réglementaires."
+            ),
+            (
+                "Chargé(e) de recrutement, je conduis chaque année plus de deux "
+                "cents entretiens pour des postes très variés."
             ),
         ],
         "formations": [
-            _form("Master Management du sport", "Université Paris-Saclay"),
-            _form("Master Évaluation des politiques publiques", "Sciences Po Lyon"),
-            _form("Licence STAPS", "Université de Bourgogne"),
-        ],
-        "experiences_directes": [
-            _exp(
-                "Chargé(e) de mission héritage",
-                "Comité d'organisation d'un championnat du monde",
-                "Définition des indicateurs d'impact et suivi des engagements "
-                "des collectivités hôtes.",
-            ),
-            _exp(
-                "Responsable des politiques sportives",
-                "Conseil départemental",
-                "Programmation des équipements, appels à projets et "
-                "accompagnement des clubs.",
-            ),
-            _exp(
-                "Chargé(e) d'études",
-                "Agence nationale du sport",
-                "Analyse de l'usage des équipements et élaboration de "
-                "recommandations de reconversion.",
-            ),
-            _exp(
-                "Chef(fe) de projet Terre de Jeux",
-                "Ville de Saint-Denis",
-                "Animation du label, mobilisation des associations et "
-                "programmation d'événements sportifs.",
-            ),
-        ],
-        "experiences_voisines": _EXPERIENCES_TRANSVERSES,
-        "competences_poste": [
-            "Politiques publiques du sport",
-            "Évaluation d'impact et construction d'indicateurs",
-            "Reconversion et exploitation d'équipements",
-            "Animation de partenariats avec les collectivités",
-            "Connaissance du mouvement sportif",
-            "Montage d'appels à projets",
-        ],
-        "competences_voisines": _COMPETENCES_TRANSVERSES,
-    },
-    "Chargé(e) de mission infrastructures": {
-        "mission": (
-            "Suivre l'avancement des infrastructures et des sites, coordonner "
-            "les maîtres d'ouvrage et alerter sur les risques de calendrier."
-        ),
-        "profil_recherche": (
-            "Formation d'ingénieur, expérience de la maîtrise d'ouvrage "
-            "publique ou du pilotage de grands chantiers."
-        ),
-        "profil": [
-            (
-                "Ingénieur(e) en génie civil, j'ai conduit des opérations "
-                "d'aménagement pour des maîtres d'ouvrage publics."
-            ),
-            (
-                "Chef(fe) de projet travaux, rompu(e) au pilotage de calendriers "
-                "contraints et à la coordination d'intervenants."
-            ),
-        ],
-        "formations": [
-            _form("Diplôme d'ingénieur génie civil", "École des Ponts ParisTech"),
+            _form("Master Gestion des ressources humaines", "IAE de Paris"),
             _form(
-                "Diplôme d'ingénieur ENTPE",
-                "École nationale des travaux publics de l'État",
+                "Master Droit et gestion de la fonction publique",
+                "Université de Bordeaux",
             ),
-            _form("Master Aménagement et urbanisme", "Université Gustave Eiffel"),
+            _form(
+                "Licence Administration économique et sociale",
+                "Université de Nantes",
+            ),
+            _form(
+                "Master Ressources humaines et relations du travail",
+                "Université de Montpellier",
+            ),
+            _form("Licence professionnelle Gestion de la paie", "IUT de Tours"),
+            _form("Master Psychologie du travail", "Université de Lorraine"),
         ],
         "experiences_directes": [
             _exp(
-                "Responsable d'opérations",
-                "Société de livraison des ouvrages olympiques",
-                "Suivi de la construction de sites, maîtrise des coûts et des "
-                "délais, reporting au comité de pilotage.",
+                "Gestionnaire carrière et paie",
+                "Centre de gestion de la fonction publique territoriale",
+                "Suivi des avancements, des positions statutaires et de la "
+                "paie pour environ 300 agents.",
             ),
             _exp(
-                "Chef(fe) de projet maîtrise d'ouvrage",
-                "Établissement public d'aménagement",
-                "Conduite d'opérations d'aménagement de la programmation à la "
-                "réception des ouvrages.",
+                "Chargé(e) de recrutement",
+                "Direction des ressources humaines d'un ministère",
+                "Rédaction des fiches de poste, conduite des entretiens et "
+                "animation des commissions de sélection.",
             ),
             _exp(
-                "Ingénieur(e) travaux",
-                "Direction interdépartementale des routes",
-                "Pilotage de chantiers routiers et coordination des "
-                "entreprises et des concessionnaires de réseaux.",
+                "Conseiller(ère) mobilité carrière",
+                "Plateforme régionale d'appui interministériel à la GRH",
+                "Accompagnement individuel des agents dans leurs projets de "
+                "mobilité et de reconversion.",
             ),
             _exp(
-                "Chargé(e) d'opérations",
-                "Métropole du Grand Paris",
-                "Suivi d'équipements sportifs et culturels en construction, "
-                "gestion des avenants.",
+                "Responsable formation",
+                "Établissement public hospitalier",
+                "Élaboration du plan de formation, suivi des budgets et "
+                "évaluation des actions.",
+            ),
+            _exp(
+                "Gestionnaire paie",
+                "Centre hospitalier universitaire de Rennes",
+                "Préparation et contrôle de la paie mensuelle, gestion des "
+                "absences et des cotisations.",
+            ),
+            _exp(
+                "Chargé(e) de mission égalité professionnelle",
+                "Région Auvergne-Rhône-Alpes",
+                "Pilotage du plan d'action égalité, suivi des indicateurs et "
+                "animation du réseau de référents.",
+            ),
+            _exp(
+                "Conseiller(ère) en prévention",
+                "Service départemental d'incendie et de secours",
+                "Analyse des risques professionnels, mise à jour du document "
+                "unique et accompagnement des encadrants.",
+            ),
+            _exp(
+                "Responsable du dialogue social",
+                "Météo-France",
+                "Préparation des instances, rédaction des procès-verbaux et "
+                "suivi des accords.",
             ),
         ],
         "experiences_voisines": _EXPERIENCES_TRANSVERSES,
         "competences_poste": [
-            "Maîtrise d'ouvrage publique et loi MOP",
-            "Planification et suivi de chantiers",
-            "Analyse des risques calendaires",
-            "Maîtrise des coûts d'opération",
-            "Coordination des intervenants",
-            "Lecture de plans et de pièces techniques",
+            "Statut général de la fonction publique",
+            "Gestion de la paie et des carrières",
+            "Conduite d'entretiens de recrutement",
+            "Ingénierie de formation",
+            "Dialogue social et instances représentatives",
+            "Maîtrise d'un SIRH",
+            "Gestion prévisionnelle des emplois et des compétences",
+            "Prévention des risques professionnels",
+            "Accompagnement des mobilités",
+            "Politique d'égalité professionnelle",
         ],
         "competences_voisines": _COMPETENCES_TRANSVERSES,
     },
-    "Conseiller(ère) juridique / affaires législatives": {
+    "juridique": {
         "mission": (
-            "Sécuriser juridiquement les décisions de la délégation, suivre "
+            "Sécuriser juridiquement les décisions de la direction, suivre "
             "les textes législatifs et réglementaires et préparer les "
             "projets de textes."
         ),
@@ -283,6 +363,14 @@ CORPUS: dict[str, PosteCorpus] = {
                 "Conseiller(ère) juridique, à l'aise avec la procédure "
                 "parlementaire et la sécurisation des actes administratifs."
             ),
+            (
+                "Ancien(ne) avocat(e), j'ai plaidé en contentieux administratif "
+                "avant de rejoindre une administration."
+            ),
+            (
+                "Juriste spécialisé(e) en droit économique, à l'aise avec "
+                "l'analyse de marchés et de contrats."
+            ),
         ],
         "formations": [
             _form(
@@ -293,6 +381,9 @@ CORPUS: dict[str, PosteCorpus] = {
                 "Certificat d'aptitude à la profession d'avocat",
                 "École de formation du barreau",
             ),
+            _form("Master Droit de l'environnement", "Université de Strasbourg"),
+            _form("Master Propriété intellectuelle", "Université de Poitiers"),
+            _form("Diplôme de Sciences Po", "Sciences Po Grenoble"),
         ],
         "experiences_directes": [
             _exp(
@@ -314,10 +405,33 @@ CORPUS: dict[str, PosteCorpus] = {
                 "et conseil aux directions métiers.",
             ),
             _exp(
-                "Administrateur(rice) adjoint(e)",
+                "Administrateur(trice) adjoint(e)",
                 "Assemblée nationale, service des commissions",
                 "Préparation des travaux de commission et rédaction de "
                 "rapports législatifs.",
+            ),
+            _exp(
+                "Juriste",
+                "Agence de l'eau Seine-Normandie",
+                "Instruction juridique des aides et sécurisation des actes de "
+                "l'agence.",
+            ),
+            _exp(
+                "Juriste propriété intellectuelle",
+                "Institut national de la propriété industrielle",
+                "Conseil sur le droit des marques et des brevets et rédaction de "
+                "contrats de licence.",
+            ),
+            _exp(
+                "Avocat(e) collaborateur(trice)",
+                "Cabinet d'avocats en droit public",
+                "Contentieux des contrats publics et de la fonction publique.",
+            ),
+            _exp(
+                "Rapporteur(e)",
+                "Autorité de la concurrence",
+                "Instruction de dossiers de concentration et rédaction de "
+                "projets de décision.",
             ),
         ],
         "experiences_voisines": _EXPERIENCES_TRANSVERSES,
@@ -328,14 +442,18 @@ CORPUS: dict[str, PosteCorpus] = {
             "Veille juridique",
             "Sécurisation des actes et des marchés",
             "Droit de la commande publique",
+            "Droit de la propriété intellectuelle",
+            "Droit de la concurrence",
+            "Droit de l'environnement",
+            "Rédaction de contrats et de conventions",
         ],
         "competences_voisines": _COMPETENCES_TRANSVERSES,
     },
-    "Conseiller(ère) finances et garanties de l’État": {
+    "finances": {
         "mission": (
-            "Suivre les engagements financiers et les garanties de l’État "
-            "liés aux Jeux, préparer les arbitrages budgétaires et le "
-            "dialogue avec la direction du budget."
+            "Suivre les engagements financiers de l’État, préparer les "
+            "arbitrages budgétaires et analyser la situation économique et "
+            "financière des secteurs suivis."
         ),
         "profil_recherche": (
             "Expérience des finances publiques, de la LOLF ou du contrôle de "
@@ -350,11 +468,22 @@ CORPUS: dict[str, PosteCorpus] = {
                 "Analyste budgétaire, habitué(e) au dialogue avec la direction du "
                 "budget et au suivi des risques financiers de l’État."
             ),
+            (
+                "Économiste, je produis depuis six ans des analyses "
+                "conjoncturelles et sectorielles pour l’État."
+            ),
+            (
+                "Contrôleur(se) de gestion, soucieux(se) de la fiabilité des données "
+                "et du dialogue de gestion avec les services de l’État."
+            ),
         ],
         "formations": [
             _form("Master Finances publiques", "Université Paris 1 Panthéon-Sorbonne"),
             _form("Master Contrôle de gestion et audit", "IAE d'Aix-Marseille"),
             _form("Diplôme de l'ESSEC, majeure finance", "ESSEC Business School"),
+            _form("Master Économie appliquée", "Toulouse School of Economics"),
+            _form("Diplôme d'ingénieur statisticien économiste", "ENSAE Paris"),
+            _form("Master Banque et finance", "Université de Lille"),
         ],
         "experiences_directes": [
             _exp(
@@ -376,10 +505,33 @@ CORPUS: dict[str, PosteCorpus] = {
                 "indicateurs de performance.",
             ),
             _exp(
-                "Auditeur(rice) financier(ère)",
-                "Cour des comptes, chambre régionale",
-                "Contrôle des comptes et de la gestion d'organismes publics, "
-                "rédaction de rapports d'observations.",
+                "Économiste",
+                "Institut national de la statistique et des études économiques",
+                "Analyse conjoncturelle, prévisions macroéconomiques et "
+                "rédaction de notes de conjoncture.",
+            ),
+            _exp(
+                "Inspecteur(trice) des finances publiques",
+                "Direction générale des finances publiques",
+                "Contrôle fiscal des entreprises et analyse de leurs comptes.",
+            ),
+            _exp(
+                "Analyste financier(ère)",
+                "Bpifrance",
+                "Analyse de dossiers de financement et suivi d'un portefeuille "
+                "d'entreprises.",
+            ),
+            _exp(
+                "Responsable budgétaire",
+                "Université de Bordeaux",
+                "Préparation du budget, dialogue de gestion avec les "
+                "composantes et suivi de l'exécution.",
+            ),
+            _exp(
+                "Chargé(e) de mission participations",
+                "Agence des participations de l'État",
+                "Suivi d'entreprises du portefeuille public et préparation des "
+                "conseils d'administration.",
             ),
         ],
         "experiences_voisines": _EXPERIENCES_TRANSVERSES,
@@ -387,227 +539,565 @@ CORPUS: dict[str, PosteCorpus] = {
             "Finances publiques et LOLF",
             "Analyse des risques financiers",
             "Préparation des lois de finances",
-            "Suivi des garanties et engagements hors bilan",
+            "Analyse économique et conjoncturelle",
             "Contrôle de gestion",
             "Modélisation financière sous tableur",
+            "Fiscalité des entreprises",
+            "Analyse de bilans et de comptes",
+            "Prévision macroéconomique",
+            "Suivi de la performance des opérateurs",
         ],
         "competences_voisines": _COMPETENCES_TRANSVERSES,
     },
-    "Conseiller(ère) sécurité et ordre public": {
+    "achats": {
         "mission": (
-            "Coordonner avec le ministère de l'Intérieur et les préfectures la "
-            "préparation du dispositif de sécurité des sites et des "
-            "célébrations."
+            "Définir les stratégies d'achat, conduire les procédures de "
+            "marchés publics et suivre leur exécution avec les services "
+            "prescripteurs."
         ),
         "profil_recherche": (
-            "Expérience de la sécurité intérieure, de la gestion de crise ou "
-            "de la sécurisation de grands événements."
+            "Expérience de la commande publique, maîtrise du code et des "
+            "procédures, sens de la négociation."
         ),
         "profil": [
             (
-                "Officier(ère) de gendarmerie, j'ai planifié la sécurisation de "
-                "grands rassemblements et piloté des cellules de crise."
+                "Acheteur(se) public(que) depuis cinq ans, j'ai conduit des "
+                "procédures formalisées de travaux, fournitures et services."
             ),
             (
-                "Spécialiste de la gestion de crise, habitué(e) à la coordination "
-                "interservices en préfecture."
+                "Spécialiste de la commande publique, attaché(e) à l'achat "
+                "responsable et à la performance économique."
+            ),
+            (
+                "Acheteur(se) informatique, habitué(e) aux marchés complexes et à "
+                "la négociation avec les éditeurs."
+            ),
+            (
+                "Ancien(ne) juriste, je sécurise les procédures de passation et "
+                "l'exécution des marchés."
             ),
         ],
         "formations": [
-            _form("Master Sécurité intérieure", "Université Toulouse Capitole"),
-            _form(
-                "Formation d'officier",
-                "École des officiers de la gendarmerie nationale",
-            ),
-            _form("Master Gestion des risques et des crises", "Université de Nîmes"),
+            _form("Master Achats publics", "Université de Lille"),
+            _form("Master Droit des contrats publics", "Université Jean Moulin Lyon 3"),
+            _form("Licence professionnelle Achats", "IUT de Bordeaux"),
+            _form("Master Management des achats", "IAE de Grenoble"),
+            _form("Master Droit public des affaires", "Université de Rennes"),
+            _form("Licence Administration publique", "Université de Nantes"),
         ],
         "experiences_directes": [
             _exp(
-                "Chef(fe) du bureau de l'ordre public",
+                "Acheteur(se) public(que)",
+                "Direction des achats de l'État",
+                "Passation de marchés interministériels, analyse des offres et "
+                "négociation avec les fournisseurs.",
+            ),
+            _exp(
+                "Responsable de la commande publique",
+                "Conseil départemental",
+                "Programmation des achats, sécurisation des procédures et "
+                "suivi de l'exécution financière.",
+            ),
+            _exp(
+                "Chargé(e) des marchés de travaux",
+                "Établissement public d'aménagement",
+                "Rédaction des dossiers de consultation et gestion des "
+                "avenants et des réclamations.",
+            ),
+            _exp(
+                "Juriste marchés publics",
+                "Union des groupements d'achats publics",
+                "Conseil aux acheteurs publics et rédaction de clauses "
+                "environnementales et sociales.",
+            ),
+            _exp(
+                "Acheteur(se) informatique",
+                "Centre hospitalier régional universitaire de Lille",
+                "Achats de matériels et de prestations informatiques, mise en "
+                "concurrence et suivi des fournisseurs.",
+            ),
+            _exp(
+                "Responsable des achats",
+                "Ville de Toulouse",
+                "Animation de la fonction achat et élaboration de la "
+                "cartographie des achats.",
+            ),
+            _exp(
+                "Chargé(e) de l'exécution des marchés",
+                "Voies navigables de France",
+                "Suivi financier des marchés, gestion des pénalités et des "
+                "reconductions.",
+            ),
+            _exp(
+                "Acheteur(se) prestations intellectuelles",
+                "Ministère des Armées, plateforme achats",
+                "Passation de marchés d'études et de conseil, analyse des offres.",
+            ),
+        ],
+        "experiences_voisines": _EXPERIENCES_TRANSVERSES,
+        "competences_poste": [
+            "Code de la commande publique",
+            "Rédaction de cahiers des charges",
+            "Analyse des offres et négociation",
+            "Achat public responsable",
+            "Suivi de l'exécution des marchés",
+            "Maîtrise des plateformes de dématérialisation",
+            "Sourcing et connaissance des marchés fournisseurs",
+            "Cartographie des achats",
+            "Gestion des avenants et des reconductions",
+            "Suivi de la relation fournisseurs",
+        ],
+        "competences_voisines": _COMPETENCES_TRANSVERSES,
+    },
+    "numerique": {
+        "mission": (
+            "Concevoir, faire évoluer et sécuriser les services numériques et "
+            "les systèmes d'information au service des agents et des usagers."
+        ),
+        "profil_recherche": (
+            "Formation en informatique, expérience du développement, de la "
+            "gestion de produit ou de l'exploitation de systèmes."
+        ),
+        "profil": [
+            (
+                "Développeur(se) depuis six ans, j'ai construit des services "
+                "numériques publics utilisés par des millions d'usagers."
+            ),
+            (
+                "Chef(fe) de projet SI, à l'aise entre les équipes techniques, "
+                "les métiers et les prestataires."
+            ),
+            (
+                "Data scientist, j'aime transformer des données publiques en "
+                "outils utiles aux agents."
+            ),
+            (
+                "Administrateur(trice) systèmes, j'assure depuis cinq ans "
+                "l'exploitation de services critiques."
+            ),
+        ],
+        "formations": [
+            _form("Diplôme d'ingénieur informatique", "INSA Rennes"),
+            _form("Master Science des données", "Université Paris Cité"),
+            _form(
+                "Master Sécurité des systèmes d'information",
+                "Université de Limoges",
+            ),
+            _form(
+                "Licence professionnelle Administration de systèmes",
+                "IUT de Lannion",
+            ),
+            _form("Master MIAGE", "Université Paris-Dauphine"),
+            _form("Diplôme d'ingénieur", "EPITA"),
+        ],
+        "experiences_directes": [
+            _exp(
+                "Développeur(se) full stack",
+                "Direction interministérielle du numérique",
+                "Développement d'une application web en Python et Vue, mise "
+                "en production et suivi de l'usage.",
+            ),
+            _exp(
+                "Chef(fe) de projet systèmes d'information",
+                "Ministère de l'Économie et des Finances",
+                "Pilotage de la refonte d'un applicatif métier, recette et "
+                "accompagnement des utilisateurs.",
+            ),
+            _exp(
+                "Data analyst",
+                "Agence régionale de santé",
+                "Construction de tableaux de bord et automatisation des "
+                "traitements de données.",
+            ),
+            _exp(
+                "Ingénieur(e) sécurité des systèmes d'information",
+                "Opérateur d'importance vitale",
+                "Analyses de risques, homologation des systèmes et réponse "
+                "aux incidents de sécurité.",
+            ),
+            _exp(
+                "Administrateur(trice) systèmes et réseaux",
+                "Université Grenoble Alpes",
+                "Exploitation de serveurs Linux, supervision et sauvegardes.",
+            ),
+            _exp(
+                "Chef(fe) de produit numérique",
+                "Incubateur de services numériques de l'État",
+                "Pilotage d'un produit par l'usage, priorisation et suivi des "
+                "indicateurs d'impact.",
+            ),
+            _exp(
+                "Data scientist",
+                "Caisse nationale de l'assurance maladie",
+                "Modèles statistiques de détection des fraudes et visualisation "
+                "de données de santé.",
+            ),
+            _exp(
+                "Développeur(se) back-end",
+                "Entreprise de services numériques",
+                "Développement d'API et maintenance d'applications pour des "
+                "clients publics.",
+            ),
+        ],
+        "experiences_voisines": _EXPERIENCES_TRANSVERSES,
+        "competences_poste": [
+            "Développement web (Python, JavaScript)",
+            "Méthodes agiles et gestion de produit",
+            "Analyse et visualisation de données",
+            "Sécurité des systèmes d'information",
+            "Administration de bases de données",
+            "Accessibilité numérique (RGAA)",
+            "Administration de systèmes Linux",
+            "Conception d'API",
+            "Recherche utilisateur et tests d'usage",
+            "Modélisation statistique et apprentissage automatique",
+        ],
+        "competences_voisines": _COMPETENCES_TRANSVERSES,
+    },
+    "communication": {
+        "mission": (
+            "Concevoir et mettre en œuvre la communication interne et "
+            "externe, animer les réseaux sociaux et gérer les relations avec "
+            "la presse."
+        ),
+        "profil_recherche": (
+            "Expérience de la communication publique, excellentes qualités "
+            "rédactionnelles et maîtrise des outils numériques."
+        ),
+        "profil": [
+            (
+                "Chargé(e) de communication depuis six ans, j'ai conduit des "
+                "campagnes d'information du public pour des acteurs publics."
+            ),
+            (
+                "Spécialiste des réseaux sociaux et des relations presse, "
+                "attaché(e) à une information claire et accessible."
+            ),
+            (
+                "Rédacteur(trice) web, je conçois depuis quatre ans des contenus "
+                "pour des sites institutionnels."
+            ),
+            (
+                "Chargé(e) de veille, habitué(e) à repérer les signaux faibles "
+                "dans les médias et sur les réseaux."
+            ),
+        ],
+        "formations": [
+            _form("Master Communication publique et politique", "CELSA Sorbonne"),
+            _form(
+                "Diplôme de journalisme",
+                "École supérieure de journalisme de Lille",
+            ),
+            _form(
+                "Master Communication des organisations",
+                "Université de Toulouse",
+            ),
+            _form(
+                "Licence Information-communication",
+                "Université Bordeaux Montaigne",
+            ),
+            _form("Master Communication numérique", "Université de Lorraine"),
+            _form(
+                "Master Médias et communication", "Université Paris 2 Panthéon-Assas"
+            ),
+        ],
+        "experiences_directes": [
+            _exp(
+                "Chargé(e) de communication digitale",
+                "Service d'information du Gouvernement",
+                "Animation des réseaux sociaux, production de contenus et "
+                "suivi des indicateurs d'audience.",
+            ),
+            _exp(
+                "Attaché(e) de presse",
+                "Cabinet ministériel",
+                "Rédaction de communiqués, organisation de conférences de "
+                "presse et gestion des sollicitations.",
+            ),
+            _exp(
+                "Responsable de la communication interne",
+                "Établissement public national",
+                "Conception de la lettre interne, animation de l'intranet et "
+                "accompagnement des projets de transformation.",
+            ),
+            _exp(
+                "Chargé(e) de mécénat et partenariats",
+                "Musée national",
+                "Prospection d'entreprises mécènes et suivi des contreparties.",
+            ),
+            _exp(
+                "Chargé(e) de communication éditoriale",
+                "Bibliothèque nationale de France",
+                "Rédaction de contenus pour le site et les réseaux, "
+                "coordination des publications.",
+            ),
+            _exp(
+                "Responsable de la communication",
+                "Communauté de communes du Pays de Gex",
+                "Conception des campagnes locales et gestion du magazine "
+                "intercommunal.",
+            ),
+            _exp(
+                "Chargé(e) de relations presse",
+                "Agence de communication publique",
+                "Gestion de fichiers presse et organisation de voyages de "
+                "presse pour des institutions.",
+            ),
+            _exp(
+                "Chargé(e) de veille médias",
                 "Préfecture de police",
-                "Planification des services d'ordre et coordination des forces "
-                "lors de grands événements.",
-            ),
-            _exp(
-                "Officier(ère) adjoint(e) au commandant de groupement",
-                "Gendarmerie nationale",
-                "Conduite d'opérations de sécurisation et de gestion d'événements "
-                "majeurs.",
-            ),
-            _exp(
-                "Chargé(e) de mission sécurité des grands événements",
-                "Délégation interministérielle aux grands événements sportifs",
-                "Préparation des concepts de sécurité et suivi des exercices de crise.",
-            ),
-            _exp(
-                "Directeur(rice) de cabinet adjoint(e)",
-                "Préfecture de département",
-                "Gestion de la permanence, des crises et de la sécurité publique.",
+                "Revue de presse quotidienne et analyse des réseaux sociaux.",
             ),
         ],
         "experiences_voisines": _EXPERIENCES_TRANSVERSES,
         "competences_poste": [
-            "Planification de dispositifs de sécurité",
-            "Gestion de crise et conduite d'exercices",
-            "Coordination police, gendarmerie et secours",
-            "Connaissance de l'organisation préfectorale",
-            "Analyse de la menace",
-            "Sécurité des grands rassemblements",
+            "Stratégie de communication publique",
+            "Rédaction web et éditoriale",
+            "Animation de réseaux sociaux",
+            "Relations presse",
+            "Communication de crise",
+            "Création graphique et outils PAO",
+            "Veille médias et réseaux sociaux",
+            "Gestion de site web et de CMS",
+            "Organisation d'événements",
+            "Communication accessible (FALC)",
         ],
         "competences_voisines": _COMPETENCES_TRANSVERSES,
     },
-    "Conseiller(ère) transports et mobilités": {
+    "culture": {
         "mission": (
-            "Préparer avec les autorités organisatrices le plan de transport "
-            "des spectateurs, des délégations et des personnels."
+            "Contribuer à la conservation, à la valorisation et à la "
+            "diffusion du patrimoine et de la création, en lien avec les "
+            "institutions culturelles et les publics."
         ),
         "profil_recherche": (
-            "Expérience en planification des transports ou en exploitation de "
-            "réseaux, connaissance des acteurs de la mobilité."
+            "Formation en histoire de l'art, patrimoine ou médiation, "
+            "expérience d'une institution culturelle."
         ),
         "profil": [
             (
-                "Ingénieur(e) transports, j'ai conçu des plans de mobilité pour "
-                "des événements accueillant des centaines de milliers de visiteurs."
+                "Historien(ne) de l'art, j'ai participé à l'organisation "
+                "d'expositions et à la gestion de collections publiques."
             ),
             (
-                "Spécialiste de l'exploitation des réseaux, attaché(e) à la "
-                "qualité de service pour les voyageurs."
+                "Médiateur(trice) culturel(le), attaché(e) à l'ouverture des "
+                "institutions à tous les publics."
+            ),
+            (
+                "Archiviste, j'ai mené des opérations de classement "
+                "et de valorisation de fonds publics."
+            ),
+            (
+                "Chargé(e) de programmation, je construis des saisons qui relient "
+                "artistes, territoires et publics."
             ),
         ],
         "formations": [
-            _form("Master Transport et mobilité", "École d'urbanisme de Paris"),
-            _form("Diplôme d'ingénieur, option transports", "INSA Lyon"),
-            _form("Master Économie des transports", "Université Lumière Lyon 2"),
-        ],
-        "experiences_directes": [
-            _exp(
-                "Chef(fe) de projet mobilité événementielle",
-                "Autorité organisatrice des mobilités régionale",
-                "Conception des plans de transport et coordination des "
-                "opérateurs ferroviaires et de bus.",
-            ),
-            _exp(
-                "Responsable de l'offre de transport",
-                "Opérateur de transport urbain",
-                "Dimensionnement de l'offre, suivi de la fréquentation et "
-                "gestion des situations perturbées.",
-            ),
-            _exp(
-                "Chargé(e) d'études déplacements",
-                "Bureau d'études en mobilité",
-                "Modélisation des flux et élaboration de plans de déplacements "
-                "pour des collectivités.",
-            ),
-            _exp(
-                "Chargé(e) de mission voies olympiques",
-                "Direction des routes d'Île-de-France",
-                "Conception et exploitation de voies réservées, concertation "
-                "avec les gestionnaires de voirie.",
-            ),
-        ],
-        "experiences_voisines": _EXPERIENCES_TRANSVERSES,
-        "competences_poste": [
-            "Planification des transports",
-            "Modélisation des flux de voyageurs",
-            "Exploitation de réseaux en situation perturbée",
-            "Connaissance des autorités organisatrices",
-            "Accessibilité des transports",
-            "Gestion de la voirie et des voies réservées",
-        ],
-        "competences_voisines": _COMPETENCES_TRANSVERSES,
-    },
-    "Chargé(e) de mission relations territoriales": {
-        "mission": (
-            "Animer le réseau des collectivités hôtes et des préfectures, "
-            "relayer leurs attentes et suivre les engagements pris avec "
-            "elles."
-        ),
-        "profil_recherche": (
-            "Bonne connaissance des collectivités territoriales et de "
-            "l'administration déconcentrée, aisance relationnelle."
-        ),
-        "profil": [
-            (
-                "Chargé(e) de relations avec les élus, j'ai animé des réseaux de "
-                "collectivités autour de projets structurants."
-            ),
-            (
-                "Spécialiste de l'action publique territoriale, habitué(e) au "
-                "dialogue entre services de l'État et collectivités."
-            ),
-        ],
-        "formations": [
+            _form("Diplôme de l'École du Louvre", "École du Louvre"),
+            _form("Master Histoire de l'art", "Université Paris 1 Panthéon-Sorbonne"),
+            _form("Master Médiation culturelle", "Université Sorbonne Nouvelle"),
+            _form("Master Archives", "École nationale des chartes"),
+            _form("Master Archéologie", "Université Toulouse - Jean Jaurès"),
             _form(
-                "Master Administration des collectivités territoriales",
-                "Université de Lille",
+                "Diplôme de conservateur du patrimoine",
+                "Institut national du patrimoine",
             ),
-            _form("Master Affaires publiques", "Sciences Po Paris"),
-            _form("Licence Administration publique", "Université de Rennes"),
         ],
         "experiences_directes": [
             _exp(
-                "Chargé(e) de mission relations avec les collectivités",
-                "Préfecture de région",
-                "Animation des contrats territoriaux et suivi des projets "
-                "cofinancés par l'État.",
+                "Chargé(e) de production d'expositions",
+                "Musée d'art moderne",
+                "Coordination des prêts, des transports d'œuvres et du "
+                "calendrier de montage.",
             ),
             _exp(
-                "Responsable des relations institutionnelles",
-                "Association d'élus locaux",
-                "Représentation des collectivités et préparation des "
-                "positions sur les textes en discussion.",
+                "Régisseur(se) des collections",
+                "Musée départemental",
+                "Inventaire, récolement et conditionnement des œuvres, suivi "
+                "des mouvements.",
             ),
             _exp(
-                "Chef(fe) de projet territorial",
-                "Agence nationale de la cohésion des territoires",
-                "Accompagnement de communes dans leurs programmes de revitalisation.",
+                "Chargé(e) des publics",
+                "Centre d'art contemporain",
+                "Conception des visites et ateliers, partenariats avec les "
+                "établissements scolaires.",
             ),
             _exp(
-                "Collaborateur(rice) de cabinet",
-                "Conseil régional",
-                "Suivi des relations avec les territoires et préparation des "
-                "déplacements de l'exécutif.",
+                "Conseiller(ère) pour les patrimoines",
+                "Direction régionale des affaires culturelles",
+                "Instruction des demandes de protection et suivi des "
+                "chantiers sur monuments historiques.",
+            ),
+            _exp(
+                "Archiviste",
+                "Archives départementales du Rhône",
+                "Classement de fonds, rédaction d'inventaires et accueil des lecteurs.",
+            ),
+            _exp(
+                "Chargé(e) de programmation",
+                "Scène nationale",
+                "Programmation, accueil des compagnies et développement des publics.",
+            ),
+            _exp(
+                "Bibliothécaire",
+                "Médiathèque intercommunale",
+                "Politique documentaire, animations autour du livre et "
+                "partenariats scolaires.",
+            ),
+            _exp(
+                "Chargé(e) d'études archéologiques",
+                "Institut national de recherches archéologiques préventives",
+                "Diagnostics de terrain, études de mobilier et rédaction de rapports.",
             ),
         ],
         "experiences_voisines": _EXPERIENCES_TRANSVERSES,
         "competences_poste": [
-            "Connaissance des collectivités territoriales",
-            "Animation de réseaux d'acteurs locaux",
-            "Relations avec les élus",
-            "Contractualisation État-collectivités",
-            "Organisation de concertations",
-            "Suivi d'engagements partenariaux",
+            "Gestion et conservation de collections",
+            "Organisation d'expositions",
+            "Médiation et éducation artistique",
+            "Droit du patrimoine",
+            "Régie et conditionnement d'œuvres",
+            "Montage de projets culturels",
+            "Classement et description d'archives",
+            "Programmation artistique",
+            "Politique documentaire",
+            "Archéologie préventive",
         ],
         "competences_voisines": _COMPETENCES_TRANSVERSES,
     },
-    "Chargé(e) de mission transition écologique et sobriété": {
+    "audit": {
         "mission": (
-            "Porter les engagements environnementaux de la délégation : "
-            "sobriété énergétique, réduction des déchets et bilan carbone "
-            "des événements."
+            "Contrôler la régularité et la qualité de la gestion publique, "
+            "évaluer les politiques publiques et formuler des recommandations."
         ),
         "profil_recherche": (
-            "Expérience en développement durable ou en transition "
-            "énergétique, maîtrise des méthodes de bilan carbone."
+            "Expérience de l'audit, du contrôle ou de l'évaluation, rigueur "
+            "méthodologique et qualités rédactionnelles."
+        ),
+        "profil": [
+            (
+                "Auditeur(trice) depuis huit ans, j'ai conduit des missions de "
+                "contrôle auprès d'organismes publics."
+            ),
+            (
+                "Chargé(e) d'évaluation, attaché(e) à éclairer la décision "
+                "publique par des analyses étayées."
+            ),
+            (
+                "Ancien(ne) inspecteur(trice), rompu(e) aux missions "
+                "d'évaluation interministérielles."
+            ),
+            (
+                "Contrôleur(se) interne, j'ai déployé des plans de contrôle dans "
+                "deux agences publiques."
+            ),
+        ],
+        "formations": [
+            _form("Master Audit et contrôle", "Université Paris-Dauphine"),
+            _form("Master Évaluation des politiques publiques", "Sciences Po Lyon"),
+            _form("Diplôme d'expertise comptable", "Ordre des experts-comptables"),
+            _form("Master Comptabilité, contrôle, audit", "IAE de Bordeaux"),
+            _form("Master Politiques publiques", "Sciences Po Paris"),
+            _form(
+                "Diplôme supérieur de comptabilité et de gestion",
+                "Institut national des techniques économiques et comptables",
+            ),
+        ],
+        "experiences_directes": [
+            _exp(
+                "Vérificateur(trice)",
+                "Chambre régionale des comptes",
+                "Contrôle des comptes et de la gestion de collectivités, "
+                "rédaction de rapports d'observations.",
+            ),
+            _exp(
+                "Auditeur(trice) interne",
+                "Ministère des Armées",
+                "Audits de processus, cartographie des risques et suivi des "
+                "plans d'action.",
+            ),
+            _exp(
+                "Chargé(e) d'évaluation",
+                "France Stratégie",
+                "Évaluation d'impact de dispositifs publics et rédaction de rapports.",
+            ),
+            _exp(
+                "Auditeur(trice) financier(ère)",
+                "Cabinet d'audit",
+                "Certification des comptes d'établissements publics et d'associations.",
+            ),
+            _exp(
+                "Inspecteur(trice)",
+                "Inspection générale de l'administration",
+                "Missions d'inspection et d'évaluation, rédaction de rapports "
+                "au ministre.",
+            ),
+            _exp(
+                "Contrôleur(se) interne comptable",
+                "Agence de services et de paiement",
+                "Cartographie des risques comptables et plans de contrôle.",
+            ),
+            _exp(
+                "Auditeur(trice) des fonds européens",
+                "Commission interministérielle de coordination des contrôles",
+                "Audits d'opérations cofinancées et suivi des recommandations.",
+            ),
+            _exp(
+                "Auditeur(trice) des systèmes d'information",
+                "Société de conseil en cybersécurité",
+                "Revue des contrôles généraux informatiques et des habilitations.",
+            ),
+        ],
+        "experiences_voisines": _EXPERIENCES_TRANSVERSES,
+        "competences_poste": [
+            "Méthodologie d'audit et de contrôle",
+            "Analyse financière et comptabilité publique",
+            "Évaluation des politiques publiques",
+            "Cartographie des risques",
+            "Rédaction de rapports et de recommandations",
+            "Procédure contradictoire",
+            "Contrôle interne comptable",
+            "Audit des fonds européens",
+            "Audit des systèmes d'information",
+            "Conduite d'entretiens d'audit",
+        ],
+        "competences_voisines": _COMPETENCES_TRANSVERSES,
+    },
+    "environnement": {
+        "mission": (
+            "Concevoir et suivre des politiques de transition écologique : "
+            "climat, biodiversité, prévention des risques, mobilités et "
+            "aménagement durable des territoires."
+        ),
+        "profil_recherche": (
+            "Expérience en environnement, en aménagement ou en mobilité, "
+            "connaissance des collectivités et des services de l'État."
         ),
         "profil": [
             (
                 "Chargé(e) de mission développement durable, j'ai conduit des "
-                "plans de sobriété et des bilans carbone d'événements."
+                "plans de sobriété et des démarches climat-énergie."
             ),
             (
-                "Ingénieur(e) environnement, convaincu(e) que la sobriété se "
-                "construit avec les équipes opérationnelles."
+                "Ingénieur(e) environnement, habitué(e) au dialogue entre "
+                "services de l'État, collectivités et acteurs locaux."
+            ),
+            (
+                "Écologue, j'accompagne depuis sept ans des projets "
+                "de protection de la biodiversité."
+            ),
+            (
+                "Inspecteur(trice) de l'environnement, j'ai contrôlé une "
+                "centaine de sites industriels."
             ),
         ],
         "formations": [
             _form("Master Transition écologique", "AgroParisTech"),
             _form("Diplôme d'ingénieur environnement", "Mines Paris"),
-            _form(
-                "Master Développement durable des organisations",
-                "Université Paris-Dauphine",
-            ),
+            _form("Master Transport et mobilité", "École d'urbanisme de Paris"),
+            _form("Master Écologie et biodiversité", "Université de Montpellier"),
+            _form("Master Gestion des risques", "Université Grenoble Alpes"),
+            _form("Diplôme d'ingénieur des travaux publics de l'État", "ENTPE"),
         ],
         "experiences_directes": [
             _exp(
@@ -617,21 +1107,43 @@ CORPUS: dict[str, PosteCorpus] = {
                 "consommations.",
             ),
             _exp(
-                "Responsable RSE",
-                "Organisateur d'événements sportifs",
-                "Réalisation de bilans carbone et pilotage des actions de "
-                "réduction des déchets.",
-            ),
-            _exp(
                 "Chef(fe) de projet climat-énergie",
                 "Agence de la transition écologique",
                 "Accompagnement de collectivités dans leurs plans climat.",
             ),
             _exp(
-                "Consultant(e) carbone",
-                "Cabinet spécialisé en transition énergétique",
-                "Bilans d'émissions de gaz à effet de serre et trajectoires "
-                "de réduction pour des acteurs publics.",
+                "Chef(fe) de projet territorial",
+                "Agence nationale de la cohésion des territoires",
+                "Accompagnement de communes dans leurs programmes de revitalisation.",
+            ),
+            _exp(
+                "Chargé(e) d'études mobilité",
+                "Autorité organisatrice des mobilités régionale",
+                "Conception de plans de mobilité et coordination des "
+                "opérateurs ferroviaires et de bus.",
+            ),
+            _exp(
+                "Inspecteur(trice) des installations classées",
+                "Unité départementale de la DREAL des Hauts-de-France",
+                "Inspection de sites industriels et instruction des dossiers "
+                "d'autorisation.",
+            ),
+            _exp(
+                "Chargé(e) de mission biodiversité",
+                "Office français de la biodiversité",
+                "Animation de plans d'action pour les espèces protégées et "
+                "suivi des aires protégées.",
+            ),
+            _exp(
+                "Chargé(e) d'études risques naturels",
+                "Bureau de recherches géologiques et minières",
+                "Cartographie des aléas et appui aux plans de prévention.",
+            ),
+            _exp(
+                "Chargé(e) de mission économie circulaire",
+                "Métropole Rouen Normandie",
+                "Plan de réduction des déchets et accompagnement des "
+                "entreprises du territoire.",
             ),
         ],
         "experiences_voisines": _EXPERIENCES_TRANSVERSES,
@@ -639,73 +1151,118 @@ CORPUS: dict[str, PosteCorpus] = {
             "Méthode Bilan Carbone",
             "Plans de sobriété énergétique",
             "Économie circulaire et réduction des déchets",
-            "Achats publics responsables",
-            "Animation de démarches RSE",
             "Réglementation environnementale",
+            "Planification des transports",
+            "Contractualisation État-collectivités",
+            "Inspection des installations classées",
+            "Gestion des espaces naturels protégés",
+            "Prévention des risques naturels",
+            "Évaluation environnementale des projets",
         ],
         "competences_voisines": _COMPETENCES_TRANSVERSES,
     },
-    "Chargé(e) de mission accessibilité et Jeux paralympiques": {
+    "solidarites": {
         "mission": (
-            "Garantir l'accessibilité des sites, des transports et des "
-            "services aux personnes en situation de handicap, en lien avec "
-            "le mouvement paralympique."
+            "Concevoir et suivre les politiques du travail, de l'emploi et des "
+            "solidarités, en lien avec les services déconcentrés et les "
+            "partenaires sociaux."
         ),
         "profil_recherche": (
-            "Expérience des politiques du handicap ou de l'accessibilité du "
-            "cadre bâti, connaissance du mouvement paralympique appréciée."
+            "Expérience des politiques sociales ou de l'emploi, connaissance "
+            "du droit du travail et des acteurs de l'insertion."
         ),
         "profil": [
             (
-                "Spécialiste de l'accessibilité, j'ai accompagné des maîtres "
-                "d'ouvrage dans la mise en conformité de leurs équipements."
+                "Chargé(e) de mission insertion depuis six ans, j'ai animé des "
+                "dispositifs d'accompagnement vers l'emploi."
             ),
             (
-                "Chargé(e) de mission handicap, engagé(e) auprès des "
-                "associations et du mouvement paralympique."
+                "Spécialiste des politiques sociales, attaché(e) à l'accès aux "
+                "droits et à la lutte contre la pauvreté."
+            ),
+            (
+                "Conseiller(ère) en insertion, j'accompagne depuis huit ans des "
+                "publics éloignés de l'emploi."
+            ),
+            (
+                "Statisticien(ne) de l'emploi, je produis des indicateurs pour "
+                "éclairer les politiques publiques."
             ),
         ],
         "formations": [
-            _form("Master Handicap et société", "Université de Grenoble"),
-            _form(
-                "Diplôme d'architecte d'État",
-                "École nationale supérieure d'architecture de Nantes",
-            ),
             _form("Master Politiques sociales", "Université de Strasbourg"),
+            _form("Master Droit social", "Université Paris Nanterre"),
+            _form("Master Économie du travail", "Université Lumière Lyon 2"),
+            _form(
+                "Diplôme d'État d'assistant de service social",
+                "Institut régional du travail social d'Île-de-France",
+            ),
+            _form("Master Statistique et économétrie", "Université de Rennes"),
+            _form("Master Sociologie", "Université de Nantes"),
         ],
         "experiences_directes": [
             _exp(
-                "Chargé(e) de mission accessibilité",
-                "Ville de Paris",
-                "Diagnostic des établissements recevant du public et suivi des "
-                "agendas d'accessibilité programmée.",
+                "Inspecteur(trice) du travail",
+                "Direction régionale de l'économie, de l'emploi, du travail "
+                "et des solidarités",
+                "Contrôle de l'application du droit du travail et conseil aux "
+                "entreprises et aux salariés.",
             ),
             _exp(
-                "Référent(e) handicap",
-                "Comité paralympique et sportif français",
-                "Accompagnement des clubs dans l'accueil des pratiquants en "
-                "situation de handicap.",
+                "Chargé(e) de mission insertion",
+                "Conseil départemental",
+                "Pilotage du programme départemental d'insertion et suivi des "
+                "structures d'insertion par l'activité économique.",
             ),
             _exp(
-                "Conseiller(ère) accessibilité",
-                "Bureau de contrôle technique",
-                "Vérification de la conformité des projets de construction aux "
-                "règles d'accessibilité.",
+                "Chargé(e) d'études statistiques",
+                "Direction de l'animation de la recherche, des études et des "
+                "statistiques",
+                "Production d'indicateurs sur l'emploi et analyses des "
+                "dispositifs de politique de l'emploi.",
             ),
             _exp(
-                "Chef(fe) de projet inclusion",
-                "Maison départementale des personnes handicapées",
-                "Pilotage de projets d'inclusion et animation des partenaires.",
+                "Chef(fe) de projet autonomie",
+                "Caisse nationale de solidarité pour l'autonomie",
+                "Suivi des plans d'aide aux personnes âgées et handicapées et "
+                "animation des départements.",
+            ),
+            _exp(
+                "Conseiller(ère) en insertion professionnelle",
+                "France Travail",
+                "Accompagnement de demandeurs d'emploi et relation avec les "
+                "entreprises.",
+            ),
+            _exp(
+                "Chargé(e) de mission handicap",
+                "Association de gestion du fonds pour l'insertion des personnes "
+                "handicapées",
+                "Accompagnement des employeurs dans l'emploi des travailleurs "
+                "handicapés.",
+            ),
+            _exp(
+                "Contrôleur(se) du travail",
+                "Unité départementale de l'inspection du travail",
+                "Enquêtes en entreprise et suivi des accidents du travail.",
+            ),
+            _exp(
+                "Chargé(e) de mission accès aux droits",
+                "Union nationale des centres communaux d'action sociale",
+                "Animation du réseau et appui aux projets d'accès aux droits.",
             ),
         ],
         "experiences_voisines": _EXPERIENCES_TRANSVERSES,
         "competences_poste": [
-            "Réglementation de l'accessibilité du cadre bâti",
-            "Connaissance du mouvement paralympique",
-            "Diagnostic d'accessibilité",
-            "Accessibilité des transports et de l'information",
-            "Dialogue avec les associations de personnes handicapées",
-            "Politiques publiques du handicap",
+            "Droit du travail",
+            "Politiques de l'emploi et de l'insertion",
+            "Politiques de l'autonomie et du handicap",
+            "Analyse statistique de l'emploi",
+            "Animation de partenariats institutionnels",
+            "Dialogue avec les partenaires sociaux",
+            "Accompagnement vers l'emploi",
+            "Accès aux droits sociaux",
+            "Emploi des personnes handicapées",
+            "Enquêtes et contrôles en entreprise",
         ],
         "competences_voisines": _COMPETENCES_TRANSVERSES,
     },

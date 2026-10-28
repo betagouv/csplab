@@ -4,17 +4,16 @@ import textwrap
 from dataclasses import dataclass
 from datetime import date, datetime, time, timedelta
 from itertools import cycle
-from typing import TypedDict
 from uuid import UUID
 
 import factory.random
 from django.core.files.base import ContentFile
 from django.db import transaction
-from django.db.models import Q
 from django.utils import timezone
 from django.utils.formats import date_format
 from django.utils.text import slugify
 from faker import Faker
+from referentiel.value_objects.source_type import SourceType
 
 from domain.candidate.value_objects.statut_candidature import StatutCandidature
 from domain.recruteur.value_objects.roles import AgentRecrutementRole
@@ -43,9 +42,6 @@ from infrastructure.factories.candidate.document_django_factory import (
 from infrastructure.factories.identite.candidat_django_factory import (
     CandidatDjangoFactory,
 )
-from infrastructure.factories.ingestion.source_django_factory import (
-    SourceDjangoFactory,
-)
 from infrastructure.factories.messagerie.conversation_django_factory import (
     ConversationDjangoFactory,
     ConversationLectureDjangoFactory,
@@ -66,10 +62,9 @@ from infrastructure.factories.seed_demo_cv_corpus import (
     VILLES,
     PosteCorpus,
 )
+from infrastructure.factories.seed_demo_specs import RecrutementSpec, SpecOrganisme
 from infrastructure.factories.seed_recruteur_datas import delete_candidatures
 
-_SEED = 1945
-_REFERENCE_PREFIX = "DEMO-1945-"
 _EMAIL_DOMAIN = "@demo.candidat.fr"
 _SOURCE_DEMO_UUID = UUID("00000000-0000-0000-0000-000000001945")
 _SOURCE_DEMO_SLUG = "demo-1945"
@@ -83,89 +78,29 @@ _RECRUTEMENT = "Recrutement"
 _ETAPES = (_RECEPTION, _PRESELECTION, _ENTRETIEN, _PROPOSITION, _REFUS, _RECRUTEMENT)
 _ETAPES_AVEC_NOTE = (_PRESELECTION, _ENTRETIEN, _PROPOSITION, _RECRUTEMENT)
 
-
-class _RecrutementSpec(TypedDict):
-    reference: str
-    intitule: str
-    archive_depuis_jours: int | None
-    repartition: tuple[int, int, int, int, int, int]
-
-
-# repartition : candidatures par étape, dans l'ordre de _ETAPES.
-_RECRUTEMENTS_SPECS: list[_RecrutementSpec] = [
-    {
-        "reference": "DEMO-1945-001",
-        "intitule": "Secrétaire général(e)",
-        "archive_depuis_jours": None,
-        "repartition": (52, 19, 9, 5, 9, 0),
-    },
-    {
-        "reference": "DEMO-1945-002",
-        "intitule": "Conseiller(ère) héritage",
-        "archive_depuis_jours": None,
-        "repartition": (0, 0, 0, 0, 0, 0),
-    },
-    {
-        "reference": "DEMO-1945-003",
-        "intitule": "Chargé(e) de mission infrastructures",
-        "archive_depuis_jours": None,
-        "repartition": (2, 1, 1, 0, 1, 0),
-    },
-    {
-        "reference": "DEMO-1945-004",
-        "intitule": "Conseiller(ère) juridique / affaires législatives",
-        "archive_depuis_jours": None,
-        "repartition": (37, 13, 7, 3, 7, 0),
-    },
-    {
-        "reference": "DEMO-1945-005",
-        "intitule": "Conseiller(ère) finances et garanties de l’État",
-        "archive_depuis_jours": None,
-        "repartition": (2, 1, 1, 0, 1, 0),
-    },
-    {
-        "reference": "DEMO-1945-006",
-        "intitule": "Conseiller(ère) sécurité et ordre public",
-        "archive_depuis_jours": None,
-        "repartition": (27, 10, 5, 2, 4, 0),
-    },
-    {
-        "reference": "DEMO-1945-007",
-        "intitule": "Conseiller(ère) transports et mobilités",
-        "archive_depuis_jours": None,
-        "repartition": (18, 6, 3, 2, 3, 0),
-    },
-    {
-        "reference": "DEMO-1945-008",
-        "intitule": "Chargé(e) de mission relations territoriales",
-        "archive_depuis_jours": None,
-        "repartition": (2, 1, 1, 0, 1, 0),
-    },
-    {
-        "reference": "DEMO-1945-009",
-        "intitule": "Chargé(e) de mission relations territoriales",
-        "archive_depuis_jours": 20,
-        "repartition": (1, 0, 2, 1, 7, 1),
-    },
-    {
-        "reference": "DEMO-1945-010",
-        "intitule": "Chargé(e) de mission transition écologique et sobriété",
-        "archive_depuis_jours": 45,
-        "repartition": (1, 0, 3, 1, 10, 1),
-    },
-    {
-        "reference": "DEMO-1945-011",
-        "intitule": "Chargé(e) de mission accessibilité et Jeux paralympiques",
-        "archive_depuis_jours": 90,
-        "repartition": (2, 0, 3, 2, 11, 1),
-    },
-]
-
 _SAMEDI = 5
 _CRENEAUX = ((3, "10 h"), (5, "14 h 30"), (8, "11 h"))
 _CANDIDATURES_ETALEES_SUR = timedelta(days=30)
 _DEMANDE_ENVOYEE_A = time(9, 30)
 _REPONSE_ENVOYEE_A = time(16, 30)
+_APPRECIATIONS = {
+    0.4: "Parcours voisin du poste, adéquation à confirmer en entretien.",
+    0.65: "Parcours en partie aligné sur le poste, expériences voisines utiles.",
+    0.9: "Parcours en adéquation directe avec les missions du poste.",
+}
+_PART_AVATAR = 0.5
+_COULEURS_AVATAR = (
+    (0.0, 0.0, 0.57),
+    (0.88, 0.0, 0.06),
+    (0.0, 0.45, 0.4),
+    (0.42, 0.25, 0.6),
+)
+
+
+@dataclass
+class _Avatar:
+    initiales: str
+    couleur: tuple[float, float, float]
 
 
 @dataclass
@@ -177,11 +112,14 @@ class _CandidaturePlan:
     note: bool
     conversation: bool
     lecture: bool
+    avatar: _Avatar | None
 
 
 @dataclass
 class _RecrutementPlan:
-    spec: _RecrutementSpec
+    reference: str
+    spec: RecrutementSpec
+    corpus: PosteCorpus
     candidatures: list[_CandidaturePlan]
 
 
@@ -192,10 +130,16 @@ class _Cv:
     competence: str
 
 
-def _planifier(fake: Faker, rng: random.Random) -> list[_RecrutementPlan]:
+def _reference(cle: str, rang: int) -> str:
+    return f"DEMO-{cle}-{rang:02d}"
+
+
+def _planifier(
+    spec_organisme: SpecOrganisme, fake: Faker, rng: random.Random
+) -> list[_RecrutementPlan]:
     plans = []
     nb_conversations = 0
-    for spec in _RECRUTEMENTS_SPECS:
+    for rang, spec in enumerate(spec_organisme.recrutements, start=1):
         candidatures = []
         nb_suivies = 0
         for etape, nombre in zip(_ETAPES, spec["repartition"], strict=True):
@@ -211,18 +155,33 @@ def _planifier(fake: Faker, rng: random.Random) -> list[_RecrutementPlan]:
                 if conversation:
                     lecture = nb_conversations % 2 == 0
                     nb_conversations += 1
+                prenom, nom = fake.first_name(), fake.last_name()
+                avatar = None
+                if rng.random() < _PART_AVATAR:
+                    avatar = _Avatar(
+                        initiales=f"{prenom[0]}{nom[0]}".upper(),
+                        couleur=rng.choice(_COULEURS_AVATAR),
+                    )
                 candidatures.append(
                     _CandidaturePlan(
                         etape=etape,
-                        prenom=fake.first_name(),
-                        nom=fake.last_name(),
-                        proximite=rng.random(),
+                        prenom=prenom,
+                        nom=nom,
+                        proximite=rng.choice(list(_APPRECIATIONS)),
                         note=note,
                         conversation=conversation,
                         lecture=lecture,
+                        avatar=avatar,
                     )
                 )
-        plans.append(_RecrutementPlan(spec=spec, candidatures=candidatures))
+        plans.append(
+            _RecrutementPlan(
+                reference=_reference(spec_organisme.cle, rang),
+                spec=spec,
+                corpus=CORPUS[spec["famille"]],
+                candidatures=candidatures,
+            )
+        )
     return plans
 
 
@@ -246,34 +205,43 @@ def _comptes(plans: list[_RecrutementPlan]) -> dict:
     }
 
 
-def _offres_demo():
-    return OfferModel.objects.filter(reference__startswith=_REFERENCE_PREFIX)
-
-
-def _candidatures_demo():
-    return CandidatureModel.objects.filter(
-        Q(etape__recrutement__offre__reference__startswith=_REFERENCE_PREFIX)
-        | Q(candidat__utilisateur__email__endswith=_EMAIL_DOMAIN)
+def _offres_demo(organisme: OrganismeModel):
+    return OfferModel.objects.filter(
+        source_id=_SOURCE_DEMO_UUID, recrutement__organisme_id=organisme.pk
     )
 
 
-def _a_supprimer() -> dict:
+def _candidatures_demo(organisme: OrganismeModel):
+    return CandidatureModel.objects.filter(
+        etape__recrutement__offre__in=_offres_demo(organisme)
+    )
+
+
+def _candidats_demo(organisme: OrganismeModel):
+    return UserModel.objects.filter(
+        email__endswith=_EMAIL_DOMAIN,
+        profil_candidat__candidatures__in=_candidatures_demo(organisme),
+    )
+
+
+def _a_supprimer(organisme: OrganismeModel) -> dict:
     return {
-        "offres": _offres_demo().count(),
-        "candidatures": _candidatures_demo().count(),
-        "candidats": UserModel.objects.filter(email__endswith=_EMAIL_DOMAIN).count(),
+        "offres": _offres_demo(organisme).count(),
+        "candidatures": _candidatures_demo(organisme).count(),
+        "candidats": _candidats_demo(organisme).count(),
     }
 
 
-def _supprimer_demo() -> None:
-    delete_candidatures(list(_candidatures_demo().values_list("id", flat=True)))
-    RecrutementModel.objects.filter(offre__in=_offres_demo()).delete()
-    _offres_demo().delete()
-    ProfilCandidatModel.objects.filter(
-        utilisateur__email__endswith=_EMAIL_DOMAIN
-    ).delete()
-    UserModel.objects.filter(email__endswith=_EMAIL_DOMAIN).delete()
-    SourceModel.objects.filter(source_id=_SOURCE_DEMO_UUID).delete()
+def _supprimer_demo(organisme: OrganismeModel) -> None:
+    offres = list(_offres_demo(organisme).values_list("pk", flat=True))
+    candidats = list(_candidats_demo(organisme).values_list("username", flat=True))
+    delete_candidatures(
+        list(_candidatures_demo(organisme).values_list("id", flat=True))
+    )
+    RecrutementModel.objects.filter(offre__in=offres).delete()
+    OfferModel.objects.filter(pk__in=offres).delete()
+    ProfilCandidatModel.objects.filter(utilisateur_id__in=candidats).delete()
+    UserModel.objects.filter(username__in=candidats).delete()
 
 
 def _echapper(texte: str) -> bytes:
@@ -290,6 +258,32 @@ _MARGE = 56
 _INTERLIGNE = 13
 _LIGNES_PAR_PAGE = (_PAGE[1] - 2 * _MARGE) // _INTERLIGNE
 _CARACTERES_PAR_LIGNE = 90
+_RAYON_AVATAR = 28
+_KAPPA_CERCLE = 0.5523
+_LIGNES_AVATAR = 6
+
+
+def _flux_avatar(avatar: _Avatar) -> bytes:
+    r, k = _RAYON_AVATAR, _RAYON_AVATAR * _KAPPA_CERCLE
+    x, y = _MARGE + r, _PAGE[1] - _MARGE - r
+    courbes = [
+        (x + r, y + k, x + k, y + r, x, y + r),
+        (x - k, y + r, x - r, y + k, x - r, y),
+        (x - r, y - k, x - k, y - r, x, y - r),
+        (x + k, y - r, x + r, y - k, x + r, y),
+    ]
+    return b"\n".join(
+        [
+            b"q",
+            b"%.2f %.2f %.2f rg" % avatar.couleur,
+            b"%.1f %.1f m" % (x + r, y),
+            *(b"%.1f %.1f %.1f %.1f %.1f %.1f c" % courbe for courbe in courbes),
+            b"f",
+            b"BT /F2 18 Tf 1 1 1 rg %.1f %.1f Td (%s) Tj ET"
+            % (x - 12, y - 6, _echapper(avatar.initiales)),
+            b"Q",
+        ]
+    )
 
 
 def _flux_page(lignes: list[tuple[str, bool]]) -> bytes:
@@ -309,12 +303,14 @@ def _flux_page(lignes: list[tuple[str, bool]]) -> bytes:
     return b"\n".join(morceaux)
 
 
-def _pdf_texte(lignes: list[tuple[str, bool]]) -> bytes:
+def _pdf_texte(lignes: list[tuple[str, bool]], avatar: _Avatar | None) -> bytes:
     coupees = [
         (morceau, gras)
         for texte, gras in lignes
         for morceau in textwrap.wrap(texte, width=_CARACTERES_PAR_LIGNE) or [""]
     ]
+    if avatar is not None:
+        coupees = [("", False)] * _LIGNES_AVATAR + coupees
     pages = [
         coupees[debut : debut + _LIGNES_PAR_PAGE]
         for debut in range(0, len(coupees), _LIGNES_PAR_PAGE)
@@ -335,6 +331,8 @@ def _pdf_texte(lignes: list[tuple[str, bool]]) -> bytes:
     ]
     for page_id, page in zip(pages_ids, pages, strict=True):
         flux = _flux_page(page)
+        if avatar is not None and page_id == pages_ids[0]:
+            flux = _flux_avatar(avatar) + b"\n" + flux
         objets.append(
             b"<< /Type /Page /Parent 2 0 R /MediaBox [0 0 %d %d] "
             b"/Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> "
@@ -368,6 +366,7 @@ def _cv(
     experiences = rng.sample(corpus["experiences_directes"], nb_directes) + rng.sample(
         corpus["experiences_voisines"], 3 - nb_directes
     )
+    rng.shuffle(experiences)
     competences = rng.sample(
         corpus["competences_poste"], nb_competences_poste
     ) + rng.sample(corpus["competences_voisines"], 6 - nb_competences_poste)
@@ -409,14 +408,6 @@ def _cv(
     )
 
 
-def _appreciation(proximite: float) -> str:
-    if proximite >= 2 / 3:
-        return "Parcours en adéquation directe avec les missions du poste."
-    if proximite >= 1 / 3:
-        return "Parcours en partie aligné sur le poste, expériences voisines utiles."
-    return "Parcours voisin du poste, adéquation à confirmer en entretien."
-
-
 def _note(candidature: _CandidaturePlan, intitule: str, cv: _Cv) -> str:
     return "\n".join(
         [
@@ -428,7 +419,7 @@ def _note(candidature: _CandidaturePlan, intitule: str, cv: _Cv) -> str:
                     intitule=intitule,
                     experience=cv.experience,
                     competence=cv.competence,
-                    appreciation=_appreciation(candidature.proximite),
+                    appreciation=_APPRECIATIONS[candidature.proximite],
                 )
                 for ligne in NOTE_LIGNES
             ),
@@ -509,16 +500,17 @@ def _seed_cv(candidature: CandidatureModel, utilisateur: UserModel, pdf: bytes) 
 
 
 def _seed_recrutement(
-    spec: _RecrutementSpec,
+    plan: _RecrutementPlan,
     organisme: OrganismeModel,
     source: SourceModel,
     responsable: ProfilAgentModel,
     maintenant: datetime,
 ) -> RecrutementModel:
-    corpus = CORPUS[spec["intitule"]]
+    spec = plan.spec
+    corpus = plan.corpus
     offre = {
         "source": source,
-        "reference": spec["reference"],
+        "reference": plan.reference,
         "title": spec["intitule"],
         "organization": organisme.nom,
         "mission": corpus["mission"],
@@ -552,12 +544,13 @@ class _SeedRefuse(Exception):
         self.contexte = {"status": status, **contexte}
 
 
-def _cible(organisme_id: UUID) -> tuple[OrganismeModel, list[ProfilAgentModel]]:
-    if os.environ.get("SCALEWAY_ENV") == "prod":
-        raise _SeedRefuse("production")
+def _cible(
+    organisme_id: UUID, spec_organisme: SpecOrganisme
+) -> tuple[OrganismeModel, list[ProfilAgentModel]]:
+    cle = spec_organisme.cle
     organisme = OrganismeModel.objects.by_id(organisme_id).first()
     if organisme is None:
-        raise _SeedRefuse("organisme_absent")
+        raise _SeedRefuse("organisme_absent", cle=cle, organisme_id=organisme_id)
     agents = [
         liaison.agent
         for liaison in OrganismeAgentModel.objects.active()
@@ -566,19 +559,31 @@ def _cible(organisme_id: UUID) -> tuple[OrganismeModel, list[ProfilAgentModel]]:
         .order_by("created_at")
     ]
     if not agents:
-        raise _SeedRefuse("aucun_agent_actif")
+        raise _SeedRefuse("aucun_agent_actif", cle=cle, organisme_id=organisme_id)
     autre_organisme_id = (
-        RecrutementModel.objects.filter(offre__in=_offres_demo())
+        RecrutementModel.objects.filter(
+            offre__source_id=_SOURCE_DEMO_UUID,
+            offre__reference__in=[
+                _reference(cle, rang)
+                for rang in range(1, len(spec_organisme.recrutements) + 1)
+            ],
+        )
         .exclude(organisme_id=organisme.pk)
         .values_list("organisme_id", flat=True)
         .first()
     )
     if autre_organisme_id is not None:
-        raise _SeedRefuse("deja_seede_ailleurs", autre_organisme_id=autre_organisme_id)
+        raise _SeedRefuse(
+            "cle_seedee_ailleurs",
+            cle=cle,
+            organisme_id=organisme_id,
+            autre_organisme_id=autre_organisme_id,
+        )
     return organisme, agents
 
 
 def _ecrire(
+    cle: str,
     plans: list[_RecrutementPlan],
     organisme: OrganismeModel,
     agents: list[ProfilAgentModel],
@@ -598,14 +603,15 @@ def _ecrire(
     candidatures_creees: list[CandidatureModel] = []
     nb_conversations = 0
 
-    source: SourceModel = SourceDjangoFactory(  # type: ignore[assignment]
-        source_id=_SOURCE_DEMO_UUID, slug=_SOURCE_DEMO_SLUG
+    source, _ = SourceModel.objects.get_or_create(
+        source_id=_SOURCE_DEMO_UUID,
+        defaults={"slug": _SOURCE_DEMO_SLUG, "type": SourceType.API.value},
     )
     for plan in plans:
         spec = plan.spec
         responsable = next(responsables)
         recrutement = _seed_recrutement(
-            spec, organisme, source, responsable, maintenant
+            plan, organisme, source, responsable, maintenant
         )
         for agent in agents:
             if agent.pk != responsable.pk:
@@ -621,9 +627,9 @@ def _ecrire(
         for candidature_plan in plan.candidatures:
             email = (
                 f"{slugify(candidature_plan.prenom)}.{slugify(candidature_plan.nom)}"
-                f".{len(candidatures_creees)}{_EMAIL_DOMAIN}"
+                f".{cle}-{len(candidatures_creees)}{_EMAIL_DOMAIN}"
             )
-            cv = _cv(rng, CORPUS[spec["intitule"]], candidature_plan, email)
+            cv = _cv(rng, plan.corpus, candidature_plan, email)
             candidat: ProfilCandidatModel = CandidatDjangoFactory(  # type: ignore[assignment]
                 utilisateur__first_name=candidature_plan.prenom,
                 utilisateur__last_name=candidature_plan.nom,
@@ -639,7 +645,11 @@ def _ecrire(
                 if candidature_plan.etape == _REFUS
                 else None,
             )
-            _seed_cv(candidature, candidat.utilisateur, _pdf_texte(cv.lignes))
+            _seed_cv(
+                candidature,
+                candidat.utilisateur,
+                _pdf_texte(cv.lignes, candidature_plan.avatar),
+            )
             if candidature_plan.note:
                 NoteDjangoFactory(
                     candidature=candidature,
@@ -668,31 +678,59 @@ def _ecrire(
     CandidatureModel.objects.bulk_update(candidatures_creees, ["created_at"])
 
 
-def seed_demo_organisme(
-    organisme_id: UUID, force: bool = False, dry_run: bool = False
+def _seed_un_organisme(
+    spec_organisme: SpecOrganisme,
+    organisme: OrganismeModel,
+    agents: list[ProfilAgentModel],
+    force: bool,
+    dry_run: bool,
 ) -> dict:
-    try:
-        organisme, agents = _cible(organisme_id)
-    except _SeedRefuse as refus:
-        return refus.contexte
-
-    factory.random.reseed_random(_SEED)
+    factory.random.reseed_random(spec_organisme.graine)
     fake = Faker("fr_FR")
-    fake.seed_instance(_SEED)
-    rng = random.Random(_SEED)
-    plans = _planifier(fake, rng)
+    fake.seed_instance(spec_organisme.graine)
+    rng = random.Random(spec_organisme.graine)
+    plans = _planifier(spec_organisme, fake, rng)
+    resultat = {"cle": spec_organisme.cle, "organisme_id": organisme.pk}
 
     if dry_run:
         return {
+            **resultat,
             "status": "dry_run",
             "comptes": _comptes(plans),
-            "a_supprimer": _a_supprimer(),
+            "a_supprimer": _a_supprimer(organisme),
         }
-    if _offres_demo().exists() and not force:
-        return {"status": "already_seeded"}
+    if _offres_demo(organisme).exists() and not force:
+        return {**resultat, "status": "already_seeded"}
 
     with transaction.atomic():
         if force:
-            _supprimer_demo()
-        _ecrire(plans, organisme, agents, fake, rng)
-    return {"status": "seeded", "comptes": _comptes(plans)}
+            _supprimer_demo(organisme)
+        _ecrire(spec_organisme.cle, plans, organisme, agents, fake, rng)
+    return {**resultat, "status": "seeded", "comptes": _comptes(plans)}
+
+
+def seed_demo_organisme(
+    cibles: list[tuple[UUID, SpecOrganisme]],
+    force: bool = False,
+    dry_run: bool = False,
+) -> dict:
+    if os.environ.get("SCALEWAY_ENV") == "prod":
+        return {"status": "production"}
+    cles = {spec_organisme.cle for _, spec_organisme in cibles}
+    organismes_ids = {organisme_id for organisme_id, _ in cibles}
+    if len(cles) < len(cibles) or len(organismes_ids) < len(cibles):
+        return {"status": "cible_en_double"}
+    try:
+        ciblees = [
+            (spec_organisme, *_cible(organisme_id, spec_organisme))
+            for organisme_id, spec_organisme in cibles
+        ]
+    except _SeedRefuse as refus:
+        return refus.contexte
+    return {
+        "status": "ok",
+        "organismes": [
+            _seed_un_organisme(spec_organisme, organisme, agents, force, dry_run)
+            for spec_organisme, organisme, agents in ciblees
+        ],
+    }
