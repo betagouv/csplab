@@ -98,6 +98,21 @@ _GRADES = ("A", "B", "C")
 _DUREES_ENTRETIEN = (30, 45, 60)
 _SUITE_SECOND_ENTRETIEN = "Proposer un créneau pour un second entretien"
 
+_DATE_ENTRETIEN = "Date d’entretien"
+_PIECES_JUSTIFICATIVES = "Demande de pièces justificatives"
+_FILS_PAR_ETAPE = {
+    _ENTRETIEN: (_DATE_ENTRETIEN,),
+    _PROPOSITION: (_PIECES_JUSTIFICATIVES,),
+    _RECRUTEMENT: (_DATE_ENTRETIEN, _PIECES_JUSTIFICATIVES),
+}
+_ENTRETIEN_AVANT_ARCHIVAGE = 12
+_DELAI_PIECES = 8
+_VOYELLES = "AEIOUÉ"
+_REPONSE_PIECES = (
+    "Merci pour votre message. Je vous adresse les documents demandés avant la "
+    "date indiquée."
+)
+
 _SAMEDI = 5
 _CRENEAUX = ((3, "10 h"), (5, "14 h 30"), (8, "11 h"))
 _CANDIDATURES_ETALEES_SUR = timedelta(days=30)
@@ -140,7 +155,7 @@ class _CandidaturePlan:
     nom: str
     proximite: float
     notes: tuple[str, ...]
-    conversation: bool
+    fils: tuple[str, ...]
     lecture: bool
     avatar: _Avatar | None
 
@@ -151,6 +166,14 @@ class _RecrutementPlan:
     spec: RecrutementSpec
     corpus: PosteCorpus
     candidatures: list[_CandidaturePlan]
+
+
+@dataclass
+class _Echeancier:
+    demande_le: datetime
+    repondu_le: datetime
+    creneaux: list[str]
+    limite: date
 
 
 @dataclass
@@ -175,16 +198,16 @@ def _planifier(
         for etape, nombre in zip(_ETAPES, spec["repartition"], strict=True):
             for rang_dans_l_etape in range(nombre):
                 notes = _NOTES_PAR_ETAPE.get(etape, ())
+                fils = _FILS_PAR_ETAPE.get(etape, ())
                 if etape != _RECRUTEMENT and rang_dans_l_etape % 2:
-                    notes = ()
+                    notes, fils = (), ()
+                if etape != _RECRUTEMENT and spec["archive_depuis_jours"] is not None:
+                    fils = ()
                 proximite = rng.choice(list(_AVIS))
                 if etape == _RECRUTEMENT:
                     proximite = _PROXIMITE_RETENUE
-                conversation = (
-                    etape == _ENTRETIEN and spec["archive_depuis_jours"] is None
-                )
-                lecture = False
-                if conversation:
+                lecture = etape == _RECRUTEMENT
+                if fils and not lecture:
                     lecture = nb_conversations % 2 == 0
                     nb_conversations += 1
                 prenom, nom = fake.first_name(), fake.last_name()
@@ -201,7 +224,7 @@ def _planifier(
                         nom=nom,
                         proximite=proximite,
                         notes=notes,
-                        conversation=conversation,
+                        fils=fils,
                         lecture=lecture,
                         avatar=avatar,
                     )
@@ -232,8 +255,8 @@ def _comptes(plans: list[_RecrutementPlan]) -> dict:
             etape: sum(c.etape == etape for c in candidatures) for etape in _ETAPES
         },
         "notes": sum(len(c.notes) for c in candidatures),
-        "conversations": sum(c.conversation for c in candidatures),
-        "conversations_lues": sum(c.lecture for c in candidatures),
+        "conversations": sum(len(c.fils) for c in candidatures),
+        "conversations_lues": sum(len(c.fils) for c in candidatures if c.lecture),
     }
 
 
@@ -483,7 +506,7 @@ def _note_compte_rendu(
     duree = rng.choice(_DUREES_ENTRETIEN)
     format_entretien = rng.choice(NOTE_FORMATS)
     suites = rng.sample(NOTE_SUITES, 2)
-    if candidature.conversation:
+    if _DATE_ENTRETIEN in candidature.fils:
         suites[0] = _SUITE_SECOND_ENTRETIEN
     return "\n".join(
         [
@@ -536,45 +559,122 @@ def _creneau(jour: date, heure: str) -> str:
     return f"{date_format(jour, 'l')} {quantieme} {date_format(jour, 'F')} à {heure}"
 
 
-def _seed_conversation(
-    candidature: CandidatureModel,
+def _echeancier(ancre: date) -> _Echeancier:
+    jours = _jours_ouvres(ancre, [rang for rang, _ in _CRENEAUX])
+    jours_passes = _jours_ouvres(ancre, [1, 2], pas=-1)
+    return _Echeancier(
+        demande_le=timezone.make_aware(
+            datetime.combine(jours_passes[2], _DEMANDE_ENVOYEE_A)
+        ),
+        repondu_le=timezone.make_aware(
+            datetime.combine(jours_passes[1], _REPONSE_ENVOYEE_A)
+        ),
+        creneaux=[_creneau(jours[rang], heure) for rang, heure in _CRENEAUX],
+        limite=_jours_ouvres(ancre, [_DELAI_PIECES])[_DELAI_PIECES],
+    )
+
+
+def _textes_date_entretien(
     plan: _CandidaturePlan,
     recruteur: UserModel,
-    creneaux: list[str],
+    echeancier: _Echeancier,
     choix: int,
-    envois: tuple[datetime, datetime],
-) -> None:
-    conversation = ConversationDjangoFactory.create(
-        candidature=candidature, objet="Date d’entretien"
-    )
-    candidat = candidature.candidat.utilisateur
+) -> tuple[str, str]:
+    creneaux = echeancier.creneaux
     lignes_creneaux = "\n".join(f"- {creneau}" for creneau in creneaux)
-    demande = MessageDjangoFactory.create(
-        conversation=conversation,
-        auteur=recruteur,
-        contenu=(
+    return (
+        (
             f"Bonjour {plan.prenom},\n\n"
             "Quelles sont vos disponibilités pour un entretien sur les 3 "
             f"créneaux suivants :\n{lignes_creneaux}\n\n"
             f"Bien cordialement,\n{recruteur.get_full_name()}"
         ),
-    )
-    reponse = MessageDjangoFactory.create(
-        conversation=conversation,
-        auteur=candidat,
-        contenu=(
+        (
             f"Bonjour {recruteur.first_name},\n\n"
-            f"Je suis disponible le {creneaux[choix]}.\n\n"
+            f"Je suis disponible le {creneaux[choix % len(creneaux)]}.\n\n"
             f"Cordialement,\n{plan.prenom} {plan.nom}"
         ),
     )
-    demande_le, lu_le = envois
-    MessageModel.objects.filter(pk=demande.pk).update(created_at=demande_le)
-    MessageModel.objects.filter(pk=reponse.pk).update(created_at=lu_le)
+
+
+def _au_poste(intitule: str) -> str:
+    if intitule[0] in _VOYELLES:
+        return f"au poste d'{intitule}"
+    return f"au poste de {intitule}"
+
+
+def _textes_pieces(
+    plan: _CandidaturePlan,
+    recruteur: UserModel,
+    echeancier: _Echeancier,
+    intitule: str,
+) -> tuple[str, str]:
+    return (
+        (
+            f"Bonjour {plan.prenom},\n\n"
+            f"Merci pour votre candidature {_au_poste(intitule)}.\n"
+            "Afin de finaliser votre dossier, pourriez-vous nous transmettre les "
+            "documents suivants :\n"
+            "- votre dernier arrêté de situation administrative (ou, si vous êtes "
+            "contractuel, vos trois derniers bulletins de salaire) ;\n"
+            "- vos deux derniers comptes rendus d'entretien professionnel ;\n"
+            "- la copie de votre diplôme le plus élevé.\n\n"
+            "Merci de nous les adresser par retour de mail avant le "
+            f"{echeancier.limite.strftime('%d/%m/%Y')}.\n"
+            "Je reste disponible pour toute question.\n\n"
+            f"Bien cordialement,\n{recruteur.get_full_name()}"
+        ),
+        (
+            f"Bonjour {recruteur.first_name},\n\n{_REPONSE_PIECES}\n\n"
+            f"Cordialement,\n{plan.prenom} {plan.nom}"
+        ),
+    )
+
+
+def _echeanciers(jour_fin: date, archive: bool) -> dict[str, _Echeancier]:
+    ancre_entretien = jour_fin
+    if archive:
+        ancre_entretien = _jours_ouvres(jour_fin, [_ENTRETIEN_AVANT_ARCHIVAGE], pas=-1)[
+            _ENTRETIEN_AVANT_ARCHIVAGE
+        ]
+    return {
+        _DATE_ENTRETIEN: _echeancier(ancre_entretien),
+        _PIECES_JUSTIFICATIVES: _echeancier(jour_fin),
+    }
+
+
+def _seed_fil(
+    candidature: CandidatureModel,
+    plan: _CandidaturePlan,
+    recruteur: UserModel,
+    lecteurs: list[UserModel],
+    objet: str,
+    echeancier: _Echeancier,
+    intitule: str,
+    choix: int,
+) -> None:
+    conversation = ConversationDjangoFactory.create(
+        candidature=candidature, objet=objet
+    )
+    candidat = candidature.candidat.utilisateur
+    if objet == _DATE_ENTRETIEN:
+        demande, reponse = _textes_date_entretien(plan, recruteur, echeancier, choix)
+    else:
+        demande, reponse = _textes_pieces(plan, recruteur, echeancier, intitule)
+    for auteur, contenu, envoye_le in (
+        (recruteur, demande, echeancier.demande_le),
+        (candidat, reponse, echeancier.repondu_le),
+    ):
+        message = MessageDjangoFactory.create(
+            conversation=conversation, auteur=auteur, contenu=contenu
+        )
+        MessageModel.objects.filter(pk=message.pk).update(created_at=envoye_le)
     if plan.lecture:
-        for lecteur in (recruteur, candidat):
+        for lecteur in (*lecteurs, candidat):
             ConversationLectureDjangoFactory.create(
-                conversation=conversation, utilisateur=lecteur, read_at=lu_le
+                conversation=conversation,
+                utilisateur=lecteur,
+                read_at=echeancier.repondu_le,
             )
 
 
@@ -683,13 +783,7 @@ def _ecrire(
     rng: random.Random,
 ) -> None:
     maintenant = timezone.now()
-    jours = _jours_ouvres(timezone.localdate(), [rang for rang, _ in _CRENEAUX])
-    creneaux = [_creneau(jours[rang], heure) for rang, heure in _CRENEAUX]
-    jours_passes = _jours_ouvres(timezone.localdate(), [1, 2], pas=-1)
-    envois = (
-        timezone.make_aware(datetime.combine(jours_passes[2], _DEMANDE_ENVOYEE_A)),
-        timezone.make_aware(datetime.combine(jours_passes[1], _REPONSE_ENVOYEE_A)),
-    )
+    equipe = [agent.utilisateur for agent in agents]
     motifs_refus = cycle(MotifRefus.values)
     responsables = cycle(agents)
     candidatures_creees: list[CandidatureModel] = []
@@ -720,6 +814,9 @@ def _ecrire(
         fin = maintenant
         if spec["archive_depuis_jours"] is not None:
             fin = maintenant - timedelta(days=spec["archive_depuis_jours"])
+        echeanciers = _echeanciers(
+            timezone.localdate(fin), spec["archive_depuis_jours"] is not None
+        )
         for candidature_plan in plan.candidatures:
             email = (
                 f"{slugify(candidature_plan.prenom)}.{slugify(candidature_plan.nom)}"
@@ -748,9 +845,12 @@ def _ecrire(
             )
             depose_au_plus_tard = fin
             notes_au_plus_tard = fin
-            if candidature_plan.conversation:
-                depose_au_plus_tard = min(fin, envois[0] - timedelta(days=1))
-                notes_au_plus_tard = envois[0]
+            if candidature_plan.fils:
+                premiere_demande = min(
+                    echeanciers[objet].demande_le for objet in candidature_plan.fils
+                )
+                depose_au_plus_tard = premiere_demande - timedelta(days=1)
+                notes_au_plus_tard = premiere_demande
             candidature.created_at = fake.date_time_between(
                 fin - _CANDIDATURES_ETALEES_SUR,
                 depose_au_plus_tard,
@@ -774,14 +874,18 @@ def _ecrire(
                 )
                 note.created_at = publiee_le
                 notes_creees.append(note)
-            if candidature_plan.conversation:
-                _seed_conversation(
+            for objet in candidature_plan.fils:
+                _seed_fil(
                     candidature,
                     candidature_plan,
                     responsable.utilisateur,
-                    creneaux,
-                    nb_conversations % len(creneaux),
-                    envois,
+                    equipe
+                    if candidature_plan.etape == _RECRUTEMENT
+                    else [responsable.utilisateur],
+                    objet,
+                    echeanciers[objet],
+                    spec["intitule"],
+                    nb_conversations,
                 )
                 nb_conversations += 1
     CandidatureModel.objects.bulk_update(candidatures_creees, ["created_at"])
