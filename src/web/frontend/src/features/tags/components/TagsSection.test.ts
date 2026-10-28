@@ -51,7 +51,7 @@ describe('tagsSection', () => {
     expect(within(candidature).getByText('2 étiquettes')).toBeInTheDocument()
     expect(within(candidature).getAllByRole('listitem').map(item => item.textContent?.trim())).toEqual(['À rappeler', 'Profil senior'])
     expect(within(block('Note')).getByText('1 étiquette')).toBeInTheDocument()
-    expect(within(block('Équipe de recrutement de l\'offre')).getByText('Aucune étiquette.')).toBeInTheDocument()
+    expect(within(block('Équipe de recrutement')).getByText('Aucune étiquette.')).toBeInTheDocument()
   })
 
   it('creates a tag in the category of the block', async () => {
