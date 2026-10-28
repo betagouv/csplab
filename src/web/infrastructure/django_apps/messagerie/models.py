@@ -1,4 +1,5 @@
 from datetime import datetime
+from uuid import UUID
 
 from django.db import models
 from django.db.models import (
@@ -14,7 +15,10 @@ from django.db.models.functions import Coalesce
 
 from infrastructure.django_apps.candidate.models.candidature import CandidatureModel
 from infrastructure.django_apps.candidate.models.document import DocumentModel
-from infrastructure.django_apps.users.models import UserModel
+from infrastructure.django_apps.users.models import (
+    DEMO_CANDIDAT_EMAIL_DOMAIN,
+    UserModel,
+)
 from infrastructure.django_apps.utils.models import BaseDatedModel
 
 
@@ -47,27 +51,46 @@ class ConversationQuerySet(models.QuerySet):
             .order_by("-last_message_created_at", "-created_at")
         )
 
-    def with_is_unread(self, utilisateur_id) -> "ConversationQuerySet":
-        # Single definition of "unread" (unread_by chains on it).
+    def with_last_message(self) -> "ConversationQuerySet":
         # Correlated subqueries only (no Max): usable inside another subquery.
         last_message = MessageModel.objects.filter(
             conversation=OuterRef("pk")
         ).order_by("-created_at")
-        read_receipt = ConversationLectureModel.objects.filter(
-            conversation=OuterRef("pk"), utilisateur_id=utilisateur_id
-        )
         return self.annotate(
             last_author=Subquery(last_message.values("auteur_id")[:1]),
             last_message_at=Subquery(last_message.values("created_at")[:1]),
-            read_at=Subquery(read_receipt.values("read_at")[:1]),
-        ).annotate(
-            is_unread=Q(last_message_at__isnull=False)
-            & ~Q(last_author=utilisateur_id)
-            & (Q(read_at__isnull=True) | Q(last_message_at__gt=F("read_at")))
+        )
+
+    def with_is_unread(self, utilisateur_id) -> "ConversationQuerySet":
+        # Single definition of "unread" (unread_by chains on it).
+        read_receipt = ConversationLectureModel.objects.filter(
+            conversation=OuterRef("pk"), utilisateur_id=utilisateur_id
+        )
+        return (
+            self.with_last_message()
+            .annotate(read_at=Subquery(read_receipt.values("read_at")[:1]))
+            .annotate(
+                is_unread=Q(last_message_at__isnull=False)
+                & ~Q(last_author=utilisateur_id)
+                & (Q(read_at__isnull=True) | Q(last_message_at__gt=F("read_at")))
+            )
         )
 
     def unread_by(self, utilisateur_id) -> "ConversationQuerySet":
         return self.with_is_unread(utilisateur_id).filter(is_unread=True)
+
+    def of_demo_candidates(self) -> "ConversationQuerySet":
+        return self.filter(
+            candidature__candidat__utilisateur__email__endswith=DEMO_CANDIDAT_EMAIL_DOMAIN
+        )
+
+    def awaiting_candidate_reply(self, before: datetime) -> "ConversationQuerySet":
+        return (
+            self.with_last_message()
+            .annotate(candidat_id=F("candidature__candidat_id"))
+            .filter(last_message_at__lte=before)
+            .exclude(last_author=F("candidat_id"))
+        )
 
 
 class ConversationModel(BaseDatedModel):
@@ -83,6 +106,7 @@ class ConversationModel(BaseDatedModel):
 
     last_message_created_at: datetime
     is_unread: bool
+    candidat_id: UUID
     premiers_messages: list["MessageModel"]
     derniers_messages: list["MessageModel"]
 

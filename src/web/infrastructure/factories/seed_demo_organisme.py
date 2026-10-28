@@ -30,6 +30,7 @@ from infrastructure.django_apps.recruteur.models.organisme import (
 from infrastructure.django_apps.recruteur.models.recrutement import RecrutementModel
 from infrastructure.django_apps.referentiel.models.offer import OfferModel
 from infrastructure.django_apps.users.models import (
+    DEMO_CANDIDAT_EMAIL_DOMAIN,
     ProfilAgentModel,
     ProfilCandidatModel,
     UserModel,
@@ -75,7 +76,6 @@ from infrastructure.factories.seed_demo_cv_corpus import (
 from infrastructure.factories.seed_demo_specs import RecrutementSpec, SpecOrganisme
 from infrastructure.factories.seed_recruteur_datas import delete_candidatures
 
-_EMAIL_DOMAIN = "@demo.candidat.fr"
 _SOURCE_DEMO_UUID = UUID("00000000-0000-0000-0000-000000001945")
 _SOURCE_DEMO_SLUG = "demo-1945"
 
@@ -274,7 +274,7 @@ def _candidatures_demo(organisme: OrganismeModel):
 
 def _candidats_demo(organisme: OrganismeModel):
     return UserModel.objects.filter(
-        email__endswith=_EMAIL_DOMAIN,
+        email__endswith=DEMO_CANDIDAT_EMAIL_DOMAIN,
         profil_candidat__candidatures__in=_candidatures_demo(organisme),
     )
 
@@ -820,7 +820,7 @@ def _ecrire(
         for candidature_plan in plan.candidatures:
             email = (
                 f"{slugify(candidature_plan.prenom)}.{slugify(candidature_plan.nom)}"
-                f".{cle}-{len(candidatures_creees)}{_EMAIL_DOMAIN}"
+                f".{cle}-{len(candidatures_creees)}{DEMO_CANDIDAT_EMAIL_DOMAIN}"
             )
             cv = _cv(rng, plan.corpus, candidature_plan, email)
             candidat: ProfilCandidatModel = CandidatDjangoFactory(  # type: ignore[assignment]
