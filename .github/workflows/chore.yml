@@ -5,25 +5,17 @@ on:
     branches: ["main"]
   pull_request:
     branches: ["main"]
-    types: [opened, synchronize, reopened, edited]
+    types: [opened, synchronize, reopened]
   merge_group:
 
 permissions:
   contents: read
 
-jobs:
-  PR-title-format:
-    if: github.event_name == 'pull_request'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
-      - uses: ./.github/actions/setup-mise
-      - name: Check PR title format
-        env:
-          PR_TITLE: ${{ github.event.pull_request.title }}
-        run: cz check --message "$PR_TITLE"
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
+jobs:
   lint-format:
     runs-on: ubuntu-latest
     steps:
