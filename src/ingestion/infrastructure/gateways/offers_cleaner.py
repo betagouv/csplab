@@ -5,12 +5,12 @@ from typing import List, Optional, cast
 from uuid import UUID
 
 from pydantic import HttpUrl, ValidationError
-from referentiel.value_objects.area import GeographicalArea
 from referentiel.value_objects.category import Category
 from referentiel.value_objects.contract_kind import ContractKind
 from referentiel.value_objects.country import Country
 from referentiel.value_objects.departement_region import (
     overseas_region_for_department,
+    zone_pour_departement,
 )
 from referentiel.value_objects.department import Department
 from referentiel.value_objects.experience_level import ExperienceLevel
@@ -253,17 +253,6 @@ _TALENTSOFT_TO_REQUIRED_DOCUMENTS: dict[str, list[RequiredDocument]] = {
     value.client_code: list(value.documents) for value in TALENTSOFT_REQUIRED_DOCUMENTS
 }
 
-_TALENTSOFT_TO_AREA: dict[str, GeographicalArea] = {
-    "_TS_CO_GeographicalArea_Afrique": GeographicalArea.AFRIQUE,
-    "_TS_CO_GeographicalArea_AmriquesCaraibe": GeographicalArea.AMERIQUE,
-    "_TS_CO_GeographicalArea_Asie": GeographicalArea.ASIE,
-    "_TS_CO_GeographicalArea_Europe": GeographicalArea.EUROPE,
-    "_TS_CO_GeographicalArea_MoyenOrientAfriqueduNord": (
-        GeographicalArea.MOYEN_ORIENT_AFRIQUE_DU_NORD
-    ),
-    "_TS_CO_GeographicalArea_Ocanie": GeographicalArea.OCEANIE,
-}
-
 
 class OffersCleaner:
     def __init__(
@@ -340,7 +329,6 @@ class OffersCleaner:
         coordinates = self._extract_coordinates(talentsoft_offer)
 
         localisation = self._map_localisation_from_arrays(
-            talentsoft_offer.geographicalLocation,
             talentsoft_offer.country,
             talentsoft_offer.region,
             talentsoft_offer.department,
@@ -714,7 +702,6 @@ class OffersCleaner:
 
     def _map_localisation_from_arrays(
         self,
-        areas: List,
         countries: List,
         regions: List,
         departments: List,
@@ -723,25 +710,19 @@ class OffersCleaner:
         label: Optional[str] = None,
     ) -> Optional[Localisation]:
         latitude, longitude = coordinates
-        area_code = areas[0].clientCode if areas else None
         country_code = countries[0].clientCode if countries else None
         region_code = regions[0].clientCode if regions else None
         department_code = departments[0].clientCode if departments else None
 
-        if not country_code or not region_code or not department_code or not area_code:
+        if not country_code or not region_code or not department_code:
             return None
 
         if transcoder:
-            area_code = transcoder.translate("zones_geo", area_code) or area_code
             country_code = transcoder.translate("pays", country_code) or country_code
             region_code = transcoder.translate("regions", region_code) or region_code
             department_code = (
                 transcoder.translate("departements", department_code) or department_code
             )
-
-        area = _TALENTSOFT_TO_AREA.get(area_code)
-        if area is None:
-            return None
 
         if region_code.startswith("_TS_CO_Region_"):
             insee_region_code = region_code.replace("_TS_CO_Region_", "")
@@ -757,6 +738,9 @@ class OffersCleaner:
 
         try:
             department = Department(code=insee_department_code)
+            area = zone_pour_departement(department)
+            if area is None:
+                return None
             region = overseas_region_for_department(department) or Region(
                 code=insee_region_code
             )
