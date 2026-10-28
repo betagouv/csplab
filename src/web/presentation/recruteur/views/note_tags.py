@@ -6,6 +6,7 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 
 from application.recruteur.services.add_note_tag import add_note_tag
+from application.recruteur.services.remove_note_tag import remove_note_tag
 from domain.recruteur.errors.tag_errors import (
     TagAlreadyOnNote,
     TagCategoryMismatch,
@@ -73,3 +74,34 @@ class CandidatureNoteTagsView(NoteTagBaseView):
             utilisateur=request.user,
         )
         return Response(status=status.HTTP_201_CREATED)
+
+
+@extend_schema_view(
+    delete=extend_schema(
+        summary="Retirer une étiquette d'une note d'une candidature",
+        tags=["recruteur"],
+        responses={
+            **generic_response_format,
+            204: None,
+        },
+    ),
+)
+class CandidatureNoteTagDetailView(NoteTagBaseView):
+    def delete(
+        self,
+        request: Request,
+        organisme_uuid: UUID,
+        recrutement_uuid: UUID,
+        candidature_uuid: UUID,
+        note_uuid: UUID,
+        tag_uuid: UUID,
+    ) -> Response:
+        remove_note_tag(
+            organisme_id=organisme_uuid,
+            recrutement_id=recrutement_uuid,
+            candidature_id=candidature_uuid,
+            note_id=note_uuid,
+            tag_id=tag_uuid,
+            utilisateur=request.user,
+        )
+        return Response(status=status.HTTP_204_NO_CONTENT)
