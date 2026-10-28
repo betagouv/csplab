@@ -144,8 +144,7 @@ async def test_publish_serializes_minimal_offer(gateway, httpx_mock: HTTPXMock):
     assert offer["url_candidature"] is None
     assert offer["email_candidature"] is None
     assert offer["profession"]["referentiel"] == "RMFPv2"
-    assert offer["profession"]["domaine"] == "INF"
-    assert offer["profession"]["metier"] == "INF001"
+    assert offer["profession"] == {"referentiel": "RMFPv2", "metier": "INF001"}
     assert offer["categories"] == []
     assert offer["nature_offre"] == "TITULAIRE_CONTRACTUEL"
     assert offer["type_contrat"] is None
@@ -207,17 +206,39 @@ async def test_publish_serializes_management(gateway, httpx_mock: HTTPXMock):
 
 
 @pytest.mark.asyncio
-async def test_publish_serializes_domaine_skipping_er_prefix(
+async def test_publish_omits_domaine_for_single_domaine_metier(
     gateway, httpx_mock: HTTPXMock
 ):
     httpx_mock.add_response(method="POST", url=PUBLISH_URL, status_code=201)
-    offer = Offer(**{**MINIMAL_OFFER.__dict__, "family_code": "ERMED007"})
+    offer = Offer(**{**MINIMAL_OFFER.__dict__, "family_code": "ERSEC031"})
 
     await gateway.publish(PublishOfferInput(source_id=SOURCE_ID, offer=offer))
 
     body = json.loads(httpx_mock.get_requests()[0].content)
-    assert body["offres"][0]["profession"]["domaine"] == "MED"
-    assert body["offres"][0]["profession"]["metier"] == "ERMED007"
+    assert body["offres"][0]["profession"] == {
+        "referentiel": "RMFPv2",
+        "metier": "ERSEC031",
+    }
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    ("family_code", "domaine"), [("ERJUS008", "JUS"), ("ERTRA007", "TRA")]
+)
+async def test_publish_serializes_domaine_skipping_er_prefix_for_multi_domaines_metier(
+    gateway, httpx_mock: HTTPXMock, family_code, domaine
+):
+    httpx_mock.add_response(method="POST", url=PUBLISH_URL, status_code=201)
+    offer = Offer(**{**MINIMAL_OFFER.__dict__, "family_code": family_code})
+
+    await gateway.publish(PublishOfferInput(source_id=SOURCE_ID, offer=offer))
+
+    body = json.loads(httpx_mock.get_requests()[0].content)
+    assert body["offres"][0]["profession"] == {
+        "referentiel": "RMFPv2",
+        "domaine": domaine,
+        "metier": family_code,
+    }
 
 
 @pytest.mark.asyncio
