@@ -149,7 +149,7 @@ class ListOffersResponseSerializer(serializers.Serializer):
     titre = serializers.CharField(source="title")
     organisation = serializers.CharField(source="organization")
     nature_offre = serializers.CharField(source="offer_nature", allow_null=True)
-    categorie = serializers.CharField(source="category", allow_null=True)
+    categories = serializers.ListField(child=serializers.CharField())
     debut_publication = serializers.DateTimeField(source="publication_date")
     url_offre = serializers.CharField(source="offer_url", allow_null=True)
     date_archivage = serializers.DateTimeField(source="archived_at", allow_null=True)
@@ -641,7 +641,7 @@ class OfferDetailResponseSerializer(serializers.Serializer):
         source="service_description", allow_null=True
     )
     versant = serializers.CharField(source="verse", allow_null=True)
-    categorie = serializers.CharField(source="category", allow_null=True)
+    categories = serializers.ListField(child=serializers.CharField())
     nature_offre = serializers.CharField(source="offer_nature", allow_null=True)
     type_contrat = serializers.CharField(source="contract_kind", allow_null=True)
     vacance_poste = serializers.CharField(source="job_vacancy", allow_null=True)
@@ -1034,7 +1034,7 @@ class OffersInputSerializer(serializers.Serializer):
     # classification
     profession = ProfessionInputSerializer()
     categories = serializers.MultipleChoiceField(
-        choices=[(c.name, c.value) for c in Category], allow_blank=True
+        choices=[(c.name, c.value) for c in Category]
     )
     nature_offre = serializers.ChoiceField(
         choices=[(c.name, c.value) for c in OfferNature]

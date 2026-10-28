@@ -79,7 +79,7 @@ COMPLETE_VALID_OFFER = PayloadOfferFactory.create(
     organisation={"nom": fake.company(), "siret": fake.siret().replace(" ", "")},
     url_offre="https://example.com/offre",
     url_candidature="https://example.com/candidature",
-    categories=["A", "B"],
+    categories=["B", "A"],
     type_contrat="CDD_CDI",
     vacance_poste="OUI",
     description={
@@ -150,7 +150,7 @@ COMPARABLE_OFFER_ATTRS = [
     "publication_date",
     "end_publication_date",
     "verse",
-    "category",
+    "categories",
     "offer_nature",
     "offer_url",
     "localisation",
@@ -197,9 +197,6 @@ def parse_offer_from_payload(payload: dict, source_id: UUID) -> Offer:
             else value
             for key, value in conditions.items()
         }
-
-    categories = payload.get("categories")
-    category = Category(sorted(categories)[0]) if categories else None
 
     loc_data = payload.get("localisation")
     localisation = (
@@ -258,7 +255,7 @@ def parse_offer_from_payload(payload: dict, source_id: UUID) -> Offer:
             payload["publication"]["fin_publication"]
         ),
         verse=Verse(versant),
-        category=category,
+        categories=[Category(c) for c in payload.get("categories") or []],
         offer_nature=OfferNature(payload["nature_offre"]),
         offer_url=payload.get("url_offre"),
         localisation=localisation,
@@ -735,6 +732,40 @@ def test_invalid_required_documents_are_rejected(
     ]
 
 
+@pytest.mark.parametrize(
+    "categories,expected_error",
+    [
+        (None, ["Ce champ est obligatoire."]),
+        ([""], ["«\xa0\xa0» n'est pas un choix valide."]),
+    ],
+)
+def test_invalid_categories_are_rejected(
+    authenticated_client_with_source, use_case, categories, expected_error
+):
+    offer = PayloadOfferFactory.create(
+        identification={"reference": "REF-007", "versant": "FPT"},
+    )
+    if categories is None:
+        del offer["categories"]
+    else:
+        offer["categories"] = categories
+
+    response = authenticated_client_with_source.post(
+        URL,
+        data={"source_id": SOURCE_UUID, "offres": [offer]},
+        content_type="application/json",
+    )
+
+    assert response.status_code == status.HTTP_201_CREATED
+    assert response.json()["errors"] == [
+        {
+            "index": 0,
+            "offre": {"reference": "REF-007", "versant": "FPT"},
+            "error": {"categories": expected_error},
+        }
+    ]
+
+
 def test_email_candidature_is_passed_to_usecase(
     authenticated_client_with_source, use_case
 ):
@@ -1047,6 +1078,47 @@ class TestOffersUpsertViewDbVerified:
         )
         for attr in COMPARABLE_OFFER_ATTRS:
             assert getattr(persisted, attr) == getattr(expected, attr)
+
+    def test_persists_all_categories_in_sent_order(
+        self, authenticated_client_with_source
+    ):
+        MetierDjangoFactory(
+            offer_family_code="ERNUM001", domaine_fonctionnel_code="NUM"
+        )
+        offre = {**MINIMAL_VALID_OFFER, "categories": ["B", "A", "B"]}
+
+        response = authenticated_client_with_source.post(
+            URL,
+            data={"source_id": SOURCE_UUID, "offres": [offre]},
+            content_type="application/json",
+        )
+
+        assert response.status_code == status.HTTP_201_CREATED
+        offer_model = OfferModel.objects.get(
+            reference="REF-001", source_id=UUID(SOURCE_UUID)
+        )
+        assert offer_model.categories == ["B", "A"]
+        assert offer_model.main_category == "B"
+
+    def test_persists_an_offer_without_category(self, authenticated_client_with_source):
+        MetierDjangoFactory(
+            offer_family_code="ERNUM001", domaine_fonctionnel_code="NUM"
+        )
+        offre = {**MINIMAL_VALID_OFFER, "categories": []}
+
+        response = authenticated_client_with_source.post(
+            URL,
+            data={"source_id": SOURCE_UUID, "offres": [offre]},
+            content_type="application/json",
+        )
+
+        assert response.status_code == status.HTTP_201_CREATED
+        assert response.json()["errors"] == []
+        offer_model = OfferModel.objects.get(
+            reference="REF-001", source_id=UUID(SOURCE_UUID)
+        )
+        assert offer_model.categories == []
+        assert offer_model.main_category is None
 
     def test_localisation_without_coordinates_is_persisted_with_null_coordinates(
         self, authenticated_client_with_source

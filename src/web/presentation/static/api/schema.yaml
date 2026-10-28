@@ -1900,7 +1900,8 @@ paths:
         critères suivants :
 
         - `actif` — candidature active / archivée
-        - `categorie` — une ou plusieurs catégories (ex. `A,B`)
+        - `categorie` — une ou plusieurs catégories (ex. `A,B`) ; une offre est
+          retournée si l'une de ses catégories en fait partie
         - `versant` — un ou plusieurs versants (ex. `FPE,FPT`)
         - `nature_offre` — une ou plusieurs natures d'offre (ex. `TITULAIRE_CONTRACTUEL`)
         - `niveau_experience` — un ou plusieurs niveaux d'expérience (ex. `DEBUTANT,EXPERT`)
@@ -2994,7 +2995,8 @@ paths:
                       organisation: Ecole Nationale Supérieure de Techniques Avancées
                         (ENSTA)
                       nature_offre: TITULAIRE_CONTRACTUEL
-                      categorie: A
+                      categories:
+                      - A
                       debut_publication: '2026-04-17T14:44:49.873000+00:00'
                       url_offre: https://test.com/offre-emploi/2026-999999/
                       date_archivage: null
@@ -3013,7 +3015,8 @@ paths:
                       organisation: Ecole Nationale Supérieure de Techniques Avancées
                         (ENSTA)
                       nature_offre: TITULAIRE_CONTRACTUEL
-                      categorie: A
+                      categories:
+                      - A
                       debut_publication: '2026-04-17T14:44:49.873000+00:00'
                       url_offre: https://test.com/offre-emploi/2026-999999/
                       date_archivage: '2026-05-17T12:42:42.873000+00:00'
@@ -5512,9 +5515,10 @@ components:
         nature_offre:
           type: string
           nullable: true
-        categorie:
-          type: string
-          nullable: true
+        categories:
+          type: array
+          items:
+            type: string
         debut_publication:
           type: string
           format: date-time
@@ -5526,7 +5530,7 @@ components:
           format: date-time
           nullable: true
       required:
-      - categorie
+      - categories
       - date_archivage
       - debut_publication
       - nature_offre
@@ -5720,9 +5724,10 @@ components:
         versant:
           type: string
           nullable: true
-        categorie:
-          type: string
-          nullable: true
+        categories:
+          type: array
+          items:
+            type: string
         nature_offre:
           type: string
           nullable: true
@@ -5786,7 +5791,7 @@ components:
           format: date-time
           nullable: true
       required:
-      - categorie
+      - categories
       - complements
       - conditions
       - conditions_exercice
@@ -5859,9 +5864,7 @@ components:
         categories:
           type: array
           items:
-            oneOf:
-            - $ref: '#/components/schemas/CategoriesEnum'
-            - $ref: '#/components/schemas/BlankEnum'
+            $ref: '#/components/schemas/CategoriesEnum'
         nature_offre:
           $ref: '#/components/schemas/NatureOffreEnum'
         type_contrat:

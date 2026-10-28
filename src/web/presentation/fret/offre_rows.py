@@ -33,7 +33,7 @@ _LABELS = {
     "organization": "Organisme",
     "employer": "Employeur",
     "verse": "Versant",
-    "category": "Catégorie",
+    "categories": "Catégories",
     "offer_nature": "Nature de l'offre",
     "contract_kind": "Type de contrat",
     "job_vacancy": "Poste vacant",
@@ -71,7 +71,7 @@ _HIDDEN = {"id", "source", "mission", "profile"}
 _MARKDOWN = {"employer", "exercise_conditions", "service_description", "complements"}
 _ENUM_LABELS = {
     "verse": lambda value: Verse(value).label,
-    "category": lambda value: Category(value).label,
+    "categories": lambda values: ", ".join(Category(value).label for value in values),
     "offer_nature": lambda value: OfferNature(value).label,
     "contract_kind": lambda value: ContractKind[value].label,
 }

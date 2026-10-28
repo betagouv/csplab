@@ -268,7 +268,8 @@ Cette API retourne la liste des offres correspondant à une recherche selon les
 critères suivants :
 
 - `actif` — candidature active / archivée
-- `categorie` — une ou plusieurs catégories (ex. `A,B`)
+- `categorie` — une ou plusieurs catégories (ex. `A,B`) ; une offre est
+  retournée si l'une de ses catégories en fait partie
 - `versant` — un ou plusieurs versants (ex. `FPE,FPT`)
 - `nature_offre` — une ou plusieurs natures d'offre (ex. `TITULAIRE_CONTRACTUEL`)
 - `niveau_experience` — un ou plusieurs niveaux d'expérience (ex. `DEBUTANT,EXPERT`)
@@ -313,7 +314,7 @@ LIST_OFFERS_EXAMPLES = [
                 "Ecole Nationale Supérieure de Techniques Avancées (ENSTA)"
             ),
             "nature_offre": "TITULAIRE_CONTRACTUEL",
-            "categorie": "A",
+            "categories": ["A"],
             "debut_publication": "2026-04-17T14:44:49.873000+00:00",
             "url_offre": "https://test.com/offre-emploi/2026-999999/",
             "date_archivage": None,
@@ -335,7 +336,7 @@ LIST_OFFERS_EXAMPLES = [
                 "Ecole Nationale Supérieure de Techniques Avancées (ENSTA)"
             ),
             "nature_offre": "TITULAIRE_CONTRACTUEL",
-            "categorie": "A",
+            "categories": ["A"],
             "debut_publication": "2026-04-17T14:44:49.873000+00:00",
             "url_offre": "https://test.com/offre-emploi/2026-999999/",
             "date_archivage": "2026-05-17T12:42:42.873000+00:00",

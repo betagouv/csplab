@@ -338,7 +338,7 @@ class RecrutementDetailSerializer(serializers.ModelSerializer):
     localisation = OffreLocalisationField()
     organisme_recruteur = OrganismeSerializer(source="organisme")
     categorie_offre = serializers.ChoiceField(
-        source="offre.category", choices=[(c.name, c.value) for c in Category]
+        source="offre.main_category", choices=[(c.name, c.value) for c in Category]
     )
     etapes = EtapesOrdonneesField()
     recrutement_role = serializers.ChoiceField(
