@@ -51,7 +51,7 @@ depuis `origin/main`. Committez le résultat.
 
 Le job `changelog-api` du workflow Web :
 
-- valide tous les fragments : en-tête YAML, `type` connu, `date` au format
+- valide tous les fragments : extension `.md`, en-tête YAML, `type` connu, `date` au format
   `AAAA-MM-JJ`, `pr` entier, `liens` sous forme d'URL, corps non vide ;
 - sur la PR, pour les fragments ajoutés : refuse une date dans le futur, ou un `pr`
   différent du numéro de la PR, et avertit si la date a plus de 3 jours ;

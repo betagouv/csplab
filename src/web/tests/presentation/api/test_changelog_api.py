@@ -2,7 +2,7 @@ from datetime import date
 from textwrap import dedent
 
 import pytest
-from django.core.management import call_command
+from django.core.management import CommandError, call_command
 from django.urls import reverse
 from rest_framework import status
 
@@ -258,6 +258,18 @@ def test_verifier_command_accepts_published_fragments(capsys):
     call_command("changelog_api", "verifier")
 
     assert "fragment(s) valide(s)" in capsys.readouterr().out
+
+
+@pytest.mark.parametrize("name", ["f.markdown", "f.MD", "f"])
+def test_verifier_command_rejects_another_extension(tmp_path, monkeypatch, name):
+    monkeypatch.setattr(
+        "presentation.ingestion.management.commands.changelog_api.FRAGMENTS_DIR",
+        tmp_path,
+    )
+    write_fragment(tmp_path, name, header="type: ajoute\ndate: 2026-10-27\npr: 1")
+
+    with pytest.raises(CommandError, match="1 erreur"):
+        call_command("changelog_api", "verifier")
 
 
 class TestPublicSchemaView:

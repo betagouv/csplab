@@ -62,7 +62,15 @@ class Command(BaseCommand):
 
     def _verifier(self, options):
         errors = 0
-        for path in sorted(FRAGMENTS_DIR.glob("*.md")):
+        for path in sorted(FRAGMENTS_DIR.iterdir()):
+            if path.name.startswith("."):
+                continue
+            if path.suffix != ".md":
+                errors += 1
+                self._annotate(
+                    "error", path, "un fragment doit avoir l'extension `.md`"
+                )
+                continue
             try:
                 parse_fragment(path)
             except FragmentError as error:
