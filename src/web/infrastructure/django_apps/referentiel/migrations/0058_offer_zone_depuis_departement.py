@@ -43,7 +43,7 @@ WHERE o.id = l.id
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("referentiel", "0056_offer_categories"),
+        ("referentiel", "0057_realign_offer_functional_area_code"),
     ]
 
     operations = [
