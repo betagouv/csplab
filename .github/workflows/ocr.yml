@@ -82,6 +82,10 @@ jobs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main' && needs.check-changes.outputs.relevant == 'true'
     runs-on: ubuntu-latest
     environment: production
+    # One deploy at a time per service; a newer pending deploy replaces the older pending one
+    concurrency:
+      group: deploy-ocr
+      cancel-in-progress: false
     permissions:
       contents: write
     steps:
