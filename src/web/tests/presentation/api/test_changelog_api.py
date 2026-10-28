@@ -266,6 +266,8 @@ def test_verifier_command_rejects_another_extension(tmp_path, monkeypatch, name)
         "presentation.ingestion.management.commands.changelog_api.FRAGMENTS_DIR",
         tmp_path,
     )
+    # GitHub annotations need a path inside the repository.
+    monkeypatch.delenv("GITHUB_ACTIONS", raising=False)
     write_fragment(tmp_path, name, header="type: ajoute\ndate: 2026-10-27\npr: 1")
 
     with pytest.raises(CommandError, match="1 erreur"):
