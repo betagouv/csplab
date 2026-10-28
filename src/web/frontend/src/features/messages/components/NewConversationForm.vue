@@ -79,6 +79,7 @@ async function send(): Promise<void> {
   try {
     const conversation = await create({ objet: objet.value, content: content.value, documents: documents.value })
     discard()
+    addToast({ variant: 'success', title: 'Conversation créée' })
     void router.push({
       name: props.routes.conversation,
       params: { ...route.params, conversationUuid: conversation.uuid },

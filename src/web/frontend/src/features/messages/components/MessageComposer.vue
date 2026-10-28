@@ -55,6 +55,7 @@ async function send(): Promise<void> {
     await reply({ content: content.value, documents: documents.value })
     content.value = ''
     documents.value = []
+    addToast({ variant: 'success', title: 'Message envoyé' })
   }
   catch (sendError) {
     if (sendError instanceof ValidationError && (sendError.fieldErrors.content || sendError.fieldErrors.documents)) {
