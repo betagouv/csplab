@@ -1,9 +1,9 @@
 from django.db import migrations
 
-# Rattrape les offres Talentsoft publiées avant #2077 et #2097 : la zone est
-# déduite du département (zone_pour_departement), la région des offres
-# d'outre-mer est DOM ou TOM (overseas_region_for_department). Les
-# correspondances sont figées ici pour ne pas dépendre de libs/referentiel.
+# Backfills Talentsoft offers published before #2077 and #2097: the area is
+# deduced from the department (zone_pour_departement), overseas offers get the
+# DOM or TOM region (overseas_region_for_department). Mappings are frozen here
+# so the migration does not depend on libs/referentiel.
 RATTRAPE_LOCALISATION_TALENTSOFT = """
 WITH localisation AS (
     SELECT
