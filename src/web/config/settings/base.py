@@ -131,6 +131,7 @@ INSTALLED_APPS = [
     "presentation.ingestion",
     "presentation.candidate",
     "presentation.identite",
+    "presentation.recruteur",
     "presentation.ats",
 ]
 
