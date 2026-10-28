@@ -649,7 +649,7 @@ Notation : `a.b` désigne un objet imbriqué, `a[]` une liste, `a[0]` son premie
 | `urlRedirectionApplicant` | `url_candidature` | Prioritaire sur `customFields.origin.shortText1` et `applicationUrl`. |
 | `customFields.origin.shortText1` | `email_candidature` | Texte libre (« adresse de candidature »). Lu seulement si `urlRedirectionApplicant` est vide : le premier e-mail valide trouvé devient `email_candidature`, et `url_candidature` reste vide. API fake-ts : reprend `email_candidature`, `null` si l'offre se candidate par lien. |
 | `applicationUrl` | `url_candidature` | Dernier recours, si `urlRedirectionApplicant` est vide et que `customFields.origin.shortText1` ne contient aucun e-mail valide. Toujours rempli dans Talentsoft (page de candidature générique). API fake-ts : reprend `url_candidature`, `null` si l'offre se candidate par e-mail. |
-| `geographicalLocation[0].clientCode` | `localisation[0].zone_geographique` | L'API fake-ts renvoie toujours `[]` : aucune `localisation` n'est donc produite à partir de lui. Toute la `localisation` est abandonnée si la zone, le pays, la région ou le département manque. |
+| `geographicalLocation[0].clientCode` | `localisation[0].zone_geographique` | Ignoré : la zone est déduite du département. L'API fake-ts renvoie toujours `[]`. Toute la `localisation` est abandonnée si le pays, la région ou le département manque. |
 | `country[0].clientCode` | `localisation[0].pays` | |
 | `region[0].clientCode` | `localisation[0].region` | Les préfixes `_TS_CO_Region_` et `R` sont retirés pour obtenir le code INSEE. |
 | `department[0].clientCode` | `localisation[0].departement` | Cas particulier de la Nouvelle-Calédonie (`988`). |
