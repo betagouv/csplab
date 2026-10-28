@@ -126,7 +126,7 @@ réponse jusqu'à ce qu'il vaille `null`.
 | Paramètre | Rôle | Format |
 |---|---|---|
 | `actif` | Ne retourner que les offres actives (`true`, valeur par défaut) ou archivées (`false`) | Booléen |
-| `categorie` | Filtrer par catégorie(s) | Liste séparée par virgules parmi APLUS, A, B, C |
+| `categorie` | Filtrer par catégorie(s) : une offre est retournée si l'une de ses catégories fait partie du filtre | Liste séparée par virgules parmi APLUS, A, B, C |
 | `versant` | Filtrer par versant(s) | Liste séparée par virgules parmi FPT, FPE, FPH |
 | `nature_offre` | Filtrer par nature(s) d'offre | Liste séparée par virgules parmi TITULAIRE_CONTRACTUEL, CONTRACTUEL, TERRITORIAL |
 | `niveau_experience` | Filtrer par niveau(x) d'expérience | Liste séparée par virgules parmi DEBUTANT, CONFIRME, EXPERT |
@@ -154,7 +154,7 @@ Chaque offre renvoyée contient notamment :
 | `titre` | Intitulé du poste | Non |
 | `organisation` | Organisme employeur | Non |
 | `nature_offre` | Nature de l'offre | Oui |
-| `categorie` | Catégorie (A+, A, B, C…) | Oui |
+| `categories` | Catégories (A+, A, B, C…), dans l'ordre d'envoi | Oui (liste vide) |
 | `debut_publication` | Date de début de publication | Non |
 | `url_offre` | Lien vers l'annonce | Oui |
 | `date_archivage` | Date d'archivage de l'offre | Oui |
@@ -324,14 +324,14 @@ longueur et de valeurs autorisées**.
 | Champ | Règle |
 |---|---|
 | `referentiel` | Référentiel utilisé. Valeur par défaut : **RMFPv2**. |
-| `domaine` | Obligatoire. Code du domaine fonctionnel (vérifié uniquement si `referentiel=RMFPv2`). **3 caractères maximum.** |
+| `domaine` | Facultatif. Code du domaine fonctionnel. Absent, il est déduit du métier ; renseigné, il doit correspondre au `domaine_fonctionnel_code` du métier, sinon l'offre est rejetée. Obligatoire lorsque le code métier relève de plusieurs domaines (ex. `ERJUS008`, `ERTRA007`) : il doit alors être l'un d'eux. Vérifié uniquement si `referentiel=RMFPv2`. **3 caractères maximum.** |
 | `metier` | Obligatoire. Code métier : valeur du champ `code_emploi_csp` d'un métier renvoyé par [`GET /api/v1/metiers/`](#5-consulter-les-metiers-get-apiv1metiers), par exemple `ERAMT001` (vérifié uniquement si `referentiel=RMFPv2`). **8 caractères maximum.** |
 | `code_emploi_local` | Code emploi local propre au partenaire. Peut être vide. **50 caractères maximum.** |
 
 #### Catégorie et contrat
 | Champ | Règle |
 |---|---|
-| `categories` | Liste. Valeurs autorisées : **APLUS, A, B, C, HORS_CATEGORIE** (ou vide). |
+| `categories` | Obligatoire. Liste, éventuellement vide. Valeurs autorisées : **APLUS, A, B, C, HORS_CATEGORIE**. Toutes les catégories sont enregistrées, dans l'ordre d'envoi (doublons retirés). |
 | `nature_offre` | Obligatoire. Public visé par l'offre. Valeurs autorisées : **TITULAIRE_CONTRACTUEL, CONTRACTUEL, TERRITORIAL**. |
 | `type_contrat` | Facultatif. Une seule valeur parmi **CDD, CDI, CDD_CDI, CONTRAT_PROJET, VACATION** (ou vide / `null` si l'offre n'est pas soumise à contractualisation). |
 | `vacance_poste` | **OUI** = poste vacant ; **NON** = poste susceptible d'être vacant (ou vide). |
@@ -380,7 +380,7 @@ caractères s'applique au texte Markdown, syntaxe comprise.
 | `experience` | Valeurs : **DEBUTANT, CONFIRME, EXPERT**. |
 | `specialisations` | Liste de textes. |
 | `diplome` | Texte. |
-| `documents_requis` | Liste de textes. |
+| `documents_requis` | Liste de documents à transmettre pour candidater. Valeurs : **CV, LETTRE_MOTIVATION, PORTFOLIO**. Chaque document ne peut être cité qu'une fois. |
 | `competences_requises` | Liste de textes. |
 | `langues` | Liste de langues, chacune avec un **code ISO sur 2 caractères** et un **niveau** (**A1, A2, B1, B2, C1, C2**). |
 
@@ -572,6 +572,7 @@ invalides, lignes créées, lignes mises à jour, et la liste éventuelle des er
 | **Type de contrat** | CDD, CDI, CDD_CDI (CDD ou CDI), CONTRAT_PROJET (contrat de projet), VACATION (payés à l'acte) |
 | **Vacance de poste** | OUI (vacant), NON (susceptible d'être vacant) |
 | **Expérience** | DEBUTANT, CONFIRME, EXPERT |
+| **Documents requis** | CV, LETTRE_MOTIVATION (lettre de motivation), PORTFOLIO |
 | **Niveau de langue** | A1, A2, B1, B2, C1, C2 |
 | **Temps de travail** | NON_DEFINI, TEMPS_PLEIN, TEMPS_PARTIEL |
 | **Lieu de travail** | NON_DEFINI, SUR_SITE, TELETRAVAIL |
@@ -648,7 +649,7 @@ Notation : `a.b` désigne un objet imbriqué, `a[]` une liste, `a[0]` son premie
 | `urlRedirectionApplicant` | `url_candidature` | Prioritaire sur `customFields.origin.shortText1` et `applicationUrl`. |
 | `customFields.origin.shortText1` | `email_candidature` | Texte libre (« adresse de candidature »). Lu seulement si `urlRedirectionApplicant` est vide : le premier e-mail valide trouvé devient `email_candidature`, et `url_candidature` reste vide. API fake-ts : reprend `email_candidature`, `null` si l'offre se candidate par lien. |
 | `applicationUrl` | `url_candidature` | Dernier recours, si `urlRedirectionApplicant` est vide et que `customFields.origin.shortText1` ne contient aucun e-mail valide. Toujours rempli dans Talentsoft (page de candidature générique). API fake-ts : reprend `url_candidature`, `null` si l'offre se candidate par e-mail. |
-| `geographicalLocation[0].clientCode` | `localisation[0].zone_geographique` | L'API fake-ts renvoie toujours `[]` : aucune `localisation` n'est donc produite à partir de lui. Toute la `localisation` est abandonnée si la zone, le pays, la région ou le département manque. |
+| `geographicalLocation[0].clientCode` | `localisation[0].zone_geographique` | Ignoré : la zone est déduite du département. L'API fake-ts renvoie toujours `[]`. Toute la `localisation` est abandonnée si le pays, la région ou le département manque. |
 | `country[0].clientCode` | `localisation[0].pays` | |
 | `region[0].clientCode` | `localisation[0].region` | Les préfixes `_TS_CO_Region_` et `R` sont retirés pour obtenir le code INSEE. |
 | `department[0].clientCode` | `localisation[0].departement` | Cas particulier de la Nouvelle-Calédonie (`988`). |
@@ -729,12 +730,12 @@ Notation : `a.b` désigne un objet imbriqué, `a[]` une liste, `a[0]` son premie
 
 | Offer API v1 | Note |
 |---|---|
-| `categories` | Lu par l'ingestion dans `customFields.description.customCodeTable1`, que l'API fake-ts n'expose pas (`CAT-A`/`B`/`C` ; `CAT-AEF`/`ESD`/`ES` → `APLUS`). Le web garde `sorted(categories)[0]`. |
+| `categories` | Lu par l'ingestion dans `customFields.description.customCodeTable1`, que l'API fake-ts n'expose pas (`CAT-A`/`B`/`C` ; `CAT-AEF`/`ESD`/`ES` → `APLUS`). API fake-ts : le filtre `category` de `offer_summaries` retourne une offre si l'une de ses catégories en fait partie. |
 | `type_contrat` | Lu dans `customFields.offer.customCodeTable2` (absent de l'API fake-ts) : `CDD*`, `CDI`. |
 | `organisation.siret` | Jamais renseigné par l'ingestion (vide) ; le rapprochement d'organisme passe par `talentsoft_organisme_entity_code`. |
 | `profession.referentiel` | Constante `RMFPv2`. |
 | `profession.code_emploi_local` | Jamais renseigné, `local_job_code` reste à `null`. |
-| `criteres.documents_requis` | Jamais renseigné par l'ingestion. |
+| `criteres.documents_requis` | Lu dans `customFields.applicantCriteria.customCodeTable1` (« Documents à transmettre ») : `Doc_CV` → `[CV]`, `Doc_CV_LM` → `[CV, LETTRE_MOTIVATION]`, `Doc_CV_PF` → `[CV, PORTFOLIO]`, `Doc_CV_LM_PF` → `[CV, LETTRE_MOTIVATION, PORTFOLIO]`. Absent, `null` ou code inconnu → non envoyé. API fake-ts : renvoyé dans `customFields.applicantCriteria.customCodeTable1`, valeur du référentiel Talentsoft « Documents à transmettre » : `[CV]` → `Doc_CV`, `[CV, LETTRE_MOTIVATION]` → `Doc_CV_LM`, `[CV, PORTFOLIO]` → `Doc_CV_PF`, `[CV, LETTRE_MOTIVATION, PORTFOLIO]` → `Doc_CV_LM_PF`, quel que soit l'ordre. `null` pour une liste vide ou une autre combinaison. Le `label` reprend le libellé Talentsoft, que le WordPress BIEP affiche après « Pour postuler à cette offre, ». |
 | `criteres.competences_requises` | Jamais renseigné par l'ingestion. |
 | `conditions.temps_travail` | Lu dans `customFields.description.customCodeTable3` (absent de l'API fake-ts) : `reponse_oui` → `TEMPS_PLEIN`, `reponse_non` → `TEMPS_PARTIEL`, sinon `NON_DEFINI`. |
 | `conditions.lieu_de_travail` | Lu dans `customFields.offerCustomBlock1.customCodeTable2` (absent de l'API fake-ts) : `reponse_oui` → `TELETRAVAIL`, `reponse_non` → `SUR_SITE`, sinon `NON_DEFINI`. |

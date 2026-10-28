@@ -5,6 +5,7 @@ import { isHttpStatus } from '@/api/errors'
 import CspAsyncSection from '@/components/base/CspAsyncSection/CspAsyncSection.vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspDataTable from '@/components/base/CspDataTable/CspDataTable.vue'
+import { TABLE_PAGE_SIZE } from '@/components/base/CspDataTable/table'
 import CspDialog from '@/components/base/CspDialog/CspDialog.vue'
 import CspDrawer from '@/components/base/CspDrawer/CspDrawer.vue'
 import CspSearchBar from '@/components/base/CspSearchBar/CspSearchBar.vue'
@@ -27,8 +28,6 @@ const props = defineProps<{
   organismeUuid: string
   recrutementUuid: string
 }>()
-
-const PAGE_SIZE = 8
 
 const { membres, pending, error, revoke, revoking, changeRole } = useEquipeRecrutement(
   props.organismeUuid,
@@ -174,9 +173,7 @@ const countLabel = computed(() => {
     >
       <template #skeleton>
         <CspSkeletonTable
-          :rows="PAGE_SIZE"
           :columns="columns.length"
-          with-footer
         />
       </template>
 
@@ -187,7 +184,6 @@ const countLabel = computed(() => {
           label="Rechercher un membre, un courriel"
           hide-label
           placeholder="Rechercher un membre, un courriel"
-          class="equipe-recrutement-section__search"
         />
         <CspButton
           v-if="canManageOrganisme"
@@ -203,7 +199,7 @@ const countLabel = computed(() => {
         :columns="columns"
         :row-key="row => row.uuid"
         caption="Équipe de recrutement"
-        :page-size="PAGE_SIZE"
+        :page-size="TABLE_PAGE_SIZE"
       >
         <template #empty>
           <div class="equipe-recrutement-section__empty">
@@ -281,10 +277,6 @@ const countLabel = computed(() => {
   color: var(--text-mention-grey);
   font-size: 0.875rem;
   max-width: 65ch;
-}
-
-.equipe-recrutement-section__search {
-  min-width: 20rem;
 }
 
 .equipe-recrutement-section__empty {

@@ -150,6 +150,7 @@ depends = [
   "lint:candidate-js",
   "lint:styles",
   "lint:schema",
+  "lint:changelog-api",
   "lint:types",
 ]
 
@@ -220,6 +221,18 @@ run = [
   "python manage.py spectacular --file presentation/static/api/schema.yaml --validate --fail-on-warn",
   "git diff --exit-code presentation/static/api/schema.yaml",
 ]
+
+[tasks."lint:changelog-api"]
+alias = "web:lint:changelog-api"
+description = "Validate the public API changelog fragments (changelog_api.d/)"
+depends = ["install:py"]
+run = "python manage.py changelog_api verifier"
+
+[tasks."changelog-api:dater"]
+alias = "web:changelog-api:dater"
+description = "Set today's date (Paris) on the API changelog fragments added by the branch"
+depends = ["install:py"]
+run = "python manage.py changelog_api dater"
 
 [tasks."lint:types"]
 alias = "web:lint:types"

@@ -75,19 +75,25 @@ def test_list_offers_page_slice(
 @pytest.fixture(name="offers_by_category")
 def offers_by_category_fixture(db):
     return {
-        "cat_a": OfferDjangoFactory(reference="test-cat-a", category=Category.A),
-        "cat_b": OfferDjangoFactory(reference="test-cat-b", category=Category.B),
-        "cat_c": OfferDjangoFactory(reference="test-cat-c", category=Category.C),
+        "cat_a": OfferDjangoFactory(reference="test-cat-a", categories=[Category.A]),
+        "cat_b": OfferDjangoFactory(reference="test-cat-b", categories=[Category.B]),
+        "cat_c": OfferDjangoFactory(reference="test-cat-c", categories=[Category.C]),
+        "cat_a_b": OfferDjangoFactory(
+            reference="test-cat-a-b", categories=[Category.A, Category.B]
+        ),
     }
 
 
 @pytest.mark.parametrize(
     "category, expected_keys",
     [
-        pytest.param(None, ["cat_a", "cat_b", "cat_c"], id="no_filter"),
-        pytest.param([Category.A], ["cat_a"], id="single_category"),
+        pytest.param(None, ["cat_a", "cat_b", "cat_c", "cat_a_b"], id="no_filter"),
+        pytest.param([Category.A], ["cat_a", "cat_a_b"], id="single_category"),
+        pytest.param([Category.B], ["cat_b", "cat_a_b"], id="overlapping_category"),
         pytest.param(
-            [Category.A, Category.B], ["cat_a", "cat_b"], id="multiple_categories"
+            [Category.A, Category.B],
+            ["cat_a", "cat_b", "cat_a_b"],
+            id="multiple_categories",
         ),
         pytest.param([Category.HORS_CATEGORIE], [], id="unmatched_category"),
     ],
@@ -421,35 +427,35 @@ def offers_by_multiple_criteria_fixture(db):
     return {
         "match": OfferDjangoFactory(
             reference="test-match",
-            category=Category.A,
+            categories=[Category.A],
             verse=Verse.FPE,
             offer_nature=OfferNature.CONTRACTUEL,
             criteria=OfferCriteria(experience_level=ExperienceLevel.DEBUTANT).to_dict(),
         ),
         "match_other_values": OfferDjangoFactory(
             reference="test-match-other-values",
-            category=Category.B,
+            categories=[Category.B],
             verse=Verse.FPT,
             offer_nature=OfferNature.CONTRACTUEL,
             criteria=OfferCriteria(experience_level=ExperienceLevel.EXPERT).to_dict(),
         ),
         "wrong_category": OfferDjangoFactory(
             reference="test-wrong-category",
-            category=Category.C,
+            categories=[Category.C],
             verse=Verse.FPE,
             offer_nature=OfferNature.CONTRACTUEL,
             criteria=OfferCriteria(experience_level=ExperienceLevel.DEBUTANT).to_dict(),
         ),
         "wrong_offer_nature": OfferDjangoFactory(
             reference="test-wrong-contract-type",
-            category=Category.A,
+            categories=[Category.A],
             verse=Verse.FPE,
             offer_nature=OfferNature.TERRITORIAL,
             criteria=OfferCriteria(experience_level=ExperienceLevel.DEBUTANT).to_dict(),
         ),
         "wrong_experience_level": OfferDjangoFactory(
             reference="test-wrong-experience-level",
-            category=Category.A,
+            categories=[Category.A],
             verse=Verse.FPE,
             offer_nature=OfferNature.CONTRACTUEL,
             criteria=OfferCriteria(experience_level=ExperienceLevel.CONFIRME).to_dict(),

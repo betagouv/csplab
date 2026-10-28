@@ -1,10 +1,24 @@
 from django.contrib import admin
+from referentiel.value_objects.category import Category
 
 from infrastructure.django_apps.referentiel.models.concours import ConcoursModel
 from infrastructure.django_apps.referentiel.models.corps import CorpsModel
 from infrastructure.django_apps.referentiel.models.metier import MetierModel
 from infrastructure.django_apps.referentiel.models.offer import OfferModel
 from infrastructure.django_apps.utils.admin import ReadOnlyAdminMixin
+
+
+class OfferCategoryFilter(admin.SimpleListFilter):
+    title = "catégorie"
+    parameter_name = "category"
+
+    def lookups(self, request, model_admin):
+        return Category.choices
+
+    def queryset(self, request, queryset):
+        if self.value():
+            return queryset.filter(categories__contains=[self.value()])
+        return queryset
 
 
 @admin.register(OfferModel)
@@ -14,7 +28,7 @@ class OfferAdmin(ReadOnlyAdminMixin, admin.ModelAdmin):
         "code_emploi_csp",
         "verse",
         "title",
-        "category",
+        "categories_display",
         "offer_nature",
         "region",
         "department",
@@ -24,7 +38,7 @@ class OfferAdmin(ReadOnlyAdminMixin, admin.ModelAdmin):
     )
     list_filter = (
         "verse",
-        "category",
+        OfferCategoryFilter,
         "offer_nature",
         "region",
         "created_at",
@@ -40,6 +54,10 @@ class OfferAdmin(ReadOnlyAdminMixin, admin.ModelAdmin):
         "organization",
         "code_emploi_csp",
     )
+
+    @admin.display(description="Catégories")
+    def categories_display(self, obj: OfferModel) -> str:
+        return ", ".join(obj.categories)
 
 
 @admin.register(CorpsModel)

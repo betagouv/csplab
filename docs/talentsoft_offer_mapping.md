@@ -1,6 +1,6 @@
 # Correspondance offre Talentsoft → offre API v1
 
-_Dernière mise à jour : 2026-10-21_
+_Dernière mise à jour : 2026-10-26_
 
 Conversion d'une offre au format Talentsoft en offre envoyée à l'API.
 L'API fake-ts (`/api/fake-ts/`, `OfferSummaryOutputMapper` et `OfferDetailOutputMapper` dans `src/web/presentation/ingestion/mappers.py`) expose les offres du web au format Talentsoft : les notes « API fake-ts » décrivent ce qu'elle renvoie.
@@ -30,7 +30,7 @@ Notation : `a.b` désigne un objet imbriqué, `a[]` une liste, `a[0]` son premie
 | `urlRedirectionApplicant` | `url_candidature` | Prioritaire sur `customFields.origin.shortText1` et `applicationUrl`. |
 | `customFields.origin.shortText1` | `email_candidature` | Texte libre (« adresse de candidature »). Lu seulement si `urlRedirectionApplicant` est vide : le premier e-mail valide trouvé devient `email_candidature`, et `url_candidature` reste vide. API fake-ts : reprend `email_candidature`, `null` si l'offre se candidate par lien. |
 | `applicationUrl` | `url_candidature` | Dernier recours, si `urlRedirectionApplicant` est vide et que `customFields.origin.shortText1` ne contient aucun e-mail valide. Toujours rempli dans Talentsoft (page de candidature générique). API fake-ts : reprend `url_candidature`, `null` si l'offre se candidate par e-mail. |
-| `geographicalLocation[0].clientCode` | `localisation[0].zone_geographique` | L'API fake-ts renvoie toujours `[]` : aucune `localisation` n'est donc produite à partir de lui. Toute la `localisation` est abandonnée si la zone, le pays, la région ou le département manque. |
+| `geographicalLocation[0].clientCode` | `localisation[0].zone_geographique` | Ignoré : la zone est toujours déduite du département (`zone_pour_departement` dans `libs/referentiel`), car Talentsoft range presque tout l'outre-mer en `Europe`. `EUROPE` en métropole, `AMERIQUE` (971, 972, 973) ou `AFRIQUE` (974, 976) pour les DOM, `AMERIQUE` (975, `SPM`) ou `OCEANIE` (986, `WLF`, 987, 988) pour les collectivités d'outre-mer. Toute la `localisation` est abandonnée si le pays, la région ou le département manque. |
 | `country[0].clientCode` | `localisation[0].pays` | |
 | `region[0].clientCode` | `localisation[0].region` | Les préfixes `_TS_CO_Region_` et `R` sont retirés pour obtenir le code INSEE. |
 | `department[0].clientCode` | `localisation[0].departement` | Cas particulier de la Nouvelle-Calédonie (`988`). |
@@ -75,7 +75,7 @@ L'API fake-ts fait le chemin inverse : elle renvoie le Markdown dans les champs 
 | `_format` | Métadonnées de transport. |
 | `_metadata` | Métadonnées de transport. |
 | `urlRedirectionEmployee` | |
-| `locations` | |
+| `locations` | Jamais renseigné par Talentsoft : toujours vide dans les offres chargées par l'ingestion. Le WordPress BIEP ne le lit pas non plus. |
 | `isAnonymousOrganisation` | |
 | `numberOfVacancies` | Nombre de postes à pourvoir. Jamais renseigné par Talentsoft : toujours `null` dans les offres chargées par l'ingestion (vérifié le 2026-10-19). |
 | `organisation.name` | Données d'organisme, synchronisées par l'upsert séparé des organismes Talentsoft (`TalentsoftOrganismeUpsertInputSerializer`), pas par le payload d'offre. |
@@ -124,7 +124,7 @@ L'API fake-ts fait le chemin inverse : elle renvoie le Markdown dans les champs 
 | `organisation.siret` | Jamais renseigné par l'ingestion (vide) ; le rapprochement d'organisme passe par `talentsoft_organisme_entity_code`. |
 | `profession.referentiel` | Constante `RMFPv2`. |
 | `profession.code_emploi_local` | Jamais renseigné, `local_job_code` reste à `null`. |
-| `criteres.documents_requis` | Jamais renseigné par l'ingestion. |
+| `criteres.documents_requis` | Lu dans `customFields.applicantCriteria.customCodeTable1` (« Documents à transmettre ») : `Doc_CV` → `[CV]`, `Doc_CV_LM` → `[CV, LETTRE_MOTIVATION]`, `Doc_CV_PF` → `[CV, PORTFOLIO]`, `Doc_CV_LM_PF` → `[CV, LETTRE_MOTIVATION, PORTFOLIO]`. Absent, `null` ou code inconnu → non envoyé. API fake-ts : renvoyé dans `customFields.applicantCriteria.customCodeTable1`, valeur du référentiel Talentsoft « Documents à transmettre » : `[CV]` → `Doc_CV`, `[CV, LETTRE_MOTIVATION]` → `Doc_CV_LM`, `[CV, PORTFOLIO]` → `Doc_CV_PF`, `[CV, LETTRE_MOTIVATION, PORTFOLIO]` → `Doc_CV_LM_PF`, quel que soit l'ordre. `null` pour une liste vide ou une autre combinaison. Le `label` reprend le libellé Talentsoft, que le WordPress BIEP affiche après « Pour postuler à cette offre, ». |
 | `criteres.competences_requises` | Jamais renseigné par l'ingestion : `skillCollection[]` est toujours vide côté Talentsoft. |
 | `conditions.temps_travail` | Lu dans `customFields.description.customCodeTable3` (absent de l'API fake-ts) : `reponse_oui` → `TEMPS_PLEIN`, `reponse_non` → `TEMPS_PARTIEL`, sinon `NON_DEFINI`. |
 | `conditions.lieu_de_travail` | Lu dans `customFields.offerCustomBlock1.customCodeTable2` (absent de l'API fake-ts) : `reponse_oui` → `TELETRAVAIL`, `reponse_non` → `SUR_SITE`, sinon `NON_DEFINI`. |

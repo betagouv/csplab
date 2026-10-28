@@ -1,6 +1,8 @@
 import type { ComponentPropsAndSlots, StoryObj } from '@storybook/vue3-vite'
+import { ref } from 'vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
-import CspInput from '@/components/base/CspInput/CspInput.vue'
+import CspSearchBar from '@/components/base/CspSearchBar/CspSearchBar.vue'
+import CspSegmentedControl from '@/components/base/CspSegmentedControl/CspSegmentedControl.vue'
 import CspTableToolbar from '@/components/base/CspTableToolbar/CspTableToolbar.vue'
 
 type CspTableToolbarProps = ComponentPropsAndSlots<typeof CspTableToolbar>
@@ -12,15 +14,20 @@ const meta = {
   parameters: {
     docs: {
       description: {
-        component: 'Barre d\'outils à placer immédiatement au-dessus d\'une table : compteur à gauche, recherche et actions à droite. Quand `selectionCount` est renseigné, la barre bascule en mode sélection et affiche le slot `selection-actions` pour les actions en lot.',
+        component: 'Barre d\'outils à placer immédiatement au-dessus d\'une table : compteur à gauche, recherche et actions à droite. Le slot `start` affiche un élément avant le compteur, par exemple un choix d\'affichage, et le garde à la même place en mode sélection. Quand `selectionCount` est renseigné, la barre bascule en mode sélection et affiche le slot `selection-actions` pour les actions en lot.',
       },
     },
   },
   argTypes: {
     count: {
       control: { type: 'text' },
-      description: 'Libellé du compteur affiché à gauche (remplaçable par le slot `status`).',
+      description: 'Libellé du compteur affiché à gauche.',
       table: { type: { summary: 'string' } },
+    },
+    pending: {
+      control: { type: 'boolean' },
+      description: 'Affiche un squelette à la place du compteur pendant le chargement.',
+      table: { type: { summary: 'boolean' }, defaultValue: { summary: 'false' } },
     },
     selectionCount: {
       control: { type: 'number' },
@@ -49,15 +56,15 @@ export const ParDefaut: Story = {
     count: '12 éléments',
   },
   render: args => ({
-    components: { CspTableToolbar, CspButton, CspInput },
+    components: { CspTableToolbar, CspButton, CspSearchBar },
     setup: () => ({ args }),
     template: `
       <CspTableToolbar v-bind="args">
-        <CspInput
-          type="search"
-          aria-label="Rechercher un élément"
+        <CspSearchBar
+          mode="live"
+          label="Rechercher un élément"
+          hide-label
           placeholder="Rechercher un élément"
-          style="min-width: 20rem"
         />
         <CspButton label="Ajouter" icon="ri:add-line" is-icon-left />
       </CspTableToolbar>
@@ -98,6 +105,45 @@ export const ModeSelectionLibelleDedie: Story = {
         <template #selection-actions>
           <CspButton label="Assigner un responsable" />
         </template>
+      </CspTableToolbar>
+    `,
+  }),
+}
+
+export const AvecChoixAffichage: Story = {
+  args: {
+    count: '12 éléments',
+  },
+  render: args => ({
+    components: { CspTableToolbar, CspButton, CspSearchBar, CspSegmentedControl },
+    setup: () => ({
+      args,
+      affichage: ref('grille'),
+      options: [
+        { value: 'grille', label: 'Grille', icon: 'ri:table-line' },
+        { value: 'liste', label: 'Liste', icon: 'ri:list-unordered' },
+      ],
+    }),
+    template: `
+      <CspTableToolbar v-bind="args">
+        <template #start>
+          <CspSegmentedControl
+            v-model="affichage"
+            :options="options"
+            legend="Affichage"
+            hide-legend
+            size="sm"
+          />
+        </template>
+        <template #selection-actions>
+          <CspButton label="Exporter" variant="secondary" />
+        </template>
+        <CspSearchBar
+          mode="live"
+          label="Rechercher un élément"
+          hide-label
+          placeholder="Rechercher un élément"
+        />
       </CspTableToolbar>
     `,
   }),

@@ -4,7 +4,6 @@ import type { KanbanDropEvent } from '@/composables/dnd/useKanbanDnd'
 import { useQuery } from '@pinia/colada'
 import { computed, ref, toRef } from 'vue'
 import CspAsyncSection from '@/components/base/CspAsyncSection/CspAsyncSection.vue'
-import CspSkeleton from '@/components/base/CspSkeleton/CspSkeleton.vue'
 import CspSkeletonKanban from '@/components/base/CspSkeleton/CspSkeletonKanban.vue'
 import { useMinimumPending } from '@/composables/async/useMinimumPending'
 import { useRecrutementDetail } from '@/features/recrutements/composables/useRecrutementDetail'
@@ -12,10 +11,10 @@ import { pluralize } from '@/utils/format'
 import CandidaturesKanbanBoard from '../components/CandidaturesKanbanBoard.vue'
 import ChangerEtapeDrawer from '../components/ChangerEtapeDrawer.vue'
 import RefusCandidatureDialog from '../components/RefusCandidatureDialog.vue'
-import SelectionActionBar from '../components/SelectionActionBar.vue'
 import { useCandidatureLinkFocus } from '../composables/useCandidatureLinkFocus'
 import { provideCandidatureSequence } from '../composables/useCandidatureNavigation'
 import { useCandidaturesFilters } from '../composables/useCandidaturesFilters'
+import { publishCandidaturesToolbar } from '../composables/useCandidaturesToolbar'
 import { useEtapeChangeMutation } from '../composables/useEtapeChangeMutation'
 import { useKanbanSelection } from '../composables/useKanbanSelection'
 import { useRefusCandidature } from '../composables/useRefusCandidature'
@@ -64,7 +63,6 @@ const {
   toggleColumnSelection,
   toggleCandidatureSelection,
   clearSelection,
-  hasSelection,
 } = useKanbanSelection(toRef(() => filteredEtapes.value))
 
 const boardId = computed(() => `kanban-${props.recrutementUuid}`)
@@ -139,6 +137,21 @@ const countLabel = computed(() => {
   const count = filteredEtapes.value.reduce((sum, etape) => sum + etape.candidatures.length, 0)
   return `${count} ${pluralize(count, 'candidature')}`
 })
+
+const selectionLabel = computed(() =>
+  `${selectedCount.value} ${pluralize(selectedCount.value, 'candidat')} ${pluralize(selectedCount.value, 'sélectionné')}`,
+)
+
+publishCandidaturesToolbar(() => ({
+  count: kanban.error.value ? '' : countLabel.value,
+  pending: showSkeleton.value,
+  selectionCount: selectedCount.value,
+  selectionLabel: selectionLabel.value,
+  selectionActions: [
+    { label: 'Changer d\'étape', icon: 'ri:arrow-left-right-line', onClick: handleOpenChangerEtape },
+    { label: 'Refuser', icon: 'ri:close-line', onClick: handleRefuser },
+  ],
+}))
 </script>
 
 <template>
@@ -150,27 +163,9 @@ const countLabel = computed(() => {
     error-title="Une erreur est survenue lors du chargement des candidatures."
   >
     <template #skeleton>
-      <p class="candidatures-kanban-content__count">
-        <CspSkeleton
-          width="8rem"
-          variant="text"
-        />
-      </p>
       <CspSkeletonKanban />
     </template>
 
-    <p
-      v-if="!hasSelection"
-      class="candidatures-kanban-content__count"
-    >
-      {{ countLabel }}
-    </p>
-    <SelectionActionBar
-      v-else
-      :selected-count="selectedCount"
-      @changer-etape="handleOpenChangerEtape"
-      @refuser="handleRefuser"
-    />
     <CandidaturesKanbanBoard
       :etapes="filteredEtapes"
       :board-id="boardId"
@@ -202,11 +197,3 @@ const countLabel = computed(() => {
 
   <router-view />
 </template>
-
-<style scoped lang="scss">
-.candidatures-kanban-content__count {
-  margin: 0 0 var(--csp-space-4);
-  font-size: 0.9375rem;
-  color: var(--text-mention-grey);
-}
-</style>

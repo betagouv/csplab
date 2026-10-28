@@ -142,7 +142,7 @@ def test_call_without_arg(mock_offers_container, jwt_client):
         assert result["nature_offre"] == (
             offer.offer_nature.value if offer.offer_nature else None
         )
-        assert result["categorie"] == offer.category.value
+        assert result["categories"] == [c.value for c in offer.categories]
         assert result["debut_publication"] == "2024-01-15T00:00:00Z"
         assert result["url_offre"] == offer.offer_url
         if offer.archived_at:
@@ -679,7 +679,7 @@ class TestOffersListViewDbVerified:
                 "titre": offer.title,
                 "organisation": offer.organization,
                 "nature_offre": offer.offer_nature,
-                "categorie": offer.category,
+                "categories": offer.categories,
                 "debut_publication": offer.publication_date.isoformat().replace(
                     "+00:00", "Z"
                 ),

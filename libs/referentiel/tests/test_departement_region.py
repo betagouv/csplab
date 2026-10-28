@@ -5,6 +5,7 @@ from referentiel.value_objects.departement_region import (
     department_belongs_to_region,
     overseas_region_for_department,
     region_et_zone_pour_departement,
+    zone_pour_departement,
 )
 from referentiel.value_objects.department import Department
 from referentiel.value_objects.region import Region
@@ -33,6 +34,23 @@ def test_region_et_zone_pour_departement_inconnu():
     # Saint-Pierre-et-Miquelon: code de département valide, non couvert par
     # la table de correspondance région/zone.
     assert region_et_zone_pour_departement(Department(code="975")) is None
+
+
+@pytest.mark.parametrize(
+    ("department_code", "expected_area"),
+    [
+        pytest.param("01", GeographicalArea.EUROPE, id="metropole"),
+        pytest.param("974", GeographicalArea.AFRIQUE, id="dom"),
+        pytest.param("975", GeographicalArea.AMERIQUE, id="saint_pierre_et_miquelon"),
+        pytest.param("SPM", GeographicalArea.AMERIQUE, id="spm_code_alpha"),
+        pytest.param("986", GeographicalArea.OCEANIE, id="wallis_et_futuna"),
+        pytest.param("WLF", GeographicalArea.OCEANIE, id="wlf_code_alpha"),
+        pytest.param("987", GeographicalArea.OCEANIE, id="polynesie"),
+        pytest.param("988", GeographicalArea.OCEANIE, id="nouvelle_caledonie"),
+    ],
+)
+def test_zone_pour_departement(department_code, expected_area):
+    assert zone_pour_departement(Department(code=department_code)) == expected_area
 
 
 @pytest.mark.parametrize(

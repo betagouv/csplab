@@ -189,6 +189,9 @@ class OfferUpsertPayload(BaseModel):
                 experience=offer.experience.name if offer.experience else None,
                 specialisations=offer.specialisations,
                 diplome=offer.diploma,
+                documents_requis=[
+                    document.name for document in offer.required_documents
+                ],
                 competences_requises=offer.required_skills,
                 langues=[
                     LanguagePayload.from_language(lang) for lang in offer.languages
@@ -200,6 +203,7 @@ class OfferUpsertPayload(BaseModel):
             or offer.specialisations
             or offer.languages
             or offer.required_skills
+            or offer.required_documents
             else None,
             conditions=ConditionsPayload(
                 temps_travail=offer.working_time.name,

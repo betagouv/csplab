@@ -25,11 +25,15 @@ from referentiel.value_objects.offer_conditions import (
 )
 from referentiel.value_objects.offer_nature import OfferNature
 from referentiel.value_objects.region import Region
+from referentiel.value_objects.required_document import RequiredDocument
 from referentiel.value_objects.verse import Verse
 from rest_framework import serializers
 
 from application.ingestion.services.list_public_organismes import (
     PUBLIC_ORGANISME_REFERENTIELS,
+)
+from application.ingestion.services.metier_functional_areas import (
+    get_metier_functional_areas,
 )
 from infrastructure.django_apps.ingestion.models.talentsoft_organisme import (
     TalentsoftOrganismeModel,
@@ -145,7 +149,7 @@ class ListOffersResponseSerializer(serializers.Serializer):
     titre = serializers.CharField(source="title")
     organisation = serializers.CharField(source="organization")
     nature_offre = serializers.CharField(source="offer_nature", allow_null=True)
-    categorie = serializers.CharField(source="category", allow_null=True)
+    categories = serializers.ListField(child=serializers.CharField())
     debut_publication = serializers.DateTimeField(source="publication_date")
     url_offre = serializers.CharField(source="offer_url", allow_null=True)
     date_archivage = serializers.DateTimeField(source="archived_at", allow_null=True)
@@ -530,10 +534,18 @@ class FakeTsDynamicFieldSerializer(serializers.Serializer):
     longText3Formatted = serializers.CharField(allow_null=True)
 
 
+class FakeTsApplicantCriteriaSerializer(FakeTsDynamicFieldSerializer):
+    customCodeTable1 = FakeTsCodedObjectSerializer(
+        allow_null=True,
+        help_text="Documents à transmettre. `null` si l'offre n'en demande aucun "
+        "ou si la combinaison n'existe pas dans le référentiel Talentsoft.",
+    )
+
+
 class FakeTsCustomFieldsSerializer(serializers.Serializer):
     offer = FakeTsDynamicFieldSerializer()
     description = FakeTsDynamicFieldSerializer()
-    applicantCriteria = FakeTsDynamicFieldSerializer()
+    applicantCriteria = FakeTsApplicantCriteriaSerializer()
     location = FakeTsDynamicFieldSerializer()
     offerCustomBlock1 = FakeTsDynamicFieldSerializer()
     origin = FakeTsDynamicFieldSerializer()
@@ -629,7 +641,7 @@ class OfferDetailResponseSerializer(serializers.Serializer):
         source="service_description", allow_null=True
     )
     versant = serializers.CharField(source="verse", allow_null=True)
-    categorie = serializers.CharField(source="category", allow_null=True)
+    categories = serializers.ListField(child=serializers.CharField())
     nature_offre = serializers.CharField(source="offer_nature", allow_null=True)
     type_contrat = serializers.CharField(source="contract_kind", allow_null=True)
     vacance_poste = serializers.CharField(source="job_vacancy", allow_null=True)
@@ -778,8 +790,12 @@ class ProfessionInputSerializer(serializers.Serializer):
     )
     domaine = serializers.CharField(
         max_length=3,
+        required=False,
         help_text="Code domaine fonctionnel RMFP, vérifié uniquement si "
-        f"referentiel={JobFamilyReferential.RMFPV2.value}. Valeurs possibles : "
+        f"referentiel={JobFamilyReferential.RMFPV2.value}. Absent, il est déduit "
+        "du métier ; renseigné, il doit correspondre au domaine du métier. "
+        "Obligatoire si le code métier relève de plusieurs domaines "
+        "(ex. `ERJUS008`, `ERTRA007`). Valeurs possibles : "
         + ", ".join(f"{e.value} ({e.label})" for e in DomaineFonctionnel)
         + ".",
     )
@@ -799,7 +815,7 @@ class ProfessionInputSerializer(serializers.Serializer):
             return data
 
         domaine = data.get("domaine")
-        if domaine not in {e.value for e in DomaineFonctionnel}:
+        if domaine is not None and domaine not in {e.value for e in DomaineFonctionnel}:
             raise serializers.ValidationError(
                 {"domaine": f"«\xa0{domaine}\xa0» n'est pas un choix valide."}
             )
@@ -811,6 +827,28 @@ class ProfessionInputSerializer(serializers.Serializer):
         ):
             raise serializers.ValidationError(
                 {"metier": f"Code métier inconnu : {metier}."}
+            )
+
+        domaines = get_metier_functional_areas(metier)
+        if not domaines:
+            return data
+
+        domaines_libelle = ", ".join(sorted(domaines))
+        if domaine is None:
+            if len(domaines) > 1:
+                raise serializers.ValidationError(
+                    {
+                        "domaine": f"Le métier {metier} relève de plusieurs "
+                        f"domaines ({domaines_libelle}) : renseigner l'un d'eux."
+                    }
+                )
+            data["domaine"] = domaines.pop()
+        elif domaine not in domaines:
+            raise serializers.ValidationError(
+                {
+                    "domaine": f"Le domaine {domaine} ne correspond pas au métier "
+                    f"{metier} ({domaines_libelle})."
+                }
             )
 
         return data
@@ -888,12 +926,23 @@ class CriteriaInputSerializer(serializers.Serializer):
     )
     diplome = serializers.CharField(required=False)
     documents_requis = serializers.ListField(
-        child=serializers.CharField(), required=False
+        child=serializers.ChoiceField(
+            choices=[(c.name, c.value) for c in RequiredDocument]
+        ),
+        required=False,
+        help_text="Documents à transmettre pour candidater, sans doublon.",
     )
     competences_requises = serializers.ListField(
         child=serializers.CharField(), required=False
     )
     langues = LanguageInputSerializer(many=True, required=False)
+
+    def validate_documents_requis(self, value):
+        if len(value) != len(set(value)):
+            raise serializers.ValidationError(
+                "Chaque document ne peut être cité qu'une fois."
+            )
+        return value
 
 
 class ConditionsInputSerializer(serializers.Serializer):
@@ -985,7 +1034,7 @@ class OffersInputSerializer(serializers.Serializer):
     # classification
     profession = ProfessionInputSerializer()
     categories = serializers.MultipleChoiceField(
-        choices=[(c.name, c.value) for c in Category], allow_blank=True
+        choices=[(c.name, c.value) for c in Category]
     )
     nature_offre = serializers.ChoiceField(
         choices=[(c.name, c.value) for c in OfferNature]
