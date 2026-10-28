@@ -22,6 +22,7 @@ from referentiel.value_objects.localisation import Localisation
 from referentiel.value_objects.offer_criteria import OfferCriteria, OfferLanguage
 from referentiel.value_objects.offer_nature import OfferNature
 from referentiel.value_objects.region import Region
+from referentiel.value_objects.required_document import RequiredDocument
 from referentiel.value_objects.verse import Verse
 from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -228,7 +229,10 @@ def parse_offer_from_payload(payload: dict, source_id: UUID) -> Offer:
             if criteres.get("experience")
             else None,
             specialisations=list(criteres.get("specialisations") or []),
-            documents_requis=list(criteres.get("documents_requis") or []),
+            documents_requis=[
+                RequiredDocument[document]
+                for document in criteres.get("documents_requis") or []
+            ],
             competences_requises=list(criteres.get("competences_requises") or []),
             languages=[
                 OfferLanguage(
@@ -689,6 +693,44 @@ def test_invalid_contacts_are_rejected(
             "index": 0,
             "offre": {"reference": "REF-007", "versant": "FPT"},
             "error": expected_error,
+        }
+    ]
+
+
+@pytest.mark.parametrize(
+    "documents_requis,expected_error",
+    [
+        (
+            ["CV", "Copie des diplômes"],
+            {"1": ["«\xa0Copie des diplômes\xa0» n'est pas un choix valide."]},
+        ),
+        (
+            ["CV", "LETTRE_MOTIVATION", "CV"],
+            ["Chaque document ne peut être cité qu'une fois."],
+        ),
+    ],
+    ids=["unknown-document", "duplicate-document"],
+)
+def test_invalid_required_documents_are_rejected(
+    authenticated_client_with_source, use_case, documents_requis, expected_error
+):
+    offer = PayloadOfferFactory.create(
+        identification={"reference": "REF-010", "versant": "FPT"},
+        criteres={"documents_requis": documents_requis},
+    )
+
+    response = authenticated_client_with_source.post(
+        URL,
+        data={"source_id": SOURCE_UUID, "offres": [offer]},
+        content_type="application/json",
+    )
+
+    assert response.status_code == status.HTTP_201_CREATED
+    assert response.json()["errors"] == [
+        {
+            "index": 0,
+            "offre": {"reference": "REF-010", "versant": "FPT"},
+            "error": {"criteres": {"documents_requis": expected_error}},
         }
     ]
 

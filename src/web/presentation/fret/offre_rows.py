@@ -20,6 +20,7 @@ from referentiel.value_objects.offer_conditions import (
     WorkingTime,
 )
 from referentiel.value_objects.offer_nature import OfferNature
+from referentiel.value_objects.required_document import RequiredDocument
 from referentiel.value_objects.verse import Verse
 
 from infrastructure.django_apps.referentiel.models.offer import OfferModel
@@ -184,6 +185,10 @@ def _enum(enum: type[Enum]) -> Callable[[Any], str]:
     return lambda value: _enum_label(enum, value)
 
 
+def _enum_list(enum: type[Enum]) -> Callable[[list], str]:
+    return lambda values: _text_list([_enum_label(enum, value) for value in values])
+
+
 def _text_list(values: list) -> str:
     return ", ".join(str(value) for value in values)
 
@@ -194,7 +199,7 @@ _CRITERIA = [
     ("diplome", "Diplôme", None),
     ("experience", "Niveau d'expérience", _enum(ExperienceLevel)),
     ("specialisations", "Spécialisations", _text_list),
-    ("documents_requis", "Documents requis", _text_list),
+    ("documents_requis", "Documents requis", _enum_list(RequiredDocument)),
     ("competences_requises", "Compétences requises", _text_list),
     ("langues", "Langues", _languages),
 ]

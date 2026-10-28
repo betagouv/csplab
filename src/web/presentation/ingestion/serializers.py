@@ -25,6 +25,7 @@ from referentiel.value_objects.offer_conditions import (
 )
 from referentiel.value_objects.offer_nature import OfferNature
 from referentiel.value_objects.region import Region
+from referentiel.value_objects.required_document import RequiredDocument
 from referentiel.value_objects.verse import Verse
 from rest_framework import serializers
 
@@ -533,10 +534,18 @@ class FakeTsDynamicFieldSerializer(serializers.Serializer):
     longText3Formatted = serializers.CharField(allow_null=True)
 
 
+class FakeTsApplicantCriteriaSerializer(FakeTsDynamicFieldSerializer):
+    customCodeTable1 = FakeTsCodedObjectSerializer(
+        allow_null=True,
+        help_text="Documents à transmettre. `null` si l'offre n'en demande aucun "
+        "ou si la combinaison n'existe pas dans le référentiel Talentsoft.",
+    )
+
+
 class FakeTsCustomFieldsSerializer(serializers.Serializer):
     offer = FakeTsDynamicFieldSerializer()
     description = FakeTsDynamicFieldSerializer()
-    applicantCriteria = FakeTsDynamicFieldSerializer()
+    applicantCriteria = FakeTsApplicantCriteriaSerializer()
     location = FakeTsDynamicFieldSerializer()
     offerCustomBlock1 = FakeTsDynamicFieldSerializer()
     origin = FakeTsDynamicFieldSerializer()
@@ -917,12 +926,23 @@ class CriteriaInputSerializer(serializers.Serializer):
     )
     diplome = serializers.CharField(required=False)
     documents_requis = serializers.ListField(
-        child=serializers.CharField(), required=False
+        child=serializers.ChoiceField(
+            choices=[(c.name, c.value) for c in RequiredDocument]
+        ),
+        required=False,
+        help_text="Documents à transmettre pour candidater, sans doublon.",
     )
     competences_requises = serializers.ListField(
         child=serializers.CharField(), required=False
     )
     langues = LanguageInputSerializer(many=True, required=False)
+
+    def validate_documents_requis(self, value):
+        if len(value) != len(set(value)):
+            raise serializers.ValidationError(
+                "Chaque document ne peut être cité qu'une fois."
+            )
+        return value
 
 
 class ConditionsInputSerializer(serializers.Serializer):
