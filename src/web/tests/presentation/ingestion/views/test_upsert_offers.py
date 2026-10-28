@@ -736,6 +736,7 @@ def test_invalid_required_documents_are_rejected(
     "categories,expected_error",
     [
         (None, ["Ce champ est obligatoire."]),
+        ([], ["Au moins une catégorie est obligatoire."]),
         ([""], ["«\xa0\xa0» n'est pas un choix valide."]),
     ],
 )
@@ -1099,26 +1100,6 @@ class TestOffersUpsertViewDbVerified:
         )
         assert offer_model.categories == ["B", "A"]
         assert offer_model.main_category == "B"
-
-    def test_persists_an_offer_without_category(self, authenticated_client_with_source):
-        MetierDjangoFactory(
-            offer_family_code="ERNUM001", domaine_fonctionnel_code="NUM"
-        )
-        offre = {**MINIMAL_VALID_OFFER, "categories": []}
-
-        response = authenticated_client_with_source.post(
-            URL,
-            data={"source_id": SOURCE_UUID, "offres": [offre]},
-            content_type="application/json",
-        )
-
-        assert response.status_code == status.HTTP_201_CREATED
-        assert response.json()["errors"] == []
-        offer_model = OfferModel.objects.get(
-            reference="REF-001", source_id=UUID(SOURCE_UUID)
-        )
-        assert offer_model.categories == []
-        assert offer_model.main_category is None
 
     def test_localisation_without_coordinates_is_persisted_with_null_coordinates(
         self, authenticated_client_with_source

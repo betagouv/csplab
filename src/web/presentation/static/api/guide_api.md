@@ -154,7 +154,7 @@ Chaque offre renvoyée contient notamment :
 | `titre` | Intitulé du poste | Non |
 | `organisation` | Organisme employeur | Non |
 | `nature_offre` | Nature de l'offre | Oui |
-| `categories` | Catégories (A+, A, B, C…), dans l'ordre d'envoi | Oui (liste vide) |
+| `categories` | Catégories (A+, A, B, C…), dans l'ordre d'envoi | Non |
 | `debut_publication` | Date de début de publication | Non |
 | `url_offre` | Lien vers l'annonce | Oui |
 | `date_archivage` | Date d'archivage de l'offre | Oui |
@@ -331,7 +331,7 @@ longueur et de valeurs autorisées**.
 #### Catégorie et contrat
 | Champ | Règle |
 |---|---|
-| `categories` | Obligatoire. Liste, éventuellement vide. Valeurs autorisées : **APLUS, A, B, C, HORS_CATEGORIE**. Toutes les catégories sont enregistrées, dans l'ordre d'envoi (doublons retirés). |
+| `categories` | Obligatoire. Liste d'au moins une valeur : une offre sans catégorie est rejetée. Valeurs autorisées : **APLUS, A, B, C, HORS_CATEGORIE**. Toutes les catégories sont enregistrées, dans l'ordre d'envoi (doublons retirés). |
 | `nature_offre` | Obligatoire. Public visé par l'offre. Valeurs autorisées : **TITULAIRE_CONTRACTUEL, CONTRACTUEL, TERRITORIAL**. |
 | `type_contrat` | Facultatif. Une seule valeur parmi **CDD, CDI, CDD_CDI, CONTRAT_PROJET, VACATION** (ou vide / `null` si l'offre n'est pas soumise à contractualisation). |
 | `vacance_poste` | **OUI** = poste vacant ; **NON** = poste susceptible d'être vacant (ou vide). |
