@@ -454,7 +454,7 @@ Filtres disponibles :
 
 - `versant` — une ou plusieurs valeurs séparées par une virgule (ex. `FPE,FPT`).
 - `siret` — SIRET exact, sur 14 caractères.
-- `nom` — recherche partielle sur le nom, insensible à la casse.
+- `nom` — recherche partielle sur le nom, insensible à la casse et aux accents.
 - `departement` — code du département de l'organisme (ex. `75`, `2A`, `971`).
 - `referentiel` — référentiel source : `FINESS`, `GIPCDG` ou `DILA`.
 

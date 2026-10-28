@@ -1192,7 +1192,9 @@ class ListOrganismesFiltersSerializer(serializers.Serializer):
     nom = serializers.CharField(
         required=False,
         max_length=255,
-        help_text="Recherche partielle sur le nom, insensible à la casse.",
+        help_text=(
+            "Recherche partielle sur le nom, insensible à la casse et aux accents."
+        ),
         source="name",
     )
     departement = serializers.ChoiceField(
