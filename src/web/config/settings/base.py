@@ -131,6 +131,7 @@ INSTALLED_APPS = [
     "presentation.ingestion",
     "presentation.candidate",
     "presentation.identite",
+    "presentation.recruteur",
     "presentation.ats",
 ]
 
@@ -516,6 +517,7 @@ HUEY = {
         "health_check_interval": 1,
     },
 }
+DEMO_AUTO_REPLY_DELAY_MINUTES = env.int("DEMO_AUTO_REPLY_DELAY_MINUTES", default=2)
 
 # API endpoints
 PISTE_OAUTH_BASE_URL = env.str("PISTE_OAUTH_BASE_URL")
