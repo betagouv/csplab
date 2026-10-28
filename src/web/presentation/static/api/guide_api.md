@@ -324,7 +324,7 @@ longueur et de valeurs autorisées**.
 | Champ | Règle |
 |---|---|
 | `referentiel` | Référentiel utilisé. Valeur par défaut : **RMFPv2**. |
-| `domaine` | Obligatoire. Code du domaine fonctionnel (vérifié uniquement si `referentiel=RMFPv2`). **3 caractères maximum.** |
+| `domaine` | Facultatif. Code du domaine fonctionnel. Absent, il est déduit du métier ; renseigné, il doit correspondre au `domaine_fonctionnel_code` du métier, sinon l'offre est rejetée. Obligatoire lorsque le code métier relève de plusieurs domaines (ex. `ERJUS008`, `ERTRA007`) : il doit alors être l'un d'eux. Vérifié uniquement si `referentiel=RMFPv2`. **3 caractères maximum.** |
 | `metier` | Obligatoire. Code métier : valeur du champ `code_emploi_csp` d'un métier renvoyé par [`GET /api/v1/metiers/`](#5-consulter-les-metiers-get-apiv1metiers), par exemple `ERAMT001` (vérifié uniquement si `referentiel=RMFPv2`). **8 caractères maximum.** |
 | `code_emploi_local` | Code emploi local propre au partenaire. Peut être vide. **50 caractères maximum.** |
 

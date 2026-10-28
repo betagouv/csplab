@@ -31,6 +31,9 @@ from rest_framework import serializers
 from application.ingestion.services.list_public_organismes import (
     PUBLIC_ORGANISME_REFERENTIELS,
 )
+from application.ingestion.services.metier_functional_areas import (
+    get_metier_functional_areas,
+)
 from infrastructure.django_apps.ingestion.models.talentsoft_organisme import (
     TalentsoftOrganismeModel,
 )
@@ -778,8 +781,12 @@ class ProfessionInputSerializer(serializers.Serializer):
     )
     domaine = serializers.CharField(
         max_length=3,
+        required=False,
         help_text="Code domaine fonctionnel RMFP, vérifié uniquement si "
-        f"referentiel={JobFamilyReferential.RMFPV2.value}. Valeurs possibles : "
+        f"referentiel={JobFamilyReferential.RMFPV2.value}. Absent, il est déduit "
+        "du métier ; renseigné, il doit correspondre au domaine du métier. "
+        "Obligatoire si le code métier relève de plusieurs domaines "
+        "(ex. `ERJUS008`, `ERTRA007`). Valeurs possibles : "
         + ", ".join(f"{e.value} ({e.label})" for e in DomaineFonctionnel)
         + ".",
     )
@@ -799,7 +806,7 @@ class ProfessionInputSerializer(serializers.Serializer):
             return data
 
         domaine = data.get("domaine")
-        if domaine not in {e.value for e in DomaineFonctionnel}:
+        if domaine is not None and domaine not in {e.value for e in DomaineFonctionnel}:
             raise serializers.ValidationError(
                 {"domaine": f"«\xa0{domaine}\xa0» n'est pas un choix valide."}
             )
@@ -811,6 +818,28 @@ class ProfessionInputSerializer(serializers.Serializer):
         ):
             raise serializers.ValidationError(
                 {"metier": f"Code métier inconnu : {metier}."}
+            )
+
+        domaines = get_metier_functional_areas(metier)
+        if not domaines:
+            return data
+
+        domaines_libelle = ", ".join(sorted(domaines))
+        if domaine is None:
+            if len(domaines) > 1:
+                raise serializers.ValidationError(
+                    {
+                        "domaine": f"Le métier {metier} relève de plusieurs "
+                        f"domaines ({domaines_libelle}) : renseigner l'un d'eux."
+                    }
+                )
+            data["domaine"] = domaines.pop()
+        elif domaine not in domaines:
+            raise serializers.ValidationError(
+                {
+                    "domaine": f"Le domaine {domaine} ne correspond pas au métier "
+                    f"{metier} ({domaines_libelle})."
+                }
             )
 
         return data
