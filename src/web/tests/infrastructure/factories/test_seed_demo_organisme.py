@@ -4,7 +4,7 @@ from uuid import UUID, uuid4
 
 import pytest
 from django.core.management import CommandError, call_command
-from django.db.models import Count, F
+from django.db.models import Count, F, Min
 from django.utils import timezone
 from pypdf import PdfReader
 
@@ -99,7 +99,7 @@ def _comptes_reduits(reference_finalisee):
             "Recrutement": 1,
         },
         "recrutements_finalises": [reference_finalisee],
-        "notes": 3,
+        "notes": 6,
         "conversations": 1,
         "messages": 2,
         "reponses_candidat": 1,
@@ -187,6 +187,14 @@ def _identites(organisme_id):
     )
 
 
+def _notes(organisme_id):
+    return sorted(
+        NoteModel.objects.filter(
+            candidature__in=_candidatures_demo(organisme_id)
+        ).values_list("message", flat=True)
+    )
+
+
 def _rien_ecrit():
     assert not OfferModel.objects.filter(source_id=SOURCE_DEMO_ID).exists()
     assert not SourceModel.objects.filter(source_id=SOURCE_DEMO_ID).exists()
@@ -222,9 +230,7 @@ class TestSeedDemoOrganisme:
             conversation__candidature__in=candidatures,
             created_at__lt=F("conversation__candidature__created_at"),
         ).exists()
-        note = NoteModel.objects.filter(candidature__in=candidatures).first()
-        lignes = note.message.splitlines()  # type: ignore[union-attr]
-        assert (lignes[0], len(lignes)) == ("Compte rendu de présélection", 16)
+        notes_a = _notes(organisme_a.pk)
         candidature_etat = candidatures.filter(
             etape__recrutement__offre__reference="DEMO-a-01"
         ).first()
@@ -278,11 +284,56 @@ class TestSeedDemoOrganisme:
         assert _comptes(organisme_b.pk) == _comptes_reduits("DEMO-b-02")
         assert _identites(organisme_a.pk) == identites_a
         assert _identites(organisme_b.pk) == identites_b
+        assert _notes(organisme_a.pk) == notes_a
         assert set(
             CandidatureModel.objects.filter(
                 pk__in=[candidature_a.pk, candidature_ailleurs.pk]
             ).values_list("pk", flat=True)
         ) == {candidature_a.pk, candidature_ailleurs.pk}
+
+    def test_seeds_ticket_note_templates_with_coherent_dates_and_authors(self, db):
+        organisme = _organisme_avec_agents()
+
+        seed_demo_organisme([(organisme.pk, SPEC_A)])
+
+        notes = NoteModel.objects.filter(
+            candidature__in=_candidatures_demo(organisme.pk)
+        ).select_related("candidature__candidat", "candidature__etape")
+        en_tetes: dict[str, set[str]] = {}
+        for note in notes:
+            lignes = note.message.splitlines()
+            en_tetes.setdefault(note.candidature.etape.nom, set()).add(lignes[0])
+            jour = timezone.localtime(note.created_at).strftime("%d/%m/%Y")
+            assert lignes[1].startswith(
+                (f"Date de l'appel : {jour}", f"Entretien du {jour} – ")
+            )
+            if lignes[0] == "Compte rendu d'entretien":
+                parcours = lignes[lignes.index("Parcours") + 1]
+                experience = parcours.split(" comme ", 1)[1]
+                assert experience in note.candidature.candidat.resume
+        assert en_tetes == {
+            "Présélection": {"Premier appel"},
+            "Entretien": {"Compte rendu d'entretien"},
+            "Recrutement": {"Premier appel", "Compte rendu d'entretien"},
+        }
+        retenue = notes.filter(candidature__etape__nom="Recrutement")
+        auteurs = set(retenue.values_list("publie_par_id", flat=True))
+        assert len(auteurs) == retenue.count()
+        assert not notes.filter(created_at__lt=F("candidature__created_at")).exists()
+        assert not notes.filter(
+            created_at__gt=F("candidature__etape__recrutement__offre__archived_at")
+        ).exists()
+        comptes_rendus_avec_fil = (
+            notes.filter(message__startswith="Compte rendu d'entretien")
+            .annotate(
+                demande_le=Min("candidature__conversations__messages__created_at")
+            )
+            .filter(demande_le__isnull=False)
+        )
+        assert comptes_rendus_avec_fil.count() == 1
+        assert not comptes_rendus_avec_fil.filter(
+            created_at__gte=F("demande_le")
+        ).exists()
 
     @pytest.mark.parametrize(
         ("cas", "motif"),
@@ -386,6 +437,7 @@ class TestSeedDemoOrganisme:
                 "  Refus : 187",
                 "  Recrutement : 3",
             ]
+            assert bloc[10].startswith("Notes : 98,")
         _rien_ecrit()
 
     @pytest.mark.parametrize(
@@ -406,14 +458,14 @@ class TestSeedDemoOrganisme:
         ],
     )
     def test_generates_a_pdf_cv_for_each_famille(self, famille):
-        # miroir des bornes de _APPRECIATIONS au 27/10
+        # miroir des bornes de _AVIS au 27/10
         for proximite in (0.4, 0.9):
             candidature = _CandidaturePlan(
                 etape="Présélection",
                 prenom="Camille",
                 nom="Durand",
                 proximite=proximite,
-                note=False,
+                notes=(),
                 conversation=False,
                 lecture=False,
                 avatar=None,
@@ -435,15 +487,11 @@ class TestSeedDemoOrganisme:
             prenom="Camille",
             nom="Durand",
             proximite=0.4,
-            note=False,
+            notes=(),
             conversation=False,
             lecture=False,
             avatar=None,
         )
-        directes = {
-            f"{experience['titre']}, {experience['employeur']}"
-            for experience in CORPUS["finances"]["experiences_directes"]
-        }
 
         premiere_directe = {
             _cv(
@@ -451,8 +499,8 @@ class TestSeedDemoOrganisme:
                 CORPUS["finances"],
                 candidature,
                 "camille.durand@demo.candidat.fr",
-            ).experience
-            in directes
+            ).experiences[0][1]
+            in CORPUS["finances"]["experiences_directes"]
             for graine in range(10)
         }
 
