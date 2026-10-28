@@ -30,18 +30,8 @@ jobs:
               - ".github/workflows/web.yml"
               - ".github/actions/**"
 
-  build-web:
-    needs: check-changes
-    if: github.event_name == 'push' || needs.check-changes.outputs.relevant == 'true'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
-      - uses: ./.github/actions/setup-mise
-      - name: Build frontend
-        run: mise run front:build
-
   lint-web:
-    needs: [check-changes, build-web]
+    needs: check-changes
     if: github.event_name == 'push' || needs.check-changes.outputs.relevant == 'true'
     runs-on: ubuntu-latest
     steps:
@@ -59,6 +49,8 @@ jobs:
         run: mise run web:lint:candidate-js
       - name: Lint candidate styles
         run: mise run web:lint:styles
+      - name: Build frontend
+        run: mise run front:build
       - name: Lint frontend
         run: mise run front:lint
       - name: TypeScript check
@@ -113,7 +105,7 @@ jobs:
           mise run web:lint:changelog-api -- "$@"
 
   test-web:
-    needs: [check-changes, build-web]
+    needs: check-changes
     if: github.event_name == 'push' || needs.check-changes.outputs.relevant == 'true'
     runs-on: ubuntu-latest
     services:

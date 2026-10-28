@@ -29,38 +29,25 @@ jobs:
               - ".github/workflows/libs.yml"
               - ".github/actions/**"
 
-  lint-libs:
+  lint-test-libs:
     needs: check-changes
     if: github.event_name == 'push' || needs.check-changes.outputs.relevant == 'true'
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        include:
-          - lib: ddd
-            alias: ddd
-          - lib: referentiel
-            alias: referentiel
-          - lib: scaleway_secrets
-            alias: scaleway-secrets
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
       - uses: ./.github/actions/setup-mise
-      - name: Install ${{ matrix.lib }} dependencies
-        run: mise run ${{ matrix.alias }}:install
-      - name: Lint ${{ matrix.lib }}
-        run: mise run ${{ matrix.alias }}:lint
-
-  test-libs:
-    needs: check-changes
-    if: github.event_name == 'push' || needs.check-changes.outputs.relevant == 'true'
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        lib: [ddd, referentiel]
-    steps:
-      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
-      - uses: ./.github/actions/setup-mise
-      - name: Install ${{ matrix.lib }} dependencies
-        run: mise run ${{ matrix.lib }}:install
-      - name: Test ${{ matrix.lib }}
-        run: mise run ${{ matrix.lib }}:test
+      - name: Install libs dependencies
+        run: |
+          mise run ddd:install
+          mise run referentiel:install
+          mise run scaleway-secrets:install
+      - name: Lint ddd
+        run: mise run ddd:lint
+      - name: Lint referentiel
+        run: mise run referentiel:lint
+      - name: Lint scaleway_secrets
+        run: mise run scaleway-secrets:lint
+      - name: Test ddd
+        run: mise run ddd:test
+      - name: Test referentiel
+        run: mise run referentiel:test

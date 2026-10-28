@@ -12,35 +12,35 @@ permissions:
 jobs:
   check-version-bump:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        lib: [ddd, referentiel, scaleway_secrets]
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
           fetch-depth: 0
 
-      - name: Check that ${{ matrix.lib }} version was bumped
+      - name: Check that every changed lib version was bumped
         env:
-          LIB: ${{ matrix.lib }}
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: |
-          LIB_PATH="libs/$LIB"
+          STATUS=0
+          for LIB in ddd referentiel scaleway_secrets; do
+            LIB_PATH="libs/$LIB"
 
-          CHANGED_FILES=$(git diff --name-only "$BASE_SHA" "$HEAD_SHA" -- "$LIB_PATH")
-          if [ -z "$CHANGED_FILES" ]; then
-            echo "No changes in $LIB_PATH, skipping."
-            exit 0
-          fi
+            CHANGED_FILES=$(git diff --name-only "$BASE_SHA" "$HEAD_SHA" -- "$LIB_PATH")
+            if [ -z "$CHANGED_FILES" ]; then
+              echo "No changes in $LIB_PATH, skipping."
+              continue
+            fi
 
-          BASE_VERSION=$(git show "$BASE_SHA:$LIB_PATH/pyproject.toml" | grep -m1 '^version' | sed -E 's/version *= *"(.*)"/\1/')
-          HEAD_VERSION=$(git show "$HEAD_SHA:$LIB_PATH/pyproject.toml" | grep -m1 '^version' | sed -E 's/version *= *"(.*)"/\1/')
+            BASE_VERSION=$(git show "$BASE_SHA:$LIB_PATH/pyproject.toml" | grep -m1 '^version' | sed -E 's/version *= *"(.*)"/\1/')
+            HEAD_VERSION=$(git show "$HEAD_SHA:$LIB_PATH/pyproject.toml" | grep -m1 '^version' | sed -E 's/version *= *"(.*)"/\1/')
 
-          echo "Base version: $BASE_VERSION"
-          echo "Head version: $HEAD_VERSION"
+            echo "$LIB base version: $BASE_VERSION"
+            echo "$LIB head version: $HEAD_VERSION"
 
-          if [ "$BASE_VERSION" = "$HEAD_VERSION" ]; then
-            echo "::error::Files changed in $LIB_PATH but the version in $LIB_PATH/pyproject.toml was not bumped (still $HEAD_VERSION)."
-            exit 1
-          fi
+            if [ "$BASE_VERSION" = "$HEAD_VERSION" ]; then
+              echo "::error::Files changed in $LIB_PATH but the version in $LIB_PATH/pyproject.toml was not bumped (still $HEAD_VERSION)."
+              STATUS=1
+            fi
+          done
+          exit $STATUS
