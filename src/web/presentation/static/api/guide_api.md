@@ -395,7 +395,7 @@ caractères s'applique au texte Markdown, syntaxe comprise.
 | `ouvert_aux_militaires` | **OUI** ou **NON**. |
 | `lieu_de_travail` | Obligatoire. Valeurs : **NON_DEFINI, SUR_SITE, TELETRAVAIL**. |
 | `management` | Obligatoire. **AVEC** ou **SANS** management. |
-| `bases_legales` | **1 500 caractères maximum.** |
+| `bases_legales` | Texte libre en Markdown, **1 500 caractères maximum**. |
 | `note_ouverture_poste_url` | Lien **`https`** vers l'avis de vacance publié au Journal officiel, sur **`legifrance.gouv.fr`** ou **`www.legifrance.gouv.fr`** (ex. `https://www.legifrance.gouv.fr/jorf/id/JORFTEXT…`). Une offre avec un lien `http` ou vers un autre site est rejetée. |
 
 #### Bloc « Contacts » (`contacts`) — liste, peut être vide
@@ -645,6 +645,7 @@ Notation : `a.b` désigne un objet imbriqué, `a[]` une liste, `a[0]` son premie
 | `customFields.description.longText3Formatted` | `description.descriptif_service` | Converti du HTML en Markdown, repli sur le texte brut `customFields.description.longText3` s'il est vide. API fake-ts : `customFields.description.longText3` contient le Markdown, la variante `Formatted` le HTML (titres rendus en paragraphes en gras), `null` si le champ est vide. |
 | `customFields.offerCustomBlock1.longText1Formatted` | `description.complements` | Converti du HTML en Markdown, repli sur le texte brut `customFields.offerCustomBlock1.longText1` s'il est vide. API fake-ts : `customFields.offerCustomBlock1.longText1` contient le Markdown, la variante `Formatted` le HTML (titres rendus en paragraphes en gras), `null` si le champ est vide. |
 | `customFields.applicantCriteria.longText1Formatted` | `criteres.competences_requises` | « Compétences attendues ». Converti du HTML en Markdown, repli sur le texte brut `customFields.applicantCriteria.longText1` s'il est vide ; sans les espaces en début et fin, non envoyé s'il est vide. API fake-ts : `customFields.applicantCriteria.longText1` contient le Markdown, la variante `Formatted` le HTML (titres rendus en paragraphes en gras), `null` si le champ est vide. |
+| `customFields.offerCustomBlock1.longText2` | `conditions.bases_legales` | « Fondement juridique ». Texte brut repris tel quel, sans les espaces en début et fin ; non envoyé s'il est vide. API fake-ts : `customFields.offerCustomBlock1.longText2` contient le Markdown, la variante `Formatted` le HTML (titres rendus en paragraphes en gras), `null` si le champ est vide. |
 | `offerUrl` | `url_offre` | |
 | `urlRedirectionApplicant` | `url_candidature` | Prioritaire sur `customFields.origin.shortText1` et `applicationUrl`. |
 | `customFields.origin.shortText1` | `email_candidature` | Texte libre (« adresse de candidature »). Lu seulement si `urlRedirectionApplicant` est vide : le premier e-mail valide trouvé devient `email_candidature`, et `url_candidature` reste vide. API fake-ts : reprend `email_candidature`, `null` si l'offre se candidate par lien. |
@@ -716,7 +717,7 @@ Notation : `a.b` désigne un objet imbriqué, `a[]` une liste, `a[0]` son premie
 | `customFields.location.longText3` | |
 | `customFields.offerCustomBlock1.date1` | |
 | `customFields.offerCustomBlock1.shortText1` | |
-| `customFields.offerCustomBlock1.longText2Formatted` | Non lu : seul le texte brut `customFields.offerCustomBlock1.longText2` est repris. API fake-ts : toujours `null`. |
+| `customFields.offerCustomBlock1.longText2Formatted` | Non lu : seul le texte brut `customFields.offerCustomBlock1.longText2` est repris. API fake-ts : HTML de `conditions.bases_legales`, `null` si le champ est vide. |
 | `customFields.offerCustomBlock1.longText3Formatted` | Non lu : seul le texte brut `customFields.offerCustomBlock1.longText3` est repris. API fake-ts : toujours `null`. |
 | `code` | Clé de tout objet codé : seul `clientCode` est lu. |
 | `label` | Clé de tout objet codé : seul `clientCode` est lu. |
@@ -743,7 +744,6 @@ Notation : `a.b` désigne un objet imbriqué, `a[]` une liste, `a[0]` son premie
 | `conditions.salaire_contractuel` | Jamais renseigné par l'ingestion. |
 | `conditions.fin_contrat` | Jamais renseigné par l'ingestion. |
 | `conditions.ouvert_aux_militaires` | Jamais renseigné par l'ingestion. |
-| `conditions.bases_legales` | Lu dans `customFields.offerCustomBlock1.longText2` (« Fondement juridique », absent de l'API fake-ts) : texte brut repris tel quel, sans les espaces en début et fin ; non envoyé s'il est vide. |
 | `conditions.note_ouverture_poste_url` | Lu dans `customFields.offerCustomBlock1.longText3` (« Avis de vacance au JO », absent de l'API fake-ts) : premier lien `legifrance.gouv.fr` présent dans le texte, passé en `https`. `null` si le texte ne contient aucun lien Legifrance (les liens vers une page de candidature sont ignorés). |
 | `contacts` | Lu dans `customFields.origin.shortText2` et `customFields.origin.shortText3` (absents de l'API fake-ts) : `shortText2` (« Personnes à contacter ») → contact `principal`, `shortText3` (« Autre personne à contacter ») → contact `autre`. `texte` reprend la valeur sans les espaces en début et fin ; une valeur sans lettre ni chiffre est ignorée. `emails` contient les adresses email présentes dans le texte, dédoublonnées, dans l'ordre d'apparition. `null` si aucun contact. |
 
