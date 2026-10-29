@@ -37,10 +37,7 @@ async function submit(payload: CreateNotePayload): Promise<void> {
 </script>
 
 <template>
-  <CspCard
-    as="li"
-    class="candidature-new-note"
-  >
+  <CspCard as="li">
     <template #start>
       <span class="candidature-new-note__title">{{ TITLE }}</span>
     </template>
@@ -55,10 +52,6 @@ async function submit(payload: CreateNotePayload): Promise<void> {
 </template>
 
 <style scoped lang="scss">
-.candidature-new-note {
-  --csp-card-bg: var(--background-alt-blue-france);
-}
-
 .candidature-new-note__title {
   font-size: var(--csp-font-size-base);
   font-weight: var(--csp-font-weight-bold);

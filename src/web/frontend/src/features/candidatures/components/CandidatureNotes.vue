@@ -35,11 +35,9 @@ const title = computed(() => `${total.value} ${pluralize(total.value, 'note')}`)
 
 const route = useRoute()
 const isCreatingNote = computed(() => route.name === props.routes.create)
-const editedNote = computed(() =>
-  route.name === props.routes.edit
-    ? notes.value.find(({ uuid }) => uuid === route.params.noteUuid)
-    : undefined,
-)
+
+const editedNoteUuid = ref<string | null>(null)
+const editedNote = computed(() => notes.value.find(({ uuid }) => uuid === editedNoteUuid.value))
 
 const router = useRouter()
 
@@ -48,14 +46,6 @@ function startNote(): void {
   void router.push({
     name: props.routes.create,
     params: { organismeUuid, recrutementUuid, candidatureUuid },
-  })
-}
-
-function editNote(noteUuid: string): void {
-  const { organismeUuid, recrutementUuid, candidatureUuid } = props.candidature
-  void router.push({
-    name: props.routes.edit,
-    params: { organismeUuid, recrutementUuid, candidatureUuid, noteUuid },
   })
 }
 
@@ -107,7 +97,10 @@ function noteActions(note: Note) {
         {
           label: 'Modifier la note',
           icon: 'ri:pencil-line',
-          onSelect: () => editNote(note.uuid),
+          disabled: isCreatingNote.value || editedNote.value !== undefined,
+          onSelect: () => {
+            editedNoteUuid.value = note.uuid
+          },
         },
       ],
     },
@@ -138,17 +131,7 @@ function noteActions(note: Note) {
 </script>
 
 <template>
-  <CandidatureEditNoteForm
-    v-if="editedNote"
-    :key="editedNote.uuid"
-    :candidature="candidature"
-    :routes="routes"
-    :note="editedNote"
-  />
-  <section
-    v-else
-    class="candidature-notes"
-  >
+  <section class="candidature-notes">
     <CspAsyncSection
       :pending="showSkeleton"
       :error="error"
@@ -216,6 +199,7 @@ function noteActions(note: Note) {
             icon="ri:add-line"
             is-icon-left
             label="Ajouter une note"
+            :disabled="editedNote !== undefined"
             @click="startNote"
           />
         </header>
@@ -224,7 +208,7 @@ function noteActions(note: Note) {
             v-if="isCreatingNote"
             :candidature="candidature"
             :routes="routes"
-            class="candidature-notes__item"
+            class="candidature-notes__item candidature-notes__item--edition"
           />
           <CspCard
             v-for="note in notes"
@@ -232,6 +216,7 @@ function noteActions(note: Note) {
             as="li"
             variant="alt"
             class="candidature-notes__item"
+            :class="{ 'candidature-notes__item--edition': note === editedNote }"
           >
             <template #start>
               <div class="candidature-notes__entete">
@@ -253,6 +238,7 @@ function noteActions(note: Note) {
                   class="candidature-notes__badge"
                 />
                 <CspDropdownMenu
+                  v-if="note !== editedNote"
                   :sections="noteActions(note)"
                   side="bottom"
                   align="end"
@@ -269,7 +255,16 @@ function noteActions(note: Note) {
                 </CspDropdownMenu>
               </div>
             </template>
-            <CandidatureNoteMessage :message="note.message" />
+            <CandidatureEditNoteForm
+              v-if="note === editedNote"
+              :candidature="candidature"
+              :note="note"
+              @close="editedNoteUuid = null"
+            />
+            <CandidatureNoteMessage
+              v-else
+              :message="note.message"
+            />
           </CspCard>
         </ul>
       </template>
@@ -333,6 +328,10 @@ function noteActions(note: Note) {
   :deep(.csp-skeleton) {
     background: var(--background-contrast-grey);
   }
+}
+
+.candidature-notes__item--edition {
+  --csp-card-bg: var(--background-alt-blue-france);
 }
 
 .candidature-notes__entete {
