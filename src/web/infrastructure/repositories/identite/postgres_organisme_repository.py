@@ -92,7 +92,7 @@ class PostgresOrganismeRepository(IOrganismeIdentiteRepository):
                 organismes, replaced_by, errors = self._resolve_siret_conflicts(
                     organismes
                 )
-                self._replace(replaced_by)
+                etapes_by_target = self._replace(replaced_by)
 
                 new_models = []
                 models_to_update = []
@@ -127,6 +127,12 @@ class PostgresOrganismeRepository(IOrganismeIdentiteRepository):
                             "updated_at",
                         ],
                     )
+
+                # Etapes are set once the target exists, without overriding its own.
+                for target_id, etapes in etapes_by_target.items():
+                    OrganismeModel.objects.filter(
+                        id=target_id, etapes__isnull=True
+                    ).update(etapes=etapes)
 
             return {"created": created, "updated": updated, "errors": errors}
         except Exception as e:
@@ -166,10 +172,13 @@ class PostgresOrganismeRepository(IOrganismeIdentiteRepository):
 
         return kept, replaced_by, errors
 
-    def _replace(self, replaced_by: dict[UUID, UUID]) -> None:
+    def _replace(self, replaced_by: dict[UUID, UUID]) -> dict[UUID, list]:
+        etapes_by_target = {}
         for holder in OrganismeModel.objects.filter(id__in=replaced_by):
             target_id = replaced_by[holder.id]
             holder.move_dependents_to(target_id)
+            if holder.etapes:
+                etapes_by_target[target_id] = holder.etapes
             logger.info(
                 "Organisme %s (%s %s) merged into %s, which takes SIRET %s",
                 holder.id,
@@ -179,6 +188,7 @@ class PostgresOrganismeRepository(IOrganismeIdentiteRepository):
                 holder.siret,
             )
         OrganismeModel.objects.filter(id__in=replaced_by).delete()
+        return etapes_by_target
 
     def get_by_referentiel_and_external_id_batch(
         self, pairs: list[tuple[str, str]]

@@ -183,6 +183,32 @@ def test_dependents_are_moved_to_the_new_organisme():
     assert child.parent_id == dila_id
 
 
+def test_etapes_are_kept_on_the_new_organisme():
+    etapes = [{"entity_id": str(uuid4()), "categorie": "en_cours", "nom": "Tri"}]
+    OrganismeDjangoFactory(siret=SIRET_A, referentiel="GIPCDG")
+    OrganismeModel.objects.filter(siret=SIRET_A).update(etapes=etapes)
+    dila_id = uuid4()
+
+    _upsert(_data("DILA", "dila-1", entity_id=dila_id))
+
+    assert OrganismeModel.objects.get(id=dila_id).etapes == etapes
+
+
+def test_etapes_of_the_existing_organisme_are_not_overridden():
+    gipcdg_etapes = [{"entity_id": str(uuid4()), "categorie": "en_cours", "nom": "Tri"}]
+    dila_etapes = [{"entity_id": str(uuid4()), "categorie": "en_cours", "nom": "Revue"}]
+    OrganismeDjangoFactory(siret=SIRET_A, referentiel="GIPCDG")
+    dila = OrganismeDjangoFactory(
+        siret=SIRET_B, referentiel="DILA", external_id="dila-1"
+    )
+    OrganismeModel.objects.filter(siret=SIRET_A).update(etapes=gipcdg_etapes)
+    OrganismeModel.objects.filter(id=dila.id).update(etapes=dila_etapes)
+
+    _upsert(_data("DILA", "dila-1", entity_id=dila.id))
+
+    assert OrganismeModel.objects.get(id=dila.id).etapes == dila_etapes
+
+
 def test_dependents_are_merged_into_an_existing_organisme():
     gipcdg = OrganismeDjangoFactory(siret=SIRET_A, referentiel="GIPCDG")
     dila = OrganismeDjangoFactory(
