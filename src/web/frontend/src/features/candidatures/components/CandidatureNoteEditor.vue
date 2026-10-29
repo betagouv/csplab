@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import type { NoteRouteNames } from '../types'
+import type { CreateNotePayload, NoteRouteNames } from '../types'
 import { computed, onMounted, ref, useId } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
+import CspCheckbox from '@/components/base/CspCheckbox/CspCheckbox.vue'
 import CspTextarea from '@/components/base/CspTextarea/CspTextarea.vue'
 import { useUnsavedChanges } from '@/composables/navigation/useUnsavedChanges'
 
@@ -10,10 +11,12 @@ const props = withDefaults(defineProps<{
   title: string
   routes: NoteRouteNames
   submitting: boolean
-  submit: (message: string) => Promise<void>
+  submit: (payload: CreateNotePayload) => Promise<void>
   initialMessage?: string
+  initialEstPrivee?: boolean
 }>(), {
   initialMessage: '',
+  initialEstPrivee: false,
 })
 
 const route = useRoute()
@@ -21,20 +24,20 @@ const router = useRouter()
 const editorRouteName = route.name
 
 const message = ref(props.initialMessage)
+const estPrivee = ref(props.initialEstPrivee)
 const titleId = useId()
 const messageId = useId()
 
 onMounted(() => document.getElementById(messageId)?.focus())
 
-const isDirty = computed(() => message.value !== props.initialMessage)
+const isDirty = computed(() => message.value !== props.initialMessage || estPrivee.value !== props.initialEstPrivee)
 
-useUnsavedChanges(
-  () => isDirty.value,
-  () => {
-    message.value = props.initialMessage
-  },
-  { isLeftBy: to => to.name !== editorRouteName },
-)
+function reset(): void {
+  message.value = props.initialMessage
+  estPrivee.value = props.initialEstPrivee
+}
+
+useUnsavedChanges(() => isDirty.value, reset, { isLeftBy: to => to.name !== editorRouteName })
 
 const canSubmit = computed(() => isDirty.value && message.value.trim() !== '' && !props.submitting)
 
@@ -47,12 +50,12 @@ async function save(): Promise<void> {
     return
   }
   try {
-    await props.submit(message.value.trim())
+    await props.submit({ message: message.value.trim(), est_privee: estPrivee.value })
   }
   catch {
     return
   }
-  message.value = props.initialMessage
+  reset()
   backToNotes()
 }
 </script>
@@ -88,6 +91,12 @@ async function save(): Promise<void> {
         :readonly="submitting"
         placeholder="Écrivez votre note…"
         :aria-labelledby="titleId"
+      />
+      <CspCheckbox
+        v-model="estPrivee"
+        label="Note privée"
+        hint="Visible par vous uniquement"
+        :disabled="submitting"
       />
       <CspButton
         type="submit"

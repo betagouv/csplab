@@ -1,10 +1,10 @@
 import type { MaybeRefOrGetter } from 'vue'
-import type { Note } from '../types'
+import type { CreateNotePayload, Note, NoteVisibilitePayload, UpdateNotePayload } from '../types'
 import type { CandidatureParams, NoteParams } from '@/api/params'
 import { useMutation, useQuery, useQueryCache } from '@pinia/colada'
 import { computed, toValue } from 'vue'
 import { candidatureKeys } from '@/api/queryKeys'
-import { createCandidatureNote, deleteCandidatureNote, updateCandidatureNote } from '../api'
+import { createCandidatureNote, deleteCandidatureNote, updateCandidatureNote, updateCandidatureNoteVisibilite } from '../api'
 import { candidatureNotesQuery } from '../queries'
 
 export function useCandidatureNotes(candidature: MaybeRefOrGetter<CandidatureParams>) {
@@ -22,7 +22,7 @@ export function useCreateCandidatureNote(candidature: MaybeRefOrGetter<Candidatu
   const queryCache = useQueryCache()
 
   const mutation = useMutation({
-    mutation: (message: string) => createCandidatureNote(toValue(candidature), message),
+    mutation: (payload: CreateNotePayload) => createCandidatureNote(toValue(candidature), payload),
     onSuccess: () => {
       queryCache.invalidateQueries({ key: candidatureKeys.notes(toValue(candidature)) })
       queryCache.invalidateQueries({ key: candidatureKeys.activites(toValue(candidature)) })
@@ -39,8 +39,8 @@ export function useUpdateCandidatureNote(candidature: MaybeRefOrGetter<Candidatu
   const queryCache = useQueryCache()
 
   const mutation = useMutation({
-    mutation: ({ noteUuid, message }: Pick<NoteParams, 'noteUuid'> & { message: string }) =>
-      updateCandidatureNote({ ...toValue(candidature), noteUuid }, message),
+    mutation: ({ noteUuid, ...payload }: Pick<NoteParams, 'noteUuid'> & UpdateNotePayload) =>
+      updateCandidatureNote({ ...toValue(candidature), noteUuid }, payload),
     onSuccess: () => {
       queryCache.invalidateQueries({ key: candidatureKeys.notes(toValue(candidature)) })
       queryCache.invalidateQueries({ key: candidatureKeys.activites(toValue(candidature)) })
@@ -50,6 +50,24 @@ export function useUpdateCandidatureNote(candidature: MaybeRefOrGetter<Candidatu
   return {
     update: mutation.mutateAsync,
     updating: mutation.isLoading,
+  }
+}
+
+export function useUpdateCandidatureNoteVisibilite(candidature: MaybeRefOrGetter<CandidatureParams>) {
+  const queryCache = useQueryCache()
+
+  const mutation = useMutation({
+    mutation: ({ noteUuid, ...payload }: Pick<NoteParams, 'noteUuid'> & NoteVisibilitePayload) =>
+      updateCandidatureNoteVisibilite({ ...toValue(candidature), noteUuid }, payload),
+    onSuccess: () => {
+      queryCache.invalidateQueries({ key: candidatureKeys.notes(toValue(candidature)) })
+      queryCache.invalidateQueries({ key: candidatureKeys.activites(toValue(candidature)) })
+    },
+  })
+
+  return {
+    updateVisibilite: mutation.mutateAsync,
+    updatingVisibilite: mutation.isLoading,
   }
 }
 

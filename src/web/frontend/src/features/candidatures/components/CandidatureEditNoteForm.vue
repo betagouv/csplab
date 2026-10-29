@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Note, NoteRouteNames } from '../types'
+import type { CreateNotePayload, Note, NoteRouteNames } from '../types'
 import type { CandidatureParams } from '@/api/params'
 import { useToast } from '@/composables/ui/useToast'
 import { useUpdateCandidatureNote } from '../composables/useCandidatureNotes'
@@ -14,9 +14,9 @@ const props = defineProps<{
 const { update, updating } = useUpdateCandidatureNote(() => props.candidature)
 const { addToast } = useToast()
 
-async function submit(message: string): Promise<void> {
+async function submit(payload: CreateNotePayload): Promise<void> {
   try {
-    await update({ noteUuid: props.note.uuid, message })
+    await update({ noteUuid: props.note.uuid, ...payload })
   }
   catch (error) {
     addToast({ variant: 'error', title: 'La modification de la note a échoué' })
@@ -33,5 +33,6 @@ async function submit(message: string): Promise<void> {
     :submitting="updating"
     :submit="submit"
     :initial-message="note.message"
+    :initial-est-privee="note.est_privee"
   />
 </template>

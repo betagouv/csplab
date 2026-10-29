@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { CheckboxIndicator, CheckboxRoot } from 'reka-ui'
-import { computed, useAttrs } from 'vue'
+import { computed, useAttrs, useId } from 'vue'
 
 defineOptions({
   inheritAttrs: false,
@@ -14,6 +14,7 @@ const props = withDefaults(defineProps<{
   indeterminate?: boolean
   size?: 'sm' | 'md' | 'lg'
   error?: boolean
+  hint?: string
 }>(), {
   variant: 'default',
   disabled: false,
@@ -25,6 +26,8 @@ const props = withDefaults(defineProps<{
 const model = defineModel<boolean>()
 
 const attrs = useAttrs()
+const labelId = useId()
+const hintId = useId()
 
 const labelAttrs = computed(() => ({
   class: attrs.class,
@@ -60,6 +63,7 @@ function handleUpdate(val: unknown): void {
       `csp-checkbox--${size}`,
       { 'csp-checkbox--disabled': disabled },
       { 'csp-checkbox--error': error },
+      { 'csp-checkbox--with-hint': hint },
     ]"
   >
     <CheckboxRoot
@@ -68,6 +72,8 @@ function handleUpdate(val: unknown): void {
       :model-value="checkboxModelValue"
       :value="value"
       :disabled="disabled"
+      :aria-labelledby="hint ? labelId : undefined"
+      :aria-describedby="hint ? hintId : undefined"
       @update:model-value="handleUpdate"
     >
       <CheckboxIndicator
@@ -75,10 +81,18 @@ function handleUpdate(val: unknown): void {
         force-mount
       />
     </CheckboxRoot>
-    <span
-      class="csp-checkbox__label"
-      :class="{ 'sr-only': variant === 'checkbox-only' }"
-    >{{ label }}</span>
+    <span class="csp-checkbox__text">
+      <span
+        :id="labelId"
+        class="csp-checkbox__label"
+        :class="{ 'sr-only': variant === 'checkbox-only' }"
+      >{{ label }}</span>
+      <span
+        v-if="hint"
+        :id="hintId"
+        class="csp-checkbox__hint"
+      >{{ hint }}</span>
+    </span>
   </label>
 </template>
 
@@ -116,6 +130,10 @@ function handleUpdate(val: unknown): void {
   --csp-checkbox-indicator-check-w: 0.3125rem;
   --csp-checkbox-indicator-check-h: 0.625rem;
   --csp-checkbox-indicator-dash-w: 0.625rem;
+}
+
+.csp-checkbox--with-hint {
+  align-items: flex-start;
 }
 
 .csp-checkbox--disabled {
@@ -191,8 +209,24 @@ function handleUpdate(val: unknown): void {
   }
 }
 
+.csp-checkbox__text {
+  display: flex;
+  flex-direction: column;
+  gap: var(--csp-field-hint-gap);
+}
+
 .csp-checkbox__label {
   line-height: 1.25;
   user-select: none;
+}
+
+.csp-checkbox__hint {
+  font-size: 0.75rem;
+  color: var(--text-mention-grey);
+  user-select: none;
+}
+
+.csp-checkbox--disabled .csp-checkbox__hint {
+  color: var(--text-disabled-grey);
 }
 </style>
