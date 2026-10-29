@@ -1,5 +1,7 @@
 from uuid import UUID
 
+from django.db import transaction
+
 from application.identite.context_services.organisme_permission_service import (
     OrganismePermissionService,
 )
@@ -41,11 +43,16 @@ def remove_note_tag(
     )
     candidature_service.check_candidature_belongs_to_recrutement()
 
-    if not NoteModel.objects.by_candidature_author_and_id(
-        candidature_id, utilisateur.username, note_id
-    ).exists():
-        raise NoteIntrouvable(note_id)
+    with transaction.atomic():
+        if (
+            not NoteModel.objects.by_candidature_author_and_id(
+                candidature_id, utilisateur.username, note_id
+            )
+            .select_for_update()
+            .exists()
+        ):
+            raise NoteIntrouvable(note_id)
 
-    deleted, _ = NoteTagModel.objects.by_note_and_tag(note_id, tag_id).delete()
-    if deleted == 0:
-        raise TagNotFound(tag_id)
+        deleted, _ = NoteTagModel.objects.by_note_and_tag(note_id, tag_id).delete()
+        if deleted == 0:
+            raise TagNotFound(tag_id)
