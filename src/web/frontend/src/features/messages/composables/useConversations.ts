@@ -12,10 +12,12 @@ export function useConversations(candidature: MaybeRefOrGetter<CandidatureParams
 
   const conversations = computed(() => query.data.value?.results ?? [])
   const count = computed(() => query.data.value?.count ?? 0)
+  const hasUnread = computed(() => conversations.value.some(conversation => conversation.is_unread))
 
   return {
     conversations,
     count,
+    hasUnread,
     pending: query.isPending,
     error: query.error,
   }
