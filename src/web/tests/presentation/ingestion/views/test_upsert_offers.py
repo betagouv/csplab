@@ -230,7 +230,7 @@ def parse_offer_from_payload(payload: dict, source_id: UUID) -> Offer:
                 RequiredDocument[document]
                 for document in criteres.get("documents_requis") or []
             ],
-            competences_requises=list(criteres.get("competences_requises") or []),
+            competences_requises=criteres.get("competences_requises") or None,
             languages=[
                 OfferLanguage(
                     iso_code=langue["iso_code"], level=LanguageLevel[langue["niveau"]]
@@ -728,6 +728,69 @@ def test_invalid_required_documents_are_rejected(
             "index": 0,
             "offre": {"reference": "REF-010", "versant": "FPT"},
             "error": {"criteres": {"documents_requis": expected_error}},
+        }
+    ]
+
+
+def test_competences_requises_markdown_is_passed_to_usecase(
+    authenticated_client_with_source, use_case
+):
+    offer = PayloadOfferFactory.create(
+        identification={"reference": "REF-011", "versant": "FPT"},
+        criteres={"competences_requises": "Connaissances :\n\n- Droit public"},
+    )
+    use_case.execute.return_value = {
+        "created": 1,
+        "updated": 0,
+        "errors": [],
+        "offres": [{"reference": "REF-011", "statut": "created"}],
+    }
+
+    response = authenticated_client_with_source.post(
+        URL,
+        data={"source_id": SOURCE_UUID, "offres": [offer]},
+        content_type="application/json",
+    )
+
+    assert response.status_code == status.HTTP_201_CREATED
+    assert response.json()["errors"] == []
+    upsert_input = use_case.execute.call_args[0][0]
+    assert upsert_input.offers[0].criteria.competences_requises == (
+        "Connaissances :\n\n- Droit public"
+    )
+
+
+@pytest.mark.parametrize(
+    "competences_requises,expected_error",
+    [
+        (["Rigueur"], ["Chaîne de caractère invalide."]),
+        (
+            "a" * 1501,
+            ["Assurez-vous que ce champ comporte au plus 1500\xa0caractères."],
+        ),
+    ],
+    ids=["list", "too-long"],
+)
+def test_invalid_competences_requises_are_rejected(
+    authenticated_client_with_source, use_case, competences_requises, expected_error
+):
+    offer = PayloadOfferFactory.create(
+        identification={"reference": "REF-012", "versant": "FPT"},
+        criteres={"competences_requises": competences_requises},
+    )
+
+    response = authenticated_client_with_source.post(
+        URL,
+        data={"source_id": SOURCE_UUID, "offres": [offer]},
+        content_type="application/json",
+    )
+
+    assert response.status_code == status.HTTP_201_CREATED
+    assert response.json()["errors"] == [
+        {
+            "index": 0,
+            "offre": {"reference": "REF-012", "versant": "FPT"},
+            "error": {"criteres": {"competences_requises": expected_error}},
         }
     ]
 

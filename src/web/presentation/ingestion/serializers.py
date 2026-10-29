@@ -932,8 +932,13 @@ class CriteriaInputSerializer(serializers.Serializer):
         required=False,
         help_text="Documents à transmettre pour candidater, sans doublon.",
     )
-    competences_requises = serializers.ListField(
-        child=serializers.CharField(), required=False
+    competences_requises = serializers.CharField(
+        max_length=1500,
+        required=False,
+        allow_blank=True,
+        allow_null=True,
+        help_text=_MARKDOWN_HELP_TEXT,
+        validators=[_validate_markdown],
     )
     langues = LanguageInputSerializer(many=True, required=False)
 

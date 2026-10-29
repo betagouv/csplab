@@ -4521,9 +4521,11 @@ components:
             $ref: '#/components/schemas/DocumentsRequisEnum'
           description: Documents à transmettre pour candidater, sans doublon.
         competences_requises:
-          type: array
-          items:
-            type: string
+          type: string
+          nullable: true
+          description: Markdown (CommonMark), syntaxe comprise dans la limite. Les
+            balises HTML et les liens autres que http, https et mailto sont refusés.
+          maxLength: 1500
         langues:
           type: array
           items:

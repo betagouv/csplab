@@ -27,7 +27,7 @@ class OfferCriteria:
     experience_level: Optional[ExperienceLevel] = None
     specialisations: list[str] = field(default_factory=list)
     documents_requis: list[RequiredDocument] = field(default_factory=list)
-    competences_requises: list[str] = field(default_factory=list)
+    competences_requises: Optional[str] = None
     languages: list[OfferLanguage] = field(default_factory=list)
 
     def to_dict(self) -> dict:
@@ -60,8 +60,17 @@ class OfferCriteria:
                 RequiredDocument[document]
                 for document in data.get("documents_requis") or []
             ],
-            competences_requises=list(data.get("competences_requises") or []),
+            competences_requises=_competences_requises(
+                data.get("competences_requises")
+            ),
             languages=[
                 OfferLanguage.from_dict(langue) for langue in data.get("langues") or []
             ],
         )
+
+
+def _competences_requises(value: str | list[str] | None) -> Optional[str]:
+    # Stored as a list of texts before #2152.
+    if isinstance(value, list):
+        value = "\n".join(value)
+    return value or None
