@@ -79,7 +79,15 @@ describe('candidatureNotes', () => {
     await user.click(await screen.findByRole('button', { name: 'Ajouter une note' }))
 
     await vi.waitFor(() => expect(router.currentRoute.value.path).toBe(`${NOTES_PATH}/nouvelle`))
-    expect(await screen.findByRole('textbox', { name: 'Ajouter une note' })).toBeInTheDocument()
+    expect(await screen.findByRole('textbox', { name: 'Nouvelle note' })).toBeInTheDocument()
+  })
+
+  it('keeps the notes listed while a new note is typed', async () => {
+    vi.mocked(getCandidatureNotes).mockResolvedValue({ count: 1, results: [note({ message: 'À recontacter' })] })
+    await renderNotes(`${NOTES_PATH}/nouvelle`)
+
+    expect(await screen.findByRole('textbox', { name: 'Nouvelle note' })).toBeInTheDocument()
+    expect(screen.getByText('À recontacter')).toBeInTheDocument()
   })
 
   it('shows an error when the notes cannot be loaded', async () => {

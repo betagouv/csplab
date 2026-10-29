@@ -2,6 +2,7 @@
 import type { CreateNotePayload, NoteRouteNames } from '../types'
 import type { CandidatureParams } from '@/api/params'
 import { useRoute, useRouter } from 'vue-router'
+import CspCard from '@/components/base/CspCard/CspCard.vue'
 import { useToast } from '@/composables/ui/useToast'
 import { useCreateCandidatureNote } from '../composables/useCandidatureNotes'
 import CandidatureNoteEditor from './CandidatureNoteEditor.vue'
@@ -10,6 +11,8 @@ const props = defineProps<{
   candidature: CandidatureParams
   routes: NoteRouteNames
 }>()
+
+const TITLE = 'Nouvelle note'
 
 const { create, creating } = useCreateCandidatureNote(() => props.candidature)
 const { addToast } = useToast()
@@ -34,11 +37,31 @@ async function submit(payload: CreateNotePayload): Promise<void> {
 </script>
 
 <template>
-  <CandidatureNoteEditor
-    title="Ajouter une note"
-    :submitting="creating"
-    :submit="submit"
-    @cancel="backToNotes"
-    @saved="backToNotes"
-  />
+  <CspCard
+    as="li"
+    class="candidature-new-note"
+  >
+    <template #start>
+      <span class="candidature-new-note__title">{{ TITLE }}</span>
+    </template>
+    <CandidatureNoteEditor
+      :label="TITLE"
+      :submitting="creating"
+      :submit="submit"
+      @cancel="backToNotes"
+      @saved="backToNotes"
+    />
+  </CspCard>
 </template>
+
+<style scoped lang="scss">
+.candidature-new-note {
+  --csp-card-bg: var(--background-alt-blue-france);
+}
+
+.candidature-new-note__title {
+  font-size: var(--csp-font-size-base);
+  font-weight: var(--csp-font-weight-bold);
+  color: var(--text-title-grey);
+}
+</style>

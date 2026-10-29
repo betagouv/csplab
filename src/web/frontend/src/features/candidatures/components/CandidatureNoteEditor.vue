@@ -7,7 +7,7 @@ import CspTextarea from '@/components/base/CspTextarea/CspTextarea.vue'
 import { useUnsavedChanges } from '@/composables/navigation/useUnsavedChanges'
 
 const props = withDefaults(defineProps<{
-  title: string
+  label: string
   submitting: boolean
   submit: (payload: CreateNotePayload) => Promise<void>
   initialMessage?: string
@@ -28,7 +28,6 @@ const emit = defineEmits<{
 
 const message = ref(props.initialMessage)
 const estPrivee = ref(props.initialEstPrivee)
-const titleId = useId()
 const messageId = useId()
 
 onMounted(() => document.getElementById(messageId)?.focus())
@@ -60,60 +59,41 @@ async function save(): Promise<void> {
 </script>
 
 <template>
-  <section
+  <form
     class="candidature-note-editor"
-    :aria-labelledby="titleId"
+    @submit.prevent="save"
   >
-    <h3
-      :id="titleId"
-      class="candidature-note-editor__title"
-    >
-      {{ title }}
-    </h3>
-
-    <form
-      class="candidature-note-editor__form"
-      @submit.prevent="save"
-    >
-      <CspTextarea
-        :id="messageId"
-        v-model="message"
-        :rows="8"
-        :readonly="submitting"
-        placeholder="Écrivez votre note…"
-        :aria-labelledby="titleId"
+    <CspTextarea
+      :id="messageId"
+      v-model="message"
+      :rows="8"
+      :readonly="submitting"
+      placeholder="Écrivez votre note…"
+      :aria-label="label"
+    />
+    <CspCheckbox
+      v-model="estPrivee"
+      label="Note privée"
+      hint="Visible par vous uniquement"
+      :disabled="submitting"
+    />
+    <div class="candidature-note-editor__actions">
+      <CspButton
+        variant="secondary"
+        :label="cancelLabel"
+        @click="emit('cancel')"
       />
-      <CspCheckbox
-        v-model="estPrivee"
-        label="Note privée"
-        hint="Visible par vous uniquement"
-        :disabled="submitting"
+      <CspButton
+        type="submit"
+        :label="submitLabel"
+        :disabled="!canSubmit"
       />
-      <div class="candidature-note-editor__actions">
-        <CspButton
-          variant="secondary"
-          :label="cancelLabel"
-          @click="emit('cancel')"
-        />
-        <CspButton
-          type="submit"
-          :label="submitLabel"
-          :disabled="!canSubmit"
-        />
-      </div>
-    </form>
-  </section>
+    </div>
+  </form>
 </template>
 
 <style scoped lang="scss">
-.candidature-note-editor__title {
-  margin: 0 0 var(--csp-space-4);
-  font-size: var(--csp-font-size-base);
-  font-weight: var(--csp-font-weight-bold);
-  color: var(--text-title-grey);
-}
-
-.candidature-note-editor__form {
+.candidature-note-editor {
   display: flex;
   flex-direction: column;
   gap: var(--csp-space-3);

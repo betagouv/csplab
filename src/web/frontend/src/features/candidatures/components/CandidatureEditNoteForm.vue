@@ -36,7 +36,7 @@ async function submit(payload: CreateNotePayload): Promise<void> {
 
 <template>
   <CandidatureNoteEditor
-    title="Modifier la note"
+    label="Modifier la note"
     :submitting="updating"
     :submit="submit"
     :initial-message="note.message"

@@ -138,13 +138,8 @@ function noteActions(note: Note) {
 </script>
 
 <template>
-  <CandidatureNewNoteForm
-    v-if="isCreatingNote"
-    :candidature="candidature"
-    :routes="routes"
-  />
   <CandidatureEditNoteForm
-    v-else-if="editedNote"
+    v-if="editedNote"
     :key="editedNote.uuid"
     :candidature="candidature"
     :routes="routes"
@@ -196,7 +191,7 @@ function noteActions(note: Note) {
       </template>
 
       <CspEmptyState
-        v-if="notes.length === 0"
+        v-if="notes.length === 0 && !isCreatingNote"
         icon="ri:sticky-note-line"
         title="Aucune note sur cette candidature"
       >
@@ -225,6 +220,12 @@ function noteActions(note: Note) {
           />
         </header>
         <ul class="candidature-notes__list">
+          <CandidatureNewNoteForm
+            v-if="isCreatingNote"
+            :candidature="candidature"
+            :routes="routes"
+            class="candidature-notes__item"
+          />
           <CspCard
             v-for="note in notes"
             :key="note.uuid"

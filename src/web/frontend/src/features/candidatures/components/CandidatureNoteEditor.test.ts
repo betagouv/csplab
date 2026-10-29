@@ -12,7 +12,7 @@ describe('candidatureNoteEditor', () => {
     await renderWithApp(CandidatureNoteEditor, {
       route: NEW_NOTE_PATH,
       props: {
-        title: 'Modifier la note',
+        label: 'Modifier la note',
         submitting: false,
         submit: vi.fn(),
         initialMessage: 'Profil solide',
@@ -32,7 +32,7 @@ describe('candidatureNoteEditor', () => {
     await renderWithApp(CandidatureNoteEditor, {
       route: NEW_NOTE_PATH,
       props: {
-        title: 'Modifier la note',
+        label: 'Modifier la note',
         submitting: false,
         submit: vi.fn(),
         initialMessage: 'Profil solide',
