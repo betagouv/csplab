@@ -4443,9 +4443,6 @@ components:
           $ref: '#/components/schemas/LieuDeTravailEnum'
         management:
           $ref: '#/components/schemas/ManagementEnum'
-        complements:
-          type: string
-          maxLength: 1500
         bases_legales:
           type: string
           maxLength: 1500

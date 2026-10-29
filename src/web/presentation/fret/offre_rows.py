@@ -213,7 +213,6 @@ _CONDITIONS = [
     ("ouvert_aux_militaires", "Ouvert aux militaires", _enum(OpenToMilitary)),
     ("lieu_de_travail", "Lieu de travail", _enum(WorkingPlace)),
     ("management", "Management", _enum(Management)),
-    ("complements", "Compléments", None),
     ("bases_legales", "Bases légales", None),
     ("note_ouverture_poste_url", "Note d'ouverture du poste", _link),
 ]

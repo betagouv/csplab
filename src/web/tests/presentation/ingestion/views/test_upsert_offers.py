@@ -49,6 +49,7 @@ from infrastructure.factories.referentiel.offer_django_factory import (
 )
 from infrastructure.mappers.offer_mapper import OfferMapper
 from presentation.commons.serializers import INVALID_COUNTRY_CODE
+from presentation.ingestion.serializers import ConditionsInputSerializer
 from presentation.ingestion.views.offers import UNKNOWN_GENERATED_REFERENCE
 
 fake = Faker("fr_FR")
@@ -70,6 +71,7 @@ PARTIAL_VALID_OFFER = PayloadOfferFactory.create(
         "ouvert_aux_militaires": "OUI",
         "lieu_de_travail": "SUR_SITE",
         "management": "SANS",
+        "complements": "Retiré de l'API : ignoré",
     },
     contacts=[],
 )
@@ -189,13 +191,15 @@ def parse_offer_from_payload(payload: dict, source_id: UUID) -> Offer:
         LimitDate(parse_datetime(debut_contrat_raw)) if debut_contrat_raw else None
     )
 
-    # mirrors how ConditionsInputSerializer parses datetime fields into validated_data
+    # mirrors how ConditionsInputSerializer drops unknown fields and parses datetime
+    # fields into validated_data
     if conditions:
         conditions = {
             key: parse_datetime(value)
             if key in ("debut_contrat", "fin_contrat") and value
             else value
             for key, value in conditions.items()
+            if key in ConditionsInputSerializer().fields
         }
 
     loc_data = payload.get("localisation")
