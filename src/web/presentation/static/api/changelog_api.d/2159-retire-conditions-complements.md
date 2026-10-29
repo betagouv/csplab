@@ -1,7 +1,7 @@
 ---
 type: retire
 date: 2026-10-29
-pr: 2161
+pr: 2162
 liens:
   - https://github.com/betagouv/csplab/issues/2159
 ---
