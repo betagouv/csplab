@@ -279,6 +279,34 @@ _ECONOMIE_FINANCES = _organisme(
     ],
 )
 
+_CAISSE_DES_DEPOTS = _organisme(
+    "caisse-des-depots",
+    1954,
+    [
+        ("Chargé(e) de développement territorial prêteur", "finances"),
+        ("Chef(fe) de projets inter-régimes", "rh"),
+        ("Analyste conformité bancaire et financière", "audit"),
+        ("Juriste financier(ère)", "juridique"),
+        ("Analyste risques financiers", "audit"),
+        (
+            "Responsable en structuration de projets immobilier et infrastructures",
+            "finances",
+        ),
+        (
+            "Chargé(e) d'opérations consignations administratives et judiciaires",
+            "finances",
+        ),
+        ("Chargé(e) de communication éditoriale", "communication"),
+        ("Business analyst SI back-office finance", "numerique"),
+        ("Responsable prospective et pilotage des ressources humaines", "rh"),
+        ("Acheteur(se)", "achats"),
+        ("Responsable data gouvernance et qualité", "numerique"),
+        ("Chargé(e) de mission engagements environnementaux", "environnement"),
+        ("Assistant(e) de direction", "pilotage"),
+        ("Directeur(trice) territorial(e) au handicap", "solidarites"),
+    ],
+)
+
 SPECS_DEMO: dict[str, SpecOrganisme] = {
     spec.cle: spec
     for spec in (
@@ -290,5 +318,6 @@ SPECS_DEMO: dict[str, SpecOrganisme] = {
         _TRAVAIL_SOLIDARITES,
         _DGAFP,
         _ECONOMIE_FINANCES,
+        _CAISSE_DES_DEPOTS,
     )
 }
