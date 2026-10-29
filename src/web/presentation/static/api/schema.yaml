@@ -4446,6 +4446,8 @@ components:
           $ref: '#/components/schemas/ManagementEnum'
         bases_legales:
           type: string
+          description: Markdown (CommonMark), syntaxe comprise dans la limite. Les
+            balises HTML et les liens autres que http, https et mailto sont refusés.
           maxLength: 1500
         note_ouverture_poste_url:
           type: string
