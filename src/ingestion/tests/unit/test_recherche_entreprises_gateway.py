@@ -1,6 +1,8 @@
 import pytest
 from pytest_httpx import HTTPXMock
 
+from domain.value_objects.siret_candidate import SiretCandidate
+from infrastructure.exceptions.exceptions import ExternalApiError
 from infrastructure.external_gateways.recherche_entreprises_gateway import (
     RechercheEntreprisesGateway,
 )
@@ -16,45 +18,90 @@ def gateway() -> RechercheEntreprisesGateway:
     )
 
 
-def _payload(siret: str | None = "26060047300342") -> dict:
-    return {"results": [{"siege": {"siret": siret}}]}
+def _url(query: str) -> str:
+    return (
+        f"{SEARCH_URL}?q={query}&per_page=5&etat_administratif=A"
+        "&minimal=true&include=siege"
+    )
 
 
-def test_returns_siret_from_first_result(
+def _result(
+    *,
+    siren: str = "110000072",
+    nom_complet: str = "MINISTERE DU TRAVAIL",
+    nature_juridique: str | None = "7113",
+    siret: str | None = "11000007200014",
+) -> dict:
+    return {
+        "siren": siren,
+        "nom_complet": nom_complet,
+        "nature_juridique": nature_juridique,
+        "siege": {"siret": siret},
+    }
+
+
+def test_returns_candidates_with_nature_juridique(
     gateway: RechercheEntreprisesGateway, httpx_mock: HTTPXMock
 ):
     httpx_mock.add_response(
-        method="GET", url=f"{SEARCH_URL}?q=Minist%C3%A8re", json=_payload()
+        method="GET",
+        url=_url("Minist%C3%A8re"),
+        json={
+            "results": [
+                _result(),
+                _result(
+                    siren="552081317",
+                    nom_complet="ELECTRICITE DE FRANCE",
+                    nature_juridique="5599",
+                    siret="55208131766522",
+                ),
+            ]
+        },
     )
 
-    assert gateway.find_siret("Ministère") == "26060047300342"
+    assert gateway.search("Ministère") == [
+        SiretCandidate(
+            siret="11000007200014",
+            siren="110000072",
+            denomination="MINISTERE DU TRAVAIL",
+            nature_juridique="7113",
+        ),
+        SiretCandidate(
+            siret="55208131766522",
+            siren="552081317",
+            denomination="ELECTRICITE DE FRANCE",
+            nature_juridique="5599",
+        ),
+    ]
 
 
-def test_returns_none_when_no_results(
+def test_returns_empty_list_when_no_results(
     gateway: RechercheEntreprisesGateway, httpx_mock: HTTPXMock
 ):
-    httpx_mock.add_response(
-        method="GET", url=f"{SEARCH_URL}?q=Inconnu", json={"results": []}
-    )
+    httpx_mock.add_response(method="GET", url=_url("Inconnu"), json={"results": []})
 
-    assert gateway.find_siret("Inconnu") is None
+    assert gateway.search("Inconnu") == []
 
 
-def test_returns_none_when_first_result_has_no_siret(
+def test_candidate_siret_is_none_without_siege(
     gateway: RechercheEntreprisesGateway, httpx_mock: HTTPXMock
 ):
+    result = _result()
+    del result["siege"]
     httpx_mock.add_response(
-        method="GET", url=f"{SEARCH_URL}?q=Minist%C3%A8re", json=_payload(siret=None)
+        method="GET", url=_url("11000007200014"), json={"results": [result]}
     )
 
-    assert gateway.find_siret("Ministère") is None
+    [candidate] = gateway.search("11000007200014")
+
+    assert candidate.siret is None
+    assert candidate.siren == "110000072"
 
 
-def test_returns_none_on_http_error(
+def test_raises_on_http_error(
     gateway: RechercheEntreprisesGateway, httpx_mock: HTTPXMock
 ):
-    httpx_mock.add_response(
-        method="GET", url=f"{SEARCH_URL}?q=Minist%C3%A8re", status_code=500
-    )
+    httpx_mock.add_response(method="GET", url=_url("Minist%C3%A8re"), status_code=500)
 
-    assert gateway.find_siret("Ministère") is None
+    with pytest.raises(ExternalApiError):
+        gateway.search("Ministère")

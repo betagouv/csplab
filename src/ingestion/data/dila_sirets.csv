@@ -1,0 +1,984 @@
+dila_id;nom_dila;siret;denomination_sirene;nature_juridique;source;score
+98505403-46c6-4d6c-9766-6c58bce9a221;ADEME - Agence de la transition écologique;38529030900454;AGENCE DE L ENVIRONNEMENT ET DE LA MAITRISE DE L ENERGIE (ADEME);4110;annuaire_dila;
+92842ddc-78f3-4958-8819-aefdd705836a;Académie de France à Rome - Villa Médicis;18004618700019;ACADEMIE DE FRANCE A ROME;7389;annuaire_dila;
+91c39029-94e0-4f70-a66a-35fc6b20dce4;Académie de marine;18009003700037;ACADEMIE DE MARINE;7389;annuaire_dila;
+342696a2-3332-4572-88c9-9ed971f97a9a;Académie de police, direction chargée du recrutement et de la formation de la police nationale;13002333600014;ACADEMIE DE POLICE (AP);7120;annuaire_dila;
+f0b20788-d118-4317-a3cc-30f3ddb2c319;Académie des Beaux-Arts;13002316100016;ACADEMIE DES BEAUX-ARTS;7389;annuaire_dila;
+100b1ad5-4259-4da0-8f2e-2d4c3264fd5a;Académie des Inscriptions et Belles-Lettres;13002314600017;ACADEMIE DES INSCRIPTIONS ET BELLES-LETTRES;7389;annuaire_dila;
+6c4d5618-ecef-4351-bbe7-5778f88e7e21;Académie des sciences;13002315300013;ACADEMIE DES SCIENCES;7389;annuaire_dila;
+9dd4e37e-c788-49c3-8b76-fcef39a2b9bd;Académie des sciences morales et politiques;13002317900018;ACADEMIE DES SCIENCES MORALES ET POLITIQUES;7389;annuaire_dila;
+e92da560-0444-45d0-80de-10ec0b97b797;Académie diplomatique et consulaire;13003018200021;ACADEMIE DIPLOMATIQUE ET CONSULAIRE (ADC);7160;recherche_entreprises;0.98
+aeb82616-23f9-4a6f-86a9-2a06cef90632;Académie du renseignement;13002497900010;ACADEMIE DU RENSEIGNEMENT;7160;recherche_entreprises;1.00
+c8f65902-edd0-4b3c-ac1a-e7f8608e2846;Académie française;13002313800014;ACADEMIE FRANCAISE;7389;annuaire_dila;
+5f1a60d8-6426-4d28-a0fd-198058907ac6;Académie militaire de la gendarmerie nationale;15700010000055;COMMANDEMENT ECOLES DE LA GENDARMERIE (établissement ACADEMIE MILITAIRE DE LA GENDARMERIE NATIONALE);7150;recherche_etablissement_manuelle;
+46c09876-af5b-4c54-b110-a815843d3724;Agence France Trésor - AFT;13002468000014;AGENCE FRANCE TRESOR (AFT);7160;recherche_entreprises;1.00
+978ee506-74dd-4634-a69e-ecbd7211d71e;Agence bibliographique de l'enseignement supérieur;18004422400020;AGENCE BIBLIOGRAPHIQUE DE L'ENSEIGNEMENT SUPERIEUR (ABES);7389;annuaire_dila;
+2ebb4281-f836-48b6-9b15-4e305d2df145;Agence centrale des organismes de sécurité sociale;18003501600054;AGENCE CENTRALE DES ORGANISMES DE SECURITE SOCIALE (ACOSS);7389;annuaire_dila;
+fa89e229-0152-42c6-b508-1e6c90a9516b;Agence de financement des infrastructures de transport de France (AFITF);18009255300049;AGENCE DE FINANCEMENT DES INFRASTRUCTURES DE TRANSPORT DE FRANCE (AFITFRANCE);7389;annuaire_dila;
+05b02f3e-ff94-4cb9-969c-b09d66f6b318;Agence de gestion et de recouvrement des avoirs saisis et confisqués;13001444200029;AGENCE DE GESTION ET DE RECOUVREMENT DES AVOIRS SAISIS ET CONFISQUES (AGRASC);7389;annuaire_dila;
+fcaf50bd-eb6c-4d9f-abd1-b0577776c8d7;Agence de l'eau Adour-Garonne;18310006400033;AGENCE DE L'EAU ADOUR GARONNE;7385;annuaire_dila;
+435f02e1-e34d-4ac8-a299-3d0f8caa1eb2;Agence de l'eau Adour-Garonne - Délégation Adour et côtiers;18310006400066;AGENCE DE L'EAU ADOUR GARONNE;7385;annuaire_dila;
+be57a698-6be9-42b7-a63c-ddd813b59fcf;Agence de l'eau Adour-Garonne - Délégation Atlantique-Dordogne;18310006400090;AGENCE DE L'EAU ADOUR GARONNE;7385;annuaire_dila;
+e8101bcd-5baf-4945-b667-c4f1891b2e62;Agence de l'eau Adour-Garonne - Délégation Garonne Amont;18310006400082;AGENCE DE L'EAU ADOUR GARONNE;7385;annuaire_dila;
+c93c2147-7482-424a-9df0-fec29df8071e;Agence de l'eau Artois-Picardie;18591178100028;AGENCE DE L EAU ARTOIS PICARDIE;7385;annuaire_dila;
+c828c96c-4d4a-40aa-bbf7-f5fd4cfc058d;Agence de l'eau Loire-Bretagne;18450301900012;AGENCE DE L'EAU LOIRE-BRETAGNE;7385;annuaire_dila;
+89deadd9-339b-4305-92ef-69880a3231db;Agence de l'eau Rhin-Meuse;18570301400018;AGENCE DE L'EAU RHIN MEUSE;7385;annuaire_dila;
+0f4676c7-a795-41c9-b6a5-b8dff5a67b9b;Agence de l'eau Rhône-Méditerranée Corse;18690155900069;AGENCE DE L'EAU RHONE-MEDITERRANEE-CORSE;7385;annuaire_dila;
+933f6d66-5590-47e0-85cb-cfbd3bd6f8fc;Agence de l'eau Seine-Normandie;18750009500166;AGENCE DE L'EAU SEINE-NORMANDIE;7385;annuaire_dila;
+1b0d7376-32dd-48fc-b6b4-a76e45bb8c31;Agence de la biomédecine;18009258700013;AGENCE DE LA BIOMEDECINE;7389;annuaire_dila;
+290b2de7-3ab7-4da9-b170-ea7742dac732;Agence de l’eau Loire-Bretagne - Délégation Allier-Loire amont;18450301900186;AGENCE DE L'EAU LOIRE-BRETAGNE;7385;annuaire_dila;
+2077a303-6d7a-4f66-bfe1-43430144aa51;Agence de l’eau Loire-Bretagne - Délégation Maine-Loire-Océan (Le Mans);18450301900145;AGENCE DE L'EAU LOIRE-BRETAGNE;7385;annuaire_dila;
+a3c22ffa-b06f-4ede-a1ea-f2940978b6d2;Agence de l’eau Loire-Bretagne - Délégation Maine-Loire-Océan - Nantes;18450301900087;AGENCE DE L'EAU LOIRE-BRETAGNE;7385;annuaire_dila;
+76aa5dc5-2b67-401f-8992-f36b35169c3f;Agence de l’eau Loire-Bretagne - Délégation Poitou-Limousin;18450301900137;AGENCE DE L'EAU LOIRE-BRETAGNE;7385;annuaire_dila;
+4390a632-abfa-4442-a2df-e87a0fb6a894;Agence de l’eau Rhône-Méditerranée Corse - Délégation de Besançon (départements 21, 25, 39, 52, 70, 71, 88, 90);18690155900051;AGENCE DE L'EAU RHONE-MEDITERRANEE-CORSE;7385;annuaire_dila;
+f98c44ae-d96b-47d3-b7ee-7839751c883d;Agence de l’eau Rhône-Méditerranée Corse - Délégation de Lyon (départements 01, 07, 26, 38, 42, 69, 73, 74);18690155900150;AGENCE DE L'EAU RHONE-MEDITERRANEE-CORSE;7385;annuaire_dila;
+b751f9ef-5f83-4ead-9c1b-74780e9eb3c7;Agence de l’eau Rhône-Méditerranée Corse - Délégation de Marseille (départements 04, 05, 06, 13, 83, 84, 2A, 2B);18690155900135;AGENCE DE L'EAU RHONE-MEDITERRANEE-CORSE;7385;annuaire_dila;
+27d51270-964a-478f-a789-b418d032af8f;Agence de l’eau Rhône-Méditerranée Corse - Délégation de Montpellier (départements 09, 11, 30, 34, 48, 66);18690155900143;AGENCE DE L'EAU RHONE-MEDITERRANEE-CORSE;7385;annuaire_dila;
+2ea4a25f-621e-4b8e-8958-8336378d7e74;Agence de l’eau Seine-Normandie - Direction territoriale Bocages normands (départements 14,35,50,53,61);18750009500067;AGENCE DE L'EAU SEINE-NORMANDIE;7385;annuaire_dila;
+111404b5-84c8-48d0-a19a-164f4a46551f;Agence de l’eau Seine-Normandie - Direction territoriale Seine-Amont (départements 10, 21, 45, 58,89);18750009500158;AGENCE DE L'EAU SEINE-NORMANDIE;7385;annuaire_dila;
+8ae9f34b-faab-4010-a035-79df3c3b325c;Agence de l’eau Seine-Normandie - Direction territoriale Seine-Aval (départements 27, 28, 76, 80);18750009500141;AGENCE DE L'EAU SEINE-NORMANDIE;7385;annuaire_dila;
+73117046-898b-4093-9547-b37005a2c2d0;Agence de l’eau Seine-Normandie - Direction territoriale Vallées d'Oise (départements 02, 08, 60);18750009500042;AGENCE DE L'EAU SEINE-NORMANDIE;7385;annuaire_dila;
+a46897fa-2da3-4ff8-a641-38341dcd5059;Agence de l’eau Seine-Normandie - Direction territoriale Vallées de Marne (départements 02, 51, 52, 55);18750009500133;AGENCE DE L'EAU SEINE-NORMANDIE;7385;annuaire_dila;
+ad62e94e-9e91-470c-a803-5e2df77930d8;Agence de services et de paiement;13000637200010;AGENCE DE SERVICES ET DE PAIEMENT (ASP);7389;annuaire_dila;
+07b3eae0-e41d-4822-9cba-539178d7bdda;Agence des participations de l'État;13000498900013;AGENCE DES PARTICIPATIONS DE L'ETAT (APE);7160;recherche_entreprises;0.97
+1ff9c0dd-252f-42c8-8650-2f42945e8b84;Agence du numérique de la sécurité civile;13002441700029;AGENCE DU NUMERIQUE DE LA SECURITE CIVILE (ANSC);7389;annuaire_dila;
+6ecb7af5-7ef8-4b6a-84a9-974ad4720a26;Agence du numérique des forces de sécurité intérieure;13003140400010;AGENCE DU NUMERIQUE DES FORCES DE SECURITE INTERIEURE (ANFSI);7150;annuaire_dila;
+a0e44306-21d2-4285-bf0d-75813afaed3e;Agence du numérique en santé;18751275100038;AGENCE DU NUMERIQUE EN SANTE (ANS);7410;recherche_entreprises;0.97
+fb46a501-4480-4444-aa4a-1ce6da8ecfa8;Agence du travail d’intérêt général et de l’insertion professionnelle (ATIGIP);13002461500010;AGENCE DU TRAVAIL D'INTERET GENERAL ET DE L'INSERTION PROFESSIONNELLE DES PERSONNES PLACEES SOUS MAIN DE JUSTICE (ATIGIP);7160;recherche_entreprises_revue_manuelle;0.74
+794da9b0-f664-4dcd-a25a-5a9b33d56ced;Agence française anticorruption;13002496100018;AGENCE FRANCAISE ANTICORRUPTION (AFA);7160;recherche_entreprises;0.98
+3a755272-b303-4e75-aa22-b6950262da46;Agence française de développement;77566559900129;AGENCE FRANCAISE DE DEVELOPPEMENT (AFD);4120;annuaire_dila;
+b75b5492-adde-4bb0-a0bd-864f826fc5b9;Agence française de lutte contre le dopage (AFLD);13000189400034;AGENCE FRANCAISE DE LUTTE CONTRE LE DOPAGE (AFLD);7112;recherche_entreprises;1.00
+2575290c-2196-422f-ab04-364fc644e4c5;Agence nationale d'appui à la performance des établissements de santé et médico-sociaux;13001077000027;AGENCE NATIONALE APPUI PERFORMANCE ETABLISSEMENTS SANTE ET MEDICO SOCIAUX (ANAP);7410;recherche_entreprises;0.99
+696bc7c7-7c8d-4fd2-8961-44b40abf160c;Agence nationale de Santé publique;13002233800011;AGENCE NATIONALE DE SANTE PUBLIQUE;7389;annuaire_dila;
+52aa90e8-6926-4378-89c3-80f64677ab46;Agence nationale de contrôle du logement social;13002046400090;AGENCE NATIONALE DE CONTROLE DU LOGEMENT SOCIAL (ANCOLS);7389;annuaire_dila;
+bf088066-983a-4011-8d4d-f2a391d1ec12;Agence nationale de l'habitat (ANAH);18006702700029;AGENCE NATIONALE DE L'HABITAT (ANAH);7389;annuaire_dila;
+da837b24-afa7-46ab-b56a-427dd4bcc159;Agence nationale de la cohésion des territoires (ANCT);13002603200016;AGENCE NATIONALE DE LA COHESION DES TERRITOIRES (ANCT);7389;annuaire_dila;
+c6ef7a55-69ea-4c15-b6c8-addcde7bdb63;Agence nationale de la recherche (ANR);13000250400038;AGENCE NATIONALE DE LA RECHERCHE (ANR);7389;annuaire_dila;
+221319d6-0ceb-4daa-9074-0db98cbdd1b2;Agence nationale de la sécurité des systèmes d'information;13000766900018;AGENCE NATIONALE DE LA SECURITE DES SYSTEMES D'INFORMATION (ANSSI);7160;recherche_entreprises;0.98
+60ef52dc-624a-417e-838a-904531280e26;Agence nationale de lutte contre l'illettrisme;18693007900030;AGCE NATIONALE LUTTE CONTRE ILLETTRISME (ANLCI);7410;recherche_siren_manuelle;
+25a12c45-dae2-4a1a-a763-88b1eb5cd0f3;Agence nationale de sécurité du médicament et des produits de santé;18003611300017;AGENCE NATIONALE DE SECURITE DU MEDICAMENT ET DES PRODUITS DE SANTE (ANSM);7389;annuaire_dila;
+2c2e2b5d-6094-49b7-8f18-a27cf86cfbd4;Agence nationale de sécurité sanitaire, de l'alimentation, de l'environnement et du travail;13001202400183;AGENCE NATIONALE DE SECURITE SANITAIRE DE L ALIMENTATION DE L ENVIRONNEMENT ET DU TRAVAIL (ANSES);7389;recherche_entreprises;0.98
+4b5e336d-feca-471b-86bd-8634e79e78b0;Agence nationale de traitement automatisé des infractions;13001454100010;AGENCE NATIONALE DE TRAITEMENT AUTOMATISE DES INFRACTIONS (ANTAI);7389;annuaire_dila;
+e47af36f-7976-4e59-8b9d-7908d894a16b;Agence nationale des fréquences;18005302700017;AGENCE NATIONALE DES FREQUENCES (ANF);7389;annuaire_dila;
+904b873e-448e-43bb-9821-e84a58228557;Agence nationale du sport;13002528100028;AGENCE NATIONALE DU SPORT;7410;recherche_entreprises;1.00
+da0dc6b5-1272-494e-be47-0389df6c4544;Agence nationale pour l'amélioration des conditions de travail (ANACT);18003701200051;AGENCE NATIONALE POUR L AMELIORATION DES CONDITIONS DE TRAVAIL (ANACT);7389;annuaire_dila;
+c2b7fc3d-70ec-447d-a7ed-77e4cd54c787;Agence nationale pour la formation professionnelle des adultes (Afpa);82422814200017;AGENCE NATIONALE POUR LA FORMATION PROFESSIONNELLE DES ADULTES (AFPA);4120;annuaire_dila;
+01cf2b39-9eca-4ab2-9bcc-b7c8cb9f081e;Agence nationale pour la garantie des droits des mineurs;18009253801006;AGENCE NATIONALE POUR LA GARANTIE DES DROITS DES MINEURS (ANGDM);7389;annuaire_dila;
+b1b2bd32-08dc-4318-90f7-e1ead593b310;Agence nationale pour la gestion des déchets radioactifs;39019966900081;AGENCE NAT GESTION DECHETS RADIOACTIFS (ANDRA);4120;annuaire_dila;
+53324d8a-173d-49d1-bb52-76d348e4f2bc;Agence nationale pour la rénovation urbaine;45367825200025;AGENCE NATIONALE RENOVATION URBAINE (ANRU) (ANRU);4110;annuaire_dila;
+1652f1e2-603f-4a43-b2da-5b9f880f66e7;Agence nationale pour les chèques-vacances;32681744200055;AGENCE NATIONALE CHEQUES VACANCES (ANCV);4110;annuaire_dila;
+175a49fc-0e08-4af4-8fa9-e4a1aa1ec459;Agence pour l'enseignement français à l'étranger;18000608200077;AGENCE POUR L'ENSEIGNEMENT FRANCAIS A L'ETRANGER (AEFE);7389;annuaire_dila;
+04de2e93-42c9-475b-a284-9322c79591c3;Agence pour l'informatique financière de l'État;13001977100018;AGENCE POUR L'INFORMATIQUE FINANCIERE DE L'ETAT (AIFE);7160;recherche_entreprises;0.97
+c38a4a91-f293-46fb-a47a-3a5985ba1ff8;Agence pour la diffusion de l'information technologique (ADIT);44874736000015;ADIT;5710;recherche_siren_manuelle;
+8d5bf9a2-e2b0-47a8-9eb7-b82b2810b26b;Agence publique pour l'immobilier de la justice;18009225600023;AGENCE PUBLIQUE POUR L'IMMOBILIER DE LA JUSTICE (APIJ);7389;annuaire_dila;
+be0ef580-4ccc-4241-8de6-14e798b60c4a;Agence technique de l'information sur l'hospitalisation;18009229800033;AGENCE TECHNIQUE DE L'INFORMATION SUR L'HOSPITALISATION (ATIH);7389;annuaire_dila;
+64160efc-d976-4b76-aee2-0a08d503601a;Aix-Marseille université;13001533200013;UNIVERSITE D'AIX MARSEILLE;7383;recherche_entreprises_revue_manuelle;0.82
+064b96a9-560e-4e47-b2a5-c9f9460ae626;Ambassade de France AFGHANISTAN - Kaboul;17992120000012;AMBASSADE DE FRANCE EN AFGHANISTAN;7179;recherche_entreprises_ambassade;0.81
+8be4f0ae-0aff-47ad-92ae-c29232ebef25;Ambassade de France ALBANIE - Tirana;17991250600013;AMBASSADE DE FRANCE EN ALBANIE;7179;recherche_entreprises_ambassade;0.80
+159f92e6-1aed-4c5b-b79c-26be30437b9c;Ambassade de France ALGÉRIE - Alger;17993520000016;AMBASSADE DE FRANCE EN ALGERIE;7179;recherche_entreprises_ambassade;0.81
+4a2f70be-8f4c-4a3f-8999-66afb16606a8;Ambassade de France ALLEMAGNE - Berlin;17991092200014;AMBASSADE DE FRANCE EN ALLEMAGNE;7179;recherche_entreprises_ambassade;0.80
+aa7218d8-4028-489b-b637-bfda4cf40f60;Ambassade de France ANDORRE - Andorre-la-Vieille;17991301700010;AMBASSADE DE FRANCE EN ANDORRE;7179;recherche_entreprises_ambassade;0.75
+5d907ae0-54cc-4399-93db-c82f2ab69e5a;Ambassade de France ANGOLA - Luanda;17993950900016;AMBASSADE DE FRANCE EN ANGOLA;7179;recherche_entreprises_ambassade;0.80
+49e5e980-9554-45c9-aee9-11f551502586;Ambassade de France ARABIE SAOUDITE - Riyad;17992010300019;AMBASSADE DE FRANCE EN ARABIE SAOUDITE;7179;recherche_entreprises_ambassade;0.85
+9680d71a-2744-4db4-8774-12a67b8a60d0;Ambassade de France ARGENTINE - Buenos Aires;17994150500010;AMBASSADE DE FRANCE EN ARGENTINE;7179;recherche_entreprises_ambassade;0.68
+47c56900-607a-4f12-87c8-771bcd172bd7;Ambassade de France ARMÉNIE - Erevan;17991461900012;AMBASSADE DE FRANCE EN ARMENIE;7179;recherche_entreprises_ambassade;0.80
+0170bdee-8f87-44ea-b612-0d10b7fc3721;Ambassade de France AUSTRALIE - Canberra;17995010000018;AMBASSADE DE FRANCE EN AUSTRALIE;7179;recherche_entreprises_ambassade;0.79
+17568049-eab6-46db-aa39-711b1c7479da;Ambassade de France AUTRICHE - Vienne;17991100300012;AMBASSADE DE FRANCE EN AUTRICHE;7179;recherche_entreprises_ambassade;0.80
+49851f20-af21-4898-add4-5447a846c084;Ambassade de France AZERBAIDJAN - Bakou;17991471800012;AMBASSADE DE FRANCE EN AZERBAIDJAN;7179;recherche_entreprises_ambassade;0.81
+2f681884-9943-44da-9a05-df89d3e96c6e;Ambassade de France BAHREIN - Manama;17992490700019;AMBASSADE DE FRANCE A BAHREIN;7179;recherche_entreprises_ambassade;0.80
+96a4e4ba-0e7e-401f-9895-d88412b109f2;Ambassade de France BANGLADESH - Dacca;17992460000010;AMBASSADE DE FRANCE AU BANGLADESH;7179;recherche_entreprises_ambassade;0.81
+23db7e9e-78b8-408f-bde9-1de91c1bdd64;Ambassade de France BELGIQUE - Bruxelles;17991310800017;AMBASSADE DE FRANCE EN BELGIQUE;7179;recherche_entreprises_ambassade;0.78
+2e87d30e-6b82-4ca9-92cf-47e718950a06;Ambassade de France BIRMANIE - Rangoun;17992240600014;AMBASSADE DE FRANCE EN BIRMANIE;7179;recherche_entreprises_ambassade;0.80
+067bc517-0c01-4cca-affb-902b78abbcbe;Ambassade de France BIÉLORUSSIE - Minsk;17991481700012;AMBASSADE DE FRANCE EN BIELORUSSIE;7179;recherche_entreprises_ambassade;0.81
+5bc7a6e2-fa1d-4b40-b405-681ce14cc423;Ambassade de France BOLIVIE - La Paz;17994180200011;AMBASSADE DE FRANCE EN BOLIVIE;7179;recherche_entreprises_ambassade;0.82
+5871df80-cc02-446f-9b2d-5f70c05328aa;Ambassade de France BOSNIE-HERZÉGOVINE - Sarajevo;17991181300014;AMBASSADE DE FRANCE EN BOSNIE-HERZEGOVINE;7179;recherche_entreprises_ambassade;0.83
+e4dedbf8-fda1-4a40-ae66-2e9aaff23f29;Ambassade de France BOTSWANA - Gaborone;17993470800019;AMBASSADE DE FRANCE AU BOTSWANA;7179;recherche_entreprises_ambassade;0.79
+fe0c7e59-9293-4209-b19e-1b16a1f3ea8c;Ambassade de France BRUNEI - Bandar Seri Begawan;17992250500013;AMBASSADE DE FRANCE AU BRUNEI;7179;recherche_entreprises_ambassade;0.58
+129b0fb1-2e18-49e7-b8e0-cb40d671e41f;Ambassade de France BRÉSIL - Brasilia;17994160400011;AMBASSADE DE FRANCE AU BRESIL;7179;recherche_entreprises_ambassade;0.79
+46433482-64e4-4b89-91db-5705e17e7eb8;Ambassade de France BULGARIE - Sofia;17991110200012;AMBASSADE DE FRANCE EN BULGARIE;7179;recherche_entreprises_ambassade;0.81
+a9816f20-f349-44e0-b166-84fb12d38355;Ambassade de France BURUNDI - Bujumbura;17993210800014;AMBASSADE DE FRANCE AU BURUNDI;7179;recherche_entreprises_ambassade;0.78
+a1ac3ac7-2d97-45f3-9576-6c05593b866e;Ambassade de France BÉNIN - Cotonou;17993270200014;AMBASSADE DE FRANCE AU BENIN;7179;recherche_entreprises_ambassade;0.79
+fafd44e0-def9-4cfb-9779-459d0e73d853;Ambassade de France CAMBODGE - Phnom Penh;17992340400018;AMBASSADE DE FRANCE AU CAMBODGE;7179;recherche_entreprises_ambassade;0.69
+823164fb-3419-4bde-a6cf-642ca4ec9d37;Ambassade de France CAMEROUN - Yaoundé;17993220700014;AMBASSADE DE FRANCE AU CAMEROUN;7179;recherche_entreprises_ambassade;0.80
+8fd51f10-ddeb-43e1-adf9-d83b8c56bb45;Ambassade de France CANADA - Ottawa;17994010100019;AMBASSADE DE FRANCE AU CANADA;7179;recherche_entreprises_ambassade;0.80
+52cf161c-e3af-467b-9111-01e546e8024e;Ambassade de France CAP-VERT - Praia;17993960800016;AMBASSADE DE FRANCE AU CAP-VERT;7179;recherche_entreprises_ambassade;0.84
+650532cb-6786-4b72-8706-fe3dd6347a1a;Ambassade de France CHILI - Santiago;17994170300011;AMBASSADE DE FRANCE AU CHILI;7179;recherche_entreprises_ambassade;0.78
+cd605fed-e8bd-498d-8101-499c83f42afb;Ambassade de France CHINE - Pékin;17992160600010;AMBASSADE DE FRANCE EN CHINE;7179;recherche_entreprises_ambassade;0.80
+50e816bb-8a34-4426-8da5-1e006056c7c1;Ambassade de France CHYPRE - Nicosie;17991430400011;AMBASSADE DE FRANCE A CHYPRE;7179;recherche_entreprises_ambassade;0.79
+b8bd9c62-9084-4f46-8c71-4e1646b754d8;Ambassade de France COLOMBIE - Bogota;17994190100011;AMBASSADE DE FRANCE EN COLOMBIE;7179;recherche_entreprises_ambassade;0.80
+ddda3778-837d-47d5-8d5c-823905343101;Ambassade de France COMORES - Moroni;17993970700016;AMBASSADE DE FRANCE AUX COMORES;7179;recherche_entreprises_ambassade;0.80
+2844dacf-9549-4fe5-bb55-f840d3bdd576;Ambassade de France CONGO - Brazzaville;17993240500014;AMBASSADE DE FRANCE AU CONGO;7179;recherche_entreprises_ambassade;0.76
+c06c38df-4ec8-4925-9111-96ec150d294b;Ambassade de France CORÉE DU SUD - Séoul;17992390900016;AMBASSADE DE FRANCE EN COREE;7179;recherche_entreprises_revue_manuelle;0.69
+04c6f9cf-04e1-4cb7-b4b3-79e2d7b396c8;Ambassade de France COSTA RICA - San José;17994060600017;AMBASSADE DE FRANCE AU COSTA RICA;7179;recherche_entreprises_ambassade;0.74
+358e1098-c439-40dd-a1c2-302c699feee7;Ambassade de France CROATIE - Zagreb;17991191200014;AMBASSADE DE FRANCE EN CROATIE;7179;recherche_entreprises_ambassade;0.80
+a1bf70d0-4c10-4429-818d-3be710ea56ab;Ambassade de France CUBA - La Havane;17994070500017;AMBASSADE DE FRANCE A CUBA;7179;recherche_entreprises_ambassade;0.79
+5d3b1cd4-d629-4366-8bd3-52d101ff9ce2;Ambassade de France CÔTE-D'IVOIRE - Abidjan;17993260300014;AMBASSADE DE FRANCE EN COTE D'IVOIRE;7179;recherche_entreprises_ambassade;0.83
+0132a88f-0fda-4b50-a9d2-d889a99e4287;Ambassade de France DANEMARK - Copenhague;17991010400019;AMBASSADE DE FRANCE AU DANEMARK;7179;recherche_entreprises_ambassade;0.78
+5413bec0-c41e-4151-a4ed-cea308a7b873;Ambassade de France DJIBOUTI - Djibouti;17993990500016;AMBASSADE DE FRANCE A DJIBOUTI;7179;recherche_entreprises;0.94
+06e6696e-8a1a-4f84-a6dc-6499f9c827a0;Ambassade de France ERYTHRÉE - Asmara;13000115900016;AMBASSADE DE FRANCE EN ERYTHREE;7179;recherche_entreprises_ambassade;0.80
+5349fbc8-3764-4595-a4bd-8699baf17a65;Ambassade de France ESPAGNE - Madrid;17991340500017;AMBASSADE DE FRANCE EN ESPAGNE;7179;recherche_entreprises_ambassade;0.80
+455da1ad-8fa7-418b-bc26-0f7fdd364d7c;Ambassade de France ESTONIE - Tallinn;17991061700010;AMBASSADE DE FRANCE EN ESTONIE;7179;recherche_entreprises_ambassade;0.79
+90775ac7-a564-4e95-8243-c6047e7b219a;Ambassade de France FIDJI - Suva;17995080300017;AMBASSADE DE FRANCE AUX ILES FIDJI;7179;recherche_entreprises_ambassade;0.78
+6c5d492f-b1ba-41c5-a28d-7271073dbb7a;Ambassade de France FINLANDE - Helsinki;17991050000018;AMBASSADE DE FRANCE EN FINLANDE;7179;recherche_entreprises_ambassade;0.79
+dfc29b98-922a-4368-ab49-68e424d8f363;Ambassade de France GHANA - Accra;17993290000014;AMBASSADE DE FRANCE AU GHANA;7179;recherche_entreprises_ambassade;0.80
+f76a7799-32ae-4a20-b706-02324d19d249;Ambassade de France GRÈCE - Athènes;17991260500013;AMBASSADE DE FRANCE EN GRECE;7179;recherche_entreprises_ambassade;0.79
+309563bc-44df-483c-9478-ed72beb666dc;Ambassade de France GUINÉE - Conakry;17993300700017;AMBASSADE DE FRANCE EN GUINEE;7179;recherche_entreprises_ambassade;0.79
+eac37324-3f04-4f29-a323-566aecbeb9d3;Ambassade de France GUINÉE ÉQUATORIALE - Malabo;17993140700011;AMBASSADE DE FRANCE EN GUINEE EQUATORIALE;7179;recherche_entreprises_ambassade;0.84
+1b019ddd-f473-4d53-9ded-1d50089b5dd6;Ambassade de France GÉORGIE - Tbilissi;17992551600017;AMBASSADE DE FRANCE EN GEORGIE;7179;recherche_entreprises_ambassade;0.79
+27ab0c2b-9157-453b-9b25-295a13bac23f;Ambassade de France HAÏTI - Port-au-Prince;17994100000012;AMBASSADE DE FRANCE EN HAITI;7179;recherche_entreprises_ambassade;0.67
+8d900e46-df47-40d2-8fc4-bbfae6ddc17e;Ambassade de France HONGRIE - Budapest;17991120100012;AMBASSADE DE FRANCE EN HONGRIE;7179;recherche_entreprises_ambassade;0.79
+e00a94b3-c207-4cf2-a08a-86cfd4b9a30d;Ambassade de France INDE - New Delhi;17992230700014;AMBASSADE DE FRANCE EN INDE;7179;recherche_entreprises_ambassade;0.68
+0c47418d-3bb9-43d8-a67c-36a2e3ef20f8;Ambassade de France INDONÉSIE - Jakarta;17992310700017;AMBASSADE DE FRANCE EN INDONESIE;7179;recherche_entreprises_ambassade;0.80
+7f23d55b-e8ba-4947-a6bc-e4d90215bb7f;Ambassade de France IRAK - Bagdad;17992030100019;AMBASSADE DE FRANCE EN IRAK;7179;recherche_entreprises_ambassade;0.79
+b30de968-ece2-44fc-928b-49e667987d98;Ambassade de France IRAN - Téhéran;17992040000019;AMBASSADE DE FRANCE EN IRAN;7179;recherche_entreprises_ambassade;0.79
+fb718a57-bfcf-424f-92e6-88df82fbe8c6;Ambassade de France IRLANDE - Dublin;17991360300017;AMBASSADE DE FRANCE EN IRLANDE;7179;recherche_entreprises_ambassade;0.80
+d60f4d0e-72e1-4ea5-9940-c1586728493e;Ambassade de France ISLANDE - Reykjavik;17991020300019;AMBASSADE DE FRANCE EN ISLANDE;7179;recherche_entreprises_ambassade;0.78
+378c64dc-c25f-45fd-ac28-c05310225415;Ambassade de France ISRAËL - Tel-Aviv;17992070700017;AMBASSADE DE FRANCE EN ISRAEL;7179;recherche_entreprises_ambassade;0.69
+b864f0fb-97b4-44ec-84b3-8c6e84f31db4;Ambassade de France ITALIE - Rome;17991270400014;AMBASSADE DE FRANCE EN ITALIE;7179;recherche_entreprises_ambassade;0.81
+f7864b5b-810e-4892-b474-ce1528b63882;Ambassade de France JAMAIQUE - Kingston;17994260200014;AMBASSADE DE FRANCE EN JAMAIQUE;7179;recherche_entreprises_ambassade;0.79
+117ca0b5-bab7-4772-ae61-f47dcd5c39d8;Ambassade de France JAPON - Tokyo;17992170500010;AMBASSADE DE FRANCE AU JAPON;7179;recherche_entreprises_ambassade;0.80
+bc9ac19c-f881-4d44-ab26-f5c2cd7c2229;Ambassade de France JORDANIE - Amman;17992220800014;AMBASSADE DE FRANCE EN JORDANIE;7179;recherche_entreprises_ambassade;0.81
+e052db31-ac15-45fa-98d6-120b09d8b2db;Ambassade de France KENYA - Nairobi;17993320500017;AMBASSADE DE FRANCE AU KENYA;7179;recherche_entreprises_ambassade;0.79
+4599ce60-6097-42a4-b908-cf95db5939d7;Ambassade de France KIRGHIZSTAN - Bichkek;13002631300010;AMBASSADE DE FRANCE AU KIRGHIZSTAN;7179;recherche_entreprises_ambassade;0.80
+76584c40-0f5b-4555-a4dd-910c580d72e0;Ambassade de France KOSOVO - Pristina;13002330200016;AMBASSADE DE FRANCE AU KOSOVO;7179;recherche_entreprises_ambassade;0.79
+9f98af4e-f535-4e63-b561-49e7ed493ce8;Ambassade de France KOWEÏT - Koweït;17992400600010;AMBASSADE DE FRANCE AU KOWEIT;7179;recherche_entreprises;0.95
+c03d582d-44cd-4c45-a8f8-623be0e1b5d1;Ambassade de France LAOS - Vientiane;17992410500010;AMBASSADE DE FRANCE AU LAOS;7179;recherche_entreprises_ambassade;0.77
+0f8f29fe-86c4-4125-a49a-4fc5c35a80d6;Ambassade de France LETTONIE - Riga;17991071600010;AMBASSADE DE FRANCE EN LETTONIE;7179;recherche_entreprises_ambassade;0.81
+01cfdae8-3105-411a-bb00-b4b9038ea4ab;Ambassade de France LIBAN - Beyrouth;17992050900017;AMBASSADE DE FRANCE AU LIBAN;7179;recherche_entreprises_ambassade;0.78
+e5c25014-5620-4efd-bc14-c16d7b6c309e;Ambassade de France LIBYE - Tripoli;17993160500010;AMBASSADE DE FRANCE EN LIBYE;7179;recherche_entreprises_ambassade;0.79
+2bed9d5c-0c17-46fc-ac36-5fab77312cc2;Ambassade de France LIBÉRIA - Monrovia;17993020100019;AMBASSADE DE FRANCE AU LIBERIA;7179;recherche_entreprises_ambassade;0.79
+cf8616a9-1d2b-4bda-99dd-f86f04d8df9b;Ambassade de France LITUANIE - Vilnius;17991081500010;AMBASSADE DE FRANCE EN LITUANIE;7179;recherche_entreprises_ambassade;0.80
+bceb53d1-fea9-4b39-a6a6-d15c88a14d3d;Ambassade de France LUXEMBOURG - Luxembourg;17991370200017;AMBASSADE DE FRANCE AU LUXEMBOURG;7179;recherche_entreprises;0.93
+40c78630-0f08-4563-9610-3aad00ea5c12;Ambassade de France MACÉDOINE du NORD- Skopje;17991561600017;AMBASSADE DE FRANCE EN MACEDOINE DU NORD;7179;recherche_entreprises_revue_manuelle;0.84
+802b1eed-7c9c-4b36-8f7d-ada37c9cb2e9;Ambassade de France MALAISIE - Kuala Lumpur;17992270300014;AMBASSADE DE FRANCE EN MALAISIE;7179;recherche_entreprises_ambassade;0.68
+ea02178b-64d9-4adc-b5ba-9f8508a55be8;Ambassade de France MALI - Bamako;17993350200017;AMBASSADE DE FRANCE AU MALI;7179;recherche_entreprises_ambassade;0.79
+2b7f96d7-2587-41aa-9312-9e0295bb6dc1;Ambassade de France MAROC - Rabat;17993500200016;AMBASSADE DE FRANCE AU MAROC;7179;recherche_entreprises_ambassade;0.80
+54e28116-e18a-41e6-8b9d-f1b79c81d087;Ambassade de France MAURICE - Port-Louis;17993901200011;AMBASSADE DE FRANCE A MAURICE;7179;recherche_entreprises_ambassade;0.69
+025ef20a-f92b-4a0f-8197-c976ce4159ff;Ambassade de France MAURITANIE - Nouakchott;17993360100017;AMBASSADE DE FRANCE EN MAURITANIE;7179;recherche_entreprises_ambassade;0.78
+51e0cfa4-ab52-42d0-9e59-f61f509ae5b7;Ambassade de France MEXIQUE - Mexico;17994050700017;AMBASSADE DE FRANCE AU MEXIQUE;7179;recherche_entreprises_ambassade;0.80
+04efb654-1031-4dfe-b019-2d6804e50ff0;Ambassade de France MOLDAVIE - Chisinau;17991511100019;AMBASSADE DE FRANCE EN MOLDAVIE;7179;recherche_entreprises_ambassade;0.79
+a8fd0bcd-daef-4385-b324-55bc147e141b;Ambassade de France MONACO - Monaco;13000118300016;AMBASSADE DE FRANCE A MONACO;7179;recherche_entreprises;0.95
+70328e5b-a92a-43e8-9433-af66ab99a342;Ambassade de France MONTÉNÉGRO - Podgorica;13002632100013;AMBASSADE DE FRANCE AU MONTENEGRO;7179;recherche_entreprises_ambassade;0.79
+7018c9ab-6e85-4d33-a73c-e3315125ddb4;Ambassade de France NAMIBIE - Windhoek;17993111800014;AMBASSADE DE FRANCE EN NAMIBIE;7179;recherche_entreprises_ambassade;0.79
+e1494f42-12ba-43bd-a7bc-e6dbbbf550e5;Ambassade de France NICARAGUA - Managua;17994120800011;AMBASSADE DE FRANCE AU NICARAGUA;7179;recherche_entreprises_ambassade;0.80
+625dfb9a-5ead-424e-8842-326b945aca9a;Ambassade de France NIGER - Niamey;17993370000017;AMBASSADE DE FRANCE AU NIGER;7179;recherche_entreprises_ambassade;0.80
+49dbe7d1-0aa4-4477-8119-301b82b847e3;Ambassade de France NIGÉRIA - Abuja;17993380900016;AMBASSADE DE FRANCE AU NIGERIA;7179;recherche_entreprises_ambassade;0.81
+6919c7d2-fd48-4754-b7b6-de418eed6b48;Ambassade de France NORVÈGE - Oslo;17991030200019;AMBASSADE DE FRANCE EN NORVEGE;7179;recherche_entreprises_ambassade;0.81
+60d9fbbd-efac-4d72-93f4-50b339404c0f;Ambassade de France NOUVELLE-ZÉLANDE - Wellington;17995020900017;AMBASSADE DE FRANCE EN NOUVELLE-ZELANDE;7179;recherche_entreprises_ambassade;0.82
+6ed5a31b-3713-4be3-bf5e-c9994085f3cc;Ambassade de France NÉPAL - Katmandou;17992150700010;AMBASSADE DE FRANCE AU NEPAL;7179;recherche_entreprises_ambassade;0.78
+2d7d312b-269b-44b0-8269-9b32788a06e5;Ambassade de France OMAN - Mascate;17992500300016;AMBASSADE DE FRANCE EN OMAN;7179;recherche_entreprises_ambassade;0.79
+80c91c4e-c37f-4914-80a3-e1b750bf618b;Ambassade de France OUGANDA - Kampala;17993390800016;AMBASSADE DE FRANCE EN OUGANDA;7179;recherche_entreprises_ambassade;0.79
+662c15d8-5f99-4283-95a6-b9be391e7fb8;Ambassade de France OUZBÉKISTAN - Tachkent;17991521000019;AMBASSADE DE FRANCE EN OUZBEKISTAN;7179;recherche_entreprises_ambassade;0.80
+a852d934-7855-4ce6-947e-1d1a471dc750;Ambassade de France PAKISTAN - Islamabad;17992130900011;AMBASSADE DE FRANCE AU PAKISTAN;7179;recherche_entreprises_ambassade;0.78
+885cd99d-0b4f-4cf9-b6b9-ebff87ae2805;Ambassade de France PAPOUASIE-NOUVELLE GUINÉE - Port Moresby;17995100900010;AMBASSADE DE FRANCE EN PAPOUASIE-NOUVELLE-GUINEE;7179;recherche_entreprises_ambassade;0.78
+170a0bb5-63de-4a00-93b1-b7e451083ebb;Ambassade de France PARAGUAY - Assomption;17994210700014;AMBASSADE DE FRANCE AU PARAGUAY;7179;recherche_entreprises_ambassade;0.78
+bcf379d3-9ad2-481e-aeac-adbdd401b461;Ambassade de France PAYS-BAS - La Haye;17991350400025;AMBASSADE DE FRANCE AUX PAYS-BAS;7179;recherche_entreprises_ambassade;0.84
+148f2939-d619-45f2-b852-9f81a01e3505;Ambassade de France PHILIPPINES - Manille;17992200000015;AMBASSADE DE FRANCE AUX PHILIPPINES;7179;recherche_entreprises_ambassade;0.80
+31b58c40-e5ca-48a2-a1ba-b73663216612;Ambassade de France POLOGNE - Varsovie;17991220900014;AMBASSADE DE FRANCE EN POLOGNE;7179;recherche_entreprises_ambassade;0.79
+7830cb0a-b084-444a-b86f-1ee0fddf4c35;Ambassade de France PORTUGAL - Lisbonne;17991390000017;AMBASSADE DE FRANCE AU PORTUGAL;7179;recherche_entreprises_ambassade;0.79
+e8f5cff9-11c7-4fc7-a11f-e83e2bff180c;Ambassade de France PÉROU - Lima;17994220600014;AMBASSADE DE FRANCE AU PEROU;7179;recherche_entreprises_ambassade;0.81
+adcb9fe6-a6d9-4213-a731-c76395a3b17f;Ambassade de France QATAR - Doha;17992480800019;AMBASSADE DE FRANCE AU QATAR;7179;recherche_entreprises_ambassade;0.81
+e41107c9-c483-4893-aead-91e2a28c4b4e;Ambassade de France ROUMANIE - Bucarest;17991140900011;AMBASSADE DE FRANCE EN ROUMANIE;7179;recherche_entreprises_ambassade;0.79
+fc29a803-44fb-4cc0-a54d-3409fbfbb639;Ambassade de France ROYAUME-UNI - Londres;17991320700017;AMBASSADE DE FRANCE AU ROYAUME-UNI;7179;recherche_entreprises_ambassade;0.83
+bb12dfef-6cc8-437a-8636-0bc6d9bd57b5;Ambassade de France RUSSIE - Moscou;17991230800014;AMBASSADE DE FRANCE EN RUSSIE;7179;recherche_entreprises_ambassade;0.80
+11f1612b-5627-45f0-84dd-851216cf83ae;Ambassade de France RWANDA - Kigali;17993400500010;AMBASSADE DE FRANCE AU RWANDA;7179;recherche_entreprises_ambassade;0.80
+62d730cb-25b0-43ba-aa05-dca6a1cb1032;Ambassade de France RÉPUBLIQUE CENTRAFRICAINE - Bangui;17993230600014;AMBASSADE DE FRANCE EN REPUBLIQUE CENTRAFRICAINE;7179;recherche_entreprises_ambassade;0.85
+dc6a3141-6d8b-4c67-adb1-837e66412e79;Ambassade de France RÉPUBLIQUE DOMINICAINE - Saint-Domingue;17994080400018;AMBASSADE DE FRANCE EN REPUBLIQUE DOMINICAINE;7179;recherche_entreprises_ambassade;0.73
+c7f35244-3c48-49f5-b16a-dbbb55a16232;Ambassade de France RÉPUBLIQUE DÉMOCRATIQUE DU CONGO - Kinshasa;17993120900011;AMBASSADE DE FRANCE EN REPUBLIQUE DEMOCRATIQUE DU CONGO;7179;recherche_entreprises;0.86
+74b26c41-86e8-4aaa-9816-4e0849734685;Ambassade de France RÉPUBLIQUE TCHÈQUE - Prague;17991150800010;AMBASSADE FRANCE EN REPUBLIQUE TCHEQUE;7179;recherche_entreprises_ambassade;0.84
+245389cf-2973-4850-98ec-12f3f5518b41;Ambassade de France SAINT-SIÈGE - Rome;17991271200017;AMBASSADE DE FRANCE AU SAINT-SIEGE;7179;recherche_entreprises_ambassade;0.85
+239e8f56-2bd7-4230-9530-fa4a96a6c221;Ambassade de France SAINTE-LUCIE - Castries;17994390700016;AMBASSADE DE FRANCE A SAINTE-LUCIE;7179;recherche_entreprises_ambassade;0.83
+b7945672-ab05-4304-ac68-f23355dd28b5;Ambassade de France SALVADOR - San Salvador;17994140600011;AMBASSADE DE FRANCE AU SALVADOR;7179;recherche_entreprises_ambassade;0.77
+7abab7e6-722b-4c97-a68b-f753f8694518;Ambassade de France SERBIE - Belgrade;13000124100012;AMBASSADE DE FRANCE EN SERBIE;7179;recherche_entreprises_ambassade;0.79
+9ea88ca7-34f1-4bcb-9357-e4816c46625d;Ambassade de France SEYCHELLES - Victoria;17993980600016;AMBASSADE DE FRANCE AUX SEYCHELLES;7179;recherche_entreprises_ambassade;0.79
+d2f7c6b5-9a0f-4e39-a275-44ae4270d727;Ambassade de France SINGAPOUR - Singapour;17992260400014;AMBASSADE DE FRANCE A SINGAPOUR;7179;recherche_entreprises;0.94
+e77afc60-d1be-4134-b198-9dff7d400d59;Ambassade de France SLOVAQUIE - Bratislava;17991171400014;AMBASSADE DE FRANCE EN SLOVAQUIE;7179;recherche_entreprises_ambassade;0.78
+3579041c-f6a3-44c8-bb0e-1f858a0694a0;Ambassade de France SLOVÉNIE - Ljubljana;17991451000013;AMBASSADE DE FRANCE EN SLOVENIE;7179;recherche_entreprises_ambassade;0.78
+640831ae-23b4-4e2c-91e4-ac92b65506d8;Ambassade de France SOUDAN - Khartoum;17993430200011;AMBASSADE DE FRANCE AU SOUDAN;7179;recherche_entreprises_ambassade;0.79
+603276b5-dc28-4e9c-92b1-d9353974c73b;Ambassade de France SOUDAN DU SUD - Djouba;13002635400014;AMBASSADE DE FRANCE AU SOUDAN DU SUD;7179;recherche_entreprises_ambassade;0.83
+7d83e046-aa06-40ff-b630-730bf3887865;Ambassade de France SRI LANKA - Colombo;17992350300017;AMBASSADE DE FRANCE AU SRI LANKA;7179;recherche_entreprises_ambassade;0.83
+0ed3454d-758d-43b3-9a96-841678c2b3f1;Ambassade de France SUISSE - Berne;17991400700010;AMBASSADE DE FRANCE EN SUISSE;7179;recherche_entreprises_ambassade;0.80
+067e5550-0c05-4bf2-bf40-6ec73fd5ce77;Ambassade de France SUÈDE - Stockholm;17991040100019;AMBASSADE DE FRANCE EN SUEDE;7179;recherche_entreprises_ambassade;0.78
+71a132d5-2c9a-44fe-8239-d9abe95c50fe;Ambassade de France TANZANIE - Dar-Es-Salam;17993090400018;AMBASSADE DE FRANCE EN TANZANIE;7179;recherche_entreprises_ambassade;0.62
+6d9dc460-34e6-4f3c-bd60-ce32d319b381;Ambassade de France TCHAD - Ndjamena;17993440100011;AMBASSADE DE FRANCE AU TCHAD;7179;recherche_entreprises_ambassade;0.78
+ae3d5c96-8500-4294-90ac-4aecf7206646;Ambassade de France THAÏLANDE - Bangkok;17992190300011;AMBASSADE DE FRANCE EN THAILANDE;7179;recherche_entreprises_ambassade;0.80
+842bb7e8-c928-4c1d-a366-a0c727a9a48f;Ambassade de France TOGO - Lomé;17993450000010;AMBASSADE DE FRANCE AU TOGO;7179;recherche_entreprises_ambassade;0.81
+b7f6e3dc-3588-4614-85e2-b79c2a2252aa;Ambassade de France TRINITÉ-ET-TOBAGO - Port d'Espagne;17994330300018;AMBASSADE DE FRANCE A TRINITE-ET-TOBAGO;7179;recherche_entreprises_ambassade;0.73
+619fe776-8b40-44f0-9a65-a784cab979df;Ambassade de France TUNISIE - Tunis;17993510100016;AMBASSADE DE FRANCE EN TUNISIE;7179;recherche_entreprises_ambassade;0.81
+0bd73a59-130a-4884-8eda-34f9d3294efe;Ambassade de France TURKMÉNISTAN - Achgabat;17991541800018;AMBASSADE DE FRANCE AU TURKMENISTAN;7179;recherche_entreprises_ambassade;0.80
+eedb188a-ba70-4ec9-8b15-c02d06ab74fb;Ambassade de France TURQUIE - Ankara;17992080600017;AMBASSADE DE FRANCE EN TURQUIE;7179;recherche_entreprises_ambassade;0.80
+8a9dfe41-15d9-48a2-b14c-5b7200b4a243;Ambassade de France UKRAINE - Kiev;17991551700017;AMBASSADE DE FRANCE EN UKRAINE;7179;recherche_entreprises_ambassade;0.81
+7146ae67-db94-4503-b745-cfd0fcb7dbc3;Ambassade de France URUGUAY - Montevideo;17994230500014;AMBASSADE DE FRANCE EN URUGUAY;7179;recherche_entreprises_ambassade;0.78
+c5bebb0a-768e-4255-82cf-8904e1285151;Ambassade de France VANUATU et aux Îles Salomon- Port-Vila;17995140500010;AMBASSADE DE FRANCE AU VANUATU;7179;recherche_siren_manuelle;
+f36fcff4-9170-4c92-a399-81f99855cacf;Ambassade de France VENEZUELA - Caracas;17994240400015;AMBASSADE DE FRANCE AU VENEZUELA;7179;recherche_entreprises_ambassade;0.80
+4254518a-2c53-4e8e-b2f3-374890841ba5;Ambassade de France VIETNAM - Hanoï;17992430300011;AMBASSADE DE FRANCE AU VIETNAM;7179;recherche_entreprises_ambassade;0.81
+bcbc7a66-5f0d-452f-b506-1dbe4c16770e;Ambassade de France YÉMEN;17992020200019;AMBASSADE FRANCE EN REPUBLIQUE DU YEMEN;7179;recherche_entreprises;0.92
+50258ea7-c96b-4df6-8a39-b75006faa8b6;Ambassade de France ZAMBIE - Lusaka;17993460900019;AMBASSADE DE FRANCE EN ZAMBIE;7179;recherche_entreprises_ambassade;0.80
+0c55926f-6a2d-47bb-bcea-29db7e1f8939;Ambassade de France ZIMBABWÉ - Hararé;17993100100012;AMBASSADE DE FRANCE AU ZIMBABWE;7179;recherche_entreprises_ambassade;0.80
+1a65f02a-0c64-43a9-a56a-bc242b9d88df;Ambassade de France ÉGYPTE - Le Caire;17993010200019;AMBASSADE DE FRANCE EN EGYPTE;7179;recherche_entreprises_ambassade;0.80
+993088f3-ba82-453c-aecc-11966060b11b;Ambassade de France ÉMIRATS ARABES UNIS - Abou Dabi;17992470900019;AMBASSADE FRANCE AUX EMIRATS ARABES UNIS;7179;recherche_entreprises_ambassade;0.78
+716e6a9f-88d6-41a4-9b60-93961b5d3777;Ambassade de France ÉQUATEUR - Quito;17994200800014;AMBASSADE DE FRANCE EN EQUATEUR;7179;recherche_entreprises_ambassade;0.81
+d91642db-bd60-42b7-b5ab-6612a6c9465f;Ambassade de France ÉTATS-UNIS - Washington;17994040800018;AMBASSADE DE FRANCE AUX ETATS UNIS D'AMERIQUE;7179;recherche_entreprises_ambassade;0.80
+83a16d19-45ea-4b7e-9b73-4cd4edd06dd6;Ambassade de France ÉTHIOPIE - Addis-Abeba;17993150600010;AMBASSADE DE FRANCE EN ETHIOPIE;7179;recherche_entreprises_ambassade;0.68
+d60f8d14-d42e-4268-8ed6-ca712f369da6;Archives nationales (AN);16004604100069;ARCHIVES NATIONALES;7160;recherche_siren_manuelle;
+2fb27f55-3759-43d8-8455-0cce1362f7a4;Archives nationales d'Outre-Mer;13002503400013;ARCHIVES NATIONALES D'OUTRE-MER (ANOM);7160;recherche_entreprises;0.97
+16f70ca9-7d8b-416c-a88a-f7d53dfa47ab;Archives nationales du monde du travail;13002504200016;ARCHIVES NATIONALES DU MONDE DU TRAVAIL (ANMT);7160;recherche_entreprises;0.97
+84561f40-a2e7-4b49-9d57-5affe2d8433e;Arts et Métiers - École Nationale Supérieure d'Arts et Métiers;19753472000010;ECOLE NATIONALE SUPERIEURE D'ARTS ET METIERS (ENSAM) (ENSAM);7383;annuaire_dila;
+bffc950d-cc09-4a75-abab-97f7350a05d7;Assemblée nationale;11000001500013;ASSEMBLEE NATIONALE;7111;recherche_entreprises;1.00
+3f2b1594-e8af-41a6-a470-80c97f7b40be;Autorité de contrôle des nuisances aéroportuaires;11000018900032;AUTORITE DE CONTROLE DES NUISANCES AEROPORTUAIRES (ACNUSA);7112;recherche_entreprises;0.97
+9c7e6b7c-b793-40b2-a19b-a7dfeaa4792e;Autorité de la concurrence;11000016300011;AUTORITE DE LA CONCURRENCE;7112;recherche_entreprises;1.00
+d3bb7765-389c-488f-8f39-9a30f005c15b;Autorité de régulation de la communication audiovisuelle et numérique (Arcom);11000029600274;AUTORITE DE REGULATION DE LA COMMUNICATION AUDIOVISUELLE ET NUMERIQUE (ARCOM);7112;recherche_entreprises;1.00
+dcb1b07e-82e0-4ac9-809e-eff760af96e3;Autorité de régulation des communications électroniques, des postes et de la distribution de la presse (ARCEP);11000035300034;AUTORITE DE REGULATION DES COMMUNICATIONS ELECTRONIQUES, DES POSTES ET DE LA DISTRIBUTION DE LA PRESSE (ARCEP);7112;recherche_entreprises;1.00
+a35d5a8a-7f19-44c6-8db0-bf0281456100;Autorité de régulation des transports;13001232100068;AUTORITE DE REGULATION DES TRANSPORTS (ART);7112;recherche_entreprises;0.97
+01883cad-3b59-4e61-a7af-778c6ade7748;Autorité de sûreté nucléaire et de radioprotection;44054601800027;INSTIT RADIOPROTECTION SURETE NUCLEAIRE (IRSN);4110;annuaire_dila;
+b34412d8-8ae3-42df-8805-a20c32bc8584;Autorité des marchés financiers;11000023900019;AUTORITE DES MARCHES FINANCIERS (AMF);7112;recherche_entreprises;0.97
+5edbf816-aaae-48a2-a632-fcc588c2d004;Autorité des relations sociales des plateformes d'emploi;13002976200023;AUTORITE DES RELATIONS SOCIALES DES PLATEFORMES D'EMPLOI (ARPE);7389;annuaire_dila;
+5d844ebb-0278-47d1-875c-9381dd02e445;Autorité nationale des jeux;13001183600025;AUTORITE NATIONALE DES JEUX (ANJ);7112;recherche_entreprises;0.97
+c25e984d-5528-4ad8-a996-a10af5c4f5a1;Avignon université (AU);19840685200204;AVIGNON UNIVERSITE;7383;recherche_entreprises;1.00
+15c373bd-3034-4296-a990-533d0238a6ab;Banque de France;57210489100013;BANQUE DE FRANCE (BDF);4160;recherche_entreprises;0.95
+75fb0b28-d078-468f-9eea-1c8bf6ae4d92;Bibliothèque nationale de France;18004625200177;BIBLIOTHEQUE NATIONALE DE FRANCE (BNF);7389;annuaire_dila;
+da1098a5-cea3-4446-8c83-08c2e07d36a6;Bibliothèque nationale et universitaire de Strasbourg (BNU);18004406700015;BIBLIOTHEQUE NATIONALE ET UNIVERSITAIRE DE STRASBOURG (BNU);7389;annuaire_dila;
+967792c1-9c95-4e0b-a075-927946b03a12;Bibliothèque publique d'information;18004309300038;BIBLIOTHEQUE PUBLIQUE D'INFORMATION (BPI);7389;annuaire_dila;
+39185d40-5941-4e5d-8dbc-d03cf10b3da4;Bureau d'enquête sur les accidents de transport terrestre;13000456700017;BUREAU D'ENQUETES SUR LES ACCIDENTS DE TRANSPORT TERRESTRE (BEA-TT);7160;recherche_entreprises_revue_manuelle;0.85
+17506b9f-d265-4216-8e97-32ef7069b6c8;Bureau d'enquêtes et d'analyses pour la sécurité de l'aviation civile;13000454200010;BUREAU D'ENQUETES ET D'ANALYSES POUR LA SECURITE DE L'AVIATION CIVILE (BEA AC);7160;recherche_entreprises;0.97
+e5a27582-6342-4528-9d78-ef1c629f34fa;Bureau de recherches géologiques et minières (BRGM);58205614900120;BRGM (BRGM);4110;annuaire_dila;
+1b40647e-ebd3-4513-adf4-9836e1beaf9a;Bureau des longitudes;18004416600015;BUREAU DES LONGITUDES;7490;recherche_entreprises;1.00
+fd042969-0b84-45da-a98e-1cc930210fec;Business France;45193005100052;BUSINESS FRANCE (BUSINESS FRANCE);4110;annuaire_dila;
+f0d4fc00-c3c4-4a8c-8c31-5b01fc8fd556;CCI France (Chambres de Commerce et d'Industrie);18750002000073;CCI FRANCE;7381;recherche_siren_manuelle;
+dfd929a3-1873-4dfe-9677-d09c21ea4d36;Caisse d'amortissement de la dette sociale (CADES);18002017400017;CAISSE D'AMORTISSEMENT DE LA DETTE SOCIALE (CADES);7389;annuaire_dila;
+fc8525b5-1448-4dbc-acb9-71db28b6c7fb;Caisse de garantie du logement locatif social (CGLLS);18009227200020;CAISSE DE GARANTIE DU LOGEMENT LOCATIF SOCIAL (CGLLS);7389;annuaire_dila;
+20b442d5-1447-44db-a2f9-e7f7462e804d;Caisse des dépôts et consignations;18002002600019;CAISSE DES DEPOTS ET CONSIGNATIONS (CDC);7490;recherche_entreprises;0.97
+6b7456d0-90f4-4ddf-8a81-80601e17a876;Caisse nationale d'assurance vieillesse;18003503200010;CAISSE NATIONALE D'ASSURANCE VIEILLESSE (CNAV);7389;annuaire_dila;
+ff0017f1-00fd-4ac6-a423-f3cb0a99836e;Caisse nationale de l'assurance maladie;18003502402369;CAISSE NATIONALE DE L'ASSURANCE MALADIE (CNAM);7389;annuaire_dila;
+5a450bc8-0db2-47a4-9688-ef5d96951700;Caisse nationale de solidarité pour l'autonomie;18009256100026;CAISSE NATIONALE DE SOLIDARITE POUR L'AUTONOMIE (CNSA);7389;annuaire_dila;
+b1e14803-6c0f-4e1d-9d38-c0a2dc6096a6;Caisse nationale des allocations familiales (CNAF);18003506500036;CAISSE NATIONALE DES ALLOCATIONS FAMILIALES (CNAF);7389;annuaire_dila;
+77cfced7-ecbb-42ef-96c3-a22330d462e5;Caisse nationale militaire de sécurité sociale;18009004500014;CAISSE NATIONALE MILITAIRE DE SECURITE SOCIALE (CNMSS);7389;annuaire_dila;
+d4681cbc-95fb-4cdc-8004-3213388c2d26;Campus France;75219543800011;CAMPUS FRANCE;4140;recherche_entreprises;1.00
+96876ff2-e4e5-4b08-ae5e-62b1f491c23c;Casa de Velázquez;18004412500011;CASA DE VELAZQUEZ DE MADRID;7383;recherche_entreprises;0.92
+b8625a11-ea76-4a38-99da-c4aa63b68fe1;Centrale Lille Institut;19590349700012;CENTRALE LILLE INSTITUT;7383;recherche_entreprises;1.00
+304cc601-b932-4239-8256-d0ce5038ddb8;CentraleSupélec;13002076100016;CENTRALESUPELEC;7383;recherche_entreprises;1.00
+0eed62d6-adf9-4055-88d1-1ff4d896f7dd;Centre d'analyse, de prévision et de stratégie;13001258600017;CENTRE D'ANALYSE, DE PREVISION ET DE STRATEGIE;7120;annuaire_dila;
+eb7bcb73-193b-4c55-bcdb-e922cc748431;Centre d'études des tunnels;12000018700035;DGITM (établissement CENTRE D'ETUDES DES TUNNELS);7120;recherche_etablissement_manuelle;
+9d58ff50-1216-4a94-b629-800691efea25;Centre d'études et d'expertise sur les risques, l'environnement, la mobilité et l'aménagement;13001831000537;CENTRE D'ETUDES ET D'EXPERTISE SUR LES RISQUES L'ENVIRONNEMENT LA MOBILITE ET L'AMENAGEMENT (CEREMA);7389;recherche_entreprises;0.98
+1a8a0fb6-8933-4b27-b33d-ed17ac858b15;Centre d'études et de recherches sur les qualifications;18004303600037;CENTRE D'ETUDES ET DE RECHERCHES SUR LES QUALIFICATIONS (CEREQ);7389;annuaire_dila;
+10c0f7c1-cf5e-4a3e-8c86-ab4a12e41c19;Centre de coopération internationale en recherche agronomique pour le développement;33159627000016;CTRE COOP INTERNAT RECHERCHE AGRO DEV (CIRAD);4120;annuaire_dila;
+d5095a4d-3be8-4fc5-8c00-882a85ccb390;Centre de crise et de soutien;13001257800014;CENTRE DE CRISE ET DE SOUTIEN;7120;annuaire_dila;
+4d00c07f-4950-4afa-8caf-14bb9ad383c5;Centre de gestion opérationnelle des cadres techniques sportifs;13002502600019;CENTRE DE GESTION OPERATIONNELLE DES CADRES TECHNIQUES SPORTIFS (CGOCTS);7160;recherche_entreprises;0.98
+d8846dd2-fc79-4073-a0fa-d4da23854247;Centre de recherche et de restauration des musées de France (C2RMF);16000017000037;CENTRE DE RECHERCHE ET DE RESTAURATION DES MUSEES DE FRANCE (C2RMF);7160;recherche_entreprises;1.00
+76887aba-b26b-415f-9ca7-042983104576;Centre des liaisons européennes et internationales de sécurité sociale;18003508100025;CENTRE DES LIAISONS EUROPEENNES ET INTERNATIONALES DE SECURITE SOCIALE (CLEISS);7389;annuaire_dila;
+a22e547d-3d94-4923-b55c-82ebac6c5758;Centre des monuments nationaux;18004601300017;CENTRE DES MONUMENTS NATIONAUX (CMN);7389;annuaire_dila;
+1c3cc6b2-0a7f-44d1-a989-6a98fe9ca344;Centre informatique national de l'enseignement supérieur;19341594000017;CENTRE INFORMATIQUE NATIONAL DE L'ENSEIGNEMENT SUPERIEUR (CINES);7389;annuaire_dila;
+bb01a630-00fc-4ccd-8238-2f3a84773eb5;Centre interministériel de formation antidrogues;18972907200018;CENTRE INTERMIN FORMATION ANTI DROGUES;7410;recherche_siren_manuelle;
+cdf5ea0c-847a-4623-92c7-005de3927d5e;Centre interministériel de gestion des ingénieurs des ponts, des eaux et des forêts;13002506700013;CENTRE INTERMINISTERIEL DE GESTION DES INGENIEURS DES PONTS, DES EAUX ET DES FORETS (CEIGIPEF);7160;recherche_entreprises;0.97
+ae6960f5-0c3f-44f7-9fe5-a57d7b806788;Centre interministériel de services informatiques relatifs aux ressources humaines (CISIRH);13002083700014;CENTRE INTERMINISTERIEL DE SERVICES INFORMATIQUES RELATIFS AUX RESSOURCES HUMAINES (CISIRH);7160;recherche_entreprises;1.00
+d8ff489e-88ea-409a-9bdd-96dcb2ca4122;Centre ministériel de valorisation des ressources humaines (CMVRH);13001641300135;CENTRE MINISTERIEL DE VALORISATION DES RESSOURCES HUMAINES (CMVRH);7160;recherche_entreprises;1.00
+1cb26bbd-f18a-4e08-9db6-718722e549bc;Centre national d'art et de culture Georges Pompidou;18004602100028;CENTRE NATIONAL D'ART ET DE CULTURE GEORGES POMPIDOU;7389;annuaire_dila;
+4ea8ade8-3d50-46e7-b79e-0b1fbbb12ea3;Centre national d'enseignement à distance;19752905000183;CENTRE NATIONAL D'ENSEIGNEMENT A DISTANCE (CNED);7384;recherche_entreprises;0.97
+df0845a5-af7d-4b35-b9d5-9d64bc53b8f9;Centre national d'études spatiales (CNES);77566591200082;CENTRE NATIONAL D'ETUDES SPATIALES (CNES);4110;annuaire_dila;
+b278bc72-5bfe-4d9b-812b-da10a37c4950;Centre national de gestion (CNG) des praticiens hospitaliers et des personnels de direction de la fonction publique hospitalière;13000374200017;CENTRE NATIONAL DE GESTION (CNG);7389;annuaire_dila;
+6e8138e1-b34c-4fe0-bb2f-fd127b65a27d;Centre national de la danse;41782263200010;CENTRE NATIONAL DE LA DANSE (CND);4110;annuaire_dila;
+007dddec-7ddf-478f-92fd-a89fb2c610e2;Centre national de la musique;88253978600047;CENTRE NATIONAL DE LA MUSIQUE (CNM) (CNM);4140;annuaire_dila;
+163a03dd-62a5-4a6c-8e13-f1b18662140e;Centre national de la propriété forestière;18009235500015;CNPF SERVICES GENERAUX (CNPF);7389;annuaire_dila;
+35a8a489-89b3-40ea-9838-803dcd5f7d18;Centre national de la recherche scientifique;18008901303720;CENTRE NATIONAL DE LA RECHERCHE SCIENTIFIQUE (CNRS);7389;annuaire_dila;
+eadf0375-4333-4b0b-9af4-f25af08e560b;Centre national des arts plastiques;18004605400201;CENTRE NATIONAL DES ARTS PLASTIQUES (CNAP);7389;annuaire_dila;
+d7a153d1-6214-4c0c-8616-8736e10d7625;Centre national des œuvres universitaires et scolaires;18004401800026;CENTRE NATIONAL DES OEUVRES UNIVERSITAIRES ET SCOLAIRES (CNOUS);7389;annuaire_dila;
+20e2a84a-734f-42f3-96fc-f156c1745f9b;Centre national du cinéma et de l'image animée;18004603900186;CENTRE NATIONAL DU CINEMA ET DE L'IMAGE ANIMEE (CNC);7389;annuaire_dila;
+43682bef-e3fb-47d5-acae-8641a4807ed8;Centre national du livre;18004604700023;CENTRE NATIONAL DU LIVRE (CNL);7389;annuaire_dila;
+20726dde-3dd4-4670-9c8d-b51f704dd466;Centre pour la recherche économique et ses applications;77566700900036;CENTRE POUR LA RECHERCHE ECONOMIQUE ET SES APPLICATIONS (CEPREMAP);9220;recherche_siren_manuelle;
+734eaa22-a615-49a5-af31-eb8d7a4aa401;Centre pour le développement de l'information sur la formation permanente;77572464400023;CTRE DEVEL INFORMATION FORMA PERMANENTE (CENTRE INFFO);9220;recherche_siren_manuelle;
+caf96dcf-432b-488b-8b18-7aa0dca9f14e;Centre scientifique et technique du bâtiment (CSTB);77568822900027;CTRE SCIENTIFIQUE TECHNIQUE DU BATIMENT (CSTB);4110;annuaire_dila;
+b8d260c0-e20d-47e1-8109-6ef96f1c4f21;Chaillot - Théâtre national de la danse;69203951400017;CHAILLOT-THEATRE NATIONAL DE LA DANSE (T.N.C.);4110;annuaire_dila;
+2feb6b7a-3bb3-4800-9752-82518e29ea74;Chambres d'agriculture France;18007004700014;CHAMBRES D'AGRICULTURE FRANCE;7381;recherche_entreprises;1.00
+1fac4328-2b81-4518-8868-4555a4764af1;Cité de l'architecture et du patrimoine;47818490600012;CITE ARCHITECTURE ET PATRIMOINE;4110;annuaire_dila;
+e66f9143-2e78-41c7-a0ea-3654be3740b5;Cité de la musique - Philharmonie de Paris;39171897000026;LA CITE DE LA MUSIQUE - PHILHARMONIE DE PARIS;4110;annuaire_dila;
+772a20e9-e024-4708-8c23-fdd74a47897f;Citéco, la Cité de l'économie;82850125400027;CITECO;9220;annuaire_dila;
+57df0d97-9888-47eb-86e0-e66081d27f6f;Collège de France;19753480300014;COLLEGE DE FRANCE;7383;recherche_entreprises;1.00
+9d2f718a-74ab-437e-8e2b-07ab3b446423;Comité consultatif national d’éthique pour les sciences de la vie et de la santé;11000101300066;GOUVERNEMENT PREMIER MINISTRE (établissement COMITE CONSULTATIF NATIONAL D'ETHIQUE);7111;recherche_etablissement_manuelle;
+1221a8d4-a524-42ef-9767-add4d2b0cde5;Comité d'indemnisation des victimes des essais nucléaires;13002111600012;COMITE D'INDEMNISATION DES VICTIMES DES ESSAIS NUCLEAIRES (CIVEN);7112;recherche_entreprises;0.98
+7c67c229-9a97-445f-a93a-f14e6ae84500;Commandement du service militaire adapté;13002016700016;COMMANDEMENT DU SERVICE MILITAIRE ADAPTE (COMSMA);7120;annuaire_dila;
+06251b9f-b17e-4122-8315-d97b8f0e8e7f;Commissariat aux communications électroniques de défense;13002509100013;COMMISSARIAT AUX COMMUNICATIONS ELECTRONIQUES DE DEFENSE (CCED);7160;recherche_entreprises;0.98
+bfe880bd-eb83-4922-a676-421a2bf01960;Commissariat général au développement durable (CGDD);13000572100076;COMMISSARIAT GENERAL AU DEVELOPPEMENT DURABLE (CGDD);7120;annuaire_dila;
+ba5b2f74-2e09-4a35-a6b7-086cd3064cca;Commissariat à l'énergie atomique et aux énergies alternatives;77568501900587;COMMISSARIAT A L' ENERGIE ATOMIQUE ET AUX ENERGIES ALTERNATIVES (CEA);4120;annuaire_dila;
+08dc354d-87d2-4b70-9fe3-044969aab4fa;Commission d'accès aux documents administratifs;11000008000017;COMMISSION D'ACCES AUX DOCUMENTS ADMINISTRATIFS (CADA);7112;recherche_entreprises;0.98
+088a9028-dfcd-431b-acf8-2e99d70d0c65;Commission de régulation de l'énergie;11000010600036;COMMISSION DE REGULATION DE L'ENERGIE (CRE);7112;recherche_entreprises;0.97
+1dc7dfec-59f1-4b5d-8590-148802439fe5;Commission du secret de la défense nationale;11000025400026;COMMISSION DU SECRET DE LA DEFENSE NATIONALE (CSDN);7112;recherche_entreprises;0.97
+e5c7226e-a87e-4b1d-8c32-eb3aadecb213;Commission nationale de contrôle des techniques de renseignement (CNCTR);13002205600027;COMMISSION NATIONALE DE CONTROLE DES TECHNIQUES DE RENSEIGNEMENT (CNCTR);7112;recherche_entreprises;1.00
+785c85d5-8400-4545-9a0b-9fa47b23ef6e;Commission nationale de l'informatique et des libertés;11000012200033;COMMISSION NATIONALE DE L'INFORMATIQUE ET DES LIBERTES (CNIL);7112;annuaire_dila;
+9bee7a63-09e4-4d69-b38f-324208a86086;Commission nationale des comptes de campagne et des financements politiques;11000032000033;COMMISSION NATIONALE DES COMPTES DE CAMPAGNE ET DES FINANCEMENTS POLITIQUES (CNCCFP);7112;recherche_entreprises;0.98
+e63f08bc-532f-4afd-8fcc-adb0e6965980;Commission nationale du débat public (CNDP);11000021300030;COMMISSION NATIONALE DU DEBAT PUBLIC (CNDP);7112;recherche_entreprises;1.00
+e0d62e78-0281-40c5-9335-5146edc20acc;Comédie française - Salle Richelieu;30297714500010;COMEDIE FRANCAISE;4110;annuaire_dila;
+33090c40-44e9-45f2-aace-1682c73e2048;Conseil constitutionnel;11000004900012;CONSEIL CONSTITUTIONNEL;7111;recherche_entreprises;1.00
+003022d4-6d9c-450d-a4a3-4a3c43c4a340;Conseil d'État;11000027000014;CONSEIL D'ETAT;7112;annuaire_dila;
+39b400de-5207-410c-8b18-7bba01af0c92;Conseil général de l'alimentation, de l'agriculture et des espaces ruraux;13001985400012;CONSEIL GENERAL DE L'ALIMENTATION, DE L'AGRICULTURE ET DES ESPACES RURAUX (CGAAER);7120;annuaire_dila;
+94a3e882-6275-40c3-a921-e08776304c5b;Conseil général de l'économie, de l'industrie, de l'énergie et des technologies;13002002700012;CONSEIL GENERAL DE L'ECONOMIE DE L'INDUSTRIE DE L'ENERGIE ET DES TECHNOLOGIES (CGE);7120;annuaire_dila;
+d82de433-1868-46f9-92d7-4e11ed2dc69a;Conseil national de la culture scientifique, technique et industrielle (CNCSTI);13001933400015;CONSEIL NATIONAL DE LA CULTURE SCIENTIFIQUE, TECHNIQUE ET INDUSTRIELLE (CNCSTI);7120;annuaire_dila;
+52a8c9d9-7191-453b-93df-6b854fe7ffeb;Conseil national des activités privées de sécurité;13001571200024;CONSEIL NATIONAL DES ACTIVITES PRIVEES DE SECURITE (CNAPS);7389;annuaire_dila;
+644aac64-039f-4509-ab93-df4cc82a7a3d;"Conseil national des communes ""Compagnon de la Libération"" - Ordre de la Libération";18000002800019;CONSEIL NATIONAL DES COMMUNES COMPAGNON DE LA LIBERATION (CNCCL);7389;annuaire_dila;
+453253ea-de62-4480-8a79-a003856d7935;Conseil stratégique de la recherche;13002237900015;CONSEIL STRATEGIQUE DE LA RECHERCHE;7120;annuaire_dila;
+c9189fd8-e21e-4177-981d-5a664204f321;Conseil supérieur de l'appui territorial et de l'évaluation;13001971400018;CONSEIL SUPERIEUR DE L' APPUI TERRITORIAL ET DE L' EVALUATION (CSATE);7120;recherche_entreprises;0.98
+dde15511-18c8-4e13-bbd6-1810fefd8350;Conseil supérieur de la construction et de l'efficacité énergétique (CSCEE);13002241100016;CONSEIL SUPERIEUR DE LA CONSTRUCTION ET DE L EFFICACITE ENERGETIQUE (CSCEE);7120;annuaire_dila;
+f354c570-1a88-478c-8637-6f2e4f44e83b;Conseil supérieur de la magistrature;11000005600033;CONSEIL SUPERIEUR DE LA MAGISTRATURE;7111;recherche_entreprises;1.00
+d0c50885-c256-40c8-a6b2-340c059d022b;Conseil supérieur de la propriété littéraire et artistique (CSPLA);13001935900012;CONSEIL SUPERIEUR DE LA PROPRIETE LITTERAIRE ET ARTISTIQUE (CSPLA);7120;annuaire_dila;
+f15a80e8-f453-4745-a03e-6aeabc998e2c;Conseil économique, social et environnemental (CESE);11000003100010;CONSEIL ECONOMIQUE SOCIAL ET ENVIRONNEMENTAL (CESE);7111;recherche_entreprises;1.00
+7490b1a0-42f8-4627-ae49-a567cb2734d4;Conservatoire botanique national Sud-Atlantique;20000317600019;CONSERVATOIRE BOTANIQUE SUD-ATLANTIQUE;7355;recherche_siren_manuelle;
+df6b9e55-10ee-48bc-8453-71926c601fd8;Conservatoire botanique national alpin;25050101200026;SYNDICAT MIXTE POUR LA GESTION DU CONSERVATOIRE BOTANIQUE NATIONAL ALPIN;7355;recherche_entreprises;0.91
+83c9edc0-6d82-4b61-8982-dd154de9bfda;Conservatoire botanique national de Brest;25290194700058;CONSERVATOIRE BOTANIQUE ARMORICAIN DE BREST;7355;recherche_siren_manuelle;
+30f6ea5b-7db5-47ef-b053-7eaddd25992d;Conservatoire botanique national de Corse;39159607900023;OFFICE DE L'ENVIRONNEMENT DE LA CORSE (OEC);4140;recherche_siren_manuelle;
+6b6582e5-9d10-4aab-9c33-6d087e26b0c5;Conservatoire botanique national de Franche-Comté;45125831300035;CONSERVATOIRE BOTANIQUE NATIONAL DE FRANCHE COMTE - OBSERVATOIRE REGIONAL DES INVERTEBRES (CBNFC-ORI);9220;annuaire_dila;
+faa48e90-b366-456e-90b4-773cbfaaa575;Conservatoire botanique national de Martinique;44273402600028;CONSERVATOIRE BOTANIQUE DE LA MARTINIQUE (CBMQ);9220;annuaire_dila;
+d76900b3-557f-400e-a758-e359a73ad5ee;Conservatoire botanique national de Mascarin;34067135300035;CONSERVATOIRE BOTANIQUE NATIONAL DE MASCARIN;9220;annuaire_dila;
+98b0b116-bd77-445b-a12b-cd2d24815c5d;Conservatoire botanique national des Pyrénées et de Midi-Pyrénées;25650215400014;CONSERVATOIRE BOTANIQUE PYRENEEN;7355;recherche_siren_manuelle;
+8ba12be6-eb5f-407f-8818-6b4ac0e0d5c1;Conservatoire botanique national du Massif central;25430117900027;SYNDICAT MIXTE DU CONSERVATOIRE BOTANIQUE DU MASSIF CENTRAL;7355;recherche_siren_manuelle;
+87ad65f7-2b3c-4924-ac36-fe53f7cf8ff7;Conservatoire botanique national méditerranéen;18830005700091;PARC NATIONAL DE PORT CROS;7385;annuaire_dila;
+665d5ccf-4a01-4d95-8226-5dc582b97dc2;Conservatoire du littoral;18000501900047;CONSERVATOIRE DE L'ESPACE LITTORAL ET DES RIVAGES LACUSTRES;7389;recherche_entreprises;0.85
+049e887c-beba-4eef-b9c9-272911bfeb43;Conservatoire national des arts et métiers;19753471200017;CONSERVATOIRE NATIONAL DES ARTS ET METIERS (CNAM);7383;recherche_entreprises;0.97
+d94864ac-aaab-4d3d-9e3a-6d476e0a8b97;Conservatoire national des arts et métiers - Auvergne-Rhône-Alpes;44320628900045;ASSOCIATION DE GESTION DU CONSERVATOIRE NATION DES ARTS ET METIERS AUVERGNE-RHONE-ALPES (AGCNAM AUVERGNE-RHA);9220;annuaire_dila;
+f54800ae-84db-49fc-baf1-040fc644fed0;Conservatoire national supérieur d'art dramatique;19753469600012;CONSERVATOIRE NATIONAL SUPERIEUR D'ART DRAMATIQUE (CNSAD);7384;annuaire_dila;
+cecd66eb-24a9-42ef-8e40-6571882bf6e4;Conservatoire national supérieur de musique et de danse de Paris;19753495100037;CONSERVATOIRE NATIONAL SUPERIEUR DE MUSIQUE ET DE DANSE DE PARIS (CNSMDP);7384;annuaire_dila;
+1b9d961f-3a04-4579-9a0a-453868cd3a1a;Conservatoire national supérieur musique et danse de Lyon;19693133100017;CONSERVATOIRE NATIONAL SUPERIEUR DE MUSIQUE ET DE DANSE DE LYON (CNSMDL);7384;annuaire_dila;
+5afe1ce7-c632-4cc8-8017-f80b7023fb37;Consulat général de France - Jérusalem;13000116700019;CONSULAT GENERAL DE FRANCE A JERUSALEM;7179;recherche_entreprises;1.00
+fe8560b3-76eb-4e50-bc1e-a1457f256a44;Contrôle général économique et financier (CGefi);13001980500014;SERVICE DU CONTROLE GENERAL ECONOMIQUE ET FINANCIER (CGEFI);7120;annuaire_dila;
+ef9e5e6e-5937-4509-98b6-e2365166537c;Contrôleur général des lieux de privation de liberté (CGLPL);13000557200024;CONTROLEUR GENERAL DES LIEUX DE PRIVATION DE LIBERTE;7112;recherche_siren_manuelle;
+c67a8733-b51c-49c4-9b5f-d319ddcb5df6;Cour de cassation;11000026200011;COUR DE CASSATION;7112;recherche_entreprises;1.00
+c24a4549-49a3-45bd-be9c-ea08266cabd9;Cour de justice de la République;11000034600012;COUR DE JUSTICE DE LA REPUBLIQUE;7111;recherche_entreprises;1.00
+6d3b7be4-3b13-45da-9836-4766e37bc569;Cour des comptes;11000028800016;COUR DES COMPTES;7112;recherche_entreprises;1.00
+a9a5ee54-3b3b-4624-84eb-b8aa1f7b4ba7;Direction Action territoriale;13000550700012;DIRECTION MODERNISATION ET ACTION TERRITORIALE (DMAT);7120;recherche_entreprises;0.90
+72e3e3e2-89a1-4827-9f4b-313922f49a53;Direction Administration générale;13002657800018;DIRECTION GENERALE DE L'ADMINISTRATION (DGA);7171;recherche_entreprises;0.91
+4182887a-b4a8-4c5b-9e5a-cea5ec8c3f48;Direction Interventions;16002205900010;DIRECTION NATIONALE D'INTERVENTIONS DOMANIALES (DNID);7160;recherche_entreprises;0.86
+6af3e78e-f246-4c30-8b73-898f7991c886;Direction centrale des compagnies républicaines de sécurité;12001508600024;DIRECTION CENTRALE DES COMPAGNIES REPUBLICAINES DE SECURITE (DCCRS);7120;annuaire_dila;
+a5e76c57-2cc1-468b-863c-08805134bd23;Direction de l'Union européenne;13000225600019;DIRECTION DE L'UNION EUROPEENNE;7120;annuaire_dila;
+febe0dee-52f0-47b0-b0c1-af440a0abd2d;Direction de l'animation de la recherche, des études et des statistiques (DARES);12003705600039;DIRECTION DE L'ANIMATION DE LA RECHERCHE DES ETUDES ET DES STATISTIQUES (DARES);7120;annuaire_dila;
+81e5a574-b321-4fab-9421-06c42e287c45;Direction de l'information et de la communication;13000552300019;DIRECTION GENERALE DES SYSTEMES D'INFORMATION ET DE COMMUNICATION (DGSIC);7120;recherche_entreprises;0.90
+0001945a-3c57-4271-b3cd-38ce8ff2c696;Direction de l'information légale et administrative;13000918600011;DIRECTION DE L'INFORMATION LEGALE ET ADMINISTRATIVE (DILA);7120;annuaire_dila;
+c2893ebd-86e5-4f0f-9953-9718d6bbc08e;Direction de la communication et de la presse, porte-parole du ministère des Affaires étrangères;12000604400016;DIRECTION DE LA COMMUNICATION ET DE LA PRESSE;7120;annuaire_dila;
+de0ee565-03c7-4fd0-ae74-6e61d88a3520;Direction de la jeunesse, de l'éducation populaire et de la vie associative (DJEPVA);12004101700035;DIRECTION DE LA JEUNESSE DE L'EDUCATION POPULAIRE ET DE LA VIE ASSOCIATIVE (DJEPVA);7120;annuaire_dila;
+a2c32e80-39d1-4045-8cc3-f813650529ce;Direction de la protection judiciaire de la jeunesse;12001301600056;DIRECTION DE LA PROTECTION JUDICIAIRE DE LA JEUNESSE (DPJJ);7120;annuaire_dila;
+929f8575-51b3-4977-8dcb-147b756de677;Direction de la recherche, des études, de l'évaluation et des statistiques;12000016100022;DIRECTION DE LA RECHERCHE DES ETUDES DE L'EVALUATION ET DES STATISTIQUES (DREES);7120;annuaire_dila;
+0e62e0aa-a843-4a0d-ad9c-cb537da5cc4b;Direction de la sécurité de l'aviation civile;13000577000016;DIRECTION DE LA SECURITE DE L'AVIATION CIVILE (DSAC);7160;annuaire_dila;
+bc9e1ff5-82d2-4e9f-ab39-bc70c7765984;Direction de la sécurité sociale;12003501900013;DIRECTION DE LA SECURITE SOCIALE (DSS);7120;annuaire_dila;
+d0311e3f-5937-4739-9125-2548073015cb;Direction des Français à l'étranger et de l'administration consulaire;12000605100060;DIRECTION DES FRANCAIS A L ETRANGER ET DE L ADMINISTRATION CONSULAIRE;7120;annuaire_dila;
+f471f3d5-13bf-452e-9484-42ef60c9e5a3;Direction des achats de l'État (DAE);13002220500012;DIRECTION DES ACHATS DE L'ETAT;7120;annuaire_dila;
+d831b7f7-f943-4277-a265-ce85bd9efb62;Direction des affaires civiles et du sceau;12001001200017;DIRECTION DES AFFAIRES CIVILES ET DU SCEAU;7120;annuaire_dila;
+b8932afe-a7b7-49bb-91b2-cdce7b9f5054;Direction des affaires criminelles et des grâces;12001002000010;DIRECTION DES AFFAIRES CRIMINELLES ET DES GRACES;7120;annuaire_dila;
+9efb8c31-7cd7-4be0-a143-b106cb1f74dc;Direction des affaires financières - ministère de l'Education nationale;12004305400010;DIRECTION DES AFFAIRES FINANCIERES (DAF);7120;annuaire_dila;
+7745b211-3f88-48b3-b951-bc32ffb22c10;Direction des affaires juridiques;12000606900013;DIRECTION DES AFFAIRES JURIDIQUES;7120;recherche_entreprises;1.00
+e597693c-ee5c-49fd-a54a-c3747c68f361;Direction des affaires juridiques des ministères économiques et financiers;12000009600020;DIRECTION DES AFFAIRES JURIDIQUES DES MINISTERES ECONOMIQUES ET FINANCIERS (DAJ);7120;annuaire_dila;
+57a16548-22ca-404d-8541-544a2b0f8291;Direction des archives;12000602800019;DIRECTION DES ARCHIVES;7120;annuaire_dila;
+80eea00d-32e3-40f4-9637-83619176a35a;Direction des grandes entreprises;16000009700073;DIRECTION DES GRANDES ENTREPRISES (DGE);7160;recherche_entreprises;0.97
+f69aa176-ee66-4720-994f-807a75fb5dc8;Direction des libertés publiques et des affaires juridiques;12001405500012;DIRECTION DES LIBERTES PUBLIQUES ET DES AFFAIRES JURIDIQUES (DLPAJ);7120;annuaire_dila;
+3bf45bb9-f741-4f55-be5a-492a820e5bf6;Direction des ressources humaines, des finances et des soutiens de la police nationale;13001336000057;DIRECTION DES RESSOURCES HUMAINES, DES FINANCES ET DES SOUTIENS DE LA POLICE NATIONALE (DRFSPN);7120;annuaire_dila;
+7d7e533d-b739-45f6-9476-d490a55232fe;Direction des services administratifs et financiers;12000103700023;DIRECTION DES SERVICES ADMINISTRATIFS ET FINANCIERS (DSAF);7120;annuaire_dila;
+9324d58a-91e9-4661-ba42-a4448610fc00;Direction des services de la navigation aérienne;12006402700077;DIRECTION DES SERVICES DE LA NAVIGATION AERIENNE (DSNA);7160;recherche_entreprises;0.97
+8f6c2da1-b29e-4333-a9c2-7129d3245115;Direction des services judiciaires;12001101000010;DIRECTION DES SERVICES JUDICIAIRES;7120;annuaire_dila;
+5a60414c-e5f4-4099-ac0f-dd0ad238bf60;Direction des sports;12004102500020;DIRECTION DES SPORTS;7120;annuaire_dila;
+17a2d344-7828-4496-ad67-7e6414593980;Direction du budget;12002101900027;DIRECTION DU BUDGET;7120;annuaire_dila;
+a0e0dd4e-a994-4ae5-88f0-1223d75bb9c9;Direction du protocole d'État et des événements diplomatiques;12000603600012;DIRECTION DU PROTOCOLE D'ETAT ET DES EVENEMENTS DIPLOMATIQUES;7120;annuaire_dila;
+278bf3d4-9cf3-4a36-a317-ec56fb0abc52;Direction générale de l'Institut national de la statistique et des études économiques;12002701600563;INSTITUT NATIONAL DE LA STATISTIQUE ET DES ETUDES ECONOMIQUES (INSEE);7120;annuaire_dila;
+5c499713-9859-43ef-b596-e56bdf4619bd;Direction générale de l'administration et de la fonction publique;12000201900020;DIRECTION GENERALE DE L'ADMINISTRATION ET DE LA FONCTION PUBLIQUE (DGAFP);7120;annuaire_dila;
+8cbba310-e0be-4f3e-86e4-2c6d478dce9e;Direction générale de l'administration et de la modernisation du ministère de l'Europe et des Affaires étrangères;12000601000074;DIRECTION GENERALE DE L'ADMINISTRATION ET DE LA MODERNISATION;7120;annuaire_dila;
+6d2d38aa-7890-4a74-b9c3-905cc011c910;Direction générale de l'administration pénitentiaire;12001201800111;DIRECTION GENERALE DE L'ADMINISTRATION PENITENTIAIRE;7120;annuaire_dila;
+b89cdad4-ec51-4b1a-a338-2619e1826cc9;Direction générale de l'alimentation (DGAL);12007901700238;DIRECTION GENERALE DE L'ALIMENTATION (DGAL);7120;annuaire_dila;
+a9d74a58-2f71-4781-9aad-74eb02eb71a3;Direction générale de l'aménagement, du logement et de la nature (DGALN);12006701200027;DIRECTION GENERALE DE L'AMENAGEMENT DU LOGEMENT ET DE LA NATURE (DGALN);7120;annuaire_dila;
+0aed72f5-21ba-42da-9f16-01a529b3df14;Direction générale de l'aviation civile;12006401900074;DIRECTION GENERALE DE L'AVIATION CIVILE (DGAC);7120;annuaire_dila;
+0364fe3b-432d-48c3-bf71-9e3564374f07;Direction générale de l'enseignement et de la recherche;12007401800199;DIRECTION GENERALE DE L'ENSEIGNEMENT ET DE LA RECHERCHE (DGER);7120;annuaire_dila;
+ad5de5b3-6b27-434b-8f03-9346353a5958;Direction générale de l'enseignement scolaire (DGESCO);13001192700014;DIRECTION GENERALE DE L'ENSEIGNEMENT SCOLAIRE (DGESCO);7120;annuaire_dila;
+1e77fc12-eabc-4afb-a185-5cd917633b7e;Direction générale de l'enseignement supérieur et de l'insertion professionnelle;12004402900045;DIRECTION GENERALE DE L'ENSEIGNEMENT SUPERIEUR ET DE L'INSERTION PROFESSIONNELLE (DGESIP);7120;annuaire_dila;
+0c6fc100-b8de-4300-a57c-b71d0cb1bb9b;Direction générale de l'offre de soins;13001930000016;DIRECTION GENERALE DE L'OFFRE DE SOINS (DGOS);7120;annuaire_dila;
+f2376984-6956-4e6b-b621-4da4ede53dc8;Direction générale de l'énergie et du climat (DGEC);12008701000068;DIRECTION GENERALE DE L'ENERGIE ET DU CLIMAT (DGEC);7120;annuaire_dila;
+ecdadc5a-7bbc-4085-bc17-5f2a7f8f14f0;Direction générale de la cohésion sociale;13001119000035;DIRECTION GENERALE DE LA COHESION SOCIALE (DGCS);7120;annuaire_dila;
+3d5a61d8-431a-4eea-9e22-7703c0fb891c;Direction générale de la concurrence, de la consommation et de la répression des fraudes;12002503600035;DIRECTION GENERALE DE LA CONCURRENCE, DE LA CONSOMMATION ET DE LA REPRESSION DES FRAUDES (DGCCRF);7120;annuaire_dila;
+5f50e835-0f83-47c2-adcb-abcb1f7fbb3c;Direction générale de la création artistique;12000004700023;DIRECTION GENERALE DE LA CREATION ARTISTIQUE (DGCA);7120;annuaire_dila;
+3a40a3cc-73cf-4222-85d5-17af20424724;Direction générale de la démocratie culturelle, des enseignements et de la recherche;13003045500013;DELEGATION GENERALE A LA TRANSMISSION, AUX TERRITOIRES ET A LA DEMOCRATIE CULTURELLE (DG2TDC);7120;annuaire_dila;
+90157e87-b6b0-4024-aecf-f4ff939ad93c;Direction générale de la mondialisation;13001259400011;DIRECTION GENERALE DE LA MONDIALISATION (DGM);7120;annuaire_dila;
+d0f13e89-9a7d-4728-8a8c-8645ddfd55c7;Direction générale de la performance économique et environnementale des entreprises (DGPE);13000720600019;DIRECTION GENERALE DE LA PERFORMANCE ECONOMIQUE ET ENVIRONNEMENTALE DES ENTREPRISES (DGPE);7120;annuaire_dila;
+d94861cf-4aa1-4bee-bb5a-01ea8a1799bc;Direction générale de la police nationale (DGPN);12001501100014;DIRECTION GENERALE DE LA POLICE NATIONALE (DGPN);7120;annuaire_dila;
+9d2b584b-a219-4c78-bbd3-a85386cdc275;Direction générale de la prévention des risques;12006805100032;DIRECTION GENERALE DE LA PREVENTION DES RISQUES (DGPR);7120;annuaire_dila;
+57d7f511-4b5b-406d-a503-0296dbff692e;Direction générale de la recherche et de l'innovation;12000008800019;DIRECTION GENERALE DE LA RECHERCHE ET DE L'INNOVATION (DGRI);7120;annuaire_dila;
+bbcb53b6-3dde-4b88-92db-67b9f785a748;Direction générale de la recherche, de l'innovation et du numérique en santé;13003120600019;DIRECTION GENERALE DE LA RECHERCHE, DE L'INNOVATION ET DU NUMERIQUE EN SANTE (DGRINS);7120;annuaire_dila;
+6155ec60-1ccc-4d82-a252-d9e5814bfe18;Direction générale de la santé;12003601700040;DIRECTION GENERALE DE LA SANTE (DGS);7120;annuaire_dila;
+07698e91-2d43-4e6d-aff4-2ad51780ece7;Direction générale de la sécurité civile et de la gestion des crises;12001504500103;DIRECTION GENERALE DE LA SECURITE CIVILE ET DE LA GESTION DES CRISES (DGSCGC);7120;annuaire_dila;
+67e44e83-e608-436d-8ebc-7dc228a6a263;Direction générale de la sécurité intérieure;13002060500015;DIRECTION GENERALE DE LA SECURITE INTERIEURE (DGSI);7120;annuaire_dila;
+e59580c2-5627-4f84-98c5-1be196e84afe;Direction générale des Outre-mer (DGOM);13001269300011;DIRECTION GENERALE DES OUTRE-MER (DGOM);7120;annuaire_dila;
+b7b3f127-bc9d-47de-8094-cb38525dcfb8;Direction générale des affaires maritimes, de la pêche et de l'aquaculture (DGAMPA);13003001800019;DIRECTION GENERALE DES AFFAIRES MARITIMES, DE LA PECHE ET DE L'AQUACULTURE (DG AMPA);7120;annuaire_dila;
+350a9646-92de-47ca-87bc-cd223bdb47ef;Direction générale des affaires politiques et de sécurité;12000607700016;DIRECTION GENERALE DES AFFAIRES POLITIQUES ET DE SECURITE;7120;annuaire_dila;
+497be2c4-d0ac-43e5-a186-2a2d881c1050;Direction générale des collectivités locales;12001402200020;DIRECTION GENERALE DES COLLECTIVITES LOCALES (DGCL);7120;annuaire_dila;
+7e776411-ee48-4510-b87c-0544793056ec;Direction générale des douanes et droits indirects;12002301500031;DIRECTION GENERALE DES DOUANES ET DROITS INDIRECTS (DGDDI);7120;annuaire_dila;
+c29540a1-a126-434d-a6dc-a0236eefeec6;Direction générale des entreprises (DGE);13000601800027;DIRECTION GENERALE DES ENTREPRISES (DGE);7120;annuaire_dila;
+80515340-0ad9-4293-9348-35d7eb005fc7;Direction générale des finances publiques;13000495500014;DIRECTION GENERALE DES FINANCES PUBLIQUES (DGFIP);7120;annuaire_dila;
+a7b757b3-7b6c-48b8-a84d-abba3802be3b;Direction générale des infrastructures, des transports et des mobilités;12000018700027;DIRECTION GENERALE DES INFRASTRUCTURES, DES TRANSPORTS ET DES MOBILITES (DGITM);7120;annuaire_dila;
+a3145603-85f7-4511-a241-b0b2181d4d7e;Direction générale des médias et des industries culturelles;12004701400036;DIRECTION GENERALE DES MEDIAS ET DES INDUSTRIES CULTURELLES (DGMIC);7120;annuaire_dila;
+b4a32de6-8e32-4e92-b0f2-13c926f7e09c;Direction générale des patrimoines et de l'architecture (DGPA);12004614901203;DIRECTION GENERALE DES PATRIMOINES ET DE L'ARCHITECTURE (DGPA);7120;annuaire_dila;
+f2476b81-8f1a-470e-a999-08364935a2b5;Direction générale des ressources humaines (DGRH) - Ministère de l'Education nationale;12004310400039;DIRECTION GENERALE DES RESSOURCES HUMAINES (DGRH);7120;annuaire_dila;
+f47c8cbd-126b-4bd7-b6a3-99d20212c67b;Direction générale des étrangers en France (DGEF);13001759300034;DIRECTION GENERALE DES ETRANGERS EN FRANCE (DGEF);7120;annuaire_dila;
+1ff5db06-e981-48a4-91cf-5cc314b4a493;Direction générale du Trésor;12000032800019;DIRECTION GENERALE DU TRESOR (DGT);7120;annuaire_dila;
+f2a207a4-bf6d-4cce-a16c-48479beb1f6e;Direction générale du travail;12003701500035;DIRECTION GENERALE DU TRAVAIL (DGT);7120;annuaire_dila;
+c1c38bcd-449f-47e5-9207-a9b573597a55;Direction interministérielle de la transformation publique (DITP);13002527300017;DIRECTION INTERMINISTERIELLE DE LA TRANSFORMATION PUBLIQUE (DITP);7120;annuaire_dila;
+d1a97841-b4bf-46df-a089-1003e4e266b4;Direction interministérielle du numérique (DINUM);13002526500013;DIRECTION INTERMINISTERIELLE DU NUMERIQUE (DINUM);7120;annuaire_dila;
+b3a95f38-d3ff-4bf6-a84a-e7fb7b7237dd;Direction internationale;12001511000022;DIRECTION DE COOPERATION INTERNATIONALE DE SECURITE (DCIS);7120;recherche_entreprises;0.86
+054adf88-db3c-49d0-9f30-7ec17eed1b02;Direction nationale de la police aux frontières;12001517700021;DIRECTION NATIONALE DE LA POLICE AUX FRONTIERES (DNPAF);7120;annuaire_dila;
+c41ee516-5f54-4ea1-a606-bb32c719927e;Direction nationale de la police judiciaire;12001505200018;DIRECTION NATIONALE DE LA POLICE JUDICIAIRE (DNPJ);7120;annuaire_dila;
+8d61fa8c-cb4c-4674-b78b-a1c2d0a26637;Direction nationale de la sécurité publique;12001516900010;DIRECTION NATIONALE DE LA SECURITE PUBLIQUE (DNSP);7120;annuaire_dila;
+87edb27d-ccd5-4189-94f2-20f7b8b5eb68;Direction nationale du renseignement et des enquêtes douanières;16002301600282;DIRECTION NATIONALE DU RENSEIGNEMENT ET DES ENQUETES DOUANIERES (DNRED);7160;recherche_entreprises;0.98
+153ca244-a76d-40b3-963f-5038f18efb8b;Direction nationale du renseignement territorial;13003119800018;DIRECTION NATIONALE DU RENSEIGNEMENT TERRITORIAL (DNRT);7120;annuaire_dila;
+a88c1350-db11-45fe-bf9e-ceb27d4d486e;Direction nationale garde-côtes des douanes (DNGCD);13002521600016;DIRECTION NATIONALE GARDE-COTES DES DOUANES (DNGCD);7160;recherche_entreprises;1.00
+e08c012a-5f1d-4042-bcfd-900ff01721f3;Direction spécialisée des finances publiques pour l'étranger;16002103600019;DIRECTION SPECIALISEE DES FINANCES PUBLIQUES POUR L'ETRANGER (DSFIPE);7179;recherche_entreprises;0.97
+816d7986-00a3-4460-be2a-b573b5d68172;Domaine national de Chambord;48325859600012;DOMAINE NATIONAL DE CHAMBORD;4110;annuaire_dila;
+1867f065-c823-4362-8d0f-8ca6b011a10f;Défenseur des droits;13001501900024;DEFENSEUR DES DROITS;7112;recherche_entreprises;1.00
+4e7f1afc-94a7-4c0b-b2a7-092e1a388d2c;Délégation aux relations européennes et internationales et à la coopération;12004408600029;DELEGATION AUX RELATIONS EUROPEENNES ET INTERNATIONALES ET A LA COOPERATION;7120;annuaire_dila;
+678fa789-28e0-4985-b48f-23e3ccf5f2e7;Délégation de programme interministérielle au nouveau nucléaire;13003053900014;DELEGATION DE PROGRAMME INTERMINISTERIELLE AU NOUVEAU NUCLEAIRE;7120;annuaire_dila;
+ca9d0a5d-896a-4473-ac9c-5f619b0a12ad;Délégation générale à l'emploi et à la formation professionnelle (DGEFP);12000015300029;DELEGATION GENERALE A L'EMPLOI ET A LA FORMATION PROFESSIONNELLE (DGEFP);7120;annuaire_dila;
+c1b5c0b2-be6b-4aa7-94b8-c925a92fe4af;Délégation générale à la langue française et aux langues de France (DGLFLF);12000014600015;DELEGATION GENERALE A LA LANGUE FRANCAISE ET AUX LANGUES DE FRANCE (DGLFLF);7120;annuaire_dila;
+fc573099-4a39-462e-841a-aab457f0a364;Délégation interministérielle aux jeux Olympiques et Paralympiques (DIJOP);93466293300019;DELEGATION INTERMINISTERIELLE AUX JEUX OLYMPIQUES ET PARALYMPIQUES (DIJOP);7120;annuaire_dila;
+74e50deb-b3b6-42c7-93d5-565e0130560c;Délégation interministérielle à l'encadrement supérieur de l'État;13002992900010;DELEGATION INTERMINISTERIELLE A L ENCADREMENT SUPERIEUR DE L ETAT (DIESE);7120;annuaire_dila;
+a66b3932-b91e-441b-8ecb-f4de7a01b5a8;Délégation interministérielle à l'hébergement et à l'accès au logement;13001481400052;DELEGATION INTERMINISTERIELLE POUR L'HEBERGEMENT ET L'ACCES AU LOGEMENT DES PERSONNES SANS ABRI OU MAL LOGEES (DIHAL);7120;annuaire_dila;
+a1bd9bcc-303a-4d48-85b1-f8528065037f;Délégation à l'information et à la communication - ministère de l’Agriculture et de la Souveraineté alimentaire;12000013800012;DELEGATION A L'INFORMATION ET A LA COMMUNICATION;7120;annuaire_dila;
+6a592d84-9f0e-4384-976b-d162c617479e;Délégation à la communication - ministère de l'Education nationale;12004315300010;DELEGATION A LA COMMUNICATION;7120;annuaire_dila;
+9924e178-b19d-4861-a619-159a07730330;Délégation à la sécurité routière;12006102300038;DELEGATION A LA SECURITE ROUTIERE (DSR);7120;annuaire_dila;
+8f6219f8-cea3-4884-9d51-0095ab1c90b1;Délégué interministériel au développement de la vallée de la Seine;13002230400013;DELEGUE INTERMINISTERIEL AU DEVELOPPEMENT DE LA VALLEE DE LA SEINE;7120;annuaire_dila;
+45687818-466b-42b9-8877-5833f55b4ada;Délégué interministériel aux normes;13002239500011;DELEGATION INTERMINISTERIELLE AUX NORMES;7120;annuaire_dila;
+0740946a-83eb-4139-a84b-b5f6ec0d4e03;Délégué interministériel à la mixité sociale dans l'habitat;13002228800018;DELEGUE INTERMINISTERIEL A LA MIXITE SOCIALE DANS L'HABITAT;7120;annuaire_dila;
+bf801823-475e-42cd-8d79-a66e466f1893;EURECOM Ecole d'ingénieur et autre de recherche en sciences du numérique;38318157500028;EURECOM;6220;recherche_siren_manuelle;
+364ee973-c428-4e2f-a889-ec97a56ec17a;Ecole française d'Athènes;18004408300012;ECOLE FRANCAISE D'ARCHEOLOGIE D'ATHENES;7383;recherche_entreprises;0.92
+ec4e2ef1-2c9d-499c-bf1a-7dadae58cb8d;Ecole française d'Extrême-Orient;18004411700018;ECOLE FRANCAISE D'EXTREME ORIENT (EFEO);7383;recherche_entreprises;0.97
+74c6ee5e-1c50-48da-b745-7c3d49617ac9;Ecole française de Rome;18004409100015;ECOLE FRANCAISE DE ROME;7383;recherche_entreprises;1.00
+171547bb-9d67-4c21-973a-843564f8ccf6;Ecole nationale des greffes;19211660600018;ECOLE NATIONALE DES GREFFES (ENG);7160;recherche_entreprises;0.97
+09e2bb8b-cd81-4ebd-ada0-d150201968c7;Ecole nationale supérieure des Beaux-arts de Paris;19753667500014;ECOLE NATIONALE SUPERIEURE DES BEAUX-ARTS (ENSBA);7384;annuaire_dila;
+85693f06-fb45-44f1-b525-0e0da8db35f6;Etablissement public du musée national Jean-Jacques Henner et du musée national Gustave Moreau;13002308800011;ETABLISSEMENT PUBLIC DU MUSEE NATIONAL JEAN JACQUES HENNER ET DU MUSEE NATIONAL GUSTAVE MOREAU;7389;annuaire_dila;
+2c2d871a-519c-4afa-a162-13108865be1f;Expertise France;80873479200035;EXPERTISE FRANCE;5710;recherche_siren_manuelle;
+a9f450a0-4aa7-4f8c-b99b-dbdcd351636e;Fonds d'indemnisation des victimes de l'amiante (FIVA);18009232200031;FONDS D'INDEMNISATION DES VICTIMES DE L'AMIANTE (FIVA);7389;annuaire_dila;
+f39b55b6-c9ab-4e47-8979-257bcb937920;Fonds de garantie des assurances obligatoires de dommages (FGAO);78439456100129;FONDS GARANTIE ASSUR OBL DE DOMMAGES (FGAO);9900;recherche_siren_manuelle;
+d94d3b12-bb1e-4c4b-a44c-46e9c7558dea;Fonds de garantie des victimes des actes de terrorisme et d'autres infractions (FGTI);37778906000029;FONDS GARANTIE VICTIME TERRORISME INFRAC (FGTI);9900;recherche_siren_manuelle;
+bb69c9e6-4d1f-4af6-8806-c39ac24c768a;Fonds de solidarité vieillesse (FSV);18003510700028;FONDS DE SOLIDARITE VIEILLESSE (FSV);7389;annuaire_dila;
+93749f83-1a76-43be-a621-1af8e8e6e64b;France Education international;18004306900012;FRANCE EDUCATION INTERNATIONAL (FEI);7389;annuaire_dila;
+04b28e53-ca39-42c0-8cfa-9053b82b86b9;France Enfance Protégée;13003063800022;FRANCE ENFANCE PROTEGEE (FEP);7410;recherche_entreprises;0.97
+e182c0ab-7031-4ce0-b472-2827d2f87f20;France Titres - Agence nationale des titres sécurisés (ANTS);13000326200024;AGENCE NATIONALE DES TITRES SECURISES (ANTS);7389;annuaire_dila;
+cb47a769-8574-403d-9130-0ad9c83c7e22;France Travail;13000548100010;FRANCE TRAVAIL;7389;annuaire_dila;
+6478daed-e904-4881-a1f9-64c95f9d7e92;France compétences;13002456500025;FRANCE COMPETENCES;7389;annuaire_dila;
+cfa1ec40-86f6-42bf-a1f3-d7921572c77e;FranceAgriMer - Établissement national des produits de l'agriculture et de la mer;13000636400017;ETABLISSEMENT NATIONAL DES PRODUITS DE L AGRICULTURE ET DE LA MER FRANCEAGRIMER (FRANCEAGRIMER);7389;annuaire_dila;
+81d5b0e4-1905-4840-9db6-3715b069cf00;Garde républicaine;15700018300010;GARDE REPUBLICAINE;7150;recherche_entreprises;1.00
+cf1dbc27-3dc4-4b4f-bdc2-1908786f0ab4;Grand port fluvio-maritime - Bordeaux;78180414100021;GRAND PORT MARITIME DE BORDEAUX;4110;annuaire_dila;
+ec669a0a-a6d5-41bb-937f-393858aabfd8;Grand port fluvio-maritime - Dunkerque;78359503600014;GRAND PORT MARITIME DE DUNKERQUE;4110;annuaire_dila;
+18066671-a406-4062-ac81-5a3672aa4034;Grand port fluvio-maritime - Guadeloupe;79453852000014;GRAND PORT MARITIME DE LA GUADELOUPE (G.P.M.G.);4110;annuaire_dila;
+5e79b942-37b5-484b-9892-39c14c47c8f1;Grand port fluvio-maritime - Guyane;78989924200018;GRAND PORT MARITIME DE LA GUYANE (GPM GUYANE);4110;annuaire_dila;
+f4f3b823-17f7-4957-91c6-9e24f684dc1c;Grand port fluvio-maritime - La Rochelle;48538981100020;GRAND PORT MARITIME DE LA ROCHELLE (PORT ATLANTIQUE LA ROCHELLE / PALR);4110;annuaire_dila;
+9f39d755-3830-45b8-8069-9e9d682951bf;Grand port fluvio-maritime - La Réunion;78940185800012;GRAND PORT MARITIME DE LA REUNION (GPMDLR);4110;annuaire_dila;
+6fe7c522-27bd-4ef2-8bbe-5fecef965880;Grand port fluvio-maritime - Marseille-Fos;77555848900016;GRAND PORT MARITIME DE MARSEILLE (GPMM);4110;annuaire_dila;
+44806dd3-3fa1-4dbe-b8e2-ce711e9e8c8d;Grand port fluvio-maritime - Martinique;78943366100012;GRAND PORT MARITIME DE LA MARTINIQUE (GPMLM);4110;annuaire_dila;
+496fb474-1b6c-457e-9d13-022f31af973e;Grand port fluvio-maritime - Nantes-Saint-Nazaire;77560485300041;GRAND PORT MARITIME DE NANTES SAINT-NAZAIRE;4110;annuaire_dila;
+a46981cc-51e8-47dd-8681-8faa8ea58e7b;Grand port fluvio-maritime de l'axe Seine;89961480400016;GRAND PORT FLUVIO-MARITIME DE L'AXE SEINE (HAROPA PORT);4110;recherche_entreprises;0.94
+5b74cb24-3903-487d-8853-25b531f258e7;Grande chancellerie de la Légion d'honneur;18000001000017;GRANDE CHANCELLERIE DE LA LEGION D'HONNEUR;7490;recherche_entreprises;1.00
+e7f6561c-edc4-4407-978c-94e23490d1af;Groupe des écoles nationales d'économie et statistique (Groupe ENSAE-ENSAI);13001422800089;GROUPE DES ECOLES NATIONALES D ECONOMIE ET STATISTIQUE (GROUPE ENSAE-ENSAI);7383;recherche_entreprises;1.00
+8016c29e-2e33-4205-9a98-852ad598af57;Haut Conseil de l'éducation artistique et culturelle;13001932600011;HAUT CONSEIL DE L'EDUCATION ARTISTIQUE ET CULTURELLE (HCEAC);7120;annuaire_dila;
+eaac22f0-39f1-450b-939a-398c2bda95f5;Haut Conseil de l'évaluation de la recherche et de l'enseignement supérieur (HCERES);13000349400049;HAUT CONSEIL DE L EVALUATION DE LA RECHERCHE ET DE L ENSEIGNEMENT SUPERIEUR (HCERES);7112;recherche_entreprises;1.00
+cd920ca2-f827-454a-9fd6-7eb3b71f2118;Haut Conseil de la santé publique;13001927600018;SECRETARIAT GENERAL DU HAUT CONSEIL DE SANTE PUBLIQUE;7120;recherche_entreprises;0.89
+51fb3f51-2233-477b-af31-da23c23b2211;Haut Conseil des finances publiques;13001828600018;HAUT CONSEIL DES FINANCES PUBLIQUES;7112;recherche_entreprises;1.00
+ac3af4ea-7020-40ac-9909-1b13ccfda47b;Haut Conseil du dialogue social;13001989600013;HAUT CONSEIL DU DIALOGUE SOCIAL;7120;annuaire_dila;
+6732bb81-8f3b-4747-b630-b2ce3d811d9f;Haut fonctionnaire correspondant de défense et de sécurité - Affaires étrangères;13002022500012;HAUT FONCTIONNAIRE CORRESPONDANT DE DEFENSE ET DE SECURITE MINISTERE DE L'EUROPE ET DES AFFAIRES ETRANGERES (HFDS);7120;annuaire_dila;
+8aeabb5d-d9d8-4cc9-9657-b5bef7c01121;Haut fonctionnaire de défense et de sécurité - Ministère de l'Economie et des Finances;13002020900016;HAUT FONCTIONNAIRE DE DEFENSE ET DE SECURITE MINISTERE DE L'ECONOMIE ET DES FINANCES (HFDS);7120;annuaire_dila;
+a49eefca-0b71-4b63-b588-053f67a4fbe8;Haut fonctionnaire de défense et de sécurité - Ministère de la Culture;13001937500018;HAUT FONCTIONNAIRE DE DEFENSE ET DE SECURITE MINISTERE DE LA CULTURE (HFDS);7120;annuaire_dila;
+79effe8c-662f-4951-b507-8912b029d9e3;Haut fonctionnaire de défense et de sécurité - Ministère de l’Agriculture, de l'Agro-alimentaire et de la Souveraineté alimentaire;13001986200015;HAUT FONCTIONNAIRE DE DEFENSE ET DE SECURITE MINISTERE DE L'AGRICULTURE ET DE L'ALIMENTATION (HFDS);7120;annuaire_dila;
+90e3eadf-908f-4573-8263-2c0a53c06040;Haut-Commissariat à la stratégie et au plan;13001826000021;FRANCE STRATEGIE- COMMISSARIAT GENERAL A LA STRATEGIE ET A LA PROSPECTIVE (CGSP);7120;annuaire_dila;
+6b3a3ea8-2808-4246-9be8-61ce80e569fd;Haute Autorité pour la transparence de la vie publique;13002039900023;HAUTE AUTORITE POUR LA TRANSPARENCE DE LA VIE PUBLIQUE (HATVP);7112;recherche_entreprises;0.97
+5ab11965-858e-4fb3-8240-bb9b0d5591d0;Haute autorité de l'audit;13003146100010;HAUTE AUTORITE DE L'AUDIT (H2A);7112;recherche_entreprises;0.96
+df118fe7-bb5e-49f9-8ff0-3fdcaa4011f1;Haute autorité de santé (HAS);11000044500020;HAUTE AUTORITE DE SANTE (HAS);7112;recherche_entreprises;1.00
+b082c136-b4d3-48dc-b172-b8f5bd32b9e1;IFPEN (IFP Énergies nouvelles);77572915500017;IFP ENERGIES NOUVELLES (IFP);4120;annuaire_dila;
+cac210bf-94c8-4642-959b-a528dafcc9a2;Inspection générale de l'administration (IGA) - ministère de l'Intérieur;12001407100019;INSPECTION GENERALE DE L'ADMINISTRATION (IGA);7120;annuaire_dila;
+cc5a8b09-8d83-4ca3-a3d3-cb25c48596f6;Inspection générale de l'environnement et du développement durable (IGEDD);13001999500013;INSPECTION GENERALE DE L'ENVIRONNEMENT ET DU DEVELOPPEMENT DURABLE (IGEDD);7120;annuaire_dila;
+6f375714-976a-43cd-940f-69665883dd19;Inspection générale de l'éducation, du sport et de la recherche;13002683400015;INSPECTION GENERALE DE L'EDUCATION DU SPORT ET DE LA RECHERCHE (IGESR);7120;annuaire_dila;
+12c0c16b-e517-4085-85a9-bcfc6396eeaf;Inspection générale de la justice;12001004600015;INSPECTION GENERALE DE LA JUSTICE;7120;annuaire_dila;
+60e33c47-dde1-4f1d-a221-2ebe95abd7de;Inspection générale de la police nationale;12001515100018;INSPECTION GENERALE POLICE NATIONALE (IGPN);7120;annuaire_dila;
+6663a288-2f85-47fa-91e5-746a83d36cae;Inspection générale des affaires culturelles;13001936700015;INSPECTION GENERALE DES AFFAIRES CULTURELLES (IGAC);7120;annuaire_dila;
+b549b6f5-76b3-4ac6-9b45-c732cd3078c0;Inspection générale des affaires maritimes;13001949000015;INSPECTION GENERALE DES AFFAIRES MARITIMES (IGAM);7120;annuaire_dila;
+9903022e-4a0a-4377-aca1-f6c027f6d918;Inspection générale des affaires sociales;12003003600079;INSPECTION GENERALE DES AFFAIRES SOCIALES (IGAS);7120;annuaire_dila;
+a0c97966-ba86-4812-9593-b19730896463;Inspection générale des affaires étrangères;12000626700021;INSPECTION GENERALE DES AFFAIRES ETRANGERES (IGAE);7120;annuaire_dila;
+40f40458-0b0a-41ef-a4bc-975d6d0b34d1;Inspection générale des finances;12002006000022;INSPECTION GENERALE DES FINANCES (IGF);7120;annuaire_dila;
+44071022-34aa-4fba-aeab-4fc3627d4e4a;Institut d'enseignement supérieur et de recherche en alimentation, santé animale, sciences agronomiques et de l'environnement;13000858400018;INSTITUT ENSEIGNEMENT SUPERIEUR ET RECHERCHE EN ALIMENTATION SANTE ANIMALE SCIENCES AGRONOMIQUES ET ENVIRONNEMENT (VET AGRO SUP);7383;recherche_entreprises;0.98
+0987cdc4-db6d-442e-8738-631edc6fefbb;Institut d'émission des départements d'Outre-Mer;77566560700153;INSTITUT EMISSION DEPARTEMENTS OUTRE MER (IEDOM);5710;recherche_siren_manuelle;
+f1455abd-1242-4112-8ba5-04bb19e5ca1a;Institut de France;18004404200018;INSTITUT DE FRANCE;7389;annuaire_dila;
+880680b9-03ae-43f3-881f-7216c026b03d;Institut de physique;19753428200078;INSTITUT DE PHYSIQUE DU GLOBE DE PARIS;7383;recherche_entreprises;0.90
+af39b162-b3f6-4228-b09c-0f76b1f4cb39;Institut de recherche et de coordination acoustique-musique (IRCAM);30932061200018;INST RECHER COORD ACOUST MUSICALE (IRCAM);9220;recherche_siren_manuelle;
+6091df85-7eb7-48e6-b88e-f2b51659ffe4;Institut de recherche pour le développement;18000602500159;INSTITUT DE RECHERCHE POUR LE DEVELOPPEMENT (IRD);7389;annuaire_dila;
+1e10f16f-2d71-4008-b07d-38a2a98935ab;Institut des Hautes études par les sciences et la technologie;13003152900014;INSTITUT DES HAUTES ETUDES PAR LES SCIENCES ET LA TECHNOLOGIE (IHEST);7160;recherche_entreprises;0.98
+02113c5f-e2e2-4286-aed0-917e92d12279;Institut des hautes études de défense nationale;19754686400012;INSTITUT DES HAUTES ETUDES DE DEFENSE NATIONALE (IHEDN);7384;recherche_entreprises;0.97
+f7f821a7-252b-4122-aac0-eb9efe40f608;Institut des hautes études de l'éducation et de la formation (IH2EF);13002499500016;INSTITUT DES HAUTES ETUDES DE L'EDUCATION ET DE LA FORMATION (IHEEF);7160;recherche_siren_manuelle;
+b4fdfec6-c4f1-455d-82bc-b7b95cca5cc1;Institut des hautes études du ministère de l'Intérieur;13002811100016;INSTITUT DES HAUTES ETUDES DU MINISTERE DE L'INTERIEUR (IHEMI);7160;annuaire_dila;
+70c2d6ea-4eb0-441a-be05-065d514e1126;Institut français;52971592200041;INSTITUT FRANCAIS;4110;annuaire_dila;
+42680d17-593a-4bf2-a4fe-adb01b308578;Institut français d'archéologie orientale;18004619500012;INSTITUT FRANCAIS D'ARCHEOLOGIE ORIENTALE DU CAIRE (IFAO);7383;recherche_entreprises;0.95
+2a7c45c1-a0fb-4130-82dd-9ced0b08424e;Institut français de recherche pour l'exploitation de la mer;33071536800032;INSTITUT FRANCAIS DE RECHERCHE POUR L EXPLOITATION DE LA MER (IFREMER);4140;recherche_entreprises;0.97
+870e468f-235c-4229-8a29-17e46884012e;Institut français du cheval et de l'équitation;13001044000019;INSTITUT FRANCAIS DU CHEVAL ET DE L'EQUITATION (IFCE);7389;annuaire_dila;
+6c901391-8c0e-4d34-9880-fd50d67ca03a;Institut national d'enseignement pour l'agriculture, l'alimentation et l'environnement (Institut Agro);13002622200013;INSTITUT NATIONAL D'ENSEIGNEMENT SUPERIEUR POUR L'AGRICULTURE L'ALIMENTATION ET L'ENVIRONNEMENT;7383;recherche_entreprises;0.85
+7aad474e-3588-482c-bba7-f7487122722a;Institut national d'histoire de l'art;19754688000018;INSTITUT NATIONAL D' HISTOIRE DE L'ART (INHA);7383;annuaire_dila;
+7f3830e0-fa01-4c6e-8a87-0b401171af24;Institut national d'études démographiques;18003702000039;INSTITUT NATIONAL D'ETUDES DEMOGRAPHIQUES (INED);7389;annuaire_dila;
+bfbc9539-ccec-4e91-8568-6e598525867a;Institut national de formation des personnels du ministère de l'agriculture (INFOMA);18009203300018;INSTITUT NATIONAL DE FORMATION DES PERSONNELS DU MINISTERE DE L'AGRICULTURE (INFOMA);7384;recherche_entreprises;1.00
+8fa935f8-8a4c-45f6-bbaa-b891895a0ece;Institut national de l'audiovisuel;30242119300012;INSTITUT NATIONAL DE L'AUDIOVISUEL (INA);4120;annuaire_dila;
+78d69f68-af3e-4023-9680-0fe717596902;Institut national de l'environnement industriel et des risques;38198492100019;INSTITUT NATIONAL DE L'ENVIRONNEMENT INDUSTRIEL ET DES RISQUES (INERIS);4110;annuaire_dila;
+f610de75-2107-4543-a4e3-fd501a8b611c;Institut national de l'information géographique et forestière (IGN);18006701900430;INSTITUT NATIONAL DE L'INFORMATION GEOGRAPHIQUE ET FORESTIERE (IGN);7389;annuaire_dila;
+b229dc20-19e9-4580-8fa6-0031692edd82;Institut national de l'origine et de la qualité (INAO);13000270200335;INSTITUT NATIONAL DE L'ORIGINE ET DE LA QUALITE (INAO);7389;annuaire_dila;
+77dc9657-9b6d-4440-9641-c6bea6e37b63;Institut national de la consommation;38185672300030;INSTITUT NATIONAL DE LA CONSOMMATION (INC);4110;annuaire_dila;
+1491fb2f-70b9-4d40-81de-280a04d2de4e;Institut national de la jeunesse et de l'éducation populaire;13002470600017;INSTITUT NATIONAL DE LA JEUNESSE ET DE L'EDUCATION POPULAIRE (INJEP);7160;recherche_entreprises;0.98
+53b65f85-3508-4f9c-855d-fa853e98acc0;Institut national de la propriété industrielle;18008001200248;INST NAT DE LA PROPRIETE INDUSTRIELLE (INPI);7382;recherche_siren_manuelle;
+1e47ce3a-d896-4c50-83e3-b3a83c943636;Institut national de la santé et de la recherche médicale;18003604800015;INSTITUT NATIONAL DE LA SANTE ET DE LA RECHERCHE MEDICALE (INSERM);7389;annuaire_dila;
+1774a61b-42e1-4272-b6bb-7ba4cc44b8ac;Institut national de recherche en informatique et en automatique;18008904700013;INSTITUT NATIONAL DE RECHERCHE EN INFORMATIQUE ET EN AUTOMATIQUE (INRIA);7389;annuaire_dila;
+3ceaafb1-0515-491a-a091-dd535e32f9bf;Institut national de recherche et de sécurité pour la prévention des accidents du travail et des maladies professionnelles;77567145600082;INSTITUT NATIONAL RECHERCHE SECURITE (INRS);9220;recherche_siren_manuelle;
+599da94e-8306-4e97-ab75-15d7a59af088;Institut national de recherche pour l’agriculture, l’alimentation et l’environnement - Paris;18007003901803;INSTITUT NATIONAL DE RECHERCHE POUR L'AGRICULTURE L'ALIMENTATION ET L'ENVIRONNEMENT (INRAE);7389;annuaire_dila;
+83518a39-e34b-464f-b1ad-f25b27c85988;Institut national de recherches archéologiques préventives;18009226400225;INSTITUT NATIONAL DE RECHERCHES ARCHEOLOGIQUES PREVENTIVES (INRAP);7389;annuaire_dila;
+40b0618b-7304-4479-9603-d0d0f32379cd;Institut national des jeunes aveugles;18750010300010;INSTITUT NATIONAL DES JEUNES AVEUGLES (INJA);7389;annuaire_dila;
+11684222-affd-40b8-ae7f-ab4fc9b4713f;Institut national des jeunes sourds de Paris;18750008700015;INSTITUT NATIONAL DE JEUNES SOURDS DE PARIS (INJS);7389;annuaire_dila;
+800c59ef-7e0f-4a54-b6ba-87948c6ae652;Institut national des langues et civilisations orientales;19753488600092;INSTITUT NATIONAL DES LANGUES ET CIVILISATIONS ORIENTALES (INALCO);7383;recherche_entreprises;0.97
+d71f8653-4a0e-415e-b6a0-fcd00c68239b;Institut national des sciences et techniques nucléaires;19910685700014;INSTITUT NATIONAL DES SCIENCES ET TECHNIQUES NUCLEAIRES;7384;recherche_entreprises;1.00
+6ea4f4e1-2258-4df7-981c-588d02326211;Institut national du cancer;18751277700033;INSTITUT NATIONAL DU CANCER (INCA);7410;recherche_entreprises;0.96
+4667055c-fda0-4df1-8ef8-42e458918323;Institut national du nautisme;19560085300012;INSTITUT NATIONAL DU NAUTISME;7384;annuaire_dila;
+591ff193-232f-48c5-84ab-6d2a1ea85a21;Institut national du patrimoine;19751234600044;INSTITUT NATIONAL DU PATRIMOINE;7384;annuaire_dila;
+ae5bd6dc-4d59-48ab-838b-52ed4b8257dd;Institut national du service public;19753463900020;INSTITUT NATIONAL DU SERVICE PUBLIC (INSP);7384;recherche_entreprises;0.97
+311a21c0-8b8c-4118-9e08-727fb7ce6cbc;Institut national du sport, de l'expertise et de la performance sportive;13001080400016;INSTITUT NATIONAL DU SPORT DE L EXPERTISE ET DE LA PERFORMANCE (INSEP);7383;recherche_siren_manuelle;
+7b75fafc-47b7-4691-97dd-0cddb7fa50be;Institut national du travail, de l'emploi et de la formation professionnelle;13000013600015;INSTITUT NATIONAL DU TRAVAIL DE L'EMPLOI ET DE LA FORMATION PROFESSIONNELLE (INTEFP);7389;annuaire_dila;
+06396055-1cac-42d8-8c9a-e1220ab786e6;Institut national universitaire Jean-François Champollion;19811201300018;INSTITUT NATIONAL UNIVERSITAIRE JEAN-FRANCOIS CHAMPOLLION (INU);7383;recherche_entreprises;0.99
+ec2c2b76-eaa5-4639-adfb-53363ccdc5f4;Institut polaire français - Paul-Emile Victor;18008936900029;INSTITUT POLAIRE FRANCAIS - PAUL-EMILE VICTOR (IPEV);7410;recherche_entreprises;0.98
+6e4bde2c-1b1a-409e-a338-ab5ebc114baa;Institut polytechnique de Paris;13002562000019;INSTITUT POLYTECHNIQUE DE PARIS;7383;recherche_entreprises;1.00
+9726e085-434b-4d45-ba43-27ea745628f8;Institut régional d'administration - Bastia;19202090700015;INSTITUT REGIONAL D'ADMINISTRATION (IRA);7384;recherche_entreprises_revue_manuelle;0.81
+f50e7339-63cc-4a4e-8ba2-d9976209dedb;Institut régional d'administration - Lille;19593648900010;INSTITUT REGIONAL D'ADMINISTRATION (IRA);7384;recherche_entreprises_revue_manuelle;0.82
+167afe78-d58c-47c8-a6c4-a4a1cdcf3693;Institut régional d'administration - Lyon;19572647600011;INSTITUT REGIONAL D'ADMINISTRATION (IRA);7384;recherche_entreprises_revue_manuelle;0.81
+0fc23636-1873-4d47-9f01-66f7bfeb4d08;Institut régional d'administration - Nantes;19441618600022;INSTITUT REGIONAL D'ADMINISTRATION (IRA);7384;recherche_entreprises_revue_manuelle;0.81
+10696315-e018-4649-8598-c336924c880c;Institut supérieur d'agriculture de Lille;78370707800029;INSTITUT SUPERIEUR AGRICULTURE (ISA);9220;recherche_siren_manuelle;
+26d4f5c2-e467-404c-806e-4a1a9527b367;Institut supérieur de l'aéronautique et de l'espace;13000427800011;INSTITUT SUPERIEUR DE L'AERONAUTIQUE ET DE L'ESPACE (ISAE);7383;recherche_entreprises;0.97
+3fd20aad-a4cb-4840-aa23-256c963d420b;Institut supérieur de mécanique de Paris;19930603600013;INSTITUT SUPERIEUR DE MECANIQUE DE PARIS (ISAE-SUPMECA);7383;recherche_entreprises;0.94
+cd52b5ed-a64d-4cb8-a010-1bad6889873e;Institution nationale des invalides (INI);18000702300013;INSTITUTION NATIONALE DES INVALIDES;7389;annuaire_dila;
+a0c5d72c-185f-4193-9073-9ad95be02082;L'Agence de l'Outre-mer pour la mobilité;13002195900015;AGENCE DE L'OUTRE-MER POUR LA MOBILITE (LADOM);7389;annuaire_dila;
+886e3799-25e1-4258-ba59-3c057882292b;La Rochelle Université;19170032700015;LA ROCHELLE UNIVERSITE;7383;recherche_entreprises;1.00
+0cf99e02-5c9c-4b41-b444-ec7d34282730;Laboratoire de recherche des monuments historiques;16000037800010;LABORATOIRE DE RECHERCHE DES MONUMENTS HISTORIQUES (LRMH);7160;recherche_entreprises;0.98
+e6b10c09-4c1c-49ba-9f87-dce42e9dfea9;Laboratoire national de métrologie et d'essais;31332024400012;LABORATOIRE  NATIONAL DE METROLOGIE ET D'ESSAIS;4110;annuaire_dila;
+47f8f104-9a2d-478b-9e08-892c312b2cfc;Le Mans Université;19720916600010;UNIVERSITE DU MANS;7383;recherche_entreprises;0.87
+60e842f7-1003-4538-822b-c8926c2b6d88;Mines Paristech;19753493600012;ECOLE NATIONALE SUPERIEURE DES MINES DE PARIS (MINES PARIS);7383;recherche_siren_manuelle;
+9f101ac7-9a0e-4d62-8b27-8109876dff94;Ministère de l'Action et des Comptes publics;13001976300015;MINISTERE DE L'ACTION ET DES COMPTES PUBLICS;7113;recherche_entreprises;1.00
+ac1a7fdb-50f4-4599-b306-ec06b7250965;Ministère de l'Europe et des Affaires étrangères;11000601200014;MINISTERE DE L'EUROPE ET DES AFFAIRES ETRANGERES;7113;recherche_entreprises;1.00
+fa33b07a-3f71-46d4-b682-569c9faf211e;Ministère de l'Intérieur;11001401600015;MINISTERE DE L'INTERIEUR;7113;recherche_entreprises;1.00
+3ed2f725-e077-4973-a531-498e13fc7861;Ministère de l'Éducation nationale;11004301500012;MINISTERE DE L'EDUCATION NATIONALE;7113;recherche_entreprises;1.00
+da1d6275-6710-485d-a249-282cac69dfe7;Ministère de la Culture;11004601800013;MINISTERE DE LA CULTURE;7113;recherche_entreprises;1.00
+7bc12104-b232-46a6-a6d7-85bcf2dfccf1;Ministère de la Justice;11001001400014;MINISTERE DE LA JUSTICE;7113;recherche_entreprises;1.00
+d46810a3-6ed7-4a94-b950-1be135e43ad3;Ministère de la Santé, des Familles, de l’Autonomie et des Personnes handicapées;13001653800014;MINISTERE DE LA SANTE, DES FAMILLES, DE L'AUTONOMIE ET DES PERSONNES HANDICAPEES;7113;recherche_entreprises;0.90
+05f90b6a-e3d9-4a41-a919-2e2f2d77e517;Ministère de la Transition écologique, de la Biodiversité et des Négociations internationales sur le Climat et la Nature;11006801200050;MINISTERE DE LA TRANSITION ECOLOGIQUE, DE LA BIODIVERSITE ET DES NEGOCIATIONS INTERNATIONALES SUR LE CLIMAT ET LA NATURE;7113;recherche_entreprises;1.00
+051be6c4-2693-45e0-9644-b84049e57f02;Ministère de la Ville et du Logement;13002665100013;MINISTERE DE LA VILLE ET DU LOGEMENT;7113;recherche_entreprises;1.00
+45e488a2-c977-487f-b62f-19b4d6504d9c;Ministère de l’Agriculture, de l'Agro-alimentaire et de la Souveraineté alimentaire;11007001800012;MINISTERE DE L'AGRICULTURE, DE L'AGRO-ALIMENTAIRE ET DE LA SOUVERAINETE ALIMENTAIRE;7113;recherche_entreprises;0.88
+7b9ab6ab-c8e4-4cfd-a63b-02416d0d5551;Ministère de l’Aménagement du Territoire et de la Décentralisation;13001672800011;MINISTERE DE L'AMENAGEMENT DU TERRITOIRE ET DE LA DECENTRALISATION;7113;recherche_entreprises_revue_manuelle;0.85
+4ca60afd-3886-434c-80bb-f6bc55581323;Ministère de l’Enseignement supérieur, de la Recherche et de l'Espace;11004401300040;MINISTERE DE L'ENSEIGNEMENT SUPERIEUR, DE LA RECHERCHE ET DE L'ESPACE;7113;recherche_entreprises;0.88
+c4195774-f535-4d82-b03f-d5f0c6b08635;Ministère de l’Économie, des Finances et de la Souveraineté industrielle, énergétique et numérique;11002001300097;MINISTERE DE L'ECONOMIE, DES FINANCES ET DE LA SOUVERAINETE INDUSTRIELLE, ENERGETIQUE ET NUMERIQUE;7113;recherche_entreprises;0.91
+d24d1af2-c506-4b10-82e8-ab92b8e959d2;Ministère des Armées et des Anciens combattants;11009001600053;MINISTERE DES ARMEES ET DES ANCIENS COMBATTANTS;7113;recherche_entreprises;1.00
+0dd547d8-44fb-4af8-8768-dc8a95614f0d;Ministère des Outre-mer;11001901500012;MINISTERE DES OUTRE-MER;7113;recherche_entreprises;1.00
+2fd089d2-669f-4a91-80b2-b345db391349;Ministère des Sports, de la Jeunesse et de la Vie associative;13001658700011;MINISTERE DES SPORTS, DE LA JEUNESSE ET DE LA VIE ASSOCIATIVE;7113;recherche_entreprises;1.00
+0c78ef90-614a-4fcb-b7af-449f6c66f6b6;Ministère des Transports;11006003500018;MINISTERE DES TRANSPORTS;7113;recherche_entreprises;1.00
+d2d5b079-abd0-441a-8abc-cea5a569c15c;Ministère des petites et moyennes Entreprises, du Commerce, de l'Artisanat, du Tourisme et du Pouvoir d'achat;13000970700014;MINISTERE DES PETITES ET MOYENNES ENTREPRISES, DU COMMERCE, DE L'ARTISANAT, DU TOURISME ET DU POUVOIR D'ACHAT;7113;recherche_entreprises;1.00
+f130ad96-4a81-4eb4-a40c-0539edad5fff;Ministère du Travail et des Solidarités;11000007200014;MINISTERE DU TRAVAIL ET DES SOLIDARITES;7113;recherche_entreprises;1.00
+c6be45de-2ca1-49f8-8eb1-44e556241100;Mission d'appui au financement des infrastructures (FININFRA);13002475500014;MISSION D'APPUI AU FINANCEMENT DES INFRASTRUCTURES (FININFRA);7160;recherche_entreprises;1.00
+fd73c9c9-2a19-4c6e-9131-0cf2a4367fec;Mission des archives nationales - ministère de l'Intérieur;13002000100017;MISSION DES ARCHIVES NATIONALES DU MINISTERE DE L'INTERIEUR;7120;annuaire_dila;
+7caacbca-f484-479e-adf6-865a66bae30b;Mission interministérielle pour la qualité des constructions publiques;13002007600019;MISSION INTERMINISTERIELLE POUR LA QUALITE DES CONSTRUCTIONS PUBLIQUES;7120;annuaire_dila;
+bafe83ea-6fa9-471a-83cc-5dfd4258b3e4;Mission nationale de contrôle et d'audit des organismes de sécurité sociale;13002479700016;MISSION NATIONALE DE CONTROLE ET D'AUDIT DES ORGANISMES DE SECURITE SOCIALE (MNC);7160;recherche_entreprises;0.99
+6138cd96-d12a-4661-832c-7ec4b51173d4;Monnaie de Paris;16002001200011;LA MONNAIE DE PARIS;4120;annuaire_dila;
+2aa77891-f948-4d5e-b5c7-5249de121f84;Musée Rodin;18004608800019;MUSEE NATIONAL AUGUSTE RODIN;7389;annuaire_dila;
+736ac40f-7fce-4a5d-94db-48fd494ad32f;Musée d'archéologie nationale et domaine national de Saint-Germain-en-Laye;13001116600019;MUSEE D'ARCHEOLOGIE NATIONALE ET DOMAINE NATIONAL DE SAINT-GERMAIN-EN-LAYE;7160;annuaire_dila;
+f6599ccf-ea8f-4fd7-8b01-7e53f633f252;Musée de l'air et de l'espace;18009005200010;MUSEE DE L'AIR ET DE L'ESPACE;7389;annuaire_dila;
+3f2859e7-0fc8-4271-b32f-44f17522468a;Musée de l'armée;18009001100016;MUSEE DE L'ARMEE;7389;annuaire_dila;
+29ddebae-0ee4-4721-8b88-498c99e2f9f7;Musée des arts asiatiques Guimet;18009245400016;ETABLISSEMENT PUBLIC DU MUSEE DES ARTS ASIATIQUES GUIMET;7389;annuaire_dila;
+a310bce3-ed23-4fdb-9c79-103222b38162;Musée des plans-reliefs;13002518200010;MUSEE DES PLANS-RELIEFS;7160;recherche_entreprises;1.00
+dd55ac41-c192-4916-b11b-9efd44558f7d;Musée du Louvre;18004623700012;ETABLISSEMENT PUBLIC DU MUSEE DU LOUVRE;7389;annuaire_dila;
+bb964aa7-2011-40ea-b54e-64543c567768;Musée du quai Branly - Jacques Chirac;18009214000037;MUSEE DU QUAI BRANLY - JACQUES CHIRAC;7389;annuaire_dila;
+9134b513-beaf-4f85-a181-85bf7affc487;Musée national Picasso - Paris;13001217200016;MUSEE NATIONAL PICASSO PARIS;7389;annuaire_dila;
+e63b6a2b-8558-4dab-944d-4315375f737a;Musée national de la Marine;18009002900018;MUSEE NATIONAL DE LA MARINE;7389;annuaire_dila;
+5f20aa81-ca78-4cba-a798-7b65644ae8bf;Musée national du Sport;13000264500039;MUSEE NATIONAL DU SPORT;7389;annuaire_dila;
+f6155ed6-be6f-41bd-bc69-2d43927f8312;Muséum national d'histoire naturelle (MNHN);18004417400019;MUSEUM NATIONAL D HISTOIRE NATURELLE (MNHN);7383;recherche_entreprises;1.00
+8747de4a-3bbb-4d14-a22a-44ecdacb6ba3;Médiateur de l'Éducation nationale et de l'enseignement supérieur;13001993800013;MEDIATEUR DE L'EDUCATION NATIONALE ET DE L'ENSEIGNEMENT SUPERIEUR;7120;annuaire_dila;
+794d003c-34db-4162-aac6-d2cc68491f44;Médiateur des ministères économiques et financiers;13002014200019;MEDIATEUR DES MINISTERES ECONOMIQUES ET FINANCIERS;7120;annuaire_dila;
+a6ee081e-15ae-4b15-bb59-a9b5fa453f00;Médiateur des relations commerciales agricoles;13001987000018;MEDIATEUR DES RELATIONS COMMERCIALES AGRICOLES;7120;annuaire_dila;
+8ba3f5d5-74ab-48aa-afe6-04aba6fd2d2b;Médiateur national de l'énergie;13000488000048;MEDIATEUR NATIONAL DE L'ENERGIE;7112;recherche_entreprises;1.00
+c9dd92ec-4f4c-4734-92f8-c063c9720a05;Médiathèque du patrimoine et de la photographie (MPP);13001254500013;MEDIATHEQUE DU PATRIMOINE ET DE LA PHOTOGRAPHIE (MPP);7160;recherche_entreprises;1.00
+8a787d4b-2fad-4870-9baf-f9387defaf28;Météo-France - Siège de Saint-Mandé;18006003002117;METEO-FRANCE;7389;annuaire_dila;
+17411760-a621-451a-98d2-553d72381ad8;Nantes Université;13002974700016;NANTES UNIVERSITE;7383;recherche_entreprises;1.00
+a7306952-e4f8-448d-af0e-bbe61810b6f3;Observatoire de Paris;19753496900013;OBSERVATOIRE DE PARIS;7383;recherche_entreprises;1.00
+f6f801d9-af5d-42ec-9fca-e3ba3fd4a121;Observatoire français des drogues et des tendances addictives;18003610500047;OBSERVATOIRE FRANCAIS DES DROGUES ET DES TENDANCES ADDICTIVES (OFDT);7410;recherche_entreprises;0.98
+79cf1443-8af5-495d-8b49-cd3694d5a43e;Observatoire national de la démographie des professions de santé;13001928400012;OBSERVATOIRE NATIONAL DE LA DEMOGRAPHIE DES PROFESSIONS DE SANTE (ONDPS);7120;annuaire_dila;
+bb874cf5-9548-4fab-a6e0-d0e4c2117205;Office de développement de l'économie agricole des départements d'Outre-mer (ODEADOM);13000654700017;OFFICE DE DEVELOPPEMENT DE L'ECONOMIE AGRICOLE D'OUTRE-MER (ODEADOM);7389;annuaire_dila;
+45a1764c-9f62-434d-960d-a9b176db0707;Office français de l'immigration et de l'intégration;18003402700011;OFFICE FRANCAIS DE L'IMMIGRATION ET DE L'INTEGRATION (OFII);7389;annuaire_dila;
+e308ae1b-6b17-4428-a0bb-b43e7c951014;Office français de la biodiversité;13002591900015;OFFICE FRANCAIS DE LA BIODIVERSITE (OFB);7389;annuaire_dila;
+3dc7694e-e10b-4620-b38f-636e56af268d;Office français de protection des réfugiés et apatrides;18000603300039;OFFICE FRANCAIS DE PROTECTION DES REFUGIES ET APATRIDES (OFPRA);7389;annuaire_dila;
+62fd5e68-95fc-4f51-805a-8122a28d379e;Office national d'indemnisation des accidents médicaux, des affections iatrogènes et des infections nosocomiales;18009233000034;OFFICE NATIONAL D'INDEMNISATION DES ACCIDENTS MEDICAUX DES AFFECTIONS IATROGENES ET DES INFECTIONS NOSOCOMIALES (ONIAM);7389;annuaire_dila;
+f2e69efd-7783-47f6-aaea-8c80b0ea7fee;Office national d'information sur les enseignements et les professions;18004302800653;OFFICE NATIONAL D'INFORMATION SUR LES ENSEIGNEMENTS ET LES PROFESSIONS (ONISEP);7389;annuaire_dila;
+ba48a5ff-0b92-4e01-9511-e726cac619b1;Office national d'études et de recherches aérospatiales (ONERA);77572287900084;OFF NAT ETUDES RECHERCHES AEROSPATIALES (ONERA);4110;annuaire_dila;
+9b3c0efc-def8-4dd2-b1cd-ae90f077ba7e;Office national des combattants et victimes de guerre;18000701500019;OFFICE NATIONAL DES COMBATTANTS ET DES VICTIMES DE GUERRE (ONACVG);7389;annuaire_dila;
+df4aad5f-3e53-44fe-9ddc-d03ade4ad99b;Office national des forêts (ONF);66204311604119;OFFICE NATIONAL DES FORETS (ONF);4110;annuaire_dila;
+2f62d1a2-c90f-4f12-a3c7-8d32997ace88;Opéra national de Paris, Palais Garnier et Opéra Bastille;78439607900054;OPERA NATIONAL DE PARIS;4110;annuaire_dila;
+58c23078-0008-404b-b745-89f098496bf4;Opérateur du patrimoine et des projets immobiliers de la culture;18009208200023;OPERATEUR DU PATRIMOINE ET DES PROJETS IMMOBILIERS DE LA CULTURE (OPPIC);7389;annuaire_dila;
+ffc9c178-5688-441a-968f-ff59ebe91a61;Parc amazonien de Guyane;20000843100021;PARC AMAZONIEN DE GUYANE;7385;recherche_entreprises;1.00
+4fd7ad74-6839-493c-9bbf-f1712309262d;Parc national de Port-Cros;18830005700109;PARC NATIONAL DE PORT CROS;7385;recherche_entreprises;1.00
+c1538b4f-cae3-4601-ba5b-17d6cc67a37f;Parc national de forêts;13002593500011;PARC NATIONAL DE FORETS;7385;recherche_entreprises;1.00
+4e070e92-cabd-4943-b980-99e8b47f7f17;Parc national de la Guadeloupe;18971008000020;PARC NATIONAL DE LA GUADELOUPE;7385;recherche_entreprises;1.00
+cf7d2eae-81a7-4d4b-8ea3-e504f1996167;Parc national de la Réunion;20000835700036;PARC NATIONAL DE LA REUNION;7385;recherche_entreprises;1.00
+ef6c23d2-68b3-4fb2-8dc5-e3f44cdbb8b1;Parc national de la Vanoise;18730003300011;PARC NATIONAL DE LA VANOISE;7385;recherche_entreprises;1.00
+c5611760-d3db-47a1-9d17-b5713bf9acef;Parc national des Calanques;13001679300023;ETABLISSEMENT PUBLIC DU PARC NATIONAL DES CALANQUES;7385;recherche_entreprises;0.88
+6bc44db2-6f0e-4d4d-a7e4-b2fc6c036394;Parc national des Cévennes;18480005000017;PARC NATIONAL DES CEVENNES;7385;recherche_entreprises;1.00
+e066d4ac-f4ce-42c9-bf48-cbb952698ce0;Parc national des Pyrénées;18650004700110;PARC NATIONAL DES PYRENEES;7385;recherche_entreprises;1.00
+6ce0a39f-65e0-41df-b2ce-b6946a62d47f;Parc national des Écrins;18050301300013;PARC NATIONAL DES ECRINS;7385;recherche_entreprises;1.00
+59d2f5c7-cffc-4ecf-a825-4f07b22455eb;Parc national du Mercantour;18060005800010;PARC NATIONAL DU MERCANTOUR;7385;recherche_entreprises;1.00
+d2b79fe5-ffc5-474d-9671-ce45f4667db5;Port autonome de Strasbourg (PAS);77564141800089;PORT AUTONOME DE STRASBOURG (PAS);7389;annuaire_dila;
+a515667c-6dc0-4544-a1a8-2cf13d7da23b;Premier ministre;11000101300017;GOUVERNEMENT PREMIER MINISTRE;7111;annuaire_dila;
+1ad32e5b-c83c-472d-b3cc-6d7453f88b36;Présidence de la République;10000001700010;REPUBLIQUE FRANCAISE PRESIDENCE;7111;annuaire_dila;
+7049ecf5-ae9b-493c-ba5a-a63794f0a11f;Pôle national des certificats d'économies d'énergie;13002481300011;POLE NATIONAL DES CERTIFICATS D'ECONOMIES D'ENERGIE (PNCEE);7160;recherche_entreprises;0.97
+bb3c911b-4522-4213-9657-382727b3a36a;Pôle national des transferts transfrontaliers de déchets;13002482100014;POLE NATIONAL DES TRANSFERTS TRANSFRONTALIERS DE DECHETS (PNTTD);7160;recherche_entreprises;0.98
+7d38fe93-ed55-4b46-ad4b-90065d7c8179;Région de gendarmerie Auvergne-Rhône-Alpes;15700034000032;REGION DE GENDARMERIE D'AUVERGNE-RHONE-ALPES;7150;recherche_entreprises;1.00
+060570e0-0ca4-4c57-9968-6100c1063599;Région de gendarmerie Bourgogne-Franche-Comté;15700022500019;REGION DE GENDARMERIE DE BOURGOGNE-FRANCHE-COMTE;7150;recherche_entreprises;1.00
+2e528a19-8e64-41f0-9152-21e2d55b3bd6;Région de gendarmerie Bretagne;15700029000013;REGION DE GENDARMERIE  DE BRETAGNE;7150;recherche_entreprises;1.00
+bc700fdf-873c-4cb7-93cc-4c4ab32056f1;Région de gendarmerie Centre-Val de Loire;15700031600016;REGION DE GENDARMERIE DU CENTRE-VAL DE LOIRE;7150;recherche_entreprises;1.00
+388ff39e-fbeb-4509-b097-98ca1c8609a8;Région de gendarmerie Corse;15700038100010;REGION DE GENDARMERIE DE CORSE;7150;recherche_entreprises;1.00
+c3b6b5a2-54b4-4656-af96-4d2e62f4a019;Région de gendarmerie Grand Est;15700019100013;REGION DE GENDARMERIE DU GRAND EST;7150;recherche_entreprises;1.00
+31c0f56a-5843-4b49-9682-50bb6fb49c38;Région de gendarmerie Hauts-de-France;15700015900010;REGION DE GENDARMERIE DES HAUTS-DE-FRANCE;7150;recherche_entreprises;1.00
+9c47043e-9e1e-4b7e-a124-354f2d5221b7;Région de gendarmerie Normandie;15700027400017;REGION DE GENDARMERIE DE NORMANDIE;7150;recherche_entreprises;1.00
+ccb1345f-b3b5-4a55-ad40-e5a9ea462552;Région de gendarmerie Nouvelle-Aquitaine;15700025800010;REGION DE GENDARMERIE DE NOUVELLE-AQUITAINE;7150;recherche_entreprises;1.00
+039d3216-6905-4e7f-ae9d-8563b812ab2d;Région de gendarmerie Pays de la Loire;15700030800021;REGION GENDARMERIE DES PAYS DE LA LOIRE;7150;recherche_entreprises;1.00
+e1c7dc6a-06a0-4a37-b54a-9475699114e1;Région de gendarmerie Provence-Alpes-Côte-d'Azur;15700036500013;REGION DE GENDARMERIE PROVENCE-ALPES-COTE-D'AZUR;7150;recherche_entreprises;1.00
+8d7f3696-1974-4ba8-97b6-0058b7ced285;Région de gendarmerie Île-de-France;15700016700039;REGION DE GENDARMERIE D'ILE-DE-FRANCE;7150;recherche_entreprises;1.00
+44cdc65a-7f28-4e8f-8818-c2593850068b;Réseau Canopé;18004301001485;RESEAU CANOPE;7389;annuaire_dila;
+25b8745f-6fb4-4238-b48f-e410a4d47cc7;Secrétariat du conseil national de l'enseignement supérieur et de la recherche;13001961500017;CONSEIL NATIONAL DE L'ENSEIGNEMENT SUPERIEUR ET DE LA RECHERCHE (CNESER);7120;annuaire_dila;
+933d1654-93c8-4feb-a3da-73b4b1d83a44;Secrétariat général;13001931800018;SECRETARIAT GENERAL DU MINISTERE DE LA CULTURE (SG);7120;annuaire_dila;
+e48fc16a-caac-42e1-ab45-b1f5980e6a48;Secrétariat général de l'Éducation nationale;13001193500017;SECRETARIAT GENERAL DES MINISTERES DE L'EDUCATION NATIONALE ET DE L'ENSEIGNEMENT SUPERIEUR ET DE LA RECHERCHE (SG);7120;annuaire_dila;
+bce35003-da80-4f7b-abf7-51ed29887969;Secrétariat général de la défense et de la sécurité nationale;12000102900012;SECRETARIAT GENERAL DE LA DEFENSE ET DE LA SECURITE NATIONALE (SGDSN);7120;annuaire_dila;
+253f3753-d559-4fcc-bb88-09b84baf02bf;Secrétariat général de la mer;13001926800015;SECRETARIAT GENERAL DE LA MER (SGMER);7120;annuaire_dila;
+dea0f571-7e95-4ebb-8d3d-c0fde9bd3baf;Secrétariat général des ministères chargés des affaires sociales;13000680200016;SECRETARIAT GENERAL DES MINISTERES CHARGES DES AFFAIRES SOCIALES (SG);7120;annuaire_dila;
+10a0d66c-b610-4278-b4cc-97393d2010a5;Secrétariat général des ministères économiques et financiers;13001334500017;SECRETARIAT GENERAL DES MINISTERES ECONOMIQUES ET FINANCIERS (SG);7120;annuaire_dila;
+070f6bea-c361-48c5-9a9a-e8e6b8eacd4d;Secrétariat général du Gouvernement;12000101100010;SECRETARIAT GENERAL DU GOUVERNEMENT (SGG);7120;annuaire_dila;
+6363b210-6838-4dec-b4db-d0492b4fba3b;Secrétariat général du ministère de l'Europe et des Affaires étrangères;13001939100015;SECRETARIAT GENERAL DU MINISTERE DES AFFAIRES ETRANGERES (SG);7120;annuaire_dila;
+d78e2322-84cc-429a-9079-c350ced9e2dd;Secrétariat général du ministère de l'Intérieur;13001973000014;SECRETARIAT GENERAL DU MINISTERE DE L'INTERIEUR (SG);7120;annuaire_dila;
+984aebad-eb66-4ef9-9f0f-06dffab96923;Secrétariat général du ministère de la Justice;13000509300013;SECRETARIAT GENERAL DU MINISTERE DE LA JUSTICE (SG);7120;annuaire_dila;
+e7b05d23-4d86-400a-b8cf-38d8f40dbfff;Secrétariat général du ministère de la Transition écologique;13001954000025;SECRETARIAT GENERAL DU MINISTERE DE LA TRANSITION ECOLOGIQUE ET SOLIDAIRE (SG);7120;annuaire_dila;
+34be58a8-ff91-4d81-9304-207b66c74e24;Secrétariat général du ministère de l’Agriculture, de l'Agro-alimentaire et de la Souveraineté alimentaire;13001261000015;SECRETARIAT GENERAL DU MINISTERE DE L'AGRICULTURE ET DE L'ALIMENTATION (SG);7120;annuaire_dila;
+5874d8ce-be64-4b4d-9d2d-1eb7009d2aaf;Secrétariat général pour l'investissement;13001920100016;SECRETARIAT GENERAL POUR L'INVESTISSEMENT (SGPI);7120;annuaire_dila;
+6af2c8c4-bdf7-405c-bd9e-ed48dad83b96;Secrétariat général à la planification écologique;13003036400017;SECRETARIAT GENERAL A LA PLANIFICATION ECOLOGIQUE (SGPE);7120;annuaire_dila;
+7e9f75fc-5862-4a33-8015-da82e7edfafd;Service central Vigicrues;16000032900013;SERVICE CENTRAL VIGICRUES;7160;recherche_entreprises;1.00
+d7e224e8-ca50-4258-b7ee-00f15e2dab25;Service commun des laboratoires;13000207400149;SERVICE COMMUN DES LABORATOIRES DU MINISTERE DE L'ECONOMIE, DES FINANCES ET DE L'INDUSTRIE (SCL);7160;recherche_entreprises_revue_manuelle;0.82
+6500faf5-8d63-4475-8849-efce3749547e;Service d'assurance automobile du ministère de l'Intérieur;13002812900018;SERVICE D'ASSURANCE AUTOMOBILE DU MINISTERE DE L'INTERIEUR (SAAMI);7160;recherche_entreprises;0.98
+ccade576-d082-4b86-88a4-8e87eff9b577;Service de contrôle budgétaire et comptable ministériel (SCBCM) - Culture;13001946600015;SERVICE DE CONTROLE BUDGETAIRE ET COMPTABLE MINISTERIEL CULTURE (SCBCM);7120;annuaire_dila;
+b7b34d8e-2c60-4908-bffc-1864c761f11c;Service de contrôle budgétaire et comptable ministériel (SCBCM) - Economie et finances;13001948200012;SERVICE DE CONTROLE BUDGETAIRE ET COMPTABLE MINISTERIEL ACTION ET COMPTES PUBLICS (SCBCM);7120;annuaire_dila;
+aa0e432d-413f-41d6-99e9-bf02f4c8ff6c;Service de contrôle budgétaire et comptable ministériel (SCBCM) - Education nationale;13001963100014;SERVICE DE CONTROLE BUDGETAIRE ET COMPTABLE MINISTERIEL EDUCATION NATIONALE (SCBCM);7120;annuaire_dila;
+d529de6f-8c6c-40b7-9a7e-dd437c7b836a;Service de contrôle budgétaire et comptable ministériel (SCBCM) - Transition écologique;13001953200014;SERVICE DE CONTROLE BUDGETAIRE ET COMPTABLE MINISTERIEL TRANSITION ECOLOGIQUE ET SOLIDAIRE (SCBCM);7120;annuaire_dila;
+efba43a2-f563-4998-ac28-ff41ae97522f;Service de contrôle budgétaire et comptable ministériel (SCBCM) - Travail;13001988800010;SERVICE DE CONTROLE BUDGETAIRE ET COMPTABLE MINISTERIEL TRAVAIL (SCBCM);7120;annuaire_dila;
+6d49174a-9d77-4391-9a6d-c66cf317638a;Service de contrôle budgétaire et comptable ministériel - Affaires étrangères;13002015900013;SERVICE DE CONTROLE BUDGETAIRE ET COMPTABLE MINISTERIEL EUROPE ET AFFAIRES ETRANGERES (SCBCM);7120;annuaire_dila;
+8fdf5676-5bad-4b92-8d08-4debeb9dd38f;Service de contrôle budgétaire et comptable ministériel - Agriculture;13001945800012;SERVICE DE CONTROLE BUDGETAIRE ET COMPTABLE MINISTERIEL AGRICULTURE (SCBCM);7120;annuaire_dila;
+47fa62ba-5316-4b5d-8b72-46efd65456ab;Service de contrôle budgétaire et comptable ministériel - Premier ministre;13002051400019;SERVICE DE CONTROLE BUDGETAIRE ET COMPTABLE MINISTERIEL PREMIER MINISTRE (SCBCM);7120;annuaire_dila;
+e7cc770b-d873-4532-9b0b-9f33853abc34;Service de défense et de sécurité (SDS) - Ministère de l'Education nationale;13001964900016;HAUT FONCTIONNAIRE DE DEFENSE ET DE SECURITE MINISTERES EDUCATION NATIONALE ET ENSEIGNEMENT SUPERIEUR ET RECHERCHE (HFDS);7120;annuaire_dila;
+d4b5f618-7dcd-49d7-a0e7-c77c8a4cdfb0;Service de gestion des taxes aéroportuaires (SGTA);13002484700019;SERVICE DE GESTION DES TAXES AEROPORTUAIRES (SGTA);7160;recherche_entreprises;1.00
+9badc3cc-c055-4b26-bb76-c557a316f823;Service de l'action administrative et des moyens;12004302100019;SERVICE DE L'ACTION ADMINISTRATIVE ET DES MOYENS (SAAM);7120;annuaire_dila;
+411a08db-0c09-438f-aff6-6bc1a41e5af2;Service de la communication - ministère de l'Economie et des Finances;12000005400011;SERVICE DE LA COMMUNICATION (SIRCOM);7120;annuaire_dila;
+49678c36-c663-4a25-81a7-2a80ea582f3a;Service de pilotage du dispositif de sortie des emprunts à risque;13002485400015;SERVICE DE PILOTAGE DU DISPOSITIF DE SORTIE DES EMPRUNTS A RISQUE;7160;recherche_entreprises;1.00
+9b5ab0f6-220f-4f41-9ebb-6268c8be2287;Service de vigilance et de protection contre les ingérences numériques étrangères;13002996000015;SERVICE DE VIGILANCE ET DE PROTECTION CONTRE LES INGERENCES NUMERIQUES ETRANGERES (VIGINUM);7160;recherche_entreprises;0.98
+e97f60b8-51ae-4045-bef1-8d9e257dc75f;Service des bibliothèques, des archives et de la documentation générale (SBADG);13002478900013;SERVICE DES BIBLIOTHEQUES DES ARCHIVES ET DE LA DOCUMENTATION GENERALE DES MUSEES DE FRANCE (SBADG);7160;recherche_entreprises;0.96
+cc550a2a-f3ef-4fe1-aa3a-add0210a721a;Service des biens à double usage (SBDU);13002486200018;SERVICE DES BIENS A DOUBLE USAGE (SBDU);7160;recherche_entreprises;1.00
+abd44e90-302f-4754-98c0-0ab950cd018c;Service des ressources humaines;12002001101155;DIRECTION DES RESSOURCES HUMAINES DES MINISTERES ECONOMIQUES ET FINANCIERS (SG/DRH);7120;annuaire_dila;
+2a9f403f-999a-48f3-a769-dbeea57ab940;Service des retraites de l'État;13000721400013;SERVICE DES RETRAITES DE L'ETAT (SRE);7160;recherche_entreprises;0.97
+9ca3101b-ec5f-4bae-98f8-6bc3fd135677;Service documentation;16000001400011;SERVICE DE LA DOCUMENTATION NATIONALE DU CADASTRE (SDNC);7160;recherche_entreprises;0.85
+650b09e6-a6c3-4962-9fa6-76030d2671bf;Service du haut fonctionnaire de défense et de sécurité  - Ministère de l'Intérieur;13001998700010;HAUT FONCTIONNAIRE DE DEFENSE MINISTERE DE L'INTERIEUR (HFDS);7120;annuaire_dila;
+f1d65561-0846-45b1-8285-35c143fdb5a4;Service du haut fonctionnaire de défense et de sécurité et d'intelligence économique;13001952400011;HAUT FONCTIONNAIRE CORRESPONDANT DE DEFENSE ET DE SECURITE MIN TRANSITION ECOLOGIQUE (HFDS);7120;annuaire_dila;
+d9827a6d-c859-4508-bbc2-ee7a7d32d766;Service du livre et de la lecture;12004604000032;SERVICE DU LIVRE ET DE LA LECTURE;7120;annuaire_dila;
+a5bc7a6b-1801-4f75-9a34-8e6d471d4269;Service hydrographique et océanographique de la marine (SHOM);13000398100011;SERVICE HYDROGRAPHIQUE ET OCEANOGRAPHIQUE DE LA MARINE (SHOM);7389;annuaire_dila;
+9e1396c8-3ce5-425e-912d-736dbd78db74;Service national d'ingénierie aéroportuaire;13000457500010;SERVICE NATIONAL D'INGENIERIE AEROPORTUAIRE (SNIA);7160;recherche_entreprises;0.98
+40b2e01e-8771-4ca6-bc31-3aeb9896e0c6;Service national de police scientifique;13002810300013;SERVICE NATIONAL DE POLICE SCIENTIFIQUE (SNPS);7160;recherche_entreprises;0.97
+f0fe54a0-4821-4ea0-860f-601d61735463;Service national des Quitus;13000725500016;DIRECTION REGIONALE FINANCES PUBLIQUES HAUTS-DE-FRANCE ET DEPARTEMENT NORD (DRFIP);7171;annuaire_dila;
+d265ee0a-4644-4b3e-b593-3af260c424b2;Service national des enquêtes;16000010500017;SERVICE NATIONAL DES ENQUETES (SNE);7160;recherche_entreprises;0.97
+c99d1913-7c4f-44ba-a7d8-8fd3955c7e31;Service national des métiers de l'encadrement du ski et de l'alpinisme (SNMESA);13003127100013;SERVICE NATIONAL DES METIERS DE L'ENCADREMENT DU SKI ET DE L'ALPINISME (SNMESA);7160;recherche_entreprises;1.00
+7a045885-1717-42a0-bddf-360ed23fc92e;Service national du renseignement pénitentiaire;13002559600011;SERVICE NATIONAL DU RENSEIGNEMENT PENITENTIAIRE (SNRP);7160;recherche_entreprises;0.98
+7cb438d1-1811-4e5d-9831-9e499f53d6a6;Service technique de l'aviation civile;16006402800022;SERVICE TECHNIQUE DE L'AVIATION CIVILE (STAC);7160;recherche_entreprises;0.97
+dd5f8116-c31d-4c0a-a28c-f7114d676b6b;Service technique des remontées mécaniques et des transports guidés (STRMTG);16006104000012;SERVICE TECHNIQUE DES REMONTEES MECANIQUES ET DES TRANSPORTS GUIDES (STRMTG);7160;recherche_entreprises;1.00
+08208940-61cd-467c-9d09-aacb37a45c78;Société de prise de participation de l’Etat;50754265200023;SOCIETE DE PRISE DE PARTICIPATION DE L'ETAT;5599;recherche_siren_manuelle;
+59003280-8fff-4bc0-b5df-a27299c4d588;Sénat;11000002300017;SENAT;7111;recherche_siren_manuelle;
+587608a5-1a3e-44c3-9305-50e6af5956d7;Théatre national de l'Opéra-comique;48017925800011;THEATRE NATIONAL DE L'OPERA COMIQUE (TNOC);4110;annuaire_dila;
+a4e35d93-f2fb-48d9-9a4c-7218c00a63d2;Théâtre national de Strasbourg (TNS);58850231000018;THEATRE NATIONAL DE STRASBOURG (TNS);4110;annuaire_dila;
+aad84ea3-65d3-4f15-975b-8084ae1bf31a;Théâtre national de l'Odéon, Théâtre de l'Europe;78427618000014;THEATRE NATIONAL DE L'ODEON (TNO);4110;annuaire_dila;
+a9b9cd8b-34d5-4fa2-b912-6db84de0a454;Théâtre national de la Colline;78480459300019;THEATRE NATIONAL DE LA COLLINE;4110;annuaire_dila;
+55f30a66-9056-4626-be57-4356dac24aaa;Union des caisses nationales de sécurité sociale;78462143500048;U C A N S S (UCANSS);8110;recherche_siren_manuelle;
+0759f47f-5325-4a98-945a-635dd3c53d68;Union des groupements d'achats public;77605646700587;UNION DES GROUPEMENTS D'ACHATS PUBLICS (UGAP) (UGAP);4110;annuaire_dila;
+90257274-a52f-4e3e-b203-c0cc32ae671e;Universcience - Etablissement public du Palais de la découverte et de la Cité des sciences et de l'industrie;51958785100014;ETABLISSEMENT PUBLIC PALAIS DE LA DECOUVERTE ET CITE DES SCIENCES ET DE L'INDUSTRIE (EPPDCSI);4110;annuaire_dila;
+2f6adab8-303d-4fff-8d0e-87b9e8c53d59;Université Bordeaux-Montaigne;19331766600017;UNIVERSITE BORDEAUX MONTAIGNE BORDEAUX III;7383;recherche_entreprises;0.93
+33ba45ff-b188-4a9b-90d9-ce59b2f5e1d4;Université Bourgogne Europe;93823061200013;UNIVERSITE BOURGOGNE EUROPE;7383;recherche_entreprises;1.00
+571425cc-769f-4140-9182-e6c51893b77f;Université Clermont Auvergne;13002806100013;UNIVERSITE CLERMONT AUVERGNE (UCA);7383;recherche_entreprises;0.97
+fac84219-26f5-40e6-813b-ad381d90a04f;Université Côte d'Azur;13002566100013;UNIVERSITE COTE D'AZUR;7383;recherche_entreprises;1.00
+bdc74bab-083b-4cee-bc50-c1b14e7860ea;Université Grenoble Alpes (UGA);13002608100013;UNIVERSITE GRENOBLE ALPES;7383;recherche_entreprises_revue_manuelle;0.82
+c03acd84-37db-4e3e-ab2d-7dd0ab4323d7;Université Gustave Eiffel;13002612300013;UNIVERSITE GUSTAVE EIFFEL;7383;recherche_entreprises;1.00
+75045c38-bb04-409d-9177-a2b0b42182fc;Université Jean Monnet - Saint-Etienne;93850168100010;UNIVERSITE JEAN MONNET (EPSCP);7383;recherche_entreprises_revue_manuelle;0.66
+12751561-c30d-451d-b8b3-52f7997a3f9f;Université Paris 1 - Panthéon-Sorbonne;19751717000019;UNIVERSITE PARIS 1 PANTHEON-SORBONNE;7383;recherche_entreprises;1.00
+f4a49c4c-9a6a-43a4-b042-08bb4f5aad3c;Université Paris 3 - Sorbonne nouvelle;19751719600014;UNIVERSITE PARIS III SORBONNE NOUVELLE;7383;recherche_entreprises;0.86
+4ffcd768-74b4-44fb-b999-424b3f997ef7;Université Paris 8 - Vincennes-Saint-Denis;19931827000014;UNIVERSITE DE PARIS VIII.PARIS VINCENNES;7383;recherche_entreprises_revue_manuelle;0.58
+27b9c635-130e-447a-8551-c5d808c9f7e6;Université Paris Cité;13002573700011;UNIVERSITE PARIS CITE;7383;recherche_entreprises;1.00
+c7049989-6aa0-4688-bdee-6576c41f48f4;Université Paris Nanterre;19921204400010;UNIVERSITE PARIS NANTERRE;7383;recherche_entreprises;1.00
+31017bd4-30b4-4a50-a412-ff706d86e15f;Université Paris Sciences et Lettres;13002614900018;UNIVERSITE PSL;7383;recherche_siren_manuelle;
+3a07c1a3-6ce1-4e7b-b0d8-8059e9b8c531;Université Paris-Est Créteil Val-de-Marne;19941111700013;UNIVERSITE PARIS EST CRETEIL VAL DE MARNE (UPEC);7383;recherche_entreprises;0.97
+721412cb-66f4-4c99-935f-f321bccae015;Université Paris-Panthéon-Assas;13002995200012;UNIVERSITE PARIS-PANTHEON-ASSAS;7383;recherche_entreprises;1.00
+17beb4cd-c9cc-4306-b4bf-ae05fe137c17;Université Polytechnique Hauts-de-France - Valenciennes;13002574500014;UNIVERSITE POLYTECHNIQUE HAUTS-DE-FRANCE (UPHF);7383;recherche_entreprises_revue_manuelle;0.81
+0e380628-5876-44a9-868b-7de1052502b6;Université Savoie Mont Blanc - Chambéry;19730858800015;UNIVERSITE SAVOIE MONT BLANC;7383;recherche_entreprises_revue_manuelle;0.82
+61d49a8d-790f-4ed1-a534-b44e9f10b875;Université Sorbonne Paris Nord;19931238000017;UNIV PARIS XIII PARIS-NORD VILLETANEUSE;7383;recherche_siren_manuelle;
+9075bc15-d523-47b4-aa3e-0a66d14a3135;Université d'Angers;19490970100303;UNIVERSITE D'ANGERS;7383;recherche_entreprises;1.00
+e166377e-4c43-4c85-88f2-867e1ed15a7b;Université d'Artois - Arras;19624401600016;UNIVERSITE D ARTOIS;7383;recherche_entreprises_revue_manuelle;0.74
+286d2785-66b1-46a7-92ce-0052509cde20;Université d'Orléans;19450855200016;UNIVERSITE D'ORLEANS;7383;recherche_entreprises;1.00
+ba1a0e00-3a3a-4fd3-860a-5b44a6d4ed4f;Université de Bordeaux;13001835100010;UNIVERSITE DE BORDEAUX;7383;recherche_entreprises;1.00
+b3c96997-3a94-44fc-8f06-a44325e0e6ce;Université de Brest;94129831700012;UNIVERSITE DE BREST;7383;recherche_entreprises;1.00
+803f76b5-c428-4f32-bb0c-dded171fdee2;Université de Bretagne-Sud - Lorient;19561718800600;UNIVERSITE DE BRETAGNE-SUD (UBS);7383;annuaire_dila;
+e65225d6-4b36-43fb-b5b6-1f03c85591b4;Université de Caen Normandie;19141408500016;UNIVERSITE DE CAEN NORMANDIE;7383;recherche_entreprises;1.00
+f3b207d5-621c-499e-8c28-c9cbf7e1a8fa;Université de Cergy-Pontoise;13002597600015;CY CERGY PARIS UNIVERSITE;7383;recherche_entreprises_revue_manuelle;0.56
+4baffe90-e690-440b-b950-8aaeac28c85c;Université de Guyane;13002059700014;UNIVERSITE DE GUYANE;7383;recherche_entreprises;1.00
+7ef60b5d-8466-4793-a8e1-ba11e0424094;Université de Haute-Alsace - Mulhouse;19681166500013;UNIVERSITE DE HAUTE ALSACE;7383;recherche_entreprises_revue_manuelle;0.79
+7925a1cf-8849-416f-84b2-d093e331b5a4;Université de La Réunion;19974478000016;UNIVERSITE DE LA REUNION;7383;annuaire_dila;
+2350726b-1199-48ef-8172-cd85fe151732;Université de Lille;13002975400012;UNIVERSITE DE LILLE;7383;recherche_entreprises;1.00
+a49e5b76-238e-4445-a5b7-9c50bab9c867;Université de Limoges;19870669900321;UNIVERSITE DE LIMOGES;7383;recherche_entreprises;1.00
+162fb084-32f0-41d4-b931-16359a5c1716;Université de Lorraine - Nancy;13001550600012;UNIVERSITE DE LORRAINE;7383;recherche_entreprises_revue_manuelle;0.74
+501d5ee2-f1dd-4637-a3cd-f2efa837015e;Université de Marie et Louis Pasteur - Besançon;93810656400017;UNIVERSITE MARIE ET LOUIS PASTEUR (UMLP);7383;recherche_entreprises_revue_manuelle;0.81
+16b86640-e14a-4997-bea0-1951b56ef676;Université de Montpellier;13002979600013;UNIVERSITE DE MONTPELLIER;7383;recherche_entreprises;1.00
+ab2fbf80-cbe2-4c5d-a7d9-9d17528ebe93;Université de Montpellier Paul Valéry;93249089900014;UNIVERSITE DE MONTPELLIER PAUL-VALERY (UMPV);7383;recherche_entreprises;0.97
+f4cfb306-1987-41d8-aa77-5cef0be19ecd;Université de Nîmes;93249157400012;NIMES UNIVERSITE;7383;recherche_entreprises;0.85
+f8e499e2-cc86-475a-bfd2-e23ae411d2b0;Université de Pau et Pays de l'Adour (UPPA);19640251500270;UNIVERSITE DE PAU ET DES PAYS DE L'ADOUR (UPPA);7383;recherche_entreprises;1.00
+24b059fc-676e-4419-9328-d907deccd29d;Université de Perpignan Via Domitia;19660437500010;UNIVERSITE DE PERPIGNAN VIA DOMITIA (UPVD);7383;recherche_entreprises;0.97
+8175735b-393a-4bea-b633-1087f9af8fb4;Université de Picardie Jules Verne - Amiens;19801344300017;UNIVERSITE AMIENS PICARDIE JULES VERNE;7383;recherche_entreprises;0.93
+d886e04e-b4ad-4f72-8a74-41969fc5fe31;Université de Poitiers;19860856400375;UNIVERSITE DE POITIERS;7383;recherche_entreprises;1.00
+44285142-667f-4cde-a0fd-d657aedf1f9f;Université de Reims - Champagne-Ardenne;19511296600799;UNIVERSITE DE REIMS CHAMPAGNE-ARDENNE (URCA);7383;recherche_entreprises;0.97
+95d0cc7d-2ee2-45a1-bdb7-7374a274cb55;Université de Rennes;13003051300019;UNIVERSITE DE RENNES;7383;recherche_entreprises;1.00
+a94fe690-dd65-4e9c-9429-b13bb5236166;Université de Rennes 2;19350937900015;UNIVERSITE RENNES II HAUTE BRETAGNE;7383;recherche_siren_manuelle;
+279f0415-d2a8-4877-9f9c-24f35df212cd;Université de Rouen Normandie;19761904200017;UNIVERSITE DE ROUEN-NORMANDIE;7383;recherche_entreprises;1.00
+8d43f65b-9236-4938-bfa5-1c5c5049b33d;Université de Strasbourg;13000545700010;UNIVERSITE DE STRASBOURG;7383;annuaire_dila;
+818e6b23-e410-4f8f-8bb9-04578d6b275c;Université de Toulon;19830766200017;UNIVERSITE DE TOULON;7383;recherche_entreprises;1.00
+96d42f91-76ee-4896-bae2-5c0d5b99c0ee;Université de Toulouse;93827139200012;UNIVERSITE DE TOULOUSE;7383;annuaire_dila;
+3dc93961-769d-485e-ac6a-717bf35a21c0;Université de Tours;19370800500478;UNIVERSITE DE TOURS;7383;recherche_entreprises;1.00
+0dbb4e84-454b-4487-8e2b-447758d89151;Université de la Nouvelle-Calédonie;13000322100012;UNIVERSITE DE NOUVELLE CALEDONIE;7383;recherche_entreprises;1.00
+ac6193bd-e85c-4c9b-99e3-b1c105c0b140;Université de la Polynésie Française (UPF);19987001500013;UNIVERSITE DE LA POLYNESIE FRANCAISE;7383;recherche_siren_manuelle;
+6779dfc8-183d-4ba8-b23f-8bbfb946bfa2;Université du Havre Normandie;19762762300097;UNIVERSITE LE HAVRE NORMANDIE;7383;recherche_entreprises;1.00
+68d07cbb-9bb3-4b8a-bda9-29f9328e362a;Université du Littoral Côte d'Opale - Dunkerque;19594403800205;UNIVERSITE DU LITTORAL COTE D'OPALE;7383;recherche_entreprises_revue_manuelle;0.82
+38a9df8e-7a76-4eb4-8c42-8047e99a60e2;Université Évry Paris-Saclay;19911975100014;UNIVERSITE D'EVRY VAL D'ESSONNE;7383;recherche_siren_manuelle;
+6752ec99-dbb0-4085-afad-e3d6b83fc58d;Voies navigables de France;13001779100018;VOIES NAVIGABLES DE FRANCE (VNF);7389;annuaire_dila;
+adfa74bb-efe5-4211-a104-e191426228ce;École centrale de Lyon;19690187000010;ECOLE CENTRALE DE LYON (ECL);7383;recherche_entreprises;0.96
+035b74eb-84c2-4066-bbbc-c3fd747ec358;École centrale de Marseille;19133340000015;ECOLE CENTRALE DE MARSEILLE (CENTRALE MARSEILLE);7383;recherche_entreprises;0.89
+436a4685-24cb-4757-aa69-12a8e16d2479;École centrale de Nantes;19440100600011;ECOLE CENTRALE DE NANTES;7383;recherche_entreprises;1.00
+34e0d15d-98a8-4afe-950e-96c47ac340e1;École des hautes études en santé publique;13000362700010;ECOLE DES HAUTES ETUDES EN SANTE PUBLIQUE (EHESP);7383;recherche_entreprises;0.97
+ee6c54a6-acbd-4397-8dae-ae0b9a57ca45;École des hautes études en sciences sociales (EHESS);19753742600011;ECOLE DES HAUTES ETUDES EN SCIENCES SOCIALES (EHESS);7383;recherche_entreprises;1.00
+a69d6675-63ca-4111-90b1-b6d2789a445a;École du Louvre;19754687200015;ECOLE DU LOUVRE;7384;annuaire_dila;
+14317d45-1067-4878-b526-728cc98fc849;École du service public de la mer;13002513300021;ECOLE DU SERVICE PUBLIC DE LA MER (ESPMER);7160;recherche_entreprises;0.95
+00f575bd-9869-4763-814d-eccde30d3453;École nationale d'administration pénitentiaire;18009219900017;ECOLE NATIONALE D'ADMINISTRATION PENITENTIAIRE (ENAP);7384;recherche_entreprises;0.98
+6f7b068e-e603-4c52-9091-c598d5861619;École nationale de l'aviation civile;19311256200015;ECOLE NATIONALE DE L'AVIATION CIVILE (ENAC);7383;recherche_entreprises;0.97
+98a3806e-e3a0-4b04-a878-b13e15df92a9;École nationale de la magistrature;19332239300011;ECOLE NATIONALE DE LA MAGISTRATURE (ENM);7384;recherche_entreprises;0.97
+7e5f11e8-fd80-4fa6-9e85-4a04cbd1a81a;École nationale de protection judiciaire de la jeunesse;19920835600162;ECOLE NATIONALE DE PROTECTION JUDICIAIRE DE LA JEUNESSE (ENPJJ);7160;recherche_entreprises;0.98
+ad282a7e-87e2-43d9-9149-d04c68edd579;École nationale des chartes;19753478700043;ECOLE NATIONALE DES CHARTES (ENC);7383;recherche_entreprises;0.97
+c4e52ac4-c203-4c5c-9c99-a201c2efa84b;École nationale des ponts et chaussées;19753501600020;ECOLE NATIONALE DES PONTS ET CHAUSSEES;7383;recherche_entreprises;1.00
+55869d8b-65ba-4c51-bb5e-059b439c7176;École nationale des sciences agronomiques de Bordeaux;19330203100011;ECOLE NATIONALE SUPERIEURE DES SCIENCES AGRONOMIQUES DE BORDEAUX AQUITAINE BORDEAUX SCIENCES AGRO;7384;recherche_entreprises;0.87
+8c2af22c-19ee-44ab-9543-e1b848299f90;École nationale des sports de montagne;19740068200013;ECOLE NATIONALE DES SPORTS DE MONTAGNE;7384;recherche_entreprises;1.00
+22c72c3c-0c07-480a-9669-0f779f7e6184;École nationale des travaux publics de l'État;13000288400018;ECOLE NATIONALE DES TRAVAUX PUBLICS DE L'ETAT (ENTPE);7383;recherche_entreprises;0.97
+394875b9-fc92-4509-850f-2f9410ac1d4c;École nationale du génie de l'eau et de l'environnement de Strasbourg;19670189000028;ECOLE NATIONALE DU GENIE DE L'EAU ET DE L'ENVIRONNEMENT DE STRASBOURG (ENGEES);7384;recherche_entreprises;0.97
+5fd14b74-0e92-406f-8852-084da366263f;École nationale supérieure d'architecture - Bretagne;19350089900029;ECOLE NATIONALE SUPERIEURE D'ARCHITECTURE DE BRETAGNE (ENSA);7384;annuaire_dila;
+d35d145f-b65a-4841-93ce-9e0e4727a71a;École nationale supérieure d'architecture - Clermont-Ferrand;19631287000021;ECOLE NATIONALE SUPERIEURE D'ARCHITECTURE DE CLERMONT-FERRAND (ENSA);7384;annuaire_dila;
+d98162db-4eec-455d-9455-6aaa4b83fd9c;École nationale supérieure d'architecture - Grenoble;19380141200019;ECOLE NATIONALE SUPERIEURE D'ARCHITECTURE DE GRENOBLE (ENSA);7384;annuaire_dila;
+a0fcc1db-1466-44a3-8b7f-bc91af1c523a;École nationale supérieure d'architecture - La Réunion;94043109100013;ECOLE NATIONALE SUPERIEURE D'ARCHITECTURE DE LA REUNION (ENSA);7384;annuaire_dila;
+9066b016-122d-49d8-bda7-5ccdee9d5f0e;École nationale supérieure d'architecture - Lille;19590337200017;ECOLE NATIONALE SUPERIEURE D'ARCHITECTURE ET DE PAYSAGE DE LILLE (ENSA);7384;annuaire_dila;
+6f7535c0-1c82-41a8-9c90-b95b2b26ac45;École nationale supérieure d'architecture - Lyon;19690184700018;ECOLE NATIONALE SUPERIEURE D'ARCHITECTURE DE LYON (ENSA);7384;annuaire_dila;
+1f874f83-a726-48cf-86c1-ffaa2fb63426;École nationale supérieure d'architecture - Marseille;19130236300020;ECOLE NATIONALE SUPERIEURE D'ARCHITECTURE DE MARSEILLE (ENSA);7384;annuaire_dila;
+d6c500e5-d4c1-421d-9da4-cac3a6830420;École nationale supérieure d'architecture - Montpellier;19340132000018;ECOLE NATIONALE SUPERIEURE D'ARCHITECTURE DE MONTPELLIER (ENSA);7384;annuaire_dila;
+62b37966-432c-44d6-ba87-61d88945b345;École nationale supérieure d'architecture - Nancy;19540135100026;ECOLE NATIONALE SUPERIEURE D'ARCHITECTURE DE NANCY (EAN);7384;annuaire_dila;
+ccca94e7-eb29-4bad-9bba-548e66e9f45e;École nationale supérieure d'architecture - Nantes;19440104800021;ECOLE NATIONALE SUPERIEURE D'ARCHITECTURE DE NANTES (ENSA);7384;annuaire_dila;
+2d9983ba-7adb-4484-ad13-067014a73345;École nationale supérieure d'architecture - Normandie;19760164400028;ECOLE NATIONALE SUPERIEURE D'ARCHITECTURE DE NORMANDIE (ENSA);7384;annuaire_dila;
+089edc17-42af-4de4-8ff1-c711c3479748;École nationale supérieure d'architecture - Paris-Belleville;19751877200037;ECOLE NATIONALE SUPERIEURE D'ARCHITECTURE DE PARIS-BELLEVILLE (ENSA);7384;annuaire_dila;
+c1b9c4d2-1a83-4405-9f3d-4b8ff4a7692f;École nationale supérieure d'architecture - Paris-Est;19932230600028;ECOLE NATIONALE SUPERIEURE D'ARCHITECTURE DE PARIS-EST (ENSA);7384;annuaire_dila;
+2ac896fc-717f-4bcb-83d2-eaa4ba03e93c;École nationale supérieure d'architecture - Paris-La Villette;19751875600014;ECOLE NATIONALE SUPERIEURE D'ARCHITECTURE DE PARIS LA VILLETTE (ENSA);7384;annuaire_dila;
+ec0412a7-0ba0-43d3-ba1f-5ca735d36f8e;École nationale supérieure d'architecture - Paris-Malaquais;18009221500011;ECOLE NATIONALE SUPERIEURE D'ARCHITECTURE DE PARIS-MALAQUAIS (ENSA);7384;annuaire_dila;
+e992f97d-0a23-4c5c-a295-c393f15422ac;École nationale supérieure d'architecture - Paris-Val de Seine;18009220700026;ECOLE NATIONALE SUPERIEURE D'ARCHITECTURE DE PARIS-VAL DE SEINE (ENSA);7384;annuaire_dila;
+637bcdf9-ce2d-4191-af7a-aa4bd5cd11e0;École nationale supérieure d'architecture - Saint-Étienne;19421614900014;ECOLE NATIONALE SUPERIEURE D'ARCHITECTURE DE SAINT-ETIENNE (ENSA);7384;annuaire_dila;
+016eb217-c7a4-4136-9a20-6a1766efb426;École nationale supérieure d'architecture - Strasbourg;19670186600010;ECOLE NATIONALE SUPERIEURE D'ARCHITECTURE DE STRASBOURG (ENSA);7384;annuaire_dila;
+612dd1f3-9751-41c3-b588-c41d37c47c59;École nationale supérieure d'architecture - Toulouse;19310150800011;ECOLE NATIONALE SUPERIEURE D'ARCHITECTURE DE TOULOUSE (ENSA);7384;annuaire_dila;
+2663ed57-5e5b-4a4c-a8ca-70c6c700fc10;École nationale supérieure d'architecture - Versailles;19780412300028;ECOLE NATIONALE SUPERIEURE D'ARCHITECTURE DE VERSAILLES (ENSA);7384;annuaire_dila;
+0bd3d772-aa94-4749-a208-7d1e74dec69d;École nationale supérieure d'architecture et de paysage - Bordeaux;19330199100017;ECOLE NATIONALE SUPERIEURE D'ARCHITECTURE ET DE PAYSAGE DE BORDEAUX (ENSA);7384;annuaire_dila;
+88c5cf16-4493-4d0a-a2de-4b8df31e8e00;École nationale supérieure d'art Villa Arson de Nice;19060836400013;EPA VILLA ARSON;7384;annuaire_dila;
+0ece10b0-54db-4cdc-8d9e-b5413fb551d3;École nationale supérieure d'art de Bourges;18009238900014;ECOLE NATIONALE SUPERIEURE D'ART DE BOURGES;7384;annuaire_dila;
+57725320-3653-46b0-a3dc-88c88cbd3774;École nationale supérieure d'art de Dijon;18009241300012;ECOLE NATIONALE SUPERIEURE D'ART DE DIJON;7384;annuaire_dila;
+5aec34da-5319-4101-8299-a76e4cc4075d;École nationale supérieure d'art de Paris-Cergy;18009240500018;ECOLE NATIONALE SUPERIEURE D'ART DE CERGY;7384;annuaire_dila;
+c3813983-7926-4f92-b3e1-92814ded748b;École nationale supérieure d'art et de design - Limoges;18009239700017;ECOLE NATIONALE SUPERIEURE D'ART ET DE DESIGN DE LIMOGES (ENSAD);7384;annuaire_dila;
+aee60eae-5e41-4e4d-9355-ace32df25f08;École nationale supérieure d'art et de design - Nancy;18009237100020;ECOLE NATIONALE SUPERIEURE D'ART ET DE DESIGN DE NANCY (ENSAD);7384;annuaire_dila;
+aaec1ff1-7f4d-4b4e-9113-bf491d22bd7c;École nationale supérieure d'art et de design - Paris;19753470400014;ECOLE NATIONALE SUPERIEURE DES ARTS DECORATIFS (ENSAD);7384;annuaire_dila;
+f83d3474-ee3a-40ba-9af6-608ec0d73544;École nationale supérieure de chimie - Montpellier;19340112200026;ECOLE NATIONALE SUPERIEURE DE CHIMIE DE MONTPELLIER;7383;recherche_entreprises;1.00
+7631094d-88ae-4970-8388-b8da1b85c48b;École nationale supérieure de chimie de Paris;13002142100016;ECOLE NATIONALE SUPERIEURE DE CHIMIE DE PARIS;7383;recherche_entreprises;1.00
+5b13dc65-dfed-490f-a600-af9732bc5351;École nationale supérieure de création industrielle - les Ateliers;33111876000015;ECOLE NAT SUPER CREATION INDUSTRIELLE (ENSCI - LES ATELIERS) (ENSCI);4110;annuaire_dila;
+9d7ae206-e231-4823-99b3-f79627e8f615;École nationale supérieure de formation de l'enseignement agricole;19310143300012;ECOLE NATIONALE SUPERIEURE DE FORMATION DE L'ENSEIGNEMENT AGRICOLE (ENSFEA);7384;recherche_entreprises;0.98
+0b4d36ac-50c4-4ff7-bdef-5d87c2e723e8;École nationale supérieure de la photographie - Arles;19133342600028;ECOLE NATIONALE SUPERIEURE DE LA PHOTOGRAPHIE (ENSP);7384;annuaire_dila;
+346e6f19-2804-467c-becb-3b14e1fa28dc;École nationale supérieure de la police;19690189600015;ECOLE NATIONALE SUPERIEURE DE LA POLICE (ENSP);7384;recherche_entreprises;0.97
+6a72eda0-e4ff-41e9-ad11-8b48a94ba784;École nationale supérieure de mécanique et des microtechniques;19250082500026;ECOLE NATIONALE SUPERIEURE DE MECANIQUE ET DES MICROTECHNIQUES (ENSMM);7383;recherche_entreprises;0.98
+1500f1ce-8270-4e5f-aef9-49fce5a9ac80;École nationale supérieure de sécurité sociale;19421879800016;ECOLE NATIONALE SUPERIEURE DE SECURITE SOCIALE (EN3S);7384;recherche_entreprises;0.98
+10e6fa8c-f4e8-4550-bbdf-13d83d69c5d2;École nationale supérieure des métiers de l'image et du son;42150644500012;ECOLE NATIONAL SUPRIEURE DES METIERS DE L'IMAGE ET DU SON;4110;annuaire_dila;
+55078168-348e-4d17-b384-3f9e64f350a1;École nationale supérieure des officiers de sapeurs-pompiers;18009249600025;ECOLE NATIONALE SUPERIEURE DES OFFICIERS DE SAPEURS POMPIERS (ENSOSP);7384;recherche_entreprises;0.97
+ee712099-b4cc-4d4d-9e64-ba88618decd0;École nationale supérieure des sciences de l'information et des bibliothèques;19692459100015;ECOLE NATIONALE SUPERIEURE DES SCIENCES DE L'INFORMATION ET DES BIBLIOTHEQUES (ENSSIB);7383;recherche_entreprises;0.98
+61adea49-ed63-477d-a16f-20ad63c71325;École nationale supérieure du paysage - Versailles Marseille;19782019400029;ECOLE NATIONALE SUPERIEURE DE PAYSAGE DE VERSAILLES (ENSP);7384;recherche_entreprises;0.86
+eb33a780-648d-4ad0-b88a-f62265a22e29;École nationale supérieure maritime;13001309700071;ECOLE NATIONALE SUPERIEURE MARITIME (ENSM);7383;recherche_entreprises;0.97
+f22ec979-d5f9-4802-af76-df7d04278c84;École nationale vétérinaire d'Alfort (ENVA);19940608300014;ECOLE NATIONALE VETERINAIRE D'ALFORT (ENVA);7384;recherche_entreprises;1.00
+451e5f20-d8e6-47b2-af54-17dd9e2991b9;École nationale vétérinaire de Toulouse;19310153200011;ECOLE NATIONALE VETERINAIRE DE TOULOUSE (ENVT);7384;recherche_entreprises;0.97
+d3c39544-5279-460c-abf3-278e727387dd;École nationale vétérinaire, agroalimentaire et de l'alimentation Nantes-Atlantique (Oniris VetAgroBio Nantes);13000853500010;ECOLE NATIONALE VETERINAIRE, AGROALIMENTAIRE ET DE L'ALIMENTATION, NANTES-ATLANTIQUE (ONIRIS VETAGROBIO NANTES);7383;recherche_entreprises;1.00
+f1becb14-0957-4714-b044-41dad3010b2a;École navale et groupe des écoles du Poulmic;15000096600013;ECOLE NAVALE;7383;recherche_siren_manuelle;
+8ddb7c62-d05d-4b05-9d1f-f76f76bc13a1;École normale supérieure;19753459700012;ECOLE NORMALE SUPERIEURE (ENS);7383;recherche_entreprises;0.97
+74935183-7042-4ffc-a6cc-32f3421a3b26;École normale supérieure Paris-Saclay;19940607500036;ECOLE NORMALE SUPERIEURE PARIS-SACLAY (ENS);7383;recherche_entreprises;0.98
+726df651-8f12-4927-8100-b73cf88af670;École normale supérieure de Lyon;13000812100019;ECOLE NORMALE SUPERIEURE DE LYON (ENS);7383;annuaire_dila;
+2116cf88-b7de-4683-8b30-eb68b5fa6591;École normale supérieure de Rennes;13001848400019;ECOLE NORMALE SUPERIEURE DE RENNES (ENS);7383;annuaire_dila;
+4b02f0cb-5a43-4aea-ab3f-22a2173cdf3c;École polytechnique;19911568400011;ECOLE POLYTECHNIQUE;7383;recherche_entreprises;1.00
+c8c849e3-ecb0-47cb-a45b-14ae71626925;École pratique des hautes études;19753486000105;ECOLE PRATIQUE DES HAUTES ETUDES (EPHE);7383;annuaire_dila;
+fdc5049a-31ce-48d2-8d11-0c4f8c79f302;Établissement Public du Palais de la Porte Dorée;13000272800017;ETABLISSEMENT PUBLIC DU PALAIS DE LA PORTE DOREE;7389;annuaire_dila;
+2c12680c-b3d4-4138-b0f3-1f56f692583d;Établissement de communication et de production audiovisuelle de la défense;18009223100018;ETABLISSEMENT DE COMMUNICATION ET DE PRODUCTION AUDIOVISUELLE DE LA DEFENSE (ECPAD);7389;annuaire_dila;
+5d6f6770-73b0-476c-8565-791ee329b864;Établissement de retraite additionnelle de la fonction publique;18009248800030;ETABLISSEMENT DE RETRAITE ADDITIONNELLE DE LA FONCTION PUBLIQUE (ERAFP);7389;annuaire_dila;
+25da43e1-207a-468a-883d-505a4d4dfaa0;Établissement français du sang;42882285202140;ETABLISSEMENT FRANCAIS DU SANG (EFS);7389;annuaire_dila;
+22e8b485-582b-4044-a868-8934e2d87455;Établissement national des invalides de la marine;18006502100560;ETABLISSEMENT NATIONAL DES INVALIDES DE LA MARINE (ENIM);7389;annuaire_dila;
+f444124b-3f4f-413a-b073-fd7f4a81ee6d;Établissement public - Campus Condorcet;13001637100036;ETABLISSEMENT PUBLIC CAMPUS CONDORCET;7389;annuaire_dila;
+903248d6-174a-4b0d-a638-ac20e2f2c140;Établissement public Mobilier national - Musée national de la céramique - Musée national Adrien Dubouché - Manufactures nationales Sèvres, Gobelins, Beauvais, Savonnerie - Atelier de recherche et de création, de dentelles d'Alençon et du Puy-en-Velay;93910627400011;MANUFACTURES NATIONALES - SEVRES ET MOBILIER NATIONAL;7389;annuaire_dila;
+ffc81177-6e74-4188-a111-dba8e57b6130;Établissement public chargé de la conservation et de la restauration de la cathédrale Notre-Dame de Paris;20009077700018;ETABLISSEMENT PUBLIC CHARGE DE LA CONSERVATION ET DE LA RESTAURATION DE LA CATHEDRALE NOTRE-DAME DE PARIS;7389;annuaire_dila;
+23aae509-ae19-46e4-a267-00a9afec40ee;Établissement public de la Réunion des musées nationaux et du Grand Palais;69204158500583;ETABLISSEMENT PUBLIC DE LA REUNION DES MUSEES NATIONAUX ET DU GRAND PALAIS DES CHAMPS-ELYSEES (RMN);4110;annuaire_dila;
+eb705d1c-8846-460d-a7ba-305905c3ea70;Établissement public de sécurité ferroviaire;13000131600038;ETABLISSEMENT PUBLIC DE SECURITE FERROVIAIRE (EPSF);7389;annuaire_dila;
+8e307798-791b-48bb-95ff-60fcd6b8cda4;Établissement public du Mont-Saint-Michel;88443903500012;ETABLISSEMENT PUBLIC DU MONT-SAINT-MICHEL (ETABLISSEMENT PUBLIC NATIONAL DU MONT-SAINT-MICHEL);4140;annuaire_dila;
+f984531c-55c6-4613-acaa-79fe51b88ecd;Établissement public du Parc et de la Grande Halle de La Villette (EPPGHV);39140695600014;ETS PUBLIC PARC GRANDE HALLE VILLETTE;4110;annuaire_dila;
+bf2b5b52-ea39-4137-8139-3afd28d6291d;Établissement public du château de Fontainebleau;13000651300019;ETABLISSEMENT PUBLIC DU CHATEAU DE FONTAINEBLEAU;7389;annuaire_dila;
+9996203f-e2e2-4ac6-b5ed-76286bdf3528;Établissement public du château, du musée et du domaine national de Versailles;18004626000014;ETABLISSEMENT PUBLIC DU CHATEAU DU MUSEE ET DU DOMAINE NATIONAL DE VERSAILLES;7389;annuaire_dila;
+7c68e3bb-0153-4e4e-a635-7c2d48ffd334;Établissement public du musée d'Orsay et du musée de l'Orangerie - Valéry Giscard d'Estaing;18009244700010;ETABLISSEMENT PUBLIC DU MUSEE D'ORSAY ET DU MUSEE DE L'ORANGERIE - VALERY GISCARD D'ESTAING;7389;annuaire_dila;
+7107546b-2381-4ee3-a2e9-c815db70014a;Établissement public du musée des civilisations de l'Europe et de la Méditerranée;13001789000026;MUSEE DES CIVILISATIONS DE L'EUROPE ET DE LA MEDITERRANEE (MUCEM);7389;annuaire_dila;
+14db4224-f2ce-4885-b957-6077a6eb611f;Établissement public pour l'insertion dans l'emploi;18009259500297;ETABLISSEMENT PUBLIC D'INSERTION DE LA DEFENSE (EPIDE);7389;annuaire_dila;
+573b97bf-ed07-40ed-98ed-1d41d8a80d8c;1000 premiers jours;;;;exclusion;
+24834f07-045d-4a91-aba2-1c503147bfd4;Agence de recouvrement et d'intermédiation des pensions alimentaires;;;;exclusion;
+24b5965e-63f3-4e52-9865-40aeaedbbaad;Alcool Info Service;;;;exclusion;
+c26cd543-1069-4604-8916-7bfaeaf5caf4;Aquarium tropical de la Porte Dorée;;;;exclusion;
+87de2fa1-7c0e-4ea2-8ca7-9105ebeb60f4;Arts et Métiers Campus d'Aix-en-Provence;;;;exclusion;
+97fca645-c001-4928-bf4b-f2b7b39a5a70;Arts et Métiers Campus d'Angers;;;;exclusion;
+6915acfa-f56a-435f-93a7-85ae9ba9fc6d;Arts et Métiers Campus de Bordeaux-Talence;;;;exclusion;
+bec12f5b-ff4f-4d23-9e24-6c593c0816b0;Arts et Métiers Campus de Châlons-en-Champagne;;;;exclusion;
+d1987a57-35b6-4fcd-8b07-bee854f22542;Arts et Métiers Campus de Cluny;;;;exclusion;
+286efe8e-ed83-4d8f-b81f-133ec8cbfb67;Arts et Métiers Campus de Lille;;;;exclusion;
+a2363918-a4dd-4b85-9a82-79378e68fa2a;Arts et Métiers Campus de Metz;;;;exclusion;
+80cb734b-fa73-4827-9c34-0a118d3180bd;Arts et Métiers Campus de Paris;;;;exclusion;
+c8ebd382-457b-416d-bda2-d5d4b1e7e709;Autorité de contrôle prudentiel et de résolution (ACPR);;;;exclusion;
+391e70aa-e97f-46d8-91e1-221adaa2e9a8;Banque des territoires;;;;exclusion;
+fd240579-a1ec-4d8a-a544-af6a41f253ef;Caisse générale, direction de l'exécution des opérations financières de la CDC;;;;exclusion;
+d4203497-b80f-4601-8d5e-60b3506dbd32;Campus agronomique de Clermont-Ferrand;;;;exclusion;
+2763b9a3-215f-4e2b-931c-cd115ed3a805;Campus vétérinaire de Lyon;;;;exclusion;
+5f9d81ff-08f9-4535-b526-f70f8e749fb0;Centre Défense de programmation et de gestion de l'espace aérien;;;;exclusion;
+61082f54-62c8-422f-8621-e00b5259a6e6;Centre d'aviation météorologique;;;;exclusion;
+4d022508-db66-427c-ba14-6606f324c793;Centre d'études de la neige;;;;exclusion;
+80ae3a4d-f934-4c0e-8a30-56ff009c23fa;Centre d'études pour le développement, l'innovation et la prospective en ressources humaines;;;;exclusion;
+a9ff2067-9ac4-4bc9-9eda-2011d742291f;Centre de formation de la juridiction administrative;;;;exclusion;
+b964ab19-d5c4-48b0-8a04-9185a45b2235;Centre de recherche en économie et en statistique (CREST);;;;exclusion;
+4973b88d-9e1d-4cd1-b426-958ccc089563;Centre de recherche et de diffusion juridiques;;;;exclusion;
+7ad41844-4e99-43f8-80e9-f87cd7351ca1;Centre de recherches sociologiques sur le droit et les institutions pénales;;;;exclusion;
+638c5ff2-7d4e-46de-bcd2-19cb0b28aef0;Centre de ressources documentaires;;;;exclusion;
+0c227c51-ebaf-4fce-ad7a-e32e8e91e6f2;Centre de valorisation des ressources humaines;;;;exclusion;
+2719016d-559b-44ee-bfa3-b47230acf827;Centre de valorisation des ressources humaines d'Aix-en-Provence;;;;exclusion;
+7f19276d-0b32-43a3-b2f8-937001b530ba;Centre de valorisation des ressources humaines d'Arras-Valenciennes;;;;exclusion;
+26a0c4fb-492f-4482-a249-0f2d7782e15a;Centre de valorisation des ressources humaines de Clermont-Ferrand;;;;exclusion;
+e8fd7964-13a8-44b3-a6c9-531ffc3bdc74;Centre de valorisation des ressources humaines de Mâcon;;;;exclusion;
+1aee8119-e375-487b-b751-e6520935953a;Centre de valorisation des ressources humaines de Nancy;;;;exclusion;
+64a19c53-d11d-4b4b-9800-a96107e5bf66;Centre de valorisation des ressources humaines de Nantes;;;;exclusion;
+49c7919d-a349-4635-8b6b-2b808e09c327;Centre de valorisation des ressources humaines de Rouen;;;;exclusion;
+60114132-ee98-47f3-9ff2-b7b178137fb1;Centre de valorisation des ressources humaines de Toulouse;;;;exclusion;
+6d5296c4-fcd6-4e1b-848d-016b96c237a7;Centre de valorisation des ressources humaines de Tours;;;;exclusion;
+278c99fd-8c7d-4da7-979e-1ff92e5b75b0;Centre des archives de l'armement et du personnel civil;;;;exclusion;
+4e00a786-2fe5-4acf-b6b5-64e21438794e;Centre des archives du personnel militaire;;;;exclusion;
+186552d0-63aa-4e30-8ae0-65d9882c20db;Centre historique des archives;;;;exclusion;
+a4859082-9447-40a5-8e89-57ce6e104102;Centre ministériel d'appui aux formations à distance (CMA);;;;exclusion;
+3165cc51-3231-4ba0-8b6e-f3fafc8bb448;Centre national de recherches météorologiques;;;;exclusion;
+b4799a86-a985-40ec-94c7-1d55e7cb1795;Centre national des ponts de secours;;;;exclusion;
+e58fb499-3d41-4685-b9bf-aa714dd48fdd;Centre pour l'éducation aux médias et à l'information (CLEMI);;;;exclusion;
+ace608b3-1c70-4b71-98f8-8b4b0a312967;Chancellerie de l'Ordre national du mérite;;;;exclusion;
+43906340-42cc-42c0-af0e-55deb62edb26;Cité des sciences et de l'industrie;;;;exclusion;
+0154b468-0250-4a28-af1f-3d5d6cbd24ef;Comité de règlement des différends et des sanctions;;;;exclusion;
+20a529fe-783d-45a7-aca4-b235af1903ae;Commission d'instruction;;;;exclusion;
+6dbfee00-f9b5-4b98-8105-3441ddcfb950;Commission de contrôle des organismes de gestion des droits d’auteur et des droits voisins;;;;exclusion;
+74b22af1-f2f1-419e-b923-21e0776f72e3;Commission des participations et des transferts;;;;exclusion;
+baf779bb-4842-4ef8-a564-545feb86c867;Commission des requêtes;;;;exclusion;
+a1718929-ff05-48c7-a51d-5cfff5a73c68;Commission des sanctions;;;;exclusion;
+3b1fd15f-5a35-4f54-a922-3acba50d0fb7;Commission des sanctions;;;;exclusion;
+a62bee61-4c7c-43dc-925f-3a506a006c2f;Commission des sondages;;;;exclusion;
+1da47d65-b713-439b-838a-fc3eda91d34b;Commission interministérielle des biens à double usage;;;;exclusion;
+4421a12f-e2fd-44fb-a600-db992837b4a7;Commissions spécialisées;;;;exclusion;
+113cff87-cef8-4b87-bf6d-cb528da6e602;Conseil de défense et de sécurité nationale;;;;exclusion;
+a559930f-9b25-4062-801f-6919d3abd5e8;Conseil de défense écologique;;;;exclusion;
+4dfe9a34-5bfa-4629-8121-5518189e15fd;Conseil de politique nucléaire;;;;exclusion;
+e45f454e-be19-42f8-8294-c41407e90eb3;Conseil des prélèvements obligatoires (CPO);;;;exclusion;
+d05aa16c-8cae-4178-bf56-76eefd6561f7;Conseil scientifique et d'orientation;;;;exclusion;
+46db3934-2af9-473c-9963-51dc346c9661;Conseil supérieur des programmes;;;;exclusion;
+228768f6-1c77-449f-808e-0726340c15cd;Conservatoire botanique national du bassin parisien;;;;exclusion;
+3339d41d-3829-4b0b-b93b-f5488dde8d90;Coordination nationale de prévention et de sécurité du CNRS;;;;exclusion;
+c1ef4259-1235-420e-8330-092e5425d3ea;Cour d'appel financière;;;;exclusion;
+9b240c4d-14e3-4066-8f14-de09c687d63a;Cour nationale du droit d'asile;;;;exclusion;
+2f72c68a-7ab5-438b-aaaf-f5aa8a87dab2;Drogues Info Service;;;;exclusion;
+bacbb4b0-fd82-47ab-a9a4-1f7c63e03bc9;ENSAE-ENSAI Formation continue (Cepe);;;;exclusion;
+e6e4bc83-74e4-4283-8280-53419113e1cf;Echelons locaux;;;;exclusion;
+e4d7899b-dfc5-46d5-a013-fe9c79ccef65;Ecole nationale des sciences géographiques;;;;exclusion;
+ca571661-0ac5-40b0-948f-77accbcdd500;Exploitation et aménagement;;;;exclusion;
+973dbcf5-16d4-4a20-af6c-19f7fbc5cf72;Fondation CNRS;;;;exclusion;
+23c65a92-1b1d-4982-aade-dad40b8299fe;Fonds de financement de la protection complémentaire de la couverture universelle du risque maladie;;;;exclusion;
+13a145e9-29bd-414b-aeef-a4a788208d16;Formation de jugement;;;;exclusion;
+b00c582a-5589-406f-836b-c1f1ae7f5895;Institut Mines-Télécom Business School;;;;exclusion;
+f77b913b-4a0c-474c-bcd3-c84778af3683;Institut Mines-Télécom École de management;;;;exclusion;
+1d79e480-4890-41c9-b7fb-31bafb8cba7d;Institut bancaire et financier international;;;;exclusion;
+8caa1a6e-2272-468e-9069-d5c750725279;Institut d'éducation à l'agro-environnement de Florac;;;;exclusion;
+ad0675a3-b766-4023-bbf0-643a63c7a5c8;Institut de chimie (INC);;;;exclusion;
+6662552e-b50b-4f4c-b6e3-93b33ae9ebec;Institut de recherche biomédicale et d'épidémiologie du sport;;;;exclusion;
+f0743530-acfb-4aff-ac99-f2c1c5e6f8c3;Institut des hautes études de la vigne et du vin;;;;exclusion;
+edf54b8a-a647-40cd-b969-95d7316ff999;Institut des régions chaudes;;;;exclusion;
+d105ce0a-ba96-489f-a919-599083d10946;Institut des sciences de l'information et de leurs interactions;;;;exclusion;
+41c89b4a-0dbb-4b5b-92d3-fe7b21de99ff;Institut des sciences de l'ingénierie et des systèmes;;;;exclusion;
+a62996b6-70b3-4731-b2ba-cd2ac305d49a;Institut des sciences humaines et sociales;;;;exclusion;
+b6976e4f-a835-4dca-ab20-1f9448223438;Institut français de l'éducation;;;;exclusion;
+92acbad9-77db-4d10-9e04-c716ab8748e5;Institut national d'études supérieures agronomiques de Montpellier;;;;exclusion;
+f1b8c0cf-05e7-41f4-a055-af8656d505ec;Institut national de physique nucléaire et de physique des particules;;;;exclusion;
+65362e8b-1677-44ad-bf1e-535a6ec28c21;Institut national des sciences biologiques;;;;exclusion;
+0bd49a4f-6c84-4d66-b653-02bfc3bfa5d7;Institut national des sciences de l'univers;;;;exclusion;
+a99d833a-f682-4bcc-bd1a-251256d4be8e;Institut national des sciences mathématiques et de leurs interactions;;;;exclusion;
+1eb0509e-2172-4ce0-b20b-1ec19d5cd58f;Institut universitaire de France (IUF);;;;exclusion;
+83bba193-fad1-4ee1-9cd9-8ef0d9cd2ec4;Institut écologie et environnement;;;;exclusion;
+96261b60-9bc4-424e-a1eb-f55cde9cab08;Jardin des plantes;;;;exclusion;
+0572bff4-2153-4b2e-9ca3-e15fdd27e3bc;Joueurs Info Service;;;;exclusion;
+852e3e60-c6e1-4895-a482-0cdeb37f758a;Manger Bouger, programme national nutrition santé;;;;exclusion;
+691226fb-19d9-42a2-86df-4c003f7b8e3d;Mines Nancy;;;;exclusion;
+e524fea1-e449-4742-abc9-59906c93fe6d;Musée Hébert;;;;exclusion;
+1712a7c0-9658-4bd5-a2f0-6e778f606307;Musée de l'Homme;;;;exclusion;
+11add9ce-d0e4-4570-b66e-7f3b1ac0f9cf;Musée de l'Orangerie des Tuileries;;;;exclusion;
+6f421f75-3877-46d5-b899-0d1d1127b290;Musée de la Monnaie de Paris;;;;exclusion;
+62af9453-5900-497b-9de5-eb3965004799;Musée de la gendarmerie nationale;;;;exclusion;
+af1d90ed-affc-49eb-9e7d-1600ec61e4c0;Musée national Jean-Jacques Henner;;;;exclusion;
+7409c6e7-5d44-4aab-9630-b03d6785defe;Musée national de l'Education;;;;exclusion;
+e922b61d-8ab4-4263-a095-aca5c42dcdbd;Musée national de l'histoire de l'immigration;;;;exclusion;
+d5a1b83a-a8bd-4449-84fd-e21e37b3493b;Musée national de la Légion d'honneur et des ordres de chevalerie;;;;exclusion;
+5bcf23e2-1ef3-4f9a-9e05-70a0c887e208;Médiateur de la mutualité sociale agricole;;;;exclusion;
+e54a1a6b-2afe-4c99-9cec-35c9f5b3889d;Observatoire de la propriété intellectuelle;;;;exclusion;
+c9ab6bb8-ec22-49fc-891a-f5eb9f1a35bb;Observatoire de la vie étudiante (OVE);;;;exclusion;
+2a48adf2-fe59-4f22-b0ce-0e458055e008;Observatoire des atteintes à la probité;;;;exclusion;
+264a451c-1e33-43d8-a17e-945797304ace;Observatoire des énergies renouvelables et de la biodiversité;;;;exclusion;
+4b55b7f5-d349-4ea2-8953-3620af83e26c;Observatoire national de la protection de l'enfance;;;;exclusion;
+fd3f8472-cce9-4daa-aadf-1e40840617d7;Parc Zoologique de Paris (Zoo de Vincennes);;;;exclusion;
+bb964a36-c300-4674-b29f-aacfe487ea45;Parc naturel marin d'Iroise;;;;exclusion;
+9095daa7-0111-4322-a0ee-536a6a00053b;Parc naturel marin de Martinique;;;;exclusion;
+39de92b7-1ca8-4375-913d-f7c0fb7b2228;Parc naturel marin de Mayotte;;;;exclusion;
+f98c1847-3f8f-4358-a16e-9543dea13a60;Parc naturel marin de l'estuaire de la Gironde et de la mer des Pertuis;;;;exclusion;
+471b209a-3e80-4fcc-b465-529537f35e4b;Parc naturel marin des estuaires picards et de la mer d'Opale;;;;exclusion;
+7bde7afa-49a8-40c9-9464-d3bcd26c7e1c;Parc naturel marin du Bassin d'Arcachon;;;;exclusion;
+fb32d24a-7a82-47bf-a8e4-c2d60d293248;Parc naturel marin du cap Corse et de l'Agriate;;;;exclusion;
+3358624a-4e37-4fcd-9b11-908b843aab94;Parc naturel marin du golfe de Lion;;;;exclusion;
+40209bf6-7c19-4b82-a1a2-35df22eadc30;Parcs nationaux de France;;;;exclusion;
+690d999e-e0dd-4558-a056-d0e2e2fd54ae;Production;;;;exclusion;
+c7c20f89-f02e-411f-91ed-ae7ab0e67422;Programmation culturelle;;;;exclusion;
+7dbd006c-677f-4272-8863-43a2daa108af;Programme de rénovation des cités administratives;;;;exclusion;
+c178dc64-eae1-478b-9d44-d09fb2836c2b;Projets et partenariats;;;;exclusion;
+baa704aa-1f47-4bc1-b2f9-06d482cc7b5d;Présidents de chambre;;;;exclusion;
+0145df4d-3637-4c0a-9a47-7883ec37ba73;Ressources humaines;;;;exclusion;
+a439dddc-35cd-4e58-b635-64ae40de8eca;Sanctuaire AGOA pour les mammifères marins;;;;exclusion;
+aa4c463c-9e3e-4e44-a2d7-885a6ac372a0;Sous direction des politiques sociales maritimes (SDPSM);;;;exclusion;
+03aa2f11-f3ed-47f1-bf09-0d63fde749bc;Structure spécialisée d'achat et de mandatement de Bordeaux;;;;exclusion;
+3d421deb-1f3b-4513-b280-bc8d18533ff6;Structure spécialisée d'achat et de mandatement du groupement aérien des installations aéronautiques;;;;exclusion;
+e1f3161b-04e2-4036-a671-b15276273d34;Tabac Info Service;;;;exclusion;
+19ab89e5-d863-43af-91ca-39117f2eacb5;Technique spectacles;;;;exclusion;
+473a7f67-675e-4642-92d1-2bf7280df77d;Télécom Paris;;;;exclusion;
+309b4bdb-ee09-4e0f-95b4-52116c44ab91;Télécom SudParis;;;;exclusion;
+0ece9ce4-b5f1-4066-b57f-c5b5875fa282;Université ComUE Lyon;;;;exclusion;
+d7a35a25-aef2-4051-84d5-9d4368a58658;Vaccination Info Service;;;;exclusion;
+1baff68d-bc5b-4c3b-8f8e-a8042a703601;Échelon central;;;;exclusion;
+e85a1f94-a91f-4397-a1fb-43449db7ac2e;École Management et société;;;;exclusion;
+aac46dd1-8826-4bc5-ad72-bef1082730c4;École Sciences industrielles et technologies de l'information;;;;exclusion;
+af7aa9b4-e8a7-4dca-9307-6b282fdc8cdf;École d'administration des affaires maritimes (EAAM);;;;exclusion;
+d78818fb-e1e3-4c4b-9a05-8a26872c9b4f;École d'ingénieur;;;;exclusion;
+d2879416-254c-4fe5-a4e1-1199070353a4;École de danse;;;;exclusion;
+d98696fe-e62c-4810-b32c-52826f3c30df;École de formation des affaires maritimes (EFAM);;;;exclusion;
+5a35242d-ce30-4a85-8b7e-9400e1c5550e;École nationale de la météorologie;;;;exclusion;
+6d939a66-fc77-4e67-ad1d-1952a00c6a7f;École nationale de la statistique et de l'administration économique;;;;exclusion;
+da0650a5-5d30-4dea-93b8-9c4113dd70bd;École nationale de la statistique et de l'analyse de l'information (ENSAI);;;;exclusion;
+60a071ac-0ec9-4f9d-8485-aabb867a1589;École nationale de police scientifique;;;;exclusion;
+a94d597e-ff67-4e29-b805-7886f2709195;École nationale supérieure des sciences agronomiques, agroalimentaires, horticoles et du paysage (Institut Agro Rennes-Angers);;;;exclusion;
+194f6e49-fd7f-45aa-b04c-e9fd6bcbe63d;Éducation et formation;;;;exclusion;
