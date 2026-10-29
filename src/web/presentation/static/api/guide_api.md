@@ -395,7 +395,6 @@ caractères s'applique au texte Markdown, syntaxe comprise.
 | `ouvert_aux_militaires` | **OUI** ou **NON**. |
 | `lieu_de_travail` | Obligatoire. Valeurs : **NON_DEFINI, SUR_SITE, TELETRAVAIL**. |
 | `management` | Obligatoire. **AVEC** ou **SANS** management. |
-| `complements` | **1 500 caractères maximum.** |
 | `bases_legales` | **1 500 caractères maximum.** |
 | `note_ouverture_poste_url` | Lien **`https`** vers l'avis de vacance publié au Journal officiel, sur **`legifrance.gouv.fr`** ou **`www.legifrance.gouv.fr`** (ex. `https://www.legifrance.gouv.fr/jorf/id/JORFTEXT…`). Une offre avec un lien `http` ou vers un autre site est rejetée. |
 
@@ -744,7 +743,6 @@ Notation : `a.b` désigne un objet imbriqué, `a[]` une liste, `a[0]` son premie
 | `conditions.salaire_contractuel` | Jamais renseigné par l'ingestion. |
 | `conditions.fin_contrat` | Jamais renseigné par l'ingestion. |
 | `conditions.ouvert_aux_militaires` | Jamais renseigné par l'ingestion. |
-| `conditions.complements` | Jamais renseigné par l'ingestion. |
 | `conditions.bases_legales` | Lu dans `customFields.offerCustomBlock1.longText2` (« Fondement juridique », absent de l'API fake-ts) : texte brut repris tel quel, sans les espaces en début et fin ; non envoyé s'il est vide. |
 | `conditions.note_ouverture_poste_url` | Lu dans `customFields.offerCustomBlock1.longText3` (« Avis de vacance au JO », absent de l'API fake-ts) : premier lien `legifrance.gouv.fr` présent dans le texte, passé en `https`. `null` si le texte ne contient aucun lien Legifrance (les liens vers une page de candidature sont ignorés). |
 | `contacts` | Lu dans `customFields.origin.shortText2` et `customFields.origin.shortText3` (absents de l'API fake-ts) : `shortText2` (« Personnes à contacter ») → contact `principal`, `shortText3` (« Autre personne à contacter ») → contact `autre`. `texte` reprend la valeur sans les espaces en début et fin ; une valeur sans lettre ni chiffre est ignorée. `emails` contient les adresses email présentes dans le texte, dédoublonnées, dans l'ordre d'apparition. `null` si aucun contact. |
