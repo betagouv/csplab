@@ -91,6 +91,11 @@ class OrganismeQuerySet(models.QuerySet):
     def etapes_of(self, organisme_id) -> "OrganismeQuerySet":
         return self.filter(pk=organisme_id).only("id", "etapes")
 
+    def holding_sirets(
+        self, sirets: Sequence[str], excluding_ids: Sequence[UUID]
+    ) -> "OrganismeQuerySet":
+        return self.filter(siret__in=sirets).exclude(pk__in=excluding_ids)
+
     def by_referentiel_and_external_id_pairs(
         self, pairs: list[tuple[str, str]]
     ) -> "OrganismeQuerySet":
@@ -146,6 +151,34 @@ class OrganismeModel(BaseDatedModel):
             }
             for etape in EtapeParDefaut
         ]
+
+    def move_dependents_to(self, target_id: UUID) -> None:
+        # The target may not exist yet: foreign keys are checked at commit.
+        self.agents_liaisons.exclude(
+            agent_id__in=OrganismeAgentModel.objects.filter(
+                organisme_id=target_id
+            ).values("agent_id")
+        ).update(organisme_id=target_id)
+        self.recrutements.update(organisme_id=target_id)
+        self.talentsoft_organismes.update(organisme_id=target_id)
+        OrganismeModel.objects.filter(parent_id=self.pk).update(parent_id=target_id)
+
+        target_tags = {
+            (tag.name.lower(), tag.category): tag
+            for tag in self.tags.model.objects.filter(organisme_id=target_id)
+        }
+        for tag in self.tags.all():
+            same_tag = target_tags.get((tag.name.lower(), tag.category))
+            if same_tag is None:
+                self.tags.filter(pk=tag.pk).update(organisme_id=target_id)
+                continue
+            # Tag links left behind are deleted with this organisme.
+            tag.recrutement_agents_liaisons.update(tag=same_tag)
+            tag.candidatures_liaisons.exclude(
+                candidature_id__in=same_tag.candidatures_liaisons.values(
+                    "candidature_id"
+                )
+            ).update(tag=same_tag)
 
     def mettre_a_jour_etapes(
         self, etapes: Sequence[EtapeData]
