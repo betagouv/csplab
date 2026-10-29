@@ -107,6 +107,31 @@ const peutPublier = computed(() => db.organisme.agents.find(a => a.nom === UTILI
       </span>
     </template>
 
+    <nav
+      class="etapes"
+      aria-label="Étapes du formulaire"
+    >
+      <ol>
+        <li
+          v-for="(e, i) in ETAPES"
+          :key="e.id"
+        >
+          <button
+            type="button"
+            class="etape"
+            :aria-current="etape === e.id ? 'step' : undefined"
+            @click="aller_etape(e.id)"
+          >
+            <span class="etape__num">{{ i + 1 }}</span>
+            <span>
+              <span class="etape__label">{{ e.label }}</span>
+              <small>{{ aCompleter(e.id) ? `${aCompleter(e.id)} à compléter pour publier` : e.aide }}</small>
+            </span>
+          </button>
+        </li>
+      </ol>
+    </nav>
+
     <p
       v-if="o.validationEtat === 'en_attente'"
       class="bandeau"
@@ -146,31 +171,6 @@ const peutPublier = computed(() => db.organisme.agents.find(a => a.nom === UTILI
     </p>
 
     <div class="formulaire">
-      <nav
-        class="etapes"
-        aria-label="Étapes du formulaire"
-      >
-        <ol>
-          <li
-            v-for="(e, i) in ETAPES"
-            :key="e.id"
-          >
-            <button
-              type="button"
-              class="etape"
-              :aria-current="etape === e.id ? 'step' : undefined"
-              @click="aller_etape(e.id)"
-            >
-              <span class="etape__num">{{ i + 1 }}</span>
-              <span>
-                <span class="etape__label">{{ e.label }}</span>
-                <small>{{ aCompleter(e.id) ? `${aCompleter(e.id)} à compléter pour publier` : e.aide }}</small>
-              </span>
-            </button>
-          </li>
-        </ol>
-      </nav>
-
       <div class="contenu">
         <h2 class="contenu__titre">
           {{ index + 1 }}. {{ ETAPES[index]!.label }}
@@ -314,23 +314,28 @@ const peutPublier = computed(() => db.organisme.agents.find(a => a.nom === UTILI
 }
 
 .formulaire {
-  display: grid;
-  grid-template-columns: 15rem minmax(0, 1fr);
-  gap: var(--csp-space-6);
-  align-items: start;
+  min-width: 0;
 }
 
+// Étapes en tête de page, sous la séparation de l'en-tête : plus lisibles, et toute la largeur pour le contenu.
 .etapes {
   position: sticky;
-  top: var(--csp-space-4);
+  top: 0;
+  z-index: 2;
+  margin-top: calc(-1 * var(--csp-space-2));
+  border-bottom: 1px solid var(--border-default-grey);
+  background: var(--background-default-grey);
 
   ol {
     display: flex;
-    flex-direction: column;
-    gap: var(--csp-space-1);
     margin: 0;
     padding: 0;
     list-style: none;
+  }
+
+  li {
+    flex: 1;
+    min-width: 0;
   }
 }
 
@@ -339,9 +344,10 @@ const peutPublier = computed(() => db.organisme.agents.find(a => a.nom === UTILI
   align-items: flex-start;
   gap: var(--csp-space-2);
   width: 100%;
-  padding: var(--csp-space-2) var(--csp-space-3);
+  height: 100%;
+  padding: var(--csp-space-3) var(--csp-space-2);
   border: 0;
-  border-left: 3px solid transparent;
+  border-bottom: 3px solid transparent;
   background: none;
   font: inherit;
   text-align: left;
@@ -360,15 +366,21 @@ const peutPublier = computed(() => db.organisme.agents.find(a => a.nom === UTILI
 
   &:focus-visible {
     outline: 2px solid var(--csp-focus-ring-color, #0a76f6);
+    outline-offset: -2px;
   }
 
   &[aria-current='step'] {
-    border-left-color: var(--border-active-blue-france);
-    background: var(--background-alt-blue-france);
+    border-bottom-color: var(--border-active-blue-france);
 
     .etape__label {
       color: var(--text-action-high-blue-france);
       font-weight: var(--csp-font-weight-bold);
+    }
+
+    .etape__num {
+      border-color: var(--border-active-blue-france);
+      background: var(--background-action-high-blue-france);
+      color: var(--text-inverted-blue-france);
     }
   }
 }
