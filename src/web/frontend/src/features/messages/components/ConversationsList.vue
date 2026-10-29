@@ -65,7 +65,18 @@ function conversationLocation(conversationUuid: string) {
         :to="conversationLocation(conversation.uuid)"
         class="conversations-list__item"
       >
-        <span class="conversations-list__objet">{{ conversation.objet }}</span>
+        <span class="conversations-list__heading">
+          <span
+            v-if="conversation.is_unread"
+            class="conversations-list__unread-dot"
+            aria-hidden="true"
+          />
+          <span
+            v-if="conversation.is_unread"
+            class="sr-only"
+          >Non lue :</span>
+          <span class="conversations-list__objet">{{ conversation.objet }}</span>
+        </span>
         <span class="conversations-list__preview">{{ conversation.last_message_content }}</span>
         <span class="conversations-list__meta">
           {{ conversation.last_message_author }} • {{ formatElapsedTime(conversation.last_message_created_at) }}
@@ -121,6 +132,21 @@ function conversationLocation(conversationUuid: string) {
 .conversations-list__item[aria-current='page'] {
   background-color: var(--background-open-blue-france);
   box-shadow: inset 0.25rem 0 0 var(--border-active-blue-france);
+}
+
+.conversations-list__heading {
+  display: flex;
+  align-items: center;
+  gap: var(--csp-space-2);
+  min-width: 0;
+}
+
+.conversations-list__unread-dot {
+  flex-shrink: 0;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background-color: var(--background-action-high-blue-france);
 }
 
 .conversations-list__objet {
