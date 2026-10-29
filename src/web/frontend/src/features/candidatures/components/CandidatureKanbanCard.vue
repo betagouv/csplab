@@ -7,6 +7,7 @@ import CspIcon from '@/components/base/CspIcon/CspIcon.vue'
 import { useDraggableKanbanCard } from '@/composables/dnd/useKanbanDnd'
 import { CANDIDATURE_PANEL_ROUTE_NAMES } from '@/router/names'
 import { formatElapsedDays } from '@/utils/date'
+import { pluralize } from '@/utils/format'
 import { formatCandidatName } from '../format'
 
 const props = defineProps<{
@@ -28,6 +29,16 @@ const panelLocation = computed(() => ({
   name: CANDIDATURE_PANEL_ROUTE_NAMES.kanban.tabs.candidature,
   params: { ...route.params, candidatureUuid: props.candidature.uuid },
 }))
+
+const messagesLocation = computed(() => ({
+  name: CANDIDATURE_PANEL_ROUTE_NAMES.kanban.tabs.messages,
+  params: { ...route.params, candidatureUuid: props.candidature.uuid },
+}))
+
+const unreadConversationsLabel = computed(() => {
+  const count = props.candidature.unread_conversations
+  return `${count} ${pluralize(count, 'conversation')} non ${pluralize(count, 'lue')}`
+})
 
 const isCurrent = computed(() => route.params.candidatureUuid === props.candidature.uuid)
 
@@ -71,6 +82,26 @@ const { isDragging } = useDraggableKanbanCard({
       />
       {{ formatElapsedDays(candidature.date_soumission) }}
     </p>
+    <template
+      v-if="candidature.unread_conversations"
+      #footer
+    >
+      <RouterLink
+        :to="messagesLocation"
+        draggable="false"
+        class="candidature-kanban-card__messages"
+      >
+        <CspIcon
+          name="ri:mail-unread-fill"
+          :size="16"
+        />
+        <span class="candidature-kanban-card__messages-label">{{ unreadConversationsLabel }}</span>
+        <CspIcon
+          name="ri:arrow-right-line"
+          :size="16"
+        />
+      </RouterLink>
+    </template>
   </CspCard>
 </template>
 
@@ -131,5 +162,24 @@ const { isDragging } = useDraggableKanbanCard({
 
 .candidature-kanban-card__date-icon {
   flex-shrink: 0;
+}
+
+.candidature-kanban-card__messages {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: var(--csp-space-2);
+  padding-top: var(--csp-space-2);
+  border-top: 1px solid var(--border-default-grey);
+  font-size: var(--csp-font-size-sm);
+  color: var(--text-action-high-blue-france);
+  text-decoration: none;
+  background-image: none;
+}
+
+.candidature-kanban-card__messages-label {
+  flex: 1;
 }
 </style>
