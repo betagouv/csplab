@@ -13,7 +13,7 @@ from application.recruteur.context_services.recrutement_agent_service import (
 )
 from domain.identite.value_objects.organisme_action import OrganismeAction
 from domain.recruteur.errors.note_errors import NoteIntrouvable
-from domain.recruteur.errors.tag_errors import TagNotFound
+from domain.recruteur.errors.tag_errors import TagNotOnNote
 from infrastructure.django_apps.recruteur.models.note import NoteModel
 from infrastructure.django_apps.tag.models import NoteTagModel
 from infrastructure.django_apps.users.models import UserModel
@@ -55,4 +55,4 @@ def remove_note_tag(
 
         deleted, _ = NoteTagModel.objects.by_note_and_tag(note_id, tag_id).delete()
         if deleted == 0:
-            raise TagNotFound(tag_id)
+            raise TagNotOnNote(tag_id)

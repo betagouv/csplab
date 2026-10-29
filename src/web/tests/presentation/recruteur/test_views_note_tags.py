@@ -265,6 +265,9 @@ class TestCandidatureNoteTagDetailView:
         )
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
+        assert response.json() == {
+            "error": f"L'étiquette {tag.id} n'est pas posée sur cette note"
+        }
 
     def test_removes_only_this_tag_from_this_note(
         self, authenticated_client, test_user
