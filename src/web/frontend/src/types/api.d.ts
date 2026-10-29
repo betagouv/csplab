@@ -378,7 +378,7 @@ export interface paths {
         patch: operations["recruteur_organismes_recrutements_candidatures_notes_partial_update"];
         trace?: never;
     };
-    "/recruteur/organismes/{organisme_uuid}/recrutements/{recrutement_uuid}/candidatures/{candidature_uuid}/notes/{note_uuid}/tag": {
+    "/recruteur/organismes/{organisme_uuid}/recrutements/{recrutement_uuid}/candidatures/{candidature_uuid}/notes/{note_uuid}/tags": {
         parameters: {
             query?: never;
             header?: never;
@@ -388,14 +388,14 @@ export interface paths {
         get?: never;
         put?: never;
         /** Poser une étiquette sur une note d'une candidature */
-        post: operations["recruteur_organismes_recrutements_candidatures_notes_tag_create"];
+        post: operations["recruteur_organismes_recrutements_candidatures_notes_tags_create"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/recruteur/organismes/{organisme_uuid}/recrutements/{recrutement_uuid}/candidatures/{candidature_uuid}/notes/{note_uuid}/tag/{tag_uuid}": {
+    "/recruteur/organismes/{organisme_uuid}/recrutements/{recrutement_uuid}/candidatures/{candidature_uuid}/notes/{note_uuid}/tags/{tag_uuid}": {
         parameters: {
             query?: never;
             header?: never;
@@ -406,7 +406,7 @@ export interface paths {
         put?: never;
         post?: never;
         /** Retirer une étiquette d'une note d'une candidature */
-        delete: operations["recruteur_organismes_recrutements_candidatures_notes_tag_destroy"];
+        delete: operations["recruteur_organismes_recrutements_candidatures_notes_tags_destroy"];
         options?: never;
         head?: never;
         patch?: never;
@@ -4514,7 +4514,7 @@ export interface operations {
             };
         };
     };
-    recruteur_organismes_recrutements_candidatures_notes_tag_create: {
+    recruteur_organismes_recrutements_candidatures_notes_tags_create: {
         parameters: {
             query?: never;
             header?: never;
@@ -4630,7 +4630,7 @@ export interface operations {
             };
         };
     };
-    recruteur_organismes_recrutements_candidatures_notes_tag_destroy: {
+    recruteur_organismes_recrutements_candidatures_notes_tags_destroy: {
         parameters: {
             query?: never;
             header?: never;

@@ -3879,9 +3879,9 @@ paths:
               $ref: '#/components/headers/X-RateLimit-Remaining'
             X-RateLimit-Reset:
               $ref: '#/components/headers/X-RateLimit-Reset'
-  /recruteur/organismes/{organisme_uuid}/recrutements/{recrutement_uuid}/candidatures/{candidature_uuid}/notes/{note_uuid}/tag:
+  /recruteur/organismes/{organisme_uuid}/recrutements/{recrutement_uuid}/candidatures/{candidature_uuid}/notes/{note_uuid}/tags:
     post:
-      operationId: recruteur_organismes_recrutements_candidatures_notes_tag_create
+      operationId: recruteur_organismes_recrutements_candidatures_notes_tags_create
       summary: Poser une étiquette sur une note d'une candidature
       parameters:
       - in: path
@@ -4035,9 +4035,9 @@ paths:
               $ref: '#/components/headers/X-RateLimit-Remaining'
             X-RateLimit-Reset:
               $ref: '#/components/headers/X-RateLimit-Reset'
-  ? /recruteur/organismes/{organisme_uuid}/recrutements/{recrutement_uuid}/candidatures/{candidature_uuid}/notes/{note_uuid}/tag/{tag_uuid}
+  ? /recruteur/organismes/{organisme_uuid}/recrutements/{recrutement_uuid}/candidatures/{candidature_uuid}/notes/{note_uuid}/tags/{tag_uuid}
   : delete:
-      operationId: recruteur_organismes_recrutements_candidatures_notes_tag_destroy
+      operationId: recruteur_organismes_recrutements_candidatures_notes_tags_destroy
       summary: Retirer une étiquette d'une note d'une candidature
       parameters:
       - in: path

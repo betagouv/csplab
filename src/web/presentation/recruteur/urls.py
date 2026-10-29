@@ -182,12 +182,12 @@ urlpatterns = [
         name="candidature_note_visibilite",
     ),
     path(
-        "organismes/<uuid:organisme_uuid>/recrutements/<uuid:recrutement_uuid>/candidatures/<uuid:candidature_uuid>/notes/<uuid:note_uuid>/tag",
+        "organismes/<uuid:organisme_uuid>/recrutements/<uuid:recrutement_uuid>/candidatures/<uuid:candidature_uuid>/notes/<uuid:note_uuid>/tags",
         CandidatureNoteTagsView.as_view(),
         name="candidature_note_tags",
     ),
     path(
-        "organismes/<uuid:organisme_uuid>/recrutements/<uuid:recrutement_uuid>/candidatures/<uuid:candidature_uuid>/notes/<uuid:note_uuid>/tag/<uuid:tag_uuid>",
+        "organismes/<uuid:organisme_uuid>/recrutements/<uuid:recrutement_uuid>/candidatures/<uuid:candidature_uuid>/notes/<uuid:note_uuid>/tags/<uuid:tag_uuid>",
         CandidatureNoteTagDetailView.as_view(),
         name="candidature_note_tag",
     ),
