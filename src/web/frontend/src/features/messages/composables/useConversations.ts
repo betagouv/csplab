@@ -42,7 +42,7 @@ export function useCreateConversation(candidature: MaybeRefOrGetter<CandidatureP
       createConversation(target, payload),
     onSuccess: (conversation, { target }) => {
       prependToList(target, conversation)
-      void queryCache.invalidateQueries({ key: candidatureKeys.conversations(target) })
+      void queryCache.invalidateQueries({ key: candidatureKeys.conversations(target), exact: true })
     },
   })
 
