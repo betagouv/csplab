@@ -47,22 +47,26 @@ def add_note_tag(
     )
     candidature_service.check_candidature_belongs_to_recrutement()
 
-    try:
-        note = NoteModel.objects.by_candidature_author_and_id(
-            candidature_id, utilisateur.username, note_id
-        ).get()
-    except NoteModel.DoesNotExist as error:
-        raise NoteIntrouvable(note_id) from error
-
-    try:
-        tag = TagModel.objects.by_id(organisme_id, tag_id).get()
-    except TagModel.DoesNotExist as error:
-        raise TagNotFound(tag_id) from error
-
-    if tag.category != TagCategory.NOTE:
-        raise TagCategoryMismatch(tag_id)
-
     with transaction.atomic():
+        try:
+            note = (
+                NoteModel.objects.by_candidature_author_and_id(
+                    candidature_id, utilisateur.username, note_id
+                )
+                .select_for_update(of=("self",))
+                .get()
+            )
+        except NoteModel.DoesNotExist as error:
+            raise NoteIntrouvable(note_id) from error
+
+        try:
+            tag = TagModel.objects.by_id(organisme_id, tag_id).select_for_update().get()
+        except TagModel.DoesNotExist as error:
+            raise TagNotFound(tag_id) from error
+
+        if tag.category != TagCategory.NOTE:
+            raise TagCategoryMismatch(tag_id)
+
         try:
             NoteTagModel.objects.create(id=uuid4(), note=note, tag=tag)
         except IntegrityError as error:

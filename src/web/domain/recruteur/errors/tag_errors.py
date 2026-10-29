@@ -26,3 +26,8 @@ class TagCategoryMismatch(TagError):
 class TagAlreadyOnNote(TagError):
     def __init__(self, tag_id: UUID):
         super().__init__(f"L'étiquette {tag_id} est déjà posée sur cette note")
+
+
+class TagNotOnNote(TagError):
+    def __init__(self, tag_id: UUID):
+        super().__init__(f"L'étiquette {tag_id} n'est pas posée sur cette note")

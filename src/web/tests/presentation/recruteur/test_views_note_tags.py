@@ -28,6 +28,19 @@ def _note_tags_url(organisme_id, recrutement_id, candidature_id, note_id) -> str
     )
 
 
+def _note_tag_url(organisme_id, recrutement_id, candidature_id, note_id, tag_id) -> str:
+    return reverse(
+        "recruteur:candidature_note_tag",
+        kwargs={
+            "organisme_uuid": str(organisme_id),
+            "recrutement_uuid": str(recrutement_id),
+            "candidature_uuid": str(candidature_id),
+            "note_uuid": str(note_id),
+            "tag_uuid": str(tag_id),
+        },
+    )
+
+
 class TestCandidatureNoteTagsView:
     def test_anonymous_access_is_unauthorized(self, api_client):
         url = _note_tags_url(uuid4(), uuid4(), uuid4(), uuid4())
@@ -174,3 +187,110 @@ class TestCandidatureNoteTagsView:
         assert list(
             NoteTagModel.objects.filter(note=note).values_list("tag_id", flat=True)
         ) == [tag.id]
+
+
+class TestCandidatureNoteTagDetailView:
+    def test_anonymous_access_is_unauthorized(self, api_client):
+        url = _note_tag_url(uuid4(), uuid4(), uuid4(), uuid4(), uuid4())
+
+        response = api_client.delete(url, format="json")
+
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+    def test_caller_without_organisme_role_is_forbidden(
+        self, authenticated_client, test_user
+    ):
+        _, organisme, recrutement, candidature = (
+            create_recrutement_and_candidature_for_agent(utilisateur=None)
+        )
+        pose = NoteTagDjangoFactory(note__candidature=candidature)
+
+        response = authenticated_client.delete(
+            _note_tag_url(
+                organisme.id, recrutement.pk, candidature.id, pose.note_id, pose.tag_id
+            ),
+            format="json",
+        )
+
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert NoteTagModel.objects.filter(pk=pose.pk).exists()
+
+    def test_note_of_another_author_is_not_found(self, authenticated_client, test_user):
+        _, organisme, recrutement, candidature = (
+            create_recrutement_and_candidature_for_agent(utilisateur=test_user)
+        )
+        pose = NoteTagDjangoFactory(note__candidature=candidature)
+
+        response = authenticated_client.delete(
+            _note_tag_url(
+                organisme.id, recrutement.pk, candidature.id, pose.note_id, pose.tag_id
+            ),
+            format="json",
+        )
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+        assert NoteTagModel.objects.filter(pk=pose.pk).exists()
+
+    def test_deleted_note_is_not_found(self, authenticated_client, test_user):
+        agent, organisme, recrutement, candidature = (
+            create_recrutement_and_candidature_for_agent(utilisateur=test_user)
+        )
+        note = NoteDjangoFactory(
+            candidature=candidature, publie_par=agent, supprimee_le=timezone.now()
+        )
+        pose = NoteTagDjangoFactory(note=note)
+
+        response = authenticated_client.delete(
+            _note_tag_url(
+                organisme.id, recrutement.pk, candidature.id, note.id, pose.tag_id
+            ),
+            format="json",
+        )
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+        assert NoteTagModel.objects.filter(pk=pose.pk).exists()
+
+    def test_tag_not_on_note_is_not_found(self, authenticated_client, test_user):
+        agent, organisme, recrutement, candidature = (
+            create_recrutement_and_candidature_for_agent(utilisateur=test_user)
+        )
+        note = NoteDjangoFactory(candidature=candidature, publie_par=agent)
+        tag = TagDjangoFactory(organisme=organisme, category=TagCategory.NOTE)
+
+        response = authenticated_client.delete(
+            _note_tag_url(
+                organisme.id, recrutement.pk, candidature.id, note.id, tag.id
+            ),
+            format="json",
+        )
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+        assert response.json() == {
+            "error": f"L'étiquette {tag.id} n'est pas posée sur cette note"
+        }
+
+    def test_removes_only_this_tag_from_this_note(
+        self, authenticated_client, test_user
+    ):
+        agent, organisme, recrutement, candidature = (
+            create_recrutement_and_candidature_for_agent(utilisateur=test_user)
+        )
+        note = NoteDjangoFactory(candidature=candidature, publie_par=agent)
+        pose = NoteTagDjangoFactory(note=note)
+        autre_etiquette = NoteTagDjangoFactory(note=note)
+        autre_note = NoteTagDjangoFactory(
+            tag=pose.tag, note=NoteDjangoFactory(candidature=candidature)
+        )
+
+        response = authenticated_client.delete(
+            _note_tag_url(
+                organisme.id, recrutement.pk, candidature.id, note.id, pose.tag_id
+            ),
+            format="json",
+        )
+
+        assert response.status_code == status.HTTP_204_NO_CONTENT
+        assert set(NoteTagModel.objects.values_list("pk", flat=True)) == {
+            autre_etiquette.pk,
+            autre_note.pk,
+        }

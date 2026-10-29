@@ -378,7 +378,7 @@ export interface paths {
         patch: operations["recruteur_organismes_recrutements_candidatures_notes_partial_update"];
         trace?: never;
     };
-    "/recruteur/organismes/{organisme_uuid}/recrutements/{recrutement_uuid}/candidatures/{candidature_uuid}/notes/{note_uuid}/tag": {
+    "/recruteur/organismes/{organisme_uuid}/recrutements/{recrutement_uuid}/candidatures/{candidature_uuid}/notes/{note_uuid}/tags": {
         parameters: {
             query?: never;
             header?: never;
@@ -388,8 +388,25 @@ export interface paths {
         get?: never;
         put?: never;
         /** Poser une étiquette sur une note d'une candidature */
-        post: operations["recruteur_organismes_recrutements_candidatures_notes_tag_create"];
+        post: operations["recruteur_organismes_recrutements_candidatures_notes_tags_create"];
         delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/recruteur/organismes/{organisme_uuid}/recrutements/{recrutement_uuid}/candidatures/{candidature_uuid}/notes/{note_uuid}/tags/{tag_uuid}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Retirer une étiquette d'une note d'une candidature */
+        delete: operations["recruteur_organismes_recrutements_candidatures_notes_tags_destroy"];
         options?: never;
         head?: never;
         patch?: never;
@@ -4497,7 +4514,7 @@ export interface operations {
             };
         };
     };
-    recruteur_organismes_recrutements_candidatures_notes_tag_create: {
+    recruteur_organismes_recrutements_candidatures_notes_tags_create: {
         parameters: {
             query?: never;
             header?: never;
@@ -4574,6 +4591,93 @@ export interface operations {
                 };
             };
             409: {
+                headers: {
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GenericError"];
+                };
+            };
+            /** @description Nombre maximal d'appels autorisés dépassé. */
+            429: {
+                headers: {
+                    "Retry-After": components["headers"]["Retry-After"];
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Request was throttled. Expected available in 42 seconds. */
+                        detail?: string;
+                    };
+                };
+            };
+            500: {
+                headers: {
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GenericError"];
+                };
+            };
+        };
+    };
+    recruteur_organismes_recrutements_candidatures_notes_tags_destroy: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                candidature_uuid: string;
+                note_uuid: string;
+                organisme_uuid: string;
+                recrutement_uuid: string;
+                tag_uuid: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            204: {
+                headers: {
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            401: {
+                headers: {
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TokenError"];
+                };
+            };
+            403: {
+                headers: {
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GenericError"];
+                };
+            };
+            404: {
                 headers: {
                     "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
                     "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
