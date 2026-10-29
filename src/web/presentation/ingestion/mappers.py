@@ -314,6 +314,9 @@ class OfferDetailOutputMapper(OfferSummaryOutputMapper):
         }
 
     def _custom_fields(self, offer: Offer) -> dict:
+        competences_requises = (
+            offer.criteria.competences_requises if offer.criteria else None
+        )
         return {
             "offer": self._dynamic_field(
                 date1=self._isoformat(offer.application_deadline)
@@ -327,7 +330,10 @@ class OfferDetailOutputMapper(OfferSummaryOutputMapper):
                 longText3Formatted=self._formatted(offer.service_description),
             ),
             "applicantCriteria": {
-                **self._dynamic_field(),
+                **self._dynamic_field(
+                    longText1=competences_requises,
+                    longText1Formatted=self._formatted(competences_requises),
+                ),
                 "customCodeTable1": self._required_documents(offer.criteria),
             },
             "location": self._dynamic_field(

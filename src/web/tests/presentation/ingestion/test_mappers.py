@@ -164,7 +164,7 @@ def test_offer_input_mapper_maps_criteres_to_offer_criteria():
             "experience": "CONFIRME",
             "specialisations": ["Droit public"],
             "documents_requis": ["CV"],
-            "competences_requises": ["Rigueur"],
+            "competences_requises": "- Rigueur\n- Autonomie",
             "langues": [{"iso_code": "en", "niveau": "B2"}],
         },
     )
@@ -177,7 +177,7 @@ def test_offer_input_mapper_maps_criteres_to_offer_criteria():
         experience_level=ExperienceLevel.CONFIRME,
         specialisations=["Droit public"],
         documents_requis=[RequiredDocument.CV],
-        competences_requises=["Rigueur"],
+        competences_requises="- Rigueur\n- Autonomie",
         languages=[OfferLanguage(iso_code="en", level=LanguageLevel.B2)],
     )
 
@@ -493,9 +493,33 @@ class TestOfferDetailOutputMapper:
             "customFields"
         ]
 
-        assert custom_fields["applicantCriteria"]["longText1Formatted"] is None
         assert custom_fields["offerCustomBlock1"]["longText2Formatted"] is None
         assert custom_fields["offerCustomBlock1"]["longText3Formatted"] is None
+
+    def test_competences_requises_are_mapped_to_applicant_criteria(self):
+        offer = replace(
+            OfferFactory.create_entity(),
+            criteria=OfferCriteria(competences_requises="- Rigueur\n- Autonomie"),
+        )
+
+        applicant_criteria = OfferDetailOutputMapper().to_dict(offer)["customFields"][
+            "applicantCriteria"
+        ]
+
+        assert applicant_criteria["longText1"] == "- Rigueur\n- Autonomie"
+        assert applicant_criteria["longText1Formatted"] == (
+            "<ul>\n<li>Rigueur</li>\n<li>Autonomie</li>\n</ul>"
+        )
+
+    def test_competences_requises_are_null_without_criteria(self):
+        offer = replace(OfferFactory.create_entity(), criteria=None)
+
+        applicant_criteria = OfferDetailOutputMapper().to_dict(offer)["customFields"][
+            "applicantCriteria"
+        ]
+
+        assert applicant_criteria["longText1"] is None
+        assert applicant_criteria["longText1Formatted"] is None
 
     def test_empty_custom_field_descriptions_are_null(self):
         offer = replace(
