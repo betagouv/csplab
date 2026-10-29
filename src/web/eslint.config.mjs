@@ -18,7 +18,7 @@ const FEATURE_DEPENDENCIES = {
   'candidatures': ['recrutements', 'etapes-recrutement', 'messages'],
   'etapes-recrutement': ['recrutements'],
   'organismes': ['agents'],
-  'recrutements': ['agents'],
+  'recrutements': ['agents', 'messages'],
   'equipe-recrutement': ['agents'],
 }
 
