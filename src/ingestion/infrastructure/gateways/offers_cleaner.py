@@ -468,7 +468,12 @@ class OffersCleaner:
             complements=self._map_rich_text(
                 offer_block_1.longText1Formatted, offer_block_1.longText1
             ),
-            required_skills=self._map_plain_text(applicant_criteria_fields.longText1),
+            required_skills=self._map_plain_text(
+                self._map_rich_text(
+                    applicant_criteria_fields.longText1Formatted,
+                    applicant_criteria_fields.longText1,
+                )
+            ),
             required_documents=self._map_required_documents(
                 applicant_criteria_fields.customCodeTable1.clientCode
                 if applicant_criteria_fields.customCodeTable1

@@ -645,7 +645,7 @@ Notation : `a.b` désigne un objet imbriqué, `a[]` une liste, `a[0]` son premie
 | `customFields.description.longText2Formatted` | `description.conditions_exercice` | Converti du HTML en Markdown, repli sur le texte brut `customFields.description.longText2` s'il est vide. API fake-ts : `customFields.description.longText2` contient le Markdown, la variante `Formatted` le HTML (titres rendus en paragraphes en gras), `null` si le champ est vide. |
 | `customFields.description.longText3Formatted` | `description.descriptif_service` | Converti du HTML en Markdown, repli sur le texte brut `customFields.description.longText3` s'il est vide. API fake-ts : `customFields.description.longText3` contient le Markdown, la variante `Formatted` le HTML (titres rendus en paragraphes en gras), `null` si le champ est vide. |
 | `customFields.offerCustomBlock1.longText1Formatted` | `description.complements` | Converti du HTML en Markdown, repli sur le texte brut `customFields.offerCustomBlock1.longText1` s'il est vide. API fake-ts : `customFields.offerCustomBlock1.longText1` contient le Markdown, la variante `Formatted` le HTML (titres rendus en paragraphes en gras), `null` si le champ est vide. |
-| `customFields.applicantCriteria.longText1` | `criteres.competences_requises` | « Compétences attendues ». Texte brut repris tel quel, sans les espaces en début et fin ; non envoyé s'il est vide. API fake-ts : `customFields.applicantCriteria.longText1` contient le Markdown, la variante `Formatted` le HTML (titres rendus en paragraphes en gras), `null` si le champ est vide. |
+| `customFields.applicantCriteria.longText1Formatted` | `criteres.competences_requises` | « Compétences attendues ». Converti du HTML en Markdown, repli sur le texte brut `customFields.applicantCriteria.longText1` s'il est vide ; sans les espaces en début et fin, non envoyé s'il est vide. API fake-ts : `customFields.applicantCriteria.longText1` contient le Markdown, la variante `Formatted` le HTML (titres rendus en paragraphes en gras), `null` si le champ est vide. |
 | `offerUrl` | `url_offre` | |
 | `urlRedirectionApplicant` | `url_candidature` | Prioritaire sur `customFields.origin.shortText1` et `applicationUrl`. |
 | `customFields.origin.shortText1` | `email_candidature` | Texte libre (« adresse de candidature »). Lu seulement si `urlRedirectionApplicant` est vide : le premier e-mail valide trouvé devient `email_candidature`, et `url_candidature` reste vide. API fake-ts : reprend `email_candidature`, `null` si l'offre se candidate par lien. |
@@ -704,7 +704,7 @@ Notation : `a.b` désigne un objet imbriqué, `a[]` une liste, `a[0]` son premie
 | `operationalManager` | Non lu : `contacts` vient de `customFields.origin` (voir plus bas). |
 | `applicationQuestions` | |
 | `attachedFilesUrls` | |
-| `skillCollection[]` | Non lu : `criteres.competences_requises` vient de `customFields.applicantCriteria.longText1` (voir « Champs reliés »). Toujours vide en pratique dans les offres Talentsoft. |
+| `skillCollection[]` | Non lu : `criteres.competences_requises` vient de `customFields.applicantCriteria.longText1Formatted` (voir « Champs reliés »). Toujours vide en pratique dans les offres Talentsoft. |
 | `customFields.offer.shortText1` | |
 | `customFields.offer.longText1` | |
 | `customFields.offer.longText2` | |
@@ -717,7 +717,6 @@ Notation : `a.b` désigne un objet imbriqué, `a[]` une liste, `a[0]` son premie
 | `customFields.location.longText3` | |
 | `customFields.offerCustomBlock1.date1` | |
 | `customFields.offerCustomBlock1.shortText1` | |
-| `customFields.applicantCriteria.longText1Formatted` | Non lu : seul le texte brut `customFields.applicantCriteria.longText1` est repris. API fake-ts : HTML de `criteres.competences_requises`, `null` si le champ est vide. |
 | `customFields.offerCustomBlock1.longText2Formatted` | Non lu : seul le texte brut `customFields.offerCustomBlock1.longText2` est repris. API fake-ts : toujours `null`. |
 | `customFields.offerCustomBlock1.longText3Formatted` | Non lu : seul le texte brut `customFields.offerCustomBlock1.longText3` est repris. API fake-ts : toujours `null`. |
 | `code` | Clé de tout objet codé : seul `clientCode` est lu. |
