@@ -2,15 +2,16 @@ import type { QueryCache } from '@pinia/colada'
 import type { ConversationMessage, PaginatedConversationMessageList } from '../types'
 import type { ConversationParams } from '@/api/params'
 import { PiniaColada, useQueryCache } from '@pinia/colada'
-import { mount } from '@vue/test-utils'
+import { flushPromises, mount } from '@vue/test-utils'
 import { createPinia } from 'pinia'
 import { describe, expect, it, vi } from 'vitest'
 import { defineComponent, h, ref } from 'vue'
-import { candidatureKeys } from '@/api/queryKeys'
-import { replyToConversation } from '../api'
-import { useReplyConversation } from './useConversationMessages'
+import { candidatureKeys, organismeKeys, recrutementKeys } from '@/api/queryKeys'
+import { getConversationMessages, replyToConversation } from '../api'
+import { useConversationMessages, useReplyConversation } from './useConversationMessages'
 
 vi.mock('../api', () => ({
+  getConversationMessages: vi.fn(),
   replyToConversation: vi.fn(),
 }))
 
@@ -48,6 +49,39 @@ function mountReplyConversation(conversationUuid: string) {
 
   return { context, params, queryCache }
 }
+
+function mountConversationMessages() {
+  let queryCache!: QueryCache
+
+  mount(defineComponent({
+    setup() {
+      queryCache = useQueryCache()
+      vi.spyOn(queryCache, 'invalidateQueries')
+      useConversationMessages({ ...CANDIDATURE, conversationUuid: CONVERSATION_A })
+      return () => h('div')
+    },
+  }), {
+    global: { plugins: [createPinia(), PiniaColada] },
+  })
+
+  return { queryCache }
+}
+
+describe('useConversationMessages', () => {
+  it('refreshes the unread counters once the thread is loaded, since loading it marks it as read', async () => {
+    vi.mocked(getConversationMessages).mockResolvedValue(EMPTY_THREAD)
+    const { queryCache } = mountConversationMessages()
+    expect(queryCache.invalidateQueries).not.toHaveBeenCalled()
+
+    await flushPromises()
+
+    expect(vi.mocked(queryCache.invalidateQueries).mock.calls.map(([filters]) => filters?.key)).toEqual([
+      recrutementKeys.liste(CANDIDATURE),
+      recrutementKeys.kanban(CANDIDATURE),
+      organismeKeys.recrutementsActifs(CANDIDATURE),
+    ])
+  })
+})
 
 describe('useReplyConversation', () => {
   it('appends the reply to the conversation it was sent from, even after switching conversation', async () => {
