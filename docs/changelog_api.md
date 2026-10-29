@@ -33,8 +33,8 @@ Renseignez dans `region` […]
 - Le lien vers la PR (`pr`) et vers les tickets (`liens`) est ajouté à la fin de
   l'entrée.
 - Les sous-sections `### Titre` du corps (en général `### Compatibilité`) sont
-  regroupées par date sous un seul titre, après les sections par type. Le corps
-  n'accepte pas de titre de niveau `#` ou `##`.
+  affichées en citation juste sous leur entrée, pour rester rattachées au changement
+  qu'elles décrivent. Le corps n'accepte pas de titre de niveau `#` ou `##`.
 
 ## Dater le fragment avant le merge
 
