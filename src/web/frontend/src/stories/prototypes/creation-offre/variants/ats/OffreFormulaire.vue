@@ -2,11 +2,14 @@
 import type { EtapeFormulaire } from './aide'
 import { computed, ref, watch } from 'vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
+import CspDrawer from '@/components/base/CspDrawer/CspDrawer.vue'
 import CspIcon from '@/components/base/CspIcon/CspIcon.vue'
 import Panel from '../../shared/Panel.vue'
 import { manquesPublication } from './aide'
+import ApercuCandidat from './ApercuCandidat.vue'
 import ChampsPublication from './ChampsPublication.vue'
 import DemandeValidation from './DemandeValidation.vue'
+import FicheSource from './FicheSource.vue'
 import FormAnnonce from './FormAnnonce.vue'
 import FormCandidature from './FormCandidature.vue'
 import FormEquipe from './FormEquipe.vue'
@@ -34,6 +37,7 @@ const ETAPES: { id: EtapeFormulaire, label: string, aide: string }[] = [
   { id: 'publication', label: 'Publication', aide: 'Dates et diffusion' },
 ]
 const etape = ref<EtapeFormulaire>(props.etape ?? 'internes')
+const panneau = ref<'apercu' | 'fiche' | null>(null)
 const index = computed(() => ETAPES.findIndex(e => e.id === etape.value))
 const manques = computed(() => manquesPublication(o.value))
 const aCompleter = (id: EtapeFormulaire) => manques.value.filter(m => m.etape === id).length
@@ -172,9 +176,32 @@ const peutPublier = computed(() => db.organisme.agents.find(a => a.nom === UTILI
 
     <div class="formulaire">
       <div class="contenu">
-        <h2 class="contenu__titre">
-          {{ index + 1 }}. {{ ETAPES[index]!.label }}
-        </h2>
+        <div class="contenu__tete">
+          <h2 class="contenu__titre">
+            {{ index + 1 }}. {{ ETAPES[index]!.label }}
+          </h2>
+          <div
+            v-if="etape === 'annonce'"
+            class="contenu__actions"
+          >
+            <CspButton
+              label="Fiche de poste source"
+              variant="tertiary"
+              size="sm"
+              icon="ri:file-text-line"
+              is-icon-left
+              @click="panneau = 'fiche'"
+            />
+            <CspButton
+              label="Aperçu candidat"
+              variant="secondary"
+              size="sm"
+              icon="ri:eye-line"
+              is-icon-left
+              @click="panneau = 'apercu'"
+            />
+          </div>
+        </div>
 
         <FormInternes
           v-if="etape === 'internes'"
@@ -285,6 +312,32 @@ const peutPublier = computed(() => db.organisme.agents.find(a => a.nom === UTILI
         </div>
       </div>
     </div>
+    <!-- Panneaux non bloquants : on continue à rédiger pendant que l'aperçu se met à jour. -->
+    <CspDrawer
+      :open="panneau === 'apercu'"
+      title="Aperçu candidat"
+      description="Mise en page indicative ; elle suit votre saisie."
+      size="lg"
+      :modal="false"
+      :overlay="false"
+      @update:open="v => !v && (panneau = null)"
+    >
+      <ApercuCandidat
+        :offre="o"
+        :organisme="db.organisme.nom"
+      />
+    </CspDrawer>
+    <CspDrawer
+      :open="panneau === 'fiche'"
+      title="Fiche de poste source"
+      description="Consultation seule : modifier l'annonce ne modifie pas la fiche."
+      size="md"
+      :modal="false"
+      :overlay="false"
+      @update:open="v => !v && (panneau = null)"
+    >
+      <FicheSource :fiche="fiche" />
+    </CspDrawer>
   </PageAts>
 </template>
 
@@ -406,6 +459,19 @@ const peutPublier = computed(() => db.organisme.agents.find(a => a.nom === UTILI
   flex-direction: column;
   gap: var(--csp-space-4);
   min-width: 0;
+}
+
+.contenu__tete {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--csp-space-3);
+  flex-wrap: wrap;
+}
+
+.contenu__actions {
+  display: flex;
+  gap: var(--csp-space-2);
 }
 
 .contenu__titre {

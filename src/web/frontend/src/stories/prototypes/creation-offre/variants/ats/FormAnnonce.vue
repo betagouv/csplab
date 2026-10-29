@@ -3,23 +3,20 @@ import type { Fiche, Offre } from './store'
 import { computed, ref } from 'vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspCheckboxGroup from '@/components/base/CspCheckboxGroup/CspCheckboxGroup.vue'
-import CspIcon from '@/components/base/CspIcon/CspIcon.vue'
 import CspInput from '@/components/base/CspInput/CspInput.vue'
 import CspRadioGroup from '@/components/base/CspRadioGroup/CspRadioGroup.vue'
-import CspSegmentedControl from '@/components/base/CspSegmentedControl/CspSegmentedControl.vue'
 import CspSelect from '@/components/base/CspSelect/CspSelect.vue'
 import CspTextarea from '@/components/base/CspTextarea/CspTextarea.vue'
 import FieldRow from '../../shared/FieldRow.vue'
 import Panel from '../../shared/Panel.vue'
 import { aMettreEnForme, mettreEnForme } from './aide'
-import ApercuCandidat from './ApercuCandidat.vue'
 import ChampOffre from './ChampOffre.vue'
 import { useNav } from './nav'
-import OrigineBadge from './OrigineBadge.vue'
-import { CATEGORIES, contenuDepuisFiche, db, metier, METIERS, STATUTS_POSTE, TEMPS_TRAVAIL } from './store'
+import { CATEGORIES, contenuDepuisFiche, metier, METIERS, STATUTS_POSTE, TEMPS_TRAVAIL } from './store'
 
 // Étape 2 — l'annonce : ce que lit le candidat sur Choisir le Service Public (article D311-8).
 // Les champs sans mention « facultatif » sont contrôlés seulement au moment de publier.
+// L'aperçu candidat et la fiche source s'ouvrent en panneau latéral, depuis le titre de l'étape.
 const props = defineProps<{ offre: Offre, fiche: Fiche }>()
 const { notifier } = useNav()
 const o = computed(() => props.offre)
@@ -77,12 +74,6 @@ function formater() {
   o.value.missions = mettreEnForme(o.value.missions)
   notifier('Mise en forme appliquée : une mission par ligne. Aucun mot n\'a été changé.')
 }
-
-const vue = ref<'apercu' | 'fiche'>('apercu')
-const VUES = [
-  { value: 'apercu' as const, label: 'Aperçu candidat', icon: 'ri:eye-line' },
-  { value: 'fiche' as const, label: 'Fiche de poste source', icon: 'ri:file-text-line' },
-]
 </script>
 
 <template>
@@ -304,74 +295,12 @@ const VUES = [
         </FieldRow>
       </Panel>
     </div>
-
-    <aside class="cote">
-      <CspSegmentedControl
-        v-model="vue"
-        legend="Afficher"
-        hide-legend
-        size="sm"
-        :options="VUES"
-      />
-      <ApercuCandidat
-        v-if="vue === 'apercu'"
-        :offre="o"
-        :organisme="db.organisme.nom"
-      />
-      <div
-        v-else
-        class="source"
-      >
-        <p class="source__tete">
-          <CspIcon
-            name="ri:lock-line"
-            :size="14"
-          />
-          {{ fiche.id }} · <OrigineBadge
-            :origine="fiche.origine"
-            court
-          /> · consultation seule
-        </p>
-        <h3 class="source__titre">
-          {{ fiche.intitule }}
-        </h3>
-        <p class="source__meta">
-          {{ fiche.service }} · {{ fiche.localisation }}
-        </p>
-        <p class="source__label">
-          Missions
-        </p>
-        <p class="source__texte">
-          {{ fiche.missions || '-' }}
-        </p>
-        <ul
-          v-if="fiche.activites.length"
-          class="source__liste"
-        >
-          <li
-            v-for="a in fiche.activites"
-            :key="a"
-          >
-            {{ a }}
-          </li>
-        </ul>
-        <p class="source__label">
-          Profil
-        </p>
-        <p class="source__texte">
-          {{ fiche.profil || '-' }}
-        </p>
-      </div>
-    </aside>
   </div>
 </template>
 
 <style scoped lang="scss">
 .redac {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: var(--csp-space-5);
-  align-items: start;
+  max-width: 60rem;
 }
 
 .form {
@@ -399,57 +328,5 @@ const VUES = [
 
 .outil {
   margin: calc(-1 * var(--csp-space-3)) 0 0 calc(-1 * var(--csp-space-2));
-}
-
-.cote {
-  position: sticky;
-  top: var(--csp-space-4);
-  display: flex;
-  flex-direction: column;
-  gap: var(--csp-space-3);
-  max-height: calc(100vh - 2rem);
-  overflow-y: auto;
-}
-
-.source {
-  padding: var(--csp-space-5);
-  border: 1px dashed var(--border-plain-grey);
-  background: var(--background-alt-grey);
-  font-size: var(--csp-font-size-sm);
-
-  p {
-    margin: 0;
-  }
-}
-
-.source__tete {
-  display: flex;
-  align-items: center;
-  gap: var(--csp-space-1);
-  font-size: var(--csp-font-size-xs);
-  color: var(--text-mention-grey);
-}
-
-.source__titre {
-  margin: var(--csp-space-2) 0 0;
-  font-size: var(--csp-font-size-lg);
-}
-
-.source__meta {
-  color: var(--text-mention-grey);
-}
-
-.source__label {
-  margin-top: var(--csp-space-3) !important;
-  font-size: var(--csp-font-size-xs);
-  font-weight: var(--csp-font-weight-bold);
-  text-transform: uppercase;
-  color: var(--text-mention-grey);
-}
-
-.source__liste {
-  margin: 0;
-  padding-left: var(--csp-space-5);
-  list-style: disc;
 }
 </style>
