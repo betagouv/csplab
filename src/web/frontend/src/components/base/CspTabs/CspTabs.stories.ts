@@ -38,7 +38,7 @@ const meta = {
       control: { type: 'object' },
       description: 'Liste des onglets disponibles.',
       table: {
-        type: { summary: '{ value: string; label: string; icon?: string; disabled?: boolean }[]' },
+        type: { summary: '{ value: string; label: string; icon?: string; indicator?: string; disabled?: boolean }[]' },
       },
     },
     defaultValue: {
@@ -194,5 +194,24 @@ export const WithIcons: Story = {
       { value: 'tab-3', label: 'Utilisateurs', icon: 'ri:user-line' },
     ],
     defaultValue: 'tab-1',
+  },
+}
+
+export const WithIndicator: Story = {
+  name: 'Avec pastille',
+  args: {
+    tabs: [
+      { value: 'tab-1', label: 'Onglet 1' },
+      { value: 'tab-2', label: 'Messages', indicator: 'Conversations non lues' },
+      { value: 'tab-3', label: 'Onglet 3' },
+    ],
+    defaultValue: 'tab-1',
+  },
+  parameters: {
+    docs: {
+      description: {
+        story: '`indicator` affiche une pastille après le libellé ; son texte est lu par les lecteurs d\'écran à la suite du libellé.',
+      },
+    },
   },
 }
