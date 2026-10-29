@@ -104,7 +104,7 @@ describe('candidatureNotes', () => {
     expect(screen.getByRole('checkbox', { name: 'Note privée' })).toBeChecked()
 
     await user.type(field, ' demain')
-    await user.click(screen.getByRole('button', { name: 'Enregistrer la note' }))
+    await user.click(screen.getByRole('button', { name: 'Enregistrer les modifications' }))
 
     expect(updateCandidatureNote).toHaveBeenCalledWith(
       { ...CANDIDATURE_PARAMS, noteUuid: 'ffffffff-0001-0001-0001-000000000002' },

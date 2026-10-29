@@ -1,6 +1,5 @@
 import { screen } from '@testing-library/vue'
 import { describe, expect, it, vi } from 'vitest'
-import { CANDIDATURE_PANEL_ROUTE_NAMES } from '@/router/names'
 import { CANDIDATURE_PARAMS, KANBAN_PATH } from '@/test/fixtures/candidatures'
 import { renderWithApp, setupUser } from '@/test/render'
 import CandidatureNoteEditor from './CandidatureNoteEditor.vue'
@@ -14,7 +13,6 @@ describe('candidatureNoteEditor', () => {
       route: NEW_NOTE_PATH,
       props: {
         title: 'Modifier la note',
-        routes: CANDIDATURE_PANEL_ROUTE_NAMES.kanban.notes,
         submitting: false,
         submit: vi.fn(),
         initialMessage: 'Profil solide',
@@ -35,7 +33,6 @@ describe('candidatureNoteEditor', () => {
       route: NEW_NOTE_PATH,
       props: {
         title: 'Modifier la note',
-        routes: CANDIDATURE_PANEL_ROUTE_NAMES.kanban.notes,
         submitting: false,
         submit: vi.fn(),
         initialMessage: 'Profil solide',
