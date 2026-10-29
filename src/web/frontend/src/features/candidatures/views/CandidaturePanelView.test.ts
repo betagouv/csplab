@@ -27,7 +27,7 @@ import {
 } from '@/test/fixtures/candidatures'
 import { makeUser } from '@/test/fixtures/utilisateur'
 import { setupUser } from '@/test/render'
-import { createCandidatureNote, getCandidatureActivites, getCandidatureDetail, getMotifsRefus, getRecrutementKanban, patchEtapeCandidatures } from '../api'
+import { createCandidatureNote, getCandidatureActivites, getCandidatureDetail, getCandidatureNotes, getMotifsRefus, getRecrutementKanban, patchEtapeCandidatures } from '../api'
 
 vi.mock('../api', () => ({
   getCandidatureDetail: vi.fn(),
@@ -425,6 +425,35 @@ describe('candidaturePanelView', () => {
       expect(screen.queryByRole('dialog', { name: 'Modifications non enregistrées' })).not.toBeInTheDocument()
       expect(note).toHaveValue('À rappeler')
     })
+  })
+
+  it('asks before leaving the notes tab while a note is being edited, and keeps it on demand', async () => {
+    vi.mocked(getCandidatureNotes).mockResolvedValue({
+      count: 1,
+      results: [{
+        uuid: 'ffffffff-0001-0001-0001-000000000001',
+        candidature_id: CANDIDATURE_ALICE,
+        message: 'Profil solide',
+        publie_par_id: 'eeeeeeee-0001-0001-0001-000000000001',
+        publie_par_prenom: 'Marie',
+        publie_par_nom: 'Dupont',
+        publie_le: '2025-06-10T09:15:00',
+        est_privee: false,
+      }],
+    })
+    const user = setupUser()
+    const { panel } = await renderPanel([`${KANBAN_PATH}/candidatures/${CANDIDATURE_ALICE}/notes`])
+
+    await user.click(await panel.findByRole('button', { name: 'Actions sur la note de Marie Dupont' }))
+    await user.click(await screen.findByRole('menuitem', { name: 'Modifier la note' }))
+    const field = await panel.findByRole('textbox', { name: 'Modifier la note' })
+    await user.type(field, ' et motivé')
+    await user.click(panel.getByRole('tab', { name: 'Documents' }))
+    const dialog = within(await screen.findByRole('dialog', { name: 'Modifications non enregistrées' }))
+    await user.click(dialog.getByRole('button', { name: 'Continuer l\'édition' }))
+
+    await vi.waitFor(() => expect(screen.queryByRole('dialog', { name: 'Modifications non enregistrées' })).not.toBeInTheDocument())
+    expect(field).toHaveValue('Profil solide et motivé')
   })
 
   it('reopens on the candidature tab when moving to the next candidature', async () => {
