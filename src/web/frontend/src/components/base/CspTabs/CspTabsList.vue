@@ -23,6 +23,13 @@ defineProps<{
         class="csp-tabs__icon"
       />
       {{ tab.label }}
+      <template v-if="tab.indicator">
+        <span
+          class="csp-tabs__indicator"
+          aria-hidden="true"
+        />
+        <span class="sr-only">{{ tab.indicator }}</span>
+      </template>
     </TabsTrigger>
   </TabsList>
 </template>
@@ -97,6 +104,14 @@ defineProps<{
       border-right-color: var(--border-action-high-blue-france);
     }
   }
+}
+
+.csp-tabs__indicator {
+  width: 0.5rem;
+  height: 0.5rem;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background-color: var(--background-action-high-blue-france);
 }
 
 .csp-tabs__icon {

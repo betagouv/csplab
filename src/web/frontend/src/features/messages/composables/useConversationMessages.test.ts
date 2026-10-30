@@ -1,5 +1,5 @@
 import type { QueryCache } from '@pinia/colada'
-import type { ConversationMessage, PaginatedConversationMessageList } from '../types'
+import type { Conversation, ConversationMessage, PaginatedConversationList, PaginatedConversationMessageList } from '../types'
 import type { ConversationParams } from '@/api/params'
 import { PiniaColada, useQueryCache } from '@pinia/colada'
 import { flushPromises, mount } from '@vue/test-utils'
@@ -50,12 +50,26 @@ function mountReplyConversation(conversationUuid: string) {
   return { context, params, queryCache }
 }
 
-function mountConversationMessages() {
+function unreadConversation(uuid: string): Conversation {
+  return {
+    uuid,
+    objet: 'Convocation',
+    creator: 'Camille Durand',
+    created_at: '2026-10-01T09:00:00Z',
+    last_message_content: 'Bonjour',
+    last_message_author: 'Alice Dupont',
+    last_message_created_at: '2026-10-01T10:00:00Z',
+    is_unread: true,
+  }
+}
+
+function mountConversationMessages(conversations: Conversation[]) {
   let queryCache!: QueryCache
 
   mount(defineComponent({
     setup() {
       queryCache = useQueryCache()
+      queryCache.setQueryData(candidatureKeys.conversations(CANDIDATURE), { count: conversations.length, results: conversations })
       vi.spyOn(queryCache, 'invalidateQueries')
       useConversationMessages({ ...CANDIDATURE, conversationUuid: CONVERSATION_A })
       return () => h('div')
@@ -68,13 +82,15 @@ function mountConversationMessages() {
 }
 
 describe('useConversationMessages', () => {
-  it('refreshes the unread counters once the thread is loaded, since loading it marks it as read', async () => {
+  it('marks the loaded conversation as read, since loading it marks it as read on the server', async () => {
     vi.mocked(getConversationMessages).mockResolvedValue(EMPTY_THREAD)
-    const { queryCache } = mountConversationMessages()
+    const { queryCache } = mountConversationMessages([unreadConversation(CONVERSATION_A), unreadConversation(CONVERSATION_B)])
     expect(queryCache.invalidateQueries).not.toHaveBeenCalled()
 
     await flushPromises()
 
+    const list = queryCache.getQueryData<PaginatedConversationList>(candidatureKeys.conversations(CANDIDATURE))
+    expect(list?.results.map(({ uuid, is_unread }) => [uuid, is_unread])).toEqual([[CONVERSATION_A, false], [CONVERSATION_B, true]])
     expect(vi.mocked(queryCache.invalidateQueries).mock.calls.map(([filters]) => filters?.key)).toEqual([
       recrutementKeys.liste(CANDIDATURE),
       recrutementKeys.kanban(CANDIDATURE),

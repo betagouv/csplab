@@ -7,6 +7,7 @@ export interface CspTabItem<V extends string = string> {
   value: V
   label: string
   icon?: string
+  indicator?: string
   disabled?: boolean
 }
 
