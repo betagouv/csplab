@@ -5,6 +5,7 @@ from infrastructure.gateways.siret_matching import (
     best_candidate,
     embassy_matches,
     is_potential_employer,
+    is_worth_a_name_lookup,
     name_score,
     normalize_name,
 )
@@ -139,3 +140,27 @@ def test_embassy_matches(name, denomination, expected):
 )
 def test_is_potential_employer(name, type_organisme, expected):
     assert is_potential_employer(name, type_organisme) is expected
+
+
+@pytest.mark.parametrize(
+    "name,expected",
+    [
+        ("Bureau des marchés", False),
+        ("Sous-direction des affaires financières", False),
+        ("Département des études", False),
+        ("Division des ressources humaines", False),
+        ("Pôle numérique", False),
+        ("PÔLE NUMÉRIQUE", False),
+        ("Direction du numérique", True),
+        ("Mission interministérielle de lutte contre les drogues", True),
+        ("Service technique de l'aviation civile", True),
+        (
+            "Représentation permanente de la France auprès de l'OMM - Genève",
+            True,
+        ),
+        ("Polynésie française", True),
+        ("Office anti-stupéfiants", True),
+    ],
+)
+def test_is_worth_a_name_lookup(name, expected):
+    assert is_worth_a_name_lookup(name) is expected

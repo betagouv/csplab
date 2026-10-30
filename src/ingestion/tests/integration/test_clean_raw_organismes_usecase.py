@@ -533,7 +533,24 @@ async def test_logs_dila_siret_not_found_for_a_potential_employer(
 
 
 @pytest.mark.asyncio
-async def test_does_not_log_dila_siret_not_found_for_an_office(
+async def test_does_not_log_dila_siret_not_found_for_a_sub_unit(
+    raw_organisme_repository, dila_usecase_for, caplog
+):
+    await raw_organisme_repository.upsert_batch(
+        [_raw_organisme_dila("dila-1", nom="Service juridique et économique")]
+    )
+    gateway = _FakeSiretLookupGateway()
+
+    with caplog.at_level(logging.INFO):
+        await dila_usecase_for(gateway).execute(DILA_REFERENTIEL)
+
+    assert gateway.calls == ["Service juridique et économique"]
+    assert _siret_not_found_records(caplog) == []
+    assert all(record.levelno < logging.ERROR for record in caplog.records)
+
+
+@pytest.mark.asyncio
+async def test_does_not_look_up_an_office_by_name(
     raw_organisme_repository, dila_usecase_for, caplog
 ):
     await raw_organisme_repository.upsert_batch(
@@ -542,11 +559,11 @@ async def test_does_not_log_dila_siret_not_found_for_an_office(
     gateway = _FakeSiretLookupGateway()
 
     with caplog.at_level(logging.INFO):
-        await dila_usecase_for(gateway).execute(DILA_REFERENTIEL)
+        organismes = await dila_usecase_for(gateway).execute(DILA_REFERENTIEL)
 
-    assert gateway.calls == ["Bureau des marchés"]
+    assert gateway.calls == []
+    assert organismes == []
     assert _siret_not_found_records(caplog) == []
-    assert all(record.levelno < logging.ERROR for record in caplog.records)
 
 
 @pytest.mark.asyncio
