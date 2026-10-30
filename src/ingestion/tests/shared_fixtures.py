@@ -232,6 +232,7 @@ def load_sources_usecase(sources_repository: SourcesRepository) -> LoadSourcesUs
             ),
         ),
         repository=sources_repository,
+        base_delay_seconds=0,
     )
 
 
