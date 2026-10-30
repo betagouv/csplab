@@ -1436,7 +1436,7 @@ def test_clean_maps_applicant_criteria_and_offer_block_texts(cleaner):
     )
 
 
-def test_clean_keeps_required_skills_as_raw_text(cleaner):
+def test_clean_keeps_raw_required_skills_without_formatted_text(cleaner):
     raw_text = (
         "Savoir-faire :\n"
         "- Travailler en équipe\n"
@@ -1621,6 +1621,12 @@ def test_clean_prefers_formatted_texts_converted_to_markdown(cleaner):
                 longText1="Compléments brut",
                 longText1Formatted="<p>Ligne 1<br>Ligne 2</p>",
             ),
+            applicantCriteria=TalentsoftDynamicField(
+                longText1="Compétences brut",
+                longText1Formatted=(
+                    "<p>Savoir-faire :</p><ul><li>Travailler en équipe</li></ul>"
+                ),
+            ),
         ),
     )
 
@@ -1632,6 +1638,7 @@ def test_clean_prefers_formatted_texts_converted_to_markdown(cleaner):
     assert offer.exercise_conditions == "*Conditions*"
     assert offer.service_description == "Service"
     assert offer.complements == "Ligne 1\\\nLigne 2"
+    assert offer.required_skills == "Savoir-faire :\n\n- Travailler en équipe"
 
 
 @pytest.mark.parametrize("formatted", [None, "", "<p> </p>", "<p>&nbsp;</p>"])
@@ -1653,6 +1660,9 @@ def test_clean_falls_back_on_raw_texts_when_formatted_is_blank(cleaner, formatte
             offerCustomBlock1=TalentsoftDynamicField(
                 longText1="Compléments brut", longText1Formatted=formatted
             ),
+            applicantCriteria=TalentsoftDynamicField(
+                longText1="Compétences brut", longText1Formatted=formatted
+            ),
         ),
     )
 
@@ -1664,6 +1674,7 @@ def test_clean_falls_back_on_raw_texts_when_formatted_is_blank(cleaner, formatte
     assert offer.exercise_conditions == "Conditions brut"
     assert offer.service_description == "Service brut"
     assert offer.complements == "Compléments brut"
+    assert offer.required_skills == "Compétences brut"
 
 
 def test_clean_returns_empty_texts_when_formatted_and_raw_are_blank(cleaner):
