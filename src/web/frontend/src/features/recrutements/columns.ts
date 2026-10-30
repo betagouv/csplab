@@ -1,6 +1,7 @@
 import type { RecrutementsActifs, RecrutementsArchives } from './types'
 import type { CspColumnDef } from '@/components/base/CspDataTable/table'
 import ElapsedDaysCell from '@/components/base/CspDataTable/cells/ElapsedDaysCell.vue'
+import UnreadConversationsCell from '@/features/messages/components/cells/UnreadConversationsCell.vue'
 import CandidaturesCell from './components/cells/CandidaturesCell.vue'
 import OffreActionsCell from './components/cells/OffreActionsCell.vue'
 import OffreIntituleCell from './components/cells/OffreIntituleCell.vue'
@@ -13,6 +14,7 @@ export const RECRUTEMENTS_ACTIFS_COLUMNS: CspColumnDef<RecrutementsActifs>[] = [
   { id: 'responsables', header: 'Responsable', sortable: true, accessor: formatResponsablesLabel },
   { id: 'derniere_activite', header: 'Dernière activité', sortable: true, accessor: row => row.derniere_activite, cellComponent: ElapsedDaysCell },
   { id: 'candidatures', header: 'Candidatures actives', accessor: row => row.candidatures?.total ?? null, cellComponent: CandidaturesCell },
+  { id: 'unread_conversations', header: 'Nouveau message', accessor: row => row.unread_conversations, cellComponent: UnreadConversationsCell },
   { id: 'actions', header: '', align: 'end', width: '3.5rem', cellComponent: OffreActionsCell },
 ]
 
