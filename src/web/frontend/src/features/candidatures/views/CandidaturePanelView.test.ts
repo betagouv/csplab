@@ -107,6 +107,46 @@ describe('candidaturePanelView', () => {
     expect(panel.getByText('Réception des candidatures')).toBeInTheDocument()
   })
 
+  it('shows why a refused candidature was refused in the follow-up column', async () => {
+    vi.mocked(getCandidatureDetail).mockResolvedValue({
+      ...candidatureDetail(CANDIDATURE_ALICE),
+      etape_actuelle: { uuid: ETAPE_REFUS, nom: 'Refus' },
+      motif_refus: { value: 'experience_insuffisante', label: 'Expérience insuffisante' },
+    })
+    const { panel } = await renderPanel([`${KANBAN_PATH}/candidatures/${CANDIDATURE_ALICE}`])
+
+    const suivi = within(await panel.findByRole('complementary', { name: 'Suivi de la candidature' }))
+    const motif = within(await suivi.findByRole('region', { name: 'Motif de refus' }))
+    expect(motif.getByText('Expérience insuffisante')).toBeInTheDocument()
+  })
+
+  it('changes the motif of a refused candidature without moving it', async () => {
+    const user = setupUser()
+    const refusee = {
+      ...candidatureDetail(CANDIDATURE_ALICE),
+      etape_actuelle: { uuid: ETAPE_REFUS, nom: 'Refus' },
+      motif_refus: { value: 'experience_insuffisante', label: 'Expérience insuffisante' },
+    }
+    vi.mocked(getCandidatureDetail).mockResolvedValue(refusee)
+    const { panel } = await renderPanel([`${KANBAN_PATH}/candidatures/${CANDIDATURE_ALICE}`])
+
+    await user.click(await panel.findByRole('button', { name: 'Actions sur le motif de refus' }))
+    await user.click(await screen.findByRole('menuitem', { name: 'Modifier le motif de refus' }))
+    const dialog = within(await screen.findByRole('dialog', { name: 'Modifier le motif de refus' }))
+    await user.click(dialog.getByRole('combobox', { name: /Motif de refus/ }))
+    await user.click(await screen.findByRole('option', { name: 'Disponibilité' }))
+    vi.mocked(getCandidatureDetail).mockResolvedValue({ ...refusee, motif_refus: { value: 'disponibilite', label: 'Disponibilité' } })
+    await user.click(dialog.getByRole('button', { name: 'Enregistrer le motif' }))
+
+    expect(patchEtapeCandidatures).toHaveBeenCalledWith(ORGANISME_UUID, RECRUTEMENT_UUID, {
+      etapeCibleUuid: ETAPE_REFUS,
+      candidatureUuids: [CANDIDATURE_ALICE],
+      motifRefus: 'disponibilite',
+    })
+    const motif = within(panel.getByRole('region', { name: 'Motif de refus' }))
+    expect(await motif.findByText('Disponibilité')).toBeInTheDocument()
+  })
+
   it('names the document after the tab and the candidat', async () => {
     await renderPanel([`${KANBAN_PATH}/candidatures/${CANDIDATURE_ALICE}/notes`])
 
