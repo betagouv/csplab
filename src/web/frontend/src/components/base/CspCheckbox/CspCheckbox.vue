@@ -141,12 +141,6 @@ function handleUpdate(val: unknown): void {
   color: var(--text-disabled-grey);
 }
 
-.csp-checkbox--error {
-  .csp-checkbox__control {
-    border-color: var(--border-plain-error);
-  }
-}
-
 .csp-checkbox__control {
   display: inline-flex;
   align-items: center;
@@ -155,25 +149,53 @@ function handleUpdate(val: unknown): void {
   height: var(--csp-checkbox-size);
   flex: 0 0 auto;
   border-radius: 2px;
-  border: 1px solid var(--border-default-grey);
-  background: var(--background-default-grey);
+  border: 1px solid var(--border-action-high-blue-france);
+  background: transparent;
   padding: 0;
   cursor: inherit;
 
   &[data-state='checked'],
   &[data-state='indeterminate'] {
-    background: var(--background-action-high-blue-france);
-    border-color: var(--background-action-high-blue-france);
-  }
-
-  &[data-disabled] {
-    border-color: var(--border-disabled-grey);
-    background: var(--background-disabled-grey);
+    background: var(--background-active-blue-france);
+    border-color: var(--border-active-blue-france);
   }
 
   &:focus-visible {
     outline: 2px solid var(--csp-focus-ring-color);
     outline-offset: 2px;
+  }
+}
+
+.csp-checkbox:not(.csp-checkbox--disabled) {
+  &:hover .csp-checkbox__control {
+    background: var(--background-default-grey-hover);
+
+    &[data-state='checked'],
+    &[data-state='indeterminate'] {
+      background: var(--background-active-blue-france-hover);
+    }
+  }
+
+  &:active .csp-checkbox__control {
+    background: var(--background-default-grey-active);
+
+    &[data-state='checked'],
+    &[data-state='indeterminate'] {
+      background: var(--background-active-blue-france-active);
+    }
+  }
+}
+
+.csp-checkbox--error .csp-checkbox__control {
+  border-color: var(--border-plain-error);
+}
+
+.csp-checkbox__control[data-disabled] {
+  border-color: var(--border-disabled-grey);
+
+  &[data-state='checked'],
+  &[data-state='indeterminate'] {
+    background: var(--background-disabled-grey);
   }
 }
 
@@ -183,7 +205,11 @@ function handleUpdate(val: unknown): void {
   justify-content: center;
   width: 100%;
   height: 100%;
-  color: white;
+  color: var(--text-inverted-blue-france);
+
+  &[data-disabled] {
+    color: var(--text-disabled-grey);
+  }
 
   &[data-state='unchecked'] {
     visibility: hidden;
