@@ -1,6 +1,7 @@
+import type { QueryCache } from '@pinia/colada'
 import type { RecrutementParams } from '@/api/params'
 import { defineQueryOptions } from '@pinia/colada'
-import { recrutementKeys } from '@/api/queryKeys'
+import { organismeKeys, recrutementKeys } from '@/api/queryKeys'
 import { getEquipeRecrutement } from './api'
 
 export const equipeRecrutementQuery = defineQueryOptions((params: RecrutementParams) => {
@@ -9,3 +10,11 @@ export const equipeRecrutementQuery = defineQueryOptions((params: RecrutementPar
     query: () => getEquipeRecrutement(params),
   }
 })
+
+export function invalidateEquipeRecrutement(queryCache: QueryCache, params: RecrutementParams) {
+  return Promise.all([
+    queryCache.invalidateQueries({ key: recrutementKeys.equipe(params) }),
+    queryCache.invalidateQueries({ key: organismeKeys.recrutementsActifs(params) }),
+    queryCache.invalidateQueries({ key: organismeKeys.recrutementsArchives(params) }),
+  ])
+}
