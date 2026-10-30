@@ -174,20 +174,28 @@ def assemble(fragments: list[Fragment]) -> str:
         sections.append(f"## {day.isoformat()}")
 
         for type_, title in TYPES.items():
-            entries = [_with_links(f) for f in day_fragments if f.type == type_]
+            entries = [_render(f) for f in day_fragments if f.type == type_]
             if entries:
                 sections.append(f"### {title}")
                 sections.append(_join_entries(entries))
 
-        subsections: dict[str, list[str]] = {}
-        for fragment in day_fragments:
-            for title, text in fragment.subsections:
-                subsections.setdefault(title, []).append(text)
-        for title, texts in subsections.items():
-            sections.append(f"### {title}")
-            sections.extend(texts)
-
     return "\n\n".join(sections) + "\n"
+
+
+def _render(fragment: Fragment) -> str:
+    """Keeps each subsection under its own entry, as a blockquote."""
+    blocks = [_with_links(fragment)]
+    # Indented, the quote belongs to the bullet. An entry of several bullets keeps
+    # it below the whole list, as it applies to all of them.
+    bullets = [line for line in fragment.entry.splitlines() if line.startswith("- ")]
+    single_bullet = fragment.entry.startswith("- ") and len(bullets) == 1
+    indent = "  " if single_bullet else ""
+    for title, text in fragment.subsections:
+        quote = f"**{title}**\n\n{text}"
+        blocks.append(
+            "\n".join(f"{indent}> {line}".rstrip() for line in quote.splitlines())
+        )
+    return "\n\n".join(blocks)
 
 
 def _with_links(fragment: Fragment) -> str:

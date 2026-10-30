@@ -152,29 +152,47 @@ class TestAssemble:
             "[https://example.com/doc](https://example.com/doc))"
         ) in assemble([result])
 
-    def test_groups_subsections_after_the_types(self, tmp_path):
+    def test_renders_subsections_under_their_entry(self, tmp_path):
         fragments = [
             fragment(
                 tmp_path,
                 "a.md",
                 type_="non_retrocompatible",
                 pr=2,
-                body="Cassé.\n\n### Compatibilité\n\nCompat 2.",
+                body="Cassé 2.\n\n### Compatibilité\n\nCompat 2.\n\n- Point.",
             ),
             fragment(
                 tmp_path,
                 "b.md",
-                type_="ajoute",
-                pr=1,
-                body="Ajouté.\n\n### Compatibilité\n\nCompat 1.",
+                type_="non_retrocompatible",
+                pr=3,
+                body="Cassé 3.\n\n### Compatibilité\n\nCompat 3.",
             ),
         ]
 
         markdown = assemble(fragments)
 
-        assert markdown.count("### Compatibilité") == 1
-        assert markdown.index("Ajouté.") < markdown.index("### Compatibilité")
-        assert "### Compatibilité\n\nCompat 2.\n\nCompat 1." in markdown
+        assert "### Compatibilité" not in markdown
+        assert (
+            "Cassé 2. ([PR #2](https://github.com/betagouv/csplab/pull/2))\n\n"
+            "> **Compatibilité**\n>\n> Compat 2.\n>\n> - Point.\n\n"
+            "Cassé 3. ([PR #3](https://github.com/betagouv/csplab/pull/3))\n\n"
+            "> **Compatibilité**\n>\n> Compat 3."
+        ) in markdown
+
+    def test_indents_subsections_of_a_bullet_entry(self, tmp_path):
+        result = fragment(tmp_path, body="- Modifié.\n\n### Compatibilité\n\nCompat.")
+
+        assert "pull/1))\n\n  > **Compatibilité**\n  >\n  > Compat." in assemble(
+            [result]
+        )
+
+    def test_keeps_subsections_of_several_bullets_below_the_list(self, tmp_path):
+        result = fragment(
+            tmp_path, body="- Premier.\n- Second.\n\n### Compatibilité\n\nCompat."
+        )
+
+        assert "pull/1))\n\n> **Compatibilité**\n>\n> Compat." in assemble([result])
 
     def test_keeps_consecutive_bullet_lists_tight(self, tmp_path):
         fragments = [
