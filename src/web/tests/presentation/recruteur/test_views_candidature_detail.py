@@ -5,6 +5,7 @@ from django.urls import reverse
 from rest_framework import status
 
 from domain.recruteur.value_objects.roles import AgentOrganismeRole
+from infrastructure.django_apps.recruteur.enums.motif_refus import MotifRefus
 from infrastructure.factories.candidate.candidature_django_factory import (
     CandidatureDjangoFactory,
     create_recrutement_and_candidature_for_agent,
@@ -133,9 +134,28 @@ class TestCandidatureDetailView:
             "uuid": str(candidature.etape_id),
             "nom": candidature.etape.nom,
         }
+        assert data["motif_refus"] is None
         assert data["date_derniere_maj_candidat"] is None
         assert data["document_uuid"] == str(cv.id)
         assert data["navigation_candidature_uuids"] == [str(candidature.id)]
+
+    def test_returns_motif_refus_of_refused_candidature(
+        self, authenticated_client, test_user
+    ):
+        _, organisme, recrutement, candidature = (
+            create_recrutement_and_candidature_for_agent(utilisateur=test_user)
+        )
+        candidature.motif_refus = MotifRefus.EXPERIENCE_INSUFFISANTE
+        candidature.save(update_fields=["motif_refus"])
+
+        response = authenticated_client.get(
+            _detail_url(organisme.id, recrutement.pk, candidature.id)
+        )
+
+        assert response.json()["motif_refus"] == {
+            "value": "experience_insuffisante",
+            "label": "Expérience insuffisante",
+        }
 
     def test_staff_without_organisme_role_gets_candidature_detail(
         self, authenticated_client, test_user
