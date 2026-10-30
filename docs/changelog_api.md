@@ -34,7 +34,9 @@ Renseignez dans `region` […]
   l'entrée.
 - Les sous-sections `### Titre` du corps (en général `### Compatibilité`) sont
   affichées en citation juste sous leur entrée, pour rester rattachées au changement
-  qu'elles décrivent. Le corps n'accepte pas de titre de niveau `#` ou `##`.
+  qu'elles décrivent. Sous une entrée d'une seule puce, la citation est rattachée à
+  la puce. Sous une liste de plusieurs puces, elle vient après la liste et vaut pour
+  toute l'entrée. Le corps n'accepte pas de titre de niveau `#` ou `##`.
 
 ## Dater le fragment avant le merge
 

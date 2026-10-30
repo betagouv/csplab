@@ -185,7 +185,11 @@ def assemble(fragments: list[Fragment]) -> str:
 def _render(fragment: Fragment) -> str:
     """Keeps each subsection under its own entry, as a blockquote."""
     blocks = [_with_links(fragment)]
-    indent = "  " if fragment.entry.startswith("- ") else ""
+    # Indented, the quote belongs to the bullet. An entry of several bullets keeps
+    # it below the whole list, as it applies to all of them.
+    bullets = [line for line in fragment.entry.splitlines() if line.startswith("- ")]
+    single_bullet = fragment.entry.startswith("- ") and len(bullets) == 1
+    indent = "  " if single_bullet else ""
     for title, text in fragment.subsections:
         quote = f"**{title}**\n\n{text}"
         blocks.append(

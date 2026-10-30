@@ -187,6 +187,13 @@ class TestAssemble:
             [result]
         )
 
+    def test_keeps_subsections_of_several_bullets_below_the_list(self, tmp_path):
+        result = fragment(
+            tmp_path, body="- Premier.\n- Second.\n\n### Compatibilité\n\nCompat."
+        )
+
+        assert "pull/1))\n\n> **Compatibilité**\n>\n> Compat." in assemble([result])
+
     def test_keeps_consecutive_bullet_lists_tight(self, tmp_path):
         fragments = [
             fragment(tmp_path, "a.md", pr=1, body="- Premier."),
