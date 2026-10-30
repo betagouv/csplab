@@ -347,7 +347,7 @@ describe('candidaturePanelView', () => {
       await user.click(control())
       const dialog = within(await unsavedDialog())
       expect(dialog.getByText('Si vous quittez maintenant, votre saisie sera perdue.')).toBeInTheDocument()
-      await user.click(dialog.getByRole('button', { name: 'Continuer l\'édition' }))
+      await user.click(dialog.getByRole('button', { name: 'Reprendre la modification' }))
 
       await vi.waitFor(() => expect(screen.queryByRole('dialog', { name: 'Modifications non enregistrées' })).not.toBeInTheDocument())
       expect(router.currentRoute.value.params.candidatureUuid).toBe(CANDIDATURE_ALICE)
@@ -371,7 +371,7 @@ describe('candidaturePanelView', () => {
       router.back()
       const dialog = within(await unsavedDialog())
       expect(window.location.pathname).toBe(KANBAN_PATH)
-      await user.click(dialog.getByRole('button', { name: 'Continuer l\'édition' }))
+      await user.click(dialog.getByRole('button', { name: 'Reprendre la modification' }))
 
       await vi.waitFor(() => expect(window.location.pathname).toBe(candidaturePath))
       expect(router.currentRoute.value.path).toBe(candidaturePath)
@@ -450,7 +450,7 @@ describe('candidaturePanelView', () => {
     await user.type(field, ' et motivé')
     await user.click(panel.getByRole('tab', { name: 'Documents' }))
     const dialog = within(await screen.findByRole('dialog', { name: 'Modifications non enregistrées' }))
-    await user.click(dialog.getByRole('button', { name: 'Continuer l\'édition' }))
+    await user.click(dialog.getByRole('button', { name: 'Reprendre la modification' }))
 
     await vi.waitFor(() => expect(screen.queryByRole('dialog', { name: 'Modifications non enregistrées' })).not.toBeInTheDocument())
     expect(field).toHaveValue('Profil solide et motivé')
