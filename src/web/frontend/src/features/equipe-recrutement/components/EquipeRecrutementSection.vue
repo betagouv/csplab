@@ -161,7 +161,7 @@ const countLabel = computed(() => {
       </h2>
       <p class="equipe-recrutement-section__description">
         L'équipe de recrutement regroupe les utilisateurs qui participent au traitement
-        des candidatures sur cette offre.
+        des candidatures de ce recrutement.
       </p>
     </div>
 

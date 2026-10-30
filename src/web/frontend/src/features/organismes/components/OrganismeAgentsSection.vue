@@ -143,7 +143,7 @@ async function handleRevocation(): Promise<void> {
         Membres de l'organisme
       </h2>
       <p class="organisme-agents-section__description">
-        Participent aux recrutements sur les offres auxquelles ils sont rattachés,
+        Participent aux recrutements auxquels ils sont rattachés,
         selon les droits qui leur sont attribués.
       </p>
     </div>

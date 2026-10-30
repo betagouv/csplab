@@ -32,6 +32,18 @@ describe('messageComposer', () => {
     vi.mocked(replyToConversation).mockReset()
   })
 
+  it('clears the draft and confirms once the message is sent', async () => {
+    vi.mocked(replyToConversation).mockResolvedValue({ content: 'Bonjour', author: 'Camille Durand', created_at: '2026-10-01T10:00:00Z', documents: [] })
+    const user = setupUser()
+    const field = renderComposer()
+
+    await user.type(field, 'Bonjour')
+    await user.click(screen.getByRole('button', { name: 'Envoyer' }))
+
+    await vi.waitFor(() => expect(useToast().toasts.value.at(-1)?.title).toBe('Message envoyé'))
+    expect(field).toHaveValue('')
+  })
+
   it('keeps the draft when sending fails', async () => {
     vi.mocked(replyToConversation).mockRejectedValue(new HttpError(500, 'Server Error', undefined))
     const user = setupUser()

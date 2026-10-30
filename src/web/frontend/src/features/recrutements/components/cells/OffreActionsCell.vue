@@ -12,7 +12,7 @@ const props = defineProps<{
 
 const sections = [{
   items: [{
-    label: 'Voir le détail de l’offre',
+    label: 'Voir le détail du recrutement',
     icon: 'ri:eye-line',
     onSelect: () => props.activate?.(),
   }],

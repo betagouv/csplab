@@ -188,7 +188,7 @@ describe('candidaturePanelView', () => {
       etapeCibleUuid: ETAPE_ENTRETIEN,
       candidatureUuids: [CANDIDATURE_ALICE],
     })
-    expect(await screen.findByText('Alice Dupont est passé à l\'étape Entretien')).toBeInTheDocument()
+    expect(await screen.findByText('La candidature d\'Alice Dupont est passée à l\'étape Entretien')).toBeInTheDocument()
   })
 
   it('replaces the previous success toast when candidatures are moved one after the other', async () => {
@@ -202,13 +202,13 @@ describe('candidaturePanelView', () => {
     }
 
     await moveToEntretien()
-    expect(await screen.findByText('Alice Dupont est passé à l\'étape Entretien')).toBeInTheDocument()
+    expect(await screen.findByText('La candidature d\'Alice Dupont est passée à l\'étape Entretien')).toBeInTheDocument()
     await vi.waitFor(() => expect(router.currentRoute.value.params.candidatureUuid).toBe(CANDIDATURE_BRUNO))
 
     await moveToEntretien()
 
-    expect(await screen.findByText('Bruno Martin est passé à l\'étape Entretien')).toBeInTheDocument()
-    expect(screen.queryByText('Alice Dupont est passé à l\'étape Entretien')).not.toBeInTheDocument()
+    expect(await screen.findByText('La candidature de Bruno Martin est passée à l\'étape Entretien')).toBeInTheDocument()
+    expect(screen.queryByText('La candidature d\'Alice Dupont est passée à l\'étape Entretien')).not.toBeInTheDocument()
   })
 
   it('asks for confirmation before refusing the candidature', async () => {
@@ -248,7 +248,7 @@ describe('candidaturePanelView', () => {
     await user.click(screen.getByRole('button', { name: 'Valider' }))
 
     expect(await screen.findByText(message)).toBeInTheDocument()
-    expect(screen.queryByText(/est passé à l'étape/)).not.toBeInTheDocument()
+    expect(screen.queryByText(/est passée à l'étape/)).not.toBeInTheDocument()
   })
 
   it.each([
