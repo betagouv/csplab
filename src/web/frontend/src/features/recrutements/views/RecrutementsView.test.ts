@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/vue'
+import { screen, within } from '@testing-library/vue'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { RouterView } from 'vue-router'
 import { getMe } from '@/api/utilisateur'
@@ -8,7 +8,7 @@ import { AGENT_RECHERCHE } from '@/test/fixtures/organismes'
 import { RECRUTEMENTS_ACTIFS } from '@/test/fixtures/recrutements'
 import { makeUser } from '@/test/fixtures/utilisateur'
 import { renderWithApp, setupUser } from '@/test/render'
-import { getRecrutementsActifs, getRecrutementsArchives } from '../api'
+import { getRecrutementsActifs, getRecrutementsArchives, setRecrutementsResponsable } from '../api'
 
 vi.mock('../api', () => ({
   getRecrutementsActifs: vi.fn(),
@@ -26,7 +26,7 @@ vi.mock('@/api/utilisateur', () => ({
 }))
 
 const RECRUTEMENTS_PATH = `/organismes/${ORGANISME_UUID}/recrutements`
-const [FIRST_RECRUTEMENT] = RECRUTEMENTS_ACTIFS
+const [FIRST_RECRUTEMENT, SECOND_RECRUTEMENT] = RECRUTEMENTS_ACTIFS
 
 async function openAssignmentFor(user: ReturnType<typeof setupUser>) {
   await renderWithApp(RouterView, { route: RECRUTEMENTS_PATH })
@@ -62,5 +62,26 @@ describe('recrutementsView', () => {
     await user.click(await screen.findByRole('button', { name: `Retirer ${FIRST_RECRUTEMENT.intitule} de la sélection` }))
 
     await vi.waitFor(() => expect(screen.queryByRole('dialog', { name: 'Assigner un responsable' })).not.toBeInTheDocument())
+  })
+
+  it('assigns a responsable to the only offer of the row, leaving the selection aside', async () => {
+    const user = setupUser()
+    vi.mocked(getRecrutementsActifs).mockResolvedValue({
+      count: RECRUTEMENTS_ACTIFS.length,
+      results: RECRUTEMENTS_ACTIFS.map(row => row.uuid === SECOND_RECRUTEMENT.uuid ? { ...row, responsables: [] } : row),
+    })
+    vi.mocked(setRecrutementsResponsable).mockResolvedValue({ reussites: [SECOND_RECRUTEMENT.uuid], echecs: [] })
+    await renderWithApp(RouterView, { route: RECRUTEMENTS_PATH })
+
+    await user.click(await screen.findByRole('checkbox', { name: `Sélectionner ${FIRST_RECRUTEMENT.intitule}` }))
+    await user.click(screen.getByRole('button', { name: `Assigner un responsable à ${SECOND_RECRUTEMENT.intitule}` }))
+    const drawer = within(await screen.findByRole('dialog', { name: 'Assigner un responsable' }))
+    await user.type(drawer.getByRole('searchbox', { name: /Responsable/ }), `${AGENT_RECHERCHE.email}{Enter}`)
+    await user.click(await drawer.findByRole('button', { name: 'Assigner un responsable' }))
+
+    expect(setRecrutementsResponsable).toHaveBeenCalledWith(ORGANISME_UUID, {
+      recrutement_ids: [SECOND_RECRUTEMENT.uuid],
+      agent_id: AGENT_RECHERCHE.uuid,
+    })
   })
 })
