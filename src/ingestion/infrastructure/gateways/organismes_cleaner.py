@@ -17,6 +17,7 @@ from referentiel.value_objects.verse import Verse
 from domain.entities.raw_organisme import RawOrganisme
 from domain.value_objects.organisme_referentiel import OrganismeReferentiel
 from infrastructure.gateways.lambert93 import lambert93_to_wgs84
+from infrastructure.gateways.siret_matching import is_worth_a_name_lookup
 
 logger = logging.getLogger(__name__)
 
@@ -287,8 +288,9 @@ class OrganismesCleaner:
         to verify if there is one, otherwise the service's name.
 
         None when no lookup is needed: the service is in the mapping, a lookup
-        is already cached, or its name is shared by several DILA services
-        ("Secrétariat général") and would match a namesake.
+        is already cached, its name is shared by several DILA services
+        ("Secrétariat général") and would match a namesake, or it is an
+        office, a sub-directorate… without a SIRET of its own.
         """
         if raw_organisme.referentiel != OrganismeReferentiel.DILA:
             return None
@@ -302,9 +304,10 @@ class OrganismesCleaner:
         siret = re.sub(r"\s", "", raw_organisme.data.get("siret") or "")
         if siret:
             return siret
-        if (raw_organisme.data.get("homonyms") or 0) > 1:
-            return None
         nom = (raw_organisme.data.get("nom") or "").strip()
+        is_homonym = (raw_organisme.data.get("homonyms") or 0) > 1
+        if is_homonym or not is_worth_a_name_lookup(nom):
+            return None
         return nom or None
 
     def _has_fresh_dila_siret_lookup(self, raw_organisme: RawOrganisme) -> bool:

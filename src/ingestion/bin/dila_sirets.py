@@ -25,7 +25,11 @@ from infrastructure.gateways.organismes_cleaner import (
     DILA_SIRETS_CSV,
     load_dila_sirets,
 )
-from infrastructure.gateways.siret_matching import is_potential_employer, name_score
+from infrastructure.gateways.siret_matching import (
+    is_potential_employer,
+    is_worth_a_name_lookup,
+    name_score,
+)
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -98,6 +102,9 @@ def main() -> None:
         directory_siret = re.sub(r"\s", "", data.get("siret") or "")
         if not directory_siret and (data.get("homonyms") or 0) > 1:
             # Generic name ("Secrétariat général"): no lookup.
+            continue
+        if not directory_siret and not is_worth_a_name_lookup(name):
+            # Office, sub-directorate…: no lookup either.
             continue
         query = directory_siret or name
         row = {

@@ -664,6 +664,19 @@ def test_dila_mapping_takes_precedence_over_lookup(dila_cleaner: OrganismesClean
     assert organisme.siret == SIRET(code=MAPPED_SIRET_VALUE)
 
 
+def test_dila_mapped_office_keeps_its_siret(dila_cleaner: OrganismesCleaner):
+    raw_organisme = _raw_organisme_dila(
+        _dila_service(nom="Bureau des marchés"),
+        external_id="dila-mapped",
+        siret_found=None,
+    )
+
+    organisme = dila_cleaner.clean(raw_organisme)
+
+    assert organisme is not None
+    assert organisme.siret == SIRET(code=MAPPED_SIRET_VALUE)
+
+
 def test_dila_excluded_service_is_not_imported(dila_cleaner: OrganismesCleaner):
     raw_organisme = _raw_organisme_dila(_dila_service(), external_id="dila-excluded")
 
@@ -812,9 +825,10 @@ def _dila_with_cached_lookup(
     siret: str | None = None,
     homonyms: int = 1,
     external_id: str = "dila-1",
+    nom: str = "Ministère de l'Intérieur",
 ) -> RawOrganisme:
     raw_organisme = _raw_organisme_dila(
-        _dila_service(siret=siret, homonyms=homonyms),
+        _dila_service(nom=nom, siret=siret, homonyms=homonyms),
         external_id=external_id,
         siret_found=found,
     )
@@ -847,6 +861,19 @@ DILA_NOM = "Ministère de l'Intérieur"
             id="export_siret_of_homonym",
         ),
         pytest.param(_dila_with_cached_lookup(homonyms=2), None, id="homonym_name"),
+        pytest.param(
+            _dila_with_cached_lookup(nom="Bureau des marchés"), None, id="office"
+        ),
+        pytest.param(
+            _dila_with_cached_lookup(nom="Bureau des marchés", siret=DILA_SIRET_VALUE),
+            DILA_SIRET_VALUE,
+            id="export_siret_of_office",
+        ),
+        pytest.param(
+            _dila_with_cached_lookup(nom="Direction du numérique"),
+            "Direction du numérique",
+            id="directorate",
+        ),
         pytest.param(
             _dila_with_cached_lookup(external_id="dila-mapped"), None, id="mapped"
         ),
