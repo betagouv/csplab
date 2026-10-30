@@ -39,6 +39,11 @@ const meta = {
       description: 'Libellé du compteur de sélection ; par défaut « N sélectionné(s) ».',
       table: { type: { summary: 'string' } },
     },
+    selectionHint: {
+      control: { type: 'text' },
+      description: 'Précision affichée à côté du compteur de sélection.',
+      table: { type: { summary: 'string' } },
+    },
     bordered: {
       control: { type: 'boolean' },
       description: 'Bordure haute de séparation ; à désactiver quand la barre suit immédiatement une autre bordure (p. ex. la barre d\'onglets).',
@@ -91,11 +96,12 @@ export const ModeSelection: Story = {
   }),
 }
 
-export const ModeSelectionLibelleDedie: Story = {
+export const ModeSelectionLibelleEtIndication: Story = {
   args: {
     count: '12 offres',
     selectionCount: 3,
     selectionLabel: '3 offres sélectionnées',
+    selectionHint: 'dont 2 sur d’autres pages',
   },
   render: args => ({
     components: { CspTableToolbar, CspButton },

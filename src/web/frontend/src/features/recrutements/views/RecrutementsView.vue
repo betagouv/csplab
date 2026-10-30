@@ -3,7 +3,7 @@ import type { AssignationResponsableResultat, RecrutementKey } from '../types'
 import type { CspBreadcrumbItem } from '@/components/base/CspBreadcrumb/CspBreadcrumb.vue'
 import type { ToastOptions } from '@/composables/ui/useToast'
 import type { AgentRecherche } from '@/features/agents/types'
-import { computed, ref } from 'vue'
+import { computed, ref, useTemplateRef } from 'vue'
 import { useRouter } from 'vue-router'
 import { isHttpStatus } from '@/api/errors'
 import CspAsyncSection from '@/components/base/CspAsyncSection/CspAsyncSection.vue'
@@ -102,9 +102,19 @@ const {
   reset: resetResponsable,
 } = useAssignResponsable(() => props.organismeUuid)
 
+const actifsTable = useTemplateRef<{ visibleIds: string[] }>('actifsTable')
+
 const selectionLabel = computed(() => {
   const count = selection.count.value
   return `${count} ${pluralize(count, 'offre sélectionnée', 'offres sélectionnées')}`
+})
+
+const selectionHint = computed(() => {
+  const visibleIds = new Set(actifsTable.value?.visibleIds ?? [])
+  const elsewhere = selection.selected.value.filter(row => !visibleIds.has(row.uuid)).length
+  return elsewhere > 0
+    ? `dont ${elsewhere} ${pluralize(elsewhere, 'sur une autre page', 'sur d’autres pages')}`
+    : undefined
 })
 
 function assignationToast(
@@ -244,6 +254,7 @@ const archivesCountLabel = computed(() => {
             :pending="showActifsSkeleton"
             :selection-count="selection.count.value"
             :selection-label="selectionLabel"
+            :selection-hint="selectionHint"
           >
             <template #selection-actions>
               <CspButton
@@ -302,6 +313,7 @@ const archivesCountLabel = computed(() => {
               />
             </template>
             <CspDataTable
+              ref="actifsTable"
               v-model:page="recrutementsActifsPage"
               :rows="actifsFilters.filtered.value"
               :columns="RECRUTEMENTS_ACTIFS_COLUMNS"
