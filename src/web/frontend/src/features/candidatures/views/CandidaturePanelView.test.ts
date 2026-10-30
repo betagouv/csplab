@@ -107,6 +107,19 @@ describe('candidaturePanelView', () => {
     expect(panel.getByText('Réception des candidatures')).toBeInTheDocument()
   })
 
+  it('shows why a refused candidature was refused in the follow-up column', async () => {
+    vi.mocked(getCandidatureDetail).mockResolvedValue({
+      ...candidatureDetail(CANDIDATURE_ALICE),
+      etape_actuelle: { uuid: ETAPE_REFUS, nom: 'Refus' },
+      motif_refus: { value: 'experience_insuffisante', label: 'Expérience insuffisante' },
+    })
+    const { panel } = await renderPanel([`${KANBAN_PATH}/candidatures/${CANDIDATURE_ALICE}`])
+
+    const suivi = within(await panel.findByRole('complementary', { name: 'Suivi de la candidature' }))
+    const motif = within(await suivi.findByRole('region', { name: 'Motif de refus' }))
+    expect(motif.getByText('Expérience insuffisante')).toBeInTheDocument()
+  })
+
   it('names the document after the tab and the candidat', async () => {
     await renderPanel([`${KANBAN_PATH}/candidatures/${CANDIDATURE_ALICE}/notes`])
 
