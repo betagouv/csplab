@@ -487,7 +487,7 @@ Les valeurs `nom` et `siret` d'un organisme sont celles à reprendre dans le blo
 |---|---|---|
 | `versant` | Filtrer par versant | `FPE`, `FPT` ou `FPH`. Plusieurs valeurs séparées par une virgule (ex. `FPE,FPT`) |
 | `siret` | Retrouver un organisme par son SIRET, par exemple pour vérifier un SIRET avant d'envoyer une offre | Exactement **14 caractères** |
-| `nom` | Rechercher un organisme par une partie de son nom, sans tenir compte des majuscules | 255 caractères maximum |
+| `nom` | Rechercher un organisme par une partie de son nom, sans tenir compte des majuscules ni des accents (`hopital` trouve « Hôpital ») | 255 caractères maximum |
 | `departement` | Filtrer par département de l'organisme | Code de département (ex. `75`, `2A`, `971`) |
 | `referentiel` | Filtrer par référentiel source | `FINESS`, `GIPCDG` ou `DILA` |
 

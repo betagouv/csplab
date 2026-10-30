@@ -70,7 +70,7 @@ class OrganismeQuerySet(models.QuerySet):
     def search_name(self, name: str | None) -> "OrganismeQuerySet":
         if not name:
             return self
-        return self.filter(nom__icontains=name)
+        return self.filter(nom__unaccent__icontains=name)
 
     def by_department(self, department: str | None) -> "OrganismeQuerySet":
         if not department:
