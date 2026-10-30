@@ -26,6 +26,7 @@ import CandidatureActivites from '../components/CandidatureActivites.vue'
 import CandidatureCv from '../components/CandidatureCv.vue'
 import CandidatureDocuments from '../components/CandidatureDocuments.vue'
 import CandidatureHistorique from '../components/CandidatureHistorique.vue'
+import CandidatureMotifRefus from '../components/CandidatureMotifRefus.vue'
 import CandidatureNoteForm from '../components/CandidatureNoteForm.vue'
 import CandidatureNotes from '../components/CandidatureNotes.vue'
 import ChangerEtapePopover from '../components/ChangerEtapePopover.vue'
@@ -287,6 +288,10 @@ function handleUpdateOpen(open: boolean): void {
               aria-label="Suivi de la candidature"
             >
               <template v-if="candidature">
+                <CandidatureMotifRefus
+                  v-if="candidature.motif_refus"
+                  :motif="candidature.motif_refus.label"
+                />
                 <CandidatureActivites
                   :candidature="candidatureParams"
                   :historique-route-name="panelRouteNames.tabs.historique"
