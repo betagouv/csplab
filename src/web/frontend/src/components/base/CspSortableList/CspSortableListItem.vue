@@ -134,7 +134,7 @@ function setHandleRef(element: Element | null) {
 
 <style scoped lang="scss">
 .csp-sortable-list-item {
-  --sortable-list-item-shadow: var(--csp-raised-shadow, 0 0 transparent);
+  --sortable-list-item-shadow: var(--csp-raised-shadow);
 
   position: relative;
   display: flex;
@@ -143,13 +143,13 @@ function setHandleRef(element: Element | null) {
   list-style: none;
 }
 
-/* the handle is the part one grabs: hovering it raises the whole item */
+/* the handle is the part one grabs: hovering the handle gives the whole item the hover shadow */
 .csp-sortable-list-item:where(:has(.csp-sortable-list-item__handle:hover)) {
-  --sortable-list-item-shadow: var(--csp-raised-shadow-hover, var(--csp-raised-shadow, 0 0 transparent));
+  --sortable-list-item-shadow: var(--csp-raised-shadow-hover);
 }
 
 .csp-sortable-list-item--dragging {
-  --sortable-list-item-shadow: var(--csp-raised-shadow-drag, var(--csp-raised-shadow, 0 0 transparent));
+  --sortable-list-item-shadow: var(--csp-raised-shadow-drag);
 
   opacity: var(--csp-raised-opacity-drag);
 }
