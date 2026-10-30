@@ -4,6 +4,70 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.0] - 2026-10-30
+
+### Candidatures
+
+#### <!-- 1 --> Added
+
+- Notes privées ([#2116](https://github.com/betagouv/csplab/pull/2116))
+
+
+### Ingestion
+
+#### <!-- 0 --> Breaking Changes
+
+- Passe les listes d'offres et de métiers sur la pagination DRF ([#2067](https://github.com/betagouv/csplab/pull/2067))
+- Refuse un organisme Talentsoft inconnu ou envoyé en JWT dans l'API d'offres ([#2069](https://github.com/betagouv/csplab/pull/2069))
+- Vérifie la cohérence du domaine avec le métier dans l'API d'offres ([#2086](https://github.com/betagouv/csplab/pull/2086))
+- Restreint documents_requis à une liste de documents et l'expose dans fake-ts ([#2091](https://github.com/betagouv/csplab/pull/2091))
+- Enregistre toutes les catégories d'une offre ([#2108](https://github.com/betagouv/csplab/pull/2108))
+- Rejette les offres sans catégorie ([#2143](https://github.com/betagouv/csplab/pull/2143))
+
+#### <!-- 1 --> Added
+
+- Renseigne documents_requis depuis Talentsoft ([#2092](https://github.com/betagouv/csplab/pull/2092))
+
+#### <!-- 3 --> Fixed
+
+- Déduit la zone géographique d'une offre depuis son département ([#2097](https://github.com/betagouv/csplab/pull/2097))
+- Ne déduit plus le domaine du préfixe du code métier ([#2118](https://github.com/betagouv/csplab/pull/2118))
+- Rattrape la zone géographique des offres Talentsoft déjà publiées ([#2139](https://github.com/betagouv/csplab/pull/2139))
+- Attribue un SIRET partagé entre référentiels au référentiel qui fait foi ([#2144](https://github.com/betagouv/csplab/pull/2144))
+- Attribue les SIRET DILA via un mapping vérifié et répare la hiérarchie ([#2148](https://github.com/betagouv/csplab/pull/2148))
+
+
+### Recruteur
+
+#### <!-- 1 --> Added
+
+- Distingue notes d'équipe et notes personnelles ([#2096](https://github.com/betagouv/csplab/pull/2096))
+- Ajoute la bascule de visibilité d'une note ([#2099](https://github.com/betagouv/csplab/pull/2099))
+- Aligne la barre d'action du kanban sur celle des tableaux ([#2114](https://github.com/betagouv/csplab/pull/2114))
+- Sème la démo sur huit organismes avec des CV variés ([#2111](https://github.com/betagouv/csplab/pull/2111))
+- Sème des notes d'appel et d'entretien dans la démo ([#2115](https://github.com/betagouv/csplab/pull/2115))
+- Sème les fils de messagerie de la démo ([#2120](https://github.com/betagouv/csplab/pull/2120))
+- Ajoute la réponse automatique des candidats fictifs ([#2128](https://github.com/betagouv/csplab/pull/2128))
+- Pose une étiquette sur une note ([#2133](https://github.com/betagouv/csplab/pull/2133))
+- Ajoute la Caisse des dépôts au jeu de démo ([#2147](https://github.com/betagouv/csplab/pull/2147))
+- Retire une étiquette d'une note ([#2135](https://github.com/betagouv/csplab/pull/2135))
+- Recherche les organismes par nom sans tenir compte des accents ([#2141](https://github.com/betagouv/csplab/pull/2141))
+
+
+### Referentiel
+
+#### <!-- 3 --> Fixed
+
+- Réaligne le domaine des offres incohérentes avec leur métier ([#2117](https://github.com/betagouv/csplab/pull/2117))
+
+
+### Tooling
+
+#### <!-- 3 --> Fixed
+
+- Affiche la compatibilité sous chaque changement du changelog de l'API ([#2151](https://github.com/betagouv/csplab/pull/2151))
+
+
 ## [0.5.0] - 2026-10-27
 
 ### Candidatures
