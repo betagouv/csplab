@@ -799,6 +799,97 @@ def test_invalid_competences_requises_are_rejected(
     ]
 
 
+def test_bases_legales_markdown_is_passed_to_usecase(
+    authenticated_client_with_source, use_case
+):
+    offer = PayloadOfferFactory.create(
+        identification={"reference": "REF-013", "versant": "FPT"},
+        conditions={
+            "temps_travail": "TEMPS_PLEIN",
+            "lieu_de_travail": "SUR_SITE",
+            "management": "SANS",
+            "bases_legales": "Ouvert :\n\n- 1° aux fonctionnaires",
+        },
+    )
+    use_case.execute.return_value = {
+        "created": 1,
+        "updated": 0,
+        "errors": [],
+        "offres": [{"reference": "REF-013", "statut": "created"}],
+    }
+
+    response = authenticated_client_with_source.post(
+        URL,
+        data={"source_id": SOURCE_UUID, "offres": [offer]},
+        content_type="application/json",
+    )
+
+    assert response.status_code == status.HTTP_201_CREATED
+    assert response.json()["errors"] == []
+    upsert_input = use_case.execute.call_args[0][0]
+    assert upsert_input.offers[0].conditions["bases_legales"] == (
+        "Ouvert :\n\n- 1° aux fonctionnaires"
+    )
+
+
+@pytest.mark.parametrize(
+    "bases_legales,expected_error",
+    [
+        (
+            "Ouvert :<br>aux fonctionnaires",
+            [
+                (
+                    "Les balises HTML ne sont pas acceptées (<br>) : utilisez la "
+                    "syntaxe Markdown, ou écrivez \\< pour afficher le caractère <."
+                )
+            ],
+        ),
+        (
+            "[Loi](javascript:alert(1))",
+            [
+                (
+                    "Lien non autorisé (javascript:alert(1)) : seuls les liens http, "
+                    "https et mailto sont acceptés."
+                )
+            ],
+        ),
+        (
+            "a" * 1501,
+            ["Assurez-vous que ce champ comporte au plus 1500\xa0caractères."],
+        ),
+    ],
+    ids=["html", "forbidden-link", "too-long"],
+)
+def test_invalid_bases_legales_are_rejected(
+    authenticated_client_with_source, use_case, bases_legales, expected_error
+):
+    offer = PayloadOfferFactory.create(
+        identification={"reference": "REF-014", "versant": "FPT"},
+        conditions={
+            "temps_travail": "TEMPS_PLEIN",
+            "lieu_de_travail": "SUR_SITE",
+            "management": "SANS",
+            "bases_legales": bases_legales,
+        },
+    )
+
+    response = authenticated_client_with_source.post(
+        URL,
+        data={"source_id": SOURCE_UUID, "offres": [offer]},
+        content_type="application/json",
+    )
+
+    assert response.status_code == status.HTTP_201_CREATED
+    assert response.json()["errors"] == [
+        {
+            "index": 0,
+            "offre": {"reference": "REF-014", "versant": "FPT"},
+            "error": {"conditions": {"bases_legales": expected_error}},
+        }
+    ]
+    assert use_case.execute.call_args.args[0].offers == []
+
+
 @pytest.mark.parametrize(
     "categories,expected_error",
     [
