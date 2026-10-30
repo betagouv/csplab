@@ -56,7 +56,6 @@ function discard(): void {
 useUnsavedChanges(
   () => objet.value !== '' || content.value !== '' || documents.value.length > 0,
   discard,
-  { isLeftBy: to => to.name !== props.routes.create },
 )
 
 const canSend = computed(() =>

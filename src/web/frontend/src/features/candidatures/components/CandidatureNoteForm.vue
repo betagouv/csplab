@@ -25,7 +25,9 @@ function reset(): void {
   estPrivee.value = false
 }
 
-useUnsavedChanges(() => message.value !== '', reset)
+useUnsavedChanges(() => message.value !== '', reset, {
+  isLeftBy: (to, from) => to.params.candidatureUuid !== from.params.candidatureUuid,
+})
 
 async function submit(): Promise<void> {
   if (!canSubmit.value) {

@@ -29,8 +29,6 @@ const attachments = useTemplateRef('attachments')
 useUnsavedChanges(() => content.value !== '' || documents.value.length > 0, () => {
   content.value = ''
   documents.value = []
-}, {
-  isLeftBy: (to, from) => to.params.conversationUuid !== from.params.conversationUuid,
 })
 
 const contentErrors = ref<string[]>([])
