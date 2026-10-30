@@ -11,11 +11,12 @@ from application.ingestion.interfaces.upsert_organismes_input import (
     UpsertOrganismesInput,
 )
 from application.ingestion.usecases.upsert_organismes import UpsertOrganismesUsecase
+from domain.recruteur.value_objects.roles import AgentOrganismeRole
 from infrastructure.django_apps.recruteur.models.organisme import (
     OrganismeAgentModel,
     OrganismeModel,
 )
-from infrastructure.django_apps.tag.models import TagModel
+from infrastructure.django_apps.tag.models import TagCategory, TagModel
 from infrastructure.factories.identite.organisme_django_factory import (
     OrganismeAgentDjangoFactory,
     OrganismeDjangoFactory,
@@ -28,6 +29,7 @@ from infrastructure.factories.recruteur.recrutement_django_factory import (
 )
 from infrastructure.factories.tag.tag_django_factory import (
     CandidatureTagDjangoFactory,
+    NoteTagDjangoFactory,
     TagDjangoFactory,
 )
 from infrastructure.repositories.identite.postgres_organisme_repository import (
@@ -234,6 +236,90 @@ def test_dependents_are_merged_into_an_existing_organisme():
     assert list(TagModel.objects.filter(organisme=dila)) == [dila_tag]
     candidature_tag.refresh_from_db()
     assert candidature_tag.tag_id == dila_tag.id
+
+
+def test_note_tags_are_merged_into_the_tag_of_the_same_name():
+    gipcdg = OrganismeDjangoFactory(siret=SIRET_A, referentiel="GIPCDG")
+    dila = OrganismeDjangoFactory(
+        siret=SIRET_B, referentiel="DILA", external_id="dila-1"
+    )
+    dila_tag = TagDjangoFactory(
+        organisme=dila, name="Urgent", category=TagCategory.NOTE
+    )
+    gipcdg_tag = TagDjangoFactory(
+        organisme=gipcdg, name="URGENT", category=TagCategory.NOTE
+    )
+    note_tag = NoteTagDjangoFactory(tag=gipcdg_tag)
+
+    _upsert(_data("DILA", "dila-1", entity_id=dila.id))
+
+    note_tag.refresh_from_db()
+    assert note_tag.tag_id == dila_tag.id
+
+
+def test_only_active_agent_links_are_moved():
+    gipcdg = OrganismeDjangoFactory(siret=SIRET_A, referentiel="GIPCDG")
+    active_link = OrganismeAgentDjangoFactory(organisme=gipcdg)
+    revoked_link = OrganismeAgentDjangoFactory(
+        organisme=gipcdg, date_revocation=timezone.now()
+    )
+    dila_id = uuid4()
+
+    _upsert(_data("DILA", "dila-1", entity_id=dila_id))
+
+    assert list(
+        OrganismeAgentModel.objects.filter(organisme_id=dila_id).values_list(
+            "agent_id", flat=True
+        )
+    ) == [active_link.agent_id]
+    assert not OrganismeAgentModel.objects.filter(id=revoked_link.id).exists()
+
+
+def test_agents_of_a_soft_deleted_organisme_are_not_moved():
+    gipcdg = OrganismeDjangoFactory(
+        siret=SIRET_A, referentiel="GIPCDG", supprime_le=timezone.now()
+    )
+    OrganismeAgentDjangoFactory(
+        organisme=gipcdg, role=AgentOrganismeRole.SUPERVISEUR.value
+    )
+    dila_id = uuid4()
+
+    _upsert(_data("DILA", "dila-1", entity_id=dila_id))
+
+    assert not OrganismeAgentModel.objects.filter(organisme_id=dila_id).exists()
+
+
+@pytest.mark.parametrize(
+    "replaced_role,existing_role,existing_revoked,expected_role",
+    [
+        ("superviseur", "agent", False, "superviseur"),
+        ("agent", "superviseur", False, "superviseur"),
+        ("agent", "agent", False, "agent"),
+        ("superviseur", "agent", True, "superviseur"),
+        ("agent", "superviseur", True, "agent"),
+    ],
+)
+def test_agent_linked_to_both_keeps_an_active_link_with_the_strongest_role(
+    replaced_role, existing_role, existing_revoked, expected_role
+):
+    gipcdg = OrganismeDjangoFactory(siret=SIRET_A, referentiel="GIPCDG")
+    dila = OrganismeDjangoFactory(
+        siret=SIRET_B, referentiel="DILA", external_id="dila-1"
+    )
+    existing_link = OrganismeAgentDjangoFactory(
+        organisme=dila,
+        role=existing_role,
+        date_revocation=timezone.now() if existing_revoked else None,
+    )
+    OrganismeAgentDjangoFactory(
+        organisme=gipcdg, agent=existing_link.agent, role=replaced_role
+    )
+
+    _upsert(_data("DILA", "dila-1", entity_id=dila.id))
+
+    existing_link.refresh_from_db()
+    assert existing_link.date_revocation is None
+    assert existing_link.role == expected_role
 
 
 def test_update_to_an_already_held_siret_is_rejected():

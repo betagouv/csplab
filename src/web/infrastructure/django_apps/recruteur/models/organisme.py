@@ -154,11 +154,7 @@ class OrganismeModel(BaseDatedModel):
 
     def move_dependents_to(self, target_id: UUID) -> None:
         # The target may not exist yet: foreign keys are checked at commit.
-        self.agents_liaisons.exclude(
-            agent_id__in=OrganismeAgentModel.objects.filter(
-                organisme_id=target_id
-            ).values("agent_id")
-        ).update(organisme_id=target_id)
+        self._move_agents_to(target_id)
         self.recrutements.update(organisme_id=target_id)
         self.talentsoft_organismes.update(organisme_id=target_id)
         OrganismeModel.objects.filter(parent_id=self.pk).update(parent_id=target_id)
@@ -179,6 +175,37 @@ class OrganismeModel(BaseDatedModel):
                     "candidature_id"
                 )
             ).update(tag=same_tag)
+            tag.notes_liaisons.exclude(
+                note_id__in=same_tag.notes_liaisons.values("note_id")
+            ).update(tag=same_tag)
+
+    def _move_agents_to(self, target_id: UUID) -> None:
+        # Only links granting access today move: revoked links, or every link
+        # of a deleted organisme, are deleted with this organisme.
+        if self.supprime_le is not None:
+            return
+        active_links = self.agents_liaisons.active()
+        target_links = {
+            link.agent_id: link
+            for link in OrganismeAgentModel.objects.filter(
+                organisme_id=target_id, agent_id__in=active_links.values("agent_id")
+            )
+        }
+        active_links.exclude(agent_id__in=target_links).update(organisme_id=target_id)
+
+        # An agent already linked to the target keeps an active link with the
+        # strongest of both roles.
+        superviseur = AgentOrganismeRole.SUPERVISEUR.value
+        for link in active_links.filter(agent_id__in=target_links):
+            target_link = target_links[link.agent_id]
+            roles = {link.role}
+            if target_link.date_revocation is None:
+                roles.add(target_link.role)
+            target_link.role = (
+                superviseur if superviseur in roles else AgentOrganismeRole.AGENT.value
+            )
+            target_link.date_revocation = None
+            target_link.save(update_fields=["role", "date_revocation", "updated_at"])
 
     def mettre_a_jour_etapes(
         self, etapes: Sequence[EtapeData]
