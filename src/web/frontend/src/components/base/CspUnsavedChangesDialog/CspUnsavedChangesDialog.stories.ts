@@ -11,7 +11,7 @@ const meta = {
     controls: { disable: true },
     docs: {
       description: {
-        component: 'Confirmation demandée avant de quitter une saisie non enregistrée. Émet `keepEditing` sur « Continuer l\'édition », la touche Échap et le clic en dehors, et `leave` sur « Quitter sans enregistrer ». Se pilote avec `useUnsavedChangesGuard`.',
+        component: 'Confirmation demandée avant de quitter une saisie non enregistrée. Émet `keepEditing` sur « Reprendre la modification », la touche Échap et le clic en dehors, et `leave` sur « Quitter sans enregistrer ». Se pilote avec `useUnsavedChangesGuard`.',
       },
     },
   },

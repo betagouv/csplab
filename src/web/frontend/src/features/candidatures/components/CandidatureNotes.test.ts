@@ -79,7 +79,15 @@ describe('candidatureNotes', () => {
     await user.click(await screen.findByRole('button', { name: 'Ajouter une note' }))
 
     await vi.waitFor(() => expect(router.currentRoute.value.path).toBe(`${NOTES_PATH}/nouvelle`))
-    expect(await screen.findByRole('textbox', { name: 'Ajouter une note' })).toBeInTheDocument()
+    expect(await screen.findByRole('textbox', { name: 'Nouvelle note' })).toBeInTheDocument()
+  })
+
+  it('keeps the notes listed while a new note is typed', async () => {
+    vi.mocked(getCandidatureNotes).mockResolvedValue({ count: 1, results: [note({ message: 'À recontacter' })] })
+    await renderNotes(`${NOTES_PATH}/nouvelle`)
+
+    expect(await screen.findByRole('textbox', { name: 'Nouvelle note' })).toBeInTheDocument()
+    expect(screen.getByText('À recontacter')).toBeInTheDocument()
   })
 
   it('shows an error when the notes cannot be loaded', async () => {
@@ -89,44 +97,29 @@ describe('candidatureNotes', () => {
     expect(await screen.findByText('Les notes n\'ont pas pu être chargées.')).toBeInTheDocument()
   })
 
-  it('edits the note targeted by the route and keeps it private', async () => {
+  it('edits the note picked from its menu and keeps it private', async () => {
     const results = [
       note({}),
-      note({ uuid: 'ffffffff-0001-0001-0001-000000000002', message: 'À recontacter', est_privee: true }),
+      note({ uuid: 'ffffffff-0001-0001-0001-000000000002', message: 'À recontacter', publie_par_prenom: 'Paul', publie_par_nom: 'Bernard', est_privee: true }),
     ]
     vi.mocked(getCandidatureNotes).mockResolvedValue({ count: 2, results })
     vi.mocked(updateCandidatureNote).mockResolvedValue()
     const user = setupUser()
-    const { router } = await renderNotes(`${NOTES_PATH}/ffffffff-0001-0001-0001-000000000002/modifier`)
+    await renderNotes()
 
+    await user.click(await screen.findByRole('button', { name: 'Actions sur la note de Paul Bernard' }))
+    await user.click(await screen.findByRole('menuitem', { name: 'Modifier la note' }))
     const field = await screen.findByRole('textbox', { name: 'Modifier la note' })
     expect(field).toHaveValue('À recontacter')
     expect(screen.getByRole('checkbox', { name: 'Note privée' })).toBeChecked()
 
     await user.type(field, ' demain')
-    await user.click(screen.getByRole('button', { name: 'Enregistrer la note' }))
+    await user.click(screen.getByRole('button', { name: 'Enregistrer les modifications' }))
 
     expect(updateCandidatureNote).toHaveBeenCalledWith(
       { ...CANDIDATURE_PARAMS, noteUuid: 'ffffffff-0001-0001-0001-000000000002' },
       { message: 'À recontacter demain', est_privee: true },
     )
-    await vi.waitFor(() => expect(router.currentRoute.value.path).toBe(NOTES_PATH))
-  })
-
-  it('opens the edition of the note picked from its menu', async () => {
-    const results = [
-      note({}),
-      note({ uuid: 'ffffffff-0001-0001-0001-000000000002', message: 'À recontacter', publie_par_prenom: 'Paul', publie_par_nom: 'Bernard' }),
-    ]
-    vi.mocked(getCandidatureNotes).mockResolvedValue({ count: 2, results })
-    const user = setupUser()
-    const { router } = await renderNotes()
-
-    await user.click(await screen.findByRole('button', { name: 'Actions sur la note de Paul Bernard' }))
-    await user.click(await screen.findByRole('menuitem', { name: 'Modifier la note' }))
-
-    await vi.waitFor(() => expect(router.currentRoute.value.path).toBe(`${NOTES_PATH}/ffffffff-0001-0001-0001-000000000002/modifier`))
-    expect(await screen.findByRole('textbox', { name: 'Modifier la note' })).toHaveValue('À recontacter')
   })
 
   it('deletes the note picked from its menu once confirmed', async () => {

@@ -214,6 +214,7 @@ function handleUpdateOpen(open: boolean): void {
     >
       <CspTabs
         v-model="activeTab"
+        activation-mode="manual"
         fill
         class="candidature-panel__tabs"
       >
