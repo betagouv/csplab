@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import type { Conversation, ConversationRouteNames } from '../types'
 import { RouterLink, useRoute } from 'vue-router'
-import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspSkeleton from '@/components/base/CspSkeleton/CspSkeleton.vue'
 import { formatElapsedTime } from '@/utils/date'
 
@@ -71,14 +70,6 @@ function conversationLocation(conversationUuid: string) {
           {{ conversation.last_message_author }} • {{ formatElapsedTime(conversation.last_message_created_at) }}
         </span>
       </RouterLink>
-      <CspButton
-        variant="tertiary-no-outline"
-        size="sm"
-        icon="ri:more-fill"
-        disabled
-        class="conversations-list__actions"
-        :aria-label="`Actions sur la conversation ${conversation.objet}`"
-      />
     </li>
   </ul>
 </template>
@@ -93,14 +84,7 @@ function conversationLocation(conversationUuid: string) {
 }
 
 .conversations-list__row {
-  position: relative;
   border-bottom: 1px solid var(--border-default-grey);
-}
-
-.conversations-list__actions {
-  position: absolute;
-  top: var(--csp-space-2);
-  right: var(--csp-space-2);
 }
 
 .conversations-list__item {
@@ -108,7 +92,6 @@ function conversationLocation(conversationUuid: string) {
   flex-direction: column;
   gap: var(--csp-space-1);
   padding: var(--csp-space-3) var(--csp-space-4);
-  padding-right: var(--csp-space-8);
   color: inherit;
   text-decoration: none;
   background-image: none;

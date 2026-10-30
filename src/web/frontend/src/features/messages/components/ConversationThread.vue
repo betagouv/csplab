@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import type { CandidatureParams } from '@/api/params'
 import { useTemplateRef, watch } from 'vue'
+import { candidatureDocumentUrl, checkCandidatureDocument } from '@/api/documents'
 import CspAsyncSection from '@/components/base/CspAsyncSection/CspAsyncSection.vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspIcon from '@/components/base/CspIcon/CspIcon.vue'
 import CspSkeleton from '@/components/base/CspSkeleton/CspSkeleton.vue'
 import { useMinimumPending } from '@/composables/async/useMinimumPending'
+import { useOpenDocument } from '@/composables/ui/useOpenDocument'
 import { formatDateTime } from '@/utils/date'
 import { formatFileSize } from '@/utils/format'
 import { useConversationMessages } from '../composables/useConversationMessages'
@@ -24,6 +26,16 @@ const { messages, pending, error } = useConversationMessages(() => ({
 }))
 
 const showSkeleton = useMinimumPending(pending)
+
+const { open } = useOpenDocument()
+
+function documentUrl(documentUuid: string): string {
+  return candidatureDocumentUrl({ ...props.candidature, documentUuid })
+}
+
+function openDocument(event: MouseEvent, documentUuid: string): void {
+  open(event, documentUrl(documentUuid), () => checkCandidatureDocument({ ...props.candidature, documentUuid }))
+}
 
 const messagesSection = useTemplateRef('messagesSection')
 
@@ -107,12 +119,15 @@ watch(
               <span class="conversation-thread__document-name">{{ document.nom }}</span>
               <span class="conversation-thread__document-size">{{ formatFileSize(document.taille) }}</span>
               <CspButton
+                as="a"
+                :href="documentUrl(document.uuid)"
+                target="_blank"
                 variant="tertiary-no-outline"
                 size="sm"
                 label="Ouvrir"
                 :aria-label="`Ouvrir ${document.nom}`"
-                disabled
                 class="conversation-thread__document-open"
+                @click="openDocument($event, document.uuid)"
               />
             </li>
           </ul>
