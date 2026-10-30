@@ -10,7 +10,7 @@ const meta = {
   tags: ['autodocs'],
   parameters: {
     controls: {
-      include: ['variant', 'modelValue', 'label', 'size', 'disabled', 'indeterminate', 'error'],
+      include: ['variant', 'modelValue', 'label', 'hint', 'size', 'disabled', 'indeterminate', 'error'],
     },
     docs: {
       description: {
@@ -40,6 +40,15 @@ const meta = {
     label: {
       control: { type: 'text' },
       description: 'Libellé visible.',
+      table: {
+        type: {
+          summary: 'string',
+        },
+      },
+    },
+    hint: {
+      control: { type: 'text' },
+      description: 'Texte d\'aide affiché sous le libellé et annoncé comme description de la case.',
       table: {
         type: {
           summary: 'string',
@@ -179,6 +188,7 @@ const meta = {
         <CspCheckbox
           :variant="args.variant"
           :label="args.label"
+          :hint="args.hint"
           :disabled="args.disabled"
           :indeterminate="isIndeterminate"
           :size="args.size"
@@ -206,6 +216,13 @@ export const Indeterminate: Story = {
   args: {
     indeterminate: true,
     modelValue: false,
+  },
+}
+
+export const WithHint: Story = {
+  args: {
+    label: 'Note privée',
+    hint: 'Visible par vous uniquement',
   },
 }
 
