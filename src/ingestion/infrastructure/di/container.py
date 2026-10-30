@@ -120,6 +120,11 @@ def _build_organismes_cleaner(
     )
 
 
+# Explicit rather than httpx's implicit 5 s default, which was too short when
+# the web is slow to answer (deploy, cold start).
+_WEB_HTTP_TIMEOUT_SECONDS = 10.0
+
+
 def _make_db_engine(database_url: str | None) -> Engine:
     if not database_url:
         raise ValueError("DATABASE_URL is required")
@@ -133,7 +138,9 @@ class Container(containers.DeclarativeContainer):
 
     config = providers.Configuration()
 
-    http_client = providers.Factory(httpx.AsyncClient)
+    http_client = providers.Factory(
+        httpx.AsyncClient, timeout=_WEB_HTTP_TIMEOUT_SECONDS
+    )
 
     web_gateway_credentials = providers.Singleton(
         WebGatewayCredentials,

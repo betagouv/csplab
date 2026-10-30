@@ -1,6 +1,7 @@
 import logging
 from typing import Literal
 
+import httpx
 import pytest
 
 from domain.value_objects.talentsoft_credential import TalentsoftCredential
@@ -70,3 +71,9 @@ class TestRegisterTalentsoftFrontClients:
 
         repository = container.talentsoft_client_repository()
         assert repository.get("back_a") is None
+
+
+def test_http_client_has_explicit_timeout():
+    client = Container().http_client()
+
+    assert client.timeout == httpx.Timeout(10.0)

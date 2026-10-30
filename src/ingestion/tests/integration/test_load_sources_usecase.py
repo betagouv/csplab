@@ -1,5 +1,6 @@
 from uuid import UUID
 
+import httpx
 import pytest
 from faker import Faker
 from pytest_httpx import HTTPXMock
@@ -112,3 +113,85 @@ async def test_execute_replaces_previous_registry_contents(
     assert len(sources_repository) == 1
     assert sources_repository.get_by_client_id_back("back-1") is None
     assert sources_repository.get_by_client_id_back("back-2") is not None
+
+
+@pytest.mark.asyncio
+async def test_execute_retries_after_timeout(
+    load_sources_usecase: LoadSourcesUsecase,
+    sources_repository: SourcesRepository,
+    httpx_mock: HTTPXMock,
+):
+    httpx_mock.add_exception(httpx.ReadTimeout("timed out"), url=SOURCES_URL)
+    httpx_mock.add_response(
+        method="GET", url=SOURCES_URL, json=[SOURCE_DATA], status_code=200
+    )
+
+    await load_sources_usecase.execute()
+
+    assert len(httpx_mock.get_requests()) == 2
+    assert len(sources_repository) == 1
+
+
+@pytest.mark.asyncio
+async def test_execute_retries_after_connection_error(
+    load_sources_usecase: LoadSourcesUsecase,
+    sources_repository: SourcesRepository,
+    httpx_mock: HTTPXMock,
+):
+    httpx_mock.add_exception(httpx.ConnectError("refused"), url=SOURCES_URL)
+    httpx_mock.add_response(
+        method="GET", url=SOURCES_URL, json=[SOURCE_DATA], status_code=200
+    )
+
+    await load_sources_usecase.execute()
+
+    assert len(httpx_mock.get_requests()) == 2
+    assert len(sources_repository) == 1
+
+
+@pytest.mark.asyncio
+async def test_execute_retries_after_server_error(
+    load_sources_usecase: LoadSourcesUsecase,
+    sources_repository: SourcesRepository,
+    httpx_mock: HTTPXMock,
+):
+    httpx_mock.add_response(method="GET", url=SOURCES_URL, status_code=503)
+    httpx_mock.add_response(
+        method="GET", url=SOURCES_URL, json=[SOURCE_DATA], status_code=200
+    )
+
+    await load_sources_usecase.execute()
+
+    assert len(httpx_mock.get_requests()) == 2
+    assert len(sources_repository) == 1
+
+
+@pytest.mark.asyncio
+async def test_execute_does_not_retry_client_error(
+    load_sources_usecase: LoadSourcesUsecase,
+    sources_repository: SourcesRepository,
+    httpx_mock: HTTPXMock,
+):
+    httpx_mock.add_response(method="GET", url=SOURCES_URL, status_code=401)
+
+    with pytest.raises(httpx.HTTPStatusError):
+        await load_sources_usecase.execute()
+
+    assert len(httpx_mock.get_requests()) == 1
+    assert len(sources_repository) == 0
+
+
+@pytest.mark.asyncio
+async def test_execute_raises_after_last_attempt(
+    load_sources_usecase: LoadSourcesUsecase,
+    sources_repository: SourcesRepository,
+    httpx_mock: HTTPXMock,
+):
+    for _ in range(5):
+        httpx_mock.add_exception(httpx.ReadTimeout("timed out"), url=SOURCES_URL)
+
+    with pytest.raises(httpx.ReadTimeout):
+        await load_sources_usecase.execute()
+
+    assert len(httpx_mock.get_requests()) == 5
+    assert len(sources_repository) == 0
