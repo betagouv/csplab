@@ -44,9 +44,17 @@ Le `mise.toml` à la racine contient ce qui concerne le repo entier :
 - `services:postgres`, `services:redis`, `services:qdrant`, `services:rustfs`, `services` : démarrent les conteneurs docker, ou les recréent quand leur configuration a changé ; un conteneur à jour et sain est laissé tel quel. Les tâches qui ont besoin d'un service le déclarent en dépendance, il démarre donc tout seul. `web:s3:init` crée les buckets de RustFS, `bootstrap` le lance.
 - `onboard` : premier embarquement (setup + bootstrap, qui installe aussi les git hooks). `setup`, `git-hooks` et `bootstrap` restent disponibles séparément, et `bootstrap:reset` repart de zéro (volumes docker supprimés puis bootstrap).
 
-Les opérations sur la base de dev sont dans le namespace web : `web:seed` charge le jeu de données de démo, `web:db:reset` recrée la base à vide puis migre et seed, `web:db:restore` la remplace par un dump Scalingo.
+Les opérations sur la base de dev sont dans le namespace web : `web:seed` charge le jeu de données de démo, `web:db:reset` recrée la base à vide puis migre et seed.
 
 Les bases web et ingestion vivent dans le même conteneur Postgres, avec le superuser de `env.d/postgresql` : `src/ingestion/mise.toml` en déduit `DATABASE_URL` (base `ingestion`) et `TEST_DATABASE_URL` (base `ingestion_test`).
+
+`web:db:restore` et `ingestion:db:restore` remplacent la base locale du service par un backup Scalingo, puis appliquent les migrations. `-- --from demo` ou `-- --from prod` télécharge d'abord le dernier backup de l'app correspondante dans `dumps/<service>/` (prérequis : `scalingo login` et un accès à l'app) ; sans argument, le dump le plus récent de `dumps/<service>/` est restauré, et un chemin de fichier restaure ce fichier.
+
+```
+mise run ingestion:db:restore -- --from demo
+mise run web:db:restore -- --from prod
+mise run web:db:restore -- dumps/web/mon-dump.tar.gz
+```
 
 Pour observer ou arrêter les conteneurs, utilisez `docker compose` directement (`ps`, `logs -f`, `stop`, `down`).
 
@@ -78,7 +86,7 @@ Les tâches d'un agrégat s'exécutent en parallèle. Les accès partagés sont 
 
 ## Tâches destructrices
 
-`setup:force`, `bootstrap:reset`, `onboard:reset` (les deux précédents enchaînés), `web:db:reset` et `web:db:restore` demandent une confirmation dont la réponse par défaut est No : un Entrée par réflexe ne détruit rien, il faut répondre y explicitement. Attention aux lanceurs qui positionnent MISE_YES (boutons d'éditeur) : ils sautent la confirmation.
+`setup:force`, `bootstrap:reset`, `onboard:reset` (les deux précédents enchaînés), `web:db:reset`, `web:db:restore` et `ingestion:db:restore` demandent une confirmation dont la réponse par défaut est No : un Entrée par réflexe ne détruit rien, il faut répondre y explicitement. Attention aux lanceurs qui positionnent MISE_YES (boutons d'éditeur) : ils sautent la confirmation.
 
 ## Arguments
 

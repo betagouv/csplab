@@ -1,0 +1,140 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+# ---------------------------------------------------------------------------
+# restore-db — Restore a local PostgreSQL database from a Scalingo backup
+#
+# Usage:
+#   bin/restore-db <web|ingestion> [--from demo|prod] [path/to/dump.tar.gz]
+#
+# With --from, the latest backup of that environment is downloaded with the
+# Scalingo CLI into dumps/<service>/, then restored.
+# Without --from nor a path, the most recent *.tar.gz in dumps/<service>/ is
+# restored.
+#
+# Environment (optional):
+#   SCALINGO_REGION         default: osc-fr1
+#
+# Prerequisites for --from: `scalingo login` done, and access to the app.
+# ---------------------------------------------------------------------------
+
+REGION="${SCALINGO_REGION:-osc-fr1}"
+
+usage() {
+  echo "Usage: bin/restore-db <web|ingestion> [--from demo|prod] [path/to/dump.tar.gz]"
+  exit 1
+}
+
+SERVICE="${1:-}"
+[[ $# -gt 0 ]] && shift
+FROM=""
+DUMP=""
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --from) FROM="${2:-}"; shift 2 || usage ;;
+    -*) usage ;;
+    *) DUMP="$1"; shift ;;
+  esac
+done
+
+# Load PostgreSQL env vars (POSTGRES_DB, POSTGRES_USER…), shared by the web and
+# ingestion databases
+set -a
+# shellcheck source=/dev/null
+source env.d/postgresql
+set +a
+
+case "$SERVICE" in
+  web)
+    APP_PREFIX="csplab-web"
+    DB_NAME="${POSTGRES_DB}"
+    migrate() { bin/manage migrate; }
+    ;;
+  ingestion)
+    APP_PREFIX="csplab-ingestion"
+    DB_NAME="ingestion"
+    migrate() { mise exec -C src/ingestion -- alembic upgrade head; }
+    ;;
+  *) usage ;;
+esac
+
+DUMPS_DIR="dumps/${SERVICE}"
+
+if [[ -n "$FROM" && -n "$DUMP" ]]; then
+  echo "❌ --from and a dump path are mutually exclusive."
+  exit 1
+fi
+
+if [[ -n "$FROM" ]]; then
+  case "$FROM" in
+    demo) APP="${APP_PREFIX}-demo" ;;
+    prod) APP="${APP_PREFIX}" ;;
+    *) usage ;;
+  esac
+
+  if ! command -v scalingo >/dev/null; then
+    echo "❌ Scalingo CLI not found: https://cli.scalingo.com"
+    exit 1
+  fi
+  if ! scalingo whoami >/dev/null 2>&1; then
+    echo "❌ Not logged in to Scalingo: run 'scalingo login'."
+    exit 1
+  fi
+
+  sc() { scalingo --region "$REGION" --app "$APP" "$@"; }
+
+  # No JSON output: read the ID column of the PostgreSQL row in the table
+  ADDON=$(sc addons 2>/dev/null | awk -F'│' '/PostgreSQL/ { gsub(/ /, "", $3); print $3 }')
+  if [[ -z "$ADDON" ]]; then
+    echo "❌ No PostgreSQL addon found on '${APP}' (check your access to the app)."
+    exit 1
+  fi
+
+  mkdir -p "$DUMPS_DIR"
+  DUMP="${DUMPS_DIR}/${APP}-$(date +%Y%m%d%H%M%S).tar.gz"
+  echo "⬇️  Downloading the latest backup of '${APP}'…"
+  # Without --backup, the CLI downloads the last successful backup
+  sc --addon "$ADDON" backups-download --output "$DUMP"
+fi
+
+# Auto-detect the most recent dump if none provided
+if [[ -z "$DUMP" ]]; then
+  DUMP=$(ls -t "${DUMPS_DIR}"/*.tar.gz 2>/dev/null | head -1)
+fi
+
+if [[ -z "$DUMP" ]]; then
+  echo "❌ No dump file found."
+  echo "   Download one with --from demo|prod, place a .tar.gz in ${DUMPS_DIR}/"
+  echo "   or pass the path as an argument:"
+  echo "   bin/restore-db ${SERVICE} ${DUMPS_DIR}/myfile.tar.gz"
+  exit 1
+fi
+
+if [[ ! -f "$DUMP" ]]; then
+  echo "❌ File not found: $DUMP"
+  exit 1
+fi
+
+psql_admin() {
+  docker exec -i csp_postgresql psql -U "${POSTGRES_USER}" -d template1 -v ON_ERROR_STOP=1 -c "$1"
+}
+
+echo "⚠️  Dropping and recreating database '${DB_NAME}'…"
+# Connect to template1 (always available) so we are not connected to the target DB
+psql_admin "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = '${DB_NAME}' AND pid <> pg_backend_pid();"
+psql_admin "DROP DATABASE IF EXISTS ${DB_NAME};"
+psql_admin "CREATE DATABASE ${DB_NAME} OWNER ${POSTGRES_USER};"
+
+echo "📦 Restoring ${SERVICE} database from ${DUMP}…"
+tar -xzOf "${DUMP}" | docker exec -i csp_postgresql \
+  pg_restore -U "${POSTGRES_USER}" -d "${DB_NAME}" --no-owner --no-privileges
+
+echo "🔄 Running migrations…"
+if ! migrate; then
+  echo "❌ Migrations failed. If the dump comes from a more recent version than"
+  echo "   your branch, rebase on main and run the migrations again."
+  exit 1
+fi
+
+echo "✅ Done. ${SERVICE} database restored from ${DUMP}."
