@@ -40,7 +40,7 @@ class PayloadOfferFactory:
                 "metier": "ERNUM001",
                 "referentiel": "RMFPv2",
             },
-            "categories": [],
+            "categories": ["A"],
             "nature_offre": "TITULAIRE_CONTRACTUEL",
             "type_contrat": None,
             "vacance_poste": "",

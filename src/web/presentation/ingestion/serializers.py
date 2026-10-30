@@ -1034,7 +1034,9 @@ class OffersInputSerializer(serializers.Serializer):
     # classification
     profession = ProfessionInputSerializer()
     categories = serializers.MultipleChoiceField(
-        choices=[(c.name, c.value) for c in Category]
+        choices=[(c.name, c.value) for c in Category],
+        allow_empty=False,
+        error_messages={"empty": "Au moins une catégorie est obligatoire."},
     )
     nature_offre = serializers.ChoiceField(
         choices=[(c.name, c.value) for c in OfferNature]
