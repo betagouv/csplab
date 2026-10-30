@@ -8,7 +8,7 @@ TEST_DATABASE_URL = "psql://postgres:pass@localhost:5432/ingestion"
 
 [tasks."db:create"]
 alias = "ingestion:db:create"
-description = "Create the ingestion database and user"
+description = "Create the ingestion database"
 run = "true"
 
 [tasks."db:create-test"]

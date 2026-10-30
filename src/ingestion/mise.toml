@@ -1,5 +1,9 @@
 [env]
-_.file = "../../env.d/ingestion"
+_.file = ["../../env.d/postgresql", "../../env.d/ingestion"]
+# Same local Postgres as the web, as the superuser of env.d/postgresql
+# (absent in CI, where mise.ci.toml sets both URLs)
+DATABASE_URL = "psql://{{ env.POSTGRES_USER | default(value='') }}:{{ env.POSTGRES_PASSWORD | default(value='') }}@localhost:{{ env.POSTGRES_PORT | default(value='5432') }}/ingestion"
+TEST_DATABASE_URL = "psql://{{ env.POSTGRES_USER | default(value='') }}:{{ env.POSTGRES_PASSWORD | default(value='') }}@localhost:{{ env.POSTGRES_PORT | default(value='5432') }}/ingestion_test"
 _.python.venv = { path = ".venv" }
 _.source = { path = "bin/inject_scaleway_env.sh", tools = true }
 
@@ -30,15 +34,15 @@ wait
 
 [tasks."db:create"]
 alias = "ingestion:db:create"
-description = "Create the ingestion database and user"
+description = "Create the ingestion database"
 depends = ["//:services:postgres"]
-run = "set -a && . ../../env.d/postgresql && docker exec -i csp_postgresql psql -U $POSTGRES_USER < ../../infra/postgres/create-ingestion-db.sql"
+run = "docker exec -i csp_postgresql psql -U $POSTGRES_USER < ../../infra/postgres/create-ingestion-db.sql"
 
 [tasks."db:create-test"]
 alias = "ingestion:db:create-test"
 description = "Create the ingestion_test database"
 depends = ["db:create"]
-run = "set -a && . ../../env.d/postgresql && docker exec -i csp_postgresql psql -U $POSTGRES_USER < ../../infra/postgres/create-ingestion-test-db.sql"
+run = "docker exec -i csp_postgresql psql -U $POSTGRES_USER < ../../infra/postgres/create-ingestion-test-db.sql"
 
 [tasks.migrate]
 alias = "ingestion:migrate"
@@ -57,14 +61,14 @@ run = "uv run alembic revision --autogenerate"
 alias = "ingestion:test"
 description = "Ingestion tests (on the ingestion_test database)"
 depends = ["install", "db:create-test"]
-run = 'DATABASE_URL="${TEST_DATABASE_URL:-psql://ingestion:pass@localhost:5432/ingestion_test}" pytest'
+run = 'DATABASE_URL="$TEST_DATABASE_URL" pytest'
 
 [tasks."test:cov"]
 alias = "ingestion:test:cov"
 description = "Ingestion tests with an HTML coverage report"
 depends = ["install", "db:create-test"]
 run = [
-  'DATABASE_URL="${TEST_DATABASE_URL:-psql://ingestion:pass@localhost:5432/ingestion_test}" pytest --cov=. --cov-report=html:tests/cov_html --cov-report=term-missing',
+  'DATABASE_URL="$TEST_DATABASE_URL" pytest --cov=. --cov-report=html:tests/cov_html --cov-report=term-missing',
   "open tests/cov_html/index.html",
 ]
 
