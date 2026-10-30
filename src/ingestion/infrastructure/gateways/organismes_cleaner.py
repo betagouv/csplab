@@ -289,8 +289,7 @@ class OrganismesCleaner:
 
         None when no lookup is needed: the service is in the mapping, a lookup
         is already cached, its name is shared by several DILA services
-        ("Secrétariat général") and would match a namesake, or it is an
-        office, a sub-directorate… without a SIRET of its own.
+        ("Secrétariat général") and would match a namesake, or it is an office.
         """
         if raw_organisme.referentiel != OrganismeReferentiel.DILA:
             return None

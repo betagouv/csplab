@@ -68,9 +68,7 @@ _SUB_UNIT_PREFIXES = (
 )
 # In DILA, "X - Y" names a sub-unit Y of X ("Université X - IUT").
 _SUB_UNIT_SEPARATOR = " - "
-# Sub-units whose name lookup never retained a SIRET on a sample of the DILA
-# export (betagouv/csplab#2186). "direction", "mission", "service" or "X - Y"
-# are not listed: some of them are employers with their own SIRET.
+# Sub-units never having a SIRET of their own (betagouv/csplab#2186).
 _NO_LOOKUP_FIRST_WORDS = frozenset(
     {"bureau", "sous-direction", "departement", "division", "pole"}
 )
@@ -187,7 +185,5 @@ def is_potential_employer(name: str, type_organisme: str) -> bool:
 
 
 def is_worth_a_name_lookup(name: str) -> bool:
-    """Whether looking up a DILA service by name may find its SIRET: not for
-    an office, a sub-directorate… which never has one of its own."""
     first_word = next(iter(_strip_accents(name).split()), "")
     return first_word not in _NO_LOOKUP_FIRST_WORDS

@@ -104,7 +104,6 @@ def main() -> None:
             # Generic name ("Secrétariat général"): no lookup.
             continue
         if not directory_siret and not is_worth_a_name_lookup(name):
-            # Office, sub-directorate…: no lookup either.
             continue
         query = directory_siret or name
         row = {
