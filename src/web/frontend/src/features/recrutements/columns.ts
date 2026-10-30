@@ -7,7 +7,7 @@ import OffreIntituleCell from './components/cells/OffreIntituleCell.vue'
 import { formatNatureOffreLabel, formatResponsablesLabel } from './format'
 
 export const RECRUTEMENTS_ACTIFS_COLUMNS: CspColumnDef<RecrutementsActifs>[] = [
-  { id: 'intitule', header: 'Intitulé de l\'offre', accessor: row => row.intitule, cellComponent: OffreIntituleCell },
+  { id: 'intitule', header: 'Intitulé du recrutement', accessor: row => row.intitule, cellComponent: OffreIntituleCell },
   { id: 'reference_csp', header: 'Référence CSP', accessor: row => row.reference_csp },
   { id: 'date_publication', header: 'Publication', sortable: true, accessor: row => row.date_publication, cellComponent: ElapsedDaysCell },
   { id: 'responsables', header: 'Responsable', sortable: true, accessor: formatResponsablesLabel },
@@ -18,10 +18,10 @@ export const RECRUTEMENTS_ACTIFS_COLUMNS: CspColumnDef<RecrutementsActifs>[] = [
 ]
 
 export const RECRUTEMENTS_ARCHIVES_COLUMNS: CspColumnDef<RecrutementsArchives>[] = [
-  { id: 'intitule', header: 'Intitulé de l\'offre', accessor: row => row.intitule, cellComponent: OffreIntituleCell },
+  { id: 'intitule', header: 'Intitulé du recrutement', accessor: row => row.intitule, cellComponent: OffreIntituleCell },
   { id: 'reference_csp', header: 'Référence CSP', accessor: row => row.reference_csp },
   { id: 'responsables', header: 'Responsable', sortable: true, accessor: formatResponsablesLabel },
-  { id: 'nature_offre', header: 'Nature de l\'offre', accessor: formatNatureOffreLabel },
+  { id: 'nature_offre', header: 'Nature du recrutement', accessor: formatNatureOffreLabel },
   { id: 'date_archivage', header: 'Date d\'archivage', sortable: true, accessor: row => row.date_archivage, cellComponent: ElapsedDaysCell },
   { id: 'recrute', header: 'Candidat recruté', accessor: row => row.recrute },
   { id: 'actions', header: '', align: 'end', width: '3.5rem', cellComponent: OffreActionsCell },
