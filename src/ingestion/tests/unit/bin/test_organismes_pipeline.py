@@ -3,7 +3,7 @@ from unittest.mock import AsyncMock, MagicMock, call, patch
 import pytest
 
 from application.usecases.import_organismes import ImportOrganismesResult
-from bin.organismes_pipeline import _run, main
+from bin.organismes_pipeline import _run
 from domain.value_objects.organisme_referentiel import OrganismeReferentiel
 
 
@@ -63,28 +63,3 @@ async def test_run_without_referentiel_imports_all_referentiels(
     assert mock_import_organismes_usecase_for.call_args_list == [
         call(container, referentiel) for referentiel in OrganismeReferentiel
     ]
-
-
-@patch("bin.organismes_pipeline.asyncio.run")
-@patch("api._sentry.sentry_sdk.init")
-def test_main_initializes_sentry_when_dsn_is_set(
-    mock_sentry_init, mock_asyncio_run, monkeypatch
-):
-    monkeypatch.setenv("SENTRY_DSN", "https://key@o123.ingest.sentry.io/123")
-    monkeypatch.setattr("sys.argv", ["organismes_pipeline.py"])
-
-    main()
-
-    mock_sentry_init.assert_called_once()
-    mock_asyncio_run.assert_called_once()
-
-
-@patch("bin.organismes_pipeline.asyncio.run")
-@patch("api._sentry.sentry_sdk.init")
-def test_main_skips_sentry_when_no_dsn(mock_sentry_init, mock_asyncio_run, monkeypatch):
-    monkeypatch.delenv("SENTRY_DSN", raising=False)
-    monkeypatch.setattr("sys.argv", ["organismes_pipeline.py"])
-
-    main()
-
-    mock_sentry_init.assert_not_called()

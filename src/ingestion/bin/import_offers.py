@@ -1,12 +1,9 @@
 #!/usr/bin/env python
 import argparse
-import asyncio
-import logging
 from uuid import UUID
 
 from infrastructure.di.container import create_container
-
-logging.basicConfig(level=logging.INFO)
+from infrastructure.observability.script import run_script
 
 
 async def _run(source_id: UUID) -> None:
@@ -22,7 +19,7 @@ def main() -> None:
     )
     args = parser.parse_args()
 
-    asyncio.run(_run(args.source_id))
+    run_script(_run(args.source_id))
 
 
 if __name__ == "__main__":
