@@ -42,17 +42,13 @@ def init_sentry(
     *,
     tracing: bool,
 ) -> None:
-    """Single Sentry entry point for the API, the Celery worker and the scripts.
-
-    Does nothing without SENTRY_DSN (local runs, tests).
-    """
+    """Initializes Sentry for the API, the worker and the scripts, if a DSN is set."""
     if not settings.sentry_dsn or not str(settings.sentry_dsn).strip():
         return
 
     sentry_sdk.init(
         dsn=str(settings.sentry_dsn),
         integrations=[
-            # Info logs as breadcrumbs, error logs as events.
             LoggingIntegration(level=logging.INFO, event_level=logging.ERROR),
             HttpxIntegration(),
             *integrations,
@@ -60,7 +56,6 @@ def init_sentry(
         # DO NOT associate users (ID+email+username+IP) to errors
         send_default_pii=False,
         before_send=strip_sentry_sensitive_data,
-        # Scripts only report errors: None disables tracing and profiling.
         traces_sample_rate=settings.sentry_traces_sample_rate if tracing else None,
         profiles_sample_rate=(
             settings.sentry_profiles_sample_rate if tracing else None
