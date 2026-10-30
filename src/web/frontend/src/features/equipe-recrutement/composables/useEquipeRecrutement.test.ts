@@ -1,9 +1,10 @@
 import type { MembreEquipe } from '../types'
-import { PiniaColada } from '@pinia/colada'
+import { PiniaColada, useQueryCache } from '@pinia/colada'
 import { mount } from '@vue/test-utils'
 import { createPinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { defineComponent, h, nextTick } from 'vue'
+import { recrutementsActifsQuery, recrutementsArchivesQuery } from '@/features/recrutements/queries'
 import { useEquipeRecrutement } from './useEquipeRecrutement'
 
 const mockGetEquipeRecrutement = vi.fn()
@@ -36,9 +37,11 @@ async function flush() {
 
 function mountEquipe(recrutementUuid = RECRUTEMENT_UUID) {
   let result!: ReturnType<typeof useEquipeRecrutement>
+  let queryCache!: ReturnType<typeof useQueryCache>
   const wrapper = mount(defineComponent({
     setup() {
       result = useEquipeRecrutement(ORGANISME_UUID, recrutementUuid)
+      queryCache = useQueryCache()
       return () => h('div')
     },
   }), {
@@ -46,7 +49,7 @@ function mountEquipe(recrutementUuid = RECRUTEMENT_UUID) {
       plugins: [createPinia(), PiniaColada],
     },
   })
-  return { result, wrapper }
+  return { result, wrapper, queryCache }
 }
 
 describe('useEquipeRecrutement', () => {
@@ -93,6 +96,21 @@ describe('useEquipeRecrutement', () => {
     await flush()
 
     expect(mockGetEquipeRecrutement).toHaveBeenCalledTimes(2)
+  })
+
+  it('marks the recrutement lists as outdated once a member has been revoked', async () => {
+    const { result, queryCache } = mountEquipe()
+    await flush()
+    const listes = [
+      queryCache.ensure(recrutementsActifsQuery({ organismeUuid: ORGANISME_UUID })),
+      queryCache.ensure(recrutementsArchivesQuery({ organismeUuid: ORGANISME_UUID })),
+    ]
+    listes.forEach(entry => queryCache.setQueryData(entry.key, { count: 0, results: [] }))
+    expect(listes.map(entry => entry.stale)).toEqual([false, false])
+
+    await result.revoke(MEMBRES[0])
+
+    expect(listes.map(entry => entry.stale)).toEqual([true, true])
   })
 
   it('changes the role of a member without revoking them', async () => {
