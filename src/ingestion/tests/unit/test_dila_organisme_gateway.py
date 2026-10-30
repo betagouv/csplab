@@ -77,16 +77,35 @@ class TestStreamOrganismes:
 
         assert [r.external_id for r in results] == ["id-2"]
 
-    def test_reconstructs_parent_id_from_hierarchie(
+    def test_reconstructs_ancestors_from_hierarchie(
+        self, gateway: DilaOrganismeGateway, httpx_mock: HTTPXMock
+    ):
+        _mock_csv_response(
+            httpx_mock,
+            [
+                _csv_row("root-id", "Ministère", "SI", _children("parent-id")),
+                _csv_row("parent-id", "Direction", "SI", _children("child-id")),
+                _csv_row("child-id", "Bureau", "SI", ""),
+            ],
+        )
+
+        results = list(gateway.stream_organismes(_resource()))
+        by_id = {r.external_id: r for r in results}
+
+        assert by_id["root-id"].data["ancestors"] == []
+        assert by_id["parent-id"].data["ancestors"] == ["root-id"]
+        assert by_id["child-id"].data["ancestors"] == ["parent-id", "root-id"]
+
+    def test_ignores_autre_hierarchie_links(
         self, gateway: DilaOrganismeGateway, httpx_mock: HTTPXMock
     ):
         hierarchie = json.dumps(
-            [{"type_hierarchie": "Service Fils", "service": "child-id"}]
+            [{"type_hierarchie": "Autre hiérarchie", "service": "child-id"}]
         )
         _mock_csv_response(
             httpx_mock,
             [
-                _csv_row("parent-id", "Parent", "SI", hierarchie),
+                _csv_row("other-id", "Autre", "SI", hierarchie),
                 _csv_row("child-id", "Enfant", "SI", ""),
             ],
         )
@@ -94,28 +113,32 @@ class TestStreamOrganismes:
         results = list(gateway.stream_organismes(_resource()))
         by_id = {r.external_id: r for r in results}
 
-        assert by_id["parent-id"].data["parent_id"] == ""
-        assert by_id["child-id"].data["parent_id"] == "parent-id"
+        assert by_id["child-id"].data["ancestors"] == []
 
-    def test_parent_id_is_empty_string_when_no_parent(
+    def test_ancestors_stop_on_cycles(
         self, gateway: DilaOrganismeGateway, httpx_mock: HTTPXMock
     ):
-        _mock_csv_response(httpx_mock, [_csv_row("id-1", "Ministère 1", "SI", "")])
-
-        results = list(gateway.stream_organismes(_resource()))
-
-        assert results[0].data["parent_id"] == ""
-
-    def test_parent_lookup_uses_full_dataset_not_only_fpe(
-        self, gateway: DilaOrganismeGateway, httpx_mock: HTTPXMock
-    ):
-        hierarchie = json.dumps(
-            [{"type_hierarchie": "Service Fils", "service": "child-id"}]
-        )
         _mock_csv_response(
             httpx_mock,
             [
-                _csv_row("parent-id", "Parent non-SI", "COL", hierarchie),
+                _csv_row("a-id", "A", "SI", _children("b-id")),
+                _csv_row("b-id", "B", "SI", _children("a-id")),
+            ],
+        )
+
+        results = list(gateway.stream_organismes(_resource()))
+        by_id = {r.external_id: r for r in results}
+
+        assert by_id["a-id"].data["ancestors"] == ["b-id"]
+        assert by_id["b-id"].data["ancestors"] == ["a-id"]
+
+    def test_ancestors_use_full_dataset_not_only_fpe(
+        self, gateway: DilaOrganismeGateway, httpx_mock: HTTPXMock
+    ):
+        _mock_csv_response(
+            httpx_mock,
+            [
+                _csv_row("parent-id", "Parent non-SI", "COL", _children("child-id")),
                 _csv_row("child-id", "Enfant", "SI", ""),
             ],
         )
@@ -123,7 +146,27 @@ class TestStreamOrganismes:
         results = list(gateway.stream_organismes(_resource()))
 
         assert results[0].external_id == "child-id"
-        assert results[0].data["parent_id"] == "parent-id"
+        assert results[0].data["ancestors"] == ["parent-id"]
+
+    def test_counts_fpe_homonyms_by_normalized_name(
+        self, gateway: DilaOrganismeGateway, httpx_mock: HTTPXMock
+    ):
+        _mock_csv_response(
+            httpx_mock,
+            [
+                _csv_row("sg-1", "Secrétariat général", "SI", ""),
+                _csv_row("sg-2", "SECRETARIAT GENERAL", "SI", ""),
+                _csv_row("sg-3", "Secrétariat général", "COL", ""),
+                _csv_row("senat", "Sénat", "SI", ""),
+            ],
+        )
+
+        results = list(gateway.stream_organismes(_resource()))
+        by_id = {r.external_id: r for r in results}
+
+        assert by_id["sg-1"].data["homonyms"] == 2
+        assert by_id["sg-2"].data["homonyms"] == 2
+        assert by_id["senat"].data["homonyms"] == 1
 
     def test_raises_on_http_error(
         self, gateway: DilaOrganismeGateway, httpx_mock: HTTPXMock
@@ -134,6 +177,12 @@ class TestStreamOrganismes:
 
         with pytest.raises(ExternalApiError, match="Erreur lors du téléchargement"):
             list(gateway.stream_organismes(_resource()))
+
+
+def _children(*services: str) -> str:
+    return json.dumps(
+        [{"type_hierarchie": "Service Fils", "service": s} for s in services]
+    )
 
 
 def _resource() -> OrganismeImportResource:

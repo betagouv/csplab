@@ -68,6 +68,12 @@ run = [
   "open tests/cov_html/index.html",
 ]
 
+[tasks."dila-sirets"]
+alias = "ingestion:dila-sirets"
+description = "List DILA services missing from data/dila_sirets.csv with their SIRET candidates, for review (-- --output FILE --potential-employers-only)"
+depends = ["install"]
+run = "python bin/dila_sirets.py"
+
 [tasks.lint]
 alias = "ingestion:lint"
 description = "Ingestion lint: ruff + mypy + migrations in parallel"

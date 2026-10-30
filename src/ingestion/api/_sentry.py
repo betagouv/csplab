@@ -67,3 +67,13 @@ def sentry_init(dsn, traces_sample_rate, profiles_sample_rate):
         before_send=strip_sentry_sensitive_data,
         before_send_transaction=strip_sentry_sensitive_data,
     )
+
+
+def sentry_init_for_script(dsn):
+    # Cron scripts: errors and error logs only, without tracing nor profiling.
+    sentry_sdk.init(
+        dsn=dsn,
+        integrations=[sentry_logging, HttpxIntegration()],
+        send_default_pii=False,
+        before_send=strip_sentry_sensitive_data,
+    )
