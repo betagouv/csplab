@@ -187,11 +187,11 @@ async def test_execute_raises_after_last_attempt(
     sources_repository: SourcesRepository,
     httpx_mock: HTTPXMock,
 ):
-    for _ in range(5):
+    for _ in range(4):
         httpx_mock.add_exception(httpx.ReadTimeout("timed out"), url=SOURCES_URL)
 
     with pytest.raises(httpx.ReadTimeout):
         await load_sources_usecase.execute()
 
-    assert len(httpx_mock.get_requests()) == 5
+    assert len(httpx_mock.get_requests()) == 4
     assert len(sources_repository) == 0

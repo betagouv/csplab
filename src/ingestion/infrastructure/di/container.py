@@ -120,9 +120,9 @@ def _build_organismes_cleaner(
     )
 
 
-# Explicit rather than httpx's implicit 5 s default, which was too short when
-# the web is slow to answer (deploy, cold start).
-_WEB_HTTP_TIMEOUT_SECONDS = 10.0
+# Explicit rather than httpx's implicit default; it bounds the startup duration
+# together with the sources loading retries (see LoadSourcesUsecase).
+_WEB_HTTP_TIMEOUT_SECONDS = 5.0
 
 
 def _make_db_engine(database_url: str | None) -> Engine:

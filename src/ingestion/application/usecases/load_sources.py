@@ -9,7 +9,9 @@ from domain.repositories.sources_repository import ISourcesRepository
 
 logger = logging.getLogger(__name__)
 
-_MAX_ATTEMPTS = 5
+# With the 5 s HTTP timeout, 4 attempts and 1 + 2 + 4 s of backoff keep the
+# worst-case startup under 30 s (4 × 5 + 7 = 27 s).
+_MAX_ATTEMPTS = 4
 _BASE_DELAY_SECONDS = 1.0
 _SERVER_ERROR_STATUS = 500
 

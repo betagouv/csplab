@@ -76,4 +76,4 @@ class TestRegisterTalentsoftFrontClients:
 def test_http_client_has_explicit_timeout():
     client = Container().http_client()
 
-    assert client.timeout == httpx.Timeout(10.0)
+    assert client.timeout == httpx.Timeout(5.0)
