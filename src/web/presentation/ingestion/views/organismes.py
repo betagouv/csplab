@@ -162,8 +162,18 @@ class OrganismesUpsertView(PublicApiKeyOnlyMixin, APIView):
         try:
             usecase = container.upsert_organismes_usecase()
             result = usecase.execute(UpsertOrganismesInput(organismes=valid_organismes))
-            result["errors"].extend(errors)
-            return Response(result, status=status.HTTP_201_CREATED)
+            upsert_errors = [
+                {"entity_id": str(error["entity_id"]), "error": error["error"]}
+                for error in result["errors"]
+            ]
+            return Response(
+                {
+                    "created": result["created"],
+                    "updated": result["updated"],
+                    "errors": upsert_errors + errors,
+                },
+                status=status.HTTP_201_CREATED,
+            )
         except Exception:
             logger.exception("OrganismesUpsertView: unexpected error")
             return Response(
