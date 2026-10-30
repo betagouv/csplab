@@ -1,13 +1,12 @@
 #!/usr/bin/env python
-import asyncio
 import logging
 
 from application.usecases.publish_talentsoft_organisations import (
     PublishTalentsoftOrganisationsCommand,
 )
 from infrastructure.di.container import create_container
+from infrastructure.observability.script import run_script
 
-logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
@@ -26,7 +25,7 @@ async def _run() -> None:
 
 
 def main() -> None:
-    asyncio.run(_run())
+    run_script(_run())
 
 
 if __name__ == "__main__":
