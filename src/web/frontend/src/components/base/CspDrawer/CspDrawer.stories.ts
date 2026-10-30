@@ -16,7 +16,7 @@ const meta = {
     },
     docs: {
       description: {
-        component: 'Tiroir générique (panneau latéral). Expose `--csp-drawer-body-gap`, l\'espacement vertical entre les blocs du contenu, que le conteneur placé dans le slot par défaut applique avec `gap`.',
+        component: 'Tiroir générique (panneau latéral). Expose `--csp-drawer-body-gap`, l\'espacement vertical entre les blocs du contenu, que le conteneur placé dans le slot par défaut applique avec `gap`. Un formulaire placé dans le slot par défaut met ses boutons dans `CspDrawerFooter`, qui les affiche dans le pied ; le bouton de soumission porte alors `form` avec l\'id du formulaire.',
       },
     },
   },

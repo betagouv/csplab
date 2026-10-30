@@ -36,7 +36,7 @@ const meta = {
       control: { type: 'object' },
       description: 'Liste des options disponibles.',
       table: {
-        type: { summary: '{ value: string; label: string; disabled?: boolean }[]' },
+        type: { summary: '{ value: string; label: string; hint?: string; disabled?: boolean }[]' },
       },
     },
     label: {
@@ -139,6 +139,16 @@ export const WithDisabledOption: Story = {
       { value: 'option-3', label: 'Option 3' },
     ],
     modelValue: 'option-1',
+  },
+}
+
+export const WithHints: Story = {
+  args: {
+    options: [
+      { value: 'option-1', label: 'Option 1', hint: 'Accès en lecture aux éléments partagés de l\'espace.' },
+      { value: 'option-2', label: 'Option 2', hint: 'Accès en lecture et en écriture à tous les éléments partagés de l\'espace, paramètres compris.' },
+      { value: 'option-3', label: 'Option 3', hint: 'Aucun accès aux éléments partagés de l\'espace.' },
+    ],
   },
 }
 

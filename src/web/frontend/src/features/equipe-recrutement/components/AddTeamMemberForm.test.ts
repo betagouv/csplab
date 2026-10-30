@@ -32,7 +32,7 @@ describe('addTeamMemberForm', () => {
     const user = setupUser()
     const { emitted } = renderForm({ status: 'found', agent: AGENT_RECHERCHE })
 
-    await user.click(await screen.findByRole('radio', { name: 'Responsable' }))
+    await user.click(await screen.findByRole('radio', { name: /^Responsable/ }))
     await user.click(screen.getByRole('button', { name: 'Ajouter le membre' }))
 
     expect(emitted('add')).toEqual([['responsable']])

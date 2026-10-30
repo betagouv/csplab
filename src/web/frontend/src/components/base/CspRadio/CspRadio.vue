@@ -6,12 +6,14 @@ export type CspRadioSize = 'sm' | 'md' | 'lg'
 export interface CspRadioProps {
   value: string
   label: string
+  hint?: string
   disabled?: boolean
   size?: CspRadioSize
   error?: boolean
 }
 
 withDefaults(defineProps<CspRadioProps>(), {
+  hint: undefined,
   disabled: false,
   size: 'md',
   error: false,
@@ -34,14 +36,22 @@ withDefaults(defineProps<CspRadioProps>(), {
     >
       <RadioGroupIndicator class="csp-radio__indicator" />
     </RadioGroupItem>
-    <span class="csp-radio__label">{{ label }}</span>
+    <span class="csp-radio__text">
+      <span class="csp-radio__label">{{ label }}</span>
+      <span
+        v-if="hint"
+        class="csp-radio__hint"
+      >
+        {{ hint }}
+      </span>
+    </span>
   </label>
 </template>
 
 <style scoped lang="scss">
 .csp-radio {
   display: inline-flex;
-  align-items: center;
+  align-items: flex-start;
   gap: var(--csp-radio-gap);
   cursor: pointer;
   font-size: var(--csp-radio-font-size);
@@ -71,6 +81,10 @@ withDefaults(defineProps<CspRadioProps>(), {
 .csp-radio--disabled {
   cursor: not-allowed;
   color: var(--text-disabled-grey);
+
+  .csp-radio__hint {
+    color: var(--text-disabled-grey);
+  }
 }
 
 .csp-radio--error {
@@ -115,8 +129,20 @@ withDefaults(defineProps<CspRadioProps>(), {
   background: var(--background-action-high-blue-france);
 }
 
-.csp-radio__label {
-  line-height: 1.25;
+.csp-radio__text {
+  display: flex;
+  flex-direction: column;
+  gap: var(--csp-field-hint-gap);
   user-select: none;
+}
+
+.csp-radio__label {
+  line-height: var(--csp-radio-size);
+}
+
+.csp-radio__hint {
+  font-size: 0.75rem;
+  line-height: 1.5;
+  color: var(--text-mention-grey);
 }
 </style>

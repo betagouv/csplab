@@ -1,4 +1,5 @@
 import type { Role, Versant } from '../types'
+import type { CspRadioGroupOption } from '@/components/base/CspRadioGroup/CspRadioGroup.vue'
 
 export const VERSANT_LABELS: Record<Versant, string> = {
   FPE: 'Fonction Publique d\'État',
@@ -15,6 +16,19 @@ export const ROLE_LABELS: Record<Role, string> = {
   superviseur: 'Superviseur',
   agent: 'Membre',
 }
+
+export const ROLE_OPTIONS: (CspRadioGroupOption & { value: Role })[] = [
+  {
+    value: 'superviseur',
+    label: ROLE_LABELS.superviseur,
+    hint: 'Administre son organisme, invite des utilisateurs et attribue les responsables des recrutements.',
+  },
+  {
+    value: 'agent',
+    label: ROLE_LABELS.agent,
+    hint: 'Accède à l\'espace de l\'organisme et participe aux recrutements auxquels il est rattaché.',
+  },
+]
 
 export const ORGANISME_TAB_LABELS = {
   membres: 'Membres',
