@@ -46,6 +46,8 @@ Le `mise.toml` à la racine contient ce qui concerne le repo entier :
 
 Les opérations sur la base de dev sont dans le namespace web : `web:seed` charge le jeu de données de démo, `web:db:reset` recrée la base à vide puis migre et seed, `web:db:restore` la remplace par un dump Scalingo.
 
+Les bases web et ingestion vivent dans le même conteneur Postgres, avec le superuser de `env.d/postgresql` : `src/ingestion/mise.toml` en déduit `DATABASE_URL` (base `ingestion`) et `TEST_DATABASE_URL` (base `ingestion_test`).
+
 Pour observer ou arrêter les conteneurs, utilisez `docker compose` directement (`ps`, `logs -f`, `stop`, `down`).
 
 ## Outils
