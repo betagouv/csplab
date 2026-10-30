@@ -4,7 +4,6 @@ import { ref, useId } from 'vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspDrawerFooter from '@/components/base/CspDrawer/CspDrawerFooter.vue'
 import CspRadioGroup from '@/components/base/CspRadioGroup/CspRadioGroup.vue'
-import CspTag from '@/components/base/CspTag/CspTag.vue'
 
 const props = defineProps<{
   email: string
@@ -39,9 +38,11 @@ function handleSubmit(): void {
   >
     <div class="agent-role-form__member">
       <p class="agent-role-form__label">
-        Adresse électronique
+        Courriel
       </p>
-      <CspTag :label="email" />
+      <p class="agent-role-form__email">
+        {{ email }}
+      </p>
     </div>
 
     <CspRadioGroup
@@ -86,8 +87,13 @@ function handleSubmit(): void {
 
 .agent-role-form__label {
   margin: 0;
-  font-size: 0.875rem;
+  font-size: var(--csp-font-size-base);
   font-weight: 600;
   color: var(--text-default-grey);
+}
+
+.agent-role-form__email {
+  margin: 0;
+  overflow-wrap: anywhere;
 }
 </style>
