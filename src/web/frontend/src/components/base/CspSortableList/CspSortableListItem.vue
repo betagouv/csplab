@@ -80,6 +80,7 @@ function setHandleRef(element: Element | null) {
       `csp-sortable-list-item--${variant}`,
       {
         'csp-sortable-list-item--dragging': isDragging,
+        'csp-sortable-list-item--static': !isDraggable,
         'csp-sortable-list-item--drag-over': isDraggedOver,
       },
     ]"
@@ -133,6 +134,8 @@ function setHandleRef(element: Element | null) {
 
 <style scoped lang="scss">
 .csp-sortable-list-item {
+  --sortable-list-item-shadow: var(--csp-raised-shadow, 0 0 transparent);
+
   position: relative;
   display: flex;
   align-items: center;
@@ -140,8 +143,15 @@ function setHandleRef(element: Element | null) {
   list-style: none;
 }
 
+/* the handle is the part one grabs: hovering it raises the whole item */
+.csp-sortable-list-item:where(:has(.csp-sortable-list-item__handle:hover)) {
+  --sortable-list-item-shadow: var(--csp-raised-shadow-hover, var(--csp-raised-shadow, 0 0 transparent));
+}
+
 .csp-sortable-list-item--dragging {
-  opacity: 0.5;
+  --sortable-list-item-shadow: var(--csp-raised-shadow-drag, var(--csp-raised-shadow, 0 0 transparent));
+
+  opacity: var(--csp-raised-opacity-drag);
 }
 
 .csp-sortable-list-item__handle,
@@ -169,10 +179,17 @@ function setHandleRef(element: Element | null) {
   gap: var(--csp-space-3);
   padding: var(--csp-space-3) var(--csp-space-4);
   border-radius: 0.25rem;
-  box-shadow: inset 0 0 0 1px var(--border-default-grey);
+  box-shadow:
+    var(--sortable-list-item-shadow),
+    inset 0 0 0 1px var(--border-default-grey);
+  transition: box-shadow var(--csp-motion-duration-state);
   background-color: var(--background-default-grey);
   color: var(--text-default-grey);
   font-weight: 500;
+}
+
+.csp-sortable-list-item--static {
+  --sortable-list-item-shadow: 0 0 transparent;
 }
 
 .csp-sortable-list-item--alt .csp-sortable-list-item__content {

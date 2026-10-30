@@ -39,6 +39,35 @@
   --csp-shadow-md: 0 4px 6px -1px rgba(0, 0, 18, 0.1), 0 2px 4px -1px rgba(0, 0, 18, 0.06);
   --csp-shadow-lg: 0 10px 15px -3px rgba(0, 0, 18, 0.1), 0 4px 6px -2px rgba(0, 0, 18, 0.05);
 
+  /* Shadows by role. Raised: an element that one moves, such as a kanban card or a sortable list item. Overlap: a menu,
+     a list of options, a tooltip or a notification. Lifted: a dialog, a drawer or the sidebar on a phone. With the
+     value initial, each component uses its own shadow */
+  --csp-raised-shadow: initial;
+  --csp-raised-shadow-hover: initial;
+  --csp-raised-shadow-drag: initial;
+  --csp-raised-opacity-drag: 0.5;
+  --csp-raised-background-hover: initial;
+  /* colour of the outline at the start of the csp-raised-outline-drop keyframes, on a card dropped in another column */
+  --csp-raised-outline-color-drop: var(--border-action-high-blue-france);
+  --csp-overlap-shadow: initial;
+  --csp-lifted-shadow: var(--csp-shadow-lg);
+
+  /* Motion by role, with the keyframes of motion.css. By default, state changes are instant, and dialogs, drawers and
+     dropped cards have no animation; with the value initial, the tooltip and the notification use their own
+     animation */
+  --csp-motion-duration-state: 0ms;
+  --csp-motion-overlap-enter: initial;
+  --csp-motion-overlap-exit: initial;
+  --csp-motion-dialog-enter: none;
+  --csp-motion-dialog-exit: none;
+  --csp-motion-drawer-enter: none;
+  --csp-motion-drawer-exit: none;
+  --csp-motion-scrim-enter: none;
+  --csp-motion-scrim-exit: none;
+  --csp-motion-raised-drop: none;
+  --csp-motion-notification-enter: initial;
+  --csp-motion-notification-exit: initial;
+
   /* Overlay scrim (dialog / drawer) */
   --csp-overlay-scrim: rgba(22, 22, 22, 0.64);
 

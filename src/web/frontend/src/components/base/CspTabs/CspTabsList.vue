@@ -63,6 +63,7 @@ defineProps<{
   border: none;
   border-bottom: 2px solid transparent;
   cursor: pointer;
+  transition: background-color var(--csp-motion-duration-state);
 
   &:hover:not([data-disabled]) {
     background-color: var(--background-default-grey-hover);

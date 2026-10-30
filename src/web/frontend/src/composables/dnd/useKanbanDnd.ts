@@ -26,9 +26,25 @@ interface UseDraggableKanbanCardOptions {
   enabled?: Ref<boolean>
 }
 
+// Card moved last to another column, read by the card that mounts in that column
+const lastMovedCard = ref<string | null>(null)
+
+export function markKanbanCardMoved(boardId: string, cardId: string): void {
+  lastMovedCard.value = `${boardId}/${cardId}`
+}
+
 export function useDraggableKanbanCard(options: UseDraggableKanbanCardOptions) {
   const isDragging = ref(false)
   const enabled = options.enabled ?? ref(true)
+  const cardKey = `${options.boardId}/${options.cardId}`
+  const isJustMoved = ref(lastMovedCard.value === cardKey)
+
+  function settleMove(): void {
+    isJustMoved.value = false
+    if (lastMovedCard.value === cardKey) {
+      lastMovedCard.value = null
+    }
+  }
 
   watch(
     [options.element, enabled],
@@ -36,6 +52,19 @@ export function useDraggableKanbanCard(options: UseDraggableKanbanCardOptions) {
       if (!element || !isEnabled) {
         return
       }
+
+      // Without a drop motion, no animationend event settles the move; a drop motion can list several animations,
+      // and the move settles when the last one ends
+      if (isJustMoved.value && getComputedStyle(element).animationName === 'none') {
+        settleMove()
+      }
+      const handleAnimationEnd = (event: AnimationEvent) => {
+        const isAnimating = element.getAnimations().some(animation => 'animationName' in animation && animation.playState !== 'finished')
+        if (event.target === element && !isAnimating) {
+          settleMove()
+        }
+      }
+      element.addEventListener('animationend', handleAnimationEnd)
 
       const cleanup = draggable({
         element,
@@ -47,18 +76,22 @@ export function useDraggableKanbanCard(options: UseDraggableKanbanCardOptions) {
         }) as Record<string, unknown>,
         onDragStart: () => {
           isDragging.value = true
+          lastMovedCard.value = null
         },
         onDrop: () => {
           isDragging.value = false
         },
       })
 
-      onCleanup(cleanup)
+      onCleanup(() => {
+        cleanup()
+        element.removeEventListener('animationend', handleAnimationEnd)
+      })
     },
     { flush: 'post', immediate: true },
   )
 
-  return { isDragging }
+  return { isDragging, isJustMoved }
 }
 
 interface UseDropTargetKanbanColumnOptions {
