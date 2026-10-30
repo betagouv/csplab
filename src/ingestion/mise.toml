@@ -44,6 +44,14 @@ description = "Create the ingestion_test database"
 depends = ["db:create"]
 run = "docker exec -i csp_postgresql psql -U $POSTGRES_USER < ../../infra/postgres/create-ingestion-test-db.sql"
 
+[tasks."db:restore"]
+alias = "ingestion:db:restore"
+description = "Restore the ingestion database from a Scalingo backup (-- --from demo|prod to download it, latest in dumps/ingestion/ by default)"
+confirm = { message = "Overwrite the local ingestion database?", default = "no" }
+depends = ["install", "db:create"]
+dir = "../.."
+run = "bin/restore-db ingestion"
+
 [tasks.migrate]
 alias = "ingestion:migrate"
 description = "Apply alembic migrations"

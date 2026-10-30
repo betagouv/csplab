@@ -78,11 +78,11 @@ run = "python manage.py"
 
 [tasks."db:restore"]
 alias = "web:db:restore"
-description = "Restore the web database from a Scalingo dump (latest in dumps/ by default)"
+description = "Restore the web database from a Scalingo backup (-- --from demo|prod to download it, latest in dumps/web/ by default)"
 confirm = { message = "Overwrite the local web database?", default = "no" }
 depends = ["//:services:postgres"]
 dir = "../.."
-run = "bin/restore-web-db"
+run = "bin/restore-db web"
 
 [tasks.seed]
 alias = "web:seed"
