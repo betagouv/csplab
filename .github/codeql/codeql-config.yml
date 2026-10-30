@@ -1,0 +1,10 @@
+# Advanced CodeQL setup, used by .github/workflows/codeql.yml. The ignored paths are
+# vendored, generated or test code: analysing them costs minutes without finding real alerts.
+paths-ignore:
+  - src/web/presentation/static/js/redoc.standalone.js
+  - src/web/frontend/src/types/api.d.ts
+  - "**/*.test.ts"
+  - "**/*.stories.ts"
+  - "**/tests/**"
+  - "**/migrations/**"
+  - src/notebook/**

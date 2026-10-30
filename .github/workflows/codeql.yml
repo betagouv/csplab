@@ -1,0 +1,65 @@
+name: CodeQL
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    types: [opened, synchronize, reopened]
+  schedule:
+    - cron: "17 4 * * 1"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  check-changes:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    outputs:
+      actions: ${{ steps.filter.outputs.actions }}
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+      - uses: dorny/paths-filter@fbd0ab8f3e69293af611ebaee6363fc25e6d187d # v4.0.1
+        id: filter
+        with:
+          filters: |
+            actions:
+              - ".github/workflows/**"
+              - ".github/actions/**"
+
+  analyze:
+    name: Analyze (${{ matrix.language }})
+    needs: check-changes
+    # check-changes only runs on pull requests: skipped elsewhere, it must not skip this job.
+    if: ${{ !cancelled() && needs.check-changes.result != 'failure' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [actions, javascript-typescript, python]
+    env:
+      # On a pull request that changes no workflow or action, the actions analysis is skipped. The job
+      # still runs and succeeds: a workflow filtered out by paths would report no status at all.
+      SKIP: ${{ matrix.language == 'actions' && github.event_name == 'pull_request' && needs.check-changes.outputs.actions != 'true' }}
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        if: env.SKIP != 'true'
+      - name: Initialize CodeQL
+        if: env.SKIP != 'true'
+        uses: github/codeql-action/init@9b3254085494b55a0f7c4c2b3d2d52cc712ce370 # v4.39.1
+        with:
+          languages: ${{ matrix.language }}
+          build-mode: none
+          config-file: ./.github/codeql/codeql-config.yml
+      - name: Perform CodeQL Analysis
+        if: env.SKIP != 'true'
+        uses: github/codeql-action/analyze@9b3254085494b55a0f7c4c2b3d2d52cc712ce370 # v4.39.1
+        with:
+          category: /language:${{ matrix.language }}

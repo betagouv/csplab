@@ -59,8 +59,6 @@ jobs:
         run: mise run front:lint
       - name: TypeScript check
         run: mise run front:typecheck
-      - name: Test frontend with coverage
-        run: mise run front:test -- --coverage
       - name: Check no migrations are missing
         run: mise run web:lint:migrations
       - name: Lint schema
@@ -69,6 +67,16 @@ jobs:
         run: |
           mise run web:lint:types || \
             (echo "::error::Le schéma OpenAPI interne ou les types TypeScript ne sont pas synchronisés avec le schéma OpenAPI. Lancez 'mise run front:types' et committez." && exit 1)
+
+  test-front:
+    needs: check-changes
+    if: github.event_name == 'push' || needs.check-changes.outputs.relevant == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+      - uses: ./.github/actions/setup-mise
+      - name: Test frontend with coverage
+        run: mise run front:test -- --coverage
 
   changelog-api:
     needs: check-changes
@@ -177,19 +185,17 @@ jobs:
         with:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-${{ steps.playwright-version.outputs.version }}
+      # On a cache hit, the OS dependencies are not reinstalled: the runner image ships Google Chrome,
+      # which already pulls in the libraries Chromium needs.
       - name: Install Playwright browser
         if: steps.playwright-cache.outputs.cache-hit != 'true'
         working-directory: ./src/web
         run: uv run playwright install --with-deps chromium
-      - name: Install Playwright OS dependencies
-        if: steps.playwright-cache.outputs.cache-hit == 'true'
-        working-directory: ./src/web
-        run: uv run playwright install-deps chromium
       - name: Test e2e
         run: mise run web:test:e2e
 
   deploy-web:
-    needs: [check-changes, lint-web, test-web]
+    needs: [check-changes, lint-web, test-front, test-web]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main' && needs.check-changes.outputs.relevant == 'true'
     runs-on: ubuntu-latest
     environment: production
