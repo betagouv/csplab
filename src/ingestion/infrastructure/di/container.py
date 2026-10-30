@@ -120,8 +120,6 @@ def _build_organismes_cleaner(
     )
 
 
-# Explicit rather than httpx's implicit default; it bounds the startup duration
-# together with the sources loading retries (see LoadSourcesUsecase).
 _WEB_HTTP_TIMEOUT_SECONDS = 5.0
 
 

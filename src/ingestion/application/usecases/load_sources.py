@@ -9,8 +9,7 @@ from domain.repositories.sources_repository import ISourcesRepository
 
 logger = logging.getLogger(__name__)
 
-# With the 5 s HTTP timeout, 4 attempts and 1 + 2 + 4 s of backoff keep the
-# worst-case startup under 30 s (4 × 5 + 7 = 27 s).
+# Worst-case startup: 4 × 5 s HTTP timeout + 1 + 2 + 4 s backoff = 27 s < 30 s
 _MAX_ATTEMPTS = 4
 _BASE_DELAY_SECONDS = 1.0
 _SERVER_ERROR_STATUS = 500
@@ -41,9 +40,6 @@ class LoadSourcesUsecase:
         logger.info("Loaded %d source(s) into repository", len(self._repository))
 
     async def _fetch_sources_with_retry(self) -> list[Source]:
-        # The web may be briefly unavailable (concurrent deploy, cold start):
-        # retry transient errors so startup does not fail, but still fail
-        # once attempts are exhausted or on a client error (e.g. bad API key).
         attempt = 1
         while True:
             try:
