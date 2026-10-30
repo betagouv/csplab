@@ -26,17 +26,15 @@ const emit = defineEmits<{
 
 const email = ref('')
 
-const isFound = computed(() => props.status === 'found')
-
 const isSearched = computed(() => props.status !== 'idle')
 
 const submitLabel = computed(() =>
-  isFound.value ? 'Assigner un responsable' : 'Créer et assigner',
+  props.status === 'not-found' ? 'Créer et assigner' : 'Assigner un responsable',
 )
 
-const offresLabel = computed(() => {
+const recrutementsLabel = computed(() => {
   const count = props.recrutements.length
-  return `${count} ${pluralize(count, 'offre sélectionnée', 'offres sélectionnées')}`
+  return `${count} ${pluralize(count, 'recrutement sélectionné', 'recrutements sélectionnés')}`
 })
 
 function handleSubmit(): void {
@@ -54,10 +52,10 @@ function handleSubmit(): void {
   >
     <section>
       <p class="assign-responsable-form__count">
-        {{ offresLabel }}
+        {{ recrutementsLabel }}
       </p>
       <p class="assign-responsable-form__lead">
-        Le responsable sélectionné sera affecté à l'ensemble des offres sélectionnées.
+        Le responsable sélectionné sera affecté à l'ensemble des recrutements sélectionnés.
       </p>
       <ul class="assign-responsable-form__tags">
         <li
@@ -77,6 +75,7 @@ function handleSubmit(): void {
     <AgentRechercheForm
       v-model="email"
       label="Responsable"
+      hint="Saisissez le courriel de l'agent."
       :status="status"
       :agent="agent"
       :searching="searching"
@@ -92,10 +91,9 @@ function handleSubmit(): void {
         @click="emit('cancel')"
       />
       <CspButton
-        v-if="isSearched"
         type="submit"
         :label="submitLabel"
-        :disabled="submitting"
+        :disabled="!isSearched || submitting"
       />
     </div>
   </form>
@@ -110,14 +108,15 @@ function handleSubmit(): void {
 
 .assign-responsable-form__count {
   margin: 0;
-  font-size: 0.9375rem;
-  color: var(--text-mention-grey);
+  font-size: var(--csp-font-size-md);
+  font-weight: var(--csp-font-weight-bold);
+  color: var(--text-title-grey);
 }
 
 .assign-responsable-form__lead {
   margin: var(--csp-space-1) 0 var(--csp-space-3);
   color: var(--text-mention-grey);
-  font-size: 0.875rem;
+  font-size: var(--csp-font-size-xs);
 }
 
 .assign-responsable-form__tags {

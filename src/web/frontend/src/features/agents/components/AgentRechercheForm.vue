@@ -11,10 +11,12 @@ const props = withDefaults(defineProps<{
   searching?: boolean
   errorMessage?: string
   label?: string
+  hint?: string
 }>(), {
   agent: null,
   errorMessage: '',
-  label: 'Adresse électronique de l\'agent',
+  label: 'Courriel de l\'agent',
+  hint: undefined,
 })
 
 const emit = defineEmits<{
@@ -40,7 +42,7 @@ function handleInput(value: string): void {
 
 function handleSearch(value: string): void {
   if (!EMAIL_PATTERN.test(value)) {
-    formatError.value = 'Renseignez une adresse électronique valide.'
+    formatError.value = 'Renseignez un courriel valide.'
     return
   }
   formatError.value = ''
@@ -52,7 +54,7 @@ function handleSearch(value: string): void {
   <CspSearchBar
     :model-value="email"
     :label="label"
-    hint="Saisissez l'adresse complète du compte de l'agent."
+    :hint="hint"
     name="email"
     placeholder="prenom.nom@exemple.gouv.fr"
     :disabled="searching"
@@ -81,7 +83,7 @@ function handleSearch(value: string): void {
     v-else-if="status === 'not-found'"
     class="agent-recherche-form__hint"
   >
-    Aucun compte ne correspond à cette adresse. Un compte sera créé, la personne
+    Aucun compte ne correspond à ce courriel. Un compte sera créé, la personne
     complétera son profil à sa première connexion.
   </p>
 </template>

@@ -9,7 +9,7 @@ function renderForm(props: Record<string, unknown> = {}) {
 }
 
 function emailInput() {
-  return screen.getByRole('searchbox', { name: /^Adresse électronique de l'agent/ })
+  return screen.getByRole('searchbox', { name: /^Courriel de l'agent/ })
 }
 
 describe('attachAgentForm', () => {
@@ -21,7 +21,7 @@ describe('attachAgentForm', () => {
     await user.click(screen.getByRole('button', { name: 'Rechercher' }))
 
     expect(emitted().search).toBeUndefined()
-    expect(screen.getByText('Renseignez une adresse électronique valide.')).toBeInTheDocument()
+    expect(screen.getByText('Renseignez un courriel valide.')).toBeInTheDocument()
   })
 
   it('emits the trimmed email on search', async () => {
@@ -62,17 +62,17 @@ describe('attachAgentForm', () => {
     expect(emitted().add).toEqual([['superviseur']])
   })
 
-  it('offers to add a member only once the search has answered', async () => {
+  it('disables the submission until the search has answered', () => {
     renderForm()
 
-    expect(screen.queryByRole('button', { name: /ajouter/i })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Ajouter le membre' })).toBeDisabled()
   })
 
   it('creates and adds the member when no account matches', async () => {
     const user = setupUser()
     const { emitted } = renderForm({ status: 'not-found' })
 
-    expect(screen.getByText(/Aucun compte ne correspond à cette adresse\./)).toBeInTheDocument()
+    expect(screen.getByText(/Aucun compte ne correspond à ce courriel\./)).toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: 'Créer et ajouter' }))
 
     expect(emitted().add).toEqual([['agent']])

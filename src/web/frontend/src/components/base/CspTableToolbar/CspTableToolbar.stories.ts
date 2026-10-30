@@ -98,9 +98,9 @@ export const ModeSelection: Story = {
 
 export const ModeSelectionLibelleEtIndication: Story = {
   args: {
-    count: '12 offres',
+    count: '12 éléments',
     selectionCount: 3,
-    selectionLabel: '3 offres sélectionnées',
+    selectionLabel: '3 éléments sélectionnés',
     selectionHint: 'dont 2 sur d’autres pages',
   },
   render: args => ({

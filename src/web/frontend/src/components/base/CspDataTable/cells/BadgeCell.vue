@@ -10,9 +10,9 @@ defineProps<{
 </script>
 
 <template>
+  <span v-if="value === '' || value == null">-</span>
   <CspBadge
-    v-if="value"
-    :label="value"
+    v-else
+    :label="String(value)"
   />
-  <span v-else>-</span>
 </template>
