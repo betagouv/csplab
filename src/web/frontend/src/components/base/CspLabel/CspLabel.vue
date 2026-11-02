@@ -59,7 +59,7 @@ const colorStyle = computed(() => ({
 
 .csp-label--sm {
   --csp-label-font-size: var(--csp-font-size-xs);
-  --csp-label-padding-y: 0.125rem;
+  --csp-label-padding-y: 0.3125rem;
   --csp-label-padding-x: var(--csp-space-2);
   --csp-label-padding-start: 0.375rem;
   --csp-label-gap: 0.3125rem;
@@ -67,7 +67,7 @@ const colorStyle = computed(() => ({
 
 .csp-label--md {
   --csp-label-font-size: var(--csp-font-size-base);
-  --csp-label-padding-y: 0.1875rem;
+  --csp-label-padding-y: 0.4375rem;
   --csp-label-padding-x: 0.625rem;
   --csp-label-padding-start: var(--csp-space-2);
   --csp-label-gap: 0.375rem;
@@ -82,7 +82,11 @@ const colorStyle = computed(() => ({
 }
 
 .csp-label__text {
-  overflow: hidden;
+  /* the vertical padding centers the capitals; accents and descenders overflow the trimmed box */
+  text-box: trim-both cap alphabetic;
+  min-width: 0;
+  overflow-x: clip;
+  overflow-y: visible;
   text-overflow: ellipsis;
 }
 </style>
