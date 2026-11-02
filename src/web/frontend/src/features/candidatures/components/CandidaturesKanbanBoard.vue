@@ -10,11 +10,15 @@ const props = defineProps<{
   etapes: EtapeRecrutementDetailedCandidatures[]
   boardId: string
   isColumnSelected: (etapeUuid: string) => boolean
+  isColumnPartiallySelected: (etapeUuid: string) => boolean
+  isCandidatureSelected: (candidatureUuid: string) => boolean
+  selecting: boolean
 }>()
 
 const emit = defineEmits<{
   move: [event: KanbanDropEvent]
   toggleColumnSelection: [etape: EtapeRecrutementDetailedCandidatures]
+  toggleCandidatureSelection: [candidatureUuid: string, etapeUuid: string]
 }>()
 
 const boardRef = ref<HTMLElement | null>(null)
@@ -60,7 +64,11 @@ watch(() => props.etapes, (etapes, previousEtapes) => {
       :etape="etape"
       :board-id="boardId"
       :is-selected="isColumnSelected(etape.uuid)"
+      :is-partially-selected="isColumnPartiallySelected(etape.uuid)"
+      :is-candidature-selected="isCandidatureSelected"
+      :selecting="selecting"
       @toggle-selection="emit('toggleColumnSelection', $event)"
+      @toggle-candidature-selection="(candidatureUuid, etapeUuid) => emit('toggleCandidatureSelection', candidatureUuid, etapeUuid)"
     />
   </div>
 </template>

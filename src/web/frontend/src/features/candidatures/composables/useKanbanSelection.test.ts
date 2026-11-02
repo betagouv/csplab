@@ -174,6 +174,18 @@ describe('useKanbanSelection', () => {
       expect(selectedCount.value).toBe(2)
     })
 
+    it('replaces the selection of another column', () => {
+      const etapes = ref(createEtapes())
+      const { toggleCandidatureSelection, isCandidatureSelected, currentEtapeUuid } = useKanbanSelection(etapes)
+
+      toggleCandidatureSelection(CANDIDATURE_1_UUID, ETAPE_1_UUID)
+      toggleCandidatureSelection(CANDIDATURE_3_UUID, ETAPE_2_UUID)
+
+      expect(isCandidatureSelected(CANDIDATURE_1_UUID)).toBe(false)
+      expect(isCandidatureSelected(CANDIDATURE_3_UUID)).toBe(true)
+      expect(currentEtapeUuid.value).toBe(ETAPE_2_UUID)
+    })
+
     it('removes etape from map when last candidature is deselected', () => {
       const etapes = ref(createEtapes())
       const { toggleCandidatureSelection, selectedByEtape } = useKanbanSelection(etapes)
@@ -232,6 +244,19 @@ describe('useKanbanSelection', () => {
     })
   })
 
+  describe('isColumnPartiallySelected', () => {
+    it('returns true only while some, not all, candidatures of the etape are selected', () => {
+      const etapes = ref(createEtapes())
+      const { toggleCandidatureSelection, isColumnPartiallySelected } = useKanbanSelection(etapes)
+
+      expect(isColumnPartiallySelected(ETAPE_1_UUID)).toBe(false)
+      toggleCandidatureSelection(CANDIDATURE_1_UUID, ETAPE_1_UUID)
+      expect(isColumnPartiallySelected(ETAPE_1_UUID)).toBe(true)
+      toggleCandidatureSelection(CANDIDATURE_2_UUID, ETAPE_1_UUID)
+      expect(isColumnPartiallySelected(ETAPE_1_UUID)).toBe(false)
+    })
+  })
+
   describe('currentEtapeUuid', () => {
     it('returns null when no selection', () => {
       const etapes = ref(createEtapes())
@@ -248,16 +273,6 @@ describe('useKanbanSelection', () => {
       toggleCandidatureSelection(CANDIDATURE_2_UUID, ETAPE_1_UUID)
 
       expect(currentEtapeUuid.value).toBe(ETAPE_1_UUID)
-    })
-
-    it('returns null when selection spans multiple etapes', () => {
-      const etapes = ref(createEtapes())
-      const { toggleCandidatureSelection, currentEtapeUuid } = useKanbanSelection(etapes)
-
-      toggleCandidatureSelection(CANDIDATURE_1_UUID, ETAPE_1_UUID)
-      toggleCandidatureSelection(CANDIDATURE_3_UUID, ETAPE_2_UUID)
-
-      expect(currentEtapeUuid.value).toBeNull()
     })
   })
 

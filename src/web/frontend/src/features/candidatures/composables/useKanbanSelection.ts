@@ -13,6 +13,8 @@ export interface KanbanSelectionContext {
   selectedCount: ComputedRef<number>
   currentEtapeUuid: ComputedRef<string | null>
   isColumnSelected: (etapeUuid: string) => boolean
+  isColumnPartiallySelected: (etapeUuid: string) => boolean
+  isCandidatureSelected: (candidatureUuid: string) => boolean
   toggleColumnSelection: (etape: EtapeRecrutementDetailedCandidatures) => void
   toggleCandidatureSelection: (candidatureUuid: string, etapeUuid: string) => void
   clearSelection: () => void
@@ -49,13 +51,7 @@ export function useKanbanSelection(
 
   const selectedCount = computed(() => selectedCandidatures.value.length)
 
-  const currentEtapeUuid = computed<string | null>(() => {
-    const etapeUuids = new Set(selectedCandidatures.value.map(s => s.etapeUuid))
-    if (etapeUuids.size === 1) {
-      return [...etapeUuids][0] ?? null
-    }
-    return null
-  })
+  const currentEtapeUuid = computed(() => selectedCandidatures.value[0]?.etapeUuid ?? null)
 
   function isColumnSelected(etapeUuid: string): boolean {
     const etape = etapes.value.find(e => e.uuid === etapeUuid)
@@ -81,31 +77,28 @@ export function useKanbanSelection(
       : new Map([[etape.uuid, selected]])
   }
 
-  function toggleCandidatureSelection(candidatureUuid: string, etapeUuid: string): void {
-    const newMap = new Map(selectedByEtape.value)
-    const currentSet = newMap.get(etapeUuid)
+  function isColumnPartiallySelected(etapeUuid: string): boolean {
+    const etape = etapes.value.find(e => e.uuid === etapeUuid)
+    const selected = selectedByEtape.value.get(etapeUuid)
+    return !!etape && !isFullySelected(etape, selected) && etape.candidatures.some(({ uuid }) => selected?.has(uuid))
+  }
 
-    if (currentSet) {
-      const newSet = new Set(currentSet)
-      if (newSet.has(candidatureUuid)) {
-        newSet.delete(candidatureUuid)
-        if (newSet.size === 0) {
-          newMap.delete(etapeUuid)
-        }
-        else {
-          newMap.set(etapeUuid, newSet)
-        }
-      }
-      else {
-        newSet.add(candidatureUuid)
-        newMap.set(etapeUuid, newSet)
-      }
+  function isCandidatureSelected(candidatureUuid: string): boolean {
+    return [...selectedByEtape.value.values()].some(selected => selected.has(candidatureUuid))
+  }
+
+  function toggleCandidatureSelection(candidatureUuid: string, etapeUuid: string): void {
+    const selected = new Set(selectedByEtape.value.get(etapeUuid))
+    if (selected.has(candidatureUuid)) {
+      selected.delete(candidatureUuid)
     }
     else {
-      newMap.set(etapeUuid, new Set([candidatureUuid]))
+      selected.add(candidatureUuid)
     }
 
-    selectedByEtape.value = newMap
+    selectedByEtape.value = selected.size === 0
+      ? new Map()
+      : new Map([[etapeUuid, selected]])
   }
 
   function clearSelection(): void {
@@ -118,6 +111,8 @@ export function useKanbanSelection(
     selectedCount,
     currentEtapeUuid,
     isColumnSelected,
+    isColumnPartiallySelected,
+    isCandidatureSelected,
     toggleColumnSelection,
     toggleCandidatureSelection,
     clearSelection,

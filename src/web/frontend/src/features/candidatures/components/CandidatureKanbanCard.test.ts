@@ -23,7 +23,7 @@ const CANDIDATURE: Candidature = {
 function renderCard(route: string) {
   return renderWithApp(CandidatureKanbanCard, {
     route,
-    props: { candidature: CANDIDATURE, boardId: 'board', columnId: 'column' },
+    props: { candidature: CANDIDATURE, boardId: 'board', columnId: 'column', selected: false, selecting: false },
   })
 }
 
@@ -34,6 +34,8 @@ describe('candidatureKanbanCard', () => {
     const link = screen.getByRole('link', { name: 'Alice Dupont' })
 
     expect(link).toHaveAttribute('draggable', 'false')
+    await user.tab()
+    expect(screen.getByRole('checkbox', { name: 'Sélectionner Alice Dupont' })).toHaveFocus()
     await user.tab()
     expect(link).toHaveFocus()
     await user.keyboard('{Enter}')

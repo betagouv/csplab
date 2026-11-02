@@ -61,6 +61,8 @@ const {
   selectedCount,
   currentEtapeUuid,
   isColumnSelected,
+  isColumnPartiallySelected,
+  isCandidatureSelected,
   toggleColumnSelection,
   toggleCandidatureSelection,
   clearSelection,
@@ -143,7 +145,7 @@ const countLabel = computed(() => {
 })
 
 const selectionLabel = computed(() =>
-  `${selectedCount.value} ${pluralize(selectedCount.value, 'candidat')} ${pluralize(selectedCount.value, 'sélectionné')}`,
+  `${selectedCount.value} ${pluralize(selectedCount.value, 'candidature')} ${pluralize(selectedCount.value, 'sélectionnée')}`,
 )
 
 publishCandidaturesToolbar(() => ({
@@ -174,19 +176,22 @@ publishCandidaturesToolbar(() => ({
       :etapes="filteredEtapes"
       :board-id="boardId"
       :is-column-selected="isColumnSelected"
+      :is-column-partially-selected="isColumnPartiallySelected"
+      :is-candidature-selected="isCandidatureSelected"
+      :selecting="selectedCount > 0"
       @move="handleMove"
       @toggle-column-selection="toggleColumnSelection"
+      @toggle-candidature-selection="toggleCandidatureSelection"
     />
 
     <ChangerEtapeDrawer
       :open="isDrawerOpen && !refus.isOpen.value"
       :source-etape="sourceEtape"
-      :selected-candidature-uuids="selectedCandidatureUuids"
+      :selected-count="selectedCount"
       :etapes="recrutementEtapes"
       :initial-etape-uuid="drawerInitialEtapeUuid"
       @update:open="isDrawerOpen = $event"
       @confirm="handleConfirmBatchMove"
-      @toggle-candidature="toggleCandidatureSelection"
     />
 
     <RefusCandidatureDialog

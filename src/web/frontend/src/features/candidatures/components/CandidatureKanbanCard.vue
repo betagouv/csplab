@@ -3,6 +3,7 @@ import type { Candidature } from '../types'
 import { computed, ref, watchEffect } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
 import CspCard from '@/components/base/CspCard/CspCard.vue'
+import CspCheckbox from '@/components/base/CspCheckbox/CspCheckbox.vue'
 import CspIcon from '@/components/base/CspIcon/CspIcon.vue'
 import { useDraggableKanbanCard } from '@/composables/dnd/useKanbanDnd'
 import { CANDIDATURE_PANEL_ROUTE_NAMES } from '@/router/names'
@@ -13,6 +14,12 @@ const props = defineProps<{
   candidature: Candidature
   boardId: string
   columnId: string
+  selected: boolean
+  selecting: boolean
+}>()
+
+const emit = defineEmits<{
+  toggleSelection: []
 }>()
 
 const cardComponentRef = ref<InstanceType<typeof CspCard> | null>(null)
@@ -50,10 +57,19 @@ const { isDragging, isJustMoved, isDropWaiting } = useDraggableKanbanCard({
       'candidature-kanban-card--current': isCurrent,
       'candidature-kanban-card--moved': isJustMoved,
       'candidature-kanban-card--drop-waiting': isDropWaiting,
+      'candidature-kanban-card--selecting': selecting,
     }"
     :aria-current="isCurrent ? 'true' : undefined"
   >
     <template #title>
+      <CspCheckbox
+        :model-value="selected"
+        class="candidature-kanban-card__select"
+        variant="checkbox-only"
+        size="sm"
+        :label="`Sélectionner ${formatCandidatName(candidature.candidat)}`"
+        @update:model-value="emit('toggleSelection')"
+      />
       <!-- draggable="false": the card starts the drag, not the link -->
       <RouterLink
         :to="panelLocation"
@@ -139,6 +155,26 @@ const { isDragging, isJustMoved, isDropWaiting } = useDraggableKanbanCard({
     position: absolute;
     inset: 0;
     border-radius: inherit;
+  }
+}
+
+.candidature-kanban-card :deep(.csp-card__title) {
+  display: flex;
+  align-items: center;
+  gap: var(--csp-space-2);
+}
+
+/* above the link that covers the card */
+.candidature-kanban-card__select {
+  position: relative;
+  z-index: 1;
+  flex-shrink: 0;
+}
+
+@media (hover: hover) {
+  .candidature-kanban-card:not(:hover, :has(:focus-visible), .candidature-kanban-card--selecting)
+    .candidature-kanban-card__select {
+    opacity: 0;
   }
 }
 
