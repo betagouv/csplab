@@ -435,6 +435,82 @@ def test_clean_deduces_overseas_region_from_department(
     assert offer.localisation.department.code == department
 
 
+@pytest.mark.parametrize(
+    ("country", "expected_department", "expected_area"),
+    [
+        pytest.param("NCL", "988", GeographicalArea.OCEANIE, id="nouvelle_caledonie"),
+        pytest.param("PYF", "987", GeographicalArea.OCEANIE, id="polynesie"),
+        pytest.param("WLF", "WLF", GeographicalArea.OCEANIE, id="wallis_et_futuna"),
+        pytest.param("SPM", "975", GeographicalArea.AMERIQUE, id="saint_pierre"),
+    ],
+)
+def test_clean_maps_overseas_collectivity_entered_as_a_country(
+    cleaner, country, expected_department, expected_area
+):
+    raw_offer = _make_raw_offer(
+        slug="talentsoft-main",
+        geographicalLocation=[
+            TalentsoftCodedObjectFactory.build(
+                clientCode="_TS_CO_GeographicalArea_Ocanie",
+                type="offerGeographicalLocation",
+            )
+        ],
+        country=[
+            TalentsoftCodedObjectFactory.build(clientCode=country, type="offerCountry")
+        ],
+        region=[],
+        department=[],
+    )
+
+    offer = cleaner.clean(raw_offer)
+
+    assert offer.localisation is not None
+    assert str(offer.localisation.country) == "FRA"
+    assert offer.localisation.region.code == "TOM"
+    assert offer.localisation.department.code == expected_department
+    assert offer.localisation.area == expected_area
+
+
+@pytest.mark.parametrize(
+    ("department", "expected_department"),
+    [
+        pytest.param(
+            "_TS_d623ebaa-8a96-434b-8d4f-302df507f7bf", "977", id="saint_barthelemy"
+        ),
+        pytest.param(
+            "_TS_171e5c6b-a77a-43d1-8e0c-d498b38ccf16", "978", id="saint_martin"
+        ),
+    ],
+)
+def test_clean_maps_talentsoft_main_internal_department_code(
+    cleaner, department, expected_department
+):
+    raw_offer = _make_raw_offer(
+        slug="talentsoft-main",
+        geographicalLocation=[],
+        country=[
+            TalentsoftCodedObjectFactory.build(clientCode="FRA", type="offerCountry")
+        ],
+        region=[
+            TalentsoftCodedObjectFactory.build(
+                clientCode="_TS_CO_Region_TOM", type="offerRegion"
+            )
+        ],
+        department=[
+            TalentsoftCodedObjectFactory.build(
+                clientCode=department, type="offerDepartment"
+            )
+        ],
+    )
+
+    offer = cleaner.clean(raw_offer)
+
+    assert offer.localisation is not None
+    assert offer.localisation.region.code == "TOM"
+    assert offer.localisation.department.code == expected_department
+    assert offer.localisation.area == GeographicalArea.AMERIQUE
+
+
 def _make_raw_offer_without_area(
     region_code: str | None, department_code: str | None
 ) -> RawOffer:
