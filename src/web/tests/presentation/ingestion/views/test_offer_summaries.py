@@ -98,7 +98,7 @@ def test_only_queries_non_archived_offers(mock_offer_summaries_container, jwt_cl
 def test_call_without_arg(mock_offer_summaries_container, jwt_client):
     offer = OfferFactory.create_entity(
         offer_nature=OfferNature.TERRITORIAL,
-        category=Category.A,
+        categories=[Category.B, Category.A],
     )
     _make_paginated_mock(mock_offer_summaries_container, total=1, offers_slice=[offer])
 
@@ -123,8 +123,8 @@ def test_call_without_arg(mock_offer_summaries_container, jwt_client):
     assert result["description2"] == offer.profile
     assert result["contractType"]["clientCode"] == offer.offer_nature.name
     assert result["contractType"]["label"] == offer.offer_nature.value
-    assert result["offerFamilyCategory"]["clientCode"] == offer.category.name
-    assert result["offerFamilyCategory"]["label"] == offer.category.value
+    assert result["offerFamilyCategory"]["clientCode"] == Category.B.name
+    assert result["offerFamilyCategory"]["label"] == Category.B.value
     assert result["startPublicationDate"] == "2024-01-15T00:00:00"
     assert result["country"] == [
         {
@@ -147,7 +147,7 @@ def test_call_without_arg(mock_offer_summaries_container, jwt_client):
 def test_response_matches_openapi_schema(mock_offer_summaries_container, jwt_client):
     offer = OfferFactory.create_entity(
         offer_nature=OfferNature.TERRITORIAL,
-        category=Category.A,
+        categories=[Category.A],
     )
     _make_paginated_mock(mock_offer_summaries_container, total=1, offers_slice=[offer])
 
@@ -161,7 +161,7 @@ def test_response_matches_openapi_schema(mock_offer_summaries_container, jwt_cli
 def test_response_has_no_undeclared_fields(mock_offer_summaries_container, jwt_client):
     offer = OfferFactory.create_entity(
         offer_nature=OfferNature.TERRITORIAL,
-        category=Category.A,
+        categories=[Category.A],
     )
     _make_paginated_mock(mock_offer_summaries_container, total=1, offers_slice=[offer])
 
@@ -188,7 +188,7 @@ class TestOfferSummariesViewDbVerified:
             profile="Profil recherché",
             mission="Mission du poste",
             organization="Ministère Test",
-            category=Category.A,
+            categories=[Category.A],
             offer_nature=OfferNature.TERRITORIAL,
             offer_url=HttpUrl("https://exemple.gouv.fr/offres/e2e-1"),
             country="FRA",

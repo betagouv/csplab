@@ -168,7 +168,9 @@ class TestRecrutementDetailView:
         _, organisme = create_organisme_with_agent(
             role=AgentOrganismeRole.SUPERVISEUR, utilisateur=test_user
         )
-        offre = OfferDjangoFactory(title="Chargé de mission numérique", category="A")
+        offre = OfferDjangoFactory(
+            title="Chargé de mission numérique", categories=["B", "A"]
+        )
         recrutement = RecrutementDjangoFactory(organisme=organisme, offre=offre)
 
         response = authenticated_client.get(_detail_url(organisme.id, recrutement.pk))
@@ -190,7 +192,7 @@ class TestRecrutementDetailView:
         assert payload["uuid"] == str(recrutement.pk)
         assert payload["intitule"] == "Chargé de mission numérique"
         assert payload["archive"] is False
-        assert payload["categorie_offre"] == "A"
+        assert payload["categorie_offre"] == "B"
         assert payload["organisme_recruteur"] == {
             "nom": organisme.nom,
             "siret": organisme.siret,

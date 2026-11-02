@@ -170,6 +170,18 @@ def test_filters_by_name_case_insensitive(jwt_client):
     assert _noms(response) == ["Centre Hospitalier de Bastia"]
 
 
+def test_filters_by_name_accent_insensitive(jwt_client):
+    _organisme(nom="Hôpital de Bastia")
+    _organisme(nom="Hopital d'Ajaccio")
+    _organisme(nom="Mairie de Bastia")
+
+    response = jwt_client.get(URL, {"nom": "hopital"})
+    assert _noms(response) == ["Hopital d'Ajaccio", "Hôpital de Bastia"]
+
+    response = jwt_client.get(URL, {"nom": "HÔPITAL"})
+    assert _noms(response) == ["Hopital d'Ajaccio", "Hôpital de Bastia"]
+
+
 def test_filters_by_departement(jwt_client):
     _organisme(
         nom="Bastia",

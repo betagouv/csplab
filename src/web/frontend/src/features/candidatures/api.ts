@@ -1,4 +1,4 @@
-import type { ActivitesParams, CandidatureDetail, ChangerEtapeResultat, MotifRefus, MotifRefusOption, PaginatedActiviteList, PaginatedCandidatureListeList, PaginatedDocumentListeList, PaginatedNoteList, RecrutementDetailKanban } from './types'
+import type { ActivitesParams, CandidatureDetail, ChangerEtapeResultat, CreateNotePayload, MotifRefus, MotifRefusOption, NoteVisibilitePayload, PaginatedActiviteList, PaginatedCandidatureListeList, PaginatedDocumentListeList, PaginatedNoteList, RecrutementDetailKanban, UpdateNotePayload } from './types'
 import type { CandidatureParams, DocumentParams, NoteParams, OrganismeParams, RecrutementParams } from '@/api/params'
 import { api } from '@/api/client'
 
@@ -132,10 +132,10 @@ export async function getCandidatureNotes(candidature: CandidatureParams): Promi
   return data!
 }
 
-export async function createCandidatureNote(candidature: CandidatureParams, message: string): Promise<void> {
+export async function createCandidatureNote(candidature: CandidatureParams, payload: CreateNotePayload): Promise<void> {
   await api.POST(
     '/recruteur/organismes/{organisme_uuid}/recrutements/{recrutement_uuid}/candidatures/{candidature_uuid}/notes',
-    { params: { path: candidaturePath(candidature) }, body: { message, est_privee: false } },
+    { params: { path: candidaturePath(candidature) }, body: payload },
   )
 }
 
@@ -147,10 +147,17 @@ export async function getCandidatureActivites(params: ActivitesParams): Promise<
   return data!
 }
 
-export async function updateCandidatureNote(params: NoteParams, message: string): Promise<void> {
+export async function updateCandidatureNote(params: NoteParams, payload: UpdateNotePayload): Promise<void> {
   await api.PATCH(
     '/recruteur/organismes/{organisme_uuid}/recrutements/{recrutement_uuid}/candidatures/{candidature_uuid}/notes/{note_uuid}',
-    { params: { path: { ...candidaturePath(params), note_uuid: params.noteUuid } }, body: { message } },
+    { params: { path: { ...candidaturePath(params), note_uuid: params.noteUuid } }, body: payload },
+  )
+}
+
+export async function updateCandidatureNoteVisibilite(params: NoteParams, payload: NoteVisibilitePayload): Promise<void> {
+  await api.PUT(
+    '/recruteur/organismes/{organisme_uuid}/recrutements/{recrutement_uuid}/candidatures/{candidature_uuid}/notes/{note_uuid}/visibilite',
+    { params: { path: { ...candidaturePath(params), note_uuid: params.noteUuid } }, body: payload },
   )
 }
 

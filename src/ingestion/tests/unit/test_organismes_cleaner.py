@@ -505,40 +505,93 @@ def test_dedupe_by_siret_falls_back_to_smallest_external_id_when_same_date(
 
 
 DILA_SIRET_VALUE = "26060047300342"
+MAPPED_SIRET_VALUE = "11000007200014"
+_SENAT_DILA_ID = "59003280-8fff-4bc0-b5df-a27299c4d588"
+
+
+@pytest.fixture
+def dila_sirets_csv(tmp_path: Path) -> Path:
+    csv_path = tmp_path / "dila_sirets.csv"
+    with csv_path.open("w", newline="", encoding="utf-8") as f:
+        writer = csv.writer(f, delimiter=";")
+        writer.writerow(
+            [
+                "dila_id",
+                "nom_dila",
+                "siret",
+                "denomination_sirene",
+                "nature_juridique",
+                "source",
+                "score",
+            ]
+        )
+        writer.writerow(
+            [
+                "dila-mapped",
+                "Ministère du Travail",
+                MAPPED_SIRET_VALUE,
+                "MINISTERE DU TRAVAIL",
+                "7113",
+                "annuaire_dila",
+                "",
+            ]
+        )
+        writer.writerow(
+            ["dila-excluded", "Bureau", "", "", "", "exclusion", ""],
+        )
+    return csv_path
+
+
+@pytest.fixture
+def dila_cleaner(categories_csv: Path, dila_sirets_csv: Path) -> OrganismesCleaner:
+    return OrganismesCleaner(
+        categories_csv_path=categories_csv,
+        dila_sirets_csv_path=dila_sirets_csv,
+        dila_siret_lookup_max_age_days=DILA_SIRET_LOOKUP_MAX_AGE_DAYS,
+    )
 
 
 def _dila_service(
     *,
     nom: str | None = "Ministère de l'Intérieur",
-    siret: str | None = DILA_SIRET_VALUE,
+    siret: str | None = None,
     code_insee_commune: str | None = "75101",
     adresse: str | None = '[{"longitude": "2.309103", "latitude": "48.852116"}]',
     date_creation_datetime: str | None = "2008-06-30T00:00:00+00:00",
-    parent_id: str | None = "",
+    ancestors: list[str] | None = None,
+    homonyms: int = 1,
 ) -> dict:
     return {
         "nom": nom,
         "siret": siret,
+        "type_organisme": "Administration centrale (ou Ministère)",
         "code_insee_commune": code_insee_commune,
         "adresse": adresse,
         "date_creation_datetime": date_creation_datetime,
-        "parent_id": parent_id,
+        "ancestors": ancestors or [],
+        "homonyms": homonyms,
     }
 
 
-def _raw_organisme_dila(data: dict | None, external_id: str = "dila-1") -> RawOrganisme:
+def _raw_organisme_dila(
+    data: dict | None,
+    external_id: str = "dila-1",
+    *,
+    siret_found: str | None = DILA_SIRET_VALUE,
+) -> RawOrganisme:
     return RawOrganisme(
         referentiel="DILA",
         millesime="2026-08-26",
         external_id=external_id,
         data=data,
+        dila_siret_found=siret_found,
     )
 
 
-def test_cleans_valid_dila_raw_organisme(cleaner: OrganismesCleaner):
+def test_cleans_valid_dila_raw_organisme(dila_cleaner: OrganismesCleaner):
     raw_organisme = _raw_organisme_dila(_dila_service())
 
-    organisme = cleaner.clean(raw_organisme)
+    organisme = dila_cleaner.clean(raw_organisme)
 
     assert organisme is not None
     assert organisme.nom == "Ministère de l'Intérieur"
@@ -556,36 +609,76 @@ def test_cleans_valid_dila_raw_organisme(cleaner: OrganismesCleaner):
     assert organisme.date_creation == datetime(2008, 6, 30, tzinfo=timezone.utc)
 
 
-def test_dila_returns_none_when_no_data(cleaner: OrganismesCleaner):
+def test_dila_returns_none_when_no_data(dila_cleaner: OrganismesCleaner):
     raw_organisme = _raw_organisme_dila(None)
 
-    assert cleaner.clean(raw_organisme) is None
+    assert dila_cleaner.clean(raw_organisme) is None
 
 
 @pytest.mark.parametrize(
-    "data",
+    "raw_organisme",
     [
-        pytest.param(_dila_service(siret=None), id="missing_siret"),
-        pytest.param(_dila_service(siret="not-a-siret"), id="invalid_siret"),
-        pytest.param(_dila_service(nom=""), id="missing_nom"),
+        pytest.param(
+            _raw_organisme_dila(_dila_service(), siret_found="not-a-siret"),
+            id="invalid_siret",
+        ),
+        pytest.param(_raw_organisme_dila(_dila_service(nom="")), id="missing_nom"),
     ],
 )
-def test_dila_raises_on_invalid_data(cleaner: OrganismesCleaner, data: dict):
-    raw_organisme = _raw_organisme_dila(data)
-
-    with pytest.raises(ValidationError):
-        cleaner.clean(raw_organisme)
-
-
-def test_dila_parent_id_is_derived_deterministically_from_parent_external_id(
-    cleaner: OrganismesCleaner,
+def test_dila_raises_on_invalid_data(
+    dila_cleaner: OrganismesCleaner, raw_organisme: RawOrganisme
 ):
-    parent = cleaner.clean(
+    with pytest.raises(ValidationError):
+        dila_cleaner.clean(raw_organisme)
+
+
+@pytest.mark.parametrize(
+    "siret_found", [None, ""], ids=["no_lookup", "lookup_found_nothing"]
+)
+def test_dila_service_without_siret_is_not_imported(
+    dila_cleaner: OrganismesCleaner, siret_found: str | None
+):
+    raw_organisme = _raw_organisme_dila(_dila_service(), siret_found=siret_found)
+
+    assert dila_cleaner.clean(raw_organisme) is None
+
+
+def test_dila_does_not_read_unverified_siret_from_export(
+    dila_cleaner: OrganismesCleaner,
+):
+    raw_organisme = _raw_organisme_dila(
+        _dila_service(siret=DILA_SIRET_VALUE), siret_found=None
+    )
+
+    assert dila_cleaner.clean(raw_organisme) is None
+
+
+def test_dila_mapping_takes_precedence_over_lookup(dila_cleaner: OrganismesCleaner):
+    raw_organisme = _raw_organisme_dila(
+        _dila_service(siret=DILA_SIRET_VALUE), external_id="dila-mapped"
+    )
+
+    organisme = dila_cleaner.clean(raw_organisme)
+
+    assert organisme is not None
+    assert organisme.siret == SIRET(code=MAPPED_SIRET_VALUE)
+
+
+def test_dila_excluded_service_is_not_imported(dila_cleaner: OrganismesCleaner):
+    raw_organisme = _raw_organisme_dila(_dila_service(), external_id="dila-excluded")
+
+    assert dila_cleaner.clean(raw_organisme) is None
+
+
+def test_dila_parent_id_is_the_direct_ancestor(dila_cleaner: OrganismesCleaner):
+    parent = dila_cleaner.clean(
         _raw_organisme_dila(_dila_service(), external_id="parent-id")
     )
-    child = cleaner.clean(
+    child = dila_cleaner.clean(
         _raw_organisme_dila(
-            _dila_service(parent_id="parent-id"), external_id="child-id"
+            _dila_service(ancestors=["parent-id", "root-id"]),
+            external_id="child-id",
+            siret_found="35600000000048",
         )
     )
 
@@ -594,18 +687,42 @@ def test_dila_parent_id_is_derived_deterministically_from_parent_external_id(
     assert child.parent_id == parent.entity_id
 
 
-def test_dila_parent_id_is_none_when_no_parent(cleaner: OrganismesCleaner):
-    raw_organisme = _raw_organisme_dila(_dila_service(parent_id=""))
-
-    organisme = cleaner.clean(raw_organisme)
+def test_dila_parent_id_is_none_when_no_ancestor(dila_cleaner: OrganismesCleaner):
+    organisme = dila_cleaner.clean(_raw_organisme_dila(_dila_service(ancestors=[])))
 
     assert organisme is not None
     assert organisme.parent_id is None
 
 
-def test_dila_entity_id_is_stable_across_cleans(cleaner: OrganismesCleaner):
-    first = cleaner.clean(_raw_organisme_dila(_dila_service(), external_id="dila-42"))
-    second = cleaner.clean(_raw_organisme_dila(_dila_service(), external_id="dila-42"))
+def test_dila_ancestor_ids(dila_cleaner: OrganismesCleaner):
+    parent = dila_cleaner.clean(
+        _raw_organisme_dila(_dila_service(), external_id="parent-id")
+    )
+    root = dila_cleaner.clean(
+        _raw_organisme_dila(
+            _dila_service(), external_id="root-id", siret_found="35600000000048"
+        )
+    )
+    raw_child = _raw_organisme_dila(
+        _dila_service(ancestors=["parent-id", "root-id"]), external_id="child-id"
+    )
+
+    assert parent is not None
+    assert root is not None
+    assert dila_cleaner.dila_ancestor_ids(raw_child) == [
+        parent.entity_id,
+        root.entity_id,
+    ]
+    assert dila_cleaner.dila_ancestor_ids(_raw_organisme(_ege())) == []
+
+
+def test_dila_entity_id_is_stable_across_cleans(dila_cleaner: OrganismesCleaner):
+    first = dila_cleaner.clean(
+        _raw_organisme_dila(_dila_service(), external_id="dila-42")
+    )
+    second = dila_cleaner.clean(
+        _raw_organisme_dila(_dila_service(), external_id="dila-42")
+    )
 
     assert first is not None
     assert second is not None
@@ -618,22 +735,22 @@ def test_dila_entity_id_is_stable_across_cleans(cleaner: OrganismesCleaner):
     ids=["missing", "empty", "invalid_commune_code"],
 )
 def test_dila_localisation_is_none(
-    cleaner: OrganismesCleaner, code_insee_commune: str | None
+    dila_cleaner: OrganismesCleaner, code_insee_commune: str | None
 ):
     raw_organisme = _raw_organisme_dila(
         _dila_service(code_insee_commune=code_insee_commune)
     )
 
-    organisme = cleaner.clean(raw_organisme)
+    organisme = dila_cleaner.clean(raw_organisme)
 
     assert organisme is not None
     assert organisme.localisation is None
 
 
-def test_dila_coordinates_are_none_when_no_adresse(cleaner: OrganismesCleaner):
+def test_dila_coordinates_are_none_when_no_adresse(dila_cleaner: OrganismesCleaner):
     raw_organisme = _raw_organisme_dila(_dila_service(adresse=None))
 
-    organisme = cleaner.clean(raw_organisme)
+    organisme = dila_cleaner.clean(raw_organisme)
 
     assert organisme is not None
     assert organisme.localisation is not None
@@ -641,53 +758,51 @@ def test_dila_coordinates_are_none_when_no_adresse(cleaner: OrganismesCleaner):
     assert organisme.localisation.longitude is None
 
 
-def test_dila_date_creation_is_none_when_unparseable(cleaner: OrganismesCleaner):
+def test_dila_date_creation_is_none_when_unparseable(dila_cleaner: OrganismesCleaner):
     raw_organisme = _raw_organisme_dila(
         _dila_service(date_creation_datetime="not-a-date")
     )
 
-    organisme = cleaner.clean(raw_organisme)
+    organisme = dila_cleaner.clean(raw_organisme)
 
     assert organisme is not None
     assert organisme.date_creation is None
 
 
-def test_dila_uses_cached_siret_when_missing_from_data(cleaner: OrganismesCleaner):
-    raw_organisme = _raw_organisme_dila(_dila_service(siret=None))
-    raw_organisme.dila_siret_found = DILA_SIRET_VALUE
-
-    organisme = cleaner.clean(raw_organisme)
-
-    assert organisme is not None
-    assert organisme.siret == SIRET(code=DILA_SIRET_VALUE)
-
-
-def test_dila_ignores_cached_siret_when_data_has_one(cleaner: OrganismesCleaner):
-    cached_decoy = "35600000000048"
-    raw_organisme = _raw_organisme_dila(_dila_service(siret=DILA_SIRET_VALUE))
-    raw_organisme.dila_siret_found = cached_decoy
-
-    organisme = cleaner.clean(raw_organisme)
-
-    assert organisme is not None
-    assert organisme.siret == SIRET(code=DILA_SIRET_VALUE)
-
-
-def test_dila_raises_when_missing_siret_and_no_cached_lookup(
-    cleaner: OrganismesCleaner,
+def test_dila_dedupe_by_siret_keeps_shallowest_service(
+    dila_cleaner: OrganismesCleaner,
 ):
-    raw_organisme = _raw_organisme_dila(_dila_service(siret=None))
+    root = dila_cleaner.clean(
+        _raw_organisme_dila(_dila_service(), external_id="9-root")
+    )
+    direction = dila_cleaner.clean(
+        _raw_organisme_dila(
+            _dila_service(ancestors=["9-root"]), external_id="1-direction"
+        )
+    )
+    assert root is not None
+    assert direction is not None
 
-    with pytest.raises(ValidationError):
-        cleaner.clean(raw_organisme)
+    result = dila_cleaner.dedupe_by_siret(
+        [direction, root], {direction.entity_id: 1, root.entity_id: 0}
+    )
+
+    assert result == [root]
 
 
-def test_dila_raises_when_cached_lookup_found_nothing(cleaner: OrganismesCleaner):
-    raw_organisme = _raw_organisme_dila(_dila_service(siret=None))
-    raw_organisme.dila_siret_found = ""
+def test_dila_dedupe_by_siret_falls_back_to_smallest_external_id_at_same_depth(
+    dila_cleaner: OrganismesCleaner,
+):
+    first = dila_cleaner.clean(_raw_organisme_dila(_dila_service(), external_id="a"))
+    second = dila_cleaner.clean(_raw_organisme_dila(_dila_service(), external_id="b"))
+    assert first is not None
+    assert second is not None
 
-    with pytest.raises(ValidationError):
-        cleaner.clean(raw_organisme)
+    result = dila_cleaner.dedupe_by_siret(
+        [second, first], {first.entity_id: 2, second.entity_id: 2}
+    )
+
+    assert result == [first]
 
 
 def _dila_with_cached_lookup(
@@ -695,9 +810,14 @@ def _dila_with_cached_lookup(
     found: str | None = None,
     found_at: datetime | None = None,
     siret: str | None = None,
+    homonyms: int = 1,
+    external_id: str = "dila-1",
 ) -> RawOrganisme:
-    raw_organisme = _raw_organisme_dila(_dila_service(siret=siret))
-    raw_organisme.dila_siret_found = found
+    raw_organisme = _raw_organisme_dila(
+        _dila_service(siret=siret, homonyms=homonyms),
+        external_id=external_id,
+        siret_found=found,
+    )
     raw_organisme.dila_siret_found_at = found_at
     return raw_organisme
 
@@ -713,8 +833,25 @@ DILA_NOM = "Ministère de l'Intérieur"
         ),
         pytest.param(
             _dila_with_cached_lookup(siret=DILA_SIRET_VALUE),
-            None,
-            id="siret_present",
+            DILA_SIRET_VALUE,
+            id="export_siret_to_verify",
+        ),
+        pytest.param(
+            _dila_with_cached_lookup(siret="260 600 473 00342"),
+            DILA_SIRET_VALUE,
+            id="export_siret_with_spaces",
+        ),
+        pytest.param(
+            _dila_with_cached_lookup(siret=DILA_SIRET_VALUE, homonyms=3),
+            DILA_SIRET_VALUE,
+            id="export_siret_of_homonym",
+        ),
+        pytest.param(_dila_with_cached_lookup(homonyms=2), None, id="homonym_name"),
+        pytest.param(
+            _dila_with_cached_lookup(external_id="dila-mapped"), None, id="mapped"
+        ),
+        pytest.param(
+            _dila_with_cached_lookup(external_id="dila-excluded"), None, id="excluded"
         ),
         pytest.param(
             _dila_with_cached_lookup(found="", found_at=datetime.now(timezone.utc)),
@@ -746,21 +883,21 @@ DILA_NOM = "Ministère de l'Intérieur"
         pytest.param(_raw_organisme(_ege()), None, id="other_referentiel"),
         pytest.param(_raw_organisme_dila(None), None, id="no_data"),
         pytest.param(
-            _raw_organisme_dila(_dila_service(siret=None, nom="   ")),
+            _raw_organisme_dila(_dila_service(nom="   "), siret_found=None),
             None,
             id="nom_blank",
         ),
     ],
 )
-def test_nom_for_dila_siret_lookup(
-    cleaner: OrganismesCleaner,
+def test_dila_siret_query(
+    dila_cleaner: OrganismesCleaner,
     raw_organisme: RawOrganisme,
     expected: str | None,
 ):
-    assert cleaner.nom_for_dila_siret_lookup(raw_organisme) == expected
+    assert dila_cleaner.dila_siret_query(raw_organisme) == expected
 
 
-def test_nom_for_dila_siret_lookup_respects_configured_max_age(categories_csv: Path):
+def test_dila_siret_query_respects_configured_max_age(categories_csv: Path):
     cleaner = OrganismesCleaner(
         categories_csv_path=categories_csv, dila_siret_lookup_max_age_days=7
     )
@@ -768,4 +905,22 @@ def test_nom_for_dila_siret_lookup_respects_configured_max_age(categories_csv: P
         found="", found_at=datetime.now(timezone.utc) - timedelta(days=8)
     )
 
-    assert cleaner.nom_for_dila_siret_lookup(raw_organisme) == DILA_NOM
+    assert cleaner.dila_siret_query(raw_organisme) == DILA_NOM
+
+
+def test_default_dila_mapping_is_loaded(categories_csv: Path):
+    cleaner = OrganismesCleaner(
+        categories_csv_path=categories_csv,
+        dila_siret_lookup_max_age_days=DILA_SIRET_LOOKUP_MAX_AGE_DAYS,
+    )
+    # "Sénat": a SIRET found by a targeted manual search.
+    raw_organisme = _raw_organisme_dila(
+        _dila_service(nom="Sénat"),
+        external_id=_SENAT_DILA_ID,
+        siret_found=None,
+    )
+
+    organisme = cleaner.clean(raw_organisme)
+
+    assert organisme is not None
+    assert organisme.siret == SIRET(code="11000002300017")

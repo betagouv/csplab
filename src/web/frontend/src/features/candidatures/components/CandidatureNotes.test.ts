@@ -5,7 +5,7 @@ import { HttpError } from '@/api/errors'
 import { CANDIDATURE_PANEL_ROUTE_NAMES } from '@/router/names'
 import { CANDIDATURE_PARAMS, KANBAN_PATH } from '@/test/fixtures/candidatures'
 import { renderWithApp, setupUser } from '@/test/render'
-import { deleteCandidatureNote, getCandidatureNotes, updateCandidatureNote } from '../api'
+import { deleteCandidatureNote, getCandidatureNotes, updateCandidatureNote, updateCandidatureNoteVisibilite } from '../api'
 import CandidatureNotes from './CandidatureNotes.vue'
 
 vi.mock('../api', async importOriginal => ({
@@ -13,6 +13,7 @@ vi.mock('../api', async importOriginal => ({
   getCandidatureNotes: vi.fn(),
   updateCandidatureNote: vi.fn(),
   deleteCandidatureNote: vi.fn(),
+  updateCandidatureNoteVisibilite: vi.fn(),
 }))
 
 function note(overrides: Partial<Note>): Note {
@@ -88,10 +89,10 @@ describe('candidatureNotes', () => {
     expect(await screen.findByText('Les notes n\'ont pas pu être chargées.')).toBeInTheDocument()
   })
 
-  it('edits the note targeted by the route', async () => {
+  it('edits the note targeted by the route and keeps it private', async () => {
     const results = [
       note({}),
-      note({ uuid: 'ffffffff-0001-0001-0001-000000000002', message: 'À recontacter' }),
+      note({ uuid: 'ffffffff-0001-0001-0001-000000000002', message: 'À recontacter', est_privee: true }),
     ]
     vi.mocked(getCandidatureNotes).mockResolvedValue({ count: 2, results })
     vi.mocked(updateCandidatureNote).mockResolvedValue()
@@ -100,13 +101,14 @@ describe('candidatureNotes', () => {
 
     const field = await screen.findByRole('textbox', { name: 'Modifier la note' })
     expect(field).toHaveValue('À recontacter')
+    expect(screen.getByRole('checkbox', { name: 'Note privée' })).toBeChecked()
 
     await user.type(field, ' demain')
     await user.click(screen.getByRole('button', { name: 'Enregistrer la note' }))
 
     expect(updateCandidatureNote).toHaveBeenCalledWith(
       { ...CANDIDATURE_PARAMS, noteUuid: 'ffffffff-0001-0001-0001-000000000002' },
-      'À recontacter demain',
+      { message: 'À recontacter demain', est_privee: true },
     )
     await vi.waitFor(() => expect(router.currentRoute.value.path).toBe(NOTES_PATH))
   })
@@ -144,5 +146,24 @@ describe('candidatureNotes', () => {
 
     expect(deleteCandidatureNote).toHaveBeenCalledWith({ ...CANDIDATURE_PARAMS, noteUuid: 'ffffffff-0001-0001-0001-000000000002' })
     await vi.waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+  })
+
+  it('makes public the private note picked from its menu', async () => {
+    const results = [
+      note({}),
+      note({ uuid: 'ffffffff-0001-0001-0001-000000000002', publie_par_prenom: 'Paul', publie_par_nom: 'Bernard', est_privee: true }),
+    ]
+    vi.mocked(getCandidatureNotes).mockResolvedValue({ count: 2, results })
+    vi.mocked(updateCandidatureNoteVisibilite).mockResolvedValue()
+    const user = setupUser()
+    await renderNotes()
+
+    await user.click(await screen.findByRole('button', { name: 'Actions sur la note de Paul Bernard' }))
+    await user.click(await screen.findByRole('menuitem', { name: 'Rendre la note publique' }))
+
+    expect(updateCandidatureNoteVisibilite).toHaveBeenCalledWith(
+      { ...CANDIDATURE_PARAMS, noteUuid: 'ffffffff-0001-0001-0001-000000000002' },
+      { est_privee: false },
+    )
   })
 })

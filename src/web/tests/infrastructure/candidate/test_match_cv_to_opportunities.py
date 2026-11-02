@@ -226,9 +226,11 @@ def test_vectorize_qdrant_search_list_filters(
 
     source = SourceDjangoFactory()
     offers = [
-        OfferDjangoFactory(verse=Verse.FPE, source=source),
-        OfferDjangoFactory(verse=Verse.FPH, source=source),
-        OfferDjangoFactory(verse=Verse.FPT, source=source),
+        OfferDjangoFactory(
+            verse=Verse.FPE, categories=[Category.A, Category.B], source=source
+        ),
+        OfferDjangoFactory(verse=Verse.FPH, categories=[Category.B], source=source),
+        OfferDjangoFactory(verse=Verse.FPT, categories=[Category.C], source=source),
     ]
 
     concours = [
@@ -264,7 +266,7 @@ def test_vectorize_qdrant_search_list_filters(
 
         metadata = {
             "verse": offer_entity.verse.value,
-            "category": None,
+            "category": [category.value for category in offer_entity.categories],
             "localisation": localisation,
         }
         vectorized_doc = VectorizedDocumentFactory.create_entity(
@@ -345,6 +347,17 @@ def test_vectorize_qdrant_search_list_filters(
     )
 
     assert len(concours_a_b) == TWO_DOCUMENTS
+
+    offers_b = usecase.execute(
+        cv_metadata,
+        filters={
+            "document_type": DocumentType.OFFERS.value,
+            "category": [Category.B.value],
+        },
+        limit=10,
+    )
+
+    assert len(offers_b) == TWO_DOCUMENTS
 
     offers_ile_de_france = usecase.execute(
         cv_metadata,

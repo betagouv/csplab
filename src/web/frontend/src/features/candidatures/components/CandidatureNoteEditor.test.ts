@@ -28,4 +28,22 @@ describe('candidatureNoteEditor', () => {
 
     expect(submit).toBeEnabled()
   })
+
+  it('allows saving when only the visibility has changed', async () => {
+    const user = setupUser()
+    await renderWithApp(CandidatureNoteEditor, {
+      route: NEW_NOTE_PATH,
+      props: {
+        title: 'Modifier la note',
+        routes: CANDIDATURE_PANEL_ROUTE_NAMES.kanban.notes,
+        submitting: false,
+        submit: vi.fn(),
+        initialMessage: 'Profil solide',
+      },
+    })
+
+    await user.click(screen.getByRole('checkbox', { name: 'Note privée' }))
+
+    expect(screen.getByRole('button', { name: 'Enregistrer la note' })).toBeEnabled()
+  })
 })

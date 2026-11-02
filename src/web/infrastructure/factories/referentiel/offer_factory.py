@@ -23,7 +23,7 @@ class OfferFactory:
     @staticmethod
     def create_entity(
         title: str | None = None,
-        category: Category | None = None,
+        categories: list[Category] | None = None,
         offer_nature: OfferNature | None = None,
         verse: Verse | None = None,
         reference: str | None = None,
@@ -59,7 +59,7 @@ class OfferFactory:
             title=title or "Test Offer Title",
             profile=profile or "Test profile description",
             mission=mission or "Test mission description",
-            category=category or Category.A,
+            categories=[Category.A] if categories is None else categories,
             offer_nature=offer_nature,
             organization=organization or "Test Organization",
             offer_url=offer_url,

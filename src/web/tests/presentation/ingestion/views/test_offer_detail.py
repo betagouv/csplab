@@ -12,6 +12,7 @@ from referentiel.value_objects.experience_level import ExperienceLevel
 from referentiel.value_objects.language_level import LanguageLevel
 from referentiel.value_objects.offer_criteria import OfferCriteria, OfferLanguage
 from referentiel.value_objects.offer_nature import OfferNature
+from referentiel.value_objects.required_document import RequiredDocument
 from rest_framework import status
 
 from application.ingestion.interfaces.get_offer_by_reference_input import (
@@ -27,7 +28,6 @@ from infrastructure.factories.referentiel.offer_factory import OfferFactory
 from presentation.ingestion.serializers import (
     FakeTsCodedObjectSerializer,
     FakeTsCustomFieldsSerializer,
-    FakeTsDynamicFieldSerializer,
     FakeTsOfferDetailSerializer,
     FakeTsOrganisationSerializer,
 )
@@ -135,9 +135,10 @@ def test_response_has_no_undeclared_fields(mock_offer_detail_container, jwt_clie
     assert set(data["customFields"].keys()) == set(
         FakeTsCustomFieldsSerializer().fields.keys()
     )
-    for dynamic_field in data["customFields"].values():
+    custom_fields_serializer = FakeTsCustomFieldsSerializer()
+    for name, dynamic_field in data["customFields"].items():
         assert set(dynamic_field.keys()) == set(
-            FakeTsDynamicFieldSerializer().fields.keys()
+            custom_fields_serializer.fields[name].fields.keys()
         )
 
 
@@ -148,6 +149,7 @@ class TestOfferDetailViewDbVerified:
             diploma="Master",
             experience_level=ExperienceLevel.CONFIRME,
             specialisations=["informatique"],
+            documents_requis=[RequiredDocument.CV, RequiredDocument.LETTRE_MOTIVATION],
             languages=[OfferLanguage(iso_code="en", level=LanguageLevel.B2)],
         )
         offer_model = OfferDjangoFactory(
@@ -156,7 +158,7 @@ class TestOfferDetailViewDbVerified:
             profile="Profil recherché",
             mission="Mission du poste",
             organization="Ministère Test",
-            category=Category.A,
+            categories=[Category.A],
             offer_nature=OfferNature.TERRITORIAL,
             offer_url=HttpUrl("https://exemple.gouv.fr/offres/e2e-1"),
             country="FRA",
@@ -369,6 +371,17 @@ class TestOfferDetailViewDbVerified:
                     "longText1Formatted": None,
                     "longText2Formatted": None,
                     "longText3Formatted": None,
+                    "customCodeTable1": {
+                        "code": None,
+                        "clientCode": "Doc_CV_LM",
+                        "label": "L'envoi du CV et d'une lettre de motivation "
+                        "est obligatoire",
+                        "active": True,
+                        "parentCode": None,
+                        "type": "Documents à transmettre",
+                        "parentType": "",
+                        "hasChildren": False,
+                    },
                 },
                 "location": {
                     "date1": None,

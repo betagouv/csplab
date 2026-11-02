@@ -170,6 +170,11 @@ class RecrutementAgentTagModel(BaseDatedModel):
         return f"{self.recrutement_agent_id} - {self.tag_id}"
 
 
+class NoteTagQuerySet(models.QuerySet):
+    def by_note_and_tag(self, note_id, tag_id) -> "NoteTagQuerySet":
+        return self.filter(note_id=note_id, tag_id=tag_id)
+
+
 class NoteTagModel(BaseDatedModel):
     tag = models.ForeignKey(
         TagModel, on_delete=models.CASCADE, related_name="notes_liaisons"
@@ -180,6 +185,8 @@ class NoteTagModel(BaseDatedModel):
         db_column="note_id",
         related_name="tags_liaisons",
     )
+
+    objects = NoteTagQuerySet.as_manager()
 
     class Meta:
         db_table = "note_tag"

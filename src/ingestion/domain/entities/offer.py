@@ -17,6 +17,7 @@ from referentiel.value_objects.offer_conditions import (
     WorkingTime,
 )
 from referentiel.value_objects.offer_nature import OfferNature
+from referentiel.value_objects.required_document import RequiredDocument
 from referentiel.value_objects.verse import Verse
 
 from domain.value_objects.contact import Contact
@@ -56,6 +57,7 @@ class Offer:
     diploma: Optional[str] = None
     languages: list[Language] = field(default_factory=list)
     specialisations: list[str] = field(default_factory=list)
+    required_documents: list[RequiredDocument] = field(default_factory=list)
     family_code: Optional[str] = None
     working_place: WorkingPlace = WorkingPlace.NON_DEFINI
     working_time: WorkingTime = WorkingTime.NON_DEFINI

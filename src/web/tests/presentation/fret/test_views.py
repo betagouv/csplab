@@ -326,6 +326,17 @@ class TestOffreDetailView:
         assert "CONFIRME" not in content
         assert "&quot;langues&quot;" not in content  # plus de JSON brut
 
+    def test_shows_required_documents_labels(self, client, source):
+        offer = OfferDjangoFactory(
+            source=source,
+            criteria={"documents_requis": ["CV", "LETTRE_MOTIVATION"]},
+        )
+
+        content = client.get(self.url(source, offer)).content.decode()
+
+        assert "CV, Lettre de motivation" in content
+        assert "LETTRE_MOTIVATION" not in content
+
     def test_shows_conditions_in_readable_rows(self, client, source):
         offer = OfferDjangoFactory(
             source=source,

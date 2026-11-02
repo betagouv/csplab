@@ -13,6 +13,9 @@ from infrastructure.django_apps.tag.models import (
     TagCategory,
     TagModel,
 )
+from infrastructure.factories.candidate.candidature_django_factory import (
+    create_recrutement_with_candidature,
+)
 from infrastructure.factories.identite.organisme_django_factory import (
     create_organisme_with_agent,
 )
@@ -182,12 +185,8 @@ class TestListTags:
 
     @pytest.mark.parametrize(
         "link_factory",
-        [
-            CandidatureTagDjangoFactory,
-            RecrutementAgentTagDjangoFactory,
-            NoteTagDjangoFactory,
-        ],
-        ids=["candidature", "recrutement_agent", "note"],
+        [CandidatureTagDjangoFactory, RecrutementAgentTagDjangoFactory],
+        ids=["candidature", "recrutement_agent"],
     )
     def test_counts_tag_usages(
         self, authenticated_client, agent_organisme, link_factory
@@ -199,10 +198,24 @@ class TestListTags:
 
         assert [t["usage_count"] for t in response.json()["results"]] == [2]
 
-    def test_does_not_count_deleted_notes(self, authenticated_client, agent_organisme):
+    def test_counts_note_tag_usages(self, authenticated_client, agent_organisme):
+        _, candidature = create_recrutement_with_candidature(agent_organisme)
         tag = TagDjangoFactory(organisme=agent_organisme, category=TagCategory.NOTE)
-        NoteTagDjangoFactory(tag=tag)
-        NoteTagDjangoFactory(tag=tag, note__supprimee_le=datetime.now(UTC))
+        NoteTagDjangoFactory.create_batch(2, tag=tag, note__candidature=candidature)
+
+        response = authenticated_client.get(_tags_url(agent_organisme.id))
+
+        assert [t["usage_count"] for t in response.json()["results"]] == [2]
+
+    def test_does_not_count_deleted_notes(self, authenticated_client, agent_organisme):
+        _, candidature = create_recrutement_with_candidature(agent_organisme)
+        tag = TagDjangoFactory(organisme=agent_organisme, category=TagCategory.NOTE)
+        NoteTagDjangoFactory(tag=tag, note__candidature=candidature)
+        NoteTagDjangoFactory(
+            tag=tag,
+            note__candidature=candidature,
+            note__supprimee_le=datetime.now(UTC),
+        )
 
         response = authenticated_client.get(_tags_url(agent_organisme.id))
 
@@ -235,7 +248,8 @@ class TestListTags:
         assert response.status_code == status.HTTP_200_OK
 
     def test_filters_by_category(self, authenticated_client, agent_organisme):
-        note_tag = NoteTagDjangoFactory(tag__organisme=agent_organisme).tag
+        _, candidature = create_recrutement_with_candidature(agent_organisme)
+        note_tag = NoteTagDjangoFactory(note__candidature=candidature).tag
         TagDjangoFactory(organisme=agent_organisme, category=TagCategory.CANDIDATURE)
         TagDjangoFactory(category=TagCategory.NOTE)
 

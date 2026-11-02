@@ -4,20 +4,26 @@ import pytest
 
 from application.recruteur.services.create_tag import create_tag
 from application.recruteur.services.delete_tag import delete_tag
+from application.recruteur.services.remove_note_tag import remove_note_tag
 from application.recruteur.services.update_tag import update_tag
 from domain.commons.services.audit_log_writer import AuditLogWriter
 from domain.recruteur.value_objects.roles import AgentOrganismeRole
 from infrastructure.django_apps.tag.models import (
     CandidatureTagModel,
+    NoteTagModel,
     TagCategory,
     TagColor,
     TagModel,
+)
+from infrastructure.factories.candidate.candidature_django_factory import (
+    create_recrutement_and_candidature_for_agent,
 )
 from infrastructure.factories.identite.organisme_django_factory import (
     create_organisme_with_agent,
 )
 from infrastructure.factories.tag.tag_django_factory import (
     CandidatureTagDjangoFactory,
+    NoteTagDjangoFactory,
     TagDjangoFactory,
 )
 
@@ -85,3 +91,23 @@ def test_delete_rolls_back_when_audit_log_fails(superviseur):
 
     assert TagModel.objects.filter(pk=tag.pk).exists()
     assert CandidatureTagModel.objects.filter(tag=tag).exists()
+
+
+# transactional_db : le fixture `db` ouvre une transaction autour du test, qui
+# masquerait un select_for_update appelé hors de transaction.atomic()
+def test_remove_note_tag_runs_in_its_own_transaction(transactional_db):
+    agent, organisme, recrutement, candidature = (
+        create_recrutement_and_candidature_for_agent()
+    )
+    pose = NoteTagDjangoFactory(note__candidature=candidature, note__publie_par=agent)
+
+    remove_note_tag(
+        organisme_id=organisme.id,
+        recrutement_id=recrutement.pk,
+        candidature_id=candidature.id,
+        note_id=pose.note_id,
+        tag_id=pose.tag_id,
+        utilisateur=agent.utilisateur,
+    )
+
+    assert not NoteTagModel.objects.filter(pk=pose.pk).exists()

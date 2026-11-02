@@ -39,7 +39,6 @@ class OfferMapper(
         beginning_date = (
             LimitDate(model.beginning_date) if model.beginning_date else None
         )
-        category = Category(model.category) if model.category else None
         offer_nature = OfferNature(model.offer_nature) if model.offer_nature else None
         offer_url = HttpUrl(model.offer_url) if model.offer_url else None
         verse = Verse(model.verse) if model.verse else None
@@ -54,7 +53,7 @@ class OfferMapper(
             title=model.title,
             profile=model.profile,
             mission=model.mission,
-            category=category,
+            categories=[Category(c) for c in model.categories],
             offer_nature=offer_nature,
             organization=model.organization,
             offer_url=offer_url,
@@ -116,7 +115,6 @@ class OfferMapper(
             longitude = entity.localisation.longitude
 
         beginning_date = entity.beginning_date.value if entity.beginning_date else None
-        category = entity.category.value if entity.category else None
         offer_nature = entity.offer_nature.value if entity.offer_nature else None
         offer_url = str(entity.offer_url) if entity.offer_url else None
 
@@ -129,7 +127,7 @@ class OfferMapper(
             title=entity.title,
             profile=entity.profile,
             mission=entity.mission,
-            category=category,
+            categories=[c.value for c in entity.categories],
             offer_nature=offer_nature,
             organization=entity.organization,
             offer_url=offer_url,

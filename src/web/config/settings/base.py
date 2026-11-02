@@ -131,6 +131,7 @@ INSTALLED_APPS = [
     "presentation.ingestion",
     "presentation.candidate",
     "presentation.identite",
+    "presentation.recruteur",
     "presentation.ats",
 ]
 
@@ -450,7 +451,7 @@ SPECTACULAR_SETTINGS = {
             "name": "changelog",
             "x-displayName": "Changelog",
             "x-traitTag": True,
-            "description": _doc_api_markdown("changelog_api.md"),
+            # Description added by PublicSchemaView from changelog_api.d/.
         },
         {"name": "token", "description": "Gestion de l'authentification"},
         {
@@ -516,6 +517,7 @@ HUEY = {
         "health_check_interval": 1,
     },
 }
+DEMO_AUTO_REPLY_DELAY_MINUTES = env.int("DEMO_AUTO_REPLY_DELAY_MINUTES", default=2)
 
 # API endpoints
 PISTE_OAUTH_BASE_URL = env.str("PISTE_OAUTH_BASE_URL")

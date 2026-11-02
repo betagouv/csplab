@@ -5,6 +5,7 @@ import { isHttpStatus } from '@/api/errors'
 import CspAsyncSection from '@/components/base/CspAsyncSection/CspAsyncSection.vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspDataTable from '@/components/base/CspDataTable/CspDataTable.vue'
+import { TABLE_PAGE_SIZE } from '@/components/base/CspDataTable/table'
 import CspDialog from '@/components/base/CspDialog/CspDialog.vue'
 import CspDrawer from '@/components/base/CspDrawer/CspDrawer.vue'
 import CspSearchBar from '@/components/base/CspSearchBar/CspSearchBar.vue'
@@ -25,8 +26,6 @@ import AttachAgentForm from './AttachAgentForm.vue'
 const props = defineProps<{
   organismeUuid: string
 }>()
-
-const PAGE_SIZE = 8
 
 const { agents, pending, error, updateAgent, updatingAgent } = useOrganismeAgents(props.organismeUuid)
 const { status, foundAgent, searching, search: searchAgent, add, submitting, reset } = useAddAgentToOrganisme(props.organismeUuid)
@@ -157,9 +156,7 @@ async function handleRevocation(): Promise<void> {
     >
       <template #skeleton>
         <CspSkeletonTable
-          :rows="PAGE_SIZE"
           :columns="ORGANISME_AGENTS_COLUMNS.length"
-          with-footer
         />
       </template>
 
@@ -170,7 +167,6 @@ async function handleRevocation(): Promise<void> {
           label="Rechercher un membre, un courriel"
           hide-label
           placeholder="Rechercher un membre, un courriel"
-          class="organisme-agents-section__search"
         />
         <CspButton
           label="Ajouter un membre"
@@ -185,7 +181,7 @@ async function handleRevocation(): Promise<void> {
         :columns="ORGANISME_AGENTS_COLUMNS"
         :row-key="row => row.uuid"
         caption="Membres de l'organisme"
-        :page-size="PAGE_SIZE"
+        :page-size="TABLE_PAGE_SIZE"
       >
         <template #empty>
           <div class="organisme-agents-section__empty">
@@ -265,10 +261,6 @@ async function handleRevocation(): Promise<void> {
   color: var(--text-mention-grey);
   font-size: 0.875rem;
   max-width: 65ch;
-}
-
-.organisme-agents-section__search {
-  min-width: 20rem;
 }
 
 .organisme-agents-section__empty {

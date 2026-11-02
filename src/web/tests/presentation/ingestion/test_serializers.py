@@ -3,6 +3,9 @@ from unittest.mock import MagicMock
 import pytest
 
 from infrastructure.factories.ingestion.offer_payload_factory import PayloadOfferFactory
+from infrastructure.factories.referentiel.metier_django_factory import (
+    MetierDjangoFactory,
+)
 from presentation.ingestion.serializers import (
     ConditionsInputSerializer,
     DescriptionInputSerializer,
@@ -12,7 +15,7 @@ from presentation.ingestion.serializers import (
 )
 
 
-def test_offers_input_serializer_never_exposes_archived_at():
+def test_offers_input_serializer_never_exposes_archived_at(db):
     assert "archived_at" not in OffersInputSerializer().fields
 
     payload = PayloadOfferFactory.create(
@@ -147,7 +150,7 @@ def test_conditions_input_serializer_rejects_vacancy_notice_outside_legifrance(u
     }
 
 
-def test_profession_input_serializer_defaults_referentiel_to_rmfpv2():
+def test_profession_input_serializer_defaults_referentiel_to_rmfpv2(db):
     payload = {"domaine": "NUM", "metier": "ERNUM001"}
 
     serializer = ProfessionInputSerializer(data=payload)
@@ -174,7 +177,9 @@ def test_profession_input_serializer_rejects_invalid_referentiel():
     assert "referentiel" in serializer.errors
 
 
-def test_profession_input_serializer_skips_metier_check_without_repository_in_context():
+def test_profession_input_serializer_skips_metier_check_without_repository_in_context(
+    db,
+):
     payload = {"domaine": "NUM", "metier": "INCONNU"}
 
     serializer = ProfessionInputSerializer(data=payload)
@@ -182,7 +187,7 @@ def test_profession_input_serializer_skips_metier_check_without_repository_in_co
     assert serializer.is_valid(), serializer.errors
 
 
-def test_profession_input_serializer_accepts_metier_known_by_repository():
+def test_profession_input_serializer_accepts_metier_known_by_repository(db):
     metiers_repository = MagicMock()
     metiers_repository.get_filtered.return_value = [MagicMock()]
     payload = {"domaine": "NUM", "metier": "ERNUM001"}
@@ -234,6 +239,20 @@ def test_profession_input_serializer_skips_checks_for_other_referentiel():
 
     assert validated == data
     metiers_repository.get_filtered.assert_not_called()
+
+
+def test_profession_input_serializer_rejects_domaine_outside_ambiguous_metier(db):
+    MetierDjangoFactory(offer_family_code="ERJUS008", domaine_fonctionnel_code="JUS")
+    MetierDjangoFactory(offer_family_code="ERJUS008", domaine_fonctionnel_code="CTL")
+
+    serializer = ProfessionInputSerializer(
+        data={"domaine": "NUM", "metier": "ERJUS008"}
+    )
+
+    assert not serializer.is_valid()
+    assert serializer.errors == {
+        "domaine": ["Le domaine NUM ne correspond pas au métier ERJUS008 (CTL, JUS)."]
+    }
 
 
 def test_localisation_input_serializer_requires_region_and_departement_in_france():

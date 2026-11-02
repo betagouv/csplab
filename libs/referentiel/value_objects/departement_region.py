@@ -118,6 +118,22 @@ def overseas_region_for_department(department: Department) -> Region | None:
     return None
 
 
+_ZONE_PAR_COLLECTIVITE: dict[str, GeographicalArea] = {
+    department.code: GeographicalArea.AMERIQUE
+    for department in _departements("975", "SPM")
+} | {
+    department.code: GeographicalArea.OCEANIE
+    for department in _departements("986", "WLF", "987", "988")
+}
+
+
+def zone_pour_departement(departement: Department) -> GeographicalArea | None:
+    region_et_zone = region_et_zone_pour_departement(departement)
+    if region_et_zone is not None:
+        return region_et_zone[1]
+    return _ZONE_PAR_COLLECTIVITE.get(departement.code)
+
+
 def department_belongs_to_region(department: Department, region: Region) -> bool:
     if department.code in _TOM_DEPARTMENTS:
         return region == _REGION_TOM

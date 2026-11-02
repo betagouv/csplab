@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime
 from typing import List
 from uuid import UUID
@@ -5,14 +6,31 @@ from uuid import UUID
 from django.db import DatabaseError, transaction
 from django.utils import timezone
 from referentiel.entities.organisme import Organisme
-from referentiel.types import IUpsertResult
+from referentiel.types import IUpsertError, IUpsertResult
 
-from domain.commons.errors.organisme_errors import OrganismeNexistePas
+from domain.commons.errors.organisme_errors import (
+    OrganismeNexistePas,
+    OrganismeSiretConflict,
+)
 from domain.identite.repositories.organisme_repository_interface import (
     IOrganismeRepository as IOrganismeIdentiteRepository,
 )
 from infrastructure.django_apps.recruteur.models.organisme import OrganismeModel
 from infrastructure.mappers.organisme_identite_mapper import OrganismeIdentiteMapper
+
+logger = logging.getLogger(__name__)
+
+# Each referentiel is the reference for its versant: DILA for FPE, FINESS for
+# FPH, GIPCDG for FPT. When two referentiels claim the same SIRET, the first
+# one in this list wins. An organisme outside these referentiels (created
+# manually) is never overridden.
+REFERENTIEL_PRIORITY = ("DILA", "FINESS", "GIPCDG")
+
+
+def takes_precedence_over(referentiel: str | None, other: str | None) -> bool:
+    if referentiel not in REFERENTIEL_PRIORITY or other not in REFERENTIEL_PRIORITY:
+        return False
+    return REFERENTIEL_PRIORITY.index(referentiel) < REFERENTIEL_PRIORITY.index(other)
 
 
 class PostgresOrganismeRepository(IOrganismeIdentiteRepository):
@@ -71,6 +89,11 @@ class PostgresOrganismeRepository(IOrganismeIdentiteRepository):
                     .values_list("id", flat=True)
                 )
 
+                organismes, replaced_by, errors = self._resolve_siret_conflicts(
+                    organismes
+                )
+                etapes_by_target = self._replace(replaced_by)
+
                 new_models = []
                 models_to_update = []
                 for organisme in organismes:
@@ -83,10 +106,7 @@ class PostgresOrganismeRepository(IOrganismeIdentiteRepository):
 
                 created = 0
                 if new_models:
-                    created_models = OrganismeModel.objects.bulk_create(
-                        new_models, ignore_conflicts=True
-                    )
-                    created = len(created_models)
+                    created = len(OrganismeModel.objects.bulk_create(new_models))
 
                 updated = 0
                 if models_to_update:
@@ -108,9 +128,67 @@ class PostgresOrganismeRepository(IOrganismeIdentiteRepository):
                         ],
                     )
 
-            return {"created": created, "updated": updated, "errors": []}
+                # Etapes are set once the target exists, without overriding its own.
+                for target_id, etapes in etapes_by_target.items():
+                    OrganismeModel.objects.filter(
+                        id=target_id, etapes__isnull=True
+                    ).update(etapes=etapes)
+
+            return {"created": created, "updated": updated, "errors": errors}
         except Exception as e:
             raise DatabaseError(f"Database error during bulk upsert: {e}") from e
+
+    def _resolve_siret_conflicts(
+        self, organismes: list[Organisme]
+    ) -> tuple[list[Organisme], dict[UUID, UUID], list[IUpsertError]]:
+        holders = {
+            model.siret: model
+            for model in OrganismeModel.objects.holding_sirets(
+                sirets=[str(organisme.siret) for organisme in organismes],
+                excluding_ids=[organisme.entity_id for organisme in organismes],
+            ).select_for_update(of=("self",))
+        }
+
+        kept = []
+        replaced_by: dict[UUID, UUID] = {}
+        errors: list[IUpsertError] = []
+        for organisme in organismes:
+            holder = holders.get(str(organisme.siret))
+            if holder is None:
+                kept.append(organisme)
+            elif takes_precedence_over(organisme.referentiel, holder.referentiel):
+                replaced_by[holder.id] = organisme.entity_id
+                kept.append(organisme)
+            else:
+                conflict = OrganismeSiretConflict(organisme, holder)
+                logger.warning(str(conflict))
+                errors.append(
+                    {
+                        "entity_id": organisme.entity_id,
+                        "error": str(conflict),
+                        "exception": conflict,
+                    }
+                )
+
+        return kept, replaced_by, errors
+
+    def _replace(self, replaced_by: dict[UUID, UUID]) -> dict[UUID, list]:
+        etapes_by_target = {}
+        for holder in OrganismeModel.objects.filter(id__in=replaced_by):
+            target_id = replaced_by[holder.id]
+            holder.move_dependents_to(target_id)
+            if holder.etapes:
+                etapes_by_target[target_id] = holder.etapes
+            logger.info(
+                "Organisme %s (%s %s) merged into %s, which takes SIRET %s",
+                holder.id,
+                holder.referentiel,
+                holder.external_id,
+                target_id,
+                holder.siret,
+            )
+        OrganismeModel.objects.filter(id__in=replaced_by).delete()
+        return etapes_by_target
 
     def get_by_referentiel_and_external_id_batch(
         self, pairs: list[tuple[str, str]]

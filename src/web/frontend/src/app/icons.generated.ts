@@ -35,6 +35,7 @@ import riErrorWarningLine from '@iconify-icons/ri/error-warning-line'
 import riExpandUpDownLine from '@iconify-icons/ri/expand-up-down-line'
 import riExternalLinkLine from '@iconify-icons/ri/external-link-line'
 import riEyeLine from '@iconify-icons/ri/eye-line'
+import riEyeOffLine from '@iconify-icons/ri/eye-off-line'
 import riFileAddLine from '@iconify-icons/ri/file-add-line'
 import riFileCopyLine from '@iconify-icons/ri/file-copy-line'
 import riFileListLine from '@iconify-icons/ri/file-list-line'
@@ -126,6 +127,7 @@ addIcon('ri:error-warning-line', riErrorWarningLine)
 addIcon('ri:expand-up-down-line', riExpandUpDownLine)
 addIcon('ri:external-link-line', riExternalLinkLine)
 addIcon('ri:eye-line', riEyeLine)
+addIcon('ri:eye-off-line', riEyeOffLine)
 addIcon('ri:file-add-line', riFileAddLine)
 addIcon('ri:file-copy-line', riFileCopyLine)
 addIcon('ri:file-list-line', riFileListLine)

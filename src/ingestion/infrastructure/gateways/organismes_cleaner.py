@@ -1,9 +1,10 @@
 import csv
 import json
 import logging
+import re
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
-from typing import Any, Iterable, Optional
+from typing import Any, Iterable, Mapping, Optional
 from uuid import UUID, uuid4, uuid5
 
 from pydantic import BaseModel, ValidationError, field_validator
@@ -28,6 +29,10 @@ _CATEGORIES_CSV = _DATA_DIR / "categories_entite_geographique_exercice.csv"
 # Les autres statuts publics (collectivités, CCAS, CIAS, GCS, GIP…) relèvent
 # d'autres versants ou ne sont pas des employeurs FPH.
 _STATUTS_JURIDIQUES_PUBLICS_CSV = _DATA_DIR / "statuts_juridiques_publics.csv"
+# Verified SIRETs of DILA services (betagouv/csplab#2145). A row with an empty
+# SIRET (source "exclusion") marks a service reviewed and deemed not an
+# employer.
+DILA_SIRETS_CSV = _DATA_DIR / "dila_sirets.csv"
 
 _MAX_LONGITUDE_DEGREES = 180
 _MAX_LATITUDE_DEGREES = 90
@@ -66,6 +71,16 @@ def _load_allowed_codes(csv_path: Path) -> set[str]:
         return {row["code"].strip() for row in reader if row.get("code")}
 
 
+def load_dila_sirets(csv_path: Path) -> dict[str, str]:
+    with csv_path.open(encoding="utf-8") as f:
+        reader = csv.DictReader(f, delimiter=";")
+        return {
+            row["dila_id"].strip(): (row.get("siret") or "").strip()
+            for row in reader
+            if row.get("dila_id")
+        }
+
+
 class Nom(BaseModel):
     value: str
 
@@ -84,12 +99,14 @@ class OrganismesCleaner:
         *,
         categories_csv_path: Path = _CATEGORIES_CSV,
         statuts_juridiques_publics_csv_path: Path = _STATUTS_JURIDIQUES_PUBLICS_CSV,
+        dila_sirets_csv_path: Path = DILA_SIRETS_CSV,
         dila_siret_lookup_max_age_days: int,
     ) -> None:
         self._allowed_categories = _load_allowed_codes(categories_csv_path)
         self._allowed_statuts_juridiques = _load_allowed_codes(
             statuts_juridiques_publics_csv_path
         )
+        self._dila_sirets = load_dila_sirets(dila_sirets_csv_path)
         self._dila_siret_lookup_max_age = timedelta(days=dila_siret_lookup_max_age_days)
 
     def clean(self, raw_organisme: RawOrganisme) -> Optional[Organisme]:
@@ -101,16 +118,33 @@ class OrganismesCleaner:
             return self._clean_dila(raw_organisme)
         return None
 
-    def dedupe_by_siret(self, organismes: Iterable[Organisme]) -> list[Organisme]:
+    def dedupe_by_siret(
+        self,
+        organismes: Iterable[Organisme],
+        depths: Optional[Mapping[UUID, int]] = None,
+    ) -> list[Organisme]:
         best_by_siret: dict[SIRET, Organisme] = {}
         for organisme in organismes:
             current_best = best_by_siret.get(organisme.siret)
-            if current_best is None or self._is_better(organisme, current_best):
+            if current_best is None or self._is_better(organisme, current_best, depths):
                 best_by_siret[organisme.siret] = organisme
         return list(best_by_siret.values())
 
     @classmethod
-    def _is_better(cls, candidate: Organisme, current_best: Organisme) -> bool:
+    def _is_better(
+        cls,
+        candidate: Organisme,
+        current_best: Organisme,
+        depths: Optional[Mapping[UUID, int]],
+    ) -> bool:
+        if depths is not None:
+            # A shared SIRET (DILA) goes to the service highest in the
+            # hierarchy; on a tie, to the smallest external_id.
+            candidate_depth = depths.get(candidate.entity_id, 0)
+            best_depth = depths.get(current_best.entity_id, 0)
+            if candidate_depth != best_depth:
+                return candidate_depth < best_depth
+            return cls._external_id_key(candidate) < cls._external_id_key(current_best)
         # Le plus récemment créé l'emporte ; à égalité (ou en l'absence de
         # date_creation, ex. FINESS), le plus petit external_id l'emporte.
         candidate_date = candidate.date_creation
@@ -207,13 +241,24 @@ class OrganismesCleaner:
         if not raw_organisme.data:
             return None
 
+        # The export's SIRET is not read directly: it is only retained once
+        # verified by the lookup (dila_siret_found).
+        siret_code = self._dila_sirets.get(
+            raw_organisme.external_id, raw_organisme.dila_siret_found
+        )
+        if not siret_code:
+            # Expected: directorate, office, service excluded by the mapping…
+            return None
+
         data = raw_organisme.data
         nom = Nom(value=data.get("nom") or "")
-        siret_code = data.get("siret") or raw_organisme.dila_siret_found or ""
         siret = SIRET(code=siret_code)
         localisation = self._map_localisation_dila(data, raw_organisme.external_id)
 
-        parent_external_id = data.get("parent_id") or None
+        # Direct ancestor, provisional: the parent is resolved once the whole
+        # referentiel is cleaned, when the imported services are known.
+        ancestors = data.get("ancestors") or []
+        parent_external_id = ancestors[0] if ancestors else None
 
         return Organisme.build(
             entity_id=_dila_entity_id(raw_organisme.external_id),
@@ -230,18 +275,34 @@ class OrganismesCleaner:
             date_creation=_parse_iso_date(data.get("date_creation_datetime")),
         )
 
-    def nom_for_dila_siret_lookup(self, raw_organisme: RawOrganisme) -> Optional[str]:
-        """Nom to use for an external SIRET lookup, if this raw organisme has
-        a missing SIRET and no lookup has been cached for it yet; otherwise
-        None.
+    def dila_ancestor_ids(self, raw_organisme: RawOrganisme) -> list[UUID]:
+        """Entity ids of a DILA service's ancestors, closest first."""
+        if raw_organisme.referentiel != OrganismeReferentiel.DILA:
+            return []
+        ancestors = (raw_organisme.data or {}).get("ancestors") or []
+        return [_dila_entity_id(external_id) for external_id in ancestors]
+
+    def dila_siret_query(self, raw_organisme: RawOrganisme) -> Optional[str]:
+        """Query for an external SIRET lookup: the SIRET from the DILA export
+        to verify if there is one, otherwise the service's name.
+
+        None when no lookup is needed: the service is in the mapping, a lookup
+        is already cached, or its name is shared by several DILA services
+        ("Secrétariat général") and would match a namesake.
         """
         if raw_organisme.referentiel != OrganismeReferentiel.DILA:
             return None
         if not raw_organisme.data:
             return None
-        if raw_organisme.data.get("siret"):
+        if (
+            raw_organisme.external_id in self._dila_sirets
+            or self._has_fresh_dila_siret_lookup(raw_organisme)
+        ):
             return None
-        if self._has_fresh_dila_siret_lookup(raw_organisme):
+        siret = re.sub(r"\s", "", raw_organisme.data.get("siret") or "")
+        if siret:
+            return siret
+        if (raw_organisme.data.get("homonyms") or 0) > 1:
             return None
         nom = (raw_organisme.data.get("nom") or "").strip()
         return nom or None

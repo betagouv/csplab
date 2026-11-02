@@ -8,6 +8,8 @@ from domain.identite.entities.candidat import Candidat
 from domain.identite.entities.utilisateurs import Utilisateur
 from domain.identite.value_objects.email import normalize_email
 
+DEMO_CANDIDAT_EMAIL_DOMAIN = "@demo.candidat.fr"
+
 
 class UserModel(AbstractUser):
     email = models.EmailField(unique=True, null=False, blank=False)
