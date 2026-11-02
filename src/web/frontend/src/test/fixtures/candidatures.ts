@@ -77,6 +77,7 @@ export function candidatureDetail(candidatureUuid: string): CandidatureDetail {
     recrutement_intitule: 'Chargé de mission',
     etapes: KANBAN.etapes.map(({ uuid, nom }) => ({ uuid, nom })),
     etape_actuelle: { uuid: etape.uuid, nom: etape.nom },
+    motif_refus: null,
     date_candidature: candidature.date_soumission,
     date_derniere_maj_candidat: null,
     date_derniere_maj_recruteur: null,
