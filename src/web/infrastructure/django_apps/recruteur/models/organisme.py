@@ -40,7 +40,7 @@ class OrganismeQuerySet(models.QuerySet):
                 Coalesce("max_agent_updated", "updated_at"),
             ),
             managed_ats=Coalesce("gestion_ats", Value(False)),
-        ).order_by("-updated_at")
+        ).order_by("-updated_at", "id")
 
     def with_superviseurs_actifs(self) -> "OrganismeQuerySet":
         return self.prefetch_related(
