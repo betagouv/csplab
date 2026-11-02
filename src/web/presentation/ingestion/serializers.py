@@ -972,7 +972,6 @@ class ConditionsInputSerializer(serializers.Serializer):
     management = serializers.ChoiceField(
         choices=[(c.name, c.value) for c in Management], required=False
     )
-    complements = serializers.CharField(max_length=1500, required=False)
     bases_legales = serializers.CharField(max_length=1500, required=False)
     note_ouverture_poste_url = serializers.URLField(
         required=False,

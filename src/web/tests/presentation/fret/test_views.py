@@ -372,6 +372,7 @@ class TestOffreDetailView:
         ):
             assert expected in content, expected
         assert "TEMPS_PLEIN" not in content
+        assert "Conditions — Compléments" not in content
 
     def test_shows_criteria_and_conditions_rows_when_columns_are_empty(
         self, client, source
