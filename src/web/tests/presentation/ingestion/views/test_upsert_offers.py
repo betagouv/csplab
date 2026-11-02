@@ -49,6 +49,7 @@ from infrastructure.factories.referentiel.offer_django_factory import (
 )
 from infrastructure.mappers.offer_mapper import OfferMapper
 from presentation.commons.serializers import INVALID_COUNTRY_CODE
+from presentation.ingestion.serializers import ConditionsInputSerializer
 from presentation.ingestion.views.offers import UNKNOWN_GENERATED_REFERENCE
 
 fake = Faker("fr_FR")
@@ -70,6 +71,7 @@ PARTIAL_VALID_OFFER = PayloadOfferFactory.create(
         "ouvert_aux_militaires": "OUI",
         "lieu_de_travail": "SUR_SITE",
         "management": "SANS",
+        "complements": "Retiré de l'API : ignoré",
     },
     contacts=[],
 )
@@ -189,13 +191,15 @@ def parse_offer_from_payload(payload: dict, source_id: UUID) -> Offer:
         LimitDate(parse_datetime(debut_contrat_raw)) if debut_contrat_raw else None
     )
 
-    # mirrors how ConditionsInputSerializer parses datetime fields into validated_data
+    # mirrors how ConditionsInputSerializer drops unknown fields and parses datetime
+    # fields into validated_data
     if conditions:
         conditions = {
             key: parse_datetime(value)
             if key in ("debut_contrat", "fin_contrat") and value
             else value
             for key, value in conditions.items()
+            if key in ConditionsInputSerializer().fields
         }
 
     loc_data = payload.get("localisation")
@@ -230,7 +234,7 @@ def parse_offer_from_payload(payload: dict, source_id: UUID) -> Offer:
                 RequiredDocument[document]
                 for document in criteres.get("documents_requis") or []
             ],
-            competences_requises=list(criteres.get("competences_requises") or []),
+            competences_requises=criteres.get("competences_requises") or None,
             languages=[
                 OfferLanguage(
                     iso_code=langue["iso_code"], level=LanguageLevel[langue["niveau"]]
@@ -390,6 +394,9 @@ def test_valid_payload_returns_201_and_valid_offers_to_usecase(
         expected = parse_offer_from_payload(payload, source_id=UUID(SOURCE_UUID))
         for attr in COMPARABLE_OFFER_ATTRS:
             assert getattr(offer, attr) == getattr(expected, attr)
+    # conditions.complements was removed from the API: sent fields are dropped
+    partial_offer = upsert_input.offers[1]
+    assert "complements" not in partial_offer.conditions
 
 
 def test_mixed_valid_invalid_offers_in_payload(
@@ -730,6 +737,160 @@ def test_invalid_required_documents_are_rejected(
             "error": {"criteres": {"documents_requis": expected_error}},
         }
     ]
+
+
+def test_competences_requises_markdown_is_passed_to_usecase(
+    authenticated_client_with_source, use_case
+):
+    offer = PayloadOfferFactory.create(
+        identification={"reference": "REF-011", "versant": "FPT"},
+        criteres={"competences_requises": "Connaissances :\n\n- Droit public"},
+    )
+    use_case.execute.return_value = {
+        "created": 1,
+        "updated": 0,
+        "errors": [],
+        "offres": [{"reference": "REF-011", "statut": "created"}],
+    }
+
+    response = authenticated_client_with_source.post(
+        URL,
+        data={"source_id": SOURCE_UUID, "offres": [offer]},
+        content_type="application/json",
+    )
+
+    assert response.status_code == status.HTTP_201_CREATED
+    assert response.json()["errors"] == []
+    upsert_input = use_case.execute.call_args[0][0]
+    assert upsert_input.offers[0].criteria.competences_requises == (
+        "Connaissances :\n\n- Droit public"
+    )
+
+
+@pytest.mark.parametrize(
+    "competences_requises,expected_error",
+    [
+        (["Rigueur"], ["Chaîne de caractère invalide."]),
+        (
+            "a" * 2001,
+            ["Assurez-vous que ce champ comporte au plus 2000\xa0caractères."],
+        ),
+    ],
+    ids=["list", "too-long"],
+)
+def test_invalid_competences_requises_are_rejected(
+    authenticated_client_with_source, use_case, competences_requises, expected_error
+):
+    offer = PayloadOfferFactory.create(
+        identification={"reference": "REF-012", "versant": "FPT"},
+        criteres={"competences_requises": competences_requises},
+    )
+
+    response = authenticated_client_with_source.post(
+        URL,
+        data={"source_id": SOURCE_UUID, "offres": [offer]},
+        content_type="application/json",
+    )
+
+    assert response.status_code == status.HTTP_201_CREATED
+    assert response.json()["errors"] == [
+        {
+            "index": 0,
+            "offre": {"reference": "REF-012", "versant": "FPT"},
+            "error": {"criteres": {"competences_requises": expected_error}},
+        }
+    ]
+
+
+def test_bases_legales_markdown_is_passed_to_usecase(
+    authenticated_client_with_source, use_case
+):
+    offer = PayloadOfferFactory.create(
+        identification={"reference": "REF-013", "versant": "FPT"},
+        conditions={
+            "temps_travail": "TEMPS_PLEIN",
+            "lieu_de_travail": "SUR_SITE",
+            "management": "SANS",
+            "bases_legales": "Ouvert :\n\n- 1° aux fonctionnaires",
+        },
+    )
+    use_case.execute.return_value = {
+        "created": 1,
+        "updated": 0,
+        "errors": [],
+        "offres": [{"reference": "REF-013", "statut": "created"}],
+    }
+
+    response = authenticated_client_with_source.post(
+        URL,
+        data={"source_id": SOURCE_UUID, "offres": [offer]},
+        content_type="application/json",
+    )
+
+    assert response.status_code == status.HTTP_201_CREATED
+    assert response.json()["errors"] == []
+    upsert_input = use_case.execute.call_args[0][0]
+    assert upsert_input.offers[0].conditions["bases_legales"] == (
+        "Ouvert :\n\n- 1° aux fonctionnaires"
+    )
+
+
+@pytest.mark.parametrize(
+    "bases_legales,expected_error",
+    [
+        (
+            "Ouvert :<br>aux fonctionnaires",
+            [
+                (
+                    "Les balises HTML ne sont pas acceptées (<br>) : utilisez la "
+                    "syntaxe Markdown, ou écrivez \\< pour afficher le caractère <."
+                )
+            ],
+        ),
+        (
+            "[Loi](javascript:alert(1))",
+            [
+                (
+                    "Lien non autorisé (javascript:alert(1)) : seuls les liens http, "
+                    "https et mailto sont acceptés."
+                )
+            ],
+        ),
+        (
+            "a" * 1501,
+            ["Assurez-vous que ce champ comporte au plus 1500\xa0caractères."],
+        ),
+    ],
+    ids=["html", "forbidden-link", "too-long"],
+)
+def test_invalid_bases_legales_are_rejected(
+    authenticated_client_with_source, use_case, bases_legales, expected_error
+):
+    offer = PayloadOfferFactory.create(
+        identification={"reference": "REF-014", "versant": "FPT"},
+        conditions={
+            "temps_travail": "TEMPS_PLEIN",
+            "lieu_de_travail": "SUR_SITE",
+            "management": "SANS",
+            "bases_legales": bases_legales,
+        },
+    )
+
+    response = authenticated_client_with_source.post(
+        URL,
+        data={"source_id": SOURCE_UUID, "offres": [offer]},
+        content_type="application/json",
+    )
+
+    assert response.status_code == status.HTTP_201_CREATED
+    assert response.json()["errors"] == [
+        {
+            "index": 0,
+            "offre": {"reference": "REF-014", "versant": "FPT"},
+            "error": {"conditions": {"bases_legales": expected_error}},
+        }
+    ]
+    assert use_case.execute.call_args.args[0].offers == []
 
 
 @pytest.mark.parametrize(

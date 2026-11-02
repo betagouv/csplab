@@ -53,7 +53,6 @@ function panelRouteNames(prefix: string) {
     notes: {
       notes: tabs.notes,
       create: `${prefix}-nouvelle-note`,
-      edit: `${prefix}-modifier-note`,
     },
   }
 }

@@ -51,8 +51,6 @@ class OfferModel(BaseDatedModel):
     mission = models.TextField()
     categories = ArrayField(
         models.CharField(max_length=20, choices=CATEGORY_CHOICES),
-        blank=True,
-        default=list,
     )
     offer_nature = models.CharField(
         max_length=25, choices=OFFER_NATURE_CHOICES, null=True, blank=True
@@ -120,6 +118,11 @@ class OfferModel(BaseDatedModel):
             models.UniqueConstraint(
                 fields=["reference", "source_id"],
                 name="offers_reference_source_id_unique",
+            ),
+            # Article D.311-8 of the CGFP: an offer has at least one category.
+            models.CheckConstraint(
+                condition=~Q(categories=[]),
+                name="offer_categories_not_empty",
             ),
         ]
 

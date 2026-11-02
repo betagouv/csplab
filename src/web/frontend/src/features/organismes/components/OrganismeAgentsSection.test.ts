@@ -87,4 +87,21 @@ describe('organismeAgentsSection', () => {
       date_revocation: expect.any(String),
     }))
   })
+
+  it('changes the role from the access rights drawer', async () => {
+    const user = setupUser()
+    vi.mocked(updateAgentRole).mockResolvedValue({ ...AGENT_ORGANISME, role: 'superviseur' })
+    await renderSection()
+
+    await user.click(screen.getByRole('button', { name: 'Actions pour Jeanne Dupont' }))
+    await user.click(await screen.findByRole('menuitem', { name: 'Modifier les droits d\'accès' }))
+    const save = await screen.findByRole('button', { name: 'Enregistrer les modifications' })
+    expect(save).toBeDisabled()
+
+    await user.click(screen.getByRole('radio', { name: /^Superviseur/ }))
+    await user.click(save)
+
+    expect(await screen.findByText('Rôle modifié')).toBeInTheDocument()
+    expect(updateAgentRole).toHaveBeenCalledWith(MTE_UUID, { agent_id: AGENT_ORGANISME.uuid, role: 'superviseur' })
+  })
 })

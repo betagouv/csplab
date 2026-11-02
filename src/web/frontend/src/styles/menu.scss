@@ -7,6 +7,7 @@
   outline: none;
   color: var(--text-default-grey);
   user-select: none;
+  transition: background-color var(--csp-motion-duration-state);
 
   &[data-highlighted] {
     background-color: var(--background-default-grey-hover);

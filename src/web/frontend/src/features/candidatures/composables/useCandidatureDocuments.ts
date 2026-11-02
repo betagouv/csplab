@@ -3,7 +3,7 @@ import type { DocumentListe } from '../types'
 import type { CandidatureParams } from '@/api/params'
 import { useQuery } from '@pinia/colada'
 import { computed, toValue } from 'vue'
-import { candidatureDocumentUrl } from '../api'
+import { candidatureDocumentUrl } from '@/api/documents'
 import { candidatureDocumentCheckQuery, candidatureDocumentsQuery } from '../queries'
 
 const PDF_CONTENT_TYPE = 'application/pdf'
@@ -13,11 +13,12 @@ export function useCandidatureDocuments(candidature: MaybeRefOrGetter<Candidatur
 
   const documents = computed<DocumentListe[]>(() => query.data.value?.results ?? [])
 
+  function documentUrl(document: DocumentListe): string {
+    return candidatureDocumentUrl({ ...toValue(candidature), documentUuid: document.uuid })
+  }
+
   function pdfUrl(document: DocumentListe): string | null {
-    if (document.content_type !== PDF_CONTENT_TYPE) {
-      return null
-    }
-    return candidatureDocumentUrl(toValue(candidature), document.uuid)
+    return document.content_type === PDF_CONTENT_TYPE ? documentUrl(document) : null
   }
 
   return {
@@ -25,6 +26,7 @@ export function useCandidatureDocuments(candidature: MaybeRefOrGetter<Candidatur
     total: computed(() => query.data.value?.count ?? 0),
     pending: computed(() => query.isPending.value),
     error: computed(() => query.error.value),
+    documentUrl,
     pdfUrl,
   }
 }

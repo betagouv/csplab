@@ -125,6 +125,30 @@ export const WithError: Story = {
   },
 }
 
+export const States: Story = {
+  render: () => ({
+    components: { CspSwitch },
+    setup() {
+      const unchecked = ref(false)
+      const checked = ref(true)
+      return { unchecked, checked }
+    },
+    template: `
+      <div style="display: flex; flex-direction: column; gap: 1rem;">
+        <CspSwitch v-model="unchecked" label="Non activé" />
+        <CspSwitch v-model="checked" label="Activé" />
+        <CspSwitch :model-value="false" :disabled="true" label="Non modifiable" />
+        <CspSwitch :model-value="true" :disabled="true" label="Non modifiable activé" />
+        <CspSwitch :model-value="false" :error="true" label="Erreur" />
+        <CspSwitch :model-value="true" :error="true" label="Erreur activé" />
+      </div>
+    `,
+  }),
+  parameters: {
+    controls: { disable: true },
+  },
+}
+
 export const Sizes: Story = {
   render: () => ({
     components: { CspSwitch },

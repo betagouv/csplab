@@ -39,31 +39,17 @@ const titleId = useId()
       >
         Curriculum vitae
       </h3>
-      <div
+      <CspButton
         v-if="cv && cvUrl && !showSkeleton && !loadError"
-        class="candidature-cv__actions"
-      >
-        <CspButton
-          as="a"
-          :href="cvUrl"
-          target="_blank"
-          variant="tertiary-no-outline"
-          size="sm"
-          label="Afficher pleine page"
-          icon="ri:fullscreen-line"
-          is-icon-left
-        />
-        <CspButton
-          as="a"
-          :href="cvUrl"
-          :download="cv.nom_original"
-          variant="tertiary-no-outline"
-          size="sm"
-          label="Télécharger"
-          icon="ri:download-line"
-          is-icon-left
-        />
-      </div>
+        as="a"
+        :href="cvUrl"
+        target="_blank"
+        variant="tertiary-no-outline"
+        size="sm"
+        label="Afficher pleine page"
+        icon="ri:fullscreen-line"
+        is-icon-left
+      />
     </header>
 
     <CspAsyncSection
@@ -105,7 +91,6 @@ const titleId = useId()
   flex-direction: column;
   min-height: 24rem;
   overflow: hidden;
-  border: 1px solid var(--border-default-grey);
   background: var(--background-default-grey);
 }
 
@@ -126,12 +111,6 @@ const titleId = useId()
   font-size: 0.875rem;
   font-weight: 700;
   color: var(--text-title-grey);
-}
-
-.candidature-cv__actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--csp-space-1);
 }
 
 .candidature-cv__document {

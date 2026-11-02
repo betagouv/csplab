@@ -9,8 +9,9 @@ import {
   DialogTitle,
   DialogTrigger,
 } from 'reka-ui'
-import { computed, useAttrs, useSlots } from 'vue'
+import { computed, useAttrs, useId, useSlots } from 'vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
+import { provideCspDrawerFooter } from './useCspDrawerFooter'
 
 export interface CspDrawerProps {
   open?: boolean
@@ -56,7 +57,8 @@ const hasTrigger = computed(() => Boolean(slots.trigger))
 const hasStart = computed(() => Boolean(slots.start))
 const hasTitle = computed(() => Boolean(slots.title) || Boolean(props.title))
 const hasDescription = computed(() => Boolean(slots.description) || Boolean(props.description))
-const hasFooter = computed(() => Boolean(slots.footer))
+const footerId = useId()
+provideCspDrawerFooter(footerId)
 </script>
 
 <template>
@@ -86,7 +88,6 @@ const hasFooter = computed(() => Boolean(slots.footer))
           `csp-drawer--${side}`,
           `csp-drawer--${size}`,
           {
-            'csp-drawer--has-footer': hasFooter,
             'csp-drawer--modal-no-overlay': modal && !overlay,
           },
         ]"
@@ -155,7 +156,7 @@ const hasFooter = computed(() => Boolean(slots.footer))
         </div>
 
         <footer
-          v-if="hasFooter"
+          :id="footerId"
           class="csp-drawer__footer"
         >
           <slot name="footer" />
@@ -179,6 +180,14 @@ const hasFooter = computed(() => Boolean(slots.footer))
   inset: 0;
   background-color: var(--csp-overlay-scrim);
   z-index: var(--csp-z-overlay);
+
+  &[data-state='open'] {
+    animation: var(--csp-motion-scrim-enter);
+  }
+
+  &[data-state='closed'] {
+    animation: var(--csp-motion-scrim-exit);
+  }
 }
 
 .csp-drawer {
@@ -193,19 +202,31 @@ const hasFooter = computed(() => Boolean(slots.footer))
   outline: none;
   background-color: var(--background-overlap-grey);
   color: var(--text-default-grey);
-  box-shadow: var(--csp-shadow-lg);
+  box-shadow: var(--csp-lifted-shadow);
   z-index: var(--csp-z-modal);
 
   display: flex;
   flex-direction: column;
+
+  &[data-state='open'] {
+    animation: var(--csp-motion-drawer-enter);
+  }
+
+  &[data-state='closed'] {
+    animation: var(--csp-motion-drawer-exit);
+  }
 }
 
 .csp-drawer--right {
+  --csp-drawer-offset: 100%;
+
   right: 0;
   border-left: 1px solid var(--border-default-grey);
 }
 
 .csp-drawer--left {
+  --csp-drawer-offset: -100%;
+
   left: 0;
   border-right: 1px solid var(--border-default-grey);
 }
@@ -324,6 +345,10 @@ const hasFooter = computed(() => Boolean(slots.footer))
   padding-inline: var(--csp-drawer-padding-inline, var(--csp-space-6));
   font-size: 0.875rem;
   line-height: 1.5;
+}
+
+.csp-drawer__footer:empty {
+  display: none;
 }
 
 .csp-drawer__footer {

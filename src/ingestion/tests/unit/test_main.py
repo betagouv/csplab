@@ -43,7 +43,7 @@ class TestPlaintextFormatter:
 
 
 class TestCreateApp:
-    @patch("api._sentry.sentry_sdk.init")
+    @patch("infrastructure.observability.sentry.sentry_sdk.init")
     def test_create_app_initializes_sentry_when_dsn_is_set(
         self, mock_sentry_init, monkeypatch
     ):
@@ -54,7 +54,7 @@ class TestCreateApp:
 
         mock_sentry_init.assert_called_once()
 
-    @patch("api._sentry.sentry_sdk.init")
+    @patch("infrastructure.observability.sentry.sentry_sdk.init")
     def test_create_app_skips_sentry_when_no_dsn(self, mock_sentry_init, monkeypatch):
         monkeypatch.setenv("TESTING", "true")
         monkeypatch.delenv("SENTRY_DSN", raising=False)

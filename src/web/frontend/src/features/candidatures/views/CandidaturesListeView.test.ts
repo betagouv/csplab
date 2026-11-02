@@ -30,7 +30,6 @@ vi.mock('../api', () => ({
   patchEtapeCandidatures: vi.fn(),
   getMotifsRefus: vi.fn(),
   getCandidatureDocuments: vi.fn(() => new Promise(() => {})),
-  candidatureDocumentUrl: vi.fn(),
   getCandidatureNotes: vi.fn(() => new Promise(() => {})),
   createCandidatureNote: vi.fn(),
   getCandidatureActivites: vi.fn(),

@@ -381,7 +381,7 @@ caractères s'applique au texte Markdown, syntaxe comprise.
 | `specialisations` | Liste de textes. |
 | `diplome` | Texte. |
 | `documents_requis` | Liste de documents à transmettre pour candidater. Valeurs : **CV, LETTRE_MOTIVATION, PORTFOLIO**. Chaque document ne peut être cité qu'une fois. |
-| `competences_requises` | Liste de textes. |
+| `competences_requises` | Texte libre en Markdown, **2 000 caractères maximum**. Peut être vide ou `null`. |
 | `langues` | Liste de langues, chacune avec un **code ISO sur 2 caractères** et un **niveau** (**A1, A2, B1, B2, C1, C2**). |
 
 #### Bloc « Conditions » (`conditions`) — peut être vide
@@ -395,8 +395,7 @@ caractères s'applique au texte Markdown, syntaxe comprise.
 | `ouvert_aux_militaires` | **OUI** ou **NON**. |
 | `lieu_de_travail` | Obligatoire. Valeurs : **NON_DEFINI, SUR_SITE, TELETRAVAIL**. |
 | `management` | Obligatoire. **AVEC** ou **SANS** management. |
-| `complements` | **1 500 caractères maximum.** |
-| `bases_legales` | **1 500 caractères maximum.** |
+| `bases_legales` | Texte libre en Markdown, **1 500 caractères maximum**. |
 | `note_ouverture_poste_url` | Lien **`https`** vers l'avis de vacance publié au Journal officiel, sur **`legifrance.gouv.fr`** ou **`www.legifrance.gouv.fr`** (ex. `https://www.legifrance.gouv.fr/jorf/id/JORFTEXT…`). Une offre avec un lien `http` ou vers un autre site est rejetée. |
 
 #### Bloc « Contacts » (`contacts`) — liste, peut être vide
@@ -623,7 +622,7 @@ filtre `domaine` des routes de consultation des offres et des métiers.
 
 # Annexe — Correspondance entre le format Talentsoft et l'API v1
 
-Cette annexe est destinée aux intégrateurs qui alimentent l'API à partir d'offres au format Talentsoft. Elle indique, pour chaque champ d'une offre Talentsoft, le champ correspondant de l'offre envoyée à `POST /api/v1/offres/creer_modifier/` (« Offer API v1 »), ainsi que les champs sans équivalent des deux côtés. Les notes « API fake-ts » décrivent les offres renvoyées par l'API fake-ts (`/api/fake-ts/`), qui expose les offres de CSPLab au format Talentsoft.
+Cette annexe est destinée aux intégrateurs qui alimentent l'API à partir d'offres au format Talentsoft. Elle indique, pour chaque champ d'une offre Talentsoft, le champ correspondant de l'offre envoyée à `POST /api/v1/offres/creer_modifier/` (« Offer API v1 »), ainsi que les champs sans équivalent des deux côtés. Les champs lus dans des champs personnalisés (`customFields`) que l'API fake-ts n'expose pas sont décrits dans la dernière section. Les notes « API fake-ts » décrivent les offres renvoyées par l'API fake-ts (`/api/fake-ts/`), qui expose les offres de CSPLab au format Talentsoft.
 
 Notation : `a.b` désigne un objet imbriqué, `a[]` une liste, `a[0]` son premier élément. Tout objet codé (`contractType`, `offerFamilyCategory`, `professionalCategory`, `educationLevel`, `diploma`, `experienceLevel`, `country`, `region`, `department`, `specialisations[]`, `languages[].languageName|languageLevel`) est lu par son `clientCode` ; ses autres clés (`code`, `label`, `active`, `parentCode`, `type`, `parentType`, `hasChildren`) sont ignorées.
 
@@ -638,20 +637,22 @@ Notation : `a.b` désigne un objet imbriqué, `a[]` une liste, `a[0]` son premie
 | `organisation.entityCode` | `organisation.talentsoft_organisme_entity_code` | Réservé au service ingestion de CSPLab : laissez ce champ vide, une offre qui le renseigne est rejetée. API fake-ts : reprend l'organisme Talentsoft lié à l'offre. Toute offre est liée à un organisme Talentsoft. |
 | `contractType.clientCode` | `nature_offre` | Traduit par le transcodeur de la source. |
 | `professionalCategory.clientCode` | `vacance_poste` | `STATUT01` → `OUI` (poste vacant), `STATUT02` → `NON` (poste susceptible d'être vacant), sinon vide. Malgré son nom, c'est le « Statut du poste » affiché par l'ancien site WordPress. API fake-ts : `OUI` → `STATUT01`, `NON` → `STATUT02`, sinon `null`. |
-| `offerFamilyCategory.clientCode` | `profession.metier` | `profession.domaine` correspond à ses 3 premiers caractères, après retrait d'un `ER` initial. |
+| `offerFamilyCategory.clientCode` | `profession.metier` | `profession.domaine` n'est envoyé que pour les métiers relevant de plusieurs domaines (`ERJUS008`, `ERTRA007`) : il reprend alors les caractères 3 à 5 du code (`JUS`, `TRA`). Sinon, il est déduit du métier. API fake-ts : renvoie la catégorie principale de l'offre, pas le métier. |
 | `description1Formatted` | `description.mission` | Converti du HTML en Markdown, repli sur le texte brut `description1` s'il est vide. API fake-ts : `description1` contient le Markdown, la variante `Formatted` le HTML (titres rendus en paragraphes en gras), `null` si le champ est vide. |
 | `description2Formatted` | `description.profil` | Converti du HTML en Markdown, repli sur le texte brut `description2` s'il est vide. API fake-ts : `description2` contient le Markdown, la variante `Formatted` le HTML (titres rendus en paragraphes en gras), `null` si le champ est vide. |
 | `customFields.description.longText1Formatted` | `description.employeur` | Converti du HTML en Markdown, repli sur le texte brut `customFields.description.longText1` s'il est vide. API fake-ts : `customFields.description.longText1` contient le Markdown, la variante `Formatted` le HTML (titres rendus en paragraphes en gras), `null` si le champ est vide. |
 | `customFields.description.longText2Formatted` | `description.conditions_exercice` | Converti du HTML en Markdown, repli sur le texte brut `customFields.description.longText2` s'il est vide. API fake-ts : `customFields.description.longText2` contient le Markdown, la variante `Formatted` le HTML (titres rendus en paragraphes en gras), `null` si le champ est vide. |
 | `customFields.description.longText3Formatted` | `description.descriptif_service` | Converti du HTML en Markdown, repli sur le texte brut `customFields.description.longText3` s'il est vide. API fake-ts : `customFields.description.longText3` contient le Markdown, la variante `Formatted` le HTML (titres rendus en paragraphes en gras), `null` si le champ est vide. |
 | `customFields.offerCustomBlock1.longText1Formatted` | `description.complements` | Converti du HTML en Markdown, repli sur le texte brut `customFields.offerCustomBlock1.longText1` s'il est vide. API fake-ts : `customFields.offerCustomBlock1.longText1` contient le Markdown, la variante `Formatted` le HTML (titres rendus en paragraphes en gras), `null` si le champ est vide. |
+| `customFields.applicantCriteria.longText1Formatted` | `criteres.competences_requises` | « Compétences attendues ». Converti du HTML en Markdown, repli sur le texte brut `customFields.applicantCriteria.longText1` s'il est vide ; sans les espaces en début et fin, non envoyé s'il est vide. API fake-ts : `customFields.applicantCriteria.longText1` contient le Markdown, la variante `Formatted` le HTML (titres rendus en paragraphes en gras), `null` si le champ est vide. |
+| `customFields.offerCustomBlock1.longText2Formatted` | `conditions.bases_legales` | « Fondement juridique ». Converti du HTML en Markdown, repli sur le texte brut `customFields.offerCustomBlock1.longText2` s'il est vide ; sans les espaces en début et fin, non envoyé s'il est vide. API fake-ts : `customFields.offerCustomBlock1.longText2` contient le Markdown, la variante `Formatted` le HTML (titres rendus en paragraphes en gras), `null` si le champ est vide. |
 | `offerUrl` | `url_offre` | |
 | `urlRedirectionApplicant` | `url_candidature` | Prioritaire sur `customFields.origin.shortText1` et `applicationUrl`. |
 | `customFields.origin.shortText1` | `email_candidature` | Texte libre (« adresse de candidature »). Lu seulement si `urlRedirectionApplicant` est vide : le premier e-mail valide trouvé devient `email_candidature`, et `url_candidature` reste vide. API fake-ts : reprend `email_candidature`, `null` si l'offre se candidate par lien. |
 | `applicationUrl` | `url_candidature` | Dernier recours, si `urlRedirectionApplicant` est vide et que `customFields.origin.shortText1` ne contient aucun e-mail valide. Toujours rempli dans Talentsoft (page de candidature générique). API fake-ts : reprend `url_candidature`, `null` si l'offre se candidate par e-mail. |
-| `geographicalLocation[0].clientCode` | `localisation[0].zone_geographique` | Ignoré : la zone est déduite du département. L'API fake-ts renvoie toujours `[]`. Toute la `localisation` est abandonnée si le pays, la région ou le département manque. |
+| `geographicalLocation[0].clientCode` | `localisation[0].zone_geographique` | Ignoré : la zone est déduite du département, car Talentsoft range presque tout l'outre-mer en `Europe`. `EUROPE` en métropole, `AMERIQUE` (971, 972, 973) ou `AFRIQUE` (974, 976) pour les DOM, `AMERIQUE` (975, `SPM`) ou `OCEANIE` (986, `WLF`, 987, 988) pour les collectivités d'outre-mer. Toute la `localisation` est abandonnée si le pays, la région ou le département manque, ou si le département est inconnu. API fake-ts : toujours `[]`. |
 | `country[0].clientCode` | `localisation[0].pays` | |
-| `region[0].clientCode` | `localisation[0].region` | Les préfixes `_TS_CO_Region_` et `R` sont retirés pour obtenir le code INSEE. |
+| `region[0].clientCode` | `localisation[0].region` | Les préfixes `_TS_CO_Region_` et `R` sont retirés pour obtenir le code INSEE. Ignoré pour l'outre-mer : `DOM` pour les départements 971 à 974 et 976, `TOM` pour 975, 986, 987, 988, `SPM` et `WLF`. |
 | `department[0].clientCode` | `localisation[0].departement` | Cas particulier de la Nouvelle-Calédonie (`988`). |
 | `geolocation.latitude` | `localisation[0].latitude` | Repli sur `latitude`, puis sur `organisation.geolocation.latitude`. |
 | `geolocation.longitude` | `localisation[0].longitude` | Repli sur `longitude`, puis sur `organisation.geolocation.longitude`. |
@@ -669,7 +670,7 @@ Notation : `a.b` désigne un objet imbriqué, `a[]` une liste, `a[0]` son premie
 | `languages[].languageName.clientCode` | `criteres.langues[].iso_code` | |
 | `languages[].languageLevel.clientCode` | `criteres.langues[].niveau` | |
 
-`criteres` n'est envoyé que si au moins un des champs niveau de diplôme, diplôme, expérience, spécialisations ou langues est renseigné.
+`criteres` n'est envoyé que si au moins un des champs niveau de diplôme, diplôme, expérience, spécialisations, langues, compétences requises ou documents requis est renseigné.
 
 ### Champs Talentsoft sans équivalent dans l'API v1
 
@@ -685,8 +686,10 @@ Notation : `a.b` désigne un objet imbriqué, `a[]` une liste, `a[0]` son premie
 | `_format` | Métadonnées de transport. |
 | `_metadata` | Métadonnées de transport. |
 | `urlRedirectionEmployee` | |
-| `locations` | |
+| `locations` | Non lu : la localisation vient de `country`, `region` et `department`. Toujours vide en pratique dans les offres Talentsoft. API fake-ts : toujours `[]`. |
 | `isAnonymousOrganisation` | |
+| `offerTime` | Non lu : `conditions.temps_travail` vient de `customFields.description.customCodeTable3`. |
+| `numberOfVacancies` | Nombre de postes à pourvoir. Toujours `null` en pratique dans les offres Talentsoft. |
 | `organisation.name` | Données d'organisme, synchronisées par l'upsert séparé des organismes Talentsoft (`TalentsoftOrganismeUpsertInputSerializer`), pas par le payload d'offre. |
 | `organisation.description` | Données d'organisme, synchronisées par l'upsert séparé des organismes Talentsoft (`TalentsoftOrganismeUpsertInputSerializer`), pas par le payload d'offre. |
 | `organisation.url` | Données d'organisme, synchronisées par l'upsert séparé des organismes Talentsoft (`TalentsoftOrganismeUpsertInputSerializer`), pas par le payload d'offre. |
@@ -698,9 +701,10 @@ Notation : `a.b` désigne un objet imbriqué, `a[]` une liste, `a[0]` son premie
 | `organisation.retentionPeriod` | Données d'organisme, synchronisées par l'upsert séparé des organismes Talentsoft (`TalentsoftOrganismeUpsertInputSerializer`), pas par le payload d'offre. |
 | `organisation.generalConditions` | Données d'organisme, synchronisées par l'upsert séparé des organismes Talentsoft (`TalentsoftOrganismeUpsertInputSerializer`), pas par le payload d'offre. |
 | `organisation.personalDataConsent` | Données d'organisme, synchronisées par l'upsert séparé des organismes Talentsoft (`TalentsoftOrganismeUpsertInputSerializer`), pas par le payload d'offre. |
-| `operationalManager` | Jamais lu : `contacts` vient de `customFields.origin` (voir plus bas). |
+| `operationalManager` | Non lu : `contacts` vient de `customFields.origin` (voir plus bas). |
 | `applicationQuestions` | |
 | `attachedFilesUrls` | |
+| `skillCollection[]` | Non lu : `criteres.competences_requises` vient de `customFields.applicantCriteria.longText1Formatted` (voir « Champs reliés »). Toujours vide en pratique dans les offres Talentsoft. |
 | `customFields.offer.shortText1` | |
 | `customFields.offer.longText1` | |
 | `customFields.offer.longText2` | |
@@ -713,11 +717,7 @@ Notation : `a.b` désigne un objet imbriqué, `a[]` une liste, `a[0]` son premie
 | `customFields.location.longText3` | |
 | `customFields.offerCustomBlock1.date1` | |
 | `customFields.offerCustomBlock1.shortText1` | |
-| `customFields.offerCustomBlock1.longText2` | |
-| `customFields.offerCustomBlock1.longText3` | |
-| `customFields.applicantCriteria.longText1Formatted` | API fake-ts : toujours `null` (non ingéré). |
-| `customFields.offerCustomBlock1.longText2Formatted` | API fake-ts : toujours `null` (non ingéré). |
-| `customFields.offerCustomBlock1.longText3Formatted` | API fake-ts : toujours `null` (non ingéré). |
+| `customFields.offerCustomBlock1.longText3Formatted` | Non lu : seul le texte brut `customFields.offerCustomBlock1.longText3` est repris. API fake-ts : toujours `null`. |
 | `code` | Clé de tout objet codé : seul `clientCode` est lu. |
 | `label` | Clé de tout objet codé : seul `clientCode` est lu. |
 | `active` | Clé de tout objet codé : seul `clientCode` est lu. |
@@ -736,7 +736,6 @@ Notation : `a.b` désigne un objet imbriqué, `a[]` une liste, `a[0]` son premie
 | `profession.referentiel` | Constante `RMFPv2`. |
 | `profession.code_emploi_local` | Jamais renseigné, `local_job_code` reste à `null`. |
 | `criteres.documents_requis` | Lu dans `customFields.applicantCriteria.customCodeTable1` (« Documents à transmettre ») : `Doc_CV` → `[CV]`, `Doc_CV_LM` → `[CV, LETTRE_MOTIVATION]`, `Doc_CV_PF` → `[CV, PORTFOLIO]`, `Doc_CV_LM_PF` → `[CV, LETTRE_MOTIVATION, PORTFOLIO]`. Absent, `null` ou code inconnu → non envoyé. API fake-ts : renvoyé dans `customFields.applicantCriteria.customCodeTable1`, valeur du référentiel Talentsoft « Documents à transmettre » : `[CV]` → `Doc_CV`, `[CV, LETTRE_MOTIVATION]` → `Doc_CV_LM`, `[CV, PORTFOLIO]` → `Doc_CV_PF`, `[CV, LETTRE_MOTIVATION, PORTFOLIO]` → `Doc_CV_LM_PF`, quel que soit l'ordre. `null` pour une liste vide ou une autre combinaison. Le `label` reprend le libellé Talentsoft, que le WordPress BIEP affiche après « Pour postuler à cette offre, ». |
-| `criteres.competences_requises` | Jamais renseigné par l'ingestion. |
 | `conditions.temps_travail` | Lu dans `customFields.description.customCodeTable3` (absent de l'API fake-ts) : `reponse_oui` → `TEMPS_PLEIN`, `reponse_non` → `TEMPS_PARTIEL`, sinon `NON_DEFINI`. |
 | `conditions.lieu_de_travail` | Lu dans `customFields.offerCustomBlock1.customCodeTable2` (absent de l'API fake-ts) : `reponse_oui` → `TELETRAVAIL`, `reponse_non` → `SUR_SITE`, sinon `NON_DEFINI`. |
 | `conditions.management` | Lu dans `customFields.offerCustomBlock1.customCodeTable1` (absent de l'API fake-ts) : `reponse_oui` → `AVEC`, `reponse_non` → `SANS`. |
@@ -744,8 +743,6 @@ Notation : `a.b` désigne un objet imbriqué, `a[]` une liste, `a[0]` son premie
 | `conditions.salaire_contractuel` | Jamais renseigné par l'ingestion. |
 | `conditions.fin_contrat` | Jamais renseigné par l'ingestion. |
 | `conditions.ouvert_aux_militaires` | Jamais renseigné par l'ingestion. |
-| `conditions.complements` | Jamais renseigné par l'ingestion. |
-| `conditions.bases_legales` | Jamais renseigné par l'ingestion. |
 | `conditions.note_ouverture_poste_url` | Lu dans `customFields.offerCustomBlock1.longText3` (« Avis de vacance au JO », absent de l'API fake-ts) : premier lien `legifrance.gouv.fr` présent dans le texte, passé en `https`. `null` si le texte ne contient aucun lien Legifrance (les liens vers une page de candidature sont ignorés). |
 | `contacts` | Lu dans `customFields.origin.shortText2` et `customFields.origin.shortText3` (absents de l'API fake-ts) : `shortText2` (« Personnes à contacter ») → contact `principal`, `shortText3` (« Autre personne à contacter ») → contact `autre`. `texte` reprend la valeur sans les espaces en début et fin ; une valeur sans lettre ni chiffre est ignorée. `emails` contient les adresses email présentes dans le texte, dédoublonnées, dans l'ordre d'apparition. `null` si aucun contact. |
 

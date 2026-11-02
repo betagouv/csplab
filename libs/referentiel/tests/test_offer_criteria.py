@@ -25,3 +25,21 @@ def test_required_documents_are_read_from_their_name():
 def test_unknown_required_document_raises():
     with pytest.raises(KeyError):
         OfferCriteria.from_dict({"documents_requis": ["Copie des diplômes"]})
+
+
+@pytest.mark.parametrize(
+    "stored,expected",
+    [
+        ("- Rigueur", "- Rigueur"),
+        (["Rigueur", "Autonomie"], "Rigueur\nAutonomie"),
+        ([], None),
+        ("", None),
+        (None, None),
+    ],
+    ids=["markdown", "legacy-list", "legacy-empty-list", "blank", "null"],
+)
+def test_required_skills_are_read_as_markdown(stored, expected):
+    criteria = OfferCriteria.from_dict({"competences_requises": stored})
+
+    assert criteria is not None
+    assert criteria.competences_requises == expected

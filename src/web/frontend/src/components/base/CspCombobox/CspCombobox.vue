@@ -223,9 +223,18 @@ const announcedStatus = useDebounce(statusMessage, 1000)
   border-radius: 0.25rem;
   box-shadow:
     inset 0 0 0 1px var(--border-default-grey),
-    var(--csp-shadow-md);
+    var(--csp-overlap-shadow, var(--csp-shadow-md));
   overflow: hidden;
   z-index: var(--csp-z-dropdown);
+  transform-origin: var(--reka-popper-transform-origin);
+
+  &[data-state='open'] {
+    animation: var(--csp-motion-overlap-enter);
+  }
+
+  &[data-state='closed'] {
+    animation: var(--csp-motion-overlap-exit);
+  }
 }
 
 .csp-combobox-content__viewport {

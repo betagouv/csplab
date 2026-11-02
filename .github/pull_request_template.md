@@ -22,4 +22,5 @@ __Étapes pour reproduire ou tester__
 ## 📚 Documentation
 - [ ]  J’ai mis à jour ou ajouté la documentation nécessaire.
 - [ ] 🔌 Si cette PR modifie l’API publique, j'ai ajouté un fichier dans `changelog_api.d/` et l'ai daté avec `mise run web:changelog-api:dater` avant le merge (voir `docs/changelog_api.md`).
+- [ ] 🔀 Si cette PR modifie la lecture des offres Talentsoft (`OffersCleaner`, `OfferUpsertPayload`) ou l'API fake-ts, j'ai mis à jour l'annexe « Correspondance entre le format Talentsoft et l'API v1 » de `guide_api.md`.
 - [ ] 🇫🇷 Si cette PR introduit de nouveaux termes français, j’ai mis à jour le glossaire.

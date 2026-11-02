@@ -1,12 +1,15 @@
 <script setup lang="ts">
+import type { DocumentListe } from '../types'
 import type { CandidatureParams } from '@/api/params'
 import { computed } from 'vue'
+import { checkCandidatureDocument } from '@/api/documents'
 import CspAsyncSection from '@/components/base/CspAsyncSection/CspAsyncSection.vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspEmptyState from '@/components/base/CspEmptyState/CspEmptyState.vue'
 import CspIcon from '@/components/base/CspIcon/CspIcon.vue'
 import CspSkeleton from '@/components/base/CspSkeleton/CspSkeleton.vue'
 import { useMinimumPending } from '@/composables/async/useMinimumPending'
+import { useOpenDocument } from '@/composables/ui/useOpenDocument'
 import { formatElapsedDays } from '@/utils/date'
 import { formatFileSize, pluralize } from '@/utils/format'
 import { useCandidatureDocuments } from '../composables/useCandidatureDocuments'
@@ -18,7 +21,12 @@ const props = defineProps<{
 
 const SKELETON_ROWS = 2
 
-const { documents, total, pending, error, pdfUrl } = useCandidatureDocuments(() => props.candidature)
+const { documents, total, pending, error, documentUrl } = useCandidatureDocuments(() => props.candidature)
+const { open } = useOpenDocument()
+
+function openDocument(event: MouseEvent, document: DocumentListe): void {
+  open(event, documentUrl(document), () => checkCandidatureDocument({ ...props.candidature, documentUuid: document.uuid }))
+}
 
 const showSkeleton = useMinimumPending(pending)
 
@@ -107,28 +115,17 @@ const title = computed(() => `${total.value} ${pluralize(total.value, 'document'
               {{ TYPE_DOCUMENT_LABELS[document.type] }} · {{ formatFileSize(document.taille) }} · déposé {{ formatElapsedDays(document.depose_le) }}
             </p>
           </div>
-          <template v-if="pdfUrl(document)">
-            <CspButton
-              as="a"
-              :href="pdfUrl(document)"
-              target="_blank"
-              label="Voir"
-              variant="tertiary"
-              size="sm"
-              icon="ri:eye-line"
-              is-icon-left
-            />
-            <CspButton
-              as="a"
-              :href="pdfUrl(document)"
-              :download="document.nom_original"
-              label="Télécharger"
-              variant="tertiary"
-              size="sm"
-              icon="ri:download-line"
-              is-icon-left
-            />
-          </template>
+          <CspButton
+            as="a"
+            :href="documentUrl(document)"
+            target="_blank"
+            label="Voir"
+            variant="tertiary"
+            size="sm"
+            icon="ri:eye-line"
+            is-icon-left
+            @click="openDocument($event, document)"
+          />
         </li>
       </ul>
     </CspAsyncSection>
