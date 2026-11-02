@@ -5,22 +5,28 @@ on:
     branches: ["main"]
   pull_request:
     branches: ["main"]
-    types: [ opened, synchronize, reopened, edited ]
+    types: [opened, synchronize, reopened]
     #trigger this workflow if files have changed in notebook
     paths:
       - "src/notebook/**"
       - "mise.toml"
+      - "mise.ci.toml"
+      - "mise.lock"
       - ".github/workflows/notebook.yml"
       - ".github/actions/**"
 
 permissions:
   contents: read
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   build-notebook:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
       - uses: ./.github/actions/setup-mise
       - name: Install the project
         run: mise run notebook:install

@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import type { Role } from '../types'
-import { computed, ref, useTemplateRef, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { isHttpStatus } from '@/api/errors'
 import CspAsyncSection from '@/components/base/CspAsyncSection/CspAsyncSection.vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspDataTable from '@/components/base/CspDataTable/CspDataTable.vue'
+import { TABLE_PAGE_SIZE } from '@/components/base/CspDataTable/table'
 import CspDialog from '@/components/base/CspDialog/CspDialog.vue'
+import CspDrawer from '@/components/base/CspDrawer/CspDrawer.vue'
 import CspSearchBar from '@/components/base/CspSearchBar/CspSearchBar.vue'
 import CspSkeletonTable from '@/components/base/CspSkeleton/CspSkeletonTable.vue'
 import CspTableToolbar from '@/components/base/CspTableToolbar/CspTableToolbar.vue'
@@ -19,13 +21,11 @@ import { useAddAgentToOrganisme } from '../composables/useAddAgentToOrganisme'
 import { provideAgentActions } from '../composables/useAgentActions'
 import { useOrganismeAgents } from '../composables/useOrganismeAgents'
 import { ROLE_LABELS } from '../constants/organisme'
-import AttachAgentDrawer from './AttachAgentDrawer.vue'
+import AttachAgentForm from './AttachAgentForm.vue'
 
 const props = defineProps<{
   organismeUuid: string
 }>()
-
-const PAGE_SIZE = 8
 
 const { agents, pending, error, updateAgent, updatingAgent } = useOrganismeAgents(props.organismeUuid)
 const { status, foundAgent, searching, search: searchAgent, add, submitting, reset } = useAddAgentToOrganisme(props.organismeUuid)
@@ -37,7 +37,7 @@ const showSkeleton = useMinimumPending(pending)
 const page = ref(1)
 const revocationDialogOpen = ref(false)
 const attachDrawerOpen = ref(false)
-const attachDrawer = useTemplateRef('attachDrawer')
+const attachEmailError = ref('')
 
 async function handleAdd(role: Role) {
   try {
@@ -51,18 +51,22 @@ async function handleAdd(role: Role) {
   }
   catch (submitError) {
     if (isHttpStatus(submitError, 409)) {
-      attachDrawer.value?.setEmailError('Cet agent est déjà rattaché à l\'organisme.')
+      attachEmailError.value = 'Cet agent est déjà rattaché à l\'organisme.'
       return
     }
     addToast({ variant: 'error', title: 'L\'ajout du membre a échoué' })
   }
 }
 
-watch(attachDrawerOpen, (isOpen) => {
-  if (!isOpen) {
-    reset()
-  }
-})
+function resetAgentSearch(): void {
+  attachEmailError.value = ''
+  reset()
+}
+
+function openAttachDrawer(): void {
+  resetAgentSearch()
+  attachDrawerOpen.value = true
+}
 
 const rows = computed(() => agents.value ?? [])
 
@@ -152,9 +156,7 @@ async function handleRevocation(): Promise<void> {
     >
       <template #skeleton>
         <CspSkeletonTable
-          :rows="PAGE_SIZE"
           :columns="ORGANISME_AGENTS_COLUMNS.length"
-          with-footer
         />
       </template>
 
@@ -165,13 +167,12 @@ async function handleRevocation(): Promise<void> {
           label="Rechercher un membre, un courriel"
           hide-label
           placeholder="Rechercher un membre, un courriel"
-          class="organisme-agents-section__search"
         />
         <CspButton
           label="Ajouter un membre"
           icon="ri:user-add-line"
           is-icon-left
-          @click="attachDrawerOpen = true"
+          @click="openAttachDrawer"
         />
       </CspTableToolbar>
       <CspDataTable
@@ -180,7 +181,7 @@ async function handleRevocation(): Promise<void> {
         :columns="ORGANISME_AGENTS_COLUMNS"
         :row-key="row => row.uuid"
         caption="Membres de l'organisme"
-        :page-size="PAGE_SIZE"
+        :page-size="TABLE_PAGE_SIZE"
       >
         <template #empty>
           <div class="organisme-agents-section__empty">
@@ -199,17 +200,23 @@ async function handleRevocation(): Promise<void> {
       </CspDataTable>
     </CspAsyncSection>
 
-    <AttachAgentDrawer
-      ref="attachDrawer"
+    <CspDrawer
       v-model:open="attachDrawerOpen"
-      :status="status"
-      :agent="foundAgent"
-      :searching="searching"
-      :submitting="submitting"
-      @search="searchAgent"
-      @add="handleAdd"
-      @reset="reset"
-    />
+      title="Ajouter un membre"
+      size="md"
+    >
+      <AttachAgentForm
+        :status="status"
+        :agent="foundAgent"
+        :searching="searching"
+        :submitting="submitting"
+        :email-error="attachEmailError"
+        @search="searchAgent"
+        @add="handleAdd"
+        @reset="resetAgentSearch"
+        @cancel="attachDrawerOpen = false"
+      />
+    </CspDrawer>
 
     <CspDialog
       v-model:open="revocationDialogOpen"
@@ -254,10 +261,6 @@ async function handleRevocation(): Promise<void> {
   color: var(--text-mention-grey);
   font-size: 0.875rem;
   max-width: 65ch;
-}
-
-.organisme-agents-section__search {
-  min-width: 20rem;
 }
 
 .organisme-agents-section__empty {

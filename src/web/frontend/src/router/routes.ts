@@ -45,6 +45,7 @@ function candidaturePanelRoutes({ tabs, conversations, notes }: CandidaturePanel
     { path: `${CANDIDATURE_PANEL_PATH}/documents`, name: tabs.documents, component: CandidaturePanelView, props: candidatureProps, meta: panelTabMeta('documents') },
     { path: `${CANDIDATURE_PANEL_PATH}/notes`, name: tabs.notes, component: CandidaturePanelView, props: candidatureProps, meta: panelTabMeta('notes') },
     { path: `${CANDIDATURE_PANEL_PATH}/notes/nouvelle`, name: notes.create, component: CandidaturePanelView, props: candidatureProps, meta: panelTabMeta('notes') },
+    { path: `${CANDIDATURE_PANEL_PATH}/notes/:noteUuid${UUID}/modifier`, name: notes.edit, component: CandidaturePanelView, props: candidatureProps, meta: panelTabMeta('notes') },
     { path: `${CANDIDATURE_PANEL_PATH}/messages`, name: tabs.messages, component: CandidaturePanelView, props: candidatureProps, meta: panelTabMeta('messages') },
     { path: `${CANDIDATURE_PANEL_PATH}/messages/nouveau`, name: conversations.create, component: CandidaturePanelView, props: candidatureProps, meta: panelTabMeta('messages') },
     {
@@ -136,6 +137,13 @@ const organismeRoutes: RouteRecordRaw[] = [
               texts: ETAPES_TEXTS_ORGANISME,
             }),
             meta: organismeTabMeta('etapes'),
+          },
+          {
+            path: 'etiquettes',
+            name: ORGANISME_TAB_ROUTE_NAMES.tags,
+            component: () => import('@/features/tags/components/TagsSection.vue'),
+            props: true,
+            meta: organismeTabMeta('tags'),
           },
         ],
       },

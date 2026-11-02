@@ -67,6 +67,13 @@ def test_orders_by_most_recently_updated(staff):
     assert result.index(newer) < result.index(older)
 
 
+def test_excludes_supprimes(staff):
+    actif = OrganismeDjangoFactory()
+    OrganismeDjangoFactory(supprime_le=timezone.now())
+
+    assert list(list_organismes(utilisateur=staff)) == [actif]
+
+
 def test_refuses_non_staff(db):
     with pytest.raises(OperationOrganismeRefusee):
         list_organismes(utilisateur=UtilisateurDjangoFactory(is_staff=False))

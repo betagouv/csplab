@@ -12,6 +12,7 @@ from presentation.api.authentication import (
     PublicApiKeyOnlyMixin,
     PublicApiMixin,
     PublicJwtOnlyMixin,
+    PublicJwtReadApiKeyWriteMixin,
     SessionApiMixin,
     UnauthenticatedMixin,
 )
@@ -20,6 +21,7 @@ AUTH_MIXINS = (
     PublicApiMixin,
     PublicJwtOnlyMixin,
     PublicApiKeyOnlyMixin,
+    PublicJwtReadApiKeyWriteMixin,
     SessionApiMixin,
     UnauthenticatedMixin,
 )

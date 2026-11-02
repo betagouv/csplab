@@ -25,7 +25,8 @@
     - [Structure d'une offre et contraintes sur les champs](#structure-dune-offre-et-contraintes-sur-les-champs)
     - [En cas de problème](#en-cas-de-probleme)
   - [5. Consulter les métiers — `GET /api/v1/metiers/`](#5-consulter-les-metiers-get-apiv1metiers)
-  - [6. Importer des concours (fichier CSV) — `POST /api/v1/concours/upload/`](#6-importer-des-concours-fichier-csv-post-apiv1concoursupload)
+  - [6. Consulter les organismes — `GET /api/v1/organismes/`](#6-consulter-les-organismes-get-apiv1organismes)
+  - [7. Importer des concours (fichier CSV) — `POST /api/v1/concours/upload/`](#7-importer-des-concours-fichier-csv-post-apiv1concoursupload)
     - [Format du fichier attendu](#format-du-fichier-attendu)
     - [Colonnes obligatoires](#colonnes-obligatoires)
     - [Comment se passe le traitement ?](#comment-se-passe-le-traitement)
@@ -45,7 +46,7 @@
 Une API est une « porte d'entrée » automatisée qui permet à deux logiciels de
 s'échanger des informations sans intervention humaine. Ici, l'API CSPLab permet à des
 partenaires autorisés (par exemple des plateformes d'emploi public) de **transmettre
-des offres d'emploi et des concours**, et de **consulter les offres et les métiers**
+des offres d'emploi et des concours**, et de **consulter les offres, les métiers et les organismes**
 de la Fonction Publique.
 
 
@@ -97,13 +98,14 @@ Pour préserver le service, le nombre d'appels est plafonné :
 
 # Les fonctionnalités de l'API
 
-L'API est organisée en quatre grands domaines :
+L'API est organisée en cinq grands domaines :
 
 | Domaine | À quoi ça sert |
 |---|---|
 | **Authentification** (`token`) | Obtenir et renouveler les jetons d'accès |
 | **Offres** (`offres`) | Consulter, créer/modifier et archiver des offres d'emploi |
 | **Métiers** (`metiers`) | Consulter le référentiel des métiers de la Fonction Publique |
+| **Organismes** (`organismes`) | Consulter le référentiel des organismes de la Fonction Publique |
 | **Concours** (`concours`) | Importer des données de concours via un fichier CSV |
 
 
@@ -113,17 +115,18 @@ L'API est organisée en quatre grands domaines :
 Retourne la liste des offres d'emploi de la Fonction Publique, **paginée** (renvoyée
 par lots plutôt qu'en une seule fois). La pagination se pilote avec les paramètres
 `page` (numéro de page, défaut `1`) et `taille` (nombre d'éléments par page, défaut
-`100`, maximum `1000`). Une `taille` supérieure à `1000` est ramenée à `1000`. Une
-valeur absente, non numérique ou inférieure à `1` est remplacée par la valeur par
-défaut. Pour parcourir toutes les offres, suivez le lien `next` de chaque réponse
-jusqu'à ce qu'il vaille `null`.
+`100`, maximum `1000`). Une `taille` supérieure à `1000` est ramenée à `1000` ; une
+`taille` non numérique ou inférieure à `1` est remplacée par la valeur par défaut. Une
+`page` non numérique, inférieure à `1` ou au-delà de la dernière page renvoie une
+erreur `404`. Pour parcourir toutes les offres, suivez le lien `next` de chaque
+réponse jusqu'à ce qu'il vaille `null`.
 
 ### Filtres disponibles
 
 | Paramètre | Rôle | Format |
 |---|---|---|
 | `actif` | Ne retourner que les offres actives (`true`, valeur par défaut) ou archivées (`false`) | Booléen |
-| `categorie` | Filtrer par catégorie(s) | Liste séparée par virgules parmi APLUS, A, B, C |
+| `categorie` | Filtrer par catégorie(s) : une offre est retournée si l'une de ses catégories fait partie du filtre | Liste séparée par virgules parmi APLUS, A, B, C |
 | `versant` | Filtrer par versant(s) | Liste séparée par virgules parmi FPT, FPE, FPH |
 | `nature_offre` | Filtrer par nature(s) d'offre | Liste séparée par virgules parmi TITULAIRE_CONTRACTUEL, CONTRACTUEL, TERRITORIAL |
 | `niveau_experience` | Filtrer par niveau(x) d'expérience | Liste séparée par virgules parmi DEBUTANT, CONFIRME, EXPERT |
@@ -151,7 +154,7 @@ Chaque offre renvoyée contient notamment :
 | `titre` | Intitulé du poste | Non |
 | `organisation` | Organisme employeur | Non |
 | `nature_offre` | Nature de l'offre | Oui |
-| `categorie` | Catégorie (A+, A, B, C…) | Oui |
+| `categories` | Catégories (A+, A, B, C…), dans l'ordre d'envoi | Non |
 | `debut_publication` | Date de début de publication | Non |
 | `url_offre` | Lien vers l'annonce | Oui |
 | `date_archivage` | Date d'archivage de l'offre | Oui |
@@ -173,6 +176,9 @@ comme pour la liste principale des offres (paramètres `page` et `taille`).
 Chaque offre renvoyée contient, en plus des informations de la liste principale
 (voir section précédente), le détail complet de l'offre. Les champs reprennent les
 noms utilisés par `POST /api/v1/offres/creer_modifier` (voir section 4) :
+`employeur`, `profil`, `mission`, `complements`, `conditions_exercice` et
+`descriptif_service` sont renvoyés tels qu'ils ont été transmis, en Markdown (voir
+le bloc « Description » de la section 4).
 
 | Champ | Signification | Peut être vide ? |
 |---|---|---|
@@ -280,6 +286,10 @@ Exemple de réponse :
 > Vous partez d'une offre au format Talentsoft ? Consultez l'[annexe de correspondance
 > entre le format Talentsoft et l'API v1](#annexe-correspondance-entre-le-format-talentsoft-et-lapi-v1).
 
+> **Consulter les offres transmises :** sur l'environnement de démonstration
+> uniquement, les offres transmises peuvent être consultées dans l'interface « Fret » :
+> [https://demo.csplab.beta.gouv.fr/fret](https://demo.csplab.beta.gouv.fr/fret).
+
 ### Structure d'une offre et contraintes sur les champs
 
 Une offre est composée de plusieurs blocs. Voici le détail, avec les **contraintes de
@@ -307,21 +317,21 @@ longueur et de valeurs autorisées**.
 #### Bloc « Organisation » (`organisation`) — obligatoire
 | Champ | Règle |
 |---|---|
-| `nom` | Obligatoire. Nom de l'organisme. |
-| `siret` | Obligatoire. **14 caractères maximum.** |
+| `nom` | Obligatoire. Nom de l'organisme. Reprendre de préférence le `nom` renvoyé par [`GET /api/v1/organismes/`](#6-consulter-les-organismes-get-apiv1organismes). |
+| `siret` | Obligatoire. **14 caractères maximum.** Le SIRET se retrouve avec [`GET /api/v1/organismes/`](#6-consulter-les-organismes-get-apiv1organismes), grâce aux filtres `nom` et `siret`. |
 
 #### Bloc « Profession » (`profession`) — obligatoire
 | Champ | Règle |
 |---|---|
 | `referentiel` | Référentiel utilisé. Valeur par défaut : **RMFPv2**. |
-| `domaine` | Obligatoire. Code du domaine fonctionnel (vérifié uniquement si `referentiel=RMFPv2`). **3 caractères maximum.** |
-| `metier` | Obligatoire. Code métier. **8 caractères maximum.** |
+| `domaine` | Facultatif. Code du domaine fonctionnel. Absent, il est déduit du métier ; renseigné, il doit correspondre au `domaine_fonctionnel_code` du métier, sinon l'offre est rejetée. Obligatoire lorsque le code métier relève de plusieurs domaines (ex. `ERJUS008`, `ERTRA007`) : il doit alors être l'un d'eux. Vérifié uniquement si `referentiel=RMFPv2`. **3 caractères maximum.** |
+| `metier` | Obligatoire. Code métier : valeur du champ `code_emploi_csp` d'un métier renvoyé par [`GET /api/v1/metiers/`](#5-consulter-les-metiers-get-apiv1metiers), par exemple `ERAMT001` (vérifié uniquement si `referentiel=RMFPv2`). **8 caractères maximum.** |
 | `code_emploi_local` | Code emploi local propre au partenaire. Peut être vide. **50 caractères maximum.** |
 
 #### Catégorie et contrat
 | Champ | Règle |
 |---|---|
-| `categories` | Liste. Valeurs autorisées : **APLUS, A, B, C, HORS_CATEGORIE** (ou vide). |
+| `categories` | Obligatoire. Liste d'au moins une valeur : une offre sans catégorie est rejetée. Valeurs autorisées : **APLUS, A, B, C, HORS_CATEGORIE**. Toutes les catégories sont enregistrées, dans l'ordre d'envoi (doublons retirés). |
 | `nature_offre` | Obligatoire. Public visé par l'offre. Valeurs autorisées : **TITULAIRE_CONTRACTUEL, CONTRACTUEL, TERRITORIAL**. |
 | `type_contrat` | Facultatif. Une seule valeur parmi **CDD, CDI, CDD_CDI, CONTRAT_PROJET, VACATION** (ou vide / `null` si l'offre n'est pas soumise à contractualisation). |
 | `vacance_poste` | **OUI** = poste vacant ; **NON** = poste susceptible d'être vacant (ou vide). |
@@ -329,6 +339,20 @@ longueur et de valeurs autorisées**.
 #### Bloc « Description » (`description`) — obligatoire
 Les champs `mission`, `profil`, `employeur` et `complements` sont obligatoires, mais
 peuvent être des textes vides.
+
+Les six champs du bloc acceptent du **Markdown** ([CommonMark](https://commonmark.org/help/)),
+pour conserver la mise en forme de l'offre : gras (`**texte**`), italique
+(`*texte*`), listes (`- élément`, `1. élément`), titres (`## Titre`), liens
+(`[libellé](https://…)`). Un texte brut reste valide, mais quelques caractères en
+début de ligne ou autour d'un mot (`*`, `_`, `#`, `1.`) sont interprétés : précédez-les
+d'une barre oblique inverse (`\*`) pour les garder tels quels. La limite de
+caractères s'applique au texte Markdown, syntaxe comprise.
+
+> **Règle métier :** une offre dont la description contient une balise HTML (`<b>`,
+> `<!-- … -->`…) ou un lien autre que `http`, `https` ou `mailto` (`javascript:`,
+> lien relatif…) est rejetée, avec un message qui cite l'élément refusé. Pour écrire
+> le caractère `<` devant une lettre, précédez-le d'une barre oblique inverse (`\<`).
+> Un `<` suivi d'une espace ou d'un chiffre (« salaire < 2000 € ») est accepté.
 
 | Champ | Règle |
 |---|---|
@@ -343,11 +367,11 @@ peuvent être des textes vides.
 | Champ | Règle |
 |---|---|
 | `zone_geographique` | Obligatoire dans chaque localisation. Valeurs : **AF** (Afrique), **EU** (Europe), **AS** (Asie), **AM** (Amérique), **OC** (Océanie), **AN** (Antarctique). |
-| `pays` | Obligatoire. Code pays sur **exactement 3 caractères**. |
-| `region` | Code région officiel, ou vide. |
-| `departement` | Code département officiel (`01` à `95`, `2A`, `2B`, DOM-TOM, `SPM`, `WLF`…), ou vide. |
+| `pays` | Obligatoire. Code pays ISO 3166-1 alpha-3, **en majuscules** (ex. `FRA`). Un code en minuscules (`fra`) est rejeté. Pour `FRA`, `region` et `departement` sont obligatoires. |
+| `region` | Code région INSEE officiel, `DOM`, `TOM`, ou vide. Si `departement` est renseigné, doit être la région de ce département : code INSEE de la région ou `DOM` pour `971` à `974` et `976`, `TOM` pour `975`, `986`, `987`, `988`, `SPM` et `WLF`. |
+| `departement` | Code département officiel (`01` à `95`, `2A`, `2B`, DOM-TOM, `SPM`, `WLF`…), ou vide. Doit appartenir à `region`. |
 | `localisation_label` | Libellé du lieu. **500 caractères maximum.** |
-| `latitude` / `longitude` | Coordonnées géographiques. Peuvent être vides. |
+| `latitude` / `longitude` | Coordonnées géographiques. Facultatives : peuvent être absentes ou `null`. |
 
 #### Bloc « Critères » (`criteres`) — peut être vide
 | Champ | Règle |
@@ -356,7 +380,7 @@ peuvent être des textes vides.
 | `experience` | Valeurs : **DEBUTANT, CONFIRME, EXPERT**. |
 | `specialisations` | Liste de textes. |
 | `diplome` | Texte. |
-| `documents_requis` | Liste de textes. |
+| `documents_requis` | Liste de documents à transmettre pour candidater. Valeurs : **CV, LETTRE_MOTIVATION, PORTFOLIO**. Chaque document ne peut être cité qu'une fois. |
 | `competences_requises` | Liste de textes. |
 | `langues` | Liste de langues, chacune avec un **code ISO sur 2 caractères** et un **niveau** (**A1, A2, B1, B2, C1, C2**). |
 
@@ -373,7 +397,7 @@ peuvent être des textes vides.
 | `management` | Obligatoire. **AVEC** ou **SANS** management. |
 | `complements` | **1 500 caractères maximum.** |
 | `bases_legales` | **1 500 caractères maximum.** |
-| `note_ouverture_poste_url` | Lien web. |
+| `note_ouverture_poste_url` | Lien **`https`** vers l'avis de vacance publié au Journal officiel, sur **`legifrance.gouv.fr`** ou **`www.legifrance.gouv.fr`** (ex. `https://www.legifrance.gouv.fr/jorf/id/JORFTEXT…`). Une offre avec un lien `http` ou vers un autre site est rejetée. |
 
 #### Bloc « Contacts » (`contacts`) — liste, peut être vide
 Au plus un contact par rôle. Les contacts sont renvoyés dans l'ordre `principal` puis `autre`.
@@ -438,11 +462,54 @@ Chaque métier renvoyé contient :
 | `versants` | Versants concernés (FPE, FPT, FPH) |
 | `activites` | Liste des activités (peut être vide) |
 | `conditions_particulieres` | Conditions particulières (peut être vide) |
-| `offer_family_code` | Code de la famille d'offres (peut être vide) |
+| `code_emploi_csp` | Code CSP du RMFP, à renseigner dans `profession.metier` lors de l'envoi d'une offre. Plusieurs métiers peuvent partager le même code. Toujours renseigné. |
 
 
 
-## 6. Importer des concours (fichier CSV) — `POST /api/v1/concours/upload/`
+## 6. Consulter les organismes — `GET /api/v1/organismes/`
+
+Retourne la liste **paginée** des organismes du référentiel CSPLab, alimenté par les
+référentiels FINESS, GIPCDG et DILA (paramètres `page` et `taille`). Les organismes
+supprimés ne sont pas renvoyés. La liste est triée par nom, puis par identifiant :
+l'ordre ne change pas d'un appel à l'autre.
+
+Cette route n'est accessible qu'avec un **jeton** (voir « Authentification »).
+
+> **Page hors limites :** contrairement à la liste des métiers, une page au-delà de la
+> dernière renvoie une erreur `404`.
+
+Les valeurs `nom` et `siret` d'un organisme sont celles à reprendre dans le bloc
+`organisation` d'une offre envoyée avec `POST /api/v1/offres/creer_modifier/`.
+
+### Filtres disponibles
+
+| Filtre | Effet | Contrainte |
+|---|---|---|
+| `versant` | Filtrer par versant | `FPE`, `FPT` ou `FPH`. Plusieurs valeurs séparées par une virgule (ex. `FPE,FPT`) |
+| `siret` | Retrouver un organisme par son SIRET, par exemple pour vérifier un SIRET avant d'envoyer une offre | Exactement **14 caractères** |
+| `nom` | Rechercher un organisme par une partie de son nom, sans tenir compte des majuscules ni des accents (`hopital` trouve « Hôpital ») | 255 caractères maximum |
+| `departement` | Filtrer par département de l'organisme | Code de département (ex. `75`, `2A`, `971`) |
+| `referentiel` | Filtrer par référentiel source | `FINESS`, `GIPCDG` ou `DILA` |
+
+Un filtre invalide (par exemple un versant inconnu) renvoie une erreur `400`.
+
+### Informations renvoyées
+
+| Information | Signification |
+|---|---|
+| `id` | Identifiant de l'organisme dans CSPLab |
+| `nom` | Nom de référence de l'organisme, à reprendre dans `organisation.nom` d'une offre |
+| `versant` | `FPE`, `FPT` ou `FPH` |
+| `siret` | SIRET de l'organisme, à renseigner dans `organisation.siret` d'une offre |
+| `parent_id` | Identifiant de l'organisme parent, ou vide |
+| `referentiel` | Référentiel source : `FINESS`, `GIPCDG` ou `DILA`. Avec `external_id`, c'est la clé utilisée pour créer, mettre à jour ou supprimer un organisme |
+| `external_id` | Identifiant de l'organisme dans le référentiel source |
+| `millesime` | Version du référentiel source dont provient l'organisme (peut être vide) |
+| `localisation` | Vide, ou `zone_geographique`, `pays`, `region` et `departement` de l'organisme |
+
+
+
+## 7. Importer des concours (fichier CSV) — `POST /api/v1/concours/upload/`
 
 Permet d'importer en masse des données de concours **GRECO** via un fichier CSV.
 
@@ -505,6 +572,7 @@ invalides, lignes créées, lignes mises à jour, et la liste éventuelle des er
 | **Type de contrat** | CDD, CDI, CDD_CDI (CDD ou CDI), CONTRAT_PROJET (contrat de projet), VACATION (payés à l'acte) |
 | **Vacance de poste** | OUI (vacant), NON (susceptible d'être vacant) |
 | **Expérience** | DEBUTANT, CONFIRME, EXPERT |
+| **Documents requis** | CV, LETTRE_MOTIVATION (lettre de motivation), PORTFOLIO |
 | **Niveau de langue** | A1, A2, B1, B2, C1, C2 |
 | **Temps de travail** | NON_DEFINI, TEMPS_PLEIN, TEMPS_PARTIEL |
 | **Lieu de travail** | NON_DEFINI, SUR_SITE, TELETRAVAIL |
@@ -567,21 +635,21 @@ Notation : `a.b` désigne un objet imbriqué, `a[]` une liste, `a[0]` son premie
 | `salaryRange.clientCode` | `identification.versant` | Dans l'API fake-ts, `salaryRange` est une simple chaîne, toujours `null` : le versant est alors déduit de `reference` (`APHP`/`MENJ`/`OFII`). Les valeurs contenant `FPT`/`FPH`/`FPE` donnent un `Verse`. |
 | `title` | `titre` | Copié aussi dans `titre_long`. |
 | `organisationName` | `organisation.nom` | |
-| `organisation.entityCode` | `organisation.talentsoft_organisme_entity_code` | Lien vers l'organisme Talentsoft, vide s'il est inconnu. |
+| `organisation.entityCode` | `organisation.talentsoft_organisme_entity_code` | Réservé au service ingestion de CSPLab : laissez ce champ vide, une offre qui le renseigne est rejetée. API fake-ts : reprend l'organisme Talentsoft lié à l'offre. Toute offre est liée à un organisme Talentsoft. |
 | `contractType.clientCode` | `nature_offre` | Traduit par le transcodeur de la source. |
 | `professionalCategory.clientCode` | `vacance_poste` | `STATUT01` → `OUI` (poste vacant), `STATUT02` → `NON` (poste susceptible d'être vacant), sinon vide. Malgré son nom, c'est le « Statut du poste » affiché par l'ancien site WordPress. API fake-ts : `OUI` → `STATUT01`, `NON` → `STATUT02`, sinon `null`. |
 | `offerFamilyCategory.clientCode` | `profession.metier` | `profession.domaine` correspond à ses 3 premiers caractères, après retrait d'un `ER` initial. |
-| `description1` | `description.mission` | |
-| `description2` | `description.profil` | |
-| `customFields.description.longText1` | `description.employeur` | |
-| `customFields.description.longText2` | `description.conditions_exercice` | |
-| `customFields.description.longText3` | `description.descriptif_service` | |
-| `customFields.offerCustomBlock1.longText1` | `description.complements` | |
+| `description1Formatted` | `description.mission` | Converti du HTML en Markdown, repli sur le texte brut `description1` s'il est vide. API fake-ts : `description1` contient le Markdown, la variante `Formatted` le HTML (titres rendus en paragraphes en gras), `null` si le champ est vide. |
+| `description2Formatted` | `description.profil` | Converti du HTML en Markdown, repli sur le texte brut `description2` s'il est vide. API fake-ts : `description2` contient le Markdown, la variante `Formatted` le HTML (titres rendus en paragraphes en gras), `null` si le champ est vide. |
+| `customFields.description.longText1Formatted` | `description.employeur` | Converti du HTML en Markdown, repli sur le texte brut `customFields.description.longText1` s'il est vide. API fake-ts : `customFields.description.longText1` contient le Markdown, la variante `Formatted` le HTML (titres rendus en paragraphes en gras), `null` si le champ est vide. |
+| `customFields.description.longText2Formatted` | `description.conditions_exercice` | Converti du HTML en Markdown, repli sur le texte brut `customFields.description.longText2` s'il est vide. API fake-ts : `customFields.description.longText2` contient le Markdown, la variante `Formatted` le HTML (titres rendus en paragraphes en gras), `null` si le champ est vide. |
+| `customFields.description.longText3Formatted` | `description.descriptif_service` | Converti du HTML en Markdown, repli sur le texte brut `customFields.description.longText3` s'il est vide. API fake-ts : `customFields.description.longText3` contient le Markdown, la variante `Formatted` le HTML (titres rendus en paragraphes en gras), `null` si le champ est vide. |
+| `customFields.offerCustomBlock1.longText1Formatted` | `description.complements` | Converti du HTML en Markdown, repli sur le texte brut `customFields.offerCustomBlock1.longText1` s'il est vide. API fake-ts : `customFields.offerCustomBlock1.longText1` contient le Markdown, la variante `Formatted` le HTML (titres rendus en paragraphes en gras), `null` si le champ est vide. |
 | `offerUrl` | `url_offre` | |
 | `urlRedirectionApplicant` | `url_candidature` | Prioritaire sur `customFields.origin.shortText1` et `applicationUrl`. |
 | `customFields.origin.shortText1` | `email_candidature` | Texte libre (« adresse de candidature »). Lu seulement si `urlRedirectionApplicant` est vide : le premier e-mail valide trouvé devient `email_candidature`, et `url_candidature` reste vide. API fake-ts : reprend `email_candidature`, `null` si l'offre se candidate par lien. |
 | `applicationUrl` | `url_candidature` | Dernier recours, si `urlRedirectionApplicant` est vide et que `customFields.origin.shortText1` ne contient aucun e-mail valide. Toujours rempli dans Talentsoft (page de candidature générique). API fake-ts : reprend `url_candidature`, `null` si l'offre se candidate par e-mail. |
-| `geographicalLocation[0].clientCode` | `localisation[0].zone_geographique` | L'API fake-ts renvoie toujours `[]` : aucune `localisation` n'est donc produite à partir de lui. Toute la `localisation` est abandonnée si la zone, le pays, la région ou le département manque. |
+| `geographicalLocation[0].clientCode` | `localisation[0].zone_geographique` | Ignoré : la zone est déduite du département. L'API fake-ts renvoie toujours `[]`. Toute la `localisation` est abandonnée si le pays, la région ou le département manque. |
 | `country[0].clientCode` | `localisation[0].pays` | |
 | `region[0].clientCode` | `localisation[0].region` | Les préfixes `_TS_CO_Region_` et `R` sont retirés pour obtenir le code INSEE. |
 | `department[0].clientCode` | `localisation[0].departement` | Cas particulier de la Nouvelle-Calédonie (`988`). |
@@ -611,10 +679,8 @@ Notation : `a.b` désigne un objet imbriqué, `a[]` une liste, `a[0]` son premie
 | `location` | Libellé d'affichage ; le libellé repris vient de `customFields.location.shortText1`. |
 | `modificationDate` | |
 | `contractTypeCountry` | |
-| `organisationDescription` | Capturé nulle part dans la chaîne. |
+| `organisationDescription` | Capturé nulle part dans la chaîne. API fake-ts : reprend la description de l'organisme Talentsoft lié à l'offre (comme `organisation.description`). |
 | `organisationLogoUrl` | |
-| `description1Formatted` | Variante HTML de `description1`, non utilisée. |
-| `description2Formatted` | Variante HTML de `description2`, non utilisée. |
 | `_links` | Métadonnées de transport. |
 | `_format` | Métadonnées de transport. |
 | `_metadata` | Métadonnées de transport. |
@@ -649,6 +715,9 @@ Notation : `a.b` désigne un objet imbriqué, `a[]` une liste, `a[0]` son premie
 | `customFields.offerCustomBlock1.shortText1` | |
 | `customFields.offerCustomBlock1.longText2` | |
 | `customFields.offerCustomBlock1.longText3` | |
+| `customFields.applicantCriteria.longText1Formatted` | API fake-ts : toujours `null` (non ingéré). |
+| `customFields.offerCustomBlock1.longText2Formatted` | API fake-ts : toujours `null` (non ingéré). |
+| `customFields.offerCustomBlock1.longText3Formatted` | API fake-ts : toujours `null` (non ingéré). |
 | `code` | Clé de tout objet codé : seul `clientCode` est lu. |
 | `label` | Clé de tout objet codé : seul `clientCode` est lu. |
 | `active` | Clé de tout objet codé : seul `clientCode` est lu. |
@@ -661,12 +730,12 @@ Notation : `a.b` désigne un objet imbriqué, `a[]` une liste, `a[0]` son premie
 
 | Offer API v1 | Note |
 |---|---|
-| `categories` | Lu par l'ingestion dans `customFields.description.customCodeTable1`, que l'API fake-ts n'expose pas (`CAT-A`/`B`/`C` ; `CAT-AEF`/`ESD`/`ES` → `APLUS`). Le web garde `sorted(categories)[0]`. |
+| `categories` | Lu par l'ingestion dans `customFields.description.customCodeTable1`, que l'API fake-ts n'expose pas (`CAT-A`/`B`/`C` ; `CAT-AEF`/`ESD`/`ES` → `APLUS`). API fake-ts : le filtre `category` de `offer_summaries` retourne une offre si l'une de ses catégories en fait partie. |
 | `type_contrat` | Lu dans `customFields.offer.customCodeTable2` (absent de l'API fake-ts) : `CDD*`, `CDI`. |
 | `organisation.siret` | Jamais renseigné par l'ingestion (vide) ; le rapprochement d'organisme passe par `talentsoft_organisme_entity_code`. |
 | `profession.referentiel` | Constante `RMFPv2`. |
 | `profession.code_emploi_local` | Jamais renseigné, `local_job_code` reste à `null`. |
-| `criteres.documents_requis` | Jamais renseigné par l'ingestion. |
+| `criteres.documents_requis` | Lu dans `customFields.applicantCriteria.customCodeTable1` (« Documents à transmettre ») : `Doc_CV` → `[CV]`, `Doc_CV_LM` → `[CV, LETTRE_MOTIVATION]`, `Doc_CV_PF` → `[CV, PORTFOLIO]`, `Doc_CV_LM_PF` → `[CV, LETTRE_MOTIVATION, PORTFOLIO]`. Absent, `null` ou code inconnu → non envoyé. API fake-ts : renvoyé dans `customFields.applicantCriteria.customCodeTable1`, valeur du référentiel Talentsoft « Documents à transmettre » : `[CV]` → `Doc_CV`, `[CV, LETTRE_MOTIVATION]` → `Doc_CV_LM`, `[CV, PORTFOLIO]` → `Doc_CV_PF`, `[CV, LETTRE_MOTIVATION, PORTFOLIO]` → `Doc_CV_LM_PF`, quel que soit l'ordre. `null` pour une liste vide ou une autre combinaison. Le `label` reprend le libellé Talentsoft, que le WordPress BIEP affiche après « Pour postuler à cette offre, ». |
 | `criteres.competences_requises` | Jamais renseigné par l'ingestion. |
 | `conditions.temps_travail` | Lu dans `customFields.description.customCodeTable3` (absent de l'API fake-ts) : `reponse_oui` → `TEMPS_PLEIN`, `reponse_non` → `TEMPS_PARTIEL`, sinon `NON_DEFINI`. |
 | `conditions.lieu_de_travail` | Lu dans `customFields.offerCustomBlock1.customCodeTable2` (absent de l'API fake-ts) : `reponse_oui` → `TELETRAVAIL`, `reponse_non` → `SUR_SITE`, sinon `NON_DEFINI`. |
@@ -677,9 +746,9 @@ Notation : `a.b` désigne un objet imbriqué, `a[]` une liste, `a[0]` son premie
 | `conditions.ouvert_aux_militaires` | Jamais renseigné par l'ingestion. |
 | `conditions.complements` | Jamais renseigné par l'ingestion. |
 | `conditions.bases_legales` | Jamais renseigné par l'ingestion. |
-| `conditions.note_ouverture_poste_url` | Jamais renseigné par l'ingestion. |
+| `conditions.note_ouverture_poste_url` | Lu dans `customFields.offerCustomBlock1.longText3` (« Avis de vacance au JO », absent de l'API fake-ts) : premier lien `legifrance.gouv.fr` présent dans le texte, passé en `https`. `null` si le texte ne contient aucun lien Legifrance (les liens vers une page de candidature sont ignorés). |
 | `contacts` | Lu dans `customFields.origin.shortText2` et `customFields.origin.shortText3` (absents de l'API fake-ts) : `shortText2` (« Personnes à contacter ») → contact `principal`, `shortText3` (« Autre personne à contacter ») → contact `autre`. `texte` reprend la valeur sans les espaces en début et fin ; une valeur sans lettre ni chiffre est ignorée. `emails` contient les adresses email présentes dans le texte, dédoublonnées, dans l'ordre d'apparition. `null` si aucun contact. |
 
 
 
-*Document généré à partir du [schéma OpenAPI officiel](`/static/api/schema.yaml`). En cas de divergence, le schéma fait foi.*
+*Document généré à partir du [schéma OpenAPI officiel](/static/api/schema.yaml). En cas de divergence, le schéma fait foi.*

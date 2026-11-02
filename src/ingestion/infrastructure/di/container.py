@@ -1,4 +1,5 @@
 import logging
+from pathlib import Path
 
 import httpx
 from dependency_injector import containers, providers
@@ -106,6 +107,19 @@ def _build_credentials_store(
     return store
 
 
+def _build_organismes_cleaner(
+    dila_siret_lookup_max_age_days: int, dila_sirets_csv_path: Path | None
+) -> OrganismesCleaner:
+    if dila_sirets_csv_path is None:
+        return OrganismesCleaner(
+            dila_siret_lookup_max_age_days=dila_siret_lookup_max_age_days
+        )
+    return OrganismesCleaner(
+        dila_siret_lookup_max_age_days=dila_siret_lookup_max_age_days,
+        dila_sirets_csv_path=dila_sirets_csv_path,
+    )
+
+
 def _make_db_engine(database_url: str | None) -> Engine:
     if not database_url:
         raise ValueError("DATABASE_URL is required")
@@ -203,8 +217,9 @@ class Container(containers.DeclarativeContainer):
     )
 
     organismes_cleaner: providers.Provider[IOrganismesCleaner] = providers.Singleton(
-        OrganismesCleaner,
+        _build_organismes_cleaner,
         dila_siret_lookup_max_age_days=config.dila_siret_lookup_max_age_days,
+        dila_sirets_csv_path=config.dila_sirets_csv_path,
     )
 
     clean_raw_organismes_usecase: providers.Provider[CleanRawOrganismesUsecase] = (
@@ -213,6 +228,7 @@ class Container(containers.DeclarativeContainer):
             organismes_cleaner=organismes_cleaner,
             raw_organisme_repository=raw_organisme_repository,
             siret_lookup_gateway=siret_lookup_gateway,
+            dila_siret_min_score=config.dila_siret_min_score,
         )
     )
 
@@ -383,6 +399,8 @@ def create_container() -> Container:
     container.config.dila_siret_lookup_max_age_days.from_value(
         settings.dila_siret_lookup_max_age_days
     )
+    container.config.dila_siret_min_score.from_value(settings.dila_siret_min_score)
+    container.config.dila_sirets_csv_path.from_value(settings.dila_sirets_csv_path)
     container.config.talentsoft_dgafp_source_id.from_value(
         settings.talentsoft_dgafp_source_id
     )

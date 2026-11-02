@@ -1,5 +1,5 @@
 import type { CspColumnDef } from './table'
-import { render, within } from '@testing-library/vue'
+import { render, screen, within } from '@testing-library/vue'
 import { describe, expect, it } from 'vitest'
 import { defineComponent, h } from 'vue'
 import { setupUser } from '@/test/render'
@@ -248,6 +248,14 @@ describe('cspDataTable: pagination', () => {
 
     await rerender({ page: 2 })
     expect(bodyRows()).toHaveLength(1)
+  })
+
+  it('hides the pagination when every row fits on one page', async () => {
+    const { rerender } = renderTable({ pageSize: 2, page: 1 })
+    expect(screen.getByRole('navigation')).toBeInTheDocument()
+
+    await rerender({ pageSize: ROWS.length })
+    expect(screen.queryByRole('navigation')).not.toBeInTheDocument()
   })
 
   it('returns to the first page when the rows change', async () => {

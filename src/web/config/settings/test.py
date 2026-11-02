@@ -55,6 +55,8 @@ PROCONNECT_BASE_URL = "https://fake-proconnect.example.com"
 PROCONNECT_LOGIN_FLAG = True
 PROCONNECT_LOGIN_ENABLED = True
 
+FRET_ENABLED = True
+
 INGESTION_API_KEY = "test-ingestion-api-key"
 # A None rate disables the throttle. Otherwise every test rejecting a key would
 # share one counter per worker (most send no X-Real-IP) and unrelated tests

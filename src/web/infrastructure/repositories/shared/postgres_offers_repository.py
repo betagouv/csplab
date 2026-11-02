@@ -106,7 +106,7 @@ class PostgresOffersRepository(IIngestionOffersRepository):
                                 "title",
                                 "profile",
                                 "mission",
-                                "category",
+                                "categories",
                                 "offer_nature",
                                 "organization",
                                 "offer_url",
@@ -161,7 +161,7 @@ class PostgresOffersRepository(IIngestionOffersRepository):
 
         except Exception as e:
             self.logger.error("Database error during bulk upsert: %s", str(e))
-            raise DatabaseError("Database error during bulk upsert: %s", str(e)) from e
+            raise DatabaseError(f"Database error during bulk upsert: {e}") from e
 
     def get_by_id(self, offer_id: UUID) -> Offer:
         try:
@@ -219,12 +219,14 @@ class PostgresOffersRepository(IIngestionOffersRepository):
         radius_km: int | None = None,
         keywords: str | None = None,
     ) -> IPage[Offer]:
-        qs = OfferModel.objects.filter(archived_at__isnull=active)
+        qs = OfferModel.objects.select_related(
+            "talentsoft_organisme_entity_code"
+        ).filter(archived_at__isnull=active)
 
         qs = self._apply_field_filters(
             qs,
             [
-                ("category__in", category, lambda c: c.value),
+                ("categories__overlap", category, lambda c: c.value),
                 ("verse__in", verse, lambda v: v.value),
                 ("offer_nature__in", offer_nature, lambda c: c.value),
                 ("criteria__experience__in", experience_level, lambda e: e.name),

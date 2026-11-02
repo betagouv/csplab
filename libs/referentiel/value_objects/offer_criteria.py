@@ -4,6 +4,7 @@ from typing import Optional
 from referentiel.value_objects.diploma import Diploma
 from referentiel.value_objects.experience_level import ExperienceLevel
 from referentiel.value_objects.language_level import LanguageLevel
+from referentiel.value_objects.required_document import RequiredDocument
 
 
 @dataclass(frozen=True)
@@ -25,7 +26,7 @@ class OfferCriteria:
     diploma: Optional[str] = None
     experience_level: Optional[ExperienceLevel] = None
     specialisations: list[str] = field(default_factory=list)
-    documents_requis: list[str] = field(default_factory=list)
+    documents_requis: list[RequiredDocument] = field(default_factory=list)
     competences_requises: list[str] = field(default_factory=list)
     languages: list[OfferLanguage] = field(default_factory=list)
 
@@ -35,7 +36,7 @@ class OfferCriteria:
             "diplome": self.diploma,
             "experience": self.experience_level.name if self.experience_level else None,
             "specialisations": self.specialisations,
-            "documents_requis": self.documents_requis,
+            "documents_requis": [document.name for document in self.documents_requis],
             "competences_requises": self.competences_requises,
             "langues": [langue.to_dict() for langue in self.languages],
         }
@@ -55,7 +56,10 @@ class OfferCriteria:
             diploma=data.get("diplome") or None,
             experience_level=ExperienceLevel[experience] if experience else None,
             specialisations=list(data.get("specialisations") or []),
-            documents_requis=list(data.get("documents_requis") or []),
+            documents_requis=[
+                RequiredDocument[document]
+                for document in data.get("documents_requis") or []
+            ],
             competences_requises=list(data.get("competences_requises") or []),
             languages=[
                 OfferLanguage.from_dict(langue) for langue in data.get("langues") or []

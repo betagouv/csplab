@@ -14,7 +14,7 @@ runs:
   steps:
     - name: Create Sentry release (production)
       continue-on-error: true
-      uses: getsentry/action-release@v3
+      uses: getsentry/action-release@e6703d0b00208e0b3687ba660d18ab5af7892821 # v3.7.2
       env:
         SENTRY_AUTH_TOKEN: ${{ inputs.auth-token }}
         SENTRY_ORG: betagouv
@@ -25,7 +25,7 @@ runs:
     # The action only accepts a single environment: record the demo deploy on the release created above.
     - name: Record Sentry deploy (demo)
       continue-on-error: true
-      uses: getsentry/action-release@v3
+      uses: getsentry/action-release@e6703d0b00208e0b3687ba660d18ab5af7892821 # v3.7.2
       env:
         SENTRY_AUTH_TOKEN: ${{ inputs.auth-token }}
         SENTRY_ORG: betagouv

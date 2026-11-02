@@ -1,6 +1,7 @@
 from collections.abc import Iterable
 from uuid import UUID
 
+from django.contrib.postgres.fields import ArrayField
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db import models
 from django.db.models import Q
@@ -48,8 +49,10 @@ class OfferModel(BaseDatedModel):
     title = models.CharField(max_length=500)
     profile = models.TextField()
     mission = models.TextField()
-    category = models.CharField(
-        max_length=20, choices=CATEGORY_CHOICES, null=True, blank=True
+    categories = ArrayField(
+        models.CharField(max_length=20, choices=CATEGORY_CHOICES),
+        blank=True,
+        default=list,
     )
     offer_nature = models.CharField(
         max_length=25, choices=OFFER_NATURE_CHOICES, null=True, blank=True
@@ -122,3 +125,7 @@ class OfferModel(BaseDatedModel):
 
     def __str__(self) -> str:
         return f"Offer {self.reference} ({self.source_id}) - {self.title}"
+
+    @property
+    def main_category(self) -> str | None:
+        return self.categories[0] if self.categories else None

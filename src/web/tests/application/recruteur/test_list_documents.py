@@ -20,15 +20,13 @@ from infrastructure.factories.identite.organisme_django_factory import (
     OrganismeDjangoFactory,
     create_organisme_with_agent,
 )
-from infrastructure.factories.identite.utilisateur_factory import UtilisateurFactory
+from infrastructure.factories.identite.utilisateur_django_factory import (
+    UtilisateurDjangoFactory,
+)
 from infrastructure.factories.recruteur.recrutement_django_factory import (
     EtapeDjangoFactory,
     RecrutementDjangoFactory,
 )
-
-
-def _utilisateur(entity_id):
-    return UtilisateurFactory.create_entity(entity_id=entity_id)
 
 
 def test_authorized_agent_lists_the_documents(db):
@@ -47,7 +45,7 @@ def test_authorized_agent_lists_the_documents(db):
         organisme_id=organisme.id,
         recrutement_id=recrutement.pk,
         candidature_id=candidature.pk,
-        utilisateur=_utilisateur(agent.utilisateur_id),
+        utilisateur=agent.utilisateur,
     )
 
     assert list(result) == [document]
@@ -65,7 +63,7 @@ def test_unauthorized_agent_is_denied(db):
             organisme_id=organisme.id,
             recrutement_id=recrutement.pk,
             candidature_id=candidature.pk,
-            utilisateur=_utilisateur(uuid4()),
+            utilisateur=UtilisateurDjangoFactory(),
         )
 
 
@@ -75,7 +73,7 @@ def test_unknown_organisme_is_denied(db):
             organisme_id=uuid4(),
             recrutement_id=uuid4(),
             candidature_id=uuid4(),
-            utilisateur=_utilisateur(uuid4()),
+            utilisateur=UtilisateurDjangoFactory(),
         )
 
 
@@ -92,7 +90,7 @@ def test_recrutement_not_under_organisme_is_denied(db):
             organisme_id=organisme.id,
             recrutement_id=other_recrutement.pk,
             candidature_id=candidature.pk,
-            utilisateur=_utilisateur(agent.utilisateur_id),
+            utilisateur=agent.utilisateur,
         )
 
 
@@ -109,5 +107,5 @@ def test_mismatched_candidature_is_denied(db):
             organisme_id=organisme.id,
             recrutement_id=recrutement.pk,
             candidature_id=other_candidature.pk,
-            utilisateur=_utilisateur(agent.utilisateur_id),
+            utilisateur=agent.utilisateur,
         )

@@ -22,6 +22,8 @@ export function makeUser(organismeRoles: OrganismeRole[], isStaff = false): Util
     prenom: 'Marie',
     nom: 'Dupont',
     is_staff: isStaff,
+    authorized_actions: [],
+    organismes: [],
     organisme_roles: organismeRoles,
   }
 }

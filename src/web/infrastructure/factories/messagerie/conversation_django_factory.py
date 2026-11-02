@@ -25,6 +25,15 @@ class ConversationDjangoFactory(DjangoModelFactory[ConversationModel]):
     class Meta:
         model = ConversationModel
 
+    class Params:
+        with_message = factory.Trait(
+            premier_message=factory.RelatedFactory(
+                "infrastructure.factories.messagerie.conversation_django_factory"
+                ".MessageDjangoFactory",
+                factory_related_name="conversation",
+            ),
+        )
+
     id = factory.LazyFunction(uuid4)
     candidature = factory.SubFactory(CandidatureDjangoFactory)
     objet = factory.Faker("sentence", nb_words=4, locale="fr_FR")

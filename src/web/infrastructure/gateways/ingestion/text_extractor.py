@@ -77,7 +77,7 @@ class TextExtractor(ITextExtractor):
             }
 
         return {
-            "category": offer.category.value if offer.category else None,
+            "category": [category.value for category in offer.categories],
             "verse": offer.verse.value if offer.verse else None,
             "localisation": localisation_data,
         }

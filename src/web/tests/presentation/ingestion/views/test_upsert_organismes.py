@@ -1,10 +1,12 @@
 from unittest.mock import MagicMock
+from uuid import uuid4
 
 import pytest
 from django.urls import reverse
 from rest_framework import status
 
 from infrastructure.django_apps.recruteur.models.organisme import OrganismeModel
+from presentation.commons.serializers import INVALID_COUNTRY_CODE
 
 URL = reverse("ingestion:organismes_upsert")
 
@@ -106,7 +108,7 @@ def test_mixed_valid_invalid_organismes_in_payload(api_key_client, use_case):
     use_case.execute.return_value = {
         "created": 1,
         "updated": 0,
-        "errors": ["db error on organisme xxx"],
+        "errors": [{"entity_id": "xxx", "error": "db error", "exception": Exception()}],
     }
     response = api_key_client.post(
         URL,
@@ -121,12 +123,51 @@ def test_mixed_valid_invalid_organismes_in_payload(api_key_client, use_case):
     assert response.status_code == status.HTTP_201_CREATED
     errors = response.json()["errors"]
     assert errors == [
-        "db error on organisme xxx",
+        {"entity_id": "xxx", "error": "db error"},
         {
             "organisme": {"referentiel": "FINESS", "external_id": "ext-invalid"},
             "error": {"nom": ["Ce champ ne peut être nul."]},
         },
     ]
+
+
+def _localisation(**overrides) -> dict:
+    localisation = {
+        "zone_geographique": "EU",
+        "pays": "FRA",
+        "region": "11",
+        "departement": "75",
+    }
+    localisation.update(overrides)
+    return localisation
+
+
+@pytest.mark.parametrize("pays", ["fra", "Fra", "XXX"])
+def test_invalid_country_code_is_rejected(api_key_client, use_case, pays):
+    use_case.execute.return_value = {"created": 1, "updated": 0, "errors": []}
+
+    response = api_key_client.post(
+        URL,
+        data={
+            "organismes": [
+                _organisme_payload(
+                    external_id="ext-invalid", localisation=_localisation(pays=pays)
+                ),
+                _organisme_payload(localisation=_localisation()),
+            ]
+        },
+        content_type="application/json",
+    )
+
+    assert response.status_code == status.HTTP_201_CREATED
+    assert response.json()["errors"] == [
+        {
+            "organisme": {"referentiel": "FINESS", "external_id": "ext-invalid"},
+            "error": {"localisation": {"pays": [INVALID_COUNTRY_CODE]}},
+        }
+    ]
+    organismes = use_case.execute.call_args.args[0].organismes
+    assert [organisme.external_id for organisme in organismes] == ["ext-123"]
 
 
 def test_returns_error_500(api_key_client, use_case):
@@ -165,3 +206,31 @@ class TestOrganismesUpsertViewDbVerified:
         assert organisme.siret == payload["siret"]
         assert organisme.parent_id == payload["parent_id"]
         assert organisme.millesime == payload["millesime"]
+
+
+def test_upsert_errors_are_serialized_without_exception(api_key_client, use_case):
+    entity_id = uuid4()
+    use_case.execute.return_value = {
+        "created": 0,
+        "updated": 0,
+        "errors": [
+            {
+                "entity_id": entity_id,
+                "error": "SIRET déjà porté",
+                "exception": ValueError("SIRET déjà porté"),
+            }
+        ],
+    }
+
+    response = api_key_client.post(
+        URL,
+        data={"organismes": [_organisme_payload()]},
+        content_type="application/json",
+    )
+
+    assert response.status_code == status.HTTP_201_CREATED
+    assert response.json() == {
+        "created": 0,
+        "updated": 0,
+        "errors": [{"entity_id": str(entity_id), "error": "SIRET déjà porté"}],
+    }

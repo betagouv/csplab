@@ -14,13 +14,13 @@ from application.recruteur.context_services.recrutement_agent_service import (
     RecrutementAgentService,
 )
 from domain.commons.services.audit_log_writer import AuditLogWriter
-from domain.identite.entities.utilisateurs import Utilisateur
 from domain.identite.value_objects.organisme_action import OrganismeAction
 from infrastructure.django_apps.candidate.models.document import DocumentModel
 from infrastructure.django_apps.messagerie.models import (
     MessageDocumentModel,
     MessageModel,
 )
+from infrastructure.django_apps.users.models import UserModel
 from infrastructure.repositories.commons.postgres_audit_log_repository import (
     PostgresAuditLogRepository,
 )
@@ -34,7 +34,7 @@ def reply_conversation(
     conversation_id: UUID,
     content: str,
     documents: list[UploadedFile],
-    utilisateur: Utilisateur,
+    utilisateur: UserModel,
 ) -> MessageModel:
     OrganismePermissionService().can_execute(
         action=OrganismeAction.REPLY_CONVERSATION,
@@ -52,7 +52,7 @@ def reply_conversation(
     candidature_service.check_candidature_belongs_to_recrutement()
     candidature_service.check_conversation_belongs_to_candidature(conversation_id)
 
-    auteur_id = utilisateur.entity_id
+    auteur_id = utilisateur.username
 
     with transaction.atomic():
         message = MessageModel.objects.create(

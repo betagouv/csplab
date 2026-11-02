@@ -1,3 +1,4 @@
+from collections.abc import Collection
 from typing import cast
 from uuid import UUID
 
@@ -26,14 +27,14 @@ from infrastructure.django_apps.users.models import UserModel
 # Actions sans organisme existant : seul le statut staff autorise l'opération
 _ACTIONS_SANS_ORGANISME: frozenset[OrganismeAction] = frozenset(
     {
-        OrganismeAction.CREER_ORGANISME,
-        OrganismeAction.LISTER_ORGANISMES,
+        OrganismeAction.CREATE_ORGANISME,
+        OrganismeAction.LIST_ORGANISMES,
     }
 )
 
 # Actions sur un organisme existant réservées au staff, hors rôles d'organisme
 _ACTIONS_STAFF_AVEC_ORGANISME: frozenset[OrganismeAction] = frozenset(
-    {OrganismeAction.MODIFIER_ORGANISME}
+    {OrganismeAction.UPDATE_ORGANISME}
 )
 
 # -------------------------------------
@@ -45,10 +46,10 @@ _ROLES_REQUIS: dict[OrganismeAction, frozenset[AgentOrganismeRole]] = {
         {AgentOrganismeRole.SUPERVISEUR}
     ),
     OrganismeAction.UPDATE_ORGANISME_STEPS: frozenset({AgentOrganismeRole.SUPERVISEUR}),
-    OrganismeAction.LISTER_MES_RECRUTEMENTS: frozenset(
+    OrganismeAction.LIST_RECRUTEMENTS: frozenset(
         {AgentOrganismeRole.SUPERVISEUR, AgentOrganismeRole.AGENT}
     ),
-    OrganismeAction.VOIR_DETAIL_RECRUTEMENT: frozenset(
+    OrganismeAction.GET_RECRUTEMENT: frozenset(
         {AgentOrganismeRole.SUPERVISEUR, AgentOrganismeRole.AGENT}
     ),
     OrganismeAction.GET_RECRUTEMENT_ETAPES: frozenset(
@@ -60,10 +61,10 @@ _ROLES_REQUIS: dict[OrganismeAction, frozenset[AgentOrganismeRole]] = {
     OrganismeAction.INIT_RECRUTEMENT_ETAPES: frozenset(
         {AgentOrganismeRole.SUPERVISEUR, AgentOrganismeRole.AGENT}
     ),
-    OrganismeAction.GET_CANDIDATURE_DETAIL: frozenset(
+    OrganismeAction.GET_CANDIDATURE: frozenset(
         {AgentOrganismeRole.SUPERVISEUR, AgentOrganismeRole.AGENT}
     ),
-    OrganismeAction.CHANGER_ETAPE_CANDIDATURES: frozenset(
+    OrganismeAction.CHANGE_ETAPE_CANDIDATURES: frozenset(
         {AgentOrganismeRole.SUPERVISEUR, AgentOrganismeRole.AGENT}
     ),
     OrganismeAction.LIST_ORGANISME_AGENTS: frozenset({AgentOrganismeRole.SUPERVISEUR}),
@@ -124,6 +125,12 @@ _ROLES_REQUIS: dict[OrganismeAction, frozenset[AgentOrganismeRole]] = {
     OrganismeAction.REPLY_CONVERSATION: frozenset(
         {AgentOrganismeRole.SUPERVISEUR, AgentOrganismeRole.AGENT}
     ),
+    OrganismeAction.LIST_TAGS: frozenset(
+        {AgentOrganismeRole.SUPERVISEUR, AgentOrganismeRole.AGENT}
+    ),
+    OrganismeAction.CREATE_TAG: frozenset({AgentOrganismeRole.SUPERVISEUR}),
+    OrganismeAction.UPDATE_TAG: frozenset({AgentOrganismeRole.SUPERVISEUR}),
+    OrganismeAction.DELETE_TAG: frozenset({AgentOrganismeRole.SUPERVISEUR}),
 }
 
 # -------------------------------------
@@ -131,7 +138,11 @@ _ROLES_REQUIS: dict[OrganismeAction, frozenset[AgentOrganismeRole]] = {
 # -------------------------------------
 # Actions pour lesquelles un MEMBRE n'a besoin d'aucun rôle sur le recrutement
 _SANS_ROLE_RECRUTEMENT_REQUIS: frozenset[OrganismeAction] = frozenset(
-    {OrganismeAction.LISTER_MES_RECRUTEMENTS, OrganismeAction.GET_MOTIFS_REFUS}
+    {
+        OrganismeAction.LIST_RECRUTEMENTS,
+        OrganismeAction.GET_MOTIFS_REFUS,
+        OrganismeAction.LIST_TAGS,
+    }
 )
 
 # Actions sans recrutement ciblé : un MEMBRE doit être RESPONSABLE d'au moins un
@@ -142,7 +153,7 @@ _RESPONSABLE_D_UN_RECRUTEMENT_REQUIS: frozenset[OrganismeAction] = frozenset(
 
 # Actions pour lesquelles un MEMBRE doit avoir un rôle sur le recrutement
 _ROLES_RECRUTEMENT_REQUIS: dict[OrganismeAction, frozenset[AgentRecrutementRole]] = {
-    OrganismeAction.VOIR_DETAIL_RECRUTEMENT: frozenset(
+    OrganismeAction.GET_RECRUTEMENT: frozenset(
         {
             AgentRecrutementRole.RESPONSABLE,
             AgentRecrutementRole.RECRUTEUR,
@@ -158,14 +169,14 @@ _ROLES_RECRUTEMENT_REQUIS: dict[OrganismeAction, frozenset[AgentRecrutementRole]
     OrganismeAction.INIT_RECRUTEMENT_ETAPES: frozenset(
         {AgentRecrutementRole.RESPONSABLE}
     ),
-    OrganismeAction.GET_CANDIDATURE_DETAIL: frozenset(
+    OrganismeAction.GET_CANDIDATURE: frozenset(
         {
             AgentRecrutementRole.RESPONSABLE,
             AgentRecrutementRole.RECRUTEUR,
             AgentRecrutementRole.CONTRIBUTEUR,
         }
     ),
-    OrganismeAction.CHANGER_ETAPE_CANDIDATURES: frozenset(
+    OrganismeAction.CHANGE_ETAPE_CANDIDATURES: frozenset(
         {AgentRecrutementRole.RESPONSABLE, AgentRecrutementRole.RECRUTEUR}
     ),
     OrganismeAction.LIST_RECRUTEMENT_AGENTS: frozenset(
@@ -253,6 +264,17 @@ _ROLES_RECRUTEMENT_REQUIS: dict[OrganismeAction, frozenset[AgentRecrutementRole]
 }
 
 
+# Actions ciblant un recrutement précis : hors périmètre des actions exposées au
+# niveau de l'utilisateur et de l'organisme
+_ACTIONS_NIVEAU_RECRUTEMENT: frozenset[OrganismeAction] = frozenset(
+    _ROLES_RECRUTEMENT_REQUIS
+)
+
+
+def _ordonnees(actions: frozenset[OrganismeAction]) -> list[OrganismeAction]:
+    return [action for action in OrganismeAction if action in actions]
+
+
 def _agent_id(utilisateur: UserModel | Utilisateur) -> UUID:
     if isinstance(utilisateur, UserModel):
         return utilisateur.username
@@ -283,7 +305,7 @@ class OrganismePermissionService:
         if action not in _ROLES_REQUIS:
             raise OperationOrganismeRefusee()
 
-        # Le staff agit en superviseur : lister_mes_recrutements lève le filtre agent
+        # Le staff agit en superviseur : list_recrutements lève le filtre agent
         if (
             utilisateur.is_staff
             and organisme_id
@@ -338,3 +360,51 @@ class OrganismePermissionService:
                 raise AccesRecrutementRefuse(recrutement_id)
 
         return role
+
+    def authorized_actions_user(self, utilisateur: UserModel) -> list[OrganismeAction]:
+        if not utilisateur.is_staff:
+            return []
+        return _ordonnees(_ACTIONS_SANS_ORGANISME | _ACTIONS_STAFF_AVEC_ORGANISME)
+
+    def authorized_actions_organisme(
+        self,
+        role: AgentOrganismeRole,
+        *,
+        utilisateur: UserModel,
+        organisme_id: UUID,
+        organisme_ids_responsable: Collection[UUID],
+    ) -> list[OrganismeAction]:
+        if utilisateur.is_staff:
+            role = AgentOrganismeRole.SUPERVISEUR
+        exclues = _ACTIONS_NIVEAU_RECRUTEMENT
+        if (
+            role == AgentOrganismeRole.AGENT
+            and organisme_id not in organisme_ids_responsable
+        ):
+            exclues |= _RESPONSABLE_D_UN_RECRUTEMENT_REQUIS
+        return _ordonnees(
+            frozenset(
+                action
+                for action, roles_requis in _ROLES_REQUIS.items()
+                if role in roles_requis
+            )
+            - exclues
+        )
+
+    def authorized_actions_recrutement(
+        self,
+        role: AgentOrganismeRole,
+        *,
+        recrutement_role: AgentRecrutementRole | None,
+    ) -> list[OrganismeAction]:
+        return _ordonnees(
+            frozenset(
+                action
+                for action in _ACTIONS_NIVEAU_RECRUTEMENT
+                if role in _ROLES_REQUIS[action]
+                and (
+                    role == AgentOrganismeRole.SUPERVISEUR
+                    or recrutement_role in _ROLES_RECRUTEMENT_REQUIS[action]
+                )
+            )
+        )

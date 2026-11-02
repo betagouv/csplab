@@ -23,7 +23,7 @@ class UtilisateurMapper(
 class OrganismeMapper(IFromDomainMapper[Organisme, dict]):
     def from_domain(self, organisme: Organisme) -> dict:
         return {
-            "organisme_uuid": str(organisme.entity_id),
+            "id": str(organisme.entity_id),
             "nom": organisme.nom,
             "siret": str(organisme.siret),
             "versant": organisme.versant.value,

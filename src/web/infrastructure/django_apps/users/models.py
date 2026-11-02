@@ -8,6 +8,8 @@ from domain.identite.entities.candidat import Candidat
 from domain.identite.entities.utilisateurs import Utilisateur
 from domain.identite.value_objects.email import normalize_email
 
+DEMO_CANDIDAT_EMAIL_DOMAIN = "@demo.candidat.fr"
+
 
 class UserModel(AbstractUser):
     email = models.EmailField(unique=True, null=False, blank=False)
@@ -70,15 +72,6 @@ class ProfilCandidatModel(models.Model):
             prenom=self.utilisateur.first_name,
             nom=self.utilisateur.last_name,
             resume=self.resume,
-        )
-
-    @classmethod
-    def from_entity(
-        cls, utilisateur: Utilisateur, candidat: Candidat
-    ) -> "ProfilCandidatModel":
-        return cls(
-            utilisateur_id=utilisateur.entity_id,
-            resume=candidat.resume,
         )
 
     def __str__(self):

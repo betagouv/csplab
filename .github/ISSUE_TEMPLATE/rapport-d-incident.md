@@ -7,17 +7,17 @@ assignees: ''
 
 ---
 
-# contexte
+# :mag: Contexte
 …
 
-# description du bug
+# :bug: Description du bug
 …
 
-# comportement attendu
+# :dart: Comportement attendu
 …
 
-# utilisateurs impactés
+# :busts_in_silhouette: Utilisateurs impactés
 …
 
-# écrans concernés
+# :camera: Écrans concernés
 :warning: copies d'écran

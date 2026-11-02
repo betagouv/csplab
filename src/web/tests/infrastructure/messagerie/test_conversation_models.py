@@ -6,10 +6,15 @@ from django.db.models.deletion import ProtectedError
 from django.db.models.fetch_modes import FETCH_RAISE
 from django.utils import timezone
 
+from infrastructure.django_apps.candidate.models.candidature import CandidatureModel
 from infrastructure.django_apps.messagerie.models import (
     ConversationModel,
     MessageDocumentModel,
     MessageModel,
+    unread_conversations_count,
+)
+from infrastructure.factories.candidate.candidature_django_factory import (
+    CandidatureDjangoFactory,
 )
 from infrastructure.factories.identite.agent_django_factory import AgentDjangoFactory
 from infrastructure.factories.identite.utilisateur_django_factory import (
@@ -128,11 +133,9 @@ def test_by_candidature_prefetches_first_and_last_message_with_their_author(db):
 
 
 def test_by_candidature_orders_by_last_message_and_skips_empty_conversations(db):
-    older = ConversationDjangoFactory()
-    newer = ConversationDjangoFactory(candidature=older.candidature)
+    older = ConversationDjangoFactory(with_message=True)
+    newer = ConversationDjangoFactory(candidature=older.candidature, with_message=True)
     ConversationDjangoFactory(candidature=older.candidature)
-    MessageDjangoFactory(conversation=older)
-    MessageDjangoFactory(conversation=newer)
 
     result = ConversationModel.objects.by_candidature(
         older.candidature_id
@@ -211,14 +214,10 @@ def test_is_unread_for_the_candidate_follows_the_last_message_author(db):
 
 
 def test_is_unread_is_computed_per_conversation(db):
-    unread = ConversationDjangoFactory()
-    read = ConversationDjangoFactory(candidature=unread.candidature)
+    unread = ConversationDjangoFactory(with_message=True)
+    read = ConversationDjangoFactory(candidature=unread.candidature, with_message=True)
     viewer = UtilisateurDjangoFactory()
-    MessageDjangoFactory(conversation=unread)
-    message = MessageDjangoFactory(conversation=read)
-    ConversationLectureDjangoFactory(
-        conversation=read, utilisateur=viewer, read_at=message.created_at
-    )
+    ConversationLectureDjangoFactory(conversation=read, utilisateur=viewer)
 
     results = (
         ConversationModel.objects.by_candidature(unread.candidature_id)
@@ -227,6 +226,60 @@ def test_is_unread_is_computed_per_conversation(db):
     )
 
     assert {r.pk: r.is_unread for r in results} == {unread.pk: True, read.pk: False}
+
+
+def test_unread_by_keeps_only_unread_conversations_with_messages(db):
+    unread = ConversationDjangoFactory(with_message=True)
+    ConversationDjangoFactory(candidature=unread.candidature)  # no message
+    read = ConversationDjangoFactory(candidature=unread.candidature, with_message=True)
+
+    viewer = UtilisateurDjangoFactory()
+    ConversationLectureDjangoFactory(conversation=read, utilisateur=viewer)
+
+    results = ConversationModel.objects.by_candidature(unread.candidature_id).unread_by(
+        viewer.username
+    )
+
+    assert [r.pk for r in results] == [unread.pk]
+
+
+def _unread_conversations_by_candidature(utilisateur):
+    return {
+        c.pk: c.unread_conversations
+        for c in CandidatureModel.objects.annotate(
+            unread_conversations=unread_conversations_count(utilisateur.username)
+        )
+    }
+
+
+def test_unread_conversations_count_is_per_candidature_and_viewer(db):
+    viewer = UtilisateurDjangoFactory()
+    other = UtilisateurDjangoFactory()
+    two_unread, one_unread, answered = CandidatureDjangoFactory.create_batch(3)
+    first, _ = [
+        MessageDjangoFactory(
+            conversation=ConversationDjangoFactory(candidature=two_unread)
+        )
+        for _ in range(2)
+    ]
+    MessageDjangoFactory(conversation=ConversationDjangoFactory(candidature=one_unread))
+    MessageDjangoFactory(
+        conversation=ConversationDjangoFactory(candidature=answered), auteur=viewer
+    )
+    ConversationLectureDjangoFactory(
+        conversation=first.conversation, utilisateur=other, read_at=first.created_at
+    )
+
+    assert _unread_conversations_by_candidature(viewer) == {
+        two_unread.pk: 2,
+        one_unread.pk: 1,
+        answered.pk: 0,
+    }
+    assert _unread_conversations_by_candidature(other) == {
+        two_unread.pk: 1,
+        one_unread.pk: 1,
+        answered.pk: 1,
+    }
 
 
 def test_by_conversation_orders_attachments_by_creation(db):

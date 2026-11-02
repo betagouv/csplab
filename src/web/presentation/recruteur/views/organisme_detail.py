@@ -91,11 +91,10 @@ class OrganismeDetailView(SessionApiMixin, APIView):
                 )
             )
             organisme_dto = {
-                "organisme_uuid": organisme.entity_id,
+                "id": organisme.entity_id,
                 "nom": organisme.nom,
                 "versant": organisme.versant.value,
                 "siret": organisme.siret.code,
-                "superviseurs": "",
                 "gestion_ats": organisme.gestion_ats,
                 "date_creation": organisme.date_creation,
                 "date_derniere_activite": organisme.date_derniere_activite,
@@ -247,7 +246,7 @@ class MotifsRefusOrganismeView(SessionApiMixin, APIView):
         try:
             motifs = list_motifs_refus(
                 organisme_id=organisme_uuid,
-                utilisateur=UtilisateurMapper().to_domain(request),
+                utilisateur=request.user,
             )
             data = [{"value": m.value, "label": m.label} for m in motifs]
             return Response(MotifRefusSerializer(data, many=True).data)

@@ -49,12 +49,9 @@ describe('equipeRecrutementSection', () => {
     vi.mocked(updateMembreEquipe).mockReset()
   })
 
-  it.each([
-    [409, 'Cette personne fait déjà partie de l\'équipe.'],
-    [500, 'L\'ajout du membre a échoué'],
-  ])('explains why the add failed with a %i', async (status, message) => {
+  it('explains why the add failed with a 500', async () => {
     const user = setupUser()
-    vi.mocked(addMembreEquipe).mockRejectedValue(new HttpError(status, 'Erreur'))
+    vi.mocked(addMembreEquipe).mockRejectedValue(new HttpError(500, 'Erreur'))
     await renderSection()
 
     await user.click(screen.getByRole('button', { name: 'Ajouter un membre' }))
@@ -64,7 +61,40 @@ describe('equipeRecrutementSection', () => {
     )
     await user.click(await screen.findByRole('button', { name: 'Ajouter le membre' }))
 
-    expect(await screen.findByText(message)).toBeInTheDocument()
+    expect(await screen.findByText('L\'ajout du membre a échoué')).toBeInTheDocument()
+  })
+
+  it('surfaces a conflict until the email changes', async () => {
+    const user = setupUser()
+    vi.mocked(addMembreEquipe).mockRejectedValue(new HttpError(409, 'Conflict'))
+    await renderSection()
+
+    await user.click(screen.getByRole('button', { name: 'Ajouter un membre' }))
+    const email = await screen.findByRole('searchbox', { name: /Adresse électronique de l'agent/ })
+    await user.type(email, `${NOUVEL_AGENT.email}{Enter}`)
+    await user.click(await screen.findByRole('button', { name: 'Ajouter le membre' }))
+    await screen.findByText('Cette personne fait déjà partie de l\'équipe.')
+
+    await user.type(email, 'x')
+
+    expect(screen.queryByText('Cette personne fait déjà partie de l\'équipe.')).not.toBeInTheDocument()
+  })
+
+  it('starts a new search each time the drawer opens', async () => {
+    const user = setupUser()
+    await renderSection()
+
+    await user.click(screen.getByRole('button', { name: 'Ajouter un membre' }))
+    await user.type(
+      await screen.findByRole('searchbox', { name: /Adresse électronique de l'agent/ }),
+      `${NOUVEL_AGENT.email}{Enter}`,
+    )
+    await screen.findByRole('button', { name: 'Ajouter le membre' })
+    await user.click(screen.getByRole('button', { name: 'Annuler' }))
+    await user.click(screen.getByRole('button', { name: 'Ajouter un membre' }))
+
+    expect(await screen.findByRole('searchbox', { name: /Adresse électronique de l'agent/ })).toHaveValue('')
+    expect(screen.queryByRole('button', { name: 'Ajouter le membre' })).not.toBeInTheDocument()
   })
 
   it('tells the recruteur when the member to remove already left the team', async () => {

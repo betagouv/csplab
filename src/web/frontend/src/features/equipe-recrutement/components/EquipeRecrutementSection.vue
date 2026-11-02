@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import type { RecrutementRole } from '../types'
-import { computed, ref, useTemplateRef, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { isHttpStatus } from '@/api/errors'
 import CspAsyncSection from '@/components/base/CspAsyncSection/CspAsyncSection.vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspDataTable from '@/components/base/CspDataTable/CspDataTable.vue'
+import { TABLE_PAGE_SIZE } from '@/components/base/CspDataTable/table'
 import CspDialog from '@/components/base/CspDialog/CspDialog.vue'
+import CspDrawer from '@/components/base/CspDrawer/CspDrawer.vue'
 import CspSearchBar from '@/components/base/CspSearchBar/CspSearchBar.vue'
 import CspSkeletonTable from '@/components/base/CspSkeleton/CspSkeletonTable.vue'
 import CspTableToolbar from '@/components/base/CspTableToolbar/CspTableToolbar.vue'
@@ -20,14 +22,12 @@ import { useAddAgentToRecrutement } from '../composables/useAddAgentToRecrutemen
 import { useEquipeRecrutement } from '../composables/useEquipeRecrutement'
 import { provideMembreEquipeActions } from '../composables/useMembreEquipeActions'
 import { RECRUTEMENT_ROLE_LABELS } from '../constants/equipe-recrutement'
-import AjoutMembreEquipeDrawer from './AjoutMembreEquipeDrawer.vue'
+import AddTeamMemberForm from './AddTeamMemberForm.vue'
 
 const props = defineProps<{
   organismeUuid: string
   recrutementUuid: string
 }>()
-
-const PAGE_SIZE = 8
 
 const { membres, pending, error, revoke, revoking, changeRole } = useEquipeRecrutement(
   props.organismeUuid,
@@ -49,8 +49,8 @@ const { addToast } = useToast()
 const showSkeleton = useMinimumPending(pending)
 
 const page = ref(1)
-const ajoutDrawerOpen = ref(false)
-const ajoutDrawer = useTemplateRef('ajoutDrawer')
+const addMemberDrawerOpen = ref(false)
+const addMemberEmailError = ref('')
 const revocationDialogOpen = ref(false)
 
 const columns = computed(() =>
@@ -58,6 +58,16 @@ const columns = computed(() =>
     ? [...EQUIPE_RECRUTEMENT_COLUMNS, EQUIPE_RECRUTEMENT_ACTIONS_COLUMN]
     : EQUIPE_RECRUTEMENT_COLUMNS,
 )
+
+function resetAgentSearch(): void {
+  addMemberEmailError.value = ''
+  resetAgent()
+}
+
+function openAddMemberDrawer(): void {
+  resetAgentSearch()
+  addMemberDrawerOpen.value = true
+}
 
 async function handleAdd(role: RecrutementRole) {
   try {
@@ -67,11 +77,11 @@ async function handleAdd(role: RecrutementRole) {
       title: 'Membre ajouté',
       description: `${formatAgentLabel(membre)} a rejoint l'équipe de recrutement.`,
     })
-    ajoutDrawerOpen.value = false
+    addMemberDrawerOpen.value = false
   }
   catch (submitError) {
     if (isHttpStatus(submitError, 409)) {
-      ajoutDrawer.value?.setEmailError('Cette personne fait déjà partie de l\'équipe.')
+      addMemberEmailError.value = 'Cette personne fait déjà partie de l\'équipe.'
       return
     }
     addToast({ variant: 'error', title: 'L\'ajout du membre a échoué' })
@@ -163,9 +173,7 @@ const countLabel = computed(() => {
     >
       <template #skeleton>
         <CspSkeletonTable
-          :rows="PAGE_SIZE"
           :columns="columns.length"
-          with-footer
         />
       </template>
 
@@ -176,14 +184,13 @@ const countLabel = computed(() => {
           label="Rechercher un membre, un courriel"
           hide-label
           placeholder="Rechercher un membre, un courriel"
-          class="equipe-recrutement-section__search"
         />
         <CspButton
           v-if="canManageOrganisme"
           label="Ajouter un membre"
           icon="ri:user-add-line"
           is-icon-left
-          @click="ajoutDrawerOpen = true"
+          @click="openAddMemberDrawer"
         />
       </CspTableToolbar>
       <CspDataTable
@@ -192,7 +199,7 @@ const countLabel = computed(() => {
         :columns="columns"
         :row-key="row => row.uuid"
         caption="Équipe de recrutement"
-        :page-size="PAGE_SIZE"
+        :page-size="TABLE_PAGE_SIZE"
       >
         <template #empty>
           <div class="equipe-recrutement-section__empty">
@@ -209,17 +216,23 @@ const countLabel = computed(() => {
       </CspDataTable>
     </CspAsyncSection>
 
-    <AjoutMembreEquipeDrawer
-      ref="ajoutDrawer"
-      v-model:open="ajoutDrawerOpen"
-      :status="agentStatus"
-      :agent="foundAgent"
-      :searching="searching"
-      :submitting="submitting"
-      @search="searchAgent"
-      @add="handleAdd"
-      @reset="resetAgent"
-    />
+    <CspDrawer
+      v-model:open="addMemberDrawerOpen"
+      title="Ajouter un membre"
+      size="md"
+    >
+      <AddTeamMemberForm
+        :status="agentStatus"
+        :agent="foundAgent"
+        :searching="searching"
+        :submitting="submitting"
+        :email-error="addMemberEmailError"
+        @search="searchAgent"
+        @add="handleAdd"
+        @reset="resetAgentSearch"
+        @cancel="addMemberDrawerOpen = false"
+      />
+    </CspDrawer>
 
     <CspDialog
       v-model:open="revocationDialogOpen"
@@ -264,10 +277,6 @@ const countLabel = computed(() => {
   color: var(--text-mention-grey);
   font-size: 0.875rem;
   max-width: 65ch;
-}
-
-.equipe-recrutement-section__search {
-  min-width: 20rem;
 }
 
 .equipe-recrutement-section__empty {

@@ -39,7 +39,7 @@ class UpdateOrganismeUsecase(IUsecase[UpdateOrganismeCommand, Organisme]):
     def can_execute(self, command: UpdateOrganismeCommand) -> Organisme:
         organisme = self.organisme_repository.get_by_id(command.organisme_id)
         self.permission_service.can_execute(
-            action=OrganismeAction.MODIFIER_ORGANISME,
+            action=OrganismeAction.UPDATE_ORGANISME,
             utilisateur=command.utilisateur,
             organisme_id=command.organisme_id,
         )

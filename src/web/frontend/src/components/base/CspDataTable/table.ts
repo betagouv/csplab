@@ -1,6 +1,8 @@
 import type { RowData } from '@tanstack/vue-table'
 import type { Component } from 'vue'
 
+export const TABLE_PAGE_SIZE = 25
+
 export type CspTableAlign = 'start' | 'center' | 'end'
 
 export type CspTableSize = 'sm' | 'md' | 'lg'

@@ -9,10 +9,11 @@ import { isHttpStatus } from '@/api/errors'
 import CspAsyncSection from '@/components/base/CspAsyncSection/CspAsyncSection.vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspDataTable from '@/components/base/CspDataTable/CspDataTable.vue'
+import { TABLE_PAGE_SIZE } from '@/components/base/CspDataTable/table'
+import CspDrawer from '@/components/base/CspDrawer/CspDrawer.vue'
 import CspEmptyState from '@/components/base/CspEmptyState/CspEmptyState.vue'
 import CspErrorState from '@/components/base/CspErrorState/CspErrorState.vue'
 import CspSearchBar from '@/components/base/CspSearchBar/CspSearchBar.vue'
-import CspSkeleton from '@/components/base/CspSkeleton/CspSkeleton.vue'
 import CspSkeletonTable from '@/components/base/CspSkeleton/CspSkeletonTable.vue'
 import CspTableToolbar from '@/components/base/CspTableToolbar/CspTableToolbar.vue'
 import CspPageContainer from '@/components/layout/CspPageContainer/CspPageContainer.vue'
@@ -31,7 +32,7 @@ import { useRouteOrganisme } from '@/stores/routeOrganisme'
 import { pluralize } from '@/utils/format'
 import ForbiddenView from '@/views/ForbiddenView.vue'
 import { RECRUTEMENTS_ACTIFS_COLUMNS, RECRUTEMENTS_ARCHIVES_COLUMNS } from '../columns'
-import AssignationResponsableDrawer from '../components/AssignationResponsableDrawer.vue'
+import AssignResponsableForm from '../components/AssignResponsableForm.vue'
 import RecrutementsActifsFiltersDrawer from '../components/RecrutementsActifsFiltersDrawer.vue'
 import RecrutementsArchivesFiltersDrawer from '../components/RecrutementsArchivesFiltersDrawer.vue'
 import { useAssignResponsable } from '../composables/useAssignResponsable'
@@ -80,8 +81,6 @@ function openOffre(recrutementUuid: string) {
 
 const recrutementsActifsPage = ref(1)
 const recrutementsArchivesPage = ref(1)
-
-const PAGE_SIZE = 6
 
 const actifsFilters = useRecrutementsFilters(computed(() => recrutementsData.actifs))
 const archivesFilters = useRecrutementsFilters(computed(() => recrutementsData.archives))
@@ -139,6 +138,18 @@ function assignationErrorTitle(assignationError: unknown): string {
     return 'Ce membre n\'est plus rattaché à l\'organisme'
   }
   return 'L\'assignation du responsable a échoué'
+}
+
+function openAssignment() {
+  resetResponsable()
+  assignationDrawer.open()
+}
+
+function removeFromAssignment(recrutementUuid: string) {
+  selection.toggle(recrutementUuid)
+  if (selection.count.value === 0) {
+    assignationDrawer.close()
+  }
 }
 
 async function handleAssign() {
@@ -229,26 +240,16 @@ const archivesCountLabel = computed(() => {
         <template v-else>
           <CspTableToolbar
             :bordered="false"
+            :count="actifsCountLabel"
+            :pending="showActifsSkeleton"
             :selection-count="selection.count.value"
             :selection-label="selectionLabel"
           >
             <template #selection-actions>
               <CspButton
                 label="Assigner un responsable"
-                @click="assignationDrawer.open()"
+                @click="openAssignment"
               />
-            </template>
-            <template #status>
-              <p class="mes-recrutement-view__count">
-                <CspSkeleton
-                  v-if="showActifsSkeleton"
-                  width="12rem"
-                  variant="text"
-                />
-                <template v-else>
-                  {{ actifsCountLabel }}
-                </template>
-              </p>
             </template>
             <CspSearchBar
               v-model="actifsFilters.search.value"
@@ -256,7 +257,6 @@ const archivesCountLabel = computed(() => {
               label="Rechercher un recrutement"
               hide-label
               placeholder="Rechercher une offre, une référence,…"
-              class="mes-recrutement-view__search"
             />
             <CspButton
               :label="actifsFilters.activeFiltersCount.value ? `Filtres (${actifsFilters.activeFiltersCount.value})` : 'Filtres'"
@@ -274,27 +274,31 @@ const archivesCountLabel = computed(() => {
             @apply="applyActifsFilters"
             @reset="actifsFilters.reset()"
           />
-          <AssignationResponsableDrawer
+          <CspDrawer
             v-model:open="assignationDrawer.isOpen.value"
-            :recrutements="selection.selected.value"
-            :status="responsableStatus"
-            :agent="foundAgent"
-            :searching="searching"
-            :submitting="submitting"
-            @remove="selection.toggle"
-            @search="searchResponsable"
-            @assign="handleAssign"
-            @reset="resetResponsable"
-          />
+            title="Assigner un responsable"
+            size="md"
+          >
+            <AssignResponsableForm
+              :recrutements="selection.selected.value"
+              :status="responsableStatus"
+              :agent="foundAgent"
+              :searching="searching"
+              :submitting="submitting"
+              @remove="removeFromAssignment"
+              @search="searchResponsable"
+              @assign="handleAssign"
+              @reset="resetResponsable"
+              @cancel="assignationDrawer.close()"
+            />
+          </CspDrawer>
           <CspAsyncSection
             :pending="showActifsSkeleton"
             loading-label="Chargement des recrutements en cours"
           >
             <template #skeleton>
               <CspSkeletonTable
-                :rows="PAGE_SIZE"
                 :columns="canManageOrganisme ? 7 : 6"
-                with-footer
               />
             </template>
             <CspDataTable
@@ -308,7 +312,7 @@ const archivesCountLabel = computed(() => {
               activation-mode="cell"
               caption="Recrutements en cours"
               empty-label="Aucun recrutement en cours"
-              :page-size="PAGE_SIZE"
+              :page-size="TABLE_PAGE_SIZE"
               @activate="openOffre"
               @toggle-row="selection.toggle"
               @toggle-all="selection.toggleVisible"
@@ -335,26 +339,17 @@ const archivesCountLabel = computed(() => {
           title="Aucun recrutement terminé"
         />
         <template v-else>
-          <CspTableToolbar :bordered="false">
-            <template #status>
-              <p class="mes-recrutement-view__count">
-                <CspSkeleton
-                  v-if="showArchivesSkeleton"
-                  width="12rem"
-                  variant="text"
-                />
-                <template v-else>
-                  {{ archivesCountLabel }}
-                </template>
-              </p>
-            </template>
+          <CspTableToolbar
+            :bordered="false"
+            :count="archivesCountLabel"
+            :pending="showArchivesSkeleton"
+          >
             <CspSearchBar
               v-model="archivesFilters.search.value"
               mode="live"
               label="Rechercher un recrutement"
               hide-label
               placeholder="Rechercher une offre, une référence,…"
-              class="mes-recrutement-view__search"
             />
             <CspButton
               :label="archivesFilters.activeFiltersCount.value ? `Filtres (${archivesFilters.activeFiltersCount.value})` : 'Filtres'"
@@ -379,9 +374,7 @@ const archivesCountLabel = computed(() => {
           >
             <template #skeleton>
               <CspSkeletonTable
-                :rows="PAGE_SIZE"
                 :columns="6"
-                with-footer
               />
             </template>
             <CspDataTable
@@ -392,7 +385,7 @@ const archivesCountLabel = computed(() => {
               activation-mode="cell"
               caption="Recrutements terminés"
               empty-label="Aucun recrutement terminé"
-              :page-size="PAGE_SIZE"
+              :page-size="TABLE_PAGE_SIZE"
               @activate="openOffre"
             />
           </CspAsyncSection>
@@ -403,16 +396,6 @@ const archivesCountLabel = computed(() => {
 </template>
 
 <style scoped lang="scss">
-.mes-recrutement-view__count {
-  margin: 0;
-  font-size: 0.9375rem;
-  color: var(--text-mention-grey);
-}
-
-.mes-recrutement-view__search {
-  min-width: 20rem;
-}
-
 .mes-recrutement-view__candidatures-head {
   display: flex;
   flex-direction: column;

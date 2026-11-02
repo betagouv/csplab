@@ -17,12 +17,16 @@ from referentiel.value_objects.offer_conditions import JobVacancy
 from referentiel.value_objects.offer_criteria import OfferCriteria, OfferLanguage
 from referentiel.value_objects.offer_nature import OfferNature
 from referentiel.value_objects.region import Region
+from referentiel.value_objects.required_document import (
+    TALENTSOFT_REQUIRED_DOCUMENTS,
+)
 from referentiel.value_objects.siret import SIRET
 from referentiel.value_objects.verse import Verse
 
 from application.ingestion.interfaces.upsert_organismes_input import (
     OrganismeUpsertData,
 )
+from presentation.commons.markdown import render_markdown_without_headings
 
 
 class LocalisationInputMapper(IToDomainMapper[dict, Localisation]):
@@ -48,10 +52,6 @@ class OfferInputMapper(IToDomainMapper[dict, Offer]):
         if not data:
             return None
 
-        # todo handle multiple categories offers later
-        category = (
-            Category(sorted(data["categories"])[0]) if data.get("categories") else None
-        )
         conditions = data.get("conditions") or None
         debut_contrat = conditions.get("debut_contrat") if conditions else None
 
@@ -67,7 +67,7 @@ class OfferInputMapper(IToDomainMapper[dict, Offer]):
             publication_date=data["publication"]["debut_publication"],
             end_publication_date=data["publication"]["fin_publication"],
             verse=Verse(data["identification"]["versant"]),
-            category=category,
+            categories=[Category(c) for c in data["categories"]],
             offer_nature=OfferNature(data["nature_offre"]),
             offer_url=data.get("url_offre"),
             localisation=self._localisation_mapper.to_domain(raw_localisation),
@@ -144,19 +144,23 @@ class OfferSummaryOutputMapper:
             if offer.offer_nature
             else None,
             "offerFamilyCategory": self._coded_object(
-                offer.category.name, offer.category.value, "offerFamilyCategory"
+                offer.main_category.name,
+                offer.main_category.value,
+                "offerFamilyCategory",
             )
-            if offer.category
+            if offer.main_category
             else None,
             "organisationName": offer.organization,
-            "organisationDescription": offer.employer,
+            "organisationDescription": offer.talentsoft_organisme.description
+            if offer.talentsoft_organisme
+            else None,
             "organisationLogoUrl": None,
             "contractDuration": (offer.conditions or {}).get("duree_contrat") or None,
             "contractTypeCountry": None,
             "description1": offer.mission,
             "description2": offer.profile,
-            "description1Formatted": None,
-            "description2Formatted": None,
+            "description1Formatted": self._formatted(offer.mission),
+            "description2Formatted": self._formatted(offer.profile),
             "salaryRange": None,
             "geographicalLocation": [],
             "country": [
@@ -216,6 +220,10 @@ class OfferSummaryOutputMapper:
         )
 
     @staticmethod
+    def _formatted(markdown: Optional[str]) -> Optional[str]:
+        return str(render_markdown_without_headings(markdown)) or None
+
+    @staticmethod
     def _isoformat(value: Optional[datetime]) -> Optional[str]:
         if not value:
             return None
@@ -242,6 +250,11 @@ class OfferSummaryOutputMapper:
         }
 
 
+_TALENTSOFT_REQUIRED_DOCUMENTS = {
+    frozenset(value.documents): value for value in TALENTSOFT_REQUIRED_DOCUMENTS
+}
+
+
 class OfferDetailOutputMapper(OfferSummaryOutputMapper):
     def to_dict(self, offer: Offer) -> dict:
         criteria = offer.criteria
@@ -266,21 +279,7 @@ class OfferDetailOutputMapper(OfferSummaryOutputMapper):
             "isAnonymousOrganisation": False,
             "organisation": self._talentsoft_organisation(offer.talentsoft_organisme)
             if offer.talentsoft_organisme
-            else {
-                "entityCode": "",
-                "name": offer.organization,
-                "description": offer.employer,
-                "url": str(offer.offer_url) if offer.offer_url else None,
-                "phoneNumber": None,
-                "postCode": None,
-                "geolocation": geolocation,
-                "parentName": None,
-                "logoUrl": None,
-                "maxDelayForConsent": None,
-                "retentionPeriod": None,
-                "generalConditions": None,
-                "personalDataConsent": None,
-            },
+            else {},
             "operationalManager": None,
             "educationLevel": self._coded_object(
                 str(criteria.diploma_level.value),
@@ -323,13 +322,37 @@ class OfferDetailOutputMapper(OfferSummaryOutputMapper):
                 longText1=offer.employer,
                 longText2=offer.exercise_conditions,
                 longText3=offer.service_description,
+                longText1Formatted=self._formatted(offer.employer),
+                longText2Formatted=self._formatted(offer.exercise_conditions),
+                longText3Formatted=self._formatted(offer.service_description),
             ),
+            "applicantCriteria": {
+                **self._dynamic_field(),
+                "customCodeTable1": self._required_documents(offer.criteria),
+            },
             "location": self._dynamic_field(
                 shortText1=offer.localisation.label if offer.localisation else None
             ),
-            "offerCustomBlock1": self._dynamic_field(longText1=offer.complements),
+            "offerCustomBlock1": self._dynamic_field(
+                longText1=offer.complements,
+                longText1Formatted=self._formatted(offer.complements),
+            ),
             "origin": self._dynamic_field(shortText1=offer.application_email),
         }
+
+    def _required_documents(self, criteria: Optional[OfferCriteria]) -> Optional[dict]:
+        if not criteria:
+            return None
+        talentsoft_value = _TALENTSOFT_REQUIRED_DOCUMENTS.get(
+            frozenset(criteria.documents_requis)
+        )
+        if not talentsoft_value:
+            return None
+        return self._coded_object(
+            talentsoft_value.client_code,
+            talentsoft_value.label,
+            "Documents à transmettre",
+        )
 
     @staticmethod
     def _dynamic_field(**values: Optional[str]) -> dict:
@@ -339,6 +362,9 @@ class OfferDetailOutputMapper(OfferSummaryOutputMapper):
             "longText1": None,
             "longText2": None,
             "longText3": None,
+            "longText1Formatted": None,
+            "longText2Formatted": None,
+            "longText3Formatted": None,
             **values,
         }
 

@@ -288,7 +288,7 @@ paths:
               $ref: '#/components/headers/X-RateLimit-Remaining'
             X-RateLimit-Reset:
               $ref: '#/components/headers/X-RateLimit-Reset'
-        '200':
+        '201':
           content:
             application/json:
               schema:
@@ -1478,12 +1478,24 @@ paths:
               $ref: '#/components/headers/X-RateLimit-Remaining'
             X-RateLimit-Reset:
               $ref: '#/components/headers/X-RateLimit-Reset'
-  /recruteur/organismes/{organisme_uuid}/recrutements-actifs:
+  /recruteur/organismes/{organisme_uuid}/parametres/tags:
     get:
-      operationId: recruteur_organismes_recrutements_actifs_list
-      description: 'Retourne la liste paginée des recrutements d''un organisme. '
-      summary: Liste des recrutements actifs d'un organisme
+      operationId: recruteur_organismes_parametres_tags_list
+      summary: Liste des étiquettes d'un organisme
       parameters:
+      - in: query
+        name: category
+        schema:
+          enum:
+          - candidature
+          - recrutement_agent
+          - note
+          type: string
+          minLength: 1
+        description: |-
+          * `candidature` - Candidature
+          * `recrutement_agent` - Membre recrutement
+          * `note` - Note
       - in: path
         name: organisme_uuid
         schema:
@@ -1493,20 +1505,517 @@ paths:
       - name: page
         required: false
         in: query
-        description: Numéro de la page.
+        description: Un numéro de page de l'ensemble des résultats.
         schema:
           type: integer
-          default: 1
-          minimum: 1
-      - name: taille
+      tags:
+      - recruteur
+      security:
+      - cookieAuth: []
+      responses:
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenError'
+          description: ''
+          headers:
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+          description: ''
+          headers:
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+          description: ''
+          headers:
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
+        '500':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+          description: ''
+          headers:
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedTagList'
+          description: ''
+          headers:
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+          description: ''
+          headers:
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
+        '429':
+          description: Nombre maximal d'appels autorisés dépassé.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
+                    example: Request was throttled. Expected available in 42 seconds.
+          headers:
+            Retry-After:
+              $ref: '#/components/headers/Retry-After'
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
+    post:
+      operationId: recruteur_organismes_parametres_tags_create
+      summary: Créer une étiquette dans un organisme
+      parameters:
+      - in: path
+        name: organisme_uuid
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - recruteur
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTag'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CreateTag'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CreateTag'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenError'
+          description: ''
+          headers:
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+          description: ''
+          headers:
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+          description: ''
+          headers:
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
+        '500':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+          description: ''
+          headers:
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Tag'
+          description: ''
+          headers:
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+          description: ''
+          headers:
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+          description: ''
+          headers:
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
+        '429':
+          description: Nombre maximal d'appels autorisés dépassé.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
+                    example: Request was throttled. Expected available in 42 seconds.
+          headers:
+            Retry-After:
+              $ref: '#/components/headers/Retry-After'
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
+  /recruteur/organismes/{organisme_uuid}/parametres/tags/{tag_uuid}:
+    put:
+      operationId: recruteur_organismes_parametres_tags_update
+      summary: Modifier une étiquette d'un organisme
+      parameters:
+      - in: path
+        name: organisme_uuid
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: tag_uuid
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - recruteur
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateTag'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/UpdateTag'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/UpdateTag'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenError'
+          description: ''
+          headers:
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+          description: ''
+          headers:
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+          description: ''
+          headers:
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
+        '500':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+          description: ''
+          headers:
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Tag'
+          description: ''
+          headers:
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+          description: ''
+          headers:
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+          description: ''
+          headers:
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
+        '429':
+          description: Nombre maximal d'appels autorisés dépassé.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
+                    example: Request was throttled. Expected available in 42 seconds.
+          headers:
+            Retry-After:
+              $ref: '#/components/headers/Retry-After'
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
+    delete:
+      operationId: recruteur_organismes_parametres_tags_destroy
+      summary: Supprimer une étiquette d'un organisme
+      parameters:
+      - in: path
+        name: organisme_uuid
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: tag_uuid
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - recruteur
+      security:
+      - cookieAuth: []
+      responses:
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenError'
+          description: ''
+          headers:
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+          description: ''
+          headers:
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+          description: ''
+          headers:
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
+        '500':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+          description: ''
+          headers:
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
+        '204':
+          description: No response body
+          headers:
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
+        '429':
+          description: Nombre maximal d'appels autorisés dépassé.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
+                    example: Request was throttled. Expected available in 42 seconds.
+          headers:
+            Retry-After:
+              $ref: '#/components/headers/Retry-After'
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
+  /recruteur/organismes/{organisme_uuid}/recrutements-actifs:
+    get:
+      operationId: recruteur_organismes_recrutements_actifs_list
+      description: 'Retourne la liste paginée des recrutements d''un organisme. '
+      summary: Liste des recrutements actifs d'un organisme
+      parameters:
+      - name: limit
         required: false
         in: query
-        description: Nombre d'éléments par page.
+        description: Nombre de résultats à retourner par page.
         schema:
           type: integer
-          default: 100
-          minimum: 1
-          maximum: 1000
+      - in: path
+        name: organisme_uuid
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - name: page
+        required: false
+        in: query
+        description: Un numéro de page de l'ensemble des résultats.
+        schema:
+          type: integer
       tags:
       - recruteur
       security:
@@ -1615,6 +2124,12 @@ paths:
       description: 'Retourne la liste paginée des recrutements archivés d''un organisme. '
       summary: Liste des recrutements archivés d'un organisme
       parameters:
+      - name: limit
+        required: false
+        in: query
+        description: Nombre de résultats à retourner par page.
+        schema:
+          type: integer
       - in: path
         name: organisme_uuid
         schema:
@@ -1624,20 +2139,9 @@ paths:
       - name: page
         required: false
         in: query
-        description: Numéro de la page.
+        description: Un numéro de page de l'ensemble des résultats.
         schema:
           type: integer
-          default: 1
-          minimum: 1
-      - name: taille
-        required: false
-        in: query
-        description: Nombre d'éléments par page.
-        schema:
-          type: integer
-          default: 100
-          minimum: 1
-          maximum: 1000
       tags:
       - recruteur
       security:
@@ -2229,6 +2733,12 @@ paths:
           type: string
           format: uuid
         required: true
+      - name: cursor
+        required: false
+        in: query
+        description: La valeur du curseur de pagination.
+        schema:
+          type: string
       - name: limit
         required: false
         in: query
@@ -2241,12 +2751,6 @@ paths:
           type: string
           format: uuid
         required: true
-      - name: page
-        required: false
-        in: query
-        description: Un numéro de page de l'ensemble des résultats.
-        schema:
-          type: integer
       - in: path
         name: recrutement_uuid
         schema:
@@ -3348,6 +3852,429 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/GenericError'
+          description: ''
+          headers:
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
+        '429':
+          description: Nombre maximal d'appels autorisés dépassé.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
+                    example: Request was throttled. Expected available in 42 seconds.
+          headers:
+            Retry-After:
+              $ref: '#/components/headers/Retry-After'
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
+  /recruteur/organismes/{organisme_uuid}/recrutements/{recrutement_uuid}/candidatures/{candidature_uuid}/notes/{note_uuid}/tags:
+    post:
+      operationId: recruteur_organismes_recrutements_candidatures_notes_tags_create
+      summary: Poser une étiquette sur une note d'une candidature
+      parameters:
+      - in: path
+        name: candidature_uuid
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: note_uuid
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: organisme_uuid
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: recrutement_uuid
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - recruteur
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddNoteTag'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/AddNoteTag'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AddNoteTag'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenError'
+          description: ''
+          headers:
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+          description: ''
+          headers:
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+          description: ''
+          headers:
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
+        '500':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+          description: ''
+          headers:
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
+        '201':
+          description: No response body
+          headers:
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
+        '400':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties:
+                  type: array
+                  items:
+                    type: string
+          description: ''
+          headers:
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+          description: ''
+          headers:
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
+        '429':
+          description: Nombre maximal d'appels autorisés dépassé.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
+                    example: Request was throttled. Expected available in 42 seconds.
+          headers:
+            Retry-After:
+              $ref: '#/components/headers/Retry-After'
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
+  ? /recruteur/organismes/{organisme_uuid}/recrutements/{recrutement_uuid}/candidatures/{candidature_uuid}/notes/{note_uuid}/tags/{tag_uuid}
+  : delete:
+      operationId: recruteur_organismes_recrutements_candidatures_notes_tags_destroy
+      summary: Retirer une étiquette d'une note d'une candidature
+      parameters:
+      - in: path
+        name: candidature_uuid
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: note_uuid
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: organisme_uuid
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: recrutement_uuid
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: tag_uuid
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - recruteur
+      security:
+      - cookieAuth: []
+      responses:
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenError'
+          description: ''
+          headers:
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+          description: ''
+          headers:
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+          description: ''
+          headers:
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
+        '500':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+          description: ''
+          headers:
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
+        '204':
+          description: No response body
+          headers:
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
+        '429':
+          description: Nombre maximal d'appels autorisés dépassé.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
+                    example: Request was throttled. Expected available in 42 seconds.
+          headers:
+            Retry-After:
+              $ref: '#/components/headers/Retry-After'
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
+  ? /recruteur/organismes/{organisme_uuid}/recrutements/{recrutement_uuid}/candidatures/{candidature_uuid}/notes/{note_uuid}/visibilite
+  : put:
+      operationId: recruteur_organismes_recrutements_candidatures_notes_visibilite_update
+      summary: Modifier la visibilité d'une note d'une candidature
+      parameters:
+      - in: path
+        name: candidature_uuid
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: note_uuid
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: organisme_uuid
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: recrutement_uuid
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - recruteur
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NoteVisibilite'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/NoteVisibilite'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/NoteVisibilite'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenError'
+          description: ''
+          headers:
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+          description: ''
+          headers:
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+          description: ''
+          headers:
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
+        '500':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+          description: ''
+          headers:
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NoteDetail'
+          description: ''
+          headers:
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
+        '400':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties:
+                  type: array
+                  items:
+                    type: string
           description: ''
           headers:
             X-RateLimit-Limit:
@@ -4693,6 +5620,14 @@ paths:
               $ref: '#/components/headers/X-RateLimit-Reset'
 components:
   schemas:
+    AddNoteTag:
+      type: object
+      properties:
+        tag_uuid:
+          type: string
+          format: uuid
+      required:
+      - tag_uuid
     Agent:
       type: object
       properties:
@@ -4799,6 +5734,88 @@ components:
       - utilisateur_id
       - utilisateur_nom
       - utilisateur_prenom
+    AuthorizedActionsEnum:
+      enum:
+      - get_organisme
+      - initialize_organisme_steps
+      - update_organisme_steps
+      - list_recrutements
+      - get_recrutement
+      - get_candidature
+      - change_etape_candidatures
+      - get_recrutement_etapes
+      - update_recrutement_etapes
+      - init_recrutement_etapes
+      - create_organisme
+      - list_organismes
+      - update_organisme
+      - list_organisme_agents
+      - search_agent
+      - attach_organisme_agent
+      - update_organisme_agent
+      - revoke_organisme_agent
+      - create_agent
+      - list_recrutement_agents
+      - add_recrutement_agent
+      - update_recrutement_agent
+      - revoke_recrutement_agent
+      - set_recrutements_responsable
+      - get_motifs_refus
+      - read_document
+      - list_documents
+      - list_notes
+      - create_note
+      - update_note
+      - delete_note
+      - list_conversations
+      - read_conversation
+      - create_conversation
+      - reply_conversation
+      - list_tags
+      - create_tag
+      - update_tag
+      - delete_tag
+      type: string
+      description: |-
+        * `get_organisme` - get_organisme
+        * `initialize_organisme_steps` - initialize_organisme_steps
+        * `update_organisme_steps` - update_organisme_steps
+        * `list_recrutements` - list_recrutements
+        * `get_recrutement` - get_recrutement
+        * `get_candidature` - get_candidature
+        * `change_etape_candidatures` - change_etape_candidatures
+        * `get_recrutement_etapes` - get_recrutement_etapes
+        * `update_recrutement_etapes` - update_recrutement_etapes
+        * `init_recrutement_etapes` - init_recrutement_etapes
+        * `create_organisme` - create_organisme
+        * `list_organismes` - list_organismes
+        * `update_organisme` - update_organisme
+        * `list_organisme_agents` - list_organisme_agents
+        * `search_agent` - search_agent
+        * `attach_organisme_agent` - attach_organisme_agent
+        * `update_organisme_agent` - update_organisme_agent
+        * `revoke_organisme_agent` - revoke_organisme_agent
+        * `create_agent` - create_agent
+        * `list_recrutement_agents` - list_recrutement_agents
+        * `add_recrutement_agent` - add_recrutement_agent
+        * `update_recrutement_agent` - update_recrutement_agent
+        * `revoke_recrutement_agent` - revoke_recrutement_agent
+        * `set_recrutements_responsable` - set_recrutements_responsable
+        * `get_motifs_refus` - get_motifs_refus
+        * `read_document` - read_document
+        * `list_documents` - list_documents
+        * `list_notes` - list_notes
+        * `create_note` - create_note
+        * `update_note` - update_note
+        * `delete_note` - delete_note
+        * `list_conversations` - list_conversations
+        * `read_conversation` - read_conversation
+        * `create_conversation` - create_conversation
+        * `reply_conversation` - reply_conversation
+        * `list_tags` - list_tags
+        * `create_tag` - create_tag
+        * `update_tag` - update_tag
+        * `delete_tag` - delete_tag
     BlankEnum:
       enum:
       - ''
@@ -4991,6 +6008,16 @@ components:
         * `B` - B
         * `C` - C
         * `HORS_CATEGORIE` - HORS_CATEGORIE
+    CategoryEnum:
+      enum:
+      - candidature
+      - recrutement_agent
+      - note
+      type: string
+      description: |-
+        * `candidature` - Candidature
+        * `recrutement_agent` - Membre recrutement
+        * `note` - Note
     ChangerEtapeResultat:
       type: object
       properties:
@@ -5006,6 +6033,28 @@ components:
       required:
       - echecs
       - reussites
+    ColorEnum:
+      enum:
+      - vert
+      - menthe
+      - bleu
+      - violet
+      - rose
+      - orange
+      - beige
+      - jaune
+      - gris
+      type: string
+      description: |-
+        * `vert` - Vert
+        * `menthe` - Menthe
+        * `bleu` - Bleu
+        * `violet` - Violet
+        * `rose` - Rose
+        * `orange` - Orange
+        * `beige` - Beige
+        * `jaune` - Jaune
+        * `gris` - Gris
     Conversation:
       type: object
       properties:
@@ -5132,6 +6181,9 @@ components:
       properties:
         message:
           type: string
+        est_privee:
+          type: boolean
+          default: false
       required:
       - message
     CreateOrganisme:
@@ -5139,6 +6191,7 @@ components:
       properties:
         nom:
           type: string
+          maxLength: 255
         siret:
           type: string
           maxLength: 14
@@ -5152,6 +6205,21 @@ components:
       - nom
       - siret
       - versant
+    CreateTag:
+      type: object
+      properties:
+        name:
+          type: string
+          maxLength: 25
+        category:
+          $ref: '#/components/schemas/CategoryEnum'
+        color:
+          allOf:
+          - $ref: '#/components/schemas/ColorEnum'
+          default: bleu
+      required:
+      - category
+      - name
     DepartementEnum:
       enum:
       - '01'
@@ -5557,8 +6625,11 @@ components:
         publie_le:
           type: string
           format: date-time
+        est_privee:
+          type: boolean
       required:
       - candidature_id
+      - est_privee
       - message
       - publie_le
       - publie_par_id
@@ -5579,11 +6650,21 @@ components:
         publie_par_id:
           type: string
           format: uuid
+        est_privee:
+          type: boolean
       required:
       - candidature_id
+      - est_privee
       - message
       - publie_par_id
       - uuid
+    NoteVisibilite:
+      type: object
+      properties:
+        est_privee:
+          type: boolean
+      required:
+      - est_privee
     NullEnum:
       enum:
       - null
@@ -5604,24 +6685,33 @@ components:
         uuid:
           type: string
           format: uuid
+          readOnly: true
         nom:
           type: string
+          readOnly: true
         versant:
-          $ref: '#/components/schemas/VersantEnum'
+          allOf:
+          - $ref: '#/components/schemas/VersantEnum'
+          readOnly: true
         siret:
           type: string
+          readOnly: true
           maxLength: 14
           minLength: 14
         superviseurs:
           type: string
+          readOnly: true
         gestion_ats:
           type: boolean
+          readOnly: true
         date_derniere_activite:
           type: string
           format: date-time
+          readOnly: true
         date_creation:
           type: string
           format: date-time
+          readOnly: true
       required:
       - date_creation
       - date_derniere_activite
@@ -5758,22 +6848,18 @@ components:
     PaginatedConversationMessageList:
       type: object
       required:
-      - count
       - results
       properties:
-        count:
-          type: integer
-          example: 123
         next:
           type: string
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?page=4
+          example: http://api.example.org/accounts/?cursor=cD00ODY%3D"
         previous:
           type: string
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?page=2
+          example: http://api.example.org/accounts/?cursor=cj0xJnA9NDg3
         results:
           type: array
           items:
@@ -5855,17 +6941,17 @@ components:
       properties:
         count:
           type: integer
-          example: 1
+          example: 123
         next:
           type: string
-          format: uri
           nullable: true
-          example: null
+          format: uri
+          example: http://api.example.org/accounts/?page=4
         previous:
           type: string
-          format: uri
           nullable: true
-          example: null
+          format: uri
+          example: http://api.example.org/accounts/?page=2
         results:
           type: array
           items:
@@ -5878,21 +6964,44 @@ components:
       properties:
         count:
           type: integer
-          example: 1
+          example: 123
         next:
           type: string
-          format: uri
           nullable: true
-          example: null
+          format: uri
+          example: http://api.example.org/accounts/?page=4
         previous:
           type: string
-          format: uri
           nullable: true
-          example: null
+          format: uri
+          example: http://api.example.org/accounts/?page=2
         results:
           type: array
           items:
             $ref: '#/components/schemas/RecrutementsArchives'
+    PaginatedTagList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Tag'
     PatchedChangerEtapeCandidatures:
       type: object
       properties:
@@ -5910,6 +7019,8 @@ components:
       properties:
         message:
           type: string
+        est_privee:
+          type: boolean
     RecrutementAgent:
       type: object
       properties:
@@ -6049,6 +7160,10 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Responsable'
+        authorized_actions:
+          type: array
+          items:
+            $ref: '#/components/schemas/AuthorizedActionsEnum'
         date_publication:
           type: string
           format: date-time
@@ -6060,6 +7175,7 @@ components:
           type: string
           format: date-time
       required:
+      - authorized_actions
       - candidatures
       - date_publication
       - derniere_activite
@@ -6091,6 +7207,10 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Responsable'
+        authorized_actions:
+          type: array
+          items:
+            $ref: '#/components/schemas/AuthorizedActionsEnum'
         date_archivage:
           type: string
           format: date-time
@@ -6100,6 +7220,7 @@ components:
           type: string
           nullable: true
       required:
+      - authorized_actions
       - date_archivage
       - finalise
       - intitule
@@ -6208,6 +7329,28 @@ components:
       required:
       - echecs
       - reussites
+    Tag:
+      type: object
+      properties:
+        uuid:
+          type: string
+          format: uuid
+        name:
+          type: string
+          maxLength: 25
+        category:
+          $ref: '#/components/schemas/CategoryEnum'
+        color:
+          $ref: '#/components/schemas/ColorEnum'
+        usage_count:
+          type: integer
+          readOnly: true
+          default: 0
+      required:
+      - category
+      - name
+      - usage_count
+      - uuid
     TokenError:
       type: object
       properties:
@@ -6288,6 +7431,17 @@ components:
       - gestion_ats
       - nom
       - versant
+    UpdateTag:
+      type: object
+      properties:
+        name:
+          type: string
+          maxLength: 25
+        color:
+          $ref: '#/components/schemas/ColorEnum'
+      required:
+      - color
+      - name
     Utilisateur:
       type: object
       properties:
@@ -6304,12 +7458,38 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/OrganismeRole'
+        authorized_actions:
+          type: array
+          items:
+            $ref: '#/components/schemas/AuthorizedActionsEnum'
+        organismes:
+          type: array
+          items:
+            $ref: '#/components/schemas/UtilisateurOrganisme'
       required:
+      - authorized_actions
       - email
       - is_staff
       - nom
       - organisme_roles
+      - organismes
       - prenom
+    UtilisateurOrganisme:
+      type: object
+      properties:
+        uuid:
+          type: string
+          format: uuid
+        nom:
+          type: string
+        authorized_actions:
+          type: array
+          items:
+            $ref: '#/components/schemas/AuthorizedActionsEnum'
+      required:
+      - authorized_actions
+      - nom
+      - uuid
     VersantEnum:
       enum:
       - FPT

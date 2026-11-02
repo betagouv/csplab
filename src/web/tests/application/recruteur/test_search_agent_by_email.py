@@ -15,7 +15,6 @@ from infrastructure.factories.identite.organisme_django_factory import (
 from infrastructure.factories.identite.utilisateur_django_factory import (
     UtilisateurDjangoFactory,
 )
-from infrastructure.mappers.utilisateur_mapper import UtilisateurMapper
 
 
 def test_responsable_finds_agent_by_email(db):
@@ -26,7 +25,7 @@ def test_responsable_finds_agent_by_email(db):
 
     result = search_agent_by_email(
         organisme_id=organisme.id,
-        utilisateur=UtilisateurMapper().to_domain(responsable.utilisateur),
+        utilisateur=responsable.utilisateur,
         email=autre_agent.utilisateur.email,
     )
 
@@ -41,7 +40,7 @@ def test_responsable_gets_none_for_unknown_email(db):
 
     result = search_agent_by_email(
         organisme_id=organisme.id,
-        utilisateur=UtilisateurMapper().to_domain(responsable.utilisateur),
+        utilisateur=responsable.utilisateur,
         email="inconnu@example.com",
     )
 
@@ -55,7 +54,7 @@ def test_membre_is_denied(db):
     with pytest.raises(AccesOrganismeRefuse):
         search_agent_by_email(
             organisme_id=organisme.id,
-            utilisateur=UtilisateurMapper().to_domain(membre.utilisateur),
+            utilisateur=membre.utilisateur,
             email=autre_agent.utilisateur.email,
         )
 
@@ -67,7 +66,7 @@ def test_staff_without_role_is_authorized(db):
 
     result = search_agent_by_email(
         organisme_id=organisme.id,
-        utilisateur=UtilisateurMapper().to_domain(staff),
+        utilisateur=staff,
         email=autre_agent.utilisateur.email,
     )
 
@@ -76,7 +75,7 @@ def test_staff_without_role_is_authorized(db):
 
 
 def test_unknown_organisme_raises(db):
-    utilisateur = UtilisateurMapper().to_domain(UtilisateurDjangoFactory())
+    utilisateur = UtilisateurDjangoFactory()
 
     with pytest.raises(OrganismeNexistePas):
         search_agent_by_email(

@@ -16,7 +16,6 @@ export interface KanbanSelectionContext {
   toggleColumnSelection: (etape: EtapeRecrutementDetailedCandidatures) => void
   toggleCandidatureSelection: (candidatureUuid: string, etapeUuid: string) => void
   clearSelection: () => void
-  hasSelection: ComputedRef<boolean>
 }
 
 function isFullySelected(etape: EtapeRecrutementDetailedCandidatures, selected: Set<string> | undefined): boolean {
@@ -49,8 +48,6 @@ export function useKanbanSelection(
   })
 
   const selectedCount = computed(() => selectedCandidatures.value.length)
-
-  const hasSelection = computed(() => selectedCount.value > 0)
 
   const currentEtapeUuid = computed<string | null>(() => {
     const etapeUuids = new Set(selectedCandidatures.value.map(s => s.etapeUuid))
@@ -127,6 +124,5 @@ export function useKanbanSelection(
     toggleColumnSelection,
     toggleCandidatureSelection,
     clearSelection,
-    hasSelection,
   }
 }

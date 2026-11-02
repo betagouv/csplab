@@ -1,6 +1,6 @@
 # Correspondance offre Talentsoft → offre API v1
 
-_Dernière mise à jour : 2026-10-19_
+_Dernière mise à jour : 2026-10-26_
 
 Conversion d'une offre au format Talentsoft en offre envoyée à l'API.
 L'API fake-ts (`/api/fake-ts/`, `OfferSummaryOutputMapper` et `OfferDetailOutputMapper` dans `src/web/presentation/ingestion/mappers.py`) expose les offres du web au format Talentsoft : les notes « API fake-ts » décrivent ce qu'elle renvoie.
@@ -16,21 +16,21 @@ Notation : `a.b` désigne un objet imbriqué, `a[]` une liste, `a[0]` son premie
 | `salaryRange.clientCode` | `identification.versant` | Dans l'API fake-ts, `salaryRange` est une simple chaîne, toujours `null` : le versant est alors déduit de `reference` (`APHP`/`MENJ`/`OFII`). Les valeurs contenant `FPT`/`FPH`/`FPE` donnent un `Verse`. |
 | `title` | `titre` | Copié aussi dans `titre_long`. |
 | `organisationName` | `organisation.nom` | |
-| `organisation.entityCode` | `organisation.talentsoft_organisme_entity_code` | Lien vers l'organisme Talentsoft, vide s'il est inconnu. |
+| `organisation.entityCode` | `organisation.talentsoft_organisme_entity_code` | Lien vers l'organisme Talentsoft, vide s'il est inconnu. API fake-ts : reprend l'organisme Talentsoft lié à l'offre. Toute offre est liée à un organisme Talentsoft. |
 | `contractType.clientCode` | `nature_offre` | Traduit par le transcodeur de la source. |
 | `professionalCategory.clientCode` | `vacance_poste` | `STATUT01` → `OUI` (poste vacant), `STATUT02` → `NON` (poste susceptible d'être vacant), sinon vide. Malgré son nom, c'est le « Statut du poste » affiché par l'ancien site WordPress. API fake-ts : `OUI` → `STATUT01`, `NON` → `STATUT02`, sinon `null`. |
 | `offerFamilyCategory.clientCode` | `profession.metier` | `profession.domaine` correspond à ses 3 premiers caractères, après retrait d'un `ER` initial. |
-| `description1` | `description.mission` | |
-| `description2` | `description.profil` | |
-| `customFields.description.longText1` | `description.employeur` | |
-| `customFields.description.longText2` | `description.conditions_exercice` | |
-| `customFields.description.longText3` | `description.descriptif_service` | |
-| `customFields.offerCustomBlock1.longText1` | `description.complements` | |
+| `description1Formatted` | `description.mission` | Converti en Markdown, repli sur le texte brut `description1` s'il est vide (voir sous le tableau). |
+| `description2Formatted` | `description.profil` | Converti en Markdown, repli sur le texte brut `description2` s'il est vide (voir sous le tableau). |
+| `customFields.description.longText1Formatted` | `description.employeur` | Converti en Markdown, repli sur le texte brut `customFields.description.longText1` s'il est vide (voir sous le tableau). |
+| `customFields.description.longText2Formatted` | `description.conditions_exercice` | Converti en Markdown, repli sur le texte brut `customFields.description.longText2` s'il est vide (voir sous le tableau). |
+| `customFields.description.longText3Formatted` | `description.descriptif_service` | Converti en Markdown, repli sur le texte brut `customFields.description.longText3` s'il est vide (voir sous le tableau). |
+| `customFields.offerCustomBlock1.longText1Formatted` | `description.complements` | Converti en Markdown, repli sur le texte brut `customFields.offerCustomBlock1.longText1` s'il est vide (voir sous le tableau). |
 | `offerUrl` | `url_offre` | |
 | `urlRedirectionApplicant` | `url_candidature` | Prioritaire sur `customFields.origin.shortText1` et `applicationUrl`. |
 | `customFields.origin.shortText1` | `email_candidature` | Texte libre (« adresse de candidature »). Lu seulement si `urlRedirectionApplicant` est vide : le premier e-mail valide trouvé devient `email_candidature`, et `url_candidature` reste vide. API fake-ts : reprend `email_candidature`, `null` si l'offre se candidate par lien. |
 | `applicationUrl` | `url_candidature` | Dernier recours, si `urlRedirectionApplicant` est vide et que `customFields.origin.shortText1` ne contient aucun e-mail valide. Toujours rempli dans Talentsoft (page de candidature générique). API fake-ts : reprend `url_candidature`, `null` si l'offre se candidate par e-mail. |
-| `geographicalLocation[0].clientCode` | `localisation[0].zone_geographique` | L'API fake-ts renvoie toujours `[]` : aucune `localisation` n'est donc produite à partir de lui. Toute la `localisation` est abandonnée si la zone, le pays, la région ou le département manque. |
+| `geographicalLocation[0].clientCode` | `localisation[0].zone_geographique` | Ignoré : la zone est toujours déduite du département (`zone_pour_departement` dans `libs/referentiel`), car Talentsoft range presque tout l'outre-mer en `Europe`. `EUROPE` en métropole, `AMERIQUE` (971, 972, 973) ou `AFRIQUE` (974, 976) pour les DOM, `AMERIQUE` (975, `SPM`) ou `OCEANIE` (986, `WLF`, 987, 988) pour les collectivités d'outre-mer. Toute la `localisation` est abandonnée si le pays, la région ou le département manque. |
 | `country[0].clientCode` | `localisation[0].pays` | |
 | `region[0].clientCode` | `localisation[0].region` | Les préfixes `_TS_CO_Region_` et `R` sont retirés pour obtenir le code INSEE. |
 | `department[0].clientCode` | `localisation[0].departement` | Cas particulier de la Nouvelle-Calédonie (`988`). |
@@ -50,6 +50,15 @@ Notation : `a.b` désigne un objet imbriqué, `a[]` une liste, `a[0]` son premie
 | `languages[].languageName.clientCode` | `criteres.langues[].iso_code` | |
 | `languages[].languageLevel.clientCode` | `criteres.langues[].niveau` | |
 
+Les six champs `description.*` contiennent du Markdown (CommonMark), converti par `infrastructure/gateways/html_to_markdown.py` :
+- gras, italique, listes, titres et sauts de ligne sont conservés ; le souligné devient du gras (sans doubler un gras existant) ;
+- les styles, classes, `span` et `script` sont retirés, les images supprimées, les tableaux aplatis en texte et les exposants rendus en texte simple ;
+- les liens ne sont gardés qu'en `http:`, `https:` (avec un hôte, intranet compris) ou `mailto:` (avec un `@`) ; le `href` est coupé au premier espace, les autres liens deviennent du texte simple.
+
+Le Markdown ne contient jamais de balise HTML ni de lien ou d'image écrits dans le texte : la syntaxe Markdown et HTML du texte est échappée (ex. `&lt;script&gt;` dans le HTML Talentsoft devient `\<script\>`, `[clic](url)` devient `\[clic\](url)`). Seules les balises `<a>` converties produisent des liens, toujours au format `[libellé](url)`.
+
+L'API fake-ts fait le chemin inverse : elle renvoie le Markdown dans les champs texte brut (`description1`, `longText1`…) et le convertit en HTML dans les variantes `Formatted` (`render_markdown_without_headings` dans `src/web/presentation/commons/markdown.py`), `null` si le champ est vide. Le WordPress BIEP ne lit que ces variantes `Formatted` et retire les titres : ils sont donc rendus en paragraphes en gras.
+
 `criteres` n'est envoyé que si au moins un des champs niveau de diplôme, diplôme, expérience, spécialisations ou langues est renseigné.
 
 ## 2. Champs Talentsoft sans équivalent dans l'API v1
@@ -60,15 +69,13 @@ Notation : `a.b` désigne un objet imbriqué, `a[]` une liste, `a[0]` son premie
 | `location` | Libellé d'affichage ; le libellé repris vient de `customFields.location.shortText1`. |
 | `modificationDate` | |
 | `contractTypeCountry` | |
-| `organisationDescription` | Capturé nulle part dans la chaîne. |
+| `organisationDescription` | Capturé nulle part dans la chaîne. API fake-ts : reprend la description de l'organisme Talentsoft lié à l'offre (comme `organisation.description`). |
 | `organisationLogoUrl` | |
-| `description1Formatted` | Variante HTML de `description1`, non utilisée. |
-| `description2Formatted` | Variante HTML de `description2`, non utilisée. |
 | `_links` | Métadonnées de transport. |
 | `_format` | Métadonnées de transport. |
 | `_metadata` | Métadonnées de transport. |
 | `urlRedirectionEmployee` | |
-| `locations` | |
+| `locations` | Jamais renseigné par Talentsoft : toujours vide dans les offres chargées par l'ingestion. Le WordPress BIEP ne le lit pas non plus. |
 | `isAnonymousOrganisation` | |
 | `numberOfVacancies` | Nombre de postes à pourvoir. Jamais renseigné par Talentsoft : toujours `null` dans les offres chargées par l'ingestion (vérifié le 2026-10-19). |
 | `organisation.name` | Données d'organisme, synchronisées par l'upsert séparé des organismes Talentsoft (`TalentsoftOrganismeUpsertInputSerializer`), pas par le payload d'offre. |
@@ -117,7 +124,7 @@ Notation : `a.b` désigne un objet imbriqué, `a[]` une liste, `a[0]` son premie
 | `organisation.siret` | Jamais renseigné par l'ingestion (vide) ; le rapprochement d'organisme passe par `talentsoft_organisme_entity_code`. |
 | `profession.referentiel` | Constante `RMFPv2`. |
 | `profession.code_emploi_local` | Jamais renseigné, `local_job_code` reste à `null`. |
-| `criteres.documents_requis` | Jamais renseigné par l'ingestion. |
+| `criteres.documents_requis` | Lu dans `customFields.applicantCriteria.customCodeTable1` (« Documents à transmettre ») : `Doc_CV` → `[CV]`, `Doc_CV_LM` → `[CV, LETTRE_MOTIVATION]`, `Doc_CV_PF` → `[CV, PORTFOLIO]`, `Doc_CV_LM_PF` → `[CV, LETTRE_MOTIVATION, PORTFOLIO]`. Absent, `null` ou code inconnu → non envoyé. API fake-ts : renvoyé dans `customFields.applicantCriteria.customCodeTable1`, valeur du référentiel Talentsoft « Documents à transmettre » : `[CV]` → `Doc_CV`, `[CV, LETTRE_MOTIVATION]` → `Doc_CV_LM`, `[CV, PORTFOLIO]` → `Doc_CV_PF`, `[CV, LETTRE_MOTIVATION, PORTFOLIO]` → `Doc_CV_LM_PF`, quel que soit l'ordre. `null` pour une liste vide ou une autre combinaison. Le `label` reprend le libellé Talentsoft, que le WordPress BIEP affiche après « Pour postuler à cette offre, ». |
 | `criteres.competences_requises` | Jamais renseigné par l'ingestion : `skillCollection[]` est toujours vide côté Talentsoft. |
 | `conditions.temps_travail` | Lu dans `customFields.description.customCodeTable3` (absent de l'API fake-ts) : `reponse_oui` → `TEMPS_PLEIN`, `reponse_non` → `TEMPS_PARTIEL`, sinon `NON_DEFINI`. |
 | `conditions.lieu_de_travail` | Lu dans `customFields.offerCustomBlock1.customCodeTable2` (absent de l'API fake-ts) : `reponse_oui` → `TELETRAVAIL`, `reponse_non` → `SUR_SITE`, sinon `NON_DEFINI`. |

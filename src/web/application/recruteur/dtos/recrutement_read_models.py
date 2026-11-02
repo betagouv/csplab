@@ -4,42 +4,6 @@ from uuid import UUID
 
 
 @dataclass(frozen=True, kw_only=True)
-class ResponsableDto:
-    nom: str
-
-
-@dataclass(frozen=True, kw_only=True)
-class CandidaturesCompteurDto:
-    total: int
-    a_traiter: int
-    en_cours: int
-
-
-@dataclass(frozen=True, kw_only=True)
-class RecrutementActifsReadModel:
-    offer_id: UUID
-    intitule: str
-    reference_csp: str
-    nature_offre: str
-    date_publication: datetime
-    responsables: list[ResponsableDto]
-    derniere_activite: datetime
-    candidatures: CandidaturesCompteurDto
-
-
-@dataclass(frozen=True, kw_only=True)
-class RecrutementArchivesReadModel:
-    offer_id: UUID
-    intitule: str
-    reference_csp: str
-    nature_offre: str
-    date_archivage: datetime
-    responsables: list[ResponsableDto]
-    finalise: bool
-    recrute: str | None
-
-
-@dataclass(frozen=True, kw_only=True)
 class CandidatDto:
     uuid: UUID
     nom: str
@@ -51,15 +15,6 @@ class EtapeDto:
     etape_uuid: UUID
     nom: str
     categorie: str
-
-
-@dataclass(frozen=True, kw_only=True)
-class CandidatureListeReadModel:
-    uuid: UUID
-    date_soumission: datetime
-    date_derniere_activite: datetime
-    candidat: CandidatDto
-    etape: EtapeDto
 
 
 @dataclass(frozen=True, kw_only=True)

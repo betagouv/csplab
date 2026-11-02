@@ -23,7 +23,9 @@ from infrastructure.factories.identite.organisme_django_factory import (
     OrganismeDjangoFactory,
     create_organisme_with_agent,
 )
-from infrastructure.factories.identite.utilisateur_factory import UtilisateurFactory
+from infrastructure.factories.identite.utilisateur_django_factory import (
+    UtilisateurDjangoFactory,
+)
 from infrastructure.factories.recruteur.recrutement_django_factory import (
     RecrutementAgentDjangoFactory,
     RecrutementDjangoFactory,
@@ -31,10 +33,6 @@ from infrastructure.factories.recruteur.recrutement_django_factory import (
 from infrastructure.repositories.commons.postgres_audit_log_repository import (
     PostgresAuditLogRepository,
 )
-
-
-def _utilisateur(entity_id, *, is_staff=False):
-    return UtilisateurFactory.create_entity(entity_id=entity_id, is_staff=is_staff)
 
 
 def test_returns_reussite_for_each_recrutement_belonging_to_organisme(db):
@@ -50,7 +48,7 @@ def test_returns_reussite_for_each_recrutement_belonging_to_organisme(db):
         organisme_id=organisme.id,
         recrutement_ids=[r.pk for r in recrutements],
         agent_id=membre.utilisateur_id,
-        utilisateur=_utilisateur(responsable.utilisateur_id),
+        utilisateur=responsable.utilisateur,
     )
 
     assert resultats["reussites"] == [r.pk for r in recrutements]
@@ -80,7 +78,7 @@ def test_staff_bypasses_role_check(db):
         organisme_id=organisme.id,
         recrutement_ids=[recrutement.pk],
         agent_id=membre.utilisateur_id,
-        utilisateur=_utilisateur(uuid4(), is_staff=True),
+        utilisateur=UtilisateurDjangoFactory(is_staff=True),
     )
 
     assert resultats["reussites"] == [recrutement.pk]
@@ -92,10 +90,10 @@ def test_staff_bypasses_role_check(db):
 def test_denied_when_demandeur_is_not_superviseur(db, role):
     if role is None:
         organisme = OrganismeDjangoFactory()
-        demandeur_id = uuid4()
+        utilisateur = UtilisateurDjangoFactory()
     else:
         demandeur, organisme = create_organisme_with_agent(role=role)
-        demandeur_id = demandeur.utilisateur_id
+        utilisateur = demandeur.utilisateur
     membre = OrganismeAgentDjangoFactory(
         organisme=organisme, role=AgentOrganismeRole.AGENT.value
     ).agent
@@ -106,7 +104,7 @@ def test_denied_when_demandeur_is_not_superviseur(db, role):
             organisme_id=organisme.id,
             recrutement_ids=[recrutement.pk],
             agent_id=membre.utilisateur_id,
-            utilisateur=_utilisateur(demandeur_id),
+            utilisateur=utilisateur,
         )
 
 
@@ -125,7 +123,7 @@ def test_denied_for_superviseur_of_another_organisme(db):
             organisme_id=organisme.id,
             recrutement_ids=[recrutement.pk],
             agent_id=membre.utilisateur_id,
-            utilisateur=_utilisateur(autre_superviseur.utilisateur_id),
+            utilisateur=autre_superviseur.utilisateur,
         )
 
 
@@ -137,7 +135,7 @@ def test_raises_when_organisme_does_not_exist(db):
             organisme_id=uuid4(),
             recrutement_ids=[uuid4()],
             agent_id=membre.utilisateur_id,
-            utilisateur=_utilisateur(uuid4()),
+            utilisateur=UtilisateurDjangoFactory(),
         )
 
 
@@ -152,7 +150,7 @@ def test_raises_when_agent_does_not_exist(db):
             organisme_id=organisme.id,
             recrutement_ids=[recrutement.pk],
             agent_id=uuid4(),
-            utilisateur=_utilisateur(responsable.utilisateur_id),
+            utilisateur=responsable.utilisateur,
         )
 
 
@@ -167,7 +165,7 @@ def test_does_not_raise_when_agent_has_profile_but_is_not_attached_to_organisme(
         organisme_id=organisme.id,
         recrutement_ids=[recrutement.pk],
         agent_id=bare_agent.utilisateur_id,
-        utilisateur=_utilisateur(responsable.utilisateur_id),
+        utilisateur=responsable.utilisateur,
     )
 
     assert resultats["reussites"] == [recrutement.pk]
@@ -193,7 +191,7 @@ def test_reattaches_agent_previously_revoked_from_organisme(db):
         organisme_id=organisme.id,
         recrutement_ids=[recrutement.pk],
         agent_id=membre.utilisateur_id,
-        utilisateur=_utilisateur(responsable.utilisateur_id),
+        utilisateur=responsable.utilisateur,
     )
 
     assert resultats["reussites"] == [recrutement.pk]
@@ -222,7 +220,7 @@ def test_upgrades_existing_membership_to_responsable(db):
         organisme_id=organisme.id,
         recrutement_ids=[recrutement.pk],
         agent_id=membre.utilisateur_id,
-        utilisateur=_utilisateur(responsable.utilisateur_id),
+        utilisateur=responsable.utilisateur,
     )
 
     assert resultats["reussites"] == [recrutement.pk]
@@ -257,7 +255,7 @@ def test_reintegrates_agent_previously_revoked_from_recrutement(db):
         organisme_id=organisme.id,
         recrutement_ids=[recrutement.pk],
         agent_id=membre.utilisateur_id,
-        utilisateur=_utilisateur(responsable.utilisateur_id),
+        utilisateur=responsable.utilisateur,
     )
 
     assert resultats["reussites"] == [recrutement.pk]
@@ -289,7 +287,7 @@ def test_allows_multiple_responsables_on_same_recrutement(db):
         organisme_id=organisme.id,
         recrutement_ids=[recrutement.pk],
         agent_id=membre.utilisateur_id,
-        utilisateur=_utilisateur(responsable.utilisateur_id),
+        utilisateur=responsable.utilisateur,
     )
 
     assert resultats["reussites"] == [recrutement.pk]
@@ -326,7 +324,7 @@ def test_reports_echec_for_recrutement_belonging_to_another_organisme(db, positi
         organisme_id=organisme.id,
         recrutement_ids=ids,
         agent_id=membre.utilisateur_id,
-        utilisateur=_utilisateur(responsable.utilisateur_id),
+        utilisateur=responsable.utilisateur,
     )
 
     assert resultats["reussites"] == [valide.pk]
