@@ -106,6 +106,46 @@ describe('candidaturePanelView', () => {
     expect(panel.getByText('Réception des candidatures')).toBeInTheDocument()
   })
 
+  it('shows why a refused candidature was refused in the follow-up column', async () => {
+    vi.mocked(getCandidatureDetail).mockResolvedValue({
+      ...candidatureDetail(CANDIDATURE_ALICE),
+      etape_actuelle: { uuid: ETAPE_REFUS, nom: 'Refus' },
+      motif_refus: { value: 'experience_insuffisante', label: 'Expérience insuffisante' },
+    })
+    const { panel } = await renderPanel([`${KANBAN_PATH}/candidatures/${CANDIDATURE_ALICE}`])
+
+    const suivi = within(await panel.findByRole('complementary', { name: 'Suivi de la candidature' }))
+    const motif = within(await suivi.findByRole('region', { name: 'Motif de refus' }))
+    expect(motif.getByText('Expérience insuffisante')).toBeInTheDocument()
+  })
+
+  it('changes the motif of a refused candidature without moving it', async () => {
+    const user = setupUser()
+    const refusee = {
+      ...candidatureDetail(CANDIDATURE_ALICE),
+      etape_actuelle: { uuid: ETAPE_REFUS, nom: 'Refus' },
+      motif_refus: { value: 'experience_insuffisante', label: 'Expérience insuffisante' },
+    }
+    vi.mocked(getCandidatureDetail).mockResolvedValue(refusee)
+    const { panel } = await renderPanel([`${KANBAN_PATH}/candidatures/${CANDIDATURE_ALICE}`])
+
+    await user.click(await panel.findByRole('button', { name: 'Actions sur le motif de refus' }))
+    await user.click(await screen.findByRole('menuitem', { name: 'Modifier le motif de refus' }))
+    const dialog = within(await screen.findByRole('dialog', { name: 'Modifier le motif de refus' }))
+    await user.click(dialog.getByRole('combobox', { name: /Motif de refus/ }))
+    await user.click(await screen.findByRole('option', { name: 'Disponibilité' }))
+    vi.mocked(getCandidatureDetail).mockResolvedValue({ ...refusee, motif_refus: { value: 'disponibilite', label: 'Disponibilité' } })
+    await user.click(dialog.getByRole('button', { name: 'Enregistrer le motif' }))
+
+    expect(patchEtapeCandidatures).toHaveBeenCalledWith(ORGANISME_UUID, RECRUTEMENT_UUID, {
+      etapeCibleUuid: ETAPE_REFUS,
+      candidatureUuids: [CANDIDATURE_ALICE],
+      motifRefus: 'disponibilite',
+    })
+    const motif = within(panel.getByRole('region', { name: 'Motif de refus' }))
+    expect(await motif.findByText('Disponibilité')).toBeInTheDocument()
+  })
+
   it('names the document after the tab and the candidat', async () => {
     await renderPanel([`${KANBAN_PATH}/candidatures/${CANDIDATURE_ALICE}/notes`])
 
@@ -177,7 +217,7 @@ describe('candidaturePanelView', () => {
       etapeCibleUuid: ETAPE_ENTRETIEN,
       candidatureUuids: [CANDIDATURE_ALICE],
     })
-    expect(await screen.findByText('Alice Dupont est passé à l\'étape Entretien')).toBeInTheDocument()
+    expect(await screen.findByText('La candidature d\'Alice Dupont est passée à l\'étape Entretien')).toBeInTheDocument()
   })
 
   it('replaces the previous success toast when candidatures are moved one after the other', async () => {
@@ -191,13 +231,13 @@ describe('candidaturePanelView', () => {
     }
 
     await moveToEntretien()
-    expect(await screen.findByText('Alice Dupont est passé à l\'étape Entretien')).toBeInTheDocument()
+    expect(await screen.findByText('La candidature d\'Alice Dupont est passée à l\'étape Entretien')).toBeInTheDocument()
     await vi.waitFor(() => expect(router.currentRoute.value.params.candidatureUuid).toBe(CANDIDATURE_BRUNO))
 
     await moveToEntretien()
 
-    expect(await screen.findByText('Bruno Martin est passé à l\'étape Entretien')).toBeInTheDocument()
-    expect(screen.queryByText('Alice Dupont est passé à l\'étape Entretien')).not.toBeInTheDocument()
+    expect(await screen.findByText('La candidature de Bruno Martin est passée à l\'étape Entretien')).toBeInTheDocument()
+    expect(screen.queryByText('La candidature d\'Alice Dupont est passée à l\'étape Entretien')).not.toBeInTheDocument()
   })
 
   it('asks for confirmation before refusing the candidature', async () => {
@@ -237,7 +277,7 @@ describe('candidaturePanelView', () => {
     await user.click(screen.getByRole('button', { name: 'Valider' }))
 
     expect(await screen.findByText(message)).toBeInTheDocument()
-    expect(screen.queryByText(/est passé à l'étape/)).not.toBeInTheDocument()
+    expect(screen.queryByText(/est passée à l'étape/)).not.toBeInTheDocument()
   })
 
   it.each([

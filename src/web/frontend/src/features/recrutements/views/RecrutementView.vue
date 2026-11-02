@@ -100,7 +100,7 @@ const headerMenuSections = [{
               icon="ri:more-fill"
               variant="tertiary"
               size="sm"
-              aria-label="Actions sur l’offre"
+              aria-label="Actions sur le recrutement"
             />
           </template>
         </CspDropdownMenu>

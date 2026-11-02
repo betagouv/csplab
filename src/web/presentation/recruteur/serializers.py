@@ -7,6 +7,7 @@ from referentiel.value_objects.offer_nature import OfferNature
 from referentiel.value_objects.verse import Verse
 from rest_framework import serializers
 
+from application.recruteur.services.get_candidature import CandidatureDetail
 from domain.recruteur.value_objects.categorie_etapes_recrutement import (
     CategorieEtapeRecrutement,
 )
@@ -667,6 +668,21 @@ class CandidatDetailSerializer(serializers.Serializer):
     email = serializers.EmailField(source="candidat.utilisateur.email")
 
 
+@extend_schema_field(MotifRefusSerializer(allow_null=True))
+class MotifRefusField(serializers.Field):
+    def get_attribute(self, instance: CandidatureDetail) -> dict | None:
+        candidature = instance.candidature
+        if candidature.motif_refus is None:
+            return None
+        return {
+            "value": candidature.motif_refus,
+            "label": candidature.get_motif_refus_display(),
+        }
+
+    def to_representation(self, value: dict) -> dict:
+        return value
+
+
 class CandidatureDetailSerializer(serializers.Serializer):
     uuid = serializers.UUIDField(source="candidature.id")
     candidat = CandidatDetailSerializer(source="candidature")
@@ -675,6 +691,7 @@ class CandidatureDetailSerializer(serializers.Serializer):
     )
     etapes = EtapeCandidatureDetailSerializer(many=True)
     etape_actuelle = EtapeCandidatureDetailSerializer(source="candidature.etape")
+    motif_refus = MotifRefusField(allow_null=True)
     date_candidature = serializers.DateTimeField(source="candidature.created_at")
     date_derniere_maj_candidat = serializers.DateTimeField(
         source="candidature.updated_by_candidate", allow_null=True

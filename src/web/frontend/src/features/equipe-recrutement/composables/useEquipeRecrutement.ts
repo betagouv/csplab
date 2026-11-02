@@ -1,18 +1,15 @@
 import type { MembreEquipe, RecrutementRole } from '../types'
 import { useMutation, useQuery, useQueryCache } from '@pinia/colada'
 import { computed } from 'vue'
-import { recrutementKeys } from '@/api/queryKeys'
 import { updateMembreEquipe } from '../api'
-import { equipeRecrutementQuery } from '../queries'
+import { equipeRecrutementQuery, invalidateEquipeRecrutement } from '../queries'
 
 export function useEquipeRecrutement(organismeUuid: string, recrutementUuid: string) {
   const queryCache = useQueryCache()
   const query = useQuery(() => equipeRecrutementQuery({ organismeUuid, recrutementUuid }))
 
   function invalidate() {
-    return queryCache.invalidateQueries({
-      key: recrutementKeys.equipe({ organismeUuid, recrutementUuid }),
-    })
+    return invalidateEquipeRecrutement(queryCache, { organismeUuid, recrutementUuid })
   }
 
   const revokeMutation = useMutation({

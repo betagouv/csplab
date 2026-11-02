@@ -1,5 +1,5 @@
 name: Set up mise
-description: Install the mise version required by mise.toml (min_version) with the ci environment, provision the tools declared in mise.toml and cache the package stores. Requires actions/checkout to have run first.
+description: Install the mise version required by mise.toml (min_version) with the ci environment, provision the tools declared in mise.toml and cache the pnpm store. Caches are saved on main only, other refs restore them. Requires actions/checkout to have run first.
 
 runs:
   using: composite
@@ -19,16 +19,19 @@ runs:
       with:
         version: ${{ steps.mise.outputs.version }}
         cache: true
-    - name: Cache the uv store
+        cache_save: ${{ github.ref == 'refs/heads/main' }}
+    # No uv store cache: shared by every workflow, it held whichever project saved it first and
+    # took ~20 s to restore, longer than uv downloading the wheels from PyPI.
+    - name: Cache the pnpm store
+      if: github.ref == 'refs/heads/main'
       uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
       with:
-        path: |
-          ~/.cache/uv
-          ~/.local/share/uv/python
-        key: uv-store-${{ runner.os }}-${{ hashFiles('**/uv.lock', '**/.python-version') }}
-        restore-keys: uv-store-${{ runner.os }}-
-    - name: Cache the pnpm store
-      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        path: ~/.local/share/pnpm/store
+        key: pnpm-store-${{ runner.os }}-${{ hashFiles('**/pnpm-lock.yaml') }}
+        restore-keys: pnpm-store-${{ runner.os }}-
+    - name: Restore the pnpm store
+      if: github.ref != 'refs/heads/main'
+      uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
       with:
         path: ~/.local/share/pnpm/store
         key: pnpm-store-${{ runner.os }}-${{ hashFiles('**/pnpm-lock.yaml') }}
