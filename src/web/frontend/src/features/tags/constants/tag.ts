@@ -19,9 +19,9 @@ export const TAG_CATEGORY_TEXTS: Record<TagCategory, { title: string, option: st
     description: 'Affichée sur les notes d\'une candidature. Permet d\'identifier la nature des notes.',
   },
   recrutement_agent: {
-    title: 'Équipe de recrutement de l\'offre',
+    title: 'Équipe de recrutement',
     option: 'Membre recrutement',
-    description: 'Affichée dans l\'équipe de recrutement d\'une offre. Permet d\'indiquer ce que fait chaque membre sur cette offre.',
+    description: 'Affichée dans l\'équipe d\'un recrutement. Permet d\'indiquer ce que fait chaque membre sur ce recrutement.',
   },
 }
 
