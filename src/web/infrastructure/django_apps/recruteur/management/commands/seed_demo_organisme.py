@@ -105,5 +105,6 @@ class Command(BaseCommand):
             self.stdout.write(f"  {etape} : {nombre}")
         self.stdout.write(
             f"Notes : {comptes['notes']}, conversations : "
-            f"{comptes['conversations']} (dont {comptes['conversations_lues']} lues)."
+            f"{comptes['conversations']} (dont {comptes['conversations_lues']} lues "
+            "par le responsable)."
         )

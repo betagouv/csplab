@@ -509,7 +509,9 @@ class TestSeedDemoOrganisme:
                 "  Refus : 187",
                 "  Recrutement : 3",
             ]
-            assert bloc[10] == "Notes : 98, conversations : 52 (dont 29 lues)."
+            assert bloc[10] == (
+                "Notes : 98, conversations : 52 (dont 29 lues par le responsable)."
+            )
         _rien_ecrit()
 
     @pytest.mark.parametrize(
