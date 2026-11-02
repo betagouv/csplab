@@ -36,6 +36,7 @@ from infrastructure.django_apps.recruteur.models.recrutement import (
 )
 from infrastructure.django_apps.tag.models import TagCategory, TagColor, TagModel
 from infrastructure.django_apps.users.models import ProfilAgentModel
+from presentation.commons.pagination import MAX_PAGE_SIZE
 from presentation.commons.serializers import (
     LocalisationSerializer,
     OrganismeSerializer,
@@ -478,6 +479,21 @@ class UpdateAgentOrganismeSerializer(serializers.Serializer):
 
 class RechercheAgentQuerySerializer(serializers.Serializer):
     email = serializers.EmailField()
+
+
+class RechercheOrganismeQuerySerializer(serializers.Serializer):
+    nom = serializers.CharField(min_length=3, max_length=255)
+    taille = serializers.IntegerField(
+        required=False, default=25, min_value=1, max_value=MAX_PAGE_SIZE
+    )
+
+
+class OrganismeRechercheSerializer(serializers.ModelSerializer):
+    uuid = serializers.UUIDField(source="id")
+
+    class Meta:
+        model = OrganismeModel
+        fields = ("uuid", "nom", "siret")
 
 
 class AgentRechercheSerializer(serializers.ModelSerializer):
