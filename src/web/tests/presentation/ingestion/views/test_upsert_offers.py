@@ -765,8 +765,8 @@ def test_competences_requises_markdown_is_passed_to_usecase(
     [
         (["Rigueur"], ["Chaîne de caractère invalide."]),
         (
-            "a" * 1501,
-            ["Assurez-vous que ce champ comporte au plus 1500\xa0caractères."],
+            "a" * 2001,
+            ["Assurez-vous que ce champ comporte au plus 2000\xa0caractères."],
         ),
     ],
     ids=["list", "too-long"],
