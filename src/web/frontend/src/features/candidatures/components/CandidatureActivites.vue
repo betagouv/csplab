@@ -2,6 +2,7 @@
 import type { CandidatureParams } from '@/api/params'
 import { computed, useId } from 'vue'
 import { RouterLink } from 'vue-router'
+import CspButton from '@/components/base/CspButton/CspButton.vue'
 import { useMinimumPending } from '@/composables/async/useMinimumPending'
 import { useCandidatureActivites } from '../composables/useCandidatureActivites'
 import { LATEST_ACTIVITES_LIMIT } from '../constants/candidature'
@@ -32,12 +33,13 @@ const historiqueLocation = computed(() => ({
       >
         Dernières activités
       </h3>
-      <RouterLink
+      <CspButton
+        :as="RouterLink"
         :to="historiqueLocation"
-        class="candidature-activites__link"
-      >
-        Voir tout
-      </RouterLink>
+        variant="link"
+        size="sm"
+        label="Voir tout"
+      />
     </div>
     <CandidatureActivitesList
       :activites="activites"
@@ -62,21 +64,5 @@ const historiqueLocation = computed(() => ({
   font-size: var(--csp-font-size-base);
   font-weight: var(--csp-font-weight-bold);
   color: var(--text-title-grey);
-}
-
-.candidature-activites__link {
-  font-size: var(--csp-font-size-sm);
-  color: var(--text-action-high-blue-france);
-  text-decoration: underline;
-  text-underline-offset: 0.2em;
-
-  &:hover {
-    text-decoration-thickness: 2px;
-  }
-
-  &:focus-visible {
-    outline: var(--focus-ring);
-    outline-offset: var(--csp-focus-ring-offset);
-  }
 }
 </style>

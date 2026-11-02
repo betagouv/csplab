@@ -5,7 +5,7 @@ import { computed } from 'vue'
 import CspIcon from '@/components/base/CspIcon/CspIcon.vue'
 
 type ButtonProps = PrimitiveProps & {
-  variant?: 'primary' | 'secondary' | 'tertiary' | 'tertiary-no-outline'
+  variant?: 'primary' | 'secondary' | 'tertiary' | 'tertiary-no-outline' | 'link'
   size?: 'sm' | 'md' | 'lg'
   isIconLeft?: boolean
 } & ({
@@ -157,6 +157,27 @@ const isIconOnly = computed(() => Boolean(props.icon) && !props.label)
   &:disabled {
     background-color: transparent;
     color: var(--text-disabled-grey);
+  }
+}
+
+.csp-btn.csp-btn--link {
+  --csp-btn-padding-x: 0;
+  --csp-btn-padding-x-sm: 0;
+  --csp-btn-padding-y: 0;
+
+  background-color: transparent;
+  color: var(--text-action-high-blue-france);
+  font-weight: var(--csp-font-weight-regular);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+
+  &:hover {
+    text-decoration-thickness: 2px;
+  }
+
+  &:disabled {
+    color: var(--text-disabled-grey);
+    text-decoration: none;
   }
 }
 

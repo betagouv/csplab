@@ -3,6 +3,8 @@ import CspButton from '@/components/base/CspButton/CspButton.vue'
 
 type CspButtonProps = ComponentPropsAndSlots<typeof CspButton>
 
+const VARIANTS = ['primary', 'secondary', 'tertiary', 'tertiary-no-outline', 'link'] satisfies CspButtonProps['variant'][]
+
 const meta = {
   title: 'Éléments/Génériques/CspButton',
   component: CspButton,
@@ -20,11 +22,11 @@ const meta = {
   argTypes: {
     variant: {
       control: { type: 'radio' },
-      options: ['primary', 'secondary', 'tertiary', 'tertiary-no-outline'] satisfies CspButtonProps['variant'][],
+      options: VARIANTS,
       description: 'Style visuel.',
       table: {
         type: {
-          summary: 'primary | secondary | tertiary | tertiary-no-outline',
+          summary: VARIANTS.join(' | '),
         },
         defaultValue: {
           summary: 'primary',
@@ -154,7 +156,6 @@ const meta = {
 export default meta
 type Story = StoryObj<CspButtonProps>
 
-const VARIANTS = ['primary', 'secondary', 'tertiary', 'tertiary-no-outline'] as const
 const SIZES = ['sm', 'md', 'lg'] as const
 
 export const Default: Story = {
