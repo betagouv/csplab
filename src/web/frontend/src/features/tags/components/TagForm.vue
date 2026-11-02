@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { CreateTagPayload, TagCategory, TagColor } from '../types'
+import type { CreateTagPayload, Tag, TagCategory, TagColor } from '../types'
 import { computed, ref } from 'vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspInput from '@/components/base/CspInput/CspInput.vue'
@@ -9,12 +9,13 @@ import { DEFAULT_TAG_COLOR, TAG_CATEGORY_OPTIONS_ORDER, TAG_CATEGORY_TEXTS, TAG_
 
 const props = defineProps<{
   category: TagCategory
+  tag?: Tag | null
   saving?: boolean
   duplicate?: CreateTagPayload | null
 }>()
 
 const emit = defineEmits<{
-  create: [payload: CreateTagPayload]
+  save: [payload: CreateTagPayload]
   cancel: []
 }>()
 
@@ -24,9 +25,9 @@ const CATEGORY_OPTIONS = TAG_CATEGORY_OPTIONS_ORDER.map(value => ({ value, label
 
 const COLOR_OPTIONS = Object.entries(TAG_COLOR_LABELS).map(([value, label]) => ({ value, label }))
 
-const name = ref('')
-const category = ref<string>(props.category)
-const color = ref<string>(DEFAULT_TAG_COLOR)
+const name = ref(props.tag?.name ?? '')
+const category = ref<string>(props.tag?.category ?? props.category)
+const color = ref<string>(props.tag?.color ?? DEFAULT_TAG_COLOR)
 
 const trimmedName = computed(() => name.value.trim())
 
@@ -46,7 +47,7 @@ function handleSubmit(): void {
   if (!canSubmit.value || props.saving) {
     return
   }
-  emit('create', {
+  emit('save', {
     name: trimmedName.value,
     category: category.value as TagCategory,
     color: color.value as TagColor,
@@ -69,7 +70,19 @@ function handleSubmit(): void {
       :error-message="nameError ?? undefined"
     />
 
+    <div
+      v-if="tag"
+      class="tag-form__field"
+    >
+      <p class="tag-form__field-label">
+        Type d'étiquette
+      </p>
+      <p class="tag-form__field-value">
+        {{ TAG_CATEGORY_TEXTS[tag.category].option }}
+      </p>
+    </div>
     <CspRadioGroup
+      v-else
       v-model="category"
       label="Type d'étiquette"
       name="category"
@@ -92,8 +105,8 @@ function handleSubmit(): void {
       </template>
     </CspRadioGroup>
 
-    <div class="tag-form__preview">
-      <p class="tag-form__preview-label">
+    <div class="tag-form__field">
+      <p class="tag-form__field-label">
         Aperçu
       </p>
       <CspLabel
@@ -126,16 +139,20 @@ function handleSubmit(): void {
   height: 100%;
 }
 
-.tag-form__preview {
+.tag-form__field {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   gap: var(--csp-field-label-gap);
 }
 
-.tag-form__preview-label {
+.tag-form__field-label,
+.tag-form__field-value {
   margin: 0;
   font-size: var(--csp-font-size-base);
+}
+
+.tag-form__field-label {
   font-weight: 600;
 }
 
