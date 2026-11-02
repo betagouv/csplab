@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { AssignationResponsableResultat, RecrutementKey } from '../types'
+import type { AssignationResponsableResultat, RecrutementKey, RecrutementsActifs } from '../types'
 import type { CspBreadcrumbItem } from '@/components/base/CspBreadcrumb/CspBreadcrumb.vue'
 import type { ToastOptions } from '@/composables/ui/useToast'
 import type { AgentRecherche } from '@/features/agents/types'
@@ -92,6 +92,10 @@ const { addToast } = useToast()
 
 const selection = useTableSelection(actifsFilters.filtered, row => row.uuid)
 const assignationDrawer = useDisclosure()
+const recrutementToAssign = ref<RecrutementsActifs | null>(null)
+const recrutementsToAssign = computed(() =>
+  recrutementToAssign.value ? [recrutementToAssign.value] : selection.selected.value,
+)
 const {
   status: responsableStatus,
   foundAgent,
@@ -150,12 +154,17 @@ function assignationErrorTitle(assignationError: unknown): string {
   return 'L\'assignation du responsable a échoué'
 }
 
-function openAssignment() {
+function openAssignment(recrutement: RecrutementsActifs | null = null) {
+  recrutementToAssign.value = recrutement
   resetResponsable()
   assignationDrawer.open()
 }
 
 function removeFromAssignment(recrutementUuid: string) {
+  if (recrutementToAssign.value) {
+    assignationDrawer.close()
+    return
+  }
   selection.toggle(recrutementUuid)
   if (selection.count.value === 0) {
     assignationDrawer.close()
@@ -163,13 +172,15 @@ function removeFromAssignment(recrutementUuid: string) {
 }
 
 async function handleAssign() {
-  const recrutementIds = selection.selected.value.map(row => row.uuid)
+  const recrutementIds = recrutementsToAssign.value.map(row => row.uuid)
 
   try {
     const resultat = await assign(recrutementIds)
     const agent = foundAgent.value
     assignationDrawer.close()
-    selection.clear()
+    if (!recrutementToAssign.value) {
+      selection.clear()
+    }
     addToast(assignationToast(resultat, agent))
   }
   catch (assignationError) {
@@ -259,7 +270,7 @@ const archivesCountLabel = computed(() => {
             <template #selection-actions>
               <CspButton
                 label="Assigner un responsable"
-                @click="openAssignment"
+                @click="openAssignment()"
               />
             </template>
             <CspSearchBar
@@ -291,7 +302,7 @@ const archivesCountLabel = computed(() => {
             size="md"
           >
             <AssignResponsableForm
-              :recrutements="selection.selected.value"
+              :recrutements="recrutementsToAssign"
               :status="responsableStatus"
               :agent="foundAgent"
               :searching="searching"
@@ -328,7 +339,21 @@ const archivesCountLabel = computed(() => {
               @activate="openOffre"
               @toggle-row="selection.toggle"
               @toggle-all="selection.toggleVisible"
-            />
+            >
+              <template #cell-responsables="{ row, value }">
+                <CspButton
+                  v-if="canManageOrganisme && row.responsables.length === 0"
+                  label="Assigner un responsable"
+                  variant="secondary"
+                  size="sm"
+                  :aria-label="`Assigner un responsable à ${row.intitule}`"
+                  @click="openAssignment(row)"
+                />
+                <template v-else>
+                  {{ value }}
+                </template>
+              </template>
+            </CspDataTable>
           </CspAsyncSection>
         </template>
       </template>
