@@ -132,7 +132,7 @@ _AVIS = {
         "Favorable. Parcours en adéquation directe avec les missions du poste.",
     ),
 }
-_PROXIMITE_RETENUE = 0.9
+_PROXIMITE_RETENUE = max(_AVIS)
 _PART_AVATAR = 0.5
 _COULEURS_AVATAR = (
     (0.0, 0.0, 0.57),
