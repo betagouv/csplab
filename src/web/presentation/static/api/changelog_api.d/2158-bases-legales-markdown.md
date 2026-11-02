@@ -15,5 +15,7 @@ inchangée et s'applique au texte Markdown, syntaxe comprise.
 ### Compatibilité
 
 En dehors du rejet du HTML et des liens non autorisés, un texte brut reste un Markdown
-valide. Pour qu'un retour à la ligne soit conservé à l'affichage, séparez les lignes par
-une ligne vide ou écrivez-les comme une liste (`- 1° aux fonctionnaires…`).
+valide, et ses retours à la ligne sont conservés à l'affichage. Seuls quelques caractères
+(`*`, `_`, `#`, `1.` ou `-` en début de ligne) sont désormais interprétés comme de la mise
+en forme. Un `<` suivi d'une lettre (`<Article L332-2>`) est lu comme une balise HTML et
+rejeté : écrivez `\<` pour afficher le caractère.
