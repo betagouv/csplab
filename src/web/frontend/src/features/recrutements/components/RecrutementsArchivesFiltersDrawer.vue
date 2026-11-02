@@ -50,7 +50,7 @@ const natureOffreOptions = withAllOption('Toutes les natures', NATURE_OFFRE_OPTI
     />
     <CspSelect
       v-model="natureOffreModel"
-      label="Nature de l'offre"
+      label="Nature du recrutement"
       :options="natureOffreOptions"
     />
   </CspFiltersDrawer>

@@ -191,9 +191,9 @@ const selectedUuidsModel = computed({
 
 .changer-etape-drawer__count {
   margin: 0;
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--text-default-grey);
+  font-size: var(--csp-font-size-md);
+  font-weight: var(--csp-font-weight-bold);
+  color: var(--text-title-grey);
 }
 
 .changer-etape-drawer__tags {
@@ -218,7 +218,7 @@ const selectedUuidsModel = computed({
 
 .changer-etape-drawer__etapes-label {
   margin: 0;
-  font-size: 0.875rem;
+  font-size: var(--csp-font-size-base);
   font-weight: 600;
   color: var(--text-default-grey);
 }
@@ -294,7 +294,7 @@ const selectedUuidsModel = computed({
 }
 
 .changer-etape-drawer__radio-hint {
-  font-size: 0.75rem;
+  font-size: var(--csp-font-size-xs);
   color: var(--text-mention-grey);
 }
 </style>

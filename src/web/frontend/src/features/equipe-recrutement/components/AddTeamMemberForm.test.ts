@@ -11,11 +11,11 @@ function renderForm(props: Record<string, unknown> = {}) {
 }
 
 describe('addTeamMemberForm', () => {
-  it('offers no role and no submission before the search has answered', () => {
+  it('offers no role and disables the submission before the search has answered', () => {
     renderForm()
 
     expect(screen.queryByRole('radiogroup')).not.toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: /Ajouter le membre|Créer et ajouter/ })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Ajouter le membre' })).toBeDisabled()
   })
 
   it('adds the found agent as contributeur by default', async () => {

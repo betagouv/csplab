@@ -514,6 +514,7 @@ function onActivate(id: string): void {
   font: inherit;
   font-weight: 600;
   color: inherit;
+  text-align: inherit;
   cursor: pointer;
 
   &:hover {
