@@ -7,17 +7,17 @@ import { candidatureKeys, recrutementKeys } from '@/api/queryKeys'
 import { useToast } from '@/composables/ui/useToast'
 import { patchEtapeCandidatures } from '../api'
 
-interface MotifRefusModification {
+interface MotifRefusEdit {
   etapeUuid: string
   motifRefus: MotifRefus
 }
 
-export function useMotifRefusModification(candidature: MaybeRefOrGetter<CandidatureParams>) {
+export function useMotifRefusEdit(candidature: MaybeRefOrGetter<CandidatureParams>) {
   const queryCache = useQueryCache()
   const { addToast } = useToast()
 
   const mutation = useMutation({
-    mutation: async ({ etapeUuid, motifRefus }: MotifRefusModification) => {
+    mutation: async ({ etapeUuid, motifRefus }: MotifRefusEdit) => {
       const { organismeUuid, recrutementUuid, candidatureUuid } = toValue(candidature)
       const { echecs } = await patchEtapeCandidatures(organismeUuid, recrutementUuid, {
         etapeCibleUuid: etapeUuid,
@@ -41,7 +41,7 @@ export function useMotifRefusModification(candidature: MaybeRefOrGetter<Candidat
   })
 
   return {
-    modifier: mutation.mutate,
-    modifying: mutation.isLoading,
+    edit: mutation.mutate,
+    editing: mutation.isLoading,
   }
 }

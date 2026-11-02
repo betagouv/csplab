@@ -7,7 +7,7 @@ import CspSelect from '@/components/base/CspSelect/CspSelect.vue'
 
 const props = defineProps<{
   open: boolean
-  motifActuel: string
+  currentMotif: string
   motifs: MotifRefusOption[]
   motifsUnavailable?: boolean
   saving?: boolean
@@ -21,14 +21,14 @@ const emit = defineEmits<{
 const selection = ref<string>()
 
 watch(() => props.open, () => {
-  selection.value = props.motifActuel
+  selection.value = props.currentMotif
 }, { immediate: true })
 
-const nouveauMotif = computed(() => props.motifs.find(motif => motif.value === selection.value && motif.value !== props.motifActuel))
+const newMotif = computed(() => props.motifs.find(motif => motif.value === selection.value && motif.value !== props.currentMotif))
 
 function handleConfirm(): void {
-  if (nouveauMotif.value) {
-    emit('confirm', nouveauMotif.value.value)
+  if (newMotif.value) {
+    emit('confirm', newMotif.value.value)
   }
 }
 </script>
@@ -59,7 +59,7 @@ function handleConfirm(): void {
       <CspButton
         label="Enregistrer le motif"
         variant="primary"
-        :disabled="!nouveauMotif || saving"
+        :disabled="!newMotif || saving"
         @click="handleConfirm"
       />
     </template>

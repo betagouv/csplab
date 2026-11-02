@@ -31,13 +31,13 @@ import CandidatureMotifRefus from '../components/CandidatureMotifRefus.vue'
 import CandidatureNoteForm from '../components/CandidatureNoteForm.vue'
 import CandidatureNotes from '../components/CandidatureNotes.vue'
 import ChangerEtapePopover from '../components/ChangerEtapePopover.vue'
-import ModifierMotifRefusDialog from '../components/ModifierMotifRefusDialog.vue'
+import EditMotifRefusDialog from '../components/EditMotifRefusDialog.vue'
 import RefusCandidatureDialog from '../components/RefusCandidatureDialog.vue'
 import { useCandidatureDetail } from '../composables/useCandidatureDetail'
 import { useCandidatureNavigation } from '../composables/useCandidatureNavigation'
 import { useCandidaturePanelRoutes } from '../composables/useCandidaturePanelRoutes'
 import { useEtapeChange } from '../composables/useEtapeChange'
-import { useMotifRefusModification } from '../composables/useMotifRefusModification'
+import { useMotifRefusEdit } from '../composables/useMotifRefusEdit'
 import { CANDIDATURE_PANEL_TAB_ICONS, CANDIDATURE_PANEL_TAB_LABELS } from '../constants/candidature'
 import { formatCandidatName, formatCandidatureMeta } from '../format'
 import { candidatureDetailQuery } from '../queries'
@@ -124,12 +124,12 @@ const etapeChange = useEtapeChange(
 )
 
 const motifRefusDialogOpen = ref(false)
-const { modifier: modifierMotifRefus, modifying: modifyingMotifRefus } = useMotifRefusModification(() => candidatureParams.value)
+const { edit: editMotifRefus, editing: editingMotifRefus } = useMotifRefusEdit(() => candidatureParams.value)
 
 function confirmMotifRefus(motifRefus: MotifRefus): void {
   motifRefusDialogOpen.value = false
   if (etape.value) {
-    modifierMotifRefus({ etapeUuid: etape.value.uuid, motifRefus })
+    editMotifRefus({ etapeUuid: etape.value.uuid, motifRefus })
   }
 }
 
@@ -304,7 +304,7 @@ function handleUpdateOpen(open: boolean): void {
                 <CandidatureMotifRefus
                   v-if="candidature.motif_refus"
                   :motif="candidature.motif_refus.label"
-                  @modifier="motifRefusDialogOpen = true"
+                  @edit="motifRefusDialogOpen = true"
                 />
                 <CandidatureActivites
                   :candidature="candidatureParams"
@@ -352,13 +352,13 @@ function handleUpdateOpen(open: boolean): void {
     @cancel="etapeChange.refus.cancel"
   />
 
-  <ModifierMotifRefusDialog
+  <EditMotifRefusDialog
     v-if="candidature?.motif_refus"
     :open="motifRefusDialogOpen"
-    :motif-actuel="candidature.motif_refus.value"
+    :current-motif="candidature.motif_refus.value"
     :motifs="etapeChange.refus.motifs.value"
     :motifs-unavailable="etapeChange.refus.motifsUnavailable.value"
-    :saving="modifyingMotifRefus"
+    :saving="editingMotifRefus"
     @confirm="confirmMotifRefus"
     @cancel="motifRefusDialogOpen = false"
   />

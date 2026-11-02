@@ -10,7 +10,7 @@ defineProps<{
 }>()
 
 const emit = defineEmits<{
-  modifier: []
+  edit: []
 }>()
 
 const titleId = useId()
@@ -21,7 +21,7 @@ const ACTIONS = [
       {
         label: 'Modifier le motif de refus',
         icon: 'ri:pencil-line',
-        onSelect: () => emit('modifier'),
+        onSelect: () => emit('edit'),
       },
     ],
   },
@@ -36,7 +36,7 @@ const ACTIONS = [
     :aria-labelledby="titleId"
   >
     <template #start>
-      <div class="candidature-motif-refus__entete">
+      <div class="candidature-motif-refus__header">
         <h3
           :id="titleId"
           class="candidature-motif-refus__title"
@@ -72,7 +72,7 @@ const ACTIONS = [
   --csp-card-gap: var(--csp-space-2);
 }
 
-.candidature-motif-refus__entete {
+.candidature-motif-refus__header {
   display: flex;
   flex: 1;
   gap: var(--csp-space-2);
