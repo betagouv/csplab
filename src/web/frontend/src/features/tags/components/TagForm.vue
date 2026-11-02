@@ -42,7 +42,9 @@ const nameError = computed(() => {
   return null
 })
 
-const canSubmit = computed(() => trimmedName.value.length > 0 && !nameError.value)
+const isDirty = computed(() => !props.tag || trimmedName.value !== props.tag.name || color.value !== props.tag.color)
+
+const canSubmit = computed(() => trimmedName.value.length > 0 && !nameError.value && isDirty.value)
 
 function handleSubmit(): void {
   if (!canSubmit.value || props.saving) {

@@ -107,6 +107,20 @@ describe('tagsSection', () => {
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
   })
 
+  it('saves an edited tag only once its name or color changes', async () => {
+    const user = await openEditDrawer('À rappeler')
+
+    const drawer = screen.getByRole('dialog', { name: 'Modifier l\'étiquette' })
+    const save = within(drawer).getByRole('button', { name: 'Enregistrer' })
+    expect(save).toBeDisabled()
+
+    await user.type(within(drawer).getByRole('textbox', { name: /Libellé/ }), ' ')
+    expect(save).toBeDisabled()
+
+    await user.click(within(drawer).getByRole('radio', { name: 'Rouge' }))
+    expect(save).toBeEnabled()
+  })
+
   it('starts from an empty form each time the drawer opens', async () => {
     const user = await openDrawerFrom('Note')
     await user.type(screen.getByRole('textbox', { name: /Libellé/ }), 'Synthèse')
