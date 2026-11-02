@@ -24,14 +24,14 @@ export async function getRecrutementDetail({ organismeUuid, recrutementUuid }: R
 }
 
 export async function getRecrutementsActifs({ organismeUuid }: OrganismeParams): Promise<PaginatedRecrutementsActifsResponse> {
-  const { data } = await api.GET('/recruteur/organismes/{organisme_uuid}/recrutements-actifs', {
+  const { data } = await api.GET('/recruteur/organismes/{organisme_uuid}/recrutements/actifs', {
     params: { path: { organisme_uuid: organismeUuid } },
   })
   return data!
 }
 
 export async function getRecrutementsArchives({ organismeUuid }: OrganismeParams): Promise<PaginatedRecrutementsArchivesResponse> {
-  const { data } = await api.GET('/recruteur/organismes/{organisme_uuid}/recrutements-archives', {
+  const { data } = await api.GET('/recruteur/organismes/{organisme_uuid}/recrutements/archives', {
     params: { path: { organisme_uuid: organismeUuid } },
   })
   return data!
