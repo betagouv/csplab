@@ -381,7 +381,7 @@ caractères s'applique au texte Markdown, syntaxe comprise.
 | `specialisations` | Liste de textes. |
 | `diplome` | Texte. |
 | `documents_requis` | Liste de documents à transmettre pour candidater. Valeurs : **CV, LETTRE_MOTIVATION, PORTFOLIO**. Chaque document ne peut être cité qu'une fois. |
-| `competences_requises` | Texte libre en Markdown, **1 500 caractères maximum**. Peut être vide ou `null`. |
+| `competences_requises` | Texte libre en Markdown, **2 000 caractères maximum**. Peut être vide ou `null`. |
 | `langues` | Liste de langues, chacune avec un **code ISO sur 2 caractères** et un **niveau** (**A1, A2, B1, B2, C1, C2**). |
 
 #### Bloc « Conditions » (`conditions`) — peut être vide
