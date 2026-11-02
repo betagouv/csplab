@@ -14,13 +14,14 @@ import CspTableToolbar from '@/components/base/CspTableToolbar/CspTableToolbar.v
 import { useMinimumPending } from '@/composables/async/useMinimumPending'
 import { useTextSearch } from '@/composables/data/useTextSearch'
 import { useToast } from '@/composables/ui/useToast'
+import AgentRoleForm from '@/features/agents/components/AgentRoleForm.vue'
 import { formatAgentLabel, formatAgentName } from '@/features/agents/format'
 import { pluralize } from '@/utils/format'
 import { ORGANISME_AGENTS_COLUMNS } from '../columns'
 import { useAddAgentToOrganisme } from '../composables/useAddAgentToOrganisme'
 import { provideAgentActions } from '../composables/useAgentActions'
 import { useOrganismeAgents } from '../composables/useOrganismeAgents'
-import { ROLE_LABELS } from '../constants/organisme'
+import { ROLE_LABELS, ROLE_OPTIONS } from '../constants/organisme'
 import AttachAgentForm from './AttachAgentForm.vue'
 
 const props = defineProps<{
@@ -37,6 +38,7 @@ const showSkeleton = useMinimumPending(pending)
 const page = ref(1)
 const revocationDialogOpen = ref(false)
 const attachDrawerOpen = ref(false)
+const roleDrawerOpen = ref(false)
 const attachEmailError = ref('')
 
 async function handleAdd(role: Role) {
@@ -81,12 +83,23 @@ const countLabel = computed(() => {
   return `${count} ${pluralize(count, 'membre')}`
 })
 
-watch(() => roleChange.requested, async (change) => {
-  if (!change) {
+watch(() => roleChange.requested, (agent) => {
+  if (agent) {
+    roleDrawerOpen.value = true
+  }
+})
+
+watch(roleDrawerOpen, (isOpen) => {
+  if (!isOpen) {
+    roleChange.clear()
+  }
+})
+
+async function handleRoleChange(role: Role): Promise<void> {
+  const agent = roleChange.requested
+  if (!agent) {
     return
   }
-  const { agent, role } = change
-  roleChange.clear()
   try {
     await updateAgent({ agent_id: agent.uuid, role })
     addToast({
@@ -94,11 +107,12 @@ watch(() => roleChange.requested, async (change) => {
       title: 'Rôle modifié',
       description: `${formatAgentName(agent)} est maintenant ${ROLE_LABELS[role].toLowerCase()}.`,
     })
+    roleDrawerOpen.value = false
   }
   catch {
     addToast({ variant: 'error', title: 'La modification du rôle a échoué' })
   }
-})
+}
 
 watch(() => revocation.requested, (agent) => {
   if (agent) {
@@ -215,6 +229,24 @@ async function handleRevocation(): Promise<void> {
         @add="handleAdd"
         @reset="resetAgentSearch"
         @cancel="attachDrawerOpen = false"
+      />
+    </CspDrawer>
+
+    <CspDrawer
+      v-model:open="roleDrawerOpen"
+      title="Modifier les droits d'accès"
+      size="md"
+    >
+      <AgentRoleForm
+        v-if="roleChange.requested"
+        :key="roleChange.requested.uuid"
+        :email="roleChange.requested.email"
+        :role="roleChange.requested.role"
+        role-label="Rôle dans l'organisme"
+        :options="ROLE_OPTIONS"
+        :submitting="updatingAgent"
+        @submit="handleRoleChange"
+        @cancel="roleDrawerOpen = false"
       />
     </CspDrawer>
 

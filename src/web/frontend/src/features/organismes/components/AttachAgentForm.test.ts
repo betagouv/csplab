@@ -56,7 +56,7 @@ describe('attachAgentForm', () => {
     const user = setupUser()
     const { emitted } = renderForm({ status: 'found', agent: AGENT_RECHERCHE })
 
-    await user.click(screen.getByRole('radio', { name: 'Superviseur' }))
+    await user.click(screen.getByRole('radio', { name: /^Superviseur/ }))
     await user.click(screen.getByRole('button', { name: 'Ajouter le membre' }))
 
     expect(emitted().add).toEqual([['superviseur']])
