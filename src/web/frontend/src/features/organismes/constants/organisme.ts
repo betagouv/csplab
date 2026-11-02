@@ -14,8 +14,10 @@ export const ORGANISME_LABEL = 'Organisme'
 
 export const ROLE_LABELS: Record<Role, string> = {
   superviseur: 'Superviseur',
-  agent: 'Membre',
+  agent: 'Agent',
 }
+
+export const ROLE_FIELD_LABEL = 'Type d\'utilisateur'
 
 export const ROLE_OPTIONS: (CspRadioGroupOption & { value: Role })[] = [
   {
@@ -31,7 +33,7 @@ export const ROLE_OPTIONS: (CspRadioGroupOption & { value: Role })[] = [
 ]
 
 export const ORGANISME_TAB_LABELS = {
-  membres: 'Membres',
+  membres: 'Comptes utilisateurs',
   etapes: 'Étapes de recrutement',
   tags: 'Étiquettes',
 } as const

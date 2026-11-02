@@ -7,6 +7,7 @@ import { shortDate } from '@/utils/date'
 import AgentActionsCell from './components/cells/AgentActionsCell.vue'
 import OrganismeActionsCell from './components/cells/OrganismeActionsCell.vue'
 import OrganismeNomCell from './components/cells/OrganismeNomCell.vue'
+import { ROLE_FIELD_LABEL } from './constants/organisme'
 import { formatAgentRole } from './format'
 
 export const ORGANISMES_LIST_COLUMNS: CspColumnDef<OrganismesList>[] = [
@@ -21,8 +22,8 @@ export const ORGANISMES_LIST_COLUMNS: CspColumnDef<OrganismesList>[] = [
 ]
 
 export const ORGANISME_AGENTS_COLUMNS: CspColumnDef<AgentOrganisme>[] = [
-  { id: 'agent', header: 'Membre', sortable: true, width: '13rem', accessor: row => formatAgentNameAlphabetical(row), cellComponent: AgentNomCell },
-  { id: 'role', header: 'Rôle', width: '8rem', accessor: row => formatAgentRole(row.role) },
+  { id: 'agent', header: 'Utilisateur', sortable: true, width: '13rem', accessor: row => formatAgentNameAlphabetical(row), cellComponent: AgentNomCell },
+  { id: 'role', header: ROLE_FIELD_LABEL, width: '8rem', wrapHeader: true, accessor: row => formatAgentRole(row.role) },
   { id: 'poste', header: 'Poste', accessor: row => row.poste },
   { id: 'email', header: 'Courriel', accessor: row => row.email },
   { id: 'date_derniere_activite', header: 'Dernière activité', sortable: true, width: '9.5rem', wrapHeader: true, accessor: row => row.date_derniere_activite, cellComponent: ElapsedDaysCell },
