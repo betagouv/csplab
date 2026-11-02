@@ -130,6 +130,16 @@ describe('useKanbanSelection', () => {
       expect(isColumnSelected(ETAPE_2_UUID)).toBe(true)
       expect(currentEtapeUuid.value).toBe(ETAPE_2_UUID)
     })
+
+    it('keeps the selection when toggling an empty column', () => {
+      const etapes = ref(createEtapes())
+      const { toggleColumnSelection, isColumnSelected } = useKanbanSelection(etapes)
+
+      toggleColumnSelection(etapes.value[0]!)
+      toggleColumnSelection({ ...etapes.value[1]!, candidatures: [] })
+
+      expect(isColumnSelected(ETAPE_1_UUID)).toBe(true)
+    })
   })
 
   describe('toggleCandidatureSelection', () => {
