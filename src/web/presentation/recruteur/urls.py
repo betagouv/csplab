@@ -112,12 +112,12 @@ urlpatterns = [
         name="organisme_parametres_tag",
     ),
     path(
-        "organismes/<uuid:organisme_uuid>/recrutements-actifs",
+        "organismes/<uuid:organisme_uuid>/recrutements/actifs",
         RecrutementsActifsView.as_view(),
         name="organisme_recrutements_actifs",
     ),
     path(
-        "organismes/<uuid:organisme_uuid>/recrutements-archives",
+        "organismes/<uuid:organisme_uuid>/recrutements/archives",
         RecrutementsArchivesView.as_view(),
         name="organisme_recrutements_archives",
     ),

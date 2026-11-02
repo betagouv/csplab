@@ -1,8 +1,9 @@
 import type { ActivitesParams } from './types'
 import type { CandidatureParams, DocumentParams, OrganismeParams, RecrutementParams } from '@/api/params'
 import { defineQueryOptions } from '@pinia/colada'
+import { checkCandidatureDocument } from '@/api/documents'
 import { candidatureKeys, organismeKeys, recrutementKeys } from '@/api/queryKeys'
-import { checkCandidatureDocument, getCandidatureActivites, getCandidatureDetail, getCandidatureDocuments, getCandidatureListe, getCandidatureNotes, getMotifsRefus, getRecrutementKanban } from './api'
+import { getCandidatureActivites, getCandidatureDetail, getCandidatureDocuments, getCandidatureListe, getCandidatureNotes, getMotifsRefus, getRecrutementKanban } from './api'
 
 export const recrutementKanbanQuery = defineQueryOptions((params: RecrutementParams) => {
   return {

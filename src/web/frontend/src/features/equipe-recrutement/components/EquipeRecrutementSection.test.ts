@@ -108,4 +108,17 @@ describe('equipeRecrutementSection', () => {
 
     expect(await screen.findByText('Cet agent ne fait plus partie de l\'équipe')).toBeInTheDocument()
   })
+
+  it('changes the role from the access rights drawer', async () => {
+    const user = setupUser()
+    await renderSection()
+
+    await user.click(screen.getByRole('button', { name: 'Actions pour Jeanne Dupont' }))
+    await user.click(await screen.findByRole('menuitem', { name: 'Modifier les droits d\'accès' }))
+    await user.click(await screen.findByRole('radio', { name: /^Contributeur/ }))
+    await user.click(screen.getByRole('button', { name: 'Enregistrer les modifications' }))
+
+    expect(await screen.findByText('Rôle modifié')).toBeInTheDocument()
+    expect(updateMembreEquipe).toHaveBeenCalledWith(MTE_UUID, RECRUTEMENT_UUID, expect.objectContaining({ recrutement_role: 'contributeur' }))
+  })
 })

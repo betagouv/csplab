@@ -9,7 +9,7 @@ function renderForm(props: Record<string, unknown> = {}) {
 }
 
 function emailInput() {
-  return screen.getByRole('searchbox', { name: /^Adresse électronique de l'agent/ })
+  return screen.getByRole('searchbox', { name: /^Courriel/ })
 }
 
 describe('attachAgentForm', () => {
@@ -43,11 +43,11 @@ describe('attachAgentForm', () => {
     expect(screen.queryByRole('textbox', { name: /nom|prénom/i })).not.toBeInTheDocument()
   })
 
-  it('attaches the agent as membre by default', async () => {
+  it('attaches the user as agent by default', async () => {
     const user = setupUser()
     const { emitted } = renderForm({ status: 'found', agent: AGENT_RECHERCHE })
 
-    await user.click(screen.getByRole('button', { name: 'Ajouter le membre' }))
+    await user.click(screen.getByRole('button', { name: 'Ajouter l\'utilisateur' }))
 
     expect(emitted().add).toEqual([['agent']])
   })
@@ -56,8 +56,8 @@ describe('attachAgentForm', () => {
     const user = setupUser()
     const { emitted } = renderForm({ status: 'found', agent: AGENT_RECHERCHE })
 
-    await user.click(screen.getByRole('radio', { name: 'Superviseur' }))
-    await user.click(screen.getByRole('button', { name: 'Ajouter le membre' }))
+    await user.click(screen.getByRole('radio', { name: /^Superviseur/ }))
+    await user.click(screen.getByRole('button', { name: 'Ajouter l\'utilisateur' }))
 
     expect(emitted().add).toEqual([['superviseur']])
   })

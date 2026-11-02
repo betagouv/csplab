@@ -52,7 +52,7 @@ function handleSearch(value: string): void {
   <CspSearchBar
     :model-value="email"
     :label="label"
-    hint="Saisissez l'adresse complète du compte de l'agent."
+    hint="Saisissez l'adresse complète du compte."
     name="email"
     placeholder="prenom.nom@exemple.gouv.fr"
     :disabled="searching"

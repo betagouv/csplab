@@ -60,7 +60,7 @@ src/
 | Technical reusable hook             | `composables/<category>/`             |
 | Global store                        | `stores/`                             |
 
-Business code lives in its feature. Root folders hold only reusable, business-agnostic code, except the query keys and path parameters of `api/`. App config (navigation) lives in `app/`. The concrete app shell lives in `components/layout/` alongside the layout blocks it composes.
+Business code lives in its feature. Root folders hold only reusable, business-agnostic code, except the query keys, path parameters, and the addresses and checks of candidature documents in `api/`. App config (navigation) lives in `app/`. The concrete app shell lives in `components/layout/` alongside the layout blocks it composes.
 
 ### What is (and isn't) a feature
 
