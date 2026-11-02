@@ -84,8 +84,10 @@ if [[ -n "$FROM" ]]; then
 
   sc() { scalingo --region "$REGION" --app "$APP" "$@"; }
 
-  # No JSON output: read the ID column of the PostgreSQL row in the table
-  ADDON=$(sc addons 2>/dev/null | awk -F'│' '/PostgreSQL/ { gsub(/ /, "", $3); print $3 }')
+  # No JSON output: read the ID column of the PostgreSQL row in the table.
+  # The CLI error stays visible, and `|| true` keeps set -e from exiting before
+  # the message below
+  ADDON=$(sc addons | awk -F'│' '/PostgreSQL/ { gsub(/ /, "", $3); print $3 }') || true
   if [[ -z "$ADDON" ]]; then
     echo "❌ No PostgreSQL addon found on '${APP}' (check your access to the app)."
     exit 1

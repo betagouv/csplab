@@ -87,7 +87,7 @@ Les tâches d'un agrégat s'exécutent en parallèle. Les accès partagés sont 
 
 ## Tâches destructrices
 
-`setup:force`, `bootstrap:reset`, `onboard:reset` (les deux précédents enchaînés), `web:db:reset`, `web:db:restore` et `ingestion:db:restore` demandent une confirmation dont la réponse par défaut est No : un Entrée par réflexe ne détruit rien, il faut répondre y explicitement. Attention aux lanceurs qui positionnent MISE_YES (boutons d'éditeur) : ils sautent la confirmation.
+`setup:force`, `bootstrap:reset`, `onboard:reset` (les deux précédents enchaînés), `web:db:reset`, `web:db:restore` et `ingestion:db:restore` demandent une confirmation dont la réponse par défaut est No : un Entrée par réflexe ne détruit rien, il faut répondre y explicitement. Attention aux lanceurs qui positionnent MISE_YES (boutons d'éditeur) : ils sautent la confirmation. Pour `web:db:restore` et `ingestion:db:restore`, le message rappelle qu'avec `--from prod` le backup téléchargé contient des données personnelles de candidats.
 
 ## Arguments
 

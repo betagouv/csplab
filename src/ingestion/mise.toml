@@ -47,7 +47,7 @@ run = "docker exec -i csp_postgresql psql -U $POSTGRES_USER < ../../infra/postgr
 [tasks."db:restore"]
 alias = "ingestion:db:restore"
 description = "Restore the ingestion database from a Scalingo backup (-- --from demo|prod to download it, latest in dumps/ingestion/ by default)"
-confirm = { message = "Overwrite the local ingestion database?", default = "no" }
+confirm = { message = "Overwrite the local ingestion database? With --from prod, this downloads candidates' personal data.", default = "no" }
 depends = ["install", "db:create"]
 dir = "../.."
 run = "bin/restore-db ingestion"
