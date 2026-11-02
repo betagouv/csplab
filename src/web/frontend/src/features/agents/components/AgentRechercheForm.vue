@@ -11,12 +11,10 @@ const props = withDefaults(defineProps<{
   searching?: boolean
   errorMessage?: string
   label?: string
-  hint?: string
 }>(), {
   agent: null,
   errorMessage: '',
   label: 'Courriel de l\'agent',
-  hint: undefined,
 })
 
 const emit = defineEmits<{
@@ -54,7 +52,7 @@ function handleSearch(value: string): void {
   <CspSearchBar
     :model-value="email"
     :label="label"
-    :hint="hint"
+    hint="Saisissez le courriel complet du compte de l'agent."
     name="email"
     placeholder="prenom.nom@exemple.gouv.fr"
     :disabled="searching"

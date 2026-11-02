@@ -75,7 +75,6 @@ function handleSubmit(): void {
     <AgentRechercheForm
       v-model="email"
       label="Responsable"
-      hint="Saisissez le courriel de l'agent."
       :status="status"
       :agent="agent"
       :searching="searching"

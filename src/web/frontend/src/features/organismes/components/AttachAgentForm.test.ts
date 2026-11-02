@@ -13,6 +13,12 @@ function emailInput() {
 }
 
 describe('attachAgentForm', () => {
+  it('explains which email to enter', () => {
+    renderForm()
+
+    expect(emailInput()).toHaveAccessibleName(/Saisissez le courriel complet du compte de l'agent\./)
+  })
+
   it('rejects an invalid email without emitting a search', async () => {
     const user = setupUser()
     const { emitted } = renderForm()
