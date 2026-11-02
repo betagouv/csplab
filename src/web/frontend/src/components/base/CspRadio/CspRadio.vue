@@ -34,7 +34,7 @@ withDefaults(defineProps<CspRadioProps>(), {
     >
       <RadioGroupIndicator class="csp-radio__indicator" />
     </RadioGroupItem>
-    <span class="csp-radio__label">{{ label }}</span>
+    <span class="csp-radio__label"><slot>{{ label }}</slot></span>
   </label>
 </template>
 
