@@ -2,13 +2,23 @@ import type { MaybeRefOrGetter } from 'vue'
 import type { ConversationMessage, CreateMessagePayload, PaginatedConversationList, PaginatedConversationMessageList } from '../types'
 import type { ConversationParams } from '@/api/params'
 import { useMutation, useQuery, useQueryCache } from '@pinia/colada'
-import { computed, toValue } from 'vue'
-import { candidatureKeys } from '@/api/queryKeys'
+import { computed, toValue, watch } from 'vue'
+import { candidatureKeys, organismeKeys, recrutementKeys } from '@/api/queryKeys'
 import { replyToConversation } from '../api'
 import { conversationMessagesQuery } from '../queries'
 
 export function useConversationMessages(params: MaybeRefOrGetter<ConversationParams>) {
+  const queryCache = useQueryCache()
   const query = useQuery(() => conversationMessagesQuery(toValue(params)))
+
+  watch(query.isLoading, (loading, wasLoading) => {
+    if (wasLoading && !loading && query.status.value === 'success') {
+      const conversation = toValue(params)
+      void queryCache.invalidateQueries({ key: recrutementKeys.liste(conversation) })
+      void queryCache.invalidateQueries({ key: recrutementKeys.kanban(conversation) })
+      void queryCache.invalidateQueries({ key: organismeKeys.recrutementsActifs(conversation) })
+    }
+  })
 
   return {
     messages: computed(() => query.data.value?.results ?? []),
