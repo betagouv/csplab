@@ -162,7 +162,8 @@ describe('candidaturesKanbanView', () => {
   it('shows in the toolbar the count of the selected candidatures shown by the search, in place of the candidatures count', async () => {
     await selectColumns(['Réception des candidatures'], 'Alice')
 
-    expect(await screen.findByText('1 candidat sélectionné')).toBeInTheDocument()
+    expect(await screen.findAllByText('1 candidat sélectionné')).toHaveLength(2)
+    expect(screen.getByRole('status')).toHaveTextContent('1 candidat sélectionné')
     expect(screen.queryByText(/^\d+ candidatures?$/)).not.toBeInTheDocument()
   })
 
