@@ -22,7 +22,7 @@ WHERE jsonb_typeof(criteria -> 'competences_requises') = 'array'
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("referentiel", "0058_offer_zone_depuis_departement"),
+        ("referentiel", "0059_delete_offers_without_category"),
     ]
 
     operations = [
