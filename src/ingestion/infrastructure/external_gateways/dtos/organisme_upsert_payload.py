@@ -37,8 +37,12 @@ class OrganismeUpsertPayload(BaseModel):
             localisation = LocalisationPayload(
                 zone_geographique=organisme.localisation.area.value,
                 pays=str(organisme.localisation.country),
-                region=organisme.localisation.region.code,
-                departement=organisme.localisation.department.code,
+                region=organisme.localisation.region.code
+                if organisme.localisation.region
+                else "",
+                departement=organisme.localisation.department.code
+                if organisme.localisation.department
+                else "",
                 latitude=organisme.localisation.latitude,
                 longitude=organisme.localisation.longitude,
             )

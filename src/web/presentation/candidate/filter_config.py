@@ -42,7 +42,7 @@ def format_category_value(category: Category | None) -> str:
 
 
 def format_location_value(localisation: Localisation | None) -> str:
-    if not localisation:
+    if not localisation or localisation.department is None:
         return ""
     return str(localisation.department)
 

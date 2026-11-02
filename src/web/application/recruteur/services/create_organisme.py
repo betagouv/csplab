@@ -74,6 +74,6 @@ def _localisation_data(localisation: Localisation | None) -> dict | None:
     return {
         "area": localisation.area.value,
         "country": str(localisation.country),
-        "region": localisation.region.code,
-        "department": localisation.department.code,
+        "region": localisation.region.code if localisation.region else None,
+        "department": localisation.department.code if localisation.department else None,
     }

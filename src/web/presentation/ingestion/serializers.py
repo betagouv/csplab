@@ -1,7 +1,5 @@
-import gettext
 from urllib.parse import urlparse
 
-import pycountry
 from drf_spectacular.utils import extend_schema_field
 from referentiel.value_objects.area import GeographicalArea
 from referentiel.value_objects.category import Category
@@ -40,6 +38,7 @@ from infrastructure.django_apps.ingestion.models.talentsoft_organisme import (
 )
 from infrastructure.django_apps.recruteur.models.organisme import OrganismeModel
 from presentation.api.serializers import GenericErrorSerializer
+from presentation.commons.countries import COUNTRY_NAMES
 from presentation.commons.markdown import forbidden_markdown
 from presentation.commons.serializers import (
     LocalisationSerializer,
@@ -82,10 +81,6 @@ class _CommaSeparatedEnumField(serializers.MultipleChoiceField):
         return _parse_enum_list(data, self.enum_cls, self.error_label, self.excluded)
 
 
-_fr_country_names = gettext.translation(
-    "iso3166-1", pycountry.LOCALES_DIR, languages=["fr"]
-).gettext
-COUNTRY_NAMES = {c.alpha_3: _fr_country_names(c.name) for c in pycountry.countries}
 COUNTRY_CODES = frozenset(COUNTRY_NAMES)
 REGION_NAMES = {code: Region.NAMES.get(code, code) for code in Region.VALID_CODES}
 DEPARTMENT_NAMES = {
@@ -598,6 +593,13 @@ class LocalisationInputSerializer(LocalisationSerializer):
                 "La région et le département sont obligatoires "
                 "pour une offre localisée en France."
             )
+        if data.get("pays") != "FRA" and (
+            data.get("region") or data.get("departement")
+        ):
+            raise serializers.ValidationError(
+                "La région et le département doivent être vides "
+                "pour une offre localisée hors de France."
+            )
         if data.get("region") and data.get("departement"):
             region = Region(code=data["region"])
             department = Department(code=data["departement"])
@@ -675,8 +677,8 @@ class OfferDetailResponseSerializer(serializers.Serializer):
         return {
             "zone_geographique": str(loc.area),
             "pays": str(loc.country),
-            "region": loc.region.code,
-            "departement": loc.department.code,
+            "region": loc.region.code if loc.region else "",
+            "departement": loc.department.code if loc.department else "",
             "localisation_label": loc.label,
             "latitude": loc.latitude,
             "longitude": loc.longitude,
