@@ -81,7 +81,9 @@ class TestListOrganismes:
 
         assert response.status_code == status.HTTP_200_OK
         organisme.refresh_from_db()
-        matching = next(o for o in response.json() if o["uuid"] == str(organisme.id))
+        matching = next(
+            o for o in response.json()["results"] if o["uuid"] == str(organisme.id)
+        )
         last_activity = max(
             organisme.updated_at,
             *organisme.agents_liaisons.values_list("updated_at", flat=True),
@@ -112,6 +114,18 @@ class TestListOrganismes:
             RecrutementDjangoFactory(organisme=organisme)
 
         assert count_queries() == baseline
+
+    def test_get_paginates_with_taille(self, staff_client):
+        total, taille = 3, 2
+        OrganismeDjangoFactory.create_batch(total)
+
+        response = staff_client.get(ORGANISME_URL, {"taille": taille})
+
+        body = response.json()
+        assert response.status_code == status.HTTP_200_OK
+        assert body["count"] == total
+        assert len(body["results"]) == taille
+        assert body["next"] is not None
 
     def test_get_refuses_non_staff(self, authenticated_client):
         response = authenticated_client.get(ORGANISME_URL)
