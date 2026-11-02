@@ -394,6 +394,9 @@ def test_valid_payload_returns_201_and_valid_offers_to_usecase(
         expected = parse_offer_from_payload(payload, source_id=UUID(SOURCE_UUID))
         for attr in COMPARABLE_OFFER_ATTRS:
             assert getattr(offer, attr) == getattr(expected, attr)
+    # conditions.complements was removed from the API: sent fields are dropped
+    partial_offer = upsert_input.offers[1]
+    assert "complements" not in partial_offer.conditions
 
 
 def test_mixed_valid_invalid_offers_in_payload(
