@@ -200,7 +200,7 @@ _CRITERIA = [
     ("experience", "Niveau d'expérience", _enum(ExperienceLevel)),
     ("specialisations", "Spécialisations", _text_list),
     ("documents_requis", "Documents requis", _enum_list(RequiredDocument)),
-    ("competences_requises", "Compétences requises", _text_list),
+    ("competences_requises", "Compétences requises", None),
     ("langues", "Langues", _languages),
 ]
 _CONDITIONS = [

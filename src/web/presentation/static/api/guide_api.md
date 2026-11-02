@@ -381,7 +381,7 @@ caractères s'applique au texte Markdown, syntaxe comprise.
 | `specialisations` | Liste de textes. |
 | `diplome` | Texte. |
 | `documents_requis` | Liste de documents à transmettre pour candidater. Valeurs : **CV, LETTRE_MOTIVATION, PORTFOLIO**. Chaque document ne peut être cité qu'une fois. |
-| `competences_requises` | Liste de textes. |
+| `competences_requises` | Texte libre en Markdown, **1 500 caractères maximum**. Peut être vide ou `null`. |
 | `langues` | Liste de langues, chacune avec un **code ISO sur 2 caractères** et un **niveau** (**A1, A2, B1, B2, C1, C2**). |
 
 #### Bloc « Conditions » (`conditions`) — peut être vide
@@ -645,6 +645,7 @@ Notation : `a.b` désigne un objet imbriqué, `a[]` une liste, `a[0]` son premie
 | `customFields.description.longText2Formatted` | `description.conditions_exercice` | Converti du HTML en Markdown, repli sur le texte brut `customFields.description.longText2` s'il est vide. API fake-ts : `customFields.description.longText2` contient le Markdown, la variante `Formatted` le HTML (titres rendus en paragraphes en gras), `null` si le champ est vide. |
 | `customFields.description.longText3Formatted` | `description.descriptif_service` | Converti du HTML en Markdown, repli sur le texte brut `customFields.description.longText3` s'il est vide. API fake-ts : `customFields.description.longText3` contient le Markdown, la variante `Formatted` le HTML (titres rendus en paragraphes en gras), `null` si le champ est vide. |
 | `customFields.offerCustomBlock1.longText1Formatted` | `description.complements` | Converti du HTML en Markdown, repli sur le texte brut `customFields.offerCustomBlock1.longText1` s'il est vide. API fake-ts : `customFields.offerCustomBlock1.longText1` contient le Markdown, la variante `Formatted` le HTML (titres rendus en paragraphes en gras), `null` si le champ est vide. |
+| `customFields.applicantCriteria.longText1` | `criteres.competences_requises` | « Compétences attendues ». Texte brut repris tel quel, sans les espaces en début et fin ; non envoyé s'il est vide. API fake-ts : `customFields.applicantCriteria.longText1` contient le Markdown, la variante `Formatted` le HTML (titres rendus en paragraphes en gras), `null` si le champ est vide. |
 | `offerUrl` | `url_offre` | |
 | `urlRedirectionApplicant` | `url_candidature` | Prioritaire sur `customFields.origin.shortText1` et `applicationUrl`. |
 | `customFields.origin.shortText1` | `email_candidature` | Texte libre (« adresse de candidature »). Lu seulement si `urlRedirectionApplicant` est vide : le premier e-mail valide trouvé devient `email_candidature`, et `url_candidature` reste vide. API fake-ts : reprend `email_candidature`, `null` si l'offre se candidate par lien. |
@@ -703,7 +704,7 @@ Notation : `a.b` désigne un objet imbriqué, `a[]` une liste, `a[0]` son premie
 | `operationalManager` | Non lu : `contacts` vient de `customFields.origin` (voir plus bas). |
 | `applicationQuestions` | |
 | `attachedFilesUrls` | |
-| `skillCollection[]` | Non lu : `criteres.competences_requises` vient de `customFields.applicantCriteria.longText1` (voir plus bas). Toujours vide en pratique dans les offres Talentsoft. |
+| `skillCollection[]` | Non lu : `criteres.competences_requises` vient de `customFields.applicantCriteria.longText1` (voir « Champs reliés »). Toujours vide en pratique dans les offres Talentsoft. |
 | `customFields.offer.shortText1` | |
 | `customFields.offer.longText1` | |
 | `customFields.offer.longText2` | |
@@ -716,7 +717,7 @@ Notation : `a.b` désigne un objet imbriqué, `a[]` une liste, `a[0]` son premie
 | `customFields.location.longText3` | |
 | `customFields.offerCustomBlock1.date1` | |
 | `customFields.offerCustomBlock1.shortText1` | |
-| `customFields.applicantCriteria.longText1Formatted` | Non lu : seul le texte brut `customFields.applicantCriteria.longText1` est repris. API fake-ts : toujours `null`. |
+| `customFields.applicantCriteria.longText1Formatted` | Non lu : seul le texte brut `customFields.applicantCriteria.longText1` est repris. API fake-ts : HTML de `criteres.competences_requises`, `null` si le champ est vide. |
 | `customFields.offerCustomBlock1.longText2Formatted` | Non lu : seul le texte brut `customFields.offerCustomBlock1.longText2` est repris. API fake-ts : toujours `null`. |
 | `customFields.offerCustomBlock1.longText3Formatted` | Non lu : seul le texte brut `customFields.offerCustomBlock1.longText3` est repris. API fake-ts : toujours `null`. |
 | `code` | Clé de tout objet codé : seul `clientCode` est lu. |
@@ -737,7 +738,6 @@ Notation : `a.b` désigne un objet imbriqué, `a[]` une liste, `a[0]` son premie
 | `profession.referentiel` | Constante `RMFPv2`. |
 | `profession.code_emploi_local` | Jamais renseigné, `local_job_code` reste à `null`. |
 | `criteres.documents_requis` | Lu dans `customFields.applicantCriteria.customCodeTable1` (« Documents à transmettre ») : `Doc_CV` → `[CV]`, `Doc_CV_LM` → `[CV, LETTRE_MOTIVATION]`, `Doc_CV_PF` → `[CV, PORTFOLIO]`, `Doc_CV_LM_PF` → `[CV, LETTRE_MOTIVATION, PORTFOLIO]`. Absent, `null` ou code inconnu → non envoyé. API fake-ts : renvoyé dans `customFields.applicantCriteria.customCodeTable1`, valeur du référentiel Talentsoft « Documents à transmettre » : `[CV]` → `Doc_CV`, `[CV, LETTRE_MOTIVATION]` → `Doc_CV_LM`, `[CV, PORTFOLIO]` → `Doc_CV_PF`, `[CV, LETTRE_MOTIVATION, PORTFOLIO]` → `Doc_CV_LM_PF`, quel que soit l'ordre. `null` pour une liste vide ou une autre combinaison. Le `label` reprend le libellé Talentsoft, que le WordPress BIEP affiche après « Pour postuler à cette offre, ». |
-| `criteres.competences_requises` | Lu dans `customFields.applicantCriteria.longText1` (« Compétences attendues », absent de l'API fake-ts) : texte brut repris tel quel, sans les espaces en début et fin ; non envoyé s'il est vide. L'ingestion l'envoie comme un texte alors que l'API attend une liste de textes : une offre qui en contient est rejetée. |
 | `conditions.temps_travail` | Lu dans `customFields.description.customCodeTable3` (absent de l'API fake-ts) : `reponse_oui` → `TEMPS_PLEIN`, `reponse_non` → `TEMPS_PARTIEL`, sinon `NON_DEFINI`. |
 | `conditions.lieu_de_travail` | Lu dans `customFields.offerCustomBlock1.customCodeTable2` (absent de l'API fake-ts) : `reponse_oui` → `TELETRAVAIL`, `reponse_non` → `SUR_SITE`, sinon `NON_DEFINI`. |
 | `conditions.management` | Lu dans `customFields.offerCustomBlock1.customCodeTable1` (absent de l'API fake-ts) : `reponse_oui` → `AVEC`, `reponse_non` → `SANS`. |
