@@ -1,6 +1,7 @@
 import type { StoryObj } from '@storybook/vue3-vite'
 import type { CspTagAccent, CspTagSize, CspTagVariant } from '@/components/base/CspTag/tag'
 import { ref } from 'vue'
+import CspDismissibleTagList from '@/components/base/CspTag/CspDismissibleTagList.vue'
 import CspTag from '@/components/base/CspTag/CspTag.vue'
 import CspTagGroup from '@/components/base/CspTag/CspTagGroup.vue'
 import { CSP_TAG_ACCENTS } from '@/components/base/CspTag/tag'
@@ -332,6 +333,30 @@ export const Dismissible: Story = {
     `,
   }),
   parameters: { controls: { disable: true } },
+}
+
+export const DismissibleList: Story = {
+  name: 'Liste supprimable',
+  render: () => ({
+    components: { CspDismissibleTagList },
+    setup() {
+      const items = ref([
+        { value: 'a', label: 'Élément A' },
+        { value: 'b', label: 'Élément B' },
+        { value: 'c', label: 'Élément C' },
+      ])
+      const dismissLabel = (label: string) => `Retirer ${label} de la sélection`
+      const remove = (value: string) => {
+        items.value = items.value.filter(item => item.value !== value)
+      }
+      return { items, dismissLabel, remove }
+    },
+    template: `<CspDismissibleTagList :items="items" :dismiss-label="dismissLabel" @dismiss="remove" />`,
+  }),
+  parameters: {
+    controls: { disable: true },
+    docs: { description: { story: '`CspDismissibleTagList` affiche une liste de tags supprimables. Après un retrait, le focus passe au tag suivant, ou au précédent s\'il n\'y en a pas.' } },
+  },
 }
 
 export const States: Story = {
