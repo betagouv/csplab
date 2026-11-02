@@ -5,6 +5,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { defineComponent, h } from 'vue'
 import { RouterView } from 'vue-router'
 import { getMe } from '@/api/utilisateur'
+import { useToast } from '@/composables/ui/useToast'
 import { getRecrutementDetail } from '@/features/recrutements/api'
 import {
   CANDIDATURE_ALICE,
@@ -184,7 +185,7 @@ describe('candidaturesKanbanView', () => {
     expect(patchEtapeCandidatures).not.toHaveBeenCalled()
   })
 
-  it('moves the selection to a stage, without the candidatures hidden by the search', async () => {
+  it('moves the selection to a stage, without the candidatures hidden by the search, and confirms it', async () => {
     const user = await selectColumns(['Réception des candidatures'], 'Alice')
     await user.click(await screen.findByRole('button', { name: 'Changer d\'étape' }))
     const drawer = within(await screen.findByRole('dialog', { name: /Changer d'étape/ }))
@@ -195,6 +196,7 @@ describe('candidaturesKanbanView', () => {
       etapeCibleUuid: ETAPE_ENTRETIEN,
       candidatureUuids: [CANDIDATURE_ALICE],
     }))
+    await vi.waitFor(() => expect(useToast().toasts.value.at(-1)?.title).toBe('La candidature d\'Alice Dupont est passée à l\'étape Entretien'))
   })
 
   it('sends a card dropped in another column, and ignores one dropped back in its own column', async () => {

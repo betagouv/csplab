@@ -26,14 +26,14 @@ export interface EtapesListeTexts {
 
 export const ETAPES_TEXTS_ORGANISME: EtapesListeTexts = {
   title: 'Étapes de recrutement',
-  calloutTitle: 'Modification des étapes de recrutement',
-  calloutDescription: 'Ce modèle d\'étapes sera appliqué par défaut à tous les nouveaux recrutements. Les modifications apportées à ce modèle ne s\'appliqueront qu\'aux nouvelles offres.',
+  calloutTitle: 'Modifications effectives pour les nouveaux recrutements',
+  calloutDescription: 'Toute modification des étapes sera appliquée aux recrutements créés par la suite, sans effet sur les recrutements déjà existants.',
   resetDescription: 'Voulez-vous vraiment réinitialiser les étapes de recrutement ? Toutes vos personnalisations seront perdues et remplacées par la configuration par défaut.',
 }
 
 export const ETAPES_TEXTS_OFFRE: EtapesListeTexts = {
   title: 'Étapes de recrutement',
   calloutTitle: 'Modification des étapes de recrutement',
-  calloutDescription: 'Ces étapes ne s\'appliquent qu\'à cette offre et remplacent le modèle défini dans les paramètres de l\'organisme. Une étape ne doit pas contenir de candidature pour pouvoir être supprimée.',
-  resetDescription: 'Voulez-vous vraiment réinitialiser les étapes de cette offre ? Vos personnalisations seront perdues et remplacées par le modèle de l\'organisme.',
+  calloutDescription: 'Ces étapes ne s\'appliquent qu\'à ce recrutement et remplacent le modèle défini dans les paramètres de l\'organisme. Une étape ne doit pas contenir de candidature pour pouvoir être supprimée.',
+  resetDescription: 'Voulez-vous vraiment réinitialiser les étapes de ce recrutement ? Vos personnalisations seront perdues et remplacées par le modèle de l\'organisme.',
 }

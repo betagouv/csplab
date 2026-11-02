@@ -37,8 +37,8 @@ const breadcrumb = computed<CspBreadcrumbItem[]>(() => [
 <template>
   <CspPageHeader
     :breadcrumb="breadcrumb"
-    title="Personnaliser les étapes de recrutement de l'offre"
-    :back-link="{ to: candidaturesRoute, label: 'Retour à l’offre' }"
+    title="Personnaliser les étapes de ce recrutement"
+    :back-link="{ to: candidaturesRoute, label: 'Retour au recrutement' }"
   />
   <CspPageContainer width="reading">
     <EtapesRecrutementList

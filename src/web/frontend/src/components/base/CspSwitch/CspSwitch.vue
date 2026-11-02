@@ -113,7 +113,7 @@ const model = defineModel<boolean>({ required: true })
   border: none;
   padding: 0;
   cursor: inherit;
-  transition: background-color 0.2s ease;
+  transition: background-color var(--csp-motion-duration-state) ease;
 
   &[data-state='checked'] {
     background: var(--background-active-blue-france);
@@ -139,7 +139,7 @@ const model = defineModel<boolean>({ required: true })
   background: var(--background-default-grey);
   box-shadow: inset 0 0 0 1px var(--csp-switch-border-color);
   color: var(--text-active-blue-france);
-  transition: transform 0.2s ease;
+  transition: transform var(--csp-motion-duration-state) ease;
   will-change: transform;
 
   &[data-state='checked'] {

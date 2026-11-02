@@ -267,7 +267,7 @@ const archivesCountLabel = computed(() => {
               mode="live"
               label="Rechercher un recrutement"
               hide-label
-              placeholder="Rechercher une offre, une référence,…"
+              placeholder="Intitulé, référence, responsable…"
             />
             <CspButton
               :label="actifsFilters.activeFiltersCount.value ? `Filtres (${actifsFilters.activeFiltersCount.value})` : 'Filtres'"
@@ -352,7 +352,7 @@ const archivesCountLabel = computed(() => {
               mode="live"
               label="Rechercher un recrutement"
               hide-label
-              placeholder="Rechercher une offre, une référence,…"
+              placeholder="Intitulé, référence, responsable…"
             />
             <CspButton
               :label="archivesFilters.activeFiltersCount.value ? `Filtres (${archivesFilters.activeFiltersCount.value})` : 'Filtres'"
