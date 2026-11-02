@@ -480,7 +480,11 @@ class OffersCleaner:
                 else None,
                 raw_offer.reference,
             ),
-            legal_basis=self._map_plain_text(offer_block_1.longText2),
+            legal_basis=self._map_plain_text(
+                self._map_rich_text(
+                    offer_block_1.longText2Formatted, offer_block_1.longText2
+                )
+            ),
             vacancy_notice_url=self._map_vacancy_notice_url(offer_block_1.longText3),
             education_level=education_level,
             experience=experience,
