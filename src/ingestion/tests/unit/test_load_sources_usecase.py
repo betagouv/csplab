@@ -1,3 +1,4 @@
+import asyncio
 import logging
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -68,4 +69,29 @@ async def test_execute_backs_off_exponentially_and_logs_each_failure(
         "WARNING",
         "ERROR",
     ]
+    mock_repository.load.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_execute_bounds_each_attempt_duration():
+    async def hang() -> list:
+        await asyncio.Event().wait()
+        return []
+
+    mock_gateway = MagicMock(spec=ISourcesGateway)
+    mock_gateway.fetch_sources = AsyncMock(side_effect=hang)
+    mock_repository = MagicMock(spec=ISourcesRepository)
+
+    usecase = LoadSourcesUsecase(
+        sources_gateway=mock_gateway,
+        repository=mock_repository,
+        max_attempts=2,
+        base_delay_seconds=0,
+        attempt_timeout_seconds=0.01,
+    )
+
+    with pytest.raises(TimeoutError):
+        await usecase.execute()
+
+    assert mock_gateway.fetch_sources.await_count == 2
     mock_repository.load.assert_not_called()
