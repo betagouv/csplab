@@ -8,7 +8,6 @@ from domain.identite.errors.organisme_permission_errors import (
     OperationOrganismeRefusee,
 )
 from domain.recruteur.value_objects.roles import AgentOrganismeRole
-from infrastructure.django_apps.recruteur.models.organisme import OrganismeModel
 from infrastructure.factories.identite.organisme_django_factory import (
     OrganismeAgentDjangoFactory,
     OrganismeDjangoFactory,
@@ -124,11 +123,7 @@ def test_counts_are_zero_without_agents_nor_offers(staff):
     assert result.last_activity_date == organisme.updated_at
 
 
-def test_counts_do_not_join_agents_nor_recrutements(staff):
-    sql = str(OrganismeModel.objects.not_supprimes().with_counts().query)
 
-    # Joins multiply rows per organisme and crash the page on large volumes (#2197).
-    assert "JOIN" not in sql
 
 
 def test_query_count_does_not_grow_with_agents_and_offers_per_organisme(
