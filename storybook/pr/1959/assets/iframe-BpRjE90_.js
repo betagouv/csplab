@@ -1,1 +1,0 @@
-import{t as e}from"./iframe-CSv7s1zv.js";e();
