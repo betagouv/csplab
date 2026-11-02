@@ -180,6 +180,7 @@ const root = computed(() => {
   border-radius: 2rem;
   border: none;
   background-color: var(--background-contrast-grey);
+  transition: background-color var(--csp-motion-duration-state);
   color: var(--text-label-grey);
   white-space: nowrap;
   cursor: default;

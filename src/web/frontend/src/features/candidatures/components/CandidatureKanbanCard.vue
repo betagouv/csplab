@@ -31,7 +31,7 @@ const panelLocation = computed(() => ({
 
 const isCurrent = computed(() => route.params.candidatureUuid === props.candidature.uuid)
 
-const { isDragging } = useDraggableKanbanCard({
+const { isDragging, isJustMoved } = useDraggableKanbanCard({
   element: cardRef,
   boardId: props.boardId,
   columnId: props.columnId,
@@ -48,6 +48,7 @@ const { isDragging } = useDraggableKanbanCard({
     :class="{
       'candidature-kanban-card--dragging': isDragging,
       'candidature-kanban-card--current': isCurrent,
+      'candidature-kanban-card--moved': isJustMoved,
     }"
     :aria-current="isCurrent ? 'true' : undefined"
   >
@@ -76,9 +77,15 @@ const { isDragging } = useDraggableKanbanCard({
 
 <style scoped lang="scss">
 .candidature-kanban-card {
+  --candidature-kanban-card-shadow-rest: var(--csp-raised-shadow, 0 1px 2px rgb(0 0 0 / 6%));
+  --candidature-kanban-card-shadow: var(--candidature-kanban-card-shadow-rest);
+
   box-shadow:
-    0 1px 2px rgb(0 0 0 / 6%),
+    var(--candidature-kanban-card-shadow),
     inset 0 0 0 1px var(--border-default-grey);
+  transition:
+    background-color var(--csp-motion-duration-state),
+    box-shadow var(--csp-motion-duration-state);
   cursor: grab;
 
   &:active {
@@ -87,7 +94,8 @@ const { isDragging } = useDraggableKanbanCard({
 }
 
 .candidature-kanban-card:hover {
-  --csp-card-bg: var(--background-alt-grey);
+  --csp-card-bg: var(--csp-raised-background-hover, var(--background-alt-grey));
+  --candidature-kanban-card-shadow: var(--csp-raised-shadow-hover, var(--candidature-kanban-card-shadow-rest));
 }
 
 /* inset: the scrolling column clips an outline drawn outside the card */
@@ -98,12 +106,22 @@ const { isDragging } = useDraggableKanbanCard({
 
 .candidature-kanban-card--current {
   box-shadow:
-    0 1px 2px rgb(0 0 0 / 6%),
+    var(--candidature-kanban-card-shadow),
     inset 0 0 0 2px var(--border-plain-info);
 }
 
-.candidature-kanban-card--dragging {
-  opacity: 0.5;
+/* above its neighbours while it plays the drop motion */
+.candidature-kanban-card--moved {
+  z-index: 1;
+  animation: var(--csp-motion-raised-drop);
+}
+
+/* the pointer stays over the card it picks up: the drag state wins over the hover state */
+.candidature-kanban-card--dragging,
+.candidature-kanban-card--dragging:hover {
+  --candidature-kanban-card-shadow: var(--csp-raised-shadow-drag, var(--candidature-kanban-card-shadow-rest));
+
+  opacity: var(--csp-raised-opacity-drag);
 }
 
 .candidature-kanban-card__link {

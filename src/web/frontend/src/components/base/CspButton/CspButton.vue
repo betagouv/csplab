@@ -69,6 +69,9 @@ const isIconOnly = computed(() => Boolean(props.icon) && !props.label)
   border: none;
   text-decoration: none;
   padding: var(--csp-btn-padding-y) var(--csp-btn-padding-x);
+  transition:
+    background-color var(--csp-motion-duration-state),
+    box-shadow var(--csp-motion-duration-state);
 
   &:focus-visible {
     outline: 2px solid var(--csp-focus-ring-color);
