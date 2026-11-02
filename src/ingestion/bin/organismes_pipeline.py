@@ -1,10 +1,7 @@
 #!/usr/bin/env python
 import argparse
-import asyncio
 import logging
 
-from api._sentry import sentry_init_for_script
-from api.config import get_settings
 from application.usecases.import_organismes import ImportOrganismesCommand
 from application.usecases.publish_organismes import PublishOrganismesCommand
 from domain.value_objects.organisme_referentiel import OrganismeReferentiel
@@ -13,8 +10,8 @@ from infrastructure.di.container import (
     create_container,
     import_organismes_usecase_for,
 )
+from infrastructure.observability.script import run_script
 
-logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
@@ -65,11 +62,7 @@ async def _run(referentiel: OrganismeReferentiel | None = None) -> None:
 
 def main() -> None:
     args = _parse_args()
-    # Run by cron: Sentry is otherwise only initialized by the API and the worker.
-    settings = get_settings()
-    if settings.sentry_dsn and str(settings.sentry_dsn).strip():
-        sentry_init_for_script(dsn=str(settings.sentry_dsn))
-    asyncio.run(_run(args.referentiel))
+    run_script(_run(args.referentiel))
 
 
 if __name__ == "__main__":

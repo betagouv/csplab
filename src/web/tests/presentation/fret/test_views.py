@@ -326,6 +326,16 @@ class TestOffreDetailView:
         assert "CONFIRME" not in content
         assert "&quot;langues&quot;" not in content  # plus de JSON brut
 
+    def test_shows_required_skills_with_line_breaks(self, client, source):
+        offer = OfferDjangoFactory(
+            source=source,
+            criteria={"competences_requises": "- Rigueur\n- Autonomie"},
+        )
+
+        content = client.get(self.url(source, offer)).content.decode()
+
+        assert "- Rigueur<br>- Autonomie" in content
+
     def test_shows_required_documents_labels(self, client, source):
         offer = OfferDjangoFactory(
             source=source,
@@ -362,6 +372,7 @@ class TestOffreDetailView:
         ):
             assert expected in content, expected
         assert "TEMPS_PLEIN" not in content
+        assert "Conditions — Compléments" not in content
 
     def test_shows_criteria_and_conditions_rows_when_columns_are_empty(
         self, client, source

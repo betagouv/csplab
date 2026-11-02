@@ -100,9 +100,7 @@ function close(): void {
   void router.push({ name: parentName.value })
 }
 
-const unsavedChanges = useUnsavedChangesGuard({
-  ignore: to => to.params.candidatureUuid === props.candidatureUuid,
-})
+const unsavedChanges = useUnsavedChangesGuard()
 
 function leaveMovedCandidature(): void {
   if (position.value?.nextUuid) {
@@ -216,6 +214,7 @@ function handleUpdateOpen(open: boolean): void {
     >
       <CspTabs
         v-model="activeTab"
+        activation-mode="manual"
         fill
         class="candidature-panel__tabs"
       >
@@ -235,7 +234,7 @@ function handleUpdateOpen(open: boolean): void {
               class="candidature-panel__main"
             >
               <template #candidature>
-                <div class="candidature-panel__tab">
+                <div class="candidature-panel__tab candidature-panel__tab--cv">
                   <CandidatureCv
                     v-if="candidature"
                     :candidature="candidatureParams"
@@ -394,6 +393,7 @@ function handleUpdateOpen(open: boolean): void {
   min-height: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
+  container-type: size;
 }
 
 .candidature-panel__layout {
@@ -425,6 +425,11 @@ function handleUpdateOpen(open: boolean): void {
   flex-direction: column;
   min-height: 0;
   padding: var(--csp-page-content-padding-block) var(--csp-drawer-padding-inline);
+}
+
+.candidature-panel__tab--cv {
+  min-height: 100cqh;
+  padding: 0;
 }
 
 .candidature-panel__aside {

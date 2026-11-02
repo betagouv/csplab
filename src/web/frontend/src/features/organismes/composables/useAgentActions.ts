@@ -1,11 +1,11 @@
 import type { InjectionKey } from 'vue'
-import type { AgentOrganisme, Role } from '../types'
+import type { AgentOrganisme } from '../types'
 import type { Request } from '@/composables/ui/useRequest'
 import { inject, provide } from 'vue'
 import { createRequest } from '@/composables/ui/useRequest'
 
 export interface AgentActions {
-  roleChange: Request<{ agent: AgentOrganisme, role: Role }>
+  roleChange: Request<AgentOrganisme>
   revocation: Request<AgentOrganisme>
 }
 

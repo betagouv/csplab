@@ -9,14 +9,14 @@ function renderForm(props: Record<string, unknown> = {}) {
 }
 
 function emailInput() {
-  return screen.getByRole('searchbox', { name: /^Courriel de l'agent/ })
+  return screen.getByRole('searchbox', { name: /^Courriel/ })
 }
 
 describe('attachAgentForm', () => {
   it('explains which email to enter', () => {
     renderForm()
 
-    expect(emailInput()).toHaveAccessibleName(/Saisissez le courriel complet du compte de l'agent\./)
+    expect(emailInput()).toHaveAccessibleName(/Saisissez le courriel complet du compte\./)
   })
 
   it('rejects an invalid email without emitting a search', async () => {
@@ -49,11 +49,11 @@ describe('attachAgentForm', () => {
     expect(screen.queryByRole('textbox', { name: /nom|prénom/i })).not.toBeInTheDocument()
   })
 
-  it('attaches the agent as membre by default', async () => {
+  it('attaches the user as agent by default', async () => {
     const user = setupUser()
     const { emitted } = renderForm({ status: 'found', agent: AGENT_RECHERCHE })
 
-    await user.click(screen.getByRole('button', { name: 'Ajouter le membre' }))
+    await user.click(screen.getByRole('button', { name: 'Ajouter l\'utilisateur' }))
 
     expect(emitted().add).toEqual([['agent']])
   })
@@ -62,8 +62,8 @@ describe('attachAgentForm', () => {
     const user = setupUser()
     const { emitted } = renderForm({ status: 'found', agent: AGENT_RECHERCHE })
 
-    await user.click(screen.getByRole('radio', { name: 'Superviseur' }))
-    await user.click(screen.getByRole('button', { name: 'Ajouter le membre' }))
+    await user.click(screen.getByRole('radio', { name: /^Superviseur/ }))
+    await user.click(screen.getByRole('button', { name: 'Ajouter l\'utilisateur' }))
 
     expect(emitted().add).toEqual([['superviseur']])
   })
@@ -71,7 +71,7 @@ describe('attachAgentForm', () => {
   it('disables the submission until the search has answered', () => {
     renderForm()
 
-    expect(screen.getByRole('button', { name: 'Ajouter le membre' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Ajouter l\'utilisateur' })).toBeDisabled()
   })
 
   it('creates and adds the member when no account matches', async () => {

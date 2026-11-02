@@ -45,31 +45,31 @@ describe('organismeAgentsSection', () => {
     vi.mocked(setAgentRole).mockRejectedValue(new HttpError(409, 'Conflict'))
     await renderSection()
 
-    await user.click(screen.getByRole('button', { name: 'Ajouter un membre' }))
-    await user.type(await screen.findByRole('searchbox', { name: /Courriel de l'agent/ }), AGENT_RECHERCHE.email)
+    await user.click(screen.getByRole('button', { name: 'Ajouter un utilisateur' }))
+    await user.type(await screen.findByRole('searchbox', { name: /^Courriel/ }), AGENT_RECHERCHE.email)
     await user.click(screen.getByRole('button', { name: 'Rechercher' }))
-    await user.click(await screen.findByRole('button', { name: 'Ajouter le membre' }))
+    await user.click(await screen.findByRole('button', { name: 'Ajouter l\'utilisateur' }))
 
-    expect(await screen.findByText('Cet agent est déjà rattaché à l\'organisme.')).toBeInTheDocument()
+    expect(await screen.findByText('Cet utilisateur est déjà rattaché à l\'organisme.')).toBeInTheDocument()
     expect(screen.getByRole('dialog')).toBeInTheDocument()
 
-    await user.type(screen.getByRole('searchbox', { name: /Courriel de l'agent/ }), 'x')
-    expect(screen.queryByText('Cet agent est déjà rattaché à l\'organisme.')).not.toBeInTheDocument()
+    await user.type(screen.getByRole('searchbox', { name: /^Courriel/ }), 'x')
+    expect(screen.queryByText('Cet utilisateur est déjà rattaché à l\'organisme.')).not.toBeInTheDocument()
   })
 
   it('starts a new search each time the drawer opens', async () => {
     const user = setupUser()
     await renderSection()
 
-    await user.click(screen.getByRole('button', { name: 'Ajouter un membre' }))
-    await user.type(await screen.findByRole('searchbox', { name: /Courriel de l'agent/ }), AGENT_RECHERCHE.email)
+    await user.click(screen.getByRole('button', { name: 'Ajouter un utilisateur' }))
+    await user.type(await screen.findByRole('searchbox', { name: /^Courriel/ }), AGENT_RECHERCHE.email)
     await user.click(screen.getByRole('button', { name: 'Rechercher' }))
-    await vi.waitFor(() => expect(screen.getByRole('button', { name: 'Ajouter le membre' })).toBeEnabled())
+    await vi.waitFor(() => expect(screen.getByRole('button', { name: 'Ajouter l\'utilisateur' })).toBeEnabled())
     await user.click(screen.getByRole('button', { name: 'Annuler' }))
-    await user.click(screen.getByRole('button', { name: 'Ajouter un membre' }))
+    await user.click(screen.getByRole('button', { name: 'Ajouter un utilisateur' }))
 
-    expect(await screen.findByRole('searchbox', { name: /Courriel de l'agent/ })).toHaveValue('')
-    expect(screen.getByRole('button', { name: 'Ajouter le membre' })).toBeDisabled()
+    expect(await screen.findByRole('searchbox', { name: /^Courriel/ })).toHaveValue('')
+    expect(screen.getByRole('button', { name: 'Ajouter l\'utilisateur' })).toBeDisabled()
   })
 
   it('revokes a member with a revocation date after confirmation', async () => {
@@ -81,10 +81,27 @@ describe('organismeAgentsSection', () => {
     await user.click(await screen.findByRole('menuitem', { name: 'Révoquer' }))
     await user.click(await screen.findByRole('button', { name: 'Révoquer les accès' }))
 
-    expect(await screen.findByText('Membre révoqué')).toBeInTheDocument()
+    expect(await screen.findByText('Utilisateur révoqué')).toBeInTheDocument()
     expect(updateAgentRole).toHaveBeenCalledWith(MTE_UUID, expect.objectContaining({
       agent_id: AGENT_ORGANISME.uuid,
       date_revocation: expect.any(String),
     }))
+  })
+
+  it('changes the role from the access rights drawer', async () => {
+    const user = setupUser()
+    vi.mocked(updateAgentRole).mockResolvedValue({ ...AGENT_ORGANISME, role: 'superviseur' })
+    await renderSection()
+
+    await user.click(screen.getByRole('button', { name: 'Actions pour Jeanne Dupont' }))
+    await user.click(await screen.findByRole('menuitem', { name: 'Modifier les droits d\'accès' }))
+    const save = await screen.findByRole('button', { name: 'Enregistrer les modifications' })
+    expect(save).toBeDisabled()
+
+    await user.click(screen.getByRole('radio', { name: /^Superviseur/ }))
+    await user.click(save)
+
+    expect(await screen.findByText('Rôle modifié')).toBeInTheDocument()
+    expect(updateAgentRole).toHaveBeenCalledWith(MTE_UUID, { agent_id: AGENT_ORGANISME.uuid, role: 'superviseur' })
   })
 })

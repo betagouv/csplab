@@ -166,17 +166,17 @@ const resolvedIcon = computed(() => iconByVariant[props.variant])
   border: 1px solid var(--csp-toast-border);
   border-left: 4px solid var(--csp-toast-accent);
   color: var(--csp-toast-text);
-  box-shadow: var(--csp-shadow-md);
+  box-shadow: var(--csp-overlap-shadow, var(--csp-shadow-md));
   overflow: hidden;
   will-change: transform, opacity;
 }
 
 .csp-toast[data-state='open'] {
-  animation: csp-toast-enter 160ms ease-out;
+  animation: var(--csp-motion-notification-enter, csp-toast-enter 160ms ease-out);
 }
 
 .csp-toast[data-state='closed'] {
-  animation: csp-toast-exit 120ms ease-in forwards;
+  animation: var(--csp-motion-notification-exit, csp-toast-exit 120ms ease-in forwards);
 }
 
 .csp-toast[data-swipe='move'] {
