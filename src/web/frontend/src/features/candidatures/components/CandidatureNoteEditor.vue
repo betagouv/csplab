@@ -21,7 +21,6 @@ const props = withDefaults(defineProps<{
 
 const route = useRoute()
 const router = useRouter()
-const editorRouteName = route.name
 
 const message = ref(props.initialMessage)
 const estPrivee = ref(props.initialEstPrivee)
@@ -37,7 +36,7 @@ function reset(): void {
   estPrivee.value = props.initialEstPrivee
 }
 
-useUnsavedChanges(() => isDirty.value, reset, { isLeftBy: to => to.name !== editorRouteName })
+useUnsavedChanges(() => isDirty.value, reset)
 
 const canSubmit = computed(() => isDirty.value && message.value.trim() !== '' && !props.submitting)
 

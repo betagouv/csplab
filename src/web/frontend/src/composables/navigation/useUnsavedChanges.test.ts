@@ -19,7 +19,7 @@ async function mountGuard(options: Parameters<typeof useUnsavedChanges>[2] = {})
 
   const Page = defineComponent({
     setup() {
-      guard = useUnsavedChangesGuard({ ignore: (to, from) => to.params.id === from.params.id })
+      guard = useUnsavedChangesGuard()
       return () => h(Input)
     },
   })
@@ -77,19 +77,8 @@ describe('useUnsavedChanges', () => {
     expect(guard.isConfirming.value).toBe(false)
   })
 
-  it('ignores the navigations the guard is told to ignore', async () => {
+  it('asks to confirm a navigation that stays on the same page by default', async () => {
     const { router, text, guard } = await mountGuard()
-    text.value = 'Brouillon'
-
-    await router.push('/fiche/1/notes')
-
-    expect(router.currentRoute.value.path).toBe('/fiche/1/notes')
-    expect(guard.isConfirming.value).toBe(false)
-    expect(text.value).toBe('Brouillon')
-  })
-
-  it('asks to confirm when the input says the navigation leaves it, even if the guard ignores it', async () => {
-    const { router, text, guard } = await mountGuard({ isLeftBy: (to, from) => to.path !== from.path })
     text.value = 'Brouillon'
 
     const navigation = router.push('/fiche/1/notes')
@@ -99,6 +88,17 @@ describe('useUnsavedChanges', () => {
 
     expect(router.currentRoute.value.path).toBe('/fiche/1/notes')
     expect(text.value).toBe('')
+  })
+
+  it('lets through the navigations the input says do not leave it', async () => {
+    const { router, text, guard } = await mountGuard({ isLeftBy: (to, from) => to.params.id !== from.params.id })
+    text.value = 'Brouillon'
+
+    await router.push('/fiche/1/notes')
+
+    expect(router.currentRoute.value.path).toBe('/fiche/1/notes')
+    expect(guard.isConfirming.value).toBe(false)
+    expect(text.value).toBe('Brouillon')
   })
 
   it('asks the browser to warn before unloading the page while an input is typed', async () => {

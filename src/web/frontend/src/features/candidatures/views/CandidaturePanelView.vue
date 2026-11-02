@@ -100,9 +100,7 @@ function close(): void {
   void router.push({ name: parentName.value })
 }
 
-const unsavedChanges = useUnsavedChangesGuard({
-  ignore: to => to.params.candidatureUuid === props.candidatureUuid,
-})
+const unsavedChanges = useUnsavedChangesGuard()
 
 function leaveMovedCandidature(): void {
   if (position.value?.nextUuid) {
