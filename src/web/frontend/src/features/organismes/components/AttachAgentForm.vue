@@ -7,7 +7,7 @@ import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspDrawerFooter from '@/components/base/CspDrawer/CspDrawerFooter.vue'
 import CspRadioGroup from '@/components/base/CspRadioGroup/CspRadioGroup.vue'
 import AgentRechercheForm from '@/features/agents/components/AgentRechercheForm.vue'
-import { ROLE_OPTIONS } from '../constants/organisme'
+import { ROLE_FIELD_LABEL, ROLE_OPTIONS } from '../constants/organisme'
 
 const props = defineProps<{
   status: AgentSearchStatus
@@ -31,7 +31,7 @@ const isFound = computed(() => props.status === 'found')
 
 const isSearched = computed(() => props.status !== 'idle')
 
-const submitLabel = computed(() => isFound.value ? 'Ajouter le membre' : 'Créer et ajouter')
+const submitLabel = computed(() => isFound.value ? 'Ajouter l\'utilisateur' : 'Créer et ajouter')
 
 function handleSubmit(): void {
   if (isSearched.value) {
@@ -51,6 +51,7 @@ const formId = useId()
   >
     <AgentRechercheForm
       v-model="email"
+      label="Courriel"
       :status="status"
       :agent="agent"
       :searching="searching"
@@ -62,7 +63,7 @@ const formId = useId()
     <CspRadioGroup
       v-if="isSearched"
       v-model="role"
-      label="Rôle dans l'organisme"
+      :label="ROLE_FIELD_LABEL"
       name="role"
       :options="ROLE_OPTIONS"
     />
