@@ -4,8 +4,12 @@ import pytest
 from django.urls import reverse
 from rest_framework import status
 
+from domain.recruteur.value_objects.categorie_etapes_recrutement import (
+    CategorieEtapeRecrutement,
+)
 from domain.recruteur.value_objects.roles import AgentOrganismeRole
 from infrastructure.django_apps.recruteur.enums.motif_refus import MotifRefus
+from infrastructure.django_apps.recruteur.models.etape import EtapeModel
 from infrastructure.factories.candidate.candidature_django_factory import (
     CandidatureDjangoFactory,
     create_recrutement_and_candidature_for_agent,
@@ -145,8 +149,11 @@ class TestCandidatureDetailView:
         _, organisme, recrutement, candidature = (
             create_recrutement_and_candidature_for_agent(utilisateur=test_user)
         )
+        candidature.etape = EtapeModel.objects.get(
+            recrutement=recrutement, categorie=CategorieEtapeRecrutement.REFUS.value
+        )
         candidature.motif_refus = MotifRefus.EXPERIENCE_INSUFFISANTE
-        candidature.save(update_fields=["motif_refus"])
+        candidature.save(update_fields=["etape", "motif_refus"])
 
         response = authenticated_client.get(
             _detail_url(organisme.id, recrutement.pk, candidature.id)
