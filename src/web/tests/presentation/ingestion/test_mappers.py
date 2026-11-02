@@ -164,7 +164,7 @@ def test_offer_input_mapper_maps_criteres_to_offer_criteria():
             "experience": "CONFIRME",
             "specialisations": ["Droit public"],
             "documents_requis": ["CV"],
-            "competences_requises": ["Rigueur"],
+            "competences_requises": "- Rigueur\n- Autonomie",
             "langues": [{"iso_code": "en", "niveau": "B2"}],
         },
     )
@@ -177,7 +177,7 @@ def test_offer_input_mapper_maps_criteres_to_offer_criteria():
         experience_level=ExperienceLevel.CONFIRME,
         specialisations=["Droit public"],
         documents_requis=[RequiredDocument.CV],
-        competences_requises=["Rigueur"],
+        competences_requises="- Rigueur\n- Autonomie",
         languages=[OfferLanguage(iso_code="en", level=LanguageLevel.B2)],
     )
 
@@ -493,9 +493,58 @@ class TestOfferDetailOutputMapper:
             "customFields"
         ]
 
-        assert custom_fields["applicantCriteria"]["longText1Formatted"] is None
-        assert custom_fields["offerCustomBlock1"]["longText2Formatted"] is None
         assert custom_fields["offerCustomBlock1"]["longText3Formatted"] is None
+
+    def test_bases_legales_are_mapped_to_offer_custom_block(self):
+        offer = replace(
+            OfferFactory.create_entity(),
+            conditions={"bases_legales": "Ouvert :\n\n- 1° aux fonctionnaires"},
+        )
+
+        offer_custom_block = OfferDetailOutputMapper().to_dict(offer)["customFields"][
+            "offerCustomBlock1"
+        ]
+
+        assert offer_custom_block["longText2"] == "Ouvert :\n\n- 1° aux fonctionnaires"
+        assert offer_custom_block["longText2Formatted"] == (
+            "<p>Ouvert :</p>\n<ul>\n<li>1° aux fonctionnaires</li>\n</ul>"
+        )
+
+    @pytest.mark.parametrize("conditions", [None, {}, {"bases_legales": ""}])
+    def test_bases_legales_are_null_when_missing(self, conditions):
+        offer = replace(OfferFactory.create_entity(), conditions=conditions)
+
+        offer_custom_block = OfferDetailOutputMapper().to_dict(offer)["customFields"][
+            "offerCustomBlock1"
+        ]
+
+        assert offer_custom_block["longText2"] is None
+        assert offer_custom_block["longText2Formatted"] is None
+
+    def test_competences_requises_are_mapped_to_applicant_criteria(self):
+        offer = replace(
+            OfferFactory.create_entity(),
+            criteria=OfferCriteria(competences_requises="- Rigueur\n- Autonomie"),
+        )
+
+        applicant_criteria = OfferDetailOutputMapper().to_dict(offer)["customFields"][
+            "applicantCriteria"
+        ]
+
+        assert applicant_criteria["longText1"] == "- Rigueur\n- Autonomie"
+        assert applicant_criteria["longText1Formatted"] == (
+            "<ul>\n<li>Rigueur</li>\n<li>Autonomie</li>\n</ul>"
+        )
+
+    def test_competences_requises_are_null_without_criteria(self):
+        offer = replace(OfferFactory.create_entity(), criteria=None)
+
+        applicant_criteria = OfferDetailOutputMapper().to_dict(offer)["customFields"][
+            "applicantCriteria"
+        ]
+
+        assert applicant_criteria["longText1"] is None
+        assert applicant_criteria["longText1Formatted"] is None
 
     def test_empty_custom_field_descriptions_are_null(self):
         offer = replace(
