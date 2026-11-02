@@ -659,8 +659,10 @@ def _seed_fil(
     candidat = candidature.candidat.utilisateur
     if objet == _DATE_ENTRETIEN:
         demande, reponse = _textes_date_entretien(plan, recruteur, echeancier, choix)
-    else:
+    elif objet == _PIECES_JUSTIFICATIVES:
         demande, reponse = _textes_pieces(plan, recruteur, echeancier, intitule)
+    else:
+        raise ValueError(f"Objet de fil de démo inconnu : {objet}")
     for auteur, contenu, envoye_le in (
         (recruteur, demande, echeancier.demande_le),
         (candidat, reponse, echeancier.repondu_le),

@@ -40,7 +40,9 @@ from infrastructure.factories.seed_demo_organisme import (
     _au_poste,
     _CandidaturePlan,
     _cv,
+    _Echeancier,
     _pdf_texte,
+    _seed_fil,
     seed_demo_organisme,
 )
 from infrastructure.factories.seed_demo_specs import RecrutementSpec, SpecOrganisme
@@ -406,6 +408,38 @@ class TestSeedDemoOrganisme:
     )
     def test_elides_au_poste_de_before_a_vowel(self, intitule, attendu):
         assert _au_poste(intitule) == attendu
+
+    def test_seed_fil_refuses_an_unknown_objet(self, db):
+        _, candidature = create_recrutement_with_candidature()
+        plan = _CandidaturePlan(
+            etape="Entretien",
+            prenom="Camille",
+            nom="Durand",
+            proximite=0.4,
+            notes=(),
+            fils=("Relance",),
+            lecture=False,
+            avatar=None,
+        )
+        maintenant = timezone.now()
+        echeancier = _Echeancier(
+            demande_le=maintenant,
+            repondu_le=maintenant,
+            creneaux=[],
+            limite=maintenant.date(),
+        )
+
+        with pytest.raises(ValueError, match="Relance"):
+            _seed_fil(
+                candidature,
+                plan,
+                candidature.candidat.utilisateur,
+                [],
+                "Relance",
+                echeancier,
+                "Chargé(e) de mission",
+                0,
+            )
 
     @pytest.mark.parametrize(
         ("cas", "motif"),
