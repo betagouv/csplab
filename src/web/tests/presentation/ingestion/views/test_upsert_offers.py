@@ -1070,7 +1070,14 @@ def test_inconsistent_region_and_department_are_rejected(
 
 @pytest.mark.parametrize(
     ("region", "departement"),
-    [("93", "13"), ("01", "971"), ("DOM", "971"), ("TOM", "988")],
+    [
+        ("93", "13"),
+        ("01", "971"),
+        ("DOM", "971"),
+        ("TOM", "988"),
+        ("TOM", "977"),
+        ("TOM", "978"),
+    ],
 )
 def test_consistent_region_and_department_are_accepted(
     authenticated_client_with_source, use_case, region, departement
