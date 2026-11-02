@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { ConversationRouteNames } from '../types'
 import type { CandidatureParams } from '@/api/params'
-import { computed, onMounted, ref, useId, useTemplateRef, watch } from 'vue'
+import { computed, onMounted, ref, useId, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ValidationError } from '@/api/errors'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
@@ -9,9 +9,9 @@ import CspInput from '@/components/base/CspInput/CspInput.vue'
 import CspTextarea from '@/components/base/CspTextarea/CspTextarea.vue'
 import { useUnsavedChanges } from '@/composables/navigation/useUnsavedChanges'
 import { useToast } from '@/composables/ui/useToast'
-import { countValidAttachments, hasInvalidAttachment } from '../attachments'
+import { hasInvalidAttachment } from '../attachments'
 import { useCreateConversation } from '../composables/useConversations'
-import { CONVERSATION_OBJET_MAX_LENGTH, MESSAGE_CONTENT_MAX_LENGTH, MESSAGE_MAX_DOCUMENTS } from '../constants/message'
+import { CONVERSATION_OBJET_MAX_LENGTH, MESSAGE_CONTENT_MAX_LENGTH } from '../constants/message'
 import MessageAttachments from './MessageAttachments.vue'
 
 const props = defineProps<{
@@ -27,7 +27,6 @@ const { addToast } = useToast()
 const objet = ref('')
 const content = ref('')
 const documents = ref<File[]>([])
-const attachments = useTemplateRef('attachments')
 const titleId = useId()
 const objetId = useId()
 
@@ -64,8 +63,6 @@ const canSend = computed(() =>
   && !hasInvalidAttachment(documents.value)
   && !creating.value,
 )
-
-const canAttach = computed(() => countValidAttachments(documents.value) < MESSAGE_MAX_DOCUMENTS && !creating.value)
 
 function backToConversations(): void {
   void router.push({ name: props.routes.conversations, params: route.params })
@@ -152,21 +149,10 @@ async function send(): Promise<void> {
           :error-message="contentErrors.join(' ')"
         />
         <MessageAttachments
-          ref="attachments"
           v-model="documents"
           :disabled="creating"
           :server-errors="documentsErrors"
-        />
-        <div class="new-conversation__actions">
-          <CspButton
-            type="button"
-            variant="tertiary-no-outline"
-            icon="ri:file-add-line"
-            is-icon-left
-            label="Pièce jointe"
-            :disabled="!canAttach"
-            @click="attachments?.pick()"
-          />
+        >
           <CspButton
             type="submit"
             icon="ri:send-plane-fill"
@@ -174,7 +160,7 @@ async function send(): Promise<void> {
             label="Envoyer"
             :disabled="!canSend"
           />
-        </div>
+        </MessageAttachments>
       </div>
     </form>
   </section>
@@ -220,12 +206,5 @@ async function send(): Promise<void> {
   gap: var(--csp-space-3);
   padding: var(--csp-space-5) var(--csp-space-6);
   border-top: 1px solid var(--border-default-grey);
-}
-
-.new-conversation__actions {
-  display: flex;
-  gap: var(--csp-space-2);
-  align-items: center;
-  justify-content: space-between;
 }
 </style>

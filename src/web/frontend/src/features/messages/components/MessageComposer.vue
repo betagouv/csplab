@@ -1,14 +1,14 @@
 <script setup lang="ts">
 import type { CandidatureParams } from '@/api/params'
-import { computed, ref, useTemplateRef, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { ValidationError } from '@/api/errors'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspTextarea from '@/components/base/CspTextarea/CspTextarea.vue'
 import { useUnsavedChanges } from '@/composables/navigation/useUnsavedChanges'
 import { useToast } from '@/composables/ui/useToast'
-import { countValidAttachments, hasInvalidAttachment } from '../attachments'
+import { hasInvalidAttachment } from '../attachments'
 import { useReplyConversation } from '../composables/useConversationMessages'
-import { MESSAGE_CONTENT_MAX_LENGTH, MESSAGE_MAX_DOCUMENTS } from '../constants/message'
+import { MESSAGE_CONTENT_MAX_LENGTH } from '../constants/message'
 import MessageAttachments from './MessageAttachments.vue'
 
 const props = defineProps<{
@@ -24,7 +24,6 @@ const { addToast } = useToast()
 
 const content = ref('')
 const documents = ref<File[]>([])
-const attachments = useTemplateRef('attachments')
 
 useUnsavedChanges(() => content.value !== '' || documents.value.length > 0, () => {
   content.value = ''
@@ -42,8 +41,6 @@ watch(documents, () => {
 })
 
 const canSend = computed(() => content.value.trim() !== '' && !hasInvalidAttachment(documents.value) && !replying.value)
-
-const canAttach = computed(() => countValidAttachments(documents.value) < MESSAGE_MAX_DOCUMENTS && !replying.value)
 
 async function send(): Promise<void> {
   if (!canSend.value) {
@@ -84,21 +81,10 @@ async function send(): Promise<void> {
       class="message-composer__field"
     />
     <MessageAttachments
-      ref="attachments"
       v-model="documents"
       :disabled="replying"
       :server-errors="documentsErrors"
-    />
-    <div class="message-composer__actions">
-      <CspButton
-        type="button"
-        variant="tertiary-no-outline"
-        icon="ri:file-add-line"
-        is-icon-left
-        label="Pièce jointe"
-        :disabled="!canAttach"
-        @click="attachments?.pick()"
-      />
+    >
       <CspButton
         type="submit"
         icon="ri:send-plane-fill"
@@ -106,7 +92,7 @@ async function send(): Promise<void> {
         label="Envoyer"
         :disabled="!canSend"
       />
-    </div>
+    </MessageAttachments>
   </form>
 </template>
 
@@ -117,12 +103,5 @@ async function send(): Promise<void> {
   gap: var(--csp-space-2);
   padding: var(--csp-space-4);
   border-top: 1px solid var(--border-default-grey);
-}
-
-.message-composer__actions {
-  display: flex;
-  gap: var(--csp-space-2);
-  align-items: center;
-  justify-content: space-between;
 }
 </style>
