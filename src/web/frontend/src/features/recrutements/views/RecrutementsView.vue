@@ -3,7 +3,7 @@ import type { AssignationResponsableResultat, RecrutementKey } from '../types'
 import type { CspBreadcrumbItem } from '@/components/base/CspBreadcrumb/CspBreadcrumb.vue'
 import type { ToastOptions } from '@/composables/ui/useToast'
 import type { AgentRecherche } from '@/features/agents/types'
-import { computed, ref } from 'vue'
+import { computed, ref, useTemplateRef } from 'vue'
 import { useRouter } from 'vue-router'
 import { isHttpStatus } from '@/api/errors'
 import CspAsyncSection from '@/components/base/CspAsyncSection/CspAsyncSection.vue'
@@ -102,9 +102,19 @@ const {
   reset: resetResponsable,
 } = useAssignResponsable(() => props.organismeUuid)
 
+const actifsTable = useTemplateRef<{ visibleIds: string[] }>('actifsTable')
+
 const selectionLabel = computed(() => {
   const count = selection.count.value
-  return `${count} ${pluralize(count, 'offre sélectionnée', 'offres sélectionnées')}`
+  return `${count} ${pluralize(count, 'recrutement sélectionné', 'recrutements sélectionnés')}`
+})
+
+const selectionHint = computed(() => {
+  const visibleIds = new Set(actifsTable.value?.visibleIds ?? [])
+  const elsewhere = selection.selected.value.filter(row => !visibleIds.has(row.uuid)).length
+  return elsewhere > 0
+    ? `dont ${elsewhere} ${pluralize(elsewhere, 'sur une autre page', 'sur d’autres pages')}`
+    : undefined
 })
 
 function assignationToast(
@@ -113,7 +123,7 @@ function assignationToast(
 ): ToastOptions {
   const nom = agent ? formatAgentLabel(agent) : 'Le membre choisi'
   const reussites = resultat.reussites.length
-  const assignees = `${nom} est responsable de ${reussites} ${pluralize(reussites, 'offre')}`
+  const assignees = `${nom} est responsable de ${reussites} ${pluralize(reussites, 'recrutement')}`
 
   if (resultat.echecs.length === 0) {
     return {
@@ -126,7 +136,7 @@ function assignationToast(
   return {
     variant: 'warning',
     title: 'Assignation partielle',
-    description: `${assignees}, ${echecs} ${pluralize(echecs, 'offre ignorée', 'offres ignorées')}.`,
+    description: `${assignees}, ${echecs} ${pluralize(echecs, 'recrutement ignoré', 'recrutements ignorés')}.`,
   }
 }
 
@@ -244,6 +254,7 @@ const archivesCountLabel = computed(() => {
             :pending="showActifsSkeleton"
             :selection-count="selection.count.value"
             :selection-label="selectionLabel"
+            :selection-hint="selectionHint"
           >
             <template #selection-actions>
               <CspButton
@@ -298,10 +309,11 @@ const archivesCountLabel = computed(() => {
           >
             <template #skeleton>
               <CspSkeletonTable
-                :columns="canManageOrganisme ? 7 : 6"
+                :columns="RECRUTEMENTS_ACTIFS_COLUMNS.length"
               />
             </template>
             <CspDataTable
+              ref="actifsTable"
               v-model:page="recrutementsActifsPage"
               :rows="actifsFilters.filtered.value"
               :columns="RECRUTEMENTS_ACTIFS_COLUMNS"
@@ -316,16 +328,7 @@ const archivesCountLabel = computed(() => {
               @activate="openOffre"
               @toggle-row="selection.toggle"
               @toggle-all="selection.toggleVisible"
-            >
-              <template #header-candidatures="{ label }">
-                <div class="mes-recrutement-view__candidatures-head">
-                  <span>{{ label }}</span>
-                  <span class="mes-recrutement-view__candidatures-legend">
-                    # · À traiter · En cours
-                  </span>
-                </div>
-              </template>
-            </CspDataTable>
+            />
           </CspAsyncSection>
         </template>
       </template>
@@ -374,7 +377,7 @@ const archivesCountLabel = computed(() => {
           >
             <template #skeleton>
               <CspSkeletonTable
-                :columns="6"
+                :columns="RECRUTEMENTS_ARCHIVES_COLUMNS.length"
               />
             </template>
             <CspDataTable
@@ -394,20 +397,3 @@ const archivesCountLabel = computed(() => {
     </CspPageContainer>
   </template>
 </template>
-
-<style scoped lang="scss">
-.mes-recrutement-view__candidatures-head {
-  display: flex;
-  flex-direction: column;
-  max-height: 1rem;
-  & > span:first-child {
-    margin-top: -0.75rem;
-  }
-}
-
-.mes-recrutement-view__candidatures-legend {
-  font-weight: 400;
-  font-size: 0.75rem;
-  color: var(--text-mention-grey);
-}
-</style>

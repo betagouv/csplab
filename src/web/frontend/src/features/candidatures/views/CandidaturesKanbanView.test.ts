@@ -44,24 +44,6 @@ function renderKanbanPage(stubs: Record<string, Component> = {}) {
   return renderWithApp(RouterView, { route: KANBAN_PATH, global: { stubs } })
 }
 
-const CANDIDATURE_CHLOE = 'dddddddd-0001-0001-0001-000000000003'
-
-const KANBAN_WITH_ENTRETIEN = {
-  ...KANBAN,
-  etapes: KANBAN.etapes.map(etape => etape.uuid === ETAPE_ENTRETIEN
-    ? {
-        ...etape,
-        candidatures: [{
-          uuid: CANDIDATURE_CHLOE,
-          date_soumission: '2025-06-13T09:15:00Z',
-          date_derniere_activite: '2025-06-13T10:00:00Z',
-          unread_conversations: 0,
-          candidat: { uuid: 'eeeeeeee-0001-0001-0001-000000000003', nom: 'Petit', prenom: 'Chloé' },
-        }],
-      }
-    : etape),
-}
-
 function dropButton(label: string, targetColumnId: string) {
   const event: KanbanDropEvent = { sourceColumnId: ETAPE_RECEPTION, targetColumnId, cardId: CANDIDATURE_ALICE }
   return { label, event }
@@ -177,6 +159,13 @@ describe('candidaturesKanbanView', () => {
     expect(dialog.getByText(/Vous êtes sur le point de refuser la candidature de Alice/)).toBeInTheDocument()
   })
 
+  it('shows in the toolbar the count of the selected candidatures shown by the search, in place of the candidatures count', async () => {
+    await selectColumns(['Réception des candidatures'], 'Alice')
+
+    expect(await screen.findByText('1 candidat sélectionné')).toBeInTheDocument()
+    expect(screen.queryByText(/^\d+ candidatures?$/)).not.toBeInTheDocument()
+  })
+
   it('lists in the stage drawer only the selected candidatures shown by the search', async () => {
     const user = await selectColumns(['Réception des candidatures'], 'Alice')
     await user.click(await screen.findByRole('button', { name: 'Changer d\'étape' }))
@@ -197,8 +186,7 @@ describe('candidaturesKanbanView', () => {
   })
 
   it('moves the selection to a stage, without the candidatures hidden by the search, and confirms it', async () => {
-    vi.mocked(getRecrutementKanban).mockResolvedValue(KANBAN_WITH_ENTRETIEN)
-    const user = await selectColumns(['Réception des candidatures', 'Entretien'], 'Alice')
+    const user = await selectColumns(['Réception des candidatures'], 'Alice')
     await user.click(await screen.findByRole('button', { name: 'Changer d\'étape' }))
     const drawer = within(await screen.findByRole('dialog', { name: /Changer d'étape/ }))
     await user.click(drawer.getByRole('radio', { name: /Entretien/ }))
