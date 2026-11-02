@@ -123,7 +123,15 @@ def test_counts_are_zero_without_agents_nor_offers(staff):
     assert result.last_activity_date == organisme.updated_at
 
 
+def test_does_not_count_archived_offers(staff):
+    organisme = OrganismeDjangoFactory()
+    OrganismeAgentDjangoFactory(organisme=organisme)
+    RecrutementDjangoFactory.create_batch(2, organisme=organisme, offre_archivee=True)
 
+    result = list_organismes(utilisateur=staff).get(pk=organisme.pk)
+
+    assert result.number_published_offers == 0
+    assert result.number_agents == 1
 
 
 def test_query_count_does_not_grow_with_agents_and_offers_per_organisme(
