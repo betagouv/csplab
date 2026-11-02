@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import type { CreateTagPayload, TagCategory, TagColor } from '../types'
-import { computed, ref } from 'vue'
+import { computed, ref, useId } from 'vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
+import CspDrawerFooter from '@/components/base/CspDrawer/CspDrawerFooter.vue'
 import CspInput from '@/components/base/CspInput/CspInput.vue'
 import CspLabel from '@/components/base/CspLabel/CspLabel.vue'
 import CspRadioGroup from '@/components/base/CspRadioGroup/CspRadioGroup.vue'
@@ -52,10 +53,13 @@ function handleSubmit(): void {
     color: color.value as TagColor,
   })
 }
+
+const formId = useId()
 </script>
 
 <template>
   <form
+    :id="formId"
     class="tag-form"
     @submit.prevent="handleSubmit"
   >
@@ -101,21 +105,22 @@ function handleSubmit(): void {
         :color="TAG_COLOR_PALETTE[color as TagColor]"
       />
     </div>
-
-    <div class="tag-form__actions">
-      <CspButton
-        type="submit"
-        label="Enregistrer"
-        :disabled="!canSubmit || saving"
-      />
-      <CspButton
-        variant="secondary"
-        type="button"
-        label="Annuler"
-        @click="emit('cancel')"
-      />
-    </div>
   </form>
+
+  <CspDrawerFooter>
+    <CspButton
+      variant="secondary"
+      type="button"
+      label="Annuler"
+      @click="emit('cancel')"
+    />
+    <CspButton
+      type="submit"
+      :form="formId"
+      label="Enregistrer"
+      :disabled="!canSubmit || saving"
+    />
+  </CspDrawerFooter>
 </template>
 
 <style scoped lang="scss">
@@ -123,7 +128,6 @@ function handleSubmit(): void {
   display: flex;
   flex-direction: column;
   gap: var(--csp-drawer-body-gap);
-  height: 100%;
 }
 
 .tag-form__preview {
@@ -137,14 +141,5 @@ function handleSubmit(): void {
   margin: 0;
   font-size: var(--csp-font-size-base);
   font-weight: 600;
-}
-
-.tag-form__actions {
-  margin-top: auto;
-  display: flex;
-  justify-content: flex-end;
-  gap: var(--csp-space-3);
-  padding-top: var(--csp-space-4);
-  border-top: 1px solid var(--border-default-grey);
 }
 </style>

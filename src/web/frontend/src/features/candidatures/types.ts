@@ -40,7 +40,6 @@ export type NoteVisibilitePayload = components['schemas']['NoteVisibilite']
 export interface NoteRouteNames {
   notes: string
   create: string
-  edit: string
 }
 
 export type Activite = components['schemas']['AuditLog']

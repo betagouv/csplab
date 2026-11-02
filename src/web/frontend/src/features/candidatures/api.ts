@@ -1,5 +1,5 @@
 import type { ActivitesParams, CandidatureDetail, ChangerEtapeResultat, CreateNotePayload, MotifRefus, MotifRefusOption, NoteVisibilitePayload, PaginatedActiviteList, PaginatedCandidatureListeList, PaginatedDocumentListeList, PaginatedNoteList, RecrutementDetailKanban, UpdateNotePayload } from './types'
-import type { CandidatureParams, DocumentParams, NoteParams, OrganismeParams, RecrutementParams } from '@/api/params'
+import type { CandidatureParams, NoteParams, OrganismeParams, RecrutementParams } from '@/api/params'
 import { api } from '@/api/client'
 
 export async function getRecrutementKanban({ organismeUuid, recrutementUuid }: RecrutementParams): Promise<RecrutementDetailKanban> {
@@ -107,21 +107,6 @@ export async function getCandidatureDocuments(candidature: CandidatureParams): P
     { params: { path: candidaturePath(candidature) } },
   )
   return data!
-}
-
-export async function checkCandidatureDocument(params: DocumentParams): Promise<void> {
-  const { response } = await api.GET(
-    '/recruteur/organismes/{organisme_uuid}/recrutements/{recrutement_uuid}/candidatures/{candidature_uuid}/documents/{document_uuid}',
-    { params: { path: { ...candidaturePath(params), document_uuid: params.documentUuid } }, parseAs: 'stream' },
-  )
-  await response.body?.cancel()
-}
-
-export function candidatureDocumentUrl(
-  { organismeUuid, recrutementUuid, candidatureUuid }: CandidatureParams,
-  documentUuid: string,
-): string {
-  return `/recruteur/organismes/${organismeUuid}/recrutements/${recrutementUuid}/candidatures/${candidatureUuid}/documents/${documentUuid}`
 }
 
 export async function getCandidatureNotes(candidature: CandidatureParams): Promise<PaginatedNoteList> {

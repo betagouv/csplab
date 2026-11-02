@@ -27,8 +27,8 @@ const LETTRE: DocumentListe = {
   ...CV,
   uuid: 'ffffffff-0001-0001-0001-000000000002',
   type: 'lettre_motivation',
-  nom_original: 'Lettre.docx',
-  content_type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  nom_original: 'Lettre.png',
+  content_type: 'image/png',
   taille: 12_000,
 }
 
@@ -50,13 +50,12 @@ describe('candidatureDocuments', () => {
     expect(lettre!.getByText(/Lettre de motivation · 12 ko/)).toBeInTheDocument()
   })
 
-  it('opens and downloads only the PDF documents', async () => {
+  it('opens each document in a new tab', async () => {
     const [cv, lettre] = await renderDocuments()
 
     const view = cv!.getByRole('link', { name: 'Voir' })
     expect(view).toHaveAttribute('href', expect.stringMatching(new RegExp(`/documents/${CV.uuid}$`)))
     expect(view).toHaveAttribute('target', '_blank')
-    expect(cv!.getByRole('link', { name: 'Télécharger' })).toHaveAttribute('download', 'CV Alice Dupont.pdf')
-    expect(lettre!.queryByRole('link')).not.toBeInTheDocument()
+    expect(lettre!.getByRole('link', { name: 'Voir' })).toHaveAttribute('href', expect.stringMatching(new RegExp(`/documents/${LETTRE.uuid}$`)))
   })
 })

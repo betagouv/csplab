@@ -25,7 +25,7 @@ async function renderForm() {
   return {
     user,
     router,
-    field: screen.getByRole('textbox', { name: 'Ajouter une note' }),
+    field: screen.getByRole('textbox', { name: 'Nouvelle note' }),
     submit: screen.getByRole('button', { name: 'Enregistrer la note' }),
   }
 }
