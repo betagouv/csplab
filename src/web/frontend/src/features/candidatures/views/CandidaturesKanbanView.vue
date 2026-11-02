@@ -90,6 +90,13 @@ const selectedCandidatureUuids = computed(() =>
   new Set(selectedCandidatures.value.map(({ candidature }) => candidature.uuid)),
 )
 
+function removeFromSelection(candidatureUuid: string, etapeUuid: string): void {
+  toggleCandidatureSelection(candidatureUuid, etapeUuid)
+  if (selectedCount.value === 0) {
+    isDrawerOpen.value = false
+  }
+}
+
 function handleMove({ sourceColumnId, targetColumnId, cardId }: KanbanDropEvent) {
   if (sourceColumnId === targetColumnId) {
     return
@@ -186,7 +193,7 @@ publishCandidaturesToolbar(() => ({
       :initial-etape-uuid="drawerInitialEtapeUuid"
       @update:open="isDrawerOpen = $event"
       @confirm="handleConfirmBatchMove"
-      @toggle-candidature="toggleCandidatureSelection"
+      @toggle-candidature="removeFromSelection"
     />
 
     <RefusCandidatureDialog

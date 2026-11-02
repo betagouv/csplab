@@ -5,7 +5,7 @@ import type { AgentRecherche } from '@/features/agents/types'
 import { computed, ref, useId } from 'vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspDrawerFooter from '@/components/base/CspDrawer/CspDrawerFooter.vue'
-import CspTag from '@/components/base/CspTag/CspTag.vue'
+import CspDismissibleTagList from '@/components/base/CspTag/CspDismissibleTagList.vue'
 import AgentRechercheForm from '@/features/agents/components/AgentRechercheForm.vue'
 import { pluralize } from '@/utils/format'
 
@@ -26,6 +26,8 @@ const emit = defineEmits<{
 }>()
 
 const email = ref('')
+
+const selectionItems = computed(() => props.recrutements.map(({ uuid, intitule }) => ({ value: uuid, label: intitule })))
 
 const isSearched = computed(() => props.status !== 'idle')
 
@@ -61,19 +63,11 @@ const formId = useId()
       <p class="assign-responsable-form__lead">
         Le responsable sélectionné sera affecté à l'ensemble des recrutements sélectionnés.
       </p>
-      <ul class="assign-responsable-form__tags">
-        <li
-          v-for="recrutement in recrutements"
-          :key="recrutement.uuid"
-        >
-          <CspTag
-            variant="dismissible"
-            :label="recrutement.intitule"
-            :dismiss-label="`Retirer ${recrutement.intitule} de la sélection`"
-            @dismiss="emit('remove', recrutement.uuid)"
-          />
-        </li>
-      </ul>
+      <CspDismissibleTagList
+        :items="selectionItems"
+        :dismiss-label="label => `Retirer ${label} de la sélection`"
+        @dismiss="emit('remove', $event)"
+      />
     </section>
 
     <AgentRechercheForm
@@ -121,14 +115,5 @@ const formId = useId()
   margin: var(--csp-space-1) 0 var(--csp-space-3);
   color: var(--text-mention-grey);
   font-size: var(--csp-font-size-xs);
-}
-
-.assign-responsable-form__tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--csp-space-2);
-  margin: 0;
-  padding: 0;
-  list-style: none;
 }
 </style>

@@ -5,8 +5,7 @@ import { computed, ref, watch } from 'vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspDrawer from '@/components/base/CspDrawer/CspDrawer.vue'
 import CspSeparator from '@/components/base/CspSeparator/CspSeparator.vue'
-import CspTag from '@/components/base/CspTag/CspTag.vue'
-import CspTagGroup from '@/components/base/CspTag/CspTagGroup.vue'
+import CspDismissibleTagList from '@/components/base/CspTag/CspDismissibleTagList.vue'
 import { pluralize } from '@/utils/format'
 
 const props = defineProps<{
@@ -50,29 +49,10 @@ function getCandidatName(candidature: Candidature): string {
   return `${candidat.prenom} ${candidat.nom}`
 }
 
-const selectedUuidsModel = computed({
-  get: () => [...props.selectedCandidatureUuids],
-  set: (uuids: string[]) => {
-    if (!props.sourceEtape) {
-      return
-    }
-
-    const prev = props.selectedCandidatureUuids
-    const etapeUuid = props.sourceEtape.uuid
-
-    for (const uuid of uuids) {
-      if (!prev.has(uuid)) {
-        emit('toggleCandidature', uuid, etapeUuid)
-      }
-    }
-
-    for (const uuid of prev) {
-      if (!uuids.includes(uuid)) {
-        emit('toggleCandidature', uuid, etapeUuid)
-      }
-    }
-  },
-})
+const selectionItems = computed(() =>
+  (props.sourceEtape?.candidatures ?? [])
+    .filter(candidature => props.selectedCandidatureUuids.has(candidature.uuid))
+    .map(candidature => ({ value: candidature.uuid, label: getCandidatName(candidature) })))
 </script>
 
 <template>
@@ -105,21 +85,12 @@ const selectedUuidsModel = computed({
           {{ selectedCountLabel }}
         </p>
 
-        <div class="changer-etape-drawer__tags">
-          <CspTagGroup
-            v-model="selectedUuidsModel"
-            type="multiple"
-            size="md"
-          >
-            <CspTag
-              v-for="candidature in sourceEtape.candidatures"
-              :key="candidature.uuid"
-              :value="candidature.uuid"
-              :label="getCandidatName(candidature)"
-              variant="selectable"
-            />
-          </CspTagGroup>
-        </div>
+        <CspDismissibleTagList
+          class="changer-etape-drawer__tags"
+          :items="selectionItems"
+          :dismiss-label="label => `Retirer ${label} de la sélection`"
+          @dismiss="emit('toggleCandidature', $event, sourceEtape.uuid)"
+        />
       </section>
 
       <CspSeparator />
@@ -199,7 +170,6 @@ const selectedUuidsModel = computed({
 .changer-etape-drawer__tags {
   max-height: 12rem;
   overflow-y: auto;
-  padding-top: var(--csp-space-2);
 }
 
 .changer-etape-drawer__footer {

@@ -175,6 +175,31 @@ describe('candidaturesKanbanView', () => {
     expect(drawer.queryByRole('button', { name: /Bruno/ })).not.toBeInTheDocument()
   })
 
+  it('removes a candidature from the selection in the stage drawer', async () => {
+    const user = await selectColumns(['Réception des candidatures'])
+    await user.click(await screen.findByRole('button', { name: 'Changer d\'étape' }))
+    const drawer = within(await screen.findByRole('dialog', { name: /Changer d'étape/ }))
+    expect(drawer.getByText('2 candidatures sélectionnées')).toBeInTheDocument()
+
+    await user.click(drawer.getByRole('button', { name: 'Retirer Bruno Martin de la sélection' }))
+
+    expect(await drawer.findByText('1 candidature sélectionnée')).toBeInTheDocument()
+    expect(drawer.queryByRole('button', { name: /Bruno/ })).not.toBeInTheDocument()
+    expect(drawer.getByRole('button', { name: 'Retirer Alice Dupont de la sélection' })).toBeInTheDocument()
+  })
+
+  it('closes the stage drawer once the last candidature is removed from the selection', async () => {
+    const user = await selectColumns(['Réception des candidatures'])
+    await user.click(await screen.findByRole('button', { name: 'Changer d\'étape' }))
+    const drawer = within(await screen.findByRole('dialog', { name: /Changer d'étape/ }))
+
+    await user.click(drawer.getByRole('button', { name: 'Retirer Bruno Martin de la sélection' }))
+    expect(drawer.getByRole('button', { name: 'Retirer Alice Dupont de la sélection' })).toHaveFocus()
+    await user.click(drawer.getByRole('button', { name: 'Retirer Alice Dupont de la sélection' }))
+
+    await vi.waitFor(() => expect(screen.queryByRole('dialog', { name: /Changer d'étape/ })).not.toBeInTheDocument())
+  })
+
   it('goes back to the stage drawer when the refusal is cancelled', async () => {
     const { user, dialog } = await refuseSelectedColumn()
 
