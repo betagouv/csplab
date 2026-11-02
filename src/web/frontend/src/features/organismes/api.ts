@@ -3,8 +3,18 @@ import type { OrganismeParams } from '@/api/params'
 import { api } from '@/api/client'
 
 export async function getOrganismesList(): Promise<OrganismesList[]> {
-  const { data } = await api.GET('/recruteur/organismes')
-  return data!
+  async function fetchPage(taille?: number) {
+    const { data } = await api.GET('/recruteur/organismes', {
+      params: { query: { taille } },
+    })
+    return data!
+  }
+
+  const firstPage = await fetchPage()
+  if (firstPage.results.length >= firstPage.count) {
+    return firstPage.results
+  }
+  return (await fetchPage(firstPage.count)).results
 }
 
 export async function getOrganismeDetail({ organismeUuid }: OrganismeParams): Promise<OrganismeDetail> {
