@@ -92,9 +92,9 @@ const { addToast } = useToast()
 
 const selection = useTableSelection(actifsFilters.filtered, row => row.uuid)
 const assignationDrawer = useDisclosure()
-const recrutementAAssigner = ref<RecrutementsActifs | null>(null)
-const recrutementsAAssigner = computed(() =>
-  recrutementAAssigner.value ? [recrutementAAssigner.value] : selection.selected.value,
+const recrutementToAssign = ref<RecrutementsActifs | null>(null)
+const recrutementsToAssign = computed(() =>
+  recrutementToAssign.value ? [recrutementToAssign.value] : selection.selected.value,
 )
 const {
   status: responsableStatus,
@@ -155,13 +155,13 @@ function assignationErrorTitle(assignationError: unknown): string {
 }
 
 function openAssignment(recrutement: RecrutementsActifs | null = null) {
-  recrutementAAssigner.value = recrutement
+  recrutementToAssign.value = recrutement
   resetResponsable()
   assignationDrawer.open()
 }
 
 function removeFromAssignment(recrutementUuid: string) {
-  if (recrutementAAssigner.value) {
+  if (recrutementToAssign.value) {
     assignationDrawer.close()
     return
   }
@@ -172,13 +172,13 @@ function removeFromAssignment(recrutementUuid: string) {
 }
 
 async function handleAssign() {
-  const recrutementIds = recrutementsAAssigner.value.map(row => row.uuid)
+  const recrutementIds = recrutementsToAssign.value.map(row => row.uuid)
 
   try {
     const resultat = await assign(recrutementIds)
     const agent = foundAgent.value
     assignationDrawer.close()
-    if (!recrutementAAssigner.value) {
+    if (!recrutementToAssign.value) {
       selection.clear()
     }
     addToast(assignationToast(resultat, agent))
@@ -302,7 +302,7 @@ const archivesCountLabel = computed(() => {
             size="md"
           >
             <AssignResponsableForm
-              :recrutements="recrutementsAAssigner"
+              :recrutements="recrutementsToAssign"
               :status="responsableStatus"
               :agent="foundAgent"
               :searching="searching"

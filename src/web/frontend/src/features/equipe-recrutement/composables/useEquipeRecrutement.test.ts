@@ -101,16 +101,16 @@ describe('useEquipeRecrutement', () => {
   it('marks the recrutement lists as outdated once a member has been revoked', async () => {
     const { result, queryCache } = mountEquipe()
     await flush()
-    const listes = [
+    const lists = [
       queryCache.ensure(recrutementsActifsQuery({ organismeUuid: ORGANISME_UUID })),
       queryCache.ensure(recrutementsArchivesQuery({ organismeUuid: ORGANISME_UUID })),
     ]
-    listes.forEach(entry => queryCache.setQueryData(entry.key, { count: 0, results: [] }))
-    expect(listes.map(entry => entry.stale)).toEqual([false, false])
+    lists.forEach(entry => queryCache.setQueryData(entry.key, { count: 0, results: [] }))
+    expect(lists.map(entry => entry.stale)).toEqual([false, false])
 
     await result.revoke(MEMBRES[0])
 
-    expect(listes.map(entry => entry.stale)).toEqual([true, true])
+    expect(lists.map(entry => entry.stale)).toEqual([true, true])
   })
 
   it('changes the role of a member without revoking them', async () => {
