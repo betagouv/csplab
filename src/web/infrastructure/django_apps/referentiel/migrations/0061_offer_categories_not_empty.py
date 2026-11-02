@@ -8,7 +8,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('ingestion', '0037_talentsoftorganismemodel_code'),
-        ('referentiel', '0059_delete_offers_without_category'),
+        ('referentiel', '0060_offer_competences_requises_markdown'),
     ]
 
     operations = [
