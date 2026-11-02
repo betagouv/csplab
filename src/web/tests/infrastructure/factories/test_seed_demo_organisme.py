@@ -48,7 +48,7 @@ from infrastructure.factories.seed_demo_specs import RecrutementSpec, SpecOrgani
 # miroir de _SOURCE_DEMO_UUID au 27/10
 SOURCE_DEMO_ID = UUID("00000000-0000-0000-0000-000000001945")
 
-# miroir de SPECS_DEMO au 29/10
+# miroir de SPECS_DEMO au 02/11
 CLES_DEMO = [
     "transition-ecologique",
     "culture",
@@ -59,6 +59,9 @@ CLES_DEMO = [
     "dgafp",
     "economie-finances",
     "caisse-des-depots",
+    "onacvg",
+    "conseil-etat",
+    "aefe",
 ]
 
 _RECRUTEMENTS_REDUITS: list[RecrutementSpec] = [
