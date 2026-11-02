@@ -61,13 +61,14 @@ describe('recrutementsView', () => {
     expect(screen.queryByText('Jeanne Dupont')).not.toBeInTheDocument()
   })
 
-  it('closes the assignment drawer once the last offer is removed', async () => {
+  it('closes the assignment drawer and keeps the selection to edit it', async () => {
     const user = setupUser()
     await openAssignmentFor(user)
 
-    await user.click(await screen.findByRole('button', { name: `Retirer ${FIRST_RECRUTEMENT.intitule} de la sélection` }))
+    await user.click(await screen.findByRole('button', { name: 'Modifier la sélection' }))
 
     await vi.waitFor(() => expect(screen.queryByRole('dialog', { name: 'Assigner un responsable' })).not.toBeInTheDocument())
+    expect(screen.getByRole('checkbox', { name: `Sélectionner ${FIRST_RECRUTEMENT.intitule}` })).toBeChecked()
   })
 
   it('counts the selected offers kept on other pages', async () => {
@@ -81,6 +82,10 @@ describe('recrutementsView', () => {
     await user.click(screen.getByRole('button', { name: 'Page suivante' }))
 
     expect(await screen.findByText('dont 2 sur d’autres pages')).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Assigner un responsable' }))
+    const drawer = within(await screen.findByRole('dialog', { name: 'Assigner un responsable' }))
+    expect(drawer.getByText('2 recrutements sélectionnés, dont 2 sur d’autres pages')).toBeInTheDocument()
+    expect(drawer.getByRole('button', { name: 'Assigner à 2 recrutements' })).toBeDisabled()
   })
 
   it('assigns a responsable to the only offer of the row, leaving the selection aside', async () => {
@@ -95,6 +100,8 @@ describe('recrutementsView', () => {
     await user.click(await screen.findByRole('checkbox', { name: `Sélectionner ${FIRST_RECRUTEMENT.intitule}` }))
     await user.click(screen.getByRole('button', { name: `Assigner un responsable à ${SECOND_RECRUTEMENT.intitule}` }))
     const drawer = within(await screen.findByRole('dialog', { name: 'Assigner un responsable' }))
+    expect(drawer.getByText(`Recrutement : ${SECOND_RECRUTEMENT.intitule}`)).toBeInTheDocument()
+    expect(drawer.queryByRole('button', { name: 'Modifier la sélection' })).not.toBeInTheDocument()
     await user.type(drawer.getByRole('searchbox', { name: /Responsable/ }), `${AGENT_RECHERCHE.email}{Enter}`)
     await user.click(await drawer.findByRole('button', { name: 'Assigner un responsable' }))
 

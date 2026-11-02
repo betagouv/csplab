@@ -12,4 +12,11 @@ describe('cspSelectionSummary', () => {
 
     expect(emitted().edit).toHaveLength(1)
   })
+
+  it('shows the scope alone when the selection is fixed', () => {
+    render(CspSelectionSummary, { props: { summary: 'Élément A', editable: false } })
+
+    expect(screen.getByText('Élément A')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Modifier la sélection' })).not.toBeInTheDocument()
+  })
 })
