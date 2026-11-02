@@ -1,6 +1,6 @@
 ---
 type: non_retrocompatible
-date: 2026-10-29
+date: 2026-11-02
 pr: 2166
 liens:
   - https://github.com/betagouv/csplab/issues/2158
