@@ -6,10 +6,12 @@ from infrastructure.di.container import create_container
 from infrastructure.observability.script import run_script
 
 
-async def _run(source_id: UUID) -> None:
+async def _run(source_id: UUID, references: list[str] | None) -> None:
     container = create_container()
     await container.load_sources_usecase().execute()
-    await container.import_offers_usecase().execute(source_id=source_id)
+    await container.import_offers_usecase().execute(
+        source_id=source_id, references=references
+    )
 
 
 def main() -> None:
@@ -17,9 +19,18 @@ def main() -> None:
     parser.add_argument(
         "--source-id", required=True, type=UUID, help="UUID de la source à importer"
     )
+    parser.add_argument(
+        "--reference",
+        action="append",
+        dest="references",
+        help=(
+            "Référence d'une offre à réimporter, répétable. Sans cette option, "
+            "toutes les offres de la source sont importées."
+        ),
+    )
     args = parser.parse_args()
 
-    run_script(_run(args.source_id))
+    run_script(_run(args.source_id, args.references))
 
 
 if __name__ == "__main__":
