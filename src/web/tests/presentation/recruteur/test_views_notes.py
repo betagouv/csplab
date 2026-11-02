@@ -1,10 +1,12 @@
 from datetime import timedelta
 from uuid import uuid4
 
+import pytest
 from django.urls import reverse
 from django.utils import timezone
 from rest_framework import status
 
+from infrastructure.django_apps.commons.models import AuditLogModel
 from infrastructure.django_apps.recruteur.models.note import NoteModel
 from infrastructure.factories.candidate.candidature_django_factory import (
     CandidatureDjangoFactory,
@@ -27,9 +29,29 @@ def _notes_url(organisme_id, recrutement_id, candidature_id) -> str:
     )
 
 
+def _note_events(note_id) -> list[str]:
+    return list(
+        AuditLogModel.objects.filter(
+            ressource_kind="Note", ressource_id=note_id
+        ).values_list("event_name", flat=True)
+    )
+
+
 def _note_detail_url(organisme_id, recrutement_id, candidature_id, note_id) -> str:
     return reverse(
         "recruteur:candidature_note_detail",
+        kwargs={
+            "organisme_uuid": str(organisme_id),
+            "recrutement_uuid": str(recrutement_id),
+            "candidature_uuid": str(candidature_id),
+            "note_uuid": str(note_id),
+        },
+    )
+
+
+def _note_visibilite_url(organisme_id, recrutement_id, candidature_id, note_id) -> str:
+    return reverse(
+        "recruteur:candidature_note_visibilite",
         kwargs={
             "organisme_uuid": str(organisme_id),
             "recrutement_uuid": str(recrutement_id),
@@ -159,10 +181,54 @@ class TestCandidatureNotesView:
         assert data["message"] == "Nouvelle note"
         assert data["candidature_id"] == str(candidature.id)
         assert data["publie_par_id"] == str(test_user.username)
+        assert data["est_privee"] is False
 
         note = NoteModel.objects.get(id=data["uuid"])
         assert note.message == "Nouvelle note"
         assert str(note.publie_par_id) == str(test_user.username)
+
+    def test_lists_team_notes_and_my_private_notes_only(
+        self, authenticated_client, test_user
+    ):
+        agent, organisme, recrutement, candidature = (
+            create_recrutement_and_candidature_for_agent(utilisateur=test_user)
+        )
+        my_private_note = NoteDjangoFactory(
+            candidature=candidature, publie_par=agent, est_privee=True
+        )
+        team_note = NoteDjangoFactory(candidature=candidature)
+        NoteDjangoFactory(candidature=candidature, est_privee=True)
+
+        response = authenticated_client.get(
+            _notes_url(organisme.id, recrutement.pk, candidature.id)
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["count"] == len(data["results"])
+        assert {n["uuid"]: n["est_privee"] for n in data["results"]} == {
+            str(my_private_note.id): True,
+            str(team_note.id): False,
+        }
+
+    def test_post_creates_and_logs_a_private_note(
+        self, authenticated_client, test_user
+    ):
+        _, organisme, recrutement, candidature = (
+            create_recrutement_and_candidature_for_agent(utilisateur=test_user)
+        )
+
+        response = authenticated_client.post(
+            _notes_url(organisme.id, recrutement.pk, candidature.id),
+            data={"message": "Pour moi", "est_privee": True},
+            format="json",
+        )
+
+        assert response.status_code == status.HTTP_201_CREATED
+        assert response.json()["est_privee"] is True
+        note_id = response.json()["uuid"]
+        assert NoteModel.objects.get(id=note_id).est_privee is True
+        assert _note_events(note_id) == ["NoteAjoutee"]
 
 
 class TestCandidatureNoteDetailView:
@@ -296,3 +362,228 @@ class TestCandidatureNoteDetailView:
 
         assert response.status_code == status.HTTP_204_NO_CONTENT
         assert NoteModel.objects.get(id=note.id).supprimee_le is not None
+
+    def test_delete_logs_a_private_note(self, authenticated_client, test_user):
+        agent, organisme, recrutement, candidature = (
+            create_recrutement_and_candidature_for_agent(utilisateur=test_user)
+        )
+        note = NoteDjangoFactory(
+            candidature=candidature, publie_par=agent, est_privee=True
+        )
+
+        response = authenticated_client.delete(
+            _note_detail_url(organisme.id, recrutement.pk, candidature.id, note.id)
+        )
+
+        assert response.status_code == status.HTTP_204_NO_CONTENT
+        assert NoteModel.objects.get(id=note.id).supprimee_le is not None
+        assert _note_events(note.id) == ["NoteSupprimee"]
+
+    def test_patch_without_est_privee_keeps_note_private(
+        self, authenticated_client, test_user
+    ):
+        agent, organisme, recrutement, candidature = (
+            create_recrutement_and_candidature_for_agent(utilisateur=test_user)
+        )
+        note = NoteDjangoFactory(
+            candidature=candidature, publie_par=agent, est_privee=True
+        )
+
+        response = authenticated_client.patch(
+            _note_detail_url(organisme.id, recrutement.pk, candidature.id, note.id),
+            data={"message": "Message modifié"},
+            format="json",
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json()["est_privee"] is True
+        assert NoteModel.objects.get(id=note.id).est_privee is True
+        assert _note_events(note.id) == ["NoteEditee"]
+
+    def test_patch_shares_a_private_note(self, authenticated_client, test_user):
+        agent, organisme, recrutement, candidature = (
+            create_recrutement_and_candidature_for_agent(utilisateur=test_user)
+        )
+        note = NoteDjangoFactory(
+            candidature=candidature, publie_par=agent, est_privee=True
+        )
+
+        response = authenticated_client.patch(
+            _note_detail_url(organisme.id, recrutement.pk, candidature.id, note.id),
+            data={"message": "Pour l'équipe", "est_privee": False},
+            format="json",
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json()["est_privee"] is False
+        assert NoteModel.objects.get(id=note.id).est_privee is False
+        assert _note_events(note.id) == ["NotePartagee"]
+
+    def test_patch_keeps_a_team_note_for_me_and_logs_an_edit(
+        self, authenticated_client, test_user
+    ):
+        agent, organisme, recrutement, candidature = (
+            create_recrutement_and_candidature_for_agent(utilisateur=test_user)
+        )
+        note = NoteDjangoFactory(candidature=candidature, publie_par=agent)
+
+        response = authenticated_client.patch(
+            _note_detail_url(organisme.id, recrutement.pk, candidature.id, note.id),
+            data={"message": "Pour moi", "est_privee": True},
+            format="json",
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json()["est_privee"] is True
+        assert NoteModel.objects.get(id=note.id).est_privee is True
+        assert _note_events(note.id) == ["NoteEditee"]
+
+    def test_patch_team_note_staying_shared_logs_an_edit(
+        self, authenticated_client, test_user
+    ):
+        agent, organisme, recrutement, candidature = (
+            create_recrutement_and_candidature_for_agent(utilisateur=test_user)
+        )
+        note = NoteDjangoFactory(candidature=candidature, publie_par=agent)
+
+        response = authenticated_client.patch(
+            _note_detail_url(organisme.id, recrutement.pk, candidature.id, note.id),
+            data={"message": "Message modifié", "est_privee": False},
+            format="json",
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json()["est_privee"] is False
+        assert _note_events(note.id) == ["NoteEditee"]
+
+
+class TestCandidatureNoteVisibiliteView:
+    def test_anonymous_access_is_unauthorized(self, api_client):
+        url = _note_visibilite_url(uuid4(), uuid4(), uuid4(), uuid4())
+
+        response = api_client.put(url, data={"est_privee": True}, format="json")
+
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+    def test_caller_without_organisme_role_is_forbidden(
+        self, authenticated_client, test_user
+    ):
+        _, organisme, recrutement, candidature = (
+            create_recrutement_and_candidature_for_agent(utilisateur=None)
+        )
+        note = NoteDjangoFactory(candidature=candidature)
+
+        response = authenticated_client.put(
+            _note_visibilite_url(organisme.id, recrutement.pk, candidature.id, note.id),
+            data={"est_privee": True},
+            format="json",
+        )
+
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    def test_requires_est_privee(self, authenticated_client, test_user):
+        agent, organisme, recrutement, candidature = (
+            create_recrutement_and_candidature_for_agent(utilisateur=test_user)
+        )
+        note = NoteDjangoFactory(candidature=candidature, publie_par=agent)
+
+        response = authenticated_client.put(
+            _note_visibilite_url(organisme.id, recrutement.pk, candidature.id, note.id),
+            data={},
+            format="json",
+        )
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert "est_privee" in response.json()
+
+    def test_note_of_another_author_is_not_found(self, authenticated_client, test_user):
+        _, organisme, recrutement, candidature = (
+            create_recrutement_and_candidature_for_agent(utilisateur=test_user)
+        )
+        note = NoteDjangoFactory(candidature=candidature)
+
+        response = authenticated_client.put(
+            _note_visibilite_url(organisme.id, recrutement.pk, candidature.id, note.id),
+            data={"est_privee": True},
+            format="json",
+        )
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+        assert NoteModel.objects.get(id=note.id).est_privee is False
+
+    def test_deleted_note_is_not_found(self, authenticated_client, test_user):
+        agent, organisme, recrutement, candidature = (
+            create_recrutement_and_candidature_for_agent(utilisateur=test_user)
+        )
+        note = NoteDjangoFactory(
+            candidature=candidature, publie_par=agent, supprimee_le=timezone.now()
+        )
+
+        response = authenticated_client.put(
+            _note_visibilite_url(organisme.id, recrutement.pk, candidature.id, note.id),
+            data={"est_privee": True},
+            format="json",
+        )
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    def test_keeps_a_team_note_for_me_and_logs_an_edit(
+        self, authenticated_client, test_user
+    ):
+        agent, organisme, recrutement, candidature = (
+            create_recrutement_and_candidature_for_agent(utilisateur=test_user)
+        )
+        note = NoteDjangoFactory(candidature=candidature, publie_par=agent)
+
+        response = authenticated_client.put(
+            _note_visibilite_url(organisme.id, recrutement.pk, candidature.id, note.id),
+            data={"est_privee": True},
+            format="json",
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json()["est_privee"] is True
+        assert NoteModel.objects.get(id=note.id).est_privee is True
+        assert _note_events(note.id) == ["NoteEditee"]
+
+    def test_shares_a_private_note(self, authenticated_client, test_user):
+        agent, organisme, recrutement, candidature = (
+            create_recrutement_and_candidature_for_agent(utilisateur=test_user)
+        )
+        note = NoteDjangoFactory(
+            candidature=candidature, publie_par=agent, est_privee=True
+        )
+
+        response = authenticated_client.put(
+            _note_visibilite_url(organisme.id, recrutement.pk, candidature.id, note.id),
+            data={"est_privee": False},
+            format="json",
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json()["est_privee"] is False
+        assert NoteModel.objects.get(id=note.id).est_privee is False
+        assert _note_events(note.id) == ["NotePartagee"]
+
+    @pytest.mark.parametrize("est_privee", [True, False])
+    def test_same_visibility_changes_nothing(
+        self, authenticated_client, test_user, est_privee
+    ):
+        agent, organisme, recrutement, candidature = (
+            create_recrutement_and_candidature_for_agent(utilisateur=test_user)
+        )
+        note = NoteDjangoFactory(
+            candidature=candidature, publie_par=agent, est_privee=est_privee
+        )
+        updated_at = NoteModel.objects.get(id=note.id).updated_at
+
+        response = authenticated_client.put(
+            _note_visibilite_url(organisme.id, recrutement.pk, candidature.id, note.id),
+            data={"est_privee": est_privee},
+            format="json",
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json()["est_privee"] is est_privee
+        assert NoteModel.objects.get(id=note.id).updated_at == updated_at
+        assert _note_events(note.id) == []

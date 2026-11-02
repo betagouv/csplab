@@ -1,132 +1,317 @@
-from unittest.mock import MagicMock, patch
-from uuid import uuid4
-
 import pytest
 from django.urls import reverse
+from django.utils import timezone
 from rest_framework import status
 
-from domain.identite.errors.identite_errors import UtilisateurNexistePas
-from domain.identite.value_objects.organisme_role import OrganismeRole
-from domain.recruteur.value_objects.roles import AgentOrganismeRole
+from application.identite.context_services.organisme_permission_service import (
+    OrganismePermissionService,
+)
+from domain.recruteur.value_objects.roles import (
+    AgentOrganismeRole,
+    AgentRecrutementRole,
+)
 from infrastructure.factories.identite.agent_django_factory import (
     AgentDjangoFactory,
+)
+from infrastructure.factories.identite.candidat_django_factory import (
+    CandidatDjangoFactory,
 )
 from infrastructure.factories.identite.organisme_django_factory import (
     OrganismeAgentDjangoFactory,
     OrganismeDjangoFactory,
+    create_organisme_with_agent,
 )
-from infrastructure.factories.identite.utilisateur_factory import UtilisateurFactory
+from infrastructure.factories.recruteur.recrutement_django_factory import (
+    RecrutementAgentDjangoFactory,
+    RecrutementDjangoFactory,
+)
 
 URL = reverse("identite:user_details")
 
+NOMBRE_REQUETES_ATTENDU = (
+    1  # session
+    + 1  # authentification : utilisateur de la session
+    + 1  # service : rattachements actifs, organisme joint
+    + 1  # service : organismes dont l'agent est responsable d'un recrutement
+)
 
-@pytest.fixture
-def mock_container():
-    with patch("presentation.identite.views.create_identite_container") as mock:
-        yield mock
+
+def _role(organisme, role: AgentOrganismeRole) -> dict:
+    return {
+        "organisme_uuid": str(organisme.id),
+        "nom": organisme.nom,
+        "role": role.value,
+    }
 
 
-def test_anonymous_access(api_client):
+def _organisme(organisme, role: AgentOrganismeRole, utilisateur) -> dict:
+    return {
+        "uuid": str(organisme.id),
+        "nom": organisme.nom,
+        "authorized_actions": [
+            action.value
+            for action in OrganismePermissionService().authorized_actions_organisme(
+                role,
+                utilisateur=utilisateur,
+                organisme_id=organisme.id,
+                organisme_ids_responsable=set(),
+            )
+        ],
+    }
+
+
+def test_anonymous_returns_401(api_client):
     response = api_client.get(URL)
+
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
 
-def test_logged_access(api_client, test_user):
-    api_client.force_login(test_user)
-    response = api_client.get(URL)
-    assert response.status_code == status.HTTP_200_OK
-
-
-def test_authentified_access(authenticated_client):
-    response = authenticated_client.get(URL)
-    assert response.status_code == status.HTTP_200_OK
-
-
-def test_returned_payload(mock_container, authenticated_client, test_user):
-    organisme_role = OrganismeRole(
-        organisme_uuid=uuid4(),
-        nom="Organisme de test",
-        role=AgentOrganismeRole.AGENT.value,
-    )
-    entity = UtilisateurFactory.create_entity(organismes=[organisme_role])
-
-    mock_usecase = MagicMock()
-    mock_usecase.execute.return_value = entity
-    mock_container.return_value.get_utilisateur_details_usecase.return_value = (
-        mock_usecase
-    )
-    mock_container.return_value.logger_service.return_value = MagicMock()
+@pytest.mark.parametrize(
+    "create_profil",
+    [CandidatDjangoFactory, AgentDjangoFactory],
+    ids=["candidat", "agent_sans_role"],
+)
+def test_user_without_organisme_role_has_no_organisme_roles(
+    authenticated_client, test_user, create_profil
+):
+    create_profil(utilisateur=test_user)
+    create_organisme_with_agent(role=AgentOrganismeRole.SUPERVISEUR)
 
     response = authenticated_client.get(URL)
 
     assert response.status_code == status.HTTP_200_OK
     assert response.json() == {
-        "email": entity.email,
-        "prenom": entity.prenom,
-        "nom": entity.nom,
-        "is_staff": entity.is_staff,
-        "organisme_roles": [
-            {
-                "organisme_uuid": str(organisme_role.organisme_uuid),
-                "nom": organisme_role.nom,
-                "role": organisme_role.role,
-            }
-        ],
+        "email": test_user.email,
+        "prenom": test_user.first_name,
+        "nom": test_user.last_name,
+        "is_staff": False,
+        "organisme_roles": [],
+        "authorized_actions": [],
+        "organismes": [],
     }
 
 
 @pytest.mark.parametrize(
-    "exception,status_code",
-    [
-        (UtilisateurNexistePas("unknown"), status.HTTP_404_NOT_FOUND),
-        (Exception("db connection error"), status.HTTP_500_INTERNAL_SERVER_ERROR),
-    ],
+    "has_candidate_profile", [True, False], ids=["avec_profil_candidat", "agent"]
 )
-def test_returns_500_on_error(
-    mock_container, authenticated_client, exception, status_code
+def test_agent_with_role_has_organisme_roles(
+    authenticated_client, test_user, has_candidate_profile
 ):
-    mock_usecase = MagicMock()
-    mock_usecase.execute.side_effect = exception
-    mock_container.return_value.get_utilisateur_details_usecase.return_value = (
-        mock_usecase
+    _, organisme = create_organisme_with_agent(
+        role=AgentOrganismeRole.SUPERVISEUR, utilisateur=test_user
     )
-    mock_container.return_value.logger_service.return_value = MagicMock()
+    if has_candidate_profile:
+        CandidatDjangoFactory(utilisateur=test_user)
 
     response = authenticated_client.get(URL)
 
-    assert response.status_code == status_code
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json() == {
+        "email": test_user.email,
+        "prenom": test_user.first_name,
+        "nom": test_user.last_name,
+        "is_staff": False,
+        "organisme_roles": [_role(organisme, AgentOrganismeRole.SUPERVISEUR)],
+        "authorized_actions": [],
+        "organismes": [
+            _organisme(organisme, AgentOrganismeRole.SUPERVISEUR, test_user)
+        ],
+    }
 
 
-class TestUtilisateurDetailsViewDbVerified:
-    def test_get_returns_persisted_utilisateur(self, authenticated_client, test_user):
-        agent = AgentDjangoFactory(utilisateur=test_user)
-        organisme = OrganismeDjangoFactory()
-        OrganismeAgentDjangoFactory(
-            organisme=organisme, agent=agent, role=AgentOrganismeRole.AGENT.value
+def test_agent_with_multiple_roles(authenticated_client, test_user):
+    agent, organisme = create_organisme_with_agent(
+        role=AgentOrganismeRole.AGENT,
+        utilisateur=test_user,
+        nom="Préfecture du Rhône",
+    )
+    other_organisme = OrganismeDjangoFactory(
+        nom="Direction régionale des finances publiques"
+    )
+    OrganismeAgentDjangoFactory(
+        organisme=other_organisme,
+        agent=agent,
+        role=AgentOrganismeRole.SUPERVISEUR.value,
+    )
+
+    response = authenticated_client.get(URL)
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()["organisme_roles"] == [
+        _role(other_organisme, AgentOrganismeRole.SUPERVISEUR),
+        _role(organisme, AgentOrganismeRole.AGENT),
+    ]
+    assert [o["uuid"] for o in response.json()["organismes"]] == [
+        str(other_organisme.id),
+        str(organisme.id),
+    ]
+
+
+def test_revoked_organisme_is_not_in_organisme_roles(authenticated_client, test_user):
+    agent, organisme_actif = create_organisme_with_agent(
+        role=AgentOrganismeRole.AGENT, utilisateur=test_user
+    )
+    OrganismeAgentDjangoFactory(
+        organisme=OrganismeDjangoFactory(),
+        agent=agent,
+        role=AgentOrganismeRole.SUPERVISEUR.value,
+        date_revocation=timezone.now(),
+    )
+
+    response = authenticated_client.get(URL)
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()["organisme_roles"] == [
+        _role(organisme_actif, AgentOrganismeRole.AGENT)
+    ]
+    assert response.json()["organismes"] == [
+        _organisme(organisme_actif, AgentOrganismeRole.AGENT, test_user)
+    ]
+
+
+def test_supprime_organisme_is_not_in_organisme_roles(authenticated_client, test_user):
+    agent, organisme_actif = create_organisme_with_agent(
+        role=AgentOrganismeRole.AGENT, utilisateur=test_user
+    )
+    OrganismeAgentDjangoFactory(
+        organisme=OrganismeDjangoFactory(supprime_le=timezone.now()),
+        agent=agent,
+        role=AgentOrganismeRole.SUPERVISEUR.value,
+    )
+
+    response = authenticated_client.get(URL)
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()["organisme_roles"] == [
+        _role(organisme_actif, AgentOrganismeRole.AGENT)
+    ]
+    assert response.json()["organismes"] == [
+        _organisme(organisme_actif, AgentOrganismeRole.AGENT, test_user)
+    ]
+
+
+def test_returns_staff_flag(authenticated_client, test_user):
+    test_user.is_staff = True
+    test_user.save()
+
+    response = authenticated_client.get(URL)
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()["is_staff"] is True
+
+
+def test_staff_has_staff_and_superviseur_actions(authenticated_client, test_user):
+    test_user.is_staff = True
+    test_user.save()
+    _, organisme = create_organisme_with_agent(
+        role=AgentOrganismeRole.AGENT, utilisateur=test_user
+    )
+
+    response = authenticated_client.get(URL)
+
+    assert response.status_code == status.HTTP_200_OK
+    body = response.json()
+    assert body["authorized_actions"] == [
+        "create_organisme",
+        "list_organismes",
+        "update_organisme",
+    ]
+    assert body["organismes"] == [
+        _organisme(organisme, AgentOrganismeRole.AGENT, test_user)
+    ]
+    assert "get_organisme" in body["organismes"][0]["authorized_actions"]
+
+
+def test_agent_authorized_actions_exclude_recrutement_level(
+    authenticated_client, test_user
+):
+    create_organisme_with_agent(role=AgentOrganismeRole.AGENT, utilisateur=test_user)
+
+    response = authenticated_client.get(URL)
+
+    assert response.json()["organismes"][0]["authorized_actions"] == [
+        "list_recrutements",
+        "get_motifs_refus",
+        "list_tags",
+    ]
+
+
+def test_responsable_agent_gets_search_and_create_agent_in_its_organisme_only(
+    authenticated_client, test_user
+):
+    agent, organisme = create_organisme_with_agent(
+        role=AgentOrganismeRole.AGENT, utilisateur=test_user
+    )
+    other_organisme = OrganismeDjangoFactory(nom="Zzz")
+    OrganismeAgentDjangoFactory(
+        organisme=other_organisme, agent=agent, role=AgentOrganismeRole.AGENT.value
+    )
+    RecrutementAgentDjangoFactory(
+        recrutement=RecrutementDjangoFactory(organisme=organisme),
+        agent=agent,
+        role=AgentRecrutementRole.RESPONSABLE.value,
+    )
+
+    response = authenticated_client.get(URL)
+
+    actions_by_uuid = {
+        o["uuid"]: o["authorized_actions"] for o in response.json()["organismes"]
+    }
+    assert "search_agent" in actions_by_uuid[str(organisme.id)]
+    assert "create_agent" in actions_by_uuid[str(organisme.id)]
+    assert "search_agent" not in actions_by_uuid[str(other_organisme.id)]
+    assert "create_agent" not in actions_by_uuid[str(other_organisme.id)]
+
+
+@pytest.mark.parametrize(
+    ("role", "revoquee"),
+    [
+        (AgentRecrutementRole.RECRUTEUR, False),
+        (AgentRecrutementRole.CONTRIBUTEUR, False),
+        (AgentRecrutementRole.RESPONSABLE, True),
+    ],
+    ids=["recruteur", "contributeur", "responsable_revoque"],
+)
+def test_agent_not_responsable_of_a_recrutement_gets_no_agent_management_actions(
+    authenticated_client, test_user, role, revoquee
+):
+    agent, organisme = create_organisme_with_agent(
+        role=AgentOrganismeRole.AGENT, utilisateur=test_user
+    )
+    RecrutementAgentDjangoFactory(
+        recrutement=RecrutementDjangoFactory(organisme=organisme),
+        agent=agent,
+        role=role.value,
+        date_revocation=timezone.now() if revoquee else None,
+    )
+
+    response = authenticated_client.get(URL)
+
+    assert response.json()["organismes"][0]["authorized_actions"] == [
+        "list_recrutements",
+        "get_motifs_refus",
+        "list_tags",
+    ]
+
+
+def test_does_not_query_organisme_per_role(
+    authenticated_client, test_user, django_assert_num_queries
+):
+    agent, organisme = create_organisme_with_agent(utilisateur=test_user)
+    other_organisme = OrganismeDjangoFactory()
+    OrganismeAgentDjangoFactory(organisme=other_organisme, agent=agent)
+    for responsable_de in (organisme, other_organisme):
+        RecrutementAgentDjangoFactory(
+            recrutement=RecrutementDjangoFactory(organisme=responsable_de),
+            agent=agent,
+            role=AgentRecrutementRole.RESPONSABLE.value,
         )
 
+    with django_assert_num_queries(NOMBRE_REQUETES_ATTENDU):
         response = authenticated_client.get(URL)
 
-        assert response.status_code == status.HTTP_200_OK
-        assert response.json() == {
-            "email": test_user.email,
-            "prenom": test_user.first_name,
-            "nom": test_user.last_name,
-            "is_staff": test_user.is_staff,
-            "organisme_roles": [
-                {
-                    "organisme_uuid": str(organisme.id),
-                    "nom": organisme.nom,
-                    "role": AgentOrganismeRole.AGENT.value,
-                }
-            ],
-        }
-
-    def test_get_returns_persisted_staff_flag(self, authenticated_client, test_user):
-        test_user.is_staff = True
-        test_user.save()
-
-        response = authenticated_client.get(URL)
-
-        assert response.status_code == status.HTTP_200_OK
-        assert response.json()["is_staff"] is True
+    assert response.status_code == status.HTTP_200_OK
+    assert {r["organisme_uuid"] for r in response.json()["organisme_roles"]} == {
+        str(organisme.id),
+        str(other_organisme.id),
+    }

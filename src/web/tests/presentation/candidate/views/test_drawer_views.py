@@ -120,3 +120,27 @@ def test_returns_404_for_unknown_id(client, db, url_name, id_kwarg):
     )
 
     assert response.status_code == HTTPStatus.NOT_FOUND
+
+
+def test_offer_drawer_renders_markdown_descriptions(client, db):
+    offer = OfferDjangoFactory(
+        mission="# Missions\n\n- **piloter**\n- <script>",
+        profile="[Fiche](https://exemple.gouv.fr/fiche)",
+    )
+
+    response = client.get(
+        reverse(
+            "candidate:offer_drawer",
+            kwargs={"cv_uuid": uuid4(), "offer_id": offer.id},
+        ),
+        headers={"HX-Request": "true"},
+    )
+
+    assertContains(response, "<h4>Missions</h4>")
+    assertContains(response, "<li><strong>piloter</strong></li>")
+    assertContains(response, "<li>&lt;script&gt;</li>")
+    assertContains(
+        response,
+        '<a href="https://exemple.gouv.fr/fiche" target="_blank" '
+        'rel="noopener noreferrer">Fiche</a>',
+    )

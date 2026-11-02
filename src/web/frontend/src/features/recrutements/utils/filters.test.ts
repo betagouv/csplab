@@ -11,7 +11,9 @@ function makeRow(overrides: Partial<RecrutementBase> = {}): RecrutementBase {
     uuid: 'rec-1',
     intitule: 'Chargé·e de mission',
     reference_csp: 'REF-001',
+    unread_conversations: 0,
     responsables: [{ nom: 'Camille Durand' }],
+    authorized_actions: ['get_recrutement'],
     nature_offre: 'TITULAIRE_CONTRACTUEL',
     date_publication: '2026-07-01T12:00:00Z',
     derniere_activite: '2026-07-02T12:00:00Z',
@@ -50,7 +52,9 @@ describe('recrutementSearchableText', () => {
     const fields = recrutementSearchableText(makeRow({
       intitule: 'Développeur back-end',
       reference_csp: 'REF-042',
+      unread_conversations: 0,
       responsables: [{ nom: 'Léa Martin' }],
+      authorized_actions: ['get_recrutement'],
     }))
     expect(fields).toContain('Développeur back-end')
     expect(fields).toContain('REF-042')

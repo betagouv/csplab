@@ -1,15 +1,16 @@
-import logging
-
 import httpx
 
 from domain.gateways.siret_lookup_gateway import ISiretLookupGateway
+from domain.value_objects.siret_candidate import SiretCandidate
+from infrastructure.exceptions.exceptions import ExternalApiError
 from infrastructure.gateways.rate_limiter import RateLimiter
 
-logger = logging.getLogger(__name__)
+_CANDIDATES_PER_SEARCH = 5
 
 
 class RechercheEntreprisesGateway(ISiretLookupGateway):
-    """Looks up a SIRET by name via the Recherche Entreprises API.
+    """Searches active legal units by name or SIRET via the Recherche
+    Entreprises API.
 
     https://recherche-entreprises.api.gouv.fr/search?q=NOM
 
@@ -27,28 +28,34 @@ class RechercheEntreprisesGateway(ISiretLookupGateway):
         self._timeout = timeout
         self._rate_limiter = RateLimiter(max_calls_per_second)
 
-    def find_siret(self, nom: str) -> str | None:
-        return self._fetch_siret(nom)
-
-    def _fetch_siret(self, nom: str) -> str | None:
+    def search(self, query: str) -> list[SiretCandidate]:
         self._rate_limiter.wait()
         try:
             response = httpx.get(
-                self._search_url, params={"q": nom}, timeout=self._timeout
+                self._search_url,
+                params={
+                    "q": query,
+                    "per_page": _CANDIDATES_PER_SEARCH,
+                    "etat_administratif": "A",
+                    "minimal": "true",
+                    "include": "siege",
+                },
+                timeout=self._timeout,
             )
             response.raise_for_status()
         except httpx.HTTPError as err:
-            logger.warning(
-                "Erreur lors de la recherche du SIRET pour %r via l'API "
-                "Recherche Entreprises: %s",
-                nom,
-                err,
+            raise ExternalApiError(
+                "Recherche Entreprises API lookup failed",
+                api_name="recherche_entreprises",
+                details={"query": query, "error": str(err)},
+            ) from err
+
+        return [
+            SiretCandidate(
+                siret=(result.get("siege") or {}).get("siret") or None,
+                siren=result.get("siren") or "",
+                denomination=result.get("nom_complet") or "",
+                nature_juridique=result.get("nature_juridique") or None,
             )
-            return None
-
-        results = response.json().get("results") or []
-        if not results:
-            return None
-
-        siege = results[0].get("siege") or {}
-        return siege.get("siret") or None
+            for result in response.json().get("results") or []
+        ]

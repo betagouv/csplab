@@ -10,11 +10,11 @@ from application.recruteur.context_services.recrutement_agent_service import (
     RecrutementAgentService,
 )
 from domain.commons.services.audit_log_writer import AuditLogWriter
-from domain.identite.entities.utilisateurs import Utilisateur
 from domain.identite.value_objects.organisme_action import OrganismeAction
 from infrastructure.django_apps.recruteur.models.recrutement import (
     RecrutementAgentModel,
 )
+from infrastructure.django_apps.users.models import UserModel
 from infrastructure.repositories.commons.postgres_audit_log_repository import (
     PostgresAuditLogRepository,
 )
@@ -26,13 +26,13 @@ def update_recrutement_agent(
     recrutement_id: UUID,
     agent_id: UUID,
     role: str,
-    utilisateur: Utilisateur,
+    utilisateur: UserModel,
 ) -> RecrutementAgentModel:
-    # TODO : to refactor in ADR-009 style
     OrganismePermissionService().can_execute(
         action=OrganismeAction.UPDATE_RECRUTEMENT_AGENT,
         utilisateur=utilisateur,
         organisme_id=organisme_id,
+        recrutement_id=recrutement_id,
     )
 
     contexte = RecrutementAgentService(
@@ -49,7 +49,7 @@ def update_recrutement_agent(
         recrutement_agent.role = role
         recrutement_agent.save(update_fields=["role", "updated_at"])
         AuditLogWriter(repository=PostgresAuditLogRepository()).log_action(
-            utilisateur_id=utilisateur.entity_id,
+            utilisateur_id=utilisateur.username,
             entity=Entity(entity_id=agent_id),
             ressource_kind="RecrutementAgent",
             event_name="AgentRecrutementRoleModifie",

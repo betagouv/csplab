@@ -23,7 +23,7 @@ class OfferFactory:
     @staticmethod
     def create_entity(
         title: str | None = None,
-        category: Category | None = None,
+        categories: list[Category] | None = None,
         offer_nature: OfferNature | None = None,
         verse: Verse | None = None,
         reference: str | None = None,
@@ -37,6 +37,7 @@ class OfferFactory:
         offer_url: HttpUrl | None = None,
         localisation: Localisation | None = None,
         publication_date: datetime | None = None,
+        end_publication_date: datetime | None = None,
         beginning_date: LimitDate | None = None,
         archived_at: datetime | None = None,
         criteria: dict | None = None,
@@ -58,12 +59,14 @@ class OfferFactory:
             title=title or "Test Offer Title",
             profile=profile or "Test profile description",
             mission=mission or "Test mission description",
-            category=category or Category.A,
+            categories=[Category.A] if categories is None else categories,
             offer_nature=offer_nature,
             organization=organization or "Test Organization",
             offer_url=offer_url,
             localisation=localisation,
             publication_date=publication_date or datetime(2024, 1, 15, tzinfo=UTC),
+            end_publication_date=end_publication_date
+            or datetime(2025, 1, 15, tzinfo=UTC),
             beginning_date=beginning_date
             or LimitDate(datetime(2024, 12, 31, tzinfo=UTC)),
             processed_at=None,

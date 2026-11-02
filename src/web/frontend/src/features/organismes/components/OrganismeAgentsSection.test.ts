@@ -52,6 +52,24 @@ describe('organismeAgentsSection', () => {
 
     expect(await screen.findByText('Cet agent est déjà rattaché à l\'organisme.')).toBeInTheDocument()
     expect(screen.getByRole('dialog')).toBeInTheDocument()
+
+    await user.type(screen.getByRole('searchbox', { name: /Adresse électronique de l'agent/ }), 'x')
+    expect(screen.queryByText('Cet agent est déjà rattaché à l\'organisme.')).not.toBeInTheDocument()
+  })
+
+  it('starts a new search each time the drawer opens', async () => {
+    const user = setupUser()
+    await renderSection()
+
+    await user.click(screen.getByRole('button', { name: 'Ajouter un membre' }))
+    await user.type(await screen.findByRole('searchbox', { name: /Adresse électronique de l'agent/ }), AGENT_RECHERCHE.email)
+    await user.click(screen.getByRole('button', { name: 'Rechercher' }))
+    await screen.findByRole('button', { name: 'Ajouter le membre' })
+    await user.click(screen.getByRole('button', { name: 'Annuler' }))
+    await user.click(screen.getByRole('button', { name: 'Ajouter un membre' }))
+
+    expect(await screen.findByRole('searchbox', { name: /Adresse électronique de l'agent/ })).toHaveValue('')
+    expect(screen.queryByRole('button', { name: 'Ajouter le membre' })).not.toBeInTheDocument()
   })
 
   it('revokes a member with a revocation date after confirmation', async () => {

@@ -2,10 +2,14 @@ import logging
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
+from sentry_sdk.integrations.celery import CeleryIntegration
+from sentry_sdk.integrations.fastapi import FastApiIntegration
+from sentry_sdk.integrations.starlette import StarletteIntegration
 
 from api.config import get_settings
 from api.routes import public_router
 from infrastructure.di.container import create_container
+from infrastructure.observability.sentry import init_sentry
 
 _SKIP_LOG_ATTRS = frozenset(logging.LogRecord("", 0, "", 0, "", (), None).__dict__) | {
     "message",
@@ -36,14 +40,11 @@ def create_app():
     # Get settings dynamically to allow test environment override
     settings = get_settings()
 
-    if settings.sentry_dsn and str(settings.sentry_dsn).strip():
-        from api._sentry import sentry_init  # noqa
-
-        sentry_init(
-            dsn=str(settings.sentry_dsn),
-            traces_sample_rate=settings.sentry_traces_sample_rate,
-            profiles_sample_rate=settings.sentry_profiles_sample_rate,
-        )
+    init_sentry(
+        settings,
+        [CeleryIntegration(), StarletteIntegration(), FastApiIntegration()],
+        tracing=True,
+    )
 
     container = create_container()
 

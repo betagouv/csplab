@@ -28,7 +28,6 @@ export function useReplyConversation(params: MaybeRefOrGetter<ConversationParams
     }
     queryCache.setQueryData(key, {
       ...thread,
-      count: thread.count + 1,
       results: [...thread.results, message],
     })
   }

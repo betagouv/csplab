@@ -67,16 +67,33 @@ def test_orders_by_most_recently_updated(staff):
     assert result.index(newer) < result.index(older)
 
 
+def test_excludes_supprimes(staff):
+    actif = OrganismeDjangoFactory()
+    OrganismeDjangoFactory(supprime_le=timezone.now())
+
+    assert list(list_organismes(utilisateur=staff)) == [actif]
+
+
 def test_refuses_non_staff(db):
     with pytest.raises(OperationOrganismeRefusee):
         list_organismes(utilisateur=UtilisateurDjangoFactory(is_staff=False))
 
 
-def test_evaluates_in_a_single_query(staff, django_assert_num_queries):
+def test_evaluates_in_a_constant_number_of_queries(staff, django_assert_num_queries):
     for organisme in OrganismeDjangoFactory.create_batch(3):
         OrganismeAgentDjangoFactory(organisme=organisme)
+        OrganismeAgentDjangoFactory(
+            organisme=organisme, role=AgentOrganismeRole.SUPERVISEUR.value
+        )
         RecrutementDjangoFactory(organisme=organisme)
 
-    with django_assert_num_queries(1):
+    with django_assert_num_queries(2):  # organismes + prefetch superviseurs
         result = list(list_organismes(utilisateur=staff))
         assert all(o.number_agents and o.number_published_offers for o in result)
+        # same traversal as the serializer: a lazy load here would add queries
+        utilisateurs = [
+            liaison.agent.utilisateur
+            for o in result
+            for liaison in o.superviseurs_actifs
+        ]
+        assert len(utilisateurs) == len(result)

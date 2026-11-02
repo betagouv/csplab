@@ -99,7 +99,7 @@ class TestGetRecrutementKanban:
 
         assert result == read_model
         organisme_permission_service.can_execute.assert_called_once_with(
-            action=OrganismeAction.VOIR_DETAIL_RECRUTEMENT,
+            action=OrganismeAction.GET_RECRUTEMENT,
             organisme_id=organisme_id,
             utilisateur=utilisateur,
             recrutement_id=recrutement_id,

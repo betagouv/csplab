@@ -94,6 +94,12 @@ class MetierCleaner(IDocumentCleaner[Metier]):
         return result
 
     def _dto_to_entity(self, document: IngresMetiersDocument) -> Metier:
+        # Without a CSP reference job code, an offer can't target the metier
+        # (e.g. government-appointed jobs such as préfet or recteur)
+        offer_family_code = document.definitions.emploiDeReferenceCSP.codeEmploiCSP
+        if not offer_family_code:
+            raise ValueError("missing emploiDeReferenceCSP.codeEmploiCSP")
+
         activites = self._split_commentaires(document.competences.activitesDeLEr)
 
         versants = []
@@ -122,5 +128,5 @@ class MetierCleaner(IDocumentCleaner[Metier]):
             versants=versants,
             activites=activites,
             conditions_particulieres=conditions_particulieres,
-            offer_family_code=document.definitions.emploiDeReferenceCSP.codeEmploiCSP,
+            offer_family_code=offer_family_code,
         )

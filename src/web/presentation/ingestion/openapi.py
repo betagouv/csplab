@@ -268,7 +268,8 @@ Cette API retourne la liste des offres correspondant à une recherche selon les
 critères suivants :
 
 - `actif` — candidature active / archivée
-- `categorie` — une ou plusieurs catégories (ex. `A,B`)
+- `categorie` — une ou plusieurs catégories (ex. `A,B`) ; une offre est
+  retournée si l'une de ses catégories en fait partie
 - `versant` — un ou plusieurs versants (ex. `FPE,FPT`)
 - `nature_offre` — une ou plusieurs natures d'offre (ex. `TITULAIRE_CONTRACTUEL`)
 - `niveau_experience` — un ou plusieurs niveaux d'expérience (ex. `DEBUTANT,EXPERT`)
@@ -313,7 +314,7 @@ LIST_OFFERS_EXAMPLES = [
                 "Ecole Nationale Supérieure de Techniques Avancées (ENSTA)"
             ),
             "nature_offre": "TITULAIRE_CONTRACTUEL",
-            "categorie": "A",
+            "categories": ["A"],
             "debut_publication": "2026-04-17T14:44:49.873000+00:00",
             "url_offre": "https://test.com/offre-emploi/2026-999999/",
             "date_archivage": None,
@@ -335,7 +336,7 @@ LIST_OFFERS_EXAMPLES = [
                 "Ecole Nationale Supérieure de Techniques Avancées (ENSTA)"
             ),
             "nature_offre": "TITULAIRE_CONTRACTUEL",
-            "categorie": "A",
+            "categories": ["A"],
             "debut_publication": "2026-04-17T14:44:49.873000+00:00",
             "url_offre": "https://test.com/offre-emploi/2026-999999/",
             "date_archivage": "2026-05-17T12:42:42.873000+00:00",
@@ -353,6 +354,10 @@ LIST_METIERS_DESCRIPTION = (
 
 Cette API retourne la liste paginée des métiers. Les métiers peuvent être filtrés
 selon leur code de domaine fonctionnel (`domaine`).
+
+Le champ `code_emploi_csp` d'un métier est la valeur à renseigner dans
+`profession.metier` de l'API d'ingestion d'offres. Ce code vient du RMFP
+(« Code CSP ») : plusieurs métiers peuvent partager le même code.
 
 """
     + _API_COMMON_FOOTER
@@ -387,7 +392,7 @@ LIST_METIERS_EXAMPLES = [
                 ),
             ],
             "conditions_particulieres": [],
-            "offer_family_code": "ERAMT001",
+            "code_emploi_csp": "ERAMT001",
         },
         response_only=True,
         status_codes=["200"],
@@ -420,7 +425,7 @@ LIST_METIERS_EXAMPLES = [
                 ),
             ],
             "conditions_particulieres": ["Déplacements nationaux et internationaux"],
-            "offer_family_code": "ERAGR001",
+            "code_emploi_csp": "ERAGR001",
         },
         response_only=True,
         status_codes=["200"],
@@ -430,6 +435,70 @@ LIST_METIERS_EXAMPLES = [
         summary="Données invalides",
         description=("Les données passées dans le payload sont incorrectes"),
         value={"error": "string"},
+        response_only=True,
+        status_codes=["400"],
+    ),
+    _EXAMPLE_INVALID_TOKEN,
+    _EXAMPLE_SERVER_ERROR,
+]
+
+LIST_ORGANISMES_DESCRIPTION = (
+    """
+# API de consultation des organismes de la Fonction Publique
+
+Cette API retourne la liste paginée des organismes du référentiel CSPLab (FINESS,
+GIPCDG et DILA). Les organismes supprimés ne sont pas renvoyés. La liste est triée
+par `nom`, puis par `id`.
+
+Filtres disponibles :
+
+- `versant` — une ou plusieurs valeurs séparées par une virgule (ex. `FPE,FPT`).
+- `siret` — SIRET exact, sur 14 caractères.
+- `nom` — recherche partielle sur le nom, insensible à la casse et aux accents.
+- `departement` — code du département de l'organisme (ex. `75`, `2A`, `971`).
+- `referentiel` — référentiel source : `FINESS`, `GIPCDG` ou `DILA`.
+
+Les champs `nom` et `siret` d'un organisme sont les valeurs à reprendre dans le bloc
+`organisation` de l'API d'ingestion d'offres.
+
+Une page au-delà de la dernière renvoie une erreur 404.
+
+"""
+    + _API_COMMON_FOOTER
+)
+
+LIST_ORGANISMES_EXAMPLES = [
+    OpenApiExample(
+        "Success",
+        summary="Liste des organismes",
+        description="Les organismes sont retournés paginés.",
+        value={
+            "id": "3f1c2a4e-8b7d-4c9a-9e2f-1a2b3c4d5e6f",
+            "nom": "Centre hospitalier de Bastia",
+            "versant": "FPH",
+            "siret": "26200017900016",
+            "parent_id": None,
+            "referentiel": "FINESS",
+            "external_id": "2B0000020",
+            "millesime": "2026-10",
+            "localisation": {
+                "zone_geographique": "EU",
+                "pays": "FRA",
+                "region": "94",
+                "departement": "2B",
+            },
+        },
+        response_only=True,
+        status_codes=["200"],
+    ),
+    OpenApiExample(
+        "Error - invalid filter",
+        summary="Filtre invalide",
+        description="Un des filtres passés en paramètre est incorrect.",
+        value={
+            "error": "versant : Valeurs de versant invalides : FPX. "
+            "Valeurs autorisées : FPE, FPH, FPT."
+        },
         response_only=True,
         status_codes=["400"],
     ),
@@ -469,6 +538,16 @@ l'offre ensuite, conservez la référence renvoyée et envoyez-la à la place de
 Le format `CSP-AAAA-NNNNNN` est réservé aux références générées par CSPLab. Une \
 référence à ce format n'est acceptée que pour mettre à jour une offre existante \
 de la source. Sinon, l'offre est rejetée dans `errors`.
+
+# Organisme de l'offre
+
+Le bloc `organisation` attend le `nom` et le `siret` de l'organisme. Ces valeurs se \
+retrouvent avec `GET /api/v1/organismes` (filtres `nom` et `siret`).
+
+# Consulter les offres transmises
+
+Sur l'environnement de démonstration uniquement, les offres transmises peuvent être \
+consultées dans l'interface « Fret » : https://demo.csplab.beta.gouv.fr/fret
 
 # Permissions
 

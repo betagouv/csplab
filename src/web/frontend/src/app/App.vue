@@ -7,6 +7,7 @@ import { navigationFor } from '@/app/navigation'
 import CspToaster from '@/components/base/CspToast/CspToaster.vue'
 import ErrorBoundary from '@/components/ErrorBoundary.vue'
 import CspAppShell from '@/components/layout/CspAppShell/CspAppShell.vue'
+import OrganismeSwitcher from '@/features/organismes/components/OrganismeSwitcher.vue'
 import { useCurrentUser } from '@/stores/currentUser'
 import { useRouteOrganisme } from '@/stores/routeOrganisme'
 
@@ -14,11 +15,11 @@ const LOADING_TITLE = document.title
 
 useHead({ titleTemplate: title => (title ? `${title} | CSPLab` : LOADING_TITLE) })
 
-const { user } = useCurrentUser()
+const { isStaff } = useCurrentUser()
 const { organismeUuid, canManageOrganisme } = useRouteOrganisme()
 
 const navigation = computed(() => navigationFor({
-  isStaff: user.value?.is_staff ?? false,
+  isStaff: isStaff.value,
   organismeUuid: organismeUuid.value,
   canManageOrganisme: canManageOrganisme.value,
 }))
@@ -28,6 +29,9 @@ const navigation = computed(() => navigationFor({
   <div class="ats-app">
     <CspToaster>
       <CspAppShell :navigation="navigation">
+        <template #context>
+          <OrganismeSwitcher />
+        </template>
         <ErrorBoundary>
           <RouterView />
         </ErrorBoundary>

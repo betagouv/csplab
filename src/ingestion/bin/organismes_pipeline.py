@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 import argparse
-import asyncio
 import logging
 
 from application.usecases.import_organismes import ImportOrganismesCommand
@@ -11,8 +10,8 @@ from infrastructure.di.container import (
     create_container,
     import_organismes_usecase_for,
 )
+from infrastructure.observability.script import run_script
 
-logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
@@ -63,7 +62,7 @@ async def _run(referentiel: OrganismeReferentiel | None = None) -> None:
 
 def main() -> None:
     args = _parse_args()
-    asyncio.run(_run(args.referentiel))
+    run_script(_run(args.referentiel))
 
 
 if __name__ == "__main__":

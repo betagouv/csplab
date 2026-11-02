@@ -9,11 +9,11 @@ const meta = {
   tags: ['autodocs'],
   parameters: {
     controls: {
-      include: ['name', 'size'],
+      include: ['name', 'icon', 'size'],
     },
     docs: {
       description: {
-        component: 'Avatar générique affichant les initiales dérivées du nom fourni. Affiche `?` quand aucun nom n\'est donné.',
+        component: 'Avatar générique affichant les initiales dérivées du nom fourni, ou une icône décorative. Affiche `?` quand aucun nom n\'est donné.',
       },
     },
   },
@@ -21,6 +21,13 @@ const meta = {
     name: {
       control: { type: 'text' },
       description: 'Nom complet utilisé pour générer les initiales et comme aria-label accessible.',
+      table: {
+        type: { summary: 'string' },
+      },
+    },
+    icon: {
+      control: { type: 'text' },
+      description: 'Icône affichée à la place des initiales. L\'avatar devient décoratif.',
       table: {
         type: { summary: 'string' },
       },
@@ -66,6 +73,10 @@ export const SingleWordName: Story = {
 
 export const Anonymous: Story = {
   args: { name: null },
+}
+
+export const WithIcon: Story = {
+  args: { name: undefined, icon: 'ri:government-fill' },
 }
 
 export const Sizes: Story = {

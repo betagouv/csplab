@@ -1,8 +1,9 @@
 import type { StoryObj } from '@storybook/vue3-vite'
-import type { CspTagSize, CspTagVariant } from '@/components/base/CspTag/tag'
+import type { CspTagAccent, CspTagSize, CspTagVariant } from '@/components/base/CspTag/tag'
 import { ref } from 'vue'
 import CspTag from '@/components/base/CspTag/CspTag.vue'
 import CspTagGroup from '@/components/base/CspTag/CspTagGroup.vue'
+import { CSP_TAG_ACCENTS } from '@/components/base/CspTag/tag'
 
 interface CspTagProps {
   label?: string
@@ -14,6 +15,7 @@ interface CspTagProps {
   href?: string
   value?: string | number
   dismissLabel?: string
+  accent?: CspTagAccent
 }
 
 const meta = {
@@ -22,7 +24,7 @@ const meta = {
   tags: ['autodocs'],
   parameters: {
     controls: {
-      include: ['label', 'variant', 'size', 'icon', 'pressed', 'disabled', 'href', 'value', 'dismissLabel'],
+      include: ['label', 'variant', 'size', 'icon', 'pressed', 'disabled', 'href', 'value', 'dismissLabel', 'accent'],
     },
     docs: {
       description: {
@@ -96,6 +98,12 @@ Construit sur les primitives [reka-ui](https://reka-ui.com) :
       description: 'Label accessible du bouton de suppression (`dismissible`). Par défaut : `Retirer le filtre {label}`.',
       table: { type: { summary: 'string' } },
     },
+    accent: {
+      control: { type: 'select' },
+      options: CSP_TAG_ACCENTS,
+      description: 'Couleur illustrative du DSFR d\'un tag `static` : fond `action-low` et texte `action-high` de la couleur.',
+      table: { type: { summary: 'CspTagAccent' } },
+    },
     as: { control: false, table: { disable: true } },
     asChild: { control: false, table: { disable: true } },
     class: { control: false, table: { disable: true } },
@@ -165,6 +173,22 @@ export const Variants: Story = {
           <CspTag v-if="!dismissed" label="Filtre actif" variant="dismissible" @dismiss="dismissed = true" />
           <span v-else class="text-sm text-text-mention-grey italic">retiré</span>
         </div>
+      </div>
+    `,
+  }),
+  parameters: { controls: { disable: true } },
+}
+
+export const Accents: Story = {
+  name: 'Couleurs d\'accent',
+  render: () => ({
+    components: { CspTag },
+    setup() {
+      return { accents: CSP_TAG_ACCENTS }
+    },
+    template: `
+      <div class="flex flex-row gap-3 flex-wrap">
+        <CspTag v-for="accent in accents" :key="accent" :label="accent" :accent="accent" />
       </div>
     `,
   }),

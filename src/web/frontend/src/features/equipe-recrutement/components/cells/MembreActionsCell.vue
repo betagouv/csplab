@@ -3,9 +3,9 @@ import type { MembreEquipe, RecrutementRole } from '../../types'
 import { computed } from 'vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspDropdownMenu from '@/components/base/CspDropdownMenu/CspDropdownMenu.vue'
+import { formatAgentLabel } from '@/features/agents/format'
 import { useMembreEquipeActions } from '../../composables/useMembreEquipeActions'
 import { RECRUTEMENT_ROLE_LABELS } from '../../constants/equipe-recrutement'
-import { formatMembreLabel } from '../../format'
 
 defineOptions({ inheritAttrs: false })
 
@@ -21,7 +21,7 @@ const ROLE_ICONS: Record<RecrutementRole, string> = {
   contributeur: 'ri:user-line',
 }
 
-const membreLabel = computed(() => formatMembreLabel(props.row))
+const membreLabel = computed(() => formatAgentLabel(props.row))
 
 const rolesProposes = computed(() =>
   (Object.keys(RECRUTEMENT_ROLE_LABELS) as RecrutementRole[])

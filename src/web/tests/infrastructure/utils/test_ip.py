@@ -20,6 +20,10 @@ from infrastructure.django_apps.utils.ip import get_client_ip, parse_ip
             {"HTTP_X_REAL_IP": "203.0.113.7", "HTTP_X_FORWARDED_FOR": "1.2.3.4"},
             "203.0.113.7",
         ),
+        ({"REMOTE_ADDR": "10.240.1.2"}, "10.240.1.2"),
+        ({"REMOTE_ADDR": "10.240.1.2", "HTTP_X_REAL_IP": "203.0.113.7"}, "10.240.1.2"),
+        ({"REMOTE_ADDR": "10.240.4.1", "HTTP_X_REAL_IP": "203.0.113.7"}, "203.0.113.7"),
+        ({"REMOTE_ADDR": "172.17.0.5", "HTTP_X_REAL_IP": "10.240.1.2"}, "10.240.1.2"),
     ],
     ids=[
         "ipv4",
@@ -29,6 +33,10 @@ from infrastructure.django_apps.utils.ip import get_client_ip, parse_ip
         "missing",
         "ignores_forwarded_for_and_remote_addr",
         "prefers_real_ip_over_forwarded_for",
+        "private_network_remote_addr",
+        "private_network_ignores_forged_real_ip",
+        "outside_private_network_range_uses_real_ip",
+        "public_router_uses_real_ip",
     ],
 )
 def test_get_client_ip(meta, expected):

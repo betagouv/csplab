@@ -66,41 +66,36 @@ const open = defineModel<boolean | undefined>('open')
 </template>
 
 <style lang="scss">
+@use '@/styles/menu';
+
 .csp-dropdown {
   min-width: 10rem;
   background-color: var(--background-overlap-grey);
   box-shadow:
     inset 0 0 0 1px var(--border-default-grey),
-    var(--csp-shadow-lg);
+    var(--csp-overlap-shadow, var(--csp-shadow-lg));
   padding: var(--csp-menu-padding);
   z-index: var(--csp-z-dropdown);
   outline: none;
+  transform-origin: var(--reka-popper-transform-origin);
+
+  &[data-state='open'] {
+    animation: var(--csp-motion-overlap-enter);
+  }
+
+  &[data-state='closed'] {
+    animation: var(--csp-motion-overlap-exit);
+  }
 }
 
 .csp-dropdown__separator {
-  height: 1px;
-  background-color: var(--border-default-grey);
-  margin-block: var(--csp-menu-padding);
+  @include menu.separator;
 }
 
 .csp-dropdown__item {
-  display: flex;
-  align-items: center;
-  gap: var(--csp-menu-item-gap);
-  padding: var(--csp-menu-item-padding);
-  cursor: pointer;
-  outline: none;
-  color: var(--text-default-grey);
-  user-select: none;
-
-  &[data-highlighted] {
-    background-color: var(--background-default-grey-hover);
-  }
+  @include menu.item;
 
   &[data-disabled] {
-    cursor: not-allowed;
-    color: var(--text-disabled-grey);
-
     .csp-dropdown__item-icon {
       color: var(--text-disabled-grey);
     }

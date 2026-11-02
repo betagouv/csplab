@@ -35,9 +35,8 @@ import { useCandidatureNavigation } from '../composables/useCandidatureNavigatio
 import { useCandidaturePanelRoutes } from '../composables/useCandidaturePanelRoutes'
 import { useEtapeChange } from '../composables/useEtapeChange'
 import { CANDIDATURE_PANEL_TAB_ICONS, CANDIDATURE_PANEL_TAB_LABELS } from '../constants/candidature'
-import { formatCandidatureMeta } from '../format'
+import { formatCandidatName, formatCandidatureMeta } from '../format'
 import { candidatureDetailQuery } from '../queries'
-import { formatCandidatNom } from '../utils/candidat'
 
 const props = defineProps<{
   organismeUuid: string
@@ -56,7 +55,7 @@ const { candidature, pending, error, notFound } = useCandidatureDetail(() => can
 const showSkeleton = useMinimumPending(pending)
 const loadFailed = computed(() => Boolean(error.value) && !notFound.value)
 
-const title = computed(() => candidature.value ? formatCandidatNom(candidature.value.candidat) : 'Candidature')
+const title = computed(() => candidature.value ? formatCandidatName(candidature.value.candidat) : 'Candidature')
 const description = computed(() => candidature.value?.recrutement_intitule || null)
 const metaItems = computed(() => candidature.value ? formatCandidatureMeta(candidature.value) : [])
 
@@ -90,7 +89,7 @@ const activeTab = useRouteTab<CandidaturePanelTabKey>(() => panelRouteNames.valu
 
 useDocumentTitle(
   () => CANDIDATURE_PANEL_TAB_LABELS[activeTab.value],
-  () => candidature.value && formatCandidatNom(candidature.value.candidat),
+  () => candidature.value && formatCandidatName(candidature.value.candidat),
 )
 const TABS_WITHOUT_ASIDE: CandidaturePanelTabKey[] = ['historique', 'messages']
 const isMessagesTab = computed(() => activeTab.value === 'messages')
@@ -101,9 +100,7 @@ function close(): void {
   void router.push({ name: parentName.value })
 }
 
-const unsavedChanges = useUnsavedChangesGuard({
-  ignore: to => to.params.candidatureUuid === props.candidatureUuid,
-})
+const unsavedChanges = useUnsavedChangesGuard()
 
 function leaveMovedCandidature(): void {
   if (position.value?.nextUuid) {
@@ -217,6 +214,7 @@ function handleUpdateOpen(open: boolean): void {
     >
       <CspTabs
         v-model="activeTab"
+        activation-mode="manual"
         fill
         class="candidature-panel__tabs"
       >
@@ -276,7 +274,7 @@ function handleUpdateOpen(open: boolean): void {
                   <MessagesSection
                     v-if="candidature"
                     :candidature="candidatureParams"
-                    :candidat-nom="formatCandidatNom(candidature.candidat)"
+                    :candidat-nom="formatCandidatName(candidature.candidat)"
                     :routes="panelRouteNames.conversations"
                   />
                 </div>

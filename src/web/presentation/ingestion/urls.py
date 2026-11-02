@@ -9,8 +9,8 @@ from presentation.ingestion.views.offers import (
     OffersUpsertView,
 )
 from presentation.ingestion.views.organismes import (
-    OrganismesSupprimerView,
     OrganismesUpsertView,
+    OrganismesView,
 )
 from presentation.ingestion.views.sources import SourcesListView
 from presentation.ingestion.views.talentsoft_organismes import (
@@ -37,8 +37,8 @@ urlpatterns = [
     ),
     path(
         "organismes",
-        OrganismesSupprimerView.as_view(),
-        name="organismes_delete",
+        OrganismesView.as_view(),
+        name="organismes",
     ),
     path("metiers", MetiersListView.as_view(), name="metiers_list"),
     path(

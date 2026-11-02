@@ -21,10 +21,20 @@ class OrganisationPayload(BaseModel):
     talentsoft_organisme_entity_code: str = ""
 
 
+# RMFPv2 metiers belonging to several domains: the web API cannot deduce their
+# domain, so we send the one following the ER prefix. Other metiers omit it and
+# the web API deduces it (https://github.com/betagouv/csplab/issues/2110).
+METIERS_MULTI_DOMAINES = {"ERJUS008", "ERTRA007"}
+
+
 class ProfessionPayload(BaseModel):
     referentiel: str = "RMFPv2"
-    domaine: str
+    domaine: Optional[str] = None
     metier: str
+
+    @model_serializer
+    def serialize(self) -> dict:
+        return {k: v for k, v in self.__dict__.items() if v is not None}
 
 
 class DescriptionPayload(BaseModel):
@@ -68,7 +78,7 @@ class CriteresPayload(BaseModel):
     specialisations: list[str] = []
     diplome: Optional[str] = None
     documents_requis: list[str] = []
-    competences_requises: list[str] = []
+    competences_requises: Optional[str] = None
     langues: list[LanguagePayload] = []
 
     @model_serializer
@@ -82,6 +92,8 @@ class ConditionsPayload(BaseModel):
     management: Optional[str] = None
     duree_contrat: Optional[str] = None
     debut_contrat: Optional[datetime] = None
+    bases_legales: Optional[str] = None
+    note_ouverture_poste_url: Optional[HttpUrl] = None
 
     @model_serializer
     def serialize(self) -> dict:
@@ -141,15 +153,7 @@ class OfferUpsertPayload(BaseModel):
             ]
 
         contacts = [ContactPayload.from_contact(contact) for contact in offer.contacts]
-
-        domaine_length = 3
-        er_prefix = "ER"
         family_code = offer.family_code or ""
-        if family_code.startswith(er_prefix):
-            family_code = family_code[len(er_prefix) :]
-        domaine = (
-            family_code[:domaine_length] if len(family_code) >= domaine_length else ""
-        )
 
         return cls(
             identification=IdentificationPayload(
@@ -166,8 +170,10 @@ class OfferUpsertPayload(BaseModel):
             url_candidature=offer.application_url,
             email_candidature=offer.application_email,
             profession=ProfessionPayload(
-                domaine=domaine,
-                metier=offer.family_code or "",
+                domaine=family_code[2:5]
+                if family_code in METIERS_MULTI_DOMAINES
+                else None,
+                metier=family_code,
             ),
             categories=[offer.category.value] if offer.category else [],
             nature_offre=offer.offer_nature.value if offer.offer_nature else None,
@@ -187,6 +193,10 @@ class OfferUpsertPayload(BaseModel):
                 experience=offer.experience.name if offer.experience else None,
                 specialisations=offer.specialisations,
                 diplome=offer.diploma,
+                documents_requis=[
+                    document.name for document in offer.required_documents
+                ],
+                competences_requises=offer.required_skills,
                 langues=[
                     LanguagePayload.from_language(lang) for lang in offer.languages
                 ],
@@ -196,6 +206,8 @@ class OfferUpsertPayload(BaseModel):
             or offer.diploma
             or offer.specialisations
             or offer.languages
+            or offer.required_skills
+            or offer.required_documents
             else None,
             conditions=ConditionsPayload(
                 temps_travail=offer.working_time.name,
@@ -205,6 +217,8 @@ class OfferUpsertPayload(BaseModel):
                 debut_contrat=offer.beginning_date.value
                 if offer.beginning_date
                 else None,
+                bases_legales=offer.legal_basis,
+                note_ouverture_poste_url=offer.vacancy_notice_url,
             ),
             contacts=contacts or None,
             publication=PublicationPayload(

@@ -17,6 +17,9 @@ export const organismeKeys = {
   etapes: (params: OrganismeParams) => {
     return [...organismeKeys.root(params), 'parametres', 'etapes'] as const
   },
+  tags: (params: OrganismeParams) => {
+    return [...organismeKeys.root(params), 'parametres', 'tags'] as const
+  },
   motifsRefus: (params: OrganismeParams) => {
     return [...organismeKeys.root(params), 'parametres', 'motifs-refus'] as const
   },
@@ -67,6 +70,9 @@ export const candidatureKeys = {
   },
   activites: (params: CandidatureParams) => {
     return [...candidatureKeys.root(params), 'logs'] as const
+  },
+  activitesList: (params: CandidatureParams & { limit?: number }) => {
+    return [...candidatureKeys.activites(params), params.limit ?? null] as const
   },
   conversations: (params: CandidatureParams) => {
     return [...candidatureKeys.root(params), 'conversations'] as const

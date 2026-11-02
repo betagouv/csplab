@@ -27,7 +27,7 @@ import {
 } from '@/test/fixtures/candidatures'
 import { makeUser } from '@/test/fixtures/utilisateur'
 import { setupUser } from '@/test/render'
-import { createCandidatureNote, getCandidatureActivites, getCandidatureDetail, getMotifsRefus, getRecrutementKanban, patchEtapeCandidatures } from '../api'
+import { createCandidatureNote, getCandidatureActivites, getCandidatureDetail, getCandidatureNotes, getMotifsRefus, getRecrutementKanban, patchEtapeCandidatures } from '../api'
 
 vi.mock('../api', () => ({
   getCandidatureDetail: vi.fn(),
@@ -162,6 +162,18 @@ describe('candidaturePanelView', () => {
     expect(navigation.getByRole('button', { name: 'Suivant' })).toBeDisabled()
   })
 
+  it('moves back to the previous candidature of the column from the bottom bar', async () => {
+    const user = setupUser()
+    const { router } = await renderPanel([`${KANBAN_PATH}/candidatures/${CANDIDATURE_BRUNO}`])
+    const navigation = within(await screen.findByRole('navigation', { name: 'Navigation entre les candidatures de l\'étape' }))
+    expect(await navigation.findByText('Candidature 2 sur 2')).toBeInTheDocument()
+
+    await user.click(navigation.getByRole('button', { name: 'Précédent' }))
+
+    await vi.waitFor(() => expect(router.currentRoute.value.params.candidatureUuid).toBe(CANDIDATURE_ALICE))
+    expect(await navigation.findByText('Candidature 1 sur 2')).toBeInTheDocument()
+  })
+
   it('moves the candidature to another stage and opens the next one of its column', async () => {
     const user = setupUser()
     const { router } = await renderPanel([`${KANBAN_PATH}/candidatures/${CANDIDATURE_ALICE}`])
@@ -177,6 +189,26 @@ describe('candidaturePanelView', () => {
       candidatureUuids: [CANDIDATURE_ALICE],
     })
     expect(await screen.findByText('Alice Dupont est passé à l\'étape Entretien')).toBeInTheDocument()
+  })
+
+  it('replaces the previous success toast when candidatures are moved one after the other', async () => {
+    const user = setupUser()
+    const { router } = await renderPanel([`${KANBAN_PATH}/candidatures/${CANDIDATURE_ALICE}`])
+
+    async function moveToEntretien() {
+      await user.click(await screen.findByRole('button', { name: 'Changer d\'étape' }))
+      await user.click(await screen.findByRole('radio', { name: 'Entretien' }))
+      await user.click(screen.getByRole('button', { name: 'Valider' }))
+    }
+
+    await moveToEntretien()
+    expect(await screen.findByText('Alice Dupont est passé à l\'étape Entretien')).toBeInTheDocument()
+    await vi.waitFor(() => expect(router.currentRoute.value.params.candidatureUuid).toBe(CANDIDATURE_BRUNO))
+
+    await moveToEntretien()
+
+    expect(await screen.findByText('Bruno Martin est passé à l\'étape Entretien')).toBeInTheDocument()
+    expect(screen.queryByText('Alice Dupont est passé à l\'étape Entretien')).not.toBeInTheDocument()
   })
 
   it('asks for confirmation before refusing the candidature', async () => {
@@ -315,7 +347,7 @@ describe('candidaturePanelView', () => {
       await user.click(control())
       const dialog = within(await unsavedDialog())
       expect(dialog.getByText('Si vous quittez maintenant, votre saisie sera perdue.')).toBeInTheDocument()
-      await user.click(dialog.getByRole('button', { name: 'Continuer l\'édition' }))
+      await user.click(dialog.getByRole('button', { name: 'Reprendre la modification' }))
 
       await vi.waitFor(() => expect(screen.queryByRole('dialog', { name: 'Modifications non enregistrées' })).not.toBeInTheDocument())
       expect(router.currentRoute.value.params.candidatureUuid).toBe(CANDIDATURE_ALICE)
@@ -339,7 +371,7 @@ describe('candidaturePanelView', () => {
       router.back()
       const dialog = within(await unsavedDialog())
       expect(window.location.pathname).toBe(KANBAN_PATH)
-      await user.click(dialog.getByRole('button', { name: 'Continuer l\'édition' }))
+      await user.click(dialog.getByRole('button', { name: 'Reprendre la modification' }))
 
       await vi.waitFor(() => expect(window.location.pathname).toBe(candidaturePath))
       expect(router.currentRoute.value.path).toBe(candidaturePath)
@@ -393,6 +425,35 @@ describe('candidaturePanelView', () => {
       expect(screen.queryByRole('dialog', { name: 'Modifications non enregistrées' })).not.toBeInTheDocument()
       expect(note).toHaveValue('À rappeler')
     })
+  })
+
+  it('asks before leaving the notes tab while a note is being edited, and keeps it on demand', async () => {
+    vi.mocked(getCandidatureNotes).mockResolvedValue({
+      count: 1,
+      results: [{
+        uuid: 'ffffffff-0001-0001-0001-000000000001',
+        candidature_id: CANDIDATURE_ALICE,
+        message: 'Profil solide',
+        publie_par_id: 'eeeeeeee-0001-0001-0001-000000000001',
+        publie_par_prenom: 'Marie',
+        publie_par_nom: 'Dupont',
+        publie_le: '2025-06-10T09:15:00',
+        est_privee: false,
+      }],
+    })
+    const user = setupUser()
+    const { panel } = await renderPanel([`${KANBAN_PATH}/candidatures/${CANDIDATURE_ALICE}/notes`])
+
+    await user.click(await panel.findByRole('button', { name: 'Actions sur la note de Marie Dupont' }))
+    await user.click(await screen.findByRole('menuitem', { name: 'Modifier la note' }))
+    const field = await panel.findByRole('textbox', { name: 'Modifier la note' })
+    await user.type(field, ' et motivé')
+    await user.click(panel.getByRole('tab', { name: 'Documents' }))
+    const dialog = within(await screen.findByRole('dialog', { name: 'Modifications non enregistrées' }))
+    await user.click(dialog.getByRole('button', { name: 'Reprendre la modification' }))
+
+    await vi.waitFor(() => expect(screen.queryByRole('dialog', { name: 'Modifications non enregistrées' })).not.toBeInTheDocument())
+    expect(field).toHaveValue('Profil solide et motivé')
   })
 
   it('reopens on the candidature tab when moving to the next candidature', async () => {

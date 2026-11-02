@@ -2,7 +2,7 @@
 
 ## Why CI failed
 
-The route `api/schema/redoc` reads `presentation/static/api/schema.yaml` directly to prevent dynamic DB introspection. This file is static and must be regenerated manually whenever API endpoints change. CI fails when the file is out of sync with the codebase.
+Redoc (`api/schema/redoc`) loads `api/schema/public`, which serves the static `presentation/static/api/schema.yaml` with the assembled changelog, to prevent dynamic DB introspection. This file is static and must be regenerated manually whenever API endpoints change. CI fails when the file is out of sync with the codebase.
 
 ## When to regenerate it
 
@@ -11,6 +11,8 @@ Regenerate the schema whenever you:
 - Change a serializer (fields, types, validators)
 - Change a view's HTTP methods or permissions
 - Add or modify `@extend_schema` decorators
+
+The `changelog` tag has no description in `schema.yaml`: Redoc loads `/api/schema/public`, which adds the changelog assembled from `changelog_api.d/` (see [changelog_api.md](changelog_api.md)).
 
 ## Schema split
 

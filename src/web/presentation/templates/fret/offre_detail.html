@@ -9,9 +9,9 @@
         <h1>{{ offre.title }}</h1>
         {% dsfr_table table %}
         <h2>Mission</h2>
-        <div>{{ offre.mission|linebreaks }}</div>
+        <div>{{ mission }}</div>
         <h2>Profil</h2>
-        <div>{{ offre.profile|linebreaks }}</div>
+        <div>{{ profile }}</div>
         {% url 'fret:offres' source.source_id as liste_url %}
         {% dsfr_link label="Retour aux offres" url=liste_url extra_classes="fr-icon-arrow-left-line fr-link--icon-left" %}
     </div>

@@ -43,11 +43,11 @@ env = environ.Env(
     WEB_MATOMO_SITE_ID=(int, 1),
     WEB_QDRANT_URL=(str, ""),
     WEB_QDRANT_API_KEY=(str, ""),
-    # SCALINGO_REDIS_URL is injected by the Scalingo redis addon (e.g. review apps)
-    WEB_REDIS_URL=(str, os.environ.get("SCALINGO_REDIS_URL", "redis://localhost:6379")),
+    WEB_REDIS_URL=(str, "redis://localhost:6379"),
     WEB_REDIS_DB=(str, "0"),
     WEB_REDIS_CACHE_DB=(str, "2"),
     WEB_ROBOTS_INDEXING=(bool, True),
+    WEB_FRET_ENABLED=(bool, False),
     WEB_S3_ENDPOINT_URL=(str, "http://localhost:9000"),
     WEB_S3_REGION_NAME=(str, "us-east-1"),
     WEB_S3_ACCESS_KEY_ID=(str, "rustfsadmin"),
@@ -59,6 +59,13 @@ env.prefix = "WEB_"
 DEBUG = False
 SECRET_KEY = env.str("SECRET_KEY")
 ALLOWED_HOSTS = env.list("ALLOWED_HOSTS")
+# Private network domain name of the web containers, used by ingestion to reach
+# web (see bin/start.sh). Injected by Scalingo only when the app is in a private
+# network: 1.web.<app-id>.<pn-id>.private-network.internal. allows
+# web.<app-id>.<pn-id>.private-network.internal only.
+# https://doc.scalingo.com/platform/networking/private/concepts
+if private_hostname := os.environ.get("SCALINGO_PRIVATE_HOSTNAME", "").rstrip("."):
+    ALLOWED_HOSTS.append("web." + private_hostname.split(".", 2)[2])
 SITE_ID = 1
 
 # SESSIONS
@@ -66,6 +73,10 @@ SITE_ID = 1
 SESSION_COOKIE_SECURE = True
 SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SAMESITE = "Lax"
+# RGAA 13.1 : toute limite de temps de session doit être d'au moins 20 h
+SESSION_COOKIE_AGE = 60 * 60 * 24  # 24 h depuis la dernière modification de la session
+SESSION_SAVE_EVERY_REQUEST = False
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False  # True créerait une limite non contrôlée
 CSRF_COOKIE_SECURE = True
 CSRF_TRUSTED_ORIGINS = env.list("CSRF_TRUSTED_ORIGINS", default=[])
 
@@ -113,11 +124,13 @@ INSTALLED_APPS = [
     "infrastructure.django_apps.candidate",
     "infrastructure.django_apps.recruteur",
     "infrastructure.django_apps.messagerie",
+    "infrastructure.django_apps.tag",
     "infrastructure.django_apps.users",
     "infrastructure.django_apps.commons",
     "presentation.ingestion",
     "presentation.candidate",
     "presentation.identite",
+    "presentation.recruteur",
     "presentation.ats",
 ]
 
@@ -169,13 +182,7 @@ WSGI_APPLICATION = "config.wsgi.application"
 
 
 # Database
-# SCALINGO_POSTGRESQL_URL is injected by the Scalingo postgresql addon (review apps)
-DATABASES = {
-    "default": env.db(
-        "DATABASE_URL",
-        default=os.environ.get("SCALINGO_POSTGRESQL_URL", env.NOTSET),
-    )
-}
+DATABASES = {"default": env.db("DATABASE_URL")}
 
 
 # Password validation
@@ -328,6 +335,10 @@ MATOMO_SITE_ID = env.int("MATOMO_SITE_ID")
 # ---------------------------------------
 ROBOTS_INDEXING = env.bool("ROBOTS_INDEXING")
 
+# FRET
+# ---------------------------------------
+FRET_ENABLED = env.bool("FRET_ENABLED")
+
 # CSP
 # ---------------------------------------
 connect_src = [CSP.SELF, "*.sentry.io"]
@@ -376,7 +387,7 @@ REST_FRAMEWORK = {
         "rest_framework.renderers.JSONRenderer",
     ],
     "DEFAULT_THROTTLE_CLASSES": [
-        "rest_framework.throttling.AnonRateThrottle",
+        "infrastructure.authentication.anon_rate_throttle.ClientIpAnonRateThrottle",
         "infrastructure.authentication.api_key_authentication.NonApiKeyUserRateThrottle",
         "infrastructure.authentication.api_key_authentication.ApiKeyRateThrottle",
         "infrastructure.authentication.api_key_authentication.ApiKeyRateThrottleDaily",
@@ -433,7 +444,7 @@ SPECTACULAR_SETTINGS = {
             "name": "changelog",
             "x-displayName": "Changelog",
             "x-traitTag": True,
-            "description": _doc_api_markdown("changelog_api.md"),
+            # Description added by PublicSchemaView from changelog_api.d/.
         },
         {"name": "token", "description": "Gestion de l'authentification"},
         {
@@ -499,6 +510,7 @@ HUEY = {
         "health_check_interval": 1,
     },
 }
+DEMO_AUTO_REPLY_DELAY_MINUTES = env.int("DEMO_AUTO_REPLY_DELAY_MINUTES", default=2)
 
 # API endpoints
 PISTE_OAUTH_BASE_URL = env.str("PISTE_OAUTH_BASE_URL")

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { CheckboxIndicator, CheckboxRoot } from 'reka-ui'
-import { computed, useAttrs } from 'vue'
+import { computed, useAttrs, useId } from 'vue'
 
 defineOptions({
   inheritAttrs: false,
@@ -14,6 +14,7 @@ const props = withDefaults(defineProps<{
   indeterminate?: boolean
   size?: 'sm' | 'md' | 'lg'
   error?: boolean
+  hint?: string
 }>(), {
   variant: 'default',
   disabled: false,
@@ -25,6 +26,8 @@ const props = withDefaults(defineProps<{
 const model = defineModel<boolean>()
 
 const attrs = useAttrs()
+const labelId = useId()
+const hintId = useId()
 
 const labelAttrs = computed(() => ({
   class: attrs.class,
@@ -60,6 +63,7 @@ function handleUpdate(val: unknown): void {
       `csp-checkbox--${size}`,
       { 'csp-checkbox--disabled': disabled },
       { 'csp-checkbox--error': error },
+      { 'csp-checkbox--with-hint': hint },
     ]"
   >
     <CheckboxRoot
@@ -68,6 +72,8 @@ function handleUpdate(val: unknown): void {
       :model-value="checkboxModelValue"
       :value="value"
       :disabled="disabled"
+      :aria-labelledby="hint ? labelId : undefined"
+      :aria-describedby="hint ? hintId : undefined"
       @update:model-value="handleUpdate"
     >
       <CheckboxIndicator
@@ -75,10 +81,18 @@ function handleUpdate(val: unknown): void {
         force-mount
       />
     </CheckboxRoot>
-    <span
-      class="csp-checkbox__label"
-      :class="{ 'sr-only': variant === 'checkbox-only' }"
-    >{{ label }}</span>
+    <span class="csp-checkbox__text">
+      <span
+        :id="labelId"
+        class="csp-checkbox__label"
+        :class="{ 'sr-only': variant === 'checkbox-only' }"
+      >{{ label }}</span>
+      <span
+        v-if="hint"
+        :id="hintId"
+        class="csp-checkbox__hint"
+      >{{ hint }}</span>
+    </span>
   </label>
 </template>
 
@@ -118,15 +132,13 @@ function handleUpdate(val: unknown): void {
   --csp-checkbox-indicator-dash-w: 0.625rem;
 }
 
+.csp-checkbox--with-hint {
+  align-items: flex-start;
+}
+
 .csp-checkbox--disabled {
   cursor: not-allowed;
   color: var(--text-disabled-grey);
-}
-
-.csp-checkbox--error {
-  .csp-checkbox__control {
-    border-color: var(--border-plain-error);
-  }
 }
 
 .csp-checkbox__control {
@@ -137,25 +149,53 @@ function handleUpdate(val: unknown): void {
   height: var(--csp-checkbox-size);
   flex: 0 0 auto;
   border-radius: 2px;
-  border: 1px solid var(--border-default-grey);
-  background: var(--background-default-grey);
+  border: 1px solid var(--border-action-high-blue-france);
+  background: transparent;
   padding: 0;
   cursor: inherit;
 
   &[data-state='checked'],
   &[data-state='indeterminate'] {
-    background: var(--background-action-high-blue-france);
-    border-color: var(--background-action-high-blue-france);
-  }
-
-  &[data-disabled] {
-    border-color: var(--border-disabled-grey);
-    background: var(--background-disabled-grey);
+    background: var(--background-active-blue-france);
+    border-color: var(--border-active-blue-france);
   }
 
   &:focus-visible {
     outline: 2px solid var(--csp-focus-ring-color);
     outline-offset: 2px;
+  }
+}
+
+.csp-checkbox:not(.csp-checkbox--disabled) {
+  &:hover .csp-checkbox__control {
+    background: var(--background-default-grey-hover);
+
+    &[data-state='checked'],
+    &[data-state='indeterminate'] {
+      background: var(--background-active-blue-france-hover);
+    }
+  }
+
+  &:active .csp-checkbox__control {
+    background: var(--background-default-grey-active);
+
+    &[data-state='checked'],
+    &[data-state='indeterminate'] {
+      background: var(--background-active-blue-france-active);
+    }
+  }
+}
+
+.csp-checkbox--error .csp-checkbox__control {
+  border-color: var(--border-plain-error);
+}
+
+.csp-checkbox__control[data-disabled] {
+  border-color: var(--border-disabled-grey);
+
+  &[data-state='checked'],
+  &[data-state='indeterminate'] {
+    background: var(--background-disabled-grey);
   }
 }
 
@@ -165,7 +205,11 @@ function handleUpdate(val: unknown): void {
   justify-content: center;
   width: 100%;
   height: 100%;
-  color: white;
+  color: var(--text-inverted-blue-france);
+
+  &[data-disabled] {
+    color: var(--text-disabled-grey);
+  }
 
   &[data-state='unchecked'] {
     visibility: hidden;
@@ -191,8 +235,24 @@ function handleUpdate(val: unknown): void {
   }
 }
 
+.csp-checkbox__text {
+  display: flex;
+  flex-direction: column;
+  gap: var(--csp-field-hint-gap);
+}
+
 .csp-checkbox__label {
   line-height: 1.25;
   user-select: none;
+}
+
+.csp-checkbox__hint {
+  font-size: 0.75rem;
+  color: var(--text-mention-grey);
+  user-select: none;
+}
+
+.csp-checkbox--disabled .csp-checkbox__hint {
+  color: var(--text-disabled-grey);
 }
 </style>

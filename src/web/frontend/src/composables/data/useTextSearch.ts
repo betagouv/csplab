@@ -13,7 +13,7 @@ export function useTextSearch<T>(
   debounceMs = DEFAULT_DEBOUNCE_MS,
 ) {
   const search = ref('')
-  const debouncedSearch = useDebounce(search, debounceMs)
+  const debouncedSearch = debounceMs > 0 ? useDebounce(search, debounceMs) : search
 
   function matches(row: T): boolean {
     const term = normalizeSearchText(debouncedSearch.value.trim())

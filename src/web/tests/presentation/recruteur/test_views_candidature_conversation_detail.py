@@ -11,7 +11,11 @@ from domain.recruteur.value_objects.roles import AgentOrganismeRole
 from infrastructure.django_apps.candidate.enums.type_document import TypeDocument
 from infrastructure.django_apps.candidate.models.document import DocumentQuerySet
 from infrastructure.django_apps.commons.models import AuditLogModel
-from infrastructure.django_apps.messagerie.models import MessageModel, MessageQuerySet
+from infrastructure.django_apps.messagerie.models import (
+    ConversationLectureModel,
+    MessageModel,
+    MessageQuerySet,
+)
 from infrastructure.factories.candidate.candidature_django_factory import (
     CandidatureDjangoFactory,
     create_recrutement_with_candidature,
@@ -27,9 +31,7 @@ from infrastructure.factories.messagerie.conversation_django_factory import (
 from infrastructure.factories.recruteur.recrutement_django_factory import (
     RecrutementDjangoFactory,
 )
-from presentation.recruteur.views.candidature_conversation_detail import (
-    MessagePagination,
-)
+from presentation.recruteur.serializers import ConversationMessageSerializer
 from tests.utils.conversation_views import AUTHORIZED_ROLES, HTTP_METHODS, grant
 from tests.utils.message_documents import (
     INVALID_DOCUMENTS,
@@ -38,8 +40,10 @@ from tests.utils.message_documents import (
 )
 
 TAILLE_PAGE_LIMITEE = 1
-TAILLE_PAGE_PAR_DEFAUT = 20
+TAILLE_PAGE_PAR_DEFAUT = 25
+MAX_PAGE_SIZE = 100
 NB_MESSAGES = 3
+NB_MESSAGES_AU_DELA_D_UNE_PAGE = TAILLE_PAGE_PAR_DEFAUT + 2
 
 
 def _url(organisme_uuid, recrutement_uuid, candidature_uuid, conversation_uuid):
@@ -145,6 +149,27 @@ def _superviseur_url(test_user):
     return _authorized_url(test_user, AgentOrganismeRole.SUPERVISEUR, None)
 
 
+def _conversation_over_one_page(test_user):
+    _, organisme, recrutement, candidature = grant(
+        test_user, AgentOrganismeRole.SUPERVISEUR, None
+    )
+    conversation = ConversationDjangoFactory(candidature=candidature)
+    messages = [
+        MessageDjangoFactory(conversation=conversation, contenu=f"m{index}")
+        for index in range(NB_MESSAGES_AU_DELA_D_UNE_PAGE)
+    ]
+    url = _url(organisme.id, recrutement.pk, candidature.pk, conversation.pk)
+    return url, conversation, messages
+
+
+def _contents(response):
+    return [message["content"] for message in response.json()["results"]]
+
+
+def _read_receipts(test_user):
+    return ConversationLectureModel.objects.filter(utilisateur_id=test_user.username)
+
+
 class TestCandidatureConversationDetailView:
     @HTTP_METHODS
     def test_anonymous_access_is_unauthorized(self, api_client, method):
@@ -175,6 +200,7 @@ class TestCandidatureConversationDetailView:
         )
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
+        assert not ConversationLectureModel.objects.exists()
 
     @HTTP_METHODS
     @pytest.mark.parametrize("build_ids", NOT_FOUND_CASES)
@@ -191,6 +217,7 @@ class TestCandidatureConversationDetailView:
         )
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
+        assert not ConversationLectureModel.objects.exists()
 
     @pytest.mark.parametrize(
         "method,queryset_method", [("get", "by_conversation"), ("post", "create")]
@@ -217,9 +244,8 @@ class TestCandidatureConversationDetailView:
         )
 
         assert response.status_code == status.HTTP_200_OK
-        body = response.json()
-        assert body["count"] == NB_MESSAGES
-        results = body["results"]
+        results = response.json()["results"]
+        assert len(results) == NB_MESSAGES
         assert set(results[0].keys()) == {
             "content",
             "author",
@@ -252,13 +278,141 @@ class TestCandidatureConversationDetailView:
         assert len(body["results"]) == TAILLE_PAGE_LIMITEE
         assert body["next"] is not None
 
-    def test_default_page_size_is_20(self):
-        assert MessagePagination.page_size == TAILLE_PAGE_PAR_DEFAUT
+    def test_serves_the_latest_messages_oldest_first(
+        self, authenticated_client, test_user
+    ):
+        url, _, messages = _conversation_over_one_page(test_user)
 
-    def test_out_of_range_page_returns_404(self, authenticated_client, test_user):
-        response = authenticated_client.get(_superviseur_url(test_user), {"page": 999})
+        response = authenticated_client.get(url)
+
+        assert _contents(response) == [m.contenu for m in messages[2:]]
+        assert len(_contents(response)) == TAILLE_PAGE_PAR_DEFAUT
+        assert response.json()["previous"] is None
+        older = authenticated_client.get(response.json()["next"])
+        assert _contents(older) == ["m0", "m1"]
+        assert older.json()["next"] is None
+
+    def test_limit_cannot_exceed_the_max_page_size(
+        self, authenticated_client, test_user
+    ):
+        _, organisme, recrutement, candidature = grant(
+            test_user, AgentOrganismeRole.SUPERVISEUR, None
+        )
+        conversation = ConversationDjangoFactory(candidature=candidature)
+        MessageDjangoFactory.create_batch(MAX_PAGE_SIZE + 1, conversation=conversation)
+        url = _url(organisme.id, recrutement.pk, candidature.pk, conversation.pk)
+
+        response = authenticated_client.get(url, {"limit": MAX_PAGE_SIZE + 1})
+
+        assert len(_contents(response)) == MAX_PAGE_SIZE
+        assert response.json()["next"] is not None
+
+    def test_reading_the_latest_messages_marks_the_conversation_as_read(
+        self, authenticated_client, test_user
+    ):
+        url, conversation, messages = _conversation_over_one_page(test_user)
+
+        authenticated_client.get(url)
+
+        receipt = _read_receipts(test_user).get()
+        assert receipt.conversation_id == conversation.pk
+        assert receipt.read_at == messages[-1].created_at
+
+    def test_reading_again_moves_the_receipt_forward(
+        self, authenticated_client, test_user
+    ):
+        url, conversation, _ = _conversation_over_one_page(test_user)
+        authenticated_client.get(url)
+        new_message = MessageDjangoFactory(conversation=conversation)
+
+        authenticated_client.get(url)
+
+        receipt = _read_receipts(test_user).get()
+        assert receipt.read_at == new_message.created_at
+
+    def test_loading_older_messages_leaves_the_receipt_untouched(
+        self, authenticated_client, test_user
+    ):
+        url, _, _ = _conversation_over_one_page(test_user)
+        next_url = authenticated_client.get(url).json()["next"]
+        _read_receipts(test_user).delete()
+
+        response = authenticated_client.get(next_url)
+
+        assert response.status_code == status.HTTP_200_OK
+        assert not _read_receipts(test_user).exists()
+
+    def test_head_request_does_not_mark_the_conversation_as_read(
+        self, authenticated_client, test_user
+    ):
+        url, _, _ = _conversation_over_one_page(test_user)
+
+        response = authenticated_client.head(url)
+
+        assert response.status_code == status.HTTP_200_OK
+        assert not _read_receipts(test_user).exists()
+
+    def test_conversation_without_message_leaves_no_receipt(
+        self, authenticated_client, test_user
+    ):
+        _, organisme, recrutement, candidature = grant(
+            test_user, AgentOrganismeRole.SUPERVISEUR, None
+        )
+        conversation = ConversationDjangoFactory(candidature=candidature)
+
+        response = authenticated_client.get(
+            _url(organisme.id, recrutement.pk, candidature.pk, conversation.pk)
+        )
+
+        assert response.json()["results"] == []
+        assert not _read_receipts(test_user).exists()
+
+    def test_invalid_cursor_returns_404_without_marking_as_read(
+        self, authenticated_client, test_user
+    ):
+        response = authenticated_client.get(
+            _superviseur_url(test_user), {"cursor": "garbage"}
+        )
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
+        assert not _read_receipts(test_user).exists()
+
+    def test_serialization_error_does_not_mark_as_read(
+        self, authenticated_client, test_user
+    ):
+        with patch.object(
+            ConversationMessageSerializer,
+            "to_representation",
+            side_effect=RuntimeError("boom"),
+        ):
+            response = authenticated_client.get(_superviseur_url(test_user))
+
+        assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
+        assert not _read_receipts(test_user).exists()
+
+    def test_conversation_becomes_read_in_the_conversation_list(
+        self, authenticated_client, test_user
+    ):
+        _, organisme, recrutement, candidature = grant(
+            test_user, AgentOrganismeRole.SUPERVISEUR, None
+        )
+        conversation = ConversationDjangoFactory(candidature=candidature)
+        for index in range(NB_MESSAGES_AU_DELA_D_UNE_PAGE):
+            MessageDjangoFactory(conversation=conversation, contenu=f"m{index}")
+        list_url = reverse(
+            "recruteur:organisme_recrutement_candidature_conversations",
+            kwargs={
+                "organisme_uuid": organisme.id,
+                "recrutement_uuid": recrutement.pk,
+                "candidature_uuid": candidature.pk,
+            },
+        )
+        detail_url = _url(organisme.id, recrutement.pk, candidature.pk, conversation.pk)
+        assert authenticated_client.get(list_url).json()["results"][0]["is_unread"]
+
+        authenticated_client.get(detail_url)
+
+        assert not authenticated_client.get(list_url).json()["results"][0]["is_unread"]
 
     @AUTHORIZED_ROLES
     def test_authorized_agent_replies(

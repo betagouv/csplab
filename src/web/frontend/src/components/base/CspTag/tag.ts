@@ -2,6 +2,28 @@ export type CspTagSize = 'sm' | 'md' | 'lg'
 
 export type CspTagVariant = 'static' | 'clickable' | 'selectable' | 'dismissible'
 
+export const CSP_TAG_ACCENTS = [
+  'green-tilleul-verveine',
+  'green-bourgeon',
+  'green-emeraude',
+  'green-menthe',
+  'green-archipel',
+  'blue-ecume',
+  'blue-cumulus',
+  'purple-glycine',
+  'pink-macaron',
+  'pink-tuile',
+  'yellow-tournesol',
+  'yellow-moutarde',
+  'orange-terre-battue',
+  'brown-cafe-creme',
+  'brown-caramel',
+  'brown-opera',
+  'beige-gris-galet',
+] as const
+
+export type CspTagAccent = typeof CSP_TAG_ACCENTS[number]
+
 export type CspTagRootKind = 'p' | 'a' | 'button' | 'toggle' | 'toggle-group-item'
 
 export interface ResolveTagRootInput {

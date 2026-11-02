@@ -11,7 +11,7 @@ const meta = {
   tags: ['autodocs'],
   parameters: {
     controls: {
-      include: ['open', 'side', 'align'],
+      include: ['open', 'side', 'align', 'padding'],
     },
     docs: {
       description: {
@@ -46,6 +46,15 @@ const meta = {
         defaultValue: { summary: 'start' },
       },
     },
+    padding: {
+      control: { type: 'radio' },
+      options: ['default', 'menu'] satisfies NonNullable<CspPopoverProps['padding']>[],
+      description: 'Marge intérieure : `default` pour un contenu libre, `menu` pour une liste d\'options.',
+      table: {
+        type: { summary: 'default | menu' },
+        defaultValue: { summary: 'default' },
+      },
+    },
     trigger: { control: false, table: { disable: true } },
     default: { control: false, table: { disable: true } },
     class: { control: false, table: { disable: true } },
@@ -58,6 +67,7 @@ const meta = {
   args: {
     side: 'bottom',
     align: 'start',
+    padding: 'default',
   },
   render: (args: CspPopoverProps) => ({
     components: { CspPopover, CspButton },

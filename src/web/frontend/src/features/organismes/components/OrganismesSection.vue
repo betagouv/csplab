@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import type { CreateOrganismePayload, UpdateOrganismePayload } from '../types'
-import { computed, ref, useTemplateRef, watch } from 'vue'
+import { computed, ref } from 'vue'
 import { ValidationError } from '@/api/errors'
 import CspAsyncSection from '@/components/base/CspAsyncSection/CspAsyncSection.vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspDataTable from '@/components/base/CspDataTable/CspDataTable.vue'
+import { TABLE_PAGE_SIZE } from '@/components/base/CspDataTable/table'
+import CspDrawer from '@/components/base/CspDrawer/CspDrawer.vue'
 import CspSearchBar from '@/components/base/CspSearchBar/CspSearchBar.vue'
 import CspSkeletonTable from '@/components/base/CspSkeleton/CspSkeletonTable.vue'
 import CspTableToolbar from '@/components/base/CspTableToolbar/CspTableToolbar.vue'
@@ -15,9 +17,7 @@ import { pluralize } from '@/utils/format'
 import { ORGANISMES_LIST_COLUMNS } from '../columns'
 import { provideOrganismeEdition } from '../composables/useOrganismeEdition'
 import { useOrganismes } from '../composables/useOrganismes'
-import OrganismeFormDrawer from './OrganismeFormDrawer.vue'
-
-const PAGE_SIZE = 8
+import OrganismeForm from './OrganismeForm.vue'
 
 const { organismesList, pending, error, create, creating, update, updating } = useOrganismes()
 const edition = provideOrganismeEdition()
@@ -26,12 +26,14 @@ const showSkeleton = useMinimumPending(pending)
 
 const page = ref(1)
 const creationOpen = ref(false)
+const rejectedSiret = ref<string | null>(null)
 
 const drawerOpen = computed({
   get: () => creationOpen.value || edition.requested !== null,
   set: (value) => {
     if (!value) {
       creationOpen.value = false
+      rejectedSiret.value = null
       edition.clear()
     }
   },
@@ -39,15 +41,9 @@ const drawerOpen = computed({
 
 const saving = computed(() => creating.value || updating.value)
 
-const formDrawer = useTemplateRef('formDrawer')
-
 const rows = computed(() => organismesList.value ?? [])
 
-const { search, filtered } = useTextSearch(rows, row => [row.nom, row.siret, row.gestionnaire])
-
-watch(filtered, () => {
-  page.value = 1
-})
+const { search, filtered } = useTextSearch(rows, row => [row.nom, row.siret, row.superviseurs])
 
 const countLabel = computed(() => {
   const count = filtered.value.length
@@ -64,7 +60,7 @@ async function handleCreate(payload: CreateOrganismePayload): Promise<void> {
   }
   catch (submitError) {
     if (submitError instanceof ValidationError) {
-      formDrawer.value?.setSiretError('Ce SIRET est déjà utilisé ou n\'est pas valide.')
+      rejectedSiret.value = payload.siret
       return
     }
     addToast({ variant: 'error', title: 'La création de l\'organisme a échoué' })
@@ -96,9 +92,7 @@ async function handleUpdate(payload: UpdateOrganismePayload): Promise<void> {
     >
       <template #skeleton>
         <CspSkeletonTable
-          :rows="PAGE_SIZE"
           :columns="ORGANISMES_LIST_COLUMNS.length"
-          with-footer
         />
       </template>
 
@@ -109,7 +103,6 @@ async function handleUpdate(payload: UpdateOrganismePayload): Promise<void> {
           label="Rechercher un organisme, un siret"
           hide-label
           placeholder="Rechercher un organisme, un siret"
-          class="organismes-section__search"
         />
         <CspButton
           label="Ajouter un organisme"
@@ -125,23 +118,23 @@ async function handleUpdate(payload: UpdateOrganismePayload): Promise<void> {
         :row-key="row => row.uuid"
         caption="Organismes"
         empty-label="Aucun organisme"
-        :page-size="PAGE_SIZE"
+        :page-size="TABLE_PAGE_SIZE"
       />
     </CspAsyncSection>
 
-    <OrganismeFormDrawer
-      ref="formDrawer"
+    <CspDrawer
       v-model:open="drawerOpen"
-      :organisme="edition.requested"
-      :saving="saving"
-      @create="handleCreate"
-      @update="handleUpdate"
-    />
+      :title="edition.requested ? 'Modifier l\'organisme' : 'Ajouter un organisme'"
+      size="md"
+    >
+      <OrganismeForm
+        :organisme="edition.requested"
+        :saving="saving"
+        :rejected-siret="rejectedSiret"
+        @create="handleCreate"
+        @update="handleUpdate"
+        @cancel="drawerOpen = false"
+      />
+    </CspDrawer>
   </section>
 </template>
-
-<style scoped lang="scss">
-.organismes-section__search {
-  min-width: 20rem;
-}
-</style>

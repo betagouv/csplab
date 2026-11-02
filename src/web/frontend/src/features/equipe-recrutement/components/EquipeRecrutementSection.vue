@@ -1,33 +1,33 @@
 <script setup lang="ts">
 import type { RecrutementRole } from '../types'
-import { computed, ref, useTemplateRef, watch } from 'vue'
-import { HttpError } from '@/api/errors'
+import { computed, ref, watch } from 'vue'
+import { isHttpStatus } from '@/api/errors'
 import CspAsyncSection from '@/components/base/CspAsyncSection/CspAsyncSection.vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspDataTable from '@/components/base/CspDataTable/CspDataTable.vue'
+import { TABLE_PAGE_SIZE } from '@/components/base/CspDataTable/table'
 import CspDialog from '@/components/base/CspDialog/CspDialog.vue'
+import CspDrawer from '@/components/base/CspDrawer/CspDrawer.vue'
 import CspSearchBar from '@/components/base/CspSearchBar/CspSearchBar.vue'
 import CspSkeletonTable from '@/components/base/CspSkeleton/CspSkeletonTable.vue'
 import CspTableToolbar from '@/components/base/CspTableToolbar/CspTableToolbar.vue'
 import { useMinimumPending } from '@/composables/async/useMinimumPending'
 import { useTextSearch } from '@/composables/data/useTextSearch'
 import { useToast } from '@/composables/ui/useToast'
+import { formatAgentLabel } from '@/features/agents/format'
 import { useRouteOrganisme } from '@/stores/routeOrganisme'
 import { pluralize } from '@/utils/format'
 import { EQUIPE_RECRUTEMENT_ACTIONS_COLUMN, EQUIPE_RECRUTEMENT_COLUMNS } from '../columns'
-import { useAjoutMembreEquipe } from '../composables/useAjoutMembreEquipe'
+import { useAddAgentToRecrutement } from '../composables/useAddAgentToRecrutement'
 import { useEquipeRecrutement } from '../composables/useEquipeRecrutement'
 import { provideMembreEquipeActions } from '../composables/useMembreEquipeActions'
 import { RECRUTEMENT_ROLE_LABELS } from '../constants/equipe-recrutement'
-import { formatMembreLabel } from '../format'
-import AjoutMembreEquipeDrawer from './AjoutMembreEquipeDrawer.vue'
+import AddTeamMemberForm from './AddTeamMemberForm.vue'
 
 const props = defineProps<{
   organismeUuid: string
   recrutementUuid: string
 }>()
-
-const PAGE_SIZE = 8
 
 const { membres, pending, error, revoke, revoking, changeRole } = useEquipeRecrutement(
   props.organismeUuid,
@@ -41,7 +41,7 @@ const {
   add,
   submitting,
   reset: resetAgent,
-} = useAjoutMembreEquipe(props.organismeUuid, props.recrutementUuid)
+} = useAddAgentToRecrutement(props.organismeUuid, props.recrutementUuid)
 const { revocation, roleChange } = provideMembreEquipeActions()
 const { canManageOrganisme } = useRouteOrganisme()
 const { addToast } = useToast()
@@ -49,8 +49,8 @@ const { addToast } = useToast()
 const showSkeleton = useMinimumPending(pending)
 
 const page = ref(1)
-const ajoutDrawerOpen = ref(false)
-const ajoutDrawer = useTemplateRef('ajoutDrawer')
+const addMemberDrawerOpen = ref(false)
+const addMemberEmailError = ref('')
 const revocationDialogOpen = ref(false)
 
 const columns = computed(() =>
@@ -59,13 +59,14 @@ const columns = computed(() =>
     : EQUIPE_RECRUTEMENT_COLUMNS,
 )
 
-async function handleSearchAgent(email: string) {
-  try {
-    await searchAgent(email)
-  }
-  catch {
-    addToast({ variant: 'error', title: 'La recherche a échoué' })
-  }
+function resetAgentSearch(): void {
+  addMemberEmailError.value = ''
+  resetAgent()
+}
+
+function openAddMemberDrawer(): void {
+  resetAgentSearch()
+  addMemberDrawerOpen.value = true
 }
 
 async function handleAdd(role: RecrutementRole) {
@@ -74,13 +75,13 @@ async function handleAdd(role: RecrutementRole) {
     addToast({
       variant: 'success',
       title: 'Membre ajouté',
-      description: `${formatMembreLabel(membre)} a rejoint l'équipe de recrutement.`,
+      description: `${formatAgentLabel(membre)} a rejoint l'équipe de recrutement.`,
     })
-    ajoutDrawerOpen.value = false
+    addMemberDrawerOpen.value = false
   }
   catch (submitError) {
-    if (submitError instanceof HttpError && submitError.status === 409) {
-      ajoutDrawer.value?.setEmailError('Cette personne fait déjà partie de l\'équipe.')
+    if (isHttpStatus(submitError, 409)) {
+      addMemberEmailError.value = 'Cette personne fait déjà partie de l\'équipe.'
       return
     }
     addToast({ variant: 'error', title: 'L\'ajout du membre a échoué' })
@@ -98,7 +99,7 @@ watch(() => roleChange.requested, async (change) => {
     addToast({
       variant: 'success',
       title: 'Rôle modifié',
-      description: `${formatMembreLabel(membre)} est maintenant ${RECRUTEMENT_ROLE_LABELS[role].toLowerCase()} sur ce recrutement.`,
+      description: `${formatAgentLabel(membre)} est maintenant ${RECRUTEMENT_ROLE_LABELS[role].toLowerCase()} sur ce recrutement.`,
     })
   }
   catch {
@@ -128,12 +129,12 @@ async function handleRevocation(): Promise<void> {
     addToast({
       variant: 'success',
       title: 'Membre retiré',
-      description: `${formatMembreLabel(membre)} ne fait plus partie de l'équipe de recrutement.`,
+      description: `${formatAgentLabel(membre)} ne fait plus partie de l'équipe de recrutement.`,
     })
     revocationDialogOpen.value = false
   }
   catch (revocationError) {
-    const title = revocationError instanceof HttpError && revocationError.status === 404
+    const title = isHttpStatus(revocationError, 404)
       ? 'Cet agent ne fait plus partie de l\'équipe'
       : 'Le retrait du membre a échoué'
     addToast({ variant: 'error', title })
@@ -145,10 +146,6 @@ const { search, filtered } = useTextSearch(membres, membre => [
   `${membre.nom} ${membre.prenom}`,
   membre.email,
 ])
-
-watch(filtered, () => {
-  page.value = 1
-})
 
 const countLabel = computed(() => {
   const count = filtered.value.length
@@ -176,9 +173,7 @@ const countLabel = computed(() => {
     >
       <template #skeleton>
         <CspSkeletonTable
-          :rows="PAGE_SIZE"
           :columns="columns.length"
-          with-footer
         />
       </template>
 
@@ -189,14 +184,13 @@ const countLabel = computed(() => {
           label="Rechercher un membre, un courriel"
           hide-label
           placeholder="Rechercher un membre, un courriel"
-          class="equipe-recrutement-section__search"
         />
         <CspButton
           v-if="canManageOrganisme"
           label="Ajouter un membre"
           icon="ri:user-add-line"
           is-icon-left
-          @click="ajoutDrawerOpen = true"
+          @click="openAddMemberDrawer"
         />
       </CspTableToolbar>
       <CspDataTable
@@ -205,7 +199,7 @@ const countLabel = computed(() => {
         :columns="columns"
         :row-key="row => row.uuid"
         caption="Équipe de recrutement"
-        :page-size="PAGE_SIZE"
+        :page-size="TABLE_PAGE_SIZE"
       >
         <template #empty>
           <div class="equipe-recrutement-section__empty">
@@ -222,17 +216,23 @@ const countLabel = computed(() => {
       </CspDataTable>
     </CspAsyncSection>
 
-    <AjoutMembreEquipeDrawer
-      ref="ajoutDrawer"
-      v-model:open="ajoutDrawerOpen"
-      :status="agentStatus"
-      :agent="foundAgent"
-      :searching="searching"
-      :submitting="submitting"
-      @search="handleSearchAgent"
-      @add="handleAdd"
-      @reset="resetAgent"
-    />
+    <CspDrawer
+      v-model:open="addMemberDrawerOpen"
+      title="Ajouter un membre"
+      size="md"
+    >
+      <AddTeamMemberForm
+        :status="agentStatus"
+        :agent="foundAgent"
+        :searching="searching"
+        :submitting="submitting"
+        :email-error="addMemberEmailError"
+        @search="searchAgent"
+        @add="handleAdd"
+        @reset="resetAgentSearch"
+        @cancel="addMemberDrawerOpen = false"
+      />
+    </CspDrawer>
 
     <CspDialog
       v-model:open="revocationDialogOpen"
@@ -240,7 +240,7 @@ const countLabel = computed(() => {
       size="sm"
     >
       <template v-if="revocation.requested">
-        {{ formatMembreLabel(revocation.requested) }} perdra l'accès aux candidatures de ce
+        {{ formatAgentLabel(revocation.requested) }} perdra l'accès aux candidatures de ce
         recrutement. Son compte reste rattaché à l'organisme et pourra être réintégré à
         l'équipe plus tard.
       </template>
@@ -277,10 +277,6 @@ const countLabel = computed(() => {
   color: var(--text-mention-grey);
   font-size: 0.875rem;
   max-width: 65ch;
-}
-
-.equipe-recrutement-section__search {
-  min-width: 20rem;
 }
 
 .equipe-recrutement-section__empty {

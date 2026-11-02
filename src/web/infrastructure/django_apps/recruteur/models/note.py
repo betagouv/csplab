@@ -17,6 +17,11 @@ class NoteQuerySet(models.QuerySet):
             .order_by("-created_at")
         )
 
+    def visibles_par(self, agent_id) -> "NoteQuerySet":
+        return self.filter(
+            models.Q(est_privee=False) | models.Q(publie_par_id=agent_id)
+        )
+
     def by_candidature_and_author(self, candidature_id, agent_id) -> "NoteQuerySet":
         return self.by_candidature(candidature_id).filter(publie_par_id=agent_id)
 
@@ -38,6 +43,7 @@ class NoteModel(BaseDatedModel):
     message = models.TextField()
     publie_par = agent_fk(related_name="notes_publiees")
     supprimee_le = models.DateTimeField(null=True, blank=True)
+    est_privee = models.BooleanField(default=False)
 
     objects = NoteQuerySet.as_manager()
 

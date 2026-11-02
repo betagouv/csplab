@@ -74,7 +74,7 @@ function handleCheckboxChange(): void {
       class="candidature-kanban-column__cards"
     >
       <li
-        v-for="(candidature, index) in etape.candidatures"
+        v-for="candidature in etape.candidatures"
         :key="candidature.uuid"
         class="candidature-kanban-column__card-item"
       >
@@ -82,7 +82,6 @@ function handleCheckboxChange(): void {
           :candidature="candidature"
           :board-id="boardId"
           :column-id="etape.uuid"
-          :card-index="index"
         />
       </li>
     </ul>

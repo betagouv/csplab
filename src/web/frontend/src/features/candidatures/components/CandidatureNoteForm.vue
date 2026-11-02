@@ -2,6 +2,7 @@
 import type { CandidatureParams } from '@/api/params'
 import { computed, ref, useId } from 'vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
+import CspCheckbox from '@/components/base/CspCheckbox/CspCheckbox.vue'
 import CspTextarea from '@/components/base/CspTextarea/CspTextarea.vue'
 import { useUnsavedChanges } from '@/composables/navigation/useUnsavedChanges'
 import { useToast } from '@/composables/ui/useToast'
@@ -16,10 +17,16 @@ const { addToast } = useToast()
 
 const titleId = useId()
 const message = ref('')
+const estPrivee = ref(false)
 const canSubmit = computed(() => message.value.trim().length > 0 && !creating.value)
 
-useUnsavedChanges(() => message.value !== '', () => {
+function reset(): void {
   message.value = ''
+  estPrivee.value = false
+}
+
+useUnsavedChanges(() => message.value !== '', reset, {
+  isLeftBy: (to, from) => to.params.candidatureUuid !== from.params.candidatureUuid,
 })
 
 async function submit(): Promise<void> {
@@ -27,8 +34,8 @@ async function submit(): Promise<void> {
     return
   }
   try {
-    await create(message.value.trim())
-    message.value = ''
+    await create({ message: message.value.trim(), est_privee: estPrivee.value })
+    reset()
     addToast({ variant: 'success', title: 'Note enregistrée' })
   }
   catch {
@@ -57,6 +64,13 @@ async function submit(): Promise<void> {
         :rows="3"
         placeholder="Écrivez votre note…"
         :aria-labelledby="titleId"
+      />
+      <CspCheckbox
+        v-model="estPrivee"
+        label="Note privée"
+        hint="Visible par vous uniquement"
+        size="sm"
+        :disabled="creating"
       />
       <CspButton
         type="submit"

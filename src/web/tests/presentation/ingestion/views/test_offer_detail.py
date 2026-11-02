@@ -1,8 +1,10 @@
+from dataclasses import replace
 from datetime import UTC, datetime
 from unittest.mock import MagicMock
 
 from django.urls import reverse
 from pydantic import HttpUrl
+from referentiel.entities.talentsoft_organisme import TalentsoftOrganisme
 from referentiel.exceptions.offer_errors import OfferDoesNotExist
 from referentiel.value_objects.category import Category
 from referentiel.value_objects.diploma import Diploma
@@ -10,6 +12,7 @@ from referentiel.value_objects.experience_level import ExperienceLevel
 from referentiel.value_objects.language_level import LanguageLevel
 from referentiel.value_objects.offer_criteria import OfferCriteria, OfferLanguage
 from referentiel.value_objects.offer_nature import OfferNature
+from referentiel.value_objects.required_document import RequiredDocument
 from rest_framework import status
 
 from application.ingestion.interfaces.get_offer_by_reference_input import (
@@ -25,7 +28,6 @@ from infrastructure.factories.referentiel.offer_factory import OfferFactory
 from presentation.ingestion.serializers import (
     FakeTsCodedObjectSerializer,
     FakeTsCustomFieldsSerializer,
-    FakeTsDynamicFieldSerializer,
     FakeTsOfferDetailSerializer,
     FakeTsOrganisationSerializer,
 )
@@ -96,7 +98,7 @@ def test_returns_offer_detail(mock_offer_detail_container, jwt_client):
     data = response.json()
     assert data["reference"] == offer.reference
     assert data["title"] == offer.title
-    assert data["organisation"]["name"] == offer.organization
+    assert data["organisation"] == {}
     assert data["isAnonymousOrganisation"] is False
 
 
@@ -112,7 +114,12 @@ def test_response_matches_openapi_schema(mock_offer_detail_container, jwt_client
 
 
 def test_response_has_no_undeclared_fields(mock_offer_detail_container, jwt_client):
-    offer = OfferFactory.create_entity()
+    offer = replace(
+        OfferFactory.create_entity(),
+        talentsoft_organisme=TalentsoftOrganisme(
+            entity_code="ENT-1", code=1, name="Commune de Paris"
+        ),
+    )
     _make_usecase(mock_offer_detail_container, offer=offer)
 
     response = jwt_client.get(URL, {"reference": offer.reference})
@@ -128,9 +135,10 @@ def test_response_has_no_undeclared_fields(mock_offer_detail_container, jwt_clie
     assert set(data["customFields"].keys()) == set(
         FakeTsCustomFieldsSerializer().fields.keys()
     )
-    for dynamic_field in data["customFields"].values():
+    custom_fields_serializer = FakeTsCustomFieldsSerializer()
+    for name, dynamic_field in data["customFields"].items():
         assert set(dynamic_field.keys()) == set(
-            FakeTsDynamicFieldSerializer().fields.keys()
+            custom_fields_serializer.fields[name].fields.keys()
         )
 
 
@@ -141,6 +149,7 @@ class TestOfferDetailViewDbVerified:
             diploma="Master",
             experience_level=ExperienceLevel.CONFIRME,
             specialisations=["informatique"],
+            documents_requis=[RequiredDocument.CV, RequiredDocument.LETTRE_MOTIVATION],
             languages=[OfferLanguage(iso_code="en", level=LanguageLevel.B2)],
         )
         offer_model = OfferDjangoFactory(
@@ -149,7 +158,7 @@ class TestOfferDetailViewDbVerified:
             profile="Profil recherché",
             mission="Mission du poste",
             organization="Ministère Test",
-            category=Category.A,
+            categories=[Category.A],
             offer_nature=OfferNature.TERRITORIAL,
             offer_url=HttpUrl("https://exemple.gouv.fr/offres/e2e-1"),
             country="FRA",
@@ -159,6 +168,7 @@ class TestOfferDetailViewDbVerified:
             latitude=48.8566,
             longitude=2.3522,
             publication_date=datetime(2024, 3, 1, 9, 0, tzinfo=UTC),
+            end_publication_date=datetime(2024, 9, 30, tzinfo=UTC),
             beginning_date=datetime(2024, 6, 1, tzinfo=UTC),
             application_deadline=datetime(2024, 5, 15, 12, 0, tzinfo=UTC),
             criteria=criteria.to_dict(),
@@ -199,14 +209,14 @@ class TestOfferDetailViewDbVerified:
                 "hasChildren": False,
             },
             "organisationName": "Ministère Test",
-            "organisationDescription": "Présentation de l'employeur",
+            "organisationDescription": None,
             "organisationLogoUrl": None,
             "contractDuration": "36 mois",
             "contractTypeCountry": None,
             "description1": "Mission du poste",
             "description2": "Profil recherché",
-            "description1Formatted": None,
-            "description2Formatted": None,
+            "description1Formatted": "<p>Mission du poste</p>",
+            "description2Formatted": "<p>Profil recherché</p>",
             "salaryRange": None,
             "geographicalLocation": [],
             "country": [
@@ -258,23 +268,9 @@ class TestOfferDetailViewDbVerified:
             "beginningDate": "2024-06-01T00:00:00",
             "locations": [],
             "applicationUrl": None,
-            "endPublicationDate": None,
+            "endPublicationDate": "2024-09-30T00:00:00",
             "isAnonymousOrganisation": False,
-            "organisation": {
-                "entityCode": "",
-                "name": "Ministère Test",
-                "description": "Présentation de l'employeur",
-                "url": "https://exemple.gouv.fr/offres/e2e-1",
-                "phoneNumber": None,
-                "postCode": None,
-                "geolocation": {"latitude": 48.8566, "longitude": 2.3522},
-                "parentName": None,
-                "logoUrl": None,
-                "maxDelayForConsent": None,
-                "retentionPeriod": None,
-                "generalConditions": None,
-                "personalDataConsent": None,
-            },
+            "organisation": {},
             "operationalManager": None,
             "educationLevel": {
                 "code": None,
@@ -352,6 +348,9 @@ class TestOfferDetailViewDbVerified:
                     "longText1": None,
                     "longText2": None,
                     "longText3": None,
+                    "longText1Formatted": None,
+                    "longText2Formatted": None,
+                    "longText3Formatted": None,
                 },
                 "description": {
                     "date1": None,
@@ -359,6 +358,30 @@ class TestOfferDetailViewDbVerified:
                     "longText1": "Présentation de l'employeur",
                     "longText2": "Télétravail possible",
                     "longText3": "Service des ressources humaines",
+                    "longText1Formatted": "<p>Présentation de l'employeur</p>",
+                    "longText2Formatted": "<p>Télétravail possible</p>",
+                    "longText3Formatted": "<p>Service des ressources humaines</p>",
+                },
+                "applicantCriteria": {
+                    "date1": None,
+                    "shortText1": None,
+                    "longText1": None,
+                    "longText2": None,
+                    "longText3": None,
+                    "longText1Formatted": None,
+                    "longText2Formatted": None,
+                    "longText3Formatted": None,
+                    "customCodeTable1": {
+                        "code": None,
+                        "clientCode": "Doc_CV_LM",
+                        "label": "L'envoi du CV et d'une lettre de motivation "
+                        "est obligatoire",
+                        "active": True,
+                        "parentCode": None,
+                        "type": "Documents à transmettre",
+                        "parentType": "",
+                        "hasChildren": False,
+                    },
                 },
                 "location": {
                     "date1": None,
@@ -366,6 +389,9 @@ class TestOfferDetailViewDbVerified:
                     "longText1": None,
                     "longText2": None,
                     "longText3": None,
+                    "longText1Formatted": None,
+                    "longText2Formatted": None,
+                    "longText3Formatted": None,
                 },
                 "offerCustomBlock1": {
                     "date1": None,
@@ -373,6 +399,9 @@ class TestOfferDetailViewDbVerified:
                     "longText1": "Poste à pourvoir immédiatement",
                     "longText2": None,
                     "longText3": None,
+                    "longText1Formatted": "<p>Poste à pourvoir immédiatement</p>",
+                    "longText2Formatted": None,
+                    "longText3Formatted": None,
                 },
                 "origin": {
                     "date1": None,
@@ -380,6 +409,9 @@ class TestOfferDetailViewDbVerified:
                     "longText1": None,
                     "longText2": None,
                     "longText3": None,
+                    "longText1Formatted": None,
+                    "longText2Formatted": None,
+                    "longText3Formatted": None,
                 },
             },
         }
@@ -410,6 +442,7 @@ class TestOfferDetailViewDbVerified:
         response = jwt_client.get(URL, {"reference": offer_model.reference})
 
         assert response.status_code == status.HTTP_200_OK
+        assert response.json()["organisationDescription"] == "Description de la commune"
         assert response.json()["organisation"] == {
             "entityCode": "ENT-1",
             "name": "Commune de Paris",

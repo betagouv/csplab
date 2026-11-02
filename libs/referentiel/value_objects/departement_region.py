@@ -95,6 +95,49 @@ _register(Region(code="03"), GeographicalArea.AMERIQUE, *_departements("973"))
 _register(Region(code="04"), GeographicalArea.AFRIQUE, *_departements("974"))
 _register(Region(code="06"), GeographicalArea.AFRIQUE, *_departements("976"))
 
+_REGION_DOM = Region(code="DOM")
+_REGION_TOM = Region(code="TOM")
+_DOM_DEPARTMENTS = {
+    department.code for department in _departements("971", "972", "973", "974", "976")
+}
+_TOM_DEPARTMENTS = {
+    department.code
+    for department in _departements("975", "986", "987", "988", "SPM", "WLF")
+}
+
 
 def region_et_zone_pour_departement(departement: Department) -> RegionEtZone | None:
     return _DEPARTEMENT_VERS_REGION_ET_ZONE.get(departement.code)
+
+
+def overseas_region_for_department(department: Department) -> Region | None:
+    if department.code in _DOM_DEPARTMENTS:
+        return _REGION_DOM
+    if department.code in _TOM_DEPARTMENTS:
+        return _REGION_TOM
+    return None
+
+
+_ZONE_PAR_COLLECTIVITE: dict[str, GeographicalArea] = {
+    department.code: GeographicalArea.AMERIQUE
+    for department in _departements("975", "SPM")
+} | {
+    department.code: GeographicalArea.OCEANIE
+    for department in _departements("986", "WLF", "987", "988")
+}
+
+
+def zone_pour_departement(departement: Department) -> GeographicalArea | None:
+    region_et_zone = region_et_zone_pour_departement(departement)
+    if region_et_zone is not None:
+        return region_et_zone[1]
+    return _ZONE_PAR_COLLECTIVITE.get(departement.code)
+
+
+def department_belongs_to_region(department: Department, region: Region) -> bool:
+    if department.code in _TOM_DEPARTMENTS:
+        return region == _REGION_TOM
+    if department.code in _DOM_DEPARTMENTS and region == _REGION_DOM:
+        return True
+    region_and_area = region_et_zone_pour_departement(department)
+    return region_and_area is not None and region_and_area[0] == region

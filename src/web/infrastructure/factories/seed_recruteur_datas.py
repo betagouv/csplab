@@ -116,8 +116,8 @@ _ORGANISMES_SPECS = [
     },
 ]
 
-# Sources des offres du seed (visibles dans /fret/) : Marie n'a que la première,
-# Marc les deux, les autres agents aucune.
+# Sources des offres du seed (toutes visibles dans /fret/, sans authentification) :
+# Marie est rattachée à la première, Marc aux deux, les autres agents à aucune.
 _SOURCE_MTE_UUID = UUID("00000000-0000-0000-0000-0000000000a1")
 _SOURCE_BRIANCON_UUID = UUID("00000000-0000-0000-0000-0000000000a2")
 _SOURCES_SPECS = {
@@ -180,49 +180,49 @@ _OFFRES_ACTIVES_SPECS = [
         "title": "Chargé de mission numérique",
         "reference": "REF-2025-001",
         "verse": Verse.FPE.value,
-        "category": Category.A.value,
+        "categories": [Category.A.value],
         "publication_date": datetime(2025, 6, 22, tzinfo=UTC),
     },
     {
         "title": "Responsable RH",
         "reference": "REF-2025-002",
         "verse": Verse.FPE.value,
-        "category": Category.A.value,
+        "categories": [Category.A.value],
         "publication_date": datetime(2025, 6, 22, tzinfo=UTC),
     },
     {
         "title": "Ingénieur infrastructure cloud",
         "reference": "REF-2025-003",
         "verse": Verse.FPE.value,
-        "category": Category.A.value,
+        "categories": [Category.A.value],
         "publication_date": datetime(2025, 6, 21, tzinfo=UTC),
     },
     {
         "title": "Juriste droit public",
         "reference": "REF-2025-004",
         "verse": Verse.FPT.value,
-        "category": Category.A.value,
+        "categories": [Category.A.value],
         "publication_date": datetime(2025, 6, 21, tzinfo=UTC),
     },
     {
         "title": "Chargé de communication",
         "reference": "REF-2025-005",
         "verse": Verse.FPE.value,
-        "category": Category.B.value,
+        "categories": [Category.B.value],
         "publication_date": datetime(2025, 6, 2, tzinfo=UTC),
     },
     {
         "title": "Analyste budgétaire",
         "reference": "REF-2025-006",
         "verse": Verse.FPE.value,
-        "category": Category.A.value,
+        "categories": [Category.A.value],
         "publication_date": datetime(2025, 6, 1, tzinfo=UTC),
     },
     {
         "title": "Chargé de mission",
         "reference": "REF-2025-007",
         "verse": Verse.FPE.value,
-        "category": Category.A.value,
+        "categories": [Category.A.value],
         "publication_date": datetime(2025, 6, 1, tzinfo=UTC),
     },
 ]
@@ -232,7 +232,7 @@ _OFFRES_ARCHIVEES_SPECS = [
         "title": "Directeur des systèmes d'information",
         "reference": "REF-2024-A01",
         "verse": Verse.FPE.value,
-        "category": Category.A.value,
+        "categories": [Category.A.value],
         "publication_date": datetime(2024, 12, 1, tzinfo=UTC),
         "archived_at": timezone.make_aware(datetime(2025, 3, 1)),
     },
@@ -240,7 +240,7 @@ _OFFRES_ARCHIVEES_SPECS = [
         "title": "Chef de projet transformation numérique",
         "reference": "REF-2024-A02",
         "verse": Verse.FPE.value,
-        "category": Category.A.value,
+        "categories": [Category.A.value],
         "publication_date": datetime(2024, 11, 15, tzinfo=UTC),
         "archived_at": timezone.make_aware(datetime(2025, 2, 15)),
     },
@@ -248,7 +248,7 @@ _OFFRES_ARCHIVEES_SPECS = [
         "title": "Conseiller en mobilité professionnelle",
         "reference": "REF-2024-A03",
         "verse": Verse.FPT.value,
-        "category": Category.B.value,
+        "categories": [Category.B.value],
         "publication_date": datetime(2024, 10, 1, tzinfo=UTC),
         "archived_at": timezone.make_aware(datetime(2025, 1, 15)),
     },
@@ -259,14 +259,14 @@ _OFFRES_BRIANCON_SPECS = [
         "title": "Agent technique polyvalent",
         "reference": "REF-2025-B01",
         "verse": Verse.FPT.value,
-        "category": Category.C.value,
+        "categories": [Category.C.value],
         "publication_date": datetime(2025, 5, 12, tzinfo=UTC),
     },
     {
         "title": "Responsable des services techniques",
         "reference": "REF-2025-B02",
         "verse": Verse.FPT.value,
-        "category": Category.B.value,
+        "categories": [Category.B.value],
         "publication_date": datetime(2025, 5, 20, tzinfo=UTC),
     },
 ]
@@ -537,7 +537,7 @@ def seed_recruteur_datas(force: bool = False) -> dict:
         )
 
         # -------------------------------------------------------------- #
-        # Sources (rattachées aux agents pour les pages /fret/)          #
+        # Sources (rattachées aux agents)                                #
         # -------------------------------------------------------------- #
         sources = {
             source_id: SourceDjangoFactory(source_id=source_id, slug=slug)

@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from django.conf import settings
 from drf_spectacular.utils import extend_schema_field
 from referentiel.value_objects.category import Category
@@ -13,6 +15,7 @@ from domain.recruteur.value_objects.roles import (
     AgentRecrutementRole,
 )
 from infrastructure.django_apps.candidate.enums.type_document import TypeDocument
+from infrastructure.django_apps.candidate.models.candidature import CandidatureModel
 from infrastructure.django_apps.candidate.models.document import DocumentModel
 from infrastructure.django_apps.commons.models import AuditLogModel
 from infrastructure.django_apps.messagerie.models import (
@@ -31,8 +34,13 @@ from infrastructure.django_apps.recruteur.models.recrutement import (
     RecrutementAgentModel,
     RecrutementModel,
 )
+from infrastructure.django_apps.tag.models import TagCategory, TagColor, TagModel
 from infrastructure.django_apps.users.models import ProfilAgentModel
-from presentation.commons.serializers import LocalisationSerializer, OrganismeSerializer
+from presentation.commons.serializers import (
+    LocalisationSerializer,
+    OrganismeSerializer,
+    authorized_actions_field,
+)
 
 # Single source of choices for every `categorie` field of an etape. drf-spectacular
 # names enums after the field, so serializers declaring the same field with different
@@ -41,20 +49,9 @@ from presentation.commons.serializers import LocalisationSerializer, OrganismeSe
 CATEGORIE_ETAPE_CHOICES = [(c.name, c.value) for c in CategorieEtapeRecrutement]
 
 
-class OrganismeDetailSerializer(serializers.Serializer):
-    uuid = serializers.UUIDField(source="organisme_uuid")
-    nom = serializers.CharField()
-    versant = serializers.ChoiceField(choices=[c.value for c in Verse])
-    siret = serializers.CharField(min_length=14, max_length=14)
-    gestionnaire = serializers.CharField(allow_null=True)
-    gestion_ats = serializers.BooleanField()
-    date_derniere_activite = serializers.DateTimeField()
-    date_creation = serializers.DateTimeField()
-
-
 class OrganismesListSerializer(serializers.ModelSerializer):
     uuid = serializers.UUIDField(source="id")
-    gestionnaire = serializers.CharField(allow_null=True)
+    superviseurs = serializers.SerializerMethodField()
     gestion_ats = serializers.BooleanField(source="managed_ats")
     date_derniere_activite = serializers.DateTimeField(source="last_activity_date")
     date_creation = serializers.DateTimeField(source="created_at")
@@ -68,7 +65,7 @@ class OrganismesListSerializer(serializers.ModelSerializer):
             "nom",
             "versant",
             "siret",
-            "gestionnaire",
+            "superviseurs",
             "gestion_ats",
             "date_derniere_activite",
             "date_creation",
@@ -77,12 +74,51 @@ class OrganismesListSerializer(serializers.ModelSerializer):
         )
         extra_kwargs = {"siret": {"min_length": 14}}
 
+    def get_superviseurs(self, organisme) -> str:
+        return ", ".join(
+            liaison.agent.utilisateur.get_full_name()
+            for liaison in organisme.superviseurs_actifs
+        )
 
-class CreateOrganismeSerializer(serializers.Serializer):
-    nom = serializers.CharField()
-    siret = serializers.CharField(min_length=14, max_length=14)
-    versant = serializers.ChoiceField(choices=[c.value for c in Verse])
-    gestion_ats = serializers.BooleanField()
+
+class CreateOrganismeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OrganismeModel
+        fields = ["nom", "siret", "versant", "gestion_ats"]
+        extra_kwargs = {
+            # duplicates are rejected by the create_organisme service
+            "siret": {"min_length": 14, "validators": []},
+            "gestion_ats": {"required": True, "allow_null": False},
+        }
+
+
+class OrganismeDetailSerializer(serializers.ModelSerializer):
+    uuid = serializers.UUIDField(source="id", read_only=True)
+    siret = serializers.CharField(min_length=14, max_length=14, read_only=True)
+    gestion_ats = serializers.BooleanField(read_only=True)
+    date_derniere_activite = serializers.DateTimeField(read_only=True)
+    date_creation = serializers.DateTimeField(read_only=True)
+    # TODO : fill with the active superviseurs (comma-separated, as in
+    # OrganismesListSerializer) when the detail view switches to ADR-009 style
+    # (it still feeds this serializer dicts, hence the empty placeholder)
+    superviseurs = serializers.SerializerMethodField()
+
+    class Meta:
+        model = OrganismeModel
+        fields = [
+            "uuid",
+            "nom",
+            "versant",
+            "siret",
+            "superviseurs",
+            "gestion_ats",
+            "date_derniere_activite",
+            "date_creation",
+        ]
+        read_only_fields = fields
+
+    def get_superviseurs(self, organisme) -> str:
+        return ""
 
 
 class UpdateOrganismeSerializer(serializers.Serializer):
@@ -123,32 +159,92 @@ class ResponsableSerializer(serializers.Serializer):
 
 
 class CandidaturesActivesSerializer(serializers.Serializer):
-    total = serializers.IntegerField(allow_null=True)
-    a_traiter = serializers.IntegerField(allow_null=True)
-    en_cours = serializers.IntegerField(allow_null=True)
+    total = serializers.IntegerField(source="candidatures_total", allow_null=True)
+    a_traiter = serializers.IntegerField(
+        source="candidatures_a_traiter", allow_null=True
+    )
+    en_cours = serializers.IntegerField(source="candidatures_en_cours", allow_null=True)
 
 
-class RecrutementsSerializer(serializers.Serializer):
-    uuid = serializers.UUIDField(source="offer_id")
-    intitule = serializers.CharField()
-    reference_csp = serializers.CharField()
+class UnreadConversationsSerializer(serializers.Serializer):
+    unread_conversations = serializers.SerializerMethodField()
+
+    def get_unread_conversations(self, instance: object) -> int:
+        return 0
+
+
+class RecrutementsSerializer(
+    UnreadConversationsSerializer, serializers.ModelSerializer
+):
+    uuid = serializers.UUIDField(source="offre_id")
+    intitule = serializers.CharField(source="offre.title")
+    reference_csp = serializers.CharField(source="offre.code_emploi_csp")
     nature_offre = serializers.ChoiceField(
+        source="offre.offer_nature",
         choices=[(c.name, c.value) for c in OfferNature],
         allow_null=True,
     )
     responsables = ResponsableSerializer(many=True)
+    authorized_actions = authorized_actions_field()
+
+    def to_representation(self, instance: RecrutementModel) -> dict:
+        data = super().to_representation(instance)
+        data["reference_csp"] = data["reference_csp"] or ""
+        data["nature_offre"] = data["nature_offre"] or ""
+        return data
 
 
 class RecrutementsActifsSerializer(RecrutementsSerializer):
-    date_publication = serializers.DateTimeField()
-    candidatures = CandidaturesActivesSerializer(allow_null=True)
+    date_publication = serializers.DateTimeField(source="offre.publication_date")
+    candidatures = CandidaturesActivesSerializer(source="*", allow_null=True)
     derniere_activite = serializers.DateTimeField()
+
+    class Meta:
+        model = RecrutementModel
+        fields = [
+            "unread_conversations",
+            "uuid",
+            "intitule",
+            "reference_csp",
+            "nature_offre",
+            "responsables",
+            "authorized_actions",
+            "date_publication",
+            "candidatures",
+            "derniere_activite",
+        ]
+
+
+class RecruteField(serializers.CharField):
+    def get_attribute(self, instance: RecrutementModel) -> str | None:
+        etapes_acceptees = instance.etapes_acceptees  # type: ignore[attr-defined]
+        if not etapes_acceptees:
+            return None
+        candidatures = etapes_acceptees[0].candidatures.all()
+        if not candidatures:
+            return None
+        return candidatures[0].candidat.utilisateur.get_full_name()
 
 
 class RecrutementsArchivesSerializer(RecrutementsSerializer):
-    date_archivage = serializers.DateTimeField()
+    date_archivage = serializers.DateTimeField(source="offre.archived_at")
     finalise = serializers.BooleanField()
-    recrute = serializers.CharField(allow_null=True)
+    recrute = RecruteField(allow_null=True)
+
+    class Meta:
+        model = RecrutementModel
+        fields = [
+            "unread_conversations",
+            "uuid",
+            "intitule",
+            "reference_csp",
+            "nature_offre",
+            "responsables",
+            "authorized_actions",
+            "date_archivage",
+            "finalise",
+            "recrute",
+        ]
 
 
 # ---------------------------------------------------------------------------
@@ -162,7 +258,7 @@ class CandidatSerializer(serializers.Serializer):
     prenom = serializers.CharField()
 
 
-class CandidatureSerializer(serializers.Serializer):
+class CandidatureSerializer(UnreadConversationsSerializer):
     uuid = serializers.UUIDField()
     date_soumission = serializers.DateTimeField()
     date_derniere_activite = serializers.DateTimeField()
@@ -242,9 +338,14 @@ class RecrutementDetailSerializer(serializers.ModelSerializer):
     localisation = OffreLocalisationField()
     organisme_recruteur = OrganismeSerializer(source="organisme")
     categorie_offre = serializers.ChoiceField(
-        source="offre.category", choices=[(c.name, c.value) for c in Category]
+        source="offre.main_category", choices=[(c.name, c.value) for c in Category]
     )
     etapes = EtapesOrdonneesField()
+    recrutement_role = serializers.ChoiceField(
+        choices=[(r.value, r.value) for r in AgentRecrutementRole],
+        allow_null=True,
+        help_text="Rôle de l'utilisateur courant sur ce recrutement (null si aucun).",
+    )
 
     class Meta:
         model = RecrutementModel
@@ -257,6 +358,7 @@ class RecrutementDetailSerializer(serializers.ModelSerializer):
             "organisme_recruteur",
             "categorie_offre",
             "etapes",
+            "recrutement_role",
         ]
 
 
@@ -265,12 +367,60 @@ class RecrutementDetailKanbanSerializer(serializers.Serializer):
     etapes = EtapeRecrutementDetailedCandidaturesSerializer(many=True)
 
 
-class CandidatureListeSerializer(serializers.Serializer):
-    uuid = serializers.UUIDField()
-    date_soumission = serializers.DateTimeField()
-    candidat = CandidatSerializer()
-    date_derniere_activite = serializers.DateTimeField()
-    etape = EtapeRecrutementSerializer()
+# Computed fields of CandidatureListeSerializer: plain fields overriding get_attribute,
+# not SerializerMethodField, so drf-spectacular does not flag them `readOnly` and the
+# schema stays identical to the former plain Serializer (see OffreArchiveeField).
+@extend_schema_field(CandidatSerializer())
+class CandidatureCandidatField(serializers.Field):
+    def get_attribute(self, instance: CandidatureModel) -> dict:
+        utilisateur = instance.candidat.utilisateur
+        return {
+            "uuid": instance.candidat_id,
+            "nom": utilisateur.last_name,
+            "prenom": utilisateur.first_name,
+        }
+
+    def to_representation(self, value: dict) -> dict:
+        return CandidatSerializer(value).data
+
+
+@extend_schema_field(EtapeRecrutementSerializer())
+class CandidatureEtapeField(serializers.Field):
+    def get_attribute(self, instance: CandidatureModel) -> dict:
+        etape = instance.etape
+        return {
+            "etape_uuid": etape.id,
+            "nom": etape.nom,
+            "categorie": CategorieEtapeRecrutement(etape.categorie).name,
+        }
+
+    def to_representation(self, value: dict) -> dict:
+        return EtapeRecrutementSerializer(value).data
+
+
+class DerniereActiviteField(serializers.DateTimeField):
+    def get_attribute(self, instance: CandidatureModel) -> datetime:
+        return instance.updated_by_recruteur or instance.updated_at
+
+
+class CandidatureListeSerializer(serializers.ModelSerializer):
+    unread_conversations = serializers.IntegerField(read_only=True)
+    uuid = serializers.UUIDField(source="id")
+    date_soumission = serializers.DateTimeField(source="created_at")
+    candidat = CandidatureCandidatField()
+    date_derniere_activite = DerniereActiviteField()
+    etape = CandidatureEtapeField()
+
+    class Meta:
+        model = CandidatureModel
+        fields = [
+            "unread_conversations",
+            "uuid",
+            "date_soumission",
+            "candidat",
+            "date_derniere_activite",
+            "etape",
+        ]
 
 
 # ---------------------------------------------------------------------------
@@ -429,6 +579,7 @@ class NoteSerializer(serializers.ModelSerializer):
     )
     publie_par_nom = serializers.CharField(source="publie_par.utilisateur.last_name")
     publie_le = serializers.DateTimeField(source="created_at")
+    est_privee = serializers.BooleanField()
 
     class Meta:
         model = NoteModel
@@ -440,6 +591,7 @@ class NoteSerializer(serializers.ModelSerializer):
             "publie_par_prenom",
             "publie_par_nom",
             "publie_le",
+            "est_privee",
         ]
 
 
@@ -448,18 +600,29 @@ class NoteDetailSerializer(serializers.ModelSerializer):
     candidature_id = serializers.UUIDField()
     message = serializers.CharField()
     publie_par_id = serializers.UUIDField()
+    est_privee = serializers.BooleanField()
 
     class Meta:
         model = NoteModel
-        fields = ["uuid", "candidature_id", "message", "publie_par_id"]
+        fields = ["uuid", "candidature_id", "message", "publie_par_id", "est_privee"]
 
 
 class CreateNoteSerializer(serializers.Serializer):
     message = serializers.CharField()
+    est_privee = serializers.BooleanField(required=False, default=False)
 
 
 class UpdateNoteSerializer(serializers.Serializer):
     message = serializers.CharField()
+    est_privee = serializers.BooleanField(required=False)
+
+
+class NoteVisibiliteSerializer(serializers.Serializer):
+    est_privee = serializers.BooleanField()
+
+
+class AddNoteTagSerializer(serializers.Serializer):
+    tag_uuid = serializers.UUIDField()
 
 
 # ---------------------------------------------------------------------------
@@ -549,13 +712,12 @@ class AuditLogSerializer(serializers.ModelSerializer):
 
 
 class ConversationSerializer(serializers.ModelSerializer):
-    # last_message_created_at is annotated, premiers_messages and derniers_messages
-    # are prefetched by ConversationQuerySet.by_candidature
     uuid = serializers.UUIDField(source="id")
     creator = serializers.SerializerMethodField()
     last_message_content = serializers.SerializerMethodField()
     last_message_author = serializers.SerializerMethodField()
     last_message_created_at = serializers.DateTimeField()
+    is_unread = serializers.BooleanField(read_only=True)
 
     class Meta:
         model = ConversationModel
@@ -567,6 +729,7 @@ class ConversationSerializer(serializers.ModelSerializer):
             "last_message_content",
             "last_message_author",
             "last_message_created_at",
+            "is_unread",
         ]
 
     def get_creator(self, conversation: ConversationModel) -> str:
@@ -666,3 +829,32 @@ class CreateMessageSerializer(serializers.Serializer):
 
 class CreateConversationSerializer(CreateMessageSerializer):
     objet = serializers.CharField(max_length=settings.CONVERSATION_OBJET_MAX_LENGTH)
+
+
+# ---------------------------------------------------------------------------
+# Serializers pour les étiquettes d'un organisme
+# ---------------------------------------------------------------------------
+
+
+class TagSerializer(serializers.ModelSerializer):
+    uuid = serializers.UUIDField(source="id")
+    usage_count = serializers.IntegerField(read_only=True, default=0)
+
+    class Meta:
+        model = TagModel
+        fields = ["uuid", "name", "category", "color", "usage_count"]
+
+
+class TagListQuerySerializer(serializers.Serializer):
+    category = serializers.ChoiceField(choices=TagCategory.choices, required=False)
+
+
+class CreateTagSerializer(serializers.Serializer):
+    name = serializers.CharField(max_length=25)
+    category = serializers.ChoiceField(choices=TagCategory.choices)
+    color = serializers.ChoiceField(choices=TagColor.choices, default=TagColor.BLEU)
+
+
+class UpdateTagSerializer(serializers.Serializer):
+    name = serializers.CharField(max_length=25)
+    color = serializers.ChoiceField(choices=TagColor.choices)

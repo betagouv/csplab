@@ -7,6 +7,7 @@ import CspDrawer from '@/components/base/CspDrawer/CspDrawer.vue'
 import CspSeparator from '@/components/base/CspSeparator/CspSeparator.vue'
 import CspTag from '@/components/base/CspTag/CspTag.vue'
 import CspTagGroup from '@/components/base/CspTag/CspTagGroup.vue'
+import { pluralize } from '@/utils/format'
 
 const props = defineProps<{
   open: boolean
@@ -31,6 +32,8 @@ watch(() => props.open, (isOpen) => {
 })
 
 const selectedCount = computed(() => props.selectedCandidatureUuids.size)
+const selectedCountLabel = computed(() =>
+  `${selectedCount.value} ${pluralize(selectedCount.value, 'candidature sélectionnée', 'candidatures sélectionnées')}`)
 
 const canConfirm = computed(() => {
   return selectedCount.value > 0 && selectedEtapeUuid.value !== '' && props.sourceEtape && selectedEtapeUuid.value !== props.sourceEtape.uuid
@@ -99,7 +102,7 @@ const selectedUuidsModel = computed({
     >
       <section class="changer-etape-drawer__selection">
         <p class="changer-etape-drawer__count">
-          {{ selectedCount }} candidature{{ selectedCount > 1 ? 's' : '' }} sélectionnée{{ selectedCount > 1 ? 's' : '' }}
+          {{ selectedCountLabel }}
         </p>
 
         <div class="changer-etape-drawer__tags">
@@ -250,18 +253,17 @@ const selectedUuidsModel = computed({
   flex: 0 0 auto;
   margin-top: 0.0625rem;
   border-radius: 50%;
-  border: 1px solid var(--border-default-grey);
+  border: 1px solid var(--border-action-high-blue-france);
   background: transparent;
   padding: 0;
   cursor: inherit;
 
   &[data-state='checked'] {
-    border-color: var(--background-action-high-blue-france);
+    border-color: var(--border-active-blue-france);
   }
 
   &[data-disabled] {
     border-color: var(--border-disabled-grey);
-    background: var(--background-disabled-grey);
   }
 
   &:focus-visible {
@@ -270,12 +272,26 @@ const selectedUuidsModel = computed({
   }
 }
 
+.changer-etape-drawer__radio:not(.changer-etape-drawer__radio--current) {
+  &:hover .changer-etape-drawer__radio-control {
+    background: var(--background-default-grey-hover);
+  }
+
+  &:active .changer-etape-drawer__radio-control {
+    background: var(--background-default-grey-active);
+  }
+}
+
 .changer-etape-drawer__radio-indicator {
   display: block;
   width: 0.5rem;
   height: 0.5rem;
   border-radius: 50%;
-  background: var(--background-action-high-blue-france);
+  background: var(--background-active-blue-france);
+
+  &[data-disabled] {
+    background: var(--background-disabled-grey);
+  }
 }
 
 .changer-etape-drawer__radio-content {

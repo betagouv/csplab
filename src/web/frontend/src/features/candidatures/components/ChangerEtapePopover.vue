@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import type { EtapeRecrutement } from '../types'
-import { computed, ref, watch } from 'vue'
+import { ref } from 'vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspPopover from '@/components/base/CspPopover/CspPopover.vue'
-import CspRadioGroup from '@/components/base/CspRadioGroup/CspRadioGroup.vue'
+import EtapeChangeForm from './EtapeChangeForm.vue'
 
-const props = defineProps<{
+defineProps<{
   etapes: EtapeRecrutement[]
   currentEtapeUuid: string
 }>()
@@ -15,26 +15,9 @@ const emit = defineEmits<{
 }>()
 
 const open = ref(false)
-const selectedEtapeUuid = ref('')
 
-watch(open, () => {
-  selectedEtapeUuid.value = ''
-})
-
-const options = computed(() => props.etapes.map((etape) => {
-  const isCurrent = etape.uuid === props.currentEtapeUuid
-  return {
-    value: etape.uuid,
-    label: isCurrent ? `${etape.nom} (étape actuelle)` : etape.nom,
-    disabled: isCurrent,
-  }
-}))
-
-function handleConfirm(): void {
-  if (!selectedEtapeUuid.value) {
-    return
-  }
-  emit('confirm', selectedEtapeUuid.value)
+function handleConfirm(targetEtapeUuid: string): void {
+  emit('confirm', targetEtapeUuid)
   open.value = false
 }
 </script>
@@ -53,28 +36,10 @@ function handleConfirm(): void {
         size="sm"
       />
     </template>
-    <div class="changer-etape-popover">
-      <CspRadioGroup
-        v-model="selectedEtapeUuid"
-        label="Nouvelle étape"
-        name="etape"
-        :options="options"
-      />
-      <CspButton
-        label="Valider"
-        size="sm"
-        :disabled="!selectedEtapeUuid"
-        @click="handleConfirm"
-      />
-    </div>
+    <EtapeChangeForm
+      :etapes="etapes"
+      :current-etape-uuid="currentEtapeUuid"
+      @confirm="handleConfirm"
+    />
   </CspPopover>
 </template>
-
-<style scoped lang="scss">
-.changer-etape-popover {
-  display: flex;
-  flex-direction: column;
-  gap: var(--csp-space-4);
-  align-items: flex-start;
-}
-</style>

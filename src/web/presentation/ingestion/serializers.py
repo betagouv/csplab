@@ -1,4 +1,5 @@
 import gettext
+from urllib.parse import urlparse
 
 import pycountry
 from drf_spectacular.utils import extend_schema_field
@@ -6,6 +7,9 @@ from referentiel.value_objects.area import GeographicalArea
 from referentiel.value_objects.category import Category
 from referentiel.value_objects.contract_kind import ContractKind
 from referentiel.value_objects.country import Country
+from referentiel.value_objects.departement_region import (
+    department_belongs_to_region,
+)
 from referentiel.value_objects.department import Department
 from referentiel.value_objects.diploma import Diploma
 from referentiel.value_objects.domaine_fonctionnel import DomaineFonctionnel
@@ -21,14 +25,29 @@ from referentiel.value_objects.offer_conditions import (
 )
 from referentiel.value_objects.offer_nature import OfferNature
 from referentiel.value_objects.region import Region
+from referentiel.value_objects.required_document import RequiredDocument
 from referentiel.value_objects.verse import Verse
 from rest_framework import serializers
 
+from application.ingestion.services.list_public_organismes import (
+    PUBLIC_ORGANISME_REFERENTIELS,
+)
+from application.ingestion.services.metier_functional_areas import (
+    get_metier_functional_areas,
+)
 from infrastructure.django_apps.ingestion.models.talentsoft_organisme import (
     TalentsoftOrganismeModel,
 )
+from infrastructure.django_apps.recruteur.models.organisme import OrganismeModel
 from presentation.api.serializers import GenericErrorSerializer
-from presentation.commons.serializers import LocalisationSerializer, OrganismeSerializer
+from presentation.commons.markdown import forbidden_markdown
+from presentation.commons.serializers import (
+    LocalisationSerializer,
+    OrganismeSerializer,
+    validate_country_code,
+)
+
+LEGIFRANCE_HOSTS = frozenset({"legifrance.gouv.fr", "www.legifrance.gouv.fr"})
 
 
 def _parse_enum_list(value, enum_cls, error_label, excluded=frozenset()):
@@ -130,7 +149,7 @@ class ListOffersResponseSerializer(serializers.Serializer):
     titre = serializers.CharField(source="title")
     organisation = serializers.CharField(source="organization")
     nature_offre = serializers.CharField(source="offer_nature", allow_null=True)
-    categorie = serializers.CharField(source="category", allow_null=True)
+    categories = serializers.ListField(child=serializers.CharField())
     debut_publication = serializers.DateTimeField(source="publication_date")
     url_offre = serializers.CharField(source="offer_url", allow_null=True)
     date_archivage = serializers.DateTimeField(source="archived_at", allow_null=True)
@@ -449,19 +468,24 @@ class FakeTsOfferSummarySerializer(serializers.Serializer):
 
 
 class FakeTsOrganisationSerializer(serializers.Serializer):
-    entityCode = serializers.CharField()
-    name = serializers.CharField()
-    description = serializers.CharField(allow_null=True)
-    url = serializers.CharField(allow_null=True)
-    phoneNumber = serializers.CharField(allow_null=True)
-    postCode = serializers.CharField(allow_null=True)
-    geolocation = FakeTsGeolocationSerializer(allow_null=True)
-    parentName = serializers.CharField(allow_null=True)
-    logoUrl = serializers.CharField(allow_null=True)
-    maxDelayForConsent = serializers.IntegerField(allow_null=True)
-    retentionPeriod = serializers.IntegerField(allow_null=True)
-    generalConditions = serializers.CharField(allow_null=True)
-    personalDataConsent = serializers.CharField(allow_null=True)
+    entityCode = serializers.CharField(required=False)
+    name = serializers.CharField(required=False)
+    description = serializers.CharField(required=False, allow_null=True)
+    url = serializers.CharField(required=False, allow_null=True)
+    phoneNumber = serializers.CharField(required=False, allow_null=True)
+    postCode = serializers.CharField(required=False, allow_null=True)
+    geolocation = FakeTsGeolocationSerializer(required=False, allow_null=True)
+    parentName = serializers.CharField(required=False, allow_null=True)
+    logoUrl = serializers.CharField(required=False, allow_null=True)
+    maxDelayForConsent = serializers.IntegerField(required=False, allow_null=True)
+    retentionPeriod = serializers.IntegerField(required=False, allow_null=True)
+    generalConditions = serializers.CharField(required=False, allow_null=True)
+    personalDataConsent = serializers.CharField(required=False, allow_null=True)
+
+    def to_representation(self, instance):
+        if not instance:
+            return {}
+        return super().to_representation(instance)
 
 
 class FakeTsTalentsoftOrganismeSerializer(serializers.Serializer):
@@ -505,11 +529,23 @@ class FakeTsDynamicFieldSerializer(serializers.Serializer):
     longText1 = serializers.CharField(allow_null=True)
     longText2 = serializers.CharField(allow_null=True)
     longText3 = serializers.CharField(allow_null=True)
+    longText1Formatted = serializers.CharField(allow_null=True)
+    longText2Formatted = serializers.CharField(allow_null=True)
+    longText3Formatted = serializers.CharField(allow_null=True)
+
+
+class FakeTsApplicantCriteriaSerializer(FakeTsDynamicFieldSerializer):
+    customCodeTable1 = FakeTsCodedObjectSerializer(
+        allow_null=True,
+        help_text="Documents à transmettre. `null` si l'offre n'en demande aucun "
+        "ou si la combinaison n'existe pas dans le référentiel Talentsoft.",
+    )
 
 
 class FakeTsCustomFieldsSerializer(serializers.Serializer):
     offer = FakeTsDynamicFieldSerializer()
     description = FakeTsDynamicFieldSerializer()
+    applicantCriteria = FakeTsApplicantCriteriaSerializer()
     location = FakeTsDynamicFieldSerializer()
     offerCustomBlock1 = FakeTsDynamicFieldSerializer()
     origin = FakeTsDynamicFieldSerializer()
@@ -533,15 +569,50 @@ class FakeTsOfferDetailSerializer(FakeTsOfferSummarySerializer):
 
 
 class LocalisationInputSerializer(LocalisationSerializer):
+    pays = serializers.CharField(
+        max_length=3,
+        min_length=3,
+        help_text="Code pays ISO 3166-1 alpha-3, en majuscules (ex. `FRA`).",
+    )
+    region = serializers.ChoiceField(
+        choices=sorted(Region.VALID_CODES, key=lambda x: x),
+        allow_blank=True,
+        help_text=(
+            "Code INSEE de la région, `DOM` ou `TOM`. Le département doit "
+            "appartenir à cette région : `DOM` avec un département d'outre-mer, "
+            "`TOM` avec une collectivité d'outre-mer."
+        ),
+    )
+    latitude = serializers.FloatField(
+        allow_null=True, required=False, min_value=-90, max_value=90
+    )
+    longitude = serializers.FloatField(
+        allow_null=True, required=False, min_value=-180, max_value=180
+    )
+
     def validate(self, data):
         if data.get("pays") == "FRA" and not (
             data.get("region") and data.get("departement")
         ):
             raise serializers.ValidationError(
-                "La région et le département sont obligatoires"
+                "La région et le département sont obligatoires "
                 "pour une offre localisée en France."
             )
+        if data.get("region") and data.get("departement"):
+            region = Region(code=data["region"])
+            department = Department(code=data["departement"])
+            if not department_belongs_to_region(department, region):
+                raise serializers.ValidationError(
+                    f"Le département {_code_and_name(department)} "
+                    f"n'appartient pas à la région {_code_and_name(region)}."
+                )
         return data
+
+
+def _code_and_name(value: Region | Department) -> str:
+    if value.name == value.code:
+        return value.code
+    return f"{value.code} ({value.name})"
 
 
 CONTACT_ROLES = ["principal", "autre"]
@@ -570,7 +641,7 @@ class OfferDetailResponseSerializer(serializers.Serializer):
         source="service_description", allow_null=True
     )
     versant = serializers.CharField(source="verse", allow_null=True)
-    categorie = serializers.CharField(source="category", allow_null=True)
+    categories = serializers.ListField(child=serializers.CharField())
     nature_offre = serializers.CharField(source="offer_nature", allow_null=True)
     type_contrat = serializers.CharField(source="contract_kind", allow_null=True)
     vacance_poste = serializers.CharField(source="job_vacancy", allow_null=True)
@@ -584,6 +655,9 @@ class OfferDetailResponseSerializer(serializers.Serializer):
     conditions = serializers.DictField(allow_null=True)
     contacts = ContactSerializer(many=True, allow_null=True)
     debut_publication = serializers.DateTimeField(source="publication_date")
+    fin_publication = serializers.DateTimeField(
+        source="end_publication_date", allow_null=True
+    )
     debut_contrat = serializers.SerializerMethodField()
     fin_candidature = serializers.DateTimeField(
         source="application_deadline", allow_null=True
@@ -653,7 +727,12 @@ class ListMetiersResponseSerializer(serializers.Serializer):
     conditions_particulieres = serializers.ListField(
         child=serializers.CharField(), allow_null=True
     )
-    offer_family_code = serializers.CharField(allow_null=True)
+    code_emploi_csp = serializers.CharField(
+        source="offer_family_code",
+        help_text="Code CSP du RMFP, à renseigner dans `profession.metier` de "
+        "l'API d'ingestion d'offres. Plusieurs métiers peuvent partager le même "
+        "code. Toujours renseigné.",
+    )
 
 
 class ListMetiersFiltersSerializer(serializers.Serializer):
@@ -671,14 +750,37 @@ class IdentityInputSerializer(serializers.Serializer):
 
 
 class OrganismeInputSerializer(OrganismeSerializer):
-    siret = serializers.CharField(max_length=14, allow_blank=True)
+    nom = serializers.CharField(
+        help_text="Nom de l'organisme. Reprendre de préférence le `nom` renvoyé par "
+        "`GET /api/v1/organismes`."
+    )
+    siret = serializers.CharField(
+        max_length=14,
+        allow_blank=True,
+        help_text="SIRET de l'organisme, à retrouver avec `GET /api/v1/organismes` "
+        "(filtres `nom` et `siret`).",
+    )
     talentsoft_organisme_entity_code = serializers.CharField(
         max_length=50,
         required=False,
         allow_null=True,
         allow_blank=True,
-        help_text="Ne doit être renseigné que par le service ingestion de CSPLab.",
+        help_text="Ne doit être renseigné que par le service ingestion de CSPLab : "
+        "refusé pour une authentification par JWT.",
     )
+
+    def validate_talentsoft_organisme_entity_code(self, value):
+        if not value:
+            return value
+        if not self.context.get("allow_talentsoft_organisme", False):
+            raise serializers.ValidationError(
+                "Champ réservé au service ingestion de CSPLab."
+            )
+        if not TalentsoftOrganismeModel.objects.by_entity_code(value).exists():
+            raise serializers.ValidationError(
+                f"Organisme Talentsoft inconnu : {value}."
+            )
+        return value
 
 
 class ProfessionInputSerializer(serializers.Serializer):
@@ -688,12 +790,22 @@ class ProfessionInputSerializer(serializers.Serializer):
     )
     domaine = serializers.CharField(
         max_length=3,
+        required=False,
         help_text="Code domaine fonctionnel RMFP, vérifié uniquement si "
-        f"referentiel={JobFamilyReferential.RMFPV2.value}. Valeurs possibles : "
+        f"referentiel={JobFamilyReferential.RMFPV2.value}. Absent, il est déduit "
+        "du métier ; renseigné, il doit correspondre au domaine du métier. "
+        "Obligatoire si le code métier relève de plusieurs domaines "
+        "(ex. `ERJUS008`, `ERTRA007`). Valeurs possibles : "
         + ", ".join(f"{e.value} ({e.label})" for e in DomaineFonctionnel)
         + ".",
     )
-    metier = serializers.CharField(max_length=8)
+    metier = serializers.CharField(
+        max_length=8,
+        help_text="Code métier, vérifié uniquement si "
+        f"referentiel={JobFamilyReferential.RMFPV2.value} : valeur du champ "
+        "`code_emploi_csp` d'un métier renvoyé par l'API `/api/v1/metiers` "
+        "(exemple : `ERAMT001`).",
+    )
     code_emploi_local = serializers.CharField(
         max_length=50, required=False, allow_null=True
     )
@@ -703,7 +815,7 @@ class ProfessionInputSerializer(serializers.Serializer):
             return data
 
         domaine = data.get("domaine")
-        if domaine not in {e.value for e in DomaineFonctionnel}:
+        if domaine is not None and domaine not in {e.value for e in DomaineFonctionnel}:
             raise serializers.ValidationError(
                 {"domaine": f"«\xa0{domaine}\xa0» n'est pas un choix valide."}
             )
@@ -717,19 +829,81 @@ class ProfessionInputSerializer(serializers.Serializer):
                 {"metier": f"Code métier inconnu : {metier}."}
             )
 
+        domaines = get_metier_functional_areas(metier)
+        if not domaines:
+            return data
+
+        domaines_libelle = ", ".join(sorted(domaines))
+        if domaine is None:
+            if len(domaines) > 1:
+                raise serializers.ValidationError(
+                    {
+                        "domaine": f"Le métier {metier} relève de plusieurs "
+                        f"domaines ({domaines_libelle}) : renseigner l'un d'eux."
+                    }
+                )
+            data["domaine"] = domaines.pop()
+        elif domaine not in domaines:
+            raise serializers.ValidationError(
+                {
+                    "domaine": f"Le domaine {domaine} ne correspond pas au métier "
+                    f"{metier} ({domaines_libelle})."
+                }
+            )
+
         return data
 
 
+_MARKDOWN_HELP_TEXT = (
+    "Markdown (CommonMark), syntaxe comprise dans la limite. Les balises HTML et "
+    "les liens autres que http, https et mailto sont refusés."
+)
+
+
+def _validate_markdown(value: str) -> None:
+    errors = forbidden_markdown(value)
+    if errors:
+        raise serializers.ValidationError(errors)
+
+
 class DescriptionInputSerializer(serializers.Serializer):
-    mission = serializers.CharField(max_length=10000, allow_blank=True)
-    profil = serializers.CharField(max_length=10000, allow_blank=True)
-    employeur = serializers.CharField(max_length=3000, allow_blank=True)
-    complements = serializers.CharField(max_length=5000, allow_blank=True)
+    mission = serializers.CharField(
+        max_length=10000,
+        allow_blank=True,
+        help_text=_MARKDOWN_HELP_TEXT,
+        validators=[_validate_markdown],
+    )
+    profil = serializers.CharField(
+        max_length=10000,
+        allow_blank=True,
+        help_text=_MARKDOWN_HELP_TEXT,
+        validators=[_validate_markdown],
+    )
+    employeur = serializers.CharField(
+        max_length=3000,
+        allow_blank=True,
+        help_text=_MARKDOWN_HELP_TEXT,
+        validators=[_validate_markdown],
+    )
+    complements = serializers.CharField(
+        max_length=5000,
+        allow_blank=True,
+        help_text=_MARKDOWN_HELP_TEXT,
+        validators=[_validate_markdown],
+    )
     conditions_exercice = serializers.CharField(
-        max_length=10000, allow_blank=True, required=False
+        max_length=10000,
+        allow_blank=True,
+        required=False,
+        help_text=_MARKDOWN_HELP_TEXT,
+        validators=[_validate_markdown],
     )
     descriptif_service = serializers.CharField(
-        max_length=10000, allow_blank=True, required=False
+        max_length=10000,
+        allow_blank=True,
+        required=False,
+        help_text=_MARKDOWN_HELP_TEXT,
+        validators=[_validate_markdown],
     )
 
 
@@ -752,12 +926,28 @@ class CriteriaInputSerializer(serializers.Serializer):
     )
     diplome = serializers.CharField(required=False)
     documents_requis = serializers.ListField(
-        child=serializers.CharField(), required=False
+        child=serializers.ChoiceField(
+            choices=[(c.name, c.value) for c in RequiredDocument]
+        ),
+        required=False,
+        help_text="Documents à transmettre pour candidater, sans doublon.",
     )
-    competences_requises = serializers.ListField(
-        child=serializers.CharField(), required=False
+    competences_requises = serializers.CharField(
+        max_length=2000,
+        required=False,
+        allow_blank=True,
+        allow_null=True,
+        help_text=_MARKDOWN_HELP_TEXT,
+        validators=[_validate_markdown],
     )
     langues = LanguageInputSerializer(many=True, required=False)
+
+    def validate_documents_requis(self, value):
+        if len(value) != len(set(value)):
+            raise serializers.ValidationError(
+                "Chaque document ne peut être cité qu'une fois."
+            )
+        return value
 
 
 class ConditionsInputSerializer(serializers.Serializer):
@@ -782,9 +972,26 @@ class ConditionsInputSerializer(serializers.Serializer):
     management = serializers.ChoiceField(
         choices=[(c.name, c.value) for c in Management], required=False
     )
-    complements = serializers.CharField(max_length=1500, required=False)
-    bases_legales = serializers.CharField(max_length=1500, required=False)
-    note_ouverture_poste_url = serializers.URLField(required=False)
+    bases_legales = serializers.CharField(
+        max_length=1500,
+        required=False,
+        help_text=_MARKDOWN_HELP_TEXT,
+        validators=[_validate_markdown],
+    )
+    note_ouverture_poste_url = serializers.URLField(
+        required=False,
+        help_text="Lien vers l'avis de vacance publié au Journal officiel, "
+        "en `https` sur `legifrance.gouv.fr`.",
+    )
+
+    def validate_note_ouverture_poste_url(self, value):
+        url = urlparse(value)
+        if url.scheme != "https" or url.hostname not in LEGIFRANCE_HOSTS:
+            raise serializers.ValidationError(
+                "Le lien doit être en https et pointer vers l'avis de vacance "
+                "publié sur legifrance.gouv.fr."
+            )
+        return value
 
 
 class ContactsInputSerializer(serializers.Serializer):
@@ -836,7 +1043,9 @@ class OffersInputSerializer(serializers.Serializer):
     # classification
     profession = ProfessionInputSerializer()
     categories = serializers.MultipleChoiceField(
-        choices=[(c.name, c.value) for c in Category], allow_blank=True
+        choices=[(c.name, c.value) for c in Category],
+        allow_empty=False,
+        error_messages={"empty": "Au moins une catégorie est obligatoire."},
     )
     nature_offre = serializers.ChoiceField(
         choices=[(c.name, c.value) for c in OfferNature]
@@ -926,7 +1135,11 @@ class OrganismeLocalisationInputSerializer(serializers.Serializer):
     zone_geographique = serializers.ChoiceField(
         choices=[(c.value, c.name) for c in GeographicalArea]
     )
-    pays = serializers.CharField(max_length=3, min_length=3)
+    pays = serializers.CharField(
+        max_length=3,
+        min_length=3,
+        help_text="Code pays ISO 3166-1 alpha-3, en majuscules (ex. `FRA`).",
+    )
     region = serializers.ChoiceField(
         choices=sorted(Region.VALID_CODES, key=lambda x: x),
         allow_blank=True,
@@ -940,6 +1153,9 @@ class OrganismeLocalisationInputSerializer(serializers.Serializer):
     longitude = serializers.FloatField(
         allow_null=True, required=False, min_value=-180, max_value=180
     )
+
+    def validate_pays(self, value: str) -> str:
+        return validate_country_code(value)
 
 
 class OrganismeUpsertInputSerializer(serializers.Serializer):
@@ -969,6 +1185,90 @@ class UpsertOrganismesResponseSerializer(serializers.Serializer):
     created = serializers.IntegerField()
     updated = serializers.IntegerField()
     errors = serializers.ListField(child=serializers.DictField())
+
+
+class ListOrganismesFiltersSerializer(serializers.Serializer):
+    versant = _CommaSeparatedEnumField(
+        Verse,
+        "versant",
+        help_text="Valeurs séparées par une virgule (ex. `FPE,FPT`).",
+        source="versants",
+    )
+    siret = serializers.CharField(
+        required=False,
+        min_length=14,
+        max_length=14,
+        help_text="SIRET exact de l'organisme (14 caractères).",
+    )
+    nom = serializers.CharField(
+        required=False,
+        max_length=255,
+        help_text=(
+            "Recherche partielle sur le nom, insensible à la casse et aux accents."
+        ),
+        source="name",
+    )
+    departement = serializers.ChoiceField(
+        choices=sorted(Department.VALID_CODES),
+        required=False,
+        help_text="Code du département de l'organisme (ex. `75`, `2A`, `971`).",
+        source="department",
+    )
+    referentiel = serializers.ChoiceField(
+        choices=PUBLIC_ORGANISME_REFERENTIELS,
+        required=False,
+        help_text="Référentiel source de l'organisme.",
+    )
+
+
+class OrganismeLocalisationPublicSerializer(serializers.Serializer):
+    zone_geographique = serializers.CharField(source="area")
+    pays = serializers.CharField(source="country")
+    region = serializers.CharField()
+    departement = serializers.CharField(source="department")
+
+
+class OrganismePublicSerializer(serializers.ModelSerializer):
+    nom = serializers.CharField(
+        help_text="Nom de référence, à reprendre dans `organisation.nom` de l'API "
+        "d'ingestion d'offres."
+    )
+    siret = serializers.CharField(
+        help_text="SIRET à renseigner dans `organisation.siret` de l'API "
+        "d'ingestion d'offres."
+    )
+    parent_id = serializers.UUIDField(
+        allow_null=True, help_text="Identifiant de l'organisme parent."
+    )
+    referentiel = serializers.ChoiceField(
+        choices=PUBLIC_ORGANISME_REFERENTIELS,
+        help_text="Référentiel source. Avec "
+        "`external_id`, identifie l'organisme pour la création, la mise à jour et "
+        "la suppression.",
+    )
+    external_id = serializers.CharField(
+        allow_null=True, help_text="Identifiant dans le référentiel source."
+    )
+    millesime = serializers.CharField(
+        allow_null=True,
+        help_text="Version du référentiel source dont provient l'organisme.",
+    )
+    localisation = OrganismeLocalisationPublicSerializer(allow_null=True)
+
+    class Meta:
+        model = OrganismeModel
+        fields = [
+            "id",
+            "nom",
+            "versant",
+            "siret",
+            "parent_id",
+            "referentiel",
+            "external_id",
+            "millesime",
+            "localisation",
+        ]
+        read_only_fields = fields
 
 
 class OrganismeDeleteInputSerializer(serializers.Serializer):

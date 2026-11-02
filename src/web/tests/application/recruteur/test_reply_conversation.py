@@ -30,17 +30,15 @@ from infrastructure.factories.identite.organisme_django_factory import (
     OrganismeDjangoFactory,
     create_organisme_with_agent,
 )
-from infrastructure.factories.identite.utilisateur_factory import UtilisateurFactory
+from infrastructure.factories.identite.utilisateur_django_factory import (
+    UtilisateurDjangoFactory,
+)
 from infrastructure.factories.messagerie.conversation_django_factory import (
     ConversationDjangoFactory,
 )
 from tests.utils.message_documents import PDF_BYTES
 
 fake = Faker("fr_FR")
-
-
-def _utilisateur(entity_id, **kwargs):
-    return UtilisateurFactory.create_entity(entity_id=entity_id, **kwargs)
 
 
 def test_nothing_is_persisted_when_the_message_cannot_be_created(db):
@@ -57,7 +55,7 @@ def test_nothing_is_persisted_when_the_message_cannot_be_created(db):
             conversation_id=conversation_id,
             content="",
             documents=[],
-            utilisateur=_utilisateur(agent.utilisateur_id),
+            utilisateur=agent.utilisateur,
         )
 
     assert not MessageModel.objects.exists()
@@ -79,7 +77,7 @@ def test_nothing_is_persisted_when_a_document_is_incomplete(db):
             conversation_id=ConversationDjangoFactory(candidature=candidature).pk,
             content=fake.sentence(nb_words=30),
             documents=[incomplete],
-            utilisateur=_utilisateur(agent.utilisateur_id),
+            utilisateur=agent.utilisateur,
         )
 
     assert not MessageModel.objects.exists()
@@ -96,7 +94,7 @@ def _without_organisme_role():
         recrutement.pk,
         candidature.pk,
         ConversationDjangoFactory(candidature=candidature).pk,
-        _utilisateur(uuid4()),
+        UtilisateurDjangoFactory(),
     )
 
 
@@ -109,12 +107,12 @@ def _without_recrutement_role():
         recrutement.pk,
         candidature.pk,
         ConversationDjangoFactory(candidature=candidature).pk,
-        _utilisateur(agent.utilisateur_id),
+        agent.utilisateur,
     )
 
 
 def _unknown_organisme():
-    return uuid4(), uuid4(), uuid4(), uuid4(), _utilisateur(uuid4())
+    return uuid4(), uuid4(), uuid4(), uuid4(), UtilisateurDjangoFactory()
 
 
 def _recrutement_from_another_organisme():
@@ -127,7 +125,7 @@ def _recrutement_from_another_organisme():
         other_recrutement.pk,
         other_candidature.pk,
         ConversationDjangoFactory(candidature=other_candidature).pk,
-        _utilisateur(agent.utilisateur_id),
+        agent.utilisateur,
     )
 
 
@@ -140,7 +138,7 @@ def _candidature_from_another_recrutement():
         recrutement.pk,
         other_candidature.pk,
         ConversationDjangoFactory(candidature=other_candidature).pk,
-        _utilisateur(agent.utilisateur_id),
+        agent.utilisateur,
     )
 
 
@@ -153,7 +151,7 @@ def _unknown_conversation():
         recrutement.pk,
         candidature.pk,
         uuid4(),
-        _utilisateur(agent.utilisateur_id),
+        agent.utilisateur,
     )
 
 
@@ -167,7 +165,7 @@ def _conversation_from_another_candidature():
         recrutement.pk,
         candidature.pk,
         ConversationDjangoFactory(candidature=other_candidature).pk,
-        _utilisateur(agent.utilisateur_id),
+        agent.utilisateur,
     )
 
 

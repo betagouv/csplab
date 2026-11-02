@@ -71,17 +71,22 @@ const isDisabled = computed(() => props.disabled || !props.content)
   font-size: var(--csp-font-size-xs);
   font-weight: var(--csp-font-weight-medium);
   line-height: var(--csp-line-height-tight);
-  box-shadow: var(--csp-shadow-md);
+  box-shadow: var(--csp-overlap-shadow, var(--csp-shadow-md));
   outline: none;
   pointer-events: none;
   user-select: none;
   overflow-wrap: anywhere;
-  animation: csp-tooltip-fade-in 0.12s ease-out;
+  transform-origin: var(--reka-popper-transform-origin);
+  animation: var(--csp-motion-overlap-enter, csp-tooltip-fade-in 0.12s ease-out);
+
+  &[data-state='closed'] {
+    animation: var(--csp-motion-overlap-exit);
+  }
 }
 
 :deep(.csp-tooltip__arrow) {
   fill: var(--background-action-high-grey);
-  animation: csp-tooltip-fade-in 0.12s ease-out;
+  animation: var(--csp-motion-overlap-enter, csp-tooltip-fade-in 0.12s ease-out);
 }
 
 @keyframes csp-tooltip-fade-in {

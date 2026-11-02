@@ -24,7 +24,7 @@ class Offer(IEntity):
     mission: str
     organization: str
     verse: Optional[Verse]
-    category: Optional[Category]
+    categories: list[Category]
     offer_nature: Optional[OfferNature]
     offer_url: Optional[HttpUrl]
     localisation: Optional[Localisation]
@@ -44,6 +44,7 @@ class Offer(IEntity):
     complements: Optional[str] = None
     exercise_conditions: Optional[str] = None
     service_description: Optional[str] = None
+    end_publication_date: Optional[datetime] = None
     application_deadline: Optional[datetime] = None
     job_vacancy_date: Optional[datetime] = None
     criteria: Optional[OfferCriteria] = None
@@ -60,3 +61,7 @@ class Offer(IEntity):
     def __post_init__(self) -> None:
         if self.application_url and self.application_email:
             raise ConflictingApplicationChannelsError(self.reference)
+
+    @property
+    def main_category(self) -> Optional[Category]:
+        return self.categories[0] if self.categories else None

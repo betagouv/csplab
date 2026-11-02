@@ -10,3 +10,7 @@ export function formatAgentName(agent: AgentIdentite): string {
 export function formatAgentNameAlphabetical(agent: AgentIdentite): string {
   return `${agent.nom} ${agent.prenom}`.trim()
 }
+
+export function formatAgentLabel(agent: AgentIdentite & { email: string }): string {
+  return formatAgentName(agent) || agent.email
+}

@@ -1,12 +1,9 @@
 #!/usr/bin/env python
 import argparse
-import asyncio
-import logging
 
 from domain.value_objects.organisme_referentiel import OrganismeReferentiel
 from infrastructure.di.container import create_container
-
-logging.basicConfig(level=logging.INFO)
+from infrastructure.observability.script import run_script
 
 
 async def _run(referentiel: OrganismeReferentiel) -> None:
@@ -23,7 +20,7 @@ def main() -> None:
         choices=list(OrganismeReferentiel),
     )
     args = parser.parse_args()
-    asyncio.run(_run(args.referentiel))
+    run_script(_run(args.referentiel))
 
 
 if __name__ == "__main__":

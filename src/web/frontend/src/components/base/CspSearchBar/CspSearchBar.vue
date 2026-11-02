@@ -54,7 +54,7 @@ function submit() {
   >
     <label
       class="csp-search-bar__label"
-      :class="{ 'csp-search-bar__label--hidden': hideLabel }"
+      :class="{ 'sr-only': hideLabel }"
       :for="id"
     >
       {{ label }}
@@ -124,6 +124,8 @@ function submit() {
 </template>
 
 <style scoped lang="scss">
+@use '@/styles/search';
+
 .csp-search-bar {
   display: flex;
   flex-direction: column;
@@ -149,15 +151,6 @@ function submit() {
   color: var(--text-default-grey);
 }
 
-.csp-search-bar__label--hidden {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  clip: rect(0 0 0 0);
-  white-space: nowrap;
-}
-
 .csp-search-bar__hint {
   font-size: 0.75rem;
   font-weight: 400;
@@ -165,66 +158,33 @@ function submit() {
 }
 
 .csp-search-bar__field {
-  position: relative;
-  display: flex;
-  align-items: stretch;
+  @include search.field;
 }
 
 .csp-search-bar__icon {
-  position: absolute;
-  z-index: 1;
-  top: 50%;
-  left: 0.875em;
-  color: var(--text-mention-grey);
-  pointer-events: none;
-  transform: translateY(-50%);
+  @include search.icon;
 }
 
 .csp-search-bar__input {
-  flex: 1;
-  min-width: 0;
-  appearance: none;
-  border: none;
-  border-radius: 0.25rem 0 0 0.25rem;
-  background-color: var(--background-default-grey);
-  color: var(--text-default-grey);
-  box-shadow: inset 0 0 0 1px var(--border-default-grey);
-  font-size: 0.875rem;
-  line-height: 1.25;
-  padding: 0.625em 0.875em;
+  @include search.input;
+
+  .csp-search-bar--submit & {
+    border-radius: 0.25rem 0 0 0.25rem;
+    padding-left: 0.875em;
+  }
 
   .csp-search-bar--lg & {
     font-size: 1rem;
-  }
-
-  .csp-search-bar--live & {
-    border-radius: 0.25rem;
-    padding-left: 2.5em;
   }
 
   .csp-search-bar--error & {
     box-shadow: inset 0 0 0 1px var(--border-plain-error);
   }
 
-  &:focus-visible {
-    outline: 2px solid var(--csp-focus-ring-color);
-    outline-offset: 2px;
-    position: relative;
-  }
-
   &:disabled {
     background-color: var(--background-disabled-grey);
     color: var(--text-disabled-grey);
     box-shadow: inset 0 0 0 1px var(--border-disabled-grey);
-  }
-
-  &::placeholder {
-    color: var(--text-mention-grey);
-  }
-
-  &::-webkit-search-decoration,
-  &::-webkit-search-cancel-button {
-    appearance: none;
   }
 }
 

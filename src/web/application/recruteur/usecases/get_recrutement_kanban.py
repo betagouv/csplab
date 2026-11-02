@@ -35,7 +35,7 @@ class GetRecrutementKanbanUsecase(
         self, query: GetRecrutementKanbanQuery
     ) -> RecrutementKanbanReadModel | None:
         self.organisme_permission_service.can_execute(
-            action=OrganismeAction.VOIR_DETAIL_RECRUTEMENT,
+            action=OrganismeAction.GET_RECRUTEMENT,
             organisme_id=query.organisme_id,
             recrutement_id=query.recrutement_id,
             utilisateur=query.utilisateur,

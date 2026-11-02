@@ -1,62 +1,77 @@
 from typing import Any
-from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
 
 from ddd.page_interface import IPage
-from rest_framework.pagination import BasePagination, PageNumberPagination
+from rest_framework.pagination import (
+    BasePagination,
+    CursorPagination,
+    PageNumberPagination,
+)
 from rest_framework.response import Response
-from rest_framework.settings import api_settings
+
+MAX_PAGE_SIZE = 1_000
+
+
+def _bounded_int(
+    raw: str | None, default: int, minimum: int, maximum: int | None
+) -> int:
+    try:
+        value = int(raw) if raw is not None else default
+    except ValueError:
+        return default
+    if value < minimum:
+        return default
+    if maximum is not None:
+        return min(value, maximum)
+    return value
+
+
+def _page_taille_parameters(page_size: int | None, max_page_size: int) -> list[dict]:
+    return [
+        {
+            "name": "page",
+            "required": False,
+            "in": "query",
+            "description": "Numéro de la page.",
+            "schema": {"type": "integer", "default": 1, "minimum": 1},
+        },
+        {
+            "name": "taille",
+            "required": False,
+            "in": "query",
+            "description": "Nombre d'éléments par page.",
+            "schema": {
+                "type": "integer",
+                "default": page_size,
+                "minimum": 1,
+                "maximum": max_page_size,
+            },
+        },
+    ]
 
 
 class PageNumberLimitPagination(PageNumberPagination):
     page_size_query_param = "limit"
+    max_page_size = MAX_PAGE_SIZE
 
 
-class WebPagination(BasePagination):
-    page_size = api_settings.PAGE_SIZE
-    min_page_size = 1
+class LatestMessagesCursorPagination(CursorPagination):
+    """Serves the latest messages, oldest first; `next` leads to older ones."""
 
-    def paginate(self, page: IPage, request) -> list[Any]:
-        self.request = request
-        self.count = page.count()
-        self.page_size = int(self.request.query_params.get("taille", self.page_size))
-        self.page_num = int(self.request.query_params.get("page", 1))
-
-        offset = (self.page_num - 1) * self.page_size
-        self.results = list(page.slice(offset, self.page_size))
-
-        return self.results
+    ordering = ("-created_at", "-id")
+    page_size = 25
+    max_page_size = 100
+    page_size_query_param = "limit"
 
     def get_paginated_response(self, data: list[Any]) -> Response:
-        return Response(
-            {
-                "count": self.count,
-                "next": self._get_next_url(),
-                "previous": self._get_previous_url(),
-                "results": data,
-            }
-        )
+        return super().get_paginated_response(list(reversed(data)))
+
+
+class TaillePageNumberPagination(PageNumberPagination):
+    page_size_query_param = "taille"
+    max_page_size = MAX_PAGE_SIZE
 
     def get_schema_operation_parameters(self, view) -> list[dict]:
-        return [
-            {
-                "name": "page",
-                "required": False,
-                "in": "query",
-                "description": "Numéro de la page.",
-                "schema": {"type": "integer", "default": 1, "minimum": 1},
-            },
-            {
-                "name": "taille",
-                "required": False,
-                "in": "query",
-                "description": "Nombre d'éléments par page.",
-                "schema": {
-                    "type": "integer",
-                    "default": self.page_size,
-                    "minimum": self.min_page_size,
-                },
-            },
-        ]
+        return _page_taille_parameters(self.page_size, self.max_page_size)
 
     def get_paginated_response_schema(self, schema: dict) -> dict:
         return {
@@ -80,34 +95,25 @@ class WebPagination(BasePagination):
             },
         }
 
-    def _get_next_url(self):
-        if self.page_num * self.page_size >= self.count:
-            return None
-        return self._build_url(self.page_num + 1)
-
-    def _get_previous_url(self):
-        if self.page_num <= 1:
-            return None
-        return self._build_url(self.page_num - 1)
-
-    def _build_url(self, page_num):
-        request = self.request
-        url = request.build_absolute_uri()
-        parsed = urlparse(url)
-        params = parse_qs(parsed.query, keep_blank_values=True)
-        params["page"] = [page_num]
-        params["taille"] = [self.page_size]
-        new_query = urlencode({k: v[0] for k, v in params.items()})
-        return urlunparse(parsed._replace(query=new_query))
-
 
 class TalentsoftPagination(BasePagination):
     start_default = 0
     count_default = 100
+    count_max = MAX_PAGE_SIZE
 
     def paginate(self, page: IPage, request) -> list[Any]:
-        self.start = int(request.query_params.get("start", self.start_default))
-        self.count = int(request.query_params.get("count", self.count_default))
+        self.start = _bounded_int(
+            request.query_params.get("start"),
+            default=self.start_default,
+            minimum=0,
+            maximum=None,
+        )
+        self.count = _bounded_int(
+            request.query_params.get("count"),
+            default=self.count_default,
+            minimum=1,
+            maximum=self.count_max,
+        )
         self.total = page.count()
         self.results = list(page.slice(self.start, self.count))
 
@@ -134,14 +140,23 @@ class TalentsoftPagination(BasePagination):
                 "required": False,
                 "in": "query",
                 "description": "Index de début de la pagination.",
-                "schema": {"type": "integer"},
+                "schema": {
+                    "type": "integer",
+                    "default": self.start_default,
+                    "minimum": 0,
+                },
             },
             {
                 "name": "count",
                 "required": False,
                 "in": "query",
                 "description": "Nombre d'éléments par page.",
-                "schema": {"type": "integer"},
+                "schema": {
+                    "type": "integer",
+                    "default": self.count_default,
+                    "minimum": 1,
+                    "maximum": self.count_max,
+                },
             },
         ]
 

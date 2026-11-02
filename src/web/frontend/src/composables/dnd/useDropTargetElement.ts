@@ -1,7 +1,5 @@
-import type { Edge } from '@atlaskit/pragmatic-drag-and-drop-hitbox/closest-edge'
 import type { Input } from '@atlaskit/pragmatic-drag-and-drop/types'
 import type { Ref } from 'vue'
-import { attachClosestEdge, extractClosestEdge } from '@atlaskit/pragmatic-drag-and-drop-hitbox/closest-edge'
 import { dropTargetForElements } from '@atlaskit/pragmatic-drag-and-drop/element/adapter'
 import { ref, watch } from 'vue'
 
@@ -14,7 +12,6 @@ interface UseDropTargetElementOptions {
 
 export function useDropTargetElement(options: UseDropTargetElementOptions) {
   const isDraggedOver = ref(false)
-  const closestEdge = ref<Edge | null>(null)
   const sourceIndex = ref<number | null>(null)
   const enabled = options.enabled ?? ref(true)
 
@@ -33,30 +30,17 @@ export function useDropTargetElement(options: UseDropTargetElementOptions) {
           }
           return true
         },
-        getData: ({ input, element: dropElement }) => attachClosestEdge(
-          options.getData({ input, element: dropElement }),
-          {
-            input,
-            element: dropElement,
-            allowedEdges: ['top', 'bottom'],
-          },
-        ),
-        onDragEnter: ({ self, source }) => {
+        getData: options.getData,
+        onDragEnter: ({ source }) => {
           isDraggedOver.value = true
-          closestEdge.value = extractClosestEdge(self.data)
           sourceIndex.value = typeof source.data.index === 'number' ? source.data.index : null
-        },
-        onDrag: ({ self }) => {
-          closestEdge.value = extractClosestEdge(self.data)
         },
         onDragLeave: () => {
           isDraggedOver.value = false
-          closestEdge.value = null
           sourceIndex.value = null
         },
         onDrop: () => {
           isDraggedOver.value = false
-          closestEdge.value = null
           sourceIndex.value = null
         },
       })
@@ -66,5 +50,5 @@ export function useDropTargetElement(options: UseDropTargetElementOptions) {
     { flush: 'post', immediate: true },
   )
 
-  return { isDraggedOver, closestEdge, sourceIndex }
+  return { isDraggedOver, sourceIndex }
 }

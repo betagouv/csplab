@@ -14,9 +14,14 @@ from presentation.recruteur.views.documents import (
     CandidatureDocumentsView,
     DocumentView,
 )
+from presentation.recruteur.views.note_tags import (
+    CandidatureNoteTagDetailView,
+    CandidatureNoteTagsView,
+)
 from presentation.recruteur.views.notes import (
     CandidatureNoteDetailView,
     CandidatureNotesView,
+    CandidatureNoteVisibiliteView,
 )
 from presentation.recruteur.views.organisme_agents import (
     OrganismeAgentsView,
@@ -47,6 +52,10 @@ from presentation.recruteur.views.recrutement_listes import (
 from presentation.recruteur.views.recrutement_params import (
     InitRecrutementEtapeView,
     RecrutementEtapeView,
+)
+from presentation.recruteur.views.tags import (
+    OrganismeTagDetailView,
+    OrganismeTagsView,
 )
 
 app_name = "recruteur"
@@ -93,12 +102,22 @@ urlpatterns = [
         name="organisme_parametres_agents_recherche",
     ),
     path(
-        "organismes/<uuid:organisme_uuid>/recrutements-actifs",
+        "organismes/<uuid:organisme_uuid>/parametres/tags",
+        OrganismeTagsView.as_view(),
+        name="organisme_parametres_tags",
+    ),
+    path(
+        "organismes/<uuid:organisme_uuid>/parametres/tags/<uuid:tag_uuid>",
+        OrganismeTagDetailView.as_view(),
+        name="organisme_parametres_tag",
+    ),
+    path(
+        "organismes/<uuid:organisme_uuid>/recrutements/actifs",
         RecrutementsActifsView.as_view(),
         name="organisme_recrutements_actifs",
     ),
     path(
-        "organismes/<uuid:organisme_uuid>/recrutements-archives",
+        "organismes/<uuid:organisme_uuid>/recrutements/archives",
         RecrutementsArchivesView.as_view(),
         name="organisme_recrutements_archives",
     ),
@@ -156,6 +175,21 @@ urlpatterns = [
         "organismes/<uuid:organisme_uuid>/recrutements/<uuid:recrutement_uuid>/candidatures/<uuid:candidature_uuid>/notes/<uuid:note_uuid>",
         CandidatureNoteDetailView.as_view(),
         name="candidature_note_detail",
+    ),
+    path(
+        "organismes/<uuid:organisme_uuid>/recrutements/<uuid:recrutement_uuid>/candidatures/<uuid:candidature_uuid>/notes/<uuid:note_uuid>/visibilite",
+        CandidatureNoteVisibiliteView.as_view(),
+        name="candidature_note_visibilite",
+    ),
+    path(
+        "organismes/<uuid:organisme_uuid>/recrutements/<uuid:recrutement_uuid>/candidatures/<uuid:candidature_uuid>/notes/<uuid:note_uuid>/tags",
+        CandidatureNoteTagsView.as_view(),
+        name="candidature_note_tags",
+    ),
+    path(
+        "organismes/<uuid:organisme_uuid>/recrutements/<uuid:recrutement_uuid>/candidatures/<uuid:candidature_uuid>/notes/<uuid:note_uuid>/tags/<uuid:tag_uuid>",
+        CandidatureNoteTagDetailView.as_view(),
+        name="candidature_note_tag",
     ),
     path(
         "organismes/<uuid:organisme_uuid>/recrutements/<uuid:recrutement_uuid>/candidatures/<uuid:candidature_uuid>/documents",

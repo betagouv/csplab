@@ -31,6 +31,7 @@ describe('newConversationForm', () => {
       last_message_content: 'Bonjour',
       last_message_author: 'Marie Dupont',
       last_message_created_at: '2025-06-12T09:00:00Z',
+      is_unread: false,
     })
     const user = setupUser()
     const { router } = await renderWithApp(NewConversationForm, {
