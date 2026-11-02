@@ -108,7 +108,7 @@ const selectionCountLabel = computed(
 
 .csp-table-toolbar__hint {
   margin: 0;
-  font-size: 0.75rem;
+  font-size: var(--csp-font-size-xs);
   line-height: 1.25rem;
   color: var(--text-mention-grey);
 }
