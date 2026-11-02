@@ -5,12 +5,12 @@ import { isHttpStatus } from '@/api/errors'
 import CspAsyncSection from '@/components/base/CspAsyncSection/CspAsyncSection.vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspDrawer from '@/components/base/CspDrawer/CspDrawer.vue'
-import CspTag from '@/components/base/CspTag/CspTag.vue'
+import CspLabel from '@/components/base/CspLabel/CspLabel.vue'
 import { useMinimumPending } from '@/composables/async/useMinimumPending'
 import { useToast } from '@/composables/ui/useToast'
 import { pluralize } from '@/utils/format'
 import { useTags } from '../composables/useTags'
-import { DEFAULT_TAG_COLOR, TAG_CATEGORIES, TAG_CATEGORY_TEXTS, TAG_COLOR_ACCENTS } from '../constants/tag'
+import { DEFAULT_TAG_COLOR, TAG_CATEGORIES, TAG_CATEGORY_TEXTS, TAG_COLOR_PALETTE } from '../constants/tag'
 import TagForm from './TagForm.vue'
 
 const props = defineProps<{
@@ -94,9 +94,9 @@ async function handleCreate(payload: CreateTagPayload): Promise<void> {
               v-for="tag in tagsByCategory[category]"
               :key="tag.uuid"
             >
-              <CspTag
+              <CspLabel
                 :label="tag.name"
-                :accent="TAG_COLOR_ACCENTS[tag.color ?? DEFAULT_TAG_COLOR]"
+                :color="TAG_COLOR_PALETTE[tag.color ?? DEFAULT_TAG_COLOR]"
               />
             </li>
           </ul>

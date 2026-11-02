@@ -65,9 +65,11 @@ describe('tagsSection', () => {
     expect(save).toBeDisabled()
 
     await user.type(screen.getByRole('textbox', { name: /Libellé/ }), 'Synthèse ')
+    expect(screen.getByRole('radio', { name: 'Bleu' })).toBeChecked()
+    await user.click(screen.getByRole('radio', { name: 'Rouge' }))
     await user.click(save)
 
-    expect(createTag).toHaveBeenCalledWith(ORGANISME_UUID, { name: 'Synthèse', category: 'note', color: 'bleu' })
+    expect(createTag).toHaveBeenCalledWith(ORGANISME_UUID, { name: 'Synthèse', category: 'note', color: 'rouge' })
     expect(await screen.findByText('Étiquette ajoutée')).toBeInTheDocument()
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
     expect(await within(block('Note')).findByText('2 étiquettes')).toBeInTheDocument()

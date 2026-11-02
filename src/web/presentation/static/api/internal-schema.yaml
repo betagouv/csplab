@@ -6040,6 +6040,7 @@ components:
       - bleu
       - violet
       - rose
+      - rouge
       - orange
       - beige
       - jaune
@@ -6051,6 +6052,7 @@ components:
         * `bleu` - Bleu
         * `violet` - Violet
         * `rose` - Rose
+        * `rouge` - Rouge
         * `orange` - Orange
         * `beige` - Beige
         * `jaune` - Jaune

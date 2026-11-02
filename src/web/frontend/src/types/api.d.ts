@@ -766,13 +766,14 @@ export interface components {
          *     * `bleu` - Bleu
          *     * `violet` - Violet
          *     * `rose` - Rose
+         *     * `rouge` - Rouge
          *     * `orange` - Orange
          *     * `beige` - Beige
          *     * `jaune` - Jaune
          *     * `gris` - Gris
          * @enum {string}
          */
-        ColorEnum: "vert" | "menthe" | "bleu" | "violet" | "rose" | "orange" | "beige" | "jaune" | "gris";
+        ColorEnum: "vert" | "menthe" | "bleu" | "violet" | "rose" | "rouge" | "orange" | "beige" | "jaune" | "gris";
         Conversation: {
             /** Format: uuid */
             uuid: string;
