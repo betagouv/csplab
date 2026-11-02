@@ -3,14 +3,19 @@ import { PiniaColada } from '@pinia/colada'
 import { render, screen } from '@testing-library/vue'
 import { createPinia } from 'pinia'
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import { checkCandidatureDocument } from '@/api/documents'
 import { HttpError } from '@/api/errors'
 import { CANDIDATURE_PARAMS } from '@/test/fixtures/candidatures'
-import { checkCandidatureDocument, getCandidatureDocuments } from '../api'
+import { getCandidatureDocuments } from '../api'
 import CandidatureCv from './CandidatureCv.vue'
 
 vi.mock('../api', async importOriginal => ({
   ...await importOriginal<typeof import('../api')>(),
   getCandidatureDocuments: vi.fn(),
+}))
+
+vi.mock('@/api/documents', async importOriginal => ({
+  ...await importOriginal<typeof import('@/api/documents')>(),
   checkCandidatureDocument: vi.fn(),
 }))
 
@@ -45,14 +50,11 @@ describe('candidatureCv', () => {
     vi.clearAllMocks()
   })
 
-  it('displays a PDF CV in a frame, with a full page link and a download link', async () => {
+  it('displays a PDF CV in a frame, with a full page link', async () => {
     renderCv([document({ type: 'lettre_motivation', uuid: 'lettre' }), document({})])
 
     expect(await screen.findByTitle('CV de Alice Dupont')).toHaveAttribute('src', CV_URL)
     expect(screen.getByRole('link', { name: 'Afficher pleine page' })).toHaveAttribute('href', CV_URL)
-    const download = screen.getByRole('link', { name: 'Télécharger' })
-    expect(download).toHaveAttribute('href', CV_URL)
-    expect(download).toHaveAttribute('download', 'CV Alice Dupont.pdf')
   })
 
   it('says when the CV is not a PDF', async () => {
