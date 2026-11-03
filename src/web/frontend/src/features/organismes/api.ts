@@ -2,19 +2,22 @@ import type { AgentOrganisme, CreateOrganismePayload, OrganismeDetail, Organisme
 import type { OrganismeParams } from '@/api/params'
 import { api } from '@/api/client'
 
+const MAX_PAGE_SIZE = 1_000
+
 export async function getOrganismesList(): Promise<OrganismesList[]> {
-  async function fetchPage(taille?: number) {
+  async function fetchPage(page: number) {
     const { data } = await api.GET('/recruteur/organismes', {
-      params: { query: { taille } },
+      params: { query: { page, taille: MAX_PAGE_SIZE } },
     })
     return data!
   }
 
-  const firstPage = await fetchPage()
-  if (firstPage.results.length >= firstPage.count) {
-    return firstPage.results
-  }
-  return (await fetchPage(firstPage.count)).results
+  const firstPage = await fetchPage(1)
+  const pageCount = Math.ceil(firstPage.count / MAX_PAGE_SIZE)
+  const otherPages = await Promise.all(
+    Array.from({ length: pageCount - 1 }, (_, index) => fetchPage(index + 2)),
+  )
+  return [firstPage, ...otherPages].flatMap(page => page.results)
 }
 
 export async function searchOrganismes(nom: string): Promise<OrganismeRecherche[]> {
