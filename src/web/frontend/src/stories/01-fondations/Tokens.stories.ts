@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/vue3-vite'
 import { BREAKPOINTS } from '@/styles/breakpoints'
+import { PALETTE_COLORS, PALETTE_ROLES } from '@/styles/palette'
 import { dsfrTokens } from './colors'
 
 const meta = {
@@ -128,6 +129,33 @@ export const Couleurs: Story = {
             </div>
           </div>
         </section>
+      </div>
+    `,
+  }),
+}
+
+export const Palette: Story = {
+  render: () => ({
+    setup: () => ({ colors: PALETTE_COLORS, roles: PALETTE_ROLES }),
+    template: `
+      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-x-8 gap-y-6">
+        <div
+          v-for="color in colors"
+          :key="color"
+          class="flex flex-col gap-2"
+        >
+          <div class="flex flex-row gap-1">
+            <div
+              v-for="role in roles"
+              :key="role"
+              class="flex-1 h-10 border border-(--border-default-grey)"
+              :style="{ background: 'var(--csp-palette-' + color + '-' + role + ')' }"
+            />
+          </div>
+          <p class="text-(--text-mention-grey)">
+            --csp-palette-{{ color }}-{{ '{' + roles.join(',') + '}' }}
+          </p>
+        </div>
       </div>
     `,
   }),

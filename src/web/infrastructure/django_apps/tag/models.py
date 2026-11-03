@@ -23,6 +23,7 @@ class TagColor(models.TextChoices):
     BLEU = "bleu", "Bleu"
     VIOLET = "violet", "Violet"
     ROSE = "rose", "Rose"
+    ROUGE = "rouge", "Rouge"
     ORANGE = "orange", "Orange"
     BEIGE = "beige", "Beige"
     JAUNE = "jaune", "Jaune"

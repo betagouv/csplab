@@ -4,10 +4,9 @@ import { computed, ref, useId } from 'vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspDrawerFooter from '@/components/base/CspDrawer/CspDrawerFooter.vue'
 import CspInput from '@/components/base/CspInput/CspInput.vue'
+import CspLabel from '@/components/base/CspLabel/CspLabel.vue'
 import CspRadioGroup from '@/components/base/CspRadioGroup/CspRadioGroup.vue'
-import CspSelect from '@/components/base/CspSelect/CspSelect.vue'
-import CspTag from '@/components/base/CspTag/CspTag.vue'
-import { DEFAULT_TAG_COLOR, TAG_CATEGORY_OPTIONS_ORDER, TAG_CATEGORY_TEXTS, TAG_COLOR_ACCENTS, TAG_COLOR_LABELS, TAG_NAME_MAX_LENGTH } from '../constants/tag'
+import { DEFAULT_TAG_COLOR, TAG_CATEGORY_OPTIONS_ORDER, TAG_CATEGORY_TEXTS, TAG_COLOR_LABELS, TAG_COLOR_PALETTE, TAG_NAME_MAX_LENGTH } from '../constants/tag'
 
 const props = defineProps<{
   category: TagCategory
@@ -81,19 +80,29 @@ const formId = useId()
       :options="CATEGORY_OPTIONS"
     />
 
-    <CspSelect
+    <CspRadioGroup
       v-model="color"
       label="Couleur"
+      name="color"
       :options="COLOR_OPTIONS"
-    />
+      :columns="2"
+    >
+      <template #option="{ option }">
+        <CspLabel
+          :label="option.label"
+          :color="TAG_COLOR_PALETTE[option.value as TagColor]"
+          size="md"
+        />
+      </template>
+    </CspRadioGroup>
 
     <div class="tag-form__preview">
       <p class="tag-form__preview-label">
         Aperçu
       </p>
-      <CspTag
+      <CspLabel
         :label="trimmedName || 'Libellé'"
-        :accent="TAG_COLOR_ACCENTS[color as TagColor]"
+        :color="TAG_COLOR_PALETTE[color as TagColor]"
       />
     </div>
   </form>
