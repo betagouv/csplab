@@ -1,0 +1,1 @@
+import{n as e}from"./rolldown-runtime-DkW27tQK.js";import{g as t,h as n,m as r}from"./iframe-B5ONWf_z.js";function i(e){return{label:o,to:n(e)}}function a(e,n){return{label:s,to:t(e,n)}}var o,s;function c(){return(c=e((()=>{r(),o=`Accueil`,s=`Recrutements`})))()}export{a,c as i,s as n,i as r,o as t};
