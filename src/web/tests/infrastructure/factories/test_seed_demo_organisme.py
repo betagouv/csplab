@@ -40,7 +40,9 @@ from infrastructure.factories.seed_demo_organisme import (
     _au_poste,
     _CandidaturePlan,
     _cv,
+    _Echeancier,
     _pdf_texte,
+    _seed_fil,
     seed_demo_organisme,
 )
 from infrastructure.factories.seed_demo_specs import RecrutementSpec, SpecOrganisme
@@ -407,6 +409,38 @@ class TestSeedDemoOrganisme:
     def test_elides_au_poste_de_before_a_vowel(self, intitule, attendu):
         assert _au_poste(intitule) == attendu
 
+    def test_seed_fil_refuses_an_unknown_objet(self, db):
+        _, candidature = create_recrutement_with_candidature()
+        plan = _CandidaturePlan(
+            etape="Entretien",
+            prenom="Camille",
+            nom="Durand",
+            proximite=0.4,
+            notes=(),
+            fils=("Relance",),
+            lecture=False,
+            avatar=None,
+        )
+        maintenant = timezone.now()
+        echeancier = _Echeancier(
+            demande_le=maintenant,
+            repondu_le=maintenant,
+            creneaux=[],
+            limite=maintenant.date(),
+        )
+
+        with pytest.raises(ValueError, match="Relance"):
+            _seed_fil(
+                candidature=candidature,
+                plan=plan,
+                recruteur=candidature.candidat.utilisateur,
+                lecteurs=[],
+                objet="Relance",
+                echeancier=echeancier,
+                intitule="Chargé(e) de mission",
+                choix=0,
+            )
+
     @pytest.mark.parametrize(
         ("cas", "motif"),
         [
@@ -509,7 +543,9 @@ class TestSeedDemoOrganisme:
                 "  Refus : 187",
                 "  Recrutement : 3",
             ]
-            assert bloc[10] == "Notes : 98, conversations : 52 (dont 29 lues)."
+            assert bloc[10] == (
+                "Notes : 98, conversations : 52 (dont 29 lues par le responsable)."
+            )
         _rien_ecrit()
 
     @pytest.mark.parametrize(
