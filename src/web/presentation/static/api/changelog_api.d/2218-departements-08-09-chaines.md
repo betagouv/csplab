@@ -1,7 +1,7 @@
 ---
 type: corrige
 date: 2026-11-03
-pr: 2223
+pr: 2224
 liens:
   - https://github.com/betagouv/csplab/issues/2218
 ---
