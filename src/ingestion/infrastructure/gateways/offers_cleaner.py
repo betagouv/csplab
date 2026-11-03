@@ -55,6 +55,25 @@ logger = logging.getLogger(__name__)
 
 _LEGIFRANCE_URL = re.compile(r"https?://((?:www\.)?legifrance\.gouv\.fr/\S+)")
 
+# Talentsoft lets an overseas collectivity be entered as a country (ISO 3166-1
+# alpha-3 code, no region nor department) instead of as a French department.
+# The referentiel models them as FRA + TOM + department: map the first form to
+# the second one.
+_OVERSEAS_DEPARTMENT_BY_COUNTRY: dict[str, str] = {
+    "NCL": "988",
+    "PYF": "987",
+    "SPM": "975",
+    "WLF": "WLF",
+}
+
+# Department clientCodes that are neither an INSEE code nor transcoded: two of
+# them are internal identifiers of the talentsoft-main instance.
+_TALENTSOFT_DEPARTMENT_CODES: dict[str, str] = {
+    "_TS_CO_Department_NouvelleCaldonie988": "988",
+    "_TS_d623ebaa-8a96-434b-8d4f-302df507f7bf": "977",  # Saint-Barthélemy (977)
+    "_TS_171e5c6b-a77a-43d1-8e0c-d498b38ccf16": "978",  # Saint-Martin (978)
+}
+
 _TALENTSOFT_TO_SPECIALISATIONS: dict[str, str] = {
     "_TS_CO_Specialisation_1": "Formations générales",
     "_TS_CO_Specialisation_2": "Spécialités pluriscientifiques",
@@ -723,11 +742,18 @@ class OffersCleaner:
         region_code = regions[0].clientCode if regions else None
         department_code = departments[0].clientCode if departments else None
 
+        if transcoder and country_code:
+            country_code = transcoder.translate("pays", country_code) or country_code
+
+        if country_code in _OVERSEAS_DEPARTMENT_BY_COUNTRY:
+            department_code = _OVERSEAS_DEPARTMENT_BY_COUNTRY[country_code]
+            region_code = "TOM"
+            country_code = "FRA"
+
         if not country_code or not region_code or not department_code:
             return None
 
         if transcoder:
-            country_code = transcoder.translate("pays", country_code) or country_code
             region_code = transcoder.translate("regions", region_code) or region_code
             department_code = (
                 transcoder.translate("departements", department_code) or department_code
@@ -740,10 +766,9 @@ class OffersCleaner:
         else:
             insee_region_code = region_code
 
-        if department_code.startswith("_TS_CO_Department_NouvelleCaldonie988"):
-            insee_department_code = "988"
-        else:
-            insee_department_code = department_code
+        insee_department_code = _TALENTSOFT_DEPARTMENT_CODES.get(
+            department_code, department_code
+        )
 
         try:
             department = Department(code=insee_department_code)
