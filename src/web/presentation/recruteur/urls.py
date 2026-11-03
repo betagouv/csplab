@@ -35,6 +35,9 @@ from presentation.recruteur.views.organisme_detail import (
 from presentation.recruteur.views.organismes import (
     OrganismesView,
 )
+from presentation.recruteur.views.organismes_recherche import (
+    OrganismesRechercheView,
+)
 from presentation.recruteur.views.recrutement_agents import (
     RecrutementAgentsView,
     RecrutementsResponsableView,
@@ -70,6 +73,11 @@ urlpatterns = [
         "organismes",
         OrganismesView.as_view(),
         name="organismes",
+    ),
+    path(
+        "organismes/recherche",
+        OrganismesRechercheView.as_view(),
+        name="organismes_recherche",
     ),
     path(
         "organismes/<uuid:organisme_uuid>",
