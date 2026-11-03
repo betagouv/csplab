@@ -367,9 +367,9 @@ caractères s'applique au texte Markdown, syntaxe comprise.
 | Champ | Règle |
 |---|---|
 | `zone_geographique` | Obligatoire dans chaque localisation. Valeurs : **AF** (Afrique), **EU** (Europe), **AS** (Asie), **AM** (Amérique), **OC** (Océanie), **AN** (Antarctique), **MO** (Moyen-Orient et Afrique du Nord). |
-| `pays` | Obligatoire. Code pays ISO 3166-1 alpha-3, **en majuscules** (ex. `FRA`). Un code en minuscules (`fra`) est rejeté. Pour `FRA`, `region` et `departement` sont obligatoires. Pour une offre à l'étranger (tout autre pays), ils doivent être vides : la `zone_geographique` et le `localisation_label` situent l'offre. Les collectivités d'outre-mer (Nouvelle-Calédonie, Polynésie française…) sont en `FRA`, avec la région `TOM` et leur département. |
-| `region` | Code région INSEE officiel, `DOM`, `TOM`, ou vide. Si `departement` est renseigné, doit être la région de ce département : code INSEE de la région ou `DOM` pour `971` à `974` et `976`, `TOM` pour `975`, `977`, `978`, `986`, `987`, `988`, `SPM` et `WLF`. |
-| `departement` | Code département officiel (`01` à `95`, `2A`, `2B`, DOM-TOM dont `977` Saint-Barthélemy et `978` Saint-Martin, `SPM`, `WLF`…), ou vide. Doit appartenir à `region`. |
+| `pays` | Obligatoire. Code pays ISO 3166-1 alpha-3, **en majuscules** (ex. `FRA`). Un code en minuscules (`fra`) est rejeté. Pour `FRA`, `region` et `departement` sont obligatoires. Pour une offre à l'étranger (tout autre pays), ils valent `null` : la `zone_geographique` et le `localisation_label` situent l'offre. Les collectivités d'outre-mer (Nouvelle-Calédonie, Polynésie française…) sont en `FRA`, avec la région `TOM` et leur département. |
+| `region` | Code région INSEE officiel, `DOM`, `TOM`, ou `null` hors de France (`""` reste accepté). Si `departement` est renseigné, doit être la région de ce département : code INSEE de la région ou `DOM` pour `971` à `974` et `976`, `TOM` pour `975`, `977`, `978`, `986`, `987`, `988`, `SPM` et `WLF`. |
+| `departement` | Code département officiel (`01` à `95`, `2A`, `2B`, DOM-TOM dont `977` Saint-Barthélemy et `978` Saint-Martin, `SPM`, `WLF`…), ou `null` hors de France (`""` reste accepté). Doit appartenir à `region`. |
 | `localisation_label` | Libellé du lieu. **500 caractères maximum.** |
 | `latitude` / `longitude` | Coordonnées géographiques. Facultatives : peuvent être absentes ou `null`. |
 
@@ -504,7 +504,7 @@ Un filtre invalide (par exemple un versant inconnu) renvoie une erreur `400`.
 | `referentiel` | Référentiel source : `FINESS`, `GIPCDG` ou `DILA`. Avec `external_id`, c'est la clé utilisée pour créer, mettre à jour ou supprimer un organisme |
 | `external_id` | Identifiant de l'organisme dans le référentiel source |
 | `millesime` | Version du référentiel source dont provient l'organisme (peut être vide) |
-| `localisation` | Vide, ou `zone_geographique`, `pays`, `region` et `departement` de l'organisme |
+| `localisation` | Vide, ou `zone_geographique`, `pays`, `region` et `departement` de l'organisme. `region` et `departement` valent `null` hors de France |
 
 
 

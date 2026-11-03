@@ -192,6 +192,10 @@ SUBDIVISION_FORBIDDEN_ABROAD = (
             SUBDIVISION_REQUIRED_IN_FRANCE,
         ),
         (
+            _localisation(region=None, departement=None),
+            SUBDIVISION_REQUIRED_IN_FRANCE,
+        ),
+        (
             _localisation(pays="DEU"),
             SUBDIVISION_FORBIDDEN_ABROAD,
         ),
@@ -223,15 +227,18 @@ def test_region_and_department_must_match_the_country(
     ]
 
 
+@pytest.mark.parametrize("blank", [None, ""])
 def test_organisme_abroad_without_region_nor_department_is_accepted(
-    api_key_client, use_case
+    api_key_client, use_case, blank
 ):
     response = api_key_client.post(
         URL,
         data={
             "organismes": [
                 _organisme_payload(
-                    localisation=_localisation(pays="DEU", region="", departement="")
+                    localisation=_localisation(
+                        pays="DEU", region=blank, departement=blank
+                    )
                 )
             ]
         },

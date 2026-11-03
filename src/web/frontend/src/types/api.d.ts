@@ -985,8 +985,8 @@ export interface components {
         Localisation: {
             zone_geographique: components["schemas"]["ZoneGeographiqueEnum"];
             pays: string;
-            region: components["schemas"]["RegionEnum"] | components["schemas"]["BlankEnum"];
-            departement: components["schemas"]["DepartementEnum"] | components["schemas"]["BlankEnum"];
+            region: (components["schemas"]["RegionEnum"] | components["schemas"]["BlankEnum"] | components["schemas"]["NullEnum"]) | null;
+            departement: (components["schemas"]["DepartementEnum"] | components["schemas"]["BlankEnum"] | components["schemas"]["NullEnum"]) | null;
             localisation_label: string;
             /** Format: double */
             latitude: number | null;

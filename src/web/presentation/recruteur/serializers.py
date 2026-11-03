@@ -311,8 +311,8 @@ class OffreLocalisationField(serializers.Field):
         return {
             "zone_geographique": offre.area or "",
             "pays": offre.country or "",
-            "region": offre.region or "",
-            "departement": offre.department or "",
+            "region": offre.region or None,
+            "departement": offre.department or None,
             "localisation_label": offre.location_label or "",
             "latitude": offre.latitude,
             "longitude": offre.longitude,

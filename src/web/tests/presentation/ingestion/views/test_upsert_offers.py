@@ -1346,8 +1346,9 @@ class TestOffersUpsertViewDbVerified:
         assert localisation.latitude is None
         assert localisation.longitude is None
 
+    @pytest.mark.parametrize("blank", [None, ""])
     def test_offer_abroad_is_persisted_without_region_nor_department(
-        self, authenticated_client_with_source
+        self, authenticated_client_with_source, blank
     ):
         MetierDjangoFactory(
             offer_family_code="ERNUM001", domaine_fonctionnel_code="NUM"
@@ -1358,8 +1359,8 @@ class TestOffersUpsertViewDbVerified:
                 {
                     "zone_geographique": "EU",
                     "pays": "DEU",
-                    "region": "",
-                    "departement": "",
+                    "region": blank,
+                    "departement": blank,
                     "localisation_label": "Ambassade de France à Berlin",
                     "latitude": 52.5163,
                     "longitude": 13.3777,
@@ -1385,8 +1386,8 @@ class TestOffersUpsertViewDbVerified:
         assert OfferDetailResponseSerializer(persisted).data["localisation"] == {
             "zone_geographique": "EU",
             "pays": "DEU",
-            "region": "",
-            "departement": "",
+            "region": None,
+            "departement": None,
             "localisation_label": "Ambassade de France à Berlin",
             "latitude": 52.5163,
             "longitude": 13.3777,

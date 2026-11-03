@@ -5567,13 +5567,17 @@ components:
           maxLength: 3
           minLength: 3
         region:
+          nullable: true
           oneOf:
           - $ref: '#/components/schemas/RegionEnum'
           - $ref: '#/components/schemas/BlankEnum'
+          - $ref: '#/components/schemas/NullEnum'
         departement:
+          nullable: true
           oneOf:
           - $ref: '#/components/schemas/DepartementEnum'
           - $ref: '#/components/schemas/BlankEnum'
+          - $ref: '#/components/schemas/NullEnum'
         localisation_label:
           type: string
           maxLength: 500
@@ -5608,8 +5612,9 @@ components:
           maxLength: 3
           minLength: 3
         region:
+          nullable: true
           description: |-
-            Code INSEE de la région, `DOM` ou `TOM`. Le département doit appartenir à cette région : `DOM` avec un département d'outre-mer, `TOM` avec une collectivité d'outre-mer.
+            Code INSEE de la région, `DOM` ou `TOM`. Le département doit appartenir à cette région : `DOM` avec un département d'outre-mer, `TOM` avec une collectivité d'outre-mer. `null` hors de France.
 
             * `01` - 01
             * `02` - 02
@@ -5634,10 +5639,13 @@ components:
           oneOf:
           - $ref: '#/components/schemas/RegionEnum'
           - $ref: '#/components/schemas/BlankEnum'
+          - $ref: '#/components/schemas/NullEnum'
         departement:
+          nullable: true
           oneOf:
           - $ref: '#/components/schemas/DepartementEnum'
           - $ref: '#/components/schemas/BlankEnum'
+          - $ref: '#/components/schemas/NullEnum'
         localisation_label:
           type: string
           maxLength: 500
@@ -5977,13 +5985,17 @@ components:
           maxLength: 3
           minLength: 3
         region:
+          nullable: true
           oneOf:
           - $ref: '#/components/schemas/RegionEnum'
           - $ref: '#/components/schemas/BlankEnum'
+          - $ref: '#/components/schemas/NullEnum'
         departement:
+          nullable: true
           oneOf:
           - $ref: '#/components/schemas/DepartementEnum'
           - $ref: '#/components/schemas/BlankEnum'
+          - $ref: '#/components/schemas/NullEnum'
         latitude:
           type: number
           format: double
@@ -6010,8 +6022,10 @@ components:
           type: string
         region:
           type: string
+          nullable: true
         departement:
           type: string
+          nullable: true
       required:
       - departement
       - pays

@@ -6561,13 +6561,17 @@ components:
           maxLength: 3
           minLength: 3
         region:
+          nullable: true
           oneOf:
           - $ref: '#/components/schemas/RegionEnum'
           - $ref: '#/components/schemas/BlankEnum'
+          - $ref: '#/components/schemas/NullEnum'
         departement:
+          nullable: true
           oneOf:
           - $ref: '#/components/schemas/DepartementEnum'
           - $ref: '#/components/schemas/BlankEnum'
+          - $ref: '#/components/schemas/NullEnum'
         localisation_label:
           type: string
           maxLength: 500
