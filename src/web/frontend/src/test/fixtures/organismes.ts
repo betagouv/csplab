@@ -34,6 +34,7 @@ export const ORGANISME: OrganismesList = {
   date_creation: '2026-01-01T00:00:00Z',
   nombre_agents: 10,
   nombre_offres_publiees: 5,
+  authorized_actions: [],
 }
 
 export const ORGANISME_DETAIL: OrganismeDetail = {
