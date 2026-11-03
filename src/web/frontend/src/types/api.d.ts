@@ -1171,6 +1171,21 @@ export interface components {
             previous?: string | null;
             results: components["schemas"]["Note"][];
         };
+        PaginatedOrganismesListList: {
+            /** @example 1 */
+            count: number;
+            /**
+             * Format: uri
+             * @example null
+             */
+            next?: string | null;
+            /**
+             * Format: uri
+             * @example null
+             */
+            previous?: string | null;
+            results: components["schemas"]["OrganismesList"][];
+        };
         PaginatedRecrutementAgentList: {
             /** @example 123 */
             count: number;
@@ -1573,7 +1588,12 @@ export interface operations {
     };
     recruteur_organismes_list: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Numéro de la page. */
+                page?: number;
+                /** @description Nombre d'éléments par page. */
+                taille?: number;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -1588,7 +1608,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["OrganismesList"][];
+                    "application/json": components["schemas"]["PaginatedOrganismesListList"];
                 };
             };
             401: {
