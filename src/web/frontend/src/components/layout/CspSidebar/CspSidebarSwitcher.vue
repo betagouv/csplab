@@ -8,7 +8,7 @@ import {
   ListboxItemIndicator,
   ListboxRoot,
 } from 'reka-ui'
-import { computed, ref, useId, watch } from 'vue'
+import { computed, ref, useId, useTemplateRef, watch } from 'vue'
 import CspIcon from '@/components/base/CspIcon/CspIcon.vue'
 import CspPopover from '@/components/base/CspPopover/CspPopover.vue'
 import CspSidebarButton from '@/components/layout/CspSidebar/CspSidebarButton.vue'
@@ -61,6 +61,14 @@ watch(open, (isOpen) => {
   }
 })
 
+const listbox = useTemplateRef<{ highlightFirstItem: () => void }>('listbox')
+
+watch(() => props.groups, () => {
+  if (search.value) {
+    listbox.value?.highlightFirstItem()
+  }
+})
+
 function select(value: string) {
   open.value = false
   emit('select', value)
@@ -97,6 +105,7 @@ function select(value: string) {
     </template>
 
     <ListboxRoot
+      ref="listbox"
       class="csp-sidebar-switcher"
       :model-value="selected ?? undefined"
       highlight-on-hover

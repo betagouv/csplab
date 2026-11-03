@@ -5,45 +5,50 @@ import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import CspAvatar from '@/components/base/CspAvatar/CspAvatar.vue'
 import CspSidebarSwitcher from '@/components/layout/CspSidebar/CspSidebarSwitcher.vue'
-import { useTextSearch } from '@/composables/data/useTextSearch'
 import { ORGANISMES_ROUTE_NAME, RECRUTEMENTS_TAB_ROUTE_NAMES } from '@/router/names'
 import { useCurrentUser } from '@/stores/currentUser'
 import { useRouteOrganisme } from '@/stores/routeOrganisme'
+import { can } from '@/utils/authorizedActions'
+import { useOrganismesSearch } from '../composables/useOrganismesSearch'
 import { ESPACE_ADMINISTRATEUR_LABEL, ORGANISME_LABEL } from '../constants/organisme'
-import { organismesListQuery } from '../queries'
+import { organismeDetailQuery } from '../queries'
 
 const ESPACE_ADMINISTRATEUR = 'espace-administrateur'
 
 const router = useRouter()
-const { isStaff } = useCurrentUser()
+const { user } = useCurrentUser()
 const { organismes, organisme, organismeUuid } = useRouteOrganisme()
+const { search, results, tooShort, searching } = useOrganismesSearch()
 
-const { data: allOrganismes } = useQuery(() => ({
-  ...organismesListQuery,
-  enabled: isStaff.value,
+const canBrowseOrganismes = computed(() => can(user.value?.authorized_actions, 'list_organismes'))
+
+const { data: organismeHorsAppartenance } = useQuery(() => ({
+  ...organismeDetailQuery({ organismeUuid: organismeUuid.value ?? '' }),
+  enabled: canBrowseOrganismes.value && Boolean(organismeUuid.value) && !organisme.value,
 }))
 
-const { search, filtered } = useTextSearch(
-  () => allOrganismes.value ?? [],
-  listed => [listed.nom, listed.siret],
-  0,
-)
-
 const title = computed(() => {
-  if (!isStaff.value) {
+  if (!canBrowseOrganismes.value) {
     return organisme.value?.nom ?? null
   }
   if (!organismeUuid.value) {
     return ESPACE_ADMINISTRATEUR_LABEL
   }
   return organisme.value?.nom
-    ?? allOrganismes.value?.find(listed => listed.uuid === organismeUuid.value)?.nom
+    ?? organismeHorsAppartenance.value?.nom
     ?? ORGANISME_LABEL
 })
 
-const ariaLabel = computed(() => isStaff.value
+const ariaLabel = computed(() => canBrowseOrganismes.value
   ? `${title.value}. Changer d'espace`
   : `Organisme : ${title.value}. Changer d'organisme`)
+
+const emptyLabel = computed(() => {
+  if (tooShort.value) {
+    return 'Saisissez au moins 3 caractères'
+  }
+  return searching.value ? 'Recherche en cours…' : 'Aucun organisme trouvé'
+})
 
 const memberOptions = computed(() => organismes.value.map(role => ({
   value: role.organisme_uuid,
@@ -51,12 +56,12 @@ const memberOptions = computed(() => organismes.value.map(role => ({
 })))
 
 const groups = computed<CspSidebarSwitcherGroup[]>(() => {
-  if (!isStaff.value) {
+  if (!canBrowseOrganismes.value) {
     return [{ label: 'Changer d\'organisme', options: memberOptions.value }]
   }
   if (search.value.trim()) {
     return [{
-      options: filtered.value.map(listed => ({
+      options: results.value.map(listed => ({
         value: listed.uuid,
         label: listed.nom,
         description: listed.siret,
@@ -91,9 +96,9 @@ function select(value: string) {
     :title="title"
     :groups="groups"
     :selected="organismeUuid ?? ESPACE_ADMINISTRATEUR"
-    :filter-label="isStaff ? 'Accéder à un organisme' : undefined"
-    filter-placeholder="Nom ou SIRET"
-    empty-label="Aucun organisme trouvé"
+    :filter-label="canBrowseOrganismes ? 'Accéder à un organisme' : undefined"
+    filter-placeholder="Nom de l'organisme"
+    :empty-label="emptyLabel"
     :aria-label="ariaLabel"
     @select="select"
   >

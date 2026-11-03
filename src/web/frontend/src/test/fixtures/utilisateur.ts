@@ -26,7 +26,7 @@ export function makeUser(
     prenom: 'Marie',
     nom: 'Dupont',
     is_staff: isStaff,
-    authorized_actions: [],
+    authorized_actions: isStaff ? ['create_organisme', 'list_organismes', 'update_organisme'] : [],
     organismes,
     organisme_roles: organismeRoles,
   }
