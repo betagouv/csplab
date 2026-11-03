@@ -632,7 +632,7 @@ Notation : `a.b` désigne un objet imbriqué, `a[]` une liste, `a[0]` son premie
 |---|---|---|
 | `reference` | `identification.reference` | |
 | `salaryRange.clientCode` | `identification.versant` | Dans l'API fake-ts, `salaryRange` est une simple chaîne, toujours `null` : le versant est alors déduit de `reference` (`APHP`/`MENJ`/`OFII`). Les valeurs contenant `FPT`/`FPH`/`FPE` donnent un `Verse`. |
-| `title` | `titre` | Copié aussi dans `titre_long`. |
+| `title` | `titre` | |
 | `organisationName` | `organisation.nom` | |
 | `organisation.entityCode` | `organisation.talentsoft_organisme_entity_code` | Réservé au service ingestion de CSPLab : laissez ce champ vide, une offre qui le renseigne est rejetée. API fake-ts : reprend l'organisme Talentsoft lié à l'offre. Toute offre est liée à un organisme Talentsoft. |
 | `contractType.clientCode` | `nature_offre` | Traduit par le transcodeur de la source. |
@@ -732,6 +732,7 @@ Notation : `a.b` désigne un objet imbriqué, `a[]` une liste, `a[0]` son premie
 |---|---|
 | `categories` | Lu par l'ingestion dans `customFields.description.customCodeTable1`, que l'API fake-ts n'expose pas (`CAT-A`/`B`/`C` ; `CAT-AEF`/`ESD`/`ES` → `APLUS`). API fake-ts : le filtre `category` de `offer_summaries` retourne une offre si l'une de ses catégories en fait partie. |
 | `type_contrat` | Lu dans `customFields.offer.customCodeTable2` (absent de l'API fake-ts) : `CDD*`, `CDI`. |
+| `titre_long` | Jamais renseigné par l'ingestion : Talentsoft n'a pas de titre long. |
 | `organisation.siret` | Jamais renseigné par l'ingestion (vide) ; le rapprochement d'organisme passe par `talentsoft_organisme_entity_code`. |
 | `profession.referentiel` | Constante `RMFPv2`. |
 | `profession.code_emploi_local` | Jamais renseigné, `local_job_code` reste à `null`. |
