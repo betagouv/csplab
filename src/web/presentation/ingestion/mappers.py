@@ -36,8 +36,10 @@ class LocalisationInputMapper(IToDomainMapper[dict, Localisation]):
         return Localisation(
             area=GeographicalArea(data["zone_geographique"]),
             country=Country(data["pays"]),
-            region=Region(code=data["region"]),
-            department=Department(code=data["departement"]),
+            region=Region(code=data["region"]) if data["region"] else None,
+            department=(
+                Department(code=data["departement"]) if data["departement"] else None
+            ),
             label=data.get("localisation_label") or None,
             latitude=data.get("latitude"),
             longitude=data.get("longitude"),
@@ -179,7 +181,7 @@ class OfferSummaryOutputMapper:
                     "region",
                 )
             ]
-            if offer.localisation
+            if offer.localisation and offer.localisation.region
             else [],
             "department": [
                 self._coded_object(
@@ -188,7 +190,7 @@ class OfferSummaryOutputMapper:
                     "department",
                 )
             ]
-            if offer.localisation
+            if offer.localisation and offer.localisation.department
             else [],
             "latitude": offer.localisation.latitude if offer.localisation else None,
             "longitude": offer.localisation.longitude if offer.localisation else None,

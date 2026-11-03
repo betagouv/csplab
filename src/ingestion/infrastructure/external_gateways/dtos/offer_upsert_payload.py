@@ -144,8 +144,12 @@ class OfferUpsertPayload(BaseModel):
                 LocalisationItemPayload(
                     zone_geographique=offer.localisation.area.value,
                     pays=str(offer.localisation.country),
-                    region=offer.localisation.region.code,
-                    departement=offer.localisation.department.code,
+                    region=offer.localisation.region.code
+                    if offer.localisation.region
+                    else "",
+                    departement=offer.localisation.department.code
+                    if offer.localisation.department
+                    else "",
                     localisation_label=offer.localisation.label or "",
                     latitude=offer.localisation.latitude,
                     longitude=offer.localisation.longitude,

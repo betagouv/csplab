@@ -177,7 +177,7 @@ class TestUpsertBatch:
             "functional_area_code": "NEW",
             "localisation": Localisation(
                 area=GeographicalArea("AM"),
-                country=Country("GUF"),
+                country=Country("FRA"),
                 region=Region(code="03"),
                 department=Department(code="973"),
             ),

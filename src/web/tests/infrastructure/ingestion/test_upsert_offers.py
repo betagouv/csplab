@@ -33,7 +33,7 @@ def test_upsert_offers_result(ingestion_container):
         categories=[Category.B],
         offer_nature=OfferNature.CONTRACTUEL,
         area="AS",
-        country="GUF",
+        country="FRA",
         region="03",
         department="973",
     )
