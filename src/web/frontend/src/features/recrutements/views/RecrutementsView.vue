@@ -55,8 +55,10 @@ const router = useRouter()
 
 const activeTab = useRouteTab<RecrutementKey>(RECRUTEMENTS_TAB_ROUTE_NAMES, 'actifs')
 
-const { organisme: routeOrganisme, canManageOrganisme } = useRouteOrganisme()
+const { organisme: routeOrganisme, canOnOrganisme } = useRouteOrganisme()
 useDocumentTitle(() => RECRUTEMENT_TAB_LABELS[activeTab.value], () => routeOrganisme.value?.nom)
+
+const canAssignResponsable = computed(() => canOnOrganisme('set_recrutements_responsable'))
 
 const TABS = tabItems(RECRUTEMENT_TAB_LABELS, RECRUTEMENT_TAB_ICONS)
 
@@ -329,7 +331,7 @@ const archivesCountLabel = computed(() => {
               :rows="actifsFilters.filtered.value"
               :columns="RECRUTEMENTS_ACTIFS_COLUMNS"
               :row-key="row => row.uuid"
-              :selection-mode="canManageOrganisme ? 'checkbox' : 'none'"
+              :selection-mode="canAssignResponsable ? 'checkbox' : 'none'"
               :selected-ids="selection.selectedIds.value"
               :selection-label="row => `Sélectionner ${row.intitule}`"
               activation-mode="cell"
@@ -342,7 +344,7 @@ const archivesCountLabel = computed(() => {
             >
               <template #cell-responsables="{ row, value }">
                 <CspButton
-                  v-if="canManageOrganisme && row.responsables.length === 0"
+                  v-if="canAssignResponsable && row.responsables.length === 0"
                   label="Assigner un responsable"
                   variant="secondary"
                   size="sm"
