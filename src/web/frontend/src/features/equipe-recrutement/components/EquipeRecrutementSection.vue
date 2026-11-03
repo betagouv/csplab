@@ -16,7 +16,8 @@ import { useTextSearch } from '@/composables/data/useTextSearch'
 import { useToast } from '@/composables/ui/useToast'
 import AgentRoleForm from '@/features/agents/components/AgentRoleForm.vue'
 import { formatAgentLabel } from '@/features/agents/format'
-import { useRouteOrganisme } from '@/stores/routeOrganisme'
+import { useRecrutementDetail } from '@/features/recrutements/composables/useRecrutementDetail'
+import { can } from '@/utils/authorizedActions'
 import { pluralize } from '@/utils/format'
 import { EQUIPE_RECRUTEMENT_ACTIONS_COLUMN, EQUIPE_RECRUTEMENT_COLUMNS } from '../columns'
 import { useAddAgentToRecrutement } from '../composables/useAddAgentToRecrutement'
@@ -43,8 +44,12 @@ const {
   submitting,
   reset: resetAgent,
 } = useAddAgentToRecrutement(props.organismeUuid, props.recrutementUuid)
-const { revocation, roleChange } = provideMembreEquipeActions()
-const { canManageOrganisme } = useRouteOrganisme()
+const { recrutementDetail } = useRecrutementDetail(() => props)
+const actions = computed(() => recrutementDetail.value?.authorized_actions)
+const canAdd = computed(() => can(actions.value, 'add_recrutement_agent'))
+const canChangeRole = computed(() => can(actions.value, 'update_recrutement_agent'))
+const canRevoke = computed(() => can(actions.value, 'revoke_recrutement_agent'))
+const { revocation, roleChange } = provideMembreEquipeActions({ canRevoke, canChangeRole })
 const { addToast } = useToast()
 
 const showSkeleton = useMinimumPending(pending)
@@ -56,7 +61,7 @@ const revocationDialogOpen = ref(false)
 const roleDrawerOpen = ref(false)
 
 const columns = computed(() =>
-  canManageOrganisme.value
+  canChangeRole.value || canRevoke.value
     ? [...EQUIPE_RECRUTEMENT_COLUMNS, EQUIPE_RECRUTEMENT_ACTIONS_COLUMN]
     : EQUIPE_RECRUTEMENT_COLUMNS,
 )
@@ -200,7 +205,7 @@ const countLabel = computed(() => {
           placeholder="Rechercher un membre, un courriel"
         />
         <CspButton
-          v-if="canManageOrganisme"
+          v-if="canAdd"
           label="Ajouter un membre"
           icon="ri:user-add-line"
           is-icon-left

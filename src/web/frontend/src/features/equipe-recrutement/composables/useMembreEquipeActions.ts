@@ -1,4 +1,4 @@
-import type { InjectionKey } from 'vue'
+import type { InjectionKey, Ref } from 'vue'
 import type { MembreEquipe } from '../types'
 import type { Request } from '@/composables/ui/useRequest'
 import { inject, provide } from 'vue'
@@ -7,14 +7,19 @@ import { createRequest } from '@/composables/ui/useRequest'
 export interface MembreEquipeActions {
   revocation: Request<MembreEquipe>
   roleChange: Request<MembreEquipe>
+  canRevoke: Readonly<Ref<boolean>>
+  canChangeRole: Readonly<Ref<boolean>>
 }
 
 const KEY: InjectionKey<MembreEquipeActions> = Symbol('membre-equipe-actions')
 
-export function provideMembreEquipeActions(): MembreEquipeActions {
+export function provideMembreEquipeActions(
+  permissions: Pick<MembreEquipeActions, 'canRevoke' | 'canChangeRole'>,
+): MembreEquipeActions {
   const actions: MembreEquipeActions = {
     revocation: createRequest(),
     roleChange: createRequest(),
+    ...permissions,
   }
   provide(KEY, actions)
   return actions
