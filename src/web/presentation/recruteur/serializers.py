@@ -601,6 +601,7 @@ class NoteSerializer(serializers.ModelSerializer):
     publie_par_nom = serializers.CharField(source="publie_par.utilisateur.last_name")
     publie_le = serializers.DateTimeField(source="created_at")
     est_privee = serializers.BooleanField()
+    authorized_actions = authorized_actions_field()
 
     class Meta:
         model = NoteModel
@@ -613,6 +614,7 @@ class NoteSerializer(serializers.ModelSerializer):
             "publie_par_nom",
             "publie_le",
             "est_privee",
+            "authorized_actions",
         ]
 
 
