@@ -5,18 +5,21 @@ import { defineComponent, h } from 'vue'
 import { HttpError } from '@/api/errors'
 import CspToaster from '@/components/base/CspToast/CspToaster.vue'
 import { renderWithApp, setupUser } from '@/test/render'
-import { createTag, getTags } from '../api'
+import { createTag, getTags, updateTag } from '../api'
 import TagsSection from './TagsSection.vue'
 
 vi.mock('../api', () => ({
   getTags: vi.fn(),
   createTag: vi.fn(),
+  updateTag: vi.fn(),
 }))
 
 const ORGANISME_UUID = '00000000-0000-0000-0000-000000000000'
 
+const TO_RECALL: Tag = { uuid: 'aaaaaaaa-0001-0001-0001-000000000001', name: 'À rappeler', category: 'candidature', color: 'bleu', usage_count: 0 }
+
 const TAGS: Tag[] = [
-  { uuid: 'aaaaaaaa-0001-0001-0001-000000000001', name: 'À rappeler', category: 'candidature', color: 'bleu', usage_count: 0 },
+  TO_RECALL,
   { uuid: 'aaaaaaaa-0001-0001-0001-000000000002', name: 'Profil senior', category: 'candidature', color: 'vert', usage_count: 0 },
   { uuid: 'aaaaaaaa-0001-0001-0001-000000000003', name: 'Entretien', category: 'note', color: 'jaune', usage_count: 0 },
 ]
@@ -31,6 +34,13 @@ function block(title: string) {
   return screen.getByRole('region', { name: title })
 }
 
+async function openEditDrawer(name: string) {
+  const user = setupUser()
+  await renderWithApp(Host)
+  await user.click(await screen.findByRole('button', { name: `Modifier l'étiquette ${name}` }))
+  return user
+}
+
 async function openDrawerFrom(title: string) {
   const user = setupUser()
   await renderWithApp(Host)
@@ -42,6 +52,7 @@ describe('tagsSection', () => {
   beforeEach(() => {
     vi.mocked(getTags).mockReset().mockResolvedValue(TAGS)
     vi.mocked(createTag).mockReset()
+    vi.mocked(updateTag).mockReset()
   })
 
   it('lists the tags of each category', async () => {
@@ -75,6 +86,41 @@ describe('tagsSection', () => {
     expect(await within(block('Note')).findByText('2 étiquettes')).toBeInTheDocument()
   })
 
+  it('edits the name and the color of a tag, and keeps its type', async () => {
+    vi.mocked(updateTag).mockResolvedValue({ ...TO_RECALL, name: 'À relancer', color: 'rouge' })
+    const user = await openEditDrawer('À rappeler')
+
+    const drawer = screen.getByRole('dialog', { name: 'Modifier l\'étiquette' })
+    const name = within(drawer).getByRole('textbox', { name: /Libellé/ })
+    expect(name).toHaveValue('À rappeler')
+    expect(within(drawer).getByText('Candidature')).toBeInTheDocument()
+    expect(within(drawer).queryByRole('radio', { name: 'Note' })).not.toBeInTheDocument()
+    expect(within(drawer).getByRole('radio', { name: 'Bleu' })).toBeChecked()
+
+    await user.clear(name)
+    await user.type(name, 'À relancer')
+    await user.click(within(drawer).getByRole('radio', { name: 'Rouge' }))
+    await user.click(within(drawer).getByRole('button', { name: 'Enregistrer' }))
+
+    expect(updateTag).toHaveBeenCalledWith(ORGANISME_UUID, TO_RECALL.uuid, { name: 'À relancer', color: 'rouge' })
+    expect(await screen.findByText('Étiquette modifiée')).toBeInTheDocument()
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+  })
+
+  it('saves an edited tag only once its name or color changes', async () => {
+    const user = await openEditDrawer('À rappeler')
+
+    const drawer = screen.getByRole('dialog', { name: 'Modifier l\'étiquette' })
+    const save = within(drawer).getByRole('button', { name: 'Enregistrer' })
+    expect(save).toBeDisabled()
+
+    await user.type(within(drawer).getByRole('textbox', { name: /Libellé/ }), ' ')
+    expect(save).toBeDisabled()
+
+    await user.click(within(drawer).getByRole('radio', { name: 'Rouge' }))
+    expect(save).toBeEnabled()
+  })
+
   it('starts from an empty form each time the drawer opens', async () => {
     const user = await openDrawerFrom('Note')
     await user.type(screen.getByRole('textbox', { name: /Libellé/ }), 'Synthèse')
@@ -96,13 +142,18 @@ describe('tagsSection', () => {
   })
 
   it.each([
-    [409, 'Une étiquette de ce type porte déjà ce libellé.'],
-    [500, 'L\'ajout de l\'étiquette a échoué'],
-  ])('keeps the drawer open and explains a %i', async (status, message) => {
+    { mode: 'creating', open: () => openDrawerFrom('Candidature'), status: 409, message: 'Une étiquette de ce type porte déjà ce libellé.' },
+    { mode: 'creating', open: () => openDrawerFrom('Candidature'), status: 500, message: 'L\'ajout de l\'étiquette a échoué' },
+    { mode: 'editing', open: () => openEditDrawer('Profil senior'), status: 409, message: 'Une étiquette de ce type porte déjà ce libellé.' },
+    { mode: 'editing', open: () => openEditDrawer('Profil senior'), status: 500, message: 'La modification de l\'étiquette a échoué' },
+  ])('keeps the drawer open and explains a $status while $mode', async ({ open, status, message }) => {
     vi.mocked(createTag).mockRejectedValue(new HttpError(status, 'Erreur'))
-    const user = await openDrawerFrom('Candidature')
+    vi.mocked(updateTag).mockRejectedValue(new HttpError(status, 'Erreur'))
+    const user = await open()
 
-    await user.type(screen.getByRole('textbox', { name: /Libellé/ }), 'À rappeler')
+    const name = screen.getByRole('textbox', { name: /Libellé/ })
+    await user.clear(name)
+    await user.type(name, 'À rappeler')
     await user.click(screen.getByRole('button', { name: 'Enregistrer' }))
 
     expect(await screen.findByText(message)).toBeInTheDocument()

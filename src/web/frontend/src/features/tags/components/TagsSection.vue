@@ -17,13 +17,14 @@ const props = defineProps<{
   organismeUuid: string
 }>()
 
-const { tags, pending, error, createTag, creatingTag } = useTags(props.organismeUuid)
+const { tags, pending, error, createTag, creatingTag, updateTag, updatingTag } = useTags(props.organismeUuid)
 const { addToast } = useToast()
 
 const showSkeleton = useMinimumPending(pending)
 
 const drawerOpen = ref(false)
 const drawerCategory = ref<TagCategory>('candidature')
+const editedTag = ref<Tag | null>(null)
 const duplicate = ref<CreateTagPayload | null>(null)
 
 const tagsByCategory = computed(() => {
@@ -34,16 +35,24 @@ const tagsByCategory = computed(() => {
   return groups
 })
 
-function openDrawer(category: TagCategory): void {
+function openDrawer(category: TagCategory, tag: Tag | null = null): void {
   drawerCategory.value = category
+  editedTag.value = tag
   duplicate.value = null
   drawerOpen.value = true
 }
 
-async function handleCreate(payload: CreateTagPayload): Promise<void> {
+async function handleSave(payload: CreateTagPayload): Promise<void> {
+  const tag = editedTag.value
   try {
-    await createTag(payload)
-    addToast({ variant: 'success', title: 'Étiquette ajoutée' })
+    if (tag) {
+      await updateTag({ tagUuid: tag.uuid, payload: { name: payload.name, color: payload.color } })
+      addToast({ variant: 'success', title: 'Étiquette modifiée' })
+    }
+    else {
+      await createTag(payload)
+      addToast({ variant: 'success', title: 'Étiquette ajoutée' })
+    }
     drawerOpen.value = false
   }
   catch (submitError) {
@@ -51,7 +60,7 @@ async function handleCreate(payload: CreateTagPayload): Promise<void> {
       duplicate.value = payload
       return
     }
-    addToast({ variant: 'error', title: 'L\'ajout de l\'étiquette a échoué' })
+    addToast({ variant: 'error', title: tag ? 'La modification de l\'étiquette a échoué' : 'L\'ajout de l\'étiquette a échoué' })
   }
 }
 </script>
@@ -97,6 +106,9 @@ async function handleCreate(payload: CreateTagPayload): Promise<void> {
               <CspLabel
                 :label="tag.name"
                 :color="TAG_COLOR_PALETTE[tag.color ?? DEFAULT_TAG_COLOR]"
+                clickable
+                :aria-label="`Modifier l'étiquette ${tag.name}`"
+                @click="openDrawer(category, tag)"
               />
             </li>
           </ul>
@@ -120,14 +132,15 @@ async function handleCreate(payload: CreateTagPayload): Promise<void> {
 
     <CspDrawer
       v-model:open="drawerOpen"
-      title="Ajouter une étiquette"
+      :title="editedTag ? 'Modifier l\'étiquette' : 'Ajouter une étiquette'"
       size="md"
     >
       <TagForm
         :category="drawerCategory"
-        :saving="creatingTag"
+        :tag="editedTag"
+        :saving="creatingTag || updatingTag"
         :duplicate="duplicate"
-        @create="handleCreate"
+        @save="handleSave"
         @cancel="drawerOpen = false"
       />
     </CspDrawer>

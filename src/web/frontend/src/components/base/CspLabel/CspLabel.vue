@@ -8,10 +8,12 @@ const props = withDefaults(defineProps<{
   color?: PaletteColor
   size?: 'sm' | 'md'
   bordered?: boolean
+  clickable?: boolean
 }>(), {
   color: 'grey',
   size: 'sm',
   bordered: true,
+  clickable: false,
 })
 
 const colorStyle = computed(() => ({
@@ -22,9 +24,11 @@ const colorStyle = computed(() => ({
 </script>
 
 <template>
-  <span
+  <component
+    :is="clickable ? 'button' : 'span'"
+    :type="clickable ? 'button' : undefined"
     class="csp-label"
-    :class="[`csp-label--${size}`, { 'csp-label--bordered': bordered }]"
+    :class="[`csp-label--${size}`, { 'csp-label--bordered': bordered, 'csp-label--clickable': clickable }]"
     :style="colorStyle"
   >
     <span
@@ -32,7 +36,7 @@ const colorStyle = computed(() => ({
       aria-hidden="true"
     />
     <span class="csp-label__text">{{ label }}</span>
-  </span>
+  </component>
 </template>
 
 <style scoped lang="scss">
@@ -55,6 +59,27 @@ const colorStyle = computed(() => ({
 
 .csp-label--bordered {
   box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--csp-label-dot) 26%, transparent);
+}
+
+.csp-label--clickable {
+  margin: 0;
+  border: none;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background-color var(--csp-motion-duration-state);
+
+  &:hover {
+    background-color: color-mix(in oklab, var(--csp-label-background), var(--csp-label-text) 10%);
+  }
+
+  &:active {
+    background-color: color-mix(in oklab, var(--csp-label-background), var(--csp-label-text) 18%);
+  }
+
+  &:focus-visible {
+    outline: var(--focus-ring);
+    outline-offset: var(--csp-focus-ring-offset);
+  }
 }
 
 .csp-label--sm {
