@@ -431,14 +431,14 @@ class TestSeedDemoOrganisme:
 
         with pytest.raises(ValueError, match="Relance"):
             _seed_fil(
-                candidature,
-                plan,
-                candidature.candidat.utilisateur,
-                [],
-                "Relance",
-                echeancier,
-                "Chargé(e) de mission",
-                0,
+                candidature=candidature,
+                plan=plan,
+                recruteur=candidature.candidat.utilisateur,
+                lecteurs=[],
+                objet="Relance",
+                echeancier=echeancier,
+                intitule="Chargé(e) de mission",
+                choix=0,
             )
 
     @pytest.mark.parametrize(
