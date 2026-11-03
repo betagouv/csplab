@@ -30,7 +30,10 @@ vi.mock('@/api/utilisateur', () => ({
 
 const EQUIPE_PATH = `${KANBAN_PATH}/equipe`
 const OTHER_RECRUTEMENT_UUID = '00000000-0000-0000-0000-0000000000ff'
-const RECRUTEMENT_DETAIL_AVEC_EQUIPE = { ...RECRUTEMENT_DETAIL, authorized_actions: ['list_recrutement_agents' as const] }
+const RECRUTEMENT_DETAIL_AVEC_EQUIPE = {
+  ...RECRUTEMENT_DETAIL,
+  authorized_actions: ['list_recrutement_agents' as const, 'add_recrutement_agent' as const],
+}
 
 describe('recrutementView', () => {
   beforeEach(() => {

@@ -12,30 +12,34 @@ const props = defineProps<{
   row: MembreEquipe
 }>()
 
-const { revocation, roleChange } = useMembreEquipeActions()
+const { revocation, roleChange, canRevoke, canChangeRole } = useMembreEquipeActions()
 
 const membreLabel = computed(() => formatAgentLabel(props.row))
 
 const sections = computed(() => [
-  {
-    items: [
-      {
-        label: 'Modifier les droits d\'accès',
-        icon: 'ri:shield-user-line',
-        onSelect: () => roleChange.request(props.row),
-      },
-    ],
-  },
-  {
-    items: [
-      {
-        label: 'Retirer de l\'équipe',
-        icon: 'ri:user-unfollow-line',
-        destructive: true,
-        onSelect: () => revocation.request(props.row),
-      },
-    ],
-  },
+  ...(canChangeRole.value
+    ? [{
+        items: [
+          {
+            label: 'Modifier les droits d\'accès',
+            icon: 'ri:shield-user-line',
+            onSelect: () => roleChange.request(props.row),
+          },
+        ],
+      }]
+    : []),
+  ...(canRevoke.value
+    ? [{
+        items: [
+          {
+            label: 'Retirer de l\'équipe',
+            icon: 'ri:user-unfollow-line',
+            destructive: true,
+            onSelect: () => revocation.request(props.row),
+          },
+        ],
+      }]
+    : []),
 ])
 </script>
 
