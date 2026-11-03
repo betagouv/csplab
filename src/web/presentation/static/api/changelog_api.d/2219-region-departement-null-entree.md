@@ -1,5 +1,5 @@
 ---
-type: ajoute
+type: non_retrocompatible
 date: 2026-11-03
 pr: 2236
 liens:
@@ -7,5 +7,5 @@ liens:
 ---
 
 `POST /api/v1/offres/creer_modifier` et `POST /api/v1/organismes/creer_modifier` :
-`localisation.region` et `localisation.departement` acceptent `null` pour une
-localisation hors de France. `""` reste accepté.
+pour une localisation hors de France, `localisation.region` et
+`localisation.departement` valent `null`. `""` est désormais rejeté dans `errors`.

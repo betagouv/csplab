@@ -33,12 +33,10 @@ class LocalisationSerializer(serializers.Serializer):
     pays = serializers.CharField(max_length=3, min_length=3)
     region = serializers.ChoiceField(
         choices=sorted(Region.VALID_CODES, key=lambda x: x),
-        allow_blank=True,
         allow_null=True,
     )
     departement = serializers.ChoiceField(
         choices=sorted(Department.VALID_CODES, key=lambda x: x),
-        allow_blank=True,
         allow_null=True,
     )
     localisation_label = serializers.CharField(max_length=500, allow_blank=True)

@@ -5832,9 +5832,6 @@ components:
         * `create_tag` - create_tag
         * `update_tag` - update_tag
         * `delete_tag` - delete_tag
-    BlankEnum:
-      enum:
-      - ''
     Candidat:
       type: object
       properties:
@@ -6564,13 +6561,11 @@ components:
           nullable: true
           oneOf:
           - $ref: '#/components/schemas/RegionEnum'
-          - $ref: '#/components/schemas/BlankEnum'
           - $ref: '#/components/schemas/NullEnum'
         departement:
           nullable: true
           oneOf:
           - $ref: '#/components/schemas/DepartementEnum'
-          - $ref: '#/components/schemas/BlankEnum'
           - $ref: '#/components/schemas/NullEnum'
         localisation_label:
           type: string

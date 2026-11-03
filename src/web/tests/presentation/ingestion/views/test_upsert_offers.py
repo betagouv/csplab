@@ -111,8 +111,8 @@ COMPLETE_VALID_OFFER = PayloadOfferFactory.create(
         {
             "zone_geographique": "AM",
             "pays": "MEX",
-            "region": "",
-            "departement": "",
+            "region": None,
+            "departement": None,
             "localisation_label": "",
             "latitude": None,
             "longitude": None,
@@ -1073,7 +1073,7 @@ def test_inconsistent_region_and_department_are_rejected(
 
 @pytest.mark.parametrize(
     ("region", "departement"),
-    [("11", "75"), ("11", ""), ("", "75")],
+    [("11", "75"), ("11", None), (None, "75")],
 )
 def test_region_or_department_abroad_is_rejected(
     authenticated_client_with_source, use_case, region, departement
@@ -1212,8 +1212,8 @@ def test_country_code_not_in_uppercase_is_rejected(
             {
                 "zone_geographique": "EU",
                 "pays": "fra",
-                "region": "",
-                "departement": "",
+                "region": None,
+                "departement": None,
                 "localisation_label": "",
                 "latitude": None,
                 "longitude": None,
@@ -1346,9 +1346,8 @@ class TestOffersUpsertViewDbVerified:
         assert localisation.latitude is None
         assert localisation.longitude is None
 
-    @pytest.mark.parametrize("blank", [None, ""])
     def test_offer_abroad_is_persisted_without_region_nor_department(
-        self, authenticated_client_with_source, blank
+        self, authenticated_client_with_source
     ):
         MetierDjangoFactory(
             offer_family_code="ERNUM001", domaine_fonctionnel_code="NUM"
@@ -1359,8 +1358,8 @@ class TestOffersUpsertViewDbVerified:
                 {
                     "zone_geographique": "EU",
                     "pays": "DEU",
-                    "region": blank,
-                    "departement": blank,
+                    "region": None,
+                    "departement": None,
                     "localisation_label": "Ambassade de France à Berlin",
                     "latitude": 52.5163,
                     "longitude": 13.3777,

@@ -571,7 +571,6 @@ class LocalisationInputSerializer(LocalisationSerializer):
     )
     region = serializers.ChoiceField(
         choices=sorted(Region.VALID_CODES, key=lambda x: x),
-        allow_blank=True,
         allow_null=True,
         help_text=(
             "Code INSEE de la région, `DOM` ou `TOM`. Le département doit "
@@ -1147,12 +1146,10 @@ class OrganismeLocalisationInputSerializer(serializers.Serializer):
     )
     region = serializers.ChoiceField(
         choices=sorted(Region.VALID_CODES, key=lambda x: x),
-        allow_blank=True,
         allow_null=True,
     )
     departement = serializers.ChoiceField(
         choices=sorted(Department.VALID_CODES, key=lambda x: x),
-        allow_blank=True,
         allow_null=True,
     )
     latitude = serializers.FloatField(

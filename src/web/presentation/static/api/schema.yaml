@@ -5570,13 +5570,11 @@ components:
           nullable: true
           oneOf:
           - $ref: '#/components/schemas/RegionEnum'
-          - $ref: '#/components/schemas/BlankEnum'
           - $ref: '#/components/schemas/NullEnum'
         departement:
           nullable: true
           oneOf:
           - $ref: '#/components/schemas/DepartementEnum'
-          - $ref: '#/components/schemas/BlankEnum'
           - $ref: '#/components/schemas/NullEnum'
         localisation_label:
           type: string
@@ -5638,13 +5636,11 @@ components:
             * `TOM` - TOM
           oneOf:
           - $ref: '#/components/schemas/RegionEnum'
-          - $ref: '#/components/schemas/BlankEnum'
           - $ref: '#/components/schemas/NullEnum'
         departement:
           nullable: true
           oneOf:
           - $ref: '#/components/schemas/DepartementEnum'
-          - $ref: '#/components/schemas/BlankEnum'
           - $ref: '#/components/schemas/NullEnum'
         localisation_label:
           type: string
@@ -5988,13 +5984,11 @@ components:
           nullable: true
           oneOf:
           - $ref: '#/components/schemas/RegionEnum'
-          - $ref: '#/components/schemas/BlankEnum'
           - $ref: '#/components/schemas/NullEnum'
         departement:
           nullable: true
           oneOf:
           - $ref: '#/components/schemas/DepartementEnum'
-          - $ref: '#/components/schemas/BlankEnum'
           - $ref: '#/components/schemas/NullEnum'
         latitude:
           type: number
