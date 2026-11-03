@@ -29,7 +29,7 @@ def _bare_digit_strings(text: str) -> list[str]:
 
 class TestYaml12SafeOpenApiRenderer:
     def test_quotes_strings_made_of_digits(self):
-        data = {"enum": ["01", "08", "09", "10", "2A", "-1"], "08": "x"}
+        data = {"enum": ["01", "08", "09", "10", "2A", "-08"], "08": "x"}
 
         output = Yaml12SafeOpenApiRenderer().render(data).decode()
 
