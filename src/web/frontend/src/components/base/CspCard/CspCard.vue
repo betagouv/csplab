@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { RouteLocationRaw } from 'vue-router'
 import { computed, useSlots } from 'vue'
 import CspIcon from '@/components/base/CspIcon/CspIcon.vue'
 
@@ -10,6 +11,7 @@ export interface CspCardProps {
   titleAs?: 'h2' | 'h3' | 'h4' | 'h5' | 'h6'
   description?: string | null
   href?: string
+  to?: RouteLocationRaw
 }
 
 const props = withDefaults(defineProps<CspCardProps>(), {
@@ -30,7 +32,7 @@ const hasStart = computed(() => Boolean(slots.start))
 const hasBody = computed(() => Boolean(slots.default))
 const hasEnd = computed(() => Boolean(slots.end))
 const hasFooter = computed(() => Boolean(slots.footer))
-const isLink = computed(() => Boolean(props.href))
+const isLink = computed(() => Boolean(props.href || props.to))
 </script>
 
 <template>
@@ -61,8 +63,17 @@ const isLink = computed(() => Boolean(props.href))
         v-if="hasTitle"
         class="csp-card__title"
       >
+        <RouterLink
+          v-if="to"
+          :to="to"
+          class="csp-card__link"
+        >
+          <slot name="title">
+            {{ title }}
+          </slot>
+        </RouterLink>
         <a
-          v-if="isLink"
+          v-else-if="href"
           :href="href"
           class="csp-card__link"
         >

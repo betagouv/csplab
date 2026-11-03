@@ -9,7 +9,7 @@ import CspPageHeader from '@/components/layout/CspPageHeader/CspPageHeader.vue'
 import { tabItems } from '@/composables/navigation/tabs'
 import { useRouteTab } from '@/composables/navigation/useRouteTab'
 import { useDocumentTitle } from '@/composables/ui/useDocumentTitle'
-import { HOME_BREADCRUMB_ITEM } from '@/router/breadcrumb'
+import { homeBreadcrumbItem } from '@/router/breadcrumb'
 import { ORGANISME_TAB_ROUTE_NAMES } from '@/router/names'
 import ForbiddenView from '@/views/ForbiddenView.vue'
 import NotFoundView from '@/views/NotFoundView.vue'
@@ -24,10 +24,10 @@ const { organisme, notFound, forbidden } = useOrganismeDetail(() => props.organi
 
 const TITLE = 'Paramètres de l\'organisme'
 
-const breadcrumb: CspBreadcrumbItem[] = [
-  HOME_BREADCRUMB_ITEM,
+const breadcrumb = computed<CspBreadcrumbItem[]>(() => [
+  homeBreadcrumbItem(props.organismeUuid),
   { label: TITLE },
-]
+])
 
 const tabs = tabItems(ORGANISME_TAB_LABELS, ORGANISME_TAB_ICONS)
 

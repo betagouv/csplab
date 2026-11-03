@@ -3,6 +3,7 @@ import type { RouteLocationRaw } from 'vue-router'
 export const HOME_ROUTE_NAME = 'home'
 export const NOT_FOUND_ROUTE_NAME = 'not-found'
 export const ORGANISMES_ROUTE_NAME = 'organismes'
+export const ORGANISME_HOME_ROUTE_NAME = 'organisme-accueil'
 
 export const ORGANISME_SECTION_ROUTE_NAMES = {
   parametres: 'organisme-parametres',
@@ -63,6 +64,10 @@ export const CANDIDATURE_PANEL_ROUTE_NAMES = {
   kanban: panelRouteNames('recrutement-candidature'),
   liste: panelRouteNames('recrutement-liste-candidature'),
 } as const satisfies Record<CandidaturesViewName, CandidaturePanelRouteNames>
+
+export function organismeHomeLocation(organismeUuid: string): RouteLocationRaw {
+  return { name: ORGANISME_HOME_ROUTE_NAME, params: { organismeUuid } }
+}
 
 export function recrutementsListLocation(
   organismeUuid: string,

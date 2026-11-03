@@ -78,6 +78,13 @@ const meta = {
         type: { summary: 'string' },
       },
     },
+    to: {
+      control: false,
+      description: 'Comme `href`, vers une route de l’application.',
+      table: {
+        type: { summary: 'RouteLocationRaw' },
+      },
+    },
     default: { control: false, table: { disable: true } },
     start: { control: false, table: { disable: true } },
     end: { control: false, table: { disable: true } },

@@ -24,10 +24,6 @@ vi.mock('@/features/equipe-recrutement/api', () => ({
   getEquipeRecrutement: vi.fn(),
 }))
 
-vi.mock('@/api/utilisateur', () => ({
-  getMe: vi.fn(),
-}))
-
 const EQUIPE_PATH = `${KANBAN_PATH}/equipe`
 const OTHER_RECRUTEMENT_UUID = '00000000-0000-0000-0000-0000000000ff'
 

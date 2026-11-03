@@ -5,7 +5,7 @@ import CspPageContainer from '@/components/layout/CspPageContainer/CspPageContai
 import CspPageHeader from '@/components/layout/CspPageHeader/CspPageHeader.vue'
 import { useDocumentTitle } from '@/composables/ui/useDocumentTitle'
 import { useRecrutementDetail } from '@/features/recrutements/composables/useRecrutementDetail'
-import { HOME_BREADCRUMB_ITEM, recrutementsBreadcrumbItem } from '@/router/breadcrumb'
+import { homeBreadcrumbItem, recrutementsBreadcrumbItem } from '@/router/breadcrumb'
 import { CANDIDATURES_VIEW_ROUTE_NAMES } from '@/router/names'
 import EtapesRecrutementList from '../components/EtapesRecrutementList.vue'
 import { ETAPES_TEXTS_OFFRE } from '../constants/etape-recrutement'
@@ -27,7 +27,7 @@ const ETAPES_LABEL = 'Étapes de recrutement'
 useDocumentTitle(ETAPES_LABEL, intitule)
 
 const breadcrumb = computed<CspBreadcrumbItem[]>(() => [
-  HOME_BREADCRUMB_ITEM,
+  homeBreadcrumbItem(props.organismeUuid),
   recrutementsBreadcrumbItem(props.organismeUuid, recrutementDetail.value?.archive),
   ...(intitule.value ? [{ label: intitule.value, to: candidaturesRoute.value }] : []),
   { label: ETAPES_LABEL },

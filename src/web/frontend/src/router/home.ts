@@ -1,0 +1,17 @@
+import type { RouteLocationRaw } from 'vue-router'
+import type { Utilisateur } from '@/api/utilisateur'
+import { loadCurrentUser } from '@/stores/currentUser'
+import { organismeHomeLocation, ORGANISMES_ROUTE_NAME } from './names'
+
+export function homeLocationFor(user: Utilisateur | undefined): RouteLocationRaw | true {
+  const organismeUuid = user?.organisme_roles[0]?.organisme_uuid
+  if (organismeUuid) {
+    return organismeHomeLocation(organismeUuid)
+  }
+  return user?.is_staff ? { name: ORGANISMES_ROUTE_NAME } : true
+}
+
+export async function redirectHome(): Promise<RouteLocationRaw | true> {
+  const user = await loadCurrentUser().catch(() => undefined)
+  return homeLocationFor(user)
+}

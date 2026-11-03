@@ -14,6 +14,7 @@ describe('organisme scoped routes', () => {
   it.each([
     ['/organismes', 'organismes'],
     [`/organismes/${ORGANISME_UUID}`, 'organisme'],
+    [`/organismes/${ORGANISME_UUID}/accueil`, 'organisme-accueil'],
     [`/organismes/${ORGANISME_UUID}/etapes`, 'organisme-etapes'],
     [`/organismes/${ORGANISME_UUID}/etiquettes`, 'organisme-tags'],
     [`/organismes/${ORGANISME_UUID}/recrutements`, 'recrutements'],
