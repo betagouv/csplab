@@ -6792,7 +6792,12 @@ components:
           type: integer
         nombre_offres_publiees:
           type: integer
+        authorized_actions:
+          type: array
+          items:
+            $ref: '#/components/schemas/AuthorizedActionsEnum'
       required:
+      - authorized_actions
       - date_creation
       - date_derniere_activite
       - gestion_ats

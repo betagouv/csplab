@@ -7,6 +7,9 @@ from faker import Faker
 from referentiel.value_objects.verse import Verse
 from rest_framework import status
 
+from application.identite.context_services.organisme_permission_service import (
+    OrganismePermissionService,
+)
 from domain.identite.errors.organisme_errors import OrganismeSiretExisteDeja
 from domain.identite.errors.organisme_permission_errors import (
     OperationOrganismeRefusee,
@@ -16,6 +19,7 @@ from infrastructure.django_apps.recruteur.models.organisme import (
     OrganismeModel,
     OrganismeQuerySet,
 )
+from infrastructure.django_apps.users.models import UserModel
 from infrastructure.factories.identite.organisme_django_factory import (
     OrganismeAgentDjangoFactory,
     OrganismeDjangoFactory,
@@ -98,6 +102,15 @@ class TestListOrganismes:
             "date_derniere_activite": datetime_to_drf_representation(last_activity),
             "nombre_agents": 2,
             "nombre_offres_publiees": 1,
+            "authorized_actions": [
+                action.value
+                for action in OrganismePermissionService().authorized_actions_organisme(
+                    AgentOrganismeRole.SUPERVISEUR,
+                    utilisateur=UserModel(is_staff=True),
+                    organisme_id=organisme.id,
+                    organisme_ids_responsable=frozenset(),
+                )
+            ],
         }
 
     def test_get_query_count_does_not_grow_with_organismes(

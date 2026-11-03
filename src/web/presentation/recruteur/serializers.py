@@ -58,6 +58,7 @@ class OrganismesListSerializer(serializers.ModelSerializer):
     date_creation = serializers.DateTimeField(source="created_at")
     nombre_agents = serializers.IntegerField(source="number_agents")
     nombre_offres_publiees = serializers.IntegerField(source="number_published_offers")
+    authorized_actions = authorized_actions_field()
 
     class Meta:
         model = OrganismeModel
@@ -72,6 +73,7 @@ class OrganismesListSerializer(serializers.ModelSerializer):
             "date_creation",
             "nombre_agents",
             "nombre_offres_publiees",
+            "authorized_actions",
         )
         extra_kwargs = {"siret": {"min_length": 14}}
 
