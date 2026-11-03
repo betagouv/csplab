@@ -18,9 +18,15 @@ const meta = {
       description: 'Phrase qui donne la portée de la sélection.',
       table: { type: { summary: 'string' } },
     },
+    editable: {
+      control: { type: 'boolean' },
+      description: 'Affiche « Modifier la sélection ». Désactivé quand l\'action porte sur un élément choisi depuis sa ligne.',
+      table: { type: { summary: 'boolean' }, defaultValue: { summary: 'true' } },
+    },
   },
   args: {
     summary: '12 éléments, dont 4 sur d\'autres pages',
+    editable: true,
   },
 }
 
@@ -29,4 +35,12 @@ type Story = StoryObj<typeof meta>
 
 export const Default: Story = {
   name: 'Par défaut',
+}
+
+export const SingleElement: Story = {
+  name: 'Élément unique',
+  args: {
+    summary: 'Élément A',
+    editable: false,
+  },
 }

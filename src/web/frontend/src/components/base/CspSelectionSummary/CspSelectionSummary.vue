@@ -1,9 +1,12 @@
 <script setup lang="ts">
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 
-defineProps<{
+withDefaults(defineProps<{
   summary: string
-}>()
+  editable?: boolean
+}>(), {
+  editable: true,
+})
 
 const emit = defineEmits<{
   edit: []
@@ -16,6 +19,7 @@ const emit = defineEmits<{
       {{ summary }}
     </p>
     <CspButton
+      v-if="editable"
       variant="link"
       label="Modifier la sélection"
       @click="emit('edit')"

@@ -154,21 +154,17 @@ function assignationErrorTitle(assignationError: unknown): string {
   return 'L\'assignation du responsable a échoué'
 }
 
+const assignationSummary = computed(() => {
+  if (recrutementToAssign.value) {
+    return `Recrutement : ${recrutementToAssign.value.intitule}`
+  }
+  return selectionHint.value ? `${selectionLabel.value}, ${selectionHint.value}` : selectionLabel.value
+})
+
 function openAssignment(recrutement: RecrutementsActifs | null = null) {
   recrutementToAssign.value = recrutement
   resetResponsable()
   assignationDrawer.open()
-}
-
-function removeFromAssignment(recrutementUuid: string) {
-  if (recrutementToAssign.value) {
-    assignationDrawer.close()
-    return
-  }
-  selection.toggle(recrutementUuid)
-  if (selection.count.value === 0) {
-    assignationDrawer.close()
-  }
 }
 
 async function handleAssign() {
@@ -302,12 +298,14 @@ const archivesCountLabel = computed(() => {
             size="md"
           >
             <AssignResponsableForm
-              :recrutements="recrutementsToAssign"
+              :count="recrutementsToAssign.length"
+              :summary="assignationSummary"
+              :editable="!recrutementToAssign"
               :status="responsableStatus"
               :agent="foundAgent"
               :searching="searching"
               :submitting="submitting"
-              @remove="removeFromAssignment"
+              @edit-selection="assignationDrawer.close()"
               @search="searchResponsable"
               @assign="handleAssign"
               @reset="resetResponsable"
