@@ -23,6 +23,7 @@ const ROLE_BRIANCON: OrganismeRole = { organisme_uuid: BRIANCON, nom: 'Commune d
 function makeUser(
   organismeRoles: Utilisateur['organisme_roles'],
   isStaff = false,
+  organismes: Utilisateur['organismes'] = [],
 ): Utilisateur {
   return {
     email: 'marie.dupont@example.gouv.fr',
@@ -30,7 +31,7 @@ function makeUser(
     nom: 'Dupont',
     is_staff: isStaff,
     authorized_actions: [],
-    organismes: [],
+    organismes,
     organisme_roles: organismeRoles,
   }
 }
@@ -97,13 +98,26 @@ describe('useRouteOrganisme', () => {
   it('lets a staff user manage an organisme they hold no role on', async () => {
     vi.mocked(getMe).mockResolvedValue(makeUser([], true))
 
-    const { organismeUuid, organisme, canManageOrganisme } = await mountAt(
+    const { organismeUuid, organisme, canManageOrganisme, canOnOrganisme } = await mountAt(
       `/organismes/${INCONNU}/recrutements`,
     )
 
     await vi.waitFor(() => expect(canManageOrganisme.value).toBe(true))
+    expect(canOnOrganisme('list_organisme_agents')).toBe(true)
     expect(organismeUuid.value).toBe(INCONNU)
     expect(organisme.value).toBeNull()
+  })
+
+  it('reads the authorized actions of the organisme in the url', async () => {
+    vi.mocked(getMe).mockResolvedValue(makeUser([ROLE_MTE, ROLE_BRIANCON], false, [
+      { uuid: MTE, nom: ROLE_MTE.nom, authorized_actions: ['list_organisme_agents'] },
+      { uuid: BRIANCON, nom: ROLE_BRIANCON.nom, authorized_actions: ['list_recrutements'] },
+    ]))
+
+    const { canOnOrganisme } = await mountAt(`/organismes/${BRIANCON}/recrutements`)
+
+    await vi.waitFor(() => expect(canOnOrganisme('list_recrutements')).toBe(true))
+    expect(canOnOrganisme('list_organisme_agents')).toBe(false)
   })
 
   it('exposes no organisme for an agent without any role', async () => {
