@@ -102,4 +102,21 @@ describe('recrutementView', () => {
     expect(await screen.findByText('Vous n’avez pas accès à cette page.')).toBeInTheDocument()
     await vi.waitFor(() => expect(document.title).toBe('Accès refusé'))
   })
+
+  it('hides the recrutement actions menu without the right to customize the étapes', async () => {
+    vi.mocked(getMe).mockReset().mockResolvedValue(makeUser([roleOnOrganisme('agent')]))
+    vi.mocked(getRecrutementDetail).mockResolvedValue({ ...RECRUTEMENT_DETAIL, authorized_actions: ['get_recrutement'] })
+    await renderWithApp(RouterView, { route: KANBAN_PATH })
+
+    await screen.findByRole('heading', { name: RECRUTEMENT_DETAIL.intitule })
+    expect(screen.queryByRole('button', { name: 'Actions sur le recrutement' })).not.toBeInTheDocument()
+  })
+
+  it('offers to customize the étapes with the right to do so', async () => {
+    vi.mocked(getMe).mockReset().mockResolvedValue(makeUser([roleOnOrganisme('agent')]))
+    vi.mocked(getRecrutementDetail).mockResolvedValue({ ...RECRUTEMENT_DETAIL, authorized_actions: ['update_recrutement_etapes'] })
+    await renderWithApp(RouterView, { route: KANBAN_PATH })
+
+    expect(await screen.findByRole('button', { name: 'Actions sur le recrutement' })).toBeInTheDocument()
+  })
 })

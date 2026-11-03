@@ -17,6 +17,7 @@ import { HOME_BREADCRUMB_ITEM, recrutementsBreadcrumbItem } from '@/router/bread
 import { RECRUTEMENT_DETAIL_TAB_ROUTE_NAMES, RECRUTEMENT_ETAPES_ROUTE_NAME, recrutementsListLocation } from '@/router/names'
 import { useCurrentUser } from '@/stores/currentUser'
 import { useRouteOrganisme } from '@/stores/routeOrganisme'
+import { can } from '@/utils/authorizedActions'
 import ForbiddenView from '@/views/ForbiddenView.vue'
 import { useRecrutementDetail } from '../composables/useRecrutementDetail'
 import { RECRUTEMENT_DETAIL_TAB_ICONS, RECRUTEMENT_DETAIL_TAB_LABELS } from '../constants/recrutement'
@@ -67,6 +68,10 @@ const equipeForbidden = computed(() =>
 
 const forbidden = computed(() => isHttpStatus(error.value, 403) || equipeForbidden.value)
 
+const canCustomizeEtapes = computed(() =>
+  can(recrutementDetail.value?.authorized_actions, 'update_recrutement_etapes'),
+)
+
 const headerMenuSections = [{
   items: [{
     label: 'Personnaliser les étapes de recrutement',
@@ -89,7 +94,10 @@ const headerMenuSections = [{
       :show-title-skeleton="showTitleSkeleton"
       :show-subtitle-skeleton="showSubtitleSkeleton"
     >
-      <template #actions>
+      <template
+        v-if="canCustomizeEtapes"
+        #actions
+      >
         <CspDropdownMenu
           :sections="headerMenuSections"
           side="bottom"
