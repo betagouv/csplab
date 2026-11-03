@@ -897,7 +897,7 @@ DILA_NOM = "Ministère de l'Intérieur"
                 found="",
                 found_at=datetime.now(timezone.utc)
                 - timedelta(days=30)
-                + timedelta(minutes=1),
+                + timedelta(hours=1),
             ),
             None,
             id="cache_just_under_max_age",
