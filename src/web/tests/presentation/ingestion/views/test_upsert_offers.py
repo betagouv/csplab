@@ -1290,6 +1290,34 @@ class TestOffersUpsertViewDbVerified:
         for attr in COMPARABLE_OFFER_ATTRS:
             assert getattr(persisted, attr) == getattr(expected, attr)
 
+    @pytest.mark.parametrize(
+        "titre_long",
+        [{}, {"titre_long": None}, {"titre_long": ""}],
+        ids=["missing", "null", "empty"],
+    )
+    def test_offer_without_titre_long_is_persisted_without_long_title(
+        self, authenticated_client_with_source, titre_long
+    ):
+        MetierDjangoFactory(
+            offer_family_code="ERNUM001", domaine_fonctionnel_code="NUM"
+        )
+        offer = {
+            k: v for k, v in MINIMAL_VALID_OFFER.items() if k != "titre_long"
+        } | titre_long
+
+        response = authenticated_client_with_source.post(
+            URL,
+            data={"source_id": SOURCE_UUID, "offres": [offer]},
+            content_type="application/json",
+        )
+
+        assert response.status_code == status.HTTP_201_CREATED
+        assert response.json()["errors"] == []
+        offer_model = OfferModel.objects.get(
+            reference="REF-001", source_id=UUID(SOURCE_UUID)
+        )
+        assert offer_model.long_title is None
+
     def test_persists_all_categories_in_sent_order(
         self, authenticated_client_with_source
     ):

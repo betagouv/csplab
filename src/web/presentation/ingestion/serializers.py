@@ -1038,7 +1038,9 @@ class OffersInputSerializer(serializers.Serializer):
 
     # general infos
     titre = serializers.CharField(max_length=150)
-    titre_long = serializers.CharField(max_length=1500)
+    titre_long = serializers.CharField(
+        max_length=1500, required=False, allow_null=True, allow_blank=True
+    )
     organisation = OrganismeInputSerializer()
     url_offre = serializers.URLField(allow_null=True)
     url_candidature = serializers.URLField(allow_null=True, required=False)

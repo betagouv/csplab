@@ -5866,6 +5866,7 @@ components:
           maxLength: 150
         titre_long:
           type: string
+          nullable: true
           maxLength: 1500
         organisation:
           $ref: '#/components/schemas/OrganismeInput'
@@ -5934,7 +5935,6 @@ components:
       - profession
       - publication
       - titre
-      - titre_long
       - url_offre
       - vacance_poste
     OrganismeDeleteInput:
