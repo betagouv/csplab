@@ -1,12 +1,18 @@
 #!/usr/bin/env bash
 #
-# For each service under src/, upgrade its locked dependencies with
-# `uv lock --upgrade`, commit on a dedicated branch, push, and return to main.
+# Upgrade the locked dependencies of every project in a single branch:
+# libs/ first (with a patch version bump when their lock changes), then src/
+# so that the services pick up the updated libs. One commit per project.
+# Pushes the branch and returns to main.
 #
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$REPO_ROOT"
+
+BRANCH="chore/upgrade-deps"
+LIBS=(libs/ddd libs/referentiel libs/scaleway_secrets)
+SERVICES=(src/web src/ocr src/ingestion src/notebook)
 
 if [ -n "$(git status --porcelain)" ]; then
   echo "✖ working tree is not clean; commit or stash your changes first" >&2
@@ -16,38 +22,57 @@ fi
 git switch main
 git pull --ff-only origin main
 
-SERVICES=(web ocr ingestion notebook)
-
-existing_branches=()
-for svc in "${SERVICES[@]}"; do
-  branch="chore/upgrade-deps-$svc"
-  if git ls-remote --exit-code --heads origin "$branch" > /dev/null 2>&1; then
-    existing_branches+=("$branch")
-  fi
-done
-
-if [ "${#existing_branches[@]}" -gt 0 ]; then
-  echo "✖ remote branches already exist, aborting:" >&2
-  printf '  - %s\n' "${existing_branches[@]}" >&2
+if git ls-remote --exit-code --heads origin "$BRANCH" > /dev/null 2>&1; then
+  echo "✖ remote branch already exists, aborting: $BRANCH" >&2
   exit 1
 fi
 
-for svc in "${SERVICES[@]}"; do
-  svc_dir="src/$svc"
-  echo "▶ [$svc] mise à jour des dépendances"
-  ( cd "$svc_dir" && uv lock --upgrade )
+git switch -c "$BRANCH"
+commits=0
 
-  if git diff --quiet -- "$svc_dir/uv.lock"; then
-    echo "⚠ [$svc] no dependency changes, skipping"
-    continue
+bump_patch_version() {
+  local pyproject="$1" current major minor patch
+  current="$(sed -n 's/^version = "\(.*\)"$/\1/p' "$pyproject" | head -n 1)"
+  IFS=. read -r major minor patch <<< "$current"
+  sed -i "0,/^version = \".*\"$/s//version = \"$major.$minor.$((patch + 1))\"/" "$pyproject"
+}
+
+upgrade_project() {
+  local dir="$1" bump="$2" name="${1##*/}"
+  echo "▶ [$name] mise à jour des dépendances"
+  ( cd "$dir" && uv lock --upgrade )
+
+  if git diff --quiet -- "$dir/uv.lock"; then
+    echo "⚠ [$name] no dependency changes, skipping"
+    return
   fi
 
-  branch="chore/upgrade-deps-$svc"
-  git switch -c "$branch"
-  git add "$svc_dir/uv.lock"
-  git commit -m "build(tooling): met à jour les dépendances de $svc"
-  git push -u origin "$branch"
-  git switch main
+  if [ "$bump" = "bump" ]; then
+    bump_patch_version "$dir/pyproject.toml"
+    ( cd "$dir" && uv lock )
+    git add "$dir/pyproject.toml"
+  fi
+
+  git add "$dir/uv.lock"
+  git commit -m "build(tooling): met à jour les dépendances de $name"
+  commits=$((commits + 1))
+}
+
+for dir in "${LIBS[@]}"; do
+  upgrade_project "$dir" bump
 done
+
+for dir in "${SERVICES[@]}"; do
+  upgrade_project "$dir" nobump
+done
+
+if [ "$commits" -eq 0 ]; then
+  echo "⚠ no dependency changes anywhere, removing $BRANCH"
+  git switch main
+  git branch -D "$BRANCH"
+else
+  git push -u origin "$BRANCH"
+  git switch main
+fi
 
 echo "▶ Done."
