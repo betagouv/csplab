@@ -54,6 +54,17 @@ export const KanbanColumnSelected: Story = {
   },
 }
 
+export const KanbanCardExcluded: Story = {
+  name: 'Kanban, candidature écartée de la sélection',
+  parameters: { appRoute: RECRUTEMENT_PATH },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+    await selectReceptionColumn(canvas)
+    const [card] = await canvas.findAllByRole('checkbox', { name: 'Sélectionner Thomas Leroy' })
+    await userEvent.click(card!)
+  },
+}
+
 export const ChangerEtape: Story = {
   name: 'Kanban, panneau Changer d’étape',
   parameters: { appRoute: RECRUTEMENT_PATH },
