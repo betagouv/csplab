@@ -1082,6 +1082,7 @@ export interface components {
             date_creation: string;
             nombre_agents: number;
             nombre_offres_publiees: number;
+            authorized_actions: components["schemas"]["AuthorizedActionsEnum"][];
         };
         PaginatedAuditLogList: {
             /** @example 123 */
