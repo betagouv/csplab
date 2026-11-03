@@ -60,6 +60,12 @@ const selectionCountLabel = computed(
         </template>
       </p>
     </div>
+    <p
+      class="sr-only"
+      role="status"
+    >
+      {{ selectionCount > 0 ? selectionCountLabel : '' }}
+    </p>
     <div class="csp-table-toolbar__actions">
       <slot
         v-if="selectionCount > 0"

@@ -37,6 +37,7 @@ import riEyeLine from '@iconify-icons/ri/eye-line'
 import riEyeOffLine from '@iconify-icons/ri/eye-off-line'
 import riFileAddLine from '@iconify-icons/ri/file-add-line'
 import riFileCopyLine from '@iconify-icons/ri/file-copy-line'
+import riFileLine from '@iconify-icons/ri/file-line'
 import riFileListLine from '@iconify-icons/ri/file-list-line'
 import riFileTextFill from '@iconify-icons/ri/file-text-fill'
 import riFilter3Line from '@iconify-icons/ri/filter-3-line'
@@ -128,6 +129,7 @@ addIcon('ri:eye-line', riEyeLine)
 addIcon('ri:eye-off-line', riEyeOffLine)
 addIcon('ri:file-add-line', riFileAddLine)
 addIcon('ri:file-copy-line', riFileCopyLine)
+addIcon('ri:file-line', riFileLine)
 addIcon('ri:file-list-line', riFileListLine)
 addIcon('ri:file-text-fill', riFileTextFill)
 addIcon('ri:filter-3-line', riFilter3Line)

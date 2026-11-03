@@ -11,10 +11,14 @@ const props = defineProps<{
   etape: EtapeRecrutementDetailedCandidatures
   boardId: string
   isSelected?: boolean
+  isPartiallySelected: boolean
+  isCandidatureSelected: (candidatureUuid: string) => boolean
+  selecting: boolean
 }>()
 
 const emit = defineEmits<{
   toggleSelection: [etape: EtapeRecrutementDetailedCandidatures]
+  toggleCandidatureSelection: [candidatureUuid: string, etapeUuid: string]
 }>()
 
 const categorieConfig = computed(() => CATEGORIE_CONFIG[props.etape.categorie])
@@ -54,6 +58,7 @@ function handleCheckboxChange(): void {
       <h2 class="candidature-kanban-column__title">
         <CspCheckbox
           :model-value="isSelected"
+          :indeterminate="isPartiallySelected"
           class="candidature-kanban-column__select"
           variant="checkbox-only"
           size="sm"
@@ -82,6 +87,9 @@ function handleCheckboxChange(): void {
           :candidature="candidature"
           :board-id="boardId"
           :column-id="etape.uuid"
+          :selected="isCandidatureSelected(candidature.uuid)"
+          :selecting="selecting"
+          @toggle-selection="emit('toggleCandidatureSelection', candidature.uuid, etape.uuid)"
         />
       </li>
     </ul>

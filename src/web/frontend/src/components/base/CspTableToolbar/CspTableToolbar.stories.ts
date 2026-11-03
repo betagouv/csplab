@@ -14,7 +14,7 @@ const meta = {
   parameters: {
     docs: {
       description: {
-        component: 'Barre d\'outils à placer immédiatement au-dessus d\'une table : compteur à gauche, recherche et actions à droite. Le slot `start` affiche un élément avant le compteur, par exemple un choix d\'affichage, et le garde à la même place en mode sélection. Quand `selectionCount` est renseigné, la barre bascule en mode sélection et affiche le slot `selection-actions` pour les actions en lot.',
+        component: 'Barre d\'outils à placer immédiatement au-dessus d\'une table : compteur à gauche, recherche et actions à droite. Le slot `start` affiche un élément avant le compteur, par exemple un choix d\'affichage, et le garde à la même place en mode sélection. Quand `selectionCount` est renseigné, la barre bascule en mode sélection et affiche le slot `selection-actions` pour les actions en lot. Une région de statut annonce le compteur de sélection aux lecteurs d\'écran à chaque changement.',
       },
     },
   },
