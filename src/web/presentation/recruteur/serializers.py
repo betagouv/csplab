@@ -705,6 +705,7 @@ class CandidatureDetailSerializer(serializers.Serializer):
     )
     document_uuid = serializers.UUIDField(allow_null=True)
     navigation_candidature_uuids = serializers.ListField(child=serializers.UUIDField())
+    authorized_actions = authorized_actions_field()
 
 
 # ---------------------------------------------------------------------------
