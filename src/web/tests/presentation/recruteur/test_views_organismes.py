@@ -1,8 +1,6 @@
 from unittest.mock import patch
 
 import pytest
-from django.db import connection
-from django.test.utils import CaptureQueriesContext
 from django.urls import reverse
 from django.utils import timezone
 from faker import Faker
@@ -34,6 +32,7 @@ fake = Faker("fr_FR")
 
 ORGANISME_URL = reverse("recruteur:organismes")
 VALID_SIRET = fake.siret().replace(" ", "")
+NOMBRE_REQUETES_ATTENDU = 5  # session, user, count, organismes, superviseurs
 INVALID_CHECKSUM_SIRET = VALID_SIRET[:-1] + str((int(VALID_SIRET[-1]) + 1) % 10)
 
 
@@ -101,19 +100,21 @@ class TestListOrganismes:
             "nombre_offres_publiees": 1,
         }
 
-    def test_get_query_count_does_not_grow_with_organismes(self, staff_client):
-        def count_queries() -> int:
-            with CaptureQueriesContext(connection) as queries:
-                staff_client.get(ORGANISME_URL)
-            return len(queries)
-
+    def test_get_query_count_does_not_grow_with_organismes(
+        self, staff_client, django_assert_num_queries
+    ):
         OrganismeDjangoFactory()
-        baseline = count_queries()
-        for organisme in OrganismeDjangoFactory.create_batch(3):
-            OrganismeAgentDjangoFactory(organisme=organisme)
-            RecrutementDjangoFactory(organisme=organisme)
+        with django_assert_num_queries(NOMBRE_REQUETES_ATTENDU):
+            response = staff_client.get(ORGANISME_URL)
+        assert response.status_code == status.HTTP_200_OK
 
-        assert count_queries() == baseline
+        for organisme in OrganismeDjangoFactory.create_batch(3):
+            OrganismeAgentDjangoFactory.create_batch(5, organisme=organisme)
+            RecrutementDjangoFactory.create_batch(5, organisme=organisme)
+
+        with django_assert_num_queries(NOMBRE_REQUETES_ATTENDU):
+            response = staff_client.get(ORGANISME_URL)
+        assert response.status_code == status.HTTP_200_OK
 
     def test_get_paginates_with_taille(self, staff_client):
         total, taille = 3, 2
