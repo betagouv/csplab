@@ -9,7 +9,10 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 
 from application.recruteur.services.create_organisme import create_organisme
-from application.recruteur.services.list_organismes import list_organismes
+from application.recruteur.services.list_organismes import (
+    list_organismes,
+    with_authorized_actions,
+)
 from domain.identite.errors.organisme_errors import OrganismeSiretExisteDeja
 from domain.identite.errors.organisme_permission_errors import (
     OperationOrganismeRefusee,
@@ -54,6 +57,14 @@ class OrganismesView(SessionApiMixin, ListAPIView):
 
     def get_queryset(self) -> QuerySet[OrganismeModel]:
         return list_organismes(utilisateur=self.request.user)
+
+    def paginate_queryset(self, queryset: QuerySet[OrganismeModel]) -> list | None:
+        page = super().paginate_queryset(queryset)
+        return (
+            None
+            if page is None
+            else with_authorized_actions(page, utilisateur=self.request.user)
+        )
 
     def post(self, request: Request) -> Response:
         serializer = CreateOrganismeSerializer(data=request.data)
