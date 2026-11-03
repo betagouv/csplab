@@ -23,6 +23,9 @@ from referentiel.value_objects.verse import Verse
 
 from domain.entities.raw_offer import RawOffer
 from domain.value_objects.contact import Contact, ContactRole
+from infrastructure.external_gateways.dtos.offer_upsert_payload import (
+    OfferUpsertPayload,
+)
 from infrastructure.external_gateways.dtos.talentsoft_dtos import (
     TalentsoftDynamicField,
     TalentsoftLanguage,
@@ -442,6 +445,7 @@ def test_clean_deduces_overseas_region_from_department(
         pytest.param("PYF", "987", GeographicalArea.OCEANIE, id="polynesie"),
         pytest.param("WLF", "WLF", GeographicalArea.OCEANIE, id="wallis_et_futuna"),
         pytest.param("SPM", "975", GeographicalArea.AMERIQUE, id="saint_pierre"),
+        pytest.param("MAF", "978", GeographicalArea.AMERIQUE, id="saint_martin"),
     ],
 )
 def test_clean_maps_overseas_collectivity_entered_as_a_country(
@@ -509,6 +513,170 @@ def test_clean_maps_talentsoft_main_internal_department_code(
     assert offer.localisation.region.code == "TOM"
     assert offer.localisation.department.code == expected_department
     assert offer.localisation.area == GeographicalArea.AMERIQUE
+
+
+@pytest.mark.parametrize(
+    ("country", "expected_region", "expected_department"),
+    [
+        pytest.param("GLP", "DOM", "971", id="guadeloupe"),
+        pytest.param("REU", "DOM", "974", id="la_reunion"),
+    ],
+)
+def test_clean_maps_overseas_department_entered_as_a_country(
+    cleaner, country, expected_region, expected_department
+):
+    raw_offer = _make_raw_offer(
+        geographicalLocation=[],
+        country=[
+            TalentsoftCodedObjectFactory.build(clientCode=country, type="offerCountry")
+        ],
+        region=[],
+        department=[],
+    )
+
+    offer = cleaner.clean(raw_offer)
+
+    assert offer.localisation is not None
+    assert str(offer.localisation.country) == "FRA"
+    assert offer.localisation.region.code == expected_region
+    assert offer.localisation.department.code == expected_department
+
+
+def _make_raw_offer_abroad(
+    country: str = "DEU",
+    area: str | None = "_TS_CO_GeographicalArea_Europe",
+    **offer_kwargs,
+) -> RawOffer:
+    return _make_raw_offer(
+        slug="talentsoft-main",
+        geographicalLocation=(
+            [
+                TalentsoftCodedObjectFactory.build(
+                    clientCode=area, type="offerGeographicalLocation"
+                )
+            ]
+            if area
+            else []
+        ),
+        country=[
+            TalentsoftCodedObjectFactory.build(clientCode=country, type="offerCountry")
+        ],
+        **{"region": [], "department": [], **offer_kwargs},
+    )
+
+
+@pytest.mark.parametrize(
+    ("country", "area", "expected_area"),
+    [
+        ("DEU", "_TS_CO_GeographicalArea_Europe", GeographicalArea.EUROPE),
+        (
+            "MAR",
+            "_TS_CO_GeographicalArea_MoyenOrientAfriqueduNord",
+            GeographicalArea.MOYEN_ORIENT_AFRIQUE_DU_NORD,
+        ),
+        ("BRA", "_TS_CO_GeographicalArea_AmriquesCaraibe", GeographicalArea.AMERIQUE),
+        ("AUS", "_TS_CO_GeographicalArea_Ocanie", GeographicalArea.OCEANIE),
+        ("KOR", "_TS_CO_GeographicalArea_Asie", GeographicalArea.ASIE),
+        ("GAB", "_TS_CO_GeographicalArea_Afrique", GeographicalArea.AFRIQUE),
+    ],
+)
+def test_clean_maps_offer_abroad(cleaner, country, area, expected_area):
+    raw_offer = _make_raw_offer_abroad(
+        country=country,
+        area=area,
+        customFields=TalentsoftCustomFieldsFactory.build(
+            location=TalentsoftDynamicFieldFactory.build(shortText1="Ambassade")
+        ),
+    )
+
+    offer = cleaner.clean(raw_offer)
+
+    assert offer.localisation is not None
+    assert offer.localisation.area == expected_area
+    assert str(offer.localisation.country) == country
+    assert offer.localisation.region is None
+    assert offer.localisation.department is None
+    assert offer.localisation.label == "Ambassade"
+
+
+def test_clean_ignores_region_and_department_of_an_offer_abroad(cleaner):
+    raw_offer = _make_raw_offer_abroad(
+        region=[
+            TalentsoftCodedObjectFactory.build(clientCode="R11", type="offerRegion")
+        ],
+        department=[
+            TalentsoftCodedObjectFactory.build(clientCode="75", type="offerDepartment")
+        ],
+    )
+
+    offer = cleaner.clean(raw_offer)
+
+    assert offer.localisation is not None
+    assert offer.localisation.region is None
+    assert offer.localisation.department is None
+
+
+def test_clean_keeps_offer_coordinates_of_an_offer_abroad(cleaner):
+    raw_offer = _make_raw_offer_abroad(
+        geolocation=TalentsoftGeolocationFactory.build(latitude=52.52, longitude=13.4),
+        organisation=TalentsoftOrganisationFactory.build(
+            geolocation=TalentsoftGeolocationFactory.build(
+                latitude=48.85, longitude=2.35
+            )
+        ),
+    )
+
+    offer = cleaner.clean(raw_offer)
+
+    assert offer.localisation is not None
+    assert offer.localisation.latitude == 52.52
+    assert offer.localisation.longitude == 13.4
+
+
+def test_clean_ignores_organisation_coordinates_of_an_offer_abroad(cleaner):
+    raw_offer = _make_raw_offer_abroad(
+        geolocation=None,
+        latitude=None,
+        longitude=None,
+        organisation=TalentsoftOrganisationFactory.build(
+            geolocation=TalentsoftGeolocationFactory.build(
+                latitude=48.85, longitude=2.35
+            )
+        ),
+    )
+
+    offer = cleaner.clean(raw_offer)
+
+    assert offer.localisation is not None
+    assert offer.localisation.latitude is None
+    assert offer.localisation.longitude is None
+
+
+@pytest.mark.parametrize(
+    ("country", "area"),
+    [
+        pytest.param("DEU", None, id="sans_zone"),
+        pytest.param("DEU", "_TS_00002268-6ae8-40f4-84d7-4f1ec9ed69df", id="monde"),
+        pytest.param("XYZ", "_TS_CO_GeographicalArea_Europe", id="pays_inconnu"),
+    ],
+)
+def test_clean_returns_none_localisation_abroad_without_known_area_or_country(
+    cleaner, country, area
+):
+    offer = cleaner.clean(_make_raw_offer_abroad(country=country, area=area))
+
+    assert offer.localisation is None
+
+
+def test_offer_abroad_is_published_without_region_nor_department(cleaner):
+    offer = cleaner.clean(_make_raw_offer_abroad())
+
+    payload = OfferUpsertPayload.from_offer(offer)
+
+    assert payload.localisation is not None
+    assert payload.localisation[0].pays == "DEU"
+    assert payload.localisation[0].region == ""
+    assert payload.localisation[0].departement == ""
 
 
 def _make_raw_offer_without_area(
