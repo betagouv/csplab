@@ -102,7 +102,9 @@ _DOM_DEPARTMENTS = {
 }
 _TOM_DEPARTMENTS = {
     department.code
-    for department in _departements("975", "986", "987", "988", "SPM", "WLF")
+    for department in _departements(
+        "975", "977", "978", "986", "987", "988", "SPM", "WLF"
+    )
 }
 
 
@@ -120,7 +122,7 @@ def overseas_region_for_department(department: Department) -> Region | None:
 
 _ZONE_PAR_COLLECTIVITE: dict[str, GeographicalArea] = {
     department.code: GeographicalArea.AMERIQUE
-    for department in _departements("975", "SPM")
+    for department in _departements("975", "977", "978", "SPM")
 } | {
     department.code: GeographicalArea.OCEANIE
     for department in _departements("986", "WLF", "987", "988")

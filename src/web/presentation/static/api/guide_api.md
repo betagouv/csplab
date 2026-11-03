@@ -368,8 +368,8 @@ caractères s'applique au texte Markdown, syntaxe comprise.
 |---|---|
 | `zone_geographique` | Obligatoire dans chaque localisation. Valeurs : **AF** (Afrique), **EU** (Europe), **AS** (Asie), **AM** (Amérique), **OC** (Océanie), **AN** (Antarctique). |
 | `pays` | Obligatoire. Code pays ISO 3166-1 alpha-3, **en majuscules** (ex. `FRA`). Un code en minuscules (`fra`) est rejeté. Pour `FRA`, `region` et `departement` sont obligatoires. |
-| `region` | Code région INSEE officiel, `DOM`, `TOM`, ou vide. Si `departement` est renseigné, doit être la région de ce département : code INSEE de la région ou `DOM` pour `971` à `974` et `976`, `TOM` pour `975`, `986`, `987`, `988`, `SPM` et `WLF`. |
-| `departement` | Code département officiel (`01` à `95`, `2A`, `2B`, DOM-TOM, `SPM`, `WLF`…), ou vide. Doit appartenir à `region`. |
+| `region` | Code région INSEE officiel, `DOM`, `TOM`, ou vide. Si `departement` est renseigné, doit être la région de ce département : code INSEE de la région ou `DOM` pour `971` à `974` et `976`, `TOM` pour `975`, `977`, `978`, `986`, `987`, `988`, `SPM` et `WLF`. |
+| `departement` | Code département officiel (`01` à `95`, `2A`, `2B`, DOM-TOM dont `977` Saint-Barthélemy et `978` Saint-Martin, `SPM`, `WLF`…), ou vide. Doit appartenir à `region`. |
 | `localisation_label` | Libellé du lieu. **500 caractères maximum.** |
 | `latitude` / `longitude` | Coordonnées géographiques. Facultatives : peuvent être absentes ou `null`. |
 
@@ -650,9 +650,9 @@ Notation : `a.b` désigne un objet imbriqué, `a[]` une liste, `a[0]` son premie
 | `urlRedirectionApplicant` | `url_candidature` | Prioritaire sur `customFields.origin.shortText1` et `applicationUrl`. |
 | `customFields.origin.shortText1` | `email_candidature` | Texte libre (« adresse de candidature »). Lu seulement si `urlRedirectionApplicant` est vide : le premier e-mail valide trouvé devient `email_candidature`, et `url_candidature` reste vide. API fake-ts : reprend `email_candidature`, `null` si l'offre se candidate par lien. |
 | `applicationUrl` | `url_candidature` | Dernier recours, si `urlRedirectionApplicant` est vide et que `customFields.origin.shortText1` ne contient aucun e-mail valide. Toujours rempli dans Talentsoft (page de candidature générique). API fake-ts : reprend `url_candidature`, `null` si l'offre se candidate par e-mail. |
-| `geographicalLocation[0].clientCode` | `localisation[0].zone_geographique` | Ignoré : la zone est déduite du département, car Talentsoft range presque tout l'outre-mer en `Europe`. `EUROPE` en métropole, `AMERIQUE` (971, 972, 973) ou `AFRIQUE` (974, 976) pour les DOM, `AMERIQUE` (975, `SPM`) ou `OCEANIE` (986, `WLF`, 987, 988) pour les collectivités d'outre-mer. Toute la `localisation` est abandonnée si le pays, la région ou le département manque, ou si le département est inconnu. API fake-ts : toujours `[]`. |
+| `geographicalLocation[0].clientCode` | `localisation[0].zone_geographique` | Ignoré : la zone est déduite du département, car Talentsoft range presque tout l'outre-mer en `Europe`. `EUROPE` en métropole, `AMERIQUE` (971, 972, 973) ou `AFRIQUE` (974, 976) pour les DOM, `AMERIQUE` (975, 977, 978, `SPM`) ou `OCEANIE` (986, `WLF`, 987, 988) pour les collectivités d'outre-mer. Toute la `localisation` est abandonnée si le pays, la région ou le département manque, ou si le département est inconnu. API fake-ts : toujours `[]`. |
 | `country[0].clientCode` | `localisation[0].pays` | |
-| `region[0].clientCode` | `localisation[0].region` | Les préfixes `_TS_CO_Region_` et `R` sont retirés pour obtenir le code INSEE. Ignoré pour l'outre-mer : `DOM` pour les départements 971 à 974 et 976, `TOM` pour 975, 986, 987, 988, `SPM` et `WLF`. |
+| `region[0].clientCode` | `localisation[0].region` | Les préfixes `_TS_CO_Region_` et `R` sont retirés pour obtenir le code INSEE. Ignoré pour l'outre-mer : `DOM` pour les départements 971 à 974 et 976, `TOM` pour 975, 977, 978, 986, 987, 988, `SPM` et `WLF`. |
 | `department[0].clientCode` | `localisation[0].departement` | Cas particulier de la Nouvelle-Calédonie (`988`). |
 | `geolocation.latitude` | `localisation[0].latitude` | Repli sur `latitude`, puis sur `organisation.geolocation.latitude`. |
 | `geolocation.longitude` | `localisation[0].longitude` | Repli sur `longitude`, puis sur `organisation.geolocation.longitude`. |
