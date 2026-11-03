@@ -12,7 +12,7 @@ from infrastructure.django_apps.utils.models import BaseDatedModel
 class SourceModel(BaseDatedModel):
     id = models.UUIDField(primary_key=True, default=uuid4)
     source_id = models.UUIDField(unique=True, default=uuid4)
-    slug = models.SlugField(max_length=255)
+    slug = models.SlugField(max_length=255, unique=True)
     type = models.CharField(
         max_length=50, choices=[(st.value, st.value) for st in SourceType]
     )
