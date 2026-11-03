@@ -711,6 +711,7 @@ export interface components {
             /** Format: uuid */
             document_uuid: string | null;
             navigation_candidature_uuids: string[];
+            authorized_actions: components["schemas"]["AuthorizedActionsEnum"][];
         };
         CandidatureEchec: {
             /** Format: uuid */
@@ -1293,6 +1294,7 @@ export interface components {
              *     * `contributeur` - contributeur
              */
             recrutement_role: (components["schemas"]["RecrutementRoleEnum"] | components["schemas"]["NullEnum"]) | null;
+            authorized_actions: components["schemas"]["AuthorizedActionsEnum"][];
         };
         RecrutementDetailKanban: {
             /** Format: uuid */

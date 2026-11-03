@@ -5938,7 +5938,12 @@ components:
           items:
             type: string
             format: uuid
+        authorized_actions:
+          type: array
+          items:
+            $ref: '#/components/schemas/AuthorizedActionsEnum'
       required:
+      - authorized_actions
       - candidat
       - date_candidature
       - date_derniere_maj_candidat
@@ -7149,8 +7154,13 @@ components:
           oneOf:
           - $ref: '#/components/schemas/RecrutementRoleEnum'
           - $ref: '#/components/schemas/NullEnum'
+        authorized_actions:
+          type: array
+          items:
+            $ref: '#/components/schemas/AuthorizedActionsEnum'
       required:
       - archive
+      - authorized_actions
       - categorie_offre
       - date_publication
       - etapes

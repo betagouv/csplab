@@ -349,6 +349,7 @@ class RecrutementDetailSerializer(serializers.ModelSerializer):
         allow_null=True,
         help_text="Rôle de l'utilisateur courant sur ce recrutement (null si aucun).",
     )
+    authorized_actions = authorized_actions_field()
 
     class Meta:
         model = RecrutementModel
@@ -362,6 +363,7 @@ class RecrutementDetailSerializer(serializers.ModelSerializer):
             "categorie_offre",
             "etapes",
             "recrutement_role",
+            "authorized_actions",
         ]
 
 
@@ -703,6 +705,7 @@ class CandidatureDetailSerializer(serializers.Serializer):
     )
     document_uuid = serializers.UUIDField(allow_null=True)
     navigation_candidature_uuids = serializers.ListField(child=serializers.UUIDField())
+    authorized_actions = authorized_actions_field()
 
 
 # ---------------------------------------------------------------------------
