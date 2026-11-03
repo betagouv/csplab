@@ -39,12 +39,18 @@ class CreateOrganismeAdminForm(forms.ModelForm):
         help_text="Ex: FRA pour France",
     )
     region = forms.ChoiceField(
-        choices=[(code, name) for code, name in sorted(Region.NAMES.items())],
+        choices=[("", "---------")]
+        + [(code, name) for code, name in sorted(Region.NAMES.items())],
+        required=False,
         label="Région",
+        help_text="Obligatoire en France, vide pour un autre pays.",
     )
     department = forms.ChoiceField(
-        choices=[(code, name) for code, name in sorted(Department.NAMES.items())],
+        choices=[("", "---------")]
+        + [(code, name) for code, name in sorted(Department.NAMES.items())],
+        required=False,
         label="Département",
+        help_text="Obligatoire en France, vide pour un autre pays.",
     )
 
     class Meta:
@@ -71,6 +77,24 @@ class CreateOrganismeAdminForm(forms.ModelForm):
             raise forms.ValidationError(f"SIRET invalide : {siret}") from e
         return siret
 
+    def clean(self):
+        cleaned_data = super().clean()
+        if self.instance.pk is not None:
+            return cleaned_data
+        has_subdivision = (
+            bool(cleaned_data.get("region")),
+            bool(cleaned_data.get("department")),
+        )
+        if cleaned_data.get("country") == "FRA" and has_subdivision != (True, True):
+            raise forms.ValidationError(
+                "La région et le département sont obligatoires en France."
+            )
+        if cleaned_data.get("country") != "FRA" and has_subdivision != (False, False):
+            raise forms.ValidationError(
+                "La région et le département doivent être vides hors de France."
+            )
+        return cleaned_data
+
 
 class OrganismeAgentInline(ReadOnlyInlineMixin, admin.TabularInline):
     model = OrganismeAgentModel
@@ -93,8 +117,16 @@ class OrganismeAdmin(admin.ModelAdmin):
             localisation = Localisation(
                 area=GeographicalArea(form.cleaned_data["area"]),
                 country=Country(form.cleaned_data["country"]),
-                region=Region(code=form.cleaned_data["region"]),
-                department=Department(code=form.cleaned_data["department"]),
+                region=(
+                    Region(code=form.cleaned_data["region"])
+                    if form.cleaned_data["region"]
+                    else None
+                ),
+                department=(
+                    Department(code=form.cleaned_data["department"])
+                    if form.cleaned_data["department"]
+                    else None
+                ),
             )
             organisme = create_organisme(
                 nom=form.cleaned_data["nom"],

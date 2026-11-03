@@ -12,3 +12,9 @@ jusqu'ici rejetée dans `errors`. Une offre hors de France qui renseigne `region
 `departement` est rejetée dans `errors`. `GET /api/v1/offres` renvoie `region` et
 `departement` vides pour ces offres, et `GET /api/fake-ts/offersummaries` et
 `GET /api/fake-ts/offers/getoffer` renvoient `region` et `department` vides (`[]`).
+
+`POST /api/v1/organismes/creer_modifier` : la même règle s'applique aux organismes.
+`region` et `departement` sont obligatoires pour `FRA` et doivent être vides pour tout
+autre pays. Un organisme qui ne la respecte pas est rejeté dans `errors`, avec un
+message explicite. Un organisme hors de France avec une région et un département, jusqu'ici
+enregistré, est désormais rejeté.

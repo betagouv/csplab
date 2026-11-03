@@ -586,20 +586,7 @@ class LocalisationInputSerializer(LocalisationSerializer):
     )
 
     def validate(self, data):
-        if data.get("pays") == "FRA" and not (
-            data.get("region") and data.get("departement")
-        ):
-            raise serializers.ValidationError(
-                "La région et le département sont obligatoires "
-                "pour une offre localisée en France."
-            )
-        if data.get("pays") != "FRA" and (
-            data.get("region") or data.get("departement")
-        ):
-            raise serializers.ValidationError(
-                "La région et le département doivent être vides "
-                "pour une offre localisée hors de France."
-            )
+        _validate_subdivision_matches_country(data, "une offre localisée")
         if data.get("region") and data.get("departement"):
             region = Region(code=data["region"])
             department = Department(code=data["departement"])
@@ -609,6 +596,21 @@ class LocalisationInputSerializer(LocalisationSerializer):
                     f"n'appartient pas à la région {_code_and_name(region)}."
                 )
         return data
+
+
+def _validate_subdivision_matches_country(data: dict, subject: str) -> None:
+    # Mirrors the Localisation invariant, so that callers get a French message
+    # in `errors` instead of the value object's error.
+    has_subdivision = (bool(data.get("region")), bool(data.get("departement")))
+    if data.get("pays") == "FRA" and has_subdivision != (True, True):
+        raise serializers.ValidationError(
+            f"La région et le département sont obligatoires pour {subject} en France."
+        )
+    if data.get("pays") != "FRA" and has_subdivision != (False, False):
+        raise serializers.ValidationError(
+            "La région et le département doivent être vides "
+            f"pour {subject} hors de France."
+        )
 
 
 def _code_and_name(value: Region | Department) -> str:
@@ -1158,6 +1160,10 @@ class OrganismeLocalisationInputSerializer(serializers.Serializer):
 
     def validate_pays(self, value: str) -> str:
         return validate_country_code(value)
+
+    def validate(self, data):
+        _validate_subdivision_matches_country(data, "un organisme localisé")
+        return data
 
 
 class OrganismeUpsertInputSerializer(serializers.Serializer):
