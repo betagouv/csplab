@@ -34,6 +34,10 @@ const TWO_PAGES_OF_RECRUTEMENTS = Array.from({ length: TABLE_PAGE_SIZE + 1 }, (_
   intitule: `Recrutement ${index}`,
 }))
 
+const RESPONSABLE_ASSIGNABLE = makeUser([roleOnOrganisme('superviseur')], false, [
+  { uuid: ORGANISME_UUID, nom: 'Ministère de la Transition Écologique', authorized_actions: ['set_recrutements_responsable'] },
+])
+
 async function openAssignmentFor(user: ReturnType<typeof setupUser>) {
   await renderWithApp(RouterView, { route: RECRUTEMENTS_PATH })
   await user.click(await screen.findByRole('checkbox', { name: `Sélectionner ${FIRST_RECRUTEMENT.intitule}` }))
@@ -42,7 +46,7 @@ async function openAssignmentFor(user: ReturnType<typeof setupUser>) {
 
 describe('recrutementsView', () => {
   beforeEach(() => {
-    vi.mocked(getMe).mockReset().mockResolvedValue(makeUser([roleOnOrganisme('superviseur')]))
+    vi.mocked(getMe).mockReset().mockResolvedValue(RESPONSABLE_ASSIGNABLE)
     vi.mocked(getRecrutementsActifs).mockReset().mockResolvedValue({ count: RECRUTEMENTS_ACTIFS.length, results: RECRUTEMENTS_ACTIFS })
     vi.mocked(getRecrutementsArchives).mockReset().mockResolvedValue({ count: 0, results: [] })
     vi.mocked(searchAgentByEmail).mockReset().mockResolvedValue(AGENT_RECHERCHE)
@@ -102,5 +106,18 @@ describe('recrutementsView', () => {
       recrutement_ids: [SECOND_RECRUTEMENT.uuid],
       agent_id: AGENT_RECHERCHE.uuid,
     })
+  })
+
+  it('hides the responsable assignment without the right to assign one', async () => {
+    vi.mocked(getMe).mockResolvedValue(makeUser([roleOnOrganisme('agent')]))
+    vi.mocked(getRecrutementsActifs).mockResolvedValue({
+      count: RECRUTEMENTS_ACTIFS.length,
+      results: RECRUTEMENTS_ACTIFS.map(row => ({ ...row, responsables: [] })),
+    })
+    await renderWithApp(RouterView, { route: RECRUTEMENTS_PATH })
+
+    await screen.findByText(FIRST_RECRUTEMENT.intitule)
+    expect(screen.queryByRole('checkbox')).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /Assigner un responsable/ })).not.toBeInTheDocument()
   })
 })

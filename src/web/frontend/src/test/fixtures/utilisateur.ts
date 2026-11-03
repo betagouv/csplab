@@ -16,14 +16,18 @@ export const ROLE_BRIANCON: OrganismeRole = {
   role: 'agent',
 }
 
-export function makeUser(organismeRoles: OrganismeRole[], isStaff = false): Utilisateur {
+export function makeUser(
+  organismeRoles: OrganismeRole[],
+  isStaff = false,
+  organismes: Utilisateur['organismes'] = [],
+): Utilisateur {
   return {
     email: 'marie.dupont@example.gouv.fr',
     prenom: 'Marie',
     nom: 'Dupont',
     is_staff: isStaff,
     authorized_actions: [],
-    organismes: [],
+    organismes,
     organisme_roles: organismeRoles,
   }
 }

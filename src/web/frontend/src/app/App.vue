@@ -10,18 +10,19 @@ import CspAppShell from '@/components/layout/CspAppShell/CspAppShell.vue'
 import OrganismeSwitcher from '@/features/organismes/components/OrganismeSwitcher.vue'
 import { useCurrentUser } from '@/stores/currentUser'
 import { useRouteOrganisme } from '@/stores/routeOrganisme'
+import { can } from '@/utils/authorizedActions'
 
 const LOADING_TITLE = document.title
 
 useHead({ titleTemplate: title => (title ? `${title} | CSPLab` : LOADING_TITLE) })
 
-const { isStaff } = useCurrentUser()
-const { organismeUuid, canManageOrganisme } = useRouteOrganisme()
+const { user } = useCurrentUser()
+const { organismeUuid, canOnOrganisme } = useRouteOrganisme()
 
 const navigation = computed(() => navigationFor({
-  isStaff: isStaff.value,
+  canListOrganismes: can(user.value?.authorized_actions, 'list_organismes'),
   organismeUuid: organismeUuid.value,
-  canManageOrganisme: canManageOrganisme.value,
+  canAccessOrganismeSettings: canOnOrganisme('get_organisme'),
 }))
 </script>
 
