@@ -30,6 +30,7 @@ vi.mock('@/api/utilisateur', () => ({
 
 const EQUIPE_PATH = `${KANBAN_PATH}/equipe`
 const OTHER_RECRUTEMENT_UUID = '00000000-0000-0000-0000-0000000000ff'
+const RECRUTEMENT_DETAIL_AVEC_EQUIPE = { ...RECRUTEMENT_DETAIL, authorized_actions: ['list_recrutement_agents' as const] }
 
 describe('recrutementView', () => {
   beforeEach(() => {
@@ -53,11 +54,9 @@ describe('recrutementView', () => {
     expect(screen.queryAllByRole('tab', { name: /Équipe de recrutement/ })).toHaveLength(0)
   })
 
-  it.each([
-    ['a superviseur', makeUser([roleOnOrganisme('superviseur')])],
-    ['a staff user', makeUser([], true)],
-  ])('shows the équipe tab to %s', async (_, utilisateur) => {
-    vi.mocked(getMe).mockReset().mockResolvedValue(utilisateur)
+  it('shows the équipe tab with the right to list the team', async () => {
+    vi.mocked(getMe).mockReset().mockResolvedValue(makeUser([roleOnOrganisme('agent')]))
+    vi.mocked(getRecrutementDetail).mockResolvedValue(RECRUTEMENT_DETAIL_AVEC_EQUIPE)
     await renderWithApp(RouterView, { route: KANBAN_PATH })
 
     expect(await screen.findAllByRole('tab', { name: /Équipe de recrutement/ })).not.toHaveLength(0)
@@ -65,6 +64,7 @@ describe('recrutementView', () => {
 
   it('opens the équipe tab from its own address', async () => {
     vi.mocked(getMe).mockReset().mockResolvedValue(makeUser([roleOnOrganisme('superviseur')]))
+    vi.mocked(getRecrutementDetail).mockResolvedValue(RECRUTEMENT_DETAIL_AVEC_EQUIPE)
     await renderWithApp(RouterView, { route: EQUIPE_PATH })
 
     expect(await screen.findByRole('tab', { name: /Équipe de recrutement/, selected: true })).toBeInTheDocument()
@@ -73,6 +73,7 @@ describe('recrutementView', () => {
 
   it('keeps the candidatures search when coming back from another tab', async () => {
     vi.mocked(getMe).mockReset().mockResolvedValue(makeUser([roleOnOrganisme('superviseur')]))
+    vi.mocked(getRecrutementDetail).mockResolvedValue(RECRUTEMENT_DETAIL_AVEC_EQUIPE)
     const user = setupUser()
     const { router } = await renderWithApp(RouterView, { route: KANBAN_PATH })
 
