@@ -7,6 +7,11 @@ export const DEMO_ORGANISME = {
   siret: '11000001000013',
 }
 
+export const DEMO_ORGANISME_AGENT = {
+  uuid: 'a0000000-0000-4000-8000-000000000002',
+  nom: 'Commune de Briançon',
+}
+
 export const DEMO_RECRUTEMENT_UUID = 'b0000000-0000-4000-8000-000000000001'
 
 export const DEMO_RECRUTEMENT_INTITULE = 'Gestionnaire des ressources humaines'
@@ -49,7 +54,10 @@ export const DEMO_UTILISATEUR: Utilisateur = {
   prenom: 'Camille',
   nom: 'Bernard',
   is_staff: false,
-  organisme_roles: [{ organisme_uuid: DEMO_ORGANISME.uuid, nom: DEMO_ORGANISME.nom, role: 'superviseur' }],
+  organisme_roles: [
+    { organisme_uuid: DEMO_ORGANISME.uuid, nom: DEMO_ORGANISME.nom, role: 'superviseur' },
+    { organisme_uuid: DEMO_ORGANISME_AGENT.uuid, nom: DEMO_ORGANISME_AGENT.nom, role: 'agent' },
+  ],
   authorized_actions: DEMO_ACTIONS,
   organismes: [{ uuid: DEMO_ORGANISME.uuid, nom: DEMO_ORGANISME.nom, authorized_actions: DEMO_ACTIONS }],
 }

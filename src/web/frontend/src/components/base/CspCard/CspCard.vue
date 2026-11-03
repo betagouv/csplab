@@ -225,6 +225,7 @@ const isLink = computed(() => Boolean(props.href || props.to))
 
 .csp-card__arrow {
   align-self: flex-end;
+  margin-top: auto;
   color: var(--text-action-high-blue-france);
 }
 

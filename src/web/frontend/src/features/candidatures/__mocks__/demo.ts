@@ -149,7 +149,6 @@ export function demoCandidatureDetail(candidatureUuid: string): (CandidatureDeta
     recrutement_intitule: DEMO_RECRUTEMENT_INTITULE,
     etapes: DEMO_ETAPES.map(({ uuid, nom }) => ({ uuid, nom })),
     etape_actuelle: { uuid: etape.uuid, nom: etape.nom },
-    motif_refus: null,
     date_candidature: candidature.date_soumission,
     date_derniere_maj_candidat: null,
     date_derniere_maj_recruteur: candidature.date_derniere_activite,
