@@ -6,12 +6,12 @@ from django.db.models import QuerySet
 from application.identite.context_services.organisme_permission_service import (
     OrganismePermissionService,
 )
+from application.recruteur.context_services.authorized_actions import (
+    set_authorized_actions,
+)
 from domain.identite.errors.organisme_permission_errors import OperationOrganismeRefusee
 from domain.identite.value_objects.organisme_action import OrganismeAction
-from domain.recruteur.value_objects.roles import (
-    AgentOrganismeRole,
-    AgentRecrutementRole,
-)
+from domain.recruteur.value_objects.roles import AgentOrganismeRole
 from infrastructure.django_apps.recruteur.models.recrutement import (
     RecrutementModel,
     RecrutementQuerySet,
@@ -43,19 +43,9 @@ def _agent_recrutements(
 def with_authorized_actions(
     recrutements: Iterable[RecrutementModel],
 ) -> list[RecrutementModel]:
-    permissions = OrganismePermissionService()
     page = list(recrutements)
     for recrutement in page:
-        recrutement_role = recrutement.recrutement_role  # type: ignore[attr-defined]
-        recrutement.authorized_actions = [  # type: ignore[attr-defined]
-            action.value
-            for action in permissions.authorized_actions_recrutement(
-                AgentOrganismeRole(recrutement.organisme_role),  # type: ignore[attr-defined]
-                recrutement_role=(
-                    AgentRecrutementRole(recrutement_role) if recrutement_role else None
-                ),
-            )
-        ]
+        set_authorized_actions(recrutement)
     return page
 
 
