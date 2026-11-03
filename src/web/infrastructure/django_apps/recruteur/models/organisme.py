@@ -44,7 +44,9 @@ class OrganismeQuerySet(models.QuerySet):
         return self.annotate(
             number_agents=_count_subquery(agents.active()),
             number_published_offers=_count_subquery(
-                recrutement_model.objects.filter(organisme_id=OuterRef("pk"))
+                recrutement_model.objects.filter(
+                    organisme_id=OuterRef("pk"), offre__archived_at__isnull=True
+                )
             ),
             max_agent_updated=Subquery(
                 agents.order_by("-updated_at").values("updated_at")[:1]
