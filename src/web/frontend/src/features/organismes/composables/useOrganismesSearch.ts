@@ -17,12 +17,16 @@ export function useOrganismesSearch() {
   }))
 
   const results = computed(() => (searchable.value ? query.data.value ?? [] : []))
+  const tooShort = computed(() => search.value.trim().length < SEARCH_MIN_LENGTH)
+  const searching = computed(() =>
+    !tooShort.value && (term.value !== search.value.trim() || query.isPending.value),
+  )
 
   return {
     search,
     results,
-    searchable,
-    pending: computed(() => searchable.value && query.isPending.value),
+    tooShort,
+    searching,
     error: query.error,
   }
 }
