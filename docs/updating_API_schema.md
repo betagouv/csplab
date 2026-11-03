@@ -28,13 +28,11 @@ Endpoints are split by tag via preprocessing hooks in `presentation/api/openapi_
 ## How to regenerate
 
 ```bash
-# Public schema
-bin/manage spectacular --file presentation/static/api/schema.yaml
-
-# Internal schema
-DJANGO_SETTINGS_MODULE=config.settings.schema_internal \
-  bin/manage spectacular --file presentation/static/api/internal-schema.yaml --validate
+mise run web:schema
 ```
+
+It runs `openapi_schema` instead of `spectacular`, to quote digit-only strings such as
+`08` that YAML 1.2 readers would otherwise read as integers.
 
 ## Validation
 
