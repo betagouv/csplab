@@ -5,6 +5,9 @@ export const organismeKeys = {
   list: () => {
     return [...organismeKeys.all, 'list'] as const
   },
+  search: (nom: string) => {
+    return [...organismeKeys.all, 'recherche', nom] as const
+  },
   root: (params: OrganismeParams) => {
     return [...organismeKeys.all, params.organismeUuid] as const
   },
