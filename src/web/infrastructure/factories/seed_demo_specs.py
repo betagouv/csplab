@@ -307,6 +307,81 @@ _CAISSE_DES_DEPOTS = _organisme(
     ],
 )
 
+_ONACVG = _organisme(
+    "onacvg",
+    1955,
+    [
+        ("Assistant(e) administratif(ve) de service départemental", "pilotage"),
+        ("Directeur(trice) de service départemental", "pilotage"),
+        ("Adjoint(e) au directeur(trice) de service départemental", "pilotage"),
+        ("Assistant(e) de service social", "solidarites"),
+        ("Gestionnaire commissions d'action sociale", "solidarites"),
+        ("Médiateur(trice) culturel(le) en mémorial", "culture"),
+        (
+            "Guide au Mémorial du camp de concentration de Natzweiler-Struthof",
+            "culture",
+        ),
+        ("Chargé(e) de mission politiques éducatives", "culture"),
+        ("Agent(e) d'entretien de nécropole nationale", "environnement"),
+        ("Chargé(e) du conseil juridique et du contentieux", "juridique"),
+        ("Gestionnaire administratif(ve) et paie", "rh"),
+        ("Fondé(e) de pouvoir de l'agent(e) comptable", "finances"),
+        ("Responsable contrôle interne et contrôle de gestion", "audit"),
+        ("Chargé(e) de cybersécurité", "numerique"),
+        ("Assistant(e) plurimédia communication", "communication"),
+    ],
+)
+
+_CONSEIL_ETAT = _organisme(
+    "conseil-etat",
+    1956,
+    [
+        ("Greffier(ère) de chambre à la section du contentieux", "juridique"),
+        ("Adjoint(e) au greffier(ère) en chef de chambre", "juridique"),
+        (
+            "Chargé(e) de recherches en droit européen des droits de l'homme",
+            "juridique",
+        ),
+        ("Assistant(e) de direction auprès des secrétaires généraux", "pilotage"),
+        ("Chef(fe) de projet conduite du changement", "pilotage"),
+        ("Data scientist IA générative et NLP", "numerique"),
+        ("Data engineer intelligence artificielle", "numerique"),
+        ("Product owner produits numériques innovants", "numerique"),
+        ("Juriste acheteur(se) public(que)", "achats"),
+        ("Adjoint(e) au chef(fe) du bureau du budget", "finances"),
+        ("Chef(fe) de projet opérations immobilières", "finances"),
+        ("Gestionnaire de personnels", "rh"),
+        ("Chargé(e) de mission encadrement supérieur", "rh"),
+        ("Responsable communication presse, veille et crise", "communication"),
+        ("Magasinier(ère) d'archives", "culture"),
+    ],
+)
+
+_AEFE = _organisme(
+    "aefe",
+    1957,
+    [
+        (
+            "Directeur(trice) administratif(ve) et financier(ère) d'établissement",
+            "finances",
+        ),
+        ("Secrétaire général(e) d'établissement", "pilotage"),
+        ("Proviseur(e) de lycée français à l'étranger", "pilotage"),
+        ("Chef(fe) de secteur géographique", "pilotage"),
+        ("Chargé(e) de coopération éducative", "culture"),
+        ("Inspecteur(trice) d'académie - IA-IPR langues", "audit"),
+        ("Gestionnaire de l'aide à la scolarité", "solidarites"),
+        ("Chargé(e) de mission commande publique", "achats"),
+        ("Contrôleur(se) budgétaire", "finances"),
+        ("Chargé(e) d'opérations immobilières", "finances"),
+        ("Responsable contrôle de gestion et données statistiques", "audit"),
+        ("Chargé(e) d'études statistiques et décisionnelles", "numerique"),
+        ("Ingénieur(e) systèmes DevOps", "numerique"),
+        ("Conseiller(ère) communication et presse", "communication"),
+        ("Gestionnaire recrutement des personnels enseignants", "rh"),
+    ],
+)
+
 SPECS_DEMO: dict[str, SpecOrganisme] = {
     spec.cle: spec
     for spec in (
@@ -319,5 +394,8 @@ SPECS_DEMO: dict[str, SpecOrganisme] = {
         _DGAFP,
         _ECONOMIE_FINANCES,
         _CAISSE_DES_DEPOTS,
+        _ONACVG,
+        _CONSEIL_ETAT,
+        _AEFE,
     )
 }

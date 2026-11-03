@@ -56,7 +56,7 @@ describe('equipeRecrutementSection', () => {
 
     await user.click(screen.getByRole('button', { name: 'Ajouter un membre' }))
     await user.type(
-      await screen.findByRole('searchbox', { name: /Adresse électronique de l'agent/ }),
+      await screen.findByRole('searchbox', { name: /Courriel de l'agent/ }),
       `${NOUVEL_AGENT.email}{Enter}`,
     )
     await user.click(await screen.findByRole('button', { name: 'Ajouter le membre' }))
@@ -70,7 +70,7 @@ describe('equipeRecrutementSection', () => {
     await renderSection()
 
     await user.click(screen.getByRole('button', { name: 'Ajouter un membre' }))
-    const email = await screen.findByRole('searchbox', { name: /Adresse électronique de l'agent/ })
+    const email = await screen.findByRole('searchbox', { name: /Courriel de l'agent/ })
     await user.type(email, `${NOUVEL_AGENT.email}{Enter}`)
     await user.click(await screen.findByRole('button', { name: 'Ajouter le membre' }))
     await screen.findByText('Cette personne fait déjà partie de l\'équipe.')
@@ -86,15 +86,15 @@ describe('equipeRecrutementSection', () => {
 
     await user.click(screen.getByRole('button', { name: 'Ajouter un membre' }))
     await user.type(
-      await screen.findByRole('searchbox', { name: /Adresse électronique de l'agent/ }),
+      await screen.findByRole('searchbox', { name: /Courriel de l'agent/ }),
       `${NOUVEL_AGENT.email}{Enter}`,
     )
-    await screen.findByRole('button', { name: 'Ajouter le membre' })
+    await vi.waitFor(() => expect(screen.getByRole('button', { name: 'Ajouter le membre' })).toBeEnabled())
     await user.click(screen.getByRole('button', { name: 'Annuler' }))
     await user.click(screen.getByRole('button', { name: 'Ajouter un membre' }))
 
-    expect(await screen.findByRole('searchbox', { name: /Adresse électronique de l'agent/ })).toHaveValue('')
-    expect(screen.queryByRole('button', { name: 'Ajouter le membre' })).not.toBeInTheDocument()
+    expect(await screen.findByRole('searchbox', { name: /Courriel de l'agent/ })).toHaveValue('')
+    expect(screen.getByRole('button', { name: 'Ajouter le membre' })).toBeDisabled()
   })
 
   it('tells the recruteur when the member to remove already left the team', async () => {

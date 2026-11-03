@@ -64,12 +64,12 @@ describe('organismeAgentsSection', () => {
     await user.click(screen.getByRole('button', { name: 'Ajouter un utilisateur' }))
     await user.type(await screen.findByRole('searchbox', { name: /^Courriel/ }), AGENT_RECHERCHE.email)
     await user.click(screen.getByRole('button', { name: 'Rechercher' }))
-    await screen.findByRole('button', { name: 'Ajouter l\'utilisateur' })
+    await vi.waitFor(() => expect(screen.getByRole('button', { name: 'Ajouter l\'utilisateur' })).toBeEnabled())
     await user.click(screen.getByRole('button', { name: 'Annuler' }))
     await user.click(screen.getByRole('button', { name: 'Ajouter un utilisateur' }))
 
     expect(await screen.findByRole('searchbox', { name: /^Courriel/ })).toHaveValue('')
-    expect(screen.queryByRole('button', { name: 'Ajouter l\'utilisateur' })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Ajouter l\'utilisateur' })).toBeDisabled()
   })
 
   it('revokes a member with a revocation date after confirmation', async () => {

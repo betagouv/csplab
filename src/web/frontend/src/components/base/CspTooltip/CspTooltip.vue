@@ -42,6 +42,7 @@ const isDisabled = computed(() => props.disabled || !props.content)
       </TooltipTrigger>
       <TooltipPortal>
         <TooltipContent
+          class="csp-tooltip-content"
           :side="side"
           :align="align"
           :side-offset="sideOffset"
@@ -62,7 +63,6 @@ const isDisabled = computed(() => props.disabled || !props.content)
   --csp-tooltip-bg: var(--background-action-high-grey);
   --csp-tooltip-text: var(--text-inverted-grey);
 
-  z-index: var(--csp-z-tooltip);
   max-width: 16rem;
   padding: var(--csp-space-1) var(--csp-space-2);
   border-radius: 0.25rem;
@@ -71,31 +71,27 @@ const isDisabled = computed(() => props.disabled || !props.content)
   font-size: var(--csp-font-size-xs);
   font-weight: var(--csp-font-weight-medium);
   line-height: var(--csp-line-height-tight);
-  box-shadow: var(--csp-overlap-shadow, var(--csp-shadow-md));
+  box-shadow: var(--csp-overlap-shadow);
   outline: none;
   pointer-events: none;
   user-select: none;
   overflow-wrap: anywhere;
-  transform-origin: var(--reka-popper-transform-origin);
-  animation: var(--csp-motion-overlap-enter, csp-tooltip-fade-in 0.12s ease-out);
-
-  &[data-state='closed'] {
-    animation: var(--csp-motion-overlap-exit);
-  }
 }
 
 :deep(.csp-tooltip__arrow) {
   fill: var(--background-action-high-grey);
-  animation: var(--csp-motion-overlap-enter, csp-tooltip-fade-in 0.12s ease-out);
 }
+</style>
 
-@keyframes csp-tooltip-fade-in {
-  from {
-    opacity: 0;
-  }
+<style lang="scss">
+/* Reka renders the content in a portal and sets its data-state: the bubble and its arrow move together */
+.csp-tooltip-content {
+  z-index: var(--csp-z-tooltip);
+  transform-origin: var(--reka-popper-transform-origin);
+  animation: var(--csp-motion-overlap-enter);
 
-  to {
-    opacity: 1;
+  &[data-state='closed'] {
+    animation: var(--csp-motion-overlap-exit);
   }
 }
 </style>

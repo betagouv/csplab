@@ -701,6 +701,7 @@ export interface components {
             recrutement_intitule: string;
             etapes: components["schemas"]["EtapeCandidatureDetail"][];
             etape_actuelle: components["schemas"]["EtapeCandidatureDetail"];
+            motif_refus: components["schemas"]["MotifRefus"] | null;
             /** Format: date-time */
             date_candidature: string;
             /** Format: date-time */

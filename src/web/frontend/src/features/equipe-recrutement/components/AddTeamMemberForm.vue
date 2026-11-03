@@ -29,11 +29,9 @@ const DEFAULT_ROLE: RecrutementRole = 'contributeur'
 const email = ref('')
 const role = ref<RecrutementRole>(DEFAULT_ROLE)
 
-const isFound = computed(() => props.status === 'found')
-
 const isSearched = computed(() => props.status !== 'idle')
 
-const submitLabel = computed(() => isFound.value ? 'Ajouter le membre' : 'Créer et ajouter')
+const submitLabel = computed(() => props.status === 'not-found' ? 'Créer et ajouter' : 'Ajouter le membre')
 
 function handleSubmit(): void {
   if (isSearched.value) {
@@ -78,13 +76,12 @@ const formId = useId()
       @click="emit('cancel')"
     />
     <CspButton
-      v-if="isSearched"
       type="submit"
       :form="formId"
       :label="submitLabel"
       icon="ri:user-add-line"
       is-icon-left
-      :disabled="submitting"
+      :disabled="!isSearched || submitting"
     />
   </CspDrawerFooter>
 </template>
