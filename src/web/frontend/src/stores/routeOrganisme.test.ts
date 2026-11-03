@@ -79,31 +79,14 @@ describe('useRouteOrganisme', () => {
     expect(routeOrganismeUuid.value).toBeNull()
   })
 
-  it('lets a responsable manage their organisme', async () => {
-    vi.mocked(getMe).mockResolvedValue(makeUser([ROLE_MTE]))
-
-    const { canManageOrganisme } = await mountAt(`/organismes/${MTE}/recrutements`)
-
-    await vi.waitFor(() => expect(canManageOrganisme.value).toBe(true))
-  })
-
-  it('does not let a membre manage their organisme', async () => {
-    vi.mocked(getMe).mockResolvedValue(makeUser([ROLE_BRIANCON]))
-
-    const { canManageOrganisme } = await mountAt(`/organismes/${BRIANCON}/recrutements`)
-
-    await vi.waitFor(() => expect(canManageOrganisme.value).toBe(false))
-  })
-
   it('lets a staff user manage an organisme they hold no role on', async () => {
     vi.mocked(getMe).mockResolvedValue(makeUser([], true))
 
-    const { organismeUuid, organisme, canManageOrganisme, canOnOrganisme } = await mountAt(
+    const { organismeUuid, organisme, canOnOrganisme } = await mountAt(
       `/organismes/${INCONNU}/recrutements`,
     )
 
-    await vi.waitFor(() => expect(canManageOrganisme.value).toBe(true))
-    expect(canOnOrganisme('list_organisme_agents')).toBe(true)
+    await vi.waitFor(() => expect(canOnOrganisme('list_organisme_agents')).toBe(true))
     expect(organismeUuid.value).toBe(INCONNU)
     expect(organisme.value).toBeNull()
   })
@@ -123,11 +106,10 @@ describe('useRouteOrganisme', () => {
   it('exposes no organisme for an agent without any role', async () => {
     vi.mocked(getMe).mockResolvedValue(makeUser([]))
 
-    const { organismeUuid, organisme, canManageOrganisme } = await mountAt('/')
+    const { organismeUuid, organisme } = await mountAt('/')
 
     await vi.waitFor(() => expect(getMe).toHaveBeenCalled())
     expect(organismeUuid.value).toBeNull()
     expect(organisme.value).toBeNull()
-    expect(canManageOrganisme.value).toBe(false)
   })
 })

@@ -26,10 +26,6 @@ export function useRouteOrganisme() {
     organismes.value.find(o => o.organisme_uuid === organismeUuid.value) ?? null,
   )
 
-  const canManageOrganisme = computed(() =>
-    isStaff.value || organisme.value?.role === 'superviseur',
-  )
-
   const organismeActions = computed(() =>
     user.value?.organismes.find(o => o.uuid === organismeUuid.value)?.authorized_actions,
   )
@@ -43,7 +39,6 @@ export function useRouteOrganisme() {
     routeOrganismeUuid,
     organismeUuid,
     organisme,
-    canManageOrganisme,
     canOnOrganisme,
   }
 }
