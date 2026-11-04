@@ -55,9 +55,7 @@ class TalentsoftOfferWithSeveralLocations(InfrastructureError):
 
 
 class TalentsoftOfferWithMisfiledStateDiploma(InfrastructureError):
-    """`customFields.offerCustomBlock1.customCodeTable3` holds another repository
-    than « Diplômes d'Etat » (the working time quota so far): the value is
-    dropped (see #2284)."""
+    """The value is dropped (see #2284)."""
 
     def __init__(
         self,

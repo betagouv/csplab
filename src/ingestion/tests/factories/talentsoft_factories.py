@@ -174,7 +174,6 @@ class TalentsoftDynamicFieldFactory(ModelFactory[TalentsoftDynamicField]):
     __faker__ = _fake
     __set_as_default_factory_for_type__ = True
 
-    # A random type in offerCustomBlock1.customCodeTable3 is reported to Sentry
     customCodeTable3 = None
 
 

@@ -307,9 +307,6 @@ _TALENTSOFT_TO_REQUIRED_DOCUMENTS: dict[str, list[RequiredDocument]] = {
 def state_diploma(
     code_table: Optional[TalentsoftCustomCodeTable],
 ) -> Optional[TalentsoftCustomCodeTable]:
-    """Keep `customFields.offerCustomBlock1.customCodeTable3` only when it holds
-    the « Diplômes d'Etat » repository: some organisations enter the working
-    time quota there (see #2284)."""
     if code_table is None or code_table.type != STATE_DIPLOMA_TYPE:
         return None
     return code_table
@@ -810,7 +807,6 @@ class OffersCleaner:
         talentsoft_offer: TalentsoftDetailOffer,
         source_id: Optional[str],
     ) -> None:
-        # Reported, not raised: the value is dropped and the offer stays ingested
         received = offer_block_1.customCodeTable3
         offer_block_1.customCodeTable3 = state_diploma(received)
         if received is None or offer_block_1.customCodeTable3 is not None:
