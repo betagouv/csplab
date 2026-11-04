@@ -43,6 +43,25 @@ fake = Faker("fr_FR")
 
 NB_ETAPES_PAR_DEFAUT = 6
 
+ORGANISME_AUTHORIZED_ACTIONS = [
+    "get_organisme",
+    "initialize_organisme_steps",
+    "update_organisme_steps",
+    "list_recrutements",
+    "list_organisme_agents",
+    "search_agent",
+    "attach_organisme_agent",
+    "update_organisme_agent",
+    "revoke_organisme_agent",
+    "create_agent",
+    "set_recrutements_responsable",
+    "get_motifs_refus",
+    "list_tags",
+    "create_tag",
+    "update_tag",
+    "delete_tag",
+]
+
 ORGANISME_UUID = fake.uuid4()
 ORGANISME_URL = reverse(
     "recruteur:organisme_detail", kwargs={"organisme_uuid": ORGANISME_UUID}
@@ -122,6 +141,7 @@ class TestOrganismeDetailView:
             "gestion_ats": True,
             "date_creation": "2019-03-01T09:00:00Z",
             "date_derniere_activite": "2026-01-15T10:00:00Z",
+            "authorized_actions": ORGANISME_AUTHORIZED_ACTIONS,
         }
 
     def test_superviseur_gets_organisme(self, authenticated_client, test_user):
@@ -132,6 +152,19 @@ class TestOrganismeDetailView:
         assert response.status_code == status.HTTP_200_OK
         assert response.json()["uuid"] == ORGANISME_UUID
         assert response.json()["nom"] == organisme.nom
+        assert response.json()["authorized_actions"] == ORGANISME_AUTHORIZED_ACTIONS
+
+    def test_authorized_actions_match_the_list_of_organismes(self, staff_client):
+        OrganismeDjangoFactory(id=UUID(ORGANISME_UUID))
+
+        detail = staff_client.get(ORGANISME_URL).json()
+        liste = staff_client.get(reverse("recruteur:organismes")).json()
+
+        assert [
+            organisme["authorized_actions"]
+            for organisme in liste["results"]
+            if organisme["uuid"] == ORGANISME_UUID
+        ] == [detail["authorized_actions"]]
 
     def test_membre_is_forbidden(self, authenticated_client, test_user):
         _membre_agent(test_user)
