@@ -23,7 +23,7 @@ WHERE o.area IS NOT NULL
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("referentiel", "0062_offer_localisations"),
+        ("referentiel", "0063_offer_localisations"),
     ]
 
     operations = [

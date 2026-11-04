@@ -7,7 +7,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('referentiel', '0061_offer_categories_not_empty'),
+        ('referentiel', '0062_offer_long_title_null_si_identique_au_titre'),
     ]
 
     operations = [
