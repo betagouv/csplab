@@ -4,6 +4,7 @@ from datetime import datetime
 from typing import List, Optional, cast
 from uuid import UUID
 
+import sentry_sdk
 from pydantic import HttpUrl, TypeAdapter, ValidationError
 from referentiel.value_objects.area import GeographicalArea
 from referentiel.value_objects.category import Category
@@ -38,6 +39,7 @@ from domain.entities.raw_offer import RawOffer
 from domain.repositories.sources_repository import ISourcesRepository
 from domain.value_objects.contact import Contact, ContactRole
 from domain.value_objects.email import extract_emails
+from infrastructure.exceptions.exceptions import TalentsoftOfferWithSeveralLocations
 from infrastructure.external_gateways.dtos.talentsoft_dtos import (
     TalentsoftCodedObject,
     TalentsoftCustomFields,
@@ -368,6 +370,7 @@ class OffersCleaner:
             custom_fields.applicantCriteria or TalentsoftDynamicField()
         )
 
+        self._report_multiple_locations(talentsoft_offer, raw_offer.source_id)
         localisation = self._map_localisation_from_arrays(
             talentsoft_offer.geographicalLocation,
             talentsoft_offer.country,
@@ -757,6 +760,32 @@ class OffersCleaner:
         ):
             return talentsoft_offer.latitude, talentsoft_offer.longitude
         return None
+
+    def _report_multiple_locations(
+        self, talentsoft_offer: TalentsoftDetailOffer, source_id: Optional[str]
+    ) -> None:
+        # Talentsoft never sends several locations in practice (0 offer out of
+        # 41 042 on 2026-11-02): only the first element of each list is read,
+        # the Sentry exception tells us when this assumption breaks. It is
+        # reported, not raised: the offer is still cleaned.
+        multiple_lists = [
+            name
+            for name, values in (
+                ("geographicalLocation", talentsoft_offer.geographicalLocation),
+                ("country", talentsoft_offer.country),
+                ("region", talentsoft_offer.region),
+                ("department", talentsoft_offer.department),
+            )
+            if len(values) > 1
+        ]
+        if talentsoft_offer.locations:
+            multiple_lists.append("locations")
+        if multiple_lists:
+            sentry_sdk.capture_exception(
+                TalentsoftOfferWithSeveralLocations(
+                    talentsoft_offer.reference, source_id, multiple_lists
+                )
+            )
 
     def _map_localisation_from_arrays(
         self,
