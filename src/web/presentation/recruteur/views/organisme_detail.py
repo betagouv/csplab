@@ -7,15 +7,13 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from application.identite.usecases.update_organisme import (
-    UpdateOrganismeCommand,
-)
 from application.recruteur.services.get_organisme import get_organisme
 from application.recruteur.services.get_organisme_etapes import get_organisme_etapes
 from application.recruteur.services.initialize_organisme_etapes import (
     initialize_organisme_etapes,
 )
 from application.recruteur.services.list_motifs_refus import list_motifs_refus
+from application.recruteur.services.update_organisme import update_organisme
 from application.recruteur.services.update_organisme_etapes import (
     update_organisme_etapes,
 )
@@ -31,15 +29,10 @@ from domain.recruteur.value_objects.categorie_etapes_recrutement import (
     CategorieEtapeRecrutement,
 )
 from domain.recruteur.value_objects.etape_data import EtapeData
-from infrastructure.di.identite.identite_factory import create_identite_container
 from presentation.api.authentication import SessionApiMixin
 from presentation.api.serializers import (
     GenericErrorSerializer,
     generic_response_format,
-)
-from presentation.recruteur.mappers import (
-    OrganismeMapper,
-    UtilisateurMapper,
 )
 from presentation.recruteur.serializers import (
     EtapeOrganismeSerializer,
@@ -74,11 +67,6 @@ from presentation.recruteur.serializers import (
 class OrganismeDetailView(SessionApiMixin, APIView):
     serializer_class = OrganismeDetailSerializer
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.container = create_identite_container()
-        self.user_mapper = UtilisateurMapper()
-
     def get(self, request: Request, organisme_uuid: UUID) -> Response:
         try:
             organisme = get_organisme(
@@ -103,19 +91,16 @@ class OrganismeDetailView(SessionApiMixin, APIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            usecase = self.container.update_organisme_usecase()
             data = serializer.validated_data
-            command = UpdateOrganismeCommand(
+            organisme = update_organisme(
                 organisme_id=organisme_uuid,
-                name=data.get("nom"),
-                verse=Verse(data["versant"]) if data.get("versant") else None,
-                managed_ats=data.get("gestion_ats"),
-                utilisateur=self.user_mapper.to_domain(request),
+                utilisateur=request.user,
+                nom=data["nom"],
+                versant=Verse(data["versant"]),
+                gestion_ats=data["gestion_ats"],
             )
-            organisme = usecase.execute(command)
-            organisme_dto = OrganismeMapper().from_domain(organisme)
             return Response(
-                OrganismeDetailSerializer(organisme_dto).data,
+                OrganismeDetailSerializer(organisme).data,
                 status=status.HTTP_200_OK,
             )
         except OperationOrganismeRefusee as e:
