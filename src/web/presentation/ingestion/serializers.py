@@ -587,7 +587,7 @@ class FakeTsOfferCustomBlock1Serializer(FakeTsDynamicFieldSerializer):
         allow_null=True,
         help_text="Diplôme d'État exigé (référentiel Talentsoft « Diplômes "
         "d'Etat ») : `label` = `criteres.diplome`, `clientCode` = son code "
-        "Talentsoft. `null` si `criteres.diplome` n'est pas l'un des 23 "
+        "Talentsoft. `null` si `criteres.diplome` n'est pas l'un des 26 "
         "diplômes d'État de ce référentiel.",
     )
 
