@@ -110,14 +110,9 @@ useDocumentTitle(HOME_BREADCRUMB_LABEL)
               class="home-view__row"
             >
               <span
-                class="home-view__picto"
+                class="home-view__marker"
                 aria-hidden="true"
-              >
-                <CspIcon
-                  :name="step.icon"
-                  :size="24"
-                />
-              </span>
+              >{{ index + 1 }}</span>
               <div class="home-view__row-text">
                 <h3>{{ step.title }}</h3>
                 <p>{{ step.description }}</p>
@@ -133,6 +128,15 @@ useDocumentTitle(HOME_BREADCRUMB_LABEL)
             </li>
           </ol>
           <div class="home-view__row home-view__row--help">
+            <span
+              class="home-view__marker"
+              aria-hidden="true"
+            >
+              <CspIcon
+                name="ri:question-line"
+                :size="20"
+              />
+            </span>
             <div class="home-view__row-text">
               <h3>Besoin d’aide pour bien démarrer ?</h3>
               <p>Découvrez nos guides et conseils pour prendre en main cet ATS.</p>
@@ -241,14 +245,14 @@ useDocumentTitle(HOME_BREADCRUMB_LABEL)
 }
 
 .home-view__guide {
-  --home-view-picto-size: 2.5rem;
+  --home-view-marker-size: 2.5rem;
 
   display: grid;
-  grid-template-columns: var(--home-view-picto-size) 1fr;
+  grid-template-columns: var(--home-view-marker-size) 1fr;
   column-gap: var(--csp-space-5);
 
   @include bp.from(bp.$md) {
-    grid-template-columns: var(--home-view-picto-size) 1fr auto;
+    grid-template-columns: var(--home-view-marker-size) 1fr auto;
   }
 }
 
@@ -277,21 +281,18 @@ useDocumentTitle(HOME_BREADCRUMB_LABEL)
 
 .home-view__row--help {
   padding-bottom: 0;
-
-  .home-view__row-text {
-    grid-column: 2;
-  }
 }
 
-.home-view__picto {
+.home-view__marker {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: var(--home-view-picto-size);
-  height: var(--home-view-picto-size);
+  width: var(--home-view-marker-size);
+  height: var(--home-view-marker-size);
   border-radius: 9999px;
   background-color: var(--background-contrast-blue-france);
   color: var(--text-action-high-blue-france);
+  font-weight: 700;
 }
 
 .home-view__guide .home-view__action {
