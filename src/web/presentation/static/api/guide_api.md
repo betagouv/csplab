@@ -305,7 +305,7 @@ longueur et de valeurs autorisées**.
 | Champ | Règle |
 |---|---|
 | `titre` | Obligatoire. **150 caractères maximum.** |
-| `titre_long` | Obligatoire. **1 500 caractères maximum.** |
+| `titre_long` | Facultatif. Intitulé long, à ne renseigner que s'il diffère de `titre` : une offre dont le `titre_long` est identique à `titre` est rejetée. Peut être vide. **1 500 caractères maximum.** |
 | `url_offre` | Lien web. Peut être vide. |
 | `url_candidature` | Lien web pour candidater. Voir la règle ci-dessous. |
 | `email_candidature` | Adresse email valide pour candidater. Voir la règle ci-dessous. |

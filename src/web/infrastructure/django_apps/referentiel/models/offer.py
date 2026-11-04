@@ -4,7 +4,7 @@ from uuid import UUID
 from django.contrib.postgres.fields import ArrayField
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db import models
-from django.db.models import Q
+from django.db.models import F, Q
 from referentiel.value_objects.category import Category
 from referentiel.value_objects.offer_nature import OfferNature
 from referentiel.value_objects.verse import Verse
@@ -123,6 +123,12 @@ class OfferModel(BaseDatedModel):
             models.CheckConstraint(
                 condition=~Q(categories=[]),
                 name="offer_categories_not_empty",
+            ),
+            # A long title copying the title would be weighted twice by the
+            # full-text search.
+            models.CheckConstraint(
+                condition=~Q(long_title=F("title")),
+                name="offer_long_title_differs_from_title",
             ),
         ]
 

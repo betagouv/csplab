@@ -1038,7 +1038,9 @@ class OffersInputSerializer(serializers.Serializer):
 
     # general infos
     titre = serializers.CharField(max_length=150)
-    titre_long = serializers.CharField(max_length=1500)
+    titre_long = serializers.CharField(
+        max_length=1500, required=False, allow_null=True, allow_blank=True
+    )
     organisation = OrganismeInputSerializer()
     url_offre = serializers.URLField(allow_null=True)
     url_candidature = serializers.URLField(allow_null=True, required=False)
@@ -1080,6 +1082,10 @@ class OffersInputSerializer(serializers.Serializer):
         return sorted(value, key=lambda contact: CONTACT_ROLES.index(contact["role"]))
 
     def validate(self, data):
+        if data.get("titre_long") == data["titre"]:
+            raise serializers.ValidationError(
+                {"titre_long": "Le titre long doit différer du titre, sinon l'omettre."}
+            )
         if bool(data.get("url_candidature")) == bool(data.get("email_candidature")):
             raise serializers.ValidationError(
                 "Renseigner soit url_candidature, soit email_candidature, "
