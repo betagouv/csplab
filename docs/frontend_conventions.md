@@ -281,6 +281,7 @@ export const useCandidatsStore = defineStore('candidats', () => {
 - One store per entity/domain, not per component
 - `use*Store` prefix
 - **Location**: a store tied to a feature lives in `features/<feature>/stores/`; a cross-cutting store (session, UI, current user) lives in the root `stores/`.
+- In tests, `src/test/setup.ts` mocks `getMe` with an account that belongs to no organisme. A test that needs an organisme, a role or a failed load sets its own `vi.mocked(getMe)` value.
 
 ## API Calls
 
