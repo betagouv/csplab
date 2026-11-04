@@ -5,8 +5,8 @@ from referentiel.value_objects.state_diploma import (
 )
 
 
-def test_talentsoft_state_diplomas_has_the_23_codes():
-    assert len(TALENTSOFT_STATE_DIPLOMAS) == 23
+def test_talentsoft_state_diplomas_has_the_26_codes():
+    assert len(TALENTSOFT_STATE_DIPLOMAS) == 26
 
 
 def test_talentsoft_state_diplomas_codes_are_unique():

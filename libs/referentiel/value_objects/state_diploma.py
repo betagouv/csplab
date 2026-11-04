@@ -3,6 +3,8 @@ from typing import Optional
 
 # Talentsoft referential of `customFields.offerCustomBlock1.customCodeTable3`,
 # displayed as « Diplômes d'Etat requis » by the BIEP WordPress (see #2287).
+# Source: Talentsoft back-office API (scope Customer),
+# `GET /api/v1/referentials/customcodetables/_TS_a3e2fd48-425e-4f2a-99c1-ab2ab56f42a8`.
 TALENTSOFT_STATE_DIPLOMA_TYPE = "Diplômes d'Etat"
 
 
@@ -41,6 +43,10 @@ TALENTSOFT_STATE_DIPLOMAS: tuple[TalentsoftStateDiploma, ...] = tuple(
         ("CSPU0011", "Diplôme d'Etat de technicien de laboratoire médical"),
         ("CASF0004", "Diplôme d'Etat d'éducateur technique spécialisé"),
         ("CSPU0008", "Diplôme d'Etat de pédicure-podologue"),
+        # Not used by any offer yet (CEDU0002 and CSPU0015 are duplicates in Talentsoft)
+        ("CEDU0002", "Diplôme d'Etat d'audioprothésiste"),
+        ("CSPU0010", "Diplôme d'Etat français de diététicien"),
+        ("CSPU0015", "Diplôme d'Etat d'audio-protésiste"),
     )
 )
 
