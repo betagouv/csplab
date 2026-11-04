@@ -7,6 +7,9 @@ from django.urls import reverse
 from faker import Faker
 from rest_framework import status
 
+from application.identite.context_services.organisme_permission_service import (
+    OrganismePermissionService,
+)
 from domain.commons.errors.organisme_errors import OrganismeNexistePas
 from domain.commons.services.audit_log_writer import AuditLogWriter
 from domain.identite.errors.organisme_permission_errors import (
@@ -178,6 +181,34 @@ class TestOrganismeDetailView:
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
         assert response.json() == {"error": OrganismeNexistePas(ORGANISME_UUID).message}
+
+    @pytest.mark.parametrize(
+        ("exception", "expected_status", "expected_body"),
+        [
+            (
+                OperationOrganismeRefusee(),
+                status.HTTP_403_FORBIDDEN,
+                {"error": OperationOrganismeRefusee().message},
+            ),
+            (
+                Exception("unexpected"),
+                status.HTTP_500_INTERNAL_SERVER_ERROR,
+                {"error": "Unexpected error"},
+            ),
+        ],
+    )
+    def test_get_maps_unexpected_service_errors(
+        self, staff_client, exception, expected_status, expected_body
+    ):
+        OrganismeDjangoFactory(id=UUID(ORGANISME_UUID))
+
+        with patch.object(
+            OrganismePermissionService, "can_execute", side_effect=exception
+        ):
+            response = staff_client.get(ORGANISME_URL)
+
+        assert response.status_code == expected_status
+        assert response.json() == expected_body
 
     def test_put_update_organisme(
         self,
