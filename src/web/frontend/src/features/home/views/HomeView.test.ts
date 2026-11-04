@@ -2,7 +2,7 @@ import { screen } from '@testing-library/vue'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { RouterView } from 'vue-router'
 import { getMe } from '@/api/utilisateur'
-import { BRIANCON_UUID, makeUser, MTE_UUID, ROLE_BRIANCON, ROLE_MTE } from '@/test/fixtures/utilisateur'
+import { BRIANCON_UUID, makeUser, MTE_UUID, ORGANISME_INCONNU_UUID, ROLE_BRIANCON, ROLE_MTE } from '@/test/fixtures/utilisateur'
 import { renderWithApp } from '@/test/render'
 
 function renderHome(organismeUuid: string) {
@@ -52,6 +52,13 @@ describe('homeView', () => {
     await renderWithApp(RouterView)
 
     expect(await screen.findByText('Vous n’êtes rattaché à aucun organisme')).toBeInTheDocument()
+  })
+
+  it('tells a user outside the organisme that they have no access', async () => {
+    await renderHome(ORGANISME_INCONNU_UUID)
+
+    expect(await screen.findByText('Vous n’avez pas accès à cette page.')).toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Voir mes recrutements' })).not.toBeInTheDocument()
   })
 
   it('opens the online help in a new window', async () => {

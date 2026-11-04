@@ -12,16 +12,19 @@ import { useDocumentTitle } from '@/composables/ui/useDocumentTitle'
 import { HOME_BREADCRUMB_LABEL } from '@/router/breadcrumb'
 import { useCurrentUser } from '@/stores/currentUser'
 import { useRouteOrganisme } from '@/stores/routeOrganisme'
+import ForbiddenView from '@/views/ForbiddenView.vue'
 import { HELP_LABEL, HELP_URL, WELCOME_TEXTS } from '../constants/home'
 
-defineProps<{
+const props = defineProps<{
   organismeUuid?: string
 }>()
 
 const breadcrumb: CspBreadcrumbItem[] = [{ label: HOME_BREADCRUMB_LABEL }]
 
-const { user } = useCurrentUser()
-const { canOnOrganisme } = useRouteOrganisme()
+const { user, isStaff } = useCurrentUser()
+const { organisme, canOnOrganisme } = useRouteOrganisme()
+
+const forbidden = computed(() => !!props.organismeUuid && !!user.value && !isStaff.value && !organisme.value)
 
 const welcome = computed(() => WELCOME_TEXTS[canOnOrganisme('get_organisme') ? 'superviseur' : 'agent'])
 
@@ -29,82 +32,85 @@ useDocumentTitle(HOME_BREADCRUMB_LABEL)
 </script>
 
 <template>
-  <CspPageHeader
-    :breadcrumb="breadcrumb"
-    :title="`Bonjour ${user?.prenom}`"
-    :show-title-skeleton="!user"
-    subtitle="Votre espace de recrutement"
-  />
-  <CspPageContainer>
-    <CspCard
-      v-if="organismeUuid"
-      as="section"
-      size="lg"
-      title-as="h2"
-      :title="welcome.title"
-      :description="welcome.description"
-    >
-      <div class="home-view">
-        <ol class="home-view__steps">
-          <li
-            v-for="(step, index) in welcome.steps"
-            :key="step.title"
-            class="home-view__row"
-          >
+  <ForbiddenView v-if="forbidden" />
+  <template v-else>
+    <CspPageHeader
+      :breadcrumb="breadcrumb"
+      :title="`Bonjour ${user?.prenom}`"
+      :show-title-skeleton="!user"
+      subtitle="Votre espace de recrutement"
+    />
+    <CspPageContainer>
+      <CspCard
+        v-if="user && organismeUuid"
+        as="section"
+        size="lg"
+        title-as="h2"
+        :title="welcome.title"
+        :description="welcome.description"
+      >
+        <div class="home-view">
+          <ol class="home-view__steps">
+            <li
+              v-for="(step, index) in welcome.steps"
+              :key="step.title"
+              class="home-view__row"
+            >
+              <span
+                class="home-view__marker"
+                aria-hidden="true"
+              >{{ index + 1 }}</span>
+              <div class="home-view__row-text">
+                <h3>{{ step.title }}</h3>
+                <p>{{ step.description }}</p>
+              </div>
+              <CspButton
+                v-if="step.action"
+                class="home-view__action"
+                :as="RouterLink"
+                :to="{ name: step.action.to, params: { organismeUuid } }"
+                :variant="index === 0 ? 'primary' : 'secondary'"
+                :label="step.action.label"
+              />
+            </li>
+          </ol>
+          <div class="home-view__row home-view__row--help">
             <span
               class="home-view__marker"
               aria-hidden="true"
-            >{{ index + 1 }}</span>
+            >
+              <CspIcon
+                name="ri:question-line"
+                :size="20"
+              />
+            </span>
             <div class="home-view__row-text">
-              <h3>{{ step.title }}</h3>
-              <p>{{ step.description }}</p>
+              <h3>Besoin d’aide pour bien démarrer ?</h3>
+              <p>Découvrez nos guides et conseils pour prendre en main cet ATS.</p>
             </div>
             <CspButton
-              v-if="step.action"
               class="home-view__action"
-              :as="RouterLink"
-              :to="{ name: step.action.to, params: { organismeUuid } }"
-              :variant="index === 0 ? 'primary' : 'secondary'"
-              :label="step.action.label"
+              as="a"
+              :href="HELP_URL"
+              target="_blank"
+              rel="noopener"
+              :title="`${HELP_LABEL} - nouvelle fenêtre`"
+              variant="secondary"
+              icon="ri:external-link-line"
+              is-icon-left
+              :label="HELP_LABEL"
             />
-          </li>
-        </ol>
-        <div class="home-view__row home-view__row--help">
-          <span
-            class="home-view__marker"
-            aria-hidden="true"
-          >
-            <CspIcon
-              name="ri:question-line"
-              :size="20"
-            />
-          </span>
-          <div class="home-view__row-text">
-            <h3>Besoin d’aide pour bien démarrer ?</h3>
-            <p>Découvrez nos guides et conseils pour prendre en main cet ATS.</p>
           </div>
-          <CspButton
-            class="home-view__action"
-            as="a"
-            :href="HELP_URL"
-            target="_blank"
-            rel="noopener"
-            :title="`${HELP_LABEL} - nouvelle fenêtre`"
-            variant="secondary"
-            icon="ri:external-link-line"
-            is-icon-left
-            :label="HELP_LABEL"
-          />
         </div>
-      </div>
-    </CspCard>
-    <CspEmptyState
-      v-else-if="user"
-      icon="ri:government-line"
-      title="Vous n’êtes rattaché à aucun organisme"
-      description="Demandez au superviseur de votre organisme de vous inviter dans l’ATS."
-    />
-  </CspPageContainer>
+      </CspCard>
+      <CspEmptyState
+        v-else-if="user"
+        icon="ri:government-line"
+        title="Vous n’êtes rattaché à aucun organisme"
+        description="Demandez au superviseur de votre organisme de vous inviter dans l’ATS."
+      />
+    </CspPageContainer>
+  </template>
 </template>
 
 <style scoped lang="scss">
