@@ -16,6 +16,16 @@ from infrastructure.factories.ingestion.source_django_factory import (
     SourceDjangoFactory,
 )
 
+_MAIN_LOCALISATION_KWARGS = {
+    "area": ("area", GeographicalArea.EUROPE.value),
+    "country": ("country", "FRA"),
+    "region": ("region", "11"),
+    "department": ("department", "75"),
+    "location_label": ("label", ""),
+    "latitude": ("latitude", None),
+    "longitude": ("longitude", None),
+}
+
 
 class OfferDjangoFactory(DjangoModelFactory):
     class Meta:
@@ -34,40 +44,36 @@ class OfferDjangoFactory(DjangoModelFactory):
     publication_date = datetime(2024, 1, 15, tzinfo=UTC)
     end_publication_date = datetime(2025, 1, 15, tzinfo=UTC)
     beginning_date = datetime(2024, 12, 31, tzinfo=UTC)
-    area = GeographicalArea.EUROPE.value
-    country = "FRA"
-    region = "11"
-    department = "75"
     processing = False
     processed_at = None
     archived_at = None
 
-    @factory.post_generation
-    def localisations(self, create, extracted, **kwargs):
-        if not create:
-            return
-        if extracted is None:
-            if not (self.area and self.country):
-                return
-            extracted = [
-                {
-                    "area": self.area,
-                    "country": self.country,
-                    "region": self.region,
-                    "department": self.department,
-                    "label": self.location_label or "",
-                    "latitude": self.latitude,
-                    "longitude": self.longitude,
-                }
-            ]
+    @classmethod
+    def _create(cls, model_class, *args, **kwargs):
+        # Flat kwargs (department="69", latitude=…) describe the main localisation
+        main = {
+            field: kwargs.pop(kwarg, default)
+            for kwarg, (field, default) in _MAIN_LOCALISATION_KWARGS.items()
+        }
+        localisations = kwargs.pop("localisations", None)
+        if localisations is None:
+            localisations = [main] if main["area"] and main["country"] else []
+        offer = super()._create(model_class, *args, **kwargs)
         OfferLocalisationModel.objects.bulk_create(
-            [
-                OfferLocalisationModel(
-                    id=uuid4(), offer=self, position=position, **localisation
-                )
-                for position, localisation in enumerate(extracted)
-            ]
+            OfferLocalisationModel(
+                id=uuid4(),
+                offer=offer,
+                position=position,
+                **{
+                    field: value
+                    for field, value in localisation.items()
+                    # label is the only non nullable optional field
+                    if value is not None or field != "label"
+                },
+            )
+            for position, localisation in enumerate(localisations)
         )
+        return offer
 
     @factory.post_generation
     def updated_at(self, create, extracted, **kwargs):

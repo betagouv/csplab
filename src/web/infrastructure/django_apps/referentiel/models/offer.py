@@ -105,15 +105,6 @@ class OfferModel(BaseDatedModel):
         blank=True,
     )
 
-    # Localisation fields stored separately
-    area = models.CharField(max_length=2, null=True, blank=True)
-    country = models.CharField(max_length=3, null=True, blank=True)
-    region = models.CharField(max_length=3, null=True, blank=True)
-    department = models.CharField(max_length=3, null=True, blank=True)
-    location_label = models.CharField(max_length=500, null=True, blank=True)
-    latitude = models.FloatField(null=True, blank=True)
-    longitude = models.FloatField(null=True, blank=True)
-
     long_title = models.CharField(max_length=1500, null=True, blank=True)
     application_url = models.URLField(null=True, blank=True)
     application_email = models.EmailField(null=True, blank=True)
