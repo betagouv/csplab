@@ -6,9 +6,11 @@ import pytest
 from django.urls import reverse
 from pydantic import HttpUrl
 from referentiel.value_objects.contract_kind import ContractKind
+from referentiel.value_objects.department import Department
 from referentiel.value_objects.diploma import Diploma
 from referentiel.value_objects.experience_level import ExperienceLevel
 from referentiel.value_objects.language_level import LanguageLevel
+from referentiel.value_objects.localisation import Localisation
 from referentiel.value_objects.offer_criteria import OfferCriteria, OfferLanguage
 from referentiel.value_objects.offer_nature import OfferNature
 from rest_framework import status
@@ -37,6 +39,7 @@ NOMBRE_REQUETES_ATTENDU = (
     + 1  # usecase: utilisateur_repository.get_by_username
     + 2  # usecase: get_allowed_source_ids (get user + filter sources M2M)
     + 2  # pagination: count + page
+    + 1  # prefetch of the offers' localisations
     + 1  # ApiRequestLoggerMiddleware re-decodes the JWT to log the request
     + 2  # logging: DJ tries an UPDATE (manually-assigned pk) then falls back to INSERT
 )
@@ -119,14 +122,32 @@ class TestOffersBySourceView:
     def test_jwt_authentication_returns_offer_without_localisation(
         self, authenticated_client_with_source, use_case
     ):
-        offer = OfferFactory.create_entity(source_id=SOURCE_ID)
-        offer.localisation = None
+        offer = OfferFactory.create_entity(source_id=SOURCE_ID, localisations=[])
         _make_paginated_mock(use_case, offers=[offer])
 
         response = authenticated_client_with_source.get(URL)
 
         assert response.status_code == status.HTTP_200_OK
-        assert response.json()["results"][0]["localisation"] is None
+        assert response.json()["results"][0]["localisation"] == []
+
+    def test_returns_every_localisation_in_order(
+        self, authenticated_client_with_source, use_case
+    ):
+        offer = OfferFactory.create_entity(
+            source_id=SOURCE_ID,
+            localisations=[
+                Localisation.from_department(Department(code="14")),
+                Localisation.from_department(Department(code="50")),
+            ],
+        )
+        _make_paginated_mock(use_case, offers=[offer])
+
+        response = authenticated_client_with_source.get(URL)
+
+        assert [
+            localisation["departement"]
+            for localisation in response.json()["results"][0]["localisation"]
+        ] == ["14", "50"]
 
     def test_jwt_authentication_forbidden_source_returns_403(
         self, jwt_client, use_case
@@ -198,7 +219,7 @@ class TestOffersBySourceViewDbVerified:
                 "url_offre": None,
                 "url_candidature": None,
                 "email_candidature": None,
-                "localisation": None,
+                "localisation": [],
                 "criteres": None,
                 "conditions": None,
                 "contacts": None,
@@ -277,15 +298,17 @@ class TestOffersBySourceViewDbVerified:
                 "url_offre": "https://exemple.gouv.fr/offres/e2e-1",
                 "url_candidature": "https://exemple.gouv.fr/candidature/e2e-1",
                 "email_candidature": None,
-                "localisation": {
-                    "zone_geographique": offer.area,
-                    "pays": offer.country,
-                    "region": offer.region,
-                    "departement": offer.department,
-                    "localisation_label": offer.location_label,
-                    "latitude": offer.latitude,
-                    "longitude": offer.longitude,
-                },
+                "localisation": [
+                    {
+                        "zone_geographique": offer.area,
+                        "pays": offer.country,
+                        "region": offer.region,
+                        "departement": offer.department,
+                        "localisation_label": offer.location_label,
+                        "latitude": offer.latitude,
+                        "longitude": offer.longitude,
+                    }
+                ],
                 "criteres": criteria.to_dict(),
                 "conditions": {"salaire": "35000-45000"},
                 "contacts": [

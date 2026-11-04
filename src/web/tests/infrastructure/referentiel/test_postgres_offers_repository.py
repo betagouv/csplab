@@ -175,12 +175,14 @@ class TestUpsertBatch:
             "family_code": "NEW001",
             "job_family_referential": "RMFPv2",
             "functional_area_code": "NEW",
-            "localisation": Localisation(
-                area=GeographicalArea("AM"),
-                country=Country("FRA"),
-                region=Region(code="03"),
-                department=Department(code="973"),
-            ),
+            "localisations": [
+                Localisation(
+                    area=GeographicalArea("AM"),
+                    country=Country("FRA"),
+                    region=Region(code="03"),
+                    department=Department(code="973"),
+                )
+            ],
             "publication_date": now,
             "beginning_date": LimitDate(now),
             "exercise_conditions": "Télétravail possible",

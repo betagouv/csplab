@@ -90,7 +90,7 @@ export function candidatureDetail(candidatureUuid: string): CandidatureDetail {
 export const RECRUTEMENT_DETAIL = {
   intitule: 'Chargé de mission',
   date_publication: '2025-06-01T09:00:00Z',
-  localisation: { localisation_label: 'Paris' },
+  localisation: [{ localisation_label: 'Paris' }],
   organisme_recruteur: { nom: 'Ministère de la Transition Écologique' },
   categorie_offre: 'A',
   etapes: KANBAN.etapes.map(({ uuid, nom, categorie }) => ({ uuid, nom, categorie })),

@@ -4,7 +4,7 @@ from uuid import UUID
 from django.contrib.postgres.fields import ArrayField
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db import models
-from django.db.models import F, Q
+from django.db.models import Exists, F, OuterRef, Q
 from referentiel.value_objects.category import Category
 from referentiel.value_objects.offer_nature import OfferNature
 from referentiel.value_objects.verse import Verse
@@ -25,6 +25,35 @@ class OfferQuerySet(models.QuerySet):
 
     def by_references(self, references: Iterable[str]) -> "OfferQuerySet":
         return self.filter(reference__in=references)
+
+    def with_localisations(self) -> "OfferQuerySet":
+        return self.prefetch_related("localisations")
+
+    def with_localisation_in(
+        self,
+        *,
+        regions: Iterable[str] = (),
+        departments: Iterable[str] = (),
+        countries: Iterable[str] = (),
+        areas: Iterable[str] = (),
+    ) -> "OfferQuerySet":
+        localisations = self._localisations().located_in(
+            regions=regions, departments=departments, countries=countries, areas=areas
+        )
+        if localisations is None:
+            return self
+        return self.filter(Exists(localisations))
+
+    def with_localisation_within(
+        self, latitude: float, longitude: float, radius_km: float
+    ) -> "OfferQuerySet":
+        return self.filter(
+            Exists(self._localisations().within(latitude, longitude, radius_km))
+        )
+
+    def _localisations(self):
+        localisation_model = self.model._meta.get_field("localisations").related_model
+        return localisation_model.objects.filter(offer=OuterRef("pk"))
 
     def search(self, term: str) -> "OfferQuerySet":
         if not term:

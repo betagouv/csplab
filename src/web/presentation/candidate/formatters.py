@@ -73,3 +73,12 @@ def format_location_display(localisation: Localisation | None) -> str:
         country = str(localisation.country)
         return COUNTRY_NAMES.get(country, country)
     return localisation.department.name
+
+
+def format_locations_display(localisations: list[Localisation]) -> str:
+    """E.g. 'Calvados + 2'."""
+    if not localisations:
+        return ""
+    main = format_location_display(localisations[0])
+    others = len(localisations) - 1
+    return f"{main} + {others}" if others else main

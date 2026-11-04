@@ -208,7 +208,8 @@ class TestRecrutementDetailView:
             "nom": organisme.nom,
             "siret": organisme.siret,
         }
-        assert set(payload["localisation"]) == {
+        [localisation] = payload["localisation"]
+        assert set(localisation) == {
             "zone_geographique",
             "pays",
             "region",
@@ -218,35 +219,53 @@ class TestRecrutementDetailView:
             "longitude",
         }
 
-    def test_localisation_with_nullable_offre_columns(
-        self, authenticated_client, test_user
-    ):
+    def test_lists_every_localisation_in_order(self, authenticated_client, test_user):
         _, organisme = create_organisme_with_agent(
             role=AgentOrganismeRole.SUPERVISEUR, utilisateur=test_user
         )
         offre = OfferDjangoFactory(
-            area=None,
-            country=None,
-            region=None,
-            department=None,
-            location_label=None,
-            latitude=None,
-            longitude=None,
+            localisations=[
+                {"area": "EU", "country": "FRA", "region": "28", "department": "14"},
+                {"area": "EU", "country": "DEU", "label": "Berlin"},
+            ]
         )
         recrutement = RecrutementDjangoFactory(organisme=organisme, offre=offre)
 
         response = authenticated_client.get(_detail_url(organisme.id, recrutement.pk))
 
         assert response.status_code == status.HTTP_200_OK
-        assert response.json()["localisation"] == {
-            "zone_geographique": "",
-            "pays": "",
-            "region": None,
-            "departement": None,
-            "localisation_label": "",
-            "latitude": None,
-            "longitude": None,
-        }
+        assert response.json()["localisation"] == [
+            {
+                "zone_geographique": "EU",
+                "pays": "FRA",
+                "region": "28",
+                "departement": "14",
+                "localisation_label": "",
+                "latitude": None,
+                "longitude": None,
+            },
+            {
+                "zone_geographique": "EU",
+                "pays": "DEU",
+                "region": "",
+                "departement": "",
+                "localisation_label": "Berlin",
+                "latitude": None,
+                "longitude": None,
+            },
+        ]
+
+    def test_offre_without_localisation(self, authenticated_client, test_user):
+        _, organisme = create_organisme_with_agent(
+            role=AgentOrganismeRole.SUPERVISEUR, utilisateur=test_user
+        )
+        offre = OfferDjangoFactory(localisations=[])
+        recrutement = RecrutementDjangoFactory(organisme=organisme, offre=offre)
+
+        response = authenticated_client.get(_detail_url(organisme.id, recrutement.pk))
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json()["localisation"] == []
 
     def test_etapes_follow_ordre_etapes(self, authenticated_client, test_user):
         _, organisme = create_organisme_with_agent(

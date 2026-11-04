@@ -34,7 +34,8 @@ def test_loads_talentsoft_organisme_with_offer(
     )
     usecase = ingestion_container.get_offer_by_reference_usecase()
 
-    with django_assert_num_queries(1):
+    # offer with its Talentsoft organisme + prefetch of its localisations
+    with django_assert_num_queries(2):
         result = usecase.execute(GetOfferByReferenceInput(reference="REF-1"))
 
     assert result.talentsoft_organisme is not None

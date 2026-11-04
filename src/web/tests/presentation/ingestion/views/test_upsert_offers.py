@@ -158,7 +158,7 @@ COMPARABLE_OFFER_ATTRS = [
     "categories",
     "offer_nature",
     "offer_url",
-    "localisation",
+    "localisations",
     "beginning_date",
     "family_code",
     "job_family_referential",
@@ -265,7 +265,6 @@ def parse_offer_from_payload(payload: dict, source_id: UUID) -> Offer:
         categories=[Category(c) for c in payload.get("categories") or []],
         offer_nature=OfferNature(payload["nature_offre"]),
         offer_url=payload.get("url_offre"),
-        localisation=None,
         localisations=localisations,
         beginning_date=debut_contrat,
         family_code=payload["profession"]["metier"],
@@ -1465,7 +1464,7 @@ class TestOffersUpsertViewDbVerified:
         offer_model = OfferModel.objects.get(
             reference="REF-SANS-GPS", source_id=UUID(SOURCE_UUID)
         )
-        localisation = OfferMapper().to_domain(offer_model).localisation
+        localisation = OfferMapper().to_domain(offer_model).main_localisation
         assert localisation.label == "Caen"
         assert localisation.latitude is None
         assert localisation.longitude is None
@@ -1582,15 +1581,17 @@ class TestOffersUpsertViewDbVerified:
             (None, None)
         ]
         persisted = OfferMapper().to_domain(offer_model)
-        assert OfferDetailResponseSerializer(persisted).data["localisation"] == {
-            "zone_geographique": "EU",
-            "pays": "DEU",
-            "region": None,
-            "departement": None,
-            "localisation_label": "Ambassade de France à Berlin",
-            "latitude": 52.5163,
-            "longitude": 13.3777,
-        }
+        assert OfferDetailResponseSerializer(persisted).data["localisation"] == [
+            {
+                "zone_geographique": "EU",
+                "pays": "DEU",
+                "region": None,
+                "departement": None,
+                "localisation_label": "Ambassade de France à Berlin",
+                "latitude": 52.5163,
+                "longitude": 13.3777,
+            }
+        ]
 
     def test_auto_references_are_generated_and_returned_with_their_index(
         self, authenticated_client_with_source

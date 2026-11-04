@@ -1,3 +1,4 @@
+from collections.abc import Iterable
 from datetime import datetime
 from typing import Optional
 from uuid import UUID
@@ -75,7 +76,6 @@ class OfferInputMapper(IToDomainMapper[dict, Offer]):
             categories=[Category(c) for c in data["categories"]],
             offer_nature=OfferNature(data["nature_offre"]),
             offer_url=data.get("url_offre"),
-            localisation=None,
             localisations=localisations,
             beginning_date=LimitDate(debut_contrat) if debut_contrat else None,
             family_code=data["profession"]["metier"],
@@ -136,11 +136,12 @@ class OfferSummaryOutputMapper:
     }
 
     def to_dict(self, offer: Offer) -> dict:
+        main = offer.main_localisation
         return {
             "reference": offer.reference,
             "isTopOffer": False,
             "title": offer.title,
-            "location": offer.localisation.label if offer.localisation else None,
+            "location": main.label if main else None,
             "modificationDate": self._isoformat(
                 offer.processed_at or offer.publication_date
             ),
@@ -169,35 +170,32 @@ class OfferSummaryOutputMapper:
             "description2Formatted": self._formatted(offer.profile),
             "salaryRange": None,
             "geographicalLocation": [],
-            "country": [
-                self._coded_object(
-                    str(offer.localisation.country),
-                    offer.localisation.country.short_name,
-                    "country",
-                )
-            ]
-            if offer.localisation
-            else [],
-            "region": [
-                self._coded_object(
-                    offer.localisation.region.code,
-                    offer.localisation.region.name,
-                    "region",
-                )
-            ]
-            if offer.localisation and offer.localisation.region
-            else [],
-            "department": [
-                self._coded_object(
-                    offer.localisation.department.code,
-                    offer.localisation.department.name,
-                    "department",
-                )
-            ]
-            if offer.localisation and offer.localisation.department
-            else [],
-            "latitude": offer.localisation.latitude if offer.localisation else None,
-            "longitude": offer.localisation.longitude if offer.localisation else None,
+            # One element per distinct localisation value
+            "country": self._unique_coded_objects(
+                "country",
+                (
+                    (str(loc.country), loc.country.short_name)
+                    for loc in offer.localisations
+                ),
+            ),
+            "region": self._unique_coded_objects(
+                "region",
+                (
+                    (loc.region.code, loc.region.name)
+                    for loc in offer.localisations
+                    if loc.region
+                ),
+            ),
+            "department": self._unique_coded_objects(
+                "department",
+                (
+                    (loc.department.code, loc.department.name)
+                    for loc in offer.localisations
+                    if loc.department
+                ),
+            ),
+            "latitude": main.latitude if main else None,
+            "longitude": main.longitude if main else None,
             "professionalCategory": self._professional_category(offer.job_vacancy),
             "_links": [],
             "offerUrl": str(offer.offer_url) if offer.offer_url else None,
@@ -242,6 +240,15 @@ class OfferSummaryOutputMapper:
         centiseconds = round(int(frac) / 10_000)
         return f"{date_part}.{centiseconds:02d}"
 
+    @classmethod
+    def _unique_coded_objects(
+        cls, type_name: str, codes_and_labels: Iterable[tuple[str, str]]
+    ) -> list[dict]:
+        return [
+            cls._coded_object(code, label, type_name)
+            for code, label in dict.fromkeys(codes_and_labels)
+        ]
+
     @staticmethod
     def _coded_object(client_code: str, label: str, type_name: str) -> dict:
         return {
@@ -265,14 +272,10 @@ class OfferDetailOutputMapper(OfferSummaryOutputMapper):
     def to_dict(self, offer: Offer) -> dict:
         criteria = offer.criteria
 
+        main = offer.main_localisation
         geolocation = (
-            {
-                "latitude": offer.localisation.latitude,
-                "longitude": offer.localisation.longitude,
-            }
-            if offer.localisation
-            and offer.localisation.latitude is not None
-            and offer.localisation.longitude is not None
+            {"latitude": main.latitude, "longitude": main.longitude}
+            if main and main.latitude is not None and main.longitude is not None
             else None
         )
 
@@ -344,7 +347,7 @@ class OfferDetailOutputMapper(OfferSummaryOutputMapper):
                 "customCodeTable1": self._required_documents(offer.criteria),
             },
             "location": self._dynamic_field(
-                shortText1=offer.localisation.label if offer.localisation else None
+                shortText1=main.label if (main := offer.main_localisation) else None
             ),
             "offerCustomBlock1": self._dynamic_field(
                 longText1=offer.complements,

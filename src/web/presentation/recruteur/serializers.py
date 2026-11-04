@@ -35,11 +35,13 @@ from infrastructure.django_apps.recruteur.models.recrutement import (
     RecrutementAgentModel,
     RecrutementModel,
 )
+from infrastructure.django_apps.referentiel.models.offer_localisation import (
+    OfferLocalisationModel,
+)
 from infrastructure.django_apps.tag.models import TagCategory, TagColor, TagModel
 from infrastructure.django_apps.users.models import ProfilAgentModel
 from presentation.commons.pagination import MAX_PAGE_SIZE
 from presentation.commons.serializers import (
-    LocalisationSerializer,
     OrganismeSerializer,
     authorized_actions_field,
 )
@@ -307,22 +309,26 @@ class OffreArchiveeField(serializers.Field):
         return value
 
 
-@extend_schema_field(LocalisationSerializer())
-class OffreLocalisationField(serializers.Field):
-    def get_attribute(self, instance: RecrutementModel) -> dict:
-        offre = instance.offre
-        return {
-            "zone_geographique": offre.area or "",
-            "pays": offre.country or "",
-            "region": offre.region or None,
-            "departement": offre.department or None,
-            "localisation_label": offre.location_label or "",
-            "latitude": offre.latitude,
-            "longitude": offre.longitude,
-        }
+class OffreLocalisationSerializer(serializers.ModelSerializer):
+    zone_geographique = serializers.CharField(source="area")
+    pays = serializers.CharField(source="country")
+    region = serializers.CharField()
+    departement = serializers.CharField(source="department")
+    localisation_label = serializers.CharField(source="label")
+    latitude = serializers.FloatField(allow_null=True)
+    longitude = serializers.FloatField(allow_null=True)
 
-    def to_representation(self, value: dict) -> dict:
-        return value
+    class Meta:
+        model = OfferLocalisationModel
+        fields = [
+            "zone_geographique",
+            "pays",
+            "region",
+            "departement",
+            "localisation_label",
+            "latitude",
+            "longitude",
+        ]
 
 
 @extend_schema_field(EtapeRecrutementSerializer(many=True))
@@ -339,7 +345,7 @@ class RecrutementDetailSerializer(serializers.ModelSerializer):
     intitule = serializers.CharField(source="offre.title")
     archive = OffreArchiveeField()
     date_publication = serializers.DateTimeField(source="offre.publication_date")
-    localisation = OffreLocalisationField()
+    localisation = OffreLocalisationSerializer(source="offre.localisations", many=True)
     organisme_recruteur = OrganismeSerializer(source="organisme")
     categorie_offre = serializers.ChoiceField(
         source="offre.main_category", choices=[(c.name, c.value) for c in Category]
