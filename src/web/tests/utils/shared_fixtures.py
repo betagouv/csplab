@@ -31,10 +31,6 @@ from application.candidate.usecases.process_uploaded_cv import ProcessUploadedCV
 from application.commons.usecases.calculate_daily_stats import (
     CalculateDailyStatsUsecase,
 )
-from application.identite.context_services.organisme_permission_service import (
-    OrganismePermissionService,
-)
-from application.identite.usecases.get_organisme import GetOrganismeUsecase
 from application.ingestion.usecases.clean_documents import CleanDocumentsUsecase
 from application.ingestion.usecases.get_offers_by_source import (
     GetOffersBySourceUsecase,
@@ -52,9 +48,6 @@ from domain.commons.services.offer_stats_query_service_interface import (
     IOfferStatsQueryService,
 )
 from domain.commons.services.stat_snapshot_writer_interface import IStatSnapshotWriter
-from domain.identite.repositories.organisme_repository_interface import (
-    IOrganismeRepository,
-)
 from domain.identite.repositories.utilisateur_repository_interface import (
     IUtilisateurRepository,
 )
@@ -461,14 +454,6 @@ def get_opportunity_details_usecase():
         offers_repository=offers_repository,
         concours_repository=concours_repository,
         metiers_repository=metiers_repository,
-    )
-
-
-@pytest.fixture
-def get_organisme_usecase():
-    return GetOrganismeUsecase(
-        organisme_repository=Mock(spec=IOrganismeRepository),
-        permission_service=MagicMock(spec=OrganismePermissionService),
     )
 
 
