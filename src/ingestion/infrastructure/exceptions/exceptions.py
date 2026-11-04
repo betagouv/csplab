@@ -41,9 +41,7 @@ class DilaSiretNotFound(InfrastructureError):
 
 
 class TalentsoftOfferWithSeveralLocations(InfrastructureError):
-    """A Talentsoft offer sends several locations, which never happened so far
-    (0 offer out of 41 042 on 2026-11-02). Only the first one is kept: reading
-    every location needs a dedicated ticket (see #1793)."""
+    """Only the first location is kept (see #1793)."""
 
     def __init__(self, reference: str, source_id: str | None, fields: list[str]):
         self.reference = reference

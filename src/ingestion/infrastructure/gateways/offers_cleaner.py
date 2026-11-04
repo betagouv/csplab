@@ -764,10 +764,7 @@ class OffersCleaner:
     def _report_multiple_locations(
         self, talentsoft_offer: TalentsoftDetailOffer, source_id: Optional[str]
     ) -> None:
-        # Talentsoft never sends several locations in practice (0 offer out of
-        # 41 042 on 2026-11-02): only the first element of each list is read,
-        # the Sentry exception tells us when this assumption breaks. It is
-        # reported, not raised: the offer is still cleaned.
+        # Reported, not raised: the offer keeps its first location
         multiple_lists = [
             name
             for name, values in (
