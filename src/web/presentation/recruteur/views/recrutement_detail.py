@@ -84,8 +84,9 @@ class RecrutementDetailView(SessionApiMixin, APIView):
 
 
 @extend_schema(
-    summary="Détail d'un recrutement — vue kanban",
+    summary="Détail d'un recrutement — vue kanban (dépréciée, utiliser la vue liste)",
     tags=["recruteur"],
+    deprecated=True,
     responses={
         200: RecrutementDetailKanbanSerializer,
         401: TokenErrorSerializer,
@@ -94,6 +95,8 @@ class RecrutementDetailView(SessionApiMixin, APIView):
         500: GenericErrorSerializer,
     },
 )
+# TODO(#2261): déprécié au profit de RecrutementListeView (clé `etapes`),
+# à supprimer avec sa route une fois le front migré.
 class RecrutementKanbanView(SessionApiMixin, APIView):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
