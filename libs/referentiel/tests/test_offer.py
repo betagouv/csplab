@@ -6,6 +6,8 @@ from pydantic import HttpUrl
 from referentiel.entities.offer import Offer
 from referentiel.exceptions.offer_errors import ConflictingApplicationChannelsError
 from referentiel.value_objects.category import Category
+from referentiel.value_objects.department import Department
+from referentiel.value_objects.localisation import Localisation
 
 
 def _offer(**overrides) -> Offer:
@@ -63,3 +65,34 @@ def test_offer_accepts_at_most_one_application_channel(
 )
 def test_offer_main_category_is_the_first_category(categories, main_category):
     assert _offer(categories=categories).main_category == main_category
+
+
+_CAEN = Localisation.from_department(Department(code="14"))
+_SAINT_LO = Localisation.from_department(Department(code="50"))
+
+
+def test_offer_localisation_is_the_first_localisation():
+    offer = _offer(localisations=[_CAEN, _SAINT_LO])
+
+    assert offer.localisation == _CAEN
+
+
+def test_offer_localisation_alone_becomes_the_only_localisation():
+    offer = _offer(localisation=_CAEN)
+
+    assert offer.localisations == [_CAEN]
+
+
+def test_offer_without_localisation_has_no_localisations():
+    offer = _offer()
+
+    assert offer.localisation is None
+    assert offer.localisations == []
+
+
+def test_setting_offer_localisation_replaces_the_localisations():
+    offer = _offer(localisations=[_CAEN, _SAINT_LO])
+
+    offer.localisation = _SAINT_LO
+
+    assert offer.localisations == [_SAINT_LO]

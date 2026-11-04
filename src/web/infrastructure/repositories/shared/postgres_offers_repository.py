@@ -34,6 +34,9 @@ from infrastructure.django_apps.ingestion.models.talentsoft_organisme import (
     TalentsoftOrganismeModel,
 )
 from infrastructure.django_apps.referentiel.models.offer import OfferModel
+from infrastructure.django_apps.referentiel.models.offer_localisation import (
+    OfferLocalisationModel,
+)
 from infrastructure.mappers.offer_mapper import OfferMapper
 from infrastructure.mappers.queryset_page import QuerySetPage
 
@@ -81,12 +84,14 @@ class PostgresOffersRepository(IIngestionOffersRepository):
 
                 created = 0
                 updated = 0
+                offer_ids: Dict[str, UUID] = {}
 
                 if partitioned["new"]:
                     created_models = OfferModel.objects.bulk_create(
                         [self.mapper.from_domain(offer) for offer in partitioned["new"]]
                     )
                     created = len(created_models)
+                    offer_ids.update({m.reference: m.id for m in created_models})
 
                 if partitioned["existing"]:
                     models_to_update = []
@@ -94,6 +99,7 @@ class PostgresOffersRepository(IIngestionOffersRepository):
                         existing_model = existing_models_map[offer.reference]
                         updated_model = self.mapper.from_domain(offer)
                         updated_model.id = existing_model.id
+                        offer_ids[offer.reference] = existing_model.id
                         updated_model.updated_at = timezone.make_aware(datetime.now())
                         models_to_update.append(updated_model)
 
@@ -143,6 +149,17 @@ class PostgresOffersRepository(IIngestionOffersRepository):
                                 "talentsoft_organisme_entity_code",
                             ],
                         )
+
+                OfferLocalisationModel.objects.filter(
+                    offer_id__in=offer_ids.values()
+                ).delete()
+                OfferLocalisationModel.objects.bulk_create(
+                    OfferLocalisationModel.from_localisation(
+                        offer_ids[offer.reference], position, localisation
+                    )
+                    for offer in offers_list
+                    for position, localisation in enumerate(offer.localisations)
+                )
 
             return {
                 "created": created,

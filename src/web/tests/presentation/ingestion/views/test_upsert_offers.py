@@ -205,20 +205,20 @@ def parse_offer_from_payload(payload: dict, source_id: UUID) -> Offer:
             if key in ConditionsInputSerializer().fields
         }
 
-    loc_data = payload.get("localisation")
-    localisation = (
+    localisations = [
         Localisation(
-            area=GeographicalArea(loc_data[0]["zone_geographique"]),
-            country=Country(loc_data[0]["pays"]),
-            region=Region(code=loc_data[0]["region"]),
-            department=Department(code=loc_data[0]["departement"]),
-            label=loc_data[0].get("localisation_label") or None,
-            latitude=loc_data[0].get("latitude"),
-            longitude=loc_data[0].get("longitude"),
+            area=GeographicalArea(loc["zone_geographique"]),
+            country=Country(loc["pays"]),
+            region=Region(code=loc["region"]) if loc["region"] else None,
+            department=(
+                Department(code=loc["departement"]) if loc["departement"] else None
+            ),
+            label=loc.get("localisation_label") or None,
+            latitude=loc.get("latitude"),
+            longitude=loc.get("longitude"),
         )
-        if loc_data
-        else None
-    )
+        for loc in payload.get("localisation") or []
+    ]
 
     type_contrat = payload.get("type_contrat")
 
@@ -265,7 +265,8 @@ def parse_offer_from_payload(payload: dict, source_id: UUID) -> Offer:
         categories=[Category(c) for c in payload.get("categories") or []],
         offer_nature=OfferNature(payload["nature_offre"]),
         offer_url=payload.get("url_offre"),
-        localisation=localisation,
+        localisation=None,
+        localisations=localisations,
         beginning_date=debut_contrat,
         family_code=payload["profession"]["metier"],
         job_family_referential=payload["profession"].get("referentiel"),
@@ -1256,6 +1257,79 @@ def test_returns_error_500(authenticated_client_with_source, use_case):
     assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
 
 
+DUPLICATE_LOCALISATION_MESSAGE = (
+    "Un même lieu (pays, région, département et libellé) ne peut figurer qu'une fois."
+)
+
+
+def _localisation_payload(departement: str, label: str = "") -> dict:
+    return {
+        "zone_geographique": "EU",
+        "pays": "FRA",
+        "region": "28",
+        "departement": departement,
+        "localisation_label": label,
+        "latitude": None,
+        "longitude": None,
+    }
+
+
+def test_more_than_50_localisations_are_rejected(
+    authenticated_client_with_source, use_case
+):
+    offer = PayloadOfferFactory.create(
+        identification={"reference": "REF-51", "versant": "FPT"},
+        localisation=[
+            _localisation_payload("14", label=f"Site {i}") for i in range(51)
+        ],
+    )
+
+    response = authenticated_client_with_source.post(
+        URL,
+        data={"source_id": SOURCE_UUID, "offres": [offer]},
+        content_type="application/json",
+    )
+
+    assert response.status_code == status.HTTP_201_CREATED
+    assert response.json()["errors"] == [
+        {
+            "index": 0,
+            "offre": {"reference": "REF-51", "versant": "FPT"},
+            "error": {
+                "localisation": {"non_field_errors": ["Au plus 50 lieux par offre."]}
+            },
+        }
+    ]
+    assert use_case.execute.call_args.args[0].offers == []
+
+
+def test_duplicate_localisations_are_rejected(
+    authenticated_client_with_source, use_case
+):
+    first = _localisation_payload("14", label="Caen")
+    duplicate = {**first, "latitude": 49.18, "longitude": -0.37}
+    offer = PayloadOfferFactory.create(
+        identification={"reference": "REF-DOUBLON", "versant": "FPT"},
+        localisation=[first, duplicate],
+    )
+
+    response = authenticated_client_with_source.post(
+        URL,
+        data={"source_id": SOURCE_UUID, "offres": [offer]},
+        content_type="application/json",
+    )
+
+    assert response.status_code == status.HTTP_201_CREATED
+    assert response.json()["errors"] == [
+        {
+            "index": 0,
+            "offre": {"reference": "REF-DOUBLON", "versant": "FPT"},
+            "error": {"localisation": [DUPLICATE_LOCALISATION_MESSAGE]},
+        }
+    ]
+    assert use_case.execute.call_args.args[0].offers == []
+
+
 class TestOffersUpsertViewDbVerified:
     @pytest.fixture(autouse=True)
     def mock_container(self):
@@ -1396,6 +1470,79 @@ class TestOffersUpsertViewDbVerified:
         assert localisation.latitude is None
         assert localisation.longitude is None
 
+    def _post_localisations(self, client, reference: str, localisations: list):
+        MetierDjangoFactory(
+            offer_family_code="ERNUM001", domaine_fonctionnel_code="NUM"
+        )
+        offer = PayloadOfferFactory.create(
+            identification={"reference": reference, "versant": "FPT"},
+            localisation=localisations,
+        )
+        response = client.post(
+            URL,
+            data={"source_id": SOURCE_UUID, "offres": [offer]},
+            content_type="application/json",
+        )
+        assert response.status_code == status.HTTP_201_CREATED
+        assert response.json()["errors"] == []
+        return OfferModel.objects.get(reference=reference, source_id=UUID(SOURCE_UUID))
+
+    def test_persists_every_localisation_in_sent_order(
+        self, authenticated_client_with_source
+    ):
+        offer_model = self._post_localisations(
+            authenticated_client_with_source,
+            "REF-MULTI",
+            [
+                _localisation_payload("14", label="Caen"),
+                _localisation_payload("50", label="Saint-Lô"),
+            ],
+        )
+
+        assert list(
+            offer_model.localisations.values_list(
+                "position", "area", "country", "region", "department", "label"
+            )
+        ) == [
+            (0, "EU", "FRA", "28", "14", "Caen"),
+            (1, "EU", "FRA", "28", "50", "Saint-Lô"),
+        ]
+        # The flat columns still hold the main localisation.
+        assert offer_model.department == "14"
+        assert offer_model.location_label == "Caen"
+
+    def test_update_replaces_the_localisations(
+        self, authenticated_client_with_source, source
+    ):
+        OfferDjangoFactory(
+            source=source,
+            reference="REF-MAJ",
+            localisations=[
+                {"area": "EU", "country": "FRA", "region": "28", "department": "14"},
+                {"area": "EU", "country": "FRA", "region": "28", "department": "50"},
+            ],
+        )
+
+        offer_model = self._post_localisations(
+            authenticated_client_with_source,
+            "REF-MAJ",
+            [_localisation_payload("61", label="Alençon")],
+        )
+
+        assert list(
+            offer_model.localisations.values_list("position", "department", "label")
+        ) == [(0, "61", "Alençon")]
+
+    def test_offer_without_localisation_has_none(
+        self, authenticated_client_with_source
+    ):
+        offer_model = self._post_localisations(
+            authenticated_client_with_source, "REF-SANS-LIEU", []
+        )
+
+        assert not offer_model.localisations.exists()
+        assert offer_model.department is None
+
     def test_offer_abroad_is_persisted_without_region_nor_department(
         self, authenticated_client_with_source
     ):
@@ -1431,6 +1578,9 @@ class TestOffersUpsertViewDbVerified:
         assert offer_model.country == "DEU"
         assert offer_model.region is None
         assert offer_model.department is None
+        assert list(offer_model.localisations.values_list("region", "department")) == [
+            (None, None)
+        ]
         persisted = OfferMapper().to_domain(offer_model)
         assert OfferDetailResponseSerializer(persisted).data["localisation"] == {
             "zone_geographique": "EU",
