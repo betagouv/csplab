@@ -6567,8 +6567,10 @@ components:
           type: string
         region:
           type: string
+          nullable: true
         departement:
           type: string
+          nullable: true
         localisation_label:
           type: string
         latitude:

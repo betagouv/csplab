@@ -312,8 +312,8 @@ class OffreArchiveeField(serializers.Field):
 class OffreLocalisationSerializer(serializers.ModelSerializer):
     zone_geographique = serializers.CharField(source="area")
     pays = serializers.CharField(source="country")
-    region = serializers.CharField()
-    departement = serializers.CharField(source="department")
+    region = serializers.CharField(allow_null=True)
+    departement = serializers.CharField(source="department", allow_null=True)
     localisation_label = serializers.CharField(source="label")
     latitude = serializers.FloatField(allow_null=True)
     longitude = serializers.FloatField(allow_null=True)

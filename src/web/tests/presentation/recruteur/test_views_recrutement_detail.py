@@ -247,8 +247,8 @@ class TestRecrutementDetailView:
             {
                 "zone_geographique": "EU",
                 "pays": "DEU",
-                "region": "",
-                "departement": "",
+                "region": None,
+                "departement": None,
                 "localisation_label": "Berlin",
                 "latitude": None,
                 "longitude": None,

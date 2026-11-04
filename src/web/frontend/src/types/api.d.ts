@@ -940,8 +940,8 @@ export interface components {
         OffreLocalisation: {
             zone_geographique: string;
             pays: string;
-            region: string;
-            departement: string;
+            region: string | null;
+            departement: string | null;
             localisation_label: string;
             /** Format: double */
             latitude: number | null;

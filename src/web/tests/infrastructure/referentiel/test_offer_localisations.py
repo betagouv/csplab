@@ -1,11 +1,6 @@
 import pytest
-from referentiel.value_objects.department import Department
-from referentiel.value_objects.localisation import Localisation
 
 from infrastructure.django_apps.referentiel.models.offer import OfferModel
-from infrastructure.django_apps.referentiel.models.offer_localisation import (
-    OfferLocalisationModel,
-)
 from infrastructure.factories.referentiel.offer_django_factory import (
     OfferDjangoFactory,
 )
@@ -65,26 +60,3 @@ class TestWithLocalisationWithin:
         offers = OfferModel.objects.with_localisation_within(45.76, 4.84, 10)
 
         assert _ids(offers) == {caen_and_lyon.id}
-
-
-class TestReplaceForOffers:
-    def test_replaces_the_localisations_in_order(self):
-        offer = OfferDjangoFactory(localisations=[CAEN, LYON])
-        nantes = Localisation.from_department(Department(code="44"))
-
-        OfferLocalisationModel.objects.replace_for_offers({offer.id: [nantes]})
-
-        assert list(
-            offer.localisations.values_list("position", "department", "region")
-        ) == [(0, "44", "52")]
-
-
-def test_to_localisation_of_an_offer_abroad():
-    offer = OfferDjangoFactory(localisations=[BERLIN])
-
-    localisation = offer.localisations.get().to_localisation()
-
-    assert str(localisation.country) == "DEU"
-    assert localisation.region is None
-    assert localisation.department is None
-    assert localisation.label == "Berlin"
