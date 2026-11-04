@@ -1190,7 +1190,7 @@ export interface components {
             archive: boolean;
             /** Format: date-time */
             date_publication: string;
-            localisation: components["schemas"]["OffreLocalisation"][];
+            localisations: components["schemas"]["OffreLocalisation"][];
             organisme_recruteur: components["schemas"]["Organisme"];
             categorie_offre: components["schemas"]["CategorieOffreEnum"];
             etapes: components["schemas"]["EtapeRecrutement"][];

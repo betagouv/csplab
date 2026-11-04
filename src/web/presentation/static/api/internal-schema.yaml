@@ -7036,7 +7036,7 @@ components:
         date_publication:
           type: string
           format: date-time
-        localisation:
+        localisations:
           type: array
           items:
             $ref: '#/components/schemas/OffreLocalisation'
@@ -7070,7 +7070,7 @@ components:
       - date_publication
       - etapes
       - intitule
-      - localisation
+      - localisations
       - organisme_recruteur
       - recrutement_role
       - uuid

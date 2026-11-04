@@ -192,7 +192,7 @@ class TestRecrutementDetailView:
             "intitule",
             "archive",
             "date_publication",
-            "localisation",
+            "localisations",
             "organisme_recruteur",
             "categorie_offre",
             "etapes",
@@ -208,7 +208,7 @@ class TestRecrutementDetailView:
             "nom": organisme.nom,
             "siret": organisme.siret,
         }
-        [localisation] = payload["localisation"]
+        [localisation] = payload["localisations"]
         assert set(localisation) == {
             "zone_geographique",
             "pays",
@@ -234,7 +234,7 @@ class TestRecrutementDetailView:
         response = authenticated_client.get(_detail_url(organisme.id, recrutement.pk))
 
         assert response.status_code == status.HTTP_200_OK
-        assert response.json()["localisation"] == [
+        assert response.json()["localisations"] == [
             {
                 "zone_geographique": "EU",
                 "pays": "FRA",
@@ -265,7 +265,7 @@ class TestRecrutementDetailView:
         response = authenticated_client.get(_detail_url(organisme.id, recrutement.pk))
 
         assert response.status_code == status.HTTP_200_OK
-        assert response.json()["localisation"] == []
+        assert response.json()["localisations"] == []
 
     def test_etapes_follow_ordre_etapes(self, authenticated_client, test_user):
         _, organisme = create_organisme_with_agent(

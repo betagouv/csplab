@@ -345,7 +345,7 @@ class RecrutementDetailSerializer(serializers.ModelSerializer):
     intitule = serializers.CharField(source="offre.title")
     archive = OffreArchiveeField()
     date_publication = serializers.DateTimeField(source="offre.publication_date")
-    localisation = OffreLocalisationSerializer(source="offre.localisations", many=True)
+    localisations = OffreLocalisationSerializer(source="offre.localisations", many=True)
     organisme_recruteur = OrganismeSerializer(source="organisme")
     categorie_offre = serializers.ChoiceField(
         source="offre.main_category", choices=[(c.name, c.value) for c in Category]
@@ -365,7 +365,7 @@ class RecrutementDetailSerializer(serializers.ModelSerializer):
             "intitule",
             "archive",
             "date_publication",
-            "localisation",
+            "localisations",
             "organisme_recruteur",
             "categorie_offre",
             "etapes",
