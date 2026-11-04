@@ -53,8 +53,8 @@ class OfferDjangoFactory(DjangoModelFactory):
                 {
                     "area": self.area,
                     "country": self.country,
-                    "region": self.region or "",
-                    "department": self.department or "",
+                    "region": self.region,
+                    "department": self.department,
                     "label": self.location_label or "",
                     "latitude": self.latitude,
                     "longitude": self.longitude,

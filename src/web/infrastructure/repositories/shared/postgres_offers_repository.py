@@ -150,11 +150,15 @@ class PostgresOffersRepository(IIngestionOffersRepository):
                             ],
                         )
 
-                OfferLocalisationModel.objects.replace_for_offers(
-                    {
-                        offer_ids[offer.reference]: offer.localisations
-                        for offer in offers_list
-                    }
+                OfferLocalisationModel.objects.filter(
+                    offer_id__in=offer_ids.values()
+                ).delete()
+                OfferLocalisationModel.objects.bulk_create(
+                    OfferLocalisationModel.from_localisation(
+                        offer_ids[offer.reference], position, localisation
+                    )
+                    for offer in offers_list
+                    for position, localisation in enumerate(offer.localisations)
                 )
 
             return {

@@ -1,4 +1,3 @@
-from collections.abc import Mapping, Sequence
 from uuid import UUID, uuid4
 
 from django.db import models
@@ -9,18 +8,6 @@ from infrastructure.django_apps.referentiel.models.offer import OfferModel
 from infrastructure.django_apps.utils.models import BaseDatedModel
 
 
-class OfferLocalisationQuerySet(models.QuerySet):
-    def replace_for_offers(
-        self, localisations_by_offer_id: Mapping[UUID, Sequence[Localisation]]
-    ) -> None:
-        self.filter(offer_id__in=localisations_by_offer_id.keys()).delete()
-        self.bulk_create(
-            OfferLocalisationModel.from_localisation(offer_id, position, localisation)
-            for offer_id, localisations in localisations_by_offer_id.items()
-            for position, localisation in enumerate(localisations)
-        )
-
-
 class OfferLocalisationModel(BaseDatedModel):
     offer = models.ForeignKey(
         OfferModel, on_delete=models.CASCADE, related_name="localisations"
@@ -29,13 +16,11 @@ class OfferLocalisationModel(BaseDatedModel):
     position = models.PositiveSmallIntegerField()
     area = models.CharField(max_length=2)
     country = models.CharField(max_length=3)
-    region = models.CharField(max_length=3, blank=True)
-    department = models.CharField(max_length=3, blank=True)
+    region = models.CharField(max_length=3, null=True, blank=True)
+    department = models.CharField(max_length=3, null=True, blank=True)
     label = models.CharField(max_length=500, blank=True)
     latitude = models.FloatField(null=True, blank=True)
     longitude = models.FloatField(null=True, blank=True)
-
-    objects = OfferLocalisationQuerySet.as_manager()
 
     class Meta:
         db_table = "offer_localisations"
@@ -50,6 +35,8 @@ class OfferLocalisationModel(BaseDatedModel):
             models.UniqueConstraint(
                 fields=["offer", "country", "region", "department", "label"],
                 name="offer_localisations_no_duplicate",
+                # Offers abroad have no region nor department
+                nulls_distinct=False,
             ),
             models.CheckConstraint(
                 condition=Q(latitude__isnull=True)
@@ -79,8 +66,10 @@ class OfferLocalisationModel(BaseDatedModel):
             position=position,
             area=localisation.area.value,
             country=str(localisation.country),
-            region=localisation.region.code if localisation.region else "",
-            department=localisation.department.code if localisation.department else "",
+            region=localisation.region.code if localisation.region else None,
+            department=localisation.department.code
+            if localisation.department
+            else None,
             label=localisation.label or "",
             latitude=localisation.latitude,
             longitude=localisation.longitude,

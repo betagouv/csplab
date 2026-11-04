@@ -10,7 +10,7 @@ INSERT INTO offer_localisations (
 )
 SELECT
     gen_random_uuid(), now(), now(), o.id, 0,
-    o.area, o.country, coalesce(o.region, ''), coalesce(o.department, ''),
+    o.area, o.country, o.region, o.department,
     coalesce(o.location_label, ''), o.latitude, o.longitude
 FROM offers o
 WHERE o.area IS NOT NULL

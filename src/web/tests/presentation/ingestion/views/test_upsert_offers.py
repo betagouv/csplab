@@ -1576,6 +1576,9 @@ class TestOffersUpsertViewDbVerified:
         assert offer_model.country == "DEU"
         assert offer_model.region is None
         assert offer_model.department is None
+        assert list(offer_model.localisations.values_list("region", "department")) == [
+            (None, None)
+        ]
         persisted = OfferMapper().to_domain(offer_model)
         assert OfferDetailResponseSerializer(persisted).data["localisation"] == {
             "zone_geographique": "EU",
