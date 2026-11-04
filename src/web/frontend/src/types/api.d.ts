@@ -982,6 +982,20 @@ export interface components {
             /** Format: date-time */
             readonly date_creation: string;
         };
+        OrganismeRead: {
+            /** Format: uuid */
+            readonly uuid: string;
+            readonly nom: string;
+            readonly versant: components["schemas"]["VersantEnum"];
+            readonly siret: string;
+            readonly superviseurs: string;
+            readonly gestion_ats: boolean;
+            /** Format: date-time */
+            readonly date_derniere_activite: string;
+            /** Format: date-time */
+            readonly date_creation: string;
+            authorized_actions: components["schemas"]["AuthorizedActionsEnum"][];
+        };
         OrganismeRecherche: {
             /** Format: uuid */
             uuid: string;
@@ -1679,7 +1693,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["OrganismeDetail"];
+                    "application/json": components["schemas"]["OrganismeRead"];
                 };
             };
             401: {

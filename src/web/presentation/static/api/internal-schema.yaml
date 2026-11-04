@@ -421,7 +421,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OrganismeDetail'
+                $ref: '#/components/schemas/OrganismeRead'
           description: ''
           headers:
             X-RateLimit-Limit:
@@ -6691,6 +6691,53 @@ components:
           format: date-time
           readOnly: true
       required:
+      - date_creation
+      - date_derniere_activite
+      - gestion_ats
+      - nom
+      - siret
+      - superviseurs
+      - uuid
+      - versant
+    OrganismeRead:
+      type: object
+      properties:
+        uuid:
+          type: string
+          format: uuid
+          readOnly: true
+        nom:
+          type: string
+          readOnly: true
+        versant:
+          allOf:
+          - $ref: '#/components/schemas/VersantEnum'
+          readOnly: true
+        siret:
+          type: string
+          readOnly: true
+          maxLength: 14
+          minLength: 14
+        superviseurs:
+          type: string
+          readOnly: true
+        gestion_ats:
+          type: boolean
+          readOnly: true
+        date_derniere_activite:
+          type: string
+          format: date-time
+          readOnly: true
+        date_creation:
+          type: string
+          format: date-time
+          readOnly: true
+        authorized_actions:
+          type: array
+          items:
+            $ref: '#/components/schemas/AuthorizedActionsEnum'
+      required:
+      - authorized_actions
       - date_creation
       - date_derniere_activite
       - gestion_ats
