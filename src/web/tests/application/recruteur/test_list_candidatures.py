@@ -2,7 +2,10 @@ from uuid import uuid4
 
 import pytest
 
-from application.recruteur.services.list_candidatures import list_candidatures
+from application.recruteur.services.list_candidatures import (
+    list_candidatures,
+    list_recrutement_etapes,
+)
 from domain.commons.errors.organisme_errors import OrganismeNexistePas
 from domain.identite.errors.organisme_permission_errors import (
     AccesOrganismeRefuse,
@@ -69,11 +72,12 @@ def _superviseur_on_recrutement_of_another_organisme():
         ),
     ],
 )
-def test_raises(scenario, expected_error):
+@pytest.mark.parametrize("service", [list_candidatures, list_recrutement_etapes])
+def test_raises(service, scenario, expected_error):
     agent, organisme_id, recrutement_id = scenario()
 
     with pytest.raises(expected_error):
-        list_candidatures(
+        service(
             organisme_id=organisme_id,
             recrutement_id=recrutement_id,
             utilisateur=agent.utilisateur,

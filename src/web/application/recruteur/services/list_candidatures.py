@@ -8,9 +8,13 @@ from application.identite.context_services.organisme_permission_service import (
 from application.recruteur.context_services.recrutement_agent_service import (
     RecrutementAgentService,
 )
+from application.recruteur.services.get_recrutement_etapes import (
+    recrutement_etapes,
+)
 from domain.identite.value_objects.organisme_action import OrganismeAction
 from infrastructure.django_apps.candidate.models.candidature import CandidatureModel
 from infrastructure.django_apps.messagerie.models import unread_conversations_count
+from infrastructure.django_apps.recruteur.models.etape import EtapeModel
 from infrastructure.django_apps.users.models import UserModel
 
 
@@ -33,3 +37,18 @@ def list_candidatures(
     return CandidatureModel.objects.by_recrutement(recrutement_id).annotate(
         unread_conversations=unread_conversations_count(utilisateur.username)
     )
+
+
+def list_recrutement_etapes(
+    *,
+    organisme_id: UUID,
+    recrutement_id: UUID,
+    utilisateur: UserModel,
+) -> list[EtapeModel]:
+    OrganismePermissionService().can_execute(
+        action=OrganismeAction.GET_RECRUTEMENT,
+        utilisateur=utilisateur,
+        organisme_id=organisme_id,
+        recrutement_id=recrutement_id,
+    )
+    return recrutement_etapes(organisme_id=organisme_id, recrutement_id=recrutement_id)
