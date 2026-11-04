@@ -300,13 +300,13 @@ class TestOffersBySourceViewDbVerified:
                 "email_candidature": None,
                 "localisation": [
                     {
-                        "zone_geographique": offer.area,
-                        "pays": offer.country,
-                        "region": offer.region,
-                        "departement": offer.department,
-                        "localisation_label": offer.location_label,
-                        "latitude": offer.latitude,
-                        "longitude": offer.longitude,
+                        "zone_geographique": "EU",
+                        "pays": "FRA",
+                        "region": "11",
+                        "departement": "75",
+                        "localisation_label": "Paris",
+                        "latitude": 48.8566,
+                        "longitude": 2.3522,
                     }
                 ],
                 "criteres": criteria.to_dict(),

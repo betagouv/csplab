@@ -83,24 +83,6 @@ class OfferMapper(
         return organisme.to_entity() if organisme else None
 
     def from_domain(self, entity: Offer) -> OfferModel:
-        area = None
-        country = None
-        region = None
-        department = None
-        location_label = None
-        latitude = None
-        longitude = None
-        if main := entity.main_localisation:
-            area = main.area.value
-            country = str(main.country)
-            if main.region:
-                region = main.region.code
-            if main.department:
-                department = main.department.code
-            location_label = main.label
-            latitude = main.latitude
-            longitude = main.longitude
-
         beginning_date = entity.beginning_date.value if entity.beginning_date else None
         offer_nature = entity.offer_nature.value if entity.offer_nature else None
         offer_url = str(entity.offer_url) if entity.offer_url else None
@@ -118,13 +100,6 @@ class OfferMapper(
             offer_nature=offer_nature,
             organization=entity.organization,
             offer_url=offer_url,
-            area=area,
-            country=country,
-            region=region,
-            department=department,
-            location_label=location_label,
-            latitude=latitude,
-            longitude=longitude,
             code_emploi_csp=entity.family_code,
             job_family_referential=entity.job_family_referential,
             local_job_code=entity.local_job_code,

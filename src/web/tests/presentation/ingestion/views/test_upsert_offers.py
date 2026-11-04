@@ -1506,9 +1506,6 @@ class TestOffersUpsertViewDbVerified:
             (0, "EU", "FRA", "28", "14", "Caen"),
             (1, "EU", "FRA", "28", "50", "Saint-Lô"),
         ]
-        # The flat columns still hold the main localisation.
-        assert offer_model.department == "14"
-        assert offer_model.location_label == "Caen"
 
     def test_update_replaces_the_localisations(
         self, authenticated_client_with_source, source
@@ -1540,7 +1537,6 @@ class TestOffersUpsertViewDbVerified:
         )
 
         assert not offer_model.localisations.exists()
-        assert offer_model.department is None
 
     def test_offer_abroad_is_persisted_without_region_nor_department(
         self, authenticated_client_with_source
@@ -1574,12 +1570,9 @@ class TestOffersUpsertViewDbVerified:
         offer_model = OfferModel.objects.get(
             reference="REF-BERLIN", source_id=UUID(SOURCE_UUID)
         )
-        assert offer_model.country == "DEU"
-        assert offer_model.region is None
-        assert offer_model.department is None
-        assert list(offer_model.localisations.values_list("region", "department")) == [
-            (None, None)
-        ]
+        assert list(
+            offer_model.localisations.values_list("country", "region", "department")
+        ) == [("DEU", None, None)]
         persisted = OfferMapper().to_domain(offer_model)
         assert OfferDetailResponseSerializer(persisted).data["localisation"] == [
             {
