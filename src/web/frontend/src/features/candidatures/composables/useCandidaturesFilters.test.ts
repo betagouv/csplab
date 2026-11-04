@@ -1,7 +1,7 @@
 import type {
   EtapeRecrutement,
   EtapeRecrutementDetailedCandidatures,
-  PaginatedCandidatureListeList,
+  RecrutementListe,
 } from '../types'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { nextTick, shallowRef } from 'vue'
@@ -59,7 +59,7 @@ function makeEtapes(): EtapeRecrutementDetailedCandidatures[] {
   ]
 }
 
-function makeListe(): PaginatedCandidatureListeList {
+function makeListe(): RecrutementListe {
   return {
     count: 3,
     next: null,
@@ -90,6 +90,7 @@ function makeListe(): PaginatedCandidatureListeList {
         etape: { uuid: ETAPE_PRESELECTION, nom: 'Présélection', categorie: 'EN_COURS' },
       },
     ],
+    etapes: [],
   }
 }
 

@@ -1,4 +1,4 @@
-import type { ActivitesParams, CandidatureDetail, ChangerEtapeResultat, CreateNotePayload, MotifRefus, MotifRefusOption, NoteVisibilitePayload, PaginatedActiviteList, PaginatedCandidatureListeList, PaginatedDocumentListeList, PaginatedNoteList, RecrutementDetailKanban, UpdateNotePayload } from './types'
+import type { ActivitesParams, CandidatureDetail, ChangerEtapeResultat, CreateNotePayload, MotifRefus, MotifRefusOption, NoteVisibilitePayload, PaginatedActiviteList, PaginatedDocumentListeList, PaginatedNoteList, RecrutementDetailKanban, RecrutementListe, UpdateNotePayload } from './types'
 import type { CandidatureParams, NoteParams, OrganismeParams, RecrutementParams } from '@/api/params'
 import { api } from '@/api/client'
 
@@ -25,8 +25,8 @@ export async function getCandidatureDetail(candidature: CandidatureParams): Prom
   return data!
 }
 
-export async function getCandidatureListe({ organismeUuid, recrutementUuid }: RecrutementParams): Promise<PaginatedCandidatureListeList> {
-  async function fetchListe(taille?: number): Promise<PaginatedCandidatureListeList> {
+export async function getCandidatureListe({ organismeUuid, recrutementUuid }: RecrutementParams): Promise<RecrutementListe> {
+  async function fetchListe(taille?: number): Promise<RecrutementListe> {
     const { data } = await api.GET(
       '/recruteur/organismes/{organisme_uuid}/recrutements/{recrutement_uuid}/liste',
       {
