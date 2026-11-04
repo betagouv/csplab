@@ -39,9 +39,13 @@ from domain.entities.raw_offer import RawOffer
 from domain.repositories.sources_repository import ISourcesRepository
 from domain.value_objects.contact import Contact, ContactRole
 from domain.value_objects.email import extract_emails
-from infrastructure.exceptions.exceptions import TalentsoftOfferWithSeveralLocations
+from infrastructure.exceptions.exceptions import (
+    TalentsoftOfferWithMisfiledStateDiploma,
+    TalentsoftOfferWithSeveralLocations,
+)
 from infrastructure.external_gateways.dtos.talentsoft_dtos import (
     TalentsoftCodedObject,
+    TalentsoftCustomCodeTable,
     TalentsoftCustomFields,
     TalentsoftDetailOffer,
     TalentsoftDynamicField,
@@ -57,6 +61,8 @@ from infrastructure.gateways.transcoding import (
 logger = logging.getLogger(__name__)
 
 _LEGIFRANCE_URL = re.compile(r"https?://((?:www\.)?legifrance\.gouv\.fr/\S+)")
+
+STATE_DIPLOMA_TYPE = "Diplômes d'Etat"
 
 # Talentsoft lets an overseas territory be entered as a country (ISO 3166-1
 # alpha-3 code, no region nor department) instead of as a French department.
@@ -298,6 +304,17 @@ _TALENTSOFT_TO_REQUIRED_DOCUMENTS: dict[str, list[RequiredDocument]] = {
 }
 
 
+def state_diploma(
+    code_table: Optional[TalentsoftCustomCodeTable],
+) -> Optional[TalentsoftCustomCodeTable]:
+    """Keep `customFields.offerCustomBlock1.customCodeTable3` only when it holds
+    the « Diplômes d'Etat » repository: some organisations enter the working
+    time quota there (see #2284)."""
+    if code_table is None or code_table.type != STATE_DIPLOMA_TYPE:
+        return None
+    return code_table
+
+
 class OffersCleaner:
     def __init__(
         self,
@@ -371,6 +388,9 @@ class OffersCleaner:
         )
 
         self._report_multiple_locations(talentsoft_offer, raw_offer.source_id)
+        self._reject_misfiled_state_diploma(
+            offer_block_1, talentsoft_offer, raw_offer.source_id
+        )
         localisation = self._map_localisation_from_arrays(
             talentsoft_offer.geographicalLocation,
             talentsoft_offer.country,
@@ -783,6 +803,28 @@ class OffersCleaner:
                     talentsoft_offer.reference, source_id, multiple_lists
                 )
             )
+
+    def _reject_misfiled_state_diploma(
+        self,
+        offer_block_1: TalentsoftDynamicField,
+        talentsoft_offer: TalentsoftDetailOffer,
+        source_id: Optional[str],
+    ) -> None:
+        # Reported, not raised: the value is dropped and the offer stays ingested
+        received = offer_block_1.customCodeTable3
+        offer_block_1.customCodeTable3 = state_diploma(received)
+        if received is None or offer_block_1.customCodeTable3 is not None:
+            return
+        organisation = talentsoft_offer.organisation
+        sentry_sdk.capture_exception(
+            TalentsoftOfferWithMisfiledStateDiploma(
+                reference=talentsoft_offer.reference,
+                source_id=source_id,
+                organisme_entity_code=organisation.entityCode if organisation else None,
+                type=received.type,
+                client_code=received.clientCode,
+            )
+        )
 
     def _map_localisation_from_arrays(
         self,
