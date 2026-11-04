@@ -4,6 +4,263 @@ info:
   version: 0.0.1
   description: API for CSPLab
 paths:
+  /api/changelog.atom:
+    get:
+      operationId: changelog_atom
+      description: Une entrée par changement, pour être prévenu des nouveaux.
+      summary: Changelog en flux Atom
+      parameters:
+      - in: query
+        name: depuis
+        schema:
+          type: string
+          format: date
+        description: Changements publiés à partir de cette date (AAAA-MM-JJ).
+      - in: query
+        name: route
+        schema:
+          type: string
+        description: Route citée par le changement, avec sa méthode.
+        examples:
+          CréerOuModifierDesOffres:
+            value: POST /api/v1/offres/creer_modifier
+            summary: Créer ou modifier des offres
+      - in: query
+        name: type
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - ajoute
+            - corrige
+            - modifie
+            - non_retrocompatible
+            - retire
+        description: 'Type de changement, répétable : `?type=ajoute&type=corrige`.'
+        explode: true
+      tags:
+      - documentation
+      security:
+      - {}
+      responses:
+        '200':
+          content:
+            application/atom+xml:
+              schema:
+                type: string
+          description: ''
+          headers:
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
+        '400':
+          content:
+            text/plain:
+              schema:
+                type: string
+          description: ''
+          headers:
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
+        '429':
+          description: Nombre maximal d'appels autorisés dépassé.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
+                    example: Request was throttled. Expected available in 42 seconds.
+          headers:
+            Retry-After:
+              $ref: '#/components/headers/Retry-After'
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
+  /api/changelog.json:
+    get:
+      operationId: changelog_json
+      description: Une entrée par changement, du plus récent au plus ancien, avec
+        ses routes, sa PR et ses tickets.
+      summary: Changelog en JSON
+      parameters:
+      - in: query
+        name: depuis
+        schema:
+          type: string
+          format: date
+        description: Changements publiés à partir de cette date (AAAA-MM-JJ).
+      - in: query
+        name: route
+        schema:
+          type: string
+        description: Route citée par le changement, avec sa méthode.
+        examples:
+          CréerOuModifierDesOffres:
+            value: POST /api/v1/offres/creer_modifier
+            summary: Créer ou modifier des offres
+      - in: query
+        name: type
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - ajoute
+            - corrige
+            - modifie
+            - non_retrocompatible
+            - retire
+        description: 'Type de changement, répétable : `?type=ajoute&type=corrige`.'
+        explode: true
+      tags:
+      - documentation
+      security:
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Changelog'
+          description: ''
+          headers:
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChangelogError'
+          description: ''
+          headers:
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
+        '429':
+          description: Nombre maximal d'appels autorisés dépassé.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
+                    example: Request was throttled. Expected available in 42 seconds.
+          headers:
+            Retry-After:
+              $ref: '#/components/headers/Retry-After'
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
+  /api/changelog.md:
+    get:
+      operationId: changelog_markdown
+      description: Le changelog de l'API en Markdown, du plus récent au plus ancien,
+        avec des liens absolus. Une note rappelle les filtres actifs.
+      summary: Changelog en Markdown
+      parameters:
+      - in: query
+        name: depuis
+        schema:
+          type: string
+          format: date
+        description: Changements publiés à partir de cette date (AAAA-MM-JJ).
+      - in: query
+        name: route
+        schema:
+          type: string
+        description: Route citée par le changement, avec sa méthode.
+        examples:
+          CréerOuModifierDesOffres:
+            value: POST /api/v1/offres/creer_modifier
+            summary: Créer ou modifier des offres
+      - in: query
+        name: type
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - ajoute
+            - corrige
+            - modifie
+            - non_retrocompatible
+            - retire
+        description: 'Type de changement, répétable : `?type=ajoute&type=corrige`.'
+        explode: true
+      tags:
+      - documentation
+      security:
+      - {}
+      responses:
+        '200':
+          content:
+            text/markdown:
+              schema:
+                type: string
+          description: ''
+          headers:
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
+        '400':
+          content:
+            text/plain:
+              schema:
+                type: string
+          description: ''
+          headers:
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
+        '429':
+          description: Nombre maximal d'appels autorisés dépassé.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
+                    example: Request was throttled. Expected available in 42 seconds.
+          headers:
+            Retry-After:
+              $ref: '#/components/headers/Retry-After'
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
   /api/fake-ts/offers/getoffer:
     get:
       operationId: fake_ts_offers_getoffer_retrieve
@@ -1329,6 +1586,48 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/GenericError'
+          description: ''
+          headers:
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
+        '429':
+          description: Nombre maximal d'appels autorisés dépassé.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
+                    example: Request was throttled. Expected available in 42 seconds.
+          headers:
+            Retry-After:
+              $ref: '#/components/headers/Retry-After'
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
+  /api/guide.md:
+    get:
+      operationId: guide_markdown
+      description: Les règles métier de chaque route et de chaque champ.
+      summary: Guide de l'API en Markdown
+      tags:
+      - documentation
+      security:
+      - {}
+      responses:
+        '200':
+          content:
+            text/markdown:
+              schema:
+                type: string
           description: ''
           headers:
             X-RateLimit-Limit:
@@ -4394,6 +4693,86 @@ components:
         * `B` - B
         * `C` - C
         * `HORS_CATEGORIE` - HORS_CATEGORIE
+    Changelog:
+      type: object
+      properties:
+        nombre:
+          type: integer
+        entrees:
+          type: array
+          items:
+            $ref: '#/components/schemas/ChangelogEntry'
+      required:
+      - entrees
+      - nombre
+    ChangelogEntry:
+      type: object
+      properties:
+        id:
+          type: string
+        date:
+          type: string
+          format: date
+        type:
+          $ref: '#/components/schemas/TypeChangementEnum'
+        libelle_type:
+          type: string
+          readOnly: true
+        routes:
+          type: array
+          items:
+            type: string
+        pr:
+          type: integer
+        pr_url:
+          type: string
+          format: uri
+        liens:
+          type: array
+          items:
+            type: string
+            format: uri
+        url:
+          type: string
+          readOnly: true
+        contenu:
+          type: string
+        sous_sections:
+          type: array
+          items:
+            $ref: '#/components/schemas/ChangelogSubsection'
+          readOnly: true
+      required:
+      - contenu
+      - date
+      - id
+      - libelle_type
+      - liens
+      - pr
+      - pr_url
+      - routes
+      - sous_sections
+      - type
+      - url
+    ChangelogError:
+      type: object
+      properties:
+        erreurs:
+          type: array
+          items:
+            type: string
+      required:
+      - erreurs
+    ChangelogSubsection:
+      type: object
+      properties:
+        titre:
+          type: string
+        contenu:
+          type: string
+      required:
+      - contenu
+      - titre
     ConcoursUpload400Error:
       oneOf:
       - $ref: '#/components/schemas/GenericError'
@@ -6561,6 +6940,20 @@ components:
       required:
       - access
       - refresh
+    TypeChangementEnum:
+      enum:
+      - non_retrocompatible
+      - ajoute
+      - modifie
+      - corrige
+      - retire
+      type: string
+      description: |-
+        * `non_retrocompatible` - Non rétrocompatible
+        * `ajoute` - Ajouté
+        * `modifie` - Modifié
+        * `corrige` - Corrigé
+        * `retire` - Retiré
     TypeContratEnum:
       enum:
       - CDD
@@ -6818,6 +7211,11 @@ tags:
   description: Organismes de la Fonction Publique
 - name: talentsoft_organisme
   description: Organismes au format Talentsoft
+- name: documentation
+  x-displayName: Changelog et documentation
+  description: Le changelog et le guide de l'API en formats bruts, pour les outils
+    et les agents. Routes publiques, sans authentification, limitées à 60 appels par
+    minute et par adresse IP.
 - name: contact
   x-displayName: Aide et contact
   x-traitTag: true

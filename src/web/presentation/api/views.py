@@ -6,30 +6,31 @@ from zoneinfo import ZoneInfo
 import yaml
 from django.conf import settings
 from django.contrib.syndication.views import Feed
-from django.core.exceptions import BadRequest
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.urls import reverse
 from django.utils.feedgenerator import Atom1Feed
 from django.views import View
 from django.views.generic import TemplateView
-from drf_spectacular.utils import extend_schema
+from drf_spectacular.types import OpenApiTypes
+from drf_spectacular.utils import OpenApiExample, OpenApiParameter, extend_schema
 from huey.contrib.djhuey import HUEY
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from config.logger_names import LoggerName
-from presentation.api.authentication import PublicApiMixin
+from infrastructure.authentication.anon_rate_throttle import DocumentationRateThrottle
+from presentation.api.authentication import PublicApiMixin, UnauthenticatedMixin
 from presentation.api.changelog_api import (
     TYPE_LABELS,
     Filters,
     Fragment,
-    as_json,
     assemble,
     changelog_markdown,
     entry_html,
     published_fragments,
 )
+from presentation.api.serializers import ChangelogErrorSerializer, ChangelogSerializer
 
 logger = logging.getLogger(LoggerName.WEB.value)
 
@@ -58,47 +59,102 @@ class PublicSchemaView(View):
 
 
 _MARKDOWN = "text/markdown; charset=utf-8"
+_TEXT = "text/plain; charset=utf-8"
+
+_FILTER_PARAMETERS = [
+    OpenApiParameter(
+        "type",
+        str,
+        enum=list(TYPE_LABELS),
+        many=True,
+        explode=True,
+        description="Type de changement, répétable : `?type=ajoute&type=corrige`.",
+    ),
+    OpenApiParameter(
+        "route",
+        str,
+        description="Route citée par le changement, avec sa méthode.",
+        examples=[
+            OpenApiExample(
+                "Créer ou modifier des offres",
+                value="POST /api/v1/offres/creer_modifier",
+            )
+        ],
+    ),
+    OpenApiParameter(
+        "depuis",
+        OpenApiTypes.DATE,
+        description="Changements publiés à partir de cette date (AAAA-MM-JJ).",
+    ),
+]
 
 
-def _base_url(request: HttpRequest) -> str:
-    return request.build_absolute_uri("/").rstrip("/")
+class _PublicDocumentationView(UnauthenticatedMixin, APIView):
+    throttle_classes = [DocumentationRateThrottle]
 
 
-class ChangelogMarkdownView(View):
+def _invalid_filters(filters: Filters) -> HttpResponse:
+    return HttpResponse(
+        "\n".join(filters.errors),
+        status=status.HTTP_400_BAD_REQUEST,
+        content_type=_TEXT,
+    )
+
+
+class ChangelogMarkdownView(_PublicDocumentationView):
+    @extend_schema(
+        tags=["documentation"],
+        operation_id="changelog_markdown",
+        summary="Changelog en Markdown",
+        description=(
+            "Le changelog de l'API en Markdown, du plus récent au plus ancien, "
+            "avec des liens absolus. Une note rappelle les filtres actifs."
+        ),
+        parameters=_FILTER_PARAMETERS,
+        responses={
+            (200, "text/markdown"): OpenApiTypes.STR,
+            (400, "text/plain"): OpenApiTypes.STR,
+        },
+    )
     def get(self, request):
         filters = Filters.from_query(request.GET)
         if filters.errors:
-            return HttpResponse(
-                "\n".join(filters.errors),
-                status=status.HTTP_400_BAD_REQUEST,
-                content_type="text/plain; charset=utf-8",
-            )
+            return _invalid_filters(filters)
         markdown = assemble(
             filters.apply(published_fragments()),
-            base_url=_base_url(request),
+            base_url=request.build_absolute_uri("/").rstrip("/"),
             note=filters.describe(),
         )
         return HttpResponse(markdown, content_type=_MARKDOWN)
 
 
-class ChangelogJsonView(View):
+class ChangelogJsonView(_PublicDocumentationView):
+    @extend_schema(
+        tags=["documentation"],
+        operation_id="changelog_json",
+        summary="Changelog en JSON",
+        description=(
+            "Une entrée par changement, du plus récent au plus ancien, avec ses "
+            "routes, sa PR et ses tickets."
+        ),
+        parameters=_FILTER_PARAMETERS,
+        responses={200: ChangelogSerializer, 400: ChangelogErrorSerializer},
+    )
     def get(self, request):
         filters = Filters.from_query(request.GET)
         if filters.errors:
-            return JsonResponse(
-                {"erreurs": list(filters.errors)},
+            return Response(
+                ChangelogErrorSerializer({"erreurs": filters.errors}).data,
                 status=status.HTTP_400_BAD_REQUEST,
-                json_dumps_params={"ensure_ascii": False},
             )
-        page_url = request.build_absolute_uri(reverse("pages:api_changelog"))
-        entries = [
-            as_json(fragment, page_url)
-            for fragment in filters.apply(published_fragments())
-        ]
-        return JsonResponse(
-            {"nombre": len(entries), "entrees": entries},
-            json_dumps_params={"ensure_ascii": False},
+        fragments = filters.apply(published_fragments())
+        serializer = ChangelogSerializer(
+            {"nombre": len(fragments), "entrees": fragments},
+            context={
+                "page_url": request.build_absolute_uri(reverse("pages:api_changelog"))
+            },
         )
+        return Response(serializer.data)
 
 
 class ChangelogFeed(Feed):
@@ -108,20 +164,11 @@ class ChangelogFeed(Feed):
     title = "Changelog de l'API CSPLab"
     subtitle = "Changements de l'API publique CSPLab qui concernent ses partenaires."
 
-    def __init__(self, request: HttpRequest):
+    def __init__(self, request: HttpRequest, filters: Filters):
         super().__init__()
+        self.filters = filters
         self.page_url = request.build_absolute_uri(reverse("pages:api_changelog"))
         self.self_url = request.build_absolute_uri()
-
-    @classmethod
-    def view(cls, request: HttpRequest) -> HttpResponse:
-        return cls(request)(request)
-
-    def get_object(self, request, *args, **kwargs) -> Filters:
-        filters = Filters.from_query(request.GET)
-        if filters.errors:
-            raise BadRequest(" ".join(filters.errors))
-        return filters
 
     def link(self) -> str:
         return self.page_url
@@ -129,8 +176,8 @@ class ChangelogFeed(Feed):
     def feed_url(self) -> str:
         return self.self_url
 
-    def items(self, filters: Filters) -> list[Fragment]:
-        return filters.apply(published_fragments())
+    def items(self) -> list[Fragment]:
+        return self.filters.apply(published_fragments())
 
     def item_title(self, fragment: Fragment) -> str:
         return f"{TYPE_LABELS[fragment.type]} : {', '.join(fragment.routes)}"
@@ -148,7 +195,33 @@ class ChangelogFeed(Feed):
         return (fragment.type, *fragment.routes)
 
 
-class GuideMarkdownView(View):
+class ChangelogAtomView(_PublicDocumentationView):
+    @extend_schema(
+        tags=["documentation"],
+        operation_id="changelog_atom",
+        summary="Changelog en flux Atom",
+        description="Une entrée par changement, pour être prévenu des nouveaux.",
+        parameters=_FILTER_PARAMETERS,
+        responses={
+            (200, "application/atom+xml"): OpenApiTypes.STR,
+            (400, "text/plain"): OpenApiTypes.STR,
+        },
+    )
+    def get(self, request):
+        filters = Filters.from_query(request.GET)
+        if filters.errors:
+            return _invalid_filters(filters)
+        return ChangelogFeed(request._request, filters)(request._request)
+
+
+class GuideMarkdownView(_PublicDocumentationView):
+    @extend_schema(
+        tags=["documentation"],
+        operation_id="guide_markdown",
+        summary="Guide de l'API en Markdown",
+        description="Les règles métier de chaque route et de chaque champ.",
+        responses={(200, "text/markdown"): OpenApiTypes.STR},
+    )
     def get(self, request):
         guide = (settings.STATIC_DIR / "api" / "guide_api.md").read_text()
         return HttpResponse(guide, content_type=_MARKDOWN)

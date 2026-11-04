@@ -19,13 +19,6 @@ DATE_COMMAND = "mise run web:changelog-api:dater"
 # Covers a weekend between approval and merge.
 DATE_TOLERANCE = timedelta(days=3)
 
-DOC_ROUTES = (
-    "GET /api/changelog.md",
-    "GET /api/changelog.json",
-    "GET /api/changelog.atom",
-    "GET /api/guide.md",
-)
-
 TYPES = {
     "non_retrocompatible": "⚠️ Changements non rétrocompatibles",
     "ajoute": "Ajouté",
@@ -41,6 +34,8 @@ TYPE_LABELS = {
     "corrige": "Corrigé",
     "retire": "Retiré",
 }
+
+TYPE_CHOICES = list(TYPE_LABELS.items())
 
 HEADER = """\
 Ce changelog liste les changements de l'API publique CSPLab (routes `/api/v1/…` et
@@ -338,24 +333,6 @@ def cited_routes(fragments: Iterable[Fragment]) -> list[str]:
     return sorted({route for fragment in fragments for route in fragment.routes})
 
 
-def as_json(fragment: Fragment, page_url: str) -> dict[str, Any]:
-    return {
-        "id": fragment.slug,
-        "date": fragment.date.isoformat(),
-        "type": fragment.type,
-        "libelle_type": TYPE_LABELS[fragment.type],
-        "routes": list(fragment.routes),
-        "pr": fragment.pr,
-        "pr_url": fragment.pr_url,
-        "liens": list(fragment.liens),
-        "url": f"{page_url}#{fragment.slug}",
-        "contenu": fragment.entry,
-        "sous_sections": [
-            {"titre": title, "contenu": text} for title, text in fragment.subsections
-        ],
-    }
-
-
 @dataclass(frozen=True)
 class Filters:
     types: frozenset[str] = frozenset()
@@ -432,7 +409,7 @@ def known_routes(
     ]
     return [
         re.compile(_PATH_PARAMETER.sub("[^/]+", re.escape(route)) + r"\Z")
-        for route in (*routes, *DOC_ROUTES)
+        for route in routes
     ]
 
 

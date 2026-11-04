@@ -10,7 +10,10 @@ from rest_framework.views import APIView
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.exceptions import AuthenticationFailed, TokenError
 
-from infrastructure.authentication.anon_rate_throttle import ClientIpAnonRateThrottle
+from infrastructure.authentication.anon_rate_throttle import (
+    ClientIpAnonRateThrottle,
+    DocumentationRateThrottle,
+)
 from infrastructure.authentication.api_key_authentication import (
     ApiKeyRateThrottle,
     ApiKeyRateThrottleDaily,
@@ -19,7 +22,7 @@ from infrastructure.authentication.jwt_token import get_validated_jwt
 
 _API_KEY_THROTTLES = [ApiKeyRateThrottle(), ApiKeyRateThrottleDaily()]
 _USER_THROTTLE = UserRateThrottle()
-_ANON_THROTTLE = ClientIpAnonRateThrottle()
+_ANON_THROTTLES = [ClientIpAnonRateThrottle(), DocumentationRateThrottle()]
 _jwt_auth = JWTAuthentication()
 
 
@@ -74,7 +77,7 @@ def _throttles_for_caller(
     if not request.headers.get("Authorization") and request.path.startswith(
         settings.PUBLIC_API_PREFIX
     ):
-        return [(_ANON_THROTTLE, _ANON_THROTTLE.get_ident(request))]
+        return [(throttle, throttle.get_ident(request)) for throttle in _ANON_THROTTLES]
     return []
 
 

@@ -2,7 +2,7 @@ from django.urls import path
 
 from presentation.api.token_views import LoggedTokenObtainPairView, TokenRefreshView
 from presentation.api.views import (
-    ChangelogFeed,
+    ChangelogAtomView,
     ChangelogJsonView,
     ChangelogMarkdownView,
     GuideMarkdownView,
@@ -21,6 +21,6 @@ urlpatterns = [
     path("schema/public", PublicSchemaView.as_view(), name="public_schema"),
     path("changelog.md", ChangelogMarkdownView.as_view(), name="changelog_markdown"),
     path("changelog.json", ChangelogJsonView.as_view(), name="changelog_json"),
-    path("changelog.atom", ChangelogFeed.view, name="changelog_atom"),
+    path("changelog.atom", ChangelogAtomView.as_view(), name="changelog_atom"),
     path("guide.md", GuideMarkdownView.as_view(), name="guide_markdown"),
 ]

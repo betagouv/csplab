@@ -99,6 +99,7 @@ retiré), puis par numéro de PR. La page et les routes `/api/changelog.*` suive
 ordre. Les fragments sont lus une fois et gardés en mémoire jusqu'au déploiement
 suivant.
 
-Les routes publiques hors du schéma OpenAPI qu'un fragment peut citer (celles du
-changelog et du guide) sont listées dans `DOC_ROUTES`, dans
-`presentation/api/changelog_api.py`.
+Les routes `/api/changelog.*` et `/api/guide.md` sont documentées dans Redoc, sous
+« Changelog et documentation ». Elles sont publiques, sans authentification, et limitées
+à 60 appels par minute et par adresse IP (`DocumentationRateThrottle`, taux
+`documentation`).

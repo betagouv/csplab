@@ -18,3 +18,7 @@ class ClientIpAnonRateThrottle(AnonRateThrottle):
 
     def get_ident(self, request):
         return get_client_ip(request) or UNKNOWN_CLIENT_IDENT
+
+
+class DocumentationRateThrottle(ClientIpAnonRateThrottle):
+    scope = "documentation"

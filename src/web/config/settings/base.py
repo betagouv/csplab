@@ -394,6 +394,7 @@ REST_FRAMEWORK = {
     ],
     "DEFAULT_THROTTLE_RATES": {
         "anon": "5/minute",
+        "documentation": "60/minute",
         "user": "120/minute",
         "api_key": "70000/hour",
         "api_key_daily": "100000/day",
@@ -432,6 +433,9 @@ SPECTACULAR_SETTINGS = {
         "drf_spectacular.hooks.preprocess_exclude_path_format",
         "presentation.api.openapi_hooks.preprocess_public_only",
     ],
+    "ENUM_NAME_OVERRIDES": {
+        "TypeChangementEnum": "presentation.api.changelog_api.TYPE_CHOICES",
+    },
     "POSTPROCESSING_HOOKS": [
         "drf_spectacular.hooks.postprocess_schema_enums",
         "presentation.api.openapi_hooks.postprocess_add_rate_limit_headers",
@@ -464,6 +468,15 @@ SPECTACULAR_SETTINGS = {
         {
             "name": "talentsoft_organisme",
             "description": "Organismes au format Talentsoft",
+        },
+        {
+            "name": "documentation",
+            "x-displayName": "Changelog et documentation",
+            "description": (
+                "Le changelog et le guide de l'API en formats bruts, pour les outils "
+                "et les agents. Routes publiques, sans authentification, limitées à "
+                "60 appels par minute et par adresse IP."
+            ),
         },
         # Dernier tag, en bas du menu : déclarer tout tag d'endpoint avant.
         {

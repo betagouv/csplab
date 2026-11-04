@@ -3,16 +3,16 @@ from datetime import date
 from textwrap import dedent
 
 import pytest
+import yaml
+from django.conf import settings
 from django.core.management import CommandError, call_command
 from django.http import QueryDict
-from django.urls import resolve, reverse
+from django.urls import reverse
 from rest_framework import status
 
 from presentation.api.changelog_api import (
-    DOC_ROUTES,
     Filters,
     FragmentError,
-    as_json,
     assemble,
     check_added_fragment,
     known_routes,
@@ -23,6 +23,8 @@ from presentation.api.changelog_api import (
     route_errors,
     set_date,
 )
+from presentation.api.serializers import ChangelogEntrySerializer
+from presentation.api.views import ChangelogJsonView
 
 TODAY = date(2026, 10, 27)
 
@@ -259,7 +261,7 @@ def test_ordered_by_date_then_type_then_pr(tmp_path):
     assert ordered([old, added, broken]) == [broken, added, old]
 
 
-def test_as_json(tmp_path):
+def test_changelog_entry_serializer(tmp_path):
     result = fragment(
         tmp_path,
         "2219-null.md",
@@ -268,7 +270,8 @@ def test_as_json(tmp_path):
         body="`GET /api/v1/offres` change.\n\n### Compatibilité\n\nLisez `null`.",
     )
 
-    assert as_json(result, "https://csplab.fr/pages/changelog_api") == {
+    context = {"page_url": "https://csplab.fr/pages/changelog_api"}
+    assert ChangelogEntrySerializer(result, context=context).data == {
         "id": "2219-null",
         "date": "2026-10-27",
         "type": "ajoute",
@@ -366,10 +369,6 @@ class TestRouteErrors:
             for f in load_fragments()
             for error in route_errors(f, known)
         ] == []
-
-    @pytest.mark.parametrize("route", DOC_ROUTES)
-    def test_doc_routes_exist(self, route):
-        resolve(route.split(" ")[1])
 
 
 class TestCheckAddedFragment:
@@ -559,6 +558,7 @@ class TestChangelogFeed:
         response = client.get(reverse("api:changelog_atom"), {"depuis": "hier"})
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert "`depuis` doit être une date" in response.content.decode()
 
 
 def test_guide_markdown_view(db, client):
@@ -567,3 +567,32 @@ def test_guide_markdown_view(db, client):
     assert response.status_code == status.HTTP_200_OK
     assert response["Content-Type"] == "text/markdown; charset=utf-8"
     assert response.content.decode().startswith("# Guide de l'API CSPLab")
+
+
+class TestDocumentationRoutes:
+    ROUTES = (
+        "api:changelog_markdown",
+        "api:changelog_json",
+        "api:changelog_atom",
+        "api:guide_markdown",
+    )
+
+    @pytest.mark.parametrize("name", ROUTES)
+    def test_are_public_and_limited_to_60_calls_per_minute(self, db, client, name):
+        response = client.get(reverse(name), HTTP_AUTHORIZATION="")
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response["X-RateLimit-Limit"] == "60"
+
+    def test_rate_is_60_per_minute(self):
+        throttle = ChangelogJsonView.throttle_classes[0]()
+
+        assert throttle.parse_rate(throttle.get_rate()) == (60, 60)
+
+    @pytest.mark.parametrize("name", ROUTES)
+    def test_are_documented_in_the_public_schema(self, name):
+        schema = yaml.safe_load(
+            (settings.STATIC_DIR / "api" / "schema.yaml").read_text()
+        )
+
+        assert schema["paths"][reverse(name)]["get"]["tags"] == ["documentation"]
