@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { CandidaturePanelTabKey } from '../constants/candidature'
+import type { MotifRefus } from '../types'
 import type { CandidaturesViewName } from '@/router/names'
 import { useQueryCache } from '@pinia/colada'
 import { computed, ref, watch } from 'vue'
@@ -26,14 +27,17 @@ import CandidatureActivites from '../components/CandidatureActivites.vue'
 import CandidatureCv from '../components/CandidatureCv.vue'
 import CandidatureDocuments from '../components/CandidatureDocuments.vue'
 import CandidatureHistorique from '../components/CandidatureHistorique.vue'
+import CandidatureMotifRefus from '../components/CandidatureMotifRefus.vue'
 import CandidatureNoteForm from '../components/CandidatureNoteForm.vue'
 import CandidatureNotes from '../components/CandidatureNotes.vue'
 import ChangerEtapePopover from '../components/ChangerEtapePopover.vue'
+import EditMotifRefusDialog from '../components/EditMotifRefusDialog.vue'
 import RefusCandidatureDialog from '../components/RefusCandidatureDialog.vue'
 import { useCandidatureDetail } from '../composables/useCandidatureDetail'
 import { useCandidatureNavigation } from '../composables/useCandidatureNavigation'
 import { useCandidaturePanelRoutes } from '../composables/useCandidaturePanelRoutes'
 import { useEtapeChange } from '../composables/useEtapeChange'
+import { useMotifRefusEdit } from '../composables/useMotifRefusEdit'
 import { CANDIDATURE_PANEL_TAB_ICONS, CANDIDATURE_PANEL_TAB_LABELS } from '../constants/candidature'
 import { formatCandidatName, formatCandidatureMeta } from '../format'
 import { candidatureDetailQuery } from '../queries'
@@ -116,6 +120,16 @@ const etapeChange = useEtapeChange(
   candidature,
   leaveMovedCandidature,
 )
+
+const motifRefusDialogOpen = ref(false)
+const { edit: editMotifRefus, editing: editingMotifRefus } = useMotifRefusEdit(() => candidatureParams.value)
+
+function confirmMotifRefus(motifRefus: MotifRefus): void {
+  motifRefusDialogOpen.value = false
+  if (etape.value) {
+    editMotifRefus({ etapeUuid: etape.value.uuid, motifRefus })
+  }
+}
 
 async function requestEtapeChange(targetEtapeUuid: string): Promise<void> {
   if (await unsavedChanges.confirmLeave()) {
@@ -286,6 +300,11 @@ function handleUpdateOpen(open: boolean): void {
               aria-label="Suivi de la candidature"
             >
               <template v-if="candidature">
+                <CandidatureMotifRefus
+                  v-if="candidature.motif_refus"
+                  :motif="candidature.motif_refus.label"
+                  @edit="motifRefusDialogOpen = true"
+                />
                 <CandidatureActivites
                   :candidature="candidatureParams"
                   :historique-route-name="panelRouteNames.tabs.historique"
@@ -330,6 +349,17 @@ function handleUpdateOpen(open: boolean): void {
     :motifs-unavailable="etapeChange.refus.motifsUnavailable.value"
     @confirm="etapeChange.refus.confirm"
     @cancel="etapeChange.refus.cancel"
+  />
+
+  <EditMotifRefusDialog
+    v-if="candidature?.motif_refus"
+    :open="motifRefusDialogOpen"
+    :current-motif="candidature.motif_refus.value"
+    :motifs="etapeChange.refus.motifs.value"
+    :motifs-unavailable="etapeChange.refus.motifsUnavailable.value"
+    :saving="editingMotifRefus"
+    @confirm="confirmMotifRefus"
+    @cancel="motifRefusDialogOpen = false"
   />
 
   <CspUnsavedChangesDialog

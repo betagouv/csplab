@@ -4,15 +4,19 @@ import { defineComponent, h } from 'vue'
 import { getMe } from '@/api/utilisateur'
 import { provideSidebar } from '@/composables/ui/useSidebar'
 import { createLocalStorageMock } from '@/test/browser'
-import { ORGANISME } from '@/test/fixtures/organismes'
+import { ORGANISME_DETAIL } from '@/test/fixtures/organismes'
 import { BRIANCON_UUID, makeUser, MTE_UUID, ROLE_BRIANCON, ROLE_MTE } from '@/test/fixtures/utilisateur'
 import { renderWithApp, setupUser } from '@/test/render'
-import { getOrganismesList } from '../api'
+import { getOrganismeDetail, searchOrganismes } from '../api'
 import OrganismeSwitcher from './OrganismeSwitcher.vue'
 
 vi.mock('../api', () => ({
   getOrganismesList: vi.fn(),
+  getOrganismeDetail: vi.fn(),
+  searchOrganismes: vi.fn(),
 }))
+
+const RESULTAT = { uuid: ORGANISME_DETAIL.uuid, nom: ORGANISME_DETAIL.nom, siret: ORGANISME_DETAIL.siret }
 
 const Host = defineComponent({
   setup() {
@@ -32,7 +36,8 @@ function espaceTrigger(nom: string) {
 describe('organismeSwitcher', () => {
   beforeEach(() => {
     vi.mocked(getMe).mockReset()
-    vi.mocked(getOrganismesList).mockReset().mockResolvedValue([ORGANISME])
+    vi.mocked(getOrganismeDetail).mockReset().mockResolvedValue(ORGANISME_DETAIL)
+    vi.mocked(searchOrganismes).mockReset().mockResolvedValue([RESULTAT])
     vi.stubGlobal('localStorage', createLocalStorageMock())
   })
 
@@ -63,7 +68,6 @@ describe('organismeSwitcher', () => {
 
       expect(screen.getAllByRole('option').map(option => option.textContent)).toEqual([ROLE_MTE.nom, ROLE_BRIANCON.nom])
       expect(screen.queryByRole('searchbox')).not.toBeInTheDocument()
-      expect(getOrganismesList).not.toHaveBeenCalled()
     })
 
     it('navigates to the home of the picked organisme', async () => {
@@ -109,16 +113,16 @@ describe('organismeSwitcher', () => {
     it('names an organisme they do not belong to', async () => {
       vi.mocked(getMe).mockResolvedValue(makeUser([], true))
 
-      await renderWithApp(Host, { route: `/organismes/${ORGANISME.uuid}/recrutements` })
+      await renderWithApp(Host, { route: `/organismes/${ORGANISME_DETAIL.uuid}/recrutements` })
 
-      expect(await espaceTrigger(ORGANISME.nom)).toBeInTheDocument()
+      expect(await espaceTrigger(ORGANISME_DETAIL.nom)).toBeInTheDocument()
     })
 
     it('keeps the switcher while the name of an organisme they do not belong to is unknown', async () => {
       vi.mocked(getMe).mockResolvedValue(makeUser([], true))
-      vi.mocked(getOrganismesList).mockReturnValue(new Promise(() => {}))
+      vi.mocked(getOrganismeDetail).mockReturnValue(new Promise(() => {}))
 
-      await renderWithApp(Host, { route: `/organismes/${ORGANISME.uuid}/recrutements` })
+      await renderWithApp(Host, { route: `/organismes/${ORGANISME_DETAIL.uuid}/recrutements` })
 
       expect(await espaceTrigger('Organisme')).toBeInTheDocument()
     })
@@ -136,17 +140,32 @@ describe('organismeSwitcher', () => {
       expect(screen.getByRole('searchbox', { name: 'Accéder à un organisme' })).toHaveValue('')
     })
 
-    it('enters an organisme found by its SIRET with the Enter key', async () => {
+    it('enters an organisme found by its name with the Enter key', async () => {
       vi.mocked(getMe).mockResolvedValue(makeUser([ROLE_MTE], true))
       const user = setupUser()
 
       const { router } = await renderWithApp(Host, { route: '/organismes' })
       await user.click(await espaceTrigger('Espace administrateur'))
-      await user.type(screen.getByRole('searchbox', { name: 'Accéder à un organisme' }), `${ORGANISME.siret.slice(0, 6)}{Enter}`)
+      await user.type(screen.getByRole('searchbox', { name: 'Accéder à un organisme' }), 'Brian')
+      await screen.findByRole('option', { name: new RegExp(ORGANISME_DETAIL.nom) })
+      await user.keyboard('{Enter}')
 
+      expect(searchOrganismes).toHaveBeenCalledWith('Brian')
       await vi.waitFor(() =>
-        expect(router.currentRoute.value.path).toBe(`/organismes/${ORGANISME.uuid}/accueil`),
+        expect(router.currentRoute.value.path).toBe(`/organismes/${ORGANISME_DETAIL.uuid}/accueil`),
       )
+    })
+
+    it('asks for three characters before searching', async () => {
+      vi.mocked(getMe).mockResolvedValue(makeUser([], true))
+      const user = setupUser()
+
+      await renderWithApp(Host, { route: '/organismes' })
+      await user.click(await espaceTrigger('Espace administrateur'))
+      await user.type(screen.getByRole('searchbox', { name: 'Accéder à un organisme' }), 'Br')
+
+      expect(screen.getByRole('status')).toHaveTextContent('Saisissez au moins 3 caractères')
+      expect(searchOrganismes).not.toHaveBeenCalled()
     })
 
     it('says when no organisme matches the search', async () => {
@@ -155,6 +174,7 @@ describe('organismeSwitcher', () => {
 
       await renderWithApp(Host, { route: '/organismes' })
       await user.click(await espaceTrigger('Espace administrateur'))
+      vi.mocked(searchOrganismes).mockResolvedValue([])
       await user.type(screen.getByRole('searchbox', { name: 'Accéder à un organisme' }), 'introuvable')
 
       await vi.waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('Aucun organisme trouvé'))

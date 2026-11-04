@@ -4,7 +4,8 @@ from datetime import datetime
 from typing import List, Optional, cast
 from uuid import UUID
 
-from pydantic import HttpUrl, ValidationError
+from pydantic import HttpUrl, TypeAdapter, ValidationError
+from referentiel.value_objects.area import GeographicalArea
 from referentiel.value_objects.category import Category
 from referentiel.value_objects.contract_kind import ContractKind
 from referentiel.value_objects.country import Country
@@ -17,7 +18,7 @@ from referentiel.value_objects.experience_level import ExperienceLevel
 from referentiel.value_objects.language import Language
 from referentiel.value_objects.language_level import LanguageLevel
 from referentiel.value_objects.limit_date import LimitDate
-from referentiel.value_objects.localisation import Localisation
+from referentiel.value_objects.localisation import FRANCE, Localisation
 from referentiel.value_objects.offer_conditions import (
     JobVacancy,
     Management,
@@ -54,6 +55,47 @@ from infrastructure.gateways.transcoding import (
 logger = logging.getLogger(__name__)
 
 _LEGIFRANCE_URL = re.compile(r"https?://((?:www\.)?legifrance\.gouv\.fr/\S+)")
+
+# Talentsoft lets an overseas territory be entered as a country (ISO 3166-1
+# alpha-3 code, no region nor department) instead of as a French department.
+# The referentiel models them as FRA + department: map the first form to the
+# second one, so that they are not taken for offers abroad.
+_OVERSEAS_DEPARTMENT_BY_COUNTRY: dict[str, str] = {
+    "GLP": "971",
+    "MTQ": "972",
+    "GUF": "973",
+    "REU": "974",
+    "SPM": "975",
+    "MYT": "976",
+    "BLM": "977",
+    "MAF": "978",
+    "WLF": "WLF",
+    "PYF": "987",
+    "NCL": "988",
+}
+
+# Abroad, the area cannot be deduced from a department: it is read from
+# geographicalLocation[0].
+_AREA_BY_TALENTSOFT_CODE: dict[str, GeographicalArea] = {
+    "_TS_CO_GeographicalArea_Afrique": GeographicalArea.AFRIQUE,
+    "_TS_CO_GeographicalArea_AmriquesCaraibe": GeographicalArea.AMERIQUE,
+    "_TS_CO_GeographicalArea_Asie": GeographicalArea.ASIE,
+    "_TS_CO_GeographicalArea_Europe": GeographicalArea.EUROPE,
+    "_TS_CO_GeographicalArea_MoyenOrientAfriqueduNord": (
+        GeographicalArea.MOYEN_ORIENT_AFRIQUE_DU_NORD
+    ),
+    "_TS_CO_GeographicalArea_Ocanie": GeographicalArea.OCEANIE,
+}
+
+_country_adapter = TypeAdapter(Country)
+
+# Department clientCodes that are neither an INSEE code nor transcoded: two of
+# them are internal identifiers of the talentsoft-main instance.
+_TALENTSOFT_DEPARTMENT_CODES: dict[str, str] = {
+    "_TS_CO_Department_NouvelleCaldonie988": "988",
+    "_TS_d623ebaa-8a96-434b-8d4f-302df507f7bf": "977",  # Saint-Barthélemy (977)
+    "_TS_171e5c6b-a77a-43d1-8e0c-d498b38ccf16": "978",  # Saint-Martin (978)
+}
 
 _TALENTSOFT_TO_SPECIALISATIONS: dict[str, str] = {
     "_TS_CO_Specialisation_1": "Formations générales",
@@ -326,13 +368,12 @@ class OffersCleaner:
             custom_fields.applicantCriteria or TalentsoftDynamicField()
         )
 
-        coordinates = self._extract_coordinates(talentsoft_offer)
-
         localisation = self._map_localisation_from_arrays(
+            talentsoft_offer.geographicalLocation,
             talentsoft_offer.country,
             talentsoft_offer.region,
             talentsoft_offer.department,
-            coordinates,
+            talentsoft_offer,
             transcoder,
             label=location_fields.shortText1 or None,
         )
@@ -692,6 +733,19 @@ class OffersCleaner:
     def _extract_coordinates(
         self, talentsoft_offer: TalentsoftDetailOffer
     ) -> tuple[Optional[float], Optional[float]]:
+        offer_coordinates = self._extract_offer_coordinates(talentsoft_offer)
+        if offer_coordinates is not None:
+            return offer_coordinates
+        if talentsoft_offer.organisation and talentsoft_offer.organisation.geolocation:
+            return (
+                talentsoft_offer.organisation.geolocation.latitude,
+                talentsoft_offer.organisation.geolocation.longitude,
+            )
+        return None, None
+
+    def _extract_offer_coordinates(
+        self, talentsoft_offer: TalentsoftDetailOffer
+    ) -> Optional[tuple[Optional[float], Optional[float]]]:
         if talentsoft_offer.geolocation:
             return (
                 talentsoft_offer.geolocation.latitude,
@@ -702,32 +756,40 @@ class OffersCleaner:
             and talentsoft_offer.longitude is not None
         ):
             return talentsoft_offer.latitude, talentsoft_offer.longitude
-        if talentsoft_offer.organisation and talentsoft_offer.organisation.geolocation:
-            return (
-                talentsoft_offer.organisation.geolocation.latitude,
-                talentsoft_offer.organisation.geolocation.longitude,
-            )
-        return None, None
+        return None
 
     def _map_localisation_from_arrays(
         self,
+        areas: List,
         countries: List,
         regions: List,
         departments: List,
-        coordinates: tuple[Optional[float], Optional[float]] = (None, None),
+        talentsoft_offer: TalentsoftDetailOffer,
         transcoder: Optional[SourceTranscoder] = None,
         label: Optional[str] = None,
     ) -> Optional[Localisation]:
-        latitude, longitude = coordinates
         country_code = countries[0].clientCode if countries else None
         region_code = regions[0].clientCode if regions else None
         department_code = departments[0].clientCode if departments else None
+
+        if transcoder and country_code:
+            country_code = transcoder.translate("pays", country_code) or country_code
+
+        if country_code in _OVERSEAS_DEPARTMENT_BY_COUNTRY:
+            department_code = _OVERSEAS_DEPARTMENT_BY_COUNTRY[country_code]
+            # Placeholder: the overseas region is deduced from the department.
+            region_code = "TOM"
+            country_code = FRANCE
+
+        if country_code and country_code != FRANCE:
+            return self._map_localisation_abroad(
+                areas, country_code, talentsoft_offer, label
+            )
 
         if not country_code or not region_code or not department_code:
             return None
 
         if transcoder:
-            country_code = transcoder.translate("pays", country_code) or country_code
             region_code = transcoder.translate("regions", region_code) or region_code
             department_code = (
                 transcoder.translate("departements", department_code) or department_code
@@ -740,11 +802,11 @@ class OffersCleaner:
         else:
             insee_region_code = region_code
 
-        if department_code.startswith("_TS_CO_Department_NouvelleCaldonie988"):
-            insee_department_code = "988"
-        else:
-            insee_department_code = department_code
+        insee_department_code = _TALENTSOFT_DEPARTMENT_CODES.get(
+            department_code, department_code
+        )
 
+        latitude, longitude = self._extract_coordinates(talentsoft_offer)
         try:
             department = Department(code=insee_department_code)
             area = zone_pour_departement(department)
@@ -769,6 +831,39 @@ class OffersCleaner:
                 department_code,
                 e,
             )
+            return None
+
+    def _map_localisation_abroad(
+        self,
+        areas: List,
+        country_code: str,
+        talentsoft_offer: TalentsoftDetailOffer,
+        label: Optional[str],
+    ) -> Optional[Localisation]:
+        area_code = areas[0].clientCode if areas else None
+        area = _AREA_BY_TALENTSOFT_CODE.get(area_code) if area_code else None
+        if area is None:
+            logger.warning(
+                "Unknown geographical area %s for country %s", area_code, country_code
+            )
+            return None
+
+        # The organisation's coordinates are usually those of its head office
+        # in France: only the offer's own coordinates are kept.
+        offer_coordinates = self._extract_offer_coordinates(talentsoft_offer)
+        latitude, longitude = offer_coordinates or (None, None)
+        try:
+            return Localisation(
+                area=area,
+                country=_country_adapter.validate_python(country_code),
+                region=None,
+                department=None,
+                label=label,
+                latitude=latitude,
+                longitude=longitude,
+            )
+        except (ValueError, ValidationError) as e:
+            logger.warning("Invalid localisation for country=%s: %s", country_code, e)
             return None
 
     def _map_specialisations(

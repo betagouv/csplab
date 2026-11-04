@@ -551,6 +551,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/recruteur/organismes/recherche": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Rechercher des organismes par nom */
+        get: operations["recruteur_organismes_recherche_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/utilisateur/me": {
         parameters: {
             query?: never;
@@ -664,8 +681,6 @@ export interface components {
          * @enum {string}
          */
         AuthorizedActionsEnum: "get_organisme" | "initialize_organisme_steps" | "update_organisme_steps" | "list_recrutements" | "get_recrutement" | "get_candidature" | "change_etape_candidatures" | "get_recrutement_etapes" | "update_recrutement_etapes" | "init_recrutement_etapes" | "create_organisme" | "list_organismes" | "update_organisme" | "list_organisme_agents" | "search_agent" | "attach_organisme_agent" | "update_organisme_agent" | "revoke_organisme_agent" | "create_agent" | "list_recrutement_agents" | "add_recrutement_agent" | "update_recrutement_agent" | "revoke_recrutement_agent" | "set_recrutements_responsable" | "get_motifs_refus" | "read_document" | "list_documents" | "list_notes" | "create_note" | "update_note" | "delete_note" | "list_conversations" | "read_conversation" | "create_conversation" | "reply_conversation" | "list_tags" | "create_tag" | "update_tag" | "delete_tag";
-        /** @enum {unknown} */
-        BlankEnum: "";
         Candidat: {
             /** Format: uuid */
             uuid: string;
@@ -701,6 +716,7 @@ export interface components {
             recrutement_intitule: string;
             etapes: components["schemas"]["EtapeCandidatureDetail"][];
             etape_actuelle: components["schemas"]["EtapeCandidatureDetail"];
+            motif_refus: components["schemas"]["MotifRefus"] | null;
             /** Format: date-time */
             date_candidature: string;
             /** Format: date-time */
@@ -710,6 +726,7 @@ export interface components {
             /** Format: uuid */
             document_uuid: string | null;
             navigation_candidature_uuids: string[];
+            authorized_actions: components["schemas"]["AuthorizedActionsEnum"][];
         };
         CandidatureEchec: {
             /** Format: uuid */
@@ -766,13 +783,14 @@ export interface components {
          *     * `bleu` - Bleu
          *     * `violet` - Violet
          *     * `rose` - Rose
+         *     * `rouge` - Rouge
          *     * `orange` - Orange
          *     * `beige` - Beige
          *     * `jaune` - Jaune
          *     * `gris` - Gris
          * @enum {string}
          */
-        ColorEnum: "vert" | "menthe" | "bleu" | "violet" | "rose" | "orange" | "beige" | "jaune" | "gris";
+        ColorEnum: "vert" | "menthe" | "bleu" | "violet" | "rose" | "rouge" | "orange" | "beige" | "jaune" | "gris";
         Conversation: {
             /** Format: uuid */
             uuid: string;
@@ -936,6 +954,8 @@ export interface components {
          *     * `974` - 974
          *     * `975` - 975
          *     * `976` - 976
+         *     * `977` - 977
+         *     * `978` - 978
          *     * `986` - 986
          *     * `987` - 987
          *     * `988` - 988
@@ -943,7 +963,7 @@ export interface components {
          *     * `WLF` - WLF
          * @enum {string}
          */
-        DepartementEnum: "01" | "02" | "03" | "04" | "05" | "06" | "07" | 8 | 9 | "10" | "11" | "12" | "13" | "14" | "15" | "16" | "17" | "18" | "19" | "21" | "22" | "23" | "24" | "25" | "26" | "27" | "28" | "29" | "2A" | "2B" | "30" | "31" | "32" | "33" | "34" | "35" | "36" | "37" | "38" | "39" | "40" | "41" | "42" | "43" | "44" | "45" | "46" | "47" | "48" | "49" | "50" | "51" | "52" | "53" | "54" | "55" | "56" | "57" | "58" | "59" | "60" | "61" | "62" | "63" | "64" | "65" | "66" | "67" | "68" | "69" | "70" | "71" | "72" | "73" | "74" | "75" | "76" | "77" | "78" | "79" | "80" | "81" | "82" | "83" | "84" | "85" | "86" | "87" | "88" | "89" | "90" | "91" | "92" | "93" | "94" | "95" | "971" | "972" | "973" | "974" | "975" | "976" | "986" | "987" | "988" | "SPM" | "WLF";
+        DepartementEnum: "01" | "02" | "03" | "04" | "05" | "06" | "07" | "08" | "09" | "10" | "11" | "12" | "13" | "14" | "15" | "16" | "17" | "18" | "19" | "21" | "22" | "23" | "24" | "25" | "26" | "27" | "28" | "29" | "2A" | "2B" | "30" | "31" | "32" | "33" | "34" | "35" | "36" | "37" | "38" | "39" | "40" | "41" | "42" | "43" | "44" | "45" | "46" | "47" | "48" | "49" | "50" | "51" | "52" | "53" | "54" | "55" | "56" | "57" | "58" | "59" | "60" | "61" | "62" | "63" | "64" | "65" | "66" | "67" | "68" | "69" | "70" | "71" | "72" | "73" | "74" | "75" | "76" | "77" | "78" | "79" | "80" | "81" | "82" | "83" | "84" | "85" | "86" | "87" | "88" | "89" | "90" | "91" | "92" | "93" | "94" | "95" | "971" | "972" | "973" | "974" | "975" | "976" | "977" | "978" | "986" | "987" | "988" | "SPM" | "WLF";
         DocumentListe: {
             /** Format: uuid */
             uuid: string;
@@ -981,8 +1001,8 @@ export interface components {
         Localisation: {
             zone_geographique: components["schemas"]["ZoneGeographiqueEnum"];
             pays: string;
-            region: components["schemas"]["RegionEnum"] | components["schemas"]["BlankEnum"];
-            departement: components["schemas"]["DepartementEnum"] | components["schemas"]["BlankEnum"];
+            region: (components["schemas"]["RegionEnum"] | components["schemas"]["NullEnum"]) | null;
+            departement: (components["schemas"]["DepartementEnum"] | components["schemas"]["NullEnum"]) | null;
             localisation_label: string;
             /** Format: double */
             latitude: number | null;
@@ -1058,6 +1078,12 @@ export interface components {
             /** Format: date-time */
             readonly date_creation: string;
         };
+        OrganismeRecherche: {
+            /** Format: uuid */
+            uuid: string;
+            nom: string;
+            siret: string;
+        };
         OrganismeRole: {
             /** Format: uuid */
             organisme_uuid: string;
@@ -1078,6 +1104,7 @@ export interface components {
             date_creation: string;
             nombre_agents: number;
             nombre_offres_publiees: number;
+            authorized_actions: components["schemas"]["AuthorizedActionsEnum"][];
         };
         PaginatedAuditLogList: {
             /** @example 123 */
@@ -1166,6 +1193,21 @@ export interface components {
              */
             previous?: string | null;
             results: components["schemas"]["Note"][];
+        };
+        PaginatedOrganismesListList: {
+            /** @example 1 */
+            count: number;
+            /**
+             * Format: uri
+             * @example null
+             */
+            next?: string | null;
+            /**
+             * Format: uri
+             * @example null
+             */
+            previous?: string | null;
+            results: components["schemas"]["OrganismesList"][];
         };
         PaginatedRecrutementAgentList: {
             /** @example 123 */
@@ -1273,6 +1315,7 @@ export interface components {
              *     * `contributeur` - contributeur
              */
             recrutement_role: (components["schemas"]["RecrutementRoleEnum"] | components["schemas"]["NullEnum"]) | null;
+            authorized_actions: components["schemas"]["AuthorizedActionsEnum"][];
         };
         RecrutementDetailKanban: {
             /** Format: uuid */
@@ -1569,7 +1612,12 @@ export interface operations {
     };
     recruteur_organismes_list: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Numéro de la page. */
+                page?: number;
+                /** @description Nombre d'éléments par page. */
+                taille?: number;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -1584,7 +1632,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["OrganismesList"][];
+                    "application/json": components["schemas"]["PaginatedOrganismesListList"];
                 };
             };
             401: {
@@ -5701,6 +5749,102 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SetRecrutementsResponsableResultat"];
+                };
+            };
+            400: {
+                headers: {
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GenericError"];
+                };
+            };
+            401: {
+                headers: {
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TokenError"];
+                };
+            };
+            403: {
+                headers: {
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GenericError"];
+                };
+            };
+            404: {
+                headers: {
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GenericError"];
+                };
+            };
+            /** @description Nombre maximal d'appels autorisés dépassé. */
+            429: {
+                headers: {
+                    "Retry-After": components["headers"]["Retry-After"];
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Request was throttled. Expected available in 42 seconds. */
+                        detail?: string;
+                    };
+                };
+            };
+            500: {
+                headers: {
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GenericError"];
+                };
+            };
+        };
+    };
+    recruteur_organismes_recherche_list: {
+        parameters: {
+            query: {
+                nom: string;
+                taille?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
+                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
+                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OrganismeRecherche"][];
                 };
             };
             400: {

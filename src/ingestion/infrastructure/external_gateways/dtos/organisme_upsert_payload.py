@@ -10,8 +10,8 @@ from referentiel.entities.organisme import Organisme
 class LocalisationPayload(BaseModel):
     zone_geographique: str
     pays: str
-    region: str
-    departement: str
+    region: Optional[str]
+    departement: Optional[str]
     latitude: Optional[float] = None
     longitude: Optional[float] = None
 
@@ -37,8 +37,12 @@ class OrganismeUpsertPayload(BaseModel):
             localisation = LocalisationPayload(
                 zone_geographique=organisme.localisation.area.value,
                 pays=str(organisme.localisation.country),
-                region=organisme.localisation.region.code,
-                departement=organisme.localisation.department.code,
+                region=organisme.localisation.region.code
+                if organisme.localisation.region
+                else None,
+                departement=organisme.localisation.department.code
+                if organisme.localisation.department
+                else None,
                 latitude=organisme.localisation.latitude,
                 longitude=organisme.localisation.longitude,
             )

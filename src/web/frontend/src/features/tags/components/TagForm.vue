@@ -1,22 +1,22 @@
 <script setup lang="ts">
-import type { CreateTagPayload, TagCategory, TagColor } from '../types'
+import type { CreateTagPayload, Tag, TagCategory, TagColor } from '../types'
 import { computed, ref, useId } from 'vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspDrawerFooter from '@/components/base/CspDrawer/CspDrawerFooter.vue'
 import CspInput from '@/components/base/CspInput/CspInput.vue'
+import CspLabel from '@/components/base/CspLabel/CspLabel.vue'
 import CspRadioGroup from '@/components/base/CspRadioGroup/CspRadioGroup.vue'
-import CspSelect from '@/components/base/CspSelect/CspSelect.vue'
-import CspTag from '@/components/base/CspTag/CspTag.vue'
-import { DEFAULT_TAG_COLOR, TAG_CATEGORY_OPTIONS_ORDER, TAG_CATEGORY_TEXTS, TAG_COLOR_ACCENTS, TAG_COLOR_LABELS, TAG_NAME_MAX_LENGTH } from '../constants/tag'
+import { DEFAULT_TAG_COLOR, TAG_CATEGORY_OPTIONS_ORDER, TAG_CATEGORY_TEXTS, TAG_COLOR_LABELS, TAG_COLOR_PALETTE, TAG_NAME_MAX_LENGTH } from '../constants/tag'
 
 const props = defineProps<{
   category: TagCategory
+  tag?: Tag | null
   saving?: boolean
   duplicate?: CreateTagPayload | null
 }>()
 
 const emit = defineEmits<{
-  create: [payload: CreateTagPayload]
+  save: [payload: CreateTagPayload]
   cancel: []
 }>()
 
@@ -26,9 +26,9 @@ const CATEGORY_OPTIONS = TAG_CATEGORY_OPTIONS_ORDER.map(value => ({ value, label
 
 const COLOR_OPTIONS = Object.entries(TAG_COLOR_LABELS).map(([value, label]) => ({ value, label }))
 
-const name = ref('')
-const category = ref<string>(props.category)
-const color = ref<string>(DEFAULT_TAG_COLOR)
+const name = ref(props.tag?.name ?? '')
+const category = ref<string>(props.tag?.category ?? props.category)
+const color = ref<string>(props.tag?.color ?? DEFAULT_TAG_COLOR)
 
 const trimmedName = computed(() => name.value.trim())
 
@@ -42,13 +42,15 @@ const nameError = computed(() => {
   return null
 })
 
-const canSubmit = computed(() => trimmedName.value.length > 0 && !nameError.value)
+const isDirty = computed(() => !props.tag || trimmedName.value !== props.tag.name || color.value !== props.tag.color)
+
+const canSubmit = computed(() => trimmedName.value.length > 0 && !nameError.value && isDirty.value)
 
 function handleSubmit(): void {
   if (!canSubmit.value || props.saving) {
     return
   }
-  emit('create', {
+  emit('save', {
     name: trimmedName.value,
     category: category.value as TagCategory,
     color: color.value as TagColor,
@@ -74,26 +76,48 @@ const formId = useId()
       :error-message="nameError ?? undefined"
     />
 
+    <div
+      v-if="tag"
+      class="tag-form__field"
+    >
+      <p class="tag-form__field-label">
+        Type d'étiquette
+      </p>
+      <p class="tag-form__field-value">
+        {{ TAG_CATEGORY_TEXTS[tag.category].option }}
+      </p>
+    </div>
     <CspRadioGroup
+      v-else
       v-model="category"
       label="Type d'étiquette"
       name="category"
       :options="CATEGORY_OPTIONS"
     />
 
-    <CspSelect
+    <CspRadioGroup
       v-model="color"
       label="Couleur"
+      name="color"
       :options="COLOR_OPTIONS"
-    />
+      :columns="2"
+    >
+      <template #option="{ option }">
+        <CspLabel
+          :label="option.label"
+          :color="TAG_COLOR_PALETTE[option.value as TagColor]"
+          size="md"
+        />
+      </template>
+    </CspRadioGroup>
 
-    <div class="tag-form__preview">
-      <p class="tag-form__preview-label">
+    <div class="tag-form__field">
+      <p class="tag-form__field-label">
         Aperçu
       </p>
-      <CspTag
+      <CspLabel
         :label="trimmedName || 'Libellé'"
-        :accent="TAG_COLOR_ACCENTS[color as TagColor]"
+        :color="TAG_COLOR_PALETTE[color as TagColor]"
       />
     </div>
   </form>
@@ -121,16 +145,20 @@ const formId = useId()
   gap: var(--csp-drawer-body-gap);
 }
 
-.tag-form__preview {
+.tag-form__field {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   gap: var(--csp-field-label-gap);
 }
 
-.tag-form__preview-label {
+.tag-form__field-label,
+.tag-form__field-value {
   margin: 0;
   font-size: var(--csp-font-size-base);
+}
+
+.tag-form__field-label {
   font-weight: 600;
 }
 </style>

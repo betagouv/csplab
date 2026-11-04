@@ -6,6 +6,16 @@ export function formatCandidatName(candidat: Candidat): string {
   return `${candidat.prenom} ${candidat.nom}`.trim()
 }
 
+export function formatEtapeChangeTitle(candidats: Candidat[], etapeNom: string): string {
+  const [candidat] = candidats
+  if (candidats.length === 1 && candidat) {
+    const name = formatCandidatName(candidat)
+    const preposition = /^[aeiouyhàâéèêëîïôûü]/i.test(name) ? 'd\'' : 'de '
+    return `La candidature ${preposition}${name} est passée à l'étape ${etapeNom}`
+  }
+  return `${candidats.length} candidatures sont passées à l'étape ${etapeNom}`
+}
+
 export function formatCandidatureMeta(detail: CandidatureDetail): CspMetaItem[] {
   return [
     {

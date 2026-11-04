@@ -11,6 +11,7 @@ from presentation.ingestion.serializers import (
     DescriptionInputSerializer,
     LocalisationInputSerializer,
     OffersInputSerializer,
+    OrganismeLocalisationInputSerializer,
     ProfessionInputSerializer,
 )
 
@@ -260,8 +261,8 @@ def test_localisation_input_serializer_requires_region_and_departement_in_france
         data={
             "zone_geographique": "EU",
             "pays": "FRA",
-            "region": "",
-            "departement": "",
+            "region": None,
+            "departement": None,
             "localisation_label": "",
             "latitude": None,
             "longitude": None,
@@ -277,3 +278,24 @@ def test_localisation_input_serializer_requires_region_and_departement_in_france
             )
         ]
     }
+
+
+@pytest.mark.parametrize(
+    "serializer_class",
+    [LocalisationInputSerializer, OrganismeLocalisationInputSerializer],
+)
+def test_localisation_input_serializers_reject_blank_region_and_departement(
+    serializer_class,
+):
+    serializer = serializer_class(
+        data={
+            "zone_geographique": "EU",
+            "pays": "DEU",
+            "region": "",
+            "departement": "",
+            "localisation_label": "",
+        }
+    )
+
+    assert not serializer.is_valid()
+    assert set(serializer.errors) == {"region", "departement"}

@@ -97,3 +97,58 @@ def test_evaluates_in_a_constant_number_of_queries(staff, django_assert_num_quer
             for liaison in o.superviseurs_actifs
         ]
         assert len(utilisateurs) == len(result)
+
+
+def test_counts_stay_exact_with_many_agents_and_offers_per_organisme(staff):
+    organisme, other = OrganismeDjangoFactory.create_batch(2)
+    OrganismeAgentDjangoFactory.create_batch(4, organisme=organisme)
+    RecrutementDjangoFactory.create_batch(5, organisme=organisme)
+    OrganismeAgentDjangoFactory(organisme=other)
+
+    result = {o.pk: o for o in list_organismes(utilisateur=staff)}
+
+    assert result[organisme.pk].number_agents == 4  # noqa: PLR2004
+    assert result[organisme.pk].number_published_offers == 5  # noqa: PLR2004
+    assert result[other.pk].number_agents == 1
+    assert result[other.pk].number_published_offers == 0
+
+
+def test_counts_are_zero_without_agents_nor_offers(staff):
+    organisme = OrganismeDjangoFactory()
+
+    result = list_organismes(utilisateur=staff).get(pk=organisme.pk)
+
+    assert result.number_agents == 0
+    assert result.number_published_offers == 0
+    assert result.last_activity_date == organisme.updated_at
+
+
+def test_does_not_count_archived_offers(staff):
+    organisme = OrganismeDjangoFactory()
+    OrganismeAgentDjangoFactory(organisme=organisme)
+    RecrutementDjangoFactory.create_batch(2, organisme=organisme, offre_archivee=True)
+
+    result = list_organismes(utilisateur=staff).get(pk=organisme.pk)
+
+    assert result.number_published_offers == 0
+    assert result.number_agents == 1
+
+
+def test_query_count_does_not_grow_with_agents_and_offers_per_organisme(
+    staff, django_assert_num_queries
+):
+    organisme = OrganismeDjangoFactory()
+
+    with django_assert_num_queries(2):  # organismes + prefetch superviseurs
+        for o in list_organismes(utilisateur=staff):
+            _ = (o.number_agents, o.number_published_offers, o.superviseurs_actifs)
+
+    OrganismeAgentDjangoFactory.create_batch(10, organisme=organisme)
+    OrganismeAgentDjangoFactory.create_batch(
+        3, organisme=organisme, role=AgentOrganismeRole.SUPERVISEUR.value
+    )
+    RecrutementDjangoFactory.create_batch(10, organisme=organisme)
+
+    with django_assert_num_queries(2):
+        for o in list_organismes(utilisateur=staff):
+            _ = (o.number_agents, o.number_published_offers, o.superviseurs_actifs)

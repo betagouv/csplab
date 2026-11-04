@@ -6,9 +6,9 @@ import { isNavItemActive, navigationFor } from './navigation'
 const ORGANISME_UUID = '00000000-0000-0000-0000-000000000000'
 const RECRUTEMENT_UUID = 'aaaaaaaa-0001-0001-0001-000000000001'
 
-const AGENT = { isStaff: false, organismeUuid: ORGANISME_UUID, canManageOrganisme: false }
-const SUPERVISEUR = { ...AGENT, canManageOrganisme: true }
-const STAFF = { isStaff: true, organismeUuid: null, canManageOrganisme: true }
+const AGENT = { canListOrganismes: false, organismeUuid: ORGANISME_UUID, canAccessOrganismeSettings: false }
+const SUPERVISEUR = { ...AGENT, canAccessOrganismeSettings: true }
+const STAFF = { canListOrganismes: true, organismeUuid: null, canAccessOrganismeSettings: true }
 
 function matchedNamesFor(path: string): string[] {
   const resolved = createRouter({ history: createMemoryHistory(), routes }).resolve(path)

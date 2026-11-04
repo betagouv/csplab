@@ -45,7 +45,17 @@ Le `mise.toml` à la racine contient ce qui concerne le repo entier :
 - `review-app` : crée la review app Scalingo de la PR de la branche courante, la déploie puis la peuple. `review-app:create`, `review-app:deploy` et `review-app:seed` lancent une seule étape ; `review-app:deploy` échoue si un conteneur a planté pendant le déploiement, même quand Scalingo le marque réussi. `PR_NUMBER=<numéro>` vise une autre PR que celle de la branche, et `mise run review-app:create -- NOM=valeur` pose des variables sur l'app, par exemple celle qui choisira le thème de l'interface. Ces étapes sont des tâches fichiers, dans `mise-tasks/review-app/`, qui reprennent le modèle `review-app` du `mise.toml`. Prérequis : `scalingo login` et un accès à `csplab-web-demo`.
 - `onboard` : premier embarquement (setup + bootstrap, qui installe aussi les git hooks). `setup`, `git-hooks` et `bootstrap` restent disponibles séparément, et `bootstrap:reset` repart de zéro (volumes docker supprimés puis bootstrap).
 
-Les opérations sur la base de dev sont dans le namespace web : `web:seed` charge le jeu de données de démo, `web:db:reset` recrée la base à vide puis migre et seed, `web:db:restore` la remplace par un dump Scalingo.
+Les opérations sur la base de dev sont dans le namespace web : `web:seed` charge le jeu de données de démo, `web:db:reset` recrée la base à vide puis migre et seed.
+
+Les bases web et ingestion vivent dans le même conteneur Postgres, avec le superuser de `env.d/postgresql` : `src/ingestion/mise.toml` en déduit `DATABASE_URL` (base `ingestion`) et `TEST_DATABASE_URL` (base `ingestion_test`).
+
+`web:db:restore` et `ingestion:db:restore` remplacent la base locale du service par un backup Scalingo, puis appliquent les migrations. `-- --from demo` ou `-- --from prod` télécharge d'abord le dernier backup de l'app correspondante dans `dumps/<service>/` (prérequis : `scalingo login` et un accès à l'app) ; sans argument, le dump le plus récent de `dumps/<service>/` est restauré, et un chemin de fichier restaure ce fichier.
+
+```
+mise run ingestion:db:restore -- --from demo
+mise run web:db:restore -- --from prod
+mise run web:db:restore -- dumps/web/mon-dump.tar.gz
+```
 
 Pour observer ou arrêter les conteneurs, utilisez `docker compose` directement (`ps`, `logs -f`, `stop`, `down`).
 
@@ -77,7 +87,7 @@ Les tâches d'un agrégat s'exécutent en parallèle. Les accès partagés sont 
 
 ## Tâches destructrices
 
-`setup:force`, `bootstrap:reset`, `onboard:reset` (les deux précédents enchaînés), `web:db:reset` et `web:db:restore` demandent une confirmation dont la réponse par défaut est No : un Entrée par réflexe ne détruit rien, il faut répondre y explicitement. Attention aux lanceurs qui positionnent MISE_YES (boutons d'éditeur) : ils sautent la confirmation.
+`setup:force`, `bootstrap:reset`, `onboard:reset` (les deux précédents enchaînés), `web:db:reset`, `web:db:restore` et `ingestion:db:restore` demandent une confirmation dont la réponse par défaut est No : un Entrée par réflexe ne détruit rien, il faut répondre y explicitement. Attention aux lanceurs qui positionnent MISE_YES (boutons d'éditeur) : ils sautent la confirmation. Pour `web:db:restore` et `ingestion:db:restore`, le message rappelle qu'avec `--from prod` le backup téléchargé contient des données personnelles de candidats.
 
 ## Arguments
 

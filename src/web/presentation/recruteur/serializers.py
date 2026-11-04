@@ -7,6 +7,7 @@ from referentiel.value_objects.offer_nature import OfferNature
 from referentiel.value_objects.verse import Verse
 from rest_framework import serializers
 
+from application.recruteur.services.get_candidature import CandidatureDetail
 from domain.recruteur.value_objects.categorie_etapes_recrutement import (
     CategorieEtapeRecrutement,
 )
@@ -36,6 +37,7 @@ from infrastructure.django_apps.recruteur.models.recrutement import (
 )
 from infrastructure.django_apps.tag.models import TagCategory, TagColor, TagModel
 from infrastructure.django_apps.users.models import ProfilAgentModel
+from presentation.commons.pagination import MAX_PAGE_SIZE
 from presentation.commons.serializers import (
     LocalisationSerializer,
     OrganismeSerializer,
@@ -57,6 +59,7 @@ class OrganismesListSerializer(serializers.ModelSerializer):
     date_creation = serializers.DateTimeField(source="created_at")
     nombre_agents = serializers.IntegerField(source="number_agents")
     nombre_offres_publiees = serializers.IntegerField(source="number_published_offers")
+    authorized_actions = authorized_actions_field()
 
     class Meta:
         model = OrganismeModel
@@ -71,6 +74,7 @@ class OrganismesListSerializer(serializers.ModelSerializer):
             "date_creation",
             "nombre_agents",
             "nombre_offres_publiees",
+            "authorized_actions",
         )
         extra_kwargs = {"siret": {"min_length": 14}}
 
@@ -310,8 +314,8 @@ class OffreLocalisationField(serializers.Field):
         return {
             "zone_geographique": offre.area or "",
             "pays": offre.country or "",
-            "region": offre.region or "",
-            "departement": offre.department or "",
+            "region": offre.region or None,
+            "departement": offre.department or None,
             "localisation_label": offre.location_label or "",
             "latitude": offre.latitude,
             "longitude": offre.longitude,
@@ -346,6 +350,7 @@ class RecrutementDetailSerializer(serializers.ModelSerializer):
         allow_null=True,
         help_text="Rôle de l'utilisateur courant sur ce recrutement (null si aucun).",
     )
+    authorized_actions = authorized_actions_field()
 
     class Meta:
         model = RecrutementModel
@@ -359,6 +364,7 @@ class RecrutementDetailSerializer(serializers.ModelSerializer):
             "categorie_offre",
             "etapes",
             "recrutement_role",
+            "authorized_actions",
         ]
 
 
@@ -478,6 +484,21 @@ class UpdateAgentOrganismeSerializer(serializers.Serializer):
 
 class RechercheAgentQuerySerializer(serializers.Serializer):
     email = serializers.EmailField()
+
+
+class RechercheOrganismeQuerySerializer(serializers.Serializer):
+    nom = serializers.CharField(min_length=3, max_length=255)
+    taille = serializers.IntegerField(
+        required=False, default=25, min_value=1, max_value=MAX_PAGE_SIZE
+    )
+
+
+class OrganismeRechercheSerializer(serializers.ModelSerializer):
+    uuid = serializers.UUIDField(source="id")
+
+    class Meta:
+        model = OrganismeModel
+        fields = ("uuid", "nom", "siret")
 
 
 class AgentRechercheSerializer(serializers.ModelSerializer):
@@ -667,6 +688,21 @@ class CandidatDetailSerializer(serializers.Serializer):
     email = serializers.EmailField(source="candidat.utilisateur.email")
 
 
+@extend_schema_field(MotifRefusSerializer(allow_null=True))
+class MotifRefusField(serializers.Field):
+    def get_attribute(self, instance: CandidatureDetail) -> dict | None:
+        candidature = instance.candidature
+        if candidature.motif_refus is None:
+            return None
+        return {
+            "value": candidature.motif_refus,
+            "label": candidature.get_motif_refus_display(),
+        }
+
+    def to_representation(self, value: dict) -> dict:
+        return value
+
+
 class CandidatureDetailSerializer(serializers.Serializer):
     uuid = serializers.UUIDField(source="candidature.id")
     candidat = CandidatDetailSerializer(source="candidature")
@@ -675,6 +711,7 @@ class CandidatureDetailSerializer(serializers.Serializer):
     )
     etapes = EtapeCandidatureDetailSerializer(many=True)
     etape_actuelle = EtapeCandidatureDetailSerializer(source="candidature.etape")
+    motif_refus = MotifRefusField(allow_null=True)
     date_candidature = serializers.DateTimeField(source="candidature.created_at")
     date_derniere_maj_candidat = serializers.DateTimeField(
         source="candidature.updated_by_candidate", allow_null=True
@@ -684,6 +721,7 @@ class CandidatureDetailSerializer(serializers.Serializer):
     )
     document_uuid = serializers.UUIDField(allow_null=True)
     navigation_candidature_uuids = serializers.ListField(child=serializers.UUIDField())
+    authorized_actions = authorized_actions_field()
 
 
 # ---------------------------------------------------------------------------

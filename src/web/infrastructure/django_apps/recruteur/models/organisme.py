@@ -2,7 +2,7 @@ from collections.abc import Sequence
 from uuid import UUID, uuid4
 
 from django.db import models
-from django.db.models import Count, Max, Prefetch, Q, Value
+from django.db.models import Count, OuterRef, Prefetch, Q, Subquery, Value
 from django.db.models.functions import Coalesce, Greatest
 from referentiel.value_objects.verse import Verse
 
@@ -16,6 +16,18 @@ from infrastructure.django_apps.users.fields import agent_fk
 from infrastructure.django_apps.utils.models import BaseDatedModel
 
 
+def _count_subquery(queryset: models.QuerySet) -> Coalesce:
+    return Coalesce(
+        Subquery(
+            queryset.order_by()
+            .values("organisme_id")
+            .annotate(total=Count("pk"))
+            .values("total")
+        ),
+        0,
+    )
+
+
 class OrganismeQuerySet(models.QuerySet):
     def not_supprimes(self) -> "OrganismeQuerySet":
         return self.filter(supprime_le__isnull=True)
@@ -27,20 +39,24 @@ class OrganismeQuerySet(models.QuerySet):
         return self.filter(pk__in=organisme_ids)
 
     def with_counts(self) -> "OrganismeQuerySet":
+        recrutement_model = self.model._meta.get_field("recrutements").related_model
+        agents = OrganismeAgentModel.objects.filter(organisme_id=OuterRef("pk"))
         return self.annotate(
-            number_agents=Count(
-                "agents_liaisons",
-                filter=Q(agents_liaisons__date_revocation__isnull=True),
-                distinct=True,
+            number_agents=_count_subquery(agents.active()),
+            number_published_offers=_count_subquery(
+                recrutement_model.objects.filter(
+                    organisme_id=OuterRef("pk"), offre__archived_at__isnull=True
+                )
             ),
-            number_published_offers=Count("recrutements", distinct=True),
-            max_agent_updated=Max("agents_liaisons__updated_at"),
+            max_agent_updated=Subquery(
+                agents.order_by("-updated_at").values("updated_at")[:1]
+            ),
             last_activity_date=Greatest(
                 "updated_at",
                 Coalesce("max_agent_updated", "updated_at"),
             ),
             managed_ats=Coalesce("gestion_ats", Value(False)),
-        ).order_by("-updated_at")
+        )
 
     def with_superviseurs_actifs(self) -> "OrganismeQuerySet":
         return self.prefetch_related(
@@ -85,9 +101,6 @@ class OrganismeQuerySet(models.QuerySet):
             return self
         return self.filter(referentiel=referentiel)
 
-    def stable_order(self) -> "OrganismeQuerySet":
-        return self.order_by("nom", "id")
-
     def etapes_of(self, organisme_id) -> "OrganismeQuerySet":
         return self.filter(pk=organisme_id).only("id", "etapes")
 
@@ -105,6 +118,12 @@ class OrganismeQuerySet(models.QuerySet):
         for referentiel, external_id in pairs:
             query |= Q(referentiel=referentiel, external_id=external_id)
         return self.filter(query)
+
+    def stable_order(self) -> "OrganismeQuerySet":
+        return self.order_by("nom", "id")
+
+    def most_recently_updated_first(self) -> "OrganismeQuerySet":
+        return self.order_by("-updated_at", "id")
 
 
 class OrganismeModel(BaseDatedModel):

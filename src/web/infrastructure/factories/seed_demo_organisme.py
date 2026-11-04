@@ -132,7 +132,7 @@ _AVIS = {
         "Favorable. Parcours en adéquation directe avec les missions du poste.",
     ),
 }
-_PROXIMITE_RETENUE = 0.9
+_PROXIMITE_RETENUE = max(_AVIS)
 _PART_AVATAR = 0.5
 _COULEURS_AVATAR = (
     (0.0, 0.0, 0.57),
@@ -652,15 +652,18 @@ def _seed_fil(
     echeancier: _Echeancier,
     intitule: str,
     choix: int,
-) -> None:
+) -> list[MessageModel]:
     conversation = ConversationDjangoFactory.create(
         candidature=candidature, objet=objet
     )
     candidat = candidature.candidat.utilisateur
     if objet == _DATE_ENTRETIEN:
         demande, reponse = _textes_date_entretien(plan, recruteur, echeancier, choix)
-    else:
+    elif objet == _PIECES_JUSTIFICATIVES:
         demande, reponse = _textes_pieces(plan, recruteur, echeancier, intitule)
+    else:
+        raise ValueError(f"Objet de fil de démo inconnu : {objet}")
+    messages = []
     for auteur, contenu, envoye_le in (
         (recruteur, demande, echeancier.demande_le),
         (candidat, reponse, echeancier.repondu_le),
@@ -668,7 +671,8 @@ def _seed_fil(
         message = MessageDjangoFactory.create(
             conversation=conversation, auteur=auteur, contenu=contenu
         )
-        MessageModel.objects.filter(pk=message.pk).update(created_at=envoye_le)
+        message.created_at = envoye_le
+        messages.append(message)
     if plan.lecture:
         for lecteur in (*lecteurs, candidat):
             ConversationLectureDjangoFactory.create(
@@ -676,6 +680,7 @@ def _seed_fil(
                 utilisateur=lecteur,
                 read_at=echeancier.repondu_le,
             )
+    return messages
 
 
 def _seed_cv(candidature: CandidatureModel, utilisateur: UserModel, pdf: bytes) -> None:
@@ -788,6 +793,7 @@ def _ecrire(
     responsables = cycle(agents)
     candidatures_creees: list[CandidatureModel] = []
     notes_creees: list[NoteModel] = []
+    messages_crees: list[MessageModel] = []
     nb_conversations = 0
 
     source, _ = SourceModel.objects.get_or_create(
@@ -875,7 +881,7 @@ def _ecrire(
                 note.created_at = publiee_le
                 notes_creees.append(note)
             for objet in candidature_plan.fils:
-                _seed_fil(
+                messages_crees += _seed_fil(
                     candidature,
                     candidature_plan,
                     responsable.utilisateur,
@@ -890,6 +896,7 @@ def _ecrire(
                 nb_conversations += 1
     CandidatureModel.objects.bulk_update(candidatures_creees, ["created_at"])
     NoteModel.objects.bulk_update(notes_creees, ["created_at"])
+    MessageModel.objects.bulk_update(messages_crees, ["created_at"])
 
 
 def _seed_un_organisme(

@@ -5,6 +5,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { defineComponent, h } from 'vue'
 import { RouterView } from 'vue-router'
 import { getMe } from '@/api/utilisateur'
+import { useToast } from '@/composables/ui/useToast'
 import { getRecrutementDetail } from '@/features/recrutements/api'
 import {
   CANDIDATURE_ALICE,
@@ -37,24 +38,6 @@ vi.mock('@/features/recrutements/api', () => ({
 
 function renderKanbanPage(stubs: Record<string, Component> = {}) {
   return renderWithApp(RouterView, { route: KANBAN_PATH, global: { stubs } })
-}
-
-const CANDIDATURE_CHLOE = 'dddddddd-0001-0001-0001-000000000003'
-
-const KANBAN_WITH_ENTRETIEN = {
-  ...KANBAN,
-  etapes: KANBAN.etapes.map(etape => etape.uuid === ETAPE_ENTRETIEN
-    ? {
-        ...etape,
-        candidatures: [{
-          uuid: CANDIDATURE_CHLOE,
-          date_soumission: '2025-06-13T09:15:00Z',
-          date_derniere_activite: '2025-06-13T10:00:00Z',
-          unread_conversations: 0,
-          candidat: { uuid: 'eeeeeeee-0001-0001-0001-000000000003', nom: 'Petit', prenom: 'Chloé' },
-        }],
-      }
-    : etape),
 }
 
 function dropButton(label: string, targetColumnId: string) {
@@ -172,6 +155,13 @@ describe('candidaturesKanbanView', () => {
     expect(dialog.getByText(/Vous êtes sur le point de refuser la candidature de Alice/)).toBeInTheDocument()
   })
 
+  it('shows in the toolbar the count of the selected candidatures shown by the search, in place of the candidatures count', async () => {
+    await selectColumns(['Réception des candidatures'], 'Alice')
+
+    expect(await screen.findByText('1 candidat sélectionné')).toBeInTheDocument()
+    expect(screen.queryByText(/^\d+ candidatures?$/)).not.toBeInTheDocument()
+  })
+
   it('lists in the stage drawer only the selected candidatures shown by the search', async () => {
     const user = await selectColumns(['Réception des candidatures'], 'Alice')
     await user.click(await screen.findByRole('button', { name: 'Changer d\'étape' }))
@@ -191,9 +181,8 @@ describe('candidaturesKanbanView', () => {
     expect(patchEtapeCandidatures).not.toHaveBeenCalled()
   })
 
-  it('moves the selection to a stage, without the candidatures hidden by the search', async () => {
-    vi.mocked(getRecrutementKanban).mockResolvedValue(KANBAN_WITH_ENTRETIEN)
-    const user = await selectColumns(['Réception des candidatures', 'Entretien'], 'Alice')
+  it('moves the selection to a stage, without the candidatures hidden by the search, and confirms it', async () => {
+    const user = await selectColumns(['Réception des candidatures'], 'Alice')
     await user.click(await screen.findByRole('button', { name: 'Changer d\'étape' }))
     const drawer = within(await screen.findByRole('dialog', { name: /Changer d'étape/ }))
     await user.click(drawer.getByRole('radio', { name: /Entretien/ }))
@@ -203,6 +192,7 @@ describe('candidaturesKanbanView', () => {
       etapeCibleUuid: ETAPE_ENTRETIEN,
       candidatureUuids: [CANDIDATURE_ALICE],
     }))
+    await vi.waitFor(() => expect(useToast().toasts.value.at(-1)?.title).toBe('La candidature d\'Alice Dupont est passée à l\'étape Entretien'))
   })
 
   it('sends a card dropped in another column, and ignores one dropped back in its own column', async () => {

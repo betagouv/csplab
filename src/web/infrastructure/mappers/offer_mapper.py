@@ -25,12 +25,14 @@ class OfferMapper(
     def to_domain(self, model: OfferModel) -> Offer:
         localisation = None
 
-        if model.region and model.department and model.country and model.area:
+        if model.country and model.area:
             localisation = Localisation(
                 area=GeographicalArea(model.area),
                 country=Country(model.country),
-                region=Region(code=model.region),
-                department=Department(code=model.department),
+                region=Region(code=model.region) if model.region else None,
+                department=(
+                    Department(code=model.department) if model.department else None
+                ),
                 label=model.location_label,
                 latitude=model.latitude,
                 longitude=model.longitude,
@@ -108,8 +110,10 @@ class OfferMapper(
         if entity.localisation:
             area = entity.localisation.area.value
             country = str(entity.localisation.country)
-            region = entity.localisation.region.code
-            department = entity.localisation.department.code
+            if entity.localisation.region:
+                region = entity.localisation.region.code
+            if entity.localisation.department:
+                department = entity.localisation.department.code
             location_label = entity.localisation.label
             latitude = entity.localisation.latitude
             longitude = entity.localisation.longitude

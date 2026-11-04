@@ -508,6 +508,7 @@ HUEY = {
         "periodic": True,  # Enable crontab feature.
         "check_worker_health": True,
         "health_check_interval": 1,
+        "flush_locks": True,
     },
 }
 DEMO_AUTO_REPLY_DELAY_MINUTES = env.int("DEMO_AUTO_REPLY_DELAY_MINUTES", default=2)

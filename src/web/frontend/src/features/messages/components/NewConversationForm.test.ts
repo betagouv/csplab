@@ -22,7 +22,7 @@ const NEW_CONVERSATION_PATH = `/organismes/${CANDIDATURE.organismeUuid}/recrutem
 const CONVERSATION_UUID = 'ffffffff-0001-0001-0001-000000000001'
 
 describe('newConversationForm', () => {
-  it('opens the created conversation once it is sent', async () => {
+  it('opens the created conversation and confirms it once it is sent', async () => {
     vi.mocked(createConversation).mockResolvedValue({
       uuid: CONVERSATION_UUID,
       objet: 'Convocation',
@@ -45,6 +45,7 @@ describe('newConversationForm', () => {
 
     await vi.waitFor(() => expect(router.currentRoute.value.name).toBe(CANDIDATURE_PANEL_ROUTE_NAMES.kanban.conversations.conversation))
     expect(router.currentRoute.value.params.conversationUuid).toBe(CONVERSATION_UUID)
+    expect(useToast().toasts.value.at(-1)?.title).toBe('Conversation créée')
   })
 
   it('keeps the typed content when the creation fails', async () => {

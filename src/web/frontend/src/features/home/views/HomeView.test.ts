@@ -11,7 +11,10 @@ function renderHome(organismeUuid: string) {
 
 describe('homeView', () => {
   beforeEach(() => {
-    vi.mocked(getMe).mockReset().mockResolvedValue(makeUser([ROLE_MTE, ROLE_BRIANCON]))
+    vi.mocked(getMe).mockReset().mockResolvedValue(makeUser([ROLE_MTE, ROLE_BRIANCON], false, [
+      { uuid: MTE_UUID, nom: ROLE_MTE.nom, authorized_actions: ['get_organisme', 'list_recrutements'] },
+      { uuid: BRIANCON_UUID, nom: ROLE_BRIANCON.nom, authorized_actions: ['list_recrutements'] },
+    ]))
   })
 
   it('greets the user by their first name', async () => {

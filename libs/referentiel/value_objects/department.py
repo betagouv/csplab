@@ -114,6 +114,8 @@ class Department(BaseModel):
         "974": "La Réunion",
         "975": "Saint-Pierre-et-Miquelon",
         "976": "Mayotte",
+        "977": "Saint-Barthélemy",
+        "978": "Saint-Martin",
         "986": "Wallis-et-Futuna",
         "987": "Polynésie française",
         "988": "Nouvelle-Calédonie",

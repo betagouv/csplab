@@ -1,0 +1,66 @@
+/* Written by palette.test.ts from the rule in palette-rule.ts: vitest run src/styles/palette.test.ts --update */
+:root {
+  --csp-palette-grey-background: oklch(0.92 0 0);
+  --csp-palette-grey-text: oklch(0.42 0 0);
+  --csp-palette-grey-dot: oklch(0.57 0 0);
+  --csp-palette-blue-background: oklch(0.92 0.041 245);
+  --csp-palette-blue-text: oklch(0.42 0.1 245);
+  --csp-palette-blue-dot: oklch(0.57 0.143 245);
+  --csp-palette-mint-background: oklch(0.92 0.045 182);
+  --csp-palette-mint-text: oklch(0.42 0.075 182);
+  --csp-palette-mint-dot: oklch(0.57 0.102 182);
+  --csp-palette-green-background: oklch(0.92 0.045 150);
+  --csp-palette-green-text: oklch(0.42 0.1 150);
+  --csp-palette-green-dot: oklch(0.57 0.15 150);
+  --csp-palette-yellow-background: oklch(0.94 0.063 92);
+  --csp-palette-yellow-text: oklch(0.44 0.09 92);
+  --csp-palette-yellow-dot: oklch(0.59 0.12 92);
+  --csp-palette-red-background: oklch(0.89 0.045 25);
+  --csp-palette-red-text: oklch(0.39 0.1 25);
+  --csp-palette-red-dot: oklch(0.54 0.15 25);
+  --csp-palette-orange-background: oklch(0.92 0.045 58);
+  --csp-palette-orange-text: oklch(0.42 0.1 58);
+  --csp-palette-orange-dot: oklch(0.57 0.136 58);
+  --csp-palette-beige-background: oklch(0.89 0.0225 75);
+  --csp-palette-beige-text: oklch(0.39 0.05 75);
+  --csp-palette-beige-dot: oklch(0.54 0.075 75);
+  --csp-palette-pink-background: oklch(0.92 0.045 352);
+  --csp-palette-pink-text: oklch(0.42 0.1 352);
+  --csp-palette-pink-dot: oklch(0.57 0.15 352);
+  --csp-palette-purple-background: oklch(0.89 0.045 316);
+  --csp-palette-purple-text: oklch(0.39 0.1 316);
+  --csp-palette-purple-dot: oklch(0.54 0.15 316);
+}
+
+:root[data-fr-theme='dark'] {
+  --csp-palette-grey-background: oklch(0.32 0 0);
+  --csp-palette-grey-text: oklch(0.84 0 0);
+  --csp-palette-grey-dot: oklch(0.72 0 0);
+  --csp-palette-blue-background: oklch(0.32 0.045 245);
+  --csp-palette-blue-text: oklch(0.84 0.08 245);
+  --csp-palette-blue-dot: oklch(0.72 0.13 245);
+  --csp-palette-mint-background: oklch(0.32 0.045 182);
+  --csp-palette-mint-text: oklch(0.84 0.08 182);
+  --csp-palette-mint-dot: oklch(0.72 0.128 182);
+  --csp-palette-green-background: oklch(0.32 0.045 150);
+  --csp-palette-green-text: oklch(0.84 0.08 150);
+  --csp-palette-green-dot: oklch(0.72 0.13 150);
+  --csp-palette-yellow-background: oklch(0.32 0.045 92);
+  --csp-palette-yellow-text: oklch(0.84 0.08 92);
+  --csp-palette-yellow-dot: oklch(0.72 0.13 92);
+  --csp-palette-red-background: oklch(0.32 0.045 25);
+  --csp-palette-red-text: oklch(0.84 0.08 25);
+  --csp-palette-red-dot: oklch(0.72 0.13 25);
+  --csp-palette-orange-background: oklch(0.32 0.045 58);
+  --csp-palette-orange-text: oklch(0.84 0.08 58);
+  --csp-palette-orange-dot: oklch(0.72 0.13 58);
+  --csp-palette-beige-background: oklch(0.35 0.0225 75);
+  --csp-palette-beige-text: oklch(0.87 0.04 75);
+  --csp-palette-beige-dot: oklch(0.75 0.065 75);
+  --csp-palette-pink-background: oklch(0.32 0.045 352);
+  --csp-palette-pink-text: oklch(0.84 0.08 352);
+  --csp-palette-pink-dot: oklch(0.72 0.13 352);
+  --csp-palette-purple-background: oklch(0.32 0.045 316);
+  --csp-palette-purple-text: oklch(0.84 0.08 316);
+  --csp-palette-purple-dot: oklch(0.72 0.13 316);
+}

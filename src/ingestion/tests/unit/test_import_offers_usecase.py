@@ -179,3 +179,25 @@ async def test_empty_page_does_not_insert_or_dispatch(
 
     mock_webhook_repo.insert.assert_not_called()
     mock_dispatch.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_references_only_enqueues_given_offers(
+    container, mock_sources_repo, mock_talentsoft_repo, mock_webhook_repo, mock_dispatch
+):
+    source = SourceFactory.build(source_id=SOURCE_UUID, client_id_front=CLIENT_ID_FRONT)
+    mock_sources_repo.get_by_source_id.return_value = source
+    client = _make_client([])
+    mock_talentsoft_repo.get.return_value = client
+
+    await container.import_offers_usecase().execute(
+        source_id=SOURCE_UUID, references=["REF-1", "REF-2"]
+    )
+
+    client.get_all.assert_not_called()
+    inserted = [call.args[0] for call in mock_webhook_repo.insert.call_args_list]
+    assert [webhook.reference for webhook in inserted] == ["REF-1", "REF-2"]
+    assert all(
+        webhook.action_type == WebhookActionType.SAVE_RAW_OFFER for webhook in inserted
+    )
+    assert mock_dispatch.call_count == 2

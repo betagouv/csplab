@@ -15,8 +15,7 @@ import { useRouteTab } from '@/composables/navigation/useRouteTab'
 import { useDocumentTitle } from '@/composables/ui/useDocumentTitle'
 import { homeBreadcrumbItem, recrutementsBreadcrumbItem } from '@/router/breadcrumb'
 import { RECRUTEMENT_DETAIL_TAB_ROUTE_NAMES, RECRUTEMENT_ETAPES_ROUTE_NAME, recrutementsListLocation } from '@/router/names'
-import { useCurrentUser } from '@/stores/currentUser'
-import { useRouteOrganisme } from '@/stores/routeOrganisme'
+import { can } from '@/utils/authorizedActions'
 import ForbiddenView from '@/views/ForbiddenView.vue'
 import { useRecrutementDetail } from '../composables/useRecrutementDetail'
 import { RECRUTEMENT_DETAIL_TAB_ICONS, RECRUTEMENT_DETAIL_TAB_LABELS } from '../constants/recrutement'
@@ -50,22 +49,27 @@ const metaItems = computed(() =>
   recrutementDetail.value ? formatRecrutementMeta(recrutementDetail.value) : [],
 )
 
-const { user } = useCurrentUser()
-const { canManageOrganisme } = useRouteOrganisme()
+const canListEquipe = computed(() =>
+  can(recrutementDetail.value?.authorized_actions, 'list_recrutement_agents'),
+)
 
 const TABS = tabItems(RECRUTEMENT_DETAIL_TAB_LABELS, RECRUTEMENT_DETAIL_TAB_ICONS)
 const visibleTabs = computed(() =>
-  canManageOrganisme.value ? TABS : TABS.filter(tab => tab.value !== 'equipe'),
+  canListEquipe.value ? TABS : TABS.filter(tab => tab.value !== 'equipe'),
 )
 const activeTab = useRouteTab<RecrutementDetailTabKey>(RECRUTEMENT_DETAIL_TAB_ROUTE_NAMES, 'candidatures')
 
 useDocumentTitle(() => RECRUTEMENT_DETAIL_TAB_LABELS[activeTab.value], intitule)
 
 const equipeForbidden = computed(() =>
-  activeTab.value === 'equipe' && Boolean(user.value) && !canManageOrganisme.value,
+  activeTab.value === 'equipe' && Boolean(recrutementDetail.value) && !canListEquipe.value,
 )
 
 const forbidden = computed(() => isHttpStatus(error.value, 403) || equipeForbidden.value)
+
+const canCustomizeEtapes = computed(() =>
+  can(recrutementDetail.value?.authorized_actions, 'update_recrutement_etapes'),
+)
 
 const headerMenuSections = [{
   items: [{
@@ -89,7 +93,10 @@ const headerMenuSections = [{
       :show-title-skeleton="showTitleSkeleton"
       :show-subtitle-skeleton="showSubtitleSkeleton"
     >
-      <template #actions>
+      <template
+        v-if="canCustomizeEtapes"
+        #actions
+      >
         <CspDropdownMenu
           :sections="headerMenuSections"
           side="bottom"
@@ -100,7 +107,7 @@ const headerMenuSections = [{
               icon="ri:more-fill"
               variant="tertiary"
               size="sm"
-              aria-label="Actions sur l’offre"
+              aria-label="Actions sur le recrutement"
             />
           </template>
         </CspDropdownMenu>

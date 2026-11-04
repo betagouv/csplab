@@ -14,7 +14,9 @@
                href="{% url 'candidate:cv_results' cv_uuid=cv_uuid %}">Retour aux résultats</a>
         </div>
         <div class="fr-container">
-            <div class="fr-card fr-p-2w fr-p-md-4w">{% include "candidate/components/_opportunity_detail_content.html" %}</div>
+            <div class="fr-card fr-p-2w fr-p-md-4w">
+                {% include "candidate/components/_opportunity_detail_content.html" %}
+            </div>
         </div>
     </div>
 {% endblock main %}

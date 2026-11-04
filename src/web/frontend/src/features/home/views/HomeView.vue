@@ -21,9 +21,9 @@ defineProps<{
 const breadcrumb: CspBreadcrumbItem[] = [{ label: HOME_BREADCRUMB_LABEL }]
 
 const { user } = useCurrentUser()
-const { canManageOrganisme } = useRouteOrganisme()
+const { canOnOrganisme } = useRouteOrganisme()
 
-const welcome = computed(() => WELCOME_TEXTS[canManageOrganisme.value ? 'superviseur' : 'agent'])
+const welcome = computed(() => WELCOME_TEXTS[canOnOrganisme('get_organisme') ? 'superviseur' : 'agent'])
 
 useDocumentTitle(HOME_BREADCRUMB_LABEL)
 </script>

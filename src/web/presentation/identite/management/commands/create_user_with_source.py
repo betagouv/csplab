@@ -15,7 +15,10 @@ from infrastructure.django_apps.users.models import UserModel
 
 
 class Command(BaseCommand):
-    help = "Crée un utilisateur et une source, puis rattache la source à l'utilisateur."
+    help = (
+        "Crée un utilisateur et le rattache à une source : une source existante "
+        "si le slug saisi en désigne une, sinon une nouvelle source de type API."
+    )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -36,8 +39,9 @@ class Command(BaseCommand):
                 first_name=first_name,
                 last_name=last_name,
             )
-            source.full_clean()
-            source.save()
+            if source._state.adding:
+                source.full_clean()
+                source.save()
             user.sources.add(source)
 
         self.logger.info(
@@ -80,5 +84,15 @@ class Command(BaseCommand):
             return password
 
     def _prompt_source(self) -> SourceModel:
-        slug = self._prompt("Slug de la source")
-        return SourceModel(slug=slug, type=SourceType.API.value)
+        while True:
+            slug = self._prompt("Slug de la source")
+            source = SourceModel.objects.filter(slug=slug).first()
+            if source is None:
+                return SourceModel(slug=slug, type=SourceType.API.value)
+            if self._confirm(
+                f"La source '{slug}' existe déjà, y rattacher l'utilisateur ?"
+            ):
+                return source
+
+    def _confirm(self, question: str) -> bool:
+        return input(f"{question} [o/N]: ").strip().lower() in {"o", "oui"}

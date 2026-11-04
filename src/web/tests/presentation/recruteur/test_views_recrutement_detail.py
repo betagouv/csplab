@@ -159,6 +159,16 @@ def _detail_url(organisme_id, recrutement_id) -> str:
     )
 
 
+def _authorized_actions(organisme_role, recrutement_role) -> list[str]:
+    permissions = OrganismePermissionService()
+    return [
+        action.value
+        for action in permissions.authorized_actions_recrutement(
+            organisme_role, recrutement_role=recrutement_role
+        )
+    ]
+
+
 class TestRecrutementDetailView:
     def test_anonymous_access_is_unauthorized(self, api_client):
         response = api_client.get(RECRUTEMENT_DETAIL_URL)
@@ -187,6 +197,7 @@ class TestRecrutementDetailView:
             "categorie_offre",
             "etapes",
             "recrutement_role",
+            "authorized_actions",
         }
         assert payload["recrutement_role"] is None
         assert payload["uuid"] == str(recrutement.pk)
@@ -230,8 +241,8 @@ class TestRecrutementDetailView:
         assert response.json()["localisation"] == {
             "zone_geographique": "",
             "pays": "",
-            "region": "",
-            "departement": "",
+            "region": None,
+            "departement": None,
             "localisation_label": "",
             "latitude": None,
             "longitude": None,
@@ -327,6 +338,9 @@ class TestRecrutementDetailView:
         else:
             expected_role = recrutement_role.value if recrutement_role else None
             assert response.json()["recrutement_role"] == expected_role
+            assert response.json()["authorized_actions"] == _authorized_actions(
+                organisme_role, recrutement_role
+            )
 
     def test_staff_gets_detail_without_organisme_role(self, api_client):
         api_client.force_login(UtilisateurDjangoFactory(is_staff=True))
@@ -335,6 +349,9 @@ class TestRecrutementDetailView:
         response = api_client.get(_detail_url(recrutement.organisme_id, recrutement.pk))
 
         assert response.status_code == status.HTTP_200_OK
+        assert response.json()["authorized_actions"] == _authorized_actions(
+            AgentOrganismeRole.SUPERVISEUR, None
+        )
 
     def test_returns_404_for_unknown_recrutement(self, authenticated_client, test_user):
         _, organisme = create_organisme_with_agent(
