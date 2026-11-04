@@ -241,8 +241,8 @@ class TestRecrutementDetailView:
         assert response.json()["localisation"] == {
             "zone_geographique": "",
             "pays": "",
-            "region": "",
-            "departement": "",
+            "region": None,
+            "departement": None,
             "localisation_label": "",
             "latitude": None,
             "longitude": None,

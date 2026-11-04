@@ -571,11 +571,11 @@ class LocalisationInputSerializer(LocalisationSerializer):
     )
     region = serializers.ChoiceField(
         choices=sorted(Region.VALID_CODES, key=lambda x: x),
-        allow_blank=True,
+        allow_null=True,
         help_text=(
             "Code INSEE de la région, `DOM` ou `TOM`. Le département doit "
             "appartenir à cette région : `DOM` avec un département d'outre-mer, "
-            "`TOM` avec une collectivité d'outre-mer."
+            "`TOM` avec une collectivité d'outre-mer. `null` hors de France."
         ),
     )
     latitude = serializers.FloatField(
@@ -679,8 +679,8 @@ class OfferDetailResponseSerializer(serializers.Serializer):
         return {
             "zone_geographique": str(loc.area),
             "pays": str(loc.country),
-            "region": loc.region.code if loc.region else "",
-            "departement": loc.department.code if loc.department else "",
+            "region": loc.region.code if loc.region else None,
+            "departement": loc.department.code if loc.department else None,
             "localisation_label": loc.label,
             "latitude": loc.latitude,
             "longitude": loc.longitude,
@@ -1146,10 +1146,11 @@ class OrganismeLocalisationInputSerializer(serializers.Serializer):
     )
     region = serializers.ChoiceField(
         choices=sorted(Region.VALID_CODES, key=lambda x: x),
-        allow_blank=True,
+        allow_null=True,
     )
     departement = serializers.ChoiceField(
-        choices=sorted(Department.VALID_CODES, key=lambda x: x), allow_blank=True
+        choices=sorted(Department.VALID_CODES, key=lambda x: x),
+        allow_null=True,
     )
     latitude = serializers.FloatField(
         allow_null=True, required=False, min_value=-90, max_value=90
@@ -1232,8 +1233,8 @@ class ListOrganismesFiltersSerializer(serializers.Serializer):
 class OrganismeLocalisationPublicSerializer(serializers.Serializer):
     zone_geographique = serializers.CharField(source="area")
     pays = serializers.CharField(source="country")
-    region = serializers.CharField()
-    departement = serializers.CharField(source="department")
+    region = serializers.CharField(allow_null=True)
+    departement = serializers.CharField(source="department", allow_null=True)
 
 
 class OrganismePublicSerializer(serializers.ModelSerializer):

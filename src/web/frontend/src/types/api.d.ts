@@ -681,8 +681,6 @@ export interface components {
          * @enum {string}
          */
         AuthorizedActionsEnum: "get_organisme" | "initialize_organisme_steps" | "update_organisme_steps" | "list_recrutements" | "get_recrutement" | "get_candidature" | "change_etape_candidatures" | "get_recrutement_etapes" | "update_recrutement_etapes" | "init_recrutement_etapes" | "create_organisme" | "list_organismes" | "update_organisme" | "list_organisme_agents" | "search_agent" | "attach_organisme_agent" | "update_organisme_agent" | "revoke_organisme_agent" | "create_agent" | "list_recrutement_agents" | "add_recrutement_agent" | "update_recrutement_agent" | "revoke_recrutement_agent" | "set_recrutements_responsable" | "get_motifs_refus" | "read_document" | "list_documents" | "list_notes" | "create_note" | "update_note" | "delete_note" | "list_conversations" | "read_conversation" | "create_conversation" | "reply_conversation" | "list_tags" | "create_tag" | "update_tag" | "delete_tag";
-        /** @enum {unknown} */
-        BlankEnum: "";
         Candidat: {
             /** Format: uuid */
             uuid: string;
@@ -1003,8 +1001,8 @@ export interface components {
         Localisation: {
             zone_geographique: components["schemas"]["ZoneGeographiqueEnum"];
             pays: string;
-            region: components["schemas"]["RegionEnum"] | components["schemas"]["BlankEnum"];
-            departement: components["schemas"]["DepartementEnum"] | components["schemas"]["BlankEnum"];
+            region: (components["schemas"]["RegionEnum"] | components["schemas"]["NullEnum"]) | null;
+            departement: (components["schemas"]["DepartementEnum"] | components["schemas"]["NullEnum"]) | null;
             localisation_label: string;
             /** Format: double */
             latitude: number | null;

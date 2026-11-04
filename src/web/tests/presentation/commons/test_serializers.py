@@ -10,8 +10,8 @@ def _payload(**overrides):
     payload = {
         "zone_geographique": "EU",
         "pays": "FRA",
-        "region": "",
-        "departement": "",
+        "region": None,
+        "departement": None,
         "localisation_label": "",
         "latitude": None,
         "longitude": None,
