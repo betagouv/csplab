@@ -12,9 +12,9 @@ from markdown_it import MarkdownIt
 from presentation.api.changelog_api import (
     TYPE_LABELS,
     Filters,
-    cited_routes,
     entry_html,
     published_fragments,
+    published_routes,
 )
 
 _TOC_MAX_LEVEL = 3
@@ -133,7 +133,8 @@ class ApiChangelogView(TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         published = published_fragments()
-        filters = Filters.from_query(self.request.GET)
+        routes = published_routes()
+        filters = Filters.from_query(self.request.GET, routes)
         fragments = filters.apply(published)
         query = filters.query_string()
         context.update(
@@ -142,7 +143,7 @@ class ApiChangelogView(TemplateView):
                 {"value": t, "label": label, "checked": t in filters.types}
                 for t, label in TYPE_LABELS.items()
             ],
-            routes=cited_routes(published),
+            routes=routes,
             count=len(fragments),
             total=len(published),
             query=f"?{query}" if query else "",

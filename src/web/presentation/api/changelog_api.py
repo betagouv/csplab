@@ -1,5 +1,5 @@
 import re
-from collections.abc import Iterable
+from collections.abc import Collection, Iterable
 from dataclasses import dataclass, field
 from datetime import date, datetime, timedelta
 from functools import cache
@@ -292,6 +292,7 @@ def check_added_fragment(
 _markdown = MarkdownIt("commonmark", {"html": False})
 
 
+@cache
 def entry_html(fragment: Fragment, *, new_tab: bool = False) -> str:
     tokens = _markdown.parse(render_entry(fragment))
     if new_tab:
@@ -333,6 +334,11 @@ def cited_routes(fragments: Iterable[Fragment]) -> list[str]:
     return sorted({route for fragment in fragments for route in fragment.routes})
 
 
+@cache
+def published_routes() -> tuple[str, ...]:
+    return tuple(cited_routes(published_fragments()))
+
+
 @dataclass(frozen=True)
 class Filters:
     types: frozenset[str] = frozenset()
@@ -341,22 +347,24 @@ class Filters:
     errors: tuple[str, ...] = field(default=(), compare=False)
 
     @classmethod
-    def from_query(cls, query: QueryDict) -> "Filters":
+    def from_query(cls, query: QueryDict, routes: Collection[str]) -> "Filters":
         errors = []
         types = query.getlist("type")
-        unknown = [t for t in types if t not in TYPES]
-        if unknown:
-            errors.append(
-                f"`type` inconnu : {', '.join(unknown)}. Valeurs possibles : "
-                f"{', '.join(TYPES)}."
-            )
+        if any(t not in TYPES for t in types):
+            errors.append(f"`type` inconnu. Valeurs possibles : {', '.join(TYPES)}.")
         route = (query.get("route") or "").strip().rstrip("/")
+        if route and route not in routes:
+            errors.append(
+                "`route` n'est citée par aucun changement. Valeurs possibles : "
+                f"{', '.join(sorted(routes))}."
+            )
+            route = ""
         since = None
         if raw_since := (query.get("depuis") or "").strip():
             try:
                 since = date.fromisoformat(raw_since)
             except ValueError:
-                errors.append(f"`depuis` doit être une date AAAA-MM-JJ : {raw_since}.")
+                errors.append("`depuis` doit être une date AAAA-MM-JJ.")
         return cls(
             types=frozenset(t for t in types if t in TYPES),
             route=route,

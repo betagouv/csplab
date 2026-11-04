@@ -12,7 +12,9 @@ Regenerate the schema whenever you:
 - Change a view's HTTP methods or permissions
 - Add or modify `@extend_schema` decorators
 
-The `changelog` tag has no description in `schema.yaml`: Redoc loads `/api/schema/public`, which adds the changelog assembled from `changelog_api.d/` (see [changelog_api.md](changelog_api.md)).
+The `changelog` tag has no description in `schema.yaml`: Redoc loads `/api/schema/public`, which adds the changelog assembled from `changelog_api.d/` (see [changelog_api.md](changelog_api.md)). The changelog is also published on `/pages/changelog_api` and as `/api/changelog.md`, `.json` and `.atom`, built from the same fragments: adding a fragment never requires regenerating the schema.
+
+These routes and `/api/guide.md` are documented under the `documentation` tag (« Changelog et documentation » in Redoc). Regenerate the schema when you change their `@extend_schema`, their filters or `ChangelogSerializer`.
 
 ## Schema split
 

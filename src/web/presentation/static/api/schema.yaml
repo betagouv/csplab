@@ -20,7 +20,8 @@ paths:
         name: route
         schema:
           type: string
-        description: Route citée par le changement, avec sa méthode.
+        description: Route citée par le changement, avec sa méthode. Une route citée
+          par aucun changement renvoie une erreur `400`.
         examples:
           CréerOuModifierDesOffres:
             value: POST /api/v1/offres/creer_modifier
@@ -106,7 +107,8 @@ paths:
         name: route
         schema:
           type: string
-        description: Route citée par le changement, avec sa méthode.
+        description: Route citée par le changement, avec sa méthode. Une route citée
+          par aucun changement renvoie une erreur `400`.
         examples:
           CréerOuModifierDesOffres:
             value: POST /api/v1/offres/creer_modifier
@@ -192,7 +194,8 @@ paths:
         name: route
         schema:
           type: string
-        description: Route citée par le changement, avec sa méthode.
+        description: Route citée par le changement, avec sa méthode. Une route citée
+          par aucun changement renvoie une erreur `400`.
         examples:
           CréerOuModifierDesOffres:
             value: POST /api/v1/offres/creer_modifier
@@ -7226,6 +7229,14 @@ tags:
     contacter.
 
     - [Salon public CSPLab sur Tchap](https://tchap.gouv.fr/#/room/!qhvvUVvMxxOUAAMqzi:agent.dinum.tchap.gouv.fr)
+
+    ## Suivre les évolutions de l'API
+
+    Les changements de l'API sont publiés sur la
+    [page du changelog](/pages/changelog_api), filtrable par type de changement, par route
+    et par date. Ils sont aussi disponibles en [Markdown](/api/changelog.md), en
+    [JSON](/api/changelog.json) et en [flux Atom](/api/changelog.atom), pour être prévenu
+    des nouveaux changements.
 
     ## Support et demandes d'évolution
 

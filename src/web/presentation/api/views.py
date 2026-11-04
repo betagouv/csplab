@@ -29,6 +29,7 @@ from presentation.api.changelog_api import (
     changelog_markdown,
     entry_html,
     published_fragments,
+    published_routes,
 )
 from presentation.api.serializers import ChangelogErrorSerializer, ChangelogSerializer
 
@@ -73,7 +74,10 @@ _FILTER_PARAMETERS = [
     OpenApiParameter(
         "route",
         str,
-        description="Route citée par le changement, avec sa méthode.",
+        description=(
+            "Route citée par le changement, avec sa méthode. Une route citée par "
+            "aucun changement renvoie une erreur `400`."
+        ),
         examples=[
             OpenApiExample(
                 "Créer ou modifier des offres",
@@ -117,7 +121,7 @@ class ChangelogMarkdownView(_PublicDocumentationView):
         },
     )
     def get(self, request):
-        filters = Filters.from_query(request.GET)
+        filters = Filters.from_query(request.GET, published_routes())
         if filters.errors:
             return _invalid_filters(filters)
         markdown = assemble(
@@ -141,7 +145,7 @@ class ChangelogJsonView(_PublicDocumentationView):
         responses={200: ChangelogSerializer, 400: ChangelogErrorSerializer},
     )
     def get(self, request):
-        filters = Filters.from_query(request.GET)
+        filters = Filters.from_query(request.GET, published_routes())
         if filters.errors:
             return Response(
                 ChangelogErrorSerializer({"erreurs": filters.errors}).data,
@@ -208,7 +212,7 @@ class ChangelogAtomView(_PublicDocumentationView):
         },
     )
     def get(self, request):
-        filters = Filters.from_query(request.GET)
+        filters = Filters.from_query(request.GET, published_routes())
         if filters.errors:
             return _invalid_filters(filters)
         return ChangelogFeed(request._request, filters)(request._request)
@@ -223,8 +227,12 @@ class GuideMarkdownView(_PublicDocumentationView):
         responses={(200, "text/markdown"): OpenApiTypes.STR},
     )
     def get(self, request):
-        guide = (settings.STATIC_DIR / "api" / "guide_api.md").read_text()
-        return HttpResponse(guide, content_type=_MARKDOWN)
+        return HttpResponse(_guide_markdown(), content_type=_MARKDOWN)
+
+
+@cache
+def _guide_markdown() -> str:
+    return (settings.STATIC_DIR / "api" / "guide_api.md").read_text()
 
 
 @extend_schema(exclude=True)

@@ -22,7 +22,8 @@ from infrastructure.authentication.jwt_token import get_validated_jwt
 
 _API_KEY_THROTTLES = [ApiKeyRateThrottle(), ApiKeyRateThrottleDaily()]
 _USER_THROTTLE = UserRateThrottle()
-_ANON_THROTTLES = [ClientIpAnonRateThrottle(), DocumentationRateThrottle()]
+_ANON_THROTTLE = ClientIpAnonRateThrottle()
+_DOCUMENTATION_THROTTLE = DocumentationRateThrottle()
 _jwt_auth = JWTAuthentication()
 
 
@@ -67,8 +68,10 @@ def _view_throttle_scopes(request: HttpRequest) -> set[str]:
 
 
 def _throttles_for_caller(
-    request: HttpRequest,
+    request: HttpRequest, scopes: set[str]
 ) -> list[tuple[SimpleRateThrottle, str]]:
+    if _DOCUMENTATION_THROTTLE.scope in scopes:
+        return [(_DOCUMENTATION_THROTTLE, _DOCUMENTATION_THROTTLE.get_ident(request))]
     if _is_authenticated_api_key_request(request):
         return [(throttle, "ingestion-api-key") for throttle in _API_KEY_THROTTLES]
     user = _authenticate_jwt_user(request)
@@ -77,7 +80,7 @@ def _throttles_for_caller(
     if not request.headers.get("Authorization") and request.path.startswith(
         settings.PUBLIC_API_PREFIX
     ):
-        return [(throttle, throttle.get_ident(request)) for throttle in _ANON_THROTTLES]
+        return [(_ANON_THROTTLE, _ANON_THROTTLE.get_ident(request))]
     return []
 
 
@@ -87,7 +90,7 @@ def _collect_rate_limit_states(request: HttpRequest) -> list[tuple[int, int, int
         return []
     return [
         _rate_limit_state(throttle, ident)
-        for throttle, ident in _throttles_for_caller(request)
+        for throttle, ident in _throttles_for_caller(request, scopes)
         if throttle.scope in scopes
     ]
 

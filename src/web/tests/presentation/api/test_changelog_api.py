@@ -1,6 +1,7 @@
 import xml.etree.ElementTree as ET
 from datetime import date
 from textwrap import dedent
+from unittest.mock import patch
 
 import pytest
 import yaml
@@ -10,7 +11,10 @@ from django.http import QueryDict
 from django.urls import reverse
 from rest_framework import status
 
+from infrastructure.authentication.anon_rate_throttle import DocumentationRateThrottle
 from presentation.api.changelog_api import (
+    TYPE_LABELS,
+    TYPES,
     Filters,
     FragmentError,
     assemble,
@@ -25,6 +29,7 @@ from presentation.api.changelog_api import (
 )
 from presentation.api.serializers import ChangelogEntrySerializer
 from presentation.api.views import ChangelogJsonView
+from presentation.pages.views import _BADGES
 
 TODAY = date(2026, 10, 27)
 
@@ -286,13 +291,20 @@ def test_changelog_entry_serializer(tmp_path):
     }
 
 
+def test_every_type_has_a_title_a_label_and_a_badge():
+    assert set(TYPES) == set(TYPE_LABELS) == set(_BADGES)
+
+
 class TestFilters:
+    ROUTES = ("GET /api/v1/metiers", "GET /api/v1/offres")
+
     def test_reads_the_query(self):
         filters = Filters.from_query(
             QueryDict(
                 "type=ajoute&type=non_retrocompatible"
                 "&route=GET+/api/v1/offres/&depuis=2026-10-15"
-            )
+            ),
+            self.ROUTES,
         )
 
         assert filters == Filters(
@@ -311,14 +323,26 @@ class TestFilters:
             "route `GET /api/v1/offres` ; depuis le 2026-10-15."
         )
 
-    def test_reports_invalid_values(self):
-        filters = Filters.from_query(QueryDict("type=autre&depuis=15/10/2026"))
+    def test_reports_invalid_values_without_quoting_them(self):
+        filters = Filters.from_query(
+            QueryDict("type=autre&route=GET+/api/v1/injecte&depuis=15/10/2026"),
+            self.ROUTES,
+        )
 
         assert filters == Filters()
         assert not filters.active
-        assert len(filters.errors) == 2  # noqa: PLR2004
-        assert "`type` inconnu : autre" in filters.errors[0]
-        assert "`depuis` doit être une date" in filters.errors[1]
+        assert filters.describe() == ""
+        assert filters.errors == (
+            (
+                "`type` inconnu. Valeurs possibles : non_retrocompatible, ajoute, "
+                "modifie, corrige, retire."
+            ),
+            (
+                "`route` n'est citée par aucun changement. Valeurs possibles : "
+                "GET /api/v1/metiers, GET /api/v1/offres."
+            ),
+            "`depuis` doit être une date AAAA-MM-JJ.",
+        )
 
     def test_apply(self, tmp_path):
         offres = fragment(tmp_path, "a.md", body="`GET /api/v1/offres`.")
@@ -569,6 +593,18 @@ def test_guide_markdown_view(db, client):
     assert response.content.decode().startswith("# Guide de l'API CSPLab")
 
 
+@pytest.mark.parametrize(
+    "name", ["api:changelog_markdown", "api:changelog_json", "api:changelog_atom"]
+)
+def test_rejects_an_unknown_route_without_quoting_it(db, client, name):
+    response = client.get(reverse(name), {"route": "GET /api/v1/[injecté](x)"})
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    content = response.content.decode()
+    assert "`route` n'est citée par aucun changement" in content
+    assert "injecté" not in content
+
+
 class TestDocumentationRoutes:
     ROUTES = (
         "api:changelog_markdown",
@@ -578,11 +614,39 @@ class TestDocumentationRoutes:
     )
 
     @pytest.mark.parametrize("name", ROUTES)
-    def test_are_public_and_limited_to_60_calls_per_minute(self, db, client, name):
-        response = client.get(reverse(name), HTTP_AUTHORIZATION="")
+    @pytest.mark.parametrize(
+        "authorization", ["", "Bearer jeton-invalide", "Api-Key cle-invalide"]
+    )
+    def test_are_public_and_limited_to_60_calls_per_minute(
+        self, db, client, name, authorization
+    ):
+        response = client.get(reverse(name), HTTP_AUTHORIZATION=authorization)
 
         assert response.status_code == status.HTTP_200_OK
         assert response["X-RateLimit-Limit"] == "60"
+
+    def test_limits_a_caller_sending_a_valid_jwt(self, db, jwt_client):
+        response = jwt_client.get(reverse("api:changelog_json"))
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response["X-RateLimit-Limit"] == "60"
+
+    @pytest.mark.parametrize("authorization", ["", "Bearer jeton-invalide"])
+    def test_returns_429_beyond_the_limit(self, db, client, authorization):
+        url = reverse("api:changelog_markdown")
+        with patch.object(
+            DocumentationRateThrottle, "get_rate", return_value="2/minute"
+        ):
+            statuses = [
+                client.get(url, HTTP_AUTHORIZATION=authorization).status_code
+                for _ in range(3)
+            ]
+
+        assert statuses == [
+            status.HTTP_200_OK,
+            status.HTTP_200_OK,
+            status.HTTP_429_TOO_MANY_REQUESTS,
+        ]
 
     def test_rate_is_60_per_minute(self):
         throttle = ChangelogJsonView.throttle_classes[0]()

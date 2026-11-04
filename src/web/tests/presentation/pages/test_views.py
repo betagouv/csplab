@@ -1,6 +1,7 @@
 import re
 from http import HTTPStatus
 
+import pytest
 from django.test import Client
 from django.urls import reverse
 from dsfr.models import DsfrConfig
@@ -36,6 +37,9 @@ class TestApiChangelogView:
             'rel="noopener" title="PR #2084 - nouvelle fenêtre">'
         ) in content
         assert 'title="Markdown - nouvelle fenêtre"' in content
+        day_ids = re.findall(r'<h2 id="(date-[^"]+)"', content)
+        assert day_ids
+        assert len(day_ids) == len(set(day_ids))
 
     def test_filters_and_keeps_them_in_download_links(self, db, client: Client):
         response = client.get(
@@ -55,12 +59,17 @@ class TestApiChangelogView:
         checked = [t["value"] for t in response.context["types"] if t["checked"]]
         assert checked == ["retire"]
 
-    def test_ignores_an_invalid_filter_with_a_message(self, db, client: Client):
-        response = client.get(reverse("pages:api_changelog"), {"depuis": "hier"})
+    @pytest.mark.parametrize(
+        "query", [{"depuis": "hier"}, {"route": "GET /api/v1/zzz-injecte"}]
+    )
+    def test_ignores_an_invalid_filter_with_a_message(self, db, client: Client, query):
+        response = client.get(reverse("pages:api_changelog"), query)
 
         assert response.status_code == HTTPStatus.OK
         assert response.context["count"] == response.context["total"]
-        assert "Filtre ignoré" in response.content.decode()
+        content = response.content.decode()
+        assert "Filtre ignoré" in content
+        assert "zzz-injecte" not in content
 
 
 def test_llms_txt_lists_the_api_documents(db, client: Client):
