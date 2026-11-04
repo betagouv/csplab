@@ -6368,228 +6368,6 @@ components:
       required:
       - category
       - name
-    DepartementEnum:
-      enum:
-      - '01'
-      - '02'
-      - '03'
-      - '04'
-      - '05'
-      - '06'
-      - '07'
-      - '08'
-      - '09'
-      - '10'
-      - '11'
-      - '12'
-      - '13'
-      - '14'
-      - '15'
-      - '16'
-      - '17'
-      - '18'
-      - '19'
-      - '21'
-      - '22'
-      - '23'
-      - '24'
-      - '25'
-      - '26'
-      - '27'
-      - '28'
-      - '29'
-      - 2A
-      - 2B
-      - '30'
-      - '31'
-      - '32'
-      - '33'
-      - '34'
-      - '35'
-      - '36'
-      - '37'
-      - '38'
-      - '39'
-      - '40'
-      - '41'
-      - '42'
-      - '43'
-      - '44'
-      - '45'
-      - '46'
-      - '47'
-      - '48'
-      - '49'
-      - '50'
-      - '51'
-      - '52'
-      - '53'
-      - '54'
-      - '55'
-      - '56'
-      - '57'
-      - '58'
-      - '59'
-      - '60'
-      - '61'
-      - '62'
-      - '63'
-      - '64'
-      - '65'
-      - '66'
-      - '67'
-      - '68'
-      - '69'
-      - '70'
-      - '71'
-      - '72'
-      - '73'
-      - '74'
-      - '75'
-      - '76'
-      - '77'
-      - '78'
-      - '79'
-      - '80'
-      - '81'
-      - '82'
-      - '83'
-      - '84'
-      - '85'
-      - '86'
-      - '87'
-      - '88'
-      - '89'
-      - '90'
-      - '91'
-      - '92'
-      - '93'
-      - '94'
-      - '95'
-      - '971'
-      - '972'
-      - '973'
-      - '974'
-      - '975'
-      - '976'
-      - '977'
-      - '978'
-      - '986'
-      - '987'
-      - '988'
-      - SPM
-      - WLF
-      type: string
-      description: |-
-        * `01` - 01
-        * `02` - 02
-        * `03` - 03
-        * `04` - 04
-        * `05` - 05
-        * `06` - 06
-        * `07` - 07
-        * `08` - 08
-        * `09` - 09
-        * `10` - 10
-        * `11` - 11
-        * `12` - 12
-        * `13` - 13
-        * `14` - 14
-        * `15` - 15
-        * `16` - 16
-        * `17` - 17
-        * `18` - 18
-        * `19` - 19
-        * `21` - 21
-        * `22` - 22
-        * `23` - 23
-        * `24` - 24
-        * `25` - 25
-        * `26` - 26
-        * `27` - 27
-        * `28` - 28
-        * `29` - 29
-        * `2A` - 2A
-        * `2B` - 2B
-        * `30` - 30
-        * `31` - 31
-        * `32` - 32
-        * `33` - 33
-        * `34` - 34
-        * `35` - 35
-        * `36` - 36
-        * `37` - 37
-        * `38` - 38
-        * `39` - 39
-        * `40` - 40
-        * `41` - 41
-        * `42` - 42
-        * `43` - 43
-        * `44` - 44
-        * `45` - 45
-        * `46` - 46
-        * `47` - 47
-        * `48` - 48
-        * `49` - 49
-        * `50` - 50
-        * `51` - 51
-        * `52` - 52
-        * `53` - 53
-        * `54` - 54
-        * `55` - 55
-        * `56` - 56
-        * `57` - 57
-        * `58` - 58
-        * `59` - 59
-        * `60` - 60
-        * `61` - 61
-        * `62` - 62
-        * `63` - 63
-        * `64` - 64
-        * `65` - 65
-        * `66` - 66
-        * `67` - 67
-        * `68` - 68
-        * `69` - 69
-        * `70` - 70
-        * `71` - 71
-        * `72` - 72
-        * `73` - 73
-        * `74` - 74
-        * `75` - 75
-        * `76` - 76
-        * `77` - 77
-        * `78` - 78
-        * `79` - 79
-        * `80` - 80
-        * `81` - 81
-        * `82` - 82
-        * `83` - 83
-        * `84` - 84
-        * `85` - 85
-        * `86` - 86
-        * `87` - 87
-        * `88` - 88
-        * `89` - 89
-        * `90` - 90
-        * `91` - 91
-        * `92` - 92
-        * `93` - 93
-        * `94` - 94
-        * `95` - 95
-        * `971` - 971
-        * `972` - 972
-        * `973` - 973
-        * `974` - 974
-        * `975` - 975
-        * `976` - 976
-        * `977` - 977
-        * `978` - 978
-        * `986` - 986
-        * `987` - 987
-        * `988` - 988
-        * `SPM` - SPM
-        * `WLF` - WLF
     DocumentListe:
       type: object
       properties:
@@ -6676,48 +6454,6 @@ components:
           type: string
       required:
       - error
-    Localisation:
-      type: object
-      properties:
-        zone_geographique:
-          $ref: '#/components/schemas/ZoneGeographiqueEnum'
-        pays:
-          type: string
-          maxLength: 3
-          minLength: 3
-        region:
-          nullable: true
-          oneOf:
-          - $ref: '#/components/schemas/RegionEnum'
-          - $ref: '#/components/schemas/NullEnum'
-        departement:
-          nullable: true
-          oneOf:
-          - $ref: '#/components/schemas/DepartementEnum'
-          - $ref: '#/components/schemas/NullEnum'
-        localisation_label:
-          type: string
-          maxLength: 500
-        latitude:
-          type: number
-          format: double
-          maximum: 90
-          minimum: -90
-          nullable: true
-        longitude:
-          type: number
-          format: double
-          maximum: 180
-          minimum: -180
-          nullable: true
-      required:
-      - departement
-      - latitude
-      - localisation_label
-      - longitude
-      - pays
-      - region
-      - zone_geographique
     MotifRefus:
       type: object
       properties:
@@ -6822,6 +6558,37 @@ components:
     NullEnum:
       enum:
       - null
+    OffreLocalisation:
+      type: object
+      properties:
+        zone_geographique:
+          type: string
+        pays:
+          type: string
+        region:
+          type: string
+          nullable: true
+        departement:
+          type: string
+          nullable: true
+        localisation_label:
+          type: string
+        latitude:
+          type: number
+          format: double
+          nullable: true
+        longitude:
+          type: number
+          format: double
+          nullable: true
+      required:
+      - departement
+      - latitude
+      - localisation_label
+      - longitude
+      - pays
+      - region
+      - zone_geographique
     Organisme:
       type: object
       properties:
@@ -7271,8 +7038,10 @@ components:
         date_publication:
           type: string
           format: date-time
-        localisation:
-          $ref: '#/components/schemas/Localisation'
+        localisations:
+          type: array
+          items:
+            $ref: '#/components/schemas/OffreLocalisation'
         organisme_recruteur:
           $ref: '#/components/schemas/Organisme'
         categorie_offre:
@@ -7303,7 +7072,7 @@ components:
       - date_publication
       - etapes
       - intitule
-      - localisation
+      - localisations
       - organisme_recruteur
       - recrutement_role
       - uuid
@@ -7433,50 +7202,6 @@ components:
       - responsables
       - unread_conversations
       - uuid
-    RegionEnum:
-      enum:
-      - '01'
-      - '02'
-      - '03'
-      - '04'
-      - '06'
-      - '11'
-      - '24'
-      - '27'
-      - '28'
-      - '32'
-      - '44'
-      - '52'
-      - '53'
-      - '75'
-      - '76'
-      - '84'
-      - '93'
-      - '94'
-      - DOM
-      - TOM
-      type: string
-      description: |-
-        * `01` - 01
-        * `02` - 02
-        * `03` - 03
-        * `04` - 04
-        * `06` - 06
-        * `11` - 11
-        * `24` - 24
-        * `27` - 27
-        * `28` - 28
-        * `32` - 32
-        * `44` - 44
-        * `52` - 52
-        * `53` - 53
-        * `75` - 75
-        * `76` - 76
-        * `84` - 84
-        * `93` - 93
-        * `94` - 94
-        * `DOM` - DOM
-        * `TOM` - TOM
     Responsable:
       type: object
       properties:
@@ -7703,24 +7428,6 @@ components:
         * `FPT` - FPT
         * `FPE` - FPE
         * `FPH` - FPH
-    ZoneGeographiqueEnum:
-      enum:
-      - AF
-      - EU
-      - AS
-      - AM
-      - OC
-      - AN
-      - MO
-      type: string
-      description: |-
-        * `AF` - AFRIQUE
-        * `EU` - EUROPE
-        * `AS` - ASIE
-        * `AM` - AMERIQUE
-        * `OC` - OCEANIE
-        * `AN` - ANTARTIQUE
-        * `MO` - MOYEN_ORIENT_AFRIQUE_DU_NORD
   securitySchemes:
     cookieAuth:
       type: apiKey

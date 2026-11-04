@@ -164,6 +164,7 @@ def test_execute_with_valid_cv_returns_opportunities(
     with assertNumQueries(
         1  # select ConcoursModel
         + 1  # select OfferModel
+        + 1  # prefetch OfferModel localisations
     ):
         results = usecase.execute(cv_metadata, limit=limit)
 
@@ -208,6 +209,7 @@ def test_vectorize_qdrant_search_empty_filters(
     usecase = candidate_container.match_cv_to_opportunities_usecase()
     with assertNumQueries(
         1  # select OfferModel
+        + 1  # prefetch OfferModel localisations
     ):
         results = usecase.execute(cv_metadata)
 

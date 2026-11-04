@@ -36,6 +36,7 @@ URL = reverse("ingestion_fake_ts:offer_summaries")
 NOMBRE_REQUETES_ATTENDU = (
     1  # view JWT authentication
     + 2  # pagination: count + slice
+    + 1  # prefetch of the offers' localisations
     + 1  # ApiRequestLoggerMiddleware re-decodes the JWT to log the request
     + 2  # logging: DJ tries an UPDATE (manually-assigned pk) then falls back to INSERT
 )
@@ -130,8 +131,8 @@ def test_call_without_arg(mock_offer_summaries_container, jwt_client):
     assert result["country"] == [
         {
             "code": None,
-            "clientCode": str(offer.localisation.country),
-            "label": offer.localisation.country.short_name,
+            "clientCode": str(offer.main_localisation.country),
+            "label": offer.main_localisation.country.short_name,
             "active": True,
             "parentCode": None,
             "type": "country",
@@ -139,10 +140,37 @@ def test_call_without_arg(mock_offer_summaries_container, jwt_client):
             "hasChildren": False,
         }
     ]
-    assert result["region"][0]["clientCode"] == offer.localisation.region.code
-    assert result["region"][0]["label"] == offer.localisation.region.name
-    assert result["department"][0]["clientCode"] == offer.localisation.department.code
-    assert result["department"][0]["label"] == offer.localisation.department.name
+    assert result["region"][0]["clientCode"] == offer.main_localisation.region.code
+    assert result["region"][0]["label"] == offer.main_localisation.region.name
+    main = offer.main_localisation
+    assert result["department"][0]["clientCode"] == main.department.code
+    assert result["department"][0]["label"] == offer.main_localisation.department.name
+
+
+CAEN_LATITUDE = 49.18
+
+
+def test_offer_with_several_localisations_lists_each_of_them(
+    mock_offer_summaries_container, jwt_client
+):
+    caen = Localisation.from_department(Department(code="14"), latitude=CAEN_LATITUDE)
+    saint_lo = Localisation.from_department(Department(code="50"))
+    berlin = Localisation(
+        area=GeographicalArea.EUROPE,
+        country=Country("DEU"),
+        region=None,
+        department=None,
+        label="Berlin",
+    )
+    offer = OfferFactory.create_entity(localisations=[caen, saint_lo, berlin])
+    _make_paginated_mock(mock_offer_summaries_container, total=1, offers_slice=[offer])
+
+    result = jwt_client.get(URL).json()["data"][0]
+
+    assert [c["clientCode"] for c in result["country"]] == ["FRA", "DEU"]
+    assert [r["clientCode"] for r in result["region"]] == ["28"]
+    assert [d["clientCode"] for d in result["department"]] == ["14", "50"]
+    assert result["latitude"] == CAEN_LATITUDE
 
 
 def test_offer_abroad_has_a_country_but_no_region_nor_department(
@@ -151,12 +179,14 @@ def test_offer_abroad_has_a_country_but_no_region_nor_department(
     offer = OfferFactory.create_entity(
         offer_nature=OfferNature.TERRITORIAL,
         categories=[Category.A],
-        localisation=Localisation(
-            area=GeographicalArea.EUROPE,
-            country=Country("DEU"),
-            region=None,
-            department=None,
-        ),
+        localisations=[
+            Localisation(
+                area=GeographicalArea.EUROPE,
+                country=Country("DEU"),
+                region=None,
+                department=None,
+            )
+        ],
     )
     _make_paginated_mock(mock_offer_summaries_container, total=1, offers_slice=[offer])
 

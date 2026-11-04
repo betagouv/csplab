@@ -49,6 +49,14 @@ def repository_fixture():
     return PostgresOffersRepository(LoggerService(), _mapper)
 
 
+def _create_offers_with_two_localisations() -> list[OfferModel]:
+    localisations = [
+        {"area": "EU", "country": "FRA", "region": "28", "department": "14"},
+        {"area": "EU", "country": "FRA", "region": "84", "department": "69"},
+    ]
+    return OfferDjangoFactory.create_batch(2, localisations=localisations)
+
+
 class TestFindByIds:
     @pytest.mark.parametrize("ids", [[], [fake.uuid4()]])
     def test_empty_or_unknown_ids(self, db, repository, ids):
@@ -63,6 +71,29 @@ class TestFindByIds:
         assert {doc.id for doc in results} == set(expected_ids)
         for doc in results:
             assert isinstance(doc, Offer)
+
+    def test_prefetches_localisations(self, db, repository, django_assert_num_queries):
+        offers = _create_offers_with_two_localisations()
+
+        with django_assert_num_queries(
+            1  # select the offers
+            + 1  # prefetch their localisations
+        ):
+            results = repository.get_by_ids([offer.id for offer in offers])
+
+        assert [len(offer.localisations) for offer in results] == [2, 2]
+
+
+def test_get_all_prefetches_localisations(db, repository, django_assert_num_queries):
+    _create_offers_with_two_localisations()
+
+    with django_assert_num_queries(
+        1  # select the offers
+        + 1  # prefetch their localisations
+    ):
+        results = repository.get_all()
+
+    assert [len(offer.localisations) for offer in results] == [2, 2]
 
 
 class TestUpsertBatch:
@@ -175,12 +206,14 @@ class TestUpsertBatch:
             "family_code": "NEW001",
             "job_family_referential": "RMFPv2",
             "functional_area_code": "NEW",
-            "localisation": Localisation(
-                area=GeographicalArea("AM"),
-                country=Country("FRA"),
-                region=Region(code="03"),
-                department=Department(code="973"),
-            ),
+            "localisations": [
+                Localisation(
+                    area=GeographicalArea("AM"),
+                    country=Country("FRA"),
+                    region=Region(code="03"),
+                    department=Department(code="973"),
+                )
+            ],
             "publication_date": now,
             "beginning_date": LimitDate(now),
             "exercise_conditions": "Télétravail possible",
@@ -725,6 +758,20 @@ class TestGetPendingProcessing:
         assert len(entities) == 1
         assert OfferModel.objects.filter(processing=True).count() == 1
         assert OfferModel.objects.filter(processing=False).count() == 1
+
+    def test_prefetches_localisations(self, db, repository, django_assert_num_queries):
+        _create_offers_with_two_localisations()
+
+        with django_assert_num_queries(
+            1  # savepoint of transaction.atomic
+            + 1  # select the offers for update
+            + 1  # mark them as processing
+            + 1  # prefetch their localisations
+            + 1  # release the savepoint
+        ):
+            entities = repository.get_pending_processing()
+
+        assert [len(offer.localisations) for offer in entities] == [2, 2]
 
 
 def test_mark_as_processed(db, repository):

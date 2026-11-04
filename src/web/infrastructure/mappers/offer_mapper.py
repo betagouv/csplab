@@ -4,16 +4,11 @@ from ddd.mapper_interface import IFromDomainMapper, IToDomainMapper
 from pydantic import HttpUrl
 from referentiel.entities.offer import Offer
 from referentiel.entities.talentsoft_organisme import TalentsoftOrganisme
-from referentiel.value_objects.area import GeographicalArea
 from referentiel.value_objects.category import Category
 from referentiel.value_objects.contract_kind import ContractKind
-from referentiel.value_objects.country import Country
-from referentiel.value_objects.department import Department
 from referentiel.value_objects.limit_date import LimitDate
-from referentiel.value_objects.localisation import Localisation
 from referentiel.value_objects.offer_criteria import OfferCriteria
 from referentiel.value_objects.offer_nature import OfferNature
-from referentiel.value_objects.region import Region
 from referentiel.value_objects.verse import Verse
 
 from infrastructure.django_apps.referentiel.models.offer import OfferModel
@@ -23,21 +18,6 @@ class OfferMapper(
     IFromDomainMapper[Offer, OfferModel], IToDomainMapper[OfferModel, Offer]
 ):
     def to_domain(self, model: OfferModel) -> Offer:
-        localisation = None
-
-        if model.country and model.area:
-            localisation = Localisation(
-                area=GeographicalArea(model.area),
-                country=Country(model.country),
-                region=Region(code=model.region) if model.region else None,
-                department=(
-                    Department(code=model.department) if model.department else None
-                ),
-                label=model.location_label,
-                latitude=model.latitude,
-                longitude=model.longitude,
-            )
-
         beginning_date = (
             LimitDate(model.beginning_date) if model.beginning_date else None
         )
@@ -59,7 +39,10 @@ class OfferMapper(
             offer_nature=offer_nature,
             organization=model.organization,
             offer_url=offer_url,
-            localisation=localisation,
+            localisations=[
+                localisation.to_localisation()
+                for localisation in model.localisations.all()
+            ],
             publication_date=model.publication_date,
             beginning_date=beginning_date,
             reference=model.reference,
@@ -107,16 +90,16 @@ class OfferMapper(
         location_label = None
         latitude = None
         longitude = None
-        if entity.localisation:
-            area = entity.localisation.area.value
-            country = str(entity.localisation.country)
-            if entity.localisation.region:
-                region = entity.localisation.region.code
-            if entity.localisation.department:
-                department = entity.localisation.department.code
-            location_label = entity.localisation.label
-            latitude = entity.localisation.latitude
-            longitude = entity.localisation.longitude
+        if main := entity.main_localisation:
+            area = main.area.value
+            country = str(main.country)
+            if main.region:
+                region = main.region.code
+            if main.department:
+                department = main.department.code
+            location_label = main.label
+            latitude = main.latitude
+            longitude = main.longitude
 
         beginning_date = entity.beginning_date.value if entity.beginning_date else None
         offer_nature = entity.offer_nature.value if entity.offer_nature else None

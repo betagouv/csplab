@@ -6,8 +6,10 @@ from infrastructure.django_apps.referentiel.models.offer import OfferModel
 
 
 def get_offer_by_source(source_id: UUID, offer_id: UUID) -> OfferModel:
-    offers = list_offers_by_source(source_id).select_related(
-        "source", "talentsoft_organisme_entity_code"
+    offers = (
+        list_offers_by_source(source_id)
+        .select_related("source", "talentsoft_organisme_entity_code")
+        .with_localisations()
     )
     try:
         return offers.get(pk=offer_id)

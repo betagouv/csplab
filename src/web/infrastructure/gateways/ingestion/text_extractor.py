@@ -68,22 +68,19 @@ class TextExtractor(ITextExtractor):
         return f"{offer.title}"
 
     def _extract_metadata_from_offer(self, offer: Offer) -> Dict[str, Any]:
-        localisation_data = None
-        if offer.localisation:
-            localisation_data = {
-                "country": offer.localisation.country,
-                "region": offer.localisation.region.code
-                if offer.localisation.region
-                else None,
-                "department": offer.localisation.department.code
-                if offer.localisation.department
-                else None,
-            }
-
         return {
             "category": [category.value for category in offer.categories],
             "verse": offer.verse.value if offer.verse else None,
-            "localisation": localisation_data,
+            "localisation": [
+                {
+                    "country": localisation.country,
+                    "region": localisation.region.code if localisation.region else None,
+                    "department": localisation.department.code
+                    if localisation.department
+                    else None,
+                }
+                for localisation in offer.localisations
+            ],
         }
 
     def _extract_from_metier(self, metier: Metier) -> str:

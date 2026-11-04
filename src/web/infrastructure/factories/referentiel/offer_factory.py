@@ -35,7 +35,7 @@ class OfferFactory:
         functional_area_code: str | None = None,
         source_id: UUID | None = None,
         offer_url: HttpUrl | None = None,
-        localisation: Localisation | None = None,
+        localisations: list[Localisation] | None = None,
         publication_date: datetime | None = None,
         end_publication_date: datetime | None = None,
         beginning_date: LimitDate | None = None,
@@ -46,13 +46,15 @@ class OfferFactory:
         if archived_at:
             archived_at = as_aware(archived_at)
 
-        if localisation is None:
-            localisation = Localisation(
-                area=GeographicalArea.EUROPE,
-                country=Country("FRA"),
-                region=Region(code="11"),
-                department=Department(code="75"),
-            )
+        if localisations is None:
+            localisations = [
+                Localisation(
+                    area=GeographicalArea.EUROPE,
+                    country=Country("FRA"),
+                    region=Region(code="11"),
+                    department=Department(code="75"),
+                )
+            ]
         return Offer(
             reference=reference or str(uuid4()),
             verse=verse or Verse.FPE,
@@ -63,7 +65,7 @@ class OfferFactory:
             offer_nature=offer_nature,
             organization=organization or "Test Organization",
             offer_url=offer_url,
-            localisation=localisation,
+            localisations=localisations,
             publication_date=publication_date or datetime(2024, 1, 15, tzinfo=UTC),
             end_publication_date=end_publication_date
             or datetime(2025, 1, 15, tzinfo=UTC),

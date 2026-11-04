@@ -132,7 +132,7 @@ réponse jusqu'à ce qu'il vaille `null`.
 | `niveau_experience` | Filtrer par niveau(x) d'expérience | Liste séparée par virgules parmi DEBUTANT, CONFIRME, EXPERT |
 | `lieu_de_travail` | Filtrer par mode de travail | Liste séparée par virgules parmi NON_DEFINI, SUR_SITE, TELETRAVAIL |
 | `management` | Filtrer selon la présence de management | Liste séparée par virgules parmi SANS, AVEC |
-| `region` | Filtrer par code(s) région officiel(s) | Liste séparée par virgules (ex. `11,84`) |
+| `region` | Filtrer par code(s) région officiel(s). Pour une offre à plusieurs lieux, ce filtre, comme `departement`, `pays`, `zone` et le filtre par rayon, retient l'offre si l'un de ses lieux correspond | Liste séparée par virgules (ex. `11,84`) |
 | `departement` | Filtrer par code(s) département officiel(s) | Liste séparée par virgules (ex. `75,69`) |
 | `pays` | Filtrer par code(s) pays alpha-3 | Liste séparée par virgules (ex. `FRA,BEL`) |
 | `zone` | Filtrer par zone(s) géographique(s) | Liste séparée par virgules parmi AFRIQUE, EUROPE, ASIE, AMERIQUE, OCEANIE, ANTARTIQUE, MOYEN_ORIENT_AFRIQUE_DU_NORD |
@@ -194,7 +194,7 @@ le bloc « Description » de la section 4).
 | `vacance_poste` | Vacance du poste | Oui |
 | `url_candidature` | Lien pour candidater. Vide si `email_candidature` est renseigné. | Oui |
 | `email_candidature` | Adresse email pour candidater. Vide si `url_candidature` est renseigné. | Oui |
-| `localisation` | Localisation de l'offre (`zone_geographique`, `pays`, `region`, `departement`, `localisation_label`, `latitude`, `longitude`) | Oui |
+| `localisation` | Liste des lieux de l'offre, dans l'ordre d'envoi, le premier étant le lieu principal (`zone_geographique`, `pays`, `region`, `departement`, `localisation_label`, `latitude`, `longitude`). Liste vide si l'offre n'est pas localisée | Oui |
 | `criteres` | Critères de l'offre (diplôme, expérience, langues…) | Oui |
 | `conditions` | Conditions de l'offre (rémunération, temps de travail…) | Oui |
 | `contacts` | Contacts de l'offre (`role`, `texte`, `emails`), `principal` puis `autre` | Oui |
@@ -673,6 +673,8 @@ Notation : `a.b` désigne un objet imbriqué, `a[]` une liste, `a[0]` son premie
 | `languages[].languageLevel.clientCode` | `criteres.langues[].niveau` | |
 
 `criteres` n'est envoyé que si au moins un des champs niveau de diplôme, diplôme, expérience, spécialisations, langues, compétences requises ou documents requis est renseigné.
+
+**Offre à plusieurs lieux (API fake-ts).** `country`, `region` et `department` contiennent un élément par valeur distincte parmi tous les lieux de l'offre, dans l'ordre des lieux. `location`, `latitude`, `longitude`, `geolocation` et `customFields.location.shortText1` reprennent le lieu principal (le premier). `geographicalLocation` et `locations` restent `[]`.
 
 ### Champs Talentsoft sans équivalent dans l'API v1
 

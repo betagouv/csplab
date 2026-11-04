@@ -674,20 +674,20 @@ class OfferDetailResponseSerializer(serializers.Serializer):
     )
     date_archivage = serializers.DateTimeField(source="archived_at", allow_null=True)
 
-    @extend_schema_field(LocalisationSerializer(allow_null=True))
+    @extend_schema_field(LocalisationSerializer(many=True))
     def get_localisation(self, obj):
-        if obj.localisation is None:
-            return None
-        loc = obj.localisation
-        return {
-            "zone_geographique": str(loc.area),
-            "pays": str(loc.country),
-            "region": loc.region.code if loc.region else None,
-            "departement": loc.department.code if loc.department else None,
-            "localisation_label": loc.label,
-            "latitude": loc.latitude,
-            "longitude": loc.longitude,
-        }
+        return [
+            {
+                "zone_geographique": str(loc.area),
+                "pays": str(loc.country),
+                "region": loc.region.code if loc.region else None,
+                "departement": loc.department.code if loc.department else None,
+                "localisation_label": loc.label,
+                "latitude": loc.latitude,
+                "longitude": loc.longitude,
+            }
+            for loc in obj.localisations
+        ]
 
     @extend_schema_field(serializers.DictField(allow_null=True))
     def get_criteres(self, obj):

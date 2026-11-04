@@ -85,7 +85,7 @@ class VectorizedDocumentFactory:
                 metadata = {
                     "verse": random.choice(["FPE", "FPT", "FPH"]),
                     "category": [],
-                    "localisation": random.choice(localisation_choices),
+                    "localisation": [random.choice(localisation_choices)],
                 }
 
         entity = VectorizedDocument(

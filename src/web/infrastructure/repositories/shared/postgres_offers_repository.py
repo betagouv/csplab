@@ -8,8 +8,7 @@ from ddd.page_interface import IPage
 from ddd.services.logger_interface import ILogger
 from django.contrib.postgres.search import SearchQuery, SearchRank, SearchVector
 from django.db import DatabaseError, transaction
-from django.db.models import F, FloatField, Q, Value
-from django.db.models.functions import ACos, Cos, Greatest, Least, Radians, Sin
+from django.db.models import F, Q, prefetch_related_objects
 from django.utils import timezone
 from referentiel.entities.offer import Offer
 from referentiel.exceptions.offer_errors import (
@@ -40,7 +39,6 @@ from infrastructure.django_apps.referentiel.models.offer_localisation import (
 from infrastructure.mappers.offer_mapper import OfferMapper
 from infrastructure.mappers.queryset_page import QuerySetPage
 
-EARTH_RADIUS_KM = 6371.0
 SEARCH_CONFIG = "french"
 KEYWORDS_SEARCH_WEIGHTS = {
     "A": ("title",),
@@ -182,18 +180,18 @@ class PostgresOffersRepository(IIngestionOffersRepository):
 
     def get_by_id(self, offer_id: UUID) -> Offer:
         try:
-            offer_model = OfferModel.objects.get(id=offer_id)
+            offer_model = OfferModel.objects.with_localisations().get(id=offer_id)
             return self.mapper.to_domain(offer_model)
         except OfferModel.DoesNotExist as e:
             raise OfferDoesNotExist(offer_id) from e
 
     def get_by_ids(self, offer_ids: List[UUID]) -> List[Offer]:
-        offers = OfferModel.objects.filter(id__in=offer_ids)
+        offers = OfferModel.objects.with_localisations().filter(id__in=offer_ids)
         return [self.mapper.to_domain(offer) for offer in offers]
 
     def get_by_reference_and_source_id(self, reference: str, source_id: UUID) -> Offer:
         try:
-            offer_model = OfferModel.objects.get(
+            offer_model = OfferModel.objects.with_localisations().get(
                 reference=reference, source_id=source_id
             )
             return self.mapper.to_domain(offer_model)
@@ -202,9 +200,11 @@ class PostgresOffersRepository(IIngestionOffersRepository):
 
     def get_by_reference(self, reference: str) -> Offer:
         try:
-            offer_model = OfferModel.objects.select_related(
-                "talentsoft_organisme_entity_code"
-            ).get(reference=reference)
+            offer_model = (
+                OfferModel.objects.select_related("talentsoft_organisme_entity_code")
+                .with_localisations()
+                .get(reference=reference)
+            )
         except OfferModel.DoesNotExist as e:
             raise OfferDoesNotExist(reference) from e
         except OfferModel.MultipleObjectsReturned as e:
@@ -212,7 +212,7 @@ class PostgresOffersRepository(IIngestionOffersRepository):
         return self.mapper.to_domain(offer_model)
 
     def get_all(self) -> List[Offer]:
-        offer_models = OfferModel.objects.all()
+        offer_models = OfferModel.objects.with_localisations()
         return [self.mapper.to_domain(model) for model in offer_models]
 
     def get_filtered(
@@ -236,9 +236,11 @@ class PostgresOffersRepository(IIngestionOffersRepository):
         radius_km: int | None = None,
         keywords: str | None = None,
     ) -> IPage[Offer]:
-        qs = OfferModel.objects.select_related(
-            "talentsoft_organisme_entity_code"
-        ).filter(archived_at__isnull=active)
+        qs = (
+            OfferModel.objects.select_related("talentsoft_organisme_entity_code")
+            .with_localisations()
+            .filter(archived_at__isnull=active)
+        )
 
         qs = self._apply_field_filters(
             qs,
@@ -253,12 +255,14 @@ class PostgresOffersRepository(IIngestionOffersRepository):
                     working_place,
                     lambda w: w.name,
                 ),
-                ("region__in", region, lambda r: r.code),
-                ("department__in", department, lambda d: d.code),
-                ("country__in", country, str),
-                ("area__in", area, lambda a: a.value),
                 ("functional_area_code__in", domain, str),
             ],
+        )
+        qs = qs.with_localisation_in(
+            regions=[r.code for r in region or []],
+            departments=[d.code for d in department or []],
+            countries=[str(c) for c in country or []],
+            areas=[a.value for a in area or []],
         )
 
         if organization:
@@ -273,7 +277,7 @@ class PostgresOffersRepository(IIngestionOffersRepository):
             qs = qs.filter(publication_date__gte=since)
 
         if latitude is not None and longitude is not None and radius_km is not None:
-            qs = self._filter_by_radius(qs, latitude, longitude, radius_km)
+            qs = qs.with_localisation_within(latitude, longitude, radius_km)
 
         if keywords:
             qs = self._filter_by_keywords(qs, keywords)
@@ -290,26 +294,6 @@ class PostgresOffersRepository(IIngestionOffersRepository):
                 qs = qs.filter(**{lookup: [transform(v) for v in values]})
         return qs
 
-    def _filter_by_radius(self, qs, latitude: float, longitude: float, radius_km: int):
-        qs = qs.filter(latitude__isnull=False, longitude__isnull=False)
-        distance_km = EARTH_RADIUS_KM * ACos(
-            Least(
-                Value(1.0, output_field=FloatField()),
-                Greatest(
-                    Value(-1.0, output_field=FloatField()),
-                    Cos(Radians(Value(latitude, output_field=FloatField())))
-                    * Cos(Radians(F("latitude")))
-                    * Cos(
-                        Radians(F("longitude"))
-                        - Radians(Value(longitude, output_field=FloatField()))
-                    )
-                    + Sin(Radians(Value(latitude, output_field=FloatField())))
-                    * Sin(Radians(F("latitude"))),
-                ),
-            )
-        )
-        return qs.annotate(distance_km=distance_km).filter(distance_km__lte=radius_km)
-
     @staticmethod
     def _filter_by_keywords(qs, keywords: str):
         vectors = [
@@ -323,7 +307,9 @@ class PostgresOffersRepository(IIngestionOffersRepository):
         ).filter(search=search_query)
 
     def get_by_source_id(self, source_id: UUID) -> IPage[Offer]:
-        qs = OfferModel.objects.filter(source_id=source_id, archived_at__isnull=True)
+        qs = OfferModel.objects.with_localisations().filter(
+            source_id=source_id, archived_at__isnull=True
+        )
         return QuerySetPage(qs.order_by("-updated_at"), self.mapper.to_domain)
 
     @transaction.atomic
@@ -341,7 +327,9 @@ class PostgresOffersRepository(IIngestionOffersRepository):
         except Exception as e:
             raise DatabaseError(f"Database error during update: {str(e)}") from e
 
-        return [self.mapper.to_domain(model) for model in qs]
+        models = list(qs)
+        prefetch_related_objects(models, "localisations")
+        return [self.mapper.to_domain(model) for model in models]
 
     def mark_as_processed(self, offers_list: List[Offer]) -> int:
         try:

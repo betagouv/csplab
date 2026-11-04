@@ -1,4 +1,4 @@
-from dataclasses import InitVar, dataclass, field
+from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Optional
 from uuid import UUID, uuid4
@@ -57,27 +57,15 @@ class Offer(IEntity):
     archived_at: Optional[datetime] = None
     id: UUID = field(default_factory=uuid4)
     localisations: list[Localisation] = field(default_factory=list)
-    # Transitional alias of localisations[0]
-    localisation: InitVar[Optional[Localisation]] = None
 
-    def __post_init__(self, localisation: Optional[Localisation]) -> None:
+    def __post_init__(self) -> None:
         if self.application_url and self.application_email:
             raise ConflictingApplicationChannelsError(self.reference)
-        if localisation is not None and not self.localisations:
-            self.localisations = [localisation]
 
     @property
     def main_category(self) -> Optional[Category]:
         return self.categories[0] if self.categories else None
 
-
-def _main_localisation(offer: Offer) -> Optional[Localisation]:
-    return offer.localisations[0] if offer.localisations else None
-
-
-def _set_main_localisation(offer: Offer, localisation: Optional[Localisation]) -> None:
-    offer.localisations = [localisation] if localisation is not None else []
-
-
-# Outside the class body, otherwise dataclass takes it as the InitVar default
-Offer.localisation = property(_main_localisation, _set_main_localisation)  # type: ignore[assignment,misc]
+    @property
+    def main_localisation(self) -> Optional[Localisation]:
+        return self.localisations[0] if self.localisations else None

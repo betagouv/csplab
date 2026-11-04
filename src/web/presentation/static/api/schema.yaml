@@ -5770,9 +5770,9 @@ components:
           format: email
           nullable: true
         localisation:
-          allOf:
-          - $ref: '#/components/schemas/Localisation'
-          nullable: true
+          type: array
+          items:
+            $ref: '#/components/schemas/Localisation'
           readOnly: true
         criteres:
           type: object
