@@ -170,7 +170,6 @@ class OfferSummaryOutputMapper:
             "description2Formatted": self._formatted(offer.profile),
             "salaryRange": None,
             "geographicalLocation": [],
-            # One element per distinct localisation value
             "country": self._unique_coded_objects(
                 "country",
                 (
@@ -327,6 +326,7 @@ class OfferDetailOutputMapper(OfferSummaryOutputMapper):
             offer.criteria.competences_requises if offer.criteria else None
         )
         bases_legales = (offer.conditions or {}).get("bases_legales") or None
+        main = offer.main_localisation
         return {
             "offer": self._dynamic_field(
                 date1=self._isoformat(offer.application_deadline)
@@ -346,9 +346,7 @@ class OfferDetailOutputMapper(OfferSummaryOutputMapper):
                 ),
                 "customCodeTable1": self._required_documents(offer.criteria),
             },
-            "location": self._dynamic_field(
-                shortText1=main.label if (main := offer.main_localisation) else None
-            ),
+            "location": self._dynamic_field(shortText1=main.label if main else None),
             "offerCustomBlock1": self._dynamic_field(
                 longText1=offer.complements,
                 longText2=bases_legales,

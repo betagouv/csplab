@@ -20,7 +20,6 @@ export function formatNatureOffreLabel(row: RecrutementBase): string {
   return row.nature_offre ? NATURE_OFFRE_LABELS[row.nature_offre] : '-'
 }
 
-// Main localisation, followed by the number of other ones (e.g. 'Caen + 2').
 export function formatLocalisationLabel(detail: RecrutementDetail): string {
   const [principale, ...autres] = detail.localisations
   if (!principale) {

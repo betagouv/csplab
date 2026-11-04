@@ -68,7 +68,6 @@ _LABELS = {
     "updated_at": "Mise à jour le",
 }
 _HIDDEN = {"id", "source", "mission", "profile"}
-# Values of every localisation, joined in position order
 _LOCALISATION_ATTRS = {
     "area": "area",
     "country": "country",

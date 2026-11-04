@@ -76,7 +76,6 @@ def format_location_display(localisation: Localisation | None) -> str:
 
 
 def format_locations_display(localisations: list[Localisation]) -> str:
-    """E.g. 'Calvados + 2'."""
     if not localisations:
         return ""
     main = format_location_display(localisations[0])
