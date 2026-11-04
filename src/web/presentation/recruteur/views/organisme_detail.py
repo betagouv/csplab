@@ -7,12 +7,10 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from application.identite.usecases.get_organisme import (
-    GetOrganismeCommand,
-)
 from application.identite.usecases.update_organisme import (
     UpdateOrganismeCommand,
 )
+from application.recruteur.services.get_organisme import get_organisme
 from application.recruteur.services.get_organisme_etapes import get_organisme_etapes
 from application.recruteur.services.initialize_organisme_etapes import (
     initialize_organisme_etapes,
@@ -83,23 +81,10 @@ class OrganismeDetailView(SessionApiMixin, APIView):
 
     def get(self, request: Request, organisme_uuid: UUID) -> Response:
         try:
-            usecase = self.container.get_organisme_usecase()
-            organisme = usecase.execute(
-                GetOrganismeCommand(
-                    organisme_id=organisme_uuid,
-                    utilisateur=self.user_mapper.to_domain(request),
-                )
+            organisme = get_organisme(
+                organisme_id=organisme_uuid, utilisateur=request.user
             )
-            organisme_dto = {
-                "id": organisme.entity_id,
-                "nom": organisme.nom,
-                "versant": organisme.versant.value,
-                "siret": organisme.siret.code,
-                "gestion_ats": organisme.gestion_ats,
-                "date_creation": organisme.date_creation,
-                "date_derniere_activite": organisme.date_derniere_activite,
-            }
-            return Response(OrganismeDetailSerializer(organisme_dto).data)
+            return Response(OrganismeDetailSerializer(organisme).data)
         except OrganismeNexistePas as e:
             serializer = GenericErrorSerializer({"error": str(e)})
             return Response(serializer.data, status=status.HTTP_404_NOT_FOUND)

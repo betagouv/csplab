@@ -35,6 +35,7 @@ from infrastructure.factories.recruteur.etapes_recrutement_factory import (
 from infrastructure.repositories.commons.postgres_audit_log_repository import (
     PostgresAuditLogRepository,
 )
+from tests.utils.dates import datetime_to_drf_representation
 
 fake = Faker("fr_FR")
 
@@ -109,64 +110,74 @@ class TestOrganismeDetailView:
             status.HTTP_401_UNAUTHORIZED
         )
 
-    def test_get_organisme(self, identite_container, authenticated_client):
-        organisme = OrganismeFactory.create_entity(
-            entity_id=UUID(ORGANISME_UUID),
-            date_creation=datetime(2026, 1, 1, 9, 0, tzinfo=timezone.utc),
-            date_derniere_activite=datetime(2026, 1, 15, 10, 0, tzinfo=timezone.utc),
-        )
-        mock_usecase = MagicMock()
-        mock_usecase.execute.return_value = organisme
-        identite_container.get_organisme_usecase.return_value = mock_usecase
+    def test_staff_gets_organisme(self, staff_client):
+        organisme = OrganismeDjangoFactory(id=UUID(ORGANISME_UUID), gestion_ats=True)
+
+        response = staff_client.get(ORGANISME_URL)
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json() == {
+            "uuid": ORGANISME_UUID,
+            "nom": organisme.nom,
+            "versant": organisme.versant,
+            "siret": organisme.siret,
+            "superviseurs": "",
+            "gestion_ats": True,
+            "date_creation": datetime_to_drf_representation(organisme.created_at),
+            "date_derniere_activite": datetime_to_drf_representation(
+                organisme.updated_at
+            ),
+        }
+
+    def test_superviseur_gets_organisme(self, authenticated_client, test_user):
+        organisme = _superviseur(test_user)
 
         response = authenticated_client.get(ORGANISME_URL)
 
         assert response.status_code == status.HTTP_200_OK
         assert response.json()["uuid"] == ORGANISME_UUID
         assert response.json()["nom"] == organisme.nom
-        assert response.json()["date_creation"] == "2026-01-01T09:00:00Z"
 
-    @pytest.mark.parametrize(
-        ("exception", "expected_status", "expected_body"),
-        [
-            (
-                OrganismeNexistePas(ORGANISME_UUID),
-                status.HTTP_404_NOT_FOUND,
-                {"error": OrganismeNexistePas(ORGANISME_UUID).message},
-            ),
-            (
-                AccesOrganismeRefuse(UUID(ORGANISME_UUID)),
-                status.HTTP_403_FORBIDDEN,
-                {"error": AccesOrganismeRefuse(UUID(ORGANISME_UUID)).message},
-            ),
-            (
-                OperationOrganismeRefusee(),
-                status.HTTP_403_FORBIDDEN,
-                {"error": OperationOrganismeRefusee().message},
-            ),
-            (
-                Exception("unexpected"),
-                status.HTTP_500_INTERNAL_SERVER_ERROR,
-                {"error": "Unexpected error"},
-            ),
-        ],
-    )
-    def test_get_returns_error_from_usecase(
-        self,
-        identite_container,
-        authenticated_client,
-        exception,
-        expected_status,
-        expected_body,
-    ):
-        mock_usecase = MagicMock()
-        mock_usecase.execute.side_effect = exception
-        identite_container.get_organisme_usecase.return_value = mock_usecase
+    def test_membre_is_forbidden(self, authenticated_client, test_user):
+        _membre_agent(test_user)
 
         response = authenticated_client.get(ORGANISME_URL)
 
-        assert response.status_code == expected_status
-        assert response.json() == expected_body
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert response.json() == {
+            "error": AccesOrganismeRefuse(UUID(ORGANISME_UUID)).message
+        }
+
+    def test_superviseur_of_another_organisme_is_forbidden(
+        self, authenticated_client, test_user
+    ):
+        _superviseur_of_another_organisme(test_user)
+
+        response = authenticated_client.get(ORGANISME_URL)
+
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert response.json() == {
+            "error": AccesOrganismeRefuse(UUID(ORGANISME_UUID)).message
+        }
+
+    def test_unknown_organisme_returns_404(self, staff_client):
+        response = staff_client.get(ORGANISME_URL)
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+        assert response.json() == {"error": OrganismeNexistePas(ORGANISME_UUID).message}
+
+    @pytest.mark.parametrize(
+        "client_fixture",
+        ["authenticated_client", "staff_client"],
+        ids=["superviseur", "staff"],
+    )
+    def test_supprime_organisme_returns_404(self, request, test_user, client_fixture):
+        _supprime_organisme(test_user)
+
+        response = request.getfixturevalue(client_fixture).get(ORGANISME_URL)
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+        assert response.json() == {"error": OrganismeNexistePas(ORGANISME_UUID).message}
 
     def test_put_update_organisme(
         self,
@@ -838,19 +849,6 @@ class TestPutEtapesRecrutementOrganismeView:
 
 
 class TestOrganismeDetailViewDbVerified:
-    def test_get_returns_persisted_organisme(self, staff_client):
-        organisme = OrganismeDjangoFactory(id=UUID(ORGANISME_UUID), gestion_ats=True)
-
-        response = staff_client.get(ORGANISME_URL)
-
-        assert response.status_code == status.HTTP_200_OK
-        data = response.json()
-        assert data["uuid"] == ORGANISME_UUID
-        assert data["nom"] == organisme.nom
-        assert data["versant"] == organisme.versant
-        assert data["siret"] == organisme.siret
-        assert data["gestion_ats"] == organisme.gestion_ats
-
     def test_put_updates_and_persists_the_organisme(self, staff_client):
         OrganismeDjangoFactory(id=UUID(ORGANISME_UUID), gestion_ats=False)
         nouveau_nom = fake.name()

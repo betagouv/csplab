@@ -29,6 +29,6 @@ class OrganismeMapper(IFromDomainMapper[Organisme, dict]):
             "versant": organisme.versant.value,
             "superviseurs": "",
             "gestion_ats": organisme.gestion_ats,
-            "date_creation": organisme.date_creation,
-            "date_derniere_activite": organisme.date_derniere_activite,
+            "created_at": organisme.date_creation,
+            "updated_at": organisme.date_derniere_activite,
         }
