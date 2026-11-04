@@ -26,15 +26,15 @@ describe('navigationFor', () => {
   it('gives an agent their recrutements only', () => {
     const items = navigationFor(AGENT)
 
-    expect(items.map(item => item.label)).toEqual(['Mes recrutements'])
-    expect(items[0]?.params).toEqual({ organismeUuid: ORGANISME_UUID })
+    expect(items.map(item => item.label)).toEqual(['Accueil', 'Mes recrutements'])
+    expect(items[1]?.params).toEqual({ organismeUuid: ORGANISME_UUID })
   })
 
   it('adds the organisme settings for a superviseur', () => {
     const items = navigationFor(SUPERVISEUR)
 
-    expect(items.map(item => item.label)).toEqual(['Recrutements', 'Paramètres de l\'organisme'])
-    expect(items[1]?.params).toEqual({ organismeUuid: ORGANISME_UUID })
+    expect(items.map(item => item.label)).toEqual(['Accueil', 'Recrutements', 'Paramètres de l\'organisme'])
+    expect(items[2]?.params).toEqual({ organismeUuid: ORGANISME_UUID })
   })
 
   it('gives a staff user the organismes list in the administrator space', () => {
@@ -44,7 +44,7 @@ describe('navigationFor', () => {
   it('gives a staff user the organisme entries only, once in an organisme', () => {
     const items = navigationFor({ ...STAFF, organismeUuid: ORGANISME_UUID })
 
-    expect(items.map(item => item.label)).toEqual(['Recrutements', 'Paramètres de l\'organisme'])
+    expect(items.map(item => item.label)).toEqual(['Accueil', 'Recrutements', 'Paramètres de l\'organisme'])
   })
 
   it('gives nothing to an agent without any organisme', () => {

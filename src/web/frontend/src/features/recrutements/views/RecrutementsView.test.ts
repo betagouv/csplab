@@ -22,10 +22,6 @@ vi.mock('@/features/agents/api', () => ({
   createAgent: vi.fn(),
 }))
 
-vi.mock('@/api/utilisateur', () => ({
-  getMe: vi.fn(),
-}))
-
 const RECRUTEMENTS_PATH = `/organismes/${ORGANISME_UUID}/recrutements`
 const [FIRST_RECRUTEMENT, SECOND_RECRUTEMENT] = RECRUTEMENTS_ACTIFS
 const TWO_PAGES_OF_RECRUTEMENTS = Array.from({ length: TABLE_PAGE_SIZE + 1 }, (_, index) => ({

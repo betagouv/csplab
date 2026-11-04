@@ -45,10 +45,6 @@ vi.mock('@/features/recrutements/api', () => ({
   getRecrutementDetail: vi.fn(),
 }))
 
-vi.mock('@/api/utilisateur', () => ({
-  getMe: vi.fn(),
-}))
-
 vi.mock('@/features/messages/api', () => ({
   getConversations: vi.fn(),
 }))
