@@ -1318,6 +1318,28 @@ class TestOffersUpsertViewDbVerified:
         )
         assert offer_model.long_title is None
 
+    def test_offer_with_titre_long_equal_to_titre_is_rejected(
+        self, authenticated_client_with_source
+    ):
+        MetierDjangoFactory(
+            offer_family_code="ERNUM001", domaine_fonctionnel_code="NUM"
+        )
+        offer = MINIMAL_VALID_OFFER | {"titre_long": MINIMAL_VALID_OFFER["titre"]}
+
+        response = authenticated_client_with_source.post(
+            URL,
+            data={"source_id": SOURCE_UUID, "offres": [offer]},
+            content_type="application/json",
+        )
+
+        assert response.status_code == status.HTTP_201_CREATED
+        assert response.json()["errors"][0]["error"] == {
+            "titre_long": ["Le titre long doit différer du titre, sinon l'omettre."]
+        }
+        assert not OfferModel.objects.filter(
+            reference="REF-001", source_id=UUID(SOURCE_UUID)
+        ).exists()
+
     def test_persists_all_categories_in_sent_order(
         self, authenticated_client_with_source
     ):

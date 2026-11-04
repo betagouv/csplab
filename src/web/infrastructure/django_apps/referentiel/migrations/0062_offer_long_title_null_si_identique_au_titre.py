@@ -1,4 +1,4 @@
-from django.db import migrations
+from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
@@ -7,10 +7,6 @@ class Migration(migrations.Migration):
         ('referentiel', '0061_offer_categories_not_empty'),
     ]
 
-    # titre_long is now optional in the API: the ingestion only copied the title
-    # into it. Clears the long titles identical to the title, so that the
-    # full-text search no longer favours the offers carrying this copy, see
-    # https://github.com/betagouv/csplab/issues/2202.
     operations = [
         migrations.RunSQL(
             sql="""
@@ -20,5 +16,9 @@ class Migration(migrations.Migration):
             """,
             reverse_sql=migrations.RunSQL.noop,
             elidable=True,
+        ),
+        migrations.AddConstraint(
+            model_name='offermodel',
+            constraint=models.CheckConstraint(condition=models.Q(('long_title', models.F('title')), _negated=True), name='offer_long_title_differs_from_title'),
         ),
     ]

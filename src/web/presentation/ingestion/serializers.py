@@ -1082,6 +1082,10 @@ class OffersInputSerializer(serializers.Serializer):
         return sorted(value, key=lambda contact: CONTACT_ROLES.index(contact["role"]))
 
     def validate(self, data):
+        if data.get("titre_long") == data["titre"]:
+            raise serializers.ValidationError(
+                {"titre_long": "Le titre long doit différer du titre, sinon l'omettre."}
+            )
         if bool(data.get("url_candidature")) == bool(data.get("email_candidature")):
             raise serializers.ValidationError(
                 "Renseigner soit url_candidature, soit email_candidature, "
