@@ -5,9 +5,6 @@ from django.db.models import QuerySet
 from application.identite.context_services.organisme_permission_service import (
     OrganismePermissionService,
 )
-from application.recruteur.context_services.recrutement_agent_service import (
-    RecrutementAgentService,
-)
 from application.recruteur.services.get_recrutement_etapes import (
     recrutement_etapes,
 )
@@ -18,37 +15,22 @@ from infrastructure.django_apps.recruteur.models.etape import EtapeModel
 from infrastructure.django_apps.users.models import UserModel
 
 
-def list_candidatures(
+def list_candidatures_et_etapes(
     *,
     organisme_id: UUID,
     recrutement_id: UUID,
     utilisateur: UserModel,
-) -> QuerySet[CandidatureModel]:
+) -> tuple[QuerySet[CandidatureModel], list[EtapeModel]]:
     OrganismePermissionService().can_execute(
         action=OrganismeAction.GET_RECRUTEMENT,
         utilisateur=utilisateur,
         organisme_id=organisme_id,
         recrutement_id=recrutement_id,
     )
-    RecrutementAgentService(
+    etapes = recrutement_etapes(
         organisme_id=organisme_id, recrutement_id=recrutement_id
-    ).check_recrutement_belongs_to_organisme()
-
-    return CandidatureModel.objects.by_recrutement(recrutement_id).annotate(
+    )
+    candidatures = CandidatureModel.objects.by_recrutement(recrutement_id).annotate(
         unread_conversations=unread_conversations_count(utilisateur.username)
     )
-
-
-def list_recrutement_etapes(
-    *,
-    organisme_id: UUID,
-    recrutement_id: UUID,
-    utilisateur: UserModel,
-) -> list[EtapeModel]:
-    OrganismePermissionService().can_execute(
-        action=OrganismeAction.GET_RECRUTEMENT,
-        utilisateur=utilisateur,
-        organisme_id=organisme_id,
-        recrutement_id=recrutement_id,
-    )
-    return recrutement_etapes(organisme_id=organisme_id, recrutement_id=recrutement_id)
+    return candidatures, etapes

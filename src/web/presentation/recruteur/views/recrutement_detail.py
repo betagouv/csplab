@@ -13,8 +13,7 @@ from application.recruteur.services.get_recrutement import (
     get_recrutement,
 )
 from application.recruteur.services.list_candidatures import (
-    list_candidatures,
-    list_recrutement_etapes,
+    list_candidatures_et_etapes,
 )
 from application.recruteur.usecases.change_etape_candidatures import (
     ChangeEtapeCandidaturesCommand,
@@ -34,6 +33,7 @@ from domain.recruteur.errors.recrutement_errors import (
 )
 from infrastructure.di.recruteur.recruteur_factory import recruteur_container
 from infrastructure.django_apps.candidate.models.candidature import CandidatureModel
+from infrastructure.django_apps.recruteur.models.etape import EtapeModel
 from presentation.api.authentication import SessionApiMixin
 from presentation.api.serializers import GenericErrorSerializer, TokenErrorSerializer
 from presentation.commons.pagination import PaginationSchemaDuSerializer
@@ -160,23 +160,20 @@ class RecrutementKanbanView(SessionApiMixin, APIView):
 class RecrutementListeView(SessionApiMixin, ListAPIView):
     serializer_class = CandidatureListeSerializer
     pagination_class = PaginationSchemaDuSerializer
+    etapes: list[EtapeModel]
 
     def get_queryset(self) -> QuerySet[CandidatureModel]:
-        return list_candidatures(
+        candidatures, self.etapes = list_candidatures_et_etapes(
             organisme_id=self.kwargs["organisme_uuid"],
             recrutement_id=self.kwargs["recrutement_uuid"],
             utilisateur=self.request.user,
         )
+        return candidatures
 
     def get_paginated_response(self, data: list) -> Response:
         response = super().get_paginated_response(data)
-        etapes = list_recrutement_etapes(
-            organisme_id=self.kwargs["organisme_uuid"],
-            recrutement_id=self.kwargs["recrutement_uuid"],
-            utilisateur=self.request.user,
-        )
         response.data["etapes"] = EtapeRecrutementModelSerializer(
-            etapes, many=True
+            self.etapes, many=True
         ).data
         return response
 

@@ -137,12 +137,9 @@ NOMBRE_REQUETES_LISTE_ATTENDU = (
     2  # authentication (view + RateLimitHeadersMiddleware)
     + 1  # organisme
     + 1  # agent's role
-    + 1  # recrutement belongs to organisme (exists check)
+    + 1  # recrutement belongs to organisme
     + 2  # pagination: count + page
-    + 1  # etapes: organisme
-    + 1  # etapes: agent's role
-    + 1  # etapes: recrutement
-    + 1  # etapes: liste
+    + 1  # etapes
 )
 
 
