@@ -443,7 +443,11 @@ class FakeTsOfferSummarySerializer(serializers.Serializer):
     description2 = serializers.CharField()
     description1Formatted = serializers.CharField(allow_null=True)
     description2Formatted = serializers.CharField(allow_null=True)
-    salaryRange = serializers.CharField(allow_null=True)
+    salaryRange = FakeTsCodedObjectSerializer(
+        allow_null=True,
+        help_text="Versant : `clientCode` = valeur de `identification.versant`, "
+        "`label` = son libellé.",
+    )
     geographicalLocation = serializers.ListField(child=serializers.DictField())
     country = FakeTsCodedObjectSerializer(many=True)
     region = FakeTsCodedObjectSerializer(many=True)
@@ -521,12 +525,53 @@ class FakeTsLanguageSerializer(serializers.Serializer):
 class FakeTsDynamicFieldSerializer(serializers.Serializer):
     date1 = serializers.CharField(allow_null=True)
     shortText1 = serializers.CharField(allow_null=True)
+    shortText2 = serializers.CharField(allow_null=True)
+    shortText3 = serializers.CharField(allow_null=True)
     longText1 = serializers.CharField(allow_null=True)
     longText2 = serializers.CharField(allow_null=True)
     longText3 = serializers.CharField(allow_null=True)
     longText1Formatted = serializers.CharField(allow_null=True)
     longText2Formatted = serializers.CharField(allow_null=True)
     longText3Formatted = serializers.CharField(allow_null=True)
+    customCodeTable1 = FakeTsCodedObjectSerializer(allow_null=True)
+    customCodeTable2 = FakeTsCodedObjectSerializer(allow_null=True)
+    customCodeTable3 = FakeTsCodedObjectSerializer(allow_null=True)
+
+
+class FakeTsOfferFieldsSerializer(FakeTsDynamicFieldSerializer):
+    customCodeTable2 = FakeTsCodedObjectSerializer(
+        allow_null=True,
+        help_text="Type de contrat : `clientCode` = valeur de `type_contrat`, "
+        "`label` = son libellé.",
+    )
+
+
+class FakeTsDescriptionFieldsSerializer(FakeTsDynamicFieldSerializer):
+    customCodeTable1 = FakeTsCodedObjectSerializer(
+        allow_null=True,
+        help_text="Catégorie principale : `clientCode` = première valeur de "
+        "`categories`, `label` = son libellé.",
+    )
+    customCodeTable3 = FakeTsCodedObjectSerializer(
+        allow_null=True,
+        help_text="Temps de travail : `clientCode` = valeur de "
+        "`conditions.temps_travail`, `label` = son libellé. `null` si "
+        "`NON_DEFINI`.",
+    )
+
+
+class FakeTsOfferCustomBlock1Serializer(FakeTsDynamicFieldSerializer):
+    customCodeTable1 = FakeTsCodedObjectSerializer(
+        allow_null=True,
+        help_text="Management : `clientCode` = valeur de `conditions.management`, "
+        "`label` = son libellé.",
+    )
+    customCodeTable2 = FakeTsCodedObjectSerializer(
+        allow_null=True,
+        help_text="Lieu de travail : `clientCode` = valeur de "
+        "`conditions.lieu_de_travail`, `label` = son libellé. `null` si "
+        "`NON_DEFINI`.",
+    )
 
 
 class FakeTsApplicantCriteriaSerializer(FakeTsDynamicFieldSerializer):
@@ -538,11 +583,11 @@ class FakeTsApplicantCriteriaSerializer(FakeTsDynamicFieldSerializer):
 
 
 class FakeTsCustomFieldsSerializer(serializers.Serializer):
-    offer = FakeTsDynamicFieldSerializer()
-    description = FakeTsDynamicFieldSerializer()
+    offer = FakeTsOfferFieldsSerializer()
+    description = FakeTsDescriptionFieldsSerializer()
     applicantCriteria = FakeTsApplicantCriteriaSerializer()
     location = FakeTsDynamicFieldSerializer()
-    offerCustomBlock1 = FakeTsDynamicFieldSerializer()
+    offerCustomBlock1 = FakeTsOfferCustomBlock1Serializer()
     origin = FakeTsDynamicFieldSerializer()
 
 

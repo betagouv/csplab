@@ -4837,6 +4837,12 @@ components:
         shortText1:
           type: string
           nullable: true
+        shortText2:
+          type: string
+          nullable: true
+        shortText3:
+          type: string
+          nullable: true
         longText1:
           type: string
           nullable: true
@@ -4861,8 +4867,18 @@ components:
           nullable: true
           description: Documents à transmettre. `null` si l'offre n'en demande aucun
             ou si la combinaison n'existe pas dans le référentiel Talentsoft.
+        customCodeTable2:
+          allOf:
+          - $ref: '#/components/schemas/FakeTsCodedObject'
+          nullable: true
+        customCodeTable3:
+          allOf:
+          - $ref: '#/components/schemas/FakeTsCodedObject'
+          nullable: true
       required:
       - customCodeTable1
+      - customCodeTable2
+      - customCodeTable3
       - date1
       - longText1
       - longText1Formatted
@@ -4871,6 +4887,8 @@ components:
       - longText3
       - longText3Formatted
       - shortText1
+      - shortText2
+      - shortText3
     FakeTsCodedObject:
       type: object
       properties:
@@ -4905,15 +4923,15 @@ components:
       type: object
       properties:
         offer:
-          $ref: '#/components/schemas/FakeTsDynamicField'
+          $ref: '#/components/schemas/FakeTsOfferFields'
         description:
-          $ref: '#/components/schemas/FakeTsDynamicField'
+          $ref: '#/components/schemas/FakeTsDescriptionFields'
         applicantCriteria:
           $ref: '#/components/schemas/FakeTsApplicantCriteria'
         location:
           $ref: '#/components/schemas/FakeTsDynamicField'
         offerCustomBlock1:
-          $ref: '#/components/schemas/FakeTsDynamicField'
+          $ref: '#/components/schemas/FakeTsOfferCustomBlock1'
         origin:
           $ref: '#/components/schemas/FakeTsDynamicField'
       required:
@@ -4923,13 +4941,19 @@ components:
       - offer
       - offerCustomBlock1
       - origin
-    FakeTsDynamicField:
+    FakeTsDescriptionFields:
       type: object
       properties:
         date1:
           type: string
           nullable: true
         shortText1:
+          type: string
+          nullable: true
+        shortText2:
+          type: string
+          nullable: true
+        shortText3:
           type: string
           nullable: true
         longText1:
@@ -4950,7 +4974,26 @@ components:
         longText3Formatted:
           type: string
           nullable: true
+        customCodeTable1:
+          allOf:
+          - $ref: '#/components/schemas/FakeTsCodedObject'
+          nullable: true
+          description: 'Catégorie principale : `clientCode` = première valeur de `categories`,
+            `label` = son libellé.'
+        customCodeTable2:
+          allOf:
+          - $ref: '#/components/schemas/FakeTsCodedObject'
+          nullable: true
+        customCodeTable3:
+          allOf:
+          - $ref: '#/components/schemas/FakeTsCodedObject'
+          nullable: true
+          description: 'Temps de travail : `clientCode` = valeur de `conditions.temps_travail`,
+            `label` = son libellé. `null` si `NON_DEFINI`.'
       required:
+      - customCodeTable1
+      - customCodeTable2
+      - customCodeTable3
       - date1
       - longText1
       - longText1Formatted
@@ -4959,6 +5002,67 @@ components:
       - longText3
       - longText3Formatted
       - shortText1
+      - shortText2
+      - shortText3
+    FakeTsDynamicField:
+      type: object
+      properties:
+        date1:
+          type: string
+          nullable: true
+        shortText1:
+          type: string
+          nullable: true
+        shortText2:
+          type: string
+          nullable: true
+        shortText3:
+          type: string
+          nullable: true
+        longText1:
+          type: string
+          nullable: true
+        longText2:
+          type: string
+          nullable: true
+        longText3:
+          type: string
+          nullable: true
+        longText1Formatted:
+          type: string
+          nullable: true
+        longText2Formatted:
+          type: string
+          nullable: true
+        longText3Formatted:
+          type: string
+          nullable: true
+        customCodeTable1:
+          allOf:
+          - $ref: '#/components/schemas/FakeTsCodedObject'
+          nullable: true
+        customCodeTable2:
+          allOf:
+          - $ref: '#/components/schemas/FakeTsCodedObject'
+          nullable: true
+        customCodeTable3:
+          allOf:
+          - $ref: '#/components/schemas/FakeTsCodedObject'
+          nullable: true
+      required:
+      - customCodeTable1
+      - customCodeTable2
+      - customCodeTable3
+      - date1
+      - longText1
+      - longText1Formatted
+      - longText2
+      - longText2Formatted
+      - longText3
+      - longText3Formatted
+      - shortText1
+      - shortText2
+      - shortText3
     FakeTsGeolocation:
       type: object
       properties:
@@ -4981,6 +5085,69 @@ components:
       required:
       - languageLevel
       - languageName
+    FakeTsOfferCustomBlock1:
+      type: object
+      properties:
+        date1:
+          type: string
+          nullable: true
+        shortText1:
+          type: string
+          nullable: true
+        shortText2:
+          type: string
+          nullable: true
+        shortText3:
+          type: string
+          nullable: true
+        longText1:
+          type: string
+          nullable: true
+        longText2:
+          type: string
+          nullable: true
+        longText3:
+          type: string
+          nullable: true
+        longText1Formatted:
+          type: string
+          nullable: true
+        longText2Formatted:
+          type: string
+          nullable: true
+        longText3Formatted:
+          type: string
+          nullable: true
+        customCodeTable1:
+          allOf:
+          - $ref: '#/components/schemas/FakeTsCodedObject'
+          nullable: true
+          description: 'Management : `clientCode` = valeur de `conditions.management`,
+            `label` = son libellé.'
+        customCodeTable2:
+          allOf:
+          - $ref: '#/components/schemas/FakeTsCodedObject'
+          nullable: true
+          description: 'Lieu de travail : `clientCode` = valeur de `conditions.lieu_de_travail`,
+            `label` = son libellé. `null` si `NON_DEFINI`.'
+        customCodeTable3:
+          allOf:
+          - $ref: '#/components/schemas/FakeTsCodedObject'
+          nullable: true
+      required:
+      - customCodeTable1
+      - customCodeTable2
+      - customCodeTable3
+      - date1
+      - longText1
+      - longText1Formatted
+      - longText2
+      - longText2Formatted
+      - longText3
+      - longText3Formatted
+      - shortText1
+      - shortText2
+      - shortText3
     FakeTsOfferDetail:
       type: object
       properties:
@@ -5028,8 +5195,11 @@ components:
           type: string
           nullable: true
         salaryRange:
-          type: string
+          allOf:
+          - $ref: '#/components/schemas/FakeTsCodedObject'
           nullable: true
+          description: 'Versant : `clientCode` = valeur de `identification.versant`,
+            `label` = son libellé.'
         geographicalLocation:
           type: array
           items:
@@ -5186,6 +5356,67 @@ components:
       - title
       - urlRedirectionApplicant
       - urlRedirectionEmployee
+    FakeTsOfferFields:
+      type: object
+      properties:
+        date1:
+          type: string
+          nullable: true
+        shortText1:
+          type: string
+          nullable: true
+        shortText2:
+          type: string
+          nullable: true
+        shortText3:
+          type: string
+          nullable: true
+        longText1:
+          type: string
+          nullable: true
+        longText2:
+          type: string
+          nullable: true
+        longText3:
+          type: string
+          nullable: true
+        longText1Formatted:
+          type: string
+          nullable: true
+        longText2Formatted:
+          type: string
+          nullable: true
+        longText3Formatted:
+          type: string
+          nullable: true
+        customCodeTable1:
+          allOf:
+          - $ref: '#/components/schemas/FakeTsCodedObject'
+          nullable: true
+        customCodeTable2:
+          allOf:
+          - $ref: '#/components/schemas/FakeTsCodedObject'
+          nullable: true
+          description: 'Type de contrat : `clientCode` = valeur de `type_contrat`,
+            `label` = son libellé.'
+        customCodeTable3:
+          allOf:
+          - $ref: '#/components/schemas/FakeTsCodedObject'
+          nullable: true
+      required:
+      - customCodeTable1
+      - customCodeTable2
+      - customCodeTable3
+      - date1
+      - longText1
+      - longText1Formatted
+      - longText2
+      - longText2Formatted
+      - longText3
+      - longText3Formatted
+      - shortText1
+      - shortText2
+      - shortText3
     FakeTsOfferSummary:
       type: object
       properties:
@@ -5233,8 +5464,11 @@ components:
           type: string
           nullable: true
         salaryRange:
-          type: string
+          allOf:
+          - $ref: '#/components/schemas/FakeTsCodedObject'
           nullable: true
+          description: 'Versant : `clientCode` = valeur de `identification.versant`,
+            `label` = son libellé.'
         geographicalLocation:
           type: array
           items:
