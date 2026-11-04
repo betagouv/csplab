@@ -1057,6 +1057,13 @@ export interface components {
             /** Format: uuid */
             publie_par_id: string;
             est_privee: boolean;
+            readonly tags: components["schemas"]["NoteTag"][];
+        };
+        NoteTag: {
+            /** Format: uuid */
+            uuid: string;
+            name: string;
+            color?: components["schemas"]["ColorEnum"];
         };
         NoteVisibilite: {
             est_privee: boolean;
