@@ -86,18 +86,13 @@ class Command(BaseCommand):
     def _prompt_source(self) -> SourceModel:
         while True:
             slug = self._prompt("Slug de la source")
-            sources = list(SourceModel.objects.filter(slug=slug)[:2])
-            if not sources:
+            source = SourceModel.objects.filter(slug=slug).first()
+            if source is None:
                 return SourceModel(slug=slug, type=SourceType.API.value)
-            if len(sources) > 1:
-                self.logger.warning(
-                    "Plusieurs sources ont le slug '%s', choisissez-en un autre.", slug
-                )
-                continue
             if self._confirm(
                 f"La source '{slug}' existe déjà, y rattacher l'utilisateur ?"
             ):
-                return sources[0]
+                return source
 
     def _confirm(self, question: str) -> bool:
         return input(f"{question} [o/N]: ").strip().lower() in {"o", "oui"}

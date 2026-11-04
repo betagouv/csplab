@@ -62,15 +62,3 @@ class TestCreateUserWithSourceCommand:
 
         user = UserModel.objects.get(email="jeanne@example.fr")
         assert list(user.sources.values_list("slug", flat=True)) == ["nouvelle-source"]
-
-    def test_asks_another_slug_when_slug_is_ambiguous(self, mock_getpass):
-        SourceModel.objects.create(slug="doublon", type=SourceType.API.value)
-        SourceModel.objects.create(slug="doublon", type=SourceType.API.value)
-
-        with _mock_input(
-            "Jeanne", "Dupont", "jeanne@example.fr", "doublon", "nouvelle-source"
-        ):
-            call_command("create_user_with_source")
-
-        user = UserModel.objects.get(email="jeanne@example.fr")
-        assert list(user.sources.values_list("slug", flat=True)) == ["nouvelle-source"]
