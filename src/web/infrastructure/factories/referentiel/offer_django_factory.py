@@ -49,31 +49,37 @@ class OfferDjangoFactory(DjangoModelFactory):
     archived_at = None
 
     @classmethod
+    def _build(cls, model_class, *args, **kwargs):
+        # An unsaved offer cannot hold localisations
+        cls._pop_localisations(kwargs)
+        return super()._build(model_class, *args, **kwargs)
+
+    @classmethod
     def _create(cls, model_class, *args, **kwargs):
-        # Flat kwargs (department="69", latitude=…) describe the main localisation
-        main = {
-            field: kwargs.pop(kwarg, default)
-            for kwarg, (field, default) in _MAIN_LOCALISATION_KWARGS.items()
-        }
-        localisations = kwargs.pop("localisations", None)
-        if localisations is None:
-            localisations = [main] if main["area"] and main["country"] else []
+        localisations = cls._pop_localisations(kwargs)
         offer = super()._create(model_class, *args, **kwargs)
         OfferLocalisationModel.objects.bulk_create(
             OfferLocalisationModel(
                 id=uuid4(),
                 offer=offer,
                 position=position,
-                **{
-                    field: value
-                    for field, value in localisation.items()
-                    # label is the only non nullable optional field
-                    if value is not None or field != "label"
-                },
+                **{**localisation, "label": localisation.get("label") or ""},
             )
             for position, localisation in enumerate(localisations)
         )
         return offer
+
+    @staticmethod
+    def _pop_localisations(kwargs: dict) -> list[dict]:
+        # Flat kwargs (department="69", latitude=…) describe the main localisation
+        main = {
+            field: kwargs.pop(kwarg, default)
+            for kwarg, (field, default) in _MAIN_LOCALISATION_KWARGS.items()
+        }
+        localisations = kwargs.pop("localisations", None)
+        if localisations is not None:
+            return localisations
+        return [main] if main["area"] and main["country"] else []
 
     @factory.post_generation
     def updated_at(self, create, extracted, **kwargs):
