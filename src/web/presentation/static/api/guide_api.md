@@ -666,7 +666,8 @@ Notation : `a.b` désigne un objet imbriqué, `a[]` une liste, `a[0]` son premie
 | `beginningDate` | `publication.debut_vacance_poste` | Comme l'ancien site WordPress (« Vacant à partir du … », « Poste à pourvoir le … »). |
 | `contractDuration` | `conditions.duree_contrat` | |
 | `educationLevel.clientCode` | `criteres.diplome_niveau` | Lettres `A`-`H` ou `NIV_DIPL<n>` converties en niveau. |
-| `diploma.clientCode` | `criteres.diplome` | |
+| `diploma.clientCode` | `criteres.diplome` | Prioritaire sur `customFields.offerCustomBlock1.customCodeTable3` ; en pratique, Talentsoft ne renseigne jamais `diploma`. |
+| `customFields.offerCustomBlock1.customCodeTable3.label` | `criteres.diplome` | « Diplômes d'Etat requis », référentiel Talentsoft « Diplômes d'Etat » (`type`) de 23 codes, ex. `CSPU0002` « Diplôme d'Etat d'infirmier ». `criteres.diplome` reprend le libellé du référentiel pour un `clientCode` connu, sinon le `label` reçu. Utilisé seulement si `diploma` est absent. Une valeur du référentiel « Quotité de temps de travail » (`type`, codes `Temps_plein`, `Temps_noncomplet`) saisie par erreur est rejetée (passée à `null`, l'offre reste ingérée) et signalée dans Sentry ; elle n'est pas reprise dans `conditions.temps_travail`. API fake-ts : toujours `null`. |
 | `experienceLevel.clientCode` | `criteres.experience` | Converti en nom d'`ExperienceLevel`. |
 | `specialisations[].clientCode` | `criteres.specialisations` | Remplacé par le libellé de la spécialisation. |
 | `languages[].languageName.clientCode` | `criteres.langues[].iso_code` | |
@@ -722,7 +723,6 @@ Notation : `a.b` désigne un objet imbriqué, `a[]` une liste, `a[0]` son premie
 | `customFields.offerCustomBlock1.date1` | |
 | `customFields.offerCustomBlock1.shortText1` | |
 | `customFields.offerCustomBlock1.longText3Formatted` | Non lu : seul le texte brut `customFields.offerCustomBlock1.longText3` est repris. API fake-ts : `conditions.note_ouverture_poste_url` en HTML. |
-| `customFields.offerCustomBlock1.customCodeTable3` | « Diplômes d'Etat requis ». Non repris (`criteres.diplome` vient de `diploma.clientCode`). Une valeur du référentiel « Quotité de temps de travail » (`type`, codes `Temps_plein`, `Temps_noncomplet`) saisie par erreur est rejetée (passée à `null`, l'offre reste ingérée) et signalée dans Sentry ; elle n'est pas reprise dans `conditions.temps_travail`. API fake-ts : toujours `null`. |
 | `code` | Clé de tout objet codé : seul `clientCode` est lu. |
 | `label` | Clé de tout objet codé : seul `clientCode` est lu. |
 | `active` | Clé de tout objet codé : seul `clientCode` est lu. |
@@ -742,7 +742,7 @@ Notation : `a.b` désigne un objet imbriqué, `a[]` une liste, `a[0]` son premie
 | `profession.referentiel` | Constante `RMFPv2`. |
 | `profession.code_emploi_local` | Jamais renseigné, `local_job_code` reste à `null`. |
 | `criteres.documents_requis` | Lu dans `customFields.applicantCriteria.customCodeTable1` (« Documents à transmettre ») : `Doc_CV` → `[CV]`, `Doc_CV_LM` → `[CV, LETTRE_MOTIVATION]`, `Doc_CV_PF` → `[CV, PORTFOLIO]`, `Doc_CV_LM_PF` → `[CV, LETTRE_MOTIVATION, PORTFOLIO]`. Absent, `null` ou code inconnu → non envoyé. API fake-ts : renvoyé dans `customFields.applicantCriteria.customCodeTable1`, valeur du référentiel Talentsoft « Documents à transmettre » : `[CV]` → `Doc_CV`, `[CV, LETTRE_MOTIVATION]` → `Doc_CV_LM`, `[CV, PORTFOLIO]` → `Doc_CV_PF`, `[CV, LETTRE_MOTIVATION, PORTFOLIO]` → `Doc_CV_LM_PF`, quel que soit l'ordre. `null` pour une liste vide ou une autre combinaison. Le `label` reprend le libellé Talentsoft, que le WordPress BIEP affiche après « Pour postuler à cette offre, ». |
-| `conditions.temps_travail` | Lu dans `customFields.description.customCodeTable3` (« Temps plein » oui/non) : `reponse_oui` → `TEMPS_PLEIN`, `reponse_non` → `TEMPS_PARTIEL`, sinon `NON_DEFINI`. API fake-ts : `clientCode` = `TEMPS_PLEIN` ou `TEMPS_PARTIEL`, `label` = son libellé, `null` pour `NON_DEFINI`. `customFields.offerCustomBlock1.customCodeTable3` est le diplôme d'État exigé, non lu. |
+| `conditions.temps_travail` | Lu dans `customFields.description.customCodeTable3` (« Temps plein » oui/non) : `reponse_oui` → `TEMPS_PLEIN`, `reponse_non` → `TEMPS_PARTIEL`, sinon `NON_DEFINI`. API fake-ts : `clientCode` = `TEMPS_PLEIN` ou `TEMPS_PARTIEL`, `label` = son libellé, `null` pour `NON_DEFINI`. `customFields.offerCustomBlock1.customCodeTable3` est le diplôme d'État exigé, repris dans `criteres.diplome`. |
 | `conditions.lieu_de_travail` | Lu dans `customFields.offerCustomBlock1.customCodeTable2` : `reponse_oui` → `TELETRAVAIL`, `reponse_non` → `SUR_SITE`, sinon `NON_DEFINI`. API fake-ts : `clientCode` = `TELETRAVAIL` ou `SUR_SITE`, `label` = son libellé, `null` pour `NON_DEFINI`. |
 | `conditions.management` | Lu dans `customFields.offerCustomBlock1.customCodeTable1` : `reponse_oui` → `AVEC`, `reponse_non` → `SANS`. API fake-ts : `clientCode` = `AVEC` ou `SANS`, `label` = son libellé, `null` si absent. |
 | `conditions.salaire_titulaire` | Jamais renseigné par l'ingestion. |
