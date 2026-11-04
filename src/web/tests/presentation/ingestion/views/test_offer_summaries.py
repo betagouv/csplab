@@ -167,10 +167,36 @@ def test_offer_with_several_localisations_lists_each_of_them(
 
     result = jwt_client.get(URL).json()["data"][0]
 
+    assert [a["clientCode"] for a in result["geographicalLocation"]] == ["EU"]
     assert [c["clientCode"] for c in result["country"]] == ["FRA", "DEU"]
     assert [r["clientCode"] for r in result["region"]] == ["28"]
     assert [d["clientCode"] for d in result["department"]] == ["14", "50"]
     assert result["latitude"] == CAEN_LATITUDE
+
+
+def test_geographical_location_lists_each_distinct_area(
+    mock_offer_summaries_container, jwt_client
+):
+    paris = Localisation.from_department(Department(code="75"))
+    berlin = Localisation(
+        area=GeographicalArea.EUROPE,
+        country=Country("DEU"),
+        region=None,
+        department=None,
+    )
+    pointe_a_pitre = Localisation.from_department(Department(code="971"))
+    offer = OfferFactory.create_entity(localisations=[paris, berlin, pointe_a_pitre])
+    _make_paginated_mock(mock_offer_summaries_container, total=1, offers_slice=[offer])
+
+    result = jwt_client.get(URL).json()["data"][0]
+
+    assert [
+        (area["clientCode"], area["label"], area["type"])
+        for area in result["geographicalLocation"]
+    ] == [
+        ("EU", "Europe", "geographicalLocation"),
+        ("AM", "Amérique", "geographicalLocation"),
+    ]
 
 
 def test_offer_abroad_has_a_country_but_no_region_nor_department(
@@ -192,6 +218,7 @@ def test_offer_abroad_has_a_country_but_no_region_nor_department(
 
     result = jwt_client.get(URL).json()["data"][0]
 
+    assert result["geographicalLocation"][0]["clientCode"] == "EU"
     assert result["country"][0]["clientCode"] == "DEU"
     assert result["region"] == []
     assert result["department"] == []
@@ -297,7 +324,18 @@ class TestOfferSummariesViewDbVerified:
                     "description1Formatted": "<p>Mission du poste</p>",
                     "description2Formatted": "<p>Profil recherché</p>",
                     "salaryRange": None,
-                    "geographicalLocation": [],
+                    "geographicalLocation": [
+                        {
+                            "code": None,
+                            "clientCode": "EU",
+                            "label": "Europe",
+                            "active": True,
+                            "parentCode": None,
+                            "type": "geographicalLocation",
+                            "parentType": "",
+                            "hasChildren": False,
+                        }
+                    ],
                     "country": [
                         {
                             "code": None,
