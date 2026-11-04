@@ -49,8 +49,8 @@ class DescriptionPayload(BaseModel):
 class LocalisationItemPayload(BaseModel):
     zone_geographique: str
     pays: str
-    region: str
-    departement: str
+    region: Optional[str]
+    departement: Optional[str]
     localisation_label: str = ""
     latitude: Optional[float] = None
     longitude: Optional[float] = None
@@ -146,10 +146,10 @@ class OfferUpsertPayload(BaseModel):
                     pays=str(offer.localisation.country),
                     region=offer.localisation.region.code
                     if offer.localisation.region
-                    else "",
+                    else None,
                     departement=offer.localisation.department.code
                     if offer.localisation.department
-                    else "",
+                    else None,
                     localisation_label=offer.localisation.label or "",
                     latitude=offer.localisation.latitude,
                     longitude=offer.localisation.longitude,

@@ -675,8 +675,8 @@ def test_offer_abroad_is_published_without_region_nor_department(cleaner):
 
     assert payload.localisation is not None
     assert payload.localisation[0].pays == "DEU"
-    assert payload.localisation[0].region == ""
-    assert payload.localisation[0].departement == ""
+    assert payload.localisation[0].region is None
+    assert payload.localisation[0].departement is None
 
 
 def _make_raw_offer_without_area(
