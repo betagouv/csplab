@@ -26,7 +26,9 @@ const { organisme, canOnOrganisme } = useRouteOrganisme()
 
 const forbidden = computed(() => !!props.organismeUuid && !!user.value && !isStaff.value && !organisme.value)
 
-const welcome = computed(() => WELCOME_TEXTS[canOnOrganisme('get_organisme') ? 'superviseur' : 'agent'])
+const canAccessOrganismeSettings = computed(() => canOnOrganisme('get_organisme'))
+
+const welcome = computed(() => WELCOME_TEXTS[canAccessOrganismeSettings.value ? 'superviseur' : 'agent'])
 
 useDocumentTitle(HOME_BREADCRUMB_LABEL)
 </script>
