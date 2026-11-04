@@ -1511,13 +1511,15 @@ class TestOffersUpsertViewDbVerified:
         assert offer_model.department == "14"
         assert offer_model.location_label == "Caen"
 
-    def test_update_replaces_the_localisations(self, authenticated_client_with_source):
-        self._post_localisations(
-            authenticated_client_with_source,
-            "REF-MAJ",
-            [
-                _localisation_payload("14", label="Caen"),
-                _localisation_payload("50", label="Saint-Lô"),
+    def test_update_replaces_the_localisations(
+        self, authenticated_client_with_source, source
+    ):
+        OfferDjangoFactory(
+            source=source,
+            reference="REF-MAJ",
+            localisations=[
+                {"area": "EU", "country": "FRA", "region": "28", "department": "14"},
+                {"area": "EU", "country": "FRA", "region": "28", "department": "50"},
             ],
         )
 

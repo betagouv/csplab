@@ -24,7 +24,6 @@ WHERE o.area IS NOT NULL
 """
 
 
-
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -60,5 +59,6 @@ class Migration(migrations.Migration):
         migrations.RunSQL(
             sql=RATTRAPE_OFFER_LOCALISATIONS,
             reverse_sql=migrations.RunSQL.noop,
+            elidable=True,
         ),
     ]
