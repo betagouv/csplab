@@ -6,7 +6,7 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('referentiel', '0063_rattrape_offer_localisations'),
+        ('referentiel', '0064_rattrape_offer_localisations'),
     ]
 
     operations = [
