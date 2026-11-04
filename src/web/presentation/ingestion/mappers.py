@@ -172,7 +172,7 @@ class OfferSummaryOutputMapper:
             # One element per distinct localisation value
             "geographicalLocation": self._unique_coded_objects(
                 "geographicalLocation",
-                ((loc.area.value, loc.area.label) for loc in offer.localisations),
+                ((loc.area.name, loc.area.label) for loc in offer.localisations),
             ),
             "country": self._unique_coded_objects(
                 "country",

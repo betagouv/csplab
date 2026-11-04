@@ -167,7 +167,7 @@ def test_offer_with_several_localisations_lists_each_of_them(
 
     result = jwt_client.get(URL).json()["data"][0]
 
-    assert [a["clientCode"] for a in result["geographicalLocation"]] == ["EU"]
+    assert [a["clientCode"] for a in result["geographicalLocation"]] == ["EUROPE"]
     assert [c["clientCode"] for c in result["country"]] == ["FRA", "DEU"]
     assert [r["clientCode"] for r in result["region"]] == ["28"]
     assert [d["clientCode"] for d in result["department"]] == ["14", "50"]
@@ -194,8 +194,8 @@ def test_geographical_location_lists_each_distinct_area(
         (area["clientCode"], area["label"], area["type"])
         for area in result["geographicalLocation"]
     ] == [
-        ("EU", "Europe", "geographicalLocation"),
-        ("AM", "Amérique", "geographicalLocation"),
+        ("EUROPE", "Europe", "geographicalLocation"),
+        ("AMERIQUE", "Amérique", "geographicalLocation"),
     ]
 
 
@@ -218,7 +218,7 @@ def test_offer_abroad_has_a_country_but_no_region_nor_department(
 
     result = jwt_client.get(URL).json()["data"][0]
 
-    assert result["geographicalLocation"][0]["clientCode"] == "EU"
+    assert result["geographicalLocation"][0]["clientCode"] == "EUROPE"
     assert result["country"][0]["clientCode"] == "DEU"
     assert result["region"] == []
     assert result["department"] == []
@@ -327,7 +327,7 @@ class TestOfferSummariesViewDbVerified:
                     "geographicalLocation": [
                         {
                             "code": None,
-                            "clientCode": "EU",
+                            "clientCode": "EUROPE",
                             "label": "Europe",
                             "active": True,
                             "parentCode": None,

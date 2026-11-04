@@ -221,7 +221,7 @@ class TestOfferDetailViewDbVerified:
             "geographicalLocation": [
                 {
                     "code": None,
-                    "clientCode": "EU",
+                    "clientCode": "EUROPE",
                     "label": "Europe",
                     "active": True,
                     "parentCode": None,
