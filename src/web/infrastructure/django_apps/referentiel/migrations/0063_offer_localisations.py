@@ -3,6 +3,27 @@
 import django.db.models.deletion
 from django.db import migrations, models
 
+# Copies the localisation stored in the flat columns of `offers` as the main
+# localisation (position 0) of each offer. Plain SQL, like 0058, so that the
+# migration does not depend on libs/referentiel.
+RATTRAPE_OFFER_LOCALISATIONS = """
+INSERT INTO offer_localisations (
+    id, created_at, updated_at, offer_id, position,
+    area, country, region, department, label, latitude, longitude
+)
+SELECT
+    gen_random_uuid(), now(), now(), o.id, 0,
+    o.area, o.country, o.region, o.department,
+    coalesce(o.location_label, ''), o.latitude, o.longitude
+FROM offers o
+WHERE o.area IS NOT NULL
+    AND o.country IS NOT NULL
+    AND NOT EXISTS (
+        SELECT 1 FROM offer_localisations ol WHERE ol.offer_id = o.id
+    )
+"""
+
+
 
 class Migration(migrations.Migration):
 
@@ -35,5 +56,9 @@ class Migration(migrations.Migration):
                 'indexes': [models.Index(fields=['department'], name='offer_loc_department_idx'), models.Index(fields=['region'], name='offer_loc_region_idx'), models.Index(fields=['country'], name='offer_loc_country_idx'), models.Index(fields=['area'], name='offer_loc_area_idx')],
                 'constraints': [models.UniqueConstraint(fields=('offer', 'position'), name='offer_localisations_offer_position_unique'), models.UniqueConstraint(fields=('offer', 'country', 'region', 'department', 'label'), name='offer_localisations_no_duplicate', nulls_distinct=False), models.CheckConstraint(condition=models.Q(('latitude__isnull', True), models.Q(('latitude__gte', -90), ('latitude__lte', 90)), _connector='OR'), name='offer_localisations_latitude_range'), models.CheckConstraint(condition=models.Q(('longitude__isnull', True), models.Q(('longitude__gte', -180), ('longitude__lte', 180)), _connector='OR'), name='offer_localisations_longitude_range')],
             },
+        ),
+        migrations.RunSQL(
+            sql=RATTRAPE_OFFER_LOCALISATIONS,
+            reverse_sql=migrations.RunSQL.noop,
         ),
     ]
