@@ -16,6 +16,7 @@ export function createTestRouter() {
   return createRouter({ history: createMemoryHistory(), routes })
 }
 
+// Router guards run before render and need pinia bound to an app.
 function createInstalledPinia() {
   const pinia = createPinia()
   createApp({}).use(pinia)
