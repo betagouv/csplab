@@ -1,5 +1,5 @@
 ---
-type: modifie
+type: non_retrocompatible
 date: 2026-11-04
 pr: 2270
 liens:
@@ -12,3 +12,8 @@ région `FRA` (`parentType: country`), un pays sa zone (`parentType: area`, ex. 
 Pour les lieux, `code` restant `null`, `parentCode` est le `clientCode` du parent : il est
 donc une chaîne, alors qu'il reste un entier pour les organisations. `hasChildren` indique
 si une zone, un pays ou une région a des descendants.
+
+### Compatibilité
+
+Un client qui type `parentCode` en entier ou `null` doit l'accepter aussi en chaîne pour
+les lieux (`country`, `region`, `department`, `area`).
