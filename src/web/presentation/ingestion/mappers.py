@@ -169,7 +169,11 @@ class OfferSummaryOutputMapper:
             "description1Formatted": self._formatted(offer.mission),
             "description2Formatted": self._formatted(offer.profile),
             "salaryRange": None,
-            "geographicalLocation": [],
+            # One element per distinct localisation value
+            "geographicalLocation": self._unique_coded_objects(
+                "geographicalLocation",
+                ((loc.area.name, loc.area.label) for loc in offer.localisations),
+            ),
             "country": self._unique_coded_objects(
                 "country",
                 (
