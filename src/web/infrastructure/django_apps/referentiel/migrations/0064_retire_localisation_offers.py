@@ -2,6 +2,50 @@
 
 from django.db import migrations
 
+# Refuses to drop the flat columns while one of them holds a localisation that
+# is missing from, or differs from, the main localisation (position 0).
+VERIFIE_LOCALISATIONS_RATTRAPEES = """
+DO $$ BEGIN
+    IF EXISTS (
+        SELECT 1 FROM offers o
+        LEFT JOIN offer_localisations ol ON ol.offer_id = o.id AND ol.position = 0
+        WHERE (
+            o.area IS NOT NULL OR o.country IS NOT NULL OR o.region IS NOT NULL
+            OR o.department IS NOT NULL OR o.location_label IS NOT NULL
+            OR o.latitude IS NOT NULL OR o.longitude IS NOT NULL
+        )
+        AND (
+            ol.id IS NULL
+            OR (
+                o.area, o.country, o.region, o.department,
+                coalesce(o.location_label, ''), o.latitude, o.longitude
+            ) IS DISTINCT FROM (
+                ol.area, ol.country, ol.region, ol.department,
+                ol.label, ol.latitude, ol.longitude
+            )
+        )
+    ) THEN
+        RAISE EXCEPTION
+            'offers : localisations plates absentes ou divergentes de offer_localisations';
+    END IF;
+END $$;
+"""
+
+# Reverse: restores the main localisation into the flat columns re-created by
+# the reverse of the RemoveField operations below.
+RESTAURE_LOCALISATIONS_PLATES = """
+UPDATE offers o SET
+    area = ol.area,
+    country = ol.country,
+    region = ol.region,
+    department = ol.department,
+    location_label = nullif(ol.label, ''),
+    latitude = ol.latitude,
+    longitude = ol.longitude
+FROM offer_localisations ol
+WHERE ol.offer_id = o.id AND ol.position = 0
+"""
+
 
 class Migration(migrations.Migration):
 
@@ -10,6 +54,14 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        migrations.RunSQL(
+            sql="SET LOCAL lock_timeout = '5s'",
+            reverse_sql=migrations.RunSQL.noop,
+        ),
+        migrations.RunSQL(
+            sql=VERIFIE_LOCALISATIONS_RATTRAPEES,
+            reverse_sql=RESTAURE_LOCALISATIONS_PLATES,
+        ),
         migrations.RemoveField(
             model_name='offermodel',
             name='area',
