@@ -19,20 +19,35 @@
             Les changements de l'API publique CSPLab (routes <code>/api/v1/…</code> et <code>/api/fake-ts/…</code>) qui concernent ses partenaires, du plus récent au plus ancien.
         </p>
         <p>
-            Le détail des champs et de leurs règles se trouve dans le <a href="{% url 'pages:api_guide' %}">guide de l'API</a>, la référence technique des routes dans la <a href="{% url 'api:redoc' %}">documentation Redoc</a>.
+            Le détail des champs et de leurs règles se trouve dans le <a href="{% url 'pages:api_guide' %}"
+                                                                         target="_blank"
+                                                                         rel="noopener"
+                                                                         title="guide de l'API - nouvelle fenêtre">guide de l'API</a>, la référence technique des routes dans la <a href="{% url 'api:redoc' %}"
+                                                                                                                                                                                    target="_blank"
+                                                                                                                                                                                    rel="noopener"
+                                                                                                                                                                                    title="documentation Redoc - nouvelle fenêtre">documentation Redoc</a>.
         </p>
         <ul class="fr-btns-group fr-btns-group--inline-md fr-btns-group--sm fr-btns-group--icon-left">
             <li>
                 <a class="fr-btn fr-btn--secondary fr-icon-download-line"
-                   href="{% url 'api:changelog_markdown' %}{{ query }}">Markdown</a>
+                   href="{% url 'api:changelog_markdown' %}{{ query }}"
+                   target="_blank"
+                   rel="noopener"
+                   title="Markdown - nouvelle fenêtre">Markdown</a>
             </li>
             <li>
                 <a class="fr-btn fr-btn--secondary fr-icon-code-s-slash-line"
-                   href="{% url 'api:changelog_json' %}{{ query }}">JSON</a>
+                   href="{% url 'api:changelog_json' %}{{ query }}"
+                   target="_blank"
+                   rel="noopener"
+                   title="JSON - nouvelle fenêtre">JSON</a>
             </li>
             <li>
                 <a class="fr-btn fr-btn--secondary fr-icon-rss-line"
-                   href="{% url 'api:changelog_atom' %}{{ query }}">Flux Atom</a>
+                   href="{% url 'api:changelog_atom' %}{{ query }}"
+                   target="_blank"
+                   rel="noopener"
+                   title="Flux Atom - nouvelle fenêtre">Flux Atom</a>
             </li>
         </ul>
         <div class="fr-grid-row fr-grid-row--gutters">

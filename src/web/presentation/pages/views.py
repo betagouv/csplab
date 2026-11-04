@@ -154,7 +154,7 @@ class ApiChangelogView(TemplateView):
                             "slug": fragment.slug,
                             "label": TYPE_LABELS[fragment.type],
                             "badge": _BADGES[fragment.type],
-                            "html": entry_html(fragment),
+                            "html": entry_html(fragment, new_tab=True),
                         }
                         for fragment in day_fragments
                     ],

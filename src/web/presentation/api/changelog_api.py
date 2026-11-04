@@ -300,8 +300,27 @@ def check_added_fragment(
 _markdown = MarkdownIt("commonmark", {"html": False})
 
 
-def entry_html(fragment: Fragment) -> str:
-    return _markdown.render(render_entry(fragment))
+def entry_html(fragment: Fragment, *, new_tab: bool = False) -> str:
+    tokens = _markdown.parse(render_entry(fragment))
+    if new_tab:
+        for token in tokens:
+            _open_links_in_new_tab(token.children or [])
+    return _markdown.renderer.render(tokens, _markdown.options, {})
+
+
+def _open_links_in_new_tab(children: list) -> None:
+    """Adds the DSFR title announcing a new window, with the link text."""
+    for index, child in enumerate(children):
+        if child.type != "link_open":
+            continue
+        text = ""
+        for following in children[index + 1 :]:
+            if following.type == "link_close":
+                break
+            text += following.content
+        child.attrSet("target", "_blank")
+        child.attrSet("rel", "noopener")
+        child.attrSet("title", f"{text} - nouvelle fenêtre")
 
 
 def ordered(fragments: Iterable[Fragment]) -> list[Fragment]:

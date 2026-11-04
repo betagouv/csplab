@@ -31,6 +31,11 @@ class TestApiChangelogView:
         assert content.count("<article id=") == response.context["total"]
         assert 'href="/api/changelog.md"' in content
         assert 'type="application/atom+xml"' in content
+        assert (
+            '<a href="https://github.com/betagouv/csplab/pull/2084" target="_blank" '
+            'rel="noopener" title="PR #2084 - nouvelle fenêtre">'
+        ) in content
+        assert 'title="Markdown - nouvelle fenêtre"' in content
 
     def test_filters_and_keeps_them_in_download_links(self, db, client: Client):
         response = client.get(
