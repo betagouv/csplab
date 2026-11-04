@@ -11,6 +11,7 @@ from zoneinfo import ZoneInfo
 import yaml
 from django.conf import settings
 from django.http import QueryDict
+from django.urls import reverse
 from markdown_it import MarkdownIt
 
 FRAGMENTS_DIR = settings.STATIC_DIR / "api" / "changelog_api.d"
@@ -40,11 +41,10 @@ TYPE_CHOICES = list(TYPE_LABELS.items())
 HEADER = """\
 Ce changelog liste les changements de l'API publique CSPLab (routes `/api/v1/…` et
 `/api/fake-ts/…`) qui concernent les partenaires qui l'utilisent. Le détail des
-champs et de leurs règles se trouve dans le [guide de l'API]({base}/pages/guide_api).
+champs et de leurs règles se trouve dans le [guide de l'API]({guide}).
 
-Il est aussi publié sur une [page filtrable]({base}/pages/changelog_api), et pour les
-outils et les agents en [Markdown]({base}/api/changelog.md), en
-[JSON]({base}/api/changelog.json) et en [flux Atom]({base}/api/changelog.atom).
+Il est aussi publié sur une [page filtrable]({page}), et pour les outils et les agents
+en [Markdown]({markdown}), en [JSON]({json}) et en [flux Atom]({atom}).
 
 Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/).
 """
@@ -204,7 +204,7 @@ def assemble(
     for fragment in fragments:
         by_date.setdefault(fragment.date, []).append(fragment)
 
-    sections = [HEADER.format(base=base_url).rstrip()]
+    sections = [_header(base_url)]
     if note:
         sections.append(note)
     if not by_date:
@@ -220,6 +220,19 @@ def assemble(
                 sections.append(_join_entries(entries))
 
     return "\n\n".join(sections) + "\n"
+
+
+def _header(base_url: str) -> str:
+    urls = {
+        "guide": "pages:api_guide",
+        "page": "pages:api_changelog",
+        "markdown": "api:changelog_markdown",
+        "json": "api:changelog_json",
+        "atom": "api:changelog_atom",
+    }
+    return HEADER.format(
+        **{key: f"{base_url}{reverse(name)}" for key, name in urls.items()}
+    ).rstrip()
 
 
 def render_entry(fragment: Fragment) -> str:
