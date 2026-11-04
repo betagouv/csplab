@@ -464,7 +464,7 @@ class OffersCleaner:
         languages = self._map_languages(talentsoft_offer.languages, transcoder)
 
         diploma = (
-            talentsoft_offer.diploma.clientCode
+            talentsoft_offer.diploma.label.strip() or None
             if talentsoft_offer.diploma
             else state_diploma_label(offer_block_1.customCodeTable3)
         )

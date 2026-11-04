@@ -626,7 +626,7 @@ filtre `domaine` des routes de consultation des offres et des métiers.
 
 Cette annexe est destinée aux intégrateurs qui alimentent l'API à partir d'offres au format Talentsoft. Elle indique, pour chaque champ d'une offre Talentsoft, le champ correspondant de l'offre envoyée à `POST /api/v1/offres/creer_modifier/` (« Offer API v1 »), ainsi que les champs sans équivalent des deux côtés. Les champs de l'API v1 lus dans des champs personnalisés (`customFields`) ou jamais renseignés par l'ingestion sont décrits dans la dernière section. Les notes « API fake-ts » décrivent les offres renvoyées par l'API fake-ts (`/api/fake-ts/`), qui expose les offres de CSPLab au format Talentsoft.
 
-Notation : `a.b` désigne un objet imbriqué, `a[]` une liste, `a[0]` son premier élément. Tout objet codé (`contractType`, `offerFamilyCategory`, `professionalCategory`, `educationLevel`, `diploma`, `experienceLevel`, `country`, `region`, `department`, `specialisations[]`, `languages[].languageName|languageLevel`) est lu par son `clientCode` ; ses autres clés (`code`, `label`, `active`, `parentCode`, `type`, `parentType`, `hasChildren`) sont ignorées.
+Notation : `a.b` désigne un objet imbriqué, `a[]` une liste, `a[0]` son premier élément. Tout objet codé (`contractType`, `offerFamilyCategory`, `professionalCategory`, `educationLevel`, `diploma`, `experienceLevel`, `country`, `region`, `department`, `specialisations[]`, `languages[].languageName|languageLevel`) est lu par son `clientCode`, sauf `diploma` lu par son `label` ; ses autres clés (`code`, `label`, `active`, `parentCode`, `type`, `parentType`, `hasChildren`) sont ignorées.
 
 ### Champs reliés
 
@@ -666,7 +666,7 @@ Notation : `a.b` désigne un objet imbriqué, `a[]` une liste, `a[0]` son premie
 | `beginningDate` | `publication.debut_vacance_poste` | Comme l'ancien site WordPress (« Vacant à partir du … », « Poste à pourvoir le … »). |
 | `contractDuration` | `conditions.duree_contrat` | |
 | `educationLevel.clientCode` | `criteres.diplome_niveau` | Lettres `A`-`H` ou `NIV_DIPL<n>` converties en niveau. |
-| `diploma.clientCode` | `criteres.diplome` | Prioritaire sur `customFields.offerCustomBlock1.customCodeTable3` ; en pratique, Talentsoft ne renseigne jamais `diploma`. |
+| `diploma.label` | `criteres.diplome` | Libellé reçu, comme pour le diplôme d'État. Prioritaire sur `customFields.offerCustomBlock1.customCodeTable3` ; en pratique, Talentsoft ne renseigne jamais `diploma`. |
 | `customFields.offerCustomBlock1.customCodeTable3.label` | `criteres.diplome` | « Diplômes d'Etat requis », référentiel Talentsoft « Diplômes d'Etat » (`type`) de 26 codes, ex. `CSPU0002` « Diplôme d'Etat d'infirmier ». `criteres.diplome` reprend le libellé du référentiel pour un `clientCode` connu, sinon le `label` reçu. Utilisé seulement si `diploma` est absent. Une valeur du référentiel « Quotité de temps de travail » (`type`, codes `Temps_plein`, `Temps_noncomplet`) saisie par erreur est rejetée (passée à `null`, l'offre reste ingérée) et signalée dans Sentry ; elle n'est pas reprise dans `conditions.temps_travail`. API fake-ts : toujours `null`. |
 | `experienceLevel.clientCode` | `criteres.experience` | Converti en nom d'`ExperienceLevel`. |
 | `specialisations[].clientCode` | `criteres.specialisations` | Remplacé par le libellé de la spécialisation. |
