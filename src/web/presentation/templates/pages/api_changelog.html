@@ -1,0 +1,126 @@
+{% extends "layouts/base.html" %}
+{% block page_title %}
+    Changelog de l'API
+{% endblock page_title %}
+{% block page_css %}
+    <link rel="alternate"
+          type="application/atom+xml"
+          title="Changelog de l'API CSPLab"
+          href="{% url 'api:changelog_atom' %}">
+    <link rel="alternate"
+          type="text/markdown"
+          title="Changelog de l'API CSPLab en Markdown"
+          href="{% url 'api:changelog_markdown' %}">
+{% endblock page_css %}
+{% block main %}
+    <div class="fr-container fr-py-8w">
+        <h1>Changelog de l'API</h1>
+        <p class="fr-text--lead">
+            Les changements de l'API publique CSPLab (routes <code>/api/v1/…</code> et <code>/api/fake-ts/…</code>) qui concernent ses partenaires, du plus récent au plus ancien.
+        </p>
+        <p>
+            Le détail des champs et de leurs règles se trouve dans le <a href="{% url 'pages:api_guide' %}">guide de l'API</a>, la référence technique des routes dans la <a href="{% url 'api:redoc' %}">documentation Redoc</a>.
+        </p>
+        <ul class="fr-btns-group fr-btns-group--inline-md fr-btns-group--sm fr-btns-group--icon-left">
+            <li>
+                <a class="fr-btn fr-btn--secondary fr-icon-download-line"
+                   href="{% url 'api:changelog_markdown' %}{{ query }}">Markdown</a>
+            </li>
+            <li>
+                <a class="fr-btn fr-btn--secondary fr-icon-code-s-slash-line"
+                   href="{% url 'api:changelog_json' %}{{ query }}">JSON</a>
+            </li>
+            <li>
+                <a class="fr-btn fr-btn--secondary fr-icon-rss-line"
+                   href="{% url 'api:changelog_atom' %}{{ query }}">Flux Atom</a>
+            </li>
+        </ul>
+        <div class="fr-grid-row fr-grid-row--gutters">
+            <div class="fr-col-12 fr-col-md-3">
+                <form method="get" action="{% url 'pages:api_changelog' %}">
+                    <h2 class="fr-h6">Filtrer</h2>
+                    <fieldset class="fr-fieldset" id="filtre-type">
+                        <legend class="fr-fieldset__legend fr-text--regular">Type de changement</legend>
+                        {% for type in types %}
+                            <div class="fr-fieldset__element">
+                                <div class="fr-checkbox-group fr-checkbox-group--sm">
+                                    <input type="checkbox"
+                                           id="type-{{ type.value }}"
+                                           name="type"
+                                           value="{{ type.value }}"
+                                           {% if type.checked %}checked{% endif %}>
+                                    <label class="fr-label" for="type-{{ type.value }}">{{ type.label }}</label>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </fieldset>
+                    <div class="fr-select-group">
+                        <label class="fr-label" for="route">Route</label>
+                        <select class="fr-select" id="route" name="route">
+                            <option value="">Toutes les routes</option>
+                            {% for route in routes %}
+                                <option value="{{ route }}"
+                                        {% if route == filters.route %}selected{% endif %}>{{ route }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="fr-input-group">
+                        <label class="fr-label" for="depuis">
+                            Depuis le
+                            <span class="fr-hint-text">Changements publiés à partir de cette date</span>
+                        </label>
+                        <input class="fr-input"
+                               type="date"
+                               id="depuis"
+                               name="depuis"
+                               value="{{ filters.since|date:'Y-m-d' }}">
+                    </div>
+                    <ul class="fr-btns-group fr-btns-group--sm">
+                        <li>
+                            <button class="fr-btn" type="submit">Filtrer</button>
+                        </li>
+                        <li>
+                            <a class="fr-btn fr-btn--tertiary"
+                               href="{% url 'pages:api_changelog' %}">Réinitialiser</a>
+                        </li>
+                    </ul>
+                </form>
+            </div>
+            <div class="fr-col-12 fr-col-md-9">
+                {% if filters.errors %}
+                    <div class="fr-alert fr-alert--warning fr-alert--sm fr-mb-3w" role="alert">
+                        <p>Filtre ignoré : {{ filters.errors|join:" " }}</p>
+                    </div>
+                {% endif %}
+                <p role="status">
+                    {% if filters.active %}
+                        {{ count }} changement{{ count|pluralize }} sur {{ total }}.
+                    {% else %}
+                        {{ total }} changement{{ total|pluralize }}.
+                    {% endif %}
+                </p>
+                {% for day in days %}
+                    <section class="fr-mb-6w" aria-labelledby="date-{{ day.date|date:'Y-m-d' }}">
+                        <h2 id="date-{{ day.date|date:'Y-m-d' }}" class="fr-h4">
+                            <time datetime="{{ day.date|date:'Y-m-d' }}">{{ day.date|date:"j F Y" }}</time>
+                        </h2>
+                        {% for entry in day.entries %}
+                            <article id="{{ entry.slug }}" class="fr-mb-4w">
+                                <p class="fr-mb-1w">
+                                    <span class="fr-badge fr-badge--sm {{ entry.badge }} fr-mr-1w">{{ entry.label }}</span>
+                                    <a class="fr-link fr-link--sm"
+                                       href="#{{ entry.slug }}">Lien vers ce changement<span class="fr-sr-only"> : {{ entry.slug }}</span></a>
+                                </p>
+                                {{ entry.html|safe }}
+                            </article>
+                        {% endfor %}
+                    </section>
+                {% empty %}
+                    <p>
+                        Aucun changement ne correspond aux filtres. <a href="{% url 'pages:api_changelog' %}">Voir tous les changements</a>.
+                    </p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+{% endblock main %}

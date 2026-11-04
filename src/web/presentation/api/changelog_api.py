@@ -1,20 +1,31 @@
 import re
-from dataclasses import dataclass
+from collections.abc import Iterable
+from dataclasses import dataclass, field
 from datetime import date, datetime, timedelta
 from functools import cache
 from pathlib import Path
 from typing import Any
-from urllib.parse import urlparse
+from urllib.parse import urlencode, urlparse
 from zoneinfo import ZoneInfo
 
 import yaml
 from django.conf import settings
+from django.http import QueryDict
+from markdown_it import MarkdownIt
 
 FRAGMENTS_DIR = settings.STATIC_DIR / "api" / "changelog_api.d"
 REPO_URL = "https://github.com/betagouv/csplab"
 DATE_COMMAND = "mise run web:changelog-api:dater"
 # Covers a weekend between approval and merge.
 DATE_TOLERANCE = timedelta(days=3)
+
+# Public routes outside the OpenAPI schema that a fragment may cite.
+DOC_ROUTES = (
+    "GET /api/changelog.md",
+    "GET /api/changelog.json",
+    "GET /api/changelog.atom",
+    "GET /api/guide.md",
+)
 
 TYPES = {
     "non_retrocompatible": "⚠️ Changements non rétrocompatibles",
@@ -24,10 +35,22 @@ TYPES = {
     "retire": "Retiré",
 }
 
+TYPE_LABELS = {
+    "non_retrocompatible": "Non rétrocompatible",
+    "ajoute": "Ajouté",
+    "modifie": "Modifié",
+    "corrige": "Corrigé",
+    "retire": "Retiré",
+}
+
 HEADER = """\
 Ce changelog liste les changements de l'API publique CSPLab (routes `/api/v1/…` et
 `/api/fake-ts/…`) qui concernent les partenaires qui l'utilisent. Le détail des
-champs et de leurs règles se trouve dans le [guide de l'API](/pages/guide_api).
+champs et de leurs règles se trouve dans le [guide de l'API]({base}/pages/guide_api).
+
+Il est aussi publié sur une [page filtrable]({base}/pages/changelog_api), et pour les
+outils et les agents en [Markdown]({base}/api/changelog.md), en
+[JSON]({base}/api/changelog.json) et en [flux Atom]({base}/api/changelog.atom).
 
 Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/).
 """
@@ -36,6 +59,9 @@ _FIELDS = {"type", "date", "pr", "liens"}
 _DATE_FORMAT = re.compile(r"\d{4}-\d{2}-\d{2}")
 _FRONT_MATTER = re.compile(r"\A---\n(.*?)\n---\n(.*)\Z", re.DOTALL)
 _SUBSECTION = re.compile(r"^### (.+)$", re.MULTILINE)
+_ROUTE = re.compile(r"`((?:GET|POST|PUT|PATCH|DELETE) /api/[^`\s]*)`")
+# A `{parameter}` of a path, once escaped by re.escape.
+_PATH_PARAMETER = re.compile(r"\\\{[^}]+\\\}")
 _GITHUB_REFERENCE = re.compile(
     rf"{re.escape(REPO_URL)}/(?:issues|pull)/(\d+)", re.IGNORECASE
 )
@@ -71,6 +97,16 @@ class Fragment:
     liens: tuple[str, ...]
     entry: str
     subsections: tuple[tuple[str, str], ...]
+    routes: tuple[str, ...] = ()
+
+    @property
+    def slug(self) -> str:
+        """Anchor and identifier of the entry: never rename a published fragment."""
+        return self.path.stem
+
+    @property
+    def pr_url(self) -> str:
+        return f"{REPO_URL}/pull/{self.pr}"
 
     @property
     def sort_key(self) -> tuple[int, int, str]:
@@ -104,7 +140,12 @@ def parse_fragment(path: Path) -> Fragment:
         liens=tuple(metadata.get("liens") or ()),
         entry=entry,
         subsections=subsections,
+        routes=_cited_routes(match.group(2)),
     )
+
+
+def _cited_routes(body: str) -> tuple[str, ...]:
+    return tuple(sorted({route.rstrip("/") for route in _ROUTE.findall(body)}))
 
 
 def _metadata_errors(metadata: dict[str, Any]) -> list[str]:
@@ -163,18 +204,25 @@ def load_fragments(directory: Path = FRAGMENTS_DIR) -> list[Fragment]:
     return [parse_fragment(path) for path in sorted(directory.glob("*.md"))]
 
 
-def assemble(fragments: list[Fragment]) -> str:
+def assemble(
+    fragments: Iterable[Fragment], *, base_url: str = "", note: str = ""
+) -> str:
+    """Base URL makes the header links absolute, for a downloaded file."""
     by_date: dict[date, list[Fragment]] = {}
     for fragment in fragments:
         by_date.setdefault(fragment.date, []).append(fragment)
 
-    sections = [HEADER.rstrip()]
+    sections = [HEADER.format(base=base_url).rstrip()]
+    if note:
+        sections.append(note)
+    if not by_date:
+        sections.append("Aucun changement ne correspond aux filtres.")
     for day in sorted(by_date, reverse=True):
         day_fragments = sorted(by_date[day], key=lambda f: f.sort_key)
         sections.append(f"## {day.isoformat()}")
 
         for type_, title in TYPES.items():
-            entries = [_render(f) for f in day_fragments if f.type == type_]
+            entries = [render_entry(f) for f in day_fragments if f.type == type_]
             if entries:
                 sections.append(f"### {title}")
                 sections.append(_join_entries(entries))
@@ -182,7 +230,7 @@ def assemble(fragments: list[Fragment]) -> str:
     return "\n\n".join(sections) + "\n"
 
 
-def _render(fragment: Fragment) -> str:
+def render_entry(fragment: Fragment) -> str:
     """Keeps each subsection under its own entry, as a blockquote."""
     blocks = [_with_links(fragment)]
     # Indented, the quote belongs to the bullet. An entry of several bullets keeps
@@ -199,7 +247,7 @@ def _render(fragment: Fragment) -> str:
 
 
 def _with_links(fragment: Fragment) -> str:
-    links = [f"[PR #{fragment.pr}]({REPO_URL}/pull/{fragment.pr})"]
+    links = [f"[PR #{fragment.pr}]({fragment.pr_url})"]
     for url in fragment.liens:
         reference = _GITHUB_REFERENCE.fullmatch(url)
         label = f"#{reference.group(1)}" if reference else url
@@ -249,9 +297,149 @@ def check_added_fragment(
     return errors, warnings
 
 
+_markdown = MarkdownIt("commonmark", {"html": False})
+
+
+def entry_html(fragment: Fragment) -> str:
+    return _markdown.render(render_entry(fragment))
+
+
+def ordered(fragments: Iterable[Fragment]) -> list[Fragment]:
+    """Most recent first, then in the order of the assembled changelog."""
+    by_type = sorted(fragments, key=lambda f: f.sort_key)
+    return sorted(by_type, key=lambda f: f.date, reverse=True)
+
+
+@cache
+def published_fragments() -> tuple[Fragment, ...]:
+    return tuple(ordered(load_fragments()))
+
+
 @cache
 def changelog_markdown() -> str:
-    return assemble(load_fragments())
+    return assemble(published_fragments())
+
+
+def cited_routes(fragments: Iterable[Fragment]) -> list[str]:
+    return sorted({route for fragment in fragments for route in fragment.routes})
+
+
+def as_json(fragment: Fragment, page_url: str) -> dict[str, Any]:
+    return {
+        "id": fragment.slug,
+        "date": fragment.date.isoformat(),
+        "type": fragment.type,
+        "libelle_type": TYPE_LABELS[fragment.type],
+        "routes": list(fragment.routes),
+        "pr": fragment.pr,
+        "pr_url": fragment.pr_url,
+        "liens": list(fragment.liens),
+        "url": f"{page_url}#{fragment.slug}",
+        "contenu": fragment.entry,
+        "sous_sections": [
+            {"titre": title, "contenu": text} for title, text in fragment.subsections
+        ],
+    }
+
+
+@dataclass(frozen=True)
+class Filters:
+    types: frozenset[str] = frozenset()
+    route: str = ""
+    since: date | None = None
+    errors: tuple[str, ...] = field(default=(), compare=False)
+
+    @classmethod
+    def from_query(cls, query: QueryDict) -> "Filters":
+        """Reads `type` (repeatable), `route` and `depuis`."""
+        errors = []
+        types = query.getlist("type")
+        unknown = [t for t in types if t not in TYPES]
+        if unknown:
+            errors.append(
+                f"`type` inconnu : {', '.join(unknown)}. Valeurs possibles : "
+                f"{', '.join(TYPES)}."
+            )
+        route = (query.get("route") or "").strip().rstrip("/")
+        since = None
+        if raw_since := (query.get("depuis") or "").strip():
+            try:
+                since = date.fromisoformat(raw_since)
+            except ValueError:
+                errors.append(f"`depuis` doit être une date AAAA-MM-JJ : {raw_since}.")
+        return cls(
+            types=frozenset(t for t in types if t in TYPES),
+            route=route,
+            since=since,
+            errors=tuple(errors),
+        )
+
+    @property
+    def active(self) -> bool:
+        return bool(self.types or self.route or self.since)
+
+    def apply(self, fragments: Iterable[Fragment]) -> list[Fragment]:
+        return [
+            fragment
+            for fragment in fragments
+            if (not self.types or fragment.type in self.types)
+            and (not self.route or self.route in fragment.routes)
+            and (self.since is None or fragment.date >= self.since)
+        ]
+
+    def query_string(self) -> str:
+        params: list[tuple[str, str]] = [("type", t) for t in TYPES if t in self.types]
+        if self.route:
+            params.append(("route", self.route))
+        if self.since:
+            params.append(("depuis", self.since.isoformat()))
+        return urlencode(params)
+
+    def describe(self) -> str:
+        parts = []
+        if self.types:
+            labels = [TYPE_LABELS[t] for t in TYPES if t in self.types]
+            parts.append(f"type {', '.join(labels).lower()}")
+        if self.route:
+            parts.append(f"route `{self.route}`")
+        if self.since:
+            parts.append(f"depuis le {self.since.isoformat()}")
+        return f"Changements filtrés : {' ; '.join(parts)}." if parts else ""
+
+
+def known_routes(
+    schema_path: Path = settings.STATIC_DIR / "api" / "schema.yaml",
+) -> list[re.Pattern]:
+    """Routes of the public OpenAPI schema, as patterns, plus DOC_ROUTES."""
+    schema = yaml.safe_load(schema_path.read_text())
+    routes = [
+        f"{method.upper()} {path.rstrip('/')}"
+        for path, operations in schema["paths"].items()
+        for method in operations
+        if method in ("get", "post", "put", "patch", "delete")
+    ]
+    return [
+        re.compile(_PATH_PARAMETER.sub("[^/]+", re.escape(route)) + r"\Z")
+        for route in (*routes, *DOC_ROUTES)
+    ]
+
+
+def route_errors(fragment: Fragment, known: list[re.Pattern] | None) -> list[str]:
+    """Without `known`, only checks that the fragment cites a route."""
+    if not fragment.routes:
+        return [
+            (
+                "le corps doit citer la ou les routes concernées, par exemple "
+                "`GET /api/v1/offres`"
+            )
+        ]
+    if known is None or fragment.type == "retire":
+        return []
+    return [
+        f"route inconnue du schéma de l'API publique : `{route}`"
+        for route in fragment.routes
+        if not any(pattern.match(route) for pattern in known)
+    ]
 
 
 def set_date(path: Path, day: date) -> None:

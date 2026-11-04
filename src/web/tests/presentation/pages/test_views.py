@@ -22,6 +22,58 @@ class TestApiGuideView:
         assert 'class="fr-h1"' in response.content.decode()
 
 
+class TestApiChangelogView:
+    def test_lists_every_change_with_an_anchor(self, db, client: Client):
+        response = client.get(reverse("pages:api_changelog"))
+
+        assert response.status_code == HTTPStatus.OK
+        content = response.content.decode()
+        assert content.count("<article id=") == response.context["total"]
+        assert 'href="/api/changelog.md"' in content
+        assert 'type="application/atom+xml"' in content
+
+    def test_filters_and_keeps_them_in_download_links(self, db, client: Client):
+        response = client.get(
+            reverse("pages:api_changelog"),
+            {"type": "retire", "route": "POST /api/v1/offres/creer_modifier"},
+        )
+
+        content = response.content.decode()
+        assert response.context["count"] < response.context["total"]
+        assert content.count("<article id=") == response.context["count"]
+        assert "fr-badge--warning" in content
+        assert "fr-badge--new" not in content
+        assert (
+            'href="/api/changelog.json?type=retire'
+            '&amp;route=POST+%2Fapi%2Fv1%2Foffres%2Fcreer_modifier"'
+        ) in content
+        checked = [t["value"] for t in response.context["types"] if t["checked"]]
+        assert checked == ["retire"]
+
+    def test_ignores_an_invalid_filter_with_a_message(self, db, client: Client):
+        response = client.get(reverse("pages:api_changelog"), {"depuis": "hier"})
+
+        assert response.status_code == HTTPStatus.OK
+        assert response.context["count"] == response.context["total"]
+        assert "Filtre ignoré" in response.content.decode()
+
+
+def test_llms_txt_lists_the_api_documents(db, client: Client):
+    response = client.get("/llms.txt")
+
+    assert response.status_code == HTTPStatus.OK
+    content = response.content.decode()
+    assert content.startswith("# CSPLab\n")
+    for path in (
+        "/api/guide.md",
+        "/static/api/schema.yaml",
+        "/api/changelog.md",
+        "/api/changelog.json",
+        "/api/changelog.atom",
+    ):
+        assert f"(http://testserver{path})" in content
+
+
 class TestRenderGuide:
     def test_adds_anchor_and_dsfr_class_to_headings(self):
         html, _ = _render_guide("# L'API — POST /api/token/")

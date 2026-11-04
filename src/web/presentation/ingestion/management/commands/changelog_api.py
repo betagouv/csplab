@@ -8,9 +8,11 @@ from presentation.api.changelog_api import (
     FRAGMENTS_DIR,
     FragmentError,
     check_added_fragment,
+    known_routes,
     load_fragments,
     paris_today,
     parse_fragment,
+    route_errors,
     set_date,
 )
 
@@ -72,21 +74,25 @@ class Command(BaseCommand):
                 )
                 continue
             try:
-                parse_fragment(path)
+                fragment_errors = route_errors(parse_fragment(path), known=None)
             except FragmentError as error:
-                errors += len(error.errors)
-                for message in error.errors:
-                    self._annotate("error", path, message)
+                fragment_errors = error.errors
+            errors += len(fragment_errors)
+            for message in fragment_errors:
+                self._annotate("error", path, message)
 
         if errors == 0 and options["base"] and not options["exempte"]:
             today = paris_today()
+            known = known_routes()
             for path in _added_fragments(options["base"]):
+                fragment = parse_fragment(path)
                 fragment_errors, warnings = check_added_fragment(
-                    parse_fragment(path),
+                    fragment,
                     today,
                     merge_queue=options["merge_queue"],
                     pr=options["pr"],
                 )
+                fragment_errors += route_errors(fragment, known)
                 errors += len(fragment_errors)
                 for message in fragment_errors:
                     self._annotate("error", path, message)
