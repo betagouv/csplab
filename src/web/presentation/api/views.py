@@ -102,7 +102,7 @@ class ChangelogJsonView(View):
 
 
 class ChangelogFeed(Feed):
-    """Built per request: absolute links come from the request, not from Site."""
+    # Built per request, for absolute links from the request instead of Site.
 
     feed_type = Atom1Feed
     title = "Changelog de l'API CSPLab"

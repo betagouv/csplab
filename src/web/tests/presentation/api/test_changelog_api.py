@@ -547,7 +547,7 @@ class TestChangelogFeed:
 
         assert response.status_code == status.HTTP_200_OK
         assert response["Content-Type"].startswith("application/atom+xml")
-        feed = ET.fromstring(response.content)  # noqa: S314 (our own feed)
+        feed = ET.fromstring(response.content)  # noqa: S314
         entries = feed.findall(f"{self.ATOM}entry")
         expected = [f for f in published_fragments() if f.type == "retire"]
         assert len(entries) == len(expected)

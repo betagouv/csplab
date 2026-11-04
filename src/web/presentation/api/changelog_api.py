@@ -19,7 +19,6 @@ DATE_COMMAND = "mise run web:changelog-api:dater"
 # Covers a weekend between approval and merge.
 DATE_TOLERANCE = timedelta(days=3)
 
-# Public routes outside the OpenAPI schema that a fragment may cite.
 DOC_ROUTES = (
     "GET /api/changelog.md",
     "GET /api/changelog.json",
@@ -60,7 +59,6 @@ _DATE_FORMAT = re.compile(r"\d{4}-\d{2}-\d{2}")
 _FRONT_MATTER = re.compile(r"\A---\n(.*?)\n---\n(.*)\Z", re.DOTALL)
 _SUBSECTION = re.compile(r"^### (.+)$", re.MULTILINE)
 _ROUTE = re.compile(r"`((?:GET|POST|PUT|PATCH|DELETE) /api/[^`\s]*)`")
-# A `{parameter}` of a path, once escaped by re.escape.
 _PATH_PARAMETER = re.compile(r"\\\{[^}]+\\\}")
 _GITHUB_REFERENCE = re.compile(
     rf"{re.escape(REPO_URL)}/(?:issues|pull)/(\d+)", re.IGNORECASE
@@ -101,7 +99,7 @@ class Fragment:
 
     @property
     def slug(self) -> str:
-        """Anchor and identifier of the entry: never rename a published fragment."""
+        # Never rename a published fragment: its name is its public identifier.
         return self.path.stem
 
     @property
@@ -207,7 +205,6 @@ def load_fragments(directory: Path = FRAGMENTS_DIR) -> list[Fragment]:
 def assemble(
     fragments: Iterable[Fragment], *, base_url: str = "", note: str = ""
 ) -> str:
-    """Base URL makes the header links absolute, for a downloaded file."""
     by_date: dict[date, list[Fragment]] = {}
     for fragment in fragments:
         by_date.setdefault(fragment.date, []).append(fragment)
@@ -309,7 +306,6 @@ def entry_html(fragment: Fragment, *, new_tab: bool = False) -> str:
 
 
 def _open_links_in_new_tab(children: list) -> None:
-    """Adds the DSFR title announcing a new window, with the link text."""
     for index, child in enumerate(children):
         if child.type != "link_open":
             continue
@@ -324,7 +320,6 @@ def _open_links_in_new_tab(children: list) -> None:
 
 
 def ordered(fragments: Iterable[Fragment]) -> list[Fragment]:
-    """Most recent first, then in the order of the assembled changelog."""
     by_type = sorted(fragments, key=lambda f: f.sort_key)
     return sorted(by_type, key=lambda f: f.date, reverse=True)
 
@@ -370,7 +365,6 @@ class Filters:
 
     @classmethod
     def from_query(cls, query: QueryDict) -> "Filters":
-        """Reads `type` (repeatable), `route` and `depuis`."""
         errors = []
         types = query.getlist("type")
         unknown = [t for t in types if t not in TYPES]
@@ -429,7 +423,6 @@ class Filters:
 def known_routes(
     schema_path: Path = settings.STATIC_DIR / "api" / "schema.yaml",
 ) -> list[re.Pattern]:
-    """Routes of the public OpenAPI schema, as patterns, plus DOC_ROUTES."""
     schema = yaml.safe_load(schema_path.read_text())
     routes = [
         f"{method.upper()} {path.rstrip('/')}"
@@ -444,7 +437,6 @@ def known_routes(
 
 
 def route_errors(fragment: Fragment, known: list[re.Pattern] | None) -> list[str]:
-    """Without `known`, only checks that the fragment cites a route."""
     if not fragment.routes:
         return [
             (
