@@ -1,7 +1,7 @@
 ---
 type: ajoute
 date: 2026-11-04
-pr: 0
+pr: 2283
 liens:
   - https://github.com/betagouv/csplab/issues/1796
 ---
