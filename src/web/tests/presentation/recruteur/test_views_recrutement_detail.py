@@ -139,6 +139,10 @@ NOMBRE_REQUETES_LISTE_ATTENDU = (
     + 1  # agent's role
     + 1  # recrutement belongs to organisme (exists check)
     + 2  # pagination: count + page
+    + 1  # etapes: organisme
+    + 1  # etapes: agent's role
+    + 1  # etapes: recrutement
+    + 1  # etapes: liste
 )
 
 
@@ -497,6 +501,21 @@ def recrutement_liste_fixture(test_user):
     return RecrutementDjangoFactory(organisme=organisme, offre=offer)
 
 
+def _etapes_attendues(recrutement) -> list[dict]:
+    etapes = {
+        str(etape.id): etape
+        for etape in EtapeModel.objects.filter(recrutement=recrutement)
+    }
+    return [
+        {
+            "uuid": etape_id,
+            "nom": etapes[etape_id].nom,
+            "categorie": CategorieEtapeRecrutement(etapes[etape_id].categorie).name,
+        }
+        for etape_id in recrutement.ordre_etapes
+    ]
+
+
 @pytest.mark.django_db
 class TestRecrutementListeView:
     def test_anonymous_access_is_unauthorized(self, api_client):
@@ -536,6 +555,7 @@ class TestRecrutementListeView:
                     },
                 }
             ],
+            "etapes": _etapes_attendues(recrutement_liste),
         }
 
     def test_counts_unread_conversations_of_the_current_agent(
@@ -592,8 +612,12 @@ class TestRecrutementListeView:
         assert data["count"] == 1
         assert [c["uuid"] for c in data["results"]] == [str(candidature.id)]
 
+    @pytest.mark.parametrize(
+        "role",
+        [AgentRecrutementRole.CONTRIBUTEUR, AgentRecrutementRole.RECRUTEUR],
+    )
     def test_membre_assigned_to_recrutement_is_allowed(
-        self, authenticated_client, test_user
+        self, authenticated_client, test_user, role
     ):
         agent, organisme = create_organisme_with_agent(
             role=AgentOrganismeRole.AGENT,
@@ -604,6 +628,7 @@ class TestRecrutementListeView:
             organisme=organisme,
             offre=OfferDjangoFactory(id=UUID(RECRUTEMENT_UUID)),
             agent_link__agent=agent,
+            agent_link__role=role.value,
         )
         etape = EtapeModel.objects.filter(recrutement=recrutement).first()
         candidature = CandidatureDjangoFactory(etape=etape)
@@ -611,7 +636,45 @@ class TestRecrutementListeView:
         response = authenticated_client.get(RECRUTEMENT_LISTE_URL)
 
         assert response.status_code == status.HTTP_200_OK
-        assert [c["uuid"] for c in response.json()["results"]] == [str(candidature.id)]
+        data = response.json()
+        assert [c["uuid"] for c in data["results"]] == [str(candidature.id)]
+        assert data["etapes"] == _etapes_attendues(recrutement)
+
+    def test_etapes_follow_the_order_of_the_recrutement(
+        self, authenticated_client, recrutement_liste
+    ):
+        recrutement_liste.ordre_etapes = list(reversed(recrutement_liste.ordre_etapes))
+        recrutement_liste.save(update_fields=["ordre_etapes"])
+
+        etapes = authenticated_client.get(RECRUTEMENT_LISTE_URL).json()["etapes"]
+
+        assert [e["uuid"] for e in etapes] == recrutement_liste.ordre_etapes
+
+    def test_etapes_include_etapes_without_candidatures(
+        self, authenticated_client, recrutement_liste
+    ):
+        data = authenticated_client.get(RECRUTEMENT_LISTE_URL).json()
+
+        assert data["results"] == []
+        assert data["etapes"] == _etapes_attendues(recrutement_liste)
+        assert data["etapes"]
+
+    def test_etapes_are_returned_on_every_page(
+        self, authenticated_client, recrutement_liste
+    ):
+        etape = EtapeModel.objects.filter(recrutement=recrutement_liste).first()
+        CandidatureDjangoFactory.create_batch(NOMBRE_CANDIDATURES, etape=etape)
+
+        with patch.object(TaillePageNumberPagination, "max_page_size", TAILLE_PAGE):
+            premiere, seconde = (
+                authenticated_client.get(
+                    f"{RECRUTEMENT_LISTE_URL}?page={page}&taille={TAILLE_PAGE}"
+                ).json()
+                for page in (1, 2)
+            )
+
+        etapes = _etapes_attendues(recrutement_liste)
+        assert premiere["etapes"] == seconde["etapes"] == etapes
 
     def test_candidature_order(self, authenticated_client, recrutement_liste):
         premiere_etape, seconde_etape = list(

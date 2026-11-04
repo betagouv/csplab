@@ -12,7 +12,10 @@ from rest_framework.views import APIView
 from application.recruteur.services.get_recrutement import (
     get_recrutement,
 )
-from application.recruteur.services.list_candidatures import list_candidatures
+from application.recruteur.services.list_candidatures import (
+    list_candidatures,
+    list_recrutement_etapes,
+)
 from application.recruteur.usecases.change_etape_candidatures import (
     ChangeEtapeCandidaturesCommand,
 )
@@ -33,14 +36,16 @@ from infrastructure.di.recruteur.recruteur_factory import recruteur_container
 from infrastructure.django_apps.candidate.models.candidature import CandidatureModel
 from presentation.api.authentication import SessionApiMixin
 from presentation.api.serializers import GenericErrorSerializer, TokenErrorSerializer
-from presentation.commons.pagination import TaillePageNumberPagination
+from presentation.commons.pagination import PaginationSchemaDuSerializer
 from presentation.recruteur.mappers import UtilisateurMapper
 from presentation.recruteur.serializers import (
     CandidatureListeSerializer,
     ChangerEtapeCandidaturesSerializer,
     ChangerEtapeResultatSerializer,
+    EtapeRecrutementModelSerializer,
     RecrutementDetailKanbanSerializer,
     RecrutementDetailSerializer,
+    RecrutementListeSerializer,
 )
 
 
@@ -144,7 +149,7 @@ class RecrutementKanbanView(SessionApiMixin, APIView):
     summary="Détail d'un recrutement — vue liste (paginée)",
     tags=["recruteur"],
     responses={
-        200: CandidatureListeSerializer(many=True),
+        200: RecrutementListeSerializer,
         400: GenericErrorSerializer,
         401: TokenErrorSerializer,
         403: GenericErrorSerializer,
@@ -154,7 +159,7 @@ class RecrutementKanbanView(SessionApiMixin, APIView):
 )
 class RecrutementListeView(SessionApiMixin, ListAPIView):
     serializer_class = CandidatureListeSerializer
-    pagination_class = TaillePageNumberPagination
+    pagination_class = PaginationSchemaDuSerializer
 
     def get_queryset(self) -> QuerySet[CandidatureModel]:
         return list_candidatures(
@@ -162,6 +167,18 @@ class RecrutementListeView(SessionApiMixin, ListAPIView):
             recrutement_id=self.kwargs["recrutement_uuid"],
             utilisateur=self.request.user,
         )
+
+    def get_paginated_response(self, data: list) -> Response:
+        response = super().get_paginated_response(data)
+        etapes = list_recrutement_etapes(
+            organisme_id=self.kwargs["organisme_uuid"],
+            recrutement_id=self.kwargs["recrutement_uuid"],
+            utilisateur=self.request.user,
+        )
+        response.data["etapes"] = EtapeRecrutementModelSerializer(
+            etapes, many=True
+        ).data
+        return response
 
     def handle_exception(self, exc: Exception) -> Response:
         if isinstance(exc, OrganismePermissionError):

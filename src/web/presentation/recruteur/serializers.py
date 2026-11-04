@@ -429,6 +429,14 @@ class CandidatureListeSerializer(serializers.ModelSerializer):
         ]
 
 
+class RecrutementListeSerializer(serializers.Serializer):
+    count = serializers.IntegerField()
+    next = serializers.URLField(allow_null=True)
+    previous = serializers.URLField(allow_null=True)
+    results = CandidatureListeSerializer(many=True)
+    etapes = EtapeRecrutementModelSerializer(many=True)
+
+
 # ---------------------------------------------------------------------------
 # Serializers pour la création d'un profil agent
 # ---------------------------------------------------------------------------
