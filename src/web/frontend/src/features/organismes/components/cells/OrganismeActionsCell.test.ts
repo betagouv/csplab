@@ -14,7 +14,7 @@ const Host = defineComponent({
 })
 
 describe('organismeActionsCell', () => {
-  it('opens the recrutements of the organisme', async () => {
+  it('opens the home of the organisme', async () => {
     const user = setupUser()
 
     const { router } = await renderWithApp(Host, { route: '/organismes' })
@@ -22,7 +22,7 @@ describe('organismeActionsCell', () => {
     await user.click(await screen.findByRole('menuitem', { name: 'Se connecter à l’organisme' }))
 
     await vi.waitFor(() =>
-      expect(router.currentRoute.value.path).toBe(`/organismes/${ORGANISME.uuid}/recrutements`),
+      expect(router.currentRoute.value.path).toBe(`/organismes/${ORGANISME.uuid}/accueil`),
     )
   })
 })

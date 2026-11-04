@@ -1,7 +1,11 @@
 import type { CspBreadcrumbItem } from '@/components/base/CspBreadcrumb/CspBreadcrumb.vue'
-import { HOME_ROUTE_NAME, recrutementsListLocation } from './names'
+import { organismeHomeLocation, recrutementsListLocation } from './names'
 
-export const HOME_BREADCRUMB_ITEM: CspBreadcrumbItem = { label: 'Accueil', to: { name: HOME_ROUTE_NAME } }
+export const HOME_BREADCRUMB_LABEL = 'Accueil'
+
+export function homeBreadcrumbItem(organismeUuid: string): CspBreadcrumbItem {
+  return { label: HOME_BREADCRUMB_LABEL, to: organismeHomeLocation(organismeUuid) }
+}
 
 export const RECRUTEMENTS_BREADCRUMB_LABEL = 'Recrutements'
 

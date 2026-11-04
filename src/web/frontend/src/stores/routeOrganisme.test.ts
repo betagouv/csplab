@@ -9,10 +9,6 @@ import { getMe } from '@/api/utilisateur'
 import { routes } from '@/router/routes'
 import { useRouteOrganisme } from './routeOrganisme'
 
-vi.mock('@/api/utilisateur', () => ({
-  getMe: vi.fn(),
-}))
-
 const MTE = 'a1a1a1a1-a1a1-a1a1-a1a1-a1a1a1a1a1a1'
 const BRIANCON = 'b2b2b2b2-b2b2-b2b2-b2b2-b2b2b2b2b2b2'
 const INCONNU = 'c3c3c3c3-c3c3-c3c3-c3c3-c3c3c3c3c3c3'
@@ -72,7 +68,7 @@ describe('useRouteOrganisme', () => {
   it('falls back to the first organisme when the url carries none', async () => {
     vi.mocked(getMe).mockResolvedValue(makeUser([ROLE_MTE, ROLE_BRIANCON]))
 
-    const { organismeUuid, routeOrganismeUuid } = await mountAt('/')
+    const { organismeUuid, routeOrganismeUuid } = await mountAt('/organismes')
 
     await vi.waitFor(() => expect(organismeUuid.value).toBe(MTE))
     expect(routeOrganismeUuid.value).toBeNull()

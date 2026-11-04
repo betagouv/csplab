@@ -23,10 +23,6 @@ vi.mock('@/features/agents/api', async importOriginal => ({
   searchAgentByEmail: vi.fn(),
 }))
 
-vi.mock('@/api/utilisateur', () => ({
-  getMe: vi.fn(),
-}))
-
 const NOUVEL_AGENT = { ...AGENT_RECHERCHE, uuid: 'bbbbbbbb-0002-0002-0002-000000000002', email: 'paul.bernard@example.gouv.fr' }
 
 const Host = defineComponent({

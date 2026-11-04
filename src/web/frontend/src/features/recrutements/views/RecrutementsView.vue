@@ -26,7 +26,7 @@ import { useDisclosure } from '@/composables/ui/useDisclosure'
 import { useDocumentTitle } from '@/composables/ui/useDocumentTitle'
 import { useToast } from '@/composables/ui/useToast'
 import { formatAgentLabel } from '@/features/agents/format'
-import { HOME_BREADCRUMB_ITEM, RECRUTEMENTS_BREADCRUMB_LABEL } from '@/router/breadcrumb'
+import { homeBreadcrumbItem, RECRUTEMENTS_BREADCRUMB_LABEL } from '@/router/breadcrumb'
 import { CANDIDATURES_VIEW_ROUTE_NAMES, RECRUTEMENTS_TAB_ROUTE_NAMES } from '@/router/names'
 import { useRouteOrganisme } from '@/stores/routeOrganisme'
 import { pluralize } from '@/utils/format'
@@ -46,10 +46,10 @@ const props = defineProps<{
 
 const AUCUN_RECRUTEMENT_EN_COURS_DESCRIPTION = 'Les recrutements auxquels vous participez apparaissent ici. Pour accéder à un recrutement, contactez la personne responsable dans votre organisation.'
 
-const BREADCRUMB: CspBreadcrumbItem[] = [
-  HOME_BREADCRUMB_ITEM,
+const breadcrumb = computed<CspBreadcrumbItem[]>(() => [
+  homeBreadcrumbItem(props.organismeUuid),
   { label: RECRUTEMENTS_BREADCRUMB_LABEL },
-]
+])
 
 const router = useRouter()
 
@@ -212,7 +212,7 @@ const archivesCountLabel = computed(() => {
     <CspPageHeader
       title="Recrutements"
       subtitle="Retrouvez ici l’ensemble des recrutements en cours et terminés."
-      :breadcrumb="BREADCRUMB"
+      :breadcrumb="breadcrumb"
     />
     <CspPageContainer
       v-model:active-tab="activeTab"
