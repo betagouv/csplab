@@ -57,8 +57,11 @@ class OfferInputMapper(IToDomainMapper[dict, Offer]):
         conditions = data.get("conditions") or None
         debut_contrat = conditions.get("debut_contrat") if conditions else None
 
-        localisations = data.get("localisation", [])
-        raw_localisation = localisations[0] if localisations else None
+        localisations = [
+            localisation
+            for raw_localisation in data.get("localisation") or []
+            if (localisation := self._localisation_mapper.to_domain(raw_localisation))
+        ]
 
         return Offer(
             reference=data["identification"]["reference"],
@@ -72,7 +75,8 @@ class OfferInputMapper(IToDomainMapper[dict, Offer]):
             categories=[Category(c) for c in data["categories"]],
             offer_nature=OfferNature(data["nature_offre"]),
             offer_url=data.get("url_offre"),
-            localisation=self._localisation_mapper.to_domain(raw_localisation),
+            localisation=None,
+            localisations=localisations,
             beginning_date=LimitDate(debut_contrat) if debut_contrat else None,
             family_code=data["profession"]["metier"],
             job_family_referential=data["profession"].get("referentiel"),

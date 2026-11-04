@@ -563,6 +563,9 @@ class FakeTsOfferDetailSerializer(FakeTsOfferSummarySerializer):
     customFields = FakeTsCustomFieldsSerializer()
 
 
+MAX_LOCALISATIONS_PER_OFFER = 50
+
+
 class LocalisationInputSerializer(LocalisationSerializer):
     pays = serializers.CharField(
         max_length=3,
@@ -1067,11 +1070,37 @@ class OffersInputSerializer(serializers.Serializer):
     )
 
     description = DescriptionInputSerializer()
-    localisation = LocalisationInputSerializer(many=True, allow_null=True)
+    localisation = LocalisationInputSerializer(
+        many=True,
+        allow_null=True,
+        max_length=MAX_LOCALISATIONS_PER_OFFER,
+        error_messages={
+            "max_length": (f"Au plus {MAX_LOCALISATIONS_PER_OFFER} lieux par offre.")
+        },
+    )
     criteres = CriteriaInputSerializer(allow_null=True)
     conditions = ConditionsInputSerializer(allow_null=True)
     contacts = ContactsInputSerializer(many=True, allow_null=True)
     publication = PublicationInputSerializer()
+
+    def validate_localisation(self, value):
+        if not value:
+            return value
+        keys = [
+            (
+                localisation["pays"],
+                localisation.get("region") or "",
+                localisation.get("departement") or "",
+                localisation.get("localisation_label") or "",
+            )
+            for localisation in value
+        ]
+        if len(keys) != len(set(keys)):
+            raise serializers.ValidationError(
+                "Un même lieu (pays, région, département et libellé) ne peut "
+                "figurer qu'une fois."
+            )
+        return value
 
     def validate_contacts(self, value):
         if value is None:

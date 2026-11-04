@@ -8,6 +8,9 @@ from referentiel.value_objects.category import Category
 from referentiel.value_objects.verse import Verse
 
 from infrastructure.django_apps.referentiel.models.offer import OfferModel
+from infrastructure.django_apps.referentiel.models.offer_localisation import (
+    OfferLocalisationModel,
+)
 from infrastructure.factories.datetime_utils import as_aware
 from infrastructure.factories.ingestion.source_django_factory import (
     SourceDjangoFactory,
@@ -38,6 +41,33 @@ class OfferDjangoFactory(DjangoModelFactory):
     processing = False
     processed_at = None
     archived_at = None
+
+    @factory.post_generation
+    def localisations(self, create, extracted, **kwargs):
+        if not create:
+            return
+        if extracted is None:
+            if not (self.area and self.country):
+                return
+            extracted = [
+                {
+                    "area": self.area,
+                    "country": self.country,
+                    "region": self.region or "",
+                    "department": self.department or "",
+                    "label": self.location_label or "",
+                    "latitude": self.latitude,
+                    "longitude": self.longitude,
+                }
+            ]
+        OfferLocalisationModel.objects.bulk_create(
+            [
+                OfferLocalisationModel(
+                    id=uuid4(), offer=self, position=position, **localisation
+                )
+                for position, localisation in enumerate(extracted)
+            ]
+        )
 
     @factory.post_generation
     def updated_at(self, create, extracted, **kwargs):

@@ -364,6 +364,8 @@ caractères s'applique au texte Markdown, syntaxe comprise.
 | `descriptif_service` | Facultatif. Description du service qui recrute. **10 000 caractères maximum.** |
 
 #### Bloc « Localisation » (`localisation`) — liste, peut être vide
+Une offre peut se dérouler en plusieurs lieux : **50 lieux au plus**, tous conservés dans l'ordre d'envoi. Le premier est le lieu principal. Un même lieu ne peut figurer qu'une fois : deux lieux avec les mêmes `pays`, `region`, `departement` et `localisation_label` (quelles que soient leurs coordonnées) rejettent l'offre dans `errors`.
+
 | Champ | Règle |
 |---|---|
 | `zone_geographique` | Obligatoire dans chaque localisation. Valeurs : **AF** (Afrique), **EU** (Europe), **AS** (Asie), **AM** (Amérique), **OC** (Océanie), **AN** (Antarctique), **MO** (Moyen-Orient et Afrique du Nord). |

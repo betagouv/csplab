@@ -5,7 +5,13 @@ from infrastructure.django_apps.referentiel.models.concours import ConcoursModel
 from infrastructure.django_apps.referentiel.models.corps import CorpsModel
 from infrastructure.django_apps.referentiel.models.metier import MetierModel
 from infrastructure.django_apps.referentiel.models.offer import OfferModel
-from infrastructure.django_apps.utils.admin import ReadOnlyAdminMixin
+from infrastructure.django_apps.referentiel.models.offer_localisation import (
+    OfferLocalisationModel,
+)
+from infrastructure.django_apps.utils.admin import (
+    ReadOnlyAdminMixin,
+    ReadOnlyInlineMixin,
+)
 
 
 class OfferCategoryFilter(admin.SimpleListFilter):
@@ -21,8 +27,24 @@ class OfferCategoryFilter(admin.SimpleListFilter):
         return queryset
 
 
+class OfferLocalisationInline(ReadOnlyInlineMixin, admin.TabularInline):
+    model = OfferLocalisationModel
+    fields = (
+        "position",
+        "area",
+        "country",
+        "region",
+        "department",
+        "label",
+        "latitude",
+        "longitude",
+    )
+    extra = 0
+
+
 @admin.register(OfferModel)
 class OfferAdmin(ReadOnlyAdminMixin, admin.ModelAdmin):
+    inlines = (OfferLocalisationInline,)
     list_display = (
         "reference",
         "code_emploi_csp",
