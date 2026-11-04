@@ -600,6 +600,8 @@ class TagSerializer(serializers.ModelSerializer):
 
 
 class NoteTagSerializer(TagSerializer):
+    color = serializers.ChoiceField(choices=TagColor.choices, read_only=True)
+
     class Meta(TagSerializer.Meta):
         fields = ["uuid", "name", "color"]
 

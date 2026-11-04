@@ -220,6 +220,22 @@ class TestCreateNote:
         assert log.event_name == "NoteAjoutee"
         assert str(log.utilisateur_id) == str(agent.utilisateur_id)
 
+    def test_create_note_has_no_tags_to_load(self, db, django_assert_num_queries):
+        agent, organisme, recrutement, candidature = (
+            create_recrutement_and_candidature_for_agent()
+        )
+
+        note = create_note(
+            organisme_id=organisme.id,
+            recrutement_id=recrutement.pk,
+            candidature_id=candidature.id,
+            message=fake.sentence(),
+            utilisateur=agent.utilisateur,
+        )
+
+        with django_assert_num_queries(0):
+            assert note.tags == []
+
     def test_denied_without_organisme_role(self, db):
         _, organisme, recrutement, candidature = (
             create_recrutement_and_candidature_for_agent()
@@ -334,9 +350,9 @@ class TestUpdateNote:
         )
 
         with django_assert_num_queries(0):
-            tag_names = [tag.name for tag in edited.tags]
+            tag_ids = [tag.id for tag in edited.tags]
 
-        assert len(tag_names) == len(liaisons)
+        assert sorted(tag_ids) == sorted(liaison.tag_id for liaison in liaisons)
 
     def test_update_note_unknown_note(self, db):
         agent, organisme, recrutement, candidature = (
@@ -482,9 +498,9 @@ class TestUpdateNoteVisibility:
         )
 
         with django_assert_num_queries(0):
-            tag_names = [tag.name for tag in edited.tags]
+            tag_ids = [tag.id for tag in edited.tags]
 
-        assert len(tag_names) == len(liaisons)
+        assert sorted(tag_ids) == sorted(liaison.tag_id for liaison in liaisons)
 
 
 class TestDeleteNote:

@@ -1063,7 +1063,7 @@ export interface components {
             /** Format: uuid */
             uuid: string;
             name: string;
-            color?: components["schemas"]["ColorEnum"];
+            readonly color: components["schemas"]["ColorEnum"];
         };
         NoteVisibilite: {
             est_privee: boolean;

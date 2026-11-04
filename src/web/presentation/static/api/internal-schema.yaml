@@ -6829,8 +6829,11 @@ components:
           type: string
           maxLength: 25
         color:
-          $ref: '#/components/schemas/ColorEnum'
+          allOf:
+          - $ref: '#/components/schemas/ColorEnum'
+          readOnly: true
       required:
+      - color
       - name
       - uuid
     NoteVisibilite:
