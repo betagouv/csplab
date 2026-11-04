@@ -18,7 +18,7 @@ export function createTestRouter() {
 
 function createInstalledPinia() {
   const pinia = createPinia()
-  createApp({}).use(pinia).use(PiniaColada)
+  createApp({}).use(pinia)
   return pinia
 }
 
