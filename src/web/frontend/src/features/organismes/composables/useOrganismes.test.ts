@@ -28,6 +28,7 @@ const ORGANISMES: OrganismesList[] = [
     nombre_agents: 10,
     nombre_offres_publiees: 5,
     versant: 'FPT',
+    authorized_actions: [],
   },
   {
     uuid: '22222222-2222-2222-2222-222222222222',
@@ -40,6 +41,7 @@ const ORGANISMES: OrganismesList[] = [
     nombre_agents: 5,
     nombre_offres_publiees: 2,
     versant: 'FPT',
+    authorized_actions: [],
   },
 ]
 

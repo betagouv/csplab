@@ -104,7 +104,7 @@ function handleMove({ sourceColumnId, targetColumnId, cardId }: KanbanDropEvent)
     [candidature.candidat],
     (motifRefus) => {
       markKanbanCardMoved(boardId.value, cardId)
-      void changeEtape({ etapeCibleUuid: targetColumnId, candidatureUuids: [cardId], motifRefus })
+      void changeEtape({ etapeCibleUuid: targetColumnId, candidatureUuids: [cardId], motifRefus }, [candidature.candidat])
     },
   )
 }
@@ -130,7 +130,7 @@ function handleConfirmBatchMove(targetEtapeUuid: string): void {
 function applyBatchMove(targetEtapeUuid: string, motifRefus?: MotifRefus): void {
   const candidatureUuids = [...selectedCandidatureUuids.value]
   if (candidatureUuids.length > 0) {
-    void changeEtape({ etapeCibleUuid: targetEtapeUuid, candidatureUuids, motifRefus })
+    void changeEtape({ etapeCibleUuid: targetEtapeUuid, candidatureUuids, motifRefus }, selectedCandidats.value)
   }
 
   clearSelection()

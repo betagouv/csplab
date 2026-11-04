@@ -1,14 +1,15 @@
 from unittest.mock import patch
 
 import pytest
-from django.db import connection
-from django.test.utils import CaptureQueriesContext
 from django.urls import reverse
 from django.utils import timezone
 from faker import Faker
 from referentiel.value_objects.verse import Verse
 from rest_framework import status
 
+from application.identite.context_services.organisme_permission_service import (
+    OrganismePermissionService,
+)
 from domain.identite.errors.organisme_errors import OrganismeSiretExisteDeja
 from domain.identite.errors.organisme_permission_errors import (
     OperationOrganismeRefusee,
@@ -18,6 +19,7 @@ from infrastructure.django_apps.recruteur.models.organisme import (
     OrganismeModel,
     OrganismeQuerySet,
 )
+from infrastructure.django_apps.users.models import UserModel
 from infrastructure.factories.identite.organisme_django_factory import (
     OrganismeAgentDjangoFactory,
     OrganismeDjangoFactory,
@@ -34,6 +36,7 @@ fake = Faker("fr_FR")
 
 ORGANISME_URL = reverse("recruteur:organismes")
 VALID_SIRET = fake.siret().replace(" ", "")
+NOMBRE_REQUETES_ATTENDU = 5  # session, user, count, organismes, superviseurs
 INVALID_CHECKSUM_SIRET = VALID_SIRET[:-1] + str((int(VALID_SIRET[-1]) + 1) % 10)
 
 
@@ -81,7 +84,9 @@ class TestListOrganismes:
 
         assert response.status_code == status.HTTP_200_OK
         organisme.refresh_from_db()
-        matching = next(o for o in response.json() if o["uuid"] == str(organisme.id))
+        matching = next(
+            o for o in response.json()["results"] if o["uuid"] == str(organisme.id)
+        )
         last_activity = max(
             organisme.updated_at,
             *organisme.agents_liaisons.values_list("updated_at", flat=True),
@@ -97,21 +102,44 @@ class TestListOrganismes:
             "date_derniere_activite": datetime_to_drf_representation(last_activity),
             "nombre_agents": 2,
             "nombre_offres_publiees": 1,
+            "authorized_actions": [
+                action.value
+                for action in OrganismePermissionService().authorized_actions_organisme(
+                    AgentOrganismeRole.SUPERVISEUR,
+                    utilisateur=UserModel(is_staff=True),
+                    organisme_id=organisme.id,
+                    organisme_ids_responsable=frozenset(),
+                )
+            ],
         }
 
-    def test_get_query_count_does_not_grow_with_organismes(self, staff_client):
-        def count_queries() -> int:
-            with CaptureQueriesContext(connection) as queries:
-                staff_client.get(ORGANISME_URL)
-            return len(queries)
-
+    def test_get_query_count_does_not_grow_with_organismes(
+        self, staff_client, django_assert_num_queries
+    ):
         OrganismeDjangoFactory()
-        baseline = count_queries()
-        for organisme in OrganismeDjangoFactory.create_batch(3):
-            OrganismeAgentDjangoFactory(organisme=organisme)
-            RecrutementDjangoFactory(organisme=organisme)
+        with django_assert_num_queries(NOMBRE_REQUETES_ATTENDU):
+            response = staff_client.get(ORGANISME_URL)
+        assert response.status_code == status.HTTP_200_OK
 
-        assert count_queries() == baseline
+        for organisme in OrganismeDjangoFactory.create_batch(3):
+            OrganismeAgentDjangoFactory.create_batch(5, organisme=organisme)
+            RecrutementDjangoFactory.create_batch(5, organisme=organisme)
+
+        with django_assert_num_queries(NOMBRE_REQUETES_ATTENDU):
+            response = staff_client.get(ORGANISME_URL)
+        assert response.status_code == status.HTTP_200_OK
+
+    def test_get_paginates_with_taille(self, staff_client):
+        total, taille = 3, 2
+        OrganismeDjangoFactory.create_batch(total)
+
+        response = staff_client.get(ORGANISME_URL, {"taille": taille})
+
+        body = response.json()
+        assert response.status_code == status.HTTP_200_OK
+        assert body["count"] == total
+        assert len(body["results"]) == taille
+        assert body["next"] is not None
 
     def test_get_refuses_non_staff(self, authenticated_client):
         response = authenticated_client.get(ORGANISME_URL)

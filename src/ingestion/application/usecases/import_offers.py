@@ -1,5 +1,5 @@
 import logging
-from typing import Callable
+from typing import Callable, Sequence
 from uuid import UUID
 
 from application.usecases._talentsoft_source import resolve_source_and_client
@@ -28,10 +28,20 @@ class ImportOffersUsecase:
         self._webhook_repository = webhook_repository
         self._dispatch_process_webhook = dispatch_process_webhook
 
-    async def execute(self, source_id: UUID) -> None:
+    async def execute(
+        self, source_id: UUID, references: Sequence[str] | None = None
+    ) -> None:
         _, client = resolve_source_and_client(
             source_id, self._sources_repository, self._talentsoft_client_repository
         )
+
+        if references is not None:
+            for reference in references:
+                await self._enqueue(source_id, reference)
+            logger.info(
+                "Re-imported %d offers for source %s", len(references), source_id
+            )
+            return
 
         start = 1
         has_more = True
@@ -40,21 +50,22 @@ class ImportOffersUsecase:
         while has_more:
             offers, has_more = await client.get_all(count=_BATCH_SIZE, start=start)
             for offer in offers:
-                event = WebhookEvent(
-                    event_type=EventType.CREE, reference=offer.reference
-                )
-                webhook = Webhook(
-                    source_id=str(source_id),
-                    webhook_type=WebhookType.OFFER,
-                    event_type=event.event_type,
-                    reference=event.reference,
-                    status_id=None,
-                    action_type=event.get_action_type(),
-                    payload={},
-                )
-                await self._webhook_repository.insert(webhook)
-                self._dispatch_process_webhook(str(webhook.id))
+                await self._enqueue(source_id, offer.reference)
                 total += 1
             start += 1
 
         logger.info("Imported %d offers for source %s", total, source_id)
+
+    async def _enqueue(self, source_id: UUID, reference: str) -> None:
+        event = WebhookEvent(event_type=EventType.CREE, reference=reference)
+        webhook = Webhook(
+            source_id=str(source_id),
+            webhook_type=WebhookType.OFFER,
+            event_type=event.event_type,
+            reference=event.reference,
+            status_id=None,
+            action_type=event.get_action_type(),
+            payload={},
+        )
+        await self._webhook_repository.insert(webhook)
+        self._dispatch_process_webhook(str(webhook.id))

@@ -1,6 +1,8 @@
+import type { AuthorizedAction } from '@/utils/authorizedActions'
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { useCurrentUser } from '@/stores/currentUser'
+import { can } from '@/utils/authorizedActions'
 
 export function useRouteOrganisme() {
   const route = useRoute()
@@ -24,15 +26,19 @@ export function useRouteOrganisme() {
     organismes.value.find(o => o.organisme_uuid === organismeUuid.value) ?? null,
   )
 
-  const canManageOrganisme = computed(() =>
-    isStaff.value || organisme.value?.role === 'superviseur',
+  const organismeActions = computed(() =>
+    user.value?.organismes.find(o => o.uuid === organismeUuid.value)?.authorized_actions,
   )
+
+  function canOnOrganisme(action: AuthorizedAction): boolean {
+    return isStaff.value || can(organismeActions.value, action)
+  }
 
   return {
     organismes,
     routeOrganismeUuid,
     organismeUuid,
     organisme,
-    canManageOrganisme,
+    canOnOrganisme,
   }
 }

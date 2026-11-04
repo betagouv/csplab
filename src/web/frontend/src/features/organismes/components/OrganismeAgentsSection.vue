@@ -21,7 +21,7 @@ import { ORGANISME_AGENTS_COLUMNS } from '../columns'
 import { useAddAgentToOrganisme } from '../composables/useAddAgentToOrganisme'
 import { provideAgentActions } from '../composables/useAgentActions'
 import { useOrganismeAgents } from '../composables/useOrganismeAgents'
-import { ROLE_LABELS, ROLE_OPTIONS } from '../constants/organisme'
+import { ROLE_FIELD_LABEL, ROLE_LABELS, ROLE_OPTIONS } from '../constants/organisme'
 import AttachAgentForm from './AttachAgentForm.vue'
 
 const props = defineProps<{
@@ -46,17 +46,17 @@ async function handleAdd(role: Role) {
     const agent = await add(role)
     addToast({
       variant: 'success',
-      title: 'Membre ajouté',
+      title: 'Utilisateur ajouté',
       description: `${formatAgentLabel(agent)} a rejoint l'organisme.`,
     })
     attachDrawerOpen.value = false
   }
   catch (submitError) {
     if (isHttpStatus(submitError, 409)) {
-      attachEmailError.value = 'Cet agent est déjà rattaché à l\'organisme.'
+      attachEmailError.value = 'Cet utilisateur est déjà rattaché à l\'organisme.'
       return
     }
-    addToast({ variant: 'error', title: 'L\'ajout du membre a échoué' })
+    addToast({ variant: 'error', title: 'L\'ajout de l\'utilisateur a échoué' })
   }
 }
 
@@ -80,7 +80,7 @@ const { search, filtered } = useTextSearch(rows, row => [
 
 const countLabel = computed(() => {
   const count = filtered.value.length
-  return `${count} ${pluralize(count, 'membre')}`
+  return `${count} ${pluralize(count, 'compte utilisateur', 'comptes utilisateurs')}`
 })
 
 watch(() => roleChange.requested, (agent) => {
@@ -139,7 +139,7 @@ async function handleRevocation(): Promise<void> {
     })
     addToast({
       variant: 'success',
-      title: 'Membre révoqué',
+      title: 'Utilisateur révoqué',
       description: `${formatAgentName(agent)} n'a plus accès à l'organisme.`,
     })
     revocationDialogOpen.value = false
@@ -154,10 +154,10 @@ async function handleRevocation(): Promise<void> {
   <section class="organisme-agents-section">
     <div class="organisme-agents-section__intro">
       <h2 class="organisme-agents-section__title">
-        Membres de l'organisme
+        Comptes utilisateurs de l'organisme
       </h2>
       <p class="organisme-agents-section__description">
-        Participent aux recrutements sur les offres auxquelles ils sont rattachés,
+        Participent aux recrutements auxquels ils sont rattachés,
         selon les droits qui leur sont attribués.
       </p>
     </div>
@@ -165,8 +165,8 @@ async function handleRevocation(): Promise<void> {
     <CspAsyncSection
       :pending="showSkeleton"
       :error="error"
-      loading-label="Chargement des membres"
-      error-title="Impossible de charger les membres"
+      loading-label="Chargement des comptes utilisateurs"
+      error-title="Impossible de charger les comptes utilisateurs"
     >
       <template #skeleton>
         <CspSkeletonTable
@@ -178,12 +178,12 @@ async function handleRevocation(): Promise<void> {
         <CspSearchBar
           v-model="search"
           mode="live"
-          label="Rechercher un membre, un courriel"
+          label="Rechercher une personne"
           hide-label
-          placeholder="Rechercher un membre, un courriel"
+          placeholder="Rechercher une personne"
         />
         <CspButton
-          label="Ajouter un membre"
+          label="Ajouter un utilisateur"
           icon="ri:user-add-line"
           is-icon-left
           @click="openAttachDrawer"
@@ -194,19 +194,19 @@ async function handleRevocation(): Promise<void> {
         :rows="filtered"
         :columns="ORGANISME_AGENTS_COLUMNS"
         :row-key="row => row.uuid"
-        caption="Membres de l'organisme"
+        caption="Comptes utilisateurs de l'organisme"
         :page-size="TABLE_PAGE_SIZE"
       >
         <template #empty>
           <div class="organisme-agents-section__empty">
             <template v-if="search">
               <p class="organisme-agents-section__empty-title">
-                Aucun membre ne correspond à votre recherche.
+                Aucun utilisateur ne correspond à votre recherche.
               </p>
             </template>
             <template v-else>
               <p class="organisme-agents-section__empty-title">
-                Aucun membre pour l'instant.
+                Aucun utilisateur rattaché à l'organisme.
               </p>
             </template>
           </div>
@@ -216,7 +216,7 @@ async function handleRevocation(): Promise<void> {
 
     <CspDrawer
       v-model:open="attachDrawerOpen"
-      title="Ajouter un membre"
+      title="Ajouter un utilisateur"
       size="md"
     >
       <AttachAgentForm
@@ -242,7 +242,7 @@ async function handleRevocation(): Promise<void> {
         :key="roleChange.requested.uuid"
         :email="roleChange.requested.email"
         :role="roleChange.requested.role"
-        role-label="Rôle dans l'organisme"
+        :role-label="ROLE_FIELD_LABEL"
         :options="ROLE_OPTIONS"
         :submitting="updatingAgent"
         @submit="handleRoleChange"

@@ -38,17 +38,17 @@ export function isNavItemActive(item: NavItem, matchedRouteNames: string[]): boo
 }
 
 export function navigationFor(options: {
-  isStaff: boolean
+  canListOrganismes: boolean
   organismeUuid: string | null
-  canManageOrganisme: boolean
+  canAccessOrganismeSettings: boolean
 }): NavItem[] {
-  const { isStaff, organismeUuid, canManageOrganisme } = options
+  const { canListOrganismes, organismeUuid, canAccessOrganismeSettings } = options
 
   if (!organismeUuid) {
-    return isStaff ? [ORGANISMES_ITEM] : []
+    return canListOrganismes ? [ORGANISMES_ITEM] : []
   }
 
-  if (!canManageOrganisme) {
+  if (!canAccessOrganismeSettings) {
     return [recrutementsItem(organismeUuid, 'Mes recrutements')]
   }
 

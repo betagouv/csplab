@@ -8,6 +8,7 @@ from referentiel.value_objects.department import Department
     [
         pytest.param("01053", "01", id="metropole"),
         pytest.param("97120", "971", id="dom"),
+        pytest.param("97801", "978", id="saint_martin"),
     ],
 )
 def test_from_commune_code(cog_commune, expected_code):

@@ -1,5 +1,5 @@
 import type { TagCategory, TagColor } from '../types'
-import type { CspTagAccent } from '@/components/base/CspTag/tag'
+import type { PaletteColor } from '@/styles/palette'
 
 export const TAG_NAME_MAX_LENGTH = 25
 
@@ -19,9 +19,9 @@ export const TAG_CATEGORY_TEXTS: Record<TagCategory, { title: string, option: st
     description: 'Affichée sur les notes d\'une candidature. Permet d\'identifier la nature des notes.',
   },
   recrutement_agent: {
-    title: 'Équipe de recrutement de l\'offre',
+    title: 'Équipe de recrutement',
     option: 'Membre recrutement',
-    description: 'Affichée dans l\'équipe de recrutement d\'une offre. Permet d\'indiquer ce que fait chaque membre sur cette offre.',
+    description: 'Affichée dans l\'équipe d\'un recrutement. Permet d\'indiquer ce que fait chaque membre sur ce recrutement.',
   },
 }
 
@@ -33,20 +33,22 @@ export const TAG_COLOR_LABELS: Record<TagColor, string> = {
   menthe: 'Menthe',
   violet: 'Violet',
   rose: 'Rose',
+  rouge: 'Rouge',
   orange: 'Orange',
   beige: 'Beige',
   jaune: 'Jaune',
   gris: 'Gris',
 }
 
-export const TAG_COLOR_ACCENTS: Record<TagColor, CspTagAccent | undefined> = {
-  bleu: 'blue-cumulus',
-  vert: 'green-emeraude',
-  menthe: 'green-menthe',
-  violet: 'purple-glycine',
-  rose: 'pink-macaron',
-  orange: 'orange-terre-battue',
-  beige: 'beige-gris-galet',
-  jaune: 'yellow-tournesol',
-  gris: undefined,
+export const TAG_COLOR_PALETTE: Record<TagColor, PaletteColor> = {
+  bleu: 'blue',
+  vert: 'green',
+  menthe: 'mint',
+  violet: 'purple',
+  rose: 'pink',
+  rouge: 'red',
+  orange: 'orange',
+  beige: 'beige',
+  jaune: 'yellow',
+  gris: 'grey',
 }

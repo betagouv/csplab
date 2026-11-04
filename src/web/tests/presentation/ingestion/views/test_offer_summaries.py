@@ -10,6 +10,7 @@ from referentiel.value_objects.country import Country
 from referentiel.value_objects.department import Department
 from referentiel.value_objects.domaine_fonctionnel import DomaineFonctionnel
 from referentiel.value_objects.experience_level import ExperienceLevel
+from referentiel.value_objects.localisation import Localisation
 from referentiel.value_objects.offer_conditions import Management, WorkingPlace
 from referentiel.value_objects.offer_nature import OfferNature
 from referentiel.value_objects.region import Region
@@ -142,6 +143,28 @@ def test_call_without_arg(mock_offer_summaries_container, jwt_client):
     assert result["region"][0]["label"] == offer.localisation.region.name
     assert result["department"][0]["clientCode"] == offer.localisation.department.code
     assert result["department"][0]["label"] == offer.localisation.department.name
+
+
+def test_offer_abroad_has_a_country_but_no_region_nor_department(
+    mock_offer_summaries_container, jwt_client
+):
+    offer = OfferFactory.create_entity(
+        offer_nature=OfferNature.TERRITORIAL,
+        categories=[Category.A],
+        localisation=Localisation(
+            area=GeographicalArea.EUROPE,
+            country=Country("DEU"),
+            region=None,
+            department=None,
+        ),
+    )
+    _make_paginated_mock(mock_offer_summaries_container, total=1, offers_slice=[offer])
+
+    result = jwt_client.get(URL).json()["data"][0]
+
+    assert result["country"][0]["clientCode"] == "DEU"
+    assert result["region"] == []
+    assert result["department"] == []
 
 
 def test_response_matches_openapi_schema(mock_offer_summaries_container, jwt_client):

@@ -27,6 +27,7 @@ withDefaults(defineProps<CspRadioProps>(), {
       `csp-radio--${size}`,
       { 'csp-radio--disabled': disabled },
       { 'csp-radio--error': error },
+      { 'csp-radio--with-hint': hint },
     ]"
   >
     <RadioGroupItem
@@ -37,7 +38,7 @@ withDefaults(defineProps<CspRadioProps>(), {
       <RadioGroupIndicator class="csp-radio__indicator" />
     </RadioGroupItem>
     <span class="csp-radio__text">
-      <span class="csp-radio__label">{{ label }}</span>
+      <span class="csp-radio__label"><slot>{{ label }}</slot></span>
       <span
         v-if="hint"
         class="csp-radio__hint"
@@ -51,7 +52,7 @@ withDefaults(defineProps<CspRadioProps>(), {
 <style scoped lang="scss">
 .csp-radio {
   display: inline-flex;
-  align-items: flex-start;
+  align-items: center;
   gap: var(--csp-radio-gap);
   cursor: pointer;
   font-size: var(--csp-radio-font-size);
@@ -62,6 +63,10 @@ withDefaults(defineProps<CspRadioProps>(), {
   --csp-radio-color: var(--text-default-grey);
   --csp-radio-size: 1.125rem;
   --csp-radio-indicator-size: 0.5rem;
+}
+
+.csp-radio--with-hint {
+  align-items: flex-start;
 }
 
 .csp-radio--sm {

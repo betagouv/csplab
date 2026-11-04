@@ -21,8 +21,10 @@ class OrganismeIdentiteMapper(IFromDomainMapper, IToDomainMapper):
             localisation = Localisation(
                 area=GeographicalArea(loc["area"]),
                 country=Country(loc["country"]),
-                region=Region(code=loc["region"]),
-                department=Department(code=loc["department"]),
+                region=Region(code=loc["region"]) if loc["region"] else None,
+                department=(
+                    Department(code=loc["department"]) if loc["department"] else None
+                ),
             )
         return Organisme.build(
             entity_id=UUID(str(model.id)),
@@ -51,8 +53,8 @@ class OrganismeIdentiteMapper(IFromDomainMapper, IToDomainMapper):
             localisation_data = {
                 "area": loc.area.value,
                 "country": str(loc.country),
-                "region": loc.region.code,
-                "department": loc.department.code,
+                "region": loc.region.code if loc.region else None,
+                "department": loc.department.code if loc.department else None,
             }
         model.nom = organisme.nom
         model.versant = organisme.versant.value

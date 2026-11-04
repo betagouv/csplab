@@ -677,8 +677,8 @@ paths:
             - '05'
             - '06'
             - '07'
-            - 08
-            - 09
+            - '08'
+            - '09'
             - '10'
             - '11'
             - '12'
@@ -772,6 +772,8 @@ paths:
             - '974'
             - '975'
             - '976'
+            - '977'
+            - '978'
             - '986'
             - '987'
             - '988'
@@ -881,6 +883,8 @@ paths:
               * `974` - La Réunion
               * `975` - Saint-Pierre-et-Miquelon
               * `976` - Mayotte
+              * `977` - Saint-Barthélemy
+              * `978` - Saint-Martin
               * `986` - Wallis-et-Futuna
               * `987` - Polynésie française
               * `988` - Nouvelle-Calédonie
@@ -1983,8 +1987,8 @@ paths:
             - '05'
             - '06'
             - '07'
-            - 08
-            - 09
+            - '08'
+            - '09'
             - '10'
             - '11'
             - '12'
@@ -2078,6 +2082,8 @@ paths:
             - '974'
             - '975'
             - '976'
+            - '977'
+            - '978'
             - '986'
             - '987'
             - '988'
@@ -2187,6 +2193,8 @@ paths:
               * `974` - La Réunion
               * `975` - Saint-Pierre-et-Miquelon
               * `976` - Mayotte
+              * `977` - Saint-Barthélemy
+              * `978` - Saint-Martin
               * `986` - Wallis-et-Futuna
               * `987` - Polynésie française
               * `988` - Nouvelle-Calédonie
@@ -3639,8 +3647,8 @@ paths:
           - '05'
           - '06'
           - '07'
-          - 08
-          - 09
+          - '08'
+          - '09'
           - '10'
           - '11'
           - '12'
@@ -3734,6 +3742,8 @@ paths:
           - '974'
           - '975'
           - '976'
+          - '977'
+          - '978'
           - '986'
           - '987'
           - '988'
@@ -3846,6 +3856,8 @@ paths:
           * `974` - 974
           * `975` - 975
           * `976` - 976
+          * `977` - 977
+          * `978` - 978
           * `986` - 986
           * `987` - 987
           * `988` - 988
@@ -4538,8 +4550,8 @@ components:
       - '05'
       - '06'
       - '07'
-      - 08
-      - 09
+      - '08'
+      - '09'
       - '10'
       - '11'
       - '12'
@@ -4633,6 +4645,8 @@ components:
       - '974'
       - '975'
       - '976'
+      - '977'
+      - '978'
       - '986'
       - '987'
       - '988'
@@ -4742,6 +4756,8 @@ components:
         * `974` - 974
         * `975` - 975
         * `976` - 976
+        * `977` - 977
+        * `978` - 978
         * `986` - 986
         * `987` - 987
         * `988` - 988
@@ -5551,13 +5567,15 @@ components:
           maxLength: 3
           minLength: 3
         region:
+          nullable: true
           oneOf:
           - $ref: '#/components/schemas/RegionEnum'
-          - $ref: '#/components/schemas/BlankEnum'
+          - $ref: '#/components/schemas/NullEnum'
         departement:
+          nullable: true
           oneOf:
           - $ref: '#/components/schemas/DepartementEnum'
-          - $ref: '#/components/schemas/BlankEnum'
+          - $ref: '#/components/schemas/NullEnum'
         localisation_label:
           type: string
           maxLength: 500
@@ -5592,8 +5610,9 @@ components:
           maxLength: 3
           minLength: 3
         region:
+          nullable: true
           description: |-
-            Code INSEE de la région, `DOM` ou `TOM`. Le département doit appartenir à cette région : `DOM` avec un département d'outre-mer, `TOM` avec une collectivité d'outre-mer.
+            Code INSEE de la région, `DOM` ou `TOM`. Le département doit appartenir à cette région : `DOM` avec un département d'outre-mer, `TOM` avec une collectivité d'outre-mer. `null` hors de France.
 
             * `01` - 01
             * `02` - 02
@@ -5617,11 +5636,12 @@ components:
             * `TOM` - TOM
           oneOf:
           - $ref: '#/components/schemas/RegionEnum'
-          - $ref: '#/components/schemas/BlankEnum'
+          - $ref: '#/components/schemas/NullEnum'
         departement:
+          nullable: true
           oneOf:
           - $ref: '#/components/schemas/DepartementEnum'
-          - $ref: '#/components/schemas/BlankEnum'
+          - $ref: '#/components/schemas/NullEnum'
         localisation_label:
           type: string
           maxLength: 500
@@ -5961,13 +5981,15 @@ components:
           maxLength: 3
           minLength: 3
         region:
+          nullable: true
           oneOf:
           - $ref: '#/components/schemas/RegionEnum'
-          - $ref: '#/components/schemas/BlankEnum'
+          - $ref: '#/components/schemas/NullEnum'
         departement:
+          nullable: true
           oneOf:
           - $ref: '#/components/schemas/DepartementEnum'
-          - $ref: '#/components/schemas/BlankEnum'
+          - $ref: '#/components/schemas/NullEnum'
         latitude:
           type: number
           format: double
@@ -5994,8 +6016,10 @@ components:
           type: string
         region:
           type: string
+          nullable: true
         departement:
           type: string
+          nullable: true
       required:
       - departement
       - pays

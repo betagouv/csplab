@@ -49,7 +49,10 @@ from infrastructure.factories.referentiel.offer_django_factory import (
 )
 from infrastructure.mappers.offer_mapper import OfferMapper
 from presentation.commons.serializers import INVALID_COUNTRY_CODE
-from presentation.ingestion.serializers import ConditionsInputSerializer
+from presentation.ingestion.serializers import (
+    ConditionsInputSerializer,
+    OfferDetailResponseSerializer,
+)
 from presentation.ingestion.views.offers import UNKNOWN_GENERATED_REFERENCE
 
 fake = Faker("fr_FR")
@@ -108,8 +111,8 @@ COMPLETE_VALID_OFFER = PayloadOfferFactory.create(
         {
             "zone_geographique": "AM",
             "pays": "MEX",
-            "region": "",
-            "departement": "",
+            "region": None,
+            "departement": None,
             "localisation_label": "",
             "latitude": None,
             "longitude": None,
@@ -1070,7 +1073,53 @@ def test_inconsistent_region_and_department_are_rejected(
 
 @pytest.mark.parametrize(
     ("region", "departement"),
-    [("93", "13"), ("01", "971"), ("DOM", "971"), ("TOM", "988")],
+    [("11", "75"), ("11", None), (None, "75")],
+)
+def test_region_or_department_abroad_is_rejected(
+    authenticated_client_with_source, use_case, region, departement
+):
+    offer = PayloadOfferFactory.create(
+        identification={"reference": "REF-013", "versant": "FPE"},
+        localisation=[
+            {
+                "zone_geographique": "EU",
+                "pays": "DEU",
+                "region": region,
+                "departement": departement,
+                "localisation_label": "",
+                "latitude": None,
+                "longitude": None,
+            }
+        ],
+    )
+
+    response = authenticated_client_with_source.post(
+        URL,
+        data={"source_id": SOURCE_UUID, "offres": [offer]},
+        content_type="application/json",
+    )
+
+    assert response.status_code == status.HTTP_201_CREATED
+    expected_message = (
+        "La région et le département doivent être vides pour une "
+        "offre localisée hors de France."
+    )
+    assert response.json()["errors"][0]["error"] == {
+        "localisation": {"0": {"non_field_errors": [expected_message]}}
+    }
+    assert use_case.execute.call_args.args[0].offers == []
+
+
+@pytest.mark.parametrize(
+    ("region", "departement"),
+    [
+        ("93", "13"),
+        ("01", "971"),
+        ("DOM", "971"),
+        ("TOM", "988"),
+        ("TOM", "977"),
+        ("TOM", "978"),
+    ],
 )
 def test_consistent_region_and_department_are_accepted(
     authenticated_client_with_source, use_case, region, departement
@@ -1163,8 +1212,8 @@ def test_country_code_not_in_uppercase_is_rejected(
             {
                 "zone_geographique": "EU",
                 "pays": "fra",
-                "region": "",
-                "departement": "",
+                "region": None,
+                "departement": None,
                 "localisation_label": "",
                 "latitude": None,
                 "longitude": None,
@@ -1296,6 +1345,52 @@ class TestOffersUpsertViewDbVerified:
         assert localisation.label == "Caen"
         assert localisation.latitude is None
         assert localisation.longitude is None
+
+    def test_offer_abroad_is_persisted_without_region_nor_department(
+        self, authenticated_client_with_source
+    ):
+        MetierDjangoFactory(
+            offer_family_code="ERNUM001", domaine_fonctionnel_code="NUM"
+        )
+        offer = PayloadOfferFactory.create(
+            identification={"reference": "REF-BERLIN", "versant": "FPE"},
+            localisation=[
+                {
+                    "zone_geographique": "EU",
+                    "pays": "DEU",
+                    "region": None,
+                    "departement": None,
+                    "localisation_label": "Ambassade de France à Berlin",
+                    "latitude": 52.5163,
+                    "longitude": 13.3777,
+                }
+            ],
+        )
+
+        response = authenticated_client_with_source.post(
+            URL,
+            data={"source_id": SOURCE_UUID, "offres": [offer]},
+            content_type="application/json",
+        )
+
+        assert response.status_code == status.HTTP_201_CREATED
+        assert response.json()["errors"] == []
+        offer_model = OfferModel.objects.get(
+            reference="REF-BERLIN", source_id=UUID(SOURCE_UUID)
+        )
+        assert offer_model.country == "DEU"
+        assert offer_model.region is None
+        assert offer_model.department is None
+        persisted = OfferMapper().to_domain(offer_model)
+        assert OfferDetailResponseSerializer(persisted).data["localisation"] == {
+            "zone_geographique": "EU",
+            "pays": "DEU",
+            "region": None,
+            "departement": None,
+            "localisation_label": "Ambassade de France à Berlin",
+            "latitude": 52.5163,
+            "longitude": 13.3777,
+        }
 
     def test_auto_references_are_generated_and_returned_with_their_index(
         self, authenticated_client_with_source

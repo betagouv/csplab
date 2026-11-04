@@ -65,6 +65,9 @@ export function useKanbanSelection(
   function toggleColumnSelection(etape: EtapeRecrutementDetailedCandidatures): void {
     const selected = new Set(selectedByEtape.value.get(etape.uuid))
     const shownUuids = etape.candidatures.map(({ uuid }) => uuid)
+    if (shownUuids.length === 0) {
+      return
+    }
 
     if (isFullySelected(etape, selected)) {
       shownUuids.forEach(uuid => selected.delete(uuid))
@@ -73,15 +76,9 @@ export function useKanbanSelection(
       shownUuids.forEach(uuid => selected.add(uuid))
     }
 
-    const newMap = new Map(selectedByEtape.value)
-    if (selected.size === 0) {
-      newMap.delete(etape.uuid)
-    }
-    else {
-      newMap.set(etape.uuid, selected)
-    }
-
-    selectedByEtape.value = newMap
+    selectedByEtape.value = selected.size === 0
+      ? new Map()
+      : new Map([[etape.uuid, selected]])
   }
 
   function toggleCandidatureSelection(candidatureUuid: string, etapeUuid: string): void {

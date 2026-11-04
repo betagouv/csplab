@@ -1,23 +1,29 @@
+from django.db.models import QuerySet
 from django.http import Http404
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from pydantic import ValidationError
 from referentiel.value_objects.verse import Verse
 from rest_framework import exceptions, status
+from rest_framework.generics import ListAPIView
 from rest_framework.request import Request
 from rest_framework.response import Response
-from rest_framework.views import APIView
 
 from application.recruteur.services.create_organisme import create_organisme
-from application.recruteur.services.list_organismes import list_organismes
+from application.recruteur.services.list_organismes import (
+    list_organismes,
+    with_authorized_actions,
+)
 from domain.identite.errors.organisme_errors import OrganismeSiretExisteDeja
 from domain.identite.errors.organisme_permission_errors import (
     OperationOrganismeRefusee,
 )
+from infrastructure.django_apps.recruteur.models.organisme import OrganismeModel
 from presentation.api.authentication import SessionApiMixin
 from presentation.api.serializers import (
     GenericErrorSerializer,
     generic_response_format,
 )
+from presentation.commons.pagination import TaillePageNumberPagination
 from presentation.recruteur.serializers import (
     CreateOrganismeSerializer,
     OrganismeDetailSerializer,
@@ -45,12 +51,20 @@ from presentation.recruteur.serializers import (
         },
     ),
 )
-class OrganismesView(SessionApiMixin, APIView):
-    serializer_class = OrganismeDetailSerializer
+class OrganismesView(SessionApiMixin, ListAPIView):
+    serializer_class = OrganismesListSerializer
+    pagination_class = TaillePageNumberPagination
 
-    def get(self, request: Request) -> Response:
-        organismes = list_organismes(utilisateur=request.user)
-        return Response(OrganismesListSerializer(organismes, many=True).data)
+    def get_queryset(self) -> QuerySet[OrganismeModel]:
+        return list_organismes(utilisateur=self.request.user)
+
+    def paginate_queryset(self, queryset: QuerySet[OrganismeModel]) -> list | None:
+        page = super().paginate_queryset(queryset)
+        return (
+            None
+            if page is None
+            else with_authorized_actions(page, utilisateur=self.request.user)
+        )
 
     def post(self, request: Request) -> Response:
         serializer = CreateOrganismeSerializer(data=request.data)

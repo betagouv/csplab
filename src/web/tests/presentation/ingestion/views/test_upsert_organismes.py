@@ -170,6 +170,83 @@ def test_invalid_country_code_is_rejected(api_key_client, use_case, pays):
     assert [organisme.external_id for organisme in organismes] == ["ext-123"]
 
 
+SUBDIVISION_REQUIRED_IN_FRANCE = (
+    "La région et le département sont obligatoires "
+    "pour un organisme localisé en France."
+)
+SUBDIVISION_FORBIDDEN_ABROAD = (
+    "La région et le département doivent être vides "
+    "pour un organisme localisé hors de France."
+)
+
+
+@pytest.mark.parametrize(
+    ("localisation", "message"),
+    [
+        (
+            _localisation(region=None, departement=None),
+            SUBDIVISION_REQUIRED_IN_FRANCE,
+        ),
+        (
+            _localisation(departement=None),
+            SUBDIVISION_REQUIRED_IN_FRANCE,
+        ),
+        (
+            _localisation(pays="DEU"),
+            SUBDIVISION_FORBIDDEN_ABROAD,
+        ),
+        (
+            _localisation(pays="DEU", region=None),
+            SUBDIVISION_FORBIDDEN_ABROAD,
+        ),
+    ],
+)
+def test_region_and_department_must_match_the_country(
+    api_key_client, use_case, localisation, message
+):
+    response = api_key_client.post(
+        URL,
+        data={
+            "organismes": [
+                _organisme_payload(external_id="ext-invalid", localisation=localisation)
+            ]
+        },
+        content_type="application/json",
+    )
+
+    assert response.status_code == status.HTTP_201_CREATED
+    assert response.json()["errors"] == [
+        {
+            "organisme": {"referentiel": "FINESS", "external_id": "ext-invalid"},
+            "error": {"localisation": {"non_field_errors": [message]}},
+        }
+    ]
+
+
+def test_organisme_abroad_without_region_nor_department_is_accepted(
+    api_key_client, use_case
+):
+    response = api_key_client.post(
+        URL,
+        data={
+            "organismes": [
+                _organisme_payload(
+                    localisation=_localisation(
+                        pays="DEU", region=None, departement=None
+                    )
+                )
+            ]
+        },
+        content_type="application/json",
+    )
+
+    assert response.status_code == status.HTTP_201_CREATED
+    assert response.json()["errors"] == []
+    (organisme,) = use_case.execute.call_args.args[0].organismes
+    assert organisme.localisation.region is None
+    assert organisme.localisation.department is None
+
+
 def test_returns_error_500(api_key_client, use_case):
     use_case.execute.side_effect = Exception("db error")
 

@@ -12,7 +12,7 @@ class SourceFactory:
     @staticmethod
     def create_entity(
         source_id: Optional[UUID] = None,
-        slug: str = "talentsoft",
+        slug: Optional[str] = None,
         type: SourceType = SourceType.TALENTSOFT,
         client_id_front: str = "client_front",
         client_id_back: str = "client_back",
@@ -21,7 +21,7 @@ class SourceFactory:
     ) -> Source:
         return Source(
             source_id=source_id or uuid4(),
-            slug=slug,
+            slug=slug or fake.unique.slug(),
             type=type,
             client_id_front=client_id_front,
             client_id_back=client_id_back,
