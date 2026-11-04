@@ -110,9 +110,14 @@ useDocumentTitle(HOME_BREADCRUMB_LABEL)
               class="home-view__row"
             >
               <span
-                class="home-view__step-number"
+                class="home-view__picto"
                 aria-hidden="true"
-              >{{ index + 1 }}</span>
+              >
+                <CspIcon
+                  :name="step.icon"
+                  :size="24"
+                />
+              </span>
               <div class="home-view__row-text">
                 <h3>{{ step.title }}</h3>
                 <p>{{ step.description }}</p>
@@ -123,17 +128,11 @@ useDocumentTitle(HOME_BREADCRUMB_LABEL)
                 :as="RouterLink"
                 :to="locationOf(step.to)"
                 :variant="index === 0 ? 'primary' : 'secondary'"
-                size="sm"
                 :label="step.action"
               />
             </li>
           </ol>
-          <div class="home-view__row home-view__guide-help">
-            <CspIcon
-              class="home-view__help-icon"
-              name="ri:question-line"
-              :size="24"
-            />
+          <div class="home-view__row home-view__row--help">
             <div class="home-view__row-text">
               <h3>Besoin d’aide pour bien démarrer ?</h3>
               <p>Découvrez nos guides et conseils pour prendre en main cet ATS.</p>
@@ -146,7 +145,6 @@ useDocumentTitle(HOME_BREADCRUMB_LABEL)
               rel="noopener"
               :title="`${HELP_LABEL} - nouvelle fenêtre`"
               variant="secondary"
-              size="sm"
               icon="ri:external-link-line"
               is-icon-left
               :label="HELP_LABEL"
@@ -243,12 +241,14 @@ useDocumentTitle(HOME_BREADCRUMB_LABEL)
 }
 
 .home-view__guide {
+  --home-view-picto-size: 2.5rem;
+
   display: grid;
-  grid-template-columns: 2.5rem 1fr;
-  column-gap: var(--csp-space-4);
+  grid-template-columns: var(--home-view-picto-size) 1fr;
+  column-gap: var(--csp-space-5);
 
   @include bp.from(bp.$md) {
-    grid-template-columns: 2.5rem 1fr auto;
+    grid-template-columns: var(--home-view-picto-size) 1fr auto;
   }
 }
 
@@ -266,13 +266,32 @@ useDocumentTitle(HOME_BREADCRUMB_LABEL)
   grid-column: 1 / -1;
   grid-template-columns: subgrid;
   align-items: start;
-  row-gap: var(--csp-space-3);
+  row-gap: var(--csp-space-4);
+  padding-block: var(--csp-space-5);
+  border-top: 1px solid var(--border-default-grey);
 
   @include bp.from(bp.$md) {
     align-items: center;
   }
-  padding-block: var(--csp-space-4);
-  border-top: 1px solid var(--border-default-grey);
+}
+
+.home-view__row--help {
+  padding-bottom: 0;
+
+  .home-view__row-text {
+    grid-column: 2;
+  }
+}
+
+.home-view__picto {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--home-view-picto-size);
+  height: var(--home-view-picto-size);
+  border-radius: 9999px;
+  background-color: var(--background-contrast-blue-france);
+  color: var(--text-action-high-blue-france);
 }
 
 .home-view__guide .home-view__action {
@@ -284,33 +303,6 @@ useDocumentTitle(HOME_BREADCRUMB_LABEL)
   }
 }
 
-.home-view__guide-help {
-  --home-view-help-inset: calc(var(--csp-card-padding) - 1px);
-
-  margin: var(--csp-space-2) calc(-1 * var(--home-view-help-inset)) calc(-1 * var(--home-view-help-inset));
-  padding: var(--csp-space-5) var(--home-view-help-inset);
-  border-top: none;
-  background-color: var(--background-alt-grey);
-}
-
-.home-view__help-icon {
-  justify-self: center;
-  color: var(--text-action-high-blue-france);
-}
-
-.home-view__step-number {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 2.5rem;
-  height: 2.5rem;
-  border-radius: 9999px;
-  background-color: var(--background-action-high-blue-france);
-  color: var(--text-inverted-grey);
-  font-size: 1.125rem;
-  font-weight: 700;
-}
-
 .home-view__row-text {
   display: flex;
   flex-direction: column;
@@ -318,6 +310,7 @@ useDocumentTitle(HOME_BREADCRUMB_LABEL)
 
   h3 {
     margin: 0;
+    color: var(--text-title-grey);
     font-size: 1rem;
     font-weight: 700;
     line-height: 1.5;
