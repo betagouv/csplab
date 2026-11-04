@@ -820,7 +820,7 @@ def test_clean_does_not_report_a_single_location(cleaner, capture_exception):
     assert capture_exception == []
 
 
-def _state_diploma_field(type_: str, client_code: str):
+def _state_diploma_field(type_: str | None, client_code: str):
     return TalentsoftCustomCodeTableFactory.build(
         type=type_, clientCode=client_code, label=client_code
     )
@@ -847,6 +847,13 @@ def test_state_diploma_rejects_the_working_time_quota():
     code_table = _state_diploma_field("Quotité de temps de travail", "Temps_plein")
 
     assert state_diploma(code_table) is None
+
+
+@pytest.mark.parametrize("type_", ["Diplômes d’État", None])
+def test_state_diploma_keeps_another_referential(type_):
+    code_table = _state_diploma_field(type_, "CSPU0002")
+
+    assert state_diploma(code_table) == code_table
 
 
 def test_state_diploma_is_none_when_missing():

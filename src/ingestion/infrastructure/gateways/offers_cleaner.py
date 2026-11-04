@@ -62,7 +62,7 @@ logger = logging.getLogger(__name__)
 
 _LEGIFRANCE_URL = re.compile(r"https?://((?:www\.)?legifrance\.gouv\.fr/\S+)")
 
-STATE_DIPLOMA_TYPE = "Diplômes d'Etat"
+WORKING_TIME_QUOTA_TYPE = "Quotité de temps de travail"
 
 # Talentsoft lets an overseas territory be entered as a country (ISO 3166-1
 # alpha-3 code, no region nor department) instead of as a French department.
@@ -307,7 +307,9 @@ _TALENTSOFT_TO_REQUIRED_DOCUMENTS: dict[str, list[RequiredDocument]] = {
 def state_diploma(
     code_table: Optional[TalentsoftCustomCodeTable],
 ) -> Optional[TalentsoftCustomCodeTable]:
-    if code_table is None or code_table.type != STATE_DIPLOMA_TYPE:
+    # Only the referential known to be misfiled is rejected: a renamed or missing
+    # type keeps the value instead of rejecting every state diploma.
+    if code_table is None or code_table.type == WORKING_TIME_QUOTA_TYPE:
         return None
     return code_table
 

@@ -722,7 +722,7 @@ Notation : `a.b` désigne un objet imbriqué, `a[]` une liste, `a[0]` son premie
 | `customFields.offerCustomBlock1.date1` | |
 | `customFields.offerCustomBlock1.shortText1` | |
 | `customFields.offerCustomBlock1.longText3Formatted` | Non lu : seul le texte brut `customFields.offerCustomBlock1.longText3` est repris. API fake-ts : `conditions.note_ouverture_poste_url` en HTML. |
-| `customFields.offerCustomBlock1.customCodeTable3` | « Diplômes d'Etat requis ». Non repris (`criteres.diplome` vient de `diploma.clientCode`). Une valeur d'un autre référentiel que « Diplômes d'Etat » (`type`), en pratique la « Quotité de temps de travail » (`Temps_plein`, `Temps_noncomplet`) saisie par erreur, est rejetée (passée à `null`, l'offre reste ingérée) et signalée dans Sentry ; elle n'est pas reprise dans `conditions.temps_travail`. API fake-ts : toujours `null`. |
+| `customFields.offerCustomBlock1.customCodeTable3` | « Diplômes d'Etat requis ». Non repris (`criteres.diplome` vient de `diploma.clientCode`). Une valeur du référentiel « Quotité de temps de travail » (`type`, codes `Temps_plein`, `Temps_noncomplet`) saisie par erreur est rejetée (passée à `null`, l'offre reste ingérée) et signalée dans Sentry ; elle n'est pas reprise dans `conditions.temps_travail`. API fake-ts : toujours `null`. |
 | `code` | Clé de tout objet codé : seul `clientCode` est lu. |
 | `label` | Clé de tout objet codé : seul `clientCode` est lu. |
 | `active` | Clé de tout objet codé : seul `clientCode` est lu. |
