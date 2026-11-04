@@ -38,3 +38,17 @@ class DilaSiretNotFound(InfrastructureError):
                 "reason": reason,
             },
         )
+
+
+class TalentsoftOfferWithSeveralLocations(InfrastructureError):
+    """Only the first location is kept (see #1793)."""
+
+    def __init__(self, reference: str, source_id: str | None, fields: list[str]):
+        self.reference = reference
+        self.source_id = source_id
+        self.fields = fields
+        super().__init__(
+            f"Offer {reference} from source {source_id} has several locations "
+            f"({', '.join(fields)}): only the first one is kept",
+            details={"reference": reference, "source_id": source_id, "fields": fields},
+        )
