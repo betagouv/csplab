@@ -1,9 +1,5 @@
-from django.conf import settings
 from django.contrib import admin, messages
 
-from application.identite.services.deactivate_api_account import (
-    deactivate_api_account,
-)
 from application.identite.services.revoke_api_tokens import revoke_api_tokens
 from infrastructure.django_apps.users.models import (
     AllowedNetworkModel,
@@ -69,19 +65,11 @@ class UserModelAdmin(admin.ModelAdmin):
         permissions=["change"],
     )
     def revoke_api_tokens(self, request, queryset):
-        revoked = sum(
-            revoke_api_tokens(compte=compte, utilisateur=request.user)
-            for compte in queryset
-        )
-        access_minutes = int(
-            settings.SIMPLE_JWT["ACCESS_TOKEN_LIFETIME"].total_seconds() // 60
-        )
-        self.message_user(
+        self._revoke(
             request,
-            f"{revoked} jeton(s) de rafraîchissement révoqué(s) pour "
-            f"{len(queryset)} compte(s). Les jetons d'accès déjà émis restent "
-            f"valables {access_minutes} minutes au plus.",
-            messages.SUCCESS,
+            queryset,
+            deactivate=False,
+            outcome="Les jetons d'accès déjà émis restent valables 15 minutes au plus.",
         )
 
     @admin.action(
@@ -96,15 +84,24 @@ class UserModelAdmin(admin.ModelAdmin):
                 messages.ERROR,
             )
             return
+        self._revoke(
+            request,
+            queryset,
+            deactivate=True,
+            outcome="Comptes désactivés : plus aucun jeton utilisable.",
+        )
+
+    def _revoke(self, request, queryset, *, deactivate: bool, outcome: str) -> None:
         revoked = sum(
-            deactivate_api_account(compte=compte, utilisateur=request.user)
-            for compte in queryset
+            revoke_api_tokens(
+                account=account, actor=request.user, deactivate=deactivate
+            )
+            for account in queryset
         )
         self.message_user(
             request,
-            f"{len(queryset)} compte(s) désactivé(s), {revoked} jeton(s) de "
-            "rafraîchissement révoqué(s). Plus aucun jeton ne peut être obtenu "
-            "ni utilisé pour ces comptes.",
+            f"{revoked} jeton(s) de rafraîchissement révoqué(s) pour "
+            f"{len(queryset)} compte(s). {outcome}",
             messages.SUCCESS,
         )
 

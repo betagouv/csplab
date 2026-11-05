@@ -13,19 +13,25 @@ from infrastructure.repositories.commons.postgres_audit_log_repository import (
 logger = logging.getLogger(LoggerName.IDENTITE)
 
 
-def revoke_api_tokens(*, compte: UserModel, utilisateur: UserModel) -> int:
+def revoke_api_tokens(
+    *, account: UserModel, actor: UserModel, deactivate: bool = False
+) -> int:
     with transaction.atomic():
-        revoked = compte.revoke_refresh_tokens()
+        if deactivate:
+            account.is_active = False
+            account.save(update_fields=["is_active"])
+        revoked = account.revoke_refresh_tokens()
         AuditLogWriter(repository=PostgresAuditLogRepository()).log_action(
-            utilisateur_id=utilisateur.username,
-            entity=Entity(entity_id=compte.username),
+            utilisateur_id=actor.username,
+            entity=Entity(entity_id=account.username),
             ressource_kind="Utilisateur",
-            event_name="JetonsApiRevoques",
+            event_name="CompteApiDesactive" if deactivate else "JetonsApiRevoques",
         )
     logger.warning(
-        "Revoked %d refresh token(s) of user %s, by user %s.",
+        "Revoked %d refresh token(s) of user %s (deactivated: %s), by user %s.",
         revoked,
-        compte.pk,
-        utilisateur.pk,
+        account.pk,
+        deactivate,
+        actor.pk,
     )
     return revoked

@@ -1,6 +1,7 @@
 import logging
 from datetime import timedelta
 
+import pytest
 from django.utils import timezone
 from rest_framework_simplejwt.token_blacklist.models import (
     BlacklistedToken,
@@ -15,61 +16,62 @@ from infrastructure.factories.identite.utilisateur_django_factory import (
 )
 
 
-def _revoked_jtis():
-    return set(BlacklistedToken.objects.values_list("token__jti", flat=True))
+@pytest.fixture(name="accounts")
+def accounts_fixture(db):
+    return UtilisateurDjangoFactory(), UtilisateurDjangoFactory()
 
 
-def test_revokes_every_active_refresh_token_of_the_account(db):
-    compte, admin = UtilisateurDjangoFactory(), UtilisateurDjangoFactory()
-    tokens = [RefreshToken.for_user(compte) for _ in range(2)]
-
-    revoked = revoke_api_tokens(compte=compte, utilisateur=admin)
-
-    assert revoked == len(tokens)
-    assert _revoked_jtis() == {token["jti"] for token in tokens}
-
-
-def test_leaves_other_accounts_untouched(db):
-    compte, autre, admin = UtilisateurDjangoFactory.create_batch(3)
-    RefreshToken.for_user(autre)
-
-    assert revoke_api_tokens(compte=compte, utilisateur=admin) == 0
-    assert not BlacklistedToken.objects.exists()
-
-
-def test_skips_expired_and_already_revoked_tokens(db):
-    compte, admin = UtilisateurDjangoFactory(), UtilisateurDjangoFactory()
+def test_revokes_only_the_active_tokens_of_the_account(accounts):
+    account, admin = accounts
+    tokens = [RefreshToken.for_user(account) for _ in range(2)]
+    RefreshToken.for_user(admin)
+    RefreshToken.for_user(account).blacklist()
     OutstandingToken.objects.create(
-        user=compte,
+        user=account,
         jti="expired",
         token="",
         expires_at=timezone.now() - timedelta(minutes=1),
     )
-    RefreshToken.for_user(compte).blacklist()
 
-    assert revoke_api_tokens(compte=compte, utilisateur=admin) == 0
-    assert BlacklistedToken.objects.count() == 1
+    revoked = revoke_api_tokens(account=account, actor=admin)
+
+    assert revoked == len(tokens)
+    assert {token["jti"] for token in tokens} < set(
+        BlacklistedToken.objects.values_list("token__jti", flat=True)
+    )
+    assert not BlacklistedToken.objects.filter(token__user=admin).exists()
+    account.refresh_from_db()
+    assert account.is_active
 
 
-def test_audits_the_revocation_even_without_token(db):
-    compte, admin = UtilisateurDjangoFactory(), UtilisateurDjangoFactory()
+def test_deactivates_the_account_on_demand(accounts):
+    account, admin = accounts
 
-    revoke_api_tokens(compte=compte, utilisateur=admin)
+    revoke_api_tokens(account=account, actor=admin, deactivate=True)
+
+    account.refresh_from_db()
+    assert not account.is_active
+
+
+@pytest.mark.parametrize(
+    ("deactivate", "event_name"),
+    [(False, "JetonsApiRevoques"), (True, "CompteApiDesactive")],
+)
+def test_audits_and_logs_even_without_token(accounts, caplog, deactivate, event_name):
+    caplog.set_level(logging.WARNING, logger="identite")
+    account, admin = accounts
+
+    revoke_api_tokens(account=account, actor=admin, deactivate=deactivate)
 
     log = AuditLogModel.objects.get()
-    assert log.utilisateur_id == admin.username
-    assert log.ressource_kind == "Utilisateur"
-    assert log.ressource_id == compte.username
-    assert log.event_name == "JetonsApiRevoques"
-
-
-def test_logs_the_revocation(db, caplog):
-    caplog.set_level(logging.WARNING, logger="identite")
-    compte, admin = UtilisateurDjangoFactory(), UtilisateurDjangoFactory()
-    RefreshToken.for_user(compte)
-
-    revoke_api_tokens(compte=compte, utilisateur=admin)
-
-    assert [r.getMessage() for r in caplog.records] == [
-        f"Revoked 1 refresh token(s) of user {compte.pk}, by user {admin.pk}."
-    ]
+    assert (log.utilisateur_id, log.ressource_kind, log.ressource_id) == (
+        admin.username,
+        "Utilisateur",
+        account.username,
+    )
+    assert log.event_name == event_name
+    expected = (
+        f"Revoked 0 refresh token(s) of user {account.pk} "
+        f"(deactivated: {deactivate}), by user {admin.pk}."
+    )
+    assert [r.getMessage() for r in caplog.records] == [expected]

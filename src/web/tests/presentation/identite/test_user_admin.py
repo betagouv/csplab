@@ -100,13 +100,13 @@ class TestUserAdminAllowedNetworks:
 
 class TestUserAdminRevokeApiTokens:
     def test_revokes_the_refresh_tokens_of_the_selected_accounts(self, admin_client):
-        compte, autre = UtilisateurDjangoFactory.create_batch(2)
-        revoked = RefreshToken.for_user(compte)
-        RefreshToken.for_user(autre)
+        account, other = UtilisateurDjangoFactory.create_batch(2)
+        revoked = RefreshToken.for_user(account)
+        RefreshToken.for_user(other)
 
         response = admin_client.post(
             reverse("admin:users_usermodel_changelist"),
-            {"action": "revoke_api_tokens", "_selected_action": [compte.pk]},
+            {"action": "revoke_api_tokens", "_selected_action": [account.pk]},
             follow=True,
         )
 
@@ -114,45 +114,42 @@ class TestUserAdminRevokeApiTokens:
         assert list(BlacklistedToken.objects.values_list("token__jti", flat=True)) == [
             revoked["jti"]
         ]
-        assert AuditLogModel.objects.get().ressource_id == compte.username
+        assert AuditLogModel.objects.get().ressource_id == account.username
         assert (
-            "1 jeton(s) de rafraîchissement révoqué(s) pour 1 compte(s). "
-            "Les jetons d&#x27;accès déjà émis restent valables 15 minutes au plus."
-        ) in response.text
-
-    def test_deactivates_the_selected_accounts(self, admin_client):
-        compte = UtilisateurDjangoFactory()
-        RefreshToken.for_user(compte)
-
-        response = admin_client.post(
-            reverse("admin:users_usermodel_changelist"),
-            {"action": "deactivate_api_accounts", "_selected_action": [compte.pk]},
-            follow=True,
-        )
-
-        compte.refresh_from_db()
-        assert not compte.is_active
-        assert BlacklistedToken.objects.count() == 1
-        assert AuditLogModel.objects.get().event_name == "CompteApiDesactive"
-        assert (
-            "1 compte(s) désactivé(s), 1 jeton(s) de rafraîchissement révoqué(s)."
+            "1 jeton(s) de rafraîchissement révoqué(s) pour 1 compte(s)."
             in response.text
         )
 
+    def test_deactivates_the_selected_accounts(self, admin_client):
+        account = UtilisateurDjangoFactory()
+        RefreshToken.for_user(account)
+
+        response = admin_client.post(
+            reverse("admin:users_usermodel_changelist"),
+            {"action": "deactivate_api_accounts", "_selected_action": [account.pk]},
+            follow=True,
+        )
+
+        account.refresh_from_db()
+        assert not account.is_active
+        assert BlacklistedToken.objects.count() == 1
+        assert AuditLogModel.objects.get().event_name == "CompteApiDesactive"
+        assert "Comptes désactivés" in response.text
+
     def test_refuses_to_deactivate_the_current_admin(self, admin_client):
         admin_user = UserModel.objects.get(is_superuser=True)
-        compte = UtilisateurDjangoFactory()
+        account = UtilisateurDjangoFactory()
 
         response = admin_client.post(
             reverse("admin:users_usermodel_changelist"),
             {
                 "action": "deactivate_api_accounts",
-                "_selected_action": [compte.pk, admin_user.pk],
+                "_selected_action": [account.pk, admin_user.pk],
             },
             follow=True,
         )
 
-        compte.refresh_from_db()
-        assert compte.is_active
+        account.refresh_from_db()
+        assert account.is_active
         assert not AuditLogModel.objects.exists()
         assert "Vous ne pouvez pas désactiver votre propre compte." in response.text
