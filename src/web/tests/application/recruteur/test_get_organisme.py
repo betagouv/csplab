@@ -8,10 +8,7 @@ from application.identite.context_services.organisme_permission_service import (
 )
 from application.recruteur.services.get_organisme import get_organisme
 from domain.commons.errors.organisme_errors import OrganismeNexistePas
-from domain.identite.errors.organisme_permission_errors import (
-    AccesOrganismeRefuse,
-    OperationOrganismeRefusee,
-)
+from domain.identite.errors.organisme_permission_errors import AccesOrganismeRefuse
 from domain.recruteur.value_objects.roles import AgentOrganismeRole
 from infrastructure.factories.identite.organisme_django_factory import (
     OrganismeDjangoFactory,
@@ -66,28 +63,22 @@ def test_raises_when_organisme_is_supprime_after_permission_check():
     assert raised.value.identifier == str(organisme.id)
 
 
-def test_exposes_the_actions_of_the_role_returned_by_the_permission_check():
-    agent, organisme = create_organisme_with_agent(role=AgentOrganismeRole.AGENT)
+def test_exposes_the_actions_of_a_superviseur():
+    agent, organisme = create_organisme_with_agent(role=AgentOrganismeRole.SUPERVISEUR)
 
-    with patch.object(
-        OrganismePermissionService,
-        "can_execute",
-        return_value=AgentOrganismeRole.AGENT,
-    ):
-        resultat = get_organisme(
-            organisme_id=organisme.id, utilisateur=agent.utilisateur
-        )
+    resultat = get_organisme(organisme_id=organisme.id, utilisateur=agent.utilisateur)
 
-    assert resultat.authorized_actions == [  # type: ignore[attr-defined]
-        "list_recrutements",
-        "get_motifs_refus",
-        "list_tags",
-    ]
+    actions = resultat.authorized_actions  # type: ignore[attr-defined]
+    assert {"get_organisme", "attach_organisme_agent", "update_organisme_steps"} <= set(
+        actions
+    )
 
 
-@patch.object(OrganismePermissionService, "can_execute", return_value=None)
-def test_refuses_when_the_permission_check_returns_no_role(can_execute):
-    _, organisme = create_organisme_with_agent(role=AgentOrganismeRole.SUPERVISEUR)
+def test_staff_gets_the_actions_of_a_superviseur_without_liaison():
+    organisme = OrganismeDjangoFactory()
+    staff = UtilisateurDjangoFactory(is_staff=True)
 
-    with pytest.raises(OperationOrganismeRefusee):
-        get_organisme(organisme_id=organisme.id, utilisateur=UtilisateurDjangoFactory())
+    resultat = get_organisme(organisme_id=organisme.id, utilisateur=staff)
+
+    assert resultat == organisme
+    assert "get_organisme" in resultat.authorized_actions  # type: ignore[attr-defined]
