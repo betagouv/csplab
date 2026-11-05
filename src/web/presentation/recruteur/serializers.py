@@ -261,7 +261,7 @@ class RecrutementsArchivesSerializer(RecrutementsSerializer):
 
 
 # ---------------------------------------------------------------------------
-# Serializers pour la vue détail d'un recrutement (kanban / liste)
+# Serializers pour la vue détail d'un recrutement (liste)
 # ---------------------------------------------------------------------------
 
 
@@ -269,17 +269,6 @@ class CandidatSerializer(serializers.Serializer):
     uuid = serializers.UUIDField()
     nom = serializers.CharField()
     prenom = serializers.CharField()
-
-
-class CandidatureSerializer(UnreadConversationsSerializer):
-    uuid = serializers.UUIDField()
-    date_soumission = serializers.DateTimeField()
-    date_derniere_activite = serializers.DateTimeField()
-    candidat = CandidatSerializer()
-
-
-class EtapeRecrutementDetailedCandidaturesSerializer(EtapeRecrutementSerializer):
-    candidatures = CandidatureSerializer(many=True)
 
 
 class CategorieEtapeField(serializers.ChoiceField):
@@ -379,11 +368,6 @@ class RecrutementDetailSerializer(serializers.ModelSerializer):
             "recrutement_role",
             "authorized_actions",
         ]
-
-
-class RecrutementDetailKanbanSerializer(serializers.Serializer):
-    uuid = serializers.UUIDField(source="offer_id")
-    etapes = EtapeRecrutementDetailedCandidaturesSerializer(many=True)
 
 
 # Computed fields of CandidatureListeSerializer: plain fields overriding get_attribute,
