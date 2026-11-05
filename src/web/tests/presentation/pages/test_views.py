@@ -1,6 +1,7 @@
 import re
 from http import HTTPStatus
 
+import pytest
 from django.test import Client
 from django.urls import reverse
 from dsfr.models import DsfrConfig
@@ -20,6 +21,48 @@ class TestApiGuideView:
 
         assert response.context["toc_items"]
         assert 'class="fr-h1"' in response.content.decode()
+
+
+class TestApiChangelogView:
+    def test_lists_every_change_with_an_anchor(self, db, client: Client):
+        response = client.get(reverse("pages:api_changelog"))
+
+        assert response.status_code == HTTPStatus.OK
+        content = response.content.decode()
+        assert content.count("<article id=") == response.context["total"]
+        assert (
+            '<a href="https://github.com/betagouv/csplab/pull/2084" target="_blank" '
+            'rel="noopener" title="PR #2084 - nouvelle fenêtre">'
+        ) in content
+        day_ids = re.findall(r'<h2 id="(date-[^"]+)"', content)
+        assert day_ids
+        assert len(day_ids) == len(set(day_ids))
+
+    def test_filters(self, db, client: Client):
+        response = client.get(
+            reverse("pages:api_changelog"),
+            {"type": "retire", "route": "POST /api/v1/offres/creer_modifier"},
+        )
+
+        content = response.content.decode()
+        assert response.context["count"] < response.context["total"]
+        assert content.count("<article id=") == response.context["count"]
+        assert "fr-badge--warning" in content
+        assert "fr-badge--new" not in content
+        checked = [t["value"] for t in response.context["types"] if t["checked"]]
+        assert checked == ["retire"]
+
+    @pytest.mark.parametrize(
+        "query", [{"depuis": "hier"}, {"route": "GET /api/v1/zzz-injecte"}]
+    )
+    def test_ignores_an_invalid_filter_with_a_message(self, db, client: Client, query):
+        response = client.get(reverse("pages:api_changelog"), query)
+
+        assert response.status_code == HTTPStatus.OK
+        assert response.context["count"] == response.context["total"]
+        content = response.content.decode()
+        assert "Filtre ignoré" in content
+        assert "zzz-injecte" not in content
 
 
 class TestRenderGuide:

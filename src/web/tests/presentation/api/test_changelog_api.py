@@ -3,19 +3,25 @@ from textwrap import dedent
 
 import pytest
 from django.core.management import CommandError, call_command
+from django.http import QueryDict
 from django.urls import reverse
 from rest_framework import status
 
 from presentation.api.changelog_api import (
+    TYPE_LABELS,
+    TYPES,
+    Filters,
     FragmentError,
     assemble,
     check_added_fragment,
     known_routes,
     load_fragments,
+    ordered,
     parse_fragment,
     route_errors,
     set_date,
 )
+from presentation.pages.views import _BADGES
 
 TODAY = date(2026, 10, 27)
 
@@ -79,6 +85,7 @@ class TestParseFragment:
             "GET /api/v1/organismes",
             "POST /api/v1/offres/creer_modifier",
         )
+        assert result.slug == "f"
 
     def test_missing_front_matter(self, tmp_path):
         path = tmp_path / "f.md"
@@ -230,6 +237,72 @@ class TestAssemble:
 
     def test_published_fragments_are_valid(self):
         assert assemble(load_fragments()).count("## 2026-") >= 1
+
+
+def test_ordered_by_date_then_type_then_pr(tmp_path):
+    old = fragment(tmp_path, "a.md", day="2026-10-20")
+    added = fragment(tmp_path, "b.md", pr=2)
+    broken = fragment(tmp_path, "c.md", type_="non_retrocompatible", pr=3)
+
+    assert ordered([old, added, broken]) == [broken, added, old]
+
+
+def test_every_type_has_a_title_a_label_and_a_badge():
+    assert set(TYPES) == set(TYPE_LABELS) == set(_BADGES)
+
+
+class TestFilters:
+    ROUTES = ("GET /api/v1/metiers", "GET /api/v1/offres")
+
+    def test_reads_the_query(self):
+        filters = Filters.from_query(
+            QueryDict(
+                "type=ajoute&type=non_retrocompatible"
+                "&route=GET+/api/v1/offres/&depuis=2026-10-15"
+            ),
+            self.ROUTES,
+        )
+
+        assert filters == Filters(
+            types=frozenset({"ajoute", "non_retrocompatible"}),
+            route="GET /api/v1/offres",
+            since=date(2026, 10, 15),
+        )
+        assert filters.errors == ()
+        assert filters.active
+
+    def test_reports_invalid_values_without_quoting_them(self):
+        filters = Filters.from_query(
+            QueryDict("type=autre&route=GET+/api/v1/injecte&depuis=15/10/2026"),
+            self.ROUTES,
+        )
+
+        assert filters == Filters()
+        assert not filters.active
+        assert filters.errors == (
+            (
+                "`type` inconnu. Valeurs possibles : non_retrocompatible, ajoute, "
+                "modifie, corrige, retire."
+            ),
+            (
+                "`route` n'est citée par aucun changement. Valeurs possibles : "
+                "GET /api/v1/metiers, GET /api/v1/offres."
+            ),
+            "`depuis` doit être une date AAAA-MM-JJ.",
+        )
+
+    def test_apply(self, tmp_path):
+        offres = fragment(tmp_path, "a.md", body="`GET /api/v1/offres`.")
+        metiers = fragment(
+            tmp_path, "b.md", type_="corrige", body="`GET /api/v1/metiers`."
+        )
+        old = fragment(tmp_path, "c.md", day="2026-10-01", body="`GET /api/v1/offres`.")
+        fragments = [offres, metiers, old]
+
+        assert Filters().apply(fragments) == fragments
+        assert Filters(types=frozenset({"corrige"})).apply(fragments) == [metiers]
+        assert Filters(route="GET /api/v1/offres").apply(fragments) == [offres, old]
+        assert Filters(since=date(2026, 10, 2)).apply(fragments) == [offres, metiers]
 
 
 class TestRouteErrors:
