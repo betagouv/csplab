@@ -273,13 +273,17 @@ class ArchiveOffersView(PublicApiMixin, APIView):
         name="UpsertOffersRequest",
         fields={
             "source_id": serializers.UUIDField(
-                help_text="Identifiant de la source des offres"
+                help_text="Identifiant de la source des offres, renvoyé par "
+                "`GET /api/v1/sources`."
             ),
             "offres": serializers.ListField(
                 child=OffersInputSerializer(),
                 min_length=1,
                 max_length=100,
-                help_text="Liste d'offres à créer ou mettre à jour (min: 1, max: 100)",
+                help_text="Liste d'offres à créer ou mettre à jour (min: 1, max: "
+                "100). Le détail des champs et de leurs règles se trouve dans le "
+                "[guide de l'API](/pages/guide_api"
+                "#4-creer-ou-modifier-des-offres-post-apiv1offrescreer_modifier).",
             ),
         },
     ),

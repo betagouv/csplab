@@ -4824,38 +4824,75 @@ components:
       properties:
         salaire_titulaire:
           type: string
+          description: Rémunération proposée à un fonctionnaire, en texte libre (ex.
+            `Selon grille indiciaire`).
           maxLength: 100
         salaire_contractuel:
           type: string
+          description: Rémunération proposée à un contractuel, en texte libre (ex.
+            `2 500 € brut mensuel`).
           maxLength: 100
         debut_contrat:
           type: string
           format: date-time
           nullable: true
+          description: Date de début du contrat. Format ISO 8601 avec l'heure (ex.
+            `2026-11-05T00:00:00Z`) ; sans fuseau horaire, l'heure est lue en UTC.
         fin_contrat:
           type: string
           format: date-time
           nullable: true
+          description: Date de fin du contrat. Format ISO 8601 avec l'heure (ex. `2026-11-05T00:00:00Z`)
+            ; sans fuseau horaire, l'heure est lue en UTC.
         duree_contrat:
           type: string
+          description: Durée du contrat, en texte libre (ex. `3 ans`).
         temps_travail:
-          $ref: '#/components/schemas/TempsTravailEnum'
+          allOf:
+          - $ref: '#/components/schemas/TempsTravailEnum'
+          description: |-
+            Temps de travail : `TEMPS_PLEIN`, `TEMPS_PARTIEL` (temps incomplet) ou `NON_DEFINI`.
+
+            * `NON_DEFINI` - Non défini
+            * `TEMPS_PLEIN` - Temps plein
+            * `TEMPS_PARTIEL` - Temps incomplet
         ouvert_aux_militaires:
-          $ref: '#/components/schemas/OuvertAuxMilitairesEnum'
+          allOf:
+          - $ref: '#/components/schemas/OuvertAuxMilitairesEnum'
+          description: |-
+            `OUI` si le poste est ouvert aux militaires, `NON` sinon.
+
+            * `NON` - Non
+            * `OUI` - Oui
         lieu_de_travail:
-          $ref: '#/components/schemas/LieuDeTravailEnum'
+          allOf:
+          - $ref: '#/components/schemas/LieuDeTravailEnum'
+          description: |-
+            `TELETRAVAIL` si le télétravail est possible, `SUR_SITE` sinon, `NON_DEFINI` si l'information n'est pas connue.
+
+            * `NON_DEFINI` - Non défini
+            * `SUR_SITE` - Sur site
+            * `TELETRAVAIL` - Télétravail
         management:
-          $ref: '#/components/schemas/ManagementEnum'
+          allOf:
+          - $ref: '#/components/schemas/ManagementEnum'
+          description: |-
+            `AVEC` si le poste comporte de l'encadrement, `SANS` sinon.
+
+            * `SANS` - Sans management
+            * `AVEC` - Avec management
         bases_legales:
           type: string
-          description: Markdown (CommonMark), syntaxe comprise dans la limite. Les
-            balises HTML et les liens autres que http, https et mailto sont refusés.
+          description: Fondement juridique du recrutement (articles de loi, décrets…).
+            Markdown (CommonMark), syntaxe comprise dans la limite. Les balises HTML
+            et les liens autres que http, https et mailto sont refusés. Voir le [bloc
+            « Description » du guide](/pages/guide_api#bloc-description-description-obligatoire).
           maxLength: 1500
         note_ouverture_poste_url:
           type: string
           format: uri
           description: Lien vers l'avis de vacance publié au Journal officiel, en
-            `https` sur `legifrance.gouv.fr`.
+            `https` sur `legifrance.gouv.fr` ou `www.legifrance.gouv.fr` (ex. `https://www.legifrance.gouv.fr/jorf/id/JORFTEXT…`).
       required:
       - lieu_de_travail
       - temps_travail
@@ -4909,11 +4946,19 @@ components:
           maximum: 8
           minimum: 1
         experience:
-          $ref: '#/components/schemas/ExperienceEnum'
+          allOf:
+          - $ref: '#/components/schemas/ExperienceEnum'
+          description: |-
+            Niveau d'expérience attendu.
+
+            * `DEBUTANT` - Débutant
+            * `CONFIRME` - Confirmé
+            * `EXPERT` - Expert
         specialisations:
           type: array
           items:
             type: string
+          description: Spécialisations attendues, en libellés texte (ex. `Droit public`).
         diplome:
           type: string
           description: |-
@@ -4949,17 +4994,21 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/DocumentsRequisEnum'
-          description: Documents à transmettre pour candidater, sans doublon.
+          description: 'Documents à transmettre pour candidater, sans doublon : `CV`,
+            `LETTRE_MOTIVATION`, `PORTFOLIO`.'
         competences_requises:
           type: string
           nullable: true
-          description: Markdown (CommonMark), syntaxe comprise dans la limite. Les
-            balises HTML et les liens autres que http, https et mailto sont refusés.
+          description: Compétences attendues du candidat. Peut être vide ou `null`.
+            Markdown (CommonMark), syntaxe comprise dans la limite. Les balises HTML
+            et les liens autres que http, https et mailto sont refusés. Voir le [bloc
+            « Description » du guide](/pages/guide_api#bloc-description-description-obligatoire).
           maxLength: 2000
         langues:
           type: array
           items:
             $ref: '#/components/schemas/LanguageInput'
+          description: Langues attendues, chacune avec son niveau.
     DepartementEnum:
       enum:
       - '01'
@@ -5187,33 +5236,45 @@ components:
       properties:
         mission:
           type: string
-          description: Markdown (CommonMark), syntaxe comprise dans la limite. Les
-            balises HTML et les liens autres que http, https et mailto sont refusés.
+          description: Missions du poste. Obligatoire, peut être vide. Markdown (CommonMark),
+            syntaxe comprise dans la limite. Les balises HTML et les liens autres
+            que http, https et mailto sont refusés. Voir le [bloc « Description »
+            du guide](/pages/guide_api#bloc-description-description-obligatoire).
           maxLength: 10000
         profil:
           type: string
-          description: Markdown (CommonMark), syntaxe comprise dans la limite. Les
-            balises HTML et les liens autres que http, https et mailto sont refusés.
+          description: Profil recherché. Obligatoire, peut être vide. Markdown (CommonMark),
+            syntaxe comprise dans la limite. Les balises HTML et les liens autres
+            que http, https et mailto sont refusés. Voir le [bloc « Description »
+            du guide](/pages/guide_api#bloc-description-description-obligatoire).
           maxLength: 10000
         employeur:
           type: string
-          description: Markdown (CommonMark), syntaxe comprise dans la limite. Les
-            balises HTML et les liens autres que http, https et mailto sont refusés.
+          description: Présentation de l'employeur. Obligatoire, peut être vide. Markdown
+            (CommonMark), syntaxe comprise dans la limite. Les balises HTML et les
+            liens autres que http, https et mailto sont refusés. Voir le [bloc « Description
+            » du guide](/pages/guide_api#bloc-description-description-obligatoire).
           maxLength: 3000
         complements:
           type: string
-          description: Markdown (CommonMark), syntaxe comprise dans la limite. Les
-            balises HTML et les liens autres que http, https et mailto sont refusés.
+          description: Informations complémentaires. Obligatoire, peut être vide.
+            Markdown (CommonMark), syntaxe comprise dans la limite. Les balises HTML
+            et les liens autres que http, https et mailto sont refusés. Voir le [bloc
+            « Description » du guide](/pages/guide_api#bloc-description-description-obligatoire).
           maxLength: 5000
         conditions_exercice:
           type: string
-          description: Markdown (CommonMark), syntaxe comprise dans la limite. Les
-            balises HTML et les liens autres que http, https et mailto sont refusés.
+          description: Conditions particulières d'exercice. Facultatif. Markdown (CommonMark),
+            syntaxe comprise dans la limite. Les balises HTML et les liens autres
+            que http, https et mailto sont refusés. Voir le [bloc « Description »
+            du guide](/pages/guide_api#bloc-description-description-obligatoire).
           maxLength: 10000
         descriptif_service:
           type: string
-          description: Markdown (CommonMark), syntaxe comprise dans la limite. Les
-            balises HTML et les liens autres que http, https et mailto sont refusés.
+          description: Description du service qui recrute. Facultatif. Markdown (CommonMark),
+            syntaxe comprise dans la limite. Les balises HTML et les liens autres
+            que http, https et mailto sont refusés. Voir le [bloc « Description »
+            du guide](/pages/guide_api#bloc-description-description-obligatoire).
           maxLength: 10000
       required:
       - complements
@@ -6104,7 +6165,14 @@ components:
             elle crée toujours une nouvelle offre. Une référence au format CSP-AAAA-NNNNNN
             n''est acceptée que si elle désigne une offre existante de la source.'
         versant:
-          $ref: '#/components/schemas/VersantEnum'
+          allOf:
+          - $ref: '#/components/schemas/VersantEnum'
+          description: |-
+            Versant de la fonction publique : `FPE` (État), `FPT` (territoriale), `FPH` (hospitalière).
+
+            * `FPT` - FPT
+            * `FPE` - FPE
+            * `FPH` - FPH
       required:
       - reference
       - versant
@@ -6113,9 +6181,21 @@ components:
       properties:
         iso_code:
           type: string
+          description: Code de la langue sur 2 lettres, ISO 639-1 (ex. `EN`, `DE`),
+            conservé tel quel.
           maxLength: 2
         niveau:
-          $ref: '#/components/schemas/NiveauEnum'
+          allOf:
+          - $ref: '#/components/schemas/NiveauEnum'
+          description: |-
+            Niveau attendu selon le cadre européen commun de référence pour les langues (CECRL), de `A1` à `C2`.
+
+            * `A1` - A1
+            * `A2` - A2
+            * `B1` - B1
+            * `B2` - B2
+            * `C1` - C1
+            * `C2` - C2
       required:
       - iso_code
       - niveau
@@ -6264,10 +6344,29 @@ components:
       type: object
       properties:
         zone_geographique:
-          $ref: '#/components/schemas/ZoneGeographiqueEnum'
+          allOf:
+          - $ref: '#/components/schemas/ZoneGeographiqueEnum'
+          description: |-
+            Zone géographique du lieu : `AF` (Afrique), `EU` (Europe), `AS` (Asie), `AM` (Amérique), `OC` (Océanie), `AN` (Antarctique), `MO` (Moyen-Orient et Afrique du Nord).
+
+            * `AF` - AFRIQUE
+            * `EU` - EUROPE
+            * `AS` - ASIE
+            * `AM` - AMERIQUE
+            * `OC` - OCEANIE
+            * `AN` - ANTARTIQUE
+            * `MO` - MOYEN_ORIENT_AFRIQUE_DU_NORD
         pays:
           type: string
-          description: Code pays ISO 3166-1 alpha-3, en majuscules (ex. `FRA`).
+          description: 'Code pays ISO 3166-1 alpha-3, en majuscules (ex. `FRA`). Pour
+            `FRA`, `region` et `departement` sont obligatoires ; pour un autre pays,
+            ils valent `null`. L''outre-mer est en `FRA`, avec son département : région
+            `DOM` pour les départements d''outre-mer (ex. `971` pour la Guadeloupe),
+            `TOM` pour les collectivités d''outre-mer (ex. `988` pour la Nouvelle-Calédonie).
+            Une offre dont le `pays` est le code ISO de l''un de ces territoires est
+            rejetée : `GLP`, `MTQ`, `GUF`, `REU`, `MYT`, `SPM`, `BLM`, `MAF`, `WLF`,
+            `PYF`, `NCL`. `DOM` désigne la République dominicaine, et `ATF` (Terres
+            australes et antarctiques françaises) reste accepté comme pays.'
           maxLength: 3
           minLength: 3
         region:
@@ -6300,11 +6399,124 @@ components:
           - $ref: '#/components/schemas/NullEnum'
         departement:
           nullable: true
+          description: |-
+            Code officiel du département (`01` à `95`, `2A`, `2B`, `971` à `978`, `986` à `988`, `SPM`, `WLF`), qui doit appartenir à `region`. `null` hors de France.
+
+            * `01` - 01
+            * `02` - 02
+            * `03` - 03
+            * `04` - 04
+            * `05` - 05
+            * `06` - 06
+            * `07` - 07
+            * `08` - 08
+            * `09` - 09
+            * `10` - 10
+            * `11` - 11
+            * `12` - 12
+            * `13` - 13
+            * `14` - 14
+            * `15` - 15
+            * `16` - 16
+            * `17` - 17
+            * `18` - 18
+            * `19` - 19
+            * `21` - 21
+            * `22` - 22
+            * `23` - 23
+            * `24` - 24
+            * `25` - 25
+            * `26` - 26
+            * `27` - 27
+            * `28` - 28
+            * `29` - 29
+            * `2A` - 2A
+            * `2B` - 2B
+            * `30` - 30
+            * `31` - 31
+            * `32` - 32
+            * `33` - 33
+            * `34` - 34
+            * `35` - 35
+            * `36` - 36
+            * `37` - 37
+            * `38` - 38
+            * `39` - 39
+            * `40` - 40
+            * `41` - 41
+            * `42` - 42
+            * `43` - 43
+            * `44` - 44
+            * `45` - 45
+            * `46` - 46
+            * `47` - 47
+            * `48` - 48
+            * `49` - 49
+            * `50` - 50
+            * `51` - 51
+            * `52` - 52
+            * `53` - 53
+            * `54` - 54
+            * `55` - 55
+            * `56` - 56
+            * `57` - 57
+            * `58` - 58
+            * `59` - 59
+            * `60` - 60
+            * `61` - 61
+            * `62` - 62
+            * `63` - 63
+            * `64` - 64
+            * `65` - 65
+            * `66` - 66
+            * `67` - 67
+            * `68` - 68
+            * `69` - 69
+            * `70` - 70
+            * `71` - 71
+            * `72` - 72
+            * `73` - 73
+            * `74` - 74
+            * `75` - 75
+            * `76` - 76
+            * `77` - 77
+            * `78` - 78
+            * `79` - 79
+            * `80` - 80
+            * `81` - 81
+            * `82` - 82
+            * `83` - 83
+            * `84` - 84
+            * `85` - 85
+            * `86` - 86
+            * `87` - 87
+            * `88` - 88
+            * `89` - 89
+            * `90` - 90
+            * `91` - 91
+            * `92` - 92
+            * `93` - 93
+            * `94` - 94
+            * `95` - 95
+            * `971` - 971
+            * `972` - 972
+            * `973` - 973
+            * `974` - 974
+            * `975` - 975
+            * `976` - 976
+            * `977` - 977
+            * `978` - 978
+            * `986` - 986
+            * `987` - 987
+            * `988` - 988
+            * `SPM` - SPM
+            * `WLF` - WLF
           oneOf:
           - $ref: '#/components/schemas/DepartementEnum'
           - $ref: '#/components/schemas/NullEnum'
         localisation_label:
           type: string
+          description: Libellé du lieu, affiché aux candidats (ex. ville et adresse).
           maxLength: 500
         latitude:
           type: number
@@ -6312,12 +6524,14 @@ components:
           maximum: 90
           minimum: -90
           nullable: true
+          description: Latitude du lieu, en degrés décimaux (WGS 84). Facultative.
         longitude:
           type: number
           format: double
           maximum: 180
           minimum: -180
           nullable: true
+          description: Longitude du lieu, en degrés décimaux (WGS 84). Facultative.
       required:
       - departement
       - localisation_label
@@ -6521,68 +6735,120 @@ components:
       type: object
       properties:
         identification:
-          $ref: '#/components/schemas/IdentityInput'
+          allOf:
+          - $ref: '#/components/schemas/IdentityInput'
+          description: 'Identification de l''offre : le couple `reference` + source
+            désigne l''offre à mettre à jour ; une référence inconnue crée l''offre.'
         titre:
           type: string
+          description: Intitulé de l'offre, affiché aux candidats.
           maxLength: 150
         titre_long:
           type: string
           nullable: true
+          description: 'Intitulé long, à ne renseigner que s''il diffère de `titre`
+            : une offre dont le `titre_long` est identique à `titre` est rejetée.'
           maxLength: 1500
         organisation:
-          $ref: '#/components/schemas/OrganismeInput'
+          allOf:
+          - $ref: '#/components/schemas/OrganismeInput'
+          description: Organisme qui recrute.
         url_offre:
           type: string
           format: uri
           nullable: true
+          description: Lien vers l'offre sur le site de la source. Obligatoire, peut
+            être `null`.
         url_candidature:
           type: string
           format: uri
           nullable: true
+          description: Lien pour candidater. Renseigner soit `url_candidature`, soit
+            `email_candidature`, mais pas les deux.
         email_candidature:
           type: string
           format: email
           nullable: true
+          description: Adresse e-mail à laquelle candidater. Renseigner soit `url_candidature`,
+            soit `email_candidature`, mais pas les deux.
         profession:
-          $ref: '#/components/schemas/ProfessionInput'
+          allOf:
+          - $ref: '#/components/schemas/ProfessionInput'
+          description: Métier de l'offre, dans le référentiel des métiers.
         categories:
           type: array
           items:
             $ref: '#/components/schemas/CategoriesEnum'
+          description: 'Catégories hiérarchiques de l''offre, au moins une, enregistrées
+            dans l''ordre d''envoi (doublons retirés) : `APLUS` (Catégorie A+), `A`
+            (Catégorie A (cadre)), `B` (Catégorie B (profession intermédiaire)), `C`
+            (Catégorie C (employé)), `HORS_CATEGORIE` (Hors catégorie).'
         nature_offre:
-          $ref: '#/components/schemas/NatureOffreEnum'
+          allOf:
+          - $ref: '#/components/schemas/NatureOffreEnum'
+          description: |-
+            Public visé par l'offre : `TITULAIRE_CONTRACTUEL` (ouvert aux fonctionnaires et aux contractuels), `CONTRACTUEL` (ouvert uniquement aux contractuels), `TERRITORIAL` (ouvert aux fonctionnaires et lauréats d'un concours territorial).
+
+            * `TITULAIRE_CONTRACTUEL` - TITULAIRE_CONTRACTUEL
+            * `CONTRACTUEL` - CONTRACTUEL
+            * `TERRITORIAL` - TERRITORIAL
         type_contrat:
           nullable: true
+          description: |-
+            Type de contrat proposé : `CDD` (CDD), `CDI` (CDI), `CDD_CDI` (CDD ou CDI), `CONTRAT_PROJET` (Contrat de projet), `VACATION` (Payés à l'acte). Vide ou `null` si l'offre n'est pas soumise à contractualisation.
+
+            * `CDD` - CDD
+            * `CDI` - CDI
+            * `CDD_CDI` - CDD ou CDI
+            * `CONTRAT_PROJET` - Contrat de projet
+            * `VACATION` - Payés à l'acte
           oneOf:
           - $ref: '#/components/schemas/TypeContratEnum'
           - $ref: '#/components/schemas/BlankEnum'
           - $ref: '#/components/schemas/NullEnum'
         vacance_poste:
+          description: |-
+            `OUI` si le poste est vacant, `NON` s'il est susceptible d'être vacant. Peut être vide.
+
+            * `OUI` - Poste vacant
+            * `NON` - Poste susceptible d'être vacant
           oneOf:
           - $ref: '#/components/schemas/VacancePosteEnum'
           - $ref: '#/components/schemas/BlankEnum'
         description:
-          $ref: '#/components/schemas/DescriptionInput'
+          allOf:
+          - $ref: '#/components/schemas/DescriptionInput'
+          description: Textes de l'offre, en Markdown.
         localisation:
           type: array
           items:
             $ref: '#/components/schemas/LocalisationInput'
           nullable: true
+          description: 'Lieux de l''offre, 50 au plus, conservés dans l''ordre d''envoi
+            : le premier est le lieu principal. Un même lieu (`pays`, `region`, `departement`
+            et `localisation_label`) ne peut figurer qu''une fois. Peut être vide
+            ou `null`. Voir le [bloc « Localisation » du guide](/pages/guide_api#bloc-localisation-localisation-liste-peut-etre-vide).'
         criteres:
           allOf:
           - $ref: '#/components/schemas/CriteriaInput'
           nullable: true
+          description: Critères attendus des candidats. Peut être `null`.
         conditions:
           allOf:
           - $ref: '#/components/schemas/ConditionsInput'
           nullable: true
+          description: Conditions d'emploi du poste. Peut être `null`.
         contacts:
           type: array
           items:
             $ref: '#/components/schemas/ContactsInput'
           nullable: true
+          description: Personnes à contacter, au plus une par rôle, renvoyées dans
+            l'ordre `principal` puis `autre`. Peut être vide ou `null`.
         publication:
-          $ref: '#/components/schemas/PublicationInput'
+          allOf:
+          - $ref: '#/components/schemas/PublicationInput'
+          description: Dates de publication et de candidature de l'offre.
       required:
       - categories
       - conditions
@@ -6937,6 +7203,10 @@ components:
           allOf:
           - $ref: '#/components/schemas/ProfessionInputReferentielEnum'
           default: RMFPv2
+          description: |-
+            Référentiel des métiers utilisé pour `domaine` et `metier` : le Répertoire des métiers de la fonction publique (RMFP).
+
+            * `RMFPv2` - RMFPv2
         domaine:
           type: string
           description: 'Code domaine fonctionnel RMFP, vérifié uniquement si referentiel=RMFPv2.
@@ -6964,6 +7234,8 @@ components:
         code_emploi_local:
           type: string
           nullable: true
+          description: Code emploi propre à l'employeur ou au partenaire (nomenclature
+            locale), conservé tel quel. Facultatif.
           maxLength: 50
       required:
       - metier
@@ -6978,17 +7250,28 @@ components:
         debut_publication:
           type: string
           format: date-time
+          description: Date de début de publication de l'offre. Format ISO 8601 avec
+            l'heure (ex. `2026-11-05T00:00:00Z`) ; sans fuseau horaire, l'heure est
+            lue en UTC.
         fin_publication:
           type: string
           format: date-time
+          description: Date de fin de publication de l'offre. Format ISO 8601 avec
+            l'heure (ex. `2026-11-05T00:00:00Z`) ; sans fuseau horaire, l'heure est
+            lue en UTC.
         fin_candidature:
           type: string
           format: date-time
           nullable: true
+          description: Date limite de candidature. Format ISO 8601 avec l'heure (ex.
+            `2026-11-05T00:00:00Z`) ; sans fuseau horaire, l'heure est lue en UTC.
         debut_vacance_poste:
           type: string
           format: date-time
           nullable: true
+          description: Date à partir de laquelle le poste est vacant. Format ISO 8601
+            avec l'heure (ex. `2026-11-05T00:00:00Z`) ; sans fuseau horaire, l'heure
+            est lue en UTC.
       required:
       - debut_publication
       - fin_publication
@@ -7302,12 +7585,13 @@ components:
         source_id:
           type: string
           format: uuid
-          description: Identifiant de la source des offres
+          description: Identifiant de la source des offres, renvoyé par `GET /api/v1/sources`.
         offres:
           type: array
           items:
             $ref: '#/components/schemas/OffersInput'
-          description: 'Liste d''offres à créer ou mettre à jour (min: 1, max: 100)'
+          description: 'Liste d''offres à créer ou mettre à jour (min: 1, max: 100).
+            Le détail des champs et de leurs règles se trouve dans le [guide de l''API](/pages/guide_api#4-creer-ou-modifier-des-offres-post-apiv1offrescreer_modifier).'
           maxItems: 100
           minItems: 1
       required:
