@@ -1,14 +1,38 @@
-from django.contrib.auth.models import AbstractUser
+from typing import ClassVar
+from uuid import uuid4
+
+from django.contrib.auth.models import AbstractUser, UserManager
+from django.core.exceptions import ValidationError
 from django.db import models
-from django.db.models import Q
+from django.db.models import Exists, F, Func, OuterRef, Q
 from django.db.models.functions import Lower, Trim
 
 from domain.identite.entities.agent import Agent
 from domain.identite.entities.candidat import Candidat
 from domain.identite.entities.utilisateurs import Utilisateur
 from domain.identite.value_objects.email import normalize_email
+from infrastructure.django_apps.utils.ip import (
+    IPAddressInput,
+    ip_in_networks,
+    normalize_network,
+)
+from infrastructure.django_apps.utils.models import BaseDatedModel
 
 DEMO_CANDIDAT_EMAIL_DOMAIN = "@demo.candidat.fr"
+
+
+class UserQuerySet(models.QuerySet):
+    def avec_restriction_ip(self) -> "UserQuerySet":
+        return self.annotate(
+            ip_restricted=Exists(
+                AllowedNetworkModel.objects.filter(user=OuterRef("pk"))
+            )
+        )
+
+
+class UserModelManager(UserManager):
+    def get_queryset(self) -> UserQuerySet:
+        return UserQuerySet(self.model, using=self._db)
 
 
 class UserModel(AbstractUser):
@@ -22,6 +46,8 @@ class UserModel(AbstractUser):
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = ["first_name", "last_name", "username"]
+
+    objects: ClassVar[UserModelManager] = UserModelManager()  # type: ignore[assignment]
 
     sources = models.ManyToManyField(
         "ingestion.SourceModel",
@@ -48,6 +74,65 @@ class UserModel(AbstractUser):
 
     def __str__(self):
         return self.email
+
+    def api_ip_is_allowed(self, ip: IPAddressInput | None) -> bool:
+        networks = [network.cidr for network in self.allowed_networks.all()]
+        return not networks or ip_in_networks(ip, networks)
+
+
+class CanonicalCidr(Func):
+    template = "(%(expressions)s)::cidr::text"
+    output_field = models.CharField()
+
+
+class AllowedNetworkModel(BaseDatedModel):
+    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
+    user = models.ForeignKey(
+        UserModel,
+        on_delete=models.CASCADE,
+        related_name="allowed_networks",
+    )
+    cidr = models.CharField(
+        verbose_name="IP ou plage CIDR",
+        max_length=43,
+        help_text="IP (203.0.113.10) ou plage CIDR (203.0.113.0/24, 2001:db8::/48).",
+    )
+    label = models.CharField(
+        verbose_name="Libellé",
+        max_length=255,
+        help_text="Origine de la plage, ex. « NAT prod partenaire X ».",
+    )
+
+    class Meta:
+        verbose_name = "Réseau autorisé pour l'API"
+        verbose_name_plural = "Réseaux autorisés pour l'API"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user", "cidr"], name="allowed_networks_user_cidr_uniq"
+            ),
+            # Postgres refuses an invalid range or one with host bits set.
+            models.CheckConstraint(
+                condition=Q(cidr=CanonicalCidr(F("cidr"))),
+                name="allowed_networks_cidr_is_canonical",
+            ),
+        ]
+
+    def clean(self) -> None:
+        if not self.cidr:
+            return
+        try:
+            self.cidr = normalize_network(self.cidr)
+        except ValueError as e:
+            raise ValidationError(
+                {"cidr": "Saisissez une adresse IP ou une plage CIDR valide."}
+            ) from e
+
+    def save(self, *args, **kwargs):
+        self.cidr = normalize_network(self.cidr)
+        return super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.cidr} ({self.label})"
 
 
 class ProfilCandidatModel(models.Model):
