@@ -1,10 +1,19 @@
 import re
+from itertools import groupby
 
 from django.conf import settings
 from django.http import HttpResponse
 from django.utils.text import slugify
 from django.views.generic import TemplateView
 from markdown_it import MarkdownIt
+
+from presentation.api.changelog_api import (
+    TYPE_LABELS,
+    Filters,
+    entry_html,
+    published_fragments,
+    published_routes,
+)
 
 _TOC_MAX_LEVEL = 3
 
@@ -103,6 +112,52 @@ class ApiGuideView(TemplateView):
         context = super().get_context_data(**kwargs)
         context["content"], context["toc_items"] = _render_guide(
             (settings.STATIC_DIR / "api" / "guide_api.md").read_text()
+        )
+        return context
+
+
+_BADGES = {
+    "non_retrocompatible": "fr-badge--error",
+    "ajoute": "fr-badge--new",
+    "modifie": "fr-badge--info",
+    "corrige": "fr-badge--success",
+    "retire": "fr-badge--warning",
+}
+
+
+class ApiChangelogView(TemplateView):
+    template_name = "pages/api_changelog.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        published = published_fragments()
+        routes = published_routes()
+        filters = Filters.from_query(self.request.GET, routes)
+        fragments = filters.apply(published)
+        context.update(
+            filters=filters,
+            types=[
+                {"value": t, "label": label, "checked": t in filters.types}
+                for t, label in TYPE_LABELS.items()
+            ],
+            routes=routes,
+            count=len(fragments),
+            total=len(published),
+            days=[
+                {
+                    "date": day,
+                    "entries": [
+                        {
+                            "slug": fragment.slug,
+                            "label": TYPE_LABELS[fragment.type],
+                            "badge": _BADGES[fragment.type],
+                            "html": entry_html(fragment, new_tab=True),
+                        }
+                        for fragment in day_fragments
+                    ],
+                }
+                for day, day_fragments in groupby(fragments, key=lambda f: f.date)
+            ],
         )
         return context
 

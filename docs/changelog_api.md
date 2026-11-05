@@ -1,8 +1,19 @@
 # Changelog de l'API publique
 
-Le changelog de l'API publique (`/api/v1/…`, `/api/fake-ts/…`) est affiché dans Redoc,
-dans la section « Changelog » de `/api/schema/redoc`. Il est assemblé à partir d'un
-fichier par changement, dans `src/web/presentation/static/api/changelog_api.d/`.
+Le changelog de l'API publique (`/api/v1/…`, `/api/fake-ts/…`) est assemblé à partir
+d'un fichier par changement, dans `src/web/presentation/static/api/changelog_api.d/`.
+Il est publié :
+
+| Où | Pour qui |
+|---|---|
+| `/pages/changelog_api` | Page du site, filtrable, une ancre par changement |
+| Section « Changelog » de `/api/schema/redoc` | Intégrateurs, à côté de la référence |
+
+La page accepte trois filtres : `type` (répétable), `route` (ex.
+`POST /api/v1/offres/creer_modifier`) et `depuis` (`AAAA-MM-JJ`). `route` n'accepte
+qu'une route citée par au moins un fragment. Une valeur invalide est ignorée, avec un
+message qui liste les valeurs possibles sans recopier la valeur reçue, pour qu'une URL
+fabriquée ne puisse pas injecter de texte dans la page.
 
 Une PR qui change l'API publique n'ajoute que des fichiers dans ce dossier : deux PR ne
 peuvent pas entrer en conflit.
@@ -29,9 +40,12 @@ Renseignez dans `region` […]
 
 - `type`, `date` et `pr` sont obligatoires.
 - Le corps cite la ou les routes concernées, entre backticks et avec leur méthode :
-  `` `POST /api/v1/offres/creer_modifier` ``. Une route avec paramètre s'écrit comme dans
-  le schéma (`` `GET /api/v1/offres/sources/{source_id}` ``) ou avec une valeur
+  `` `POST /api/v1/offres/creer_modifier` ``. Ce sont elles qui alimentent le filtre par
+  route. Une route avec paramètre s'écrit comme dans le schéma
+  (`` `GET /api/v1/offres/sources/{source_id}` ``) ou avec une valeur
   (`` `GET /api/fake-ts/referentials/department` ``).
+- Le nom du fichier sert d'identifiant au changement (ancre de la page) : ne renommez
+  pas un fragment publié.
 - Un fragment n'a qu'un type. Une PR qui ajoute un champ et en modifie un autre ajoute
   deux fragments.
 - Le lien vers la PR (`pr`) et vers les tickets (`liens`) est ajouté à la fin de
@@ -66,6 +80,12 @@ Le job `changelog-api` du workflow Web :
 - dans la merge queue, pour les fragments ajoutés : refuse une date qui n'est pas
   comprise entre aujourd'hui − 3 jours et aujourd'hui.
 
+Le job échoue aussi dès que le changelog compte 300 changements (`PAGE_MAX_FRAGMENTS`).
+La page `/pages/changelog_api` les affiche tous, sans pagination : 58 changements pèsent
+154 Ko (25 Ko compressés). Au-delà du seuil, il faut la découper, par exemple une page
+par année ou des mois repliés. Une fenêtre de temps par défaut casserait les liens
+permanents vers les changements plus anciens.
+
 Une PR qui porte le label `changelog-api-migration` n'est vérifiée que sur le format,
 pour reprendre des fragments avec leur date déjà publiée. Le format comprend la citation
 d'au moins une route : un fragment repris sans route ferait échouer `main` ensuite.
@@ -79,5 +99,5 @@ En local : `mise run web:lint:changelog-api` (format seul), ou
 recopié, et deux PR n'y entrent pas en conflit. Redoc charge `/api/schema/public`, qui
 sert `schema.yaml` avec la description de ce tag assemblée à partir des fragments :
 par date décroissante, puis par type (non rétrocompatible, ajouté, modifié, corrigé,
-retiré), puis par numéro de PR. Le résultat est gardé en mémoire jusqu'au déploiement
-suivant.
+retiré), puis par numéro de PR. La page suit le même ordre. Les fragments et leur rendu
+HTML sont lus une fois et gardés en mémoire jusqu'au déploiement suivant.
