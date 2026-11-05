@@ -13,15 +13,7 @@ from infrastructure.django_apps.recruteur.models.recrutement import RecrutementM
 from infrastructure.django_apps.users.models import UserModel
 
 
-def get_recrutement_etapes(
-    *, organisme_id: UUID, recrutement_id: UUID, utilisateur: UserModel
-) -> list[EtapeModel]:
-    OrganismePermissionService().can_execute(
-        action=OrganismeAction.GET_RECRUTEMENT_ETAPES,
-        utilisateur=utilisateur,
-        organisme_id=organisme_id,
-        recrutement_id=recrutement_id,
-    )
+def recrutement_etapes(*, organisme_id: UUID, recrutement_id: UUID) -> list[EtapeModel]:
     try:
         recrutement = (
             RecrutementModel.objects.active_by_id(recrutement_id)
@@ -31,3 +23,15 @@ def get_recrutement_etapes(
     except RecrutementModel.DoesNotExist as error:
         raise RecrutementInexistant(recrutement_id) from error
     return etapes_ordonnees(recrutement)
+
+
+def get_recrutement_etapes(
+    *, organisme_id: UUID, recrutement_id: UUID, utilisateur: UserModel
+) -> list[EtapeModel]:
+    OrganismePermissionService().can_execute(
+        action=OrganismeAction.GET_RECRUTEMENT_ETAPES,
+        utilisateur=utilisateur,
+        organisme_id=organisme_id,
+        recrutement_id=recrutement_id,
+    )
+    return recrutement_etapes(organisme_id=organisme_id, recrutement_id=recrutement_id)

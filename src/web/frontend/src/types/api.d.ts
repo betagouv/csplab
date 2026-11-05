@@ -448,7 +448,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Détail d'un recrutement — vue kanban */
+        /**
+         * Détail d'un recrutement — vue kanban (dépréciée, utiliser la vue liste)
+         * @deprecated
+         */
         get: operations["recruteur_organismes_recrutements_kanban_retrieve"];
         put?: never;
         post?: never;
@@ -882,6 +885,12 @@ export interface components {
             categorie: components["schemas"]["CategorieEnum"];
             candidatures: components["schemas"]["Candidature"][];
         };
+        EtapeRecrutementModel: {
+            /** Format: uuid */
+            uuid: string;
+            nom: string;
+            readonly categorie: components["schemas"]["CategorieEnum"];
+        };
         GenericError: {
             error: string;
         };
@@ -1009,21 +1018,6 @@ export interface components {
             previous?: string | null;
             results: components["schemas"]["AuditLog"][];
         };
-        PaginatedCandidatureListeList: {
-            /** @example 1 */
-            count: number;
-            /**
-             * Format: uri
-             * @example null
-             */
-            next?: string | null;
-            /**
-             * Format: uri
-             * @example null
-             */
-            previous?: string | null;
-            results: components["schemas"]["CandidatureListe"][];
-        };
         PaginatedConversationList: {
             /** @example 123 */
             count: number;
@@ -1112,6 +1106,7 @@ export interface components {
             previous?: string | null;
             results: components["schemas"]["RecrutementAgent"][];
         };
+        PaginatedRecrutementListeList: components["schemas"]["RecrutementListe"];
         PaginatedRecrutementsActifsList: {
             /** @example 123 */
             count: number;
@@ -1214,6 +1209,15 @@ export interface components {
             /** Format: uuid */
             recrutement_uuid: string;
             raison: string;
+        };
+        RecrutementListe: {
+            count: number;
+            /** Format: uri */
+            next: string | null;
+            /** Format: uri */
+            previous: string | null;
+            results: components["schemas"]["CandidatureListe"][];
+            etapes: components["schemas"]["EtapeRecrutementModel"][];
         };
         /**
          * @description * `responsable` - responsable
@@ -4999,7 +5003,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["PaginatedCandidatureListeList"];
+                    "application/json": components["schemas"]["PaginatedRecrutementListeList"];
                 };
             };
             400: {
