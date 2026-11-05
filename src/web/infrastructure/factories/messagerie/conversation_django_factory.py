@@ -24,6 +24,7 @@ from infrastructure.factories.identite.utilisateur_django_factory import (
 class ConversationDjangoFactory(DjangoModelFactory[ConversationModel]):
     class Meta:
         model = ConversationModel
+        skip_postgeneration_save = True
 
     class Params:
         with_message = factory.Trait(
@@ -53,6 +54,7 @@ class MessageDocumentDjangoFactory(DjangoModelFactory[MessageDocumentModel]):
 class MessageDjangoFactory(DjangoModelFactory[MessageModel]):
     class Meta:
         model = MessageModel
+        skip_postgeneration_save = True
 
     class Params:
         par_candidat = factory.Trait(
