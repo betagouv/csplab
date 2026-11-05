@@ -265,21 +265,33 @@ class TestOfferDetailOutputMapper:
             "hasChildren": False,
         }
 
-    def test_diploma_is_mapped_from_diplome(self):
-        offer = OfferFactory.create_entity(criteria=OfferCriteria(diploma="Master"))
+    def test_diploma_is_always_null(self):
+        offer = OfferFactory.create_entity(
+            criteria=OfferCriteria(diploma="Diplôme d'Etat d'infirmier")
+        )
 
         result = OfferDetailOutputMapper().to_dict(offer)
 
-        assert result["diploma"] == {
-            "code": None,
-            "clientCode": "Master",
-            "label": "Master",
-            "active": True,
-            "parentCode": None,
-            "type": "diploma",
-            "parentType": "",
-            "hasChildren": False,
-        }
+        assert result["diploma"] is None
+
+    def test_state_diploma_is_mapped_from_diplome(self):
+        offer = OfferFactory.create_entity(
+            criteria=OfferCriteria(diploma="Diplôme d'Etat d'infirmier")
+        )
+
+        custom_fields = OfferDetailOutputMapper().to_dict(offer)["customFields"]
+
+        assert custom_fields["offerCustomBlock1"]["customCodeTable3"] == _coded(
+            "CSPU0002", "Diplôme d'Etat d'infirmier", "Diplômes d'Etat"
+        )
+
+    @pytest.mark.parametrize("diploma", [None, "Master"])
+    def test_state_diploma_is_null_for_other_diplome(self, diploma):
+        offer = OfferFactory.create_entity(criteria=OfferCriteria(diploma=diploma))
+
+        custom_fields = OfferDetailOutputMapper().to_dict(offer)["customFields"]
+
+        assert custom_fields["offerCustomBlock1"]["customCodeTable3"] is None
 
     def test_experience_level_is_mapped_from_experience(self):
         offer = OfferFactory.create_entity(

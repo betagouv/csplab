@@ -583,6 +583,13 @@ class FakeTsOfferCustomBlock1Serializer(FakeTsDynamicFieldSerializer):
         "`conditions.lieu_de_travail`, `label` = son libellé. `null` si "
         "`NON_DEFINI`.",
     )
+    customCodeTable3 = FakeTsCodedObjectSerializer(
+        allow_null=True,
+        help_text="Diplôme d'État exigé (référentiel Talentsoft « Diplômes "
+        "d'Etat ») : `label` = `criteres.diplome`, `clientCode` = son code "
+        "Talentsoft. `null` si `criteres.diplome` n'est pas l'un des 26 "
+        "diplômes d'État de ce référentiel.",
+    )
 
 
 class FakeTsApplicantCriteriaSerializer(FakeTsDynamicFieldSerializer):
@@ -609,7 +616,11 @@ class FakeTsOfferDetailSerializer(FakeTsOfferSummarySerializer):
     organisation = FakeTsOrganisationSerializer()
     operationalManager = serializers.CharField(allow_null=True)
     educationLevel = FakeTsCodedObjectSerializer(allow_null=True)
-    diploma = FakeTsCodedObjectSerializer(allow_null=True)
+    diploma = FakeTsCodedObjectSerializer(
+        allow_null=True,
+        help_text="Toujours `null`, comme dans Talentsoft : le diplôme d'État "
+        "est dans `customFields.offerCustomBlock1.customCodeTable3`.",
+    )
     experienceLevel = FakeTsCodedObjectSerializer(allow_null=True)
     languages = FakeTsLanguageSerializer(many=True)
     specialisations = FakeTsCodedObjectSerializer(many=True)

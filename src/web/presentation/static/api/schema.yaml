@@ -5144,6 +5144,10 @@ components:
           allOf:
           - $ref: '#/components/schemas/FakeTsCodedObject'
           nullable: true
+          description: 'Diplôme d''État exigé (référentiel Talentsoft « Diplômes d''Etat
+            ») : `label` = `criteres.diplome`, `clientCode` = son code Talentsoft.
+            `null` si `criteres.diplome` n''est pas l''un des 26 diplômes d''État
+            de ce référentiel.'
       required:
       - customCodeTable1
       - customCodeTable2
@@ -5291,6 +5295,8 @@ components:
           allOf:
           - $ref: '#/components/schemas/FakeTsCodedObject'
           nullable: true
+          description: 'Toujours `null`, comme dans Talentsoft : le diplôme d''État
+            est dans `customFields.offerCustomBlock1.customCodeTable3`.'
         experienceLevel:
           allOf:
           - $ref: '#/components/schemas/FakeTsCodedObject'

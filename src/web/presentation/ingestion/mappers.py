@@ -28,6 +28,10 @@ from referentiel.value_objects.required_document import (
     TALENTSOFT_REQUIRED_DOCUMENTS,
 )
 from referentiel.value_objects.siret import SIRET
+from referentiel.value_objects.state_diploma import (
+    TALENTSOFT_STATE_DIPLOMA_TYPE,
+    talentsoft_state_diploma_by_label,
+)
 from referentiel.value_objects.verse import Verse
 
 from application.ingestion.interfaces.upsert_organismes_input import (
@@ -310,9 +314,7 @@ class OfferDetailOutputMapper(OfferSummaryOutputMapper):
             )
             if criteria and criteria.diploma_level is not None
             else None,
-            "diploma": self._coded_object(criteria.diploma, criteria.diploma, "diploma")
-            if criteria and criteria.diploma
-            else None,
+            "diploma": None,
             "experienceLevel": self._coded_object(
                 criteria.experience_level.name,
                 criteria.experience_level.value,
@@ -386,6 +388,7 @@ class OfferDetailOutputMapper(OfferSummaryOutputMapper):
                 customCodeTable2=self._condition_coded_object(
                     conditions, "lieu_de_travail", WorkingPlace, "Lieu de travail"
                 ),
+                customCodeTable3=self._state_diploma(offer.criteria),
             ),
             "origin": self._dynamic_field(
                 shortText1=offer.application_email,
@@ -412,6 +415,18 @@ class OfferDetailOutputMapper(OfferSummaryOutputMapper):
         if member is None or member.name == "NON_DEFINI":
             return None
         return self._csplab_coded_object(member, type_name)
+
+    def _state_diploma(self, criteria: Optional[OfferCriteria]) -> Optional[dict]:
+        state_diploma = talentsoft_state_diploma_by_label(
+            criteria.diploma if criteria else None
+        )
+        if state_diploma is None:
+            return None
+        return self._coded_object(
+            state_diploma.client_code,
+            state_diploma.label,
+            TALENTSOFT_STATE_DIPLOMA_TYPE,
+        )
 
     def _required_documents(self, criteria: Optional[OfferCriteria]) -> Optional[dict]:
         if not criteria:

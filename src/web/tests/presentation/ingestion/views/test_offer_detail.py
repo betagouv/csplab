@@ -315,16 +315,7 @@ class TestOfferDetailViewDbVerified:
                 "parentType": "",
                 "hasChildren": False,
             },
-            "diploma": {
-                "code": None,
-                "clientCode": "Master",
-                "label": "Master",
-                "active": True,
-                "parentCode": None,
-                "type": "diploma",
-                "parentType": "",
-                "hasChildren": False,
-            },
+            "diploma": None,
             "experienceLevel": {
                 "code": None,
                 "clientCode": "CONFIRME",
