@@ -76,7 +76,6 @@ class UserModel(AbstractUser):
         return self.email
 
     def api_ip_is_allowed(self, ip: IPAddressInput | None) -> bool:
-        # No network: no restriction. Otherwise an unknown IP is refused too.
         networks = [network.cidr for network in self.allowed_networks.all()]
         return not networks or ip_in_networks(ip, networks)
 
@@ -94,12 +93,12 @@ class AllowedNetworkModel(BaseDatedModel):
         related_name="allowed_networks",
     )
     cidr = models.CharField(
-        "IP ou plage CIDR",
+        verbose_name="IP ou plage CIDR",
         max_length=43,
         help_text="IP (203.0.113.10) ou plage CIDR (203.0.113.0/24, 2001:db8::/48).",
     )
     label = models.CharField(
-        "Libellé",
+        verbose_name="Libellé",
         max_length=255,
         help_text="Origine de la plage, ex. « NAT prod partenaire X ».",
     )

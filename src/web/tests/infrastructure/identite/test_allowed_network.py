@@ -40,6 +40,24 @@ class TestAllowedNetworkModel:
         network.refresh_from_db()
         assert network.cidr == "2001:db8::1/128"
 
+    @pytest.mark.parametrize(
+        ("cidr", "expected"),
+        [
+            ("::ffff:1.2.3.4", "::ffff:1.2.3.4/128"),
+            ("::ffff:1.2.3.0/120", "::ffff:1.2.3.0/120"),
+            ("2001:DB8:0:0::1", "2001:db8::1/128"),
+            ("::/0", "::/0"),
+            ("0.0.0.0/0", "0.0.0.0/0"),
+        ],
+    )
+    def test_python_and_postgres_agree_on_the_canonical_form(
+        self, user, cidr, expected
+    ):
+        network = AllowedNetworkModel.objects.create(user=user, cidr=cidr, label="NAT")
+
+        network.refresh_from_db()
+        assert network.cidr == expected
+
     def test_clean_reports_a_duplicate_written_differently(self, user):
         AllowedNetworkModel.objects.create(user=user, cidr="203.0.113.10", label="A")
         duplicate = AllowedNetworkModel(user=user, cidr="203.0.113.10/32", label="B")
