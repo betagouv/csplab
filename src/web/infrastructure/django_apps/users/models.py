@@ -1,4 +1,7 @@
+from uuid import uuid4
+
 from django.contrib.auth.models import AbstractUser
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models import Q
 from django.db.models.functions import Lower, Trim
@@ -7,6 +10,12 @@ from domain.identite.entities.agent import Agent
 from domain.identite.entities.candidat import Candidat
 from domain.identite.entities.utilisateurs import Utilisateur
 from domain.identite.value_objects.email import normalize_email
+from infrastructure.django_apps.utils.ip import (
+    IPAddressInput,
+    ip_in_networks,
+    normalize_network,
+)
+from infrastructure.django_apps.utils.models import BaseDatedModel
 
 DEMO_CANDIDAT_EMAIL_DOMAIN = "@demo.candidat.fr"
 
@@ -48,6 +57,56 @@ class UserModel(AbstractUser):
 
     def __str__(self):
         return self.email
+
+    def api_ip_is_allowed(self, ip: IPAddressInput | None) -> bool:
+        # No network: no restriction. Otherwise an unknown IP is refused too.
+        networks = [network.cidr for network in self.allowed_networks.all()]
+        return not networks or ip_in_networks(ip, networks)
+
+
+class AllowedNetworkModel(BaseDatedModel):
+    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
+    user = models.ForeignKey(
+        UserModel,
+        on_delete=models.CASCADE,
+        related_name="allowed_networks",
+    )
+    cidr = models.CharField(
+        "IP ou plage CIDR",
+        max_length=43,
+        help_text="IP (203.0.113.10) ou plage CIDR (203.0.113.0/24, 2001:db8::/48).",
+    )
+    label = models.CharField(
+        "Libellé",
+        max_length=255,
+        help_text="Origine de la plage, ex. « NAT prod partenaire X ».",
+    )
+
+    class Meta:
+        verbose_name = "Réseau autorisé pour l'API"
+        verbose_name_plural = "Réseaux autorisés pour l'API"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user", "cidr"], name="allowed_networks_user_cidr_uniq"
+            )
+        ]
+
+    def clean(self) -> None:
+        if not self.cidr:
+            return
+        try:
+            self.cidr = normalize_network(self.cidr)
+        except ValueError as e:
+            raise ValidationError(
+                {"cidr": "Saisissez une adresse IP ou une plage CIDR valide."}
+            ) from e
+
+    def save(self, *args, **kwargs):
+        self.cidr = normalize_network(self.cidr)
+        return super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.cidr} ({self.label})"
 
 
 class ProfilCandidatModel(models.Model):
