@@ -1245,6 +1245,92 @@ def test_country_code_not_in_uppercase_is_rejected(
     assert [offer.reference for offer in offers] == ["REF-001"]
 
 
+@pytest.mark.parametrize(
+    ("pays", "territory", "region", "departement"),
+    [
+        ("GLP", "Guadeloupe", "DOM", "971"),
+        ("REU", "La Réunion", "DOM", "974"),
+        ("SPM", "Saint-Pierre-et-Miquelon", "TOM", "975"),
+        ("WLF", "Wallis-et-Futuna", "TOM", "WLF"),
+        ("NCL", "Nouvelle-Calédonie", "TOM", "988"),
+    ],
+)
+def test_overseas_country_code_is_rejected(
+    authenticated_client_with_source, use_case, pays, territory, region, departement
+):
+    offer = PayloadOfferFactory.create(
+        identification={"reference": "REF-014", "versant": "FPT"},
+        localisation=[
+            _localisation_payload("76"),
+            {
+                "zone_geographique": "AM",
+                "pays": pays,
+                "region": None,
+                "departement": None,
+                "localisation_label": "",
+                "latitude": None,
+                "longitude": None,
+            },
+        ],
+    )
+
+    response = authenticated_client_with_source.post(
+        URL,
+        data={"source_id": SOURCE_UUID, "offres": [offer]},
+        content_type="application/json",
+    )
+
+    assert response.status_code == status.HTTP_201_CREATED
+    expected_message = (
+        f"{territory} : renseigner `pays` = `FRA`, `region` = `{region}`, "
+        f"`departement` = `{departement}`."
+    )
+    assert response.json()["errors"] == [
+        {
+            "index": 0,
+            "offre": {"reference": "REF-014", "versant": "FPT"},
+            "error": {"localisation": {"1": {"pays": [expected_message]}}},
+        }
+    ]
+    assert use_case.execute.call_args.args[0].offers == []
+
+
+@pytest.mark.parametrize("pays", ["DOM", "ATF", "DEU"])
+def test_country_code_abroad_is_accepted(
+    authenticated_client_with_source, use_case, pays
+):
+    offer = PayloadOfferFactory.create(
+        identification={"reference": "REF-015", "versant": "FPT"},
+        localisation=[
+            {
+                "zone_geographique": "AM",
+                "pays": pays,
+                "region": None,
+                "departement": None,
+                "localisation_label": "",
+                "latitude": None,
+                "longitude": None,
+            }
+        ],
+    )
+    use_case.execute.return_value = {
+        "created": 1,
+        "updated": 0,
+        "errors": [],
+        "offres": [{"reference": "REF-015", "statut": "created"}],
+    }
+
+    response = authenticated_client_with_source.post(
+        URL,
+        data={"source_id": SOURCE_UUID, "offres": [offer]},
+        content_type="application/json",
+    )
+
+    assert response.status_code == status.HTTP_201_CREATED
+    assert response.json()["errors"] == []
+    assert len(use_case.execute.call_args.args[0].offers) == 1
+
+
 def test_returns_error_500(authenticated_client_with_source, use_case):
     use_case.execute.side_effect = Exception("db error")
 

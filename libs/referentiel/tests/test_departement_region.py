@@ -5,6 +5,7 @@ from referentiel.value_objects.departement_region import (
     chef_lieu_department_for_region,
     department_belongs_to_region,
     overseas_region_for_department,
+    overseas_territory_for_country,
     region_et_zone_pour_departement,
     zone_pour_departement,
 )
@@ -117,6 +118,22 @@ def test_overseas_region_for_department(department_code, region_code):
 
 def test_overseas_region_for_metropolitan_department():
     assert overseas_region_for_department(Department(code="75")) is None
+
+
+@pytest.mark.parametrize(
+    ("country_code", "expected_department_code"),
+    [("GLP", "971"), ("SPM", "975"), ("WLF", "WLF"), ("NCL", "988")],
+)
+def test_overseas_territory_for_country(country_code, expected_department_code):
+    territory = overseas_territory_for_country(country_code)
+
+    assert territory is not None
+    assert territory.department == Department(code=expected_department_code)
+
+
+@pytest.mark.parametrize("country_code", ["FRA", "DOM", "ATF", "DEU"])
+def test_overseas_territory_for_country_returns_none(country_code):
+    assert overseas_territory_for_country(country_code) is None
 
 
 @pytest.mark.parametrize("region_code", sorted(Region.NAMES))
