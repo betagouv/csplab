@@ -2,6 +2,7 @@ import pytest
 
 from referentiel.value_objects.area import GeographicalArea
 from referentiel.value_objects.departement_region import (
+    chef_lieu_department_for_region,
     department_belongs_to_region,
     overseas_region_for_department,
     region_et_zone_pour_departement,
@@ -116,3 +117,47 @@ def test_overseas_region_for_department(department_code, region_code):
 
 def test_overseas_region_for_metropolitan_department():
     assert overseas_region_for_department(Department(code="75")) is None
+
+
+@pytest.mark.parametrize("region_code", sorted(Region.NAMES))
+def test_chef_lieu_department_belongs_to_its_region(region_code):
+    region = Region(code=region_code)
+
+    department = chef_lieu_department_for_region(region)
+
+    assert department is not None
+    assert department_belongs_to_region(department, region)
+
+
+@pytest.mark.parametrize(
+    ("region_code", "expected_department_code"),
+    [
+        pytest.param("11", "75", id="ile_de_france"),
+        pytest.param("24", "45", id="centre_val_de_loire"),
+        pytest.param("27", "21", id="bourgogne_franche_comte"),
+        pytest.param("28", "76", id="normandie"),
+        pytest.param("32", "59", id="hauts_de_france"),
+        pytest.param("44", "67", id="grand_est"),
+        pytest.param("52", "44", id="pays_de_la_loire"),
+        pytest.param("53", "35", id="bretagne"),
+        pytest.param("75", "33", id="nouvelle_aquitaine"),
+        pytest.param("76", "31", id="occitanie"),
+        pytest.param("84", "69", id="auvergne_rhone_alpes"),
+        pytest.param("93", "13", id="paca"),
+        pytest.param("94", "2A", id="corse"),
+        pytest.param("01", "971", id="guadeloupe"),
+        pytest.param("02", "972", id="martinique"),
+        pytest.param("03", "973", id="guyane"),
+        pytest.param("04", "974", id="la_reunion"),
+        pytest.param("06", "976", id="mayotte"),
+    ],
+)
+def test_chef_lieu_department_for_region(region_code, expected_department_code):
+    assert chef_lieu_department_for_region(Region(code=region_code)) == Department(
+        code=expected_department_code
+    )
+
+
+@pytest.mark.parametrize("region_code", ["DOM", "TOM"])
+def test_chef_lieu_department_for_overseas_grouping(region_code):
+    assert chef_lieu_department_for_region(Region(code=region_code)) is None

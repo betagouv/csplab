@@ -95,6 +95,30 @@ _register(Region(code="03"), GeographicalArea.AMERIQUE, *_departements("973"))
 _register(Region(code="04"), GeographicalArea.AFRIQUE, *_departements("974"))
 _register(Region(code="06"), GeographicalArea.AFRIQUE, *_departements("976"))
 
+_CHEF_LIEU_PAR_REGION: dict[str, Department] = {
+    region_code: Department(code=department_code)
+    for region_code, department_code in {
+        "11": "75",
+        "24": "45",
+        "27": "21",
+        "28": "76",
+        "32": "59",
+        "44": "67",
+        "52": "44",
+        "53": "35",
+        "75": "33",
+        "76": "31",
+        "84": "69",
+        "93": "13",
+        "94": "2A",
+        "01": "971",
+        "02": "972",
+        "03": "973",
+        "04": "974",
+        "06": "976",
+    }.items()
+}
+
 _REGION_DOM = Region(code="DOM")
 _REGION_TOM = Region(code="TOM")
 _DOM_DEPARTMENTS = {
@@ -143,3 +167,7 @@ def department_belongs_to_region(department: Department, region: Region) -> bool
         return True
     region_and_area = region_et_zone_pour_departement(department)
     return region_and_area is not None and region_and_area[0] == region
+
+
+def chef_lieu_department_for_region(region: Region) -> Department | None:
+    return _CHEF_LIEU_PAR_REGION.get(region.code)
