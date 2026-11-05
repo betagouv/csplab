@@ -4,6 +4,7 @@ from uuid import UUID
 from application.identite.context_services.organisme_permission_service import (
     OrganismePermissionService,
 )
+from domain.identite.value_objects.organisme_action import OrganismeAction
 from domain.recruteur.value_objects.roles import (
     AgentOrganismeRole,
     AgentRecrutementRole,
@@ -33,15 +34,16 @@ def authorized_actions_of_organisme(
     utilisateur: UserModel,
     organisme_ids_responsable: Collection[UUID],
 ) -> list[str]:
-    return [
-        action.value
-        for action in _permissions.authorized_actions_organisme(
+    actions = {
+        *_permissions.authorized_actions_organisme(
             role,
             utilisateur=utilisateur,
             organisme_id=organisme_id,
             organisme_ids_responsable=organisme_ids_responsable,
-        )
-    ]
+        ),
+        *_permissions.authorized_actions_staff_organisme(utilisateur),
+    }
+    return [action.value for action in OrganismeAction if action in actions]
 
 
 def set_authorized_actions(recrutement: RecrutementModel) -> None:
