@@ -37,6 +37,7 @@ from infrastructure.factories.recruteur.etapes_recrutement_factory import (
 from infrastructure.repositories.commons.postgres_audit_log_repository import (
     PostgresAuditLogRepository,
 )
+from tests.utils.dates import datetime_to_drf_representation
 
 fake = Faker("fr_FR")
 
@@ -205,7 +206,10 @@ class TestOrganismeDetailView:
         organisme = _staff_without_liaison(test_user)
         ancienne_activite = datetime(2020, 1, 2, tzinfo=timezone.utc)
         OrganismeModel.objects.filter(pk=organisme.pk).update(
-            gestion_ats=False, versant="FPE", date_derniere_activite=ancienne_activite
+            gestion_ats=False,
+            versant="FPE",
+            date_creation=datetime(2019, 3, 1, tzinfo=timezone.utc),
+            date_derniere_activite=ancienne_activite,
         )
         nouveau_nom = fake.name()
         body = {"nom": nouveau_nom, "gestion_ats": True, "versant": "FPT"}
@@ -221,9 +225,9 @@ class TestOrganismeDetailView:
             "siret": organisme.siret,
             "superviseurs": "",
             "gestion_ats": True,
-            "date_creation": datetime_to_drf_representation(organisme.created_at),
+            "date_creation": datetime_to_drf_representation(organisme.date_creation),
             "date_derniere_activite": datetime_to_drf_representation(
-                organisme.updated_at
+                organisme.date_derniere_activite
             ),
         }
         assert organisme.nom == nouveau_nom
