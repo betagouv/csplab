@@ -1002,10 +1002,8 @@ class CriteriaInputSerializer(serializers.Serializer):
     diplome = serializers.CharField(
         required=False,
         help_text="Diplôme exigé, en texte libre. Indiquez de préférence l'un des "
-        "libellés du référentiel des diplômes d'État, à l'identique : l'API "
-        "fake-ts ne transmet que ces libellés comme diplôme d'État exigé, dans "
-        "`customFields.offerCustomBlock1.customCodeTable3`. Liste indicative, "
-        "toute autre valeur reste acceptée :\n\n"
+        "libellés du référentiel des diplômes d'État, à l'identique. Liste "
+        "indicative, toute autre valeur reste acceptée :\n\n"
         + "\n".join(f"- `{d.label}`" for d in TALENTSOFT_STATE_DIPLOMAS),
     )
     documents_requis = serializers.ListField(

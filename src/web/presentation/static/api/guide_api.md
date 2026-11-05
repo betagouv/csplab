@@ -393,7 +393,7 @@ Une offre peut se dérouler en plusieurs lieux : **50 lieux au plus**, tous cons
 | `competences_requises` | Texte libre en Markdown, **2 000 caractères maximum**. Peut être vide ou `null`. |
 | `langues` | Liste de langues, chacune avec un **code ISO sur 2 caractères** et un **niveau** (**A1, A2, B1, B2, C1, C2**). |
 
-Valeurs indicatives de `diplome` : toute autre valeur reste acceptée, mais l'API fake-ts ne transmet comme diplôme d'État exigé (`customFields.offerCustomBlock1.customCodeTable3`) que ces libellés du référentiel Talentsoft « Diplômes d'Etat » :
+Valeurs indicatives de `diplome`, libellés du référentiel des diplômes d'État (toute autre valeur reste acceptée) :
 
 - `Diplôme d'Etat d'infirmier`
 - `Diplôme d'Etat d'aide-soignant`
