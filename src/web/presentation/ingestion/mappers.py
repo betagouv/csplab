@@ -7,6 +7,7 @@ from ddd.mapper_interface import IToDomainMapper
 from pydantic import HttpUrl
 from referentiel.entities.offer import Offer
 from referentiel.entities.talentsoft_organisme import TalentsoftOrganisme
+from referentiel.value_objects._choices import TextChoices
 from referentiel.value_objects.area import GeographicalArea
 from referentiel.value_objects.category import Category
 from referentiel.value_objects.contract_kind import ContractKind
@@ -14,7 +15,12 @@ from referentiel.value_objects.country import Country
 from referentiel.value_objects.department import Department
 from referentiel.value_objects.limit_date import LimitDate
 from referentiel.value_objects.localisation import Localisation
-from referentiel.value_objects.offer_conditions import JobVacancy
+from referentiel.value_objects.offer_conditions import (
+    JobVacancy,
+    Management,
+    WorkingPlace,
+    WorkingTime,
+)
 from referentiel.value_objects.offer_criteria import OfferCriteria, OfferLanguage
 from referentiel.value_objects.offer_nature import OfferNature
 from referentiel.value_objects.region import Region
@@ -168,7 +174,11 @@ class OfferSummaryOutputMapper:
             "description2": offer.profile,
             "description1Formatted": self._formatted(offer.mission),
             "description2Formatted": self._formatted(offer.profile),
-            "salaryRange": None,
+            "salaryRange": self._coded_object(
+                offer.verse.name, offer.verse.label, "salaryRange"
+            )
+            if offer.verse
+            else None,
             # One element per distinct localisation value
             "geographicalLocation": self._unique_coded_objects(
                 "geographicalLocation",
@@ -329,11 +339,19 @@ class OfferDetailOutputMapper(OfferSummaryOutputMapper):
         competences_requises = (
             offer.criteria.competences_requises if offer.criteria else None
         )
-        bases_legales = (offer.conditions or {}).get("bases_legales") or None
+        conditions = offer.conditions or {}
+        bases_legales = conditions.get("bases_legales") or None
+        note_ouverture_poste_url = conditions.get("note_ouverture_poste_url") or None
+        contacts = {
+            contact["role"]: contact["texte"] for contact in offer.contacts or []
+        }
         main = offer.main_localisation
         return {
             "offer": self._dynamic_field(
-                date1=self._isoformat(offer.application_deadline)
+                date1=self._isoformat(offer.application_deadline),
+                customCodeTable2=self._csplab_coded_object(
+                    offer.contract_kind, "Nature du contrat"
+                ),
             ),
             "description": self._dynamic_field(
                 longText1=offer.employer,
@@ -342,23 +360,58 @@ class OfferDetailOutputMapper(OfferSummaryOutputMapper):
                 longText1Formatted=self._formatted(offer.employer),
                 longText2Formatted=self._formatted(offer.exercise_conditions),
                 longText3Formatted=self._formatted(offer.service_description),
-            ),
-            "applicantCriteria": {
-                **self._dynamic_field(
-                    longText1=competences_requises,
-                    longText1Formatted=self._formatted(competences_requises),
+                customCodeTable1=self._csplab_coded_object(
+                    offer.main_category, "Catégorie"
                 ),
-                "customCodeTable1": self._required_documents(offer.criteria),
-            },
+                customCodeTable3=self._condition_coded_object(
+                    conditions, "temps_travail", WorkingTime, "Temps de travail"
+                ),
+            ),
+            "applicantCriteria": self._dynamic_field(
+                longText1=competences_requises,
+                longText1Formatted=self._formatted(competences_requises),
+                customCodeTable1=self._required_documents(offer.criteria),
+            ),
             "location": self._dynamic_field(shortText1=main.label if main else None),
             "offerCustomBlock1": self._dynamic_field(
                 longText1=offer.complements,
                 longText2=bases_legales,
+                longText3=note_ouverture_poste_url,
                 longText1Formatted=self._formatted(offer.complements),
                 longText2Formatted=self._formatted(bases_legales),
+                longText3Formatted=self._formatted(note_ouverture_poste_url),
+                customCodeTable1=self._condition_coded_object(
+                    conditions, "management", Management, "Management"
+                ),
+                customCodeTable2=self._condition_coded_object(
+                    conditions, "lieu_de_travail", WorkingPlace, "Lieu de travail"
+                ),
             ),
-            "origin": self._dynamic_field(shortText1=offer.application_email),
+            "origin": self._dynamic_field(
+                shortText1=offer.application_email,
+                shortText2=contacts.get("principal"),
+                shortText3=contacts.get("autre"),
+            ),
         }
+
+    def _csplab_coded_object(
+        self, member: Optional[TextChoices], type_name: str
+    ) -> Optional[dict]:
+        if member is None:
+            return None
+        return self._coded_object(member.name, member.label, type_name)
+
+    def _condition_coded_object(
+        self,
+        conditions: dict,
+        key: str,
+        choices: type[TextChoices],
+        type_name: str,
+    ) -> Optional[dict]:
+        member = choices.__members__.get(conditions.get(key) or "")
+        if member is None or member.name == "NON_DEFINI":
+            return None
+        return self._csplab_coded_object(member, type_name)
 
     def _required_documents(self, criteria: Optional[OfferCriteria]) -> Optional[dict]:
         if not criteria:
@@ -375,16 +428,21 @@ class OfferDetailOutputMapper(OfferSummaryOutputMapper):
         )
 
     @staticmethod
-    def _dynamic_field(**values: Optional[str]) -> dict:
+    def _dynamic_field(**values: Optional[str | dict]) -> dict:
         return {
             "date1": None,
             "shortText1": None,
+            "shortText2": None,
+            "shortText3": None,
             "longText1": None,
             "longText2": None,
             "longText3": None,
             "longText1Formatted": None,
             "longText2Formatted": None,
             "longText3Formatted": None,
+            "customCodeTable1": None,
+            "customCodeTable2": None,
+            "customCodeTable3": None,
             **values,
         }
 

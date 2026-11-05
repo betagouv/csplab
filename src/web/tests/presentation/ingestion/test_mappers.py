@@ -4,11 +4,14 @@ from uuid import uuid4
 
 import pytest
 from referentiel.entities.talentsoft_organisme import TalentsoftOrganisme
+from referentiel.value_objects.category import Category
+from referentiel.value_objects.contract_kind import ContractKind
 from referentiel.value_objects.diploma import Diploma
 from referentiel.value_objects.experience_level import ExperienceLevel
 from referentiel.value_objects.language_level import LanguageLevel
 from referentiel.value_objects.offer_criteria import OfferCriteria, OfferLanguage
 from referentiel.value_objects.required_document import RequiredDocument
+from referentiel.value_objects.verse import Verse
 
 from infrastructure.factories.ingestion.offer_payload_factory import PayloadOfferFactory
 from infrastructure.factories.referentiel.offer_factory import OfferFactory
@@ -636,3 +639,121 @@ class TestOfferDetailOutputMapper:
         custom_fields = OfferDetailOutputMapper().to_dict(offer)["customFields"]
 
         assert custom_fields["applicantCriteria"]["customCodeTable1"] is None
+
+
+def _coded(client_code, label, type_name):
+    return {
+        "code": None,
+        "clientCode": client_code,
+        "label": label,
+        "active": True,
+        "parentCode": None,
+        "type": type_name,
+        "parentType": "",
+        "hasChildren": False,
+    }
+
+
+class TestOfferSummaryOutputMapperSalaryRange:
+    @pytest.mark.parametrize(
+        "verse,label",
+        [
+            (Verse.FPE, "Fonction publique de l'État"),
+            (Verse.FPT, "Fonction publique Territoriale"),
+            (Verse.FPH, "Fonction publique Hospitalière"),
+        ],
+    )
+    def test_salary_range_is_the_verse(self, verse, label):
+        offer = OfferFactory.create_entity(verse=verse)
+
+        result = OfferSummaryOutputMapper().to_dict(offer)
+
+        assert result["salaryRange"] == _coded(verse.name, label, "salaryRange")
+
+    def test_salary_range_is_null_without_verse(self):
+        offer = replace(OfferFactory.create_entity(), verse=None)
+
+        assert OfferSummaryOutputMapper().to_dict(offer)["salaryRange"] is None
+
+
+class TestOfferDetailOutputMapperStoredFields:
+    def test_stored_fields_are_returned_where_ingestion_reads_them(self):
+        offer = replace(
+            OfferFactory.create_entity(categories=[Category.B, Category.A]),
+            contract_kind=ContractKind.CDD_CDI,
+            conditions={
+                "temps_travail": "TEMPS_PARTIEL",
+                "lieu_de_travail": "TELETRAVAIL",
+                "management": "AVEC",
+                "note_ouverture_poste_url": (
+                    "https://www.legifrance.gouv.fr/jorf/id/JORFTEXT000054323702"
+                ),
+            },
+            contacts=[
+                {
+                    "role": "principal",
+                    "texte": "Jeanne Martin rh@exemple.gouv.fr",
+                    "emails": ["rh@exemple.gouv.fr"],
+                },
+                {"role": "autre", "texte": "Paul Durand", "emails": []},
+            ],
+        )
+
+        custom_fields = OfferDetailOutputMapper().to_dict(offer)["customFields"]
+
+        assert custom_fields["offer"]["customCodeTable2"] == _coded(
+            "CDD_CDI", "CDD ou CDI", "Nature du contrat"
+        )
+        assert custom_fields["description"]["customCodeTable1"] == _coded(
+            "B", "Catégorie B (profession intermédiaire)", "Catégorie"
+        )
+        assert custom_fields["description"]["customCodeTable3"] == _coded(
+            "TEMPS_PARTIEL", "Temps incomplet", "Temps de travail"
+        )
+        assert custom_fields["offerCustomBlock1"]["customCodeTable1"] == _coded(
+            "AVEC", "Avec management", "Management"
+        )
+        assert custom_fields["offerCustomBlock1"]["customCodeTable2"] == _coded(
+            "TELETRAVAIL", "Télétravail", "Lieu de travail"
+        )
+        assert custom_fields["offerCustomBlock1"]["longText3"] == (
+            "https://www.legifrance.gouv.fr/jorf/id/JORFTEXT000054323702"
+        )
+        assert custom_fields["offerCustomBlock1"]["longText3Formatted"] == (
+            "<p>https://www.legifrance.gouv.fr/jorf/id/JORFTEXT000054323702</p>"
+        )
+        assert custom_fields["origin"]["shortText2"] == (
+            "Jeanne Martin rh@exemple.gouv.fr"
+        )
+        assert custom_fields["origin"]["shortText3"] == "Paul Durand"
+
+    def test_undefined_values_are_null(self):
+        offer = replace(
+            OfferFactory.create_entity(categories=[]),
+            contract_kind=None,
+            conditions={"temps_travail": "NON_DEFINI", "lieu_de_travail": "NON_DEFINI"},
+            contacts=None,
+        )
+
+        custom_fields = OfferDetailOutputMapper().to_dict(offer)["customFields"]
+
+        assert custom_fields["offer"]["customCodeTable2"] is None
+        assert custom_fields["description"]["customCodeTable1"] is None
+        assert custom_fields["description"]["customCodeTable3"] is None
+        assert custom_fields["offerCustomBlock1"]["customCodeTable1"] is None
+        assert custom_fields["offerCustomBlock1"]["customCodeTable2"] is None
+        assert custom_fields["offerCustomBlock1"]["longText3"] is None
+        assert custom_fields["offerCustomBlock1"]["longText3Formatted"] is None
+        assert custom_fields["origin"]["shortText2"] is None
+        assert custom_fields["origin"]["shortText3"] is None
+
+    def test_other_contact_alone_goes_to_short_text_3(self):
+        offer = replace(
+            OfferFactory.create_entity(),
+            contacts=[{"role": "autre", "texte": "Paul Durand", "emails": []}],
+        )
+
+        origin = OfferDetailOutputMapper().to_dict(offer)["customFields"]["origin"]
+
+        assert origin["shortText2"] is None
+        assert origin["shortText3"] == "Paul Durand"
