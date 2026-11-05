@@ -67,7 +67,8 @@ Le job `changelog-api` du workflow Web :
   comprise entre aujourd'hui − 3 jours et aujourd'hui.
 
 Une PR qui porte le label `changelog-api-migration` n'est vérifiée que sur le format,
-pour reprendre des fragments avec leur date déjà publiée.
+pour reprendre des fragments avec leur date déjà publiée. Le format comprend la citation
+d'au moins une route : un fragment repris sans route ferait échouer `main` ensuite.
 
 En local : `mise run web:lint:changelog-api` (format seul), ou
 `mise run web:lint:changelog-api -- --base origin/main --pr <numéro>`.

@@ -259,15 +259,6 @@ class TestRouteErrors:
 
         assert route_errors(result, known_routes()) == []
 
-    def test_published_fragments_cite_known_routes(self):
-        known = known_routes()
-
-        assert [
-            (f.path.name, error)
-            for f in load_fragments()
-            for error in route_errors(f, known)
-        ] == []
-
 
 class TestCheckAddedFragment:
     @pytest.mark.parametrize("merge_queue", [True, False])
@@ -365,6 +356,45 @@ def test_verifier_command_rejects_a_fragment_without_route(tmp_path, monkeypatch
 
     with pytest.raises(CommandError, match="1 erreur"):
         call_command("changelog_api", "verifier")
+
+
+class TestVerifierCommandOnAddedFragments:
+    @pytest.fixture
+    def added(self, tmp_path, monkeypatch):
+        module = "presentation.ingestion.management.commands.changelog_api"
+        monkeypatch.setattr(f"{module}.FRAGMENTS_DIR", tmp_path)
+        monkeypatch.setattr(f"{module}.paris_today", lambda: TODAY)
+        monkeypatch.delenv("GITHUB_ACTIONS", raising=False)
+
+        def add(type_, body):
+            path = write_fragment(
+                tmp_path,
+                "f.md",
+                header=f"type: {type_}\ndate: 2026-10-27\npr: 1",
+                body=body,
+            )
+            monkeypatch.setattr(f"{module}._added_fragments", lambda base: [path])
+
+        return add
+
+    def test_rejects_a_route_absent_from_the_schema(self, added, capsys):
+        added("ajoute", "`POST /api/v1/offre`.")
+
+        with pytest.raises(CommandError, match="1 erreur"):
+            call_command("changelog_api", "verifier", "--base", "main", "--pr", "1")
+        assert "route inconnue" in capsys.readouterr().out
+
+    def test_accepts_a_removed_route(self, added):
+        added("retire", "`GET /api/v1/disparue`.")
+
+        call_command("changelog_api", "verifier", "--base", "main", "--pr", "1")
+
+    def test_exempte_skips_the_schema_check(self, added):
+        added("ajoute", "`POST /api/v1/offre`.")
+
+        call_command(
+            "changelog_api", "verifier", "--base", "main", "--pr", "1", "--exempte"
+        )
 
 
 class TestPublicSchemaView:

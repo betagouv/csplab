@@ -43,7 +43,10 @@ class Command(BaseCommand):
         verifier.add_argument(
             "--exempte",
             action="store_true",
-            help="Ne vérifie que le format (PR de migration de l'historique).",
+            help=(
+                "Ne vérifie que le format, routes citées comprises "
+                "(PR de migration de l'historique)."
+            ),
         )
 
         dater = subparsers.add_parser(
