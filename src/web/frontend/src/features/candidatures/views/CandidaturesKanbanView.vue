@@ -19,15 +19,16 @@ import { publishCandidaturesToolbar } from '../composables/useCandidaturesToolba
 import { useEtapeChangeMutation } from '../composables/useEtapeChangeMutation'
 import { useKanbanSelection } from '../composables/useKanbanSelection'
 import { useRefusCandidature } from '../composables/useRefusCandidature'
-import { recrutementKanbanQuery } from '../queries'
+import { candidatureListeQuery } from '../queries'
+import { groupCandidaturesByEtape } from '../utils/kanban'
 
 const props = defineProps<{
   organismeUuid: string
   recrutementUuid: string
 }>()
 
-const kanban = useQuery(() => recrutementKanbanQuery(props))
-const candidatureKanban = computed(() => kanban.data.value?.etapes ?? [])
+const liste = useQuery(() => candidatureListeQuery(props))
+const candidatureKanban = computed(() => liste.data.value ? groupCandidaturesByEtape(liste.data.value) : [])
 
 const { etapes: recrutementEtapes } = useRecrutementDetail(() => props)
 
@@ -54,7 +55,7 @@ provideCandidatureSequence(candidatureUuid =>
 
 useCandidatureLinkFocus()
 
-const showSkeleton = useMinimumPending(kanban.isPending)
+const showSkeleton = useMinimumPending(liste.isPending)
 
 const {
   selectedCandidatures,
@@ -147,7 +148,7 @@ const selectionLabel = computed(() =>
 )
 
 publishCandidaturesToolbar(() => ({
-  count: kanban.error.value ? '' : countLabel.value,
+  count: liste.error.value ? '' : countLabel.value,
   pending: showSkeleton.value,
   selectionCount: selectedCount.value,
   selectionLabel: selectionLabel.value,
@@ -162,7 +163,7 @@ publishCandidaturesToolbar(() => ({
   <CspAsyncSection
     fill
     :pending="showSkeleton"
-    :error="kanban.error.value"
+    :error="liste.error.value"
     loading-label="Chargement des candidatures"
     error-title="Une erreur est survenue lors du chargement des candidatures."
   >
