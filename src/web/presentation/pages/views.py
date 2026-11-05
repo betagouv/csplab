@@ -134,6 +134,7 @@ class ApiChangelogView(TemplateView):
         routes = published_routes()
         filters = Filters.from_query(self.request.GET, routes)
         fragments = filters.apply(published)
+        query = filters.query_string()
         context.update(
             filters=filters,
             types=[
@@ -143,6 +144,7 @@ class ApiChangelogView(TemplateView):
             routes=routes,
             count=len(fragments),
             total=len(published),
+            query=f"?{query}" if query else "",
             days=[
                 {
                     "date": day,

@@ -1,12 +1,17 @@
+import xml.etree.ElementTree as ET
 from datetime import date
 from textwrap import dedent
+from unittest.mock import patch
 
 import pytest
+import yaml
+from django.conf import settings
 from django.core.management import CommandError, call_command
 from django.http import QueryDict
 from django.urls import reverse
 from rest_framework import status
 
+from infrastructure.authentication.anon_rate_throttle import DocumentationRateThrottle
 from presentation.api.changelog_api import (
     TYPE_LABELS,
     TYPES,
@@ -19,9 +24,12 @@ from presentation.api.changelog_api import (
     ordered,
     page_size_error,
     parse_fragment,
+    published_fragments,
     route_errors,
     set_date,
 )
+from presentation.api.serializers import ChangelogEntrySerializer
+from presentation.api.views import ChangelogJsonView
 from presentation.pages.views import _BADGES
 
 TODAY = date(2026, 10, 27)
@@ -239,6 +247,17 @@ class TestAssemble:
     def test_published_fragments_are_valid(self):
         assert assemble(load_fragments()).count("## 2026-") >= 1
 
+    def test_makes_header_links_absolute(self, tmp_path):
+        markdown = assemble([fragment(tmp_path)], base_url="https://csplab.fr")
+
+        assert "[guide de l'API](https://csplab.fr/pages/guide_api)" in markdown
+        assert "[JSON](https://csplab.fr/api/changelog.json)" in markdown
+
+    def test_adds_the_note_and_says_when_nothing_matches(self):
+        markdown = assemble([], note="Changements filtrés : type ajouté.")
+
+        assert "Changements filtrés : type ajouté.\n\nAucun changement" in markdown
+
 
 def test_ordered_by_date_then_type_then_pr(tmp_path):
     old = fragment(tmp_path, "a.md", day="2026-10-20")
@@ -246,6 +265,31 @@ def test_ordered_by_date_then_type_then_pr(tmp_path):
     broken = fragment(tmp_path, "c.md", type_="non_retrocompatible", pr=3)
 
     assert ordered([old, added, broken]) == [broken, added, old]
+
+
+def test_changelog_entry_serializer(tmp_path):
+    result = fragment(
+        tmp_path,
+        "2219-null.md",
+        pr=2236,
+        extra="liens:\n  - https://github.com/betagouv/csplab/issues/2219\n",
+        body="`GET /api/v1/offres` change.\n\n### Compatibilité\n\nLisez `null`.",
+    )
+
+    context = {"page_url": "https://csplab.fr/pages/changelog_api"}
+    assert ChangelogEntrySerializer(result, context=context).data == {
+        "id": "2219-null",
+        "date": "2026-10-27",
+        "type": "ajoute",
+        "libelle_type": "Ajouté",
+        "routes": ["GET /api/v1/offres"],
+        "pr": 2236,
+        "pr_url": "https://github.com/betagouv/csplab/pull/2236",
+        "liens": ["https://github.com/betagouv/csplab/issues/2219"],
+        "url": "https://csplab.fr/pages/changelog_api#2219-null",
+        "contenu": "`GET /api/v1/offres` change.",
+        "sous_sections": [{"titre": "Compatibilité", "contenu": "Lisez `null`."}],
+    }
 
 
 def test_every_type_has_a_title_a_label_and_a_badge():
@@ -271,6 +315,14 @@ class TestFilters:
         )
         assert filters.errors == ()
         assert filters.active
+        assert filters.query_string() == (
+            "type=non_retrocompatible&type=ajoute"
+            "&route=GET+%2Fapi%2Fv1%2Foffres&depuis=2026-10-15"
+        )
+        assert filters.describe() == (
+            "Changements filtrés : type non rétrocompatible, ajouté ; "
+            "route `GET /api/v1/offres` ; depuis le 2026-10-15."
+        )
 
     def test_reports_invalid_values_without_quoting_them(self):
         filters = Filters.from_query(
@@ -280,6 +332,7 @@ class TestFilters:
 
         assert filters == Filters()
         assert not filters.active
+        assert filters.describe() == ""
         assert filters.errors == (
             (
                 "`type` : valeur inconnue. Valeurs possibles : non_retrocompatible, "
@@ -330,8 +383,8 @@ class TestRouteErrors:
         result = fragment(
             tmp_path,
             body=(
-                "`GET /api/v1/offres/sources/42`, `GET /api/fake-ts/referentials/x` "
-                "et `POST /api/v1/offre`."
+                "`GET /api/v1/offres/sources/42`, `GET /api/fake-ts/referentials/x`, "
+                "`GET /api/changelog.md` et `POST /api/v1/offre`."
             ),
         )
 
@@ -512,3 +565,149 @@ class TestPublicSchemaView:
             "([PR #2084](https://github.com/betagouv/csplab/pull/2084)"
             in (changelog["description"])
         )
+
+
+class TestChangelogMarkdownView:
+    def test_serves_the_changelog_with_absolute_links(self, db, client):
+        response = client.get(reverse("api:changelog_markdown"))
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response["Content-Type"] == "text/markdown; charset=utf-8"
+        content = response.content.decode()
+        assert content.startswith("Ce changelog liste")
+        assert "(http://testserver/pages/guide_api)" in content
+        assert "[PR #2084](https://github.com/betagouv/csplab/pull/2084)" in content
+
+    def test_filters(self, db, client):
+        response = client.get(
+            reverse("api:changelog_markdown"),
+            {"type": "retire", "route": "POST /api/v1/offres/creer_modifier"},
+        )
+
+        content = response.content.decode()
+        assert "Changements filtrés : type retiré ; route" in content
+        assert "### Retiré" in content
+        assert "### Ajouté" not in content
+
+    def test_rejects_an_invalid_filter(self, db, client):
+        response = client.get(reverse("api:changelog_markdown"), {"depuis": "hier"})
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert "`depuis` doit être une date" in response.content.decode()
+
+
+class TestChangelogJsonView:
+    def test_serves_one_entry_per_fragment(self, db, client):
+        response = client.get(reverse("api:changelog_json"))
+
+        assert response.status_code == status.HTTP_200_OK
+        body = response.json()
+        assert body["nombre"] == len(published_fragments())
+        entry = next(e for e in body["entrees"] if e["pr"] == 2084)  # noqa: PLR2004
+        assert entry["url"].startswith("http://testserver/pages/changelog_api#2084-")
+        assert entry["routes"]
+
+    def test_filters_by_date(self, db, client):
+        response = client.get(reverse("api:changelog_json"), {"depuis": "2026-11-01"})
+
+        dates = [e["date"] for e in response.json()["entrees"]]
+        assert dates
+        assert min(dates) >= "2026-11-01"
+        assert dates == sorted(dates, reverse=True)
+
+    def test_rejects_an_invalid_filter(self, db, client):
+        response = client.get(reverse("api:changelog_json"), {"type": "autre"})
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert response.json()["erreurs"][0].startswith("`type` : valeur inconnue")
+
+
+class TestChangelogFeed:
+    ATOM = "{http://www.w3.org/2005/Atom}"
+
+    def test_serves_an_atom_feed(self, db, client):
+        response = client.get(reverse("api:changelog_atom"), {"type": "retire"})
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response["Content-Type"].startswith("application/atom+xml")
+        feed = ET.fromstring(response.content)  # noqa: S314
+        entries = feed.findall(f"{self.ATOM}entry")
+        expected = [f for f in published_fragments() if f.type == "retire"]
+        assert len(entries) == len(expected)
+        link = entries[0].find(f"{self.ATOM}link").get("href")
+        assert link == f"http://testserver/pages/changelog_api#{expected[0].slug}"
+        assert entries[0].find(f"{self.ATOM}title").text.startswith("Retiré : ")
+
+    def test_rejects_an_invalid_filter(self, db, client):
+        response = client.get(reverse("api:changelog_atom"), {"depuis": "hier"})
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert "`depuis` doit être une date" in response.content.decode()
+
+
+@pytest.mark.parametrize(
+    "name", ["api:changelog_markdown", "api:changelog_json", "api:changelog_atom"]
+)
+def test_rejects_an_unknown_route_without_quoting_it(db, client, name):
+    response = client.get(reverse(name), {"route": "GET /api/v1/[injecté](x)"})
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    content = response.content.decode()
+    assert "`route` n'est citée par aucun changement" in content
+    assert "injecté" not in content
+
+
+class TestDocumentationRoutes:
+    ROUTES = (
+        "api:changelog_markdown",
+        "api:changelog_json",
+        "api:changelog_atom",
+    )
+
+    @pytest.mark.parametrize("name", ROUTES)
+    @pytest.mark.parametrize(
+        "authorization", ["", "Bearer jeton-invalide", "Api-Key cle-invalide"]
+    )
+    def test_are_public_and_limited_to_60_calls_per_minute(
+        self, db, client, name, authorization
+    ):
+        response = client.get(reverse(name), HTTP_AUTHORIZATION=authorization)
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response["X-RateLimit-Limit"] == "60"
+
+    def test_limits_a_caller_sending_a_valid_jwt(self, db, jwt_client):
+        response = jwt_client.get(reverse("api:changelog_json"))
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response["X-RateLimit-Limit"] == "60"
+
+    @pytest.mark.parametrize("authorization", ["", "Bearer jeton-invalide"])
+    def test_returns_429_beyond_the_limit(self, db, client, authorization):
+        url = reverse("api:changelog_markdown")
+        with patch.object(
+            DocumentationRateThrottle, "get_rate", return_value="2/minute"
+        ):
+            statuses = [
+                client.get(url, HTTP_AUTHORIZATION=authorization).status_code
+                for _ in range(3)
+            ]
+
+        assert statuses == [
+            status.HTTP_200_OK,
+            status.HTTP_200_OK,
+            status.HTTP_429_TOO_MANY_REQUESTS,
+        ]
+
+    def test_rate_is_60_per_minute(self):
+        throttle = ChangelogJsonView.throttle_classes[0]()
+
+        assert throttle.parse_rate(throttle.get_rate()) == (60, 60)
+
+    @pytest.mark.parametrize("name", ROUTES)
+    def test_are_documented_in_the_public_schema(self, name):
+        schema = yaml.safe_load(
+            (settings.STATIC_DIR / "api" / "schema.yaml").read_text()
+        )
+
+        assert schema["paths"][reverse(name)]["get"]["tags"] == ["documentation"]
