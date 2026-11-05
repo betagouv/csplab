@@ -3,8 +3,6 @@ from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
-from rest_framework_simplejwt.settings import api_settings
-from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.views import TokenRefreshView as SimpleJWTTokenRefreshView
 
@@ -14,9 +12,9 @@ from application.identite.context_services.login_log import (
 )
 from infrastructure.authentication.ip_restricted_jwt_authentication import (
     ensure_api_ip_allowed,
+    ensure_refresh_ip_allowed,
 )
 from infrastructure.django_apps.commons.enums import Canal
-from infrastructure.django_apps.users.models import UserModel
 from infrastructure.django_apps.utils.ip import get_client_ip
 from presentation.api.authentication import UnauthenticatedMixin
 
@@ -55,9 +53,5 @@ class TokenRefreshView(  # type: ignore[misc]
             serializer.is_valid(raise_exception=True)
         except TokenError as e:
             raise InvalidToken(e.args[0]) from e
-        refresh = RefreshToken(serializer.initial_data["refresh"])
-        user = UserModel.objects.get(
-            username=refresh.payload[api_settings.USER_ID_CLAIM]
-        )
-        ensure_api_ip_allowed(user, request)
+        ensure_refresh_ip_allowed(serializer.initial_data["refresh"], request)
         return Response(serializer.validated_data, status=status.HTTP_200_OK)

@@ -89,7 +89,9 @@ class TestRestrictedAccount:
             f"JWT for user {restricted_user.pk} rejected (IP not allowed) "
             f"from {OTHER_IP}."
         )
-        assert expected_log in [r.getMessage() for r in logs.records]
+        assert (logging.ERROR, expected_log) in [
+            (r.levelno, r.getMessage()) for r in logs.records
+        ]
         _assert_rejection_audited(restricted_user, OTHER_IP)
         assert not AuditLoginLogModel.objects.filter(resultat=Resultat.SUCCES).exists()
         wrong_password = api_client.post(

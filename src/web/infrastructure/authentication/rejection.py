@@ -35,12 +35,13 @@ def reject(
     reason: str,
     message: str,
     utilisateur_id: UUID | None = None,
+    level: int = logging.WARNING,
 ) -> AuthenticationFailed | Throttled:
     throttle = AuthRejectionRateThrottle()
     if not throttle.allow_request(request, view=None):
         return Throttled(wait=throttle.wait())
     ip_address = get_client_ip(request)
-    logger.warning("%s rejected (%s) from %s.", subject, reason, ip_address)
+    logger.log(level, "%s rejected (%s) from %s.", subject, reason, ip_address)
     AuditLoginLogModel.objects.record_attempt(
         canal=canal,
         resultat=Resultat.ECHEC,
