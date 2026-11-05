@@ -56,5 +56,6 @@ def authorized_actions_field() -> serializers.ListField:
     return serializers.ListField(
         child=serializers.ChoiceField(
             choices=[(a.value, a.value) for a in OrganismeAction]
-        )
+        ),
+        read_only=True,
     )
