@@ -70,6 +70,6 @@
     "vite-plugin-checker": "^0.14.5",
     "vitest": "^4.1.12",
     "vue-component-meta": "^3.3.14",
-    "vue-tsc": "3.3.10"
+    "vue-tsc": "^3.3.14"
   }
 }
