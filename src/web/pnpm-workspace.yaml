@@ -2,3 +2,8 @@ allowBuilds:
   '@parcel/watcher': true
   esbuild: true
   vue-demi: true
+overrides:
+  tinypool: ^2.1.2
+  source-map-js: ^1.2.2
+  js-yaml: ^4.3.2
+  undici: ^7.30.1
