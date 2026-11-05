@@ -143,7 +143,7 @@ const countLabel = computed(() => {
 })
 
 const selectionLabel = computed(() =>
-  `${selectedCount.value} ${pluralize(selectedCount.value, 'candidat')} ${pluralize(selectedCount.value, 'sélectionné')}`,
+  `${selectedCount.value} ${pluralize(selectedCount.value, 'candidature sélectionnée', 'candidatures sélectionnées')}`,
 )
 
 publishCandidaturesToolbar(() => ({
