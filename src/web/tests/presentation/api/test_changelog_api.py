@@ -648,6 +648,14 @@ class TestChangelogFeed:
         assert "`depuis` doit être une date" in response.content.decode()
 
 
+def test_guide_markdown_view(db, client):
+    response = client.get(reverse("api:guide_markdown"))
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response["Content-Type"] == "text/markdown; charset=utf-8"
+    assert response.content.decode().startswith("# Guide de l'API CSPLab")
+
+
 @pytest.mark.parametrize(
     "name", ["api:changelog_markdown", "api:changelog_json", "api:changelog_atom"]
 )
@@ -665,6 +673,7 @@ class TestDocumentationRoutes:
         "api:changelog_markdown",
         "api:changelog_json",
         "api:changelog_atom",
+        "api:guide_markdown",
     )
 
     @pytest.mark.parametrize("name", ROUTES)

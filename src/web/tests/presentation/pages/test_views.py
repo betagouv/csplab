@@ -94,6 +94,22 @@ class TestApiChangelogView:
         assert "zzz-injecte" not in content
 
 
+def test_llms_txt_lists_the_api_documents(db, client: Client):
+    response = client.get("/llms.txt")
+
+    assert response.status_code == HTTPStatus.OK
+    content = response.content.decode()
+    assert content.startswith("# CSPLab\n")
+    for path in (
+        "/api/guide.md",
+        "/static/api/schema.yaml",
+        "/api/changelog.md",
+        "/api/changelog.json",
+        "/api/changelog.atom",
+    ):
+        assert f"(http://testserver{path})" in content
+
+
 class TestRenderGuide:
     def test_adds_anchor_and_dsfr_class_to_headings(self):
         html, _ = _render_guide("# L'API — POST /api/token/")

@@ -17,7 +17,8 @@ Les trois routes `/api/changelog.*` et la page acceptent les mêmes filtres : `t
 (`AAAA-MM-JJ`). `route` n'accepte qu'une route citée par au moins un fragment. Une
 valeur invalide renvoie une erreur `400` sur les routes `/api/…`, et est ignorée, avec
 un message, sur la page. Le message liste les valeurs possibles sans recopier la valeur
-reçue, pour qu'une URL fabriquée ne puisse pas injecter de texte dans la réponse.
+reçue, pour qu'une URL fabriquée ne puisse pas injecter de texte dans la réponse. `/llms.txt` liste ces documents et le guide
+en Markdown (`/api/guide.md`) pour les agents.
 
 Ces trois routes ignorent l'en-tête `Accept` (chacune ne sert qu'un format) et ne sont
 pas enregistrées dans `api_logs`, qui suit l'usage de l'API par les partenaires.
@@ -107,10 +108,10 @@ recopié, et deux PR n'y entrent pas en conflit. Redoc charge `/api/schema/publi
 sert `schema.yaml` avec la description de ce tag assemblée à partir des fragments :
 par date décroissante, puis par type (non rétrocompatible, ajouté, modifié, corrigé,
 retiré), puis par numéro de PR. La page et les routes `/api/changelog.*` suivent le même
-ordre. Les fragments et leur rendu HTML sont lus une fois et gardés en
+ordre. Les fragments, leur rendu HTML et le guide sont lus une fois et gardés en
 mémoire jusqu'au déploiement suivant.
 
-Les routes `/api/changelog.*` sont documentées dans Redoc, sous
+Les routes `/api/changelog.*` et `/api/guide.md` sont documentées dans Redoc, sous
 « Changelog et documentation ». Elles sont publiques, sans authentification, et limitées
 à 60 appels par minute et par adresse IP (`DocumentationRateThrottle`, taux
 `documentation`), que l'appelant envoie ou non un en-tête `Authorization`.

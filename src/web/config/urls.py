@@ -15,7 +15,7 @@ from presentation.identite.admin_site import (
 from presentation.ingestion import urls as ingestion_urls
 from presentation.ingestion import urls_fake_ts as ingestion_fake_ts_urls
 from presentation.pages import urls as pages_urls
-from presentation.pages.views import security_txt
+from presentation.pages.views import llms_txt, security_txt
 from presentation.recruteur import urls as recruteur_urls
 
 admin.site.__class__ = (
@@ -24,6 +24,7 @@ admin.site.__class__ = (
 
 urlpatterns: list[URLPattern | URLResolver] = [
     path(".well-known/security.txt", security_txt),
+    path("llms.txt", llms_txt, name="llms_txt"),
     path("", include(pages_urls)),
     path("api/", include(api_urls)),
     path(

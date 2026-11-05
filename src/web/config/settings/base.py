@@ -470,8 +470,8 @@ SPECTACULAR_SETTINGS = {
             "name": "documentation",
             "x-displayName": "Changelog et documentation",
             "description": (
-                "Le changelog de l'API en formats bruts, pour les outils et les "
-                "agents. Routes publiques, sans authentification, limitées à "
+                "Le changelog et le guide de l'API en formats bruts, pour les outils "
+                "et les agents. Routes publiques, sans authentification, limitées à "
                 "60 appels par minute et par adresse IP."
             ),
         },

@@ -5,6 +5,7 @@ from presentation.api.views import (
     ChangelogAtomView,
     ChangelogJsonView,
     ChangelogMarkdownView,
+    GuideMarkdownView,
     HueyHealthView,
     PublicSchemaView,
     RedocView,
@@ -21,4 +22,5 @@ urlpatterns = [
     path("changelog.md", ChangelogMarkdownView.as_view(), name="changelog_markdown"),
     path("changelog.json", ChangelogJsonView.as_view(), name="changelog_json"),
     path("changelog.atom", ChangelogAtomView.as_view(), name="changelog_atom"),
+    path("guide.md", GuideMarkdownView.as_view(), name="guide_markdown"),
 ]
