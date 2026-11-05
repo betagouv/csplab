@@ -286,6 +286,19 @@ def check_added_fragment(
     return errors, warnings
 
 
+PAGE_MAX_FRAGMENTS = 300
+
+
+def page_size_error(count: int) -> str | None:
+    if count < PAGE_MAX_FRAGMENTS:
+        return None
+    return (
+        f"{count} changements publiés (seuil : {PAGE_MAX_FRAGMENTS}) : la page "
+        "/pages/changelog_api les affiche tous, il est temps de la découper par "
+        "année ou en mois repliés (voir docs/changelog_api.md)"
+    )
+
+
 _markdown = MarkdownIt("commonmark", {"html": False})
 
 

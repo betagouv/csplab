@@ -17,6 +17,7 @@ from presentation.api.changelog_api import (
     known_routes,
     load_fragments,
     ordered,
+    page_size_error,
     parse_fragment,
     route_errors,
     set_date,
@@ -409,6 +410,24 @@ def test_verifier_command_accepts_published_fragments(capsys):
     call_command("changelog_api", "verifier")
 
     assert "fragment(s) valide(s)" in capsys.readouterr().out
+
+
+def test_verifier_command_fails_when_the_page_grows_too_long(
+    tmp_path, monkeypatch, capsys
+):
+    module = "presentation.ingestion.management.commands.changelog_api"
+    monkeypatch.setattr(f"{module}.FRAGMENTS_DIR", tmp_path)
+    monkeypatch.setattr(f"{module}.load_fragments", lambda: [None] * 300)
+    monkeypatch.delenv("GITHUB_ACTIONS", raising=False)
+
+    with pytest.raises(CommandError, match="1 erreur"):
+        call_command("changelog_api", "verifier")
+    assert "300 changements publiés (seuil : 300)" in capsys.readouterr().out
+
+
+def test_page_size_error():
+    assert page_size_error(299) is None
+    assert page_size_error(300)
 
 
 @pytest.mark.parametrize("name", ["f.markdown", "f.MD", "f"])

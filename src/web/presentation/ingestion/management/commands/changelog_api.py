@@ -10,6 +10,7 @@ from presentation.api.changelog_api import (
     check_added_fragment,
     known_routes,
     load_fragments,
+    page_size_error,
     paris_today,
     parse_fragment,
     route_errors,
@@ -102,9 +103,15 @@ class Command(BaseCommand):
                 for message in warnings:
                     self._annotate("warning", path, message)
 
+        if errors == 0:
+            count = len(load_fragments())
+            if message := page_size_error(count):
+                errors += 1
+                self._annotate("error", FRAGMENTS_DIR, message)
+
         if errors:
             raise CommandError(f"{errors} erreur(s) dans le changelog de l'API.")
-        self.stdout.write(f"{len(load_fragments())} fragment(s) valide(s).")
+        self.stdout.write(f"{count} fragment(s) valide(s).")
 
     def _dater(self, base):
         today = paris_today()

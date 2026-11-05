@@ -80,6 +80,12 @@ Le job `changelog-api` du workflow Web :
 - dans la merge queue, pour les fragments ajoutés : refuse une date qui n'est pas
   comprise entre aujourd'hui − 3 jours et aujourd'hui.
 
+Le job échoue aussi dès que le changelog compte 300 changements (`PAGE_MAX_FRAGMENTS`).
+La page `/pages/changelog_api` les affiche tous, sans pagination : 58 changements pèsent
+154 Ko (25 Ko compressés). Au-delà du seuil, il faut la découper, par exemple une page
+par année ou des mois repliés. Une fenêtre de temps par défaut casserait les liens
+permanents vers les changements plus anciens.
+
 Une PR qui porte le label `changelog-api-migration` n'est vérifiée que sur le format,
 pour reprendre des fragments avec leur date déjà publiée. Le format comprend la citation
 d'au moins une route : un fragment repris sans route ferait échouer `main` ensuite.
