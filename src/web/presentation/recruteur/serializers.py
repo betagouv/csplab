@@ -105,7 +105,7 @@ class OrganismeDetailSerializer(serializers.ModelSerializer):
     date_derniere_activite = serializers.DateTimeField(read_only=True)
     date_creation = serializers.DateTimeField(read_only=True)
     # TODO : fill with the active superviseurs (comma-separated, as in
-    # OrganismesListSerializer) ; the PUT still feeds this serializer a dict
+    # OrganismesListSerializer) ; the detail view now passes the model
     superviseurs = serializers.SerializerMethodField()
 
     class Meta:

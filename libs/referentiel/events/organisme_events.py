@@ -31,12 +31,5 @@ class OrganismeCree(_OrganismeEventPayload):
 
 
 @dataclass(frozen=True)
-class OrganismeModifie(DomainEvent):
-    nom: str | None
-    versant: Verse | None
-    gestion_ats: bool | None
-
-
-@dataclass(frozen=True)
 class OrganismeRemplace(_OrganismeEventPayload):
     pass
