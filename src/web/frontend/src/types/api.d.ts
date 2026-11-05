@@ -921,6 +921,7 @@ export interface components {
             /** Format: date-time */
             publie_le: string;
             est_privee: boolean;
+            authorized_actions: components["schemas"]["AuthorizedActionsEnum"][];
         };
         NoteDetail: {
             /** Format: uuid */
@@ -1067,16 +1068,16 @@ export interface components {
             results: components["schemas"]["DocumentListe"][];
         };
         PaginatedNoteList: {
-            /** @example 123 */
+            /** @example 1 */
             count: number;
             /**
              * Format: uri
-             * @example http://api.example.org/accounts/?page=4
+             * @example null
              */
             next?: string | null;
             /**
              * Format: uri
-             * @example http://api.example.org/accounts/?page=2
+             * @example null
              */
             previous?: string | null;
             results: components["schemas"]["Note"][];
@@ -3846,8 +3847,10 @@ export interface operations {
     recruteur_organismes_recrutements_candidatures_notes_list: {
         parameters: {
             query?: {
-                /** @description Un numéro de page de l'ensemble des résultats. */
+                /** @description Numéro de la page. */
                 page?: number;
+                /** @description Nombre d'éléments par page. */
+                taille?: number;
             };
             header?: never;
             path: {
