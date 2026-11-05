@@ -2,6 +2,8 @@ import type { ActivitesParams, CandidatureDetail, ChangerEtapeResultat, CreateNo
 import type { CandidatureParams, NoteParams, OrganismeParams, RecrutementParams } from '@/api/params'
 import { api } from '@/api/client'
 
+const MAX_PAGE_SIZE = 1_000
+
 export async function getRecrutementKanban({ organismeUuid, recrutementUuid }: RecrutementParams): Promise<RecrutementDetailKanban> {
   const { data } = await api.GET(
     '/recruteur/organismes/{organisme_uuid}/recrutements/{recrutement_uuid}/kanban',
@@ -26,27 +28,19 @@ export async function getCandidatureDetail(candidature: CandidatureParams): Prom
 }
 
 export async function getCandidatureListe({ organismeUuid, recrutementUuid }: RecrutementParams): Promise<RecrutementListe> {
-  async function fetchListe(taille?: number): Promise<RecrutementListe> {
-    const { data } = await api.GET(
-      '/recruteur/organismes/{organisme_uuid}/recrutements/{recrutement_uuid}/liste',
-      {
-        params: {
-          path: {
-            organisme_uuid: organismeUuid,
-            recrutement_uuid: recrutementUuid,
-          },
-          query: { taille },
+  const { data } = await api.GET(
+    '/recruteur/organismes/{organisme_uuid}/recrutements/{recrutement_uuid}/liste',
+    {
+      params: {
+        path: {
+          organisme_uuid: organismeUuid,
+          recrutement_uuid: recrutementUuid,
         },
+        query: { taille: MAX_PAGE_SIZE },
       },
-    )
-    return data!
-  }
-
-  const firstPage = await fetchListe()
-  if (firstPage.results.length >= firstPage.count) {
-    return firstPage
-  }
-  return fetchListe(firstPage.count)
+    },
+  )
+  return data!
 }
 
 export interface EtapeChange {
