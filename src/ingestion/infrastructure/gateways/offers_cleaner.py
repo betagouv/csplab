@@ -12,6 +12,7 @@ from referentiel.value_objects.contract_kind import ContractKind
 from referentiel.value_objects.country import Country
 from referentiel.value_objects.departement_region import (
     overseas_region_for_department,
+    overseas_territory_for_country,
     zone_pour_departement,
 )
 from referentiel.value_objects.department import Department
@@ -66,24 +67,6 @@ logger = logging.getLogger(__name__)
 _LEGIFRANCE_URL = re.compile(r"https?://((?:www\.)?legifrance\.gouv\.fr/\S+)")
 
 WORKING_TIME_QUOTA_TYPE = "Quotité de temps de travail"
-
-# Talentsoft lets an overseas territory be entered as a country (ISO 3166-1
-# alpha-3 code, no region nor department) instead of as a French department.
-# The referentiel models them as FRA + department: map the first form to the
-# second one, so that they are not taken for offers abroad.
-_OVERSEAS_DEPARTMENT_BY_COUNTRY: dict[str, str] = {
-    "GLP": "971",
-    "MTQ": "972",
-    "GUF": "973",
-    "REU": "974",
-    "SPM": "975",
-    "MYT": "976",
-    "BLM": "977",
-    "MAF": "978",
-    "WLF": "WLF",
-    "PYF": "987",
-    "NCL": "988",
-}
 
 # Abroad, the area cannot be deduced from a department: it is read from
 # geographicalLocation[0].
@@ -856,8 +839,11 @@ class OffersCleaner:
         if transcoder and country_code:
             country_code = transcoder.translate("pays", country_code) or country_code
 
-        if country_code in _OVERSEAS_DEPARTMENT_BY_COUNTRY:
-            department_code = _OVERSEAS_DEPARTMENT_BY_COUNTRY[country_code]
+        overseas_territory = (
+            overseas_territory_for_country(country_code) if country_code else None
+        )
+        if overseas_territory is not None:
+            department_code = overseas_territory.department.code
             # Placeholder: the overseas region is deduced from the department.
             region_code = "TOM"
             country_code = FRANCE

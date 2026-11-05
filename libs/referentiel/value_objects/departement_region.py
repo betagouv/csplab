@@ -1,3 +1,5 @@
+from typing import NamedTuple
+
 from referentiel.value_objects.area import GeographicalArea
 from referentiel.value_objects.department import Department
 from referentiel.value_objects.region import Region
@@ -143,3 +145,30 @@ def department_belongs_to_region(department: Department, region: Region) -> bool
         return True
     region_and_area = region_et_zone_pour_departement(department)
     return region_and_area is not None and region_and_area[0] == region
+
+
+class OverseasTerritory(NamedTuple):
+    name: str
+    department: Department
+
+
+_OVERSEAS_TERRITORY_BY_COUNTRY: dict[str, OverseasTerritory] = {
+    country: OverseasTerritory(name, Department(code=code))
+    for country, name, code in (
+        ("GLP", "Guadeloupe", "971"),
+        ("MTQ", "Martinique", "972"),
+        ("GUF", "Guyane", "973"),
+        ("REU", "La Réunion", "974"),
+        ("SPM", "Saint-Pierre-et-Miquelon", "975"),
+        ("MYT", "Mayotte", "976"),
+        ("BLM", "Saint-Barthélemy", "977"),
+        ("MAF", "Saint-Martin", "978"),
+        ("WLF", "Wallis-et-Futuna", "WLF"),
+        ("PYF", "Polynésie française", "987"),
+        ("NCL", "Nouvelle-Calédonie", "988"),
+    )
+}
+
+
+def overseas_territory_for_country(country_code: str) -> OverseasTerritory | None:
+    return _OVERSEAS_TERRITORY_BY_COUNTRY.get(country_code)
