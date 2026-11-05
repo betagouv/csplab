@@ -4563,9 +4563,6 @@ components:
           type: integer
           maximum: 8
           minimum: 1
-          description: Niveau de diplôme exigé, de 1 à 8, selon le cadre national
-            des certifications professionnelles (ex. 4 pour le baccalauréat, 6 pour
-            la licence, 7 pour le master).
         experience:
           allOf:
           - $ref: '#/components/schemas/ExperienceEnum'
@@ -4582,7 +4579,6 @@ components:
           description: Spécialisations attendues, en libellés texte (ex. `Droit public`).
         diplome:
           type: string
-          description: Diplôme exigé, en texte libre (ex. `Diplôme d'Etat d'infirmier`).
         documents_requis:
           type: array
           items:

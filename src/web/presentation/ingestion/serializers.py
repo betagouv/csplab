@@ -1062,9 +1062,6 @@ class CriteriaInputSerializer(serializers.Serializer):
         min_value=Diploma.MIN_DIPLOMA_LEVEL,
         max_value=Diploma.MAX_DIPLOMA_LEVEL,
         required=False,
-        help_text="Niveau de diplôme exigé, de 1 à 8, selon le cadre national des "
-        "certifications professionnelles (ex. 4 pour le baccalauréat, 6 pour la "
-        "licence, 7 pour le master).",
     )
     experience = serializers.ChoiceField(
         choices=[(c.name, c.value) for c in ExperienceLevel],
@@ -1076,10 +1073,7 @@ class CriteriaInputSerializer(serializers.Serializer):
         required=False,
         help_text="Spécialisations attendues, en libellés texte (ex. `Droit public`).",
     )
-    diplome = serializers.CharField(
-        required=False,
-        help_text="Diplôme exigé, en texte libre (ex. `Diplôme d'Etat d'infirmier`).",
-    )
+    diplome = serializers.CharField(required=False)
     documents_requis = serializers.ListField(
         child=serializers.ChoiceField(
             choices=[(c.name, c.value) for c in RequiredDocument]
