@@ -28,7 +28,7 @@ if git ls-remote --exit-code --heads origin "$BRANCH" > /dev/null 2>&1; then
   exit 1
 fi
 
-git switch -c "$BRANCH"
+git switch -C "$BRANCH"
 commits=0
 
 abort_and_clean() {
@@ -58,7 +58,7 @@ upgrade_project() {
 upgrade_pnpm() {
   local dir="src/web"
   echo "▶ [web-front] mise à jour des dépendances"
-  ( cd "$dir" && pnpm update )
+  ( cd "$dir" && pnpm update --no-save )
 
   if git diff --quiet -- "$dir/pnpm-lock.yaml"; then
     echo "⚠ [web-front] no dependency changes, skipping"
