@@ -3,8 +3,7 @@ name: Lib Version Bump Check
 on:
   pull_request:
     types: [opened, synchronize, reopened]
-    paths:
-      - "libs/**"
+  merge_group:
 
 permissions:
   contents: read
@@ -14,7 +13,22 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
+  check-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      libs: ${{ steps.filter.outputs.libs }}
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+      - uses: dorny/paths-filter@fbd0ab8f3e69293af611ebaee6363fc25e6d187d # v4.0.1
+        id: filter
+        with:
+          filters: |
+            libs:
+              - "libs/**"
+
   check-version-bump:
+    needs: check-changes
+    if: needs.check-changes.outputs.libs == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
@@ -23,8 +37,8 @@ jobs:
 
       - name: Check that every changed lib version was bumped
         env:
-          BASE_SHA: ${{ github.event.pull_request.base.sha }}
-          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.merge_group.base_sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha || github.event.merge_group.head_sha }}
         run: |
           STATUS=0
           for LIB in ddd referentiel scaleway_secrets; do
