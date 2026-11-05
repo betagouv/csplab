@@ -6,6 +6,8 @@ export type OrganismeRecherche = components['schemas']['OrganismeRecherche']
 
 export type OrganismeDetail = components['schemas']['OrganismeDetail']
 
+export type OrganismeRead = components['schemas']['OrganismeRead']
+
 export type CreateOrganismePayload = components['schemas']['CreateOrganisme']
 
 export type UpdateOrganismePayload = components['schemas']['UpdateOrganisme']

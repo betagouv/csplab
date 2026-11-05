@@ -729,7 +729,7 @@ export interface components {
             /** Format: uuid */
             document_uuid: string | null;
             navigation_candidature_uuids: string[];
-            authorized_actions: components["schemas"]["AuthorizedActionsEnum"][];
+            readonly authorized_actions: components["schemas"]["AuthorizedActionsEnum"][];
         };
         CandidatureEchec: {
             /** Format: uuid */
@@ -930,7 +930,7 @@ export interface components {
             /** Format: date-time */
             publie_le: string;
             est_privee: boolean;
-            authorized_actions: components["schemas"]["AuthorizedActionsEnum"][];
+            readonly authorized_actions: components["schemas"]["AuthorizedActionsEnum"][];
         };
         NoteDetail: {
             /** Format: uuid */
@@ -982,6 +982,20 @@ export interface components {
             /** Format: date-time */
             readonly date_creation: string;
         };
+        OrganismeRead: {
+            /** Format: uuid */
+            readonly uuid: string;
+            readonly nom: string;
+            readonly versant: components["schemas"]["VersantEnum"];
+            readonly siret: string;
+            readonly superviseurs: string;
+            readonly gestion_ats: boolean;
+            /** Format: date-time */
+            readonly date_derniere_activite: string;
+            /** Format: date-time */
+            readonly date_creation: string;
+            readonly authorized_actions: components["schemas"]["AuthorizedActionsEnum"][];
+        };
         OrganismeRecherche: {
             /** Format: uuid */
             uuid: string;
@@ -1008,7 +1022,7 @@ export interface components {
             date_creation: string;
             nombre_agents: number;
             nombre_offres_publiees: number;
-            authorized_actions: components["schemas"]["AuthorizedActionsEnum"][];
+            readonly authorized_actions: components["schemas"]["AuthorizedActionsEnum"][];
         };
         PaginatedAuditLogList: {
             /** @example 123 */
@@ -1205,7 +1219,7 @@ export interface components {
              *     * `contributeur` - contributeur
              */
             recrutement_role: (components["schemas"]["RecrutementRoleEnum"] | components["schemas"]["NullEnum"]) | null;
-            authorized_actions: components["schemas"]["AuthorizedActionsEnum"][];
+            readonly authorized_actions: components["schemas"]["AuthorizedActionsEnum"][];
         };
         RecrutementDetailKanban: {
             /** Format: uuid */
@@ -1241,7 +1255,7 @@ export interface components {
             reference_csp: string;
             nature_offre: (components["schemas"]["NatureOffreEnum"] | components["schemas"]["NullEnum"]) | null;
             responsables: components["schemas"]["Responsable"][];
-            authorized_actions: components["schemas"]["AuthorizedActionsEnum"][];
+            readonly authorized_actions: components["schemas"]["AuthorizedActionsEnum"][];
             /** Format: date-time */
             date_publication: string;
             candidatures: components["schemas"]["CandidaturesActives"] | null;
@@ -1256,7 +1270,7 @@ export interface components {
             reference_csp: string;
             nature_offre: (components["schemas"]["NatureOffreEnum"] | components["schemas"]["NullEnum"]) | null;
             responsables: components["schemas"]["Responsable"][];
-            authorized_actions: components["schemas"]["AuthorizedActionsEnum"][];
+            readonly authorized_actions: components["schemas"]["AuthorizedActionsEnum"][];
             /** Format: date-time */
             date_archivage: string;
             finalise: boolean;
@@ -1341,14 +1355,14 @@ export interface components {
             nom: string;
             is_staff: boolean;
             organisme_roles: components["schemas"]["OrganismeRole"][];
-            authorized_actions: components["schemas"]["AuthorizedActionsEnum"][];
+            readonly authorized_actions: components["schemas"]["AuthorizedActionsEnum"][];
             organismes: components["schemas"]["UtilisateurOrganisme"][];
         };
         UtilisateurOrganisme: {
             /** Format: uuid */
             uuid: string;
             nom: string;
-            authorized_actions: components["schemas"]["AuthorizedActionsEnum"][];
+            readonly authorized_actions: components["schemas"]["AuthorizedActionsEnum"][];
         };
         /**
          * @description * `FPT` - FPT
@@ -1679,7 +1693,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["OrganismeDetail"];
+                    "application/json": components["schemas"]["OrganismeRead"];
                 };
             };
             401: {

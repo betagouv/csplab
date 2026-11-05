@@ -39,6 +39,7 @@ from presentation.recruteur.serializers import (
     EtapeRecrutementSerializer,
     MotifRefusSerializer,
     OrganismeDetailSerializer,
+    OrganismeReadSerializer,
     UpdateEtapeRecrutementSerializer,
     UpdateOrganismeSerializer,
 )
@@ -50,7 +51,7 @@ from presentation.recruteur.serializers import (
         tags=["recruteur"],
         responses={
             **generic_response_format,
-            200: OrganismeDetailSerializer,
+            200: OrganismeReadSerializer,
         },
     ),
     put=extend_schema(
@@ -72,7 +73,7 @@ class OrganismeDetailView(SessionApiMixin, APIView):
             organisme = get_organisme(
                 organisme_id=organisme_uuid, utilisateur=request.user
             )
-            return Response(OrganismeDetailSerializer(organisme).data)
+            return Response(OrganismeReadSerializer(organisme).data)
         except OrganismeNexistePas as e:
             serializer = GenericErrorSerializer({"error": str(e)})
             return Response(serializer.data, status=status.HTTP_404_NOT_FOUND)

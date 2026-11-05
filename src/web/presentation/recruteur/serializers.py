@@ -126,6 +126,14 @@ class OrganismeDetailSerializer(serializers.ModelSerializer):
         return ""
 
 
+class OrganismeReadSerializer(OrganismeDetailSerializer):
+    authorized_actions = authorized_actions_field()
+
+    class Meta(OrganismeDetailSerializer.Meta):
+        fields = [*OrganismeDetailSerializer.Meta.fields, "authorized_actions"]
+        read_only_fields = fields
+
+
 class UpdateOrganismeSerializer(serializers.Serializer):
     nom = serializers.CharField()
     versant = serializers.ChoiceField(

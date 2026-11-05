@@ -421,7 +421,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OrganismeDetail'
+                $ref: '#/components/schemas/OrganismeRead'
           description: ''
           headers:
             X-RateLimit-Limit:
@@ -6074,6 +6074,7 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/AuthorizedActionsEnum'
+          readOnly: true
       required:
       - authorized_actions
       - candidat
@@ -6550,6 +6551,7 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/AuthorizedActionsEnum'
+          readOnly: true
       required:
       - authorized_actions
       - candidature_id
@@ -6699,6 +6701,54 @@ components:
       - superviseurs
       - uuid
       - versant
+    OrganismeRead:
+      type: object
+      properties:
+        uuid:
+          type: string
+          format: uuid
+          readOnly: true
+        nom:
+          type: string
+          readOnly: true
+        versant:
+          allOf:
+          - $ref: '#/components/schemas/VersantEnum'
+          readOnly: true
+        siret:
+          type: string
+          readOnly: true
+          maxLength: 14
+          minLength: 14
+        superviseurs:
+          type: string
+          readOnly: true
+        gestion_ats:
+          type: boolean
+          readOnly: true
+        date_derniere_activite:
+          type: string
+          format: date-time
+          readOnly: true
+        date_creation:
+          type: string
+          format: date-time
+          readOnly: true
+        authorized_actions:
+          type: array
+          items:
+            $ref: '#/components/schemas/AuthorizedActionsEnum'
+          readOnly: true
+      required:
+      - authorized_actions
+      - date_creation
+      - date_derniere_activite
+      - gestion_ats
+      - nom
+      - siret
+      - superviseurs
+      - uuid
+      - versant
     OrganismeRecherche:
       type: object
       properties:
@@ -6763,6 +6813,7 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/AuthorizedActionsEnum'
+          readOnly: true
       required:
       - authorized_actions
       - date_creation
@@ -7101,6 +7152,7 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/AuthorizedActionsEnum'
+          readOnly: true
       required:
       - archive
       - authorized_actions
@@ -7199,6 +7251,7 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/AuthorizedActionsEnum'
+          readOnly: true
         date_publication:
           type: string
           format: date-time
@@ -7246,6 +7299,7 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/AuthorizedActionsEnum'
+          readOnly: true
         date_archivage:
           type: string
           format: date-time
@@ -7453,6 +7507,7 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/AuthorizedActionsEnum'
+          readOnly: true
         organismes:
           type: array
           items:
@@ -7477,6 +7532,7 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/AuthorizedActionsEnum'
+          readOnly: true
       required:
       - authorized_actions
       - nom

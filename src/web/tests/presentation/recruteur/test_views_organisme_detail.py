@@ -16,6 +16,7 @@ from domain.identite.errors.organisme_permission_errors import (
     AccesOrganismeRefuse,
     OperationOrganismeRefusee,
 )
+from domain.identite.value_objects.organisme_action import OrganismeAction
 from domain.recruteur.entities.etape_recrutement import EtapeRecrutement
 from domain.recruteur.value_objects.categorie_etapes_recrutement import (
     CategorieEtapeRecrutement,
@@ -24,6 +25,7 @@ from domain.recruteur.value_objects.roles import AgentOrganismeRole
 from infrastructure.django_apps.commons.models import AuditLogModel
 from infrastructure.django_apps.recruteur.enums.motif_refus import MotifRefus
 from infrastructure.django_apps.recruteur.models.organisme import OrganismeModel
+from infrastructure.django_apps.users.models import UserModel
 from infrastructure.factories.identite.organisme_django_factory import (
     OrganismeDjangoFactory,
     create_organisme_with_agent,
@@ -47,6 +49,23 @@ ORGANISME_UUID = fake.uuid4()
 ORGANISME_URL = reverse(
     "recruteur:organisme_detail", kwargs={"organisme_uuid": ORGANISME_UUID}
 )
+
+
+def _authorized_actions(*, is_staff: bool) -> list[str]:
+    permissions = OrganismePermissionService()
+    utilisateur = UserModel(is_staff=is_staff)
+    actions = {
+        *permissions.authorized_actions_organisme(
+            AgentOrganismeRole.SUPERVISEUR,
+            utilisateur=utilisateur,
+            organisme_id=UUID(ORGANISME_UUID),
+            organisme_ids_responsable=frozenset(),
+        ),
+        *permissions.authorized_actions_staff_organisme(utilisateur),
+    }
+    return [action.value for action in OrganismeAction if action in actions]
+
+
 ETAPES_URL = reverse(
     "recruteur:organisme_parametres_etapes",
     kwargs={"organisme_uuid": ORGANISME_UUID},
@@ -122,6 +141,7 @@ class TestOrganismeDetailView:
             "gestion_ats": True,
             "date_creation": "2019-03-01T09:00:00Z",
             "date_derniere_activite": "2026-01-15T10:00:00Z",
+            "authorized_actions": _authorized_actions(is_staff=True),
         }
 
     def test_superviseur_gets_organisme(self, authenticated_client, test_user):
@@ -132,6 +152,21 @@ class TestOrganismeDetailView:
         assert response.status_code == status.HTTP_200_OK
         assert response.json()["uuid"] == ORGANISME_UUID
         assert response.json()["nom"] == organisme.nom
+        assert response.json()["authorized_actions"] == _authorized_actions(
+            is_staff=False
+        )
+
+    def test_authorized_actions_match_the_list_of_organismes(self, staff_client):
+        OrganismeDjangoFactory(id=UUID(ORGANISME_UUID))
+
+        detail = staff_client.get(ORGANISME_URL).json()
+        liste = staff_client.get(reverse("recruteur:organismes")).json()
+
+        assert [
+            organisme["authorized_actions"]
+            for organisme in liste["results"]
+            if organisme["uuid"] == ORGANISME_UUID
+        ] == [detail["authorized_actions"]]
 
     def test_membre_is_forbidden(self, authenticated_client, test_user):
         _membre_agent(test_user)

@@ -14,6 +14,9 @@ from infrastructure.factories.identite.organisme_django_factory import (
     OrganismeDjangoFactory,
     create_organisme_with_agent,
 )
+from infrastructure.factories.identite.utilisateur_django_factory import (
+    UtilisateurDjangoFactory,
+)
 
 pytestmark = pytest.mark.django_db
 
@@ -58,3 +61,24 @@ def test_raises_when_organisme_is_supprime_after_permission_check():
             get_organisme(organisme_id=organisme.id, utilisateur=agent.utilisateur)
 
     assert raised.value.identifier == str(organisme.id)
+
+
+def test_exposes_the_actions_of_a_superviseur():
+    agent, organisme = create_organisme_with_agent(role=AgentOrganismeRole.SUPERVISEUR)
+
+    resultat = get_organisme(organisme_id=organisme.id, utilisateur=agent.utilisateur)
+
+    actions = resultat.authorized_actions  # type: ignore[attr-defined]
+    assert {"get_organisme", "attach_organisme_agent", "update_organisme_steps"} <= set(
+        actions
+    )
+
+
+def test_staff_gets_the_actions_of_a_superviseur_without_liaison():
+    organisme = OrganismeDjangoFactory()
+    staff = UtilisateurDjangoFactory(is_staff=True)
+
+    resultat = get_organisme(organisme_id=organisme.id, utilisateur=staff)
+
+    assert resultat == organisme
+    assert "get_organisme" in resultat.authorized_actions  # type: ignore[attr-defined]
