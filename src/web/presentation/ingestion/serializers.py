@@ -410,12 +410,23 @@ class OfferDetailQuerySerializer(serializers.Serializer):
     )
 
 
+@extend_schema_field(
+    {"oneOf": [{"type": "integer"}, {"type": "string"}], "nullable": True}
+)
+class FakeTsParentCodeField(serializers.Field):
+    """Talentsoft's integer `code` of the parent, or, for places whose `code`
+    is null, the parent's `clientCode`."""
+
+    def to_representation(self, value: int | str) -> int | str:
+        return value
+
+
 class FakeTsCodedObjectSerializer(serializers.Serializer):
     code = serializers.IntegerField(allow_null=True)
     clientCode = serializers.CharField()
     label = serializers.CharField()
     active = serializers.BooleanField()
-    parentCode = serializers.IntegerField(allow_null=True)
+    parentCode = FakeTsParentCodeField(allow_null=True)
     type = serializers.CharField()
     parentType = serializers.CharField(allow_blank=True)
     hasChildren = serializers.BooleanField()
