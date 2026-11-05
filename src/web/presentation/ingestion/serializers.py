@@ -24,6 +24,7 @@ from referentiel.value_objects.offer_conditions import (
 from referentiel.value_objects.offer_nature import OfferNature
 from referentiel.value_objects.region import Region
 from referentiel.value_objects.required_document import RequiredDocument
+from referentiel.value_objects.state_diploma import TALENTSOFT_STATE_DIPLOMAS
 from referentiel.value_objects.verse import Verse
 from rest_framework import serializers
 
@@ -998,7 +999,15 @@ class CriteriaInputSerializer(serializers.Serializer):
     specialisations = serializers.ListField(
         child=serializers.CharField(), required=False
     )
-    diplome = serializers.CharField(required=False)
+    diplome = serializers.CharField(
+        required=False,
+        help_text="Diplôme exigé, en texte libre. Indiquez de préférence l'un des "
+        "libellés du référentiel des diplômes d'État, à l'identique : l'API "
+        "fake-ts ne transmet que ces libellés comme diplôme d'État exigé, dans "
+        "`customFields.offerCustomBlock1.customCodeTable3`. Liste indicative, "
+        "toute autre valeur reste acceptée :\n\n"
+        + "\n".join(f"- `{d.label}`" for d in TALENTSOFT_STATE_DIPLOMAS),
+    )
     documents_requis = serializers.ListField(
         child=serializers.ChoiceField(
             choices=[(c.name, c.value) for c in RequiredDocument]
