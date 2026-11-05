@@ -17,6 +17,7 @@ URL = reverse("ingestion:metiers_list")
 
 NOMBRE_REQUETES_ATTENDU = (
     1  # authentification JWT
+    + 1  # restriction IP du compte JWT
     + 2  # pagination : count + page
     + 1  # ApiRequestLoggerMiddleware redecode JWT token for logging
     # TODO: refactor ADR-009 : simplify UPDATE/INSERT

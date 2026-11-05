@@ -35,6 +35,7 @@ URL = reverse("ingestion_fake_ts:offer_summaries")
 
 NOMBRE_REQUETES_ATTENDU = (
     1  # view JWT authentication
+    + 1  # JWT account's allowed networks
     + 2  # pagination: count + slice
     + 1  # prefetch of the offers' localisations
     + 1  # ApiRequestLoggerMiddleware re-decodes the JWT to log the request

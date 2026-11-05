@@ -19,9 +19,7 @@ from referentiel.value_objects.verse import Verse
 from rest_framework import status
 
 from application.ingestion.interfaces.list_offers_input import GetFilteredOffersInput
-from infrastructure.authentication.api_key_authentication import (
-    ApiKeyRejectionRateThrottle,
-)
+from infrastructure.authentication.rejection import AuthRejectionRateThrottle
 from infrastructure.django_apps.commons.models import AuditLoginLogModel
 from infrastructure.factories.ingestion.talentsoft_organisme_django_factory import (
     TalentsoftOrganismeDjangoFactory,
@@ -36,6 +34,7 @@ URL = reverse("ingestion:offers_list")
 
 NOMBRE_REQUETES_ATTENDU = (
     1  # view JWT authentication
+    + 1  # JWT account's allowed networks
     + 2  # pagination: count + page
     + 1  # prefetch of the offers' localisations
     + 1  # ApiRequestLoggerMiddleware re-decodes the JWT to log the request
@@ -66,7 +65,7 @@ def test_invalid_api_key_returns_401(api_client):
 
 
 @patch.object(
-    ApiKeyRejectionRateThrottle, "THROTTLE_RATES", {"api_key_rejection": "1/minute"}
+    AuthRejectionRateThrottle, "THROTTLE_RATES", {"auth_rejection": "1/minute"}
 )
 def test_repeated_invalid_api_key_is_throttled(api_client, db):
     cache.clear()

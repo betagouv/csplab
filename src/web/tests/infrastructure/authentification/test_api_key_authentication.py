@@ -11,10 +11,10 @@ from infrastructure.authentication.api_key_authentication import (
     ApiKeyAuthentication,
     ApiKeyRateThrottle,
     ApiKeyRateThrottleDaily,
-    ApiKeyRejectionRateThrottle,
     NonApiKeyUserRateThrottle,
     _IngestionApiKeyUser,
 )
+from infrastructure.authentication.rejection import AuthRejectionRateThrottle
 from infrastructure.django_apps.commons.enums import Canal, Resultat
 from infrastructure.django_apps.commons.models import AuditLoginLogModel
 
@@ -322,11 +322,11 @@ REJECTION_LIMIT = 2
 
 
 @patch.object(
-    ApiKeyRejectionRateThrottle,
+    AuthRejectionRateThrottle,
     "THROTTLE_RATES",
-    {"api_key_rejection": f"{REJECTION_LIMIT}/minute"},
+    {"auth_rejection": f"{REJECTION_LIMIT}/minute"},
 )
-class TestApiKeyRejectionRateThrottle:
+class TestApiKeyRejectionThrottle:
     @pytest.fixture(autouse=True)
     def clear_cache(self):
         cache.clear()
