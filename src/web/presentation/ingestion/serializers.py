@@ -645,8 +645,10 @@ class LocalisationInputSerializer(LocalisationSerializer):
         min_length=3,
         help_text="Code pays ISO 3166-1 alpha-3, en majuscules (ex. `FRA`). Pour "
         "`FRA`, `region` et `departement` sont obligatoires ; pour un autre pays, "
-        "ils valent `null`. Les collectivités d'outre-mer sont en `FRA`, avec la "
-        "région `TOM`.",
+        "ils valent `null`. L'outre-mer est en `FRA`, avec son département : région "
+        "`DOM` pour les départements d'outre-mer (ex. `971` pour la Guadeloupe), "
+        "`TOM` pour les collectivités d'outre-mer (ex. `988` pour la "
+        "Nouvelle-Calédonie). N'utilisez pas leur code ISO (`GLP`, `NCL`…).",
     )
     region = serializers.ChoiceField(
         choices=sorted(Region.VALID_CODES, key=lambda x: x),

@@ -5947,10 +5947,12 @@ components:
             * `MO` - MOYEN_ORIENT_AFRIQUE_DU_NORD
         pays:
           type: string
-          description: Code pays ISO 3166-1 alpha-3, en majuscules (ex. `FRA`). Pour
+          description: 'Code pays ISO 3166-1 alpha-3, en majuscules (ex. `FRA`). Pour
             `FRA`, `region` et `departement` sont obligatoires ; pour un autre pays,
-            ils valent `null`. Les collectivités d'outre-mer sont en `FRA`, avec la
-            région `TOM`.
+            ils valent `null`. L''outre-mer est en `FRA`, avec son département : région
+            `DOM` pour les départements d''outre-mer (ex. `971` pour la Guadeloupe),
+            `TOM` pour les collectivités d''outre-mer (ex. `988` pour la Nouvelle-Calédonie).
+            N''utilisez pas leur code ISO (`GLP`, `NCL`…).'
           maxLength: 3
           minLength: 3
         region:
