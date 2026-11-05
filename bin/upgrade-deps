@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 #
 # Upgrade the locked dependencies of every project in a single branch:
-# libs/ first (with a patch version bump when their lock changes), then src/
-# so that the services pick up the updated libs, then the pnpm lock of the web
-# front. One commit per project.
+# libs/, then src/, then the pnpm lock of the web front. One commit per project.
+# Only lock files change: no version bump, since the pyproject.toml
+# dependencies are left untouched and services consume libs as editable paths.
 # Pushes the branch and returns to main.
 #
-set -euo pipefail
+set -Eeuo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$REPO_ROOT"
@@ -31,27 +31,23 @@ fi
 git switch -c "$BRANCH"
 commits=0
 
-bump_patch_version() {
-  local pyproject="$1" current major minor patch
-  current="$(sed -n 's/^version = "\(.*\)"$/\1/p' "$pyproject" | head -n 1)"
-  IFS=. read -r major minor patch <<< "$current"
-  sed -i "0,/^version = \".*\"$/s//version = \"$major.$minor.$((patch + 1))\"/" "$pyproject"
+abort_and_clean() {
+  trap - ERR
+  echo "✖ échec, retour sur main et suppression de la branche locale $BRANCH" >&2
+  git reset --hard --quiet
+  git switch --quiet main
+  git branch -D "$BRANCH"
 }
+trap abort_and_clean ERR
 
 upgrade_project() {
-  local dir="$1" bump="$2" name="${1##*/}"
+  local dir="$1" name="${1##*/}"
   echo "▶ [$name] mise à jour des dépendances"
   ( cd "$dir" && uv lock --upgrade )
 
   if git diff --quiet -- "$dir/uv.lock"; then
     echo "⚠ [$name] no dependency changes, skipping"
     return
-  fi
-
-  if [ "$bump" = "bump" ]; then
-    bump_patch_version "$dir/pyproject.toml"
-    ( cd "$dir" && uv lock )
-    git add "$dir/pyproject.toml"
   fi
 
   git add "$dir/uv.lock"
@@ -75,11 +71,11 @@ upgrade_pnpm() {
 }
 
 for dir in "${LIBS[@]}"; do
-  upgrade_project "$dir" bump
+  upgrade_project "$dir"
 done
 
 for dir in "${SERVICES[@]}"; do
-  upgrade_project "$dir" nobump
+  upgrade_project "$dir"
 done
 
 upgrade_pnpm
@@ -89,6 +85,7 @@ if [ "$commits" -eq 0 ]; then
   git switch main
   git branch -D "$BRANCH"
 else
+  trap - ERR
   git push -u origin "$BRANCH"
   git switch main
 fi
