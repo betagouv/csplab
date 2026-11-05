@@ -12,6 +12,7 @@ from domain.recruteur.value_objects.roles import (
 )
 from infrastructure.django_apps.commons.models import AuditLogModel
 from infrastructure.django_apps.recruteur.models.note import NoteModel
+from infrastructure.django_apps.tag.models import NoteTagModel, TagCategory, TagColor
 from infrastructure.factories.candidate.candidature_django_factory import (
     CandidatureDjangoFactory,
     create_recrutement_and_candidature_for_agent,
@@ -20,6 +21,10 @@ from infrastructure.factories.recruteur.note_django_factory import NoteDjangoFac
 from infrastructure.factories.recruteur.recrutement_django_factory import (
     RecrutementAgentDjangoFactory,
     RecrutementDjangoFactory,
+)
+from infrastructure.factories.tag.tag_django_factory import (
+    NoteTagDjangoFactory,
+    TagDjangoFactory,
 )
 from presentation.commons.pagination import TaillePageNumberPagination
 
@@ -188,6 +193,7 @@ class TestCandidatureNotesView:
         assert data["candidature_id"] == str(candidature.id)
         assert data["publie_par_id"] == str(test_user.username)
         assert data["est_privee"] is False
+        assert data["tags"] == []
 
         note = NoteModel.objects.get(id=data["uuid"])
         assert note.message == "Nouvelle note"
@@ -509,6 +515,43 @@ class TestCandidatureNoteDetailView:
         assert response.status_code == status.HTTP_200_OK
         assert response.json()["message"] == "Message modifié"
         assert NoteModel.objects.get(id=note.id).message == "Message modifié"
+
+    def test_patch_returns_the_note_tags_in_pose_order(
+        self, authenticated_client, test_user
+    ):
+        agent, organisme, recrutement, candidature = (
+            create_recrutement_and_candidature_for_agent(utilisateur=test_user)
+        )
+        note = NoteDjangoFactory(candidature=candidature, publie_par=agent)
+        alpha = TagDjangoFactory(
+            organisme=organisme,
+            category=TagCategory.NOTE,
+            name="Alpha",
+            color=TagColor.ROUGE,
+        )
+        bravo = TagDjangoFactory(
+            organisme=organisme,
+            category=TagCategory.NOTE,
+            name="Bravo",
+            color=TagColor.VERT,
+        )
+        NoteTagDjangoFactory(note=note, tag=alpha)
+        bravo_pose = NoteTagDjangoFactory(note=note, tag=bravo)
+        NoteTagModel.objects.filter(pk=bravo_pose.pk).update(
+            created_at=timezone.now() - timedelta(minutes=1)
+        )
+
+        response = authenticated_client.patch(
+            _note_detail_url(organisme.id, recrutement.pk, candidature.id, note.id),
+            data={"message": "Message modifié"},
+            format="json",
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json()["tags"] == [
+            {"uuid": str(bravo.id), "name": "Bravo", "color": "vert"},
+            {"uuid": str(alpha.id), "name": "Alpha", "color": "rouge"},
+        ]
 
     def test_delete_removes_the_note(self, authenticated_client, test_user):
         agent, organisme, recrutement, candidature = (

@@ -10,6 +10,9 @@ from application.recruteur.services.create_note import create_note
 from application.recruteur.services.delete_note import delete_note
 from application.recruteur.services.list_notes import list_notes
 from application.recruteur.services.update_note import update_note
+from application.recruteur.services.update_note_visibility import (
+    update_note_visibility,
+)
 from domain.identite.errors.organisme_permission_errors import (
     AccesOrganismeRefuse,
     AccesRecrutementRefuse,
@@ -38,6 +41,7 @@ from infrastructure.factories.recruteur.note_django_factory import NoteDjangoFac
 from infrastructure.factories.recruteur.recrutement_django_factory import (
     RecrutementDjangoFactory,
 )
+from infrastructure.factories.tag.tag_django_factory import NoteTagDjangoFactory
 from infrastructure.repositories.commons.postgres_audit_log_repository import (
     PostgresAuditLogRepository,
 )
@@ -216,6 +220,22 @@ class TestCreateNote:
         assert log.event_name == "NoteAjoutee"
         assert str(log.utilisateur_id) == str(agent.utilisateur_id)
 
+    def test_create_note_has_no_tags_to_load(self, db, django_assert_num_queries):
+        agent, organisme, recrutement, candidature = (
+            create_recrutement_and_candidature_for_agent()
+        )
+
+        note = create_note(
+            organisme_id=organisme.id,
+            recrutement_id=recrutement.pk,
+            candidature_id=candidature.id,
+            message=fake.sentence(),
+            utilisateur=agent.utilisateur,
+        )
+
+        with django_assert_num_queries(0):
+            assert note.tags == []
+
     def test_denied_without_organisme_role(self, db):
         _, organisme, recrutement, candidature = (
             create_recrutement_and_candidature_for_agent()
@@ -312,6 +332,27 @@ class TestUpdateNote:
         assert NoteModel.objects.get(pk=note.id).message == "après"
         (log,) = _logs(note.id)
         assert log.event_name == "NoteEditee"
+
+    def test_update_note_loads_its_tags(self, db, django_assert_num_queries):
+        agent, organisme, recrutement, candidature = (
+            create_recrutement_and_candidature_for_agent()
+        )
+        note = NoteDjangoFactory(candidature=candidature, publie_par=agent)
+        liaisons = NoteTagDjangoFactory.create_batch(2, note=note)
+
+        edited = update_note(
+            organisme_id=organisme.id,
+            recrutement_id=recrutement.pk,
+            candidature_id=candidature.id,
+            note_id=note.id,
+            message="après",
+            utilisateur=agent.utilisateur,
+        )
+
+        with django_assert_num_queries(0):
+            tag_ids = [tag.id for tag in edited.tags]
+
+        assert sorted(tag_ids) == sorted(liaison.tag_id for liaison in liaisons)
 
     def test_update_note_unknown_note(self, db):
         agent, organisme, recrutement, candidature = (
@@ -435,6 +476,31 @@ class TestUpdateNote:
                 message="x",
                 utilisateur=agent.utilisateur,
             )
+
+
+class TestUpdateNoteVisibility:
+    def test_loads_the_note_tags(self, db, django_assert_num_queries):
+        agent, organisme, recrutement, candidature = (
+            create_recrutement_and_candidature_for_agent()
+        )
+        note = NoteDjangoFactory(
+            candidature=candidature, publie_par=agent, est_privee=False
+        )
+        liaisons = NoteTagDjangoFactory.create_batch(2, note=note)
+
+        edited = update_note_visibility(
+            organisme_id=organisme.id,
+            recrutement_id=recrutement.pk,
+            candidature_id=candidature.id,
+            note_id=note.id,
+            est_privee=True,
+            utilisateur=agent.utilisateur,
+        )
+
+        with django_assert_num_queries(0):
+            tag_ids = [tag.id for tag in edited.tags]
+
+        assert sorted(tag_ids) == sorted(liaison.tag_id for liaison in liaisons)
 
 
 class TestDeleteNote:

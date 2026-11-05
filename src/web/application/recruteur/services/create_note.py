@@ -15,6 +15,7 @@ from application.recruteur.context_services.recrutement_agent_service import (
 from domain.commons.services.audit_log_writer import AuditLogWriter
 from domain.identite.value_objects.organisme_action import OrganismeAction
 from infrastructure.django_apps.recruteur.models.note import NoteModel
+from infrastructure.django_apps.tag.models import NoteTagModel
 from infrastructure.django_apps.users.models import UserModel
 from infrastructure.repositories.commons.postgres_audit_log_repository import (
     PostgresAuditLogRepository,
@@ -55,6 +56,10 @@ def create_note(
             message=message,
             est_privee=est_privee,
         )
+        # note neuve : cache de prefetch vide, aucune étiquette à relire
+        note._prefetched_objects_cache = {  # type: ignore[attr-defined]
+            "tags_liaisons": NoteTagModel.objects.none()
+        }
         AuditLogWriter(repository=PostgresAuditLogRepository()).log_action(
             utilisateur_id=publie_par_id,
             entity=Entity(entity_id=note.id),

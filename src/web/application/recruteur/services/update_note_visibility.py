@@ -52,6 +52,7 @@ def update_note_visibility(
                 NoteModel.objects.by_candidature_author_and_id(
                     candidature_id, utilisateur.username, note_id
                 )
+                .with_tags()
                 .select_for_update(of=("self",))
                 .get()
             )

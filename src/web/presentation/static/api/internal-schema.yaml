@@ -6576,11 +6576,34 @@ components:
           format: uuid
         est_privee:
           type: boolean
+        tags:
+          type: array
+          items:
+            $ref: '#/components/schemas/NoteTag'
+          readOnly: true
       required:
       - candidature_id
       - est_privee
       - message
       - publie_par_id
+      - tags
+      - uuid
+    NoteTag:
+      type: object
+      properties:
+        uuid:
+          type: string
+          format: uuid
+        name:
+          type: string
+          maxLength: 25
+        color:
+          allOf:
+          - $ref: '#/components/schemas/ColorEnum'
+          readOnly: true
+      required:
+      - color
+      - name
       - uuid
     NoteVisibilite:
       type: object
