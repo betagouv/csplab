@@ -184,11 +184,11 @@ SUBDIVISION_FORBIDDEN_ABROAD = (
     ("localisation", "message"),
     [
         (
-            _localisation(region="", departement=""),
+            _localisation(region=None, departement=None),
             SUBDIVISION_REQUIRED_IN_FRANCE,
         ),
         (
-            _localisation(departement=""),
+            _localisation(departement=None),
             SUBDIVISION_REQUIRED_IN_FRANCE,
         ),
         (
@@ -196,7 +196,7 @@ SUBDIVISION_FORBIDDEN_ABROAD = (
             SUBDIVISION_FORBIDDEN_ABROAD,
         ),
         (
-            _localisation(pays="DEU", region=""),
+            _localisation(pays="DEU", region=None),
             SUBDIVISION_FORBIDDEN_ABROAD,
         ),
     ],
@@ -231,7 +231,9 @@ def test_organisme_abroad_without_region_nor_department_is_accepted(
         data={
             "organismes": [
                 _organisme_payload(
-                    localisation=_localisation(pays="DEU", region="", departement="")
+                    localisation=_localisation(
+                        pays="DEU", region=None, departement=None
+                    )
                 )
             ]
         },

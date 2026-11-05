@@ -245,6 +245,21 @@ class TestOffreDetailView:
         ):
             assert expected in content, expected
 
+    def test_joins_every_localisation_in_order(self, client, source):
+        offer = OfferDjangoFactory(
+            source=source,
+            localisations=[
+                {"area": "EU", "country": "FRA", "region": "28", "department": "14"},
+                {"area": "EU", "country": "DEU", "label": "Berlin"},
+            ],
+        )
+
+        content = client.get(self.url(source, offer)).content.decode()
+
+        assert "FRA ; DEU" in content
+        assert "14 ; —" in content
+        assert "— ; Berlin" in content
+
     def test_renders_markdown_descriptions(self, client, source):
         offer = OfferDjangoFactory(
             source=source,

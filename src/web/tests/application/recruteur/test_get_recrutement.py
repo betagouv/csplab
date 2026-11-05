@@ -142,17 +142,9 @@ def test_raises(scenario, expected_error):
         )
 
 
-def test_offre_with_nullable_columns_is_returned():
+def test_offre_without_localisation_is_returned():
     agent, organisme = create_organisme_with_agent(role=AgentOrganismeRole.SUPERVISEUR)
-    offre = OfferDjangoFactory(
-        area=None,
-        country=None,
-        region=None,
-        department=None,
-        location_label=None,
-        latitude=None,
-        longitude=None,
-    )
+    offre = OfferDjangoFactory(localisations=[])
     recrutement = RecrutementDjangoFactory(organisme=organisme, offre=offre)
 
     result = get_recrutement(
@@ -161,8 +153,7 @@ def test_offre_with_nullable_columns_is_returned():
         utilisateur=_utilisateur(agent),
     )
 
-    assert result.offre.country is None
-    assert result.offre.latitude is None
+    assert list(result.offre.localisations.all()) == []
 
 
 def test_etapes_ordonnees_ignores_stale_and_missing_ids():

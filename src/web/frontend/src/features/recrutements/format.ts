@@ -20,6 +20,16 @@ export function formatNatureOffreLabel(row: RecrutementBase): string {
   return row.nature_offre ? NATURE_OFFRE_LABELS[row.nature_offre] : '-'
 }
 
+export function formatLocalisationLabel(detail: RecrutementDetail): string {
+  const [principale, ...autres] = detail.localisations
+  if (!principale) {
+    return '-'
+  }
+  return autres.length
+    ? `${principale.localisation_label} + ${autres.length}`
+    : principale.localisation_label
+}
+
 export function formatRecrutementMeta(detail: RecrutementDetail): CspMetaItem[] {
   return [
     {
@@ -30,7 +40,7 @@ export function formatRecrutementMeta(detail: RecrutementDetail): CspMetaItem[] 
     {
       icon: 'ri:map-pin-2-line',
       srLabel: 'Localisation',
-      label: detail.localisation.localisation_label,
+      label: formatLocalisationLabel(detail),
     },
     {
       icon: 'ri:government-line',

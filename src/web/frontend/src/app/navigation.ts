@@ -1,5 +1,7 @@
 import type { NavItem } from '@/components/layout/CspAppShell/CspAppShell.types'
+import { HOME_BREADCRUMB_LABEL } from '@/router/breadcrumb'
 import {
+  ORGANISME_HOME_ROUTE_NAME,
   ORGANISME_SECTION_ROUTE_NAMES,
   ORGANISME_TAB_ROUTE_NAMES,
   ORGANISMES_ROUTE_NAME,
@@ -10,6 +12,15 @@ const ORGANISMES_ITEM: NavItem = {
   icon: 'ri:government-line',
   label: 'Gestion des organismes',
   to: ORGANISMES_ROUTE_NAME,
+}
+
+function homeItem(organismeUuid: string): NavItem {
+  return {
+    icon: 'ri:home-line',
+    label: HOME_BREADCRUMB_LABEL,
+    to: ORGANISME_HOME_ROUTE_NAME,
+    params: { organismeUuid },
+  }
 }
 
 function recrutementsItem(organismeUuid: string, label: string): NavItem {
@@ -49,8 +60,8 @@ export function navigationFor(options: {
   }
 
   if (!canAccessOrganismeSettings) {
-    return [recrutementsItem(organismeUuid, 'Mes recrutements')]
+    return [homeItem(organismeUuid), recrutementsItem(organismeUuid, 'Mes recrutements')]
   }
 
-  return [recrutementsItem(organismeUuid, 'Recrutements'), parametresItem(organismeUuid)]
+  return [homeItem(organismeUuid), recrutementsItem(organismeUuid, 'Recrutements'), parametresItem(organismeUuid)]
 }

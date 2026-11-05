@@ -4,7 +4,7 @@ from uuid import UUID
 from django.contrib.postgres.fields import ArrayField
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db import models
-from django.db.models import Q
+from django.db.models import Exists, F, OuterRef, Q
 from referentiel.value_objects.category import Category
 from referentiel.value_objects.offer_nature import OfferNature
 from referentiel.value_objects.verse import Verse
@@ -25,6 +25,35 @@ class OfferQuerySet(models.QuerySet):
 
     def by_references(self, references: Iterable[str]) -> "OfferQuerySet":
         return self.filter(reference__in=references)
+
+    def with_localisations(self) -> "OfferQuerySet":
+        return self.prefetch_related("localisations")
+
+    def with_localisation_in(
+        self,
+        *,
+        regions: Iterable[str] = (),
+        departments: Iterable[str] = (),
+        countries: Iterable[str] = (),
+        areas: Iterable[str] = (),
+    ) -> "OfferQuerySet":
+        localisations = self._localisations().located_in(
+            regions=regions, departments=departments, countries=countries, areas=areas
+        )
+        if localisations is None:
+            return self
+        return self.filter(Exists(localisations))
+
+    def with_localisation_within(
+        self, latitude: float, longitude: float, radius_km: float
+    ) -> "OfferQuerySet":
+        return self.filter(
+            Exists(self._localisations().within(latitude, longitude, radius_km))
+        )
+
+    def _localisations(self):
+        localisation_model = self.model._meta.get_field("localisations").related_model
+        return localisation_model.objects.filter(offer=OuterRef("pk"))
 
     def search(self, term: str) -> "OfferQuerySet":
         if not term:
@@ -76,15 +105,6 @@ class OfferModel(BaseDatedModel):
         blank=True,
     )
 
-    # Localisation fields stored separately
-    area = models.CharField(max_length=2, null=True, blank=True)
-    country = models.CharField(max_length=3, null=True, blank=True)
-    region = models.CharField(max_length=3, null=True, blank=True)
-    department = models.CharField(max_length=3, null=True, blank=True)
-    location_label = models.CharField(max_length=500, null=True, blank=True)
-    latitude = models.FloatField(null=True, blank=True)
-    longitude = models.FloatField(null=True, blank=True)
-
     long_title = models.CharField(max_length=1500, null=True, blank=True)
     application_url = models.URLField(null=True, blank=True)
     application_email = models.EmailField(null=True, blank=True)
@@ -123,6 +143,12 @@ class OfferModel(BaseDatedModel):
             models.CheckConstraint(
                 condition=~Q(categories=[]),
                 name="offer_categories_not_empty",
+            ),
+            # A long title copying the title would be weighted twice by the
+            # full-text search.
+            models.CheckConstraint(
+                condition=~Q(long_title=F("title")),
+                name="offer_long_title_differs_from_title",
             ),
         ]
 

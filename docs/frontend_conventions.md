@@ -10,7 +10,7 @@ The project **is** the ATS, so there is no top-level `ats/` feature. Business co
 src/
 ├── app/                    # Bootstrap & app config (main.ts, App.vue, navigation.ts, icons)
 ├── router/                 # Route tree (routes.ts), shared route names (names.ts), shared breadcrumb items (breadcrumb.ts)
-├── views/                  # App-level pages WITHOUT business logic (Home, NotFound)
+├── views/                  # App-level pages WITHOUT business logic (NotFound, Forbidden)
 │
 ├── features/               # Business modules (self-contained) — business views & components ONLY
 │   ├── recrutements/
@@ -70,7 +70,7 @@ The following are **not** features:
 
 | Not a feature            | Where it goes                          |
 | ------------------------ | -------------------------------------- |
-| A page with no business logic (Home, 404) | `views/`                  |
+| A page with no business logic (404, 403)  | `views/`                  |
 | The concrete app shell (sidebar + nav + user)         | `components/layout/AppShell.vue` |
 | App navigation config                     | `app/navigation.ts`       |
 | Generic UI / layout building blocks       | `components/`             |
@@ -281,6 +281,7 @@ export const useCandidatsStore = defineStore('candidats', () => {
 - One store per entity/domain, not per component
 - `use*Store` prefix
 - **Location**: a store tied to a feature lives in `features/<feature>/stores/`; a cross-cutting store (session, UI, current user) lives in the root `stores/`.
+- In tests, `src/test/setup.ts` mocks `getMe` with an account that belongs to no organisme. A test that needs an organisme, a role or a failed load sets its own `vi.mocked(getMe)` value.
 
 ## API Calls
 

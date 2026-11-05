@@ -49,8 +49,8 @@ class DescriptionPayload(BaseModel):
 class LocalisationItemPayload(BaseModel):
     zone_geographique: str
     pays: str
-    region: str
-    departement: str
+    region: Optional[str]
+    departement: Optional[str]
     localisation_label: str = ""
     latitude: Optional[float] = None
     longitude: Optional[float] = None
@@ -113,7 +113,6 @@ class ContactPayload(BaseModel):
 class OfferUpsertPayload(BaseModel):
     identification: IdentificationPayload
     titre: str
-    titre_long: str
     organisation: OrganisationPayload
     url_offre: Optional[HttpUrl] = None
     url_candidature: Optional[HttpUrl] = None
@@ -146,10 +145,10 @@ class OfferUpsertPayload(BaseModel):
                     pays=str(offer.localisation.country),
                     region=offer.localisation.region.code
                     if offer.localisation.region
-                    else "",
+                    else None,
                     departement=offer.localisation.department.code
                     if offer.localisation.department
-                    else "",
+                    else None,
                     localisation_label=offer.localisation.label or "",
                     latitude=offer.localisation.latitude,
                     longitude=offer.localisation.longitude,
@@ -165,7 +164,6 @@ class OfferUpsertPayload(BaseModel):
                 versant=offer.verse.value if offer.verse else None,
             ),
             titre=offer.title,
-            titre_long=offer.title,
             organisation=OrganisationPayload(
                 nom=offer.organization,
                 talentsoft_organisme_entity_code=offer.talentsoft_organisme_entity_code,

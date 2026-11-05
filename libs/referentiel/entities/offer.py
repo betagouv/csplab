@@ -27,7 +27,6 @@ class Offer(IEntity):
     categories: list[Category]
     offer_nature: Optional[OfferNature]
     offer_url: Optional[HttpUrl]
-    localisation: Optional[Localisation]
     publication_date: datetime
     beginning_date: Optional[LimitDate]
     reference: str
@@ -57,6 +56,7 @@ class Offer(IEntity):
     processed_at: Optional[datetime] = None
     archived_at: Optional[datetime] = None
     id: UUID = field(default_factory=uuid4)
+    localisations: list[Localisation] = field(default_factory=list)
 
     def __post_init__(self) -> None:
         if self.application_url and self.application_email:
@@ -65,3 +65,7 @@ class Offer(IEntity):
     @property
     def main_category(self) -> Optional[Category]:
         return self.categories[0] if self.categories else None
+
+    @property
+    def main_localisation(self) -> Optional[Localisation]:
+        return self.localisations[0] if self.localisations else None

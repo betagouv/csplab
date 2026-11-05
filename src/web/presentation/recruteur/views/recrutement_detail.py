@@ -12,7 +12,9 @@ from rest_framework.views import APIView
 from application.recruteur.services.get_recrutement import (
     get_recrutement,
 )
-from application.recruteur.services.list_candidatures import list_candidatures
+from application.recruteur.services.list_candidatures import (
+    list_candidatures_et_etapes,
+)
 from application.recruteur.usecases.change_etape_candidatures import (
     ChangeEtapeCandidaturesCommand,
 )
@@ -31,16 +33,19 @@ from domain.recruteur.errors.recrutement_errors import (
 )
 from infrastructure.di.recruteur.recruteur_factory import recruteur_container
 from infrastructure.django_apps.candidate.models.candidature import CandidatureModel
+from infrastructure.django_apps.recruteur.models.etape import EtapeModel
 from presentation.api.authentication import SessionApiMixin
 from presentation.api.serializers import GenericErrorSerializer, TokenErrorSerializer
-from presentation.commons.pagination import TaillePageNumberPagination
+from presentation.commons.pagination import PaginationSchemaDuSerializer
 from presentation.recruteur.mappers import UtilisateurMapper
 from presentation.recruteur.serializers import (
     CandidatureListeSerializer,
     ChangerEtapeCandidaturesSerializer,
     ChangerEtapeResultatSerializer,
+    EtapeRecrutementModelSerializer,
     RecrutementDetailKanbanSerializer,
     RecrutementDetailSerializer,
+    RecrutementListeSerializer,
 )
 
 
@@ -84,8 +89,9 @@ class RecrutementDetailView(SessionApiMixin, APIView):
 
 
 @extend_schema(
-    summary="Détail d'un recrutement — vue kanban",
+    summary="Détail d'un recrutement — vue kanban (dépréciée, utiliser la vue liste)",
     tags=["recruteur"],
+    deprecated=True,
     responses={
         200: RecrutementDetailKanbanSerializer,
         401: TokenErrorSerializer,
@@ -94,6 +100,8 @@ class RecrutementDetailView(SessionApiMixin, APIView):
         500: GenericErrorSerializer,
     },
 )
+# TODO(#2261): déprécié au profit de RecrutementListeView (clé `etapes`),
+# à supprimer avec sa route une fois le front migré.
 class RecrutementKanbanView(SessionApiMixin, APIView):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -141,7 +149,7 @@ class RecrutementKanbanView(SessionApiMixin, APIView):
     summary="Détail d'un recrutement — vue liste (paginée)",
     tags=["recruteur"],
     responses={
-        200: CandidatureListeSerializer(many=True),
+        200: RecrutementListeSerializer,
         400: GenericErrorSerializer,
         401: TokenErrorSerializer,
         403: GenericErrorSerializer,
@@ -151,14 +159,23 @@ class RecrutementKanbanView(SessionApiMixin, APIView):
 )
 class RecrutementListeView(SessionApiMixin, ListAPIView):
     serializer_class = CandidatureListeSerializer
-    pagination_class = TaillePageNumberPagination
+    pagination_class = PaginationSchemaDuSerializer
+    etapes: list[EtapeModel]
 
     def get_queryset(self) -> QuerySet[CandidatureModel]:
-        return list_candidatures(
+        candidatures, self.etapes = list_candidatures_et_etapes(
             organisme_id=self.kwargs["organisme_uuid"],
             recrutement_id=self.kwargs["recrutement_uuid"],
             utilisateur=self.request.user,
         )
+        return candidatures
+
+    def get_paginated_response(self, data: list) -> Response:
+        response = super().get_paginated_response(data)
+        response.data["etapes"] = EtapeRecrutementModelSerializer(
+            self.etapes, many=True
+        ).data
+        return response
 
     def handle_exception(self, exc: Exception) -> Response:
         if isinstance(exc, OrganismePermissionError):

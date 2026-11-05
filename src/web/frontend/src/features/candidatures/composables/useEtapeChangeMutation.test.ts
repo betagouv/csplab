@@ -1,4 +1,4 @@
-import type { CandidatureDetail, ChangerEtapeResultat, PaginatedCandidatureListeList, RecrutementDetailKanban } from '../types'
+import type { CandidatureDetail, ChangerEtapeResultat, RecrutementDetailKanban, RecrutementListe } from '../types'
 import { PiniaColada, useQuery } from '@pinia/colada'
 import { mount } from '@vue/test-utils'
 import { createPinia } from 'pinia'
@@ -42,7 +42,7 @@ vi.mock('@/features/recrutements/api', () => ({
   getRecrutementDetail: vi.fn(),
 }))
 
-function listeEtapes(liste: PaginatedCandidatureListeList | undefined) {
+function listeEtapes(liste: RecrutementListe | undefined) {
   return Object.fromEntries((liste?.results ?? []).map(row => [row.uuid, row.etape.uuid]))
 }
 
@@ -53,7 +53,7 @@ async function mountEtapeChangeMutation() {
   let context!: ReturnType<typeof useEtapeChangeMutation>
   let kanban!: ReturnType<typeof useQuery<RecrutementDetailKanban>>
   let detail!: ReturnType<typeof useQuery<CandidatureDetail>>
-  let liste!: ReturnType<typeof useQuery<PaginatedCandidatureListeList>>
+  let liste!: ReturnType<typeof useQuery<RecrutementListe>>
   let recrutementDetail!: ReturnType<typeof useQuery<unknown>>
 
   mount(defineComponent({

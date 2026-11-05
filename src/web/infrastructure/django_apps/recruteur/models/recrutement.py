@@ -65,7 +65,11 @@ class RecrutementQuerySet(models.QuerySet):
         return self.select_related("offre")
 
     def with_detail(self) -> "RecrutementQuerySet":
-        return self.with_organisme().with_offre().prefetch_related("etapes")
+        return (
+            self.with_organisme()
+            .with_offre()
+            .prefetch_related("etapes", "offre__localisations")
+        )
 
     def with_responsables(self) -> "RecrutementQuerySet":
         return self.prefetch_related(

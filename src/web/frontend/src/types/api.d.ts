@@ -448,7 +448,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Détail d'un recrutement — vue kanban */
+        /**
+         * Détail d'un recrutement — vue kanban (dépréciée, utiliser la vue liste)
+         * @deprecated
+         */
         get: operations["recruteur_organismes_recrutements_kanban_retrieve"];
         put?: never;
         post?: never;
@@ -681,8 +684,6 @@ export interface components {
          * @enum {string}
          */
         AuthorizedActionsEnum: "get_organisme" | "initialize_organisme_steps" | "update_organisme_steps" | "list_recrutements" | "get_recrutement" | "get_candidature" | "change_etape_candidatures" | "get_recrutement_etapes" | "update_recrutement_etapes" | "init_recrutement_etapes" | "create_organisme" | "list_organismes" | "update_organisme" | "list_organisme_agents" | "search_agent" | "attach_organisme_agent" | "update_organisme_agent" | "revoke_organisme_agent" | "create_agent" | "list_recrutement_agents" | "add_recrutement_agent" | "update_recrutement_agent" | "revoke_recrutement_agent" | "set_recrutements_responsable" | "get_motifs_refus" | "read_document" | "list_documents" | "list_notes" | "create_note" | "update_note" | "delete_note" | "list_conversations" | "read_conversation" | "create_conversation" | "reply_conversation" | "list_tags" | "create_tag" | "update_tag" | "delete_tag";
-        /** @enum {unknown} */
-        BlankEnum: "";
         Candidat: {
             /** Format: uuid */
             uuid: string;
@@ -853,119 +854,6 @@ export interface components {
             /** @default bleu */
             color: components["schemas"]["ColorEnum"];
         };
-        /**
-         * @description * `01` - 01
-         *     * `02` - 02
-         *     * `03` - 03
-         *     * `04` - 04
-         *     * `05` - 05
-         *     * `06` - 06
-         *     * `07` - 07
-         *     * `08` - 08
-         *     * `09` - 09
-         *     * `10` - 10
-         *     * `11` - 11
-         *     * `12` - 12
-         *     * `13` - 13
-         *     * `14` - 14
-         *     * `15` - 15
-         *     * `16` - 16
-         *     * `17` - 17
-         *     * `18` - 18
-         *     * `19` - 19
-         *     * `21` - 21
-         *     * `22` - 22
-         *     * `23` - 23
-         *     * `24` - 24
-         *     * `25` - 25
-         *     * `26` - 26
-         *     * `27` - 27
-         *     * `28` - 28
-         *     * `29` - 29
-         *     * `2A` - 2A
-         *     * `2B` - 2B
-         *     * `30` - 30
-         *     * `31` - 31
-         *     * `32` - 32
-         *     * `33` - 33
-         *     * `34` - 34
-         *     * `35` - 35
-         *     * `36` - 36
-         *     * `37` - 37
-         *     * `38` - 38
-         *     * `39` - 39
-         *     * `40` - 40
-         *     * `41` - 41
-         *     * `42` - 42
-         *     * `43` - 43
-         *     * `44` - 44
-         *     * `45` - 45
-         *     * `46` - 46
-         *     * `47` - 47
-         *     * `48` - 48
-         *     * `49` - 49
-         *     * `50` - 50
-         *     * `51` - 51
-         *     * `52` - 52
-         *     * `53` - 53
-         *     * `54` - 54
-         *     * `55` - 55
-         *     * `56` - 56
-         *     * `57` - 57
-         *     * `58` - 58
-         *     * `59` - 59
-         *     * `60` - 60
-         *     * `61` - 61
-         *     * `62` - 62
-         *     * `63` - 63
-         *     * `64` - 64
-         *     * `65` - 65
-         *     * `66` - 66
-         *     * `67` - 67
-         *     * `68` - 68
-         *     * `69` - 69
-         *     * `70` - 70
-         *     * `71` - 71
-         *     * `72` - 72
-         *     * `73` - 73
-         *     * `74` - 74
-         *     * `75` - 75
-         *     * `76` - 76
-         *     * `77` - 77
-         *     * `78` - 78
-         *     * `79` - 79
-         *     * `80` - 80
-         *     * `81` - 81
-         *     * `82` - 82
-         *     * `83` - 83
-         *     * `84` - 84
-         *     * `85` - 85
-         *     * `86` - 86
-         *     * `87` - 87
-         *     * `88` - 88
-         *     * `89` - 89
-         *     * `90` - 90
-         *     * `91` - 91
-         *     * `92` - 92
-         *     * `93` - 93
-         *     * `94` - 94
-         *     * `95` - 95
-         *     * `971` - 971
-         *     * `972` - 972
-         *     * `973` - 973
-         *     * `974` - 974
-         *     * `975` - 975
-         *     * `976` - 976
-         *     * `977` - 977
-         *     * `978` - 978
-         *     * `986` - 986
-         *     * `987` - 987
-         *     * `988` - 988
-         *     * `SPM` - SPM
-         *     * `WLF` - WLF
-         * @enum {string}
-         */
-        DepartementEnum: "01" | "02" | "03" | "04" | "05" | "06" | "07" | "08" | "09" | "10" | "11" | "12" | "13" | "14" | "15" | "16" | "17" | "18" | "19" | "21" | "22" | "23" | "24" | "25" | "26" | "27" | "28" | "29" | "2A" | "2B" | "30" | "31" | "32" | "33" | "34" | "35" | "36" | "37" | "38" | "39" | "40" | "41" | "42" | "43" | "44" | "45" | "46" | "47" | "48" | "49" | "50" | "51" | "52" | "53" | "54" | "55" | "56" | "57" | "58" | "59" | "60" | "61" | "62" | "63" | "64" | "65" | "66" | "67" | "68" | "69" | "70" | "71" | "72" | "73" | "74" | "75" | "76" | "77" | "78" | "79" | "80" | "81" | "82" | "83" | "84" | "85" | "86" | "87" | "88" | "89" | "90" | "91" | "92" | "93" | "94" | "95" | "971" | "972" | "973" | "974" | "975" | "976" | "977" | "978" | "986" | "987" | "988" | "SPM" | "WLF";
         DocumentListe: {
             /** Format: uuid */
             uuid: string;
@@ -997,19 +885,14 @@ export interface components {
             categorie: components["schemas"]["CategorieEnum"];
             candidatures: components["schemas"]["Candidature"][];
         };
+        EtapeRecrutementModel: {
+            /** Format: uuid */
+            uuid: string;
+            nom: string;
+            readonly categorie: components["schemas"]["CategorieEnum"];
+        };
         GenericError: {
             error: string;
-        };
-        Localisation: {
-            zone_geographique: components["schemas"]["ZoneGeographiqueEnum"];
-            pays: string;
-            region: components["schemas"]["RegionEnum"] | components["schemas"]["BlankEnum"];
-            departement: components["schemas"]["DepartementEnum"] | components["schemas"]["BlankEnum"];
-            localisation_label: string;
-            /** Format: double */
-            latitude: number | null;
-            /** Format: double */
-            longitude: number | null;
         };
         MotifRefus: {
             value: string;
@@ -1047,6 +930,7 @@ export interface components {
             /** Format: date-time */
             publie_le: string;
             est_privee: boolean;
+            authorized_actions: components["schemas"]["AuthorizedActionsEnum"][];
         };
         NoteDetail: {
             /** Format: uuid */
@@ -1070,6 +954,17 @@ export interface components {
         };
         /** @enum {unknown} */
         NullEnum: null;
+        OffreLocalisation: {
+            zone_geographique: string;
+            pays: string;
+            region: string | null;
+            departement: string | null;
+            localisation_label: string;
+            /** Format: double */
+            latitude: number | null;
+            /** Format: double */
+            longitude: number | null;
+        };
         Organisme: {
             nom: string;
             siret: string;
@@ -1130,21 +1025,6 @@ export interface components {
             previous?: string | null;
             results: components["schemas"]["AuditLog"][];
         };
-        PaginatedCandidatureListeList: {
-            /** @example 1 */
-            count: number;
-            /**
-             * Format: uri
-             * @example null
-             */
-            next?: string | null;
-            /**
-             * Format: uri
-             * @example null
-             */
-            previous?: string | null;
-            results: components["schemas"]["CandidatureListe"][];
-        };
         PaginatedConversationList: {
             /** @example 123 */
             count: number;
@@ -1189,16 +1069,16 @@ export interface components {
             results: components["schemas"]["DocumentListe"][];
         };
         PaginatedNoteList: {
-            /** @example 123 */
+            /** @example 1 */
             count: number;
             /**
              * Format: uri
-             * @example http://api.example.org/accounts/?page=4
+             * @example null
              */
             next?: string | null;
             /**
              * Format: uri
-             * @example http://api.example.org/accounts/?page=2
+             * @example null
              */
             previous?: string | null;
             results: components["schemas"]["Note"][];
@@ -1233,6 +1113,7 @@ export interface components {
             previous?: string | null;
             results: components["schemas"]["RecrutementAgent"][];
         };
+        PaginatedRecrutementListeList: components["schemas"]["RecrutementListe"];
         PaginatedRecrutementsActifsList: {
             /** @example 123 */
             count: number;
@@ -1312,7 +1193,7 @@ export interface components {
             archive: boolean;
             /** Format: date-time */
             date_publication: string;
-            localisation: components["schemas"]["Localisation"];
+            localisations: components["schemas"]["OffreLocalisation"][];
             organisme_recruteur: components["schemas"]["Organisme"];
             categorie_offre: components["schemas"]["CategorieOffreEnum"];
             etapes: components["schemas"]["EtapeRecrutement"][];
@@ -1335,6 +1216,15 @@ export interface components {
             /** Format: uuid */
             recrutement_uuid: string;
             raison: string;
+        };
+        RecrutementListe: {
+            count: number;
+            /** Format: uri */
+            next: string | null;
+            /** Format: uri */
+            previous: string | null;
+            results: components["schemas"]["CandidatureListe"][];
+            etapes: components["schemas"]["EtapeRecrutementModel"][];
         };
         /**
          * @description * `responsable` - responsable
@@ -1372,30 +1262,6 @@ export interface components {
             finalise: boolean;
             recrute: string | null;
         };
-        /**
-         * @description * `01` - 01
-         *     * `02` - 02
-         *     * `03` - 03
-         *     * `04` - 04
-         *     * `06` - 06
-         *     * `11` - 11
-         *     * `24` - 24
-         *     * `27` - 27
-         *     * `28` - 28
-         *     * `32` - 32
-         *     * `44` - 44
-         *     * `52` - 52
-         *     * `53` - 53
-         *     * `75` - 75
-         *     * `76` - 76
-         *     * `84` - 84
-         *     * `93` - 93
-         *     * `94` - 94
-         *     * `DOM` - DOM
-         *     * `TOM` - TOM
-         * @enum {string}
-         */
-        RegionEnum: "01" | "02" | "03" | "04" | "06" | "11" | "24" | "27" | "28" | "32" | "44" | "52" | "53" | "75" | "76" | "84" | "93" | "94" | "DOM" | "TOM";
         Responsable: {
             nom: string;
         };
@@ -1491,17 +1357,6 @@ export interface components {
          * @enum {string}
          */
         VersantEnum: "FPT" | "FPE" | "FPH";
-        /**
-         * @description * `AF` - AFRIQUE
-         *     * `EU` - EUROPE
-         *     * `AS` - ASIE
-         *     * `AM` - AMERIQUE
-         *     * `OC` - OCEANIE
-         *     * `AN` - ANTARTIQUE
-         *     * `MO` - MOYEN_ORIENT_AFRIQUE_DU_NORD
-         * @enum {string}
-         */
-        ZoneGeographiqueEnum: "AF" | "EU" | "AS" | "AM" | "OC" | "AN" | "MO";
     };
     responses: never;
     parameters: never;
@@ -4003,8 +3858,10 @@ export interface operations {
     recruteur_organismes_recrutements_candidatures_notes_list: {
         parameters: {
             query?: {
-                /** @description Un numéro de page de l'ensemble des résultats. */
+                /** @description Numéro de la page. */
                 page?: number;
+                /** @description Nombre d'éléments par page. */
+                taille?: number;
             };
             header?: never;
             path: {
@@ -5153,7 +5010,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["PaginatedCandidatureListeList"];
+                    "application/json": components["schemas"]["PaginatedRecrutementListeList"];
                 };
             };
             400: {

@@ -9,10 +9,6 @@ import { renderWithApp, setupUser } from '@/test/render'
 import { provideOrganismeEdition } from '../../composables/useOrganismeEdition'
 import OrganismeActionsCell from './OrganismeActionsCell.vue'
 
-vi.mock('@/api/utilisateur', () => ({
-  getMe: vi.fn(),
-}))
-
 function hostFor(row: OrganismesList) {
   return defineComponent({
     setup() {
@@ -27,7 +23,7 @@ describe('organismeActionsCell', () => {
     vi.mocked(getMe).mockReset().mockResolvedValue(makeUser([], true))
   })
 
-  it('opens the recrutements of the organisme', async () => {
+  it('opens the home of the organisme', async () => {
     const user = setupUser()
 
     const { router } = await renderWithApp(hostFor({ ...ORGANISME, authorized_actions: ['list_recrutements'] }), { route: '/organismes' })
@@ -35,7 +31,7 @@ describe('organismeActionsCell', () => {
     await user.click(await screen.findByRole('menuitem', { name: 'Se connecter à l’organisme' }))
 
     await vi.waitFor(() =>
-      expect(router.currentRoute.value.path).toBe(`/organismes/${ORGANISME.uuid}/recrutements`),
+      expect(router.currentRoute.value.path).toBe(`/organismes/${ORGANISME.uuid}/accueil`),
     )
   })
 

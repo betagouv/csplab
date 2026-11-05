@@ -106,6 +106,26 @@ def test_localisation_is_null_when_unknown(jwt_client):
     assert response.json()["results"][0]["localisation"] is None
 
 
+def test_region_and_departement_are_null_outside_france(jwt_client):
+    _organisme(
+        localisation={
+            "area": "EU",
+            "country": "DEU",
+            "region": None,
+            "department": None,
+        }
+    )
+
+    response = jwt_client.get(URL)
+
+    assert response.json()["results"][0]["localisation"] == {
+        "zone_geographique": "EU",
+        "pays": "DEU",
+        "region": None,
+        "departement": None,
+    }
+
+
 def test_excludes_deleted_organismes(jwt_client):
     _organisme(nom="Actif")
     _organisme(nom="Supprimé", supprime_le=datetime(2026, 1, 1, tzinfo=timezone.utc))

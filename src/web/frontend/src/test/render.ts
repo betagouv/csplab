@@ -4,6 +4,7 @@ import { PiniaColada } from '@pinia/colada'
 import userEvent, { PointerEventsCheckLevel } from '@testing-library/user-event'
 import { render } from '@testing-library/vue'
 import { createPinia } from 'pinia'
+import { createApp } from 'vue'
 import { createMemoryHistory, createRouter } from 'vue-router'
 import { routes } from '@/router/routes'
 
@@ -15,10 +16,18 @@ export function createTestRouter() {
   return createRouter({ history: createMemoryHistory(), routes })
 }
 
+// Router guards run before render and need pinia bound to an app.
+function createInstalledPinia() {
+  const pinia = createPinia()
+  createApp({}).use(pinia)
+  return pinia
+}
+
 export async function renderWithApp(
   component: Component,
   { route = '/', ...options }: RenderOptions<Component> & { route?: string } = {},
 ) {
+  const pinia = createInstalledPinia()
   const router = createTestRouter()
   await router.push(route)
 
@@ -26,7 +35,7 @@ export async function renderWithApp(
     ...options,
     global: {
       ...options.global,
-      plugins: [createPinia(), PiniaColada, router, ...(options.global?.plugins ?? [])],
+      plugins: [pinia, PiniaColada, router, ...(options.global?.plugins ?? [])],
     },
   })
 

@@ -1,6 +1,6 @@
 import type { CandidatureParams } from '@/api/params'
 import type { OrganismeRole } from '@/api/utilisateur'
-import type { Candidat, CandidatureDetail, MotifRefusOption, PaginatedCandidatureListeList, RecrutementDetailKanban } from '@/features/candidatures/types'
+import type { Candidat, CandidatureDetail, MotifRefusOption, RecrutementDetailKanban, RecrutementListe } from '@/features/candidatures/types'
 import type { RecrutementDetail } from '@/features/recrutements/types'
 
 export const ORGANISME_UUID = '00000000-0000-0000-0000-000000000000'
@@ -56,12 +56,13 @@ export const KANBAN: RecrutementDetailKanban = {
   ],
 }
 
-export const CANDIDATURE_LISTE: PaginatedCandidatureListeList = {
+export const CANDIDATURE_LISTE: RecrutementListe = {
   count: 2,
   next: null,
   previous: null,
   results: KANBAN.etapes.flatMap(({ uuid, nom, categorie, candidatures }) =>
     candidatures.map(candidature => ({ ...candidature, etape: { uuid, nom, categorie } }))),
+  etapes: KANBAN.etapes.map(({ uuid, nom, categorie }) => ({ uuid, nom, categorie })),
 }
 
 export function kanbanColumns(kanban: RecrutementDetailKanban | undefined): Record<string, string[]> {
@@ -90,7 +91,7 @@ export function candidatureDetail(candidatureUuid: string): CandidatureDetail {
 export const RECRUTEMENT_DETAIL = {
   intitule: 'Chargé de mission',
   date_publication: '2025-06-01T09:00:00Z',
-  localisation: { localisation_label: 'Paris' },
+  localisations: [{ localisation_label: 'Paris' }],
   organisme_recruteur: { nom: 'Ministère de la Transition Écologique' },
   categorie_offre: 'A',
   etapes: KANBAN.etapes.map(({ uuid, nom, categorie }) => ({ uuid, nom, categorie })),

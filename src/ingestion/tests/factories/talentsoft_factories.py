@@ -11,6 +11,7 @@ from infrastructure.external_gateways.dtos.talentsoft_dtos import (
     TalentsoftDynamicField,
     TalentsoftGeolocation,
     TalentsoftLink,
+    TalentsoftMultiLocation,
     TalentsoftOffer,
     TalentsoftOffersResponse,
     TalentsoftOrganisation,
@@ -109,6 +110,10 @@ class TalentsoftOfferFactory(ModelFactory[TalentsoftOffer]):
         return [
             TalentsoftCodedObjectFactory.build(clientCode="41", type="offerDepartment")
         ]
+
+    @classmethod
+    def locations(cls) -> List[TalentsoftMultiLocation]:
+        return []
 
     @classmethod
     def customFields(cls) -> TalentsoftCustomFields:
@@ -264,6 +269,10 @@ class TalentsoftDetailOfferFactory(ModelFactory[TalentsoftDetailOffer]):
     @classmethod
     def _links(cls) -> List[TalentsoftLink]:
         return TalentsoftLinkFactory.batch(size=1)
+
+    @classmethod
+    def locations(cls) -> List[TalentsoftMultiLocation]:
+        return []
 
     @classmethod
     def organisation(cls) -> TalentsoftOrganisation:

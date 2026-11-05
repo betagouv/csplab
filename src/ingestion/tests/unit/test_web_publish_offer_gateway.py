@@ -136,7 +136,7 @@ async def test_publish_serializes_minimal_offer(gateway, httpx_mock: HTTPXMock):
     assert offer["identification"]["reference"] == "2024-OFFER-001"
     assert offer["identification"]["versant"] == "FPT"
     assert offer["titre"] == "Software Engineer"
-    assert offer["titre_long"] == "Software Engineer"
+    assert "titre_long" not in offer
     assert offer["organisation"]["nom"] == "City Hall"
     assert offer["organisation"]["siret"] == ""
     assert offer["organisation"]["talentsoft_organisme_entity_code"] == "12345"
