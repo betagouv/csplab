@@ -648,7 +648,11 @@ class LocalisationInputSerializer(LocalisationSerializer):
         "ils valent `null`. L'outre-mer est en `FRA`, avec son département : région "
         "`DOM` pour les départements d'outre-mer (ex. `971` pour la Guadeloupe), "
         "`TOM` pour les collectivités d'outre-mer (ex. `988` pour la "
-        "Nouvelle-Calédonie). N'utilisez pas leur code ISO (`GLP`, `NCL`…).",
+        "Nouvelle-Calédonie). Une offre dont le `pays` est le code ISO de l'un de "
+        "ces territoires est rejetée : `GLP`, `MTQ`, `GUF`, `REU`, `MYT`, `SPM`, "
+        "`BLM`, `MAF`, `WLF`, `PYF`, `NCL`. `DOM` désigne la République "
+        "dominicaine, et `ATF` (Terres australes et antarctiques françaises) reste "
+        "accepté comme pays.",
     )
     region = serializers.ChoiceField(
         choices=sorted(Region.VALID_CODES, key=lambda x: x),
