@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useQuery } from '@pinia/colada'
 import { computed } from 'vue'
 import CspEmptyState from '@/components/base/CspEmptyState/CspEmptyState.vue'
 import CspErrorState from '@/components/base/CspErrorState/CspErrorState.vue'
@@ -6,15 +7,17 @@ import { useRecrutementDetail } from '@/features/recrutements/composables/useRec
 import CandidaturesToolbar from '../components/CandidaturesToolbar.vue'
 import { provideCandidaturesFilters } from '../composables/useCandidaturesFilters'
 import { provideCandidaturesToolbar } from '../composables/useCandidaturesToolbar'
+import { candidatureListeQuery } from '../queries'
 
 const props = defineProps<{
   organismeUuid: string
   recrutementUuid: string
 }>()
 
-const { recrutementDetail, etapes, pending: pendingDetail, error } = useRecrutementDetail(() => props)
+const { recrutementDetail, pending: pendingDetail, error } = useRecrutementDetail(() => props)
+const liste = useQuery(() => candidatureListeQuery(props))
 
-provideCandidaturesFilters(etapes)
+provideCandidaturesFilters(() => liste.data.value?.etapes ?? [])
 provideCandidaturesToolbar()
 
 const loadFailed = computed(() => !pendingDetail.value && Boolean(error.value))
