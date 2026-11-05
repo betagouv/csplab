@@ -4916,6 +4916,35 @@ components:
             type: string
         diplome:
           type: string
+          description: |-
+            Diplôme exigé, en texte libre. Indiquez de préférence l'un des libellés du référentiel des diplômes d'État, à l'identique. Liste indicative, toute autre valeur reste acceptée :
+
+            - `Diplôme d'Etat d'infirmier`
+            - `Diplôme d'Etat d'aide-soignant`
+            - `Diplôme d'Etat d'éducateur spécialisé`
+            - `Diplôme d'Etat français d'assistant de service social`
+            - `Diplôme d'Etat de masseur-kinésithérapeute`
+            - `Diplôme d'Etat d'aide médico psychologique`
+            - `Diplôme d'Etat d'ergothérapeute`
+            - `Diplôme d'Etat de moniteur éducateur`
+            - `Diplôme d'Etat d'infirmier en pratique avancée`
+            - `Diplôme d'Etat de psychomotricien`
+            - `Diplôme d'Etat d'auxiliaire de puériculture`
+            - `Diplôme d'Etat de sage-femme`
+            - `Diplôme d'Etat d'infirmier de bloc opératoire`
+            - `Diplôme d'Etat de la jeunesse, de l'éducation populaire et du sport`
+            - `Diplôme d'Etat d'éducateur de jeunes enfants`
+            - `Diplôme d'Etat de manipulateur d'électroradiologie médicale`
+            - `Diplôme d'Etat d'infirmier anesthésiste`
+            - `Diplôme d'Etat d'ambulancier`
+            - `Diplôme d'Etat de conseiller en économie sociale familiale`
+            - `Diplôme d'Etat de puéricultrice`
+            - `Diplôme d'Etat de technicien de laboratoire médical`
+            - `Diplôme d'Etat d'éducateur technique spécialisé`
+            - `Diplôme d'Etat de pédicure-podologue`
+            - `Diplôme d'Etat d'audioprothésiste`
+            - `Diplôme d'Etat français de diététicien`
+            - `Diplôme d'Etat d'audio-protésiste`
         documents_requis:
           type: array
           items:

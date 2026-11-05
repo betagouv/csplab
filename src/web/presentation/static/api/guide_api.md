@@ -388,10 +388,39 @@ Une offre peut se dérouler en plusieurs lieux : **50 lieux au plus**, tous cons
 | `diplome_niveau` | Nombre entier **entre 1 et 8** (niveaux de diplôme). |
 | `experience` | Valeurs : **DEBUTANT, CONFIRME, EXPERT**. |
 | `specialisations` | Liste de textes. |
-| `diplome` | Texte. |
+| `diplome` | Texte libre. Indiquez de préférence l'un des libellés du référentiel des diplômes d'État (liste ci-dessous), à l'identique. |
 | `documents_requis` | Liste de documents à transmettre pour candidater. Valeurs : **CV, LETTRE_MOTIVATION, PORTFOLIO**. Chaque document ne peut être cité qu'une fois. |
 | `competences_requises` | Texte libre en Markdown, **2 000 caractères maximum**. Peut être vide ou `null`. |
 | `langues` | Liste de langues, chacune avec un **code ISO sur 2 caractères** et un **niveau** (**A1, A2, B1, B2, C1, C2**). |
+
+Valeurs indicatives de `diplome`, libellés du référentiel des diplômes d'État (toute autre valeur reste acceptée) :
+
+- `Diplôme d'Etat d'infirmier`
+- `Diplôme d'Etat d'aide-soignant`
+- `Diplôme d'Etat d'éducateur spécialisé`
+- `Diplôme d'Etat français d'assistant de service social`
+- `Diplôme d'Etat de masseur-kinésithérapeute`
+- `Diplôme d'Etat d'aide médico psychologique`
+- `Diplôme d'Etat d'ergothérapeute`
+- `Diplôme d'Etat de moniteur éducateur`
+- `Diplôme d'Etat d'infirmier en pratique avancée`
+- `Diplôme d'Etat de psychomotricien`
+- `Diplôme d'Etat d'auxiliaire de puériculture`
+- `Diplôme d'Etat de sage-femme`
+- `Diplôme d'Etat d'infirmier de bloc opératoire`
+- `Diplôme d'Etat de la jeunesse, de l'éducation populaire et du sport`
+- `Diplôme d'Etat d'éducateur de jeunes enfants`
+- `Diplôme d'Etat de manipulateur d'électroradiologie médicale`
+- `Diplôme d'Etat d'infirmier anesthésiste`
+- `Diplôme d'Etat d'ambulancier`
+- `Diplôme d'Etat de conseiller en économie sociale familiale`
+- `Diplôme d'Etat de puéricultrice`
+- `Diplôme d'Etat de technicien de laboratoire médical`
+- `Diplôme d'Etat d'éducateur technique spécialisé`
+- `Diplôme d'Etat de pédicure-podologue`
+- `Diplôme d'Etat d'audioprothésiste`
+- `Diplôme d'Etat français de diététicien`
+- `Diplôme d'Etat d'audio-protésiste`
 
 #### Bloc « Conditions » (`conditions`) — peut être vide
 | Champ | Règle |
