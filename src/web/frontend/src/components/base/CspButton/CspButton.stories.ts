@@ -164,7 +164,7 @@ export const Default: Story = {
 }
 
 export const Variants: Story = {
-  render: args => ({
+  render: (args: CspButtonProps) => ({
     components: { CspButton },
     setup() {
       return { variants: VARIANTS, args }
@@ -188,7 +188,7 @@ export const Variants: Story = {
 }
 
 export const Sizes: Story = {
-  render: args => ({
+  render: (args: CspButtonProps) => ({
     components: { CspButton },
     setup() {
       return { sizes: SIZES, args }
@@ -212,7 +212,7 @@ export const Sizes: Story = {
 }
 
 export const Icons: Story = {
-  render: args => ({
+  render: (args: CspButtonProps) => ({
     components: { CspButton },
     setup() {
       const iconVariants = [
@@ -273,7 +273,7 @@ export const Icons: Story = {
 }
 
 export const States: Story = {
-  render: args => ({
+  render: (args: CspButtonProps) => ({
     components: { CspButton },
     setup() {
       return { variants: VARIANTS, args }
