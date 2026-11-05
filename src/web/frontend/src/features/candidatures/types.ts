@@ -11,9 +11,9 @@ export type CandidatureListe = components['schemas']['CandidatureListe']
 
 export type EtapeRecrutement = components['schemas']['EtapeRecrutement']
 
-export type Candidature = Omit<CandidatureListe, 'etape'>
+export type KanbanCard = Omit<CandidatureListe, 'etape'>
 
-export type EtapeRecrutementDetailedCandidatures = EtapeRecrutement & { candidatures: Candidature[] }
+export type KanbanColumn = EtapeRecrutement & { candidatures: KanbanCard[] }
 
 export type ChangerEtapeResultat = components['schemas']['ChangerEtapeResultat']
 

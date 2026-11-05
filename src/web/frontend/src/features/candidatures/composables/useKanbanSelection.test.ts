@@ -1,4 +1,4 @@
-import type { EtapeRecrutementDetailedCandidatures } from '../types'
+import type { KanbanColumn } from '../types'
 import { describe, expect, it } from 'vitest'
 import { ref } from 'vue'
 import { useKanbanSelection } from './useKanbanSelection'
@@ -34,7 +34,7 @@ const CANDIDATURE_3 = {
   candidat: { uuid: 'dddddddd-0001-0001-0001-000000000003', nom: 'Bernard', prenom: 'Élise' },
 }
 
-function createEtapes(): EtapeRecrutementDetailedCandidatures[] {
+function createEtapes(): KanbanColumn[] {
   return [
     {
       uuid: ETAPE_1_UUID,

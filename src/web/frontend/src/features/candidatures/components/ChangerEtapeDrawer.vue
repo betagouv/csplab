@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Candidature, EtapeRecrutement, EtapeRecrutementDetailedCandidatures } from '../types'
+import type { EtapeRecrutement, KanbanCard, KanbanColumn } from '../types'
 import { RadioGroupIndicator, RadioGroupItem, RadioGroupRoot } from 'reka-ui'
 import { computed, ref, watch } from 'vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
@@ -11,7 +11,7 @@ import { pluralize } from '@/utils/format'
 
 const props = defineProps<{
   open: boolean
-  sourceEtape: EtapeRecrutementDetailedCandidatures | null
+  sourceEtape: KanbanColumn | null
   selectedCandidatureUuids: Set<string>
   etapes: EtapeRecrutement[]
   initialEtapeUuid?: string | null
@@ -45,7 +45,7 @@ function handleConfirm(): void {
   }
 }
 
-function getCandidatName(candidature: Candidature): string {
+function getCandidatName(candidature: KanbanCard): string {
   const candidat = candidature.candidat
   return `${candidat.prenom} ${candidat.nom}`
 }

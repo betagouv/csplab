@@ -2,7 +2,7 @@ import type { InjectionKey, MaybeRefOrGetter } from 'vue'
 import type {
   CandidatureListe,
   EtapeRecrutement,
-  EtapeRecrutementDetailedCandidatures,
+  KanbanColumn,
 } from '../types'
 import type { CspCheckboxGroupOption } from '@/components/base/CspCheckboxGroup/CspCheckboxGroup.vue'
 import type { CspTableSort } from '@/components/base/CspDataTable/table'
@@ -44,7 +44,7 @@ export function createCandidaturesFilters(recrutementEtapes: MaybeRefOrGetter<Et
     appliedSearch.value = search.value
   }
 
-  function filterEtapes(etapes: EtapeRecrutementDetailedCandidatures[]): EtapeRecrutementDetailedCandidatures[] {
+  function filterEtapes(etapes: KanbanColumn[]): KanbanColumn[] {
     return etapes
       .filter(etape => matchesEtape(etape.uuid, applied))
       .map(etape => ({

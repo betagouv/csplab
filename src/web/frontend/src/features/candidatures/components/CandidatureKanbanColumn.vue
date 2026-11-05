@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { EtapeRecrutementDetailedCandidatures } from '../types'
+import type { KanbanColumn } from '../types'
 import { computed, ref } from 'vue'
 import CspBadge from '@/components/base/CspBadge/CspBadge.vue'
 import CspCheckbox from '@/components/base/CspCheckbox/CspCheckbox.vue'
@@ -8,13 +8,13 @@ import { CATEGORIE_CONFIG } from '@/features/etapes-recrutement/constants/etape-
 import CandidatureKanbanCard from './CandidatureKanbanCard.vue'
 
 const props = defineProps<{
-  etape: EtapeRecrutementDetailedCandidatures
+  etape: KanbanColumn
   boardId: string
   isSelected?: boolean
 }>()
 
 const emit = defineEmits<{
-  toggleSelection: [etape: EtapeRecrutementDetailedCandidatures]
+  toggleSelection: [etape: KanbanColumn]
 }>()
 
 const categorieConfig = computed(() => CATEGORIE_CONFIG[props.etape.categorie])

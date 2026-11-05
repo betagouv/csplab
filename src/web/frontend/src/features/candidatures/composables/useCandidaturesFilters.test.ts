@@ -1,6 +1,6 @@
 import type {
   EtapeRecrutement,
-  EtapeRecrutementDetailedCandidatures,
+  KanbanColumn,
   RecrutementListe,
 } from '../types'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -19,7 +19,7 @@ function makeRecrutementEtapes(): EtapeRecrutement[] {
   ]
 }
 
-function makeEtapes(): EtapeRecrutementDetailedCandidatures[] {
+function makeEtapes(): KanbanColumn[] {
   return [
     {
       uuid: ETAPE_RECEPTION,
