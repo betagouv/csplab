@@ -1,5 +1,10 @@
+import logging
 from collections.abc import Iterable
 from ipaddress import IPv4Address, IPv6Address, ip_address, ip_network
+
+from config.logger_names import LoggerName
+
+logger = logging.getLogger(LoggerName.WEB)
 
 IPAddressInput = str | IPv4Address | IPv6Address
 
@@ -41,8 +46,8 @@ def ip_in_networks(ip: IPAddressInput | None, networks: Iterable[str]) -> bool:
     address = ip_address(client_ip)
     for network in networks:
         try:
-            if address in ip_network(network, strict=False):
+            if address in ip_network(network.strip(), strict=False):
                 return True
         except ValueError:
-            continue
+            logger.warning("Invalid network %r skipped.", network)
     return False

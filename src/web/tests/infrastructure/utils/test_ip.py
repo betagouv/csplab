@@ -87,6 +87,7 @@ def test_parse_ip(raw, expected):
         ("", ["0.0.0.0/0"], False),
         ("not-an-ip", ["0.0.0.0/0"], False),
         ("1.2.3.4", ["garbage", "1.2.3.0/24"], True),
+        ("1.2.3.4", [" 1.2.3.0/24 "], True),
     ],
     ids=[
         "ipv4_in_range",
@@ -105,10 +106,17 @@ def test_parse_ip(raw, expected):
         "empty_ip_never_matches",
         "invalid_ip_never_matches",
         "invalid_network_is_skipped",
+        "network_is_stripped",
     ],
 )
 def test_ip_in_networks(ip, networks, expected):
     assert ip_in_networks(ip, networks) is expected
+
+
+def test_ip_in_networks_logs_invalid_network(caplog):
+    ip_in_networks("1.2.3.4", ["garbage", "1.2.3.0/24"])
+
+    assert "Invalid network 'garbage' skipped." in caplog.text
 
 
 @pytest.mark.parametrize(
