@@ -1,7 +1,7 @@
-import type { EtapeRecrutementDetailedCandidatures, RecrutementDetailKanban } from '../types'
+import type { EtapeRecrutementDetailedCandidatures, RecrutementDetailKanban, RecrutementListe } from '../types'
 import { describe, expect, it } from 'vitest'
 import { kanbanColumns } from '@/test/fixtures/candidatures'
-import { etapesReceivingCandidatures, moveCandidaturesInKanban } from './kanban'
+import { etapesReceivingCandidatures, groupCandidaturesByEtape, moveCandidaturesInKanban } from './kanban'
 
 function etape(etapeUuid: string, candidatureUuids: string[]): EtapeRecrutementDetailedCandidatures {
   return {
@@ -22,6 +22,48 @@ const KANBAN: RecrutementDetailKanban = {
   uuid: 'recrutement',
   etapes: [etape('entree', ['a', 'b']), etape('entretien', ['c']), etape('refus', ['d'])],
 }
+
+function liste(rows: [candidatureUuid: string, etapeUuid: string][], etapeUuids: string[]): RecrutementListe {
+  return {
+    count: rows.length,
+    next: null,
+    previous: null,
+    results: rows.map(([uuid, etapeUuid]) => ({
+      uuid,
+      date_soumission: '2025-06-10T09:15:00Z',
+      date_derniere_activite: '2025-06-10T09:15:00Z',
+      unread_conversations: 0,
+      candidat: { uuid: `candidat-${uuid}`, nom: uuid, prenom: uuid },
+      etape: { uuid: etapeUuid, nom: etapeUuid, categorie: 'EN_COURS' },
+    })),
+    etapes: etapeUuids.map(uuid => ({ uuid, nom: uuid, categorie: 'EN_COURS' })),
+  }
+}
+
+function columns(etapes: EtapeRecrutementDetailedCandidatures[]): [string, string[]][] {
+  return etapes.map(({ uuid, candidatures }) => [uuid, candidatures.map(candidature => candidature.uuid)])
+}
+
+describe('groupCandidaturesByEtape', () => {
+  it('lays out every etape in the order of the recrutement, empty ones included, keeping the order of the liste', () => {
+    const grouped = groupCandidaturesByEtape(liste(
+      [['c', 'refus'], ['a', 'entree'], ['b', 'refus']],
+      ['entree', 'entretien', 'refus'],
+    ))
+
+    expect(columns(grouped)).toEqual([
+      ['entree', ['a']],
+      ['entretien', []],
+      ['refus', ['c', 'b']],
+    ])
+  })
+
+  it('ignores candidatures whose etape is not part of the recrutement', () => {
+    const grouped = groupCandidaturesByEtape(liste([['a', 'supprimee']], ['entree']))
+
+    expect(columns(grouped)).toEqual([['entree', []]])
+  })
+})
 
 describe('moveCandidaturesInKanban', () => {
   it('appends the candidatures to the target column in the given order, from any source column', () => {

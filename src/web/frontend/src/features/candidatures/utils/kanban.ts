@@ -1,4 +1,17 @@
-import type { Candidature, EtapeRecrutementDetailedCandidatures, RecrutementDetailKanban } from '../types'
+import type { Candidature, EtapeRecrutementDetailedCandidatures, RecrutementDetailKanban, RecrutementListe } from '../types'
+
+export function groupCandidaturesByEtape({ etapes, results }: RecrutementListe): EtapeRecrutementDetailedCandidatures[] {
+  const candidaturesByEtape = new Map<string, Candidature[]>(etapes.map(({ uuid }) => [uuid, []]))
+  for (const row of results) {
+    candidaturesByEtape.get(row.etape.uuid)?.push(row)
+  }
+  return etapes.map(({ uuid, nom, categorie }) => ({
+    uuid,
+    nom,
+    categorie,
+    candidatures: candidaturesByEtape.get(uuid)!,
+  }))
+}
 
 export function moveCandidaturesInKanban(
   kanban: RecrutementDetailKanban,
