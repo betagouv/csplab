@@ -323,7 +323,16 @@ class TestOfferSummariesViewDbVerified:
                     "description2": "Profil recherché",
                     "description1Formatted": "<p>Mission du poste</p>",
                     "description2Formatted": "<p>Profil recherché</p>",
-                    "salaryRange": None,
+                    "salaryRange": {
+                        "code": None,
+                        "clientCode": "FPE",
+                        "label": "Fonction publique de l'État",
+                        "active": True,
+                        "parentCode": None,
+                        "type": "salaryRange",
+                        "parentType": "",
+                        "hasChildren": False,
+                    },
                     "geographicalLocation": [
                         {
                             "code": None,

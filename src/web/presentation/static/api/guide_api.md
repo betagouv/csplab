@@ -37,7 +37,7 @@
 - [Annexe — Correspondance entre le format Talentsoft et l'API v1](#annexe-correspondance-entre-le-format-talentsoft-et-lapi-v1)
   - [Champs reliés](#champs-relies)
   - [Champs Talentsoft sans équivalent dans l'API v1](#champs-talentsoft-sans-equivalent-dans-lapi-v1)
-  - [Champs de l'API v1 sans équivalent dans l'API fake-ts](#champs-de-lapi-v1-sans-equivalent-dans-lapi-fake-ts)
+  - [Autres champs de l'API v1](#autres-champs-de-lapi-v1)
 - [Annexe — Passer de l'API vacancies de Talentsoft à l'API v1](#annexe-passer-de-lapi-vacancies-de-talentsoft-a-lapi-v1)
   - [Champs de l'offre vacancies](#champs-de-loffre-vacancies)
   - [Valeurs des listes Talentsoft](#valeurs-des-listes-talentsoft)
@@ -631,7 +631,7 @@ filtre `domaine` des routes de consultation des offres et des métiers.
 
 # Annexe — Correspondance entre le format Talentsoft et l'API v1
 
-Cette annexe est destinée aux intégrateurs qui alimentent l'API à partir d'offres au format Talentsoft. Elle indique, pour chaque champ d'une offre Talentsoft, le champ correspondant de l'offre envoyée à `POST /api/v1/offres/creer_modifier/` (« Offer API v1 »), ainsi que les champs sans équivalent des deux côtés. Les champs lus dans des champs personnalisés (`customFields`) que l'API fake-ts n'expose pas sont décrits dans la dernière section. Les notes « API fake-ts » décrivent les offres renvoyées par l'API fake-ts (`/api/fake-ts/`), qui expose les offres de CSPLab au format Talentsoft.
+Cette annexe est destinée aux intégrateurs qui alimentent l'API à partir d'offres au format Talentsoft. Elle indique, pour chaque champ d'une offre Talentsoft, le champ correspondant de l'offre envoyée à `POST /api/v1/offres/creer_modifier/` (« Offer API v1 »), ainsi que les champs sans équivalent des deux côtés. Les champs de l'API v1 lus dans des champs personnalisés (`customFields`) ou jamais renseignés par l'ingestion sont décrits dans la dernière section. Les notes « API fake-ts » décrivent les offres renvoyées par l'API fake-ts (`/api/fake-ts/`), qui expose les offres de CSPLab au format Talentsoft.
 
 Notation : `a.b` désigne un objet imbriqué, `a[]` une liste, `a[0]` son premier élément. Tout objet codé (`contractType`, `offerFamilyCategory`, `professionalCategory`, `educationLevel`, `diploma`, `experienceLevel`, `country`, `region`, `department`, `specialisations[]`, `languages[].languageName|languageLevel`) est lu par son `clientCode` ; ses autres clés (`code`, `label`, `active`, `parentCode`, `type`, `parentType`, `hasChildren`) sont ignorées.
 
@@ -640,7 +640,7 @@ Notation : `a.b` désigne un objet imbriqué, `a[]` une liste, `a[0]` son premie
 | Offre Talentsoft | Offer API v1 | Note |
 |---|---|---|
 | `reference` | `identification.reference` | |
-| `salaryRange.clientCode` | `identification.versant` | Dans l'API fake-ts, `salaryRange` est une simple chaîne, toujours `null` : le versant est alors déduit de `reference` (`APHP`/`MENJ`/`OFII`). Les valeurs contenant `FPT`/`FPH`/`FPE` donnent un `Verse`. |
+| `salaryRange.clientCode` | `identification.versant` | Les valeurs contenant `FPT`/`FPH`/`FPE` donnent un `Verse` ; sans `salaryRange`, le versant est déduit de `reference` (`APHP`/`MENJ`/`OFII`). API fake-ts : objet codé, `clientCode` = `identification.versant` (`FPE`, `FPT`, `FPH`), `label` = son libellé (« Fonction publique de l'État »…). |
 | `title` | `titre` | |
 | `organisationName` | `organisation.nom` | |
 | `organisation.entityCode` | `organisation.talentsoft_organisme_entity_code` | Réservé au service ingestion de CSPLab : laissez ce champ vide, une offre qui le renseigne est rejetée. API fake-ts : reprend l'organisme Talentsoft lié à l'offre. Toute offre est liée à un organisme Talentsoft. |
@@ -728,7 +728,8 @@ Notation : `a.b` désigne un objet imbriqué, `a[]` une liste, `a[0]` son premie
 | `customFields.location.longText3` | |
 | `customFields.offerCustomBlock1.date1` | |
 | `customFields.offerCustomBlock1.shortText1` | |
-| `customFields.offerCustomBlock1.longText3Formatted` | Non lu : seul le texte brut `customFields.offerCustomBlock1.longText3` est repris. API fake-ts : toujours `null`. |
+| `customFields.offerCustomBlock1.longText3Formatted` | Non lu : seul le texte brut `customFields.offerCustomBlock1.longText3` est repris. API fake-ts : `conditions.note_ouverture_poste_url` en HTML. |
+| `customFields.offerCustomBlock1.customCodeTable3` | « Diplômes d'Etat requis ». Non repris (`criteres.diplome` vient de `diploma.clientCode`). Une valeur du référentiel « Quotité de temps de travail » (`type`, codes `Temps_plein`, `Temps_noncomplet`) saisie par erreur est rejetée (passée à `null`, l'offre reste ingérée) et signalée dans Sentry ; elle n'est pas reprise dans `conditions.temps_travail`. API fake-ts : toujours `null`. |
 | `code` | Clé de tout objet codé : seul `clientCode` est lu. |
 | `label` | Clé de tout objet codé : seul `clientCode` est lu. |
 | `active` | Clé de tout objet codé : seul `clientCode` est lu. |
@@ -737,26 +738,26 @@ Notation : `a.b` désigne un objet imbriqué, `a[]` une liste, `a[0]` son premie
 | `parentType` | Clé de tout objet codé : seul `clientCode` est lu. |
 | `hasChildren` | Clé de tout objet codé : seul `clientCode` est lu. |
 
-### Champs de l'API v1 sans équivalent dans l'API fake-ts
+### Autres champs de l'API v1
 
 | Offer API v1 | Note |
 |---|---|
-| `categories` | Lu par l'ingestion dans `customFields.description.customCodeTable1`, que l'API fake-ts n'expose pas (`CAT-A`/`B`/`C` ; `CAT-AEF`/`ESD`/`ES` → `APLUS`). API fake-ts : le filtre `category` de `offer_summaries` retourne une offre si l'une de ses catégories en fait partie. |
-| `type_contrat` | Lu dans `customFields.offer.customCodeTable2` (absent de l'API fake-ts) : `CDD*`, `CDI`. |
+| `categories` | Lu par l'ingestion dans `customFields.description.customCodeTable1` (`CAT-A`/`B`/`C` ; `CAT-AEF`/`ESD`/`ES` → `APLUS`). API fake-ts : `customFields.description.customCodeTable1` contient la première catégorie (`clientCode` = `APLUS`, `A`, `B`, `C` ou `HORS_CATEGORIE`, `label` = son libellé, ex. « Catégorie A (cadre) »), `null` sans catégorie ; le filtre `category` de `offer_summaries` retourne une offre si l'une de ses catégories en fait partie. |
+| `type_contrat` | Lu dans `customFields.offer.customCodeTable2` : `CDD*`, `CDI`. API fake-ts : `clientCode` = `type_contrat` (`CDD`, `CDI`, `CDD_CDI`, `CONTRAT_PROJET`, `VACATION`), `label` = son libellé, `null` sans type de contrat. |
 | `titre_long` | Jamais renseigné par l'ingestion : Talentsoft n'a pas de titre long. |
 | `organisation.siret` | Jamais renseigné par l'ingestion (vide) ; le rapprochement d'organisme passe par `talentsoft_organisme_entity_code`. |
 | `profession.referentiel` | Constante `RMFPv2`. |
 | `profession.code_emploi_local` | Jamais renseigné, `local_job_code` reste à `null`. |
 | `criteres.documents_requis` | Lu dans `customFields.applicantCriteria.customCodeTable1` (« Documents à transmettre ») : `Doc_CV` → `[CV]`, `Doc_CV_LM` → `[CV, LETTRE_MOTIVATION]`, `Doc_CV_PF` → `[CV, PORTFOLIO]`, `Doc_CV_LM_PF` → `[CV, LETTRE_MOTIVATION, PORTFOLIO]`. Absent, `null` ou code inconnu → non envoyé. API fake-ts : renvoyé dans `customFields.applicantCriteria.customCodeTable1`, valeur du référentiel Talentsoft « Documents à transmettre » : `[CV]` → `Doc_CV`, `[CV, LETTRE_MOTIVATION]` → `Doc_CV_LM`, `[CV, PORTFOLIO]` → `Doc_CV_PF`, `[CV, LETTRE_MOTIVATION, PORTFOLIO]` → `Doc_CV_LM_PF`, quel que soit l'ordre. `null` pour une liste vide ou une autre combinaison. Le `label` reprend le libellé Talentsoft, que le WordPress BIEP affiche après « Pour postuler à cette offre, ». |
-| `conditions.temps_travail` | Lu dans `customFields.description.customCodeTable3` (absent de l'API fake-ts) : `reponse_oui` → `TEMPS_PLEIN`, `reponse_non` → `TEMPS_PARTIEL`, sinon `NON_DEFINI`. |
-| `conditions.lieu_de_travail` | Lu dans `customFields.offerCustomBlock1.customCodeTable2` (absent de l'API fake-ts) : `reponse_oui` → `TELETRAVAIL`, `reponse_non` → `SUR_SITE`, sinon `NON_DEFINI`. |
-| `conditions.management` | Lu dans `customFields.offerCustomBlock1.customCodeTable1` (absent de l'API fake-ts) : `reponse_oui` → `AVEC`, `reponse_non` → `SANS`. |
+| `conditions.temps_travail` | Lu dans `customFields.description.customCodeTable3` (« Temps plein » oui/non) : `reponse_oui` → `TEMPS_PLEIN`, `reponse_non` → `TEMPS_PARTIEL`, sinon `NON_DEFINI`. API fake-ts : `clientCode` = `TEMPS_PLEIN` ou `TEMPS_PARTIEL`, `label` = son libellé, `null` pour `NON_DEFINI`. `customFields.offerCustomBlock1.customCodeTable3` est le diplôme d'État exigé, non lu. |
+| `conditions.lieu_de_travail` | Lu dans `customFields.offerCustomBlock1.customCodeTable2` : `reponse_oui` → `TELETRAVAIL`, `reponse_non` → `SUR_SITE`, sinon `NON_DEFINI`. API fake-ts : `clientCode` = `TELETRAVAIL` ou `SUR_SITE`, `label` = son libellé, `null` pour `NON_DEFINI`. |
+| `conditions.management` | Lu dans `customFields.offerCustomBlock1.customCodeTable1` : `reponse_oui` → `AVEC`, `reponse_non` → `SANS`. API fake-ts : `clientCode` = `AVEC` ou `SANS`, `label` = son libellé, `null` si absent. |
 | `conditions.salaire_titulaire` | Jamais renseigné par l'ingestion. |
 | `conditions.salaire_contractuel` | Jamais renseigné par l'ingestion. |
 | `conditions.fin_contrat` | Jamais renseigné par l'ingestion. |
 | `conditions.ouvert_aux_militaires` | Jamais renseigné par l'ingestion. |
-| `conditions.note_ouverture_poste_url` | Lu dans `customFields.offerCustomBlock1.longText3` (« Avis de vacance au JO », absent de l'API fake-ts) : premier lien `legifrance.gouv.fr` présent dans le texte, passé en `https`. `null` si le texte ne contient aucun lien Legifrance (les liens vers une page de candidature sont ignorés). |
-| `contacts` | Lu dans `customFields.origin.shortText2` et `customFields.origin.shortText3` (absents de l'API fake-ts) : `shortText2` (« Personnes à contacter ») → contact `principal`, `shortText3` (« Autre personne à contacter ») → contact `autre`. `texte` reprend la valeur sans les espaces en début et fin ; une valeur sans lettre ni chiffre est ignorée. `emails` contient les adresses email présentes dans le texte, dédoublonnées, dans l'ordre d'apparition. `null` si aucun contact. |
+| `conditions.note_ouverture_poste_url` | Lu dans `customFields.offerCustomBlock1.longText3` (« Avis de vacance au JO ») : premier lien `legifrance.gouv.fr` présent dans le texte, passé en `https`. `null` si le texte ne contient aucun lien Legifrance (les liens vers une page de candidature sont ignorés). API fake-ts : `longText3` contient le lien, `longText3Formatted` le même texte en HTML. |
+| `contacts` | Lu dans `customFields.origin.shortText2` et `customFields.origin.shortText3` : `shortText2` (« Personnes à contacter ») → contact `principal`, `shortText3` (« Autre personne à contacter ») → contact `autre`. `texte` reprend la valeur sans les espaces en début et fin ; une valeur sans lettre ni chiffre est ignorée. `emails` contient les adresses email présentes dans le texte, dédoublonnées, dans l'ordre d'apparition. `null` si aucun contact. API fake-ts : `shortText2` = `texte` du contact `principal`, `shortText3` = `texte` du contact `autre`, `null` sans contact de ce rôle. |
 
 
 

@@ -464,6 +464,7 @@ describe('candidaturePanelView', () => {
         publie_par_nom: 'Dupont',
         publie_le: '2025-06-10T09:15:00',
         est_privee: false,
+        authorized_actions: ['update_note', 'delete_note'],
       }],
     })
     const user = setupUser()

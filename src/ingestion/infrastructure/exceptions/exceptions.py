@@ -52,3 +52,33 @@ class TalentsoftOfferWithSeveralLocations(InfrastructureError):
             f"({', '.join(fields)}): only the first one is kept",
             details={"reference": reference, "source_id": source_id, "fields": fields},
         )
+
+
+class TalentsoftOfferWithMisfiledStateDiploma(InfrastructureError):
+    """The value is dropped (see #2284)."""
+
+    def __init__(
+        self,
+        reference: str,
+        source_id: str | None,
+        organisme_entity_code: str | None,
+        type: str | None,
+        client_code: str,
+    ):
+        self.reference = reference
+        self.source_id = source_id
+        self.organisme_entity_code = organisme_entity_code
+        self.type = type
+        self.client_code = client_code
+        super().__init__(
+            f"Offer {reference} from source {source_id} (organisme "
+            f"{organisme_entity_code}) has {type!r} ({client_code}) in the state "
+            "diploma field: the value is dropped",
+            details={
+                "reference": reference,
+                "source_id": source_id,
+                "organisme_entity_code": organisme_entity_code,
+                "type": type,
+                "client_code": client_code,
+            },
+        )

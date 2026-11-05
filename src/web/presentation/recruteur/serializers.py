@@ -435,6 +435,14 @@ class CandidatureListeSerializer(serializers.ModelSerializer):
         ]
 
 
+class RecrutementListeSerializer(serializers.Serializer):
+    count = serializers.IntegerField()
+    next = serializers.URLField(allow_null=True)
+    previous = serializers.URLField(allow_null=True)
+    results = CandidatureListeSerializer(many=True)
+    etapes = EtapeRecrutementModelSerializer(many=True)
+
+
 # ---------------------------------------------------------------------------
 # Serializers pour la création d'un profil agent
 # ---------------------------------------------------------------------------
@@ -592,6 +600,42 @@ class DocumentListeSerializer(serializers.ModelSerializer):
 
 
 # ---------------------------------------------------------------------------
+# Serializers pour les étiquettes d'un organisme
+# ---------------------------------------------------------------------------
+
+
+class TagSerializer(serializers.ModelSerializer):
+    uuid = serializers.UUIDField(source="id")
+    usage_count = serializers.IntegerField(read_only=True, default=0)
+
+    class Meta:
+        model = TagModel
+        fields = ["uuid", "name", "category", "color", "usage_count"]
+
+
+class NoteTagSerializer(TagSerializer):
+    color = serializers.ChoiceField(choices=TagColor.choices, read_only=True)
+
+    class Meta(TagSerializer.Meta):
+        fields = ["uuid", "name", "color"]
+
+
+class TagListQuerySerializer(serializers.Serializer):
+    category = serializers.ChoiceField(choices=TagCategory.choices, required=False)
+
+
+class CreateTagSerializer(serializers.Serializer):
+    name = serializers.CharField(max_length=25)
+    category = serializers.ChoiceField(choices=TagCategory.choices)
+    color = serializers.ChoiceField(choices=TagColor.choices, default=TagColor.BLEU)
+
+
+class UpdateTagSerializer(serializers.Serializer):
+    name = serializers.CharField(max_length=25)
+    color = serializers.ChoiceField(choices=TagColor.choices)
+
+
+# ---------------------------------------------------------------------------
 # Serializers pour les notes attachées à une candidature
 # ---------------------------------------------------------------------------
 
@@ -607,6 +651,7 @@ class NoteSerializer(serializers.ModelSerializer):
     publie_par_nom = serializers.CharField(source="publie_par.utilisateur.last_name")
     publie_le = serializers.DateTimeField(source="created_at")
     est_privee = serializers.BooleanField()
+    authorized_actions = authorized_actions_field()
 
     class Meta:
         model = NoteModel
@@ -619,6 +664,7 @@ class NoteSerializer(serializers.ModelSerializer):
             "publie_par_nom",
             "publie_le",
             "est_privee",
+            "authorized_actions",
         ]
 
 
@@ -628,10 +674,18 @@ class NoteDetailSerializer(serializers.ModelSerializer):
     message = serializers.CharField()
     publie_par_id = serializers.UUIDField()
     est_privee = serializers.BooleanField()
+    tags = NoteTagSerializer(many=True, read_only=True)
 
     class Meta:
         model = NoteModel
-        fields = ["uuid", "candidature_id", "message", "publie_par_id", "est_privee"]
+        fields = [
+            "uuid",
+            "candidature_id",
+            "message",
+            "publie_par_id",
+            "est_privee",
+            "tags",
+        ]
 
 
 class CreateNoteSerializer(serializers.Serializer):
@@ -873,32 +927,3 @@ class CreateMessageSerializer(serializers.Serializer):
 
 class CreateConversationSerializer(CreateMessageSerializer):
     objet = serializers.CharField(max_length=settings.CONVERSATION_OBJET_MAX_LENGTH)
-
-
-# ---------------------------------------------------------------------------
-# Serializers pour les étiquettes d'un organisme
-# ---------------------------------------------------------------------------
-
-
-class TagSerializer(serializers.ModelSerializer):
-    uuid = serializers.UUIDField(source="id")
-    usage_count = serializers.IntegerField(read_only=True, default=0)
-
-    class Meta:
-        model = TagModel
-        fields = ["uuid", "name", "category", "color", "usage_count"]
-
-
-class TagListQuerySerializer(serializers.Serializer):
-    category = serializers.ChoiceField(choices=TagCategory.choices, required=False)
-
-
-class CreateTagSerializer(serializers.Serializer):
-    name = serializers.CharField(max_length=25)
-    category = serializers.ChoiceField(choices=TagCategory.choices)
-    color = serializers.ChoiceField(choices=TagColor.choices, default=TagColor.BLEU)
-
-
-class UpdateTagSerializer(serializers.Serializer):
-    name = serializers.CharField(max_length=25)
-    color = serializers.ChoiceField(choices=TagColor.choices)

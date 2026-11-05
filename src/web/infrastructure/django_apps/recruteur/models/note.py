@@ -1,8 +1,13 @@
+from typing import TYPE_CHECKING
+
 from django.db import models
 
 from infrastructure.django_apps.candidate.models.candidature import CandidatureModel
 from infrastructure.django_apps.users.fields import agent_fk
 from infrastructure.django_apps.utils.models import BaseDatedModel
+
+if TYPE_CHECKING:
+    from infrastructure.django_apps.tag.models import TagModel
 
 
 class NoteQuerySet(models.QuerySet):
@@ -32,6 +37,17 @@ class NoteQuerySet(models.QuerySet):
             pk=note_id
         )
 
+    def with_tags(self) -> "NoteQuerySet":
+        liaison_model = self.model._meta.get_field("tags_liaisons").related_model
+        return self.prefetch_related(
+            models.Prefetch(
+                "tags_liaisons",
+                queryset=liaison_model.objects.select_related("tag").order_by(
+                    "created_at", "id"
+                ),
+            )
+        )
+
 
 class NoteModel(BaseDatedModel):
     candidature = models.ForeignKey(
@@ -54,3 +70,7 @@ class NoteModel(BaseDatedModel):
 
     def __str__(self) -> str:
         return str(self.id)
+
+    @property
+    def tags(self) -> list["TagModel"]:
+        return [liaison.tag for liaison in self.tags_liaisons.all()]

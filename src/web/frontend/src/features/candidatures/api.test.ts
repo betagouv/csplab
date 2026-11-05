@@ -1,9 +1,9 @@
-import type { PaginatedCandidatureListeList } from './types'
+import type { RecrutementListe } from './types'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { CANDIDAT_ALICE, ETAPE_RECEPTION } from '@/test/fixtures/candidatures'
 import { getCandidatureListe } from './api'
 
-function makeRow(index: number): PaginatedCandidatureListeList['results'][number] {
+function makeRow(index: number): RecrutementListe['results'][number] {
   return {
     uuid: `candidature-${index}`,
     date_soumission: '2025-06-10T09:15:00Z',
