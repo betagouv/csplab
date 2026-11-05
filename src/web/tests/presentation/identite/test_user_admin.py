@@ -6,8 +6,14 @@ from django.test import Client
 from django.urls import reverse
 from django_otp import DEVICE_ID_SESSION_KEY
 from django_otp.plugins.otp_totp.models import TOTPDevice
+from rest_framework_simplejwt.token_blacklist.models import (
+    BlacklistedToken,
+    OutstandingToken,
+)
+from rest_framework_simplejwt.tokens import RefreshToken
 
 import config.urls  # noqa: F401  # imported for its side effect: runs the OTPAdminSite swap
+from infrastructure.django_apps.commons.models import AuditLogModel
 from infrastructure.django_apps.users.models import AllowedNetworkModel, UserModel
 from infrastructure.factories.identite.utilisateur_django_factory import (
     UtilisateurDjangoFactory,
@@ -93,3 +99,40 @@ class TestUserAdminAllowedNetworks:
         assert unrestricted.email not in restricted_page.text
         assert unrestricted.email in unrestricted_page.text
         assert restricted.email not in unrestricted_page.text
+
+
+class TestUserAdminRevokeApiTokens:
+    def test_revokes_the_refresh_tokens_of_the_selected_accounts(self, admin_client):
+        compte, autre = UtilisateurDjangoFactory.create_batch(2)
+        revoked = RefreshToken.for_user(compte)
+        RefreshToken.for_user(autre)
+
+        response = admin_client.post(
+            reverse("admin:users_usermodel_changelist"),
+            {"action": "revoke_api_tokens", "_selected_action": [compte.pk]},
+            follow=True,
+        )
+
+        assert response.status_code == HTTPStatus.OK
+        assert list(BlacklistedToken.objects.values_list("token__jti", flat=True)) == [
+            revoked["jti"]
+        ]
+        assert AuditLogModel.objects.get().ressource_id == compte.username
+        assert (
+            "1 jeton(s) de rafraîchissement révoqué(s) pour 1 compte(s). "
+            "Les jetons d&#x27;accès déjà émis restent valables 15 minutes au plus."
+        ) in response.text
+
+    def test_hides_the_stored_token_on_the_outstanding_token_page(self, admin_client):
+        token = RefreshToken.for_user(UtilisateurDjangoFactory())
+
+        response = admin_client.get(
+            reverse(
+                "admin:token_blacklist_outstandingtoken_change",
+                args=[OutstandingToken.objects.get().pk],
+            )
+        )
+
+        assert response.status_code == HTTPStatus.OK
+        assert token["jti"] in response.text
+        assert str(token) not in response.text

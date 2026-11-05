@@ -101,6 +101,11 @@ facultative : un compte sans plage reste utilisable depuis n'importe quelle adre
   (`401 Non autorisé`). Pour l'obtention du jeton, le message est le même qu'un
   identifiant invalide.
 
+Si un accès depuis une adresse non autorisée laisse penser à une fuite de jeton, nous
+pouvons révoquer les jetons de rafraîchissement du compte : `POST /api/token/refresh/`
+renvoie alors `401 Non autorisé` (code `token_not_valid`). Obtenez un nouveau jeton avec
+`POST /api/token/`. Un jeton d'accès déjà obtenu reste valable jusqu'à son expiration.
+
 
 
 ## Limitations d'usage (quotas)

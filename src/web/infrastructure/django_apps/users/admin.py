@@ -1,5 +1,11 @@
-from django.contrib import admin
+from django.conf import settings
+from django.contrib import admin, messages
+from rest_framework_simplejwt.token_blacklist.admin import (
+    OutstandingTokenAdmin as BaseOutstandingTokenAdmin,
+)
+from rest_framework_simplejwt.token_blacklist.models import OutstandingToken
 
+from application.identite.services.revoke_api_tokens import revoke_api_tokens
 from infrastructure.django_apps.users.models import (
     AllowedNetworkModel,
     ProfilAgentModel,
@@ -48,6 +54,7 @@ class UserModelAdmin(admin.ModelAdmin):
     readonly_fields = ["username", "id", "date_joined", "last_login", "password"]
     filter_horizontal = ("sources",)
     inlines = (AllowedNetworkInline,)
+    actions = ("revoke_api_tokens",)
 
     def get_queryset(self, request):
         return super().get_queryset(request).avec_restriction_ip()
@@ -57,6 +64,38 @@ class UserModelAdmin(admin.ModelAdmin):
     )
     def is_ip_restricted(self, obj: UserModel) -> bool:
         return obj.ip_restricted  # type: ignore[attr-defined]
+
+    @admin.action(
+        description="Révoquer les jetons de rafraîchissement de l'API",
+        permissions=["change"],
+    )
+    def revoke_api_tokens(self, request, queryset):
+        revoked = sum(
+            revoke_api_tokens(compte=compte, utilisateur=request.user)
+            for compte in queryset
+        )
+        access_minutes = int(
+            settings.SIMPLE_JWT["ACCESS_TOKEN_LIFETIME"].total_seconds() // 60
+        )
+        self.message_user(
+            request,
+            f"{revoked} jeton(s) de rafraîchissement révoqué(s) pour "
+            f"{len(queryset)} compte(s). Les jetons d'accès déjà émis restent "
+            f"valables {access_minutes} minutes au plus.",
+            messages.SUCCESS,
+        )
+
+
+admin.site.unregister(OutstandingToken)
+
+
+@admin.register(OutstandingToken)
+class OutstandingTokenAdmin(BaseOutstandingTokenAdmin):
+    exclude = ("token",)
+    search_fields = ("user__email", "jti")
+
+    def get_readonly_fields(self, *args, **kwargs):
+        return [f for f in super().get_readonly_fields(*args, **kwargs) if f != "token"]
 
 
 @admin.register(ProfilCandidatModel)
