@@ -102,10 +102,8 @@ class OrganismeDetailSerializer(serializers.ModelSerializer):
     uuid = serializers.UUIDField(source="id", read_only=True)
     siret = serializers.CharField(min_length=14, max_length=14, read_only=True)
     gestion_ats = serializers.BooleanField(read_only=True)
-    date_derniere_activite = serializers.DateTimeField(
-        source="updated_at", read_only=True
-    )
-    date_creation = serializers.DateTimeField(source="created_at", read_only=True)
+    date_derniere_activite = serializers.DateTimeField(read_only=True)
+    date_creation = serializers.DateTimeField(read_only=True)
     # TODO : fill with the active superviseurs (comma-separated, as in
     # OrganismesListSerializer) ; the PUT still feeds this serializer a dict
     superviseurs = serializers.SerializerMethodField()

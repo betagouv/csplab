@@ -38,7 +38,6 @@ from infrastructure.factories.recruteur.etapes_recrutement_factory import (
 from infrastructure.repositories.commons.postgres_audit_log_repository import (
     PostgresAuditLogRepository,
 )
-from tests.utils.dates import datetime_to_drf_representation
 
 fake = Faker("fr_FR")
 
@@ -114,7 +113,12 @@ class TestOrganismeDetailView:
         )
 
     def test_staff_gets_organisme(self, staff_client):
-        organisme = OrganismeDjangoFactory(id=UUID(ORGANISME_UUID), gestion_ats=True)
+        organisme = OrganismeDjangoFactory(
+            id=UUID(ORGANISME_UUID),
+            gestion_ats=True,
+            date_creation=datetime(2019, 3, 1, 9, 0, tzinfo=timezone.utc),
+            date_derniere_activite=datetime(2026, 1, 15, 10, 0, tzinfo=timezone.utc),
+        )
 
         response = staff_client.get(ORGANISME_URL)
 
@@ -126,10 +130,8 @@ class TestOrganismeDetailView:
             "siret": organisme.siret,
             "superviseurs": "",
             "gestion_ats": True,
-            "date_creation": datetime_to_drf_representation(organisme.created_at),
-            "date_derniere_activite": datetime_to_drf_representation(
-                organisme.updated_at
-            ),
+            "date_creation": "2019-03-01T09:00:00Z",
+            "date_derniere_activite": "2026-01-15T10:00:00Z",
         }
 
     def test_superviseur_gets_organisme(self, authenticated_client, test_user):

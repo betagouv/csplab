@@ -178,9 +178,9 @@ class TestCreateOrganisme:
             "superviseurs": "",
             "gestion_ats": True,
             "date_derniere_activite": datetime_to_drf_representation(
-                organisme.updated_at
+                organisme.date_derniere_activite
             ),
-            "date_creation": datetime_to_drf_representation(organisme.created_at),
+            "date_creation": datetime_to_drf_representation(organisme.date_creation),
         }
 
     def test_refuses_non_staff(self, authenticated_client):
