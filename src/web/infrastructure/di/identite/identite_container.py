@@ -3,7 +3,6 @@ from dependency_injector import containers, providers
 from application.identite.context_services.organisme_permission_service import (
     OrganismePermissionService,
 )
-from application.identite.usecases.get_organisme import GetOrganismeUsecase
 from application.identite.usecases.update_organisme import UpdateOrganismeUsecase
 from domain.commons.services.audit_log_writer import AuditLogWriter
 from infrastructure.repositories.commons.postgres_audit_log_repository import (
@@ -31,12 +30,6 @@ class IdentiteContainer(containers.DeclarativeContainer):
     postgres_organisme_repository = providers.Singleton(PostgresOrganismeRepository)
 
     organisme_permission_service = providers.Factory(OrganismePermissionService)
-
-    get_organisme_usecase = providers.Factory(
-        GetOrganismeUsecase,
-        organisme_repository=postgres_organisme_repository,
-        permission_service=organisme_permission_service,
-    )
 
     update_organisme_usecase = providers.Factory(
         UpdateOrganismeUsecase,
