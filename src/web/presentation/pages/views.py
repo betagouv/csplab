@@ -3,6 +3,8 @@ from itertools import groupby
 
 from django.conf import settings
 from django.http import HttpResponse
+from django.templatetags.static import static
+from django.urls import reverse
 from django.utils.text import slugify
 from django.views.generic import TemplateView
 from markdown_it import MarkdownIt
@@ -162,6 +164,40 @@ class ApiChangelogView(TemplateView):
             ],
         )
         return context
+
+
+def llms_txt(request):
+    def url(path: str) -> str:
+        return request.build_absolute_uri(path)
+
+    content = f"""\
+# CSPLab
+
+> API publique de CSPLab, plateforme de recrutement de la fonction publique : offres
+> d'emploi, organismes et métiers, en lecture et en écriture pour les partenaires.
+
+Les documents ci-dessous sont en français. Le guide décrit les règles métier de
+chaque route et de chaque champ ; le schéma OpenAPI fait foi en cas de divergence.
+
+## Documentation de l'API
+
+- [Guide de l'API]({url(reverse("api:guide_markdown"))}): règles métier des routes \
+et des champs, en Markdown
+- [Schéma OpenAPI]({url(static("api/schema.yaml"))}): référence technique des routes
+- [Changelog]({url(reverse("api:changelog_markdown"))}): changements de l'API, du plus \
+récent au plus ancien, en Markdown. Filtres : `type` (répétable : \
+{", ".join(TYPE_LABELS)}), `route` (ex. `POST /api/v1/offres/creer_modifier`), \
+`depuis` (AAAA-MM-JJ)
+- [Changelog en JSON]({url(reverse("api:changelog_json"))}): une entrée par \
+changement, avec ses routes, sa PR et ses tickets ; mêmes filtres
+
+## Optional
+
+- [Flux Atom du changelog]({url(reverse("api:changelog_atom"))})
+- [Documentation Redoc]({url(reverse("api:redoc"))})
+- [Page du changelog]({url(reverse("pages:api_changelog"))})
+"""
+    return HttpResponse(content, content_type="text/plain; charset=utf-8")
 
 
 def security_txt(request):

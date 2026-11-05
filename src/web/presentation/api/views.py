@@ -235,6 +235,23 @@ class ChangelogAtomView(_PublicDocumentationView):
         return ChangelogFeed(request._request, filters)(request._request)
 
 
+class GuideMarkdownView(_PublicDocumentationView):
+    @extend_schema(
+        tags=["documentation"],
+        operation_id="guide_markdown",
+        summary="Guide de l'API en Markdown",
+        description="Les règles métier de chaque route et de chaque champ.",
+        responses={(200, "text/markdown"): OpenApiTypes.STR},
+    )
+    def get(self, request):
+        return HttpResponse(_guide_markdown(), content_type=_MARKDOWN)
+
+
+@cache
+def _guide_markdown() -> str:
+    return (settings.STATIC_DIR / "api" / "guide_api.md").read_text()
+
+
 @extend_schema(exclude=True)
 class HueyHealthView(PublicApiMixin, APIView):
     def get(self, request):
