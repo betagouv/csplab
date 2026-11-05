@@ -36,6 +36,7 @@ URL = reverse("ingestion:offers_by_source", kwargs={"source_id": SOURCE_ID})
 
 NOMBRE_REQUETES_ATTENDU = (
     1  # view JWT authentication
+    + 1  # JWT account's allowed networks
     + 1  # usecase: utilisateur_repository.get_by_username
     + 2  # usecase: get_allowed_source_ids (get user + filter sources M2M)
     + 2  # pagination: count + page

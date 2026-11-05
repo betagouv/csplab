@@ -62,7 +62,7 @@ INGESTION_API_KEY = "test-ingestion-api-key"
 # share one counter per worker (most send no X-Real-IP) and unrelated tests
 # would get a 429. Tests covering this throttle patch their own rate.
 _throttle_rates = cast(dict[str, str | None], REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"])  # noqa: F405
-_throttle_rates["api_key_rejection"] = None
+_throttle_rates["auth_rejection"] = None
 
 SENTRY_DNS = "example.com"
 

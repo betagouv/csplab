@@ -89,6 +89,18 @@ On envoie un **email** et un **mot de passe**, et on reçoit en retour deux jeto
 
 On envoie le jeton de rafraîchissement et on reçoit un nouveau jeton d'accès.
 
+### Restreindre un compte à des adresses IP
+
+Sur demande, un compte peut être limité à une liste d'adresses IP ou de plages CIDR
+(ex. `203.0.113.10`, `203.0.113.0/24`, `2001:db8::/48`). Cette restriction est
+facultative : un compte sans plage reste utilisable depuis n'importe quelle adresse.
+
+- Communiquez vos IP de sortie (production et recette) à la création du compte.
+- Prévenez-nous **avant** d'en changer : depuis une autre adresse, l'obtention d'un
+  jeton, son rafraîchissement et chaque appel avec un jeton déjà obtenu sont refusés
+  (`401 Non autorisé`). Pour l'obtention du jeton, le message est le même qu'un
+  identifiant invalide.
+
 
 
 ## Limitations d'usage (quotas)
