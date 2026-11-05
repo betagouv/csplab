@@ -36,6 +36,8 @@ _FIELDS = {"type", "date", "pr", "liens"}
 _DATE_FORMAT = re.compile(r"\d{4}-\d{2}-\d{2}")
 _FRONT_MATTER = re.compile(r"\A---\n(.*?)\n---\n(.*)\Z", re.DOTALL)
 _SUBSECTION = re.compile(r"^### (.+)$", re.MULTILINE)
+_ROUTE = re.compile(r"`((?:GET|POST|PUT|PATCH|DELETE) /api/[^`\s]*)`")
+_PATH_PARAMETER = re.compile(r"\\\{[^}]+\\\}")
 _GITHUB_REFERENCE = re.compile(
     rf"{re.escape(REPO_URL)}/(?:issues|pull)/(\d+)", re.IGNORECASE
 )
@@ -71,6 +73,7 @@ class Fragment:
     liens: tuple[str, ...]
     entry: str
     subsections: tuple[tuple[str, str], ...]
+    routes: tuple[str, ...] = ()
 
     @property
     def sort_key(self) -> tuple[int, int, str]:
@@ -104,7 +107,12 @@ def parse_fragment(path: Path) -> Fragment:
         liens=tuple(metadata.get("liens") or ()),
         entry=entry,
         subsections=subsections,
+        routes=_cited_routes(match.group(2)),
     )
+
+
+def _cited_routes(body: str) -> tuple[str, ...]:
+    return tuple(sorted({route.rstrip("/") for route in _ROUTE.findall(body)}))
 
 
 def _metadata_errors(metadata: dict[str, Any]) -> list[str]:
@@ -252,6 +260,39 @@ def check_added_fragment(
 @cache
 def changelog_markdown() -> str:
     return assemble(load_fragments())
+
+
+def known_routes(
+    schema_path: Path = settings.STATIC_DIR / "api" / "schema.yaml",
+) -> list[re.Pattern]:
+    schema = yaml.safe_load(schema_path.read_text())
+    routes = [
+        f"{method.upper()} {path.rstrip('/')}"
+        for path, operations in schema["paths"].items()
+        for method in operations
+        if method in ("get", "post", "put", "patch", "delete")
+    ]
+    return [
+        re.compile(_PATH_PARAMETER.sub("[^/]+", re.escape(route)) + r"\Z")
+        for route in routes
+    ]
+
+
+def route_errors(fragment: Fragment, known: list[re.Pattern] | None) -> list[str]:
+    if not fragment.routes:
+        return [
+            (
+                "le corps doit citer la ou les routes concernées, par exemple "
+                "`GET /api/v1/offres`"
+            )
+        ]
+    if known is None or fragment.type == "retire":
+        return []
+    return [
+        f"route inconnue du schéma de l'API publique : `{route}`"
+        for route in fragment.routes
+        if not any(pattern.match(route) for pattern in known)
+    ]
 
 
 def set_date(path: Path, day: date) -> None:

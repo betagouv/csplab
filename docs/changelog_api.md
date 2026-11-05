@@ -28,6 +28,10 @@ Renseignez dans `region` […]
 ```
 
 - `type`, `date` et `pr` sont obligatoires.
+- Le corps cite la ou les routes concernées, entre backticks et avec leur méthode :
+  `` `POST /api/v1/offres/creer_modifier` ``. Une route avec paramètre s'écrit comme dans
+  le schéma (`` `GET /api/v1/offres/sources/{source_id}` ``) ou avec une valeur
+  (`` `GET /api/fake-ts/referentials/department` ``).
 - Un fragment n'a qu'un type. Une PR qui ajoute un champ et en modifie un autre ajoute
   deux fragments.
 - Le lien vers la PR (`pr`) et vers les tickets (`liens`) est ajouté à la fin de
@@ -54,14 +58,17 @@ depuis `origin/main`. Committez le résultat.
 Le job `changelog-api` du workflow Web :
 
 - valide tous les fragments : extension `.md`, en-tête YAML, `type` connu, `date` au format
-  `AAAA-MM-JJ`, `pr` entier, `liens` sous forme d'URL, corps non vide ;
-- sur la PR, pour les fragments ajoutés : refuse une date dans le futur, ou un `pr`
-  différent du numéro de la PR, et avertit si la date a plus de 3 jours ;
+  `AAAA-MM-JJ`, `pr` entier, `liens` sous forme d'URL, corps non vide qui cite au moins
+  une route ;
+- sur la PR, pour les fragments ajoutés : refuse une date dans le futur, un `pr`
+  différent du numéro de la PR, ou une route absente de `schema.yaml` (sauf pour le type
+  `retire`, dont la route peut avoir disparu), et avertit si la date a plus de 3 jours ;
 - dans la merge queue, pour les fragments ajoutés : refuse une date qui n'est pas
   comprise entre aujourd'hui − 3 jours et aujourd'hui.
 
 Une PR qui porte le label `changelog-api-migration` n'est vérifiée que sur le format,
-pour reprendre des fragments avec leur date déjà publiée.
+pour reprendre des fragments avec leur date déjà publiée. Le format comprend la citation
+d'au moins une route : un fragment repris sans route ferait échouer `main` ensuite.
 
 En local : `mise run web:lint:changelog-api` (format seul), ou
 `mise run web:lint:changelog-api -- --base origin/main --pr <numéro>`.
