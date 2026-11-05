@@ -7,6 +7,8 @@ from referentiel.value_objects.contract_kind import ContractKind
 from referentiel.value_objects.country import Country
 from referentiel.value_objects.departement_region import (
     department_belongs_to_region,
+    overseas_region_for_department,
+    overseas_territory_for_country,
 )
 from referentiel.value_objects.department import Department
 from referentiel.value_objects.diploma import Diploma
@@ -654,6 +656,17 @@ class LocalisationInputSerializer(LocalisationSerializer):
     longitude = serializers.FloatField(
         allow_null=True, required=False, min_value=-180, max_value=180
     )
+
+    def validate_pays(self, value: str) -> str:
+        value = super().validate_pays(value)
+        territory = overseas_territory_for_country(value)
+        if territory is not None:
+            region = overseas_region_for_department(territory.department)
+            raise serializers.ValidationError(
+                f"{territory.name} : renseigner `pays` = `FRA`, "
+                f"`region` = `{region}`, `departement` = `{territory.department}`."
+            )
+        return value
 
     def validate(self, data):
         _validate_subdivision_matches_country(data, "une offre localisée")
