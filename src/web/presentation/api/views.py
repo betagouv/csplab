@@ -15,11 +15,12 @@ from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import OpenApiExample, OpenApiParameter, extend_schema
 from huey.contrib.djhuey import HUEY
 from rest_framework import status
+from rest_framework.negotiation import BaseContentNegotiation
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from config.logger_names import LoggerName
-from infrastructure.authentication.anon_rate_throttle import DocumentationRateThrottle
+from infrastructure.authentication.rate_throttle import DocumentationRateThrottle
 from presentation.api.authentication import PublicApiMixin, UnauthenticatedMixin
 from presentation.api.changelog_api import (
     TYPE_LABELS,
@@ -93,8 +94,18 @@ _FILTER_PARAMETERS = [
 ]
 
 
+class _IgnoreClientContentNegotiation(BaseContentNegotiation):
+    def select_parser(self, request, parsers):
+        return parsers[0]
+
+    def select_renderer(self, request, renderers, format_suffix=None):
+        return renderers[0], renderers[0].media_type
+
+
 class _PublicDocumentationView(UnauthenticatedMixin, APIView):
     throttle_classes = [DocumentationRateThrottle]
+    content_negotiation_class = _IgnoreClientContentNegotiation
+    log_api_request = False
 
 
 def _invalid_filters(filters: Filters) -> HttpResponse:
@@ -161,6 +172,9 @@ class ChangelogJsonView(_PublicDocumentationView):
         return Response(serializer.data)
 
 
+ATOM_ID_PREFIX = "tag:csplab.beta.gouv.fr:changelog-api"
+
+
 class ChangelogFeed(Feed):
     # Built per request, for absolute links from the request instead of Site.
 
@@ -191,6 +205,9 @@ class ChangelogFeed(Feed):
 
     def item_link(self, fragment: Fragment) -> str:
         return f"{self.page_url}#{fragment.slug}"
+
+    def item_guid(self, fragment: Fragment) -> str:
+        return f"{ATOM_ID_PREFIX}:{fragment.slug}"
 
     def item_pubdate(self, fragment: Fragment) -> datetime:
         return datetime.combine(fragment.date, time(), ZoneInfo("Europe/Paris"))

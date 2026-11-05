@@ -10,6 +10,7 @@ from zoneinfo import ZoneInfo
 
 import yaml
 from django.conf import settings
+from django.db import models
 from django.http import QueryDict
 from django.urls import reverse
 from markdown_it import MarkdownIt
@@ -28,15 +29,16 @@ TYPES = {
     "retire": "Retiré",
 }
 
-TYPE_LABELS = {
-    "non_retrocompatible": "Non rétrocompatible",
-    "ajoute": "Ajouté",
-    "modifie": "Modifié",
-    "corrige": "Corrigé",
-    "retire": "Retiré",
-}
 
-TYPE_CHOICES = list(TYPE_LABELS.items())
+class TypeChangement(models.TextChoices):
+    NON_RETROCOMPATIBLE = "non_retrocompatible", "Non rétrocompatible"
+    AJOUTE = "ajoute", "Ajouté"
+    MODIFIE = "modifie", "Modifié"
+    CORRIGE = "corrige", "Corrigé"
+    RETIRE = "retire", "Retiré"
+
+
+TYPE_LABELS: dict[str, str] = dict(TypeChangement.choices)
 
 HEADER = """\
 Ce changelog liste les changements de l'API publique CSPLab (routes `/api/v1/…` et

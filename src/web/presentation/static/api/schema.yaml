@@ -4683,7 +4683,7 @@ components:
           type: string
           format: date
         type:
-          $ref: '#/components/schemas/TypeChangementEnum'
+          $ref: '#/components/schemas/TypeEnum'
         libelle_type:
           type: string
           readOnly: true
@@ -7151,20 +7151,6 @@ components:
       required:
       - access
       - refresh
-    TypeChangementEnum:
-      enum:
-      - non_retrocompatible
-      - ajoute
-      - modifie
-      - corrige
-      - retire
-      type: string
-      description: |-
-        * `non_retrocompatible` - Non rétrocompatible
-        * `ajoute` - Ajouté
-        * `modifie` - Modifié
-        * `corrige` - Corrigé
-        * `retire` - Retiré
     TypeContratEnum:
       enum:
       - CDD
@@ -7179,6 +7165,20 @@ components:
         * `CDD_CDI` - CDD ou CDI
         * `CONTRAT_PROJET` - Contrat de projet
         * `VACATION` - Payés à l'acte
+    TypeEnum:
+      enum:
+      - non_retrocompatible
+      - ajoute
+      - modifie
+      - corrige
+      - retire
+      type: string
+      description: |-
+        * `non_retrocompatible` - Non rétrocompatible
+        * `ajoute` - Ajouté
+        * `modifie` - Modifié
+        * `corrige` - Corrigé
+        * `retire` - Retiré
     UpsertOfferError:
       type: object
       properties:

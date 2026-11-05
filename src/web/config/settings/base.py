@@ -387,7 +387,7 @@ REST_FRAMEWORK = {
         "rest_framework.renderers.JSONRenderer",
     ],
     "DEFAULT_THROTTLE_CLASSES": [
-        "infrastructure.authentication.anon_rate_throttle.ClientIpAnonRateThrottle",
+        "infrastructure.authentication.rate_throttle.ClientIpAnonRateThrottle",
         "infrastructure.authentication.api_key_authentication.NonApiKeyUserRateThrottle",
         "infrastructure.authentication.api_key_authentication.ApiKeyRateThrottle",
         "infrastructure.authentication.api_key_authentication.ApiKeyRateThrottleDaily",
@@ -433,9 +433,6 @@ SPECTACULAR_SETTINGS = {
         "drf_spectacular.hooks.preprocess_exclude_path_format",
         "presentation.api.openapi_hooks.preprocess_public_only",
     ],
-    "ENUM_NAME_OVERRIDES": {
-        "TypeChangementEnum": "presentation.api.changelog_api.TYPE_CHOICES",
-    },
     "POSTPROCESSING_HOOKS": [
         "drf_spectacular.hooks.postprocess_schema_enums",
         "presentation.api.openapi_hooks.postprocess_add_rate_limit_headers",

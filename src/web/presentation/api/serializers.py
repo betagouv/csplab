@@ -1,7 +1,7 @@
 from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
-from presentation.api.changelog_api import TYPE_CHOICES, TYPE_LABELS, Fragment
+from presentation.api.changelog_api import TYPE_LABELS, Fragment, TypeChangement
 
 
 class GenericErrorSerializer(serializers.Serializer):
@@ -40,7 +40,7 @@ class ChangelogSubsectionSerializer(serializers.Serializer):
 class ChangelogEntrySerializer(serializers.Serializer):
     id = serializers.CharField(source="slug")
     date = serializers.DateField()
-    type = serializers.ChoiceField(choices=TYPE_CHOICES)
+    type = serializers.ChoiceField(choices=TypeChangement.choices)
     libelle_type = serializers.SerializerMethodField()
     routes = serializers.ListField(child=serializers.CharField())
     pr = serializers.IntegerField()

@@ -11,7 +11,8 @@ from django.http import QueryDict
 from django.urls import reverse
 from rest_framework import status
 
-from infrastructure.authentication.anon_rate_throttle import DocumentationRateThrottle
+from infrastructure.authentication.rate_throttle import DocumentationRateThrottle
+from infrastructure.django_apps.ingestion.models.api_log import ApiLogModel
 from presentation.api.changelog_api import (
     TYPE_LABELS,
     TYPES,
@@ -637,6 +638,8 @@ class TestChangelogFeed:
         link = entries[0].find(f"{self.ATOM}link").get("href")
         assert link == f"http://testserver/pages/changelog_api#{expected[0].slug}"
         assert entries[0].find(f"{self.ATOM}title").text.startswith("Retiré : ")
+        entry_id = entries[0].find(f"{self.ATOM}id").text
+        assert entry_id == f"tag:csplab.beta.gouv.fr:changelog-api:{expected[0].slug}"
 
     def test_rejects_an_invalid_filter(self, db, client):
         response = client.get(reverse("api:changelog_atom"), {"depuis": "hier"})
@@ -676,6 +679,29 @@ class TestDocumentationRoutes:
         assert response.status_code == status.HTTP_200_OK
         assert response["X-RateLimit-Limit"] == "60"
 
+    @pytest.mark.parametrize(
+        ("name", "accept", "content_type"),
+        [
+            ("api:changelog_markdown", "text/markdown", "text/markdown"),
+            ("api:changelog_json", "application/json", "application/json"),
+            ("api:changelog_atom", "application/atom+xml", "application/atom+xml"),
+            ("api:changelog_markdown", "text/html", "text/markdown"),
+            ("api:changelog_atom", "application/json", "application/atom+xml"),
+        ],
+    )
+    def test_ignore_the_accept_header(self, db, client, name, accept, content_type):
+        response = client.get(reverse(name), HTTP_ACCEPT=accept)
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response["Content-Type"].startswith(content_type)
+
+    @pytest.mark.parametrize("name", ROUTES)
+    def test_are_not_logged_in_api_logs(self, db, client, name):
+        client.get(reverse(name))
+        client.get(reverse(name), {"depuis": "hier"})
+
+        assert not ApiLogModel.objects.exists()
+
     def test_limits_a_caller_sending_a_valid_jwt(self, db, jwt_client):
         response = jwt_client.get(reverse("api:changelog_json"))
 
@@ -683,15 +709,15 @@ class TestDocumentationRoutes:
         assert response["X-RateLimit-Limit"] == "60"
 
     @pytest.mark.parametrize("authorization", ["", "Bearer jeton-invalide"])
+    @patch.object(
+        DocumentationRateThrottle, "THROTTLE_RATES", {"documentation": "2/minute"}
+    )
     def test_returns_429_beyond_the_limit(self, db, client, authorization):
         url = reverse("api:changelog_markdown")
-        with patch.object(
-            DocumentationRateThrottle, "get_rate", return_value="2/minute"
-        ):
-            statuses = [
-                client.get(url, HTTP_AUTHORIZATION=authorization).status_code
-                for _ in range(3)
-            ]
+        statuses = [
+            client.get(url, HTTP_AUTHORIZATION=authorization).status_code
+            for _ in range(3)
+        ]
 
         assert statuses == [
             status.HTTP_200_OK,

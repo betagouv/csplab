@@ -19,6 +19,9 @@ valeur invalide renvoie une erreur `400` sur les routes `/api/…`, et est ignor
 un message, sur la page. Le message liste les valeurs possibles sans recopier la valeur
 reçue, pour qu'une URL fabriquée ne puisse pas injecter de texte dans la réponse.
 
+Ces trois routes ignorent l'en-tête `Accept` (chacune ne sert qu'un format) et ne sont
+pas enregistrées dans `api_logs`, qui suit l'usage de l'API par les partenaires.
+
 Une PR qui change l'API publique n'ajoute que des fichiers dans ce dossier : deux PR ne
 peuvent pas entrer en conflit.
 

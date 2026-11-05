@@ -5,7 +5,7 @@ from django.contrib.auth.models import AnonymousUser
 from django.core.cache import cache
 from django.test import RequestFactory
 
-from infrastructure.authentication.anon_rate_throttle import (
+from infrastructure.authentication.rate_throttle import (
     UNKNOWN_CLIENT_IDENT,
     ClientIpAnonRateThrottle,
 )
