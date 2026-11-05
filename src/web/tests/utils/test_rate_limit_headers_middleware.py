@@ -11,12 +11,12 @@ from django.test import RequestFactory
 from django.urls import Resolver404, resolve
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from infrastructure.authentication.anon_rate_throttle import ClientIpAnonRateThrottle
 from infrastructure.authentication.api_key_authentication import (
     ApiKeyRateThrottle,
     ApiKeyRateThrottleDaily,
     _IngestionApiKeyUser,
 )
+from infrastructure.authentication.rate_throttle import ClientIpAnonRateThrottle
 from presentation.middleware.rate_limit_headers import RateLimitHeadersMiddleware
 
 

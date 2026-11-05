@@ -30,10 +30,13 @@ class TestApiChangelogView:
         assert response.status_code == HTTPStatus.OK
         content = response.content.decode()
         assert content.count("<article id=") == response.context["total"]
+        assert 'href="/api/changelog.md"' in content
+        assert 'type="application/atom+xml"' in content
         assert (
             '<a href="https://github.com/betagouv/csplab/pull/2084" target="_blank" '
             'rel="noopener" title="PR #2084 - nouvelle fenêtre">'
         ) in content
+        assert 'title="Markdown - nouvelle fenêtre"' in content
         day_ids = re.findall(r'<h2 id="(date-[^"]+)"', content)
         assert day_ids
         assert len(day_ids) == len(set(day_ids))
@@ -46,7 +49,7 @@ class TestApiChangelogView:
         assert match
         assert f'href="{reverse("pages:api_changelog")}#{match[1]}"' in content
 
-    def test_filters(self, db, client: Client):
+    def test_filters_and_keeps_them_in_download_links(self, db, client: Client):
         response = client.get(
             reverse("pages:api_changelog"),
             {"type": "retire", "route": "POST /api/v1/offres/creer_modifier"},
@@ -57,6 +60,10 @@ class TestApiChangelogView:
         assert content.count("<article id=") == response.context["count"]
         assert "fr-badge--warning" in content
         assert "fr-badge--new" not in content
+        assert (
+            'href="/api/changelog.json?type=retire'
+            '&amp;route=POST+%2Fapi%2Fv1%2Foffres%2Fcreer_modifier"'
+        ) in content
         checked = [t["value"] for t in response.context["types"] if t["checked"]]
         assert checked == ["retire"]
 

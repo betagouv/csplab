@@ -5,11 +5,12 @@ from datetime import date, datetime, timedelta
 from functools import cache
 from pathlib import Path
 from typing import Any
-from urllib.parse import urlparse
+from urllib.parse import urlencode, urlparse
 from zoneinfo import ZoneInfo
 
 import yaml
 from django.conf import settings
+from django.db import models
 from django.http import QueryDict
 from django.urls import reverse
 from markdown_it import MarkdownIt
@@ -28,20 +29,24 @@ TYPES = {
     "retire": "Retiré",
 }
 
-TYPE_LABELS = {
-    "non_retrocompatible": "Non rétrocompatible",
-    "ajoute": "Ajouté",
-    "modifie": "Modifié",
-    "corrige": "Corrigé",
-    "retire": "Retiré",
-}
+
+class TypeChangement(models.TextChoices):
+    NON_RETROCOMPATIBLE = "non_retrocompatible", "Non rétrocompatible"
+    AJOUTE = "ajoute", "Ajouté"
+    MODIFIE = "modifie", "Modifié"
+    CORRIGE = "corrige", "Corrigé"
+    RETIRE = "retire", "Retiré"
+
+
+TYPE_LABELS: dict[str, str] = dict(TypeChangement.choices)
 
 HEADER = """\
 Ce changelog liste les changements de l'API publique CSPLab (routes `/api/v1/…` et
 `/api/fake-ts/…`) qui concernent les partenaires qui l'utilisent. Le détail des
 champs et de leurs règles se trouve dans le [guide de l'API]({guide}).
 
-Il est aussi publié sur une [page filtrable]({page}).
+Il est aussi publié sur une [page filtrable]({page}), et pour les outils et les agents
+en [Markdown]({markdown}), en [JSON]({json}) et en [flux Atom]({atom}).
 
 Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/).
 """
@@ -194,12 +199,18 @@ def load_fragments(directory: Path = FRAGMENTS_DIR) -> list[Fragment]:
     return [parse_fragment(path) for path in sorted(directory.glob("*.md"))]
 
 
-def assemble(fragments: Iterable[Fragment]) -> str:
+def assemble(
+    fragments: Iterable[Fragment], *, base_url: str = "", note: str = ""
+) -> str:
     by_date: dict[date, list[Fragment]] = {}
     for fragment in fragments:
         by_date.setdefault(fragment.date, []).append(fragment)
 
-    sections = [_header()]
+    sections = [_header(base_url)]
+    if note:
+        sections.append(note)
+    if not by_date:
+        sections.append("Aucun changement ne correspond aux filtres.")
     for day in sorted(by_date, reverse=True):
         day_fragments = sorted(by_date[day], key=lambda f: f.sort_key)
         sections.append(f"## {day.isoformat()}")
@@ -213,9 +224,16 @@ def assemble(fragments: Iterable[Fragment]) -> str:
     return "\n\n".join(sections) + "\n"
 
 
-def _header() -> str:
+def _header(base_url: str) -> str:
+    urls = {
+        "guide": "pages:api_guide",
+        "page": "pages:api_changelog",
+        "markdown": "api:changelog_markdown",
+        "json": "api:changelog_json",
+        "atom": "api:changelog_atom",
+    }
     return HEADER.format(
-        guide=reverse("pages:api_guide"), page=reverse("pages:api_changelog")
+        **{key: f"{base_url}{reverse(name)}" for key, name in urls.items()}
     ).rstrip()
 
 
@@ -396,6 +414,25 @@ class Filters:
             and (not self.route or self.route in fragment.routes)
             and (self.since is None or fragment.date >= self.since)
         ]
+
+    def query_string(self) -> str:
+        params: list[tuple[str, str]] = [("type", t) for t in TYPES if t in self.types]
+        if self.route:
+            params.append(("route", self.route))
+        if self.since:
+            params.append(("depuis", self.since.isoformat()))
+        return urlencode(params)
+
+    def describe(self) -> str:
+        parts = []
+        if self.types:
+            labels = [TYPE_LABELS[t] for t in TYPES if t in self.types]
+            parts.append(f"type {', '.join(labels).lower()}")
+        if self.route:
+            parts.append(f"route `{self.route}`")
+        if self.since:
+            parts.append(f"depuis le {self.since.isoformat()}")
+        return f"Changements filtrés : {' ; '.join(parts)}." if parts else ""
 
 
 def known_routes(
