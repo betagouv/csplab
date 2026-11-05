@@ -1,4 +1,10 @@
+import logging
+from collections.abc import Iterable
 from ipaddress import IPv4Address, IPv6Address, ip_address, ip_network
+
+from config.logger_names import LoggerName
+
+logger = logging.getLogger(LoggerName.WEB)
 
 IPAddressInput = str | IPv4Address | IPv6Address
 
@@ -26,3 +32,22 @@ def get_client_ip(request) -> str | None:
     # Scalingo's router sets X-Real-IP; X-Forwarded-For is client-controlled.
     # https://doc.scalingo.com/platform/networking/public/routing
     return parse_ip(request.headers.get("X-Real-IP"))
+
+
+def normalize_network(value: str) -> str:
+    """203.0.113.7 -> 203.0.113.7/32, 203.0.113.7/24 -> 203.0.113.0/24."""
+    return str(ip_network(value.strip(), strict=False))
+
+
+def ip_in_networks(ip: IPAddressInput | None, networks: Iterable[str]) -> bool:
+    client_ip = parse_ip(ip)
+    if client_ip is None:
+        return False
+    address = ip_address(client_ip)
+    for network in networks:
+        try:
+            if address in ip_network(network.strip(), strict=False):
+                return True
+        except ValueError:
+            logger.warning("Invalid network %r skipped.", network)
+    return False
