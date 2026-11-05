@@ -37,6 +37,7 @@ class LoggedTokenObtainPairView(  # type: ignore[misc]
             serializer.user,
             request,
             message=serializer.error_messages["no_active_account"],
+            throttled=False,
         )
         log_login_succeeded(
             canal=Canal.JWT, user=serializer.user, ip_address=ip_address

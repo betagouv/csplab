@@ -15,7 +15,11 @@ REJECTION_MESSAGE = "Authentication failed."
 
 
 def ensure_api_ip_allowed(
-    user: UserModel, request: Request, *, message: str = REJECTION_MESSAGE
+    user: UserModel,
+    request: Request,
+    *,
+    message: str = REJECTION_MESSAGE,
+    throttled: bool = True,
 ) -> None:
     if user.api_ip_is_allowed(get_client_ip(request)):
         return
@@ -28,6 +32,7 @@ def ensure_api_ip_allowed(
         utilisateur_id=user.username,
         # ERROR so Sentry raises an event: usually a partner whose IP changed.
         level=logging.ERROR,
+        throttled=throttled,
     )
 
 

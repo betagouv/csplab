@@ -143,3 +143,15 @@ def test_repeated_rejections_are_throttled_without_audit(api_client, restricted_
 
     assert response.status_code == status.HTTP_429_TOO_MANY_REQUESTS
     assert AuditLoginLogModel.objects.count() == 1
+
+
+@patch.object(
+    AuthRejectionRateThrottle, "THROTTLE_RATES", {"auth_rejection": "1/minute"}
+)
+def test_obtain_is_never_throttled_by_rejections(api_client, restricted_user):
+    cache.clear()
+    _call_jwt_route(api_client, restricted_user, OTHER_IP)
+
+    response = _obtain(api_client, restricted_user, OTHER_IP)
+
+    assert response.status_code == status.HTTP_401_UNAUTHORIZED

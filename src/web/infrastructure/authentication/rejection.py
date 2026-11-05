@@ -36,9 +36,10 @@ def reject(
     message: str,
     utilisateur_id: UUID | None = None,
     level: int = logging.WARNING,
+    throttled: bool = True,
 ) -> AuthenticationFailed | Throttled:
     throttle = AuthRejectionRateThrottle()
-    if not throttle.allow_request(request, view=None):
+    if throttled and not throttle.allow_request(request, view=None):
         return Throttled(wait=throttle.wait())
     ip_address = get_client_ip(request)
     logger.log(level, "%s rejected (%s) from %s.", subject, reason, ip_address)

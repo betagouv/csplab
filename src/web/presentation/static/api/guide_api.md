@@ -98,7 +98,8 @@ facultative : un compte sans plage reste utilisable depuis n'importe quelle adre
 - Communiquez vos IP de sortie (production et recette) à la création du compte.
 - Prévenez-nous **avant** d'en changer : depuis une autre adresse, l'obtention d'un
   jeton, son rafraîchissement et chaque appel avec un jeton déjà obtenu sont refusés
-  (`401 Non autorisé`), avec le même message qu'un identifiant invalide.
+  (`401 Non autorisé`). Pour l'obtention du jeton, le message est le même qu'un
+  identifiant invalide.
 
 
 
