@@ -10,8 +10,7 @@ import { useToast } from '@/composables/ui/useToast'
 import { recrutementDetailQuery } from '@/features/recrutements/queries'
 import { patchEtapeCandidatures } from '../api'
 import { formatEtapeChangeTitle } from '../format'
-import { candidatureDetailQuery, candidatureListeQuery, recrutementKanbanQuery } from '../queries'
-import { moveCandidaturesInKanban } from '../utils/kanban'
+import { candidatureDetailQuery, candidatureListeQuery } from '../queries'
 
 interface Snapshot {
   key: EntryKey
@@ -54,9 +53,6 @@ export function useEtapeChangeMutation(recrutement: MaybeRefOrGetter<Recrutement
       patchEtapeCandidatures(params.organismeUuid, params.recrutementUuid, change),
     onMutate: ({ candidatureUuids, etapeCibleUuid }: EtapeChange) => {
       const params = { ...toValue(recrutement) }
-      const kanban = applyOptimistic(recrutementKanbanQuery(params).key, previous =>
-        moveCandidaturesInKanban(previous, candidatureUuids, etapeCibleUuid))
-
       const snapshots: (Snapshot | null)[] = []
       const etapeCible = findEtapeCible(params, etapeCibleUuid)
       if (etapeCible) {
@@ -73,13 +69,9 @@ export function useEtapeChangeMutation(recrutement: MaybeRefOrGetter<Recrutement
         }
       }
 
-      return { params, kanban, snapshots }
+      return { params, snapshots }
     },
-    onSuccess: ({ echecs }, _change, { params, kanban }) => {
-      const kanbanChangedMeanwhile = kanban && queryCache.getQueryData(kanban.key) !== kanban.optimistic
-      if (kanbanChangedMeanwhile || echecs.length > 0) {
-        void queryCache.invalidateQueries({ key: recrutementKanbanQuery(params).key })
-      }
+    onSuccess: ({ echecs }) => {
       if (echecs.length === 0) {
         return
       }
@@ -88,8 +80,8 @@ export function useEtapeChangeMutation(recrutement: MaybeRefOrGetter<Recrutement
         title: 'Certaines candidatures n\'ont pas changé d\'étape',
       })
     },
-    onError: (_error, _change, { kanban, snapshots }) => {
-      for (const snapshot of [kanban, ...(snapshots ?? [])]) {
+    onError: (_error, _change, { snapshots }) => {
+      for (const snapshot of snapshots ?? []) {
         if (snapshot) {
           restore(snapshot)
         }
