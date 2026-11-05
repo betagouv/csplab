@@ -585,10 +585,10 @@ class FakeTsOfferCustomBlock1Serializer(FakeTsDynamicFieldSerializer):
     )
     customCodeTable3 = FakeTsCodedObjectSerializer(
         allow_null=True,
-        help_text="Diplôme d'État exigé (référentiel Talentsoft « Diplômes "
-        "d'Etat ») : `label` = `criteres.diplome`, `clientCode` = son code "
-        "Talentsoft. `null` si `criteres.diplome` n'est pas l'un des 26 "
-        "diplômes d'État de ce référentiel.",
+        help_text="Diplôme exigé, type « Diplômes d'Etat » : `label` = "
+        "`criteres.diplome`, `clientCode` = son code Talentsoft s'il est l'un "
+        "des 26 diplômes d'État de ce référentiel, sinon chaîne vide. `null` "
+        "si `criteres.diplome` est vide.",
     )
 
 

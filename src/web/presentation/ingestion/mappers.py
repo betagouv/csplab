@@ -417,11 +417,12 @@ class OfferDetailOutputMapper(OfferSummaryOutputMapper):
         return self._csplab_coded_object(member, type_name)
 
     def _state_diploma(self, criteria: Optional[OfferCriteria]) -> Optional[dict]:
-        state_diploma = talentsoft_state_diploma_by_label(
-            criteria.diploma if criteria else None
-        )
-        if state_diploma is None:
+        label = ((criteria.diploma if criteria else None) or "").strip()
+        if not label:
             return None
+        state_diploma = talentsoft_state_diploma_by_label(label)
+        if state_diploma is None:
+            return self._coded_object("", label, TALENTSOFT_STATE_DIPLOMA_TYPE)
         return self._coded_object(
             state_diploma.client_code,
             state_diploma.label,

@@ -494,7 +494,16 @@ class TestOfferDetailViewDbVerified:
                         "parentType": "",
                         "hasChildren": False,
                     },
-                    "customCodeTable3": None,
+                    "customCodeTable3": {
+                        "code": None,
+                        "clientCode": "",
+                        "label": "Master",
+                        "active": True,
+                        "parentCode": None,
+                        "type": "Diplômes d'Etat",
+                        "parentType": "",
+                        "hasChildren": False,
+                    },
                 },
                 "origin": {
                     "date1": None,

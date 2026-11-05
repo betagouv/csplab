@@ -285,8 +285,19 @@ class TestOfferDetailOutputMapper:
             "CSPU0002", "Diplôme d'Etat d'infirmier", "Diplômes d'Etat"
         )
 
-    @pytest.mark.parametrize("diploma", [None, "Master"])
-    def test_state_diploma_is_null_for_other_diplome(self, diploma):
+    def test_state_diploma_keeps_a_free_diplome(self):
+        offer = OfferFactory.create_entity(
+            criteria=OfferCriteria(diploma=" Bac+5 en droit ")
+        )
+
+        custom_fields = OfferDetailOutputMapper().to_dict(offer)["customFields"]
+
+        assert custom_fields["offerCustomBlock1"]["customCodeTable3"] == _coded(
+            "", "Bac+5 en droit", "Diplômes d'Etat"
+        )
+
+    @pytest.mark.parametrize("diploma", [None, "", "  "])
+    def test_state_diploma_is_null_without_diplome(self, diploma):
         offer = OfferFactory.create_entity(criteria=OfferCriteria(diploma=diploma))
 
         custom_fields = OfferDetailOutputMapper().to_dict(offer)["customFields"]
