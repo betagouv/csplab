@@ -2,7 +2,8 @@
 #
 # Upgrade the locked dependencies of every project in a single branch:
 # libs/ first (with a patch version bump when their lock changes), then src/
-# so that the services pick up the updated libs. One commit per project.
+# so that the services pick up the updated libs, then the pnpm lock of the web
+# front. One commit per project.
 # Pushes the branch and returns to main.
 #
 set -euo pipefail
@@ -58,6 +59,21 @@ upgrade_project() {
   commits=$((commits + 1))
 }
 
+upgrade_pnpm() {
+  local dir="src/web"
+  echo "▶ [web-front] mise à jour des dépendances"
+  ( cd "$dir" && pnpm update )
+
+  if git diff --quiet -- "$dir/pnpm-lock.yaml"; then
+    echo "⚠ [web-front] no dependency changes, skipping"
+    return
+  fi
+
+  git add "$dir/pnpm-lock.yaml"
+  git commit -m "build(tooling): met à jour les dépendances front de web"
+  commits=$((commits + 1))
+}
+
 for dir in "${LIBS[@]}"; do
   upgrade_project "$dir" bump
 done
@@ -65,6 +81,8 @@ done
 for dir in "${SERVICES[@]}"; do
   upgrade_project "$dir" nobump
 done
+
+upgrade_pnpm
 
 if [ "$commits" -eq 0 ]; then
   echo "⚠ no dependency changes anywhere, removing $BRANCH"
