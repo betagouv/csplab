@@ -38,6 +38,11 @@
   - [Champs reliés](#champs-relies)
   - [Champs Talentsoft sans équivalent dans l'API v1](#champs-talentsoft-sans-equivalent-dans-lapi-v1)
   - [Autres champs de l'API v1](#autres-champs-de-lapi-v1)
+- [Annexe — Passer de l'API vacancies de Talentsoft à l'API v1](#annexe-passer-de-lapi-vacancies-de-talentsoft-a-lapi-v1)
+  - [Champs de l'offre vacancies](#champs-de-loffre-vacancies)
+  - [Valeurs des listes Talentsoft](#valeurs-des-listes-talentsoft)
+  - [Champs vacancies sans équivalent dans l'API v1](#champs-vacancies-sans-equivalent-dans-lapi-v1)
+  - [Champs de l'API v1 absents de l'offre vacancies](#champs-de-lapi-v1-absents-de-loffre-vacancies)
 
 
 
@@ -285,6 +290,8 @@ Exemple de réponse :
 
 > Vous partez d'une offre au format Talentsoft ? Consultez l'[annexe de correspondance
 > entre le format Talentsoft et l'API v1](#annexe-correspondance-entre-le-format-talentsoft-et-lapi-v1).
+> Vous publiez vos offres avec l'API Talentsoft `api/v1/vacancies/{vacancyReference}` ?
+> Consultez l'[annexe de passage de l'API vacancies à l'API v1](#annexe-passer-de-lapi-vacancies-de-talentsoft-a-lapi-v1).
 
 > **Consulter les offres transmises :** sur l'environnement de démonstration
 > uniquement, les offres transmises peuvent être consultées dans l'interface « Fret » :
@@ -396,7 +403,7 @@ Une offre peut se dérouler en plusieurs lieux : **50 lieux au plus**, tous cons
 | `temps_travail` | Obligatoire. Valeurs : **NON_DEFINI, TEMPS_PLEIN, TEMPS_PARTIEL**. |
 | `ouvert_aux_militaires` | **OUI** ou **NON**. |
 | `lieu_de_travail` | Obligatoire. Valeurs : **NON_DEFINI, SUR_SITE, TELETRAVAIL**. |
-| `management` | Obligatoire. **AVEC** ou **SANS** management. |
+| `management` | Facultatif. **AVEC** ou **SANS** management. |
 | `bases_legales` | Texte libre en Markdown, **1 500 caractères maximum**. |
 | `note_ouverture_poste_url` | Lien **`https`** vers l'avis de vacance publié au Journal officiel, sur **`legifrance.gouv.fr`** ou **`www.legifrance.gouv.fr`** (ex. `https://www.legifrance.gouv.fr/jorf/id/JORFTEXT…`). Une offre avec un lien `http` ou vers un autre site est rejetée. |
 
@@ -751,6 +758,100 @@ Notation : `a.b` désigne un objet imbriqué, `a[]` une liste, `a[0]` son premie
 | `conditions.ouvert_aux_militaires` | Jamais renseigné par l'ingestion. |
 | `conditions.note_ouverture_poste_url` | Lu dans `customFields.offerCustomBlock1.longText3` (« Avis de vacance au JO ») : premier lien `legifrance.gouv.fr` présent dans le texte, passé en `https`. `null` si le texte ne contient aucun lien Legifrance (les liens vers une page de candidature sont ignorés). API fake-ts : `longText3` contient le lien, `longText3Formatted` le même texte en HTML. |
 | `contacts` | Lu dans `customFields.origin.shortText2` et `customFields.origin.shortText3` : `shortText2` (« Personnes à contacter ») → contact `principal`, `shortText3` (« Autre personne à contacter ») → contact `autre`. `texte` reprend la valeur sans les espaces en début et fin ; une valeur sans lettre ni chiffre est ignorée. `emails` contient les adresses email présentes dans le texte, dédoublonnées, dans l'ordre d'apparition. `null` si aucun contact. API fake-ts : `shortText2` = `texte` du contact `principal`, `shortText3` = `texte` du contact `autre`, `null` sans contact de ce rôle. |
+
+
+
+# Annexe — Passer de l'API vacancies de Talentsoft à l'API v1
+
+Cette annexe s'adresse aux employeurs qui publient aujourd'hui leurs offres dans le Back Office Talentsoft de la PEP avec l'API Talentsoft `PUT api/v1/vacancies/{vacancyReference}`, et qui envoient désormais ces offres à `POST /api/v1/offres/creer_modifier/`. Elle indique, pour chaque champ de l'offre envoyée à Talentsoft, le champ correspondant de l'API v1 et la conversion des valeurs. Les libellés entre guillemets sont ceux du formulaire offre du Back Office (fichier DGAFP « champs Offre BO V3 »).
+
+Notation : `a.b` désigne un objet imbriqué, `a[]` une liste. Les champs `…Id` contiennent le code client d'une liste Talentsoft (colonne « Codeclient » du fichier DGAFP), converti selon la section « [Valeurs des listes Talentsoft](#valeurs-des-listes-talentsoft) ». Un texte HTML (`…HTML`) doit être converti en Markdown : l'API v1 rejette les balises HTML (voir le bloc « Description »). Les dates sont envoyées à l'API v1 au format ISO 8601 avec l'heure (`2026-11-05T00:00:00Z`).
+
+Les blocs `localisation`, `criteres`, `conditions` et `contacts`, ainsi que `url_offre`, doivent figurer dans chaque offre, même sans valeur (`null`). Le bloc `conditions` exige `temps_travail` et `lieu_de_travail` : envoyez `NON_DEFINI` si le champ Talentsoft est vide.
+
+### Champs de l'offre vacancies
+
+| Offre vacancies | Offer API v1 | Note |
+|---|---|---|
+| `reference` | `identification.reference` | Le paramètre `{vacancyReference}` de l'URL Talentsoft. Une offre déjà envoyée avec la même référence est mise à jour. |
+| `jobDescription.salaryRangeId` | `identification.versant` | « Versant » : `Versant_FPE` → `FPE`, `Versant_FPH` → `FPH`, `Versant_FPT` → `FPT`. |
+| `jobDescription.title` | `titre` | « Intitulé du poste ». 104 caractères dans Talentsoft, 150 dans l'API v1. |
+| `organisationId` | `organisation.nom` et `organisation.siret` | « Organisme de rattachement ». L'API v1 n'utilise pas le code d'entité Talentsoft : retrouvez l'organisme avec [`GET /api/v1/organismes/`](#6-consulter-les-organismes-get-apiv1organismes) (filtres `nom`, `siret`) et reprenez son `nom` et son `siret`. |
+| `candidateRedirectionUrl` | `url_candidature` | « URL pour postuler candidat ». Renseigné, `email_candidature` reste vide. |
+| `requestingParty.requestingPartyCustomFields.shortText1` | `email_candidature` | « Personne à qui adresser les candidatures ». Ne reprendre que l'adresse email, et seulement si `candidateRedirectionUrl` est vide : l'API v1 attend l'un ou l'autre, jamais les deux. |
+| `requestingParty.requestingPartyCustomFields.shortText2` | `contacts[]` avec `role` = `principal` | « Contact 1 ». La valeur va dans `texte`, les adresses email qu'elle contient dans `emails`. Valeur vide : pas de contact. |
+| `requestingParty.requestingPartyCustomFields.shortText3` | `contacts[]` avec `role` = `autre` | « Contact 2 ». Même règle que `shortText2`. |
+| `requestingParty.beginningDate` | `publication.debut_vacance_poste` | « Date de vacance de l'emploi ». Peut aussi alimenter `conditions.debut_contrat`. |
+| `jobDescription.primaryProfileId` | `profession.metier` | « Domaine et métier » : code métier RMFP (`ERACH001`…), à reprendre tel quel. `profession.domaine` est déduit du métier ; il n'est à envoyer que pour les métiers relevant de plusieurs domaines (`ERJUS008` → `JUS`, `ERTRA007` → `TRA`). `profession.referentiel` vaut `RMFPv2`. |
+| `jobDescription.professionalCategoryId` | `vacance_poste` | « Statut du poste » : `STATUT01` (vacant) → `OUI`, `STATUT02` (susceptible d'être vacant) → `NON`. |
+| `jobDescription.contractTypeId` | `nature_offre` | « Nature de l'emploi » : `NAT_TITULAIRE_CONTRACTUEL` → `TITULAIRE_CONTRACTUEL`, `NAT_CONTRACTUELS` → `CONTRACTUEL`. |
+| `jobDescription.jobDescriptionCustomFields.customCodeTable1Id` | `categories` | « Catégorie », liste d'une seule valeur : `CAT-A` → `[A]`, `CAT-B` → `[B]`, `CAT-C` → `[C]`, `CAT-AEF` et `CAT-ESD` (encadrement supérieur) → `[APLUS]`. |
+| `generalInformationCustomFields.customCodeTable2Id` | `type_contrat` | « Nature de contrat » : `CDD_6M`, `CDD_1A`, `CDD_2A`, `CDD_3A` → `CDD` ; `CDI` → `CDI`. Vide : `null`. La durée du CDD peut être reprise dans `conditions.duree_contrat` (« 6 mois », « 1 an »…). |
+| `generalInformationCustomFields.date1` | `publication.fin_candidature` | « Date limite de candidature ». |
+| `jobDescription.description1HTML` | `description.mission` | « Description du poste ». HTML converti en Markdown. |
+| `jobDescription.description2HTML` | `description.profil` | « Descriptif du profil recherché ». HTML converti en Markdown ; texte vide s'il est absent. |
+| `jobDescription.jobDescriptionCustomFields.longText1HTML` | `description.employeur` | « Descriptif de l'employeur ». HTML converti en Markdown ; texte vide s'il est absent. |
+| `jobDescription.jobDescriptionCustomFields.longText2HTML` | `description.conditions_exercice` | « Conditions particulières d'exercice ». HTML converti en Markdown. |
+| `jobDescription.jobDescriptionCustomFields.longText3HTML` | `description.descriptif_service` | « Descriptif du service ». HTML converti en Markdown. |
+| `customBlock1CustomFields.longText1HTML` | `description.complements` | « Informations complémentaires ». HTML converti en Markdown ; texte vide s'il est absent. |
+| `customBlock1CustomFields.longText2` | `conditions.bases_legales` | « Fondement juridique du recrutement ». Texte brut, accepté tel quel s'il ne contient pas de caractère interprété comme du Markdown. |
+| `jobDescription.jobDescriptionCustomFields.shortText3` | `conditions.salaire_contractuel` | « Rémunération "contractuels" (en € brut/an) ». |
+| `jobDescription.jobDescriptionCustomFields.customCodeTable3Id` | `conditions.temps_travail` | « Temps plein » : `reponse_oui` → `TEMPS_PLEIN`, `reponse_non` → `TEMPS_PARTIEL`, vide → `NON_DEFINI`. |
+| `customBlock1CustomFields.customCodeTable2Id` | `conditions.lieu_de_travail` | « Télétravail » : `reponse_oui` → `TELETRAVAIL`, `reponse_non` → `SUR_SITE`, vide → `NON_DEFINI`. |
+| `customBlock1CustomFields.customCodeTable1Id` | `conditions.management` | « Management » : `reponse_oui` → `AVEC`, `reponse_non` → `SANS`. Vide : ne pas envoyer le champ. |
+| `criteria.criteriaCustomFields.customCodeTable1Id` | `criteres.documents_requis` | « Documents à transmettre » : `Doc_CV` → `[CV]`, `Doc_CV_LM` → `[CV, LETTRE_MOTIVATION]`, `Doc_CV_PF` → `[CV, PORTFOLIO]`, `Doc_CV_LM_PF` → `[CV, LETTRE_MOTIVATION, PORTFOLIO]`. `Doc_CV_BD` et `Doc_CV_LM_BD` (bande démo) n'ont pas d'équivalent : n'envoyer que `CV` et `LETTRE_MOTIVATION`. |
+| `languages[]` | `criteres.langues[]` | Une entrée par langue : la langue (code ISO sur 2 caractères de la liste « Langues », par exemple `EN`) dans `iso_code`, le niveau (`A1` à `C2`, identiques dans les deux API) dans `niveau`. |
+| `location.countryId` | `localisation[0].pays` | Code pays ISO 3166-1 alpha-3, identique dans les deux API (`FRA`, `DEU`…). |
+| `location.regionId` | `localisation[0].region` | `R84` → `84` (préfixe `R` retiré pour obtenir le code INSEE), `_TS_CO_Region_DOM` → `DOM`, `_TS_CO_Region_TOM` (« COM ») → `TOM`. `null` hors de France. |
+| `location.departmentId` | `localisation[0].departement` | Code département, identique dans les deux API (`01`, `2A`, `971`…). `null` hors de France. |
+| `location.locationCustomFields.shortText1` | `localisation[0].localisation_label` | « Lieu d'affectation (sans géolocalisation) ». |
+| `location.address` | `localisation[0].localisation_label` | « Lieu d'affectation ». À utiliser seulement si `shortText1` est vide. |
+
+**Zone géographique.** L'offre vacancies n'a pas de zone géographique, obligatoire dans chaque `localisation` de l'API v1. En France, elle se déduit du département : `EU` en métropole, `AM` pour 971, 972, 973, 975, 977 et 978, `AF` pour 974 et 976, `OC` pour 986, 987, 988 et `WLF`. À l'étranger, elle se déduit du pays (`DEU` → `EU`, `MAR` → `MO`…).
+
+### Valeurs des listes Talentsoft
+
+| Liste Talentsoft | Conversion |
+|---|---|
+| Pays, départements, métiers, langues, niveaux de langue | Codes repris tels quels. |
+| Régions | Préfixe `R` retiré (`R11` → `11`) ; `_TS_CO_Region_DOM` → `DOM`, `_TS_CO_Region_TOM` → `TOM`. |
+| Versant, statut du poste, nature de l'emploi, catégorie, nature de contrat, documents à transmettre | Valeur API v1 indiquée dans le tableau ci-dessus. |
+| Listes « Oui » / « Non » (`reponse_oui`, `reponse_non`) : temps plein, télétravail, management | Valeur explicite de l'API v1 (`TEMPS_PLEIN`, `TELETRAVAIL`, `AVEC`…), indiquée dans le tableau ci-dessus. |
+
+### Champs vacancies sans équivalent dans l'API v1
+
+| Offre vacancies | Note |
+|---|---|
+| `vacancyCategoryId` | Catégorie d'offre Talentsoft (`_TS_CO_OfferCategory_Standard`). |
+| `vacancyViewId` | Paramétrage d'affichage du Back Office Talentsoft. |
+| `candidateViewId` | Paramétrage d'affichage du Back Office Talentsoft. |
+| `jobDescription.countryId` | Pays du type de contrat Talentsoft. Le pays de l'offre vient de `location.countryId`. |
+| `jobDescription.jobDescriptionCustomFields.shortText1` | « Référence interne ». La référence de l'offre est `reference`. |
+| `jobDescription.jobDescriptionCustomFields.t1htmlHasBeenShortened` | Indicateur Talentsoft de texte tronqué. Les limites de l'API v1 sont plus larges (voir le bloc « Description ») : envoyez le texte complet. |
+| `jobDescription.jobDescriptionCustomFields.t2htmlHasBeenShortened` | Idem. |
+| `jobDescription.jobDescriptionCustomFields.t3htmlHasBeenShortened` | Idem. |
+
+### Champs de l'API v1 absents de l'offre vacancies
+
+| Offer API v1 | Note |
+|---|---|
+| `publication.debut_publication` | **Obligatoire.** Dans Talentsoft, la publication passe par un appel séparé (fichiers `Publication.csv` et `Offerevent.csv`, dates de publication par défaut). Reprendre la date de début de publication. |
+| `publication.fin_publication` | **Obligatoire.** Reprendre la date de fin de publication. |
+| `localisation[].zone_geographique` | **Obligatoire.** Voir « Zone géographique » ci-dessus. |
+| `titre_long` | « Intitulé long de l'offre » (`OfferCustomFields` `LongText1` dans le Back Office), absent de l'offre vacancies. À ne renseigner que s'il diffère de `titre`. |
+| `conditions.salaire_titulaire` | « Rémunération "fonctionnaires" » (`jobDescriptionCustomFields.shortText2` dans le Back Office), absent du squelette vacancies. Le reprendre s'il est disponible. |
+| `conditions.note_ouverture_poste_url` | « Avis de vacance au JO » (`customBlock1CustomFields.longText3` dans le Back Office) : lien `https` vers `legifrance.gouv.fr`. |
+| `criteres.competences_requises` | « Compétences attendues » (`OfferApplicantCriteria` `LongText1` dans le Back Office). |
+| `criteres.diplome_niveau` | « Niveau d'études » : `A` à `H` → `1` à `8`. |
+| `criteres.experience` | « Niveau d'expérience » : `debutant` → `DEBUTANT`, `confirme` → `CONFIRME`, `expert` → `EXPERT`. |
+| `criteres.specialisations` | « Spécialisation » : libellé de la spécialisation (`_TS_CO_Specialisation_6` → « Mathématiques »). |
+| `criteres.diplome` | « Diplôme d'État requis » : libellé du diplôme. |
+| `conditions.duree_contrat` | « Durée du contrat ». |
+| `conditions.ouvert_aux_militaires` | `OUI` ou `NON`. |
+| `conditions.fin_contrat` | Date de fin du contrat. |
+| `url_offre` | Lien vers l'offre sur le site de l'employeur. Champ à envoyer dans chaque offre : `null` à défaut de lien. |
+| `localisation[].latitude` / `longitude` | Coordonnées du lieu, facultatives. |
+| `profession.code_emploi_local` | Code emploi propre à l'employeur, facultatif. |
 
 
 
