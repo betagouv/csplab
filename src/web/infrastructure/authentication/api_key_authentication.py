@@ -1,4 +1,3 @@
-import ipaddress
 import logging
 
 from django.conf import settings
@@ -10,7 +9,7 @@ from rest_framework.throttling import SimpleRateThrottle, UserRateThrottle
 from config.logger_names import LoggerName
 from infrastructure.django_apps.commons.enums import Canal, Resultat
 from infrastructure.django_apps.commons.models import AuditLoginLogModel
-from infrastructure.django_apps.utils.ip import get_client_ip
+from infrastructure.django_apps.utils.ip import get_client_ip, ip_in_networks
 
 logger = logging.getLogger(LoggerName.IDENTITE)
 
@@ -18,21 +17,6 @@ logger = logging.getLogger(LoggerName.IDENTITE)
 class _IngestionApiKeyUser:
     is_authenticated = True
     pk = "ingestion-api-key"
-
-
-def _ip_is_allowed(ip: str | None, allowed_ranges: list[str]) -> bool:
-    if not allowed_ranges:
-        return True
-    if ip is None:
-        return False
-    try:
-        client_ip = ipaddress.ip_address(ip)
-        return any(
-            client_ip in ipaddress.ip_network(cidr, strict=False)
-            for cidr in allowed_ranges
-        )
-    except ValueError:
-        return False
 
 
 class ApiKeyRejectionRateThrottle(SimpleRateThrottle):
@@ -77,7 +61,7 @@ class ApiKeyAuthentication(BaseAuthentication):
         if key != settings.INGESTION_API_KEY:
             raise _reject("invalid key", "Invalid API key.", request)
         allowed_ranges = settings.INGESTION_API_KEY_ALLOWED_IP_RANGES
-        if allowed_ranges and not _ip_is_allowed(
+        if allowed_ranges and not ip_in_networks(
             get_client_ip(request), allowed_ranges
         ):
             raise _reject("IP not allowed", "IP address not allowed.", request)
