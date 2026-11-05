@@ -1,8 +1,8 @@
-import type { EtapeRecrutementDetailedCandidatures, RecrutementListe } from '../types'
+import type { KanbanColumn, RecrutementListe } from '../types'
 import { describe, expect, it } from 'vitest'
 import { etapesReceivingCandidatures, groupCandidaturesByEtape } from './kanban'
 
-function etape(etapeUuid: string, candidatureUuids: string[]): EtapeRecrutementDetailedCandidatures {
+function etape(etapeUuid: string, candidatureUuids: string[]): KanbanColumn {
   return {
     uuid: etapeUuid,
     nom: etapeUuid,
@@ -34,7 +34,7 @@ function liste(rows: [candidatureUuid: string, etapeUuid: string][], etapeUuids:
   }
 }
 
-function columns(etapes: EtapeRecrutementDetailedCandidatures[]): [string, string[]][] {
+function columns(etapes: KanbanColumn[]): [string, string[]][] {
   return etapes.map(({ uuid, candidatures }) => [uuid, candidatures.map(candidature => candidature.uuid)])
 }
 

@@ -1,7 +1,7 @@
-import type { Candidature, EtapeRecrutementDetailedCandidatures, RecrutementListe } from '../types'
+import type { KanbanCard, KanbanColumn, RecrutementListe } from '../types'
 
-export function groupCandidaturesByEtape({ etapes, results }: RecrutementListe): EtapeRecrutementDetailedCandidatures[] {
-  const candidaturesByEtape = new Map<string, Candidature[]>(etapes.map(({ uuid }) => [uuid, []]))
+export function groupCandidaturesByEtape({ etapes, results }: RecrutementListe): KanbanColumn[] {
+  const candidaturesByEtape = new Map<string, KanbanCard[]>(etapes.map(({ uuid }) => [uuid, []]))
   for (const row of results) {
     candidaturesByEtape.get(row.etape.uuid)?.push(row)
   }
@@ -14,8 +14,8 @@ export function groupCandidaturesByEtape({ etapes, results }: RecrutementListe):
 }
 
 export function etapesReceivingCandidatures(
-  previousEtapes: EtapeRecrutementDetailedCandidatures[],
-  etapes: EtapeRecrutementDetailedCandidatures[],
+  previousEtapes: KanbanColumn[],
+  etapes: KanbanColumn[],
 ): Set<string> {
   const previousEtapeOf = new Map(previousEtapes.flatMap(etape =>
     etape.candidatures.map(({ uuid }) => [uuid, etape.uuid] as const)))

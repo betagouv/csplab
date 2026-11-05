@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Candidature } from '../types'
+import type { KanbanCard } from '../types'
 import { computed, ref, watchEffect } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
 import CspCard from '@/components/base/CspCard/CspCard.vue'
@@ -10,7 +10,7 @@ import { formatElapsedDays } from '@/utils/date'
 import { formatCandidatName } from '../format'
 
 const props = defineProps<{
-  candidature: Candidature
+  candidature: KanbanCard
   boardId: string
   columnId: string
 }>()
