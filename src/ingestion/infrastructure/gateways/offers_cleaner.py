@@ -32,6 +32,9 @@ from referentiel.value_objects.required_document import (
     TALENTSOFT_REQUIRED_DOCUMENTS,
     RequiredDocument,
 )
+from referentiel.value_objects.state_diploma import (
+    talentsoft_state_diploma_by_client_code,
+)
 from referentiel.value_objects.verse import Verse
 
 from domain.entities.offer import Offer
@@ -314,6 +317,16 @@ def state_diploma(
     return code_table
 
 
+def state_diploma_label(
+    code_table: Optional[TalentsoftCustomCodeTable],
+) -> Optional[str]:
+    """Label of a state diploma already filtered by `state_diploma`."""
+    if code_table is None:
+        return None
+    known = talentsoft_state_diploma_by_client_code(code_table.clientCode)
+    return known.label if known else code_table.label.strip() or None
+
+
 class OffersCleaner:
     def __init__(
         self,
@@ -451,7 +464,9 @@ class OffersCleaner:
         languages = self._map_languages(talentsoft_offer.languages, transcoder)
 
         diploma = (
-            talentsoft_offer.diploma.clientCode if talentsoft_offer.diploma else None
+            talentsoft_offer.diploma.label.strip() or None
+            if talentsoft_offer.diploma
+            else state_diploma_label(offer_block_1.customCodeTable3)
         )
 
         working_place = self._map_working_place(

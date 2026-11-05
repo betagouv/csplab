@@ -820,20 +820,23 @@ def test_clean_does_not_report_a_single_location(cleaner, capture_exception):
     assert capture_exception == []
 
 
-def _state_diploma_field(type_: str | None, client_code: str):
+def _state_diploma_field(type_: str | None, client_code: str, label: str | None = None):
     return TalentsoftCustomCodeTableFactory.build(
-        type=type_, clientCode=client_code, label=client_code
+        type=type_, clientCode=client_code, label=label or client_code
     )
 
 
-def _make_raw_offer_with_state_diploma(type_: str, client_code: str) -> RawOffer:
+def _make_raw_offer_with_state_diploma(
+    type_: str, client_code: str, label: str | None = None, **overrides
+) -> RawOffer:
     return _make_raw_offer(
         organisation=TalentsoftOrganisationFactory.build(entityCode="1726"),
         customFields=TalentsoftCustomFieldsFactory.build(
             offerCustomBlock1=TalentsoftDynamicFieldFactory.build(
-                customCodeTable3=_state_diploma_field(type_, client_code)
+                customCodeTable3=_state_diploma_field(type_, client_code, label)
             )
         ),
+        **overrides,
     )
 
 
@@ -1370,13 +1373,15 @@ def test_clean_raises_when_specialisations_csv_maps_to_unknown_code(
         cleaner.clean(raw_offer)
 
 
-def test_clean_maps_diploma(cleaner):
-    diploma = TalentsoftCodedObjectFactory.build(clientCode="LICENCE")
+def test_clean_maps_the_diploma_label(cleaner):
+    diploma = TalentsoftCodedObjectFactory.build(
+        clientCode="LICENCE", label=" Licence "
+    )
     raw_offer = _make_raw_offer(diploma=diploma)
 
     offer = cleaner.clean(raw_offer)
 
-    assert offer.diploma == "LICENCE"
+    assert offer.diploma == "Licence"
 
 
 def test_clean_returns_none_diploma_when_absent(cleaner):
@@ -1385,6 +1390,51 @@ def test_clean_returns_none_diploma_when_absent(cleaner):
     offer = cleaner.clean(raw_offer)
 
     assert offer.diploma is None
+
+
+def test_clean_maps_the_state_diploma_label_to_diploma(cleaner):
+    raw_offer = _make_raw_offer_with_state_diploma(
+        "Diplômes d'Etat", "CSPU0002", "DE infirmier (ancien intitulé)", diploma=None
+    )
+
+    offer = cleaner.clean(raw_offer)
+
+    assert offer.diploma == "Diplôme d'Etat d'infirmier"
+
+
+def test_clean_keeps_the_label_of_an_unknown_state_diploma(cleaner):
+    raw_offer = _make_raw_offer_with_state_diploma(
+        "Diplômes d'Etat", "CSPU9999", " Diplôme d'Etat inconnu ", diploma=None
+    )
+
+    offer = cleaner.clean(raw_offer)
+
+    assert offer.diploma == "Diplôme d'Etat inconnu"
+
+
+def test_clean_does_not_map_the_rejected_working_time_quota_to_diploma(cleaner):
+    raw_offer = _make_raw_offer_with_state_diploma(
+        "Quotité de temps de travail", "Temps_plein", "Temps plein", diploma=None
+    )
+
+    offer = cleaner.clean(raw_offer)
+
+    assert offer.diploma is None
+
+
+def test_clean_prefers_diploma_over_the_state_diploma(cleaner):
+    raw_offer = _make_raw_offer_with_state_diploma(
+        "Diplômes d'Etat",
+        "CSPU0002",
+        "Diplôme d'Etat d'infirmier",
+        diploma=TalentsoftCodedObjectFactory.build(
+            clientCode="LICENCE", label="Licence"
+        ),
+    )
+
+    offer = cleaner.clean(raw_offer)
+
+    assert offer.diploma == "Licence"
 
 
 def test_clean_maps_ars_raw_family_code_to_metier_code(cleaner):
