@@ -10,8 +10,10 @@ from presentation.api.changelog_api import (
     FragmentError,
     assemble,
     check_added_fragment,
+    known_routes,
     load_fragments,
     parse_fragment,
+    route_errors,
     set_date,
 )
 
@@ -58,6 +60,25 @@ class TestParseFragment:
         assert result.liens == ("https://github.com/betagouv/csplab/issues/2072",)
         assert result.entry == "Un changement."
         assert result.subsections == (("Compatibilité", "Faites autrement."),)
+
+    def test_extracts_cited_routes(self, tmp_path):
+        result = fragment(
+            tmp_path,
+            body="""
+                `GET /api/v1/offres/` et `POST /api/v1/offres/creer_modifier`, comme
+                `GET /api/v1/offres`. La route /api/v1/metiers n'est pas citée.
+
+                ### Compatibilité
+
+                Appelez `GET /api/v1/organismes`.
+            """,
+        )
+
+        assert result.routes == (
+            "GET /api/v1/offres",
+            "GET /api/v1/organismes",
+            "POST /api/v1/offres/creer_modifier",
+        )
 
     def test_missing_front_matter(self, tmp_path):
         path = tmp_path / "f.md"
@@ -211,6 +232,43 @@ class TestAssemble:
         assert assemble(load_fragments()).count("## 2026-") >= 1
 
 
+class TestRouteErrors:
+    def test_requires_a_route(self, tmp_path):
+        assert route_errors(fragment(tmp_path), known=None) == [
+            (
+                "le corps doit citer la ou les routes concernées, par exemple "
+                "`GET /api/v1/offres`"
+            )
+        ]
+
+    def test_rejects_a_route_absent_from_the_schema(self, tmp_path):
+        result = fragment(
+            tmp_path,
+            body=(
+                "`GET /api/v1/offres/sources/42`, `GET /api/fake-ts/referentials/x` "
+                "et `POST /api/v1/offre`."
+            ),
+        )
+
+        assert route_errors(result, known_routes()) == [
+            "route inconnue du schéma de l'API publique : `POST /api/v1/offre`"
+        ]
+
+    def test_accepts_a_removed_route(self, tmp_path):
+        result = fragment(tmp_path, type_="retire", body="`GET /api/v1/disparue`.")
+
+        assert route_errors(result, known_routes()) == []
+
+    def test_published_fragments_cite_known_routes(self):
+        known = known_routes()
+
+        assert [
+            (f.path.name, error)
+            for f in load_fragments()
+            for error in route_errors(f, known)
+        ] == []
+
+
 class TestCheckAddedFragment:
     @pytest.mark.parametrize("merge_queue", [True, False])
     def test_rejects_a_future_date(self, tmp_path, merge_queue):
@@ -286,7 +344,24 @@ def test_verifier_command_rejects_another_extension(tmp_path, monkeypatch, name)
     )
     # GitHub annotations need a path inside the repository.
     monkeypatch.delenv("GITHUB_ACTIONS", raising=False)
-    write_fragment(tmp_path, name, header="type: ajoute\ndate: 2026-10-27\npr: 1")
+    write_fragment(
+        tmp_path,
+        name,
+        header="type: ajoute\ndate: 2026-10-27\npr: 1",
+        body="`GET /api/v1/offres`.",
+    )
+
+    with pytest.raises(CommandError, match="1 erreur"):
+        call_command("changelog_api", "verifier")
+
+
+def test_verifier_command_rejects_a_fragment_without_route(tmp_path, monkeypatch):
+    monkeypatch.setattr(
+        "presentation.ingestion.management.commands.changelog_api.FRAGMENTS_DIR",
+        tmp_path,
+    )
+    monkeypatch.delenv("GITHUB_ACTIONS", raising=False)
+    write_fragment(tmp_path, "f.md", header="type: ajoute\ndate: 2026-10-27\npr: 1")
 
     with pytest.raises(CommandError, match="1 erreur"):
         call_command("changelog_api", "verifier")
