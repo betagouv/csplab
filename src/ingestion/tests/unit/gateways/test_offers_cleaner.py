@@ -23,7 +23,10 @@ from referentiel.value_objects.verse import Verse
 
 from domain.entities.raw_offer import RawOffer
 from domain.value_objects.contact import Contact, ContactRole
-from infrastructure.exceptions.exceptions import TalentsoftOfferWithSeveralLocations
+from infrastructure.exceptions.exceptions import (
+    TalentsoftOfferWithMisfiledStateDiploma,
+    TalentsoftOfferWithSeveralLocations,
+)
 from infrastructure.external_gateways.dtos.offer_upsert_payload import (
     OfferUpsertPayload,
 )
@@ -32,7 +35,7 @@ from infrastructure.external_gateways.dtos.talentsoft_dtos import (
     TalentsoftLanguage,
     TalentsoftMultiLocation,
 )
-from infrastructure.gateways.offers_cleaner import OffersCleaner
+from infrastructure.gateways.offers_cleaner import OffersCleaner, state_diploma
 from infrastructure.gateways.transcoding import SourceTranscoder
 from infrastructure.sources_repository import SourcesRepository
 from tests.factories.domain_factories import SourceFactory
@@ -813,6 +816,73 @@ def test_clean_reports_filled_multi_locations(cleaner, capture_exception):
 
 def test_clean_does_not_report_a_single_location(cleaner, capture_exception):
     cleaner.clean(_make_raw_offer())
+
+    assert capture_exception == []
+
+
+def _state_diploma_field(type_: str | None, client_code: str):
+    return TalentsoftCustomCodeTableFactory.build(
+        type=type_, clientCode=client_code, label=client_code
+    )
+
+
+def _make_raw_offer_with_state_diploma(type_: str, client_code: str) -> RawOffer:
+    return _make_raw_offer(
+        organisation=TalentsoftOrganisationFactory.build(entityCode="1726"),
+        customFields=TalentsoftCustomFieldsFactory.build(
+            offerCustomBlock1=TalentsoftDynamicFieldFactory.build(
+                customCodeTable3=_state_diploma_field(type_, client_code)
+            )
+        ),
+    )
+
+
+def test_state_diploma_keeps_a_state_diploma():
+    code_table = _state_diploma_field("Diplômes d'Etat", "CSPU0002")
+
+    assert state_diploma(code_table) == code_table
+
+
+def test_state_diploma_rejects_the_working_time_quota():
+    code_table = _state_diploma_field("Quotité de temps de travail", "Temps_plein")
+
+    assert state_diploma(code_table) is None
+
+
+@pytest.mark.parametrize("type_", ["Diplômes d’État", None])
+def test_state_diploma_keeps_another_referential(type_):
+    code_table = _state_diploma_field(type_, "CSPU0002")
+
+    assert state_diploma(code_table) == code_table
+
+
+def test_state_diploma_is_none_when_missing():
+    assert state_diploma(None) is None
+
+
+def test_clean_reports_the_working_time_quota_in_the_state_diploma_field(
+    cleaner, capture_exception
+):
+    raw_offer = _make_raw_offer_with_state_diploma(
+        "Quotité de temps de travail", "Temps_noncomplet"
+    )
+
+    offer = cleaner.clean(raw_offer)
+
+    assert offer.reference == REFERENCE
+    [error] = capture_exception
+    assert isinstance(error, TalentsoftOfferWithMisfiledStateDiploma)
+    assert error.reference == REFERENCE
+    assert error.source_id == SOURCE_ID
+    assert error.organisme_entity_code == "1726"
+    assert error.type == "Quotité de temps de travail"
+    assert error.client_code == "Temps_noncomplet"
+
+
+def test_clean_does_not_report_a_state_diploma(cleaner, capture_exception):
+    raw_offer = _make_raw_offer_with_state_diploma("Diplômes d'Etat", "CSPU0002")
+
+    cleaner.clean(raw_offer)
 
     assert capture_exception == []
 
