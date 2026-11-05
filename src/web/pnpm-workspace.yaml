@@ -3,7 +3,7 @@ allowBuilds:
   esbuild: true
   vue-demi: true
 overrides:
-  tinypool: ^2.1.2
-  source-map-js: ^1.2.2
-  js-yaml: ^4.3.2
-  undici: ^7.30.1
+  tinypool@<2.1.2: ^2.1.2
+  glob@>=9.0.0 <14.0.2: ^14.0.2
+  minimatch@>=7.0.0 <11.0.1: ^11.0.1
+  katex@>=0.11.0 <0.18.2: ^0.18.2
