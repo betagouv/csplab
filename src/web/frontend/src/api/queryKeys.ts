@@ -47,9 +47,6 @@ export const recrutementKeys = {
   equipe: (params: RecrutementParams) => {
     return [...recrutementKeys.root(params), 'parametres', 'agents'] as const
   },
-  kanban: (params: RecrutementParams) => {
-    return [...recrutementKeys.root(params), 'kanban'] as const
-  },
   liste: (params: RecrutementParams) => {
     return [...recrutementKeys.root(params), 'liste'] as const
   },
