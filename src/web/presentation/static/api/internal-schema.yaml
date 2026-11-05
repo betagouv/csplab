@@ -6074,6 +6074,7 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/AuthorizedActionsEnum'
+          readOnly: true
       required:
       - authorized_actions
       - candidat
@@ -6550,6 +6551,7 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/AuthorizedActionsEnum'
+          readOnly: true
       required:
       - authorized_actions
       - candidature_id
@@ -6736,6 +6738,7 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/AuthorizedActionsEnum'
+          readOnly: true
       required:
       - authorized_actions
       - date_creation
@@ -6810,6 +6813,7 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/AuthorizedActionsEnum'
+          readOnly: true
       required:
       - authorized_actions
       - date_creation
@@ -7148,6 +7152,7 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/AuthorizedActionsEnum'
+          readOnly: true
       required:
       - archive
       - authorized_actions
@@ -7246,6 +7251,7 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/AuthorizedActionsEnum'
+          readOnly: true
         date_publication:
           type: string
           format: date-time
@@ -7293,6 +7299,7 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/AuthorizedActionsEnum'
+          readOnly: true
         date_archivage:
           type: string
           format: date-time
@@ -7500,6 +7507,7 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/AuthorizedActionsEnum'
+          readOnly: true
         organismes:
           type: array
           items:
@@ -7524,6 +7532,7 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/AuthorizedActionsEnum'
+          readOnly: true
       required:
       - authorized_actions
       - nom
