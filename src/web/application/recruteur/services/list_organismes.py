@@ -33,6 +33,9 @@ def with_authorized_actions(
     page = list(organismes)
     for organisme in page:
         organisme.authorized_actions = authorized_actions_of_organisme(  # type: ignore[attr-defined]
-            AgentOrganismeRole.SUPERVISEUR, organisme.id, utilisateur=utilisateur
+            AgentOrganismeRole.SUPERVISEUR,
+            organisme.id,
+            utilisateur=utilisateur,
+            organisme_ids_responsable=frozenset(),
         )
     return page

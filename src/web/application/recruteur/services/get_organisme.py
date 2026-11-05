@@ -28,6 +28,9 @@ def get_organisme(*, organisme_id: UUID, utilisateur: UserModel) -> OrganismeMod
     except OrganismeModel.DoesNotExist as error:
         raise OrganismeNexistePas(str(organisme_id)) from error
     organisme.authorized_actions = authorized_actions_of_organisme(  # type: ignore[attr-defined]
-        role, organisme.id, utilisateur=utilisateur
+        role,
+        organisme.id,
+        utilisateur=utilisateur,
+        organisme_ids_responsable=frozenset(),
     )
     return organisme

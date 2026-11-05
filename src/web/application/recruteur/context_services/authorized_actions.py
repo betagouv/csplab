@@ -1,3 +1,4 @@
+from collections.abc import Collection
 from uuid import UUID
 
 from application.identite.context_services.organisme_permission_service import (
@@ -10,6 +11,8 @@ from domain.recruteur.value_objects.roles import (
 from infrastructure.django_apps.recruteur.models.recrutement import RecrutementModel
 from infrastructure.django_apps.users.models import UserModel
 
+_permissions = OrganismePermissionService()
+
 
 def authorized_actions_of(
     organisme_role: AgentOrganismeRole,
@@ -17,22 +20,26 @@ def authorized_actions_of(
 ) -> list[str]:
     return [
         action.value
-        for action in OrganismePermissionService().authorized_actions_recrutement(
+        for action in _permissions.authorized_actions_recrutement(
             organisme_role, recrutement_role=recrutement_role
         )
     ]
 
 
 def authorized_actions_of_organisme(
-    role: AgentOrganismeRole, organisme_id: UUID, *, utilisateur: UserModel
+    role: AgentOrganismeRole,
+    organisme_id: UUID,
+    *,
+    utilisateur: UserModel,
+    organisme_ids_responsable: Collection[UUID],
 ) -> list[str]:
     return [
         action.value
-        for action in OrganismePermissionService().authorized_actions_organisme(
+        for action in _permissions.authorized_actions_organisme(
             role,
             utilisateur=utilisateur,
             organisme_id=organisme_id,
-            organisme_ids_responsable=frozenset(),
+            organisme_ids_responsable=organisme_ids_responsable,
         )
     ]
 
