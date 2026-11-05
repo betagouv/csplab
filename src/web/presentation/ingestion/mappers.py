@@ -422,7 +422,6 @@ class OfferDetailOutputMapper(OfferSummaryOutputMapper):
             return None
         state_diploma = talentsoft_state_diploma_by_label(label)
         if state_diploma is None:
-            # Free text: no Talentsoft code, the label is still displayed.
             return self._coded_object("", label, TALENTSOFT_STATE_DIPLOMA_TYPE)
         return self._coded_object(
             state_diploma.client_code,
