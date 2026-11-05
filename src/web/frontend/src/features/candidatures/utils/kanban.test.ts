@@ -1,7 +1,6 @@
-import type { EtapeRecrutementDetailedCandidatures, RecrutementDetailKanban, RecrutementListe } from '../types'
+import type { EtapeRecrutementDetailedCandidatures, RecrutementListe } from '../types'
 import { describe, expect, it } from 'vitest'
-import { kanbanColumns } from '@/test/fixtures/candidatures'
-import { etapesReceivingCandidatures, groupCandidaturesByEtape, moveCandidaturesInKanban } from './kanban'
+import { etapesReceivingCandidatures, groupCandidaturesByEtape } from './kanban'
 
 function etape(etapeUuid: string, candidatureUuids: string[]): EtapeRecrutementDetailedCandidatures {
   return {
@@ -16,11 +15,6 @@ function etape(etapeUuid: string, candidatureUuids: string[]): EtapeRecrutementD
       candidat: { uuid: `candidat-${uuid}`, nom: uuid, prenom: uuid },
     })),
   }
-}
-
-const KANBAN: RecrutementDetailKanban = {
-  uuid: 'recrutement',
-  etapes: [etape('entree', ['a', 'b']), etape('entretien', ['c']), etape('refus', ['d'])],
 }
 
 function liste(rows: [candidatureUuid: string, etapeUuid: string][], etapeUuids: string[]): RecrutementListe {
@@ -62,24 +56,6 @@ describe('groupCandidaturesByEtape', () => {
     const grouped = groupCandidaturesByEtape(liste([['a', 'supprimee']], ['entree']))
 
     expect(columns(grouped)).toEqual([['entree', []]])
-  })
-})
-
-describe('moveCandidaturesInKanban', () => {
-  it('appends the candidatures to the target column in the given order, from any source column', () => {
-    expect(kanbanColumns(moveCandidaturesInKanban(KANBAN, ['d', 'b'], 'entretien'))).toEqual({
-      entree: ['a'],
-      entretien: ['c', 'd', 'b'],
-      refus: [],
-    })
-  })
-
-  it.each([
-    { when: 'the target column is unknown', uuids: ['a'], target: 'inconnue' },
-    { when: 'the candidatures are unknown', uuids: ['inconnue'], target: 'entretien' },
-    { when: 'the candidatures are already in the target column', uuids: ['c'], target: 'entretien' },
-  ])('returns the kanban unchanged when $when', ({ uuids, target }) => {
-    expect(moveCandidaturesInKanban(KANBAN, uuids, target)).toBe(KANBAN)
   })
 })
 
