@@ -1,8 +1,8 @@
 import pytest
 from django.core.exceptions import ValidationError
-from django.db import IntegrityError
+from django.db import DataError, IntegrityError
 
-from infrastructure.django_apps.users.models import AllowedNetworkModel
+from infrastructure.django_apps.users.models import AllowedNetworkModel, UserModel
 from infrastructure.factories.identite.utilisateur_django_factory import (
     UtilisateurDjangoFactory,
 )
@@ -61,6 +61,39 @@ class TestAllowedNetworkModel:
         AllowedNetworkModel.objects.create(
             user=UtilisateurDjangoFactory(), cidr="203.0.113.10", label="A"
         )
+
+    @pytest.mark.parametrize(
+        ("cidr", "error"),
+        [
+            ("203.0.113.10", IntegrityError),
+            ("203.0.113.7/24", DataError),
+            ("not-an-ip", DataError),
+        ],
+        ids=["not_canonical", "host_bits_set", "invalid"],
+    )
+    def test_db_rejects_a_non_canonical_range_written_without_save(
+        self, user, cidr, error
+    ):
+        network = AllowedNetworkModel.objects.create(
+            user=user, cidr="203.0.113.0/24", label="A"
+        )
+
+        with pytest.raises(error):
+            AllowedNetworkModel.objects.filter(pk=network.pk).update(cidr=cidr)
+
+
+class TestUserQuerySet:
+    def test_avec_restriction_ip(self, user):
+        AllowedNetworkModel.objects.create(user=user, cidr="203.0.113.10", label="A")
+        other = UtilisateurDjangoFactory()
+
+        restricted = dict(
+            UserModel.objects.all()
+            .avec_restriction_ip()
+            .values_list("pk", "ip_restricted")
+        )
+
+        assert restricted == {user.pk: True, other.pk: False}
 
 
 class TestApiIpIsAllowed:

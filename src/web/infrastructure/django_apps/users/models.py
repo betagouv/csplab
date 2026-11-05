@@ -1,9 +1,10 @@
+from typing import ClassVar
 from uuid import uuid4
 
-from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import AbstractUser, UserManager
 from django.core.exceptions import ValidationError
 from django.db import models
-from django.db.models import Q
+from django.db.models import Exists, F, Func, OuterRef, Q
 from django.db.models.functions import Lower, Trim
 
 from domain.identite.entities.agent import Agent
@@ -20,6 +21,20 @@ from infrastructure.django_apps.utils.models import BaseDatedModel
 DEMO_CANDIDAT_EMAIL_DOMAIN = "@demo.candidat.fr"
 
 
+class UserQuerySet(models.QuerySet):
+    def avec_restriction_ip(self) -> "UserQuerySet":
+        return self.annotate(
+            ip_restricted=Exists(
+                AllowedNetworkModel.objects.filter(user=OuterRef("pk"))
+            )
+        )
+
+
+class UserModelManager(UserManager):
+    def get_queryset(self) -> UserQuerySet:
+        return UserQuerySet(self.model, using=self._db)
+
+
 class UserModel(AbstractUser):
     email = models.EmailField(unique=True, null=False, blank=False)
     username = models.UUIDField(  # type: ignore[assignment]
@@ -31,6 +46,8 @@ class UserModel(AbstractUser):
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = ["first_name", "last_name", "username"]
+
+    objects: ClassVar[UserModelManager] = UserModelManager()  # type: ignore[assignment]
 
     sources = models.ManyToManyField(
         "ingestion.SourceModel",
@@ -64,6 +81,11 @@ class UserModel(AbstractUser):
         return not networks or ip_in_networks(ip, networks)
 
 
+class CanonicalCidr(Func):
+    template = "(%(expressions)s)::cidr::text"
+    output_field = models.CharField()
+
+
 class AllowedNetworkModel(BaseDatedModel):
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     user = models.ForeignKey(
@@ -88,7 +110,12 @@ class AllowedNetworkModel(BaseDatedModel):
         constraints = [
             models.UniqueConstraint(
                 fields=["user", "cidr"], name="allowed_networks_user_cidr_uniq"
-            )
+            ),
+            # Postgres refuses an invalid range or one with host bits set.
+            models.CheckConstraint(
+                condition=Q(cidr=CanonicalCidr(F("cidr"))),
+                name="allowed_networks_cidr_is_canonical",
+            ),
         ]
 
     def clean(self) -> None:

@@ -1,5 +1,4 @@
 from django.contrib import admin
-from django.db.models import Exists, OuterRef
 
 from infrastructure.django_apps.users.models import (
     AllowedNetworkModel,
@@ -51,15 +50,7 @@ class UserModelAdmin(admin.ModelAdmin):
     inlines = (AllowedNetworkInline,)
 
     def get_queryset(self, request):
-        return (
-            super()
-            .get_queryset(request)
-            .annotate(
-                ip_restricted=Exists(
-                    AllowedNetworkModel.objects.filter(user=OuterRef("pk"))
-                )
-            )
-        )
+        return super().get_queryset(request).avec_restriction_ip()
 
     @admin.display(
         boolean=True, description="Restreint par IP", ordering="ip_restricted"
