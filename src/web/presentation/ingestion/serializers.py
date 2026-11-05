@@ -634,10 +634,19 @@ MAX_LOCALISATIONS_PER_OFFER = 50
 
 
 class LocalisationInputSerializer(LocalisationSerializer):
+    zone_geographique = serializers.ChoiceField(
+        choices=[(c.value, c.name) for c in GeographicalArea],
+        help_text="Zone géographique du lieu : `AF` (Afrique), `EU` (Europe), "
+        "`AS` (Asie), `AM` (Amérique), `OC` (Océanie), `AN` (Antarctique), "
+        "`MO` (Moyen-Orient et Afrique du Nord).",
+    )
     pays = serializers.CharField(
         max_length=3,
         min_length=3,
-        help_text="Code pays ISO 3166-1 alpha-3, en majuscules (ex. `FRA`).",
+        help_text="Code pays ISO 3166-1 alpha-3, en majuscules (ex. `FRA`). Pour "
+        "`FRA`, `region` et `departement` sont obligatoires ; pour un autre pays, "
+        "ils valent `null`. Les collectivités d'outre-mer sont en `FRA`, avec la "
+        "région `TOM`.",
     )
     region = serializers.ChoiceField(
         choices=sorted(Region.VALID_CODES, key=lambda x: x),
@@ -648,11 +657,31 @@ class LocalisationInputSerializer(LocalisationSerializer):
             "`TOM` avec une collectivité d'outre-mer. `null` hors de France."
         ),
     )
+    departement = serializers.ChoiceField(
+        choices=sorted(Department.VALID_CODES, key=lambda x: x),
+        allow_null=True,
+        help_text="Code officiel du département (`01` à `95`, `2A`, `2B`, `971` "
+        "à `978`, `986` à `988`, `SPM`, `WLF`), qui doit appartenir à `region`. "
+        "`null` hors de France.",
+    )
+    localisation_label = serializers.CharField(
+        max_length=500,
+        allow_blank=True,
+        help_text="Libellé du lieu, affiché aux candidats (ex. ville et adresse).",
+    )
     latitude = serializers.FloatField(
-        allow_null=True, required=False, min_value=-90, max_value=90
+        allow_null=True,
+        required=False,
+        min_value=-90,
+        max_value=90,
+        help_text="Latitude du lieu, en degrés décimaux (WGS 84). Facultative.",
     )
     longitude = serializers.FloatField(
-        allow_null=True, required=False, min_value=-180, max_value=180
+        allow_null=True,
+        required=False,
+        min_value=-180,
+        max_value=180,
+        help_text="Longitude du lieu, en degrés décimaux (WGS 84). Facultative.",
     )
 
     def validate(self, data):
@@ -813,6 +842,13 @@ class ListMetiersFiltersSerializer(serializers.Serializer):
     domaine = serializers.CharField(default=None, max_length=3, source="domain")
 
 
+_GUIDE_API_URL = "/pages/guide_api"
+_DATE_HELP_TEXT = (
+    "Format ISO 8601 avec l'heure (ex. `2026-11-05T00:00:00Z`) ; sans fuseau "
+    "horaire, l'heure est lue en UTC."
+)
+
+
 class IdentityInputSerializer(serializers.Serializer):
     reference = serializers.CharField(
         help_text="Référence de l'offre, unique par source. La valeur `auto` "
@@ -820,7 +856,11 @@ class IdentityInputSerializer(serializers.Serializer):
         "crée toujours une nouvelle offre. Une référence au format CSP-AAAA-NNNNNN "
         "n'est acceptée que si elle désigne une offre existante de la source."
     )
-    versant = serializers.ChoiceField(choices=[v.value for v in Verse])
+    versant = serializers.ChoiceField(
+        choices=[v.value for v in Verse],
+        help_text="Versant de la fonction publique : `FPE` (État), `FPT` "
+        "(territoriale), `FPH` (hospitalière).",
+    )
 
 
 class OrganismeInputSerializer(OrganismeSerializer):
@@ -861,6 +901,8 @@ class ProfessionInputSerializer(serializers.Serializer):
     referentiel = serializers.ChoiceField(
         choices=[e.value for e in JobFamilyReferential],
         default=JobFamilyReferential.RMFPV2.value,
+        help_text="Référentiel des métiers utilisé pour `domaine` et `metier` : "
+        "le Répertoire des métiers de la fonction publique (RMFP).",
     )
     domaine = serializers.CharField(
         max_length=3,
@@ -881,7 +923,11 @@ class ProfessionInputSerializer(serializers.Serializer):
         "(exemple : `ERAMT001`).",
     )
     code_emploi_local = serializers.CharField(
-        max_length=50, required=False, allow_null=True
+        max_length=50,
+        required=False,
+        allow_null=True,
+        help_text="Code emploi propre à l'employeur ou au partenaire (nomenclature "
+        "locale), conservé tel quel. Facultatif.",
     )
 
     def validate(self, data):
@@ -934,6 +980,13 @@ _MARKDOWN_HELP_TEXT = (
 )
 
 
+def _markdown_help_text(description: str) -> str:
+    return (
+        f"{description} {_MARKDOWN_HELP_TEXT} Voir le [bloc « Description » du guide]"
+        f"({_GUIDE_API_URL}#bloc-description-description-obligatoire)."
+    )
+
+
 def _validate_markdown(value: str) -> None:
     errors = forbidden_markdown(value)
     if errors:
@@ -944,46 +997,64 @@ class DescriptionInputSerializer(serializers.Serializer):
     mission = serializers.CharField(
         max_length=10000,
         allow_blank=True,
-        help_text=_MARKDOWN_HELP_TEXT,
+        help_text=_markdown_help_text(
+            "Missions du poste. Obligatoire, peut être vide."
+        ),
         validators=[_validate_markdown],
     )
     profil = serializers.CharField(
         max_length=10000,
         allow_blank=True,
-        help_text=_MARKDOWN_HELP_TEXT,
+        help_text=_markdown_help_text("Profil recherché. Obligatoire, peut être vide."),
         validators=[_validate_markdown],
     )
     employeur = serializers.CharField(
         max_length=3000,
         allow_blank=True,
-        help_text=_MARKDOWN_HELP_TEXT,
+        help_text=_markdown_help_text(
+            "Présentation de l'employeur. Obligatoire, peut être vide."
+        ),
         validators=[_validate_markdown],
     )
     complements = serializers.CharField(
         max_length=5000,
         allow_blank=True,
-        help_text=_MARKDOWN_HELP_TEXT,
+        help_text=_markdown_help_text(
+            "Informations complémentaires. Obligatoire, peut être vide."
+        ),
         validators=[_validate_markdown],
     )
     conditions_exercice = serializers.CharField(
         max_length=10000,
         allow_blank=True,
         required=False,
-        help_text=_MARKDOWN_HELP_TEXT,
+        help_text=_markdown_help_text(
+            "Conditions particulières d'exercice. Facultatif."
+        ),
         validators=[_validate_markdown],
     )
     descriptif_service = serializers.CharField(
         max_length=10000,
         allow_blank=True,
         required=False,
-        help_text=_MARKDOWN_HELP_TEXT,
+        help_text=_markdown_help_text(
+            "Description du service qui recrute. Facultatif."
+        ),
         validators=[_validate_markdown],
     )
 
 
 class LanguageInputSerializer(serializers.Serializer):
-    iso_code = serializers.CharField(max_length=2)
-    niveau = serializers.ChoiceField(choices=[(c.name, c.value) for c in LanguageLevel])
+    iso_code = serializers.CharField(
+        max_length=2,
+        help_text="Code de la langue sur 2 lettres, ISO 639-1 (ex. `EN`, `DE`), "
+        "conservé tel quel.",
+    )
+    niveau = serializers.ChoiceField(
+        choices=[(c.name, c.value) for c in LanguageLevel],
+        help_text="Niveau attendu selon le cadre européen commun de référence "
+        "pour les langues (CECRL), de `A1` à `C2`.",
+    )
 
 
 class CriteriaInputSerializer(serializers.Serializer):
@@ -991,30 +1062,47 @@ class CriteriaInputSerializer(serializers.Serializer):
         min_value=Diploma.MIN_DIPLOMA_LEVEL,
         max_value=Diploma.MAX_DIPLOMA_LEVEL,
         required=False,
+        help_text="Niveau de diplôme exigé, de 1 à 8, selon le cadre national des "
+        "certifications professionnelles (ex. 4 pour le baccalauréat, 6 pour la "
+        "licence, 7 pour le master).",
     )
     experience = serializers.ChoiceField(
-        choices=[(c.name, c.value) for c in ExperienceLevel], required=False
+        choices=[(c.name, c.value) for c in ExperienceLevel],
+        required=False,
+        help_text="Niveau d'expérience attendu.",
     )
     specialisations = serializers.ListField(
-        child=serializers.CharField(), required=False
+        child=serializers.CharField(),
+        required=False,
+        help_text="Spécialisations attendues, en libellés texte (ex. `Droit public`).",
     )
-    diplome = serializers.CharField(required=False)
+    diplome = serializers.CharField(
+        required=False,
+        help_text="Diplôme exigé, en texte libre (ex. `Diplôme d'Etat d'infirmier`).",
+    )
     documents_requis = serializers.ListField(
         child=serializers.ChoiceField(
             choices=[(c.name, c.value) for c in RequiredDocument]
         ),
         required=False,
-        help_text="Documents à transmettre pour candidater, sans doublon.",
+        help_text="Documents à transmettre pour candidater, sans doublon : `CV`, "
+        "`LETTRE_MOTIVATION`, `PORTFOLIO`.",
     )
     competences_requises = serializers.CharField(
         max_length=2000,
         required=False,
         allow_blank=True,
         allow_null=True,
-        help_text=_MARKDOWN_HELP_TEXT,
+        help_text=_markdown_help_text(
+            "Compétences attendues du candidat. Peut être vide ou `null`."
+        ),
         validators=[_validate_markdown],
     )
-    langues = LanguageInputSerializer(many=True, required=False)
+    langues = LanguageInputSerializer(
+        many=True,
+        required=False,
+        help_text="Langues attendues, chacune avec son niveau.",
+    )
 
     def validate_documents_requis(self, value):
         if len(value) != len(set(value)):
@@ -1026,36 +1114,67 @@ class CriteriaInputSerializer(serializers.Serializer):
 
 class ConditionsInputSerializer(serializers.Serializer):
     salaire_titulaire = serializers.CharField(
-        max_length=100, allow_blank=True, required=False
+        max_length=100,
+        allow_blank=True,
+        required=False,
+        help_text="Rémunération proposée à un fonctionnaire, en texte libre "
+        "(ex. `Selon grille indiciaire`).",
     )
     salaire_contractuel = serializers.CharField(
-        max_length=100, allow_blank=True, required=False
+        max_length=100,
+        allow_blank=True,
+        required=False,
+        help_text="Rémunération proposée à un contractuel, en texte libre "
+        "(ex. `2 500 € brut mensuel`).",
     )
-    debut_contrat = serializers.DateTimeField(allow_null=True, required=False)
-    fin_contrat = serializers.DateTimeField(allow_null=True, required=False)
-    duree_contrat = serializers.CharField(allow_blank=True, required=False)
+    debut_contrat = serializers.DateTimeField(
+        allow_null=True,
+        required=False,
+        help_text=f"Date de début du contrat. {_DATE_HELP_TEXT}",
+    )
+    fin_contrat = serializers.DateTimeField(
+        allow_null=True,
+        required=False,
+        help_text=f"Date de fin du contrat. {_DATE_HELP_TEXT}",
+    )
+    duree_contrat = serializers.CharField(
+        allow_blank=True,
+        required=False,
+        help_text="Durée du contrat, en texte libre (ex. `3 ans`).",
+    )
     temps_travail = serializers.ChoiceField(
-        choices=[(c.name, c.value) for c in WorkingTime]
+        choices=[(c.name, c.value) for c in WorkingTime],
+        help_text="Temps de travail : `TEMPS_PLEIN`, `TEMPS_PARTIEL` (temps "
+        "incomplet) ou `NON_DEFINI`.",
     )
     ouvert_aux_militaires = serializers.ChoiceField(
-        choices=[(c.name, c.value) for c in OpenToMilitary], required=False
+        choices=[(c.name, c.value) for c in OpenToMilitary],
+        required=False,
+        help_text="`OUI` si le poste est ouvert aux militaires, `NON` sinon.",
     )
     lieu_de_travail = serializers.ChoiceField(
         choices=[(c.name, c.value) for c in WorkingPlace],
+        help_text="`TELETRAVAIL` si le télétravail est possible, `SUR_SITE` "
+        "sinon, `NON_DEFINI` si l'information n'est pas connue.",
     )
     management = serializers.ChoiceField(
-        choices=[(c.name, c.value) for c in Management], required=False
+        choices=[(c.name, c.value) for c in Management],
+        required=False,
+        help_text="`AVEC` si le poste comporte de l'encadrement, `SANS` sinon.",
     )
     bases_legales = serializers.CharField(
         max_length=1500,
         required=False,
-        help_text=_MARKDOWN_HELP_TEXT,
+        help_text=_markdown_help_text(
+            "Fondement juridique du recrutement (articles de loi, décrets…)."
+        ),
         validators=[_validate_markdown],
     )
     note_ouverture_poste_url = serializers.URLField(
         required=False,
         help_text="Lien vers l'avis de vacance publié au Journal officiel, "
-        "en `https` sur `legifrance.gouv.fr`.",
+        "en `https` sur `legifrance.gouv.fr` ou `www.legifrance.gouv.fr` (ex. "
+        "`https://www.legifrance.gouv.fr/jorf/id/JORFTEXT…`).",
     )
 
     def validate_note_ouverture_poste_url(self, value):
@@ -1097,46 +1216,102 @@ class ContactsInputSerializer(serializers.Serializer):
 
 
 class PublicationInputSerializer(serializers.Serializer):
-    debut_publication = serializers.DateTimeField()
-    fin_publication = serializers.DateTimeField()
-    fin_candidature = serializers.DateTimeField(allow_null=True, required=False)
-    debut_vacance_poste = serializers.DateTimeField(allow_null=True, required=False)
+    debut_publication = serializers.DateTimeField(
+        help_text=f"Date de début de publication de l'offre. {_DATE_HELP_TEXT}",
+    )
+    fin_publication = serializers.DateTimeField(
+        help_text=f"Date de fin de publication de l'offre. {_DATE_HELP_TEXT}",
+    )
+    fin_candidature = serializers.DateTimeField(
+        allow_null=True,
+        required=False,
+        help_text=f"Date limite de candidature. {_DATE_HELP_TEXT}",
+    )
+    debut_vacance_poste = serializers.DateTimeField(
+        allow_null=True,
+        required=False,
+        help_text=f"Date à partir de laquelle le poste est vacant. {_DATE_HELP_TEXT}",
+    )
 
 
 class OffersInputSerializer(serializers.Serializer):
-    identification = IdentityInputSerializer()
+    identification = IdentityInputSerializer(
+        help_text="Identification de l'offre : le couple `reference` + source "
+        "désigne l'offre à mettre à jour ; une référence inconnue crée l'offre.",
+    )
 
     # general infos
-    titre = serializers.CharField(max_length=150)
-    titre_long = serializers.CharField(
-        max_length=1500, required=False, allow_null=True, allow_blank=True
+    titre = serializers.CharField(
+        max_length=150,
+        help_text="Intitulé de l'offre, affiché aux candidats.",
     )
-    organisation = OrganismeInputSerializer()
-    url_offre = serializers.URLField(allow_null=True)
-    url_candidature = serializers.URLField(allow_null=True, required=False)
-    email_candidature = serializers.EmailField(allow_null=True, required=False)
+    titre_long = serializers.CharField(
+        max_length=1500,
+        required=False,
+        allow_null=True,
+        allow_blank=True,
+        help_text="Intitulé long, à ne renseigner que s'il diffère de `titre` : une "
+        "offre dont le `titre_long` est identique à `titre` est rejetée.",
+    )
+    organisation = OrganismeInputSerializer(
+        help_text="Organisme qui recrute.",
+    )
+    url_offre = serializers.URLField(
+        allow_null=True,
+        help_text="Lien vers l'offre sur le site de la source. Obligatoire, peut "
+        "être `null`.",
+    )
+    url_candidature = serializers.URLField(
+        allow_null=True,
+        required=False,
+        help_text="Lien pour candidater. Renseigner soit `url_candidature`, soit "
+        "`email_candidature`, mais pas les deux.",
+    )
+    email_candidature = serializers.EmailField(
+        allow_null=True,
+        required=False,
+        help_text="Adresse e-mail à laquelle candidater. Renseigner soit "
+        "`url_candidature`, soit `email_candidature`, mais pas les deux.",
+    )
 
     # classification
-    profession = ProfessionInputSerializer()
+    profession = ProfessionInputSerializer(
+        help_text="Métier de l'offre, dans le référentiel des métiers.",
+    )
     categories = serializers.MultipleChoiceField(
         choices=[(c.name, c.value) for c in Category],
         allow_empty=False,
         error_messages={"empty": "Au moins une catégorie est obligatoire."},
+        help_text="Catégories hiérarchiques de l'offre, au moins une, enregistrées "
+        "dans l'ordre d'envoi (doublons retirés) : "
+        + ", ".join(f"`{c.name}` ({c.label})" for c in Category)
+        + ".",
     )
     nature_offre = serializers.ChoiceField(
-        choices=[(c.name, c.value) for c in OfferNature]
+        choices=[(c.name, c.value) for c in OfferNature],
+        help_text="Public visé par l'offre : "
+        + ", ".join(f"`{c.name}` ({c.label.lower()})" for c in OfferNature)
+        + ".",
     )
     type_contrat = serializers.ChoiceField(
         choices=[(c.name, c.value) for c in ContractKind],
         allow_blank=True,
         allow_null=True,
         required=False,
+        help_text="Type de contrat proposé : "
+        + ", ".join(f"`{c.name}` ({c.label})" for c in ContractKind)
+        + ". Vide ou `null` si l'offre n'est pas soumise à contractualisation.",
     )
     vacance_poste = serializers.ChoiceField(
-        choices=[(c.name, c.value) for c in JobVacancy], allow_blank=True
+        choices=[(c.name, c.value) for c in JobVacancy],
+        allow_blank=True,
+        help_text="`OUI` si le poste est vacant, `NON` s'il est susceptible d'être "
+        "vacant. Peut être vide.",
     )
 
-    description = DescriptionInputSerializer()
+    description = DescriptionInputSerializer(
+        help_text="Textes de l'offre, en Markdown.",
+    )
     localisation = LocalisationInputSerializer(
         many=True,
         allow_null=True,
@@ -1144,11 +1319,30 @@ class OffersInputSerializer(serializers.Serializer):
         error_messages={
             "max_length": (f"Au plus {MAX_LOCALISATIONS_PER_OFFER} lieux par offre.")
         },
+        help_text=f"Lieux de l'offre, {MAX_LOCALISATIONS_PER_OFFER} au plus, "
+        "conservés dans l'ordre d'envoi : le premier est le lieu principal. Un même "
+        "lieu (`pays`, `region`, `departement` et `localisation_label`) ne peut "
+        "figurer qu'une fois. Peut être vide ou `null`. Voir le [bloc « Localisation "
+        f"» du guide]({_GUIDE_API_URL}"
+        "#bloc-localisation-localisation-liste-peut-etre-vide).",
     )
-    criteres = CriteriaInputSerializer(allow_null=True)
-    conditions = ConditionsInputSerializer(allow_null=True)
-    contacts = ContactsInputSerializer(many=True, allow_null=True)
-    publication = PublicationInputSerializer()
+    criteres = CriteriaInputSerializer(
+        allow_null=True,
+        help_text="Critères attendus des candidats. Peut être `null`.",
+    )
+    conditions = ConditionsInputSerializer(
+        allow_null=True,
+        help_text="Conditions d'emploi du poste. Peut être `null`.",
+    )
+    contacts = ContactsInputSerializer(
+        many=True,
+        allow_null=True,
+        help_text="Personnes à contacter, au plus une par rôle, renvoyées dans "
+        "l'ordre `principal` puis `autre`. Peut être vide ou `null`.",
+    )
+    publication = PublicationInputSerializer(
+        help_text="Dates de publication et de candidature de l'offre.",
+    )
 
     def validate_localisation(self, value):
         if not value:
