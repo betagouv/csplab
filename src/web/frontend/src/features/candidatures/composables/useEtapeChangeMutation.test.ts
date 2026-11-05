@@ -5,8 +5,6 @@ import { createPinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { defineComponent, h } from 'vue'
 import { useToast } from '@/composables/ui/useToast'
-import { getRecrutementDetail } from '@/features/recrutements/api'
-import { recrutementDetailQuery } from '@/features/recrutements/queries'
 import {
   CANDIDAT_ALICE,
   CANDIDAT_BRUNO,
@@ -19,7 +17,6 @@ import {
   ETAPE_RECEPTION,
   ETAPE_REFUS,
   ORGANISME_UUID,
-  RECRUTEMENT_DETAIL,
   RECRUTEMENT_UUID,
 } from '@/test/fixtures/candidatures'
 import { getCandidatureActivites, getCandidatureDetail, getCandidatureListe, patchEtapeCandidatures } from '../api'
@@ -34,10 +31,6 @@ vi.mock('../api', () => ({
   patchEtapeCandidatures: vi.fn(),
 }))
 
-vi.mock('@/features/recrutements/api', () => ({
-  getRecrutementDetail: vi.fn(),
-}))
-
 function listeEtapes(liste: RecrutementListe | undefined) {
   return Object.fromEntries((liste?.results ?? []).map(row => [row.uuid, row.etape.uuid]))
 }
@@ -49,12 +42,10 @@ async function mountEtapeChangeMutation() {
   let context!: ReturnType<typeof useEtapeChangeMutation>
   let detail!: ReturnType<typeof useQuery<CandidatureDetail>>
   let liste!: ReturnType<typeof useQuery<RecrutementListe>>
-  let recrutementDetail!: ReturnType<typeof useQuery<unknown>>
 
   mount(defineComponent({
     setup() {
       liste = useQuery(candidatureListeQuery(RECRUTEMENT))
-      recrutementDetail = useQuery(recrutementDetailQuery(RECRUTEMENT))
       useCandidatureActivites(CANDIDATURE_PARAMS)
       detail = useQuery(candidatureDetailQuery(CANDIDATURE_PARAMS))
       context = useEtapeChangeMutation(RECRUTEMENT)
@@ -64,14 +55,13 @@ async function mountEtapeChangeMutation() {
     global: { plugins: [createPinia(), PiniaColada] },
   })
 
-  await vi.waitFor(() => expect(detail.data.value && liste.data.value && recrutementDetail.data.value).toBeDefined())
+  await vi.waitFor(() => expect(detail.data.value && liste.data.value).toBeDefined())
   return { context, detail, liste }
 }
 
 describe('useEtapeChangeMutation', () => {
   beforeEach(() => {
     vi.mocked(getCandidatureListe).mockReset().mockResolvedValue(CANDIDATURE_LISTE)
-    vi.mocked(getRecrutementDetail).mockReset().mockResolvedValue(RECRUTEMENT_DETAIL)
     vi.mocked(getCandidatureActivites).mockReset().mockResolvedValue({ count: 0, next: null, previous: null, results: [] })
     vi.mocked(getCandidatureDetail).mockReset().mockImplementation(async ({ candidatureUuid }) => candidatureDetail(candidatureUuid))
     vi.mocked(patchEtapeCandidatures).mockReset().mockResolvedValue({ reussites: [CANDIDATURE_ALICE], echecs: [] })
