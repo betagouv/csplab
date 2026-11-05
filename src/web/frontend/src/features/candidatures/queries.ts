@@ -3,14 +3,7 @@ import type { CandidatureParams, DocumentParams, OrganismeParams, RecrutementPar
 import { defineQueryOptions } from '@pinia/colada'
 import { checkCandidatureDocument } from '@/api/documents'
 import { candidatureKeys, organismeKeys, recrutementKeys } from '@/api/queryKeys'
-import { getCandidatureActivites, getCandidatureDetail, getCandidatureDocuments, getCandidatureListe, getCandidatureNotes, getMotifsRefus, getRecrutementKanban } from './api'
-
-export const recrutementKanbanQuery = defineQueryOptions((params: RecrutementParams) => {
-  return {
-    key: recrutementKeys.kanban(params),
-    query: () => getRecrutementKanban(params),
-  }
-})
+import { getCandidatureActivites, getCandidatureDetail, getCandidatureDocuments, getCandidatureListe, getCandidatureNotes, getMotifsRefus } from './api'
 
 export const candidatureListeQuery = defineQueryOptions((params: RecrutementParams) => {
   return {

@@ -10,10 +10,10 @@ import { getRecrutementDetail } from '@/features/recrutements/api'
 import {
   CANDIDATURE_ALICE,
   CANDIDATURE_BRUNO,
+  CANDIDATURE_LISTE,
   ETAPE_ENTRETIEN,
   ETAPE_RECEPTION,
   ETAPE_REFUS,
-  KANBAN,
   KANBAN_PATH,
   MOTIFS_REFUS,
   ORGANISME_UUID,
@@ -23,10 +23,9 @@ import {
 } from '@/test/fixtures/candidatures'
 import { makeUser } from '@/test/fixtures/utilisateur'
 import { renderWithApp, setupUser } from '@/test/render'
-import { getMotifsRefus, getRecrutementKanban, patchEtapeCandidatures } from '../api'
+import { getCandidatureListe, getMotifsRefus, patchEtapeCandidatures } from '../api'
 
 vi.mock('../api', () => ({
-  getRecrutementKanban: vi.fn(),
   getCandidatureListe: vi.fn(),
   patchEtapeCandidatures: vi.fn(),
   getMotifsRefus: vi.fn(),
@@ -85,7 +84,7 @@ describe('candidaturesKanbanView', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     vi.mocked(getMe).mockResolvedValue(makeUser([roleOnOrganisme('agent')]))
-    vi.mocked(getRecrutementKanban).mockResolvedValue(KANBAN)
+    vi.mocked(getCandidatureListe).mockResolvedValue(CANDIDATURE_LISTE)
     vi.mocked(getMotifsRefus).mockResolvedValue(MOTIFS_REFUS)
     vi.mocked(getRecrutementDetail).mockResolvedValue(RECRUTEMENT_DETAIL)
     vi.mocked(patchEtapeCandidatures).mockResolvedValue({ reussites: [CANDIDATURE_ALICE, CANDIDATURE_BRUNO], echecs: [] })
@@ -124,7 +123,7 @@ describe('candidaturesKanbanView', () => {
   })
 
   it('shows an error when the kanban fails to load', async () => {
-    vi.mocked(getRecrutementKanban).mockRejectedValue(new Error('boom'))
+    vi.mocked(getCandidatureListe).mockRejectedValue(new Error('boom'))
     await renderKanbanPage()
 
     expect(await screen.findByText('Une erreur est survenue lors du chargement des candidatures.')).toBeInTheDocument()
@@ -158,7 +157,7 @@ describe('candidaturesKanbanView', () => {
   it('shows in the toolbar the count of the selected candidatures shown by the search, in place of the candidatures count', async () => {
     await selectColumns(['Réception des candidatures'], 'Alice')
 
-    expect(await screen.findByText('1 candidat sélectionné')).toBeInTheDocument()
+    expect(await screen.findByText('1 candidature sélectionnée')).toBeInTheDocument()
     expect(screen.queryByText(/^\d+ candidatures?$/)).not.toBeInTheDocument()
   })
 

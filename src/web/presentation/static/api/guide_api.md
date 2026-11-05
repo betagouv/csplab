@@ -388,10 +388,39 @@ Une offre peut se dérouler en plusieurs lieux : **50 lieux au plus**, tous cons
 | `diplome_niveau` | Nombre entier **entre 1 et 8** (niveaux de diplôme). |
 | `experience` | Valeurs : **DEBUTANT, CONFIRME, EXPERT**. |
 | `specialisations` | Liste de textes. |
-| `diplome` | Texte. |
+| `diplome` | Texte libre. Indiquez de préférence l'un des libellés du référentiel des diplômes d'État (liste ci-dessous), à l'identique. |
 | `documents_requis` | Liste de documents à transmettre pour candidater. Valeurs : **CV, LETTRE_MOTIVATION, PORTFOLIO**. Chaque document ne peut être cité qu'une fois. |
 | `competences_requises` | Texte libre en Markdown, **2 000 caractères maximum**. Peut être vide ou `null`. |
 | `langues` | Liste de langues, chacune avec un **code ISO sur 2 caractères** et un **niveau** (**A1, A2, B1, B2, C1, C2**). |
+
+Valeurs indicatives de `diplome`, libellés du référentiel des diplômes d'État (toute autre valeur reste acceptée) :
+
+- `Diplôme d'Etat d'infirmier`
+- `Diplôme d'Etat d'aide-soignant`
+- `Diplôme d'Etat d'éducateur spécialisé`
+- `Diplôme d'Etat français d'assistant de service social`
+- `Diplôme d'Etat de masseur-kinésithérapeute`
+- `Diplôme d'Etat d'aide médico psychologique`
+- `Diplôme d'Etat d'ergothérapeute`
+- `Diplôme d'Etat de moniteur éducateur`
+- `Diplôme d'Etat d'infirmier en pratique avancée`
+- `Diplôme d'Etat de psychomotricien`
+- `Diplôme d'Etat d'auxiliaire de puériculture`
+- `Diplôme d'Etat de sage-femme`
+- `Diplôme d'Etat d'infirmier de bloc opératoire`
+- `Diplôme d'Etat de la jeunesse, de l'éducation populaire et du sport`
+- `Diplôme d'Etat d'éducateur de jeunes enfants`
+- `Diplôme d'Etat de manipulateur d'électroradiologie médicale`
+- `Diplôme d'Etat d'infirmier anesthésiste`
+- `Diplôme d'Etat d'ambulancier`
+- `Diplôme d'Etat de conseiller en économie sociale familiale`
+- `Diplôme d'Etat de puéricultrice`
+- `Diplôme d'Etat de technicien de laboratoire médical`
+- `Diplôme d'Etat d'éducateur technique spécialisé`
+- `Diplôme d'Etat de pédicure-podologue`
+- `Diplôme d'Etat d'audioprothésiste`
+- `Diplôme d'Etat français de diététicien`
+- `Diplôme d'Etat d'audio-protésiste`
 
 #### Bloc « Conditions » (`conditions`) — peut être vide
 | Champ | Règle |
@@ -659,10 +688,10 @@ Notation : `a.b` désigne un objet imbriqué, `a[]` une liste, `a[0]` son premie
 | `urlRedirectionApplicant` | `url_candidature` | Prioritaire sur `customFields.origin.shortText1` et `applicationUrl`. |
 | `customFields.origin.shortText1` | `email_candidature` | Texte libre (« adresse de candidature »). Lu seulement si `urlRedirectionApplicant` est vide : le premier e-mail valide trouvé devient `email_candidature`, et `url_candidature` reste vide. API fake-ts : reprend `email_candidature`, `null` si l'offre se candidate par lien. |
 | `applicationUrl` | `url_candidature` | Dernier recours, si `urlRedirectionApplicant` est vide et que `customFields.origin.shortText1` ne contient aucun e-mail valide. Toujours rempli dans Talentsoft (page de candidature générique). API fake-ts : reprend `url_candidature`, `null` si l'offre se candidate par e-mail. |
-| `geographicalLocation[0].clientCode` | `localisation[0].zone_geographique` | En France, ignoré : la zone est déduite du département, car Talentsoft range presque tout l'outre-mer en `Europe`. `EUROPE` en métropole, `AMERIQUE` (971, 972, 973) ou `AFRIQUE` (974, 976) pour les DOM, `AMERIQUE` (975, 977, 978, `SPM`) ou `OCEANIE` (986, `WLF`, 987, 988) pour les collectivités d'outre-mer. À l'étranger, lu : `_TS_CO_GeographicalArea_Europe` → `EU`, `_TS_CO_GeographicalArea_MoyenOrientAfriqueduNord` → `MO`, `_TS_CO_GeographicalArea_AmriquesCaraibe` → `AM`, `_TS_CO_GeographicalArea_Ocanie` → `OC`, `_TS_CO_GeographicalArea_Asie` → `AS`, `_TS_CO_GeographicalArea_Afrique` → `AF`. Toute la `localisation` est abandonnée si le pays manque, si, en France, la région ou le département manque ou le département est inconnu, ou si, à l'étranger, la zone est absente ou inconnue (« Monde »). Talentsoft n'envoie qu'un lieu en pratique (aucune offre à plusieurs lieux au 02/11/2026) : les éléments suivants de la liste sont ignorés, mais signalés dans Sentry. API fake-ts : un élément par zone distincte parmi les lieux de l'offre, `clientCode` étant le nom de la zone, comme dans le filtre `area` et `referentials/area` (`EUROPE` pour `EU`, `AFRIQUE` pour `AF`…), et `code` restant `null`. |
+| `geographicalLocation[0].clientCode` | `localisation[0].zone_geographique` | En France, ignoré : la zone est déduite du département, car Talentsoft range presque tout l'outre-mer en `Europe`. `EUROPE` en métropole, `AMERIQUE` (971, 972, 973) ou `AFRIQUE` (974, 976) pour les DOM, `AMERIQUE` (975, 977, 978, `SPM`) ou `OCEANIE` (986, `WLF`, 987, 988) pour les collectivités d'outre-mer. À l'étranger, lu : `_TS_CO_GeographicalArea_Europe` → `EU`, `_TS_CO_GeographicalArea_MoyenOrientAfriqueduNord` → `MO`, `_TS_CO_GeographicalArea_AmriquesCaraibe` → `AM`, `_TS_CO_GeographicalArea_Ocanie` → `OC`, `_TS_CO_GeographicalArea_Asie` → `AS`, `_TS_CO_GeographicalArea_Afrique` → `AF`. Toute la `localisation` est abandonnée si le pays manque, si, en France, la région manque, si elle est inconnue et que le département n'est pas en outre-mer (sinon, la région est déduite du département), si le département manque et que la région est `DOM` ou `TOM`, ou si le département est inconnu, ou si, à l'étranger, la zone est absente ou inconnue (« Monde »). Talentsoft n'envoie qu'un lieu en pratique (aucune offre à plusieurs lieux au 02/11/2026) : les éléments suivants de la liste sont ignorés, mais signalés dans Sentry. API fake-ts : un élément par zone distincte parmi les lieux de l'offre, `clientCode` étant le nom de la zone, comme dans le filtre `area` et `referentials/area` (`EUROPE` pour `EU`, `AFRIQUE` pour `AF`…), et `code` restant `null`. |
 | `country[0].clientCode` | `localisation[0].pays` | Un territoire d'outre-mer saisi comme un pays, sans région ni département, est ramené à `FRA` et à son département : `GLP` → `971`, `MTQ` → `972`, `GUF` → `973`, `REU` → `974`, `SPM` → `975`, `MYT` → `976`, `BLM` → `977`, `MAF` → `978`, `WLF` → `WLF`, `PYF` → `987`, `NCL` → `988`. Tout autre pays que `FRA` est une offre à l'étranger. Talentsoft n'envoie qu'un lieu en pratique (aucune offre à plusieurs lieux au 02/11/2026) : les éléments suivants de la liste sont ignorés, mais signalés dans Sentry. |
 | `region[0].clientCode` | `localisation[0].region` | Les préfixes `_TS_CO_Region_` et `R` sont retirés pour obtenir le code INSEE. Ignoré pour l'outre-mer : `DOM` pour les départements 971 à 974 et 976, `TOM` pour 975, 977, 978, 986, 987, 988, `SPM` et `WLF`. Ignoré à l'étranger : `region` à `null`. Talentsoft n'envoie qu'un lieu en pratique (aucune offre à plusieurs lieux au 02/11/2026) : les éléments suivants de la liste sont ignorés, mais signalés dans Sentry. |
-| `department[0].clientCode` | `localisation[0].departement` | Cas particuliers de la Nouvelle-Calédonie (`988`), et de Saint-Barthélemy (`977`) et Saint-Martin (`978`), saisis avec un identifiant interne de l'instance Talentsoft. Ignoré à l'étranger : `departement` à `null`. Talentsoft n'envoie qu'un lieu en pratique (aucune offre à plusieurs lieux au 02/11/2026) : les éléments suivants de la liste sont ignorés, mais signalés dans Sentry. |
+| `department[0].clientCode` | `localisation[0].departement` | Cas particuliers de la Nouvelle-Calédonie (`988`), et de Saint-Barthélemy (`977`) et Saint-Martin (`978`), saisis avec un identifiant interne de l'instance Talentsoft. En France, si le département manque, le département chef-lieu de la région est retenu (75, 45, 21, 76, 59, 67, 44, 35, 33, 31, 69, 13, 2A, et le département unique des régions d'outre-mer). Ignoré à l'étranger : `departement` à `null`. Talentsoft n'envoie qu'un lieu en pratique (aucune offre à plusieurs lieux au 02/11/2026) : les éléments suivants de la liste sont ignorés, mais signalés dans Sentry. |
 | `geolocation.latitude` | `localisation[0].latitude` | Repli sur `latitude`, puis, en France seulement, sur `organisation.geolocation.latitude` (à l'étranger, c'est en général le siège en France). |
 | `geolocation.longitude` | `localisation[0].longitude` | Repli sur `longitude`, puis, en France seulement, sur `organisation.geolocation.longitude`. |
 | `customFields.location.shortText1` | `localisation[0].localisation_label` | |
@@ -674,7 +703,7 @@ Notation : `a.b` désigne un objet imbriqué, `a[]` une liste, `a[0]` son premie
 | `contractDuration` | `conditions.duree_contrat` | |
 | `educationLevel.clientCode` | `criteres.diplome_niveau` | Lettres `A`-`H` ou `NIV_DIPL<n>` converties en niveau. |
 | `diploma.label` | `criteres.diplome` | Libellé reçu, comme pour le diplôme d'État. Prioritaire sur `customFields.offerCustomBlock1.customCodeTable3` ; en pratique, Talentsoft ne renseigne jamais `diploma`. API fake-ts : toujours `null`, comme dans Talentsoft ; le diplôme est renvoyé dans `customFields.offerCustomBlock1.customCodeTable3`. |
-| `customFields.offerCustomBlock1.customCodeTable3.label` | `criteres.diplome` | « Diplômes d'Etat requis », référentiel Talentsoft « Diplômes d'Etat » (`type`) de 26 codes, ex. `CSPU0002` « Diplôme d'Etat d'infirmier ». `criteres.diplome` reprend le libellé du référentiel pour un `clientCode` connu, sinon le `label` reçu. Utilisé seulement si `diploma` est absent. Une valeur du référentiel « Quotité de temps de travail » (`type`, codes `Temps_plein`, `Temps_noncomplet`) saisie par erreur est rejetée (passée à `null`, l'offre reste ingérée) et signalée dans Sentry ; elle n'est pas reprise dans `conditions.temps_travail`. API fake-ts : objet codé de type « Diplômes d'Etat », `label` = `criteres.diplome`, `clientCode` = son code Talentsoft retrouvé par le libellé ; `null` si `criteres.diplome` est vide ou n'est pas l'un des 26 libellés du référentiel (texte libre d'un autre intégrateur, par exemple), pour ne pas l'afficher sous « Diplômes d'Etat requis » dans le WordPress BIEP. |
+| `customFields.offerCustomBlock1.customCodeTable3.label` | `criteres.diplome` | « Diplômes d'Etat requis », référentiel Talentsoft « Diplômes d'Etat » (`type`) de 26 codes, ex. `CSPU0002` « Diplôme d'Etat d'infirmier ». `criteres.diplome` reprend le libellé du référentiel pour un `clientCode` connu, sinon le `label` reçu. Utilisé seulement si `diploma` est absent. Une valeur du référentiel « Quotité de temps de travail » (`type`, codes `Temps_plein`, `Temps_noncomplet`) saisie par erreur est rejetée (passée à `null`, l'offre reste ingérée) et signalée dans Sentry ; elle n'est pas reprise dans `conditions.temps_travail`. API fake-ts : objet codé de type « Diplômes d'Etat », `label` = `criteres.diplome`, `clientCode` = son code Talentsoft retrouvé par le libellé, ou chaîne vide si `criteres.diplome` n'est pas l'un des 26 libellés du référentiel (texte libre d'un autre intégrateur, par exemple) ; `null` si `criteres.diplome` est vide. |
 | `experienceLevel.clientCode` | `criteres.experience` | Converti en nom d'`ExperienceLevel`. |
 | `specialisations[].clientCode` | `criteres.specialisations` | Remplacé par le libellé de la spécialisation. |
 | `languages[].languageName.clientCode` | `criteres.langues[].iso_code` | |

@@ -105,8 +105,7 @@ class OrganismeDetailSerializer(serializers.ModelSerializer):
     date_derniere_activite = serializers.DateTimeField(read_only=True)
     date_creation = serializers.DateTimeField(read_only=True)
     # TODO : fill with the active superviseurs (comma-separated, as in
-    # OrganismesListSerializer) when the detail view switches to ADR-009 style
-    # (it still feeds this serializer dicts, hence the empty placeholder)
+    # OrganismesListSerializer) ; the detail view now passes the model
     superviseurs = serializers.SerializerMethodField()
 
     class Meta:
@@ -125,6 +124,14 @@ class OrganismeDetailSerializer(serializers.ModelSerializer):
 
     def get_superviseurs(self, organisme) -> str:
         return ""
+
+
+class OrganismeReadSerializer(OrganismeDetailSerializer):
+    authorized_actions = authorized_actions_field()
+
+    class Meta(OrganismeDetailSerializer.Meta):
+        fields = [*OrganismeDetailSerializer.Meta.fields, "authorized_actions"]
+        read_only_fields = fields
 
 
 class UpdateOrganismeSerializer(serializers.Serializer):
@@ -254,7 +261,7 @@ class RecrutementsArchivesSerializer(RecrutementsSerializer):
 
 
 # ---------------------------------------------------------------------------
-# Serializers pour la vue détail d'un recrutement (kanban / liste)
+# Serializers pour la vue détail d'un recrutement (liste)
 # ---------------------------------------------------------------------------
 
 
@@ -262,17 +269,6 @@ class CandidatSerializer(serializers.Serializer):
     uuid = serializers.UUIDField()
     nom = serializers.CharField()
     prenom = serializers.CharField()
-
-
-class CandidatureSerializer(UnreadConversationsSerializer):
-    uuid = serializers.UUIDField()
-    date_soumission = serializers.DateTimeField()
-    date_derniere_activite = serializers.DateTimeField()
-    candidat = CandidatSerializer()
-
-
-class EtapeRecrutementDetailedCandidaturesSerializer(EtapeRecrutementSerializer):
-    candidatures = CandidatureSerializer(many=True)
 
 
 class CategorieEtapeField(serializers.ChoiceField):
@@ -372,11 +368,6 @@ class RecrutementDetailSerializer(serializers.ModelSerializer):
             "recrutement_role",
             "authorized_actions",
         ]
-
-
-class RecrutementDetailKanbanSerializer(serializers.Serializer):
-    uuid = serializers.UUIDField(source="offer_id")
-    etapes = EtapeRecrutementDetailedCandidaturesSerializer(many=True)
 
 
 # Computed fields of CandidatureListeSerializer: plain fields overriding get_attribute,

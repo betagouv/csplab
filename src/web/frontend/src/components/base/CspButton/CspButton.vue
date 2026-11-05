@@ -10,7 +10,7 @@ type ButtonProps = PrimitiveProps & {
   isIconLeft?: boolean
 } & ({
   label: string
-  icon?: never
+  icon?: string
 } | {
   icon: string
   label?: never

@@ -11,7 +11,6 @@ import {
   CANDIDATURE_LISTE,
   candidatureDetail,
   ETAPE_ENTRETIEN,
-  KANBAN,
   KANBAN_PATH,
   MOTIFS_REFUS,
   ORGANISME_UUID,
@@ -21,11 +20,10 @@ import {
 } from '@/test/fixtures/candidatures'
 import { makeUser } from '@/test/fixtures/utilisateur'
 import { renderWithApp, setupUser } from '@/test/render'
-import { getCandidatureActivites, getCandidatureDetail, getCandidatureListe, getMotifsRefus, getRecrutementKanban, patchEtapeCandidatures } from '../api'
+import { getCandidatureActivites, getCandidatureDetail, getCandidatureListe, getMotifsRefus, patchEtapeCandidatures } from '../api'
 
 vi.mock('../api', () => ({
   getCandidatureDetail: vi.fn(),
-  getRecrutementKanban: vi.fn(),
   getCandidatureListe: vi.fn(),
   patchEtapeCandidatures: vi.fn(),
   getMotifsRefus: vi.fn(),
@@ -119,6 +117,17 @@ describe('candidaturesListeView', () => {
     expect(table.getByRole('link', { name: 'Bruno Martin' })).toBeInTheDocument()
   })
 
+  it('offers in the filters the stages of the list', async () => {
+    const etapeAjoutee = { uuid: 'eeeeeeee-0001-0001-0001-000000000009', nom: 'Visite', categorie: 'EN_COURS' as const }
+    vi.mocked(getCandidatureListe).mockResolvedValue({ ...CANDIDATURE_LISTE, etapes: [...CANDIDATURE_LISTE.etapes, etapeAjoutee] })
+    const user = setupUser()
+    await renderListe()
+
+    await user.click(screen.getByRole('button', { name: 'Filtres' }))
+
+    expect((await screen.findAllByRole('checkbox', { name: 'Visite' })).length).toBeGreaterThan(0)
+  })
+
   it('shows an error when the list fails to load', async () => {
     vi.mocked(getCandidatureListe).mockRejectedValue(new Error('boom'))
     await renderWithApp(RouterView, { route: LISTE_PATH })
@@ -199,7 +208,6 @@ describe('candidaturesListeView', () => {
   })
 
   it('keeps the sort of the list after a visit to the kanban', async () => {
-    vi.mocked(getRecrutementKanban).mockResolvedValue(KANBAN)
     const user = setupUser()
     const { router, table } = await renderListe()
 

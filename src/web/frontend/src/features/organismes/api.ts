@@ -1,4 +1,4 @@
-import type { AgentOrganisme, CreateOrganismePayload, OrganismeDetail, OrganismeRecherche, OrganismesList, SetAgentRolePayload, UpdateAgentRolePayload, UpdateOrganismePayload } from './types'
+import type { AgentOrganisme, CreateOrganismePayload, OrganismeDetail, OrganismeRead, OrganismeRecherche, OrganismesList, SetAgentRolePayload, UpdateAgentRolePayload, UpdateOrganismePayload } from './types'
 import type { OrganismeParams } from '@/api/params'
 import { api } from '@/api/client'
 
@@ -27,7 +27,7 @@ export async function searchOrganismes(nom: string): Promise<OrganismeRecherche[
   return data!
 }
 
-export async function getOrganismeDetail({ organismeUuid }: OrganismeParams): Promise<OrganismeDetail> {
+export async function getOrganismeDetail({ organismeUuid }: OrganismeParams): Promise<OrganismeRead> {
   const { data } = await api.GET('/recruteur/organismes/{organisme_uuid}', {
     params: { path: { organisme_uuid: organismeUuid } },
   })

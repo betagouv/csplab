@@ -1,14 +1,19 @@
 import re
-from dataclasses import dataclass
+from collections.abc import Collection, Iterable
+from dataclasses import dataclass, field
 from datetime import date, datetime, timedelta
 from functools import cache
 from pathlib import Path
 from typing import Any
-from urllib.parse import urlparse
+from urllib.parse import urlencode, urlparse
 from zoneinfo import ZoneInfo
 
 import yaml
 from django.conf import settings
+from django.db import models
+from django.http import QueryDict
+from django.urls import reverse
+from markdown_it import MarkdownIt
 
 FRAGMENTS_DIR = settings.STATIC_DIR / "api" / "changelog_api.d"
 REPO_URL = "https://github.com/betagouv/csplab"
@@ -24,10 +29,24 @@ TYPES = {
     "retire": "Retiré",
 }
 
+
+class TypeChangement(models.TextChoices):
+    NON_RETROCOMPATIBLE = "non_retrocompatible", "Non rétrocompatible"
+    AJOUTE = "ajoute", "Ajouté"
+    MODIFIE = "modifie", "Modifié"
+    CORRIGE = "corrige", "Corrigé"
+    RETIRE = "retire", "Retiré"
+
+
+TYPE_LABELS: dict[str, str] = dict(TypeChangement.choices)
+
 HEADER = """\
 Ce changelog liste les changements de l'API publique CSPLab (routes `/api/v1/…` et
 `/api/fake-ts/…`) qui concernent les partenaires qui l'utilisent. Le détail des
-champs et de leurs règles se trouve dans le [guide de l'API](/pages/guide_api).
+champs et de leurs règles se trouve dans le [guide de l'API]({guide}).
+
+Il est aussi publié sur une [page filtrable]({page}), et pour les outils et les agents
+en [Markdown]({markdown}), en [JSON]({json}) et en [flux Atom]({atom}).
 
 Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/).
 """
@@ -36,6 +55,8 @@ _FIELDS = {"type", "date", "pr", "liens"}
 _DATE_FORMAT = re.compile(r"\d{4}-\d{2}-\d{2}")
 _FRONT_MATTER = re.compile(r"\A---\n(.*?)\n---\n(.*)\Z", re.DOTALL)
 _SUBSECTION = re.compile(r"^### (.+)$", re.MULTILINE)
+_ROUTE = re.compile(r"`((?:GET|POST|PUT|PATCH|DELETE) /api/[^`\s]*)`")
+_PATH_PARAMETER = re.compile(r"\\\{[^}]+\\\}")
 _GITHUB_REFERENCE = re.compile(
     rf"{re.escape(REPO_URL)}/(?:issues|pull)/(\d+)", re.IGNORECASE
 )
@@ -71,6 +92,16 @@ class Fragment:
     liens: tuple[str, ...]
     entry: str
     subsections: tuple[tuple[str, str], ...]
+    routes: tuple[str, ...] = ()
+
+    @property
+    def slug(self) -> str:
+        # Never rename a published fragment: its name is its public identifier.
+        return self.path.stem
+
+    @property
+    def pr_url(self) -> str:
+        return f"{REPO_URL}/pull/{self.pr}"
 
     @property
     def sort_key(self) -> tuple[int, int, str]:
@@ -104,7 +135,12 @@ def parse_fragment(path: Path) -> Fragment:
         liens=tuple(metadata.get("liens") or ()),
         entry=entry,
         subsections=subsections,
+        routes=_cited_routes(match.group(2)),
     )
+
+
+def _cited_routes(body: str) -> tuple[str, ...]:
+    return tuple(sorted({route.rstrip("/") for route in _ROUTE.findall(body)}))
 
 
 def _metadata_errors(metadata: dict[str, Any]) -> list[str]:
@@ -163,18 +199,24 @@ def load_fragments(directory: Path = FRAGMENTS_DIR) -> list[Fragment]:
     return [parse_fragment(path) for path in sorted(directory.glob("*.md"))]
 
 
-def assemble(fragments: list[Fragment]) -> str:
+def assemble(
+    fragments: Iterable[Fragment], *, base_url: str = "", note: str = ""
+) -> str:
     by_date: dict[date, list[Fragment]] = {}
     for fragment in fragments:
         by_date.setdefault(fragment.date, []).append(fragment)
 
-    sections = [HEADER.rstrip()]
+    sections = [_header(base_url)]
+    if note:
+        sections.append(note)
+    if not by_date:
+        sections.append("Aucun changement ne correspond aux filtres.")
     for day in sorted(by_date, reverse=True):
         day_fragments = sorted(by_date[day], key=lambda f: f.sort_key)
         sections.append(f"## {day.isoformat()}")
 
         for type_, title in TYPES.items():
-            entries = [_render(f) for f in day_fragments if f.type == type_]
+            entries = [render_entry(f) for f in day_fragments if f.type == type_]
             if entries:
                 sections.append(f"### {title}")
                 sections.append(_join_entries(entries))
@@ -182,7 +224,20 @@ def assemble(fragments: list[Fragment]) -> str:
     return "\n\n".join(sections) + "\n"
 
 
-def _render(fragment: Fragment) -> str:
+def _header(base_url: str) -> str:
+    urls = {
+        "guide": "pages:api_guide",
+        "page": "pages:api_changelog",
+        "markdown": "api:changelog_markdown",
+        "json": "api:changelog_json",
+        "atom": "api:changelog_atom",
+    }
+    return HEADER.format(
+        **{key: f"{base_url}{reverse(name)}" for key, name in urls.items()}
+    ).rstrip()
+
+
+def render_entry(fragment: Fragment) -> str:
     """Keeps each subsection under its own entry, as a blockquote."""
     blocks = [_with_links(fragment)]
     # Indented, the quote belongs to the bullet. An entry of several bullets keeps
@@ -199,7 +254,7 @@ def _render(fragment: Fragment) -> str:
 
 
 def _with_links(fragment: Fragment) -> str:
-    links = [f"[PR #{fragment.pr}]({REPO_URL}/pull/{fragment.pr})"]
+    links = [f"[PR #{fragment.pr}]({fragment.pr_url})"]
     for url in fragment.liens:
         reference = _GITHUB_REFERENCE.fullmatch(url)
         label = f"#{reference.group(1)}" if reference else url
@@ -249,9 +304,168 @@ def check_added_fragment(
     return errors, warnings
 
 
+PAGE_MAX_FRAGMENTS = 300
+
+
+def page_size_error(count: int) -> str | None:
+    if count < PAGE_MAX_FRAGMENTS:
+        return None
+    return (
+        f"{count} changements publiés (seuil : {PAGE_MAX_FRAGMENTS}) : la page "
+        "/pages/changelog_api les affiche tous, il est temps de la découper par "
+        "année ou en mois repliés (voir docs/changelog_api.md)"
+    )
+
+
+_markdown = MarkdownIt("commonmark", {"html": False})
+
+
+@cache
+def entry_html(fragment: Fragment, *, new_tab: bool = False) -> str:
+    tokens = _markdown.parse(render_entry(fragment))
+    if new_tab:
+        for token in tokens:
+            _open_links_in_new_tab(token.children or [])
+    return _markdown.renderer.render(tokens, _markdown.options, {})
+
+
+def _open_links_in_new_tab(children: list) -> None:
+    for index, child in enumerate(children):
+        if child.type != "link_open":
+            continue
+        text = ""
+        for following in children[index + 1 :]:
+            if following.type == "link_close":
+                break
+            text += following.content
+        child.attrSet("target", "_blank")
+        child.attrSet("rel", "noopener")
+        child.attrSet("title", f"{text} - nouvelle fenêtre")
+
+
+def ordered(fragments: Iterable[Fragment]) -> list[Fragment]:
+    by_type = sorted(fragments, key=lambda f: f.sort_key)
+    return sorted(by_type, key=lambda f: f.date, reverse=True)
+
+
+@cache
+def published_fragments() -> tuple[Fragment, ...]:
+    return tuple(ordered(load_fragments()))
+
+
 @cache
 def changelog_markdown() -> str:
-    return assemble(load_fragments())
+    return assemble(published_fragments())
+
+
+def cited_routes(fragments: Iterable[Fragment]) -> list[str]:
+    return sorted({route for fragment in fragments for route in fragment.routes})
+
+
+@cache
+def published_routes() -> tuple[str, ...]:
+    return tuple(cited_routes(published_fragments()))
+
+
+@dataclass(frozen=True)
+class Filters:
+    types: frozenset[str] = frozenset()
+    route: str = ""
+    since: date | None = None
+    errors: tuple[str, ...] = field(default=(), compare=False)
+
+    @classmethod
+    def from_query(cls, query: QueryDict, routes: Collection[str]) -> "Filters":
+        errors = []
+        types = query.getlist("type")
+        if any(t not in TYPES for t in types):
+            errors.append(
+                f"`type` : valeur inconnue. Valeurs possibles : {', '.join(TYPES)}."
+            )
+        route = (query.get("route") or "").strip().rstrip("/")
+        if route and route not in routes:
+            errors.append(
+                "`route` n'est citée par aucun changement. Valeurs possibles : "
+                f"{', '.join(sorted(routes))}."
+            )
+            route = ""
+        since = None
+        if raw_since := (query.get("depuis") or "").strip():
+            try:
+                since = date.fromisoformat(raw_since)
+            except ValueError:
+                errors.append("`depuis` doit être une date AAAA-MM-JJ.")
+        return cls(
+            types=frozenset(t for t in types if t in TYPES),
+            route=route,
+            since=since,
+            errors=tuple(errors),
+        )
+
+    @property
+    def active(self) -> bool:
+        return bool(self.types or self.route or self.since)
+
+    def apply(self, fragments: Iterable[Fragment]) -> list[Fragment]:
+        return [
+            fragment
+            for fragment in fragments
+            if (not self.types or fragment.type in self.types)
+            and (not self.route or self.route in fragment.routes)
+            and (self.since is None or fragment.date >= self.since)
+        ]
+
+    def query_string(self) -> str:
+        params: list[tuple[str, str]] = [("type", t) for t in TYPES if t in self.types]
+        if self.route:
+            params.append(("route", self.route))
+        if self.since:
+            params.append(("depuis", self.since.isoformat()))
+        return urlencode(params)
+
+    def describe(self) -> str:
+        parts = []
+        if self.types:
+            labels = [TYPE_LABELS[t] for t in TYPES if t in self.types]
+            parts.append(f"type {', '.join(labels).lower()}")
+        if self.route:
+            parts.append(f"route `{self.route}`")
+        if self.since:
+            parts.append(f"depuis le {self.since.isoformat()}")
+        return f"Changements filtrés : {' ; '.join(parts)}." if parts else ""
+
+
+def known_routes(
+    schema_path: Path = settings.STATIC_DIR / "api" / "schema.yaml",
+) -> list[re.Pattern]:
+    schema = yaml.safe_load(schema_path.read_text())
+    routes = [
+        f"{method.upper()} {path.rstrip('/')}"
+        for path, operations in schema["paths"].items()
+        for method in operations
+        if method in ("get", "post", "put", "patch", "delete")
+    ]
+    return [
+        re.compile(_PATH_PARAMETER.sub("[^/]+", re.escape(route)) + r"\Z")
+        for route in routes
+    ]
+
+
+def route_errors(fragment: Fragment, known: list[re.Pattern] | None) -> list[str]:
+    if not fragment.routes:
+        return [
+            (
+                "le corps doit citer la ou les routes concernées, par exemple "
+                "`GET /api/v1/offres`"
+            )
+        ]
+    if known is None or fragment.type == "retire":
+        return []
+    return [
+        f"route inconnue du schéma de l'API publique : `{route}`"
+        for route in fragment.routes
+        if not any(pattern.match(route) for pattern in known)
+    ]
 
 
 def set_date(path: Path, day: date) -> None:

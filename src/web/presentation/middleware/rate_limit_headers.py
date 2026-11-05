@@ -10,16 +10,20 @@ from rest_framework.views import APIView
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.exceptions import AuthenticationFailed, TokenError
 
-from infrastructure.authentication.anon_rate_throttle import ClientIpAnonRateThrottle
 from infrastructure.authentication.api_key_authentication import (
     ApiKeyRateThrottle,
     ApiKeyRateThrottleDaily,
 )
 from infrastructure.authentication.jwt_token import get_validated_jwt
+from infrastructure.authentication.rate_throttle import (
+    ClientIpAnonRateThrottle,
+    DocumentationRateThrottle,
+)
 
 _API_KEY_THROTTLES = [ApiKeyRateThrottle(), ApiKeyRateThrottleDaily()]
 _USER_THROTTLE = UserRateThrottle()
 _ANON_THROTTLE = ClientIpAnonRateThrottle()
+_DOCUMENTATION_THROTTLE = DocumentationRateThrottle()
 _jwt_auth = JWTAuthentication()
 
 
@@ -64,8 +68,10 @@ def _view_throttle_scopes(request: HttpRequest) -> set[str]:
 
 
 def _throttles_for_caller(
-    request: HttpRequest,
+    request: HttpRequest, scopes: set[str]
 ) -> list[tuple[SimpleRateThrottle, str]]:
+    if _DOCUMENTATION_THROTTLE.scope in scopes:
+        return [(_DOCUMENTATION_THROTTLE, _DOCUMENTATION_THROTTLE.get_ident(request))]
     if _is_authenticated_api_key_request(request):
         return [(throttle, "ingestion-api-key") for throttle in _API_KEY_THROTTLES]
     user = _authenticate_jwt_user(request)
@@ -84,7 +90,7 @@ def _collect_rate_limit_states(request: HttpRequest) -> list[tuple[int, int, int
         return []
     return [
         _rate_limit_state(throttle, ident)
-        for throttle, ident in _throttles_for_caller(request)
+        for throttle, ident in _throttles_for_caller(request, scopes)
         if throttle.scope in scopes
     ]
 

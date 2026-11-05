@@ -1,5 +1,5 @@
 import type { AgentRecherche } from '@/features/agents/types'
-import type { AgentOrganisme, OrganismeDetail, OrganismesList } from '@/features/organismes/types'
+import type { AgentOrganisme, OrganismeRead, OrganismesList } from '@/features/organismes/types'
 
 export const AGENT_UUID = 'bbbbbbbb-0001-0001-0001-000000000001'
 
@@ -37,7 +37,7 @@ export const ORGANISME: OrganismesList = {
   authorized_actions: [],
 }
 
-export const ORGANISME_DETAIL: OrganismeDetail = {
+export const ORGANISME_DETAIL: OrganismeRead = {
   uuid: '11111111-1111-1111-1111-111111111111',
   nom: 'Commune de Briançon',
   versant: 'FPT',
@@ -46,4 +46,5 @@ export const ORGANISME_DETAIL: OrganismeDetail = {
   gestion_ats: true,
   date_creation: '2026-01-01',
   date_derniere_activite: '2026-01-15',
+  authorized_actions: ['get_organisme'],
 }

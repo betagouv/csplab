@@ -873,6 +873,21 @@ class TestAuthorizedActions:
             == expected
         )
 
+    @pytest.mark.parametrize(
+        ("is_staff", "expected"),
+        [(False, []), (True, [OrganismeAction.UPDATE_ORGANISME])],
+        ids=["non_staff", "staff"],
+    )
+    def test_staff_authorized_actions_on_an_existing_organisme(
+        self, is_staff, expected
+    ):
+        assert (
+            OrganismePermissionService().authorized_actions_staff_organisme(
+                UserModel(is_staff=is_staff)
+            )
+            == expected
+        )
+
     def test_agent_gets_actions_without_target_recrutement(self):
         assert OrganismePermissionService().authorized_actions_organisme(
             AgentOrganismeRole.AGENT,

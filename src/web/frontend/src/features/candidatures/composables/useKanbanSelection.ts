@@ -1,9 +1,9 @@
 import type { ComputedRef, Ref } from 'vue'
-import type { Candidature, EtapeRecrutementDetailedCandidatures } from '../types'
+import type { KanbanCard, KanbanColumn } from '../types'
 import { computed, ref } from 'vue'
 
 export interface SelectedCandidature {
-  candidature: Candidature
+  candidature: KanbanCard
   etapeUuid: string
 }
 
@@ -13,17 +13,17 @@ export interface KanbanSelectionContext {
   selectedCount: ComputedRef<number>
   currentEtapeUuid: ComputedRef<string | null>
   isColumnSelected: (etapeUuid: string) => boolean
-  toggleColumnSelection: (etape: EtapeRecrutementDetailedCandidatures) => void
+  toggleColumnSelection: (etape: KanbanColumn) => void
   toggleCandidatureSelection: (candidatureUuid: string, etapeUuid: string) => void
   clearSelection: () => void
 }
 
-function isFullySelected(etape: EtapeRecrutementDetailedCandidatures, selected: Set<string> | undefined): boolean {
+function isFullySelected(etape: KanbanColumn, selected: Set<string> | undefined): boolean {
   return etape.candidatures.length > 0 && etape.candidatures.every(({ uuid }) => selected?.has(uuid))
 }
 
 export function useKanbanSelection(
-  etapes: Ref<EtapeRecrutementDetailedCandidatures[]>,
+  etapes: Ref<KanbanColumn[]>,
 ): KanbanSelectionContext {
   const selectedByEtape = ref<Map<string, Set<string>>>(new Map())
 
@@ -62,7 +62,7 @@ export function useKanbanSelection(
     return !!etape && isFullySelected(etape, selectedByEtape.value.get(etapeUuid))
   }
 
-  function toggleColumnSelection(etape: EtapeRecrutementDetailedCandidatures): void {
+  function toggleColumnSelection(etape: KanbanColumn): void {
     const selected = new Set(selectedByEtape.value.get(etape.uuid))
     const shownUuids = etape.candidatures.map(({ uuid }) => uuid)
     if (shownUuids.length === 0) {

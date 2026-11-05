@@ -1,40 +1,40 @@
-# Updating the API Schema
+# Mettre à jour le schéma de l'API
 
-## Why CI failed
+## Pourquoi la CI échoue
 
-Redoc (`api/schema/redoc`) loads `api/schema/public`, which serves the static `presentation/static/api/schema.yaml` with the assembled changelog, to prevent dynamic DB introspection. This file is static and must be regenerated manually whenever API endpoints change. CI fails when the file is out of sync with the codebase.
+Redoc (`api/schema/redoc`) charge `api/schema/public`, qui sert le fichier statique `presentation/static/api/schema.yaml` complété du changelog assemblé, pour éviter l'introspection dynamique de la base. Ce fichier est statique et doit être régénéré à la main à chaque changement des routes de l'API. La CI échoue quand il n'est plus synchronisé avec le code.
 
-## When to regenerate it
+## Quand le régénérer
 
-Regenerate the schema whenever you:
-- Add or remove an endpoint
-- Change a serializer (fields, types, validators)
-- Change a view's HTTP methods or permissions
-- Add or modify `@extend_schema` decorators
+Régénérez le schéma quand vous :
+- ajoutez ou retirez une route ;
+- modifiez un serializer (champs, types, validateurs) ;
+- modifiez les méthodes HTTP ou les permissions d'une vue ;
+- ajoutez ou modifiez un décorateur `@extend_schema`.
 
-The `changelog` tag has no description in `schema.yaml`: Redoc loads `/api/schema/public`, which adds the changelog assembled from `changelog_api.d/` (see [changelog_api.md](changelog_api.md)).
+Le tag `changelog` n'a pas de description dans `schema.yaml` : Redoc charge `/api/schema/public`, qui y ajoute le changelog assemblé à partir de `changelog_api.d/` (voir [changelog_api.md](changelog_api.md)). Le changelog est aussi publié sur `/pages/changelog_api` et en `/api/changelog.md`, `.json` et `.atom`, construits à partir des mêmes fragments : ajouter un fragment ne demande jamais de régénérer le schéma.
 
-## Schema split
+Ces routes et `/api/guide.md` sont documentées sous le tag `documentation` (« Changelog et documentation » dans Redoc). Régénérez le schéma quand vous modifiez leur `@extend_schema`, leurs filtres ou `ChangelogSerializer`.
 
-Endpoints are split by tag via preprocessing hooks in `presentation/api/openapi_hooks.py`:
+## Découpage du schéma
 
-| Route | Schema file |
+Les routes sont réparties par des hooks de prétraitement dans `presentation/api/openapi_hooks.py` :
+
+| Route | Fichier de schéma |
 |-----|-------------|
-| starts with `/api` | `schema.yaml` (public) |
-| does not start with `/api` | `internal-schema.yaml` (internal) |
-| decorated with `@extend_schema(exclude=True)` | excluded from both |
+| commence par `/api` | `schema.yaml` (public) |
+| ne commence pas par `/api` | `internal-schema.yaml` (interne) |
+| décorée avec `@extend_schema(exclude=True)` | exclue des deux |
 
 
-## How to regenerate
+## Comment le régénérer
 
 ```bash
 mise run web:schema
 ```
 
-It runs `openapi_schema` instead of `spectacular`, to quote digit-only strings such as
-`08` that YAML 1.2 readers would otherwise read as integers.
+La tâche lance `openapi_schema` plutôt que `spectacular`, pour mettre entre guillemets les chaînes composées uniquement de chiffres, comme `08`, qu'un lecteur YAML 1.2 lirait sinon comme des entiers.
 
 ## Validation
 
-The `--validate` flag checks that the output is valid OpenAPI 3 before writing.
-If it reports errors, fix them before committing.
+L'option `--validate` vérifie que le résultat est un schéma OpenAPI 3 valide avant de l'écrire. Si elle signale des erreurs, corrigez-les avant de committer.

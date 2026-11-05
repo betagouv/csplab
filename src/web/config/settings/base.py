@@ -387,13 +387,14 @@ REST_FRAMEWORK = {
         "rest_framework.renderers.JSONRenderer",
     ],
     "DEFAULT_THROTTLE_CLASSES": [
-        "infrastructure.authentication.anon_rate_throttle.ClientIpAnonRateThrottle",
+        "infrastructure.authentication.rate_throttle.ClientIpAnonRateThrottle",
         "infrastructure.authentication.api_key_authentication.NonApiKeyUserRateThrottle",
         "infrastructure.authentication.api_key_authentication.ApiKeyRateThrottle",
         "infrastructure.authentication.api_key_authentication.ApiKeyRateThrottleDaily",
     ],
     "DEFAULT_THROTTLE_RATES": {
         "anon": "5/minute",
+        "documentation": "60/minute",
         "user": "120/minute",
         "api_key": "70000/hour",
         "api_key_daily": "100000/day",
@@ -464,6 +465,15 @@ SPECTACULAR_SETTINGS = {
         {
             "name": "talentsoft_organisme",
             "description": "Organismes au format Talentsoft",
+        },
+        {
+            "name": "documentation",
+            "x-displayName": "Changelog et documentation",
+            "description": (
+                "Le changelog et le guide de l'API en formats bruts, pour les outils "
+                "et les agents. Routes publiques, sans authentification, limitées à "
+                "60 appels par minute et par adresse IP."
+            ),
         },
         # Dernier tag, en bas du menu : déclarer tout tag d'endpoint avant.
         {

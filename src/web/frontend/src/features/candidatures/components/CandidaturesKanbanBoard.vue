@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { EtapeRecrutementDetailedCandidatures } from '../types'
+import type { KanbanColumn } from '../types'
 import type { KanbanDropEvent } from '@/composables/dnd/useKanbanDnd'
 import { ref, watch } from 'vue'
 import { useKanbanBoardAutoScroll, useKanbanBoardMonitor } from '@/composables/dnd/useKanbanDnd'
@@ -7,14 +7,14 @@ import { etapesReceivingCandidatures } from '../utils/kanban'
 import CandidatureKanbanColumn from './CandidatureKanbanColumn.vue'
 
 const props = defineProps<{
-  etapes: EtapeRecrutementDetailedCandidatures[]
+  etapes: KanbanColumn[]
   boardId: string
   isColumnSelected: (etapeUuid: string) => boolean
 }>()
 
 const emit = defineEmits<{
   move: [event: KanbanDropEvent]
-  toggleColumnSelection: [etape: EtapeRecrutementDetailedCandidatures]
+  toggleColumnSelection: [etape: KanbanColumn]
 }>()
 
 const boardRef = ref<HTMLElement | null>(null)

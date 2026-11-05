@@ -45,7 +45,6 @@ from presentation.recruteur.views.recrutement_agents import (
 from presentation.recruteur.views.recrutement_detail import (
     RecrutementCandidaturesEtapeView,
     RecrutementDetailView,
-    RecrutementKanbanView,
     RecrutementListeView,
 )
 from presentation.recruteur.views.recrutement_listes import (
@@ -138,11 +137,6 @@ urlpatterns = [
         "organismes/<uuid:organisme_uuid>/recrutements/<uuid:recrutement_uuid>",
         RecrutementDetailView.as_view(),
         name="organisme_recrutement",
-    ),
-    path(
-        "organismes/<uuid:organisme_uuid>/recrutements/<uuid:recrutement_uuid>/kanban",
-        RecrutementKanbanView.as_view(),
-        name="organisme_recrutement_kanban",
     ),
     path(
         "organismes/<uuid:organisme_uuid>/recrutements/<uuid:recrutement_uuid>/liste",

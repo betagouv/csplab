@@ -14,6 +14,7 @@ from domain.identite.errors.organisme_errors import OrganismeSiretExisteDeja
 from domain.identite.errors.organisme_permission_errors import (
     OperationOrganismeRefusee,
 )
+from domain.identite.value_objects.organisme_action import OrganismeAction
 from domain.recruteur.value_objects.roles import AgentOrganismeRole
 from infrastructure.django_apps.recruteur.models.organisme import (
     OrganismeModel,
@@ -104,12 +105,17 @@ class TestListOrganismes:
             "nombre_offres_publiees": 1,
             "authorized_actions": [
                 action.value
-                for action in OrganismePermissionService().authorized_actions_organisme(
-                    AgentOrganismeRole.SUPERVISEUR,
-                    utilisateur=UserModel(is_staff=True),
-                    organisme_id=organisme.id,
-                    organisme_ids_responsable=frozenset(),
-                )
+                for action in OrganismeAction
+                if action
+                in {
+                    *OrganismePermissionService().authorized_actions_organisme(
+                        AgentOrganismeRole.SUPERVISEUR,
+                        utilisateur=UserModel(is_staff=True),
+                        organisme_id=organisme.id,
+                        organisme_ids_responsable=frozenset(),
+                    ),
+                    OrganismeAction.UPDATE_ORGANISME,
+                }
             ],
         }
 

@@ -441,26 +441,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/recruteur/organismes/{organisme_uuid}/recrutements/{recrutement_uuid}/kanban": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Détail d'un recrutement — vue kanban (dépréciée, utiliser la vue liste)
-         * @deprecated
-         */
-        get: operations["recruteur_organismes_recrutements_kanban_retrieve"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/recruteur/organismes/{organisme_uuid}/recrutements/{recrutement_uuid}/liste": {
         parameters: {
             query?: never;
@@ -698,16 +678,6 @@ export interface components {
             /** Format: email */
             email: string;
         };
-        Candidature: {
-            readonly unread_conversations: number;
-            /** Format: uuid */
-            uuid: string;
-            /** Format: date-time */
-            date_soumission: string;
-            /** Format: date-time */
-            date_derniere_activite: string;
-            candidat: components["schemas"]["Candidat"];
-        };
         CandidatureAChanger: {
             /** Format: uuid */
             candidature_uuid: string;
@@ -729,7 +699,7 @@ export interface components {
             /** Format: uuid */
             document_uuid: string | null;
             navigation_candidature_uuids: string[];
-            authorized_actions: components["schemas"]["AuthorizedActionsEnum"][];
+            readonly authorized_actions: components["schemas"]["AuthorizedActionsEnum"][];
         };
         CandidatureEchec: {
             /** Format: uuid */
@@ -878,13 +848,6 @@ export interface components {
             nom: string;
             categorie: components["schemas"]["CategorieEnum"];
         };
-        EtapeRecrutementDetailedCandidatures: {
-            /** Format: uuid */
-            uuid: string;
-            nom: string;
-            categorie: components["schemas"]["CategorieEnum"];
-            candidatures: components["schemas"]["Candidature"][];
-        };
         EtapeRecrutementModel: {
             /** Format: uuid */
             uuid: string;
@@ -930,7 +893,7 @@ export interface components {
             /** Format: date-time */
             publie_le: string;
             est_privee: boolean;
-            authorized_actions: components["schemas"]["AuthorizedActionsEnum"][];
+            readonly authorized_actions: components["schemas"]["AuthorizedActionsEnum"][];
         };
         NoteDetail: {
             /** Format: uuid */
@@ -982,6 +945,20 @@ export interface components {
             /** Format: date-time */
             readonly date_creation: string;
         };
+        OrganismeRead: {
+            /** Format: uuid */
+            readonly uuid: string;
+            readonly nom: string;
+            readonly versant: components["schemas"]["VersantEnum"];
+            readonly siret: string;
+            readonly superviseurs: string;
+            readonly gestion_ats: boolean;
+            /** Format: date-time */
+            readonly date_derniere_activite: string;
+            /** Format: date-time */
+            readonly date_creation: string;
+            readonly authorized_actions: components["schemas"]["AuthorizedActionsEnum"][];
+        };
         OrganismeRecherche: {
             /** Format: uuid */
             uuid: string;
@@ -1008,7 +985,7 @@ export interface components {
             date_creation: string;
             nombre_agents: number;
             nombre_offres_publiees: number;
-            authorized_actions: components["schemas"]["AuthorizedActionsEnum"][];
+            readonly authorized_actions: components["schemas"]["AuthorizedActionsEnum"][];
         };
         PaginatedAuditLogList: {
             /** @example 123 */
@@ -1205,12 +1182,7 @@ export interface components {
              *     * `contributeur` - contributeur
              */
             recrutement_role: (components["schemas"]["RecrutementRoleEnum"] | components["schemas"]["NullEnum"]) | null;
-            authorized_actions: components["schemas"]["AuthorizedActionsEnum"][];
-        };
-        RecrutementDetailKanban: {
-            /** Format: uuid */
-            uuid: string;
-            etapes: components["schemas"]["EtapeRecrutementDetailedCandidatures"][];
+            readonly authorized_actions: components["schemas"]["AuthorizedActionsEnum"][];
         };
         RecrutementEchec: {
             /** Format: uuid */
@@ -1241,7 +1213,7 @@ export interface components {
             reference_csp: string;
             nature_offre: (components["schemas"]["NatureOffreEnum"] | components["schemas"]["NullEnum"]) | null;
             responsables: components["schemas"]["Responsable"][];
-            authorized_actions: components["schemas"]["AuthorizedActionsEnum"][];
+            readonly authorized_actions: components["schemas"]["AuthorizedActionsEnum"][];
             /** Format: date-time */
             date_publication: string;
             candidatures: components["schemas"]["CandidaturesActives"] | null;
@@ -1256,7 +1228,7 @@ export interface components {
             reference_csp: string;
             nature_offre: (components["schemas"]["NatureOffreEnum"] | components["schemas"]["NullEnum"]) | null;
             responsables: components["schemas"]["Responsable"][];
-            authorized_actions: components["schemas"]["AuthorizedActionsEnum"][];
+            readonly authorized_actions: components["schemas"]["AuthorizedActionsEnum"][];
             /** Format: date-time */
             date_archivage: string;
             finalise: boolean;
@@ -1341,14 +1313,14 @@ export interface components {
             nom: string;
             is_staff: boolean;
             organisme_roles: components["schemas"]["OrganismeRole"][];
-            authorized_actions: components["schemas"]["AuthorizedActionsEnum"][];
+            readonly authorized_actions: components["schemas"]["AuthorizedActionsEnum"][];
             organismes: components["schemas"]["UtilisateurOrganisme"][];
         };
         UtilisateurOrganisme: {
             /** Format: uuid */
             uuid: string;
             nom: string;
-            authorized_actions: components["schemas"]["AuthorizedActionsEnum"][];
+            readonly authorized_actions: components["schemas"]["AuthorizedActionsEnum"][];
         };
         /**
          * @description * `FPT` - FPT
@@ -1679,7 +1651,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["OrganismeDetail"];
+                    "application/json": components["schemas"]["OrganismeRead"];
                 };
             };
             401: {
@@ -4836,91 +4808,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["EtapeRecrutement"][];
-                };
-            };
-            401: {
-                headers: {
-                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
-                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
-                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["TokenError"];
-                };
-            };
-            403: {
-                headers: {
-                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
-                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
-                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["GenericError"];
-                };
-            };
-            404: {
-                headers: {
-                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
-                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
-                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["GenericError"];
-                };
-            };
-            /** @description Nombre maximal d'appels autorisés dépassé. */
-            429: {
-                headers: {
-                    "Retry-After": components["headers"]["Retry-After"];
-                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
-                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
-                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @example Request was throttled. Expected available in 42 seconds. */
-                        detail?: string;
-                    };
-                };
-            };
-            500: {
-                headers: {
-                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
-                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
-                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["GenericError"];
-                };
-            };
-        };
-    };
-    recruteur_organismes_recrutements_kanban_retrieve: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                organisme_uuid: string;
-                recrutement_uuid: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    "X-RateLimit-Limit": components["headers"]["X-RateLimit-Limit"];
-                    "X-RateLimit-Remaining": components["headers"]["X-RateLimit-Remaining"];
-                    "X-RateLimit-Reset": components["headers"]["X-RateLimit-Reset"];
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["RecrutementDetailKanban"];
                 };
             };
             401: {

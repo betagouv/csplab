@@ -14,10 +14,10 @@ import { routes } from '@/router/routes'
 import {
   CANDIDATURE_ALICE,
   CANDIDATURE_BRUNO,
+  CANDIDATURE_LISTE,
   candidatureDetail,
   ETAPE_ENTRETIEN,
   ETAPE_REFUS,
-  KANBAN,
   KANBAN_PATH,
   MOTIFS_REFUS,
   ORGANISME_UUID,
@@ -27,11 +27,10 @@ import {
 } from '@/test/fixtures/candidatures'
 import { makeUser } from '@/test/fixtures/utilisateur'
 import { setupUser } from '@/test/render'
-import { createCandidatureNote, getCandidatureActivites, getCandidatureDetail, getCandidatureNotes, getMotifsRefus, getRecrutementKanban, patchEtapeCandidatures } from '../api'
+import { createCandidatureNote, getCandidatureActivites, getCandidatureDetail, getCandidatureListe, getCandidatureNotes, getMotifsRefus, patchEtapeCandidatures } from '../api'
 
 vi.mock('../api', () => ({
   getCandidatureDetail: vi.fn(),
-  getRecrutementKanban: vi.fn(),
   getCandidatureListe: vi.fn(),
   patchEtapeCandidatures: vi.fn(),
   getMotifsRefus: vi.fn(),
@@ -79,7 +78,7 @@ describe('candidaturePanelView', () => {
     vi.clearAllMocks()
     vi.mocked(getMe).mockResolvedValue(makeUser([roleOnOrganisme('agent')]))
     vi.mocked(getCandidatureDetail).mockImplementation(async ({ candidatureUuid }) => candidatureDetail(candidatureUuid))
-    vi.mocked(getRecrutementKanban).mockResolvedValue(KANBAN)
+    vi.mocked(getCandidatureListe).mockResolvedValue(CANDIDATURE_LISTE)
     vi.mocked(getMotifsRefus).mockResolvedValue(MOTIFS_REFUS)
     vi.mocked(getRecrutementDetail).mockResolvedValue(RECRUTEMENT_DETAIL)
     vi.mocked(patchEtapeCandidatures).mockResolvedValue({ reussites: [CANDIDATURE_ALICE], echecs: [] })

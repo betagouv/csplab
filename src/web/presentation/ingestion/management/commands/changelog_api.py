@@ -8,9 +8,12 @@ from presentation.api.changelog_api import (
     FRAGMENTS_DIR,
     FragmentError,
     check_added_fragment,
+    known_routes,
     load_fragments,
+    page_size_error,
     paris_today,
     parse_fragment,
+    route_errors,
     set_date,
 )
 
@@ -41,7 +44,10 @@ class Command(BaseCommand):
         verifier.add_argument(
             "--exempte",
             action="store_true",
-            help="Ne vérifie que le format (PR de migration de l'historique).",
+            help=(
+                "Ne vérifie que le format, routes citées comprises "
+                "(PR de migration de l'historique)."
+            ),
         )
 
         dater = subparsers.add_parser(
@@ -72,30 +78,40 @@ class Command(BaseCommand):
                 )
                 continue
             try:
-                parse_fragment(path)
+                fragment_errors = route_errors(parse_fragment(path), known=None)
             except FragmentError as error:
-                errors += len(error.errors)
-                for message in error.errors:
-                    self._annotate("error", path, message)
+                fragment_errors = error.errors
+            errors += len(fragment_errors)
+            for message in fragment_errors:
+                self._annotate("error", path, message)
 
         if errors == 0 and options["base"] and not options["exempte"]:
             today = paris_today()
+            known = known_routes()
             for path in _added_fragments(options["base"]):
+                fragment = parse_fragment(path)
                 fragment_errors, warnings = check_added_fragment(
-                    parse_fragment(path),
+                    fragment,
                     today,
                     merge_queue=options["merge_queue"],
                     pr=options["pr"],
                 )
+                fragment_errors += route_errors(fragment, known)
                 errors += len(fragment_errors)
                 for message in fragment_errors:
                     self._annotate("error", path, message)
                 for message in warnings:
                     self._annotate("warning", path, message)
 
+        if errors == 0:
+            count = len(load_fragments())
+            if message := page_size_error(count):
+                errors += 1
+                self._annotate("error", FRAGMENTS_DIR, message)
+
         if errors:
             raise CommandError(f"{errors} erreur(s) dans le changelog de l'API.")
-        self.stdout.write(f"{len(load_fragments())} fragment(s) valide(s).")
+        self.stdout.write(f"{count} fragment(s) valide(s).")
 
     def _dater(self, base):
         today = paris_today()

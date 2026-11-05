@@ -43,6 +43,12 @@ def _extract_token_info(
     return None, None
 
 
+def _is_logged(request: HttpRequest) -> bool:
+    match = getattr(request, "resolver_match", None)
+    view_class = getattr(match.func, "view_class", None) if match else None
+    return getattr(view_class, "log_api_request", True)
+
+
 class ApiRequestLoggerMiddleware:
     def __init__(
         self,
@@ -55,7 +61,7 @@ class ApiRequestLoggerMiddleware:
     def __call__(self, request: HttpRequest) -> HttpResponse:
         response = self.get_response(request)
 
-        if request.path.startswith(settings.PUBLIC_API_PREFIX):
+        if request.path.startswith(settings.PUBLIC_API_PREFIX) and _is_logged(request):
             token, token_type = _extract_token_info(request)
             api_log = ApiLog(
                 id=uuid4(),
