@@ -68,6 +68,17 @@ _LABELS = {
     "updated_at": "Mise à jour le",
 }
 _HIDDEN = {"id", "source", "mission", "profile"}
+_LOCALISATION_ATTRS = {
+    "area": "area",
+    "country": "country",
+    "region": "region",
+    "department": "department",
+    "location_label": "label",
+    "latitude": "latitude",
+    "longitude": "longitude",
+}
+_LOCALISATION_SEPARATOR = " ; "
+_EMPTY_LOCALISATION_VALUE = "—"
 _MARKDOWN = {"employer", "exercise_conditions", "service_description", "complements"}
 _ENUM_LABELS = {
     "verse": lambda value: Verse(value).label,
@@ -243,12 +254,37 @@ def _value(offre: OfferModel, field: models.Field) -> Any:
     return getattr(offre, field.attname)
 
 
+def _localisation_value(offre: OfferModel, attr: str) -> str | None:
+    values = [getattr(loc, attr) for loc in offre.localisations.all()]
+    if all(_is_empty(value) for value in values):
+        return None
+    return _LOCALISATION_SEPARATOR.join(
+        _EMPTY_LOCALISATION_VALUE if _is_empty(value) else str(value)
+        for value in values
+    )
+
+
 def offre_rows(offre: OfferModel) -> list[list[SafeString]]:
-    fields = {field.name: field for field in offre._meta.concrete_fields}
-    ordered = [name for name in _LABELS if name in fields]
+    fields = {
+        field.name: field
+        for field in offre._meta.concrete_fields
+        if field.name not in _LOCALISATION_ATTRS
+    }
+    ordered = [
+        name for name in _LABELS if name in fields or name in _LOCALISATION_ATTRS
+    ]
     ordered += [name for name in fields if name not in _LABELS and name not in _HIDDEN]
     rows = []
     for name in ordered:
+        if name in _LOCALISATION_ATTRS:
+            value = _localisation_value(offre, _LOCALISATION_ATTRS[name])
+            rows.append(
+                [
+                    format_html("<strong>{}</strong>", _LABELS[name]),
+                    _NOT_PROVIDED if value is None else linebreaksbr(value),
+                ]
+            )
+            continue
         field = fields[name]
         value = _value(offre, field)
         if name in _JSON_GROUPS:

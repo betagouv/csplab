@@ -23,12 +23,14 @@ from referentiel.value_objects.verse import Verse
 
 from domain.entities.raw_offer import RawOffer
 from domain.value_objects.contact import Contact, ContactRole
+from infrastructure.exceptions.exceptions import TalentsoftOfferWithSeveralLocations
 from infrastructure.external_gateways.dtos.offer_upsert_payload import (
     OfferUpsertPayload,
 )
 from infrastructure.external_gateways.dtos.talentsoft_dtos import (
     TalentsoftDynamicField,
     TalentsoftLanguage,
+    TalentsoftMultiLocation,
 )
 from infrastructure.gateways.offers_cleaner import OffersCleaner
 from infrastructure.gateways.transcoding import SourceTranscoder
@@ -734,6 +736,85 @@ def test_clean_returns_none_localisation_when_area_and_department_missing(cleane
     offer = cleaner.clean(raw_offer)
 
     assert offer.localisation is None
+
+
+def _coded_objects(type_: str, *codes: str) -> list:
+    return [
+        TalentsoftCodedObjectFactory.build(clientCode=code, type=type_)
+        for code in codes
+    ]
+
+
+@pytest.fixture
+def capture_exception(monkeypatch) -> list:
+    captured: list = []
+    monkeypatch.setattr(
+        "infrastructure.gateways.offers_cleaner.sentry_sdk.capture_exception",
+        captured.append,
+    )
+    return captured
+
+
+def test_clean_reports_and_keeps_first_location_when_several_departments(
+    cleaner, capture_exception
+):
+    raw_offer = _make_raw_offer(
+        geographicalLocation=_coded_objects(
+            "offerGeographicalLocation", "_TS_CO_GeographicalArea_Europe"
+        ),
+        country=_coded_objects("offerCountry", "FRA"),
+        region=_coded_objects("offerRegion", "R24"),
+        department=_coded_objects("offerDepartment", "41", "45"),
+    )
+
+    offer = cleaner.clean(raw_offer)
+
+    assert offer.localisation is not None
+    assert offer.localisation.department.code == "41"
+    [error] = capture_exception
+    assert isinstance(error, TalentsoftOfferWithSeveralLocations)
+    assert error.reference == REFERENCE
+    assert error.source_id == SOURCE_ID
+    assert error.fields == ["department"]
+
+
+@pytest.mark.parametrize(
+    "field,type_,codes",
+    [
+        (
+            "geographicalLocation",
+            "offerGeographicalLocation",
+            ("_TS_CO_GeographicalArea_Europe", "_TS_CO_GeographicalArea_Asie"),
+        ),
+        ("country", "offerCountry", ("FRA", "FRA")),
+        ("region", "offerRegion", ("R24", "R11")),
+    ],
+)
+def test_clean_reports_a_location_list_with_several_elements(
+    cleaner, capture_exception, field, type_, codes
+):
+    raw_offer = _make_raw_offer(**{field: _coded_objects(type_, *codes)})
+
+    cleaner.clean(raw_offer)
+
+    [error] = capture_exception
+    assert error.fields == [field]
+
+
+def test_clean_reports_filled_multi_locations(cleaner, capture_exception):
+    raw_offer = _make_raw_offer(locations=[TalentsoftMultiLocation()])
+
+    offer = cleaner.clean(raw_offer)
+
+    [error] = capture_exception
+    assert error.fields == ["locations"]
+    assert offer.localisation is not None
+
+
+def test_clean_does_not_report_a_single_location(cleaner, capture_exception):
+    cleaner.clean(_make_raw_offer())
+
+    assert capture_exception == []
 
 
 def test_clean_maps_title_and_organization(cleaner):

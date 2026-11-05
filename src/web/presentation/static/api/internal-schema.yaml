@@ -3167,15 +3167,26 @@ paths:
       - name: page
         required: false
         in: query
-        description: Un numéro de page de l'ensemble des résultats.
+        description: Numéro de la page.
         schema:
           type: integer
+          default: 1
+          minimum: 1
       - in: path
         name: recrutement_uuid
         schema:
           type: string
           format: uuid
         required: true
+      - name: taille
+        required: false
+        in: query
+        description: Nombre d'éléments par page.
+        schema:
+          type: integer
+          default: 100
+          minimum: 1
+          maximum: 1000
       tags:
       - recruteur
       security:
@@ -4540,7 +4551,7 @@ paths:
   /recruteur/organismes/{organisme_uuid}/recrutements/{recrutement_uuid}/kanban:
     get:
       operationId: recruteur_organismes_recrutements_kanban_retrieve
-      summary: Détail d'un recrutement — vue kanban
+      summary: Détail d'un recrutement — vue kanban (dépréciée, utiliser la vue liste)
       parameters:
       - in: path
         name: organisme_uuid
@@ -4558,6 +4569,7 @@ paths:
       - recruteur
       security:
       - cookieAuth: []
+      deprecated: true
       responses:
         '200':
           content:
@@ -4686,7 +4698,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PaginatedCandidatureListeList'
+                $ref: '#/components/schemas/PaginatedRecrutementListeList'
           description: ''
           headers:
             X-RateLimit-Limit:
@@ -6368,228 +6380,6 @@ components:
       required:
       - category
       - name
-    DepartementEnum:
-      enum:
-      - '01'
-      - '02'
-      - '03'
-      - '04'
-      - '05'
-      - '06'
-      - '07'
-      - '08'
-      - '09'
-      - '10'
-      - '11'
-      - '12'
-      - '13'
-      - '14'
-      - '15'
-      - '16'
-      - '17'
-      - '18'
-      - '19'
-      - '21'
-      - '22'
-      - '23'
-      - '24'
-      - '25'
-      - '26'
-      - '27'
-      - '28'
-      - '29'
-      - 2A
-      - 2B
-      - '30'
-      - '31'
-      - '32'
-      - '33'
-      - '34'
-      - '35'
-      - '36'
-      - '37'
-      - '38'
-      - '39'
-      - '40'
-      - '41'
-      - '42'
-      - '43'
-      - '44'
-      - '45'
-      - '46'
-      - '47'
-      - '48'
-      - '49'
-      - '50'
-      - '51'
-      - '52'
-      - '53'
-      - '54'
-      - '55'
-      - '56'
-      - '57'
-      - '58'
-      - '59'
-      - '60'
-      - '61'
-      - '62'
-      - '63'
-      - '64'
-      - '65'
-      - '66'
-      - '67'
-      - '68'
-      - '69'
-      - '70'
-      - '71'
-      - '72'
-      - '73'
-      - '74'
-      - '75'
-      - '76'
-      - '77'
-      - '78'
-      - '79'
-      - '80'
-      - '81'
-      - '82'
-      - '83'
-      - '84'
-      - '85'
-      - '86'
-      - '87'
-      - '88'
-      - '89'
-      - '90'
-      - '91'
-      - '92'
-      - '93'
-      - '94'
-      - '95'
-      - '971'
-      - '972'
-      - '973'
-      - '974'
-      - '975'
-      - '976'
-      - '977'
-      - '978'
-      - '986'
-      - '987'
-      - '988'
-      - SPM
-      - WLF
-      type: string
-      description: |-
-        * `01` - 01
-        * `02` - 02
-        * `03` - 03
-        * `04` - 04
-        * `05` - 05
-        * `06` - 06
-        * `07` - 07
-        * `08` - 08
-        * `09` - 09
-        * `10` - 10
-        * `11` - 11
-        * `12` - 12
-        * `13` - 13
-        * `14` - 14
-        * `15` - 15
-        * `16` - 16
-        * `17` - 17
-        * `18` - 18
-        * `19` - 19
-        * `21` - 21
-        * `22` - 22
-        * `23` - 23
-        * `24` - 24
-        * `25` - 25
-        * `26` - 26
-        * `27` - 27
-        * `28` - 28
-        * `29` - 29
-        * `2A` - 2A
-        * `2B` - 2B
-        * `30` - 30
-        * `31` - 31
-        * `32` - 32
-        * `33` - 33
-        * `34` - 34
-        * `35` - 35
-        * `36` - 36
-        * `37` - 37
-        * `38` - 38
-        * `39` - 39
-        * `40` - 40
-        * `41` - 41
-        * `42` - 42
-        * `43` - 43
-        * `44` - 44
-        * `45` - 45
-        * `46` - 46
-        * `47` - 47
-        * `48` - 48
-        * `49` - 49
-        * `50` - 50
-        * `51` - 51
-        * `52` - 52
-        * `53` - 53
-        * `54` - 54
-        * `55` - 55
-        * `56` - 56
-        * `57` - 57
-        * `58` - 58
-        * `59` - 59
-        * `60` - 60
-        * `61` - 61
-        * `62` - 62
-        * `63` - 63
-        * `64` - 64
-        * `65` - 65
-        * `66` - 66
-        * `67` - 67
-        * `68` - 68
-        * `69` - 69
-        * `70` - 70
-        * `71` - 71
-        * `72` - 72
-        * `73` - 73
-        * `74` - 74
-        * `75` - 75
-        * `76` - 76
-        * `77` - 77
-        * `78` - 78
-        * `79` - 79
-        * `80` - 80
-        * `81` - 81
-        * `82` - 82
-        * `83` - 83
-        * `84` - 84
-        * `85` - 85
-        * `86` - 86
-        * `87` - 87
-        * `88` - 88
-        * `89` - 89
-        * `90` - 90
-        * `91` - 91
-        * `92` - 92
-        * `93` - 93
-        * `94` - 94
-        * `95` - 95
-        * `971` - 971
-        * `972` - 972
-        * `973` - 973
-        * `974` - 974
-        * `975` - 975
-        * `976` - 976
-        * `977` - 977
-        * `978` - 978
-        * `986` - 986
-        * `987` - 987
-        * `988` - 988
-        * `SPM` - SPM
-        * `WLF` - WLF
     DocumentListe:
       type: object
       properties:
@@ -6669,6 +6459,23 @@ components:
       - categorie
       - nom
       - uuid
+    EtapeRecrutementModel:
+      type: object
+      properties:
+        uuid:
+          type: string
+          format: uuid
+        nom:
+          type: string
+          maxLength: 255
+        categorie:
+          allOf:
+          - $ref: '#/components/schemas/CategorieEnum'
+          readOnly: true
+      required:
+      - categorie
+      - nom
+      - uuid
     GenericError:
       type: object
       properties:
@@ -6676,48 +6483,6 @@ components:
           type: string
       required:
       - error
-    Localisation:
-      type: object
-      properties:
-        zone_geographique:
-          $ref: '#/components/schemas/ZoneGeographiqueEnum'
-        pays:
-          type: string
-          maxLength: 3
-          minLength: 3
-        region:
-          nullable: true
-          oneOf:
-          - $ref: '#/components/schemas/RegionEnum'
-          - $ref: '#/components/schemas/NullEnum'
-        departement:
-          nullable: true
-          oneOf:
-          - $ref: '#/components/schemas/DepartementEnum'
-          - $ref: '#/components/schemas/NullEnum'
-        localisation_label:
-          type: string
-          maxLength: 500
-        latitude:
-          type: number
-          format: double
-          maximum: 90
-          minimum: -90
-          nullable: true
-        longitude:
-          type: number
-          format: double
-          maximum: 180
-          minimum: -180
-          nullable: true
-      required:
-      - departement
-      - latitude
-      - localisation_label
-      - longitude
-      - pays
-      - region
-      - zone_geographique
     MotifRefus:
       type: object
       properties:
@@ -6781,7 +6546,12 @@ components:
           format: date-time
         est_privee:
           type: boolean
+        authorized_actions:
+          type: array
+          items:
+            $ref: '#/components/schemas/AuthorizedActionsEnum'
       required:
+      - authorized_actions
       - candidature_id
       - est_privee
       - message
@@ -6806,11 +6576,34 @@ components:
           format: uuid
         est_privee:
           type: boolean
+        tags:
+          type: array
+          items:
+            $ref: '#/components/schemas/NoteTag'
+          readOnly: true
       required:
       - candidature_id
       - est_privee
       - message
       - publie_par_id
+      - tags
+      - uuid
+    NoteTag:
+      type: object
+      properties:
+        uuid:
+          type: string
+          format: uuid
+        name:
+          type: string
+          maxLength: 25
+        color:
+          allOf:
+          - $ref: '#/components/schemas/ColorEnum'
+          readOnly: true
+      required:
+      - color
+      - name
       - uuid
     NoteVisibilite:
       type: object
@@ -6822,6 +6615,37 @@ components:
     NullEnum:
       enum:
       - null
+    OffreLocalisation:
+      type: object
+      properties:
+        zone_geographique:
+          type: string
+        pays:
+          type: string
+        region:
+          type: string
+          nullable: true
+        departement:
+          type: string
+          nullable: true
+        localisation_label:
+          type: string
+        latitude:
+          type: number
+          format: double
+          nullable: true
+        longitude:
+          type: number
+          format: double
+          nullable: true
+      required:
+      - departement
+      - latitude
+      - localisation_label
+      - longitude
+      - pays
+      - region
+      - zone_geographique
     Organisme:
       type: object
       properties:
@@ -6974,29 +6798,6 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/AuditLog'
-    PaginatedCandidatureListeList:
-      type: object
-      required:
-      - count
-      - results
-      properties:
-        count:
-          type: integer
-          example: 1
-        next:
-          type: string
-          format: uri
-          nullable: true
-          example: null
-        previous:
-          type: string
-          format: uri
-          nullable: true
-          example: null
-        results:
-          type: array
-          items:
-            $ref: '#/components/schemas/CandidatureListe'
     PaginatedConversationList:
       type: object
       required:
@@ -7070,17 +6871,17 @@ components:
       properties:
         count:
           type: integer
-          example: 123
+          example: 1
         next:
           type: string
-          nullable: true
           format: uri
-          example: http://api.example.org/accounts/?page=4
+          nullable: true
+          example: null
         previous:
           type: string
-          nullable: true
           format: uri
-          example: http://api.example.org/accounts/?page=2
+          nullable: true
+          example: null
         results:
           type: array
           items:
@@ -7131,6 +6932,8 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/RecrutementAgent'
+    PaginatedRecrutementListeList:
+      $ref: '#/components/schemas/RecrutementListe'
     PaginatedRecrutementsActifsList:
       type: object
       required:
@@ -7271,8 +7074,10 @@ components:
         date_publication:
           type: string
           format: date-time
-        localisation:
-          $ref: '#/components/schemas/Localisation'
+        localisations:
+          type: array
+          items:
+            $ref: '#/components/schemas/OffreLocalisation'
         organisme_recruteur:
           $ref: '#/components/schemas/Organisme'
         categorie_offre:
@@ -7303,7 +7108,7 @@ components:
       - date_publication
       - etapes
       - intitule
-      - localisation
+      - localisations
       - organisme_recruteur
       - recrutement_role
       - uuid
@@ -7331,6 +7136,33 @@ components:
       required:
       - raison
       - recrutement_uuid
+    RecrutementListe:
+      type: object
+      properties:
+        count:
+          type: integer
+        next:
+          type: string
+          format: uri
+          nullable: true
+        previous:
+          type: string
+          format: uri
+          nullable: true
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/CandidatureListe'
+        etapes:
+          type: array
+          items:
+            $ref: '#/components/schemas/EtapeRecrutementModel'
+      required:
+      - count
+      - etapes
+      - next
+      - previous
+      - results
     RecrutementRoleEnum:
       enum:
       - responsable
@@ -7433,50 +7265,6 @@ components:
       - responsables
       - unread_conversations
       - uuid
-    RegionEnum:
-      enum:
-      - '01'
-      - '02'
-      - '03'
-      - '04'
-      - '06'
-      - '11'
-      - '24'
-      - '27'
-      - '28'
-      - '32'
-      - '44'
-      - '52'
-      - '53'
-      - '75'
-      - '76'
-      - '84'
-      - '93'
-      - '94'
-      - DOM
-      - TOM
-      type: string
-      description: |-
-        * `01` - 01
-        * `02` - 02
-        * `03` - 03
-        * `04` - 04
-        * `06` - 06
-        * `11` - 11
-        * `24` - 24
-        * `27` - 27
-        * `28` - 28
-        * `32` - 32
-        * `44` - 44
-        * `52` - 52
-        * `53` - 53
-        * `75` - 75
-        * `76` - 76
-        * `84` - 84
-        * `93` - 93
-        * `94` - 94
-        * `DOM` - DOM
-        * `TOM` - TOM
     Responsable:
       type: object
       properties:
@@ -7703,24 +7491,6 @@ components:
         * `FPT` - FPT
         * `FPE` - FPE
         * `FPH` - FPH
-    ZoneGeographiqueEnum:
-      enum:
-      - AF
-      - EU
-      - AS
-      - AM
-      - OC
-      - AN
-      - MO
-      type: string
-      description: |-
-        * `AF` - AFRIQUE
-        * `EU` - EUROPE
-        * `AS` - ASIE
-        * `AM` - AMERIQUE
-        * `OC` - OCEANIE
-        * `AN` - ANTARTIQUE
-        * `MO` - MOYEN_ORIENT_AFRIQUE_DU_NORD
   securitySchemes:
     cookieAuth:
       type: apiKey

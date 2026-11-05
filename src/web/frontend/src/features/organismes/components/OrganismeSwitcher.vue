@@ -5,7 +5,7 @@ import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import CspAvatar from '@/components/base/CspAvatar/CspAvatar.vue'
 import CspSidebarSwitcher from '@/components/layout/CspSidebar/CspSidebarSwitcher.vue'
-import { ORGANISMES_ROUTE_NAME, RECRUTEMENTS_TAB_ROUTE_NAMES } from '@/router/names'
+import { organismeHomeLocation, ORGANISMES_ROUTE_NAME } from '@/router/names'
 import { useCurrentUser } from '@/stores/currentUser'
 import { useRouteOrganisme } from '@/stores/routeOrganisme'
 import { can } from '@/utils/authorizedActions'
@@ -82,10 +82,7 @@ function select(value: string) {
   if (value === organismeUuid.value) {
     return
   }
-  void router.push({
-    name: RECRUTEMENTS_TAB_ROUTE_NAMES.actifs,
-    params: { organismeUuid: value },
-  })
+  void router.push(organismeHomeLocation(value))
 }
 </script>
 

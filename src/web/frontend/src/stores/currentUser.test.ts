@@ -7,10 +7,6 @@ import { defineComponent, h } from 'vue'
 import { getMe } from '@/api/utilisateur'
 import { useCurrentUser } from './currentUser'
 
-vi.mock('@/api/utilisateur', () => ({
-  getMe: vi.fn(),
-}))
-
 function mountUseCurrentUser() {
   let result!: ReturnType<typeof useCurrentUser>
 

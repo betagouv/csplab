@@ -96,6 +96,11 @@ class TaillePageNumberPagination(PageNumberPagination):
         }
 
 
+class PaginationSchemaDuSerializer(TaillePageNumberPagination):
+    def get_paginated_response_schema(self, schema: dict) -> dict:
+        return schema["items"]
+
+
 class TalentsoftPagination(BasePagination):
     start_default = 0
     count_default = 100

@@ -36,10 +36,6 @@ vi.mock('@/features/recrutements/api', () => ({
   getRecrutementDetail: vi.fn(),
 }))
 
-vi.mock('@/api/utilisateur', () => ({
-  getMe: vi.fn(),
-}))
-
 function renderKanbanPage(stubs: Record<string, Component> = {}) {
   return renderWithApp(RouterView, { route: KANBAN_PATH, global: { stubs } })
 }

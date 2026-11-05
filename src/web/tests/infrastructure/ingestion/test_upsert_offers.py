@@ -48,12 +48,14 @@ def test_upsert_offers_result(ingestion_container):
         "organization": fake.name(),
         "offer_url": HttpUrl(f"https://fake.url/offer/{existing_offer.reference}"),
         "code_emploi_csp": fake.word(),
-        "localisation": Localisation(
-            area=GeographicalArea("AF"),
-            country=Country("FRA"),
-            region=Region(code="04"),
-            department=Department(code="76"),
-        ),
+        "localisations": [
+            Localisation(
+                area=GeographicalArea("AF"),
+                country=Country("FRA"),
+                region=Region(code="04"),
+                department=Department(code="76"),
+            )
+        ],
         "publication_date": datetime.now(timezone.utc) - relativedelta(days=1),
         "beginning_date": LimitDate(datetime.now(timezone.utc) + relativedelta(days=1)),
     }

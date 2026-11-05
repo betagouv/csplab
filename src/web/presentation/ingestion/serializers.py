@@ -410,12 +410,23 @@ class OfferDetailQuerySerializer(serializers.Serializer):
     )
 
 
+@extend_schema_field(
+    {"oneOf": [{"type": "integer"}, {"type": "string"}], "nullable": True}
+)
+class FakeTsParentCodeField(serializers.Field):
+    """Talentsoft's integer `code` of the parent, or, for places whose `code`
+    is null, the parent's `clientCode`."""
+
+    def to_representation(self, value: int | str) -> int | str:
+        return value
+
+
 class FakeTsCodedObjectSerializer(serializers.Serializer):
     code = serializers.IntegerField(allow_null=True)
     clientCode = serializers.CharField()
     label = serializers.CharField()
     active = serializers.BooleanField()
-    parentCode = serializers.IntegerField(allow_null=True)
+    parentCode = FakeTsParentCodeField(allow_null=True)
     type = serializers.CharField()
     parentType = serializers.CharField(allow_blank=True)
     hasChildren = serializers.BooleanField()
@@ -563,6 +574,9 @@ class FakeTsOfferDetailSerializer(FakeTsOfferSummarySerializer):
     customFields = FakeTsCustomFieldsSerializer()
 
 
+MAX_LOCALISATIONS_PER_OFFER = 50
+
+
 class LocalisationInputSerializer(LocalisationSerializer):
     pays = serializers.CharField(
         max_length=3,
@@ -671,20 +685,20 @@ class OfferDetailResponseSerializer(serializers.Serializer):
     )
     date_archivage = serializers.DateTimeField(source="archived_at", allow_null=True)
 
-    @extend_schema_field(LocalisationSerializer(allow_null=True))
+    @extend_schema_field(LocalisationSerializer(many=True))
     def get_localisation(self, obj):
-        if obj.localisation is None:
-            return None
-        loc = obj.localisation
-        return {
-            "zone_geographique": str(loc.area),
-            "pays": str(loc.country),
-            "region": loc.region.code if loc.region else None,
-            "departement": loc.department.code if loc.department else None,
-            "localisation_label": loc.label,
-            "latitude": loc.latitude,
-            "longitude": loc.longitude,
-        }
+        return [
+            {
+                "zone_geographique": str(loc.area),
+                "pays": str(loc.country),
+                "region": loc.region.code if loc.region else None,
+                "departement": loc.department.code if loc.department else None,
+                "localisation_label": loc.label,
+                "latitude": loc.latitude,
+                "longitude": loc.longitude,
+            }
+            for loc in obj.localisations
+        ]
 
     @extend_schema_field(serializers.DictField(allow_null=True))
     def get_criteres(self, obj):
@@ -1038,7 +1052,9 @@ class OffersInputSerializer(serializers.Serializer):
 
     # general infos
     titre = serializers.CharField(max_length=150)
-    titre_long = serializers.CharField(max_length=1500)
+    titre_long = serializers.CharField(
+        max_length=1500, required=False, allow_null=True, allow_blank=True
+    )
     organisation = OrganismeInputSerializer()
     url_offre = serializers.URLField(allow_null=True)
     url_candidature = serializers.URLField(allow_null=True, required=False)
@@ -1065,11 +1081,37 @@ class OffersInputSerializer(serializers.Serializer):
     )
 
     description = DescriptionInputSerializer()
-    localisation = LocalisationInputSerializer(many=True, allow_null=True)
+    localisation = LocalisationInputSerializer(
+        many=True,
+        allow_null=True,
+        max_length=MAX_LOCALISATIONS_PER_OFFER,
+        error_messages={
+            "max_length": (f"Au plus {MAX_LOCALISATIONS_PER_OFFER} lieux par offre.")
+        },
+    )
     criteres = CriteriaInputSerializer(allow_null=True)
     conditions = ConditionsInputSerializer(allow_null=True)
     contacts = ContactsInputSerializer(many=True, allow_null=True)
     publication = PublicationInputSerializer()
+
+    def validate_localisation(self, value):
+        if not value:
+            return value
+        keys = [
+            (
+                localisation["pays"],
+                localisation.get("region") or "",
+                localisation.get("departement") or "",
+                localisation.get("localisation_label") or "",
+            )
+            for localisation in value
+        ]
+        if len(keys) != len(set(keys)):
+            raise serializers.ValidationError(
+                "Un même lieu (pays, région, département et libellé) ne peut "
+                "figurer qu'une fois."
+            )
+        return value
 
     def validate_contacts(self, value):
         if value is None:
@@ -1080,6 +1122,10 @@ class OffersInputSerializer(serializers.Serializer):
         return sorted(value, key=lambda contact: CONTACT_ROLES.index(contact["role"]))
 
     def validate(self, data):
+        if data.get("titre_long") == data["titre"]:
+            raise serializers.ValidationError(
+                {"titre_long": "Le titre long doit différer du titre, sinon l'omettre."}
+            )
         if bool(data.get("url_candidature")) == bool(data.get("email_candidature")):
             raise serializers.ValidationError(
                 "Renseigner soit url_candidature, soit email_candidature, "

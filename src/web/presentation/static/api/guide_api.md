@@ -132,7 +132,7 @@ réponse jusqu'à ce qu'il vaille `null`.
 | `niveau_experience` | Filtrer par niveau(x) d'expérience | Liste séparée par virgules parmi DEBUTANT, CONFIRME, EXPERT |
 | `lieu_de_travail` | Filtrer par mode de travail | Liste séparée par virgules parmi NON_DEFINI, SUR_SITE, TELETRAVAIL |
 | `management` | Filtrer selon la présence de management | Liste séparée par virgules parmi SANS, AVEC |
-| `region` | Filtrer par code(s) région officiel(s) | Liste séparée par virgules (ex. `11,84`) |
+| `region` | Filtrer par code(s) région officiel(s). Pour une offre à plusieurs lieux, ce filtre, comme `departement`, `pays`, `zone` et le filtre par rayon, retient l'offre si l'un de ses lieux correspond | Liste séparée par virgules (ex. `11,84`) |
 | `departement` | Filtrer par code(s) département officiel(s) | Liste séparée par virgules (ex. `75,69`) |
 | `pays` | Filtrer par code(s) pays alpha-3 | Liste séparée par virgules (ex. `FRA,BEL`) |
 | `zone` | Filtrer par zone(s) géographique(s) | Liste séparée par virgules parmi AFRIQUE, EUROPE, ASIE, AMERIQUE, OCEANIE, ANTARTIQUE, MOYEN_ORIENT_AFRIQUE_DU_NORD |
@@ -194,7 +194,7 @@ le bloc « Description » de la section 4).
 | `vacance_poste` | Vacance du poste | Oui |
 | `url_candidature` | Lien pour candidater. Vide si `email_candidature` est renseigné. | Oui |
 | `email_candidature` | Adresse email pour candidater. Vide si `url_candidature` est renseigné. | Oui |
-| `localisation` | Localisation de l'offre (`zone_geographique`, `pays`, `region`, `departement`, `localisation_label`, `latitude`, `longitude`) | Oui |
+| `localisation` | Liste des lieux de l'offre, dans l'ordre d'envoi, le premier étant le lieu principal (`zone_geographique`, `pays`, `region`, `departement`, `localisation_label`, `latitude`, `longitude`). Liste vide si l'offre n'est pas localisée | Oui |
 | `criteres` | Critères de l'offre (diplôme, expérience, langues…) | Oui |
 | `conditions` | Conditions de l'offre (rémunération, temps de travail…) | Oui |
 | `contacts` | Contacts de l'offre (`role`, `texte`, `emails`), `principal` puis `autre` | Oui |
@@ -305,7 +305,7 @@ longueur et de valeurs autorisées**.
 | Champ | Règle |
 |---|---|
 | `titre` | Obligatoire. **150 caractères maximum.** |
-| `titre_long` | Obligatoire. **1 500 caractères maximum.** |
+| `titre_long` | Facultatif. Intitulé long, à ne renseigner que s'il diffère de `titre` : une offre dont le `titre_long` est identique à `titre` est rejetée. Peut être vide. **1 500 caractères maximum.** |
 | `url_offre` | Lien web. Peut être vide. |
 | `url_candidature` | Lien web pour candidater. Voir la règle ci-dessous. |
 | `email_candidature` | Adresse email valide pour candidater. Voir la règle ci-dessous. |
@@ -364,6 +364,8 @@ caractères s'applique au texte Markdown, syntaxe comprise.
 | `descriptif_service` | Facultatif. Description du service qui recrute. **10 000 caractères maximum.** |
 
 #### Bloc « Localisation » (`localisation`) — liste, peut être vide
+Une offre peut se dérouler en plusieurs lieux : **50 lieux au plus**, tous conservés dans l'ordre d'envoi. Le premier est le lieu principal. Un même lieu ne peut figurer qu'une fois : deux lieux avec les mêmes `pays`, `region`, `departement` et `localisation_label` (quelles que soient leurs coordonnées) rejettent l'offre dans `errors`.
+
 | Champ | Règle |
 |---|---|
 | `zone_geographique` | Obligatoire dans chaque localisation. Valeurs : **AF** (Afrique), **EU** (Europe), **AS** (Asie), **AM** (Amérique), **OC** (Océanie), **AN** (Antarctique), **MO** (Moyen-Orient et Afrique du Nord). |
@@ -632,7 +634,7 @@ Notation : `a.b` désigne un objet imbriqué, `a[]` une liste, `a[0]` son premie
 |---|---|---|
 | `reference` | `identification.reference` | |
 | `salaryRange.clientCode` | `identification.versant` | Dans l'API fake-ts, `salaryRange` est une simple chaîne, toujours `null` : le versant est alors déduit de `reference` (`APHP`/`MENJ`/`OFII`). Les valeurs contenant `FPT`/`FPH`/`FPE` donnent un `Verse`. |
-| `title` | `titre` | Copié aussi dans `titre_long`. |
+| `title` | `titre` | |
 | `organisationName` | `organisation.nom` | |
 | `organisation.entityCode` | `organisation.talentsoft_organisme_entity_code` | Réservé au service ingestion de CSPLab : laissez ce champ vide, une offre qui le renseigne est rejetée. API fake-ts : reprend l'organisme Talentsoft lié à l'offre. Toute offre est liée à un organisme Talentsoft. |
 | `contractType.clientCode` | `nature_offre` | Traduit par le transcodeur de la source. |
@@ -650,10 +652,10 @@ Notation : `a.b` désigne un objet imbriqué, `a[]` une liste, `a[0]` son premie
 | `urlRedirectionApplicant` | `url_candidature` | Prioritaire sur `customFields.origin.shortText1` et `applicationUrl`. |
 | `customFields.origin.shortText1` | `email_candidature` | Texte libre (« adresse de candidature »). Lu seulement si `urlRedirectionApplicant` est vide : le premier e-mail valide trouvé devient `email_candidature`, et `url_candidature` reste vide. API fake-ts : reprend `email_candidature`, `null` si l'offre se candidate par lien. |
 | `applicationUrl` | `url_candidature` | Dernier recours, si `urlRedirectionApplicant` est vide et que `customFields.origin.shortText1` ne contient aucun e-mail valide. Toujours rempli dans Talentsoft (page de candidature générique). API fake-ts : reprend `url_candidature`, `null` si l'offre se candidate par e-mail. |
-| `geographicalLocation[0].clientCode` | `localisation[0].zone_geographique` | En France, ignoré : la zone est déduite du département, car Talentsoft range presque tout l'outre-mer en `Europe`. `EUROPE` en métropole, `AMERIQUE` (971, 972, 973) ou `AFRIQUE` (974, 976) pour les DOM, `AMERIQUE` (975, 977, 978, `SPM`) ou `OCEANIE` (986, `WLF`, 987, 988) pour les collectivités d'outre-mer. À l'étranger, lu : `_TS_CO_GeographicalArea_Europe` → `EU`, `_TS_CO_GeographicalArea_MoyenOrientAfriqueduNord` → `MO`, `_TS_CO_GeographicalArea_AmriquesCaraibe` → `AM`, `_TS_CO_GeographicalArea_Ocanie` → `OC`, `_TS_CO_GeographicalArea_Asie` → `AS`, `_TS_CO_GeographicalArea_Afrique` → `AF`. Toute la `localisation` est abandonnée si le pays manque, si, en France, la région ou le département manque ou le département est inconnu, ou si, à l'étranger, la zone est absente ou inconnue (« Monde »). API fake-ts : toujours `[]`. |
-| `country[0].clientCode` | `localisation[0].pays` | Un territoire d'outre-mer saisi comme un pays, sans région ni département, est ramené à `FRA` et à son département : `GLP` → `971`, `MTQ` → `972`, `GUF` → `973`, `REU` → `974`, `SPM` → `975`, `MYT` → `976`, `BLM` → `977`, `MAF` → `978`, `WLF` → `WLF`, `PYF` → `987`, `NCL` → `988`. Tout autre pays que `FRA` est une offre à l'étranger. |
-| `region[0].clientCode` | `localisation[0].region` | Les préfixes `_TS_CO_Region_` et `R` sont retirés pour obtenir le code INSEE. Ignoré pour l'outre-mer : `DOM` pour les départements 971 à 974 et 976, `TOM` pour 975, 977, 978, 986, 987, 988, `SPM` et `WLF`. Ignoré à l'étranger : `region` à `null`. |
-| `department[0].clientCode` | `localisation[0].departement` | Cas particuliers de la Nouvelle-Calédonie (`988`), et de Saint-Barthélemy (`977`) et Saint-Martin (`978`), saisis avec un identifiant interne de l'instance Talentsoft. Ignoré à l'étranger : `departement` à `null`. |
+| `geographicalLocation[0].clientCode` | `localisation[0].zone_geographique` | En France, ignoré : la zone est déduite du département, car Talentsoft range presque tout l'outre-mer en `Europe`. `EUROPE` en métropole, `AMERIQUE` (971, 972, 973) ou `AFRIQUE` (974, 976) pour les DOM, `AMERIQUE` (975, 977, 978, `SPM`) ou `OCEANIE` (986, `WLF`, 987, 988) pour les collectivités d'outre-mer. À l'étranger, lu : `_TS_CO_GeographicalArea_Europe` → `EU`, `_TS_CO_GeographicalArea_MoyenOrientAfriqueduNord` → `MO`, `_TS_CO_GeographicalArea_AmriquesCaraibe` → `AM`, `_TS_CO_GeographicalArea_Ocanie` → `OC`, `_TS_CO_GeographicalArea_Asie` → `AS`, `_TS_CO_GeographicalArea_Afrique` → `AF`. Toute la `localisation` est abandonnée si le pays manque, si, en France, la région ou le département manque ou le département est inconnu, ou si, à l'étranger, la zone est absente ou inconnue (« Monde »). Talentsoft n'envoie qu'un lieu en pratique (aucune offre à plusieurs lieux au 02/11/2026) : les éléments suivants de la liste sont ignorés, mais signalés dans Sentry. API fake-ts : un élément par zone distincte parmi les lieux de l'offre, `clientCode` étant le nom de la zone, comme dans le filtre `area` et `referentials/area` (`EUROPE` pour `EU`, `AFRIQUE` pour `AF`…), et `code` restant `null`. |
+| `country[0].clientCode` | `localisation[0].pays` | Un territoire d'outre-mer saisi comme un pays, sans région ni département, est ramené à `FRA` et à son département : `GLP` → `971`, `MTQ` → `972`, `GUF` → `973`, `REU` → `974`, `SPM` → `975`, `MYT` → `976`, `BLM` → `977`, `MAF` → `978`, `WLF` → `WLF`, `PYF` → `987`, `NCL` → `988`. Tout autre pays que `FRA` est une offre à l'étranger. Talentsoft n'envoie qu'un lieu en pratique (aucune offre à plusieurs lieux au 02/11/2026) : les éléments suivants de la liste sont ignorés, mais signalés dans Sentry. |
+| `region[0].clientCode` | `localisation[0].region` | Les préfixes `_TS_CO_Region_` et `R` sont retirés pour obtenir le code INSEE. Ignoré pour l'outre-mer : `DOM` pour les départements 971 à 974 et 976, `TOM` pour 975, 977, 978, 986, 987, 988, `SPM` et `WLF`. Ignoré à l'étranger : `region` à `null`. Talentsoft n'envoie qu'un lieu en pratique (aucune offre à plusieurs lieux au 02/11/2026) : les éléments suivants de la liste sont ignorés, mais signalés dans Sentry. |
+| `department[0].clientCode` | `localisation[0].departement` | Cas particuliers de la Nouvelle-Calédonie (`988`), et de Saint-Barthélemy (`977`) et Saint-Martin (`978`), saisis avec un identifiant interne de l'instance Talentsoft. Ignoré à l'étranger : `departement` à `null`. Talentsoft n'envoie qu'un lieu en pratique (aucune offre à plusieurs lieux au 02/11/2026) : les éléments suivants de la liste sont ignorés, mais signalés dans Sentry. |
 | `geolocation.latitude` | `localisation[0].latitude` | Repli sur `latitude`, puis, en France seulement, sur `organisation.geolocation.latitude` (à l'étranger, c'est en général le siège en France). |
 | `geolocation.longitude` | `localisation[0].longitude` | Repli sur `longitude`, puis, en France seulement, sur `organisation.geolocation.longitude`. |
 | `customFields.location.shortText1` | `localisation[0].localisation_label` | |
@@ -672,6 +674,8 @@ Notation : `a.b` désigne un objet imbriqué, `a[]` une liste, `a[0]` son premie
 
 `criteres` n'est envoyé que si au moins un des champs niveau de diplôme, diplôme, expérience, spécialisations, langues, compétences requises ou documents requis est renseigné.
 
+**Offre à plusieurs lieux (API fake-ts).** `geographicalLocation`, `country`, `region` et `department` contiennent un élément par valeur distincte parmi tous les lieux de l'offre, dans l'ordre des lieux. `location`, `latitude`, `longitude`, `geolocation` et `customFields.location.shortText1` reprennent le lieu principal (le premier). `locations` reste `[]`.
+
 ### Champs Talentsoft sans équivalent dans l'API v1
 
 | Offre Talentsoft | Note |
@@ -686,7 +690,7 @@ Notation : `a.b` désigne un objet imbriqué, `a[]` une liste, `a[0]` son premie
 | `_format` | Métadonnées de transport. |
 | `_metadata` | Métadonnées de transport. |
 | `urlRedirectionEmployee` | |
-| `locations` | Non lu : la localisation vient de `country`, `region` et `department`. Toujours vide en pratique dans les offres Talentsoft. API fake-ts : toujours `[]`. |
+| `locations` | Non lu : la localisation vient de `country`, `region` et `department`. Toujours vide en pratique dans les offres Talentsoft (au 02/11/2026) : s'il est rempli, l'offre est signalée dans Sentry. API fake-ts : toujours `[]`. |
 | `isAnonymousOrganisation` | |
 | `offerTime` | Non lu : `conditions.temps_travail` vient de `customFields.description.customCodeTable3`. |
 | `numberOfVacancies` | Nombre de postes à pourvoir. Toujours `null` en pratique dans les offres Talentsoft. |
@@ -732,6 +736,7 @@ Notation : `a.b` désigne un objet imbriqué, `a[]` une liste, `a[0]` son premie
 |---|---|
 | `categories` | Lu par l'ingestion dans `customFields.description.customCodeTable1`, que l'API fake-ts n'expose pas (`CAT-A`/`B`/`C` ; `CAT-AEF`/`ESD`/`ES` → `APLUS`). API fake-ts : le filtre `category` de `offer_summaries` retourne une offre si l'une de ses catégories en fait partie. |
 | `type_contrat` | Lu dans `customFields.offer.customCodeTable2` (absent de l'API fake-ts) : `CDD*`, `CDI`. |
+| `titre_long` | Jamais renseigné par l'ingestion : Talentsoft n'a pas de titre long. |
 | `organisation.siret` | Jamais renseigné par l'ingestion (vide) ; le rapprochement d'organisme passe par `talentsoft_organisme_entity_code`. |
 | `profession.referentiel` | Constante `RMFPv2`. |
 | `profession.code_emploi_local` | Jamais renseigné, `local_job_code` reste à `null`. |

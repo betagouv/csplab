@@ -1,5 +1,6 @@
 from uuid import UUID
 
+from django.db.models import QuerySet
 from django.http import Http404
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import exceptions, status
@@ -10,7 +11,10 @@ from rest_framework.views import APIView
 
 from application.recruteur.services.create_note import create_note
 from application.recruteur.services.delete_note import delete_note
-from application.recruteur.services.list_notes import list_notes
+from application.recruteur.services.list_notes import (
+    list_notes,
+    with_authorized_actions,
+)
 from application.recruteur.services.update_note import update_note
 from application.recruteur.services.update_note_visibility import (
     update_note_visibility,
@@ -27,12 +31,14 @@ from domain.recruteur.errors.recrutement_errors import (
     RecrutementCandidatureInexistante,
     RecrutementInexistant,
 )
+from infrastructure.django_apps.recruteur.models.note import NoteModel
 from presentation.api.authentication import SessionApiMixin
 from presentation.api.serializers import (
     GenericErrorSerializer,
     TokenErrorSerializer,
     generic_response_format,
 )
+from presentation.commons.pagination import TaillePageNumberPagination
 from presentation.recruteur.serializers import (
     CreateNoteSerializer,
     NoteDetailSerializer,
@@ -72,6 +78,7 @@ class NoteBaseView(SessionApiMixin, APIView):
             )
         if isinstance(exc, (exceptions.APIException, Http404)):
             return super().handle_exception(exc)
+        # TODO: log the exception before returning the 500 (#1618), it is silent today
         return Response(
             GenericErrorSerializer({"error": "Unexpected error"}).data,
             status=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -106,6 +113,7 @@ class NoteBaseView(SessionApiMixin, APIView):
 )
 class CandidatureNotesView(NoteBaseView, ListAPIView):
     serializer_class = NoteSerializer
+    pagination_class = TaillePageNumberPagination
 
     def get_queryset(self):
         return list_notes(
@@ -113,6 +121,19 @@ class CandidatureNotesView(NoteBaseView, ListAPIView):
             recrutement_id=self.kwargs["recrutement_uuid"],
             candidature_id=self.kwargs["candidature_uuid"],
             utilisateur=self.request.user,
+        )
+
+    def paginate_queryset(self, queryset: QuerySet[NoteModel]) -> list | None:
+        page = super().paginate_queryset(queryset)
+        return (
+            None
+            if page is None
+            else with_authorized_actions(
+                page,
+                organisme_id=self.kwargs["organisme_uuid"],
+                recrutement_id=self.kwargs["recrutement_uuid"],
+                utilisateur=self.request.user,
+            )
         )
 
     def post(

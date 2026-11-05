@@ -113,7 +113,6 @@ class ContactPayload(BaseModel):
 class OfferUpsertPayload(BaseModel):
     identification: IdentificationPayload
     titre: str
-    titre_long: str
     organisation: OrganisationPayload
     url_offre: Optional[HttpUrl] = None
     url_candidature: Optional[HttpUrl] = None
@@ -165,7 +164,6 @@ class OfferUpsertPayload(BaseModel):
                 versant=offer.verse.value if offer.verse else None,
             ),
             titre=offer.title,
-            titre_long=offer.title,
             organisation=OrganisationPayload(
                 nom=offer.organization,
                 talentsoft_organisme_entity_code=offer.talentsoft_organisme_entity_code,

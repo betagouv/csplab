@@ -13,7 +13,7 @@ import { useMinimumPending } from '@/composables/async/useMinimumPending'
 import { tabItems } from '@/composables/navigation/tabs'
 import { useRouteTab } from '@/composables/navigation/useRouteTab'
 import { useDocumentTitle } from '@/composables/ui/useDocumentTitle'
-import { HOME_BREADCRUMB_ITEM, recrutementsBreadcrumbItem } from '@/router/breadcrumb'
+import { homeBreadcrumbItem, recrutementsBreadcrumbItem } from '@/router/breadcrumb'
 import { RECRUTEMENT_DETAIL_TAB_ROUTE_NAMES, RECRUTEMENT_ETAPES_ROUTE_NAME, recrutementsListLocation } from '@/router/names'
 import { can } from '@/utils/authorizedActions'
 import ForbiddenView from '@/views/ForbiddenView.vue'
@@ -40,7 +40,7 @@ const recrutementsListLink = computed(() => recrutementsListLocation(props.organ
 const title = computed(() => intitule.value ?? 'Candidatures')
 
 const breadcrumb = computed<CspBreadcrumbItem[]>(() => [
-  HOME_BREADCRUMB_ITEM,
+  homeBreadcrumbItem(props.organismeUuid),
   recrutementsBreadcrumbItem(props.organismeUuid, recrutementDetail.value?.archive),
   ...(intitule.value ? [{ label: intitule.value }] : []),
 ])

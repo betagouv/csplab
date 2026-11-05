@@ -218,7 +218,18 @@ class TestOfferDetailViewDbVerified:
             "description1Formatted": "<p>Mission du poste</p>",
             "description2Formatted": "<p>Profil recherché</p>",
             "salaryRange": None,
-            "geographicalLocation": [],
+            "geographicalLocation": [
+                {
+                    "code": None,
+                    "clientCode": "EUROPE",
+                    "label": "Europe",
+                    "active": True,
+                    "parentCode": None,
+                    "type": "geographicalLocation",
+                    "parentType": "",
+                    "hasChildren": False,
+                }
+            ],
             "country": [
                 {
                     "code": None,

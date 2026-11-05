@@ -10,10 +10,6 @@ import { renderWithApp, setupUser } from '@/test/render'
 import { getOrganismeDetail, searchOrganismes } from '../api'
 import OrganismeSwitcher from './OrganismeSwitcher.vue'
 
-vi.mock('@/api/utilisateur', () => ({
-  getMe: vi.fn(),
-}))
-
 vi.mock('../api', () => ({
   getOrganismesList: vi.fn(),
   getOrganismeDetail: vi.fn(),
@@ -74,7 +70,7 @@ describe('organismeSwitcher', () => {
       expect(screen.queryByRole('searchbox')).not.toBeInTheDocument()
     })
 
-    it('navigates to the recrutements of the picked organisme', async () => {
+    it('navigates to the home of the picked organisme', async () => {
       vi.mocked(getMe).mockResolvedValue(makeUser([ROLE_MTE, ROLE_BRIANCON]))
       const user = setupUser()
 
@@ -84,7 +80,7 @@ describe('organismeSwitcher', () => {
       await user.click(await screen.findByRole('option', { name: ROLE_BRIANCON.nom }))
 
       await vi.waitFor(() =>
-        expect(router.currentRoute.value.path).toBe(`/organismes/${BRIANCON_UUID}/recrutements`),
+        expect(router.currentRoute.value.path).toBe(`/organismes/${BRIANCON_UUID}/accueil`),
       )
     })
 
@@ -156,7 +152,7 @@ describe('organismeSwitcher', () => {
 
       expect(searchOrganismes).toHaveBeenCalledWith('Brian')
       await vi.waitFor(() =>
-        expect(router.currentRoute.value.path).toBe(`/organismes/${ORGANISME_DETAIL.uuid}/recrutements`),
+        expect(router.currentRoute.value.path).toBe(`/organismes/${ORGANISME_DETAIL.uuid}/accueil`),
       )
     })
 

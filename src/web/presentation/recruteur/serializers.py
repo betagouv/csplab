@@ -35,11 +35,13 @@ from infrastructure.django_apps.recruteur.models.recrutement import (
     RecrutementAgentModel,
     RecrutementModel,
 )
+from infrastructure.django_apps.referentiel.models.offer_localisation import (
+    OfferLocalisationModel,
+)
 from infrastructure.django_apps.tag.models import TagCategory, TagColor, TagModel
 from infrastructure.django_apps.users.models import ProfilAgentModel
 from presentation.commons.pagination import MAX_PAGE_SIZE
 from presentation.commons.serializers import (
-    LocalisationSerializer,
     OrganismeSerializer,
     authorized_actions_field,
 )
@@ -307,22 +309,26 @@ class OffreArchiveeField(serializers.Field):
         return value
 
 
-@extend_schema_field(LocalisationSerializer())
-class OffreLocalisationField(serializers.Field):
-    def get_attribute(self, instance: RecrutementModel) -> dict:
-        offre = instance.offre
-        return {
-            "zone_geographique": offre.area or "",
-            "pays": offre.country or "",
-            "region": offre.region or None,
-            "departement": offre.department or None,
-            "localisation_label": offre.location_label or "",
-            "latitude": offre.latitude,
-            "longitude": offre.longitude,
-        }
+class OffreLocalisationSerializer(serializers.ModelSerializer):
+    zone_geographique = serializers.CharField(source="area")
+    pays = serializers.CharField(source="country")
+    region = serializers.CharField(allow_null=True)
+    departement = serializers.CharField(source="department", allow_null=True)
+    localisation_label = serializers.CharField(source="label")
+    latitude = serializers.FloatField(allow_null=True)
+    longitude = serializers.FloatField(allow_null=True)
 
-    def to_representation(self, value: dict) -> dict:
-        return value
+    class Meta:
+        model = OfferLocalisationModel
+        fields = [
+            "zone_geographique",
+            "pays",
+            "region",
+            "departement",
+            "localisation_label",
+            "latitude",
+            "longitude",
+        ]
 
 
 @extend_schema_field(EtapeRecrutementSerializer(many=True))
@@ -339,7 +345,7 @@ class RecrutementDetailSerializer(serializers.ModelSerializer):
     intitule = serializers.CharField(source="offre.title")
     archive = OffreArchiveeField()
     date_publication = serializers.DateTimeField(source="offre.publication_date")
-    localisation = OffreLocalisationField()
+    localisations = OffreLocalisationSerializer(source="offre.localisations", many=True)
     organisme_recruteur = OrganismeSerializer(source="organisme")
     categorie_offre = serializers.ChoiceField(
         source="offre.main_category", choices=[(c.name, c.value) for c in Category]
@@ -359,7 +365,7 @@ class RecrutementDetailSerializer(serializers.ModelSerializer):
             "intitule",
             "archive",
             "date_publication",
-            "localisation",
+            "localisations",
             "organisme_recruteur",
             "categorie_offre",
             "etapes",
@@ -427,6 +433,14 @@ class CandidatureListeSerializer(serializers.ModelSerializer):
             "date_derniere_activite",
             "etape",
         ]
+
+
+class RecrutementListeSerializer(serializers.Serializer):
+    count = serializers.IntegerField()
+    next = serializers.URLField(allow_null=True)
+    previous = serializers.URLField(allow_null=True)
+    results = CandidatureListeSerializer(many=True)
+    etapes = EtapeRecrutementModelSerializer(many=True)
 
 
 # ---------------------------------------------------------------------------
@@ -586,6 +600,42 @@ class DocumentListeSerializer(serializers.ModelSerializer):
 
 
 # ---------------------------------------------------------------------------
+# Serializers pour les étiquettes d'un organisme
+# ---------------------------------------------------------------------------
+
+
+class TagSerializer(serializers.ModelSerializer):
+    uuid = serializers.UUIDField(source="id")
+    usage_count = serializers.IntegerField(read_only=True, default=0)
+
+    class Meta:
+        model = TagModel
+        fields = ["uuid", "name", "category", "color", "usage_count"]
+
+
+class NoteTagSerializer(TagSerializer):
+    color = serializers.ChoiceField(choices=TagColor.choices, read_only=True)
+
+    class Meta(TagSerializer.Meta):
+        fields = ["uuid", "name", "color"]
+
+
+class TagListQuerySerializer(serializers.Serializer):
+    category = serializers.ChoiceField(choices=TagCategory.choices, required=False)
+
+
+class CreateTagSerializer(serializers.Serializer):
+    name = serializers.CharField(max_length=25)
+    category = serializers.ChoiceField(choices=TagCategory.choices)
+    color = serializers.ChoiceField(choices=TagColor.choices, default=TagColor.BLEU)
+
+
+class UpdateTagSerializer(serializers.Serializer):
+    name = serializers.CharField(max_length=25)
+    color = serializers.ChoiceField(choices=TagColor.choices)
+
+
+# ---------------------------------------------------------------------------
 # Serializers pour les notes attachées à une candidature
 # ---------------------------------------------------------------------------
 
@@ -601,6 +651,7 @@ class NoteSerializer(serializers.ModelSerializer):
     publie_par_nom = serializers.CharField(source="publie_par.utilisateur.last_name")
     publie_le = serializers.DateTimeField(source="created_at")
     est_privee = serializers.BooleanField()
+    authorized_actions = authorized_actions_field()
 
     class Meta:
         model = NoteModel
@@ -613,6 +664,7 @@ class NoteSerializer(serializers.ModelSerializer):
             "publie_par_nom",
             "publie_le",
             "est_privee",
+            "authorized_actions",
         ]
 
 
@@ -622,10 +674,18 @@ class NoteDetailSerializer(serializers.ModelSerializer):
     message = serializers.CharField()
     publie_par_id = serializers.UUIDField()
     est_privee = serializers.BooleanField()
+    tags = NoteTagSerializer(many=True, read_only=True)
 
     class Meta:
         model = NoteModel
-        fields = ["uuid", "candidature_id", "message", "publie_par_id", "est_privee"]
+        fields = [
+            "uuid",
+            "candidature_id",
+            "message",
+            "publie_par_id",
+            "est_privee",
+            "tags",
+        ]
 
 
 class CreateNoteSerializer(serializers.Serializer):
@@ -867,32 +927,3 @@ class CreateMessageSerializer(serializers.Serializer):
 
 class CreateConversationSerializer(CreateMessageSerializer):
     objet = serializers.CharField(max_length=settings.CONVERSATION_OBJET_MAX_LENGTH)
-
-
-# ---------------------------------------------------------------------------
-# Serializers pour les étiquettes d'un organisme
-# ---------------------------------------------------------------------------
-
-
-class TagSerializer(serializers.ModelSerializer):
-    uuid = serializers.UUIDField(source="id")
-    usage_count = serializers.IntegerField(read_only=True, default=0)
-
-    class Meta:
-        model = TagModel
-        fields = ["uuid", "name", "category", "color", "usage_count"]
-
-
-class TagListQuerySerializer(serializers.Serializer):
-    category = serializers.ChoiceField(choices=TagCategory.choices, required=False)
-
-
-class CreateTagSerializer(serializers.Serializer):
-    name = serializers.CharField(max_length=25)
-    category = serializers.ChoiceField(choices=TagCategory.choices)
-    color = serializers.ChoiceField(choices=TagColor.choices, default=TagColor.BLEU)
-
-
-class UpdateTagSerializer(serializers.Serializer):
-    name = serializers.CharField(max_length=25)
-    color = serializers.ChoiceField(choices=TagColor.choices)

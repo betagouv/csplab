@@ -25,7 +25,7 @@ from presentation.candidate.filter_config import (
 )
 from presentation.candidate.formatters import (
     format_category_display,
-    format_location_display,
+    format_locations_display,
     format_offer_nature_display,
     format_opportunity_type_display,
     format_verse_display,
@@ -107,8 +107,8 @@ class OfferToTemplateMapper:
             "category_value": format_category_value(offer.main_category),
             "versant_display": format_verse_display(offer.verse),
             "versant_value": offer.verse.value if offer.verse else "",
-            "location": format_location_display(offer.localisation),
-            "location_value": format_location_value(offer.localisation),
+            "location": format_locations_display(offer.localisations),
+            "location_value": format_location_value(offer.main_localisation),
             "offer_nature_display": format_offer_nature_display(offer.offer_nature),
             "url": str(offer.offer_url) if offer.offer_url else "#",
         }
@@ -155,7 +155,7 @@ class OfferToTemplateMapper:
             "versant_display": format_verse_display(offer.verse),
             "category_display": format_category_display(offer.main_category),
             "organization": offer.organization,
-            "location": format_location_display(offer.localisation),
+            "location": format_locations_display(offer.localisations),
             "url": str(offer.offer_url) if offer.offer_url else "#",
             "accordions": accordions,
             "cta_label": "Voir l'offre",

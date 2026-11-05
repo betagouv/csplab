@@ -1285,6 +1285,14 @@ paths:
         fake-ts, au format objet codé Talentsoft.
       summary: Valeurs d'un référentiel (format Talentsoft)
       parameters:
+      - in: query
+        name: parentCode
+        schema:
+          type: string
+        description: 'Ne garde que les valeurs rattachées à ce parent. Pour les lieux,
+          c''est le `clientCode` du parent : la région pour un département (ex. `11`,
+          `DOM`, `TOM`), `FRA` pour une région, la zone pour un pays (ex. `EUROPE`).
+          Pour les organisations, c''est le `code` de l''organisation parente.'
       - in: path
         name: referential_type
         schema:
@@ -4884,7 +4892,9 @@ components:
         active:
           type: boolean
         parentCode:
-          type: integer
+          oneOf:
+          - type: integer
+          - type: string
           nullable: true
         type:
           type: string
@@ -5770,9 +5780,9 @@ components:
           format: email
           nullable: true
         localisation:
-          allOf:
-          - $ref: '#/components/schemas/Localisation'
-          nullable: true
+          type: array
+          items:
+            $ref: '#/components/schemas/Localisation'
           readOnly: true
         criteres:
           type: object
@@ -5866,6 +5876,7 @@ components:
           maxLength: 150
         titre_long:
           type: string
+          nullable: true
           maxLength: 1500
         organisation:
           $ref: '#/components/schemas/OrganismeInput'
@@ -5934,7 +5945,6 @@ components:
       - profession
       - publication
       - titre
-      - titre_long
       - url_offre
       - vacance_poste
     OrganismeDeleteInput:

@@ -37,6 +37,7 @@ URL = reverse("ingestion:offers_list")
 NOMBRE_REQUETES_ATTENDU = (
     1  # view JWT authentication
     + 2  # pagination: count + page
+    + 1  # prefetch of the offers' localisations
     + 1  # ApiRequestLoggerMiddleware re-decodes the JWT to log the request
     + 2  # logging: DJ tries an UPDATE (manually-assigned pk) then falls back to INSERT
 )
