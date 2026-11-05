@@ -1,23 +1,8 @@
-import type { ActivitesParams, CandidatureDetail, ChangerEtapeResultat, CreateNotePayload, MotifRefus, MotifRefusOption, NoteVisibilitePayload, PaginatedActiviteList, PaginatedDocumentListeList, PaginatedNoteList, RecrutementDetailKanban, RecrutementListe, UpdateNotePayload } from './types'
+import type { ActivitesParams, CandidatureDetail, ChangerEtapeResultat, CreateNotePayload, MotifRefus, MotifRefusOption, NoteVisibilitePayload, PaginatedActiviteList, PaginatedDocumentListeList, PaginatedNoteList, RecrutementListe, UpdateNotePayload } from './types'
 import type { CandidatureParams, NoteParams, OrganismeParams, RecrutementParams } from '@/api/params'
 import { api } from '@/api/client'
 
 const MAX_PAGE_SIZE = 1_000
-
-export async function getRecrutementKanban({ organismeUuid, recrutementUuid }: RecrutementParams): Promise<RecrutementDetailKanban> {
-  const { data } = await api.GET(
-    '/recruteur/organismes/{organisme_uuid}/recrutements/{recrutement_uuid}/kanban',
-    {
-      params: {
-        path: {
-          organisme_uuid: organismeUuid,
-          recrutement_uuid: recrutementUuid,
-        },
-      },
-    },
-  )
-  return data!
-}
 
 export async function getCandidatureDetail(candidature: CandidatureParams): Promise<CandidatureDetail> {
   const { data } = await api.GET(

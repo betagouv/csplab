@@ -2,15 +2,14 @@ import { screen } from '@testing-library/vue'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { RouterView } from 'vue-router'
 import { getMe } from '@/api/utilisateur'
-import { getRecrutementKanban } from '@/features/candidatures/api'
+import { getCandidatureListe } from '@/features/candidatures/api'
 import { getEquipeRecrutement } from '@/features/equipe-recrutement/api'
-import { KANBAN, KANBAN_PATH, ORGANISME_UUID, RECRUTEMENT_DETAIL, roleOnOrganisme } from '@/test/fixtures/candidatures'
+import { CANDIDATURE_LISTE, KANBAN_PATH, ORGANISME_UUID, RECRUTEMENT_DETAIL, roleOnOrganisme } from '@/test/fixtures/candidatures'
 import { makeUser } from '@/test/fixtures/utilisateur'
 import { renderWithApp, setupUser } from '@/test/render'
 import { getRecrutementDetail } from '../api'
 
 vi.mock('@/features/candidatures/api', () => ({
-  getRecrutementKanban: vi.fn(),
   getCandidatureListe: vi.fn(),
   patchEtapeCandidatures: vi.fn(),
   getMotifsRefus: vi.fn(),
@@ -34,7 +33,7 @@ const RECRUTEMENT_DETAIL_AVEC_EQUIPE = {
 describe('recrutementView', () => {
   beforeEach(() => {
     vi.mocked(getRecrutementDetail).mockReset().mockResolvedValue(RECRUTEMENT_DETAIL)
-    vi.mocked(getRecrutementKanban).mockReset().mockResolvedValue(KANBAN)
+    vi.mocked(getCandidatureListe).mockReset().mockResolvedValue(CANDIDATURE_LISTE)
     vi.mocked(getEquipeRecrutement).mockReset().mockResolvedValue([])
   })
 
