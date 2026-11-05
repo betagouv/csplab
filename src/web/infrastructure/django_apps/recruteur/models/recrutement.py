@@ -22,6 +22,7 @@ from domain.recruteur.value_objects.roles import (
     AgentRecrutementRole,
 )
 from infrastructure.django_apps.candidate.models.candidature import CandidatureModel
+from infrastructure.django_apps.messagerie.models import ConversationModel
 from infrastructure.django_apps.recruteur.models.etape import EtapeModel
 from infrastructure.django_apps.recruteur.models.organisme import OrganismeModel
 from infrastructure.django_apps.referentiel.models.offer import OfferModel
@@ -97,6 +98,19 @@ class RecrutementQuerySet(models.QuerySet):
                 filter=Q(etapes__categorie=CategorieEtapeRecrutement.EN_COURS.value),
             ),
         )
+
+    def with_unread_conversations(self, utilisateur_id) -> "RecrutementQuerySet":
+        unread = (
+            ConversationModel.objects.filter(
+                candidature__etape__recrutement=OuterRef("pk")
+            )
+            .unread_by(utilisateur_id)
+            .order_by()
+            .values("candidature__etape__recrutement")
+            .annotate(total=Count("pk"))
+            .values("total")
+        )
+        return self.annotate(unread_conversations=Coalesce(Subquery(unread), 0))
 
     def with_recrute(self) -> "RecrutementQuerySet":
         return self.prefetch_related(
