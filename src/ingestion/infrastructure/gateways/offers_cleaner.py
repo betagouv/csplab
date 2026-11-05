@@ -11,6 +11,7 @@ from referentiel.value_objects.category import Category
 from referentiel.value_objects.contract_kind import ContractKind
 from referentiel.value_objects.country import Country
 from referentiel.value_objects.departement_region import (
+    chef_lieu_department_for_region,
     overseas_region_for_department,
     zone_pour_departement,
 )
@@ -867,25 +868,23 @@ class OffersCleaner:
                 areas, country_code, talentsoft_offer, label
             )
 
-        if not country_code or not region_code or not department_code:
+        if not country_code or not region_code:
             return None
 
         if transcoder:
             region_code = transcoder.translate("regions", region_code) or region_code
-            department_code = (
-                transcoder.translate("departements", department_code) or department_code
-            )
+            if department_code:
+                department_code = (
+                    transcoder.translate("departements", department_code)
+                    or department_code
+                )
 
-        if region_code.startswith("_TS_CO_Region_"):
-            insee_region_code = region_code.replace("_TS_CO_Region_", "")
-        elif region_code.startswith("R"):
-            insee_region_code = region_code.lstrip("R")
-        else:
-            insee_region_code = region_code
-
-        insee_department_code = _TALENTSOFT_DEPARTMENT_CODES.get(
-            department_code, department_code
+        insee_region_code = self._insee_region_code(region_code)
+        insee_department_code = self._insee_department_code(
+            department_code, insee_region_code, talentsoft_offer.reference
         )
+        if insee_department_code is None:
+            return None
 
         latitude, longitude = self._extract_coordinates(talentsoft_offer)
         try:
@@ -913,6 +912,36 @@ class OffersCleaner:
                 e,
             )
             return None
+
+    @staticmethod
+    def _insee_region_code(region_code: str) -> str:
+        if region_code.startswith("_TS_CO_Region_"):
+            return region_code.replace("_TS_CO_Region_", "")
+        if region_code.startswith("R"):
+            return region_code.lstrip("R")
+        return region_code
+
+    @staticmethod
+    def _insee_department_code(
+        department_code: Optional[str], insee_region_code: str, reference: str
+    ) -> Optional[str]:
+        if department_code:
+            return _TALENTSOFT_DEPARTMENT_CODES.get(department_code, department_code)
+
+        try:
+            region = Region(code=insee_region_code)
+        except ValidationError:
+            return None
+        chef_lieu = chef_lieu_department_for_region(region)
+        if chef_lieu is None:
+            return None
+        logger.info(
+            "Offer %s has no department, using chef-lieu %s of region %s",
+            reference,
+            chef_lieu.code,
+            insee_region_code,
+        )
+        return chef_lieu.code
 
     def _map_localisation_abroad(
         self,

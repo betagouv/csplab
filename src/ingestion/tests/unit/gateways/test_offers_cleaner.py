@@ -733,8 +733,75 @@ def test_clean_deduces_area_from_department_when_area_missing(
     assert offer.localisation.department.code == department
 
 
-def test_clean_returns_none_localisation_when_area_and_department_missing(cleaner):
-    raw_offer = _make_raw_offer_without_area(region_code="R24", department_code=None)
+@pytest.mark.parametrize(
+    ("region", "expected_region", "expected_department", "expected_area"),
+    [
+        pytest.param("R44", "44", "67", GeographicalArea.EUROPE, id="grand_est"),
+        pytest.param("R24", "24", "45", GeographicalArea.EUROPE, id="centre"),
+        pytest.param("R94", "94", "2A", GeographicalArea.EUROPE, id="corse"),
+        pytest.param(
+            "_TS_CO_Region_11", "11", "75", GeographicalArea.EUROPE, id="prefixe_ts"
+        ),
+        pytest.param("04", "DOM", "974", GeographicalArea.AFRIQUE, id="la_reunion"),
+    ],
+)
+def test_clean_uses_chef_lieu_when_department_missing(
+    cleaner, region, expected_region, expected_department, expected_area
+):
+    raw_offer = _make_raw_offer_without_area(region_code=region, department_code=None)
+
+    offer = cleaner.clean(raw_offer)
+
+    assert offer.localisation is not None
+    assert str(offer.localisation.country) == "FRA"
+    assert offer.localisation.region.code == expected_region
+    assert offer.localisation.department.code == expected_department
+    assert offer.localisation.area == expected_area
+
+
+def test_clean_uses_chef_lieu_of_transcoded_region_when_department_missing(
+    sources_repository,
+):
+    cleaner = OffersCleaner(
+        sources_repository=sources_repository,
+        transcoders_by_slug={"ars": SourceTranscoder.from_directory(DATA_DIR / "ars")},
+    )
+    raw_offer = _make_raw_offer_without_area(
+        region_code="ARS_CO_Region_Bretagne", department_code=None
+    )
+
+    offer = cleaner.clean(raw_offer)
+
+    assert offer.localisation is not None
+    assert offer.localisation.region.code == "53"
+    assert offer.localisation.department.code == "35"
+
+
+def test_clean_keeps_department_different_from_chef_lieu(cleaner):
+    raw_offer = _make_raw_offer_without_area(region_code="R44", department_code="68")
+
+    offer = cleaner.clean(raw_offer)
+
+    assert offer.localisation is not None
+    assert offer.localisation.department.code == "68"
+
+
+@pytest.mark.parametrize(
+    ("region", "department"),
+    [
+        pytest.param("_TS_CO_Region_DOM", None, id="region_dom"),
+        pytest.param("_TS_CO_Region_TOM", None, id="region_tom"),
+        pytest.param("INVALID_REGION", None, id="region_inconnue"),
+        pytest.param(None, None, id="ni_region_ni_departement"),
+        pytest.param(None, "75", id="departement_sans_region"),
+    ],
+)
+def test_clean_returns_none_localisation_without_department_nor_chef_lieu(
+    cleaner, region, department
+):
+    raw_offer = _make_raw_offer_without_area(
+        region_code=region, department_code=department
+    )
 
     offer = cleaner.clean(raw_offer)
 
