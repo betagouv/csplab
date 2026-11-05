@@ -1,10 +1,9 @@
 from django.conf import settings
 from django.contrib import admin, messages
-from rest_framework_simplejwt.token_blacklist.admin import (
-    OutstandingTokenAdmin as BaseOutstandingTokenAdmin,
-)
-from rest_framework_simplejwt.token_blacklist.models import OutstandingToken
 
+from application.identite.services.deactivate_api_account import (
+    deactivate_api_account,
+)
 from application.identite.services.revoke_api_tokens import revoke_api_tokens
 from infrastructure.django_apps.users.models import (
     AllowedNetworkModel,
@@ -54,7 +53,7 @@ class UserModelAdmin(admin.ModelAdmin):
     readonly_fields = ["username", "id", "date_joined", "last_login", "password"]
     filter_horizontal = ("sources",)
     inlines = (AllowedNetworkInline,)
-    actions = ("revoke_api_tokens",)
+    actions = ("revoke_api_tokens", "deactivate_api_accounts")
 
     def get_queryset(self, request):
         return super().get_queryset(request).avec_restriction_ip()
@@ -85,17 +84,29 @@ class UserModelAdmin(admin.ModelAdmin):
             messages.SUCCESS,
         )
 
-
-admin.site.unregister(OutstandingToken)
-
-
-@admin.register(OutstandingToken)
-class OutstandingTokenAdmin(BaseOutstandingTokenAdmin):
-    exclude = ("token",)
-    search_fields = ("user__email", "jti")
-
-    def get_readonly_fields(self, *args, **kwargs):
-        return [f for f in super().get_readonly_fields(*args, **kwargs) if f != "token"]
+    @admin.action(
+        description="Révoquer les jetons et désactiver le compte",
+        permissions=["change"],
+    )
+    def deactivate_api_accounts(self, request, queryset):
+        if queryset.filter(pk=request.user.pk).exists():
+            self.message_user(
+                request,
+                "Vous ne pouvez pas désactiver votre propre compte.",
+                messages.ERROR,
+            )
+            return
+        revoked = sum(
+            deactivate_api_account(compte=compte, utilisateur=request.user)
+            for compte in queryset
+        )
+        self.message_user(
+            request,
+            f"{len(queryset)} compte(s) désactivé(s), {revoked} jeton(s) de "
+            "rafraîchissement révoqué(s). Plus aucun jeton ne peut être obtenu "
+            "ni utilisé pour ces comptes.",
+            messages.SUCCESS,
+        )
 
 
 @admin.register(ProfilCandidatModel)

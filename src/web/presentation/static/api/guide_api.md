@@ -106,6 +106,10 @@ pouvons révoquer les jetons de rafraîchissement du compte : `POST /api/token/r
 renvoie alors `401 Non autorisé` (code `token_not_valid`). Obtenez un nouveau jeton avec
 `POST /api/token/`. Un jeton d'accès déjà obtenu reste valable jusqu'à son expiration.
 
+En cas de fuite avérée, nous pouvons aussi désactiver le compte : l'obtention d'un jeton,
+son rafraîchissement et chaque appel avec un jeton déjà obtenu sont alors refusés
+(`401 Non autorisé`) jusqu'à sa réactivation.
+
 
 
 ## Limitations d'usage (quotas)

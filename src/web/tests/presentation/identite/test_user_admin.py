@@ -6,10 +6,7 @@ from django.test import Client
 from django.urls import reverse
 from django_otp import DEVICE_ID_SESSION_KEY
 from django_otp.plugins.otp_totp.models import TOTPDevice
-from rest_framework_simplejwt.token_blacklist.models import (
-    BlacklistedToken,
-    OutstandingToken,
-)
+from rest_framework_simplejwt.token_blacklist.models import BlacklistedToken
 from rest_framework_simplejwt.tokens import RefreshToken
 
 import config.urls  # noqa: F401  # imported for its side effect: runs the OTPAdminSite swap
@@ -123,16 +120,39 @@ class TestUserAdminRevokeApiTokens:
             "Les jetons d&#x27;accès déjà émis restent valables 15 minutes au plus."
         ) in response.text
 
-    def test_hides_the_stored_token_on_the_outstanding_token_page(self, admin_client):
-        token = RefreshToken.for_user(UtilisateurDjangoFactory())
+    def test_deactivates_the_selected_accounts(self, admin_client):
+        compte = UtilisateurDjangoFactory()
+        RefreshToken.for_user(compte)
 
-        response = admin_client.get(
-            reverse(
-                "admin:token_blacklist_outstandingtoken_change",
-                args=[OutstandingToken.objects.get().pk],
-            )
+        response = admin_client.post(
+            reverse("admin:users_usermodel_changelist"),
+            {"action": "deactivate_api_accounts", "_selected_action": [compte.pk]},
+            follow=True,
         )
 
-        assert response.status_code == HTTPStatus.OK
-        assert token["jti"] in response.text
-        assert str(token) not in response.text
+        compte.refresh_from_db()
+        assert not compte.is_active
+        assert BlacklistedToken.objects.count() == 1
+        assert AuditLogModel.objects.get().event_name == "CompteApiDesactive"
+        assert (
+            "1 compte(s) désactivé(s), 1 jeton(s) de rafraîchissement révoqué(s)."
+            in response.text
+        )
+
+    def test_refuses_to_deactivate_the_current_admin(self, admin_client):
+        admin_user = UserModel.objects.get(is_superuser=True)
+        compte = UtilisateurDjangoFactory()
+
+        response = admin_client.post(
+            reverse("admin:users_usermodel_changelist"),
+            {
+                "action": "deactivate_api_accounts",
+                "_selected_action": [compte.pk, admin_user.pk],
+            },
+            follow=True,
+        )
+
+        compte.refresh_from_db()
+        assert compte.is_active
+        assert not AuditLogModel.objects.exists()
+        assert "Vous ne pouvez pas désactiver votre propre compte." in response.text

@@ -10,3 +10,6 @@ Les jetons de rafraîchissement d'un compte partenaire peuvent être révoqués 
 CSPLab, par exemple après un accès depuis une adresse IP non autorisée.
 `POST /api/token/refresh` renvoie alors `401` avec le code `token_not_valid` : il faut
 obtenir un nouveau jeton avec `POST /api/token`.
+
+En cas de fuite avérée, le compte peut aussi être désactivé : toute requête du compte
+renvoie alors `401`, jetons déjà obtenus compris.
