@@ -348,7 +348,9 @@ class Filters:
         errors = []
         types = query.getlist("type")
         if any(t not in TYPES for t in types):
-            errors.append(f"`type` inconnu. Valeurs possibles : {', '.join(TYPES)}.")
+            errors.append(
+                f"`type` : valeur inconnue. Valeurs possibles : {', '.join(TYPES)}."
+            )
         route = (query.get("route") or "").strip().rstrip("/")
         if route and route not in routes:
             errors.append(

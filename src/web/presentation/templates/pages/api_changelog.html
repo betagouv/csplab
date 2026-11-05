@@ -71,7 +71,7 @@
             <div class="fr-col-12 fr-col-md-9">
                 {% if filters.errors %}
                     <div class="fr-alert fr-alert--warning fr-alert--sm fr-mb-3w" role="alert">
-                        <p>Filtre ignoré : {{ filters.errors|join:" " }}</p>
+                        <p>Valeur de filtre ignorée : {{ filters.errors|join:" " }}</p>
                     </div>
                 {% endif %}
                 <p role="status">
@@ -91,7 +91,7 @@
                                 <p class="fr-mb-1w">
                                     <span class="fr-badge fr-badge--sm {{ entry.badge }} fr-mr-1w">{{ entry.label }}</span>
                                     <a class="fr-link fr-link--sm"
-                                       href="#{{ entry.slug }}">Lien vers ce changement<span class="fr-sr-only"> : {{ entry.slug }}</span></a>
+                                       href="{% url 'pages:api_changelog' %}#{{ entry.slug }}">Lien permanent vers ce changement<span class="fr-sr-only"> : {{ entry.slug }}</span></a>
                                 </p>
                                 {{ entry.html|safe }}
                             </article>

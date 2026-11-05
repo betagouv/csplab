@@ -38,6 +38,14 @@ class TestApiChangelogView:
         assert day_ids
         assert len(day_ids) == len(set(day_ids))
 
+    def test_permalink_points_to_the_unfiltered_page(self, db, client: Client):
+        response = client.get(reverse("pages:api_changelog"), {"type": "retire"})
+
+        content = response.content.decode()
+        match = re.search(r'<article id="([^"]+)"', content)
+        assert match
+        assert f'href="{reverse("pages:api_changelog")}#{match[1]}"' in content
+
     def test_filters(self, db, client: Client):
         response = client.get(
             reverse("pages:api_changelog"),
@@ -61,7 +69,21 @@ class TestApiChangelogView:
         assert response.status_code == HTTPStatus.OK
         assert response.context["count"] == response.context["total"]
         content = response.content.decode()
-        assert "Filtre ignoré" in content
+        assert "Valeur de filtre ignorée" in content
+        assert "zzz-injecte" not in content
+
+    def test_keeps_the_valid_types_of_a_partially_invalid_query(
+        self, db, client: Client
+    ):
+        response = client.get(
+            reverse("pages:api_changelog"), {"type": ["retire", "zzz-injecte"]}
+        )
+
+        content = response.content.decode()
+        assert response.context["count"] < response.context["total"]
+        checked = [t["value"] for t in response.context["types"] if t["checked"]]
+        assert checked == ["retire"]
+        assert "Valeur de filtre ignorée" in content
         assert "zzz-injecte" not in content
 
 

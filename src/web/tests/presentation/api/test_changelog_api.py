@@ -281,14 +281,25 @@ class TestFilters:
         assert not filters.active
         assert filters.errors == (
             (
-                "`type` inconnu. Valeurs possibles : non_retrocompatible, ajoute, "
-                "modifie, corrige, retire."
+                "`type` : valeur inconnue. Valeurs possibles : non_retrocompatible, "
+                "ajoute, modifie, corrige, retire."
             ),
             (
                 "`route` n'est citée par aucun changement. Valeurs possibles : "
                 "GET /api/v1/metiers, GET /api/v1/offres."
             ),
             "`depuis` doit être une date AAAA-MM-JJ.",
+        )
+
+    def test_keeps_the_valid_types_of_a_partially_invalid_query(self):
+        filters = Filters.from_query(QueryDict("type=ajoute&type=autre"), self.ROUTES)
+
+        assert filters == Filters(types=frozenset({"ajoute"}))
+        assert filters.errors == (
+            (
+                "`type` : valeur inconnue. Valeurs possibles : non_retrocompatible, "
+                "ajoute, modifie, corrige, retire."
+            ),
         )
 
     def test_apply(self, tmp_path):
