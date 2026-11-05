@@ -7,7 +7,6 @@ import CspAsyncSection from '@/components/base/CspAsyncSection/CspAsyncSection.v
 import CspSkeletonKanban from '@/components/base/CspSkeleton/CspSkeletonKanban.vue'
 import { useMinimumPending } from '@/composables/async/useMinimumPending'
 import { markKanbanCardMoved } from '@/composables/dnd/useKanbanDnd'
-import { useRecrutementDetail } from '@/features/recrutements/composables/useRecrutementDetail'
 import { pluralize } from '@/utils/format'
 import CandidaturesKanbanBoard from '../components/CandidaturesKanbanBoard.vue'
 import ChangerEtapeDrawer from '../components/ChangerEtapeDrawer.vue'
@@ -30,7 +29,7 @@ const props = defineProps<{
 const liste = useQuery(() => candidatureListeQuery(props))
 const candidatureKanban = computed(() => liste.data.value ? groupCandidaturesByEtape(liste.data.value) : [])
 
-const { etapes: recrutementEtapes } = useRecrutementDetail(() => props)
+const recrutementEtapes = computed(() => liste.data.value?.etapes ?? [])
 
 const { changeEtape } = useEtapeChangeMutation(() => props)
 

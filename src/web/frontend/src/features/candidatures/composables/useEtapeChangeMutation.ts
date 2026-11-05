@@ -7,7 +7,6 @@ import { useMutation, useQueryCache } from '@pinia/colada'
 import { toValue } from 'vue'
 import { candidatureKeys, recrutementKeys } from '@/api/queryKeys'
 import { useToast } from '@/composables/ui/useToast'
-import { recrutementDetailQuery } from '@/features/recrutements/queries'
 import { patchEtapeCandidatures } from '../api'
 import { formatEtapeChangeTitle } from '../format'
 import { candidatureDetailQuery, candidatureListeQuery } from '../queries'
@@ -45,7 +44,7 @@ export function useEtapeChangeMutation(recrutement: MaybeRefOrGetter<Recrutement
   }
 
   function findEtapeCible(params: RecrutementParams, etapeCibleUuid: string) {
-    return queryCache.getQueryData(recrutementDetailQuery(params).key)?.etapes.find(etape => etape.uuid === etapeCibleUuid)
+    return queryCache.getQueryData(candidatureListeQuery(params).key)?.etapes.find(etape => etape.uuid === etapeCibleUuid)
   }
 
   const mutation = useMutation({

@@ -1,8 +1,9 @@
 import type { MaybeRefOrGetter, Ref } from 'vue'
 import type { CandidatureDetail, MotifRefus } from '../types'
 import type { RecrutementParams } from '@/api/params'
-import { toValue } from 'vue'
-import { useRecrutementDetail } from '@/features/recrutements/composables/useRecrutementDetail'
+import { useQuery } from '@pinia/colada'
+import { computed, toValue } from 'vue'
+import { candidatureListeQuery } from '../queries'
 import { useEtapeChangeMutation } from './useEtapeChangeMutation'
 import { useRefusCandidature } from './useRefusCandidature'
 
@@ -11,7 +12,8 @@ export function useEtapeChange(
   candidature: Ref<CandidatureDetail | undefined>,
   leaveMovedCandidature: () => void,
 ) {
-  const { etapes: recrutementEtapes } = useRecrutementDetail(recrutement)
+  const liste = useQuery(() => candidatureListeQuery(toValue(recrutement)))
+  const recrutementEtapes = computed(() => liste.data.value?.etapes ?? [])
   const { changeEtape } = useEtapeChangeMutation(recrutement)
   const refus = useRefusCandidature(() => toValue(recrutement).organismeUuid, recrutementEtapes)
 
