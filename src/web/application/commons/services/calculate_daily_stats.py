@@ -1,13 +1,14 @@
 from datetime import date
 
+from infrastructure.django_apps.commons.enums import Metric
 from infrastructure.django_apps.commons.models import StatSnapshotModel
 from infrastructure.django_apps.referentiel.models.offer import OfferModel
 
 
 def calculate_daily_stats(target_date: date) -> None:
     metrics = {
-        "nb_published_offers": OfferModel.objects.actives().count(),
-        "nb_archived_offers": OfferModel.objects.archived().count(),
+        Metric.PUBLISHED_OFFERS: OfferModel.objects.actives().count(),
+        Metric.ARCHIVED_OFFERS: OfferModel.objects.archived().count(),
     }
     StatSnapshotModel.objects.bulk_create(
         [
