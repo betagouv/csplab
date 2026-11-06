@@ -5,9 +5,15 @@ import { createPinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { defineComponent, h } from 'vue'
 import { createMemoryHistory, createRouter } from 'vue-router'
+import { getOrganismeDetail } from '@/api/organismes'
 import { getMe } from '@/api/utilisateur'
 import { routes } from '@/router/routes'
+import { ORGANISME_DETAIL } from '@/test/fixtures/organismes'
 import { useRouteOrganisme } from './routeOrganisme'
+
+vi.mock('@/api/organismes', () => ({
+  getOrganismeDetail: vi.fn(),
+}))
 
 const MTE = 'a1a1a1a1-a1a1-a1a1-a1a1-a1a1a1a1a1a1'
 const BRIANCON = 'b2b2b2b2-b2b2-b2b2-b2b2-b2b2b2b2b2b2'
@@ -26,7 +32,7 @@ function makeUser(
     prenom: 'Marie',
     nom: 'Dupont',
     is_staff: isStaff,
-    authorized_actions: [],
+    authorized_actions: isStaff ? ['list_organismes'] : [],
     organismes,
     organisme_roles: organismeRoles,
   }
@@ -55,6 +61,7 @@ async function mountAt(path: string) {
 describe('useRouteOrganisme', () => {
   beforeEach(() => {
     vi.mocked(getMe).mockReset()
+    vi.mocked(getOrganismeDetail).mockReset()
   })
 
   it('takes the organisme from the url', async () => {
@@ -75,16 +82,30 @@ describe('useRouteOrganisme', () => {
     expect(routeOrganismeUuid.value).toBeNull()
   })
 
-  it('lets a staff user manage an organisme they hold no role on', async () => {
+  it('reads the actions of an organisme a staff user holds no role on from its detail', async () => {
     vi.mocked(getMe).mockResolvedValue(makeUser([], true))
+    vi.mocked(getOrganismeDetail).mockResolvedValue({ ...ORGANISME_DETAIL, uuid: INCONNU, authorized_actions: ['list_organisme_agents'] })
 
     const { organismeUuid, organisme, canOnOrganisme } = await mountAt(
       `/organismes/${INCONNU}/recrutements`,
     )
 
     await vi.waitFor(() => expect(canOnOrganisme('list_organisme_agents')).toBe(true))
+    expect(canOnOrganisme('set_recrutements_responsable')).toBe(false)
+    expect(getOrganismeDetail).toHaveBeenCalledWith({ organismeUuid: INCONNU })
     expect(organismeUuid.value).toBe(INCONNU)
     expect(organisme.value).toBeNull()
+  })
+
+  it('does not read the detail of an organisme the staff user belongs to', async () => {
+    vi.mocked(getMe).mockResolvedValue(makeUser([ROLE_MTE], true, [
+      { uuid: MTE, nom: ROLE_MTE.nom, authorized_actions: ['list_organisme_agents'] },
+    ]))
+
+    const { canOnOrganisme } = await mountAt(`/organismes/${MTE}/recrutements`)
+
+    await vi.waitFor(() => expect(canOnOrganisme('list_organisme_agents')).toBe(true))
+    expect(getOrganismeDetail).not.toHaveBeenCalled()
   })
 
   it('reads the authorized actions of the organisme in the url', async () => {
