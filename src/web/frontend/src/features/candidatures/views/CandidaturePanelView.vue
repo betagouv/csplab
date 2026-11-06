@@ -23,6 +23,7 @@ import { useRouteTab } from '@/composables/navigation/useRouteTab'
 import { useUnsavedChangesGuard } from '@/composables/navigation/useUnsavedChanges'
 import { useDocumentTitle } from '@/composables/ui/useDocumentTitle'
 import MessagesSection from '@/features/messages/components/MessagesSection.vue'
+import { can } from '@/utils/authorizedActions'
 import CandidatureActivites from '../components/CandidatureActivites.vue'
 import CandidatureCv from '../components/CandidatureCv.vue'
 import CandidatureDocuments from '../components/CandidatureDocuments.vue'
@@ -64,6 +65,7 @@ const description = computed(() => candidature.value?.recrutement_intitule || nu
 const metaItems = computed(() => candidature.value ? formatCandidatureMeta(candidature.value) : [])
 
 const etape = computed(() => candidature.value?.etape_actuelle ?? null)
+const canChangeEtape = computed(() => can(candidature.value?.authorized_actions, 'change_etape_candidatures'))
 const navigation = useCandidatureNavigation(() => props.candidatureUuid)
 const { position, goPrevious, goNext } = navigation
 
@@ -154,7 +156,7 @@ function handleUpdateOpen(open: boolean): void {
     @update:open="handleUpdateOpen"
   >
     <template
-      v-if="candidature && etape"
+      v-if="candidature && etape && canChangeEtape"
       #end
     >
       <ChangerEtapePopover
@@ -303,6 +305,7 @@ function handleUpdateOpen(open: boolean): void {
                 <CandidatureMotifRefus
                   v-if="candidature.motif_refus"
                   :motif="candidature.motif_refus.label"
+                  :editable="canChangeEtape"
                   @edit="motifRefusDialogOpen = true"
                 />
                 <CandidatureActivites

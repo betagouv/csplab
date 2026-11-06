@@ -131,6 +131,25 @@ describe('candidaturesKanbanView', () => {
     expect(screen.getByRole('radio', { name: /Liste/ })).toBeInTheDocument()
   })
 
+  it('offers no selection without the right to change stages', async () => {
+    vi.mocked(getRecrutementDetail).mockResolvedValue({ ...RECRUTEMENT_DETAIL, authorized_actions: [] })
+    await renderKanbanPage()
+
+    await screen.findByRole('link', { name: 'Alice Dupont' })
+    expect(screen.queryAllByRole('checkbox', { name: /^Sélectionner la colonne/ })).toEqual([])
+  })
+
+  it.each([
+    { cas: 'with', actions: ['change_etape_candidatures'] as const, draggable: 'true' },
+    { cas: 'without', actions: [] as const, draggable: null },
+  ])('lets the cards be dragged only $cas the right to change stages', async ({ actions, draggable }) => {
+    vi.mocked(getRecrutementDetail).mockResolvedValue({ ...RECRUTEMENT_DETAIL, authorized_actions: [...actions] })
+    await renderKanbanPage()
+
+    const card = (await screen.findByRole('link', { name: 'Alice Dupont' })).closest('article')
+    await vi.waitFor(() => expect(card?.getAttribute('draggable') ?? null).toBe(draggable))
+  })
+
   it('asks for a motif before refusing a selection, and sends it', async () => {
     const { user, dialog } = await refuseSelectedColumn()
 
