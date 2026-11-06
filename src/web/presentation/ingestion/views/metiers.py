@@ -1,3 +1,5 @@
+import logging
+
 from drf_spectacular.utils import extend_schema, inline_serializer
 from rest_framework import serializers as drf_serializers
 from rest_framework import status
@@ -6,8 +8,8 @@ from rest_framework.exceptions import ValidationError as DRFValidationError
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from application.ingestion.interfaces.list_metiers_input import GetFilteredMetiersInput
-from infrastructure.di.ingestion.ingestion_factory import create_ingestion_container
+from application.ingestion.services.list_metiers import list_metiers
+from config.logger_names import LoggerName
 from presentation.api.authentication import PublicApiMixin
 from presentation.api.serializers import GenericErrorSerializer, TokenErrorSerializer
 from presentation.commons.pagination import TaillePageNumberPagination
@@ -19,6 +21,8 @@ from presentation.ingestion.serializers import (
     ListMetiersFiltersSerializer,
     ListMetiersResponseSerializer,
 )
+
+logger = logging.getLogger(LoggerName.INGESTION.value)
 
 
 @extend_schema(
@@ -41,22 +45,12 @@ from presentation.ingestion.serializers import (
 class MetiersListView(PublicApiMixin, APIView):
     serializer_class = ListMetiersResponseSerializer
     pagination_class = TaillePageNumberPagination
-    usecase = None
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.container = create_ingestion_container()
-        self.logger = self.container.logger_service()
-        if self.usecase is None:
-            self.usecase = self.container.list_metiers_usecase()
 
     def get(self, request):
         try:
             filters = ListMetiersFiltersSerializer(data=self.request.query_params)
             filters.is_valid(raise_exception=True)
-            input_data = GetFilteredMetiersInput(**filters.validated_data)
-
-            result = self.usecase.execute(input_data)
+            result = list_metiers(**filters.validated_data)
 
             paginator = TaillePageNumberPagination()
             items = paginator.paginate_queryset(result, request, view=self)
@@ -72,7 +66,7 @@ class MetiersListView(PublicApiMixin, APIView):
         except NotFound:
             raise
         except Exception as e:
-            self.logger.error("Unexpected error in MetiersListView: %s", str(e))
+            logger.error("Unexpected error in MetiersListView: %s", str(e))
             serializer = GenericErrorSerializer({"error": "Unexpected error"})
             return Response(
                 serializer.data, status=status.HTTP_500_INTERNAL_SERVER_ERROR

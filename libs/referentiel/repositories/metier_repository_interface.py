@@ -1,7 +1,5 @@
 from typing import Dict, List, Protocol
 
-from ddd.page_interface import IPage
-
 from referentiel.entities.metier import Metier
 from referentiel.entities.offer import Offer
 from referentiel.types import IUpsertResult
@@ -16,8 +14,6 @@ class IMetierRepository(Protocol):
     def get_by_external_id(self, external_id: str) -> Metier: ...
 
     def get_all(self) -> List[Metier]: ...
-
-    def get_filtered_slice(self, predicate: IPredicate) -> IPage[Metier]: ...
 
     def get_filtered(
         self, predicate: IPredicate
