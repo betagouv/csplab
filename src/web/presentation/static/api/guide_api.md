@@ -496,10 +496,18 @@ Exemple :
 ## 5. Consulter les métiers — `GET /api/v1/metiers/`
 
 Retourne la liste **paginée** des métiers de la Fonction Publique (paramètres `page`
-et `taille`, mêmes règles que pour la liste des offres). On peut filtrer par
-**code de domaine fonctionnel** grâce au paramètre `domaine`.
+et `taille`, mêmes règles que pour la liste des offres). La liste est triée par
+`code_emploi_csp`, puis par identifiant : l'ordre ne change pas d'un appel à l'autre.
+Sans filtre, tous les métiers sont renvoyés, actifs ou archivés.
 
-> **Contrainte du filtre `domaine` :** texte de **1 à 3 caractères** (ex. `AMT`, `AGR`).
+Les filtres se combinent : un métier n'est renvoyé que s'il les respecte tous.
+
+| Filtre | Signification |
+|---|---|
+| `domaine` | Un ou plusieurs codes de domaine fonctionnel séparés par une virgule (ex. `JUS,CTL`). Un code inconnu est refusé (`400`). Voir l'annexe [Domaine fonctionnel](#domaine-fonctionnel-referentiel-rmfpv2). |
+| `code_emploi_csp` | Un ou plusieurs codes séparés par une virgule (ex. `ERJUS008,ERNUM001`) : retrouve les métiers d'un code sans lire tout le référentiel. |
+| `actif` | `true` : métiers actifs seulement ; `false` : métiers archivés seulement. Absent, renvoie les deux. |
+| `versant` | `FPE`, `FPT` ou `FPH` : métiers ouverts à ce versant. |
 
 Chaque métier renvoyé contient :
 
@@ -512,6 +520,8 @@ Chaque métier renvoyé contient :
 | `activites` | Liste des activités (peut être vide) |
 | `conditions_particulieres` | Conditions particulières (peut être vide) |
 | `code_emploi_csp` | Code CSP du RMFP, à renseigner dans `profession.metier` lors de l'envoi d'une offre. Plusieurs métiers peuvent partager le même code. Toujours renseigné. |
+| `actif` | `true` si le métier est actif, `false` s'il est archivé. |
+| `referentiel` | Référentiel du `code_emploi_csp` (`RMFPv2`), à renseigner dans `profession.referentiel` lors de l'envoi d'une offre. |
 
 
 

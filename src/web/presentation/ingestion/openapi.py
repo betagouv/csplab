@@ -352,12 +352,16 @@ LIST_METIERS_DESCRIPTION = (
     """
 # API de consultation des métiers de la Fonction Publique
 
-Cette API retourne la liste paginée des métiers. Les métiers peuvent être filtrés
-selon leur code de domaine fonctionnel (`domaine`).
+Cette API retourne la liste paginée des métiers, triée par `code_emploi_csp`
+puis par identifiant : l'ordre ne change pas d'un appel à l'autre. Les métiers
+peuvent être filtrés selon leur domaine fonctionnel (`domaine`), leur code
+(`code_emploi_csp`), leur statut (`actif`) et leur versant (`versant`). Sans
+filtre, tous les métiers sont renvoyés, actifs ou archivés.
 
 Le champ `code_emploi_csp` d'un métier est la valeur à renseigner dans
-`profession.metier` de l'API d'ingestion d'offres. Ce code vient du RMFP
-(« Code CSP ») : plusieurs métiers peuvent partager le même code.
+`profession.metier` de l'API d'ingestion d'offres, et `referentiel` celle de
+`profession.referentiel`. Ce code vient du RMFP (« Code CSP ») : plusieurs
+métiers peuvent partager le même code.
 
 """
     + _API_COMMON_FOOTER
@@ -393,15 +397,18 @@ LIST_METIERS_EXAMPLES = [
             ],
             "conditions_particulieres": [],
             "code_emploi_csp": "ERAMT001",
+            "actif": True,
+            "referentiel": "RMFPv2",
         },
         response_only=True,
         status_codes=["200"],
     ),
     OpenApiExample(
         "Success - filtered",
-        summary="Liste des métiers correspondants à un code domaine fonctionnel",
+        summary="Liste des métiers filtrés",
         description=(
-            "Les métiers possédant ce code domaine fonctionnel sont retournés paginés"
+            "Les métiers correspondant à tous les filtres sont retournés paginés "
+            "(ex. `?domaine=AGR,ENV&versant=FPE&actif=true`)"
         ),
         value={
             "libelle": "Personne ressource en santé et protection animales",
@@ -426,6 +433,8 @@ LIST_METIERS_EXAMPLES = [
             ],
             "conditions_particulieres": ["Déplacements nationaux et internationaux"],
             "code_emploi_csp": "ERAGR001",
+            "actif": True,
+            "referentiel": "RMFPv2",
         },
         response_only=True,
         status_codes=["200"],
