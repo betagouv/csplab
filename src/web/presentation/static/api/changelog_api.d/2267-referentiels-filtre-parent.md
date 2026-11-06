@@ -1,5 +1,5 @@
 ---
-titre: "fake-ts : référentiels filtrables par parentCode"
+titre: "fake-ts : référentiels filtrables par `parentCode`"
 type: ajoute
 date: 2026-11-04
 pr: 2270

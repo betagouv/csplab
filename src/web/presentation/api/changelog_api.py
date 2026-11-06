@@ -53,7 +53,7 @@ Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/).
 
 _FIELDS = {"titre", "type", "date", "pr", "liens"}
 TITLE_MAX_LENGTH = 80
-_TITLE_MARKUP = re.compile(r"[`*\n]")
+_TITLE_MARKUP = re.compile(r"[*\n]")
 _DATE_FORMAT = re.compile(r"\d{4}-\d{2}-\d{2}")
 _FRONT_MATTER = re.compile(r"\A---\n(.*?)\n---\n(.*)\Z", re.DOTALL)
 _SUBSECTION = re.compile(r"^### (.+)$", re.MULTILINE)
@@ -183,7 +183,9 @@ def _title_errors(titre: Any) -> list[str]:
             f"`titre` dépasse {TITLE_MAX_LENGTH} caractères ({len(titre.strip())})"
         )
     if _TITLE_MARKUP.search(titre.strip()):
-        errors.append("`titre` ne contient ni backtick, ni `*`, ni retour à la ligne")
+        errors.append("`titre` ne contient ni `*` ni retour à la ligne")
+    if titre.count("`") % 2:
+        errors.append("`titre` a un backtick non refermé")
     if "/api/" in titre:
         errors.append("`titre` ne cite pas de route, le corps les cite")
     return errors

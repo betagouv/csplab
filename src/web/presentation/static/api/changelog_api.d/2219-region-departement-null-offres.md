@@ -1,5 +1,5 @@
 ---
-titre: "Lecture des offres : region et departement à null hors de France"
+titre: "Lecture des offres : `region` et `departement` à `null` hors de France"
 type: non_retrocompatible
 date: 2026-11-03
 pr: 2236

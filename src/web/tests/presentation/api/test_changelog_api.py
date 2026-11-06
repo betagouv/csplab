@@ -138,8 +138,8 @@ class TestParseFragment:
             (None, "`titre` est obligatoire"),
             ("  ", "`titre` est obligatoire"),
             ("x" * 81, "`titre` dépasse 80 caractères"),
-            ("Offres : `localisation` devient une liste", "ni backtick"),
-            ("Offres : **50** lieux au plus", "ni backtick"),
+            ("Offres : `localisation devient une liste", "backtick non refermé"),
+            ("Offres : **50** lieux au plus", "ni `*`"),
             ("Offres : POST /api/v1/offres/creer_modifier", "ne cite pas de route"),
         ],
     )
@@ -154,10 +154,12 @@ class TestParseFragment:
         with pytest.raises(FragmentError, match=message):
             parse_fragment(path)
 
-    def test_accepts_a_field_name_without_backticks(self, tmp_path):
-        result = fragment(tmp_path, titre="fake-ts : salaryRange devient un objet codé")
+    def test_accepts_a_field_name_in_backticks(self, tmp_path):
+        result = fragment(
+            tmp_path, titre="fake-ts : `salaryRange` devient un objet codé"
+        )
 
-        assert result.titre == "fake-ts : salaryRange devient un objet codé"
+        assert result.titre == "fake-ts : `salaryRange` devient un objet codé"
 
     @pytest.mark.parametrize(
         "body, message",
