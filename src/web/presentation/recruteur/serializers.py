@@ -186,9 +186,8 @@ class UnreadConversationsSerializer(serializers.Serializer):
         return 0
 
 
-class RecrutementsSerializer(
-    UnreadConversationsSerializer, serializers.ModelSerializer
-):
+class RecrutementsSerializer(serializers.ModelSerializer):
+    unread_conversations = serializers.IntegerField(read_only=True)
     uuid = serializers.UUIDField(source="offre_id")
     intitule = serializers.CharField(source="offre.title")
     reference_csp = serializers.CharField(source="offre.code_emploi_csp")

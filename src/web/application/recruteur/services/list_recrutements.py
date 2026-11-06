@@ -57,6 +57,7 @@ def list_actives_recrutements(
         .actives()
         .with_responsables()
         .with_compteurs_candidatures()
+        .with_unread_conversations(utilisateur.username)
         .order_by("offre_id")
     )
 
@@ -69,5 +70,6 @@ def list_archived_recrutements(
         .archived()
         .with_responsables()
         .with_recrute()
+        .with_unread_conversations(utilisateur.username)
         .order_by("offre_id")
     )
