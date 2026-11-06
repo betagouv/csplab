@@ -1996,12 +1996,16 @@ paths:
 
         # API de consultation des métiers de la Fonction Publique
 
-        Cette API retourne la liste paginée des métiers. Les métiers peuvent être filtrés
-        selon leur code de domaine fonctionnel (`domaine`).
+        Cette API retourne la liste paginée des métiers, triée par `code_emploi_csp`
+        puis par identifiant : l'ordre ne change pas d'un appel à l'autre. Les métiers
+        peuvent être filtrés selon leur domaine fonctionnel (`domaine`), leur code
+        (`code_emploi_csp`), leur statut (`actif`) et leur versant (`versant`). Sans
+        filtre, tous les métiers sont renvoyés, actifs ou archivés.
 
         Le champ `code_emploi_csp` d'un métier est la valeur à renseigner dans
-        `profession.metier` de l'API d'ingestion d'offres. Ce code vient du RMFP
-        (« Code CSP ») : plusieurs métiers peuvent partager le même code.
+        `profession.metier` de l'API d'ingestion d'offres, et `referentiel` celle de
+        `profession.referentiel`. Ce code vient du RMFP (« Code CSP ») : plusieurs
+        métiers peuvent partager le même code.
 
 
         Cette API est à l'usage exclusif des personnes autorisées.
@@ -2017,11 +2021,85 @@ paths:
       summary: Liste des métiers
       parameters:
       - in: query
-        name: domaine
+        name: actif
+        schema:
+          type: boolean
+          nullable: true
+        description: '`true` pour les seuls métiers actifs, `false` pour les seuls
+          métiers archivés. Absent, renvoie les deux.'
+      - in: query
+        name: code_emploi_csp
         schema:
           type: string
-          maxLength: 3
           minLength: 1
+        description: Valeurs séparées par une virgule (ex. `ERJUS008,ERNUM001`).
+      - in: query
+        name: domaine
+        schema:
+          type: array
+          items:
+            enum:
+            - ACH
+            - AGR
+            - AMT
+            - ASP
+            - BAT
+            - COM
+            - CTL
+            - CUL
+            - DEF
+            - DIR
+            - DOC
+            - ENS
+            - ENV
+            - FIP
+            - GBF
+            - GRH
+            - INT
+            - JUR
+            - JUS
+            - LOG
+            - MED
+            - NUM
+            - RCH
+            - REN
+            - SAN
+            - SEC
+            - SOC
+            - TRA
+            - USA
+            type: string
+            description: |-
+              * `ACH` - Achat
+              * `AGR` - Agriculture
+              * `AMT` - Aménagement et développement durable du territoire
+              * `ASP` - Animation, jeunesse et sports
+              * `BAT` - Bâtiment
+              * `COM` - Communication
+              * `CTL` - Organisation, contrôle et évaluation
+              * `CUL` - Culture et Patrimoine
+              * `DEF` - Défense
+              * `DIR` - Direction et pilotage des politiques publiques
+              * `DOC` - Lecture publique et Documentation
+              * `ENS` - Enseignement et Formation
+              * `ENV` - Environnement
+              * `FIP` - Finances publiques
+              * `GBF` - Gestion budgétaire et financière
+              * `GRH` - Ressources humaines
+              * `INT` - International
+              * `JUR` - Affaires juridiques
+              * `JUS` - Justice
+              * `LOG` - Interventions techniques et logistiques
+              * `MED` - Médical et paramédical
+              * `NUM` - Numérique
+              * `RCH` - Recherche
+              * `REN` - Renseignement
+              * `SAN` - Prévention, conseil et pilotage en santé
+              * `SEC` - Sécurité
+              * `SOC` - Social, enfance et famille
+              * `TRA` - Transports
+              * `USA` - Relation à l'usager
+        description: Valeurs séparées par une virgule (ex. `JUS,CTL`).
       - name: page
         required: false
         in: query
@@ -2039,6 +2117,21 @@ paths:
           default: 100
           minimum: 1
           maximum: 1000
+      - in: query
+        name: versant
+        schema:
+          enum:
+          - FPT
+          - FPE
+          - FPH
+          type: string
+          minLength: 1
+        description: |-
+          Métiers ouverts à ce versant de la fonction publique.
+
+          * `FPT` - FPT
+          * `FPE` - FPE
+          * `FPH` - FPH
       tags:
       - metiers
       security:
@@ -2073,6 +2166,8 @@ paths:
                         interlocuteurs
                       conditions_particulieres: []
                       code_emploi_csp: ERAMT001
+                      actif: true
+                      referentiel: RMFPv2
                   summary: Liste de tous les métiers
                   description: Les métiers sont retournés paginés
                 Success-Filtered:
@@ -2097,9 +2192,11 @@ paths:
                       conditions_particulieres:
                       - Déplacements nationaux et internationaux
                       code_emploi_csp: ERAGR001
-                  summary: Liste des métiers correspondants à un code domaine fonctionnel
-                  description: Les métiers possédant ce code domaine fonctionnel sont
-                    retournés paginés
+                      actif: true
+                      referentiel: RMFPv2
+                  summary: Liste des métiers filtrés
+                  description: Les métiers correspondant à tous les filtres sont retournés
+                    paginés (ex. `?domaine=AGR,ENV&versant=FPE&actif=true`)
           description: ''
           headers:
             X-RateLimit-Limit:
@@ -6244,13 +6341,22 @@ components:
           description: Code CSP du RMFP, à renseigner dans `profession.metier` de
             l'API d'ingestion d'offres. Plusieurs métiers peuvent partager le même
             code. Toujours renseigné.
+        actif:
+          type: boolean
+          description: '`true` si le métier est actif, `false` s''il est archivé.'
+        referentiel:
+          type: string
+          description: Référentiel du `code_emploi_csp` (`RMFPv2`), à renseigner dans
+            `profession.referentiel` de l'API d'ingestion d'offres.
       required:
+      - actif
       - activites
       - code_emploi_csp
       - conditions_particulieres
       - description
       - domaine_fonctionnel_code
       - libelle
+      - referentiel
       - versants
     ListOffersNotFound:
       type: object

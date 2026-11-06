@@ -1,3 +1,4 @@
+from datetime import UTC, datetime
 from unittest.mock import patch
 from urllib.parse import parse_qs, urlparse
 
@@ -11,6 +12,7 @@ from infrastructure.factories.referentiel.metier_django_factory import (
 )
 
 URL = reverse("ingestion:metiers_list")
+NOW = datetime.now(UTC)
 
 NOMBRE_REQUETES_ATTENDU = (
     1  # authentification JWT
@@ -70,22 +72,79 @@ def test_response_matches_db_record_field_by_field(jwt_client):
             "activites": metier.activites,
             "conditions_particulieres": metier.conditions_particulieres,
             "code_emploi_csp": metier.offer_family_code,
+            "actif": True,
+            "referentiel": "RMFPv2",
         }
     ]
 
 
-def test_filters_by_domain(jwt_client):
-    MetierDjangoFactory(domaine_fonctionnel_code="TRA", offer_family_code="ERTRA001")
-    MetierDjangoFactory(domaine_fonctionnel_code="JUR", offer_family_code="ERJUR001")
+def test_archived_metier_is_returned_as_inactive(jwt_client):
+    MetierDjangoFactory(archived_at=NOW)
 
-    response = jwt_client.get(URL, {"domaine": "TRA"})
+    response = jwt_client.get(URL)
+
+    assert [metier["actif"] for metier in response.json()["results"]] == [False]
+
+
+def test_filters_by_several_domains(jwt_client):
+    MetierDjangoFactory(domaine_fonctionnel_code="JUS", offer_family_code="ERJUS008")
+    MetierDjangoFactory(domaine_fonctionnel_code="CTL", offer_family_code="ERCTL001")
+    MetierDjangoFactory(domaine_fonctionnel_code="NUM", offer_family_code="ERNUM001")
+
+    response = jwt_client.get(URL, {"domaine": "JUS,ctl"})
 
     assert response.status_code == status.HTTP_200_OK
-    assert _codes(response) == ["ERTRA001"]
+    assert _codes(response) == ["ERCTL001", "ERJUS008"]
 
 
-def test_invalid_domain_returns_400(jwt_client):
-    response = jwt_client.get(URL, {"domaine": "ABCD"})
+def test_unknown_domain_returns_400(jwt_client):
+    response = jwt_client.get(URL, {"domaine": "JUS,ABC"})
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert "Valeurs de domaine invalides : ABC." in response.json()["error"]
+
+
+def test_filters_by_several_codes(jwt_client):
+    MetierDjangoFactory(offer_family_code="ERJUS008")
+    MetierDjangoFactory(offer_family_code="ERNUM001")
+    MetierDjangoFactory(offer_family_code="ERTRA007")
+
+    response = jwt_client.get(URL, {"code_emploi_csp": "ERJUS008, ERNUM001"})
+
+    assert response.status_code == status.HTTP_200_OK
+    assert _codes(response) == ["ERJUS008", "ERNUM001"]
+
+
+@pytest.mark.parametrize(
+    "actif, expected",
+    [("true", ["ERACT001"]), ("false", ["ERARC001"]), (None, ["ERACT001", "ERARC001"])],
+)
+def test_filters_by_active(jwt_client, actif, expected):
+    MetierDjangoFactory(offer_family_code="ERACT001")
+    MetierDjangoFactory(offer_family_code="ERARC001", archived_at=NOW)
+
+    response = jwt_client.get(URL, {"actif": actif} if actif else {})
+
+    assert response.status_code == status.HTTP_200_OK
+    assert _codes(response) == expected
+
+
+def test_filters_by_versant(jwt_client):
+    MetierDjangoFactory(offer_family_code="ERFPE001", versants=["FPE", "FPT"])
+    MetierDjangoFactory(offer_family_code="ERFPH001", versants=["FPH"])
+
+    response = jwt_client.get(URL, {"versant": "FPT"})
+
+    assert response.status_code == status.HTTP_200_OK
+    assert _codes(response) == ["ERFPE001"]
+
+
+@pytest.mark.parametrize(
+    "params",
+    [{"actif": "peut-etre"}, {"versant": "FPX"}, {"versant": "FPE,FPT"}],
+)
+def test_invalid_filter_returns_400(jwt_client, params):
+    response = jwt_client.get(URL, params)
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert "error" in response.json()
