@@ -8,9 +8,6 @@ from domain.recruteur.value_objects.roles import AgentOrganismeRole
 from infrastructure.factories.candidate.candidature_django_factory import (
     create_recrutement_with_candidature,
 )
-from infrastructure.factories.candidate.document_django_factory import (
-    DocumentDjangoFactory,
-)
 from infrastructure.factories.identite.organisme_django_factory import (
     create_organisme_with_agent,
 )
@@ -138,22 +135,6 @@ class TestConditionalGetOnOtherResponses:
         assert unchanged.status_code == status.HTTP_304_NOT_MODIFIED
         assert changed.status_code == status.HTTP_200_OK
         assert changed["ETag"] != first["ETag"]
-
-    def test_document_download_is_revalidated_without_etag(
-        self, authenticated_client, test_user
-    ):
-        candidature = _candidature_of(test_user)
-        document = DocumentDjangoFactory(candidature=candidature)
-        url = reverse(
-            "recruteur:organisme_recrutement_candidature_document",
-            kwargs={**_candidature_kwargs(candidature), "document_uuid": document.pk},
-        )
-
-        response = authenticated_client.get(url)
-
-        assert response.status_code == status.HTTP_200_OK
-        assert not response.has_header("ETag")
-        assert set(response["Cache-Control"].split(", ")) == {"private", "no-cache"}
 
 
 def _view_classes(resolver: URLResolver):

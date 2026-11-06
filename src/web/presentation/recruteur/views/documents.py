@@ -1,7 +1,7 @@
 from uuid import UUID
 
 from django.conf import settings
-from django.http import FileResponse, Http404
+from django.http import FileResponse, Http404, HttpResponseBase
 from django.utils.decorators import method_decorator
 from django.views.decorators.clickjacking import xframe_options_sameorigin
 from drf_spectacular.types import OpenApiTypes
@@ -55,7 +55,7 @@ class DocumentView(ConditionalGetMixin, SessionApiMixin, APIView):
         recrutement_uuid: UUID,
         candidature_uuid: UUID,
         document_uuid: UUID,
-    ) -> FileResponse:
+    ) -> HttpResponseBase:
         document, content_type = read_document(
             organisme_id=organisme_uuid,
             recrutement_id=recrutement_uuid,
@@ -63,11 +63,15 @@ class DocumentView(ConditionalGetMixin, SessionApiMixin, APIView):
             document_id=document_uuid,
             utilisateur=request.user,
         )
-        return FileResponse(
-            document.fichier.open("rb"),
-            content_type=content_type,
-            as_attachment=False,
-            filename=document.nom_original,
+        return self.respond_unless_unchanged(
+            request,
+            document.pk,
+            lambda: FileResponse(
+                document.fichier.open("rb"),
+                content_type=content_type,
+                as_attachment=False,
+                filename=document.nom_original,
+            ),
         )
 
     def handle_exception(self, exc: Exception) -> Response:

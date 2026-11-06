@@ -144,6 +144,26 @@ class TestDocumentView:
         assert response["Content-Disposition"] == 'inline; filename="test.pdf"'
         assert response["X-Frame-Options"] == "SAMEORIGIN"
 
+    def test_returns_304_when_the_browser_already_has_the_document(
+        self, authenticated_client, test_user
+    ):
+        _, organisme = create_organisme_with_agent(
+            role=AgentOrganismeRole.SUPERVISEUR, utilisateur=test_user
+        )
+        recrutement = RecrutementDjangoFactory(organisme=organisme)
+        candidature = CandidatureDjangoFactory(
+            etape=EtapeDjangoFactory(recrutement=recrutement)
+        )
+        document = DocumentDjangoFactory(candidature=candidature)
+        url = _url(organisme.id, recrutement.pk, candidature.pk, document.pk)
+        first = authenticated_client.get(url)
+
+        second = authenticated_client.get(url, HTTP_IF_NONE_MATCH=first["ETag"])
+
+        assert second.status_code == status.HTTP_304_NOT_MODIFIED
+        assert second.content == b""
+        assert set(second["Cache-Control"].split(", ")) == {"private", "no-cache"}
+
     @pytest.mark.parametrize(
         "role", [AgentOrganismeRole.AGENT, None], ids=["no_recrutement_role", "no_role"]
     )
