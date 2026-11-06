@@ -14,6 +14,12 @@ class NoteQuerySet(models.QuerySet):
     def active(self) -> "NoteQuerySet":
         return self.filter(supprimee_le__isnull=True)
 
+    def for_team(self) -> "NoteQuerySet":
+        return self.active().filter(est_privee=False)
+
+    def personal(self) -> "NoteQuerySet":
+        return self.active().filter(est_privee=True)
+
     def by_candidature(self, candidature_id) -> "NoteQuerySet":
         return (
             self.select_related("publie_par__utilisateur")

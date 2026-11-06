@@ -57,6 +57,21 @@ class DocumentQuerySet(models.QuerySet):
             depose_par_id=depose_par_id,
         )
 
+    def added_in_tool(self) -> "DocumentQuerySet":
+        return self.filter(
+            ~models.Q(depose_par_id=models.F("candidature__candidat_id"))
+            | models.Q(piece_jointe__isnull=False)
+        )
+
+    def added_by_member(self) -> "DocumentQuerySet":
+        return self.exclude(depose_par_id=models.F("candidature__candidat_id"))
+
+    def candidat_attachments(self) -> "DocumentQuerySet":
+        return self.filter(
+            depose_par_id=models.F("candidature__candidat_id"),
+            piece_jointe__isnull=False,
+        )
+
     def cvs_of(self, candidature_id) -> "DocumentQuerySet":
         return self.filter(
             candidature_id=candidature_id, type_document=TypeDocument.CV
