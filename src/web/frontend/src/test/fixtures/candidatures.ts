@@ -77,7 +77,7 @@ export function candidatureDetail(candidatureUuid: string): CandidatureDetail {
     date_derniere_maj_recruteur: null,
     document_uuid: null,
     navigation_candidature_uuids: etape.candidatures.map(({ uuid }) => uuid),
-    authorized_actions: [],
+    authorized_actions: ['change_etape_candidatures'],
   }
 }
 
@@ -88,6 +88,7 @@ export const RECRUTEMENT_DETAIL = {
   organisme_recruteur: { nom: 'Ministère de la Transition Écologique' },
   categorie_offre: 'A',
   etapes: KANBAN_COLUMNS.map(({ uuid, nom, categorie }) => ({ uuid, nom, categorie })),
+  authorized_actions: ['change_etape_candidatures'],
 } as unknown as RecrutementDetail
 
 export const MOTIFS_REFUS: MotifRefusOption[] = [

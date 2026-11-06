@@ -7,6 +7,7 @@ import CspIcon from '@/components/base/CspIcon/CspIcon.vue'
 
 defineProps<{
   motif: string
+  editable: boolean
 }>()
 
 const emit = defineEmits<{
@@ -45,6 +46,7 @@ const ACTIONS = [
           Motif de refus
         </h3>
         <CspDropdownMenu
+          v-if="editable"
           :sections="ACTIONS"
           side="bottom"
           align="end"
