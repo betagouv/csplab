@@ -43,7 +43,7 @@ async def test_execute_raises_when_gateway_fails():
 
 
 @pytest.mark.asyncio
-@patch("application.usecases.load_sources.asyncio.sleep", new_callable=AsyncMock)
+@patch("application.usecases._fetch_with_retry.asyncio.sleep", new_callable=AsyncMock)
 async def test_execute_backs_off_exponentially_and_logs_each_failure(
     mock_sleep, caplog
 ):

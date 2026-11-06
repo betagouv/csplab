@@ -97,6 +97,7 @@ def gateway():
     return WebPublishOfferGateway(
         client=client,
         credentials=WebGatewayCredentials(base_url=BASE_URL, api_key=API_KEY),
+        metiers_multi_domaines={"ERJUS008", "ERTRA007"},
     )
 
 

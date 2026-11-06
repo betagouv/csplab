@@ -34,6 +34,7 @@ PUBLISH_TALENTSOFT_ORGANISMES_URL = (
     f"{WEB_BASE_URL}/api/v1/talentsoft_organisme/creer_modifier"
 )
 SOURCES_URL = f"{WEB_BASE_URL}/api/v1/sources"
+METIERS_URL = f"{WEB_BASE_URL}/api/v1/metiers"
 OFFERS_BY_SOURCE_URL = f"{WEB_BASE_URL}/api/v1/offres/sources"
 
 
