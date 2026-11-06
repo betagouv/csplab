@@ -4,9 +4,15 @@ import pytest
 from sqlmodel import Session, select
 
 from domain.entities.webhook import Webhook
-from domain.value_objects.webhook_event import EventType, OfferStatus
+from domain.value_objects.webhook_event import (
+    EventType,
+    OfferStatus,
+    WebhookActionType,
+    WebhookProcessingStatus,
+)
 from domain.value_objects.webhook_type import WebhookType
 from infrastructure.models.webhook import WebhookModel
+from tests.factories.domain_factories import WebhookFactory
 
 pytestmark = pytest.mark.usefixtures("clean_db")
 
@@ -183,3 +189,43 @@ async def test_insert_allows_same_source_id_different_references(webhook_reposit
     result1 = await webhook_repository.get_by_id(first.id)
     result2 = await webhook_repository.get_by_id(second.id)
     assert result1.id != result2.id
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    ("action_type", "expected"),
+    [
+        (WebhookActionType.ARCHIVE, WebhookProcessingStatus.RECEIVED),
+        (None, WebhookProcessingStatus.IGNORED),
+    ],
+)
+async def test_insert_sets_processing_status(
+    webhook_repository, db_engine, action_type, expected
+):
+    webhook = WebhookFactory.build(action_type=action_type)
+
+    await webhook_repository.insert(webhook)
+
+    with Session(db_engine) as session:
+        assert session.get(WebhookModel, webhook.id).processing_status == expected
+
+
+@pytest.mark.asyncio
+async def test_mark_processing_then_failed_records_attempts_and_error(
+    webhook_repository, db_engine
+):
+    webhook = WebhookFactory.build()
+    await webhook_repository.insert(webhook)
+
+    await webhook_repository.mark_processing(webhook.id)
+    await webhook_repository.mark_processing(webhook.id)
+    await webhook_repository.mark_processed(
+        webhook.id, WebhookProcessingStatus.FAILED, "TimeoutError: "
+    )
+
+    with Session(db_engine) as session:
+        model = session.get(WebhookModel, webhook.id)
+        assert model.processing_status == WebhookProcessingStatus.FAILED
+        assert model.attempts == 2
+        assert model.last_error == "TimeoutError: "
+        assert model.processed_at is not None

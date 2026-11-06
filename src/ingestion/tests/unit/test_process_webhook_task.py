@@ -15,7 +15,11 @@ from application.tasks.process_webhook import (
     save_raw_offer_webhook,
 )
 from application.usecases.save_raw_offer import SaveRawOfferUsecase
-from domain.value_objects.webhook_event import EventType, OfferStatus
+from domain.value_objects.webhook_event import (
+    EventType,
+    OfferStatus,
+    WebhookProcessingStatus,
+)
 from infrastructure.exceptions.exceptions import (
     ExternalApiError,
     TalentsoftOfferNotFound,
@@ -32,9 +36,10 @@ _PATCH_CONTAINER = "application.tasks.process_webhook.get_container"
 
 def _make_mock_container(webhook=None) -> MagicMock:
     container = MagicMock()
-    container.webhook_repository.return_value.get_by_id = AsyncMock(
-        return_value=webhook
-    )
+    repository = container.webhook_repository.return_value
+    repository.get_by_id = AsyncMock(return_value=webhook)
+    repository.mark_processing = AsyncMock()
+    repository.mark_processed = AsyncMock()
     container.archive_offer_usecase.return_value.execute = AsyncMock()
     container.ingest_offer_pipeline.return_value.execute = AsyncMock()
     source = SourceFactory.build(source_id=SOURCE_ID, client_id_front=CLIENT_ID_FRONT)
@@ -464,3 +469,50 @@ def test_retries_transient_talentsoft_error_raised_through_save_raw_offer(
         save_raw_offer_webhook(str(WEBHOOK_ID))
 
     mock_retry.assert_called_once()
+
+
+# --- Processing status ---
+
+
+@patch(_PATCH_CONTAINER)
+def test_marks_webhook_processing_then_succeeded(mock_get_container):
+    webhook = WebhookFactory.build(id=WEBHOOK_ID, source_id=SOURCE_ID)
+    container = _make_mock_container(webhook)
+    mock_get_container.return_value = container
+
+    archive_offer_webhook(str(WEBHOOK_ID))
+
+    repository = container.webhook_repository.return_value
+    repository.mark_processing.assert_awaited_once_with(WEBHOOK_ID)
+    repository.mark_processed.assert_awaited_once_with(
+        WEBHOOK_ID, WebhookProcessingStatus.SUCCEEDED
+    )
+
+
+@patch(_PATCH_CONTAINER)
+def test_marks_webhook_failed_on_non_transient_error(mock_get_container):
+    webhook = WebhookFactory.build(id=WEBHOOK_ID, source_id=SOURCE_ID)
+    container = _make_mock_container(webhook)
+    container.archive_offer_usecase.return_value.execute.side_effect = ValueError("x")
+    mock_get_container.return_value = container
+
+    with pytest.raises(ValueError):
+        archive_offer_webhook(str(WEBHOOK_ID))
+
+    container.webhook_repository.return_value.mark_processed.assert_awaited_once_with(
+        WEBHOOK_ID, WebhookProcessingStatus.FAILED, "ValueError: x"
+    )
+
+
+@patch.object(Task, "retry", side_effect=Retry())
+@patch(_PATCH_CONTAINER)
+def test_does_not_mark_webhook_failed_before_last_retry(mock_get_container, _):
+    webhook = WebhookFactory.build(id=WEBHOOK_ID, source_id=SOURCE_ID)
+    container = _make_mock_container(webhook)
+    container.archive_offer_usecase.return_value.execute.side_effect = TimeoutError()
+    mock_get_container.return_value = container
+
+    with pytest.raises(Retry):
+        archive_offer_webhook(str(WEBHOOK_ID))
+
+    container.webhook_repository.return_value.mark_processed.assert_not_called()
