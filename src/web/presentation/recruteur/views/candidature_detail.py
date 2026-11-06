@@ -21,6 +21,7 @@ from domain.recruteur.errors.recrutement_errors import (
 )
 from presentation.api.authentication import SessionApiMixin
 from presentation.api.serializers import GenericErrorSerializer, generic_response_format
+from presentation.commons.conditional_get import ConditionalGetMixin
 from presentation.recruteur.serializers import CandidatureDetailSerializer
 
 
@@ -32,7 +33,7 @@ from presentation.recruteur.serializers import CandidatureDetailSerializer
         200: CandidatureDetailSerializer,
     },
 )
-class CandidatureDetailView(SessionApiMixin, APIView):
+class CandidatureDetailView(ConditionalGetMixin, SessionApiMixin, APIView):
     def get(
         self,
         request: Request,

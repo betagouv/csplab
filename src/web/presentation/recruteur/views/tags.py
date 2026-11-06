@@ -21,6 +21,7 @@ from domain.identite.errors.organisme_permission_errors import (
 from domain.recruteur.errors.tag_errors import TagAlreadyExists, TagNotFound
 from presentation.api.authentication import SessionApiMixin
 from presentation.api.serializers import GenericErrorSerializer, generic_response_format
+from presentation.commons.conditional_get import ConditionalGetMixin
 from presentation.recruteur.serializers import (
     CreateTagSerializer,
     TagListQuerySerializer,
@@ -29,7 +30,7 @@ from presentation.recruteur.serializers import (
 )
 
 
-class TagBaseView(SessionApiMixin, APIView):
+class TagBaseView(ConditionalGetMixin, SessionApiMixin, APIView):
     def handle_exception(self, exc: Exception) -> Response:
         if isinstance(
             exc,

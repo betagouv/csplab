@@ -29,6 +29,7 @@ from domain.recruteur.errors.recrutement_errors import (
 )
 from presentation.api.authentication import SessionApiMixin
 from presentation.api.serializers import GenericErrorSerializer, generic_response_format
+from presentation.commons.conditional_get import ConditionalGetMixin
 from presentation.commons.pagination import PageNumberLimitPagination
 from presentation.recruteur.serializers import DocumentListeSerializer
 
@@ -45,7 +46,7 @@ from presentation.recruteur.serializers import DocumentListeSerializer
         415: GenericErrorSerializer,
     },
 )
-class DocumentView(SessionApiMixin, APIView):
+class DocumentView(ConditionalGetMixin, SessionApiMixin, APIView):
     @method_decorator(xframe_options_sameorigin)
     def get(
         self,
@@ -104,7 +105,7 @@ class DocumentView(SessionApiMixin, APIView):
     tags=["recruteur"],
     responses={**generic_response_format, 200: DocumentListeSerializer(many=True)},
 )
-class CandidatureDocumentsView(SessionApiMixin, ListAPIView):
+class CandidatureDocumentsView(ConditionalGetMixin, SessionApiMixin, ListAPIView):
     serializer_class = DocumentListeSerializer
     pagination_class = PageNumberLimitPagination
 

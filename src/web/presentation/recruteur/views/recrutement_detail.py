@@ -33,6 +33,7 @@ from infrastructure.django_apps.candidate.models.candidature import CandidatureM
 from infrastructure.django_apps.recruteur.models.etape import EtapeModel
 from presentation.api.authentication import SessionApiMixin
 from presentation.api.serializers import GenericErrorSerializer, TokenErrorSerializer
+from presentation.commons.conditional_get import ConditionalGetMixin
 from presentation.commons.pagination import PaginationSchemaDuSerializer
 from presentation.recruteur.mappers import UtilisateurMapper
 from presentation.recruteur.serializers import (
@@ -56,7 +57,7 @@ from presentation.recruteur.serializers import (
         500: GenericErrorSerializer,
     },
 )
-class RecrutementDetailView(SessionApiMixin, APIView):
+class RecrutementDetailView(ConditionalGetMixin, SessionApiMixin, APIView):
     def get(
         self, request: Request, organisme_uuid: UUID, recrutement_uuid: UUID
     ) -> Response:
@@ -96,7 +97,7 @@ class RecrutementDetailView(SessionApiMixin, APIView):
         500: GenericErrorSerializer,
     },
 )
-class RecrutementListeView(SessionApiMixin, ListAPIView):
+class RecrutementListeView(ConditionalGetMixin, SessionApiMixin, ListAPIView):
     serializer_class = CandidatureListeSerializer
     pagination_class = PaginationSchemaDuSerializer
     etapes: list[EtapeModel]
@@ -147,7 +148,7 @@ class RecrutementListeView(SessionApiMixin, ListAPIView):
         500: GenericErrorSerializer,
     },
 )
-class RecrutementCandidaturesEtapeView(SessionApiMixin, APIView):
+class RecrutementCandidaturesEtapeView(ConditionalGetMixin, SessionApiMixin, APIView):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.container = recruteur_container()
