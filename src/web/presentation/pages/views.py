@@ -153,6 +153,7 @@ class ApiChangelogView(TemplateView):
                     "entries": [
                         {
                             "slug": fragment.slug,
+                            "titre": fragment.titre,
                             "label": TYPE_LABELS[fragment.type],
                             "badge": _BADGES[fragment.type],
                             "html": entry_html(fragment, new_tab=True),
