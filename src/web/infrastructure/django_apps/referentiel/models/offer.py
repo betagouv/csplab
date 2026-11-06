@@ -23,6 +23,9 @@ class OfferQuerySet(models.QuerySet):
     def actives(self) -> "OfferQuerySet":
         return self.filter(archived_at__isnull=True)
 
+    def archivees(self) -> "OfferQuerySet":
+        return self.filter(archived_at__isnull=False)
+
     def by_references(self, references: Iterable[str]) -> "OfferQuerySet":
         return self.filter(reference__in=references)
 
