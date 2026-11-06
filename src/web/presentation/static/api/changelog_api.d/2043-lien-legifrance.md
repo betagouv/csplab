@@ -1,4 +1,5 @@
 ---
+titre: "Offres : la note d'ouverture du poste doit pointer vers Légifrance"
 type: non_retrocompatible
 date: 2026-10-22
 pr: 2043

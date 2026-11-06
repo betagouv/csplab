@@ -1,4 +1,5 @@
 ---
+titre: "fake-ts : diplôme saisi en texte libre aussi renvoyé"
 type: modifie
 date: 2026-11-05
 pr: 2305

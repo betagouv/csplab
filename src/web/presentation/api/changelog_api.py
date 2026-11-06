@@ -51,7 +51,9 @@ en [Markdown]({markdown}), en [JSON]({json}) et en [flux Atom]({atom}).
 Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/).
 """
 
-_FIELDS = {"type", "date", "pr", "liens"}
+_FIELDS = {"titre", "type", "date", "pr", "liens"}
+TITLE_MAX_LENGTH = 80
+_TITLE_MARKUP = re.compile(r"[`*\n]")
 _DATE_FORMAT = re.compile(r"\d{4}-\d{2}-\d{2}")
 _FRONT_MATTER = re.compile(r"\A---\n(.*?)\n---\n(.*)\Z", re.DOTALL)
 _SUBSECTION = re.compile(r"^### (.+)$", re.MULTILINE)
@@ -86,6 +88,7 @@ class FragmentError(ValueError):
 @dataclass(frozen=True)
 class Fragment:
     path: Path
+    titre: str
     type: str
     date: date
     pr: int
@@ -129,6 +132,7 @@ def parse_fragment(path: Path) -> Fragment:
 
     return Fragment(
         path=path,
+        titre=metadata["titre"].strip(),
         type=metadata["type"],
         date=date.fromisoformat(metadata["date"]),
         pr=metadata["pr"],
@@ -145,6 +149,7 @@ def _cited_routes(body: str) -> tuple[str, ...]:
 
 def _metadata_errors(metadata: dict[str, Any]) -> list[str]:
     errors = [f"champ inconnu `{key}`" for key in metadata.keys() - _FIELDS]
+    errors += _title_errors(metadata.get("titre"))
 
     if metadata.get("type") not in TYPES:
         errors.append(f"`type` doit valoir {', '.join(f'`{t}`' for t in TYPES)}")
@@ -166,6 +171,21 @@ def _metadata_errors(metadata: dict[str, Any]) -> list[str]:
     if not isinstance(liens, list) or not all(_is_url(lien) for lien in liens):
         errors.append("`liens` doit être une liste d'URL `http` ou `https`")
 
+    return errors
+
+
+def _title_errors(titre: Any) -> list[str]:
+    if not isinstance(titre, str) or not titre.strip():
+        return ["`titre` est obligatoire, une phrase courte lisible sans le code"]
+    errors = []
+    if len(titre.strip()) > TITLE_MAX_LENGTH:
+        errors.append(
+            f"`titre` dépasse {TITLE_MAX_LENGTH} caractères ({len(titre.strip())})"
+        )
+    if _TITLE_MARKUP.search(titre.strip()):
+        errors.append("`titre` ne contient ni backtick, ni `*`, ni retour à la ligne")
+    if "/api/" in titre:
+        errors.append("`titre` ne cite pas de route, le corps les cite")
     return errors
 
 
@@ -216,10 +236,14 @@ def assemble(
         sections.append(f"## {day.isoformat()}")
 
         for type_, title in TYPES.items():
-            entries = [render_entry(f) for f in day_fragments if f.type == type_]
+            entries = [
+                f"**{f.titre}**\n\n{render_entry(f)}"
+                for f in day_fragments
+                if f.type == type_
+            ]
             if entries:
                 sections.append(f"### {title}")
-                sections.append(_join_entries(entries))
+                sections.extend(entries)
 
     return "\n\n".join(sections) + "\n"
 
@@ -265,17 +289,6 @@ def _with_links(fragment: Fragment) -> str:
     if last_line.startswith(("```", "~~~")):
         return f"{fragment.entry}\n\n{suffix}"
     return f"{fragment.entry} {suffix}"
-
-
-def _join_entries(entries: list[str]) -> str:
-    """Keeps consecutive bullet lists tight, as a single list."""
-    joined = entries[0]
-    for entry in entries[1:]:
-        last_line = joined.rsplit("\n", 1)[-1]
-        in_list = last_line.startswith(("- ", " "))
-        separator = "\n" if in_list and entry.startswith("- ") else "\n\n"
-        joined += separator + entry
-    return joined
 
 
 def paris_today() -> date:

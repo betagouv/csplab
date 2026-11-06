@@ -1,4 +1,5 @@
 ---
+titre: "Offres : une description avec du HTML est rejetée"
 type: non_retrocompatible
 date: 2026-10-20
 pr: 2008

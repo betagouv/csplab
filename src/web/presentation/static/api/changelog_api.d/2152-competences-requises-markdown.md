@@ -1,4 +1,5 @@
 ---
+titre: "Offres : compétences requises en texte Markdown, et non plus en liste"
 type: non_retrocompatible
 date: 2026-11-02
 pr: 2157

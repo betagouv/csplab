@@ -1,4 +1,5 @@
 ---
+titre: "Offres : code pays en majuscules obligatoire"
 type: non_retrocompatible
 date: 2026-10-26
 pr: 2073

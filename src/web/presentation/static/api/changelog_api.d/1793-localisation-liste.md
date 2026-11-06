@@ -1,4 +1,5 @@
 ---
+titre: "Lecture d'une offre : localisation devient une liste de lieux"
 type: non_retrocompatible
 date: 2026-11-04
 pr: 2264

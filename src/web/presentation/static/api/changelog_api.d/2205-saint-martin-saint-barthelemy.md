@@ -1,4 +1,5 @@
 ---
+titre: "Offres et organismes : Saint-Barthélemy et Saint-Martin acceptés"
 type: ajoute
 date: 2026-11-02
 pr: 2208

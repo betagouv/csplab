@@ -1,4 +1,5 @@
 ---
+titre: "Offres : référence générée par CSPLab avec la valeur auto"
 type: ajoute
 date: 2026-10-07
 pr: 1748

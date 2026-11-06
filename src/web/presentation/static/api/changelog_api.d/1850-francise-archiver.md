@@ -1,4 +1,5 @@
 ---
+titre: "Archivage des offres : status devient statut"
 type: non_retrocompatible
 date: 2026-10-13
 pr: 1850

@@ -1,4 +1,5 @@
 ---
+titre: "Offres : une offre hors de France est acceptée"
 type: corrige
 date: 2026-11-02
 pr: 2210

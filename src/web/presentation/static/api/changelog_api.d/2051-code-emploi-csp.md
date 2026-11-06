@@ -1,4 +1,5 @@
 ---
+titre: "Métiers : offer_family_code devient code_emploi_csp"
 type: non_retrocompatible
 date: 2026-10-22
 pr: 2051
