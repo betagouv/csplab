@@ -140,6 +140,8 @@ class TestParseFragment:
             ("x" * 81, "`titre` dépasse 80 caractères"),
             ("Offres : `localisation devient une liste", "backtick non refermé"),
             ("Offres : **50** lieux au plus", "ni `*`"),
+            ("Offres : voir [le guide](https://example.com)", "ni `\\*`, ni `\\[`"),
+            ("Offres : <img src=x onerror=alert(1)>", "ni `\\*`, ni `\\[`"),
             ("Offres : POST /api/v1/offres/creer_modifier", "ne cite pas de route"),
         ],
     )

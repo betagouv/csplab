@@ -56,7 +56,8 @@ Renseignez dans `region` […]
   - elle ne cite pas de route (la CI refuse `/api/`), le corps s'en charge ;
   - elle peut citer un nom de champ ou une valeur quand il est le sujet du
     changement, entre backticks (« fake-ts : `salaryRange` devient un objet codé ») :
-    la CI refuse un backtick non refermé, les `*` et les retours à la ligne ;
+    la CI refuse un backtick non refermé, les `*`, `[`, `]` et `<` (ni emphase, ni
+    lien, ni image, ni balise HTML) et les retours à la ligne ;
   - entre guillemets doubles dans l'en-tête, puisqu'elle contient ` : `.
 - Le corps cite la ou les routes concernées, entre backticks et avec leur méthode :
   `` `POST /api/v1/offres/creer_modifier` ``. Ce sont elles qui alimentent le filtre par
