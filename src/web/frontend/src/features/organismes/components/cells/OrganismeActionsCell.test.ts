@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { defineComponent, h } from 'vue'
 import { getMe } from '@/api/utilisateur'
 import { ORGANISME } from '@/test/fixtures/organismes'
-import { makeUser } from '@/test/fixtures/utilisateur'
+import { makeUser, STAFF_ACTIONS } from '@/test/fixtures/utilisateur'
 import { renderWithApp, setupUser } from '@/test/render'
 import { provideOrganismeEdition } from '../../composables/useOrganismeEdition'
 import OrganismeActionsCell from './OrganismeActionsCell.vue'
@@ -20,7 +20,7 @@ function hostFor(row: OrganismesList) {
 
 describe('organismeActionsCell', () => {
   beforeEach(() => {
-    vi.mocked(getMe).mockReset().mockResolvedValue(makeUser([], true))
+    vi.mocked(getMe).mockReset().mockResolvedValue(makeUser([], STAFF_ACTIONS))
   })
 
   it('opens the home of the organisme', async () => {
