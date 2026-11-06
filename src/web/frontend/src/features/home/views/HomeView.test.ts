@@ -1,9 +1,15 @@
 import { screen } from '@testing-library/vue'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { RouterView } from 'vue-router'
+import { getOrganismeDetail } from '@/api/organismes'
 import { getMe } from '@/api/utilisateur'
+import { ORGANISME_DETAIL } from '@/test/fixtures/organismes'
 import { BRIANCON_UUID, makeUser, MTE_UUID, ORGANISME_INCONNU_UUID, ROLE_BRIANCON, ROLE_MTE } from '@/test/fixtures/utilisateur'
 import { renderWithApp } from '@/test/render'
+
+vi.mock('@/api/organismes', () => ({
+  getOrganismeDetail: vi.fn(),
+}))
 
 function renderHome(organismeUuid: string) {
   return renderWithApp(RouterView, { route: `/organismes/${organismeUuid}/accueil` })
@@ -34,6 +40,7 @@ describe('homeView', () => {
 
   it('shows the superviseur version to a staff member outside their organismes', async () => {
     vi.mocked(getMe).mockResolvedValue(makeUser([], true))
+    vi.mocked(getOrganismeDetail).mockResolvedValue({ ...ORGANISME_DETAIL, uuid: BRIANCON_UUID })
     await renderHome(BRIANCON_UUID)
 
     expect(await screen.findByRole('heading', { name: 'Prêt à démarrer les recrutements de votre organisme ?' })).toBeInTheDocument()
