@@ -38,6 +38,7 @@ from presentation.api.serializers import (
     TokenErrorSerializer,
     generic_response_format,
 )
+from presentation.commons.conditional_get import ConditionalGetMixin
 from presentation.commons.pagination import TaillePageNumberPagination
 from presentation.recruteur.serializers import (
     CreateNoteSerializer,
@@ -48,7 +49,7 @@ from presentation.recruteur.serializers import (
 )
 
 
-class NoteBaseView(SessionApiMixin, APIView):
+class NoteBaseView(ConditionalGetMixin, SessionApiMixin, APIView):
     def handle_exception(self, exc: Exception) -> Response:
         if isinstance(
             exc,
