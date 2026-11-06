@@ -346,6 +346,11 @@ def entry_html(fragment: Fragment, *, new_tab: bool = False) -> str:
     return _markdown.renderer.render(tokens, _markdown.options, {})
 
 
+@cache
+def title_html(fragment: Fragment) -> str:
+    return _markdown.renderInline(fragment.titre)
+
+
 def _open_links_in_new_tab(children: list) -> None:
     for index, child in enumerate(children):
         if child.type != "link_open":

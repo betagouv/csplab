@@ -15,6 +15,7 @@ from presentation.api.changelog_api import (
     entry_html,
     published_fragments,
     published_routes,
+    title_html,
 )
 
 _TOC_MAX_LEVEL = 3
@@ -153,7 +154,7 @@ class ApiChangelogView(TemplateView):
                     "entries": [
                         {
                             "slug": fragment.slug,
-                            "titre": fragment.titre,
+                            "titre": title_html(fragment),
                             "label": TYPE_LABELS[fragment.type],
                             "badge": _BADGES[fragment.type],
                             "html": entry_html(fragment, new_tab=True),

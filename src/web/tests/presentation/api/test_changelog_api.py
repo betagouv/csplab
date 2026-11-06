@@ -28,6 +28,7 @@ from presentation.api.changelog_api import (
     published_fragments,
     route_errors,
     set_date,
+    title_html,
 )
 from presentation.api.serializers import ChangelogEntrySerializer
 from presentation.api.views import ChangelogJsonView
@@ -297,6 +298,14 @@ class TestAssemble:
         markdown = assemble([], note="Changements filtrés : type ajouté.")
 
         assert "Changements filtrés : type ajouté.\n\nAucun changement" in markdown
+
+
+def test_title_html_renders_code_and_escapes_html(tmp_path):
+    result = fragment(tmp_path, titre="fake-ts : `salaryRange` <b>codé</b>")
+
+    assert title_html(result) == (
+        "fake-ts : <code>salaryRange</code> &lt;b&gt;codé&lt;/b&gt;"
+    )
 
 
 def test_ordered_by_date_then_type_then_pr(tmp_path):
