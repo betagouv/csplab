@@ -46,6 +46,7 @@ export function useRouteOrganisme() {
     routeOrganismeUuid,
     organismeUuid,
     organisme,
+    nonMemberOrganisme,
     canOnOrganisme,
   }
 }

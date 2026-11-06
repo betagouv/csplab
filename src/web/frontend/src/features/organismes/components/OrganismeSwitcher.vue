@@ -1,12 +1,10 @@
 <script setup lang="ts">
 import type { CspSidebarSwitcherGroup } from '@/components/layout/CspSidebar/CspSidebarSwitcher.vue'
-import { useQuery } from '@pinia/colada'
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import CspAvatar from '@/components/base/CspAvatar/CspAvatar.vue'
 import CspSidebarSwitcher from '@/components/layout/CspSidebar/CspSidebarSwitcher.vue'
 import { organismeHomeLocation, ORGANISMES_ROUTE_NAME } from '@/router/names'
-import { organismeDetailQuery } from '@/stores/organismeDetail'
 import { useRouteOrganisme } from '@/stores/routeOrganisme'
 import { useOrganismesSearch } from '../composables/useOrganismesSearch'
 import { ESPACE_ADMINISTRATEUR_LABEL, ORGANISME_LABEL } from '../constants/organisme'
@@ -14,13 +12,8 @@ import { ESPACE_ADMINISTRATEUR_LABEL, ORGANISME_LABEL } from '../constants/organ
 const ESPACE_ADMINISTRATEUR = 'espace-administrateur'
 
 const router = useRouter()
-const { organismes, organisme, organismeUuid, canBrowseOrganismes } = useRouteOrganisme()
+const { organismes, organisme, nonMemberOrganisme, organismeUuid, canBrowseOrganismes } = useRouteOrganisme()
 const { search, results, tooShort, searching } = useOrganismesSearch()
-
-const { data: organismeHorsAppartenance } = useQuery(() => ({
-  ...organismeDetailQuery({ organismeUuid: organismeUuid.value ?? '' }),
-  enabled: canBrowseOrganismes.value && Boolean(organismeUuid.value) && !organisme.value,
-}))
 
 const title = computed(() => {
   if (!canBrowseOrganismes.value) {
@@ -30,7 +23,7 @@ const title = computed(() => {
     return ESPACE_ADMINISTRATEUR_LABEL
   }
   return organisme.value?.nom
-    ?? organismeHorsAppartenance.value?.nom
+    ?? nonMemberOrganisme.value?.nom
     ?? ORGANISME_LABEL
 })
 
