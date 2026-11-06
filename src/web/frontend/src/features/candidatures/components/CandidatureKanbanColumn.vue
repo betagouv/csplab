@@ -84,6 +84,7 @@ function handleCheckboxChange(): void {
           :candidature="candidature"
           :board-id="boardId"
           :column-id="etape.uuid"
+          :can-change-etape="canChangeEtape"
         />
       </li>
     </ul>
