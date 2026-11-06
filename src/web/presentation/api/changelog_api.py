@@ -13,6 +13,7 @@ from django.conf import settings
 from django.db import models
 from django.http import QueryDict
 from django.urls import reverse
+from django.utils.html import escape
 from markdown_it import MarkdownIt
 
 FRAGMENTS_DIR = settings.STATIC_DIR / "api" / "changelog_api.d"
@@ -56,6 +57,7 @@ TITLE_MAX_LENGTH = 80
 _TITLE_MARKUP = re.compile(r"[*\[\]<\n]")
 _DATE_FORMAT = re.compile(r"\d{4}-\d{2}-\d{2}")
 _FRONT_MATTER = re.compile(r"\A---\n(.*?)\n---\n(.*)\Z", re.DOTALL)
+_CODE_SPAN = re.compile(r"`([^`]+)`")
 _SUBSECTION = re.compile(r"^### (.+)$", re.MULTILINE)
 _ROUTE = re.compile(r"`((?:GET|POST|PUT|PATCH|DELETE) /api/[^`\s]*)`")
 _PATH_PARAMETER = re.compile(r"\\\{[^}]+\\\}")
@@ -346,9 +348,13 @@ def entry_html(fragment: Fragment, *, new_tab: bool = False) -> str:
     return _markdown.renderer.render(tokens, _markdown.options, {})
 
 
-@cache
 def title_html(fragment: Fragment) -> str:
-    return _markdown.renderInline(fragment.titre)
+    # Only code spans: a title never renders as a link, an image or HTML.
+    parts = _CODE_SPAN.split(fragment.titre)
+    return "".join(
+        f"<code>{escape(part)}</code>" if index % 2 else escape(part)
+        for index, part in enumerate(parts)
+    )
 
 
 def _open_links_in_new_tab(children: list) -> None:
