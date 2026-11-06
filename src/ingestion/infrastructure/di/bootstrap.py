@@ -13,11 +13,18 @@ if TYPE_CHECKING:
 _state: dict[str, "Container | None"] = {"container": None}
 
 
+async def _load_referentiels(container: "Container") -> None:
+    await asyncio.gather(
+        container.load_sources_usecase().execute(),
+        container.load_metiers_multi_domaines_usecase().execute(),
+    )
+
+
 def init_container() -> None:
     from infrastructure.di.container import create_container  # noqa: PLC0415
 
     container = create_container()
-    asyncio.run(container.load_sources_usecase().execute())
+    asyncio.run(_load_referentiels(container))
     _state["container"] = container
 
 

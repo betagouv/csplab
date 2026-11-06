@@ -14,6 +14,9 @@ from application.usecases.clean_raw_offer import CleanRawOfferUsecase
 from application.usecases.clean_raw_organismes import CleanRawOrganismesUsecase
 from application.usecases.import_offers import ImportOffersUsecase
 from application.usecases.import_organismes import ImportOrganismesUsecase
+from application.usecases.load_metiers_multi_domaines import (
+    LoadMetiersMultiDomainesUsecase,
+)
 from application.usecases.load_sources import LoadSourcesUsecase
 from application.usecases.prepare_talentsoft_organisations import (
     PrepareTalentsoftOrganisationsUsecase,
@@ -26,6 +29,7 @@ from application.usecases.publish_talentsoft_organisations import (
 from application.usecases.save_raw_offer import SaveRawOfferUsecase
 from application.usecases.save_webhook import SaveWebhookUsecase
 from domain.gateways.archive_gateway import IArchiveGateway
+from domain.gateways.metiers_gateway import IMetiersGateway
 from domain.gateways.offers_by_source_gateway import IOffersBySourceGateway
 from domain.gateways.organisme_gateway import IOrganismeGateway
 from domain.gateways.organismes_cleaner import IOrganismesCleaner
@@ -35,6 +39,9 @@ from domain.gateways.publish_talentsoft_organismes_gateway import (
     IPublishTalentsoftOrganismesGateway,
 )
 from domain.gateways.sources_gateway import ISourcesGateway
+from domain.repositories.metiers_multi_domaines_repository import (
+    IMetiersMultiDomainesRepository,
+)
 from domain.repositories.raw_offer_repository import IRawOfferRepository
 from domain.repositories.raw_organisme_repository import IRawOrganismeRepository
 from domain.repositories.sources_repository import ISourcesRepository
@@ -62,6 +69,7 @@ from infrastructure.external_gateways.talentsoft_client import (
     TalentsoftFrontClient,
 )
 from infrastructure.external_gateways.web_archive_gateway import WebArchiveGateway
+from infrastructure.external_gateways.web_metiers_gateway import WebMetiersGateway
 from infrastructure.external_gateways.web_offers_by_source_gateway import (
     WebOffersBySourceGateway,
 )
@@ -77,6 +85,9 @@ from infrastructure.external_gateways.web_publish_talentsoft_organismes_gateway 
 from infrastructure.external_gateways.web_sources_gateway import WebSourcesGateway
 from infrastructure.gateways.offers_cleaner import OffersCleaner
 from infrastructure.gateways.organismes_cleaner import OrganismesCleaner
+from infrastructure.metiers_multi_domaines_repository import (
+    MetiersMultiDomainesRepository,
+)
 from infrastructure.raw_offer_repository import RawOfferRepository
 from infrastructure.raw_organisme_repository import RawOrganismeRepository
 from infrastructure.sources_repository import SourcesRepository
@@ -149,6 +160,10 @@ class Container(containers.DeclarativeContainer):
     sources_repository: providers.Provider[ISourcesRepository] = providers.Singleton(
         SourcesRepository
     )
+
+    metiers_multi_domaines_repository: providers.Provider[
+        IMetiersMultiDomainesRepository
+    ] = providers.Singleton(MetiersMultiDomainesRepository)
 
     credentials_store = providers.Singleton(
         _build_credentials_store,
@@ -305,6 +320,18 @@ class Container(containers.DeclarativeContainer):
         repository=sources_repository,
     )
 
+    metiers_gateway: providers.Provider[IMetiersGateway] = providers.Factory(
+        WebMetiersGateway,
+        client=http_client,
+        credentials=web_gateway_credentials,
+    )
+
+    load_metiers_multi_domaines_usecase = providers.Factory(
+        LoadMetiersMultiDomainesUsecase,
+        metiers_gateway=metiers_gateway,
+        repository=metiers_multi_domaines_repository,
+    )
+
     offers_cleaner = providers.Singleton(
         OffersCleaner,
         sources_repository=sources_repository,
@@ -319,6 +346,7 @@ class Container(containers.DeclarativeContainer):
         WebPublishOfferGateway,
         client=http_client,
         credentials=web_gateway_credentials,
+        metiers_multi_domaines_repository=metiers_multi_domaines_repository,
     )
 
     publish_offer_usecase: providers.Provider[PublishOfferUsecase] = providers.Factory(

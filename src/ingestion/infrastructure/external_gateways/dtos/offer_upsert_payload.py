@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections.abc import Container
 from datetime import datetime, timedelta
 from typing import Optional
 
@@ -19,12 +20,6 @@ class OrganisationPayload(BaseModel):
     nom: str
     siret: str = ""
     talentsoft_organisme_entity_code: str = ""
-
-
-# RMFPv2 metiers belonging to several domains: the web API cannot deduce their
-# domain, so we send the one following the ER prefix. Other metiers omit it and
-# the web API deduces it (https://github.com/betagouv/csplab/issues/2110).
-METIERS_MULTI_DOMAINES = {"ERJUS008", "ERTRA007"}
 
 
 class ProfessionPayload(BaseModel):
@@ -130,7 +125,9 @@ class OfferUpsertPayload(BaseModel):
     publication: PublicationPayload
 
     @classmethod
-    def from_offer(cls, offer: Offer) -> OfferUpsertPayload:
+    def from_offer(
+        cls, offer: Offer, metiers_multi_domaines: Container[str]
+    ) -> OfferUpsertPayload:
         fin_publication = (
             offer.end_publication_date
             or (offer.beginning_date.value if offer.beginning_date else None)
@@ -171,9 +168,11 @@ class OfferUpsertPayload(BaseModel):
             url_offre=offer.offer_url,
             url_candidature=offer.application_url,
             email_candidature=offer.application_email,
+            # The web API cannot deduce the domain of a metier belonging to
+            # several domains: send the one following the ER prefix.
             profession=ProfessionPayload(
                 domaine=family_code[2:5]
-                if family_code in METIERS_MULTI_DOMAINES
+                if family_code in metiers_multi_domaines
                 else None,
                 metier=family_code,
             ),

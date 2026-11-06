@@ -1,0 +1,6 @@
+from typing import Protocol
+
+
+class IMetiersMultiDomainesRepository(Protocol):
+    def load(self, codes: set[str]) -> None: ...
+    def __contains__(self, code: object) -> bool: ...
