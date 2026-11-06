@@ -9,6 +9,7 @@ from infrastructure.django_apps.referentiel.models.metier import MetierModel
 from infrastructure.factories.referentiel.metier_django_factory import (
     MetierDjangoFactory,
 )
+from infrastructure.factories.referentiel.metier_factory import MetierFactory
 from infrastructure.gateways.shared.logger import LoggerService
 from infrastructure.mappers.metier_mapper import MetierMapper
 from infrastructure.repositories.shared.postgres_metier_repository import (
@@ -99,3 +100,12 @@ def test_mark_as_pending(db, repository):
 
     undesired_model_objects = MetierModel.objects.get(processing=True)
     assert undesired_model_objects.id == undesired_metiers.id
+
+
+def test_upsert_batch_stores_rmfpv2_as_job_family_referential(db, repository):
+    metier = MetierFactory.create_entity()
+
+    repository.upsert_batch([metier])
+
+    stored = MetierModel.objects.get(external_id=metier.external_id)
+    assert stored.job_family_referential == "RMFPv2"

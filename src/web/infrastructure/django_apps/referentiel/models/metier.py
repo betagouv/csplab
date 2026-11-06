@@ -1,4 +1,5 @@
 from django.db import models
+from referentiel.value_objects.job_family_referential import JobFamilyReferential
 
 from infrastructure.django_apps.utils.models import BaseDatedModel
 
@@ -28,6 +29,11 @@ class MetierModel(BaseDatedModel):
     definition_synthetique = models.TextField(null=True, blank=True)
     domaine_fonctionnel_code = models.CharField(max_length=3)
     offer_family_code = models.CharField(max_length=8)
+    job_family_referential = models.CharField(
+        max_length=50,
+        choices=JobFamilyReferential.choices,
+        default=JobFamilyReferential.RMFPV2,
+    )
     versants = models.JSONField(default=list, null=True, blank=True)
     conditions_particulieres = models.JSONField(default=list, null=True, blank=True)
     activites = models.JSONField(default=list)
