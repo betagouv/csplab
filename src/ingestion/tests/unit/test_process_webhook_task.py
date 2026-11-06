@@ -175,6 +175,12 @@ def _http_status_error(status_code: int) -> httpx.HTTPStatusError:
     return httpx.HTTPStatusError("error", request=request, response=response)
 
 
+def _wrapped(cause: Exception) -> ExternalApiError:
+    error = ExternalApiError("Request failed after retries", api_name="Talentsoft")
+    error.__cause__ = cause
+    return error
+
+
 @pytest.mark.parametrize(
     "exc",
     [
@@ -184,6 +190,8 @@ def _http_status_error(status_code: int) -> httpx.HTTPStatusError:
         ExternalApiError("gateway error", status_code=503),
         _http_status_error(502),
         TimeoutError(),
+        _wrapped(httpx.ConnectError("connection refused")),
+        _wrapped(_http_status_error(503)),
     ],
 )
 def test_is_transient_true(exc):
@@ -198,6 +206,8 @@ def test_is_transient_true(exc):
         ExternalApiError("bad request", status_code=400),
         ExternalApiError("not found", status_code=404),
         _http_status_error(400),
+        _wrapped(_http_status_error(401)),
+        ExternalApiError("Invalid response structure"),
     ],
 )
 def test_is_transient_false(exc):

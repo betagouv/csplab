@@ -33,8 +33,10 @@ def _is_transient(exc: Exception) -> bool:
         return True
     if isinstance(exc, httpx.HTTPStatusError):
         return exc.response.status_code >= _SERVER_ERROR_STATUS
-    if isinstance(exc, ExternalApiError) and exc.status_code is not None:
-        return exc.status_code >= _SERVER_ERROR_STATUS
+    if isinstance(exc, ExternalApiError):
+        if exc.status_code is not None:
+            return exc.status_code >= _SERVER_ERROR_STATUS
+        return isinstance(exc.__cause__, Exception) and _is_transient(exc.__cause__)
     return False
 
 
