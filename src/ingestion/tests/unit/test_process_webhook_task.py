@@ -1,10 +1,13 @@
+import logging
 from unittest.mock import AsyncMock, MagicMock, patch
 from uuid import UUID
 
 import httpx
 import pytest
+import sentry_sdk
 from celery.app.task import Task
 from celery.exceptions import Retry
+from sentry_sdk.integrations.celery import CeleryIntegration
 
 from application.tasks.process_webhook import (
     _is_transient,
@@ -247,3 +250,53 @@ def test_no_retry_on_value_error(mock_get_container, mock_retry):
         archive_offer_webhook(str(WEBHOOK_ID))
 
     mock_retry.assert_not_called()
+
+
+# --- Logging context ---
+
+
+@pytest.fixture
+def sentry_events():
+    events: list = []
+    sentry_sdk.init(
+        dsn="https://key@o123.ingest.sentry.io/123",
+        integrations=[CeleryIntegration()],
+        default_integrations=False,
+        transport=events.append,
+    )
+    yield events
+    sentry_sdk.init()
+
+
+@patch(_PATCH_CONTAINER)
+def test_exception_sent_to_sentry_has_offer_context(mock_get_container, sentry_events):
+    webhook = WebhookFactory.build(
+        id=WEBHOOK_ID, source_id=SOURCE_ID, reference=REFERENCE
+    )
+    container = _make_mock_container(webhook)
+    container.archive_offer_usecase.return_value.execute.side_effect = RuntimeError()
+    mock_get_container.return_value = container
+
+    archive_offer_webhook.apply(args=[str(WEBHOOK_ID)])
+
+    [event] = sentry_events
+    assert event["tags"]["source_id"] == SOURCE_ID
+    assert event["tags"]["reference"] == REFERENCE
+    assert event["tags"]["webhook_id"] == str(WEBHOOK_ID)
+
+
+@patch(_PATCH_CONTAINER)
+def test_logs_processed_webhook_with_context(mock_get_container, caplog):
+    webhook = WebhookFactory.build(
+        id=WEBHOOK_ID, source_id=SOURCE_ID, reference=REFERENCE
+    )
+    mock_get_container.return_value = _make_mock_container(webhook)
+
+    with caplog.at_level(logging.INFO, logger="application.tasks.process_webhook"):
+        archive_offer_webhook(str(WEBHOOK_ID))
+
+    record = next(r for r in caplog.records if r.message == "Webhook processed")
+    assert record.webhook_id == str(WEBHOOK_ID)
+    assert record.reference == REFERENCE
+    assert record.source_id == SOURCE_ID
+    assert isinstance(record.duration_ms, int)

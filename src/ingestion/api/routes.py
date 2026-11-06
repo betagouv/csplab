@@ -27,6 +27,7 @@ logger = logging.getLogger(__name__)
 public_router = APIRouter()
 
 _OK = {"status": "ok"}
+_LOGGED_BODY_MAX_LENGTH = 1_000
 
 
 @public_router.get("/health")
@@ -82,7 +83,7 @@ async def talentsoft_webhook(
     body = await request.body()
     logger.debug(
         "Received TalentSoft webhook body",
-        extra={"body": body.decode(), "client_id": client_id},
+        extra={"body": _truncate(body), "client_id": client_id},
     )
     if not body:
         return _OK
@@ -135,6 +136,13 @@ def _parse_payload(body: bytes, client_id: str) -> WebhookEvent | None:
     except ValidationError:
         logger.warning(
             "Unrecognised TalentSoft webhook payload, ignoring",
-            extra={"body": body.decode(), "client_id": client_id},
+            extra={"body": _truncate(body), "client_id": client_id},
         )
         return None
+
+
+def _truncate(body: bytes) -> str:
+    text = body.decode(errors="replace")
+    if len(text) <= _LOGGED_BODY_MAX_LENGTH:
+        return text
+    return f"{text[:_LOGGED_BODY_MAX_LENGTH]}… ({len(text)} chars)"
