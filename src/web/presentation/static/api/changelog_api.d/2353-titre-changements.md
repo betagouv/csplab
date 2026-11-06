@@ -8,7 +8,7 @@ liens:
 ---
 
 `GET /api/changelog.json` : chaque entrée a un nouveau champ `titre`, une phrase courte
-qui dit ce qui change, lisible sans le code. `GET /api/changelog.atom` l'utilise comme
-titre de chaque entrée, précédé de ⚠️ pour un changement non rétrocompatible, au lieu
-du type et des routes. `GET /api/changelog.md` l'affiche en gras en tête de chaque
+qui dit ce qui change, en Markdown (un nom de champ ou une valeur entre backticks).
+`GET /api/changelog.atom` l'utilise, sans ses backticks, comme titre de chaque entrée,
+précédé de ⚠️ pour un changement non rétrocompatible, au lieu du type et des routes. `GET /api/changelog.md` l'affiche en gras en tête de chaque
 entrée.
