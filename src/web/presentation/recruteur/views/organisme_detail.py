@@ -34,6 +34,7 @@ from presentation.api.serializers import (
     GenericErrorSerializer,
     generic_response_format,
 )
+from presentation.commons.conditional_get import ConditionalGetMixin
 from presentation.recruteur.serializers import (
     EtapeOrganismeSerializer,
     EtapeRecrutementSerializer,
@@ -65,7 +66,7 @@ from presentation.recruteur.serializers import (
         },
     ),
 )
-class OrganismeDetailView(SessionApiMixin, APIView):
+class OrganismeDetailView(ConditionalGetMixin, SessionApiMixin, APIView):
     serializer_class = OrganismeDetailSerializer
 
     def get(self, request: Request, organisme_uuid: UUID) -> Response:
@@ -137,7 +138,7 @@ class OrganismeDetailView(SessionApiMixin, APIView):
         },
     ),
 )
-class EtapesRecrutementOrganismeView(SessionApiMixin, APIView):
+class EtapesRecrutementOrganismeView(ConditionalGetMixin, SessionApiMixin, APIView):
     def get(self, request: Request, organisme_uuid: UUID) -> Response:
         try:
             organisme = get_organisme_etapes(
@@ -212,7 +213,7 @@ class EtapesRecrutementOrganismeView(SessionApiMixin, APIView):
         },
     ),
 )
-class MotifsRefusOrganismeView(SessionApiMixin, APIView):
+class MotifsRefusOrganismeView(ConditionalGetMixin, SessionApiMixin, APIView):
     def get(self, request: Request, organisme_uuid: UUID) -> Response:
         try:
             motifs = list_motifs_refus(
@@ -243,7 +244,7 @@ class MotifsRefusOrganismeView(SessionApiMixin, APIView):
         201: EtapeRecrutementSerializer(many=True),
     },
 )
-class InitEtapesRecrutementOrganismeView(SessionApiMixin, APIView):
+class InitEtapesRecrutementOrganismeView(ConditionalGetMixin, SessionApiMixin, APIView):
     def post(self, request: Request, organisme_uuid: UUID) -> Response:
         try:
             organisme = initialize_organisme_etapes(
