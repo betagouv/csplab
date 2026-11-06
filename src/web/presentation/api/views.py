@@ -199,9 +199,10 @@ class ChangelogFeed(Feed):
         return self.filters.apply(published_fragments())
 
     def item_title(self, fragment: Fragment) -> str:
+        title = fragment.titre.replace("`", "")
         if fragment.type == TypeChangement.NON_RETROCOMPATIBLE:
-            return f"⚠️ {fragment.titre}"
-        return fragment.titre
+            return f"⚠️ {title}"
+        return title
 
     def item_description(self, fragment: Fragment) -> str:
         return entry_html(fragment)

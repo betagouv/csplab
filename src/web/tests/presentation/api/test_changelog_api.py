@@ -706,7 +706,8 @@ class TestChangelogFeed:
         assert len(entries) == len(expected)
         link = entries[0].find(f"{self.ATOM}link").get("href")
         assert link == f"http://testserver/pages/changelog_api#{expected[0].slug}"
-        assert entries[0].find(f"{self.ATOM}title").text == expected[0].titre
+        title = expected[0].titre.replace("`", "")
+        assert entries[0].find(f"{self.ATOM}title").text == title
         entry_id = entries[0].find(f"{self.ATOM}id").text
         assert entry_id == f"tag:csplab.beta.gouv.fr:changelog-api:{expected[0].slug}"
 
@@ -720,7 +721,7 @@ class TestChangelogFeed:
         titles = [
             e.find(f"{self.ATOM}title").text for e in feed.iter(f"{self.ATOM}entry")
         ]
-        assert titles == [f"⚠️ {f.titre}" for f in expected]
+        assert titles == [f"⚠️ {f.titre.replace('`', '')}" for f in expected]
 
     def test_rejects_an_invalid_filter(self, db, client):
         response = client.get(reverse("api:changelog_atom"), {"depuis": "hier"})
