@@ -4,6 +4,219 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.0] - 2026-11-06
+
+### Candidatures
+
+#### <!-- 1 --> Added
+
+- Notes privées ([#2116](https://github.com/betagouv/csplab/pull/2116))
+- Notes edition en place ([#2149](https://github.com/betagouv/csplab/pull/2149))
+- Intègre le CV pleine hauteur et l'ouverture des documents du panneau ([#2125](https://github.com/betagouv/csplab/pull/2125))
+- Affiche et modifie le motif de refus d'une candidature ([#2183](https://github.com/betagouv/csplab/pull/2183))
+
+#### <!-- 2 --> Modified
+
+- Considère une saisie quittée par défaut ([#2146](https://github.com/betagouv/csplab/pull/2146))
+
+
+### Design-system
+
+#### <!-- 1 --> Added
+
+- Met à jour le mouvement et les ombres de l'ui ([#2124](https://github.com/betagouv/csplab/pull/2124))
+- Intègre la palette des étiquettes et le composant CspLabel ([#2198](https://github.com/betagouv/csplab/pull/2198))
+
+#### <!-- 2 --> Modified
+
+- Ajoute les variables de mouvement et d'ombre par rôle ([#2123](https://github.com/betagouv/csplab/pull/2123))
+
+#### <!-- 3 --> Fixed
+
+- Corrige le contraste des radios et des cases à cocher ([#1958](https://github.com/betagouv/csplab/pull/1958))
+- Corrige le contraste de l'interrupteur ([#1959](https://github.com/betagouv/csplab/pull/1959))
+- Accepte une icône à côté du libellé dans CspButton ([#2307](https://github.com/betagouv/csplab/pull/2307))
+
+
+### Identite
+
+#### <!-- 1 --> Added
+
+- Rattache un utilisateur à une source existante via create_user_with_source ([#2246](https://github.com/betagouv/csplab/pull/2246))
+- Renseigne dans l'admin les réseaux autorisés d'un compte API ([#2324](https://github.com/betagouv/csplab/pull/2324))
+- Restreint les comptes API à leurs réseaux autorisés ([#2325](https://github.com/betagouv/csplab/pull/2325))
+
+#### <!-- 2 --> Modified
+
+- Partage le contrôle d'appartenance d'une IP à des plages ([#2323](https://github.com/betagouv/csplab/pull/2323))
+
+
+### Ingestion
+
+#### <!-- 0 --> Breaking Changes
+
+- Passe les listes d'offres et de métiers sur la pagination DRF ([#2067](https://github.com/betagouv/csplab/pull/2067))
+- Refuse un organisme Talentsoft inconnu ou envoyé en JWT dans l'API d'offres ([#2069](https://github.com/betagouv/csplab/pull/2069))
+- Vérifie la cohérence du domaine avec le métier dans l'API d'offres ([#2086](https://github.com/betagouv/csplab/pull/2086))
+- Restreint documents_requis à une liste de documents et l'expose dans fake-ts ([#2091](https://github.com/betagouv/csplab/pull/2091))
+- Enregistre toutes les catégories d'une offre ([#2108](https://github.com/betagouv/csplab/pull/2108))
+- Rejette les offres sans catégorie ([#2143](https://github.com/betagouv/csplab/pull/2143))
+- Accepte competences_requises en texte Markdown dans l'API offres ([#2157](https://github.com/betagouv/csplab/pull/2157))
+- Retire conditions.complements de l'API offres ([#2162](https://github.com/betagouv/csplab/pull/2162))
+- Déclare conditions.bases_legales en texte Markdown dans l'API offres ([#2166](https://github.com/betagouv/csplab/pull/2166))
+- Renvoie region et departement à null hors de France dans l'API v1 ([#2236](https://github.com/betagouv/csplab/pull/2236))
+- Rejette les offres dont le pays est un territoire d'outre-mer ([#2313](https://github.com/betagouv/csplab/pull/2313))
+
+#### <!-- 1 --> Added
+
+- Renseigne documents_requis depuis Talentsoft ([#2092](https://github.com/betagouv/csplab/pull/2092))
+- Initialise Sentry dans tous les scripts d'ingestion ([#2178](https://github.com/betagouv/csplab/pull/2178))
+- Rend titre_long facultatif dans offres/creer_modifier ([#2229](https://github.com/betagouv/csplab/pull/2229))
+- N'envoie plus le titre dans titre_long ([#2230](https://github.com/betagouv/csplab/pull/2230))
+- Reprend le diplôme d'État Talentsoft dans criteres.diplome ([#2289](https://github.com/betagouv/csplab/pull/2289))
+- Déduit le département chef-lieu des offres en France sans département ([#2317](https://github.com/betagouv/csplab/pull/2317))
+- Exige que chaque fragment du changelog de l'API cite ses routes ([#2295](https://github.com/betagouv/csplab/pull/2295))
+- Publie le changelog de l'API sur une page filtrable ([#2296](https://github.com/betagouv/csplab/pull/2296))
+- Publie le changelog de l'API en Markdown, JSON et Atom ([#2297](https://github.com/betagouv/csplab/pull/2297))
+- Publie le guide de l'API en Markdown et un /llms.txt pour les agents ([#2298](https://github.com/betagouv/csplab/pull/2298))
+
+#### <!-- 2 --> Modified
+
+- Ne cherche plus par nom le SIRET des bureaux et sous-directions DILA ([#2187](https://github.com/betagouv/csplab/pull/2187))
+
+#### <!-- 3 --> Fixed
+
+- Déduit la zone géographique d'une offre depuis son département ([#2097](https://github.com/betagouv/csplab/pull/2097))
+- Ne déduit plus le domaine du préfixe du code métier ([#2118](https://github.com/betagouv/csplab/pull/2118))
+- Rattrape la zone géographique des offres Talentsoft déjà publiées ([#2139](https://github.com/betagouv/csplab/pull/2139))
+- Attribue un SIRET partagé entre référentiels au référentiel qui fait foi ([#2144](https://github.com/betagouv/csplab/pull/2144))
+- Attribue les SIRET DILA via un mapping vérifié et répare la hiérarchie ([#2148](https://github.com/betagouv/csplab/pull/2148))
+- Convertit les compétences attendues Talentsoft en Markdown ([#2160](https://github.com/betagouv/csplab/pull/2160))
+- Convertit le fondement juridique Talentsoft en Markdown ([#2167](https://github.com/betagouv/csplab/pull/2167))
+- Relance le chargement des sources au démarrage si le web ne répond pas ([#2177](https://github.com/betagouv/csplab/pull/2177))
+- Localise les offres des collectivités d'outre-mer saisies comme un pays ([#2209](https://github.com/betagouv/csplab/pull/2209))
+- Accepte les offres localisées hors de France dans l'API v1 ([#2210](https://github.com/betagouv/csplab/pull/2210))
+- Localise les offres Talentsoft à l'étranger ([#2211](https://github.com/betagouv/csplab/pull/2211))
+- Garde les départements 08 et 09 en chaînes dans le schéma OpenAPI ([#2224](https://github.com/betagouv/csplab/pull/2224))
+- Rend unique le slug des sources ([#2251](https://github.com/betagouv/csplab/pull/2251))
+- Envoie region et departement à null hors de France ([#2237](https://github.com/betagouv/csplab/pull/2237))
+- Signale les offres Talentsoft à plusieurs lieux ([#2262](https://github.com/betagouv/csplab/pull/2262))
+- Rejette la quotité de temps de travail saisie comme diplôme d'État ([#2285](https://github.com/betagouv/csplab/pull/2285))
+
+#### <!-- 4 --> Documentation
+
+- Aligne l'annexe Talentsoft du guide API sur le code ([#2156](https://github.com/betagouv/csplab/pull/2156))
+- Documente chaque champ de offres/creer_modifier dans le schéma OpenAPI ([#2306](https://github.com/betagouv/csplab/pull/2306))
+
+
+### Recruteur
+
+#### <!-- 0 --> Breaking Changes
+
+- Paginer la liste des organismes pour un staff ([#2197](https://github.com/betagouv/csplab/pull/2197))
+
+#### <!-- 1 --> Added
+
+- Distingue notes d'équipe et notes personnelles ([#2096](https://github.com/betagouv/csplab/pull/2096))
+- Ajoute la bascule de visibilité d'une note ([#2099](https://github.com/betagouv/csplab/pull/2099))
+- Aligne la barre d'action du kanban sur celle des tableaux ([#2114](https://github.com/betagouv/csplab/pull/2114))
+- Sème la démo sur huit organismes avec des CV variés ([#2111](https://github.com/betagouv/csplab/pull/2111))
+- Sème des notes d'appel et d'entretien dans la démo ([#2115](https://github.com/betagouv/csplab/pull/2115))
+- Sème les fils de messagerie de la démo ([#2120](https://github.com/betagouv/csplab/pull/2120))
+- Ajoute la réponse automatique des candidats fictifs ([#2128](https://github.com/betagouv/csplab/pull/2128))
+- Pose une étiquette sur une note ([#2133](https://github.com/betagouv/csplab/pull/2133))
+- Ajoute la Caisse des dépôts au jeu de démo ([#2147](https://github.com/betagouv/csplab/pull/2147))
+- Retire une étiquette d'une note ([#2135](https://github.com/betagouv/csplab/pull/2135))
+- Recherche les organismes par nom sans tenir compte des accents ([#2141](https://github.com/betagouv/csplab/pull/2141))
+- Intègre la modification des droits d'accès d'un membre dans un panneau ([#2127](https://github.com/betagouv/csplab/pull/2127))
+- Remplace le vocabulaire membre par compte utilisateur dans l'organisme ([#2193](https://github.com/betagouv/csplab/pull/2193))
+- Corrige les libellés, confirme l'envoi d'un message et le changement d'étape ([#2129](https://github.com/betagouv/csplab/pull/2129))
+- Expose le motif de refus dans le détail candidature ([#2182](https://github.com/betagouv/csplab/pull/2182))
+- Assigne un responsable depuis la ligne d'un recrutement ([#2185](https://github.com/betagouv/csplab/pull/2185))
+- Ajoute ONACVG, Conseil d'État et AEFE au jeu de démo ([#2203](https://github.com/betagouv/csplab/pull/2203))
+- Intègre la modification d'une étiquette ([#2200](https://github.com/betagouv/csplab/pull/2200))
+- Actions autorisées dans la liste des organismes ([#2222](https://github.com/betagouv/csplab/pull/2222))
+- Actions autorisées dans un recrutement / candidature ([#2232](https://github.com/betagouv/csplab/pull/2232))
+- Ajoute la recherche d'organismes par nom pour un staff ([#2214](https://github.com/betagouv/csplab/pull/2214))
+- Conditionne le menu d'un organisme à ses actions ([#2249](https://github.com/betagouv/csplab/pull/2249))
+- Intègre la page d'accueil de l'organisme ([#2271](https://github.com/betagouv/csplab/pull/2271))
+- Expose les actions autorisées de chaque note ([#2257](https://github.com/betagouv/csplab/pull/2257))
+- Ajoute les étapes à la vue liste d'un recrutement ([#2269](https://github.com/betagouv/csplab/pull/2269))
+- Expose les étiquettes d'une note ([#2277](https://github.com/betagouv/csplab/pull/2277))
+- Expose les actions autorisées d'un organisme ([#2286](https://github.com/betagouv/csplab/pull/2286))
+
+#### <!-- 2 --> Modified
+
+- Mise à jour des routes des recrutements actifs et archivés ([#2192](https://github.com/betagouv/csplab/pull/2192))
+- Compte agents et offres par sous-requête dans la liste des organismes ([#2215](https://github.com/betagouv/csplab/pull/2215))
+- S'appuie sur les actions autorisées dans le front ([#2240](https://github.com/betagouv/csplab/pull/2240))
+- Cherche les organismes du sélecteur staff au serveur ([#2248](https://github.com/betagouv/csplab/pull/2248))
+- Simplifie la lecture du détail d'un organisme ([#2279](https://github.com/betagouv/csplab/pull/2279))
+- Simplifie la mise à jour d'un organisme ([#2281](https://github.com/betagouv/csplab/pull/2281))
+- Alimente le kanban depuis la vue liste ([#2308](https://github.com/betagouv/csplab/pull/2308))
+- Prend les étapes des candidatures dans la vue liste ([#2310](https://github.com/betagouv/csplab/pull/2310))
+- Retire la requête kanban du front ([#2312](https://github.com/betagouv/csplab/pull/2312))
+- Renomme le type des colonnes du kanban ([#2314](https://github.com/betagouv/csplab/pull/2314))
+- Supprime la vue kanban d'un recrutement ([#2315](https://github.com/betagouv/csplab/pull/2315))
+
+#### <!-- 3 --> Fixed
+
+- Corrige la sélection en lot du kanban et des recrutements ([#2121](https://github.com/betagouv/csplab/pull/2121))
+- Ignorer les offres archivées dans la liste des organismes ([#2217](https://github.com/betagouv/csplab/pull/2217))
+- Reprend les retours de revue du jeu de démo ([#2213](https://github.com/betagouv/csplab/pull/2213))
+- Masque les actions de recrutement non autorisées ([#2241](https://github.com/betagouv/csplab/pull/2241))
+- Affiche tous les organismes au-delà de 1000 ([#2252](https://github.com/betagouv/csplab/pull/2252))
+- Ajoute un écran d'erreur quand le compte ne se charge pas ([#2278](https://github.com/betagouv/csplab/pull/2278))
+- Compte les candidatures sélectionnées dans le kanban ([#2316](https://github.com/betagouv/csplab/pull/2316))
+
+
+### Referentiel
+
+#### <!-- 0 --> Breaking Changes
+
+- Stocke toutes les localisations d'une offre ([#2263](https://github.com/betagouv/csplab/pull/2263))
+- Expose et recherche toutes les localisations d'une offre ([#2264](https://github.com/betagouv/csplab/pull/2264))
+- Renseigne parentCode dans les référentiels de lieux de fake-ts ([#2270](https://github.com/betagouv/csplab/pull/2270))
+- Expose dans fake-ts les champs d'offre déjà enregistrés ([#2283](https://github.com/betagouv/csplab/pull/2283))
+
+#### <!-- 1 --> Added
+
+- Impose en base au moins une catégorie par offre ([#2179](https://github.com/betagouv/csplab/pull/2179))
+- Ajoute Saint-Barthélemy et Saint-Martin aux collectivités d'outre-mer ([#2208](https://github.com/betagouv/csplab/pull/2208))
+- Renseigne geographicalLocation avec la zone des lieux dans fake-ts ([#2268](https://github.com/betagouv/csplab/pull/2268))
+- Ajoute le référentiel Talentsoft des diplômes d'État ([#2288](https://github.com/betagouv/csplab/pull/2288))
+- Expose le diplôme d'État dans fake-ts comme Talentsoft ([#2290](https://github.com/betagouv/csplab/pull/2290))
+- Renvoie dans fake-ts un diplôme libre de criteres.diplome ([#2305](https://github.com/betagouv/csplab/pull/2305))
+
+#### <!-- 2 --> Modified
+
+- Retire les colonnes de localisation de la table offers ([#2265](https://github.com/betagouv/csplab/pull/2265))
+
+#### <!-- 3 --> Fixed
+
+- Réaligne le domaine des offres incohérentes avec leur métier ([#2117](https://github.com/betagouv/csplab/pull/2117))
+
+#### <!-- 4 --> Documentation
+
+- Documente le passage de l'API vacancies Talentsoft à l'API v1 ([#2302](https://github.com/betagouv/csplab/pull/2302))
+- Documente les diplômes d'État conseillés pour criteres.diplome ([#2303](https://github.com/betagouv/csplab/pull/2303))
+
+
+### Tooling
+
+#### <!-- 1 --> Added
+
+- Restaure la base ingestion depuis la démo ou la prod via le CLI Scalingo ([#2190](https://github.com/betagouv/csplab/pull/2190))
+
+#### <!-- 2 --> Modified
+
+- Partage la configuration Postgres locale entre web et ingestion ([#2189](https://github.com/betagouv/csplab/pull/2189))
+
+#### <!-- 3 --> Fixed
+
+- Affiche la compatibilité sous chaque changement du changelog de l'API ([#2151](https://github.com/betagouv/csplab/pull/2151))
+
+
 ## [0.5.0] - 2026-10-27
 
 ### Candidatures
