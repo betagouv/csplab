@@ -1,4 +1,5 @@
 ---
+titre: "Offres : les descriptions acceptent du Markdown"
 type: modifie
 date: 2026-10-20
 pr: 2008

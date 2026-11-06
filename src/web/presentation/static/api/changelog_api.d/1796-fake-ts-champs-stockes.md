@@ -1,4 +1,5 @@
 ---
+titre: "fake-ts : le détail d'une offre renvoie ses champs déjà enregistrés"
 type: ajoute
 date: 2026-11-04
 pr: 2283

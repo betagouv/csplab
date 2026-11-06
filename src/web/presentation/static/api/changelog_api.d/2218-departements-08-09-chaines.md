@@ -1,4 +1,5 @@
 ---
+titre: "Schéma OpenAPI : départements 08 et 09 typés comme des chaînes"
 type: corrige
 date: 2026-11-03
 pr: 2224

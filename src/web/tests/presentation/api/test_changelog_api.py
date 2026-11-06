@@ -36,9 +36,14 @@ from presentation.pages.views import _BADGES
 TODAY = date(2026, 10, 27)
 
 
-def write_fragment(tmp_path, name, *, header, body="Un changement."):
+def write_fragment(
+    tmp_path, name, *, header, body="Un changement.", titre="Offres : un titre"
+):
+    header = dedent(header).strip()
+    if titre is not None:
+        header = f'titre: "{titre}"\n{header}'
     path = tmp_path / name
-    path.write_text(f"---\n{dedent(header).strip()}\n---\n\n{dedent(body).strip()}\n")
+    path.write_text(f"---\n{header}\n---\n\n{dedent(body).strip()}\n")
     return path
 
 
@@ -70,6 +75,7 @@ class TestParseFragment:
 
         result = parse_fragment(path)
 
+        assert result.titre == "Offres : un titre"
         assert result.type == "non_retrocompatible"
         assert result.date == date(2026, 10, 27)
         assert result.pr == 2085  # noqa: PLR2004
@@ -125,6 +131,37 @@ class TestParseFragment:
 
         with pytest.raises(FragmentError, match=message):
             parse_fragment(path)
+
+    @pytest.mark.parametrize(
+        "titre, message",
+        [
+            (None, "`titre` est obligatoire"),
+            ("  ", "`titre` est obligatoire"),
+            ("x" * 81, "`titre` dépasse 80 caractères"),
+            ("Offres : `localisation devient une liste", "backtick non refermé"),
+            ("Offres : **50** lieux au plus", "ni `*`"),
+            ("Offres : voir [le guide](https://example.com)", "ni `\\*`, ni `\\[`"),
+            ("Offres : <img src=x onerror=alert(1)>", "ni `\\*`, ni `\\[`"),
+            ("Offres : POST /api/v1/offres/creer_modifier", "ne cite pas de route"),
+        ],
+    )
+    def test_invalid_title(self, tmp_path, titre, message):
+        path = write_fragment(
+            tmp_path,
+            "f.md",
+            header="type: ajoute\ndate: 2026-10-27\npr: 1",
+            titre=titre,
+        )
+
+        with pytest.raises(FragmentError, match=message):
+            parse_fragment(path)
+
+    def test_accepts_a_field_name_in_backticks(self, tmp_path):
+        result = fragment(
+            tmp_path, titre="fake-ts : `salaryRange` devient un objet codé"
+        )
+
+        assert result.titre == "fake-ts : `salaryRange` devient un objet codé"
 
     @pytest.mark.parametrize(
         "body, message",
@@ -214,6 +251,7 @@ class TestAssemble:
         assert (
             "Cassé 2. ([PR #2](https://github.com/betagouv/csplab/pull/2))\n\n"
             "> **Compatibilité**\n>\n> Compat 2.\n>\n> - Point.\n\n"
+            "**Offres : un titre**\n\n"
             "Cassé 3. ([PR #3](https://github.com/betagouv/csplab/pull/3))\n\n"
             "> **Compatibilité**\n>\n> Compat 3."
         ) in markdown
@@ -232,18 +270,19 @@ class TestAssemble:
 
         assert "pull/1))\n\n> **Compatibilité**\n>\n> Compat." in assemble([result])
 
-    def test_keeps_consecutive_bullet_lists_tight(self, tmp_path):
+    def test_starts_each_entry_with_its_title(self, tmp_path):
         fragments = [
-            fragment(tmp_path, "a.md", pr=1, body="- Premier."),
-            fragment(tmp_path, "b.md", pr=2, body="- Second."),
-            fragment(tmp_path, "c.md", pr=3, body="Un paragraphe."),
+            fragment(tmp_path, "a.md", pr=1, titre="Offres : premier", body="- Un."),
+            fragment(tmp_path, "b.md", pr=2, titre="Offres : second", body="- Deux."),
         ]
 
         markdown = assemble(fragments)
 
-        assert "- Premier. ([PR #1]" in markdown
-        assert "pull/1))\n- Second. ([PR #2]" in markdown
-        assert "pull/2))\n\nUn paragraphe." in markdown
+        assert (
+            "### Ajouté\n\n**Offres : premier**\n\n- Un. ([PR #1]"
+            "(https://github.com/betagouv/csplab/pull/1))\n\n"
+            "**Offres : second**\n\n- Deux. ([PR #2]"
+        ) in markdown
 
     def test_published_fragments_are_valid(self):
         assert assemble(load_fragments()).count("## 2026-") >= 1
@@ -450,6 +489,7 @@ def test_set_date_only_changes_the_date(tmp_path):
         "f.md",
         header="type: ajoute\ndate: 2026-10-01  # date de merge\npr: 1",
         body="date: 2026-10-01 dans le corps.",
+        titre=None,
     )
 
     set_date(path, TODAY)

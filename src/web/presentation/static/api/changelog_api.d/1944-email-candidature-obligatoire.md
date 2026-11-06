@@ -1,4 +1,5 @@
 ---
+titre: "Offres : un lien ou un email de candidature, pas les deux"
 type: non_retrocompatible
 date: 2026-10-14
 pr: 1944

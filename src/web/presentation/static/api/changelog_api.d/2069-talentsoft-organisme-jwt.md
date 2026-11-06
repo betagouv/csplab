@@ -1,4 +1,5 @@
 ---
+titre: "Offres : organisme Talentsoft refusé avec une authentification JWT"
 type: non_retrocompatible
 date: 2026-10-27
 pr: 2069
