@@ -1,5 +1,5 @@
 ---
-titre: "fake-ts : salaryRange devient un objet codé portant le versant"
+titre: "fake-ts : `salaryRange` devient un objet codé portant le versant"
 type: non_retrocompatible
 date: 2026-11-04
 pr: 2283

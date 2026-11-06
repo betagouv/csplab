@@ -1,5 +1,5 @@
 ---
-titre: "Lecture des offres : categorie devient la liste categories"
+titre: "Lecture des offres : `categorie` devient la liste `categories`"
 type: non_retrocompatible
 date: 2026-10-28
 pr: 2108

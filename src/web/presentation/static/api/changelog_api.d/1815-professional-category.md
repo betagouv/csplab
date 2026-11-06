@@ -1,5 +1,5 @@
 ---
-titre: "fake-ts : professionalCategory indique si le poste est vacant"
+titre: "fake-ts : `professionalCategory` indique si le poste est vacant"
 type: modifie
 date: 2026-10-08
 pr: 1815

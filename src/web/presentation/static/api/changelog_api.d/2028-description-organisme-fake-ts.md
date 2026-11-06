@@ -1,5 +1,5 @@
 ---
-titre: "fake-ts : organisationDescription reprend la description de l'organisme"
+titre: "fake-ts : `organisationDescription` reprend la description de l'organisme"
 type: modifie
 date: 2026-10-21
 pr: 2028

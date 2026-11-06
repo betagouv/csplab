@@ -1,5 +1,5 @@
 ---
-titre: "fake-ts : geographicalLocation liste les zones géographiques de l'offre"
+titre: "fake-ts : `geographicalLocation` liste les zones géographiques de l'offre"
 type: ajoute
 date: 2026-11-04
 pr: 2268
