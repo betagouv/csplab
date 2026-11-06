@@ -3,7 +3,7 @@ from uuid import uuid4
 import pytest
 
 from application.recruteur.services.list_candidatures import (
-    liste_candidatures,
+    list_candidatures,
 )
 from domain.commons.errors.organisme_errors import OrganismeNexistePas
 from domain.identite.errors.organisme_permission_errors import (
@@ -75,7 +75,7 @@ def test_raises(scenario, expected_error):
     agent, organisme_id, recrutement_id = scenario()
 
     with pytest.raises(expected_error):
-        liste_candidatures(
+        list_candidatures(
             organisme_id=organisme_id,
             recrutement_id=recrutement_id,
             utilisateur=agent.utilisateur,

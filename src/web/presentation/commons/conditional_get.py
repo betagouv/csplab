@@ -13,7 +13,6 @@ from django.utils.http import quote_etag
 from rest_framework import status
 from rest_framework.request import Request
 
-# Scalingo exposes the deployed version: a deploy may change the response format.
 DEPLOYED_VERSION = os.environ.get("CONTAINER_VERSION", "")
 
 
@@ -41,11 +40,7 @@ class ConditionalGetMixin:
     ) -> HttpResponseBase:
         etag = _etag(request, version)
         response = get_conditional_response(request, etag=etag) or build()
-        if response.status_code in (
-            status.HTTP_200_OK,
-            status.HTTP_304_NOT_MODIFIED,
-        ):
-            response["ETag"] = etag
+        response["ETag"] = etag
         return response
 
 
@@ -59,6 +54,6 @@ def _not_modified_if_unchanged(
 ) -> HttpResponseBase | None:
     if not response.has_header("ETag"):
         set_response_etag(response)
-    if not response.has_header("ETag"):
-        return None
-    return get_conditional_response(request, etag=response["ETag"], response=response)
+    return get_conditional_response(
+        request, etag=response.get("ETag"), response=response
+    )

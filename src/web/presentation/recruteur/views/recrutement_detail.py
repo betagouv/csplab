@@ -15,8 +15,7 @@ from application.recruteur.services.get_recrutement import (
     get_recrutement,
 )
 from application.recruteur.services.list_candidatures import (
-    ListeCandidatures,
-    liste_candidatures,
+    list_candidatures,
 )
 from application.recruteur.usecases.change_etape_candidatures import (
     ChangeEtapeCandidaturesCommand,
@@ -33,7 +32,8 @@ from domain.recruteur.errors.recrutement_errors import (
 )
 from infrastructure.di.recruteur.recruteur_factory import recruteur_container
 from infrastructure.django_apps.candidate.models.candidature import CandidatureModel
-from infrastructure.django_apps.recruteur.models.etape import EtapeModel
+from infrastructure.django_apps.recruteur.models.etape import etapes_ordonnees
+from infrastructure.django_apps.recruteur.models.recrutement import RecrutementModel
 from presentation.api.authentication import SessionApiMixin
 from presentation.api.serializers import GenericErrorSerializer, TokenErrorSerializer
 from presentation.commons.conditional_get import ConditionalGetMixin
@@ -103,27 +103,28 @@ class RecrutementDetailView(ConditionalGetMixin, SessionApiMixin, APIView):
 class RecrutementListeView(ConditionalGetMixin, SessionApiMixin, ListAPIView):
     serializer_class = CandidatureListeSerializer
     pagination_class = PaginationSchemaDuSerializer
-    liste: ListeCandidatures
-    etapes: list[EtapeModel]
+    recrutement: RecrutementModel
+    candidatures: QuerySet[CandidatureModel]
 
     def list(self, request: Request, *args, **kwargs) -> HttpResponseBase:
-        self.liste = liste_candidatures(
+        self.recrutement, self.candidatures = list_candidatures(
             organisme_id=self.kwargs["organisme_uuid"],
             recrutement_id=self.kwargs["recrutement_uuid"],
             utilisateur=request.user,
         )
         return self.respond_unless_unchanged(
-            request, self.liste.version, partial(super().list, request, *args, **kwargs)
+            request,
+            self.recrutement.list_version,
+            partial(super().list, request, *args, **kwargs),
         )
 
     def get_queryset(self) -> QuerySet[CandidatureModel]:
-        candidatures, self.etapes = self.liste.candidatures_et_etapes()
-        return candidatures
+        return self.candidatures
 
     def get_paginated_response(self, data: Sequence[dict]) -> Response:
         response = super().get_paginated_response(data)
         response.data["etapes"] = EtapeRecrutementModelSerializer(
-            self.etapes, many=True
+            etapes_ordonnees(self.recrutement), many=True
         ).data
         return response
 
