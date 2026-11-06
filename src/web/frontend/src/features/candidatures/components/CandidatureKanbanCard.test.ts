@@ -23,7 +23,7 @@ const CANDIDATURE: KanbanCard = {
 function renderCard(route: string) {
   return renderWithApp(CandidatureKanbanCard, {
     route,
-    props: { candidature: CANDIDATURE, boardId: 'board', columnId: 'column' },
+    props: { candidature: CANDIDATURE, boardId: 'board', columnId: 'column', canChangeEtape: true },
   })
 }
 
