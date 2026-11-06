@@ -1,4 +1,4 @@
-from datetime import UTC, date, datetime
+from datetime import UTC, date, datetime, timedelta
 
 import pytest
 
@@ -16,6 +16,9 @@ from infrastructure.django_apps.commons.models import StatSnapshotModel
 from infrastructure.factories.candidate.candidature_django_factory import (
     CandidatureDjangoFactory,
 )
+from infrastructure.factories.candidate.document_django_factory import (
+    DocumentDjangoFactory,
+)
 from infrastructure.factories.identite.candidat_django_factory import (
     CandidatDjangoFactory,
 )
@@ -23,6 +26,12 @@ from infrastructure.factories.identite.organisme_django_factory import (
     OrganismeAgentDjangoFactory,
     OrganismeDjangoFactory,
 )
+from infrastructure.factories.messagerie.conversation_django_factory import (
+    ConversationDjangoFactory,
+    MessageDjangoFactory,
+    MessageDocumentDjangoFactory,
+)
+from infrastructure.factories.recruteur.note_django_factory import NoteDjangoFactory
 from infrastructure.factories.recruteur.recrutement_django_factory import (
     EtapeDjangoFactory,
     RecrutementAgentDjangoFactory,
@@ -186,3 +195,127 @@ def test_stores_candidat_accounts(db):
     calculate_daily_stats(TARGET_DATE)
 
     assert values_of(Metric.CANDIDAT_ACCOUNTS) == {Metric.CANDIDAT_ACCOUNTS: 2}
+
+
+@pytest.fixture
+def screened(recrutement):
+    return create_candidature(recrutement, CategorieEtapeRecrutement.EN_COURS)
+
+
+@pytest.fixture
+def unscreened(recrutement):
+    return create_candidature(recrutement, CategorieEtapeRecrutement.ENTREE)
+
+
+def test_stores_note_counts(screened, unscreened):
+    NoteDjangoFactory(candidature=screened)
+    NoteDjangoFactory(candidature=screened)
+    NoteDjangoFactory(candidature=unscreened)
+    NoteDjangoFactory(candidature=screened, est_privee=True)
+    NoteDjangoFactory(candidature=screened, supprimee_le=datetime.now(UTC))
+
+    calculate_daily_stats(TARGET_DATE)
+
+    assert values_of(
+        Metric.TEAM_NOTES,
+        Metric.PERSONAL_NOTES,
+        Metric.SCREENED_APPLICATIONS_WITH_TEAM_NOTE,
+    ) == {
+        Metric.TEAM_NOTES: 3,
+        Metric.PERSONAL_NOTES: 1,
+        Metric.SCREENED_APPLICATIONS_WITH_TEAM_NOTE: 1,
+    }
+
+
+def test_stores_message_counts(screened, unscreened):
+    screened_conversation = ConversationDjangoFactory(candidature=screened)
+    MessageDjangoFactory(conversation=screened_conversation)
+    MessageDjangoFactory(conversation=screened_conversation)
+    MessageDjangoFactory(conversation=screened_conversation, par_candidat=True)
+    MessageDjangoFactory(
+        conversation=ConversationDjangoFactory(candidature=unscreened),
+        par_candidat=True,
+    )
+
+    calculate_daily_stats(TARGET_DATE)
+
+    assert values_of(
+        Metric.TEAM_MESSAGES,
+        Metric.CANDIDAT_MESSAGES,
+        Metric.SCREENED_APPLICATIONS_WITH_TEAM_MESSAGE,
+    ) == {
+        Metric.TEAM_MESSAGES: 2,
+        Metric.CANDIDAT_MESSAGES: 2,
+        Metric.SCREENED_APPLICATIONS_WITH_TEAM_MESSAGE: 1,
+    }
+
+
+def create_message(conversation, *, par_candidat, minutes):
+    message = MessageDjangoFactory(conversation=conversation, par_candidat=par_candidat)
+    message.created_at = datetime(2026, 6, 1, tzinfo=UTC) + timedelta(minutes=minutes)
+    message.save(update_fields=["created_at"])
+
+
+def test_stores_conversation_counts(screened, unscreened):
+    opened_by_candidat = ConversationDjangoFactory(candidature=screened)
+    create_message(opened_by_candidat, par_candidat=True, minutes=0)
+    create_message(opened_by_candidat, par_candidat=False, minutes=1)
+    opened_by_team = ConversationDjangoFactory(candidature=screened)
+    create_message(opened_by_team, par_candidat=False, minutes=0)
+    create_message(opened_by_team, par_candidat=True, minutes=1)
+    ConversationDjangoFactory(candidature=unscreened)
+
+    calculate_daily_stats(TARGET_DATE)
+
+    assert values_of(
+        Metric.CONVERSATIONS,
+        Metric.CONVERSATIONS_OPENED_BY_CANDIDAT,
+        Metric.APPLICATIONS_WITH_CONVERSATION,
+        Metric.APPLICATIONS_WITH_SEVERAL_CONVERSATIONS,
+    ) == {
+        Metric.CONVERSATIONS: 3,
+        Metric.CONVERSATIONS_OPENED_BY_CANDIDAT: 1,
+        Metric.APPLICATIONS_WITH_CONVERSATION: 2,
+        Metric.APPLICATIONS_WITH_SEVERAL_CONVERSATIONS: 1,
+    }
+
+
+def candidat_user(candidature):
+    return candidature.candidat.utilisateur
+
+
+def test_stores_document_counts(recrutement, screened, unscreened):
+    DocumentDjangoFactory(candidature=screened, depose_par=candidat_user(screened))
+    DocumentDjangoFactory(candidature=unscreened)
+    with_attachment = create_candidature(
+        recrutement, CategorieEtapeRecrutement.EN_COURS
+    )
+    MessageDocumentDjangoFactory(
+        message=MessageDjangoFactory(
+            conversation=ConversationDjangoFactory(candidature=with_attachment),
+            par_candidat=True,
+        ),
+        document__depose_par=candidat_user(with_attachment),
+    )
+
+    calculate_daily_stats(TARGET_DATE)
+
+    assert values_of(
+        Metric.DOCUMENTS_ADDED_BY_MEMBER,
+        Metric.CANDIDAT_ATTACHMENTS,
+        Metric.SCREENED_APPLICATIONS_WITH_COMPLETED_FILE,
+    ) == {
+        Metric.DOCUMENTS_ADDED_BY_MEMBER: 1,
+        Metric.CANDIDAT_ATTACHMENTS: 1,
+        Metric.SCREENED_APPLICATIONS_WITH_COMPLETED_FILE: 1,
+    }
+
+
+def test_member_document_completes_screened_application_file(screened):
+    DocumentDjangoFactory(candidature=screened)
+
+    calculate_daily_stats(TARGET_DATE)
+
+    assert values_of(Metric.SCREENED_APPLICATIONS_WITH_COMPLETED_FILE) == {
+        Metric.SCREENED_APPLICATIONS_WITH_COMPLETED_FILE: 1
+    }
