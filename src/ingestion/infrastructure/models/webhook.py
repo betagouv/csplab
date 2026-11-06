@@ -32,3 +32,9 @@ class WebhookModel(SQLModel, table=True):  # type: ignore[call-arg]
     status_id: Optional[str] = None
     action_type: Optional[str] = Field(default=None, index=True)
     payload: dict[str, Any] = Field(sa_column=Column(JSONB, nullable=False))
+    processing_status: Optional[str] = Field(default=None, index=True)
+    attempts: int = Field(default=0, sa_column_kwargs={"server_default": "0"})
+    last_error: Optional[str] = None
+    processed_at: Optional[datetime] = Field(
+        default=None, sa_column=Column(DateTime(timezone=True), nullable=True)
+    )
