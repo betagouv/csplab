@@ -93,8 +93,7 @@ NOMBRE_REQUETES_LISTE_ATTENDU = (
     2  # authentication (view + RateLimitHeadersMiddleware)
     + 1  # organisme
     + 1  # agent's role
-    + 1  # version of the list
-    + 1  # recrutement etapes order
+    + 1  # recrutement with list version
     + 2  # pagination: count + page
     + 1  # etapes
 )
@@ -742,7 +741,7 @@ class TestRecrutementListeView:
         assert response.status_code == status.HTTP_200_OK
 
 
-NOMBRE_REQUETES_LISTE_INCHANGEE = (
+UNCHANGED_LIST_QUERY_COUNT = (
     2  # authentication (view + RateLimitHeadersMiddleware)
     + 1  # organisme
     + 1  # agent's role
@@ -795,8 +794,8 @@ def _read_by_current_agent(recrutement, candidature, agent):
     )
 
 
-@pytest.fixture(name="liste_avec_candidature")
-def liste_avec_candidature_fixture(recrutement_liste):
+@pytest.fixture(name="list_with_candidature")
+def list_with_candidature_fixture(recrutement_liste):
     etape = EtapeModel.objects.filter(recrutement=recrutement_liste).first()
     candidature = CandidatureDjangoFactory(etape=etape)
     CandidatureDjangoFactory(etape=etape)
@@ -809,11 +808,11 @@ def liste_avec_candidature_fixture(recrutement_liste):
 @pytest.mark.django_db
 class TestRecrutementListeConditionalGet:
     def test_returns_304_without_loading_the_list(
-        self, authenticated_client, liste_avec_candidature, django_assert_num_queries
+        self, authenticated_client, list_with_candidature, django_assert_num_queries
     ):
         first = authenticated_client.get(RECRUTEMENT_LISTE_URL)
 
-        with django_assert_num_queries(NOMBRE_REQUETES_LISTE_INCHANGEE):
+        with django_assert_num_queries(UNCHANGED_LIST_QUERY_COUNT):
             second = authenticated_client.get(
                 RECRUTEMENT_LISTE_URL, HTTP_IF_NONE_MATCH=first["ETag"]
             )
@@ -837,9 +836,9 @@ class TestRecrutementListeConditionalGet:
         ],
     )
     def test_returns_200_after_a_change(
-        self, authenticated_client, liste_avec_candidature, test_user, change
+        self, authenticated_client, list_with_candidature, test_user, change
     ):
-        recrutement, candidature = liste_avec_candidature
+        recrutement, candidature = list_with_candidature
         first = authenticated_client.get(RECRUTEMENT_LISTE_URL)
 
         change(recrutement, candidature, test_user)
@@ -851,9 +850,9 @@ class TestRecrutementListeConditionalGet:
         assert second["ETag"] != first["ETag"]
 
     def test_reading_by_another_agent_keeps_the_list_unchanged(
-        self, authenticated_client, liste_avec_candidature
+        self, authenticated_client, list_with_candidature
     ):
-        _, candidature = liste_avec_candidature
+        _, candidature = list_with_candidature
         first = authenticated_client.get(RECRUTEMENT_LISTE_URL)
 
         message = candidature.conversations.get().messages.get()
@@ -867,7 +866,7 @@ class TestRecrutementListeConditionalGet:
         assert second.status_code == status.HTTP_304_NOT_MODIFIED
 
     def test_etag_depends_on_the_query_string(
-        self, authenticated_client, liste_avec_candidature
+        self, authenticated_client, list_with_candidature
     ):
         first = authenticated_client.get(RECRUTEMENT_LISTE_URL)
 
@@ -878,9 +877,9 @@ class TestRecrutementListeConditionalGet:
         assert second.status_code == status.HTTP_200_OK
 
     def test_etag_depends_on_the_user(
-        self, authenticated_client, liste_avec_candidature
+        self, authenticated_client, list_with_candidature
     ):
-        recrutement, _ = liste_avec_candidature
+        recrutement, _ = list_with_candidature
         first = authenticated_client.get(RECRUTEMENT_LISTE_URL)
         other = OrganismeAgentDjangoFactory(
             organisme=recrutement.organisme,
@@ -895,7 +894,7 @@ class TestRecrutementListeConditionalGet:
         assert second.status_code == status.HTTP_200_OK
 
     def test_checks_permissions_before_answering_304(
-        self, authenticated_client, liste_avec_candidature, test_user
+        self, authenticated_client, list_with_candidature, test_user
     ):
         first = authenticated_client.get(RECRUTEMENT_LISTE_URL)
         OrganismeAgentModel.objects.filter(agent_id=test_user.username).delete()
