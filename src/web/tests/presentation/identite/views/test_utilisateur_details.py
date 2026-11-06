@@ -36,14 +36,6 @@ NOMBRE_REQUETES_ATTENDU = (
 )
 
 
-def _role(organisme, role: AgentOrganismeRole) -> dict:
-    return {
-        "organisme_uuid": str(organisme.id),
-        "nom": organisme.nom,
-        "role": role.value,
-    }
-
-
 def _organisme(organisme, role: AgentOrganismeRole, utilisateur) -> dict:
     return {
         "uuid": str(organisme.id),
@@ -71,7 +63,7 @@ def test_anonymous_returns_401(api_client):
     [CandidatDjangoFactory, AgentDjangoFactory],
     ids=["candidat", "agent_sans_role"],
 )
-def test_user_without_organisme_role_has_no_organisme_roles(
+def test_user_without_organisme_role_has_no_organismes(
     authenticated_client, test_user, create_profil
 ):
     create_profil(utilisateur=test_user)
@@ -84,8 +76,6 @@ def test_user_without_organisme_role_has_no_organisme_roles(
         "email": test_user.email,
         "prenom": test_user.first_name,
         "nom": test_user.last_name,
-        "is_staff": False,
-        "organisme_roles": [],
         "authorized_actions": [],
         "organismes": [],
     }
@@ -94,7 +84,7 @@ def test_user_without_organisme_role_has_no_organisme_roles(
 @pytest.mark.parametrize(
     "has_candidate_profile", [True, False], ids=["avec_profil_candidat", "agent"]
 )
-def test_agent_with_role_has_organisme_roles(
+def test_agent_with_role_has_organismes(
     authenticated_client, test_user, has_candidate_profile
 ):
     _, organisme = create_organisme_with_agent(
@@ -110,8 +100,6 @@ def test_agent_with_role_has_organisme_roles(
         "email": test_user.email,
         "prenom": test_user.first_name,
         "nom": test_user.last_name,
-        "is_staff": False,
-        "organisme_roles": [_role(organisme, AgentOrganismeRole.SUPERVISEUR)],
         "authorized_actions": [],
         "organismes": [
             _organisme(organisme, AgentOrganismeRole.SUPERVISEUR, test_user)
@@ -137,17 +125,13 @@ def test_agent_with_multiple_roles(authenticated_client, test_user):
     response = authenticated_client.get(URL)
 
     assert response.status_code == status.HTTP_200_OK
-    assert response.json()["organisme_roles"] == [
-        _role(other_organisme, AgentOrganismeRole.SUPERVISEUR),
-        _role(organisme, AgentOrganismeRole.AGENT),
-    ]
     assert [o["uuid"] for o in response.json()["organismes"]] == [
         str(other_organisme.id),
         str(organisme.id),
     ]
 
 
-def test_revoked_organisme_is_not_in_organisme_roles(authenticated_client, test_user):
+def test_revoked_organisme_is_not_in_organismes(authenticated_client, test_user):
     agent, organisme_actif = create_organisme_with_agent(
         role=AgentOrganismeRole.AGENT, utilisateur=test_user
     )
@@ -161,15 +145,12 @@ def test_revoked_organisme_is_not_in_organisme_roles(authenticated_client, test_
     response = authenticated_client.get(URL)
 
     assert response.status_code == status.HTTP_200_OK
-    assert response.json()["organisme_roles"] == [
-        _role(organisme_actif, AgentOrganismeRole.AGENT)
-    ]
     assert response.json()["organismes"] == [
         _organisme(organisme_actif, AgentOrganismeRole.AGENT, test_user)
     ]
 
 
-def test_supprime_organisme_is_not_in_organisme_roles(authenticated_client, test_user):
+def test_supprime_organisme_is_not_in_organismes(authenticated_client, test_user):
     agent, organisme_actif = create_organisme_with_agent(
         role=AgentOrganismeRole.AGENT, utilisateur=test_user
     )
@@ -182,22 +163,9 @@ def test_supprime_organisme_is_not_in_organisme_roles(authenticated_client, test
     response = authenticated_client.get(URL)
 
     assert response.status_code == status.HTTP_200_OK
-    assert response.json()["organisme_roles"] == [
-        _role(organisme_actif, AgentOrganismeRole.AGENT)
-    ]
     assert response.json()["organismes"] == [
         _organisme(organisme_actif, AgentOrganismeRole.AGENT, test_user)
     ]
-
-
-def test_returns_staff_flag(authenticated_client, test_user):
-    test_user.is_staff = True
-    test_user.save()
-
-    response = authenticated_client.get(URL)
-
-    assert response.status_code == status.HTTP_200_OK
-    assert response.json()["is_staff"] is True
 
 
 def test_staff_has_staff_and_superviseur_actions(authenticated_client, test_user):
@@ -311,7 +279,7 @@ def test_does_not_query_organisme_per_role(
         response = authenticated_client.get(URL)
 
     assert response.status_code == status.HTTP_200_OK
-    assert {r["organisme_uuid"] for r in response.json()["organisme_roles"]} == {
+    assert {o["uuid"] for o in response.json()["organismes"]} == {
         str(organisme.id),
         str(other_organisme.id),
     }

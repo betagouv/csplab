@@ -6616,20 +6616,6 @@ components:
       - nom
       - siret
       - uuid
-    OrganismeRole:
-      type: object
-      properties:
-        organisme_uuid:
-          type: string
-          format: uuid
-        nom:
-          type: string
-        role:
-          $ref: '#/components/schemas/RoleEnum'
-      required:
-      - nom
-      - organisme_uuid
-      - role
     OrganismesList:
       type: object
       properties:
@@ -7335,12 +7321,6 @@ components:
           type: string
         nom:
           type: string
-        is_staff:
-          type: boolean
-        organisme_roles:
-          type: array
-          items:
-            $ref: '#/components/schemas/OrganismeRole'
         authorized_actions:
           type: array
           items:
@@ -7353,9 +7333,7 @@ components:
       required:
       - authorized_actions
       - email
-      - is_staff
       - nom
-      - organisme_roles
       - organismes
       - prenom
     UtilisateurOrganisme:
