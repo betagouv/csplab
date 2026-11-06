@@ -53,6 +53,7 @@ export function useRouteOrganisme() {
     organismeUuid,
     organisme,
     actionsPending,
+    nonMemberOrganisme: nonMemberOrganisme.data,
     canOnOrganisme,
   }
 }
