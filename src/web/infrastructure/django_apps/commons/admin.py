@@ -6,6 +6,7 @@ from django.http import HttpRequest, HttpResponse
 from django.shortcuts import render
 from django.urls import reverse
 
+from infrastructure.django_apps.commons.enums import Metric
 from infrastructure.django_apps.commons.models import (
     AuditLoginLogModel,
     AuditLogModel,
@@ -39,23 +40,23 @@ def stat_snapshot_list_view(request: HttpRequest) -> HttpResponse:
     stands in for a ModelAdmin.
     """
     queryset = StatSnapshotModel.objects.all()
-    metric_names = list(
-        StatSnapshotModel.objects.order_by("metric_name")
-        .values_list("metric_name", flat=True)
-        .distinct()
-    )
-
     selected_metric_name = request.GET.get("metric_name", "")
     if selected_metric_name:
         queryset = queryset.filter(metric_name=selected_metric_name)
 
     page = Paginator(queryset, 100).get_page(request.GET.get("page"))
+    labels = dict(Metric.choices)
+    rows = [
+        (snapshot, labels.get(snapshot.metric_name, snapshot.metric_name))
+        for snapshot in page
+    ]
 
     context = {
         **admin.site.each_context(request),
         "title": "Stat Snapshots",
         "page_obj": page,
-        "metric_names": metric_names,
+        "rows": rows,
+        "metrics": Metric.choices,
         "selected_metric_name": selected_metric_name,
     }
     return render(request, "admin/commons/stat_snapshot_list.html", context)

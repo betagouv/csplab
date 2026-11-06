@@ -11,3 +11,8 @@ class Canal(models.TextChoices):
 class Resultat(models.TextChoices):
     SUCCES = "succes", "Succès"
     ECHEC = "echec", "Échec"
+
+
+class Metric(models.TextChoices):
+    PUBLISHED_OFFERS = "nb_offres_publiees", "Offres publiées"
+    ARCHIVED_OFFERS = "nb_offres_archivees", "Offres archivées"
