@@ -35,6 +35,7 @@ from infrastructure.external_gateways.dtos.talentsoft_dtos import (
     TalentsoftLanguage,
     TalentsoftMultiLocation,
 )
+from infrastructure.gateways import offers_cleaner
 from infrastructure.gateways.offers_cleaner import OffersCleaner, state_diploma
 from infrastructure.gateways.transcoding import SourceTranscoder
 from infrastructure.sources_repository import SourcesRepository
@@ -818,6 +819,7 @@ def _coded_objects(type_: str, *codes: str) -> list:
 @pytest.fixture
 def capture_exception(monkeypatch) -> list:
     captured: list = []
+    monkeypatch.setattr(offers_cleaner, "_reported_data_issues", set())
     monkeypatch.setattr(
         "infrastructure.gateways.offers_cleaner.sentry_sdk.capture_exception",
         captured.append,
@@ -879,6 +881,15 @@ def test_clean_reports_filled_multi_locations(cleaner, capture_exception):
     [error] = capture_exception
     assert error.fields == ["locations"]
     assert offer.localisation is not None
+
+
+def test_clean_reports_an_offer_issue_once(cleaner, capture_exception):
+    raw_offer = _make_raw_offer(locations=[TalentsoftMultiLocation()])
+
+    cleaner.clean(raw_offer)
+    cleaner.clean(raw_offer)
+
+    assert len(capture_exception) == 1
 
 
 def test_clean_does_not_report_a_single_location(cleaner, capture_exception):

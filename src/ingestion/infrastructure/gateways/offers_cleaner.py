@@ -65,6 +65,22 @@ from infrastructure.gateways.transcoding import (
 
 logger = logging.getLogger(__name__)
 
+_reported_data_issues: set[tuple[str, str | None, str]] = set()
+
+
+def _report_data_issue(
+    error: TalentsoftOfferWithSeveralLocations
+    | TalentsoftOfferWithMisfiledStateDiploma,
+) -> None:
+    key = (type(error).__name__, error.source_id, error.reference)
+    if key in _reported_data_issues:
+        return
+    _reported_data_issues.add(key)
+    with sentry_sdk.new_scope() as scope:
+        scope.set_level("warning")
+        sentry_sdk.capture_exception(error)
+
+
 _LEGIFRANCE_URL = re.compile(r"https?://((?:www\.)?legifrance\.gouv\.fr/\S+)")
 
 WORKING_TIME_QUOTA_TYPE = "Quotité de temps de travail"
@@ -796,7 +812,7 @@ class OffersCleaner:
         if talentsoft_offer.locations:
             multiple_lists.append("locations")
         if multiple_lists:
-            sentry_sdk.capture_exception(
+            _report_data_issue(
                 TalentsoftOfferWithSeveralLocations(
                     talentsoft_offer.reference, source_id, multiple_lists
                 )
@@ -813,7 +829,7 @@ class OffersCleaner:
         if received is None or offer_block_1.customCodeTable3 is not None:
             return
         organisation = talentsoft_offer.organisation
-        sentry_sdk.capture_exception(
+        _report_data_issue(
             TalentsoftOfferWithMisfiledStateDiploma(
                 reference=talentsoft_offer.reference,
                 source_id=source_id,
