@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { RouterView } from 'vue-router'
 import { getMe } from '@/api/utilisateur'
-import { BRIANCON_UUID, makeUser, ORGANISME_BRIANCON, ORGANISME_MTE } from '@/test/fixtures/utilisateur'
+import { BRIANCON_UUID, makeUser, ORGANISME_BRIANCON, ORGANISME_MTE, STAFF_ACTIONS } from '@/test/fixtures/utilisateur'
 import { renderWithApp } from '@/test/render'
 import { homeLocationFor } from './home'
 
@@ -14,14 +14,14 @@ describe('homeLocationFor', () => {
   })
 
   it('sends a staff member to the home of their first organisme', () => {
-    expect(homeLocationFor(makeUser([ORGANISME_BRIANCON], true))).toEqual({
+    expect(homeLocationFor(makeUser([ORGANISME_BRIANCON], STAFF_ACTIONS))).toEqual({
       name: 'organisme-home',
       params: { organismeUuid: BRIANCON_UUID },
     })
   })
 
   it('sends a staff member without organisme to the list of organismes', () => {
-    expect(homeLocationFor(makeUser([], true))).toEqual({ name: 'organismes' })
+    expect(homeLocationFor(makeUser([], STAFF_ACTIONS))).toEqual({ name: 'organismes' })
   })
 
   it('stays on the root without any organisme', () => {

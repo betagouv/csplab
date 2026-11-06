@@ -4,7 +4,7 @@ import { RouterView } from 'vue-router'
 import { getOrganismeDetail } from '@/api/organismes'
 import { getMe } from '@/api/utilisateur'
 import { ORGANISME_DETAIL } from '@/test/fixtures/organismes'
-import { BRIANCON_UUID, makeUser, MTE_UUID, ORGANISME_BRIANCON, ORGANISME_INCONNU_UUID, ORGANISME_MTE } from '@/test/fixtures/utilisateur'
+import { BRIANCON_UUID, makeUser, MTE_UUID, ORGANISME_BRIANCON, ORGANISME_INCONNU_UUID, ORGANISME_MTE, STAFF_ACTIONS } from '@/test/fixtures/utilisateur'
 import { renderWithApp } from '@/test/render'
 
 vi.mock('@/api/organismes', () => ({
@@ -39,7 +39,7 @@ describe('homeView', () => {
   })
 
   it('shows the superviseur version to a staff member outside their organismes', async () => {
-    vi.mocked(getMe).mockResolvedValue(makeUser([], true))
+    vi.mocked(getMe).mockResolvedValue(makeUser([], STAFF_ACTIONS))
     vi.mocked(getOrganismeDetail).mockResolvedValue({ ...ORGANISME_DETAIL, uuid: BRIANCON_UUID })
     await renderHome(BRIANCON_UUID)
 
@@ -47,7 +47,7 @@ describe('homeView', () => {
   })
 
   it('waits for the rights of a staff member outside their organismes before guiding them', async () => {
-    vi.mocked(getMe).mockResolvedValue(makeUser([], true))
+    vi.mocked(getMe).mockResolvedValue(makeUser([], STAFF_ACTIONS))
     vi.mocked(getOrganismeDetail).mockReturnValue(new Promise(() => {}))
     await renderHome(BRIANCON_UUID)
 

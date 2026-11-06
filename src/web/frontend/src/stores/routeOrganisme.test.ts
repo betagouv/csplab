@@ -8,7 +8,7 @@ import { getOrganismeDetail } from '@/api/organismes'
 import { getMe } from '@/api/utilisateur'
 import { routes } from '@/router/routes'
 import { ORGANISME_DETAIL } from '@/test/fixtures/organismes'
-import { BRIANCON_UUID as BRIANCON, ORGANISME_INCONNU_UUID as INCONNU, makeUser, MTE_UUID as MTE, ORGANISME_BRIANCON, ORGANISME_MTE } from '@/test/fixtures/utilisateur'
+import { BRIANCON_UUID as BRIANCON, ORGANISME_INCONNU_UUID as INCONNU, makeUser, MTE_UUID as MTE, ORGANISME_BRIANCON, ORGANISME_MTE, STAFF_ACTIONS } from '@/test/fixtures/utilisateur'
 import { useRouteOrganisme } from './routeOrganisme'
 
 vi.mock('@/api/organismes', () => ({
@@ -60,7 +60,7 @@ describe('useRouteOrganisme', () => {
   })
 
   it('reads the actions of an organisme a staff user holds no role on from its detail', async () => {
-    vi.mocked(getMe).mockResolvedValue(makeUser([], true))
+    vi.mocked(getMe).mockResolvedValue(makeUser([], STAFF_ACTIONS))
     vi.mocked(getOrganismeDetail).mockResolvedValue({ ...ORGANISME_DETAIL, uuid: INCONNU, authorized_actions: ['list_organisme_agents'] })
 
     const { organismeUuid, organisme, canOnOrganisme } = await mountAt(
@@ -76,7 +76,7 @@ describe('useRouteOrganisme', () => {
 
   it('tells the actions of an organisme a staff user holds no role on are loading until its detail arrives', async () => {
     let resolveDetail!: (detail: typeof ORGANISME_DETAIL) => void
-    vi.mocked(getMe).mockResolvedValue(makeUser([], true))
+    vi.mocked(getMe).mockResolvedValue(makeUser([], STAFF_ACTIONS))
     vi.mocked(getOrganismeDetail).mockReturnValue(new Promise((resolve) => {
       resolveDetail = resolve
     }))
@@ -94,7 +94,7 @@ describe('useRouteOrganisme', () => {
   it('does not read the detail of an organisme the staff user belongs to', async () => {
     vi.mocked(getMe).mockResolvedValue(makeUser([
       { ...ORGANISME_MTE, authorized_actions: ['list_organisme_agents'] },
-    ], true))
+    ], STAFF_ACTIONS))
 
     const { canOnOrganisme } = await mountAt(`/organismes/${MTE}/recrutements`)
 

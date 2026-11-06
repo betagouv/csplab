@@ -6,7 +6,7 @@ import { getMe } from '@/api/utilisateur'
 import { provideSidebar } from '@/composables/ui/useSidebar'
 import { createLocalStorageMock } from '@/test/browser'
 import { ORGANISME_DETAIL } from '@/test/fixtures/organismes'
-import { BRIANCON_UUID, makeUser, MTE_UUID, ORGANISME_BRIANCON, ORGANISME_MTE } from '@/test/fixtures/utilisateur'
+import { BRIANCON_UUID, makeUser, MTE_UUID, ORGANISME_BRIANCON, ORGANISME_MTE, STAFF_ACTIONS } from '@/test/fixtures/utilisateur'
 import { renderWithApp, setupUser } from '@/test/render'
 import { searchOrganismes } from '../api'
 import OrganismeSwitcher from './OrganismeSwitcher.vue'
@@ -104,7 +104,7 @@ describe('organismeSwitcher', () => {
 
   describe('for a staff user', () => {
     it('shows the administrator space outside any organisme, with the organismes they belong to', async () => {
-      vi.mocked(getMe).mockResolvedValue(makeUser([ORGANISME_MTE], true))
+      vi.mocked(getMe).mockResolvedValue(makeUser([ORGANISME_MTE], STAFF_ACTIONS))
       const user = setupUser()
 
       await renderWithApp(Host, { route: '/organismes' })
@@ -115,7 +115,7 @@ describe('organismeSwitcher', () => {
     })
 
     it('names an organisme they do not belong to', async () => {
-      vi.mocked(getMe).mockResolvedValue(makeUser([], true))
+      vi.mocked(getMe).mockResolvedValue(makeUser([], STAFF_ACTIONS))
 
       await renderWithApp(Host, { route: `/organismes/${ORGANISME_DETAIL.uuid}/recrutements` })
 
@@ -123,7 +123,7 @@ describe('organismeSwitcher', () => {
     })
 
     it('keeps the switcher while the name of an organisme they do not belong to is unknown', async () => {
-      vi.mocked(getMe).mockResolvedValue(makeUser([], true))
+      vi.mocked(getMe).mockResolvedValue(makeUser([], STAFF_ACTIONS))
       vi.mocked(getOrganismeDetail).mockReturnValue(new Promise(() => {}))
 
       await renderWithApp(Host, { route: `/organismes/${ORGANISME_DETAIL.uuid}/recrutements` })
@@ -132,7 +132,7 @@ describe('organismeSwitcher', () => {
     })
 
     it('clears the search when the menu closes', async () => {
-      vi.mocked(getMe).mockResolvedValue(makeUser([ORGANISME_MTE], true))
+      vi.mocked(getMe).mockResolvedValue(makeUser([ORGANISME_MTE], STAFF_ACTIONS))
       const user = setupUser()
 
       await renderWithApp(Host, { route: '/organismes' })
@@ -145,7 +145,7 @@ describe('organismeSwitcher', () => {
     })
 
     it('enters an organisme found by its name with the Enter key', async () => {
-      vi.mocked(getMe).mockResolvedValue(makeUser([ORGANISME_MTE], true))
+      vi.mocked(getMe).mockResolvedValue(makeUser([ORGANISME_MTE], STAFF_ACTIONS))
       const user = setupUser()
 
       const { router } = await renderWithApp(Host, { route: '/organismes' })
@@ -161,7 +161,7 @@ describe('organismeSwitcher', () => {
     })
 
     it('asks for three characters before searching', async () => {
-      vi.mocked(getMe).mockResolvedValue(makeUser([], true))
+      vi.mocked(getMe).mockResolvedValue(makeUser([], STAFF_ACTIONS))
       const user = setupUser()
 
       await renderWithApp(Host, { route: '/organismes' })
@@ -173,7 +173,7 @@ describe('organismeSwitcher', () => {
     })
 
     it('says when no organisme matches the search', async () => {
-      vi.mocked(getMe).mockResolvedValue(makeUser([], true))
+      vi.mocked(getMe).mockResolvedValue(makeUser([], STAFF_ACTIONS))
       const user = setupUser()
 
       await renderWithApp(Host, { route: '/organismes' })
@@ -185,7 +185,7 @@ describe('organismeSwitcher', () => {
     })
 
     it('goes back to the administrator space from an organisme', async () => {
-      vi.mocked(getMe).mockResolvedValue(makeUser([ORGANISME_MTE], true))
+      vi.mocked(getMe).mockResolvedValue(makeUser([ORGANISME_MTE], STAFF_ACTIONS))
       const user = setupUser()
 
       const { router } = await renderWithApp(Host, { route: `/organismes/${MTE_UUID}/recrutements` })

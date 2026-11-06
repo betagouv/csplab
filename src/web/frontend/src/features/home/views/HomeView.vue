@@ -21,10 +21,10 @@ const props = defineProps<{
 
 const breadcrumb: CspBreadcrumbItem[] = [{ label: HOME_BREADCRUMB_LABEL }]
 
-const { user, isStaff } = useCurrentUser()
-const { organisme, actionsPending, canOnOrganisme } = useRouteOrganisme()
+const { user } = useCurrentUser()
+const { organisme, actionsPending, canBrowseOrganismes, canOnOrganisme } = useRouteOrganisme()
 
-const forbidden = computed(() => !!props.organismeUuid && !!user.value && !isStaff.value && !organisme.value)
+const forbidden = computed(() => !!props.organismeUuid && !!user.value && !canBrowseOrganismes.value && !organisme.value)
 
 const canAccessOrganismeSettings = computed(() => canOnOrganisme('get_organisme'))
 

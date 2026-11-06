@@ -6,21 +6,16 @@ import { useRouter } from 'vue-router'
 import CspAvatar from '@/components/base/CspAvatar/CspAvatar.vue'
 import CspSidebarSwitcher from '@/components/layout/CspSidebar/CspSidebarSwitcher.vue'
 import { organismeHomeLocation, ORGANISMES_ROUTE_NAME } from '@/router/names'
-import { useCurrentUser } from '@/stores/currentUser'
 import { organismeDetailQuery } from '@/stores/organismeDetail'
 import { useRouteOrganisme } from '@/stores/routeOrganisme'
-import { can } from '@/utils/authorizedActions'
 import { useOrganismesSearch } from '../composables/useOrganismesSearch'
 import { ESPACE_ADMINISTRATEUR_LABEL, ORGANISME_LABEL } from '../constants/organisme'
 
 const ESPACE_ADMINISTRATEUR = 'espace-administrateur'
 
 const router = useRouter()
-const { user } = useCurrentUser()
-const { organismes, organisme, organismeUuid } = useRouteOrganisme()
+const { organismes, organisme, organismeUuid, canBrowseOrganismes } = useRouteOrganisme()
 const { search, results, tooShort, searching } = useOrganismesSearch()
-
-const canBrowseOrganismes = computed(() => can(user.value?.authorized_actions, 'list_organismes'))
 
 const { data: organismeHorsAppartenance } = useQuery(() => ({
   ...organismeDetailQuery({ organismeUuid: organismeUuid.value ?? '' }),
