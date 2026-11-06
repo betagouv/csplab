@@ -10,6 +10,7 @@ const props = defineProps<{
   etapes: KanbanColumn[]
   boardId: string
   isColumnSelected: (etapeUuid: string) => boolean
+  canChangeEtape: boolean
 }>()
 
 const emit = defineEmits<{
@@ -60,6 +61,7 @@ watch(() => props.etapes, (etapes, previousEtapes) => {
       :etape="etape"
       :board-id="boardId"
       :is-selected="isColumnSelected(etape.uuid)"
+      :can-change-etape="canChangeEtape"
       @toggle-selection="emit('toggleColumnSelection', $event)"
     />
   </div>

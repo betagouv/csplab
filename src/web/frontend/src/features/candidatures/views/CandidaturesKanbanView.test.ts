@@ -131,6 +131,14 @@ describe('candidaturesKanbanView', () => {
     expect(screen.getByRole('radio', { name: /Liste/ })).toBeInTheDocument()
   })
 
+  it('offers no selection without the right to change stages', async () => {
+    vi.mocked(getRecrutementDetail).mockResolvedValue({ ...RECRUTEMENT_DETAIL, authorized_actions: [] })
+    await renderKanbanPage()
+
+    await screen.findByRole('link', { name: 'Alice Dupont' })
+    expect(screen.queryAllByRole('checkbox', { name: /^Sélectionner la colonne/ })).toEqual([])
+  })
+
   it('asks for a motif before refusing a selection, and sends it', async () => {
     const { user, dialog } = await refuseSelectedColumn()
 
