@@ -8,9 +8,10 @@ import { can } from '@/utils/authorizedActions'
 
 export function useRouteOrganisme() {
   const route = useRoute()
-  const { user, isStaff } = useCurrentUser()
+  const { user } = useCurrentUser()
 
   const organismes = computed(() => user.value?.organismes ?? [])
+  const canBrowseOrganismes = computed(() => can(user.value?.authorized_actions, 'list_organismes'))
 
   const routeOrganismeUuid = computed<string | null>(() => {
     const param = route.params.organismeUuid
@@ -18,7 +19,7 @@ export function useRouteOrganisme() {
   })
 
   const organismeUuid = computed<string | null>(() => {
-    if (routeOrganismeUuid.value || isStaff.value) {
+    if (routeOrganismeUuid.value || canBrowseOrganismes.value) {
       return routeOrganismeUuid.value
     }
     return organismes.value[0]?.uuid ?? null
@@ -30,7 +31,7 @@ export function useRouteOrganisme() {
 
   const { data: nonMemberOrganisme } = useQuery(() => ({
     ...organismeDetailQuery({ organismeUuid: organismeUuid.value ?? '' }),
-    enabled: can(user.value?.authorized_actions, 'list_organismes') && Boolean(organismeUuid.value) && !organisme.value,
+    enabled: canBrowseOrganismes.value && Boolean(organismeUuid.value) && !organisme.value,
   }))
 
   const organismeActions = computed(() => organisme.value?.authorized_actions ?? nonMemberOrganisme.value?.authorized_actions)
@@ -41,6 +42,7 @@ export function useRouteOrganisme() {
 
   return {
     organismes,
+    canBrowseOrganismes,
     routeOrganismeUuid,
     organismeUuid,
     organisme,
