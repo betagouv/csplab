@@ -4721,6 +4721,10 @@ components:
       properties:
         id:
           type: string
+        titre:
+          type: string
+          description: 'Phrase courte qui dit ce qui change, en Markdown : un nom
+            de champ ou une valeur entre backticks.'
         date:
           type: string
           format: date
@@ -4763,6 +4767,7 @@ components:
       - pr_url
       - routes
       - sous_sections
+      - titre
       - type
       - url
     ChangelogError:
