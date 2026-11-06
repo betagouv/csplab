@@ -32,6 +32,9 @@ class OrganismeQuerySet(models.QuerySet):
     def not_supprimes(self) -> "OrganismeQuerySet":
         return self.filter(supprime_le__isnull=True)
 
+    def open(self) -> "OrganismeQuerySet":
+        return self.not_supprimes().filter(gestion_ats=True)
+
     def by_id(self, organisme_id) -> "OrganismeQuerySet":
         return self.not_supprimes().filter(pk=organisme_id)
 
