@@ -17,7 +17,6 @@ from application.ingestion.usecases.get_offer_by_reference import (
 from application.ingestion.usecases.get_offers_by_source import (
     GetOffersBySourceUsecase,
 )
-from application.ingestion.usecases.list_metiers import ListMetiersUsecase
 from application.ingestion.usecases.list_offers import ListOffersUsecase
 from application.ingestion.usecases.list_sources import ListSourcesUsecase
 from application.ingestion.usecases.load_documents import LoadDocumentsUsecase
@@ -160,12 +159,6 @@ class IngestionContainer(containers.DeclarativeContainer):
     get_offer_by_reference_usecase = providers.Factory(
         GetOfferByReferenceUsecase,
         offers_repository=offers_repository,
-    )
-
-    list_metiers_usecase = providers.Factory(
-        ListMetiersUsecase,
-        metiers_repository=metiers_repository,
-        logger=logger_service,
     )
 
     archive_offer_by_reference_usecase = providers.Factory(

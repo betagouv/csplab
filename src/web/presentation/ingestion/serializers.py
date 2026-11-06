@@ -842,8 +842,8 @@ class ArchiveOfferSuccessSerializer(serializers.Serializer):
 
 
 class ListMetiersResponseSerializer(serializers.Serializer):
-    libelle = serializers.CharField()
-    description = serializers.CharField()
+    libelle = serializers.CharField(source="libelle_long")
+    description = serializers.CharField(source="definition_synthetique")
     domaine_fonctionnel_code = serializers.CharField()
     versants = serializers.ListField(child=serializers.CharField())
     activites = serializers.ListField(child=serializers.CharField(), allow_null=True)
