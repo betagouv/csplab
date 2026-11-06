@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from collections.abc import Container
 from datetime import datetime, timedelta
 from typing import Optional
 
@@ -126,7 +125,7 @@ class OfferUpsertPayload(BaseModel):
 
     @classmethod
     def from_offer(
-        cls, offer: Offer, metiers_multi_domaines: Container[str]
+        cls, offer: Offer, metiers_multi_domaines: set[str]
     ) -> OfferUpsertPayload:
         fin_publication = (
             offer.end_publication_date
@@ -168,8 +167,6 @@ class OfferUpsertPayload(BaseModel):
             url_offre=offer.offer_url,
             url_candidature=offer.application_url,
             email_candidature=offer.application_email,
-            # The web API cannot deduce the domain of a metier belonging to
-            # several domains: send the one following the ER prefix.
             profession=ProfessionPayload(
                 domaine=family_code[2:5]
                 if family_code in metiers_multi_domaines

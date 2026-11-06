@@ -27,9 +27,9 @@ def _is_transient(exc: httpx.HTTPError | TimeoutError) -> bool:
 async def fetch_with_retry[T](
     fetch: Callable[[], Awaitable[T]],
     label: str,
-    max_attempts: int,
-    base_delay_seconds: float,
-    attempt_timeout_seconds: float,
+    max_attempts: int = MAX_ATTEMPTS,
+    base_delay_seconds: float = BASE_DELAY_SECONDS,
+    attempt_timeout_seconds: float = ATTEMPT_TIMEOUT_SECONDS,
 ) -> T:
     attempt = 1
     while True:

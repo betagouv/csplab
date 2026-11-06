@@ -36,9 +36,6 @@ from infrastructure.external_gateways.base_web_gateway import WebGatewayCredenti
 from infrastructure.external_gateways.web_publish_offer_gateway import (
     WebPublishOfferGateway,
 )
-from infrastructure.metiers_multi_domaines_repository import (
-    MetiersMultiDomainesRepository,
-)
 from tests.conftest import PUBLISH_OFFER_URL as PUBLISH_URL
 from tests.conftest import WEB_API_KEY as API_KEY
 from tests.conftest import WEB_BASE_URL as BASE_URL
@@ -97,12 +94,10 @@ FULL_OFFER = Offer(
 @pytest.fixture
 def gateway():
     client = httpx.AsyncClient()
-    metiers_multi_domaines = MetiersMultiDomainesRepository()
-    metiers_multi_domaines.load({"ERJUS008", "ERTRA007"})
     return WebPublishOfferGateway(
         client=client,
         credentials=WebGatewayCredentials(base_url=BASE_URL, api_key=API_KEY),
-        metiers_multi_domaines_repository=metiers_multi_domaines,
+        metiers_multi_domaines={"ERJUS008", "ERTRA007"},
     )
 
 

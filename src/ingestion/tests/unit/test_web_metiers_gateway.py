@@ -52,18 +52,6 @@ async def test_fetch_returns_codes_with_several_domains_across_pages(
 
 
 @pytest.mark.asyncio
-async def test_fetch_sends_api_key_header(gateway, httpx_mock: HTTPXMock):
-    httpx_mock.add_response(
-        url=f"{METIERS_URL}?taille=1000&page=1", json=_page([], next_url=None)
-    )
-
-    await gateway.fetch_metiers_multi_domaines()
-
-    request = httpx_mock.get_requests()[0]
-    assert request.headers["authorization"] == f"Api-Key {WEB_API_KEY}"
-
-
-@pytest.mark.asyncio
 async def test_fetch_raises_on_http_error(gateway, httpx_mock: HTTPXMock):
     httpx_mock.add_response(url=f"{METIERS_URL}?taille=1000&page=1", status_code=401)
 

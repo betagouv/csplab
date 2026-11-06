@@ -5,9 +5,6 @@ import httpx
 from domain.entities.offer import Offer
 from domain.gateways.publish_offer_gateway import IPublishOfferGateway
 from domain.gateways.publish_offer_input import PublishOfferInput
-from domain.repositories.metiers_multi_domaines_repository import (
-    IMetiersMultiDomainesRepository,
-)
 from infrastructure.exceptions.exceptions import ExternalApiError
 from infrastructure.external_gateways.base_web_gateway import (
     BaseWebGateway,
@@ -25,10 +22,10 @@ class WebPublishOfferGateway(BaseWebGateway, IPublishOfferGateway):
         self,
         client: httpx.AsyncClient,
         credentials: WebGatewayCredentials,
-        metiers_multi_domaines_repository: IMetiersMultiDomainesRepository,
+        metiers_multi_domaines: set[str],
     ) -> None:
         super().__init__(client, credentials)
-        self._metiers_multi_domaines = metiers_multi_domaines_repository
+        self._metiers_multi_domaines = metiers_multi_domaines
 
     async def publish(self, input: PublishOfferInput) -> None:
         response = await self._post(

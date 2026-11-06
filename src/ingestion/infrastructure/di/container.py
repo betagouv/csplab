@@ -29,7 +29,6 @@ from application.usecases.publish_talentsoft_organisations import (
 from application.usecases.save_raw_offer import SaveRawOfferUsecase
 from application.usecases.save_webhook import SaveWebhookUsecase
 from domain.gateways.archive_gateway import IArchiveGateway
-from domain.gateways.metiers_gateway import IMetiersGateway
 from domain.gateways.offers_by_source_gateway import IOffersBySourceGateway
 from domain.gateways.organisme_gateway import IOrganismeGateway
 from domain.gateways.organismes_cleaner import IOrganismesCleaner
@@ -39,9 +38,6 @@ from domain.gateways.publish_talentsoft_organismes_gateway import (
     IPublishTalentsoftOrganismesGateway,
 )
 from domain.gateways.sources_gateway import ISourcesGateway
-from domain.repositories.metiers_multi_domaines_repository import (
-    IMetiersMultiDomainesRepository,
-)
 from domain.repositories.raw_offer_repository import IRawOfferRepository
 from domain.repositories.raw_organisme_repository import IRawOrganismeRepository
 from domain.repositories.sources_repository import ISourcesRepository
@@ -85,9 +81,6 @@ from infrastructure.external_gateways.web_publish_talentsoft_organismes_gateway 
 from infrastructure.external_gateways.web_sources_gateway import WebSourcesGateway
 from infrastructure.gateways.offers_cleaner import OffersCleaner
 from infrastructure.gateways.organismes_cleaner import OrganismesCleaner
-from infrastructure.metiers_multi_domaines_repository import (
-    MetiersMultiDomainesRepository,
-)
 from infrastructure.raw_offer_repository import RawOfferRepository
 from infrastructure.raw_organisme_repository import RawOrganismeRepository
 from infrastructure.sources_repository import SourcesRepository
@@ -161,9 +154,7 @@ class Container(containers.DeclarativeContainer):
         SourcesRepository
     )
 
-    metiers_multi_domaines_repository: providers.Provider[
-        IMetiersMultiDomainesRepository
-    ] = providers.Singleton(MetiersMultiDomainesRepository)
+    metiers_multi_domaines: providers.Provider[set[str]] = providers.Singleton(set)
 
     credentials_store = providers.Singleton(
         _build_credentials_store,
@@ -320,16 +311,12 @@ class Container(containers.DeclarativeContainer):
         repository=sources_repository,
     )
 
-    metiers_gateway: providers.Provider[IMetiersGateway] = providers.Factory(
-        WebMetiersGateway,
-        client=http_client,
-        credentials=web_gateway_credentials,
-    )
-
     load_metiers_multi_domaines_usecase = providers.Factory(
         LoadMetiersMultiDomainesUsecase,
-        metiers_gateway=metiers_gateway,
-        repository=metiers_multi_domaines_repository,
+        metiers_gateway=providers.Factory(
+            WebMetiersGateway, client=http_client, credentials=web_gateway_credentials
+        ),
+        metiers_multi_domaines=metiers_multi_domaines,
     )
 
     offers_cleaner = providers.Singleton(
@@ -346,7 +333,7 @@ class Container(containers.DeclarativeContainer):
         WebPublishOfferGateway,
         client=http_client,
         credentials=web_gateway_credentials,
-        metiers_multi_domaines_repository=metiers_multi_domaines_repository,
+        metiers_multi_domaines=metiers_multi_domaines,
     )
 
     publish_offer_usecase: providers.Provider[PublishOfferUsecase] = providers.Factory(
