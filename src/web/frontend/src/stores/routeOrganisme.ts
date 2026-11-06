@@ -10,7 +10,7 @@ export function useRouteOrganisme() {
   const route = useRoute()
   const { user, isStaff } = useCurrentUser()
 
-  const organismes = computed(() => user.value?.organisme_roles ?? [])
+  const organismes = computed(() => user.value?.organismes ?? [])
 
   const routeOrganismeUuid = computed<string | null>(() => {
     const param = route.params.organismeUuid
@@ -21,23 +21,19 @@ export function useRouteOrganisme() {
     if (routeOrganismeUuid.value || isStaff.value) {
       return routeOrganismeUuid.value
     }
-    return organismes.value[0]?.organisme_uuid ?? null
+    return organismes.value[0]?.uuid ?? null
   })
 
   const organisme = computed(() =>
-    organismes.value.find(o => o.organisme_uuid === organismeUuid.value) ?? null,
-  )
-
-  const memberActions = computed(() =>
-    user.value?.organismes.find(o => o.uuid === organismeUuid.value)?.authorized_actions,
+    organismes.value.find(o => o.uuid === organismeUuid.value) ?? null,
   )
 
   const { data: nonMemberOrganisme } = useQuery(() => ({
     ...organismeDetailQuery({ organismeUuid: organismeUuid.value ?? '' }),
-    enabled: can(user.value?.authorized_actions, 'list_organismes') && Boolean(organismeUuid.value) && !memberActions.value,
+    enabled: can(user.value?.authorized_actions, 'list_organismes') && Boolean(organismeUuid.value) && !organisme.value,
   }))
 
-  const organismeActions = computed(() => memberActions.value ?? nonMemberOrganisme.value?.authorized_actions)
+  const organismeActions = computed(() => organisme.value?.authorized_actions ?? nonMemberOrganisme.value?.authorized_actions)
 
   function canOnOrganisme(action: AuthorizedAction): boolean {
     return can(organismeActions.value, action)
