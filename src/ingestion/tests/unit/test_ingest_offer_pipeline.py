@@ -1,5 +1,5 @@
 from datetime import datetime, timezone
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 from referentiel.value_objects.offer_nature import OfferNature
@@ -121,18 +121,6 @@ async def test_execute_marks_as_cleaned_on_success(
 
 
 @pytest.mark.asyncio
-async def test_execute_skips_clean_when_save_returns_none(
-    pipeline, mock_save_usecase, mock_clean_usecase, mock_raw_offer_repository
-):
-    mock_save_usecase.execute.return_value = None
-
-    await pipeline.execute(reference=REFERENCE, source_id=SOURCE_ID)
-
-    mock_clean_usecase.execute.assert_not_called()
-    mock_raw_offer_repository.mark_as_cleaned.assert_not_called()
-
-
-@pytest.mark.asyncio
 async def test_execute_propagates_save_error(
     pipeline, mock_save_usecase, mock_clean_usecase, mock_raw_offer_repository
 ):
@@ -145,35 +133,6 @@ async def test_execute_propagates_save_error(
 
     mock_clean_usecase.execute.assert_not_called()
     mock_raw_offer_repository.mark_as_cleaned.assert_not_called()
-
-
-@pytest.mark.asyncio
-@patch("application.pipelines.ingest_offer_pipeline.logger")
-async def test_execute_does_not_raise_when_clean_fails(
-    mock_logger,
-    pipeline,
-    mock_save_usecase,
-    mock_clean_usecase,
-    mock_raw_offer_repository,
-):
-    mock_clean_usecase.execute.side_effect = ValueError("Bad data")
-
-    await pipeline.execute(reference=REFERENCE, source_id=SOURCE_ID)
-
-    mock_logger.exception.assert_called_once()
-    mock_raw_offer_repository.mark_as_cleaned.assert_not_called()
-
-
-@pytest.mark.asyncio
-@patch("application.pipelines.ingest_offer_pipeline.logger")
-async def test_execute_does_not_raise_when_mark_as_cleaned_fails(
-    mock_logger, pipeline, mock_clean_usecase, mock_raw_offer_repository
-):
-    mock_raw_offer_repository.mark_as_cleaned.side_effect = RuntimeError("DB down")
-
-    await pipeline.execute(reference=REFERENCE, source_id=SOURCE_ID)
-
-    mock_logger.exception.assert_called_once()
 
 
 @pytest.mark.asyncio
@@ -200,90 +159,6 @@ async def test_execute_marks_as_upserted_after_publish(
 
 
 @pytest.mark.asyncio
-@patch("application.pipelines.ingest_offer_pipeline.logger")
-async def test_execute_skips_publish_when_clean_fails(
-    mock_logger,
-    pipeline_with_post,
-    mock_clean_usecase,
-    mock_publish_offer_usecase,
-    mock_raw_offer_repository,
-):
-    mock_clean_usecase.execute.side_effect = ValueError("Bad data")
-
-    await pipeline_with_post.execute(reference=REFERENCE, source_id=SOURCE_ID)
-
-    mock_publish_offer_usecase.execute.assert_not_called()
-    mock_raw_offer_repository.mark_as_upserted.assert_not_called()
-
-
-@pytest.mark.asyncio
-@patch("application.pipelines.ingest_offer_pipeline.logger")
-async def test_execute_does_not_raise_when_publish_fails(
-    mock_logger,
-    pipeline_with_post,
-    mock_publish_offer_usecase,
-    mock_raw_offer_repository,
-):
-    mock_publish_offer_usecase.execute.side_effect = RuntimeError("Web API down")
-
-    await pipeline_with_post.execute(reference=REFERENCE, source_id=SOURCE_ID)
-
-    mock_logger.exception.assert_called_once()
-    mock_raw_offer_repository.mark_as_upserted.assert_not_called()
-
-
-@pytest.mark.asyncio
-@patch("application.pipelines.ingest_offer_pipeline.logger")
-async def test_execute_does_not_mark_as_upserted_when_publish_raises_external_api_error(
-    mock_logger,
-    pipeline_with_post,
-    mock_publish_offer_usecase,
-    mock_raw_offer_repository,
-):
-    mock_publish_offer_usecase.execute.side_effect = ExternalApiError(
-        "Failed to publish offer", api_name="web"
-    )
-
-    await pipeline_with_post.execute(reference=REFERENCE, source_id=SOURCE_ID)
-
-    mock_logger.exception.assert_called_once()
-    mock_raw_offer_repository.mark_as_upserted.assert_not_called()
-
-
-@pytest.mark.asyncio
-@patch("application.pipelines.ingest_offer_pipeline.logger")
-async def test_execute_does_not_raise_when_mark_as_upserted_fails(
-    mock_logger, pipeline_with_post, mock_raw_offer_repository
-):
-    mock_raw_offer_repository.mark_as_upserted.side_effect = RuntimeError("DB down")
-
-    await pipeline_with_post.execute(reference=REFERENCE, source_id=SOURCE_ID)
-
-    mock_logger.exception.assert_called_once()
-
-
-@pytest.mark.asyncio
-@patch("application.pipelines.ingest_offer_pipeline.logger")
-async def test_execute_records_error_when_publish_fails(
-    mock_logger,
-    pipeline_with_post,
-    mock_publish_offer_usecase,
-    mock_raw_offer_repository,
-):
-    mock_publish_offer_usecase.execute.side_effect = ExternalApiError(
-        "Failed to publish offer: Code métier inconnu : ERMED008.", api_name="web"
-    )
-
-    await pipeline_with_post.execute(reference=REFERENCE, source_id=SOURCE_ID)
-
-    mock_raw_offer_repository.mark_as_publish_failed.assert_awaited_once_with(
-        REFERENCE,
-        SOURCE_ID,
-        "Failed to publish offer: Code métier inconnu : ERMED008.",
-    )
-
-
-@pytest.mark.asyncio
 async def test_execute_does_not_record_error_when_publish_succeeds(
     pipeline_with_post, mock_raw_offer_repository
 ):
@@ -293,27 +168,37 @@ async def test_execute_does_not_record_error_when_publish_succeeds(
 
 
 @pytest.mark.asyncio
-@patch("application.pipelines.ingest_offer_pipeline.logger")
-async def test_execute_does_not_raise_when_recording_publish_error_fails(
-    mock_logger,
-    pipeline_with_post,
-    mock_publish_offer_usecase,
-    mock_raw_offer_repository,
-):
-    mock_publish_offer_usecase.execute.side_effect = RuntimeError("Web API down")
-    mock_raw_offer_repository.mark_as_publish_failed.side_effect = RuntimeError(
-        "DB down"
-    )
-
-    await pipeline_with_post.execute(reference=REFERENCE, source_id=SOURCE_ID)
-
-    assert mock_logger.exception.call_count == 2
-
-
-@pytest.mark.asyncio
 async def test_execute_skips_publish_when_usecase_not_configured(
     pipeline, mock_publish_offer_usecase, mock_raw_offer_repository
 ):
     await pipeline.execute(reference=REFERENCE, source_id=SOURCE_ID)
 
+    mock_raw_offer_repository.mark_as_upserted.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_execute_raises_when_clean_fails(
+    pipeline_with_post, mock_clean_usecase, mock_publish_offer_usecase
+):
+    mock_clean_usecase.execute.side_effect = ValueError("Bad data")
+
+    with pytest.raises(ValueError):
+        await pipeline_with_post.execute(reference=REFERENCE, source_id=SOURCE_ID)
+
+    mock_publish_offer_usecase.execute.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_execute_records_error_then_raises_when_publish_fails(
+    pipeline_with_post, mock_publish_offer_usecase, mock_raw_offer_repository
+):
+    error = ExternalApiError("Code métier inconnu : ERMED008.", api_name="web")
+    mock_publish_offer_usecase.execute.side_effect = error
+
+    with pytest.raises(ExternalApiError):
+        await pipeline_with_post.execute(reference=REFERENCE, source_id=SOURCE_ID)
+
+    mock_raw_offer_repository.mark_as_publish_failed.assert_awaited_once_with(
+        REFERENCE, SOURCE_ID, str(error)
+    )
     mock_raw_offer_repository.mark_as_upserted.assert_not_called()

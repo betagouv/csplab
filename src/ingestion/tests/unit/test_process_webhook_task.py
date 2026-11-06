@@ -15,7 +15,10 @@ from application.tasks.process_webhook import (
     save_raw_offer_webhook,
 )
 from domain.value_objects.webhook_event import EventType, OfferStatus
-from infrastructure.exceptions.exceptions import ExternalApiError
+from infrastructure.exceptions.exceptions import (
+    ExternalApiError,
+    TalentsoftOfferNotFound,
+)
 from tests.factories.domain_factories import SourceFactory, WebhookFactory
 
 WEBHOOK_ID = UUID("11111111-2222-3333-4444-555555555555")
@@ -166,6 +169,12 @@ def test_raises_when_webhook_not_found_in_db(mock_get_container):
 # --- Retries ---
 
 
+def _http_status_error(status_code: int) -> httpx.HTTPStatusError:
+    request = httpx.Request("POST", "https://web")
+    response = httpx.Response(status_code, request=request)
+    return httpx.HTTPStatusError("error", request=request, response=response)
+
+
 @pytest.mark.parametrize(
     "exc",
     [
@@ -173,6 +182,8 @@ def test_raises_when_webhook_not_found_in_db(mock_get_container):
         httpx.TimeoutException("timed out"),
         ExternalApiError("server error", status_code=500),
         ExternalApiError("gateway error", status_code=503),
+        _http_status_error(502),
+        TimeoutError(),
     ],
 )
 def test_is_transient_true(exc):
@@ -186,6 +197,7 @@ def test_is_transient_true(exc):
         RuntimeError("misconfigured"),
         ExternalApiError("bad request", status_code=400),
         ExternalApiError("not found", status_code=404),
+        _http_status_error(400),
     ],
 )
 def test_is_transient_false(exc):
@@ -300,3 +312,17 @@ def test_logs_processed_webhook_with_context(mock_get_container, caplog):
     assert record.reference == REFERENCE
     assert record.source_id == SOURCE_ID
     assert isinstance(record.duration_ms, int)
+
+
+@patch(_PATCH_CONTAINER)
+def test_offer_not_found_is_not_sent_to_sentry(mock_get_container, sentry_events):
+    webhook = WebhookFactory.build(id=WEBHOOK_ID, source_id=SOURCE_ID)
+    container = _make_mock_container(webhook)
+    container.ingest_offer_pipeline.return_value.execute.side_effect = (
+        TalentsoftOfferNotFound(REFERENCE, "Talentsoft Front API")
+    )
+    mock_get_container.return_value = container
+
+    save_raw_offer_webhook.apply(args=[str(WEBHOOK_ID)])
+
+    assert sentry_events == []

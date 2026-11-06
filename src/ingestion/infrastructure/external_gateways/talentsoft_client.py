@@ -9,7 +9,10 @@ from pydantic import ValidationError
 
 from domain.entities.raw_offer import RawOffer
 from domain.gateways.offers_gateway import IOffersGateway
-from infrastructure.exceptions.exceptions import ExternalApiError
+from infrastructure.exceptions.exceptions import (
+    ExternalApiError,
+    TalentsoftOfferNotFound,
+)
 from infrastructure.external_gateways.dtos.talentsoft_dtos import (
     CachedToken,
     TalentsoftCodedObject,
@@ -80,7 +83,6 @@ class BaseTalentsoftClient(AsyncHttpClient):
                 break
             except Exception as exc:
                 if attempt == self.max_retries:
-                    self.logger.error("Failed to fetch token from %s", self.api_name)
                     raise ExternalApiError(
                         message=f"Token request failed: {exc}", api_name=self.api_name
                     ) from exc
@@ -91,7 +93,6 @@ class BaseTalentsoftClient(AsyncHttpClient):
         try:
             token_response = TalentsoftTokenResponse(**cast(Dict[str, Any], payload))
         except ValidationError as exc:
-            self.logger.error("Invalid token response format: %s", payload)
             raise ExternalApiError(
                 message=f"Invalid token response: {exc}", api_name=self.api_name
             ) from exc
@@ -148,9 +149,6 @@ class BaseTalentsoftClient(AsyncHttpClient):
                 raise
             except Exception as exc:
                 if attempt == self.max_retries:
-                    self.logger.error(
-                        "Failed to get response from %s: %s", self.api_name, url
-                    )
                     raise ExternalApiError(
                         message=f"Request failed after retries: {exc}",
                         api_name=self.api_name,
@@ -211,10 +209,7 @@ class TalentsoftFrontClient(BaseTalentsoftClient, IOffersGateway):
             response = await self._make_authenticated_request(url, params)
         except ExternalApiError as e:
             if e.status_code == HTTPStatus.NOT_FOUND:
-                raise ExternalApiError(
-                    message=f"Offer not found for reference: {reference}",
-                    api_name=self.api_name,
-                ) from e
+                raise TalentsoftOfferNotFound(reference, self.api_name) from e
             raise
 
         try:
