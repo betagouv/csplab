@@ -125,7 +125,7 @@
                                 <ul class="fr-callout__text fr-text--sm fr-mb-0">
                                     {% for entry in day.entries %}
                                         <li>
-                                            <a href="#{{ entry.slug }}">{{ entry.titre }}</a>
+                                            <a href="#{{ entry.slug }}">{{ entry.titre|safe }}</a>
                                         </li>
                                     {% endfor %}
                                 </ul>
@@ -135,7 +135,7 @@
                             <article id="{{ entry.slug }}"
                                      class="fr-mb-4w"
                                      aria-labelledby="titre-{{ entry.slug }}">
-                                <h3 id="titre-{{ entry.slug }}" class="fr-h6 fr-mb-1w">{{ entry.titre }}</h3>
+                                <h3 id="titre-{{ entry.slug }}" class="fr-h6 fr-mb-1w">{{ entry.titre|safe }}</h3>
                                 <p class="fr-mb-1w">
                                     <span class="fr-badge fr-badge--sm {{ entry.badge }} fr-mr-1w">{{ entry.label }}</span>
                                     <a class="fr-link fr-link--sm"
