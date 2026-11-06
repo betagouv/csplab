@@ -2,16 +2,69 @@ from datetime import date
 
 from django.db import transaction
 
+from domain.recruteur.value_objects.roles import (
+    AgentOrganismeRole,
+    AgentRecrutementRole,
+)
+from infrastructure.django_apps.candidate.models.candidature import CandidatureModel
 from infrastructure.django_apps.commons.enums import Metric
 from infrastructure.django_apps.commons.models import StatSnapshotModel
+from infrastructure.django_apps.recruteur.models.organisme import (
+    OrganismeAgentModel,
+    OrganismeModel,
+)
+from infrastructure.django_apps.recruteur.models.recrutement import (
+    RecrutementAgentModel,
+    RecrutementModel,
+)
 from infrastructure.django_apps.referentiel.models.offer import OfferModel
+from infrastructure.django_apps.users.models import ProfilCandidatModel
 
 
-def calculate_daily_stats(target_date: date) -> None:
-    metrics = {
+def _offer_metrics() -> dict[Metric, int]:
+    return {
         Metric.PUBLISHED_OFFERS: OfferModel.objects.actives().count(),
         Metric.ARCHIVED_OFFERS: OfferModel.objects.archived().count(),
     }
+
+
+def _volume_metrics() -> dict[Metric, int]:
+    candidatures = CandidatureModel.objects
+    organisme_agents = OrganismeAgentModel.objects.active()
+    recrutement_agents = RecrutementAgentModel.objects.active()
+    return {
+        Metric.RECEIVED_APPLICATIONS: candidatures.received().count(),
+        Metric.WITHDRAWN_APPLICATIONS: candidatures.withdrawn().count(),
+        Metric.APPLICATIONS_TO_PROCESS: candidatures.to_process().count(),
+        Metric.PROCESSED_APPLICATIONS: candidatures.processed().count(),
+        Metric.APPLICATIONS_PAST_FIRST_SCREENING: (
+            candidatures.past_first_screening().count()
+        ),
+        Metric.REFUSED_APPLICATIONS: candidatures.refused().count(),
+        Metric.SELECTED_APPLICATIONS: candidatures.selected().count(),
+        Metric.RECRUTEMENTS: RecrutementModel.objects.count(),
+        Metric.OPEN_ORGANISMES: OrganismeModel.objects.open().count(),
+        Metric.ORGANISME_SUPERVISEURS: organisme_agents.filter(
+            role=AgentOrganismeRole.SUPERVISEUR.value
+        ).count(),
+        Metric.ORGANISME_AGENTS: organisme_agents.filter(
+            role=AgentOrganismeRole.AGENT.value
+        ).count(),
+        Metric.RECRUTEMENT_RESPONSABLES: recrutement_agents.filter(
+            role=AgentRecrutementRole.RESPONSABLE.value
+        ).count(),
+        Metric.RECRUTEMENT_RECRUTEURS: recrutement_agents.filter(
+            role=AgentRecrutementRole.RECRUTEUR.value
+        ).count(),
+        Metric.RECRUTEMENT_CONTRIBUTEURS: recrutement_agents.filter(
+            role=AgentRecrutementRole.CONTRIBUTEUR.value
+        ).count(),
+        Metric.CANDIDAT_ACCOUNTS: ProfilCandidatModel.objects.count(),
+    }
+
+
+def calculate_daily_stats(target_date: date) -> None:
+    metrics = _offer_metrics() | _volume_metrics()
     with transaction.atomic():
         StatSnapshotModel.objects.bulk_create(
             [
