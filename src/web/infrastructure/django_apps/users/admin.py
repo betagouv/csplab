@@ -1,5 +1,6 @@
-from django.contrib import admin
+from django.contrib import admin, messages
 
+from application.identite.services.revoke_api_tokens import revoke_api_tokens
 from infrastructure.django_apps.users.models import (
     AllowedNetworkModel,
     ProfilAgentModel,
@@ -48,6 +49,7 @@ class UserModelAdmin(admin.ModelAdmin):
     readonly_fields = ["username", "id", "date_joined", "last_login", "password"]
     filter_horizontal = ("sources",)
     inlines = (AllowedNetworkInline,)
+    actions = ("revoke_api_tokens", "deactivate_api_accounts")
 
     def get_queryset(self, request):
         return super().get_queryset(request).avec_restriction_ip()
@@ -57,6 +59,51 @@ class UserModelAdmin(admin.ModelAdmin):
     )
     def is_ip_restricted(self, obj: UserModel) -> bool:
         return obj.ip_restricted  # type: ignore[attr-defined]
+
+    @admin.action(
+        description="Révoquer les jetons de rafraîchissement de l'API",
+        permissions=["change"],
+    )
+    def revoke_api_tokens(self, request, queryset):
+        self._revoke(
+            request,
+            queryset,
+            deactivate=False,
+            outcome="Les jetons d'accès déjà émis restent valables 15 minutes au plus.",
+        )
+
+    @admin.action(
+        description="Révoquer les jetons et désactiver le compte",
+        permissions=["change"],
+    )
+    def deactivate_api_accounts(self, request, queryset):
+        if queryset.filter(pk=request.user.pk).exists():
+            self.message_user(
+                request,
+                "Vous ne pouvez pas désactiver votre propre compte.",
+                messages.ERROR,
+            )
+            return
+        self._revoke(
+            request,
+            queryset,
+            deactivate=True,
+            outcome="Comptes désactivés : plus aucun jeton utilisable.",
+        )
+
+    def _revoke(self, request, queryset, *, deactivate: bool, outcome: str) -> None:
+        revoked = sum(
+            revoke_api_tokens(
+                account=account, actor=request.user, deactivate=deactivate
+            )
+            for account in queryset
+        )
+        self.message_user(
+            request,
+            f"{revoked} jeton(s) de rafraîchissement révoqué(s) pour "
+            f"{len(queryset)} compte(s). {outcome}",
+            messages.SUCCESS,
+        )
 
 
 @admin.register(ProfilCandidatModel)
