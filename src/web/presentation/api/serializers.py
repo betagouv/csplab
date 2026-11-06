@@ -39,6 +39,9 @@ class ChangelogSubsectionSerializer(serializers.Serializer):
 
 class ChangelogEntrySerializer(serializers.Serializer):
     id = serializers.CharField(source="slug")
+    titre = serializers.CharField(
+        help_text="Phrase courte qui dit ce qui change, lisible sans le code."
+    )
     date = serializers.DateField()
     type = serializers.ChoiceField(choices=TypeChangement.choices)
     libelle_type = serializers.SerializerMethodField()
