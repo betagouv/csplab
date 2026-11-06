@@ -86,3 +86,34 @@ class Metric(models.TextChoices):
         "nb_candidatures_premier_tri_dossier_complete",
         "Candidatures au-delà du premier tri au dossier complété dans l'outil",
     )
+    TAGS = "nb_etiquettes", "Étiquettes"
+    OLD_TAGS = (
+        "nb_etiquettes_anciennes",
+        "Étiquettes créées depuis plus de 30 jours",
+    )
+    OLD_UNUSED_TAGS = (
+        "nb_etiquettes_anciennes_jamais_posees",
+        "Étiquettes créées depuis plus de 30 jours et jamais posées",
+    )
+    TAGGED_APPLICATIONS = "nb_candidatures_etiquetees", "Candidatures étiquetées"
+    TAGGED_NOTES = "nb_notes_etiquetees", "Notes étiquetées"
+    MEMBERS_WITH_FUNCTION = (
+        "nb_membres_recrutement_avec_fonction",
+        "Membres de recrutement avec une fonction",
+    )
+    ORGANISMES_WITH_TAG = (
+        "nb_organismes_avec_etiquette",
+        "Organismes ouverts ayant créé une étiquette",
+    )
+    RECRUTEMENTS_WITHOUT_RESPONSABLE = (
+        "nb_recrutements_sans_responsable",
+        "Recrutements sans Responsable",
+    )
+    CUSTOM_PROCESS_ORGANISMES = (
+        "nb_organismes_processus_personnalise",
+        "Organismes ouverts au processus personnalisé",
+    )
+    CUSTOM_PROCESS_RECRUTEMENTS = (
+        "nb_recrutements_processus_personnalise",
+        "Recrutements au processus personnalisé",
+    )

@@ -13,6 +13,7 @@ from domain.recruteur.value_objects.roles import (
 )
 from infrastructure.django_apps.commons.enums import Metric
 from infrastructure.django_apps.commons.models import StatSnapshotModel
+from infrastructure.django_apps.recruteur.enums.etape_par_defaut import EtapeParDefaut
 from infrastructure.factories.candidate.candidature_django_factory import (
     CandidatureDjangoFactory,
 )
@@ -39,6 +40,12 @@ from infrastructure.factories.recruteur.recrutement_django_factory import (
 )
 from infrastructure.factories.referentiel.offer_django_factory import (
     OfferDjangoFactory,
+)
+from infrastructure.factories.tag.tag_django_factory import (
+    CandidatureTagDjangoFactory,
+    NoteTagDjangoFactory,
+    RecrutementAgentTagDjangoFactory,
+    TagDjangoFactory,
 )
 
 TARGET_DATE = date(2026, 6, 30)
@@ -318,4 +325,138 @@ def test_member_document_completes_screened_application_file(screened):
 
     assert values_of(Metric.SCREENED_APPLICATIONS_WITH_COMPLETED_FILE) == {
         Metric.SCREENED_APPLICATIONS_WITH_COMPLETED_FILE: 1
+    }
+
+
+def create_tag(*, days_old):
+    tag = TagDjangoFactory()
+    tag.created_at = datetime.combine(
+        TARGET_DATE - timedelta(days=days_old), datetime.min.time(), tzinfo=UTC
+    )
+    tag.save(update_fields=["created_at"])
+    return tag
+
+
+def test_stores_tag_counts(screened):
+    create_tag(days_old=10)
+    create_tag(days_old=31)
+    used_old_tag = create_tag(days_old=31)
+    CandidatureTagDjangoFactory(candidature=screened, tag=used_old_tag)
+
+    calculate_daily_stats(TARGET_DATE)
+
+    assert values_of(Metric.TAGS, Metric.OLD_TAGS, Metric.OLD_UNUSED_TAGS) == {
+        Metric.TAGS: 3,
+        Metric.OLD_TAGS: 2,
+        Metric.OLD_UNUSED_TAGS: 1,
+    }
+
+
+def test_stores_tagged_item_counts(recrutement, screened):
+    CandidatureTagDjangoFactory(candidature=screened)
+    CandidatureTagDjangoFactory(candidature=screened)
+    NoteTagDjangoFactory(note=NoteDjangoFactory(candidature=screened))
+    NoteTagDjangoFactory(
+        note=NoteDjangoFactory(candidature=screened, supprimee_le=datetime.now(UTC))
+    )
+    RecrutementAgentTagDjangoFactory(
+        recrutement_agent=RecrutementAgentDjangoFactory(recrutement=recrutement)
+    )
+    RecrutementAgentTagDjangoFactory(
+        recrutement_agent=RecrutementAgentDjangoFactory(
+            recrutement=recrutement, date_revocation=datetime.now(UTC)
+        )
+    )
+
+    calculate_daily_stats(TARGET_DATE)
+
+    assert values_of(
+        Metric.TAGGED_APPLICATIONS, Metric.TAGGED_NOTES, Metric.MEMBERS_WITH_FUNCTION
+    ) == {
+        Metric.TAGGED_APPLICATIONS: 1,
+        Metric.TAGGED_NOTES: 1,
+        Metric.MEMBERS_WITH_FUNCTION: 1,
+    }
+
+
+def test_stores_open_organismes_with_tag(db):
+    open_organisme = OrganismeDjangoFactory(gestion_ats=True)
+    TagDjangoFactory.create_batch(2, organisme=open_organisme)
+    OrganismeDjangoFactory(gestion_ats=True)
+    TagDjangoFactory(organisme=OrganismeDjangoFactory(gestion_ats=False))
+
+    calculate_daily_stats(TARGET_DATE)
+
+    assert values_of(Metric.ORGANISMES_WITH_TAG) == {Metric.ORGANISMES_WITH_TAG: 1}
+
+
+def test_stores_recrutements_without_responsable(db):
+    with_responsable = RecrutementDjangoFactory(agent_link=None)
+    RecrutementAgentDjangoFactory(
+        recrutement=with_responsable, role=AgentRecrutementRole.RESPONSABLE.value
+    )
+    revoked_responsable = RecrutementDjangoFactory(agent_link=None)
+    RecrutementAgentDjangoFactory(
+        recrutement=revoked_responsable,
+        role=AgentRecrutementRole.RESPONSABLE.value,
+        date_revocation=datetime.now(UTC),
+    )
+    RecrutementDjangoFactory()
+
+    calculate_daily_stats(TARGET_DATE)
+
+    assert values_of(Metric.RECRUTEMENTS_WITHOUT_RESPONSABLE) == {
+        Metric.RECRUTEMENTS_WITHOUT_RESPONSABLE: 2
+    }
+
+
+def open_organisme_with_process(names=None):
+    organisme = OrganismeDjangoFactory(gestion_ats=True)
+    organisme.initialize_default_etapes()
+    if names is not None:
+        organisme.etapes = [
+            {**etape, "nom": nom}
+            for etape, nom in zip(organisme.etapes, names, strict=True)
+        ]
+    organisme.save(update_fields=["etapes"])
+    return organisme
+
+
+def recrutement_with_process(organisme, process):
+    recrutement = RecrutementDjangoFactory(organisme=organisme, etapes=[])
+    etapes = [
+        EtapeDjangoFactory(recrutement=recrutement, categorie=categorie, nom=nom)
+        for categorie, nom in process
+    ]
+    recrutement.ordre_etapes = [str(etape.id) for etape in etapes]
+    recrutement.save(update_fields=["ordre_etapes"])
+    return recrutement
+
+
+DEFAULT_PROCESS = [(etape.categorie.value, etape.nom) for etape in EtapeParDefaut]
+
+
+def test_stores_custom_process_organismes(db):
+    open_organisme_with_process()
+    open_organisme_with_process(names=["Dépôt", *[e.nom for e in EtapeParDefaut][1:]])
+    OrganismeDjangoFactory(gestion_ats=True)
+
+    calculate_daily_stats(TARGET_DATE)
+
+    assert values_of(Metric.CUSTOM_PROCESS_ORGANISMES) == {
+        Metric.CUSTOM_PROCESS_ORGANISMES: 1
+    }
+
+
+def test_stores_custom_process_recrutements(db):
+    organisme = open_organisme_with_process()
+    recrutement_with_process(organisme, DEFAULT_PROCESS)
+    recrutement_with_process(organisme, list(reversed(DEFAULT_PROCESS)))
+    recrutement_with_process(organisme, DEFAULT_PROCESS[:-1])
+    recrutement_with_process(OrganismeDjangoFactory(), DEFAULT_PROCESS)
+
+    calculate_daily_stats(TARGET_DATE)
+
+    assert values_of(Metric.CUSTOM_PROCESS_RECRUTEMENTS) == {
+        Metric.CUSTOM_PROCESS_RECRUTEMENTS: 2
     }

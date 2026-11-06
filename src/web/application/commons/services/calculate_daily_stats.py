@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import UTC, date, datetime, time, timedelta
 
 from django.db import transaction
 from django.db.models import Count, QuerySet
@@ -15,6 +15,8 @@ from infrastructure.django_apps.messagerie.models import (
     ConversationModel,
     MessageModel,
 )
+from infrastructure.django_apps.recruteur.enums.etape_par_defaut import EtapeParDefaut
+from infrastructure.django_apps.recruteur.models.etape import etapes_ordonnees
 from infrastructure.django_apps.recruteur.models.note import NoteModel
 from infrastructure.django_apps.recruteur.models.organisme import (
     OrganismeAgentModel,
@@ -25,7 +27,16 @@ from infrastructure.django_apps.recruteur.models.recrutement import (
     RecrutementModel,
 )
 from infrastructure.django_apps.referentiel.models.offer import OfferModel
+from infrastructure.django_apps.tag.models import (
+    CandidatureTagModel,
+    NoteTagModel,
+    RecrutementAgentTagModel,
+    TagModel,
+)
 from infrastructure.django_apps.users.models import ProfilCandidatModel
+
+OLD_TAG_AGE = timedelta(days=30)
+DEFAULT_PROCESS = [(etape.categorie.value, etape.nom) for etape in EtapeParDefaut]
 
 
 def _offer_metrics() -> dict[Metric, int]:
@@ -117,8 +128,81 @@ def _collaboration_metrics() -> dict[Metric, int]:
     }
 
 
+def _process(etapes: list[dict]) -> list[tuple[str, str]]:
+    return [(etape["categorie"], etape["nom"]) for etape in etapes]
+
+
+def _count_custom_process_organismes() -> int:
+    organismes_etapes = (
+        OrganismeModel.objects.open()
+        .filter(etapes__isnull=False)
+        .values_list("etapes", flat=True)
+    )
+    return sum(_process(etapes) != DEFAULT_PROCESS for etapes in organismes_etapes)
+
+
+def _count_custom_process_recrutements() -> int:
+    recrutements = RecrutementModel.objects.select_related(
+        "organisme"
+    ).prefetch_related("etapes")
+    count = 0
+    for recrutement in recrutements:
+        organisme_etapes = recrutement.organisme.etapes
+        expected = _process(organisme_etapes) if organisme_etapes else DEFAULT_PROCESS
+        actual = [
+            (etape.categorie, etape.nom)
+            for etape in etapes_ordonnees(recrutement, recrutement.etapes.all())
+        ]
+        count += actual != expected
+    return count
+
+
+def _tag_and_organisation_metrics(target_date: date) -> dict[Metric, int]:
+    old_tags = TagModel.objects.created_before(
+        datetime.combine(target_date - OLD_TAG_AGE, time.min, tzinfo=UTC)
+    )
+    responsable_recrutements = RecrutementAgentModel.objects.responsables().values(
+        "recrutement_id"
+    )
+    return {
+        Metric.TAGS: TagModel.objects.count(),
+        Metric.OLD_TAGS: old_tags.count(),
+        Metric.OLD_UNUSED_TAGS: old_tags.never_used().count(),
+        Metric.TAGGED_APPLICATIONS: _count_candidatures(
+            CandidatureTagModel.objects.all()
+        ),
+        Metric.TAGGED_NOTES: (
+            NoteTagModel.objects.filter(note__supprimee_le__isnull=True)
+            .values("note_id")
+            .distinct()
+            .count()
+        ),
+        Metric.MEMBERS_WITH_FUNCTION: (
+            RecrutementAgentTagModel.objects.filter(
+                recrutement_agent__date_revocation__isnull=True
+            )
+            .values("recrutement_agent_id")
+            .distinct()
+            .count()
+        ),
+        Metric.ORGANISMES_WITH_TAG: (
+            OrganismeModel.objects.open().filter(tags__isnull=False).distinct().count()
+        ),
+        Metric.RECRUTEMENTS_WITHOUT_RESPONSABLE: (
+            RecrutementModel.objects.exclude(pk__in=responsable_recrutements).count()
+        ),
+        Metric.CUSTOM_PROCESS_ORGANISMES: _count_custom_process_organismes(),
+        Metric.CUSTOM_PROCESS_RECRUTEMENTS: _count_custom_process_recrutements(),
+    }
+
+
 def calculate_daily_stats(target_date: date) -> None:
-    metrics = _offer_metrics() | _volume_metrics() | _collaboration_metrics()
+    metrics = (
+        _offer_metrics()
+        | _volume_metrics()
+        | _collaboration_metrics()
+        | _tag_and_organisation_metrics(target_date)
+    )
     with transaction.atomic():
         StatSnapshotModel.objects.bulk_create(
             [
