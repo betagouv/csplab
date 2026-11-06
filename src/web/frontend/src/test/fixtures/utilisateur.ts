@@ -23,9 +23,7 @@ export function makeUser(organismes: UserOrganisme[], authorizedActions: Utilisa
     email: 'marie.dupont@example.gouv.fr',
     prenom: 'Marie',
     nom: 'Dupont',
-    is_staff: false,
     authorized_actions: authorizedActions,
     organismes,
-    organisme_roles: [],
   }
 }
