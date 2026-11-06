@@ -1,18 +1,22 @@
 import { screen } from '@testing-library/vue'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { defineComponent, h } from 'vue'
+import { getOrganismeDetail } from '@/api/organismes'
 import { getMe } from '@/api/utilisateur'
 import { provideSidebar } from '@/composables/ui/useSidebar'
 import { createLocalStorageMock } from '@/test/browser'
 import { ORGANISME_DETAIL } from '@/test/fixtures/organismes'
 import { BRIANCON_UUID, makeUser, MTE_UUID, ROLE_BRIANCON, ROLE_MTE } from '@/test/fixtures/utilisateur'
 import { renderWithApp, setupUser } from '@/test/render'
-import { getOrganismeDetail, searchOrganismes } from '../api'
+import { searchOrganismes } from '../api'
 import OrganismeSwitcher from './OrganismeSwitcher.vue'
+
+vi.mock('@/api/organismes', () => ({
+  getOrganismeDetail: vi.fn(),
+}))
 
 vi.mock('../api', () => ({
   getOrganismesList: vi.fn(),
-  getOrganismeDetail: vi.fn(),
   searchOrganismes: vi.fn(),
 }))
 

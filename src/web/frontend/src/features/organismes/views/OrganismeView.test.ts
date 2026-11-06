@@ -1,14 +1,17 @@
 import { screen } from '@testing-library/vue'
 import { describe, expect, it, vi } from 'vitest'
 import { RouterView } from 'vue-router'
+import { getOrganismeDetail } from '@/api/organismes'
 import { getEtapesRecrutement } from '@/features/etapes-recrutement/api'
 import { ORGANISME_DETAIL } from '@/test/fixtures/organismes'
 import { renderWithApp } from '@/test/render'
-import { getOrganismeDetail } from '../api'
+
+vi.mock('@/api/organismes', () => ({
+  getOrganismeDetail: vi.fn(),
+}))
 
 vi.mock('../api', () => ({
   getOrganismesList: vi.fn(),
-  getOrganismeDetail: vi.fn(),
 }))
 
 vi.mock('@/features/etapes-recrutement/api', () => ({
