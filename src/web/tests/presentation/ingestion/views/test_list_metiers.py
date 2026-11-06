@@ -101,7 +101,7 @@ def test_unknown_domain_returns_400(jwt_client):
     response = jwt_client.get(URL, {"domaine": "JUS,ABC"})
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert "Valeurs de domaine invalides : ABC." in response.json()["error"]
+    assert response.json() == {"error": "domaine : Valeurs de domaine invalides : ABC."}
 
 
 def test_filters_by_several_codes(jwt_client):
@@ -140,14 +140,32 @@ def test_filters_by_versant(jwt_client):
 
 
 @pytest.mark.parametrize(
-    "params",
-    [{"actif": "peut-etre"}, {"versant": "FPX"}, {"versant": "FPE,FPT"}],
+    "params, error",
+    [
+        pytest.param(
+            {"actif": "peut-etre"},
+            "actif : Doit être un booléen valide.",
+            id="actif_not_boolean",
+        ),
+        pytest.param(
+            {"versant": "FPX"},
+            "versant : « FPX » n'est pas un versant valide. Une seule valeur parmi : "
+            "FPE, FPT, FPH.",
+            id="unknown_versant",
+        ),
+        pytest.param(
+            {"versant": "FPE,FPT"},
+            "versant : « FPE,FPT » n'est pas un versant valide. Une seule valeur "
+            "parmi : FPE, FPT, FPH.",
+            id="several_versants",
+        ),
+    ],
 )
-def test_invalid_filter_returns_400(jwt_client, params):
+def test_invalid_filter_returns_400(jwt_client, params, error):
     response = jwt_client.get(URL, params)
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert "error" in response.json()
+    assert response.json() == {"error": error}
 
 
 def test_sorted_by_code_then_id(jwt_client):

@@ -11,6 +11,7 @@ from rest_framework.views import APIView
 from application.ingestion.services.list_metiers import list_metiers
 from config.logger_names import LoggerName
 from presentation.api.authentication import PublicApiMixin
+from presentation.api.errors import validation_message
 from presentation.api.serializers import GenericErrorSerializer, TokenErrorSerializer
 from presentation.commons.pagination import TaillePageNumberPagination
 from presentation.ingestion.openapi import (
@@ -58,7 +59,7 @@ class MetiersListView(PublicApiMixin, APIView):
                 ListMetiersResponseSerializer(items, many=True).data
             )
         except DRFValidationError as e:
-            serializer = GenericErrorSerializer({"error": str(e)})
+            serializer = GenericErrorSerializer({"error": validation_message(e)})
             return Response(
                 serializer.data,
                 status=status.HTTP_400_BAD_REQUEST,

@@ -32,6 +32,7 @@ from presentation.api.authentication import (
     PublicApiKeyOnlyMixin,
     PublicJwtReadApiKeyWriteMixin,
 )
+from presentation.api.errors import validation_message
 from presentation.api.serializers import (
     DetailErrorSerializer,
     GenericErrorSerializer,
@@ -53,21 +54,6 @@ from presentation.ingestion.serializers import (
 )
 
 logger = logging.getLogger(LoggerName.INGESTION.value)
-
-
-# TODO : extract into a shared helper once we tackle form errors returned
-# to the Vue front.
-def _validation_message(exc: DRFValidationError) -> str:
-    detail = exc.detail
-    if isinstance(detail, dict):
-        return " ".join(
-            f"{field} : {message}"
-            for field, messages in detail.items()
-            for message in (messages if isinstance(messages, list) else [messages])
-        )
-    if isinstance(detail, list):
-        return " ".join(str(message) for message in detail)
-    return str(detail)
 
 
 UPSERT_ORGANISMES_DESCRIPTION = (
@@ -229,7 +215,7 @@ class OrganismesView(PublicJwtReadApiKeyWriteMixin, ListAPIView):
     def handle_exception(self, exc: Exception) -> Response:
         if isinstance(exc, DRFValidationError) and self.request.method == "GET":
             return Response(
-                GenericErrorSerializer({"error": _validation_message(exc)}).data,
+                GenericErrorSerializer({"error": validation_message(exc)}).data,
                 status=status.HTTP_400_BAD_REQUEST,
             )
         if isinstance(exc, (APIException, Http404)):
