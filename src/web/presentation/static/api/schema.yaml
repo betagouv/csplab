@@ -4721,6 +4721,9 @@ components:
       properties:
         id:
           type: string
+        titre:
+          type: string
+          description: Phrase courte qui dit ce qui change, lisible sans le code.
         date:
           type: string
           format: date
@@ -4763,6 +4766,7 @@ components:
       - pr_url
       - routes
       - sous_sections
+      - titre
       - type
       - url
     ChangelogError:
