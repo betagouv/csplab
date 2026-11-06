@@ -428,13 +428,14 @@ class TestCandidatureConversationDetailView:
         body = response.json()
         assert body["content"] == "Merci"
         assert body["author"] == f"{test_user.first_name} {test_user.last_name}"
-        assert [document["nom"] for document in body["documents"]] == [
+        assert {document["nom"] for document in body["documents"]} == {
             "cv.pdf",
             "lettre.pdf",
             "diplome.pdf",
             "photo.png",
             "scan.jpg",
-        ]
+        }
+        assert len(body["documents"]) == settings.MESSAGE_MAX_DOCUMENTS
         assert all(document["uuid"] for document in body["documents"])
 
     def test_reply_is_persisted_audited_and_listed(
