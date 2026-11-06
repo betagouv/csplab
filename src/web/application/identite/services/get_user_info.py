@@ -1,8 +1,6 @@
 from typing import NamedTuple
 from uuid import UUID
 
-from django.db.models import QuerySet
-
 from application.identite.context_services.organisme_permission_service import (
     OrganismePermissionService,
 )
@@ -22,8 +20,6 @@ class OrganismeDetails(NamedTuple):
 
 class UtilisateurDetails(NamedTuple):
     utilisateur: UserModel
-    # TODO(#1930): remove organisme_roles once the Vue front reads `organismes`
-    organisme_roles: QuerySet[OrganismeAgentModel]
     authorized_actions: list[str]
     organismes: list[OrganismeDetails]
 
@@ -43,7 +39,6 @@ def get_user_info(*, utilisateur: UserModel) -> UtilisateurDetails:
     }
     return UtilisateurDetails(
         utilisateur=utilisateur,
-        organisme_roles=liaisons,
         authorized_actions=[
             action.value for action in permissions.authorized_actions_user(utilisateur)
         ],
