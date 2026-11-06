@@ -31,6 +31,16 @@ class TagColor(models.TextChoices):
 
 
 class TagQuerySet(models.QuerySet):
+    def created_before(self, moment) -> "TagQuerySet":
+        return self.filter(created_at__lt=moment)
+
+    def never_used(self) -> "TagQuerySet":
+        return self.filter(
+            candidatures_liaisons__isnull=True,
+            notes_liaisons__isnull=True,
+            recrutement_agents_liaisons__isnull=True,
+        )
+
     def by_organisme(self, organisme_id) -> "TagQuerySet":
         return self.filter(organisme_id=organisme_id)
 
