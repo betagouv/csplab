@@ -9,7 +9,7 @@ from infrastructure.django_apps.referentiel.models.offer import OfferModel
 def calculate_daily_stats(target_date: date) -> None:
     metrics = {
         "nb_published_offers": OfferModel.objects.actives().count(),
-        "nb_archived_offers": OfferModel.objects.archivees().count(),
+        "nb_archived_offers": OfferModel.objects.archived().count(),
     }
     with transaction.atomic():
         StatSnapshotModel.objects.bulk_create(
