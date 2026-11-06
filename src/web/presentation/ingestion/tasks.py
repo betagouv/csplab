@@ -5,6 +5,9 @@ from datetime import date, timedelta
 from huey import crontab
 from huey.contrib.djhuey import HUEY, db_periodic_task, db_task, lock_task
 
+from application.commons.services.calculate_daily_stats import (
+    calculate_daily_stats as calculate_daily_stats_service,
+)
 from application.ingestion.interfaces.load_documents_input import LoadDocumentsInput
 from application.ingestion.interfaces.load_operation_type import LoadOperationType
 from config.logger_names import LoggerName
@@ -205,12 +208,10 @@ def calculate_daily_stats_periodic():
 
 @db_task()
 def calculate_daily_stats(target_date: date):
-    container = create_ingestion_container()
-    logger = container.logger_service()
-    usecase = container.calculate_daily_stats_usecase()
+    logger = logging.getLogger(LoggerName.INGESTION.value)
 
     try:
-        usecase.execute(target_date)
+        calculate_daily_stats_service(target_date)
         logger.info("✅ Daily stats calculated for %s", target_date)
     except Exception as e:
         raise TaskError(
