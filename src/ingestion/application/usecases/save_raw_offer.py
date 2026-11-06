@@ -18,7 +18,7 @@ class SaveRawOfferUsecase:
         self._offers_gateway = offers_gateway
         self._raw_offer_repository = raw_offer_repository
 
-    async def execute(self, reference: str, source_id: str) -> RawOffer | None:
+    async def execute(self, reference: str, source_id: str) -> RawOffer:
         error_msg: str | None = None
         loaded_at: datetime | None = None
         data: dict[str, Any] | None = None
@@ -43,10 +43,11 @@ class SaveRawOfferUsecase:
         try:
             await self._raw_offer_repository.upsert(raw_offer)
         except Exception:
-            logger.exception("Failed to save raw offer for reference %s", reference)
-            if gateway_error is not None:
-                raise gateway_error from None
-            return None
+            if gateway_error is None:
+                raise
+            logger.warning(
+                "Failed to save raw offer for reference %s", reference, exc_info=True
+            )
 
         if gateway_error is not None:
             raise gateway_error from None
