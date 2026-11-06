@@ -1,4 +1,5 @@
 ---
+titre: "Lecture d'une offre : champs renommés en français"
 type: non_retrocompatible
 date: 2026-10-13
 pr: 1848

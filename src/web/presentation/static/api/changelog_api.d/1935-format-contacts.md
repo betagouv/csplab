@@ -1,4 +1,5 @@
 ---
+titre: "Offres : nouveau format des contacts, avec un rôle par contact"
 type: non_retrocompatible
 date: 2026-10-13
 pr: 1935

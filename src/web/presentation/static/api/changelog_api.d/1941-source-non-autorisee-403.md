@@ -1,4 +1,5 @@
 ---
+titre: "Lecture d'une offre : 403 au lieu de 401 pour une source non autorisée"
 type: non_retrocompatible
 date: 2026-10-14
 pr: 1941

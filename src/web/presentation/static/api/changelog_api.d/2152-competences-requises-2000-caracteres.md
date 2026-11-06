@@ -1,4 +1,5 @@
 ---
+titre: "Offres : compétences requises jusqu'à 2 000 caractères"
 type: modifie
 date: 2026-11-02
 pr: 2160

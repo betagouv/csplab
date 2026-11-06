@@ -1,4 +1,5 @@
 ---
+titre: "Offres : bases légales en Markdown, sans HTML"
 type: non_retrocompatible
 date: 2026-11-02
 pr: 2166

@@ -32,6 +32,7 @@ Créez un fichier Markdown au nom libre et descriptif, avec un en-tête YAML :
 
 ```markdown
 ---
+titre: "Offres : une offre dont la région est incohérente est rejetée"
 type: non_retrocompatible   # non_retrocompatible | ajoute | modifie | corrige | retire
 date: 2026-10-27            # date de merge, mise à jour juste avant le merge
 pr: 2085                    # numéro de la PR qui ajoute ce fichier
@@ -46,7 +47,17 @@ liens:                      # facultatif, ticket(s) concerné(s)
 Renseignez dans `region` […]
 ```
 
-- `type`, `date` et `pr` sont obligatoires.
+- `titre`, `type`, `date` et `pr` sont obligatoires.
+- `titre` est ce que l'intégrateur lit en premier : il ouvre l'entrée dans le
+  Markdown et dans Redoc. Une phrase courte en français, de 80 caractères au plus,
+  qui dit ce qui change sans qu'il faille lire le corps :
+  - elle commence par la ressource concernée, suivie de ` : ` (« Offres : »,
+    « Lecture des offres : », « Organismes : », « Métiers : », « fake-ts : ») ;
+  - elle ne cite pas de route (la CI refuse `/api/`), le corps s'en charge ;
+  - elle peut citer un nom de champ quand il est le sujet du changement, sans
+    backtick (« fake-ts : salaryRange devient un objet codé ») : la CI refuse les
+    backticks, les `*` et les retours à la ligne ;
+  - entre guillemets doubles dans l'en-tête, puisqu'elle contient ` : `.
 - Le corps cite la ou les routes concernées, entre backticks et avec leur méthode :
   `` `POST /api/v1/offres/creer_modifier` ``. Ce sont elles qui alimentent le filtre par
   route. Une route avec paramètre s'écrit comme dans le schéma
@@ -79,7 +90,7 @@ depuis `origin/main`. Committez le résultat.
 
 Le job `changelog-api` du workflow Web :
 
-- valide tous les fragments : extension `.md`, en-tête YAML, `type` connu, `date` au format
+- valide tous les fragments : extension `.md`, en-tête YAML, `titre` valide, `type` connu, `date` au format
   `AAAA-MM-JJ`, `pr` entier, `liens` sous forme d'URL, corps non vide qui cite au moins
   une route ;
 - sur la PR, pour les fragments ajoutés : refuse une date dans le futur, un `pr`

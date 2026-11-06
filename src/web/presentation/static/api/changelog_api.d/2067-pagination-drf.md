@@ -1,4 +1,5 @@
 ---
+titre: "Listes paginées : 404 pour une page invalide, liens next et previous revus"
 type: non_retrocompatible
 date: 2026-10-27
 pr: 2067

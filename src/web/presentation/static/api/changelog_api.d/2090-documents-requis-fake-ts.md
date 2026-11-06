@@ -1,4 +1,5 @@
 ---
+titre: "fake-ts : documents à transmettre au format Talentsoft"
 type: ajoute
 date: 2026-10-28
 pr: 2091

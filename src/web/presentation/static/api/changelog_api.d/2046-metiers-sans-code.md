@@ -1,4 +1,5 @@
 ---
+titre: "Métiers : les métiers sans code CSP ne sont plus renvoyés"
 type: corrige
 date: 2026-10-22
 pr: 2046

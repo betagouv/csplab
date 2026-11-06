@@ -1,4 +1,5 @@
 ---
+titre: "Lecture d'une offre et fake-ts : email de candidature renvoyé"
 type: ajoute
 date: 2026-10-14
 pr: 1944

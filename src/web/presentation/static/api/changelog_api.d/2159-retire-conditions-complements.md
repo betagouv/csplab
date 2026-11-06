@@ -1,4 +1,5 @@
 ---
+titre: "Offres : conditions.complements retiré, doublon de description.complements"
 type: retire
 date: 2026-11-02
 pr: 2162
