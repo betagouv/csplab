@@ -24,3 +24,7 @@ liens:
 Sans filtre, la route renvoie toujours tous les métiers, actifs ou archivés. Un code
 `domaine` inconnu renvoie désormais une erreur `400` qui liste les codes refusés, au
 lieu d'une liste vide.
+
+Le message des erreurs `400` est désormais lisible et préfixé par le nom du filtre
+(ex. `domaine : Valeurs de domaine invalides : ABC.`), au lieu d'une représentation
+technique de l'erreur.

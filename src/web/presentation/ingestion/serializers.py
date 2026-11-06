@@ -891,6 +891,10 @@ class ListMetiersFiltersSerializer(serializers.Serializer):
         choices=[verse.value for verse in Verse],
         default=None,
         help_text="Métiers ouverts à ce versant de la fonction publique.",
+        error_messages={
+            "invalid_choice": "« {input} » n'est pas un versant valide. Une seule "
+            "valeur parmi : FPE, FPT, FPH."
+        },
     )
 
     def validate_code_emploi_csp(self, value: str | None) -> list[str] | None:
