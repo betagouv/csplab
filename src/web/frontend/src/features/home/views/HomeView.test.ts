@@ -4,7 +4,7 @@ import { RouterView } from 'vue-router'
 import { getOrganismeDetail } from '@/api/organismes'
 import { getMe } from '@/api/utilisateur'
 import { ORGANISME_DETAIL } from '@/test/fixtures/organismes'
-import { BRIANCON_UUID, makeUser, MTE_UUID, ORGANISME_INCONNU_UUID, ROLE_BRIANCON, ROLE_MTE } from '@/test/fixtures/utilisateur'
+import { BRIANCON_UUID, makeUser, MTE_UUID, ORGANISME_BRIANCON, ORGANISME_INCONNU_UUID, ORGANISME_MTE } from '@/test/fixtures/utilisateur'
 import { renderWithApp } from '@/test/render'
 
 vi.mock('@/api/organismes', () => ({
@@ -17,9 +17,9 @@ function renderHome(organismeUuid: string) {
 
 describe('homeView', () => {
   beforeEach(() => {
-    vi.mocked(getMe).mockReset().mockResolvedValue(makeUser([ROLE_MTE, ROLE_BRIANCON], false, [
-      { uuid: MTE_UUID, nom: ROLE_MTE.nom, authorized_actions: ['get_organisme', 'list_recrutements'] },
-      { uuid: BRIANCON_UUID, nom: ROLE_BRIANCON.nom, authorized_actions: ['list_recrutements'] },
+    vi.mocked(getMe).mockReset().mockResolvedValue(makeUser([
+      { ...ORGANISME_MTE, authorized_actions: ['get_organisme', 'list_recrutements'] },
+      { ...ORGANISME_BRIANCON, authorized_actions: ['list_recrutements'] },
     ]))
   })
 

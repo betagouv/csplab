@@ -1,7 +1,7 @@
 import type { CandidatureParams } from '@/api/params'
-import type { OrganismeRole } from '@/api/utilisateur'
 import type { Candidat, CandidatureDetail, KanbanColumn, MotifRefusOption, RecrutementListe } from '@/features/candidatures/types'
 import type { RecrutementDetail } from '@/features/recrutements/types'
+import type { UserOrganisme } from '@/test/fixtures/utilisateur'
 
 export const ORGANISME_UUID = '00000000-0000-0000-0000-000000000000'
 export const RECRUTEMENT_UUID = 'aaaaaaaa-0001-0001-0001-000000000001'
@@ -11,8 +11,10 @@ export const ETAPE_RECEPTION = 'cccccccc-0001-0001-0001-000000000001'
 export const ETAPE_ENTRETIEN = 'cccccccc-0001-0001-0001-000000000002'
 export const ETAPE_REFUS = 'cccccccc-0001-0001-0001-000000000003'
 
-export function roleOnOrganisme(role: OrganismeRole['role']): OrganismeRole {
-  return { organisme_uuid: ORGANISME_UUID, nom: 'Ministère de la Transition Écologique', role }
+export const USER_ORGANISME: UserOrganisme = {
+  uuid: ORGANISME_UUID,
+  nom: 'Ministère de la Transition Écologique',
+  authorized_actions: [],
 }
 
 export const CANDIDATURE_ALICE = 'dddddddd-0001-0001-0001-000000000001'

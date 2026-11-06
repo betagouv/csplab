@@ -50,9 +50,9 @@ const emptyLabel = computed(() => {
   return searching.value ? 'Recherche en cours…' : 'Aucun organisme trouvé'
 })
 
-const memberOptions = computed(() => organismes.value.map(role => ({
-  value: role.organisme_uuid,
-  label: role.nom,
+const memberOptions = computed(() => organismes.value.map(member => ({
+  value: member.uuid,
+  label: member.nom,
 })))
 
 const groups = computed<CspSidebarSwitcherGroup[]>(() => {
