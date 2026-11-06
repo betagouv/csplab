@@ -12,6 +12,7 @@ from rest_framework import serializers, status
 from application.identite.context_services.organisme_permission_service import (
     OrganismePermissionService,
 )
+from application.recruteur.services.read_conversation import mark_as_read
 from domain.commons.errors.organisme_errors import OrganismeNexistePas
 from domain.recruteur.errors.recrutement_errors import (
     CandidatureInexistante,
@@ -28,10 +29,12 @@ from domain.recruteur.value_objects.roles import (
 )
 from infrastructure.django_apps.candidate.models.candidature import CandidatureModel
 from infrastructure.django_apps.recruteur.models.etape import EtapeModel
+from infrastructure.django_apps.recruteur.models.organisme import OrganismeAgentModel
 from infrastructure.factories.candidate.candidature_django_factory import (
     CandidatureDjangoFactory,
 )
 from infrastructure.factories.identite.organisme_django_factory import (
+    OrganismeAgentDjangoFactory,
     OrganismeDjangoFactory,
     create_organisme_with_agent,
 )
@@ -90,7 +93,8 @@ NOMBRE_REQUETES_LISTE_ATTENDU = (
     2  # authentication (view + RateLimitHeadersMiddleware)
     + 1  # organisme
     + 1  # agent's role
-    + 1  # recrutement belongs to organisme
+    + 1  # version of the list
+    + 1  # recrutement etapes order
     + 2  # pagination: count + page
     + 1  # etapes
 )
@@ -689,6 +693,171 @@ class TestRecrutementListeView:
             response = authenticated_client.get(RECRUTEMENT_LISTE_URL)
 
         assert response.status_code == status.HTTP_200_OK
+
+
+NOMBRE_REQUETES_LISTE_INCHANGEE = (
+    2  # authentication (view + RateLimitHeadersMiddleware)
+    + 1  # organisme
+    + 1  # agent's role
+    + 1  # version of the list
+)
+
+
+def _modify_candidature(recrutement, candidature, agent):
+    candidature.updated_by_recruteur = datetime.now(timezone.utc)
+    candidature.save()
+
+
+def _change_etape(recrutement, candidature, agent):
+    candidature.etape = EtapeModel.objects.filter(recrutement=recrutement).last()
+    candidature.save()
+
+
+def _add_candidature(recrutement, candidature, agent):
+    CandidatureDjangoFactory(etape=candidature.etape)
+
+
+def _delete_another_candidature(recrutement, candidature, agent):
+    CandidatureModel.objects.exclude(pk=candidature.pk).delete()
+
+
+def _rename_etape(recrutement, candidature, agent):
+    etape = candidature.etape
+    etape.nom = "Étape renommée"
+    etape.save()
+
+
+def _reorder_etapes(recrutement, candidature, agent):
+    recrutement.ordre_etapes = list(reversed(recrutement.ordre_etapes))
+    recrutement.save()
+
+
+def _message_from_candidat(recrutement, candidature, agent):
+    MessageDjangoFactory(
+        conversation=ConversationDjangoFactory(candidature=candidature),
+        par_candidat=True,
+    )
+
+
+def _read_by_current_agent(recrutement, candidature, agent):
+    message = candidature.conversations.get().messages.get()
+    mark_as_read(
+        conversation_id=message.conversation_id,
+        utilisateur=agent,
+        read_up_to=message.created_at,
+    )
+
+
+@pytest.fixture(name="liste_avec_candidature")
+def liste_avec_candidature_fixture(recrutement_liste):
+    etape = EtapeModel.objects.filter(recrutement=recrutement_liste).first()
+    candidature = CandidatureDjangoFactory(etape=etape)
+    CandidatureDjangoFactory(etape=etape)
+    ConversationDjangoFactory(
+        candidature=candidature, with_message=True, with_message__par_candidat=True
+    )
+    return recrutement_liste, candidature
+
+
+@pytest.mark.django_db
+class TestRecrutementListeConditionalGet:
+    def test_returns_304_without_loading_the_list(
+        self, authenticated_client, liste_avec_candidature, django_assert_num_queries
+    ):
+        first = authenticated_client.get(RECRUTEMENT_LISTE_URL)
+
+        with django_assert_num_queries(NOMBRE_REQUETES_LISTE_INCHANGEE):
+            second = authenticated_client.get(
+                RECRUTEMENT_LISTE_URL, HTTP_IF_NONE_MATCH=first["ETag"]
+            )
+
+        assert second.status_code == status.HTTP_304_NOT_MODIFIED
+        assert second.content == b""
+        assert second["ETag"] == first["ETag"]
+        assert set(second["Cache-Control"].split(", ")) == {"private", "no-cache"}
+
+    @pytest.mark.parametrize(
+        "change",
+        [
+            _modify_candidature,
+            _change_etape,
+            _add_candidature,
+            _delete_another_candidature,
+            _rename_etape,
+            _reorder_etapes,
+            _message_from_candidat,
+            _read_by_current_agent,
+        ],
+    )
+    def test_returns_200_after_a_change(
+        self, authenticated_client, liste_avec_candidature, test_user, change
+    ):
+        recrutement, candidature = liste_avec_candidature
+        first = authenticated_client.get(RECRUTEMENT_LISTE_URL)
+
+        change(recrutement, candidature, test_user)
+        second = authenticated_client.get(
+            RECRUTEMENT_LISTE_URL, HTTP_IF_NONE_MATCH=first["ETag"]
+        )
+
+        assert second.status_code == status.HTTP_200_OK
+        assert second["ETag"] != first["ETag"]
+
+    def test_reading_by_another_agent_keeps_the_list_unchanged(
+        self, authenticated_client, liste_avec_candidature
+    ):
+        _, candidature = liste_avec_candidature
+        first = authenticated_client.get(RECRUTEMENT_LISTE_URL)
+
+        message = candidature.conversations.get().messages.get()
+        ConversationLectureDjangoFactory(
+            conversation=message.conversation, read_at=message.created_at
+        )
+        second = authenticated_client.get(
+            RECRUTEMENT_LISTE_URL, HTTP_IF_NONE_MATCH=first["ETag"]
+        )
+
+        assert second.status_code == status.HTTP_304_NOT_MODIFIED
+
+    def test_etag_depends_on_the_query_string(
+        self, authenticated_client, liste_avec_candidature
+    ):
+        first = authenticated_client.get(RECRUTEMENT_LISTE_URL)
+
+        second = authenticated_client.get(
+            RECRUTEMENT_LISTE_URL + "?taille=1", HTTP_IF_NONE_MATCH=first["ETag"]
+        )
+
+        assert second.status_code == status.HTTP_200_OK
+
+    def test_etag_depends_on_the_user(
+        self, authenticated_client, liste_avec_candidature
+    ):
+        recrutement, _ = liste_avec_candidature
+        first = authenticated_client.get(RECRUTEMENT_LISTE_URL)
+        other = OrganismeAgentDjangoFactory(
+            organisme=recrutement.organisme,
+            role=AgentOrganismeRole.SUPERVISEUR.value,
+        ).agent.utilisateur
+        authenticated_client.force_login(other)
+
+        second = authenticated_client.get(
+            RECRUTEMENT_LISTE_URL, HTTP_IF_NONE_MATCH=first["ETag"]
+        )
+
+        assert second.status_code == status.HTTP_200_OK
+
+    def test_checks_permissions_before_answering_304(
+        self, authenticated_client, liste_avec_candidature, test_user
+    ):
+        first = authenticated_client.get(RECRUTEMENT_LISTE_URL)
+        OrganismeAgentModel.objects.filter(agent_id=test_user.username).delete()
+
+        second = authenticated_client.get(
+            RECRUTEMENT_LISTE_URL, HTTP_IF_NONE_MATCH=first["ETag"]
+        )
+
+        assert second.status_code == status.HTTP_403_FORBIDDEN
 
 
 class TestRecrutementCandidaturesEtapeView:

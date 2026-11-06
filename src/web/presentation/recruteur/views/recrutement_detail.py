@@ -1,7 +1,9 @@
+from collections.abc import Sequence
+from functools import partial
 from uuid import UUID
 
 from django.db.models import QuerySet
-from django.http import Http404
+from django.http import Http404, HttpResponseBase
 from drf_spectacular.utils import extend_schema
 from rest_framework import exceptions, status
 from rest_framework.generics import ListAPIView
@@ -13,7 +15,8 @@ from application.recruteur.services.get_recrutement import (
     get_recrutement,
 )
 from application.recruteur.services.list_candidatures import (
-    list_candidatures_et_etapes,
+    ListeCandidatures,
+    liste_candidatures,
 )
 from application.recruteur.usecases.change_etape_candidatures import (
     ChangeEtapeCandidaturesCommand,
@@ -100,17 +103,24 @@ class RecrutementDetailView(ConditionalGetMixin, SessionApiMixin, APIView):
 class RecrutementListeView(ConditionalGetMixin, SessionApiMixin, ListAPIView):
     serializer_class = CandidatureListeSerializer
     pagination_class = PaginationSchemaDuSerializer
+    liste: ListeCandidatures
     etapes: list[EtapeModel]
 
-    def get_queryset(self) -> QuerySet[CandidatureModel]:
-        candidatures, self.etapes = list_candidatures_et_etapes(
+    def list(self, request: Request, *args, **kwargs) -> HttpResponseBase:
+        self.liste = liste_candidatures(
             organisme_id=self.kwargs["organisme_uuid"],
             recrutement_id=self.kwargs["recrutement_uuid"],
-            utilisateur=self.request.user,
+            utilisateur=request.user,
         )
+        return self.respond_unless_unchanged(
+            request, self.liste.version, partial(super().list, request, *args, **kwargs)
+        )
+
+    def get_queryset(self) -> QuerySet[CandidatureModel]:
+        candidatures, self.etapes = self.liste.candidatures_et_etapes()
         return candidatures
 
-    def get_paginated_response(self, data: list) -> Response:
+    def get_paginated_response(self, data: Sequence[dict]) -> Response:
         response = super().get_paginated_response(data)
         response.data["etapes"] = EtapeRecrutementModelSerializer(
             self.etapes, many=True
