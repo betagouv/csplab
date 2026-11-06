@@ -9,6 +9,7 @@ import httpx
 import sentry_sdk
 
 from domain.entities.webhook import Webhook
+from domain.value_objects.webhook_event import WebhookProcessingStatus
 from infrastructure.celery_app import celery_app
 from infrastructure.di.bootstrap import get_container
 from infrastructure.exceptions.exceptions import (
@@ -66,9 +67,11 @@ def _process(task, webhook_id: str, handler: _Handler) -> None:
     )
     started_at = time.monotonic()
     container = get_container()
+    repository = container.webhook_repository()
 
     async def _run() -> None:
-        webhook = await container.webhook_repository().get_by_id(UUID(webhook_id))
+        await repository.mark_processing(UUID(webhook_id))
+        webhook = await repository.get_by_id(UUID(webhook_id))
         _set_context(
             context,
             reference=webhook.reference,
@@ -76,10 +79,15 @@ def _process(task, webhook_id: str, handler: _Handler) -> None:
             action_type=webhook.action_type,
         )
         await handler(container, webhook)
+        await repository.mark_processed(
+            UUID(webhook_id), WebhookProcessingStatus.SUCCEEDED
+        )
 
     try:
         asyncio.run(_run_with_timeout(_run()))
     except Exception as exc:
+        if not _is_transient(exc) or task.request.retries >= task.max_retries:
+            _mark_failed(repository, webhook_id, exc)
         _retry_on_transient(task, exc)
 
     logger.info(
@@ -89,6 +97,19 @@ def _process(task, webhook_id: str, handler: _Handler) -> None:
             "duration_ms": round((time.monotonic() - started_at) * 1000),
         },
     )
+
+
+def _mark_failed(repository, webhook_id: str, exc: Exception) -> None:
+    try:
+        asyncio.run(
+            repository.mark_processed(
+                UUID(webhook_id),
+                WebhookProcessingStatus.FAILED,
+                f"{type(exc).__name__}: {exc}",
+            )
+        )
+    except Exception:
+        logger.warning("Failed to mark webhook %s as failed", webhook_id, exc_info=True)
 
 
 async def _archive_offer(container: "Container", webhook: Webhook) -> None:
