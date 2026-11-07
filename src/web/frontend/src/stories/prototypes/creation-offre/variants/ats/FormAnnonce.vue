@@ -86,9 +86,13 @@ function formater() {
 <template>
   <div class="annonce">
     <div class="groupe">
-      <p class="organisme">
-        {{ db.organisme.nom }}
-      </p>
+      <FieldRow :cols="2">
+        <CspInput
+          :model-value="db.organisme.nom"
+          label="Organisme"
+          disabled
+        />
+      </FieldRow>
       <ChampOffre
         :offre="o"
         champ="titre"
@@ -400,12 +404,6 @@ function formater() {
   font-weight: var(--csp-font-weight-bold);
   line-height: 1.4;
   color: var(--text-title-grey);
-}
-
-.organisme {
-  margin: 0 0 calc(-1 * var(--csp-space-3));
-  font-size: var(--csp-font-size-sm);
-  color: var(--text-mention-grey);
 }
 
 .mention {

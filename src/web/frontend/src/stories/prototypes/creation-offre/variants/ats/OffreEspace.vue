@@ -808,8 +808,8 @@ const FREQ = [
 .publication {
   display: flex;
   flex-direction: column;
-  gap: var(--csp-space-4);
-  max-width: 40rem;
+  gap: var(--csp-space-5);
+  max-width: 60rem;
 }
 
 .fiche {

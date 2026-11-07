@@ -46,7 +46,6 @@ defineExpose({ valide: () => !manquesDates(o.value).length && !(diffusion.value 
         :model-value="o.dateDebut"
         label="Date de début de publication"
         placeholder="AAAA-MM-JJ"
-        :hint="o.dateDebut ? dateLongue(o.dateDebut) : undefined"
         :disabled="disabled"
         @update:model-value="changerDebut"
       />
@@ -54,12 +53,19 @@ defineExpose({ valide: () => !manquesDates(o.value).length && !(diffusion.value 
         v-model="o.dateFin"
         label="Date de fin (date limite de candidature)"
         placeholder="AAAA-MM-JJ"
-        :hint="o.dateFin ? `${dateLongue(o.dateFin)} — retrait automatique ce jour-là` : 'Un mois après le début par défaut'"
         :disabled="disabled"
         :error="Boolean(erreurDates)"
         :error-message="erreurDates ? `Indiquez les ${erreurDates}.` : undefined"
       />
     </FieldRow>
+    <p class="mention">
+      <template v-if="o.dateDebut && o.dateFin">
+        Du {{ dateLongue(o.dateDebut) }} au {{ dateLongue(o.dateFin) }} : l'offre est retirée automatiquement ce jour-là.
+      </template>
+      <template v-else>
+        La date de fin est aussi la date limite de candidature : un mois après le début par défaut.
+      </template>
+    </p>
     <CspCheckbox
       v-model="o.urgence"
       label="Recrutement urgent : publier moins d'un mois (article D311-2)"
@@ -67,7 +73,7 @@ defineExpose({ valide: () => !manquesDates(o.value).length && !(diffusion.value 
     />
     <CspRadioGroup
       v-model="diffusion"
-      label="Diffusion"
+      label="Type de diffusion"
       :options="DIFFUSIONS"
       :disabled="disabled"
     />
@@ -87,6 +93,12 @@ defineExpose({ valide: () => !manquesDates(o.value).length && !(diffusion.value 
 .champs {
   display: flex;
   flex-direction: column;
-  gap: var(--csp-space-4);
+  gap: var(--csp-space-5);
+}
+
+.mention {
+  margin: calc(-1 * var(--csp-space-3)) 0 0;
+  font-size: var(--csp-font-size-xs);
+  color: var(--text-mention-grey);
 }
 </style>
