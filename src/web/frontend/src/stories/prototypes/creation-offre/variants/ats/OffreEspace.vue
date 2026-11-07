@@ -673,7 +673,6 @@ const FREQ = [
 }
 
 .encart {
-
   &--action {
     border-top: 3px solid var(--border-plain-blue-france);
   }
