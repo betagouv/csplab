@@ -69,7 +69,7 @@ export interface Offre {
   origineContenu: OrigineContenu
   sourceOffreId?: string
 
-  // 1. Informations internes — jamais publiées. Les données de contexte ne sont jamais recopiées.
+  // Suivi interne — jamais publié, saisi dans l'annonce (encadrés gris). Les données de contexte ne sont jamais recopiées.
   referenceInterne: string
   nbPostes: string
   dateVacance: string

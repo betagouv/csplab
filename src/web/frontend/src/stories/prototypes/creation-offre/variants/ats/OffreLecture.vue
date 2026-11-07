@@ -5,8 +5,10 @@ import { computed } from 'vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import Panel from '../../shared/Panel.vue'
 import { CANAUX_DIFFUSION, dateLongue, db, metier, PIECES, TEMPS_TRAVAIL } from './store'
+import SuiviInterne from './SuiviInterne.vue'
 
-// L'offre dans son état rempli, en lecture, rangée comme les six étapes du formulaire.
+// L'offre dans son état rempli, en lecture, rangée comme les cinq étapes du formulaire.
+// Le suivi interne (jamais publié) est affiché dans l'annonce, dans un encadré gris.
 // « Modifier » ouvre le formulaire directement à l'étape concernée.
 const props = defineProps<{ offre: Offre, modifiable?: boolean }>()
 const emit = defineEmits<{ modifier: [etape: EtapeFormulaire] }>()
@@ -19,7 +21,6 @@ function lignes(texte: string) {
 const internes = computed(() => [
   { k: 'Référence interne', v: v(o.value.referenceInterne) },
   { k: 'Code poste', v: v(o.value.codePoste) },
-  { k: 'Nombre de postes', v: v(o.value.nbPostes) },
   { k: 'Motif de recrutement', v: v(o.value.motifRecrutement) },
   { k: 'Agent remplacé', v: v(o.value.agentRemplace) },
   { k: 'Motif de départ', v: v(o.value.motifDepart) },
@@ -29,6 +30,7 @@ const internes = computed(() => [
 const annonce = computed(() => [
   { k: 'Catégorie', v: o.value.categorie ? `Catégorie ${o.value.categorie}` : '-' },
   { k: 'Statut du poste', v: v(o.value.statutPoste) },
+  { k: 'Nombre de postes', v: v(o.value.nbPostes) },
   { k: 'Date de vacance', v: o.value.dateVacance ? dateLongue(o.value.dateVacance) : '-' },
   { k: 'Ouvert aux', v: o.value.ouvertA.map(x => (x === 'titulaire' ? 'fonctionnaires' : 'contractuels')).join(' et ') || '-' },
   { k: 'Métier (RMFP+)', v: metier(o.value.metier)?.libelle ?? '-' },
@@ -45,40 +47,7 @@ const sites = computed(() => CANAUX_DIFFUSION.filter(c => o.value.canaux.include
 </script>
 
 <template>
-  <Panel titre="1. Informations internes">
-    <template
-      v-if="modifiable"
-      #actions
-    >
-      <CspButton
-        label="Modifier"
-        size="sm"
-        variant="tertiary-no-outline"
-        icon="ri:pencil-line"
-        is-icon-left
-        @click="emit('modifier', 'internes')"
-      />
-    </template>
-    <dl class="dl">
-      <div
-        v-for="i in internes"
-        :key="i.k"
-      >
-        <dt>{{ i.k }}</dt>
-        <dd>{{ i.v }}</dd>
-      </div>
-    </dl>
-    <div v-if="o.commentaireValideurs">
-      <p class="label">
-        Commentaire pour les valideurs
-      </p>
-      <p class="texte">
-        {{ o.commentaireValideurs }}
-      </p>
-    </div>
-  </Panel>
-
-  <Panel titre="2. Annonce">
+  <Panel titre="1. Annonce">
     <template
       v-if="modifiable"
       #actions
@@ -163,9 +132,20 @@ const sites = computed(() => CANAUX_DIFFUSION.filter(c => o.value.canaux.include
         {{ o.conditions }}
       </p>
     </div>
+    <SuiviInterne>
+      <dl class="dl">
+        <div
+          v-for="i in internes"
+          :key="i.k"
+        >
+          <dt>{{ i.k }}</dt>
+          <dd>{{ i.v }}</dd>
+        </div>
+      </dl>
+    </SuiviInterne>
   </Panel>
 
-  <Panel titre="3. Formulaire de candidature">
+  <Panel titre="2. Formulaire de candidature">
     <template
       v-if="modifiable"
       #actions
@@ -210,7 +190,7 @@ const sites = computed(() => CANAUX_DIFFUSION.filter(c => o.value.canaux.include
     </div>
   </Panel>
 
-  <Panel titre="4. Processus et 5. Équipe">
+  <Panel titre="3. Processus et 4. Équipe">
     <template
       v-if="modifiable"
       #actions
@@ -236,7 +216,7 @@ const sites = computed(() => CANAUX_DIFFUSION.filter(c => o.value.canaux.include
     </dl>
   </Panel>
 
-  <Panel titre="6. Publication">
+  <Panel titre="5. Publication">
     <template
       v-if="modifiable"
       #actions

@@ -12,9 +12,14 @@ import Panel from '../../shared/Panel.vue'
 import { aMettreEnForme, mettreEnForme } from './aide'
 import ChampOffre from './ChampOffre.vue'
 import { useNav } from './nav'
-import { CATEGORIES, contenuDepuisFiche, metier, METIERS, STATUTS_POSTE, TEMPS_TRAVAIL } from './store'
+import ResumeValidation from './ResumeValidation.vue'
+import { CATEGORIES, contenuDepuisFiche, db, metier, METIERS, MOTIFS_DEPART, MOTIFS_RECRUTEMENT, STATUTS_POSTE, TEMPS_TRAVAIL } from './store'
+import SuiviInterne from './SuiviInterne.vue'
 
-// Étape 2 — l'annonce : ce que lit le candidat sur Choisir le Service Public (article D311-8).
+// Étape 1 — l'annonce : ce que lit le candidat sur Choisir le Service Public (article D311-8).
+// Les informations de suivi interne (jamais publiées) sont rangées à côté des champs qu'elles complètent,
+// dans des encadrés gris « Suivi interne ». Si l'organisme fait valider ses offres, un cadre
+// « Résumé pour la validation » reprend en fin d'étape ce qui sert aux valideurs.
 // Les champs sans mention « facultatif » sont contrôlés seulement au moment de publier.
 // L'aperçu candidat et la fiche source s'ouvrent en panneau latéral, depuis le titre de l'étape.
 const props = defineProps<{ offre: Offre, fiche: Fiche }>()
@@ -22,7 +27,7 @@ const { notifier } = useNav()
 const o = computed(() => props.offre)
 
 const opts = (l: string[], vide: string) => [{ value: 'aucun', label: vide }, ...l.map(v => ({ value: v, label: v }))]
-function modele(cle: 'categorie' | 'statutPoste' | 'metier' | 'fondementJuridique') {
+function modele(cle: 'categorie' | 'statutPoste' | 'metier' | 'fondementJuridique' | 'motifRecrutement' | 'motifDepart' | 'groupeRifseep') {
   return computed({
     get: () => o.value[cle] || 'aucun',
     set: (v: string) => (o.value[cle] = v === 'aucun' ? '' : v),
@@ -31,6 +36,11 @@ function modele(cle: 'categorie' | 'statutPoste' | 'metier' | 'fondementJuridiqu
 const categorie = modele('categorie')
 const statutPoste = modele('statutPoste')
 const fondement = modele('fondementJuridique')
+const motif = modele('motifRecrutement')
+const depart = modele('motifDepart')
+const rifseep = modele('groupeRifseep')
+const avecAgent = computed(() => ['Remplacement', 'Renouvellement'].includes(o.value.motifRecrutement))
+const optsInternes = (l: string[]) => [{ value: 'aucun', label: 'Non renseigné' }, ...l.map(v => ({ value: v, label: v }))]
 
 // Métier RMFP+ : ses compétences s'affichent déjà cochées ; on peut en retirer ou en ajouter.
 const metierChoisi = computed({
@@ -94,7 +104,7 @@ function formater() {
             v-model="o.titre"
           />
         </ChampOffre>
-        <FieldRow :cols="2">
+        <FieldRow :cols="3">
           <CspSelect
             v-model="categorie"
             label="Catégorie"
@@ -104,6 +114,11 @@ function formater() {
             v-model="statutPoste"
             label="Statut du poste"
             :options="opts(STATUTS_POSTE, 'Choisir')"
+          />
+          <CspInput
+            v-model="o.nbPostes"
+            type="number"
+            label="Nombre de postes"
           />
         </FieldRow>
         <FieldRow :cols="2">
@@ -124,6 +139,35 @@ function formater() {
           label="Fondement juridique (emploi ouvert aux contractuels)"
           :options="opts(FONDEMENTS, 'Choisir')"
         />
+        <SuiviInterne>
+          <FieldRow :cols="2">
+            <CspInput
+              v-model="o.referenceInterne"
+              label="Référence interne (facultatif)"
+            />
+            <CspInput
+              v-model="o.codePoste"
+              label="Code poste (facultatif)"
+            />
+          </FieldRow>
+          <FieldRow :cols="2">
+            <CspSelect
+              v-model="motif"
+              label="Motif de recrutement (facultatif)"
+              :options="optsInternes(MOTIFS_RECRUTEMENT)"
+            />
+            <CspSelect
+              v-model="depart"
+              label="Motif de départ (facultatif)"
+              :options="optsInternes(MOTIFS_DEPART)"
+            />
+          </FieldRow>
+          <CspInput
+            v-if="avecAgent"
+            v-model="o.agentRemplace"
+            label="Agent remplacé ou renouvelé (facultatif)"
+          />
+        </SuiviInterne>
       </Panel>
 
       <Panel titre="Métier et compétences">
@@ -293,7 +337,35 @@ function formater() {
             label="Contact (facultatif)"
           />
         </FieldRow>
+        <SuiviInterne>
+          <FieldRow :cols="2">
+            <CspSelect
+              v-model="rifseep"
+              label="Groupe RIFSEEP (facultatif)"
+              :options="optsInternes(['Groupe 1', 'Groupe 2', 'Groupe 3', 'Groupe 4'])"
+            />
+            <ChampOffre
+              :offre="o"
+              champ="cycleTravail"
+              label="Cycle de travail (facultatif)"
+              for-id="a-cycle"
+            >
+              <CspInput
+                id="a-cycle"
+                v-model="o.cycleTravail"
+                placeholder="Ex. : 38 h 30 sur 5 jours"
+              />
+            </ChampOffre>
+          </FieldRow>
+        </SuiviInterne>
       </Panel>
+
+      <ResumeValidation
+        v-if="db.organisme.validationActive"
+        :offre="o"
+        :fiche="fiche"
+        editable
+      />
     </div>
   </div>
 </template>

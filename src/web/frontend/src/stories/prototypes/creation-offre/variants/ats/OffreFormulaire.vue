@@ -13,13 +13,12 @@ import FicheSource from './FicheSource.vue'
 import FormAnnonce from './FormAnnonce.vue'
 import FormCandidature from './FormCandidature.vue'
 import FormEquipe from './FormEquipe.vue'
-import FormInternes from './FormInternes.vue'
 import FormProcessus from './FormProcessus.vue'
 import { useNav } from './nav'
 import PageAts from './PageAts.vue'
 import { db, heure, LIBELLES_VALIDATION, maintenant, sauvegarder, signalerModification, UTILISATEUR, validationManquante } from './store'
 
-// Formulaire de l'offre, page entière sur laquelle on arrive en créant une offre. Six étapes, navigation libre,
+// Formulaire de l'offre, page entière sur laquelle on arrive en créant une offre. Cinq étapes, navigation libre,
 // enregistrement automatique. « Demander la validation » est disponible à toutes les étapes, sans champ minimum ;
 // les champs obligatoires ne sont contrôlés qu'au moment de publier.
 const props = defineProps<{ id: string, etape?: EtapeFormulaire }>()
@@ -29,14 +28,13 @@ const fiche = computed(() => db.fiches.find(x => x.id === o.value.ficheId)!)
 const nouvelle = computed(() => o.value.etat === 'brouillon' && o.value.historique.length <= 1)
 
 const ETAPES: { id: EtapeFormulaire, label: string, aide: string }[] = [
-  { id: 'internes', label: 'Informations internes', aide: 'Jamais publiées' },
-  { id: 'annonce', label: 'Annonce', aide: 'Ce que lit le candidat' },
+  { id: 'annonce', label: 'Annonce', aide: 'Poste, annonce et suivi interne' },
   { id: 'candidature', label: 'Formulaire de candidature', aide: 'Mode, pièces, questions' },
   { id: 'processus', label: 'Processus', aide: 'Facultatif' },
   { id: 'equipe', label: 'Équipe', aide: 'Facultatif' },
   { id: 'publication', label: 'Publication', aide: 'Dates et diffusion' },
 ]
-const etape = ref<EtapeFormulaire>(props.etape ?? 'internes')
+const etape = ref<EtapeFormulaire>(props.etape ?? 'annonce')
 const panneau = ref<'apercu' | 'fiche' | null>(null)
 const index = computed(() => ETAPES.findIndex(e => e.id === etape.value))
 const manques = computed(() => manquesPublication(o.value))
@@ -203,13 +201,8 @@ const peutPublier = computed(() => db.organisme.agents.find(a => a.nom === UTILI
           </div>
         </div>
 
-        <FormInternes
-          v-if="etape === 'internes'"
-          :offre="o"
-          :fiche="fiche"
-        />
         <FormAnnonce
-          v-else-if="etape === 'annonce'"
+          v-if="etape === 'annonce'"
           :offre="o"
           :fiche="fiche"
         />

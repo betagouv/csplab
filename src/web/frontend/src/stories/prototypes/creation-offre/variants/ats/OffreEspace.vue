@@ -19,6 +19,7 @@ import { useNav } from './nav'
 import OffreLecture from './OffreLecture.vue'
 import OrigineBadge from './OrigineBadge.vue'
 import PageAts from './PageAts.vue'
+import ResumeValidation from './ResumeValidation.vue'
 import { archiverOffre, arreterSupport, aujourdhui, CANAUX_DIFFUSION, dateLongue, db, joursRestants, le, plusJours, plusUnMois, prolonger, retirer, sauvegarder, UTILISATEUR, validationManquante } from './store'
 import ValidationBadge from './ValidationBadge.vue'
 
@@ -383,6 +384,12 @@ const FREQ = [
         />
       </div>
       <aside class="col">
+        <ResumeValidation
+          v-if="db.organisme.validationActive || o.validationEtat !== 'non_demandee'"
+          :offre="o"
+          :fiche="f"
+          compact
+        />
         <Panel
           v-if="o.validations?.length && o.etat !== 'brouillon'"
           titre="Validation"

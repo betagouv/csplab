@@ -653,3 +653,9 @@ Tout est local au prototype (aucun composant `Csp*` partagé modifié).
   d'erreur de type s'affiche par-dessus Storybook (bouton « Close »). Sans lien avec le prototype —
   à signaler à Lucas (`make frontend-install` à refaire).
 - Storybook est lancé directement via `node_modules/.bin/storybook`.
+
+## Itération 13 — Suivi interne intégré à l'annonce, résumé pour la validation
+
+- L'étape « Informations internes » disparaît : le formulaire passe à **5 étapes** (Annonce · Formulaire de candidature · Processus · Équipe · Publication).
+- Les informations internes sont rangées **dans l'annonce**, à côté de ce qu'elles complètent, dans des encadrés gris « Suivi interne · non publié » : référence, code poste, motifs, agent remplacé (bloc « Le poste ») ; groupe RIFSEEP, cycle de travail (bloc « Conditions d'exercice »). Le nombre de postes rejoint la ligne catégorie / statut.
+- **Résumé pour la validation** (cadre bleu, seulement si l'organisme fait valider ses offres) : reprend automatiquement poste, nombre de postes, motif, date de vacance, lieu, rémunération annoncée, RIFSEEP et fiche de poste ; on y saisit le commentaire pour les valideurs et on peut joindre un document. En fin d'étape Annonce dans le formulaire, en haut de la colonne de droite sur la page de l'offre.
