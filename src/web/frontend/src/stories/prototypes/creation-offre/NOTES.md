@@ -668,3 +668,10 @@ Tout est local au prototype (aucun composant `Csp*` partagé modifié).
 - Une fois publiée : l'annonce reste modifiable (visible tout de suite) ; mode de candidature, pièces et dates sont verrouillés.
 - « Aperçu candidat » (bouton avec libellé) et « Fiche de poste source » s'ouvrent en panneau latéral.
 - Processus et équipe retirés de l'offre (seul le responsable reste, dans Paramètres).
+
+## Itération 15 — Lisibilité de la page unique
+
+- Hiérarchie de titres en 3 niveaux, tous en gras : section (22 px, chevron à gauche, contenu aligné sur le titre), groupe (18 px, séparé par un filet), champ (14 px).
+- Conseils de rédaction repliés derrière un « ? » à côté du libellé (plus de texte d'aide permanent sous chaque champ) ; les champs côte à côte s'alignent.
+- Résumé pour la validation et encart d'état : même style de carte (filet bleu en haut), même hauteur ; le résumé est une liste libellé / valeur.
+- Raccourcis « Accéder à » en simples liens ; descriptions génériques des sections supprimées (seuls restent les messages utiles : offre en ligne, dates verrouillées).

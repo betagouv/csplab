@@ -320,7 +320,7 @@ const FREQ = [
             v-else
             class="encart"
             :titre="o.validationEtat === 'validee' ? 'Validée — à compléter avant publication' : 'Brouillon'"
-            :description="validationManquante(o) ? 'Votre organisme fait valider les offres avant publication. Vous pouvez demander la validation à tout moment, sans attendre que l\'offre soit complète.' : 'Pour publier, l\'annonce doit être complète.'"
+            :description="validationManquante(o) ? 'Vous pouvez demander la validation à tout moment, même si l\'offre n\'est pas complète.' : 'Pour publier, l\'annonce doit être complète.'"
           >
             <p
               v-if="manques.length"
@@ -497,7 +497,7 @@ const FREQ = [
         id="annonce"
         v-model:ouvert="ouverts.annonce"
         titre="Annonce"
-        :description="o.etat === 'publiee' ? 'Offre en ligne : vos modifications sont visibles tout de suite par les candidats.' : 'Ce que lit le candidat. Les champs sans mention « facultatif » sont contrôlés au moment de publier.'"
+        :description="o.etat === 'publiee' ? 'Offre en ligne : vos modifications sont visibles tout de suite par les candidats.' : undefined"
       >
         <template #actions>
           <CspButton
@@ -578,7 +578,7 @@ const FREQ = [
         id="publication"
         v-model:ouvert="ouverts.publication"
         titre="Publication"
-        :description="o.etat === 'brouillon' ? 'Dates et diffusion. Elles se confirment au moment de publier.' : 'Pour changer la date de fin, utilisez « Prolonger » en haut de la page.'"
+        :description="o.etat === 'brouillon' ? undefined : 'Pour changer la date de fin, utilisez « Prolonger » en haut de la page.'"
       >
         <div class="publication">
           <ChampsPublication
@@ -673,14 +673,13 @@ const FREQ = [
 }
 
 .encart {
-  border-left: 4px solid var(--border-plain-grey);
 
   &--action {
-    border-left-color: var(--border-plain-blue-france);
+    border-top: 3px solid var(--border-plain-blue-france);
   }
 
   &--attention {
-    border-left-color: var(--border-plain-warning);
+    border-top: 3px solid var(--border-plain-warning);
   }
 }
 
@@ -739,22 +738,24 @@ const FREQ = [
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--csp-space-2);
+  gap: var(--csp-space-1) var(--csp-space-5);
   font-size: var(--csp-font-size-sm);
+  color: var(--text-mention-grey);
 }
 
 .raccourci {
-  padding: var(--csp-space-1) var(--csp-space-3);
+  padding: 0;
   border: 0;
-  border-radius: 1rem;
-  background: var(--background-action-low-blue-france);
+  background: none;
   font: inherit;
-  font-size: var(--csp-font-size-xs);
   color: var(--text-action-high-blue-france);
+  text-decoration: underline;
+  text-decoration-color: transparent;
+  text-underline-offset: 3px;
   cursor: pointer;
 
   &:hover {
-    background: var(--background-action-low-blue-france-hover);
+    text-decoration-color: currentColor;
   }
 }
 
@@ -772,7 +773,7 @@ const FREQ = [
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: var(--csp-space-5);
-  align-items: start;
+  align-items: stretch;
 
   &--seule {
     grid-template-columns: minmax(0, 1fr);
@@ -788,6 +789,10 @@ const FREQ = [
   flex-direction: column;
   gap: var(--csp-space-4);
   min-width: 0;
+
+  > :last-child {
+    flex: 1;
+  }
 }
 
 .sections {

@@ -139,7 +139,6 @@ function formater() {
           v-if="o.ouvertA.includes('contractuel')"
           v-model="fondement"
           label="Fondement juridique"
-          hint="Obligatoire dès que l'emploi est ouvert aux contractuels."
           :options="opts(FONDEMENTS, 'Choisir')"
         />
       </FieldRow>
@@ -339,9 +338,6 @@ function formater() {
           class="sans-label"
           :options="optionsCompetences"
         />
-        <p class="mention">
-          Proposées à partir du métier sélectionné : décochez celles qui ne s'appliquent pas.
-        </p>
       </ChampOffre>
       <div class="ajout">
         <CspInput
@@ -382,24 +378,32 @@ function formater() {
 .annonce {
   display: flex;
   flex-direction: column;
-  gap: var(--csp-space-6);
   max-width: 60rem;
 }
 
 .groupe {
   display: flex;
   flex-direction: column;
-  gap: var(--csp-space-4);
+  gap: var(--csp-space-5);
   min-width: 0;
+
+  & + & {
+    margin-top: var(--csp-space-8, 2.5rem);
+    padding-top: var(--csp-space-6);
+    border-top: 1px solid var(--border-default-grey);
+  }
 }
 
 .groupe__titre {
   margin: 0;
   font-size: 1.125rem;
+  font-weight: var(--csp-font-weight-bold);
+  line-height: 1.4;
+  color: var(--text-title-grey);
 }
 
 .organisme {
-  margin: 0 0 calc(-1 * var(--csp-space-2));
+  margin: 0 0 calc(-1 * var(--csp-space-3));
   font-size: var(--csp-font-size-sm);
   color: var(--text-mention-grey);
 }

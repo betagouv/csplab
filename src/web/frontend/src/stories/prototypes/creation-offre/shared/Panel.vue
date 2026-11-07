@@ -60,6 +60,7 @@ withDefaults(defineProps<{
 .panel__title {
   margin: 0;
   font-size: var(--csp-font-size-lg);
+  font-weight: var(--csp-font-weight-bold);
   line-height: var(--csp-line-height-tight);
 }
 

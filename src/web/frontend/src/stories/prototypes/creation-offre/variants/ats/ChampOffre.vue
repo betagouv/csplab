@@ -5,7 +5,7 @@ import { computed, ref } from 'vue'
 import CspIcon from '@/components/base/CspIcon/CspIcon.vue'
 import { alerte, CONSEILS } from './aide'
 
-// Un champ de l'annonce avec son aide légère : un conseil (et un exemple à la demande),
+// Un champ de l'annonce avec son aide légère : un conseil et un exemple derrière le « ? » du libellé,
 // une alerte discrète au besoin, et l'indication « repris de la fiche » tant que le texte n'a pas été adapté.
 // « Requis pour la validation » signale les champs déterminants pour la DAR.
 const props = defineProps<{
@@ -26,7 +26,7 @@ const emit = defineEmits<{ restaurer: [] }>()
 
 const aide = computed(() => CONSEILS[props.champ])
 const a = computed(() => alerte(props.offre, props.champ))
-const exemple = ref(false)
+const ouvert = ref(false)
 </script>
 
 <template>
@@ -40,6 +40,18 @@ const exemple = ref(false)
           :for="forId"
           class="champ__label"
         >{{ label }}</label>
+        <button
+          type="button"
+          class="champ__aide"
+          :aria-expanded="ouvert"
+          :aria-label="`Conseil de rédaction : ${label}`"
+          @click="ouvert = !ouvert"
+        >
+          <CspIcon
+            name="ri:question-line"
+            :size="16"
+          />
+        </button>
         <span
           v-if="requis"
           class="champ__requis"
@@ -65,24 +77,15 @@ const exemple = ref(false)
         Reprendre le texte de la fiche
       </button>
     </div>
-    <p class="champ__conseil">
-      {{ aide.conseil }}
-      <button
-        v-if="aide.exemple"
-        type="button"
-        class="champ__lien"
-        :aria-expanded="exemple"
-        @click="exemple = !exemple"
-      >
-        {{ exemple ? 'Masquer l\'exemple' : 'Exemple' }}
-      </button>
-    </p>
-    <p
-      v-if="exemple"
+    <div
+      v-if="ouvert"
       class="champ__exemple"
     >
-      {{ aide.exemple }}
-    </p>
+      {{ aide.conseil }}
+      <template v-if="aide.exemple">
+        <br>Exemple : {{ aide.exemple }}
+      </template>
+    </div>
     <slot />
     <p
       v-if="erreur"
@@ -112,10 +115,26 @@ const exemple = ref(false)
   gap: var(--csp-space-1);
 }
 
+.champ__aide {
+  display: inline-flex;
+  vertical-align: middle;
+  margin-left: var(--csp-space-1);
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--text-mention-grey);
+  cursor: pointer;
+
+  &:hover,
+  &[aria-expanded='true'] {
+    color: var(--text-action-high-blue-france);
+  }
+}
+
 .champ__tete {
   display: flex;
   justify-content: space-between;
-  align-items: baseline;
+  align-items: center;
   gap: var(--csp-space-3);
 }
 
@@ -153,7 +172,6 @@ const exemple = ref(false)
   color: var(--text-mention-grey);
 }
 
-.champ__conseil,
 .champ__exemple,
 .champ__alerte {
   margin: 0;
@@ -162,6 +180,7 @@ const exemple = ref(false)
 }
 
 .champ__exemple {
+  margin-bottom: var(--csp-space-1);
   padding: var(--csp-space-2) var(--csp-space-3);
   background: var(--background-alt-blue-france);
   color: var(--text-default-grey);

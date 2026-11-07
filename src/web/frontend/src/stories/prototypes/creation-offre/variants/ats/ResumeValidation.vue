@@ -44,22 +44,16 @@ function joindre(e: Event) {
     :class="{ 'resume--compact': compact }"
     aria-labelledby="resume-titre"
   >
-    <header class="resume__tete">
-      <CspIcon
-        name="ri:shield-check-line"
-        :size="18"
-      />
-      <div>
-        <h3
-          id="resume-titre"
-          class="resume__titre"
-        >
-          Résumé pour la validation
-        </h3>
-        <p class="resume__desc">
-          Ce que voient les valideurs. Repris automatiquement de l'annonce, jamais publié tel quel.
-        </p>
-      </div>
+    <header>
+      <h3
+        id="resume-titre"
+        class="resume__titre"
+      >
+        Résumé pour la validation
+      </h3>
+      <p class="resume__desc">
+        Repris de l'annonce · non publié
+      </p>
     </header>
 
     <dl class="resume__dl">
@@ -110,37 +104,39 @@ function joindre(e: Event) {
   flex-direction: column;
   gap: var(--csp-space-4);
   padding: var(--csp-space-5) var(--csp-space-6);
-  border: 1px solid var(--border-default-blue-france);
-  background: var(--background-alt-blue-france);
-}
-
-.resume__tete {
-  display: flex;
-  gap: var(--csp-space-2);
-  align-items: flex-start;
-  color: var(--text-title-blue-france);
+  border: 1px solid var(--border-default-grey);
+  border-top: 3px solid var(--border-plain-blue-france);
+  background: var(--background-default-grey);
 }
 
 .resume__titre {
   margin: 0;
-  font-size: var(--csp-font-size-md, 1rem);
-  color: var(--text-title-blue-france);
+  font-size: var(--csp-font-size-lg);
+  font-weight: var(--csp-font-weight-bold);
+  line-height: var(--csp-line-height-tight);
 }
 
 .resume__desc {
   margin: var(--csp-space-1) 0 0;
-  font-size: var(--csp-font-size-xs);
+  font-size: var(--csp-font-size-sm);
   color: var(--text-mention-grey);
 }
 
 .resume__dl {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--csp-space-3) var(--csp-space-6);
+  display: flex;
+  flex-direction: column;
   margin: 0;
 
+  > div {
+    display: grid;
+    grid-template-columns: 11rem minmax(0, 1fr);
+    gap: var(--csp-space-3);
+    padding: var(--csp-space-2) 0;
+    border-bottom: 1px solid var(--border-default-grey);
+  }
+
   dt {
-    font-size: var(--csp-font-size-xs);
+    font-size: var(--csp-font-size-sm);
     color: var(--text-mention-grey);
   }
 
@@ -150,12 +146,8 @@ function joindre(e: Event) {
   }
 }
 
-.resume--compact {
-  padding: var(--csp-space-4);
-
-  .resume__dl {
-    grid-template-columns: minmax(0, 1fr);
-  }
+.resume--compact .resume__dl > div {
+  grid-template-columns: 9rem minmax(0, 1fr);
 }
 
 .vide {

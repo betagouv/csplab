@@ -109,13 +109,22 @@ const EXIGENCES = [
 .groupe {
   display: flex;
   flex-direction: column;
-  gap: var(--csp-space-3);
+  gap: var(--csp-space-4);
   max-width: 60rem;
+
+  & + & {
+    margin-top: var(--csp-space-3);
+    padding-top: var(--csp-space-6);
+    border-top: 1px solid var(--border-default-grey);
+  }
 }
 
 .groupe__titre {
   margin: 0;
   font-size: 1.125rem;
+  font-weight: var(--csp-font-weight-bold);
+  line-height: 1.4;
+  color: var(--text-title-grey);
 }
 
 .groupe__desc {
