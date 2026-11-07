@@ -17,7 +17,7 @@ import { db, fiche, le, nouvelleFiche, nouvelleOffre, offresDe } from './store'
 
 // Lancer un recrutement : 3 sources (fiche de poste, offre existante, saisie manuelle). Quelle que soit la source,
 // l'offre est rattachée à une fiche de poste : existante, créée à partir de la saisie, ou celle de l'offre reprise.
-// Le nombre de postes se renseigne dans le formulaire de l'offre.
+// Le nombre de postes se renseigne sur la page de l'offre.
 type Mode = 'fiche' | 'manuel' | 'duplication'
 const props = defineProps<{ mode?: Mode, ficheId?: string, offreId?: string }>()
 const { aller, notifier } = useNav()
@@ -178,7 +178,7 @@ function creer() {
     <Panel
       v-else-if="mode === 'manuel'"
       titre="L'essentiel du poste"
-      description="Ces informations créent la fiche de poste de référence ; vous compléterez le formulaire de l'offre à l'étape suivante."
+      description="Ces informations créent la fiche de poste de référence ; vous compléterez ensuite la page de l'offre."
     >
       <FieldRow :cols="3">
         <CspInput
@@ -261,7 +261,7 @@ function creer() {
           {{ erreur }}
         </p>
         <CspButton
-          label="Continuer vers le formulaire de l'offre"
+          label="Créer l'offre"
           icon="ri:arrow-right-line"
           @click="creer"
         />

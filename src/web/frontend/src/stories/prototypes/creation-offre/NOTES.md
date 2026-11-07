@@ -659,3 +659,12 @@ Tout est local au prototype (aucun composant `Csp*` partagé modifié).
 - L'étape « Informations internes » disparaît : le formulaire passe à **5 étapes** (Annonce · Formulaire de candidature · Processus · Équipe · Publication).
 - Les informations internes sont rangées **dans l'annonce**, à côté de ce qu'elles complètent, dans des encadrés gris « Suivi interne · non publié » : référence, code poste, motifs, agent remplacé (bloc « Le poste ») ; groupe RIFSEEP, cycle de travail (bloc « Conditions d'exercice »). Le nombre de postes rejoint la ligne catégorie / statut.
 - **Résumé pour la validation** (cadre bleu, seulement si l'organisme fait valider ses offres) : reprend automatiquement poste, nombre de postes, motif, date de vacance, lieu, rémunération annoncée, RIFSEEP et fiche de poste ; on y saisit le commentaire pour les valideurs et on peut joindre un document. En fin d'étape Annonce dans le formulaire, en haut de la colonne de droite sur la page de l'offre.
+
+## Itération 14 — Page unique de l'offre (maquette d'Alice)
+
+- Plus de formulaire séparé : on arrive sur la **page de l'offre** dès la création et tout s'y modifie directement, avec enregistrement automatique (« Enregistré à hh:mm » dans l'en-tête).
+- En haut : barre d'état, raccourcis **« Accéder à »** (Validation, Annonce, Formulaire de candidature, Paramètres, Publication, Journal d'activité), puis côte à côte le **résumé pour la validation** (avec le commentaire pour les valideurs) et l'**encart de l'étape en cours** (manques avec liens « Compléter », Demander la validation, état des accords, Publier, En ligne / Prolonger / Retirer…).
+- Sections repliables : **Annonce** (titre · Le poste avec suivi interne en encadré gris · L'organisme · Le rôle · Profil recherché), **Formulaire de candidature** (pièces : Non demandé / Facultatif / Obligatoire, questions), **Paramètres de l'offre** (responsable, contact visible sur l'offre, fiche de poste rattachée, notifications), **Publication** (dates, urgence, diffusion), **Journal d'activité** (replié).
+- Une fois publiée : l'annonce reste modifiable (visible tout de suite) ; mode de candidature, pièces et dates sont verrouillés.
+- « Aperçu candidat » (bouton avec libellé) et « Fiche de poste source » s'ouvrent en panneau latéral.
+- Processus et équipe retirés de l'offre (seul le responsable reste, dans Paramètres).

@@ -4,7 +4,7 @@
 import type { Offre } from './store'
 import { plusUnMois } from './store'
 
-export type EtapeFormulaire = 'annonce' | 'candidature' | 'processus' | 'equipe' | 'publication'
+export type EtapeFormulaire = 'annonce' | 'candidature' | 'parametres' | 'publication'
 
 export type Champ = 'titre' | 'categorie' | 'presentation' | 'missions' | 'profil' | 'competences' | 'conditions' | 'lieu' | 'remuneration' | 'metier' | 'commentaireValideurs' | 'cycleTravail'
 

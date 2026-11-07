@@ -8,7 +8,6 @@ import FicheDetail from './FicheDetail.vue'
 import FichesListe from './FichesListe.vue'
 import { NAV } from './nav'
 import OffreEspace from './OffreEspace.vue'
-import OffreFormulaire from './OffreFormulaire.vue'
 import OffresListe from './OffresListe.vue'
 import Parametres from './Parametres.vue'
 import { db, retraitsAutomatiques } from './store'
@@ -95,11 +94,11 @@ provide(NAV, { ecran, aller, notifier, flash })
     :id="ecran.id"
     :key="`o-${ecran.id}`"
   />
-  <OffreFormulaire
+  <OffreEspace
     v-else-if="ecran.nom === 'formulaire'"
     :id="ecran.id"
     :key="`f-${ecran.id}-${ecran.etape}`"
-    :etape="ecran.etape"
+    :section="ecran.etape"
   />
   <ApercuOffre
     v-else-if="ecran.nom === 'apercu'"

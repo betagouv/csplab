@@ -4,24 +4,19 @@ import { computed, ref } from 'vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspCheckboxGroup from '@/components/base/CspCheckboxGroup/CspCheckboxGroup.vue'
 import CspInput from '@/components/base/CspInput/CspInput.vue'
-import CspRadioGroup from '@/components/base/CspRadioGroup/CspRadioGroup.vue'
 import CspSelect from '@/components/base/CspSelect/CspSelect.vue'
 import CspTextarea from '@/components/base/CspTextarea/CspTextarea.vue'
 import FieldRow from '../../shared/FieldRow.vue'
-import Panel from '../../shared/Panel.vue'
 import { aMettreEnForme, mettreEnForme } from './aide'
 import ChampOffre from './ChampOffre.vue'
 import { useNav } from './nav'
-import ResumeValidation from './ResumeValidation.vue'
 import { CATEGORIES, contenuDepuisFiche, db, metier, METIERS, MOTIFS_DEPART, MOTIFS_RECRUTEMENT, STATUTS_POSTE, TEMPS_TRAVAIL } from './store'
 import SuiviInterne from './SuiviInterne.vue'
 
-// Étape 1 — l'annonce : ce que lit le candidat sur Choisir le Service Public (article D311-8).
-// Les informations de suivi interne (jamais publiées) sont rangées à côté des champs qu'elles complètent,
-// dans des encadrés gris « Suivi interne ». Si l'organisme fait valider ses offres, un cadre
-// « Résumé pour la validation » reprend en fin d'étape ce qui sert aux valideurs.
+// Section « Annonce » de la page de l'offre : ce que lit le candidat sur Choisir le Service Public (D311-8).
+// Groupes : titre · Le poste · L'organisme · Le rôle · Profil recherché. Le suivi interne (jamais publié)
+// est dans un encadré gris du bloc « Le poste ». Le résumé pour la validation est en haut de la page.
 // Les champs sans mention « facultatif » sont contrôlés seulement au moment de publier.
-// L'aperçu candidat et la fiche source s'ouvrent en panneau latéral, depuis le titre de l'étape.
 const props = defineProps<{ offre: Offre, fiche: Fiche }>()
 const { notifier } = useNav()
 const o = computed(() => props.offre)
@@ -38,6 +33,8 @@ const statutPoste = modele('statutPoste')
 const fondement = modele('fondementJuridique')
 const motif = modele('motifRecrutement')
 const depart = modele('motifDepart')
+const temps = computed({ get: () => o.value.tempsTravail || 'aucun', set: (v: string) => (o.value.tempsTravail = v === 'aucun' ? '' : v) })
+const OPTIONS_TEMPS = [{ value: 'aucun', label: 'Choisir' }, ...TEMPS_TRAVAIL]
 const rifseep = modele('groupeRifseep')
 const avecAgent = computed(() => ['Remplacement', 'Renouvellement'].includes(o.value.motifRecrutement))
 const optsInternes = (l: string[]) => [{ value: 'aucun', label: 'Non renseigné' }, ...l.map(v => ({ value: v, label: v }))]
@@ -87,299 +84,330 @@ function formater() {
 </script>
 
 <template>
-  <div class="redac">
-    <div class="form">
-      <Panel titre="Le poste">
+  <div class="annonce">
+    <div class="groupe">
+      <p class="organisme">
+        {{ db.organisme.nom }}
+      </p>
+      <ChampOffre
+        :offre="o"
+        champ="titre"
+        label="Titre de l'offre"
+        for-id="a-titre"
+        :repris="repris('titre')"
+        :modifie="modifie('titre')"
+        @restaurer="restaurer('titre')"
+      >
+        <CspInput
+          id="a-titre"
+          v-model="o.titre"
+        />
+      </ChampOffre>
+    </div>
+
+    <div class="groupe">
+      <h3 class="groupe__titre">
+        Le poste
+      </h3>
+      <FieldRow :cols="2">
+        <CspInput
+          v-model="o.nbPostes"
+          type="number"
+          label="Nombre de postes"
+        />
         <ChampOffre
           :offre="o"
-          champ="titre"
-          label="Intitulé"
-          for-id="a-titre"
-          :repris="repris('titre')"
-          :modifie="modifie('titre')"
-          @restaurer="restaurer('titre')"
+          champ="lieu"
+          label="Lieu"
+          for-id="a-lieu"
+          :repris="repris('lieu')"
         >
           <CspInput
-            id="a-titre"
-            v-model="o.titre"
+            id="a-lieu"
+            v-model="o.lieu"
+            placeholder="Ville, ou « Pas de lieu fixe »"
           />
         </ChampOffre>
-        <FieldRow :cols="3">
-          <CspSelect
-            v-model="categorie"
-            label="Catégorie"
-            :options="opts(CATEGORIES.map(c => `${c}`), 'Choisir')"
-          />
-          <CspSelect
-            v-model="statutPoste"
-            label="Statut du poste"
-            :options="opts(STATUTS_POSTE, 'Choisir')"
-          />
-          <CspInput
-            v-model="o.nbPostes"
-            type="number"
-            label="Nombre de postes"
-          />
-        </FieldRow>
-        <FieldRow :cols="2">
-          <CspInput
-            v-model="o.dateVacance"
-            label="Date de vacance"
-            placeholder="AAAA-MM-JJ"
-          />
-          <CspCheckboxGroup
-            v-model="o.ouvertA"
-            label="Emploi ouvert aux"
-            :options="OUVERT"
-          />
-        </FieldRow>
+      </FieldRow>
+      <FieldRow :cols="2">
+        <CspCheckboxGroup
+          v-model="o.ouvertA"
+          label="Cible : emploi ouvert aux"
+          :options="OUVERT"
+        />
         <CspSelect
           v-if="o.ouvertA.includes('contractuel')"
           v-model="fondement"
-          label="Fondement juridique (emploi ouvert aux contractuels)"
+          label="Fondement juridique"
+          hint="Obligatoire dès que l'emploi est ouvert aux contractuels."
           :options="opts(FONDEMENTS, 'Choisir')"
         />
-        <SuiviInterne>
-          <FieldRow :cols="2">
-            <CspInput
-              v-model="o.referenceInterne"
-              label="Référence interne (facultatif)"
-            />
-            <CspInput
-              v-model="o.codePoste"
-              label="Code poste (facultatif)"
-            />
-          </FieldRow>
-          <FieldRow :cols="2">
-            <CspSelect
-              v-model="motif"
-              label="Motif de recrutement (facultatif)"
-              :options="optsInternes(MOTIFS_RECRUTEMENT)"
-            />
-            <CspSelect
-              v-model="depart"
-              label="Motif de départ (facultatif)"
-              :options="optsInternes(MOTIFS_DEPART)"
-            />
-          </FieldRow>
-          <CspInput
-            v-if="avecAgent"
-            v-model="o.agentRemplace"
-            label="Agent remplacé ou renouvelé (facultatif)"
-          />
-        </SuiviInterne>
-      </Panel>
-
-      <Panel titre="Métier et compétences">
+      </FieldRow>
+      <FieldRow :cols="2">
+        <CspSelect
+          v-model="categorie"
+          label="Catégorie"
+          :options="opts(CATEGORIES.map(c => `${c}`), 'Choisir')"
+        />
         <ChampOffre
           :offre="o"
-          champ="metier"
-          label="Métier (référentiel RMFP+)"
-          for-id="a-metier"
+          champ="remuneration"
+          label="Rémunération (facultatif)"
+          for-id="a-remu"
         >
-          <CspSelect
-            id="a-metier"
-            v-model="metierChoisi"
-            label="Métier"
-            class="sans-label"
-            :options="OPTIONS_METIER"
-          />
-        </ChampOffre>
-        <ChampOffre
-          v-if="optionsCompetences.length"
-          :offre="o"
-          champ="competences"
-          label="Compétences (facultatif)"
-        >
-          <CspCheckboxGroup
-            v-model="o.competences"
-            label="Compétences"
-            class="sans-label"
-            :options="optionsCompetences"
-          />
-        </ChampOffre>
-        <div class="ajout">
           <CspInput
-            v-model="nouvelle"
-            label="Ajouter une compétence hors métier"
-            size="sm"
-            @keydown.enter.prevent="ajouterCompetence"
+            id="a-remu"
+            v-model="o.remuneration"
+            placeholder="Ex. : grille indiciaire de catégorie C, selon expérience"
           />
-          <CspButton
-            label="Ajouter"
-            size="sm"
-            variant="secondary"
-            icon="ri:add-line"
-            is-icon-left
-            @click="ajouterCompetence"
-          />
-        </div>
-      </Panel>
-
-      <Panel titre="Présentation et missions">
+        </ChampOffre>
+      </FieldRow>
+      <FieldRow :cols="2">
+        <CspSelect
+          v-model="statutPoste"
+          label="Statut du poste"
+          :options="opts(STATUTS_POSTE, 'Choisir')"
+        />
+        <CspInput
+          v-model="o.dateVacance"
+          label="Date de vacance"
+          placeholder="AAAA-MM-JJ"
+        />
+      </FieldRow>
+      <FieldRow :cols="2">
+        <CspInput
+          v-model="o.teletravail"
+          label="Télétravail (facultatif)"
+          placeholder="Ex. : 2 jours par semaine"
+        />
+        <CspSelect
+          v-model="temps"
+          label="Temps de travail"
+          :options="OPTIONS_TEMPS"
+        />
+      </FieldRow>
+      <ChampOffre
+        :offre="o"
+        champ="conditions"
+        label="Conditions particulières d'exercice (facultatif)"
+        for-id="a-conditions"
+      >
         <CspTextarea
-          v-model="o.descriptifEmployeur"
-          label="Descriptif de l'employeur (facultatif)"
+          id="a-conditions"
+          v-model="o.conditions"
           :rows="2"
         />
-        <ChampOffre
-          :offre="o"
-          champ="presentation"
-          label="Descriptif du service (facultatif)"
-          for-id="a-presentation"
-          :repris="repris('presentation')"
-          :modifie="modifie('presentation')"
-          @restaurer="restaurer('presentation')"
-        >
-          <CspTextarea
-            id="a-presentation"
-            v-model="o.presentation"
-            :rows="3"
-          />
-        </ChampOffre>
-        <ChampOffre
-          :offre="o"
-          champ="missions"
-          label="Missions"
-          for-id="a-missions"
-          :repris="repris('missions')"
-          :modifie="modifie('missions')"
-          @restaurer="restaurer('missions')"
-        >
-          <CspTextarea
-            id="a-missions"
-            v-model="o.missions"
-            :rows="6"
-          />
-        </ChampOffre>
-        <div
-          v-if="aMettreEnForme(o.missions)"
-          class="outil"
-        >
-          <CspButton
-            label="Mettre en forme (une mission par ligne)"
-            variant="tertiary-no-outline"
-            size="sm"
-            icon="ri:list-unordered"
-            is-icon-left
-            @click="formater"
-          />
-        </div>
-        <ChampOffre
-          :offre="o"
-          champ="profil"
-          label="Profil recherché"
-          for-id="a-profil"
-          :repris="repris('profil')"
-          :modifie="modifie('profil')"
-          @restaurer="restaurer('profil')"
-        >
-          <CspTextarea
-            id="a-profil"
-            v-model="o.profil"
-            :rows="3"
-          />
-        </ChampOffre>
-      </Panel>
+      </ChampOffre>
 
-      <Panel titre="Conditions d'exercice">
-        <CspRadioGroup
-          v-model="o.tempsTravail"
-          label="Temps de travail"
-          :options="TEMPS_TRAVAIL"
+      <SuiviInterne>
+        <FieldRow :cols="2">
+          <CspInput
+            v-model="o.referenceInterne"
+            label="Référence interne (facultatif)"
+          />
+          <CspInput
+            v-model="o.codePoste"
+            label="Code poste (facultatif)"
+          />
+        </FieldRow>
+        <FieldRow :cols="2">
+          <CspSelect
+            v-model="motif"
+            label="Motif de recrutement (facultatif)"
+            :options="optsInternes(MOTIFS_RECRUTEMENT)"
+          />
+          <CspSelect
+            v-model="depart"
+            label="Motif de départ (facultatif)"
+            :options="optsInternes(MOTIFS_DEPART)"
+          />
+        </FieldRow>
+        <CspInput
+          v-if="avecAgent"
+          v-model="o.agentRemplace"
+          label="Agent remplacé ou renouvelé (facultatif)"
         />
-        <ChampOffre
-          :offre="o"
-          champ="conditions"
-          label="Conditions particulières (facultatif)"
-          for-id="a-conditions"
-        >
-          <CspTextarea
-            id="a-conditions"
-            v-model="o.conditions"
-            :rows="2"
-          />
-        </ChampOffre>
         <FieldRow :cols="2">
+          <CspSelect
+            v-model="rifseep"
+            label="Groupe RIFSEEP (facultatif)"
+            :options="optsInternes(['Groupe 1', 'Groupe 2', 'Groupe 3', 'Groupe 4'])"
+          />
           <ChampOffre
             :offre="o"
-            champ="lieu"
-            label="Lieu"
-            for-id="a-lieu"
-            :repris="repris('lieu')"
+            champ="cycleTravail"
+            label="Cycle de travail (facultatif)"
+            for-id="a-cycle"
           >
             <CspInput
-              id="a-lieu"
-              v-model="o.lieu"
-              placeholder="Ville, ou « Pas de lieu fixe »"
-            />
-          </ChampOffre>
-          <ChampOffre
-            :offre="o"
-            champ="remuneration"
-            label="Rémunération (facultatif)"
-            for-id="a-remu"
-          >
-            <CspInput
-              id="a-remu"
-              v-model="o.remuneration"
-              placeholder="Ex. : selon expérience, grille indiciaire"
+              id="a-cycle"
+              v-model="o.cycleTravail"
+              placeholder="Ex. : 38 h 30 sur 5 jours"
             />
           </ChampOffre>
         </FieldRow>
-        <FieldRow :cols="2">
-          <CspInput
-            v-model="o.teletravail"
-            label="Télétravail (facultatif)"
-          />
-          <CspInput
-            v-model="o.contact"
-            label="Contact (facultatif)"
-          />
-        </FieldRow>
-        <SuiviInterne>
-          <FieldRow :cols="2">
-            <CspSelect
-              v-model="rifseep"
-              label="Groupe RIFSEEP (facultatif)"
-              :options="optsInternes(['Groupe 1', 'Groupe 2', 'Groupe 3', 'Groupe 4'])"
-            />
-            <ChampOffre
-              :offre="o"
-              champ="cycleTravail"
-              label="Cycle de travail (facultatif)"
-              for-id="a-cycle"
-            >
-              <CspInput
-                id="a-cycle"
-                v-model="o.cycleTravail"
-                placeholder="Ex. : 38 h 30 sur 5 jours"
-              />
-            </ChampOffre>
-          </FieldRow>
-        </SuiviInterne>
-      </Panel>
+      </SuiviInterne>
+    </div>
 
-      <ResumeValidation
-        v-if="db.organisme.validationActive"
-        :offre="o"
-        :fiche="fiche"
-        editable
+    <div class="groupe">
+      <h3 class="groupe__titre">
+        L'organisme
+      </h3>
+      <CspTextarea
+        v-model="o.descriptifEmployeur"
+        label="Description de l'employeur (facultatif)"
+        :rows="2"
       />
+      <ChampOffre
+        :offre="o"
+        champ="presentation"
+        label="Descriptif du service (facultatif)"
+        for-id="a-presentation"
+        :repris="repris('presentation')"
+        :modifie="modifie('presentation')"
+        @restaurer="restaurer('presentation')"
+      >
+        <CspTextarea
+          id="a-presentation"
+          v-model="o.presentation"
+          :rows="3"
+        />
+      </ChampOffre>
+    </div>
+
+    <div class="groupe">
+      <h3 class="groupe__titre">
+        Le rôle
+      </h3>
+      <ChampOffre
+        :offre="o"
+        champ="missions"
+        label="Missions"
+        for-id="a-missions"
+        :repris="repris('missions')"
+        :modifie="modifie('missions')"
+        @restaurer="restaurer('missions')"
+      >
+        <CspTextarea
+          id="a-missions"
+          v-model="o.missions"
+          :rows="6"
+        />
+      </ChampOffre>
+      <div
+        v-if="aMettreEnForme(o.missions)"
+        class="outil"
+      >
+        <CspButton
+          label="Mettre en forme (une mission par ligne)"
+          variant="tertiary-no-outline"
+          size="sm"
+          icon="ri:list-unordered"
+          is-icon-left
+          @click="formater"
+        />
+      </div>
+    </div>
+
+    <div class="groupe">
+      <h3 class="groupe__titre">
+        Profil recherché
+      </h3>
+      <ChampOffre
+        :offre="o"
+        champ="metier"
+        label="Métier (référentiel RMFP+)"
+        for-id="a-metier"
+      >
+        <CspSelect
+          id="a-metier"
+          v-model="metierChoisi"
+          label="Métier"
+          class="sans-label"
+          :options="OPTIONS_METIER"
+        />
+      </ChampOffre>
+      <ChampOffre
+        v-if="optionsCompetences.length"
+        :offre="o"
+        champ="competences"
+        label="Compétences (facultatif)"
+      >
+        <CspCheckboxGroup
+          v-model="o.competences"
+          label="Compétences"
+          class="sans-label"
+          :options="optionsCompetences"
+        />
+        <p class="mention">
+          Proposées à partir du métier sélectionné : décochez celles qui ne s'appliquent pas.
+        </p>
+      </ChampOffre>
+      <div class="ajout">
+        <CspInput
+          v-model="nouvelle"
+          label="Ajouter une compétence"
+          size="sm"
+          @keydown.enter.prevent="ajouterCompetence"
+        />
+        <CspButton
+          label="Ajouter"
+          size="sm"
+          variant="secondary"
+          icon="ri:add-line"
+          is-icon-left
+          @click="ajouterCompetence"
+        />
+      </div>
+      <ChampOffre
+        :offre="o"
+        champ="profil"
+        label="Expérience et diplômes attendus"
+        for-id="a-profil"
+        :repris="repris('profil')"
+        :modifie="modifie('profil')"
+        @restaurer="restaurer('profil')"
+      >
+        <CspTextarea
+          id="a-profil"
+          v-model="o.profil"
+          :rows="3"
+        />
+      </ChampOffre>
     </div>
   </div>
 </template>
 
 <style scoped lang="scss">
-.redac {
+.annonce {
+  display: flex;
+  flex-direction: column;
+  gap: var(--csp-space-6);
   max-width: 60rem;
 }
 
-.form {
+.groupe {
   display: flex;
   flex-direction: column;
   gap: var(--csp-space-4);
   min-width: 0;
+}
+
+.groupe__titre {
+  margin: 0;
+  font-size: 1.125rem;
+}
+
+.organisme {
+  margin: 0 0 calc(-1 * var(--csp-space-2));
+  font-size: var(--csp-font-size-sm);
+  color: var(--text-mention-grey);
+}
+
+.mention {
+  margin: var(--csp-space-1) 0 0;
+  font-size: var(--csp-font-size-xs);
+  color: var(--text-mention-grey);
 }
 
 .sans-label :deep(.csp-select-group__label),
