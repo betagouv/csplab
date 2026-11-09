@@ -13,15 +13,18 @@ from rest_framework_simplejwt.utils import datetime_from_epoch
 class UnstoredRefreshToken(RefreshToken):
     @classmethod
     def for_user(cls, user):
-        token = super(BlacklistMixin, cls).for_user(user)
-        OutstandingToken.objects.create(
-            user=user,
-            jti=token[api_settings.JTI_CLAIM],
-            token="",
-            created_at=token.current_time,
-            expires_at=datetime_from_epoch(token["exp"]),
-        )
-        return token
+        return super(BlacklistMixin, cls).for_user(user)
+
+
+def track_refresh_token(user, refresh: str) -> None:
+    token = RefreshToken(refresh, verify=False)  # type: ignore[arg-type]
+    OutstandingToken.objects.create(
+        user=user,
+        jti=token[api_settings.JTI_CLAIM],
+        token="",
+        created_at=token.current_time,
+        expires_at=datetime_from_epoch(token["exp"]),
+    )
 
 
 class TokenObtainPairSerializer(BaseTokenObtainPairSerializer):

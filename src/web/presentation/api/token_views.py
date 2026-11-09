@@ -14,7 +14,10 @@ from infrastructure.authentication.ip_restricted_jwt_authentication import (
     ensure_api_ip_allowed,
     ensure_refresh_ip_allowed,
 )
-from infrastructure.authentication.refresh_token import TokenObtainPairSerializer
+from infrastructure.authentication.refresh_token import (
+    TokenObtainPairSerializer,
+    track_refresh_token,
+)
 from infrastructure.django_apps.commons.enums import Canal
 from infrastructure.django_apps.utils.ip import get_client_ip
 from presentation.api.authentication import UnauthenticatedMixin
@@ -42,6 +45,7 @@ class LoggedTokenObtainPairView(  # type: ignore[misc]
             message=serializer.error_messages["no_active_account"],
             throttled=False,
         )
+        track_refresh_token(serializer.user, serializer.validated_data["refresh"])
         log_login_succeeded(
             canal=Canal.JWT, user=serializer.user, ip_address=ip_address
         )
