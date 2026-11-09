@@ -2,8 +2,10 @@
 #
 # Upgrade the locked dependencies of every project in a single branch:
 # libs/, then src/, then the pnpm lock of the web front. One commit per project.
-# Only lock files change: no version bump, since the pyproject.toml
-# dependencies are left untouched and services consume libs as editable paths.
+# A lib whose lock changes gets a patch version bump, required by the
+# check-version-bump CI job. Libs are upgraded in dependency order (ddd before
+# referentiel) so a bump cascades to the libs depending on it, and services,
+# upgraded afterwards, sync the bumped versions of the editable libs they use.
 # Pushes the branch and returns to main.
 #
 set -Eeuo pipefail
@@ -41,7 +43,7 @@ abort_and_clean() {
 trap abort_and_clean ERR
 
 upgrade_project() {
-  local dir="$1" name="${1##*/}"
+  local dir="$1" kind="$2" name="${1##*/}"
   echo "▶ [$name] mise à jour des dépendances"
   ( cd "$dir" && uv lock --upgrade )
 
@@ -50,8 +52,16 @@ upgrade_project() {
     return
   fi
 
-  git add "$dir/uv.lock"
-  git commit -m "build(tooling): met à jour les dépendances de $name"
+  if [ "$kind" = lib ]; then
+    local version
+    version="$(cd "$dir" && uv version --bump patch --no-sync --short)"
+    echo "▶ [$name] version bumped to $version"
+    git add "$dir/pyproject.toml" "$dir/uv.lock"
+    git commit -m "build(tooling): met à jour les dépendances de $name ($version)"
+  else
+    git add "$dir/uv.lock"
+    git commit -m "build(tooling): met à jour les dépendances de $name"
+  fi
   commits=$((commits + 1))
 }
 
@@ -71,11 +81,11 @@ upgrade_pnpm() {
 }
 
 for dir in "${LIBS[@]}"; do
-  upgrade_project "$dir"
+  upgrade_project "$dir" lib
 done
 
 for dir in "${SERVICES[@]}"; do
-  upgrade_project "$dir"
+  upgrade_project "$dir" service
 done
 
 upgrade_pnpm
