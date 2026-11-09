@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { RecrutementRole } from '../types'
-import { computed, ref, watch } from 'vue'
+import { computed, ref } from 'vue'
 import { isHttpStatus } from '@/api/errors'
 import CspAsyncSection from '@/components/base/CspAsyncSection/CspAsyncSection.vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
@@ -13,6 +13,7 @@ import CspSkeletonTable from '@/components/base/CspSkeleton/CspSkeletonTable.vue
 import CspTableToolbar from '@/components/base/CspTableToolbar/CspTableToolbar.vue'
 import { useMinimumPending } from '@/composables/async/useMinimumPending'
 import { useTextSearch } from '@/composables/data/useTextSearch'
+import { useRequestOpen } from '@/composables/ui/useRequestOpen'
 import { useToast } from '@/composables/ui/useToast'
 import AgentRoleForm from '@/features/agents/components/AgentRoleForm.vue'
 import { formatAgentLabel } from '@/features/agents/format'
@@ -57,8 +58,8 @@ const showSkeleton = useMinimumPending(pending)
 const page = ref(1)
 const addMemberDrawerOpen = ref(false)
 const addMemberEmailError = ref('')
-const revocationDialogOpen = ref(false)
-const roleDrawerOpen = ref(false)
+const revocationDialogOpen = useRequestOpen(revocation)
+const roleDrawerOpen = useRequestOpen(roleChange)
 
 const columns = computed(() =>
   canChangeRole.value || canRevoke.value
@@ -95,18 +96,6 @@ async function handleAdd(role: RecrutementRole) {
   }
 }
 
-watch(() => roleChange.requested, (membre) => {
-  if (membre) {
-    roleDrawerOpen.value = true
-  }
-})
-
-watch(roleDrawerOpen, (isOpen) => {
-  if (!isOpen) {
-    roleChange.clear()
-  }
-})
-
 async function handleRoleChange(role: RecrutementRole): Promise<void> {
   const membre = roleChange.requested
   if (!membre) {
@@ -125,18 +114,6 @@ async function handleRoleChange(role: RecrutementRole): Promise<void> {
     addToast({ variant: 'error', title: 'La modification du rôle a échoué' })
   }
 }
-
-watch(() => revocation.requested, (membre) => {
-  if (membre) {
-    revocationDialogOpen.value = true
-  }
-})
-
-watch(revocationDialogOpen, (isOpen) => {
-  if (!isOpen) {
-    revocation.clear()
-  }
-})
 
 async function handleRevocation(): Promise<void> {
   if (!revocation.requested) {
