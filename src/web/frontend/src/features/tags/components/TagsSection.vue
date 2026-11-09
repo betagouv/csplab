@@ -17,7 +17,7 @@ const props = defineProps<{
   organismeUuid: string
 }>()
 
-const { tags, pending, error, createTag, creatingTag, updateTag, updatingTag } = useTags(props.organismeUuid)
+const { tags, pending, error, createTag, creatingTag, updateTag, updatingTag } = useTags(() => props.organismeUuid)
 const { addToast } = useToast()
 
 const showSkeleton = useMinimumPending(pending)

@@ -1,7 +1,7 @@
 import type { Tag } from '../types'
 import { screen, within } from '@testing-library/vue'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { defineComponent, h } from 'vue'
+import { defineComponent, h, ref } from 'vue'
 import { HttpError } from '@/api/errors'
 import CspToaster from '@/components/base/CspToast/CspToaster.vue'
 import { renderWithApp, setupUser } from '@/test/render'
@@ -15,6 +15,7 @@ vi.mock('../api', () => ({
 }))
 
 const ORGANISME_UUID = '00000000-0000-0000-0000-000000000000'
+const AUTRE_ORGANISME_UUID = '11111111-1111-1111-1111-111111111111'
 
 const TO_RECALL: Tag = { uuid: 'aaaaaaaa-0001-0001-0001-000000000001', name: 'À rappeler', category: 'candidature', color: 'bleu', usage_count: 0 }
 
@@ -63,6 +64,18 @@ describe('tagsSection', () => {
     expect(within(candidature).getAllByRole('listitem').map(item => item.textContent?.trim())).toEqual(['À rappeler', 'Profil senior'])
     expect(within(block('Note')).getByText('1 étiquette')).toBeInTheDocument()
     expect(within(block('Équipe de recrutement')).getByText('Aucune étiquette.')).toBeInTheDocument()
+  })
+
+  it('loads the tags of the new organisme when the organisme changes', async () => {
+    const organismeUuid = ref(ORGANISME_UUID)
+    await renderWithApp(defineComponent({
+      setup: () => () => h(TagsSection, { organismeUuid: organismeUuid.value }),
+    }))
+    await screen.findByRole('region', { name: 'Candidature' })
+
+    organismeUuid.value = AUTRE_ORGANISME_UUID
+
+    await vi.waitFor(() => expect(getTags).toHaveBeenLastCalledWith({ organismeUuid: AUTRE_ORGANISME_UUID }))
   })
 
   it('creates a tag in the category of the block', async () => {
