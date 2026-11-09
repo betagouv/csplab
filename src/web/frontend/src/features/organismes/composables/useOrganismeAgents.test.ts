@@ -1,9 +1,10 @@
+import type { MaybeRefOrGetter } from 'vue'
 import type { AgentOrganisme } from '../types'
 import { PiniaColada } from '@pinia/colada'
 import { mount } from '@vue/test-utils'
 import { createPinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { defineComponent, h, nextTick } from 'vue'
+import { defineComponent, h, nextTick, ref } from 'vue'
 import { useOrganismeAgents } from './useOrganismeAgents'
 
 const mockGetOrganismeAgents = vi.fn()
@@ -16,6 +17,7 @@ vi.mock('../api', () => ({
 }))
 
 const ORGANISME_UUID = '11111111-1111-1111-1111-111111111111'
+const AUTRE_ORGANISME_UUID = '22222222-2222-2222-2222-222222222222'
 
 const AGENTS: AgentOrganisme[] = [
   {
@@ -36,11 +38,11 @@ async function flush() {
   await nextTick()
 }
 
-function mountAgents() {
+function mountAgents(organismeUuid: MaybeRefOrGetter<string> = ORGANISME_UUID) {
   let result!: ReturnType<typeof useOrganismeAgents>
   mount(defineComponent({
     setup() {
-      result = useOrganismeAgents(ORGANISME_UUID)
+      result = useOrganismeAgents(organismeUuid)
       return () => h('div')
     },
   }), {
@@ -63,6 +65,17 @@ describe('useOrganismeAgents', () => {
     await flush()
     expect(pending.value).toBe(false)
     expect(agents.value).toEqual(AGENTS)
+  })
+
+  it('loads the agents of the new organisme when the organisme changes', async () => {
+    const organismeUuid = ref(ORGANISME_UUID)
+    mountAgents(organismeUuid)
+    await flush()
+
+    organismeUuid.value = AUTRE_ORGANISME_UUID
+    await flush()
+
+    expect(mockGetOrganismeAgents).toHaveBeenLastCalledWith({ organismeUuid: AUTRE_ORGANISME_UUID })
   })
 
   it('updates an agent and refetches the list', async () => {

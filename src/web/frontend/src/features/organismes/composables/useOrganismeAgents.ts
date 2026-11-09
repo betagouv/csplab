@@ -1,15 +1,17 @@
+import type { MaybeRefOrGetter } from 'vue'
 import type { UpdateAgentRolePayload } from '../types'
 import { useMutation, useQuery, useQueryCache } from '@pinia/colada'
+import { toValue } from 'vue'
 import { updateAgentRole } from '../api'
 import { invalidateOrganisme, organismeAgentsQuery } from '../queries'
 
-export function useOrganismeAgents(organismeUuid: string) {
+export function useOrganismeAgents(organismeUuid: MaybeRefOrGetter<string>) {
   const queryCache = useQueryCache()
-  const query = useQuery(() => organismeAgentsQuery({ organismeUuid }))
+  const query = useQuery(() => organismeAgentsQuery({ organismeUuid: toValue(organismeUuid) }))
 
   const updateMutation = useMutation({
-    mutation: (payload: UpdateAgentRolePayload) => updateAgentRole(organismeUuid, payload),
-    onSettled: () => invalidateOrganisme(queryCache, { organismeUuid }),
+    mutation: (payload: UpdateAgentRolePayload) => updateAgentRole(toValue(organismeUuid), payload),
+    onSettled: () => invalidateOrganisme(queryCache, { organismeUuid: toValue(organismeUuid) }),
   })
 
   return {

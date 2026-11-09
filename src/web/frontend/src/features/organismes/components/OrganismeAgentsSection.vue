@@ -28,8 +28,8 @@ const props = defineProps<{
   organismeUuid: string
 }>()
 
-const { agents, pending, error, updateAgent, updatingAgent } = useOrganismeAgents(props.organismeUuid)
-const { status, foundAgent, searching, search: searchAgent, add, submitting, reset } = useAddAgentToOrganisme(props.organismeUuid)
+const { agents, pending, error, updateAgent, updatingAgent } = useOrganismeAgents(() => props.organismeUuid)
+const { status, foundAgent, searching, search: searchAgent, add, submitting, reset } = useAddAgentToOrganisme(() => props.organismeUuid)
 const { roleChange, revocation } = provideAgentActions()
 const { addToast } = useToast()
 
