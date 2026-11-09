@@ -1,5 +1,6 @@
 import logging
 from datetime import timedelta
+from unittest.mock import patch
 
 import pytest
 from django.utils import timezone
@@ -13,6 +14,9 @@ from application.identite.services.revoke_api_tokens import revoke_api_tokens
 from infrastructure.django_apps.commons.models import AuditLogModel
 from infrastructure.factories.identite.utilisateur_django_factory import (
     UtilisateurDjangoFactory,
+)
+from infrastructure.repositories.commons.postgres_audit_log_repository import (
+    PostgresAuditLogRepository,
 )
 
 
@@ -75,3 +79,20 @@ def test_audits_and_logs_even_without_token(accounts, caplog, deactivate, event_
         f"(deactivated: {deactivate}), by user {admin.pk}."
     )
     assert [r.getMessage() for r in caplog.records] == [expected]
+
+
+def test_rolls_back_when_the_audit_fails(accounts):
+    account, admin = accounts
+    token = RefreshToken.for_user(account)
+
+    with (
+        patch.object(
+            PostgresAuditLogRepository, "store_log", side_effect=RuntimeError("boom")
+        ),
+        pytest.raises(RuntimeError),
+    ):
+        revoke_api_tokens(account=account, actor=admin, deactivate=True)
+
+    account.refresh_from_db()
+    assert account.is_active
+    assert not BlacklistedToken.objects.filter(token__jti=token["jti"]).exists()
