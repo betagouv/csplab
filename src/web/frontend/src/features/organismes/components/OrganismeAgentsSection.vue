@@ -29,7 +29,7 @@ const props = defineProps<{
   organismeUuid: string
 }>()
 
-const { agents, pending, error, updateAgent, updatingAgent } = useOrganismeAgents(props.organismeUuid)
+const { agents, pending, error, revoke, revoking, changeRole, changingRole } = useOrganismeAgents(props.organismeUuid)
 const { status, foundAgent, searching, search: searchAgent, add, submitting, reset } = useAddAgentToOrganisme(props.organismeUuid)
 const { roleChange, revocation } = provideAgentActions()
 const { addToast } = useToast()
@@ -90,7 +90,7 @@ async function handleRoleChange(role: Role): Promise<void> {
     return
   }
   try {
-    await updateAgent({ agent_id: agent.uuid, role })
+    await changeRole({ agent, role })
     addToast({
       variant: 'success',
       title: 'Rôle modifié',
@@ -109,11 +109,7 @@ async function handleRevocation(): Promise<void> {
   }
   const agent = revocation.requested
   try {
-    await updateAgent({
-      agent_id: agent.uuid,
-      role: agent.role,
-      date_revocation: new Date().toISOString(),
-    })
+    await revoke(agent)
     addToast({
       variant: 'success',
       title: 'Utilisateur révoqué',
@@ -221,7 +217,7 @@ async function handleRevocation(): Promise<void> {
         :role="roleChange.requested.role"
         :role-label="ROLE_FIELD_LABEL"
         :options="ROLE_OPTIONS"
-        :submitting="updatingAgent"
+        :submitting="changingRole"
         @submit="handleRoleChange"
         @cancel="roleDrawerOpen = false"
       />
@@ -246,7 +242,7 @@ async function handleRevocation(): Promise<void> {
         />
         <CspButton
           label="Révoquer les accès"
-          :disabled="updatingAgent"
+          :disabled="revoking"
           @click="handleRevocation"
         />
       </template>
