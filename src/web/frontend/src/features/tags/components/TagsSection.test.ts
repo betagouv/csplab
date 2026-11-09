@@ -80,7 +80,7 @@ describe('tagsSection', () => {
     await user.click(screen.getByRole('radio', { name: 'Rouge' }))
     await user.click(save)
 
-    expect(createTag).toHaveBeenCalledWith(ORGANISME_UUID, { name: 'Synthèse', category: 'note', color: 'rouge' })
+    expect(createTag).toHaveBeenCalledWith({ organismeUuid: ORGANISME_UUID }, { name: 'Synthèse', category: 'note', color: 'rouge' })
     expect(await screen.findByText('Étiquette ajoutée')).toBeInTheDocument()
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
     expect(await within(block('Note')).findByText('2 étiquettes')).toBeInTheDocument()
@@ -102,7 +102,7 @@ describe('tagsSection', () => {
     await user.click(within(drawer).getByRole('radio', { name: 'Rouge' }))
     await user.click(within(drawer).getByRole('button', { name: 'Enregistrer' }))
 
-    expect(updateTag).toHaveBeenCalledWith(ORGANISME_UUID, TO_RECALL.uuid, { name: 'À relancer', color: 'rouge' })
+    expect(updateTag).toHaveBeenCalledWith({ organismeUuid: ORGANISME_UUID, tagUuid: TO_RECALL.uuid }, { name: 'À relancer', color: 'rouge' })
     expect(await screen.findByText('Étiquette modifiée')).toBeInTheDocument()
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
   })
