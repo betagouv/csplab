@@ -1,7 +1,7 @@
 from collections.abc import Iterable
 from uuid import UUID
 
-from django.db.models import QuerySet
+from django.db.models import Case, IntegerField, QuerySet, Value, When
 
 from application.identite.context_services.organisme_permission_service import (
     OrganismePermissionService,
@@ -12,6 +12,7 @@ from application.recruteur.context_services.authorized_actions import (
 from domain.identite.errors.organisme_permission_errors import OperationOrganismeRefusee
 from domain.identite.value_objects.organisme_action import OrganismeAction
 from domain.recruteur.value_objects.roles import AgentOrganismeRole
+from infrastructure.django_apps.messagerie.models import unread_conversations_count
 from infrastructure.django_apps.recruteur.models.recrutement import (
     RecrutementModel,
     RecrutementQuerySet,
@@ -57,6 +58,18 @@ def list_actives_recrutements(
         .actives()
         .with_responsables()
         .with_compteurs_candidatures()
+        .annotate(
+            unread_conversations=Case(
+                When(
+                    recrutement_role__isnull=False,
+                    then=unread_conversations_count(
+                        utilisateur.username, via="candidature__etape__recrutement"
+                    ),
+                ),
+                default=Value(0),
+                output_field=IntegerField(),
+            )
+        )
         .order_by("offre_id")
     )
 
@@ -69,5 +82,6 @@ def list_archived_recrutements(
         .archived()
         .with_responsables()
         .with_recrute()
+        .annotate(unread_conversations=Value(0, output_field=IntegerField()))
         .order_by("offre_id")
     )

@@ -124,13 +124,13 @@ class ConversationModel(BaseDatedModel):
         return self.objet
 
 
-def unread_conversations_count(utilisateur_id) -> Coalesce:
-    """Annotation expression: Meant for a CandidatureModel qs"""
+def unread_conversations_count(utilisateur_id, *, via: str = "candidature") -> Coalesce:
+    """Annotation expression: `via` is the lookup from a conversation to the model"""
     unread = (
-        ConversationModel.objects.filter(candidature=OuterRef("pk"))
+        ConversationModel.objects.filter(**{via: OuterRef("pk")})
         .unread_by(utilisateur_id)
         .order_by()
-        .values("candidature")
+        .values(via)
         .annotate(total=Count("pk"))
         .values("total")
     )
