@@ -31,11 +31,13 @@ from referentiel.value_objects.verse import Verse
 from domain.entities.offer import Offer
 from domain.gateways.publish_offer_input import PublishOfferInput
 from domain.value_objects.contact import Contact, ContactRole
+from infrastructure.di.container import Container
 from infrastructure.exceptions.exceptions import ExternalApiError
 from infrastructure.external_gateways.base_web_gateway import WebGatewayCredentials
 from infrastructure.external_gateways.web_publish_offer_gateway import (
     WebPublishOfferGateway,
 )
+from tests.conftest import METIERS_URL
 from tests.conftest import PUBLISH_OFFER_URL as PUBLISH_URL
 from tests.conftest import WEB_API_KEY as API_KEY
 from tests.conftest import WEB_BASE_URL as BASE_URL
@@ -240,6 +242,35 @@ async def test_publish_serializes_domaine_skipping_er_prefix_for_multi_domaines_
         "domaine": domaine,
         "metier": family_code,
     }
+
+
+@pytest.mark.asyncio
+async def test_container_publishes_with_metiers_multi_domaines_it_loaded(
+    httpx_mock: HTTPXMock,
+):
+    container = Container()
+    container.config.web_base_url.from_value(BASE_URL)
+    container.config.web_api_key.from_value(API_KEY)
+    httpx_mock.add_response(
+        url=f"{METIERS_URL}?taille=1000&page=1",
+        json={
+            "next": None,
+            "results": [
+                {"code_emploi_csp": "ERJUS008", "domaine_fonctionnel_code": "JUS"},
+                {"code_emploi_csp": "ERJUS008", "domaine_fonctionnel_code": "CTL"},
+            ],
+        },
+    )
+    httpx_mock.add_response(method="POST", url=PUBLISH_URL, status_code=201)
+    offer = replace(MINIMAL_OFFER, family_code="ERJUS008")
+
+    await container.load_metiers_multi_domaines_usecase().execute()
+    await container.publish_offer_gateway().publish(
+        PublishOfferInput(source_id=SOURCE_ID, offer=offer)
+    )
+
+    body = json.loads(httpx_mock.get_requests(method="POST")[0].content)
+    assert body["offres"][0]["profession"]["domaine"] == "JUS"
 
 
 @pytest.mark.asyncio

@@ -39,9 +39,11 @@ def test_init_container_loads_sources_and_metiers_multi_domaines(
     container.load_sources_usecase.return_value.execute = AsyncMock()
     container.load_metiers_multi_domaines_usecase.return_value.execute = AsyncMock()
 
-    bootstrap.init_container()
+    try:
+        bootstrap.init_container()
 
-    container.load_sources_usecase.return_value.execute.assert_awaited_once()
-    container.load_metiers_multi_domaines_usecase.return_value.execute.assert_awaited_once()
-    assert bootstrap._state["container"] is container
-    bootstrap._state["container"] = None
+        container.load_sources_usecase.return_value.execute.assert_awaited_once()
+        container.load_metiers_multi_domaines_usecase.return_value.execute.assert_awaited_once()
+        assert bootstrap._state["container"] is container
+    finally:
+        bootstrap._state["container"] = None
