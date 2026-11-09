@@ -64,7 +64,7 @@ describe('useAddAgentToOrganisme', () => {
     await flush()
 
     expect(mockCreateAgent).not.toHaveBeenCalled()
-    expect(mockSetAgentRole).toHaveBeenCalledWith(ORGANISME_UUID, {
+    expect(mockSetAgentRole).toHaveBeenCalledWith({ organismeUuid: ORGANISME_UUID }, {
       agent_id: AGENT_RECHERCHE.uuid,
       role: 'agent',
     })

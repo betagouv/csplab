@@ -72,7 +72,7 @@ describe('useOrganismeAgents', () => {
 
     await revoke(AGENTS[0])
 
-    expect(mockUpdateOrganismeAgent).toHaveBeenCalledWith(ORGANISME_UUID, {
+    expect(mockUpdateOrganismeAgent).toHaveBeenCalledWith({ organismeUuid: ORGANISME_UUID }, {
       agent_id: AGENTS[0].uuid,
       role: AGENTS[0].role,
       date_revocation: expect.any(String),
@@ -87,7 +87,7 @@ describe('useOrganismeAgents', () => {
     await changeRole({ agent: AGENTS[0], role: 'agent' })
     await flush()
 
-    expect(mockUpdateOrganismeAgent).toHaveBeenCalledWith(ORGANISME_UUID, {
+    expect(mockUpdateOrganismeAgent).toHaveBeenCalledWith({ organismeUuid: ORGANISME_UUID }, {
       agent_id: AGENTS[0].uuid,
       role: 'agent',
     })

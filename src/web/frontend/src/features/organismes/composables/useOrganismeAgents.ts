@@ -12,7 +12,7 @@ export function useOrganismeAgents(organismeUuid: string) {
   }
 
   const revokeMutation = useMutation({
-    mutation: (agent: AgentOrganisme) => updateAgentRole(organismeUuid, {
+    mutation: (agent: AgentOrganisme) => updateAgentRole({ organismeUuid }, {
       agent_id: agent.uuid,
       role: agent.role,
       date_revocation: new Date().toISOString(),
@@ -22,7 +22,7 @@ export function useOrganismeAgents(organismeUuid: string) {
 
   const roleMutation = useMutation({
     mutation: ({ agent, role }: { agent: AgentOrganisme, role: Role }) =>
-      updateAgentRole(organismeUuid, {
+      updateAgentRole({ organismeUuid }, {
         agent_id: agent.uuid,
         role,
       }),
