@@ -55,7 +55,7 @@ export function useReplyConversation(params: MaybeRefOrGetter<ConversationParams
 
   const mutation = useMutation({
     mutation: ({ target, payload }: { target: ConversationParams, payload: CreateMessagePayload }) =>
-      replyToConversation(target, target.conversationUuid, payload),
+      replyToConversation(target, payload),
     onSuccess: (message, { target }) => {
       appendToThread(target, message)
       moveConversationToTop(target, message)
