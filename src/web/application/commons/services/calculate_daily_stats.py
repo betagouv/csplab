@@ -1,5 +1,7 @@
 from datetime import date
 
+from django.db.models import QuerySet
+
 from domain.recruteur.value_objects.roles import (
     AgentOrganismeRole,
     AgentRecrutementRole,
@@ -26,40 +28,45 @@ def _offer_metrics() -> dict[Metric, int]:
     }
 
 
-def _volume_metrics() -> dict[Metric, int]:
+def _volume_querysets() -> dict[Metric, QuerySet]:
     # TODO: recrutements, candidatures et membres d'un organisme supprimé sont
     # comptés, contrairement à nb_organismes_ouverts (PR #2339).
-    candidatures = CandidatureModel.objects
     organisme_agents = OrganismeAgentModel.objects.active()
     recrutement_agents = RecrutementAgentModel.objects.active()
     return {
-        Metric.RECEIVED_APPLICATIONS: candidatures.received().count(),
-        Metric.WITHDRAWN_APPLICATIONS: candidatures.withdrawn().count(),
-        Metric.APPLICATIONS_TO_PROCESS: candidatures.to_process().count(),
-        Metric.PROCESSED_APPLICATIONS: candidatures.processed().count(),
+        Metric.RECEIVED_APPLICATIONS: CandidatureModel.objects.received(),
+        Metric.WITHDRAWN_APPLICATIONS: CandidatureModel.objects.withdrawn(),
+        Metric.APPLICATIONS_TO_PROCESS: CandidatureModel.objects.to_process(),
+        Metric.PROCESSED_APPLICATIONS: CandidatureModel.objects.processed(),
         Metric.APPLICATIONS_PAST_FIRST_SCREENING: (
-            candidatures.past_first_screening().count()
+            CandidatureModel.objects.past_first_screening()
         ),
-        Metric.REFUSED_APPLICATIONS: candidatures.refused().count(),
-        Metric.SELECTED_APPLICATIONS: candidatures.selected().count(),
-        Metric.RECRUTEMENTS: RecrutementModel.objects.count(),
-        Metric.OPEN_ORGANISMES: OrganismeModel.objects.open().count(),
+        Metric.REFUSED_APPLICATIONS: CandidatureModel.objects.refused(),
+        Metric.SELECTED_APPLICATIONS: CandidatureModel.objects.selected(),
+        Metric.RECRUTEMENTS: RecrutementModel.objects.all(),
+        Metric.OPEN_ORGANISMES: OrganismeModel.objects.open(),
         Metric.ORGANISME_SUPERVISEURS: organisme_agents.filter(
             role=AgentOrganismeRole.SUPERVISEUR.value
-        ).count(),
+        ),
         Metric.ORGANISME_AGENTS: organisme_agents.filter(
             role=AgentOrganismeRole.AGENT.value
-        ).count(),
+        ),
         Metric.RECRUTEMENT_RESPONSABLES: recrutement_agents.filter(
             role=AgentRecrutementRole.RESPONSABLE.value
-        ).count(),
+        ),
         Metric.RECRUTEMENT_RECRUTEURS: recrutement_agents.filter(
             role=AgentRecrutementRole.RECRUTEUR.value
-        ).count(),
+        ),
         Metric.RECRUTEMENT_CONTRIBUTEURS: recrutement_agents.filter(
             role=AgentRecrutementRole.CONTRIBUTEUR.value
-        ).count(),
-        Metric.CANDIDAT_ACCOUNTS: ProfilCandidatModel.objects.count(),
+        ),
+        Metric.CANDIDAT_ACCOUNTS: ProfilCandidatModel.objects.all(),
+    }
+
+
+def _volume_metrics() -> dict[Metric, int]:
+    return {
+        metric: queryset.count() for metric, queryset in _volume_querysets().items()
     }
 
 
