@@ -24,6 +24,14 @@ class WebhookActionType(StrEnum):
     SAVE_RAW_OFFER = "save_raw_offer"
 
 
+class WebhookProcessingStatus(StrEnum):
+    RECEIVED = "received"
+    IGNORED = "ignored"
+    PROCESSING = "processing"
+    SUCCEEDED = "succeeded"
+    FAILED = "failed"
+
+
 @dataclass(frozen=True)
 class WebhookEvent:
     event_type: EventType

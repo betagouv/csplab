@@ -1,12 +1,18 @@
 import asyncio
+from datetime import datetime, timezone
+from typing import Any
 from uuid import UUID
 
 from sqlalchemy import Engine
-from sqlmodel import Session
+from sqlmodel import Session, col, update
 
 from domain.entities.webhook import Webhook
 from domain.repositories.webhook_repository import IWebhookRepository
-from domain.value_objects.webhook_event import EventType, WebhookActionType
+from domain.value_objects.webhook_event import (
+    EventType,
+    WebhookActionType,
+    WebhookProcessingStatus,
+)
 from infrastructure.models.webhook import WebhookModel
 from infrastructure.value_objects.webhook_source import (
     SOURCE_TO_WEBHOOK_TYPE,
@@ -32,6 +38,11 @@ class WebhookRepository(IWebhookRepository):
                 status_id=webhook.status_id,
                 action_type=webhook.action_type,
                 payload=webhook.payload,
+                processing_status=(
+                    WebhookProcessingStatus.RECEIVED
+                    if webhook.action_type
+                    else WebhookProcessingStatus.IGNORED
+                ),
             )
             session.add(model)
             session.commit()
@@ -56,3 +67,34 @@ class WebhookRepository(IWebhookRepository):
                     WebhookActionType(model.action_type) if model.action_type else None
                 ),
             )
+
+    async def mark_processing(self, webhook_id: UUID) -> None:
+        await asyncio.to_thread(
+            self._update_sync,
+            webhook_id,
+            processing_status=WebhookProcessingStatus.PROCESSING,
+            attempts=WebhookModel.attempts + 1,
+        )
+
+    async def mark_processed(
+        self,
+        webhook_id: UUID,
+        status: WebhookProcessingStatus,
+        error: str | None = None,
+    ) -> None:
+        await asyncio.to_thread(
+            self._update_sync,
+            webhook_id,
+            processing_status=status,
+            last_error=error,
+            processed_at=datetime.now(tz=timezone.utc),
+        )
+
+    def _update_sync(self, webhook_id: UUID, **values: Any) -> None:
+        with Session(self._engine) as session:
+            session.execute(
+                update(WebhookModel)
+                .where(col(WebhookModel.id) == webhook_id)
+                .values(**values)
+            )
+            session.commit()
