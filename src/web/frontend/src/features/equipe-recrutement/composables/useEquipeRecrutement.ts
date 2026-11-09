@@ -1,19 +1,27 @@
+import type { MaybeRefOrGetter } from 'vue'
 import type { MembreEquipe, RecrutementRole } from '../types'
 import { useMutation, useQuery, useQueryCache } from '@pinia/colada'
-import { computed } from 'vue'
+import { computed, toValue } from 'vue'
 import { updateMembreEquipe } from '../api'
 import { equipeRecrutementQuery, invalidateEquipeRecrutement } from '../queries'
 
-export function useEquipeRecrutement(organismeUuid: string, recrutementUuid: string) {
+export function useEquipeRecrutement(
+  organismeUuid: MaybeRefOrGetter<string>,
+  recrutementUuid: MaybeRefOrGetter<string>,
+) {
   const queryCache = useQueryCache()
-  const query = useQuery(() => equipeRecrutementQuery({ organismeUuid, recrutementUuid }))
+  const params = computed(() => ({
+    organismeUuid: toValue(organismeUuid),
+    recrutementUuid: toValue(recrutementUuid),
+  }))
+  const query = useQuery(() => equipeRecrutementQuery(params.value))
 
   function invalidate() {
-    return invalidateEquipeRecrutement(queryCache, { organismeUuid, recrutementUuid })
+    return invalidateEquipeRecrutement(queryCache, params.value)
   }
 
   const revokeMutation = useMutation({
-    mutation: (membre: MembreEquipe) => updateMembreEquipe(organismeUuid, recrutementUuid, {
+    mutation: (membre: MembreEquipe) => updateMembreEquipe(params.value.organismeUuid, params.value.recrutementUuid, {
       agent_id: membre.uuid,
       recrutement_role: membre.recrutement_role,
       date_revocation_recrutement: new Date().toISOString(),
@@ -23,7 +31,7 @@ export function useEquipeRecrutement(organismeUuid: string, recrutementUuid: str
 
   const roleMutation = useMutation({
     mutation: ({ membre, role }: { membre: MembreEquipe, role: RecrutementRole }) =>
-      updateMembreEquipe(organismeUuid, recrutementUuid, {
+      updateMembreEquipe(params.value.organismeUuid, params.value.recrutementUuid, {
         agent_id: membre.uuid,
         recrutement_role: role,
       }),

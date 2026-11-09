@@ -32,8 +32,8 @@ const props = defineProps<{
 }>()
 
 const { membres, pending, error, revoke, revoking, changeRole, changingRole } = useEquipeRecrutement(
-  props.organismeUuid,
-  props.recrutementUuid,
+  () => props.organismeUuid,
+  () => props.recrutementUuid,
 )
 const {
   status: agentStatus,
@@ -43,7 +43,7 @@ const {
   add,
   submitting,
   reset: resetAgent,
-} = useAddAgentToRecrutement(props.organismeUuid, props.recrutementUuid)
+} = useAddAgentToRecrutement(() => props.organismeUuid, () => props.recrutementUuid)
 const { recrutementDetail } = useRecrutementDetail(() => props)
 const actions = computed(() => recrutementDetail.value?.authorized_actions)
 const canAdd = computed(() => can(actions.value, 'add_recrutement_agent'))

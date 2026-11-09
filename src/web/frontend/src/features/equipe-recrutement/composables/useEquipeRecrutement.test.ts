@@ -1,9 +1,10 @@
+import type { MaybeRefOrGetter } from 'vue'
 import type { MembreEquipe } from '../types'
 import { PiniaColada, useQueryCache } from '@pinia/colada'
 import { mount } from '@vue/test-utils'
 import { createPinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { defineComponent, h, nextTick } from 'vue'
+import { defineComponent, h, nextTick, ref } from 'vue'
 import { recrutementsActifsQuery, recrutementsArchivesQuery } from '@/features/recrutements/queries'
 import { useEquipeRecrutement } from './useEquipeRecrutement'
 
@@ -35,7 +36,7 @@ async function flush() {
   await nextTick()
 }
 
-function mountEquipe(recrutementUuid = RECRUTEMENT_UUID) {
+function mountEquipe(recrutementUuid: MaybeRefOrGetter<string> = RECRUTEMENT_UUID) {
   let result!: ReturnType<typeof useEquipeRecrutement>
   let queryCache!: ReturnType<typeof useQueryCache>
   const wrapper = mount(defineComponent({
@@ -134,6 +135,20 @@ describe('useEquipeRecrutement', () => {
     await flush()
 
     expect(mockGetEquipeRecrutement).toHaveBeenCalledTimes(2)
+  })
+
+  it('loads the team of the new recrutement when the recrutement changes', async () => {
+    const recrutementUuid = ref(RECRUTEMENT_UUID)
+    mountEquipe(recrutementUuid)
+    await flush()
+
+    recrutementUuid.value = AUTRE_RECRUTEMENT_UUID
+    await flush()
+
+    expect(mockGetEquipeRecrutement).toHaveBeenLastCalledWith({
+      organismeUuid: ORGANISME_UUID,
+      recrutementUuid: AUTRE_RECRUTEMENT_UUID,
+    })
   })
 
   it('does not share the cache between two recrutements', async () => {
