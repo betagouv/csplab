@@ -32,6 +32,9 @@ from infrastructure.factories.identite.organisme_django_factory import (
     OrganismeDjangoFactory,
     create_organisme_with_agent,
 )
+from infrastructure.factories.identite.utilisateur_django_factory import (
+    UtilisateurDjangoFactory,
+)
 from infrastructure.factories.messagerie.conversation_django_factory import (
     ConversationDjangoFactory,
     ConversationLectureDjangoFactory,
@@ -104,8 +107,16 @@ def _client_for(utilisateur) -> APIClient:
     return client
 
 
-def _create_unread_conversation(etape: EtapeModel):
-    candidature = CandidatureDjangoFactory(etape=etape)
+def _etapes_non_acceptees(recrutement) -> list[EtapeModel]:
+    return list(
+        recrutement.etapes.exclude(
+            categorie=CategorieEtapeRecrutement.ACCEPTE.value
+        ).order_by("pk")
+    )
+
+
+def _create_unread_conversation(etape: EtapeModel, candidature=None):
+    candidature = candidature or CandidatureDjangoFactory(etape=etape)
     return ConversationDjangoFactory(
         candidature=candidature, with_message=True, with_message__par_candidat=True
     )
@@ -119,6 +130,11 @@ def organisme_fixture(test_user):
         id=UUID(ORGANISME_UUID),
     )
     return organisme
+
+
+@pytest.fixture(name="agent")
+def agent_fixture(organisme):
+    return organisme.agents_liaisons.get().agent
 
 
 @pytest.mark.parametrize(("name", "archived"), LISTS)
@@ -282,18 +298,12 @@ class TestRecrutementsListViews:
         assert OrganismeAction.GET_RECRUTEMENT.value in contributeur_actions
 
 
-@pytest.mark.parametrize(("name", "archived"), LISTS)
 def test_counts_unread_conversations_per_recrutement_of_the_current_agent(
-    authenticated_client,
-    organisme,
-    test_user,
-    django_assert_num_queries,
-    name,
-    archived,
+    authenticated_client, agent, organisme, test_user, django_assert_num_queries
 ):
-    recrutement = RecrutementDjangoFactory(organisme=organisme, offre_archivee=archived)
-    other = RecrutementDjangoFactory(organisme=organisme, offre_archivee=archived)
-    etape, other_etape = recrutement.etapes.all()[:2]
+    recrutement = RecrutementDjangoFactory(organisme=organisme, agent_link__agent=agent)
+    other = RecrutementDjangoFactory(organisme=organisme, agent_link__agent=agent)
+    etape, other_etape = _etapes_non_acceptees(recrutement)[:2]
     candidature = CandidatureDjangoFactory(etape=etape)
     ConversationDjangoFactory.create_batch(
         2, candidature=candidature, with_message=True, with_message__par_candidat=True
@@ -316,10 +326,8 @@ def test_counts_unread_conversations_per_recrutement_of_the_current_agent(
     _create_unread_conversation(other_etape)
     _create_unread_conversation(other.etapes.first())
 
-    with django_assert_num_queries(
-        NOMBRE_REQUETES_ARCHIVES_ATTENDU if archived else NOMBRE_REQUETES_ACTIFS_ATTENDU
-    ):
-        response = authenticated_client.get(_url(name, organisme.id))
+    with django_assert_num_queries(NOMBRE_REQUETES_ACTIFS_ATTENDU):
+        response = authenticated_client.get(RECRUTEMENTS_ACTIFS_URL)
 
     assert response.status_code == status.HTTP_200_OK
     assert {
@@ -330,11 +338,60 @@ def test_counts_unread_conversations_per_recrutement_of_the_current_agent(
     }
 
 
-def test_unread_conversations_do_not_inflate_candidatures_counts(
-    authenticated_client, organisme, django_assert_num_queries
+@pytest.mark.parametrize(
+    "organisme_role",
+    [AgentOrganismeRole.SUPERVISEUR, AgentOrganismeRole.AGENT, None],
+    ids=["superviseur", "agent", "staff"],
+)
+def test_counts_unread_conversations_only_where_the_viewer_has_a_role(
+    db, organisme_role
 ):
-    recrutement = RecrutementDjangoFactory(organisme=organisme)
-    etape, other_etape = recrutement.etapes.all()[:2]
+    if organisme_role is None:
+        organisme = OrganismeDjangoFactory()
+        utilisateur = UtilisateurDjangoFactory(is_staff=True)
+        agent = AgentDjangoFactory(utilisateur=utilisateur)
+    else:
+        agent, organisme = create_organisme_with_agent(role=organisme_role)
+        utilisateur = agent.utilisateur
+    with_role = RecrutementDjangoFactory(organisme=organisme, agent_link__agent=agent)
+    without_role = RecrutementDjangoFactory(organisme=organisme)
+    revoked = RecrutementDjangoFactory(organisme=organisme, agent_link__agent=agent)
+    revoked.agents_liaisons.filter(agent=agent).update(date_revocation=timezone.now())
+    for recrutement in (with_role, without_role, revoked):
+        _create_unread_conversation(recrutement.etapes.first())
+
+    response = _client_for(utilisateur).get(
+        _url("recruteur:organisme_recrutements_actifs", organisme.id)
+    )
+
+    expected = {str(with_role.offre_id): 1}
+    if organisme_role != AgentOrganismeRole.AGENT:
+        expected |= {str(without_role.offre_id): 0, str(revoked.offre_id): 0}
+    assert response.status_code == status.HTTP_200_OK
+    assert {
+        r["uuid"]: r["unread_conversations"] for r in response.json()["results"]
+    } == expected
+
+
+def test_does_not_count_unread_conversations_of_archived_recrutements(
+    authenticated_client, agent, organisme
+):
+    recrutement = RecrutementDjangoFactory(
+        organisme=organisme, offre_archivee=True, agent_link__agent=agent
+    )
+    _create_unread_conversation(recrutement.etapes.first())
+
+    response = authenticated_client.get(RECRUTEMENTS_ARCHIVES_URL)
+
+    assert response.status_code == status.HTTP_200_OK
+    assert [r["unread_conversations"] for r in response.json()["results"]] == [0]
+
+
+def test_unread_conversations_do_not_inflate_candidatures_counts(
+    authenticated_client, agent, organisme, django_assert_num_queries
+):
+    recrutement = RecrutementDjangoFactory(organisme=organisme, agent_link__agent=agent)
+    etape, other_etape = _etapes_non_acceptees(recrutement)[:2]
     ConversationDjangoFactory.create_batch(
         NB_CONVERSATIONS_NON_LUES - 1,
         candidature=CandidatureDjangoFactory(etape=etape),
@@ -417,8 +474,7 @@ class TestRecrutementsArchivesView:
             etape = recrutement.etapes.get(
                 categorie=CategorieEtapeRecrutement.ACCEPTE.value
             )
-            CandidatureDjangoFactory(etape=etape)
-            _create_unread_conversation(etape)
+            _create_unread_conversation(etape, CandidatureDjangoFactory(etape=etape))
 
         with django_assert_num_queries(NOMBRE_REQUETES_ARCHIVES_ATTENDU):
             response = authenticated_client.get(RECRUTEMENTS_ARCHIVES_URL)

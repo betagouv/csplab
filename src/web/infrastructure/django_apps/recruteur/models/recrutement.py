@@ -7,7 +7,6 @@ from django.db.models import (
     Max,
     OuterRef,
     Prefetch,
-    Q,
     Subquery,
     Value,
     When,
@@ -22,12 +21,23 @@ from domain.recruteur.value_objects.roles import (
     AgentRecrutementRole,
 )
 from infrastructure.django_apps.candidate.models.candidature import CandidatureModel
-from infrastructure.django_apps.messagerie.models import ConversationModel
 from infrastructure.django_apps.recruteur.models.etape import EtapeModel
 from infrastructure.django_apps.recruteur.models.organisme import OrganismeModel
 from infrastructure.django_apps.referentiel.models.offer import OfferModel
 from infrastructure.django_apps.users.fields import agent_fk
 from infrastructure.django_apps.utils.models import BaseDatedModel
+
+
+def _candidatures_subquery(aggregate, *, categorie: str | None = None) -> Subquery:
+    candidatures = CandidatureModel.objects.filter(etape__recrutement=OuterRef("pk"))
+    if categorie is not None:
+        candidatures = candidatures.filter(etape__categorie=categorie)
+    return Subquery(
+        candidatures.order_by()
+        .values("etape__recrutement")
+        .annotate(valeur=aggregate)
+        .values("valeur")
+    )
 
 
 class RecrutementQuerySet(models.QuerySet):
@@ -86,31 +96,23 @@ class RecrutementQuerySet(models.QuerySet):
     def with_compteurs_candidatures(self) -> "RecrutementQuerySet":
         return self.annotate(
             derniere_activite=Coalesce(
-                Max("etapes__candidatures__updated_at"), F("offre__publication_date")
+                _candidatures_subquery(Max("updated_at")),
+                F("offre__publication_date"),
             ),
-            candidatures_total=Count("etapes__candidatures"),
-            candidatures_a_traiter=Count(
-                "etapes__candidatures",
-                filter=Q(etapes__categorie=CategorieEtapeRecrutement.ENTREE.value),
+            candidatures_total=Coalesce(_candidatures_subquery(Count("pk")), 0),
+            candidatures_a_traiter=Coalesce(
+                _candidatures_subquery(
+                    Count("pk"), categorie=CategorieEtapeRecrutement.ENTREE.value
+                ),
+                0,
             ),
-            candidatures_en_cours=Count(
-                "etapes__candidatures",
-                filter=Q(etapes__categorie=CategorieEtapeRecrutement.EN_COURS.value),
+            candidatures_en_cours=Coalesce(
+                _candidatures_subquery(
+                    Count("pk"), categorie=CategorieEtapeRecrutement.EN_COURS.value
+                ),
+                0,
             ),
         )
-
-    def with_unread_conversations(self, utilisateur_id) -> "RecrutementQuerySet":
-        unread = (
-            ConversationModel.objects.filter(
-                candidature__etape__recrutement=OuterRef("pk")
-            )
-            .unread_by(utilisateur_id)
-            .order_by()
-            .values("candidature__etape__recrutement")
-            .annotate(total=Count("pk"))
-            .values("total")
-        )
-        return self.annotate(unread_conversations=Coalesce(Subquery(unread), 0))
 
     def with_recrute(self) -> "RecrutementQuerySet":
         return self.prefetch_related(
@@ -129,10 +131,11 @@ class RecrutementQuerySet(models.QuerySet):
                 to_attr="etapes_acceptees",
             )
         ).annotate(
-            nb_candidatures_acceptees=Count(
-                "etapes__candidatures",
-                filter=Q(etapes__categorie=CategorieEtapeRecrutement.ACCEPTE.value),
-                distinct=True,
+            nb_candidatures_acceptees=Coalesce(
+                _candidatures_subquery(
+                    Count("pk"), categorie=CategorieEtapeRecrutement.ACCEPTE.value
+                ),
+                0,
             ),
             finalise=Case(
                 When(nb_candidatures_acceptees__gt=0, then=Value(True)),
