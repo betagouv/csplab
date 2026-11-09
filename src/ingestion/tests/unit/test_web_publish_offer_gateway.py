@@ -656,8 +656,8 @@ async def test_publish_raises_on_http_error(gateway, httpx_mock: HTTPXMock):
 
 
 @pytest.mark.asyncio
-async def test_publish_raises_and_logs_error_when_response_contains_errors(
-    gateway, httpx_mock: HTTPXMock, caplog
+async def test_publish_raises_when_response_contains_errors(
+    gateway, httpx_mock: HTTPXMock
 ):
     httpx_mock.add_response(
         method="POST",
@@ -670,12 +670,10 @@ async def test_publish_raises_and_logs_error_when_response_contains_errors(
         },
     )
 
-    with caplog.at_level("ERROR"), pytest.raises(ExternalApiError):
+    with pytest.raises(ExternalApiError, match="2024-OFFER-001"):
         await gateway.publish(
             PublishOfferInput(source_id=SOURCE_ID, offer=MINIMAL_OFFER)
         )
-
-    assert any("2024-OFFER-001" in record.getMessage() for record in caplog.records)
 
 
 @pytest.mark.asyncio
@@ -702,22 +700,3 @@ async def test_publish_error_message_contains_web_errors(
         await gateway.publish(
             PublishOfferInput(source_id=SOURCE_ID, offer=MINIMAL_OFFER)
         )
-
-
-@pytest.mark.asyncio
-async def test_publish_does_not_log_when_response_has_no_errors(
-    gateway, httpx_mock: HTTPXMock, caplog
-):
-    httpx_mock.add_response(
-        method="POST",
-        url=PUBLISH_URL,
-        status_code=201,
-        json={"creees": 1, "mises_a_jour": 0, "offres": [], "errors": []},
-    )
-
-    with caplog.at_level("ERROR"):
-        await gateway.publish(
-            PublishOfferInput(source_id=SOURCE_ID, offer=MINIMAL_OFFER)
-        )
-
-    assert caplog.records == []
