@@ -53,35 +53,35 @@ def with_authorized_actions(
 def list_actives_recrutements(
     *, organisme_id: UUID, utilisateur: UserModel
 ) -> QuerySet[RecrutementModel]:
-    recrutements = (
+    return (
         _agent_recrutements(organisme_id=organisme_id, utilisateur=utilisateur)
         .actives()
         .with_responsables()
         .with_compteurs_candidatures()
-    )
-    return recrutements.annotate(
-        unread_conversations=Case(
-            When(
-                recrutement_role__isnull=False,
-                then=unread_conversations_count(
-                    utilisateur.username, via="candidature__etape__recrutement"
+        .annotate(
+            unread_conversations=Case(
+                When(
+                    recrutement_role__isnull=False,
+                    then=unread_conversations_count(
+                        utilisateur.username, via="candidature__etape__recrutement"
+                    ),
                 ),
-            ),
-            default=Value(0),
-            output_field=IntegerField(),
+                default=Value(0),
+                output_field=IntegerField(),
+            )
         )
-    ).order_by("offre_id")
+        .order_by("offre_id")
+    )
 
 
 def list_archived_recrutements(
     *, organisme_id: UUID, utilisateur: UserModel
 ) -> QuerySet[RecrutementModel]:
-    recrutements = (
+    return (
         _agent_recrutements(organisme_id=organisme_id, utilisateur=utilisateur)
         .archived()
         .with_responsables()
         .with_recrute()
+        .annotate(unread_conversations=Value(0, output_field=IntegerField()))
+        .order_by("offre_id")
     )
-    return recrutements.annotate(
-        unread_conversations=Value(0, output_field=IntegerField())
-    ).order_by("offre_id")
