@@ -10,7 +10,7 @@ export function useAssignResponsable(organismeUuid: MaybeRefOrGetter<string>) {
 
   const { run: assign, ...agentSearch } = useFindOrCreateAgent(organismeUuid, {
     action: (agent, recrutementIds: string[]) =>
-      setRecrutementsResponsable(toValue(organismeUuid), {
+      setRecrutementsResponsable({ organismeUuid: toValue(organismeUuid) }, {
         recrutement_ids: recrutementIds,
         agent_id: agent.uuid,
       }),
