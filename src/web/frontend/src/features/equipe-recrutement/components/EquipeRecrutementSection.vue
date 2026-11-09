@@ -16,7 +16,7 @@ import { useTextSearch } from '@/composables/data/useTextSearch'
 import { useRequestOpen } from '@/composables/ui/useRequestOpen'
 import { useToast } from '@/composables/ui/useToast'
 import AgentRoleForm from '@/features/agents/components/AgentRoleForm.vue'
-import { formatAgentLabel } from '@/features/agents/format'
+import { agentSearchKeys, formatAgentLabel } from '@/features/agents/format'
 import { useRecrutementDetail } from '@/features/recrutements/composables/useRecrutementDetail'
 import { can } from '@/utils/authorizedActions'
 import { pluralize } from '@/utils/format'
@@ -137,11 +137,7 @@ async function handleRevocation(): Promise<void> {
   }
 }
 
-const { search, filtered } = useTextSearch(membres, membre => [
-  `${membre.prenom} ${membre.nom}`,
-  `${membre.nom} ${membre.prenom}`,
-  membre.email,
-])
+const { search, filtered } = useTextSearch(membres, agentSearchKeys)
 
 const countLabel = computed(() => {
   const count = filtered.value.length

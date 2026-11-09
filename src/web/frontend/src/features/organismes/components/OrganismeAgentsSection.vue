@@ -16,7 +16,7 @@ import { useTextSearch } from '@/composables/data/useTextSearch'
 import { useRequestOpen } from '@/composables/ui/useRequestOpen'
 import { useToast } from '@/composables/ui/useToast'
 import AgentRoleForm from '@/features/agents/components/AgentRoleForm.vue'
-import { formatAgentLabel, formatAgentName } from '@/features/agents/format'
+import { agentSearchKeys, formatAgentLabel, formatAgentName } from '@/features/agents/format'
 import { pluralize } from '@/utils/format'
 import { ORGANISME_AGENTS_COLUMNS } from '../columns'
 import { useAddAgentToOrganisme } from '../composables/useAddAgentToOrganisme'
@@ -73,11 +73,7 @@ function openAttachDrawer(): void {
 
 const rows = computed(() => agents.value ?? [])
 
-const { search, filtered } = useTextSearch(rows, row => [
-  `${row.prenom} ${row.nom}`,
-  `${row.nom} ${row.prenom}`,
-  row.email,
-])
+const { search, filtered } = useTextSearch(rows, agentSearchKeys)
 
 const countLabel = computed(() => {
   const count = filtered.value.length
