@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { Role } from '../types'
-import { computed, ref, watch } from 'vue'
+import { computed, ref } from 'vue'
 import { isHttpStatus } from '@/api/errors'
 import CspAsyncSection from '@/components/base/CspAsyncSection/CspAsyncSection.vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
@@ -13,6 +13,7 @@ import CspSkeletonTable from '@/components/base/CspSkeleton/CspSkeletonTable.vue
 import CspTableToolbar from '@/components/base/CspTableToolbar/CspTableToolbar.vue'
 import { useMinimumPending } from '@/composables/async/useMinimumPending'
 import { useTextSearch } from '@/composables/data/useTextSearch'
+import { useRequestOpen } from '@/composables/ui/useRequestOpen'
 import { useToast } from '@/composables/ui/useToast'
 import AgentRoleForm from '@/features/agents/components/AgentRoleForm.vue'
 import { formatAgentLabel, formatAgentName } from '@/features/agents/format'
@@ -36,9 +37,9 @@ const { addToast } = useToast()
 const showSkeleton = useMinimumPending(pending)
 
 const page = ref(1)
-const revocationDialogOpen = ref(false)
+const revocationDialogOpen = useRequestOpen(revocation)
 const attachDrawerOpen = ref(false)
-const roleDrawerOpen = ref(false)
+const roleDrawerOpen = useRequestOpen(roleChange)
 const attachEmailError = ref('')
 
 async function handleAdd(role: Role) {
@@ -83,18 +84,6 @@ const countLabel = computed(() => {
   return `${count} ${pluralize(count, 'compte utilisateur', 'comptes utilisateurs')}`
 })
 
-watch(() => roleChange.requested, (agent) => {
-  if (agent) {
-    roleDrawerOpen.value = true
-  }
-})
-
-watch(roleDrawerOpen, (isOpen) => {
-  if (!isOpen) {
-    roleChange.clear()
-  }
-})
-
 async function handleRoleChange(role: Role): Promise<void> {
   const agent = roleChange.requested
   if (!agent) {
@@ -113,18 +102,6 @@ async function handleRoleChange(role: Role): Promise<void> {
     addToast({ variant: 'error', title: 'La modification du rôle a échoué' })
   }
 }
-
-watch(() => revocation.requested, (agent) => {
-  if (agent) {
-    revocationDialogOpen.value = true
-  }
-})
-
-watch(revocationDialogOpen, (isOpen) => {
-  if (!isOpen) {
-    revocation.clear()
-  }
-})
 
 async function handleRevocation(): Promise<void> {
   if (!revocation.requested) {
