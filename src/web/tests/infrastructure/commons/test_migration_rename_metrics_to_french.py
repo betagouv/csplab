@@ -1,3 +1,4 @@
+# TODO: remove after PR#2338 is merged
 from datetime import date
 
 import pytest
