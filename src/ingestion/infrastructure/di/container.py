@@ -14,6 +14,9 @@ from application.usecases.clean_raw_offer import CleanRawOfferUsecase
 from application.usecases.clean_raw_organismes import CleanRawOrganismesUsecase
 from application.usecases.import_offers import ImportOffersUsecase
 from application.usecases.import_organismes import ImportOrganismesUsecase
+from application.usecases.load_metiers_multi_domaines import (
+    LoadMetiersMultiDomainesUsecase,
+)
 from application.usecases.load_sources import LoadSourcesUsecase
 from application.usecases.prepare_talentsoft_organisations import (
     PrepareTalentsoftOrganisationsUsecase,
@@ -62,6 +65,7 @@ from infrastructure.external_gateways.talentsoft_client import (
     TalentsoftFrontClient,
 )
 from infrastructure.external_gateways.web_archive_gateway import WebArchiveGateway
+from infrastructure.external_gateways.web_metiers_gateway import WebMetiersGateway
 from infrastructure.external_gateways.web_offers_by_source_gateway import (
     WebOffersBySourceGateway,
 )
@@ -149,6 +153,8 @@ class Container(containers.DeclarativeContainer):
     sources_repository: providers.Provider[ISourcesRepository] = providers.Singleton(
         SourcesRepository
     )
+
+    metiers_multi_domaines: providers.Provider[set[str]] = providers.Singleton(set)
 
     credentials_store = providers.Singleton(
         _build_credentials_store,
@@ -305,6 +311,14 @@ class Container(containers.DeclarativeContainer):
         repository=sources_repository,
     )
 
+    load_metiers_multi_domaines_usecase = providers.Factory(
+        LoadMetiersMultiDomainesUsecase,
+        metiers_gateway=providers.Factory(
+            WebMetiersGateway, client=http_client, credentials=web_gateway_credentials
+        ),
+        metiers_multi_domaines=metiers_multi_domaines,
+    )
+
     offers_cleaner = providers.Singleton(
         OffersCleaner,
         sources_repository=sources_repository,
@@ -319,6 +333,7 @@ class Container(containers.DeclarativeContainer):
         WebPublishOfferGateway,
         client=http_client,
         credentials=web_gateway_credentials,
+        metiers_multi_domaines=metiers_multi_domaines,
     )
 
     publish_offer_usecase: providers.Provider[PublishOfferUsecase] = providers.Factory(

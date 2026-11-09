@@ -676,7 +676,7 @@ def test_clean_returns_none_localisation_abroad_without_known_area_or_country(
 def test_offer_abroad_is_published_without_region_nor_department(cleaner):
     offer = cleaner.clean(_make_raw_offer_abroad())
 
-    payload = OfferUpsertPayload.from_offer(offer)
+    payload = OfferUpsertPayload.from_offer(offer, metiers_multi_domaines=set())
 
     assert payload.localisation is not None
     assert payload.localisation[0].pays == "DEU"

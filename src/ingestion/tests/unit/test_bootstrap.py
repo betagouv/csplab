@@ -1,4 +1,4 @@
-from unittest.mock import patch
+from unittest.mock import AsyncMock, patch
 
 from sentry_sdk.integrations.celery import CeleryIntegration
 
@@ -29,3 +29,21 @@ def test_worker_process_init_uses_shared_sentry_init(
     assert kwargs["traces_sample_rate"] == 0.2
     assert any(isinstance(i, CeleryIntegration) for i in kwargs["integrations"])
     mock_init_container.assert_called_once()
+
+
+@patch("infrastructure.di.container.create_container")
+def test_init_container_loads_sources_and_metiers_multi_domaines(
+    mock_create_container,
+):
+    container = mock_create_container.return_value
+    container.load_sources_usecase.return_value.execute = AsyncMock()
+    container.load_metiers_multi_domaines_usecase.return_value.execute = AsyncMock()
+
+    try:
+        bootstrap.init_container()
+
+        container.load_sources_usecase.return_value.execute.assert_awaited_once()
+        container.load_metiers_multi_domaines_usecase.return_value.execute.assert_awaited_once()
+        assert bootstrap._state["container"] is container
+    finally:
+        bootstrap._state["container"] = None
