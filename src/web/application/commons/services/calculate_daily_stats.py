@@ -27,6 +27,8 @@ def _offer_metrics() -> dict[Metric, int]:
 
 
 def _volume_metrics() -> dict[Metric, int]:
+    # TODO: recrutements, candidatures et membres d'un organisme supprimé sont
+    # comptés, contrairement à nb_organismes_ouverts (PR #2339).
     candidatures = CandidatureModel.objects
     organisme_agents = OrganismeAgentModel.objects.active()
     recrutement_agents = RecrutementAgentModel.objects.active()
