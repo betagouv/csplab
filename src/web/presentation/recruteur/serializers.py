@@ -57,6 +57,7 @@ class ListOrganismesFiltersSerializer(serializers.Serializer):
     filter = serializers.CharField(
         required=False,
         allow_blank=True,
+        max_length=100,
         source="recherche",
         help_text=(
             "Recherche (3 caractères minimum, sinon ignorée) : SIRET si le terme "

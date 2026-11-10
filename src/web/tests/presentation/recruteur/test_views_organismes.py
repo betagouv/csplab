@@ -181,6 +181,16 @@ class TestListOrganismes:
 
         assert response.json()["count"] == total
 
+    def test_get_filter_over_max_length_is_rejected(self, staff_client):
+        response = staff_client.get(ORGANISME_URL, {"filter": "a" * 101})
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    def test_get_filter_at_max_length_is_accepted(self, staff_client):
+        response = staff_client.get(ORGANISME_URL, {"filter": "a" * 100})
+
+        assert response.status_code == status.HTTP_200_OK
+
     def test_get_filter_excludes_deleted_organismes(self, staff_client):
         OrganismeDjangoFactory(nom="Mairie de Lyon", supprime_le=timezone.now())
 
