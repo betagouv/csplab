@@ -74,7 +74,7 @@ describe('useEtapeChangeMutation', () => {
     void context.changeEtape({ etapeCibleUuid: ETAPE_ENTRETIEN, candidatureUuids: [CANDIDATURE_ALICE, CANDIDATURE_BRUNO] }, [CANDIDAT_ALICE, CANDIDAT_BRUNO])
 
     expect(listeEtapes(liste.data.value)).toEqual({ [CANDIDATURE_ALICE]: ETAPE_ENTRETIEN, [CANDIDATURE_BRUNO]: ETAPE_ENTRETIEN })
-    await vi.waitFor(() => expect(patchEtapeCandidatures).toHaveBeenCalledWith(ORGANISME_UUID, RECRUTEMENT_UUID, {
+    await vi.waitFor(() => expect(patchEtapeCandidatures).toHaveBeenCalledWith({ organismeUuid: ORGANISME_UUID, recrutementUuid: RECRUTEMENT_UUID }, {
       etapeCibleUuid: ETAPE_ENTRETIEN,
       candidatureUuids: [CANDIDATURE_ALICE, CANDIDATURE_BRUNO],
     }))

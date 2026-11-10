@@ -19,7 +19,7 @@ export function useMotifRefusEdit(candidature: MaybeRefOrGetter<CandidatureParam
   const mutation = useMutation({
     mutation: async ({ etapeUuid, motifRefus }: MotifRefusEdit) => {
       const { organismeUuid, recrutementUuid, candidatureUuid } = toValue(candidature)
-      const { echecs } = await patchEtapeCandidatures(organismeUuid, recrutementUuid, {
+      const { echecs } = await patchEtapeCandidatures({ organismeUuid, recrutementUuid }, {
         etapeCibleUuid: etapeUuid,
         candidatureUuids: [candidatureUuid],
         motifRefus,
