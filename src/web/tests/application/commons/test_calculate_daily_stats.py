@@ -1,60 +1,61 @@
-from datetime import date
-from unittest.mock import MagicMock
+from datetime import UTC, date, datetime
 
-import pytest
-
-from domain.commons.value_objects.stat_snapshot import StatSnapshot
+from application.commons.services.calculate_daily_stats import calculate_daily_stats
+from infrastructure.django_apps.commons.models import StatSnapshotModel
+from infrastructure.factories.referentiel.offer_django_factory import (
+    OfferDjangoFactory,
+)
 
 TARGET_DATE = date(2026, 6, 30)
 
 
-class TestCalculateDailyStats:
-    def setup_mocks(self, usecase, *, published_count=0, archived_count=0):
-        usecase.offer_stats_query_service.count_published = MagicMock(
-            return_value=published_count
+def snapshot_values(target_date: date) -> dict[str, int]:
+    return dict(
+        StatSnapshotModel.objects.filter(date=target_date).values_list(
+            "metric_name", "metric_value"
         )
-        usecase.offer_stats_query_service.count_archived = MagicMock(
-            return_value=archived_count
-        )
-        usecase.stat_snapshot_writer.write = MagicMock()
+    )
 
-    def test_stores_published_offers_count(self, calculate_daily_stats_usecase):
-        self.setup_mocks(calculate_daily_stats_usecase, published_count=3)
 
-        calculate_daily_stats_usecase.execute(TARGET_DATE)
+def test_stores_offer_counts(db):
+    OfferDjangoFactory.create_batch(3)
+    OfferDjangoFactory.create_batch(2, archived_at=datetime.now(UTC))
 
-        calculate_daily_stats_usecase.stat_snapshot_writer.write.assert_any_call(
-            StatSnapshot(
-                date=TARGET_DATE, metric_name="nb_published_offers", metric_value=3
-            )
-        )
+    calculate_daily_stats(TARGET_DATE)
 
-    def test_stores_archived_offers_count(self, calculate_daily_stats_usecase):
-        self.setup_mocks(calculate_daily_stats_usecase, archived_count=2)
+    assert snapshot_values(TARGET_DATE) == {
+        "nb_published_offers": 3,
+        "nb_archived_offers": 2,
+    }
 
-        calculate_daily_stats_usecase.execute(TARGET_DATE)
 
-        calculate_daily_stats_usecase.stat_snapshot_writer.write.assert_any_call(
-            StatSnapshot(
-                date=TARGET_DATE, metric_name="nb_archived_offers", metric_value=2
-            )
-        )
+def test_stores_zero_without_offers(db):
+    calculate_daily_stats(TARGET_DATE)
 
-    def test_stores_both_metrics(self, calculate_daily_stats_usecase):
-        self.setup_mocks(
-            calculate_daily_stats_usecase, published_count=4, archived_count=1
-        )
+    assert snapshot_values(TARGET_DATE) == {
+        "nb_published_offers": 0,
+        "nb_archived_offers": 0,
+    }
 
-        calculate_daily_stats_usecase.execute(TARGET_DATE)
 
-        write = calculate_daily_stats_usecase.stat_snapshot_writer.write
-        assert write.call_count == 2  # noqa: PLR2004
+def test_rerun_for_same_date_replaces_values(db):
+    calculate_daily_stats(TARGET_DATE)
+    OfferDjangoFactory.create_batch(4)
 
-    def test_propagates_write_error(self, calculate_daily_stats_usecase):
-        self.setup_mocks(calculate_daily_stats_usecase, published_count=5)
-        calculate_daily_stats_usecase.stat_snapshot_writer.write = MagicMock(
-            side_effect=Exception("db error")
-        )
+    calculate_daily_stats(TARGET_DATE)
 
-        with pytest.raises(Exception, match="db error"):
-            calculate_daily_stats_usecase.execute(TARGET_DATE)
+    assert snapshot_values(TARGET_DATE) == {
+        "nb_published_offers": 4,
+        "nb_archived_offers": 0,
+    }
+
+
+def test_keeps_snapshots_of_other_dates(db):
+    other_date = date(2026, 6, 29)
+    StatSnapshotModel.objects.create(
+        date=other_date, metric_name="nb_published_offers", metric_value=7
+    )
+
+    calculate_daily_stats(TARGET_DATE)
+
+    assert snapshot_values(other_date) == {"nb_published_offers": 7}
