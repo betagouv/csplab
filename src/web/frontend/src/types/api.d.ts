@@ -894,6 +894,7 @@ export interface components {
             publie_le: string;
             est_privee: boolean;
             readonly authorized_actions: components["schemas"]["AuthorizedActionsEnum"][];
+            readonly tags: components["schemas"]["NoteTag"][];
         };
         NoteDetail: {
             /** Format: uuid */
