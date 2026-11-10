@@ -2,6 +2,7 @@ import type { AuthorizedAction } from '@/utils/authorizedActions'
 import { useQuery } from '@pinia/colada'
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
+import { canBrowseOrganismes as userCanBrowseOrganismes } from '@/api/utilisateur'
 import { useCurrentUser } from '@/stores/currentUser'
 import { organismeDetailQuery } from '@/stores/organismeDetail'
 import { can } from '@/utils/authorizedActions'
@@ -11,7 +12,7 @@ export function useRouteOrganisme() {
   const { user } = useCurrentUser()
 
   const organismes = computed(() => user.value?.organismes ?? [])
-  const canBrowseOrganismes = computed(() => can(user.value?.authorized_actions, 'list_organismes'))
+  const canBrowseOrganismes = computed(() => userCanBrowseOrganismes(user.value))
 
   const routeOrganismeUuid = computed<string | null>(() => {
     const param = route.params.organismeUuid
