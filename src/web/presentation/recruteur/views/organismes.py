@@ -26,6 +26,7 @@ from presentation.api.serializers import (
 from presentation.commons.pagination import TaillePageNumberPagination
 from presentation.recruteur.serializers import (
     CreateOrganismeSerializer,
+    ListOrganismesFiltersSerializer,
     OrganismeDetailSerializer,
     OrganismesListSerializer,
 )
@@ -35,6 +36,7 @@ from presentation.recruteur.serializers import (
     get=extend_schema(
         summary="Lister les organismes",
         tags=["recruteur"],
+        parameters=[ListOrganismesFiltersSerializer],
         responses={
             **generic_response_format,
             200: OrganismesListSerializer(many=True),
@@ -56,7 +58,9 @@ class OrganismesView(SessionApiMixin, ListAPIView):
     pagination_class = TaillePageNumberPagination
 
     def get_queryset(self) -> QuerySet[OrganismeModel]:
-        return list_organismes(utilisateur=self.request.user)
+        filters = ListOrganismesFiltersSerializer(data=self.request.query_params)
+        filters.is_valid(raise_exception=True)
+        return list_organismes(utilisateur=self.request.user, **filters.validated_data)
 
     def paginate_queryset(self, queryset: QuerySet[OrganismeModel]) -> list | None:
         page = super().paginate_queryset(queryset)

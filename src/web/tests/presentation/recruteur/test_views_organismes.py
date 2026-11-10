@@ -147,6 +147,47 @@ class TestListOrganismes:
         assert len(body["results"]) == taille
         assert body["next"] is not None
 
+    @pytest.mark.parametrize("filtre", ["mairie", "  MAIRIE ", "mAiRiE", "mâirié"])
+    def test_get_filter_by_name_ignores_case_and_accents(self, staff_client, filtre):
+        cible = OrganismeDjangoFactory(nom="Mairie de Lyon")
+        OrganismeDjangoFactory(nom="Préfecture du Rhône")
+
+        response = staff_client.get(ORGANISME_URL, {"filter": filtre})
+
+        assert [r["uuid"] for r in response.json()["results"]] == [str(cible.id)]
+
+    @pytest.mark.parametrize("filtre", ["12345678", "123 456 78", " 1234 "])
+    def test_get_filter_by_siret_strips_spaces(self, staff_client, filtre):
+        cible = OrganismeDjangoFactory(siret="12345678901234")
+        OrganismeDjangoFactory(siret="99999999999999")
+
+        response = staff_client.get(ORGANISME_URL, {"filter": filtre})
+
+        assert [r["uuid"] for r in response.json()["results"]] == [str(cible.id)]
+
+    def test_get_filter_with_digits_does_not_search_name(self, staff_client):
+        OrganismeDjangoFactory(nom="Bureau 123", siret="99999999999999")
+
+        response = staff_client.get(ORGANISME_URL, {"filter": "123"})
+
+        assert response.json()["count"] == 0
+
+    @pytest.mark.parametrize("filtre", ["", "ab", " a ", "12"])
+    def test_get_filter_under_three_chars_is_ignored(self, staff_client, filtre):
+        total = 2
+        OrganismeDjangoFactory.create_batch(total)
+
+        response = staff_client.get(ORGANISME_URL, {"filter": filtre})
+
+        assert response.json()["count"] == total
+
+    def test_get_filter_excludes_deleted_organismes(self, staff_client):
+        OrganismeDjangoFactory(nom="Mairie de Lyon", supprime_le=timezone.now())
+
+        response = staff_client.get(ORGANISME_URL, {"filter": "mairie"})
+
+        assert response.json()["count"] == 0
+
     def test_get_refuses_non_staff(self, authenticated_client):
         response = authenticated_client.get(ORGANISME_URL)
 

@@ -53,6 +53,19 @@ from presentation.commons.serializers import (
 CATEGORIE_ETAPE_CHOICES = [(c.name, c.value) for c in CategorieEtapeRecrutement]
 
 
+class ListOrganismesFiltersSerializer(serializers.Serializer):
+    filter = serializers.CharField(
+        required=False,
+        allow_blank=True,
+        source="recherche",
+        help_text=(
+            "Recherche (3 caractères minimum, sinon ignorée) : SIRET si le terme "
+            "ne contient que des chiffres et des espaces, sinon nom "
+            "(insensible à la casse et aux accents)."
+        ),
+    )
+
+
 class OrganismesListSerializer(serializers.ModelSerializer):
     uuid = serializers.UUIDField(source="id")
     superviseurs = serializers.SerializerMethodField()
