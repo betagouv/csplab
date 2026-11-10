@@ -24,8 +24,8 @@ def test_stores_offer_counts(db):
     calculate_daily_stats(TARGET_DATE)
 
     assert snapshot_values(TARGET_DATE) == {
-        "nb_published_offers": 3,
-        "nb_archived_offers": 2,
+        "nb_offres_publiees": 3,
+        "nb_offres_archivees": 2,
     }
 
 
@@ -33,8 +33,8 @@ def test_stores_zero_without_offers(db):
     calculate_daily_stats(TARGET_DATE)
 
     assert snapshot_values(TARGET_DATE) == {
-        "nb_published_offers": 0,
-        "nb_archived_offers": 0,
+        "nb_offres_publiees": 0,
+        "nb_offres_archivees": 0,
     }
 
 
@@ -45,17 +45,17 @@ def test_rerun_for_same_date_replaces_values(db):
     calculate_daily_stats(TARGET_DATE)
 
     assert snapshot_values(TARGET_DATE) == {
-        "nb_published_offers": 4,
-        "nb_archived_offers": 0,
+        "nb_offres_publiees": 4,
+        "nb_offres_archivees": 0,
     }
 
 
 def test_keeps_snapshots_of_other_dates(db):
     other_date = date(2026, 6, 29)
     StatSnapshotModel.objects.create(
-        date=other_date, metric_name="nb_published_offers", metric_value=7
+        date=other_date, metric_name="nb_offres_publiees", metric_value=7
     )
 
     calculate_daily_stats(TARGET_DATE)
 
-    assert snapshot_values(other_date) == {"nb_published_offers": 7}
+    assert snapshot_values(other_date) == {"nb_offres_publiees": 7}

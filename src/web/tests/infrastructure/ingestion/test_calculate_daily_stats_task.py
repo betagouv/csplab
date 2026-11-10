@@ -16,7 +16,7 @@ def test_task_stores_daily_snapshots(db):
 
     assert (
         StatSnapshotModel.objects.get(
-            date=TARGET_DATE, metric_name="nb_published_offers"
+            date=TARGET_DATE, metric_name="nb_offres_publiees"
         ).metric_value
         == 1
     )
