@@ -1,4 +1,4 @@
-from datetime import UTC, date, datetime, timedelta
+from datetime import UTC, date, datetime
 
 import pytest
 
@@ -250,31 +250,19 @@ def test_stores_message_counts(screened, unscreened):
     }
 
 
-def create_message(conversation, *, par_candidat, minutes):
-    message = MessageDjangoFactory(conversation=conversation, par_candidat=par_candidat)
-    message.created_at = datetime(2026, 6, 1, tzinfo=UTC) + timedelta(minutes=minutes)
-    message.save(update_fields=["created_at"])
-
-
 def test_stores_conversation_counts(screened, unscreened):
-    opened_by_candidat = ConversationDjangoFactory(candidature=screened)
-    create_message(opened_by_candidat, par_candidat=True, minutes=0)
-    create_message(opened_by_candidat, par_candidat=False, minutes=1)
-    opened_by_team = ConversationDjangoFactory(candidature=screened)
-    create_message(opened_by_team, par_candidat=False, minutes=0)
-    create_message(opened_by_team, par_candidat=True, minutes=1)
+    ConversationDjangoFactory(candidature=screened)
+    ConversationDjangoFactory(candidature=screened)
     ConversationDjangoFactory(candidature=unscreened)
 
     calculate_daily_stats(TARGET_DATE)
 
     assert values_of(
         Metric.CONVERSATIONS,
-        Metric.CONVERSATIONS_OPENED_BY_CANDIDAT,
         Metric.APPLICATIONS_WITH_CONVERSATION,
         Metric.APPLICATIONS_WITH_SEVERAL_CONVERSATIONS,
     ) == {
         Metric.CONVERSATIONS: 3,
-        Metric.CONVERSATIONS_OPENED_BY_CANDIDAT: 1,
         Metric.APPLICATIONS_WITH_CONVERSATION: 2,
         Metric.APPLICATIONS_WITH_SEVERAL_CONVERSATIONS: 1,
     }

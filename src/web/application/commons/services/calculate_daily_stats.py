@@ -102,9 +102,6 @@ def _collaboration_metrics() -> dict[Metric, int]:
             "conversation__candidature_id",
         ),
         Metric.CONVERSATIONS: ConversationModel.objects.count(),
-        Metric.CONVERSATIONS_OPENED_BY_CANDIDAT: (
-            ConversationModel.objects.opened_by_candidat().count()
-        ),
         Metric.APPLICATIONS_WITH_CONVERSATION: conversations_per_candidature.count(),
         Metric.APPLICATIONS_WITH_SEVERAL_CONVERSATIONS: (
             conversations_per_candidature.filter(total__gte=2).count()

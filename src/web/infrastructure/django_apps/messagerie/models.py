@@ -31,16 +31,6 @@ class ConversationQuerySet(models.QuerySet):
     def by_candidature(self, candidature_id) -> "ConversationQuerySet":
         return self.filter(candidature_id=candidature_id)
 
-    def opened_by_candidat(self) -> "ConversationQuerySet":
-        first_author = (
-            MessageModel.objects.filter(conversation_id=OuterRef("pk"))
-            .order_by("created_at", "id")
-            .values("auteur_id")[:1]
-        )
-        return self.annotate(first_author_id=Subquery(first_author)).filter(
-            first_author_id=F("candidature__candidat_id")
-        )
-
     def with_message_summary(self) -> "ConversationQuerySet":
         messages = MessageModel.objects.select_related("auteur")
         return (

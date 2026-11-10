@@ -62,10 +62,6 @@ class Metric(models.TextChoices):
         "Candidatures au-delà du premier tri avec un message de l'équipe",
     )
     CONVERSATIONS = "nb_conversations", "Conversations"
-    CONVERSATIONS_OPENED_BY_CANDIDAT = (
-        "nb_conversations_ouvertes_par_candidat",
-        "Conversations ouvertes par un candidat",
-    )
     APPLICATIONS_WITH_CONVERSATION = (
         "nb_candidatures_avec_conversation",
         "Candidatures avec au moins une conversation",
