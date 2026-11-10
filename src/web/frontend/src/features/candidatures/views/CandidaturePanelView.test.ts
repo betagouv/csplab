@@ -114,6 +114,20 @@ describe('candidaturePanelView', () => {
     expect(motif.getByText('Expérience insuffisante')).toBeInTheDocument()
   })
 
+  it('offers neither the stage change nor the motif edit without the right to change stages', async () => {
+    vi.mocked(getCandidatureDetail).mockResolvedValue({
+      ...candidatureDetail(CANDIDATURE_ALICE),
+      etape_actuelle: { uuid: ETAPE_REFUS, nom: 'Refus' },
+      motif_refus: { value: 'experience_insuffisante', label: 'Expérience insuffisante' },
+      authorized_actions: [],
+    })
+    const { panel } = await renderPanel([`${KANBAN_PATH}/candidatures/${CANDIDATURE_ALICE}`])
+
+    expect(await panel.findByRole('region', { name: 'Motif de refus' })).toBeInTheDocument()
+    expect(panel.queryByRole('button', { name: 'Changer d\'étape' })).not.toBeInTheDocument()
+    expect(panel.queryByRole('button', { name: 'Actions sur le motif de refus' })).not.toBeInTheDocument()
+  })
+
   it('changes the motif of a refused candidature without moving it', async () => {
     const user = setupUser()
     const refusee = {

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { KanbanCard } from '../types'
-import { computed, ref, watchEffect } from 'vue'
+import { computed, ref, toRef, watchEffect } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
 import CspCard from '@/components/base/CspCard/CspCard.vue'
 import CspIcon from '@/components/base/CspIcon/CspIcon.vue'
@@ -14,6 +14,7 @@ const props = defineProps<{
   candidature: KanbanCard
   boardId: string
   columnId: string
+  canChangeEtape: boolean
 }>()
 
 const cardComponentRef = ref<InstanceType<typeof CspCard> | null>(null)
@@ -47,6 +48,7 @@ const { isDragging, isJustMoved, isDropWaiting } = useDraggableKanbanCard({
   boardId: props.boardId,
   columnId: props.columnId,
   cardId: props.candidature.uuid,
+  enabled: toRef(() => props.canChangeEtape),
 })
 </script>
 
