@@ -1,31 +1,32 @@
 <script setup lang="ts">
 import type { Role } from '../types'
-import { computed, ref, useTemplateRef, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { isHttpStatus } from '@/api/errors'
 import CspAsyncSection from '@/components/base/CspAsyncSection/CspAsyncSection.vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspDataTable from '@/components/base/CspDataTable/CspDataTable.vue'
+import { TABLE_PAGE_SIZE } from '@/components/base/CspDataTable/table'
 import CspDialog from '@/components/base/CspDialog/CspDialog.vue'
+import CspDrawer from '@/components/base/CspDrawer/CspDrawer.vue'
 import CspSearchBar from '@/components/base/CspSearchBar/CspSearchBar.vue'
 import CspSkeletonTable from '@/components/base/CspSkeleton/CspSkeletonTable.vue'
 import CspTableToolbar from '@/components/base/CspTableToolbar/CspTableToolbar.vue'
 import { useMinimumPending } from '@/composables/async/useMinimumPending'
 import { useTextSearch } from '@/composables/data/useTextSearch'
 import { useToast } from '@/composables/ui/useToast'
+import AgentRoleForm from '@/features/agents/components/AgentRoleForm.vue'
 import { formatAgentLabel, formatAgentName } from '@/features/agents/format'
 import { pluralize } from '@/utils/format'
 import { ORGANISME_AGENTS_COLUMNS } from '../columns'
 import { useAddAgentToOrganisme } from '../composables/useAddAgentToOrganisme'
 import { provideAgentActions } from '../composables/useAgentActions'
 import { useOrganismeAgents } from '../composables/useOrganismeAgents'
-import { ROLE_LABELS } from '../constants/organisme'
-import AttachAgentDrawer from './AttachAgentDrawer.vue'
+import { ROLE_FIELD_LABEL, ROLE_LABELS, ROLE_OPTIONS } from '../constants/organisme'
+import AttachAgentForm from './AttachAgentForm.vue'
 
 const props = defineProps<{
   organismeUuid: string
 }>()
-
-const PAGE_SIZE = 8
 
 const { agents, pending, error, updateAgent, updatingAgent } = useOrganismeAgents(props.organismeUuid)
 const { status, foundAgent, searching, search: searchAgent, add, submitting, reset } = useAddAgentToOrganisme(props.organismeUuid)
@@ -37,32 +38,37 @@ const showSkeleton = useMinimumPending(pending)
 const page = ref(1)
 const revocationDialogOpen = ref(false)
 const attachDrawerOpen = ref(false)
-const attachDrawer = useTemplateRef('attachDrawer')
+const roleDrawerOpen = ref(false)
+const attachEmailError = ref('')
 
 async function handleAdd(role: Role) {
   try {
     const agent = await add(role)
     addToast({
       variant: 'success',
-      title: 'Membre ajouté',
+      title: 'Utilisateur ajouté',
       description: `${formatAgentLabel(agent)} a rejoint l'organisme.`,
     })
     attachDrawerOpen.value = false
   }
   catch (submitError) {
     if (isHttpStatus(submitError, 409)) {
-      attachDrawer.value?.setEmailError('Cet agent est déjà rattaché à l\'organisme.')
+      attachEmailError.value = 'Cet utilisateur est déjà rattaché à l\'organisme.'
       return
     }
-    addToast({ variant: 'error', title: 'L\'ajout du membre a échoué' })
+    addToast({ variant: 'error', title: 'L\'ajout de l\'utilisateur a échoué' })
   }
 }
 
-watch(attachDrawerOpen, (isOpen) => {
-  if (!isOpen) {
-    reset()
-  }
-})
+function resetAgentSearch(): void {
+  attachEmailError.value = ''
+  reset()
+}
+
+function openAttachDrawer(): void {
+  resetAgentSearch()
+  attachDrawerOpen.value = true
+}
 
 const rows = computed(() => agents.value ?? [])
 
@@ -74,15 +80,26 @@ const { search, filtered } = useTextSearch(rows, row => [
 
 const countLabel = computed(() => {
   const count = filtered.value.length
-  return `${count} ${pluralize(count, 'membre')}`
+  return `${count} ${pluralize(count, 'compte utilisateur', 'comptes utilisateurs')}`
 })
 
-watch(() => roleChange.requested, async (change) => {
-  if (!change) {
+watch(() => roleChange.requested, (agent) => {
+  if (agent) {
+    roleDrawerOpen.value = true
+  }
+})
+
+watch(roleDrawerOpen, (isOpen) => {
+  if (!isOpen) {
+    roleChange.clear()
+  }
+})
+
+async function handleRoleChange(role: Role): Promise<void> {
+  const agent = roleChange.requested
+  if (!agent) {
     return
   }
-  const { agent, role } = change
-  roleChange.clear()
   try {
     await updateAgent({ agent_id: agent.uuid, role })
     addToast({
@@ -90,11 +107,12 @@ watch(() => roleChange.requested, async (change) => {
       title: 'Rôle modifié',
       description: `${formatAgentName(agent)} est maintenant ${ROLE_LABELS[role].toLowerCase()}.`,
     })
+    roleDrawerOpen.value = false
   }
   catch {
     addToast({ variant: 'error', title: 'La modification du rôle a échoué' })
   }
-})
+}
 
 watch(() => revocation.requested, (agent) => {
   if (agent) {
@@ -121,7 +139,7 @@ async function handleRevocation(): Promise<void> {
     })
     addToast({
       variant: 'success',
-      title: 'Membre révoqué',
+      title: 'Utilisateur révoqué',
       description: `${formatAgentName(agent)} n'a plus accès à l'organisme.`,
     })
     revocationDialogOpen.value = false
@@ -136,10 +154,10 @@ async function handleRevocation(): Promise<void> {
   <section class="organisme-agents-section">
     <div class="organisme-agents-section__intro">
       <h2 class="organisme-agents-section__title">
-        Membres de l'organisme
+        Comptes utilisateurs de l'organisme
       </h2>
       <p class="organisme-agents-section__description">
-        Participent aux recrutements sur les offres auxquelles ils sont rattachés,
+        Participent aux recrutements auxquels ils sont rattachés,
         selon les droits qui leur sont attribués.
       </p>
     </div>
@@ -147,14 +165,12 @@ async function handleRevocation(): Promise<void> {
     <CspAsyncSection
       :pending="showSkeleton"
       :error="error"
-      loading-label="Chargement des membres"
-      error-title="Impossible de charger les membres"
+      loading-label="Chargement des comptes utilisateurs"
+      error-title="Impossible de charger les comptes utilisateurs"
     >
       <template #skeleton>
         <CspSkeletonTable
-          :rows="PAGE_SIZE"
           :columns="ORGANISME_AGENTS_COLUMNS.length"
-          with-footer
         />
       </template>
 
@@ -162,16 +178,15 @@ async function handleRevocation(): Promise<void> {
         <CspSearchBar
           v-model="search"
           mode="live"
-          label="Rechercher un membre, un courriel"
+          label="Rechercher une personne"
           hide-label
-          placeholder="Rechercher un membre, un courriel"
-          class="organisme-agents-section__search"
+          placeholder="Rechercher une personne"
         />
         <CspButton
-          label="Ajouter un membre"
+          label="Ajouter un utilisateur"
           icon="ri:user-add-line"
           is-icon-left
-          @click="attachDrawerOpen = true"
+          @click="openAttachDrawer"
         />
       </CspTableToolbar>
       <CspDataTable
@@ -179,19 +194,19 @@ async function handleRevocation(): Promise<void> {
         :rows="filtered"
         :columns="ORGANISME_AGENTS_COLUMNS"
         :row-key="row => row.uuid"
-        caption="Membres de l'organisme"
-        :page-size="PAGE_SIZE"
+        caption="Comptes utilisateurs de l'organisme"
+        :page-size="TABLE_PAGE_SIZE"
       >
         <template #empty>
           <div class="organisme-agents-section__empty">
             <template v-if="search">
               <p class="organisme-agents-section__empty-title">
-                Aucun membre ne correspond à votre recherche.
+                Aucun utilisateur ne correspond à votre recherche.
               </p>
             </template>
             <template v-else>
               <p class="organisme-agents-section__empty-title">
-                Aucun membre pour l'instant.
+                Aucun utilisateur rattaché à l'organisme.
               </p>
             </template>
           </div>
@@ -199,17 +214,41 @@ async function handleRevocation(): Promise<void> {
       </CspDataTable>
     </CspAsyncSection>
 
-    <AttachAgentDrawer
-      ref="attachDrawer"
+    <CspDrawer
       v-model:open="attachDrawerOpen"
-      :status="status"
-      :agent="foundAgent"
-      :searching="searching"
-      :submitting="submitting"
-      @search="searchAgent"
-      @add="handleAdd"
-      @reset="reset"
-    />
+      title="Ajouter un utilisateur"
+      size="md"
+    >
+      <AttachAgentForm
+        :status="status"
+        :agent="foundAgent"
+        :searching="searching"
+        :submitting="submitting"
+        :email-error="attachEmailError"
+        @search="searchAgent"
+        @add="handleAdd"
+        @reset="resetAgentSearch"
+        @cancel="attachDrawerOpen = false"
+      />
+    </CspDrawer>
+
+    <CspDrawer
+      v-model:open="roleDrawerOpen"
+      title="Modifier les droits d'accès"
+      size="md"
+    >
+      <AgentRoleForm
+        v-if="roleChange.requested"
+        :key="roleChange.requested.uuid"
+        :email="roleChange.requested.email"
+        :role="roleChange.requested.role"
+        :role-label="ROLE_FIELD_LABEL"
+        :options="ROLE_OPTIONS"
+        :submitting="updatingAgent"
+        @submit="handleRoleChange"
+        @cancel="roleDrawerOpen = false"
+      />
+    </CspDrawer>
 
     <CspDialog
       v-model:open="revocationDialogOpen"
@@ -254,10 +293,6 @@ async function handleRevocation(): Promise<void> {
   color: var(--text-mention-grey);
   font-size: 0.875rem;
   max-width: 65ch;
-}
-
-.organisme-agents-section__search {
-  min-width: 20rem;
 }
 
 .organisme-agents-section__empty {

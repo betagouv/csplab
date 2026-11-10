@@ -1,11 +1,43 @@
 from django.db import models
-from django.db.models import OuterRef, Subquery
+from django.db.models import (
+    BooleanField,
+    Case,
+    Count,
+    F,
+    Max,
+    OuterRef,
+    Prefetch,
+    Subquery,
+    Value,
+    When,
+)
+from django.db.models.functions import Coalesce
 
-from domain.recruteur.value_objects.roles import AgentRecrutementRole
+from domain.recruteur.value_objects.categorie_etapes_recrutement import (
+    CategorieEtapeRecrutement,
+)
+from domain.recruteur.value_objects.roles import (
+    AgentOrganismeRole,
+    AgentRecrutementRole,
+)
+from infrastructure.django_apps.candidate.models.candidature import CandidatureModel
+from infrastructure.django_apps.recruteur.models.etape import EtapeModel
 from infrastructure.django_apps.recruteur.models.organisme import OrganismeModel
 from infrastructure.django_apps.referentiel.models.offer import OfferModel
 from infrastructure.django_apps.users.fields import agent_fk
 from infrastructure.django_apps.utils.models import BaseDatedModel
+
+
+def _candidatures_subquery(aggregate, *, categorie: str | None = None) -> Subquery:
+    candidatures = CandidatureModel.objects.filter(etape__recrutement=OuterRef("pk"))
+    if categorie is not None:
+        candidatures = candidatures.filter(etape__categorie=categorie)
+    return Subquery(
+        candidatures.order_by()
+        .values("etape__recrutement")
+        .annotate(valeur=aggregate)
+        .values("valeur")
+    )
 
 
 class RecrutementQuerySet(models.QuerySet):
@@ -15,8 +47,102 @@ class RecrutementQuerySet(models.QuerySet):
     def with_organisme(self) -> "RecrutementQuerySet":
         return self.select_related("organisme")
 
+    def by_organisme(self, organisme_id) -> "RecrutementQuerySet":
+        return self.filter(organisme_id=organisme_id)
+
+    def by_organisme_and_recrutement(
+        self, organisme_id, recrutement_id
+    ) -> "RecrutementQuerySet":
+        return self.by_organisme(organisme_id).filter(pk=recrutement_id)
+
+    def by_organisme_and_recrutements(
+        self, organisme_id, recrutement_ids
+    ) -> "RecrutementQuerySet":
+        return self.by_organisme(organisme_id).filter(pk__in=recrutement_ids)
+
+    def actives(self) -> "RecrutementQuerySet":
+        return self.filter(offre__archived_at__isnull=True)
+
+    def archived(self) -> "RecrutementQuerySet":
+        return self.filter(offre__archived_at__isnull=False)
+
+    def by_agent(self, agent_id) -> "RecrutementQuerySet":
+        return self.filter(
+            agents_liaisons__agent_id=str(agent_id),
+            agents_liaisons__date_revocation__isnull=True,
+        )
+
+    def with_offre(self) -> "RecrutementQuerySet":
+        return self.select_related("offre")
+
     def with_detail(self) -> "RecrutementQuerySet":
-        return self.with_organisme().select_related("offre").prefetch_related("etapes")
+        return (
+            self.with_organisme()
+            .with_offre()
+            .prefetch_related("etapes", "offre__localisations")
+        )
+
+    def with_responsables(self) -> "RecrutementQuerySet":
+        return self.prefetch_related(
+            Prefetch(
+                "agents_liaisons",
+                queryset=RecrutementAgentModel.objects.responsables().select_related(
+                    "agent__utilisateur"
+                ),
+                to_attr="responsables",
+            )
+        )
+
+    def with_compteurs_candidatures(self) -> "RecrutementQuerySet":
+        return self.annotate(
+            derniere_activite=Coalesce(
+                _candidatures_subquery(Max("updated_at")),
+                F("offre__publication_date"),
+            ),
+            candidatures_total=Coalesce(_candidatures_subquery(Count("pk")), 0),
+            candidatures_a_traiter=Coalesce(
+                _candidatures_subquery(
+                    Count("pk"), categorie=CategorieEtapeRecrutement.ENTREE.value
+                ),
+                0,
+            ),
+            candidatures_en_cours=Coalesce(
+                _candidatures_subquery(
+                    Count("pk"), categorie=CategorieEtapeRecrutement.EN_COURS.value
+                ),
+                0,
+            ),
+        )
+
+    def with_recrute(self) -> "RecrutementQuerySet":
+        return self.prefetch_related(
+            Prefetch(
+                "etapes",
+                queryset=EtapeModel.objects.filter(
+                    categorie=CategorieEtapeRecrutement.ACCEPTE.value
+                ).prefetch_related(
+                    Prefetch(
+                        "candidatures",
+                        queryset=CandidatureModel.objects.select_related(
+                            "candidat__utilisateur"
+                        ),
+                    )
+                ),
+                to_attr="etapes_acceptees",
+            )
+        ).annotate(
+            nb_candidatures_acceptees=Coalesce(
+                _candidatures_subquery(
+                    Count("pk"), categorie=CategorieEtapeRecrutement.ACCEPTE.value
+                ),
+                0,
+            ),
+            finalise=Case(
+                When(nb_candidatures_acceptees__gt=0, then=Value(True)),
+                default=Value(False),
+                output_field=BooleanField(),
+            ),
+        )
 
     def with_role_of(self, agent_id) -> "RecrutementQuerySet":
         return self.annotate(
@@ -27,15 +153,8 @@ class RecrutementQuerySet(models.QuerySet):
             )
         )
 
-    def by_organisme_and_recrutement(
-        self, organisme_id, recrutement_id
-    ) -> "RecrutementQuerySet":
-        return self.filter(organisme_id=organisme_id, pk=recrutement_id)
-
-    def by_organisme_and_recrutements(
-        self, organisme_id, recrutement_ids
-    ) -> "RecrutementQuerySet":
-        return self.filter(organisme_id=organisme_id, pk__in=recrutement_ids)
+    def with_organisme_role(self, role: AgentOrganismeRole) -> "RecrutementQuerySet":
+        return self.annotate(organisme_role=Value(role.value))
 
 
 class RecrutementModel(models.Model):
@@ -92,6 +211,11 @@ class RecrutementAgentQuerySet(models.QuerySet):
             .exists()
         )
 
+    def organisme_as_responsable(self, agent_id) -> "RecrutementAgentQuerySet":
+        return (
+            self.responsables().filter(agent_id=agent_id).select_related("recrutement")
+        )
+
     def by_recrutement(self, recrutement_id) -> "RecrutementAgentQuerySet":
         return (
             self.select_related("agent__utilisateur")
@@ -144,3 +268,7 @@ class RecrutementAgentModel(BaseDatedModel):
 
     def __str__(self) -> str:
         return str(self.id)
+
+    @property
+    def nom(self) -> str:
+        return self.agent.utilisateur.get_full_name() or self.agent.utilisateur.email

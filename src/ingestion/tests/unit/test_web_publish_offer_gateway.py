@@ -25,16 +25,19 @@ from referentiel.value_objects.offer_conditions import (
 )
 from referentiel.value_objects.offer_nature import OfferNature
 from referentiel.value_objects.region import Region
+from referentiel.value_objects.required_document import RequiredDocument
 from referentiel.value_objects.verse import Verse
 
 from domain.entities.offer import Offer
 from domain.gateways.publish_offer_input import PublishOfferInput
 from domain.value_objects.contact import Contact, ContactRole
+from infrastructure.di.container import Container
 from infrastructure.exceptions.exceptions import ExternalApiError
 from infrastructure.external_gateways.base_web_gateway import WebGatewayCredentials
 from infrastructure.external_gateways.web_publish_offer_gateway import (
     WebPublishOfferGateway,
 )
+from tests.conftest import METIERS_URL
 from tests.conftest import PUBLISH_OFFER_URL as PUBLISH_URL
 from tests.conftest import WEB_API_KEY as API_KEY
 from tests.conftest import WEB_BASE_URL as BASE_URL
@@ -96,6 +99,7 @@ def gateway():
     return WebPublishOfferGateway(
         client=client,
         credentials=WebGatewayCredentials(base_url=BASE_URL, api_key=API_KEY),
+        metiers_multi_domaines={"ERJUS008", "ERTRA007"},
     )
 
 
@@ -135,7 +139,7 @@ async def test_publish_serializes_minimal_offer(gateway, httpx_mock: HTTPXMock):
     assert offer["identification"]["reference"] == "2024-OFFER-001"
     assert offer["identification"]["versant"] == "FPT"
     assert offer["titre"] == "Software Engineer"
-    assert offer["titre_long"] == "Software Engineer"
+    assert "titre_long" not in offer
     assert offer["organisation"]["nom"] == "City Hall"
     assert offer["organisation"]["siret"] == ""
     assert offer["organisation"]["talentsoft_organisme_entity_code"] == "12345"
@@ -143,8 +147,7 @@ async def test_publish_serializes_minimal_offer(gateway, httpx_mock: HTTPXMock):
     assert offer["url_candidature"] is None
     assert offer["email_candidature"] is None
     assert offer["profession"]["referentiel"] == "RMFPv2"
-    assert offer["profession"]["domaine"] == "INF"
-    assert offer["profession"]["metier"] == "INF001"
+    assert offer["profession"] == {"referentiel": "RMFPv2", "metier": "INF001"}
     assert offer["categories"] == []
     assert offer["nature_offre"] == "TITULAIRE_CONTRACTUEL"
     assert offer["type_contrat"] is None
@@ -206,17 +209,68 @@ async def test_publish_serializes_management(gateway, httpx_mock: HTTPXMock):
 
 
 @pytest.mark.asyncio
-async def test_publish_serializes_domaine_skipping_er_prefix(
+async def test_publish_omits_domaine_for_single_domaine_metier(
     gateway, httpx_mock: HTTPXMock
 ):
     httpx_mock.add_response(method="POST", url=PUBLISH_URL, status_code=201)
-    offer = Offer(**{**MINIMAL_OFFER.__dict__, "family_code": "ERMED007"})
+    offer = Offer(**{**MINIMAL_OFFER.__dict__, "family_code": "ERSEC031"})
 
     await gateway.publish(PublishOfferInput(source_id=SOURCE_ID, offer=offer))
 
     body = json.loads(httpx_mock.get_requests()[0].content)
-    assert body["offres"][0]["profession"]["domaine"] == "MED"
-    assert body["offres"][0]["profession"]["metier"] == "ERMED007"
+    assert body["offres"][0]["profession"] == {
+        "referentiel": "RMFPv2",
+        "metier": "ERSEC031",
+    }
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    ("family_code", "domaine"), [("ERJUS008", "JUS"), ("ERTRA007", "TRA")]
+)
+async def test_publish_serializes_domaine_skipping_er_prefix_for_multi_domaines_metier(
+    gateway, httpx_mock: HTTPXMock, family_code, domaine
+):
+    httpx_mock.add_response(method="POST", url=PUBLISH_URL, status_code=201)
+    offer = Offer(**{**MINIMAL_OFFER.__dict__, "family_code": family_code})
+
+    await gateway.publish(PublishOfferInput(source_id=SOURCE_ID, offer=offer))
+
+    body = json.loads(httpx_mock.get_requests()[0].content)
+    assert body["offres"][0]["profession"] == {
+        "referentiel": "RMFPv2",
+        "domaine": domaine,
+        "metier": family_code,
+    }
+
+
+@pytest.mark.asyncio
+async def test_container_publishes_with_metiers_multi_domaines_it_loaded(
+    httpx_mock: HTTPXMock,
+):
+    container = Container()
+    container.config.web_base_url.from_value(BASE_URL)
+    container.config.web_api_key.from_value(API_KEY)
+    httpx_mock.add_response(
+        url=f"{METIERS_URL}?taille=1000&page=1",
+        json={
+            "next": None,
+            "results": [
+                {"code_emploi_csp": "ERJUS008", "domaine_fonctionnel_code": "JUS"},
+                {"code_emploi_csp": "ERJUS008", "domaine_fonctionnel_code": "CTL"},
+            ],
+        },
+    )
+    httpx_mock.add_response(method="POST", url=PUBLISH_URL, status_code=201)
+    offer = replace(MINIMAL_OFFER, family_code="ERJUS008")
+
+    await container.load_metiers_multi_domaines_usecase().execute()
+    await container.publish_offer_gateway().publish(
+        PublishOfferInput(source_id=SOURCE_ID, offer=offer)
+    )
+
+    body = json.loads(httpx_mock.get_requests(method="POST")[0].content)
+    assert body["offres"][0]["profession"]["domaine"] == "JUS"
 
 
 @pytest.mark.asyncio
@@ -544,6 +598,70 @@ async def test_publish_serializes_criteres_with_languages(
     body = json.loads(httpx_mock.get_requests()[0].content)
     assert body["offres"][0]["criteres"] == {
         "langues": [{"iso_code": "EN", "niveau": "B2"}]
+    }
+
+
+@pytest.mark.asyncio
+async def test_publish_serializes_criteres_with_required_skills(
+    gateway, httpx_mock: HTTPXMock
+):
+    httpx_mock.add_response(method="POST", url=PUBLISH_URL, status_code=201)
+    offer = Offer(
+        **{**MINIMAL_OFFER.__dict__, "required_skills": "Travailler en équipe"}
+    )
+
+    await gateway.publish(PublishOfferInput(source_id=SOURCE_ID, offer=offer))
+
+    body = json.loads(httpx_mock.get_requests()[0].content)
+    assert body["offres"][0]["criteres"] == {
+        "competences_requises": "Travailler en équipe"
+    }
+
+
+@pytest.mark.asyncio
+async def test_publish_serializes_criteres_with_required_documents(
+    gateway, httpx_mock: HTTPXMock
+):
+    httpx_mock.add_response(method="POST", url=PUBLISH_URL, status_code=201)
+    offer = Offer(
+        **{
+            **MINIMAL_OFFER.__dict__,
+            "required_documents": [
+                RequiredDocument.CV,
+                RequiredDocument.LETTRE_MOTIVATION,
+            ],
+        }
+    )
+
+    await gateway.publish(PublishOfferInput(source_id=SOURCE_ID, offer=offer))
+
+    body = json.loads(httpx_mock.get_requests()[0].content)
+    assert body["offres"][0]["criteres"] == {
+        "documents_requis": ["CV", "LETTRE_MOTIVATION"]
+    }
+
+
+@pytest.mark.asyncio
+async def test_publish_serializes_legal_basis_and_vacancy_notice_url(
+    gateway, httpx_mock: HTTPXMock
+):
+    httpx_mock.add_response(method="POST", url=PUBLISH_URL, status_code=201)
+    offer = Offer(
+        **{
+            **MINIMAL_OFFER.__dict__,
+            "legal_basis": "Art. L332-2 du code général de la fonction publique",
+            "vacancy_notice_url": HttpUrl("https://www.legifrance.gouv.fr/jorf/id/1"),
+        }
+    )
+
+    await gateway.publish(PublishOfferInput(source_id=SOURCE_ID, offer=offer))
+
+    body = json.loads(httpx_mock.get_requests()[0].content)
+    assert body["offres"][0]["conditions"] == {
+        "temps_travail": "NON_DEFINI",
+        "lieu_de_travail": "NON_DEFINI",
+        "bases_legales": "Art. L332-2 du code général de la fonction publique",
+        "note_ouverture_poste_url": "https://www.legifrance.gouv.fr/jorf/id/1",
     }
 
 

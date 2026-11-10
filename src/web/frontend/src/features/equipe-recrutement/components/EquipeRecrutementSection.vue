@@ -1,35 +1,37 @@
 <script setup lang="ts">
 import type { RecrutementRole } from '../types'
-import { computed, ref, useTemplateRef, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { isHttpStatus } from '@/api/errors'
 import CspAsyncSection from '@/components/base/CspAsyncSection/CspAsyncSection.vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspDataTable from '@/components/base/CspDataTable/CspDataTable.vue'
+import { TABLE_PAGE_SIZE } from '@/components/base/CspDataTable/table'
 import CspDialog from '@/components/base/CspDialog/CspDialog.vue'
+import CspDrawer from '@/components/base/CspDrawer/CspDrawer.vue'
 import CspSearchBar from '@/components/base/CspSearchBar/CspSearchBar.vue'
 import CspSkeletonTable from '@/components/base/CspSkeleton/CspSkeletonTable.vue'
 import CspTableToolbar from '@/components/base/CspTableToolbar/CspTableToolbar.vue'
 import { useMinimumPending } from '@/composables/async/useMinimumPending'
 import { useTextSearch } from '@/composables/data/useTextSearch'
 import { useToast } from '@/composables/ui/useToast'
+import AgentRoleForm from '@/features/agents/components/AgentRoleForm.vue'
 import { formatAgentLabel } from '@/features/agents/format'
-import { useRouteOrganisme } from '@/stores/routeOrganisme'
+import { useRecrutementDetail } from '@/features/recrutements/composables/useRecrutementDetail'
+import { can } from '@/utils/authorizedActions'
 import { pluralize } from '@/utils/format'
 import { EQUIPE_RECRUTEMENT_ACTIONS_COLUMN, EQUIPE_RECRUTEMENT_COLUMNS } from '../columns'
 import { useAddAgentToRecrutement } from '../composables/useAddAgentToRecrutement'
 import { useEquipeRecrutement } from '../composables/useEquipeRecrutement'
 import { provideMembreEquipeActions } from '../composables/useMembreEquipeActions'
-import { RECRUTEMENT_ROLE_LABELS } from '../constants/equipe-recrutement'
-import AjoutMembreEquipeDrawer from './AjoutMembreEquipeDrawer.vue'
+import { RECRUTEMENT_ROLE_LABELS, RECRUTEMENT_ROLE_OPTIONS } from '../constants/equipe-recrutement'
+import AddTeamMemberForm from './AddTeamMemberForm.vue'
 
 const props = defineProps<{
   organismeUuid: string
   recrutementUuid: string
 }>()
 
-const PAGE_SIZE = 8
-
-const { membres, pending, error, revoke, revoking, changeRole } = useEquipeRecrutement(
+const { membres, pending, error, revoke, revoking, changeRole, changingRole } = useEquipeRecrutement(
   props.organismeUuid,
   props.recrutementUuid,
 )
@@ -42,22 +44,37 @@ const {
   submitting,
   reset: resetAgent,
 } = useAddAgentToRecrutement(props.organismeUuid, props.recrutementUuid)
-const { revocation, roleChange } = provideMembreEquipeActions()
-const { canManageOrganisme } = useRouteOrganisme()
+const { recrutementDetail } = useRecrutementDetail(() => props)
+const actions = computed(() => recrutementDetail.value?.authorized_actions)
+const canAdd = computed(() => can(actions.value, 'add_recrutement_agent'))
+const canChangeRole = computed(() => can(actions.value, 'update_recrutement_agent'))
+const canRevoke = computed(() => can(actions.value, 'revoke_recrutement_agent'))
+const { revocation, roleChange } = provideMembreEquipeActions({ canRevoke, canChangeRole })
 const { addToast } = useToast()
 
 const showSkeleton = useMinimumPending(pending)
 
 const page = ref(1)
-const ajoutDrawerOpen = ref(false)
-const ajoutDrawer = useTemplateRef('ajoutDrawer')
+const addMemberDrawerOpen = ref(false)
+const addMemberEmailError = ref('')
 const revocationDialogOpen = ref(false)
+const roleDrawerOpen = ref(false)
 
 const columns = computed(() =>
-  canManageOrganisme.value
+  canChangeRole.value || canRevoke.value
     ? [...EQUIPE_RECRUTEMENT_COLUMNS, EQUIPE_RECRUTEMENT_ACTIONS_COLUMN]
     : EQUIPE_RECRUTEMENT_COLUMNS,
 )
+
+function resetAgentSearch(): void {
+  addMemberEmailError.value = ''
+  resetAgent()
+}
+
+function openAddMemberDrawer(): void {
+  resetAgentSearch()
+  addMemberDrawerOpen.value = true
+}
 
 async function handleAdd(role: RecrutementRole) {
   try {
@@ -67,23 +84,34 @@ async function handleAdd(role: RecrutementRole) {
       title: 'Membre ajouté',
       description: `${formatAgentLabel(membre)} a rejoint l'équipe de recrutement.`,
     })
-    ajoutDrawerOpen.value = false
+    addMemberDrawerOpen.value = false
   }
   catch (submitError) {
     if (isHttpStatus(submitError, 409)) {
-      ajoutDrawer.value?.setEmailError('Cette personne fait déjà partie de l\'équipe.')
+      addMemberEmailError.value = 'Cette personne fait déjà partie de l\'équipe.'
       return
     }
     addToast({ variant: 'error', title: 'L\'ajout du membre a échoué' })
   }
 }
 
-watch(() => roleChange.requested, async (change) => {
-  if (!change) {
+watch(() => roleChange.requested, (membre) => {
+  if (membre) {
+    roleDrawerOpen.value = true
+  }
+})
+
+watch(roleDrawerOpen, (isOpen) => {
+  if (!isOpen) {
+    roleChange.clear()
+  }
+})
+
+async function handleRoleChange(role: RecrutementRole): Promise<void> {
+  const membre = roleChange.requested
+  if (!membre) {
     return
   }
-  const { membre, role } = change
-  roleChange.clear()
   try {
     await changeRole({ membre, role })
     addToast({
@@ -91,11 +119,12 @@ watch(() => roleChange.requested, async (change) => {
       title: 'Rôle modifié',
       description: `${formatAgentLabel(membre)} est maintenant ${RECRUTEMENT_ROLE_LABELS[role].toLowerCase()} sur ce recrutement.`,
     })
+    roleDrawerOpen.value = false
   }
   catch {
     addToast({ variant: 'error', title: 'La modification du rôle a échoué' })
   }
-})
+}
 
 watch(() => revocation.requested, (membre) => {
   if (membre) {
@@ -151,7 +180,7 @@ const countLabel = computed(() => {
       </h2>
       <p class="equipe-recrutement-section__description">
         L'équipe de recrutement regroupe les utilisateurs qui participent au traitement
-        des candidatures sur cette offre.
+        des candidatures de ce recrutement.
       </p>
     </div>
 
@@ -163,9 +192,7 @@ const countLabel = computed(() => {
     >
       <template #skeleton>
         <CspSkeletonTable
-          :rows="PAGE_SIZE"
           :columns="columns.length"
-          with-footer
         />
       </template>
 
@@ -176,14 +203,13 @@ const countLabel = computed(() => {
           label="Rechercher un membre, un courriel"
           hide-label
           placeholder="Rechercher un membre, un courriel"
-          class="equipe-recrutement-section__search"
         />
         <CspButton
-          v-if="canManageOrganisme"
+          v-if="canAdd"
           label="Ajouter un membre"
           icon="ri:user-add-line"
           is-icon-left
-          @click="ajoutDrawerOpen = true"
+          @click="openAddMemberDrawer"
         />
       </CspTableToolbar>
       <CspDataTable
@@ -192,7 +218,7 @@ const countLabel = computed(() => {
         :columns="columns"
         :row-key="row => row.uuid"
         caption="Équipe de recrutement"
-        :page-size="PAGE_SIZE"
+        :page-size="TABLE_PAGE_SIZE"
       >
         <template #empty>
           <div class="equipe-recrutement-section__empty">
@@ -209,17 +235,41 @@ const countLabel = computed(() => {
       </CspDataTable>
     </CspAsyncSection>
 
-    <AjoutMembreEquipeDrawer
-      ref="ajoutDrawer"
-      v-model:open="ajoutDrawerOpen"
-      :status="agentStatus"
-      :agent="foundAgent"
-      :searching="searching"
-      :submitting="submitting"
-      @search="searchAgent"
-      @add="handleAdd"
-      @reset="resetAgent"
-    />
+    <CspDrawer
+      v-model:open="addMemberDrawerOpen"
+      title="Ajouter un membre"
+      size="md"
+    >
+      <AddTeamMemberForm
+        :status="agentStatus"
+        :agent="foundAgent"
+        :searching="searching"
+        :submitting="submitting"
+        :email-error="addMemberEmailError"
+        @search="searchAgent"
+        @add="handleAdd"
+        @reset="resetAgentSearch"
+        @cancel="addMemberDrawerOpen = false"
+      />
+    </CspDrawer>
+
+    <CspDrawer
+      v-model:open="roleDrawerOpen"
+      title="Modifier les droits d'accès"
+      size="md"
+    >
+      <AgentRoleForm
+        v-if="roleChange.requested"
+        :key="roleChange.requested.uuid"
+        :email="roleChange.requested.email"
+        :role="roleChange.requested.recrutement_role"
+        role-label="Rôle dans le recrutement"
+        :options="RECRUTEMENT_ROLE_OPTIONS"
+        :submitting="changingRole"
+        @submit="handleRoleChange"
+        @cancel="roleDrawerOpen = false"
+      />
+    </CspDrawer>
 
     <CspDialog
       v-model:open="revocationDialogOpen"
@@ -264,10 +314,6 @@ const countLabel = computed(() => {
   color: var(--text-mention-grey);
   font-size: 0.875rem;
   max-width: 65ch;
-}
-
-.equipe-recrutement-section__search {
-  min-width: 20rem;
 }
 
 .equipe-recrutement-section__empty {

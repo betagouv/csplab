@@ -11,10 +11,6 @@ interface UnsavedInput {
   isLeftBy?: NavigationPredicate
 }
 
-interface UnsavedChangesGuardOptions {
-  ignore?: NavigationPredicate
-}
-
 interface PendingConfirmation {
   resolve: (leave: boolean) => void
   inputs: UnsavedInput[]
@@ -22,7 +18,7 @@ interface PendingConfirmation {
 
 const UNSAVED_INPUTS: InjectionKey<Set<UnsavedInput>> = Symbol('unsavedInputs')
 
-export function useUnsavedChangesGuard({ ignore }: UnsavedChangesGuardOptions = {}) {
+export function useUnsavedChangesGuard() {
   const inputs = shallowReactive(new Set<UnsavedInput>())
   provide(UNSAVED_INPUTS, inputs)
 
@@ -49,12 +45,8 @@ export function useUnsavedChangesGuard({ ignore }: UnsavedChangesGuardOptions = 
     })
   }
 
-  function isLeftBy(input: UnsavedInput, to: RouteLocationNormalized, from: RouteLocationNormalized): boolean {
-    return input.isLeftBy?.(to, from) ?? !ignore?.(to, from)
-  }
-
   const removeGuard = useRouter().beforeEach((to, from) =>
-    confirmLeave([...inputs].filter(input => isLeftBy(input, to, from))),
+    confirmLeave([...inputs].filter(input => input.isLeftBy?.(to, from) ?? true)),
   )
   onScopeDispose(removeGuard)
 

@@ -141,6 +141,8 @@ const model = defineModel<string>()
 </template>
 
 <style scoped lang="scss">
+@use '@/styles/menu';
+
 .csp-select {
   display: flex;
   width: 100%;
@@ -261,9 +263,18 @@ const model = defineModel<string>()
   border-radius: 0.25rem;
   box-shadow:
     inset 0 0 0 1px var(--border-default-grey),
-    var(--csp-shadow-md);
+    var(--csp-overlap-shadow);
   overflow: hidden;
   z-index: var(--csp-z-dropdown);
+  transform-origin: var(--reka-popper-transform-origin);
+
+  &[data-state='open'] {
+    animation: var(--csp-motion-overlap-enter);
+  }
+
+  &[data-state='closed'] {
+    animation: var(--csp-motion-overlap-exit);
+  }
 }
 
 :deep(.csp-select-content__viewport) {
@@ -271,27 +282,14 @@ const model = defineModel<string>()
 }
 
 :deep(.csp-select-content__item) {
-  display: flex;
-  align-items: center;
+  @include menu.item;
+
   justify-content: space-between;
-  gap: var(--csp-menu-item-gap);
-  padding: var(--csp-menu-item-padding);
   font-size: 0.875rem;
   line-height: 1.25;
-  border-radius: 0.125rem;
-  cursor: pointer;
-  outline: none;
-  color: var(--text-default-grey);
-  user-select: none;
-
-  &[data-highlighted] {
-    background-color: var(--background-default-grey-hover);
-    color: var(--text-action-high-blue-france);
-  }
 
   &[data-disabled] {
     pointer-events: none;
-    color: var(--text-disabled-grey);
   }
 }
 

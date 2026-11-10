@@ -1,3 +1,4 @@
+from collections.abc import Iterable
 from datetime import datetime
 from typing import Optional
 from uuid import UUID
@@ -6,6 +7,7 @@ from ddd.mapper_interface import IToDomainMapper
 from pydantic import HttpUrl
 from referentiel.entities.offer import Offer
 from referentiel.entities.talentsoft_organisme import TalentsoftOrganisme
+from referentiel.value_objects._choices import TextChoices
 from referentiel.value_objects.area import GeographicalArea
 from referentiel.value_objects.category import Category
 from referentiel.value_objects.contract_kind import ContractKind
@@ -13,16 +15,29 @@ from referentiel.value_objects.country import Country
 from referentiel.value_objects.department import Department
 from referentiel.value_objects.limit_date import LimitDate
 from referentiel.value_objects.localisation import Localisation
-from referentiel.value_objects.offer_conditions import JobVacancy
+from referentiel.value_objects.offer_conditions import (
+    JobVacancy,
+    Management,
+    WorkingPlace,
+    WorkingTime,
+)
 from referentiel.value_objects.offer_criteria import OfferCriteria, OfferLanguage
 from referentiel.value_objects.offer_nature import OfferNature
 from referentiel.value_objects.region import Region
+from referentiel.value_objects.required_document import (
+    TALENTSOFT_REQUIRED_DOCUMENTS,
+)
 from referentiel.value_objects.siret import SIRET
+from referentiel.value_objects.state_diploma import (
+    TALENTSOFT_STATE_DIPLOMA_TYPE,
+    talentsoft_state_diploma_by_label,
+)
 from referentiel.value_objects.verse import Verse
 
 from application.ingestion.interfaces.upsert_organismes_input import (
     OrganismeUpsertData,
 )
+from presentation.commons.markdown import render_markdown_without_headings
 
 
 class LocalisationInputMapper(IToDomainMapper[dict, Localisation]):
@@ -32,8 +47,10 @@ class LocalisationInputMapper(IToDomainMapper[dict, Localisation]):
         return Localisation(
             area=GeographicalArea(data["zone_geographique"]),
             country=Country(data["pays"]),
-            region=Region(code=data["region"]),
-            department=Department(code=data["departement"]),
+            region=Region(code=data["region"]) if data["region"] else None,
+            department=(
+                Department(code=data["departement"]) if data["departement"] else None
+            ),
             label=data.get("localisation_label") or None,
             latitude=data.get("latitude"),
             longitude=data.get("longitude"),
@@ -48,15 +65,14 @@ class OfferInputMapper(IToDomainMapper[dict, Offer]):
         if not data:
             return None
 
-        # todo handle multiple categories offers later
-        category = (
-            Category(sorted(data["categories"])[0]) if data.get("categories") else None
-        )
         conditions = data.get("conditions") or None
         debut_contrat = conditions.get("debut_contrat") if conditions else None
 
-        localisations = data.get("localisation", [])
-        raw_localisation = localisations[0] if localisations else None
+        localisations = [
+            localisation
+            for raw_localisation in data.get("localisation") or []
+            if (localisation := self._localisation_mapper.to_domain(raw_localisation))
+        ]
 
         return Offer(
             reference=data["identification"]["reference"],
@@ -65,11 +81,12 @@ class OfferInputMapper(IToDomainMapper[dict, Offer]):
             mission=data["description"]["mission"],
             organization=data["organisation"]["nom"],
             publication_date=data["publication"]["debut_publication"],
+            end_publication_date=data["publication"]["fin_publication"],
             verse=Verse(data["identification"]["versant"]),
-            category=category,
+            categories=[Category(c) for c in data["categories"]],
             offer_nature=OfferNature(data["nature_offre"]),
             offer_url=data.get("url_offre"),
-            localisation=self._localisation_mapper.to_domain(raw_localisation),
+            localisations=localisations,
             beginning_date=LimitDate(debut_contrat) if debut_contrat else None,
             family_code=data["profession"]["metier"],
             job_family_referential=data["profession"].get("referentiel"),
@@ -129,11 +146,12 @@ class OfferSummaryOutputMapper:
     }
 
     def to_dict(self, offer: Offer) -> dict:
+        main = offer.main_localisation
         return {
             "reference": offer.reference,
             "isTopOffer": False,
             "title": offer.title,
-            "location": offer.localisation.label if offer.localisation else None,
+            "location": main.label if main else None,
             "modificationDate": self._isoformat(
                 offer.processed_at or offer.publication_date
             ),
@@ -143,50 +161,58 @@ class OfferSummaryOutputMapper:
             if offer.offer_nature
             else None,
             "offerFamilyCategory": self._coded_object(
-                offer.category.name, offer.category.value, "offerFamilyCategory"
+                offer.main_category.name,
+                offer.main_category.value,
+                "offerFamilyCategory",
             )
-            if offer.category
+            if offer.main_category
             else None,
             "organisationName": offer.organization,
-            "organisationDescription": offer.employer,
+            "organisationDescription": offer.talentsoft_organisme.description
+            if offer.talentsoft_organisme
+            else None,
             "organisationLogoUrl": None,
             "contractDuration": (offer.conditions or {}).get("duree_contrat") or None,
             "contractTypeCountry": None,
             "description1": offer.mission,
             "description2": offer.profile,
-            "description1Formatted": None,
-            "description2Formatted": None,
-            "salaryRange": None,
-            "geographicalLocation": [],
-            "country": [
-                self._coded_object(
-                    str(offer.localisation.country),
-                    offer.localisation.country.short_name,
-                    "country",
-                )
-            ]
-            if offer.localisation
-            else [],
-            "region": [
-                self._coded_object(
-                    offer.localisation.region.code,
-                    offer.localisation.region.name,
-                    "region",
-                )
-            ]
-            if offer.localisation
-            else [],
-            "department": [
-                self._coded_object(
-                    offer.localisation.department.code,
-                    offer.localisation.department.name,
-                    "department",
-                )
-            ]
-            if offer.localisation
-            else [],
-            "latitude": offer.localisation.latitude if offer.localisation else None,
-            "longitude": offer.localisation.longitude if offer.localisation else None,
+            "description1Formatted": self._formatted(offer.mission),
+            "description2Formatted": self._formatted(offer.profile),
+            "salaryRange": self._coded_object(
+                offer.verse.name, offer.verse.label, "salaryRange"
+            )
+            if offer.verse
+            else None,
+            # One element per distinct localisation value
+            "geographicalLocation": self._unique_coded_objects(
+                "geographicalLocation",
+                ((loc.area.name, loc.area.label) for loc in offer.localisations),
+            ),
+            "country": self._unique_coded_objects(
+                "country",
+                (
+                    (str(loc.country), loc.country.short_name)
+                    for loc in offer.localisations
+                ),
+            ),
+            "region": self._unique_coded_objects(
+                "region",
+                (
+                    (loc.region.code, loc.region.name)
+                    for loc in offer.localisations
+                    if loc.region
+                ),
+            ),
+            "department": self._unique_coded_objects(
+                "department",
+                (
+                    (loc.department.code, loc.department.name)
+                    for loc in offer.localisations
+                    if loc.department
+                ),
+            ),
+            "latitude": main.latitude if main else None,
+            "longitude": main.longitude if main else None,
             "professionalCategory": self._professional_category(offer.job_vacancy),
             "_links": [],
             "offerUrl": str(offer.offer_url) if offer.offer_url else None,
@@ -215,6 +241,10 @@ class OfferSummaryOutputMapper:
         )
 
     @staticmethod
+    def _formatted(markdown: Optional[str]) -> Optional[str]:
+        return str(render_markdown_without_headings(markdown)) or None
+
+    @staticmethod
     def _isoformat(value: Optional[datetime]) -> Optional[str]:
         if not value:
             return None
@@ -226,6 +256,15 @@ class OfferSummaryOutputMapper:
         date_part, _, frac = naive_value.isoformat().partition(".")
         centiseconds = round(int(frac) / 10_000)
         return f"{date_part}.{centiseconds:02d}"
+
+    @classmethod
+    def _unique_coded_objects(
+        cls, type_name: str, codes_and_labels: Iterable[tuple[str, str]]
+    ) -> list[dict]:
+        return [
+            cls._coded_object(code, label, type_name)
+            for code, label in dict.fromkeys(codes_and_labels)
+        ]
 
     @staticmethod
     def _coded_object(client_code: str, label: str, type_name: str) -> dict:
@@ -241,18 +280,19 @@ class OfferSummaryOutputMapper:
         }
 
 
+_TALENTSOFT_REQUIRED_DOCUMENTS = {
+    frozenset(value.documents): value for value in TALENTSOFT_REQUIRED_DOCUMENTS
+}
+
+
 class OfferDetailOutputMapper(OfferSummaryOutputMapper):
     def to_dict(self, offer: Offer) -> dict:
         criteria = offer.criteria
 
+        main = offer.main_localisation
         geolocation = (
-            {
-                "latitude": offer.localisation.latitude,
-                "longitude": offer.localisation.longitude,
-            }
-            if offer.localisation
-            and offer.localisation.latitude is not None
-            and offer.localisation.longitude is not None
+            {"latitude": main.latitude, "longitude": main.longitude}
+            if main and main.latitude is not None and main.longitude is not None
             else None
         )
 
@@ -261,25 +301,11 @@ class OfferDetailOutputMapper(OfferSummaryOutputMapper):
             "applicationUrl": str(offer.application_url)
             if offer.application_url
             else None,
-            "endPublicationDate": None,
+            "endPublicationDate": self._isoformat(offer.end_publication_date),
             "isAnonymousOrganisation": False,
             "organisation": self._talentsoft_organisation(offer.talentsoft_organisme)
             if offer.talentsoft_organisme
-            else {
-                "entityCode": "",
-                "name": offer.organization,
-                "description": offer.employer,
-                "url": str(offer.offer_url) if offer.offer_url else None,
-                "phoneNumber": None,
-                "postCode": None,
-                "geolocation": geolocation,
-                "parentName": None,
-                "logoUrl": None,
-                "maxDelayForConsent": None,
-                "retentionPeriod": None,
-                "generalConditions": None,
-                "personalDataConsent": None,
-            },
+            else {},
             "operationalManager": None,
             "educationLevel": self._coded_object(
                 str(criteria.diploma_level.value),
@@ -288,9 +314,7 @@ class OfferDetailOutputMapper(OfferSummaryOutputMapper):
             )
             if criteria and criteria.diploma_level is not None
             else None,
-            "diploma": self._coded_object(criteria.diploma, criteria.diploma, "diploma")
-            if criteria and criteria.diploma
-            else None,
+            "diploma": None,
             "experienceLevel": self._coded_object(
                 criteria.experience_level.name,
                 criteria.experience_level.value,
@@ -314,30 +338,127 @@ class OfferDetailOutputMapper(OfferSummaryOutputMapper):
         }
 
     def _custom_fields(self, offer: Offer) -> dict:
+        competences_requises = (
+            offer.criteria.competences_requises if offer.criteria else None
+        )
+        conditions = offer.conditions or {}
+        bases_legales = conditions.get("bases_legales") or None
+        note_ouverture_poste_url = conditions.get("note_ouverture_poste_url") or None
+        contacts = {
+            contact["role"]: contact["texte"] for contact in offer.contacts or []
+        }
+        main = offer.main_localisation
         return {
             "offer": self._dynamic_field(
-                date1=self._isoformat(offer.application_deadline)
+                date1=self._isoformat(offer.application_deadline),
+                customCodeTable2=self._csplab_coded_object(
+                    offer.contract_kind, "Nature du contrat"
+                ),
             ),
             "description": self._dynamic_field(
                 longText1=offer.employer,
                 longText2=offer.exercise_conditions,
                 longText3=offer.service_description,
+                longText1Formatted=self._formatted(offer.employer),
+                longText2Formatted=self._formatted(offer.exercise_conditions),
+                longText3Formatted=self._formatted(offer.service_description),
+                customCodeTable1=self._csplab_coded_object(
+                    offer.main_category, "Catégorie"
+                ),
+                customCodeTable3=self._condition_coded_object(
+                    conditions, "temps_travail", WorkingTime, "Temps de travail"
+                ),
             ),
-            "location": self._dynamic_field(
-                shortText1=offer.localisation.label if offer.localisation else None
+            "applicantCriteria": self._dynamic_field(
+                longText1=competences_requises,
+                longText1Formatted=self._formatted(competences_requises),
+                customCodeTable1=self._required_documents(offer.criteria),
             ),
-            "offerCustomBlock1": self._dynamic_field(longText1=offer.complements),
-            "origin": self._dynamic_field(shortText1=offer.application_email),
+            "location": self._dynamic_field(shortText1=main.label if main else None),
+            "offerCustomBlock1": self._dynamic_field(
+                longText1=offer.complements,
+                longText2=bases_legales,
+                longText3=note_ouverture_poste_url,
+                longText1Formatted=self._formatted(offer.complements),
+                longText2Formatted=self._formatted(bases_legales),
+                longText3Formatted=self._formatted(note_ouverture_poste_url),
+                customCodeTable1=self._condition_coded_object(
+                    conditions, "management", Management, "Management"
+                ),
+                customCodeTable2=self._condition_coded_object(
+                    conditions, "lieu_de_travail", WorkingPlace, "Lieu de travail"
+                ),
+                customCodeTable3=self._state_diploma(offer.criteria),
+            ),
+            "origin": self._dynamic_field(
+                shortText1=offer.application_email,
+                shortText2=contacts.get("principal"),
+                shortText3=contacts.get("autre"),
+            ),
         }
 
+    def _csplab_coded_object(
+        self, member: Optional[TextChoices], type_name: str
+    ) -> Optional[dict]:
+        if member is None:
+            return None
+        return self._coded_object(member.name, member.label, type_name)
+
+    def _condition_coded_object(
+        self,
+        conditions: dict,
+        key: str,
+        choices: type[TextChoices],
+        type_name: str,
+    ) -> Optional[dict]:
+        member = choices.__members__.get(conditions.get(key) or "")
+        if member is None or member.name == "NON_DEFINI":
+            return None
+        return self._csplab_coded_object(member, type_name)
+
+    def _state_diploma(self, criteria: Optional[OfferCriteria]) -> Optional[dict]:
+        label = ((criteria.diploma if criteria else None) or "").strip()
+        if not label:
+            return None
+        state_diploma = talentsoft_state_diploma_by_label(label)
+        if state_diploma is None:
+            return self._coded_object("", label, TALENTSOFT_STATE_DIPLOMA_TYPE)
+        return self._coded_object(
+            state_diploma.client_code,
+            state_diploma.label,
+            TALENTSOFT_STATE_DIPLOMA_TYPE,
+        )
+
+    def _required_documents(self, criteria: Optional[OfferCriteria]) -> Optional[dict]:
+        if not criteria:
+            return None
+        talentsoft_value = _TALENTSOFT_REQUIRED_DOCUMENTS.get(
+            frozenset(criteria.documents_requis)
+        )
+        if not talentsoft_value:
+            return None
+        return self._coded_object(
+            talentsoft_value.client_code,
+            talentsoft_value.label,
+            "Documents à transmettre",
+        )
+
     @staticmethod
-    def _dynamic_field(**values: Optional[str]) -> dict:
+    def _dynamic_field(**values: Optional[str | dict]) -> dict:
         return {
             "date1": None,
             "shortText1": None,
+            "shortText2": None,
+            "shortText3": None,
             "longText1": None,
             "longText2": None,
             "longText3": None,
+            "longText1Formatted": None,
+            "longText2Formatted": None,
+            "longText3Formatted": None,
+            "customCodeTable1": None,
+            "customCodeTable2": None,
+            "customCodeTable3": None,
             **values,
         }
 

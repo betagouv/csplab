@@ -4,16 +4,11 @@ from ddd.mapper_interface import IFromDomainMapper, IToDomainMapper
 from pydantic import HttpUrl
 from referentiel.entities.offer import Offer
 from referentiel.entities.talentsoft_organisme import TalentsoftOrganisme
-from referentiel.value_objects.area import GeographicalArea
 from referentiel.value_objects.category import Category
 from referentiel.value_objects.contract_kind import ContractKind
-from referentiel.value_objects.country import Country
-from referentiel.value_objects.department import Department
 from referentiel.value_objects.limit_date import LimitDate
-from referentiel.value_objects.localisation import Localisation
 from referentiel.value_objects.offer_criteria import OfferCriteria
 from referentiel.value_objects.offer_nature import OfferNature
-from referentiel.value_objects.region import Region
 from referentiel.value_objects.verse import Verse
 
 from infrastructure.django_apps.referentiel.models.offer import OfferModel
@@ -23,23 +18,9 @@ class OfferMapper(
     IFromDomainMapper[Offer, OfferModel], IToDomainMapper[OfferModel, Offer]
 ):
     def to_domain(self, model: OfferModel) -> Offer:
-        localisation = None
-
-        if model.region and model.department and model.country and model.area:
-            localisation = Localisation(
-                area=GeographicalArea(model.area),
-                country=Country(model.country),
-                region=Region(code=model.region),
-                department=Department(code=model.department),
-                label=model.location_label,
-                latitude=model.latitude,
-                longitude=model.longitude,
-            )
-
         beginning_date = (
             LimitDate(model.beginning_date) if model.beginning_date else None
         )
-        category = Category(model.category) if model.category else None
         offer_nature = OfferNature(model.offer_nature) if model.offer_nature else None
         offer_url = HttpUrl(model.offer_url) if model.offer_url else None
         verse = Verse(model.verse) if model.verse else None
@@ -54,11 +35,14 @@ class OfferMapper(
             title=model.title,
             profile=model.profile,
             mission=model.mission,
-            category=category,
+            categories=[Category(c) for c in model.categories],
             offer_nature=offer_nature,
             organization=model.organization,
             offer_url=offer_url,
-            localisation=localisation,
+            localisations=[
+                localisation.to_localisation()
+                for localisation in model.localisations.all()
+            ],
             publication_date=model.publication_date,
             beginning_date=beginning_date,
             reference=model.reference,
@@ -81,6 +65,7 @@ class OfferMapper(
             complements=model.complements,
             exercise_conditions=model.exercise_conditions,
             service_description=model.service_description,
+            end_publication_date=model.end_publication_date,
             application_deadline=model.application_deadline,
             job_vacancy_date=model.job_vacancy_date,
             criteria=OfferCriteria.from_dict(model.criteria),
@@ -98,24 +83,7 @@ class OfferMapper(
         return organisme.to_entity() if organisme else None
 
     def from_domain(self, entity: Offer) -> OfferModel:
-        area = None
-        country = None
-        region = None
-        department = None
-        location_label = None
-        latitude = None
-        longitude = None
-        if entity.localisation:
-            area = entity.localisation.area.value
-            country = str(entity.localisation.country)
-            region = entity.localisation.region.code
-            department = entity.localisation.department.code
-            location_label = entity.localisation.label
-            latitude = entity.localisation.latitude
-            longitude = entity.localisation.longitude
-
         beginning_date = entity.beginning_date.value if entity.beginning_date else None
-        category = entity.category.value if entity.category else None
         offer_nature = entity.offer_nature.value if entity.offer_nature else None
         offer_url = str(entity.offer_url) if entity.offer_url else None
 
@@ -128,17 +96,10 @@ class OfferMapper(
             title=entity.title,
             profile=entity.profile,
             mission=entity.mission,
-            category=category,
+            categories=[c.value for c in entity.categories],
             offer_nature=offer_nature,
             organization=entity.organization,
             offer_url=offer_url,
-            area=area,
-            country=country,
-            region=region,
-            department=department,
-            location_label=location_label,
-            latitude=latitude,
-            longitude=longitude,
             code_emploi_csp=entity.family_code,
             job_family_referential=entity.job_family_referential,
             local_job_code=entity.local_job_code,
@@ -160,6 +121,7 @@ class OfferMapper(
             complements=entity.complements,
             exercise_conditions=entity.exercise_conditions,
             service_description=entity.service_description,
+            end_publication_date=entity.end_publication_date,
             application_deadline=entity.application_deadline,
             job_vacancy_date=entity.job_vacancy_date,
             criteria=entity.criteria.to_dict() if entity.criteria else None,

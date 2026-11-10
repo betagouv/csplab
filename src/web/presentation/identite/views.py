@@ -16,9 +16,7 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from application.identite.services.get_utilisateur_details import (
-    get_utilisateur_details,
-)
+from application.identite.services.get_user_info import get_user_info
 from config.logger_names import LoggerName
 from infrastructure.authentication.proconnect_backend import build_proconnect_logout_url
 from infrastructure.authentication.proconnect_client import (
@@ -133,7 +131,7 @@ class UtilisateurDetailsView(SessionApiMixin, APIView):
 
     def get(self, request):
         try:
-            details = get_utilisateur_details(utilisateur=request.user)
+            details = get_user_info(utilisateur=request.user)
             return Response(UtilisateurSerializer(details).data)
         except Exception as e:
             logger.error("Unexpected error in UserInfoView: %s", str(e))

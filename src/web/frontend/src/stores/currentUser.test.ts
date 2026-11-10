@@ -7,10 +7,6 @@ import { defineComponent, h } from 'vue'
 import { getMe } from '@/api/utilisateur'
 import { useCurrentUser } from './currentUser'
 
-vi.mock('@/api/utilisateur', () => ({
-  getMe: vi.fn(),
-}))
-
 function mountUseCurrentUser() {
   let result!: ReturnType<typeof useCurrentUser>
 
@@ -39,6 +35,8 @@ describe('useCurrentUser', () => {
       prenom: 'Jean',
       nom: 'Dupont',
       is_staff: false,
+      authorized_actions: [],
+      organismes: [],
       organisme_roles: [{ organisme_uuid: 'a1a1a1a1-a1a1-a1a1-a1a1-a1a1a1a1a1a1', nom: 'Ministère de la Transition Écologique', role: 'superviseur' }],
     }
     vi.mocked(getMe).mockResolvedValue(userData)

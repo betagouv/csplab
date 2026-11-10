@@ -8,6 +8,7 @@ import CspRadio from '@/components/base/CspRadio/CspRadio.vue'
 export interface CspRadioGroupOption {
   value: string
   label: string
+  hint?: string
   disabled?: boolean
 }
 
@@ -19,6 +20,7 @@ export interface CspRadioGroupProps {
   size?: CspRadioSize
   error?: boolean
   errorMessage?: string
+  columns?: number
 }
 
 withDefaults(defineProps<CspRadioGroupProps>(), {
@@ -28,7 +30,12 @@ withDefaults(defineProps<CspRadioGroupProps>(), {
   size: 'md',
   error: false,
   errorMessage: undefined,
+  columns: 1,
 })
+
+defineSlots<{
+  option?: (props: { option: CspRadioGroupOption }) => unknown
+}>()
 
 const messagesId = useId()
 
@@ -60,16 +67,28 @@ function updateModel(val: unknown): void {
       {{ label }}
     </legend>
 
-    <div class="csp-radio-group__items">
+    <div
+      class="csp-radio-group__items"
+      :class="{ 'csp-radio-group__items--grid': columns > 1 }"
+      :style="columns > 1 ? { '--csp-radio-group-columns': columns } : undefined"
+    >
       <CspRadio
         v-for="option in options"
         :key="option.value"
         :value="option.value"
         :label="option.label"
+        :hint="option.hint"
         :disabled="disabled || option.disabled"
         :size="size"
         :error="error"
-      />
+      >
+        <slot
+          name="option"
+          :option="option"
+        >
+          {{ option.label }}
+        </slot>
+      </CspRadio>
     </div>
 
     <div
@@ -111,6 +130,12 @@ function updateModel(val: unknown): void {
   display: flex;
   flex-direction: column;
   gap: var(--csp-space-2);
+}
+
+.csp-radio-group__items--grid {
+  display: grid;
+  grid-template-columns: repeat(var(--csp-radio-group-columns), minmax(0, 1fr));
+  gap: var(--csp-space-3) var(--csp-space-4);
 }
 
 .csp-radio-group--disabled {

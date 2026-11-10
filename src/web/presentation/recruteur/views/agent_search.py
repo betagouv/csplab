@@ -14,7 +14,6 @@ from domain.identite.errors.organisme_permission_errors import (
 )
 from presentation.api.authentication import SessionApiMixin
 from presentation.api.serializers import GenericErrorSerializer, generic_response_format
-from presentation.recruteur.mappers import UtilisateurMapper
 from presentation.recruteur.serializers import (
     AgentRechercheSerializer,
     RechercheAgentQuerySerializer,
@@ -46,8 +45,7 @@ class AgentRechercheView(SessionApiMixin, APIView):
         try:
             agent = search_agent_by_email(
                 organisme_id=organisme_uuid,
-                # TODO : to refactor in ADR-009 style
-                utilisateur=UtilisateurMapper().to_domain(request),
+                utilisateur=request.user,
                 email=query.validated_data["email"],
             )
         except (AccesOrganismeRefuse, OperationOrganismeRefusee) as e:

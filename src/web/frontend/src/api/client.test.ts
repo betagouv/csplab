@@ -75,13 +75,16 @@ describe('api client', () => {
     expect(getLastRequest().headers.get('X-CSRFToken')).toBe('')
   })
 
-  it('redirects to /utilisateur/connexion on 401', async () => {
+  it('redirects to /utilisateur/connexion on 401 and leaves the request pending', async () => {
     const mockLocation = { href: '', pathname: '/ats/dashboard', search: '' }
     vi.stubGlobal('location', mockLocation)
     mockFetchResponse({}, 401, 'Unauthorized')
+    const settled = vi.fn()
 
-    await expect(api.GET('/utilisateur/me')).rejects.toThrow('Redirecting to login')
-    expect(mockLocation.href).toBe('/utilisateur/connexion?next=%2Fats%2Fdashboard')
+    api.GET('/utilisateur/me').then(settled, settled)
+
+    await vi.waitFor(() => expect(mockLocation.href).toBe('/utilisateur/connexion?next=%2Fats%2Fdashboard'))
+    expect(settled).not.toHaveBeenCalled()
   })
 
   it('throws HttpError on non-validation 4xx', async () => {

@@ -1,10 +1,9 @@
 import type { MaybeRefOrGetter, Ref } from 'vue'
 import type { CandidatureDetail, MotifRefus } from '../types'
 import type { RecrutementParams } from '@/api/params'
-import { toValue } from 'vue'
-import { useToast } from '@/composables/ui/useToast'
-import { useRecrutementDetail } from '@/features/recrutements/composables/useRecrutementDetail'
-import { formatCandidatName } from '../format'
+import { useQuery } from '@pinia/colada'
+import { computed, toValue } from 'vue'
+import { candidatureListeQuery } from '../queries'
 import { useEtapeChangeMutation } from './useEtapeChangeMutation'
 import { useRefusCandidature } from './useRefusCandidature'
 
@@ -13,14 +12,12 @@ export function useEtapeChange(
   candidature: Ref<CandidatureDetail | undefined>,
   leaveMovedCandidature: () => void,
 ) {
-  const { etapes: recrutementEtapes } = useRecrutementDetail(recrutement)
+  const liste = useQuery(() => candidatureListeQuery(toValue(recrutement)))
+  const recrutementEtapes = computed(() => liste.data.value?.etapes ?? [])
   const { changeEtape } = useEtapeChangeMutation(recrutement)
-  const { addToast, dismissToast } = useToast()
   const refus = useRefusCandidature(() => toValue(recrutement).organismeUuid, recrutementEtapes)
 
-  let lastToastId: number | null = null
-
-  async function confirm(targetEtapeUuid: string, motifRefus?: MotifRefus): Promise<void> {
+  function confirm(targetEtapeUuid: string, motifRefus?: MotifRefus): void {
     const moved = candidature.value
     const target = recrutementEtapes.value.find(candidate => candidate.uuid === targetEtapeUuid)
     if (!moved || !target) {
@@ -28,19 +25,7 @@ export function useEtapeChange(
     }
 
     leaveMovedCandidature()
-    const saved = changeEtape({ etapeCibleUuid: targetEtapeUuid, candidatureUuids: [moved.uuid], motifRefus })
-
-    if (!await saved) {
-      return
-    }
-
-    if (lastToastId !== null) {
-      dismissToast(lastToastId)
-    }
-    lastToastId = addToast({
-      variant: 'success',
-      title: `${formatCandidatName(moved.candidat)} est passé à l'étape ${target.nom}`,
-    })
+    void changeEtape({ etapeCibleUuid: targetEtapeUuid, candidatureUuids: [moved.uuid], motifRefus }, [moved.candidat])
   }
 
   function request(targetEtapeUuid: string): void {
@@ -50,7 +35,7 @@ export function useEtapeChange(
     refus.moveOrAskRejectionReason(
       targetEtapeUuid,
       [candidature.value.candidat],
-      motifRefus => void confirm(targetEtapeUuid, motifRefus),
+      motifRefus => confirm(targetEtapeUuid, motifRefus),
     )
   }
 

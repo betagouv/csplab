@@ -149,7 +149,7 @@ watch(() => props.currentId, (id) => {
   }
 }, { immediate: true })
 
-defineExpose({ sortedRowIds })
+defineExpose({ sortedRowIds, visibleIds })
 const hasRowSelection = computed(() => props.selectionMode === 'row')
 const hasSelectionColumn = computed(() => props.selectionMode !== 'none')
 
@@ -425,7 +425,7 @@ function onActivate(id: string): void {
     </div>
 
     <div
-      v-if="$slots.footer || pageSize"
+      v-if="$slots.footer || (pageSize && paginationContext.pageCount > 1)"
       class="csp-table__footer"
     >
       <slot
@@ -514,6 +514,7 @@ function onActivate(id: string): void {
   font: inherit;
   font-weight: 600;
   color: inherit;
+  text-align: inherit;
   cursor: pointer;
 
   &:hover {
@@ -539,6 +540,7 @@ function onActivate(id: string): void {
 .csp-table__row {
   height: var(--csp-table-row-height);
   border-bottom: 1px solid var(--border-default-grey);
+  transition: background-color var(--csp-motion-duration-state);
 
   &:last-child {
     border-bottom: none;

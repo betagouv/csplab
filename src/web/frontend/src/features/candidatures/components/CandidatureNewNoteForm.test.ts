@@ -25,7 +25,7 @@ async function renderForm() {
   return {
     user,
     router,
-    field: screen.getByRole('textbox', { name: 'Ajouter une note' }),
+    field: screen.getByRole('textbox', { name: 'Nouvelle note' }),
     submit: screen.getByRole('button', { name: 'Enregistrer la note' }),
   }
 }
@@ -42,7 +42,7 @@ describe('candidatureNewNoteForm', () => {
     await user.type(field, '  Profil solide  ')
     await user.click(submit)
 
-    expect(createCandidatureNote).toHaveBeenCalledWith(CANDIDATURE_PARAMS, 'Profil solide')
+    expect(createCandidatureNote).toHaveBeenCalledWith(CANDIDATURE_PARAMS, { message: 'Profil solide', est_privee: false })
     await vi.waitFor(() => expect(router.currentRoute.value.path).toBe(NOTES_PATH))
     expect(useToast().toasts.value.at(-1)?.title).toBe('Note enregistrée')
   })

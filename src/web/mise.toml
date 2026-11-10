@@ -78,11 +78,11 @@ run = "python manage.py"
 
 [tasks."db:restore"]
 alias = "web:db:restore"
-description = "Restore the web database from a Scalingo dump (latest in dumps/ by default)"
-confirm = { message = "Overwrite the local web database?", default = "no" }
+description = "Restore the web database from a Scalingo backup (-- --from demo|prod to download it, latest in dumps/web/ by default)"
+confirm = { message = "Overwrite the local web database? With --from prod, this downloads candidates' personal data.", default = "no" }
 depends = ["//:services:postgres"]
 dir = "../.."
-run = "bin/restore-web-db"
+run = "bin/restore-db web"
 
 [tasks.seed]
 alias = "web:seed"
@@ -150,6 +150,7 @@ depends = [
   "lint:candidate-js",
   "lint:styles",
   "lint:schema",
+  "lint:changelog-api",
   "lint:types",
 ]
 
@@ -208,8 +209,8 @@ description = "Regenerate the public and internal OpenAPI schemas, then the fron
 depends = ["install:py"]
 depends_post = ["//src/web/frontend:types"]
 run = [
-  "python manage.py spectacular --file presentation/static/api/schema.yaml --validate",
-  "DJANGO_SETTINGS_MODULE=config.settings.schema_internal python manage.py spectacular --file presentation/static/api/internal-schema.yaml --validate",
+  "python manage.py openapi_schema --file presentation/static/api/schema.yaml --validate",
+  "DJANGO_SETTINGS_MODULE=config.settings.schema_internal python manage.py openapi_schema --file presentation/static/api/internal-schema.yaml --validate",
 ]
 
 [tasks."lint:schema"]
@@ -217,16 +218,28 @@ alias = "web:lint:schema"
 description = "Check the public OpenAPI schema is up to date"
 depends = ["install:py"]
 run = [
-  "python manage.py spectacular --file presentation/static/api/schema.yaml --validate --fail-on-warn",
+  "python manage.py openapi_schema --file presentation/static/api/schema.yaml --validate --fail-on-warn",
   "git diff --exit-code presentation/static/api/schema.yaml",
 ]
+
+[tasks."lint:changelog-api"]
+alias = "web:lint:changelog-api"
+description = "Validate the public API changelog fragments (changelog_api.d/)"
+depends = ["install:py"]
+run = "python manage.py changelog_api verifier"
+
+[tasks."changelog-api:dater"]
+alias = "web:changelog-api:dater"
+description = "Set today's date (Paris) on the API changelog fragments added by the branch"
+depends = ["install:py"]
+run = "python manage.py changelog_api dater"
 
 [tasks."lint:types"]
 alias = "web:lint:types"
 description = "Check the internal schema and TypeScript types are up to date"
 depends = ["install:py", "install:js"]
 run = [
-  "DJANGO_SETTINGS_MODULE=config.settings.schema_internal python manage.py spectacular --file presentation/static/api/internal-schema.yaml --validate --fail-on-warn",
+  "DJANGO_SETTINGS_MODULE=config.settings.schema_internal python manage.py openapi_schema --file presentation/static/api/internal-schema.yaml --validate --fail-on-warn",
   "git diff --exit-code presentation/static/api/internal-schema.yaml",
   "pnpm run generate-types",
   "git diff --exit-code frontend/src/types/api.d.ts",

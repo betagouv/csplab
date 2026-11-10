@@ -1,21 +1,8 @@
-import type { ActivitesParams, CandidatureDetail, ChangerEtapeResultat, MotifRefus, MotifRefusOption, PaginatedActiviteList, PaginatedCandidatureListeList, PaginatedDocumentListeList, PaginatedNoteList, RecrutementDetailKanban } from './types'
-import type { CandidatureParams, DocumentParams, OrganismeParams, RecrutementParams } from '@/api/params'
+import type { ActivitesParams, CandidatureDetail, ChangerEtapeResultat, CreateNotePayload, MotifRefus, MotifRefusOption, NoteVisibilitePayload, PaginatedActiviteList, PaginatedDocumentListeList, PaginatedNoteList, RecrutementListe, UpdateNotePayload } from './types'
+import type { CandidatureParams, NoteParams, OrganismeParams, RecrutementParams } from '@/api/params'
 import { api } from '@/api/client'
 
-export async function getRecrutementKanban({ organismeUuid, recrutementUuid }: RecrutementParams): Promise<RecrutementDetailKanban> {
-  const { data } = await api.GET(
-    '/recruteur/organismes/{organisme_uuid}/recrutements/{recrutement_uuid}/kanban',
-    {
-      params: {
-        path: {
-          organisme_uuid: organismeUuid,
-          recrutement_uuid: recrutementUuid,
-        },
-      },
-    },
-  )
-  return data!
-}
+const MAX_PAGE_SIZE = 1_000
 
 export async function getCandidatureDetail(candidature: CandidatureParams): Promise<CandidatureDetail> {
   const { data } = await api.GET(
@@ -25,28 +12,20 @@ export async function getCandidatureDetail(candidature: CandidatureParams): Prom
   return data!
 }
 
-export async function getCandidatureListe({ organismeUuid, recrutementUuid }: RecrutementParams): Promise<PaginatedCandidatureListeList> {
-  async function fetchListe(taille?: number): Promise<PaginatedCandidatureListeList> {
-    const { data } = await api.GET(
-      '/recruteur/organismes/{organisme_uuid}/recrutements/{recrutement_uuid}/liste',
-      {
-        params: {
-          path: {
-            organisme_uuid: organismeUuid,
-            recrutement_uuid: recrutementUuid,
-          },
-          query: { taille },
+export async function getCandidatureListe({ organismeUuid, recrutementUuid }: RecrutementParams): Promise<RecrutementListe> {
+  const { data } = await api.GET(
+    '/recruteur/organismes/{organisme_uuid}/recrutements/{recrutement_uuid}/liste',
+    {
+      params: {
+        path: {
+          organisme_uuid: organismeUuid,
+          recrutement_uuid: recrutementUuid,
         },
+        query: { taille: MAX_PAGE_SIZE },
       },
-    )
-    return data!
-  }
-
-  const firstPage = await fetchListe()
-  if (firstPage.results.length >= firstPage.count) {
-    return firstPage
-  }
-  return fetchListe(firstPage.count)
+    },
+  )
+  return data!
 }
 
 export interface EtapeChange {
@@ -109,21 +88,6 @@ export async function getCandidatureDocuments(candidature: CandidatureParams): P
   return data!
 }
 
-export async function checkCandidatureDocument(params: DocumentParams): Promise<void> {
-  const { response } = await api.GET(
-    '/recruteur/organismes/{organisme_uuid}/recrutements/{recrutement_uuid}/candidatures/{candidature_uuid}/documents/{document_uuid}',
-    { params: { path: { ...candidaturePath(params), document_uuid: params.documentUuid } }, parseAs: 'stream' },
-  )
-  await response.body?.cancel()
-}
-
-export function candidatureDocumentUrl(
-  { organismeUuid, recrutementUuid, candidatureUuid }: CandidatureParams,
-  documentUuid: string,
-): string {
-  return `/recruteur/organismes/${organismeUuid}/recrutements/${recrutementUuid}/candidatures/${candidatureUuid}/documents/${documentUuid}`
-}
-
 export async function getCandidatureNotes(candidature: CandidatureParams): Promise<PaginatedNoteList> {
   const { data } = await api.GET(
     '/recruteur/organismes/{organisme_uuid}/recrutements/{recrutement_uuid}/candidatures/{candidature_uuid}/notes',
@@ -132,10 +96,10 @@ export async function getCandidatureNotes(candidature: CandidatureParams): Promi
   return data!
 }
 
-export async function createCandidatureNote(candidature: CandidatureParams, message: string): Promise<void> {
+export async function createCandidatureNote(candidature: CandidatureParams, payload: CreateNotePayload): Promise<void> {
   await api.POST(
     '/recruteur/organismes/{organisme_uuid}/recrutements/{recrutement_uuid}/candidatures/{candidature_uuid}/notes',
-    { params: { path: candidaturePath(candidature) }, body: { message } },
+    { params: { path: candidaturePath(candidature) }, body: payload },
   )
 }
 
@@ -145,4 +109,25 @@ export async function getCandidatureActivites(params: ActivitesParams): Promise<
     { params: { path: candidaturePath(params), query: { limit: params.limit } } },
   )
   return data!
+}
+
+export async function updateCandidatureNote(params: NoteParams, payload: UpdateNotePayload): Promise<void> {
+  await api.PATCH(
+    '/recruteur/organismes/{organisme_uuid}/recrutements/{recrutement_uuid}/candidatures/{candidature_uuid}/notes/{note_uuid}',
+    { params: { path: { ...candidaturePath(params), note_uuid: params.noteUuid } }, body: payload },
+  )
+}
+
+export async function updateCandidatureNoteVisibilite(params: NoteParams, payload: NoteVisibilitePayload): Promise<void> {
+  await api.PUT(
+    '/recruteur/organismes/{organisme_uuid}/recrutements/{recrutement_uuid}/candidatures/{candidature_uuid}/notes/{note_uuid}/visibilite',
+    { params: { path: { ...candidaturePath(params), note_uuid: params.noteUuid } }, body: payload },
+  )
+}
+
+export async function deleteCandidatureNote(params: NoteParams): Promise<void> {
+  await api.DELETE(
+    '/recruteur/organismes/{organisme_uuid}/recrutements/{recrutement_uuid}/candidatures/{candidature_uuid}/notes/{note_uuid}',
+    { params: { path: { ...candidaturePath(params), note_uuid: params.noteUuid } } },
+  )
 }

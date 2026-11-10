@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Candidature, EtapeRecrutement, EtapeRecrutementDetailedCandidatures } from '../types'
+import type { EtapeRecrutement, KanbanCard, KanbanColumn } from '../types'
 import { RadioGroupIndicator, RadioGroupItem, RadioGroupRoot } from 'reka-ui'
 import { computed, ref, watch } from 'vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
@@ -11,7 +11,7 @@ import { pluralize } from '@/utils/format'
 
 const props = defineProps<{
   open: boolean
-  sourceEtape: EtapeRecrutementDetailedCandidatures | null
+  sourceEtape: KanbanColumn | null
   selectedCandidatureUuids: Set<string>
   etapes: EtapeRecrutement[]
   initialEtapeUuid?: string | null
@@ -45,7 +45,7 @@ function handleConfirm(): void {
   }
 }
 
-function getCandidatName(candidature: Candidature): string {
+function getCandidatName(candidature: KanbanCard): string {
   const candidat = candidature.candidat
   return `${candidat.prenom} ${candidat.nom}`
 }
@@ -191,9 +191,9 @@ const selectedUuidsModel = computed({
 
 .changer-etape-drawer__count {
   margin: 0;
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--text-default-grey);
+  font-size: var(--csp-font-size-md);
+  font-weight: var(--csp-font-weight-bold);
+  color: var(--text-title-grey);
 }
 
 .changer-etape-drawer__tags {
@@ -218,7 +218,7 @@ const selectedUuidsModel = computed({
 
 .changer-etape-drawer__etapes-label {
   margin: 0;
-  font-size: 0.875rem;
+  font-size: var(--csp-font-size-base);
   font-weight: 600;
   color: var(--text-default-grey);
 }
@@ -253,18 +253,17 @@ const selectedUuidsModel = computed({
   flex: 0 0 auto;
   margin-top: 0.0625rem;
   border-radius: 50%;
-  border: 1px solid var(--border-default-grey);
+  border: 1px solid var(--border-action-high-blue-france);
   background: transparent;
   padding: 0;
   cursor: inherit;
 
   &[data-state='checked'] {
-    border-color: var(--background-action-high-blue-france);
+    border-color: var(--border-active-blue-france);
   }
 
   &[data-disabled] {
     border-color: var(--border-disabled-grey);
-    background: var(--background-disabled-grey);
   }
 
   &:focus-visible {
@@ -273,12 +272,26 @@ const selectedUuidsModel = computed({
   }
 }
 
+.changer-etape-drawer__radio:not(.changer-etape-drawer__radio--current) {
+  &:hover .changer-etape-drawer__radio-control {
+    background: var(--background-default-grey-hover);
+  }
+
+  &:active .changer-etape-drawer__radio-control {
+    background: var(--background-default-grey-active);
+  }
+}
+
 .changer-etape-drawer__radio-indicator {
   display: block;
   width: 0.5rem;
   height: 0.5rem;
   border-radius: 50%;
-  background: var(--background-action-high-blue-france);
+  background: var(--background-active-blue-france);
+
+  &[data-disabled] {
+    background: var(--background-disabled-grey);
+  }
 }
 
 .changer-etape-drawer__radio-content {
@@ -294,7 +307,7 @@ const selectedUuidsModel = computed({
 }
 
 .changer-etape-drawer__radio-hint {
-  font-size: 0.75rem;
+  font-size: var(--csp-font-size-xs);
   color: var(--text-mention-grey);
 }
 </style>

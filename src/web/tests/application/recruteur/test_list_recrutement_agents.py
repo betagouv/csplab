@@ -15,7 +15,6 @@ from infrastructure.django_apps.recruteur.models.recrutement import (
 from infrastructure.factories.identite.organisme_django_factory import (
     create_organisme_with_agent,
 )
-from infrastructure.factories.identite.utilisateur_factory import UtilisateurFactory
 from infrastructure.factories.recruteur.recrutement_django_factory import (
     RecrutementAgentDjangoFactory,
     RecrutementDjangoFactory,
@@ -53,7 +52,7 @@ def test_agent_responsable_of_recrutement_lists_team(db):
     result = list_recrutement_agents(
         organisme_id=organisme.id,
         recrutement_id=recrutement.pk,
-        utilisateur=UtilisateurFactory.create_entity(entity_id=agent.utilisateur_id),
+        utilisateur=agent.utilisateur,
     )
 
     assert agent.utilisateur_id in {liaison.agent_id for liaison in result}
@@ -73,9 +72,7 @@ def test_agent_with_revoked_responsable_role_cannot_list_team(db):
         list_recrutement_agents(
             organisme_id=organisme.id,
             recrutement_id=recrutement.pk,
-            utilisateur=UtilisateurFactory.create_entity(
-                entity_id=agent.utilisateur_id
-            ),
+            utilisateur=agent.utilisateur,
         )
 
 
@@ -91,7 +88,5 @@ def test_agent_not_responsable_cannot_list_team(db, role):
         list_recrutement_agents(
             organisme_id=organisme.id,
             recrutement_id=recrutement.pk,
-            utilisateur=UtilisateurFactory.create_entity(
-                entity_id=agent.utilisateur_id
-            ),
+            utilisateur=agent.utilisateur,
         )

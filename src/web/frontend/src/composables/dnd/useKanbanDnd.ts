@@ -26,9 +26,36 @@ interface UseDraggableKanbanCardOptions {
   enabled?: Ref<boolean>
 }
 
+// Share of a dropped card visible in its column from which its drop motion plays
+const VISIBLE_RATIO = 0.9
+
+// Card moved last to another column, read by the card that mounts in that column
+const lastMovedCard = ref<string | null>(null)
+
+export function markKanbanCardMoved(boardId: string, cardId: string): void {
+  lastMovedCard.value = `${boardId}/${cardId}`
+}
+
 export function useDraggableKanbanCard(options: UseDraggableKanbanCardOptions) {
   const isDragging = ref(false)
   const enabled = options.enabled ?? ref(true)
+  const cardKey = `${options.boardId}/${options.cardId}`
+  let isMoved = lastMovedCard.value === cardKey
+  if (isMoved) {
+    lastMovedCard.value = null
+  }
+  // True while the card shows its drop motion; the motion waits, on its first frame, until the card is visible
+  const isJustMoved = ref(false)
+  const isDropWaiting = ref(false)
+
+  function settleMove(): void {
+    isMoved = false
+    isJustMoved.value = false
+    isDropWaiting.value = false
+    if (lastMovedCard.value === cardKey) {
+      lastMovedCard.value = null
+    }
+  }
 
   watch(
     [options.element, enabled],
@@ -36,6 +63,32 @@ export function useDraggableKanbanCard(options: UseDraggableKanbanCardOptions) {
       if (!element || !isEnabled) {
         return
       }
+
+      // The column scrolls to a card dropped at its end: the drop motion shows its first frame at once and plays when
+      // the card is visible. Without a drop motion, the move settles at once; a drop motion can list several
+      // animations, and the move settles when the last one ends
+      let visibility: IntersectionObserver | null = null
+      if (isMoved && getComputedStyle(element).getPropertyValue('--csp-motion-raised-drop').trim() === 'none') {
+        settleMove()
+      }
+      else if (isMoved) {
+        isJustMoved.value = true
+        isDropWaiting.value = true
+        visibility = new IntersectionObserver(([entry]) => {
+          if (entry && entry.intersectionRatio >= VISIBLE_RATIO) {
+            isDropWaiting.value = false
+            visibility?.disconnect()
+          }
+        }, { threshold: VISIBLE_RATIO })
+        visibility.observe(element)
+      }
+      const handleAnimationEnd = (event: AnimationEvent) => {
+        const isAnimating = element.getAnimations().some(animation => 'animationName' in animation && animation.playState !== 'finished')
+        if (event.target === element && !isAnimating) {
+          settleMove()
+        }
+      }
+      element.addEventListener('animationend', handleAnimationEnd)
 
       const cleanup = draggable({
         element,
@@ -47,18 +100,23 @@ export function useDraggableKanbanCard(options: UseDraggableKanbanCardOptions) {
         }) as Record<string, unknown>,
         onDragStart: () => {
           isDragging.value = true
+          lastMovedCard.value = null
         },
         onDrop: () => {
           isDragging.value = false
         },
       })
 
-      onCleanup(cleanup)
+      onCleanup(() => {
+        cleanup()
+        visibility?.disconnect()
+        element.removeEventListener('animationend', handleAnimationEnd)
+      })
     },
     { flush: 'post', immediate: true },
   )
 
-  return { isDragging }
+  return { isDragging, isJustMoved, isDropWaiting }
 }
 
 interface UseDropTargetKanbanColumnOptions {

@@ -1,11 +1,10 @@
 <script setup lang="ts">
-import type { MembreEquipe, RecrutementRole } from '../../types'
+import type { MembreEquipe } from '../../types'
 import { computed } from 'vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspDropdownMenu from '@/components/base/CspDropdownMenu/CspDropdownMenu.vue'
 import { formatAgentLabel } from '@/features/agents/format'
 import { useMembreEquipeActions } from '../../composables/useMembreEquipeActions'
-import { RECRUTEMENT_ROLE_LABELS } from '../../constants/equipe-recrutement'
 
 defineOptions({ inheritAttrs: false })
 
@@ -13,39 +12,34 @@ const props = defineProps<{
   row: MembreEquipe
 }>()
 
-const { revocation, roleChange } = useMembreEquipeActions()
-
-const ROLE_ICONS: Record<RecrutementRole, string> = {
-  responsable: 'ri:shield-user-line',
-  recruteur: 'ri:user-star-line',
-  contributeur: 'ri:user-line',
-}
+const { revocation, roleChange, canRevoke, canChangeRole } = useMembreEquipeActions()
 
 const membreLabel = computed(() => formatAgentLabel(props.row))
 
-const rolesProposes = computed(() =>
-  (Object.keys(RECRUTEMENT_ROLE_LABELS) as RecrutementRole[])
-    .filter(role => role !== props.row.recrutement_role),
-)
-
 const sections = computed(() => [
-  {
-    items: rolesProposes.value.map(role => ({
-      label: `Passer ${RECRUTEMENT_ROLE_LABELS[role].toLowerCase()}`,
-      icon: ROLE_ICONS[role],
-      onSelect: () => roleChange.request({ membre: props.row, role }),
-    })),
-  },
-  {
-    items: [
-      {
-        label: 'Retirer de l\'équipe',
-        icon: 'ri:user-unfollow-line',
-        destructive: true,
-        onSelect: () => revocation.request(props.row),
-      },
-    ],
-  },
+  ...(canChangeRole.value
+    ? [{
+        items: [
+          {
+            label: 'Modifier les droits d\'accès',
+            icon: 'ri:shield-user-line',
+            onSelect: () => roleChange.request(props.row),
+          },
+        ],
+      }]
+    : []),
+  ...(canRevoke.value
+    ? [{
+        items: [
+          {
+            label: 'Retirer de l\'équipe',
+            icon: 'ri:user-unfollow-line',
+            destructive: true,
+            onSelect: () => revocation.request(props.row),
+          },
+        ],
+      }]
+    : []),
 ])
 </script>
 

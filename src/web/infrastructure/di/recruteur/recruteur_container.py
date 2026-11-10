@@ -6,20 +6,11 @@ from application.identite.context_services.organisme_permission_service import (
 from application.recruteur.usecases.attach_organisme_agent import (
     AttachOrganismeAgentUsecase,
 )
-from application.recruteur.usecases.changer_etape_candidatures import (
-    ChangerEtapeCandidaturesUsecase,
-)
-from application.recruteur.usecases.get_recrutement_kanban import (
-    GetRecrutementKanbanUsecase,
-)
-from application.recruteur.usecases.get_recrutement_liste import (
-    GetRecrutementListeUsecase,
+from application.recruteur.usecases.change_etape_candidatures import (
+    ChangeEtapeCandidaturesUsecase,
 )
 from application.recruteur.usecases.list_organisme_agents import (
     ListOrganismeAgentsUsecase,
-)
-from application.recruteur.usecases.lister_mes_recrutements import (
-    ListerMesRecrutementsUsecase,
 )
 from application.recruteur.usecases.revoke_organisme_agent import (
     RevokeOrganismeAgentUsecase,
@@ -59,9 +50,6 @@ from infrastructure.repositories.recruteur.postgres_organisme_repository import 
 from infrastructure.repositories.recruteur.postgres_recrutement_agent_repository import (  # noqa: E501
     PostgresRecrutementAgentRepository,
 )
-from infrastructure.repositories.recruteur.postgres_recrutement_query_service import (
-    PostgresRecrutementQueryService,
-)
 from infrastructure.repositories.recruteur.postgres_recrutement_repository import (
     PostgresRecrutementRepository,
 )
@@ -93,9 +81,6 @@ class RecruteurContainer(containers.DeclarativeContainer):
     )
     organisme_permission_service = providers.Factory(OrganismePermissionService)
     recrutement_mapper = providers.Factory(RecrutementMapper)
-    postgres_recrutement_query_service = providers.Singleton(
-        PostgresRecrutementQueryService
-    )
     postgres_recrutement_repository = providers.Singleton(
         PostgresRecrutementRepository, mapper=recrutement_mapper
     )
@@ -136,24 +121,6 @@ class RecruteurContainer(containers.DeclarativeContainer):
         organisme_permission_service=organisme_permission_service,
         audit_log_writer=audit_log_writer,
     )
-    lister_mes_recrutements_usecase = providers.Factory(
-        ListerMesRecrutementsUsecase,
-        recrutement_query_service=postgres_recrutement_query_service,
-        organisme_permission_service=organisme_permission_service,
-        logger=logger_service,
-    )
-
-    get_recrutement_kanban_usecase = providers.Factory(
-        GetRecrutementKanbanUsecase,
-        organisme_permission_service=organisme_permission_service,
-        recrutement_query_service=postgres_recrutement_query_service,
-    )
-
-    get_recrutement_liste_usecase = providers.Factory(
-        GetRecrutementListeUsecase,
-        organisme_permission_service=organisme_permission_service,
-        recrutement_query_service=postgres_recrutement_query_service,
-    )
 
     update_recrutement_etapes_usecase = providers.Factory(
         UpdateRecrutementEtapesUsecase,
@@ -163,8 +130,8 @@ class RecruteurContainer(containers.DeclarativeContainer):
         audit_log_writer=audit_log_writer,
     )
 
-    changer_etape_candidatures_usecase = providers.Factory(
-        ChangerEtapeCandidaturesUsecase,
+    change_etape_candidatures_usecase = providers.Factory(
+        ChangeEtapeCandidaturesUsecase,
         permission_service=organisme_permission_service,
         recrutement_repository=postgres_recrutement_repository,
         candidature_recruteur_repository=postgres_candidature_repository,

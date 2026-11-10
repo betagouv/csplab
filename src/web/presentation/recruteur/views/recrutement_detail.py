@@ -1,22 +1,22 @@
 from uuid import UUID
 
+from django.db.models import QuerySet
+from django.http import Http404
 from drf_spectacular.utils import extend_schema
-from rest_framework import status
+from rest_framework import exceptions, status
+from rest_framework.generics import ListAPIView
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from application.recruteur.services.get_recrutement_detail import (
-    get_recrutement_detail,
+from application.recruteur.services.get_recrutement import (
+    get_recrutement,
 )
-from application.recruteur.usecases.changer_etape_candidatures import (
-    ChangerEtapeCandidaturesCommand,
+from application.recruteur.services.list_candidatures import (
+    list_candidatures_et_etapes,
 )
-from application.recruteur.usecases.get_recrutement_kanban import (
-    GetRecrutementKanbanQuery,
-)
-from application.recruteur.usecases.get_recrutement_liste import (
-    GetRecrutementListeQuery,
+from application.recruteur.usecases.change_etape_candidatures import (
+    ChangeEtapeCandidaturesCommand,
 )
 from domain.commons.errors.organisme_errors import OrganismeNexistePas
 from domain.identite.errors.organisme_permission_errors import (
@@ -29,16 +29,19 @@ from domain.recruteur.errors.recrutement_errors import (
     RecrutementInexistant,
 )
 from infrastructure.di.recruteur.recruteur_factory import recruteur_container
+from infrastructure.django_apps.candidate.models.candidature import CandidatureModel
+from infrastructure.django_apps.recruteur.models.etape import EtapeModel
 from presentation.api.authentication import SessionApiMixin
 from presentation.api.serializers import GenericErrorSerializer, TokenErrorSerializer
-from presentation.commons.pagination import WebPagination
+from presentation.commons.pagination import PaginationSchemaDuSerializer
 from presentation.recruteur.mappers import UtilisateurMapper
 from presentation.recruteur.serializers import (
     CandidatureListeSerializer,
     ChangerEtapeCandidaturesSerializer,
     ChangerEtapeResultatSerializer,
-    RecrutementDetailKanbanSerializer,
+    EtapeRecrutementModelSerializer,
     RecrutementDetailSerializer,
+    RecrutementListeSerializer,
 )
 
 
@@ -58,7 +61,7 @@ class RecrutementDetailView(SessionApiMixin, APIView):
         self, request: Request, organisme_uuid: UUID, recrutement_uuid: UUID
     ) -> Response:
         try:
-            recrutement = get_recrutement_detail(
+            recrutement = get_recrutement(
                 organisme_id=organisme_uuid,
                 recrutement_id=recrutement_uuid,
                 utilisateur=request.user,
@@ -82,64 +85,10 @@ class RecrutementDetailView(SessionApiMixin, APIView):
 
 
 @extend_schema(
-    summary="Détail d'un recrutement — vue kanban",
-    tags=["recruteur"],
-    responses={
-        200: RecrutementDetailKanbanSerializer,
-        401: TokenErrorSerializer,
-        403: GenericErrorSerializer,
-        404: GenericErrorSerializer,
-        500: GenericErrorSerializer,
-    },
-)
-class RecrutementKanbanView(SessionApiMixin, APIView):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.container = recruteur_container()
-        self.user_mapper = UtilisateurMapper()
-
-    def get(
-        self, request: Request, organisme_uuid: UUID, recrutement_uuid: UUID
-    ) -> Response:
-        try:
-            usecase = self.container.get_recrutement_kanban_usecase()
-            result = usecase.execute(
-                GetRecrutementKanbanQuery(
-                    organisme_id=organisme_uuid,
-                    recrutement_id=recrutement_uuid,
-                    utilisateur=self.user_mapper.to_domain(request),
-                )
-            )
-            if result is None:
-                return Response(
-                    GenericErrorSerializer({"error": "Not found."}).data,
-                    status=status.HTTP_404_NOT_FOUND,
-                )
-
-            serializer = RecrutementDetailKanbanSerializer(result)
-            return Response(serializer.data)
-        except OrganismePermissionError:
-            return Response(
-                GenericErrorSerializer({"error": "Forbidden."}).data,
-                status=status.HTTP_403_FORBIDDEN,
-            )
-        except OrganismeNexistePas:
-            return Response(
-                GenericErrorSerializer({"error": "Not found."}).data,
-                status=status.HTTP_404_NOT_FOUND,
-            )
-        except Exception:
-            serializer = GenericErrorSerializer({"error": "Unexpected error"})
-            return Response(
-                serializer.data, status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
-
-
-@extend_schema(
     summary="Détail d'un recrutement — vue liste (paginée)",
     tags=["recruteur"],
     responses={
-        200: CandidatureListeSerializer(many=True),
+        200: RecrutementListeSerializer,
         400: GenericErrorSerializer,
         401: TokenErrorSerializer,
         403: GenericErrorSerializer,
@@ -147,52 +96,43 @@ class RecrutementKanbanView(SessionApiMixin, APIView):
         500: GenericErrorSerializer,
     },
 )
-class RecrutementListeView(SessionApiMixin, APIView):
-    pagination_class = WebPagination
+class RecrutementListeView(SessionApiMixin, ListAPIView):
+    serializer_class = CandidatureListeSerializer
+    pagination_class = PaginationSchemaDuSerializer
+    etapes: list[EtapeModel]
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.container = recruteur_container()
-        self.user_mapper = UtilisateurMapper()
+    def get_queryset(self) -> QuerySet[CandidatureModel]:
+        candidatures, self.etapes = list_candidatures_et_etapes(
+            organisme_id=self.kwargs["organisme_uuid"],
+            recrutement_id=self.kwargs["recrutement_uuid"],
+            utilisateur=self.request.user,
+        )
+        return candidatures
 
-    def get(
-        self, request: Request, organisme_uuid: UUID, recrutement_uuid: UUID
-    ) -> Response:
-        try:
-            usecase = self.container.get_recrutement_liste_usecase()
-            result = usecase.execute(
-                GetRecrutementListeQuery(
-                    organisme_id=organisme_uuid,
-                    recrutement_id=recrutement_uuid,
-                    utilisateur=self.user_mapper.to_domain(request),
-                )
-            )
-            if result is None:
-                return Response(
-                    GenericErrorSerializer({"error": "Not found."}).data,
-                    status=status.HTTP_404_NOT_FOUND,
-                )
+    def get_paginated_response(self, data: list) -> Response:
+        response = super().get_paginated_response(data)
+        response.data["etapes"] = EtapeRecrutementModelSerializer(
+            self.etapes, many=True
+        ).data
+        return response
 
-            paginator = WebPagination()
-            items = paginator.paginate(result, request)
-            return paginator.get_paginated_response(
-                CandidatureListeSerializer(items, many=True).data
-            )
-        except OrganismePermissionError:
+    def handle_exception(self, exc: Exception) -> Response:
+        if isinstance(exc, OrganismePermissionError):
             return Response(
                 GenericErrorSerializer({"error": "Forbidden."}).data,
                 status=status.HTTP_403_FORBIDDEN,
             )
-        except OrganismeNexistePas:
+        if isinstance(exc, (OrganismeNexistePas, RecrutementInexistant)):
             return Response(
                 GenericErrorSerializer({"error": "Not found."}).data,
                 status=status.HTTP_404_NOT_FOUND,
             )
-        except Exception:
-            serializer = GenericErrorSerializer({"error": "Unexpected error"})
-            return Response(
-                serializer.data, status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
+        if isinstance(exc, (exceptions.APIException, Http404)):
+            return super().handle_exception(exc)
+        return Response(
+            GenericErrorSerializer({"error": "Unexpected error"}).data,
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )
 
 
 @extend_schema(
@@ -222,9 +162,9 @@ class RecrutementCandidaturesEtapeView(SessionApiMixin, APIView):
 
         data = serializer.validated_data
         try:
-            usecase = self.container.changer_etape_candidatures_usecase()
+            usecase = self.container.change_etape_candidatures_usecase()
             resultat = usecase.execute(
-                ChangerEtapeCandidaturesCommand(
+                ChangeEtapeCandidaturesCommand(
                     organisme_id=organisme_uuid,
                     recrutement_id=recrutement_uuid,
                     etape_cible_id=data["etape_cible_uuid"],

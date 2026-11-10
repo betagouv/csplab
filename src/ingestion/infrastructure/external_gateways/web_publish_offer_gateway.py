@@ -1,10 +1,15 @@
 import logging
 
+import httpx
+
 from domain.entities.offer import Offer
 from domain.gateways.publish_offer_gateway import IPublishOfferGateway
 from domain.gateways.publish_offer_input import PublishOfferInput
 from infrastructure.exceptions.exceptions import ExternalApiError
-from infrastructure.external_gateways.base_web_gateway import BaseWebGateway
+from infrastructure.external_gateways.base_web_gateway import (
+    BaseWebGateway,
+    WebGatewayCredentials,
+)
 from infrastructure.external_gateways.dtos.offer_upsert_payload import (
     OfferUpsertPayload,
 )
@@ -13,6 +18,15 @@ logger = logging.getLogger(__name__)
 
 
 class WebPublishOfferGateway(BaseWebGateway, IPublishOfferGateway):
+    def __init__(
+        self,
+        client: httpx.AsyncClient,
+        credentials: WebGatewayCredentials,
+        metiers_multi_domaines: set[str],
+    ) -> None:
+        super().__init__(client, credentials)
+        self._metiers_multi_domaines = metiers_multi_domaines
+
     async def publish(self, input: PublishOfferInput) -> None:
         response = await self._post(
             "/offres/creer_modifier",
@@ -35,4 +49,6 @@ class WebPublishOfferGateway(BaseWebGateway, IPublishOfferGateway):
             )
 
     def _serialize(self, offer: Offer) -> dict:
-        return OfferUpsertPayload.from_offer(offer).model_dump(mode="json")
+        return OfferUpsertPayload.from_offer(
+            offer, self._metiers_multi_domaines
+        ).model_dump(mode="json")

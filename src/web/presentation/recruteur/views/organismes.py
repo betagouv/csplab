@@ -1,25 +1,29 @@
+from django.db.models import QuerySet
+from django.http import Http404
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from pydantic import ValidationError
-from referentiel.value_objects.siret import SIRET
 from referentiel.value_objects.verse import Verse
-from rest_framework import status
+from rest_framework import exceptions, status
+from rest_framework.generics import ListAPIView
 from rest_framework.request import Request
 from rest_framework.response import Response
-from rest_framework.views import APIView
 
-from application.identite.usecases.create_organisme import CreateOrganismeCommand
-from application.recruteur.services.list_organismes import list_organismes
+from application.recruteur.services.create_organisme import create_organisme
+from application.recruteur.services.list_organismes import (
+    list_organismes,
+    with_authorized_actions,
+)
 from domain.identite.errors.organisme_errors import OrganismeSiretExisteDeja
 from domain.identite.errors.organisme_permission_errors import (
     OperationOrganismeRefusee,
 )
-from infrastructure.di.identite.identite_factory import create_identite_container
+from infrastructure.django_apps.recruteur.models.organisme import OrganismeModel
 from presentation.api.authentication import SessionApiMixin
 from presentation.api.serializers import (
     GenericErrorSerializer,
     generic_response_format,
 )
-from presentation.recruteur.mappers import UtilisateurMapper
+from presentation.commons.pagination import TaillePageNumberPagination
 from presentation.recruteur.serializers import (
     CreateOrganismeSerializer,
     OrganismeDetailSerializer,
@@ -42,71 +46,57 @@ from presentation.recruteur.serializers import (
         request=CreateOrganismeSerializer,
         responses={
             **generic_response_format,
-            200: OrganismeDetailSerializer,
+            201: OrganismeDetailSerializer,
             400: GenericErrorSerializer,
         },
     ),
 )
-class OrganismesView(SessionApiMixin, APIView):
-    serializer_class = OrganismeDetailSerializer
+class OrganismesView(SessionApiMixin, ListAPIView):
+    serializer_class = OrganismesListSerializer
+    pagination_class = TaillePageNumberPagination
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.container = create_identite_container()
-        self.user_mapper = UtilisateurMapper()
+    def get_queryset(self) -> QuerySet[OrganismeModel]:
+        return list_organismes(utilisateur=self.request.user)
 
-    def get(self, request: Request) -> Response:
-        try:
-            organismes = list_organismes(utilisateur=request.user)
-            return Response(OrganismesListSerializer(organismes, many=True).data)
-        except OperationOrganismeRefusee as e:
-            serializer = GenericErrorSerializer({"error": str(e)})
-            return Response(serializer.data, status=status.HTTP_403_FORBIDDEN)
-        except Exception:
-            serializer = GenericErrorSerializer({"error": "Unexpected error"})
-            return Response(
-                serializer.data, status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
+    def paginate_queryset(self, queryset: QuerySet[OrganismeModel]) -> list | None:
+        page = super().paginate_queryset(queryset)
+        return (
+            None
+            if page is None
+            else with_authorized_actions(page, utilisateur=self.request.user)
+        )
 
     def post(self, request: Request) -> Response:
         serializer = CreateOrganismeSerializer(data=request.data)
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-        try:
-            usecase = self.container.create_organisme_usecase()
-            command = CreateOrganismeCommand(
-                name=serializer.validated_data["nom"],
-                verse=Verse(serializer.validated_data["versant"]),
-                localisation=None,
-                siret=SIRET(code=serializer.validated_data["siret"]),
-                parent_id=None,
-                utilisateur=self.user_mapper.to_domain(request),
-                managed_ats=serializer.validated_data["gestion_ats"],
-            )
-            organisme = usecase.execute(command)
-            organisme_dto = {
-                "organisme_uuid": organisme.entity_id,
-                "nom": organisme.nom,
-                "versant": organisme.versant.value,
-                "siret": organisme.siret.code,
-                "superviseurs": "",
-                "gestion_ats": organisme.gestion_ats,
-                "date_creation": organisme.date_creation,
-                "date_derniere_activite": organisme.date_derniere_activite,
-            }
+        organisme = create_organisme(
+            nom=serializer.validated_data["nom"],
+            versant=Verse(serializer.validated_data["versant"]),
+            siret=serializer.validated_data["siret"],
+            gestion_ats=serializer.validated_data["gestion_ats"],
+            utilisateur=request.user,
+        )
+        return Response(
+            OrganismeDetailSerializer(organisme).data,
+            status=status.HTTP_201_CREATED,
+        )
+
+    def handle_exception(self, exc: Exception) -> Response:
+        if isinstance(exc, OperationOrganismeRefusee):
             return Response(
-                OrganismeDetailSerializer(organisme_dto).data,
-                status=status.HTTP_201_CREATED,
+                GenericErrorSerializer({"error": str(exc)}).data,
+                status=status.HTTP_403_FORBIDDEN,
             )
-        except (OrganismeSiretExisteDeja, ValidationError) as e:
-            serializer = GenericErrorSerializer({"error": str(e)})
-            return Response(serializer.data, status=status.HTTP_400_BAD_REQUEST)
-        except OperationOrganismeRefusee as e:
-            serializer = GenericErrorSerializer({"error": str(e)})
-            return Response(serializer.data, status=status.HTTP_403_FORBIDDEN)
-        except Exception:
-            serializer = GenericErrorSerializer({"error": "Unexpected error"})
+        if isinstance(exc, (OrganismeSiretExisteDeja, ValidationError)):
             return Response(
-                serializer.data, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                GenericErrorSerializer({"error": str(exc)}).data,
+                status=status.HTTP_400_BAD_REQUEST,
             )
+        if isinstance(exc, (exceptions.APIException, Http404)):
+            return super().handle_exception(exc)
+        return Response(
+            GenericErrorSerializer({"error": "Unexpected error"}).data,
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )

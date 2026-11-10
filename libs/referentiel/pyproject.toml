@@ -1,6 +1,6 @@
 [project]
 name = "referentiel"
-version = "0.2.20"
+version = "0.2.39"
 description = "Cross-service objects for the CSPLab monorepo"
 readme = "README.md"
 requires-python = "~=3.12.0"
@@ -63,6 +63,7 @@ exclude = [
 ]
 "*" = [
     "PLR0913", # too many args in function definition
+    "PLR0917", # too many positionnal args in function definition
 ]
 
 [tool.ruff.lint.pydocstyle]

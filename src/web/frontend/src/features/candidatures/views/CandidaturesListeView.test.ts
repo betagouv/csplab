@@ -2,6 +2,7 @@ import { screen, within } from '@testing-library/vue'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { RouterView } from 'vue-router'
 import { getMe } from '@/api/utilisateur'
+import { TABLE_PAGE_SIZE } from '@/components/base/CspDataTable/table'
 import { getConversations } from '@/features/messages/api'
 import { getRecrutementDetail } from '@/features/recrutements/api'
 import {
@@ -10,7 +11,6 @@ import {
   CANDIDATURE_LISTE,
   candidatureDetail,
   ETAPE_ENTRETIEN,
-  KANBAN,
   KANBAN_PATH,
   MOTIFS_REFUS,
   ORGANISME_UUID,
@@ -20,16 +20,14 @@ import {
 } from '@/test/fixtures/candidatures'
 import { makeUser } from '@/test/fixtures/utilisateur'
 import { renderWithApp, setupUser } from '@/test/render'
-import { getCandidatureActivites, getCandidatureDetail, getCandidatureListe, getMotifsRefus, getRecrutementKanban, patchEtapeCandidatures } from '../api'
+import { getCandidatureActivites, getCandidatureDetail, getCandidatureListe, getMotifsRefus, patchEtapeCandidatures } from '../api'
 
 vi.mock('../api', () => ({
   getCandidatureDetail: vi.fn(),
-  getRecrutementKanban: vi.fn(),
   getCandidatureListe: vi.fn(),
   patchEtapeCandidatures: vi.fn(),
   getMotifsRefus: vi.fn(),
   getCandidatureDocuments: vi.fn(() => new Promise(() => {})),
-  candidatureDocumentUrl: vi.fn(),
   getCandidatureNotes: vi.fn(() => new Promise(() => {})),
   createCandidatureNote: vi.fn(),
   getCandidatureActivites: vi.fn(),
@@ -37,10 +35,6 @@ vi.mock('../api', () => ({
 
 vi.mock('@/features/recrutements/api', () => ({
   getRecrutementDetail: vi.fn(),
-}))
-
-vi.mock('@/api/utilisateur', () => ({
-  getMe: vi.fn(),
 }))
 
 vi.mock('@/features/messages/api', () => ({
@@ -56,18 +50,20 @@ async function renderListe() {
   return { router, table }
 }
 
-function sevenRows() {
+const ROW_COUNT = TABLE_PAGE_SIZE + 1
+
+function twoPagesOfRows() {
   const [row] = CANDIDATURE_LISTE.results
-  return Array.from({ length: 7 }, (_, index) => ({
+  return Array.from({ length: ROW_COUNT }, (_, index) => ({
     ...row!,
-    uuid: `dddddddd-0002-0002-0002-00000000000${index + 1}`,
-    date_derniere_activite: `2025-06-1${9 - index}T10:00:00Z`,
+    uuid: `dddddddd-0002-0002-0002-${String(index + 1).padStart(12, '0')}`,
+    date_derniere_activite: new Date(Date.UTC(2025, 5, 19, 10) - index * 3_600_000).toISOString(),
     candidat: { ...row!.candidat, prenom: `Candidat ${index + 1}` },
   }))
 }
 
-function mockSevenRows(refresh?: ReturnType<typeof sevenRows>) {
-  const rows = sevenRows()
+function mockTwoPagesOfRows(refresh?: ReturnType<typeof twoPagesOfRows>) {
+  const rows = twoPagesOfRows()
   vi.mocked(getCandidatureListe).mockResolvedValue({ ...CANDIDATURE_LISTE, count: rows.length, results: rows })
   if (refresh) {
     vi.mocked(getCandidatureListe).mockResolvedValueOnce({ ...CANDIDATURE_LISTE, count: rows.length, results: rows })
@@ -121,11 +117,24 @@ describe('candidaturesListeView', () => {
     expect(table.getByRole('link', { name: 'Bruno Martin' })).toBeInTheDocument()
   })
 
+  it('offers in the filters the stages of the list', async () => {
+    const etapeAjoutee = { uuid: 'eeeeeeee-0001-0001-0001-000000000009', nom: 'Visite', categorie: 'EN_COURS' as const }
+    vi.mocked(getCandidatureListe).mockResolvedValue({ ...CANDIDATURE_LISTE, etapes: [...CANDIDATURE_LISTE.etapes, etapeAjoutee] })
+    const user = setupUser()
+    await renderListe()
+
+    await user.click(screen.getByRole('button', { name: 'Filtres' }))
+
+    expect((await screen.findAllByRole('checkbox', { name: 'Visite' })).length).toBeGreaterThan(0)
+  })
+
   it('shows an error when the list fails to load', async () => {
     vi.mocked(getCandidatureListe).mockRejectedValue(new Error('boom'))
     await renderWithApp(RouterView, { route: LISTE_PATH })
 
     expect(await screen.findByText('Une erreur est survenue lors du chargement des candidatures.')).toBeInTheDocument()
+    expect(screen.queryByText(/^\d+ candidatures?$/)).not.toBeInTheDocument()
+    expect(screen.getByRole('radio', { name: /Liste/ })).toBeInTheDocument()
   })
 
   it('moves to the next candidature in the sorted order of the list', async () => {
@@ -144,19 +153,19 @@ describe('candidaturesListeView', () => {
   })
 
   it('shows the page of the open candidature', async () => {
-    mockSevenRows()
+    mockTwoPagesOfRows()
     const user = setupUser()
     const { table } = await renderListe()
 
-    await user.click(table.getByRole('link', { name: 'Candidat 6 Dupont' }))
+    await user.click(table.getByRole('link', { name: `Candidat ${TABLE_PAGE_SIZE} Dupont` }))
     await user.click(within(await sequenceNavigation()).getByRole('button', { name: 'Suivant' }))
 
-    expect(await table.findByRole('link', { name: 'Candidat 7 Dupont', hidden: true })).toBeInTheDocument()
+    expect(await table.findByRole('link', { name: `Candidat ${ROW_COUNT} Dupont`, hidden: true })).toBeInTheDocument()
   })
 
   it('opens the next candidature of the list after changing a stage, even when the list reorders', async () => {
-    const [first, second, third, ...others] = sevenRows()
-    mockSevenRows([{ ...third!, date_derniere_activite: '2025-06-20T10:00:00Z' }, first!, second!, ...others])
+    const [first, second, third, ...others] = twoPagesOfRows()
+    mockTwoPagesOfRows([{ ...third!, date_derniere_activite: '2025-06-20T10:00:00Z' }, first!, second!, ...others])
     const user = setupUser()
     const { router, table } = await renderListe()
 
@@ -172,34 +181,33 @@ describe('candidaturesListeView', () => {
     })
     await vi.waitFor(() => expect(getCandidatureListe).toHaveBeenCalledTimes(2))
     const navigation = within(await sequenceNavigation())
-    expect(await navigation.findByText('Candidature 4 sur 7')).toBeInTheDocument()
+    expect(await navigation.findByText(`Candidature 4 sur ${ROW_COUNT}`)).toBeInTheDocument()
     await user.click(navigation.getByRole('button', { name: 'Suivant' }))
     await vi.waitFor(() => expect(router.currentRoute.value.params.candidatureUuid).toBe(others[1]!.uuid))
   })
 
   it('closes the last candidature after changing its stage and keeps the page of the list', async () => {
-    const rows = sevenRows()
-    mockSevenRows([rows[6]!, ...rows.slice(0, 6)])
+    const rows = twoPagesOfRows()
+    mockTwoPagesOfRows([rows[TABLE_PAGE_SIZE]!, ...rows.slice(0, TABLE_PAGE_SIZE)])
     let respond!: () => void
     vi.mocked(patchEtapeCandidatures).mockReturnValue(new Promise((resolve) => {
-      respond = () => resolve({ reussites: [rows[6]!.uuid], echecs: [] })
+      respond = () => resolve({ reussites: [rows[TABLE_PAGE_SIZE]!.uuid], echecs: [] })
     }))
     const user = setupUser()
     const { router, table } = await renderListe()
 
     await user.click(screen.getByRole('button', { name: 'Page suivante' }))
-    await user.click(await table.findByRole('link', { name: 'Candidat 7 Dupont' }))
+    await user.click(await table.findByRole('link', { name: `Candidat ${ROW_COUNT} Dupont` }))
     await changeEtapeToEntretien(user)
 
     await vi.waitFor(() => expect(router.currentRoute.value.path).toBe(LISTE_PATH))
     respond()
     await vi.waitFor(() => expect(getCandidatureListe).toHaveBeenCalledTimes(2))
-    expect(await table.findByRole('link', { name: 'Candidat 6 Dupont' })).toBeInTheDocument()
+    expect(await table.findByRole('link', { name: `Candidat ${TABLE_PAGE_SIZE} Dupont` })).toBeInTheDocument()
     expect(table.queryByRole('link', { name: 'Candidat 1 Dupont' })).not.toBeInTheDocument()
   })
 
   it('keeps the sort of the list after a visit to the kanban', async () => {
-    vi.mocked(getRecrutementKanban).mockResolvedValue(KANBAN)
     const user = setupUser()
     const { router, table } = await renderListe()
 

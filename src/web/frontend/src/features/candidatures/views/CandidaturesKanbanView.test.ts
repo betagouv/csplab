@@ -5,14 +5,15 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { defineComponent, h } from 'vue'
 import { RouterView } from 'vue-router'
 import { getMe } from '@/api/utilisateur'
+import { useToast } from '@/composables/ui/useToast'
 import { getRecrutementDetail } from '@/features/recrutements/api'
 import {
   CANDIDATURE_ALICE,
   CANDIDATURE_BRUNO,
+  CANDIDATURE_LISTE,
   ETAPE_ENTRETIEN,
   ETAPE_RECEPTION,
   ETAPE_REFUS,
-  KANBAN,
   KANBAN_PATH,
   MOTIFS_REFUS,
   ORGANISME_UUID,
@@ -22,10 +23,9 @@ import {
 } from '@/test/fixtures/candidatures'
 import { makeUser } from '@/test/fixtures/utilisateur'
 import { renderWithApp, setupUser } from '@/test/render'
-import { getMotifsRefus, getRecrutementKanban, patchEtapeCandidatures } from '../api'
+import { getCandidatureListe, getMotifsRefus, patchEtapeCandidatures } from '../api'
 
 vi.mock('../api', () => ({
-  getRecrutementKanban: vi.fn(),
   getCandidatureListe: vi.fn(),
   patchEtapeCandidatures: vi.fn(),
   getMotifsRefus: vi.fn(),
@@ -35,30 +35,8 @@ vi.mock('@/features/recrutements/api', () => ({
   getRecrutementDetail: vi.fn(),
 }))
 
-vi.mock('@/api/utilisateur', () => ({
-  getMe: vi.fn(),
-}))
-
 function renderKanbanPage(stubs: Record<string, Component> = {}) {
   return renderWithApp(RouterView, { route: KANBAN_PATH, global: { stubs } })
-}
-
-const CANDIDATURE_CHLOE = 'dddddddd-0001-0001-0001-000000000003'
-
-const KANBAN_WITH_ENTRETIEN = {
-  ...KANBAN,
-  etapes: KANBAN.etapes.map(etape => etape.uuid === ETAPE_ENTRETIEN
-    ? {
-        ...etape,
-        candidatures: [{
-          uuid: CANDIDATURE_CHLOE,
-          date_soumission: '2025-06-13T09:15:00Z',
-          date_derniere_activite: '2025-06-13T10:00:00Z',
-          unread_conversations: 0,
-          candidat: { uuid: 'eeeeeeee-0001-0001-0001-000000000003', nom: 'Petit', prenom: 'Chloé' },
-        }],
-      }
-    : etape),
 }
 
 function dropButton(label: string, targetColumnId: string) {
@@ -83,13 +61,13 @@ async function selectColumns(columns: string[], search?: string) {
   const user = setupUser()
   await renderKanbanPage()
 
+  if (search) {
+    await user.type(await screen.findByRole('searchbox', { name: 'Rechercher un candidat' }), `${search}{Enter}`)
+  }
   for (const column of columns) {
     // CspCheckbox exposes both its reka button and its hidden native input as checkboxes.
     const [columnCheckbox] = await screen.findAllByRole('checkbox', { name: `Sélectionner la colonne ${column}` })
     await user.click(columnCheckbox!)
-  }
-  if (search) {
-    await user.type(screen.getByRole('searchbox', { name: 'Rechercher un candidat' }), `${search}{Enter}`)
   }
   return user
 }
@@ -106,7 +84,7 @@ describe('candidaturesKanbanView', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     vi.mocked(getMe).mockResolvedValue(makeUser([roleOnOrganisme('agent')]))
-    vi.mocked(getRecrutementKanban).mockResolvedValue(KANBAN)
+    vi.mocked(getCandidatureListe).mockResolvedValue(CANDIDATURE_LISTE)
     vi.mocked(getMotifsRefus).mockResolvedValue(MOTIFS_REFUS)
     vi.mocked(getRecrutementDetail).mockResolvedValue(RECRUTEMENT_DETAIL)
     vi.mocked(patchEtapeCandidatures).mockResolvedValue({ reussites: [CANDIDATURE_ALICE, CANDIDATURE_BRUNO], echecs: [] })
@@ -134,11 +112,23 @@ describe('candidaturesKanbanView', () => {
     await vi.waitFor(() => expect(screen.getByRole('searchbox', { name: 'Rechercher un candidat' })).toHaveValue(''))
   })
 
+  it('keeps the focus on the view switch when the list opens', async () => {
+    const user = setupUser()
+    const { router } = await renderKanbanPage()
+
+    await user.click(await screen.findByRole('radio', { name: /Liste/ }))
+
+    await vi.waitFor(() => expect(router.currentRoute.value.path).toBe(`${KANBAN_PATH}/liste`))
+    await vi.waitFor(() => expect(screen.getByRole('radio', { name: /Liste/ })).toHaveFocus())
+  })
+
   it('shows an error when the kanban fails to load', async () => {
-    vi.mocked(getRecrutementKanban).mockRejectedValue(new Error('boom'))
+    vi.mocked(getCandidatureListe).mockRejectedValue(new Error('boom'))
     await renderKanbanPage()
 
     expect(await screen.findByText('Une erreur est survenue lors du chargement des candidatures.')).toBeInTheDocument()
+    expect(screen.queryByText(/^\d+ candidatures?$/)).not.toBeInTheDocument()
+    expect(screen.getByRole('radio', { name: /Liste/ })).toBeInTheDocument()
   })
 
   it('asks for a motif before refusing a selection, and sends it', async () => {
@@ -158,13 +148,20 @@ describe('candidaturesKanbanView', () => {
     }))
   })
 
-  it('counts in the refusal the candidatures still shown once a search hides part of the selection', async () => {
+  it('counts in the refusal only the candidatures shown by the search', async () => {
     const { dialog } = await refuseSelectedColumn('Alice')
 
     expect(dialog.getByText(/Vous êtes sur le point de refuser la candidature de Alice/)).toBeInTheDocument()
   })
 
-  it('lists in the stage drawer the selected candidatures still shown after a search', async () => {
+  it('shows in the toolbar the count of the selected candidatures shown by the search, in place of the candidatures count', async () => {
+    await selectColumns(['Réception des candidatures'], 'Alice')
+
+    expect(await screen.findByText('1 candidature sélectionnée')).toBeInTheDocument()
+    expect(screen.queryByText(/^\d+ candidatures?$/)).not.toBeInTheDocument()
+  })
+
+  it('lists in the stage drawer only the selected candidatures shown by the search', async () => {
     const user = await selectColumns(['Réception des candidatures'], 'Alice')
     await user.click(await screen.findByRole('button', { name: 'Changer d\'étape' }))
 
@@ -183,9 +180,8 @@ describe('candidaturesKanbanView', () => {
     expect(patchEtapeCandidatures).not.toHaveBeenCalled()
   })
 
-  it('moves the shown selection to a stage, without the candidatures hidden by a search', async () => {
-    vi.mocked(getRecrutementKanban).mockResolvedValue(KANBAN_WITH_ENTRETIEN)
-    const user = await selectColumns(['Réception des candidatures', 'Entretien'], 'Alice')
+  it('moves the selection to a stage, without the candidatures hidden by the search, and confirms it', async () => {
+    const user = await selectColumns(['Réception des candidatures'], 'Alice')
     await user.click(await screen.findByRole('button', { name: 'Changer d\'étape' }))
     const drawer = within(await screen.findByRole('dialog', { name: /Changer d'étape/ }))
     await user.click(drawer.getByRole('radio', { name: /Entretien/ }))
@@ -195,6 +191,7 @@ describe('candidaturesKanbanView', () => {
       etapeCibleUuid: ETAPE_ENTRETIEN,
       candidatureUuids: [CANDIDATURE_ALICE],
     }))
+    await vi.waitFor(() => expect(useToast().toasts.value.at(-1)?.title).toBe('La candidature d\'Alice Dupont est passée à l\'étape Entretien'))
   })
 
   it('sends a card dropped in another column, and ignores one dropped back in its own column', async () => {

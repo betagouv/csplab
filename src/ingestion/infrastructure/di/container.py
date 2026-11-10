@@ -1,4 +1,5 @@
 import logging
+from pathlib import Path
 
 import httpx
 from dependency_injector import containers, providers
@@ -13,6 +14,9 @@ from application.usecases.clean_raw_offer import CleanRawOfferUsecase
 from application.usecases.clean_raw_organismes import CleanRawOrganismesUsecase
 from application.usecases.import_offers import ImportOffersUsecase
 from application.usecases.import_organismes import ImportOrganismesUsecase
+from application.usecases.load_metiers_multi_domaines import (
+    LoadMetiersMultiDomainesUsecase,
+)
 from application.usecases.load_sources import LoadSourcesUsecase
 from application.usecases.prepare_talentsoft_organisations import (
     PrepareTalentsoftOrganisationsUsecase,
@@ -61,6 +65,7 @@ from infrastructure.external_gateways.talentsoft_client import (
     TalentsoftFrontClient,
 )
 from infrastructure.external_gateways.web_archive_gateway import WebArchiveGateway
+from infrastructure.external_gateways.web_metiers_gateway import WebMetiersGateway
 from infrastructure.external_gateways.web_offers_by_source_gateway import (
     WebOffersBySourceGateway,
 )
@@ -106,6 +111,22 @@ def _build_credentials_store(
     return store
 
 
+def _build_organismes_cleaner(
+    dila_siret_lookup_max_age_days: int, dila_sirets_csv_path: Path | None
+) -> OrganismesCleaner:
+    if dila_sirets_csv_path is None:
+        return OrganismesCleaner(
+            dila_siret_lookup_max_age_days=dila_siret_lookup_max_age_days
+        )
+    return OrganismesCleaner(
+        dila_siret_lookup_max_age_days=dila_siret_lookup_max_age_days,
+        dila_sirets_csv_path=dila_sirets_csv_path,
+    )
+
+
+_WEB_HTTP_TIMEOUT_SECONDS = 5.0
+
+
 def _make_db_engine(database_url: str | None) -> Engine:
     if not database_url:
         raise ValueError("DATABASE_URL is required")
@@ -119,7 +140,9 @@ class Container(containers.DeclarativeContainer):
 
     config = providers.Configuration()
 
-    http_client = providers.Factory(httpx.AsyncClient)
+    http_client = providers.Factory(
+        httpx.AsyncClient, timeout=_WEB_HTTP_TIMEOUT_SECONDS
+    )
 
     web_gateway_credentials = providers.Singleton(
         WebGatewayCredentials,
@@ -130,6 +153,8 @@ class Container(containers.DeclarativeContainer):
     sources_repository: providers.Provider[ISourcesRepository] = providers.Singleton(
         SourcesRepository
     )
+
+    metiers_multi_domaines: providers.Provider[set[str]] = providers.Singleton(set)
 
     credentials_store = providers.Singleton(
         _build_credentials_store,
@@ -203,8 +228,9 @@ class Container(containers.DeclarativeContainer):
     )
 
     organismes_cleaner: providers.Provider[IOrganismesCleaner] = providers.Singleton(
-        OrganismesCleaner,
+        _build_organismes_cleaner,
         dila_siret_lookup_max_age_days=config.dila_siret_lookup_max_age_days,
+        dila_sirets_csv_path=config.dila_sirets_csv_path,
     )
 
     clean_raw_organismes_usecase: providers.Provider[CleanRawOrganismesUsecase] = (
@@ -213,6 +239,7 @@ class Container(containers.DeclarativeContainer):
             organismes_cleaner=organismes_cleaner,
             raw_organisme_repository=raw_organisme_repository,
             siret_lookup_gateway=siret_lookup_gateway,
+            dila_siret_min_score=config.dila_siret_min_score,
         )
     )
 
@@ -284,6 +311,14 @@ class Container(containers.DeclarativeContainer):
         repository=sources_repository,
     )
 
+    load_metiers_multi_domaines_usecase = providers.Factory(
+        LoadMetiersMultiDomainesUsecase,
+        metiers_gateway=providers.Factory(
+            WebMetiersGateway, client=http_client, credentials=web_gateway_credentials
+        ),
+        metiers_multi_domaines=metiers_multi_domaines,
+    )
+
     offers_cleaner = providers.Singleton(
         OffersCleaner,
         sources_repository=sources_repository,
@@ -298,6 +333,7 @@ class Container(containers.DeclarativeContainer):
         WebPublishOfferGateway,
         client=http_client,
         credentials=web_gateway_credentials,
+        metiers_multi_domaines=metiers_multi_domaines,
     )
 
     publish_offer_usecase: providers.Provider[PublishOfferUsecase] = providers.Factory(
@@ -383,6 +419,8 @@ def create_container() -> Container:
     container.config.dila_siret_lookup_max_age_days.from_value(
         settings.dila_siret_lookup_max_age_days
     )
+    container.config.dila_siret_min_score.from_value(settings.dila_siret_min_score)
+    container.config.dila_sirets_csv_path.from_value(settings.dila_sirets_csv_path)
     container.config.talentsoft_dgafp_source_id.from_value(
         settings.talentsoft_dgafp_source_id
     )

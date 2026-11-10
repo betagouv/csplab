@@ -6,12 +6,14 @@ export type CspRadioSize = 'sm' | 'md' | 'lg'
 export interface CspRadioProps {
   value: string
   label: string
+  hint?: string
   disabled?: boolean
   size?: CspRadioSize
   error?: boolean
 }
 
 withDefaults(defineProps<CspRadioProps>(), {
+  hint: undefined,
   disabled: false,
   size: 'md',
   error: false,
@@ -25,6 +27,7 @@ withDefaults(defineProps<CspRadioProps>(), {
       `csp-radio--${size}`,
       { 'csp-radio--disabled': disabled },
       { 'csp-radio--error': error },
+      { 'csp-radio--with-hint': hint },
     ]"
   >
     <RadioGroupItem
@@ -34,7 +37,15 @@ withDefaults(defineProps<CspRadioProps>(), {
     >
       <RadioGroupIndicator class="csp-radio__indicator" />
     </RadioGroupItem>
-    <span class="csp-radio__label">{{ label }}</span>
+    <span class="csp-radio__text">
+      <span class="csp-radio__label"><slot>{{ label }}</slot></span>
+      <span
+        v-if="hint"
+        class="csp-radio__hint"
+      >
+        {{ hint }}
+      </span>
+    </span>
   </label>
 </template>
 
@@ -54,6 +65,10 @@ withDefaults(defineProps<CspRadioProps>(), {
   --csp-radio-indicator-size: 0.5rem;
 }
 
+.csp-radio--with-hint {
+  align-items: flex-start;
+}
+
 .csp-radio--sm {
   --csp-radio-size: 1rem;
   --csp-radio-font-size: 0.75rem;
@@ -71,11 +86,9 @@ withDefaults(defineProps<CspRadioProps>(), {
 .csp-radio--disabled {
   cursor: not-allowed;
   color: var(--text-disabled-grey);
-}
 
-.csp-radio--error {
-  .csp-radio__control {
-    border-color: var(--border-plain-error);
+  .csp-radio__hint {
+    color: var(--text-disabled-grey);
   }
 }
 
@@ -87,18 +100,13 @@ withDefaults(defineProps<CspRadioProps>(), {
   height: var(--csp-radio-size);
   flex: 0 0 auto;
   border-radius: 50%;
-  border: 1px solid var(--border-default-grey);
+  border: 1px solid var(--border-action-high-blue-france);
   background: transparent;
   padding: 0;
   cursor: inherit;
 
   &[data-state='checked'] {
-    border-color: var(--background-action-high-blue-france);
-  }
-
-  &[data-disabled] {
-    border-color: var(--border-disabled-grey);
-    background: var(--background-disabled-grey);
+    border-color: var(--border-active-blue-france);
   }
 
   &:focus-visible {
@@ -107,16 +115,50 @@ withDefaults(defineProps<CspRadioProps>(), {
   }
 }
 
+.csp-radio:not(.csp-radio--disabled) {
+  &:hover .csp-radio__control {
+    background: var(--background-default-grey-hover);
+  }
+
+  &:active .csp-radio__control {
+    background: var(--background-default-grey-active);
+  }
+}
+
+.csp-radio--error .csp-radio__control {
+  border-color: var(--border-plain-error);
+}
+
+.csp-radio__control[data-disabled] {
+  border-color: var(--border-disabled-grey);
+}
+
 .csp-radio__indicator {
   display: block;
   width: var(--csp-radio-indicator-size);
   height: var(--csp-radio-indicator-size);
   border-radius: 50%;
-  background: var(--background-action-high-blue-france);
+  background: var(--background-active-blue-france);
+
+  &[data-disabled] {
+    background: var(--background-disabled-grey);
+  }
+}
+
+.csp-radio__text {
+  display: flex;
+  flex-direction: column;
+  gap: var(--csp-field-hint-gap);
+  user-select: none;
 }
 
 .csp-radio__label {
-  line-height: 1.25;
-  user-select: none;
+  line-height: var(--csp-radio-size);
+}
+
+.csp-radio__hint {
+  font-size: 0.75rem;
+  line-height: 1.5;
+  color: var(--text-mention-grey);
 }
 </style>

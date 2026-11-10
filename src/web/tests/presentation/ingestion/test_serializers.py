@@ -1,14 +1,22 @@
 from unittest.mock import MagicMock
 
+import pytest
+
 from infrastructure.factories.ingestion.offer_payload_factory import PayloadOfferFactory
+from infrastructure.factories.referentiel.metier_django_factory import (
+    MetierDjangoFactory,
+)
 from presentation.ingestion.serializers import (
+    ConditionsInputSerializer,
     DescriptionInputSerializer,
+    LocalisationInputSerializer,
     OffersInputSerializer,
+    OrganismeLocalisationInputSerializer,
     ProfessionInputSerializer,
 )
 
 
-def test_offers_input_serializer_never_exposes_archived_at():
+def test_offers_input_serializer_never_exposes_archived_at(db):
     assert "archived_at" not in OffersInputSerializer().fields
 
     payload = PayloadOfferFactory.create(
@@ -57,7 +65,93 @@ def test_description_input_serializer_new_fields_are_optional():
     assert "descriptif_service" not in serializer.validated_data
 
 
-def test_profession_input_serializer_defaults_referentiel_to_rmfpv2():
+@pytest.mark.parametrize(
+    "field,limit",
+    [
+        ("mission", 10000),
+        ("profil", 10000),
+        ("employeur", 3000),
+        ("complements", 5000),
+        ("conditions_exercice", 10000),
+        ("descriptif_service", 10000),
+    ],
+)
+def test_description_input_serializer_counts_markdown_syntax_in_the_limit(field, limit):
+    base = {"mission": "", "profil": "", "employeur": "", "complements": ""}
+    at_limit = "**gras**" + "a" * (limit - len("**gras**"))
+
+    assert DescriptionInputSerializer(data={**base, field: at_limit}).is_valid()
+
+    serializer = DescriptionInputSerializer(data={**base, field: at_limit + "a"})
+    assert not serializer.is_valid()
+    assert field in serializer.errors
+
+
+@pytest.mark.parametrize(
+    "field",
+    [
+        "mission",
+        "profil",
+        "employeur",
+        "complements",
+        "conditions_exercice",
+        "descriptif_service",
+    ],
+)
+def test_description_input_serializer_rejects_html(field):
+    base = {"mission": "", "profil": "", "employeur": "", "complements": ""}
+
+    serializer = DescriptionInputSerializer(data={**base, field: "<b>gras</b>"})
+
+    assert not serializer.is_valid()
+    assert field in serializer.errors
+
+
+CONDITIONS = {"temps_travail": "TEMPS_PLEIN", "lieu_de_travail": "SUR_SITE"}
+
+
+@pytest.mark.parametrize(
+    "url",
+    [
+        "https://www.legifrance.gouv.fr/jorf/id/JORFTEXT000050000000",
+        "https://legifrance.gouv.fr/jorf/id/JORFTEXT000050000000",
+    ],
+)
+def test_conditions_input_serializer_accepts_legifrance_vacancy_notice(url):
+    serializer = ConditionsInputSerializer(
+        data={**CONDITIONS, "note_ouverture_poste_url": url}
+    )
+
+    assert serializer.is_valid(), serializer.errors
+    assert serializer.validated_data["note_ouverture_poste_url"] == url
+
+
+@pytest.mark.parametrize(
+    "url",
+    [
+        "http://www.legifrance.gouv.fr/jorf/id/JORFTEXT000050000000",
+        "https://exemple.teamtailor.com/jobs/123-gestionnaire-rh",
+        "https://www.legifrance.gouv.fr.exemple.com/jorf/id/JORFTEXT000050000000",
+        "https://exemple.com/?u=https://www.legifrance.gouv.fr/jorf",
+    ],
+)
+def test_conditions_input_serializer_rejects_vacancy_notice_outside_legifrance(url):
+    serializer = ConditionsInputSerializer(
+        data={**CONDITIONS, "note_ouverture_poste_url": url}
+    )
+
+    assert not serializer.is_valid()
+    assert serializer.errors == {
+        "note_ouverture_poste_url": [
+            (
+                "Le lien doit être en https et pointer vers l'avis de vacance "
+                "publié sur legifrance.gouv.fr."
+            )
+        ]
+    }
+
+
+def test_profession_input_serializer_defaults_referentiel_to_rmfpv2(db):
     payload = {"domaine": "NUM", "metier": "ERNUM001"}
 
     serializer = ProfessionInputSerializer(data=payload)
@@ -84,7 +178,9 @@ def test_profession_input_serializer_rejects_invalid_referentiel():
     assert "referentiel" in serializer.errors
 
 
-def test_profession_input_serializer_skips_metier_check_without_repository_in_context():
+def test_profession_input_serializer_skips_metier_check_without_repository_in_context(
+    db,
+):
     payload = {"domaine": "NUM", "metier": "INCONNU"}
 
     serializer = ProfessionInputSerializer(data=payload)
@@ -92,7 +188,7 @@ def test_profession_input_serializer_skips_metier_check_without_repository_in_co
     assert serializer.is_valid(), serializer.errors
 
 
-def test_profession_input_serializer_accepts_metier_known_by_repository():
+def test_profession_input_serializer_accepts_metier_known_by_repository(db):
     metiers_repository = MagicMock()
     metiers_repository.get_filtered.return_value = [MagicMock()]
     payload = {"domaine": "NUM", "metier": "ERNUM001"}
@@ -144,3 +240,62 @@ def test_profession_input_serializer_skips_checks_for_other_referentiel():
 
     assert validated == data
     metiers_repository.get_filtered.assert_not_called()
+
+
+def test_profession_input_serializer_rejects_domaine_outside_ambiguous_metier(db):
+    MetierDjangoFactory(offer_family_code="ERJUS008", domaine_fonctionnel_code="JUS")
+    MetierDjangoFactory(offer_family_code="ERJUS008", domaine_fonctionnel_code="CTL")
+
+    serializer = ProfessionInputSerializer(
+        data={"domaine": "NUM", "metier": "ERJUS008"}
+    )
+
+    assert not serializer.is_valid()
+    assert serializer.errors == {
+        "domaine": ["Le domaine NUM ne correspond pas au métier ERJUS008 (CTL, JUS)."]
+    }
+
+
+def test_localisation_input_serializer_requires_region_and_departement_in_france():
+    serializer = LocalisationInputSerializer(
+        data={
+            "zone_geographique": "EU",
+            "pays": "FRA",
+            "region": None,
+            "departement": None,
+            "localisation_label": "",
+            "latitude": None,
+            "longitude": None,
+        }
+    )
+
+    assert not serializer.is_valid()
+    assert serializer.errors == {
+        "non_field_errors": [
+            (
+                "La région et le département sont obligatoires "
+                "pour une offre localisée en France."
+            )
+        ]
+    }
+
+
+@pytest.mark.parametrize(
+    "serializer_class",
+    [LocalisationInputSerializer, OrganismeLocalisationInputSerializer],
+)
+def test_localisation_input_serializers_reject_blank_region_and_departement(
+    serializer_class,
+):
+    serializer = serializer_class(
+        data={
+            "zone_geographique": "EU",
+            "pays": "DEU",
+            "region": "",
+            "departement": "",
+            "localisation_label": "",
+        }
+    )
+
+    assert not serializer.is_valid()
+    assert set(serializer.errors) == {"region", "departement"}

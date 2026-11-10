@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { AgentSearchStatus } from '../composables/useFindOrCreateAgent'
 import type { AgentRecherche } from '../types'
-import { computed, ref, watch } from 'vue'
+import { computed, ref } from 'vue'
 import CspSearchBar from '@/components/base/CspSearchBar/CspSearchBar.vue'
 import { formatAgentLabel } from '../format'
 
@@ -14,7 +14,7 @@ const props = withDefaults(defineProps<{
 }>(), {
   agent: null,
   errorMessage: '',
-  label: 'Adresse électronique de l\'agent',
+  label: 'Courriel de l\'agent',
 })
 
 const emit = defineEmits<{
@@ -30,16 +30,17 @@ const formatError = ref('')
 
 const error = computed(() => props.errorMessage || formatError.value)
 
-watch(email, () => {
+function handleInput(value: string): void {
+  email.value = value
   formatError.value = ''
   if (props.status !== 'idle') {
     emit('reset')
   }
-})
+}
 
 function handleSearch(value: string): void {
   if (!EMAIL_PATTERN.test(value)) {
-    formatError.value = 'Renseignez une adresse électronique valide.'
+    formatError.value = 'Renseignez un courriel valide.'
     return
   }
   formatError.value = ''
@@ -49,14 +50,15 @@ function handleSearch(value: string): void {
 
 <template>
   <CspSearchBar
-    v-model="email"
+    :model-value="email"
     :label="label"
-    hint="Saisissez l'adresse complète du compte de l'agent."
+    hint="Saisissez le courriel complet du compte."
     name="email"
     placeholder="prenom.nom@exemple.gouv.fr"
     :disabled="searching"
     :error="Boolean(error)"
     :error-message="error"
+    @update:model-value="handleInput"
     @search="handleSearch"
   />
 
@@ -79,7 +81,7 @@ function handleSearch(value: string): void {
     v-else-if="status === 'not-found'"
     class="agent-recherche-form__hint"
   >
-    Aucun compte ne correspond à cette adresse. Un compte sera créé, la personne
+    Aucun compte ne correspond à ce courriel. Un compte sera créé, la personne
     complétera son profil à sa première connexion.
   </p>
 </template>

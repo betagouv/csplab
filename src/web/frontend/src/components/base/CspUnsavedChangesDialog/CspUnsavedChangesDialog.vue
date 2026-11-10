@@ -30,7 +30,7 @@ const emit = defineEmits<{
           @click="emit('leave')"
         />
         <CspButton
-          label="Continuer l'édition"
+          label="Reprendre la modification"
           variant="primary"
           @click="emit('keepEditing')"
         />

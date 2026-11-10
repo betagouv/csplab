@@ -1,19 +1,27 @@
 import logging
+import re
 from datetime import datetime
 from typing import List, Optional, cast
 from uuid import UUID
 
-from pydantic import HttpUrl, ValidationError
+import sentry_sdk
+from pydantic import HttpUrl, TypeAdapter, ValidationError
 from referentiel.value_objects.area import GeographicalArea
 from referentiel.value_objects.category import Category
 from referentiel.value_objects.contract_kind import ContractKind
 from referentiel.value_objects.country import Country
+from referentiel.value_objects.departement_region import (
+    chef_lieu_department_for_region,
+    overseas_region_for_department,
+    overseas_territory_for_country,
+    zone_pour_departement,
+)
 from referentiel.value_objects.department import Department
 from referentiel.value_objects.experience_level import ExperienceLevel
 from referentiel.value_objects.language import Language
 from referentiel.value_objects.language_level import LanguageLevel
 from referentiel.value_objects.limit_date import LimitDate
-from referentiel.value_objects.localisation import Localisation
+from referentiel.value_objects.localisation import FRANCE, Localisation
 from referentiel.value_objects.offer_conditions import (
     JobVacancy,
     Management,
@@ -22,6 +30,13 @@ from referentiel.value_objects.offer_conditions import (
 )
 from referentiel.value_objects.offer_nature import OfferNature
 from referentiel.value_objects.region import Region
+from referentiel.value_objects.required_document import (
+    TALENTSOFT_REQUIRED_DOCUMENTS,
+    RequiredDocument,
+)
+from referentiel.value_objects.state_diploma import (
+    talentsoft_state_diploma_by_client_code,
+)
 from referentiel.value_objects.verse import Verse
 
 from domain.entities.offer import Offer
@@ -29,20 +44,53 @@ from domain.entities.raw_offer import RawOffer
 from domain.repositories.sources_repository import ISourcesRepository
 from domain.value_objects.contact import Contact, ContactRole
 from domain.value_objects.email import extract_emails
+from infrastructure.exceptions.exceptions import (
+    TalentsoftOfferWithMisfiledStateDiploma,
+    TalentsoftOfferWithSeveralLocations,
+)
 from infrastructure.external_gateways.dtos.talentsoft_dtos import (
     TalentsoftCodedObject,
+    TalentsoftCustomCodeTable,
     TalentsoftCustomFields,
     TalentsoftDetailOffer,
     TalentsoftDynamicField,
     TalentsoftLanguage,
     TalentsoftOrganisation,
 )
+from infrastructure.gateways.html_to_markdown import html_to_markdown
 from infrastructure.gateways.transcoding import (
     SourceTranscoder,
     load_transcoders_by_slug,
 )
 
 logger = logging.getLogger(__name__)
+
+_LEGIFRANCE_URL = re.compile(r"https?://((?:www\.)?legifrance\.gouv\.fr/\S+)")
+
+WORKING_TIME_QUOTA_TYPE = "Quotité de temps de travail"
+
+# Abroad, the area cannot be deduced from a department: it is read from
+# geographicalLocation[0].
+_AREA_BY_TALENTSOFT_CODE: dict[str, GeographicalArea] = {
+    "_TS_CO_GeographicalArea_Afrique": GeographicalArea.AFRIQUE,
+    "_TS_CO_GeographicalArea_AmriquesCaraibe": GeographicalArea.AMERIQUE,
+    "_TS_CO_GeographicalArea_Asie": GeographicalArea.ASIE,
+    "_TS_CO_GeographicalArea_Europe": GeographicalArea.EUROPE,
+    "_TS_CO_GeographicalArea_MoyenOrientAfriqueduNord": (
+        GeographicalArea.MOYEN_ORIENT_AFRIQUE_DU_NORD
+    ),
+    "_TS_CO_GeographicalArea_Ocanie": GeographicalArea.OCEANIE,
+}
+
+_country_adapter = TypeAdapter(Country)
+
+# Department clientCodes that are neither an INSEE code nor transcoded: two of
+# them are internal identifiers of the talentsoft-main instance.
+_TALENTSOFT_DEPARTMENT_CODES: dict[str, str] = {
+    "_TS_CO_Department_NouvelleCaldonie988": "988",
+    "_TS_d623ebaa-8a96-434b-8d4f-302df507f7bf": "977",  # Saint-Barthélemy (977)
+    "_TS_171e5c6b-a77a-43d1-8e0c-d498b38ccf16": "978",  # Saint-Martin (978)
+}
 
 _TALENTSOFT_TO_SPECIALISATIONS: dict[str, str] = {
     "_TS_CO_Specialisation_1": "Formations générales",
@@ -238,16 +286,29 @@ _TALENTSOFT_TO_SPECIALISATIONS: dict[str, str] = {
     ),
 }
 
-_TALENTSOFT_TO_AREA: dict[str, GeographicalArea] = {
-    "_TS_CO_GeographicalArea_Afrique": GeographicalArea.AFRIQUE,
-    "_TS_CO_GeographicalArea_AmriquesCaraibe": GeographicalArea.AMERIQUE,
-    "_TS_CO_GeographicalArea_Asie": GeographicalArea.ASIE,
-    "_TS_CO_GeographicalArea_Europe": GeographicalArea.EUROPE,
-    "_TS_CO_GeographicalArea_MoyenOrientAfriqueduNord": (
-        GeographicalArea.MOYEN_ORIENT_AFRIQUE_DU_NORD
-    ),
-    "_TS_CO_GeographicalArea_Ocanie": GeographicalArea.OCEANIE,
+_TALENTSOFT_TO_REQUIRED_DOCUMENTS: dict[str, list[RequiredDocument]] = {
+    value.client_code: list(value.documents) for value in TALENTSOFT_REQUIRED_DOCUMENTS
 }
+
+
+def state_diploma(
+    code_table: Optional[TalentsoftCustomCodeTable],
+) -> Optional[TalentsoftCustomCodeTable]:
+    # Only the referential known to be misfiled is rejected: a renamed or missing
+    # type keeps the value instead of rejecting every state diploma.
+    if code_table is None or code_table.type == WORKING_TIME_QUOTA_TYPE:
+        return None
+    return code_table
+
+
+def state_diploma_label(
+    code_table: Optional[TalentsoftCustomCodeTable],
+) -> Optional[str]:
+    """Label of a state diploma already filtered by `state_diploma`."""
+    if code_table is None:
+        return None
+    known = talentsoft_state_diploma_by_client_code(code_table.clientCode)
+    return known.label if known else code_table.label.strip() or None
 
 
 class OffersCleaner:
@@ -318,15 +379,20 @@ class OffersCleaner:
         location_fields = custom_fields.location or TalentsoftDynamicField()
         offer_block_1 = custom_fields.offerCustomBlock1 or TalentsoftDynamicField()
         origin_fields = custom_fields.origin or TalentsoftDynamicField()
+        applicant_criteria_fields = (
+            custom_fields.applicantCriteria or TalentsoftDynamicField()
+        )
 
-        coordinates = self._extract_coordinates(talentsoft_offer)
-
+        self._report_multiple_locations(talentsoft_offer, raw_offer.source_id)
+        self._reject_misfiled_state_diploma(
+            offer_block_1, talentsoft_offer, raw_offer.source_id
+        )
         localisation = self._map_localisation_from_arrays(
             talentsoft_offer.geographicalLocation,
             talentsoft_offer.country,
             talentsoft_offer.region,
             talentsoft_offer.department,
-            coordinates,
+            talentsoft_offer,
             transcoder,
             label=location_fields.shortText1 or None,
         )
@@ -382,7 +448,9 @@ class OffersCleaner:
         languages = self._map_languages(talentsoft_offer.languages, transcoder)
 
         diploma = (
-            talentsoft_offer.diploma.clientCode if talentsoft_offer.diploma else None
+            talentsoft_offer.diploma.label.strip() or None
+            if talentsoft_offer.diploma
+            else state_diploma_label(offer_block_1.customCodeTable3)
         )
 
         working_place = self._map_working_place(
@@ -431,8 +499,12 @@ class OffersCleaner:
             else talentsoft_offer.reference,
             verse=verse,
             title=talentsoft_offer.title,
-            profile=talentsoft_offer.description2 or "",
-            mission=talentsoft_offer.description1 or "",
+            profile=self._map_rich_text(
+                talentsoft_offer.description2Formatted, talentsoft_offer.description2
+            ),
+            mission=self._map_rich_text(
+                talentsoft_offer.description1Formatted, talentsoft_offer.description1
+            ),
             category=category,
             offer_nature=offer_nature,
             contract_kind=contract_kind,
@@ -446,10 +518,36 @@ class OffersCleaner:
             beginning_date=beginning_date,
             application_deadline=application_deadline,
             contract_duration=talentsoft_offer.contractDuration or None,
-            employer_description=description_fields.longText1 or "",
-            exercise_conditions=description_fields.longText2 or "",
-            service_description=description_fields.longText3 or "",
-            complements=offer_block_1.longText1 or "",
+            employer_description=self._map_rich_text(
+                description_fields.longText1Formatted, description_fields.longText1
+            ),
+            exercise_conditions=self._map_rich_text(
+                description_fields.longText2Formatted, description_fields.longText2
+            ),
+            service_description=self._map_rich_text(
+                description_fields.longText3Formatted, description_fields.longText3
+            ),
+            complements=self._map_rich_text(
+                offer_block_1.longText1Formatted, offer_block_1.longText1
+            ),
+            required_skills=self._map_plain_text(
+                self._map_rich_text(
+                    applicant_criteria_fields.longText1Formatted,
+                    applicant_criteria_fields.longText1,
+                )
+            ),
+            required_documents=self._map_required_documents(
+                applicant_criteria_fields.customCodeTable1.clientCode
+                if applicant_criteria_fields.customCodeTable1
+                else None,
+                raw_offer.reference,
+            ),
+            legal_basis=self._map_plain_text(
+                self._map_rich_text(
+                    offer_block_1.longText2Formatted, offer_block_1.longText2
+                )
+            ),
+            vacancy_notice_url=self._map_vacancy_notice_url(offer_block_1.longText3),
             education_level=education_level,
             experience=experience,
             diploma=diploma,
@@ -463,6 +561,34 @@ class OffersCleaner:
             talentsoft_organisme_entity_code=organisme_entity_code,
             contacts=self._map_contacts(origin_fields),
         )
+
+    def _map_rich_text(self, formatted: Optional[str], raw: Optional[str]) -> str:
+        return html_to_markdown(formatted or "") or raw or ""
+
+    def _map_plain_text(self, raw: Optional[str]) -> Optional[str]:
+        return (raw or "").strip() or None
+
+    def _map_required_documents(
+        self, client_code: Optional[str], reference: str
+    ) -> list[RequiredDocument]:
+        if not client_code:
+            return []
+
+        documents = _TALENTSOFT_TO_REQUIRED_DOCUMENTS.get(client_code)
+        if documents is None:
+            logger.warning(
+                "Unknown required documents code %r for offer %s",
+                client_code,
+                reference,
+            )
+            return []
+        return list(documents)
+
+    def _map_vacancy_notice_url(self, raw: Optional[str]) -> Optional[HttpUrl]:
+        match = _LEGIFRANCE_URL.search(raw or "")
+        if match is None:
+            return None
+        return self._parse_url("https://" + match.group(1).rstrip(".,;"))
 
     def _map_verse(
         self,
@@ -628,6 +754,19 @@ class OffersCleaner:
     def _extract_coordinates(
         self, talentsoft_offer: TalentsoftDetailOffer
     ) -> tuple[Optional[float], Optional[float]]:
+        offer_coordinates = self._extract_offer_coordinates(talentsoft_offer)
+        if offer_coordinates is not None:
+            return offer_coordinates
+        if talentsoft_offer.organisation and talentsoft_offer.organisation.geolocation:
+            return (
+                talentsoft_offer.organisation.geolocation.latitude,
+                talentsoft_offer.organisation.geolocation.longitude,
+            )
+        return None, None
+
+    def _extract_offer_coordinates(
+        self, talentsoft_offer: TalentsoftDetailOffer
+    ) -> Optional[tuple[Optional[float], Optional[float]]]:
         if talentsoft_offer.geolocation:
             return (
                 talentsoft_offer.geolocation.latitude,
@@ -638,12 +777,51 @@ class OffersCleaner:
             and talentsoft_offer.longitude is not None
         ):
             return talentsoft_offer.latitude, talentsoft_offer.longitude
-        if talentsoft_offer.organisation and talentsoft_offer.organisation.geolocation:
-            return (
-                talentsoft_offer.organisation.geolocation.latitude,
-                talentsoft_offer.organisation.geolocation.longitude,
+        return None
+
+    def _report_multiple_locations(
+        self, talentsoft_offer: TalentsoftDetailOffer, source_id: Optional[str]
+    ) -> None:
+        # Reported, not raised: the offer keeps its first location
+        multiple_lists = [
+            name
+            for name, values in (
+                ("geographicalLocation", talentsoft_offer.geographicalLocation),
+                ("country", talentsoft_offer.country),
+                ("region", talentsoft_offer.region),
+                ("department", talentsoft_offer.department),
             )
-        return None, None
+            if len(values) > 1
+        ]
+        if talentsoft_offer.locations:
+            multiple_lists.append("locations")
+        if multiple_lists:
+            sentry_sdk.capture_exception(
+                TalentsoftOfferWithSeveralLocations(
+                    talentsoft_offer.reference, source_id, multiple_lists
+                )
+            )
+
+    def _reject_misfiled_state_diploma(
+        self,
+        offer_block_1: TalentsoftDynamicField,
+        talentsoft_offer: TalentsoftDetailOffer,
+        source_id: Optional[str],
+    ) -> None:
+        received = offer_block_1.customCodeTable3
+        offer_block_1.customCodeTable3 = state_diploma(received)
+        if received is None or offer_block_1.customCodeTable3 is not None:
+            return
+        organisation = talentsoft_offer.organisation
+        sentry_sdk.capture_exception(
+            TalentsoftOfferWithMisfiledStateDiploma(
+                reference=talentsoft_offer.reference,
+                source_id=source_id,
+                organisme_entity_code=organisation.entityCode if organisation else None,
+                type=received.type,
+                client_code=received.clientCode,
+            )
+        )
 
     def _map_localisation_from_arrays(
         self,
@@ -651,49 +829,63 @@ class OffersCleaner:
         countries: List,
         regions: List,
         departments: List,
-        coordinates: tuple[Optional[float], Optional[float]] = (None, None),
+        talentsoft_offer: TalentsoftDetailOffer,
         transcoder: Optional[SourceTranscoder] = None,
         label: Optional[str] = None,
     ) -> Optional[Localisation]:
-        latitude, longitude = coordinates
-        area_code = areas[0].clientCode if areas else None
         country_code = countries[0].clientCode if countries else None
         region_code = regions[0].clientCode if regions else None
         department_code = departments[0].clientCode if departments else None
 
-        if not country_code or not region_code or not department_code or not area_code:
+        if transcoder and country_code:
+            country_code = transcoder.translate("pays", country_code) or country_code
+
+        overseas_territory = (
+            overseas_territory_for_country(country_code) if country_code else None
+        )
+        if overseas_territory is not None:
+            department_code = overseas_territory.department.code
+            # Placeholder: the overseas region is deduced from the department.
+            region_code = "TOM"
+            country_code = FRANCE
+
+        if country_code and country_code != FRANCE:
+            return self._map_localisation_abroad(
+                areas, country_code, talentsoft_offer, label
+            )
+
+        if not country_code or not region_code:
             return None
 
         if transcoder:
-            area_code = transcoder.translate("zones_geo", area_code) or area_code
-            country_code = transcoder.translate("pays", country_code) or country_code
             region_code = transcoder.translate("regions", region_code) or region_code
-            department_code = (
-                transcoder.translate("departements", department_code) or department_code
-            )
+            if department_code:
+                department_code = (
+                    transcoder.translate("departements", department_code)
+                    or department_code
+                )
 
-        area = _TALENTSOFT_TO_AREA.get(area_code)
-        if area is None:
+        insee_region_code = self._insee_region_code(region_code)
+        insee_department_code = self._insee_department_code(
+            department_code, insee_region_code, talentsoft_offer.reference
+        )
+        if insee_department_code is None:
             return None
 
-        if region_code.startswith("_TS_CO_Region_"):
-            insee_region_code = region_code.replace("_TS_CO_Region_", "")
-        elif region_code.startswith("R"):
-            insee_region_code = region_code.lstrip("R")
-        else:
-            insee_region_code = region_code
-
-        if department_code.startswith("_TS_CO_Department_NouvelleCaldonie988"):
-            insee_department_code = "988"
-        else:
-            insee_department_code = department_code
-
+        latitude, longitude = self._extract_coordinates(talentsoft_offer)
         try:
+            department = Department(code=insee_department_code)
+            area = zone_pour_departement(department)
+            if area is None:
+                return None
+            region = overseas_region_for_department(department) or Region(
+                code=insee_region_code
+            )
             return Localisation(
                 area=area,
                 country=Country(country_code),
-                region=Region(code=insee_region_code),
-                department=Department(code=insee_department_code),
+                region=region,
+                department=department,
                 label=label,
                 latitude=latitude,
                 longitude=longitude,
@@ -705,6 +897,69 @@ class OffersCleaner:
                 department_code,
                 e,
             )
+            return None
+
+    @staticmethod
+    def _insee_region_code(region_code: str) -> str:
+        if region_code.startswith("_TS_CO_Region_"):
+            return region_code.replace("_TS_CO_Region_", "")
+        if region_code.startswith("R"):
+            return region_code.lstrip("R")
+        return region_code
+
+    @staticmethod
+    def _insee_department_code(
+        department_code: Optional[str], insee_region_code: str, reference: str
+    ) -> Optional[str]:
+        if department_code:
+            return _TALENTSOFT_DEPARTMENT_CODES.get(department_code, department_code)
+
+        try:
+            region = Region(code=insee_region_code)
+        except ValidationError:
+            return None
+        chef_lieu = chef_lieu_department_for_region(region)
+        if chef_lieu is None:
+            return None
+        logger.info(
+            "Offer %s has no department, using chef-lieu %s of region %s",
+            reference,
+            chef_lieu.code,
+            insee_region_code,
+        )
+        return chef_lieu.code
+
+    def _map_localisation_abroad(
+        self,
+        areas: List,
+        country_code: str,
+        talentsoft_offer: TalentsoftDetailOffer,
+        label: Optional[str],
+    ) -> Optional[Localisation]:
+        area_code = areas[0].clientCode if areas else None
+        area = _AREA_BY_TALENTSOFT_CODE.get(area_code) if area_code else None
+        if area is None:
+            logger.warning(
+                "Unknown geographical area %s for country %s", area_code, country_code
+            )
+            return None
+
+        # The organisation's coordinates are usually those of its head office
+        # in France: only the offer's own coordinates are kept.
+        offer_coordinates = self._extract_offer_coordinates(talentsoft_offer)
+        latitude, longitude = offer_coordinates or (None, None)
+        try:
+            return Localisation(
+                area=area,
+                country=_country_adapter.validate_python(country_code),
+                region=None,
+                department=None,
+                label=label,
+                latitude=latitude,
+                longitude=longitude,
+            )
+        except (ValueError, ValidationError) as e:
+            logger.warning("Invalid localisation for country=%s: %s", country_code, e)
             return None
 
     def _map_specialisations(

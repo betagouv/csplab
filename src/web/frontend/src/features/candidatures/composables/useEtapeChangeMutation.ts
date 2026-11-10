@@ -1,15 +1,15 @@
 import type { EntryKey, EntryKeyTagged } from '@pinia/colada'
 import type { MaybeRefOrGetter } from 'vue'
 import type { EtapeChange } from '../api'
+import type { Candidat } from '../types'
 import type { RecrutementParams } from '@/api/params'
 import { useMutation, useQueryCache } from '@pinia/colada'
 import { toValue } from 'vue'
 import { candidatureKeys, recrutementKeys } from '@/api/queryKeys'
 import { useToast } from '@/composables/ui/useToast'
-import { recrutementDetailQuery } from '@/features/recrutements/queries'
 import { patchEtapeCandidatures } from '../api'
-import { candidatureDetailQuery, candidatureListeQuery, recrutementKanbanQuery } from '../queries'
-import { moveCandidaturesInKanban } from '../utils/kanban'
+import { formatEtapeChangeTitle } from '../format'
+import { candidatureDetailQuery, candidatureListeQuery } from '../queries'
 
 interface Snapshot {
   key: EntryKey
@@ -17,9 +17,11 @@ interface Snapshot {
   optimistic: unknown
 }
 
+let lastSuccessToastId: number | null = null
+
 export function useEtapeChangeMutation(recrutement: MaybeRefOrGetter<RecrutementParams>) {
   const queryCache = useQueryCache()
-  const { addToast } = useToast()
+  const { addToast, dismissToast } = useToast()
 
   function restore({ key, previous, optimistic }: Snapshot): void {
     if (queryCache.getQueryData(key) === optimistic) {
@@ -41,16 +43,17 @@ export function useEtapeChangeMutation(recrutement: MaybeRefOrGetter<Recrutement
     return { key, previous, optimistic }
   }
 
+  function findEtapeCible(params: RecrutementParams, etapeCibleUuid: string) {
+    return queryCache.getQueryData(candidatureListeQuery(params).key)?.etapes.find(etape => etape.uuid === etapeCibleUuid)
+  }
+
   const mutation = useMutation({
     mutation: (change: EtapeChange, { params }) =>
       patchEtapeCandidatures(params.organismeUuid, params.recrutementUuid, change),
     onMutate: ({ candidatureUuids, etapeCibleUuid }: EtapeChange) => {
       const params = { ...toValue(recrutement) }
-      const kanban = applyOptimistic(recrutementKanbanQuery(params).key, previous =>
-        moveCandidaturesInKanban(previous, candidatureUuids, etapeCibleUuid))
-
       const snapshots: (Snapshot | null)[] = []
-      const etapeCible = queryCache.getQueryData(recrutementDetailQuery(params).key)?.etapes.find(etape => etape.uuid === etapeCibleUuid)
+      const etapeCible = findEtapeCible(params, etapeCibleUuid)
       if (etapeCible) {
         const moved = new Set(candidatureUuids)
         snapshots.push(applyOptimistic(candidatureListeQuery(params).key, liste => ({
@@ -65,13 +68,9 @@ export function useEtapeChangeMutation(recrutement: MaybeRefOrGetter<Recrutement
         }
       }
 
-      return { params, kanban, snapshots }
+      return { params, snapshots }
     },
-    onSuccess: ({ echecs }, _change, { params, kanban }) => {
-      const kanbanChangedMeanwhile = kanban && queryCache.getQueryData(kanban.key) !== kanban.optimistic
-      if (kanbanChangedMeanwhile || echecs.length > 0) {
-        void queryCache.invalidateQueries({ key: recrutementKanbanQuery(params).key })
-      }
+    onSuccess: ({ echecs }) => {
       if (echecs.length === 0) {
         return
       }
@@ -80,8 +79,8 @@ export function useEtapeChangeMutation(recrutement: MaybeRefOrGetter<Recrutement
         title: 'Certaines candidatures n\'ont pas changé d\'étape',
       })
     },
-    onError: (_error, _change, { kanban, snapshots }) => {
-      for (const snapshot of [kanban, ...(snapshots ?? [])]) {
+    onError: (_error, _change, { snapshots }) => {
+      for (const snapshot of snapshots ?? []) {
         if (snapshot) {
           restore(snapshot)
         }
@@ -103,10 +102,26 @@ export function useEtapeChangeMutation(recrutement: MaybeRefOrGetter<Recrutement
     },
   })
 
-  async function changeEtape(change: EtapeChange): Promise<boolean> {
+  function notifyEtapeChanged(params: RecrutementParams, etapeCibleUuid: string, candidats: Candidat[]): void {
+    const etapeCible = findEtapeCible(params, etapeCibleUuid)
+    if (!etapeCible) {
+      return
+    }
+    if (lastSuccessToastId !== null) {
+      dismissToast(lastSuccessToastId)
+    }
+    lastSuccessToastId = addToast({ variant: 'success', title: formatEtapeChangeTitle(candidats, etapeCible.nom) })
+  }
+
+  async function changeEtape(change: EtapeChange, candidats: Candidat[]): Promise<boolean> {
+    const params = { ...toValue(recrutement) }
     try {
       const { echecs } = await mutation.mutateAsync(change)
-      return echecs.length === 0
+      if (echecs.length > 0) {
+        return false
+      }
+      notifyEtapeChanged(params, change.etapeCibleUuid, candidats)
+      return true
     }
     catch {
       return false

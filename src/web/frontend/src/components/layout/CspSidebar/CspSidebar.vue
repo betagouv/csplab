@@ -122,6 +122,14 @@ const { state, isExpanded, isMobile, isMobileOpen, setMobileOpen, toggle } = use
   inset: 0;
   background-color: var(--csp-overlay-scrim);
   z-index: var(--csp-z-overlay);
+
+  &[data-state='open'] {
+    animation: var(--csp-motion-scrim-enter);
+  }
+
+  &[data-state='closed'] {
+    animation: var(--csp-motion-scrim-exit);
+  }
 }
 
 .csp-sidebar {
@@ -143,13 +151,23 @@ const { state, isExpanded, isMobile, isMobileOpen, setMobileOpen, toggle } = use
   }
 
   &--mobile {
+    --csp-drawer-offset: -100%;
+
     position: fixed;
     inset-block: 0;
     left: 0;
     width: var(--sidebar-width);
     max-width: calc(100vw - 3rem);
     z-index: var(--csp-z-modal);
-    box-shadow: var(--csp-shadow-lg);
+    box-shadow: var(--csp-lifted-shadow);
+
+    &[data-state='open'] {
+      animation: var(--csp-motion-drawer-enter);
+    }
+
+    &[data-state='closed'] {
+      animation: var(--csp-motion-drawer-exit);
+    }
   }
 }
 
@@ -199,6 +217,7 @@ const { state, isExpanded, isMobile, isMobileOpen, setMobileOpen, toggle } = use
   background: transparent;
   color: var(--text-mention-grey);
   cursor: pointer;
+  transition: background-color var(--csp-motion-duration-state);
 
   .csp-sidebar:not(.csp-sidebar--expanded) & {
     margin-inline: auto;

@@ -1,13 +1,16 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import CspIcon from '@/components/base/CspIcon/CspIcon.vue'
 import { getInitials } from '@/utils/format'
 
 export interface CspAvatarProps {
   name?: string | null
+  icon?: string
   size?: 'sm' | 'md' | 'lg'
 }
 
 const props = withDefaults(defineProps<CspAvatarProps>(), {
+  icon: undefined,
   size: 'md',
 })
 
@@ -20,10 +23,17 @@ const initials = computed(() => {
   <div
     class="csp-avatar"
     :class="`csp-avatar--${size}`"
-    role="img"
-    :aria-label="name ?? undefined"
+    :role="icon ? undefined : 'img'"
+    :aria-label="icon ? undefined : name ?? undefined"
+    :aria-hidden="icon ? 'true' : undefined"
   >
+    <CspIcon
+      v-if="icon"
+      :name="icon"
+      class="csp-avatar__icon"
+    />
     <span
+      v-else
       class="csp-avatar__initials"
       aria-hidden="true"
     >
@@ -56,6 +66,11 @@ const initials = computed(() => {
 
 .csp-avatar__initials {
   line-height: 1;
+}
+
+.csp-avatar__icon {
+  width: 50%;
+  height: 50%;
 }
 
 .csp-avatar--sm {

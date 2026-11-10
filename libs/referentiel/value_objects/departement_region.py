@@ -1,3 +1,5 @@
+from typing import NamedTuple
+
 from referentiel.value_objects.area import GeographicalArea
 from referentiel.value_objects.department import Department
 from referentiel.value_objects.region import Region
@@ -95,6 +97,106 @@ _register(Region(code="03"), GeographicalArea.AMERIQUE, *_departements("973"))
 _register(Region(code="04"), GeographicalArea.AFRIQUE, *_departements("974"))
 _register(Region(code="06"), GeographicalArea.AFRIQUE, *_departements("976"))
 
+_CHEF_LIEU_PAR_REGION: dict[str, Department] = {
+    region_code: Department(code=department_code)
+    for region_code, department_code in {
+        "11": "75",
+        "24": "45",
+        "27": "21",
+        "28": "76",
+        "32": "59",
+        "44": "67",
+        "52": "44",
+        "53": "35",
+        "75": "33",
+        "76": "31",
+        "84": "69",
+        "93": "13",
+        "94": "2A",
+        "01": "971",
+        "02": "972",
+        "03": "973",
+        "04": "974",
+        "06": "976",
+    }.items()
+}
+
+_REGION_DOM = Region(code="DOM")
+_REGION_TOM = Region(code="TOM")
+_DOM_DEPARTMENTS = {
+    department.code for department in _departements("971", "972", "973", "974", "976")
+}
+_TOM_DEPARTMENTS = {
+    department.code
+    for department in _departements(
+        "975", "977", "978", "986", "987", "988", "SPM", "WLF"
+    )
+}
+
 
 def region_et_zone_pour_departement(departement: Department) -> RegionEtZone | None:
     return _DEPARTEMENT_VERS_REGION_ET_ZONE.get(departement.code)
+
+
+def overseas_region_for_department(department: Department) -> Region | None:
+    if department.code in _DOM_DEPARTMENTS:
+        return _REGION_DOM
+    if department.code in _TOM_DEPARTMENTS:
+        return _REGION_TOM
+    return None
+
+
+_ZONE_PAR_COLLECTIVITE: dict[str, GeographicalArea] = {
+    department.code: GeographicalArea.AMERIQUE
+    for department in _departements("975", "977", "978", "SPM")
+} | {
+    department.code: GeographicalArea.OCEANIE
+    for department in _departements("986", "WLF", "987", "988")
+}
+
+
+def zone_pour_departement(departement: Department) -> GeographicalArea | None:
+    region_et_zone = region_et_zone_pour_departement(departement)
+    if region_et_zone is not None:
+        return region_et_zone[1]
+    return _ZONE_PAR_COLLECTIVITE.get(departement.code)
+
+
+def department_belongs_to_region(department: Department, region: Region) -> bool:
+    if department.code in _TOM_DEPARTMENTS:
+        return region == _REGION_TOM
+    if department.code in _DOM_DEPARTMENTS and region == _REGION_DOM:
+        return True
+    region_and_area = region_et_zone_pour_departement(department)
+    return region_and_area is not None and region_and_area[0] == region
+
+
+class OverseasTerritory(NamedTuple):
+    name: str
+    department: Department
+
+
+_OVERSEAS_TERRITORY_BY_COUNTRY: dict[str, OverseasTerritory] = {
+    country: OverseasTerritory(name, Department(code=code))
+    for country, name, code in (
+        ("GLP", "Guadeloupe", "971"),
+        ("MTQ", "Martinique", "972"),
+        ("GUF", "Guyane", "973"),
+        ("REU", "La Réunion", "974"),
+        ("SPM", "Saint-Pierre-et-Miquelon", "975"),
+        ("MYT", "Mayotte", "976"),
+        ("BLM", "Saint-Barthélemy", "977"),
+        ("MAF", "Saint-Martin", "978"),
+        ("WLF", "Wallis-et-Futuna", "WLF"),
+        ("PYF", "Polynésie française", "987"),
+        ("NCL", "Nouvelle-Calédonie", "988"),
+    )
+}
+
+
+def overseas_territory_for_country(country_code: str) -> OverseasTerritory | None:
+    return _OVERSEAS_TERRITORY_BY_COUNTRY.get(country_code)
+
+
+def chef_lieu_department_for_region(region: Region) -> Department | None:
+    return _CHEF_LIEU_PAR_REGION.get(region.code)

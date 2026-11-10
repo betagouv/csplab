@@ -1,8 +1,11 @@
+import csv
 from datetime import datetime, timezone
+from pathlib import Path
 from uuid import UUID
 
 import pytest
-from pydantic import ValidationError
+from pydantic import HttpUrl, ValidationError
+from referentiel.value_objects.area import GeographicalArea
 from referentiel.value_objects.category import Category
 from referentiel.value_objects.contract_kind import ContractKind
 from referentiel.value_objects.experience_level import ExperienceLevel
@@ -15,15 +18,24 @@ from referentiel.value_objects.offer_conditions import (
     WorkingTime,
 )
 from referentiel.value_objects.offer_nature import OfferNature
+from referentiel.value_objects.required_document import RequiredDocument
 from referentiel.value_objects.verse import Verse
 
 from domain.entities.raw_offer import RawOffer
 from domain.value_objects.contact import Contact, ContactRole
+from infrastructure.exceptions.exceptions import (
+    TalentsoftOfferWithMisfiledStateDiploma,
+    TalentsoftOfferWithSeveralLocations,
+)
+from infrastructure.external_gateways.dtos.offer_upsert_payload import (
+    OfferUpsertPayload,
+)
 from infrastructure.external_gateways.dtos.talentsoft_dtos import (
     TalentsoftDynamicField,
     TalentsoftLanguage,
+    TalentsoftMultiLocation,
 )
-from infrastructure.gateways.offers_cleaner import OffersCleaner
+from infrastructure.gateways.offers_cleaner import OffersCleaner, state_diploma
 from infrastructure.gateways.transcoding import SourceTranscoder
 from infrastructure.sources_repository import SourcesRepository
 from tests.factories.domain_factories import SourceFactory
@@ -40,6 +52,7 @@ from tests.factories.talentsoft_factories import (
 REFERENCE = "2024-OFFER-001"
 SOURCE_ID = "11111111-2222-3333-4444-555555555555"
 OTHER_SOURCE_ID = "99999999-8888-7777-6666-555555555555"
+DATA_DIR = Path(__file__).resolve().parents[3] / "data"
 _SOURCE_ID_BY_SLUG = {"ars": SOURCE_ID, "talentsoft-main": OTHER_SOURCE_ID}
 
 
@@ -183,21 +196,11 @@ def test_clean_maps_category_from_custom_fields(
 
 
 @pytest.mark.parametrize(
-    "area, country, region, department, "
-    "expected_area, expected_region, expected_department",
+    "area, region, department, expected_area, expected_region, expected_department",
     [
+        ("_TS_CO_GeographicalArea_Europe", "R24", "41", "EU", "24", "41"),
         (
-            "_TS_CO_GeographicalArea_Europe",
-            "FRA",
-            "R24",
-            "41",
-            "EU",
-            "24",
-            "41",
-        ),
-        (
-            "_TS_CO_GeographicalArea_Europe",
-            "FRA",
+            "_TS_CO_GeographicalArea_MoyenOrientAfriqueduNord",
             "R11",
             "75",
             "EU",
@@ -205,47 +208,42 @@ def test_clean_maps_category_from_custom_fields(
             "75",
         ),
         (
-            "_TS_CO_GeographicalArea_Afrique",
-            "FRA",
+            "_TS_CO_GeographicalArea_Europe",
             "_TS_CO_Region_DOM",
             "971",
-            "AF",
+            "AM",
             "DOM",
             "971",
         ),
         (
-            "_TS_CO_GeographicalArea_AmriquesCaraibe",
-            "FRA",
+            "_TS_CO_GeographicalArea_Europe",
+            "_TS_CO_Region_DOM",
+            "974",
+            "AF",
+            "DOM",
+            "974",
+        ),
+        (
+            "_TS_CO_GeographicalArea_Europe",
             "_TS_CO_Region_TOM",
             "987",
-            "AM",
+            "OC",
             "TOM",
             "987",
         ),
         (
-            "_TS_CO_GeographicalArea_Ocanie",
-            "FRA",
+            "_TS_CO_GeographicalArea_Europe",
             "R84",
             "_TS_CO_Department_NouvelleCaldonie988",
             "OC",
-            "84",
+            "TOM",
             "988",
-        ),
-        (
-            "_TS_CO_GeographicalArea_MoyenOrientAfriqueduNord",
-            "FRA",
-            "R11",
-            "75",
-            "MO",
-            "11",
-            "75",
         ),
     ],
 )
-def test_clean_maps_geographical_area(
+def test_clean_deduces_geographical_area_from_department(
     cleaner,
     area,
-    country,
     region,
     department,
     expected_area,
@@ -259,7 +257,7 @@ def test_clean_maps_geographical_area(
             )
         ],
         country=[
-            TalentsoftCodedObjectFactory.build(clientCode=country, type="offerCountry")
+            TalentsoftCodedObjectFactory.build(clientCode="FRA", type="offerCountry")
         ],
         region=[
             TalentsoftCodedObjectFactory.build(clientCode=region, type="offerRegion")
@@ -344,23 +342,619 @@ def test_clean_maps_ars_overseas_region_code(cleaner):
     assert offer.localisation.department.code == "971"
 
 
-def test_clean_returns_none_localisation_when_area_missing(cleaner):
-    raw_offer = _make_raw_offer(
-        geographicalLocation=[],
+def _transcoded_codes(field: str) -> list:
+    return [
+        pytest.param(directory.name, row["code_client"], id=row["code_client"])
+        for directory in sorted(DATA_DIR.iterdir())
+        if (directory / f"{field}.csv").exists()
+        for row in csv.DictReader(
+            (directory / f"{field}.csv").open(encoding="utf-8"), delimiter=";"
+        )
+    ]
+
+
+def _make_localised_raw_offer(region: str, department: str) -> RawOffer:
+    return _make_raw_offer(
+        geographicalLocation=[
+            TalentsoftCodedObjectFactory.build(
+                clientCode="_TS_CO_GeographicalArea_Europe",
+                type="offerGeographicalLocation",
+            )
+        ],
         country=[
             TalentsoftCodedObjectFactory.build(clientCode="FRA", type="offerCountry")
         ],
         region=[
-            TalentsoftCodedObjectFactory.build(clientCode="R24", type="offerRegion")
+            TalentsoftCodedObjectFactory.build(clientCode=region, type="offerRegion")
         ],
         department=[
-            TalentsoftCodedObjectFactory.build(clientCode="41", type="offerDepartment")
+            TalentsoftCodedObjectFactory.build(
+                clientCode=department, type="offerDepartment"
+            )
+        ],
+    )
+
+
+@pytest.mark.parametrize(("slug", "region"), _transcoded_codes("regions"))
+def test_clean_maps_every_transcoded_region(sources_repository, slug, region):
+    cleaner = OffersCleaner(
+        sources_repository=sources_repository,
+        transcoders_by_slug={"ars": SourceTranscoder.from_directory(DATA_DIR / slug)},
+    )
+
+    offer = cleaner.clean(_make_localised_raw_offer(region=region, department="75"))
+
+    assert offer.localisation is not None
+
+
+@pytest.mark.parametrize(("slug", "department"), _transcoded_codes("departements"))
+def test_clean_maps_every_transcoded_department(sources_repository, slug, department):
+    cleaner = OffersCleaner(
+        sources_repository=sources_repository,
+        transcoders_by_slug={"ars": SourceTranscoder.from_directory(DATA_DIR / slug)},
+    )
+
+    offer = cleaner.clean(
+        _make_localised_raw_offer(region="R11", department=department)
+    )
+
+    assert offer.localisation is not None
+
+
+@pytest.mark.parametrize(
+    ("region", "department", "expected_region"),
+    [
+        ("_TS_CO_Region_TOM", "971", "DOM"),
+        ("_TS_CO_Region_TOM", "972", "DOM"),
+        ("_TS_CO_Region_TOM", "973", "DOM"),
+        ("_TS_CO_Region_TOM", "974", "DOM"),
+        ("_TS_CO_Region_TOM", "976", "DOM"),
+        ("_TS_CO_Region_DOM", "975", "TOM"),
+        ("R11", "987", "TOM"),
+    ],
+)
+def test_clean_deduces_overseas_region_from_department(
+    cleaner, region, department, expected_region
+):
+    raw_offer = _make_raw_offer(
+        geographicalLocation=[
+            TalentsoftCodedObjectFactory.build(
+                clientCode="_TS_CO_GeographicalArea_AmriquesCaraibe",
+                type="offerGeographicalLocation",
+            )
+        ],
+        country=[
+            TalentsoftCodedObjectFactory.build(clientCode="FRA", type="offerCountry")
+        ],
+        region=[
+            TalentsoftCodedObjectFactory.build(clientCode=region, type="offerRegion")
+        ],
+        department=[
+            TalentsoftCodedObjectFactory.build(
+                clientCode=department, type="offerDepartment"
+            )
         ],
     )
 
     offer = cleaner.clean(raw_offer)
 
+    assert offer.localisation is not None
+    assert offer.localisation.region.code == expected_region
+    assert offer.localisation.department.code == department
+
+
+@pytest.mark.parametrize(
+    ("country", "expected_department", "expected_area"),
+    [
+        pytest.param("NCL", "988", GeographicalArea.OCEANIE, id="nouvelle_caledonie"),
+        pytest.param("PYF", "987", GeographicalArea.OCEANIE, id="polynesie"),
+        pytest.param("WLF", "WLF", GeographicalArea.OCEANIE, id="wallis_et_futuna"),
+        pytest.param("SPM", "975", GeographicalArea.AMERIQUE, id="saint_pierre"),
+        pytest.param("MAF", "978", GeographicalArea.AMERIQUE, id="saint_martin"),
+    ],
+)
+def test_clean_maps_overseas_collectivity_entered_as_a_country(
+    cleaner, country, expected_department, expected_area
+):
+    raw_offer = _make_raw_offer(
+        slug="talentsoft-main",
+        geographicalLocation=[
+            TalentsoftCodedObjectFactory.build(
+                clientCode="_TS_CO_GeographicalArea_Ocanie",
+                type="offerGeographicalLocation",
+            )
+        ],
+        country=[
+            TalentsoftCodedObjectFactory.build(clientCode=country, type="offerCountry")
+        ],
+        region=[],
+        department=[],
+    )
+
+    offer = cleaner.clean(raw_offer)
+
+    assert offer.localisation is not None
+    assert str(offer.localisation.country) == "FRA"
+    assert offer.localisation.region.code == "TOM"
+    assert offer.localisation.department.code == expected_department
+    assert offer.localisation.area == expected_area
+
+
+@pytest.mark.parametrize(
+    ("department", "expected_department"),
+    [
+        pytest.param(
+            "_TS_d623ebaa-8a96-434b-8d4f-302df507f7bf", "977", id="saint_barthelemy"
+        ),
+        pytest.param(
+            "_TS_171e5c6b-a77a-43d1-8e0c-d498b38ccf16", "978", id="saint_martin"
+        ),
+    ],
+)
+def test_clean_maps_talentsoft_main_internal_department_code(
+    cleaner, department, expected_department
+):
+    raw_offer = _make_raw_offer(
+        slug="talentsoft-main",
+        geographicalLocation=[],
+        country=[
+            TalentsoftCodedObjectFactory.build(clientCode="FRA", type="offerCountry")
+        ],
+        region=[
+            TalentsoftCodedObjectFactory.build(
+                clientCode="_TS_CO_Region_TOM", type="offerRegion"
+            )
+        ],
+        department=[
+            TalentsoftCodedObjectFactory.build(
+                clientCode=department, type="offerDepartment"
+            )
+        ],
+    )
+
+    offer = cleaner.clean(raw_offer)
+
+    assert offer.localisation is not None
+    assert offer.localisation.region.code == "TOM"
+    assert offer.localisation.department.code == expected_department
+    assert offer.localisation.area == GeographicalArea.AMERIQUE
+
+
+@pytest.mark.parametrize(
+    ("country", "expected_region", "expected_department"),
+    [
+        pytest.param("GLP", "DOM", "971", id="guadeloupe"),
+        pytest.param("REU", "DOM", "974", id="la_reunion"),
+    ],
+)
+def test_clean_maps_overseas_department_entered_as_a_country(
+    cleaner, country, expected_region, expected_department
+):
+    raw_offer = _make_raw_offer(
+        geographicalLocation=[],
+        country=[
+            TalentsoftCodedObjectFactory.build(clientCode=country, type="offerCountry")
+        ],
+        region=[],
+        department=[],
+    )
+
+    offer = cleaner.clean(raw_offer)
+
+    assert offer.localisation is not None
+    assert str(offer.localisation.country) == "FRA"
+    assert offer.localisation.region.code == expected_region
+    assert offer.localisation.department.code == expected_department
+
+
+def _make_raw_offer_abroad(
+    country: str = "DEU",
+    area: str | None = "_TS_CO_GeographicalArea_Europe",
+    **offer_kwargs,
+) -> RawOffer:
+    return _make_raw_offer(
+        slug="talentsoft-main",
+        geographicalLocation=(
+            [
+                TalentsoftCodedObjectFactory.build(
+                    clientCode=area, type="offerGeographicalLocation"
+                )
+            ]
+            if area
+            else []
+        ),
+        country=[
+            TalentsoftCodedObjectFactory.build(clientCode=country, type="offerCountry")
+        ],
+        **{"region": [], "department": [], **offer_kwargs},
+    )
+
+
+@pytest.mark.parametrize(
+    ("country", "area", "expected_area"),
+    [
+        ("DEU", "_TS_CO_GeographicalArea_Europe", GeographicalArea.EUROPE),
+        (
+            "MAR",
+            "_TS_CO_GeographicalArea_MoyenOrientAfriqueduNord",
+            GeographicalArea.MOYEN_ORIENT_AFRIQUE_DU_NORD,
+        ),
+        ("BRA", "_TS_CO_GeographicalArea_AmriquesCaraibe", GeographicalArea.AMERIQUE),
+        ("AUS", "_TS_CO_GeographicalArea_Ocanie", GeographicalArea.OCEANIE),
+        ("KOR", "_TS_CO_GeographicalArea_Asie", GeographicalArea.ASIE),
+        ("GAB", "_TS_CO_GeographicalArea_Afrique", GeographicalArea.AFRIQUE),
+    ],
+)
+def test_clean_maps_offer_abroad(cleaner, country, area, expected_area):
+    raw_offer = _make_raw_offer_abroad(
+        country=country,
+        area=area,
+        customFields=TalentsoftCustomFieldsFactory.build(
+            location=TalentsoftDynamicFieldFactory.build(shortText1="Ambassade")
+        ),
+    )
+
+    offer = cleaner.clean(raw_offer)
+
+    assert offer.localisation is not None
+    assert offer.localisation.area == expected_area
+    assert str(offer.localisation.country) == country
+    assert offer.localisation.region is None
+    assert offer.localisation.department is None
+    assert offer.localisation.label == "Ambassade"
+
+
+def test_clean_ignores_region_and_department_of_an_offer_abroad(cleaner):
+    raw_offer = _make_raw_offer_abroad(
+        region=[
+            TalentsoftCodedObjectFactory.build(clientCode="R11", type="offerRegion")
+        ],
+        department=[
+            TalentsoftCodedObjectFactory.build(clientCode="75", type="offerDepartment")
+        ],
+    )
+
+    offer = cleaner.clean(raw_offer)
+
+    assert offer.localisation is not None
+    assert offer.localisation.region is None
+    assert offer.localisation.department is None
+
+
+def test_clean_keeps_offer_coordinates_of_an_offer_abroad(cleaner):
+    raw_offer = _make_raw_offer_abroad(
+        geolocation=TalentsoftGeolocationFactory.build(latitude=52.52, longitude=13.4),
+        organisation=TalentsoftOrganisationFactory.build(
+            geolocation=TalentsoftGeolocationFactory.build(
+                latitude=48.85, longitude=2.35
+            )
+        ),
+    )
+
+    offer = cleaner.clean(raw_offer)
+
+    assert offer.localisation is not None
+    assert offer.localisation.latitude == 52.52
+    assert offer.localisation.longitude == 13.4
+
+
+def test_clean_ignores_organisation_coordinates_of_an_offer_abroad(cleaner):
+    raw_offer = _make_raw_offer_abroad(
+        geolocation=None,
+        latitude=None,
+        longitude=None,
+        organisation=TalentsoftOrganisationFactory.build(
+            geolocation=TalentsoftGeolocationFactory.build(
+                latitude=48.85, longitude=2.35
+            )
+        ),
+    )
+
+    offer = cleaner.clean(raw_offer)
+
+    assert offer.localisation is not None
+    assert offer.localisation.latitude is None
+    assert offer.localisation.longitude is None
+
+
+@pytest.mark.parametrize(
+    ("country", "area"),
+    [
+        pytest.param("DEU", None, id="sans_zone"),
+        pytest.param("DEU", "_TS_00002268-6ae8-40f4-84d7-4f1ec9ed69df", id="monde"),
+        pytest.param("XYZ", "_TS_CO_GeographicalArea_Europe", id="pays_inconnu"),
+    ],
+)
+def test_clean_returns_none_localisation_abroad_without_known_area_or_country(
+    cleaner, country, area
+):
+    offer = cleaner.clean(_make_raw_offer_abroad(country=country, area=area))
+
     assert offer.localisation is None
+
+
+def test_offer_abroad_is_published_without_region_nor_department(cleaner):
+    offer = cleaner.clean(_make_raw_offer_abroad())
+
+    payload = OfferUpsertPayload.from_offer(offer, metiers_multi_domaines=set())
+
+    assert payload.localisation is not None
+    assert payload.localisation[0].pays == "DEU"
+    assert payload.localisation[0].region is None
+    assert payload.localisation[0].departement is None
+
+
+def _make_raw_offer_without_area(
+    region_code: str | None, department_code: str | None
+) -> RawOffer:
+    regions = (
+        [TalentsoftCodedObjectFactory.build(clientCode=region_code, type="offerRegion")]
+        if region_code
+        else []
+    )
+    departments = (
+        [
+            TalentsoftCodedObjectFactory.build(
+                clientCode=department_code, type="offerDepartment"
+            )
+        ]
+        if department_code
+        else []
+    )
+    return _make_raw_offer(
+        geographicalLocation=[],
+        country=[
+            TalentsoftCodedObjectFactory.build(clientCode="FRA", type="offerCountry")
+        ],
+        region=regions,
+        department=departments,
+    )
+
+
+@pytest.mark.parametrize(
+    "region, department, expected_area",
+    [
+        ("R24", "41", GeographicalArea.EUROPE),
+        ("_TS_CO_Region_DOM", "974", GeographicalArea.AFRIQUE),
+        ("_TS_CO_Region_TOM", "987", GeographicalArea.OCEANIE),
+    ],
+)
+def test_clean_deduces_area_from_department_when_area_missing(
+    cleaner, region, department, expected_area
+):
+    raw_offer = _make_raw_offer_without_area(
+        region_code=region, department_code=department
+    )
+
+    offer = cleaner.clean(raw_offer)
+
+    assert offer.localisation is not None
+    assert offer.localisation.area == expected_area
+    assert offer.localisation.department.code == department
+
+
+@pytest.mark.parametrize(
+    ("region", "expected_region", "expected_department", "expected_area"),
+    [
+        pytest.param("R44", "44", "67", GeographicalArea.EUROPE, id="grand_est"),
+        pytest.param("R24", "24", "45", GeographicalArea.EUROPE, id="centre"),
+        pytest.param("R94", "94", "2A", GeographicalArea.EUROPE, id="corse"),
+        pytest.param(
+            "_TS_CO_Region_11", "11", "75", GeographicalArea.EUROPE, id="prefixe_ts"
+        ),
+        pytest.param("04", "DOM", "974", GeographicalArea.AFRIQUE, id="la_reunion"),
+    ],
+)
+def test_clean_uses_chef_lieu_when_department_missing(
+    cleaner, region, expected_region, expected_department, expected_area
+):
+    raw_offer = _make_raw_offer_without_area(region_code=region, department_code=None)
+
+    offer = cleaner.clean(raw_offer)
+
+    assert offer.localisation is not None
+    assert str(offer.localisation.country) == "FRA"
+    assert offer.localisation.region.code == expected_region
+    assert offer.localisation.department.code == expected_department
+    assert offer.localisation.area == expected_area
+
+
+def test_clean_uses_chef_lieu_of_transcoded_region_when_department_missing(
+    sources_repository,
+):
+    cleaner = OffersCleaner(
+        sources_repository=sources_repository,
+        transcoders_by_slug={"ars": SourceTranscoder.from_directory(DATA_DIR / "ars")},
+    )
+    raw_offer = _make_raw_offer_without_area(
+        region_code="ARS_CO_Region_Bretagne", department_code=None
+    )
+
+    offer = cleaner.clean(raw_offer)
+
+    assert offer.localisation is not None
+    assert offer.localisation.region.code == "53"
+    assert offer.localisation.department.code == "35"
+
+
+def test_clean_keeps_department_different_from_chef_lieu(cleaner):
+    raw_offer = _make_raw_offer_without_area(region_code="R44", department_code="68")
+
+    offer = cleaner.clean(raw_offer)
+
+    assert offer.localisation is not None
+    assert offer.localisation.department.code == "68"
+
+
+@pytest.mark.parametrize(
+    ("region", "department"),
+    [
+        pytest.param("_TS_CO_Region_DOM", None, id="region_dom"),
+        pytest.param("_TS_CO_Region_TOM", None, id="region_tom"),
+        pytest.param("INVALID_REGION", None, id="region_inconnue"),
+        pytest.param(None, None, id="ni_region_ni_departement"),
+        pytest.param(None, "75", id="departement_sans_region"),
+    ],
+)
+def test_clean_returns_none_localisation_without_department_nor_chef_lieu(
+    cleaner, region, department
+):
+    raw_offer = _make_raw_offer_without_area(
+        region_code=region, department_code=department
+    )
+
+    offer = cleaner.clean(raw_offer)
+
+    assert offer.localisation is None
+
+
+def _coded_objects(type_: str, *codes: str) -> list:
+    return [
+        TalentsoftCodedObjectFactory.build(clientCode=code, type=type_)
+        for code in codes
+    ]
+
+
+@pytest.fixture
+def capture_exception(monkeypatch) -> list:
+    captured: list = []
+    monkeypatch.setattr(
+        "infrastructure.gateways.offers_cleaner.sentry_sdk.capture_exception",
+        captured.append,
+    )
+    return captured
+
+
+def test_clean_reports_and_keeps_first_location_when_several_departments(
+    cleaner, capture_exception
+):
+    raw_offer = _make_raw_offer(
+        geographicalLocation=_coded_objects(
+            "offerGeographicalLocation", "_TS_CO_GeographicalArea_Europe"
+        ),
+        country=_coded_objects("offerCountry", "FRA"),
+        region=_coded_objects("offerRegion", "R24"),
+        department=_coded_objects("offerDepartment", "41", "45"),
+    )
+
+    offer = cleaner.clean(raw_offer)
+
+    assert offer.localisation is not None
+    assert offer.localisation.department.code == "41"
+    [error] = capture_exception
+    assert isinstance(error, TalentsoftOfferWithSeveralLocations)
+    assert error.reference == REFERENCE
+    assert error.source_id == SOURCE_ID
+    assert error.fields == ["department"]
+
+
+@pytest.mark.parametrize(
+    "field,type_,codes",
+    [
+        (
+            "geographicalLocation",
+            "offerGeographicalLocation",
+            ("_TS_CO_GeographicalArea_Europe", "_TS_CO_GeographicalArea_Asie"),
+        ),
+        ("country", "offerCountry", ("FRA", "FRA")),
+        ("region", "offerRegion", ("R24", "R11")),
+    ],
+)
+def test_clean_reports_a_location_list_with_several_elements(
+    cleaner, capture_exception, field, type_, codes
+):
+    raw_offer = _make_raw_offer(**{field: _coded_objects(type_, *codes)})
+
+    cleaner.clean(raw_offer)
+
+    [error] = capture_exception
+    assert error.fields == [field]
+
+
+def test_clean_reports_filled_multi_locations(cleaner, capture_exception):
+    raw_offer = _make_raw_offer(locations=[TalentsoftMultiLocation()])
+
+    offer = cleaner.clean(raw_offer)
+
+    [error] = capture_exception
+    assert error.fields == ["locations"]
+    assert offer.localisation is not None
+
+
+def test_clean_does_not_report_a_single_location(cleaner, capture_exception):
+    cleaner.clean(_make_raw_offer())
+
+    assert capture_exception == []
+
+
+def _state_diploma_field(type_: str | None, client_code: str, label: str | None = None):
+    return TalentsoftCustomCodeTableFactory.build(
+        type=type_, clientCode=client_code, label=label or client_code
+    )
+
+
+def _make_raw_offer_with_state_diploma(
+    type_: str, client_code: str, label: str | None = None, **overrides
+) -> RawOffer:
+    return _make_raw_offer(
+        organisation=TalentsoftOrganisationFactory.build(entityCode="1726"),
+        customFields=TalentsoftCustomFieldsFactory.build(
+            offerCustomBlock1=TalentsoftDynamicFieldFactory.build(
+                customCodeTable3=_state_diploma_field(type_, client_code, label)
+            )
+        ),
+        **overrides,
+    )
+
+
+def test_state_diploma_keeps_a_state_diploma():
+    code_table = _state_diploma_field("Diplômes d'Etat", "CSPU0002")
+
+    assert state_diploma(code_table) == code_table
+
+
+def test_state_diploma_rejects_the_working_time_quota():
+    code_table = _state_diploma_field("Quotité de temps de travail", "Temps_plein")
+
+    assert state_diploma(code_table) is None
+
+
+@pytest.mark.parametrize("type_", ["Diplômes d’État", None])
+def test_state_diploma_keeps_another_referential(type_):
+    code_table = _state_diploma_field(type_, "CSPU0002")
+
+    assert state_diploma(code_table) == code_table
+
+
+def test_state_diploma_is_none_when_missing():
+    assert state_diploma(None) is None
+
+
+def test_clean_reports_the_working_time_quota_in_the_state_diploma_field(
+    cleaner, capture_exception
+):
+    raw_offer = _make_raw_offer_with_state_diploma(
+        "Quotité de temps de travail", "Temps_noncomplet"
+    )
+
+    offer = cleaner.clean(raw_offer)
+
+    assert offer.reference == REFERENCE
+    [error] = capture_exception
+    assert isinstance(error, TalentsoftOfferWithMisfiledStateDiploma)
+    assert error.reference == REFERENCE
+    assert error.source_id == SOURCE_ID
+    assert error.organisme_entity_code == "1726"
+    assert error.type == "Quotité de temps de travail"
+    assert error.client_code == "Temps_noncomplet"
+
+
+def test_clean_does_not_report_a_state_diploma(cleaner, capture_exception):
+    raw_offer = _make_raw_offer_with_state_diploma("Diplômes d'Etat", "CSPU0002")
+
+    cleaner.clean(raw_offer)
+
+    assert capture_exception == []
 
 
 def test_clean_maps_title_and_organization(cleaner):
@@ -846,13 +1440,15 @@ def test_clean_raises_when_specialisations_csv_maps_to_unknown_code(
         cleaner.clean(raw_offer)
 
 
-def test_clean_maps_diploma(cleaner):
-    diploma = TalentsoftCodedObjectFactory.build(clientCode="LICENCE")
+def test_clean_maps_the_diploma_label(cleaner):
+    diploma = TalentsoftCodedObjectFactory.build(
+        clientCode="LICENCE", label=" Licence "
+    )
     raw_offer = _make_raw_offer(diploma=diploma)
 
     offer = cleaner.clean(raw_offer)
 
-    assert offer.diploma == "LICENCE"
+    assert offer.diploma == "Licence"
 
 
 def test_clean_returns_none_diploma_when_absent(cleaner):
@@ -861,6 +1457,51 @@ def test_clean_returns_none_diploma_when_absent(cleaner):
     offer = cleaner.clean(raw_offer)
 
     assert offer.diploma is None
+
+
+def test_clean_maps_the_state_diploma_label_to_diploma(cleaner):
+    raw_offer = _make_raw_offer_with_state_diploma(
+        "Diplômes d'Etat", "CSPU0002", "DE infirmier (ancien intitulé)", diploma=None
+    )
+
+    offer = cleaner.clean(raw_offer)
+
+    assert offer.diploma == "Diplôme d'Etat d'infirmier"
+
+
+def test_clean_keeps_the_label_of_an_unknown_state_diploma(cleaner):
+    raw_offer = _make_raw_offer_with_state_diploma(
+        "Diplômes d'Etat", "CSPU9999", " Diplôme d'Etat inconnu ", diploma=None
+    )
+
+    offer = cleaner.clean(raw_offer)
+
+    assert offer.diploma == "Diplôme d'Etat inconnu"
+
+
+def test_clean_does_not_map_the_rejected_working_time_quota_to_diploma(cleaner):
+    raw_offer = _make_raw_offer_with_state_diploma(
+        "Quotité de temps de travail", "Temps_plein", "Temps plein", diploma=None
+    )
+
+    offer = cleaner.clean(raw_offer)
+
+    assert offer.diploma is None
+
+
+def test_clean_prefers_diploma_over_the_state_diploma(cleaner):
+    raw_offer = _make_raw_offer_with_state_diploma(
+        "Diplômes d'Etat",
+        "CSPU0002",
+        "Diplôme d'Etat d'infirmier",
+        diploma=TalentsoftCodedObjectFactory.build(
+            clientCode="LICENCE", label="Licence"
+        ),
+    )
+
+    offer = cleaner.clean(raw_offer)
+
+    assert offer.diploma == "Licence"
 
 
 def test_clean_maps_ars_raw_family_code_to_metier_code(cleaner):
@@ -1283,6 +1924,292 @@ def test_clean_returns_empty_custom_field_texts_when_absent(cleaner):
     assert offer.service_description == ""
     assert offer.complements == ""
     assert offer.application_deadline is None
+
+
+def test_clean_maps_applicant_criteria_and_offer_block_texts(cleaner):
+    raw_offer = _make_raw_offer(
+        customFields=TalentsoftCustomFieldsFactory.build(
+            applicantCriteria=TalentsoftDynamicField(
+                longText1="  Savoir-faire : Travailler en équipe  "
+            ),
+            offerCustomBlock1=TalentsoftDynamicField(
+                longText2="Art. L332-2 du code général de la fonction publique",
+                longText3="https://www.legifrance.gouv.fr/jorf/id/1",
+            ),
+        )
+    )
+
+    offer = cleaner.clean(raw_offer)
+
+    assert offer.required_skills == "Savoir-faire : Travailler en équipe"
+    assert offer.legal_basis == "Art. L332-2 du code général de la fonction publique"
+    assert offer.vacancy_notice_url == HttpUrl(
+        "https://www.legifrance.gouv.fr/jorf/id/1"
+    )
+
+
+def test_clean_keeps_raw_required_skills_without_formatted_text(cleaner):
+    raw_text = (
+        "Savoir-faire :\n"
+        "- Travailler en équipe\n"
+        "\n"
+        "•\tFiabilité, rigueur et ponctualité."
+    )
+    raw_offer = _make_raw_offer(
+        customFields=TalentsoftCustomFieldsFactory.build(
+            applicantCriteria=TalentsoftDynamicField(longText1=raw_text),
+        )
+    )
+
+    offer = cleaner.clean(raw_offer)
+
+    assert offer.required_skills == raw_text
+
+
+@pytest.mark.parametrize(
+    "client_code, expected",
+    [
+        ("Doc_CV", [RequiredDocument.CV]),
+        ("Doc_CV_LM", [RequiredDocument.CV, RequiredDocument.LETTRE_MOTIVATION]),
+        ("Doc_CV_PF", [RequiredDocument.CV, RequiredDocument.PORTFOLIO]),
+        (
+            "Doc_CV_LM_PF",
+            [
+                RequiredDocument.CV,
+                RequiredDocument.LETTRE_MOTIVATION,
+                RequiredDocument.PORTFOLIO,
+            ],
+        ),
+    ],
+)
+def test_clean_maps_required_documents(cleaner, client_code, expected):
+    raw_offer = _make_raw_offer(
+        customFields=TalentsoftCustomFieldsFactory.build(
+            applicantCriteria=TalentsoftDynamicField(
+                customCodeTable1=TalentsoftCustomCodeTableFactory.build(
+                    clientCode=client_code
+                )
+            ),
+        )
+    )
+
+    offer = cleaner.clean(raw_offer)
+
+    assert offer.required_documents == expected
+
+
+@pytest.mark.parametrize(
+    "custom_fields",
+    [
+        None,
+        TalentsoftCustomFieldsFactory.build(applicantCriteria=None),
+        TalentsoftCustomFieldsFactory.build(
+            applicantCriteria=TalentsoftDynamicField(customCodeTable1=None)
+        ),
+    ],
+)
+def test_clean_returns_no_required_documents_when_absent(cleaner, custom_fields):
+    raw_offer = _make_raw_offer(customFields=custom_fields)
+
+    offer = cleaner.clean(raw_offer)
+
+    assert offer.required_documents == []
+
+
+def test_clean_logs_and_ignores_unknown_required_documents_code(cleaner, caplog):
+    raw_offer = _make_raw_offer(
+        customFields=TalentsoftCustomFieldsFactory.build(
+            applicantCriteria=TalentsoftDynamicField(
+                customCodeTable1=TalentsoftCustomCodeTableFactory.build(
+                    clientCode="Doc_CV_Diplome"
+                )
+            ),
+        )
+    )
+
+    with caplog.at_level("WARNING"):
+        offer = cleaner.clean(raw_offer)
+
+    assert offer.required_documents == []
+    assert any("Doc_CV_Diplome" in record.getMessage() for record in caplog.records)
+
+
+@pytest.mark.parametrize("value", [None, "", "   "])
+def test_clean_returns_empty_applicant_criteria_and_offer_block_texts_when_blank(
+    cleaner, value
+):
+    raw_offer = _make_raw_offer(
+        customFields=TalentsoftCustomFieldsFactory.build(
+            applicantCriteria=TalentsoftDynamicField(longText1=value),
+            offerCustomBlock1=TalentsoftDynamicField(longText2=value, longText3=value),
+        )
+    )
+
+    offer = cleaner.clean(raw_offer)
+
+    assert offer.required_skills is None
+    assert offer.legal_basis is None
+    assert offer.vacancy_notice_url is None
+
+
+@pytest.mark.parametrize(
+    "value",
+    [
+        (
+            "L'avis de vacance de cet emploi est publié au Journal Officiel en date "
+            "du 25/09/2026 et peut être consulté à l'adresse suivante :"
+            "https://www.legifrance.gouv.fr/jorf/id/1"
+        ),
+        "Avis publié au JO : https://www.legifrance.gouv.fr/jorf/id/1.",
+        "http://www.legifrance.gouv.fr/jorf/id/1",
+    ],
+)
+def test_clean_extracts_legifrance_url_from_vacancy_notice_text(cleaner, value):
+    raw_offer = _make_raw_offer(
+        customFields=TalentsoftCustomFieldsFactory.build(
+            offerCustomBlock1=TalentsoftDynamicField(longText3=value),
+        )
+    )
+
+    offer = cleaner.clean(raw_offer)
+
+    assert offer.vacancy_notice_url == HttpUrl(
+        "https://www.legifrance.gouv.fr/jorf/id/1"
+    )
+
+
+@pytest.mark.parametrize(
+    "value",
+    [
+        "JO du 12 mars 2025, texte n° 45",
+        "https://univ-reims.nous-recrutons.fr/nos-offres-demploi/",
+        "https://legifrance.example.com/jorf/id/1",
+    ],
+)
+def test_clean_ignores_vacancy_notice_that_is_not_a_legifrance_url(cleaner, value):
+    raw_offer = _make_raw_offer(
+        customFields=TalentsoftCustomFieldsFactory.build(
+            offerCustomBlock1=TalentsoftDynamicField(longText3=value),
+        )
+    )
+
+    offer = cleaner.clean(raw_offer)
+
+    assert offer.vacancy_notice_url is None
+
+
+def test_clean_ignores_vacancy_notice_when_legifrance_url_is_invalid(cleaner):
+    raw_offer = _make_raw_offer(
+        customFields=TalentsoftCustomFieldsFactory.build(
+            offerCustomBlock1=TalentsoftDynamicField(
+                longText3="https://www.legifrance.gouv.fr/jorf/id/" + "A" * 2100
+            ),
+        )
+    )
+
+    offer = cleaner.clean(raw_offer)
+
+    assert offer.vacancy_notice_url is None
+
+
+def test_clean_prefers_formatted_texts_converted_to_markdown(cleaner):
+    raw_offer = _make_raw_offer(
+        description1="Missions brut",
+        description1Formatted="<p><strong>Missions</strong></p><ul><li>Une</li></ul>",
+        description2="Profil brut",
+        description2Formatted='<p><u style="color: red">Profil</u></p>',
+        customFields=TalentsoftCustomFieldsFactory.build(
+            description=TalentsoftDynamicField(
+                longText1="Employeur brut",
+                longText1Formatted=(
+                    '<p>Voir <a href="https://www.ac-dijon.fr">le site</a></p>'
+                ),
+                longText2="Conditions brut",
+                longText2Formatted="<p><em>Conditions</em></p>",
+                longText3="Service brut",
+                longText3Formatted='<p>Service</p><img src="https://x.force.com/a.png">',
+            ),
+            offerCustomBlock1=TalentsoftDynamicField(
+                longText1="Compléments brut",
+                longText1Formatted="<p>Ligne 1<br>Ligne 2</p>",
+                longText2="Fondement brut",
+                longText2Formatted=(
+                    "<p>Peuvent candidater :<br>1° les fonctionnaires</p>"
+                ),
+            ),
+            applicantCriteria=TalentsoftDynamicField(
+                longText1="Compétences brut",
+                longText1Formatted=(
+                    "<p>Savoir-faire :</p><ul><li>Travailler en équipe</li></ul>"
+                ),
+            ),
+        ),
+    )
+
+    offer = cleaner.clean(raw_offer)
+
+    assert offer.mission == "**Missions**\n\n- Une"
+    assert offer.profile == "**Profil**"
+    assert offer.employer_description == "Voir [le site](https://www.ac-dijon.fr)"
+    assert offer.exercise_conditions == "*Conditions*"
+    assert offer.service_description == "Service"
+    assert offer.complements == "Ligne 1\\\nLigne 2"
+    assert offer.required_skills == "Savoir-faire :\n\n- Travailler en équipe"
+    assert offer.legal_basis == "Peuvent candidater :\\\n1° les fonctionnaires"
+
+
+@pytest.mark.parametrize("formatted", [None, "", "<p> </p>", "<p>&nbsp;</p>"])
+def test_clean_falls_back_on_raw_texts_when_formatted_is_blank(cleaner, formatted):
+    raw_offer = _make_raw_offer(
+        description1="Missions brut",
+        description1Formatted=formatted,
+        description2="Profil brut",
+        description2Formatted=formatted,
+        customFields=TalentsoftCustomFieldsFactory.build(
+            description=TalentsoftDynamicField(
+                longText1="Employeur brut",
+                longText1Formatted=formatted,
+                longText2="Conditions brut",
+                longText2Formatted=formatted,
+                longText3="Service brut",
+                longText3Formatted=formatted,
+            ),
+            offerCustomBlock1=TalentsoftDynamicField(
+                longText1="Compléments brut",
+                longText1Formatted=formatted,
+                longText2="Fondement brut",
+                longText2Formatted=formatted,
+            ),
+            applicantCriteria=TalentsoftDynamicField(
+                longText1="Compétences brut", longText1Formatted=formatted
+            ),
+        ),
+    )
+
+    offer = cleaner.clean(raw_offer)
+
+    assert offer.mission == "Missions brut"
+    assert offer.profile == "Profil brut"
+    assert offer.employer_description == "Employeur brut"
+    assert offer.exercise_conditions == "Conditions brut"
+    assert offer.service_description == "Service brut"
+    assert offer.complements == "Compléments brut"
+    assert offer.required_skills == "Compétences brut"
+    assert offer.legal_basis == "Fondement brut"
+
+
+def test_clean_returns_empty_texts_when_formatted_and_raw_are_blank(cleaner):
+    raw_offer = _make_raw_offer(
+        description1=None,
+        description1Formatted="<p> </p>",
+        description2=None,
+        description2Formatted=None,
+    )
+
+    offer = cleaner.clean(raw_offer)
+
+    assert offer.mission == ""
+    assert offer.profile == ""
 
 
 def test_clean_maps_application_deadline(cleaner):

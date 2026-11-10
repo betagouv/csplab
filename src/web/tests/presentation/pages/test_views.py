@@ -1,9 +1,12 @@
 import re
 from http import HTTPStatus
 
+import pytest
 from django.test import Client
 from django.urls import reverse
 from dsfr.models import DsfrConfig
+
+from presentation.pages.views import _render_guide
 
 
 class TestApiGuideView:
@@ -12,6 +15,154 @@ class TestApiGuideView:
 
         assert response.status_code == HTTPStatus.OK
         assert "pages/api_guide.html" in [t.name for t in response.templates]
+
+    def test_renders_guide_with_side_menu(self, db, client: Client):
+        response = client.get(reverse("pages:api_guide"))
+
+        assert response.context["toc_items"]
+        assert 'class="fr-h1"' in response.content.decode()
+
+
+class TestApiChangelogView:
+    def test_lists_every_change_with_an_anchor(self, db, client: Client):
+        response = client.get(reverse("pages:api_changelog"))
+
+        assert response.status_code == HTTPStatus.OK
+        content = response.content.decode()
+        assert content.count("<article id=") == response.context["total"]
+        assert 'href="/api/changelog.md"' in content
+        assert 'type="application/atom+xml"' in content
+        assert (
+            '<a href="https://github.com/betagouv/csplab/pull/2084" target="_blank" '
+            'rel="noopener" title="PR #2084 - nouvelle fenêtre">'
+        ) in content
+        assert 'title="Markdown - nouvelle fenêtre"' in content
+        day_ids = re.findall(r'<h2 id="(date-[^"]+)"', content)
+        assert day_ids
+        assert len(day_ids) == len(set(day_ids))
+
+    def test_permalink_points_to_the_unfiltered_page(self, db, client: Client):
+        response = client.get(reverse("pages:api_changelog"), {"type": "retire"})
+
+        content = response.content.decode()
+        match = re.search(r'<article id="([^"]+)"', content)
+        assert match
+        assert f'href="{reverse("pages:api_changelog")}#{match[1]}"' in content
+
+    def test_filters_and_keeps_them_in_download_links(self, db, client: Client):
+        response = client.get(
+            reverse("pages:api_changelog"),
+            {"type": "retire", "route": "POST /api/v1/offres/creer_modifier"},
+        )
+
+        content = response.content.decode()
+        assert response.context["count"] < response.context["total"]
+        assert content.count("<article id=") == response.context["count"]
+        assert "fr-badge--warning" in content
+        assert "fr-badge--new" not in content
+        assert (
+            'href="/api/changelog.json?type=retire'
+            '&amp;route=POST+%2Fapi%2Fv1%2Foffres%2Fcreer_modifier"'
+        ) in content
+        checked = [t["value"] for t in response.context["types"] if t["checked"]]
+        assert checked == ["retire"]
+
+    @pytest.mark.parametrize(
+        "query", [{"depuis": "hier"}, {"route": "GET /api/v1/zzz-injecte"}]
+    )
+    def test_ignores_an_invalid_filter_with_a_message(self, db, client: Client, query):
+        response = client.get(reverse("pages:api_changelog"), query)
+
+        assert response.status_code == HTTPStatus.OK
+        assert response.context["count"] == response.context["total"]
+        content = response.content.decode()
+        assert "Valeur de filtre ignorée" in content
+        assert "zzz-injecte" not in content
+
+    def test_keeps_the_valid_types_of_a_partially_invalid_query(
+        self, db, client: Client
+    ):
+        response = client.get(
+            reverse("pages:api_changelog"), {"type": ["retire", "zzz-injecte"]}
+        )
+
+        content = response.content.decode()
+        assert response.context["count"] < response.context["total"]
+        checked = [t["value"] for t in response.context["types"] if t["checked"]]
+        assert checked == ["retire"]
+        assert "Valeur de filtre ignorée" in content
+        assert "zzz-injecte" not in content
+
+
+def test_llms_txt_lists_the_api_documents(db, client: Client):
+    response = client.get("/llms.txt")
+
+    assert response.status_code == HTTPStatus.OK
+    content = response.content.decode()
+    assert content.startswith("# CSPLab\n")
+    for path in (
+        "/api/guide.md",
+        "/static/api/schema.yaml",
+        "/api/changelog.md",
+        "/api/changelog.json",
+        "/api/changelog.atom",
+    ):
+        assert f"(http://testserver{path})" in content
+
+
+class TestRenderGuide:
+    def test_adds_anchor_and_dsfr_class_to_headings(self):
+        html, _ = _render_guide("# L'API — POST /api/token/")
+
+        assert '<h1 id="lapi-post-apitoken" class="fr-h1">' in html
+
+    def test_builds_nested_side_menu_from_headings(self):
+        _, toc_items = _render_guide(
+            "# Guide\n\n## Authentification\n\n### Obtenir un `jeton`\n\n# Annexe"
+        )
+
+        assert toc_items == [
+            {
+                "label": "Guide",
+                "link": "#guide",
+                "items": [
+                    {
+                        "label": "Authentification",
+                        "link": "#authentification",
+                        "items": [
+                            {"label": "Obtenir un jeton", "link": "#obtenir-un-jeton"}
+                        ],
+                    }
+                ],
+            },
+            {"label": "Annexe", "link": "#annexe"},
+        ]
+
+    def test_suffixes_duplicate_anchors(self):
+        html, toc_items = _render_guide("## Réponses\n\n## Réponses\n\n## Réponses")
+
+        assert [item["link"] for item in toc_items] == [
+            "#reponses",
+            "#reponses_1",
+            "#reponses_2",
+        ]
+        assert '<h2 id="reponses_1" class="fr-h2">' in html
+
+    def test_adds_anchor_without_menu_entry_below_level_3(self):
+        html, toc_items = _render_guide("## Titre\n\n#### Détail")
+
+        assert toc_items == [{"label": "Titre", "link": "#titre"}]
+        assert '<h4 id="detail">Détail</h4>' in html
+
+    def test_adds_dsfr_class_to_horizontal_rules(self):
+        html, _ = _render_guide("Avant\n\n---\n\nAprès")
+
+        assert '<hr class="fr-hr fr-my-4w" />' in html
+
+    def test_wraps_tables_in_dsfr_containers(self):
+        html, _ = _render_guide("| Code | Sens |\n| --- | --- |\n| 200 | OK |")
+
+        assert '<div class="fr-table__content"><table>' in html
 
 
 class TestTermsView:

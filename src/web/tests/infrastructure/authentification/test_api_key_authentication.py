@@ -11,11 +11,10 @@ from infrastructure.authentication.api_key_authentication import (
     ApiKeyAuthentication,
     ApiKeyRateThrottle,
     ApiKeyRateThrottleDaily,
-    ApiKeyRejectionRateThrottle,
     NonApiKeyUserRateThrottle,
     _IngestionApiKeyUser,
-    _ip_is_allowed,
 )
+from infrastructure.authentication.rejection import AuthRejectionRateThrottle
 from infrastructure.django_apps.commons.enums import Canal, Resultat
 from infrastructure.django_apps.commons.models import AuditLoginLogModel
 
@@ -25,38 +24,6 @@ API_KEY_USER = _IngestionApiKeyUser()
 @pytest.fixture
 def rf():
     return RequestFactory()
-
-
-@pytest.mark.parametrize(
-    "ip, allowed_ranges, expected",
-    [
-        ("1.2.3.4", [], True),
-        ("192.168.1.50", ["192.168.1.0/24"], True),
-        ("10.0.0.1", ["192.168.1.0/24"], False),
-        ("10.0.0.1", ["192.168.1.0/24", "10.0.0.0/8"], True),
-        ("172.16.0.1", ["192.168.1.0/24", "10.0.0.0/8"], False),
-        ("1.2.3.4", ["1.2.3.4/32"], True),
-        ("1.2.3.5", ["1.2.3.4/32"], False),
-        ("not-an-ip", ["192.168.1.0/24"], False),
-        ("::1", ["::1/128"], True),
-        ("::2", ["::1/128"], False),
-    ],
-    ids=[
-        "no_restriction_when_list_is_empty",
-        "ip_in_allowed_range",
-        "ip_not_in_allowed_range",
-        "ip_matched_by_one_of_multiple_ranges",
-        "ip_not_matched_by_any_range",
-        "exact_host_cidr_match",
-        "exact_host_cidr_no_match",
-        "invalid_ip_returns_false",
-        "ipv6_in_allowed_range",
-        "ipv6_not_in_allowed_range",
-    ],
-)
-class TestIpIsAllowed:
-    def test_ip_is_allowed(self, ip, allowed_ranges, expected):
-        assert _ip_is_allowed(ip, allowed_ranges) is expected
 
 
 class TestApiKeyAuthenticationIpRestriction:
@@ -355,11 +322,11 @@ REJECTION_LIMIT = 2
 
 
 @patch.object(
-    ApiKeyRejectionRateThrottle,
+    AuthRejectionRateThrottle,
     "THROTTLE_RATES",
-    {"api_key_rejection": f"{REJECTION_LIMIT}/minute"},
+    {"auth_rejection": f"{REJECTION_LIMIT}/minute"},
 )
-class TestApiKeyRejectionRateThrottle:
+class TestApiKeyRejectionThrottle:
     @pytest.fixture(autouse=True)
     def clear_cache(self):
         cache.clear()

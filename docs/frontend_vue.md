@@ -10,7 +10,7 @@ src/web/
 │   ├── src/
 │   │   ├── app/                      # Bootstrap & app config (main.ts, App.vue, navigation.ts)
 │   │   ├── router/                   # Route tree, shared route names and breadcrumb items
-│   │   ├── views/                    # App-level pages without business logic (Home, NotFound, ...)
+│   │   ├── views/                    # App-level pages without business logic (NotFound, Forbidden)
 │   │   ├── features/                 # Business modules (recrutements, etapes-recrutement, ...)
 │   │   ├── components/               # Design system (base/, layout/)
 │   │   ├── composables/              # Technical hooks (async/, ui/, dnd/)
@@ -106,9 +106,13 @@ Deployment uses the **multi-buildpack** setup:
 2. **Python buildpack**: installs Django, runs gunicorn
 
 Config files:
-- `src/web/.buildpacks`: buildpack list
+- `src/web/.buildpacks`: buildpack list (deliberately unpinned: Scalingo ships its security fixes through the buildpacks)
 - `src/web/package.json`: dependencies and scripts of the SPA and of the candidate assets, `build` script for Scalingo
 - `src/web/pnpm-workspace.yaml`: pnpm settings (approved build scripts)
+
+Runtime versions are not read from `mise.toml` on Scalingo; keep these in step with it by hand:
+- Node.js: `engines.node` in `src/web/package.json` (`24.x`, same major as `node` in `mise.toml`)
+- Python: `src/web/.python-version` (the Python buildpack requires it next to `uv.lock`)
 
 The frontend build runs before `collectstatic`, so assets are included in Django static files.
 

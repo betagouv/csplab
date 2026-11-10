@@ -1,18 +1,12 @@
-import ipaddress
-import logging
-
 from django.conf import settings
 from drf_spectacular.extensions import OpenApiAuthenticationExtension
 from rest_framework.authentication import BaseAuthentication
 from rest_framework.exceptions import AuthenticationFailed, Throttled
 from rest_framework.throttling import SimpleRateThrottle, UserRateThrottle
 
-from config.logger_names import LoggerName
-from infrastructure.django_apps.commons.enums import Canal, Resultat
-from infrastructure.django_apps.commons.models import AuditLoginLogModel
-from infrastructure.django_apps.utils.ip import get_client_ip
-
-logger = logging.getLogger(LoggerName.IDENTITE)
+from infrastructure.authentication.rejection import reject
+from infrastructure.django_apps.commons.enums import Canal
+from infrastructure.django_apps.utils.ip import get_client_ip, ip_in_networks
 
 
 class _IngestionApiKeyUser:
@@ -20,51 +14,14 @@ class _IngestionApiKeyUser:
     pk = "ingestion-api-key"
 
 
-def _ip_is_allowed(ip: str | None, allowed_ranges: list[str]) -> bool:
-    if not allowed_ranges:
-        return True
-    if ip is None:
-        return False
-    try:
-        client_ip = ipaddress.ip_address(ip)
-        return any(
-            client_ip in ipaddress.ip_network(cidr, strict=False)
-            for cidr in allowed_ranges
-        )
-    except ValueError:
-        return False
-
-
-class ApiKeyRejectionRateThrottle(SimpleRateThrottle):
-    """
-    Counts rejected API key attempts per client IP. DRF authenticates before
-    running DEFAULT_THROTTLE_CLASSES, so a rejected key never reaches them:
-    without this, every rejection would write an audit row with no limit.
-    """
-
-    scope = "api_key_rejection"
-
-    def get_cache_key(self, request, view):
-        return self.cache_format % {
-            "scope": self.scope,
-            "ident": get_client_ip(request),
-        }
-
-
 def _reject(reason: str, message: str, request) -> AuthenticationFailed | Throttled:
-    throttle = ApiKeyRejectionRateThrottle()
-    if not throttle.allow_request(request, view=None):
-        return Throttled(wait=throttle.wait())
-    _log_rejection(reason, request)
-    return AuthenticationFailed(message)
-
-
-def _log_rejection(reason: str, request) -> None:
     # Never log the submitted key.
-    ip_address = get_client_ip(request)
-    logger.warning("Ingestion API key rejected (%s) from %s.", reason, ip_address)
-    AuditLoginLogModel.objects.record_attempt(
-        canal=Canal.APIKEY, resultat=Resultat.ECHEC, ip_address=ip_address
+    return reject(
+        request,
+        canal=Canal.APIKEY,
+        subject="Ingestion API key",
+        reason=reason,
+        message=message,
     )
 
 
@@ -77,7 +34,7 @@ class ApiKeyAuthentication(BaseAuthentication):
         if key != settings.INGESTION_API_KEY:
             raise _reject("invalid key", "Invalid API key.", request)
         allowed_ranges = settings.INGESTION_API_KEY_ALLOWED_IP_RANGES
-        if allowed_ranges and not _ip_is_allowed(
+        if allowed_ranges and not ip_in_networks(
             get_client_ip(request), allowed_ranges
         ):
             raise _reject("IP not allowed", "IP address not allowed.", request)

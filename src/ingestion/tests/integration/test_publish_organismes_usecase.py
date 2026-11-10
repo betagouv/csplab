@@ -161,6 +161,42 @@ async def test_execute_serializes_full_organisme(
 
 
 @pytest.mark.asyncio
+async def test_execute_serializes_region_and_departement_as_null_abroad(
+    publish_organismes_usecase: PublishOrganismesUsecase, httpx_mock: HTTPXMock
+):
+    httpx_mock.add_response(method="POST", url=PUBLISH_URL, status_code=201)
+    organisme_abroad = Organisme.build(
+        entity_id=uuid4(),
+        nom="Lycée français de Berlin",
+        versant=Verse.FPE,
+        localisation=Localisation(
+            area=GeographicalArea.EUROPE,
+            country=Country("DEU"),
+            region=None,
+            department=None,
+        ),
+        siret=SIRET(code="26060047300342"),
+        external_id="ext-berlin",
+        referentiel="DILA",
+        millesime="2026-08-19",
+    )
+
+    await publish_organismes_usecase.execute(
+        PublishOrganismesCommand(organismes=[organisme_abroad])
+    )
+
+    body = json.loads(httpx_mock.get_requests()[0].content)
+    assert body["organismes"][0]["localisation"] == {
+        "zone_geographique": "EU",
+        "pays": "DEU",
+        "region": None,
+        "departement": None,
+        "latitude": None,
+        "longitude": None,
+    }
+
+
+@pytest.mark.asyncio
 async def test_execute_raises_on_http_error(
     publish_organismes_usecase: PublishOrganismesUsecase, httpx_mock: HTTPXMock
 ):

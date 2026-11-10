@@ -6,11 +6,13 @@ import { CANDIDATURE_PANEL_TAB_LABELS } from '@/features/candidatures/constants/
 import { ETAPES_TEXTS_ORGANISME } from '@/features/etapes-recrutement/constants/etape-recrutement'
 import { ORGANISME_TAB_LABELS } from '@/features/organismes/constants/organisme'
 import { RECRUTEMENT_DETAIL_TAB_LABELS, RECRUTEMENT_TAB_LABELS } from '@/features/recrutements/constants/recrutement'
+import { redirectHome } from './home'
 import {
   CANDIDATURE_PANEL_ROUTE_NAMES,
   CANDIDATURES_VIEW_ROUTE_NAMES,
   HOME_ROUTE_NAME,
   NOT_FOUND_ROUTE_NAME,
+  ORGANISME_HOME_ROUTE_NAME,
   ORGANISME_SECTION_ROUTE_NAMES,
   ORGANISME_TAB_ROUTE_NAMES,
   ORGANISMES_ROUTE_NAME,
@@ -26,6 +28,7 @@ const recrutementsTabMeta = tabMetaFor(RECRUTEMENT_TAB_LABELS)
 const recrutementTabMeta = tabMetaFor(RECRUTEMENT_DETAIL_TAB_LABELS)
 const panelTabMeta = tabMetaFor(CANDIDATURE_PANEL_TAB_LABELS)
 
+const HomeView = () => import('@/features/home/views/HomeView.vue')
 const RecrutementsView = () => import('@/features/recrutements/views/RecrutementsView.vue')
 const CandidaturePanelView = () => import('@/features/candidatures/views/CandidaturePanelView.vue')
 
@@ -111,6 +114,7 @@ const recrutementRoutes: RouteRecordRaw[] = [
 ]
 
 const organismeRoutes: RouteRecordRaw[] = [
+  { path: 'accueil', name: ORGANISME_HOME_ROUTE_NAME, component: HomeView, props: true },
   {
     path: '',
     name: ORGANISME_SECTION_ROUTE_NAMES.parametres,
@@ -137,6 +141,13 @@ const organismeRoutes: RouteRecordRaw[] = [
             }),
             meta: organismeTabMeta('etapes'),
           },
+          {
+            path: 'etiquettes',
+            name: ORGANISME_TAB_ROUTE_NAMES.tags,
+            component: () => import('@/features/tags/components/TagsSection.vue'),
+            props: true,
+            meta: organismeTabMeta('tags'),
+          },
         ],
       },
     ],
@@ -156,7 +167,8 @@ export const routes: RouteRecordRaw[] = [
   {
     path: '/',
     name: HOME_ROUTE_NAME,
-    component: () => import('@/views/HomeView.vue'),
+    component: HomeView,
+    beforeEnter: redirectHome,
   },
   {
     path: '/organismes',

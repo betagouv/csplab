@@ -1,6 +1,9 @@
 from django.db import models
 
 from domain.candidate.value_objects.statut_candidature import StatutCandidature
+from domain.recruteur.value_objects.categorie_etapes_recrutement import (
+    CategorieEtapeRecrutement,
+)
 from infrastructure.django_apps.recruteur.enums.motif_refus import MotifRefus
 from infrastructure.django_apps.recruteur.models.etape import EtapeModel
 from infrastructure.django_apps.users.fields import candidat_fk
@@ -8,10 +11,52 @@ from infrastructure.django_apps.utils.models import BaseDatedModel
 
 
 class CandidatureQuerySet(models.QuerySet):
+    def received(self) -> "CandidatureQuerySet":
+        return self.exclude(statut=StatutCandidature.INITIAL.value)
+
+    def withdrawn(self) -> "CandidatureQuerySet":
+        return self.filter(statut=StatutCandidature.RETIREE.value)
+
+    def to_process(self) -> "CandidatureQuerySet":
+        return self.filter(
+            statut=StatutCandidature.SOUMISE.value,
+            etape__categorie=CategorieEtapeRecrutement.ENTREE.value,
+        )
+
+    def processed(self) -> "CandidatureQuerySet":
+        return self.received().exclude(
+            etape__categorie=CategorieEtapeRecrutement.ENTREE.value
+        )
+
+    def shortlisted(self) -> "CandidatureQuerySet":
+        return self.received().filter(
+            etape__categorie__in=[
+                CategorieEtapeRecrutement.EN_COURS.value,
+                CategorieEtapeRecrutement.ACCEPTE.value,
+            ]
+        )
+
+    def refused(self) -> "CandidatureQuerySet":
+        return self.received().filter(
+            etape__categorie=CategorieEtapeRecrutement.REFUS.value
+        )
+
+    def selected(self) -> "CandidatureQuerySet":
+        return self.received().filter(
+            etape__categorie=CategorieEtapeRecrutement.ACCEPTE.value
+        )
+
     def by_recrutement_and_candidature(
         self, recrutement_id, candidature_id
     ) -> "CandidatureQuerySet":
         return self.filter(etape__recrutement_id=recrutement_id, pk=candidature_id)
+
+    def by_recrutement(self, recrutement_id) -> "CandidatureQuerySet":
+        return (
+            self.filter(etape__recrutement_id=recrutement_id)
+            .select_related("candidat__utilisateur", "etape")
+            .order_by("etape__updated_at", "created_at")
+        )
 
     def by_etape(self, etape_id) -> "CandidatureQuerySet":
         return self.filter(etape_id=etape_id).order_by("created_at")
@@ -50,6 +95,8 @@ class CandidatureModel(BaseDatedModel):
     )
 
     objects = CandidatureQuerySet.as_manager()
+
+    unread_conversations: int
 
     class Meta:
         db_table = "candidature"

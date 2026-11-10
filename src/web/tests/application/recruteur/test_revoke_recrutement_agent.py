@@ -27,7 +27,9 @@ from infrastructure.factories.identite.organisme_django_factory import (
     OrganismeDjangoFactory,
     create_organisme_with_agent,
 )
-from infrastructure.factories.identite.utilisateur_factory import UtilisateurFactory
+from infrastructure.factories.identite.utilisateur_django_factory import (
+    UtilisateurDjangoFactory,
+)
 from infrastructure.factories.recruteur.recrutement_django_factory import (
     RecrutementAgentDjangoFactory,
     RecrutementDjangoFactory,
@@ -35,10 +37,6 @@ from infrastructure.factories.recruteur.recrutement_django_factory import (
 from infrastructure.repositories.commons.postgres_audit_log_repository import (
     PostgresAuditLogRepository,
 )
-
-
-def _utilisateur(entity_id, *, is_staff=False):
-    return UtilisateurFactory.create_entity(entity_id=entity_id, is_staff=is_staff)
 
 
 def test_responsable_revokes_agent(db):
@@ -59,7 +57,7 @@ def test_responsable_revokes_agent(db):
         organisme_id=organisme.id,
         recrutement_id=recrutement.pk,
         agent_id=membre.utilisateur_id,
-        utilisateur=_utilisateur(responsable.utilisateur_id),
+        utilisateur=responsable.utilisateur,
     )
 
     assert recrutement_agent.date_revocation is not None
@@ -94,7 +92,7 @@ def test_staff_bypasses_role_check(db):
         organisme_id=organisme.id,
         recrutement_id=recrutement.pk,
         agent_id=membre.utilisateur_id,
-        utilisateur=_utilisateur(uuid4(), is_staff=True),
+        utilisateur=UtilisateurDjangoFactory(is_staff=True),
     )
 
     assert recrutement_agent.date_revocation is not None
@@ -123,7 +121,7 @@ def test_denied_when_demandeur_responsable_role_is_revoked(db):
             organisme_id=organisme.id,
             recrutement_id=recrutement.pk,
             agent_id=membre.utilisateur_id,
-            utilisateur=_utilisateur(demandeur.utilisateur_id),
+            utilisateur=demandeur.utilisateur,
         )
 
     assert (
@@ -140,10 +138,10 @@ def test_denied_when_demandeur_responsable_role_is_revoked(db):
 def test_denied_when_demandeur_is_not_responsable(db, role):
     if role is None:
         organisme = OrganismeDjangoFactory()
-        demandeur_id = uuid4()
+        utilisateur = UtilisateurDjangoFactory()
     else:
         demandeur, organisme = create_organisme_with_agent(role=role)
-        demandeur_id = demandeur.utilisateur_id
+        utilisateur = demandeur.utilisateur
     membre = OrganismeAgentDjangoFactory(
         organisme=organisme, role=AgentOrganismeRole.AGENT.value
     ).agent
@@ -159,7 +157,7 @@ def test_denied_when_demandeur_is_not_responsable(db, role):
             organisme_id=organisme.id,
             recrutement_id=recrutement.pk,
             agent_id=membre.utilisateur_id,
-            utilisateur=_utilisateur(demandeur_id),
+            utilisateur=utilisateur,
         )
 
     assert (
@@ -184,7 +182,7 @@ def test_raises_when_organisme_does_not_exist(db):
             organisme_id=uuid4(),
             recrutement_id=uuid4(),
             agent_id=membre.utilisateur_id,
-            utilisateur=_utilisateur(uuid4()),
+            utilisateur=UtilisateurDjangoFactory(),
         )
 
 
@@ -203,7 +201,7 @@ def test_raises_when_recrutement_does_not_belong_to_organisme(db):
             organisme_id=organisme.id,
             recrutement_id=recrutement.pk,
             agent_id=membre.utilisateur_id,
-            utilisateur=_utilisateur(responsable.utilisateur_id),
+            utilisateur=responsable.utilisateur,
         )
 
 
@@ -219,7 +217,7 @@ def test_raises_when_agent_to_revoke_is_not_attached_to_organisme(db):
             organisme_id=organisme.id,
             recrutement_id=recrutement.pk,
             agent_id=bare_agent.utilisateur_id,
-            utilisateur=_utilisateur(responsable.utilisateur_id),
+            utilisateur=responsable.utilisateur,
         )
 
 
@@ -237,7 +235,7 @@ def test_raises_when_agent_is_not_member_of_recrutement(db):
             organisme_id=organisme.id,
             recrutement_id=recrutement.pk,
             agent_id=membre.utilisateur_id,
-            utilisateur=_utilisateur(responsable.utilisateur_id),
+            utilisateur=responsable.utilisateur,
         )
 
 
@@ -261,7 +259,7 @@ def test_raises_when_agent_already_revoked(db):
             organisme_id=organisme.id,
             recrutement_id=recrutement.pk,
             agent_id=membre.utilisateur_id,
-            utilisateur=_utilisateur(responsable.utilisateur_id),
+            utilisateur=responsable.utilisateur,
         )
 
 
@@ -292,7 +290,7 @@ def test_rolls_back_revocation_when_audit_log_write_fails(db, monkeypatch):
             organisme_id=organisme.id,
             recrutement_id=recrutement.pk,
             agent_id=membre.utilisateur_id,
-            utilisateur=_utilisateur(responsable.utilisateur_id),
+            utilisateur=responsable.utilisateur,
         )
 
     assert (

@@ -67,8 +67,8 @@ RECRUTEMENT_ETAPES_INIT_URL = reverse(
     kwargs={"organisme_uuid": ORGANISME_UUID, "recrutement_uuid": RECRUTEMENT_UUID},
 )
 
-RECRUTEMENT_KANBAN_URL = reverse(
-    "recruteur:organisme_recrutement_kanban",
+RECRUTEMENT_LISTE_URL = reverse(
+    "recruteur:organisme_recrutement_liste",
     kwargs={"organisme_uuid": ORGANISME_UUID, "recrutement_uuid": RECRUTEMENT_UUID},
 )
 
@@ -494,7 +494,7 @@ class TestRecrutementEtapeViewDbVerified:
             e["nom"] for e in payload
         ]
 
-    def test_kanban_reflects_the_patched_etapes(self, authenticated_client, test_user):
+    def test_liste_reflects_the_patched_etapes(self, authenticated_client, test_user):
         _, organisme = create_organisme_with_agent(
             role=AgentOrganismeRole.SUPERVISEUR,
             utilisateur=test_user,
@@ -510,7 +510,7 @@ class TestRecrutementEtapeViewDbVerified:
         ]
         authenticated_client.patch(RECRUTEMENT_ETAPES_URL, data=payload, format="json")
 
-        response = authenticated_client.get(RECRUTEMENT_KANBAN_URL)
+        response = authenticated_client.get(RECRUTEMENT_LISTE_URL)
 
         assert response.status_code == status.HTTP_200_OK
         assert [e["nom"] for e in response.json()["etapes"]] == [

@@ -8,10 +8,10 @@ export function readCsrfCookie(): string {
   return match ? decodeURIComponent(match[1]) : ''
 }
 
-function redirectToLogin(): never {
+function redirectToLogin(): Promise<never> {
   const next = encodeURIComponent(window.location.pathname + window.location.search)
   window.location.href = `/utilisateur/connexion?next=${next}`
-  throw new Error('Redirecting to login')
+  return new Promise(() => {})
 }
 
 const csrfMiddleware: Middleware = {
@@ -31,7 +31,7 @@ const errorMiddleware: Middleware = {
     }
 
     if (response.status === 401) {
-      redirectToLogin()
+      return redirectToLogin()
     }
 
     const data = await response.clone().json().catch(() => undefined)
@@ -76,9 +76,6 @@ function wrapWithNetworkErrors(client: RawClient): RawClient {
           throw err
         }
         if (err instanceof HttpError) {
-          throw err
-        }
-        if (err instanceof Error && err.message === 'Redirecting to login') {
           throw err
         }
         throw new NetworkError(err)

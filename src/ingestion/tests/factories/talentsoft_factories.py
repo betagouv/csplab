@@ -11,6 +11,7 @@ from infrastructure.external_gateways.dtos.talentsoft_dtos import (
     TalentsoftDynamicField,
     TalentsoftGeolocation,
     TalentsoftLink,
+    TalentsoftMultiLocation,
     TalentsoftOffer,
     TalentsoftOffersResponse,
     TalentsoftOrganisation,
@@ -111,6 +112,10 @@ class TalentsoftOfferFactory(ModelFactory[TalentsoftOffer]):
         ]
 
     @classmethod
+    def locations(cls) -> List[TalentsoftMultiLocation]:
+        return []
+
+    @classmethod
     def customFields(cls) -> TalentsoftCustomFields:
         value = _fake.random_element(
             elements=["CAT-AEF", "CAT-ESD", "CAT-ES", "CAT-A", "CAT-B", "CAT-C"]
@@ -167,6 +172,9 @@ class TalentsoftCustomFieldsFactory(ModelFactory[TalentsoftCustomFields]):
 class TalentsoftDynamicFieldFactory(ModelFactory[TalentsoftDynamicField]):
     __model__ = TalentsoftDynamicField
     __faker__ = _fake
+    __set_as_default_factory_for_type__ = True
+
+    customCodeTable3 = None
 
 
 class TalentsoftCustomCodeTableFactory(ModelFactory[TalentsoftCustomCodeTable]):
@@ -264,6 +272,10 @@ class TalentsoftDetailOfferFactory(ModelFactory[TalentsoftDetailOffer]):
     @classmethod
     def _links(cls) -> List[TalentsoftLink]:
         return TalentsoftLinkFactory.batch(size=1)
+
+    @classmethod
+    def locations(cls) -> List[TalentsoftMultiLocation]:
+        return []
 
     @classmethod
     def organisation(cls) -> TalentsoftOrganisation:

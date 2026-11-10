@@ -1,14 +1,17 @@
 import pytest
 
-from presentation.commons.serializers import LocalisationSerializer
+from presentation.commons.serializers import (
+    INVALID_COUNTRY_CODE,
+    LocalisationSerializer,
+)
 
 
 def _payload(**overrides):
     payload = {
         "zone_geographique": "EU",
         "pays": "FRA",
-        "region": "",
-        "departement": "",
+        "region": None,
+        "departement": None,
         "localisation_label": "",
         "latitude": None,
         "longitude": None,
@@ -36,6 +39,14 @@ def test_localisation_serializer_rejects_invalid_alpha3_country_codes(pays):
 
     assert not serializer.is_valid()
     assert "pays" in serializer.errors
+
+
+@pytest.mark.parametrize("pays", ["fra", "Fra", "frA"])
+def test_localisation_serializer_rejects_country_codes_not_in_uppercase(pays):
+    serializer = LocalisationSerializer(data=_payload(pays=pays))
+
+    assert not serializer.is_valid()
+    assert serializer.errors["pays"] == [INVALID_COUNTRY_CODE]
 
 
 def test_localisation_serializer_rejects_country_codes_of_wrong_length():

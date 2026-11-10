@@ -1,18 +1,19 @@
 <script setup lang="ts">
-import type { AssignationResponsableResultat, RecrutementKey } from '../types'
+import type { AssignationResponsableResultat, RecrutementKey, RecrutementsActifs } from '../types'
 import type { CspBreadcrumbItem } from '@/components/base/CspBreadcrumb/CspBreadcrumb.vue'
 import type { ToastOptions } from '@/composables/ui/useToast'
 import type { AgentRecherche } from '@/features/agents/types'
-import { computed, ref } from 'vue'
+import { computed, ref, useTemplateRef } from 'vue'
 import { useRouter } from 'vue-router'
 import { isHttpStatus } from '@/api/errors'
 import CspAsyncSection from '@/components/base/CspAsyncSection/CspAsyncSection.vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspDataTable from '@/components/base/CspDataTable/CspDataTable.vue'
+import { TABLE_PAGE_SIZE } from '@/components/base/CspDataTable/table'
+import CspDrawer from '@/components/base/CspDrawer/CspDrawer.vue'
 import CspEmptyState from '@/components/base/CspEmptyState/CspEmptyState.vue'
 import CspErrorState from '@/components/base/CspErrorState/CspErrorState.vue'
 import CspSearchBar from '@/components/base/CspSearchBar/CspSearchBar.vue'
-import CspSkeleton from '@/components/base/CspSkeleton/CspSkeleton.vue'
 import CspSkeletonTable from '@/components/base/CspSkeleton/CspSkeletonTable.vue'
 import CspTableToolbar from '@/components/base/CspTableToolbar/CspTableToolbar.vue'
 import CspPageContainer from '@/components/layout/CspPageContainer/CspPageContainer.vue'
@@ -25,13 +26,13 @@ import { useDisclosure } from '@/composables/ui/useDisclosure'
 import { useDocumentTitle } from '@/composables/ui/useDocumentTitle'
 import { useToast } from '@/composables/ui/useToast'
 import { formatAgentLabel } from '@/features/agents/format'
-import { HOME_BREADCRUMB_ITEM, RECRUTEMENTS_BREADCRUMB_LABEL } from '@/router/breadcrumb'
+import { homeBreadcrumbItem, RECRUTEMENTS_BREADCRUMB_LABEL } from '@/router/breadcrumb'
 import { CANDIDATURES_VIEW_ROUTE_NAMES, RECRUTEMENTS_TAB_ROUTE_NAMES } from '@/router/names'
 import { useRouteOrganisme } from '@/stores/routeOrganisme'
 import { pluralize } from '@/utils/format'
 import ForbiddenView from '@/views/ForbiddenView.vue'
 import { RECRUTEMENTS_ACTIFS_COLUMNS, RECRUTEMENTS_ARCHIVES_COLUMNS } from '../columns'
-import AssignationResponsableDrawer from '../components/AssignationResponsableDrawer.vue'
+import AssignResponsableForm from '../components/AssignResponsableForm.vue'
 import RecrutementsActifsFiltersDrawer from '../components/RecrutementsActifsFiltersDrawer.vue'
 import RecrutementsArchivesFiltersDrawer from '../components/RecrutementsArchivesFiltersDrawer.vue'
 import { useAssignResponsable } from '../composables/useAssignResponsable'
@@ -45,17 +46,19 @@ const props = defineProps<{
 
 const AUCUN_RECRUTEMENT_EN_COURS_DESCRIPTION = 'Les recrutements auxquels vous participez apparaissent ici. Pour accéder à un recrutement, contactez la personne responsable dans votre organisation.'
 
-const BREADCRUMB: CspBreadcrumbItem[] = [
-  HOME_BREADCRUMB_ITEM,
+const breadcrumb = computed<CspBreadcrumbItem[]>(() => [
+  homeBreadcrumbItem(props.organismeUuid),
   { label: RECRUTEMENTS_BREADCRUMB_LABEL },
-]
+])
 
 const router = useRouter()
 
 const activeTab = useRouteTab<RecrutementKey>(RECRUTEMENTS_TAB_ROUTE_NAMES, 'actifs')
 
-const { organisme: routeOrganisme, canManageOrganisme } = useRouteOrganisme()
+const { organisme: routeOrganisme, canOnOrganisme } = useRouteOrganisme()
 useDocumentTitle(() => RECRUTEMENT_TAB_LABELS[activeTab.value], () => routeOrganisme.value?.nom)
+
+const canAssignResponsable = computed(() => canOnOrganisme('set_recrutements_responsable'))
 
 const TABS = tabItems(RECRUTEMENT_TAB_LABELS, RECRUTEMENT_TAB_ICONS)
 
@@ -81,8 +84,6 @@ function openOffre(recrutementUuid: string) {
 const recrutementsActifsPage = ref(1)
 const recrutementsArchivesPage = ref(1)
 
-const PAGE_SIZE = 6
-
 const actifsFilters = useRecrutementsFilters(computed(() => recrutementsData.actifs))
 const archivesFilters = useRecrutementsFilters(computed(() => recrutementsData.archives))
 
@@ -93,6 +94,10 @@ const { addToast } = useToast()
 
 const selection = useTableSelection(actifsFilters.filtered, row => row.uuid)
 const assignationDrawer = useDisclosure()
+const recrutementToAssign = ref<RecrutementsActifs | null>(null)
+const recrutementsToAssign = computed(() =>
+  recrutementToAssign.value ? [recrutementToAssign.value] : selection.selected.value,
+)
 const {
   status: responsableStatus,
   foundAgent,
@@ -103,9 +108,19 @@ const {
   reset: resetResponsable,
 } = useAssignResponsable(() => props.organismeUuid)
 
+const actifsTable = useTemplateRef<{ visibleIds: string[] }>('actifsTable')
+
 const selectionLabel = computed(() => {
   const count = selection.count.value
-  return `${count} ${pluralize(count, 'offre sélectionnée', 'offres sélectionnées')}`
+  return `${count} ${pluralize(count, 'recrutement sélectionné', 'recrutements sélectionnés')}`
+})
+
+const selectionHint = computed(() => {
+  const visibleIds = new Set(actifsTable.value?.visibleIds ?? [])
+  const elsewhere = selection.selected.value.filter(row => !visibleIds.has(row.uuid)).length
+  return elsewhere > 0
+    ? `dont ${elsewhere} ${pluralize(elsewhere, 'sur une autre page', 'sur d’autres pages')}`
+    : undefined
 })
 
 function assignationToast(
@@ -114,7 +129,7 @@ function assignationToast(
 ): ToastOptions {
   const nom = agent ? formatAgentLabel(agent) : 'Le membre choisi'
   const reussites = resultat.reussites.length
-  const assignees = `${nom} est responsable de ${reussites} ${pluralize(reussites, 'offre')}`
+  const assignees = `${nom} est responsable de ${reussites} ${pluralize(reussites, 'recrutement')}`
 
   if (resultat.echecs.length === 0) {
     return {
@@ -127,7 +142,7 @@ function assignationToast(
   return {
     variant: 'warning',
     title: 'Assignation partielle',
-    description: `${assignees}, ${echecs} ${pluralize(echecs, 'offre ignorée', 'offres ignorées')}.`,
+    description: `${assignees}, ${echecs} ${pluralize(echecs, 'recrutement ignoré', 'recrutements ignorés')}.`,
   }
 }
 
@@ -141,14 +156,33 @@ function assignationErrorTitle(assignationError: unknown): string {
   return 'L\'assignation du responsable a échoué'
 }
 
+function openAssignment(recrutement: RecrutementsActifs | null = null) {
+  recrutementToAssign.value = recrutement
+  resetResponsable()
+  assignationDrawer.open()
+}
+
+function removeFromAssignment(recrutementUuid: string) {
+  if (recrutementToAssign.value) {
+    assignationDrawer.close()
+    return
+  }
+  selection.toggle(recrutementUuid)
+  if (selection.count.value === 0) {
+    assignationDrawer.close()
+  }
+}
+
 async function handleAssign() {
-  const recrutementIds = selection.selected.value.map(row => row.uuid)
+  const recrutementIds = recrutementsToAssign.value.map(row => row.uuid)
 
   try {
     const resultat = await assign(recrutementIds)
     const agent = foundAgent.value
     assignationDrawer.close()
-    selection.clear()
+    if (!recrutementToAssign.value) {
+      selection.clear()
+    }
     addToast(assignationToast(resultat, agent))
   }
   catch (assignationError) {
@@ -201,7 +235,7 @@ const archivesCountLabel = computed(() => {
     <CspPageHeader
       title="Recrutements"
       subtitle="Retrouvez ici l’ensemble des recrutements en cours et terminés."
-      :breadcrumb="BREADCRUMB"
+      :breadcrumb="breadcrumb"
     />
     <CspPageContainer
       v-model:active-tab="activeTab"
@@ -229,34 +263,24 @@ const archivesCountLabel = computed(() => {
         <template v-else>
           <CspTableToolbar
             :bordered="false"
+            :count="actifsCountLabel"
+            :pending="showActifsSkeleton"
             :selection-count="selection.count.value"
             :selection-label="selectionLabel"
+            :selection-hint="selectionHint"
           >
             <template #selection-actions>
               <CspButton
                 label="Assigner un responsable"
-                @click="assignationDrawer.open()"
+                @click="openAssignment()"
               />
-            </template>
-            <template #status>
-              <p class="mes-recrutement-view__count">
-                <CspSkeleton
-                  v-if="showActifsSkeleton"
-                  width="12rem"
-                  variant="text"
-                />
-                <template v-else>
-                  {{ actifsCountLabel }}
-                </template>
-              </p>
             </template>
             <CspSearchBar
               v-model="actifsFilters.search.value"
               mode="live"
               label="Rechercher un recrutement"
               hide-label
-              placeholder="Rechercher une offre, une référence,…"
-              class="mes-recrutement-view__search"
+              placeholder="Intitulé, référence, responsable…"
             />
             <CspButton
               :label="actifsFilters.activeFiltersCount.value ? `Filtres (${actifsFilters.activeFiltersCount.value})` : 'Filtres'"
@@ -274,52 +298,62 @@ const archivesCountLabel = computed(() => {
             @apply="applyActifsFilters"
             @reset="actifsFilters.reset()"
           />
-          <AssignationResponsableDrawer
+          <CspDrawer
             v-model:open="assignationDrawer.isOpen.value"
-            :recrutements="selection.selected.value"
-            :status="responsableStatus"
-            :agent="foundAgent"
-            :searching="searching"
-            :submitting="submitting"
-            @remove="selection.toggle"
-            @search="searchResponsable"
-            @assign="handleAssign"
-            @reset="resetResponsable"
-          />
+            title="Assigner un responsable"
+            size="md"
+          >
+            <AssignResponsableForm
+              :recrutements="recrutementsToAssign"
+              :status="responsableStatus"
+              :agent="foundAgent"
+              :searching="searching"
+              :submitting="submitting"
+              @remove="removeFromAssignment"
+              @search="searchResponsable"
+              @assign="handleAssign"
+              @reset="resetResponsable"
+              @cancel="assignationDrawer.close()"
+            />
+          </CspDrawer>
           <CspAsyncSection
             :pending="showActifsSkeleton"
             loading-label="Chargement des recrutements en cours"
           >
             <template #skeleton>
               <CspSkeletonTable
-                :rows="PAGE_SIZE"
-                :columns="canManageOrganisme ? 7 : 6"
-                with-footer
+                :columns="RECRUTEMENTS_ACTIFS_COLUMNS.length"
               />
             </template>
             <CspDataTable
+              ref="actifsTable"
               v-model:page="recrutementsActifsPage"
               :rows="actifsFilters.filtered.value"
               :columns="RECRUTEMENTS_ACTIFS_COLUMNS"
               :row-key="row => row.uuid"
-              :selection-mode="canManageOrganisme ? 'checkbox' : 'none'"
+              :selection-mode="canAssignResponsable ? 'checkbox' : 'none'"
               :selected-ids="selection.selectedIds.value"
               :selection-label="row => `Sélectionner ${row.intitule}`"
               activation-mode="cell"
               caption="Recrutements en cours"
               empty-label="Aucun recrutement en cours"
-              :page-size="PAGE_SIZE"
+              :page-size="TABLE_PAGE_SIZE"
               @activate="openOffre"
               @toggle-row="selection.toggle"
               @toggle-all="selection.toggleVisible"
             >
-              <template #header-candidatures="{ label }">
-                <div class="mes-recrutement-view__candidatures-head">
-                  <span>{{ label }}</span>
-                  <span class="mes-recrutement-view__candidatures-legend">
-                    # · À traiter · En cours
-                  </span>
-                </div>
+              <template #cell-responsables="{ row, value }">
+                <CspButton
+                  v-if="canAssignResponsable && row.responsables.length === 0"
+                  label="Assigner un responsable"
+                  variant="secondary"
+                  size="sm"
+                  :aria-label="`Assigner un responsable à ${row.intitule}`"
+                  @click="openAssignment(row)"
+                />
+                <template v-else>
+                  {{ value }}
+                </template>
               </template>
             </CspDataTable>
           </CspAsyncSection>
@@ -335,26 +369,17 @@ const archivesCountLabel = computed(() => {
           title="Aucun recrutement terminé"
         />
         <template v-else>
-          <CspTableToolbar :bordered="false">
-            <template #status>
-              <p class="mes-recrutement-view__count">
-                <CspSkeleton
-                  v-if="showArchivesSkeleton"
-                  width="12rem"
-                  variant="text"
-                />
-                <template v-else>
-                  {{ archivesCountLabel }}
-                </template>
-              </p>
-            </template>
+          <CspTableToolbar
+            :bordered="false"
+            :count="archivesCountLabel"
+            :pending="showArchivesSkeleton"
+          >
             <CspSearchBar
               v-model="archivesFilters.search.value"
               mode="live"
               label="Rechercher un recrutement"
               hide-label
-              placeholder="Rechercher une offre, une référence,…"
-              class="mes-recrutement-view__search"
+              placeholder="Intitulé, référence, responsable…"
             />
             <CspButton
               :label="archivesFilters.activeFiltersCount.value ? `Filtres (${archivesFilters.activeFiltersCount.value})` : 'Filtres'"
@@ -379,9 +404,7 @@ const archivesCountLabel = computed(() => {
           >
             <template #skeleton>
               <CspSkeletonTable
-                :rows="PAGE_SIZE"
-                :columns="6"
-                with-footer
+                :columns="RECRUTEMENTS_ARCHIVES_COLUMNS.length"
               />
             </template>
             <CspDataTable
@@ -392,7 +415,7 @@ const archivesCountLabel = computed(() => {
               activation-mode="cell"
               caption="Recrutements terminés"
               empty-label="Aucun recrutement terminé"
-              :page-size="PAGE_SIZE"
+              :page-size="TABLE_PAGE_SIZE"
               @activate="openOffre"
             />
           </CspAsyncSection>
@@ -401,30 +424,3 @@ const archivesCountLabel = computed(() => {
     </CspPageContainer>
   </template>
 </template>
-
-<style scoped lang="scss">
-.mes-recrutement-view__count {
-  margin: 0;
-  font-size: 0.9375rem;
-  color: var(--text-mention-grey);
-}
-
-.mes-recrutement-view__search {
-  min-width: 20rem;
-}
-
-.mes-recrutement-view__candidatures-head {
-  display: flex;
-  flex-direction: column;
-  max-height: 1rem;
-  & > span:first-child {
-    margin-top: -0.75rem;
-  }
-}
-
-.mes-recrutement-view__candidatures-legend {
-  font-weight: 400;
-  font-size: 0.75rem;
-  color: var(--text-mention-grey);
-}
-</style>

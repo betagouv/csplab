@@ -23,8 +23,12 @@ class OrganisationPayload(BaseModel):
 
 class ProfessionPayload(BaseModel):
     referentiel: str = "RMFPv2"
-    domaine: str
+    domaine: Optional[str] = None
     metier: str
+
+    @model_serializer
+    def serialize(self) -> dict:
+        return {k: v for k, v in self.__dict__.items() if v is not None}
 
 
 class DescriptionPayload(BaseModel):
@@ -39,8 +43,8 @@ class DescriptionPayload(BaseModel):
 class LocalisationItemPayload(BaseModel):
     zone_geographique: str
     pays: str
-    region: str
-    departement: str
+    region: Optional[str]
+    departement: Optional[str]
     localisation_label: str = ""
     latitude: Optional[float] = None
     longitude: Optional[float] = None
@@ -68,7 +72,7 @@ class CriteresPayload(BaseModel):
     specialisations: list[str] = []
     diplome: Optional[str] = None
     documents_requis: list[str] = []
-    competences_requises: list[str] = []
+    competences_requises: Optional[str] = None
     langues: list[LanguagePayload] = []
 
     @model_serializer
@@ -82,6 +86,8 @@ class ConditionsPayload(BaseModel):
     management: Optional[str] = None
     duree_contrat: Optional[str] = None
     debut_contrat: Optional[datetime] = None
+    bases_legales: Optional[str] = None
+    note_ouverture_poste_url: Optional[HttpUrl] = None
 
     @model_serializer
     def serialize(self) -> dict:
@@ -101,7 +107,6 @@ class ContactPayload(BaseModel):
 class OfferUpsertPayload(BaseModel):
     identification: IdentificationPayload
     titre: str
-    titre_long: str
     organisation: OrganisationPayload
     url_offre: Optional[HttpUrl] = None
     url_candidature: Optional[HttpUrl] = None
@@ -119,7 +124,9 @@ class OfferUpsertPayload(BaseModel):
     publication: PublicationPayload
 
     @classmethod
-    def from_offer(cls, offer: Offer) -> OfferUpsertPayload:
+    def from_offer(
+        cls, offer: Offer, metiers_multi_domaines: set[str]
+    ) -> OfferUpsertPayload:
         fin_publication = (
             offer.end_publication_date
             or (offer.beginning_date.value if offer.beginning_date else None)
@@ -132,8 +139,12 @@ class OfferUpsertPayload(BaseModel):
                 LocalisationItemPayload(
                     zone_geographique=offer.localisation.area.value,
                     pays=str(offer.localisation.country),
-                    region=offer.localisation.region.code,
-                    departement=offer.localisation.department.code,
+                    region=offer.localisation.region.code
+                    if offer.localisation.region
+                    else None,
+                    departement=offer.localisation.department.code
+                    if offer.localisation.department
+                    else None,
                     localisation_label=offer.localisation.label or "",
                     latitude=offer.localisation.latitude,
                     longitude=offer.localisation.longitude,
@@ -141,15 +152,7 @@ class OfferUpsertPayload(BaseModel):
             ]
 
         contacts = [ContactPayload.from_contact(contact) for contact in offer.contacts]
-
-        domaine_length = 3
-        er_prefix = "ER"
         family_code = offer.family_code or ""
-        if family_code.startswith(er_prefix):
-            family_code = family_code[len(er_prefix) :]
-        domaine = (
-            family_code[:domaine_length] if len(family_code) >= domaine_length else ""
-        )
 
         return cls(
             identification=IdentificationPayload(
@@ -157,7 +160,6 @@ class OfferUpsertPayload(BaseModel):
                 versant=offer.verse.value if offer.verse else None,
             ),
             titre=offer.title,
-            titre_long=offer.title,
             organisation=OrganisationPayload(
                 nom=offer.organization,
                 talentsoft_organisme_entity_code=offer.talentsoft_organisme_entity_code,
@@ -166,8 +168,10 @@ class OfferUpsertPayload(BaseModel):
             url_candidature=offer.application_url,
             email_candidature=offer.application_email,
             profession=ProfessionPayload(
-                domaine=domaine,
-                metier=offer.family_code or "",
+                domaine=family_code[2:5]
+                if family_code in metiers_multi_domaines
+                else None,
+                metier=family_code,
             ),
             categories=[offer.category.value] if offer.category else [],
             nature_offre=offer.offer_nature.value if offer.offer_nature else None,
@@ -187,6 +191,10 @@ class OfferUpsertPayload(BaseModel):
                 experience=offer.experience.name if offer.experience else None,
                 specialisations=offer.specialisations,
                 diplome=offer.diploma,
+                documents_requis=[
+                    document.name for document in offer.required_documents
+                ],
+                competences_requises=offer.required_skills,
                 langues=[
                     LanguagePayload.from_language(lang) for lang in offer.languages
                 ],
@@ -196,6 +204,8 @@ class OfferUpsertPayload(BaseModel):
             or offer.diploma
             or offer.specialisations
             or offer.languages
+            or offer.required_skills
+            or offer.required_documents
             else None,
             conditions=ConditionsPayload(
                 temps_travail=offer.working_time.name,
@@ -205,6 +215,8 @@ class OfferUpsertPayload(BaseModel):
                 debut_contrat=offer.beginning_date.value
                 if offer.beginning_date
                 else None,
+                bases_legales=offer.legal_basis,
+                note_ouverture_poste_url=offer.vacancy_notice_url,
             ),
             contacts=contacts or None,
             publication=PublicationPayload(

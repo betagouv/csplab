@@ -30,10 +30,10 @@ fake = Faker()
 def test_upsert_offers_result(ingestion_container):
     offer = OfferDjangoFactory(
         verse=Verse.FPE,
-        category=Category.B,
+        categories=[Category.B],
         offer_nature=OfferNature.CONTRACTUEL,
         area="AS",
-        country="GUF",
+        country="FRA",
         region="03",
         department="973",
     )
@@ -43,17 +43,19 @@ def test_upsert_offers_result(ingestion_container):
         "title": fake.word(),
         "profile": fake.sentence(),
         "mission": fake.sentence(),
-        "category": Category.C,
+        "categories": [Category.C],
         "offer_nature": OfferNature.TITULAIRE_CONTRACTUEL,
         "organization": fake.name(),
         "offer_url": HttpUrl(f"https://fake.url/offer/{existing_offer.reference}"),
         "code_emploi_csp": fake.word(),
-        "localisation": Localisation(
-            area=GeographicalArea("AF"),
-            country=Country("FRA"),
-            region=Region(code="04"),
-            department=Department(code="76"),
-        ),
+        "localisations": [
+            Localisation(
+                area=GeographicalArea("AF"),
+                country=Country("FRA"),
+                region=Region(code="04"),
+                department=Department(code="76"),
+            )
+        ],
         "publication_date": datetime.now(timezone.utc) - relativedelta(days=1),
         "beginning_date": LimitDate(datetime.now(timezone.utc) + relativedelta(days=1)),
     }

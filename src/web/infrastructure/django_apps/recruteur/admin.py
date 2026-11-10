@@ -9,8 +9,7 @@ from referentiel.value_objects.region import Region
 from referentiel.value_objects.siret import SIRET
 from referentiel.value_objects.verse import Verse
 
-from application.identite.usecases.create_organisme import CreateOrganismeCommand
-from infrastructure.di.identite.identite_factory import create_identite_container
+from application.recruteur.services.create_organisme import create_organisme
 from infrastructure.django_apps.recruteur.models.etape import EtapeModel
 from infrastructure.django_apps.recruteur.models.note import NoteModel
 from infrastructure.django_apps.recruteur.models.organisme import (
@@ -40,12 +39,18 @@ class CreateOrganismeAdminForm(forms.ModelForm):
         help_text="Ex: FRA pour France",
     )
     region = forms.ChoiceField(
-        choices=[(code, name) for code, name in sorted(Region.NAMES.items())],
+        choices=[("", "---------")]
+        + [(code, name) for code, name in sorted(Region.NAMES.items())],
+        required=False,
         label="Région",
+        help_text="Obligatoire en France, vide pour un autre pays.",
     )
     department = forms.ChoiceField(
-        choices=[(code, name) for code, name in sorted(Department.NAMES.items())],
+        choices=[("", "---------")]
+        + [(code, name) for code, name in sorted(Department.NAMES.items())],
+        required=False,
         label="Département",
+        help_text="Obligatoire en France, vide pour un autre pays.",
     )
 
     class Meta:
@@ -72,6 +77,24 @@ class CreateOrganismeAdminForm(forms.ModelForm):
             raise forms.ValidationError(f"SIRET invalide : {siret}") from e
         return siret
 
+    def clean(self):
+        cleaned_data = super().clean()
+        if self.instance.pk is not None:
+            return cleaned_data
+        has_subdivision = (
+            bool(cleaned_data.get("region")),
+            bool(cleaned_data.get("department")),
+        )
+        if cleaned_data.get("country") == "FRA" and has_subdivision != (True, True):
+            raise forms.ValidationError(
+                "La région et le département sont obligatoires en France."
+            )
+        if cleaned_data.get("country") != "FRA" and has_subdivision != (False, False):
+            raise forms.ValidationError(
+                "La région et le département doivent être vides hors de France."
+            )
+        return cleaned_data
+
 
 class OrganismeAgentInline(ReadOnlyInlineMixin, admin.TabularInline):
     model = OrganismeAgentModel
@@ -91,31 +114,29 @@ class OrganismeAdmin(admin.ModelAdmin):
 
     def save_model(self, request, obj, form, change):
         if not change:
-            siret_raw = form.cleaned_data.get("siret")
             localisation = Localisation(
                 area=GeographicalArea(form.cleaned_data["area"]),
                 country=Country(form.cleaned_data["country"]),
-                region=Region(code=form.cleaned_data["region"]),
-                department=Department(code=form.cleaned_data["department"]),
+                region=(
+                    Region(code=form.cleaned_data["region"])
+                    if form.cleaned_data["region"]
+                    else None
+                ),
+                department=(
+                    Department(code=form.cleaned_data["department"])
+                    if form.cleaned_data["department"]
+                    else None
+                ),
             )
-            command = CreateOrganismeCommand(
+            organisme = create_organisme(
                 nom=form.cleaned_data["nom"],
                 versant=Verse(form.cleaned_data["versant"]),
+                siret=form.cleaned_data["siret"],
                 localisation=localisation,
-                siret=SIRET(code=siret_raw),
                 parent_id=form.cleaned_data.get("parent_id"),
-                est_staff=request.user.is_staff,
+                utilisateur=request.user,
             )
-            container = create_identite_container()
-            organisme = container.create_organisme_usecase().execute(command)
-            obj.id = organisme.entity_id
-            # Create the organisme model with localisation data
-            obj.localisation = {
-                "area": localisation.area.value,
-                "country": str(localisation.country),
-                "region": localisation.region.code,
-                "department": localisation.department.code,
-            }
+            obj.id = organisme.id
         else:
             # enforce the entity invariants (mapper builds the aggregate) before saving
             OrganismeIdentiteMapper().to_domain(obj)

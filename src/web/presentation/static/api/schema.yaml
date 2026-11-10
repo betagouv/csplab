@@ -4,6 +4,266 @@ info:
   version: 0.0.1
   description: API for CSPLab
 paths:
+  /api/changelog.atom:
+    get:
+      operationId: changelog_atom
+      description: Une entrée par changement, pour être prévenu des nouveaux.
+      summary: Changelog en flux Atom
+      parameters:
+      - in: query
+        name: depuis
+        schema:
+          type: string
+          format: date
+        description: Changements publiés à partir de cette date (AAAA-MM-JJ).
+      - in: query
+        name: route
+        schema:
+          type: string
+        description: Route citée par le changement, avec sa méthode. Une route citée
+          par aucun changement renvoie une erreur `400`.
+        examples:
+          CréerOuModifierDesOffres:
+            value: POST /api/v1/offres/creer_modifier
+            summary: Créer ou modifier des offres
+      - in: query
+        name: type
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - ajoute
+            - corrige
+            - modifie
+            - non_retrocompatible
+            - retire
+        description: 'Type de changement, répétable : `?type=ajoute&type=corrige`.'
+        explode: true
+      tags:
+      - documentation
+      security:
+      - {}
+      responses:
+        '200':
+          content:
+            application/atom+xml:
+              schema:
+                type: string
+          description: ''
+          headers:
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
+        '400':
+          content:
+            text/plain:
+              schema:
+                type: string
+          description: ''
+          headers:
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
+        '429':
+          description: Nombre maximal d'appels autorisés dépassé.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
+                    example: Request was throttled. Expected available in 42 seconds.
+          headers:
+            Retry-After:
+              $ref: '#/components/headers/Retry-After'
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
+  /api/changelog.json:
+    get:
+      operationId: changelog_json
+      description: Une entrée par changement, du plus récent au plus ancien, avec
+        ses routes, sa PR et ses tickets.
+      summary: Changelog en JSON
+      parameters:
+      - in: query
+        name: depuis
+        schema:
+          type: string
+          format: date
+        description: Changements publiés à partir de cette date (AAAA-MM-JJ).
+      - in: query
+        name: route
+        schema:
+          type: string
+        description: Route citée par le changement, avec sa méthode. Une route citée
+          par aucun changement renvoie une erreur `400`.
+        examples:
+          CréerOuModifierDesOffres:
+            value: POST /api/v1/offres/creer_modifier
+            summary: Créer ou modifier des offres
+      - in: query
+        name: type
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - ajoute
+            - corrige
+            - modifie
+            - non_retrocompatible
+            - retire
+        description: 'Type de changement, répétable : `?type=ajoute&type=corrige`.'
+        explode: true
+      tags:
+      - documentation
+      security:
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Changelog'
+          description: ''
+          headers:
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChangelogError'
+          description: ''
+          headers:
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
+        '429':
+          description: Nombre maximal d'appels autorisés dépassé.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
+                    example: Request was throttled. Expected available in 42 seconds.
+          headers:
+            Retry-After:
+              $ref: '#/components/headers/Retry-After'
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
+  /api/changelog.md:
+    get:
+      operationId: changelog_markdown
+      description: Le changelog de l'API en Markdown, du plus récent au plus ancien,
+        avec des liens absolus. Une note rappelle les filtres actifs.
+      summary: Changelog en Markdown
+      parameters:
+      - in: query
+        name: depuis
+        schema:
+          type: string
+          format: date
+        description: Changements publiés à partir de cette date (AAAA-MM-JJ).
+      - in: query
+        name: route
+        schema:
+          type: string
+        description: Route citée par le changement, avec sa méthode. Une route citée
+          par aucun changement renvoie une erreur `400`.
+        examples:
+          CréerOuModifierDesOffres:
+            value: POST /api/v1/offres/creer_modifier
+            summary: Créer ou modifier des offres
+      - in: query
+        name: type
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - ajoute
+            - corrige
+            - modifie
+            - non_retrocompatible
+            - retire
+        description: 'Type de changement, répétable : `?type=ajoute&type=corrige`.'
+        explode: true
+      tags:
+      - documentation
+      security:
+      - {}
+      responses:
+        '200':
+          content:
+            text/markdown:
+              schema:
+                type: string
+          description: ''
+          headers:
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
+        '400':
+          content:
+            text/plain:
+              schema:
+                type: string
+          description: ''
+          headers:
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
+        '429':
+          description: Nombre maximal d'appels autorisés dépassé.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
+                    example: Request was throttled. Expected available in 42 seconds.
+          headers:
+            Retry-After:
+              $ref: '#/components/headers/Retry-After'
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
   /api/fake-ts/offers/getoffer:
     get:
       operationId: fake_ts_offers_getoffer_retrieve
@@ -677,8 +937,8 @@ paths:
             - '05'
             - '06'
             - '07'
-            - 08
-            - 09
+            - '08'
+            - '09'
             - '10'
             - '11'
             - '12'
@@ -772,6 +1032,8 @@ paths:
             - '974'
             - '975'
             - '976'
+            - '977'
+            - '978'
             - '986'
             - '987'
             - '988'
@@ -881,6 +1143,8 @@ paths:
               * `974` - La Réunion
               * `975` - Saint-Pierre-et-Miquelon
               * `976` - Mayotte
+              * `977` - Saint-Barthélemy
+              * `978` - Saint-Martin
               * `986` - Wallis-et-Futuna
               * `987` - Polynésie française
               * `988` - Nouvelle-Calédonie
@@ -1281,6 +1545,14 @@ paths:
         fake-ts, au format objet codé Talentsoft.
       summary: Valeurs d'un référentiel (format Talentsoft)
       parameters:
+      - in: query
+        name: parentCode
+        schema:
+          type: string
+        description: 'Ne garde que les valeurs rattachées à ce parent. Pour les lieux,
+          c''est le `clientCode` du parent : la région pour un département (ex. `11`,
+          `DOM`, `TOM`), `FRA` pour une région, la zone pour un pays (ex. `EUROPE`).
+          Pour les organisations, c''est le `code` de l''organisation parente.'
       - in: path
         name: referential_type
         schema:
@@ -1325,6 +1597,48 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/GenericError'
+          description: ''
+          headers:
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
+        '429':
+          description: Nombre maximal d'appels autorisés dépassé.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
+                    example: Request was throttled. Expected available in 42 seconds.
+          headers:
+            Retry-After:
+              $ref: '#/components/headers/Retry-After'
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
+  /api/guide.md:
+    get:
+      operationId: guide_markdown
+      description: Les règles métier de chaque route et de chaque champ.
+      summary: Guide de l'API en Markdown
+      tags:
+      - documentation
+      security:
+      - {}
+      responses:
+        '200':
+          content:
+            text/markdown:
+              schema:
+                type: string
           description: ''
           headers:
             X-RateLimit-Limit:
@@ -1685,6 +1999,10 @@ paths:
         Cette API retourne la liste paginée des métiers. Les métiers peuvent être filtrés
         selon leur code de domaine fonctionnel (`domaine`).
 
+        Le champ `code_emploi_csp` d'un métier est la valeur à renseigner dans
+        `profession.metier` de l'API d'ingestion d'offres. Ce code vient du RMFP
+        (« Code CSP ») : plusieurs métiers peuvent partager le même code.
+
 
         Cette API est à l'usage exclusif des personnes autorisées.
 
@@ -1754,7 +2072,7 @@ paths:
                       - Assurer un rôle de conseil et d'information auprèsdes différents
                         interlocuteurs
                       conditions_particulieres: []
-                      offer_family_code: ERAMT001
+                      code_emploi_csp: ERAMT001
                   summary: Liste de tous les métiers
                   description: Les métiers sont retournés paginés
                 Success-Filtered:
@@ -1778,7 +2096,7 @@ paths:
                         et des méthodes d'inspection
                       conditions_particulieres:
                       - Déplacements nationaux et internationaux
-                      offer_family_code: ERAGR001
+                      code_emploi_csp: ERAGR001
                   summary: Liste des métiers correspondants à un code domaine fonctionnel
                   description: Les métiers possédant ce code domaine fonctionnel sont
                     retournés paginés
@@ -1826,6 +2144,19 @@ paths:
                   summary: Token JWT invalide ou expiré
                   description: Le token dans le header `Authorization` est invalide
                     ou expiré.
+          description: ''
+          headers:
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListMetiersNotFound'
           description: ''
           headers:
             X-RateLimit-Limit:
@@ -1883,7 +2214,8 @@ paths:
         critères suivants :
 
         - `actif` — candidature active / archivée
-        - `categorie` — une ou plusieurs catégories (ex. `A,B`)
+        - `categorie` — une ou plusieurs catégories (ex. `A,B`) ; une offre est
+          retournée si l'une de ses catégories en fait partie
         - `versant` — un ou plusieurs versants (ex. `FPE,FPT`)
         - `nature_offre` — une ou plusieurs natures d'offre (ex. `TITULAIRE_CONTRACTUEL`)
         - `niveau_experience` — un ou plusieurs niveaux d'expérience (ex. `DEBUTANT,EXPERT`)
@@ -1965,8 +2297,8 @@ paths:
             - '05'
             - '06'
             - '07'
-            - 08
-            - 09
+            - '08'
+            - '09'
             - '10'
             - '11'
             - '12'
@@ -2060,6 +2392,8 @@ paths:
             - '974'
             - '975'
             - '976'
+            - '977'
+            - '978'
             - '986'
             - '987'
             - '988'
@@ -2169,6 +2503,8 @@ paths:
               * `974` - La Réunion
               * `975` - Saint-Pierre-et-Miquelon
               * `976` - Mayotte
+              * `977` - Saint-Barthélemy
+              * `978` - Saint-Martin
               * `986` - Wallis-et-Futuna
               * `987` - Polynésie française
               * `988` - Nouvelle-Calédonie
@@ -2977,7 +3313,8 @@ paths:
                       organisation: Ecole Nationale Supérieure de Techniques Avancées
                         (ENSTA)
                       nature_offre: TITULAIRE_CONTRACTUEL
-                      categorie: A
+                      categories:
+                      - A
                       debut_publication: '2026-04-17T14:44:49.873000+00:00'
                       url_offre: https://test.com/offre-emploi/2026-999999/
                       date_archivage: null
@@ -2996,7 +3333,8 @@ paths:
                       organisation: Ecole Nationale Supérieure de Techniques Avancées
                         (ENSTA)
                       nature_offre: TITULAIRE_CONTRACTUEL
-                      categorie: A
+                      categories:
+                      - A
                       debut_publication: '2026-04-17T14:44:49.873000+00:00'
                       url_offre: https://test.com/offre-emploi/2026-999999/
                       date_archivage: '2026-05-17T12:42:42.873000+00:00'
@@ -3041,6 +3379,19 @@ paths:
                   summary: Token JWT invalide ou expiré
                   description: Le token dans le header `Authorization` est invalide
                     ou expiré.
+          description: ''
+          headers:
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListOffersNotFound'
           description: ''
           headers:
             X-RateLimit-Limit:
@@ -3280,6 +3631,14 @@ paths:
 
         Le format `CSP-AAAA-NNNNNN` est réservé aux références générées par CSPLab. Une référence à ce format n'est acceptée que pour mettre à jour une offre existante de la source. Sinon, l'offre est rejetée dans `errors`.
 
+        # Organisme de l'offre
+
+        Le bloc `organisation` attend le `nom` et le `siret` de l'organisme. Ces valeurs se retrouvent avec `GET /api/v1/organismes` (filtres `nom` et `siret`).
+
+        # Consulter les offres transmises
+
+        Sur l'environnement de démonstration uniquement, les offres transmises peuvent être consultées dans l'interface « Fret » : https://demo.csplab.beta.gouv.fr/fret
+
         # Permissions
 
         L'utilisation de cette API nécessite un token d'autorisation spécifique à chaque utilisateur.
@@ -3505,6 +3864,19 @@ paths:
               $ref: '#/components/headers/X-RateLimit-Remaining'
             X-RateLimit-Reset:
               $ref: '#/components/headers/X-RateLimit-Reset'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OffersBySourceNotFound'
+          description: ''
+          headers:
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
         '500':
           content:
             application/json:
@@ -3538,6 +3910,467 @@ paths:
             X-RateLimit-Reset:
               $ref: '#/components/headers/X-RateLimit-Reset'
   /api/v1/organismes:
+    get:
+      operationId: v1_organismes_list
+      description: |2
+
+        # API de consultation des organismes de la Fonction Publique
+
+        Cette API retourne la liste paginée des organismes du référentiel CSPLab (FINESS,
+        GIPCDG et DILA). Les organismes supprimés ne sont pas renvoyés. La liste est triée
+        par `nom`, puis par `id`.
+
+        Filtres disponibles :
+
+        - `versant` — une ou plusieurs valeurs séparées par une virgule (ex. `FPE,FPT`).
+        - `siret` — SIRET exact, sur 14 caractères.
+        - `nom` — recherche partielle sur le nom, insensible à la casse et aux accents.
+        - `departement` — code du département de l'organisme (ex. `75`, `2A`, `971`).
+        - `referentiel` — référentiel source : `FINESS`, `GIPCDG` ou `DILA`.
+
+        Les champs `nom` et `siret` d'un organisme sont les valeurs à reprendre dans le bloc
+        `organisation` de l'API d'ingestion d'offres.
+
+        Une page au-delà de la dernière renvoie une erreur 404.
+
+
+        Cette API est à l'usage exclusif des personnes autorisées.
+
+        # Permissions
+
+        L'utilisation de cette API nécessite un token d'autorisation spécifique à chaque
+        utilisateur.
+
+        # Limitations
+
+        L'interrogation de cette API est limitée à 120 appels par minute et par utilisateur.
+      summary: Liste des organismes
+      parameters:
+      - in: query
+        name: departement
+        schema:
+          enum:
+          - '01'
+          - '02'
+          - '03'
+          - '04'
+          - '05'
+          - '06'
+          - '07'
+          - '08'
+          - '09'
+          - '10'
+          - '11'
+          - '12'
+          - '13'
+          - '14'
+          - '15'
+          - '16'
+          - '17'
+          - '18'
+          - '19'
+          - '21'
+          - '22'
+          - '23'
+          - '24'
+          - '25'
+          - '26'
+          - '27'
+          - '28'
+          - '29'
+          - 2A
+          - 2B
+          - '30'
+          - '31'
+          - '32'
+          - '33'
+          - '34'
+          - '35'
+          - '36'
+          - '37'
+          - '38'
+          - '39'
+          - '40'
+          - '41'
+          - '42'
+          - '43'
+          - '44'
+          - '45'
+          - '46'
+          - '47'
+          - '48'
+          - '49'
+          - '50'
+          - '51'
+          - '52'
+          - '53'
+          - '54'
+          - '55'
+          - '56'
+          - '57'
+          - '58'
+          - '59'
+          - '60'
+          - '61'
+          - '62'
+          - '63'
+          - '64'
+          - '65'
+          - '66'
+          - '67'
+          - '68'
+          - '69'
+          - '70'
+          - '71'
+          - '72'
+          - '73'
+          - '74'
+          - '75'
+          - '76'
+          - '77'
+          - '78'
+          - '79'
+          - '80'
+          - '81'
+          - '82'
+          - '83'
+          - '84'
+          - '85'
+          - '86'
+          - '87'
+          - '88'
+          - '89'
+          - '90'
+          - '91'
+          - '92'
+          - '93'
+          - '94'
+          - '95'
+          - '971'
+          - '972'
+          - '973'
+          - '974'
+          - '975'
+          - '976'
+          - '977'
+          - '978'
+          - '986'
+          - '987'
+          - '988'
+          - SPM
+          - WLF
+          type: string
+          minLength: 1
+        description: |-
+          Code du département de l'organisme (ex. `75`, `2A`, `971`).
+
+          * `01` - 01
+          * `02` - 02
+          * `03` - 03
+          * `04` - 04
+          * `05` - 05
+          * `06` - 06
+          * `07` - 07
+          * `08` - 08
+          * `09` - 09
+          * `10` - 10
+          * `11` - 11
+          * `12` - 12
+          * `13` - 13
+          * `14` - 14
+          * `15` - 15
+          * `16` - 16
+          * `17` - 17
+          * `18` - 18
+          * `19` - 19
+          * `21` - 21
+          * `22` - 22
+          * `23` - 23
+          * `24` - 24
+          * `25` - 25
+          * `26` - 26
+          * `27` - 27
+          * `28` - 28
+          * `29` - 29
+          * `2A` - 2A
+          * `2B` - 2B
+          * `30` - 30
+          * `31` - 31
+          * `32` - 32
+          * `33` - 33
+          * `34` - 34
+          * `35` - 35
+          * `36` - 36
+          * `37` - 37
+          * `38` - 38
+          * `39` - 39
+          * `40` - 40
+          * `41` - 41
+          * `42` - 42
+          * `43` - 43
+          * `44` - 44
+          * `45` - 45
+          * `46` - 46
+          * `47` - 47
+          * `48` - 48
+          * `49` - 49
+          * `50` - 50
+          * `51` - 51
+          * `52` - 52
+          * `53` - 53
+          * `54` - 54
+          * `55` - 55
+          * `56` - 56
+          * `57` - 57
+          * `58` - 58
+          * `59` - 59
+          * `60` - 60
+          * `61` - 61
+          * `62` - 62
+          * `63` - 63
+          * `64` - 64
+          * `65` - 65
+          * `66` - 66
+          * `67` - 67
+          * `68` - 68
+          * `69` - 69
+          * `70` - 70
+          * `71` - 71
+          * `72` - 72
+          * `73` - 73
+          * `74` - 74
+          * `75` - 75
+          * `76` - 76
+          * `77` - 77
+          * `78` - 78
+          * `79` - 79
+          * `80` - 80
+          * `81` - 81
+          * `82` - 82
+          * `83` - 83
+          * `84` - 84
+          * `85` - 85
+          * `86` - 86
+          * `87` - 87
+          * `88` - 88
+          * `89` - 89
+          * `90` - 90
+          * `91` - 91
+          * `92` - 92
+          * `93` - 93
+          * `94` - 94
+          * `95` - 95
+          * `971` - 971
+          * `972` - 972
+          * `973` - 973
+          * `974` - 974
+          * `975` - 975
+          * `976` - 976
+          * `977` - 977
+          * `978` - 978
+          * `986` - 986
+          * `987` - 987
+          * `988` - 988
+          * `SPM` - SPM
+          * `WLF` - WLF
+      - in: query
+        name: nom
+        schema:
+          type: string
+          maxLength: 255
+          minLength: 1
+        description: Recherche partielle sur le nom, insensible à la casse et aux
+          accents.
+      - name: page
+        required: false
+        in: query
+        description: Numéro de la page.
+        schema:
+          type: integer
+          default: 1
+          minimum: 1
+      - in: query
+        name: referentiel
+        schema:
+          enum:
+          - FINESS
+          - GIPCDG
+          - DILA
+          type: string
+          minLength: 1
+        description: |-
+          Référentiel source de l'organisme.
+
+          * `FINESS` - FINESS
+          * `GIPCDG` - GIPCDG
+          * `DILA` - DILA
+      - in: query
+        name: siret
+        schema:
+          type: string
+          maxLength: 14
+          minLength: 14
+        description: SIRET exact de l'organisme (14 caractères).
+      - name: taille
+        required: false
+        in: query
+        description: Nombre d'éléments par page.
+        schema:
+          type: integer
+          default: 100
+          minimum: 1
+          maximum: 1000
+      - in: query
+        name: versant
+        schema:
+          type: array
+          items:
+            enum:
+            - FPT
+            - FPE
+            - FPH
+            type: string
+            description: |-
+              * `FPT` - FPT
+              * `FPE` - FPE
+              * `FPH` - FPH
+        description: Valeurs séparées par une virgule (ex. `FPE,FPT`).
+      tags:
+      - organismes
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedOrganismePublicList'
+              examples:
+                Success:
+                  value:
+                    count: 1
+                    next: null
+                    previous: null
+                    results:
+                    - id: 3f1c2a4e-8b7d-4c9a-9e2f-1a2b3c4d5e6f
+                      nom: Centre hospitalier de Bastia
+                      versant: FPH
+                      siret: '26200017900016'
+                      parent_id: null
+                      referentiel: FINESS
+                      external_id: 2B0000020
+                      millesime: 2026-10
+                      localisation:
+                        zone_geographique: EU
+                        pays: FRA
+                        region: '94'
+                        departement: 2B
+                  summary: Liste des organismes
+                  description: Les organismes sont retournés paginés.
+          description: ''
+          headers:
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+              examples:
+                Error-InvalidFilter:
+                  value:
+                    error: 'versant : Valeurs de versant invalides : FPX. Valeurs
+                      autorisées : FPE, FPH, FPT.'
+                  summary: Filtre invalide
+                  description: Un des filtres passés en paramètre est incorrect.
+          description: ''
+          headers:
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenError'
+              examples:
+                Error-InvalidToken:
+                  value:
+                    detail: Le jeton fourni n'est pas valide.
+                    code: token_not_valid
+                    messages:
+                    - token_class: AccessToken
+                      token_type: access
+                      message: Token is invalid or expired
+                  summary: Token JWT invalide ou expiré
+                  description: Le token dans le header `Authorization` est invalide
+                    ou expiré.
+          description: ''
+          headers:
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DetailError'
+          description: ''
+          headers:
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
+        '500':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericError'
+              examples:
+                Error-UnexpectedServerError:
+                  value:
+                    error: Unexpected error
+                  summary: Erreur serveur inattendue
+                  description: Une erreur inattendue s'est produite côté serveur.
+          description: ''
+          headers:
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
+        '429':
+          description: Nombre maximal d'appels autorisés dépassé.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
+                    example: Request was throttled. Expected available in 42 seconds.
+          headers:
+            Retry-After:
+              $ref: '#/components/headers/Retry-After'
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
     put:
       operationId: v1_organismes_update
       description: Supprimer (soft-delete), entre 1 et 100 organismes à la fois, via
@@ -3871,6 +4704,86 @@ components:
         * `B` - B
         * `C` - C
         * `HORS_CATEGORIE` - HORS_CATEGORIE
+    Changelog:
+      type: object
+      properties:
+        nombre:
+          type: integer
+        entrees:
+          type: array
+          items:
+            $ref: '#/components/schemas/ChangelogEntry'
+      required:
+      - entrees
+      - nombre
+    ChangelogEntry:
+      type: object
+      properties:
+        id:
+          type: string
+        date:
+          type: string
+          format: date
+        type:
+          $ref: '#/components/schemas/TypeEnum'
+        libelle_type:
+          type: string
+          readOnly: true
+        routes:
+          type: array
+          items:
+            type: string
+        pr:
+          type: integer
+        pr_url:
+          type: string
+          format: uri
+        liens:
+          type: array
+          items:
+            type: string
+            format: uri
+        url:
+          type: string
+          readOnly: true
+        contenu:
+          type: string
+        sous_sections:
+          type: array
+          items:
+            $ref: '#/components/schemas/ChangelogSubsection'
+          readOnly: true
+      required:
+      - contenu
+      - date
+      - id
+      - libelle_type
+      - liens
+      - pr
+      - pr_url
+      - routes
+      - sous_sections
+      - type
+      - url
+    ChangelogError:
+      type: object
+      properties:
+        erreurs:
+          type: array
+          items:
+            type: string
+      required:
+      - erreurs
+    ChangelogSubsection:
+      type: object
+      properties:
+        titre:
+          type: string
+        contenu:
+          type: string
+      required:
+      - contenu
+      - titre
     ConcoursUpload400Error:
       oneOf:
       - $ref: '#/components/schemas/GenericError'
@@ -3911,37 +4824,75 @@ components:
       properties:
         salaire_titulaire:
           type: string
+          description: Rémunération proposée à un fonctionnaire, en texte libre (ex.
+            `Selon grille indiciaire`).
           maxLength: 100
         salaire_contractuel:
           type: string
+          description: Rémunération proposée à un contractuel, en texte libre (ex.
+            `2 500 € brut mensuel`).
           maxLength: 100
         debut_contrat:
           type: string
           format: date-time
           nullable: true
+          description: Date de début du contrat. Format ISO 8601 avec l'heure (ex.
+            `2026-11-05T00:00:00Z`) ; sans fuseau horaire, l'heure est lue en UTC.
         fin_contrat:
           type: string
           format: date-time
           nullable: true
+          description: Date de fin du contrat. Format ISO 8601 avec l'heure (ex. `2026-11-05T00:00:00Z`)
+            ; sans fuseau horaire, l'heure est lue en UTC.
         duree_contrat:
           type: string
+          description: Durée du contrat, en texte libre (ex. `3 ans`).
         temps_travail:
-          $ref: '#/components/schemas/TempsTravailEnum'
+          allOf:
+          - $ref: '#/components/schemas/TempsTravailEnum'
+          description: |-
+            Temps de travail : `TEMPS_PLEIN`, `TEMPS_PARTIEL` (temps incomplet) ou `NON_DEFINI`.
+
+            * `NON_DEFINI` - Non défini
+            * `TEMPS_PLEIN` - Temps plein
+            * `TEMPS_PARTIEL` - Temps incomplet
         ouvert_aux_militaires:
-          $ref: '#/components/schemas/OuvertAuxMilitairesEnum'
+          allOf:
+          - $ref: '#/components/schemas/OuvertAuxMilitairesEnum'
+          description: |-
+            `OUI` si le poste est ouvert aux militaires, `NON` sinon.
+
+            * `NON` - Non
+            * `OUI` - Oui
         lieu_de_travail:
-          $ref: '#/components/schemas/LieuDeTravailEnum'
+          allOf:
+          - $ref: '#/components/schemas/LieuDeTravailEnum'
+          description: |-
+            `TELETRAVAIL` si le télétravail est possible, `SUR_SITE` sinon, `NON_DEFINI` si l'information n'est pas connue.
+
+            * `NON_DEFINI` - Non défini
+            * `SUR_SITE` - Sur site
+            * `TELETRAVAIL` - Télétravail
         management:
-          $ref: '#/components/schemas/ManagementEnum'
-        complements:
-          type: string
-          maxLength: 1500
+          allOf:
+          - $ref: '#/components/schemas/ManagementEnum'
+          description: |-
+            `AVEC` si le poste comporte de l'encadrement, `SANS` sinon.
+
+            * `SANS` - Sans management
+            * `AVEC` - Avec management
         bases_legales:
           type: string
+          description: Fondement juridique du recrutement (articles de loi, décrets…).
+            Markdown (CommonMark), syntaxe comprise dans la limite. Les balises HTML
+            et les liens autres que http, https et mailto sont refusés. Voir le [bloc
+            « Description » du guide](/pages/guide_api#bloc-description-description-obligatoire).
           maxLength: 1500
         note_ouverture_poste_url:
           type: string
           format: uri
+          description: Lien vers l'avis de vacance publié au Journal officiel, en
+            `https` sur `legifrance.gouv.fr` ou `www.legifrance.gouv.fr` (ex. `https://www.legifrance.gouv.fr/jorf/id/JORFTEXT…`).
       required:
       - lieu_de_travail
       - temps_travail
@@ -3995,25 +4946,69 @@ components:
           maximum: 8
           minimum: 1
         experience:
-          $ref: '#/components/schemas/ExperienceEnum'
+          allOf:
+          - $ref: '#/components/schemas/ExperienceEnum'
+          description: |-
+            Niveau d'expérience attendu.
+
+            * `DEBUTANT` - Débutant
+            * `CONFIRME` - Confirmé
+            * `EXPERT` - Expert
         specialisations:
           type: array
           items:
             type: string
+          description: Spécialisations attendues, en libellés texte (ex. `Droit public`).
         diplome:
           type: string
+          description: |-
+            Diplôme exigé, en texte libre. Indiquez de préférence l'un des libellés du référentiel des diplômes d'État, à l'identique. Liste indicative, toute autre valeur reste acceptée :
+
+            - `Diplôme d'Etat d'infirmier`
+            - `Diplôme d'Etat d'aide-soignant`
+            - `Diplôme d'Etat d'éducateur spécialisé`
+            - `Diplôme d'Etat français d'assistant de service social`
+            - `Diplôme d'Etat de masseur-kinésithérapeute`
+            - `Diplôme d'Etat d'aide médico psychologique`
+            - `Diplôme d'Etat d'ergothérapeute`
+            - `Diplôme d'Etat de moniteur éducateur`
+            - `Diplôme d'Etat d'infirmier en pratique avancée`
+            - `Diplôme d'Etat de psychomotricien`
+            - `Diplôme d'Etat d'auxiliaire de puériculture`
+            - `Diplôme d'Etat de sage-femme`
+            - `Diplôme d'Etat d'infirmier de bloc opératoire`
+            - `Diplôme d'Etat de la jeunesse, de l'éducation populaire et du sport`
+            - `Diplôme d'Etat d'éducateur de jeunes enfants`
+            - `Diplôme d'Etat de manipulateur d'électroradiologie médicale`
+            - `Diplôme d'Etat d'infirmier anesthésiste`
+            - `Diplôme d'Etat d'ambulancier`
+            - `Diplôme d'Etat de conseiller en économie sociale familiale`
+            - `Diplôme d'Etat de puéricultrice`
+            - `Diplôme d'Etat de technicien de laboratoire médical`
+            - `Diplôme d'Etat d'éducateur technique spécialisé`
+            - `Diplôme d'Etat de pédicure-podologue`
+            - `Diplôme d'Etat d'audioprothésiste`
+            - `Diplôme d'Etat français de diététicien`
+            - `Diplôme d'Etat d'audio-protésiste`
         documents_requis:
           type: array
           items:
-            type: string
+            $ref: '#/components/schemas/DocumentsRequisEnum'
+          description: 'Documents à transmettre pour candidater, sans doublon : `CV`,
+            `LETTRE_MOTIVATION`, `PORTFOLIO`.'
         competences_requises:
-          type: array
-          items:
-            type: string
+          type: string
+          nullable: true
+          description: Compétences attendues du candidat. Peut être vide ou `null`.
+            Markdown (CommonMark), syntaxe comprise dans la limite. Les balises HTML
+            et les liens autres que http, https et mailto sont refusés. Voir le [bloc
+            « Description » du guide](/pages/guide_api#bloc-description-description-obligatoire).
+          maxLength: 2000
         langues:
           type: array
           items:
             $ref: '#/components/schemas/LanguageInput'
+          description: Langues attendues, chacune avec son niveau.
     DepartementEnum:
       enum:
       - '01'
@@ -4023,8 +5018,8 @@ components:
       - '05'
       - '06'
       - '07'
-      - 08
-      - 09
+      - '08'
+      - '09'
       - '10'
       - '11'
       - '12'
@@ -4118,6 +5113,8 @@ components:
       - '974'
       - '975'
       - '976'
+      - '977'
+      - '978'
       - '986'
       - '987'
       - '988'
@@ -4227,6 +5224,8 @@ components:
         * `974` - 974
         * `975` - 975
         * `976` - 976
+        * `977` - 977
+        * `978` - 978
         * `986` - 986
         * `987` - 987
         * `988` - 988
@@ -4237,27 +5236,68 @@ components:
       properties:
         mission:
           type: string
+          description: Missions du poste. Obligatoire, peut être vide. Markdown (CommonMark),
+            syntaxe comprise dans la limite. Les balises HTML et les liens autres
+            que http, https et mailto sont refusés. Voir le [bloc « Description »
+            du guide](/pages/guide_api#bloc-description-description-obligatoire).
           maxLength: 10000
         profil:
           type: string
+          description: Profil recherché. Obligatoire, peut être vide. Markdown (CommonMark),
+            syntaxe comprise dans la limite. Les balises HTML et les liens autres
+            que http, https et mailto sont refusés. Voir le [bloc « Description »
+            du guide](/pages/guide_api#bloc-description-description-obligatoire).
           maxLength: 10000
         employeur:
           type: string
+          description: Présentation de l'employeur. Obligatoire, peut être vide. Markdown
+            (CommonMark), syntaxe comprise dans la limite. Les balises HTML et les
+            liens autres que http, https et mailto sont refusés. Voir le [bloc « Description
+            » du guide](/pages/guide_api#bloc-description-description-obligatoire).
           maxLength: 3000
         complements:
           type: string
+          description: Informations complémentaires. Obligatoire, peut être vide.
+            Markdown (CommonMark), syntaxe comprise dans la limite. Les balises HTML
+            et les liens autres que http, https et mailto sont refusés. Voir le [bloc
+            « Description » du guide](/pages/guide_api#bloc-description-description-obligatoire).
           maxLength: 5000
         conditions_exercice:
           type: string
+          description: Conditions particulières d'exercice. Facultatif. Markdown (CommonMark),
+            syntaxe comprise dans la limite. Les balises HTML et les liens autres
+            que http, https et mailto sont refusés. Voir le [bloc « Description »
+            du guide](/pages/guide_api#bloc-description-description-obligatoire).
           maxLength: 10000
         descriptif_service:
           type: string
+          description: Description du service qui recrute. Facultatif. Markdown (CommonMark),
+            syntaxe comprise dans la limite. Les balises HTML et les liens autres
+            que http, https et mailto sont refusés. Voir le [bloc « Description »
+            du guide](/pages/guide_api#bloc-description-description-obligatoire).
           maxLength: 10000
       required:
       - complements
       - employeur
       - mission
       - profil
+    DetailError:
+      type: object
+      properties:
+        detail:
+          type: string
+      required:
+      - detail
+    DocumentsRequisEnum:
+      enum:
+      - CV
+      - LETTRE_MOTIVATION
+      - PORTFOLIO
+      type: string
+      description: |-
+        * `CV` - CV
+        * `LETTRE_MOTIVATION` - Lettre de motivation
+        * `PORTFOLIO` - Portfolio
     ExperienceEnum:
       enum:
       - DEBUTANT
@@ -4268,6 +5308,67 @@ components:
         * `DEBUTANT` - Débutant
         * `CONFIRME` - Confirmé
         * `EXPERT` - Expert
+    FakeTsApplicantCriteria:
+      type: object
+      properties:
+        date1:
+          type: string
+          nullable: true
+        shortText1:
+          type: string
+          nullable: true
+        shortText2:
+          type: string
+          nullable: true
+        shortText3:
+          type: string
+          nullable: true
+        longText1:
+          type: string
+          nullable: true
+        longText2:
+          type: string
+          nullable: true
+        longText3:
+          type: string
+          nullable: true
+        longText1Formatted:
+          type: string
+          nullable: true
+        longText2Formatted:
+          type: string
+          nullable: true
+        longText3Formatted:
+          type: string
+          nullable: true
+        customCodeTable1:
+          allOf:
+          - $ref: '#/components/schemas/FakeTsCodedObject'
+          nullable: true
+          description: Documents à transmettre. `null` si l'offre n'en demande aucun
+            ou si la combinaison n'existe pas dans le référentiel Talentsoft.
+        customCodeTable2:
+          allOf:
+          - $ref: '#/components/schemas/FakeTsCodedObject'
+          nullable: true
+        customCodeTable3:
+          allOf:
+          - $ref: '#/components/schemas/FakeTsCodedObject'
+          nullable: true
+      required:
+      - customCodeTable1
+      - customCodeTable2
+      - customCodeTable3
+      - date1
+      - longText1
+      - longText1Formatted
+      - longText2
+      - longText2Formatted
+      - longText3
+      - longText3Formatted
+      - shortText1
+      - shortText2
+      - shortText3
     FakeTsCodedObject:
       type: object
       properties:
@@ -4281,7 +5382,9 @@ components:
         active:
           type: boolean
         parentCode:
-          type: integer
+          oneOf:
+          - type: integer
+          - type: string
           nullable: true
         type:
           type: string
@@ -4302,28 +5405,37 @@ components:
       type: object
       properties:
         offer:
-          $ref: '#/components/schemas/FakeTsDynamicField'
+          $ref: '#/components/schemas/FakeTsOfferFields'
         description:
-          $ref: '#/components/schemas/FakeTsDynamicField'
+          $ref: '#/components/schemas/FakeTsDescriptionFields'
+        applicantCriteria:
+          $ref: '#/components/schemas/FakeTsApplicantCriteria'
         location:
           $ref: '#/components/schemas/FakeTsDynamicField'
         offerCustomBlock1:
-          $ref: '#/components/schemas/FakeTsDynamicField'
+          $ref: '#/components/schemas/FakeTsOfferCustomBlock1'
         origin:
           $ref: '#/components/schemas/FakeTsDynamicField'
       required:
+      - applicantCriteria
       - description
       - location
       - offer
       - offerCustomBlock1
       - origin
-    FakeTsDynamicField:
+    FakeTsDescriptionFields:
       type: object
       properties:
         date1:
           type: string
           nullable: true
         shortText1:
+          type: string
+          nullable: true
+        shortText2:
+          type: string
+          nullable: true
+        shortText3:
           type: string
           nullable: true
         longText1:
@@ -4335,12 +5447,104 @@ components:
         longText3:
           type: string
           nullable: true
+        longText1Formatted:
+          type: string
+          nullable: true
+        longText2Formatted:
+          type: string
+          nullable: true
+        longText3Formatted:
+          type: string
+          nullable: true
+        customCodeTable1:
+          allOf:
+          - $ref: '#/components/schemas/FakeTsCodedObject'
+          nullable: true
+          description: 'Catégorie principale : `clientCode` = première valeur de `categories`,
+            `label` = son libellé.'
+        customCodeTable2:
+          allOf:
+          - $ref: '#/components/schemas/FakeTsCodedObject'
+          nullable: true
+        customCodeTable3:
+          allOf:
+          - $ref: '#/components/schemas/FakeTsCodedObject'
+          nullable: true
+          description: 'Temps de travail : `clientCode` = valeur de `conditions.temps_travail`,
+            `label` = son libellé. `null` si `NON_DEFINI`.'
       required:
+      - customCodeTable1
+      - customCodeTable2
+      - customCodeTable3
       - date1
       - longText1
+      - longText1Formatted
       - longText2
+      - longText2Formatted
       - longText3
+      - longText3Formatted
       - shortText1
+      - shortText2
+      - shortText3
+    FakeTsDynamicField:
+      type: object
+      properties:
+        date1:
+          type: string
+          nullable: true
+        shortText1:
+          type: string
+          nullable: true
+        shortText2:
+          type: string
+          nullable: true
+        shortText3:
+          type: string
+          nullable: true
+        longText1:
+          type: string
+          nullable: true
+        longText2:
+          type: string
+          nullable: true
+        longText3:
+          type: string
+          nullable: true
+        longText1Formatted:
+          type: string
+          nullable: true
+        longText2Formatted:
+          type: string
+          nullable: true
+        longText3Formatted:
+          type: string
+          nullable: true
+        customCodeTable1:
+          allOf:
+          - $ref: '#/components/schemas/FakeTsCodedObject'
+          nullable: true
+        customCodeTable2:
+          allOf:
+          - $ref: '#/components/schemas/FakeTsCodedObject'
+          nullable: true
+        customCodeTable3:
+          allOf:
+          - $ref: '#/components/schemas/FakeTsCodedObject'
+          nullable: true
+      required:
+      - customCodeTable1
+      - customCodeTable2
+      - customCodeTable3
+      - date1
+      - longText1
+      - longText1Formatted
+      - longText2
+      - longText2Formatted
+      - longText3
+      - longText3Formatted
+      - shortText1
+      - shortText2
+      - shortText3
     FakeTsGeolocation:
       type: object
       properties:
@@ -4363,6 +5567,73 @@ components:
       required:
       - languageLevel
       - languageName
+    FakeTsOfferCustomBlock1:
+      type: object
+      properties:
+        date1:
+          type: string
+          nullable: true
+        shortText1:
+          type: string
+          nullable: true
+        shortText2:
+          type: string
+          nullable: true
+        shortText3:
+          type: string
+          nullable: true
+        longText1:
+          type: string
+          nullable: true
+        longText2:
+          type: string
+          nullable: true
+        longText3:
+          type: string
+          nullable: true
+        longText1Formatted:
+          type: string
+          nullable: true
+        longText2Formatted:
+          type: string
+          nullable: true
+        longText3Formatted:
+          type: string
+          nullable: true
+        customCodeTable1:
+          allOf:
+          - $ref: '#/components/schemas/FakeTsCodedObject'
+          nullable: true
+          description: 'Management : `clientCode` = valeur de `conditions.management`,
+            `label` = son libellé.'
+        customCodeTable2:
+          allOf:
+          - $ref: '#/components/schemas/FakeTsCodedObject'
+          nullable: true
+          description: 'Lieu de travail : `clientCode` = valeur de `conditions.lieu_de_travail`,
+            `label` = son libellé. `null` si `NON_DEFINI`.'
+        customCodeTable3:
+          allOf:
+          - $ref: '#/components/schemas/FakeTsCodedObject'
+          nullable: true
+          description: 'Diplôme exigé, type « Diplômes d''Etat » : `label` = `criteres.diplome`,
+            `clientCode` = son code Talentsoft s''il est l''un des 26 diplômes d''État
+            de ce référentiel, sinon chaîne vide. `null` si `criteres.diplome` est
+            vide.'
+      required:
+      - customCodeTable1
+      - customCodeTable2
+      - customCodeTable3
+      - date1
+      - longText1
+      - longText1Formatted
+      - longText2
+      - longText2Formatted
+      - longText3
+      - longText3Formatted
+      - shortText1
+      - shortText2
+      - shortText3
     FakeTsOfferDetail:
       type: object
       properties:
@@ -4410,8 +5681,11 @@ components:
           type: string
           nullable: true
         salaryRange:
-          type: string
+          allOf:
+          - $ref: '#/components/schemas/FakeTsCodedObject'
           nullable: true
+          description: 'Versant : `clientCode` = valeur de `identification.versant`,
+            `label` = son libellé.'
         geographicalLocation:
           type: array
           items:
@@ -4493,6 +5767,8 @@ components:
           allOf:
           - $ref: '#/components/schemas/FakeTsCodedObject'
           nullable: true
+          description: 'Toujours `null`, comme dans Talentsoft : le diplôme d''État
+            est dans `customFields.offerCustomBlock1.customCodeTable3`.'
         experienceLevel:
           allOf:
           - $ref: '#/components/schemas/FakeTsCodedObject'
@@ -4568,6 +5844,67 @@ components:
       - title
       - urlRedirectionApplicant
       - urlRedirectionEmployee
+    FakeTsOfferFields:
+      type: object
+      properties:
+        date1:
+          type: string
+          nullable: true
+        shortText1:
+          type: string
+          nullable: true
+        shortText2:
+          type: string
+          nullable: true
+        shortText3:
+          type: string
+          nullable: true
+        longText1:
+          type: string
+          nullable: true
+        longText2:
+          type: string
+          nullable: true
+        longText3:
+          type: string
+          nullable: true
+        longText1Formatted:
+          type: string
+          nullable: true
+        longText2Formatted:
+          type: string
+          nullable: true
+        longText3Formatted:
+          type: string
+          nullable: true
+        customCodeTable1:
+          allOf:
+          - $ref: '#/components/schemas/FakeTsCodedObject'
+          nullable: true
+        customCodeTable2:
+          allOf:
+          - $ref: '#/components/schemas/FakeTsCodedObject'
+          nullable: true
+          description: 'Type de contrat : `clientCode` = valeur de `type_contrat`,
+            `label` = son libellé.'
+        customCodeTable3:
+          allOf:
+          - $ref: '#/components/schemas/FakeTsCodedObject'
+          nullable: true
+      required:
+      - customCodeTable1
+      - customCodeTable2
+      - customCodeTable3
+      - date1
+      - longText1
+      - longText1Formatted
+      - longText2
+      - longText2Formatted
+      - longText3
+      - longText3Formatted
+      - shortText1
+      - shortText2
+      - shortText3
     FakeTsOfferSummary:
       type: object
       properties:
@@ -4615,8 +5952,11 @@ components:
           type: string
           nullable: true
         salaryRange:
-          type: string
+          allOf:
+          - $ref: '#/components/schemas/FakeTsCodedObject'
           nullable: true
+          description: 'Versant : `clientCode` = valeur de `identification.versant`,
+            `label` = son libellé.'
         geographicalLocation:
           type: array
           items:
@@ -4752,20 +6092,6 @@ components:
         personalDataConsent:
           type: string
           nullable: true
-      required:
-      - description
-      - entityCode
-      - generalConditions
-      - geolocation
-      - logoUrl
-      - maxDelayForConsent
-      - name
-      - parentName
-      - personalDataConsent
-      - phoneNumber
-      - postCode
-      - retentionPeriod
-      - url
     FakeTsTalentsoftOrganisme:
       type: object
       properties:
@@ -4839,7 +6165,14 @@ components:
             elle crée toujours une nouvelle offre. Une référence au format CSP-AAAA-NNNNNN
             n''est acceptée que si elle désigne une offre existante de la source.'
         versant:
-          $ref: '#/components/schemas/VersantEnum'
+          allOf:
+          - $ref: '#/components/schemas/VersantEnum'
+          description: |-
+            Versant de la fonction publique : `FPE` (État), `FPT` (territoriale), `FPH` (hospitalière).
+
+            * `FPT` - FPT
+            * `FPE` - FPE
+            * `FPH` - FPH
       required:
       - reference
       - versant
@@ -4848,9 +6181,21 @@ components:
       properties:
         iso_code:
           type: string
+          description: Code de la langue sur 2 lettres, ISO 639-1 (ex. `EN`, `DE`),
+            conservé tel quel.
           maxLength: 2
         niveau:
-          $ref: '#/components/schemas/NiveauEnum'
+          allOf:
+          - $ref: '#/components/schemas/NiveauEnum'
+          description: |-
+            Niveau attendu selon le cadre européen commun de référence pour les langues (CECRL), de `A1` à `C2`.
+
+            * `A1` - A1
+            * `A2` - A2
+            * `B1` - B1
+            * `B2` - B2
+            * `C1` - C1
+            * `C2` - C2
       required:
       - iso_code
       - niveau
@@ -4864,6 +6209,13 @@ components:
         * `NON_DEFINI` - Non défini
         * `SUR_SITE` - Sur site
         * `TELETRAVAIL` - Télétravail
+    ListMetiersNotFound:
+      type: object
+      properties:
+        detail:
+          type: string
+      required:
+      - detail
     ListMetiersResponse:
       type: object
       properties:
@@ -4887,17 +6239,26 @@ components:
           items:
             type: string
           nullable: true
-        offer_family_code:
+        code_emploi_csp:
           type: string
-          nullable: true
+          description: Code CSP du RMFP, à renseigner dans `profession.metier` de
+            l'API d'ingestion d'offres. Plusieurs métiers peuvent partager le même
+            code. Toujours renseigné.
       required:
       - activites
+      - code_emploi_csp
       - conditions_particulieres
       - description
       - domaine_fonctionnel_code
       - libelle
-      - offer_family_code
       - versants
+    ListOffersNotFound:
+      type: object
+      properties:
+        detail:
+          type: string
+      required:
+      - detail
     ListOffersResponse:
       type: object
       properties:
@@ -4913,9 +6274,10 @@ components:
         nature_offre:
           type: string
           nullable: true
-        categorie:
-          type: string
-          nullable: true
+        categories:
+          type: array
+          items:
+            type: string
         debut_publication:
           type: string
           format: date-time
@@ -4927,7 +6289,7 @@ components:
           format: date-time
           nullable: true
       required:
-      - categorie
+      - categories
       - date_archivage
       - debut_publication
       - nature_offre
@@ -4946,13 +6308,15 @@ components:
           maxLength: 3
           minLength: 3
         region:
+          nullable: true
           oneOf:
           - $ref: '#/components/schemas/RegionEnum'
-          - $ref: '#/components/schemas/BlankEnum'
+          - $ref: '#/components/schemas/NullEnum'
         departement:
+          nullable: true
           oneOf:
           - $ref: '#/components/schemas/DepartementEnum'
-          - $ref: '#/components/schemas/BlankEnum'
+          - $ref: '#/components/schemas/NullEnum'
         localisation_label:
           type: string
           maxLength: 500
@@ -4980,21 +6344,179 @@ components:
       type: object
       properties:
         zone_geographique:
-          $ref: '#/components/schemas/ZoneGeographiqueEnum'
+          allOf:
+          - $ref: '#/components/schemas/ZoneGeographiqueEnum'
+          description: |-
+            Zone géographique du lieu : `AF` (Afrique), `EU` (Europe), `AS` (Asie), `AM` (Amérique), `OC` (Océanie), `AN` (Antarctique), `MO` (Moyen-Orient et Afrique du Nord).
+
+            * `AF` - AFRIQUE
+            * `EU` - EUROPE
+            * `AS` - ASIE
+            * `AM` - AMERIQUE
+            * `OC` - OCEANIE
+            * `AN` - ANTARTIQUE
+            * `MO` - MOYEN_ORIENT_AFRIQUE_DU_NORD
         pays:
           type: string
+          description: 'Code pays ISO 3166-1 alpha-3, en majuscules (ex. `FRA`). Pour
+            `FRA`, `region` et `departement` sont obligatoires ; pour un autre pays,
+            ils valent `null`. L''outre-mer est en `FRA`, avec son département : région
+            `DOM` pour les départements d''outre-mer (ex. `971` pour la Guadeloupe),
+            `TOM` pour les collectivités d''outre-mer (ex. `988` pour la Nouvelle-Calédonie).
+            Une offre dont le `pays` est le code ISO de l''un de ces territoires est
+            rejetée : `GLP`, `MTQ`, `GUF`, `REU`, `MYT`, `SPM`, `BLM`, `MAF`, `WLF`,
+            `PYF`, `NCL`. `DOM` désigne la République dominicaine, et `ATF` (Terres
+            australes et antarctiques françaises) reste accepté comme pays.'
           maxLength: 3
           minLength: 3
         region:
+          nullable: true
+          description: |-
+            Code INSEE de la région, `DOM` ou `TOM`. Le département doit appartenir à cette région : `DOM` avec un département d'outre-mer, `TOM` avec une collectivité d'outre-mer. `null` hors de France.
+
+            * `01` - 01
+            * `02` - 02
+            * `03` - 03
+            * `04` - 04
+            * `06` - 06
+            * `11` - 11
+            * `24` - 24
+            * `27` - 27
+            * `28` - 28
+            * `32` - 32
+            * `44` - 44
+            * `52` - 52
+            * `53` - 53
+            * `75` - 75
+            * `76` - 76
+            * `84` - 84
+            * `93` - 93
+            * `94` - 94
+            * `DOM` - DOM
+            * `TOM` - TOM
           oneOf:
           - $ref: '#/components/schemas/RegionEnum'
-          - $ref: '#/components/schemas/BlankEnum'
+          - $ref: '#/components/schemas/NullEnum'
         departement:
+          nullable: true
+          description: |-
+            Code officiel du département (`01` à `95`, `2A`, `2B`, `971` à `978`, `986` à `988`, `SPM`, `WLF`), qui doit appartenir à `region`. `null` hors de France.
+
+            * `01` - 01
+            * `02` - 02
+            * `03` - 03
+            * `04` - 04
+            * `05` - 05
+            * `06` - 06
+            * `07` - 07
+            * `08` - 08
+            * `09` - 09
+            * `10` - 10
+            * `11` - 11
+            * `12` - 12
+            * `13` - 13
+            * `14` - 14
+            * `15` - 15
+            * `16` - 16
+            * `17` - 17
+            * `18` - 18
+            * `19` - 19
+            * `21` - 21
+            * `22` - 22
+            * `23` - 23
+            * `24` - 24
+            * `25` - 25
+            * `26` - 26
+            * `27` - 27
+            * `28` - 28
+            * `29` - 29
+            * `2A` - 2A
+            * `2B` - 2B
+            * `30` - 30
+            * `31` - 31
+            * `32` - 32
+            * `33` - 33
+            * `34` - 34
+            * `35` - 35
+            * `36` - 36
+            * `37` - 37
+            * `38` - 38
+            * `39` - 39
+            * `40` - 40
+            * `41` - 41
+            * `42` - 42
+            * `43` - 43
+            * `44` - 44
+            * `45` - 45
+            * `46` - 46
+            * `47` - 47
+            * `48` - 48
+            * `49` - 49
+            * `50` - 50
+            * `51` - 51
+            * `52` - 52
+            * `53` - 53
+            * `54` - 54
+            * `55` - 55
+            * `56` - 56
+            * `57` - 57
+            * `58` - 58
+            * `59` - 59
+            * `60` - 60
+            * `61` - 61
+            * `62` - 62
+            * `63` - 63
+            * `64` - 64
+            * `65` - 65
+            * `66` - 66
+            * `67` - 67
+            * `68` - 68
+            * `69` - 69
+            * `70` - 70
+            * `71` - 71
+            * `72` - 72
+            * `73` - 73
+            * `74` - 74
+            * `75` - 75
+            * `76` - 76
+            * `77` - 77
+            * `78` - 78
+            * `79` - 79
+            * `80` - 80
+            * `81` - 81
+            * `82` - 82
+            * `83` - 83
+            * `84` - 84
+            * `85` - 85
+            * `86` - 86
+            * `87` - 87
+            * `88` - 88
+            * `89` - 89
+            * `90` - 90
+            * `91` - 91
+            * `92` - 92
+            * `93` - 93
+            * `94` - 94
+            * `95` - 95
+            * `971` - 971
+            * `972` - 972
+            * `973` - 973
+            * `974` - 974
+            * `975` - 975
+            * `976` - 976
+            * `977` - 977
+            * `978` - 978
+            * `986` - 986
+            * `987` - 987
+            * `988` - 988
+            * `SPM` - SPM
+            * `WLF` - WLF
           oneOf:
           - $ref: '#/components/schemas/DepartementEnum'
-          - $ref: '#/components/schemas/BlankEnum'
+          - $ref: '#/components/schemas/NullEnum'
         localisation_label:
           type: string
+          description: Libellé du lieu, affiché aux candidats (ex. ville et adresse).
           maxLength: 500
         latitude:
           type: number
@@ -5002,17 +6524,17 @@ components:
           maximum: 90
           minimum: -90
           nullable: true
+          description: Latitude du lieu, en degrés décimaux (WGS 84). Facultative.
         longitude:
           type: number
           format: double
           maximum: 180
           minimum: -180
           nullable: true
+          description: Longitude du lieu, en degrés décimaux (WGS 84). Facultative.
       required:
       - departement
-      - latitude
       - localisation_label
-      - longitude
       - pays
       - region
       - zone_geographique
@@ -5099,9 +6621,10 @@ components:
         versant:
           type: string
           nullable: true
-        categorie:
-          type: string
-          nullable: true
+        categories:
+          type: array
+          items:
+            type: string
         nature_offre:
           type: string
           nullable: true
@@ -5122,9 +6645,9 @@ components:
           format: email
           nullable: true
         localisation:
-          allOf:
-          - $ref: '#/components/schemas/Localisation'
-          nullable: true
+          type: array
+          items:
+            $ref: '#/components/schemas/Localisation'
           readOnly: true
         criteres:
           type: object
@@ -5143,6 +6666,10 @@ components:
         debut_publication:
           type: string
           format: date-time
+        fin_publication:
+          type: string
+          format: date-time
+          nullable: true
         debut_contrat:
           type: string
           format: date-time
@@ -5161,7 +6688,7 @@ components:
           format: date-time
           nullable: true
       required:
-      - categorie
+      - categories
       - complements
       - conditions
       - conditions_exercice
@@ -5175,6 +6702,7 @@ components:
       - email_candidature
       - employeur
       - fin_candidature
+      - fin_publication
       - localisation
       - mission
       - nature_offre
@@ -5196,73 +6724,131 @@ components:
           type: string
       required:
       - detail
+    OffersBySourceNotFound:
+      type: object
+      properties:
+        detail:
+          type: string
+      required:
+      - detail
     OffersInput:
       type: object
       properties:
         identification:
-          $ref: '#/components/schemas/IdentityInput'
+          allOf:
+          - $ref: '#/components/schemas/IdentityInput'
+          description: 'Identification de l''offre : le couple `reference` + source
+            désigne l''offre à mettre à jour ; une référence inconnue crée l''offre.'
         titre:
           type: string
+          description: Intitulé de l'offre, affiché aux candidats.
           maxLength: 150
         titre_long:
           type: string
+          nullable: true
+          description: 'Intitulé long, à ne renseigner que s''il diffère de `titre`
+            : une offre dont le `titre_long` est identique à `titre` est rejetée.'
           maxLength: 1500
         organisation:
-          $ref: '#/components/schemas/OrganismeInput'
+          allOf:
+          - $ref: '#/components/schemas/OrganismeInput'
+          description: Organisme qui recrute.
         url_offre:
           type: string
           format: uri
           nullable: true
+          description: Lien vers l'offre sur le site de la source. Obligatoire, peut
+            être `null`.
         url_candidature:
           type: string
           format: uri
           nullable: true
+          description: Lien pour candidater. Renseigner soit `url_candidature`, soit
+            `email_candidature`, mais pas les deux.
         email_candidature:
           type: string
           format: email
           nullable: true
+          description: Adresse e-mail à laquelle candidater. Renseigner soit `url_candidature`,
+            soit `email_candidature`, mais pas les deux.
         profession:
-          $ref: '#/components/schemas/ProfessionInput'
+          allOf:
+          - $ref: '#/components/schemas/ProfessionInput'
+          description: Métier de l'offre, dans le référentiel des métiers.
         categories:
           type: array
           items:
-            oneOf:
-            - $ref: '#/components/schemas/CategoriesEnum'
-            - $ref: '#/components/schemas/BlankEnum'
+            $ref: '#/components/schemas/CategoriesEnum'
+          description: 'Catégories hiérarchiques de l''offre, au moins une, enregistrées
+            dans l''ordre d''envoi (doublons retirés) : `APLUS` (Catégorie A+), `A`
+            (Catégorie A (cadre)), `B` (Catégorie B (profession intermédiaire)), `C`
+            (Catégorie C (employé)), `HORS_CATEGORIE` (Hors catégorie).'
         nature_offre:
-          $ref: '#/components/schemas/NatureOffreEnum'
+          allOf:
+          - $ref: '#/components/schemas/NatureOffreEnum'
+          description: |-
+            Public visé par l'offre : `TITULAIRE_CONTRACTUEL` (ouvert aux fonctionnaires et aux contractuels), `CONTRACTUEL` (ouvert uniquement aux contractuels), `TERRITORIAL` (ouvert aux fonctionnaires et lauréats d'un concours territorial).
+
+            * `TITULAIRE_CONTRACTUEL` - TITULAIRE_CONTRACTUEL
+            * `CONTRACTUEL` - CONTRACTUEL
+            * `TERRITORIAL` - TERRITORIAL
         type_contrat:
           nullable: true
+          description: |-
+            Type de contrat proposé : `CDD` (CDD), `CDI` (CDI), `CDD_CDI` (CDD ou CDI), `CONTRAT_PROJET` (Contrat de projet), `VACATION` (Payés à l'acte). Vide ou `null` si l'offre n'est pas soumise à contractualisation.
+
+            * `CDD` - CDD
+            * `CDI` - CDI
+            * `CDD_CDI` - CDD ou CDI
+            * `CONTRAT_PROJET` - Contrat de projet
+            * `VACATION` - Payés à l'acte
           oneOf:
           - $ref: '#/components/schemas/TypeContratEnum'
           - $ref: '#/components/schemas/BlankEnum'
           - $ref: '#/components/schemas/NullEnum'
         vacance_poste:
+          description: |-
+            `OUI` si le poste est vacant, `NON` s'il est susceptible d'être vacant. Peut être vide.
+
+            * `OUI` - Poste vacant
+            * `NON` - Poste susceptible d'être vacant
           oneOf:
           - $ref: '#/components/schemas/VacancePosteEnum'
           - $ref: '#/components/schemas/BlankEnum'
         description:
-          $ref: '#/components/schemas/DescriptionInput'
+          allOf:
+          - $ref: '#/components/schemas/DescriptionInput'
+          description: Textes de l'offre, en Markdown.
         localisation:
           type: array
           items:
             $ref: '#/components/schemas/LocalisationInput'
           nullable: true
+          description: 'Lieux de l''offre, 50 au plus, conservés dans l''ordre d''envoi
+            : le premier est le lieu principal. Un même lieu (`pays`, `region`, `departement`
+            et `localisation_label`) ne peut figurer qu''une fois. Peut être vide
+            ou `null`. Voir le [bloc « Localisation » du guide](/pages/guide_api#bloc-localisation-localisation-liste-peut-etre-vide).'
         criteres:
           allOf:
           - $ref: '#/components/schemas/CriteriaInput'
           nullable: true
+          description: Critères attendus des candidats. Peut être `null`.
         conditions:
           allOf:
           - $ref: '#/components/schemas/ConditionsInput'
           nullable: true
+          description: Conditions d'emploi du poste. Peut être `null`.
         contacts:
           type: array
           items:
             $ref: '#/components/schemas/ContactsInput'
           nullable: true
+          description: Personnes à contacter, au plus une par rôle, renvoyées dans
+            l'ordre `principal` puis `autre`. Peut être vide ou `null`.
         publication:
-          $ref: '#/components/schemas/PublicationInput'
+          allOf:
+          - $ref: '#/components/schemas/PublicationInput'
+          description: Dates de publication et de candidature de l'offre.
       required:
       - categories
       - conditions
@@ -5276,7 +6862,6 @@ components:
       - profession
       - publication
       - titre
-      - titre_long
       - url_offre
       - vacance_poste
     OrganismeDeleteInput:
@@ -5296,13 +6881,18 @@ components:
       properties:
         nom:
           type: string
+          description: Nom de l'organisme. Reprendre de préférence le `nom` renvoyé
+            par `GET /api/v1/organismes`.
         siret:
           type: string
+          description: SIRET de l'organisme, à retrouver avec `GET /api/v1/organismes`
+            (filtres `nom` et `siret`).
           maxLength: 14
         talentsoft_organisme_entity_code:
           type: string
           nullable: true
-          description: Ne doit être renseigné que par le service ingestion de CSPLab.
+          description: 'Ne doit être renseigné que par le service ingestion de CSPLab
+            : refusé pour une authentification par JWT.'
           maxLength: 50
       required:
       - nom
@@ -5314,16 +6904,19 @@ components:
           $ref: '#/components/schemas/ZoneGeographiqueEnum'
         pays:
           type: string
+          description: Code pays ISO 3166-1 alpha-3, en majuscules (ex. `FRA`).
           maxLength: 3
           minLength: 3
         region:
+          nullable: true
           oneOf:
           - $ref: '#/components/schemas/RegionEnum'
-          - $ref: '#/components/schemas/BlankEnum'
+          - $ref: '#/components/schemas/NullEnum'
         departement:
+          nullable: true
           oneOf:
           - $ref: '#/components/schemas/DepartementEnum'
-          - $ref: '#/components/schemas/BlankEnum'
+          - $ref: '#/components/schemas/NullEnum'
         latitude:
           type: number
           format: double
@@ -5341,6 +6934,89 @@ components:
       - pays
       - region
       - zone_geographique
+    OrganismeLocalisationPublic:
+      type: object
+      properties:
+        zone_geographique:
+          type: string
+        pays:
+          type: string
+        region:
+          type: string
+          nullable: true
+        departement:
+          type: string
+          nullable: true
+      required:
+      - departement
+      - pays
+      - region
+      - zone_geographique
+    OrganismePublic:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        nom:
+          type: string
+          description: Nom de référence, à reprendre dans `organisation.nom` de l'API
+            d'ingestion d'offres.
+        versant:
+          allOf:
+          - $ref: '#/components/schemas/VersantEnum'
+          readOnly: true
+        siret:
+          type: string
+          description: SIRET à renseigner dans `organisation.siret` de l'API d'ingestion
+            d'offres.
+        parent_id:
+          type: string
+          format: uuid
+          nullable: true
+          description: Identifiant de l'organisme parent.
+        referentiel:
+          allOf:
+          - $ref: '#/components/schemas/OrganismePublicReferentielEnum'
+          description: |-
+            Référentiel source. Avec `external_id`, identifie l'organisme pour la création, la mise à jour et la suppression.
+
+            * `FINESS` - FINESS
+            * `GIPCDG` - GIPCDG
+            * `DILA` - DILA
+        external_id:
+          type: string
+          nullable: true
+          description: Identifiant dans le référentiel source.
+        millesime:
+          type: string
+          nullable: true
+          description: Version du référentiel source dont provient l'organisme.
+        localisation:
+          allOf:
+          - $ref: '#/components/schemas/OrganismeLocalisationPublic'
+          nullable: true
+      required:
+      - external_id
+      - id
+      - localisation
+      - millesime
+      - nom
+      - parent_id
+      - referentiel
+      - siret
+      - versant
+    OrganismePublicReferentielEnum:
+      enum:
+      - FINESS
+      - GIPCDG
+      - DILA
+      type: string
+      description: |-
+        * `FINESS` - FINESS
+        * `GIPCDG` - GIPCDG
+        * `DILA` - DILA
     OrganismeUpsertInput:
       type: object
       properties:
@@ -5497,64 +7173,108 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/OfferDetailResponse'
+    PaginatedOrganismePublicList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 1
+        next:
+          type: string
+          format: uri
+          nullable: true
+          example: null
+        previous:
+          type: string
+          format: uri
+          nullable: true
+          example: null
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrganismePublic'
     ProfessionInput:
       type: object
       properties:
         referentiel:
           allOf:
-          - $ref: '#/components/schemas/ReferentielEnum'
+          - $ref: '#/components/schemas/ProfessionInputReferentielEnum'
           default: RMFPv2
+          description: |-
+            Référentiel des métiers utilisé pour `domaine` et `metier` : le Répertoire des métiers de la fonction publique (RMFP).
+
+            * `RMFPv2` - RMFPv2
         domaine:
           type: string
           description: 'Code domaine fonctionnel RMFP, vérifié uniquement si referentiel=RMFPv2.
-            Valeurs possibles : ACH (Achat), AGR (Agriculture), AMT (Aménagement et
-            développement durable du territoire), ASP (Animation, jeunesse et sports),
-            BAT (Bâtiment), COM (Communication), CTL (Organisation, contrôle et évaluation),
-            CUL (Culture et Patrimoine), DEF (Défense), DIR (Direction et pilotage
-            des politiques publiques), DOC (Lecture publique et Documentation), ENS
-            (Enseignement et Formation), ENV (Environnement), FIP (Finances publiques),
-            GBF (Gestion budgétaire et financière), GRH (Ressources humaines), INT
-            (International), JUR (Affaires juridiques), JUS (Justice), LOG (Interventions
-            techniques et logistiques), MED (Médical et paramédical), NUM (Numérique),
-            RCH (Recherche), REN (Renseignement), SAN (Prévention, conseil et pilotage
-            en santé), SEC (Sécurité), SOC (Social, enfance et famille), TRA (Transports),
-            USA (Relation à l''usager).'
+            Absent, il est déduit du métier ; renseigné, il doit correspondre au domaine
+            du métier. Obligatoire si le code métier relève de plusieurs domaines
+            (ex. `ERJUS008`, `ERTRA007`). Valeurs possibles : ACH (Achat), AGR (Agriculture),
+            AMT (Aménagement et développement durable du territoire), ASP (Animation,
+            jeunesse et sports), BAT (Bâtiment), COM (Communication), CTL (Organisation,
+            contrôle et évaluation), CUL (Culture et Patrimoine), DEF (Défense), DIR
+            (Direction et pilotage des politiques publiques), DOC (Lecture publique
+            et Documentation), ENS (Enseignement et Formation), ENV (Environnement),
+            FIP (Finances publiques), GBF (Gestion budgétaire et financière), GRH
+            (Ressources humaines), INT (International), JUR (Affaires juridiques),
+            JUS (Justice), LOG (Interventions techniques et logistiques), MED (Médical
+            et paramédical), NUM (Numérique), RCH (Recherche), REN (Renseignement),
+            SAN (Prévention, conseil et pilotage en santé), SEC (Sécurité), SOC (Social,
+            enfance et famille), TRA (Transports), USA (Relation à l''usager).'
           maxLength: 3
         metier:
           type: string
+          description: 'Code métier, vérifié uniquement si referentiel=RMFPv2 : valeur
+            du champ `code_emploi_csp` d''un métier renvoyé par l''API `/api/v1/metiers`
+            (exemple : `ERAMT001`).'
           maxLength: 8
         code_emploi_local:
           type: string
           nullable: true
+          description: Code emploi propre à l'employeur ou au partenaire (nomenclature
+            locale), conservé tel quel. Facultatif.
           maxLength: 50
       required:
-      - domaine
       - metier
+    ProfessionInputReferentielEnum:
+      enum:
+      - RMFPv2
+      type: string
+      description: '* `RMFPv2` - RMFPv2'
     PublicationInput:
       type: object
       properties:
         debut_publication:
           type: string
           format: date-time
+          description: Date de début de publication de l'offre. Format ISO 8601 avec
+            l'heure (ex. `2026-11-05T00:00:00Z`) ; sans fuseau horaire, l'heure est
+            lue en UTC.
         fin_publication:
           type: string
           format: date-time
+          description: Date de fin de publication de l'offre. Format ISO 8601 avec
+            l'heure (ex. `2026-11-05T00:00:00Z`) ; sans fuseau horaire, l'heure est
+            lue en UTC.
         fin_candidature:
           type: string
           format: date-time
           nullable: true
+          description: Date limite de candidature. Format ISO 8601 avec l'heure (ex.
+            `2026-11-05T00:00:00Z`) ; sans fuseau horaire, l'heure est lue en UTC.
         debut_vacance_poste:
           type: string
           format: date-time
           nullable: true
+          description: Date à partir de laquelle le poste est vacant. Format ISO 8601
+            avec l'heure (ex. `2026-11-05T00:00:00Z`) ; sans fuseau horaire, l'heure
+            est lue en UTC.
       required:
       - debut_publication
       - fin_publication
-    ReferentielEnum:
-      enum:
-      - RMFPv2
-      type: string
-      description: '* `RMFPv2` - RMFPv2'
     RegionEnum:
       enum:
       - '01'
@@ -5799,6 +7519,20 @@ components:
         * `CDD_CDI` - CDD ou CDI
         * `CONTRAT_PROJET` - Contrat de projet
         * `VACATION` - Payés à l'acte
+    TypeEnum:
+      enum:
+      - non_retrocompatible
+      - ajoute
+      - modifie
+      - corrige
+      - retire
+      type: string
+      description: |-
+        * `non_retrocompatible` - Non rétrocompatible
+        * `ajoute` - Ajouté
+        * `modifie` - Modifié
+        * `corrige` - Corrigé
+        * `retire` - Retiré
     UpsertOfferError:
       type: object
       properties:
@@ -5851,12 +7585,13 @@ components:
         source_id:
           type: string
           format: uuid
-          description: Identifiant de la source des offres
+          description: Identifiant de la source des offres, renvoyé par `GET /api/v1/sources`.
         offres:
           type: array
           items:
             $ref: '#/components/schemas/OffersInput'
-          description: 'Liste d''offres à créer ou mettre à jour (min: 1, max: 100)'
+          description: 'Liste d''offres à créer ou mettre à jour (min: 1, max: 100).
+            Le détail des champs et de leurs règles se trouve dans le [guide de l''API](/pages/guide_api#4-creer-ou-modifier-des-offres-post-apiv1offrescreer_modifier).'
           maxItems: 100
           minItems: 1
       required:
@@ -6028,264 +7763,6 @@ tags:
 - name: changelog
   x-displayName: Changelog
   x-traitTag: true
-  description: |
-    Ce changelog liste les changements de l'API publique CSPLab (routes `/api/v1/…` et
-    `/api/fake-ts/…`) qui concernent les partenaires qui l'utilisent. Le détail des
-    champs et de leurs règles se trouve dans le [guide de l'API](/pages/guide_api).
-
-    Le format s'inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/).
-
-    ## 2026-10-15
-
-    ### Modifié
-
-    `GET /api/v1/offres`, `GET /api/v1/offres/sources/{source_id}` et
-    `GET /api/v1/metiers` : le paramètre `taille` est plafonné à `1000`. Une valeur
-    supérieure est ramenée à `1000`, et le lien `next` reprend cette taille. Pour
-    récupérer plus d'éléments, suivez le lien `next`. Une valeur de `taille` ou `page`
-    non numérique ou inférieure à `1` est remplacée par la valeur par défaut, au lieu
-    de renvoyer une erreur `500`.
-
-    `GET /api/fake-ts/offersummaries` : le paramètre `count` est plafonné à
-    `1000`, comme `taille`. Une valeur non numérique ou inférieure à `1` pour `count`,
-    ou inférieure à `0` pour `start`, est remplacée par la valeur par défaut (`100`
-    pour `count`, `0` pour `start`).
-
-    ## 2026-10-14
-
-    ### ⚠️ Changements non rétrocompatibles
-
-    `GET /api/v1/offres/sources/{source_id}` : l'accès à une source non autorisée pour
-    l'utilisateur authentifié renvoie désormais une erreur `403 Forbidden` au lieu de
-    `401 Unauthorized`, comme `POST /api/v1/offres/creer_modifier` et
-    `POST /api/v1/offres/archiver`. Le corps de la réponse ne change pas. Le code `401`
-    ne signale plus qu'une authentification manquante ou invalide.
-
-    `POST /api/v1/offres/creer_modifier` : une offre doit renseigner **soit**
-    `url_candidature`, **soit** le nouveau champ `email_candidature` (adresse email
-    valide), mais pas les deux. Une offre sans aucun des deux, ou avec les deux, est
-    rejetée. Jusqu'ici, `url_candidature` pouvait être vide.
-
-    ### Ajouts
-
-    `GET /api/v1/offres/sources/{source_id}` : nouveau champ `email_candidature`, vide si
-    l'offre se candidate par lien (`url_candidature`).
-
-    `GET /api/fake-ts/offers/getoffer` : l'adresse email de candidature est
-    renvoyée dans `customFields.origin.shortText1`, comme dans Talentsoft.
-
-    ### Modifié
-
-    `POST /api/v1/offres/archiver` : si l'offre ne peut pas être retirée de l'index de
-    recherche, la requête renvoie désormais `503 Service Unavailable` et l'offre n'est
-    pas archivée. Auparavant, l'offre était archivée et la requête renvoyait `200`
-    alors que l'offre restait dans l'index. La requête peut être renvoyée plus tard.
-
-    ## 2026-10-13
-
-    ### ⚠️ Changements non rétrocompatibles
-
-    `POST /api/v1/offres/creer_modifier` et `GET /api/v1/offres/sources/{source_id}` :
-    le format de `contacts` change. Chaque contact ne contient plus seulement `email`,
-    mais :
-
-    - `role` : `principal` (personne à contacter) ou `autre` (autre personne à
-      contacter), au plus un contact par rôle ;
-    - `texte` : le contact en texte libre (nom, fonction, e-mail, téléphone…),
-      100 caractères maximum ;
-    - `emails` : la liste des adresses email présentes dans `texte`, vide si aucune.
-
-    Les contacts sont renvoyés dans l'ordre `principal` puis `autre`. Un contact au
-    format précédent (`{"email": "…"}`) est rejeté.
-
-    `GET /api/v1/offres` : les champs renvoyés et deux filtres sont renommés en français,
-    avec les noms déjà utilisés par `POST /api/v1/offres/creer_modifier`.
-
-    - Champs de chaque offre renvoyée :
-      - `title` devient `titre` ;
-      - `organization` devient `organisation` ;
-      - `offer_nature` devient `nature_offre` ;
-      - `category` devient `categorie` ;
-      - `publication_date` devient `debut_publication` ;
-      - `offer_url` devient `url_offre` ;
-      - `archived_at` devient `date_archivage`.
-
-      `reference` et `source_id` ne changent pas, ni les valeurs renvoyées.
-    - Filtres :
-      - `organisme` devient `organisation` (ex. `?organisation=ORG1&organisation=ORG2`) ;
-      - `date_publication` devient `debut_publication` (ex. `?debut_publication=-7`).
-
-    > **Attention :** les anciens noms de filtre ne sont plus reconnus et sont ignorés
-    > sans erreur : un appel qui les utilise encore renvoie les offres **non filtrées**.
-
-    `GET /api/v1/offres/sources/{source_id}` : les champs renvoyés sont renommés en
-    français, avec les noms déjà utilisés par `POST /api/v1/offres/creer_modifier`.
-
-    - `title` devient `titre` ;
-    - `long_title` devient `titre_long` ;
-    - `organization` devient `organisation` ;
-    - `employer` devient `employeur` ;
-    - `profile` devient `profil` ;
-    - `exercise_conditions` devient `conditions_exercice` ;
-    - `service_description` devient `descriptif_service` ;
-    - `verse` devient `versant` ;
-    - `category` devient `categorie` ;
-    - `offer_nature` devient `nature_offre` ;
-    - `contract_kind` devient `type_contrat` ;
-    - `job_vacancy` devient `vacance_poste` ;
-    - `offer_url` devient `url_offre` ;
-    - `application_url` devient `url_candidature` ;
-    - `criteria` devient `criteres` ;
-    - `publication_date` devient `debut_publication` ;
-    - `beginning_date` devient `debut_contrat` ;
-    - `application_deadline` devient `fin_candidature` ;
-    - `job_vacancy_date` devient `debut_vacance_poste` ;
-    - `archived_at` devient `date_archivage`.
-
-    `reference`, `source_id`, `mission`, `complements`, `localisation` et `conditions`
-    ne changent pas, ni leurs sous-champs, ni les valeurs renvoyées. `contacts` garde son
-    nom, mais son format change (voir plus haut).
-
-    `POST /api/v1/offres/archiver` : le champ `status` de la réponse devient `statut`.
-    La valeur renvoyée (`ok`) ne change pas.
-
-    `POST /api/v1/offres/creer_modifier` : les champs de la réponse et les valeurs de
-    `offres[].statut` sont renommés en français.
-
-    - `created` devient `creees` ;
-    - `updated` devient `mises_a_jour` ;
-    - dans chaque élément de `offres`, la valeur de `statut` `created` devient `creee`
-      et `updated` devient `mise_a_jour` ;
-    - dans chaque élément de `errors`, `offer` devient `offre`.
-
-    `offres` et ses sous-champs `index`, `reference` et `statut` gardent leur nom.
-    `errors` et `errors[].error` ne changent pas pour l'instant.
-
-    ## 2026-10-08
-
-    ### Ajouté
-
-    - `POST /api/v1/offres/creer_modifier` : le champ `publication.debut_vacance_poste`
-      (date à partir de laquelle le poste est vacant) est désormais enregistré. Il était
-      accepté jusqu'ici, mais ignoré.
-    - `GET /api/v1/offres/sources/{source_id}` : chaque offre renvoyée contient un nouveau
-      champ `job_vacancy_date`, valeur de `publication.debut_vacance_poste` (date ISO
-      8601), à `null` si l'information n'a pas été transmise.
-
-    ### Modifié
-
-    - `GET /api/fake-ts/offersummaries` et `GET /api/fake-ts/offers/getoffer` :
-      `professionalCategory` n'est plus toujours `null`. C'est un objet codé qui reprend
-      `vacance_poste` : `clientCode` vaut `STATUT01` (poste vacant) ou `STATUT02` (poste
-      susceptible d'être vacant). Il reste à `null` si la vacance de poste n'est pas
-      renseignée.
-
-    ### Compatibilité
-
-    Ces changements sont rétrocompatibles : un appel valide avant ces changements reste
-    valide, et le champ ajouté dans les réponses n'en retire aucun. `professionalCategory`
-    passe d'une chaîne toujours `null` à un objet codé, comme dans l'API Talentsoft.
-
-    ## 2026-10-07
-
-    ### Ajouté
-
-    - `POST /api/v1/offres/creer_modifier` : `identification.reference` accepte la valeur
-      `"auto"`. CSPLab génère alors une référence au format `CSP-AAAA-NNNNNN` (par
-      exemple `CSP-2026-000042`), unique sur toute la plateforme. `"auto"` crée toujours une nouvelle
-      offre : pour la mettre à jour ensuite, renvoyez la référence générée. Une
-      référence au format `CSP-AAAA-NNNNNN` qui ne désigne pas une offre existante de
-      la source est rejetée dans `errors`.
-    - `POST /api/v1/offres/creer_modifier` : la réponse contient un nouveau champ
-      `offres`, qui donne pour chaque offre créée ou mise à jour son `index` dans le
-      payload, sa `reference` finale et son `statut` (`created` ou `updated`).
-    - `POST /api/v1/offres/creer_modifier` : chaque entrée de `errors` contient un
-      nouveau champ `index`, la position de l'offre rejetée dans le payload.
-
-    ## 2026-10-06
-
-    ### ⚠️ Changements non rétrocompatibles
-
-    Les champs qui décrivent le contrat d'une offre sont renommés, pour mieux refléter la
-    fonction publique et les offres qui ne donnent pas lieu à un contrat.
-
-    > **Attention :** `type_contrat` existe toujours mais **change de sens**. Il désigne
-    > désormais la forme du contrat (ancien `forme_contrat`). L'ancienne valeur de
-    > `type_contrat` (ex. `TITULAIRE_CONTRACTUEL`) doit être envoyée dans `nature_offre`.
-
-    - `POST /api/v1/offres/creer_modifier` :
-      - `type_contrat` est renommé `nature_offre` (obligatoire). Sa valeur `CONTRACTUELS`
-        devient `CONTRACTUEL`. Valeurs : `TITULAIRE_CONTRACTUEL`, `CONTRACTUEL`,
-        `TERRITORIAL` ;
-      - `forme_contrat` est renommé `type_contrat`. Ce n'est plus une liste mais une valeur
-        unique, facultative (vide ou `null` si l'offre n'est pas soumise à
-        contractualisation). Valeurs : `CDD`, `CDI`, `CDD_CDI` (CDD ou CDI),
-        `CONTRAT_PROJET` (contrat de projet), `VACATION`. La valeur `PERMANENT` est
-        supprimée.
-    - `GET /api/v1/offres` : le filtre `type_contrat` est renommé `nature_offre`, et la
-      valeur `CONTRACTUELS` devient `CONTRACTUEL`.
-    - `GET /api/v1/offres` et `GET /api/v1/offres/sources/{source_id}` : le champ
-      `contract_type` est renommé `offer_nature`, et renvoie `CONTRACTUEL` au lieu de
-      `CONTRACTUELS`.
-    - `GET /api/v1/offres/sources/{source_id}` : `contract_kind` n'est plus une liste mais
-      une valeur unique ou `null` (`CDD`, `CDI`, `CDD ou CDI`, `Contrat de projet`,
-      `Payés à l'acte`). La valeur `Vacation` devient `Payés à l'acte`.
-    - `/api/fake-ts/…` : le code `CONTRACTUELS` devient `CONTRACTUEL` dans le filtre
-      `contractType` de `GET /api/fake-ts/offersummaries`, dans le champ `contractType`
-      des offres renvoyées et dans `GET /api/fake-ts/referentials/contract_type`.
-      Les libellés de ce référentiel changent aussi : « Ouvert aux fonctionnaires et aux
-      contractuels », « Ouvert uniquement aux contractuels », « Ouvert aux fonctionnaires
-      et lauréats d'un concours territorial ».
-
-    ### Migration des offres existantes
-
-    - `CONTRACTUELS` devient `CONTRACTUEL`.
-    - Une offre avec les formes de contrat CDD et CDI passe à `CDD_CDI`.
-    - `PERMANENT` devient `CDI`.
-
-    ## 2026-10-05
-
-    ### Ajouté
-
-    - `POST /api/v1/offres/creer_modifier` : deux nouveaux champs **facultatifs** dans le
-      bloc `description` :
-      - `conditions_exercice` : conditions particulières d'exercice du poste (texte,
-        10 000 caractères maximum, peut être vide) ;
-      - `descriptif_service` : description du service qui recrute (texte, 10 000
-        caractères maximum, peut être vide).
-    - `POST /api/v1/offres/creer_modifier` : le champ `publication.fin_candidature` (date
-      limite de candidature) est désormais enregistré. Il était accepté jusqu'ici, mais
-      ignoré.
-    - `GET /api/v1/offres/sources/{source_id}` : chaque offre renvoyée contient trois
-      nouveaux champs, à `null` si l'information n'a pas été transmise :
-      - `exercise_conditions` : valeur de `description.conditions_exercice` ;
-      - `service_description` : valeur de `description.descriptif_service` ;
-      - `application_deadline` : valeur de `publication.fin_candidature` (date ISO 8601).
-    - `GET /api/fake-ts/offers/getoffer` : `customFields` n'est plus toujours `null`. Il
-      reprend la structure des champs personnalisés Talentsoft :
-      - `offer.date1` : date limite de candidature ;
-      - `description.longText1` : présentation de l'employeur ;
-      - `description.longText2` : conditions particulières d'exercice ;
-      - `description.longText3` : description du service ;
-      - `location.shortText1` : libellé de la localisation ;
-      - `offerCustomBlock1.longText1` : informations complémentaires.
-
-      Les autres clés de chaque bloc (`date1`, `shortText1`, `longText1` à `longText3`)
-      valent `null`.
-    - `GET /api/fake-ts/offersummaries` et `GET /api/fake-ts/offers/getoffer` :
-      `contractDuration` renvoie la durée du contrat (`conditions.duree_contrat`) au lieu
-      de `null`.
-
-    ### Modifié
-
-    - `POST /api/v1/offres/creer_modifier` : `description.employeur` accepte maintenant un
-      texte vide. Le champ reste obligatoire. Une offre dont l'employeur est vide n'est
-      plus rejetée, et `employer` vaut alors `null` dans les réponses.
-
-    ### Compatibilité
-
-    Ces changements sont rétrocompatibles : un appel valide avant ces changements reste
-    valide, et les champs ajoutés dans les réponses n'en retirent aucun.
 - name: token
   description: Gestion de l'authentification
 - name: concours
@@ -6300,6 +7777,11 @@ tags:
   description: Organismes de la Fonction Publique
 - name: talentsoft_organisme
   description: Organismes au format Talentsoft
+- name: documentation
+  x-displayName: Changelog et documentation
+  description: Le changelog et le guide de l'API en formats bruts, pour les outils
+    et les agents. Routes publiques, sans authentification, limitées à 60 appels par
+    minute et par adresse IP.
 - name: contact
   x-displayName: Aide et contact
   x-traitTag: true
@@ -6310,6 +7792,14 @@ tags:
     contacter.
 
     - [Salon public CSPLab sur Tchap](https://tchap.gouv.fr/#/room/!qhvvUVvMxxOUAAMqzi:agent.dinum.tchap.gouv.fr)
+
+    ## Suivre les évolutions de l'API
+
+    Les changements de l'API sont publiés sur la
+    [page du changelog](/pages/changelog_api), filtrable par type de changement, par route
+    et par date. Ils sont aussi disponibles en [Markdown](/api/changelog.md), en
+    [JSON](/api/changelog.json) et en [flux Atom](/api/changelog.atom), pour être prévenu
+    des nouveaux changements.
 
     ## Support et demandes d'évolution
 

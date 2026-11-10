@@ -1,9 +1,9 @@
 import type { ComputedRef, Ref } from 'vue'
-import type { Candidature, EtapeRecrutementDetailedCandidatures } from '../types'
+import type { KanbanCard, KanbanColumn } from '../types'
 import { computed, ref } from 'vue'
 
 export interface SelectedCandidature {
-  candidature: Candidature
+  candidature: KanbanCard
   etapeUuid: string
 }
 
@@ -13,18 +13,17 @@ export interface KanbanSelectionContext {
   selectedCount: ComputedRef<number>
   currentEtapeUuid: ComputedRef<string | null>
   isColumnSelected: (etapeUuid: string) => boolean
-  toggleColumnSelection: (etape: EtapeRecrutementDetailedCandidatures) => void
+  toggleColumnSelection: (etape: KanbanColumn) => void
   toggleCandidatureSelection: (candidatureUuid: string, etapeUuid: string) => void
   clearSelection: () => void
-  hasSelection: ComputedRef<boolean>
 }
 
-function isFullySelected(etape: EtapeRecrutementDetailedCandidatures, selected: Set<string> | undefined): boolean {
+function isFullySelected(etape: KanbanColumn, selected: Set<string> | undefined): boolean {
   return etape.candidatures.length > 0 && etape.candidatures.every(({ uuid }) => selected?.has(uuid))
 }
 
 export function useKanbanSelection(
-  etapes: Ref<EtapeRecrutementDetailedCandidatures[]>,
+  etapes: Ref<KanbanColumn[]>,
 ): KanbanSelectionContext {
   const selectedByEtape = ref<Map<string, Set<string>>>(new Map())
 
@@ -50,8 +49,6 @@ export function useKanbanSelection(
 
   const selectedCount = computed(() => selectedCandidatures.value.length)
 
-  const hasSelection = computed(() => selectedCount.value > 0)
-
   const currentEtapeUuid = computed<string | null>(() => {
     const etapeUuids = new Set(selectedCandidatures.value.map(s => s.etapeUuid))
     if (etapeUuids.size === 1) {
@@ -65,9 +62,12 @@ export function useKanbanSelection(
     return !!etape && isFullySelected(etape, selectedByEtape.value.get(etapeUuid))
   }
 
-  function toggleColumnSelection(etape: EtapeRecrutementDetailedCandidatures): void {
+  function toggleColumnSelection(etape: KanbanColumn): void {
     const selected = new Set(selectedByEtape.value.get(etape.uuid))
     const shownUuids = etape.candidatures.map(({ uuid }) => uuid)
+    if (shownUuids.length === 0) {
+      return
+    }
 
     if (isFullySelected(etape, selected)) {
       shownUuids.forEach(uuid => selected.delete(uuid))
@@ -76,15 +76,9 @@ export function useKanbanSelection(
       shownUuids.forEach(uuid => selected.add(uuid))
     }
 
-    const newMap = new Map(selectedByEtape.value)
-    if (selected.size === 0) {
-      newMap.delete(etape.uuid)
-    }
-    else {
-      newMap.set(etape.uuid, selected)
-    }
-
-    selectedByEtape.value = newMap
+    selectedByEtape.value = selected.size === 0
+      ? new Map()
+      : new Map([[etape.uuid, selected]])
   }
 
   function toggleCandidatureSelection(candidatureUuid: string, etapeUuid: string): void {
@@ -127,6 +121,5 @@ export function useKanbanSelection(
     toggleColumnSelection,
     toggleCandidatureSelection,
     clearSelection,
-    hasSelection,
   }
 }

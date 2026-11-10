@@ -1,12 +1,21 @@
 #!/usr/bin/env bash
 #
-# For each service under src/, upgrade its locked dependencies with
-# `uv lock --upgrade`, commit on a dedicated branch, push, and return to main.
+# Upgrade the locked dependencies of every project in a single branch:
+# libs/, then src/, then the pnpm lock of the web front. One commit per project.
+# A lib whose lock changes gets a patch version bump, required by the
+# check-version-bump CI job. Libs are upgraded in dependency order (ddd before
+# referentiel) so a bump cascades to the libs depending on it, and services,
+# upgraded afterwards, sync the bumped versions of the editable libs they use.
+# Pushes the branch and returns to main.
 #
-set -euo pipefail
+set -Eeuo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$REPO_ROOT"
+
+BRANCH="chore/upgrade-deps"
+LIBS=(libs/ddd libs/referentiel libs/scaleway_secrets)
+SERVICES=(src/web src/ocr src/ingestion src/notebook)
 
 if [ -n "$(git status --porcelain)" ]; then
   echo "✖ working tree is not clean; commit or stash your changes first" >&2
@@ -16,38 +25,79 @@ fi
 git switch main
 git pull --ff-only origin main
 
-SERVICES=(web ocr ingestion notebook)
-
-existing_branches=()
-for svc in "${SERVICES[@]}"; do
-  branch="chore/upgrade-deps-$svc"
-  if git ls-remote --exit-code --heads origin "$branch" > /dev/null 2>&1; then
-    existing_branches+=("$branch")
-  fi
-done
-
-if [ "${#existing_branches[@]}" -gt 0 ]; then
-  echo "✖ remote branches already exist, aborting:" >&2
-  printf '  - %s\n' "${existing_branches[@]}" >&2
+if git ls-remote --exit-code --heads origin "$BRANCH" > /dev/null 2>&1; then
+  echo "✖ remote branch already exists, aborting: $BRANCH" >&2
   exit 1
 fi
 
-for svc in "${SERVICES[@]}"; do
-  svc_dir="src/$svc"
-  echo "▶ [$svc] mise à jour des dépendances"
-  ( cd "$svc_dir" && uv lock --upgrade )
+git switch -C "$BRANCH"
+commits=0
 
-  if git diff --quiet -- "$svc_dir/uv.lock"; then
-    echo "⚠ [$svc] no dependency changes, skipping"
-    continue
+abort_and_clean() {
+  trap - ERR
+  echo "✖ échec, retour sur main et suppression de la branche locale $BRANCH" >&2
+  git reset --hard --quiet
+  git switch --quiet main
+  git branch -D "$BRANCH"
+}
+trap abort_and_clean ERR
+
+upgrade_project() {
+  local dir="$1" kind="$2" name="${1##*/}"
+  echo "▶ [$name] mise à jour des dépendances"
+  ( cd "$dir" && uv lock --upgrade )
+
+  if git diff --quiet -- "$dir/uv.lock"; then
+    echo "⚠ [$name] no dependency changes, skipping"
+    return
   fi
 
-  branch="chore/upgrade-deps-$svc"
-  git switch -c "$branch"
-  git add "$svc_dir/uv.lock"
-  git commit -m "build(tooling): upgrade $svc dependancies"
-  git push -u origin "$branch"
-  git switch main
+  if [ "$kind" = lib ]; then
+    local version
+    version="$(cd "$dir" && uv version --bump patch --no-sync --short)"
+    echo "▶ [$name] version bumped to $version"
+    git add "$dir/pyproject.toml" "$dir/uv.lock"
+    git commit -m "build(tooling): met à jour les dépendances de $name ($version)"
+  else
+    git add "$dir/uv.lock"
+    git commit -m "build(tooling): met à jour les dépendances de $name"
+  fi
+  commits=$((commits + 1))
+}
+
+upgrade_pnpm() {
+  local dir="src/web"
+  echo "▶ [web-front] mise à jour des dépendances"
+  ( cd "$dir" && pnpm update --no-save )
+
+  if git diff --quiet -- "$dir/pnpm-lock.yaml"; then
+    echo "⚠ [web-front] no dependency changes, skipping"
+    return
+  fi
+
+  git add "$dir/pnpm-lock.yaml"
+  git commit -m "build(tooling): met à jour les dépendances front de web"
+  commits=$((commits + 1))
+}
+
+for dir in "${LIBS[@]}"; do
+  upgrade_project "$dir" lib
 done
+
+for dir in "${SERVICES[@]}"; do
+  upgrade_project "$dir" service
+done
+
+upgrade_pnpm
+
+if [ "$commits" -eq 0 ]; then
+  echo "⚠ no dependency changes anywhere, removing $BRANCH"
+  git switch main
+  git branch -D "$BRANCH"
+else
+  trap - ERR
+  git push -u origin "$BRANCH"
+  git switch main
+fi
 
 echo "▶ Done."

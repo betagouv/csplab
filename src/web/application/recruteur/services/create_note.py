@@ -13,9 +13,10 @@ from application.recruteur.context_services.recrutement_agent_service import (
     RecrutementAgentService,
 )
 from domain.commons.services.audit_log_writer import AuditLogWriter
-from domain.identite.entities.utilisateurs import Utilisateur
 from domain.identite.value_objects.organisme_action import OrganismeAction
 from infrastructure.django_apps.recruteur.models.note import NoteModel
+from infrastructure.django_apps.tag.models import NoteTagModel
+from infrastructure.django_apps.users.models import UserModel
 from infrastructure.repositories.commons.postgres_audit_log_repository import (
     PostgresAuditLogRepository,
 )
@@ -27,7 +28,8 @@ def create_note(
     recrutement_id: UUID,
     candidature_id: UUID,
     message: str,
-    utilisateur: Utilisateur,
+    utilisateur: UserModel,
+    est_privee: bool = False,
 ) -> NoteModel:
     OrganismePermissionService().can_execute(
         action=OrganismeAction.CREATE_NOTE,
@@ -44,7 +46,7 @@ def create_note(
     )
     candidature_service.check_candidature_belongs_to_recrutement()
 
-    publie_par_id = utilisateur.entity_id
+    publie_par_id = utilisateur.username
 
     with transaction.atomic():
         note = NoteModel.objects.create(
@@ -52,7 +54,12 @@ def create_note(
             candidature_id=candidature_id,
             publie_par_id=publie_par_id,
             message=message,
+            est_privee=est_privee,
         )
+        # note neuve : cache de prefetch vide, aucune étiquette à relire
+        note._prefetched_objects_cache = {  # type: ignore[attr-defined]
+            "tags_liaisons": NoteTagModel.objects.none()
+        }
         AuditLogWriter(repository=PostgresAuditLogRepository()).log_action(
             utilisateur_id=publie_par_id,
             entity=Entity(entity_id=note.id),

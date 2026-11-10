@@ -1,13 +1,11 @@
 import asyncio
 from typing import TYPE_CHECKING
 
-import sentry_sdk
 from celery.signals import worker_process_init
 from sentry_sdk.integrations.celery import CeleryIntegration
-from sentry_sdk.integrations.httpx import HttpxIntegration
-from sentry_sdk.integrations.logging import LoggingIntegration
 
 from api.config import settings
+from infrastructure.observability.sentry import init_sentry
 
 if TYPE_CHECKING:
     from infrastructure.di.container import Container
@@ -15,11 +13,18 @@ if TYPE_CHECKING:
 _state: dict[str, "Container | None"] = {"container": None}
 
 
+async def _load_referentiels(container: "Container") -> None:
+    await asyncio.gather(
+        container.load_sources_usecase().execute(),
+        container.load_metiers_multi_domaines_usecase().execute(),
+    )
+
+
 def init_container() -> None:
     from infrastructure.di.container import create_container  # noqa: PLC0415
 
     container = create_container()
-    asyncio.run(container.load_sources_usecase().execute())
+    asyncio.run(_load_referentiels(container))
     _state["container"] = container
 
 
@@ -34,15 +39,5 @@ def get_container() -> "Container":
 
 @worker_process_init.connect
 def _init_worker_container(**kwargs: object) -> None:
-    if settings.sentry_dsn and str(settings.sentry_dsn).strip():
-        sentry_sdk.init(
-            dsn=str(settings.sentry_dsn),
-            integrations=[
-                LoggingIntegration(),
-                CeleryIntegration(),
-                HttpxIntegration(),
-            ],
-            traces_sample_rate=settings.sentry_traces_sample_rate,
-            profiles_sample_rate=settings.sentry_profiles_sample_rate,
-        )
+    init_sentry(settings, [CeleryIntegration()], tracing=True)
     init_container()

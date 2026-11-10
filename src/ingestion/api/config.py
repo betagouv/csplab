@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 from uuid import UUID
 
 from pydantic import HttpUrl
@@ -45,6 +46,11 @@ class Settings(BaseSettings):
     # Beyond this age, a cached DILA SIRET lookup is retried via the
     # Recherche Entreprises API instead of being reused as-is.
     dila_siret_lookup_max_age_days: int = 30
+    # Minimum name similarity for a public candidate found by name to be
+    # retained as a DILA service's SIRET.
+    dila_siret_min_score: float = 0.85
+    # Overrides the versioned mapping data/dila_sirets.csv.
+    dila_sirets_csv_path: Path | None = None
 
     web_base_url: str | None = None
     web_api_key: str | None = None

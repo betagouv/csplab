@@ -6,9 +6,11 @@ import pytest
 from django.urls import reverse
 from pydantic import HttpUrl
 from referentiel.value_objects.contract_kind import ContractKind
+from referentiel.value_objects.department import Department
 from referentiel.value_objects.diploma import Diploma
 from referentiel.value_objects.experience_level import ExperienceLevel
 from referentiel.value_objects.language_level import LanguageLevel
+from referentiel.value_objects.localisation import Localisation
 from referentiel.value_objects.offer_criteria import OfferCriteria, OfferLanguage
 from referentiel.value_objects.offer_nature import OfferNature
 from rest_framework import status
@@ -34,9 +36,11 @@ URL = reverse("ingestion:offers_by_source", kwargs={"source_id": SOURCE_ID})
 
 NOMBRE_REQUETES_ATTENDU = (
     1  # view JWT authentication
+    + 1  # JWT account's allowed networks
     + 1  # usecase: utilisateur_repository.get_by_username
     + 2  # usecase: get_allowed_source_ids (get user + filter sources M2M)
     + 2  # pagination: count + page
+    + 1  # prefetch of the offers' localisations
     + 1  # ApiRequestLoggerMiddleware re-decodes the JWT to log the request
     + 2  # logging: DJ tries an UPDATE (manually-assigned pk) then falls back to INSERT
 )
@@ -65,11 +69,8 @@ def authenticated_client_with_source(api_client, test_user, source):
     return api_client
 
 
-def _make_paginated_mock(use_case, num_offers, offers_slice):
-    mock_page = MagicMock()
-    mock_page.count.return_value = num_offers
-    mock_page.slice.return_value = iter(offers_slice)
-    use_case.execute.return_value = mock_page
+def _make_paginated_mock(use_case, offers):
+    use_case.execute.return_value = offers
     return use_case
 
 
@@ -85,7 +86,7 @@ class TestOffersBySourceView:
 
     def test_api_key_authentication_returns_offers(self, api_key_client, use_case):
         offer = OfferFactory.create_entity(source_id=SOURCE_ID)
-        _make_paginated_mock(use_case, num_offers=1, offers_slice=[offer])
+        _make_paginated_mock(use_case, offers=[offer])
 
         response = api_key_client.get(URL)
 
@@ -102,7 +103,7 @@ class TestOffersBySourceView:
         self, authenticated_client_with_source, test_user, use_case
     ):
         offer = OfferFactory.create_entity(source_id=SOURCE_ID)
-        _make_paginated_mock(use_case, num_offers=1, offers_slice=[offer])
+        _make_paginated_mock(use_case, offers=[offer])
 
         response = authenticated_client_with_source.get(URL)
 
@@ -122,14 +123,32 @@ class TestOffersBySourceView:
     def test_jwt_authentication_returns_offer_without_localisation(
         self, authenticated_client_with_source, use_case
     ):
-        offer = OfferFactory.create_entity(source_id=SOURCE_ID)
-        offer.localisation = None
-        _make_paginated_mock(use_case, num_offers=1, offers_slice=[offer])
+        offer = OfferFactory.create_entity(source_id=SOURCE_ID, localisations=[])
+        _make_paginated_mock(use_case, offers=[offer])
 
         response = authenticated_client_with_source.get(URL)
 
         assert response.status_code == status.HTTP_200_OK
-        assert response.json()["results"][0]["localisation"] is None
+        assert response.json()["results"][0]["localisation"] == []
+
+    def test_returns_every_localisation_in_order(
+        self, authenticated_client_with_source, use_case
+    ):
+        offer = OfferFactory.create_entity(
+            source_id=SOURCE_ID,
+            localisations=[
+                Localisation.from_department(Department(code="14")),
+                Localisation.from_department(Department(code="50")),
+            ],
+        )
+        _make_paginated_mock(use_case, offers=[offer])
+
+        response = authenticated_client_with_source.get(URL)
+
+        assert [
+            localisation["departement"]
+            for localisation in response.json()["results"][0]["localisation"]
+        ] == ["14", "50"]
 
     def test_jwt_authentication_forbidden_source_returns_403(
         self, jwt_client, use_case
@@ -137,6 +156,17 @@ class TestOffersBySourceView:
         use_case.execute.side_effect = SourceAuthorizationError({SOURCE_ID})
         response = jwt_client.get(URL)
         assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    def test_pagination_out_of_bounds_returns_404(
+        self, authenticated_client_with_source, use_case
+    ):
+        offers = [OfferFactory.create_entity(source_id=SOURCE_ID) for _ in range(3)]
+        _make_paginated_mock(use_case, offers=offers)
+
+        response = authenticated_client_with_source.get(URL, {"page": 3, "taille": 2})
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+        assert "detail" in response.json()
 
     def test_returns_error_500(self, jwt_client, use_case):
         use_case.execute.side_effect = Exception("db error")
@@ -183,18 +213,19 @@ class TestOffersBySourceViewDbVerified:
                 "conditions_exercice": None,
                 "descriptif_service": None,
                 "versant": offer.verse,
-                "categorie": offer.category,
+                "categories": offer.categories,
                 "nature_offre": None,
                 "type_contrat": None,
                 "vacance_poste": None,
                 "url_offre": None,
                 "url_candidature": None,
                 "email_candidature": None,
-                "localisation": None,
+                "localisation": [],
                 "criteres": None,
                 "conditions": None,
                 "contacts": None,
                 "debut_publication": "2024-01-15T00:00:00Z",
+                "fin_publication": "2025-01-15T00:00:00Z",
                 "debut_contrat": None,
                 "fin_candidature": None,
                 "debut_vacance_poste": None,
@@ -219,6 +250,7 @@ class TestOffersBySourceViewDbVerified:
             complements="Poste à pourvoir immédiatement",
             exercise_conditions="Télétravail possible",
             service_description="Service des ressources humaines",
+            end_publication_date=datetime(2024, 12, 31, tzinfo=UTC),
             application_deadline=datetime(2024, 5, 15, tzinfo=UTC),
             job_vacancy_date=datetime(2024, 7, 1, tzinfo=UTC),
             offer_nature=OfferNature.TERRITORIAL.value,
@@ -260,22 +292,24 @@ class TestOffersBySourceViewDbVerified:
                 "conditions_exercice": offer.exercise_conditions,
                 "descriptif_service": offer.service_description,
                 "versant": offer.verse,
-                "categorie": offer.category,
+                "categories": offer.categories,
                 "nature_offre": offer.offer_nature,
                 "type_contrat": ContractKind.CDD_CDI.value,
                 "vacance_poste": offer.job_vacancy,
                 "url_offre": "https://exemple.gouv.fr/offres/e2e-1",
                 "url_candidature": "https://exemple.gouv.fr/candidature/e2e-1",
                 "email_candidature": None,
-                "localisation": {
-                    "zone_geographique": offer.area,
-                    "pays": offer.country,
-                    "region": offer.region,
-                    "departement": offer.department,
-                    "localisation_label": offer.location_label,
-                    "latitude": offer.latitude,
-                    "longitude": offer.longitude,
-                },
+                "localisation": [
+                    {
+                        "zone_geographique": "EU",
+                        "pays": "FRA",
+                        "region": "11",
+                        "departement": "75",
+                        "localisation_label": "Paris",
+                        "latitude": 48.8566,
+                        "longitude": 2.3522,
+                    }
+                ],
                 "criteres": criteria.to_dict(),
                 "conditions": {"salaire": "35000-45000"},
                 "contacts": [
@@ -286,6 +320,7 @@ class TestOffersBySourceViewDbVerified:
                     }
                 ],
                 "debut_publication": "2024-01-15T00:00:00Z",
+                "fin_publication": "2024-12-31T00:00:00Z",
                 "debut_contrat": "2024-06-01T00:00:00Z",
                 "fin_candidature": "2024-05-15T00:00:00Z",
                 "debut_vacance_poste": "2024-07-01T00:00:00Z",

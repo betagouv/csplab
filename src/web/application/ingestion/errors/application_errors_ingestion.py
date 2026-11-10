@@ -8,16 +8,11 @@ class TalentsoftOrganismeInexistant(ApplicationError):
         super().__init__(f"Organisation inconnue : {entity_code}.")
 
 
-class SourceNonAutorisee(ApplicationError):
+class SourceIntrouvable(ApplicationError):
     def __init__(self, source_id: UUID):
-        super().__init__(f"Accès refusé à la source {source_id}.")
+        super().__init__(f"Source introuvable : {source_id}.")
 
 
 class OffreIntrouvable(ApplicationError):
     def __init__(self, offer_id: UUID):
         super().__init__(f"Offre introuvable : {offer_id}.")
-
-
-class AccesSourcesRefuse(ApplicationError):
-    def __init__(self, username):
-        super().__init__(f"Accès aux sources refusé à l'utilisateur {username}.")

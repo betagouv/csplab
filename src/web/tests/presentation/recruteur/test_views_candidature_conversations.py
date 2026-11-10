@@ -26,6 +26,7 @@ from infrastructure.factories.identite.organisme_django_factory import (
 )
 from infrastructure.factories.messagerie.conversation_django_factory import (
     ConversationDjangoFactory,
+    ConversationLectureDjangoFactory,
     MessageDjangoFactory,
 )
 from infrastructure.factories.recruteur.recrutement_django_factory import (
@@ -40,6 +41,16 @@ from tests.utils.message_documents import INVALID_DOCUMENTS, valid_documents
 TAILLE_PAGE_LIMITEE = 1
 TAILLE_PAGE_PAR_DEFAUT = 20
 NB_CONVERSATIONS = 2
+NB_CONVERSATIONS_N_PLUS_UN = 5
+NOMBRE_REQUETES_LISTE_ATTENDU = (
+    2  # authentication (view + RateLimitHeadersMiddleware)
+    + 1  # organisme exists
+    + 1  # agent's organisme role
+    + 1  # recrutement belongs to organisme
+    + 1  # candidature belongs to recrutement
+    + 2  # pagination: count + page
+    + 2  # prefetch premiers_messages + derniers_messages (auteur via select_related)
+)
 
 
 def _url(organisme_uuid, recrutement_uuid, candidature_uuid):
@@ -208,7 +219,7 @@ class TestListConversations:
             "last_message_created_at",
             "is_unread",
         }
-        assert all(result["is_unread"] is False for result in results)
+        assert all(result["is_unread"] is True for result in results)
         dates = [result["last_message_created_at"] for result in results]
         assert dates == sorted(dates, reverse=True)
         assert all(
@@ -216,6 +227,60 @@ class TestListConversations:
             <= settings.CONVERSATION_LAST_MESSAGE_CONTENT_MAX_LENGTH
             for result in results
         )
+
+    def test_is_unread_depends_on_the_read_receipt_of_the_current_user(
+        self, authenticated_client, contexte
+    ):
+        agent, candidature, url = contexte
+        read = _conversation_with_messages(candidature, "Read")
+        read_by_another_user = _conversation_with_messages(candidature, "Other")
+        unread = _conversation_with_messages(candidature, "Unread")
+        replied_after_read = _conversation_with_messages(candidature, "Replied")
+        ConversationLectureDjangoFactory(
+            conversation=read, utilisateur=agent.utilisateur
+        )
+        ConversationLectureDjangoFactory(conversation=read_by_another_user)
+        ConversationLectureDjangoFactory(
+            conversation=replied_after_read, utilisateur=agent.utilisateur
+        )
+        MessageDjangoFactory(conversation=replied_after_read)
+
+        response = authenticated_client.get(url)
+
+        assert response.status_code == status.HTTP_200_OK
+        is_unread = {r["uuid"]: r["is_unread"] for r in response.json()["results"]}
+        assert is_unread == {
+            str(read.pk): False,
+            str(read_by_another_user.pk): True,
+            str(unread.pk): True,
+            str(replied_after_read.pk): True,
+        }
+
+    def test_conversation_last_written_by_the_agent_is_not_unread(
+        self, authenticated_client, contexte
+    ):
+        agent, candidature, url = contexte
+        conversation = ConversationDjangoFactory(candidature=candidature)
+        MessageDjangoFactory(conversation=conversation)
+        MessageDjangoFactory(conversation=conversation, auteur=agent.utilisateur)
+
+        response = authenticated_client.get(url)
+
+        (result,) = response.json()["results"]
+        assert result["is_unread"] is False
+
+    def test_does_not_trigger_n_plus_one_queries(
+        self, authenticated_client, contexte, django_assert_num_queries
+    ):
+        _, candidature, url = contexte
+        for _ in range(NB_CONVERSATIONS_N_PLUS_UN):
+            _conversation_with_messages(candidature, "Bonjour", "Merci")
+
+        with django_assert_num_queries(NOMBRE_REQUETES_LISTE_ATTENDU):
+            response = authenticated_client.get(url)
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json()["count"] == NB_CONVERSATIONS_N_PLUS_UN
 
     def test_limit_param_caps_page_size(self, authenticated_client, contexte):
         _, candidature, url = contexte
@@ -282,6 +347,7 @@ class TestCreateConversation:
         assert body["objet"] == "Convocation"
         assert body["last_message_content"] == "Bonjour"
         assert body["creator"] == body["last_message_author"]
+        assert body["is_unread"] is False
         message = MessageModel.objects.get(conversation_id=body["uuid"])
         assert message.auteur_id == agent.utilisateur_id
 

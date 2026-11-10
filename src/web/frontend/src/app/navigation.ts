@@ -1,5 +1,7 @@
 import type { NavItem } from '@/components/layout/CspAppShell/CspAppShell.types'
+import { HOME_BREADCRUMB_LABEL } from '@/router/breadcrumb'
 import {
+  ORGANISME_HOME_ROUTE_NAME,
   ORGANISME_SECTION_ROUTE_NAMES,
   ORGANISME_TAB_ROUTE_NAMES,
   ORGANISMES_ROUTE_NAME,
@@ -7,15 +9,24 @@ import {
 } from '@/router/names'
 
 const ORGANISMES_ITEM: NavItem = {
-  icon: 'ri:settings-3-line',
+  icon: 'ri:government-line',
   label: 'Gestion des organismes',
   to: ORGANISMES_ROUTE_NAME,
 }
 
-function recrutementsItem(organismeUuid: string): NavItem {
+function homeItem(organismeUuid: string): NavItem {
+  return {
+    icon: 'ri:home-line',
+    label: HOME_BREADCRUMB_LABEL,
+    to: ORGANISME_HOME_ROUTE_NAME,
+    params: { organismeUuid },
+  }
+}
+
+function recrutementsItem(organismeUuid: string, label: string): NavItem {
   return {
     icon: 'ri:briefcase-line',
-    label: 'Recrutements',
+    label,
     to: RECRUTEMENTS_TAB_ROUTE_NAMES.actifs,
     params: { organismeUuid },
     match: [ORGANISME_SECTION_ROUTE_NAMES.recrutements],
@@ -24,7 +35,7 @@ function recrutementsItem(organismeUuid: string): NavItem {
 
 function parametresItem(organismeUuid: string): NavItem {
   return {
-    icon: 'ri:government-line',
+    icon: 'ri:settings-3-line',
     label: 'Paramètres de l\'organisme',
     to: ORGANISME_TAB_ROUTE_NAMES.membres,
     params: { organismeUuid },
@@ -38,25 +49,19 @@ export function isNavItemActive(item: NavItem, matchedRouteNames: string[]): boo
 }
 
 export function navigationFor(options: {
-  isStaff: boolean
+  canListOrganismes: boolean
   organismeUuid: string | null
-  canManageOrganisme: boolean
+  canAccessOrganismeSettings: boolean
 }): NavItem[] {
-  const { isStaff, organismeUuid, canManageOrganisme } = options
+  const { canListOrganismes, organismeUuid, canAccessOrganismeSettings } = options
 
-  const items: NavItem[] = []
-
-  if (isStaff) {
-    items.push(ORGANISMES_ITEM)
+  if (!organismeUuid) {
+    return canListOrganismes ? [ORGANISMES_ITEM] : []
   }
 
-  if (organismeUuid) {
-    items.push(recrutementsItem(organismeUuid))
-
-    if (canManageOrganisme) {
-      items.push(parametresItem(organismeUuid))
-    }
+  if (!canAccessOrganismeSettings) {
+    return [homeItem(organismeUuid), recrutementsItem(organismeUuid, 'Mes recrutements')]
   }
 
-  return items
+  return [homeItem(organismeUuid), recrutementsItem(organismeUuid, 'Recrutements'), parametresItem(organismeUuid)]
 }

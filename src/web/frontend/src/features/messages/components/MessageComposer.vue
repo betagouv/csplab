@@ -29,8 +29,6 @@ const attachments = useTemplateRef('attachments')
 useUnsavedChanges(() => content.value !== '' || documents.value.length > 0, () => {
   content.value = ''
   documents.value = []
-}, {
-  isLeftBy: (to, from) => to.params.conversationUuid !== from.params.conversationUuid,
 })
 
 const contentErrors = ref<string[]>([])
@@ -55,6 +53,7 @@ async function send(): Promise<void> {
     await reply({ content: content.value, documents: documents.value })
     content.value = ''
     documents.value = []
+    addToast({ variant: 'success', title: 'Message envoyé' })
   }
   catch (sendError) {
     if (sendError instanceof ValidationError && (sendError.fieldErrors.content || sendError.fieldErrors.documents)) {

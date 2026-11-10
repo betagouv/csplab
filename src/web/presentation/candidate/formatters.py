@@ -4,6 +4,7 @@ from referentiel.value_objects.offer_nature import OfferNature
 from referentiel.value_objects.verse import Verse
 
 from domain.candidate.value_objects.opportunity_type import OpportunityType
+from presentation.commons.countries import COUNTRY_NAMES
 
 CATEGORY_DISPLAY: dict[Category, str] = {
     Category.APLUS: "Catégorie A+",
@@ -68,4 +69,15 @@ def format_location_display(localisation: Localisation | None) -> str:
     """Format localisation for display."""
     if not localisation:
         return ""
+    if localisation.department is None:
+        country = str(localisation.country)
+        return COUNTRY_NAMES.get(country, country)
     return localisation.department.name
+
+
+def format_locations_display(localisations: list[Localisation]) -> str:
+    if not localisations:
+        return ""
+    main = format_location_display(localisations[0])
+    others = len(localisations) - 1
+    return f"{main} + {others}" if others else main

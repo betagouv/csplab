@@ -1,25 +1,26 @@
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pytest
-from django.db import connection
-from django.test.utils import CaptureQueriesContext
 from django.urls import reverse
 from django.utils import timezone
 from faker import Faker
-from pydantic import ValidationError
-from referentiel.value_objects.siret import SIRET
 from referentiel.value_objects.verse import Verse
 from rest_framework import status
 
+from application.identite.context_services.organisme_permission_service import (
+    OrganismePermissionService,
+)
 from domain.identite.errors.organisme_errors import OrganismeSiretExisteDeja
 from domain.identite.errors.organisme_permission_errors import (
     OperationOrganismeRefusee,
 )
+from domain.identite.value_objects.organisme_action import OrganismeAction
 from domain.recruteur.value_objects.roles import AgentOrganismeRole
 from infrastructure.django_apps.recruteur.models.organisme import (
     OrganismeModel,
     OrganismeQuerySet,
 )
+from infrastructure.django_apps.users.models import UserModel
 from infrastructure.factories.identite.organisme_django_factory import (
     OrganismeAgentDjangoFactory,
     OrganismeDjangoFactory,
@@ -35,14 +36,9 @@ from tests.utils.dates import datetime_to_drf_representation
 fake = Faker("fr_FR")
 
 ORGANISME_URL = reverse("recruteur:organismes")
-
-
-def _invalid_siret_error() -> ValidationError:
-    try:
-        SIRET(code="not-a-siret")
-    except ValidationError as err:
-        return err
-    raise AssertionError("expected SIRET validation to fail")
+VALID_SIRET = fake.siret().replace(" ", "")
+NOMBRE_REQUETES_ATTENDU = 5  # session, user, count, organismes, superviseurs
+INVALID_CHECKSUM_SIRET = VALID_SIRET[:-1] + str((int(VALID_SIRET[-1]) + 1) % 10)
 
 
 @pytest.fixture
@@ -51,20 +47,21 @@ def staff_client(api_client):
     return api_client
 
 
-@pytest.fixture
-def container():
-    with patch(
-        "presentation.recruteur.views.organismes.create_identite_container"
-    ) as mock:
-        instance = MagicMock()
-        mock.return_value = instance
-        yield instance
+def _body(**overrides):
+    return {
+        "nom": fake.company(),
+        "siret": VALID_SIRET,
+        "versant": Verse.FPE.value,
+        "gestion_ats": True,
+        **overrides,
+    }
 
 
-siret = fake.siret().replace(" ", "")
+def _post(client, body):
+    return client.post(ORGANISME_URL, body, format="json")
 
 
-class TestOrganismesView:
+class TestListOrganismes:
     def test_anonymous_access_is_unauthorized(self, api_client):
         response = api_client.get(ORGANISME_URL)
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
@@ -88,7 +85,9 @@ class TestOrganismesView:
 
         assert response.status_code == status.HTTP_200_OK
         organisme.refresh_from_db()
-        matching = next(o for o in response.json() if o["uuid"] == str(organisme.id))
+        matching = next(
+            o for o in response.json()["results"] if o["uuid"] == str(organisme.id)
+        )
         last_activity = max(
             organisme.updated_at,
             *organisme.agents_liaisons.values_list("updated_at", flat=True),
@@ -98,30 +97,55 @@ class TestOrganismesView:
             "nom": organisme.nom,
             "versant": organisme.versant,
             "siret": organisme.siret,
-            "superviseurs": (
-                f"{superviseur.agent.utilisateur.last_name} "
-                f"{superviseur.agent.utilisateur.first_name}"
-            ),
+            "superviseurs": superviseur.agent.utilisateur.get_full_name(),
             "gestion_ats": True,
             "date_creation": datetime_to_drf_representation(organisme.created_at),
             "date_derniere_activite": datetime_to_drf_representation(last_activity),
             "nombre_agents": 2,
             "nombre_offres_publiees": 1,
+            "authorized_actions": [
+                action.value
+                for action in OrganismeAction
+                if action
+                in {
+                    *OrganismePermissionService().authorized_actions_organisme(
+                        AgentOrganismeRole.SUPERVISEUR,
+                        utilisateur=UserModel(is_staff=True),
+                        organisme_id=organisme.id,
+                        organisme_ids_responsable=frozenset(),
+                    ),
+                    OrganismeAction.UPDATE_ORGANISME,
+                }
+            ],
         }
 
-    def test_get_query_count_does_not_grow_with_organismes(self, staff_client):
-        def count_queries() -> int:
-            with CaptureQueriesContext(connection) as queries:
-                staff_client.get(ORGANISME_URL)
-            return len(queries)
-
+    def test_get_query_count_does_not_grow_with_organismes(
+        self, staff_client, django_assert_num_queries
+    ):
         OrganismeDjangoFactory()
-        baseline = count_queries()
-        for organisme in OrganismeDjangoFactory.create_batch(3):
-            OrganismeAgentDjangoFactory(organisme=organisme)
-            RecrutementDjangoFactory(organisme=organisme)
+        with django_assert_num_queries(NOMBRE_REQUETES_ATTENDU):
+            response = staff_client.get(ORGANISME_URL)
+        assert response.status_code == status.HTTP_200_OK
 
-        assert count_queries() == baseline
+        for organisme in OrganismeDjangoFactory.create_batch(3):
+            OrganismeAgentDjangoFactory.create_batch(5, organisme=organisme)
+            RecrutementDjangoFactory.create_batch(5, organisme=organisme)
+
+        with django_assert_num_queries(NOMBRE_REQUETES_ATTENDU):
+            response = staff_client.get(ORGANISME_URL)
+        assert response.status_code == status.HTTP_200_OK
+
+    def test_get_paginates_with_taille(self, staff_client):
+        total, taille = 3, 2
+        OrganismeDjangoFactory.create_batch(total)
+
+        response = staff_client.get(ORGANISME_URL, {"taille": taille})
+
+        body = response.json()
+        assert response.status_code == status.HTTP_200_OK
+        assert body["count"] == total
+        assert len(body["results"]) == taille
+        assert body["next"] is not None
 
     def test_get_refuses_non_staff(self, authenticated_client):
         response = authenticated_client.get(ORGANISME_URL)
@@ -138,75 +162,83 @@ class TestOrganismesView:
         assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
         assert response.json() == {"error": "Unexpected error"}
 
-    @pytest.mark.parametrize(
-        ("exception", "expected_status", "expected_body"),
-        [
-            (
-                OrganismeSiretExisteDeja(siret),
-                status.HTTP_400_BAD_REQUEST,
-                {"error": OrganismeSiretExisteDeja(siret).message},
-            ),
-            (
-                _invalid_siret_error(),
-                status.HTTP_400_BAD_REQUEST,
-                {"error": str(_invalid_siret_error())},
-            ),
-            (
-                OperationOrganismeRefusee(),
-                status.HTTP_403_FORBIDDEN,
-                {"error": OperationOrganismeRefusee().message},
-            ),
-            (
-                Exception("unexpected"),
-                status.HTTP_500_INTERNAL_SERVER_ERROR,
-                {"error": "Unexpected error"},
-            ),
-        ],
-    )
-    def test_post_returns_error_from_usecase(
-        self,
-        container,
-        authenticated_client,
-        exception,
-        expected_status,
-        expected_body,
-    ):
-        mock_usecase = MagicMock()
-        mock_usecase.execute.side_effect = exception
-        container.create_organisme_usecase.return_value = mock_usecase
-        body = {
-            "nom": fake.name(),
-            "siret": siret,
-            "versant": fake.random_choices(
-                [Verse.FPE.value, Verse.FPT.value, Verse.FPH.value]
-            ),
-            "gestion_ats": fake.boolean(),
-        }
-        response = authenticated_client.post(ORGANISME_URL, body)
 
-        assert response.status_code == expected_status
-        assert response.json() == expected_body
+class TestCreateOrganisme:
+    def test_anonymous_access_is_unauthorized(self, api_client):
+        response = _post(api_client, _body())
 
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
-class TestOrganismesViewDbVerified:
-    def test_post_creates_and_persists_the_organisme(self, staff_client):
-        siret_code = fake.siret().replace(" ", "")
-        body = {
-            "nom": fake.company(),
-            "siret": siret_code,
-            "versant": Verse.FPE.value,
-            "gestion_ats": True,
-        }
+    def test_staff_creates_and_persists_the_organisme(self, staff_client):
+        body = _body()
 
-        response = staff_client.post(ORGANISME_URL, body)
+        response = _post(staff_client, body)
 
         assert response.status_code == status.HTTP_201_CREATED
-        data = response.json()
-        assert data["nom"] == body["nom"]
-        assert data["siret"] == siret_code
-        assert data["versant"] == Verse.FPE.value
-        assert data["gestion_ats"] is True
+        organisme = OrganismeModel.objects.get(siret=VALID_SIRET)
+        assert response.json() == {
+            "uuid": str(organisme.id),
+            "nom": body["nom"],
+            "versant": Verse.FPE.value,
+            "siret": VALID_SIRET,
+            "superviseurs": "",
+            "gestion_ats": True,
+            "date_derniere_activite": datetime_to_drf_representation(
+                organisme.date_derniere_activite
+            ),
+            "date_creation": datetime_to_drf_representation(organisme.date_creation),
+        }
 
-        organisme = OrganismeModel.objects.get(siret=siret_code)
-        assert str(organisme.id) == data["uuid"]
-        assert organisme.nom == body["nom"]
+    def test_refuses_non_staff(self, authenticated_client):
+        response = _post(authenticated_client, _body())
+
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert response.json() == {"error": OperationOrganismeRefusee().message}
+        assert not OrganismeModel.objects.exists()
+
+    def test_refuses_existing_siret(self, staff_client):
+        OrganismeDjangoFactory(siret=VALID_SIRET)
+
+        response = _post(staff_client, _body())
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert response.json() == {
+            "error": OrganismeSiretExisteDeja(VALID_SIRET).message
+        }
+        assert OrganismeModel.objects.count() == 1
+
+    def test_refuses_siret_with_invalid_checksum(self, staff_client):
+        response = _post(staff_client, _body(siret=INVALID_CHECKSUM_SIRET))
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert "Invalid SIRET checksum" in response.json()["error"]
+        assert not OrganismeModel.objects.exists()
+
+    @pytest.mark.parametrize(
+        ("overrides", "invalid_field"),
+        [
+            ({"nom": ""}, "nom"),
+            ({"siret": "123"}, "siret"),
+            ({"siret": "1" * 15}, "siret"),
+            ({"versant": "UNKNOWN"}, "versant"),
+            ({"gestion_ats": None}, "gestion_ats"),
+        ],
+    )
+    def test_refuses_invalid_body(self, staff_client, overrides, invalid_field):
+        response = _post(staff_client, _body(**overrides))
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert list(response.json()) == [invalid_field]
+        assert not OrganismeModel.objects.exists()
+
+    @pytest.mark.parametrize(
+        "missing_field", ["nom", "siret", "versant", "gestion_ats"]
+    )
+    def test_refuses_missing_field(self, staff_client, missing_field):
+        body = _body()
+        del body[missing_field]
+
+        response = _post(staff_client, body)
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert list(response.json()) == [missing_field]

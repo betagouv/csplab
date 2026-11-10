@@ -28,14 +28,6 @@ from application.candidate.usecases.match_cv_to_opportunities import (
     MatchCVToOpportunitiesUsecase,
 )
 from application.candidate.usecases.process_uploaded_cv import ProcessUploadedCVUsecase
-from application.commons.usecases.calculate_daily_stats import (
-    CalculateDailyStatsUsecase,
-)
-from application.identite.context_services.organisme_permission_service import (
-    OrganismePermissionService,
-)
-from application.identite.usecases.create_organisme import CreateOrganismeUsecase
-from application.identite.usecases.get_organisme import GetOrganismeUsecase
 from application.ingestion.usecases.clean_documents import CleanDocumentsUsecase
 from application.ingestion.usecases.get_offers_by_source import (
     GetOffersBySourceUsecase,
@@ -48,13 +40,6 @@ from application.ingestion.usecases.vectorize_documents import VectorizeDocument
 from config.app_config import AppConfig
 from domain.candidate.repositories.cv_metadata_repository_interface import (
     ICVMetadataRepository,
-)
-from domain.commons.services.offer_stats_query_service_interface import (
-    IOfferStatsQueryService,
-)
-from domain.commons.services.stat_snapshot_writer_interface import IStatSnapshotWriter
-from domain.identite.repositories.organisme_repository_interface import (
-    IOrganismeRepository,
 )
 from domain.identite.repositories.utilisateur_repository_interface import (
     IUtilisateurRepository,
@@ -462,40 +447,4 @@ def get_opportunity_details_usecase():
         offers_repository=offers_repository,
         concours_repository=concours_repository,
         metiers_repository=metiers_repository,
-    )
-
-
-@pytest.fixture
-def create_organisme_usecase():
-    organisme_repository = cast(
-        IOrganismeRepository, create_interface_aware_mock(IOrganismeRepository)
-    )
-    permission_service = OrganismePermissionService()
-    return CreateOrganismeUsecase(
-        organisme_repository=organisme_repository,
-        permission_service=permission_service,
-    )
-
-
-@pytest.fixture
-def get_organisme_usecase():
-    return GetOrganismeUsecase(
-        organisme_repository=Mock(spec=IOrganismeRepository),
-        permission_service=MagicMock(spec=OrganismePermissionService),
-    )
-
-
-@pytest.fixture
-def calculate_daily_stats_usecase():
-    offer_stats_query_service = cast(
-        IOfferStatsQueryService,
-        create_interface_aware_mock(IOfferStatsQueryService),
-    )
-    stat_snapshot_writer = cast(
-        IStatSnapshotWriter,
-        create_interface_aware_mock(IStatSnapshotWriter),
-    )
-    return CalculateDailyStatsUsecase(
-        offer_stats_query_service=offer_stats_query_service,
-        stat_snapshot_writer=stat_snapshot_writer,
     )

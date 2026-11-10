@@ -10,6 +10,7 @@ from referentiel.value_objects.country import Country
 from referentiel.value_objects.department import Department
 from referentiel.value_objects.domaine_fonctionnel import DomaineFonctionnel
 from referentiel.value_objects.experience_level import ExperienceLevel
+from referentiel.value_objects.localisation import Localisation
 from referentiel.value_objects.offer_conditions import Management, WorkingPlace
 from referentiel.value_objects.offer_nature import OfferNature
 from referentiel.value_objects.region import Region
@@ -34,7 +35,9 @@ URL = reverse("ingestion_fake_ts:offer_summaries")
 
 NOMBRE_REQUETES_ATTENDU = (
     1  # view JWT authentication
+    + 1  # JWT account's allowed networks
     + 2  # pagination: count + slice
+    + 1  # prefetch of the offers' localisations
     + 1  # ApiRequestLoggerMiddleware re-decodes the JWT to log the request
     + 2  # logging: DJ tries an UPDATE (manually-assigned pk) then falls back to INSERT
 )
@@ -98,7 +101,7 @@ def test_only_queries_non_archived_offers(mock_offer_summaries_container, jwt_cl
 def test_call_without_arg(mock_offer_summaries_container, jwt_client):
     offer = OfferFactory.create_entity(
         offer_nature=OfferNature.TERRITORIAL,
-        category=Category.A,
+        categories=[Category.B, Category.A],
     )
     _make_paginated_mock(mock_offer_summaries_container, total=1, offers_slice=[offer])
 
@@ -123,14 +126,14 @@ def test_call_without_arg(mock_offer_summaries_container, jwt_client):
     assert result["description2"] == offer.profile
     assert result["contractType"]["clientCode"] == offer.offer_nature.name
     assert result["contractType"]["label"] == offer.offer_nature.value
-    assert result["offerFamilyCategory"]["clientCode"] == offer.category.name
-    assert result["offerFamilyCategory"]["label"] == offer.category.value
+    assert result["offerFamilyCategory"]["clientCode"] == Category.B.name
+    assert result["offerFamilyCategory"]["label"] == Category.B.value
     assert result["startPublicationDate"] == "2024-01-15T00:00:00"
     assert result["country"] == [
         {
             "code": None,
-            "clientCode": str(offer.localisation.country),
-            "label": offer.localisation.country.short_name,
+            "clientCode": str(offer.main_localisation.country),
+            "label": offer.main_localisation.country.short_name,
             "active": True,
             "parentCode": None,
             "type": "country",
@@ -138,16 +141,94 @@ def test_call_without_arg(mock_offer_summaries_container, jwt_client):
             "hasChildren": False,
         }
     ]
-    assert result["region"][0]["clientCode"] == offer.localisation.region.code
-    assert result["region"][0]["label"] == offer.localisation.region.name
-    assert result["department"][0]["clientCode"] == offer.localisation.department.code
-    assert result["department"][0]["label"] == offer.localisation.department.name
+    assert result["region"][0]["clientCode"] == offer.main_localisation.region.code
+    assert result["region"][0]["label"] == offer.main_localisation.region.name
+    main = offer.main_localisation
+    assert result["department"][0]["clientCode"] == main.department.code
+    assert result["department"][0]["label"] == offer.main_localisation.department.name
+
+
+CAEN_LATITUDE = 49.18
+
+
+def test_offer_with_several_localisations_lists_each_of_them(
+    mock_offer_summaries_container, jwt_client
+):
+    caen = Localisation.from_department(Department(code="14"), latitude=CAEN_LATITUDE)
+    saint_lo = Localisation.from_department(Department(code="50"))
+    berlin = Localisation(
+        area=GeographicalArea.EUROPE,
+        country=Country("DEU"),
+        region=None,
+        department=None,
+        label="Berlin",
+    )
+    offer = OfferFactory.create_entity(localisations=[caen, saint_lo, berlin])
+    _make_paginated_mock(mock_offer_summaries_container, total=1, offers_slice=[offer])
+
+    result = jwt_client.get(URL).json()["data"][0]
+
+    assert [a["clientCode"] for a in result["geographicalLocation"]] == ["EUROPE"]
+    assert [c["clientCode"] for c in result["country"]] == ["FRA", "DEU"]
+    assert [r["clientCode"] for r in result["region"]] == ["28"]
+    assert [d["clientCode"] for d in result["department"]] == ["14", "50"]
+    assert result["latitude"] == CAEN_LATITUDE
+
+
+def test_geographical_location_lists_each_distinct_area(
+    mock_offer_summaries_container, jwt_client
+):
+    paris = Localisation.from_department(Department(code="75"))
+    berlin = Localisation(
+        area=GeographicalArea.EUROPE,
+        country=Country("DEU"),
+        region=None,
+        department=None,
+    )
+    pointe_a_pitre = Localisation.from_department(Department(code="971"))
+    offer = OfferFactory.create_entity(localisations=[paris, berlin, pointe_a_pitre])
+    _make_paginated_mock(mock_offer_summaries_container, total=1, offers_slice=[offer])
+
+    result = jwt_client.get(URL).json()["data"][0]
+
+    assert [
+        (area["clientCode"], area["label"], area["type"])
+        for area in result["geographicalLocation"]
+    ] == [
+        ("EUROPE", "Europe", "geographicalLocation"),
+        ("AMERIQUE", "Amérique", "geographicalLocation"),
+    ]
+
+
+def test_offer_abroad_has_a_country_but_no_region_nor_department(
+    mock_offer_summaries_container, jwt_client
+):
+    offer = OfferFactory.create_entity(
+        offer_nature=OfferNature.TERRITORIAL,
+        categories=[Category.A],
+        localisations=[
+            Localisation(
+                area=GeographicalArea.EUROPE,
+                country=Country("DEU"),
+                region=None,
+                department=None,
+            )
+        ],
+    )
+    _make_paginated_mock(mock_offer_summaries_container, total=1, offers_slice=[offer])
+
+    result = jwt_client.get(URL).json()["data"][0]
+
+    assert result["geographicalLocation"][0]["clientCode"] == "EUROPE"
+    assert result["country"][0]["clientCode"] == "DEU"
+    assert result["region"] == []
+    assert result["department"] == []
 
 
 def test_response_matches_openapi_schema(mock_offer_summaries_container, jwt_client):
     offer = OfferFactory.create_entity(
         offer_nature=OfferNature.TERRITORIAL,
-        category=Category.A,
+        categories=[Category.A],
     )
     _make_paginated_mock(mock_offer_summaries_container, total=1, offers_slice=[offer])
 
@@ -161,7 +242,7 @@ def test_response_matches_openapi_schema(mock_offer_summaries_container, jwt_cli
 def test_response_has_no_undeclared_fields(mock_offer_summaries_container, jwt_client):
     offer = OfferFactory.create_entity(
         offer_nature=OfferNature.TERRITORIAL,
-        category=Category.A,
+        categories=[Category.A],
     )
     _make_paginated_mock(mock_offer_summaries_container, total=1, offers_slice=[offer])
 
@@ -188,7 +269,7 @@ class TestOfferSummariesViewDbVerified:
             profile="Profil recherché",
             mission="Mission du poste",
             organization="Ministère Test",
-            category=Category.A,
+            categories=[Category.A],
             offer_nature=OfferNature.TERRITORIAL,
             offer_url=HttpUrl("https://exemple.gouv.fr/offres/e2e-1"),
             country="FRA",
@@ -241,10 +322,30 @@ class TestOfferSummariesViewDbVerified:
                     "contractTypeCountry": None,
                     "description1": "Mission du poste",
                     "description2": "Profil recherché",
-                    "description1Formatted": None,
-                    "description2Formatted": None,
-                    "salaryRange": None,
-                    "geographicalLocation": [],
+                    "description1Formatted": "<p>Mission du poste</p>",
+                    "description2Formatted": "<p>Profil recherché</p>",
+                    "salaryRange": {
+                        "code": None,
+                        "clientCode": "FPE",
+                        "label": "Fonction publique de l'État",
+                        "active": True,
+                        "parentCode": None,
+                        "type": "salaryRange",
+                        "parentType": "",
+                        "hasChildren": False,
+                    },
+                    "geographicalLocation": [
+                        {
+                            "code": None,
+                            "clientCode": "EUROPE",
+                            "label": "Europe",
+                            "active": True,
+                            "parentCode": None,
+                            "type": "geographicalLocation",
+                            "parentType": "",
+                            "hasChildren": False,
+                        }
+                    ],
                     "country": [
                         {
                             "code": None,
@@ -331,10 +432,36 @@ class TestOfferSummariesViewDbVerified:
         references = {offer["reference"] for offer in response.json()["data"]}
         assert references == {"REF-A", "REF-B", "REF-C"}
 
+    def test_organisation_description_comes_from_talentsoft_organisme(self, jwt_client):
+        OfferDjangoFactory(
+            reference="REF-AVEC-ORGANISME",
+            employer="Présentation de l'employeur",
+            talentsoft_organisme_entity_code=TalentsoftOrganismeDjangoFactory(
+                description="Description de la commune"
+            ),
+        )
+        OfferDjangoFactory(
+            reference="REF-SANS-ORGANISME",
+            employer="Présentation de l'employeur",
+        )
+
+        response = jwt_client.get(URL)
+
+        assert response.status_code == status.HTTP_200_OK
+        descriptions = {
+            offer["reference"]: offer["organisationDescription"]
+            for offer in response.json()["data"]
+        }
+        assert descriptions == {
+            "REF-AVEC-ORGANISME": "Description de la commune",
+            "REF-SANS-ORGANISME": None,
+        }
+
     def test_does_not_trigger_n_plus_one_queries(
         self, jwt_client, django_assert_num_queries
     ):
-        OfferDjangoFactory.create_batch(5)
+        for organisme in TalentsoftOrganismeDjangoFactory.create_batch(5):
+            OfferDjangoFactory(talentsoft_organisme_entity_code=organisme)
 
         with django_assert_num_queries(NOMBRE_REQUETES_ATTENDU):
             response = jwt_client.get(URL)

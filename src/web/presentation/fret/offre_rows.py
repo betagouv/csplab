@@ -20,9 +20,11 @@ from referentiel.value_objects.offer_conditions import (
     WorkingTime,
 )
 from referentiel.value_objects.offer_nature import OfferNature
+from referentiel.value_objects.required_document import RequiredDocument
 from referentiel.value_objects.verse import Verse
 
 from infrastructure.django_apps.referentiel.models.offer import OfferModel
+from presentation.commons.markdown import render_markdown
 
 _LABELS = {
     "reference": "Référence",
@@ -31,7 +33,7 @@ _LABELS = {
     "organization": "Organisme",
     "employer": "Employeur",
     "verse": "Versant",
-    "category": "Catégorie",
+    "categories": "Catégories",
     "offer_nature": "Nature de l'offre",
     "contract_kind": "Type de contrat",
     "job_vacancy": "Poste vacant",
@@ -66,9 +68,21 @@ _LABELS = {
     "updated_at": "Mise à jour le",
 }
 _HIDDEN = {"id", "source", "mission", "profile"}
+_LOCALISATION_ATTRS = {
+    "area": "area",
+    "country": "country",
+    "region": "region",
+    "department": "department",
+    "location_label": "label",
+    "latitude": "latitude",
+    "longitude": "longitude",
+}
+_LOCALISATION_SEPARATOR = " ; "
+_EMPTY_LOCALISATION_VALUE = "—"
+_MARKDOWN = {"employer", "exercise_conditions", "service_description", "complements"}
 _ENUM_LABELS = {
     "verse": lambda value: Verse(value).label,
-    "category": lambda value: Category(value).label,
+    "categories": lambda values: ", ".join(Category(value).label for value in values),
     "offer_nature": lambda value: OfferNature(value).label,
     "contract_kind": lambda value: ContractKind[value].label,
 }
@@ -101,6 +115,8 @@ def _format(field: models.Field, value: Any) -> SafeString:
         )
     if field.name == "contacts" and isinstance(value, list):
         return _contacts(value)
+    if field.name in _MARKDOWN:
+        return render_markdown(value, top_heading_level=2)
     if isinstance(value, dict | list):
         dumped = json.dumps(value, ensure_ascii=False, indent=2)
         return format_html("<pre>{}</pre>", dumped)
@@ -180,6 +196,10 @@ def _enum(enum: type[Enum]) -> Callable[[Any], str]:
     return lambda value: _enum_label(enum, value)
 
 
+def _enum_list(enum: type[Enum]) -> Callable[[list], str]:
+    return lambda values: _text_list([_enum_label(enum, value) for value in values])
+
+
 def _text_list(values: list) -> str:
     return ", ".join(str(value) for value in values)
 
@@ -190,8 +210,8 @@ _CRITERIA = [
     ("diplome", "Diplôme", None),
     ("experience", "Niveau d'expérience", _enum(ExperienceLevel)),
     ("specialisations", "Spécialisations", _text_list),
-    ("documents_requis", "Documents requis", _text_list),
-    ("competences_requises", "Compétences requises", _text_list),
+    ("documents_requis", "Documents requis", _enum_list(RequiredDocument)),
+    ("competences_requises", "Compétences requises", None),
     ("langues", "Langues", _languages),
 ]
 _CONDITIONS = [
@@ -204,7 +224,6 @@ _CONDITIONS = [
     ("ouvert_aux_militaires", "Ouvert aux militaires", _enum(OpenToMilitary)),
     ("lieu_de_travail", "Lieu de travail", _enum(WorkingPlace)),
     ("management", "Management", _enum(Management)),
-    ("complements", "Compléments", None),
     ("bases_legales", "Bases légales", None),
     ("note_ouverture_poste_url", "Note d'ouverture du poste", _link),
 ]
@@ -235,12 +254,37 @@ def _value(offre: OfferModel, field: models.Field) -> Any:
     return getattr(offre, field.attname)
 
 
+def _localisation_value(offre: OfferModel, attr: str) -> str | None:
+    values = [getattr(loc, attr) for loc in offre.localisations.all()]
+    if all(_is_empty(value) for value in values):
+        return None
+    return _LOCALISATION_SEPARATOR.join(
+        _EMPTY_LOCALISATION_VALUE if _is_empty(value) else str(value)
+        for value in values
+    )
+
+
 def offre_rows(offre: OfferModel) -> list[list[SafeString]]:
-    fields = {field.name: field for field in offre._meta.concrete_fields}
-    ordered = [name for name in _LABELS if name in fields]
+    fields = {
+        field.name: field
+        for field in offre._meta.concrete_fields
+        if field.name not in _LOCALISATION_ATTRS
+    }
+    ordered = [
+        name for name in _LABELS if name in fields or name in _LOCALISATION_ATTRS
+    ]
     ordered += [name for name in fields if name not in _LABELS and name not in _HIDDEN]
     rows = []
     for name in ordered:
+        if name in _LOCALISATION_ATTRS:
+            value = _localisation_value(offre, _LOCALISATION_ATTRS[name])
+            rows.append(
+                [
+                    format_html("<strong>{}</strong>", _LABELS[name]),
+                    _NOT_PROVIDED if value is None else linebreaksbr(value),
+                ]
+            )
+            continue
         field = fields[name]
         value = _value(offre, field)
         if name in _JSON_GROUPS:

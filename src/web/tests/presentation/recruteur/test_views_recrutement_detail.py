@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from unittest.mock import MagicMock, patch
 from uuid import UUID, uuid4
 
@@ -7,18 +7,12 @@ from django.db import connection
 from django.test.utils import CaptureQueriesContext
 from django.urls import reverse
 from faker import Faker
-from rest_framework import status
+from rest_framework import serializers, status
 
-from application.recruteur.dtos.recrutement_read_models import (
-    CandidatDto,
-    CandidatureKanbanDto,
-    CandidatureListeReadModel,
-    EtapeDto,
-    EtapeKanbanReadModel,
-    RecrutementKanbanReadModel,
+from application.identite.context_services.organisme_permission_service import (
+    OrganismePermissionService,
 )
 from domain.commons.errors.organisme_errors import OrganismeNexistePas
-from domain.identite.errors.organisme_permission_errors import AccesOrganismeRefuse
 from domain.recruteur.errors.recrutement_errors import (
     CandidatureInexistante,
     MotifRefusRequis,
@@ -32,15 +26,22 @@ from domain.recruteur.value_objects.roles import (
     AgentOrganismeRole,
     AgentRecrutementRole,
 )
+from infrastructure.django_apps.candidate.models.candidature import CandidatureModel
 from infrastructure.django_apps.recruteur.models.etape import EtapeModel
 from infrastructure.factories.candidate.candidature_django_factory import (
     CandidatureDjangoFactory,
 )
 from infrastructure.factories.identite.organisme_django_factory import (
+    OrganismeDjangoFactory,
     create_organisme_with_agent,
 )
 from infrastructure.factories.identite.utilisateur_django_factory import (
     UtilisateurDjangoFactory,
+)
+from infrastructure.factories.messagerie.conversation_django_factory import (
+    ConversationDjangoFactory,
+    ConversationLectureDjangoFactory,
+    MessageDjangoFactory,
 )
 from infrastructure.factories.recruteur.candidature_recruteur_factory import (
     CandidatureRecruteurFactory,
@@ -56,52 +57,12 @@ from infrastructure.factories.recruteur.recrutement_django_factory import (
 from infrastructure.factories.referentiel.offer_django_factory import (
     OfferDjangoFactory,
 )
+from presentation.commons.pagination import TaillePageNumberPagination
 
 fake = Faker()
 
-
-def _candidature_liste_read_models(
-    count: int = 11,
-) -> list[CandidatureListeReadModel]:
-    return [
-        CandidatureListeReadModel(
-            uuid=uuid4(),
-            date_soumission=datetime.now(tz=timezone.utc),
-            date_derniere_activite=datetime.now(tz=timezone.utc),
-            candidat=CandidatDto(uuid=uuid4(), nom="Dupont", prenom="Alice"),
-            etape=EtapeDto(etape_uuid=uuid4(), nom="Réception", categorie="ENTREE"),
-        )
-        for _ in range(count)
-    ]
-
-
-def _recrutement_kanban_read_model() -> RecrutementKanbanReadModel:
-    return RecrutementKanbanReadModel(
-        offer_id=UUID(RECRUTEMENT_UUID),
-        etapes=[
-            EtapeKanbanReadModel(
-                etape_uuid=uuid4(),
-                nom="Réception des candidatures",
-                categorie="ENTREE",
-                candidatures=[
-                    CandidatureKanbanDto(
-                        uuid=uuid4(),
-                        date_soumission=datetime.now(tz=timezone.utc),
-                        date_derniere_activite=datetime.now(tz=timezone.utc),
-                        candidat=CandidatDto(
-                            uuid=uuid4(), nom="Dupont", prenom="Alice"
-                        ),
-                    )
-                ],
-            ),
-            EtapeKanbanReadModel(
-                etape_uuid=uuid4(),
-                nom="Candidature acceptée",
-                categorie="ACCEPTE",
-                candidatures=[],
-            ),
-        ],
-    )
+TAILLE_PAGE = 2
+NOMBRE_CANDIDATURES = 5
 
 
 ORGANISME_UUID = fake.uuid4()
@@ -116,27 +77,9 @@ RECRUTEMENT_CANDIDATURES_ETAPE_URL = reverse(
     "recruteur:organisme_recrutement_candidatures_etape",
     kwargs={"organisme_uuid": ORGANISME_UUID, "recrutement_uuid": RECRUTEMENT_UUID},
 )
-RECRUTEMENT_KANBAN_URL = reverse(
-    "recruteur:organisme_recrutement_kanban",
-    kwargs={"organisme_uuid": ORGANISME_UUID, "recrutement_uuid": RECRUTEMENT_UUID},
-)
 RECRUTEMENT_LISTE_URL = reverse(
     "recruteur:organisme_recrutement_liste",
     kwargs={"organisme_uuid": ORGANISME_UUID, "recrutement_uuid": RECRUTEMENT_UUID},
-)
-UNKNOWN_RECRUTEMENT_KANBAN_URL = reverse(
-    "recruteur:organisme_recrutement_kanban",
-    kwargs={
-        "organisme_uuid": ORGANISME_UUID,
-        "recrutement_uuid": UNKNOWN_RECRUTEMENT_UUID,
-    },
-)
-UNKNOWN_RECRUTEMENT_LISTE_URL = reverse(
-    "recruteur:organisme_recrutement_liste",
-    kwargs={
-        "organisme_uuid": ORGANISME_UUID,
-        "recrutement_uuid": UNKNOWN_RECRUTEMENT_UUID,
-    },
 )
 RECRUTEMENT_DETAIL_URL = reverse(
     "recruteur:organisme_recrutement",
@@ -147,8 +90,9 @@ NOMBRE_REQUETES_LISTE_ATTENDU = (
     2  # authentication (view + RateLimitHeadersMiddleware)
     + 1  # organisme
     + 1  # agent's role
-    + 1  # recrutement belongs to organisme (exists check)
+    + 1  # recrutement belongs to organisme
     + 2  # pagination: count + page
+    + 1  # etapes
 )
 
 
@@ -169,6 +113,16 @@ def _detail_url(organisme_id, recrutement_id) -> str:
     )
 
 
+def _authorized_actions(organisme_role, recrutement_role) -> list[str]:
+    permissions = OrganismePermissionService()
+    return [
+        action.value
+        for action in permissions.authorized_actions_recrutement(
+            organisme_role, recrutement_role=recrutement_role
+        )
+    ]
+
+
 class TestRecrutementDetailView:
     def test_anonymous_access_is_unauthorized(self, api_client):
         response = api_client.get(RECRUTEMENT_DETAIL_URL)
@@ -178,7 +132,9 @@ class TestRecrutementDetailView:
         _, organisme = create_organisme_with_agent(
             role=AgentOrganismeRole.SUPERVISEUR, utilisateur=test_user
         )
-        offre = OfferDjangoFactory(title="Chargé de mission numérique", category="A")
+        offre = OfferDjangoFactory(
+            title="Chargé de mission numérique", categories=["B", "A"]
+        )
         recrutement = RecrutementDjangoFactory(organisme=organisme, offre=offre)
 
         response = authenticated_client.get(_detail_url(organisme.id, recrutement.pk))
@@ -190,22 +146,24 @@ class TestRecrutementDetailView:
             "intitule",
             "archive",
             "date_publication",
-            "localisation",
+            "localisations",
             "organisme_recruteur",
             "categorie_offre",
             "etapes",
             "recrutement_role",
+            "authorized_actions",
         }
         assert payload["recrutement_role"] is None
         assert payload["uuid"] == str(recrutement.pk)
         assert payload["intitule"] == "Chargé de mission numérique"
         assert payload["archive"] is False
-        assert payload["categorie_offre"] == "A"
+        assert payload["categorie_offre"] == "B"
         assert payload["organisme_recruteur"] == {
             "nom": organisme.nom,
             "siret": organisme.siret,
         }
-        assert set(payload["localisation"]) == {
+        [localisation] = payload["localisations"]
+        assert set(localisation) == {
             "zone_geographique",
             "pays",
             "region",
@@ -215,35 +173,53 @@ class TestRecrutementDetailView:
             "longitude",
         }
 
-    def test_localisation_with_nullable_offre_columns(
-        self, authenticated_client, test_user
-    ):
+    def test_lists_every_localisation_in_order(self, authenticated_client, test_user):
         _, organisme = create_organisme_with_agent(
             role=AgentOrganismeRole.SUPERVISEUR, utilisateur=test_user
         )
         offre = OfferDjangoFactory(
-            area=None,
-            country=None,
-            region=None,
-            department=None,
-            location_label=None,
-            latitude=None,
-            longitude=None,
+            localisations=[
+                {"area": "EU", "country": "FRA", "region": "28", "department": "14"},
+                {"area": "EU", "country": "DEU", "label": "Berlin"},
+            ]
         )
         recrutement = RecrutementDjangoFactory(organisme=organisme, offre=offre)
 
         response = authenticated_client.get(_detail_url(organisme.id, recrutement.pk))
 
         assert response.status_code == status.HTTP_200_OK
-        assert response.json()["localisation"] == {
-            "zone_geographique": "",
-            "pays": "",
-            "region": "",
-            "departement": "",
-            "localisation_label": "",
-            "latitude": None,
-            "longitude": None,
-        }
+        assert response.json()["localisations"] == [
+            {
+                "zone_geographique": "EU",
+                "pays": "FRA",
+                "region": "28",
+                "departement": "14",
+                "localisation_label": "",
+                "latitude": None,
+                "longitude": None,
+            },
+            {
+                "zone_geographique": "EU",
+                "pays": "DEU",
+                "region": None,
+                "departement": None,
+                "localisation_label": "Berlin",
+                "latitude": None,
+                "longitude": None,
+            },
+        ]
+
+    def test_offre_without_localisation(self, authenticated_client, test_user):
+        _, organisme = create_organisme_with_agent(
+            role=AgentOrganismeRole.SUPERVISEUR, utilisateur=test_user
+        )
+        offre = OfferDjangoFactory(localisations=[])
+        recrutement = RecrutementDjangoFactory(organisme=organisme, offre=offre)
+
+        response = authenticated_client.get(_detail_url(organisme.id, recrutement.pk))
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json()["localisations"] == []
 
     def test_etapes_follow_ordre_etapes(self, authenticated_client, test_user):
         _, organisme = create_organisme_with_agent(
@@ -335,6 +311,9 @@ class TestRecrutementDetailView:
         else:
             expected_role = recrutement_role.value if recrutement_role else None
             assert response.json()["recrutement_role"] == expected_role
+            assert response.json()["authorized_actions"] == _authorized_actions(
+                organisme_role, recrutement_role
+            )
 
     def test_staff_gets_detail_without_organisme_role(self, api_client):
         api_client.force_login(UtilisateurDjangoFactory(is_staff=True))
@@ -343,6 +322,9 @@ class TestRecrutementDetailView:
         response = api_client.get(_detail_url(recrutement.organisme_id, recrutement.pk))
 
         assert response.status_code == status.HTTP_200_OK
+        assert response.json()["authorized_actions"] == _authorized_actions(
+            AgentOrganismeRole.SUPERVISEUR, None
+        )
 
     def test_returns_404_for_unknown_recrutement(self, authenticated_client, test_user):
         _, organisme = create_organisme_with_agent(
@@ -390,199 +372,323 @@ class TestRecrutementDetailView:
         assert len(grand_queries) == len(petit_queries)
 
 
-class TestRecrutementKanbanView:
-    @pytest.fixture(autouse=True)
-    def _default_usecase(self, container):
-        container.get_recrutement_kanban_usecase.return_value.execute.return_value = (
-            _recrutement_kanban_read_model()
-        )
-
-    def test_anonymous_access_is_unauthorized(self, api_client):
-        response = api_client.get(RECRUTEMENT_KANBAN_URL)
-        assert response.status_code == status.HTTP_401_UNAUTHORIZED
-
-    def test_returns_200(self, authenticated_client):
-        response = authenticated_client.get(RECRUTEMENT_KANBAN_URL)
-        assert response.status_code == status.HTTP_200_OK
-
-    def test_response_structure(self, authenticated_client):
-        data = authenticated_client.get(RECRUTEMENT_KANBAN_URL).json()
-        assert set(data) == {"uuid", "etapes"}
-        assert isinstance(data["etapes"], list)
-
-    def test_etape_structure(self, authenticated_client):
-        etape = authenticated_client.get(RECRUTEMENT_KANBAN_URL).json()["etapes"][0]
-        assert "uuid" in etape
-        assert "nom" in etape
-        assert "categorie" in etape
-        assert "candidatures" in etape
-        assert isinstance(etape["candidatures"], list)
-
-    def test_candidature_structure(self, authenticated_client):
-        data = authenticated_client.get(RECRUTEMENT_KANBAN_URL).json()
-        candidature = data["etapes"][0]["candidatures"][0]
-        assert "uuid" in candidature
-        assert "date_soumission" in candidature
-        assert "candidat" in candidature
-        assert "uuid" in candidature["candidat"]
-        assert "nom" in candidature["candidat"]
-        assert "prenom" in candidature["candidat"]
-
-    def test_etapes_order(self, authenticated_client):
-        etapes = authenticated_client.get(RECRUTEMENT_KANBAN_URL).json()["etapes"]
-        assert etapes[0]["categorie"] == "ENTREE"
-        assert etapes[-1]["categorie"] == "ACCEPTE"
-
-    def test_etape_accepte_has_no_candidatures(self, authenticated_client):
-        etape_accepte = authenticated_client.get(RECRUTEMENT_KANBAN_URL).json()[
-            "etapes"
-        ][-1]
-        assert etape_accepte["categorie"] == "ACCEPTE"
-        assert etape_accepte["candidatures"] == []
-
-    def test_returns_404_for_unknown_recrutement(self, container, authenticated_client):
-        container.get_recrutement_kanban_usecase.return_value.execute.return_value = (
-            None
-        )
-
-        response = authenticated_client.get(UNKNOWN_RECRUTEMENT_KANBAN_URL)
-        assert response.status_code == status.HTTP_404_NOT_FOUND
-        assert response.json() == {"error": "Not found."}
-
-    def test_returns_403_when_not_authorized(self, container, authenticated_client):
-        container.get_recrutement_kanban_usecase.return_value.execute.side_effect = (
-            AccesOrganismeRefuse(UUID(fake.uuid4()))
-        )
-
-        response = authenticated_client.get(RECRUTEMENT_KANBAN_URL)
-        assert response.status_code == status.HTTP_403_FORBIDDEN
-        assert response.json() == {"error": "Forbidden."}
-
-    def test_returns_404_for_unknown_organisme(self, container, authenticated_client):
-        container.get_recrutement_kanban_usecase.return_value.execute.side_effect = (
-            OrganismeNexistePas("not found")
-        )
-
-        response = authenticated_client.get(RECRUTEMENT_KANBAN_URL)
-        assert response.status_code == status.HTTP_404_NOT_FOUND
-        assert response.json() == {"error": "Not found."}
-
-    def test_returns_500_on_unexpected_error(self, container, authenticated_client):
-        container.get_recrutement_kanban_usecase.return_value.execute.side_effect = (
-            Exception("unexpected")
-        )
-
-        response = authenticated_client.get(RECRUTEMENT_KANBAN_URL)
-        assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
-        assert response.json() == {"error": "Unexpected error"}
+@pytest.fixture(name="recrutement_liste")
+def recrutement_liste_fixture(test_user):
+    _, organisme = create_organisme_with_agent(
+        role=AgentOrganismeRole.SUPERVISEUR,
+        utilisateur=test_user,
+        id=UUID(ORGANISME_UUID),
+    )
+    offer = OfferDjangoFactory(id=UUID(RECRUTEMENT_UUID))
+    return RecrutementDjangoFactory(organisme=organisme, offre=offer)
 
 
+def _etapes_attendues(recrutement) -> list[dict]:
+    etapes = {
+        str(etape.id): etape
+        for etape in EtapeModel.objects.filter(recrutement=recrutement)
+    }
+    return [
+        {
+            "uuid": etape_id,
+            "nom": etapes[etape_id].nom,
+            "categorie": CategorieEtapeRecrutement(etapes[etape_id].categorie).name,
+        }
+        for etape_id in recrutement.ordre_etapes
+    ]
+
+
+@pytest.mark.django_db
 class TestRecrutementListeView:
-    @pytest.fixture(autouse=True)
-    def _default_usecase(self, container):
-        mock_usecase = container.get_recrutement_liste_usecase.return_value
-        mock_usecase.execute.return_value = MagicMock()
-        mock_usecase.execute.return_value.count.return_value = 11
-        mock_usecase.execute.return_value.slice.return_value = (
-            _candidature_liste_read_models()
-        )
-
     def test_anonymous_access_is_unauthorized(self, api_client):
         response = api_client.get(RECRUTEMENT_LISTE_URL)
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
-    def test_returns_200(self, authenticated_client):
+    def test_candidature_structure(self, authenticated_client, recrutement_liste):
+        etape = EtapeModel.objects.get(
+            recrutement=recrutement_liste,
+            categorie=CategorieEtapeRecrutement.ENTREE.value,
+        )
+        candidature = CandidatureDjangoFactory(etape=etape)
+
         response = authenticated_client.get(RECRUTEMENT_LISTE_URL)
+
         assert response.status_code == status.HTTP_200_OK
+        dt = serializers.DateTimeField().to_representation
+        assert response.json() == {
+            "count": 1,
+            "next": None,
+            "previous": None,
+            "results": [
+                {
+                    "unread_conversations": 0,
+                    "uuid": str(candidature.id),
+                    "date_soumission": dt(candidature.created_at),
+                    "candidat": {
+                        "uuid": str(candidature.candidat_id),
+                        "nom": candidature.candidat.utilisateur.last_name,
+                        "prenom": candidature.candidat.utilisateur.first_name,
+                    },
+                    "date_derniere_activite": dt(candidature.updated_at),
+                    "etape": {
+                        "uuid": str(etape.id),
+                        "nom": etape.nom,
+                        "categorie": "ENTREE",
+                    },
+                }
+            ],
+            "etapes": _etapes_attendues(recrutement_liste),
+        }
 
-    def test_pagination_structure(self, authenticated_client):
-        data = authenticated_client.get(RECRUTEMENT_LISTE_URL).json()
-        assert "count" in data
-        assert "next" in data
-        assert "previous" in data
-        assert "results" in data
-        assert isinstance(data["results"], list)
-
-    def test_total_count(self, authenticated_client):
-        data = authenticated_client.get(RECRUTEMENT_LISTE_URL).json()
-        assert data["count"] == 11  # noqa
-
-    def test_candidature_structure(self, authenticated_client):
-        candidature = authenticated_client.get(RECRUTEMENT_LISTE_URL).json()["results"][
-            0
-        ]
-        assert "uuid" in candidature
-        assert "date_soumission" in candidature
-        assert "candidat" in candidature
-        assert "etape" in candidature
-
-    def test_etape_structure(self, authenticated_client):
-        etape = authenticated_client.get(RECRUTEMENT_LISTE_URL).json()["results"][0][
-            "etape"
-        ]
-        assert "uuid" in etape
-        assert "nom" in etape
-        assert "categorie" in etape
-
-    def test_candidat_structure(self, authenticated_client):
-        candidat = authenticated_client.get(RECRUTEMENT_LISTE_URL).json()["results"][0][
-            "candidat"
-        ]
-        assert "uuid" in candidat
-        assert "nom" in candidat
-        assert "prenom" in candidat
-
-    def test_pagination_second_page(self, container, authenticated_client):
-        mock_usecase = container.get_recrutement_liste_usecase.return_value
-        mock_usecase.execute.return_value.slice.return_value = (
-            _candidature_liste_read_models(5)
+    def test_counts_unread_conversations_of_the_current_agent(
+        self, authenticated_client, recrutement_liste, test_user
+    ):
+        etape = EtapeModel.objects.filter(recrutement=recrutement_liste).first()
+        candidature = CandidatureDjangoFactory(etape=etape)
+        ConversationDjangoFactory.create_batch(
+            2,
+            candidature=candidature,
+            with_message=True,
+            with_message__par_candidat=True,
+        )
+        answered = MessageDjangoFactory(
+            conversation=ConversationDjangoFactory(candidature=candidature),
+            auteur=test_user,
+        )
+        read = MessageDjangoFactory(
+            conversation=ConversationDjangoFactory(candidature=candidature),
+            par_candidat=True,
+        )
+        ConversationLectureDjangoFactory(
+            conversation=read.conversation,
+            utilisateur=test_user,
+            read_at=read.created_at,
+        )
+        unread_by_another_agent_only = CandidatureDjangoFactory(etape=etape)
+        ConversationDjangoFactory(
+            candidature=unread_by_another_agent_only,
+            with_message=True,
+            with_message__par_candidat=True,
+        )
+        ConversationLectureDjangoFactory(
+            conversation=answered.conversation,
+            read_at=answered.created_at,
         )
 
-        response = authenticated_client.get(RECRUTEMENT_LISTE_URL + "?page=2&taille=5")
+        results = authenticated_client.get(RECRUTEMENT_LISTE_URL).json()["results"]
+
+        assert {r["uuid"]: r["unread_conversations"] for r in results} == {
+            str(candidature.id): 2,
+            str(unread_by_another_agent_only.id): 1,
+        }
+
+    def test_returns_only_candidatures_of_the_recrutement(
+        self, authenticated_client, recrutement_liste
+    ):
+        etape = EtapeModel.objects.filter(recrutement=recrutement_liste).first()
+        candidature = CandidatureDjangoFactory(etape=etape)
+        CandidatureDjangoFactory()
+
+        data = authenticated_client.get(RECRUTEMENT_LISTE_URL).json()
+
+        assert data["count"] == 1
+        assert [c["uuid"] for c in data["results"]] == [str(candidature.id)]
+
+    @pytest.mark.parametrize(
+        "role",
+        [AgentRecrutementRole.CONTRIBUTEUR, AgentRecrutementRole.RECRUTEUR],
+    )
+    def test_membre_assigned_to_recrutement_is_allowed(
+        self, authenticated_client, test_user, role
+    ):
+        agent, organisme = create_organisme_with_agent(
+            role=AgentOrganismeRole.AGENT,
+            utilisateur=test_user,
+            id=UUID(ORGANISME_UUID),
+        )
+        recrutement = RecrutementDjangoFactory(
+            organisme=organisme,
+            offre=OfferDjangoFactory(id=UUID(RECRUTEMENT_UUID)),
+            agent_link__agent=agent,
+            agent_link__role=role.value,
+        )
+        etape = EtapeModel.objects.filter(recrutement=recrutement).first()
+        candidature = CandidatureDjangoFactory(etape=etape)
+
+        response = authenticated_client.get(RECRUTEMENT_LISTE_URL)
+
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
-        assert len(data["results"]) == 5  # noqa
+        assert [c["uuid"] for c in data["results"]] == [str(candidature.id)]
+        assert data["etapes"] == _etapes_attendues(recrutement)
+
+    def test_etapes_follow_the_order_of_the_recrutement(
+        self, authenticated_client, recrutement_liste
+    ):
+        recrutement_liste.ordre_etapes = list(reversed(recrutement_liste.ordre_etapes))
+        recrutement_liste.save(update_fields=["ordre_etapes"])
+
+        etapes = authenticated_client.get(RECRUTEMENT_LISTE_URL).json()["etapes"]
+
+        assert [e["uuid"] for e in etapes] == recrutement_liste.ordre_etapes
+
+    def test_etapes_include_etapes_without_candidatures(
+        self, authenticated_client, recrutement_liste
+    ):
+        data = authenticated_client.get(RECRUTEMENT_LISTE_URL).json()
+
+        assert data["results"] == []
+        assert data["etapes"] == _etapes_attendues(recrutement_liste)
+        assert data["etapes"]
+
+    def test_etapes_are_returned_on_every_page(
+        self, authenticated_client, recrutement_liste
+    ):
+        etape = EtapeModel.objects.filter(recrutement=recrutement_liste).first()
+        CandidatureDjangoFactory.create_batch(NOMBRE_CANDIDATURES, etape=etape)
+
+        with patch.object(TaillePageNumberPagination, "max_page_size", TAILLE_PAGE):
+            premiere, seconde = (
+                authenticated_client.get(
+                    f"{RECRUTEMENT_LISTE_URL}?page={page}&taille={TAILLE_PAGE}"
+                ).json()
+                for page in (1, 2)
+            )
+
+        etapes = _etapes_attendues(recrutement_liste)
+        assert premiere["etapes"] == seconde["etapes"] == etapes
+
+    def test_candidature_order(self, authenticated_client, recrutement_liste):
+        premiere_etape, seconde_etape = list(
+            EtapeModel.objects.filter(recrutement=recrutement_liste)
+        )[:2]
+        maintenant = datetime.now(tz=timezone.utc)
+        EtapeModel.objects.filter(pk=seconde_etape.pk).update(
+            updated_at=maintenant - timedelta(days=2)
+        )
+        EtapeModel.objects.filter(pk=premiere_etape.pk).update(updated_at=maintenant)
+
+        creee_maintenant = CandidatureDjangoFactory(etape=premiere_etape)
+        creee_hier = CandidatureDjangoFactory(etape=premiere_etape)
+        ancienne = CandidatureDjangoFactory(etape=seconde_etape)
+        CandidatureModel.objects.filter(pk=creee_maintenant.pk).update(
+            created_at=maintenant
+        )
+        CandidatureModel.objects.filter(pk=creee_hier.pk).update(
+            created_at=maintenant - timedelta(days=1)
+        )
+
+        data = authenticated_client.get(RECRUTEMENT_LISTE_URL).json()
+
+        assert [c["uuid"] for c in data["results"]] == [
+            str(ancienne.pk),
+            str(creee_hier.pk),
+            str(creee_maintenant.pk),
+        ]
+
+    def test_date_derniere_activite_prefers_recruteur_update(
+        self, authenticated_client, recrutement_liste
+    ):
+        etape = EtapeModel.objects.filter(recrutement=recrutement_liste).first()
+        mise_a_jour = datetime(2026, 1, 2, tzinfo=timezone.utc)
+        CandidatureDjangoFactory(etape=etape, updated_by_recruteur=mise_a_jour)
+
+        result = authenticated_client.get(RECRUTEMENT_LISTE_URL).json()["results"][0]
+
+        assert datetime.fromisoformat(result["date_derniere_activite"]) == mise_a_jour
+
+    @pytest.mark.parametrize(
+        ("query", "max_page_size", "has_previous"),
+        [
+            pytest.param(f"?taille={TAILLE_PAGE}", None, False, id="first_page"),
+            pytest.param(f"?page=2&taille={TAILLE_PAGE}", None, True, id="second_page"),
+            pytest.param("?taille=50", TAILLE_PAGE, False, id="capped_to_max"),
+        ],
+    )
+    def test_pagination_limits_page_size(
+        self,
+        authenticated_client,
+        recrutement_liste,
+        query,
+        max_page_size,
+        has_previous,
+    ):
+        etape = EtapeModel.objects.filter(recrutement=recrutement_liste).first()
+        CandidatureDjangoFactory.create_batch(NOMBRE_CANDIDATURES, etape=etape)
+
+        with patch.object(
+            TaillePageNumberPagination,
+            "max_page_size",
+            max_page_size or TaillePageNumberPagination.max_page_size,
+        ):
+            data = authenticated_client.get(RECRUTEMENT_LISTE_URL + query).json()
+
+        assert data["count"] == NOMBRE_CANDIDATURES
+        assert len(data["results"]) == TAILLE_PAGE
         assert data["next"] is not None
-        assert data["previous"] is not None
+        assert (data["previous"] is not None) is has_previous
 
-    def test_no_next_on_last_page(self, authenticated_client):
-        data = authenticated_client.get(RECRUTEMENT_LISTE_URL + "?taille=20").json()
-        assert data["next"] is None
-        assert data["previous"] is None
+    def test_unknown_page_returns_404(self, authenticated_client, recrutement_liste):
+        response = authenticated_client.get(RECRUTEMENT_LISTE_URL + "?page=2")
+        assert response.status_code == status.HTTP_404_NOT_FOUND
 
-    def test_returns_404_for_unknown_recrutement(self, container, authenticated_client):
-        container.get_recrutement_liste_usecase.return_value.execute.return_value = None
+    @pytest.mark.parametrize(
+        ("organisme_uuid", "recrutement_uuid"),
+        [
+            pytest.param(ORGANISME_UUID, UNKNOWN_RECRUTEMENT_UUID, id="recrutement"),
+            pytest.param(UNKNOWN_RECRUTEMENT_UUID, RECRUTEMENT_UUID, id="organisme"),
+        ],
+    )
+    def test_returns_404_for_unknown(
+        self, authenticated_client, recrutement_liste, organisme_uuid, recrutement_uuid
+    ):
+        response = authenticated_client.get(
+            reverse(
+                "recruteur:organisme_recrutement_liste",
+                kwargs={
+                    "organisme_uuid": organisme_uuid,
+                    "recrutement_uuid": recrutement_uuid,
+                },
+            )
+        )
 
-        response = authenticated_client.get(UNKNOWN_RECRUTEMENT_LISTE_URL)
         assert response.status_code == status.HTTP_404_NOT_FOUND
         assert response.json() == {"error": "Not found."}
 
-    def test_returns_403_when_not_authorized(self, container, authenticated_client):
-        container.get_recrutement_liste_usecase.return_value.execute.side_effect = (
-            AccesOrganismeRefuse(UUID(fake.uuid4()))
+    def test_returns_403_when_not_authorized(self, authenticated_client):
+        organisme = OrganismeDjangoFactory(id=UUID(ORGANISME_UUID))
+        RecrutementDjangoFactory(
+            organisme=organisme, offre=OfferDjangoFactory(id=UUID(RECRUTEMENT_UUID))
         )
 
         response = authenticated_client.get(RECRUTEMENT_LISTE_URL)
+
         assert response.status_code == status.HTTP_403_FORBIDDEN
         assert response.json() == {"error": "Forbidden."}
 
-    def test_returns_404_for_unknown_organisme(self, container, authenticated_client):
-        container.get_recrutement_liste_usecase.return_value.execute.side_effect = (
-            OrganismeNexistePas("not found")
-        )
+    def test_returns_500_on_unexpected_error(
+        self, authenticated_client, recrutement_liste
+    ):
+        with patch.object(
+            OrganismePermissionService,
+            "can_execute",
+            side_effect=Exception("unexpected"),
+        ):
+            response = authenticated_client.get(RECRUTEMENT_LISTE_URL)
 
-        response = authenticated_client.get(RECRUTEMENT_LISTE_URL)
-        assert response.status_code == status.HTTP_404_NOT_FOUND
-        assert response.json() == {"error": "Not found."}
-
-    def test_returns_500_on_unexpected_error(self, container, authenticated_client):
-        container.get_recrutement_liste_usecase.return_value.execute.side_effect = (
-            Exception("unexpected")
-        )
-
-        response = authenticated_client.get(RECRUTEMENT_LISTE_URL)
         assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
         assert response.json() == {"error": "Unexpected error"}
+
+    def test_does_not_trigger_n_plus_one_queries(
+        self, authenticated_client, recrutement_liste, django_assert_num_queries
+    ):
+        etape = EtapeModel.objects.filter(recrutement=recrutement_liste).first()
+        CandidatureDjangoFactory.create_batch(5, etape=etape)
+
+        with django_assert_num_queries(NOMBRE_REQUETES_LISTE_ATTENDU):
+            response = authenticated_client.get(RECRUTEMENT_LISTE_URL)
+
+        assert response.status_code == status.HTTP_200_OK
 
 
 class TestRecrutementCandidaturesEtapeView:
@@ -596,7 +702,7 @@ class TestRecrutementCandidaturesEtapeView:
 
     def test_echoes_candidatures_as_reussites(self, container, authenticated_client):
         candidatures = CandidatureRecruteurFactory.create_entity_batch(3)
-        mock_usecase = container.changer_etape_candidatures_usecase.return_value
+        mock_usecase = container.change_etape_candidatures_usecase.return_value
         mock_usecase.execute.return_value = {
             "successes": candidatures,
             "failures": [],
@@ -652,7 +758,7 @@ class TestRecrutementCandidaturesEtapeView:
     def test_returns_404_for_unknown(
         self, container, authenticated_client, entity_id, domain_error
     ):
-        mock_usecase = container.changer_etape_candidatures_usecase.return_value
+        mock_usecase = container.change_etape_candidatures_usecase.return_value
         mock_usecase.execute.side_effect = domain_error(entity_id)
 
         response = authenticated_client.patch(
@@ -665,7 +771,7 @@ class TestRecrutementCandidaturesEtapeView:
         assert response.json() == {"error": domain_error(entity_id).message}
 
     def test_returns_400_for_unknown_etape(self, container, authenticated_client):
-        mock_usecase = container.changer_etape_candidatures_usecase.return_value
+        mock_usecase = container.change_etape_candidatures_usecase.return_value
         uuid = fake.uuid4()
         mock_usecase.execute.side_effect = RecrutementEtapeInexistante(
             uuid, RECRUTEMENT_UUID
@@ -683,7 +789,7 @@ class TestRecrutementCandidaturesEtapeView:
         }
 
     def test_returns_500_on_unexpected_error(self, container, authenticated_client):
-        mock_usecase = container.changer_etape_candidatures_usecase.return_value
+        mock_usecase = container.change_etape_candidatures_usecase.return_value
         mock_usecase.execute.side_effect = Exception("unexpected")
 
         response = authenticated_client.patch(
@@ -709,7 +815,7 @@ class TestRecrutementCandidaturesEtapeView:
     def test_returns_400_when_motif_refus_required(
         self, container, authenticated_client
     ):
-        mock_usecase = container.changer_etape_candidatures_usecase.return_value
+        mock_usecase = container.change_etape_candidatures_usecase.return_value
         uuid = fake.uuid4()
         mock_usecase.execute.side_effect = MotifRefusRequis(uuid)
 
@@ -721,70 +827,6 @@ class TestRecrutementCandidaturesEtapeView:
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert response.json() == {"error": MotifRefusRequis(uuid).message}
-
-
-class TestRecrutementKanbanViewDbVerified:
-    def test_returns_persisted_kanban(self, authenticated_client, test_user):
-        _, organisme = create_organisme_with_agent(
-            role=AgentOrganismeRole.SUPERVISEUR,
-            utilisateur=test_user,
-            id=UUID(ORGANISME_UUID),
-        )
-        offer = OfferDjangoFactory(id=UUID(RECRUTEMENT_UUID))
-        recrutement = RecrutementDjangoFactory(organisme=organisme, offre=offer)
-
-        response = authenticated_client.get(RECRUTEMENT_KANBAN_URL)
-
-        assert response.status_code == status.HTTP_200_OK
-        data = response.json()
-        assert data["uuid"] == str(recrutement.offre_id)
-        assert len(data["etapes"]) == len(recrutement.ordre_etapes)
-        assert data["etapes"][0]["candidatures"] == []
-
-
-class TestRecrutementListeViewDbVerified:
-    def test_returns_persisted_candidatures(self, authenticated_client, test_user):
-        _, organisme = create_organisme_with_agent(
-            role=AgentOrganismeRole.SUPERVISEUR,
-            utilisateur=test_user,
-            id=UUID(ORGANISME_UUID),
-        )
-        offer = OfferDjangoFactory(id=UUID(RECRUTEMENT_UUID))
-        recrutement = RecrutementDjangoFactory(organisme=organisme, offre=offer)
-        etape = EtapeModel.objects.filter(recrutement=recrutement).first()
-        candidature = CandidatureDjangoFactory(etape=etape)
-
-        response = authenticated_client.get(RECRUTEMENT_LISTE_URL)
-
-        assert response.status_code == status.HTTP_200_OK
-        data = response.json()
-        assert data["count"] == 1
-        result = data["results"][0]
-        assert result["uuid"] == str(candidature.id)
-        assert result["candidat"]["nom"] == candidature.candidat.utilisateur.last_name
-        assert result["candidat"]["prenom"] == (
-            candidature.candidat.utilisateur.first_name
-        )
-        assert result["etape"]["uuid"] == str(etape.id)
-        assert result["etape"]["nom"] == etape.nom
-
-    def test_does_not_trigger_n_plus_one_queries(
-        self, authenticated_client, test_user, django_assert_num_queries
-    ):
-        _, organisme = create_organisme_with_agent(
-            role=AgentOrganismeRole.SUPERVISEUR,
-            utilisateur=test_user,
-            id=UUID(ORGANISME_UUID),
-        )
-        offer = OfferDjangoFactory(id=UUID(RECRUTEMENT_UUID))
-        recrutement = RecrutementDjangoFactory(organisme=organisme, offre=offer)
-        etape = EtapeModel.objects.filter(recrutement=recrutement).first()
-        CandidatureDjangoFactory.create_batch(5, etape=etape)
-
-        with django_assert_num_queries(NOMBRE_REQUETES_LISTE_ATTENDU):
-            response = authenticated_client.get(RECRUTEMENT_LISTE_URL)
-
-        assert response.status_code == status.HTTP_200_OK
 
 
 class TestRecrutementCandidaturesEtapeViewDbVerified:

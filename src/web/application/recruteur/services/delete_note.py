@@ -14,10 +14,10 @@ from application.recruteur.context_services.recrutement_agent_service import (
     RecrutementAgentService,
 )
 from domain.commons.services.audit_log_writer import AuditLogWriter
-from domain.identite.entities.utilisateurs import Utilisateur
 from domain.identite.value_objects.organisme_action import OrganismeAction
 from domain.recruteur.errors.note_errors import NoteIntrouvable
 from infrastructure.django_apps.recruteur.models.note import NoteModel
+from infrastructure.django_apps.users.models import UserModel
 from infrastructure.repositories.commons.postgres_audit_log_repository import (
     PostgresAuditLogRepository,
 )
@@ -29,7 +29,7 @@ def delete_note(
     recrutement_id: UUID,
     candidature_id: UUID,
     note_id: UUID,
-    utilisateur: Utilisateur,
+    utilisateur: UserModel,
 ) -> None:
     OrganismePermissionService().can_execute(
         action=OrganismeAction.DELETE_NOTE,
@@ -48,7 +48,7 @@ def delete_note(
 
     try:
         note = NoteModel.objects.by_candidature_author_and_id(
-            candidature_id, utilisateur.entity_id, note_id
+            candidature_id, utilisateur.username, note_id
         ).get()
     except NoteModel.DoesNotExist as error:
         raise NoteIntrouvable(note_id) from error
@@ -57,7 +57,7 @@ def delete_note(
         note.supprimee_le = timezone.now()
         note.save(update_fields=["supprimee_le", "updated_at"])
         AuditLogWriter(repository=PostgresAuditLogRepository()).log_action(
-            utilisateur_id=utilisateur.entity_id,
+            utilisateur_id=utilisateur.username,
             entity=Entity(entity_id=note.id),
             ressource_kind="Note",
             event_name="NoteSupprimee",

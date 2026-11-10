@@ -39,14 +39,7 @@ export const EnCours: Story = {
         caption="Recrutements en cours"
         empty-label="Aucun recrutement en cours"
         :page-size="10"
-      >
-        <template #header-candidatures="{ label }">
-          <div class="flex flex-col gap-0.5">
-            <span>{{ label }}</span>
-            <span class="text-xs font-normal text-(--text-mention-grey)"># • À traiter • En cours</span>
-          </div>
-        </template>
-      </CspDataTable>
+      />
     `,
   }),
 }

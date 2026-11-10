@@ -2,7 +2,7 @@ from collections.abc import Sequence
 from uuid import UUID, uuid4
 
 from django.db import models
-from django.db.models import Count, Max, Prefetch, Q, Value
+from django.db.models import Count, OuterRef, Prefetch, Q, Subquery, Value
 from django.db.models.functions import Coalesce, Greatest
 from referentiel.value_objects.verse import Verse
 
@@ -16,9 +16,24 @@ from infrastructure.django_apps.users.fields import agent_fk
 from infrastructure.django_apps.utils.models import BaseDatedModel
 
 
+def _count_subquery(queryset: models.QuerySet) -> Coalesce:
+    return Coalesce(
+        Subquery(
+            queryset.order_by()
+            .values("organisme_id")
+            .annotate(total=Count("pk"))
+            .values("total")
+        ),
+        0,
+    )
+
+
 class OrganismeQuerySet(models.QuerySet):
     def not_supprimes(self) -> "OrganismeQuerySet":
         return self.filter(supprime_le__isnull=True)
+
+    def open(self) -> "OrganismeQuerySet":
+        return self.not_supprimes().filter(gestion_ats=True)
 
     def by_id(self, organisme_id) -> "OrganismeQuerySet":
         return self.not_supprimes().filter(pk=organisme_id)
@@ -27,20 +42,24 @@ class OrganismeQuerySet(models.QuerySet):
         return self.filter(pk__in=organisme_ids)
 
     def with_counts(self) -> "OrganismeQuerySet":
+        recrutement_model = self.model._meta.get_field("recrutements").related_model
+        agents = OrganismeAgentModel.objects.filter(organisme_id=OuterRef("pk"))
         return self.annotate(
-            number_agents=Count(
-                "agents_liaisons",
-                filter=Q(agents_liaisons__date_revocation__isnull=True),
-                distinct=True,
+            number_agents=_count_subquery(agents.active()),
+            number_published_offers=_count_subquery(
+                recrutement_model.objects.filter(
+                    organisme_id=OuterRef("pk"), offre__archived_at__isnull=True
+                )
             ),
-            number_published_offers=Count("recrutements", distinct=True),
-            max_agent_updated=Max("agents_liaisons__updated_at"),
+            max_agent_updated=Subquery(
+                agents.order_by("-updated_at").values("updated_at")[:1]
+            ),
             last_activity_date=Greatest(
                 "updated_at",
                 Coalesce("max_agent_updated", "updated_at"),
             ),
             managed_ats=Coalesce("gestion_ats", Value(False)),
-        ).order_by("-updated_at")
+        )
 
     def with_superviseurs_actifs(self) -> "OrganismeQuerySet":
         return self.prefetch_related(
@@ -57,8 +76,41 @@ class OrganismeQuerySet(models.QuerySet):
             )
         )
 
+    def by_versants(self, versants: Sequence[Verse] | None) -> "OrganismeQuerySet":
+        if not versants:
+            return self
+        return self.filter(versant__in=[versant.value for versant in versants])
+
+    def by_siret(self, siret: str | None) -> "OrganismeQuerySet":
+        if not siret:
+            return self
+        return self.filter(siret=siret)
+
+    def search_name(self, name: str | None) -> "OrganismeQuerySet":
+        if not name:
+            return self
+        return self.filter(nom__unaccent__icontains=name)
+
+    def by_department(self, department: str | None) -> "OrganismeQuerySet":
+        if not department:
+            return self
+        return self.filter(localisation__department=department)
+
+    def by_referentiels(self, referentiels: Sequence[str]) -> "OrganismeQuerySet":
+        return self.filter(referentiel__in=referentiels)
+
+    def by_referentiel(self, referentiel: str | None) -> "OrganismeQuerySet":
+        if not referentiel:
+            return self
+        return self.filter(referentiel=referentiel)
+
     def etapes_of(self, organisme_id) -> "OrganismeQuerySet":
         return self.filter(pk=organisme_id).only("id", "etapes")
+
+    def holding_sirets(
+        self, sirets: Sequence[str], excluding_ids: Sequence[UUID]
+    ) -> "OrganismeQuerySet":
+        return self.filter(siret__in=sirets).exclude(pk__in=excluding_ids)
 
     def by_referentiel_and_external_id_pairs(
         self, pairs: list[tuple[str, str]]
@@ -69,6 +121,12 @@ class OrganismeQuerySet(models.QuerySet):
         for referentiel, external_id in pairs:
             query |= Q(referentiel=referentiel, external_id=external_id)
         return self.filter(query)
+
+    def stable_order(self) -> "OrganismeQuerySet":
+        return self.order_by("nom", "id")
+
+    def most_recently_updated_first(self) -> "OrganismeQuerySet":
+        return self.order_by("-updated_at", "id")
 
 
 class OrganismeModel(BaseDatedModel):
@@ -115,6 +173,61 @@ class OrganismeModel(BaseDatedModel):
             }
             for etape in EtapeParDefaut
         ]
+
+    def move_dependents_to(self, target_id: UUID) -> None:
+        # The target may not exist yet: foreign keys are checked at commit.
+        self._move_agents_to(target_id)
+        self.recrutements.update(organisme_id=target_id)
+        self.talentsoft_organismes.update(organisme_id=target_id)
+        OrganismeModel.objects.filter(parent_id=self.pk).update(parent_id=target_id)
+
+        target_tags = {
+            (tag.name.lower(), tag.category): tag
+            for tag in self.tags.model.objects.filter(organisme_id=target_id)
+        }
+        for tag in self.tags.all():
+            same_tag = target_tags.get((tag.name.lower(), tag.category))
+            if same_tag is None:
+                self.tags.filter(pk=tag.pk).update(organisme_id=target_id)
+                continue
+            # Tag links left behind are deleted with this organisme.
+            tag.recrutement_agents_liaisons.update(tag=same_tag)
+            tag.candidatures_liaisons.exclude(
+                candidature_id__in=same_tag.candidatures_liaisons.values(
+                    "candidature_id"
+                )
+            ).update(tag=same_tag)
+            tag.notes_liaisons.exclude(
+                note_id__in=same_tag.notes_liaisons.values("note_id")
+            ).update(tag=same_tag)
+
+    def _move_agents_to(self, target_id: UUID) -> None:
+        # Only links granting access today move: revoked links, or every link
+        # of a deleted organisme, are deleted with this organisme.
+        if self.supprime_le is not None:
+            return
+        active_links = self.agents_liaisons.active()
+        target_links = {
+            link.agent_id: link
+            for link in OrganismeAgentModel.objects.filter(
+                organisme_id=target_id, agent_id__in=active_links.values("agent_id")
+            )
+        }
+        active_links.exclude(agent_id__in=target_links).update(organisme_id=target_id)
+
+        # An agent already linked to the target keeps an active link with the
+        # strongest of both roles.
+        superviseur = AgentOrganismeRole.SUPERVISEUR.value
+        for link in active_links.filter(agent_id__in=target_links):
+            target_link = target_links[link.agent_id]
+            roles = {link.role}
+            if target_link.date_revocation is None:
+                roles.add(target_link.role)
+            target_link.role = (
+                superviseur if superviseur in roles else AgentOrganismeRole.AGENT.value
+            )
+            target_link.date_revocation = None
+            target_link.save(update_fields=["role", "date_revocation", "updated_at"])
 
     def mettre_a_jour_etapes(
         self, etapes: Sequence[EtapeData]
@@ -164,7 +277,9 @@ class OrganismeAgentQuerySet(models.QuerySet):
         return self.filter(date_revocation__isnull=True)
 
     def by_agent(self, agent_id) -> "OrganismeAgentQuerySet":
-        return self.active().filter(agent_id=agent_id)
+        return self.active().filter(
+            agent_id=agent_id, organisme__supprime_le__isnull=True
+        )
 
     def with_organisme(self) -> "OrganismeAgentQuerySet":
         return self.select_related("organisme")

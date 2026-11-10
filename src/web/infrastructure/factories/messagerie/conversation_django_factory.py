@@ -24,6 +24,16 @@ from infrastructure.factories.identite.utilisateur_django_factory import (
 class ConversationDjangoFactory(DjangoModelFactory[ConversationModel]):
     class Meta:
         model = ConversationModel
+        skip_postgeneration_save = True
+
+    class Params:
+        with_message = factory.Trait(
+            premier_message=factory.RelatedFactory(
+                "infrastructure.factories.messagerie.conversation_django_factory"
+                ".MessageDjangoFactory",
+                factory_related_name="conversation",
+            ),
+        )
 
     id = factory.LazyFunction(uuid4)
     candidature = factory.SubFactory(CandidatureDjangoFactory)
@@ -44,6 +54,7 @@ class MessageDocumentDjangoFactory(DjangoModelFactory[MessageDocumentModel]):
 class MessageDjangoFactory(DjangoModelFactory[MessageModel]):
     class Meta:
         model = MessageModel
+        skip_postgeneration_save = True
 
     class Params:
         par_candidat = factory.Trait(

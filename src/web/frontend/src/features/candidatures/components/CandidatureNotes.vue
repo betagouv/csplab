@@ -1,17 +1,22 @@
 <script setup lang="ts">
-import type { NoteRouteNames } from '../types'
+import type { Note, NoteRouteNames } from '../types'
 import type { CandidatureParams } from '@/api/params'
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import CspAsyncSection from '@/components/base/CspAsyncSection/CspAsyncSection.vue'
+import CspBadge from '@/components/base/CspBadge/CspBadge.vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspCard from '@/components/base/CspCard/CspCard.vue'
+import CspDialog from '@/components/base/CspDialog/CspDialog.vue'
+import CspDropdownMenu from '@/components/base/CspDropdownMenu/CspDropdownMenu.vue'
 import CspEmptyState from '@/components/base/CspEmptyState/CspEmptyState.vue'
 import CspSkeleton from '@/components/base/CspSkeleton/CspSkeleton.vue'
 import { useMinimumPending } from '@/composables/async/useMinimumPending'
+import { useToast } from '@/composables/ui/useToast'
 import { formatDateTime } from '@/utils/date'
 import { pluralize } from '@/utils/format'
-import { useCandidatureNotes } from '../composables/useCandidatureNotes'
+import { useCandidatureNotes, useDeleteCandidatureNote, useUpdateCandidatureNoteVisibilite } from '../composables/useCandidatureNotes'
+import CandidatureEditNoteForm from './CandidatureEditNoteForm.vue'
 import CandidatureNewNoteForm from './CandidatureNewNoteForm.vue'
 import CandidatureNoteMessage from './CandidatureNoteMessage.vue'
 
@@ -31,6 +36,9 @@ const title = computed(() => `${total.value} ${pluralize(total.value, 'note')}`)
 const route = useRoute()
 const isCreatingNote = computed(() => route.name === props.routes.create)
 
+const editedNoteUuid = ref<string | null>(null)
+const editedNote = computed(() => notes.value.find(({ uuid }) => uuid === editedNoteUuid.value))
+
 const router = useRouter()
 
 function startNote(): void {
@@ -40,18 +48,90 @@ function startNote(): void {
     params: { organismeUuid, recrutementUuid, candidatureUuid },
   })
 }
+
+const { addToast } = useToast()
+
+const { updateVisibilite, updatingVisibilite } = useUpdateCandidatureNoteVisibilite(() => props.candidature)
+
+async function toggleVisibilite(note: Note): Promise<void> {
+  const estPrivee = !note.est_privee
+  try {
+    await updateVisibilite({ noteUuid: note.uuid, est_privee: estPrivee })
+    addToast({ variant: 'success', title: estPrivee ? 'Note rendue privée' : 'Note rendue publique' })
+  }
+  catch {
+    addToast({ variant: 'error', title: 'Le changement de visibilité de la note a échoué' })
+  }
+}
+
+const { remove, removing } = useDeleteCandidatureNote(() => props.candidature)
+
+const noteToDelete = ref<Note | null>(null)
+const deletionDialogOpen = computed({
+  get: () => noteToDelete.value !== null,
+  set: (open) => {
+    if (!open) {
+      noteToDelete.value = null
+    }
+  },
+})
+
+async function confirmDeletion(): Promise<void> {
+  if (!noteToDelete.value) {
+    return
+  }
+  try {
+    await remove(noteToDelete.value.uuid)
+    addToast({ variant: 'success', title: 'Note supprimée' })
+    noteToDelete.value = null
+  }
+  catch {
+    addToast({ variant: 'error', title: 'La suppression de la note a échoué' })
+  }
+}
+
+function noteActions(note: Note) {
+  return [
+    {
+      items: [
+        {
+          label: 'Modifier la note',
+          icon: 'ri:pencil-line',
+          disabled: isCreatingNote.value || editedNote.value !== undefined,
+          onSelect: () => {
+            editedNoteUuid.value = note.uuid
+          },
+        },
+      ],
+    },
+    {
+      items: [
+        {
+          label: note.est_privee ? 'Rendre la note publique' : 'Rendre la note privée',
+          icon: note.est_privee ? 'ri:eye-line' : 'ri:eye-off-line',
+          disabled: updatingVisibilite.value,
+          onSelect: () => toggleVisibilite(note),
+        },
+      ],
+    },
+    {
+      items: [
+        {
+          label: 'Supprimer la note',
+          icon: 'ri:delete-bin-line',
+          destructive: true,
+          onSelect: () => {
+            noteToDelete.value = note
+          },
+        },
+      ],
+    },
+  ]
+}
 </script>
 
 <template>
-  <CandidatureNewNoteForm
-    v-if="isCreatingNote"
-    :candidature="candidature"
-    :routes="routes"
-  />
-  <section
-    v-else
-    class="candidature-notes"
-  >
+  <section class="candidature-notes">
     <CspAsyncSection
       :pending="showSkeleton"
       :error="error"
@@ -94,7 +174,7 @@ function startNote(): void {
       </template>
 
       <CspEmptyState
-        v-if="notes.length === 0"
+        v-if="notes.length === 0 && !isCreatingNote"
         icon="ri:sticky-note-line"
         title="Aucune note sur cette candidature"
       >
@@ -119,35 +199,97 @@ function startNote(): void {
             icon="ri:add-line"
             is-icon-left
             label="Ajouter une note"
+            :disabled="editedNote !== undefined"
             @click="startNote"
           />
         </header>
         <ul class="candidature-notes__list">
+          <CandidatureNewNoteForm
+            v-if="isCreatingNote"
+            :candidature="candidature"
+            :routes="routes"
+            class="candidature-notes__item candidature-notes__item--edition"
+          />
           <CspCard
             v-for="note in notes"
             :key="note.uuid"
             as="li"
             variant="alt"
             class="candidature-notes__item"
+            :class="{ 'candidature-notes__item--edition': note === editedNote }"
           >
             <template #start>
-              <span class="candidature-notes__auteur">{{ note.publie_par_prenom }} {{ note.publie_par_nom }}</span>
-              <span
-                class="candidature-notes__separator"
-                aria-hidden="true"
-              >•</span>
-              <time
-                :datetime="note.publie_le"
-                class="candidature-notes__horodatage"
-              >
-                {{ formatDateTime(note.publie_le) }}
-              </time>
+              <div class="candidature-notes__entete">
+                <span class="candidature-notes__auteur">{{ note.publie_par_prenom }} {{ note.publie_par_nom }}</span>
+                <span
+                  class="candidature-notes__separator"
+                  aria-hidden="true"
+                >•</span>
+                <time
+                  :datetime="note.publie_le"
+                  class="candidature-notes__horodatage"
+                >
+                  {{ formatDateTime(note.publie_le) }}
+                </time>
+                <CspBadge
+                  v-if="note.est_privee"
+                  label="Privée"
+                  color="var(--text-label-purple-glycine)"
+                  class="candidature-notes__badge"
+                />
+                <CspDropdownMenu
+                  v-if="note !== editedNote"
+                  :sections="noteActions(note)"
+                  side="bottom"
+                  align="end"
+                >
+                  <template #trigger>
+                    <CspButton
+                      icon="ri:more-fill"
+                      variant="tertiary-no-outline"
+                      size="sm"
+                      class="candidature-notes__actions"
+                      :aria-label="`Actions sur la note de ${note.publie_par_prenom} ${note.publie_par_nom}`"
+                    />
+                  </template>
+                </CspDropdownMenu>
+              </div>
             </template>
-            <CandidatureNoteMessage :message="note.message" />
+            <CandidatureEditNoteForm
+              v-if="note === editedNote"
+              :candidature="candidature"
+              :note="note"
+              @close="editedNoteUuid = null"
+            />
+            <CandidatureNoteMessage
+              v-else
+              :message="note.message"
+            />
           </CspCard>
         </ul>
       </template>
     </CspAsyncSection>
+
+    <CspDialog
+      v-model:open="deletionDialogOpen"
+      title="Supprimer la note"
+      size="sm"
+    >
+      Cette note sera supprimée définitivement.
+
+      <template #footer>
+        <CspButton
+          label="Annuler"
+          variant="secondary"
+          @click="deletionDialogOpen = false"
+        />
+        <CspButton
+          label="Supprimer la note"
+          :disabled="removing"
+          @click="confirmDeletion"
+        />
+      </template>
+    </CspDialog>
   </section>
 </template>
 
@@ -186,6 +328,27 @@ function startNote(): void {
   :deep(.csp-skeleton) {
     background: var(--background-contrast-grey);
   }
+}
+
+.candidature-notes__item--edition {
+  --csp-card-bg: var(--background-alt-blue-france);
+}
+
+.candidature-notes__entete {
+  display: flex;
+  flex: 1;
+  gap: var(--csp-space-2);
+  align-items: center;
+}
+
+.candidature-notes__entete .candidature-notes__badge {
+  --badge-default-bg: var(--background-contrast-purple-glycine);
+
+  align-self: center;
+}
+
+.candidature-notes__actions {
+  margin-left: auto;
 }
 
 .candidature-notes__auteur {

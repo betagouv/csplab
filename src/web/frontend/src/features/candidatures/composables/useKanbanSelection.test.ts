@@ -1,4 +1,4 @@
-import type { EtapeRecrutementDetailedCandidatures } from '../types'
+import type { KanbanColumn } from '../types'
 import { describe, expect, it } from 'vitest'
 import { ref } from 'vue'
 import { useKanbanSelection } from './useKanbanSelection'
@@ -34,7 +34,7 @@ const CANDIDATURE_3 = {
   candidat: { uuid: 'dddddddd-0001-0001-0001-000000000003', nom: 'Bernard', prenom: 'Élise' },
 }
 
-function createEtapes(): EtapeRecrutementDetailedCandidatures[] {
+function createEtapes(): KanbanColumn[] {
   return [
     {
       uuid: ETAPE_1_UUID,
@@ -55,10 +55,9 @@ describe('useKanbanSelection', () => {
   describe('initial state', () => {
     it('starts with empty selection', () => {
       const etapes = ref(createEtapes())
-      const { selectedCount, hasSelection, currentEtapeUuid } = useKanbanSelection(etapes)
+      const { selectedCount, currentEtapeUuid } = useKanbanSelection(etapes)
 
       expect(selectedCount.value).toBe(0)
-      expect(hasSelection.value).toBe(false)
       expect(currentEtapeUuid.value).toBeNull()
     })
   })
@@ -118,6 +117,28 @@ describe('useKanbanSelection', () => {
       toggleColumnSelection(etapes.value[0]!)
       etapes.value = createEtapes()
       expect(selectedCount.value).toBe(1)
+    })
+
+    it('replaces the selection of another column', () => {
+      const etapes = ref(createEtapes())
+      const { toggleColumnSelection, isColumnSelected, currentEtapeUuid } = useKanbanSelection(etapes)
+
+      toggleColumnSelection(etapes.value[0]!)
+      toggleColumnSelection(etapes.value[1]!)
+
+      expect(isColumnSelected(ETAPE_1_UUID)).toBe(false)
+      expect(isColumnSelected(ETAPE_2_UUID)).toBe(true)
+      expect(currentEtapeUuid.value).toBe(ETAPE_2_UUID)
+    })
+
+    it('keeps the selection when toggling an empty column', () => {
+      const etapes = ref(createEtapes())
+      const { toggleColumnSelection, isColumnSelected } = useKanbanSelection(etapes)
+
+      toggleColumnSelection(etapes.value[0]!)
+      toggleColumnSelection({ ...etapes.value[1]!, candidatures: [] })
+
+      expect(isColumnSelected(ETAPE_1_UUID)).toBe(true)
     })
   })
 
@@ -270,7 +291,7 @@ describe('useKanbanSelection', () => {
   describe('clearSelection', () => {
     it('clears all selections', () => {
       const etapes = ref(createEtapes())
-      const { toggleColumnSelection, clearSelection, selectedCount, hasSelection } = useKanbanSelection(etapes)
+      const { toggleColumnSelection, clearSelection, selectedCount } = useKanbanSelection(etapes)
 
       toggleColumnSelection(etapes.value[0]!)
       expect(selectedCount.value).toBe(2)
@@ -278,25 +299,6 @@ describe('useKanbanSelection', () => {
       clearSelection()
 
       expect(selectedCount.value).toBe(0)
-      expect(hasSelection.value).toBe(false)
-    })
-  })
-
-  describe('hasSelection', () => {
-    it('returns false when no selection', () => {
-      const etapes = ref(createEtapes())
-      const { hasSelection } = useKanbanSelection(etapes)
-
-      expect(hasSelection.value).toBe(false)
-    })
-
-    it('returns true when there is a selection', () => {
-      const etapes = ref(createEtapes())
-      const { toggleCandidatureSelection, hasSelection } = useKanbanSelection(etapes)
-
-      toggleCandidatureSelection(CANDIDATURE_1_UUID, ETAPE_1_UUID)
-
-      expect(hasSelection.value).toBe(true)
     })
   })
 })

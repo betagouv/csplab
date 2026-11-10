@@ -22,6 +22,7 @@ from referentiel.value_objects.localisation import Localisation
 from referentiel.value_objects.offer_criteria import OfferCriteria, OfferLanguage
 from referentiel.value_objects.offer_nature import OfferNature
 from referentiel.value_objects.region import Region
+from referentiel.value_objects.required_document import RequiredDocument
 from referentiel.value_objects.verse import Verse
 from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -37,6 +38,9 @@ from infrastructure.factories.ingestion.offer_payload_factory import (
 from infrastructure.factories.ingestion.source_django_factory import (
     SourceDjangoFactory,
 )
+from infrastructure.factories.ingestion.talentsoft_organisme_django_factory import (
+    TalentsoftOrganismeDjangoFactory,
+)
 from infrastructure.factories.referentiel.metier_django_factory import (
     MetierDjangoFactory,
 )
@@ -44,6 +48,11 @@ from infrastructure.factories.referentiel.offer_django_factory import (
     OfferDjangoFactory,
 )
 from infrastructure.mappers.offer_mapper import OfferMapper
+from presentation.commons.serializers import INVALID_COUNTRY_CODE
+from presentation.ingestion.serializers import (
+    ConditionsInputSerializer,
+    OfferDetailResponseSerializer,
+)
 from presentation.ingestion.views.offers import UNKNOWN_GENERATED_REFERENCE
 
 fake = Faker("fr_FR")
@@ -65,6 +74,7 @@ PARTIAL_VALID_OFFER = PayloadOfferFactory.create(
         "ouvert_aux_militaires": "OUI",
         "lieu_de_travail": "SUR_SITE",
         "management": "SANS",
+        "complements": "Retiré de l'API : ignoré",
     },
     contacts=[],
 )
@@ -74,7 +84,7 @@ COMPLETE_VALID_OFFER = PayloadOfferFactory.create(
     organisation={"nom": fake.company(), "siret": fake.siret().replace(" ", "")},
     url_offre="https://example.com/offre",
     url_candidature="https://example.com/candidature",
-    categories=["A", "B"],
+    categories=["B", "A"],
     type_contrat="CDD_CDI",
     vacance_poste="OUI",
     description={
@@ -92,7 +102,7 @@ COMPLETE_VALID_OFFER = PayloadOfferFactory.create(
         {
             "zone_geographique": "EU",
             "pays": "FRA",
-            "region": "03",
+            "region": "28",
             "departement": "14",
             "localisation_label": fake.text(max_nb_chars=500),
             "latitude": fake.pyfloat(min_value=-90, max_value=90),
@@ -101,8 +111,8 @@ COMPLETE_VALID_OFFER = PayloadOfferFactory.create(
         {
             "zone_geographique": "AM",
             "pays": "MEX",
-            "region": "",
-            "departement": "",
+            "region": None,
+            "departement": None,
             "localisation_label": "",
             "latitude": None,
             "longitude": None,
@@ -143,11 +153,12 @@ COMPARABLE_OFFER_ATTRS = [
     "mission",
     "organization",
     "publication_date",
+    "end_publication_date",
     "verse",
-    "category",
+    "categories",
     "offer_nature",
     "offer_url",
-    "localisation",
+    "localisations",
     "beginning_date",
     "family_code",
     "job_family_referential",
@@ -183,32 +194,31 @@ def parse_offer_from_payload(payload: dict, source_id: UUID) -> Offer:
         LimitDate(parse_datetime(debut_contrat_raw)) if debut_contrat_raw else None
     )
 
-    # mirrors how ConditionsInputSerializer parses datetime fields into validated_data
+    # mirrors how ConditionsInputSerializer drops unknown fields and parses datetime
+    # fields into validated_data
     if conditions:
         conditions = {
             key: parse_datetime(value)
             if key in ("debut_contrat", "fin_contrat") and value
             else value
             for key, value in conditions.items()
+            if key in ConditionsInputSerializer().fields
         }
 
-    categories = payload.get("categories")
-    category = Category(sorted(categories)[0]) if categories else None
-
-    loc_data = payload.get("localisation")
-    localisation = (
+    localisations = [
         Localisation(
-            area=GeographicalArea(loc_data[0]["zone_geographique"]),
-            country=Country(loc_data[0]["pays"]),
-            region=Region(code=loc_data[0]["region"]),
-            department=Department(code=loc_data[0]["departement"]),
-            label=loc_data[0].get("localisation_label") or None,
-            latitude=loc_data[0].get("latitude"),
-            longitude=loc_data[0].get("longitude"),
+            area=GeographicalArea(loc["zone_geographique"]),
+            country=Country(loc["pays"]),
+            region=Region(code=loc["region"]) if loc["region"] else None,
+            department=(
+                Department(code=loc["departement"]) if loc["departement"] else None
+            ),
+            label=loc.get("localisation_label") or None,
+            latitude=loc.get("latitude"),
+            longitude=loc.get("longitude"),
         )
-        if loc_data
-        else None
-    )
+        for loc in payload.get("localisation") or []
+    ]
 
     type_contrat = payload.get("type_contrat")
 
@@ -223,8 +233,11 @@ def parse_offer_from_payload(payload: dict, source_id: UUID) -> Offer:
             if criteres.get("experience")
             else None,
             specialisations=list(criteres.get("specialisations") or []),
-            documents_requis=list(criteres.get("documents_requis") or []),
-            competences_requises=list(criteres.get("competences_requises") or []),
+            documents_requis=[
+                RequiredDocument[document]
+                for document in criteres.get("documents_requis") or []
+            ],
+            competences_requises=criteres.get("competences_requises") or None,
             languages=[
                 OfferLanguage(
                     iso_code=langue["iso_code"], level=LanguageLevel[langue["niveau"]]
@@ -245,11 +258,14 @@ def parse_offer_from_payload(payload: dict, source_id: UUID) -> Offer:
         publication_date=datetime.fromisoformat(
             payload["publication"]["debut_publication"]
         ),
+        end_publication_date=datetime.fromisoformat(
+            payload["publication"]["fin_publication"]
+        ),
         verse=Verse(versant),
-        category=category,
+        categories=[Category(c) for c in payload.get("categories") or []],
         offer_nature=OfferNature(payload["nature_offre"]),
         offer_url=payload.get("url_offre"),
-        localisation=localisation,
+        localisations=localisations,
         beginning_date=debut_contrat,
         family_code=payload["profession"]["metier"],
         job_family_referential=payload["profession"].get("referentiel"),
@@ -381,6 +397,9 @@ def test_valid_payload_returns_201_and_valid_offers_to_usecase(
         expected = parse_offer_from_payload(payload, source_id=UUID(SOURCE_UUID))
         for attr in COMPARABLE_OFFER_ATTRS:
             assert getattr(offer, attr) == getattr(expected, attr)
+    # conditions.complements was removed from the API: sent fields are dropped
+    partial_offer = upsert_input.offers[1]
+    assert "complements" not in partial_offer.conditions
 
 
 def test_mixed_valid_invalid_offers_in_payload(
@@ -449,6 +468,114 @@ def test_unknown_metier_returns_error_in_payload(
             },
         }
     ]
+
+
+def _offer_with_talentsoft_organisme(entity_code):
+    return PayloadOfferFactory.create(
+        identification={"reference": "REF-001", "versant": "FPT"},
+        organisation={
+            "nom": fake.company(),
+            "siret": "",
+            "talentsoft_organisme_entity_code": entity_code,
+        },
+    )
+
+
+def test_talentsoft_organisme_is_rejected_with_jwt_authentication(
+    authenticated_client_with_source, use_case, db
+):
+    entity_code = TalentsoftOrganismeDjangoFactory().entity_code
+
+    response = authenticated_client_with_source.post(
+        URL,
+        data={
+            "source_id": SOURCE_UUID,
+            "offres": [_offer_with_talentsoft_organisme(entity_code)],
+        },
+        content_type="application/json",
+    )
+
+    assert response.status_code == status.HTTP_201_CREATED
+    assert response.json()["errors"] == [
+        {
+            "index": 0,
+            "offre": {"reference": "REF-001", "versant": "FPT"},
+            "error": {
+                "organisation": {
+                    "talentsoft_organisme_entity_code": [
+                        "Champ réservé au service ingestion de CSPLab."
+                    ]
+                }
+            },
+        }
+    ]
+    assert use_case.execute.call_args.args[0].offers == []
+
+
+def test_unknown_talentsoft_organisme_is_rejected_with_api_key_authentication(
+    api_key_client, use_case, db
+):
+    use_case.execute.return_value = {
+        "created": 1,
+        "updated": 0,
+        "errors": [],
+        "offres": [{"reference": "REF-002", "statut": "created"}],
+    }
+    response = api_key_client.post(
+        URL,
+        data={
+            "source_id": SOURCE_UUID,
+            "offres": [
+                _offer_with_talentsoft_organisme("string"),
+                MINIMAL_VALID_OFFER
+                | {"identification": {"reference": "REF-002", "versant": "FPT"}},
+            ],
+        },
+        content_type="application/json",
+    )
+
+    assert response.status_code == status.HTTP_201_CREATED
+    assert response.json()["errors"] == [
+        {
+            "index": 0,
+            "offre": {"reference": "REF-001", "versant": "FPT"},
+            "error": {
+                "organisation": {
+                    "talentsoft_organisme_entity_code": [
+                        "Organisme Talentsoft inconnu : string."
+                    ]
+                }
+            },
+        }
+    ]
+    offers = use_case.execute.call_args.args[0].offers
+    assert [offer.reference for offer in offers] == ["REF-002"]
+
+
+def test_known_talentsoft_organisme_is_accepted_with_api_key_authentication(
+    api_key_client, use_case, db
+):
+    use_case.execute.return_value = {
+        "created": 1,
+        "updated": 0,
+        "errors": [],
+        "offres": [{"reference": "REF-001", "statut": "created"}],
+    }
+    entity_code = TalentsoftOrganismeDjangoFactory().entity_code
+
+    response = api_key_client.post(
+        URL,
+        data={
+            "source_id": SOURCE_UUID,
+            "offres": [_offer_with_talentsoft_organisme(entity_code)],
+        },
+        content_type="application/json",
+    )
+
+    assert response.status_code == status.HTTP_201_CREATED
+    assert response.json()["errors"] == []
+    (offer,) = use_case.execute.call_args.args[0].offers
+    assert offer.talentsoft_organisme_entity_code == entity_code
 
 
 def test_contacts_are_sorted_by_role_with_deduplicated_emails(
@@ -577,6 +704,233 @@ def test_invalid_contacts_are_rejected(
     ]
 
 
+@pytest.mark.parametrize(
+    "documents_requis,expected_error",
+    [
+        (
+            ["CV", "Copie des diplômes"],
+            {"1": ["«\xa0Copie des diplômes\xa0» n'est pas un choix valide."]},
+        ),
+        (
+            ["CV", "LETTRE_MOTIVATION", "CV"],
+            ["Chaque document ne peut être cité qu'une fois."],
+        ),
+    ],
+    ids=["unknown-document", "duplicate-document"],
+)
+def test_invalid_required_documents_are_rejected(
+    authenticated_client_with_source, use_case, documents_requis, expected_error
+):
+    offer = PayloadOfferFactory.create(
+        identification={"reference": "REF-010", "versant": "FPT"},
+        criteres={"documents_requis": documents_requis},
+    )
+
+    response = authenticated_client_with_source.post(
+        URL,
+        data={"source_id": SOURCE_UUID, "offres": [offer]},
+        content_type="application/json",
+    )
+
+    assert response.status_code == status.HTTP_201_CREATED
+    assert response.json()["errors"] == [
+        {
+            "index": 0,
+            "offre": {"reference": "REF-010", "versant": "FPT"},
+            "error": {"criteres": {"documents_requis": expected_error}},
+        }
+    ]
+
+
+def test_competences_requises_markdown_is_passed_to_usecase(
+    authenticated_client_with_source, use_case
+):
+    offer = PayloadOfferFactory.create(
+        identification={"reference": "REF-011", "versant": "FPT"},
+        criteres={"competences_requises": "Connaissances :\n\n- Droit public"},
+    )
+    use_case.execute.return_value = {
+        "created": 1,
+        "updated": 0,
+        "errors": [],
+        "offres": [{"reference": "REF-011", "statut": "created"}],
+    }
+
+    response = authenticated_client_with_source.post(
+        URL,
+        data={"source_id": SOURCE_UUID, "offres": [offer]},
+        content_type="application/json",
+    )
+
+    assert response.status_code == status.HTTP_201_CREATED
+    assert response.json()["errors"] == []
+    upsert_input = use_case.execute.call_args[0][0]
+    assert upsert_input.offers[0].criteria.competences_requises == (
+        "Connaissances :\n\n- Droit public"
+    )
+
+
+@pytest.mark.parametrize(
+    "competences_requises,expected_error",
+    [
+        (["Rigueur"], ["Chaîne de caractère invalide."]),
+        (
+            "a" * 2001,
+            ["Assurez-vous que ce champ comporte au plus 2000\xa0caractères."],
+        ),
+    ],
+    ids=["list", "too-long"],
+)
+def test_invalid_competences_requises_are_rejected(
+    authenticated_client_with_source, use_case, competences_requises, expected_error
+):
+    offer = PayloadOfferFactory.create(
+        identification={"reference": "REF-012", "versant": "FPT"},
+        criteres={"competences_requises": competences_requises},
+    )
+
+    response = authenticated_client_with_source.post(
+        URL,
+        data={"source_id": SOURCE_UUID, "offres": [offer]},
+        content_type="application/json",
+    )
+
+    assert response.status_code == status.HTTP_201_CREATED
+    assert response.json()["errors"] == [
+        {
+            "index": 0,
+            "offre": {"reference": "REF-012", "versant": "FPT"},
+            "error": {"criteres": {"competences_requises": expected_error}},
+        }
+    ]
+
+
+def test_bases_legales_markdown_is_passed_to_usecase(
+    authenticated_client_with_source, use_case
+):
+    offer = PayloadOfferFactory.create(
+        identification={"reference": "REF-013", "versant": "FPT"},
+        conditions={
+            "temps_travail": "TEMPS_PLEIN",
+            "lieu_de_travail": "SUR_SITE",
+            "management": "SANS",
+            "bases_legales": "Ouvert :\n\n- 1° aux fonctionnaires",
+        },
+    )
+    use_case.execute.return_value = {
+        "created": 1,
+        "updated": 0,
+        "errors": [],
+        "offres": [{"reference": "REF-013", "statut": "created"}],
+    }
+
+    response = authenticated_client_with_source.post(
+        URL,
+        data={"source_id": SOURCE_UUID, "offres": [offer]},
+        content_type="application/json",
+    )
+
+    assert response.status_code == status.HTTP_201_CREATED
+    assert response.json()["errors"] == []
+    upsert_input = use_case.execute.call_args[0][0]
+    assert upsert_input.offers[0].conditions["bases_legales"] == (
+        "Ouvert :\n\n- 1° aux fonctionnaires"
+    )
+
+
+@pytest.mark.parametrize(
+    "bases_legales,expected_error",
+    [
+        (
+            "Ouvert :<br>aux fonctionnaires",
+            [
+                (
+                    "Les balises HTML ne sont pas acceptées (<br>) : utilisez la "
+                    "syntaxe Markdown, ou écrivez \\< pour afficher le caractère <."
+                )
+            ],
+        ),
+        (
+            "[Loi](javascript:alert(1))",
+            [
+                (
+                    "Lien non autorisé (javascript:alert(1)) : seuls les liens http, "
+                    "https et mailto sont acceptés."
+                )
+            ],
+        ),
+        (
+            "a" * 1501,
+            ["Assurez-vous que ce champ comporte au plus 1500\xa0caractères."],
+        ),
+    ],
+    ids=["html", "forbidden-link", "too-long"],
+)
+def test_invalid_bases_legales_are_rejected(
+    authenticated_client_with_source, use_case, bases_legales, expected_error
+):
+    offer = PayloadOfferFactory.create(
+        identification={"reference": "REF-014", "versant": "FPT"},
+        conditions={
+            "temps_travail": "TEMPS_PLEIN",
+            "lieu_de_travail": "SUR_SITE",
+            "management": "SANS",
+            "bases_legales": bases_legales,
+        },
+    )
+
+    response = authenticated_client_with_source.post(
+        URL,
+        data={"source_id": SOURCE_UUID, "offres": [offer]},
+        content_type="application/json",
+    )
+
+    assert response.status_code == status.HTTP_201_CREATED
+    assert response.json()["errors"] == [
+        {
+            "index": 0,
+            "offre": {"reference": "REF-014", "versant": "FPT"},
+            "error": {"conditions": {"bases_legales": expected_error}},
+        }
+    ]
+    assert use_case.execute.call_args.args[0].offers == []
+
+
+@pytest.mark.parametrize(
+    "categories,expected_error",
+    [
+        (None, ["Ce champ est obligatoire."]),
+        ([], ["Au moins une catégorie est obligatoire."]),
+        ([""], ["«\xa0\xa0» n'est pas un choix valide."]),
+    ],
+)
+def test_invalid_categories_are_rejected(
+    authenticated_client_with_source, use_case, categories, expected_error
+):
+    offer = PayloadOfferFactory.create(
+        identification={"reference": "REF-007", "versant": "FPT"},
+    )
+    if categories is None:
+        del offer["categories"]
+    else:
+        offer["categories"] = categories
+
+    response = authenticated_client_with_source.post(
+        URL,
+        data={"source_id": SOURCE_UUID, "offres": [offer]},
+        content_type="application/json",
+    )
+
+    assert response.status_code == status.HTTP_201_CREATED
+    assert response.json()["errors"] == [
+        {
+            "index": 0,
+            "offre": {"reference": "REF-007", "versant": "FPT"},
+            "error": {"categories": expected_error},
+        }
+    ]
+
+
 def test_email_candidature_is_passed_to_usecase(
     authenticated_client_with_source, use_case
 ):
@@ -656,6 +1010,327 @@ def test_invalid_application_channels_are_rejected(
     ]
 
 
+@pytest.mark.parametrize(
+    ("region", "departement", "expected_message"),
+    [
+        (
+            "11",
+            "13",
+            (
+                "Le département 13 (Bouches-du-Rhône) n'appartient pas à la "
+                "région 11 (Île-de-France)."
+            ),
+        ),
+        (
+            "01",
+            "01",
+            "Le département 01 (Ain) n'appartient pas à la région 01 (Guadeloupe).",
+        ),
+        (
+            "DOM",
+            "988",
+            (
+                "Le département 988 (Nouvelle-Calédonie) n'appartient pas à la "
+                "région DOM."
+            ),
+        ),
+    ],
+)
+def test_inconsistent_region_and_department_are_rejected(
+    authenticated_client_with_source, use_case, region, departement, expected_message
+):
+    offer = PayloadOfferFactory.create(
+        identification={"reference": "REF-011", "versant": "FPT"},
+        localisation=[
+            {
+                "zone_geographique": "EU",
+                "pays": "FRA",
+                "region": region,
+                "departement": departement,
+                "localisation_label": "",
+                "latitude": None,
+                "longitude": None,
+            }
+        ],
+    )
+
+    response = authenticated_client_with_source.post(
+        URL,
+        data={"source_id": SOURCE_UUID, "offres": [offer]},
+        content_type="application/json",
+    )
+
+    assert response.status_code == status.HTTP_201_CREATED
+    assert response.json()["errors"] == [
+        {
+            "index": 0,
+            "offre": {"reference": "REF-011", "versant": "FPT"},
+            "error": {"localisation": {"0": {"non_field_errors": [expected_message]}}},
+        }
+    ]
+    assert use_case.execute.call_args.args[0].offers == []
+
+
+@pytest.mark.parametrize(
+    ("region", "departement"),
+    [("11", "75"), ("11", None), (None, "75")],
+)
+def test_region_or_department_abroad_is_rejected(
+    authenticated_client_with_source, use_case, region, departement
+):
+    offer = PayloadOfferFactory.create(
+        identification={"reference": "REF-013", "versant": "FPE"},
+        localisation=[
+            {
+                "zone_geographique": "EU",
+                "pays": "DEU",
+                "region": region,
+                "departement": departement,
+                "localisation_label": "",
+                "latitude": None,
+                "longitude": None,
+            }
+        ],
+    )
+
+    response = authenticated_client_with_source.post(
+        URL,
+        data={"source_id": SOURCE_UUID, "offres": [offer]},
+        content_type="application/json",
+    )
+
+    assert response.status_code == status.HTTP_201_CREATED
+    expected_message = (
+        "La région et le département doivent être vides pour une "
+        "offre localisée hors de France."
+    )
+    assert response.json()["errors"][0]["error"] == {
+        "localisation": {"0": {"non_field_errors": [expected_message]}}
+    }
+    assert use_case.execute.call_args.args[0].offers == []
+
+
+@pytest.mark.parametrize(
+    ("region", "departement"),
+    [
+        ("93", "13"),
+        ("01", "971"),
+        ("DOM", "971"),
+        ("TOM", "988"),
+        ("TOM", "977"),
+        ("TOM", "978"),
+    ],
+)
+def test_consistent_region_and_department_are_accepted(
+    authenticated_client_with_source, use_case, region, departement
+):
+    offer = PayloadOfferFactory.create(
+        identification={"reference": "REF-012", "versant": "FPT"},
+        localisation=[
+            {
+                "zone_geographique": "EU",
+                "pays": "FRA",
+                "region": region,
+                "departement": departement,
+                "localisation_label": "",
+                "latitude": None,
+                "longitude": None,
+            }
+        ],
+    )
+    use_case.execute.return_value = {
+        "created": 1,
+        "updated": 0,
+        "errors": [],
+        "offres": [{"reference": "REF-012", "statut": "created"}],
+    }
+
+    response = authenticated_client_with_source.post(
+        URL,
+        data={"source_id": SOURCE_UUID, "offres": [offer]},
+        content_type="application/json",
+    )
+
+    assert response.status_code == status.HTTP_201_CREATED
+    assert response.json()["errors"] == []
+    assert len(use_case.execute.call_args.args[0].offers) == 1
+
+
+def test_description_with_html_is_rejected_with_an_explicit_message(
+    authenticated_client_with_source, use_case
+):
+    offer = PayloadOfferFactory.create(
+        identification={"reference": "REF-010", "versant": "FPT"},
+    )
+    offer["description"]["mission"] = "Missions : <script>alert(1)</script>"
+    offer["description"]["profil"] = "[Fiche](javascript:alert(1))"
+
+    response = authenticated_client_with_source.post(
+        URL,
+        data={"source_id": SOURCE_UUID, "offres": [offer]},
+        content_type="application/json",
+    )
+
+    assert response.status_code == status.HTTP_201_CREATED
+    assert response.json()["errors"] == [
+        {
+            "index": 0,
+            "offre": {"reference": "REF-010", "versant": "FPT"},
+            "error": {
+                "description": {
+                    "mission": [
+                        (
+                            "Les balises HTML ne sont pas acceptées (<script>) : "
+                            "utilisez la syntaxe Markdown, ou écrivez \\< pour "
+                            "afficher le caractère <."
+                        ),
+                        (
+                            "Les balises HTML ne sont pas acceptées (</script>) : "
+                            "utilisez la syntaxe Markdown, ou écrivez \\< pour "
+                            "afficher le caractère <."
+                        ),
+                    ],
+                    "profil": [
+                        (
+                            "Lien non autorisé (javascript:alert(1)) : seuls les "
+                            "liens http, https et mailto sont acceptés."
+                        )
+                    ],
+                }
+            },
+        }
+    ]
+    assert use_case.execute.call_args.args[0].offers == []
+
+
+def test_country_code_not_in_uppercase_is_rejected(
+    authenticated_client_with_source, use_case
+):
+    offer = PayloadOfferFactory.create(
+        identification={"reference": "REF-011", "versant": "FPT"},
+        localisation=[
+            {
+                "zone_geographique": "EU",
+                "pays": "fra",
+                "region": None,
+                "departement": None,
+                "localisation_label": "",
+                "latitude": None,
+                "longitude": None,
+            }
+        ],
+    )
+    use_case.execute.return_value = {
+        "created": 1,
+        "updated": 0,
+        "errors": [],
+        "offres": [{"reference": "REF-001", "statut": "created"}],
+    }
+
+    response = authenticated_client_with_source.post(
+        URL,
+        data={"source_id": SOURCE_UUID, "offres": [offer, MINIMAL_VALID_OFFER]},
+        content_type="application/json",
+    )
+
+    assert response.status_code == status.HTTP_201_CREATED
+    assert response.json()["errors"] == [
+        {
+            "index": 0,
+            "offre": {"reference": "REF-011", "versant": "FPT"},
+            "error": {"localisation": {"0": {"pays": [INVALID_COUNTRY_CODE]}}},
+        }
+    ]
+    offers = use_case.execute.call_args.args[0].offers
+    assert [offer.reference for offer in offers] == ["REF-001"]
+
+
+@pytest.mark.parametrize(
+    ("pays", "territory", "region", "departement"),
+    [
+        ("GLP", "Guadeloupe", "DOM", "971"),
+        ("REU", "La Réunion", "DOM", "974"),
+        ("SPM", "Saint-Pierre-et-Miquelon", "TOM", "975"),
+        ("WLF", "Wallis-et-Futuna", "TOM", "WLF"),
+        ("NCL", "Nouvelle-Calédonie", "TOM", "988"),
+    ],
+)
+def test_overseas_country_code_is_rejected(
+    authenticated_client_with_source, use_case, pays, territory, region, departement
+):
+    offer = PayloadOfferFactory.create(
+        identification={"reference": "REF-014", "versant": "FPT"},
+        localisation=[
+            _localisation_payload("76"),
+            {
+                "zone_geographique": "AM",
+                "pays": pays,
+                "region": None,
+                "departement": None,
+                "localisation_label": "",
+                "latitude": None,
+                "longitude": None,
+            },
+        ],
+    )
+
+    response = authenticated_client_with_source.post(
+        URL,
+        data={"source_id": SOURCE_UUID, "offres": [offer]},
+        content_type="application/json",
+    )
+
+    assert response.status_code == status.HTTP_201_CREATED
+    expected_message = (
+        f"{territory} : renseigner `pays` = `FRA`, `region` = `{region}`, "
+        f"`departement` = `{departement}`."
+    )
+    assert response.json()["errors"] == [
+        {
+            "index": 0,
+            "offre": {"reference": "REF-014", "versant": "FPT"},
+            "error": {"localisation": {"1": {"pays": [expected_message]}}},
+        }
+    ]
+    assert use_case.execute.call_args.args[0].offers == []
+
+
+@pytest.mark.parametrize("pays", ["DOM", "ATF", "DEU"])
+def test_country_code_abroad_is_accepted(
+    authenticated_client_with_source, use_case, pays
+):
+    offer = PayloadOfferFactory.create(
+        identification={"reference": "REF-015", "versant": "FPT"},
+        localisation=[
+            {
+                "zone_geographique": "AM",
+                "pays": pays,
+                "region": None,
+                "departement": None,
+                "localisation_label": "",
+                "latitude": None,
+                "longitude": None,
+            }
+        ],
+    )
+    use_case.execute.return_value = {
+        "created": 1,
+        "updated": 0,
+        "errors": [],
+        "offres": [{"reference": "REF-015", "statut": "created"}],
+    }
+
+    response = authenticated_client_with_source.post(
+        URL,
+        data={"source_id": SOURCE_UUID, "offres": [offer]},
+        content_type="application/json",
+    )
+
+    assert response.status_code == status.HTTP_201_CREATED
+    assert response.json()["errors"] == []
+    assert len(use_case.execute.call_args.args[0].offers) == 1
+
+
 def test_returns_error_500(authenticated_client_with_source, use_case):
     use_case.execute.side_effect = Exception("db error")
 
@@ -667,13 +1342,88 @@ def test_returns_error_500(authenticated_client_with_source, use_case):
     assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
 
 
+DUPLICATE_LOCALISATION_MESSAGE = (
+    "Un même lieu (pays, région, département et libellé) ne peut figurer qu'une fois."
+)
+
+
+def _localisation_payload(departement: str, label: str = "") -> dict:
+    return {
+        "zone_geographique": "EU",
+        "pays": "FRA",
+        "region": "28",
+        "departement": departement,
+        "localisation_label": label,
+        "latitude": None,
+        "longitude": None,
+    }
+
+
+def test_more_than_50_localisations_are_rejected(
+    authenticated_client_with_source, use_case
+):
+    offer = PayloadOfferFactory.create(
+        identification={"reference": "REF-51", "versant": "FPT"},
+        localisation=[
+            _localisation_payload("14", label=f"Site {i}") for i in range(51)
+        ],
+    )
+
+    response = authenticated_client_with_source.post(
+        URL,
+        data={"source_id": SOURCE_UUID, "offres": [offer]},
+        content_type="application/json",
+    )
+
+    assert response.status_code == status.HTTP_201_CREATED
+    assert response.json()["errors"] == [
+        {
+            "index": 0,
+            "offre": {"reference": "REF-51", "versant": "FPT"},
+            "error": {
+                "localisation": {"non_field_errors": ["Au plus 50 lieux par offre."]}
+            },
+        }
+    ]
+    assert use_case.execute.call_args.args[0].offers == []
+
+
+def test_duplicate_localisations_are_rejected(
+    authenticated_client_with_source, use_case
+):
+    first = _localisation_payload("14", label="Caen")
+    duplicate = {**first, "latitude": 49.18, "longitude": -0.37}
+    offer = PayloadOfferFactory.create(
+        identification={"reference": "REF-DOUBLON", "versant": "FPT"},
+        localisation=[first, duplicate],
+    )
+
+    response = authenticated_client_with_source.post(
+        URL,
+        data={"source_id": SOURCE_UUID, "offres": [offer]},
+        content_type="application/json",
+    )
+
+    assert response.status_code == status.HTTP_201_CREATED
+    assert response.json()["errors"] == [
+        {
+            "index": 0,
+            "offre": {"reference": "REF-DOUBLON", "versant": "FPT"},
+            "error": {"localisation": [DUPLICATE_LOCALISATION_MESSAGE]},
+        }
+    ]
+    assert use_case.execute.call_args.args[0].offers == []
+
+
 class TestOffersUpsertViewDbVerified:
     @pytest.fixture(autouse=True)
     def mock_container(self):
         return None
 
     def test_creates_and_persists_the_offer(self, authenticated_client_with_source):
-        MetierDjangoFactory(offer_family_code="ERNUM001")
+        MetierDjangoFactory(
+            offer_family_code="ERNUM001", domaine_fonctionnel_code="NUM"
+        )
 
         response = authenticated_client_with_source.post(
             URL,
@@ -699,10 +1449,235 @@ class TestOffersUpsertViewDbVerified:
         for attr in COMPARABLE_OFFER_ATTRS:
             assert getattr(persisted, attr) == getattr(expected, attr)
 
+    @pytest.mark.parametrize(
+        "titre_long",
+        [{}, {"titre_long": None}, {"titre_long": ""}],
+        ids=["missing", "null", "empty"],
+    )
+    def test_offer_without_titre_long_is_persisted_without_long_title(
+        self, authenticated_client_with_source, titre_long
+    ):
+        MetierDjangoFactory(
+            offer_family_code="ERNUM001", domaine_fonctionnel_code="NUM"
+        )
+        offer = {
+            k: v for k, v in MINIMAL_VALID_OFFER.items() if k != "titre_long"
+        } | titre_long
+
+        response = authenticated_client_with_source.post(
+            URL,
+            data={"source_id": SOURCE_UUID, "offres": [offer]},
+            content_type="application/json",
+        )
+
+        assert response.status_code == status.HTTP_201_CREATED
+        assert response.json()["errors"] == []
+        offer_model = OfferModel.objects.get(
+            reference="REF-001", source_id=UUID(SOURCE_UUID)
+        )
+        assert offer_model.long_title is None
+
+    def test_offer_with_titre_long_equal_to_titre_is_rejected(
+        self, authenticated_client_with_source
+    ):
+        MetierDjangoFactory(
+            offer_family_code="ERNUM001", domaine_fonctionnel_code="NUM"
+        )
+        offer = MINIMAL_VALID_OFFER | {"titre_long": MINIMAL_VALID_OFFER["titre"]}
+
+        response = authenticated_client_with_source.post(
+            URL,
+            data={"source_id": SOURCE_UUID, "offres": [offer]},
+            content_type="application/json",
+        )
+
+        assert response.status_code == status.HTTP_201_CREATED
+        assert response.json()["errors"][0]["error"] == {
+            "titre_long": ["Le titre long doit différer du titre, sinon l'omettre."]
+        }
+        assert not OfferModel.objects.filter(
+            reference="REF-001", source_id=UUID(SOURCE_UUID)
+        ).exists()
+
+    def test_persists_all_categories_in_sent_order(
+        self, authenticated_client_with_source
+    ):
+        MetierDjangoFactory(
+            offer_family_code="ERNUM001", domaine_fonctionnel_code="NUM"
+        )
+        offre = {**MINIMAL_VALID_OFFER, "categories": ["B", "A", "B"]}
+
+        response = authenticated_client_with_source.post(
+            URL,
+            data={"source_id": SOURCE_UUID, "offres": [offre]},
+            content_type="application/json",
+        )
+
+        assert response.status_code == status.HTTP_201_CREATED
+        offer_model = OfferModel.objects.get(
+            reference="REF-001", source_id=UUID(SOURCE_UUID)
+        )
+        assert offer_model.categories == ["B", "A"]
+        assert offer_model.main_category == "B"
+
+    def test_localisation_without_coordinates_is_persisted_with_null_coordinates(
+        self, authenticated_client_with_source
+    ):
+        MetierDjangoFactory(
+            offer_family_code="ERNUM001", domaine_fonctionnel_code="NUM"
+        )
+        offer = PayloadOfferFactory.create(
+            identification={"reference": "REF-SANS-GPS", "versant": "FPT"},
+            localisation=[
+                {
+                    "zone_geographique": "EU",
+                    "pays": "FRA",
+                    "region": "28",
+                    "departement": "14",
+                    "localisation_label": "Caen",
+                }
+            ],
+        )
+
+        response = authenticated_client_with_source.post(
+            URL,
+            data={"source_id": SOURCE_UUID, "offres": [offer]},
+            content_type="application/json",
+        )
+
+        assert response.status_code == status.HTTP_201_CREATED
+        assert response.json()["errors"] == []
+        offer_model = OfferModel.objects.get(
+            reference="REF-SANS-GPS", source_id=UUID(SOURCE_UUID)
+        )
+        localisation = OfferMapper().to_domain(offer_model).main_localisation
+        assert localisation.label == "Caen"
+        assert localisation.latitude is None
+        assert localisation.longitude is None
+
+    def _post_localisations(self, client, reference: str, localisations: list):
+        MetierDjangoFactory(
+            offer_family_code="ERNUM001", domaine_fonctionnel_code="NUM"
+        )
+        offer = PayloadOfferFactory.create(
+            identification={"reference": reference, "versant": "FPT"},
+            localisation=localisations,
+        )
+        response = client.post(
+            URL,
+            data={"source_id": SOURCE_UUID, "offres": [offer]},
+            content_type="application/json",
+        )
+        assert response.status_code == status.HTTP_201_CREATED
+        assert response.json()["errors"] == []
+        return OfferModel.objects.get(reference=reference, source_id=UUID(SOURCE_UUID))
+
+    def test_persists_every_localisation_in_sent_order(
+        self, authenticated_client_with_source
+    ):
+        offer_model = self._post_localisations(
+            authenticated_client_with_source,
+            "REF-MULTI",
+            [
+                _localisation_payload("14", label="Caen"),
+                _localisation_payload("50", label="Saint-Lô"),
+            ],
+        )
+
+        assert list(
+            offer_model.localisations.values_list(
+                "position", "area", "country", "region", "department", "label"
+            )
+        ) == [
+            (0, "EU", "FRA", "28", "14", "Caen"),
+            (1, "EU", "FRA", "28", "50", "Saint-Lô"),
+        ]
+
+    def test_update_replaces_the_localisations(
+        self, authenticated_client_with_source, source
+    ):
+        OfferDjangoFactory(
+            source=source,
+            reference="REF-MAJ",
+            localisations=[
+                {"area": "EU", "country": "FRA", "region": "28", "department": "14"},
+                {"area": "EU", "country": "FRA", "region": "28", "department": "50"},
+            ],
+        )
+
+        offer_model = self._post_localisations(
+            authenticated_client_with_source,
+            "REF-MAJ",
+            [_localisation_payload("61", label="Alençon")],
+        )
+
+        assert list(
+            offer_model.localisations.values_list("position", "department", "label")
+        ) == [(0, "61", "Alençon")]
+
+    def test_offer_without_localisation_has_none(
+        self, authenticated_client_with_source
+    ):
+        offer_model = self._post_localisations(
+            authenticated_client_with_source, "REF-SANS-LIEU", []
+        )
+
+        assert not offer_model.localisations.exists()
+
+    def test_offer_abroad_is_persisted_without_region_nor_department(
+        self, authenticated_client_with_source
+    ):
+        MetierDjangoFactory(
+            offer_family_code="ERNUM001", domaine_fonctionnel_code="NUM"
+        )
+        offer = PayloadOfferFactory.create(
+            identification={"reference": "REF-BERLIN", "versant": "FPE"},
+            localisation=[
+                {
+                    "zone_geographique": "EU",
+                    "pays": "DEU",
+                    "region": None,
+                    "departement": None,
+                    "localisation_label": "Ambassade de France à Berlin",
+                    "latitude": 52.5163,
+                    "longitude": 13.3777,
+                }
+            ],
+        )
+
+        response = authenticated_client_with_source.post(
+            URL,
+            data={"source_id": SOURCE_UUID, "offres": [offer]},
+            content_type="application/json",
+        )
+
+        assert response.status_code == status.HTTP_201_CREATED
+        assert response.json()["errors"] == []
+        offer_model = OfferModel.objects.get(
+            reference="REF-BERLIN", source_id=UUID(SOURCE_UUID)
+        )
+        assert list(
+            offer_model.localisations.values_list("country", "region", "department")
+        ) == [("DEU", None, None)]
+        persisted = OfferMapper().to_domain(offer_model)
+        assert OfferDetailResponseSerializer(persisted).data["localisation"] == [
+            {
+                "zone_geographique": "EU",
+                "pays": "DEU",
+                "region": None,
+                "departement": None,
+                "localisation_label": "Ambassade de France à Berlin",
+                "latitude": 52.5163,
+                "longitude": 13.3777,
+            }
+        ]
+
     def test_auto_references_are_generated_and_returned_with_their_index(
         self, authenticated_client_with_source
     ):
-        MetierDjangoFactory(offer_family_code="ERNUM001")
+        MetierDjangoFactory(
+            offer_family_code="ERNUM001", domaine_fonctionnel_code="NUM"
+        )
         auto_offer = PayloadOfferFactory.create(
             identification={"reference": "auto", "versant": "FPT"}
         )
@@ -738,7 +1713,9 @@ class TestOffersUpsertViewDbVerified:
     def test_generated_reference_can_be_used_to_update_the_offer(
         self, authenticated_client_with_source
     ):
-        MetierDjangoFactory(offer_family_code="ERNUM001")
+        MetierDjangoFactory(
+            offer_family_code="ERNUM001", domaine_fonctionnel_code="NUM"
+        )
         auto_offer = PayloadOfferFactory.create(
             identification={"reference": "auto", "versant": "FPT"}
         )
@@ -770,7 +1747,9 @@ class TestOffersUpsertViewDbVerified:
     def test_sources_share_the_reference_sequence(
         self, authenticated_client_with_source, test_user
     ):
-        MetierDjangoFactory(offer_family_code="ERNUM001")
+        MetierDjangoFactory(
+            offer_family_code="ERNUM001", domaine_fonctionnel_code="NUM"
+        )
         other_source = SourceDjangoFactory()
         test_user.sources.add(other_source)
         auto_offer = PayloadOfferFactory.create(
@@ -791,7 +1770,9 @@ class TestOffersUpsertViewDbVerified:
     def test_unknown_generated_reference_is_rejected(
         self, authenticated_client_with_source
     ):
-        MetierDjangoFactory(offer_family_code="ERNUM001")
+        MetierDjangoFactory(
+            offer_family_code="ERNUM001", domaine_fonctionnel_code="NUM"
+        )
         explicit_reference = f"CSP-{datetime.now(ZoneInfo('Europe/Paris')).year}-000001"
         auto_offer = PayloadOfferFactory.create(
             identification={"reference": "auto", "versant": "FPT"}
@@ -821,7 +1802,9 @@ class TestOffersUpsertViewDbVerified:
     def test_generated_reference_of_another_source_is_rejected(
         self, authenticated_client_with_source
     ):
-        MetierDjangoFactory(offer_family_code="ERNUM001")
+        MetierDjangoFactory(
+            offer_family_code="ERNUM001", domaine_fonctionnel_code="NUM"
+        )
         reference = OfferDjangoFactory(reference="CSP-2026-000042").reference
         offer = PayloadOfferFactory.create(
             identification={"reference": reference, "versant": "FPT"}
@@ -836,3 +1819,92 @@ class TestOffersUpsertViewDbVerified:
         assert response.json()["offres"] == []
         assert [e["index"] for e in response.json()["errors"]] == [0]
         assert not OfferModel.objects.filter(source_id=UUID(SOURCE_UUID)).exists()
+
+    def _upsert(self, client, professions):
+        offres = []
+        for index, profession in enumerate(professions):
+            offre = PayloadOfferFactory.create(
+                identification={"reference": f"REF-{index}", "versant": "FPT"}
+            )
+            offre["profession"] = profession
+            offres.append(offre)
+        return client.post(
+            URL,
+            data={"source_id": SOURCE_UUID, "offres": offres},
+            content_type="application/json",
+        )
+
+    def test_offer_without_domaine_is_created_with_metier_domaine(
+        self, authenticated_client_with_source
+    ):
+        MetierDjangoFactory(
+            offer_family_code="ERACH001", domaine_fonctionnel_code="ACH"
+        )
+
+        response = self._upsert(
+            authenticated_client_with_source, [{"metier": "ERACH001"}]
+        )
+
+        assert response.json()["errors"] == []
+        offre = OfferModel.objects.get(reference="REF-0")
+        assert offre.functional_area_code == "ACH"
+
+    def test_offer_with_mismatching_domaine_is_rejected_and_others_saved(
+        self, authenticated_client_with_source
+    ):
+        MetierDjangoFactory(
+            offer_family_code="ERACH001", domaine_fonctionnel_code="ACH"
+        )
+
+        response = self._upsert(
+            authenticated_client_with_source,
+            [
+                {"domaine": "COM", "metier": "ERACH001"},
+                {"domaine": "ACH", "metier": "ERACH001"},
+            ],
+        )
+
+        body = response.json()
+        assert body["offres"] == [{"index": 1, "reference": "REF-1", "statut": "creee"}]
+        assert body["errors"] == [
+            {
+                "index": 0,
+                "offre": {"reference": "REF-0", "versant": "FPT"},
+                "error": {
+                    "profession": {
+                        "domaine": [
+                            "Le domaine COM ne correspond pas au métier ERACH001 (ACH)."
+                        ]
+                    }
+                },
+            }
+        ]
+
+    def test_ambiguous_metier_requires_one_of_its_domaines(
+        self, authenticated_client_with_source
+    ):
+        MetierDjangoFactory(
+            offer_family_code="ERTRA007", domaine_fonctionnel_code="SEC"
+        )
+        MetierDjangoFactory(
+            offer_family_code="ERTRA007", domaine_fonctionnel_code="TRA"
+        )
+
+        response = self._upsert(
+            authenticated_client_with_source,
+            [{"metier": "ERTRA007"}, {"domaine": "SEC", "metier": "ERTRA007"}],
+        )
+
+        body = response.json()
+        assert body["offres"] == [{"index": 1, "reference": "REF-1", "statut": "creee"}]
+        assert body["errors"][0]["error"] == {
+            "profession": {
+                "domaine": [
+                    (
+                        "Le métier ERTRA007 relève de plusieurs domaines (SEC, TRA) : "
+                        "renseigner l'un d'eux."
+                    )
+                ]
+            }
+        }
+        assert OfferModel.objects.get(reference="REF-1").functional_area_code == "SEC"

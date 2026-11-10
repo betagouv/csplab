@@ -5,6 +5,9 @@ export const organismeKeys = {
   list: () => {
     return [...organismeKeys.all, 'list'] as const
   },
+  search: (nom: string) => {
+    return [...organismeKeys.all, 'recherche', nom] as const
+  },
   root: (params: OrganismeParams) => {
     return [...organismeKeys.all, params.organismeUuid] as const
   },
@@ -16,6 +19,9 @@ export const organismeKeys = {
   },
   etapes: (params: OrganismeParams) => {
     return [...organismeKeys.root(params), 'parametres', 'etapes'] as const
+  },
+  tags: (params: OrganismeParams) => {
+    return [...organismeKeys.root(params), 'parametres', 'tags'] as const
   },
   motifsRefus: (params: OrganismeParams) => {
     return [...organismeKeys.root(params), 'parametres', 'motifs-refus'] as const
@@ -40,9 +46,6 @@ export const recrutementKeys = {
   },
   equipe: (params: RecrutementParams) => {
     return [...recrutementKeys.root(params), 'parametres', 'agents'] as const
-  },
-  kanban: (params: RecrutementParams) => {
-    return [...recrutementKeys.root(params), 'kanban'] as const
   },
   liste: (params: RecrutementParams) => {
     return [...recrutementKeys.root(params), 'liste'] as const

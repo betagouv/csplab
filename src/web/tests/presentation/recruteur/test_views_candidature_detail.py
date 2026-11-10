@@ -4,7 +4,18 @@ import pytest
 from django.urls import reverse
 from rest_framework import status
 
-from domain.recruteur.value_objects.roles import AgentOrganismeRole
+from application.identite.context_services.organisme_permission_service import (
+    OrganismePermissionService,
+)
+from domain.recruteur.value_objects.categorie_etapes_recrutement import (
+    CategorieEtapeRecrutement,
+)
+from domain.recruteur.value_objects.roles import (
+    AgentOrganismeRole,
+    AgentRecrutementRole,
+)
+from infrastructure.django_apps.recruteur.enums.motif_refus import MotifRefus
+from infrastructure.django_apps.recruteur.models.etape import EtapeModel
 from infrastructure.factories.candidate.candidature_django_factory import (
     CandidatureDjangoFactory,
     create_recrutement_and_candidature_for_agent,
@@ -16,6 +27,7 @@ from infrastructure.factories.identite.organisme_django_factory import (
     create_organisme_with_agent,
 )
 from infrastructure.factories.recruteur.recrutement_django_factory import (
+    RecrutementAgentDjangoFactory,
     RecrutementDjangoFactory,
 )
 
@@ -25,6 +37,7 @@ NOMBRE_REQUETES_ATTENDU = (
     + 1  # organisme
     + 1  # agent's role
     + 1  # recrutement belongs to organisme (exists check)
+    + 1  # agent's role on the recrutement
     + 1  # candidature + candidat, utilisateur, etape, recrutement, offre
     + 1  # prefetch recrutement etapes
     + 1  # latest CV
@@ -133,9 +146,74 @@ class TestCandidatureDetailView:
             "uuid": str(candidature.etape_id),
             "nom": candidature.etape.nom,
         }
+        assert data["motif_refus"] is None
         assert data["date_derniere_maj_candidat"] is None
         assert data["document_uuid"] == str(cv.id)
         assert data["navigation_candidature_uuids"] == [str(candidature.id)]
+
+    def test_superviseur_gets_authorized_actions_of_the_recrutement(
+        self, authenticated_client, test_user
+    ):
+        _, organisme, recrutement, candidature = (
+            create_recrutement_and_candidature_for_agent(utilisateur=test_user)
+        )
+
+        response = authenticated_client.get(
+            _detail_url(organisme.id, recrutement.pk, candidature.id)
+        )
+
+        assert response.json()["authorized_actions"] == [
+            action.value
+            for action in OrganismePermissionService().authorized_actions_recrutement(
+                AgentOrganismeRole.SUPERVISEUR, recrutement_role=None
+            )
+        ]
+
+    @pytest.mark.parametrize("recrutement_role", list(AgentRecrutementRole))
+    def test_agent_authorized_actions_derive_from_recrutement_role(
+        self, authenticated_client, test_user, recrutement_role
+    ):
+        agent, organisme, recrutement, candidature = (
+            create_recrutement_and_candidature_for_agent(
+                role=AgentOrganismeRole.AGENT, utilisateur=test_user
+            )
+        )
+        RecrutementAgentDjangoFactory(
+            recrutement=recrutement, agent=agent, role=recrutement_role.value
+        )
+
+        response = authenticated_client.get(
+            _detail_url(organisme.id, recrutement.pk, candidature.id)
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json()["authorized_actions"] == [
+            action.value
+            for action in OrganismePermissionService().authorized_actions_recrutement(
+                AgentOrganismeRole.AGENT, recrutement_role=recrutement_role
+            )
+        ]
+
+    def test_returns_motif_refus_of_refused_candidature(
+        self, authenticated_client, test_user
+    ):
+        _, organisme, recrutement, candidature = (
+            create_recrutement_and_candidature_for_agent(utilisateur=test_user)
+        )
+        candidature.etape = EtapeModel.objects.get(
+            recrutement=recrutement, categorie=CategorieEtapeRecrutement.REFUS.value
+        )
+        candidature.motif_refus = MotifRefus.EXPERIENCE_INSUFFISANTE
+        candidature.save(update_fields=["etape", "motif_refus"])
+
+        response = authenticated_client.get(
+            _detail_url(organisme.id, recrutement.pk, candidature.id)
+        )
+
+        assert response.json()["motif_refus"] == {
+            "value": "experience_insuffisante",
+            "label": "Expérience insuffisante",
+        }
 
     def test_staff_without_organisme_role_gets_candidature_detail(
         self, authenticated_client, test_user

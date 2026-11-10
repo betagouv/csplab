@@ -1,5 +1,5 @@
 from datetime import datetime, timezone
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import Mock, patch
 from uuid import UUID
 
 import pytest
@@ -7,12 +7,16 @@ from django.urls import reverse
 from faker import Faker
 from rest_framework import status
 
+from application.identite.context_services.organisme_permission_service import (
+    OrganismePermissionService,
+)
 from domain.commons.errors.organisme_errors import OrganismeNexistePas
 from domain.commons.services.audit_log_writer import AuditLogWriter
 from domain.identite.errors.organisme_permission_errors import (
     AccesOrganismeRefuse,
     OperationOrganismeRefusee,
 )
+from domain.identite.value_objects.organisme_action import OrganismeAction
 from domain.recruteur.entities.etape_recrutement import EtapeRecrutement
 from domain.recruteur.value_objects.categorie_etapes_recrutement import (
     CategorieEtapeRecrutement,
@@ -21,11 +25,11 @@ from domain.recruteur.value_objects.roles import AgentOrganismeRole
 from infrastructure.django_apps.commons.models import AuditLogModel
 from infrastructure.django_apps.recruteur.enums.motif_refus import MotifRefus
 from infrastructure.django_apps.recruteur.models.organisme import OrganismeModel
+from infrastructure.django_apps.users.models import UserModel
 from infrastructure.factories.identite.organisme_django_factory import (
     OrganismeDjangoFactory,
     create_organisme_with_agent,
 )
-from infrastructure.factories.identite.organisme_factory import OrganismeFactory
 from infrastructure.factories.identite.utilisateur_django_factory import (
     UtilisateurDjangoFactory,
 )
@@ -35,6 +39,7 @@ from infrastructure.factories.recruteur.etapes_recrutement_factory import (
 from infrastructure.repositories.commons.postgres_audit_log_repository import (
     PostgresAuditLogRepository,
 )
+from tests.utils.dates import datetime_to_drf_representation
 
 fake = Faker("fr_FR")
 
@@ -44,6 +49,23 @@ ORGANISME_UUID = fake.uuid4()
 ORGANISME_URL = reverse(
     "recruteur:organisme_detail", kwargs={"organisme_uuid": ORGANISME_UUID}
 )
+
+
+def _authorized_actions(*, is_staff: bool) -> list[str]:
+    permissions = OrganismePermissionService()
+    utilisateur = UserModel(is_staff=is_staff)
+    actions = {
+        *permissions.authorized_actions_organisme(
+            AgentOrganismeRole.SUPERVISEUR,
+            utilisateur=utilisateur,
+            organisme_id=UUID(ORGANISME_UUID),
+            organisme_ids_responsable=frozenset(),
+        ),
+        *permissions.authorized_actions_staff_organisme(utilisateur),
+    }
+    return [action.value for action in OrganismeAction if action in actions]
+
+
 ETAPES_URL = reverse(
     "recruteur:organisme_parametres_etapes",
     kwargs={"organisme_uuid": ORGANISME_UUID},
@@ -83,16 +105,6 @@ def _organisme_audit_logs():
 
 
 @pytest.fixture
-def identite_container():
-    with patch(
-        "presentation.recruteur.views.organisme_detail.create_identite_container"
-    ) as mock:
-        instance = MagicMock()
-        mock.return_value = instance
-        yield instance
-
-
-@pytest.fixture
 def staff_client(api_client):
     staff_user = UtilisateurDjangoFactory(is_staff=True)
     api_client.force_login(staff_user)
@@ -109,92 +121,97 @@ class TestOrganismeDetailView:
             status.HTTP_401_UNAUTHORIZED
         )
 
-    def test_get_organisme(self, identite_container, authenticated_client):
-        organisme = OrganismeFactory.create_entity(
-            entity_id=UUID(ORGANISME_UUID),
-            date_creation=datetime(2026, 1, 1, 9, 0, tzinfo=timezone.utc),
+    def test_staff_gets_organisme(self, staff_client):
+        organisme = OrganismeDjangoFactory(
+            id=UUID(ORGANISME_UUID),
+            gestion_ats=True,
+            date_creation=datetime(2019, 3, 1, 9, 0, tzinfo=timezone.utc),
             date_derniere_activite=datetime(2026, 1, 15, 10, 0, tzinfo=timezone.utc),
         )
-        mock_usecase = MagicMock()
-        mock_usecase.execute.return_value = organisme
-        identite_container.get_organisme_usecase.return_value = mock_usecase
+
+        response = staff_client.get(ORGANISME_URL)
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json() == {
+            "uuid": ORGANISME_UUID,
+            "nom": organisme.nom,
+            "versant": organisme.versant,
+            "siret": organisme.siret,
+            "superviseurs": "",
+            "gestion_ats": True,
+            "date_creation": "2019-03-01T09:00:00Z",
+            "date_derniere_activite": "2026-01-15T10:00:00Z",
+            "authorized_actions": _authorized_actions(is_staff=True),
+        }
+
+    def test_superviseur_gets_organisme(self, authenticated_client, test_user):
+        organisme = _superviseur(test_user)
 
         response = authenticated_client.get(ORGANISME_URL)
 
         assert response.status_code == status.HTTP_200_OK
         assert response.json()["uuid"] == ORGANISME_UUID
         assert response.json()["nom"] == organisme.nom
-        assert response.json()["date_creation"] == "2026-01-01T09:00:00Z"
+        assert response.json()["authorized_actions"] == _authorized_actions(
+            is_staff=False
+        )
 
-    @pytest.mark.parametrize(
-        ("exception", "expected_status", "expected_body"),
-        [
-            (
-                OrganismeNexistePas(ORGANISME_UUID),
-                status.HTTP_404_NOT_FOUND,
-                {"error": OrganismeNexistePas(ORGANISME_UUID).message},
-            ),
-            (
-                AccesOrganismeRefuse(UUID(ORGANISME_UUID)),
-                status.HTTP_403_FORBIDDEN,
-                {"error": AccesOrganismeRefuse(UUID(ORGANISME_UUID)).message},
-            ),
-            (
-                OperationOrganismeRefusee(),
-                status.HTTP_403_FORBIDDEN,
-                {"error": OperationOrganismeRefusee().message},
-            ),
-            (
-                Exception("unexpected"),
-                status.HTTP_500_INTERNAL_SERVER_ERROR,
-                {"error": "Unexpected error"},
-            ),
-        ],
-    )
-    def test_get_returns_error_from_usecase(
-        self,
-        identite_container,
-        authenticated_client,
-        exception,
-        expected_status,
-        expected_body,
-    ):
-        mock_usecase = MagicMock()
-        mock_usecase.execute.side_effect = exception
-        identite_container.get_organisme_usecase.return_value = mock_usecase
+    def test_authorized_actions_match_the_list_of_organismes(self, staff_client):
+        OrganismeDjangoFactory(id=UUID(ORGANISME_UUID))
+
+        detail = staff_client.get(ORGANISME_URL).json()
+        liste = staff_client.get(reverse("recruteur:organismes")).json()
+
+        assert [
+            organisme["authorized_actions"]
+            for organisme in liste["results"]
+            if organisme["uuid"] == ORGANISME_UUID
+        ] == [detail["authorized_actions"]]
+
+    def test_membre_is_forbidden(self, authenticated_client, test_user):
+        _membre_agent(test_user)
 
         response = authenticated_client.get(ORGANISME_URL)
 
-        assert response.status_code == expected_status
-        assert response.json() == expected_body
-
-    def test_put_update_organisme(
-        self,
-        identite_container,
-        authenticated_client,
-    ):
-        mock_usecase = MagicMock()
-        organisme = OrganismeFactory.create_entity(entity_id=UUID(ORGANISME_UUID))
-        mock_usecase.execute.return_value = organisme
-        identite_container.update_organisme_usecase.return_value = mock_usecase
-        body = {
-            "nom": organisme.nom,
-            "gestion_ats": organisme.gestion_ats,
-            "versant": organisme.versant.value,
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert response.json() == {
+            "error": AccesOrganismeRefuse(UUID(ORGANISME_UUID)).message
         }
-        response = authenticated_client.put(ORGANISME_URL, body)
-        assert response.status_code == status.HTTP_200_OK
-        assert response.json()["nom"] == organisme.nom
-        assert response.json()["gestion_ats"] == organisme.gestion_ats
+
+    def test_superviseur_of_another_organisme_is_forbidden(
+        self, authenticated_client, test_user
+    ):
+        _superviseur_of_another_organisme(test_user)
+
+        response = authenticated_client.get(ORGANISME_URL)
+
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert response.json() == {
+            "error": AccesOrganismeRefuse(UUID(ORGANISME_UUID)).message
+        }
+
+    def test_unknown_organisme_returns_404(self, staff_client):
+        response = staff_client.get(ORGANISME_URL)
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+        assert response.json() == {"error": OrganismeNexistePas(ORGANISME_UUID).message}
+
+    @pytest.mark.parametrize(
+        "client_fixture",
+        ["authenticated_client", "staff_client"],
+        ids=["superviseur", "staff"],
+    )
+    def test_supprime_organisme_returns_404(self, request, test_user, client_fixture):
+        _supprime_organisme(test_user)
+
+        response = request.getfixturevalue(client_fixture).get(ORGANISME_URL)
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+        assert response.json() == {"error": OrganismeNexistePas(ORGANISME_UUID).message}
 
     @pytest.mark.parametrize(
         ("exception", "expected_status", "expected_body"),
         [
-            (
-                OrganismeNexistePas(ORGANISME_UUID),
-                status.HTTP_404_NOT_FOUND,
-                {"error": OrganismeNexistePas(ORGANISME_UUID).message},
-            ),
             (
                 OperationOrganismeRefusee(),
                 status.HTTP_403_FORBIDDEN,
@@ -207,27 +224,97 @@ class TestOrganismeDetailView:
             ),
         ],
     )
-    def test_put_returns_error_from_usecase(
-        self,
-        identite_container,
-        authenticated_client,
-        exception,
-        expected_status,
-        expected_body,
+    def test_get_maps_unexpected_service_errors(
+        self, staff_client, exception, expected_status, expected_body
     ):
-        mock_usecase = MagicMock()
-        mock_usecase.execute.side_effect = exception
-        identite_container.update_organisme_usecase.return_value = mock_usecase
-        nouveau_nom = fake.name()
-        body = {
-            "nom": nouveau_nom,
-            "gestion_ats": False,
-            "versant": "FPT",
-        }
-        response = authenticated_client.put(ORGANISME_URL, body)
+        OrganismeDjangoFactory(id=UUID(ORGANISME_UUID))
+
+        with patch.object(
+            OrganismePermissionService, "can_execute", side_effect=exception
+        ):
+            response = staff_client.get(ORGANISME_URL)
 
         assert response.status_code == expected_status
         assert response.json() == expected_body
+
+    def test_staff_updates_organisme(self, authenticated_client, test_user):
+        organisme = _staff_without_liaison(test_user)
+        ancienne_activite = datetime(2020, 1, 2, tzinfo=timezone.utc)
+        OrganismeModel.objects.filter(pk=organisme.pk).update(
+            gestion_ats=False,
+            versant="FPE",
+            date_creation=datetime(2019, 3, 1, tzinfo=timezone.utc),
+            date_derniere_activite=ancienne_activite,
+        )
+        nouveau_nom = fake.name()
+        body = {"nom": nouveau_nom, "gestion_ats": True, "versant": "FPT"}
+
+        response = authenticated_client.put(ORGANISME_URL, body)
+
+        assert response.status_code == status.HTTP_200_OK
+        organisme.refresh_from_db()
+        assert response.json() == {
+            "uuid": ORGANISME_UUID,
+            "nom": nouveau_nom,
+            "versant": "FPT",
+            "siret": organisme.siret,
+            "superviseurs": "",
+            "gestion_ats": True,
+            "date_creation": datetime_to_drf_representation(organisme.date_creation),
+            "date_derniere_activite": datetime_to_drf_representation(
+                organisme.date_derniere_activite
+            ),
+        }
+        assert organisme.nom == nouveau_nom
+        assert organisme.versant == "FPT"
+        assert organisme.gestion_ats is True
+        assert organisme.date_derniere_activite > ancienne_activite
+
+    def test_update_is_audited(self, authenticated_client, test_user):
+        _staff_without_liaison(test_user)
+        body = {"nom": fake.name(), "gestion_ats": True, "versant": "FPT"}
+
+        response = authenticated_client.put(ORGANISME_URL, body)
+
+        assert response.status_code == status.HTTP_200_OK
+        assert list(
+            AuditLogModel.objects.values_list(
+                "ressource_kind", "ressource_id", "event_name", "utilisateur_id"
+            )
+        ) == [
+            (
+                "Organisme",
+                UUID(ORGANISME_UUID),
+                "OrganismeModifie",
+                test_user.username,
+            )
+        ]
+
+    @pytest.mark.parametrize(
+        "body",
+        [
+            {},
+            {"nom": "Commune", "gestion_ats": True},
+            {"nom": "Commune", "gestion_ats": True, "versant": "inconnu"},
+        ],
+        ids=["vide", "sans_versant", "versant_inconnu"],
+    )
+    def test_invalid_body_returns_400(self, authenticated_client, test_user, body):
+        organisme = _staff_without_liaison(test_user)
+
+        response = authenticated_client.put(ORGANISME_URL, body)
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert OrganismeModel.objects.get(pk=organisme.pk).nom == organisme.nom
+        assert not AuditLogModel.objects.exists()
+
+    def test_put_unknown_organisme_returns_404(self, staff_client):
+        body = {"nom": fake.name(), "gestion_ats": True, "versant": "FPT"}
+
+        response = staff_client.put(ORGANISME_URL, body)
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+        assert response.json() == {"error": OrganismeNexistePas(ORGANISME_UUID).message}
 
 
 class TestEtapesRecrutementOrganismeView:
@@ -838,34 +925,22 @@ class TestPutEtapesRecrutementOrganismeView:
 
 
 class TestOrganismeDetailViewDbVerified:
-    def test_get_returns_persisted_organisme(self, staff_client):
-        organisme = OrganismeDjangoFactory(id=UUID(ORGANISME_UUID), gestion_ats=True)
+    @pytest.mark.parametrize(
+        "arrange",
+        [_superviseur, _membre_agent],
+        ids=["superviseur", "membre"],
+    )
+    def test_put_non_staff_is_forbidden(self, authenticated_client, test_user, arrange):
+        arrange(test_user)
+        nom_avant = OrganismeModel.objects.get(pk=UUID(ORGANISME_UUID)).nom
+        body = {"nom": fake.name(), "gestion_ats": True, "versant": "FPT"}
 
-        response = staff_client.get(ORGANISME_URL)
+        response = authenticated_client.put(ORGANISME_URL, body)
 
-        assert response.status_code == status.HTTP_200_OK
-        data = response.json()
-        assert data["uuid"] == ORGANISME_UUID
-        assert data["nom"] == organisme.nom
-        assert data["versant"] == organisme.versant
-        assert data["siret"] == organisme.siret
-        assert data["gestion_ats"] == organisme.gestion_ats
-
-    def test_put_updates_and_persists_the_organisme(self, staff_client):
-        OrganismeDjangoFactory(id=UUID(ORGANISME_UUID), gestion_ats=False)
-        nouveau_nom = fake.name()
-        body = {"nom": nouveau_nom, "gestion_ats": True, "versant": "FPT"}
-
-        response = staff_client.put(ORGANISME_URL, body)
-
-        assert response.status_code == status.HTTP_200_OK
-        assert response.json()["nom"] == nouveau_nom
-        assert response.json()["gestion_ats"] is True
-
-        organisme = OrganismeModel.objects.get(id=UUID(ORGANISME_UUID))
-        assert organisme.nom == nouveau_nom
-        assert organisme.gestion_ats is True
-        assert organisme.versant == "FPT"
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert response.json() == {"error": OperationOrganismeRefusee().message}
+        assert OrganismeModel.objects.get(pk=UUID(ORGANISME_UUID)).nom == nom_avant
+        assert not AuditLogModel.objects.exists()
 
     @pytest.mark.parametrize(
         "client_fixture",

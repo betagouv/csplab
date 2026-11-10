@@ -164,6 +164,7 @@ def test_execute_with_valid_cv_returns_opportunities(
     with assertNumQueries(
         1  # select ConcoursModel
         + 1  # select OfferModel
+        + 1  # prefetch OfferModel localisations
     ):
         results = usecase.execute(cv_metadata, limit=limit)
 
@@ -208,6 +209,7 @@ def test_vectorize_qdrant_search_empty_filters(
     usecase = candidate_container.match_cv_to_opportunities_usecase()
     with assertNumQueries(
         1  # select OfferModel
+        + 1  # prefetch OfferModel localisations
     ):
         results = usecase.execute(cv_metadata)
 
@@ -226,9 +228,11 @@ def test_vectorize_qdrant_search_list_filters(
 
     source = SourceDjangoFactory()
     offers = [
-        OfferDjangoFactory(verse=Verse.FPE, source=source),
-        OfferDjangoFactory(verse=Verse.FPH, source=source),
-        OfferDjangoFactory(verse=Verse.FPT, source=source),
+        OfferDjangoFactory(
+            verse=Verse.FPE, categories=[Category.A, Category.B], source=source
+        ),
+        OfferDjangoFactory(verse=Verse.FPH, categories=[Category.B], source=source),
+        OfferDjangoFactory(verse=Verse.FPT, categories=[Category.C], source=source),
     ]
 
     concours = [
@@ -264,7 +268,7 @@ def test_vectorize_qdrant_search_list_filters(
 
         metadata = {
             "verse": offer_entity.verse.value,
-            "category": None,
+            "category": [category.value for category in offer_entity.categories],
             "localisation": localisation,
         }
         vectorized_doc = VectorizedDocumentFactory.create_entity(
@@ -345,6 +349,17 @@ def test_vectorize_qdrant_search_list_filters(
     )
 
     assert len(concours_a_b) == TWO_DOCUMENTS
+
+    offers_b = usecase.execute(
+        cv_metadata,
+        filters={
+            "document_type": DocumentType.OFFERS.value,
+            "category": [Category.B.value],
+        },
+        limit=10,
+    )
+
+    assert len(offers_b) == TWO_DOCUMENTS
 
     offers_ile_de_france = usecase.execute(
         cv_metadata,

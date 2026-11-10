@@ -25,7 +25,7 @@ from presentation.candidate.filter_config import (
 )
 from presentation.candidate.formatters import (
     format_category_display,
-    format_location_display,
+    format_locations_display,
     format_offer_nature_display,
     format_opportunity_type_display,
     format_verse_display,
@@ -36,6 +36,7 @@ from presentation.candidate.types import (
     DrawerContext,
     OfferCard,
 )
+from presentation.commons.markdown import render_markdown
 
 
 class ConcoursToTemplateMapper:
@@ -102,12 +103,12 @@ class OfferToTemplateMapper:
             "offer_id": str(offer.id),
             "profile": offer.profile,
             "organization": offer.organization,
-            "category_display": format_category_display(offer.category),
-            "category_value": format_category_value(offer.category),
+            "category_display": format_category_display(offer.main_category),
+            "category_value": format_category_value(offer.main_category),
             "versant_display": format_verse_display(offer.verse),
             "versant_value": offer.verse.value if offer.verse else "",
-            "location": format_location_display(offer.localisation),
-            "location_value": format_location_value(offer.localisation),
+            "location": format_locations_display(offer.localisations),
+            "location_value": format_location_value(offer.main_localisation),
             "offer_nature_display": format_offer_nature_display(offer.offer_nature),
             "url": str(offer.offer_url) if offer.offer_url else "#",
         }
@@ -123,9 +124,7 @@ class OfferToTemplateMapper:
                 {
                     "id": "drawer-mission-content",
                     "title": "Mission",
-                    "content": mark_safe(  # noqa: S308
-                        linebreaks(offer.mission, autoescape=True)
-                    ),
+                    "content": render_markdown(offer.mission, top_heading_level=4),
                 }
             )
         if offer.profile:
@@ -133,9 +132,7 @@ class OfferToTemplateMapper:
                 {
                     "id": "drawer-profile-content",
                     "title": "Profil recherch\u00e9",
-                    "content": mark_safe(  # noqa: S308
-                        linebreaks(offer.profile, autoescape=True)
-                    ),
+                    "content": render_markdown(offer.profile, top_heading_level=4),
                 }
             )
         if metiers:
@@ -156,9 +153,9 @@ class OfferToTemplateMapper:
                 OpportunityType.OFFER
             ),
             "versant_display": format_verse_display(offer.verse),
-            "category_display": format_category_display(offer.category),
+            "category_display": format_category_display(offer.main_category),
             "organization": offer.organization,
-            "location": format_location_display(offer.localisation),
+            "location": format_locations_display(offer.localisations),
             "url": str(offer.offer_url) if offer.offer_url else "#",
             "accordions": accordions,
             "cta_label": "Voir l'offre",
