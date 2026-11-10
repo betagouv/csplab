@@ -110,14 +110,16 @@ class TestListNotes:
         )
         notes = NoteDjangoFactory.create_batch(3, candidature=candidature)
 
-        result = list_notes(
-            organisme_id=organisme.id,
-            recrutement_id=recrutement.pk,
-            candidature_id=candidature.id,
-            utilisateur=agent.utilisateur,
+        result = list(
+            list_notes(
+                organisme_id=organisme.id,
+                recrutement_id=recrutement.pk,
+                candidature_id=candidature.id,
+                utilisateur=agent.utilisateur,
+            )
         )
 
-        with django_assert_num_queries(1):
+        with django_assert_num_queries(0):
             author_ids = [note.publie_par.utilisateur.pk for note in result]
 
         assert len(author_ids) == len(notes)
