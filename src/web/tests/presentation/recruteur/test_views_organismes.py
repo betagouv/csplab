@@ -156,6 +156,14 @@ class TestListOrganismes:
 
         assert [r["uuid"] for r in response.json()["results"]] == [str(cible.id)]
 
+    @pytest.mark.parametrize("filtre", ["%%%", "_airie", "mai%"])
+    def test_get_filter_by_name_escapes_like_wildcards(self, staff_client, filtre):
+        OrganismeDjangoFactory(nom="Mairie de Lyon")
+
+        response = staff_client.get(ORGANISME_URL, {"filter": filtre})
+
+        assert response.json()["count"] == 0
+
     @pytest.mark.parametrize("filtre", ["12345678", "123 456 78", " 1234 "])
     def test_get_filter_by_siret_strips_spaces(self, staff_client, filtre):
         cible = OrganismeDjangoFactory(siret="12345678901234")
