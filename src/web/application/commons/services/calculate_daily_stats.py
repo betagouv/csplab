@@ -38,9 +38,7 @@ def _volume_querysets() -> dict[Metric, QuerySet]:
         Metric.WITHDRAWN_APPLICATIONS: CandidatureModel.objects.withdrawn(),
         Metric.APPLICATIONS_TO_PROCESS: CandidatureModel.objects.to_process(),
         Metric.PROCESSED_APPLICATIONS: CandidatureModel.objects.processed(),
-        Metric.APPLICATIONS_PAST_FIRST_SCREENING: (
-            CandidatureModel.objects.past_first_screening()
-        ),
+        Metric.APPLICATIONS_SHORTLISTED: CandidatureModel.objects.shortlisted(),
         Metric.REFUSED_APPLICATIONS: CandidatureModel.objects.refused(),
         Metric.SELECTED_APPLICATIONS: CandidatureModel.objects.selected(),
         Metric.RECRUTEMENTS: RecrutementModel.objects.all(),

@@ -122,7 +122,7 @@ def test_stores_application_counts(recrutement):
         Metric.WITHDRAWN_APPLICATIONS,
         Metric.APPLICATIONS_TO_PROCESS,
         Metric.PROCESSED_APPLICATIONS,
-        Metric.APPLICATIONS_PAST_FIRST_SCREENING,
+        Metric.APPLICATIONS_SHORTLISTED,
         Metric.REFUSED_APPLICATIONS,
         Metric.SELECTED_APPLICATIONS,
     ) == {
@@ -130,7 +130,7 @@ def test_stores_application_counts(recrutement):
         Metric.WITHDRAWN_APPLICATIONS: 1,
         Metric.APPLICATIONS_TO_PROCESS: 2,
         Metric.PROCESSED_APPLICATIONS: 3,
-        Metric.APPLICATIONS_PAST_FIRST_SCREENING: 2,
+        Metric.APPLICATIONS_SHORTLISTED: 2,
         Metric.REFUSED_APPLICATIONS: 1,
         Metric.SELECTED_APPLICATIONS: 1,
     }

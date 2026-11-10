@@ -20,7 +20,7 @@ class Metric(models.TextChoices):
     WITHDRAWN_APPLICATIONS = "nb_candidatures_retirees", "Candidatures retirées"
     APPLICATIONS_TO_PROCESS = "nb_candidatures_a_traiter", "Candidatures à traiter"
     PROCESSED_APPLICATIONS = "nb_candidatures_traitees", "Candidatures traitées"
-    APPLICATIONS_PAST_FIRST_SCREENING = (
+    APPLICATIONS_SHORTLISTED = (
         "nb_candidatures_au_dela_premier_tri",
         "Candidatures au-delà du premier tri",
     )

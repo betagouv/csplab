@@ -28,7 +28,7 @@ class CandidatureQuerySet(models.QuerySet):
             etape__categorie=CategorieEtapeRecrutement.ENTREE.value
         )
 
-    def past_first_screening(self) -> "CandidatureQuerySet":
+    def shortlisted(self) -> "CandidatureQuerySet":
         return self.received().filter(
             etape__categorie__in=[
                 CategorieEtapeRecrutement.EN_COURS.value,
