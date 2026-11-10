@@ -1,14 +1,20 @@
 from datetime import date
 
-from django.db.models import QuerySet
+from django.db.models import Count, QuerySet
 
 from domain.recruteur.value_objects.roles import (
     AgentOrganismeRole,
     AgentRecrutementRole,
 )
 from infrastructure.django_apps.candidate.models.candidature import CandidatureModel
+from infrastructure.django_apps.candidate.models.document import DocumentModel
 from infrastructure.django_apps.commons.enums import Metric
 from infrastructure.django_apps.commons.models import StatSnapshotModel
+from infrastructure.django_apps.messagerie.models import (
+    ConversationModel,
+    MessageModel,
+)
+from infrastructure.django_apps.recruteur.models.note import NoteModel
 from infrastructure.django_apps.recruteur.models.organisme import (
     OrganismeAgentModel,
     OrganismeModel,
@@ -68,8 +74,52 @@ def _volume_metrics() -> dict[Metric, int]:
     }
 
 
+def _count_candidatures(
+    queryset: QuerySet, candidature_field: str = "candidature_id"
+) -> int:
+    return queryset.values(candidature_field).distinct().count()
+
+
+def _collaboration_metrics() -> dict[Metric, int]:
+    screened = CandidatureModel.objects.shortlisted()
+    team_notes = NoteModel.objects.for_team()
+    team_messages = MessageModel.objects.by_team()
+    conversations_per_candidature = (
+        ConversationModel.objects.order_by()
+        .values("candidature_id")
+        .annotate(total=Count("pk"))
+    )
+    return {
+        Metric.TEAM_NOTES: team_notes.count(),
+        Metric.PERSONAL_NOTES: NoteModel.objects.personal().count(),
+        Metric.SCREENED_APPLICATIONS_WITH_TEAM_NOTE: _count_candidatures(
+            team_notes.filter(candidature__in=screened)
+        ),
+        Metric.TEAM_MESSAGES: team_messages.count(),
+        Metric.CANDIDAT_MESSAGES: MessageModel.objects.by_candidat().count(),
+        Metric.SCREENED_APPLICATIONS_WITH_TEAM_MESSAGE: _count_candidatures(
+            team_messages.filter(conversation__candidature__in=screened),
+            "conversation__candidature_id",
+        ),
+        Metric.CONVERSATIONS: ConversationModel.objects.count(),
+        Metric.APPLICATIONS_WITH_CONVERSATION: conversations_per_candidature.count(),
+        Metric.APPLICATIONS_WITH_SEVERAL_CONVERSATIONS: (
+            conversations_per_candidature.filter(total__gte=2).count()
+        ),
+        Metric.DOCUMENTS_ADDED_BY_MEMBER: (
+            DocumentModel.objects.added_by_member().count()
+        ),
+        Metric.CANDIDAT_ATTACHMENTS: (
+            DocumentModel.objects.candidat_attachments().count()
+        ),
+        Metric.SCREENED_APPLICATIONS_WITH_COMPLETED_FILE: _count_candidatures(
+            DocumentModel.objects.added_in_tool().filter(candidature__in=screened)
+        ),
+    }
+
+
 def calculate_daily_stats(target_date: date) -> None:
-    metrics = _offer_metrics() | _volume_metrics()
+    metrics = _offer_metrics() | _volume_metrics() | _collaboration_metrics()
     StatSnapshotModel.objects.bulk_create(
         [
             StatSnapshotModel(date=target_date, metric_name=name, metric_value=value)

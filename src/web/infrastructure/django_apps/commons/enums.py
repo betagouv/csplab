@@ -49,3 +49,36 @@ class Metric(models.TextChoices):
         "Membres de recrutement contributeurs",
     )
     CANDIDAT_ACCOUNTS = "nb_comptes_candidats", "Comptes candidats"
+    TEAM_NOTES = "nb_notes_equipe", "Notes pour l'équipe"
+    PERSONAL_NOTES = "nb_notes_personnelles", "Notes personnelles"
+    SCREENED_APPLICATIONS_WITH_TEAM_NOTE = (
+        "nb_candidatures_premier_tri_avec_note_equipe",
+        "Candidatures au-delà du premier tri avec une note pour l'équipe",
+    )
+    TEAM_MESSAGES = "nb_messages_equipe", "Messages de l'équipe"
+    CANDIDAT_MESSAGES = "nb_messages_candidats", "Messages des candidats"
+    SCREENED_APPLICATIONS_WITH_TEAM_MESSAGE = (
+        "nb_candidatures_premier_tri_avec_message_equipe",
+        "Candidatures au-delà du premier tri avec un message de l'équipe",
+    )
+    CONVERSATIONS = "nb_conversations", "Conversations"
+    APPLICATIONS_WITH_CONVERSATION = (
+        "nb_candidatures_avec_conversation",
+        "Candidatures avec au moins une conversation",
+    )
+    APPLICATIONS_WITH_SEVERAL_CONVERSATIONS = (
+        "nb_candidatures_plusieurs_conversations",
+        "Candidatures avec plusieurs conversations",
+    )
+    DOCUMENTS_ADDED_BY_MEMBER = (
+        "nb_documents_ajoutes_par_membre",
+        "Documents ajoutés par un membre",
+    )
+    CANDIDAT_ATTACHMENTS = (
+        "nb_pieces_jointes_candidats",
+        "Pièces jointes envoyées par les candidats",
+    )
+    SCREENED_APPLICATIONS_WITH_COMPLETED_FILE = (
+        "nb_candidatures_premier_tri_dossier_complete",
+        "Candidatures au-delà du premier tri au dossier complété dans l'outil",
+    )

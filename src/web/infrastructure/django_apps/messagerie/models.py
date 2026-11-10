@@ -138,6 +138,12 @@ def unread_conversations_count(utilisateur_id, *, via: str = "candidature") -> C
 
 
 class MessageQuerySet(models.QuerySet):
+    def by_candidat(self) -> "MessageQuerySet":
+        return self.filter(auteur_id=F("conversation__candidature__candidat_id"))
+
+    def by_team(self) -> "MessageQuerySet":
+        return self.exclude(auteur_id=F("conversation__candidature__candidat_id"))
+
     def by_conversation(self, conversation_id) -> "MessageQuerySet":
         return (
             self.filter(conversation_id=conversation_id)
