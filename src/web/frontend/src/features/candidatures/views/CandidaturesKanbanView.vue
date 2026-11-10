@@ -33,7 +33,7 @@ const candidatureKanban = computed(() => liste.data.value ? groupCandidaturesByE
 
 const recrutementEtapes = computed(() => liste.data.value?.etapes ?? [])
 
-const { recrutementDetail } = useRecrutementDetail(() => props)
+const { recrutementDetail, pending: pendingDetail } = useRecrutementDetail(() => props)
 const canChangeEtape = computed(() => can(recrutementDetail.value?.authorized_actions, 'change_etape_candidatures'))
 
 const { changeEtape } = useEtapeChangeMutation(() => props)
@@ -59,7 +59,7 @@ provideCandidatureSequence(candidatureUuid =>
 
 useCandidatureLinkFocus()
 
-const showSkeleton = useMinimumPending(liste.isPending)
+const showSkeleton = useMinimumPending(computed(() => liste.isPending.value || pendingDetail.value))
 
 const {
   selectedCandidatures,

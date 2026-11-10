@@ -131,6 +131,17 @@ describe('candidaturesKanbanView', () => {
     expect(screen.getByRole('radio', { name: /Liste/ })).toBeInTheDocument()
   })
 
+  it('keeps loading until the rights on the recrutement are known', async () => {
+    vi.mocked(getRecrutementDetail).mockReturnValue(new Promise(() => {}))
+    await renderKanbanPage()
+
+    await vi.waitFor(() => expect(getCandidatureListe).toHaveBeenCalled())
+    await new Promise(resolve => setTimeout(resolve, 500))
+
+    expect(screen.getByRole('status', { name: 'Chargement des candidatures' })).toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Alice Dupont' })).not.toBeInTheDocument()
+  })
+
   it('offers no selection without the right to change stages', async () => {
     vi.mocked(getRecrutementDetail).mockResolvedValue({ ...RECRUTEMENT_DETAIL, authorized_actions: [] })
     await renderKanbanPage()
