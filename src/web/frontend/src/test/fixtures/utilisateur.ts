@@ -1,6 +1,4 @@
-import type { Utilisateur } from '@/api/utilisateur'
-
-export type UserOrganisme = Utilisateur['organismes'][number]
+import type { UserOrganisme, Utilisateur } from '@/api/utilisateur'
 
 export const STAFF_ACTIONS: Utilisateur['authorized_actions'] = ['create_organisme', 'list_organismes', 'update_organisme']
 

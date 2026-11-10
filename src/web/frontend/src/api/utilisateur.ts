@@ -4,6 +4,8 @@ import { can } from '@/utils/authorizedActions'
 
 export type Utilisateur = components['schemas']['Utilisateur']
 
+export type UserOrganisme = Utilisateur['organismes'][number]
+
 export function canBrowseOrganismes(user: Utilisateur | null | undefined): boolean {
   return can(user?.authorized_actions, 'list_organismes')
 }
