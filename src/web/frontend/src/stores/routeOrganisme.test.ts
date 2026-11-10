@@ -97,6 +97,23 @@ describe('useRouteOrganisme', () => {
     expect(organisme.value).toBeNull()
   })
 
+  it('tells the actions of an organisme a staff user holds no role on are loading until its detail arrives', async () => {
+    let resolveDetail!: (detail: typeof ORGANISME_DETAIL) => void
+    vi.mocked(getMe).mockResolvedValue(makeUser([], true))
+    vi.mocked(getOrganismeDetail).mockReturnValue(new Promise((resolve) => {
+      resolveDetail = resolve
+    }))
+
+    const { actionsPending } = await mountAt(`/organismes/${INCONNU}/recrutements`)
+
+    await vi.waitFor(() => expect(getOrganismeDetail).toHaveBeenCalled())
+    expect(actionsPending.value).toBe(true)
+
+    resolveDetail({ ...ORGANISME_DETAIL, uuid: INCONNU })
+
+    await vi.waitFor(() => expect(actionsPending.value).toBe(false))
+  })
+
   it('does not read the detail of an organisme the staff user belongs to', async () => {
     vi.mocked(getMe).mockResolvedValue(makeUser([ROLE_MTE], true, [
       { uuid: MTE, nom: ROLE_MTE.nom, authorized_actions: ['list_organisme_agents'] },

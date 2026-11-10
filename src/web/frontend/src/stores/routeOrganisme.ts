@@ -32,12 +32,18 @@ export function useRouteOrganisme() {
     user.value?.organismes.find(o => o.uuid === organismeUuid.value)?.authorized_actions,
   )
 
-  const { data: nonMemberOrganisme } = useQuery(() => ({
+  const readsNonMemberActions = computed(() =>
+    can(user.value?.authorized_actions, 'list_organismes') && Boolean(organismeUuid.value) && !memberActions.value,
+  )
+
+  const nonMemberOrganisme = useQuery(() => ({
     ...organismeDetailQuery({ organismeUuid: organismeUuid.value ?? '' }),
-    enabled: can(user.value?.authorized_actions, 'list_organismes') && Boolean(organismeUuid.value) && !memberActions.value,
+    enabled: readsNonMemberActions.value,
   }))
 
-  const organismeActions = computed(() => memberActions.value ?? nonMemberOrganisme.value?.authorized_actions)
+  const organismeActions = computed(() => memberActions.value ?? nonMemberOrganisme.data.value?.authorized_actions)
+
+  const actionsPending = computed(() => readsNonMemberActions.value && nonMemberOrganisme.isPending.value)
 
   function canOnOrganisme(action: AuthorizedAction): boolean {
     return can(organismeActions.value, action)
@@ -48,6 +54,7 @@ export function useRouteOrganisme() {
     routeOrganismeUuid,
     organismeUuid,
     organisme,
+    actionsPending,
     canOnOrganisme,
   }
 }
