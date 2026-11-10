@@ -4,11 +4,12 @@ import { computed, ref } from 'vue'
 import { isHttpStatus } from '@/api/errors'
 import CspAsyncSection from '@/components/base/CspAsyncSection/CspAsyncSection.vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
+import CspDialog from '@/components/base/CspDialog/CspDialog.vue'
 import CspDrawer from '@/components/base/CspDrawer/CspDrawer.vue'
 import CspLabel from '@/components/base/CspLabel/CspLabel.vue'
 import { useMinimumPending } from '@/composables/async/useMinimumPending'
 import { useToast } from '@/composables/ui/useToast'
-import { pluralize } from '@/utils/format'
+import { pluralize, quote } from '@/utils/format'
 import { useTags } from '../composables/useTags'
 import { DEFAULT_TAG_COLOR, TAG_CATEGORIES, TAG_CATEGORY_TEXTS, TAG_COLOR_PALETTE } from '../constants/tag'
 import TagForm from './TagForm.vue'
@@ -17,7 +18,7 @@ const props = defineProps<{
   organismeUuid: string
 }>()
 
-const { tags, pending, error, createTag, creatingTag, updateTag, updatingTag } = useTags(props.organismeUuid)
+const { tags, pending, error, createTag, creatingTag, updateTag, updatingTag, deleteTag, deletingTag } = useTags(props.organismeUuid)
 const { addToast } = useToast()
 
 const showSkeleton = useMinimumPending(pending)
@@ -26,6 +27,8 @@ const drawerOpen = ref(false)
 const drawerCategory = ref<TagCategory>('candidature')
 const editedTag = ref<Tag | null>(null)
 const duplicate = ref<CreateTagPayload | null>(null)
+const deletedTag = ref<Tag | null>(null)
+const deletionDialogOpen = ref(false)
 
 const tagsByCategory = computed(() => {
   const groups = Object.fromEntries(TAG_CATEGORIES.map(category => [category, [] as Tag[]])) as Record<TagCategory, Tag[]>
@@ -61,6 +64,34 @@ async function handleSave(payload: CreateTagPayload): Promise<void> {
       return
     }
     addToast({ variant: 'error', title: tag ? 'La modification de l\'étiquette a échoué' : 'L\'ajout de l\'étiquette a échoué' })
+  }
+}
+
+function usageText(tag: Tag): string {
+  if (tag.usage_count === 0) {
+    return 'Cette étiquette n\'est posée nulle part.'
+  }
+  const [singular, plural] = TAG_CATEGORY_TEXTS[tag.category].usage
+  return `Cette étiquette est posée sur ${tag.usage_count} ${pluralize(tag.usage_count, singular, plural)}. Elle en sera retirée.`
+}
+
+function openDeletionDialog(tag: Tag): void {
+  deletedTag.value = tag
+  deletionDialogOpen.value = true
+}
+
+async function confirmDeletion(): Promise<void> {
+  const tag = deletedTag.value
+  if (!tag) {
+    return
+  }
+  try {
+    await deleteTag(tag.uuid)
+    addToast({ variant: 'success', title: 'Étiquette supprimée' })
+    deletionDialogOpen.value = false
+  }
+  catch {
+    addToast({ variant: 'error', title: 'La suppression de l\'étiquette a échoué' })
   }
 }
 </script>
@@ -108,7 +139,9 @@ async function handleSave(payload: CreateTagPayload): Promise<void> {
                 :color="TAG_COLOR_PALETTE[tag.color ?? DEFAULT_TAG_COLOR]"
                 clickable
                 :aria-label="`Modifier l'étiquette ${tag.name}`"
+                :dismiss-label="`Supprimer l'étiquette ${tag.name}`"
                 @click="openDrawer(category, tag)"
+                @dismiss="openDeletionDialog(tag)"
               />
             </li>
           </ul>
@@ -144,6 +177,29 @@ async function handleSave(payload: CreateTagPayload): Promise<void> {
         @cancel="drawerOpen = false"
       />
     </CspDrawer>
+
+    <CspDialog
+      v-model:open="deletionDialogOpen"
+      :title="deletedTag ? `Supprimer l'étiquette ${quote(deletedTag.name)}` : null"
+      size="sm"
+    >
+      <template v-if="deletedTag">
+        {{ usageText(deletedTag) }}
+      </template>
+
+      <template #footer>
+        <CspButton
+          label="Annuler"
+          variant="secondary"
+          @click="deletionDialogOpen = false"
+        />
+        <CspButton
+          label="Supprimer"
+          :disabled="deletingTag"
+          @click="confirmDeletion"
+        />
+      </template>
+    </CspDialog>
   </section>
 </template>
 
