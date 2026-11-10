@@ -10,8 +10,16 @@ class MetierQuerySet(models.QuerySet):
     def active(self) -> "MetierQuerySet":
         return self.filter(archived_at__isnull=True)
 
+    def by_functional_area(self, code: str | None) -> "MetierQuerySet":
+        if not code:
+            return self
+        return self.filter(domaine_fonctionnel_code=code)
+
     def functional_area_codes(self) -> set[str]:
         return set(self.values_list("domaine_fonctionnel_code", flat=True))
+
+    def stable_order(self) -> "MetierQuerySet":
+        return self.order_by("offer_family_code", "id")
 
 
 class MetierModel(BaseDatedModel):
