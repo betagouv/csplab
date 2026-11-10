@@ -1,7 +1,6 @@
 from datetime import datetime
 from typing import Dict, List
 
-from ddd.page_interface import IPage
 from ddd.services.logger_interface import ILogger
 from django.db import DatabaseError, transaction
 from django.db.models import F, Q
@@ -16,7 +15,6 @@ from domain.ingestion.repositories.document_repository_interface import (
 )
 from infrastructure.django_apps.referentiel.models.metier import MetierModel
 from infrastructure.mappers.metier_mapper import MetierMapper
-from infrastructure.mappers.queryset_page import QuerySetPage
 
 
 class PostgresMetierRepository(IMetierRepository):
@@ -104,10 +102,6 @@ class PostgresMetierRepository(IMetierRepository):
     def get_all(self) -> List[Metier]:
         metier_models = MetierModel.objects.all()
         return [self.mapper.to_domain(model) for model in metier_models]
-
-    def get_filtered_slice(self, predicate: Dict[str, str]) -> IPage[Metier]:
-        qs = MetierModel.objects.filter(**predicate)
-        return QuerySetPage(qs.order_by("offer_family_code"), self.mapper.to_domain)
 
     def get_filtered(
         self, predicate: Dict[str, str], limit: int = 1000
