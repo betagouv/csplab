@@ -22,7 +22,7 @@ const props = defineProps<{
 const breadcrumb: CspBreadcrumbItem[] = [{ label: HOME_BREADCRUMB_LABEL }]
 
 const { user, isStaff } = useCurrentUser()
-const { organisme, canOnOrganisme } = useRouteOrganisme()
+const { organisme, actionsPending, canOnOrganisme } = useRouteOrganisme()
 
 const forbidden = computed(() => !!props.organismeUuid && !!user.value && !isStaff.value && !organisme.value)
 
@@ -44,7 +44,7 @@ useDocumentTitle(HOME_BREADCRUMB_LABEL)
     />
     <CspPageContainer>
       <CspCard
-        v-if="user && organismeUuid"
+        v-if="user && organismeUuid && !actionsPending"
         as="section"
         size="lg"
         title-as="h2"

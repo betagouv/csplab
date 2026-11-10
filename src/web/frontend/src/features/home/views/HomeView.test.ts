@@ -46,6 +46,17 @@ describe('homeView', () => {
     expect(await screen.findByRole('heading', { name: 'Prêt à démarrer les recrutements de votre organisme ?' })).toBeInTheDocument()
   })
 
+  it('waits for the rights of a staff member outside their organismes before guiding them', async () => {
+    vi.mocked(getMe).mockResolvedValue(makeUser([], true))
+    vi.mocked(getOrganismeDetail).mockReturnValue(new Promise(() => {}))
+    await renderHome(BRIANCON_UUID)
+
+    await screen.findByRole('heading', { level: 1, name: 'Bonjour Marie' })
+    await vi.waitFor(() => expect(getOrganismeDetail).toHaveBeenCalled())
+
+    expect(screen.queryByRole('heading', { name: 'Prêt à traiter vos premières candidatures ?' })).not.toBeInTheDocument()
+  })
+
   it('guides an agent towards their recrutements, without links to the settings', async () => {
     await renderHome(BRIANCON_UUID)
 
