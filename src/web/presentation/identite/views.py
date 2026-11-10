@@ -80,7 +80,7 @@ class ProconnectCallbackView(View):
 
         user = authenticate(request, proconnect_claims=claims)
         if user is None:
-            return self._login_failure(request)
+            return self._login_failure(request, token.get("id_token"))
 
         login(
             request,
@@ -93,12 +93,16 @@ class ProconnectCallbackView(View):
         )
         return redirect(next_url or settings.LOGIN_REDIRECT_URL)
 
-    def _login_failure(self, request: HttpRequest) -> HttpResponseBase:
+    def _login_failure(
+        self, request: HttpRequest, id_token: str | None = None
+    ) -> HttpResponseBase:
         messages.error(
             request,
             "Aucun compte ProConnect associé à cette adresse e-mail. "
             "Contactez votre administrateur.",
         )
+        if id_token:
+            return redirect(build_proconnect_logout_url(request, id_token))
         return redirect(settings.LOGIN_URL)
 
 
