@@ -6941,12 +6941,18 @@ components:
           format: email
         recrutement_role:
           $ref: '#/components/schemas/RecrutementRoleEnum'
+        tags:
+          type: array
+          items:
+            $ref: '#/components/schemas/RecrutementAgentTag'
+          readOnly: true
       required:
       - email
       - nom
       - poste
       - prenom
       - recrutement_role
+      - tags
       - uuid
     RecrutementAgentRole:
       type: object
@@ -6963,6 +6969,23 @@ components:
       required:
       - agent_id
       - recrutement_role
+    RecrutementAgentTag:
+      type: object
+      properties:
+        uuid:
+          type: string
+          format: uuid
+        name:
+          type: string
+          maxLength: 25
+        color:
+          allOf:
+          - $ref: '#/components/schemas/ColorEnum'
+          readOnly: true
+      required:
+      - color
+      - name
+      - uuid
     RecrutementDetail:
       type: object
       properties:

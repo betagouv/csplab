@@ -1155,6 +1155,7 @@ export interface components {
             /** Format: email */
             email: string;
             recrutement_role: components["schemas"]["RecrutementRoleEnum"];
+            readonly tags: components["schemas"]["RecrutementAgentTag"][];
         };
         RecrutementAgentRole: {
             /** Format: uuid */
@@ -1162,6 +1163,12 @@ export interface components {
             recrutement_role: components["schemas"]["RecrutementRoleEnum"];
             /** Format: date-time */
             date_revocation_recrutement?: string | null;
+        };
+        RecrutementAgentTag: {
+            /** Format: uuid */
+            uuid: string;
+            name: string;
+            readonly color: components["schemas"]["ColorEnum"];
         };
         RecrutementDetail: {
             /** Format: uuid */
