@@ -1,4 +1,5 @@
 import secrets
+from uuid import UUID
 
 import filetype
 from django.contrib.auth import authenticate
@@ -8,6 +9,7 @@ from domain.candidate.value_objects.statut_candidature import StatutCandidature
 from infrastructure.django_apps.candidate.enums.type_document import TypeDocument
 from infrastructure.django_apps.candidate.models.candidature import CandidatureModel
 from infrastructure.django_apps.candidate.models.document import DocumentModel
+from infrastructure.django_apps.ingestion.models.source import SourceModel
 from infrastructure.django_apps.messagerie.models import (
     ConversationModel,
     MessageDocumentModel,
@@ -79,3 +81,13 @@ class TestSeedRecruteurDatas:
         assert ConversationModel.objects.exclude(
             lectures__utilisateur__email=agent_email
         ).exists()
+
+    def test_reseed_keeps_only_the_seed_sources(self, db):
+        seed_recruteur_datas()
+        seed_recruteur_datas(force=True)
+
+        # miroir de _SOURCES_SPECS au 19/10
+        assert set(SourceModel.objects.values_list("source_id", flat=True)) == {
+            UUID("00000000-0000-0000-0000-0000000000a1"),
+            UUID("00000000-0000-0000-0000-0000000000a2"),
+        }
