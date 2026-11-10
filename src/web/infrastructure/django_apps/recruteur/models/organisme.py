@@ -1,3 +1,4 @@
+import re
 from collections.abc import Sequence
 from uuid import UUID, uuid4
 
@@ -14,6 +15,9 @@ from domain.recruteur.value_objects.roles import AgentOrganismeRole
 from infrastructure.django_apps.recruteur.enums.etape_par_defaut import EtapeParDefaut
 from infrastructure.django_apps.users.fields import agent_fk
 from infrastructure.django_apps.utils.models import BaseDatedModel
+
+SEUIL_RECHERCHE = 3
+_SIRET_PARTIEL = re.compile(r"[\d ]+")
 
 
 def _count_subquery(queryset: models.QuerySet) -> Coalesce:
@@ -90,6 +94,19 @@ class OrganismeQuerySet(models.QuerySet):
         if not name:
             return self
         return self.filter(nom__unaccent__icontains=name)
+
+    def search_siret(self, siret: str | None) -> "OrganismeQuerySet":
+        if not siret:
+            return self
+        return self.filter(siret__startswith="".join(siret.split()))
+
+    def search(self, term: str | None) -> "OrganismeQuerySet":
+        term = (term or "").strip()
+        if len(term) < SEUIL_RECHERCHE:
+            return self
+        if _SIRET_PARTIEL.fullmatch(term):
+            return self.search_siret(term)
+        return self.search_name(term)
 
     def by_department(self, department: str | None) -> "OrganismeQuerySet":
         if not department:

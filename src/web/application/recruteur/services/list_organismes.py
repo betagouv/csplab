@@ -14,13 +14,16 @@ from infrastructure.django_apps.recruteur.models.organisme import OrganismeModel
 from infrastructure.django_apps.users.models import UserModel
 
 
-def list_organismes(*, utilisateur: UserModel) -> QuerySet[OrganismeModel]:
+def list_organismes(
+    *, utilisateur: UserModel, recherche: str | None = None
+) -> QuerySet[OrganismeModel]:
     OrganismePermissionService().can_execute(
         action=OrganismeAction.LIST_ORGANISMES,
         utilisateur=utilisateur,
     )
     return (
         OrganismeModel.objects.not_supprimes()
+        .search(recherche)
         .with_counts()
         .with_superviseurs_actifs()
         .most_recently_updated_first()
