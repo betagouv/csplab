@@ -1,3 +1,5 @@
+from typing import TYPE_CHECKING
+
 from django.db import models
 from django.db.models import (
     BooleanField,
@@ -26,6 +28,9 @@ from infrastructure.django_apps.recruteur.models.organisme import OrganismeModel
 from infrastructure.django_apps.referentiel.models.offer import OfferModel
 from infrastructure.django_apps.users.fields import agent_fk
 from infrastructure.django_apps.utils.models import BaseDatedModel
+
+if TYPE_CHECKING:
+    from infrastructure.django_apps.tag.models import TagModel
 
 
 def _candidatures_subquery(aggregate, *, categorie: str | None = None) -> Subquery:
@@ -237,6 +242,17 @@ class RecrutementAgentQuerySet(models.QuerySet):
     ) -> "RecrutementAgentQuerySet":
         return self.filter(agent_id=agent_id, recrutement_id__in=recrutement_ids)
 
+    def with_tags(self) -> "RecrutementAgentQuerySet":
+        liaison_model = self.model._meta.get_field("tags_liaisons").related_model
+        return self.prefetch_related(
+            Prefetch(
+                "tags_liaisons",
+                queryset=liaison_model.objects.select_related("tag").order_by(
+                    "created_at", "id"
+                ),
+            )
+        )
+
 
 class RecrutementAgentModel(BaseDatedModel):
     recrutement = models.ForeignKey(
@@ -272,3 +288,7 @@ class RecrutementAgentModel(BaseDatedModel):
     @property
     def nom(self) -> str:
         return self.agent.utilisateur.get_full_name() or self.agent.utilisateur.email
+
+    @property
+    def tags(self) -> list["TagModel"]:
+        return [liaison.tag for liaison in self.tags_liaisons.all()]

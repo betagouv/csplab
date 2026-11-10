@@ -26,6 +26,9 @@ from infrastructure.factories.recruteur.recrutement_django_factory import (
     RecrutementAgentDjangoFactory,
     RecrutementDjangoFactory,
 )
+from infrastructure.factories.tag.tag_django_factory import (
+    RecrutementAgentTagDjangoFactory,
+)
 
 UNSET = object()
 
@@ -36,6 +39,7 @@ NOMBRE_REQUETES_ATTENDU = (
     + 1  # agent's role
     + 1  # matching recrutement with organisme
     + 2  # pagination : count + page
+    + 1  # prefetch tags_liaisons (tag via select_related)
 )
 
 
@@ -177,7 +181,10 @@ class TestRecrutementAgentsViewDbVerified:
             utilisateur=test_user,
         )
         recrutement = RecrutementDjangoFactory(organisme=organisme)
-        RecrutementAgentDjangoFactory.create_batch(5, recrutement=recrutement)
+        for membre in RecrutementAgentDjangoFactory.create_batch(
+            5, recrutement=recrutement
+        ):
+            RecrutementAgentTagDjangoFactory(recrutement_agent=membre)
 
         with django_assert_num_queries(NOMBRE_REQUETES_ATTENDU):
             response = authenticated_client.get(_url(organisme.id, recrutement.pk))
