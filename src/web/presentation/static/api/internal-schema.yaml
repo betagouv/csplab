@@ -126,6 +126,14 @@ paths:
       operationId: recruteur_organismes_list
       summary: Lister les organismes
       parameters:
+      - in: query
+        name: filter
+        schema:
+          type: string
+          maxLength: 100
+        description: 'Recherche (3 caractères minimum, sinon ignorée) : SIRET si le
+          terme ne contient que des chiffres et des espaces, sinon nom (insensible
+          à la casse et aux accents).'
       - name: page
         required: false
         in: query
