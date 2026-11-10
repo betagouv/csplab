@@ -71,7 +71,7 @@ class TestProconnectCallbackView:
         messages = [str(m) for m in get_messages(response.wsgi_request)]
         assert any("Aucun compte ProConnect" in message for message in messages)
 
-    def test_callback_unknown_email_shows_error_message_and_redirects_to_login(
+    def test_callback_unknown_email_ends_proconnect_session_with_error_message(
         self, db, client, monkeypatch
     ):
         monkeypatch.setattr(
@@ -87,7 +87,13 @@ class TestProconnectCallbackView:
         response = client.get(reverse("identite:proconnect_callback"))
 
         assert response.status_code == status.HTTP_302_FOUND
-        assert response.url == "/utilisateur/connexion"
+        expected_logout_url = f"{settings.PROCONNECT_BASE_URL}{END_SESSION_ENDPOINT}"
+        assert response.url.startswith(expected_logout_url)
+        assert "id_token_hint=fake-id-token" in response.url
+        assert (
+            "post_logout_redirect_uri=http%3A%2F%2Ftestserver%2Futilisateur%2Fconnexion"
+            in response.url
+        )
         messages = [str(m) for m in get_messages(response.wsgi_request)]
         assert any("Aucun compte ProConnect" in message for message in messages)
 
