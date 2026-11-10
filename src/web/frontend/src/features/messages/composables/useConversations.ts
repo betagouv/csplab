@@ -12,10 +12,12 @@ export function useConversations(candidature: MaybeRefOrGetter<CandidatureParams
 
   const conversations = computed(() => query.data.value?.results ?? [])
   const count = computed(() => query.data.value?.count ?? 0)
+  const hasUnread = computed(() => conversations.value.some(conversation => conversation.is_unread))
 
   return {
     conversations,
     count,
+    hasUnread,
     pending: query.isPending,
     error: query.error,
   }
@@ -42,7 +44,7 @@ export function useCreateConversation(candidature: MaybeRefOrGetter<CandidatureP
       createConversation(target, payload),
     onSuccess: (conversation, { target }) => {
       prependToList(target, conversation)
-      void queryCache.invalidateQueries({ key: candidatureKeys.conversations(target) })
+      void queryCache.invalidateQueries({ key: candidatureKeys.conversations(target), exact: true })
     },
   })
 
