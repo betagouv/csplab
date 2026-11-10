@@ -6,9 +6,9 @@ import { isNavItemActive, navigationFor } from './navigation'
 const ORGANISME_UUID = '00000000-0000-0000-0000-000000000000'
 const RECRUTEMENT_UUID = 'aaaaaaaa-0001-0001-0001-000000000001'
 
-const AGENT = { canListOrganismes: false, organismeUuid: ORGANISME_UUID, canAccessOrganismeSettings: false }
+const AGENT = { canListOrganismes: false, organismeUuid: ORGANISME_UUID, organismeActionsPending: false, canAccessOrganismeSettings: false }
 const SUPERVISEUR = { ...AGENT, canAccessOrganismeSettings: true }
-const STAFF = { canListOrganismes: true, organismeUuid: null, canAccessOrganismeSettings: true }
+const STAFF = { canListOrganismes: true, organismeUuid: null, organismeActionsPending: false, canAccessOrganismeSettings: true }
 
 function matchedNamesFor(path: string): string[] {
   const resolved = createRouter({ history: createMemoryHistory(), routes }).resolve(path)
@@ -45,6 +45,10 @@ describe('navigationFor', () => {
     const items = navigationFor({ ...STAFF, organismeUuid: ORGANISME_UUID })
 
     expect(items.map(item => item.label)).toEqual(['Accueil', 'Recrutements', 'Paramètres de l\'organisme'])
+  })
+
+  it('waits for the rights of a staff user on an organisme before giving its entries', () => {
+    expect(navigationFor({ ...STAFF, organismeUuid: ORGANISME_UUID, organismeActionsPending: true, canAccessOrganismeSettings: false })).toEqual([])
   })
 
   it('gives nothing to an agent without any organisme', () => {
