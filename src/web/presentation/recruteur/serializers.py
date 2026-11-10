@@ -521,6 +521,15 @@ class AgentRechercheSerializer(serializers.ModelSerializer):
 # ---------------------------------------------------------------------------
 
 
+class RecrutementAgentTagSerializer(serializers.ModelSerializer):
+    uuid = serializers.UUIDField(source="id")
+    color = serializers.ChoiceField(choices=TagColor.choices, read_only=True)
+
+    class Meta:
+        model = TagModel
+        fields = ["uuid", "name", "color"]
+
+
 class RecrutementAgentSerializer(serializers.ModelSerializer):
     uuid = serializers.UUIDField(source="agent.utilisateur.username")
     nom = serializers.CharField(source="agent.utilisateur.last_name")
@@ -530,10 +539,11 @@ class RecrutementAgentSerializer(serializers.ModelSerializer):
     recrutement_role = serializers.ChoiceField(
         source="role", choices=[(r.value, r.value) for r in AgentRecrutementRole]
     )
+    tags = RecrutementAgentTagSerializer(many=True, read_only=True)
 
     class Meta:
         model = RecrutementAgentModel
-        fields = ["uuid", "nom", "prenom", "poste", "email", "recrutement_role"]
+        fields = ["uuid", "nom", "prenom", "poste", "email", "recrutement_role", "tags"]
 
 
 class RecrutementAgentRoleSerializer(serializers.Serializer):

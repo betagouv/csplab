@@ -13,6 +13,7 @@ from infrastructure.django_apps.recruteur.models.organisme import OrganismeAgent
 from infrastructure.django_apps.recruteur.models.recrutement import (
     RecrutementAgentModel,
 )
+from infrastructure.django_apps.tag.models import TagCategory, TagColor
 from infrastructure.factories.identite.agent_django_factory import AgentDjangoFactory
 from infrastructure.factories.identite.organisme_django_factory import (
     OrganismeAgentDjangoFactory,
@@ -28,6 +29,7 @@ from infrastructure.factories.recruteur.recrutement_django_factory import (
 )
 from infrastructure.factories.tag.tag_django_factory import (
     RecrutementAgentTagDjangoFactory,
+    TagDjangoFactory,
 )
 
 UNSET = object()
@@ -149,7 +151,37 @@ class TestRecrutementAgentsViewDbVerified:
                 "poste": membre.intitule_poste,
                 "email": membre.utilisateur.email,
                 "recrutement_role": AgentRecrutementRole.RESPONSABLE.value,
+                "tags": [],
             }
+        ]
+
+    def test_lists_each_agent_tags(self, authenticated_client, test_user):
+        _, organisme = create_organisme_with_agent(
+            role=AgentOrganismeRole.SUPERVISEUR,
+            utilisateur=test_user,
+        )
+        etiquete = AgentDjangoFactory()
+        recrutement = RecrutementDjangoFactory(
+            organisme=organisme, agent_link__agent=etiquete
+        )
+        RecrutementAgentDjangoFactory(recrutement=recrutement)
+        membre_etiquete = RecrutementAgentModel.objects.get(
+            recrutement=recrutement, agent=etiquete
+        )
+        tag = TagDjangoFactory(
+            organisme=organisme,
+            category=TagCategory.RECRUTEMENT_AGENT,
+            name="Pilote",
+            color=TagColor.VERT,
+        )
+        RecrutementAgentTagDjangoFactory(recrutement_agent=membre_etiquete, tag=tag)
+
+        response = authenticated_client.get(_url(organisme.id, recrutement.pk))
+
+        assert response.status_code == status.HTTP_200_OK
+        assert [r["tags"] for r in response.json()["results"]] == [
+            [{"uuid": str(tag.id), "name": "Pilote", "color": "vert"}],
+            [],
         ]
 
     def test_lists_every_agent_of_the_recrutement(
@@ -244,6 +276,7 @@ class TestRecrutementAgentsViewPost:
             "poste": membre.intitule_poste,
             "email": membre.utilisateur.email,
             "recrutement_role": AgentRecrutementRole.RECRUTEUR.value,
+            "tags": [],
         }
         assert RecrutementAgentModel.objects.filter(
             recrutement=recrutement, agent=membre
