@@ -1,5 +1,5 @@
 import { screen } from '@testing-library/vue'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { HttpError } from '@/api/errors'
 import { CANDIDATURE_PANEL_ROUTE_NAMES } from '@/router/names'
 import { renderWithApp } from '@/test/render'
@@ -17,10 +17,6 @@ const CANDIDATURE_ALICE = 'dddddddd-0001-0001-0001-000000000001'
 const MESSAGES_PATH = `/organismes/${ORGANISME_UUID}/recrutements/${RECRUTEMENT_UUID}/candidatures/${CANDIDATURE_ALICE}/messages`
 
 describe('messagesSection', () => {
-  beforeEach(() => {
-    vi.mocked(getConversations).mockReset()
-  })
-
   it('reports a failed load instead of showing an empty list', async () => {
     vi.mocked(getConversations).mockRejectedValue(new HttpError(500, 'Server Error', undefined))
 

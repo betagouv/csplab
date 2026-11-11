@@ -54,7 +54,6 @@ function mountEquipe(recrutementUuid = RECRUTEMENT_UUID) {
 
 describe('useEquipeRecrutement', () => {
   beforeEach(() => {
-    vi.clearAllMocks()
     mockGetEquipeRecrutement.mockResolvedValue(MEMBRES)
   })
 

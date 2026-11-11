@@ -61,7 +61,6 @@ function mountAjoutMembre() {
 
 describe('useAddAgentToRecrutement', () => {
   beforeEach(() => {
-    vi.clearAllMocks()
     mockGetEquipeRecrutement.mockResolvedValue([])
     mockAddMembreEquipe.mockResolvedValue({})
     mockSearchAgentByEmail.mockResolvedValue(AGENT)

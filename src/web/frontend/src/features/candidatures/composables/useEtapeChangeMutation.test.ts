@@ -1,10 +1,10 @@
 import type { CandidatureDetail, ChangerEtapeResultat, RecrutementListe } from '../types'
 import { PiniaColada, useQuery } from '@pinia/colada'
-import { mount } from '@vue/test-utils'
+import { render, screen } from '@testing-library/vue'
 import { createPinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { defineComponent, h } from 'vue'
-import { useToast } from '@/composables/ui/useToast'
+import CspToaster from '@/components/base/CspToast/CspToaster.vue'
 import {
   CANDIDAT_ALICE,
   CANDIDAT_BRUNO,
@@ -43,13 +43,13 @@ async function mountEtapeChangeMutation() {
   let detail!: ReturnType<typeof useQuery<CandidatureDetail>>
   let liste!: ReturnType<typeof useQuery<RecrutementListe>>
 
-  mount(defineComponent({
+  render(defineComponent({
     setup() {
       liste = useQuery(candidatureListeQuery(RECRUTEMENT))
       useCandidatureActivites(CANDIDATURE_PARAMS)
       detail = useQuery(candidatureDetailQuery(CANDIDATURE_PARAMS))
       context = useEtapeChangeMutation(RECRUTEMENT)
-      return () => h('div')
+      return () => h(CspToaster)
     },
   }), {
     global: { plugins: [createPinia(), PiniaColada] },
@@ -61,9 +61,9 @@ async function mountEtapeChangeMutation() {
 
 describe('useEtapeChangeMutation', () => {
   beforeEach(() => {
-    vi.mocked(getCandidatureListe).mockReset().mockResolvedValue(CANDIDATURE_LISTE)
-    vi.mocked(getCandidatureActivites).mockReset().mockResolvedValue({ count: 0, next: null, previous: null, results: [] })
-    vi.mocked(getCandidatureDetail).mockReset().mockImplementation(async ({ candidatureUuid }) => candidatureDetail(candidatureUuid))
+    vi.mocked(getCandidatureListe).mockResolvedValue(CANDIDATURE_LISTE)
+    vi.mocked(getCandidatureActivites).mockResolvedValue({ count: 0, next: null, previous: null, results: [] })
+    vi.mocked(getCandidatureDetail).mockImplementation(async ({ candidatureUuid }) => candidatureDetail(candidatureUuid))
     vi.mocked(patchEtapeCandidatures).mockReset().mockResolvedValue({ reussites: [CANDIDATURE_ALICE], echecs: [] })
   })
 
@@ -102,7 +102,7 @@ describe('useEtapeChangeMutation', () => {
 
     await expect(context.changeEtape(CHANGE, [CANDIDAT_ALICE])).resolves.toBe(true)
 
-    expect(useToast().toasts.value.at(-1)?.title).toBe('La candidature d\'Alice Dupont est passée à l\'étape Entretien')
+    expect(await screen.findByRole('heading', { name: 'La candidature d\'Alice Dupont est passée à l\'étape Entretien' })).toBeInTheDocument()
     await vi.waitFor(() => expect(getCandidatureListe).toHaveBeenCalledTimes(2))
     await vi.waitFor(() => expect(getCandidatureActivites).toHaveBeenCalledTimes(2))
   })

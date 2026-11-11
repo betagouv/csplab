@@ -1,7 +1,7 @@
 import { PiniaColada } from '@pinia/colada'
 import { render, screen } from '@testing-library/vue'
 import { createPinia } from 'pinia'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { HttpError } from '@/api/errors'
 import { getConversationMessages } from '../api'
 import ConversationThread from './ConversationThread.vue'
@@ -26,10 +26,6 @@ function renderThread() {
 }
 
 describe('conversationThread', () => {
-  beforeEach(() => {
-    vi.mocked(getConversationMessages).mockReset()
-  })
-
   it('reports a failed load instead of an empty thread', async () => {
     vi.mocked(getConversationMessages).mockRejectedValue(new HttpError(500, 'Server Error', undefined))
 

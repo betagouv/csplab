@@ -12,10 +12,7 @@ function mockTab() {
 }
 
 function lastToast() {
-  const { toasts, dismissToast } = useToast()
-  const toast = toasts.value.at(-1)!
-  dismissToast(toast.id)
-  return toast
+  return useToast().toasts.value.at(-1)
 }
 
 describe('useOpenDocument', () => {

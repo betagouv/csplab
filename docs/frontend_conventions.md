@@ -310,6 +310,8 @@ A behavior is tested once ([ADR-001](./ADR/ADR-001-testing-strategy.md)), at the
 - The API of a feature listed in `FEATURES_WITH_HANDLERS` of `eslint.config.mjs` answers through Mock Service Worker. The server in `src/test/server.ts` serves the default answers of `src/test/handlers/<feature>.ts`, and a test changes an answer with `server.use()` and a factory of that file. ESLint refuses a `vi.mock` of the `api` module of such a feature.
 - A page test replaces the `api` modules of the other features with `vi.mock` and sets each answer with `vi.mocked(fn)`.
 - `src/test/setup.ts` mocks `getMe` with an account that belongs to no organisme. A test that needs an organisme, a role or a failed load sets its own `vi.mocked(getMe)` value.
+- Vitest clears the calls of every mock before each test (`clearMocks` in `src/web/vite.config.ts`) and keeps their implementation. A test that needs the default implementation of a mock back calls `mockReset()`.
+- A test checks a notification on screen: `withToaster(component, props)` from `src/test/render.ts` mounts the component inside `CspToaster`, and the test finds the title of the toast with `findByRole('heading', { name })`. `src/test/setup.ts` dismisses the toasts after each test.
 - Data used by several test files lives in `src/test/fixtures/`, typed with the API types.
 - Follow `features/recrutements/views/RecrutementView.test.ts` for a page and `components/base/CspSearchBar/CspSearchBar.test.ts` for a component.
 

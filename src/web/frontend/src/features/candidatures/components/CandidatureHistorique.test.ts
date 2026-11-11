@@ -1,6 +1,6 @@
 import type { Activite } from '../types'
 import { screen, within } from '@testing-library/vue'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { CANDIDATURE_PARAMS } from '@/test/fixtures/candidatures'
 import { renderWithApp } from '@/test/render'
 import { getCandidatureActivites } from '../api'
@@ -22,10 +22,6 @@ function activite(eventName: string): Activite {
 }
 
 describe('candidatureHistorique', () => {
-  afterEach(() => {
-    vi.clearAllMocks()
-  })
-
   it('lists every activity of the candidature with their count', async () => {
     const results = ['NoteAjoutee', 'CandidatureEtapeModifiee', 'NoteEditee', 'CandidatureRecue'].map(activite)
     vi.mocked(getCandidatureActivites).mockResolvedValue({ count: 4, results })

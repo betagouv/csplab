@@ -1,6 +1,6 @@
 import type { Note } from '../types'
 import { screen, within } from '@testing-library/vue'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { HttpError } from '@/api/errors'
 import { CANDIDATURE_PANEL_ROUTE_NAMES } from '@/router/names'
 import { CANDIDATURE_PARAMS, KANBAN_PATH } from '@/test/fixtures/candidatures'
@@ -41,10 +41,6 @@ function renderNotes(route = NOTES_PATH) {
 }
 
 describe('candidatureNotes', () => {
-  afterEach(() => {
-    vi.clearAllMocks()
-  })
-
   it('lists the notes with their author and publication date', async () => {
     const results = [
       note({}),

@@ -1,9 +1,8 @@
 import { screen } from '@testing-library/vue'
 import { describe, expect, it, vi } from 'vitest'
 import { HttpError } from '@/api/errors'
-import { useToast } from '@/composables/ui/useToast'
 import { CANDIDATURE_PANEL_ROUTE_NAMES } from '@/router/names'
-import { renderWithApp, setupUser } from '@/test/render'
+import { renderWithApp, setupUser, withToaster } from '@/test/render'
 import { createConversation } from '../api'
 import NewConversationForm from './NewConversationForm.vue'
 
@@ -34,10 +33,10 @@ describe('newConversationForm', () => {
       is_unread: false,
     })
     const user = setupUser()
-    const { router } = await renderWithApp(NewConversationForm, {
-      route: NEW_CONVERSATION_PATH,
-      props: { candidature: CANDIDATURE, routes: CANDIDATURE_PANEL_ROUTE_NAMES.kanban.conversations },
-    })
+    const { router } = await renderWithApp(
+      withToaster(NewConversationForm, { candidature: CANDIDATURE, routes: CANDIDATURE_PANEL_ROUTE_NAMES.kanban.conversations }),
+      { route: NEW_CONVERSATION_PATH },
+    )
 
     await user.type(screen.getByRole('textbox', { name: /Sujet de la conversation/ }), 'Convocation')
     await user.type(screen.getByRole('textbox', { name: 'Écrivez votre message' }), 'Bonjour')
@@ -45,22 +44,22 @@ describe('newConversationForm', () => {
 
     await vi.waitFor(() => expect(router.currentRoute.value.name).toBe(CANDIDATURE_PANEL_ROUTE_NAMES.kanban.conversations.conversation))
     expect(router.currentRoute.value.params.conversationUuid).toBe(CONVERSATION_UUID)
-    expect(useToast().toasts.value.at(-1)?.title).toBe('Conversation créée')
+    expect(await screen.findByRole('heading', { name: 'Conversation créée' })).toBeInTheDocument()
   })
 
   it('keeps the typed content when the creation fails', async () => {
     vi.mocked(createConversation).mockRejectedValue(new HttpError(500, 'Server Error', undefined))
     const user = setupUser()
-    const { router } = await renderWithApp(NewConversationForm, {
-      route: NEW_CONVERSATION_PATH,
-      props: { candidature: CANDIDATURE, routes: CANDIDATURE_PANEL_ROUTE_NAMES.kanban.conversations },
-    })
+    const { router } = await renderWithApp(
+      withToaster(NewConversationForm, { candidature: CANDIDATURE, routes: CANDIDATURE_PANEL_ROUTE_NAMES.kanban.conversations }),
+      { route: NEW_CONVERSATION_PATH },
+    )
 
     await user.type(screen.getByRole('textbox', { name: /Sujet de la conversation/ }), 'Convocation')
     await user.type(screen.getByRole('textbox', { name: 'Écrivez votre message' }), 'Bonjour')
     await user.click(screen.getByRole('button', { name: 'Envoyer' }))
 
-    await vi.waitFor(() => expect(useToast().toasts.value.at(-1)?.title).toBe('La création de la conversation a échoué'))
+    expect(await screen.findByRole('heading', { name: 'La création de la conversation a échoué' })).toBeInTheDocument()
     expect(router.currentRoute.value.path).toBe(NEW_CONVERSATION_PATH)
     expect(screen.getByRole('textbox', { name: /Sujet de la conversation/ })).toHaveValue('Convocation')
     expect(screen.getByRole('textbox', { name: 'Écrivez votre message' })).toHaveValue('Bonjour')

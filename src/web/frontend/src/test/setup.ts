@@ -2,6 +2,7 @@ import { cleanup } from '@testing-library/vue'
 import { createHead } from '@unhead/vue/client'
 import { config } from '@vue/test-utils'
 import { afterAll, afterEach, beforeAll, vi } from 'vitest'
+import { useToast } from '@/composables/ui/useToast'
 import { createMediaQueryMock } from './browser'
 import { makeUser } from './fixtures/utilisateur'
 import { server } from './server'
@@ -34,6 +35,8 @@ beforeAll(() => {
 afterEach(() => {
   cleanup()
   server.resetHandlers()
+  const { toasts, dismissToast } = useToast()
+  toasts.value.forEach(toast => dismissToast(toast.id))
 })
 
 afterAll(() => {

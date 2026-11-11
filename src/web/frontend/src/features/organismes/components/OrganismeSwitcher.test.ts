@@ -35,9 +35,8 @@ function espaceTrigger(nom: string) {
 
 describe('organismeSwitcher', () => {
   beforeEach(() => {
-    vi.mocked(getMe).mockReset()
-    vi.mocked(getOrganismeDetail).mockReset().mockResolvedValue(ORGANISME_DETAIL)
-    vi.mocked(searchOrganismes).mockReset().mockResolvedValue([RESULTAT])
+    vi.mocked(getOrganismeDetail).mockResolvedValue(ORGANISME_DETAIL)
+    vi.mocked(searchOrganismes).mockResolvedValue([RESULTAT])
     vi.stubGlobal('localStorage', createLocalStorageMock())
   })
 

@@ -59,6 +59,7 @@ export default defineConfig(({ command }) => ({
   server,
   test: {
     environment: 'jsdom',
+    clearMocks: true,
     setupFiles: ['src/test/setup.ts'],
     testTimeout: 10_000,
     coverage: {

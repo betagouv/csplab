@@ -49,7 +49,6 @@ function mountAjoutMembre() {
 
 describe('useAddAgentToOrganisme', () => {
   beforeEach(() => {
-    vi.clearAllMocks()
     mockGetOrganismeAgents.mockResolvedValue([])
   })
 

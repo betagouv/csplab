@@ -30,8 +30,8 @@ const RECRUTEMENT_DETAIL_AVEC_EQUIPE = {
 
 describe('recrutementView', () => {
   beforeEach(() => {
-    vi.mocked(getCandidatureListe).mockReset().mockResolvedValue(CANDIDATURE_LISTE)
-    vi.mocked(getEquipeRecrutement).mockReset().mockResolvedValue([])
+    vi.mocked(getCandidatureListe).mockResolvedValue(CANDIDATURE_LISTE)
+    vi.mocked(getEquipeRecrutement).mockResolvedValue([])
   })
 
   it('names the document after the tab and the recrutement', async () => {

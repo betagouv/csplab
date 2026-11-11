@@ -67,7 +67,6 @@ function mountOrganismes() {
 
 describe('useOrganismes', () => {
   beforeEach(() => {
-    vi.clearAllMocks()
     mockGetOrganismesList.mockResolvedValue(ORGANISMES)
   })
 

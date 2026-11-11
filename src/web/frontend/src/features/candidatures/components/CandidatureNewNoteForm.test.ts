@@ -1,10 +1,9 @@
 import { screen } from '@testing-library/vue'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { HttpError } from '@/api/errors'
-import { useToast } from '@/composables/ui/useToast'
 import { CANDIDATURE_PANEL_ROUTE_NAMES } from '@/router/names'
 import { CANDIDATURE_PARAMS, KANBAN_PATH } from '@/test/fixtures/candidatures'
-import { renderWithApp, setupUser } from '@/test/render'
+import { renderWithApp, setupUser, withToaster } from '@/test/render'
 import { createCandidatureNote } from '../api'
 import CandidatureNewNoteForm from './CandidatureNewNoteForm.vue'
 
@@ -18,10 +17,10 @@ const NEW_NOTE_PATH = `${NOTES_PATH}/nouvelle`
 
 async function renderForm() {
   const user = setupUser()
-  const { router } = await renderWithApp(CandidatureNewNoteForm, {
-    route: NEW_NOTE_PATH,
-    props: { candidature: CANDIDATURE_PARAMS, routes: CANDIDATURE_PANEL_ROUTE_NAMES.kanban.notes },
-  })
+  const { router } = await renderWithApp(
+    withToaster(CandidatureNewNoteForm, { candidature: CANDIDATURE_PARAMS, routes: CANDIDATURE_PANEL_ROUTE_NAMES.kanban.notes }),
+    { route: NEW_NOTE_PATH },
+  )
   return {
     user,
     router,
@@ -31,10 +30,6 @@ async function renderForm() {
 }
 
 describe('candidatureNewNoteForm', () => {
-  afterEach(() => {
-    vi.clearAllMocks()
-  })
-
   it('saves the note and goes back to the notes', async () => {
     vi.mocked(createCandidatureNote).mockResolvedValue()
     const { user, router, field, submit } = await renderForm()
@@ -44,7 +39,7 @@ describe('candidatureNewNoteForm', () => {
 
     expect(createCandidatureNote).toHaveBeenCalledWith(CANDIDATURE_PARAMS, { message: 'Profil solide', est_privee: false })
     await vi.waitFor(() => expect(router.currentRoute.value.path).toBe(NOTES_PATH))
-    expect(useToast().toasts.value.at(-1)?.title).toBe('Note enregistrée')
+    expect(await screen.findByRole('heading', { name: 'Note enregistrée' })).toBeInTheDocument()
   })
 
   it('keeps the typed note when the creation fails', async () => {
@@ -54,7 +49,7 @@ describe('candidatureNewNoteForm', () => {
     await user.type(field, 'Profil solide')
     await user.click(submit)
 
-    await vi.waitFor(() => expect(useToast().toasts.value.at(-1)?.title).toBe('L\'enregistrement de la note a échoué'))
+    expect(await screen.findByRole('heading', { name: 'L\'enregistrement de la note a échoué' })).toBeInTheDocument()
     expect(router.currentRoute.value.path).toBe(NEW_NOTE_PATH)
     expect(field).toHaveValue('Profil solide')
   })

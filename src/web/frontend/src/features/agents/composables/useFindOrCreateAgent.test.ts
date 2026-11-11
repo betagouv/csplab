@@ -61,7 +61,6 @@ function mountFindOrCreateAgent() {
 
 describe('useFindOrCreateAgent', () => {
   beforeEach(() => {
-    vi.clearAllMocks()
     mockCreateAgent.mockResolvedValue(CREATED_AGENT)
     mockAction.mockResolvedValue({})
   })
@@ -100,7 +99,7 @@ describe('useFindOrCreateAgent', () => {
 
   it('tells the user when the search fails, and leaves nothing found', async () => {
     mockSearchAgentByEmail.mockRejectedValue(new Error('boom'))
-    const { toasts, dismissToast } = useToast()
+    const { toasts } = useToast()
     const { search, status, foundAgent, searching } = mountFindOrCreateAgent()
 
     await search(UNKNOWN_EMAIL)
@@ -109,7 +108,6 @@ describe('useFindOrCreateAgent', () => {
     expect(status.value).toBe('idle')
     expect(foundAgent.value).toBeNull()
     expect(searching.value).toBe(false)
-    toasts.value.forEach(toast => dismissToast(toast.id))
   })
 
   it('acts on the found agent without creating an account', async () => {

@@ -1,12 +1,10 @@
 import { screen } from '@testing-library/vue'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { defineComponent, h } from 'vue'
 import { HttpError } from '@/api/errors'
-import CspToaster from '@/components/base/CspToast/CspToaster.vue'
 import { searchAgentByEmail } from '@/features/agents/api'
 import { AGENT_ORGANISME, AGENT_RECHERCHE } from '@/test/fixtures/organismes'
 import { MTE_UUID } from '@/test/fixtures/utilisateur'
-import { renderWithApp, setupUser } from '@/test/render'
+import { renderWithApp, setupUser, withToaster } from '@/test/render'
 import { getOrganismeAgents, setAgentRole, updateAgentRole } from '../api'
 import OrganismeAgentsSection from './OrganismeAgentsSection.vue'
 
@@ -22,9 +20,7 @@ vi.mock('@/features/agents/api', () => ({
   createAgent: vi.fn(),
 }))
 
-const Host = defineComponent({
-  setup: () => () => h(CspToaster, null, () => h(OrganismeAgentsSection, { organismeUuid: MTE_UUID })),
-})
+const Host = withToaster(OrganismeAgentsSection, { organismeUuid: MTE_UUID })
 
 async function renderSection() {
   const view = await renderWithApp(Host)
@@ -34,8 +30,8 @@ async function renderSection() {
 
 describe('organismeAgentsSection', () => {
   beforeEach(() => {
-    vi.mocked(getOrganismeAgents).mockReset().mockResolvedValue([AGENT_ORGANISME])
-    vi.mocked(searchAgentByEmail).mockReset().mockResolvedValue(AGENT_RECHERCHE)
+    vi.mocked(getOrganismeAgents).mockResolvedValue([AGENT_ORGANISME])
+    vi.mocked(searchAgentByEmail).mockResolvedValue(AGENT_RECHERCHE)
     vi.mocked(setAgentRole).mockReset()
     vi.mocked(updateAgentRole).mockReset()
   })

@@ -1,15 +1,13 @@
 import { screen } from '@testing-library/vue'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { defineComponent, h } from 'vue'
 import { HttpError } from '@/api/errors'
-import CspToaster from '@/components/base/CspToast/CspToaster.vue'
 import { searchAgentByEmail } from '@/features/agents/api'
 import { RECRUTEMENT_DETAIL } from '@/test/fixtures/candidatures'
 import { MEMBRE_EQUIPE, RECRUTEMENT_UUID } from '@/test/fixtures/equipe'
 import { AGENT_RECHERCHE } from '@/test/fixtures/organismes'
 import { MTE_UUID } from '@/test/fixtures/utilisateur'
 import { recrutementDetail } from '@/test/handlers/recrutements'
-import { renderWithApp, setupUser } from '@/test/render'
+import { renderWithApp, setupUser, withToaster } from '@/test/render'
 import { server } from '@/test/server'
 import { addMembreEquipe, getEquipeRecrutement, updateMembreEquipe } from '../api'
 import EquipeRecrutementSection from './EquipeRecrutementSection.vue'
@@ -32,10 +30,7 @@ const RECRUTEMENT_DETAIL_EQUIPE_GERABLE = {
   authorized_actions: ['add_recrutement_agent' as const, 'update_recrutement_agent' as const, 'revoke_recrutement_agent' as const],
 }
 
-const Host = defineComponent({
-  setup: () => () => h(CspToaster, null, () =>
-    h(EquipeRecrutementSection, { organismeUuid: MTE_UUID, recrutementUuid: RECRUTEMENT_UUID })),
-})
+const Host = withToaster(EquipeRecrutementSection, { organismeUuid: MTE_UUID, recrutementUuid: RECRUTEMENT_UUID })
 
 const EQUIPE_PATH = `/organismes/${MTE_UUID}/recrutements/${RECRUTEMENT_UUID}/equipe`
 
@@ -48,8 +43,8 @@ async function renderSection() {
 describe('equipeRecrutementSection', () => {
   beforeEach(() => {
     server.use(recrutementDetail(RECRUTEMENT_DETAIL_EQUIPE_GERABLE))
-    vi.mocked(getEquipeRecrutement).mockReset().mockResolvedValue([MEMBRE_EQUIPE])
-    vi.mocked(searchAgentByEmail).mockReset().mockResolvedValue(NOUVEL_AGENT)
+    vi.mocked(getEquipeRecrutement).mockResolvedValue([MEMBRE_EQUIPE])
+    vi.mocked(searchAgentByEmail).mockResolvedValue(NOUVEL_AGENT)
     vi.mocked(addMembreEquipe).mockReset()
     vi.mocked(updateMembreEquipe).mockReset()
   })

@@ -5,7 +5,6 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { defineComponent, h } from 'vue'
 import { RouterView } from 'vue-router'
 import { getMe } from '@/api/utilisateur'
-import { useToast } from '@/composables/ui/useToast'
 import {
   CANDIDATURE_ALICE,
   CANDIDATURE_BRUNO,
@@ -22,7 +21,7 @@ import {
 } from '@/test/fixtures/candidatures'
 import { makeUser } from '@/test/fixtures/utilisateur'
 import { recrutementDetail, recrutementDetailPending } from '@/test/handlers/recrutements'
-import { renderWithApp, setupUser } from '@/test/render'
+import { renderWithApp, setupUser, withToaster } from '@/test/render'
 import { server } from '@/test/server'
 import { getCandidatureListe, getMotifsRefus, patchEtapeCandidatures } from '../api'
 
@@ -33,7 +32,7 @@ vi.mock('../api', () => ({
 }))
 
 function renderKanbanPage(stubs: Record<string, Component> = {}) {
-  return renderWithApp(RouterView, { route: KANBAN_PATH, global: { stubs } })
+  return renderWithApp(withToaster(RouterView), { route: KANBAN_PATH, global: { stubs } })
 }
 
 function dropButton(label: string, targetColumnId: string) {
@@ -78,7 +77,6 @@ async function refuseSelectedColumn(search?: string) {
 
 describe('candidaturesKanbanView', () => {
   beforeEach(() => {
-    vi.clearAllMocks()
     vi.mocked(getMe).mockResolvedValue(makeUser([roleOnOrganisme('agent')]))
     vi.mocked(getCandidatureListe).mockResolvedValue(CANDIDATURE_LISTE)
     vi.mocked(getMotifsRefus).mockResolvedValue(MOTIFS_REFUS)
@@ -246,7 +244,7 @@ describe('candidaturesKanbanView', () => {
       etapeCibleUuid: ETAPE_ENTRETIEN,
       candidatureUuids: [CANDIDATURE_ALICE],
     }))
-    await vi.waitFor(() => expect(useToast().toasts.value.at(-1)?.title).toBe('La candidature d\'Alice Dupont est passée à l\'étape Entretien'))
+    expect(await screen.findByRole('heading', { name: 'La candidature d\'Alice Dupont est passée à l\'étape Entretien' })).toBeInTheDocument()
   })
 
   it('sends a card dropped in another column, and ignores one dropped back in its own column', async () => {

@@ -20,7 +20,7 @@ function hostFor(row: OrganismesList) {
 
 describe('organismeActionsCell', () => {
   beforeEach(() => {
-    vi.mocked(getMe).mockReset().mockResolvedValue(makeUser([], true))
+    vi.mocked(getMe).mockResolvedValue(makeUser([], true))
   })
 
   it('opens the home of the organisme', async () => {

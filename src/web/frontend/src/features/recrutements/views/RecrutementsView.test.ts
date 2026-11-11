@@ -1,10 +1,8 @@
 import { screen, within } from '@testing-library/vue'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { defineComponent, h } from 'vue'
 import { RouterView } from 'vue-router'
 import { getMe } from '@/api/utilisateur'
 import { TABLE_PAGE_SIZE } from '@/components/base/CspDataTable/table'
-import CspToaster from '@/components/base/CspToast/CspToaster.vue'
 import { searchAgentByEmail } from '@/features/agents/api'
 import { getEquipeRecrutement } from '@/features/equipe-recrutement/api'
 import { ORGANISME_UUID, RECRUTEMENT_DETAIL, RECRUTEMENT_UUID, roleOnOrganisme } from '@/test/fixtures/candidatures'
@@ -20,7 +18,7 @@ import {
   recrutementsArchives,
   responsableAssignment,
 } from '@/test/handlers/recrutements'
-import { renderWithApp, setupUser } from '@/test/render'
+import { renderWithApp, setupUser, withToaster } from '@/test/render'
 import { server } from '@/test/server'
 
 vi.mock('@/features/agents/api', () => ({
@@ -47,10 +45,6 @@ const RESPONSABLE_ASSIGNABLE = makeUser([roleOnOrganisme('superviseur')], false,
   { uuid: ORGANISME_UUID, nom: 'Ministère de la Transition Écologique', authorized_actions: ['set_recrutements_responsable'] },
 ])
 
-const PageWithToasts = defineComponent({
-  render: () => h(CspToaster, null, { default: () => h(RouterView) }),
-})
-
 async function assignResponsableTo(user: ReturnType<typeof setupUser>, intitule: string) {
   await user.click(await screen.findByRole('button', { name: `Assigner un responsable à ${intitule}` }))
   const drawer = within(await screen.findByRole('dialog', { name: 'Assigner un responsable' }))
@@ -66,8 +60,8 @@ async function openAssignmentFor(user: ReturnType<typeof setupUser>) {
 
 describe('recrutementsView', () => {
   beforeEach(() => {
-    vi.mocked(getMe).mockReset().mockResolvedValue(RESPONSABLE_ASSIGNABLE)
-    vi.mocked(searchAgentByEmail).mockReset().mockResolvedValue(AGENT_RECHERCHE)
+    vi.mocked(getMe).mockResolvedValue(RESPONSABLE_ASSIGNABLE)
+    vi.mocked(searchAgentByEmail).mockResolvedValue(AGENT_RECHERCHE)
   })
 
   it('starts a new search each time the assignment drawer opens', async () => {
@@ -129,7 +123,7 @@ describe('recrutementsView', () => {
       reussites: [FIRST_RECRUTEMENT.uuid],
       echecs: [{ recrutement_uuid: SECOND_RECRUTEMENT.uuid, raison: 'archive' }],
     }))
-    await renderWithApp(PageWithToasts, { route: RECRUTEMENTS_PATH })
+    await renderWithApp(withToaster(RouterView), { route: RECRUTEMENTS_PATH })
     await user.click(await screen.findByRole('checkbox', { name: `Sélectionner ${FIRST_RECRUTEMENT.intitule}` }))
     await user.click(screen.getByRole('checkbox', { name: `Sélectionner ${SECOND_RECRUTEMENT.intitule}` }))
     await user.click(screen.getByRole('button', { name: 'Assigner un responsable' }))

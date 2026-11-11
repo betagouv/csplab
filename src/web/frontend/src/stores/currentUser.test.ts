@@ -2,7 +2,7 @@ import type { Utilisateur } from '@/api/utilisateur'
 import { PiniaColada } from '@pinia/colada'
 import { mount } from '@vue/test-utils'
 import { createPinia } from 'pinia'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { defineComponent, h } from 'vue'
 import { getMe } from '@/api/utilisateur'
 import { useCurrentUser } from './currentUser'
@@ -25,10 +25,6 @@ function mountUseCurrentUser() {
 }
 
 describe('useCurrentUser', () => {
-  beforeEach(() => {
-    vi.mocked(getMe).mockReset()
-  })
-
   it('fetches user and exposes reactive state', async () => {
     const userData: Utilisateur = {
       email: 'test@example.com',

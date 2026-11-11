@@ -2,7 +2,7 @@ import type { DocumentListe } from '../types'
 import { PiniaColada } from '@pinia/colada'
 import { render, screen } from '@testing-library/vue'
 import { createPinia } from 'pinia'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { checkCandidatureDocument } from '@/api/documents'
 import { HttpError } from '@/api/errors'
 import { CANDIDATURE_PARAMS } from '@/test/fixtures/candidatures'
@@ -46,10 +46,6 @@ function renderCv(results: DocumentListe[]) {
 }
 
 describe('candidatureCv', () => {
-  afterEach(() => {
-    vi.clearAllMocks()
-  })
-
   it('displays a PDF CV in a frame, with a full page link', async () => {
     renderCv([document({ type: 'lettre_motivation', uuid: 'lettre' }), document({})])
 

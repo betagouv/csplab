@@ -1,13 +1,10 @@
 import { PiniaColada } from '@pinia/colada'
 import { render, screen, within } from '@testing-library/vue'
 import { createPinia } from 'pinia'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { defineComponent, h } from 'vue'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createRouter, createWebHistory, RouterView } from 'vue-router'
 import { HttpError } from '@/api/errors'
 import { getMe } from '@/api/utilisateur'
-import CspToaster from '@/components/base/CspToast/CspToaster.vue'
-import { useToast } from '@/composables/ui/useToast'
 import { getConversations } from '@/features/messages/api'
 import { routes } from '@/router/routes'
 import {
@@ -24,7 +21,7 @@ import {
   roleOnOrganisme,
 } from '@/test/fixtures/candidatures'
 import { makeUser } from '@/test/fixtures/utilisateur'
-import { setupUser } from '@/test/render'
+import { setupUser, withToaster } from '@/test/render'
 import { createCandidatureNote, getCandidatureActivites, getCandidatureDetail, getCandidatureListe, getCandidatureNotes, getMotifsRefus, patchEtapeCandidatures } from '../api'
 
 vi.mock('../api', () => ({
@@ -44,10 +41,6 @@ vi.mock('@/features/messages/api', () => ({
 
 const CANDIDATURE_INCONNUE = 'dddddddd-0001-0001-0001-000000000099'
 
-const RoutesWithToasts = defineComponent({
-  render: () => h(CspToaster, null, { default: () => h(RouterView) }),
-})
-
 // Web history: closing the panel depends on the browser history state.
 async function renderPanel(paths: string[]) {
   window.history.replaceState(null, '', '/')
@@ -57,7 +50,7 @@ async function renderPanel(paths: string[]) {
     await router.push(path)
   }
 
-  render(RoutesWithToasts, {
+  render(withToaster(RouterView), {
     global: { plugins: [createPinia(), PiniaColada, router] },
   })
   return { router, panel: await screen.findByRole('dialog') }
@@ -69,7 +62,6 @@ function closeButton() {
 
 describe('candidaturePanelView', () => {
   beforeEach(() => {
-    vi.clearAllMocks()
     vi.mocked(getMe).mockResolvedValue(makeUser([roleOnOrganisme('agent')]))
     vi.mocked(getCandidatureDetail).mockImplementation(async ({ candidatureUuid }) => candidatureDetail(candidatureUuid))
     vi.mocked(getCandidatureListe).mockResolvedValue(CANDIDATURE_LISTE)
@@ -77,11 +69,6 @@ describe('candidaturePanelView', () => {
     vi.mocked(patchEtapeCandidatures).mockResolvedValue({ reussites: [CANDIDATURE_ALICE], echecs: [] })
     vi.mocked(getConversations).mockResolvedValue({ count: 0, next: null, previous: null, results: [] })
     vi.mocked(getCandidatureActivites).mockResolvedValue({ count: 0, next: null, previous: null, results: [] })
-  })
-
-  afterEach(() => {
-    const { toasts, dismissToast } = useToast()
-    toasts.value.forEach(toast => dismissToast(toast.id))
   })
 
   it('shows who applies, to which offer and at which stage from the candidature detail', async () => {

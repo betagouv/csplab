@@ -34,7 +34,7 @@ function mountSearch() {
 
 describe('useOrganismesSearch', () => {
   beforeEach(() => {
-    vi.mocked(searchOrganismes).mockReset().mockResolvedValue([RESULTAT])
+    vi.mocked(searchOrganismes).mockResolvedValue([RESULTAT])
   })
 
   it('waits for three characters before searching', async () => {

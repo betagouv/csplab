@@ -53,7 +53,6 @@ function mountAgents() {
 
 describe('useOrganismeAgents', () => {
   beforeEach(() => {
-    vi.clearAllMocks()
     mockGetOrganismeAgents.mockResolvedValue(AGENTS)
   })
 

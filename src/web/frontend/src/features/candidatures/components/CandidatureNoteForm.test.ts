@@ -1,11 +1,10 @@
 import { PiniaColada } from '@pinia/colada'
 import { render, screen } from '@testing-library/vue'
 import { createPinia } from 'pinia'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { HttpError } from '@/api/errors'
-import { useToast } from '@/composables/ui/useToast'
 import { CANDIDATURE_PARAMS } from '@/test/fixtures/candidatures'
-import { setupUser } from '@/test/render'
+import { setupUser, withToaster } from '@/test/render'
 import { createCandidatureNote } from '../api'
 import CandidatureNoteForm from './CandidatureNoteForm.vue'
 
@@ -15,8 +14,7 @@ vi.mock('../api', async importOriginal => ({
 }))
 
 function renderForm() {
-  render(CandidatureNoteForm, {
-    props: { candidature: CANDIDATURE_PARAMS },
+  render(withToaster(CandidatureNoteForm, { candidature: CANDIDATURE_PARAMS }), {
     global: { plugins: [createPinia(), PiniaColada] },
   })
   return {
@@ -26,10 +24,6 @@ function renderForm() {
 }
 
 describe('candidatureNoteForm', () => {
-  afterEach(() => {
-    vi.clearAllMocks()
-  })
-
   it('keeps the save button inactive while the note is empty', async () => {
     const user = setupUser()
     const { field, submit } = renderForm()
@@ -52,7 +46,7 @@ describe('candidatureNoteForm', () => {
     expect(createCandidatureNote).toHaveBeenCalledWith(CANDIDATURE_PARAMS, { message: 'Profil solide', est_privee: true })
     await vi.waitFor(() => expect(field).toHaveValue(''))
     expect(privee).not.toBeChecked()
-    expect(useToast().toasts.value.at(-1)?.title).toBe('Note enregistrée')
+    expect(await screen.findByRole('heading', { name: 'Note enregistrée' })).toBeInTheDocument()
   })
 
   it('keeps the note when the save fails', async () => {
@@ -63,7 +57,7 @@ describe('candidatureNoteForm', () => {
     await user.type(field, 'Profil solide')
     await user.click(submit)
 
-    await vi.waitFor(() => expect(useToast().toasts.value.at(-1)?.title).toBe('L\'enregistrement de la note a échoué'))
+    expect(await screen.findByRole('heading', { name: 'L\'enregistrement de la note a échoué' })).toBeInTheDocument()
     expect(field).toHaveValue('Profil solide')
   })
 })

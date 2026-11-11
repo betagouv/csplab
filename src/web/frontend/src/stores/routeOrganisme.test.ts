@@ -2,7 +2,7 @@ import type { OrganismeRole, Utilisateur } from '@/api/utilisateur'
 import { PiniaColada } from '@pinia/colada'
 import { mount } from '@vue/test-utils'
 import { createPinia } from 'pinia'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { defineComponent, h } from 'vue'
 import { createMemoryHistory, createRouter } from 'vue-router'
 import { getMe } from '@/api/utilisateur'
@@ -53,10 +53,6 @@ async function mountAt(path: string) {
 }
 
 describe('useRouteOrganisme', () => {
-  beforeEach(() => {
-    vi.mocked(getMe).mockReset()
-  })
-
   it('takes the organisme from the url', async () => {
     vi.mocked(getMe).mockResolvedValue(makeUser([ROLE_MTE, ROLE_BRIANCON]))
 
