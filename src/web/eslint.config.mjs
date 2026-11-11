@@ -95,6 +95,7 @@ export default antfu(
       '.venv/',
       'node_modules/',
       'frontend/storybook-static/',
+      'frontend/.storybook/static/',
       'frontend/src/types/',
       'presentation/static/api/',
       'presentation/static/css/**',

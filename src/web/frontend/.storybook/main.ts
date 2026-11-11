@@ -19,6 +19,7 @@ const config: StorybookConfig = {
       },
     },
   },
+  staticDirs: ['./static'],
   addons: [
     {
       name: '@storybook/addon-docs',

@@ -2,6 +2,7 @@ import type { Meta, StoryObj } from '@storybook/vue3-vite'
 import { expect, userEvent, within } from 'storybook/test'
 import { DEMO_CANDIDATURE, DEMO_ORGANISME, DEMO_RECRUTEMENT_UUID } from '@/api/__mocks__/demo'
 import App from '@/app/App.vue'
+import { recrutementsActifsFailure } from '@/features/recrutements/__mocks__/handlers'
 
 const ORGANISME_PATH = `/organismes/${DEMO_ORGANISME.uuid}`
 const RECRUTEMENT_PATH = `${ORGANISME_PATH}/recrutements/${DEMO_RECRUTEMENT_UUID}`
@@ -81,6 +82,14 @@ export const Recrutements: Story = {
   parameters: { appRoute: `${ORGANISME_PATH}/recrutements` },
   play: async ({ canvasElement }) => {
     await selectRecrutements(within(canvasElement))
+  },
+}
+
+export const RecrutementsLoadError: Story = {
+  name: 'Recrutements, erreur de chargement',
+  parameters: {
+    appRoute: `${ORGANISME_PATH}/recrutements`,
+    msw: [recrutementsActifsFailure],
   },
 }
 
