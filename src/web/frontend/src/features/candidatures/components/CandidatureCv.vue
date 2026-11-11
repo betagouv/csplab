@@ -103,7 +103,7 @@ const titleId = useId()
   min-height: 2.75rem;
   padding: var(--csp-space-1) var(--csp-space-2) var(--csp-space-1) var(--csp-space-4);
   background: var(--background-alt-grey);
-  border-bottom: 1px solid var(--border-default-grey);
+  border-bottom: 1px solid var(--csp-divider-color);
 }
 
 .candidature-cv__title {

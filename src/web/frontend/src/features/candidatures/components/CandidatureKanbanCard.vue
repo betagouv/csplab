@@ -196,7 +196,7 @@ const { isDragging, isJustMoved, isDropWaiting } = useDraggableKanbanCard({
   align-items: center;
   gap: var(--csp-space-2);
   padding-top: var(--csp-space-2);
-  border-top: 1px solid var(--border-default-grey);
+  border-top: 1px solid var(--csp-divider-color);
   font-size: var(--csp-font-size-sm);
   color: var(--text-action-high-blue-france);
   text-decoration: none;

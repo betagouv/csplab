@@ -481,7 +481,7 @@ function onActivate(id: string): void {
 
 .csp-table__head {
   background: var(--background-alt-grey);
-  border-bottom: 1px solid var(--border-default-grey);
+  border-bottom: 1px solid var(--csp-divider-color);
 }
 
 .csp-table__th {
@@ -539,7 +539,7 @@ function onActivate(id: string): void {
 
 .csp-table__row {
   height: var(--csp-table-row-height);
-  border-bottom: 1px solid var(--border-default-grey);
+  border-bottom: 1px solid var(--csp-divider-color);
   transition: background-color var(--csp-motion-duration-state);
 
   &:last-child {
@@ -614,7 +614,7 @@ function onActivate(id: string): void {
 
 .csp-table__footer {
   padding: var(--csp-table-footer-padding);
-  border-top: 1px solid var(--border-default-grey);
+  border-top: 1px solid var(--csp-divider-color);
   background: var(--background-alt-grey);
 }
 

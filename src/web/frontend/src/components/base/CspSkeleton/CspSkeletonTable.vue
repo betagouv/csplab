@@ -91,7 +91,7 @@ withDefaults(defineProps<CspSkeletonTableProps>(), {
 .csp-skeleton-table__row {
   display: grid;
   grid-template-columns: repeat(var(--csp-skeleton-table-columns), 1fr);
-  border-bottom: 1px solid var(--border-default-grey);
+  border-bottom: 1px solid var(--csp-divider-color);
 }
 
 .csp-skeleton-table__head,
