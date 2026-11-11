@@ -30,10 +30,10 @@ describe('csp variables', () => {
     expect(undeclared).toEqual([])
   })
 
-  it('declares the variables of csp-variables.css in that file only', () => {
+  it('declares the variables of csp-variables.css in the stylesheets of styles/ only', () => {
     const redeclared = [...declarations]
       .filter(([, files]) => files.has(OWNER))
-      .flatMap(([name, files]) => [...files].filter(file => file !== OWNER).map(file => `${name} in ${file}: ${OWNER} owns this variable`))
+      .flatMap(([name, files]) => [...files].filter(file => !file.startsWith('styles/')).map(file => `${name} in ${file}: ${OWNER} owns this variable`))
     expect(redeclared).toEqual([])
   })
 })
