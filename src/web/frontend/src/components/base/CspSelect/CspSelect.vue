@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<script setup lang="ts" generic="T extends string = string">
 import {
   SelectContent,
   SelectItem,
@@ -15,18 +15,14 @@ import {
 import { useId } from 'vue'
 import CspIcon from '@/components/base/CspIcon/CspIcon.vue'
 
-export interface CspSelectOption {
-  value: string
+export interface CspSelectOption<V extends string = string> {
+  value: V
   label: string
   disabled?: boolean
 }
 
 withDefaults(defineProps<{
-  options: {
-    value: string
-    label: string
-    disabled?: boolean
-  }[]
+  options: CspSelectOption<NoInfer<T>>[]
   placeholder?: string
   size?: 'sm' | 'md' | 'lg'
   disabled?: boolean
@@ -46,7 +42,7 @@ withDefaults(defineProps<{
   required: false,
 })
 
-const model = defineModel<string>()
+const model = defineModel<T>()
 </script>
 
 <template>

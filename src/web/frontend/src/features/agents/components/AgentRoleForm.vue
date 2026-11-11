@@ -9,7 +9,7 @@ const props = defineProps<{
   email: string
   role: R
   roleLabel: string
-  options: (CspRadioGroupOption & { value: R })[]
+  options: CspRadioGroupOption<R>[]
   submitting?: boolean
 }>()
 
@@ -19,13 +19,10 @@ const emit = defineEmits<{
 }>()
 
 const formId = useId()
-const selectedRole = ref<string>(props.role)
+const selectedRole = ref<R>(props.role)
 
 function handleSubmit(): void {
-  const option = props.options.find(({ value }) => value === selectedRole.value)
-  if (option) {
-    emit('submit', option.value)
-  }
+  emit('submit', selectedRole.value)
 }
 </script>
 
