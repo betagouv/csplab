@@ -72,7 +72,7 @@ const { showLabels } = useSidebar()
   height: var(--sidebar-item-size);
   padding: 0;
   border: none;
-  background: var(--background-alt-grey);
+  background: var(--csp-nav-background);
   transition: background-color var(--csp-motion-duration-state);
   text-decoration: none;
   cursor: pointer;
@@ -88,11 +88,11 @@ const { showLabels } = useSidebar()
   }
 
   &:hover {
-    background: var(--background-alt-grey-hover);
+    background: var(--csp-nav-background-hover);
   }
 
   &:active {
-    background: var(--background-alt-grey-active);
+    background: var(--csp-nav-background-active);
   }
 
   &:focus-visible {

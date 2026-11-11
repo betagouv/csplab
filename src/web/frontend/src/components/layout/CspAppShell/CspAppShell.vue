@@ -99,7 +99,7 @@ function isItemActive(item: NavItem): boolean {
   flex-shrink: 0;
   height: 100dvh;
   overflow: hidden;
-  background: var(--background-alt-grey);
+  background: var(--csp-nav-background);
   border-right: 1px solid var(--border-default-grey);
 
   @include bp.below(bp.$lg) {
