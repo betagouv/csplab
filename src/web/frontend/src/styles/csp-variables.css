@@ -41,6 +41,10 @@
   /* Neutral: the grey background of a badge, a tag or an avatar, and of a skeleton placed on a grey background */
   --csp-neutral-background: var(--background-contrast-grey);
 
+  /* Chrome: the page header, and the top bar on a phone */
+  --csp-chrome-background: var(--background-default-grey);
+  --csp-chrome-border-color: var(--border-default-grey);
+
   /* Shadows by role, from the ui-kit of La Suite numérique. Raised: an element that one moves, such as a kanban card
      or a sortable list item; on hover it takes the hover shadow, and while dragged the element left in place has no
      shadow and half opacity. Overlap: a menu, a list of options, a tooltip or a notification. Lifted: a dialog, a
