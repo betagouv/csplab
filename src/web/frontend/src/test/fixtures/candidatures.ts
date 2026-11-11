@@ -1,7 +1,8 @@
 import type { CandidatureParams } from '@/api/params'
 import type { OrganismeRole } from '@/api/utilisateur'
-import type { Candidat, CandidatureDetail, KanbanColumn, MotifRefusOption, RecrutementListe } from '@/features/candidatures/types'
+import type { Activite, Candidat, CandidatureDetail, CandidatureListe, DocumentListe, KanbanColumn, MotifRefus, MotifRefusOption, Note, RecrutementListe } from '@/features/candidatures/types'
 import type { RecrutementDetail } from '@/features/recrutements/types'
+import type { components } from '@/types/api'
 
 export const ORGANISME_UUID = '00000000-0000-0000-0000-000000000000'
 export const RECRUTEMENT_UUID = 'aaaaaaaa-0001-0001-0001-000000000001'
@@ -52,6 +53,17 @@ export const KANBAN_COLUMNS: KanbanColumn[] = [
   { uuid: ETAPE_ENTRETIEN, nom: 'Entretien', categorie: 'EN_COURS', candidatures: [] },
   { uuid: ETAPE_REFUS, nom: 'Refus', categorie: 'REFUS', candidatures: [] },
 ]
+
+export function makeCandidatureRow(index: number): CandidatureListe {
+  return {
+    uuid: `dddddddd-0002-0002-0002-${String(index + 1).padStart(12, '0')}`,
+    date_soumission: '2025-06-10T09:15:00Z',
+    date_derniere_activite: new Date(Date.UTC(2025, 5, 19, 10) - index * 3_600_000).toISOString(),
+    unread_conversations: 0,
+    candidat: { ...CANDIDAT_ALICE, prenom: `Candidat ${index + 1}` },
+    etape: { uuid: ETAPE_RECEPTION, nom: 'Réception des candidatures', categorie: 'ENTREE' },
+  }
+}
 
 export const CANDIDATURE_LISTE: RecrutementListe = {
   count: 2,
@@ -107,3 +119,60 @@ export const MOTIFS_REFUS: MotifRefusOption[] = [
   { value: 'disponibilite', label: 'Disponibilité' },
   { value: 'autre', label: 'Autre' },
 ]
+
+export const CV_DOCUMENT: DocumentListe = {
+  uuid: 'ffffffff-0001-0001-0001-000000000001',
+  type: 'cv',
+  nom_original: 'CV Alice Dupont.pdf',
+  content_type: 'application/pdf',
+  taille: 73_400,
+  depose_par_uuid: CANDIDAT_ALICE.uuid,
+  depose_par: 'Alice Dupont',
+  depose_le: '2025-06-10T09:15:00Z',
+}
+
+export const LETTRE_DOCUMENT: DocumentListe = {
+  ...CV_DOCUMENT,
+  uuid: 'ffffffff-0001-0001-0001-000000000002',
+  type: 'lettre_motivation',
+  nom_original: 'Lettre.png',
+  content_type: 'image/png',
+  taille: 12_000,
+}
+
+export const NOTE: Note = {
+  uuid: 'ffffffff-0002-0002-0002-000000000001',
+  candidature_id: CANDIDATURE_ALICE,
+  message: 'Profil solide',
+  publie_par_id: 'eeeeeeee-0002-0002-0002-000000000001',
+  publie_par_prenom: 'Marie',
+  publie_par_nom: 'Dupont',
+  publie_le: '2025-06-10T09:15:00',
+  est_privee: false,
+  authorized_actions: ['update_note', 'delete_note'],
+}
+
+export const SECONDE_NOTE: Note = {
+  ...NOTE,
+  uuid: 'ffffffff-0002-0002-0002-000000000002',
+  message: 'À recontacter',
+  publie_par_id: 'eeeeeeee-0002-0002-0002-000000000002',
+  publie_par_prenom: 'Paul',
+  publie_par_nom: 'Bernard',
+}
+
+export const ACTIVITE: Activite = {
+  utilisateur_id: NOTE.publie_par_id,
+  utilisateur_prenom: NOTE.publie_par_prenom,
+  utilisateur_nom: NOTE.publie_par_nom,
+  occurred_at: '2026-09-29T10:00:00',
+  event_name: 'NoteAjoutee',
+}
+
+export function etapeChangeBody(etapeCibleUuid: string, candidatureUuids: string[], motifRefus?: MotifRefus): components['schemas']['PatchedChangerEtapeCandidatures'] {
+  return {
+    etape_cible_uuid: etapeCibleUuid,
+    candidatures: candidatureUuids.map(candidature_uuid => ({ candidature_uuid })),
+    motif_refus: motifRefus,
+  }
+}

@@ -11,7 +11,7 @@ import type {
 } from '@/features/organismes/types'
 import { delay } from 'msw'
 import { AGENT_ORGANISME, CREATED_ORGANISME, ORGANISME_DETAIL, ORGANISME_RECHERCHE, ORGANISMES } from '@/test/fixtures/organismes'
-import { failure, http } from './http'
+import { exceptSegments, failure, http } from './http'
 
 const ORGANISMES_PATH = '/recruteur/organismes'
 const SEARCH_PATH = '/recruteur/organismes/recherche'
@@ -21,12 +21,7 @@ const AGENTS_PATH = '/recruteur/organismes/{organisme_uuid}/parametres/agents'
 const FIXED_SEGMENTS = ['recherche']
 
 function detail(resolve: Parameters<typeof http.get<typeof ORGANISME_PATH>>[1]) {
-  return http.get(ORGANISME_PATH, (info) => {
-    if (FIXED_SEGMENTS.includes(info.params.organisme_uuid)) {
-      return undefined
-    }
-    return resolve(info)
-  })
+  return http.get(ORGANISME_PATH, exceptSegments(FIXED_SEGMENTS, 'organisme_uuid', resolve))
 }
 
 export function organismes(results: OrganismesList[] = ORGANISMES, onRequest?: () => void) {

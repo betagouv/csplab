@@ -1,35 +1,11 @@
-import type { Note } from '../types'
 import { screen, within } from '@testing-library/vue'
 import { describe, expect, it, vi } from 'vitest'
-import { HttpError } from '@/api/errors'
 import { CANDIDATURE_PANEL_ROUTE_NAMES } from '@/router/names'
-import { CANDIDATURE_PARAMS, KANBAN_PATH } from '@/test/fixtures/candidatures'
+import { CANDIDATURE_PARAMS, KANBAN_PATH, NOTE, SECONDE_NOTE } from '@/test/fixtures/candidatures'
+import { candidatureNotes, candidatureNotesFailure, noteDeletion, noteUpdate, noteVisibiliteUpdate } from '@/test/handlers/candidatures'
 import { renderWithApp, setupUser } from '@/test/render'
-import { deleteCandidatureNote, getCandidatureNotes, updateCandidatureNote, updateCandidatureNoteVisibilite } from '../api'
+import { server } from '@/test/server'
 import CandidatureNotes from './CandidatureNotes.vue'
-
-vi.mock('../api', async importOriginal => ({
-  ...await importOriginal<typeof import('../api')>(),
-  getCandidatureNotes: vi.fn(),
-  updateCandidatureNote: vi.fn(),
-  deleteCandidatureNote: vi.fn(),
-  updateCandidatureNoteVisibilite: vi.fn(),
-}))
-
-function note(overrides: Partial<Note>): Note {
-  return {
-    uuid: 'ffffffff-0001-0001-0001-000000000001',
-    candidature_id: CANDIDATURE_PARAMS.candidatureUuid,
-    message: 'Profil solide',
-    publie_par_id: 'eeeeeeee-0001-0001-0001-000000000001',
-    publie_par_prenom: 'Marie',
-    publie_par_nom: 'Dupont',
-    publie_le: '2025-06-10T09:15:00',
-    est_privee: false,
-    authorized_actions: ['update_note', 'delete_note'],
-    ...overrides,
-  }
-}
 
 const NOTES_PATH = `${KANBAN_PATH}/candidatures/${CANDIDATURE_PARAMS.candidatureUuid}/notes`
 
@@ -40,36 +16,37 @@ function renderNotes(route = NOTES_PATH) {
   })
 }
 
+async function chooseNoteAction(user: ReturnType<typeof setupUser>, action: string) {
+  await user.click(await screen.findByRole('button', { name: 'Actions sur la note de Paul Bernard' }))
+  await user.click(await screen.findByRole('menuitem', { name: action }))
+}
+
 describe('candidatureNotes', () => {
   it('lists the notes with their author and publication date', async () => {
-    const results = [
-      note({}),
-      note({ uuid: 'ffffffff-0001-0001-0001-000000000002', message: 'À recontacter', publie_par_prenom: 'Paul', publie_par_nom: 'Bernard' }),
-    ]
-    vi.mocked(getCandidatureNotes).mockResolvedValue({ count: 2, results })
+    server.use(candidatureNotes([NOTE, SECONDE_NOTE]))
     await renderNotes()
 
     expect(await screen.findByRole('heading', { name: '2 notes' })).toBeInTheDocument()
-    const [premiere, seconde] = screen.getAllByRole('listitem').map(item => within(item))
-    expect(premiere!.getByText('Marie Dupont')).toBeInTheDocument()
-    expect(premiere!.getByText('Profil solide')).toBeInTheDocument()
-    expect(premiere!.getByText('10/06/2025 à 09h15')).toBeInTheDocument()
-    expect(seconde!.getByText('Paul Bernard')).toBeInTheDocument()
-    expect(seconde!.getByText('À recontacter')).toBeInTheDocument()
+    const [premiere, seconde] = screen.getAllByRole('listitem')
+    expect(within(premiere).getByText('Marie Dupont')).toBeInTheDocument()
+    expect(within(premiere).getByText('Profil solide')).toBeInTheDocument()
+    expect(within(premiere).getByText('10/06/2025 à 09h15')).toBeInTheDocument()
+    expect(within(seconde).getByText('Paul Bernard')).toBeInTheDocument()
+    expect(within(seconde).getByText('À recontacter')).toBeInTheDocument()
   })
 
   it('says when the candidature has no note', async () => {
-    vi.mocked(getCandidatureNotes).mockResolvedValue({ count: 0, results: [] })
+    server.use(candidatureNotes([]))
     await renderNotes()
 
     expect(await screen.findByText('Aucune note sur cette candidature')).toBeInTheDocument()
   })
 
   it.each([
-    { cas: 'with notes', results: [note({})] },
+    { cas: 'with notes', results: [NOTE] },
     { cas: 'without notes', results: [] },
   ])('opens the note form from the button $cas', async ({ results }) => {
-    vi.mocked(getCandidatureNotes).mockResolvedValue({ count: results.length, results })
+    server.use(candidatureNotes(results))
     const user = setupUser()
     const { router } = await renderNotes()
 
@@ -80,26 +57,22 @@ describe('candidatureNotes', () => {
   })
 
   it('keeps the notes listed while a new note is typed', async () => {
-    vi.mocked(getCandidatureNotes).mockResolvedValue({ count: 1, results: [note({ message: 'À recontacter' })] })
+    server.use(candidatureNotes([SECONDE_NOTE]))
     await renderNotes(`${NOTES_PATH}/nouvelle`)
 
     expect(await screen.findByRole('textbox', { name: 'Nouvelle note' })).toBeInTheDocument()
-    expect(screen.getByText('À recontacter')).toBeInTheDocument()
+    expect(await screen.findByText('À recontacter')).toBeInTheDocument()
   })
 
   it('shows an error when the notes cannot be loaded', async () => {
-    vi.mocked(getCandidatureNotes).mockRejectedValue(new HttpError(500, 'Internal Server Error', undefined))
+    server.use(candidatureNotesFailure(500))
     await renderNotes()
 
     expect(await screen.findByText('Les notes n\'ont pas pu être chargées.')).toBeInTheDocument()
   })
 
   it('offers no action on a note the user cannot change', async () => {
-    const results = [
-      note({}),
-      note({ uuid: 'ffffffff-0001-0001-0001-000000000002', publie_par_prenom: 'Paul', publie_par_nom: 'Bernard', authorized_actions: [] }),
-    ]
-    vi.mocked(getCandidatureNotes).mockResolvedValue({ count: 2, results })
+    server.use(candidatureNotes([NOTE, { ...SECONDE_NOTE, authorized_actions: [] }]))
     await renderNotes()
 
     expect(await screen.findByRole('button', { name: 'Actions sur la note de Marie Dupont' })).toBeInTheDocument()
@@ -107,17 +80,19 @@ describe('candidatureNotes', () => {
   })
 
   it('edits the note picked from its menu and keeps it private', async () => {
-    const results = [
-      note({}),
-      note({ uuid: 'ffffffff-0001-0001-0001-000000000002', message: 'À recontacter', publie_par_prenom: 'Paul', publie_par_nom: 'Bernard', est_privee: true }),
-    ]
-    vi.mocked(getCandidatureNotes).mockResolvedValue({ count: 2, results })
-    vi.mocked(updateCandidatureNote).mockResolvedValue()
+    const privee = { ...SECONDE_NOTE, est_privee: true }
+    const sent = vi.fn()
+    server.use(
+      candidatureNotes([NOTE, privee]),
+      noteUpdate((...args) => {
+        sent(...args)
+        server.use(candidatureNotes([NOTE, { ...privee, message: 'À recontacter demain' }]))
+      }),
+    )
     const user = setupUser()
     await renderNotes()
 
-    await user.click(await screen.findByRole('button', { name: 'Actions sur la note de Paul Bernard' }))
-    await user.click(await screen.findByRole('menuitem', { name: 'Modifier la note' }))
+    await chooseNoteAction(user, 'Modifier la note')
     const field = await screen.findByRole('textbox', { name: 'Modifier la note' })
     expect(field).toHaveValue('À recontacter')
     expect(screen.getByRole('checkbox', { name: 'Note privée' })).toBeChecked()
@@ -125,47 +100,48 @@ describe('candidatureNotes', () => {
     await user.type(field, ' demain')
     await user.click(screen.getByRole('button', { name: 'Enregistrer les modifications' }))
 
-    expect(updateCandidatureNote).toHaveBeenCalledWith(
-      { ...CANDIDATURE_PARAMS, noteUuid: 'ffffffff-0001-0001-0001-000000000002' },
-      { message: 'À recontacter demain', est_privee: true },
-    )
+    expect(await screen.findByText('À recontacter demain')).toBeInTheDocument()
+    expect(sent).toHaveBeenCalledWith(SECONDE_NOTE.uuid, { message: 'À recontacter demain', est_privee: true })
   })
 
   it('deletes the note picked from its menu once confirmed', async () => {
-    const results = [
-      note({}),
-      note({ uuid: 'ffffffff-0001-0001-0001-000000000002', publie_par_prenom: 'Paul', publie_par_nom: 'Bernard' }),
-    ]
-    vi.mocked(getCandidatureNotes).mockResolvedValue({ count: 2, results })
-    vi.mocked(deleteCandidatureNote).mockResolvedValue()
+    const deleted = vi.fn()
+    server.use(
+      candidatureNotes([NOTE, SECONDE_NOTE]),
+      noteDeletion((noteUuid) => {
+        deleted(noteUuid)
+        server.use(candidatureNotes([NOTE]))
+      }),
+    )
     const user = setupUser()
     await renderNotes()
 
-    await user.click(await screen.findByRole('button', { name: 'Actions sur la note de Paul Bernard' }))
-    await user.click(await screen.findByRole('menuitem', { name: 'Supprimer la note' }))
+    await chooseNoteAction(user, 'Supprimer la note')
     const dialog = await screen.findByRole('dialog', { name: 'Supprimer la note' })
     await user.click(within(dialog).getByRole('button', { name: 'Supprimer la note' }))
 
-    expect(deleteCandidatureNote).toHaveBeenCalledWith({ ...CANDIDATURE_PARAMS, noteUuid: 'ffffffff-0001-0001-0001-000000000002' })
     await vi.waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+    expect(await screen.findByRole('heading', { name: '1 note' })).toBeInTheDocument()
+    expect(deleted).toHaveBeenCalledWith(SECONDE_NOTE.uuid)
   })
 
   it('makes public the private note picked from its menu', async () => {
-    const results = [
-      note({}),
-      note({ uuid: 'ffffffff-0001-0001-0001-000000000002', publie_par_prenom: 'Paul', publie_par_nom: 'Bernard', est_privee: true }),
-    ]
-    vi.mocked(getCandidatureNotes).mockResolvedValue({ count: 2, results })
-    vi.mocked(updateCandidatureNoteVisibilite).mockResolvedValue()
+    const privee = { ...SECONDE_NOTE, est_privee: true }
+    const sent = vi.fn()
+    server.use(
+      candidatureNotes([NOTE, privee]),
+      noteVisibiliteUpdate((...args) => {
+        sent(...args)
+        server.use(candidatureNotes([NOTE, SECONDE_NOTE]))
+      }),
+    )
     const user = setupUser()
     await renderNotes()
 
-    await user.click(await screen.findByRole('button', { name: 'Actions sur la note de Paul Bernard' }))
-    await user.click(await screen.findByRole('menuitem', { name: 'Rendre la note publique' }))
+    await screen.findByText('Privée')
+    await chooseNoteAction(user, 'Rendre la note publique')
 
-    expect(updateCandidatureNoteVisibilite).toHaveBeenCalledWith(
-      { ...CANDIDATURE_PARAMS, noteUuid: 'ffffffff-0001-0001-0001-000000000002' },
-      { est_privee: false },
-    )
+    await vi.waitFor(() => expect(screen.queryByText('Privée')).not.toBeInTheDocument())
+    expect(sent).toHaveBeenCalledWith(SECONDE_NOTE.uuid, { est_privee: false })
   })
 })

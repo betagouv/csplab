@@ -44,6 +44,10 @@ function updateSpy() {
   return vi.fn<(organismeUuid: string, payload: UpdateAgentRolePayload) => void>()
 }
 
+function listAfterAddition(agent: AgentOrganisme) {
+  server.use(organismeAgents([AGENT_ORGANISME, agent]))
+}
+
 function watchAgentLoads() {
   const loads = vi.fn()
   server.use(organismeAgents([AGENT_ORGANISME], loads))
@@ -121,13 +125,15 @@ describe('organismeAgentsSection', () => {
 
   it('creates the account then attaches it when the email matches nobody', async () => {
     const user = setupUser()
-    const loads = watchAgentLoads()
     const created = vi.fn()
     const sent = additionSpy()
     server.use(
       agentSearchFailure(404),
       agentCreation(CREATED_AGENT, created),
-      organismeAgentAddition(CREATED_AGENT_ORGANISME, sent),
+      organismeAgentAddition(CREATED_AGENT_ORGANISME, (...args) => {
+        sent(...args)
+        listAfterAddition(CREATED_AGENT_ORGANISME)
+      }),
     )
     await renderSection()
 
@@ -138,7 +144,7 @@ describe('organismeAgentsSection', () => {
     expect(await screen.findByRole('heading', { name: 'Utilisateur ajouté' })).toBeInTheDocument()
     expect(created).toHaveBeenCalledWith({ email: CREATED_AGENT.email, organisme_id: MTE_UUID })
     expect(sent).toHaveBeenCalledWith(MTE_UUID, { agent_id: CREATED_AGENT.uuid, role: 'agent' })
-    await vi.waitFor(() => expect(loads).toHaveBeenCalledTimes(2))
+    await screen.findByRole('cell', { name: CREATED_AGENT.email })
   })
 
   it('replaces the found account with the creation notice when the next email matches nobody', async () => {
@@ -171,7 +177,6 @@ describe('organismeAgentsSection', () => {
 
   it('keeps the created account when attaching it fails, and attaches it on retry without a second creation', async () => {
     const user = setupUser()
-    const loads = watchAgentLoads()
     const created = vi.fn()
     const sent = additionSpy()
     server.use(agentSearchFailure(404), agentCreation(CREATED_AGENT, created), organismeAgentAdditionFailure(500))
@@ -182,18 +187,20 @@ describe('organismeAgentsSection', () => {
     expect(await screen.findByRole('heading', { name: 'L\'ajout de l\'utilisateur a échoué', hidden: true })).toBeInTheDocument()
     expect(screen.queryByText(/Aucun compte ne correspond à ce courriel/)).not.toBeInTheDocument()
 
-    server.use(organismeAgentAddition(CREATED_AGENT_ORGANISME, sent))
+    server.use(organismeAgentAddition(CREATED_AGENT_ORGANISME, (...args) => {
+      sent(...args)
+      listAfterAddition(CREATED_AGENT_ORGANISME)
+    }))
     await user.click(screen.getByRole('button', { name: 'Ajouter l\'utilisateur' }))
 
     expect(await screen.findByRole('heading', { name: 'Utilisateur ajouté' })).toBeInTheDocument()
     expect(created).toHaveBeenCalledTimes(1)
     expect(sent).toHaveBeenCalledWith(MTE_UUID, { agent_id: CREATED_AGENT.uuid, role: 'agent' })
-    await vi.waitFor(() => expect(loads).toHaveBeenCalledTimes(3))
+    await screen.findByRole('cell', { name: CREATED_AGENT.email })
   })
 
   it('keeps the add button disabled from the account creation until the account is attached', async () => {
     const user = setupUser()
-    const loads = watchAgentLoads()
     let finishCreation!: () => void
     let finishAttachment!: () => void
     server.use(
@@ -202,7 +209,10 @@ describe('organismeAgentsSection', () => {
         finishCreation = resolve
       })),
       organismeAgentAddition(CREATED_AGENT_ORGANISME, () => new Promise((resolve) => {
-        finishAttachment = resolve
+        finishAttachment = () => {
+          listAfterAddition(CREATED_AGENT_ORGANISME)
+          resolve()
+        }
       })),
     )
     await renderSection()
@@ -220,7 +230,7 @@ describe('organismeAgentsSection', () => {
     finishAttachment()
 
     expect(await screen.findByRole('heading', { name: 'Utilisateur ajouté' })).toBeInTheDocument()
-    await vi.waitFor(() => expect(loads).toHaveBeenCalledTimes(2))
+    await screen.findByRole('cell', { name: CREATED_AGENT.email })
   })
 
   it('starts a new search each time the drawer opens', async () => {

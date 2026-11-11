@@ -1,3 +1,4 @@
+import type { CandidatureListe } from '../types'
 import { screen, within } from '@testing-library/vue'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { RouterView } from 'vue-router'
@@ -9,8 +10,9 @@ import {
   CANDIDATURE_LISTE,
   candidatureDetail,
   ETAPE_ENTRETIEN,
+  etapeChangeBody,
   KANBAN_PATH,
-  MOTIFS_REFUS,
+  makeCandidatureRow,
   ORGANISME_UUID,
   RECRUTEMENT_UUID,
   roleOnOrganisme,
@@ -18,29 +20,19 @@ import {
 import { CONVERSATION } from '@/test/fixtures/messages'
 import { RECRUTEMENTS_ACTIFS } from '@/test/fixtures/recrutements'
 import { makeUser } from '@/test/fixtures/utilisateur'
+import { candidature, candidatureListe, candidatureListeFailure, etapeChange, etapeChangeFailure } from '@/test/handlers/candidatures'
 import { conversationMessages, conversations } from '@/test/handlers/messages'
 import { recrutementsActifs } from '@/test/handlers/recrutements'
 import { renderWithApp, setupUser } from '@/test/render'
 import { server } from '@/test/server'
-import { getCandidatureActivites, getCandidatureDetail, getCandidatureListe, getMotifsRefus, patchEtapeCandidatures } from '../api'
-
-vi.mock('../api', () => ({
-  getCandidatureDetail: vi.fn(),
-  getCandidatureListe: vi.fn(),
-  patchEtapeCandidatures: vi.fn(),
-  getMotifsRefus: vi.fn(),
-  getCandidatureDocuments: vi.fn(() => new Promise(() => {})),
-  getCandidatureNotes: vi.fn(() => new Promise(() => {})),
-  createCandidatureNote: vi.fn(),
-  getCandidatureActivites: vi.fn(),
-}))
 
 const LISTE_PATH = `${KANBAN_PATH}/liste`
 const RECRUTEMENTS_PATH = `/organismes/${ORGANISME_UUID}/recrutements`
 
 async function renderListe() {
   const { router } = await renderWithApp(RouterView, { route: LISTE_PATH })
-  const table = within(await screen.findByRole('table', { name: 'Candidatures' }))
+  await screen.findByText(/^\d+ candidatures$/)
+  const table = within(screen.getByRole('table', { name: 'Candidatures' }))
   await table.findAllByRole('link')
   return { router, table }
 }
@@ -48,23 +40,15 @@ async function renderListe() {
 const ROW_COUNT = TABLE_PAGE_SIZE + 1
 
 function twoPagesOfRows() {
-  const [row] = CANDIDATURE_LISTE.results
-  return Array.from({ length: ROW_COUNT }, (_, index) => ({
-    ...row!,
-    uuid: `dddddddd-0002-0002-0002-${String(index + 1).padStart(12, '0')}`,
-    date_derniere_activite: new Date(Date.UTC(2025, 5, 19, 10) - index * 3_600_000).toISOString(),
-    candidat: { ...row!.candidat, prenom: `Candidat ${index + 1}` },
-  }))
+  return Array.from({ length: ROW_COUNT }, (_, index) => makeCandidatureRow(index))
 }
 
-function mockTwoPagesOfRows(refresh?: ReturnType<typeof twoPagesOfRows>) {
-  const rows = twoPagesOfRows()
-  vi.mocked(getCandidatureListe).mockResolvedValue({ ...CANDIDATURE_LISTE, count: rows.length, results: rows })
-  if (refresh) {
-    vi.mocked(getCandidatureListe).mockResolvedValueOnce({ ...CANDIDATURE_LISTE, count: rows.length, results: rows })
-    vi.mocked(getCandidatureListe).mockResolvedValueOnce({ ...CANDIDATURE_LISTE, count: refresh.length, results: refresh })
-  }
-  vi.mocked(getCandidatureDetail).mockImplementation(async ({ candidatureUuid }) => ({ ...candidatureDetail(CANDIDATURE_ALICE), uuid: candidatureUuid }))
+function listeOf(rows: CandidatureListe[]) {
+  return candidatureListe({ ...CANDIDATURE_LISTE, count: rows.length, results: rows })
+}
+
+function serveTwoPagesOfRows() {
+  server.use(listeOf(twoPagesOfRows()), candidature(candidatureUuid => ({ ...candidatureDetail(CANDIDATURE_ALICE), uuid: candidatureUuid })))
 }
 
 async function changeEtapeToEntretien(user: ReturnType<typeof setupUser>) {
@@ -80,11 +64,6 @@ function sequenceNavigation() {
 describe('candidaturesListeView', () => {
   beforeEach(() => {
     vi.mocked(getMe).mockResolvedValue(makeUser([roleOnOrganisme('agent')]))
-    vi.mocked(getCandidatureListe).mockResolvedValue(CANDIDATURE_LISTE)
-    vi.mocked(getCandidatureDetail).mockImplementation(async ({ candidatureUuid }) => candidatureDetail(candidatureUuid))
-    vi.mocked(getMotifsRefus).mockResolvedValue(MOTIFS_REFUS)
-    vi.mocked(patchEtapeCandidatures).mockResolvedValue({ reussites: [CANDIDATURE_ALICE], echecs: [] })
-    vi.mocked(getCandidatureActivites).mockResolvedValue({ count: 0, next: null, previous: null, results: [] })
   })
 
   it('opens the candidature beside the list and marks its row', async () => {
@@ -111,7 +90,7 @@ describe('candidaturesListeView', () => {
 
   it('offers in the filters the stages of the list', async () => {
     const etapeAjoutee = { uuid: 'eeeeeeee-0001-0001-0001-000000000009', nom: 'Visite', categorie: 'EN_COURS' as const }
-    vi.mocked(getCandidatureListe).mockResolvedValue({ ...CANDIDATURE_LISTE, etapes: [...CANDIDATURE_LISTE.etapes, etapeAjoutee] })
+    server.use(candidatureListe({ ...CANDIDATURE_LISTE, etapes: [...CANDIDATURE_LISTE.etapes, etapeAjoutee] }))
     const user = setupUser()
     await renderListe()
 
@@ -121,7 +100,7 @@ describe('candidaturesListeView', () => {
   })
 
   it('shows an error when the list fails to load', async () => {
-    vi.mocked(getCandidatureListe).mockRejectedValue(new Error('boom'))
+    server.use(candidatureListeFailure(500))
     await renderWithApp(RouterView, { route: LISTE_PATH })
 
     expect(await screen.findByText('Une erreur est survenue lors du chargement des candidatures.')).toBeInTheDocument()
@@ -145,7 +124,7 @@ describe('candidaturesListeView', () => {
   })
 
   it('shows the page of the open candidature', async () => {
-    mockTwoPagesOfRows()
+    serveTwoPagesOfRows()
     const user = setupUser()
     const { table } = await renderListe()
 
@@ -156,8 +135,14 @@ describe('candidaturesListeView', () => {
   })
 
   it('opens the next candidature of the list after changing a stage, even when the list reorders', async () => {
-    const [first, second, third, ...others] = twoPagesOfRows()
-    mockTwoPagesOfRows([{ ...third!, date_derniere_activite: '2025-06-20T10:00:00Z' }, first!, second!, ...others])
+    const [first, second, third] = [0, 1, 2].map(makeCandidatureRow)
+    const others = twoPagesOfRows().slice(3)
+    const sent = vi.fn()
+    serveTwoPagesOfRows()
+    server.use(etapeChange({ reussites: [third.uuid], echecs: [] }, (...args) => {
+      sent(...args)
+      server.use(listeOf([{ ...third, date_derniere_activite: '2025-06-20T10:00:00Z' }, first, second, ...others]))
+    }))
     const user = setupUser()
     const { router, table } = await renderListe()
 
@@ -166,25 +151,56 @@ describe('candidaturesListeView', () => {
     await user.click(table.getByRole('link', { name: 'Candidat 3 Dupont' }))
     await changeEtapeToEntretien(user)
 
-    await vi.waitFor(() => expect(router.currentRoute.value.params.candidatureUuid).toBe(others[0]!.uuid))
-    expect(patchEtapeCandidatures).toHaveBeenCalledWith(ORGANISME_UUID, RECRUTEMENT_UUID, {
-      etapeCibleUuid: ETAPE_ENTRETIEN,
-      candidatureUuids: [third!.uuid],
-    })
-    await vi.waitFor(() => expect(getCandidatureListe).toHaveBeenCalledTimes(2))
+    await vi.waitFor(() => expect(router.currentRoute.value.params.candidatureUuid).toBe(makeCandidatureRow(3).uuid))
+    await vi.waitFor(() => expect(table.getAllByRole('row', { hidden: true })[1]).toHaveAccessibleName(/Candidat 3 Dupont/))
+    expect(sent).toHaveBeenCalledWith(ORGANISME_UUID, RECRUTEMENT_UUID, etapeChangeBody(ETAPE_ENTRETIEN, [third.uuid]))
     const navigation = within(await sequenceNavigation())
     expect(await navigation.findByText(`Candidature 4 sur ${ROW_COUNT}`)).toBeInTheDocument()
     await user.click(navigation.getByRole('button', { name: 'Suivant' }))
-    await vi.waitFor(() => expect(router.currentRoute.value.params.candidatureUuid).toBe(others[1]!.uuid))
+    await vi.waitFor(() => expect(router.currentRoute.value.params.candidatureUuid).toBe(makeCandidatureRow(4).uuid))
+  })
+
+  it('shows the new stage of a moved candidature while the move is sent, and puts it back once the server rejects it', async () => {
+    let reject!: () => void
+    const loads = vi.fn()
+    server.use(
+      candidatureListe(CANDIDATURE_LISTE, loads),
+      etapeChangeFailure(500, () => new Promise((resolve) => {
+        reject = resolve
+      })),
+    )
+    const user = setupUser()
+    const { router, table } = await renderListe()
+    const aliceRow = () => within(table.getByRole('row', { name: /Alice Dupont/, hidden: true }))
+
+    await user.click(table.getByRole('link', { name: 'Alice Dupont' }))
+    await changeEtapeToEntretien(user)
+    await vi.waitFor(() => expect(router.currentRoute.value.params.candidatureUuid).toBe(CANDIDATURE_BRUNO))
+    const navigation = within(await sequenceNavigation())
+    await user.click(navigation.getByRole('button', { name: 'Précédent' }))
+
+    expect(await navigation.findByText('Étape : Entretien')).toBeInTheDocument()
+    expect(aliceRow().getByText('Entretien')).toBeInTheDocument()
+
+    await vi.waitFor(() => expect(reject).toBeDefined())
+    reject()
+
+    expect(await navigation.findByText('Étape : Réception des candidatures')).toBeInTheDocument()
+    expect(aliceRow().getByText('Réception des candidatures')).toBeInTheDocument()
+    await vi.waitFor(() => expect(loads).toHaveBeenCalledTimes(2))
   })
 
   it('closes the last candidature after changing its stage and keeps the page of the list', async () => {
     const rows = twoPagesOfRows()
-    mockTwoPagesOfRows([rows[TABLE_PAGE_SIZE]!, ...rows.slice(0, TABLE_PAGE_SIZE)])
+    const last = makeCandidatureRow(TABLE_PAGE_SIZE)
     let respond!: () => void
-    vi.mocked(patchEtapeCandidatures).mockReturnValue(new Promise((resolve) => {
-      respond = () => resolve({ reussites: [rows[TABLE_PAGE_SIZE]!.uuid], echecs: [] })
-    }))
+    serveTwoPagesOfRows()
+    server.use(etapeChange({ reussites: [last.uuid], echecs: [] }, () => new Promise((resolve) => {
+      respond = () => {
+        server.use(listeOf([last, ...rows.slice(0, TABLE_PAGE_SIZE)]))
+        resolve()
+      }
+    })))
     const user = setupUser()
     const { router, table } = await renderListe()
 
@@ -193,8 +209,8 @@ describe('candidaturesListeView', () => {
     await changeEtapeToEntretien(user)
 
     await vi.waitFor(() => expect(router.currentRoute.value.path).toBe(LISTE_PATH))
+    await vi.waitFor(() => expect(respond).toBeDefined())
     respond()
-    await vi.waitFor(() => expect(getCandidatureListe).toHaveBeenCalledTimes(2))
     expect(await table.findByRole('link', { name: `Candidat ${TABLE_PAGE_SIZE} Dupont` })).toBeInTheDocument()
     expect(table.queryByRole('link', { name: 'Candidat 1 Dupont' })).not.toBeInTheDocument()
   })
@@ -237,12 +253,13 @@ describe('candidaturesListeView', () => {
 
   it('updates the unread conversations of the candidature and of its recrutement once a conversation is read', async () => {
     const results = CANDIDATURE_LISTE.results.map(row => row.uuid === CANDIDATURE_ALICE ? { ...row, unread_conversations: 1 } : row)
-    vi.mocked(getCandidatureListe).mockResolvedValueOnce({ ...CANDIDATURE_LISTE, results })
-    const recrutement = { ...RECRUTEMENTS_ACTIFS[0]!, uuid: RECRUTEMENT_UUID, intitule: 'Chargé de mission' }
+    const [premier] = RECRUTEMENTS_ACTIFS
+    const recrutement = { ...premier, uuid: RECRUTEMENT_UUID, intitule: 'Chargé de mission' }
     server.use(
+      candidatureListe({ ...CANDIDATURE_LISTE, results }),
       recrutementsActifs([{ ...recrutement, unread_conversations: 1 }]),
       conversations([{ ...CONVERSATION, is_unread: true }]),
-      conversationMessages(undefined, () => server.use(recrutementsActifs([recrutement]))),
+      conversationMessages(undefined, () => server.use(recrutementsActifs([recrutement]), candidatureListe())),
     )
     const user = setupUser()
     const { router } = await renderWithApp(RouterView, { route: RECRUTEMENTS_PATH })

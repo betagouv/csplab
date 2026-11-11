@@ -106,9 +106,10 @@ describe('organismesSection', () => {
     vi.mocked(getMe).mockResolvedValue(makeUser([], true))
     const user = setupUser()
     const sent = vi.fn<(organismeUuid: string, payload: UpdateOrganismePayload) => void>()
-    server.use(organismeUpdate(undefined, (...args) => {
+    const renamed = { ...ORGANISME, nom: 'Organisme renommé' }
+    server.use(organismeUpdate(renamed, (...args) => {
       sent(...args)
-      server.use(organismes([{ ...ORGANISME, nom: 'Organisme renommé' }]))
+      server.use(organismes([renamed]))
     }))
     await renderSection()
 

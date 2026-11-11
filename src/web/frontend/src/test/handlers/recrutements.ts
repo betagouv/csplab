@@ -2,7 +2,7 @@ import type { AssignationResponsablePayload, AssignationResponsableResultat, Rec
 import { delay } from 'msw'
 import { RECRUTEMENT_DETAIL } from '@/test/fixtures/candidatures'
 import { RECRUTEMENTS_ACTIFS, RECRUTEMENTS_ARCHIVES } from '@/test/fixtures/recrutements'
-import { failure, http } from './http'
+import { exceptSegments, failure, http } from './http'
 
 const ACTIFS = '/recruteur/organismes/{organisme_uuid}/recrutements/actifs'
 const ARCHIVES = '/recruteur/organismes/{organisme_uuid}/recrutements/archives'
@@ -12,12 +12,7 @@ const RESPONSABLE = '/recruteur/organismes/{organisme_uuid}/recrutements/respons
 const LIST_SEGMENTS = ['actifs', 'archives']
 
 function detail(resolve: Parameters<typeof http.get<typeof DETAIL>>[1]) {
-  return http.get(DETAIL, (info) => {
-    if (LIST_SEGMENTS.includes(info.params.recrutement_uuid)) {
-      return undefined
-    }
-    return resolve(info)
-  })
+  return http.get(DETAIL, exceptSegments(LIST_SEGMENTS, 'recrutement_uuid', resolve))
 }
 
 export function recrutementsActifs(results: RecrutementsActifs[] = RECRUTEMENTS_ACTIFS) {

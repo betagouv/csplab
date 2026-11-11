@@ -1,9 +1,9 @@
-import type { MembreEquipe, MembreEquipePayload } from '../types'
+import type { MembreEquipePayload } from '../types'
 import { screen } from '@testing-library/vue'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { NOUVEL_AGENT } from '@/test/fixtures/agents'
 import { RECRUTEMENT_DETAIL } from '@/test/fixtures/candidatures'
-import { EQUIPE, MEMBRE_EQUIPE, RECRUTEMENT_UUID } from '@/test/fixtures/equipe'
+import { EQUIPE, MEMBRE_EQUIPE, RECRUTEMENT_UUID, SECOND_MEMBRE_EQUIPE } from '@/test/fixtures/equipe'
 import { MTE_UUID } from '@/test/fixtures/utilisateur'
 import { agentCreation, agentSearch } from '@/test/handlers/agents'
 import {
@@ -17,15 +17,6 @@ import { recrutementDetail } from '@/test/handlers/recrutements'
 import { renderWithApp, setupUser, withToaster } from '@/test/render'
 import { server } from '@/test/server'
 import EquipeRecrutementSection from './EquipeRecrutementSection.vue'
-
-const NOUVEAU_MEMBRE: MembreEquipe = {
-  uuid: NOUVEL_AGENT.uuid,
-  prenom: NOUVEL_AGENT.prenom,
-  nom: NOUVEL_AGENT.nom,
-  poste: NOUVEL_AGENT.intitule_poste,
-  email: NOUVEL_AGENT.email,
-  recrutement_role: 'recruteur',
-}
 
 const RECRUTEMENT_DETAIL_EQUIPE_GERABLE = {
   ...RECRUTEMENT_DETAIL,
@@ -84,9 +75,9 @@ describe('equipeRecrutementSection', () => {
     const created = vi.fn()
     server.use(
       agentCreation(undefined, created),
-      membreAddition(NOUVEAU_MEMBRE, (...args) => {
+      membreAddition(SECOND_MEMBRE_EQUIPE, (...args) => {
         sent(...args)
-        server.use(equipe([MEMBRE_EQUIPE, NOUVEAU_MEMBRE]))
+        server.use(equipe([MEMBRE_EQUIPE, SECOND_MEMBRE_EQUIPE]))
       }),
     )
     await renderSection()
@@ -96,7 +87,7 @@ describe('equipeRecrutementSection', () => {
     await user.click(screen.getByRole('button', { name: 'Ajouter le membre' }))
 
     expect(await screen.findByRole('heading', { name: 'Membre ajouté' })).toBeInTheDocument()
-    expect(await screen.findByText(NOUVEAU_MEMBRE.email)).toBeInTheDocument()
+    expect(await screen.findByText(SECOND_MEMBRE_EQUIPE.email)).toBeInTheDocument()
     expect(sent).toHaveBeenCalledWith(MTE_UUID, RECRUTEMENT_UUID, { agent_id: NOUVEL_AGENT.uuid, recrutement_role: 'recruteur' })
     expect(created).not.toHaveBeenCalled()
   })

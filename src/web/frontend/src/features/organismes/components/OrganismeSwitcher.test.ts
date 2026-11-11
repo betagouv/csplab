@@ -1,5 +1,5 @@
 import { screen } from '@testing-library/vue'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { defineComponent, h } from 'vue'
 import { getMe } from '@/api/utilisateur'
 import { provideSidebar } from '@/composables/ui/useSidebar'
@@ -10,8 +10,6 @@ import { organismeDetailPending, organismesSearch } from '@/test/handlers/organi
 import { renderWithApp, setupUser } from '@/test/render'
 import { server } from '@/test/server'
 import OrganismeSwitcher from './OrganismeSwitcher.vue'
-
-const SEARCH_DEBOUNCE_MS = 300
 
 const Host = defineComponent({
   setup() {
@@ -31,6 +29,10 @@ function espaceTrigger(nom: string) {
 describe('organismeSwitcher', () => {
   beforeEach(() => {
     vi.stubGlobal('localStorage', createLocalStorageMock())
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
   })
 
   describe('for a superviseur or an agent', () => {
@@ -171,8 +173,7 @@ describe('organismeSwitcher', () => {
       await user.click(await espaceTrigger('Espace administrateur'))
       vi.useFakeTimers()
       await setupUser({ advanceTimers: vi.advanceTimersByTime }).type(screen.getByRole('searchbox', { name: 'Accéder à un organisme' }), 'Br')
-      await vi.advanceTimersByTimeAsync(SEARCH_DEBOUNCE_MS)
-      vi.useRealTimers()
+      await vi.runAllTimersAsync()
 
       expect(screen.getByRole('status')).toHaveTextContent('Saisissez au moins 3 caractères')
       expect(searched).not.toHaveBeenCalled()

@@ -3,36 +3,26 @@ import { render, screen, within } from '@testing-library/vue'
 import { createPinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createRouter, createWebHistory, RouterView } from 'vue-router'
-import { HttpError } from '@/api/errors'
 import { getMe } from '@/api/utilisateur'
 import { routes } from '@/router/routes'
 import {
+  ACTIVITE,
   CANDIDATURE_ALICE,
   CANDIDATURE_BRUNO,
   CANDIDATURE_LISTE,
   candidatureDetail,
   ETAPE_ENTRETIEN,
   ETAPE_REFUS,
+  etapeChangeBody,
   KANBAN_PATH,
-  MOTIFS_REFUS,
   ORGANISME_UUID,
   RECRUTEMENT_UUID,
   roleOnOrganisme,
 } from '@/test/fixtures/candidatures'
 import { makeUser } from '@/test/fixtures/utilisateur'
+import { candidature, candidatureActivites, candidatureFailure, candidatureListe, etapeChange, etapeChangeFailure, noteCreation } from '@/test/handlers/candidatures'
 import { setupUser, withToaster } from '@/test/render'
-import { createCandidatureNote, getCandidatureActivites, getCandidatureDetail, getCandidatureListe, getCandidatureNotes, getMotifsRefus, patchEtapeCandidatures } from '../api'
-
-vi.mock('../api', () => ({
-  getCandidatureDetail: vi.fn(),
-  getCandidatureListe: vi.fn(),
-  patchEtapeCandidatures: vi.fn(),
-  getMotifsRefus: vi.fn(),
-  getCandidatureDocuments: vi.fn(() => new Promise(() => {})),
-  getCandidatureNotes: vi.fn(() => new Promise(() => {})),
-  createCandidatureNote: vi.fn(),
-  getCandidatureActivites: vi.fn(),
-}))
+import { server } from '@/test/server'
 
 const CANDIDATURE_INCONNUE = 'dddddddd-0001-0001-0001-000000000099'
 
@@ -40,7 +30,7 @@ const CANDIDATURE_INCONNUE = 'dddddddd-0001-0001-0001-000000000099'
 async function renderPanel(paths: string[]) {
   window.history.replaceState(null, '', '/')
   const router = createRouter({ history: createWebHistory(), routes })
-  await router.replace(paths[0]!)
+  await router.replace(paths[0])
   for (const path of paths.slice(1)) {
     await router.push(path)
   }
@@ -51,6 +41,19 @@ async function renderPanel(paths: string[]) {
   return { router, panel: await screen.findByRole('dialog') }
 }
 
+const REFUSEE = {
+  ...candidatureDetail(CANDIDATURE_ALICE),
+  etape_actuelle: { uuid: ETAPE_REFUS, nom: 'Refus' },
+  motif_refus: { value: 'experience_insuffisante' as const, label: 'Expérience insuffisante' },
+}
+
+function watchEtapeChanges() {
+  const sent = vi.fn()
+  const loads = vi.fn()
+  server.use(etapeChange(undefined, sent), candidatureListe(CANDIDATURE_LISTE, loads))
+  return { sent, reloaded: () => vi.waitFor(() => expect(loads).toHaveBeenCalledTimes(2)) }
+}
+
 function closeButton() {
   return screen.getByRole('button', { name: 'Fermer la candidature' })
 }
@@ -58,11 +61,6 @@ function closeButton() {
 describe('candidaturePanelView', () => {
   beforeEach(() => {
     vi.mocked(getMe).mockResolvedValue(makeUser([roleOnOrganisme('agent')]))
-    vi.mocked(getCandidatureDetail).mockImplementation(async ({ candidatureUuid }) => candidatureDetail(candidatureUuid))
-    vi.mocked(getCandidatureListe).mockResolvedValue(CANDIDATURE_LISTE)
-    vi.mocked(getMotifsRefus).mockResolvedValue(MOTIFS_REFUS)
-    vi.mocked(patchEtapeCandidatures).mockResolvedValue({ reussites: [CANDIDATURE_ALICE], echecs: [] })
-    vi.mocked(getCandidatureActivites).mockResolvedValue({ count: 0, next: null, previous: null, results: [] })
   })
 
   it('shows who applies, to which offer and at which stage from the candidature detail', async () => {
@@ -76,11 +74,7 @@ describe('candidaturePanelView', () => {
   })
 
   it('shows why a refused candidature was refused in the follow-up column', async () => {
-    vi.mocked(getCandidatureDetail).mockResolvedValue({
-      ...candidatureDetail(CANDIDATURE_ALICE),
-      etape_actuelle: { uuid: ETAPE_REFUS, nom: 'Refus' },
-      motif_refus: { value: 'experience_insuffisante', label: 'Expérience insuffisante' },
-    })
+    server.use(candidature(() => REFUSEE))
     const { panel } = await renderPanel([`${KANBAN_PATH}/candidatures/${CANDIDATURE_ALICE}`])
 
     const suivi = within(await within(panel).findByRole('complementary', { name: 'Suivi de la candidature' }))
@@ -89,12 +83,7 @@ describe('candidaturePanelView', () => {
   })
 
   it('offers neither the stage change nor the motif edit without the right to change stages', async () => {
-    vi.mocked(getCandidatureDetail).mockResolvedValue({
-      ...candidatureDetail(CANDIDATURE_ALICE),
-      etape_actuelle: { uuid: ETAPE_REFUS, nom: 'Refus' },
-      motif_refus: { value: 'experience_insuffisante', label: 'Expérience insuffisante' },
-      authorized_actions: [],
-    })
+    server.use(candidature(() => ({ ...REFUSEE, authorized_actions: [] })))
     const { panel } = await renderPanel([`${KANBAN_PATH}/candidatures/${CANDIDATURE_ALICE}`])
 
     expect(await within(panel).findByRole('region', { name: 'Motif de refus' })).toBeInTheDocument()
@@ -104,12 +93,14 @@ describe('candidaturePanelView', () => {
 
   it('changes the motif of a refused candidature without moving it', async () => {
     const user = setupUser()
-    const refusee = {
-      ...candidatureDetail(CANDIDATURE_ALICE),
-      etape_actuelle: { uuid: ETAPE_REFUS, nom: 'Refus' },
-      motif_refus: { value: 'experience_insuffisante', label: 'Expérience insuffisante' },
-    }
-    vi.mocked(getCandidatureDetail).mockResolvedValue(refusee)
+    const sent = vi.fn()
+    server.use(
+      candidature(() => REFUSEE),
+      etapeChange(undefined, (...args) => {
+        sent(...args)
+        server.use(candidature(() => ({ ...REFUSEE, motif_refus: { value: 'disponibilite', label: 'Disponibilité' } })))
+      }),
+    )
     const { panel } = await renderPanel([`${KANBAN_PATH}/candidatures/${CANDIDATURE_ALICE}`])
 
     await user.click(await within(panel).findByRole('button', { name: 'Actions sur le motif de refus' }))
@@ -117,16 +108,11 @@ describe('candidaturePanelView', () => {
     const dialog = within(await screen.findByRole('dialog', { name: 'Modifier le motif de refus' }))
     await user.click(dialog.getByRole('combobox', { name: /Motif de refus/ }))
     await user.click(await screen.findByRole('option', { name: 'Disponibilité' }))
-    vi.mocked(getCandidatureDetail).mockResolvedValue({ ...refusee, motif_refus: { value: 'disponibilite', label: 'Disponibilité' } })
     await user.click(dialog.getByRole('button', { name: 'Enregistrer le motif' }))
 
-    expect(patchEtapeCandidatures).toHaveBeenCalledWith(ORGANISME_UUID, RECRUTEMENT_UUID, {
-      etapeCibleUuid: ETAPE_REFUS,
-      candidatureUuids: [CANDIDATURE_ALICE],
-      motifRefus: 'disponibilite',
-    })
     const motif = within(within(panel).getByRole('region', { name: 'Motif de refus' }))
     expect(await motif.findByText('Disponibilité')).toBeInTheDocument()
+    expect(sent).toHaveBeenCalledWith(ORGANISME_UUID, RECRUTEMENT_UUID, etapeChangeBody(ETAPE_REFUS, [CANDIDATURE_ALICE], 'disponibilite'))
   })
 
   it('names the document after the tab and the candidat', async () => {
@@ -141,20 +127,21 @@ describe('candidaturePanelView', () => {
     expect(await within(panel).findByRole('tab', { name: 'Candidature', selected: true })).toBeInTheDocument()
     expect(router.currentRoute.value.meta.tab).toBe('candidature')
     const suivi = within(within(panel).getByRole('complementary', { name: 'Suivi de la candidature' }))
-    expect(suivi.getByRole('heading', { name: 'Dernières activités' })).toBeInTheDocument()
+    expect(await suivi.findByRole('heading', { name: 'Dernières activités' })).toBeInTheDocument()
     expect(suivi.getByRole('heading', { name: 'Ajouter une note' })).toBeInTheDocument()
   })
 
   it('refreshes the latest activities once a note is saved', async () => {
-    vi.mocked(createCandidatureNote).mockResolvedValue()
+    server.use(noteCreation(() => server.use(candidatureActivites([ACTIVITE]))))
     const user = setupUser()
     const { panel } = await renderPanel([`${KANBAN_PATH}/candidatures/${CANDIDATURE_ALICE}`])
-    await vi.waitFor(() => expect(getCandidatureActivites).toHaveBeenCalledTimes(1))
+    const suivi = within(await within(panel).findByRole('complementary', { name: 'Suivi de la candidature' }))
+    await suivi.findByText('La candidature n\'a aucune activité')
 
-    await user.type(await within(panel).findByRole('textbox', { name: 'Ajouter une note' }), 'À rappeler')
-    await user.click(within(panel).getByRole('button', { name: 'Enregistrer la note' }))
+    await user.type(suivi.getByRole('textbox', { name: 'Ajouter une note' }), 'À rappeler')
+    await user.click(suivi.getByRole('button', { name: 'Enregistrer la note' }))
 
-    await vi.waitFor(() => expect(getCandidatureActivites).toHaveBeenCalledTimes(2))
+    expect(await suivi.findByText('Note ajoutée')).toBeInTheDocument()
   })
 
   it('moves to the next candidature of the column from the bottom bar', async () => {
@@ -162,8 +149,7 @@ describe('candidaturePanelView', () => {
     const { router } = await renderPanel([`${KANBAN_PATH}/candidatures/${CANDIDATURE_ALICE}`])
     const navigation = within(await screen.findByRole('navigation', { name: 'Navigation entre les candidatures de l\'étape' }))
 
-    expect(navigation.getByText('Candidature 1 sur 2')).toBeInTheDocument()
-    expect(getCandidatureDetail).toHaveBeenCalledWith(expect.objectContaining({ candidatureUuid: CANDIDATURE_BRUNO }))
+    expect(await navigation.findByText('Candidature 1 sur 2')).toBeInTheDocument()
     expect(navigation.getByText('Étape : Réception des candidatures')).toBeInTheDocument()
     expect(navigation.getByRole('button', { name: 'Précédent' })).toBeDisabled()
 
@@ -187,6 +173,7 @@ describe('candidaturePanelView', () => {
   })
 
   it('moves the candidature to another stage and opens the next one of its column', async () => {
+    const { sent, reloaded } = watchEtapeChanges()
     const user = setupUser()
     const { router } = await renderPanel([`${KANBAN_PATH}/candidatures/${CANDIDATURE_ALICE}`])
 
@@ -196,11 +183,9 @@ describe('candidaturePanelView', () => {
     await user.click(screen.getByRole('button', { name: 'Valider' }))
 
     await vi.waitFor(() => expect(router.currentRoute.value.params.candidatureUuid).toBe(CANDIDATURE_BRUNO))
-    expect(patchEtapeCandidatures).toHaveBeenCalledWith(ORGANISME_UUID, RECRUTEMENT_UUID, {
-      etapeCibleUuid: ETAPE_ENTRETIEN,
-      candidatureUuids: [CANDIDATURE_ALICE],
-    })
-    expect(await screen.findByText('La candidature d\'Alice Dupont est passée à l\'étape Entretien')).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'La candidature d\'Alice Dupont est passée à l\'étape Entretien', hidden: true })).toBeInTheDocument()
+    expect(sent).toHaveBeenCalledWith(ORGANISME_UUID, RECRUTEMENT_UUID, etapeChangeBody(ETAPE_ENTRETIEN, [CANDIDATURE_ALICE]))
+    await reloaded()
   })
 
   it('replaces the previous success toast when candidatures are moved one after the other', async () => {
@@ -224,6 +209,7 @@ describe('candidaturePanelView', () => {
   })
 
   it('asks for confirmation before refusing the candidature', async () => {
+    const { sent, reloaded } = watchEtapeChanges()
     const user = setupUser()
     const { router } = await renderPanel([`${KANBAN_PATH}/candidatures/${CANDIDATURE_ALICE}`])
 
@@ -232,7 +218,7 @@ describe('candidaturePanelView', () => {
     await user.click(screen.getByRole('button', { name: 'Valider' }))
 
     const dialog = within(await screen.findByRole('dialog', { name: 'Refus de candidature' }))
-    expect(patchEtapeCandidatures).not.toHaveBeenCalled()
+    expect(sent).not.toHaveBeenCalled()
     expect(dialog.getByRole('button', { name: 'Valider le refus' })).toBeDisabled()
 
     await user.click(dialog.getByRole('combobox', { name: /Motif de refus/ }))
@@ -240,26 +226,24 @@ describe('candidaturePanelView', () => {
     await user.click(dialog.getByRole('button', { name: 'Valider le refus' }))
 
     await vi.waitFor(() => expect(router.currentRoute.value.params.candidatureUuid).toBe(CANDIDATURE_BRUNO))
-    expect(patchEtapeCandidatures).toHaveBeenCalledWith(ORGANISME_UUID, RECRUTEMENT_UUID, {
-      etapeCibleUuid: ETAPE_REFUS,
-      candidatureUuids: [CANDIDATURE_ALICE],
-      motifRefus: 'experience_insuffisante',
-    })
+    expect(await screen.findByRole('heading', { name: 'La candidature d\'Alice Dupont est passée à l\'étape Refus', hidden: true })).toBeInTheDocument()
+    expect(sent).toHaveBeenCalledWith(ORGANISME_UUID, RECRUTEMENT_UUID, etapeChangeBody(ETAPE_REFUS, [CANDIDATURE_ALICE], 'experience_insuffisante'))
+    await reloaded()
   })
 
   it.each([
-    ['the server rejects the move', () => Promise.reject(new Error('boom')), 'Le changement d\'étape a échoué'],
-    ['the server leaves the candidature at its stage', () => Promise.resolve({ reussites: [], echecs: [{ candidature_uuid: CANDIDATURE_ALICE, raison: 'conflit' }] }), 'Certaines candidatures n\'ont pas changé d\'étape'],
-  ])('does not announce the move when %s', async (_case, response, message) => {
+    ['the server rejects the move', etapeChangeFailure(500), 'Le changement d\'étape a échoué'],
+    ['the server leaves the candidature at its stage', etapeChange({ reussites: [], echecs: [{ candidature_uuid: CANDIDATURE_ALICE, raison: 'conflit' }] }), 'Certaines candidatures n\'ont pas changé d\'étape'],
+  ])('does not announce the move when %s', async (_case, handler, message) => {
     const user = setupUser()
-    vi.mocked(patchEtapeCandidatures).mockImplementation(response)
+    server.use(handler)
     await renderPanel([`${KANBAN_PATH}/candidatures/${CANDIDATURE_ALICE}`])
 
     await user.click(await screen.findByRole('button', { name: 'Changer d\'étape' }))
     await user.click(await screen.findByRole('radio', { name: 'Entretien' }))
     await user.click(screen.getByRole('button', { name: 'Valider' }))
 
-    expect(await screen.findByText(message)).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: message, hidden: true })).toBeInTheDocument()
     expect(screen.queryByText(/est passée à l'étape/)).not.toBeInTheDocument()
   })
 
@@ -281,7 +265,7 @@ describe('candidaturePanelView', () => {
   })
 
   it('shows the access message when the candidature detail answers not found', async () => {
-    vi.mocked(getCandidatureDetail).mockRejectedValue(new HttpError(404, 'Not Found'))
+    server.use(candidatureFailure(CANDIDATURE_INCONNUE, 404))
     const { panel } = await renderPanel([`${KANBAN_PATH}/candidatures/${CANDIDATURE_INCONNUE}`])
 
     expect(await within(panel).findByText('Cette candidature n\'est pas accessible.')).toBeInTheDocument()
@@ -333,7 +317,7 @@ describe('candidaturePanelView', () => {
 
     expect(await within(panel).findByRole('tab', { name: 'Notes', selected: true })).toBeInTheDocument()
     const suivi = within(within(panel).getByRole('complementary', { name: 'Suivi de la candidature' }))
-    expect(suivi.getByRole('heading', { name: 'Dernières activités' })).toBeInTheDocument()
+    expect(await suivi.findByRole('heading', { name: 'Dernières activités' })).toBeInTheDocument()
     expect(suivi.queryByRole('textbox', { name: 'Ajouter une note' })).not.toBeInTheDocument()
   })
 
@@ -402,6 +386,7 @@ describe('candidaturePanelView', () => {
     })
 
     it('asks before changing the stage', async () => {
+      const { sent, reloaded } = watchEtapeChanges()
       const { user, router } = await renderWithNote()
 
       await user.click(screen.getByRole('button', { name: 'Changer d\'étape' }))
@@ -409,11 +394,12 @@ describe('candidaturePanelView', () => {
       await user.click(screen.getByRole('button', { name: 'Valider' }))
 
       const dialog = within(await unsavedDialog())
-      expect(patchEtapeCandidatures).not.toHaveBeenCalled()
+      expect(sent).not.toHaveBeenCalled()
       await user.click(dialog.getByRole('button', { name: 'Quitter sans enregistrer' }))
 
       await vi.waitFor(() => expect(router.currentRoute.value.params.candidatureUuid).toBe(CANDIDATURE_BRUNO))
-      expect(patchEtapeCandidatures).toHaveBeenCalledOnce()
+      expect(sent).toHaveBeenCalledOnce()
+      await reloaded()
     })
 
     it('keeps the note typed in the follow-up column through the notes tab', async () => {
@@ -440,20 +426,6 @@ describe('candidaturePanelView', () => {
   })
 
   it('asks before leaving the notes tab while a note is being edited, and keeps it on demand', async () => {
-    vi.mocked(getCandidatureNotes).mockResolvedValue({
-      count: 1,
-      results: [{
-        uuid: 'ffffffff-0001-0001-0001-000000000001',
-        candidature_id: CANDIDATURE_ALICE,
-        message: 'Profil solide',
-        publie_par_id: 'eeeeeeee-0001-0001-0001-000000000001',
-        publie_par_prenom: 'Marie',
-        publie_par_nom: 'Dupont',
-        publie_le: '2025-06-10T09:15:00',
-        est_privee: false,
-        authorized_actions: ['update_note', 'delete_note'],
-      }],
-    })
     const user = setupUser()
     const { panel } = await renderPanel([`${KANBAN_PATH}/candidatures/${CANDIDATURE_ALICE}/notes`])
 

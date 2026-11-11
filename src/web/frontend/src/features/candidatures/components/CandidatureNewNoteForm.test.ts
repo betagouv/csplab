@@ -1,16 +1,11 @@
 import { screen } from '@testing-library/vue'
 import { describe, expect, it, vi } from 'vitest'
-import { HttpError } from '@/api/errors'
 import { CANDIDATURE_PANEL_ROUTE_NAMES } from '@/router/names'
-import { CANDIDATURE_PARAMS, KANBAN_PATH } from '@/test/fixtures/candidatures'
+import { CANDIDATURE_ALICE, CANDIDATURE_PARAMS, KANBAN_PATH } from '@/test/fixtures/candidatures'
+import { noteCreation, noteCreationFailure } from '@/test/handlers/candidatures'
 import { renderWithApp, setupUser, withToaster } from '@/test/render'
-import { createCandidatureNote } from '../api'
+import { server } from '@/test/server'
 import CandidatureNewNoteForm from './CandidatureNewNoteForm.vue'
-
-vi.mock('../api', async importOriginal => ({
-  ...await importOriginal<typeof import('../api')>(),
-  createCandidatureNote: vi.fn(),
-}))
 
 const NOTES_PATH = `${KANBAN_PATH}/candidatures/${CANDIDATURE_PARAMS.candidatureUuid}/notes`
 const NEW_NOTE_PATH = `${NOTES_PATH}/nouvelle`
@@ -31,19 +26,20 @@ async function renderForm() {
 
 describe('candidatureNewNoteForm', () => {
   it('saves the note and goes back to the notes', async () => {
-    vi.mocked(createCandidatureNote).mockResolvedValue()
+    const sent = vi.fn()
+    server.use(noteCreation(sent))
     const { user, router, field, submit } = await renderForm()
 
     await user.type(field, '  Profil solide  ')
     await user.click(submit)
 
-    expect(createCandidatureNote).toHaveBeenCalledWith(CANDIDATURE_PARAMS, { message: 'Profil solide', est_privee: false })
     await vi.waitFor(() => expect(router.currentRoute.value.path).toBe(NOTES_PATH))
     expect(await screen.findByRole('heading', { name: 'Note enregistrée' })).toBeInTheDocument()
+    expect(sent).toHaveBeenCalledWith(CANDIDATURE_ALICE, { message: 'Profil solide', est_privee: false })
   })
 
   it('keeps the typed note when the creation fails', async () => {
-    vi.mocked(createCandidatureNote).mockRejectedValue(new HttpError(500, 'Server Error', undefined))
+    server.use(noteCreationFailure(500))
     const { user, router, field, submit } = await renderForm()
 
     await user.type(field, 'Profil solide')

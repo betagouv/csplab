@@ -38,7 +38,7 @@ describe('organismeView', () => {
     expect(await screen.findByText('Cette page n’existe pas.')).toBeInTheDocument()
   })
 
-  it('shows the forbidden page when the organisme is refused', async () => {
+  it('shows the forbidden page when access to the organisme is forbidden', async () => {
     server.use(organismeDetailFailure(403))
     await renderWithApp(RouterView, { route: ORGANISME_ROUTE })
 

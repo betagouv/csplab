@@ -1,10 +1,9 @@
 import { screen } from '@testing-library/vue'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { RouterView } from 'vue-router'
 import { getMe } from '@/api/utilisateur'
-import { getCandidatureListe } from '@/features/candidatures/api'
-import { CANDIDATURE_LISTE, KANBAN_PATH, ORGANISME_UUID, RECRUTEMENT_DETAIL, RECRUTEMENT_UUID, roleOnOrganisme } from '@/test/fixtures/candidatures'
-import { MEMBRE_EQUIPE } from '@/test/fixtures/equipe'
+import { KANBAN_PATH, ORGANISME_UUID, RECRUTEMENT_DETAIL, RECRUTEMENT_UUID, roleOnOrganisme } from '@/test/fixtures/candidatures'
+import { MEMBRE_EQUIPE, SECOND_MEMBRE_EQUIPE } from '@/test/fixtures/equipe'
 import { RECRUTEMENTS_ACTIFS } from '@/test/fixtures/recrutements'
 import { makeUser } from '@/test/fixtures/utilisateur'
 import { equipe } from '@/test/handlers/equipe-recrutement'
@@ -12,34 +11,23 @@ import { recrutementDetail, recrutementDetailPending, recrutementsActifs } from 
 import { renderWithApp, setupUser } from '@/test/render'
 import { server } from '@/test/server'
 
-vi.mock('@/features/candidatures/api', () => ({
-  getCandidatureListe: vi.fn(),
-  patchEtapeCandidatures: vi.fn(),
-  getMotifsRefus: vi.fn(),
-}))
-
 const EQUIPE_PATH = `${KANBAN_PATH}/equipe`
 const OTHER_RECRUTEMENT_UUID = '00000000-0000-0000-0000-0000000000ff'
-const AUTRE_MEMBRE = { ...MEMBRE_EQUIPE, uuid: 'bbbbbbbb-0004-0004-0004-000000000004', email: 'paul.bernard@example.gouv.fr' }
 const RECRUTEMENT_DETAIL_AVEC_EQUIPE = {
   ...RECRUTEMENT_DETAIL,
   authorized_actions: ['list_recrutement_agents' as const, 'add_recrutement_agent' as const],
 }
 
 describe('recrutementView', () => {
-  beforeEach(() => {
-    vi.mocked(getCandidatureListe).mockResolvedValue(CANDIDATURE_LISTE)
-  })
-
   it('names the document after the tab and the recrutement', async () => {
-    vi.mocked(getMe).mockReset().mockResolvedValue(makeUser([roleOnOrganisme('agent')]))
+    vi.mocked(getMe).mockResolvedValue(makeUser([roleOnOrganisme('agent')]))
     await renderWithApp(RouterView, { route: KANBAN_PATH })
 
     await vi.waitFor(() => expect(document.title).toBe('Candidatures - Chargé de mission'))
   })
 
   it('hides the équipe tab from an agent who cannot list the team', async () => {
-    vi.mocked(getMe).mockReset().mockResolvedValue(makeUser([roleOnOrganisme('agent')]))
+    vi.mocked(getMe).mockResolvedValue(makeUser([roleOnOrganisme('agent')]))
     await renderWithApp(RouterView, { route: KANBAN_PATH })
 
     await screen.findAllByRole('tab', { name: /Candidatures/ })
@@ -47,7 +35,7 @@ describe('recrutementView', () => {
   })
 
   it('shows the équipe tab with the right to list the team', async () => {
-    vi.mocked(getMe).mockReset().mockResolvedValue(makeUser([roleOnOrganisme('agent')]))
+    vi.mocked(getMe).mockResolvedValue(makeUser([roleOnOrganisme('agent')]))
     server.use(recrutementDetail(RECRUTEMENT_DETAIL_AVEC_EQUIPE))
     await renderWithApp(RouterView, { route: KANBAN_PATH })
 
@@ -55,7 +43,7 @@ describe('recrutementView', () => {
   })
 
   it('opens the équipe tab from its own address', async () => {
-    vi.mocked(getMe).mockReset().mockResolvedValue(makeUser([roleOnOrganisme('superviseur')]))
+    vi.mocked(getMe).mockResolvedValue(makeUser([roleOnOrganisme('superviseur')]))
     server.use(recrutementDetail(RECRUTEMENT_DETAIL_AVEC_EQUIPE))
     await renderWithApp(RouterView, { route: EQUIPE_PATH })
 
@@ -64,7 +52,7 @@ describe('recrutementView', () => {
   })
 
   it('keeps the candidatures search when coming back from another tab', async () => {
-    vi.mocked(getMe).mockReset().mockResolvedValue(makeUser([roleOnOrganisme('superviseur')]))
+    vi.mocked(getMe).mockResolvedValue(makeUser([roleOnOrganisme('superviseur')]))
     server.use(recrutementDetail(RECRUTEMENT_DETAIL_AVEC_EQUIPE))
     const user = setupUser()
     const { router } = await renderWithApp(RouterView, { route: KANBAN_PATH })
@@ -78,7 +66,7 @@ describe('recrutementView', () => {
   })
 
   it('empties the candidatures search when moving to another recrutement', async () => {
-    vi.mocked(getMe).mockReset().mockResolvedValue(makeUser([roleOnOrganisme('agent')]))
+    vi.mocked(getMe).mockResolvedValue(makeUser([roleOnOrganisme('agent')]))
     const user = setupUser()
     const { router } = await renderWithApp(RouterView, { route: KANBAN_PATH })
 
@@ -89,22 +77,22 @@ describe('recrutementView', () => {
   })
 
   it('shows the équipe of the recrutement opened after another one', async () => {
-    vi.mocked(getMe).mockReset().mockResolvedValue(makeUser([roleOnOrganisme('superviseur')]))
+    vi.mocked(getMe).mockResolvedValue(makeUser([roleOnOrganisme('superviseur')]))
     const requested = vi.fn()
     server.use(recrutementDetail(RECRUTEMENT_DETAIL_AVEC_EQUIPE))
     const { router } = await renderWithApp(RouterView, { route: EQUIPE_PATH })
     await screen.findByText(MEMBRE_EQUIPE.email)
 
-    server.use(equipe([AUTRE_MEMBRE], requested))
+    server.use(equipe([SECOND_MEMBRE_EQUIPE], requested))
     await router.push(`/organismes/${ORGANISME_UUID}/recrutements/${OTHER_RECRUTEMENT_UUID}/equipe`)
 
-    expect(await screen.findByText(AUTRE_MEMBRE.email)).toBeInTheDocument()
+    expect(await screen.findByText(SECOND_MEMBRE_EQUIPE.email)).toBeInTheDocument()
     expect(screen.queryByText(MEMBRE_EQUIPE.email)).not.toBeInTheDocument()
     expect(requested).toHaveBeenCalledWith(ORGANISME_UUID, OTHER_RECRUTEMENT_UUID)
   })
 
   it('refuses access to the équipe tab url for an agent', async () => {
-    vi.mocked(getMe).mockReset().mockResolvedValue(makeUser([roleOnOrganisme('agent')]))
+    vi.mocked(getMe).mockResolvedValue(makeUser([roleOnOrganisme('agent')]))
     await renderWithApp(RouterView, { route: EQUIPE_PATH })
 
     expect(await screen.findByText('Vous n’avez pas accès à cette page.')).toBeInTheDocument()
@@ -112,7 +100,7 @@ describe('recrutementView', () => {
   })
 
   it('hides the recrutement actions menu without the right to customize the étapes', async () => {
-    vi.mocked(getMe).mockReset().mockResolvedValue(makeUser([roleOnOrganisme('agent')]))
+    vi.mocked(getMe).mockResolvedValue(makeUser([roleOnOrganisme('agent')]))
     server.use(recrutementDetail({ ...RECRUTEMENT_DETAIL, authorized_actions: ['get_recrutement'] }))
     await renderWithApp(RouterView, { route: KANBAN_PATH })
 
@@ -121,7 +109,7 @@ describe('recrutementView', () => {
   })
 
   it('offers to customize the étapes with the right to do so', async () => {
-    vi.mocked(getMe).mockReset().mockResolvedValue(makeUser([roleOnOrganisme('agent')]))
+    vi.mocked(getMe).mockResolvedValue(makeUser([roleOnOrganisme('agent')]))
     server.use(recrutementDetail({ ...RECRUTEMENT_DETAIL, authorized_actions: ['update_recrutement_etapes'] }))
     await renderWithApp(RouterView, { route: KANBAN_PATH })
 
@@ -129,7 +117,7 @@ describe('recrutementView', () => {
   })
 
   it('titles a recrutement opened from the list while its details load', async () => {
-    vi.mocked(getMe).mockReset().mockResolvedValue(makeUser([roleOnOrganisme('agent')]))
+    vi.mocked(getMe).mockResolvedValue(makeUser([roleOnOrganisme('agent')]))
     const [recrutement] = RECRUTEMENTS_ACTIFS
     server.use(recrutementsActifs([{ ...recrutement, uuid: RECRUTEMENT_UUID }]), recrutementDetailPending())
     const user = setupUser()
@@ -141,7 +129,7 @@ describe('recrutementView', () => {
   })
 
   it('holds the title back while a recrutement opened from its address loads', async () => {
-    vi.mocked(getMe).mockReset().mockResolvedValue(makeUser([roleOnOrganisme('agent')]))
+    vi.mocked(getMe).mockResolvedValue(makeUser([roleOnOrganisme('agent')]))
     server.use(recrutementDetailPending())
     await renderWithApp(RouterView, { route: KANBAN_PATH })
 

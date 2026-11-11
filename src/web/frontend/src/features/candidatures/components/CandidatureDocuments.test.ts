@@ -1,61 +1,37 @@
-import type { DocumentListe } from '../types'
 import { PiniaColada } from '@pinia/colada'
 import { render, screen, within } from '@testing-library/vue'
 import { createPinia } from 'pinia'
-import { describe, expect, it, vi } from 'vitest'
-import { CANDIDATURE_PARAMS } from '@/test/fixtures/candidatures'
-import { getCandidatureDocuments } from '../api'
+import { describe, expect, it } from 'vitest'
+import { CANDIDATURE_PARAMS, CV_DOCUMENT, LETTRE_DOCUMENT } from '@/test/fixtures/candidatures'
+import { candidatureDocuments } from '@/test/handlers/candidatures'
+import { server } from '@/test/server'
 import CandidatureDocuments from './CandidatureDocuments.vue'
 
-vi.mock('../api', async importOriginal => ({
-  ...await importOriginal<typeof import('../api')>(),
-  getCandidatureDocuments: vi.fn(),
-}))
-
-const CV: DocumentListe = {
-  uuid: 'ffffffff-0001-0001-0001-000000000001',
-  type: 'cv',
-  nom_original: 'CV Alice Dupont.pdf',
-  content_type: 'application/pdf',
-  taille: 73_400,
-  depose_par_uuid: 'eeeeeeee-0001-0001-0001-000000000001',
-  depose_par: 'Alice Dupont',
-  depose_le: '2025-06-10T09:15:00Z',
-}
-
-const LETTRE: DocumentListe = {
-  ...CV,
-  uuid: 'ffffffff-0001-0001-0001-000000000002',
-  type: 'lettre_motivation',
-  nom_original: 'Lettre.png',
-  content_type: 'image/png',
-  taille: 12_000,
-}
-
 async function renderDocuments() {
-  vi.mocked(getCandidatureDocuments).mockResolvedValue({ count: 2, results: [CV, LETTRE] })
+  server.use(candidatureDocuments([CV_DOCUMENT, LETTRE_DOCUMENT]))
   render(CandidatureDocuments, {
     props: { candidature: CANDIDATURE_PARAMS },
     global: { plugins: [createPinia(), PiniaColada] },
   })
   await screen.findByText('2 documents')
-  return screen.getAllByRole('listitem').map(item => within(item))
+  const [cv, lettre] = screen.getAllByRole('listitem')
+  return { cv, lettre }
 }
 
 describe('candidatureDocuments', () => {
   it('lists the documents with their type and size', async () => {
-    const [cv, lettre] = await renderDocuments()
+    const { cv, lettre } = await renderDocuments()
 
-    expect(cv!.getByText(/Curriculum vitae · 73 ko/)).toBeInTheDocument()
-    expect(lettre!.getByText(/Lettre de motivation · 12 ko/)).toBeInTheDocument()
+    expect(within(cv).getByText(/Curriculum vitae · 73 ko/)).toBeInTheDocument()
+    expect(within(lettre).getByText(/Lettre de motivation · 12 ko/)).toBeInTheDocument()
   })
 
   it('opens each document in a new tab', async () => {
-    const [cv, lettre] = await renderDocuments()
+    const { cv, lettre } = await renderDocuments()
 
-    const view = cv!.getByRole('link', { name: 'Voir' })
-    expect(view).toHaveAttribute('href', expect.stringMatching(new RegExp(`/documents/${CV.uuid}$`)))
+    const view = within(cv).getByRole('link', { name: 'Voir' })
+    expect(view).toHaveAttribute('href', expect.stringMatching(new RegExp(`/documents/${CV_DOCUMENT.uuid}$`)))
     expect(view).toHaveAttribute('target', '_blank')
-    expect(lettre!.getByRole('link', { name: 'Voir' })).toHaveAttribute('href', expect.stringMatching(new RegExp(`/documents/${LETTRE.uuid}$`)))
+    expect(within(lettre).getByRole('link', { name: 'Voir' })).toHaveAttribute('href', expect.stringMatching(new RegExp(`/documents/${LETTRE_DOCUMENT.uuid}$`)))
   })
 })
