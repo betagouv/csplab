@@ -62,6 +62,8 @@
   --csp-raised-shadow-hover: 0 0 6px 0 rgba(0, 0, 145, 0.1), 0 4px 12px rgba(0, 0, 18, 0.08);
   --csp-raised-shadow-drag: 0 0 #0000;
   --csp-raised-opacity-drag: 0.5;
+  --csp-raised-background: var(--background-default-grey);
+  --csp-raised-border-color: var(--border-default-grey);
   --csp-raised-background-hover: var(--background-default-grey);
   /* colour of the outline at the start of the csp-raised-outline-drop keyframes, on a card dropped in another column */
   --csp-raised-outline-color-drop: var(--border-action-high-blue-france);
