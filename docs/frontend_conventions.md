@@ -315,6 +315,8 @@ A behavior is tested once ([ADR-001](./ADR/ADR-001-testing-strategy.md)), at the
 
 One file or folder runs with `mise run front:test -- src/features/recrutements`.
 
+`mise run front:mutation -- recrutements` runs Stryker on the TypeScript files of a feature: it changes the code one small step at a time and reruns the tests. A mutation that survives shows a behavior that no test protects. A person reads the report (`src/web/reports/mutation/index.html`) and chooses the mutations that deserve a test.
+
 ### End-to-end tests
 
 `src/web/tests/presentation/ats/e2e/` holds the pytest and Playwright tests of the ATS. They serve the built frontend through `live_server`, create their data with the backend factories and sign an agent in with the `authenticated_page` fixture. `mise run web:test:e2e` builds the frontend and runs them.

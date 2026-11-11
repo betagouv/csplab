@@ -127,6 +127,8 @@ export default antfu(
       '.venv/',
       'node_modules/',
       'frontend/storybook-static/',
+      '.stryker-tmp/',
+      'reports/',
       'frontend/src/types/',
       'presentation/static/api/',
       'presentation/static/css/**',

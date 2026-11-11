@@ -54,6 +54,13 @@ depends = [
   "test"
 ]
 
+[tasks.mutation]
+alias = "front:mutation"
+description = "Mutation testing of the TypeScript files of one feature (Stryker): mise run front:mutation -- <feature>"
+depends = [ "//src/web:install:js" ]
+usage = 'arg "<feature>"'
+run = 'pnpm exec stryker run --mutate "frontend/src/features/$usage_feature/**/*.ts,!frontend/src/features/$usage_feature/**/*.test.ts,!frontend/src/features/$usage_feature/**/*.stories.ts"'
+
 [tasks.types]
 alias = "front:types"
 description = "Regenerate the frontend TypeScript types from the internal OpenAPI schema"
