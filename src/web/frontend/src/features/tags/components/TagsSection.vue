@@ -87,12 +87,15 @@ async function confirmDeletion(): Promise<void> {
   }
   try {
     await deleteTag(tag.uuid)
-    addToast({ variant: 'success', title: 'Étiquette supprimée' })
-    deletionDialogOpen.value = false
   }
-  catch {
-    addToast({ variant: 'error', title: 'La suppression de l\'étiquette a échoué' })
+  catch (deletionError) {
+    if (!isHttpStatus(deletionError, 404)) {
+      addToast({ variant: 'error', title: 'La suppression de l\'étiquette a échoué' })
+      return
+    }
   }
+  addToast({ variant: 'success', title: 'Étiquette supprimée' })
+  deletionDialogOpen.value = false
 }
 </script>
 

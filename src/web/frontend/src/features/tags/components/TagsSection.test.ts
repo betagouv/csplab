@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { defineComponent, h } from 'vue'
 import { HttpError } from '@/api/errors'
 import CspToaster from '@/components/base/CspToast/CspToaster.vue'
+import { useToast } from '@/composables/ui/useToast'
 import { renderWithApp, setupUser } from '@/test/render'
 import { createTag, deleteTag, getTags, updateTag } from '../api'
 import TagsSection from './TagsSection.vue'
@@ -55,6 +56,8 @@ describe('tagsSection', () => {
     vi.mocked(createTag).mockReset()
     vi.mocked(updateTag).mockReset()
     vi.mocked(deleteTag).mockReset()
+    const { toasts, dismissToast } = useToast()
+    toasts.value.forEach(toast => dismissToast(toast.id))
   })
 
   it('lists the tags of each category', async () => {
@@ -220,6 +223,18 @@ describe('tagsSection', () => {
 
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
     expect(deleteTag).not.toHaveBeenCalled()
+  })
+
+  it('confirms the deletion of a tag already deleted meanwhile', async () => {
+    vi.mocked(deleteTag).mockRejectedValue(new HttpError(404, 'Not Found'))
+    const user = setupUser()
+    await renderWithApp(Host)
+
+    await user.click(await screen.findByRole('button', { name: 'Supprimer l\'étiquette Entretien' }))
+    await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Supprimer' }))
+
+    expect(await screen.findByText('Étiquette supprimée')).toBeInTheDocument()
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
   })
 
   it('keeps the dialog open when the deletion fails', async () => {
