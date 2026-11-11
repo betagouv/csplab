@@ -1,29 +1,19 @@
-import type { Tag } from '../types'
 import { screen, within } from '@testing-library/vue'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { HttpError } from '@/api/errors'
+import { describe, expect, it, vi } from 'vitest'
+import { ORGANISME_UUID } from '@/test/fixtures/candidatures'
+import { CREATED_TAG, TAGS, TO_RECALL } from '@/test/fixtures/tags'
+import {
+  tagCreation,
+  tagCreationFailure,
+  tagDeletion,
+  tagDeletionFailure,
+  tags,
+  tagUpdate,
+  tagUpdateFailure,
+} from '@/test/handlers/tags'
 import { renderWithApp, setupUser, withToaster } from '@/test/render'
-import { createTag, deleteTag, getTags, updateTag } from '../api'
+import { server } from '@/test/server'
 import TagsSection from './TagsSection.vue'
-
-vi.mock('../api', () => ({
-  getTags: vi.fn(),
-  createTag: vi.fn(),
-  updateTag: vi.fn(),
-  deleteTag: vi.fn(),
-}))
-
-const ORGANISME_UUID = '00000000-0000-0000-0000-000000000000'
-
-const TO_RECALL: Tag = { uuid: 'aaaaaaaa-0001-0001-0001-000000000001', name: 'À rappeler', category: 'candidature', color: 'bleu', usage_count: 0 }
-
-const TAGS: Tag[] = [
-  TO_RECALL,
-  { uuid: 'aaaaaaaa-0001-0001-0001-000000000002', name: 'Profil senior', category: 'candidature', color: 'vert', usage_count: 0 },
-  { uuid: 'aaaaaaaa-0001-0001-0001-000000000003', name: 'Entretien', category: 'note', color: 'jaune', usage_count: 0 },
-]
-
-const CREATED_TAG: Tag = { uuid: 'aaaaaaaa-0001-0001-0001-000000000004', name: 'Synthèse', category: 'note', color: 'bleu', usage_count: 0 }
 
 const Host = withToaster(TagsSection, { organismeUuid: ORGANISME_UUID })
 
@@ -46,13 +36,6 @@ async function openDrawerFrom(title: string) {
 }
 
 describe('tagsSection', () => {
-  beforeEach(() => {
-    vi.mocked(getTags).mockResolvedValue(TAGS)
-    vi.mocked(createTag).mockReset()
-    vi.mocked(updateTag).mockReset()
-    vi.mocked(deleteTag).mockReset()
-  })
-
   it('lists the tags of each category', async () => {
     await renderWithApp(Host)
 
@@ -64,9 +47,9 @@ describe('tagsSection', () => {
   })
 
   it('creates a tag in the category of the block', async () => {
-    vi.mocked(createTag).mockResolvedValue(CREATED_TAG)
+    const sent = vi.fn(() => server.use(tags([...TAGS, CREATED_TAG])))
+    server.use(tagCreation(CREATED_TAG, sent))
     const user = await openDrawerFrom('Note')
-    vi.mocked(getTags).mockResolvedValue([...TAGS, CREATED_TAG])
 
     const save = screen.getByRole('button', { name: 'Enregistrer' })
     expect(screen.getByRole('radio', { name: 'Note' })).toBeChecked()
@@ -78,14 +61,15 @@ describe('tagsSection', () => {
     await user.click(screen.getByRole('radio', { name: 'Rouge' }))
     await user.click(save)
 
-    expect(createTag).toHaveBeenCalledWith(ORGANISME_UUID, { name: 'Synthèse', category: 'note', color: 'rouge' })
     expect(await screen.findByText('Étiquette ajoutée')).toBeInTheDocument()
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    expect(sent).toHaveBeenCalledWith(ORGANISME_UUID, { name: 'Synthèse', category: 'note', color: 'rouge' })
+    await vi.waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
     expect(await within(block('Note')).findByText('2 étiquettes')).toBeInTheDocument()
   })
 
   it('edits the name and the color of a tag, and keeps its type', async () => {
-    vi.mocked(updateTag).mockResolvedValue({ ...TO_RECALL, name: 'À relancer', color: 'rouge' })
+    const sent = vi.fn()
+    server.use(tagUpdate({ ...TO_RECALL, name: 'À relancer', color: 'rouge' }, sent))
     const user = await openEditDrawer('À rappeler')
 
     const drawer = screen.getByRole('dialog', { name: 'Modifier l\'étiquette' })
@@ -100,9 +84,9 @@ describe('tagsSection', () => {
     await user.click(within(drawer).getByRole('radio', { name: 'Rouge' }))
     await user.click(within(drawer).getByRole('button', { name: 'Enregistrer' }))
 
-    expect(updateTag).toHaveBeenCalledWith(ORGANISME_UUID, TO_RECALL.uuid, { name: 'À relancer', color: 'rouge' })
     expect(await screen.findByText('Étiquette modifiée')).toBeInTheDocument()
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    expect(sent).toHaveBeenCalledWith(ORGANISME_UUID, TO_RECALL.uuid, { name: 'À relancer', color: 'rouge' })
+    await vi.waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
   })
 
   it('saves an edited tag only once its name or color changes', async () => {
@@ -145,8 +129,7 @@ describe('tagsSection', () => {
     { mode: 'editing', open: () => openEditDrawer('Profil senior'), status: 409, message: 'Une étiquette de ce type porte déjà ce libellé.' },
     { mode: 'editing', open: () => openEditDrawer('Profil senior'), status: 500, message: 'La modification de l\'étiquette a échoué' },
   ])('keeps the drawer open and explains a $status while $mode', async ({ open, status, message }) => {
-    vi.mocked(createTag).mockRejectedValue(new HttpError(status, 'Erreur'))
-    vi.mocked(updateTag).mockRejectedValue(new HttpError(status, 'Erreur'))
+    server.use(tagCreationFailure(status), tagUpdateFailure(status))
     const user = await open()
 
     const name = screen.getByRole('textbox', { name: /Libellé/ })
@@ -159,7 +142,7 @@ describe('tagsSection', () => {
   })
 
   it('closes the drawer when the edited tag was deleted meanwhile', async () => {
-    vi.mocked(updateTag).mockRejectedValue(new HttpError(404, 'Not Found'))
+    server.use(tagUpdateFailure(404))
     const user = await openEditDrawer('Profil senior')
 
     const name = screen.getByRole('textbox', { name: /Libellé/ })
@@ -172,7 +155,7 @@ describe('tagsSection', () => {
   })
 
   it('keeps the duplicate error when only the case changes', async () => {
-    vi.mocked(createTag).mockRejectedValue(new HttpError(409, 'Conflict'))
+    server.use(tagCreationFailure(409))
     const user = await openDrawerFrom('Candidature')
     const name = screen.getByRole('textbox', { name: /Libellé/ })
 
@@ -187,7 +170,7 @@ describe('tagsSection', () => {
   })
 
   it('clears the duplicate error once the type changes', async () => {
-    vi.mocked(createTag).mockRejectedValue(new HttpError(409, 'Conflict'))
+    server.use(tagCreationFailure(409))
     const user = await openDrawerFrom('Candidature')
 
     await user.type(screen.getByRole('textbox', { name: /Libellé/ }), 'À rappeler')
@@ -200,8 +183,8 @@ describe('tagsSection', () => {
   })
 
   it('deletes a tag once confirmed, after saying how many objects carry it', async () => {
-    vi.mocked(getTags).mockResolvedValue([{ ...TO_RECALL, usage_count: 3 }, ...TAGS.slice(1)])
-    vi.mocked(deleteTag).mockResolvedValue()
+    const sent = vi.fn(() => server.use(tags(TAGS.slice(1))))
+    server.use(tags([{ ...TO_RECALL, usage_count: 3 }, ...TAGS.slice(1)]), tagDeletion(sent))
     const user = setupUser()
     await renderWithApp(Host)
 
@@ -209,16 +192,17 @@ describe('tagsSection', () => {
     const dialog = screen.getByRole('dialog', { name: 'Supprimer l\'étiquette «\u00A0À rappeler\u00A0»' })
     expect(within(dialog).getByText('Cette étiquette est posée sur 3 candidatures. Elle en sera retirée.')).toBeInTheDocument()
 
-    vi.mocked(getTags).mockResolvedValue(TAGS.slice(1))
     await user.click(within(dialog).getByRole('button', { name: 'Supprimer' }))
 
-    expect(deleteTag).toHaveBeenCalledWith({ organismeUuid: ORGANISME_UUID, tagUuid: TO_RECALL.uuid })
     expect(await screen.findByText('Étiquette supprimée')).toBeInTheDocument()
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    expect(sent).toHaveBeenCalledWith(ORGANISME_UUID, TO_RECALL.uuid)
+    await vi.waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
     await vi.waitFor(() => expect(screen.queryByRole('button', { name: 'Modifier l\'étiquette À rappeler' })).not.toBeInTheDocument())
   })
 
   it('keeps the tag when the deletion is cancelled', async () => {
+    const sent = vi.fn()
+    server.use(tagDeletion(sent))
     const user = setupUser()
     await renderWithApp(Host)
 
@@ -228,11 +212,11 @@ describe('tagsSection', () => {
     await user.click(within(dialog).getByRole('button', { name: 'Annuler' }))
 
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
-    expect(deleteTag).not.toHaveBeenCalled()
+    expect(sent).not.toHaveBeenCalled()
   })
 
   it('confirms the deletion of a tag already deleted meanwhile', async () => {
-    vi.mocked(deleteTag).mockRejectedValue(new HttpError(404, 'Not Found'))
+    server.use(tagDeletionFailure(404))
     const user = setupUser()
     await renderWithApp(Host)
 
@@ -240,11 +224,11 @@ describe('tagsSection', () => {
     await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Supprimer' }))
 
     expect(await screen.findByText('Étiquette supprimée')).toBeInTheDocument()
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    await vi.waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
   })
 
   it('keeps the dialog open when the deletion fails', async () => {
-    vi.mocked(deleteTag).mockRejectedValue(new HttpError(500, 'Erreur'))
+    server.use(tagDeletionFailure(500))
     const user = setupUser()
     await renderWithApp(Host)
 
