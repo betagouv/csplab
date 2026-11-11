@@ -35,7 +35,6 @@ function mountDetail() {
 
 describe('useOrganismeDetail', () => {
   beforeEach(() => {
-    vi.clearAllMocks()
     mockGetOrganismeDetail.mockResolvedValue(ORGANISME_DETAIL)
   })
 

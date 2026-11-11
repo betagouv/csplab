@@ -57,7 +57,6 @@ function lastUpdatePayload(): UpdateEtapeRecrutement[] {
 
 describe('useEtapesRecrutement', () => {
   beforeEach(() => {
-    vi.clearAllMocks()
     mockGetEtapesRecrutement.mockResolvedValue(DEFAULT_ETAPES)
     mockUpdateEtapesRecrutement.mockResolvedValue(DEFAULT_ETAPES)
   })
@@ -184,7 +183,6 @@ describe('useEtapesRecrutement — type offre', () => {
   }
 
   beforeEach(() => {
-    vi.clearAllMocks()
     mockGetEtapesOffre.mockResolvedValue(DEFAULT_ETAPES)
     mockUpdateEtapesOffre.mockResolvedValue(DEFAULT_ETAPES)
   })

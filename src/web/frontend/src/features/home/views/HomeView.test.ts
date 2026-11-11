@@ -17,7 +17,7 @@ function renderHome(organismeUuid: string) {
 
 describe('homeView', () => {
   beforeEach(() => {
-    vi.mocked(getMe).mockReset().mockResolvedValue(makeUser([
+    vi.mocked(getMe).mockResolvedValue(makeUser([
       { ...ORGANISME_MTE, authorized_actions: ['get_organisme', 'list_recrutements'] },
       { ...ORGANISME_BRIANCON, authorized_actions: ['list_recrutements'] },
     ]))

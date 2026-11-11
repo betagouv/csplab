@@ -1,7 +1,7 @@
 import { PiniaColada } from '@pinia/colada'
 import { mount } from '@vue/test-utils'
 import { createPinia } from 'pinia'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { defineComponent, h } from 'vue'
 import { createMemoryHistory, createRouter } from 'vue-router'
 import { getOrganismeDetail } from '@/api/organismes'
@@ -36,11 +36,6 @@ async function mountAt(path: string) {
 }
 
 describe('useRouteOrganisme', () => {
-  beforeEach(() => {
-    vi.mocked(getMe).mockReset()
-    vi.mocked(getOrganismeDetail).mockReset()
-  })
-
   it('takes the organisme from the url', async () => {
     vi.mocked(getMe).mockResolvedValue(makeUser([ORGANISME_MTE, ORGANISME_BRIANCON]))
 

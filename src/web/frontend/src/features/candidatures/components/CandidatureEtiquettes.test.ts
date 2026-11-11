@@ -1,14 +1,11 @@
 import type { TagSummary } from '@/features/tags/types'
 import { screen, within } from '@testing-library/vue'
-import { afterEach, describe, expect, it, vi } from 'vitest'
-import { defineComponent, h } from 'vue'
+import { describe, expect, it, vi } from 'vitest'
 import { HttpError } from '@/api/errors'
-import CspToaster from '@/components/base/CspToast/CspToaster.vue'
-import { useToast } from '@/composables/ui/useToast'
 import { getTags } from '@/features/tags/api'
 import { CANDIDATURE_PARAMS } from '@/test/fixtures/candidatures'
 import { TAG_INTERVIEW, TAG_SENIOR, TAG_TO_RECALL, TAGS } from '@/test/fixtures/tags'
-import { renderWithApp, setupUser } from '@/test/render'
+import { renderWithApp, setupUser, withToaster } from '@/test/render'
 import { addCandidatureTag, removeCandidatureTag } from '../api'
 import CandidatureEtiquettes from './CandidatureEtiquettes.vue'
 
@@ -23,10 +20,7 @@ vi.mock('@/features/tags/api', () => ({
 }))
 
 function renderEtiquettes(props: { tags: TagSummary[], editable: boolean }) {
-  const Host = defineComponent({
-    setup: () => () => h(CspToaster, null, () => h(CandidatureEtiquettes, { candidature: CANDIDATURE_PARAMS, ...props })),
-  })
-  return renderWithApp(Host)
+  return renderWithApp(withToaster(CandidatureEtiquettes, { candidature: CANDIDATURE_PARAMS, ...props }))
 }
 
 async function openPicker(tags: TagSummary[] = []) {
@@ -38,12 +32,6 @@ async function openPicker(tags: TagSummary[] = []) {
 }
 
 describe('candidatureEtiquettes', () => {
-  afterEach(() => {
-    vi.clearAllMocks()
-    const { toasts, dismissToast } = useToast()
-    toasts.value.forEach(toast => dismissToast(toast.id))
-  })
-
   it('offers only the candidature tags of the organisme and adds one in a click', async () => {
     vi.mocked(getTags).mockResolvedValue(TAGS)
     vi.mocked(addCandidatureTag).mockResolvedValue()

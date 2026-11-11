@@ -79,7 +79,6 @@ function sequenceNavigation() {
 
 describe('candidaturesListeView', () => {
   beforeEach(() => {
-    vi.clearAllMocks()
     vi.mocked(getMe).mockResolvedValue(makeUser([USER_ORGANISME]))
     vi.mocked(getCandidatureListe).mockResolvedValue(CANDIDATURE_LISTE)
     vi.mocked(getCandidatureDetail).mockImplementation(async ({ candidatureUuid }) => candidatureDetail(candidatureUuid))

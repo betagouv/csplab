@@ -1,5 +1,5 @@
 import { screen } from '@testing-library/vue'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { RouterView } from 'vue-router'
 import { KANBAN_PATH, ORGANISME_UUID, RECRUTEMENT_DETAIL, RECRUTEMENT_UUID } from '@/test/fixtures/candidatures'
 import { recrutementDetail, recrutementDetailPending } from '@/test/handlers/recrutements'
@@ -14,10 +14,6 @@ vi.mock('../api', () => ({
 const ETAPES_PATH = `${KANBAN_PATH}/etapes-recrutement`
 
 describe('offreEtapesRecrutementView', () => {
-  afterEach(() => {
-    vi.clearAllMocks()
-  })
-
   it('loads the recrutement and its stages from the address', async () => {
     server.use(recrutementDetail({ ...RECRUTEMENT_DETAIL, authorized_actions: ['update_recrutement_etapes'] }))
     await renderWithApp(RouterView, { route: ETAPES_PATH })

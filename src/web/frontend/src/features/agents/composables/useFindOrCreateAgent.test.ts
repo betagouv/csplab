@@ -1,10 +1,10 @@
 import type { AgentRecherche } from '../types'
 import { PiniaColada } from '@pinia/colada'
-import { mount } from '@vue/test-utils'
+import { render, screen } from '@testing-library/vue'
 import { createPinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { defineComponent, h, nextTick } from 'vue'
-import { useToast } from '@/composables/ui/useToast'
+import CspToaster from '@/components/base/CspToast/CspToaster.vue'
 import { useFindOrCreateAgent } from './useFindOrCreateAgent'
 
 const mockSearchAgentByEmail = vi.fn()
@@ -43,13 +43,13 @@ async function flush() {
 
 function mountFindOrCreateAgent() {
   let result!: ReturnType<typeof useFindOrCreateAgent<string, unknown>>
-  mount(defineComponent({
+  render(defineComponent({
     setup() {
       result = useFindOrCreateAgent(ORGANISME_UUID, {
         action: (agent, variables: string) => mockAction(agent, variables),
         onSettled: () => undefined,
       })
-      return () => h('div')
+      return () => h(CspToaster)
     },
   }), {
     global: {
@@ -61,7 +61,6 @@ function mountFindOrCreateAgent() {
 
 describe('useFindOrCreateAgent', () => {
   beforeEach(() => {
-    vi.clearAllMocks()
     mockCreateAgent.mockResolvedValue(CREATED_AGENT)
     mockAction.mockResolvedValue({})
   })
@@ -100,16 +99,14 @@ describe('useFindOrCreateAgent', () => {
 
   it('tells the user when the search fails, and leaves nothing found', async () => {
     mockSearchAgentByEmail.mockRejectedValue(new Error('boom'))
-    const { toasts, dismissToast } = useToast()
     const { search, status, foundAgent, searching } = mountFindOrCreateAgent()
 
     await search(UNKNOWN_EMAIL)
 
-    expect(toasts.value).toContainEqual(expect.objectContaining({ variant: 'error', title: 'La recherche a échoué' }))
+    expect(await screen.findByRole('heading', { name: 'La recherche a échoué' })).toBeInTheDocument()
     expect(status.value).toBe('idle')
     expect(foundAgent.value).toBeNull()
     expect(searching.value).toBe(false)
-    toasts.value.forEach(toast => dismissToast(toast.id))
   })
 
   it('acts on the found agent without creating an account', async () => {

@@ -19,7 +19,7 @@ const [FIRST_ARCHIVE] = RECRUTEMENTS_ARCHIVES
 
 describe('recrutementsView', () => {
   beforeEach(() => {
-    vi.mocked(getMe).mockReset().mockResolvedValue(makeUser([USER_ORGANISME]))
+    vi.mocked(getMe).mockResolvedValue(makeUser([USER_ORGANISME]))
   })
 
   it('shows an error when the recrutements fail to load', async () => {

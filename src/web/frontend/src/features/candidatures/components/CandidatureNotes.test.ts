@@ -1,15 +1,12 @@
 import type { Note } from '../types'
 import { screen, within } from '@testing-library/vue'
-import { afterEach, describe, expect, it, vi } from 'vitest'
-import { defineComponent, h } from 'vue'
+import { describe, expect, it, vi } from 'vitest'
 import { HttpError } from '@/api/errors'
-import CspToaster from '@/components/base/CspToast/CspToaster.vue'
-import { useToast } from '@/composables/ui/useToast'
 import { getTags } from '@/features/tags/api'
 import { CANDIDATURE_PANEL_ROUTE_NAMES } from '@/router/names'
 import { CANDIDATURE_PARAMS, KANBAN_PATH } from '@/test/fixtures/candidatures'
 import { TAG_INTERVIEW, TAG_SYNTHESIS, TAG_TO_RECALL } from '@/test/fixtures/tags'
-import { renderWithApp, setupUser } from '@/test/render'
+import { renderWithApp, setupUser, withToaster } from '@/test/render'
 import { addCandidatureNoteTag, deleteCandidatureNote, getCandidatureNotes, removeCandidatureNoteTag, updateCandidatureNote, updateCandidatureNoteVisibilite } from '../api'
 import CandidatureNotes from './CandidatureNotes.vue'
 
@@ -56,21 +53,13 @@ async function openTagPicker() {
   return { user, picker }
 }
 
-const Host = defineComponent({
-  setup: () => () => h(CspToaster, null, () => h(CandidatureNotes, { candidature: CANDIDATURE_PARAMS, routes: CANDIDATURE_PANEL_ROUTE_NAMES.kanban.notes })),
-})
+const Host = withToaster(CandidatureNotes, { candidature: CANDIDATURE_PARAMS, routes: CANDIDATURE_PANEL_ROUTE_NAMES.kanban.notes })
 
 function renderNotes(route = NOTES_PATH) {
   return renderWithApp(Host, { route })
 }
 
 describe('candidatureNotes', () => {
-  afterEach(() => {
-    vi.clearAllMocks()
-    const { toasts, dismissToast } = useToast()
-    toasts.value.forEach(toast => dismissToast(toast.id))
-  })
-
   it('lists the notes with their author and publication date', async () => {
     const results = [
       note({}),

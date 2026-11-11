@@ -20,8 +20,8 @@ const REJECTED_SIRET_MESSAGE = 'Ce SIRET est déjà utilisé ou n\'est pas valid
 
 describe('organismesSection', () => {
   beforeEach(() => {
-    vi.mocked(getOrganismesPage).mockReset().mockResolvedValue({ count: 0, results: [] })
-    vi.mocked(createOrganisme).mockReset().mockRejectedValue(new ValidationError(400, 'Bad Request', {}, { siret: ['Déjà utilisé'] }))
+    vi.mocked(getOrganismesPage).mockResolvedValue({ count: 0, results: [] })
+    vi.mocked(createOrganisme).mockRejectedValue(new ValidationError(400, 'Bad Request', {}, { siret: ['Déjà utilisé'] }))
   })
 
   it('forgets the refused siret once the drawer is closed', async () => {

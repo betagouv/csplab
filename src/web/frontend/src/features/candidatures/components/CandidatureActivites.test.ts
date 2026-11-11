@@ -38,7 +38,6 @@ describe('candidatureActivites', () => {
 
   afterEach(() => {
     vi.useRealTimers()
-    vi.clearAllMocks()
   })
 
   it('lists the latest activities with their author and age', async () => {

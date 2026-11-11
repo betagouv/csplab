@@ -17,7 +17,7 @@ import {
   recrutementsActifs,
   responsableAssignment,
 } from '@/test/handlers/recrutements'
-import { renderWithApp, RoutesWithToasts, setupUser } from '@/test/render'
+import { renderWithApp, setupUser, withToaster } from '@/test/render'
 import { server } from '@/test/server'
 
 vi.mock('@/features/agents/api', () => ({
@@ -72,8 +72,8 @@ async function openAssignmentFor(user: ReturnType<typeof setupUser>) {
 
 describe('recrutementsActifsView', () => {
   beforeEach(() => {
-    vi.mocked(getMe).mockReset().mockResolvedValue(RESPONSABLE_ASSIGNABLE)
-    vi.mocked(searchAgentByEmail).mockReset().mockResolvedValue(AGENT_RECHERCHE)
+    vi.mocked(getMe).mockResolvedValue(RESPONSABLE_ASSIGNABLE)
+    vi.mocked(searchAgentByEmail).mockResolvedValue(AGENT_RECHERCHE)
   })
 
   it('starts a new search each time the assignment drawer opens', async () => {
@@ -135,7 +135,7 @@ describe('recrutementsActifsView', () => {
       reussites: [FIRST_RECRUTEMENT.uuid],
       echecs: [{ recrutement_uuid: SECOND_RECRUTEMENT.uuid, raison: 'archive' }],
     }))
-    await renderWithApp(RoutesWithToasts, { route: RECRUTEMENTS_PATH })
+    await renderWithApp(withToaster(RouterView), { route: RECRUTEMENTS_PATH })
     await user.click(await screen.findByRole('checkbox', { name: `Sélectionner ${FIRST_RECRUTEMENT.intitule}` }))
     await user.click(screen.getByRole('checkbox', { name: `Sélectionner ${SECOND_RECRUTEMENT.intitule}` }))
     await user.click(screen.getByRole('button', { name: 'Assigner un responsable' }))
