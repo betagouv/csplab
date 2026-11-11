@@ -104,6 +104,7 @@ class TestListNotes:
 
         assert list(notes) == []
 
+    # TODO(#2404): remove — nominal case covered by the view's query-budget test
     def test_loads_author_without_extra_queries(self, db, django_assert_num_queries):
         agent, organisme, recrutement, candidature = (
             create_recrutement_and_candidature_for_agent()
