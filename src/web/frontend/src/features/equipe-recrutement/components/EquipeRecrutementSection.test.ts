@@ -1,11 +1,11 @@
 import { screen } from '@testing-library/vue'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { HttpError } from '@/api/errors'
-import { searchAgentByEmail } from '@/features/agents/api'
+import { AGENT_RECHERCHE } from '@/test/fixtures/agents'
 import { RECRUTEMENT_DETAIL } from '@/test/fixtures/candidatures'
 import { MEMBRE_EQUIPE, RECRUTEMENT_UUID } from '@/test/fixtures/equipe'
-import { AGENT_RECHERCHE } from '@/test/fixtures/organismes'
 import { MTE_UUID } from '@/test/fixtures/utilisateur'
+import { agentSearch } from '@/test/handlers/agents'
 import { recrutementDetail } from '@/test/handlers/recrutements'
 import { renderWithApp, setupUser, withToaster } from '@/test/render'
 import { server } from '@/test/server'
@@ -16,11 +16,6 @@ vi.mock('../api', () => ({
   getEquipeRecrutement: vi.fn(),
   addMembreEquipe: vi.fn(),
   updateMembreEquipe: vi.fn(),
-}))
-
-vi.mock('@/features/agents/api', async importOriginal => ({
-  ...await importOriginal<typeof import('@/features/agents/api')>(),
-  searchAgentByEmail: vi.fn(),
 }))
 
 const NOUVEL_AGENT = { ...AGENT_RECHERCHE, uuid: 'bbbbbbbb-0002-0002-0002-000000000002', email: 'paul.bernard@example.gouv.fr' }
@@ -42,9 +37,8 @@ async function renderSection() {
 
 describe('equipeRecrutementSection', () => {
   beforeEach(() => {
-    server.use(recrutementDetail(RECRUTEMENT_DETAIL_EQUIPE_GERABLE))
+    server.use(recrutementDetail(RECRUTEMENT_DETAIL_EQUIPE_GERABLE), agentSearch(NOUVEL_AGENT))
     vi.mocked(getEquipeRecrutement).mockResolvedValue([MEMBRE_EQUIPE])
-    vi.mocked(searchAgentByEmail).mockResolvedValue(NOUVEL_AGENT)
     vi.mocked(addMembreEquipe).mockReset()
     vi.mocked(updateMembreEquipe).mockReset()
   })

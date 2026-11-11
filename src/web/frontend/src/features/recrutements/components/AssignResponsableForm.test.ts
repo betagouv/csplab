@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/vue'
 import { describe, expect, it } from 'vitest'
-import { AGENT_RECHERCHE } from '@/test/fixtures/organismes'
+import { AGENT_RECHERCHE } from '@/test/fixtures/agents'
 import { RECRUTEMENTS_ACTIFS } from '@/test/fixtures/recrutements'
 import { setupUser } from '@/test/render'
 import AssignResponsableForm from './AssignResponsableForm.vue'

@@ -3,11 +3,10 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { RouterView } from 'vue-router'
 import { getMe } from '@/api/utilisateur'
 import { TABLE_PAGE_SIZE } from '@/components/base/CspDataTable/table'
-import { searchAgentByEmail } from '@/features/agents/api'
 import { getEquipeRecrutement } from '@/features/equipe-recrutement/api'
+import { AGENT_RECHERCHE } from '@/test/fixtures/agents'
 import { ORGANISME_UUID, RECRUTEMENT_DETAIL, RECRUTEMENT_UUID, roleOnOrganisme } from '@/test/fixtures/candidatures'
 import { MEMBRE_EQUIPE } from '@/test/fixtures/equipe'
-import { AGENT_RECHERCHE } from '@/test/fixtures/organismes'
 import { RECRUTEMENTS_ACTIFS, RECRUTEMENTS_ARCHIVES } from '@/test/fixtures/recrutements'
 import { makeUser } from '@/test/fixtures/utilisateur'
 import {
@@ -20,11 +19,6 @@ import {
 } from '@/test/handlers/recrutements'
 import { renderWithApp, setupUser, withToaster } from '@/test/render'
 import { server } from '@/test/server'
-
-vi.mock('@/features/agents/api', () => ({
-  searchAgentByEmail: vi.fn(),
-  createAgent: vi.fn(),
-}))
 
 vi.mock('@/features/equipe-recrutement/api', () => ({
   getEquipeRecrutement: vi.fn(),
@@ -61,7 +55,6 @@ async function openAssignmentFor(user: ReturnType<typeof setupUser>) {
 describe('recrutementsView', () => {
   beforeEach(() => {
     vi.mocked(getMe).mockResolvedValue(RESPONSABLE_ASSIGNABLE)
-    vi.mocked(searchAgentByEmail).mockResolvedValue(AGENT_RECHERCHE)
   })
 
   it('starts a new search each time the assignment drawer opens', async () => {
