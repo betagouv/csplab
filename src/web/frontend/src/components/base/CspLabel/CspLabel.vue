@@ -43,7 +43,7 @@ const colorStyle = computed(() => ({
   <span
     class="csp-label"
     :class="[attrs.class, `csp-label--${size}`, { 'csp-label--bordered': bordered, 'csp-label--dismissible': dismissLabel }]"
-    :style="[colorStyle, attrs.style as string]"
+    :style="[colorStyle, attrs.style]"
   >
     <component
       :is="clickable ? 'button' : 'span'"
