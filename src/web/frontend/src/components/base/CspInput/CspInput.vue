@@ -101,14 +101,14 @@ const inputAttrs = computed(() => {
   color: var(--csp-input-text);
   box-shadow: inset 0 0 0 1px var(--csp-input-border);
   border: none;
-  border-radius: 0.25rem;
+  border-radius: var(--csp-field-radius);
 
   line-height: 1.25;
   padding: var(--csp-input-padding-y) var(--csp-input-padding-x);
 
-  --csp-input-bg: var(--background-default-grey);
+  --csp-input-bg: var(--csp-field-background);
   --csp-input-text: var(--text-default-grey);
-  --csp-input-border: var(--border-default-grey);
+  --csp-input-border: var(--csp-field-border-color);
 
   &:focus-visible {
     outline: 2px solid var(--csp-focus-ring-color);
