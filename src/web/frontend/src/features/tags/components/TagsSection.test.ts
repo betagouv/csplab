@@ -1,6 +1,6 @@
 import type { Tag } from '../types'
 import { screen, within } from '@testing-library/vue'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { defineComponent, h } from 'vue'
 import { HttpError } from '@/api/errors'
 import CspToaster from '@/components/base/CspToast/CspToaster.vue'
@@ -56,6 +56,9 @@ describe('tagsSection', () => {
     vi.mocked(createTag).mockReset()
     vi.mocked(updateTag).mockReset()
     vi.mocked(deleteTag).mockReset()
+  })
+
+  afterEach(() => {
     const { toasts, dismissToast } = useToast()
     toasts.value.forEach(toast => dismissToast(toast.id))
   })
