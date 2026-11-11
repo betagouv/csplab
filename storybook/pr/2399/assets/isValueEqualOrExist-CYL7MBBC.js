@@ -1,1 +1,0 @@
-import{n as e}from"./rolldown-runtime-sJBDdmOt.js";import{n as t,t as n}from"./is-equal-T-WAGJTX.js";import{n as r}from"./nullish-DEmCxAIe.js";function i(e,n){return r(e)?!1:Array.isArray(e)?e.some(e=>t(e,n)):t(e,n)}function a(){return(a=e((()=>{n()})))()}export{i as n,a as t};
