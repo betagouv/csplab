@@ -4,10 +4,7 @@ import pytest
 from playwright.sync_api import Locator, Page, expect
 
 from tests.presentation.ats.conftest import SEED_AGENT_EMAILS
-
-
-def notifications(page: Page) -> Locator:
-    return page.get_by_role("region", name=re.compile("^Notifications"))
+from tests.presentation.ats.e2e.locators import notifications
 
 
 def table_row(page: Page, email: str) -> Locator:

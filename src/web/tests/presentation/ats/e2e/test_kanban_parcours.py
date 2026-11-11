@@ -1,16 +1,7 @@
-import re
-
 import pytest
 from playwright.sync_api import Locator, Page, expect
 
-
-def kanban_column(page: Page, etape: str) -> Locator:
-    title = page.get_by_role(
-        "heading",
-        level=2,
-        name=re.compile(f"^Sélectionner la colonne {re.escape(etape)} "),
-    )
-    return page.locator("section").filter(has=title)
+from tests.presentation.ats.e2e.locators import kanban_column
 
 
 def kanban_card(page: Page, candidat: str) -> Locator:
