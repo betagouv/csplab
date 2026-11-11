@@ -14,6 +14,7 @@ import CspSkeletonSortableList from '@/components/base/CspSkeleton/CspSkeletonSo
 import CspSortableList from '@/components/base/CspSortableList/CspSortableList.vue'
 import { useMinimumPending } from '@/composables/async/useMinimumPending'
 import { useToast } from '@/composables/ui/useToast'
+import { quote } from '@/utils/format'
 import { useEtapesRecrutement } from '../composables/useEtapesRecrutement'
 import { CATEGORIE_CONFIG } from '../constants/etape-recrutement'
 
@@ -309,7 +310,7 @@ function getMenuSections(
       title="Supprimer l'étape"
       size="sm"
     >
-      Voulez-vous vraiment supprimer l'étape « {{ deleteEtapeNom }} » ? Cette action est irréversible.
+      Voulez-vous vraiment supprimer l'étape {{ quote(deleteEtapeNom) }}&nbsp;? Cette action est irréversible.
 
       <template #footer>
         <CspButton
