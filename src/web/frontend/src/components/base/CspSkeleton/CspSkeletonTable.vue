@@ -80,8 +80,8 @@ withDefaults(defineProps<CspSkeletonTableProps>(), {
 .csp-skeleton-table {
   display: flex;
   flex-direction: column;
-  border: 1px solid var(--border-default-grey);
-  background: var(--background-default-grey);
+  border: 1px solid var(--csp-surface-border-color);
+  background: var(--csp-surface-background);
   font-size: var(--csp-font-size-base);
 
   @include table.sizes;
