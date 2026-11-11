@@ -281,7 +281,45 @@ export const useCandidatsStore = defineStore('candidats', () => {
 - One store per entity/domain, not per component
 - `use*Store` prefix
 - **Location**: a store tied to a feature lives in `features/<feature>/stores/`; a cross-cutting store (session, UI, current user) lives in the root `stores/`.
-- In tests, `src/test/setup.ts` mocks `getMe` with an account that belongs to no organisme. A test that needs an organisme, a role or a failed load sets its own `vi.mocked(getMe)` value.
+
+## Testing
+
+A behavior is tested once ([ADR-001](./ADR/ADR-001-testing-strategy.md)), at the level given by the table below.
+
+### Where a behavior is tested
+
+| Behavior                                                                                                                   | Test                                             |
+| -------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------ |
+| A pure function (format, sort, rule)                                                                                       | Unit test next to the file, every branch         |
+| What a page shows and does: empty, pending and error states, forms, actions shown according to the rights received         | Page test, the view rendered through its route   |
+| The contract of a `components/base` component: props, events, accessible rendering                                         | Component test                                   |
+| Logic with branches that costs a lot to reach through a page (bulk selection, filters, card position)                      | Test of the composable or the store              |
+| What crosses the frontend and the backend: session, rights of each account, data read back after an action, drag and drop | End-to-end test (pytest + Playwright)            |
+
+- The page test is the default level. A feature component and a composable that reads or writes through Pinia Colada are tested through their page.
+- A test covers our code. reka-ui, Pinia Colada and Vue Router test their own behavior.
+- The coverage thresholds in `src/web/vite.config.ts` are a floor. A person decides which behaviors deserve a test.
+
+### Convention
+
+- Find an element by its role and accessible name (`findByRole`, `getByRole`), as a screen reader does.
+- Interact through `setupUser()` from `src/test/render.ts`.
+- Assert what is displayed, the route and the arguments of the API call. A test title names a behavior: `it('shows an error when the recrutements fail to load')`.
+- A page test mounts the real routes, Pinia, Pinia Colada and child components with `renderWithApp(RouterView, { route })`. It replaces the `api` modules the page reads with `vi.mock` and sets each answer with `vi.mocked(fn)`.
+- `src/test/setup.ts` mocks `getMe` with an account that belongs to no organisme. A test that needs an organisme, a role or a failed load sets its own `vi.mocked(getMe)` value.
+- Data used by several test files lives in `src/test/fixtures/`, typed with the API types.
+- Follow `features/recrutements/views/RecrutementView.test.ts` for a page and `components/base/CspSearchBar/CspSearchBar.test.ts` for a component.
+
+One file or folder runs with `mise run front:test -- src/features/recrutements`.
+
+### End-to-end tests
+
+`src/web/tests/presentation/ats/e2e/` holds the pytest and Playwright tests of the ATS. They serve the built frontend through `live_server`, create their data with the backend factories and sign an agent in with the `authenticated_page` fixture. `mise run web:test:e2e` builds the frontend and runs them.
+
+### Tests and coding agents
+
+- A person writes or validates the list of behaviors to test, taken from the acceptance criteria of the issue. The agent writes these tests and shows them failing, a person validates the list, then the agent implements and leaves them as they are.
+- A PR that removes or skips a test says why in its description.
 
 ## API Calls
 
