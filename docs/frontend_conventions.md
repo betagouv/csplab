@@ -303,6 +303,7 @@ A behavior is tested once ([ADR-001](./ADR/ADR-001-testing-strategy.md)), at the
 ### Convention
 
 - Find an element by its role and accessible name (`findByRole`, `getByRole`), as a screen reader does.
+- ESLint applies the Vue rules of `eslint-plugin-testing-library` to the tests and refuses a skipped test, a test without assertion and an `expect` inside a condition.
 - Interact through `setupUser()` from `src/test/render.ts`.
 - Assert what is displayed, the route and the request sent to the API. A test title names a behavior: `it('shows an error when the recrutements fail to load')`.
 - A page test mounts the real routes, Pinia, Pinia Colada and child components with `renderWithApp(RouterView, { route })`.

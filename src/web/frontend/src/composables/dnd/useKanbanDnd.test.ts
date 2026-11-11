@@ -1,4 +1,4 @@
-import { render } from '@testing-library/vue'
+import { render, screen } from '@testing-library/vue'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { defineComponent, h, nextTick, ref } from 'vue'
 import { markKanbanCardMoved, useDraggableKanbanCard } from './useKanbanDnd'
@@ -13,7 +13,7 @@ function renderCard(cardId: string, enabled = true) {
       const { isJustMoved, isDropWaiting } = useDraggableKanbanCard({ element, boardId: BOARD, columnId: 'colonne', cardId, enabled: ref(enabled) })
       state.isJustMoved = isJustMoved
       state.isDropWaiting = isDropWaiting
-      return () => h('article', { 'ref': element, 'data-testid': cardId })
+      return () => h('article', { ref: element })
     },
   })
   return { ...render(Card), state }
@@ -48,13 +48,13 @@ describe('useDraggableKanbanCard', () => {
     withDropMotion('csp-raised-outline-drop 1200ms ease-out')
     vi.stubGlobal('IntersectionObserver', VisibleObserver)
     markKanbanCardMoved(BOARD, 'alice')
-    const alice = renderCard('alice')
-    const bruno = renderCard('bruno')
+    const { state: alice } = renderCard('alice')
+    const { state: bruno } = renderCard('bruno')
     await nextTick()
 
-    expect(alice.state.isJustMoved.value).toBe(true)
-    expect(alice.state.isDropWaiting.value).toBe(false)
-    expect(bruno.state.isJustMoved.value).toBe(false)
+    expect(alice.isJustMoved.value).toBe(true)
+    expect(alice.isDropWaiting.value).toBe(false)
+    expect(bruno.isJustMoved.value).toBe(false)
   })
 
   it('holds the drop motion on its first frame while the card is mostly out of view', async () => {
@@ -78,18 +78,18 @@ describe('useDraggableKanbanCard', () => {
 
     withDropMotion('csp-raised-outline-drop 1200ms ease-out')
     vi.stubGlobal('IntersectionObserver', VisibleObserver)
-    const again = renderCard('alice')
+    const { state: again } = renderCard('alice')
     await nextTick()
-    expect(again.state.isJustMoved.value).toBe(false)
+    expect(again.isJustMoved.value).toBe(false)
   })
 
   it('settles the move when the drop motion of the card ends', async () => {
     withDropMotion('csp-raised-outline-drop 1200ms ease-out')
     vi.stubGlobal('IntersectionObserver', VisibleObserver)
     markKanbanCardMoved(BOARD, 'alice')
-    const { getByTestId, state } = renderCard('alice')
+    const { state } = renderCard('alice')
     await nextTick()
-    const card = getByTestId('alice')
+    const card = screen.getByRole('article')
     card.getAnimations = () => []
 
     expect(state.isJustMoved.value).toBe(true)

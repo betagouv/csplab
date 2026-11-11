@@ -4,6 +4,7 @@ import { setupUser } from '@/test/render'
 import CspLabel from './CspLabel.vue'
 
 function labelRoot(): HTMLElement {
+  // eslint-disable-next-line testing-library/no-node-access -- the label root is a span without role that carries the palette variables
   const root = screen.getByText('Libellé').closest<HTMLElement>('.csp-label')
   if (!root) {
     throw new Error('label root not found')

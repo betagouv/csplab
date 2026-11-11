@@ -40,9 +40,9 @@ const Host = defineComponent({
 const EQUIPE_PATH = `/organismes/${MTE_UUID}/recrutements/${RECRUTEMENT_UUID}/equipe`
 
 async function renderSection() {
-  const result = await renderWithApp(Host, { route: EQUIPE_PATH })
+  const view = await renderWithApp(Host, { route: EQUIPE_PATH })
   await screen.findByRole('button', { name: 'Actions pour Jeanne Dupont' })
-  return result
+  return view
 }
 
 describe('equipeRecrutementSection', () => {

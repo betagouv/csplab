@@ -2,6 +2,7 @@ import { readdirSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import antfu from '@antfu/eslint-config'
 import storybook from 'eslint-plugin-storybook'
+import testingLibrary from 'eslint-plugin-testing-library'
 
 const SRC = 'frontend/src'
 const TESTS = [`${SRC}/**/*.test.ts`]
@@ -154,6 +155,20 @@ export default antfu(
     files: TESTS,
     plugins: { csplab: apiModuleMocks },
     rules: { 'csplab/no-api-module-mock': ['error', FEATURES_WITH_HANDLERS] },
+  },
+  {
+    ...testingLibrary.configs['flat/vue'],
+    files: TESTS,
+  },
+  {
+    files: TESTS,
+    rules: {
+      'test/expect-expect': 'error',
+      'test/no-conditional-expect': 'error',
+      'test/no-disabled-tests': 'error',
+      'test/no-standalone-expect': 'error',
+      'test/valid-expect': ['error', { maxArgs: 2 }],
+    },
   },
   restrictImports(ROOT_FOLDERS.map(folder => `${SRC}/${folder}/**`), [
     { regex: '^(@/|(\\.\\./)+)features/', message: 'Root folders import no feature; router/ and app/ may.' },

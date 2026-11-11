@@ -1,4 +1,4 @@
-import { render, within } from '@testing-library/vue'
+import { render, screen, within } from '@testing-library/vue'
 import { describe, expect, it } from 'vitest'
 import { defineComponent, h, onMounted } from 'vue'
 import { setupUser } from '@/test/render'
@@ -21,18 +21,18 @@ const TABS = [
 
 describe('cspTabs', () => {
   it('renders one tab per item and the active panel', () => {
-    const { getAllByRole, getByRole } = render(CspTabs, {
+    render(CspTabs, {
       props: { tabs: TABS, defaultValue: 'a' },
       slots: { a: () => 'Contenu A', b: () => 'Contenu B' },
       global,
     })
 
-    expect(getAllByRole('tab').map(tab => tab.textContent?.trim())).toEqual(['Onglet A', 'Onglet B'])
-    expect(getByRole('tabpanel')).toHaveTextContent('Contenu A')
+    expect(screen.getAllByRole('tab').map(tab => tab.textContent?.trim())).toEqual(['Onglet A', 'Onglet B'])
+    expect(screen.getByRole('tabpanel')).toHaveTextContent('Contenu A')
   })
 
   it('shares the active tab between a detached list and panels', () => {
-    const { container } = render(
+    render(
       defineComponent({
         setup() {
           return () =>
@@ -45,8 +45,8 @@ describe('cspTabs', () => {
       { global },
     )
 
-    const header = within(container.querySelector('header')!)
-    const main = within(container.querySelector('main')!)
+    const header = within(screen.getByRole('banner'))
+    const main = within(screen.getByRole('main'))
     expect(header.getByRole('tab', { name: 'Onglet A', selected: true })).toBeInTheDocument()
     expect(main.getByRole('tabpanel')).toHaveTextContent('Contenu A')
   })
@@ -62,7 +62,7 @@ describe('cspTabs', () => {
       },
     })
     const user = setupUser()
-    const { getByRole } = render(
+    render(
       defineComponent({
         setup() {
           return () =>
@@ -75,9 +75,9 @@ describe('cspTabs', () => {
       { global },
     )
 
-    await user.click(getByRole('tab', { name: 'Onglet B' }))
+    await user.click(screen.getByRole('tab', { name: 'Onglet B' }))
 
-    expect(getByRole('tab', { name: 'Onglet B', selected: true })).toHaveAttribute('aria-controls', getByRole('tabpanel').id)
+    expect(screen.getByRole('tab', { name: 'Onglet B', selected: true })).toHaveAttribute('aria-controls', screen.getByRole('tabpanel').id)
     expect(mounts).toBe(1)
   })
 })

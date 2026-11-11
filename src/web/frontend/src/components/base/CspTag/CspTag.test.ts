@@ -1,4 +1,4 @@
-import { render } from '@testing-library/vue'
+import { render, screen } from '@testing-library/vue'
 import { describe, expect, it, vi } from 'vitest'
 import { defineComponent, h } from 'vue'
 import { setupUser } from '@/test/render'
@@ -14,8 +14,7 @@ const CspIconStub = defineComponent({
 const global = { stubs: { CspIcon: CspIconStub } }
 
 function renderTag(props: Record<string, unknown>) {
-  const result = render(CspTag, { props, global })
-  return { ...result, root: result.container.firstElementChild as HTMLElement }
+  return render(CspTag, { props, global })
 }
 
 function icon(container: Element, name: string) {
@@ -24,34 +23,34 @@ function icon(container: Element, name: string) {
 
 describe('cspTag: root element per variant', () => {
   it('static variant renders <p>', () => {
-    const { root } = renderTag({ label: 'Cat' })
+    renderTag({ label: 'Cat' })
+    const root = screen.getByText('Cat')
     expect(root.tagName).toBe('P')
-    expect(root).toHaveTextContent('Cat')
   })
 
   it('clickable variant with href renders a link', () => {
-    const { getByRole } = renderTag({ variant: 'clickable', label: 'Lien', href: '/x' })
-    expect(getByRole('link', { name: 'Lien' })).toHaveAttribute('href', '/x')
+    renderTag({ variant: 'clickable', label: 'Lien', href: '/x' })
+    expect(screen.getByRole('link', { name: 'Lien' })).toHaveAttribute('href', '/x')
   })
 
   it('clickable variant without href renders a button', () => {
-    const { getByRole } = renderTag({ variant: 'clickable', label: 'Action' })
-    expect(getByRole('button', { name: 'Action' })).toHaveAttribute('type', 'button')
+    renderTag({ variant: 'clickable', label: 'Action' })
+    expect(screen.getByRole('button', { name: 'Action' })).toHaveAttribute('type', 'button')
   })
 
   it('disabled clickable with href renders a disabled button', () => {
-    const { getByRole } = renderTag({ variant: 'clickable', label: 'X', href: '/x', disabled: true })
-    expect(getByRole('button', { name: 'X' })).toBeDisabled()
+    renderTag({ variant: 'clickable', label: 'X', href: '/x', disabled: true })
+    expect(screen.getByRole('button', { name: 'X' })).toBeDisabled()
   })
 
   it('dismissible variant renders a button named after the filter', () => {
-    const { getByRole } = renderTag({ variant: 'dismissible', label: 'Vue' })
-    expect(getByRole('button', { name: 'Retirer le filtre Vue' })).toBeInTheDocument()
+    renderTag({ variant: 'dismissible', label: 'Vue' })
+    expect(screen.getByRole('button', { name: 'Retirer le filtre Vue' })).toBeInTheDocument()
   })
 
   it('static can be rendered `as`', () => {
-    const { root } = renderTag({ label: 'X', as: 'li' })
-    expect(root.tagName).toBe('LI')
+    renderTag({ label: 'X', as: 'li' })
+    expect(screen.getByRole('listitem')).toHaveTextContent('X')
   })
 })
 
@@ -64,6 +63,7 @@ describe('cspTag: icon', () => {
   it('dismissible renders the cross as its only icon', () => {
     const { container } = renderTag({ variant: 'dismissible', label: 'Vue' })
     expect(icon(container, 'ri:close-line')).toBeInTheDocument()
+    // eslint-disable-next-line testing-library/no-container, testing-library/no-node-access -- the decorative icons have no role or name
     expect(container.querySelectorAll('[data-icon]')).toHaveLength(1)
   })
 })
@@ -71,18 +71,18 @@ describe('cspTag: icon', () => {
 describe('cspTag: selectable', () => {
   it('reflects the pressed state and emits update:pressed on click', async () => {
     const user = setupUser()
-    const { getByRole, emitted } = renderTag({ variant: 'selectable', label: 'F', pressed: false })
+    const { emitted } = renderTag({ variant: 'selectable', label: 'F', pressed: false })
 
-    await user.click(getByRole('button', { name: 'F', pressed: false }))
+    await user.click(screen.getByRole('button', { name: 'F', pressed: false }))
 
     expect(emitted()['update:pressed']).toEqual([[true]])
   })
 
   it('does not emit update:pressed when disabled', async () => {
     const user = setupUser()
-    const { getByRole, emitted } = renderTag({ variant: 'selectable', label: 'F', disabled: true })
+    const { emitted } = renderTag({ variant: 'selectable', label: 'F', disabled: true })
 
-    await user.click(getByRole('button', { name: 'F' }))
+    await user.click(screen.getByRole('button', { name: 'F' }))
 
     expect(emitted()['update:pressed']).toBeUndefined()
   })
@@ -91,16 +91,16 @@ describe('cspTag: selectable', () => {
 describe('cspTag: dismissible', () => {
   it('emits dismiss on click', async () => {
     const user = setupUser()
-    const { getByRole, emitted } = renderTag({ variant: 'dismissible', label: 'Vue' })
+    const { emitted } = renderTag({ variant: 'dismissible', label: 'Vue' })
 
-    await user.click(getByRole('button', { name: 'Retirer le filtre Vue' }))
+    await user.click(screen.getByRole('button', { name: 'Retirer le filtre Vue' }))
 
     expect(emitted().dismiss).toHaveLength(1)
   })
 
   it('prefers an explicit dismissLabel', () => {
-    const { getByRole } = renderTag({ variant: 'dismissible', label: 'Vue', dismissLabel: 'Fermer Vue' })
-    expect(getByRole('button', { name: 'Fermer Vue' })).toBeInTheDocument()
+    renderTag({ variant: 'dismissible', label: 'Vue', dismissLabel: 'Fermer Vue' })
+    expect(screen.getByRole('button', { name: 'Fermer Vue' })).toBeInTheDocument()
   })
 })
 
@@ -120,16 +120,18 @@ describe('cspTagGroup', () => {
   }
 
   it('applies the size of the group to every tag', () => {
-    const { container } = renderGroup({ modelValue: [], size: 'sm' })
-    expect(container.querySelectorAll('.csp-tag--sm')).toHaveLength(2)
+    renderGroup({ modelValue: [], size: 'sm' })
+    const tags = screen.getAllByRole('button')
+    expect(tags).toHaveLength(2)
+    tags.forEach(tag => expect(tag).toHaveClass('csp-tag--sm'))
   })
 
   it('single mode: selecting a tag updates the v-model', async () => {
     const user = setupUser()
     const onUpdate = vi.fn()
-    const { getByRole } = renderGroup({ 'modelValue': 'a', 'type': 'single', 'onUpdate:modelValue': onUpdate })
+    renderGroup({ 'modelValue': 'a', 'type': 'single', 'onUpdate:modelValue': onUpdate })
 
-    await user.click(getByRole('button', { name: 'B', pressed: false }))
+    await user.click(screen.getByRole('button', { name: 'B', pressed: false }))
 
     expect(onUpdate).toHaveBeenCalledWith('b')
   })

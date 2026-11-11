@@ -60,7 +60,7 @@ async function renderPanel(paths: string[]) {
   render(RoutesWithToasts, {
     global: { plugins: [createPinia(), PiniaColada, router] },
   })
-  return { router, panel: within(await screen.findByRole('dialog')) }
+  return { router, panel: await screen.findByRole('dialog') }
 }
 
 function closeButton() {
@@ -87,11 +87,11 @@ describe('candidaturePanelView', () => {
   it('shows who applies, to which offer and at which stage from the candidature detail', async () => {
     const { panel } = await renderPanel([`${KANBAN_PATH}/candidatures/${CANDIDATURE_ALICE}`])
 
-    expect(await panel.findByRole('heading', { name: 'Alice Dupont' })).toBeInTheDocument()
-    expect(panel.getByText('Chargé de mission')).toBeInTheDocument()
-    expect(panel.getByText(/Candidature il y a \d+ jours/)).toBeInTheDocument()
-    expect(panel.getByText('candidat@example.fr')).toBeInTheDocument()
-    expect(panel.getByText('Réception des candidatures')).toBeInTheDocument()
+    expect(await within(panel).findByRole('heading', { name: 'Alice Dupont' })).toBeInTheDocument()
+    expect(within(panel).getByText('Chargé de mission')).toBeInTheDocument()
+    expect(within(panel).getByText(/Candidature il y a \d+ jours/)).toBeInTheDocument()
+    expect(within(panel).getByText('candidat@example.fr')).toBeInTheDocument()
+    expect(within(panel).getByText('Réception des candidatures')).toBeInTheDocument()
   })
 
   it('shows why a refused candidature was refused in the follow-up column', async () => {
@@ -102,7 +102,7 @@ describe('candidaturePanelView', () => {
     })
     const { panel } = await renderPanel([`${KANBAN_PATH}/candidatures/${CANDIDATURE_ALICE}`])
 
-    const suivi = within(await panel.findByRole('complementary', { name: 'Suivi de la candidature' }))
+    const suivi = within(await within(panel).findByRole('complementary', { name: 'Suivi de la candidature' }))
     const motif = within(await suivi.findByRole('region', { name: 'Motif de refus' }))
     expect(motif.getByText('Expérience insuffisante')).toBeInTheDocument()
   })
@@ -116,9 +116,9 @@ describe('candidaturePanelView', () => {
     })
     const { panel } = await renderPanel([`${KANBAN_PATH}/candidatures/${CANDIDATURE_ALICE}`])
 
-    expect(await panel.findByRole('region', { name: 'Motif de refus' })).toBeInTheDocument()
-    expect(panel.queryByRole('button', { name: 'Changer d\'étape' })).not.toBeInTheDocument()
-    expect(panel.queryByRole('button', { name: 'Actions sur le motif de refus' })).not.toBeInTheDocument()
+    expect(await within(panel).findByRole('region', { name: 'Motif de refus' })).toBeInTheDocument()
+    expect(within(panel).queryByRole('button', { name: 'Changer d\'étape' })).not.toBeInTheDocument()
+    expect(within(panel).queryByRole('button', { name: 'Actions sur le motif de refus' })).not.toBeInTheDocument()
   })
 
   it('changes the motif of a refused candidature without moving it', async () => {
@@ -131,7 +131,7 @@ describe('candidaturePanelView', () => {
     vi.mocked(getCandidatureDetail).mockResolvedValue(refusee)
     const { panel } = await renderPanel([`${KANBAN_PATH}/candidatures/${CANDIDATURE_ALICE}`])
 
-    await user.click(await panel.findByRole('button', { name: 'Actions sur le motif de refus' }))
+    await user.click(await within(panel).findByRole('button', { name: 'Actions sur le motif de refus' }))
     await user.click(await screen.findByRole('menuitem', { name: 'Modifier le motif de refus' }))
     const dialog = within(await screen.findByRole('dialog', { name: 'Modifier le motif de refus' }))
     await user.click(dialog.getByRole('combobox', { name: /Motif de refus/ }))
@@ -144,7 +144,7 @@ describe('candidaturePanelView', () => {
       candidatureUuids: [CANDIDATURE_ALICE],
       motifRefus: 'disponibilite',
     })
-    const motif = within(panel.getByRole('region', { name: 'Motif de refus' }))
+    const motif = within(within(panel).getByRole('region', { name: 'Motif de refus' }))
     expect(await motif.findByText('Disponibilité')).toBeInTheDocument()
   })
 
@@ -157,9 +157,9 @@ describe('candidaturePanelView', () => {
   it('opens on the candidature tab, with the follow-up column beside it', async () => {
     const { router, panel } = await renderPanel([`${KANBAN_PATH}/candidatures/${CANDIDATURE_ALICE}`])
 
-    expect(await panel.findByRole('tab', { name: 'Candidature', selected: true })).toBeInTheDocument()
+    expect(await within(panel).findByRole('tab', { name: 'Candidature', selected: true })).toBeInTheDocument()
     expect(router.currentRoute.value.meta.tab).toBe('candidature')
-    const suivi = within(panel.getByRole('complementary', { name: 'Suivi de la candidature' }))
+    const suivi = within(within(panel).getByRole('complementary', { name: 'Suivi de la candidature' }))
     expect(suivi.getByRole('heading', { name: 'Dernières activités' })).toBeInTheDocument()
     expect(suivi.getByRole('heading', { name: 'Ajouter une note' })).toBeInTheDocument()
   })
@@ -170,8 +170,8 @@ describe('candidaturePanelView', () => {
     const { panel } = await renderPanel([`${KANBAN_PATH}/candidatures/${CANDIDATURE_ALICE}`])
     await vi.waitFor(() => expect(getCandidatureActivites).toHaveBeenCalledTimes(1))
 
-    await user.type(await panel.findByRole('textbox', { name: 'Ajouter une note' }), 'À rappeler')
-    await user.click(panel.getByRole('button', { name: 'Enregistrer la note' }))
+    await user.type(await within(panel).findByRole('textbox', { name: 'Ajouter une note' }), 'À rappeler')
+    await user.click(within(panel).getByRole('button', { name: 'Enregistrer la note' }))
 
     await vi.waitFor(() => expect(getCandidatureActivites).toHaveBeenCalledTimes(2))
   })
@@ -288,24 +288,24 @@ describe('candidaturePanelView', () => {
   ])('opens the %s tab from its own address', async (segment, label) => {
     const { router, panel } = await renderPanel([`${KANBAN_PATH}/candidatures/${CANDIDATURE_ALICE}/${segment}`])
 
-    expect(await panel.findByRole('tab', { name: label, selected: true })).toBeInTheDocument()
+    expect(await within(panel).findByRole('tab', { name: label, selected: true })).toBeInTheDocument()
     expect(router.currentRoute.value.params.candidatureUuid).toBe(CANDIDATURE_ALICE)
   })
 
   it('opens the history tab from its own address, with the full width', async () => {
     const { panel } = await renderPanel([`${KANBAN_PATH}/candidatures/${CANDIDATURE_ALICE}/historique`])
 
-    expect(await panel.findByRole('tab', { name: 'Historique d\'activité', selected: true })).toBeInTheDocument()
-    expect(panel.queryByRole('complementary', { name: 'Suivi de la candidature' })).not.toBeInTheDocument()
+    expect(await within(panel).findByRole('tab', { name: 'Historique d\'activité', selected: true })).toBeInTheDocument()
+    expect(within(panel).queryByRole('complementary', { name: 'Suivi de la candidature' })).not.toBeInTheDocument()
   })
 
   it('shows the access message when the candidature detail answers not found', async () => {
     vi.mocked(getCandidatureDetail).mockRejectedValue(new HttpError(404, 'Not Found'))
     const { panel } = await renderPanel([`${KANBAN_PATH}/candidatures/${CANDIDATURE_INCONNUE}`])
 
-    expect(await panel.findByText('Cette candidature n\'est pas accessible.')).toBeInTheDocument()
-    expect(panel.getByText('Elle n\'existe pas ou ne vous est pas accessible. Contactez le superviseur de votre organisme si besoin.')).toBeInTheDocument()
-    expect(await panel.findByRole('heading', { name: 'Candidature' })).toBeInTheDocument()
+    expect(await within(panel).findByText('Cette candidature n\'est pas accessible.')).toBeInTheDocument()
+    expect(within(panel).getByText('Elle n\'existe pas ou ne vous est pas accessible. Contactez le superviseur de votre organisme si besoin.')).toBeInTheDocument()
+    expect(await within(panel).findByRole('heading', { name: 'Candidature' })).toBeInTheDocument()
     expect(document.title).toBe('Candidature')
   })
 
@@ -326,20 +326,20 @@ describe('candidaturePanelView', () => {
     const user = setupUser()
     const { router, panel } = await renderPanel([`${KANBAN_PATH}/candidatures/${CANDIDATURE_ALICE}`])
 
-    await user.click(await panel.findByRole('tab', { name: 'Messages' }))
+    await user.click(await within(panel).findByRole('tab', { name: 'Messages' }))
 
     await vi.waitFor(() =>
       expect(router.currentRoute.value.path).toBe(`${KANBAN_PATH}/candidatures/${CANDIDATURE_ALICE}/messages`),
     )
-    expect(await panel.findByRole('tab', { name: 'Messages', selected: true })).toBeInTheDocument()
-    expect(panel.queryByRole('complementary', { name: 'Suivi de la candidature' })).not.toBeInTheDocument()
+    expect(await within(panel).findByRole('tab', { name: 'Messages', selected: true })).toBeInTheDocument()
+    expect(within(panel).queryByRole('complementary', { name: 'Suivi de la candidature' })).not.toBeInTheDocument()
   })
 
   it('returns to the previous tab on browser back', async () => {
     const user = setupUser()
     const { router, panel } = await renderPanel([KANBAN_PATH, `${KANBAN_PATH}/candidatures/${CANDIDATURE_ALICE}`])
 
-    await user.click(await panel.findByRole('tab', { name: 'Messages' }))
+    await user.click(await within(panel).findByRole('tab', { name: 'Messages' }))
     await vi.waitFor(() => expect(router.currentRoute.value.meta.tab).toBe('messages'))
 
     router.back()
@@ -350,8 +350,8 @@ describe('candidaturePanelView', () => {
   it('keeps the latest activities but hides the follow-up note field on the notes tab', async () => {
     const { panel } = await renderPanel([`${KANBAN_PATH}/candidatures/${CANDIDATURE_ALICE}/notes`])
 
-    expect(await panel.findByRole('tab', { name: 'Notes', selected: true })).toBeInTheDocument()
-    const suivi = within(panel.getByRole('complementary', { name: 'Suivi de la candidature' }))
+    expect(await within(panel).findByRole('tab', { name: 'Notes', selected: true })).toBeInTheDocument()
+    const suivi = within(within(panel).getByRole('complementary', { name: 'Suivi de la candidature' }))
     expect(suivi.getByRole('heading', { name: 'Dernières activités' })).toBeInTheDocument()
     expect(suivi.queryByRole('textbox', { name: 'Ajouter une note' })).not.toBeInTheDocument()
   })
@@ -359,10 +359,10 @@ describe('candidaturePanelView', () => {
   describe('with a note being typed', () => {
     async function renderWithNote() {
       const user = setupUser()
-      const rendered = await renderPanel([KANBAN_PATH, `${KANBAN_PATH}/candidatures/${CANDIDATURE_ALICE}`])
-      const note = await rendered.panel.findByRole('textbox', { name: 'Ajouter une note' })
+      const view = await renderPanel([KANBAN_PATH, `${KANBAN_PATH}/candidatures/${CANDIDATURE_ALICE}`])
+      const note = await within(view.panel).findByRole('textbox', { name: 'Ajouter une note' })
       await user.type(note, 'À rappeler')
-      return { ...rendered, user, note }
+      return { ...view, user, note }
     }
 
     function unsavedDialog() {
@@ -438,9 +438,9 @@ describe('candidaturePanelView', () => {
     it('keeps the note typed in the follow-up column through the notes tab', async () => {
       const { user, panel, note } = await renderWithNote()
 
-      await user.click(panel.getByRole('tab', { name: 'Notes' }))
+      await user.click(within(panel).getByRole('tab', { name: 'Notes' }))
       await vi.waitFor(() => expect(note).not.toBeVisible())
-      await user.click(panel.getByRole('tab', { name: 'Candidature' }))
+      await user.click(within(panel).getByRole('tab', { name: 'Candidature' }))
 
       await vi.waitFor(() => expect(note).toBeVisible())
       expect(note).toHaveValue('À rappeler')
@@ -449,10 +449,10 @@ describe('candidaturePanelView', () => {
     it('keeps the note across tabs without asking', async () => {
       const { user, panel, note } = await renderWithNote()
 
-      await user.click(panel.getByRole('tab', { name: 'Messages' }))
-      await user.click(await panel.findByRole('tab', { name: 'Documents' }))
+      await user.click(within(panel).getByRole('tab', { name: 'Messages' }))
+      await user.click(await within(panel).findByRole('tab', { name: 'Documents' }))
 
-      expect(await panel.findByRole('tab', { name: 'Documents', selected: true })).toBeInTheDocument()
+      expect(await within(panel).findByRole('tab', { name: 'Documents', selected: true })).toBeInTheDocument()
       expect(screen.queryByRole('dialog', { name: 'Modifications non enregistrées' })).not.toBeInTheDocument()
       expect(note).toHaveValue('À rappeler')
     })
@@ -476,11 +476,11 @@ describe('candidaturePanelView', () => {
     const user = setupUser()
     const { panel } = await renderPanel([`${KANBAN_PATH}/candidatures/${CANDIDATURE_ALICE}/notes`])
 
-    await user.click(await panel.findByRole('button', { name: 'Actions sur la note de Marie Dupont' }))
+    await user.click(await within(panel).findByRole('button', { name: 'Actions sur la note de Marie Dupont' }))
     await user.click(await screen.findByRole('menuitem', { name: 'Modifier la note' }))
-    const field = await panel.findByRole('textbox', { name: 'Modifier la note' })
+    const field = await within(panel).findByRole('textbox', { name: 'Modifier la note' })
     await user.type(field, ' et motivé')
-    await user.click(panel.getByRole('tab', { name: 'Documents' }))
+    await user.click(within(panel).getByRole('tab', { name: 'Documents' }))
     const dialog = within(await screen.findByRole('dialog', { name: 'Modifications non enregistrées' }))
     await user.click(dialog.getByRole('button', { name: 'Reprendre la modification' }))
 

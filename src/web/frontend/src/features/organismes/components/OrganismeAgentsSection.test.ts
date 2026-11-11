@@ -27,9 +27,9 @@ const Host = defineComponent({
 })
 
 async function renderSection() {
-  const result = await renderWithApp(Host)
+  const view = await renderWithApp(Host)
   await screen.findByRole('button', { name: 'Actions pour Jeanne Dupont' })
-  return result
+  return view
 }
 
 describe('organismeAgentsSection', () => {
