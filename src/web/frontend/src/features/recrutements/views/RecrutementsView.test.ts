@@ -3,12 +3,12 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { RouterView } from 'vue-router'
 import { getMe } from '@/api/utilisateur'
 import { TABLE_PAGE_SIZE } from '@/components/base/CspDataTable/table'
-import { getEquipeRecrutement } from '@/features/equipe-recrutement/api'
 import { AGENT_RECHERCHE } from '@/test/fixtures/agents'
 import { ORGANISME_UUID, RECRUTEMENT_DETAIL, RECRUTEMENT_UUID, roleOnOrganisme } from '@/test/fixtures/candidatures'
 import { MEMBRE_EQUIPE } from '@/test/fixtures/equipe'
 import { RECRUTEMENTS_ACTIFS, RECRUTEMENTS_ARCHIVES } from '@/test/fixtures/recrutements'
 import { makeUser } from '@/test/fixtures/utilisateur'
+import { equipe, membreUpdate } from '@/test/handlers/equipe-recrutement'
 import {
   recrutementDetail,
   recrutementsActifs,
@@ -19,10 +19,6 @@ import {
 } from '@/test/handlers/recrutements'
 import { renderWithApp, setupUser, withToaster } from '@/test/render'
 import { server } from '@/test/server'
-
-vi.mock('@/features/equipe-recrutement/api', () => ({
-  getEquipeRecrutement: vi.fn(),
-}))
 
 const RECRUTEMENTS_PATH = `/organismes/${ORGANISME_UUID}/recrutements`
 const EQUIPE_PATH = `${RECRUTEMENTS_PATH}/${RECRUTEMENT_UUID}/equipe`
@@ -161,10 +157,11 @@ describe('recrutementsView', () => {
   })
 
   it('shows the assigned responsable in the équipe of the recrutement', async () => {
-    vi.mocked(getEquipeRecrutement).mockReset().mockResolvedValueOnce([]).mockResolvedValue([MEMBRE_EQUIPE])
     server.use(
+      equipe([]),
       recrutementsActifs([{ ...SECOND_RECRUTEMENT, uuid: RECRUTEMENT_UUID, responsables: [] }]),
       recrutementDetail({ ...RECRUTEMENT_DETAIL, authorized_actions: ['list_recrutement_agents'] }),
+      responsableAssignment({ reussites: [RECRUTEMENT_UUID], echecs: [] }, () => server.use(equipe([MEMBRE_EQUIPE]))),
     )
     const user = setupUser()
     const { router } = await renderWithApp(RouterView, { route: EQUIPE_PATH })
@@ -176,6 +173,39 @@ describe('recrutementsView', () => {
     await router.push(EQUIPE_PATH)
 
     expect(await screen.findByText(MEMBRE_EQUIPE.email)).toBeInTheDocument()
+  })
+
+  it.each([
+    {
+      tab: 'en cours',
+      path: RECRUTEMENTS_PATH,
+      intitule: FIRST_RECRUTEMENT.intitule,
+      list: (responsables: { nom: string }[]) => recrutementsActifs([{ ...FIRST_RECRUTEMENT, uuid: RECRUTEMENT_UUID, responsables }]),
+    },
+    {
+      tab: 'terminés',
+      path: `${RECRUTEMENTS_PATH}/archives`,
+      intitule: FIRST_ARCHIVE.intitule,
+      list: (responsables: { nom: string }[]) => recrutementsArchives([{ ...FIRST_ARCHIVE, uuid: RECRUTEMENT_UUID, responsables }]),
+    },
+  ])('removes from the recrutements $tab the responsable who left the équipe', async ({ path, intitule, list }) => {
+    server.use(
+      list([{ nom: 'Jeanne Dupont' }]),
+      recrutementDetail({ ...RECRUTEMENT_DETAIL, authorized_actions: ['list_recrutement_agents', 'revoke_recrutement_agent'] }),
+      membreUpdate(() => server.use(list([]), equipe([]))),
+    )
+    const user = setupUser()
+    const { router } = await renderWithApp(RouterView, { route: path })
+    await vi.waitFor(() => expect(screen.getByRole('row', { name: new RegExp(intitule) })).toHaveTextContent('Jeanne Dupont'))
+
+    await router.push(EQUIPE_PATH)
+    await user.click(await screen.findByRole('button', { name: 'Actions pour Jeanne Dupont' }))
+    await user.click(await screen.findByRole('menuitem', { name: 'Retirer de l\'équipe' }))
+    await user.click(await screen.findByRole('button', { name: 'Retirer de l’équipe' }))
+    await screen.findByText('Aucun membre rattaché à ce recrutement.')
+    await router.push(path)
+
+    await vi.waitFor(() => expect(screen.getByRole('row', { name: new RegExp(intitule) })).not.toHaveTextContent('Jeanne Dupont'))
   })
 
   it('loads the recrutements terminés once their tab opens', async () => {

@@ -11,3 +11,5 @@ export const MEMBRE_EQUIPE: MembreEquipe = {
   email: 'jeanne.dupont@example.gouv.fr',
   recrutement_role: 'recruteur',
 }
+
+export const EQUIPE: MembreEquipe[] = [MEMBRE_EQUIPE]

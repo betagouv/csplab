@@ -1,24 +1,33 @@
+import type { MembreEquipe, MembreEquipePayload } from '../types'
 import { screen } from '@testing-library/vue'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { HttpError } from '@/api/errors'
 import { AGENT_RECHERCHE } from '@/test/fixtures/agents'
 import { RECRUTEMENT_DETAIL } from '@/test/fixtures/candidatures'
-import { MEMBRE_EQUIPE, RECRUTEMENT_UUID } from '@/test/fixtures/equipe'
+import { EQUIPE, MEMBRE_EQUIPE, RECRUTEMENT_UUID } from '@/test/fixtures/equipe'
 import { MTE_UUID } from '@/test/fixtures/utilisateur'
-import { agentSearch } from '@/test/handlers/agents'
+import { agentCreation, agentSearch } from '@/test/handlers/agents'
+import {
+  equipe,
+  membreAddition,
+  membreAdditionFailure,
+  membreUpdate,
+  membreUpdateFailure,
+} from '@/test/handlers/equipe-recrutement'
 import { recrutementDetail } from '@/test/handlers/recrutements'
 import { renderWithApp, setupUser, withToaster } from '@/test/render'
 import { server } from '@/test/server'
-import { addMembreEquipe, getEquipeRecrutement, updateMembreEquipe } from '../api'
 import EquipeRecrutementSection from './EquipeRecrutementSection.vue'
 
-vi.mock('../api', () => ({
-  getEquipeRecrutement: vi.fn(),
-  addMembreEquipe: vi.fn(),
-  updateMembreEquipe: vi.fn(),
-}))
+const NOUVEL_AGENT = { ...AGENT_RECHERCHE, uuid: 'bbbbbbbb-0002-0002-0002-000000000002', prenom: 'Paul', nom: 'Bernard', email: 'paul.bernard@example.gouv.fr' }
 
-const NOUVEL_AGENT = { ...AGENT_RECHERCHE, uuid: 'bbbbbbbb-0002-0002-0002-000000000002', email: 'paul.bernard@example.gouv.fr' }
+const NOUVEAU_MEMBRE: MembreEquipe = {
+  uuid: NOUVEL_AGENT.uuid,
+  prenom: NOUVEL_AGENT.prenom,
+  nom: NOUVEL_AGENT.nom,
+  poste: NOUVEL_AGENT.intitule_poste,
+  email: NOUVEL_AGENT.email,
+  recrutement_role: 'recruteur',
+}
 
 const RECRUTEMENT_DETAIL_EQUIPE_GERABLE = {
   ...RECRUTEMENT_DETAIL,
@@ -29,47 +38,96 @@ const Host = withToaster(EquipeRecrutementSection, { organismeUuid: MTE_UUID, re
 
 const EQUIPE_PATH = `/organismes/${MTE_UUID}/recrutements/${RECRUTEMENT_UUID}/equipe`
 
+function payloadSpy() {
+  return vi.fn<(organismeUuid: string, recrutementUuid: string, payload: MembreEquipePayload) => void>()
+}
+
+function watchTeamLoads() {
+  const loads = vi.fn()
+  server.use(equipe(EQUIPE, loads))
+  return loads
+}
+
 async function renderSection() {
   const view = await renderWithApp(Host, { route: EQUIPE_PATH })
   await screen.findByRole('button', { name: 'Actions pour Jeanne Dupont' })
   return view
 }
 
+async function searchNewAgent(user: ReturnType<typeof setupUser>) {
+  await user.click(screen.getByRole('button', { name: 'Ajouter un membre' }))
+  await user.type(
+    await screen.findByRole('searchbox', { name: /Courriel de l'agent/ }),
+    `${NOUVEL_AGENT.email}{Enter}`,
+  )
+}
+
+async function chooseAction(user: ReturnType<typeof setupUser>, action: string) {
+  await user.click(screen.getByRole('button', { name: 'Actions pour Jeanne Dupont' }))
+  await user.click(await screen.findByRole('menuitem', { name: action }))
+}
+
 describe('equipeRecrutementSection', () => {
   beforeEach(() => {
     server.use(recrutementDetail(RECRUTEMENT_DETAIL_EQUIPE_GERABLE), agentSearch(NOUVEL_AGENT))
-    vi.mocked(getEquipeRecrutement).mockResolvedValue([MEMBRE_EQUIPE])
-    vi.mocked(addMembreEquipe).mockReset()
-    vi.mocked(updateMembreEquipe).mockReset()
+  })
+
+  it('lists the members of the recrutement', async () => {
+    const loads = watchTeamLoads()
+    await renderSection()
+
+    expect(screen.getByText(MEMBRE_EQUIPE.email)).toBeInTheDocument()
+    expect(loads).toHaveBeenCalledWith(MTE_UUID, RECRUTEMENT_UUID)
+  })
+
+  it('adds the found agent with the chosen role without creating an account, then lists them in the team', async () => {
+    const user = setupUser()
+    const sent = payloadSpy()
+    const created = vi.fn()
+    server.use(
+      agentCreation(undefined, created),
+      membreAddition(NOUVEAU_MEMBRE, (...args) => {
+        sent(...args)
+        server.use(equipe([MEMBRE_EQUIPE, NOUVEAU_MEMBRE]))
+      }),
+    )
+    await renderSection()
+
+    await searchNewAgent(user)
+    await user.click(await screen.findByRole('radio', { name: /^Recruteur/ }))
+    await user.click(screen.getByRole('button', { name: 'Ajouter le membre' }))
+
+    expect(await screen.findByRole('heading', { name: 'Membre ajouté' })).toBeInTheDocument()
+    expect(await screen.findByText(NOUVEAU_MEMBRE.email)).toBeInTheDocument()
+    expect(sent).toHaveBeenCalledWith(MTE_UUID, RECRUTEMENT_UUID, { agent_id: NOUVEL_AGENT.uuid, recrutement_role: 'recruteur' })
+    expect(created).not.toHaveBeenCalled()
   })
 
   it('explains why the add failed with a 500', async () => {
     const user = setupUser()
-    vi.mocked(addMembreEquipe).mockRejectedValue(new HttpError(500, 'Erreur'))
+    const loads = watchTeamLoads()
+    server.use(membreAdditionFailure(500))
     await renderSection()
 
-    await user.click(screen.getByRole('button', { name: 'Ajouter un membre' }))
-    await user.type(
-      await screen.findByRole('searchbox', { name: /Courriel de l'agent/ }),
-      `${NOUVEL_AGENT.email}{Enter}`,
-    )
+    await searchNewAgent(user)
     await user.click(await screen.findByRole('button', { name: 'Ajouter le membre' }))
 
-    expect(await screen.findByText('L\'ajout du membre a échoué')).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'L\'ajout du membre a échoué', hidden: true })).toBeInTheDocument()
+    await vi.waitFor(() => expect(loads).toHaveBeenCalledTimes(2))
   })
 
   it('surfaces a conflict until the email changes', async () => {
     const user = setupUser()
-    vi.mocked(addMembreEquipe).mockRejectedValue(new HttpError(409, 'Conflict'))
+    const loads = watchTeamLoads()
+    server.use(membreAdditionFailure(409))
     await renderSection()
 
-    await user.click(screen.getByRole('button', { name: 'Ajouter un membre' }))
-    const email = await screen.findByRole('searchbox', { name: /Courriel de l'agent/ })
-    await user.type(email, `${NOUVEL_AGENT.email}{Enter}`)
+    await searchNewAgent(user)
     await user.click(await screen.findByRole('button', { name: 'Ajouter le membre' }))
     await screen.findByText('Cette personne fait déjà partie de l\'équipe.')
+    await vi.waitFor(() => expect(loads).toHaveBeenCalledTimes(2))
 
-    await user.type(email, 'x')
+    await user.type(screen.getByRole('searchbox', { name: /Courriel de l'agent/ }), 'x')
 
     expect(screen.queryByText('Cette personne fait déjà partie de l\'équipe.')).not.toBeInTheDocument()
   })
@@ -78,11 +136,7 @@ describe('equipeRecrutementSection', () => {
     const user = setupUser()
     await renderSection()
 
-    await user.click(screen.getByRole('button', { name: 'Ajouter un membre' }))
-    await user.type(
-      await screen.findByRole('searchbox', { name: /Courriel de l'agent/ }),
-      `${NOUVEL_AGENT.email}{Enter}`,
-    )
+    await searchNewAgent(user)
     await vi.waitFor(() => expect(screen.getByRole('button', { name: 'Ajouter le membre' })).toBeEnabled())
     await user.click(screen.getByRole('button', { name: 'Annuler' }))
     await user.click(screen.getByRole('button', { name: 'Ajouter un membre' }))
@@ -91,29 +145,56 @@ describe('equipeRecrutementSection', () => {
     expect(screen.getByRole('button', { name: 'Ajouter le membre' })).toBeDisabled()
   })
 
-  it('tells the recruteur when the member to remove already left the team', async () => {
+  it('removes a member with their role and a revocation date, then empties the team', async () => {
     const user = setupUser()
-    vi.mocked(updateMembreEquipe).mockRejectedValue(new HttpError(404, 'Not found'))
+    const sent = payloadSpy()
+    server.use(membreUpdate((...args) => {
+      sent(...args)
+      server.use(equipe([]))
+    }))
     await renderSection()
 
-    await user.click(screen.getByRole('button', { name: 'Actions pour Jeanne Dupont' }))
-    await user.click(await screen.findByRole('menuitem', { name: 'Retirer de l\'équipe' }))
+    await chooseAction(user, 'Retirer de l\'équipe')
     await user.click(await screen.findByRole('button', { name: 'Retirer de l’équipe' }))
 
-    expect(await screen.findByText('Cet agent ne fait plus partie de l\'équipe')).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'Membre retiré' })).toBeInTheDocument()
+    expect(await screen.findByText('Aucun membre rattaché à ce recrutement.')).toBeInTheDocument()
+    expect(sent).toHaveBeenCalledWith(MTE_UUID, RECRUTEMENT_UUID, {
+      agent_id: MEMBRE_EQUIPE.uuid,
+      recrutement_role: MEMBRE_EQUIPE.recrutement_role,
+      date_revocation_recrutement: expect.any(String),
+    })
   })
 
-  it('changes the role from the access rights drawer', async () => {
+  it('tells the recruteur when the member to remove already left the team', async () => {
     const user = setupUser()
+    const loads = watchTeamLoads()
+    server.use(membreUpdateFailure(404))
     await renderSection()
 
-    await user.click(screen.getByRole('button', { name: 'Actions pour Jeanne Dupont' }))
-    await user.click(await screen.findByRole('menuitem', { name: 'Modifier les droits d\'accès' }))
+    await chooseAction(user, 'Retirer de l\'équipe')
+    await user.click(await screen.findByRole('button', { name: 'Retirer de l’équipe' }))
+
+    expect(await screen.findByRole('heading', { name: 'Cet agent ne fait plus partie de l\'équipe', hidden: true })).toBeInTheDocument()
+    await vi.waitFor(() => expect(loads).toHaveBeenCalledTimes(2))
+  })
+
+  it('changes the role from the access rights drawer without revoking the member, then shows the new role in the team', async () => {
+    const user = setupUser()
+    const sent = payloadSpy()
+    server.use(membreUpdate((...args) => {
+      sent(...args)
+      server.use(equipe([{ ...MEMBRE_EQUIPE, recrutement_role: 'contributeur' }]))
+    }))
+    await renderSection()
+
+    await chooseAction(user, 'Modifier les droits d\'accès')
     await user.click(await screen.findByRole('radio', { name: /^Contributeur/ }))
     await user.click(screen.getByRole('button', { name: 'Enregistrer les modifications' }))
 
-    expect(await screen.findByText('Rôle modifié')).toBeInTheDocument()
-    expect(updateMembreEquipe).toHaveBeenCalledWith(MTE_UUID, RECRUTEMENT_UUID, expect.objectContaining({ recrutement_role: 'contributeur' }))
+    expect(await screen.findByRole('heading', { name: 'Rôle modifié' })).toBeInTheDocument()
+    expect(await screen.findByRole('cell', { name: 'Contributeur' })).toBeInTheDocument()
+    expect(sent).toHaveBeenCalledWith(MTE_UUID, RECRUTEMENT_UUID, { agent_id: MEMBRE_EQUIPE.uuid, recrutement_role: 'contributeur' })
   })
 
   it('only lists the team without the right to manage it', async () => {
