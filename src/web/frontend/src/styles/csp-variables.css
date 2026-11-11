@@ -54,6 +54,10 @@
   --csp-region-background: var(--background-alt-grey);
   --csp-region-border-color: var(--border-default-grey);
 
+  /* Surface: a framed block, such as a card, a table or the frame of a list */
+  --csp-surface-background: var(--background-default-grey);
+  --csp-surface-border-color: var(--border-default-grey);
+
   /* Shadows by role, from the ui-kit of La Suite numérique. Raised: an element that one moves, such as a kanban card
      or a sortable list item; on hover it takes the hover shadow, and while dragged the element left in place has no
      shadow and half opacity. Overlap: a menu, a list of options, a tooltip or a notification. Lifted: a dialog, a

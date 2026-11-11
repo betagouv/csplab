@@ -143,7 +143,7 @@ function startConversation(): void {
   flex: 1;
   grid-template-columns: minmax(0, 22rem) minmax(0, 1fr);
   min-height: 0;
-  border: 1px solid var(--border-default-grey);
+  border: 1px solid var(--csp-surface-border-color);
 }
 
 .messages-section__pane {

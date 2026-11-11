@@ -92,7 +92,7 @@ function handleSearch(value: string): void {
   flex-direction: column;
   gap: var(--csp-space-1);
   padding: var(--csp-space-4);
-  border: 1px solid var(--border-default-grey);
+  border: 1px solid var(--csp-surface-border-color);
   border-radius: 0.25rem;
 }
 
