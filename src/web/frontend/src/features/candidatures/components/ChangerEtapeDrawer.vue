@@ -14,7 +14,6 @@ const props = defineProps<{
   sourceEtape: KanbanColumn | null
   selectedCandidatureUuids: Set<string>
   etapes: EtapeRecrutement[]
-  initialEtapeUuid?: string | null
 }>()
 
 const emit = defineEmits<{
@@ -27,7 +26,7 @@ const selectedEtapeUuid = ref<string>('')
 
 watch(() => props.open, (isOpen) => {
   if (isOpen) {
-    selectedEtapeUuid.value = props.initialEtapeUuid ?? ''
+    selectedEtapeUuid.value = ''
   }
 })
 
