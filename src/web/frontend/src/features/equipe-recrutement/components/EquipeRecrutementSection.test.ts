@@ -1,7 +1,7 @@
 import type { MembreEquipe, MembreEquipePayload } from '../types'
 import { screen } from '@testing-library/vue'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { AGENT_RECHERCHE } from '@/test/fixtures/agents'
+import { NOUVEL_AGENT } from '@/test/fixtures/agents'
 import { RECRUTEMENT_DETAIL } from '@/test/fixtures/candidatures'
 import { EQUIPE, MEMBRE_EQUIPE, RECRUTEMENT_UUID } from '@/test/fixtures/equipe'
 import { MTE_UUID } from '@/test/fixtures/utilisateur'
@@ -17,8 +17,6 @@ import { recrutementDetail } from '@/test/handlers/recrutements'
 import { renderWithApp, setupUser, withToaster } from '@/test/render'
 import { server } from '@/test/server'
 import EquipeRecrutementSection from './EquipeRecrutementSection.vue'
-
-const NOUVEL_AGENT = { ...AGENT_RECHERCHE, uuid: 'bbbbbbbb-0002-0002-0002-000000000002', prenom: 'Paul', nom: 'Bernard', email: 'paul.bernard@example.gouv.fr' }
 
 const NOUVEAU_MEMBRE: MembreEquipe = {
   uuid: NOUVEL_AGENT.uuid,

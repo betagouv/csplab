@@ -1,5 +1,5 @@
 import type { MembreEquipe } from '@/features/equipe-recrutement/types'
-import { AGENT_UUID } from './organismes'
+import { AGENT_UUID } from './agents'
 
 export const RECRUTEMENT_UUID = 'aaaaaaaa-0001-0001-0001-000000000001'
 
