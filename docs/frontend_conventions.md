@@ -349,6 +349,23 @@ export interface CreateCandidatDto {
 - CSS variables for tokens (colors, spacing)
 - No global styles except reset/tokens
 
+### CSS variables
+
+We name CSS variables on three levels. The design principle is [DDR-007, « Un seul dessin par rôle »](../src/web/frontend/src/stories/ddr/content/ddr-007-dessin-par-role.md).
+
+- Primitives are the DSFR tokens, in `styles/dsfr-tokens-options.css` and `styles/dsfr-tokens-decisions.css`, and the scales of the kit: `--csp-space-*`, `--csp-font-size-*`, `--csp-font-weight-*`, `--csp-line-height-*`, `--csp-z-*`.
+- A role variable is named `--csp-<role>-<property>`, with the state last (`-hover`, `-active`, `-drag`, `-drop`, `-current`, `-disabled`), as in `--csp-raised-shadow-hover`. Its value is a primitive, another role variable, or a written value when no scale gives it, such as a radius, a shadow or a duration.
+- A component variable is named `--csp-<component>-<part>-<property>`, as in `--csp-kanban-column-padding`.
+
+We apply these name forms to the variables we add.
+
+- A component reads a role variable when the value has the same meaning elsewhere in the interface, and a component variable when the value belongs to the component. A role gets a variable when at least two components write the same value for it.
+- We declare in `styles/csp-variables.css` the role variables and the component variables that more than one component reads, such as `--csp-kanban-*`, read by the kanban column and its skeleton. A component declares a component variable that it alone reads.
+- A role variable takes its values from `styles/csp-variables.css` only, dark theme and media queries included.
+- The comment above the block of a role in `styles/csp-variables.css` defines that role.
+- A parent sets a component variable of its child on its own selector, as `CandidaturePanelView.vue` sets `--csp-drawer-padding-inline` for `CspDrawer`. The variable is then the setting interface of the child component: the child reads it with a fallback value and does not declare it.
+- `styles/csp-variables.test.ts` fails when a `--csp-*` name written in a `.vue`, `.ts`, `.css` or `.scss` file of `src/` has no declaration, and when another file declares a variable of `styles/csp-variables.css`. A name ending with a hyphen, such as `--csp-palette-`, counts as declared when a declared variable starts with it.
+
 ### SCSS Nesting
 
 Limit nesting to **2 levels max**. Use `&` for modifiers and pseudo-classes.
