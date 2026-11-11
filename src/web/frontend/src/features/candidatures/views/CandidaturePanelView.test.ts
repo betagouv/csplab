@@ -9,7 +9,6 @@ import { getMe } from '@/api/utilisateur'
 import CspToaster from '@/components/base/CspToast/CspToaster.vue'
 import { useToast } from '@/composables/ui/useToast'
 import { getConversations } from '@/features/messages/api'
-import { getRecrutementDetail } from '@/features/recrutements/api'
 import { routes } from '@/router/routes'
 import {
   CANDIDATURE_ALICE,
@@ -21,7 +20,6 @@ import {
   KANBAN_PATH,
   MOTIFS_REFUS,
   ORGANISME_UUID,
-  RECRUTEMENT_DETAIL,
   RECRUTEMENT_UUID,
   roleOnOrganisme,
 } from '@/test/fixtures/candidatures'
@@ -38,10 +36,6 @@ vi.mock('../api', () => ({
   getCandidatureNotes: vi.fn(() => new Promise(() => {})),
   createCandidatureNote: vi.fn(),
   getCandidatureActivites: vi.fn(),
-}))
-
-vi.mock('@/features/recrutements/api', () => ({
-  getRecrutementDetail: vi.fn(),
 }))
 
 vi.mock('@/features/messages/api', () => ({
@@ -80,7 +74,6 @@ describe('candidaturePanelView', () => {
     vi.mocked(getCandidatureDetail).mockImplementation(async ({ candidatureUuid }) => candidatureDetail(candidatureUuid))
     vi.mocked(getCandidatureListe).mockResolvedValue(CANDIDATURE_LISTE)
     vi.mocked(getMotifsRefus).mockResolvedValue(MOTIFS_REFUS)
-    vi.mocked(getRecrutementDetail).mockResolvedValue(RECRUTEMENT_DETAIL)
     vi.mocked(patchEtapeCandidatures).mockResolvedValue({ reussites: [CANDIDATURE_ALICE], echecs: [] })
     vi.mocked(getConversations).mockResolvedValue({ count: 0, next: null, previous: null, results: [] })
     vi.mocked(getCandidatureActivites).mockResolvedValue({ count: 0, next: null, previous: null, results: [] })

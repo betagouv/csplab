@@ -304,8 +304,10 @@ A behavior is tested once ([ADR-001](./ADR/ADR-001-testing-strategy.md)), at the
 
 - Find an element by its role and accessible name (`findByRole`, `getByRole`), as a screen reader does.
 - Interact through `setupUser()` from `src/test/render.ts`.
-- Assert what is displayed, the route and the arguments of the API call. A test title names a behavior: `it('shows an error when the recrutements fail to load')`.
-- A page test mounts the real routes, Pinia, Pinia Colada and child components with `renderWithApp(RouterView, { route })`. It replaces the `api` modules the page reads with `vi.mock` and sets each answer with `vi.mocked(fn)`.
+- Assert what is displayed, the route and the request sent to the API. A test title names a behavior: `it('shows an error when the recrutements fail to load')`.
+- A page test mounts the real routes, Pinia, Pinia Colada and child components with `renderWithApp(RouterView, { route })`.
+- The API of a feature listed in `FEATURES_WITH_HANDLERS` of `eslint.config.mjs` answers through Mock Service Worker. The server in `src/test/server.ts` serves the default answers of `src/test/handlers/<feature>.ts`, and a test changes an answer with `server.use()` and a factory of that file. ESLint refuses a `vi.mock` of the `api` module of such a feature.
+- A page test replaces the `api` modules of the other features with `vi.mock` and sets each answer with `vi.mocked(fn)`.
 - `src/test/setup.ts` mocks `getMe` with an account that belongs to no organisme. A test that needs an organisme, a role or a failed load sets its own `vi.mocked(getMe)` value.
 - Data used by several test files lives in `src/test/fixtures/`, typed with the API types.
 - Follow `features/recrutements/views/RecrutementView.test.ts` for a page and `components/base/CspSearchBar/CspSearchBar.test.ts` for a component.

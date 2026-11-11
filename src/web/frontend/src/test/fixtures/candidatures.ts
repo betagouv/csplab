@@ -81,15 +81,26 @@ export function candidatureDetail(candidatureUuid: string): CandidatureDetail {
   }
 }
 
-export const RECRUTEMENT_DETAIL = {
+export const RECRUTEMENT_DETAIL: RecrutementDetail = {
+  uuid: RECRUTEMENT_UUID,
   intitule: 'Chargé de mission',
+  archive: false,
   date_publication: '2025-06-01T09:00:00Z',
-  localisations: [{ localisation_label: 'Paris' }],
-  organisme_recruteur: { nom: 'Ministère de la Transition Écologique' },
+  localisations: [{
+    zone_geographique: 'France',
+    pays: 'France',
+    region: 'Île-de-France',
+    departement: 'Paris',
+    localisation_label: 'Paris',
+    latitude: null,
+    longitude: null,
+  }],
+  organisme_recruteur: { nom: 'Ministère de la Transition Écologique', siret: '11000201100044' },
   categorie_offre: 'A',
   etapes: KANBAN_COLUMNS.map(({ uuid, nom, categorie }) => ({ uuid, nom, categorie })),
+  recrutement_role: null,
   authorized_actions: ['change_etape_candidatures'],
-} as unknown as RecrutementDetail
+}
 
 export const MOTIFS_REFUS: MotifRefusOption[] = [
   { value: 'experience_insuffisante', label: 'Expérience insuffisante' },

@@ -1,24 +1,21 @@
 import { screen } from '@testing-library/vue'
 import { describe, expect, it, vi } from 'vitest'
 import { RouterView } from 'vue-router'
-import { getRecrutementDetail } from '@/features/recrutements/api'
 import { KANBAN_PATH, ORGANISME_UUID, RECRUTEMENT_DETAIL, RECRUTEMENT_UUID } from '@/test/fixtures/candidatures'
+import { recrutementDetail } from '@/test/handlers/recrutements'
 import { renderWithApp } from '@/test/render'
+import { server } from '@/test/server'
 import { getEtapesOffre } from '../api'
 
 vi.mock('../api', () => ({
   getEtapesOffre: vi.fn(() => new Promise(() => {})),
 }))
 
-vi.mock('@/features/recrutements/api', () => ({
-  getRecrutementDetail: vi.fn(),
-}))
-
 const ETAPES_PATH = `${KANBAN_PATH}/etapes-recrutement`
 
 describe('offreEtapesRecrutementView', () => {
   it('loads the recrutement and its stages from the address', async () => {
-    vi.mocked(getRecrutementDetail).mockResolvedValue({ ...RECRUTEMENT_DETAIL, authorized_actions: ['update_recrutement_etapes'] })
+    server.use(recrutementDetail({ ...RECRUTEMENT_DETAIL, authorized_actions: ['update_recrutement_etapes'] }))
     await renderWithApp(RouterView, { route: ETAPES_PATH })
 
     expect(await screen.findByRole('link', { name: 'Chargé de mission' })).toBeInTheDocument()
@@ -26,7 +23,7 @@ describe('offreEtapesRecrutementView', () => {
   })
 
   it('refuses the address without the right to customize the étapes', async () => {
-    vi.mocked(getRecrutementDetail).mockResolvedValue({ ...RECRUTEMENT_DETAIL, authorized_actions: ['get_recrutement'] })
+    server.use(recrutementDetail({ ...RECRUTEMENT_DETAIL, authorized_actions: ['get_recrutement'] }))
     await renderWithApp(RouterView, { route: ETAPES_PATH })
 
     expect(await screen.findByText('Vous n’avez pas accès à cette page.')).toBeInTheDocument()

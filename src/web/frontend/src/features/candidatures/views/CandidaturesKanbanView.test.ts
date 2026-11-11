@@ -6,7 +6,6 @@ import { defineComponent, h } from 'vue'
 import { RouterView } from 'vue-router'
 import { getMe } from '@/api/utilisateur'
 import { useToast } from '@/composables/ui/useToast'
-import { getRecrutementDetail } from '@/features/recrutements/api'
 import {
   CANDIDATURE_ALICE,
   CANDIDATURE_BRUNO,
@@ -22,17 +21,15 @@ import {
   roleOnOrganisme,
 } from '@/test/fixtures/candidatures'
 import { makeUser } from '@/test/fixtures/utilisateur'
+import { recrutementDetail, recrutementDetailPending } from '@/test/handlers/recrutements'
 import { renderWithApp, setupUser } from '@/test/render'
+import { server } from '@/test/server'
 import { getCandidatureListe, getMotifsRefus, patchEtapeCandidatures } from '../api'
 
 vi.mock('../api', () => ({
   getCandidatureListe: vi.fn(),
   patchEtapeCandidatures: vi.fn(),
   getMotifsRefus: vi.fn(),
-}))
-
-vi.mock('@/features/recrutements/api', () => ({
-  getRecrutementDetail: vi.fn(),
 }))
 
 function renderKanbanPage(stubs: Record<string, Component> = {}) {
@@ -85,7 +82,6 @@ describe('candidaturesKanbanView', () => {
     vi.mocked(getMe).mockResolvedValue(makeUser([roleOnOrganisme('agent')]))
     vi.mocked(getCandidatureListe).mockResolvedValue(CANDIDATURE_LISTE)
     vi.mocked(getMotifsRefus).mockResolvedValue(MOTIFS_REFUS)
-    vi.mocked(getRecrutementDetail).mockResolvedValue(RECRUTEMENT_DETAIL)
     vi.mocked(patchEtapeCandidatures).mockResolvedValue({ reussites: [CANDIDATURE_ALICE, CANDIDATURE_BRUNO], echecs: [] })
   })
 
@@ -131,7 +127,7 @@ describe('candidaturesKanbanView', () => {
   })
 
   it('keeps loading until the rights on the recrutement are known', async () => {
-    vi.mocked(getRecrutementDetail).mockReturnValue(new Promise(() => {}))
+    server.use(recrutementDetailPending())
     await renderKanbanPage()
 
     await vi.waitFor(() => expect(getCandidatureListe).toHaveBeenCalled())
@@ -142,7 +138,7 @@ describe('candidaturesKanbanView', () => {
   })
 
   it('offers no selection without the right to change stages', async () => {
-    vi.mocked(getRecrutementDetail).mockResolvedValue({ ...RECRUTEMENT_DETAIL, authorized_actions: [] })
+    server.use(recrutementDetail({ ...RECRUTEMENT_DETAIL, authorized_actions: [] }))
     await renderKanbanPage()
 
     await screen.findByRole('link', { name: 'Alice Dupont' })
@@ -153,7 +149,7 @@ describe('candidaturesKanbanView', () => {
     { cas: 'with', actions: ['change_etape_candidatures'] as const, draggable: 'true' },
     { cas: 'without', actions: [] as const, draggable: null },
   ])('lets the cards be dragged only $cas the right to change stages', async ({ actions, draggable }) => {
-    vi.mocked(getRecrutementDetail).mockResolvedValue({ ...RECRUTEMENT_DETAIL, authorized_actions: [...actions] })
+    server.use(recrutementDetail({ ...RECRUTEMENT_DETAIL, authorized_actions: [...actions] }))
     await renderKanbanPage()
 
     const card = (await screen.findByRole('link', { name: 'Alice Dupont' })).closest('article')

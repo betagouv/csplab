@@ -1,4 +1,5 @@
 import { readdirSync } from 'node:fs'
+import { dirname, resolve } from 'node:path'
 import antfu from '@antfu/eslint-config'
 import storybook from 'eslint-plugin-storybook'
 
@@ -13,6 +14,36 @@ function subfolders(path) {
 
 const FEATURES = subfolders(`./${SRC}/features`)
 const ROOT_FOLDERS = subfolders(`./${SRC}`).filter(folder => !['features', 'app', 'router', 'test'].includes(folder))
+
+const FEATURES_WITH_HANDLERS = ['recrutements']
+
+const apiModuleMocks = {
+  rules: {
+    'no-api-module-mock': {
+      meta: {
+        type: 'problem',
+        schema: [{ type: 'array', items: { type: 'string' } }],
+        messages: { handlers: 'Answer the {{feature}} API with server.use() and a factory of @/test/handlers/{{feature}}.' },
+      },
+      create(context) {
+        const [features] = context.options
+        return {
+          'CallExpression[callee.object.name="vi"][callee.property.name="mock"]': (node) => {
+            const source = node.arguments[0]?.value
+            if (typeof source !== 'string') {
+              return
+            }
+            const module = source.startsWith('.') ? resolve(dirname(context.filename), source) : source
+            const feature = features.find(name => module.endsWith(`/features/${name}/api`))
+            if (feature) {
+              context.report({ node, messageId: 'handlers', data: { feature } })
+            }
+          },
+        }
+      },
+    },
+  },
+}
 
 const FEATURE_DEPENDENCIES = {
   'candidatures': ['recrutements', 'etapes-recrutement', 'messages'],
@@ -119,6 +150,11 @@ export default antfu(
     },
   },
   ...FEATURES.map(restrictFeatureImports),
+  {
+    files: TESTS,
+    plugins: { csplab: apiModuleMocks },
+    rules: { 'csplab/no-api-module-mock': ['error', FEATURES_WITH_HANDLERS] },
+  },
   restrictImports(ROOT_FOLDERS.map(folder => `${SRC}/${folder}/**`), [
     { regex: '^(@/|(\\.\\./)+)features/', message: 'Root folders import no feature; router/ and app/ may.' },
   ]),

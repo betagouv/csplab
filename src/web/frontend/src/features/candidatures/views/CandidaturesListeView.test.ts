@@ -4,7 +4,6 @@ import { RouterView } from 'vue-router'
 import { getMe } from '@/api/utilisateur'
 import { TABLE_PAGE_SIZE } from '@/components/base/CspDataTable/table'
 import { getConversations } from '@/features/messages/api'
-import { getRecrutementDetail } from '@/features/recrutements/api'
 import {
   CANDIDATURE_ALICE,
   CANDIDATURE_BRUNO,
@@ -14,7 +13,6 @@ import {
   KANBAN_PATH,
   MOTIFS_REFUS,
   ORGANISME_UUID,
-  RECRUTEMENT_DETAIL,
   RECRUTEMENT_UUID,
   roleOnOrganisme,
 } from '@/test/fixtures/candidatures'
@@ -31,10 +29,6 @@ vi.mock('../api', () => ({
   getCandidatureNotes: vi.fn(() => new Promise(() => {})),
   createCandidatureNote: vi.fn(),
   getCandidatureActivites: vi.fn(),
-}))
-
-vi.mock('@/features/recrutements/api', () => ({
-  getRecrutementDetail: vi.fn(),
 }))
 
 vi.mock('@/features/messages/api', () => ({
@@ -87,7 +81,6 @@ describe('candidaturesListeView', () => {
     vi.clearAllMocks()
     vi.mocked(getMe).mockResolvedValue(makeUser([roleOnOrganisme('agent')]))
     vi.mocked(getCandidatureListe).mockResolvedValue(CANDIDATURE_LISTE)
-    vi.mocked(getRecrutementDetail).mockResolvedValue(RECRUTEMENT_DETAIL)
     vi.mocked(getCandidatureDetail).mockImplementation(async ({ candidatureUuid }) => candidatureDetail(candidatureUuid))
     vi.mocked(getMotifsRefus).mockResolvedValue(MOTIFS_REFUS)
     vi.mocked(patchEtapeCandidatures).mockResolvedValue({ reussites: [CANDIDATURE_ALICE], echecs: [] })
