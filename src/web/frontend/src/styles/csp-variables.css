@@ -45,6 +45,11 @@
   --csp-chrome-background: var(--background-default-grey);
   --csp-chrome-border-color: var(--border-default-grey);
 
+  /* Nav: the sidebar, its items and its buttons */
+  --csp-nav-background: var(--background-alt-grey);
+  --csp-nav-background-hover: var(--background-alt-grey-hover);
+  --csp-nav-background-active: var(--background-alt-grey-active);
+
   /* Shadows by role, from the ui-kit of La Suite numérique. Raised: an element that one moves, such as a kanban card
      or a sortable list item; on hover it takes the hover shadow, and while dragged the element left in place has no
      shadow and half opacity. Overlap: a menu, a list of options, a tooltip or a notification. Lifted: a dialog, a

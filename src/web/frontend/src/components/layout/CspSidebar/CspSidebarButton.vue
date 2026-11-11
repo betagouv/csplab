@@ -55,15 +55,15 @@ const { showLabels } = useSidebar()
   padding-block: var(--csp-space-2);
   padding-inline: var(--sidebar-item-padding-inline);
   cursor: pointer;
-  background-color: var(--background-alt-grey);
+  background-color: var(--csp-nav-background);
   transition: background-color var(--csp-motion-duration-state);
 
   &:hover {
-    background-color: var(--background-alt-grey-hover);
+    background-color: var(--csp-nav-background-hover);
   }
 
   &:active {
-    background-color: var(--background-alt-grey-active);
+    background-color: var(--csp-nav-background-active);
   }
 
   &:focus-visible {
@@ -77,7 +77,7 @@ const { showLabels } = useSidebar()
 
   &:hover,
   &:active {
-    background-color: var(--background-alt-grey);
+    background-color: var(--csp-nav-background);
   }
 }
 
