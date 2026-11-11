@@ -517,17 +517,52 @@ class AgentRechercheSerializer(serializers.ModelSerializer):
 
 
 # ---------------------------------------------------------------------------
+# Serializers pour les étiquettes d'un organisme
+# ---------------------------------------------------------------------------
+
+
+class TagSerializer(serializers.ModelSerializer):
+    uuid = serializers.UUIDField(source="id")
+    usage_count = serializers.IntegerField(read_only=True, default=0)
+
+    class Meta:
+        model = TagModel
+        fields = ["uuid", "name", "category", "color", "usage_count"]
+
+
+class TagResumeSerializer(TagSerializer):
+    color = serializers.ChoiceField(choices=TagColor.choices, read_only=True)
+
+    class Meta(TagSerializer.Meta):
+        fields = ["uuid", "name", "color"]
+
+
+class NoteTagSerializer(TagResumeSerializer):
+    pass
+
+
+class TagListQuerySerializer(serializers.Serializer):
+    category = serializers.ChoiceField(choices=TagCategory.choices, required=False)
+
+
+class CreateTagSerializer(serializers.Serializer):
+    name = serializers.CharField(max_length=25)
+    category = serializers.ChoiceField(choices=TagCategory.choices)
+    color = serializers.ChoiceField(choices=TagColor.choices, default=TagColor.BLEU)
+
+
+class UpdateTagSerializer(serializers.Serializer):
+    name = serializers.CharField(max_length=25)
+    color = serializers.ChoiceField(choices=TagColor.choices)
+
+
+# ---------------------------------------------------------------------------
 # Serializer pour les agents rattachés à un recrutement
 # ---------------------------------------------------------------------------
 
 
-class RecrutementAgentTagSerializer(serializers.ModelSerializer):
-    uuid = serializers.UUIDField(source="id")
-    color = serializers.ChoiceField(choices=TagColor.choices, read_only=True)
-
-    class Meta:
-        model = TagModel
-        fields = ["uuid", "name", "color"]
+class RecrutementAgentTagSerializer(TagResumeSerializer):
+    pass
 
 
 class RecrutementAgentSerializer(serializers.ModelSerializer):
@@ -597,42 +632,6 @@ class DocumentListeSerializer(serializers.ModelSerializer):
             "depose_par",
             "depose_le",
         ]
-
-
-# ---------------------------------------------------------------------------
-# Serializers pour les étiquettes d'un organisme
-# ---------------------------------------------------------------------------
-
-
-class TagSerializer(serializers.ModelSerializer):
-    uuid = serializers.UUIDField(source="id")
-    usage_count = serializers.IntegerField(read_only=True, default=0)
-
-    class Meta:
-        model = TagModel
-        fields = ["uuid", "name", "category", "color", "usage_count"]
-
-
-class NoteTagSerializer(TagSerializer):
-    color = serializers.ChoiceField(choices=TagColor.choices, read_only=True)
-
-    class Meta(TagSerializer.Meta):
-        fields = ["uuid", "name", "color"]
-
-
-class TagListQuerySerializer(serializers.Serializer):
-    category = serializers.ChoiceField(choices=TagCategory.choices, required=False)
-
-
-class CreateTagSerializer(serializers.Serializer):
-    name = serializers.CharField(max_length=25)
-    category = serializers.ChoiceField(choices=TagCategory.choices)
-    color = serializers.ChoiceField(choices=TagColor.choices, default=TagColor.BLEU)
-
-
-class UpdateTagSerializer(serializers.Serializer):
-    name = serializers.CharField(max_length=25)
-    color = serializers.ChoiceField(choices=TagColor.choices)
 
 
 # ---------------------------------------------------------------------------
