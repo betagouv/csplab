@@ -23,6 +23,8 @@ import { useRouteTab } from '@/composables/navigation/useRouteTab'
 import { useUnsavedChangesGuard } from '@/composables/navigation/useUnsavedChanges'
 import { useDocumentTitle } from '@/composables/ui/useDocumentTitle'
 import MessagesSection from '@/features/messages/components/MessagesSection.vue'
+import { useConversations } from '@/features/messages/composables/useConversations'
+import { can } from '@/utils/authorizedActions'
 import CandidatureActivites from '../components/CandidatureActivites.vue'
 import CandidatureCv from '../components/CandidatureCv.vue'
 import CandidatureDocuments from '../components/CandidatureDocuments.vue'
@@ -64,6 +66,7 @@ const description = computed(() => candidature.value?.recrutement_intitule || nu
 const metaItems = computed(() => candidature.value ? formatCandidatureMeta(candidature.value) : [])
 
 const etape = computed(() => candidature.value?.etape_actuelle ?? null)
+const canChangeEtape = computed(() => can(candidature.value?.authorized_actions, 'change_etape_candidatures'))
 const navigation = useCandidatureNavigation(() => props.candidatureUuid)
 const { position, goPrevious, goNext } = navigation
 
@@ -84,6 +87,12 @@ watch(() => props.candidatureUuid, () => {
 })
 
 const TABS = tabItems(CANDIDATURE_PANEL_TAB_LABELS, CANDIDATURE_PANEL_TAB_ICONS)
+const { hasUnread: hasUnreadConversations } = useConversations(() => candidatureParams.value)
+const tabsWithIndicators = computed(() => TABS.map(tab =>
+  tab.value === 'messages' && hasUnreadConversations.value
+    ? { ...tab, indicator: 'Conversations non lues' }
+    : tab,
+))
 const { view, names: panelRouteNames, parentName } = useCandidaturePanelRoutes()
 const SEQUENCE_LABELS = {
   kanban: 'Navigation entre les candidatures de l\'étape',
@@ -154,7 +163,7 @@ function handleUpdateOpen(open: boolean): void {
     @update:open="handleUpdateOpen"
   >
     <template
-      v-if="candidature && etape"
+      v-if="candidature && etape && canChangeEtape"
       #end
     >
       <ChangerEtapePopover
@@ -232,7 +241,7 @@ function handleUpdateOpen(open: boolean): void {
         fill
         class="candidature-panel__tabs"
       >
-        <CspTabsList :tabs="TABS" />
+        <CspTabsList :tabs="tabsWithIndicators" />
         <div
           ref="scrollArea"
           class="candidature-panel__scroll"
@@ -303,6 +312,7 @@ function handleUpdateOpen(open: boolean): void {
                 <CandidatureMotifRefus
                   v-if="candidature.motif_refus"
                   :motif="candidature.motif_refus.label"
+                  :editable="canChangeEtape"
                   @edit="motifRefusDialogOpen = true"
                 />
                 <CandidatureActivites

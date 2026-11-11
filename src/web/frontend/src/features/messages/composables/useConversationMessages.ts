@@ -3,12 +3,42 @@ import type { ConversationMessage, CreateMessagePayload, PaginatedConversationLi
 import type { ConversationParams } from '@/api/params'
 import { useMutation, useQuery, useQueryCache } from '@pinia/colada'
 import { computed, toValue } from 'vue'
-import { candidatureKeys } from '@/api/queryKeys'
+import { candidatureKeys, organismeKeys, recrutementKeys } from '@/api/queryKeys'
 import { replyToConversation } from '../api'
 import { conversationMessagesQuery } from '../queries'
 
 export function useConversationMessages(params: MaybeRefOrGetter<ConversationParams>) {
-  const query = useQuery(() => conversationMessagesQuery(toValue(params)))
+  const queryCache = useQueryCache()
+
+  function markConversationAsRead(target: ConversationParams) {
+    void queryCache.invalidateQueries({ key: recrutementKeys.liste(target) })
+    void queryCache.invalidateQueries({ key: organismeKeys.recrutementsActifs(target) })
+
+    const key = candidatureKeys.conversations(target)
+    const list = queryCache.getQueryData<PaginatedConversationList>(key)
+    if (!list) {
+      return
+    }
+    queryCache.setQueryData(key, {
+      ...list,
+      results: list.results.map(conversation =>
+        conversation.uuid === target.conversationUuid ? { ...conversation, is_unread: false } : conversation,
+      ),
+    })
+  }
+
+  const query = useQuery(() => {
+    const target = toValue(params)
+    const options = conversationMessagesQuery(target)
+    return {
+      ...options,
+      query: async (context) => {
+        const thread = await options.query(context)
+        markConversationAsRead(target)
+        return thread
+      },
+    }
+  })
 
   return {
     messages: computed(() => query.data.value?.results ?? []),
@@ -59,7 +89,7 @@ export function useReplyConversation(params: MaybeRefOrGetter<ConversationParams
     onSuccess: (message, { target }) => {
       appendToThread(target, message)
       moveConversationToTop(target, message)
-      void queryCache.invalidateQueries({ key: candidatureKeys.conversations(target) })
+      void queryCache.invalidateQueries({ key: candidatureKeys.conversations(target), exact: true })
     },
   })
 

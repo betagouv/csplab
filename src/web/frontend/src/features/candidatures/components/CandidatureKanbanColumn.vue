@@ -11,6 +11,7 @@ const props = defineProps<{
   etape: KanbanColumn
   boardId: string
   isSelected?: boolean
+  canChangeEtape: boolean
 }>()
 
 const emit = defineEmits<{
@@ -53,6 +54,7 @@ function handleCheckboxChange(): void {
     <header class="candidature-kanban-column__header">
       <h2 class="candidature-kanban-column__title">
         <CspCheckbox
+          v-if="canChangeEtape"
           :model-value="isSelected"
           class="candidature-kanban-column__select"
           variant="checkbox-only"
@@ -82,6 +84,7 @@ function handleCheckboxChange(): void {
           :candidature="candidature"
           :board-id="boardId"
           :column-id="etape.uuid"
+          :can-change-etape="canChangeEtape"
         />
       </li>
     </ul>

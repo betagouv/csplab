@@ -13,6 +13,7 @@ import CspEmptyState from '@/components/base/CspEmptyState/CspEmptyState.vue'
 import CspSkeleton from '@/components/base/CspSkeleton/CspSkeleton.vue'
 import { useMinimumPending } from '@/composables/async/useMinimumPending'
 import { useToast } from '@/composables/ui/useToast'
+import { can } from '@/utils/authorizedActions'
 import { formatDateTime } from '@/utils/date'
 import { pluralize } from '@/utils/format'
 import { useCandidatureNotes, useDeleteCandidatureNote, useUpdateCandidatureNoteVisibilite } from '../composables/useCandidatureNotes'
@@ -92,6 +93,13 @@ async function confirmDeletion(): Promise<void> {
 
 function noteActions(note: Note) {
   return [
+    ...(can(note.authorized_actions, 'update_note') ? updateActions(note) : []),
+    ...(can(note.authorized_actions, 'delete_note') ? deleteActions(note) : []),
+  ]
+}
+
+function updateActions(note: Note) {
+  return [
     {
       items: [
         {
@@ -114,6 +122,11 @@ function noteActions(note: Note) {
         },
       ],
     },
+  ]
+}
+
+function deleteActions(note: Note) {
+  return [
     {
       items: [
         {
@@ -238,7 +251,7 @@ function noteActions(note: Note) {
                   class="candidature-notes__badge"
                 />
                 <CspDropdownMenu
-                  v-if="note !== editedNote"
+                  v-if="note !== editedNote && noteActions(note).length > 0"
                   :sections="noteActions(note)"
                   side="bottom"
                   align="end"
