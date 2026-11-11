@@ -6,6 +6,7 @@ from django.conf import settings as django_settings
 from django.test import Client
 from playwright.sync_api import BrowserContext, Page
 
+from infrastructure.django_apps.recruteur.models.recrutement import RecrutementModel
 from infrastructure.django_apps.users.models import UserModel
 from infrastructure.factories.identite.agent_django_factory import (
     AgentDjangoFactory,
@@ -17,6 +18,7 @@ from infrastructure.factories.seed_recruteur_datas import (
 )
 
 SEED_AGENT_EMAILS = {spec["prenom"]: spec["email"] for spec in _AGENTS_SPECS}
+SEED_RECRUTEMENT = "Responsable RH"
 
 
 def add_session_cookie(context: BrowserContext, user: UserModel, url: str) -> None:
@@ -94,3 +96,13 @@ def sign_in(
 @pytest.fixture
 def organisme_url(live_server) -> str:
     return f"{live_server.url}/ats/organismes/{_ORGANISME_UUID}"
+
+
+@pytest.fixture
+def recrutement(seeded_recruteur) -> RecrutementModel:
+    return RecrutementModel.objects.get(offre__title=SEED_RECRUTEMENT)
+
+
+@pytest.fixture
+def recrutement_url(organisme_url, recrutement) -> str:
+    return f"{organisme_url}/recrutements/{recrutement.pk}"
