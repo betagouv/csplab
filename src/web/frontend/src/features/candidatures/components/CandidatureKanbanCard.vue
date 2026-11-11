@@ -115,7 +115,7 @@ const { isDragging, isJustMoved, isDropWaiting } = useDraggableKanbanCard({
 
   box-shadow:
     var(--candidature-kanban-card-shadow),
-    inset 0 0 0 1px var(--border-default-grey);
+    inset 0 0 0 1px var(--csp-raised-border-color);
   transition:
     background-color var(--csp-motion-duration-state),
     box-shadow var(--csp-motion-duration-state);
