@@ -1,33 +1,25 @@
 import { PiniaColada } from '@pinia/colada'
 import { render, screen } from '@testing-library/vue'
 import { createPinia } from 'pinia'
-import { describe, expect, it, vi } from 'vitest'
-import { HttpError } from '@/api/errors'
-import { getConversationMessages } from '../api'
+import { describe, expect, it } from 'vitest'
+import { CANDIDATURE_PARAMS } from '@/test/fixtures/candidatures'
+import { CONVERSATION_UUID, MESSAGE } from '@/test/fixtures/messages'
+import { conversationMessages, conversationMessagesFailure } from '@/test/handlers/messages'
+import { server } from '@/test/server'
 import ConversationThread from './ConversationThread.vue'
 
-vi.mock('../api', () => ({
-  getConversationMessages: vi.fn(),
-}))
-
-const CANDIDATURE = {
-  organismeUuid: '00000000-0000-0000-0000-000000000000',
-  recrutementUuid: 'aaaaaaaa-0001-0001-0001-000000000001',
-  candidatureUuid: 'dddddddd-0001-0001-0001-000000000001',
-}
-const CONVERSATION_UUID = 'ffffffff-0001-0001-0001-000000000001'
 const DOCUMENT_UUID = 'eeeeeeee-0001-0001-0001-000000000001'
 
 function renderThread() {
   return render(ConversationThread, {
     global: { plugins: [createPinia(), PiniaColada] },
-    props: { candidature: CANDIDATURE, conversationUuid: CONVERSATION_UUID },
+    props: { candidature: CANDIDATURE_PARAMS, conversationUuid: CONVERSATION_UUID },
   })
 }
 
 describe('conversationThread', () => {
   it('reports a failed load instead of an empty thread', async () => {
-    vi.mocked(getConversationMessages).mockRejectedValue(new HttpError(500, 'Server Error', undefined))
+    server.use(conversationMessagesFailure(500))
 
     renderThread()
 
@@ -36,16 +28,10 @@ describe('conversationThread', () => {
   })
 
   it('opens an attachment in a new tab', async () => {
-    vi.mocked(getConversationMessages).mockResolvedValue({
-      next: null,
-      previous: null,
-      results: [{
-        content: 'Voici le document',
-        author: 'Alice Dupont',
-        created_at: '2026-10-20T10:00:00Z',
-        documents: [{ uuid: DOCUMENT_UUID, nom: 'Diplome.pdf', type: 'piece_justificative', content_type: 'application/pdf', taille: 1024 }],
-      }],
-    })
+    server.use(conversationMessages([{
+      ...MESSAGE,
+      documents: [{ uuid: DOCUMENT_UUID, nom: 'Diplome.pdf', type: 'piece_justificative', content_type: 'application/pdf', taille: 1024 }],
+    }]))
 
     renderThread()
 

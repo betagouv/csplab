@@ -3,7 +3,6 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { RouterView } from 'vue-router'
 import { getMe } from '@/api/utilisateur'
 import { TABLE_PAGE_SIZE } from '@/components/base/CspDataTable/table'
-import { getConversations } from '@/features/messages/api'
 import {
   CANDIDATURE_ALICE,
   CANDIDATURE_BRUNO,
@@ -16,8 +15,13 @@ import {
   RECRUTEMENT_UUID,
   roleOnOrganisme,
 } from '@/test/fixtures/candidatures'
+import { CONVERSATION } from '@/test/fixtures/messages'
+import { RECRUTEMENTS_ACTIFS } from '@/test/fixtures/recrutements'
 import { makeUser } from '@/test/fixtures/utilisateur'
+import { conversationMessages, conversations } from '@/test/handlers/messages'
+import { recrutementsActifs } from '@/test/handlers/recrutements'
 import { renderWithApp, setupUser } from '@/test/render'
+import { server } from '@/test/server'
 import { getCandidatureActivites, getCandidatureDetail, getCandidatureListe, getMotifsRefus, patchEtapeCandidatures } from '../api'
 
 vi.mock('../api', () => ({
@@ -31,11 +35,8 @@ vi.mock('../api', () => ({
   getCandidatureActivites: vi.fn(),
 }))
 
-vi.mock('@/features/messages/api', () => ({
-  getConversations: vi.fn(),
-}))
-
 const LISTE_PATH = `${KANBAN_PATH}/liste`
+const RECRUTEMENTS_PATH = `/organismes/${ORGANISME_UUID}/recrutements`
 
 async function renderListe() {
   const { router } = await renderWithApp(RouterView, { route: LISTE_PATH })
@@ -83,7 +84,6 @@ describe('candidaturesListeView', () => {
     vi.mocked(getCandidatureDetail).mockImplementation(async ({ candidatureUuid }) => candidatureDetail(candidatureUuid))
     vi.mocked(getMotifsRefus).mockResolvedValue(MOTIFS_REFUS)
     vi.mocked(patchEtapeCandidatures).mockResolvedValue({ reussites: [CANDIDATURE_ALICE], echecs: [] })
-    vi.mocked(getConversations).mockResolvedValue({ count: 0, next: null, previous: null, results: [] })
     vi.mocked(getCandidatureActivites).mockResolvedValue({ count: 0, next: null, previous: null, results: [] })
   })
 
@@ -233,5 +233,29 @@ describe('candidaturesListeView', () => {
     await vi.waitFor(() => expect(router.currentRoute.value.path).toBe(LISTE_PATH))
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
     await vi.waitFor(() => expect(table.getByRole('link', { name: 'Bruno Martin' })).toHaveFocus())
+  })
+
+  it('updates the unread conversations of the candidature and of its recrutement once a conversation is read', async () => {
+    const results = CANDIDATURE_LISTE.results.map(row => row.uuid === CANDIDATURE_ALICE ? { ...row, unread_conversations: 1 } : row)
+    vi.mocked(getCandidatureListe).mockResolvedValueOnce({ ...CANDIDATURE_LISTE, results })
+    const recrutement = { ...RECRUTEMENTS_ACTIFS[0]!, uuid: RECRUTEMENT_UUID, intitule: 'Chargé de mission' }
+    server.use(
+      recrutementsActifs([{ ...recrutement, unread_conversations: 1 }]),
+      conversations([{ ...CONVERSATION, is_unread: true }]),
+      conversationMessages(undefined, () => server.use(recrutementsActifs([recrutement]))),
+    )
+    const user = setupUser()
+    const { router } = await renderWithApp(RouterView, { route: RECRUTEMENTS_PATH })
+    const recrutementRow = () => screen.findByRole('row', { name: /Chargé de mission/ })
+    await within(await recrutementRow()).findByText('1 conversation non lue')
+    await router.push(`${LISTE_PATH}/candidatures/${CANDIDATURE_ALICE}/messages`)
+    const aliceRow = () => screen.findByRole('row', { name: /Alice Dupont/, hidden: true })
+    await within(await aliceRow()).findByText('1 conversation non lue')
+
+    await user.click(await screen.findByRole('link', { name: /Convocation/ }))
+
+    expect(await within(await aliceRow()).findByText('Aucune conversation non lue')).toBeInTheDocument()
+    await router.push(RECRUTEMENTS_PATH)
+    expect(await within(await recrutementRow()).findByText('Aucune conversation non lue')).toBeInTheDocument()
   })
 })

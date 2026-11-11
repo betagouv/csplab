@@ -1,63 +1,46 @@
 import { screen } from '@testing-library/vue'
 import { describe, expect, it, vi } from 'vitest'
-import { HttpError } from '@/api/errors'
 import { CANDIDATURE_PANEL_ROUTE_NAMES } from '@/router/names'
+import { CANDIDATURE_ALICE, CANDIDATURE_PARAMS, KANBAN_PATH } from '@/test/fixtures/candidatures'
+import { CONVERSATION_UUID } from '@/test/fixtures/messages'
+import { conversationCreation, conversationCreationFailure } from '@/test/handlers/messages'
 import { renderWithApp, setupUser, withToaster } from '@/test/render'
-import { createConversation } from '../api'
+import { server } from '@/test/server'
 import NewConversationForm from './NewConversationForm.vue'
 
-vi.mock('../api', () => ({
-  createConversation: vi.fn(),
-}))
+const NEW_CONVERSATION_PATH = `${KANBAN_PATH}/candidatures/${CANDIDATURE_ALICE}/messages/nouveau`
 
-const CANDIDATURE = {
-  organismeUuid: '00000000-0000-0000-0000-000000000000',
-  recrutementUuid: 'aaaaaaaa-0001-0001-0001-000000000001',
-  candidatureUuid: 'dddddddd-0001-0001-0001-000000000001',
+async function writeConversation() {
+  const user = setupUser()
+  const { router } = await renderWithApp(
+    withToaster(NewConversationForm, { candidature: CANDIDATURE_PARAMS, routes: CANDIDATURE_PANEL_ROUTE_NAMES.kanban.conversations }),
+    { route: NEW_CONVERSATION_PATH },
+  )
+
+  await user.type(screen.getByRole('textbox', { name: /Sujet de la conversation/ }), 'Convocation')
+  await user.type(screen.getByRole('textbox', { name: 'Écrivez votre message' }), 'Bonjour')
+  await user.click(screen.getByRole('button', { name: 'Envoyer' }))
+  return { router }
 }
 
-const NEW_CONVERSATION_PATH = `/organismes/${CANDIDATURE.organismeUuid}/recrutements/${CANDIDATURE.recrutementUuid}/candidatures/${CANDIDATURE.candidatureUuid}/messages/nouveau`
-
-const CONVERSATION_UUID = 'ffffffff-0001-0001-0001-000000000001'
-
 describe('newConversationForm', () => {
-  it('opens the created conversation and confirms it once it is sent', async () => {
-    vi.mocked(createConversation).mockResolvedValue({
-      uuid: CONVERSATION_UUID,
-      objet: 'Convocation',
-      creator: 'Marie Dupont',
-      created_at: '2025-06-12T09:00:00Z',
-      last_message_content: 'Bonjour',
-      last_message_author: 'Marie Dupont',
-      last_message_created_at: '2025-06-12T09:00:00Z',
-      is_unread: false,
-    })
-    const user = setupUser()
-    const { router } = await renderWithApp(
-      withToaster(NewConversationForm, { candidature: CANDIDATURE, routes: CANDIDATURE_PANEL_ROUTE_NAMES.kanban.conversations }),
-      { route: NEW_CONVERSATION_PATH },
-    )
+  it('sends the subject and the message, then opens the created conversation and confirms it', async () => {
+    const sent = vi.fn()
+    server.use(conversationCreation(undefined, (candidatureUuid, payload) =>
+      sent(candidatureUuid, payload.get('objet'), payload.get('content'))))
 
-    await user.type(screen.getByRole('textbox', { name: /Sujet de la conversation/ }), 'Convocation')
-    await user.type(screen.getByRole('textbox', { name: 'Écrivez votre message' }), 'Bonjour')
-    await user.click(screen.getByRole('button', { name: 'Envoyer' }))
+    const { router } = await writeConversation()
 
     await vi.waitFor(() => expect(router.currentRoute.value.name).toBe(CANDIDATURE_PANEL_ROUTE_NAMES.kanban.conversations.conversation))
     expect(router.currentRoute.value.params.conversationUuid).toBe(CONVERSATION_UUID)
     expect(await screen.findByRole('heading', { name: 'Conversation créée' })).toBeInTheDocument()
+    expect(sent).toHaveBeenCalledWith(CANDIDATURE_ALICE, 'Convocation', 'Bonjour')
   })
 
   it('keeps the typed content when the creation fails', async () => {
-    vi.mocked(createConversation).mockRejectedValue(new HttpError(500, 'Server Error', undefined))
-    const user = setupUser()
-    const { router } = await renderWithApp(
-      withToaster(NewConversationForm, { candidature: CANDIDATURE, routes: CANDIDATURE_PANEL_ROUTE_NAMES.kanban.conversations }),
-      { route: NEW_CONVERSATION_PATH },
-    )
+    server.use(conversationCreationFailure(500))
 
-    await user.type(screen.getByRole('textbox', { name: /Sujet de la conversation/ }), 'Convocation')
-    await user.type(screen.getByRole('textbox', { name: 'Écrivez votre message' }), 'Bonjour')
-    await user.click(screen.getByRole('button', { name: 'Envoyer' }))
+    const { router } = await writeConversation()
 
     expect(await screen.findByRole('heading', { name: 'La création de la conversation a échoué' })).toBeInTheDocument()
     expect(router.currentRoute.value.path).toBe(NEW_CONVERSATION_PATH)
