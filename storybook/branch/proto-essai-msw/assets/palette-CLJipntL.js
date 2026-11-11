@@ -1,0 +1,1 @@
+import{n as e}from"./rolldown-runtime-DkW27tQK.js";function t(e,t){return`var(--csp-palette-${e}-${t})`}var n,r;function i(){return(i=e((()=>{n=[`grey`,`blue`,`mint`,`green`,`yellow`,`red`,`orange`,`beige`,`pink`,`purple`],r=[`background`,`text`,`dot`]})))()}export{t as i,r as n,i as r,n as t};

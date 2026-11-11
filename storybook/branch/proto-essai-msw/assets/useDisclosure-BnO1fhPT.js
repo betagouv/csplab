@@ -1,0 +1,1 @@
+import{n as e}from"./rolldown-runtime-DkW27tQK.js";import{t,yt as n}from"./vue.esm-bundler-BdiU-5Kf.js";function r(e=!1){let t=n(e);function r(){t.value=!0}function i(){t.value=!1}function a(){t.value=!t.value}return{isOpen:t,open:r,close:i,toggle:a}}function i(){return(i=e((()=>{t()})))()}export{r as n,i as t};
