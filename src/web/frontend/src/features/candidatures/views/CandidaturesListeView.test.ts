@@ -97,8 +97,8 @@ describe('candidaturesListeView', () => {
 
     await vi.waitFor(() => expect(router.currentRoute.value.path).toBe(`${LISTE_PATH}/candidatures/${CANDIDATURE_ALICE}`))
     expect(await screen.findByRole('dialog')).toBeInTheDocument()
-    expect(table.getByRole('link', { name: 'Alice Dupont', hidden: true }).closest('tr')).toHaveAttribute('aria-current', 'true')
-    expect(table.getByRole('link', { name: 'Bruno Martin', hidden: true }).closest('tr')).not.toHaveAttribute('aria-current')
+    expect(table.getByRole('row', { name: /Alice Dupont/, hidden: true })).toHaveAttribute('aria-current', 'true')
+    expect(table.getByRole('row', { name: /Bruno Martin/, hidden: true })).not.toHaveAttribute('aria-current')
   })
 
   it('shows the tags of each candidature in a column', async () => {

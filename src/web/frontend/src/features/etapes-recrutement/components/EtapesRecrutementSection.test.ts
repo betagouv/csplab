@@ -30,7 +30,7 @@ const Host = defineComponent({
   })),
 })
 
-async function render() {
+async function openSection() {
   const user = setupUser()
   await renderWithApp(Host)
   await screen.findByText('Entretien')
@@ -38,7 +38,7 @@ async function render() {
 }
 
 async function openDeletion(nom: string) {
-  const user = await render()
+  const user = await openSection()
   await user.click(screen.getByRole('button', { name: `Actions pour ${nom}` }))
   await user.click(await screen.findByRole('menuitem', { name: 'Supprimer' }))
   await user.click(within(screen.getByRole('dialog', { name: 'Supprimer l\'étape' })).getByRole('button', { name: 'Supprimer' }))
@@ -46,14 +46,14 @@ async function openDeletion(nom: string) {
 }
 
 async function openReset() {
-  const user = await render()
+  const user = await openSection()
   await user.click(screen.getByRole('button', { name: 'Réinitialiser' }))
   await user.click(within(screen.getByRole('dialog', { name: 'Réinitialiser les étapes' })).getByRole('button', { name: 'Réinitialiser' }))
   return user
 }
 
 async function chooseAction(nom: string, action: string) {
-  const user = await render()
+  const user = await openSection()
   await user.click(screen.getByRole('button', { name: `Actions pour ${nom}` }))
   await user.click(await screen.findByRole('menuitem', { name: action }))
   return user
@@ -64,7 +64,7 @@ function displayedNoms() {
 }
 
 async function addEtape(nom: string) {
-  const user = await render()
+  const user = await openSection()
   await user.click(screen.getByRole('button', { name: 'Ajouter une étape' }))
   const dialog = screen.getByRole('dialog', { name: 'Ajouter une étape' })
   await user.type(within(dialog).getByRole('textbox', { name: 'Nom de l\'étape' }), nom)

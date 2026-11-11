@@ -20,7 +20,7 @@ function renderComposer() {
     global: { plugins: [createPinia(), PiniaColada] },
     props: { candidature: CANDIDATURE_PARAMS, conversationUuid: CONVERSATION_UUID },
   })
-  return screen.getByRole('textbox', { name: 'Écrivez votre message' })
+  return { field: screen.getByRole('textbox', { name: 'Écrivez votre message' }) }
 }
 
 describe('messageComposer', () => {
@@ -31,7 +31,7 @@ describe('messageComposer', () => {
   it('clears the draft and confirms once the message is sent', async () => {
     vi.mocked(replyToConversation).mockResolvedValue({ content: 'Bonjour', author: 'Camille Durand', created_at: '2026-10-01T10:00:00Z', documents: [] })
     const user = setupUser()
-    const field = renderComposer()
+    const { field } = renderComposer()
 
     await user.type(field, 'Bonjour')
     await user.click(screen.getByRole('button', { name: 'Envoyer' }))
@@ -43,7 +43,7 @@ describe('messageComposer', () => {
   it('keeps the draft when sending fails', async () => {
     vi.mocked(replyToConversation).mockRejectedValue(new HttpError(500, 'Server Error', undefined))
     const user = setupUser()
-    const field = renderComposer()
+    const { field } = renderComposer()
 
     await user.type(field, 'Bonjour')
     await user.click(screen.getByRole('button', { name: 'Envoyer' }))
