@@ -50,6 +50,10 @@
   --csp-nav-background-hover: var(--background-alt-grey-hover);
   --csp-nav-background-active: var(--background-alt-grey-active);
 
+  /* Region: an area that groups cards, such as a kanban column */
+  --csp-region-background: var(--background-alt-grey);
+  --csp-region-border-color: var(--border-default-grey);
+
   /* Shadows by role, from the ui-kit of La Suite numérique. Raised: an element that one moves, such as a kanban card
      or a sortable list item; on hover it takes the hover shadow, and while dragged the element left in place has no
      shadow and half opacity. Overlap: a menu, a list of options, a tooltip or a notification. Lifted: a dialog, a
@@ -133,6 +137,7 @@
   --csp-kanban-column-padding: var(--csp-space-3);
   --csp-kanban-column-gap: var(--csp-space-3);
   --csp-kanban-column-accent-width: 3px;
+  --csp-kanban-column-accent-color: var(--border-default-grey);
   --csp-kanban-column-header-padding-inline: var(--csp-space-1);
 
   @variant xxl {
