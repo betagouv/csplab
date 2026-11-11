@@ -1,0 +1,96 @@
+/* Scene layout: places teleported layers so that they do not overlap */
+
+:root .csp-dialog.ecarts-modales__dialog {
+  left: calc(var(--csp-space-6) + 12rem);
+}
+
+/* Forced hover: the sidebar scene shows the hover background without a pointer */
+
+:root .csp-sidebar__toggle.ecarts-survol {
+  background: var(--background-default-grey-hover);
+  color: var(--text-default-grey);
+}
+
+:root .csp-sidebar-item.ecarts-survol,
+:root .csp-sidebar-button.ecarts-survol {
+  background: var(--background-alt-grey-hover);
+}
+
+/* Close layers */
+
+:root[data-ecart='couches-tout-arrondi'] .csp-dropdown,
+:root[data-ecart='couches-tout-arrondi'] .csp-popover,
+:root[data-ecart='couches-tout-arrondi'] .csp-toast {
+  border-radius: 0.25rem;
+}
+
+:root[data-ecart='couches-tout-droit'] .csp-select-content,
+:root[data-ecart='couches-tout-droit'] .csp-combobox-content,
+:root[data-ecart='couches-tout-droit'] .csp-tooltip {
+  border-radius: 0;
+}
+
+/* Framed blocks */
+
+:root[data-ecart='blocs-tout-arrondi'] .csp-table-wrapper,
+:root[data-ecart='blocs-tout-arrondi'] .ecarts-blocs__list {
+  border-radius: 0.25rem;
+}
+
+:root[data-ecart='blocs-tout-droit'] .csp-card {
+  --csp-card-radius: 0;
+}
+
+:root[data-ecart='blocs-tout-droit'] .csp-sortable-list-item__content {
+  border-radius: 0;
+}
+
+/* Modal layers */
+
+:root[data-ecart='modales-dialogue-droit'] .csp-dialog {
+  border-radius: 0;
+}
+
+/* Controls */
+
+:root[data-ecart='controles-segmente-droit'] .csp-segmented__elements,
+:root[data-ecart='controles-segmente-droit'] .csp-segmented__element label,
+:root[data-ecart='controles-segmente-droit'] .csp-segmented__element label::before {
+  border-radius: 0;
+}
+
+:root[data-ecart='controles-boutons-arrondis'] .csp-btn {
+  border-radius: 0.25rem;
+}
+
+/* Sidebar collapse button */
+
+:root[data-ecart='repli-comme-ses-voisins'] .csp-sidebar__toggle {
+  border-radius: 0;
+}
+
+:root[data-ecart='repli-comme-ses-voisins'] .csp-sidebar__toggle:hover,
+:root[data-ecart='repli-comme-ses-voisins'] .csp-sidebar__toggle.ecarts-survol {
+  background: var(--background-alt-grey-hover);
+}
+
+:root[data-ecart='repli-comme-ses-voisins'] .csp-sidebar__toggle:active {
+  background: var(--background-alt-grey-active);
+}
+
+/* Neutral greys */
+
+:root[data-ecart='gris-squelette-contraste'] .csp-skeleton {
+  background: var(--background-contrast-grey);
+}
+
+/* Checkboxes and radio buttons */
+
+:root[data-ecart='cases-bordure-grise']
+  .csp-checkbox:not(.csp-checkbox--error)
+  .csp-checkbox__control:not([data-state='checked'], [data-state='indeterminate'], [data-disabled]),
+:root[data-ecart='cases-bordure-grise']
+  .csp-radio:not(.csp-radio--error)
+  .csp-radio__control:not([data-state='checked'], [data-disabled]) {
+  border-color: var(--border-default-grey);
+}
