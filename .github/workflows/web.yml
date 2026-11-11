@@ -194,6 +194,8 @@ jobs:
         run: uv run playwright install --with-deps chromium
       - name: Test e2e
         run: mise run web:test:e2e
+      - name: Test accessibility of the ATS
+        run: mise run web:test:a11y -- tests/presentation/ats
 
   deploy-web:
     needs: [check-changes, lint-web, test-front, test-web]

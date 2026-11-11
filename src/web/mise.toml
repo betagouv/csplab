@@ -134,8 +134,8 @@ run = "pytest -m e2e --no-cov"
 
 [tasks."test:a11y"]
 alias = "web:test:a11y"
-description = "Accessibility tests (Playwright + axe)"
-depends = ["install:py", "//:services:postgres", "//:services:redis"]
+description = "Accessibility tests (Playwright + axe, rebuilds the frontend when needed)"
+depends = ["install:py", "//src/web/frontend:build", "//:services:postgres", "//:services:redis"]
 env = { _.file = "env.test" }
 run = "pytest -m accessibility --create-db --no-cov"
 

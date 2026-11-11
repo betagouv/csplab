@@ -1,7 +1,6 @@
 from unittest.mock import patch
 
 import pytest
-from axe_playwright_python.sync_playwright import Axe
 from django.urls import reverse
 from playwright.sync_api import Page, expect
 
@@ -10,18 +9,7 @@ from infrastructure.django_apps.candidate.models.cv_metadata import CVMetadataMo
 from infrastructure.factories.candidate.cv_metadata_factory import CVMetadataFactory
 from infrastructure.factories.referentiel.offer_factory import OfferFactory
 from infrastructure.mappers.offer_mapper import OfferMapper
-
-AXE_OPTIONS = {
-    "runOnly": {"type": "tag", "values": ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"]},
-    "resultTypes": ["violations"],
-}
-
-
-def _assert_no_violations(axe_results) -> None:
-    violations = axe_results.response.get("violations", [])
-    assert violations == [], f"axe found {len(violations)} violation(s):\n" + "\n".join(
-        f"- [{v['id']}] {v['help']}" for v in violations
-    )
+from tests.utils.axe import assert_no_axe_violations
 
 
 @pytest.mark.accessibility
@@ -37,7 +25,7 @@ class TestCandidateFlowAccessibility:
         page.goto(f"{live_server.url}{reverse('candidate:cv_upload')}")
         expect(page.get_by_role("heading", name="Importez votre CV")).to_be_visible()
 
-        _assert_no_violations(Axe().run(page, options=AXE_OPTIONS))
+        assert_no_axe_violations(page)
 
     def test_processing_page_has_no_axe_violations(
         self, page: Page, live_server, transactional_db
@@ -53,7 +41,7 @@ class TestCandidateFlowAccessibility:
             page.get_by_role("heading", name="Analyse de votre CV en cours...")
         ).to_be_visible()
 
-        _assert_no_violations(Axe().run(page, options=AXE_OPTIONS))
+        assert_no_axe_violations(page)
 
     @patch(
         "application.candidate.usecases.match_cv_to_opportunities."
@@ -78,7 +66,7 @@ class TestCandidateFlowAccessibility:
             page.get_by_role("heading", name="Offres et concours les plus pertinents")
         ).to_be_visible()
 
-        _assert_no_violations(Axe().run(page, options=AXE_OPTIONS))
+        assert_no_axe_violations(page)
 
     @patch(
         "application.candidate.usecases.match_cv_to_opportunities."
@@ -102,4 +90,4 @@ class TestCandidateFlowAccessibility:
         page.locator("[data-drawer-open]").first.click()
         expect(page.locator("dialog[data-drawer][open]")).to_be_visible()
 
-        _assert_no_violations(Axe().run(page, options=AXE_OPTIONS))
+        assert_no_axe_violations(page)

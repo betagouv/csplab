@@ -9,6 +9,8 @@
 ---
 
 > ⚠️ **Amendée par [ADR-009](./ADR-009-idiomatic-django-switch.md)**. Voir la section « Impact sur les ADR existantes » d'ADR-009.
+>
+> Amended on 2026.11.11: the accessibility tests of the ATS pages block a PR, see “Blocking tests” below.
 
 ## Context
 
@@ -61,13 +63,15 @@ without over-engineering lower-risk areas.
   errors already covered), with **pytest**
 - Main end-to-end user stories (those executed by ~80% of users) are tested with
   **Playwright**
+- Accessibility of the ATS pages is tested on every PR with **Playwright** and axe
+  (WCAG 2.1 A and AA rules)
 
 > 🔗 The “repository/use case” breakdown above is replaced by three levels (pure functions / service+DB / view+DB)
 > see [ADR-009](./ADR-009-idiomatic-django-switch.md#impact-sur-les-adr-existantes), “Impact on Existing ADRs” table.
 
 **Non-blocking tests** — these run but do not gate merges:
-- Accessibility and keyboard navigation tests are run at the start of each sprint
-  iteration, results are tracked but do not block PRs
+- Keyboard navigation tests and the accessibility tests of the other pages are run at
+  the start of each sprint iteration, results are tracked but do not block PRs
 
 ### Positive Consequences
 
