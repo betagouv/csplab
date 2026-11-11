@@ -113,6 +113,9 @@
   --csp-field-border-color: var(--border-default-grey);
   --csp-field-radius: 0.25rem;
 
+  /* Controls. Control: a tertiary button or a segmented control */
+  --csp-control-border-color: var(--border-default-grey);
+
   /* Kanban board and columns, mirrored by the kanban skeleton */
   --csp-kanban-gap: var(--csp-space-3);
   --csp-kanban-padding-bottom: var(--csp-space-2);

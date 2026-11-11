@@ -125,7 +125,7 @@ const isIconOnly = computed(() => Boolean(props.icon) && !props.label)
 .csp-btn--tertiary {
   background-color: transparent;
   color: var(--text-action-high-blue-france);
-  box-shadow: inset 0 0 0 1px var(--border-default-grey);
+  box-shadow: inset 0 0 0 1px var(--csp-control-border-color);
 
   &:hover {
     background-color: var(--background-default-grey-hover);
