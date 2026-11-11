@@ -1,7 +1,14 @@
-from django.db import models
+from uuid import uuid4
+
+from django.db import IntegrityError, models
 from django.db.models import Case, Count, OuterRef, Subquery, Value, When
 from django.db.models.functions import Coalesce, Lower, Trim
 
+from domain.recruteur.errors.tag_errors import (
+    TagAlreadyOnNote,
+    TagCategoryMismatch,
+    TagOrganismeMismatch,
+)
 from infrastructure.django_apps.candidate.models.candidature import CandidatureModel
 from infrastructure.django_apps.recruteur.models.note import NoteModel
 from infrastructure.django_apps.recruteur.models.organisme import OrganismeModel
@@ -184,6 +191,20 @@ class RecrutementAgentTagModel(BaseDatedModel):
 class NoteTagQuerySet(models.QuerySet):
     def by_note_and_tag(self, note_id, tag_id) -> "NoteTagQuerySet":
         return self.filter(note_id=note_id, tag_id=tag_id)
+
+    def poser(self, *, note: NoteModel, tag: TagModel) -> "NoteTagModel":
+        if tag.category != TagCategory.NOTE:
+            raise TagCategoryMismatch(tag.pk)
+        note_dans_organisme = NoteModel.objects.filter(
+            pk=note.pk,
+            candidature__etape__recrutement__organisme_id=tag.organisme_id,
+        ).exists()
+        if not note_dans_organisme:
+            raise TagOrganismeMismatch(tag.pk)
+        try:
+            return self.create(id=uuid4(), note=note, tag=tag)
+        except IntegrityError as error:
+            raise TagAlreadyOnNote(tag.pk) from error
 
 
 class NoteTagModel(BaseDatedModel):

@@ -1,6 +1,7 @@
 import pytest
 from django.db import IntegrityError, transaction
 
+from domain.recruteur.errors.tag_errors import TagOrganismeMismatch
 from infrastructure.django_apps.tag.models import (
     CandidatureTagModel,
     NoteTagModel,
@@ -8,6 +9,7 @@ from infrastructure.django_apps.tag.models import (
     TagCategory,
     TagModel,
 )
+from infrastructure.factories.recruteur.note_django_factory import NoteDjangoFactory
 from infrastructure.factories.tag.tag_django_factory import (
     CandidatureTagDjangoFactory,
     NoteTagDjangoFactory,
@@ -92,3 +94,13 @@ def test_name_cannot_be_empty(db):
 def test_name_cannot_have_surrounding_spaces(db):
     with pytest.raises(IntegrityError), transaction.atomic():
         TagDjangoFactory(name="Expert ")
+
+
+def test_poser_rejects_a_tag_of_another_organisme(db):
+    note = NoteDjangoFactory()
+    tag = TagDjangoFactory(category=TagCategory.NOTE)
+
+    with pytest.raises(TagOrganismeMismatch):
+        NoteTagModel.objects.poser(note=note, tag=tag)
+
+    assert not NoteTagModel.objects.exists()
