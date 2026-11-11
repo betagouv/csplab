@@ -63,6 +63,11 @@ async function handleSave(payload: CreateTagPayload): Promise<void> {
       duplicate.value = payload
       return
     }
+    if (tag && isHttpStatus(submitError, 404)) {
+      addToast({ variant: 'warning', title: 'Cette étiquette a été supprimée' })
+      drawerOpen.value = false
+      return
+    }
     addToast({ variant: 'error', title: tag ? 'La modification de l\'étiquette a échoué' : 'L\'ajout de l\'étiquette a échoué' })
   }
 }

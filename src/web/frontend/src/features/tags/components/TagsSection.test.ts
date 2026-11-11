@@ -165,6 +165,19 @@ describe('tagsSection', () => {
     expect(screen.getByRole('dialog')).toBeInTheDocument()
   })
 
+  it('closes the drawer when the edited tag was deleted meanwhile', async () => {
+    vi.mocked(updateTag).mockRejectedValue(new HttpError(404, 'Not Found'))
+    const user = await openEditDrawer('Profil senior')
+
+    const name = screen.getByRole('textbox', { name: /Libellé/ })
+    await user.clear(name)
+    await user.type(name, 'Profil junior')
+    await user.click(screen.getByRole('button', { name: 'Enregistrer' }))
+
+    expect(await screen.findByText('Cette étiquette a été supprimée')).toBeInTheDocument()
+    await vi.waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+  })
+
   it('keeps the duplicate error when only the case changes', async () => {
     vi.mocked(createTag).mockRejectedValue(new HttpError(409, 'Conflict'))
     const user = await openDrawerFrom('Candidature')
