@@ -16,7 +16,7 @@ function subfolders(path) {
 const FEATURES = subfolders(`./${SRC}/features`)
 const ROOT_FOLDERS = subfolders(`./${SRC}`).filter(folder => !['features', 'app', 'router', 'test'].includes(folder))
 
-const FEATURES_WITH_HANDLERS = ['agents', 'recrutements', 'tags']
+const FEATURES_WITH_HANDLERS = ['agents', 'etapes-recrutement', 'recrutements', 'tags']
 
 const apiModuleMocks = {
   rules: {
