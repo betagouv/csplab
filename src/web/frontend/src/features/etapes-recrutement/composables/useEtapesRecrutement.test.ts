@@ -1,11 +1,12 @@
 import type { QueryCache } from '@pinia/colada'
-import type { EtapeRecrutement, UpdateEtapeRecrutement } from '../types'
+import type { UpdateEtapeRecrutement } from '../types'
 import type { EtapesRecrutementType } from './useEtapesRecrutement'
 import { PiniaColada, useQueryCache } from '@pinia/colada'
 import { flushPromises, mount } from '@vue/test-utils'
 import { createPinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { defineComponent, h } from 'vue'
+import { ETAPES_RECRUTEMENT } from '@/test/fixtures/etapes'
 import { useEtapesRecrutement } from './useEtapesRecrutement'
 
 const ORGANISME_UUID = '00000000-0000-0000-0000-000000000001'
@@ -27,13 +28,7 @@ vi.mock('../api', () => ({
   initEtapesOffre: (...args: unknown[]) => mockInitEtapesOffre(...args),
 }))
 
-const DEFAULT_ETAPES: EtapeRecrutement[] = [
-  { uuid: 'aaaa', nom: 'Réception', categorie: 'ENTREE' },
-  { uuid: 'bbbb', nom: 'Présélection', categorie: 'EN_COURS' },
-  { uuid: 'cccc', nom: 'Entretien', categorie: 'EN_COURS' },
-  { uuid: 'dddd', nom: 'Refus', categorie: 'REFUS' },
-  { uuid: 'eeee', nom: 'Recrutement', categorie: 'ACCEPTE' },
-]
+const DEFAULT_ETAPES = ETAPES_RECRUTEMENT
 
 async function mountEtapes(
   params: EtapesRecrutementType = { type: 'organisme', organismeUuid: ORGANISME_UUID },
@@ -130,13 +125,13 @@ describe('useEtapesRecrutement', () => {
     expect(etapes.value).toEqual(DEFAULT_ETAPES)
   })
 
-  it('exposes the mutation error without rejecting', async () => {
+  it('rejects a failed save and keeps the loaded etapes', async () => {
     mockUpdateEtapesRecrutement.mockRejectedValue(new Error('emulated API error'))
 
     const { error, etapes, renameEtape } = await mountEtapes()
-    await renameEtape('bbbb', 'Présélection RH')
 
-    expect(error.value).toBeInstanceOf(Error)
+    await expect(renameEtape('bbbb', 'Présélection RH')).rejects.toThrow('emulated API error')
+    expect(error.value).toBeNull()
     expect(etapes.value).toEqual(DEFAULT_ETAPES)
   })
 
