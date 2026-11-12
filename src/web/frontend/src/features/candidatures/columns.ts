@@ -2,7 +2,7 @@ import type { CandidatureListe } from './types'
 import type { CspColumnDef } from '@/components/base/CspDataTable/table'
 import BadgeCell from '@/components/base/CspDataTable/cells/BadgeCell.vue'
 import ElapsedDaysCell from '@/components/base/CspDataTable/cells/ElapsedDaysCell.vue'
-import UnreadConversationsCell from '@/features/messages/components/cells/UnreadConversationsCell.vue'
+import { UNREAD_CONVERSATIONS_COLUMN } from '@/features/messages/columns'
 import CandidatNomCell from './components/cells/CandidatNomCell.vue'
 import { formatCandidatName } from './format'
 
@@ -11,5 +11,5 @@ export const CANDIDATURE_LISTE_COLUMNS: CspColumnDef<CandidatureListe>[] = [
   { id: 'etape', header: 'Étape', accessor: row => row.etape.nom, cellComponent: BadgeCell },
   { id: 'date_soumission', header: 'Date candidature', sortable: true, accessor: row => row.date_soumission, cellComponent: ElapsedDaysCell },
   { id: 'derniere_activite', header: 'Dernière activité', sortable: true, accessor: row => row.date_derniere_activite, cellComponent: ElapsedDaysCell },
-  { id: 'unread_conversations', header: 'Nouveau message', accessor: row => row.unread_conversations, cellComponent: UnreadConversationsCell },
+  UNREAD_CONVERSATIONS_COLUMN,
 ]

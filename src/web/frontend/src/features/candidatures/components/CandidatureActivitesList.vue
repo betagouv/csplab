@@ -6,6 +6,7 @@ import CspEmptyState from '@/components/base/CspEmptyState/CspEmptyState.vue'
 import CspIcon from '@/components/base/CspIcon/CspIcon.vue'
 import CspSkeleton from '@/components/base/CspSkeleton/CspSkeleton.vue'
 import { formatElapsedTime } from '@/utils/date'
+import { formatPersonName } from '@/utils/format'
 import { ACTIVITE_ICONS, ACTIVITE_LABELS, DEFAULT_ACTIVITE } from '../constants/candidature'
 
 defineProps<{
@@ -28,7 +29,7 @@ function icon(activite: Activite): string {
 }
 
 function author(activite: Activite): string {
-  return `${activite.utilisateur_prenom} ${activite.utilisateur_nom}`.trim()
+  return formatPersonName({ prenom: activite.utilisateur_prenom, nom: activite.utilisateur_nom })
 }
 </script>
 
