@@ -142,6 +142,13 @@ const responsable = computed({
     o.value.equipe = [{ nom, role: 'Responsable' as const }, ...o.value.equipe.filter(m => m.role !== 'Responsable' && m.nom !== nom)]
   },
 })
+// Phrase sous le titre « Annonce » : d'où vient le contenu, et la fiche de poste rattachée.
+const origineAnnonce = computed(() => ({
+  fiche: 'Annonce écrite à partir de la fiche de poste',
+  fichier: 'Annonce écrite à partir d\'un document, rattachée à la fiche de poste',
+  manuel: 'Annonce saisie directement, rattachée à la fiche de poste',
+  duplication: 'Annonce reprise d\'une offre existante, rattachée à la fiche de poste',
+})[o.value.origineContenu])
 const OPTIONS_AGENTS = computed(() => db.organisme.agents.map(a => ({ value: a.nom, label: a.nom })))
 
 // Informations sous le titre, comme sur la page d'un recrutement de l'application.
@@ -534,15 +541,21 @@ const FREQ = [
         titre="Annonce"
         :description="o.etat === 'publiee' ? 'Offre en ligne : vos modifications sont visibles tout de suite par les candidats.' : undefined"
       >
-        <template #actions>
-          <CspButton
-            label="Fiche de poste source"
-            variant="tertiary-no-outline"
-            size="sm"
-            icon="ri:file-text-line"
-            is-icon-left
-            @click="panneau = 'fiche'"
-          />
+        <template #intro>
+          <p class="source">
+            <span>
+              {{ origineAnnonce }}
+              <strong>{{ f.intitule }}</strong> ({{ f.id }})
+            </span>
+            <CspButton
+              label="Voir la fiche de poste"
+              variant="tertiary-no-outline"
+              size="sm"
+              icon="ri:file-text-line"
+              is-icon-left
+              @click="panneau = 'fiche'"
+            />
+          </p>
         </template>
         <FormAnnonce
           :offre="o"
@@ -863,6 +876,20 @@ const FREQ = [
   margin: 0;
   padding: 0;
   border: 0;
+}
+
+.source {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--csp-space-1) var(--csp-space-3);
+  margin: 0;
+  font-size: var(--csp-font-size-sm);
+  color: var(--text-mention-grey);
+
+  strong {
+    color: var(--text-default-grey);
+  }
 }
 
 .parametres,

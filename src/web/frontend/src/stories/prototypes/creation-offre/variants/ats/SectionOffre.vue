@@ -36,6 +36,12 @@ const ouvert = defineModel<boolean>('ouvert', { default: true })
       </div>
     </header>
     <div
+      v-if="$slots.intro && ouvert"
+      class="section__intro"
+    >
+      <slot name="intro" />
+    </div>
+    <div
       v-show="ouvert"
       :id="`${id}-corps`"
       class="section__corps"
@@ -93,6 +99,11 @@ const ouvert = defineModel<boolean>('ouvert', { default: true })
 .section__actions {
   display: flex;
   gap: var(--csp-space-2);
+}
+
+.section__intro {
+  margin-top: var(--csp-space-1);
+  padding-left: calc(24px + var(--csp-space-2) - var(--csp-space-1));
 }
 
 .section__corps {
