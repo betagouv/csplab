@@ -34,11 +34,6 @@
   --csp-space-12: 3rem;
   --csp-space-16: 4rem;
 
-  /* Shadows */
-  --csp-shadow-sm: 0 1px 2px 0 rgba(0, 0, 18, 0.05);
-  --csp-shadow-md: 0 4px 6px -1px rgba(0, 0, 18, 0.1), 0 2px 4px -1px rgba(0, 0, 18, 0.06);
-  --csp-shadow-lg: 0 10px 15px -3px rgba(0, 0, 18, 0.1), 0 4px 6px -2px rgba(0, 0, 18, 0.05);
-
   /* Shadows by role, from the ui-kit of La Suite numérique. Raised: an element that one moves, such as a kanban card
      or a sortable list item; on hover it takes the hover shadow, and while dragged the element left in place has no
      shadow and half opacity. Overlap: a menu, a list of options, a tooltip or a notification. Lifted: a dialog, a

@@ -155,7 +155,6 @@ const model = defineModel<string>()
   box-shadow: inset 0 0 0 1px var(--border-default-grey);
   border: none;
   border-radius: 0.25rem;
-  font-size: var(--csp-select-font-size);
   line-height: 1.25;
   padding: var(--csp-select-padding-y) var(--csp-select-padding-x);
   cursor: pointer;
