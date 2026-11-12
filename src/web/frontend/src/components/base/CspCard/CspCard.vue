@@ -133,7 +133,7 @@ const isLink = computed(() => Boolean(props.href))
   --csp-card-bg: var(--csp-surface-background);
   --csp-card-text: var(--text-default-grey);
   --csp-card-border: var(--csp-surface-border-color);
-  --csp-card-radius: 0.25rem;
+  --csp-card-radius: var(--csp-surface-radius);
   --csp-card-gap: var(--csp-space-4);
   --csp-card-padding: var(--csp-space-4);
   --csp-card-title-size: 1.125rem;

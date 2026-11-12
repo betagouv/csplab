@@ -94,6 +94,7 @@ function focusAnchor(event: Event): void {
   min-width: 12rem;
   max-width: min(var(--csp-popover-width), var(--reka-popover-content-available-width));
   background-color: var(--background-overlap-grey);
+  border-radius: var(--csp-overlap-radius);
   box-shadow:
     inset 0 0 0 1px var(--border-default-grey),
     var(--csp-overlap-shadow);

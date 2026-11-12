@@ -76,6 +76,7 @@ const open = defineModel<boolean | undefined>('open')
 .csp-dropdown {
   min-width: 10rem;
   background-color: var(--background-overlap-grey);
+  border-radius: var(--csp-overlap-radius);
   box-shadow:
     inset 0 0 0 1px var(--border-default-grey),
     var(--csp-overlap-shadow);

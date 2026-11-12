@@ -32,6 +32,7 @@ withDefaults(defineProps<CspSkeletonKanbanProps>(), {
       <CspCard
         v-for="card in cards"
         :key="card"
+        class="csp-skeleton-kanban__card"
         as="div"
         size="sm"
       >
@@ -83,6 +84,10 @@ withDefaults(defineProps<CspSkeletonKanbanProps>(), {
   :deep(.csp-skeleton) {
     background: var(--csp-neutral-background);
   }
+}
+
+.csp-card.csp-skeleton-kanban__card {
+  --csp-card-radius: var(--csp-raised-radius);
 }
 
 .csp-skeleton-kanban__card-meta {
