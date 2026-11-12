@@ -2,6 +2,15 @@ export function pluralize(count: number, singular: string, plural?: string): str
   return count > 1 ? (plural ?? `${singular}s`) : singular
 }
 
+interface PersonName {
+  prenom: string
+  nom: string
+}
+
+export function formatPersonName({ prenom, nom }: PersonName): string {
+  return `${prenom} ${nom}`.trim()
+}
+
 export function quote(text: string): string {
   return `«\u00A0${text}\u00A0»`
 }

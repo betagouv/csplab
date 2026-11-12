@@ -7,6 +7,7 @@ import { createPinia } from 'pinia'
 import { describe, expect, it, vi } from 'vitest'
 import { defineComponent, h, ref } from 'vue'
 import { candidatureKeys, organismeKeys, recrutementKeys } from '@/api/queryKeys'
+import { CANDIDATURE_PARAMS } from '@/test/fixtures/candidatures'
 import { getConversationMessages, replyToConversation } from '../api'
 import { useConversationMessages, useReplyConversation } from './useConversationMessages'
 
@@ -15,11 +16,6 @@ vi.mock('../api', () => ({
   replyToConversation: vi.fn(),
 }))
 
-const CANDIDATURE = {
-  organismeUuid: '00000000-0000-0000-0000-000000000000',
-  recrutementUuid: 'aaaaaaaa-0001-0001-0001-000000000001',
-  candidatureUuid: 'dddddddd-0001-0001-0001-000000000001',
-}
 const CONVERSATION_A = 'ffffffff-0001-0001-0001-000000000001'
 const CONVERSATION_B = 'ffffffff-0001-0001-0001-000000000002'
 
@@ -33,7 +29,7 @@ const MESSAGE: ConversationMessage = {
 }
 
 function mountReplyConversation(conversationUuid: string) {
-  const params = ref<ConversationParams>({ ...CANDIDATURE, conversationUuid })
+  const params = ref<ConversationParams>({ ...CANDIDATURE_PARAMS, conversationUuid })
   let context!: ReturnType<typeof useReplyConversation>
   let queryCache!: QueryCache
 
@@ -69,9 +65,9 @@ function mountConversationMessages(conversations: Conversation[]) {
   mount(defineComponent({
     setup() {
       queryCache = useQueryCache()
-      queryCache.setQueryData(candidatureKeys.conversations(CANDIDATURE), { count: conversations.length, results: conversations })
+      queryCache.setQueryData(candidatureKeys.conversations(CANDIDATURE_PARAMS), { count: conversations.length, results: conversations })
       vi.spyOn(queryCache, 'invalidateQueries')
-      useConversationMessages({ ...CANDIDATURE, conversationUuid: CONVERSATION_A })
+      useConversationMessages({ ...CANDIDATURE_PARAMS, conversationUuid: CONVERSATION_A })
       return () => h('div')
     },
   }), {
@@ -89,11 +85,11 @@ describe('useConversationMessages', () => {
 
     await flushPromises()
 
-    const list = queryCache.getQueryData<PaginatedConversationList>(candidatureKeys.conversations(CANDIDATURE))
+    const list = queryCache.getQueryData<PaginatedConversationList>(candidatureKeys.conversations(CANDIDATURE_PARAMS))
     expect(list?.results.map(({ uuid, is_unread }) => [uuid, is_unread])).toEqual([[CONVERSATION_A, false], [CONVERSATION_B, true]])
     expect(vi.mocked(queryCache.invalidateQueries).mock.calls.map(([filters]) => filters?.key)).toEqual([
-      recrutementKeys.liste(CANDIDATURE),
-      organismeKeys.recrutementsActifs(CANDIDATURE),
+      recrutementKeys.liste(CANDIDATURE_PARAMS),
+      organismeKeys.recrutementsActifs(CANDIDATURE_PARAMS),
     ])
   })
 })
@@ -105,13 +101,13 @@ describe('useReplyConversation', () => {
       resolve = r
     }))
     const { context, params, queryCache } = mountReplyConversation(CONVERSATION_A)
-    const threadA = candidatureKeys.conversation({ ...CANDIDATURE, conversationUuid: CONVERSATION_A })
-    const threadB = candidatureKeys.conversation({ ...CANDIDATURE, conversationUuid: CONVERSATION_B })
+    const threadA = candidatureKeys.conversation({ ...CANDIDATURE_PARAMS, conversationUuid: CONVERSATION_A })
+    const threadB = candidatureKeys.conversation({ ...CANDIDATURE_PARAMS, conversationUuid: CONVERSATION_B })
     queryCache.setQueryData(threadA, EMPTY_THREAD)
     queryCache.setQueryData(threadB, EMPTY_THREAD)
 
     const sending = context.reply({ content: 'Bonjour' })
-    params.value = { ...CANDIDATURE, conversationUuid: CONVERSATION_B }
+    params.value = { ...CANDIDATURE_PARAMS, conversationUuid: CONVERSATION_B }
     resolve(MESSAGE)
     await sending
 

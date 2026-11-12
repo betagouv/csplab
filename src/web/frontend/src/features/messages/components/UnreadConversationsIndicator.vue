@@ -1,20 +1,15 @@
 <script setup lang="ts">
-import { computed } from 'vue'
 import CspIcon from '@/components/base/CspIcon/CspIcon.vue'
-import { pluralize } from '@/utils/format'
+import { formatUnreadConversations } from '../format'
 
-const props = defineProps<{
+defineProps<{
   count: number
 }>()
-
-const srLabel = computed(() => props.count
-  ? `${props.count} ${pluralize(props.count, 'conversation')} non ${pluralize(props.count, 'lue')}`
-  : 'Aucune conversation non lue')
 </script>
 
 <template>
   <span class="unread-conversations-indicator">
-    <span class="sr-only">{{ srLabel }}</span>
+    <span class="sr-only">{{ formatUnreadConversations(count) }}</span>
     <template v-if="count">
       <CspIcon
         name="ri:mail-unread-fill"

@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { HttpError } from '@/api/errors'
 import { useToast } from '@/composables/ui/useToast'
 import { CANDIDATURE_PANEL_ROUTE_NAMES } from '@/router/names'
+import { CANDIDATURE_PARAMS, KANBAN_PATH } from '@/test/fixtures/candidatures'
 import { renderWithApp, setupUser } from '@/test/render'
 import { createConversation } from '../api'
 import NewConversationForm from './NewConversationForm.vue'
@@ -11,13 +12,7 @@ vi.mock('../api', () => ({
   createConversation: vi.fn(),
 }))
 
-const CANDIDATURE = {
-  organismeUuid: '00000000-0000-0000-0000-000000000000',
-  recrutementUuid: 'aaaaaaaa-0001-0001-0001-000000000001',
-  candidatureUuid: 'dddddddd-0001-0001-0001-000000000001',
-}
-
-const NEW_CONVERSATION_PATH = `/organismes/${CANDIDATURE.organismeUuid}/recrutements/${CANDIDATURE.recrutementUuid}/candidatures/${CANDIDATURE.candidatureUuid}/messages/nouveau`
+const NEW_CONVERSATION_PATH = `${KANBAN_PATH}/candidatures/${CANDIDATURE_PARAMS.candidatureUuid}/messages/nouveau`
 
 const CONVERSATION_UUID = 'ffffffff-0001-0001-0001-000000000001'
 
@@ -36,7 +31,7 @@ describe('newConversationForm', () => {
     const user = setupUser()
     const { router } = await renderWithApp(NewConversationForm, {
       route: NEW_CONVERSATION_PATH,
-      props: { candidature: CANDIDATURE, routes: CANDIDATURE_PANEL_ROUTE_NAMES.kanban.conversations },
+      props: { candidature: CANDIDATURE_PARAMS, routes: CANDIDATURE_PANEL_ROUTE_NAMES.kanban.conversations },
     })
 
     await user.type(screen.getByRole('textbox', { name: /Sujet de la conversation/ }), 'Convocation')
@@ -53,7 +48,7 @@ describe('newConversationForm', () => {
     const user = setupUser()
     const { router } = await renderWithApp(NewConversationForm, {
       route: NEW_CONVERSATION_PATH,
-      props: { candidature: CANDIDATURE, routes: CANDIDATURE_PANEL_ROUTE_NAMES.kanban.conversations },
+      props: { candidature: CANDIDATURE_PARAMS, routes: CANDIDATURE_PANEL_ROUTE_NAMES.kanban.conversations },
     })
 
     await user.type(screen.getByRole('textbox', { name: /Sujet de la conversation/ }), 'Convocation')

@@ -1,9 +1,10 @@
 import type { Candidat, CandidatureDetail } from './types'
 import type { CspMetaItem } from '@/components/base/CspMeta/types'
 import { formatElapsedDays } from '@/utils/date'
+import { formatPersonName } from '@/utils/format'
 
 export function formatCandidatName(candidat: Candidat): string {
-  return `${candidat.prenom} ${candidat.nom}`.trim()
+  return formatPersonName(candidat)
 }
 
 export function formatEtapeChangeTitle(candidats: Candidat[], etapeNom: string): string {

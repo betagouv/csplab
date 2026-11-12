@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { EtapeRecrutement, KanbanCard, KanbanColumn } from '../types'
+import type { EtapeRecrutement, KanbanColumn } from '../types'
 import { RadioGroupIndicator, RadioGroupItem, RadioGroupRoot } from 'reka-ui'
 import { computed, ref, watch } from 'vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
@@ -8,6 +8,7 @@ import CspSeparator from '@/components/base/CspSeparator/CspSeparator.vue'
 import CspTag from '@/components/base/CspTag/CspTag.vue'
 import CspTagGroup from '@/components/base/CspTag/CspTagGroup.vue'
 import { pluralize } from '@/utils/format'
+import { formatCandidatName } from '../format'
 
 const props = defineProps<{
   open: boolean
@@ -42,11 +43,6 @@ function handleConfirm(): void {
   if (canConfirm.value) {
     emit('confirm', selectedEtapeUuid.value)
   }
-}
-
-function getCandidatName(candidature: KanbanCard): string {
-  const candidat = candidature.candidat
-  return `${candidat.prenom} ${candidat.nom}`
 }
 
 const selectedUuidsModel = computed({
@@ -114,7 +110,7 @@ const selectedUuidsModel = computed({
               v-for="candidature in sourceEtape.candidatures"
               :key="candidature.uuid"
               :value="candidature.uuid"
-              :label="getCandidatName(candidature)"
+              :label="formatCandidatName(candidature.candidat)"
               variant="selectable"
             />
           </CspTagGroup>

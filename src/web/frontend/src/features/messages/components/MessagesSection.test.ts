@@ -2,6 +2,7 @@ import { screen } from '@testing-library/vue'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { HttpError } from '@/api/errors'
 import { CANDIDATURE_PANEL_ROUTE_NAMES } from '@/router/names'
+import { CANDIDATURE_PARAMS, KANBAN_PATH } from '@/test/fixtures/candidatures'
 import { renderWithApp } from '@/test/render'
 import { getConversations } from '../api'
 import MessagesSection from './MessagesSection.vue'
@@ -10,11 +11,7 @@ vi.mock('../api', () => ({
   getConversations: vi.fn(),
 }))
 
-const ORGANISME_UUID = '00000000-0000-0000-0000-000000000000'
-const RECRUTEMENT_UUID = 'aaaaaaaa-0001-0001-0001-000000000001'
-const CANDIDATURE_ALICE = 'dddddddd-0001-0001-0001-000000000001'
-
-const MESSAGES_PATH = `/organismes/${ORGANISME_UUID}/recrutements/${RECRUTEMENT_UUID}/candidatures/${CANDIDATURE_ALICE}/messages`
+const MESSAGES_PATH = `${KANBAN_PATH}/candidatures/${CANDIDATURE_PARAMS.candidatureUuid}/messages`
 
 describe('messagesSection', () => {
   beforeEach(() => {
@@ -27,11 +24,7 @@ describe('messagesSection', () => {
     await renderWithApp(MessagesSection, {
       route: MESSAGES_PATH,
       props: {
-        candidature: {
-          organismeUuid: ORGANISME_UUID,
-          recrutementUuid: RECRUTEMENT_UUID,
-          candidatureUuid: CANDIDATURE_ALICE,
-        },
+        candidature: CANDIDATURE_PARAMS,
         candidatNom: 'Alice Dupont',
         routes: CANDIDATURE_PANEL_ROUTE_NAMES.kanban.conversations,
       },
