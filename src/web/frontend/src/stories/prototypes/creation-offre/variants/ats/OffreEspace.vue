@@ -38,7 +38,11 @@ const { aller, notifier } = useNav()
 
 const o = computed(() => db.offres.find(x => x.id === props.id)!)
 const f = computed(() => db.fiches.find(x => x.id === o.value.ficheId)!)
-const valideur = computed(() => session.role === 'valideur')
+// Vue « valideur » : lecture seule seulement pour une offre qu'il a à valider (demande envoyée, il fait partie
+// des valideurs). Une offre qu'il crée lui-même reste modifiable normalement.
+const valideur = computed(() => session.role === 'valideur'
+  && o.value.validationEtat !== 'non_demandee'
+  && (o.value.validations ?? []).some(v => v.valideurs.includes(VALIDEUR_DEMO)))
 const modifiable = computed(() => !valideur.value && (o.value.etat === 'brouillon' || o.value.etat === 'publiee'))
 const manques = computed(() => manquesPublication(o.value))
 const prete = computed(() => o.value.etat === 'brouillon' && !manques.value.length && !validationManquante(o.value))
