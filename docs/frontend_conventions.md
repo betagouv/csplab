@@ -284,21 +284,17 @@ export const useCandidatsStore = defineStore('candidats', () => {
 
 ## Testing
 
-A behavior is tested once ([ADR-001](./ADR/ADR-001-testing-strategy.md)), at the level given by the table below.
+A behavior is tested once ([ADR-001](./ADR/ADR-001-testing-strategy.md)), at the level given by the list below.
 
 ### Where a behavior is tested
 
-| Behavior                                                                                                                   | Test                                             |
-| -------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------ |
-| A pure function (format, sort, rule)                                                                                       | Unit test next to the file, every branch         |
-| What a page shows and does: empty, pending and error states, forms, actions shown according to the rights received         | Page test, the view rendered through its route   |
-| The contract of a `components/base` component: props, events, accessible rendering                                         | Component test                                   |
-| Logic with branches that costs a lot to reach through a page (bulk selection, filters, card position)                      | Test of the composable or the store              |
-| What crosses the frontend and the backend: session, rights of each account, data read back after an action, drag and drop | End-to-end test (pytest + Playwright)            |
+- A pure function (format, sort, rule): a unit test next to the file, for every branch.
+- What a page shows and does (empty, pending and error states, forms, actions shown according to the rights received): a page test, the view rendered through its route.
+- The contract of a `components/base` component (props, events, accessible rendering): a component test.
+- Logic with branches that costs a lot to reach through a page (bulk selection, filters, card position): a test of the composable or the store.
+- What crosses the frontend and the backend (session, rights of each account, data read back after an action, drag and drop): an end-to-end test (pytest + Playwright).
 
-- The page test is the default level. A feature component and a composable that reads or writes through Pinia Colada are tested through their page.
-- A test covers our code. reka-ui, Pinia Colada and Vue Router test their own behavior.
-- The coverage thresholds in `src/web/vite.config.ts` are a floor. A person decides which behaviors deserve a test.
+The page test is the default level: a feature component and a composable that reads or writes through Pinia Colada are tested through their page. A test covers our code; reka-ui, Pinia Colada and Vue Router test their own behavior. The coverage thresholds in `src/web/vite.config.ts` are a floor, and a person decides which behaviors deserve a test.
 
 ### Convention
 
