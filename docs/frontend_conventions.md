@@ -353,7 +353,7 @@ export interface CreateCandidatDto {
 
 We name CSS variables on three levels. The design principle is [DDR-007, « Un seul dessin par rôle »](../src/web/frontend/src/stories/ddr/content/ddr-007-dessin-par-role.md).
 
-- Primitives are the DSFR tokens, in `styles/dsfr-tokens-options.css` and `styles/dsfr-tokens-decisions.css`, and the scales of the kit: `--csp-space-*`, `--csp-font-size-*`, `--csp-font-weight-*`, `--csp-line-height-*`, `--csp-z-*`.
+- Primitives are the DSFR tokens, in `styles/dsfr-tokens-options.css` and `styles/dsfr-tokens-decisions.css`, and the scales of the kit: `--csp-space-*`, `--csp-font-size-*`, `--csp-font-weight-*`, `--csp-line-height-*`, `--csp-z-*`, `--csp-motion-easing-*`, `--csp-motion-duration-*`.
 - A role variable is named `--csp-<role>-<property>`, with the state last (`-hover`, `-active`, `-drag`, `-drop`, `-current`, `-disabled`), as in `--csp-raised-shadow-hover`. Its value is a primitive, another role variable, or a written value when no scale gives it, such as a radius, a shadow or a duration.
 - A component variable is named `--csp-<component>-<part>-<property>`, as in `--csp-kanban-column-padding`.
 
