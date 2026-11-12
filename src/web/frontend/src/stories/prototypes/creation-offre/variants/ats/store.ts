@@ -62,13 +62,24 @@ export interface Membre {
   role: 'Responsable' | 'Recruteur' | 'Contributeur'
 }
 
-/** Proposition de modification faite par un valideur : c'est la personne qui rédige l'offre qui l'applique. */
+/** Un champ modifié dans une proposition : valeur actuelle, valeur proposée, et la décision du rédacteur. */
+export interface ChangementChamp {
+  cle: string
+  libelle: string
+  avant: unknown
+  apres: unknown
+  statut?: 'acceptee' | 'ignoree'
+}
+
+/**
+ * Proposition de modification d'un valideur, préparée dans une section et envoyée avec sa décision.
+ * Le valideur ne modifie jamais l'offre : la personne qui la rédige accepte ou ignore chaque champ.
+ */
 export interface Proposition {
   par: string
   le: string
-  section: 'annonce' | 'candidature' | 'publication' | 'interne'
-  texte: string
-  traitee?: boolean
+  section: 'annonce' | 'candidature' | 'publication'
+  champs: ChangementChamp[]
 }
 
 export interface Offre {
@@ -560,11 +571,14 @@ function offresInitiales(f: Fiche[]): Offre[] {
       groupeRifseep: 'Groupe 2',
       commentaireValideurs: 'Remplacement à l\'identique, poste budgété.',
       remuneration: 'Selon expérience et grille indiciaire',
-      propositions: [{ par: 'Claire Morel', le: '21 octobre 2026', section: 'annonce', texte: 'Indiquer une fourchette de rémunération pour les contractuels (2 600 à 3 200 € brut).' }],
+      propositions: [{ par: 'Anne Dubois', le: '20 octobre 2026', section: 'annonce', champs: [
+        { cle: 'remunerationContractuels', libelle: 'Rémunération des contractuels', avant: '', apres: 'De 2 600 à 3 200 € brut mensuel selon expérience' },
+        { cle: 'teletravail', libelle: 'Télétravail', avant: '', apres: '2 jours par semaine' },
+      ] }],
       validationEtat: 'en_attente',
       validationDemandeeLe: '17 octobre 2026',
       validations: [
-        { ...BUDGET, decision: 'accord', par: 'Anne Dubois', le: '20 octobre 2026' },
+        { ...BUDGET, decision: 'accord', par: 'Anne Dubois', le: '20 octobre 2026', commentaire: 'D\'accord. Je propose de préciser la rémunération des contractuels et le télétravail.' },
         { ...RECRUTEMENT, decision: 'attente' },
       ],
       creeLe: '15 octobre 2026',
@@ -698,7 +712,7 @@ export function contenuDepuisFiche(f: Fiche): Pick<Offre, 'titre' | 'categorie' 
 
 // --- Stockage de session ---
 
-const CLE = 'csplab-proto-ats-v14'
+const CLE = 'csplab-proto-ats-v15'
 
 interface Base { fiches: Fiche[], offres: Offre[], organisme: Organisme, role: 'recruteur' | 'superviseur' }
 
@@ -915,16 +929,83 @@ export function nouvelleOffre(f: Fiche | undefined, origineContenu: OrigineConte
 
 // --- Propositions de modification des valideurs ---
 
-export function proposer(o: Offre, section: Proposition['section'], texte: string) {
-  o.propositions = [...(o.propositions ?? []), { par: UTILISATEUR, le: maintenant(), section, texte }]
-  journal(o, `Proposition de modification de ${UTILISATEUR} : « ${texte} »`)
+/** Champs suivis par section, avec leur libellé, pour calculer les différences d'une proposition. */
+export const CHAMPS_SECTION: Record<Proposition['section'], Record<string, string>> = {
+  annonce: {
+    titre: 'Titre de l\'offre',
+    versant: 'Versant',
+    nbPostes: 'Nombre de postes',
+    lieu: 'Lieu',
+    ouvertA: 'Nature de l\'emploi',
+    categorie: 'Catégorie',
+    fondementJuridique: 'Fondement juridique',
+    natureContrat: 'Nature du contrat',
+    statutPoste: 'Statut du poste',
+    dateVacance: 'Date de vacance',
+    corps: 'Corps',
+    grade: 'Grade',
+    tempsTravail: 'Temps de travail',
+    teletravail: 'Télétravail',
+    management: 'Management',
+    remuneration: 'Rémunération des fonctionnaires',
+    remunerationContractuels: 'Rémunération des contractuels',
+    conditions: 'Conditions particulières',
+    referenceInterne: 'Référence interne',
+    referenceFranceTravail: 'Référence France Travail',
+    codePoste: 'Code poste',
+    motifRecrutement: 'Motif de recrutement',
+    motifDepart: 'Motif de départ',
+    agentRemplace: 'Agent remplacé',
+    groupeRifseep: 'Groupe RIFSEEP',
+    cycleTravail: 'Cycle de travail',
+    descriptifEmployeur: 'Description de l\'employeur',
+    presentation: 'Descriptif du service',
+    missions: 'Missions',
+    metier: 'Métier',
+    competences: 'Compétences',
+    profil: 'Expérience et diplômes attendus',
+    niveauExperience: 'Niveau d\'expérience',
+    niveauEtudes: 'Niveau d\'études',
+    langues: 'Langues',
+    infosComplementaires: 'Informations complémentaires',
+  },
+  candidature: { modeCandidature: 'Mode de candidature', courrielCandidature: 'Adresse de réception', urlCandidature: 'Lien de candidature', pieces: 'Pièces demandées', questions: 'Questions aux candidats' },
+  publication: { dateDebut: 'Début de publication', dateFin: 'Fin de publication', urgence: 'Recrutement urgent', diffusion: 'Type de diffusion', canaux: 'Sites de diffusion' },
 }
-export function traiterProposition(o: Offre, i: number) {
-  const p = o.propositions?.[i]
-  if (p) {
-    p.traitee = true
-    journal(o, `Proposition de ${p.par} traitée`)
+
+/** Différences entre l'offre et la copie modifiée par le valideur, pour une section. */
+export function differences(o: Offre, copie: Offre, section: Proposition['section']): ChangementChamp[] {
+  const champs = CHAMPS_SECTION[section]
+  const rec = (x: Offre) => x as unknown as Record<string, unknown>
+  return Object.entries(champs)
+    .filter(([cle]) => JSON.stringify(rec(o)[cle] ?? '') !== JSON.stringify(rec(copie)[cle] ?? ''))
+    .map(([cle, libelle]) => ({ cle, libelle, avant: rec(o)[cle] ?? '', apres: JSON.parse(JSON.stringify(rec(copie)[cle] ?? '')) }))
+}
+
+/** Valeur lisible d'un champ (listes, pièces, booléens). */
+export function valeurLisible(v: unknown): string {
+  if (Array.isArray(v)) {
+    return v.length ? v.join(', ') : '(vide)'
   }
+  if (v && typeof v === 'object') {
+    return Object.entries(v as Record<string, string>).map(([k, x]) => `${k} : ${x}`).join(', ')
+  }
+  if (typeof v === 'boolean') {
+    return v ? 'Oui' : 'Non'
+  }
+  return v === '' || v === undefined || v === null ? '(vide)' : String(v)
+}
+
+export function decider(o: Offre, ip: number, ic: number, statut: 'acceptee' | 'ignoree') {
+  const c = o.propositions?.[ip]?.champs[ic]
+  if (!c) {
+    return
+  }
+  c.statut = statut
+  if (statut === 'acceptee') {
+    (o as unknown as Record<string, unknown>)[c.cle] = JSON.parse(JSON.stringify(c.apres))
+  }
+  journal(o, `${statut === 'acceptee' ? 'Proposition acceptée' : 'Proposition ignorée'} (${o.propositions![ip]!.par}) : ${c.libelle}`)
 }
 
 // --- Circuit de validation (ancienne DAR) ---
@@ -943,8 +1024,12 @@ export function demanderValidation(o: Offre) {
 }
 
 /** Un refus demande un commentaire. Toutes les validations sont requises ; elles se font en parallèle. */
-export function repondre(o: Offre, i: number, decision: 'accord' | 'refus', par: string, commentaire?: string) {
+export function repondre(o: Offre, i: number, decision: 'accord' | 'refus', par: string, commentaire?: string, propositions: Proposition[] = []) {
   const v = o.validations![i]!
+  if (propositions.length) {
+    o.propositions = [...(o.propositions ?? []), ...propositions]
+    journal(o, `${propositions.reduce((n, p) => n + p.champs.length, 0)} modification(s) proposée(s) par ${par}`)
+  }
   v.decision = decision
   v.par = par
   v.le = maintenant()
@@ -956,10 +1041,10 @@ export function repondre(o: Offre, i: number, decision: 'accord' | 'refus', par:
   else if (o.validations!.every(x => x.decision === 'accord')) {
     o.validationEtat = 'validee'
     o.validationObtenueLe = maintenant()
-    journal(o, `Accord du ${v.nom} (${par}) — validation obtenue`)
+    journal(o, `Accord du ${v.nom} (${par})${commentaire ? ` : « ${commentaire} »` : ''} — validation obtenue`)
   }
   else {
-    journal(o, `Accord du ${v.nom} (${par})`)
+    journal(o, `Accord du ${v.nom} (${par})${commentaire ? ` : « ${commentaire} »` : ''}`)
   }
 }
 

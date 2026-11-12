@@ -721,3 +721,10 @@ Tout est local au prototype (aucun composant `Csp*` partagé modifié).
 - **Droit « Autoriser »** pour les agents (avec Créer et Publier) ; seuls ces agents sont proposés comme valideurs.
 - **Valideur** : ne modifie pas l'offre, il **propose** (partie concernée + texte) et peut saisir le **commentaire de l'équipe RH**. La personne qui rédige voit un bandeau « N propositions à traiter », va à la partie concernée, applique puis « Marquer comme traitée ». Exemple : proposition de Claire Morel sur « Chargé·e de recrutement ».
 - Inchangé (choix d'Alice) : page unique, liste à statut unique, accueil actuel, aperçu candidat et multi-diffusion.
+
+## Itération 22 — Décision du valideur et propositions champ par champ
+
+- **Valideur** (offre « Juriste marchés publics ») : en haut de la page, un bloc **« Votre décision · Pôle juridique »** avec l'état des autres bureaux, le résumé pour la validation, puis trois choix : **Valider tel quel**, **Valider avec un commentaire**, **Refuser avec un commentaire** (commentaire obligatoire dans ces deux cas).
+- **Proposer des modifications** : bouton dans les sections Annonce, Formulaire de candidature et Publication. Le valideur modifie les champs dans une copie (cadre pointillé « Mode proposition »), puis « Ajouter à ma réponse ». L'offre n'est jamais modifiée par le valideur ; tout part avec sa décision (« 1 modification proposée partira avec votre réponse », retirable).
+- **Rédacteur** : bandeau « N propositions à traiter » ; dans la section « Validation pour publication », chaque proposition montre, champ par champ, la valeur actuelle (barrée) et la valeur proposée (surlignée), avec **Accepter** (le champ est remplacé) ou **Ignorer**. Exemple : propositions d'Anne Dubois sur « Chargé·e de recrutement ».
+- Le commentaire de décision remplace le « commentaire de l'équipe RH » séparé ; il apparaît sur la ligne du bureau, côté rédacteur.

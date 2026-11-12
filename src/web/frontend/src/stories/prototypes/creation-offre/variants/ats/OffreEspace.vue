@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { EtapeFormulaire } from './aide'
+import type { Offre, Proposition } from './store'
 import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
 import CspCheckbox from '@/components/base/CspCheckbox/CspCheckbox.vue'
@@ -17,6 +18,7 @@ import ApercuCandidat from './ApercuCandidat.vue'
 import BlocValidation from './BlocValidation.vue'
 import ChampsPublication from './ChampsPublication.vue'
 import CycleOffre from './CycleOffre.vue'
+import DecisionValideur from './DecisionValideur.vue'
 import DemandeValidation from './DemandeValidation.vue'
 import FicheSource from './FicheSource.vue'
 import FormAnnonce from './FormAnnonce.vue'
@@ -27,7 +29,7 @@ import PageAts from './PageAts.vue'
 import Propositions from './Propositions.vue'
 import ResumeValidation from './ResumeValidation.vue'
 import SectionOffre from './SectionOffre.vue'
-import { archiverOffre, arreterSupport, aujourdhui, aValiderParMoi, CANAUX_DIFFUSION, dateLongue, db, heure, joursRestants, le, maintenant, plusJours, plusUnMois, prolonger, retirer, sauvegarder, signalerModification, UTILISATEUR, validationManquante } from './store'
+import { archiverOffre, arreterSupport, aujourdhui, aValiderParMoi, CANAUX_DIFFUSION, dateLongue, db, differences, heure, joursRestants, le, maintenant, plusJours, plusUnMois, prolonger, retirer, sauvegarder, signalerModification, UTILISATEUR, validationManquante } from './store'
 
 // Page unique de l'offre : on y arrive en créant l'offre et on y revient pour la suivre.
 // En haut : résumé pour la validation et encart de l'étape en cours (demander la validation, publier…).
@@ -44,7 +46,43 @@ const f = computed(() => db.fiches.find(x => x.id === o.value.ficheId))
 // Tout est en lecture seule ; ses boutons Valider / Refuser sont dans l'encart du haut.
 const valideur = computed(() => aValiderParMoi(o.value))
 // Offre d'un collègue : consultable seulement, avant comme après la réponse du valideur.
-const aTraiter = computed(() => (o.value.propositions ?? []).filter(p => !p.traitee).length)
+const aTraiter = computed(() => (o.value.propositions ?? []).reduce((n, p) => n + p.champs.filter(c => !c.statut).length, 0))
+
+// --- Valideur : propositions de modification préparées section par section, envoyées avec la décision ---
+const propositionsEnCours = ref<Proposition[]>([])
+const edition = ref<{ section: Proposition['section'], copie: Offre } | null>(null)
+function commencerProposition(section: Proposition['section']) {
+  const copie = JSON.parse(JSON.stringify(o.value)) as Offre
+  // Reprend les changements déjà préparés pour cette section.
+  for (const c of propositionsEnCours.value.find(p => p.section === section)?.champs ?? []) {
+    (copie as unknown as Record<string, unknown>)[c.cle] = JSON.parse(JSON.stringify(c.apres))
+  }
+  edition.value = { section, copie }
+  ouverts[section] = true
+}
+function ajouterProposition() {
+  if (!edition.value) {
+    return
+  }
+  const { section, copie } = edition.value
+  const champs = differences(o.value, copie, section)
+  propositionsEnCours.value = [
+    ...propositionsEnCours.value.filter(p => p.section !== section),
+    ...(champs.length ? [{ par: UTILISATEUR, le: maintenant(), section, champs }] : []),
+  ]
+  edition.value = null
+  notifier(champs.length ? `${champs.length} modification${champs.length > 1 ? 's' : ''} ajoutée${champs.length > 1 ? 's' : ''} à votre réponse.` : 'Aucune modification : rien n\'a été ajouté.')
+  void allerA('validation')
+}
+function retirerProposition(section: Proposition['section']) {
+  propositionsEnCours.value = propositionsEnCours.value.filter(p => p.section !== section)
+}
+function reponseEnvoyee() {
+  propositionsEnCours.value = []
+  edition.value = null
+}
+const enEdition = (section: Proposition['section']) => edition.value?.section === section
+const MODE_PROPOSITION = 'Mode proposition : modifiez les champs voulus. L\'offre n\'est pas modifiée ; vos changements partiront avec votre réponse.'
 const lectureSeule = computed(() => Boolean(o.value.creePar) && o.value.creePar !== UTILISATEUR)
 const modifiable = computed(() => !lectureSeule.value && (o.value.etat === 'brouillon' || o.value.etat === 'publiee'))
 const manques = computed(() => manquesPublication(o.value))
@@ -330,8 +368,16 @@ const FREQ = [
       <div class="tete__etat">
         <!-- Encart de l'étape en cours -->
         <template v-if="o.etat === 'brouillon'">
+          <DecisionValideur
+            v-if="valideur"
+            :offre="o"
+            :fiche="f"
+            :propositions="propositionsEnCours"
+            @retirer="retirerProposition"
+            @envoye="reponseEnvoyee"
+          />
           <Panel
-            v-if="prete"
+            v-else-if="prete"
             class="encart encart--action"
             titre="Prête à être publiée"
             :description="db.organisme.validationActive ? `Validation obtenue ${le(o.validationObtenueLe)} et annonce complète. L'offre n'est jamais publiée automatiquement.` : 'Annonce complète. L\'offre n\'est jamais publiée automatiquement.'"
@@ -564,8 +610,37 @@ const FREQ = [
         id="annonce"
         v-model:ouvert="ouverts.annonce"
         titre="Annonce"
-        :description="lectureSeule ? `Lecture seule : seule la personne qui suit l'offre (${o.creePar}) peut la modifier.` : o.etat === 'publiee' ? 'Offre en ligne : vos modifications sont visibles tout de suite par les candidats.' : undefined"
+        :description="enEdition('annonce') ? MODE_PROPOSITION : lectureSeule ? `Lecture seule : seule la personne qui suit l'offre (${o.creePar}) peut la modifier.` : o.etat === 'publiee' ? 'Offre en ligne : vos modifications sont visibles tout de suite par les candidats.' : undefined"
       >
+        <template
+          v-if="valideur"
+          #actions
+        >
+          <template v-if="enEdition('annonce')">
+            <CspButton
+              label="Annuler"
+              size="sm"
+              variant="tertiary-no-outline"
+              @click="edition = null"
+            />
+            <CspButton
+              label="Ajouter à ma réponse"
+              size="sm"
+              icon="ri:add-line"
+              is-icon-left
+              @click="ajouterProposition"
+            />
+          </template>
+          <CspButton
+            v-else-if="!edition"
+            label="Proposer des modifications"
+            size="sm"
+            variant="secondary"
+            icon="ri:edit-line"
+            is-icon-left
+            @click="commencerProposition('annonce')"
+          />
+        </template>
         <template #intro>
           <p class="source">
             <span>
@@ -587,21 +662,22 @@ const FREQ = [
         </template>
         <fieldset
           class="verrou"
-          :disabled="!modifiable"
+          :class="{ 'verrou--proposition': enEdition('annonce') }"
+          :disabled="!modifiable && !enEdition('annonce')"
         >
           <FormAnnonce
-            :offre="o"
+            :offre="enEdition('annonce') ? edition!.copie : o"
             :fiche="f"
           />
         </fieldset>
       </SectionOffre>
 
       <SectionOffre
-        v-if="avecValidation"
+        v-if="avecValidation && !valideur"
         id="validation"
         v-model:ouvert="ouverts.validation"
         titre="Validation pour publication"
-        :description="valideur ? 'Lecture seule : ce résumé est repris de l\'annonce. Donnez votre réponse en haut de la page.' : lectureSeule ? 'Lecture seule.' : undefined"
+        :description="lectureSeule ? 'Lecture seule.' : undefined"
       >
         <template #intro>
           <p class="source">
@@ -617,7 +693,6 @@ const FREQ = [
         <Propositions
           v-if="o.validationEtat !== 'non_demandee'"
           :offre="o"
-          :valideur="valideur"
           :redacteur="!lectureSeule"
           @aller="allerA"
         />
@@ -627,13 +702,44 @@ const FREQ = [
         id="candidature"
         v-model:ouvert="ouverts.candidature"
         titre="Formulaire de candidature"
+        :description="enEdition('candidature') ? MODE_PROPOSITION : undefined"
       >
+        <template
+          v-if="valideur"
+          #actions
+        >
+          <template v-if="enEdition('candidature')">
+            <CspButton
+              label="Annuler"
+              size="sm"
+              variant="tertiary-no-outline"
+              @click="edition = null"
+            />
+            <CspButton
+              label="Ajouter à ma réponse"
+              size="sm"
+              icon="ri:add-line"
+              is-icon-left
+              @click="ajouterProposition"
+            />
+          </template>
+          <CspButton
+            v-else-if="!edition"
+            label="Proposer des modifications"
+            size="sm"
+            variant="secondary"
+            icon="ri:edit-line"
+            is-icon-left
+            @click="commencerProposition('candidature')"
+          />
+        </template>
         <fieldset
           class="verrou"
-          :disabled="!modifiable"
+          :class="{ 'verrou--proposition': enEdition('candidature') }"
+          :disabled="!modifiable && !enEdition('candidature')"
         >
           <FormCandidature
-            :offre="o"
+            :offre="enEdition('candidature') ? edition!.copie : o"
             :verrouille="o.etat !== 'brouillon'"
           />
         </fieldset>
@@ -702,15 +808,45 @@ const FREQ = [
         id="publication"
         v-model:ouvert="ouverts.publication"
         titre="Publication"
-        :description="o.etat === 'brouillon' ? undefined : 'Pour changer la date de fin, utilisez « Prolonger » en haut de la page.'"
+        :description="enEdition('publication') ? MODE_PROPOSITION : o.etat === 'brouillon' ? undefined : 'Pour changer la date de fin, utilisez « Prolonger » en haut de la page.'"
       >
+        <template
+          v-if="valideur"
+          #actions
+        >
+          <template v-if="enEdition('publication')">
+            <CspButton
+              label="Annuler"
+              size="sm"
+              variant="tertiary-no-outline"
+              @click="edition = null"
+            />
+            <CspButton
+              label="Ajouter à ma réponse"
+              size="sm"
+              icon="ri:add-line"
+              is-icon-left
+              @click="ajouterProposition"
+            />
+          </template>
+          <CspButton
+            v-else-if="!edition"
+            label="Proposer des modifications"
+            size="sm"
+            variant="secondary"
+            icon="ri:edit-line"
+            is-icon-left
+            @click="commencerProposition('publication')"
+          />
+        </template>
         <fieldset
           class="verrou"
-          :disabled="!modifiable"
+          :class="{ 'verrou--proposition': enEdition('publication') }"
+          :disabled="!modifiable && !enEdition('publication')"
         >
           <div class="publication">
             <ChampsPublication
-              :offre="o"
+              :offre="enEdition('publication') ? edition!.copie : o"
               :disabled="o.etat !== 'brouillon'"
             />
           </div>
@@ -970,6 +1106,12 @@ const FREQ = [
   margin: 0;
   padding: 0;
   border: 0;
+
+  &--proposition {
+    padding: var(--csp-space-4);
+    outline: 2px dashed var(--border-plain-blue-france);
+    outline-offset: var(--csp-space-2);
+  }
 }
 
 .source {
