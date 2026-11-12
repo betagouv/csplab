@@ -5,6 +5,7 @@ from django.urls import reverse
 from django.utils import timezone
 from rest_framework import status
 
+from infrastructure.django_apps.commons.models import AuditLogModel
 from infrastructure.django_apps.tag.models import NoteTagModel, TagCategory
 from infrastructure.factories.candidate.candidature_django_factory import (
     create_recrutement_and_candidature_for_agent,
@@ -38,6 +39,14 @@ def _note_tag_url(organisme_id, recrutement_id, candidature_id, note_id, tag_id)
             "note_uuid": str(note_id),
             "tag_uuid": str(tag_id),
         },
+    )
+
+
+def _note_events(note_id) -> list[str]:
+    return list(
+        AuditLogModel.objects.filter(
+            ressource_kind="Note", ressource_id=note_id
+        ).values_list("event_name", flat=True)
     )
 
 
@@ -187,6 +196,7 @@ class TestCandidatureNoteTagsView:
         assert list(
             NoteTagModel.objects.filter(note=note).values_list("tag_id", flat=True)
         ) == [tag.id]
+        assert _note_events(note.id) == ["EtiquettePosee"]
 
 
 class TestCandidatureNoteTagDetailView:
@@ -294,3 +304,4 @@ class TestCandidatureNoteTagDetailView:
             autre_etiquette.pk,
             autre_note.pk,
         }
+        assert _note_events(note.id) == ["EtiquetteRetiree"]
