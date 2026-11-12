@@ -120,6 +120,7 @@ const page = ref(1)
     <template #actions>
       <CspButton
         label="Créer une offre"
+        size="sm"
         icon="ri:add-line"
         is-icon-left
         @click="aller({ nom: 'creation' })"
@@ -135,6 +136,7 @@ const page = ref(1)
         <template #selection-actions>
           <CspButton
             label="Assigner un responsable"
+            size="sm"
             @click="notifier('Simulation : assignation d\'un responsable non prototypée.')"
           />
         </template>
@@ -153,6 +155,7 @@ const page = ref(1)
         />
         <CspButton
           :label="nbFiltres ? `Filtres (${nbFiltres})` : 'Filtres'"
+          size="sm"
           variant="tertiary"
           icon="ri:filter-line"
           is-icon-left

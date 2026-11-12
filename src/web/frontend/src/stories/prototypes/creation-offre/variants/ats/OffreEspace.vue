@@ -431,6 +431,7 @@ const FREQ = [
             <CspButton
               label="Prolonger"
               variant="secondary"
+              size="sm"
               icon="ri:calendar-line"
               is-icon-left
               @click="ouvrirProlongation"
@@ -438,6 +439,7 @@ const FREQ = [
             <CspButton
               label="Retirer l'offre"
               variant="tertiary"
+              size="sm"
               icon="ri:stop-circle-line"
               is-icon-left
               @click="retrait = true"
