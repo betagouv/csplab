@@ -208,7 +208,6 @@ const FREQ = [
           <CspButton
             icon="ri:more-fill"
             variant="tertiary"
-            size="sm"
             aria-label="Actions sur l’offre"
           />
         </template>
