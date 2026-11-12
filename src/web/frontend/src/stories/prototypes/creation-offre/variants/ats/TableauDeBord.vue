@@ -1,22 +1,21 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
-import { manquesPublication } from './aide'
 import EtatBadge from './EtatBadge.vue'
 import { useNav } from './nav'
 import PageAts from './PageAts.vue'
-import { db, fiche, nouvelleFiche, termineBientot, validationManquante } from './store'
+import { db, fiche, nouvelleFiche, termineBientot } from './store'
+import { statutListe } from './suivi'
 
 // Écran 1 — tableau de bord : accès aux deux espaces et quelques compteurs, sans analytique.
 const { aller } = useNav()
 
 // Bloc « À traiter » : à valider (pour les valideurs), à publier (brouillons validés et complets),
 // et les publications qui se terminent sous 7 jours.
-const aPublier = (o: (typeof db.offres)[number]) => o.etat === 'brouillon' && !validationManquante(o) && !manquesPublication(o).length
 const COMPTEURS = computed(() => [
-  { filtre: 'brouillon', lib: 'Brouillons', aide: 'en cours de rédaction', n: db.offres.filter(o => o.etat === 'brouillon').length },
-  { filtre: 'en_attente', lib: 'À valider', aide: 'validation en attente', n: db.offres.filter(o => o.etat === 'brouillon' && o.validationEtat === 'en_attente').length },
-  { filtre: 'a_publier', lib: 'À publier', aide: 'validées et complètes', n: db.offres.filter(aPublier).length },
+  { filtre: 'brouillon', lib: 'Brouillons', aide: 'en cours de rédaction', n: db.offres.filter(o => statutListe(o) === 'brouillon').length },
+  { filtre: 'en_attente', lib: 'À valider', aide: 'validation en attente', n: db.offres.filter(o => statutListe(o) === 'validation_attente').length },
+  { filtre: 'a_publier', lib: 'À publier', aide: 'validées et complètes', n: db.offres.filter(o => statutListe(o) === 'prete').length },
   { filtre: 'bientot', lib: 'Se terminent sous 7 jours', aide: 'à prolonger ou laisser se retirer', n: db.offres.filter(termineBientot).length },
 ])
 function creerFiche() {

@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import type { EtatOffre, EtatValidation, Offre } from './store'
+import type { Offre } from './store'
+import type { StatutListe } from './suivi'
 import type { CspColumnDef } from '@/components/base/CspDataTable/table'
 import { computed, ref } from 'vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
@@ -12,21 +13,21 @@ import { useTableSelection } from '@/composables/data/useTableSelection'
 import { useTextSearch } from '@/composables/data/useTextSearch'
 import { useDraft } from '@/composables/storage/useDraft'
 import { useDisclosure } from '@/composables/ui/useDisclosure'
-import { manquesPublication } from './aide'
+import ActionCell from './cellules/ActionCell.vue'
 import ActionsOffreCell from './cellules/ActionsOffreCell.vue'
-import EtatCell from './cellules/EtatCell.vue'
 import ModifieCell from './cellules/ModifieCell.vue'
+import StatutCell from './cellules/StatutCell.vue'
 import TagCell from './cellules/TagCell.vue'
 import TitreCell from './cellules/TitreCell.vue'
-import ValidationCell from './cellules/ValidationCell.vue'
 import Colonnes from './Colonnes.vue'
 import { useNav } from './nav'
 import PageAts from './PageAts.vue'
-import { CATEGORIES, dateTri, db, fiche, LIBELLES_CONTENU, LIBELLES_ETAT, LIBELLES_VALIDATION, termineBientot, validationManquante } from './store'
+import { CATEGORIES, dateTri, db, fiche, LIBELLES_CONTENU, termineBientot } from './store'
+import { actionAFaire, dateCourte, referenceCsp, statutListe, STATUTS } from './suivi'
 
-// Liste des offres d'emploi, sur le modèle de la page « Recrutements » de l'application :
-// onglets en cours / archivées, nombre de résultats, recherche, filtres dans un tiroir, sélection, tri, pagination.
-// Les brouillons y apparaissent ; statut et état de la validation sont deux colonnes distinctes.
+// « Mes offres d'emploi », d'après la maquette d'Alice : onglets en cours / archivées, recherche, filtres,
+// sélection, tri, pagination. Un seul statut (publication et validation réunies) et une colonne
+// « Action à faire » qui donne la prochaine étape de chaque offre.
 const props = defineProps<{ filtre?: string }>()
 const { aller, notifier } = useNav()
 
@@ -38,37 +39,41 @@ const ONGLETS = [
 const onglet = ref<Onglet>(props.filtre === 'archivee' ? 'archivees' : 'en_cours')
 
 type Col = CspColumnDef<Offre> & { verrouillee?: boolean }
+const ORDRE: StatutListe[] = ['validation_refusee', 'prete', 'brouillon', 'validation_attente', 'publiee', 'retiree', 'archivee']
 const TOUTES: Col[] = [
   { id: 'titre', header: 'Intitulé de l\'offre', accessor: o => o.titre || 'Sans titre', cellComponent: TitreCell, verrouillee: true },
-  { id: 'reference', header: 'Référence', accessor: o => o.id, width: '9rem' },
-  { id: 'etat', header: 'Statut', sortable: true, accessor: o => LIBELLES_ETAT[o.etat], cellComponent: EtatCell, width: '8rem' },
-  { id: 'validation', header: 'Validation', sortable: true, accessor: o => LIBELLES_VALIDATION[o.validationEtat], cellComponent: ValidationCell, width: '13rem' },
+  { id: 'reference', header: 'Référence CSP', accessor: o => referenceCsp(o), width: '7.5rem' },
+  { id: 'statut', header: 'Statut', sortable: true, accessor: o => ORDRE.indexOf(statutListe(o)), cellComponent: StatutCell, width: '10.5rem' },
+  { id: 'debut', header: 'Début', sortable: true, accessor: o => dateCourte(o.dateDebut), width: '7.5rem' },
+  { id: 'fin', header: 'Fin de publication', sortable: true, accessor: o => dateCourte(o.dateFin), width: '8rem' },
+  { id: 'modifie', header: 'Dernière activité', sortable: true, accessor: o => dateTri(o.modifieLe), cellComponent: ModifieCell, width: '8.5rem' },
+  { id: 'action', header: 'Action à faire', accessor: o => actionAFaire(o)?.label ?? '', cellComponent: ActionCell, width: '11rem' },
   { id: 'fiche', header: 'Fiche de poste', accessor: o => fiche(o.ficheId)?.intitule ?? '—' },
   { id: 'categorie', header: 'Catégorie', accessor: o => o.categorie, cellComponent: TagCell, width: '7rem' },
   { id: 'postes', header: 'Postes', sortable: true, accessor: o => Number(o.nbPostes), align: 'end', width: '6rem' },
   { id: 'contenu', header: 'Origine du contenu', accessor: o => LIBELLES_CONTENU[o.origineContenu] },
-  { id: 'debut', header: 'Début', sortable: true, accessor: o => o.dateDebut ? o.dateDebut.split('-').reverse().join('/') : '-', width: '7rem' },
-  { id: 'fin', header: 'Fin', sortable: true, accessor: o => o.dateFin ? o.dateFin.split('-').reverse().join('/') : '-', width: '7rem' },
-  { id: 'modifie', header: 'Dernière modification', sortable: true, accessor: o => dateTri(o.modifieLe), cellComponent: ModifieCell, width: '11rem' },
 ]
 const ACTIONS: Col = { id: 'actions', header: '', align: 'end', width: '3.5rem', cellComponent: ActionsOffreCell, verrouillee: true }
-const DEFAUT = ['reference', 'etat', 'validation', 'debut', 'fin', 'modifie']
+const DEFAUT = ['reference', 'statut', 'fin', 'modifie', 'action']
 const visiblesIds = ref([...DEFAUT])
 const visibles = computed(() => [...TOUTES, ACTIONS].filter(c => c.verrouillee || visiblesIds.value.includes(c.id)))
 
 // --- Recherche et filtres (brouillon dans le tiroir, appliqués au clic) ---
 const TOUS = 'tous'
 // Filtres rapides depuis l'accueil : « À valider », « À publier », « Se terminent sous 7 jours ».
-const filtres = useDraft(() => ({ etat: TOUS, validation: TOUS, delai: TOUS, categorie: TOUS }))
+const filtres = useDraft(() => ({ statut: TOUS, delai: TOUS, categorie: TOUS }))
 if (props.filtre && props.filtre !== 'archivee') {
-  if (props.filtre === 'bientot' || props.filtre === 'a_publier') {
+  if (props.filtre === 'bientot') {
     filtres.draft.delai = props.filtre
   }
-  else if (props.filtre in LIBELLES_VALIDATION) {
-    filtres.draft.validation = props.filtre
+  else if (props.filtre === 'a_publier') {
+    filtres.draft.statut = 'prete'
   }
-  else {
-    filtres.draft.etat = props.filtre
+  else if (props.filtre === 'en_attente') {
+    filtres.draft.statut = 'validation_attente'
+  }
+  else if (props.filtre in STATUTS) {
+    filtres.draft.statut = props.filtre
   }
   filtres.apply()
 }
@@ -83,19 +88,16 @@ function appliquer() {
 }
 const nbFiltres = computed(() => Object.values(filtres.applied).filter(v => v !== TOUS).length)
 
-const ETATS_EN_COURS: EtatOffre[] = ['brouillon', 'publiee', 'retiree']
-const OPTIONS_ETAT = [{ value: TOUS, label: 'Tous les statuts' }, ...ETATS_EN_COURS.map(e => ({ value: e, label: LIBELLES_ETAT[e] }))]
-const OPTIONS_VALIDATION = [{ value: TOUS, label: 'Tous les états' }, ...(Object.keys(LIBELLES_VALIDATION) as EtatValidation[]).map(e => ({ value: e, label: LIBELLES_VALIDATION[e] }))]
-const OPTIONS_DELAI = [{ value: TOUS, label: 'Toutes' }, { value: 'a_publier', label: 'Prêtes à être publiées' }, { value: 'bientot', label: 'Se terminent sous 7 jours' }]
+const STATUTS_EN_COURS: StatutListe[] = ['brouillon', 'validation_attente', 'validation_refusee', 'prete', 'publiee', 'retiree']
+const OPTIONS_STATUT = [{ value: TOUS, label: 'Tous les statuts' }, ...STATUTS_EN_COURS.map(e => ({ value: e, label: STATUTS[e].label }))]
+const OPTIONS_DELAI = [{ value: TOUS, label: 'Toutes' }, { value: 'bientot', label: 'Se terminent sous 7 jours' }]
 const OPTIONS_CATEGORIE = [{ value: TOUS, label: 'Toutes les catégories' }, ...CATEGORIES.map(c => ({ value: c, label: `Catégorie ${c}` }))]
 
 const deLOnglet = computed(() => db.offres.filter(o => (onglet.value === 'archivees') === (o.etat === 'archivee')))
 const { search, filtered: trouvees } = useTextSearch(deLOnglet, o => [o.titre, o.id, o.ficheId, fiche(o.ficheId)?.intitule])
 const lignes = computed(() => trouvees.value.filter(o =>
-  (filtres.applied.etat === TOUS || o.etat === filtres.applied.etat)
-  && (filtres.applied.validation === TOUS || o.validationEtat === filtres.applied.validation)
+  (filtres.applied.statut === TOUS || statutListe(o) === filtres.applied.statut)
   && (filtres.applied.delai !== 'bientot' || termineBientot(o))
-  && (filtres.applied.delai !== 'a_publier' || (o.etat === 'brouillon' && !validationManquante(o) && !manquesPublication(o).length))
   && (filtres.applied.categorie === TOUS || o.categorie === filtres.applied.categorie)))
 
 const compte = computed(() => {
@@ -111,14 +113,13 @@ const page = ref(1)
   <PageAts
     v-model:onglet="onglet"
     actif="offres"
-    titre="Offres d'emploi"
-    sous-titre="Chaque offre est une opération de recrutement rattachée à une fiche de poste."
-    :fil="[{ label: 'Offres d\'emploi' }]"
+    titre="Mes offres d'emploi"
+    :fil="[{ label: 'Mes offres d\'emploi' }]"
     :onglets="ONGLETS"
   >
     <template #actions>
       <CspButton
-        label="Lancer un recrutement"
+        label="Créer une offre"
         icon="ri:add-line"
         is-icon-left
         @click="aller({ nom: 'creation' })"
@@ -147,7 +148,7 @@ const page = ref(1)
           mode="live"
           label="Rechercher une offre"
           hide-label
-          placeholder="Rechercher une offre, une référence,…"
+          placeholder="Rechercher un intitulé d'offre, une référence"
           class="recherche"
         />
         <CspButton
@@ -161,7 +162,7 @@ const page = ref(1)
           v-model="visiblesIds"
           :colonnes="TOUTES"
           :defaut="DEFAUT"
-          cle="csplab-proto-ats-colonnes-offres"
+          cle="csplab-proto-ats-colonnes-offres-v2"
         />
       </CspTableToolbar>
       <CspDataTable
@@ -191,14 +192,9 @@ const page = ref(1)
     >
       <CspSelect
         v-if="onglet === 'en_cours'"
-        v-model="filtres.draft.etat"
+        v-model="filtres.draft.statut"
         label="Statut"
-        :options="OPTIONS_ETAT"
-      />
-      <CspSelect
-        v-model="filtres.draft.validation"
-        label="État de la validation"
-        :options="OPTIONS_VALIDATION"
+        :options="OPTIONS_STATUT"
       />
       <CspSelect
         v-if="onglet === 'en_cours'"

@@ -675,3 +675,11 @@ Tout est local au prototype (aucun composant `Csp*` partagé modifié).
 - Conseils de rédaction repliés derrière un « ? » à côté du libellé (plus de texte d'aide permanent sous chaque champ) ; les champs côte à côte s'alignent.
 - Résumé pour la validation et encart d'état : même style de carte (filet bleu en haut), même hauteur ; le résumé est une liste libellé / valeur.
 - Raccourcis « Accéder à » en simples liens ; descriptions génériques des sections supprimées (seuls restent les messages utiles : offre en ligne, dates verrouillées).
+
+## Itération 16 — Liste « Mes offres d'emploi » (maquette d'Alice)
+
+- Titre « Mes offres d'emploi », bouton « Créer une offre », onglets « Offres en cours » / « Offres archivées ».
+- **Un seul statut** qui réunit publication et validation : Brouillon · Validation en attente · Validation refusée · Prête à publier · Publiée · Retirée · Archivée (filtre « Statut » unique).
+- **Action à faire** (point de vue de la personne qui suit l'offre) : Demander la validation / Compléter l'offre · « Attendre : Bureau … » (simple mention) · Corriger l'offre · Publier · Prolonger (fin dans N j) ou « N nouvelles candidatures » · Archiver.
+- Colonnes par défaut : Intitulé (prend la place restante, sur plusieurs lignes), Référence CSP (« - » tant que l'offre n'est pas publiée), Statut, Fin de publication (date courte), Dernière activité, Action à faire. « Début », fiche, catégorie, postes, origine restent disponibles via « Colonnes ».
+- Compteurs du tableau de bord alignés sur ces statuts.

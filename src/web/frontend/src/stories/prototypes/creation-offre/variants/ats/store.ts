@@ -129,6 +129,8 @@ export interface Offre {
   modifieeDepuisValidation?: boolean
 
   notifications: 'chaque' | 'cinq' | 'quotidien' | 'aucune'
+  /** Candidatures pas encore ouvertes (fictif, pour la colonne « Action à faire »). */
+  nouvellesCandidatures?: number
   creeLe: string
   modifieLe: string
   publieeLe?: string
@@ -509,6 +511,7 @@ function offresInitiales(f: Fiche[]): Offre[] {
       titre: 'Assistant·e administratif·ve au service Aménagement',
       presentation: 'Au cœur d\'un service de 25 personnes, vous êtes le premier contact des usagers et le point d\'appui de l\'équipe.',
       id: 'OFF-2026-0118',
+      nouvellesCandidatures: 5,
       ficheId: 'FP-SG-2025-031',
       etat: 'publiee',
       origineContenu: 'fiche',
@@ -589,7 +592,7 @@ export function contenuDepuisFiche(f: Fiche): Pick<Offre, 'titre' | 'categorie' 
 
 // --- Stockage de session ---
 
-const CLE = 'csplab-proto-ats-v11'
+const CLE = 'csplab-proto-ats-v12'
 
 interface Base { fiches: Fiche[], offres: Offre[], organisme: Organisme, role: 'recruteur' | 'superviseur' }
 

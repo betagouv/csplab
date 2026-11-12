@@ -1,0 +1,79 @@
+// Statut unique et « action à faire » pour la liste des offres, du point de vue de la personne
+// qui suit l'offre (pas du valideur). Le statut réunit état de publication et état de la validation.
+
+import type { Ecran } from './nav'
+import type { Offre } from './store'
+import { manquesPublication } from './aide'
+import { joursRestants, termineBientot, validationManquante } from './store'
+
+export type StatutListe = 'brouillon' | 'validation_attente' | 'validation_refusee' | 'prete' | 'publiee' | 'retiree' | 'archivee'
+
+export const STATUTS: Record<StatutListe, { label: string, type: 'info' | 'new' | 'warning' | 'error' | 'success', contour?: boolean }> = {
+  brouillon: { label: 'Brouillon', type: 'info' },
+  validation_attente: { label: 'Validation en attente', type: 'warning' },
+  validation_refusee: { label: 'Validation refusée', type: 'error' },
+  prete: { label: 'Prête à publier', type: 'new' },
+  publiee: { label: 'Publiée', type: 'success' },
+  retiree: { label: 'Retirée', type: 'warning', contour: true },
+  archivee: { label: 'Archivée', type: 'info', contour: true },
+}
+
+export function statutListe(o: Offre): StatutListe {
+  if (o.etat !== 'brouillon') {
+    return o.etat
+  }
+  if (o.validationEtat === 'en_attente') {
+    return 'validation_attente'
+  }
+  if (o.validationEtat === 'refusee') {
+    return 'validation_refusee'
+  }
+  return !validationManquante(o) && !manquesPublication(o).length ? 'prete' : 'brouillon'
+}
+
+export interface ActionAFaire {
+  label: string
+  /** Absent : simple information, sans lien. */
+  ecran?: Ecran
+}
+
+export function actionAFaire(o: Offre): ActionAFaire | null {
+  const offre = { nom: 'offre' as const, id: o.id }
+  switch (statutListe(o)) {
+    case 'brouillon':
+      if (validationManquante(o) && o.validationEtat === 'non_demandee') {
+        return { label: 'Demander la validation', ecran: offre }
+      }
+      return { label: 'Compléter l\'offre', ecran: { nom: 'formulaire', id: o.id, etape: manquesPublication(o)[0]?.etape } }
+    case 'validation_attente': {
+      const attente = (o.validations ?? []).filter(v => v.decision === 'attente').map(v => v.nom)
+      return { label: attente.length ? `Attendre : ${attente.join(', ')}` : 'Attendre les valideurs' }
+    }
+    case 'validation_refusee':
+      return { label: 'Corriger l\'offre', ecran: offre }
+    case 'prete':
+      return { label: 'Publier', ecran: { nom: 'apercu', id: o.id, publier: true } }
+    case 'publiee': {
+      if (termineBientot(o)) {
+        const j = joursRestants(o.dateFin)
+        return { label: `Prolonger (fin ${j <= 0 ? 'aujourd\'hui' : `dans ${j} j`})`, ecran: offre }
+      }
+      const n = o.nouvellesCandidatures ?? 0
+      return n ? { label: `${n} nouvelle${n > 1 ? 's' : ''} candidature${n > 1 ? 's' : ''}`, ecran: offre } : null
+    }
+    case 'retiree':
+      return { label: 'Archiver', ecran: offre }
+    default:
+      return null
+  }
+}
+
+/** « 12 nov. 2026 » */
+export function dateCourte(date: string): string {
+  return date ? new Date(`${date}T12:00:00`).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' }) : '-'
+}
+
+/** La référence Choisir le Service Public n'existe qu'une fois l'offre publiée. */
+export function referenceCsp(o: Offre): string {
+  return o.etat === 'brouillon' ? '-' : `CSP-${o.id.slice(4).replace('-', '')}`
+}
