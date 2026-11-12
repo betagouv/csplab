@@ -2,6 +2,10 @@ export interface OrganismeParams {
   organismeUuid: string
 }
 
+export interface TagParams extends OrganismeParams {
+  tagUuid: string
+}
+
 export interface RecrutementParams extends OrganismeParams {
   recrutementUuid: string
 }

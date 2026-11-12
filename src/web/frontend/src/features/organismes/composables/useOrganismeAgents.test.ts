@@ -65,15 +65,29 @@ describe('useOrganismeAgents', () => {
     expect(agents.value).toEqual(AGENTS)
   })
 
-  it('updates an agent and refetches the list', async () => {
+  it('revokes an agent with their current role and a revocation date', async () => {
+    mockUpdateOrganismeAgent.mockResolvedValue(AGENTS[0])
+    const { revoke } = mountAgents()
+    await flush()
+
+    await revoke(AGENTS[0])
+
+    expect(mockUpdateOrganismeAgent).toHaveBeenCalledWith({ organismeUuid: ORGANISME_UUID }, {
+      agent_id: AGENTS[0].uuid,
+      role: AGENTS[0].role,
+      date_revocation: expect.any(String),
+    })
+  })
+
+  it('changes the role of an agent without revoking them and refetches the list', async () => {
     mockUpdateOrganismeAgent.mockResolvedValue({ ...AGENTS[0], role: 'agent' })
-    const { updateAgent } = mountAgents()
+    const { changeRole } = mountAgents()
     await flush()
 
-    await updateAgent({ agent_id: AGENTS[0].uuid, role: 'agent' })
+    await changeRole({ agent: AGENTS[0], role: 'agent' })
     await flush()
 
-    expect(mockUpdateOrganismeAgent).toHaveBeenCalledWith(ORGANISME_UUID, {
+    expect(mockUpdateOrganismeAgent).toHaveBeenCalledWith({ organismeUuid: ORGANISME_UUID }, {
       agent_id: AGENTS[0].uuid,
       role: 'agent',
     })
@@ -82,11 +96,11 @@ describe('useOrganismeAgents', () => {
 
   it('propagates update errors to the caller', async () => {
     mockUpdateOrganismeAgent.mockRejectedValue(new Error('boom'))
-    const { updateAgent } = mountAgents()
+    const { changeRole } = mountAgents()
     await flush()
 
     await expect(
-      updateAgent({ agent_id: AGENTS[0].uuid, role: 'agent' }),
+      changeRole({ agent: AGENTS[0], role: 'agent' }),
     ).rejects.toThrow('boom')
   })
 })

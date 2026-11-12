@@ -175,7 +175,7 @@ describe('candidaturesListeView', () => {
     await changeEtapeToEntretien(user)
 
     await vi.waitFor(() => expect(router.currentRoute.value.params.candidatureUuid).toBe(others[0]!.uuid))
-    expect(patchEtapeCandidatures).toHaveBeenCalledWith(ORGANISME_UUID, RECRUTEMENT_UUID, {
+    expect(patchEtapeCandidatures).toHaveBeenCalledWith({ organismeUuid: ORGANISME_UUID, recrutementUuid: RECRUTEMENT_UUID }, {
       etapeCibleUuid: ETAPE_ENTRETIEN,
       candidatureUuids: [third!.uuid],
     })

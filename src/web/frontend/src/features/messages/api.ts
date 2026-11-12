@@ -46,8 +46,7 @@ export async function getConversationMessages(
 }
 
 export async function replyToConversation(
-  { organismeUuid, recrutementUuid, candidatureUuid }: CandidatureParams,
-  conversationUuid: string,
+  { organismeUuid, recrutementUuid, candidatureUuid, conversationUuid }: ConversationParams,
   payload: CreateMessagePayload,
 ): Promise<ConversationMessage> {
   const { data } = await api.POST(

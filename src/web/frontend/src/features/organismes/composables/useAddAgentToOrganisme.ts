@@ -11,7 +11,7 @@ export function useAddAgentToOrganisme(organismeUuid: MaybeRefOrGetter<string>) 
 
   const { run: add, ...agentSearch } = useFindOrCreateAgent(organismeUuid, {
     action: (agent, role: Role) =>
-      setAgentRole(toValue(organismeUuid), { agent_id: agent.uuid, role }),
+      setAgentRole({ organismeUuid: toValue(organismeUuid) }, { agent_id: agent.uuid, role }),
     onSettled: () => invalidateOrganisme(queryCache, { organismeUuid: toValue(organismeUuid) }),
   })
 

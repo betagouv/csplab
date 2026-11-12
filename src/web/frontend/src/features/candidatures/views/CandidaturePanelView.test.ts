@@ -146,7 +146,7 @@ describe('candidaturePanelView', () => {
     vi.mocked(getCandidatureDetail).mockResolvedValue({ ...refusee, motif_refus: { value: 'disponibilite', label: 'Disponibilité' } })
     await user.click(dialog.getByRole('button', { name: 'Enregistrer le motif' }))
 
-    expect(patchEtapeCandidatures).toHaveBeenCalledWith(ORGANISME_UUID, RECRUTEMENT_UUID, {
+    expect(patchEtapeCandidatures).toHaveBeenCalledWith({ organismeUuid: ORGANISME_UUID, recrutementUuid: RECRUTEMENT_UUID }, {
       etapeCibleUuid: ETAPE_REFUS,
       candidatureUuids: [CANDIDATURE_ALICE],
       motifRefus: 'disponibilite',
@@ -222,7 +222,7 @@ describe('candidaturePanelView', () => {
     await user.click(screen.getByRole('button', { name: 'Valider' }))
 
     await vi.waitFor(() => expect(router.currentRoute.value.params.candidatureUuid).toBe(CANDIDATURE_BRUNO))
-    expect(patchEtapeCandidatures).toHaveBeenCalledWith(ORGANISME_UUID, RECRUTEMENT_UUID, {
+    expect(patchEtapeCandidatures).toHaveBeenCalledWith({ organismeUuid: ORGANISME_UUID, recrutementUuid: RECRUTEMENT_UUID }, {
       etapeCibleUuid: ETAPE_ENTRETIEN,
       candidatureUuids: [CANDIDATURE_ALICE],
     })
@@ -266,7 +266,7 @@ describe('candidaturePanelView', () => {
     await user.click(dialog.getByRole('button', { name: 'Valider le refus' }))
 
     await vi.waitFor(() => expect(router.currentRoute.value.params.candidatureUuid).toBe(CANDIDATURE_BRUNO))
-    expect(patchEtapeCandidatures).toHaveBeenCalledWith(ORGANISME_UUID, RECRUTEMENT_UUID, {
+    expect(patchEtapeCandidatures).toHaveBeenCalledWith({ organismeUuid: ORGANISME_UUID, recrutementUuid: RECRUTEMENT_UUID }, {
       etapeCibleUuid: ETAPE_REFUS,
       candidatureUuids: [CANDIDATURE_ALICE],
       motifRefus: 'experience_insuffisante',
