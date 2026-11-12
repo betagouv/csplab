@@ -11,7 +11,6 @@ import CspSearchBar from '@/components/base/CspSearchBar/CspSearchBar.vue'
 import CspSkeletonTable from '@/components/base/CspSkeleton/CspSkeletonTable.vue'
 import CspTableToolbar from '@/components/base/CspTableToolbar/CspTableToolbar.vue'
 import { useMinimumPending } from '@/composables/async/useMinimumPending'
-import { useTextSearch } from '@/composables/data/useTextSearch'
 import { useToast } from '@/composables/ui/useToast'
 import { pluralize } from '@/utils/format'
 import { ORGANISMES_LIST_COLUMNS } from '../columns'
@@ -19,12 +18,11 @@ import { provideOrganismeEdition } from '../composables/useOrganismeEdition'
 import { useOrganismes } from '../composables/useOrganismes'
 import OrganismeForm from './OrganismeForm.vue'
 
-const { organismesList, pending, error, create, creating, update, updating } = useOrganismes()
+const { page, search, organismes, count, pending, error, create, creating, update, updating } = useOrganismes()
 const edition = provideOrganismeEdition()
 
 const showSkeleton = useMinimumPending(pending)
 
-const page = ref(1)
 const creationOpen = ref(false)
 const rejectedSiret = ref<string | null>(null)
 
@@ -41,14 +39,7 @@ const drawerOpen = computed({
 
 const saving = computed(() => creating.value || updating.value)
 
-const rows = computed(() => organismesList.value ?? [])
-
-const { search, filtered } = useTextSearch(rows, row => [row.nom, row.siret, row.superviseurs])
-
-const countLabel = computed(() => {
-  const count = filtered.value.length
-  return `${count} ${pluralize(count, 'organisme')}`
-})
+const countLabel = computed(() => `${count.value} ${pluralize(count.value, 'organisme')}`)
 
 const { addToast } = useToast()
 
@@ -113,7 +104,9 @@ async function handleUpdate(payload: UpdateOrganismePayload): Promise<void> {
       </CspTableToolbar>
       <CspDataTable
         v-model:page="page"
-        :rows="filtered"
+        :rows="organismes"
+        manual
+        :row-count="count"
         :columns="ORGANISMES_LIST_COLUMNS"
         :row-key="row => row.uuid"
         caption="Organismes"
