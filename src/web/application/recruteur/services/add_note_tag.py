@@ -1,6 +1,6 @@
-from uuid import UUID, uuid4
+from uuid import UUID
 
-from django.db import IntegrityError, transaction
+from django.db import transaction
 
 from application.identite.context_services.organisme_permission_service import (
     OrganismePermissionService,
@@ -13,13 +13,9 @@ from application.recruteur.context_services.recrutement_agent_service import (
 )
 from domain.identite.value_objects.organisme_action import OrganismeAction
 from domain.recruteur.errors.note_errors import NoteIntrouvable
-from domain.recruteur.errors.tag_errors import (
-    TagAlreadyOnNote,
-    TagCategoryMismatch,
-    TagNotFound,
-)
+from domain.recruteur.errors.tag_errors import TagNotFound
 from infrastructure.django_apps.recruteur.models.note import NoteModel
-from infrastructure.django_apps.tag.models import NoteTagModel, TagCategory, TagModel
+from infrastructure.django_apps.tag.models import NoteTagModel, TagModel
 from infrastructure.django_apps.users.models import UserModel
 
 
@@ -64,10 +60,4 @@ def add_note_tag(
         except TagModel.DoesNotExist as error:
             raise TagNotFound(tag_id) from error
 
-        if tag.category != TagCategory.NOTE:
-            raise TagCategoryMismatch(tag_id)
-
-        try:
-            NoteTagModel.objects.create(id=uuid4(), note=note, tag=tag)
-        except IntegrityError as error:
-            raise TagAlreadyOnNote(tag_id) from error
+        NoteTagModel.objects.poser(note=note, tag=tag)
