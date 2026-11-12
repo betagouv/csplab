@@ -665,6 +665,103 @@ function offresInitiales(f: Fiche[]): Offre[] {
         { date: dateLongue(J(-26)), texte: 'Offre publiée sur Choisir le Service Public et l\'intranet' },
       ],
     },
+    // Validation refusée : le Bureau budget a refusé avec un commentaire ; Camille complète puis redemande.
+    {
+      ...socle(),
+      ...contenuDepuisFiche(fiche('FP-SG-2024-031')),
+      id: 'OFF-2026-0149',
+      ficheId: 'FP-SG-2024-031',
+      etat: 'brouillon',
+      origineContenu: 'fiche',
+      statutPoste: 'Création de poste',
+      dateVacance: J(60),
+      motifRecrutement: 'Création de poste',
+      remuneration: 'Grille indiciaire de catégorie A',
+      validationEtat: 'refusee',
+      validationDemandeeLe: '2 novembre 2026',
+      validations: [
+        { ...BUDGET, decision: 'refus', par: 'Paul Martin', le: '5 novembre 2026', commentaire: 'Poste non budgété en 2026 : préciser le financement (BOP et programme) dans le commentaire pour les valideurs.' },
+        { ...RECRUTEMENT, decision: 'accord', par: 'Claire Morel', le: '4 novembre 2026' },
+      ],
+      creeLe: '30 octobre 2026',
+      modifieLe: '5 novembre 2026',
+      historique: [
+        { date: '30 octobre 2026', texte: 'Offre créée depuis la fiche FP-SG-2024-031' },
+        { date: '2 novembre 2026', texte: 'Validation demandée (Bureau budget, Bureau recrutement)' },
+        { date: '4 novembre 2026', texte: 'Accord du Bureau recrutement (Claire Morel)' },
+        { date: '5 novembre 2026', texte: 'Refus du Bureau budget (Paul Martin) : « Poste non budgété en 2026 : préciser le financement. »' },
+      ],
+    },
+    // Validation accordée avec un commentaire : complète, donc prête à publier.
+    {
+      ...socle(),
+      ...contenuDepuisFiche(fiche('FP-SG-2023-010')),
+      titre: 'Chargé·e d\'accueil — site de Montpellier',
+      lieu: 'Montpellier (34)',
+      missions: '- Accueillir et orienter les visiteurs\n- Répondre aux appels du standard\n- Gérer le courrier entrant',
+      profil: 'Vous aimez le contact avec le public et savez garder votre calme dans les situations tendues.',
+      id: 'OFF-2026-0147',
+      ficheId: 'FP-SG-2023-010',
+      etat: 'brouillon',
+      origineContenu: 'fiche',
+      statutPoste: 'Poste vacant',
+      dateVacance: J(20),
+      fondementJuridique: 'Article L332-2 (besoins permanents)',
+      motifRecrutement: 'Remplacement',
+      agentRemplace: 'Sophie Garnier',
+      motifDepart: 'Départ à la retraite',
+      remuneration: 'Grille indiciaire de catégorie C',
+      dateDebut: J(2),
+      dateFin: plusUnMois(J(2)),
+      validationEtat: 'validee',
+      validationDemandeeLe: '3 novembre 2026',
+      validationObtenueLe: '6 novembre 2026',
+      validations: [
+        { ...BUDGET, decision: 'accord', par: 'Anne Dubois', le: '4 novembre 2026' },
+        { ...RECRUTEMENT, decision: 'accord', par: 'Claire Morel', le: '6 novembre 2026', commentaire: 'Accord. Pensez à indiquer les horaires d\'accueil du public dans les conditions particulières avant de publier.' },
+      ],
+      creeLe: '31 octobre 2026',
+      modifieLe: '6 novembre 2026',
+      historique: [
+        { date: '31 octobre 2026', texte: 'Offre créée depuis la fiche FP-SG-2023-010' },
+        { date: '3 novembre 2026', texte: 'Validation demandée (Bureau budget, Bureau recrutement)' },
+        { date: '4 novembre 2026', texte: 'Accord du Bureau budget (Anne Dubois)' },
+        { date: '6 novembre 2026', texte: 'Accord du Bureau recrutement (Claire Morel) : « Pensez à indiquer les horaires d\'accueil. » — validation obtenue' },
+      ],
+    },
+    // Publiée, publication en cours sans échéance proche.
+    {
+      ...socle(),
+      ...contenuDepuisFiche(fiche('FP-SG-2026-007')),
+      titre: 'Gestionnaire de paie — renfort contractuels',
+      id: 'OFF-2026-0131',
+      ficheId: 'FP-SG-2026-007',
+      etat: 'publiee',
+      origineContenu: 'fiche',
+      statutPoste: 'Poste vacant',
+      dateVacance: J(-5),
+      fondementJuridique: 'Article L332-23 (accroissement temporaire)',
+      motifRecrutement: 'Vacance de poste',
+      remuneration: 'Grille indiciaire de catégorie B',
+      dateDebut: J(-6),
+      dateFin: J(24),
+      canaux: ['csp'],
+      publications: { csp: { etat: 'publiee', debut: dateLongue(J(-6)), fin: J(24) } },
+      validationEtat: 'validee',
+      validationObtenueLe: '28 octobre 2026',
+      validations: [
+        { ...BUDGET, decision: 'accord', par: 'Paul Martin', le: '27 octobre 2026' },
+        { ...RECRUTEMENT, decision: 'accord', par: 'Claire Morel', le: '28 octobre 2026' },
+      ],
+      creeLe: '24 octobre 2026',
+      modifieLe: dateLongue(J(-6)),
+      publieeLe: dateLongue(J(-6)),
+      historique: [
+        { date: '24 octobre 2026', texte: 'Offre créée depuis la fiche FP-SG-2026-007' },
+        { date: '28 octobre 2026', texte: 'Validation obtenue' },
+        { date: dateLongue(J(-6)), texte: 'Offre publiée sur Choisir le Service Public' },
+      ],
+    },
     {
       ...socle(),
       ...contenuDepuisFiche(fiche('FP-SG-2023-010')),
@@ -712,7 +809,7 @@ export function contenuDepuisFiche(f: Fiche): Pick<Offre, 'titre' | 'categorie' 
 
 // --- Stockage de session ---
 
-const CLE = 'csplab-proto-ats-v15'
+const CLE = 'csplab-proto-ats-v16'
 
 interface Base { fiches: Fiche[], offres: Offre[], organisme: Organisme, role: 'recruteur' | 'superviseur' }
 

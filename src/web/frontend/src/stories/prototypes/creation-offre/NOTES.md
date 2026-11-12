@@ -735,3 +735,20 @@ Tout est local au prototype (aucun composant `Csp*` partagé modifié).
 - Au choix, l'écran défile jusqu'à la section, en **mode modification** (cadre pointillé, message d'explication), avec **« Valider les modifications »** et « Annuler » en haut de la section et dans une barre fixe en bas.
 - Après « Valider les modifications », retour sur « Votre réponse » avec la liste des propositions qui partiront avec la décision (retirables).
 - Plus de bouton « Proposer » dans chaque section : le bloc de décision est le seul point de départ.
+
+## Itération 24 — Jeu de données pour la démonstration
+
+Huit cas, visibles dans « Mes offres d'emploi » et chacun avec sa story :
+
+| Cas | Offre | Story |
+|---|---|---|
+| À valider par Camille | Juriste marchés publics (OFF-2026-0153) | 6 bis |
+| Prête à publier (complète et validée) | Chef·fe de projet numérique (0145) | 7 |
+| Brouillon en cours de rédaction | Gestionnaire de paie (0151) | 5 |
+| Validation refusée (commentaire du Bureau budget) | Responsable informatique (0149) | 6 ter |
+| Validée avec un commentaire (prête à publier) | Chargé·e d'accueil — Montpellier (0147) | 7 ter |
+| Publiée, publication en cours | Gestionnaire de paie — renfort contractuels (0131) | 8 bis |
+| Publiée, fin dans 4 jours | Assistant·e administratif·ve (0118) | 8 |
+| Validation en attente, pas par Camille | Chargé·e de recrutement (0148) | 6 |
+
+- L'encart « Prête à être publiée » affiche désormais les réponses des valideurs quand l'une d'elles contient un commentaire.

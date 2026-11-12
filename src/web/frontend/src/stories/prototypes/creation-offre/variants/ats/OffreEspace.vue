@@ -386,6 +386,11 @@ const FREQ = [
             titre="Prête à être publiée"
             :description="db.organisme.validationActive ? `Validation obtenue ${le(o.validationObtenueLe)} et annonce complète. L'offre n'est jamais publiée automatiquement.` : 'Annonce complète. L\'offre n\'est jamais publiée automatiquement.'"
           >
+            <!-- Commentaires laissés par les valideurs avec leur accord -->
+            <BlocValidation
+              v-if="o.validations?.some(v => v.commentaire)"
+              :offre="o"
+            />
             <div v-if="peutPublier">
               <CspButton
                 label="Publier"
