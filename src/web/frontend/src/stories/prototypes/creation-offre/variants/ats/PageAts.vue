@@ -126,11 +126,18 @@ const ariane = computed<CspBreadcrumbItem[]>(() => [
 }
 
 .ats__main {
+  position: relative;
   display: flex;
   flex: 1;
   flex-direction: column;
   min-width: 0;
   overflow-y: auto;
+}
+
+// Les libellés réservés aux lecteurs d'écran (position absolue) restent dans la zone qui défile :
+// sinon ils allongent la page entière et la barre « Accéder à » fixe sort de l'écran.
+.ats__main :deep(.csp-page-container) {
+  position: relative;
 }
 
 .ats__actions {

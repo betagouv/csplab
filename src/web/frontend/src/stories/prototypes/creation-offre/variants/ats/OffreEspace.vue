@@ -55,34 +55,50 @@ const RACCOURCIS = computed(() => [
   { id: 'publication', label: 'Publication' },
   { id: 'journal', label: 'Journal d\'activité' },
 ])
+const active = ref('')
+// Après un clic sur un raccourci, la pastille cliquée reste active pendant le défilement automatique
+// (utile pour les dernières sections, qu'on ne peut pas amener tout en haut).
+let choisie = ''
+let finChoix: ReturnType<typeof setTimeout> | undefined
 async function allerA(id: string) {
   if (id in ouverts) {
     ouverts[id] = true
   }
+  choisie = id
+  active.value = id
   await nextTick()
   document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
 }
 // Barre « Accéder à » fixe au défilement : la section visible est mise en avant.
-const active = ref('')
-let observateur: IntersectionObserver | undefined
+let defileur: HTMLElement | null = null
+function suivreSection() {
+  if (!defileur) {
+    return
+  }
+  if (choisie) {
+    // Le défilement automatique est fini quand plus aucun événement n'arrive pendant 150 ms.
+    clearTimeout(finChoix)
+    finChoix = setTimeout(() => (choisie = ''), 150)
+    return
+  }
+  const ids = RACCOURCIS.value.map(r => r.id)
+  // En bas de page, la dernière section est forcément celle qu'on regarde.
+  if (defileur.scrollTop + defileur.clientHeight >= defileur.scrollHeight - 4) {
+    active.value = ids.at(-1) ?? ''
+    return
+  }
+  const repere = (document.querySelector('.raccourcis')?.getBoundingClientRect().bottom ?? 0) + 120
+  active.value = ids.filter(id => (document.getElementById(id)?.getBoundingClientRect().top ?? Infinity) <= repere).at(-1) ?? ''
+}
 onMounted(() => {
   if (props.section) {
     allerA(props.section)
   }
-  observateur = new IntersectionObserver((entrees) => {
-    const visibles = entrees.filter(e => e.isIntersecting).sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top)
-    if (visibles[0]) {
-      active.value = visibles[0].target.id
-    }
-  }, { root: document.querySelector('.ats__main'), rootMargin: '-80px 0px -60% 0px' })
-  for (const r of RACCOURCIS.value) {
-    const el = document.getElementById(r.id)
-    if (el) {
-      observateur.observe(el)
-    }
-  }
+  defileur = document.querySelector('.csp-page-container')
+  defileur?.addEventListener('scroll', suivreSection, { passive: true })
+  suivreSection()
 })
-onBeforeUnmount(() => observateur?.disconnect())
+onBeforeUnmount(() => defileur?.removeEventListener('scroll', suivreSection))
 const panneau = ref<'apercu' | 'fiche' | null>(null)
 
 // --- Enregistrement automatique ; une modification après validation est signalée, sans relancer le circuit ---
