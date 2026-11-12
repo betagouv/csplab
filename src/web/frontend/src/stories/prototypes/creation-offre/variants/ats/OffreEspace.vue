@@ -48,6 +48,38 @@ const valideur = computed(() => aValiderParMoi(o.value))
 // Offre d'un collègue : consultable seulement, avant comme après la réponse du valideur.
 const aTraiter = computed(() => (o.value.propositions ?? []).reduce((n, p) => n + p.champs.filter(c => !c.statut).length, 0))
 
+const lectureSeule = computed(() => Boolean(o.value.creePar) && o.value.creePar !== UTILISATEUR)
+const modifiable = computed(() => !lectureSeule.value && (o.value.etat === 'brouillon' || o.value.etat === 'publiee'))
+const manques = computed(() => manquesPublication(o.value))
+const prete = computed(() => o.value.etat === 'brouillon' && !manques.value.length && !validationManquante(o.value))
+const peutPublier = computed(() => db.organisme.agents.find(a => a.nom === UTILISATEUR)?.publier)
+
+// --- Sections et raccourcis « Accéder à » ---
+const ouverts = reactive<Record<string, boolean>>({ annonce: true, validation: true, candidature: true, parametres: true, publication: true, journal: false })
+// Le résumé pour la validation ne sert qu'avant publication ; ensuite l'historique est dans le journal.
+const avecValidation = computed(() => o.value.etat === 'brouillon' && (db.organisme.validationActive || o.value.validationEtat !== 'non_demandee'))
+const RACCOURCIS = computed(() => [
+  { id: 'annonce', label: 'Annonce' },
+  ...(avecValidation.value ? [{ id: 'validation', label: 'Validation' }] : []),
+  { id: 'candidature', label: 'Formulaire de candidature' },
+  { id: 'parametres', label: 'Paramètres' },
+  { id: 'publication', label: 'Publication' },
+  { id: 'journal', label: 'Journal d\'activité' },
+])
+const active = ref('')
+// Après un clic sur un raccourci, la pastille cliquée reste active pendant le défilement automatique
+// (utile pour les dernières sections, qu'on ne peut pas amener tout en haut).
+let choisie = ''
+let finChoix: ReturnType<typeof setTimeout> | undefined
+async function allerA(id: string) {
+  if (id in ouverts) {
+    ouverts[id] = true
+  }
+  choisie = id
+  active.value = id
+  await nextTick()
+  document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+}
 // --- Valideur : propositions de modification préparées section par section, envoyées avec la décision ---
 const propositionsEnCours = ref<Proposition[]>([])
 const edition = ref<{ section: Proposition['section'], copie: Offre } | null>(null)
@@ -83,38 +115,7 @@ function reponseEnvoyee() {
 }
 const enEdition = (section: Proposition['section']) => edition.value?.section === section
 const MODE_PROPOSITION = 'Mode proposition : modifiez les champs voulus. L\'offre n\'est pas modifiée ; vos changements partiront avec votre réponse.'
-const lectureSeule = computed(() => Boolean(o.value.creePar) && o.value.creePar !== UTILISATEUR)
-const modifiable = computed(() => !lectureSeule.value && (o.value.etat === 'brouillon' || o.value.etat === 'publiee'))
-const manques = computed(() => manquesPublication(o.value))
-const prete = computed(() => o.value.etat === 'brouillon' && !manques.value.length && !validationManquante(o.value))
-const peutPublier = computed(() => db.organisme.agents.find(a => a.nom === UTILISATEUR)?.publier)
 
-// --- Sections et raccourcis « Accéder à » ---
-const ouverts = reactive<Record<string, boolean>>({ annonce: true, validation: true, candidature: true, parametres: true, publication: true, journal: false })
-// Le résumé pour la validation ne sert qu'avant publication ; ensuite l'historique est dans le journal.
-const avecValidation = computed(() => o.value.etat === 'brouillon' && (db.organisme.validationActive || o.value.validationEtat !== 'non_demandee'))
-const RACCOURCIS = computed(() => [
-  { id: 'annonce', label: 'Annonce' },
-  ...(avecValidation.value ? [{ id: 'validation', label: 'Validation' }] : []),
-  { id: 'candidature', label: 'Formulaire de candidature' },
-  { id: 'parametres', label: 'Paramètres' },
-  { id: 'publication', label: 'Publication' },
-  { id: 'journal', label: 'Journal d\'activité' },
-])
-const active = ref('')
-// Après un clic sur un raccourci, la pastille cliquée reste active pendant le défilement automatique
-// (utile pour les dernières sections, qu'on ne peut pas amener tout en haut).
-let choisie = ''
-let finChoix: ReturnType<typeof setTimeout> | undefined
-async function allerA(id: string) {
-  if (id in ouverts) {
-    ouverts[id] = true
-  }
-  choisie = id
-  active.value = id
-  await nextTick()
-  document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-}
 // Barre « Accéder à » fixe au défilement : la section visible est mise en avant.
 let defileur: HTMLElement | null = null
 function suivreSection() {
