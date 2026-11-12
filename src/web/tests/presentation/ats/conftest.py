@@ -45,7 +45,7 @@ def require_frontend_build() -> None:
 
 @pytest.fixture(scope="session")
 def browser_context_args(browser_context_args: dict) -> dict:
-    return {**browser_context_args, "locale": "fr-FR", "reduced_motion": "reduce"}
+    return {**browser_context_args, "reduced_motion": "reduce"}
 
 
 @pytest.fixture

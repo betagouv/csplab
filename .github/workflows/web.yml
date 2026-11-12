@@ -175,30 +175,54 @@ jobs:
         run: mise run web:s3:init
       - name: Test with pytest
         run: mise run web:test
-      - name: Get Playwright version
-        id: playwright-version
-        working-directory: ./src/web
-        run: echo "version=$(uv run playwright --version | awk '{print $2}')" >> "$GITHUB_OUTPUT"
-      - name: Cache Playwright browsers
-        id: playwright-cache
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: ~/.cache/ms-playwright
-          key: playwright-${{ env.ImageOS }}-${{ steps.playwright-version.outputs.version }}
-      # On a cache hit, the OS dependencies are not reinstalled: the runner image ships Google Chrome,
-      # which already pulls in the libraries Chromium needs. ImageOS (e.g. ubuntu24) is in the key so
-      # that a new runner OS misses the cache and goes through the full install again.
-      - name: Install Playwright browser
-        if: steps.playwright-cache.outputs.cache-hit != 'true'
-        working-directory: ./src/web
-        run: uv run playwright install --with-deps chromium
+      - uses: ./.github/actions/setup-playwright
       - name: Test e2e
         run: mise run web:test:e2e
+
+  test-web-a11y:
+    needs: check-changes
+    if: github.event_name == 'push' || needs.check-changes.outputs.relevant == 'true'
+    runs-on: ubuntu-latest
+    services:
+      postgresql:
+        image: postgres:18
+        env:
+          POSTGRES_DB: web
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: pass
+          TEST: true
+        options: >-
+          --health-cmd "pg_isready -h localhost -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+        ports:
+          - 5432:5432
+      redis:
+        image: redis:8
+        ports:
+          - 6379:6379
+      rustfs:
+        image: rustfs/rustfs:1.0.3
+        env:
+          RUSTFS_ACCESS_KEY: rustfsadmin
+          RUSTFS_SECRET_KEY: rustfsadmin
+          RUSTFS_ADDRESS: 0.0.0.0:9000
+          RUSTFS_CONSOLE_ADDRESS: 0.0.0.0:9001
+        ports:
+          - 9000:9000
+          - 9001:9001
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+      - uses: ./.github/actions/setup-mise
+      - name: Install web dependencies
+        run: mise run web:install
+      - uses: ./.github/actions/setup-playwright
       - name: Test accessibility of the ATS
         run: mise run web:test:a11y -- tests/presentation/ats
 
   deploy-web:
-    needs: [check-changes, lint-web, test-front, test-web]
+    needs: [check-changes, lint-web, test-front, test-web, test-web-a11y]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main' && needs.check-changes.outputs.relevant == 'true'
     runs-on: ubuntu-latest
     environment: production

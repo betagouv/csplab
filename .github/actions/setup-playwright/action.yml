@@ -1,0 +1,25 @@
+name: Set up Playwright
+description: Install the Chromium build of the Playwright version locked in src/web and cache it. Requires the web Python dependencies to be installed first.
+
+runs:
+  using: composite
+  steps:
+    - name: Get Playwright version
+      id: playwright-version
+      shell: bash
+      working-directory: ./src/web
+      run: echo "version=$(uv run playwright --version | awk '{print $2}')" >> "$GITHUB_OUTPUT"
+    - name: Cache Playwright browsers
+      id: playwright-cache
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      with:
+        path: ~/.cache/ms-playwright
+        key: playwright-${{ env.ImageOS }}-${{ steps.playwright-version.outputs.version }}
+    # On a cache hit, the OS dependencies are not reinstalled: the runner image ships Google Chrome,
+    # which already pulls in the libraries Chromium needs. ImageOS (e.g. ubuntu24) is in the key so
+    # that a new runner OS misses the cache and goes through the full install again.
+    - name: Install Playwright browser
+      if: steps.playwright-cache.outputs.cache-hit != 'true'
+      shell: bash
+      working-directory: ./src/web
+      run: uv run playwright install --with-deps chromium
