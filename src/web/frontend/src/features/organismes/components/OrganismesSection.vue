@@ -87,7 +87,10 @@ async function handleUpdate(payload: UpdateOrganismePayload): Promise<void> {
         />
       </template>
 
-      <CspTableToolbar :count="countLabel">
+      <CspTableToolbar
+        :count="countLabel"
+        :bordered="false"
+      >
         <CspSearchBar
           v-model="search"
           mode="live"
