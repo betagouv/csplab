@@ -97,16 +97,14 @@ export function useEtapesRecrutement(params: EtapesRecrutementType) {
 
   const loading = query.isPending
   const saving = computed(() => update.isLoading.value || init.isLoading.value)
-  const error = computed(
-    () => query.error.value ?? update.error.value ?? init.error.value,
-  )
+  const error = query.error
 
   function isEtapeLocked(etape: EtapeRecrutement): boolean {
     return etape.categorie !== 'EN_COURS'
   }
 
   async function saveEtapes(nouvellesEtapes: EtapeRecrutement[]): Promise<void> {
-    await update.mutateAsync(toUpdatePayload(nouvellesEtapes)).catch(() => undefined)
+    await update.mutateAsync(toUpdatePayload(nouvellesEtapes))
   }
 
   async function reorderEtapes(nouvellesEtapes: EtapeRecrutement[]): Promise<void> {
@@ -139,7 +137,7 @@ export function useEtapesRecrutement(params: EtapesRecrutementType) {
   }
 
   async function resetEtapes(): Promise<void> {
-    await init.mutateAsync().catch(() => undefined)
+    await init.mutateAsync()
   }
 
   return {

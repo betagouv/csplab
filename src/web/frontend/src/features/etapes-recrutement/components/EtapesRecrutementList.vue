@@ -2,7 +2,8 @@
 import type { EtapesRecrutementType } from '../composables/useEtapesRecrutement'
 import type { EtapesListeTexts } from '../constants/etape-recrutement'
 import type { EtapeRecrutement } from '../types'
-import { ref, watch } from 'vue'
+import { ref } from 'vue'
+import { ValidationError } from '@/api/errors'
 import CspAsyncSection from '@/components/base/CspAsyncSection/CspAsyncSection.vue'
 import CspBadge from '@/components/base/CspBadge/CspBadge.vue'
 import CspButton from '@/components/base/CspButton/CspButton.vue'
@@ -41,16 +42,19 @@ const showSkeleton = useMinimumPending(loading)
 
 const { addToast } = useToast()
 
-watch(error, (err) => {
-  if (!err) {
-    return
+function toastFailure(title: string, failure: unknown): void {
+  const reason = failure instanceof ValidationError ? failure.fieldErrors.error?.[0] : undefined
+  addToast({ variant: 'error', title, description: reason })
+}
+
+async function handleReorder(nouvellesEtapes: EtapeRecrutement[]): Promise<void> {
+  try {
+    await reorderEtapes(nouvellesEtapes)
   }
-  addToast({
-    variant: 'error',
-    title: 'Erreur',
-    description: 'Une erreur est survenue. Veuillez réessayer.',
-  })
-})
+  catch (reorderError) {
+    toastFailure('Le déplacement de l\'étape a échoué', reorderError)
+  }
+}
 
 type ModalMode = 'add' | 'add-at' | 'rename'
 
@@ -64,6 +68,12 @@ const modalTitle: Record<ModalMode, string> = {
   'add': 'Ajouter une étape',
   'add-at': 'Ajouter une étape',
   'rename': 'Renommer l\'étape',
+}
+
+const modalFailureTitle: Record<ModalMode, string> = {
+  'add': 'L\'ajout de l\'étape a échoué',
+  'add-at': 'L\'ajout de l\'étape a échoué',
+  'rename': 'Le renommage de l\'étape a échoué',
 }
 
 const deleteModalOpen = ref(false)
@@ -81,15 +91,25 @@ async function handleDeleteConfirm() {
     return
   }
 
-  await removeEtape(deleteEtapeUuid.value)
-  deleteModalOpen.value = false
+  try {
+    await removeEtape(deleteEtapeUuid.value)
+    deleteModalOpen.value = false
+  }
+  catch (deletionError) {
+    toastFailure('La suppression de l\'étape a échoué', deletionError)
+  }
 }
 
 const resetModalOpen = ref(false)
 
 async function handleResetConfirm() {
-  await resetEtapes()
-  resetModalOpen.value = false
+  try {
+    await resetEtapes()
+    resetModalOpen.value = false
+  }
+  catch (resetError) {
+    toastFailure('La réinitialisation des étapes a échoué', resetError)
+  }
 }
 
 function openAddModal() {
@@ -122,17 +142,21 @@ async function handleModalConfirm() {
     return
   }
 
-  if (modalMode.value === 'add') {
-    await addEtape(nom)
+  try {
+    if (modalMode.value === 'add') {
+      await addEtape(nom)
+    }
+    else if (modalMode.value === 'add-at' && modalInsertIndex.value !== null) {
+      await addEtapeAt(nom, modalInsertIndex.value)
+    }
+    else if (modalMode.value === 'rename' && modalEtapeUuid.value) {
+      await renameEtape(modalEtapeUuid.value, nom)
+    }
+    modalOpen.value = false
   }
-  else if (modalMode.value === 'add-at' && modalInsertIndex.value !== null) {
-    await addEtapeAt(nom, modalInsertIndex.value)
+  catch (saveError) {
+    toastFailure(modalFailureTitle[modalMode.value], saveError)
   }
-  else if (modalMode.value === 'rename' && modalEtapeUuid.value) {
-    await renameEtape(modalEtapeUuid.value, nom)
-  }
-
-  modalOpen.value = false
 }
 
 function getMenuSections(
@@ -235,7 +259,7 @@ function getMenuSections(
           :get-item-variant="(etape) => isEtapeLocked(etape) ? 'alt' : 'default'"
           show-position
           handle-placement="gutter"
-          @reorder="reorderEtapes"
+          @reorder="handleReorder"
         >
           <template #header>
             <span class="etapes-list__header-ordre">Ordre</span>
