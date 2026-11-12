@@ -63,15 +63,7 @@ const courante = computed(() => etapes.value.find(e => e.etat === 'courant'))
   flex-direction: column;
   gap: var(--csp-space-2);
   min-width: 0;
-  text-align: center;
-
-  &:first-child {
-    text-align: left;
-  }
-
-  &:last-child {
-    text-align: right;
-  }
+  text-align: left;
 }
 
 .cycle__barre {
