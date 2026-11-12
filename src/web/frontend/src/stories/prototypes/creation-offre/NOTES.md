@@ -683,3 +683,10 @@ Tout est local au prototype (aucun composant `Csp*` partagé modifié).
 - **Action à faire** (point de vue de la personne qui suit l'offre) : Demander la validation / Compléter l'offre · « Attendre : Bureau … » (simple mention) · Corriger l'offre · Publier · Prolonger (fin dans N j) ou « N nouvelles candidatures » · Archiver.
 - Colonnes par défaut : Intitulé (prend la place restante, sur plusieurs lignes), Référence CSP (« - » tant que l'offre n'est pas publiée), Statut, Fin de publication (date courte), Dernière activité, Action à faire. « Début », fiche, catégorie, postes, origine restent disponibles via « Colonnes ».
 - Compteurs du tableau de bord alignés sur ces statuts.
+
+## Itération 17 — En-tête de l'offre (maquette d'Alice)
+
+- Plus de badges de statut dans l'en-tête : l'étape est donnée par l'indicateur juste dessous.
+- Infos de l'offre en pastilles grises (création, lieu, organisme, catégorie, postes).
+- Indicateur d'étape : barre segmentée dans un cadre ; segments et libellés en bleu jusqu'à l'étape en cours (en gras), en gris ensuite ; détail après « • » (ex. « Publiée • jusqu'au 16/11/2026 »).
+- Aperçu candidat : bouton icône (œil) avec infobulle, même taille que le menu « … ».

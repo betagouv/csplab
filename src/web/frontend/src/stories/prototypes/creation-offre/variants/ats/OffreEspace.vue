@@ -177,7 +177,9 @@ const FREQ = [
     :retour="{ to: '/offres', label: 'Retour aux offres d\'emploi' }"
   >
     <template #meta>
-      <CspMetaList :items="meta" />
+      <div class="meta">
+        <CspMetaList :items="meta" />
+      </div>
     </template>
     <template #actions>
       <span
@@ -193,10 +195,10 @@ const FREQ = [
         <template v-else>Enregistrement automatique</template>
       </span>
       <CspButton
-        label="Aperçu candidat"
-        variant="secondary"
         icon="ri:eye-line"
-        is-icon-left
+        variant="tertiary"
+        aria-label="Aperçu candidat"
+        title="Aperçu candidat"
         @click="panneau = 'apercu'"
       />
       <CspDropdownMenu
@@ -651,6 +653,24 @@ const FREQ = [
 </template>
 
 <style scoped lang="scss">
+.meta :deep(.csp-meta-list) {
+  flex-wrap: wrap;
+  gap: var(--csp-space-2);
+}
+
+.meta :deep(.csp-meta-list__item) {
+  padding: 2px var(--csp-space-3);
+  border-radius: 1rem;
+  background: var(--background-contrast-grey);
+  color: var(--text-default-grey);
+
+  &::before,
+  &::after {
+    content: none;
+    display: none;
+  }
+}
+
 .encart {
   &--action {
     border-top: 3px solid var(--border-plain-blue-france);
