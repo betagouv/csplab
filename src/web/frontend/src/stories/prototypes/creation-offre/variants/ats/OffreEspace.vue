@@ -26,7 +26,7 @@ import OrigineBadge from './OrigineBadge.vue'
 import PageAts from './PageAts.vue'
 import ResumeValidation from './ResumeValidation.vue'
 import SectionOffre from './SectionOffre.vue'
-import { archiverOffre, arreterSupport, aujourdhui, CANAUX_DIFFUSION, dateLongue, db, heure, joursRestants, le, maintenant, plusJours, plusUnMois, prolonger, retirer, sauvegarder, session, signalerModification, UTILISATEUR, validationManquante, VALIDEUR_DEMO } from './store'
+import { archiverOffre, arreterSupport, aujourdhui, aValiderParMoi, CANAUX_DIFFUSION, dateLongue, db, heure, joursRestants, le, maintenant, plusJours, plusUnMois, prolonger, retirer, sauvegarder, signalerModification, UTILISATEUR, validationManquante } from './store'
 
 // Page unique de l'offre : on y arrive en créant l'offre et on y revient pour la suivre.
 // En haut : résumé pour la validation et encart de l'étape en cours (demander la validation, publier…).
@@ -38,12 +38,12 @@ const { aller, notifier } = useNav()
 
 const o = computed(() => db.offres.find(x => x.id === props.id)!)
 const f = computed(() => db.fiches.find(x => x.id === o.value.ficheId)!)
-// Vue « valideur » : lecture seule seulement pour une offre qu'il a à valider (demande envoyée, il fait partie
-// des valideurs). Une offre qu'il crée lui-même reste modifiable normalement.
-const valideur = computed(() => session.role === 'valideur'
-  && o.value.validationEtat !== 'non_demandee'
-  && (o.value.validations ?? []).some(v => v.valideurs.includes(VALIDEUR_DEMO)))
-const modifiable = computed(() => !valideur.value && (o.value.etat === 'brouillon' || o.value.etat === 'publiee'))
+// Vue « valideur » : l'offre a été créée par un collègue et le compte connecté doit la valider.
+// Tout est en lecture seule ; ses boutons Valider / Refuser sont dans l'encart du haut.
+const valideur = computed(() => aValiderParMoi(o.value))
+// Offre d'un collègue : consultable seulement, avant comme après la réponse du valideur.
+const lectureSeule = computed(() => Boolean(o.value.creePar) && o.value.creePar !== UTILISATEUR)
+const modifiable = computed(() => !lectureSeule.value && (o.value.etat === 'brouillon' || o.value.etat === 'publiee'))
 const manques = computed(() => manquesPublication(o.value))
 const prete = computed(() => o.value.etat === 'brouillon' && !manques.value.length && !validationManquante(o.value))
 const peutPublier = computed(() => db.organisme.agents.find(a => a.nom === UTILISATEUR)?.publier)
@@ -334,7 +334,7 @@ const FREQ = [
           >
             <BlocValidation :offre="o" />
             <div
-              v-if="!valideur"
+              v-if="!lectureSeule"
               class="actions"
             >
               <DemandeValidation
@@ -348,12 +348,12 @@ const FREQ = [
             v-else-if="o.validationEtat === 'en_attente'"
             class="encart"
             titre="Validation en cours"
-            :description="valideur ? `Demandée ${le(o.validationDemandeeLe)} par ${UTILISATEUR}. Consultez l'offre et le résumé pour la validation, puis donnez votre réponse.` : `Demandée ${le(o.validationDemandeeLe)}. Vous pouvez continuer à modifier l'offre en attendant.`"
+            :description="valideur ? `Demandée ${le(o.validationDemandeeLe)} par ${o.creePar}. Consultez l'offre et le résumé pour la validation, puis donnez votre réponse.` : `Demandée ${le(o.validationDemandeeLe)}. Vous pouvez continuer à modifier l'offre en attendant.`"
           >
             <BlocValidation
               :offre="o"
               simulation
-              :moi="valideur ? VALIDEUR_DEMO : undefined"
+              :moi="valideur ? UTILISATEUR : undefined"
             />
           </Panel>
 
@@ -379,7 +379,7 @@ const FREQ = [
               >
                 {{ m.label }}
                 <button
-                  v-if="!valideur"
+                  v-if="!lectureSeule"
                   type="button"
                   class="lien"
                   @click="allerA(m.etape)"
@@ -389,7 +389,7 @@ const FREQ = [
               </li>
             </ul>
             <div
-              v-if="!valideur"
+              v-if="!lectureSeule"
               class="actions"
             >
               <DemandeValidation
@@ -538,7 +538,7 @@ const FREQ = [
         id="annonce"
         v-model:ouvert="ouverts.annonce"
         titre="Annonce"
-        :description="valideur ? 'Lecture seule : seule la personne qui suit l\'offre peut la modifier.' : o.etat === 'publiee' ? 'Offre en ligne : vos modifications sont visibles tout de suite par les candidats.' : undefined"
+        :description="lectureSeule ? `Lecture seule : seule la personne qui suit l'offre (${o.creePar}) peut la modifier.` : o.etat === 'publiee' ? 'Offre en ligne : vos modifications sont visibles tout de suite par les candidats.' : undefined"
       >
         <template #intro>
           <p class="source">
@@ -572,7 +572,7 @@ const FREQ = [
         id="validation"
         v-model:ouvert="ouverts.validation"
         titre="Validation pour publication"
-        :description="valideur ? 'Lecture seule : ce résumé est repris de l\'annonce. Donnez votre réponse en haut de la page.' : undefined"
+        :description="valideur ? 'Lecture seule : ce résumé est repris de l\'annonce. Donnez votre réponse en haut de la page.' : lectureSeule ? 'Lecture seule.' : undefined"
       >
         <template #intro>
           <p class="source">

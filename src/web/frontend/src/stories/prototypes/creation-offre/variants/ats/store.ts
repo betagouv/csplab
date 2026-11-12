@@ -68,6 +68,8 @@ export interface Offre {
   etat: EtatOffre
   origineContenu: OrigineContenu
   sourceOffreId?: string
+  /** Personne qui a créé l'offre (par défaut, le compte connecté). */
+  creePar?: string
 
   // Suivi interne — jamais publié, saisi dans l'annonce (encadrés gris). Les données de contexte ne sont jamais recopiées.
   referenceInterne: string
@@ -296,6 +298,24 @@ function fichesInitiales(): Fiche[] {
     },
     {
       ...base,
+      id: 'FP-SG-2026-011',
+      intitule: 'Juriste marchés publics',
+      service: 'Secrétariat général — Pôle juridique',
+      localisation: 'Toulouse (31)',
+      categories: ['A'],
+      statuts: ['titulaire', 'contractuel'],
+      codePoste: 'SG-JUR-03',
+      missions: 'Sécuriser la commande publique de la direction : conseil aux services, rédaction des pièces de marché, suivi des procédures et des précontentieux.',
+      activites: ['Conseiller les services acheteurs', 'Rédiger les pièces administratives des marchés', 'Analyser les offres avec les services', 'Suivre les précontentieux'],
+      competences: ['Droit de la commande publique', 'Rédaction juridique', 'Analyse des offres'],
+      profil: 'Juriste de formation, expérience en commande publique appréciée.',
+      environnement: 'Pôle juridique de 4 personnes.',
+      origine: 'ats',
+      modifieLe: '5 novembre 2026',
+      historique: [{ date: '5 novembre 2026', texte: 'Fiche créée dans l\'ATS par Julien Lefèvre' }],
+    },
+    {
+      ...base,
       id: 'FP-DOC-2026-002',
       intitule: 'Chef·fe de projet numérique',
       service: 'Secrétariat général — Pôle numérique',
@@ -420,9 +440,62 @@ function socle() {
 const BUDGET: GroupeValidation = { nom: 'Bureau budget', valideurs: ['Anne Dubois', 'Paul Martin'] }
 const RECRUTEMENT: GroupeValidation = { nom: 'Bureau recrutement', valideurs: ['Claire Morel'] }
 
+/**
+ * Offre « Juriste marchés publics » créée par un collègue, que Camille Moreau (le compte connecté) doit valider.
+ * Remise à cet état à chaque chargement du prototype, pour pouvoir rejouer la validation.
+ */
+function offreJuriste(): Offre {
+  return {
+    ...socle(),
+    id: 'OFF-2026-0153',
+    ficheId: 'FP-SG-2026-011',
+    etat: 'brouillon',
+    origineContenu: 'fiche',
+    creePar: 'Julien Lefèvre',
+    equipe: [{ nom: 'Julien Lefèvre', role: 'Responsable' }],
+    titre: 'Juriste marchés publics',
+    categorie: 'A',
+    statutPoste: 'Poste vacant',
+    metier: '',
+    presentation: 'Au sein du pôle juridique, vous sécurisez les achats de la DREAL Occitanie et accompagnez les services dans leurs projets.',
+    missions: '- Conseiller les services acheteurs\n- Rédiger les pièces administratives des marchés\n- Analyser les offres avec les services\n- Suivre les précontentieux',
+    profil: 'Juriste de formation, vous avez une première expérience en commande publique.',
+    competences: ['Droit de la commande publique', 'Rédaction juridique', 'Analyse des offres'],
+    lieu: 'Toulouse (31)',
+    remuneration: 'Selon expérience, grille indiciaire de catégorie A',
+    teletravail: '2 jours par semaine',
+    dateVacance: J(45),
+    nbPostes: '1',
+    motifRecrutement: 'Création de poste',
+    codePoste: 'SG-JUR-03',
+    groupeRifseep: 'Groupe 3',
+    commentaireValideurs: 'Création validée au dialogue de gestion 2026 ; poste financé sur le BOP 217.',
+    validationEtat: 'en_attente',
+    validationDemandeeLe: dateLongue(J(-2)),
+    validations: [
+      { ...BUDGET, decision: 'accord', par: 'Paul Martin', le: dateLongue(J(-1)) },
+      { nom: 'Pôle juridique', valideurs: [UTILISATEUR], decision: 'attente' },
+    ],
+    creeLe: '5 novembre 2026',
+    modifieLe: 'Hier, 11:20',
+    historique: [
+      { date: '5 novembre 2026', texte: 'Offre créée par Julien Lefèvre depuis la fiche FP-SG-2026-011' },
+      { date: 'Avant-hier', texte: 'Validation demandée (Bureau budget, Pôle juridique)' },
+      { date: 'Hier, 11:20', texte: 'Accord du Bureau budget (Paul Martin)' },
+    ],
+  } as Offre
+}
+
+/** Offre que le compte connecté doit valider : créée par quelqu'un d'autre, validation demandée, il fait partie des valideurs. */
+export function aValiderParMoi(o: Offre): boolean {
+  return Boolean(o.creePar) && o.creePar !== UTILISATEUR && o.validationEtat === 'en_attente'
+    && (o.validations ?? []).some(v => v.decision === 'attente' && v.valideurs.includes(UTILISATEUR))
+}
+
 function offresInitiales(f: Fiche[]): Offre[] {
   const fiche = (id: string) => f.find(x => x.id === id)!
   return [
+    offreJuriste(),
     {
       ...socle(),
       ...contenuDepuisFiche(fiche('FP-SG-2026-007')),
@@ -592,7 +665,7 @@ export function contenuDepuisFiche(f: Fiche): Pick<Offre, 'titre' | 'categorie' 
 
 // --- Stockage de session ---
 
-const CLE = 'csplab-proto-ats-v12'
+const CLE = 'csplab-proto-ats-v13'
 
 interface Base { fiches: Fiche[], offres: Offre[], organisme: Organisme, role: 'recruteur' | 'superviseur' }
 
@@ -636,9 +709,16 @@ function initial(): Base {
 
 export const db = reactive(lire() ?? initial())
 
-/** Qui regarde l'offre (démonstration) : la personne qui la suit, ou un valideur (lecture seule). */
-export const session = reactive({ role: 'demandeur' as 'demandeur' | 'valideur' })
-export const VALIDEUR_DEMO = 'Claire Morel'
+// À chaque chargement, l'offre « Juriste marchés publics » redevient « à valider par Camille ».
+{
+  const i = db.offres.findIndex(o => o.id === 'OFF-2026-0153')
+  if (i >= 0) {
+    db.offres.splice(i, 1, offreJuriste())
+  }
+  else {
+    db.offres.unshift(offreJuriste())
+  }
+}
 
 export function sauvegarder() {
   try {

@@ -704,3 +704,10 @@ Tout est local au prototype (aucun composant `Csp*` partagé modifié).
 - La zone au-dessus des sections ne résume plus que l'**étape en cours** (brouillon, validation en cours, prête à publier, en ligne…).
 - Simulation des réponses des valideurs : regroupée dans un seul encadré violet replié « Simuler la réponse des valideurs (proto) ».
 - **Vue du valideur** (story 6 bis, Claire Morel) : toute l'offre en lecture seule (champs verrouillés, sections et fiche de poste consultables), résumé sans saisie, vrais boutons Valider / Refuser sur sa ligne dans l'encart « Validation en cours ».
+
+## Itération 20 — Camille valideuse sur l'offre « Juriste marchés publics »
+
+- Plus de bascule de rôle : le compte connecté reste Camille Moreau. Une offre **« Juriste marchés publics »** (OFF-2026-0153), créée par Julien Lefèvre, attend la validation du **Pôle juridique** dont Camille est valideuse (Bureau budget déjà d'accord).
+- Dans la liste, son action à faire est **« Valider ou refuser »**. Sur la page : lecture seule (offre d'un collègue), boutons Valider / Refuser sur la ligne « Pôle juridique » de l'encart.
+- **À chaque rechargement du proto**, cette offre redevient « à valider par Camille » (les autres offres gardent leur état pendant la session).
+- Story 6 bis : « Offre à valider par Camille — Juriste marchés publics ».

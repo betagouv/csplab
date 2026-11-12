@@ -4,7 +4,7 @@
 import type { Ecran } from './nav'
 import type { Offre } from './store'
 import { manquesPublication } from './aide'
-import { joursRestants, termineBientot, validationManquante } from './store'
+import { aValiderParMoi, joursRestants, termineBientot, validationManquante } from './store'
 
 export type StatutListe = 'brouillon' | 'validation_attente' | 'validation_refusee' | 'prete' | 'publiee' | 'retiree' | 'archivee'
 
@@ -39,6 +39,9 @@ export interface ActionAFaire {
 
 export function actionAFaire(o: Offre): ActionAFaire | null {
   const offre = { nom: 'offre' as const, id: o.id }
+  if (aValiderParMoi(o)) {
+    return { label: 'Valider ou refuser', ecran: offre }
+  }
   switch (statutListe(o)) {
     case 'brouillon':
       if (validationManquante(o) && o.validationEtat === 'non_demandee') {
