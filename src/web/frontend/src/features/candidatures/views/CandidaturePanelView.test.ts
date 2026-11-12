@@ -217,7 +217,7 @@ describe('candidaturePanelView', () => {
     const { router } = await renderPanel([`${KANBAN_PATH}/candidatures/${CANDIDATURE_ALICE}`])
 
     await user.click(await screen.findByRole('button', { name: 'Changer d\'étape' }))
-    expect(await screen.findByRole('radio', { name: 'Réception des candidatures (étape actuelle)' })).toBeDisabled()
+    expect(await screen.findByRole('radio', { name: /^Réception des candidatures\s*Étape actuelle$/ })).toBeDisabled()
     await user.click(screen.getByRole('radio', { name: 'Entretien' }))
     await user.click(screen.getByRole('button', { name: 'Valider' }))
 

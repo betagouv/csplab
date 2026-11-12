@@ -17,13 +17,14 @@ export function useRefusCandidature(
 
   const motifs = useQuery(() => motifsRefusQuery({ organismeUuid: toValue(organismeUuid) }))
 
+  const refusEtapeUuid = computed(() => toValue(etapes).find(etape => etape.categorie === 'REFUS')?.uuid ?? null)
+
   function moveOrAskRejectionReason(
     etapeCibleUuid: string,
     candidats: Candidat[],
     move: (motifRefus?: MotifRefus) => void,
   ): void {
-    const etapeCible = toValue(etapes).find(etape => etape.uuid === etapeCibleUuid)
-    if (etapeCible?.categorie === 'REFUS') {
+    if (etapeCibleUuid === refusEtapeUuid.value) {
       pending.value = { candidats, apply: move }
     }
     else {
@@ -42,6 +43,7 @@ export function useRefusCandidature(
   }
 
   return {
+    refusEtapeUuid,
     isOpen: computed(() => pending.value !== null),
     candidats: computed(() => pending.value?.candidats ?? []),
     motifs: computed(() => motifs.data.value ?? []),
