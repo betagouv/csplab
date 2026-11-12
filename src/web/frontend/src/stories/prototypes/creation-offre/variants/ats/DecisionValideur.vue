@@ -45,7 +45,8 @@ function envoyer() {
   if (!pret.value || indice.value < 0) {
     return
   }
-  repondre(o.value, indice.value, choix.value === 'refus' ? 'refus' : 'accord', UTILISATEUR, commentaireRequis.value ? commentaire.value.trim() : undefined, props.propositions)
+  // « Valider tel quel » : ni commentaire ni proposition.
+  repondre(o.value, indice.value, choix.value === 'refus' ? 'refus' : 'accord', UTILISATEUR, commentaireRequis.value ? commentaire.value.trim() : undefined, commentaireRequis.value ? props.propositions : [])
   sauvegarder()
   notifier(choix.value === 'refus' ? 'Refus envoyé à la personne qui rédige l\'offre.' : 'Validation envoyée.')
   emit('envoye')
@@ -96,7 +97,7 @@ function envoyer() {
         :rows="3"
       />
 
-      <div>
+      <div v-if="commentaireRequis">
         <CspDropdownMenu
           :sections="MENU"
           side="bottom"
@@ -107,8 +108,7 @@ function envoyer() {
               label="Proposer des modifications"
               variant="secondary"
               size="sm"
-              icon="ri:edit-line"
-              is-icon-left
+              icon="ri:arrow-down-s-line"
             />
           </template>
         </CspDropdownMenu>
@@ -118,7 +118,7 @@ function envoyer() {
       </div>
 
       <div
-        v-if="propositions.length"
+        v-if="commentaireRequis && propositions.length"
         class="decision__props"
       >
         <template v-if="propositions.length">

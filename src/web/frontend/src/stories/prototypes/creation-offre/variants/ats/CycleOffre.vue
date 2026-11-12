@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { Offre } from './store'
 import { computed } from 'vue'
+import { manquesPublication } from './aide'
 import { db } from './store'
 
 // Où en est l'offre, d'après la maquette d'Alice : barre segmentée dans un cadre, purement informative.
@@ -12,13 +13,21 @@ const etapes = computed(() => {
   const o = props.offre
   const avecValidation = db.organisme.validationActive || o.validationEtat !== 'non_demandee'
   const rang = { brouillon: 0, publiee: 2, retiree: 3, archivee: 4 }[o.etat]
+  // Validation obtenue sur un brouillon : l'étape est terminée, l'offre attend d'être publiée.
+  const validee = o.etat === 'brouillon' && o.validationEtat === 'validee'
   const validation = avecValidation
-    ? [{ id: 'validation', label: 'Validation', detail: { non_demandee: 'à demander', en_attente: 'en attente', validee: 'obtenue', refusee: 'refusée' }[o.validationEtat], fait: rang > 0, courant: o.etat === 'brouillon' && o.validationEtat !== 'non_demandee' }]
+    ? [{ id: 'validation', label: 'Validation', detail: { non_demandee: 'à demander', en_attente: 'en attente', validee: 'obtenue', refusee: 'refusée' }[o.validationEtat], fait: rang > 0 || validee, courant: o.etat === 'brouillon' && o.validationEtat !== 'non_demandee' && !validee }]
     : []
   return [
     { id: 'brouillon', label: 'Brouillon', detail: '', fait: rang > 0 || (avecValidation && o.validationEtat !== 'non_demandee'), courant: o.etat === 'brouillon' && (!avecValidation || o.validationEtat === 'non_demandee') },
     ...validation,
-    { id: 'publiee', label: 'Publiée', detail: o.dateFin && o.etat === 'publiee' ? `jusqu'au ${o.dateFin.split('-').reverse().join('/')}` : '', fait: rang > 2, courant: rang === 2 },
+    {
+      id: 'publiee',
+      label: validee && !manquesPublication(o).length ? 'Prête à publier' : 'Publiée',
+      detail: o.dateFin && o.etat === 'publiee' ? `jusqu'au ${o.dateFin.split('-').reverse().join('/')}` : validee && manquesPublication(o).length ? 'annonce à compléter' : '',
+      fait: rang > 2,
+      courant: rang === 2 || validee,
+    },
     { id: 'retiree', label: 'Retirée', detail: '', fait: rang > 3, courant: rang === 3 },
     { id: 'archivee', label: 'Archivée', detail: '', fait: false, courant: rang === 4 },
   ].map(e => ({ ...e, etat: e.courant ? 'courant' : e.fait ? 'fait' : 'avenir' }))
